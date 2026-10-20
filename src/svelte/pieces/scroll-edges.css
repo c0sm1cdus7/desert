@@ -1,0 +1,22 @@
+/* Renderer-owned chrome decoration, composed over the existing native viewport.
+   No filtering of controls, no new scroll owner, tab stops or pointer targets. */
+@layer components {
+  :root { --scroll-edge-shade:rgb(0 0 0 / .24); }
+  [data-scroll-owner] { position:relative; --scroll-edge-feather:32px; }
+  [data-surface-slot="content"] { scroll-padding-block:var(--scroll-edge-feather); }
+  /* Isolate decoration from layout even before the next resize measurement. */
+  [data-scroll-edges] { position:absolute; inset:0; overflow:clip; pointer-events:none; z-index:1; }
+  [data-scroll-edge] { position:absolute; z-index:1; pointer-events:none; --edge-direction:to bottom; }
+  [data-scroll-edge="bottom"] { --edge-direction:to top; }
+  [data-scroll-edge][data-active="false"] { visibility:hidden; }
+  /* One shadow, mirrored by direction. Page boundaries are not glass surfaces. */
+  [data-scroll-edge]::after {
+    content:""; position:absolute; inset:0; opacity:var(--edge-strength);
+    background:linear-gradient(var(--edge-direction),var(--scroll-edge-shade) var(--edge-core),transparent);
+  }
+  /* The framed toolbar slots never scroll or sit underneath their own material. */
+  [data-surface-frame] > [data-toolbar], [data-surface-frame] > form > [data-toolbar] { position:relative; z-index:2; }
+  @media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
+    [data-scroll-edge]::after { background:linear-gradient(var(--edge-direction),var(--background) var(--edge-core),transparent); }
+  }
+}

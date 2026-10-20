@@ -1,0 +1,39 @@
+/* One material law. Shape and behavior belong to components, not this role.
+   Interiors, images, selection marks, separators and focus/error outlines are
+   not independent panes. Nesting is the only source of material compounding. */
+:root {
+  --pane-fill:color-mix(in oklab,var(--background) 88%,transparent);
+  --pane-filter:blur(24px);
+  --pane-border:var(--border);
+}
+@media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
+  :root { --pane-fill:var(--background); --pane-filter:none; }
+}
+@media (prefers-contrast:more) { :root { --pane-border:var(--foreground); } }
+[data-material="pane"] {
+  background-color:var(--pane-fill); background-image:none;
+  border:1px solid var(--pane-border); box-shadow:none;
+  -webkit-backdrop-filter:var(--pane-filter); backdrop-filter:var(--pane-filter);
+}
+[data-material="interior"] {
+  background-color:transparent; background-image:none;
+  box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none;
+}
+/* Reset the perimeter below geometry utilities so semantic row dividers survive. */
+@layer components { [data-material="interior"] { border:0; } }
+/* Disabled state belongs to content. The pane and its boundary never fade.
+   FieldWell's row is one content unit, including the compound currency part. */
+[data-slot="field"][data-disabled="true"] .field-well > *,
+:is(button,a)[data-material]:not([data-choice-row]):is(:disabled,[aria-disabled="true"]) > [data-button-content] {
+  opacity:var(--disabled-opacity);
+}
+[data-slot="field"][data-disabled="true"] .field-well :is([data-slot="field-label"],[data-slot="input-group-control"],[data-slot="input-group-addon"]),
+[data-slot="field"][data-disabled="true"] .field-well [data-button-content] { opacity:1; }
+:is(input,textarea)[data-material="pane"]:disabled { color:var(--muted-foreground); }
+/* Invalidity is additional semantic ink, never a different material perimeter. */
+[data-slot="field"][data-invalid="true"] > .field-well,
+[data-slot="input-group"]:has([aria-invalid="true"]) {
+  outline:2px solid var(--destructive); outline-offset:2px;
+}
+[data-slot="field"][data-invalid="true"] > .field-well:has(:focus-visible),
+[data-slot="input-group"]:has([aria-invalid="true"]):has(:focus-visible) { outline-color:var(--ring); }

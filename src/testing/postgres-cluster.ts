@@ -1,0 +1,39 @@
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, mkdirSync, rmSync } from "node:fs";
+import { join } from "node:path";
+import { Pool } from "pg";
+
+export function postgresCluster() {
+  const bin = process.env.DESERT_PG_BIN ?? execFileSync("pg_config", ["--bindir"], { encoding: "utf8" }).trim();
+  const root = mkdtempSync("/tmp/desert-pg-");
+  const data = join(root, "data");
+  const socket = join(root, "socket");
+  mkdirSync(socket, { mode: 0o700 });
+  const run = (name: string, args: string[]) => execFileSync(join(bin, name), args, { stdio: "pipe" });
+  let running = false;
+  function start() {
+    if (running) return;
+    run("pg_ctl", ["-D", data, "-l", join(root, "postgres.log"), "-o", `-k ${socket} -h ''`, "-w", "start"]);
+    running = true;
+  }
+  function stop() {
+    if (running) run("pg_ctl", ["-D", data, "-m", "fast", "-w", "stop"]);
+    running = false;
+  }
+  try {
+    run("initdb", ["-D", data, "-U", "desert", "--auth-local=trust", "--auth-host=reject", "--no-locale", "--encoding=UTF8"]);
+    start();
+  } catch (error) { stop(); rmSync(root, { recursive: true }); throw error; }
+  let sequence = 0;
+  return {
+    start, stop,
+    version: () => run("postgres", ["--version"]).toString().trim(),
+    async database() {
+      const database = `case_${++sequence}`;
+      const admin = new Pool({ host: socket, user: "desert", database: "postgres" });
+      try { await admin.query(`CREATE DATABASE ${database}`); } finally { await admin.end(); }
+      return { socketDirectory: socket, user: "desert", database };
+    },
+    dispose() { stop(); rmSync(root, { recursive: true }); },
+  };
+}

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://www.shadcn-svelte.com/schema.json",
+  "style": "nova",
+  "tailwind": { "css": "src/svelte/theme.css", "baseColor": "slate" },
+  "aliases": {
+    "components": "@desert/svelte/vendor/components",
+    "utils": "@desert/svelte/vendor/utils",
+    "ui": "@desert/svelte/vendor/components/ui",
+    "hooks": "@desert/svelte/vendor/hooks",
+    "lib": "@desert/svelte/vendor"
+  },
+  "typescript": true,
+  "registry": "https://www.shadcn-svelte.com/registry",
+  "iconLibrary": "lucide"
+}

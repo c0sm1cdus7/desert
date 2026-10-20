@@ -1,0 +1,208 @@
+{
+  "source": "/Users/francoaltuna/void/vendor/tpa-sdk/engine/framework/packages/design-system",
+  "version": "0.6.0-rc.6",
+  "transformation": "Original source hashes below are provenance, not current-file hashes; shared DESERT adaptations are recorded separately.",
+  "localAdaptations": {
+    "pickerComposition": "Picker Dialog titles use the shared title role. Single-choice list options and radio groups share a decorative radio mark without nesting interactive controls. The Calendar picker presentation fits its owning panel's content box, with square day faces and retained local grid scrolling at enlarged text. Select labels still precede decorative faces in DOM order for Bits typeahead.",
+    "fieldDescription": "Shared field guidance uses the caption role, subordinate to labels and edited values. Product and catalog use the same helper typography; associations, errors and announcements are unchanged. Fieldsets allow intrinsic shrinking; legends wrap inside their owner. Screen-reader-only labels retain their one-pixel geometry instead of inheriting the visible label's fit-content width, preventing page overflow at enlarged text without removing accessible names.",
+    "sidebar": "The provider measures available containing space against the CSS-resolved sidebar width plus an explicit content reading budget; presentation is docked or overlay, not a device classification. The unused IsMobile hook was removed; its registry retrieval below remains historical provenance. Shared trigger semantics, hidden-panel inertness and focus handoff preserve keyboard navigation across collapse and presentation changes. Default MenuButton composes Button for hover, held feedback and keyboard focus; custom children share its press attachment. Overlay navigation composes the same Dialog.Content panel as task transients, with only edge and width changed. Edge reveal previews that actual panel without accepting focus or modality until release. Shell header/footer composition remains outside the vendor foundation.",
+    "button": "Canonical typography and hit targets, content-only pointer/keyboard press feedback, shared row and field variants. Approved v117 S1 replaces tinted action fills with the shared pane role: neutral 88% background, blur(24px) only and one 1px perimeter. Primary and destructive meanings belong to foreground and weight. Hover never adds a material overlay; disabled dims the content once, not the pane. Ghost/link/row/field/grip are transparent interiors. The grip preserves a transparent 44px hit area while feedback belongs to its slim visible mark.",
+    "calendarToolbar": "An optional renderer header snippet executes inside the Calendar context so shared Toolbar chrome can compose native Previous/Next controls without duplicating date or min/max logic. Date pickers use their visible month/year as the sole visual title. Navigation wrappers respect supplied accessible labels and button materials; selected/today day faces share the action material. Inline calendar composition remains available.",
+    "card": "Card supplies group geometry and the shared pane role, with one perimeter and no independent fill/filter/shadow recipe. Card Title/Description retain renderer type roles. Footer, Separator and transparent sibling rows use the separator token. Titled Stacks remain transparent; they never manufacture an additional pane.",
+    "badge": "Closed semantic tones use the same neutral pane as other independent surfaces. Status meaning belongs to contrast-aware foreground text, never variant fills or product color overrides.",
+    "tokens": "The approved Tres Marias/shadcn source remains provenance, not current visual authority. Owner-approved v117 S1 centralizes demonstrated pane owners in pieces/pane-material.css: neutral 88% background, blur(24px) only, one shared 1px perimeter. Reduced transparency/increased contrast change that recipe once. Physical nesting alone compounds material; component state does not. Catalog profile owns geometry only. Face imagery, selection marks, separators and semantic outlines remain distinct from pane material. Unused vendor Tooltip is outside this qualified pass.",
+    "field": "Shared FieldWellContent and field-well geometry keep TextInput, Select and Money labels/values aligned. A dedicated field-caption role preserves their approved 62px base well geometry while ordinary compact text enlarges independently. Text and Money retain InputGroup; a standalone Select Trigger owns its entire well through the shared Button well variant, including label, padding, value and chevron. Currency prefixes remain independent compact triggers. One Button content layer supplies press motion without click relays or nested controls.",
+    "choices": "Checkbox and RadioGroup share a semantic choice-outline token distinct from decorative borders, including unchecked group-focus states. Checked selectors target data-state=checked, the attributes emitted by the pinned Bits UI 2.19.2. Selection and keyboard semantics are retained.",
+    "calendar": "A shared local grid viewport preserves seven readable columns at enlarged text sizes and reveals focused days on its horizontal axis. Month caption and navigation remain outside that viewport and reflow at constrained widths. Native Bits date, selection and arrow-key behavior remain authoritative; no reduced font size or page-wide horizontal scrolling is introduced.",
+    "avatar": "Closed person/object shapes share a root-owned subtly tinted secondary background and unblended border in every image/fallback state. One shared face treatment uses the current accent, with warning/error tone overrides and an undiluted increased-contrast border. Fallbacks expose that fill; images inherit the face radius without recoloring. Muted and semantic foregrounds are preserved. The initials prop selects a shared compact type role for 3–4-letter monograms without truncating; adjacent full names retain body size and own accessible meaning. Their duplicate media face is decorative.",
+    "overlays": "Dialog retains typed-frame presentation and DESERT gesture physics, a documented custom extension rather than a claimed Vaul implementation. Dialogs and drawers share entrance/exit timing with presentation-specific geometry and reduced-motion behavior. Drag feedback follows the pointer and dismissal is decided on release; cancellation and layout changes reset the gesture. Drawer presentation fits readable pane plus visible context inside its launch surface, not a device category. Message Title and Description label the centered frame without duplicate metadata. Dialog and Sheet scrims dim without blurring reading layers; actual panes own glass. Contextual Popover remains nonmodal and anchored; Select and Date compose an adaptive sheet separately.",
+    "selection": "Bits Select Root/Group/Item commits activated choices directly when an anchored panel fits its launch surface. Otherwise the same options compose installed roving choices inside the shared content-sized bottom sheet. Date uses the same presentation policy and whole-well trigger. Owner values, requiredness, bounds, disabled options and focus return remain authoritative; no staged confirmation is added. Money can render its selected symbol as muted unboxed text while preserving option Faces. Currency changes retain the lexical amount and require exact representability, without rounding or FX conversion.",
+    "feedback": "Spinner inherits currentColor, including passive availability/unread consumers: loading adds no independent accent. Button's visual-only spin prop rotates marked icons with the shared animation utility; Action uses its ordinary icon path for the pending loader, keeping the button's foreground, disabled behavior and geometry. Reduced motion remains authoritative. Empty supplies the same known-empty/unread composition in product and catalog."
+  },
+  "additionalRegistrySources": [{
+    "registry": "https://shadcn-svelte.com",
+    "retrieved": "2026-10-15",
+    "cliVersion": "1.7.0",
+    "command": "shadcn-svelte add sidebar --no-deps --yes --skip-preflight",
+    "components": ["sidebar", "sheet", "tooltip", "skeleton", "is-mobile"],
+    "preserved": "Explicitly declined overwriting Input, Separator and Button. Existing compatible package versions and global theme were retained. The Apple-reference profile is owned separately by src/svelte/explorer."
+  }, {
+    "registry": "https://shadcn-svelte.com",
+    "retrieved": "2026-10-15",
+    "command": "shadcn-svelte add calendar checkbox radio-group avatar --no-deps --yes --skip-preflight",
+    "components": ["calendar", "checkbox", "radio-group", "avatar"],
+    "preserved": "Existing Button was not overwritten. Calendar actions are composed through DESERT's shared Button; registry keyboard/date semantics are retained."
+  }, {
+    "registry": "https://shadcn-svelte.com",
+    "retrieved": "2026-10-15",
+    "cliVersion": "1.7.0",
+    "command": "shadcn-svelte add dialog spinner empty --no-deps --yes --skip-preflight",
+    "components": ["dialog", "spinner", "empty"],
+    "preserved": "Explicitly declined overwriting the existing Button. Existing compatible dependencies were retained."
+  }],
+  "referenceReview": {
+    "repository": "https://github.com/tres-marias/tres-marias",
+    "branch": "kenon/framework-2026-10-14",
+    "commit": "81198c3c4a6351b3994b8731312612591315f1a0",
+    "base": "301327eda40c9472d20736412ad79919b3464cde",
+    "scope": "Header identity, field anatomy and typography were compared read-only. The reference has a partial CSS migration; no claim of a wholesale exact port or reference completeness."
+  },
+  "files": [
+    {
+      "path": "components/ui/badge/badge.svelte",
+      "sourceSha256": "464a095d31ce308953a1285c764528135354940ddbad78900a538f995ce92ff4"
+    },
+    {
+      "path": "components/ui/badge/index.ts",
+      "sourceSha256": "4f7c71f0796cf9efd24c814e11bf84a77ba7f5db703fd2ea78df1fd7115a7e7f"
+    },
+    {
+      "path": "components/ui/button/button.svelte",
+      "sourceSha256": "19d1976abebafbd01168d89bb829d64925fdf9a857a2894dedcae0309772c0a7"
+    },
+    {
+      "path": "components/ui/button/index.ts",
+      "sourceSha256": "4e905c2f263b94379318b84d5bd9ce7c547896adf424e8a9aad7fbe7e53968b2"
+    },
+    {
+      "path": "components/ui/card/card-action.svelte",
+      "sourceSha256": "f865318c04a4ff8fbcf33f955fb791b848e1b141b495eea479a6a787d0572a63"
+    },
+    {
+      "path": "components/ui/card/card-content.svelte",
+      "sourceSha256": "7a6ca90282c8672789c6df780ac1cfabb621bbc7beaf01fd6491c25c50219903"
+    },
+    {
+      "path": "components/ui/card/card-description.svelte",
+      "sourceSha256": "5adc543348973a354a53236b548fe4734eec89736f55a07e923266d4f5f07009"
+    },
+    {
+      "path": "components/ui/card/card-footer.svelte",
+      "sourceSha256": "e683b1ac90ca063dac688a42198b48ec0d3b6fe9b0083cf8c0c4b5016f9d4e47"
+    },
+    {
+      "path": "components/ui/card/card-header.svelte",
+      "sourceSha256": "4122a1b5fd7257e3fcdfb8e7ea12839c4828f3bc28c33863abcd4424b9afa29b"
+    },
+    {
+      "path": "components/ui/card/card-title.svelte",
+      "sourceSha256": "5652928401d1bf2c45e8836dd2989d6d6f3943429be7b175aff1a0a82003e4c8"
+    },
+    {
+      "path": "components/ui/card/card.svelte",
+      "sourceSha256": "517c9e660bc043762ca137ca9eac31aedf2f71b93c16118b085467d41eeab5ee"
+    },
+    {
+      "path": "components/ui/card/index.ts",
+      "sourceSha256": "1041c78b75abf118ac6a57668aef3bc32028ddd730aec85ce23d810fbf7b1ae5"
+    },
+    {
+      "path": "components/ui/field/field-content.svelte",
+      "sourceSha256": "e8f543c77c1f7aef41687c3442264a1ce7aed4318df631654668358d73da8800"
+    },
+    {
+      "path": "components/ui/field/field-description.svelte",
+      "sourceSha256": "3274e3ff89197e69072477eaccd9130e2419accd310bc6810f430e2d9f9a80f8"
+    },
+    {
+      "path": "components/ui/field/field-error.svelte",
+      "sourceSha256": "335f0f636a8a42a121211094fdcbf7c025a30e36b4baace2a50eca20e0653c30"
+    },
+    {
+      "path": "components/ui/field/field-group.svelte",
+      "sourceSha256": "acde4b7d543e85980632f40bb7737e7d026db5282da48f09ee27f6d2a7dfaf23"
+    },
+    {
+      "path": "components/ui/field/field-label.svelte",
+      "sourceSha256": "ee54a5efd7cda5c3ead38cbb54e016abc39d5fd4bfb5e1a27fe54cf0547af620"
+    },
+    {
+      "path": "components/ui/field/field-legend.svelte",
+      "sourceSha256": "cd31a1012fbb7819d609be1f8ba0724510431cce1153df14d9cf6c173b6988cc"
+    },
+    {
+      "path": "components/ui/field/field-separator.svelte",
+      "sourceSha256": "fccfe31dafc58e92f83f9b90d9c8d94ce3fe8785873d475da5af86caf4ff2a6e"
+    },
+    {
+      "path": "components/ui/field/field-set.svelte",
+      "sourceSha256": "24f6dab413c435698a020f3790d65c5187cc04b46ee509775fe744cb7fd38068"
+    },
+    {
+      "path": "components/ui/field/field-title.svelte",
+      "sourceSha256": "d4a85ef8ce21625137c72e09e14d7c40b871294f00156f47480d5ce0fab82e89"
+    },
+    {
+      "path": "components/ui/field/field.svelte",
+      "sourceSha256": "1f0f19da677fecf78231e87052e00b9085f10a9440f4a5928d8cb5a21d7f73ca"
+    },
+    {
+      "path": "components/ui/field/index.ts",
+      "sourceSha256": "de0bf6f00c6abc05839de7bc8acf374160b60110ae257ced1f9eebdbf25166bb"
+    },
+    {
+      "path": "components/ui/input/index.ts",
+      "sourceSha256": "cb54dd7fd87795093e3309fed9dbfccea78cac108d7f82b1607935377efef749"
+    },
+    {
+      "path": "components/ui/input/input.svelte",
+      "sourceSha256": "5edaa28dcf7756b63237a902a9163e66b542164c1c01e9c08167f80d8f7a4d43"
+    },
+    {
+      "path": "components/ui/input-group/index.ts",
+      "sourceSha256": "c4d458bed4ebc1ea198d04b9ad63aa8b8b64e87450a3dac918ed60de82cdb45a"
+    },
+    {
+      "path": "components/ui/input-group/input-group-addon.svelte",
+      "sourceSha256": "73447af66a99032286263ae0eec7363068063679d98c2d4ff5834068032536d8"
+    },
+    {
+      "path": "components/ui/input-group/input-group-button.svelte",
+      "sourceSha256": "c145f5ad0491af3799c84129665995ecf91374d235208f71c144e7a1280ab806"
+    },
+    {
+      "path": "components/ui/input-group/input-group-input.svelte",
+      "sourceSha256": "aa15c123e16e8e23aa4cec0ea9c025e98a9fbd58b92c489ec7b320d5aaa201ab"
+    },
+    {
+      "path": "components/ui/input-group/input-group-text.svelte",
+      "sourceSha256": "0623426c05ab065a1bd0cbcddbeaf3d3e2221fbc724ce20c4ca021648fdc950d"
+    },
+    {
+      "path": "components/ui/input-group/input-group-textarea.svelte",
+      "sourceSha256": "a7dae9cb7361f823cbc37e42aebc1718e50a3d705fa383fa13c0fc38f358f4ea"
+    },
+    {
+      "path": "components/ui/input-group/input-group.svelte",
+      "sourceSha256": "b6b4723807189cdb0bab8f6b29b6ea7242d50003502312c96adc7b47b63b47d4"
+    },
+    {
+      "path": "components/ui/label/index.ts",
+      "sourceSha256": "33257314a596c4c25833be9adf64f262c51b3236b9f85a22f2c1ae696d993d8f"
+    },
+    {
+      "path": "components/ui/label/label.svelte",
+      "sourceSha256": "cafe265a42cb2aedc38ab8f547ad3a824d947200cc5fb9e9d30a7f5f7ab8ca13"
+    },
+    {
+      "path": "components/ui/separator/index.ts",
+      "sourceSha256": "19c810ef3f04d01aafa46efa140b0b426addfc635b907045b9edce847655a713"
+    },
+    {
+      "path": "components/ui/separator/separator.svelte",
+      "sourceSha256": "46aa969fff072a7e9a6429c83a39cfc3ba192d07d50b955fc314036631d4fac1"
+    },
+    {
+      "path": "components/ui/textarea/index.ts",
+      "sourceSha256": "4a7b4390760c9cdd9c55a3760450a19ca38c1782fafad9a960f1e9ccdf2921c2"
+    },
+    {
+      "path": "components/ui/textarea/textarea.svelte",
+      "sourceSha256": "bed0d69ab58d6ad60072f167bb7a4034d7eb5855373d787119e50dd64266c304"
+    },
+    {
+      "path": "utils.ts",
+      "sourceSha256": "97d136e64b4db75064bcc44f3bff64293818f504e2c29524bac813ec425a1d63"
+    }
+  ]
+}

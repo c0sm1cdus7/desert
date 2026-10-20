@@ -1,0 +1,27 @@
+import { applyControlEvent, type ControlEvent, type FileNode, type FileMetadata } from "../../interaction/control-nodes.ts";
+
+type FileEvent = Extract<ControlEvent, { kind: "files.choose" | "files.remove" }>;
+
+/** Ephemeral host-owned browser handles, never part of the interaction contract. */
+export class LocalFileHost {
+  #handles = new Map<string, File>();
+  choose(node: FileNode, files: readonly File[]) {
+    if (files.some(file => !(file instanceof File))) throw new Error("BROWSER_FILE_REQUIRED");
+    const candidates = files.map(file => ({ id: crypto.randomUUID(), name: file.name,
+      size: file.size, mediaType: file.type.toLowerCase(), lastModified: file.lastModified } satisfies FileMetadata));
+    const event: FileEvent = { kind: "files.choose", control: node.id, files: candidates };
+    const result = applyControlEvent(node, event);
+    if (result.node.kind !== "files") throw new Error("FILE_NODE_REQUIRED");
+    const accepted = new Set(result.node.files.map(file => file.id));
+    candidates.forEach((candidate, index) => { if (accepted.has(candidate.id)) this.#handles.set(candidate.id, files[index]!); });
+    return { event, result };
+  }
+  remove(node: FileNode, id: string): FileEvent {
+    const event: FileEvent = { kind: "files.remove", control: node.id, file: id };
+    applyControlEvent(node, event);
+    this.#handles.delete(id);
+    return event;
+  }
+  resolve(id: string): File | undefined { return this.#handles.get(id); }
+  dispose() { this.#handles.clear(); }
+}

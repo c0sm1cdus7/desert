@@ -1,0 +1,63 @@
+/* The application viewport clips content but never owns scroll, even when the
+   browser reveals a focused descendant. Only data-catalog-scroll may move. */
+[data-catalog-workspace] { --place-surface-inset:26px; --place-content-inset:calc(var(--place-surface-inset) + 1rem); --catalog-toolbar-height:max(44px,calc(var(--text-body--line-height) + 12px)); position:relative; height:100dvh; overflow:clip; background:var(--background); }
+[data-catalog-workspace] [data-slot="sidebar-wrapper"] { --place-leading-inset:0px; height:100%; min-height:0; }
+[data-catalog-workspace] [data-slot="sidebar-wrapper"][data-presentation="docked"][data-state="expanded"] { --place-leading-inset:var(--sidebar-width); }
+[data-catalog-workspace] [data-slot="sidebar-container"] { padding:8px 0 8px 8px; transition-timing-function:var(--ease-nav); }
+[data-catalog-workspace] [data-slot="sidebar-gap"] { transition-timing-function:var(--ease-nav); }
+[data-catalog-workspace] [data-slot="sidebar-inner"] { overflow:hidden; border-radius:var(--surface-radius); }
+[data-renderer-profile="apple-reference"][data-catalog-navigation] { display:flex; flex-direction:column; height:100%; min-height:0; background:transparent; }
+[data-catalog-navigation] { --catalog-toolbar-height:max(44px,calc(var(--text-body--line-height) + 12px)); }
+[data-catalog-navigation] .sidebar-toolbar { padding:12px; flex-shrink:0; }
+[data-catalog-navigation] .sidebar-toolbar .toolbar-row { min-height:var(--catalog-toolbar-height); gap:10px; }
+[data-product-name] { flex:1 1 0; min-width:0; font-size:var(--text-title); line-height:var(--text-title--line-height); font-weight:600; overflow-wrap:anywhere; }
+[data-catalog-navigation] [data-slot="sidebar-footer"] .toolbar-row { justify-content:flex-end; }
+[data-catalog-navigation] [data-slot="sidebar-group"] { padding:0 9px; }
+[data-catalog-navigation] [data-slot="sidebar-group"] + [data-slot="sidebar-group"] { margin-top:22px; }
+[data-catalog-navigation] [data-slot="sidebar-group-label"] { height:auto; padding:8px 10px; font:600 var(--text-caption)/var(--text-caption--line-height) var(--font-sans); color:var(--muted-foreground); }
+[data-navigation-icon] { display:grid; place-items:center; flex:0 0 auto; width:max(24px,1.75em); height:max(24px,1.75em); border-radius:6px; color:var(--primary-foreground); background:var(--primary); box-shadow:inset 0 0 0 1px rgb(255 255 255 / .16); }
+[data-navigation-icon="travel-kit"] { background:var(--chart-2); }
+[data-navigation-icon="bank"] { background:var(--muted-foreground); color:var(--background); }
+[data-navigation-drag] { touch-action:pan-y; user-select:none; }
+[data-catalog-navigation] [data-slot="sidebar-menu"] { gap:0; }
+[data-catalog-navigation] [data-slot="sidebar-menu-button"] { height:auto; min-height:32px; padding:6px 10px; gap:9px; font-size:var(--text-body); line-height:var(--text-body--line-height); font-weight:var(--text-body--font-weight); border-radius:8px; }
+[data-catalog-navigation] [data-slot="sidebar-menu-button"] :is([data-button-content],[data-button-content] > span:last-child) { white-space:normal; overflow:visible; text-overflow:clip; overflow-wrap:anywhere; }
+[data-catalog-navigation] [data-slot="sidebar-menu-button"] svg { width:1.125em; height:1.125em; }
+[data-catalog-navigation] .sidebar-toolbar [data-slot="button"] { width:var(--catalog-toolbar-height); height:var(--catalog-toolbar-height); min-height:var(--catalog-toolbar-height); padding:8px; }
+[data-catalog-edge-navigation] { position:absolute; z-index:1; inset:0 auto 0 0; width:18px; touch-action:pan-y; }
+[data-sidebar="sidebar"][data-revealing], [data-sidebar="sidebar"][data-gesture-enter][data-state="open"] { animation:none; }
+[data-slot="sidebar-container"][data-gesture-enter] { transition:none; }
+/* The parent surface spans behind floating siblings. Only readable content and
+   controls reserve the docked sibling's space; media and edge shadows do not. */
+[data-catalog-content] { position:absolute; inset:0; min-width:0; height:100%; outline:none; }
+/* Keep positioned card labels inside their page, below focused search and chrome. */
+[data-catalog-scroll] { position:relative; z-index:0; height:100%; overflow-y:auto; overscroll-behavior-y:contain; scrollbar-width:none; scroll-padding-block-start:calc(var(--catalog-toolbar-inset) + var(--catalog-toolbar-height) + var(--scroll-edge-feather,32px)); }
+[data-catalog-scroll]::-webkit-scrollbar { display:none; }
+/* Programmatic return point, not an interactive control or a whole-page focus ring. */
+[data-catalog-scroll]:focus { outline:none; }
+:is([data-catalog-toolbar],[data-place-toolbar]) { position:absolute; inset:max(var(--catalog-toolbar-inset),env(safe-area-inset-top,0px)) max(var(--catalog-toolbar-inset),env(safe-area-inset-right,0px)) auto max(var(--catalog-toolbar-inset),env(safe-area-inset-left,0px)); min-height:var(--catalog-toolbar-height); pointer-events:none; z-index:2; margin-inline-start:var(--place-leading-inset); }
+:is([data-catalog-toolbar],[data-place-toolbar]) .toolbar-row { min-height:var(--catalog-toolbar-height); justify-content:space-between; gap:12px; }
+:is([data-catalog-toolbar],[data-place-toolbar]) .toolbar-row > * { pointer-events:auto; }
+[data-place-toolbar] [data-button-label] { visibility:hidden; }
+[data-place-toolbar] [data-button-glyph] { visibility:visible; }
+[data-catalog-navigation-actions] { display:flex; min-width:0; gap:10px; align-items:center; }
+[data-catalog-navigation-actions] > :is([data-slot="button"],[data-slot="sidebar-trigger"]) { height:var(--catalog-toolbar-height); min-height:var(--catalog-toolbar-height); width:var(--catalog-toolbar-height); flex-shrink:0; }
+[data-catalog-scroll] > [data-retained-place] { padding:24px var(--place-surface-inset) 26px; padding-inline-start:calc(var(--place-leading-inset) + var(--place-surface-inset)); }
+@media (max-width:767px) {
+  [data-catalog-workspace] { --catalog-hero-height:360px; --catalog-media-height:160px; }
+}
+/* Use the provider's single responsive decision, not a second breakpoint. */
+[data-catalog-workspace]:has([data-slot="sidebar-wrapper"][data-presentation="overlay"]),
+[data-presentation="overlay"] [data-catalog-navigation] { --catalog-toolbar-height:max(44px,calc(var(--text-body--line-height) + 12px)); }
+[data-presentation="overlay"] [data-catalog-navigation] { padding-block:8px; }
+[data-presentation="overlay"] [data-catalog-navigation] [data-slot="sidebar-trigger"] { width:44px; height:44px; min-height:44px; padding:12px; }
+[data-presentation="overlay"] [data-catalog-navigation] [data-slot="sidebar-menu-button"] { min-height:44px; }
+[data-catalog-workspace]:has([data-slot="sidebar-wrapper"][data-presentation="overlay"]) { --place-surface-inset:18px; }
+@media (pointer:coarse) {
+  [data-catalog-workspace], [data-catalog-navigation] { --catalog-toolbar-height:max(44px,calc(var(--text-body--line-height) + 12px)); }
+  [data-catalog-navigation] [data-slot="sidebar-menu-button"] { min-height:44px; }
+  [data-catalog-navigation] [data-slot="sidebar-trigger"], [data-catalog-navigation-actions] > [data-slot="button"] { min-height:44px; height:44px; width:44px; }
+}
+@media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
+  [data-renderer-profile="apple-reference"] [data-slot="sheet-overlay"] { -webkit-backdrop-filter:none; backdrop-filter:none; }
+}

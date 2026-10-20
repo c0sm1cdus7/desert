@@ -1,0 +1,67 @@
+/* One owner role, in the same Tailwind layer as shadcn's primitive utilities.
+   Component-layer geometry cannot govern a compound Input/Button/Label. */
+@utility field-well {
+  --field-label-inset:.375rem;
+  --field-editing-row:calc(var(--text-input--line-height) + .875rem);
+  position:relative; border-radius:var(--radius);
+  &:has(:focus-visible) { outline:2px solid var(--ring); outline-offset:3px; }
+  & [data-field-well] { padding-block-start:var(--field-label-inset); }
+  & [data-field-well] :focus-visible, & .field-prefix :focus-visible { outline:none; box-shadow:none; }
+  & .field-prefix { padding:0; margin:0; border-inline-end:1px solid var(--border); align-self:stretch; }
+  & .field-prefix [data-selection-trigger] { height:100%; }
+  [data-invalid="true"] > & [data-field-well] > [data-slot="field-label"] { color:var(--color-destructive-text); }
+  & .field-clear { margin:0; }
+  &:has(textarea) .field-clear { align-self:flex-start; padding-block-start:var(--field-label-inset); }
+  & :is([data-slot="input-group-control"], [data-field-value]) {
+    height:auto; min-height:var(--field-editing-row); padding:.25rem 1rem .625rem; flex:none;
+    font-size:var(--text-input); line-height:var(--text-input--line-height); font-weight:400;
+  }
+  &[data-selection-trigger] [data-slot="field-label"] { cursor:inherit; }
+  & textarea[data-slot="input-group-control"] {
+    min-height:min(calc(8rem - var(--field-label-inset) - var(--text-field-caption--line-height)), var(--field-editor-capacity, 100vh));
+    max-height:var(--field-editor-capacity, none); overflow-y:auto;
+  }
+  & [data-slot="field-label"] {
+    /* The real label height reserves space, including wrapping and text zoom.
+       Keeping it outside the editor also protects it from textarea scrolling. */
+    position:relative; display:block; margin:0 1rem; width:auto; min-width:0;
+    overflow-wrap:anywhere; cursor:text;
+    font-size:var(--text-field-caption); line-height:var(--text-field-caption--line-height); font-weight:400;
+    color:var(--muted-foreground);
+    transition:transform var(--dur-snap) var(--ease-tm), font-size var(--dur-snap) var(--ease-tm);
+    & .required { margin-inline-start:.375em; }
+  }
+  &:not(:focus-within):not([data-filled="true"]) [data-slot="field-label"] {
+    font-size:var(--text-body);
+    transform:translateY(calc((var(--field-editing-row) - var(--field-label-inset)) / 2));
+  }
+}
+.field-well:has(> [data-field-row]) { container:field-well / inline-size; }
+/* Supporting copy follows the well's text guide, not its outer surface edge. */
+[data-slot="field"]:has(> .field-well) > :is([data-slot="field-description"], [data-slot="field-error"]) {
+  padding-inline:1rem;
+}
+/* The label describes the whole well; only the editing row shares width with
+   its clear target. Capacity follows actual type size, not a device category. */
+@container field-well (max-width:18em) {
+  .field-well > [data-field-row] { display:grid; grid-template-columns:minmax(0,1fr) auto; }
+  .field-well [data-field-row] > [data-field-well] { display:contents; }
+  .field-well [data-field-row] > [data-field-well] > [data-slot="field-label"] {
+    grid-column:1 / -1; grid-row:1; padding-block-start:var(--field-label-inset);
+  }
+  .field-well [data-field-row] > [data-field-well] > [data-slot="input-group-control"] { grid-column:1; grid-row:2; }
+  .field-well .field-clear { grid-column:2; grid-row:2; }
+  /* A multiline editor needs its full reading measure. Its clear action moves
+     below it instead of narrowing every line for a single accessory. */
+  .field-well [data-field-row] > [data-field-well] > textarea[data-slot="input-group-control"] { grid-column:1 / -1; }
+  .field-well:has(textarea) .field-clear { grid-column:2; grid-row:3; padding-block-start:0; }
+  .field-well[data-compound-field="true"] [data-field-well] > [data-slot="field-label"] { grid-row:2; }
+  .field-well[data-compound-field="true"] [data-field-well] > [data-slot="input-group-control"],
+  .field-well[data-compound-field="true"] .field-clear { grid-row:3; }
+  .field-well .field-prefix {
+    grid-column:1 / -1; grid-row:1; border-inline-end:0; border-block-end:1px solid var(--border);
+  }
+}
+@media (pointer:coarse), (max-width:767px) {
+  .field-well [data-input-clear] { min-width:44px; min-height:44px; }
+}

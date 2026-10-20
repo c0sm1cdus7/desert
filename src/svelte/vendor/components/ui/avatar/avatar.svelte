@@ -1,0 +1,30 @@
+<script lang="ts">
+	import { Avatar as AvatarPrimitive } from "bits-ui";
+	import { cn } from "@desert/svelte/vendor/utils.js";
+
+	let {
+		ref = $bindable(null),
+		loadingStatus = $bindable("loading"),
+		size = "default",
+		shape = "person",
+		class: className,
+		...restProps
+	}: AvatarPrimitive.RootProps & {
+		size?: "default" | "sm" | "lg";
+		shape?: "person" | "object";
+	} = $props();
+</script>
+
+<AvatarPrimitive.Root
+	bind:ref
+	bind:loadingStatus
+	data-slot="avatar"
+	data-size={size}
+	data-shape={shape}
+	class={cn(
+		"size-8 data-[size=lg]:size-10 data-[size=sm]:size-6 group/avatar relative flex shrink-0 select-none tm-face after:pointer-events-none after:absolute after:inset-0 after:border",
+		shape === "person" ? "rounded-full after:rounded-full" : "rounded-[30%] after:rounded-[30%]",
+		className
+	)}
+	{...restProps}
+/>

@@ -1,0 +1,26 @@
+/* Application/catalog framing only. Primitive geometry lives with its owner. */
+@layer components {
+  .product { max-width:90rem; margin:auto; padding:2rem; }
+  .topbar { padding-bottom:1.25rem; }
+  .topbar > .toolbar-row,.catalog-header > .toolbar-row { flex-wrap:wrap; justify-content:space-between; gap:1rem; }
+  .brand { display:flex; align-items:center; gap:.75rem; }
+  .brand-mark { display:grid; place-items:center; width:2.75rem; height:2.75rem; border-radius:var(--radius); background:var(--primary); color:var(--primary-foreground); font-weight:700; }
+  .brand h1,.catalog h1 { font-size:var(--text-page); line-height:var(--text-page--line-height); font-weight:var(--text-title--font-weight); }
+  .brand h1 { text-transform:capitalize; }
+  .connection { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem; min-height:2.75rem; }
+  .saved-feedback { color:var(--positive); font-size:var(--text-body); }
+  .collection-heading { display:flex; align-items:center; gap:.75rem; margin:2rem 0 1rem; }
+  .collection-heading h2 { font-size:var(--text-section); line-height:var(--text-section--line-height); font-weight:var(--text-title--font-weight); }
+  .records { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.5rem; }
+  .record-button { width:100%; min-height:4.5rem; text-align:start; }
+  .record-button strong { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); overflow-wrap:anywhere; text-align:start; }
+  .record-button [data-record-heading] { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+  .record-button [data-record-metadata] { display:flex; flex-wrap:wrap; gap:.375rem 1rem; text-align:start; color:var(--muted-foreground); font-size:var(--text-body); }
+  .record-button:focus-visible { outline-offset:-3px; }
+  .welcome { display:grid; justify-items:start; gap:1.25rem; padding:5rem 0; max-width:32rem; }
+  .welcome h2 { font-size:var(--text-page); font-weight:var(--text-title--font-weight); line-height:var(--text-page--line-height); }
+  .welcome p { color:var(--muted-foreground); }
+  .catalog { max-width:52rem; margin:auto; padding:2rem; }
+  .catalog > p,.catalog-header p { color:var(--muted-foreground); }
+  @media (max-width:640px) { .product,.catalog { padding:1rem; } }
+}

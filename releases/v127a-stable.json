@@ -1,0 +1,45 @@
+{
+  "format": "desert.approved-baseline/1",
+  "tag": "v127a-stable",
+  "approvalDate": "2026-10-20",
+  "approvalTimezone": "America/Argentina/Buenos_Aires",
+  "status": "owner-approved-stable-baseline",
+  "scope": "Preserve the currently approved UI before primitive-ownership changes.",
+  "product": "landmarks",
+  "buildDirectory": "build/landmarks-integration-v127a",
+  "nodeVersion": "v24.16.0",
+  "rendererRevision": "62b4b2d6eb374b0c40293959ad907c32ca09b3fb9e2201e515a66abb72b4946b",
+  "contractDigest": "7642a0bc0d664c73ee7728d441e1a534efe7767fb520e36edbaed8046f76c2d9",
+  "buildManifestSha256": "c9e36b3c89296938753b3b06ad1bb62885e453a347709d78e6620472f2cf87b5",
+  "verifiedAtCheckpoint": {
+    "sourceMatchesBuild": true,
+    "buildFiles": 91,
+    "originalMediaAssets": 42,
+    "originalMediaBytes": 168516502,
+    "mediaMatchesBuild": true,
+    "typecheck": "passed",
+    "authoringReferences": "failed: STALE_REFERENCE support.md; preserved unchanged",
+    "gitWhitespaceCheck": "three existing extra blank lines at EOF; preserved unchanged"
+  },
+  "evidence": [
+    "docs/STATUS.md",
+    "artifacts/media-toolbar-v127/README.md",
+    "artifacts/primitive-override-audit-v128/AUDIT.md"
+  ],
+  "recoveryAsset": "desert-v127a-stable-recovery.tar.gz",
+  "recovery": [
+    "Verify the recovery archive against its accompanying SHA-256 checksum.",
+    "Extract into a new empty directory, never over an existing checkout or local store.",
+    "The archive contains desert/ and the required sibling references/ directory.",
+    "Inside desert/, use Node v24.16.0 and run npm ci.",
+    "Run node products/landmarks/run-web.ts build/landmarks-integration-v127a 4292, using a different free local port if necessary."
+  ],
+  "excludedFromPublication": [
+    "Local PostgreSQL data, admission tokens and browser session drafts",
+    "node_modules and temporary build directories",
+    "Unrelated workspace projects and historical reference build outputs"
+  ],
+  "qualification": "Owner-approved recovery baseline, not a whole-suite or native-platform certification.",
+  "knownOutstandingWork": "Primitive ownership violations and stale generated support.md documentation remain intentionally unchanged. This checkpoint introduces no UI repair.",
+  "mediaRights": "Required Apple sample media is preserved only as a private owner backup with its original license and provenance. No public photo redistribution grant is claimed."
+}

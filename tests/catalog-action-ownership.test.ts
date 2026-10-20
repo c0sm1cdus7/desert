@@ -1,0 +1,90 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { resolve } from "node:path";
+import { svelteBrowser } from "./fixtures/svelte-browser.ts";
+import { rendererCss } from "./fixtures/renderer-css.ts";
+import { bankNode, BankVersion as version } from "../src/interaction/bank-node.ts";
+
+const css = rendererCss();
+const source = `<script lang="ts">
+  import CatalogWorkspace from "@desert/svelte/explorer/CatalogWorkspace.svelte";
+  import BankRenderer from "@desert/svelte/BankRenderer.svelte";
+  let events = $state([]);
+  const record = 'mountain';
+  const node = {version:'desert.bank-node/1',kind:'action',role:'primary',action:{label:'Learn More',icon:'open',
+    state:'ready',intent:{kind:'catalog.open',record}}};
+</script>
+<CatalogWorkspace productName="Explorer" title="Explorer" identity={{title:'Explorer',subtitle:'Explore places.'}}
+  navigation={[{id:'browse',label:'Explore'}]} active="browse" searching={false} onsearch={()=>{}} oncancel={()=>{}}
+  query="" onquery={() => {}} onnavigate={() => {}} detail onback={() => events = [...events,{kind:'catalog.back'}]}>
+  {#snippet searchResults()}<p>No search results</p>{/snippet}
+  <BankRenderer {node} onevent={event => events = [...events,event]} />
+</CatalogWorkspace>
+<output hidden data-events>{JSON.stringify(events)}</output>`;
+
+test("catalog action intents stay closed and cannot become business submissions or primary dismissal", () => {
+  const action = { version, kind: "action", role: "primary", action: {
+    label: "Learn More", icon: "open", state: "ready", intent: { kind: "catalog.open", record: "mountain" },
+  } };
+  assert.deepEqual(bankNode(action), action);
+  assert.throws(() => bankNode({ ...action, form: true }), /INVALID_BANK_ACTION/);
+  assert.throws(() => bankNode({ ...action, action: { ...action.action, intent: { kind: "catalog.back" } } }), /INVALID_BANK_ACTION/);
+  assert.throws(() => bankNode({ ...action, action: { ...action.action, intent: { kind: "catalog.search", query: "forest" } } }), /INVALID_BANK_NODE/);
+  assert.throws(() => bankNode({ ...action, action: { ...action.action, intent: { kind: "catalog.open", record: "mountain", onclick() {} } } }), /JSON|INVALID_BANK_NODE/);
+});
+
+test("catalog CTA and Back use the shared Action owner, preserving adaptive faces and reference geometry", async () => {
+  const f = await svelteBrowser(source);
+  try {
+    await f.page.addStyleTag({ content: await css });
+    await f.page.setViewportSize({ width: 900, height: 450 });
+    const cta = f.page.getByRole("button", { name: "Learn More", exact: true });
+    const back = f.page.getByRole("button", { name: "Back", exact: true });
+    for (const button of [cta, back]) assert.equal(await button.getAttribute("data-primitive"), "action");
+    await f.page.waitForFunction(() => document.querySelector('[aria-label="Back"]')?.getAttribute('data-button-face') === 'icon');
+    assert.equal(await cta.getAttribute("data-button-face"), "label");
+    assert.ok(await cta.evaluate(element => parseFloat(getComputedStyle(element).borderRadius) >= element.getBoundingClientRect().height / 2),
+      "the catalog cannot override the shared capsule shape");
+    assert.ok((await cta.boundingBox())!.height >= 44, 'catalog actions retain the shared accessible target');
+    await cta.click(); await back.click();
+    assert.deepEqual(JSON.parse(await f.page.locator('[data-events]').textContent() ?? ''),
+      [{ kind: 'catalog.open', record: 'mountain' }, { kind: 'catalog.back' }]);
+    await f.page.setViewportSize({ width: 390, height: 844 });
+    assert.ok((await cta.boundingBox())!.height >= 44);
+    assert.ok((await back.boundingBox())!.height >= 44 && (await back.boundingBox())!.width >= 44);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("replacing the bank's single Action renderer reaches both catalog consumers and retains pending suppression", async () => {
+  const owner = resolve(import.meta.dirname, "../src/svelte/pieces/Action.svelte");
+  const f = await svelteBrowser(source, { [owner]: `<script lang="ts">
+    let {label,icon,onclick} = $props();
+  </script><button data-shared-action-replacement data-icon={icon} aria-label={label} onclick={onclick}>{label}</button>` });
+  try {
+    for (const label of ['Learn More', 'Back'])
+      assert.equal(await f.page.getByRole('button', {name:label,exact:true}).getAttribute('data-shared-action-replacement'), '');
+    assert.equal(await f.page.getByRole('button', {name:'Learn More',exact:true}).getAttribute('data-icon'), 'open');
+    assert.equal(await f.page.getByRole('button', {name:'Back',exact:true}).getAttribute('data-icon'), 'back');
+    await f.page.getByRole('button', {name:'Learn More',exact:true}).click();
+    await f.page.getByRole('button', {name:'Back',exact:true}).click();
+    assert.deepEqual(JSON.parse(await f.page.locator('[data-events]').textContent() ?? ''),
+      [{kind:'catalog.open',record:'mountain'}, {kind:'catalog.back'}]);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+  const pending = await svelteBrowser(`<script lang="ts">
+    import BankRenderer from "@desert/svelte/BankRenderer.svelte";
+    let events = $state([]);
+    const node = {version:'desert.bank-node/1',kind:'action',role:'primary',action:{label:'Opening',icon:'open',
+      state:'pending',intent:{kind:'catalog.open',record:'mountain'}}};
+  </script><BankRenderer {node} onevent={event => events = [...events,event]} /><output>{JSON.stringify(events)}</output>`);
+  try {
+    const button = pending.page.getByRole('button', {name:'Opening',exact:true});
+    assert.equal(await button.isDisabled(), true);
+    assert.equal(await button.getAttribute('aria-busy'), 'true');
+    assert.equal(await button.getAttribute('data-button-face'), 'pending');
+    await button.dispatchEvent('click');
+    assert.equal(await pending.page.locator('output').textContent(), '[]');
+    assert.deepEqual(pending.errors, []);
+  } finally { await pending.close(); }
+});

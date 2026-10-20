@@ -1,0 +1,30 @@
+@layer components {
+  .reading-layout { display:grid; grid-template-columns:minmax(16rem,22rem) minmax(0,1fr); gap:2rem; align-items:start; }
+  .reading-layout:not([data-selected="true"]) { grid-template-columns:minmax(0,1fr); max-width:48rem; margin-inline:auto; }
+  .reading-layout .collection-heading { margin:0 0 1rem; justify-content:space-between; }
+  .reading-layout [data-collection-pane] { min-width:0; }
+  .reading-pane { min-width:0; border:1px solid var(--border); border-radius:1rem; overflow:hidden; }
+  .reading-pane .toolbar-title { display:block; overflow:visible; -webkit-line-clamp:unset; }
+  .reading-pane .workspace-header { border:0; padding-bottom:.5rem; }
+  .reading-pane .surface-content { overflow:visible; }
+  .reading-pane .toolbar-availability { margin-top:.5rem; }
+  .reading-pane [data-surface-frame] { min-height:24rem; }
+  .reading-pane [data-prose-only="true"] { margin-bottom:1.5rem; }
+  .bank-stack[data-prose-only="true"] { border:0; border-radius:0; background:transparent; }
+  .bank-stack[data-prose-only="true"] .fact-row { padding:0; border:0; }
+  .bank-stack[data-prose-only="true"] .fact-row + .fact-row { margin-top:1.5rem; }
+  .place-stack .bank-stack[data-prose-only="true"] { padding-inline:1rem; }
+  .place-stack .bank-stack[data-prose-only="true"] .fact-label { color:var(--foreground); font:var(--text-body--font-weight) var(--text-body)/var(--text-body--line-height) var(--font-sans); }
+  .place-stack .bank-stack[data-prose-only="true"] .fact-value { color:var(--muted-foreground); font:var(--text-caption--font-weight) var(--text-caption)/var(--text-caption--line-height) var(--font-sans); }
+  .fact-row[data-multiline="true"] { grid-template-columns:minmax(0,1fr); gap:.5rem; }
+  .fact-value[data-reading="multiline"] { text-align:start; font-size:var(--text-prose); line-height:var(--text-prose--line-height); max-width:68ch; }
+  .reading-pane [data-surface-frame]:focus { outline:none; }
+  @media (max-width:800px) {
+    .reading-layout { display:block; }
+    .reading-layout[data-selected="true"] [data-collection-pane] { display:none; }
+    .reading-pane { border:0; border-radius:0; }
+    .reading-pane .workspace-header { padding:0 0 1rem; }
+    .reading-pane .surface-content { padding:0; }
+    .reading-pane .fact-value[data-reading="multiline"] { width:100%; }
+  }
+}

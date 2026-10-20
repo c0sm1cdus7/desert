@@ -1,0 +1,42 @@
+[data-media-image] { position:relative; width:100%; height:100%; overflow:hidden; background:var(--muted); }
+[data-media-image] > img { display:block; width:100%; height:100%; object-fit:cover; user-select:none; }
+[data-media-image][data-image-state="ready"] > img { animation:media-image-in var(--dur-unfold) var(--ease-tm) both; }
+[data-media-error] { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--foreground); }
+[data-photo-collection] { position:relative; width:100%; height:100%; overflow:hidden; }
+[data-media-open] { position:absolute; inset:0; border:0; padding:0; background:transparent; cursor:zoom-in; touch-action:pan-y; }
+[data-media-open]:focus,[data-media-open]:focus-visible { outline:none; box-shadow:none; }
+[data-media-open]:focus-visible::after { content:attr(aria-label); position:absolute; right:16px; bottom:56px; padding:8px 12px; border-radius:var(--radius); background:var(--background); color:var(--foreground); font-size:var(--text-support,14px); }
+[data-photo-collection]:has([data-image-state="error"]) [data-media-open] { pointer-events:none; }
+[data-media-dots] { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); display:flex; z-index:3; }
+[data-media-dots] button { display:grid; place-items:center; width:24px; height:44px; padding:0; border:0; background:none; color:var(--catalog-image-foreground); }
+[data-media-dots] button::after { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; opacity:.45; box-shadow:0 0 3px var(--catalog-image-shade); }
+[data-media-dots] [aria-current="true"]::after { opacity:1; width:8px; height:8px; }
+.media-viewer { position:fixed; inset:0; z-index:60; width:100%; height:100dvh; display:flex; flex-direction:column; overflow:hidden; outline:none; border-radius:var(--place-radius); color:var(--foreground); animation:media-viewer-in var(--dur-dialog) var(--ease-tm) both; }
+.media-viewer-scrim { background:var(--background); }
+.media-viewer > [data-piece="toolbar"] { padding:12px; }
+.media-viewer .toolbar-row { gap:12px; }
+[data-media-identity] { display:flex; flex:1; min-width:0; flex-direction:column; gap:2px; }
+[data-media-identity] [data-slot="dialog-title"] { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+[data-media-count] { color:var(--muted-foreground); font-size:var(--text-caption,13px); }
+[data-media-stage] { position:relative; flex:1; min-height:0; overflow:hidden; touch-action:none; }
+[data-media-stage] [data-media-image] { background:transparent; }
+[data-media-stage] img { object-fit:contain; transform-origin:center; }
+[data-media-stage] :is([data-media-prev],[data-media-next]) { position:absolute; top:50%; transform:translateY(-50%); }
+[data-media-prev] { left:12px; } [data-media-next] { right:12px; }
+.media-viewer > [data-toolbar="bottom"] .toolbar-row { justify-content:center; }
+[data-media-thumbs] { display:flex; max-width:100%; gap:8px; overflow:auto; padding:8px; }
+[data-media-thumbs] button { width:64px; height:48px; min-height:48px; flex:none; overflow:hidden; border-radius:8px; padding:0; border:2px solid transparent; opacity:.6; }
+[data-media-thumbs] button[aria-current="true"] { border-color:var(--foreground); opacity:1; }
+[data-media-thumbs] [data-button-content] { width:100%; height:100%; }
+[data-media-zoom-tools] { display:flex; align-items:center; gap:8px; }
+[data-media-zoom] { min-width:4ch; text-align:center; font-size:var(--text-caption,13px); }
+[data-catalog-card] > [data-media-image] { position:absolute; inset:0; }
+[data-slot="avatar"] > [data-media-image] { border-radius:inherit; }
+@media(max-width:600px) {
+  .media-viewer [data-toolbar="top"] .toolbar-row { flex-wrap:wrap; }
+  [data-media-zoom-tools] { width:100%; justify-content:center; }
+  [data-media-stage] :is([data-media-prev],[data-media-next]) { top:auto; bottom:8px; transform:none; }
+}
+@keyframes media-image-in { from { opacity:0; } to { opacity:1; } }
+@keyframes media-viewer-in { from { opacity:0; transform:scale(.98); } to { opacity:1; transform:scale(1); } }
+@media(prefers-reduced-motion:reduce) { .media-viewer,[data-media-image][data-image-state="ready"] > img { animation:none; } }

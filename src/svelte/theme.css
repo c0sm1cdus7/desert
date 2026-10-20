@@ -1,0 +1,99 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "./vendor/styles/tokens.css";
+@import "./pieces/pane-material.css";
+@import "./pieces/control-feedback.css";
+@import "./pieces/navigation-selection.css";
+@import "./typography.css";
+@import "./layout.css";
+@import "./pieces/field-well.css";
+@import "./pieces/search-field.css";
+@import "./pieces/structured-content.css";
+@import "./pieces/place.css";
+@import "./pieces/control-measure.css";
+@import "./pieces/place-heading.css";
+@import "./pieces/media/media.css";
+@import "./pieces/surface-chrome.css";
+@import "./pieces/scroll-edges.css";
+@import "./pieces/anchored-surface.css";
+@import "./reading.css";
+@import "./explorer/catalog-profile.css";
+@import "./explorer/catalog-shell.css";
+@import "./explorer/catalog-search.css";
+@import "./explorer/catalog-media.css";
+@source "./";
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@theme inline {
+  --color-background:var(--background); --color-foreground:var(--foreground);
+  --color-card:var(--card); --color-card-foreground:var(--card-foreground);
+  --color-popover:var(--popover); --color-popover-foreground:var(--popover-foreground);
+  --color-primary:var(--primary); --color-primary-foreground:var(--primary-foreground);
+  --color-primary-text:var(--primary-text);
+  --color-secondary:var(--secondary); --color-secondary-foreground:var(--secondary-foreground);
+  --color-muted:var(--muted); --color-muted-foreground:var(--muted-foreground);
+  --color-accent:var(--accent); --color-accent-foreground:var(--accent-foreground);
+  --color-destructive:var(--destructive); --color-border:var(--border); --color-separator:var(--separator);
+  --color-destructive-text:color-mix(in oklab,var(--destructive) 65%,var(--foreground));
+  --color-warning:var(--warning); --color-success:var(--positive);
+  --color-input:var(--border); --color-control:var(--control); --color-ring:var(--ring);
+  --color-choice-outline:var(--choice-outline);
+  --color-sidebar:var(--sidebar); --color-sidebar-foreground:var(--sidebar-foreground);
+  --color-sidebar-primary:var(--sidebar-primary); --color-sidebar-primary-foreground:var(--sidebar-primary-foreground);
+  --color-sidebar-accent:var(--sidebar-accent); --color-sidebar-accent-foreground:var(--sidebar-accent-foreground);
+  --color-sidebar-border:var(--sidebar-border); --color-sidebar-ring:var(--sidebar-ring);
+  --radius-sm:var(--radius); --radius-md:var(--radius); --radius-lg:var(--radius); --radius-xl:var(--radius); --radius-2xl:var(--radius);
+}
+@utility tm-control {
+  transition:color var(--dur-feedback) var(--ease-tm);
+  & > :is([data-button-content],[data-grouped-content]),
+  &[data-slot="sidebar-menu-button"]:not(:has(> [data-button-content])) > * { transition:transform var(--dur-snap) var(--ease-tm); }
+  /* Pointer hover must not turn neutral or destructive actions into primary ones.
+     Keep their semantic ink; tooltips, press feedback and keyboard focus remain. */
+  &:is(button,a,label[data-choice-row])[data-pressed]:not(:disabled):not([aria-disabled="true"]):not([data-drawer-grip]) {
+    & > :is([data-button-content],[data-grouped-content]),
+    &[data-slot="sidebar-menu-button"]:not(:has(> [data-button-content])) > * { transform:scale(var(--press-scale)); }
+  }
+  &:focus-visible { outline:2px solid var(--ring); outline-offset:var(--focus-ring-offset,3px); }
+  @media (prefers-reduced-motion:reduce) {
+    & > :is([data-button-content],[data-grouped-content]),
+    &[data-slot="sidebar-menu-button"]:not(:has(> [data-button-content])) > * { transform:none!important; }
+  }
+}
+@utility tm-tinted {
+  color:color-mix(in oklab,var(--tone) 60%,var(--foreground));
+}
+@utility tm-face {
+  background-color:color-mix(in oklab,var(--face-tone,var(--primary-text)) 14%,var(--secondary));
+  &::after { border-color:color-mix(in oklab,var(--face-tone,var(--primary-text)) 30%,var(--border)); }
+  @media (prefers-contrast:more) { &::after { border-color:var(--foreground); } }
+}
+:root { --warning:oklch(.52 .12 85); --choice-outline:var(--muted-foreground); }
+@media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) { --warning:oklch(.85 .16 90); } }
+:root[data-theme="dark"] { --warning:oklch(.85 .16 90); }
+@layer base {
+  * { box-sizing:border-box; border-color:var(--border); }
+  [hidden] { display:none!important; }
+  html { background:var(--background); color:var(--foreground); font-family:var(--font-sans); font-size:calc(100% * var(--text-scale, 1)); }
+  body { margin:0; min-width:320px; font-size:var(--text-body); line-height:var(--text-body--line-height); }
+  button,input,textarea { font:inherit; } button { cursor:pointer; } button:disabled { cursor:default; }
+  input,textarea { min-width:0; } h1,h2,h3,p { margin:0; } a { color:inherit; }
+  :focus-visible { outline:2px solid var(--ring); outline-offset:var(--focus-ring-offset,3px); }
+  @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+}
+@layer components {
+  [data-slot="button"] { min-height:2.75rem; }
+  [data-button-content] { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
+  [data-control-chevron] { color:var(--muted-foreground); flex-shrink:0; }
+  [data-slot="input-group-control"] { min-height:2.75rem; }
+  .required { color:var(--destructive); }
+  .bank-face { width:var(--face-size,2rem); height:var(--face-size,2rem); color:var(--muted-foreground); }
+  .bank-face[data-compact] { --face-size:1.5rem; }
+  .bank-face [data-face-glyph] { font-size:calc(var(--face-size,2rem) * .6); line-height:1; }
+  .bank-face[data-face-kind="flag"] [data-face-glyph] { font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif; }
+  .bank-face svg { width:55%; height:55%; }
+  .bank-face[data-tone="warning"] { --face-tone:var(--warning); color:var(--face-tone); }
+  .bank-face[data-tone="error"] { --face-tone:var(--destructive); color:var(--face-tone); }
+  .bank-status { display:flex; align-items:center; gap:.5rem; font-size:var(--text-body); color:var(--muted-foreground); }
+  .bank-status svg { width:1rem; height:1rem; flex-shrink:0; }
+}
+@media (prefers-contrast:more) { :root { --border:var(--foreground); --separator:var(--foreground); --muted-foreground:var(--foreground); } }

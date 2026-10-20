@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="An open notebook with blue pages">
+  <rect width="640" height="360" rx="24" fill="#142531"/>
+  <path d="M100 82Q210 54 320 96Q430 54 540 82V286Q430 258 320 300Q210 258 100 286Z" fill="#9ed6f5"/>
+  <path d="M320 96V300" fill="none" stroke="#285d7a" stroke-width="6"/>
+  <g fill="none" stroke="#4b8aaf" stroke-width="5" stroke-linecap="round">
+    <path d="M140 130Q210 114 276 139M140 166Q210 150 276 175M140 202Q210 186 276 211"/>
+    <path d="M364 139Q430 114 500 130M364 175Q430 150 500 166M364 211Q430 186 500 202"/>
+  </g>
+</svg>
