@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Dialog as DialogPrimitive } from "bits-ui";
+	import ScrollLock from "@desert-internal/bits-scroll-lock";
 	import XIcon from '@lucide/svelte/icons/x';
 	import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
 	import { cn, type WithoutChildrenOrChild } from "@desert/svelte/vendor/utils.js";
@@ -19,6 +20,8 @@
 		presentation = "default",
 		overlayStyle,
 		adaptiveModal,
+		preventScroll = true,
+		restoreScrollDelay = null,
 		...restProps
 	}: WithoutChildrenOrChild<DialogPrimitive.ContentProps> & {
 		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof DialogPortal>>;
@@ -48,8 +51,13 @@
 			className
 		)}
 		{...restProps}
+		preventScroll={adaptiveModal === undefined ? preventScroll : false}
+		{restoreScrollDelay}
 	>
-		{#snippet child({ props })}
+		{#snippet child({ props, open })}
+		<!-- Bits reads preventScroll only when its lock mounts. Adapt only that
+		     lifetime; the dialog, draft, selection and focus node stay mounted. -->
+		{#if adaptiveModal && open && preventScroll}<ScrollLock {restoreScrollDelay} />{/if}
 		<div {...props} role={adaptiveModal === false ? 'region' : 'dialog'}
 			aria-modal={adaptiveModal === false ? undefined : 'true'}>
 		{@render children?.()}

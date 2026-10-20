@@ -4,18 +4,19 @@ import { webTransport } from "./transport.ts";
 import { observeWebConnection } from "./connection.ts";
 import { mutationFlow } from "./mutations.ts";
 
-export function humanProduct(surface: HumanSurface, validate: ValidateInput) {
+export function humanProduct(surface: HumanSurface, validate: ValidateInput, options: { reading?: boolean } = {}) {
   const store = humanState(surface);
   const transport = webTransport(surface.contractDigest);
   let readEpoch = 0;
   let stopped = false;
+  let reading = options.reading ?? true;
   let stopConnection: (() => void) | undefined;
   const primary = surface.journeys.find(journey => journey.id === surface.navigation.primaryAction) as Mutation;
   const ready = (id: string) => store.get().availability.journeys[id]?.dependenciesReady === true;
 
   async function refresh() {
     const epoch = ++readEpoch;
-    if (!ready(surface.navigation.entry)) return;
+    if (!reading || !ready(surface.navigation.entry)) return;
     const selectedId = store.get().selectedId;
     try {
       const run = await transport.call("begin", { journeyId: surface.navigation.entry });
@@ -52,6 +53,12 @@ export function humanProduct(surface: HumanSurface, validate: ValidateInput) {
       });
     },
     stop() { stopped = true; readEpoch++; stopConnection?.(); },
+    setReading(enabled: boolean) {
+      if (reading === enabled) return;
+      reading = enabled;
+      readEpoch++;
+      if (enabled) void refresh();
+    },
     create() {
       if (store.get().busy || store.get().uncertain || !ready(primary.id)) return;
       const current = store.get();

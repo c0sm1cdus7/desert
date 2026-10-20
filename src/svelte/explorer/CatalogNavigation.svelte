@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="Destination extends string">
   import { untrack } from "svelte";
   import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
   import Landmark from "@lucide/svelte/icons/landmark";
@@ -9,10 +9,11 @@
   import { swipeMotion } from "../pieces/swipe-motion.svelte.js";
   import Place from "../pieces/Place.svelte";
   import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
-  type Destination = "browse" | "travel-kit" | "bank";
+  import { actionIcons } from "../pieces/action-icons.ts";
+  import { workspaceNavigation, type WorkspaceDestination } from "./workspace-navigation.ts";
   let { productName, navigation, active, onnavigate, searching = false }: {
     productName: string;
-    navigation: readonly { id: Destination; label: string; shortLabel?: string }[]; active: Destination;
+    navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
     onnavigate: (id: Destination) => void; searching?: boolean;
   } = $props();
   const sidebar = Sidebar.useSidebar();
@@ -20,8 +21,8 @@
     commit: () => sidebar.presentation === "overlay" ? sidebar.setOverlayOpen(false) : sidebar.setOpen(false) });
   $effect(() => { sidebar.dismissOffset = motion.offset; });
   $effect(() => { if (sidebar.expanded) untrack(() => motion.reset()); });
-  const icons = { browse: Landmark, "travel-kit": Backpack, bank: PanelsTopLeft };
-  const groups = [{ label: "Explore", ids: ["browse", "travel-kit"] }, { label: "Developer", ids: ["bank"] }];
+  const icons = { ...actionIcons, landmark: Landmark, backpack: Backpack, panels: PanelsTopLeft };
+  let groups = $derived(workspaceNavigation(navigation));
   function navigate(id: Destination) { onnavigate(id); if (sidebar.presentation === "overlay") sidebar.setOverlayOpen(false); }
   function startHeaderDrag(event: PointerEvent) {
     if (event.target instanceof Element && event.target.closest('button,a,input,select,textarea')) return;
@@ -44,12 +45,12 @@
       <Sidebar.Group aria-label={group.label}>
         <Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
         <Sidebar.GroupContent><Sidebar.Menu>
-        {#each navigation.filter(destination => group.ids.includes(destination.id)) as destination (destination.id)}
-          {@const Icon = icons[destination.id]}
+        {#each group.items as destination (destination.id)}
+          {@const Icon = icons[destination.icon]}
           <Sidebar.MenuItem>
             <Sidebar.MenuButton isActive={destination.id === active} aria-current={destination.id === active ? "page" : undefined}
               aria-label={destination.label} onclick={() => navigate(destination.id)}>
-              <span data-navigation-icon={destination.id} aria-hidden="true"><Icon /></span>
+              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon /></span>
               <span>{destination.label}</span>
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>

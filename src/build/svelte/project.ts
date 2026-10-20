@@ -1,14 +1,17 @@
-import { cpSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { sdkRoot } from "./revision.ts";
+import { inspectionMedia } from "../../svelte/catalog/inspection-media.ts";
 
 export function createBuildProject(module: string, family: "human" | "public-catalog" = "human") {
   const directory = mkdtempSync(join(sdkRoot, ".desert-build-"));
   try {
     cpSync(join(sdkRoot, "src/build/svelte/template"), directory, { recursive: true });
+    mkdirSync(join(directory, "static/media"), { recursive: true });
+    cpSync(join(directory, "static", inspectionMedia.source), join(directory, "static/media", inspectionMedia.asset));
     if (family === "public-catalog") {
       cpSync(join(sdkRoot, "src/build/svelte/public-catalog-page.svelte"), join(directory, "src/routes/+page.svelte"));
       cpSync(join(sdkRoot, "src/build/svelte/public-catalog-app.d.ts"), join(directory, "src/app.d.ts"));

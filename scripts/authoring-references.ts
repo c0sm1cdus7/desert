@@ -34,7 +34,9 @@ export function generatedReferences(root = sourceRoot) {
   const exports = [...index.matchAll(/from "\.\/(.+?)"/g)].map(match => `src/${match[1]}`);
   const api = [...new Set(["src/index.ts", ...exports, "src/program-grammar.ts", "src/validation.ts",
     "src/local.ts", "src/local/controller.ts", "src/local/session.ts", "src/local/identity.ts",
-    "src/web/build.ts"])];
+    "src/web/build.ts", "src/views/schema.ts", "src/views/ports.ts",
+    "src/views/program-schema.ts", "src/views/program.ts", "src/views/program-views.ts",
+    "src/views/program-outputs.ts"])];
   const notebook = ["note", "dependencies", "commands", "journeys", "surfaces", "product", "distributions", "inspect", "local", "run-local", "build-web", "check-web", "run-web", "verify"]
     .map(name => `products/notebook/${name}.ts`);
   return {
@@ -61,7 +63,8 @@ export function generatedReferences(root = sourceRoot) {
     "runtime.md": documentBook(root, "Runtime, authority and stack", ["docs/STACK.md", "docs/NATIVE-RENDERER-MAPPING.md", "docs/LOCAL-CONTROLLER.md"]),
     "distributions.md": documentBook(root, "Building supported distributions", ["docs/DISTRIBUTION-BUILDS.md"]) + "\n" +
       sourceBook(root, "Distribution build entrypoints", ["src/build/index.ts", "src/build/serve.ts", "src/build/manifest.ts",
-        "src/build/svelte/template/src/routes/+page.svelte"]),
+        "src/build/svelte/template/src/routes/+page.svelte",
+        "src/local/developer-host.ts", "src/local/developer-identity.ts"]),
     "testing.md": documentBook(root, "Derived local verification", ["docs/DERIVED-VERIFICATION.md"]) + "\n" +
       sourceBook(root, "Testing entrypoints and contracts", ["src/testing/index.ts", "src/testing/types.ts",
         "src/testing/postgres.ts", "products/notebook/verify.ts"]),
@@ -73,6 +76,16 @@ export function generatedReferences(root = sourceRoot) {
         "src/interaction/bank-schema.ts", "src/interaction/bank-node.ts", "src/interaction/bank-events.ts", "src/svelte/BankRenderer.svelte",
         "src/check-surface.ts", "src/project-surface.ts", "src/web/build.ts",
         "src/build/svelte/template/src/routes/+page.svelte", "src/svelte/renderer-contracts.ts", "src/svelte/renderer-registry.ts",
+        "src/views/program-schema.ts", "src/views/program.ts", "src/views/resolved.ts",
+        "src/web/client/view-program.ts", "src/web/client/view-projection.ts",
+        "src/svelte/views/ViewProduct.svelte", "src/svelte/views/Workspace.svelte",
+        "src/svelte/views/workspace-data.ts",
+        "src/svelte/explorer/CatalogWorkspace.svelte", "src/svelte/explorer/CatalogNavigation.svelte",
+        "src/svelte/explorer/CatalogNavigationActions.svelte", "src/svelte/explorer/CatalogToolbar.svelte",
+        "src/svelte/explorer/workspace-navigation.ts", "src/svelte/explorer/workspace-search.ts",
+        "src/svelte/views/ViewContent.svelte", "src/svelte/views/ViewItem.svelte",
+        "src/svelte/views/Panel.svelte", "src/svelte/views/InspectionContent.svelte",
+        "src/svelte/catalog/inspection-fixture.ts", "src/svelte/catalog/inspection-media.ts",
         "src/svelte/HumanProduct.svelte", "src/svelte/ProductWorkspace.svelte", "src/svelte/Collection.svelte", "src/svelte/collection-retrieval.ts", "src/svelte/SurfaceHost.svelte", "src/svelte/SurfaceFrame.svelte",
         "src/interaction/surface-frame.ts", "src/interaction/frame-presenters.ts", "src/interaction/fact-presentation.ts", "src/interaction/review-changes.ts", "src/web/client/frame.ts", "src/svelte/FrameBody.svelte",
         "src/interaction/toolbar.ts", "src/interaction/intent.ts", "src/interaction/face.ts", "src/interaction/selection-option.ts", "src/interaction/transient-frame.ts", "src/interaction/control-nodes.ts",

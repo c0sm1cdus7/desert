@@ -3,7 +3,7 @@ export const mediaSource = (asset: string) => `/media/${encodeURIComponent(asset
 export const catalogPhotos = (images: readonly { asset: string; alt: string }[]): Photo[] =>
   images.map(image => ({ source: mediaSource(image.asset), alt: image.alt }));
 export function imageSource(source: string, edge: number) {
-  if (!/^\/media\/[^/?#]+$/.test(source)) return source;
+  if (!/^\/media\/[^/?#]+$/.test(source) || source.endsWith(".svg")) return source;
   const bucket = [160, 320, 640, 1280, 1920, 2560].find(size => size >= edge) ?? 2560;
   return `${source}?w=${bucket}`;
 }

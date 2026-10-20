@@ -1,14 +1,14 @@
-<script lang="ts">
+<script lang="ts" generics="Result extends WorkspaceSearchResult">
   import * as Empty from "@desert/svelte/vendor/components/ui/empty/index.js";
   import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
   import Search from "@lucide/svelte/icons/search";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import BankRenderer from "../BankRenderer.svelte";
   import GroupedPanel from "../pieces/GroupedPanel.svelte";
-  import type { CatalogSearchResult } from "./catalog-search.ts";
+  import type { WorkspaceSearchResult } from "./workspace-search.ts";
   let { title, description, query, results, onselect }: {
-    title: string; description: string; query: string; results: readonly CatalogSearchResult[];
-    onselect: (result: CatalogSearchResult) => void;
+    title: string; description: string; query: string; results: readonly Result[];
+    onselect: (result: Result) => void;
   } = $props();
 </script>
 

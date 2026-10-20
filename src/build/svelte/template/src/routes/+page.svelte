@@ -1,6 +1,11 @@
 <script lang="ts">
   import HumanProduct from "@desert/svelte/HumanProduct.svelte";
-  import { surface, validateInput } from "virtual:desert/surface";
+  import ViewProduct from "@desert/svelte/views/ViewProduct.svelte";
+  import { surface, validateInput, viewProgram } from "virtual:desert/surface";
 </script>
 
-<HumanProduct {surface} {validateInput} />
+{#if viewProgram}
+  <ViewProduct program={viewProgram} {surface} {validateInput} />
+{:else}
+  <HumanProduct {surface} {validateInput} />
+{/if}

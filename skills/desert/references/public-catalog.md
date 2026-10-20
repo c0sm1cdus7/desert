@@ -1098,7 +1098,7 @@ export async function prepareRenditions(assets: readonly BoundCatalogAsset[]) {
 
 ## src/svelte/pieces/media/source.ts
 
-Source SHA-256: 6e7fe14523500a0cb70d3e4fd714dd19cbf55bde845055dcd741da3ba056bd0c
+Source SHA-256: f7bf07675e64effdeea738907e3a73ccce692d97ac9f0dc9cd656479503a236f
 
 ```ts
 export type Photo = Readonly<{ source: string; alt: string }>;
@@ -1106,7 +1106,7 @@ export const mediaSource = (asset: string) => `/media/${encodeURIComponent(asset
 export const catalogPhotos = (images: readonly { asset: string; alt: string }[]): Photo[] =>
   images.map(image => ({ source: mediaSource(image.asset), alt: image.alt }));
 export function imageSource(source: string, edge: number) {
-  if (!/^\/media\/[^/?#]+$/.test(source)) return source;
+  if (!/^\/media\/[^/?#]+$/.test(source) || source.endsWith(".svg")) return source;
   const bucket = [160, 320, 640, 1280, 1920, 2560].find(size => size >= edge) ?? 2560;
   return `${source}?w=${bucket}`;
 }
@@ -1687,13 +1687,12 @@ Source SHA-256: 0cb7da1c2091556c30e9c61fe6f524aca1808766cc82a539d584f2b83882f53c
 
 ## src/svelte/explorer/PublicCatalogBank.svelte
 
-Source SHA-256: a6f7ed0a5ee0574f2fb0e1dc0aaf7f5f0ac2976efc0cd3135e3a57dd331c8dfc
+Source SHA-256: 54abbcf90ae06df5ec1d480ba884259f3dbbf8c55da16ae472c1c780f6f45623
 
 ```svelte
 <script lang="ts">
   import { tick } from "svelte";
   import * as Empty from "@desert/svelte/vendor/components/ui/empty/index.js";
-  import type { PublicCatalogSurface } from "../../public-catalog/index.ts";
   import type { BankEvent } from "../../interaction/bank-events.ts";
   import type { PrimitiveId } from "../../interaction/catalog.ts";
   import { catalogGroups, matchingEntries } from "../catalog/navigation.ts";
@@ -1705,10 +1704,10 @@ Source SHA-256: a6f7ed0a5ee0574f2fb0e1dc0aaf7f5f0ac2976efc0cd3135e3a57dd331c8dfc
   import SpecimenRow from "../catalog/SpecimenRow.svelte";
   import SpecimenUnavailable from "../catalog/SpecimenUnavailable.svelte";
   import PublicCatalogBankSpecimen from "./PublicCatalogBankSpecimen.svelte";
-  import { publicCatalogBankInventory } from "./PublicCatalogBank-model.ts";
+  import { publicCatalogBankInventory, type PublicBankInput } from "./PublicCatalogBank-model.ts";
   import PlaceHeader from "../pieces/PlaceHeader.svelte";
   let { surface, oncatalog, bodyOnly = false, query = $bindable("") }: {
-    surface: PublicCatalogSurface; oncatalog: (event: BankEvent) => void; bodyOnly?: boolean; query?: string;
+    surface: PublicBankInput; oncatalog: (event: BankEvent) => void; bodyOnly?: boolean; query?: string;
   } = $props();
   let inventory = $derived(publicCatalogBankInventory(surface));
   let entries = $derived(matchingEntries(query));
@@ -1749,7 +1748,7 @@ Source SHA-256: a6f7ed0a5ee0574f2fb0e1dc0aaf7f5f0ac2976efc0cd3135e3a57dd331c8dfc
 
 ## src/svelte/explorer/PublicCatalogBank-model.ts
 
-Source SHA-256: 97e2a59c9c017800e956bbf181eec773eb38910862c86c821a27df686d0d1218
+Source SHA-256: ac68b660b8c32564b5c3ca436c33e93bf21254791aee70c657b25511d854c1fd
 
 ```ts
 import { InteractionCatalog, type PrimitiveId } from "../../interaction/catalog.ts";
@@ -1759,9 +1758,10 @@ import type { PublicCatalogSurface } from "../../public-catalog/index.ts";
 
 export type PublicBankSpecimen = Readonly<{ id: PrimitiveId; state: string;
   owner: "bank" | "control-bank"; node?: BankNode; gap?: string }>;
+export type PublicBankInput = Pick<PublicCatalogSurface, "productId" | "home" | "details">;
 
 /** Diagnostic coverage is not a capability declaration or an execution adapter. */
-export function publicCatalogBankInventory(surface: PublicCatalogSurface): readonly PublicBankSpecimen[] {
+export function publicCatalogBankInventory(surface: PublicBankInput): readonly PublicBankSpecimen[] {
   const first = surface.details[0]!;
   const details: FactsContent = { kind: "facts", object: surface.productId, fields: ["title"],
     labels: { [`${surface.productId}.title`]: "Title" }, facts: { title: first.title } };

@@ -5,9 +5,10 @@ import type { PublicCatalogSurface } from "../../public-catalog/index.ts";
 
 export type PublicBankSpecimen = Readonly<{ id: PrimitiveId; state: string;
   owner: "bank" | "control-bank"; node?: BankNode; gap?: string }>;
+export type PublicBankInput = Pick<PublicCatalogSurface, "productId" | "home" | "details">;
 
 /** Diagnostic coverage is not a capability declaration or an execution adapter. */
-export function publicCatalogBankInventory(surface: PublicCatalogSurface): readonly PublicBankSpecimen[] {
+export function publicCatalogBankInventory(surface: PublicBankInput): readonly PublicBankSpecimen[] {
   const first = surface.details[0]!;
   const details: FactsContent = { kind: "facts", object: surface.productId, fields: ["title"],
     labels: { [`${surface.productId}.title`]: "Title" }, facts: { title: first.title } };

@@ -3,6 +3,7 @@ import { compile, compileModule } from "svelte/compiler";
 import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { chromium } from "playwright";
+import { resolveBitsScrollLock } from "../../src/build/svelte/bits-scroll-lock.ts";
 
 /** Actual browser components, compiled in memory; no product server or database. */
 export async function svelteBrowser(source: string, overrides: Readonly<Record<string, string>> = {}) {
@@ -11,7 +12,10 @@ export async function svelteBrowser(source: string, overrides: Readonly<Record<s
     stdin: { contents: 'import { mount } from "svelte"; import App from "virtual-component.svelte"; mount(App, { target: document.body });',
       resolveDir: root, sourcefile: "entry.js" },
     bundle: true, write: false, platform: "browser", format: "iife", conditions: ["browser", "svelte"],
-    alias: { "@desert": resolve(root, "src") },
+    alias: {
+      "@desert": resolve(root, "src"),
+      "@desert-internal/bits-scroll-lock": resolveBitsScrollLock(),
+    },
     plugins: [{ name: "in-memory-svelte", setup(builder) {
       builder.onResolve({ filter: /^virtual-component\.svelte$/ }, () => ({ path: "virtual-component.svelte", namespace: "fixture" }));
       builder.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({

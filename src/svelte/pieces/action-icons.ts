@@ -10,9 +10,10 @@ import LayoutGrid from "@lucide/svelte/icons/layout-grid";
 import ArrowRight from "@lucide/svelte/icons/arrow-right";
 import Check from "@lucide/svelte/icons/check";
 import Ellipsis from "@lucide/svelte/icons/ellipsis";
+import PanelLeft from "@lucide/svelte/icons/panel-left";
 import type { ActionIcon } from "../../interaction/toolbar.ts";
 
 export const actionIcons = {
   back: ArrowLeft, close: X, save: Save, review: Eye, recover: Search, retry: RotateCw,
-  create: Plus, archive: Archive, catalog: LayoutGrid, open: ArrowRight, confirm: Check, search: Search, more: Ellipsis,
+  create: Plus, archive: Archive, catalog: LayoutGrid, open: ArrowRight, confirm: Check, search: Search, more: Ellipsis, navigation: PanelLeft,
 } satisfies Record<ActionIcon, typeof X>;

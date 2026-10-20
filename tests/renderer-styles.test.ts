@@ -18,8 +18,10 @@ test("renderer global style layers enter through one theme, never component-side
   }
   // A standalone @layer components import can precede Tailwind's layer prelude
   // after bundling, allowing the base reset to erase all shared bank geometry.
-  assert.deepEqual(imports, [
+  // Filesystem traversal order is not part of the renderer contract.
+  assert.deepEqual(imports.sort((a, b) => a.file < b.file ? -1 : a.file > b.file ? 1 : 0), [
     { file: "HumanProduct.svelte", source: "./theme.css" },
     { file: "explorer/PublicCatalogProduct.svelte", source: "../theme.css" },
+    { file: "views/ViewProduct.svelte", source: "../theme.css" },
   ]);
 });

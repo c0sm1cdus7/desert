@@ -2,12 +2,30 @@
 
 VOID is the intended open-source example product for DESERT: a collaborative operating system where human and agent identities use the same journeys. It replaces Landmarks as the product direction while retaining reusable media and interaction work. VOID has no built-in intelligence; it organizes typed information, collaboration, resources and execution without choosing an intelligence provider.
 
-This definition records the owner's product intent from 2026-10-16. It is not an executable contract, a delivery claim or approval of the unresolved choices below. Current installed DESERT capabilities remain recorded in [Implementation status](STATUS.md). A missing mechanism is a gap to close, not permission to shrink VOID into what the SDK already supports.
+This definition records product intent from 2026-10-16, updated by the owner's
+2026-10-20 direction. VOID starts from zero as a separate MIT-licensed product in
+[c0sm1cdus7/void](https://github.com/c0sm1cdus7/void), consuming DESERT rather than
+copying its implementation. The current delivery task and acceptance cases live
+in that repository's `docs/ROADMAP.md` and `docs/NOTES-VERTICAL.md`.
+This is not a delivery claim or approval of the unresolved choices below.
+Current installed capabilities remain in [Implementation status](STATUS.md).
+A missing mechanism is a gap to close, not permission to shrink VOID.
+
+The local N1 web slice now runs Home, Notes and Visual catalog from a typed
+`ViewProgram`, using the SDK renderer, canonical create/read journeys and a
+persistent developer host. The editor/detail adapt between a right dock and
+transient presentation. This is not production identity onboarding, editing,
+native delivery or the complete module architecture; see the VOID repository's
+`docs/VERIFICATION.md` for the tested scope and outstanding suite failures.
 
 ## Product boundaries
 
-- The system contains Notes, Tasks, Communicator and Library. Settings is a system destination; whether it is presented as a separate program remains open.
-- Connections expose execution environments and their resources. They are system connections, not another work program. Tasks absorbs the earlier separate work and workflow concepts.
+- The active delivery order is Notes, System, Appearance, User, Connections,
+  Environments, then Tasks. Communicator and Library remain outside this sequence;
+  their earlier requirements below are not silently removed or implemented.
+- Connections provision external tools/services (GitHub, Resend, Railway, Apple
+  Developer). Environments expose execution hosts and their available actors.
+  Tasks absorbs the earlier separate work and workflow concepts.
 - Filesystem and storage belong to the kernel. There is no Filesystem program. Initially only Library writes to the system media bucket.
 - The same VOID distribution provides its terminal CLI, instance administration and system access. Running a VOID instance and exposing a machine's local resources are independent choices.
 - DESERT owns common semantics and installed surface mechanisms. VOID owns its product policy, objects and journeys. No app-specific parallel renderer or duplicated validator is an acceptable shortcut.
@@ -40,11 +58,21 @@ Ownership, participation and authorship remain distinct. An object reference is 
 
 ## Tasks
 
-A task can stand alone or belong to a project. A project groups tasks; it is not a prerequisite to asking for work. The Tasks home shows the current identity's pending tasks ordered by attention, its projects and relevant task context. The attention ordering must be explicit and deterministic, not an intelligence feature.
+A task can stand alone or carry project labels. The 2026-10-20 direction treats
+projects as labels, not required containers or a separate permission/lifecycle
+domain. Single versus multiple project labels remains open. Attention ordering
+must be explicit and deterministic, not an intelligence feature.
 
-Each task has an owner and an assigned actor, a title, description, state, optional project, deadline, reminders and a label drawn from a catalog, such as Urgent. Creating a task from a description generates its title automatically and deterministically, without a model or a second intelligence system. The exact title rule and attention ordering are unresolved, rather than hidden heuristics.
+Each task has an owner and an assigned actor, a title, description, state,
+optional project labeling, deadline, reminders and other catalog labels such as
+Urgent. Creating a task from a description generates its title automatically and
+deterministically, without a model or a second intelligence system. The exact
+title rule and attention ordering are unresolved, rather than hidden heuristics.
 
-The actor selector offers system identities, current available actor sessions and the option to create a session. Examples are the requesting identity, an identity named Abed, or a Claude Code, Codex, Kenon or VOID session on a named connected machine. Provider and machine labels explain where execution lives; they do not create a new identity kind or grant authority.
+The actor selector offers available environment-bound actors, not global provider
+names or a workflow to create/manage provider sessions. "Claude — MacBook Pro"
+and "Codex — Linux VM on Railway" identify different execution actors. An actor
+has an environment; display labels do not establish identity or authority.
 
 Tasks can depend on other tasks' states. Dependencies do not consume another task's result as a workflow input. This supports workflows directly in Tasks without a separate workflow program. The exact states, dependency predicates, cycles, reopening behavior and scheduling rules require definition.
 
@@ -66,17 +94,27 @@ Music and movies include recommendations, but VOID itself has no intelligence. R
 
 Reuse the earlier Landmarks media presentation and shared mechanisms where applicable. This is not authorization to redistribute Apple sample media or assume rights to third-party assets in an open-source distribution.
 
-## Connections and actor sessions
+## Connections, environments and actors
 
-A connection represents a machine running VOID's local resources controller and pointed at a VOID controller. It publishes resources actually available there, including authorized filesystem access, shell commands and installed execution providers. A friendly product name for an execution environment remains open.
+Connections provision authorized access to external tools/services. Environments
+are hosts running VOID CLI and connected to VOID. A Railway connection may
+provision a Linux environment; the connection and environment remain distinct.
 
-The local resources controller is not a durable agent identity and is not an intelligence or memory system. It manages provider sessions, relays messages, observes availability, attempts recovery, and supports pause and abort. Providers such as Claude Code, Codex or Kenon own their session memory and provider-specific continuation. The local resources controller must not manufacture or rewrite that memory.
+VOID CLI bridges installed Kenon, Claude and Codex CLIs, advertises their observed
+availability, relays task conversations and queues jobs. It enforces a configurable
+maximum concurrent workload per actor, not per global provider name.
+The actor is an environment-bound identity; provider sessions are implementation
+lifecycle, not a separate user-managed actor program.
 
-An actor session is one provider session on a connection, not merely the provider executable. Sessions appear in the connection's actor list and the task actor selector. Named retained sessions and available unnamed sessions are both discoverable. A user can elect to retain and name a session; retention is off by default. The precise end-of-life rule for an unretained session is still open: default non-retention must not silently contradict the requirement that task completion does not close it automatically.
+Provider memory/continuation remain provider-owned. Task completion does not
+implicitly destroy context. Queue durability, acknowledgement, cancellation,
+retry, offline behavior, changing limits and uncertain outcomes need explicit
+contracts. No FIFO or automatic replay policy is inferred from "queue".
 
-An unavailable machine or missing CLI makes its actor unavailable. Requested recovery or migration must be honest about provider capabilities: moving work to another actor is not proof that provider memory or an interrupted operation was transferred. The product needs a migration path when an actor cannot recover; continuity, consent and unsupported-provider behavior need explicit decisions.
-
-Assignments do not implicitly delegate all of an owner's permissions. Before implementation, the contract must identify whose authority a provider session uses, what the actor may access, and how that authority is revoked. Availability is evidence of resources, not permission to run a shell command.
+An unavailable environment or missing CLI makes its actor unavailable. Moving
+work does not prove that provider memory or an interrupted operation transferred.
+Assignments do not delegate all owner permissions. Enrollment, actor identity,
+scoped execution, connection credentials and revocation require separate authority.
 
 ## CLI and instance administration
 
@@ -92,11 +130,25 @@ Only an admin can delete an identity, and every deletion requires a choice about
 
 Object references to the deleted identity must remain meaningful. The requested tombstone retains its recognizable appearance and deleted status while removing the content selected for deletion. Its old credentials must no longer act as that identity. Exact retained name/avatar fields, attribution, membership and ownership consequences need a defined retention policy.
 
-“Its data” is not yet sufficiently precise for a collaborative system. Shared notes, messages authored in another identity's conversation, project ownership, media participants and task assignments need explicit disposition rules. Integration must not silently rewrite historical authorship or widen access. These are pending semantics, not assumed behavior.
+“Its data” is not yet sufficiently precise for a collaborative system. Shared
+notes, messages authored in another identity's conversation, task ownership,
+project labels, media participants and task assignments need explicit disposition
+rules. Integration must not silently rewrite historical authorship or widen access.
+These are pending semantics, not assumed behavior.
 
 ## Presentation and readable composition
 
-The visual direction is Apple Settings and functional Glass on the shared shadcn-svelte foundation, preserving DESERT's whole-well inputs. The same typed bank serves product and catalog; native renderers will use platform-native libraries later, without changing the product meaning.
+The visual direction is Apple Settings and functional Glass on the shared
+shadcn-svelte foundation, preserving DESERT's whole-well inputs. The Component
+bank becomes VOID's **Visual catalog** destination, declared in
+`views/visualCatalog.view.ts`, and demonstrates the web surface's actual catalog.
+It is not the entire portable SDK bank. Native renderers use their own qualified
+libraries without changing journey meaning.
+
+Reusable definitions live in `views/*.view.ts`; activities in
+`journeys/*.journey.ts`. Views cannot draw or reference their consuming journeys.
+Journeys bind typed outputs, commands and destinations. The storyboard derives
+from these contracts, never a second manually authored flow.
 
 VOID's name and eventual logo belong in the shared sidebar header. The sidebar toggle is a compact ghost action at the bottom. Fresh identity and branding options are being considered; **no final logo has been selected**. A provisional preview is not brand adoption.
 
@@ -114,23 +166,31 @@ VOID's information travels through a typed flow and encrypted ZIP packaging is p
 
 1. Does admin authority include private content, or only system and identity administration? This must agree with privacy, deletion and integration.
 2. Who can decrypt content: the controller, or only participating identities? Define key ownership, device enrollment, recovery and access removal accordingly.
-3. Which participation roles are needed, and who may invite, remove or change another participant? Determine task and project visibility rather than assuming Notes' rules apply unchanged.
+3. Which participation roles are needed, and who may invite, remove or change
+   another participant? Determine task visibility and project-label semantics
+   rather than assuming Notes' rules apply unchanged.
 4. What does identity discard or integration do to shared content, ownership, historical attribution, grants and retained tombstone appearance? Define the last-admin and self-deletion cases.
 5. Which identity authorizes a provider session, what delegated scope can it use, and who may expose a machine's filesystem and shell? Specify paths, capabilities, credential storage and revocation.
-6. When do unretained sessions end, how are tasks serialized or shared within one session, and what does migration preserve when a provider cannot export session state?
+6. Define internal provider-session lifecycle, per-actor queue policy, durable
+   acknowledgement, concurrency limits, offline recovery and migration continuity.
 7. Define task states, dependency predicates, attention order, deterministic titles, reminder delivery and failure/retry rules. Decide whether an unavailable actor waits, asks for reassignment or follows another explicit policy.
 8. Define collaborative edit semantics, reconnect/offline behavior and retention; define Library quotas, accepted media, upload interruption/recovery, sharing inheritance and deterministic recommendation criteria.
-9. Decide Settings' presentation, the friendly connection name, the final brand, and the instance administration lifecycle. None of these choices may imply a security policy by label alone.
+9. Decide System's navigation nesting, the final brand and instance administration
+   lifecycle. These choices cannot imply a security policy by label alone.
 
 ## Proposed delivery sequence
 
-This sequence is a proposal, not a reduction of the requested product or a claim of current support.
+The owner's 2026-10-20 sequence supersedes the earlier proposed order: Notes →
+System → Appearance → User → Connections → Environments → Tasks. Start with
+an isolated create/read runtime proof, then install the closed views/journeys
+boundary and safe edit-base semantics in DESERT before declaring Notes complete.
+Full Notes still requires collaboration, participation and actual MCP/API parity.
 
-1. Resolve the authority and encryption boundaries; define identity, participants and exact cross-surface journey obligations with independent positive and negative expectations.
-2. Build one complete Notes collaboration slice with optional titles, labels, participants, durable edits, concurrent behavior and recovery through web, MCP and API. Extend DESERT for missing semantics instead of duplicating product logic.
-3. Add Tasks and Communicator using shared participation and conversation mechanisms; prove standalone tasks, projects, state dependencies, reminders and deterministic derivations before provider execution.
-4. Install Connections and provider-session execution with scoped authority, explicit lifecycle, relay, recovery and supported migration. Verify external effects and uncertain outcomes separately from local acceptance.
-5. Add Library's real bucket, metadata, upload queue and playback, then deterministic recommendations. Reuse media presentation without pretending a read-only catalog is storage.
-6. Complete identity deletion/integration and instance administration with destructive-operation recovery tests; package the same distribution and reconcile all declared journeys against every installed surface before claiming full coverage.
+Work in branches in both repositories. VOID main pushes are the intended release
+boundary for one version across iOS, Android, Linux and Web, with equivalent
+journey behavior. Native builders and the release pipeline are not yet installed.
+Public community buildability requires a reviewed licensed SDK distribution;
+VOID's MIT license does not relicense this private SDK or third-party assets.
 
-At every step, show the readable authored product definitions, separate installed capability from gaps, and retain the existing controller and data until an explicit compatible migration is designed. Renaming the example to VOID alone does not implement this operating system.
+Retain existing controllers, data and `v127a-stable`. No live provider enrollment,
+cloud spending, store submission or disclosure of private SDK material is implied.

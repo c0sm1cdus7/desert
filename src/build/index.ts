@@ -8,10 +8,11 @@ import { loadVerifiedBuild, manifestFile, type BuildManifest } from "./manifest.
 export { loadVerifiedBuild } from "./manifest.ts";
 export async function buildDistribution(application: Application, options: {
   distributions: unknown, target: string, outputDirectory: string,
+  viewProgram?: unknown,
 }) {
   const resolved = resolveBuild(application, options.distributions, options.target);
   const { builder, plan } = installedBuilder(resolved.plan);
-  const prepared = await builder.prepare(application, plan);
+  const prepared = await builder.prepare(application, plan, options.viewProgram);
   const output = resolve(options.outputDirectory);
   try { lstatSync(output); throw new Error("BUILD_DESTINATION_EXISTS"); }
   catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; }

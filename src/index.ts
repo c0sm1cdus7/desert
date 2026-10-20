@@ -12,3 +12,8 @@ export { InteractionCatalog } from "./interaction/catalog.ts";
 export type { PrimitiveId, InputPrimitive, RendererBank } from "./interaction/catalog.ts";
 export { inputMask, InputMaskSchema } from "./interaction/input-mask.ts";
 export type { InputMask } from "./interaction/input-mask.ts";
+export { ViewVersion, ViewLimits, ViewSchema, view, viewCatalog } from "./views/index.ts";
+export type { View, ViewContent, ViewHeader, ViewStack, ViewLeaf, ViewToolbar, ViewRef } from "./views/index.ts";
+export { ViewProgramVersion, ViewProgramSchema, viewInputs, compileViewProgram } from "./views/index.ts";
+export type { ViewProgram, ViewJourney, ViewDestination, ViewOutputBinding, ViewOutputAction,
+  ViewBoundContent, ViewItem } from "./views/index.ts";

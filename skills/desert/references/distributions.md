@@ -130,10 +130,12 @@ verbatim modules, not standalone snippets or a published package API.
 - src/build/serve.ts
 - src/build/manifest.ts
 - src/build/svelte/template/src/routes/+page.svelte
+- src/local/developer-host.ts
+- src/local/developer-identity.ts
 
 ## src/build/index.ts
 
-Source SHA-256: 030665363ec7a30c8c5aed116513ff7aa63225ebf32aee53de204ea8633616b5
+Source SHA-256: 47bb0cf0fb76f63d30357fb17ee61a525ab5a6a56580a9aad12158045daa9ba9
 
 ```ts
 import { mkdirSync, mkdtempSync, cpSync, rmSync, writeFileSync, lstatSync } from "node:fs";
@@ -146,10 +148,11 @@ import { loadVerifiedBuild, manifestFile, type BuildManifest } from "./manifest.
 export { loadVerifiedBuild } from "./manifest.ts";
 export async function buildDistribution(application: Application, options: {
   distributions: unknown, target: string, outputDirectory: string,
+  viewProgram?: unknown,
 }) {
   const resolved = resolveBuild(application, options.distributions, options.target);
   const { builder, plan } = installedBuilder(resolved.plan);
-  const prepared = await builder.prepare(application, plan);
+  const prepared = await builder.prepare(application, plan, options.viewProgram);
   const output = resolve(options.outputDirectory);
   try { lstatSync(output); throw new Error("BUILD_DESTINATION_EXISTS"); }
   catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; }
@@ -254,13 +257,136 @@ export function loadVerifiedBuild(directory: string) {
 
 ## src/build/svelte/template/src/routes/+page.svelte
 
-Source SHA-256: f3e7ca0d5c91571b99f0a7b77770175967b342b6c64630022512e2d5c0f260a2
+Source SHA-256: 1fa3b0f098ffb0d2a538268465800a1a1b5822f21026b09f3138e8f99ad5e123
 
 ```svelte
 <script lang="ts">
   import HumanProduct from "@desert/svelte/HumanProduct.svelte";
-  import { surface, validateInput } from "virtual:desert/surface";
+  import ViewProduct from "@desert/svelte/views/ViewProduct.svelte";
+  import { surface, validateInput, viewProgram } from "virtual:desert/surface";
 </script>
 
-<HumanProduct {surface} {validateInput} />
+{#if viewProgram}
+  <ViewProduct program={viewProgram} {surface} {validateInput} />
+{:else}
+  <HumanProduct {surface} {validateInput} />
+{/if}
+```
+
+## src/local/developer-host.ts
+
+Source SHA-256: 1eb8a2ab41aa40b088c7a5db1096f37dfee79d7b744f6ac08b89ad976d0d4f06
+
+```ts
+import { join } from "node:path";
+import { existsSync } from "node:fs";
+import type { compile } from "../compile.ts";
+import { serveBuiltLocalSurface } from "../build/serve.ts";
+import { openLocalController } from "./controller.ts";
+import { startLocalPostgres } from "./postgres-host.ts";
+import { developerIdentity, writePrivateJson } from "./developer-identity.ts";
+
+export type DeveloperHostOptions = {
+  application: ReturnType<typeof compile>;
+  role: string;
+  surfaceId: string;
+  directory: string;
+};
+
+/** Trusted developer bootstrap, not production login, enrollment or recovery. */
+export async function openDeveloperHost(options: DeveloperHostOptions) {
+  options.application.surface(options.surfaceId);
+  const initialize = !existsSync(join(options.directory, "postgres"));
+  const postgres = startLocalPostgres(options.directory);
+  let controller: Awaited<ReturnType<typeof openLocalController>> | undefined;
+  let closing: Promise<void> | undefined;
+  function close() {
+    return closing ??= (async () => {
+      try { await controller?.close(); } finally { postgres.stop(); }
+    })();
+  }
+  try {
+    controller = await openLocalController(options.application, { ...postgres.database, role: options.role });
+    const identity = await developerIdentity(controller, options.directory, initialize);
+    const session = controller.connect(identity.token, options.surfaceId);
+    return Object.freeze({ application: options.application, session, close });
+  } catch (error) { await close(); throw error; }
+}
+
+/** Serves only loopback; the one-use launch invitation stays in a private file. */
+export async function serveDeveloperSurface(options: DeveloperHostOptions & {
+  buildDirectory: string;
+  port?: number;
+}) {
+  if (options.port !== undefined && (!Number.isInteger(options.port) || options.port < 0 || options.port > 65535)) {
+    throw new Error("INVALID_LOCAL_PORT");
+  }
+  const host = await openDeveloperHost(options);
+  let server: Awaited<ReturnType<typeof serveBuiltLocalSurface>> | undefined;
+  let closing: Promise<void> | undefined;
+  function close() {
+    return closing ??= (async () => {
+      try { await server?.close(); } finally { await host.close(); }
+    })();
+  }
+  try {
+    server = await serveBuiltLocalSurface({ buildDirectory: options.buildDirectory, session: host.session, port: options.port ?? 0 });
+    const launchFile = join(options.directory, "web-launch.json");
+    writePrivateJson(launchFile, { url: server.launchUrl });
+    return Object.freeze({ origin: server.origin, launchFile, close });
+  } catch (error) { await close(); throw error; }
+}
+```
+
+## src/local/developer-identity.ts
+
+Source SHA-256: 7b97ea5da332e44d3f1e8056f15be11251282211f755269784b88a9efde7b354
+
+```ts
+import { constants, closeSync, openSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import type { openLocalController } from "../local.ts";
+import { requirePrivatePath } from "./postgres-host.ts";
+
+type Controller = Awaited<ReturnType<typeof openLocalController>>;
+type Credential = { id: string; token: string };
+
+function privateFileExists(path: string) {
+  try { requirePrivatePath(path, false); return true; }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+    throw error;
+  }
+}
+
+export function writePrivateJson(path: string, value: unknown, exclusive = false) {
+  privateFileExists(path);
+  const file = openSync(path, constants.O_WRONLY | constants.O_CREAT | constants.O_NOFOLLOW |
+    (exclusive ? constants.O_EXCL : constants.O_TRUNC), 0o600);
+  try { writeFileSync(file, JSON.stringify(value) + "\n"); }
+  finally { closeSync(file); }
+}
+
+export async function developerIdentity(controller: Controller, directory: string, initialize: boolean): Promise<Credential> {
+  const path = join(directory, "identity.json");
+  if (!privateFileExists(path)) {
+    if (!initialize) throw new Error("LOCAL_CREDENTIAL_MISSING");
+    const identity = await controller.identities.issue("Local developer");
+    writePrivateJson(path, identity, true);
+    return identity;
+  }
+  let identity: unknown;
+  try { identity = JSON.parse(readFileSync(path, "utf8")); }
+  catch { throw new Error("INVALID_LOCAL_CREDENTIAL"); }
+  if (!identity || typeof identity !== "object" || Array.isArray(identity) ||
+    Object.keys(identity).sort().join() !== "id,token" ||
+    !("id" in identity) || typeof identity.id !== "string" ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(identity.id) ||
+    !("token" in identity) || typeof identity.token !== "string" || !/^[A-Za-z0-9_-]{43}$/.test(identity.token)) {
+    throw new Error("INVALID_LOCAL_CREDENTIAL");
+  }
+  // Valid shape is not authority. Session operations recheck the retained token;
+  // expiry or revocation must never create another identity and orphan its notes.
+  return { id: identity.id, token: identity.token };
+}
 ```

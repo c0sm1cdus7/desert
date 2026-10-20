@@ -1,5 +1,86 @@
 # Implementation status — 2026-10-20
 
+## Owner-approved checkpoint — v128a-stable
+
+The owner approved the preserved-renderer VOID N1 preview on 2026-10-20.
+`releases/v128a-stable.json` records the exact renderer/build digests, evidence
+and recovery procedure. The paired VOID checkpoint is `n1-stable`.
+This marks an approved local web baseline on development branches, not a
+production/all-platform release or closure of the outstanding architecture audit.
+The previous `v127a-stable` tag, frozen preview and local stores are preserved.
+
+## VOID N1 — restore approved visual owners
+
+The first N1 preview was visually rejected. Using low-level primitives was not
+enough: its parallel workspace composition lost the approved anatomy, header
+handoff and motion. The replacement workspace/navigation composition has been
+removed. The View-program adapter now mounts the existing `CatalogWorkspace`,
+`CatalogNavigation`, `CatalogToolbar`, `PlaceHeading` and `PublicCatalogBank`.
+It supplies typed data and callbacks; it adds no alternate shell CSS or material.
+
+Independent RED checks reproduced a scroll effect resetting the viewport to zero
+and a newly mounted panel skipping entry motion. Scroll reset now follows actual
+destination changes, and panel lifetime enters through the existing closed-to-open
+transition. Nested retained content also respects its parent's active state.
+Top-dock actions remain in the existing upper navigation rail at compact widths;
+Search's adaptive placement and component are unchanged.
+
+Final build `landmarks-v128-preservation-c` versus frozen v127a passes 20 exact
+pixel comparisons (zero changed pixels, no masks/tolerance) and 12 motion
+comparisons. VOID `void-n1-preserved-c` passes seven real-browser checks, including
+real wheel scrolling, create/read persistence and draft retention across docking.
+Generated Svelte checks report zero errors and warnings. These are finite
+Chromium matrices, not all-state/native qualification or closure of the 326-file
+ownership audit. See `scripts/visual-parity/README.md` and VOID verification.
+The approved 4292 build and the original VOID local store remain intact.
+
+## VOID local View program — N1
+
+The branch now builds a finite `desert.view-program/1`: typed destinations and
+output bindings consume literal Views, canonical read/create journeys and their
+existing input schemas. Bound collection/form/context nodes and the visual
+catalog have shared web owners. VOID contains declarations, not product HTML,
+CSS, a private controller or a second renderer.
+
+Admission rejects dangling/duplicate bindings, unsupported panel geometry,
+unrendered docks/media and extra presentation properties. The nonvisual
+interpreter preserves canonical validation, submit/Enter, review and lost-reply
+recovery. Presentation-only destinations do not issue product reads/writes.
+
+A trusted loopback developer host retains a private identity and PostgreSQL
+store; it is not production enrollment, authentication or identity recovery.
+The frozen v127a preview/data are not used or modified.
+
+The local product exposes Home, Notes, create/read panels and the existing web
+Visual catalog. Editing, general module composition, MCP/API adapters, native
+renderers, media-header handoff in the new program and global no-override
+ownership closure remain open. Evidence is recorded in VOID's
+`docs/VERIFICATION.md`; this is not a new qualified public release.
+
+## Literal View authoring foundation
+
+The working branch adds `desert.view/1` and exported `View`, `view` and
+`viewCatalog`. Content is an ordered sequence: a standalone Header, titled
+Stacks and permitted passive catalog leaves. Top/bottom docks accept Toolbar
+output descriptors; side docks reference Views by ID. Outputs cannot name
+journeys/commands, and input bindings, editable controls and collections are
+not accepted in this literal slice.
+
+Runtime validation rejects unknown properties, styling/callback escape hatches,
+invalid references, duplicate identities and cyclic/excessive composition.
+An iterative preflight bounds raw input before recursive normalization. Validated
+descriptors and cloned exported schemas are deeply frozen; legacy schemas and
+`PlaceContent` remain unchanged.
+
+Twelve new runtime/static tests and eighteen legacy composition checks pass
+(30 focused tests); TypeScript passes. The standalone views entry bundles for
+the browser without Node/external imports. This is contract evidence, not
+visual qualification or global renderer/catalog ownership closure.
+
+This records the earlier N1a boundary. N1 above adds the finite executable
+binding/renderer slice; it does not replace the legacy interaction artifact
+for products that do not declare a View program.
+
 ## Gallery leading close action — v127a
 
 The shared viewer places Close first, before its title and photo count, in both

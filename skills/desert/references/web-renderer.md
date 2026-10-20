@@ -794,6 +794,26 @@ verbatim modules, not standalone snippets or a published package API.
 - src/build/svelte/template/src/routes/+page.svelte
 - src/svelte/renderer-contracts.ts
 - src/svelte/renderer-registry.ts
+- src/views/program-schema.ts
+- src/views/program.ts
+- src/views/resolved.ts
+- src/web/client/view-program.ts
+- src/web/client/view-projection.ts
+- src/svelte/views/ViewProduct.svelte
+- src/svelte/views/Workspace.svelte
+- src/svelte/views/workspace-data.ts
+- src/svelte/explorer/CatalogWorkspace.svelte
+- src/svelte/explorer/CatalogNavigation.svelte
+- src/svelte/explorer/CatalogNavigationActions.svelte
+- src/svelte/explorer/CatalogToolbar.svelte
+- src/svelte/explorer/workspace-navigation.ts
+- src/svelte/explorer/workspace-search.ts
+- src/svelte/views/ViewContent.svelte
+- src/svelte/views/ViewItem.svelte
+- src/svelte/views/Panel.svelte
+- src/svelte/views/InspectionContent.svelte
+- src/svelte/catalog/inspection-fixture.ts
+- src/svelte/catalog/inspection-media.ts
 - src/svelte/HumanProduct.svelte
 - src/svelte/ProductWorkspace.svelte
 - src/svelte/Collection.svelte
@@ -1475,7 +1495,7 @@ export function projectSurface(product: ProductDefinition, program: ReturnType<t
 
 ## src/web/build.ts
 
-Source SHA-256: 590b6c38f53fbe318317ea6d050c1e3f2c96392787a39bc620bb04efe3b37f60
+Source SHA-256: 3d43f9a00047a303fe47e288117a1cb14ccfd9b4f44402d24a4052ec1ddf1582
 
 ```ts
 import { Ajv } from "ajv";
@@ -1485,12 +1505,14 @@ import { fileURLToPath } from "node:url";
 import type { compile } from "../compile.ts";
 import { requireCatalog } from "../interaction/catalog.ts";
 import { deriveForm } from "../interaction/form.ts";
+import { compileViewProgram } from "../views/program.ts";
 
-export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string) {
+export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string, program?: unknown) {
   const surface = application.surface(surfaceId);
   if (surface.kind !== "human") throw new Error("HUMAN_SURFACE_REQUIRED");
   requireCatalog(surface.catalog);
   if (surface.language?.locale !== "en") throw new Error("UNSUPPORTED_RENDERER_LANGUAGE");
+  const viewProgram = program === undefined ? null : compileViewProgram(program, surface);
   const entry = surface.journeys.find(journey => journey.id === surface.navigation?.entry);
   if (entry?.kind !== "read") throw new Error("UNSUPPORTED_RENDERER_ENTRY");
   const navigation = new Set([surface.navigation!.entry, surface.navigation!.primaryAction, ...surface.navigation!.subjectActions]);
@@ -1518,6 +1540,7 @@ export async function buildHumanModule(application: ReturnType<typeof compile>, 
   const source = `import { freezeDeep } from './src/json.ts';
     import { inspectValidation } from './src/validation-result.ts';\n${generated}\nconst validators = {${registry}};
     export const surface = freezeDeep(${JSON.stringify(surface)});
+    export const viewProgram = freezeDeep(${JSON.stringify(viewProgram)});
     function inspectInput(commandId, input) {
       if (!Object.hasOwn(validators, commandId)) throw new Error('Unknown command');
       return inspectValidation(validators[commandId], input);
@@ -1532,15 +1555,20 @@ export async function buildHumanModule(application: ReturnType<typeof compile>, 
 
 ## src/build/svelte/template/src/routes/+page.svelte
 
-Source SHA-256: f3e7ca0d5c91571b99f0a7b77770175967b342b6c64630022512e2d5c0f260a2
+Source SHA-256: 1fa3b0f098ffb0d2a538268465800a1a1b5822f21026b09f3138e8f99ad5e123
 
 ```svelte
 <script lang="ts">
   import HumanProduct from "@desert/svelte/HumanProduct.svelte";
-  import { surface, validateInput } from "virtual:desert/surface";
+  import ViewProduct from "@desert/svelte/views/ViewProduct.svelte";
+  import { surface, validateInput, viewProgram } from "virtual:desert/surface";
 </script>
 
-<HumanProduct {surface} {validateInput} />
+{#if viewProgram}
+  <ViewProduct program={viewProgram} {surface} {validateInput} />
+{:else}
+  <HumanProduct {surface} {validateInput} />
+{/if}
 ```
 
 ## src/svelte/renderer-contracts.ts
@@ -1660,6 +1688,1178 @@ export const webRenderers: WebRendererBank = Object.freeze({
   "catalog.home": CatalogHome,
   "catalog.detail": CatalogDetail,
 } satisfies WebRendererBank);
+```
+
+## src/views/program-schema.ts
+
+Source SHA-256: 101ceedcc4f735de98c7c599f2b8b4370c7373aad42c8644526f151d75784fb1
+
+```ts
+import { Type, type Static } from "@sinclair/typebox";
+import type { Frozen } from "../json.ts";
+import { ActionIconSchema } from "../interaction/toolbar.ts";
+import { ViewSchema, ViewLimits } from "./schema.ts";
+import { closed, immutable, name, text } from "./definition.ts";
+
+export const ViewProgramVersion = "desert.view-program/1" as const;
+export const ViewOutputActionSchema = immutable(Type.Union([
+  closed({ kind: Type.Literal("journey"), journey: name }),
+  closed({ kind: Type.Literal("select") }),
+  closed({ kind: Type.Literal("submit") }),
+  closed({ kind: Type.Literal("close") }),
+]));
+export const ViewOutputBindingSchema = closed({ view: name, output: name, action: ViewOutputActionSchema });
+const outputs = Type.Array(ViewOutputBindingSchema, { maxItems: ViewLimits.catalogSize });
+export const ViewJourneySchema = immutable(Type.Union([
+  closed({ id: name, kind: Type.Literal("presentation"), view: name, outputs }),
+  closed({ id: name, kind: Type.Literal("read"), view: name, detailView: name, outputs }),
+  closed({ id: name, kind: Type.Literal("create"), view: name, preferredDock: Type.Literal("right"), outputs }),
+]));
+export const ViewDestinationSchema = closed({ id: name, label: text, icon: ActionIconSchema, entryJourney: name });
+export const ViewProgramSchema = closed({
+  version: Type.Literal(ViewProgramVersion), productId: name, label: text,
+  views: Type.Array(ViewSchema, { minItems: 1, maxItems: ViewLimits.catalogSize }),
+  journeys: Type.Array(ViewJourneySchema, { minItems: 1, maxItems: ViewLimits.catalogSize }),
+  destinations: Type.Array(ViewDestinationSchema, { minItems: 1, maxItems: ViewLimits.catalogSize }),
+  entry: name, navigation: Type.Array(name, { minItems: 1, maxItems: ViewLimits.catalogSize }),
+});
+export type ViewProgram = Frozen<Static<typeof ViewProgramSchema>>;
+export type ViewJourney = Frozen<Static<typeof ViewJourneySchema>>;
+export type ViewDestination = Frozen<Static<typeof ViewDestinationSchema>>;
+export type ViewOutputBinding = Frozen<Static<typeof ViewOutputBindingSchema>>;
+export type ViewOutputAction = Frozen<Static<typeof ViewOutputActionSchema>>;
+```
+
+## src/views/program.ts
+
+Source SHA-256: 12eeb1aadff30b09fd799a315045bf8f354f30025de4f1dad0daa10a471e378a
+
+```ts
+import { Check } from "@sinclair/typebox/value";
+import { freezeDeep } from "../json.ts";
+import type { Surface } from "../web/types.ts";
+import { ViewProgramSchema, type ViewProgram } from "./program-schema.ts";
+import { viewSnapshot } from "./snapshot.ts";
+import { viewCatalog } from "./catalog.ts";
+import { journeyViews, validateJourneyExposure, validateJourneyViews } from "./program-views.ts";
+import { validateJourneyOutputs } from "./program-outputs.ts";
+
+/** Bind presentation to an already compiled human exposure; this grants no execution authority. */
+export function compileViewProgram(definition: unknown, surface: Surface): ViewProgram {
+  const input = viewSnapshot(definition);
+  if (!Check(ViewProgramSchema, input)) throw new Error("INVALID_VIEW_PROGRAM");
+  if (surface.kind !== "human" || surface.protocol !== "desert.interaction/6" || !surface.navigation ||
+    !surface.language || !surface.commit || !surface.connection) throw new Error("INVALID_VIEW_PROGRAM_SURFACE");
+  const human = { ...surface, navigation: surface.navigation, language: surface.language,
+    commit: surface.commit, connection: surface.connection };
+  if (input.productId !== surface.productId) throw new Error("VIEW_PROGRAM_PRODUCT_MISMATCH");
+  const views = new Map(viewCatalog(input.views).map(item => [item.id, item]));
+  const journeys = new Map(input.journeys.map(item => [item.id, item]));
+  if (journeys.size !== input.journeys.length) throw new Error("DUPLICATE_VIEW_JOURNEY");
+  const destinations = new Map(input.destinations.map(item => [item.id, item]));
+  if (destinations.size !== input.destinations.length) throw new Error("DUPLICATE_VIEW_DESTINATION");
+  for (const value of views.values()) {
+    if (value.leftDock || value.rightDock) throw new Error("UNSUPPORTED_PROGRAM_SIDE_DOCK");
+    if (value.content.some(item => item.kind === "header" && item.media)) throw new Error("UNSUPPORTED_PROGRAM_HEADER_MEDIA");
+    if (value.content.findIndex(item => item.kind === "header") > 0) throw new Error("INVALID_PROGRAM_HEADER_PLACEMENT");
+  }
+  const usedViews = new Set<string>();
+  // Exposure is checked before output references so forged canonical identities fail at their owner.
+  for (const journey of journeys.values()) validateJourneyExposure(journey, human);
+  if (input.journeys.filter(item => item.kind === "read").length !== 1 ||
+    input.journeys.filter(item => item.kind === "create").length !== 1) {
+    throw new Error("INVALID_VIEW_PROGRAM_JOURNEY_COUNT");
+  }
+  for (const journey of journeys.values()) {
+    const owned = journeyViews(journey, views);
+    owned.forEach(item => usedViews.add(item.id));
+    validateJourneyViews(journey, owned);
+    validateJourneyOutputs(journey, owned, new Set(journeys.keys()));
+  }
+  if (usedViews.size !== views.size) throw new Error("UNUSED_PROGRAM_VIEW");
+  for (const destination of destinations.values()) {
+    const journey = journeys.get(destination.entryJourney);
+    if (!journey) throw new Error("UNKNOWN_DESTINATION_JOURNEY");
+    if (journey.kind === "create") throw new Error("INVALID_DESTINATION_JOURNEY");
+  }
+  for (const journey of journeys.values()) {
+    if (journey.kind === "create") continue;
+    const entries = input.destinations.filter(item => item.entryJourney === journey.id);
+    if (entries.length !== 1) throw new Error("INVALID_JOURNEY_DESTINATION_COUNT");
+  }
+  if (!destinations.has(input.entry)) throw new Error("UNKNOWN_ENTRY_DESTINATION");
+  if (new Set(input.navigation).size !== input.navigation.length) throw new Error("DUPLICATE_NAVIGATION_DESTINATION");
+  if (input.navigation.some(id => !destinations.has(id))) throw new Error("UNKNOWN_NAVIGATION_DESTINATION");
+  if (!input.navigation.includes(input.entry)) throw new Error("UNLISTED_ENTRY_DESTINATION");
+  if (input.navigation.length !== destinations.size) throw new Error("UNLISTED_PROGRAM_DESTINATION");
+  const reachable = new Set(input.destinations.map(item => item.entryJourney));
+  const pending = [...reachable];
+  while (pending.length) {
+    for (const output of journeys.get(pending.pop()!)!.outputs) {
+      if (output.action.kind !== "journey" || reachable.has(output.action.journey)) continue;
+      reachable.add(output.action.journey);
+      pending.push(output.action.journey);
+    }
+  }
+  if (reachable.size !== journeys.size) throw new Error("UNREACHABLE_PROGRAM_JOURNEY");
+  return freezeDeep(input);
+}
+```
+
+## src/views/resolved.ts
+
+Source SHA-256: e07312b71a52f057c6457797ac1f3481ae311595a9b461acca3efd23d0ef8059
+
+```ts
+import type { View } from "./schema.ts";
+import type { BankNode } from "../interaction/bank-node.ts";
+import type { TopToolbar, BottomToolbar } from "../interaction/toolbar.ts";
+import type { SurfaceFrame } from "../interaction/surface-frame.ts";
+
+/** Private, validated projection. Products cannot provide runtime bindings or render callbacks. */
+export type ResolvedView = {
+  readonly view: View;
+  readonly bindings: Readonly<Record<string, BankNode>>;
+  readonly disabledOutputs: readonly string[];
+  readonly top?: TopToolbar;
+  readonly bottom?: BottomToolbar;
+};
+export type ResolvedPanel = {
+  readonly frame: SurfaceFrame;
+  readonly label: string;
+  readonly locked: boolean;
+};
+```
+
+## src/web/client/view-program.ts
+
+Source SHA-256: bf7ab9623d88adb0b5e048096f982250df3e9d99f9b4513d7d83d408f5e470bb
+
+```ts
+import type { HumanSurface, ValidateInput } from "../types.ts";
+import type { BankEvent } from "../../interaction/bank-events.ts";
+import { bankEvent } from "../../interaction/bank-events.ts";
+import { compileViewProgram } from "../../views/program.ts";
+import { projectView, projectViewPanel } from "./view-projection.ts";
+import { humanProduct } from "./model.ts";
+
+/** Nonvisual interpreter; the installed controller remains the only operation executor. */
+export function viewProgramModel(input: unknown, surface: HumanSurface, validate: ValidateInput) {
+  const program = compileViewProgram(input, surface);
+  const model = humanProduct(surface, validate, { reading: false });
+  let destinationId = program.entry;
+  let current = model.snapshot();
+  let creating = false;
+  const listeners = new Set<() => void>();
+  const destination = () => program.destinations.find(item => item.id === destinationId)!;
+  const journeyFor = (id: string) => program.journeys.find(item => item.id === id)!;
+  const definition = (id: string) => program.views.find(item => item.id === id)!;
+  const read = program.journeys.find(item => item.kind === "read")!;
+  const create = program.journeys.find(item => item.kind === "create")!;
+  const notify = () => { for (const listener of listeners) listener(); };
+  const unsubscribe = model.subscribe(next => {
+    current = next;
+    if (creating && next.view === "detail") {
+      creating = false;
+      destinationId = program.destinations.find(item => item.entryJourney === read.id)!.id;
+    }
+    if (next.view === "list") creating = false;
+    notify();
+  });
+  function snapshot() {
+    const active = journeyFor(destination().entryJourney);
+    const main = definition(active.view);
+    const panelJourney = current.view === "create" || current.view === "review" || current.view === "recovery"
+      ? create : current.view === "detail" && active.kind === "read" ? read : null;
+    const panelView = panelJourney?.kind === "read" ? definition(panelJourney.detailView)
+      : panelJourney ? definition(panelJourney.view) : null;
+    return { program, activeDestination: destinationId,
+      resolved: projectView(program, active, main, surface, current, validate),
+      panel: panelJourney && panelView ? projectViewPanel(program, panelJourney, panelView, surface, current, validate) : null,
+      error: current.error, uncertain: current.uncertain, state: current };
+  }
+  function navigate(id: string) {
+    if (!program.navigation.includes(id)) throw new Error("UNKNOWN_VIEW_DESTINATION");
+    if (current.busy || current.uncertain) return;
+    model.close();
+    if (current.view === "detail") model.back();
+    destinationId = id;
+    model.setReading(journeyFor(destination().entryJourney).kind === "read");
+    notify();
+  }
+  function startJourney(id: string) {
+    const target = journeyFor(id);
+    if (!target) throw new Error("UNKNOWN_VIEW_JOURNEY");
+    if (target.kind === "create") {
+      model.setReading(true);
+      model.create();
+      creating = current.view === "create";
+    } else {
+      const next = program.destinations.find(item => item.entryJourney === id);
+      if (!next) throw new Error("UNKNOWN_VIEW_DESTINATION");
+      navigate(next.id);
+    }
+  }
+  function event(value: BankEvent) {
+    const event = bankEvent(value);
+    if (event.kind === "input.change") {
+      if (current.view === "create" && !current.busy && !current.uncertain) {
+        if (!model.primary.inputFields.includes(event.name)) throw new Error("INVALID_VIEW_INPUT");
+        model.edit(event.name, event.value);
+      }
+      return;
+    }
+    if (event.kind === "problem.close") { model.dismissError(); return; }
+    if (event.kind === "transient.closed") return;
+    if (event.kind === "transient.close") { model.close(); return; }
+    if (event.kind !== "surface.invoke") throw new Error("INVALID_VIEW_EVENT");
+    const intent = event.intent;
+    if (intent.kind === "close") { model.close(); return; }
+    if (intent.kind === "back") { model.back(); return; }
+    if (intent.kind === "accept") {
+      if (current.view !== "review" && current.view !== "recovery") throw new Error("INVALID_VIEW_EVENT");
+      void model.accept(); return;
+    }
+    if (intent.kind === "recover") {
+      if (current.view !== "recovery") throw new Error("INVALID_VIEW_EVENT");
+      void model.recover(); return;
+    }
+    if (intent.kind === "journey") {
+      if (current.view !== "create" || intent.journey !== create.id) throw new Error("INVALID_VIEW_EVENT");
+      const submit = create.outputs.find(binding => binding.action.kind === "submit")!;
+      dispatchOutput(submit.view, submit.output);
+      return;
+    }
+    if (intent.kind !== "view.output") throw new Error("INVALID_VIEW_EVENT");
+    dispatchOutput(intent.view, intent.output, intent.recordId);
+  }
+  function dispatchOutput(view: string, output: string, recordId?: string) {
+    const active = journeyFor(destination().entryJourney);
+    const owner = view === active.view ? active :
+      current.view === "create" && view === create.view ? create :
+      current.view === "detail" && active.kind === "read" && read.kind === "read" && view === read.detailView ? read : undefined;
+    const binding = owner?.outputs.find(item => item.view === view && item.output === output);
+    if (!binding) throw new Error("UNKNOWN_VIEW_OUTPUT");
+    if (binding.action.kind !== "select" && recordId !== undefined) throw new Error("INVALID_VIEW_OUTPUT_PAYLOAD");
+    if (current.busy || current.uncertain) return;
+    if (projectView(program, owner!, definition(view), surface, current, validate).disabledOutputs.includes(output)) return;
+    switch (binding.action.kind) {
+      case "journey": startJourney(binding.action.journey); break;
+      case "select":
+        if (!recordId || !current.records.some(record => record.id === recordId)) throw new Error("INVALID_VIEW_RECORD");
+        void model.select(recordId); break;
+      case "submit": void model.invoke(model.primary); break;
+      case "close": model.close(); break;
+    }
+  }
+  return {
+    snapshot, event, navigate,
+    subscribe(listener: () => void) { listeners.add(listener); listener(); return () => { listeners.delete(listener); }; },
+    async start(invitation?: string) {
+      model.setReading(journeyFor(destination().entryJourney).kind === "read");
+      await model.start(invitation);
+    },
+    stop() { unsubscribe(); model.stop(); listeners.clear(); },
+  };
+}
+```
+
+## src/web/client/view-projection.ts
+
+Source SHA-256: 6164494829f361e0e276342a3a5edb038281263f0467490da97952d5aad51da6
+
+```ts
+import type { HumanSurface, ValidateInput } from "../types.ts";
+import type { HumanState } from "./state.ts";
+import type { ViewProgram, ViewJourney } from "../../views/program-schema.ts";
+import type { View } from "../../views/schema.ts";
+import type { ResolvedView, ResolvedPanel } from "../../views/resolved.ts";
+import { viewInputs } from "../../views/ports.ts";
+import { presentCollection } from "../../interaction/bank-presenters.ts";
+import { bankNode, BankVersion, type BankNode } from "../../interaction/bank-node.ts";
+import { surfaceFrame } from "../../interaction/surface-frame.ts";
+import { toolbarAction } from "../../interaction/toolbar.ts";
+import { presentFrame } from "./frame.ts";
+import { readPresentation } from "./presentation.ts";
+import { presentFacts } from "../../interaction/fact-presentation.ts";
+import type { FrameContent } from "../../interaction/surface-frame.ts";
+
+function contextContent(surface: HumanSurface, state: HumanState, content: FrameContent): FrameContent {
+  if (content.kind !== "context" || !state.detail) return content;
+  const read = readPresentation(surface);
+  // Authored identity replaces the record title; keep that authorized fact in the body.
+  // Subject mutations are not bound by this finite read/create presentation program.
+  return { kind: "context", details: presentFacts(surface, read.subject, read.fields, state.detail.facts), actions: [] };
+}
+
+export function projectView(program: ViewProgram, journey: ViewJourney, definition: View,
+  surface: HumanSurface, state: HumanState, validate: ValidateInput): ResolvedView {
+  const bound: Record<string, BankNode> = {};
+  for (const port of viewInputs(definition)) {
+    if (port.kind === "collection") bound[port.input] = presentCollection(surface, state.records, {
+      loaded: state.loaded, selectedId: state.selectedId,
+      disabled: state.busy || state.uncertain || !state.availability.journeys[journey.id]?.dependenciesReady,
+    });
+    else {
+      const frame = presentFrame(surface, { ...state, view: port.kind === "form" ? "create" : "detail" }, validate);
+      if (frame.content.kind === "form" || frame.content.kind === "context") {
+        bound[port.input] = bankNode({ version: BankVersion, kind: frame.content.kind,
+          content: contextContent(surface, state, frame.content) });
+      }
+    }
+  }
+  const disabledOutputs = journey.outputs.filter(binding => {
+    if (binding.view !== definition.id) return false;
+    if (state.busy || state.uncertain) return true;
+    const controls = [definition.topDock, definition.bottomDock].flatMap(toolbar =>
+      toolbar?.actions.filter(action => action.output === binding.output) ?? []);
+    if (controls.length && controls.every(action => action.disabled === true)) return true;
+    if (binding.action.kind === "journey") {
+      const targetId = binding.action.journey;
+      const target = program.journeys.find(item => item.id === targetId);
+      return target?.kind !== "presentation" && !state.availability.journeys[targetId]?.dependenciesReady;
+    }
+    if (binding.action.kind === "submit") {
+      const primary = surface.journeys.find(item => item.id === journey.id);
+      return primary?.kind !== "mutation" || !state.availability.journeys[journey.id]?.dependenciesReady ||
+        !validate(primary.commandId, state.draft);
+    }
+    if (binding.action.kind === "select") return !state.availability.journeys[journey.id]?.dependenciesReady;
+    return false;
+  }).map(binding => binding.output);
+  const action = (item: NonNullable<View["topDock"]>["actions"][number]) => {
+    const binding = journey.outputs.find(binding => binding.view === definition.id && binding.output === item.output);
+    const enabled = !item.disabled && !disabledOutputs.includes(item.output);
+    if (binding?.action.kind === "close") return toolbarAction({ kind: "close" }, item.label, item.icon, enabled);
+    if (binding?.action.kind === "submit" && journey.kind === "create") {
+      return toolbarAction({ kind: "journey", journey: journey.id }, item.label, item.icon, enabled);
+    }
+    return toolbarAction({ kind: "view.output", view: definition.id, output: item.output },
+      item.label, item.icon, enabled);
+  };
+  const header = definition.content.find(item => item.kind === "header");
+  const topActions = definition.topDock?.actions.map(action) ?? [];
+  const bottomActions = definition.bottomDock?.actions.map(action) ?? [];
+  const close = topActions.flatMap(item => item.intent.kind === "close" ? [{ ...item, intent: item.intent }] : [])[0];
+  const primary = bottomActions.flatMap(item => item.intent.kind !== "close" ? [{ ...item, intent: item.intent }] : [])[0];
+  return {
+    view: definition, bindings: bound, disabledOutputs,
+    top: { title: header?.title ?? program.destinations.find(item => item.entryJourney === journey.id)?.label ?? program.label,
+      ...(header?.subtitle ? { subtitle: header.subtitle } : {}),
+      ...(close ? { leading: close } : {}),
+      trailing: topActions.flatMap(item => item.intent.kind !== "close" ? [{ ...item, intent: item.intent }] : []) },
+    bottom: { ...(close ? { secondary: close } : {}), ...(primary ? { primary } : {}) },
+  };
+}
+
+/** Panel grammar is checked at admission: one Header and one form/context, never discarded content. */
+export function projectViewPanel(program: ViewProgram, journey: ViewJourney, definition: View,
+  surface: HumanSurface, state: HumanState, validate: ValidateInput): ResolvedPanel {
+  const canonical = presentFrame(surface, state, validate);
+  if (state.view === "review" || state.view === "recovery") {
+    return { frame: canonical, label: canonical.top.title, locked: state.busy || state.uncertain };
+  }
+  const resolved = projectView(program, journey, definition, surface, state, validate);
+  const primary = resolved.bottom?.primary;
+  const bottom = { ...resolved.bottom, ...(primary && canonical.bottom.primary?.state === "pending"
+    ? { primary: { ...primary, state: "pending" as const } } : {}) };
+  const frame = surfaceFrame({ ...canonical, content: contextContent(surface, state, canonical.content),
+    top: resolved.top!, bottom });
+  return { frame, label: frame.top.title, locked: state.busy || state.uncertain };
+}
+```
+
+## src/svelte/views/ViewProduct.svelte
+
+Source SHA-256: d90d82f6c69a7d1237de78c187d4b6ede2594113d39d817753318931eecfe44d
+
+```svelte
+<script lang="ts">
+  import { onMount, untrack } from "svelte";
+  import type { ViewProgram } from "../../views/program-schema.ts";
+  import type { HumanSurface, ValidateInput } from "../../web/types.ts";
+  import { viewProgramModel } from "../../web/client/view-program.ts";
+  import { requireCatalog } from "../../interaction/catalog.ts";
+  import Workspace from "./Workspace.svelte";
+  import "../theme.css";
+
+  let { program, surface, validateInput }: {
+    program: ViewProgram; surface: HumanSurface; validateInput: ValidateInput;
+  } = $props();
+  const model = untrack(() => {
+    requireCatalog(surface.catalog);
+    return viewProgramModel(program, surface, validateInput);
+  });
+  let current = $state.raw(model.snapshot());
+  onMount(() => {
+    const root = document.documentElement;
+    const previousProfile = root.dataset.rendererProfile;
+    root.dataset.rendererProfile = "apple-reference";
+    const unsubscribe = model.subscribe(() => { current = model.snapshot(); });
+    const invitation = new URLSearchParams(location.hash.slice(1)).get("access");
+    history.replaceState(null, "", location.pathname + location.search);
+    void model.start(invitation ?? undefined);
+    const protectDraft = (event: BeforeUnloadEvent) => {
+      if (Object.values(current.state.draft).some(Boolean) || current.state.prepared) {
+        event.preventDefault(); event.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", protectDraft);
+    return () => {
+      unsubscribe(); model.stop();
+      window.removeEventListener("beforeunload", protectDraft);
+      if (previousProfile === undefined) delete root.dataset.rendererProfile;
+      else root.dataset.rendererProfile = previousProfile;
+    };
+  });
+</script>
+
+<Workspace program={current.program} activeDestination={current.activeDestination}
+  resolved={current.resolved} panel={current.panel} error={current.error} uncertain={current.uncertain}
+  {surface} {validateInput} onevent={model.event} onnavigate={model.navigate} />
+```
+
+## src/svelte/views/Workspace.svelte
+
+Source SHA-256: 19b73fc1e3533d5f0b4d350d452276294cba7c097a05c7416f71a7f0ffde698b
+
+```svelte
+<script lang="ts">
+  import { tick, untrack } from "svelte";
+  import CatalogWorkspace from "../explorer/CatalogWorkspace.svelte";
+  import CatalogSearchResults from "../explorer/CatalogSearchResults.svelte";
+  import RetainedPlace from "../explorer/RetainedPlace.svelte";
+  import { revealSearchTarget } from "../explorer/catalog-search-focus.ts";
+  import type { WorkspaceSearchResult } from "../explorer/workspace-search.ts";
+  import type { ResolvedView } from "../../views/resolved.ts";
+  import type { SurfaceIntent } from "../../interaction/intent.ts";
+  import type { PrimitiveId } from "../../interaction/catalog.ts";
+  import Toolbar from "../pieces/Toolbar.svelte";
+  import FailureDialog from "../FailureDialog.svelte";
+  import ViewContent from "./ViewContent.svelte";
+  import Panel from "./Panel.svelte";
+  import { viewIdentity, viewSearchResults, viewSearchSelection } from "./workspace-data.ts";
+  import type { WorkspaceProps } from "./types.ts";
+  let props: WorkspaceProps = $props();
+  let searching = $state(false), query = $state("");
+  let viewport = $state<HTMLDivElement | null>(null);
+  let visited = $state.raw<readonly ResolvedView[]>([]);
+  let contentOwners = $state<Record<string, { revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null> }>>({});
+  let identity = $derived(viewIdentity(props.resolved, props.program.label));
+  let results = $derived(viewSearchResults(props.resolved, query));
+  $effect(() => {
+    const next = props.resolved;
+    untrack(() => { visited = [...visited.filter(item => item.view.id !== next.view.id), next]; });
+  });
+  let scrollDestination: string | undefined;
+  $effect(() => {
+    const destination = props.activeDestination;
+    untrack(() => {
+      // Availability snapshots may refresh while the user scrolls. Only a real
+      // navigation changes the viewport, never another projection of this view.
+      if (destination === scrollDestination) return;
+      scrollDestination = destination;
+      cancelSearch(); viewport?.scrollTo({ top: 0 });
+    });
+  });
+  let destinations = $derived(props.program.navigation.map(id => {
+    const destination = props.program.destinations.find(item => item.id === id);
+    if (!destination) throw new Error("UNRESOLVED_VIEW_DESTINATION");
+    return destination;
+  }));
+  function invoke(intent: SurfaceIntent) { props.onevent({ kind: "surface.invoke", intent }); }
+  function cancelSearch() { searching = false; query = ""; }
+  async function selectSearchResult(result: WorkspaceSearchResult) {
+    cancelSearch(); await tick();
+    const selection = viewSearchSelection(props.resolved, result.id);
+    if (selection) { props.onevent(selection); return; }
+    const owner = contentOwners[props.resolved.view.id];
+    const target = result.kind === "bank" ? await owner?.revealEntry(result.id)
+      : viewport?.querySelector<HTMLElement>(`[data-view-item="${CSS.escape(result.id)}"]`);
+    if (target) revealSearchTarget(target, viewport);
+  }
+</script>
+
+<svelte:head><title>{props.resolved.top?.title ?? props.program.label} · {props.program.label}</title></svelte:head>
+
+<CatalogWorkspace productName={props.program.label} title={identity.title} {identity}
+  navigation={destinations} active={props.activeDestination} {query} {searching} bind:viewport
+  onquery={value => { query = value; searching = true; }} onsearch={() => searching = true}
+  oncancel={cancelSearch} onnavigate={props.onnavigate} topActions={props.resolved.top?.trailing} {invoke}>
+  {#snippet searchResults()}
+    <CatalogSearchResults title={identity.title} description="Find content in this destination."
+      {query} {results} onselect={selectSearchResult} />
+  {/snippet}
+  {#snippet bottom()}
+    {#if props.resolved.bottom?.primary || props.resolved.bottom?.secondary}
+      <Toolbar toolbar={{ edge: "bottom", ...props.resolved.bottom }} {invoke} />
+    {/if}
+  {/snippet}
+  {#snippet panels()}
+    <Panel panel={props.panel} onevent={props.onevent} />
+    <FailureDialog code={props.error} uncertain={props.uncertain}
+      close={() => props.onevent({ kind: "problem.close" })} />
+  {/snippet}
+  {#each visited as resolved (resolved.view.id)}
+    <RetainedPlace visible={resolved.view.id === props.resolved.view.id}
+      active={resolved.view.id === props.resolved.view.id && !searching}>
+      <ViewContent bind:this={contentOwners[resolved.view.id]} {resolved} onevent={props.onevent} />
+    </RetainedPlace>
+  {/each}
+</CatalogWorkspace>
+```
+
+## src/svelte/views/workspace-data.ts
+
+Source SHA-256: a11621895146be747dd2f6f38b32cbefe3c34f2a68f4f6aeccd753bea72df4e1
+
+```ts
+import type { ResolvedView } from "../../views/resolved.ts";
+import type { ViewItem } from "../../views/schema.ts";
+import type { BankEvent } from "../../interaction/bank-events.ts";
+import type { PlaceIdentity } from "../pieces/place-identity.ts";
+import type { WorkspaceSearchResult } from "../explorer/workspace-search.ts";
+import { catalogTitle, matchingEntries } from "../catalog/navigation.ts";
+
+/** Data adapter only. Geometry, material, focus and motion remain in CatalogWorkspace. */
+export function viewIdentity(resolved: ResolvedView, fallback: string): PlaceIdentity {
+  const header = resolved.view.content.find(item => item.kind === "header");
+  return header ?? { title: resolved.top?.title ?? fallback, subtitle: resolved.top?.subtitle ?? "" };
+}
+
+const contentItems = (resolved: ResolvedView): readonly ViewItem[] => resolved.view.content.flatMap(item =>
+  item.kind === "stack" ? item.items : item.kind === "header" || item.kind === "visual-catalog" ? [] : [item]);
+const recordKey = (item: string, record: string) => JSON.stringify([item, record]);
+
+export function viewSearchResults(resolved: ResolvedView, query: string): readonly WorkspaceSearchResult[] {
+  const terms = query.trim().toLowerCase().split(/\s+/u).filter(Boolean);
+  if (!terms.length) return [];
+  const results: WorkspaceSearchResult[] = resolved.view.content.some(item => item.kind === "visual-catalog") ? matchingEntries(query).map(entry => ({
+    kind: "bank", id: entry.id, title: catalogTitle(entry.id), description: `${entry.id} · ${entry.states.join(", ")}`,
+  })) : [];
+  const matches = (values: readonly unknown[]) => terms.every(term => values.join(" ").toLowerCase().includes(term));
+  for (const item of resolved.view.content) {
+    if (item.kind !== "stack") continue;
+    const description = item.description ?? item.items.flatMap(child => child.kind === "text" ? [child.text] : []).join(" ");
+    if (matches([item.title, description])) results.push({ kind: "content", id: item.id, title: item.title, description });
+  }
+  for (const item of contentItems(resolved)) {
+    if (item.kind !== "collection") continue;
+    const node = resolved.bindings[item.input];
+    if (node?.kind !== "collection" || !node.loaded || node.disabled) continue;
+    for (const record of node.records) {
+      const values = node.fields.map(field => String(record.facts[field] ?? ""));
+      if (matches(values)) results.push({ kind: "content", id: recordKey(item.id, record.id),
+        title: values[0] || record.id, description: values.slice(1).join(" · ") });
+    }
+  }
+  return results;
+}
+
+export function viewSearchSelection(resolved: ResolvedView, id: string): BankEvent | null {
+  for (const item of contentItems(resolved)) {
+    if (item.kind !== "collection" || resolved.disabledOutputs.includes(item.output)) continue;
+    const node = resolved.bindings[item.input];
+    if (node?.kind !== "collection" || !node.loaded || node.disabled) continue;
+    const record = node.records.find(record => recordKey(item.id, record.id) === id);
+    if (record) return { kind: "surface.invoke", intent: {
+      kind: "view.output", view: resolved.view.id, output: item.output, recordId: record.id,
+    } };
+  }
+  return null;
+}
+```
+
+## src/svelte/explorer/CatalogWorkspace.svelte
+
+Source SHA-256: 6fc956dcd5a92a8f9680899e23444b35ce3ca8e67001ee4c8a3ac4e95d6286a4
+
+```svelte
+<script lang="ts" generics="Destination extends string">
+  import { tick, type Snippet } from "svelte";
+  import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
+  import CatalogNavigation from "./CatalogNavigation.svelte";
+  import CatalogToolbar from "./CatalogToolbar.svelte";
+  import CatalogNavigationActions from "./CatalogNavigationActions.svelte";
+  import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
+  import PlaceHeading from "../pieces/PlaceHeading.svelte";
+  import ToolbarIdentity from "../pieces/ToolbarIdentity.svelte";
+  import { observePlaceHeading } from "../pieces/place-heading-motion.ts";
+  import type { PlaceIdentity } from "../pieces/place-identity.ts";
+  import CatalogEdgeNavigation from "./CatalogEdgeNavigation.svelte";
+  import Place from "../pieces/Place.svelte";
+  import AdaptiveSurfaceLayout from "../pieces/AdaptiveSurfaceLayout.svelte";
+  import type { WorkspaceDestination } from "./workspace-navigation.ts";
+  import type { ToolbarAction } from "../../interaction/toolbar.ts";
+  import type { SurfaceIntent } from "../../interaction/intent.ts";
+  let { productName, title, navigation, active, query, onquery, onnavigate, children, searchResults, searching,
+    onsearch, oncancel, detail = false, onback, identity, searchAvailable = true, topActions = [], invoke,
+    panels, bottom, viewport = $bindable(null) }: {
+    productName: string; title: string; navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
+    query: string; onquery: (query: string) => void; onnavigate: (id: Destination) => void;
+    children: Snippet; searchResults: Snippet; searching: boolean; onsearch: () => void; oncancel: () => void;
+    detail?: boolean; onback?: () => void;
+    identity: PlaceIdentity;
+    searchAvailable?: boolean; topActions?: readonly ToolbarAction[]; invoke?: (intent: SurfaceIntent) => void;
+    /** Renderer-private composition; product View data never receives snippets. */
+    panels?: Snippet; bottom?: Snippet; viewport?: HTMLDivElement | null;
+  } = $props();
+  let owner = $state<HTMLDivElement | null>(null);
+  let heading = $state<HTMLElement | null>(null);
+  let compact = $state<HTMLDivElement | null>(null);
+  $effect(() => {
+    identity;
+    if (viewport && heading && compact) return observePlaceHeading(viewport, heading, compact);
+  });
+  let searchViewport = $state<HTMLDivElement | null>(null);
+  const instanceId = $props.id();
+  const resultsId = `${instanceId}-results`;
+  let composing = false;
+  let contentFocus: HTMLElement | null = null;
+  let searchOpener: HTMLElement | null = null;
+  let searchPointerActivation: Element | null = null;
+  $effect(() => { active; contentFocus = null; });
+  function ownsPointerFocus(target: EventTarget | null) {
+    // WebKit may focus a tabindex ancestor instead of the pressed button.
+    // Keep only that activation alive; unrelated external focus still cancels.
+    return target instanceof Node && searchPointerActivation !== null && target.contains(searchPointerActivation);
+  }
+  function rememberFocus(event: FocusEvent) {
+    if (!searching && event.target instanceof HTMLElement && viewport?.contains(event.target)) {
+      contentFocus = event.target;
+    } else if (searching && !inSearch(event.target) && !ownsPointerFocus(event.target)) {
+      void cancel(false);
+    }
+  }
+  function inSearch(target: EventTarget | null): boolean {
+    return target instanceof Node && Boolean(searchViewport?.contains(target)
+      || owner?.querySelector("[data-catalog-search-actions]")?.contains(target));
+  }
+  async function cancel(restoreFocus = true) {
+    oncancel();
+    if (!restoreFocus) return;
+    await tick();
+    const target = searchOpener?.isConnected && searchOpener.checkVisibility() ? searchOpener
+      : contentFocus && viewport?.contains(contentFocus)
+      && contentFocus.checkVisibility() && !contentFocus.matches(":disabled,[aria-disabled='true']")
+      ? contentFocus : viewport;
+    target?.focus({ preventScroll: true });
+  }
+  function openSearch() {
+    searchOpener = owner?.querySelector<HTMLElement>('[data-catalog-search-toggle]') ?? null;
+    onsearch();
+  }
+  function focusOut(event: FocusEvent) {
+    // Browsers can expose BODY between focusout and focusin. The announced
+    // internal destination is authoritative; otherwise inspect settled focus.
+    if (!searching || inSearch(event.relatedTarget)) return;
+    requestAnimationFrame(() => {
+      if (searching && !inSearch(document.activeElement) && !ownsPointerFocus(document.activeElement)) void cancel(false);
+    });
+  }
+  function pointerDown(event: PointerEvent) {
+    searchPointerActivation = null;
+    if (!searching || !(event.target instanceof Element)) return;
+    // Result activation owns its own close/navigation transaction. Clear and X
+    // also belong to search, so pointer focus changes must not swallow them.
+    const activation = event.target.closest("[data-catalog-search-actions],[data-search-result]");
+    if (activation) { searchPointerActivation = activation; return; }
+    const takesFocus = event.target.closest("button,a[href],input,textarea,select,[tabindex]:not([tabindex='-1'])");
+    void cancel(!takesFocus);
+  }
+  function finishPointerActivation() {
+    const activation = searchPointerActivation;
+    if (!activation) return;
+    // Click follows pointerup. Reconcile after it, including cancelled/dragged
+    // gestures that never activated a result, without retaining stale ownership.
+    requestAnimationFrame(() => {
+      if (searchPointerActivation !== activation) return;
+      searchPointerActivation = null;
+      if (searching && !inSearch(document.activeElement)) void cancel(false);
+    });
+  }
+  function keydown(event: KeyboardEvent) {
+    if (!searching || !inSearch(event.target) || event.defaultPrevented || event.key !== "Escape" || event.isComposing || composing || event.keyCode === 229) return;
+    event.preventDefault(); event.stopPropagation(); void cancel();
+  }
+</script>
+
+<!-- Search owns Escape only while focus is in its own surface. Capture keeps a
+     concurrently docked task's dialog layer from consuming that local action. -->
+<svelte:window onkeydowncapture={keydown} onfocusin={rememberFocus} onfocusout={focusOut} onpointerdown={pointerDown}
+  onpointerup={finishPointerActivation} onpointercancel={finishPointerActivation} />
+
+<div data-renderer-profile="apple-reference" data-catalog-workspace data-search-active={searching}>
+  <Sidebar.Provider contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
+    <Sidebar.Root variant="floating" overlayTitle="Navigation" overlayDescription="Choose a destination.">
+      <CatalogNavigation {productName} {navigation} {active} {onnavigate} {searching} />
+    </Sidebar.Root>
+    <AdaptiveSurfaceLayout>
+    <Place bind:owner bind:viewport {bottom} role="main" data-catalog-content data-destination={active} tabindex={-1} aria-label={title}
+      oncompositionstart={() => composing = true} oncompositionend={() => composing = false}
+      viewportAttributes={{ 'data-catalog-scroll': '', tabindex: -1, inert: searching, 'aria-hidden': searching ? 'true' : undefined }}>
+      {#snippet top()}
+      <ToolbarLayout data-place-toolbar inert={searching} aria-hidden={searching}>
+        <CatalogNavigationActions {detail} {onback} {topActions} {invoke} />
+        <ToolbarIdentity {identity} bind:element={compact} />
+      </ToolbarLayout>
+      <CatalogToolbar {title} {query} {onquery} {searching} {resultsId} {searchAvailable} onsearch={openSearch} oncancel={cancel} />
+      {/snippet}
+      {#snippet content()}<PlaceHeading {identity} bind:element={heading} />{@render children()}{/snippet}
+      {#snippet overlay()}
+      {#if searching}
+        <div bind:this={searchViewport} id={resultsId} data-catalog-search-scroll data-has-query={Boolean(query.trim())}>{@render searchResults()}</div>
+      {/if}
+      {/snippet}
+    </Place>
+    {@render panels?.()}
+    </AdaptiveSurfaceLayout>
+    <div data-catalog-search-material data-active={searching} aria-hidden="true"></div>
+    <CatalogEdgeNavigation {searching} {detail} {onback} {viewport} />
+  </Sidebar.Provider>
+</div>
+
+<style>
+  :global([data-catalog-workspace] [data-adaptive-host]) { position:absolute; inset:0; }
+</style>
+```
+
+## src/svelte/explorer/CatalogNavigation.svelte
+
+Source SHA-256: dc960791e30f129049bc77307470264088bd40d95e723ba8429d35658ae1a0d7
+
+```svelte
+<script lang="ts" generics="Destination extends string">
+  import { untrack } from "svelte";
+  import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
+  import Landmark from "@lucide/svelte/icons/landmark";
+  import Backpack from "@lucide/svelte/icons/backpack";
+  import PanelsTopLeft from "@lucide/svelte/icons/panels-top-left";
+  import Settings from "@lucide/svelte/icons/settings";
+  import { Button } from "../vendor/components/ui/button/index.js";
+  import { swipeMotion } from "../pieces/swipe-motion.svelte.js";
+  import Place from "../pieces/Place.svelte";
+  import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
+  import { actionIcons } from "../pieces/action-icons.ts";
+  import { workspaceNavigation, type WorkspaceDestination } from "./workspace-navigation.ts";
+  let { productName, navigation, active, onnavigate, searching = false }: {
+    productName: string;
+    navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
+    onnavigate: (id: Destination) => void; searching?: boolean;
+  } = $props();
+  const sidebar = Sidebar.useSidebar();
+  const motion = swipeMotion({ edge: () => "left", enabled: () => sidebar.expanded,
+    commit: () => sidebar.presentation === "overlay" ? sidebar.setOverlayOpen(false) : sidebar.setOpen(false) });
+  $effect(() => { sidebar.dismissOffset = motion.offset; });
+  $effect(() => { if (sidebar.expanded) untrack(() => motion.reset()); });
+  const icons = { ...actionIcons, landmark: Landmark, backpack: Backpack, panels: PanelsTopLeft };
+  let groups = $derived(workspaceNavigation(navigation));
+  function navigate(id: Destination) { onnavigate(id); if (sidebar.presentation === "overlay") sidebar.setOverlayOpen(false); }
+  function startHeaderDrag(event: PointerEvent) {
+    if (event.target instanceof Element && event.target.closest('button,a,input,select,textarea')) return;
+    motion.down(event);
+  }
+</script>
+
+<Place data-renderer-profile="apple-reference" data-catalog-navigation
+  viewportAttributes={{ 'data-slot': 'sidebar-content' }}>
+  {#snippet top()}
+  <ToolbarLayout class="sidebar-toolbar" data-slot="sidebar-header" data-navigation-drag role="presentation" onpointerdown={startHeaderDrag} onpointermove={motion.move}
+    onpointerup={motion.up} onpointercancel={motion.cancel} onlostpointercapture={motion.lost}>
+    <span data-product-name>{productName}</span>
+    <Sidebar.Trigger variant="secondary" size="icon" aria-label="Hide navigation" title="Hide navigation" inert={searching} aria-hidden={searching} />
+  </ToolbarLayout>
+  {/snippet}
+  {#snippet content()}
+    <nav aria-label="Main navigation">
+      {#each groups as group (group.label)}
+      <Sidebar.Group aria-label={group.label}>
+        <Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
+        <Sidebar.GroupContent><Sidebar.Menu>
+        {#each group.items as destination (destination.id)}
+          {@const Icon = icons[destination.icon]}
+          <Sidebar.MenuItem>
+            <Sidebar.MenuButton isActive={destination.id === active} aria-current={destination.id === active ? "page" : undefined}
+              aria-label={destination.label} onclick={() => navigate(destination.id)}>
+              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon /></span>
+              <span>{destination.label}</span>
+            </Sidebar.MenuButton>
+          </Sidebar.MenuItem>
+        {/each}
+      </Sidebar.Menu></Sidebar.GroupContent></Sidebar.Group>
+      {/each}
+    </nav>
+  {/snippet}
+  {#snippet bottom()}
+  <ToolbarLayout class="sidebar-toolbar" data-slot="sidebar-footer" edge="bottom">
+    <Button variant="secondary" size="icon" aria-label="Settings" title="Settings — not available in this preview" disabled>
+      <Settings aria-hidden="true" />
+    </Button>
+  </ToolbarLayout>
+  {/snippet}
+</Place>
+```
+
+## src/svelte/explorer/CatalogNavigationActions.svelte
+
+Source SHA-256: 4f79c5b5b0d110f84747848ba4a817d904ec8232be5d4a27229c177c35bef473
+
+```svelte
+<script lang="ts">
+  import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
+  import BankRenderer from "../BankRenderer.svelte";
+  import type { ToolbarAction } from "../../interaction/toolbar.ts";
+  import type { SurfaceIntent } from "../../interaction/intent.ts";
+  let { detail = false, onback, topActions = [], invoke }: {
+    detail?: boolean; onback?: () => void;
+    topActions?: readonly ToolbarAction[]; invoke?: (intent: SurfaceIntent) => void;
+  } = $props();
+  const sidebar = Sidebar.useSidebar();
+</script>
+
+<div data-catalog-navigation-actions>
+  {#if !sidebar.expanded}
+    <Sidebar.Trigger variant="secondary" size="icon" aria-label="Show navigation" title="Show navigation" />
+  {/if}
+  {#if detail && onback}
+    <BankRenderer node={{ version: "desert.bank-node/1", kind: "action", role: "secondary", action: {
+      intent: { kind: "catalog.back" }, label: "Back", icon: "back", state: "ready",
+    } }} onevent={event => { if (event.kind === "catalog.back") onback?.(); }} />
+  {/if}
+  {#each topActions as action}
+    <BankRenderer node={{ version: "desert.bank-node/1", kind: "action", action, role: "secondary" }}
+      onevent={event => { if (event.kind === "surface.invoke") invoke?.(event.intent); }} />
+  {/each}
+</div>
+```
+
+## src/svelte/explorer/CatalogToolbar.svelte
+
+Source SHA-256: 0cb7da1c2091556c30e9c61fe6f524aca1808766cc82a539d584f2b83882f53c
+
+```svelte
+<script lang="ts">
+  import { tick, untrack } from "svelte";
+  import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
+  import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
+  import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
+  import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
+  import SearchField from "../pieces/SearchField.svelte";
+  import Search from "@lucide/svelte/icons/search";
+  import X from "@lucide/svelte/icons/x";
+  let { title, query, onquery, searching, resultsId, onsearch, oncancel, searchAvailable = true }: {
+    title: string; query: string; onquery: (query: string) => void; searching: boolean;
+    resultsId: string; onsearch: () => void; oncancel: () => void; searchAvailable?: boolean;
+  } = $props();
+  const sidebar = Sidebar.useSidebar();
+  const id = $props.id();
+  let input = $state<HTMLInputElement | null>(null);
+  let toggleButton = $state<HTMLButtonElement | null>(null);
+  // Product cancellation may clear its query immediately. Retain only the
+  // outgoing field's paint until the next opening; no stale search is executed.
+  let displayedQuery = $state(untrack(() => query));
+  $effect(() => { if (searching) displayedQuery = query; });
+  async function toggle() {
+    if (searching) { oncancel(); return; }
+    onsearch(); await tick(); input?.focus({ preventScroll: true });
+  }
+</script>
+
+{#snippet searchActions()}
+  <div data-catalog-search-actions data-expanded={searching}>
+  <Field.Field data-catalog-search inert={!searching} aria-hidden={!searching}>
+    <Field.Label class="sr-only" for={id}>Search {title.toLowerCase()}</Field.Label>
+    <SearchField {id} bind:ref={input} value={displayedQuery} onvalue={onquery} placeholder={`Search in ${title}`}
+      aria-controls={searching ? resultsId : undefined} tabindex={searching ? undefined : -1} />
+  </Field.Field>
+  <Button bind:ref={toggleButton} variant="secondary" size="icon" data-catalog-search-toggle data-catalog-search-cancel={searching || undefined}
+    aria-label={searching ? "Close search" : "Search"} title={searching ? "Close search" : "Search"}
+    aria-expanded={searching} aria-controls={searching ? resultsId : undefined} onclick={toggle}>
+    <Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />
+  </Button>
+  </div>
+{/snippet}
+
+<!-- Search stays mounted when its edge changes, preserving composition and focus. -->
+{#if searchAvailable}
+<ToolbarLayout data-catalog-toolbar
+  data-searching={searching} edge={sidebar.presentation === "overlay" ? "bottom" : "top"}>
+  {@render searchActions()}
+</ToolbarLayout>
+{/if}
+```
+
+## src/svelte/explorer/workspace-navigation.ts
+
+Source SHA-256: 7ae004adf54089eb39d984b86b6d52e148b70a8ee949ff86ccc26b7efabd901e
+
+```ts
+import type { ActionIcon } from "../../interaction/toolbar.ts";
+
+/** Renderer-owned navigation data. No component, CSS or layout escape hatches. */
+export type WorkspaceIcon = ActionIcon | "landmark" | "backpack" | "panels";
+export interface WorkspaceDestination<Id extends string = string> {
+  readonly id: Id;
+  readonly label: string;
+  readonly shortLabel?: string;
+  readonly icon?: WorkspaceIcon;
+  readonly group?: string;
+}
+
+const legacy = {
+  browse: { icon: "landmark", group: "Explore", appearance: "browse" },
+  "travel-kit": { icon: "backpack", group: "Explore", appearance: "travel-kit" },
+  bank: { icon: "panels", group: "Developer", appearance: "bank" },
+} as const;
+type ResolvedDestination<Id extends string> = WorkspaceDestination<Id> & {
+  readonly icon: WorkspaceIcon; readonly appearance: "browse" | "travel-kit" | "bank";
+};
+
+export function workspaceNavigation<Id extends string>(navigation: readonly WorkspaceDestination<Id>[]) {
+  const groups: { label: string; items: ResolvedDestination<Id>[] }[] = [
+    { label: "Explore", items: [] }, { label: "Developer", items: [] },
+  ];
+  for (const destination of navigation) {
+    const defaults = destination.id === "browse" ? legacy.browse
+      : destination.id === "travel-kit" ? legacy["travel-kit"]
+      : destination.id === "bank" ? legacy.bank : undefined;
+    const icon = destination.icon ?? defaults?.icon;
+    if (!icon) throw new Error("WORKSPACE_NAVIGATION_ICON_REQUIRED");
+    const appearance = icon === "catalog" || icon === "panels" ? "bank" : icon === "backpack" ? "travel-kit" : "browse";
+    const label = destination.group ?? defaults?.group ?? (appearance === "bank" ? "Developer" : "Explore");
+    let group = groups.find(item => item.label === label);
+    if (!group) { group = { label, items: [] }; groups.push(group); }
+    group.items.push({ ...destination, icon, appearance });
+  }
+  return groups;
+}
+```
+
+## src/svelte/explorer/workspace-search.ts
+
+Source SHA-256: 5f07832f9e2e5889e1f83e90ae9810d94e73857c419b50041d1a03f0170fdf15
+
+```ts
+import type { CatalogSearchResult } from "./catalog-search.ts";
+
+/** Shared search rows. Providers own data and activation, never their appearance. */
+export type WorkspaceSearchResult = CatalogSearchResult |
+  { readonly kind: "content"; readonly id: string; readonly title: string; readonly description: string };
+```
+
+## src/svelte/views/ViewContent.svelte
+
+Source SHA-256: 2569616610c1102ae777f80064a881df28db4a3ad6268279bd1df7c6978ba148
+
+```svelte
+<script lang="ts">
+  import type { ResolvedView } from "../../views/resolved.ts";
+  import type { BankEvent } from "../../interaction/bank-events.ts";
+  import type { PrimitiveId } from "../../interaction/catalog.ts";
+  import StackLayout from "../pieces/StackLayout.svelte";
+  import InspectionContent from "./InspectionContent.svelte";
+  import ViewItem from "./ViewItem.svelte";
+  let { resolved, onevent }: {
+    resolved: ResolvedView;
+    onevent: (event: BankEvent) => void;
+  } = $props();
+  let bank = $state<{ revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null> } | null>(null);
+  export async function revealEntry(id: PrimitiveId) { return await bank?.revealEntry(id) ?? null; }
+  let hasCatalog = $derived(resolved.view.content.some(item => item.kind === "visual-catalog"));
+</script>
+
+<div class:place-content={!hasCatalog} data-view-content={resolved.view.id}>
+  {#each resolved.view.content as item, index (index)}
+    {#if item.kind === "header"}
+      <!-- The shared workspace owns the heading and its scroll-driven toolbar echo. -->
+    {:else if item.kind === "stack"}
+      <div data-view-item={item.id}>
+      <StackLayout title={item.title} description={item.description}>
+        {#each item.items as child, childIndex (childIndex)}<ViewItem item={child} {resolved} {onevent} />{/each}
+      </StackLayout>
+      </div>
+    {:else if item.kind === "visual-catalog"}
+      <InspectionContent bind:this={bank} />
+    {:else}<ViewItem {item} {resolved} {onevent} />{/if}
+  {/each}
+</div>
+```
+
+## src/svelte/views/ViewItem.svelte
+
+Source SHA-256: 8a18eeaa77690b154969e44344ae5744203b1801ffbee823ccdf2d655ab99d0a
+
+```svelte
+<script lang="ts">
+  import type { ViewItem } from "../../views/schema.ts";
+  import type { ResolvedView } from "../../views/resolved.ts";
+  import type { BankEvent } from "../../interaction/bank-events.ts";
+  import { controlBankNode } from "../../interaction/bank-node.ts";
+  import BankRenderer from "../BankRenderer.svelte";
+  import Information from "../pieces/Information.svelte";
+  import StackItem from "../pieces/StackItem.svelte";
+  let { item, resolved, onevent }: {
+    item: ViewItem; resolved: ResolvedView; onevent: (event: BankEvent) => void;
+  } = $props();
+  function dispatch(event: BankEvent) {
+    if (item.kind === "collection" && event.kind === "collection.select") {
+      if (!resolved.disabledOutputs.includes(item.output)) onevent({ kind: "surface.invoke", intent: {
+        kind: "view.output", view: resolved.view.id, output: item.output, recordId: event.id,
+      } });
+    } else onevent(event);
+  }
+  function binding() {
+    if (!("input" in item)) throw new Error("VIEW_INPUT_REQUIRED");
+    const node = resolved.bindings[item.input];
+    if (!node || node.kind !== item.kind) throw new Error("INVALID_VIEW_INPUT_BINDING");
+    return node;
+  }
+</script>
+
+{#if item.kind === "text"}
+  <div data-stack-item data-stack-placement="content"><Information items={[item]} /></div>
+{:else if item.kind === "fact"}
+  <Information items={[item]} />
+{:else if item.kind === "tag" || item.kind === "image" || item.kind === "avatar"}
+  {@const node = controlBankNode(item)}
+  <StackItem kind={node.kind}><BankRenderer {node} /></StackItem>
+{:else}
+  {@const node = binding()}
+  <StackItem kind={node.kind}><BankRenderer {node} onevent={dispatch} /></StackItem>
+{/if}
+```
+
+## src/svelte/views/Panel.svelte
+
+Source SHA-256: 9e7fb9ee171266a67163654e4c6da285a881753bd138a4028dcb73553a1e5610
+
+```svelte
+<script lang="ts">
+  import { tick, untrack } from "svelte";
+  import type { ResolvedPanel } from "../../views/resolved.ts";
+  import type { BankEvent } from "../../interaction/bank-events.ts";
+  import { BankVersion } from "../../interaction/bank-node.ts";
+  import BankRenderer from "../BankRenderer.svelte";
+  let { panel, onevent }: { panel?: ResolvedPanel | null; onevent: (event: BankEvent) => void } = $props();
+  let mounted = $state.raw<ResolvedPanel | null>(null);
+  let open = $state(false);
+  let revision = 0;
+  $effect(() => {
+    const next = panel;
+    const current = ++revision;
+    untrack(() => {
+      if (next) {
+        const firstMount = mounted === null;
+        mounted = next;
+        // The shared Drawer must observe closed → open, just like the stable
+        // retained bank specimen. Do not mount it already at its final state.
+        if (firstMount) void tick().then(() => { if (revision === current) open = true; });
+        else open = true;
+      }
+      else open = false;
+    });
+  });
+  function dispatch(event: BankEvent) {
+    if (event.kind === "transient.closed" && !panel) mounted = null;
+    onevent(event);
+  }
+</script>
+
+{#if mounted}
+  <BankRenderer node={{ version: BankVersion, kind: "transient", label: mounted.label,
+    frame: mounted.frame, locked: mounted.locked, open }} onevent={dispatch} />
+{/if}
+```
+
+## src/svelte/views/InspectionContent.svelte
+
+Source SHA-256: a87df7e78368b62dc843b29269dcd320f202eebf51dcb5e8aea7bc50059b183d
+
+```svelte
+<script lang="ts">
+  import { tick } from "svelte";
+  import type { BankEvent } from "../../interaction/bank-events.ts";
+  import type { PrimitiveId } from "../../interaction/catalog.ts";
+  import type { PublicBankInput } from "../explorer/PublicCatalogBank-model.ts";
+  import PublicCatalogBank from "../explorer/PublicCatalogBank.svelte";
+  import RetainedPlace from "../explorer/RetainedPlace.svelte";
+  import BankRenderer from "../BankRenderer.svelte";
+  import Toolbar from "../pieces/Toolbar.svelte";
+  import { inspectionCatalog } from "../catalog/inspection-fixture.ts";
+
+  let { catalog = inspectionCatalog, query = $bindable("") }: {
+    catalog?: PublicBankInput; query?: string;
+  } = $props();
+  let bank: PublicCatalogBank | undefined = $state();
+  let selected = $state<string | null>(null);
+  let detail = $derived(catalog.details.find(item => item.record === selected));
+  let opener: HTMLElement | null = null;
+  async function back() {
+    selected = null;
+    await tick();
+    if (opener?.isConnected) opener.focus({ preventScroll: true });
+  }
+  function interact(event: BankEvent) {
+    if (event.kind === "catalog.open") {
+      if (!catalog.details.some(item => item.record === event.record)) throw new Error("UNKNOWN_INSPECTION_RECORD");
+      opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      selected = event.record;
+    } else if (event.kind === "catalog.back") void back();
+    else if (event.kind === "catalog.search") { query = event.query; selected = null; }
+  }
+  export async function revealEntry(id: PrimitiveId): Promise<HTMLElement | null> {
+    selected = null;
+    await tick();
+    return bank?.revealEntry(id) ?? null;
+  }
+</script>
+
+<RetainedPlace active={!detail}>
+  <PublicCatalogBank bind:this={bank} surface={catalog} oncatalog={interact} bodyOnly bind:query />
+</RetainedPlace>
+{#if detail}
+  <Toolbar toolbar={{ edge: "top", title: detail.title, subtitle: "Local renderer example", leading: {
+    intent: { kind: "back" }, icon: "back", label: "Back to visual catalog", state: "ready",
+  } }} invoke={() => void back()} />
+  <BankRenderer node={detail} onevent={interact} />
+{/if}
+```
+
+## src/svelte/catalog/inspection-fixture.ts
+
+Source SHA-256: b43e7bd1b23c5bf989edcb7505610804b1607ba87f6a38e9f93b76e7280f1c2f
+
+```ts
+import { freezeDeep } from "../../json.ts";
+import { BankVersion as version } from "../../interaction/bank-node.ts";
+import type { PublicBankInput } from "../explorer/PublicCatalogBank-model.ts";
+import { inspectionMedia } from "./inspection-media.ts";
+
+const image = { asset: inspectionMedia.asset, alt: inspectionMedia.alt };
+const card = { version, kind: "catalog.card", record: "notebook-cover", title: "Notebook cover", image } as const;
+
+/** Renderer-owned witness data, not a product definition, query, or controller connection. */
+export const inspectionCatalog = freezeDeep({
+  productId: "desert-visual-catalog",
+  home: { version, kind: "catalog.home",
+    featured: { ...card, presentation: "featured", eyebrow: "SDK illustration", actionLabel: "Open example" },
+    groups: [{ id: "illustrations", title: "Illustrations", items: [{ ...card, presentation: "item" }] }],
+  },
+  details: [{ version, kind: "catalog.detail", record: card.record, title: card.title, image,
+    description: "An original SDK illustration used to inspect shared media components. This local example does not read or change product data.",
+  }],
+} as const satisfies PublicBankInput);
+```
+
+## src/svelte/catalog/inspection-media.ts
+
+Source SHA-256: 82b252301725837a1bc4b0d9d392e6fe12fa5496a8cc00d54dbe000cd1840c59
+
+```ts
+/** One SDK-authored original, copied to the catalog's logical-media namespace at build time. */
+export const inspectionMedia = Object.freeze({
+  asset: "desert-bank-notebook.svg", source: "bank-image.svg", alt: "An open notebook with blue pages",
+});
 ```
 
 ## src/svelte/HumanProduct.svelte
@@ -2303,14 +3503,15 @@ Source SHA-256: c24a55e8875bfa30dc359f9ca38ac53d7ddec1c25d5c3dcab0bc23b249f9b3b4
 
 ## src/interaction/toolbar.ts
 
-Source SHA-256: ead57189f6c06c14a3f77efda97f3e504bd08de136024b930a10b611a54782e1
+Source SHA-256: ecb44379e190bfd27f61432ba376c0e1a6fcfe1ce89046e8f03aeb5d0742eb1c
 
 ```ts
 import { Type, type Static, type TProperties, type TSchema } from "@sinclair/typebox";
 import type { Frozen } from "../json.ts";
 import { FaceSchema } from "./face.ts";
 import { SurfaceIntentSchema, ProductSurfaceIntentSchema, CloseIntentSchema, BackIntentSchema,
-  JourneyIntentSchema, AcceptIntentSchema, RecoverIntentSchema, type SurfaceIntent } from "./intent.ts";
+  JourneyIntentSchema, AcceptIntentSchema, RecoverIntentSchema, ViewOutputIntentSchema,
+  NavigationToggleIntentSchema, type SurfaceIntent } from "./intent.ts";
 
 const object = <T extends TProperties>(properties: T) => Type.Object(properties, { additionalProperties: false });
 const text = () => Type.String({ minLength: 1 });
@@ -2318,14 +3519,15 @@ export const ActionIconSchema = Type.Union([
   Type.Literal("back"), Type.Literal("close"), Type.Literal("save"), Type.Literal("review"),
   Type.Literal("recover"), Type.Literal("retry"), Type.Literal("create"), Type.Literal("archive"),
   Type.Literal("catalog"), Type.Literal("open"), Type.Literal("confirm"), Type.Literal("search"), Type.Literal("more"),
+  Type.Literal("navigation"),
 ]);
 export const actionSchema = <T extends TSchema>(intent: T) => object({
   intent, label: text(), icon: ActionIconSchema,
   state: Type.Union([Type.Literal("ready"), Type.Literal("unavailable"), Type.Literal("pending")]),
 });
 export const ToolbarActionSchema = actionSchema(SurfaceIntentSchema);
-export const NavigationActionSchema = actionSchema(Type.Union([CloseIntentSchema, BackIntentSchema]));
-export const UtilityActionSchema = actionSchema(Type.Union([JourneyIntentSchema, AcceptIntentSchema, RecoverIntentSchema]));
+export const NavigationActionSchema = actionSchema(Type.Union([CloseIntentSchema, BackIntentSchema, NavigationToggleIntentSchema]));
+export const UtilityActionSchema = actionSchema(Type.Union([JourneyIntentSchema, AcceptIntentSchema, RecoverIntentSchema, ViewOutputIntentSchema]));
 export const TopToolbarSchema = object({
   title: text(), subtitle: Type.Optional(text()),
   face: Type.Optional(FaceSchema),
@@ -2352,7 +3554,7 @@ export const toolbarAction = <const I extends SurfaceIntent>(intent: I, label: s
 
 ## src/interaction/intent.ts
 
-Source SHA-256: 842cf2bbe3d1cae6b85b5ac46f0d0668334d8edeb31be9a42445d1e5ecf0adfb
+Source SHA-256: c9ab67a5f8e71d2fb3b0cfa8c2997568cceeea952e715743cf7b07c1bfa2467a
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -2366,6 +3568,12 @@ export const CloseIntentSchema = Type.Object({ kind: Type.Literal("close") }, cl
 export const BackIntentSchema = Type.Object({ kind: Type.Literal("back") }, closed);
 export const RecoverIntentSchema = Type.Object({ kind: Type.Literal("recover") }, closed);
 export const AcceptIntentSchema = Type.Object({ kind: Type.Literal("accept") }, closed);
+/** Presentation ports are resolved by the View program, never by command dispatch. */
+export const ViewOutputIntentSchema = Type.Object({
+  kind: Type.Literal("view.output"), view: Type.String({ minLength: 1 }), output: Type.String({ minLength: 1 }),
+  recordId: Type.Optional(Type.String({ minLength: 1 })),
+}, closed);
+export const NavigationToggleIntentSchema = Type.Object({ kind: Type.Literal("navigation.toggle") }, closed);
 /** @deprecated Recognized for bank compatibility only; no current frame or selection host accepts this intent. */
 export const SelectionConfirmIntentSchema = Type.Object({ kind: Type.Literal("selection.confirm"),
   selection: Type.String({ minLength: 1 }) }, closed);
@@ -2373,7 +3581,9 @@ export const ProductSurfaceIntentSchema = Type.Union([
   JourneyIntentSchema, CloseIntentSchema,
   BackIntentSchema, AcceptIntentSchema, RecoverIntentSchema,
 ]);
-export const SurfaceIntentSchema = Type.Union([ProductSurfaceIntentSchema, SelectionConfirmIntentSchema]);
+export const SurfaceIntentSchema = Type.Union([
+  ProductSurfaceIntentSchema, SelectionConfirmIntentSchema, ViewOutputIntentSchema, NavigationToggleIntentSchema,
+]);
 export type SurfaceIntent = Frozen<Static<typeof SurfaceIntentSchema>>;
 
 export function surfaceIntent(value: unknown): SurfaceIntent {
@@ -2385,17 +3595,20 @@ export function surfaceIntent(value: unknown): SurfaceIntent {
 /** Identity depends on the operation, never its label, icon or a reserved product name. */
 export const intentKey = (intent: SurfaceIntent): string => intent.kind === "journey"
   ? JSON.stringify([intent.kind, intent.journey]) : intent.kind === "selection.confirm"
-    ? JSON.stringify([intent.kind, intent.selection]) : intent.kind;
+    ? JSON.stringify([intent.kind, intent.selection]) : intent.kind === "view.output"
+      ? JSON.stringify([intent.kind, intent.view, intent.output]) : intent.kind;
 export const submitsJourney = (intent: SurfaceIntent | undefined, journey: string | undefined): boolean =>
   intent?.kind === "journey" && intent.journey === journey;
 
 type IntentHandlers = { journey: (id: string) => void } & {
-  [K in Exclude<SurfaceIntent["kind"], "journey" | "selection.confirm">]: () => void;
+  [K in Exclude<SurfaceIntent["kind"], "journey" | "selection.confirm" | "view.output" | "navigation.toggle">]: () => void;
 };
 export function dispatchSurfaceIntent(value: SurfaceIntent, handlers: IntentHandlers): void {
   const intent = surfaceIntent(value);
   // Legacy selection confirmation has no product handler or current selection host.
-  if (intent.kind === "selection.confirm") throw new Error("INVALID_SURFACE_INTENT_SCOPE");
+  if (intent.kind === "selection.confirm" || intent.kind === "view.output" || intent.kind === "navigation.toggle") {
+    throw new Error("INVALID_SURFACE_INTENT_SCOPE");
+  }
   if (intent.kind === "journey") handlers.journey(intent.journey);
   else handlers[intent.kind]();
 }
@@ -3440,7 +4653,7 @@ Source SHA-256: 468f019f68e5ff18c8c053329c8c6d872532117a69eaf437cfe4b8b07e45d2eb
 
 ## src/svelte/pieces/action-icons.ts
 
-Source SHA-256: b9b0828f2c25602b3fff2c135e8ad54714d9a1113d5a0311211893b4ae06c295
+Source SHA-256: d907548fbfcb0eef467b5535eeb7980cf730247566c7218e4a7fadae53a19736
 
 ```ts
 import ArrowLeft from "@lucide/svelte/icons/arrow-left";
@@ -3455,11 +4668,12 @@ import LayoutGrid from "@lucide/svelte/icons/layout-grid";
 import ArrowRight from "@lucide/svelte/icons/arrow-right";
 import Check from "@lucide/svelte/icons/check";
 import Ellipsis from "@lucide/svelte/icons/ellipsis";
+import PanelLeft from "@lucide/svelte/icons/panel-left";
 import type { ActionIcon } from "../../interaction/toolbar.ts";
 
 export const actionIcons = {
   back: ArrowLeft, close: X, save: Save, review: Eye, recover: Search, retry: RotateCw,
-  create: Plus, archive: Archive, catalog: LayoutGrid, open: ArrowRight, confirm: Check, search: Search, more: Ellipsis,
+  create: Plus, archive: Archive, catalog: LayoutGrid, open: ArrowRight, confirm: Check, search: Search, more: Ellipsis, navigation: PanelLeft,
 } satisfies Record<ActionIcon, typeof X>;
 ```
 
@@ -4719,7 +5933,7 @@ export function fieldFeedback(result: ValidationResult, touched: readonly string
 
 ## src/web/client/model.ts
 
-Source SHA-256: 3bcd9971f4d69836fb7a2e0608b92fbfb339b655045c5a432db7a9fd0cdf16fe
+Source SHA-256: b6a9d6624fc970ac5f54ad42b128242569d0a7b94750f6f4a0ca2233bbb6035c
 
 ```ts
 import type { HumanSurface, Mutation, ValidateInput, Offer } from "../types.ts";
@@ -4728,18 +5942,19 @@ import { webTransport } from "./transport.ts";
 import { observeWebConnection } from "./connection.ts";
 import { mutationFlow } from "./mutations.ts";
 
-export function humanProduct(surface: HumanSurface, validate: ValidateInput) {
+export function humanProduct(surface: HumanSurface, validate: ValidateInput, options: { reading?: boolean } = {}) {
   const store = humanState(surface);
   const transport = webTransport(surface.contractDigest);
   let readEpoch = 0;
   let stopped = false;
+  let reading = options.reading ?? true;
   let stopConnection: (() => void) | undefined;
   const primary = surface.journeys.find(journey => journey.id === surface.navigation.primaryAction) as Mutation;
   const ready = (id: string) => store.get().availability.journeys[id]?.dependenciesReady === true;
 
   async function refresh() {
     const epoch = ++readEpoch;
-    if (!ready(surface.navigation.entry)) return;
+    if (!reading || !ready(surface.navigation.entry)) return;
     const selectedId = store.get().selectedId;
     try {
       const run = await transport.call("begin", { journeyId: surface.navigation.entry });
@@ -4776,6 +5991,12 @@ export function humanProduct(surface: HumanSurface, validate: ValidateInput) {
       });
     },
     stop() { stopped = true; readEpoch++; stopConnection?.(); },
+    setReading(enabled: boolean) {
+      if (reading === enabled) return;
+      reading = enabled;
+      readEpoch++;
+      if (enabled) void refresh();
+    },
     create() {
       if (store.get().busy || store.get().uncertain || !ready(primary.id)) return;
       const current = store.get();

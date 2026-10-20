@@ -5,12 +5,14 @@ import { fileURLToPath } from "node:url";
 import type { compile } from "../compile.ts";
 import { requireCatalog } from "../interaction/catalog.ts";
 import { deriveForm } from "../interaction/form.ts";
+import { compileViewProgram } from "../views/program.ts";
 
-export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string) {
+export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string, program?: unknown) {
   const surface = application.surface(surfaceId);
   if (surface.kind !== "human") throw new Error("HUMAN_SURFACE_REQUIRED");
   requireCatalog(surface.catalog);
   if (surface.language?.locale !== "en") throw new Error("UNSUPPORTED_RENDERER_LANGUAGE");
+  const viewProgram = program === undefined ? null : compileViewProgram(program, surface);
   const entry = surface.journeys.find(journey => journey.id === surface.navigation?.entry);
   if (entry?.kind !== "read") throw new Error("UNSUPPORTED_RENDERER_ENTRY");
   const navigation = new Set([surface.navigation!.entry, surface.navigation!.primaryAction, ...surface.navigation!.subjectActions]);
@@ -38,6 +40,7 @@ export async function buildHumanModule(application: ReturnType<typeof compile>, 
   const source = `import { freezeDeep } from './src/json.ts';
     import { inspectValidation } from './src/validation-result.ts';\n${generated}\nconst validators = {${registry}};
     export const surface = freezeDeep(${JSON.stringify(surface)});
+    export const viewProgram = freezeDeep(${JSON.stringify(viewProgram)});
     function inspectInput(commandId, input) {
       if (!Object.hasOwn(validators, commandId)) throw new Error('Unknown command');
       return inspectValidation(validators[commandId], input);

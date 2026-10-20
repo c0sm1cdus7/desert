@@ -17,6 +17,7 @@ verbatim modules, not standalone snippets or a published package API.
 - src/bindings.ts
 - src/interaction/catalog.ts
 - src/interaction/input-mask.ts
+- src/views/index.ts
 - src/program-grammar.ts
 - src/validation.ts
 - src/local.ts
@@ -24,10 +25,16 @@ verbatim modules, not standalone snippets or a published package API.
 - src/local/session.ts
 - src/local/identity.ts
 - src/web/build.ts
+- src/views/schema.ts
+- src/views/ports.ts
+- src/views/program-schema.ts
+- src/views/program.ts
+- src/views/program-views.ts
+- src/views/program-outputs.ts
 
 ## src/index.ts
 
-Source SHA-256: 5b3f2d7e95e66f46366e507d8be2f5c7c40f558ece8557c5ec04b12292a2449b
+Source SHA-256: b33584a1920686aeeaa1688224358ad2b8e875283df6e1571f5552fa49580476
 
 ```ts
 export { objectType, product, text, integer, enumeration, principal } from "./contracts.ts";
@@ -44,6 +51,11 @@ export { InteractionCatalog } from "./interaction/catalog.ts";
 export type { PrimitiveId, InputPrimitive, RendererBank } from "./interaction/catalog.ts";
 export { inputMask, InputMaskSchema } from "./interaction/input-mask.ts";
 export type { InputMask } from "./interaction/input-mask.ts";
+export { ViewVersion, ViewLimits, ViewSchema, view, viewCatalog } from "./views/index.ts";
+export type { View, ViewContent, ViewHeader, ViewStack, ViewLeaf, ViewToolbar, ViewRef } from "./views/index.ts";
+export { ViewProgramVersion, ViewProgramSchema, viewInputs, compileViewProgram } from "./views/index.ts";
+export type { ViewProgram, ViewJourney, ViewDestination, ViewOutputBinding, ViewOutputAction,
+  ViewBoundContent, ViewItem } from "./views/index.ts";
 ```
 
 ## src/contracts.ts
@@ -528,6 +540,26 @@ export function readMaskedValue(display: string, mask: InputMask, strictGrouping
 }
 ```
 
+## src/views/index.ts
+
+Source SHA-256: 56e9ed3eaa6cdd0597a062ef4b9e1ebef7a30cdbe9d5d22fa9ad68a229fc818c
+
+```ts
+export {
+  ViewVersion, ViewLimits, ViewSchema, ViewContentSchema, ViewHeaderSchema, ViewStackSchema,
+  ViewLeafSchema, ViewToolbarSchema, ViewRefSchema, ViewBoundContentSchema, ViewCatalogContentSchema, ViewItemSchema,
+} from "./schema.ts";
+export type { View, ViewContent, ViewHeader, ViewStack, ViewLeaf, ViewToolbar, ViewRef } from "./schema.ts";
+export type { ViewBoundContent, ViewItem } from "./schema.ts";
+export { view } from "./view.ts";
+export { viewCatalog } from "./catalog.ts";
+export { viewInputs } from "./ports.ts";
+export { ViewProgramVersion, ViewProgramSchema, ViewJourneySchema, ViewDestinationSchema,
+  ViewOutputBindingSchema, ViewOutputActionSchema } from "./program-schema.ts";
+export type { ViewProgram, ViewJourney, ViewDestination, ViewOutputBinding, ViewOutputAction } from "./program-schema.ts";
+export { compileViewProgram } from "./program.ts";
+```
+
 ## src/program-grammar.ts
 
 Source SHA-256: 0838b5ec59d467061bf83c6f28097f389e057c90e6e22f9285c95edd3affb69d
@@ -749,7 +781,7 @@ export function identityAdministration(database: Database) {
 
 ## src/web/build.ts
 
-Source SHA-256: 590b6c38f53fbe318317ea6d050c1e3f2c96392787a39bc620bb04efe3b37f60
+Source SHA-256: 3d43f9a00047a303fe47e288117a1cb14ccfd9b4f44402d24a4052ec1ddf1582
 
 ```ts
 import { Ajv } from "ajv";
@@ -759,12 +791,14 @@ import { fileURLToPath } from "node:url";
 import type { compile } from "../compile.ts";
 import { requireCatalog } from "../interaction/catalog.ts";
 import { deriveForm } from "../interaction/form.ts";
+import { compileViewProgram } from "../views/program.ts";
 
-export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string) {
+export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string, program?: unknown) {
   const surface = application.surface(surfaceId);
   if (surface.kind !== "human") throw new Error("HUMAN_SURFACE_REQUIRED");
   requireCatalog(surface.catalog);
   if (surface.language?.locale !== "en") throw new Error("UNSUPPORTED_RENDERER_LANGUAGE");
+  const viewProgram = program === undefined ? null : compileViewProgram(program, surface);
   const entry = surface.journeys.find(journey => journey.id === surface.navigation?.entry);
   if (entry?.kind !== "read") throw new Error("UNSUPPORTED_RENDERER_ENTRY");
   const navigation = new Set([surface.navigation!.entry, surface.navigation!.primaryAction, ...surface.navigation!.subjectActions]);
@@ -792,6 +826,7 @@ export async function buildHumanModule(application: ReturnType<typeof compile>, 
   const source = `import { freezeDeep } from './src/json.ts';
     import { inspectValidation } from './src/validation-result.ts';\n${generated}\nconst validators = {${registry}};
     export const surface = freezeDeep(${JSON.stringify(surface)});
+    export const viewProgram = freezeDeep(${JSON.stringify(viewProgram)});
     function inspectInput(commandId, input) {
       if (!Object.hasOwn(validators, commandId)) throw new Error('Unknown command');
       return inspectValidation(validators[commandId], input);
@@ -801,5 +836,354 @@ export async function buildHumanModule(application: ReturnType<typeof compile>, 
   const result = await build({ stdin: { contents: source, resolveDir: fileURLToPath(new URL("../../", import.meta.url)) },
     bundle: true, write: false, platform: "browser", format: "esm", target: "es2022" });
   return result.outputFiles[0]!.text;
+}
+```
+
+## src/views/schema.ts
+
+Source SHA-256: 4ad5ba68ec52764feda1ca0200e2c8a149a7a8f4829ba75a91d5fbb1d7885370
+
+```ts
+import { Type, type Static } from "@sinclair/typebox";
+import type { Frozen } from "../json.ts";
+import { InformationItemSchema } from "../interaction/information-content.ts";
+import { TagNodeSchema, ImageNodeSchema, AvatarNodeSchema } from "../interaction/extended-nodes.ts";
+import { ActionIconSchema } from "../interaction/toolbar.ts";
+import { FeaturedMediaSchema } from "../public-catalog/schema.ts";
+import { closed, immutable, name, text } from "./definition.ts";
+
+export const ViewVersion = "desert.view/1" as const;
+export const ViewLimits = Object.freeze({
+  catalogSize: 64, referenceDepth: 16, expandedViews: 1024,
+  inputDepth: 32, inputNodes: 16384,
+});
+
+/** Read-only canonical leaves only. Action, input and journey nodes are not accepted. */
+export const ViewLeafSchema = immutable(Type.Union([
+  ...InformationItemSchema.anyOf, TagNodeSchema, ImageNodeSchema, AvatarNodeSchema,
+]));
+export const ViewHeaderSchema = closed({
+  kind: Type.Literal("header"), id: name, title: text, subtitle: text,
+  media: Type.Optional(FeaturedMediaSchema),
+});
+/** Data shapes and authority belong to the bound canonical journey, never the View. */
+export const ViewBoundContentSchema = immutable(Type.Union([
+  closed({ kind: Type.Literal("collection"), id: name, input: name, output: name }),
+  closed({ kind: Type.Literal("form"), id: name, input: name }),
+  closed({ kind: Type.Literal("context"), id: name, input: name }),
+]));
+export const ViewCatalogContentSchema = closed({ kind: Type.Literal("visual-catalog"), id: name });
+export const ViewItemSchema = immutable(Type.Union([...ViewLeafSchema.anyOf, ...ViewBoundContentSchema.anyOf]));
+export const ViewStackSchema = closed({
+  kind: Type.Literal("stack"), id: name, title: text, description: Type.Optional(text),
+  items: Type.Array(ViewItemSchema, { minItems: 1 }),
+});
+export const ViewContentSchema = immutable(Type.Union([
+  ViewHeaderSchema, ViewStackSchema, ViewCatalogContentSchema, ...ViewItemSchema.anyOf,
+]));
+export const ViewToolbarSchema = closed({
+  kind: Type.Literal("toolbar"),
+  actions: Type.Array(closed({
+    output: name, label: text, icon: ActionIconSchema, disabled: Type.Optional(Type.Boolean()),
+  })),
+});
+export const ViewRefSchema = closed({ kind: Type.Literal("view"), view: name });
+export const ViewSchema = closed({
+  version: Type.Literal(ViewVersion), id: name,
+  outputs: Type.Optional(Type.Array(name)),
+  topDock: Type.Optional(ViewToolbarSchema), bottomDock: Type.Optional(ViewToolbarSchema),
+  leftDock: Type.Optional(ViewRefSchema), rightDock: Type.Optional(ViewRefSchema),
+  content: Type.Array(ViewContentSchema),
+});
+
+export type View = Frozen<Static<typeof ViewSchema>>;
+export type ViewLeaf = Frozen<Static<typeof ViewLeafSchema>>;
+export type ViewHeader = Frozen<Static<typeof ViewHeaderSchema>>;
+export type ViewStack = Frozen<Static<typeof ViewStackSchema>>;
+export type ViewContent = Frozen<Static<typeof ViewContentSchema>>;
+export type ViewToolbar = Frozen<Static<typeof ViewToolbarSchema>>;
+export type ViewRef = Frozen<Static<typeof ViewRefSchema>>;
+export type ViewItem = Frozen<Static<typeof ViewItemSchema>>;
+export type ViewBoundContent = Frozen<Static<typeof ViewBoundContentSchema>>;
+```
+
+## src/views/ports.ts
+
+Source SHA-256: be4f93f3eb5a7e8b9f1c3540b2814ddc54198ad5740395e54366138ac55624a8
+
+```ts
+import type { View, ViewBoundContent, ViewContent } from "./schema.ts";
+
+/** Derived data ports; no duplicate input schema or editable field list is authored. */
+export function viewInputs(definition: View): readonly ViewBoundContent[] {
+  return Object.freeze(definition.content.flatMap<ViewContent>(item => item.kind === "stack" ? item.items : [item])
+    .filter((item): item is ViewBoundContent =>
+      item.kind === "collection" || item.kind === "form" || item.kind === "context"));
+}
+```
+
+## src/views/program-schema.ts
+
+Source SHA-256: 101ceedcc4f735de98c7c599f2b8b4370c7373aad42c8644526f151d75784fb1
+
+```ts
+import { Type, type Static } from "@sinclair/typebox";
+import type { Frozen } from "../json.ts";
+import { ActionIconSchema } from "../interaction/toolbar.ts";
+import { ViewSchema, ViewLimits } from "./schema.ts";
+import { closed, immutable, name, text } from "./definition.ts";
+
+export const ViewProgramVersion = "desert.view-program/1" as const;
+export const ViewOutputActionSchema = immutable(Type.Union([
+  closed({ kind: Type.Literal("journey"), journey: name }),
+  closed({ kind: Type.Literal("select") }),
+  closed({ kind: Type.Literal("submit") }),
+  closed({ kind: Type.Literal("close") }),
+]));
+export const ViewOutputBindingSchema = closed({ view: name, output: name, action: ViewOutputActionSchema });
+const outputs = Type.Array(ViewOutputBindingSchema, { maxItems: ViewLimits.catalogSize });
+export const ViewJourneySchema = immutable(Type.Union([
+  closed({ id: name, kind: Type.Literal("presentation"), view: name, outputs }),
+  closed({ id: name, kind: Type.Literal("read"), view: name, detailView: name, outputs }),
+  closed({ id: name, kind: Type.Literal("create"), view: name, preferredDock: Type.Literal("right"), outputs }),
+]));
+export const ViewDestinationSchema = closed({ id: name, label: text, icon: ActionIconSchema, entryJourney: name });
+export const ViewProgramSchema = closed({
+  version: Type.Literal(ViewProgramVersion), productId: name, label: text,
+  views: Type.Array(ViewSchema, { minItems: 1, maxItems: ViewLimits.catalogSize }),
+  journeys: Type.Array(ViewJourneySchema, { minItems: 1, maxItems: ViewLimits.catalogSize }),
+  destinations: Type.Array(ViewDestinationSchema, { minItems: 1, maxItems: ViewLimits.catalogSize }),
+  entry: name, navigation: Type.Array(name, { minItems: 1, maxItems: ViewLimits.catalogSize }),
+});
+export type ViewProgram = Frozen<Static<typeof ViewProgramSchema>>;
+export type ViewJourney = Frozen<Static<typeof ViewJourneySchema>>;
+export type ViewDestination = Frozen<Static<typeof ViewDestinationSchema>>;
+export type ViewOutputBinding = Frozen<Static<typeof ViewOutputBindingSchema>>;
+export type ViewOutputAction = Frozen<Static<typeof ViewOutputActionSchema>>;
+```
+
+## src/views/program.ts
+
+Source SHA-256: 12eeb1aadff30b09fd799a315045bf8f354f30025de4f1dad0daa10a471e378a
+
+```ts
+import { Check } from "@sinclair/typebox/value";
+import { freezeDeep } from "../json.ts";
+import type { Surface } from "../web/types.ts";
+import { ViewProgramSchema, type ViewProgram } from "./program-schema.ts";
+import { viewSnapshot } from "./snapshot.ts";
+import { viewCatalog } from "./catalog.ts";
+import { journeyViews, validateJourneyExposure, validateJourneyViews } from "./program-views.ts";
+import { validateJourneyOutputs } from "./program-outputs.ts";
+
+/** Bind presentation to an already compiled human exposure; this grants no execution authority. */
+export function compileViewProgram(definition: unknown, surface: Surface): ViewProgram {
+  const input = viewSnapshot(definition);
+  if (!Check(ViewProgramSchema, input)) throw new Error("INVALID_VIEW_PROGRAM");
+  if (surface.kind !== "human" || surface.protocol !== "desert.interaction/6" || !surface.navigation ||
+    !surface.language || !surface.commit || !surface.connection) throw new Error("INVALID_VIEW_PROGRAM_SURFACE");
+  const human = { ...surface, navigation: surface.navigation, language: surface.language,
+    commit: surface.commit, connection: surface.connection };
+  if (input.productId !== surface.productId) throw new Error("VIEW_PROGRAM_PRODUCT_MISMATCH");
+  const views = new Map(viewCatalog(input.views).map(item => [item.id, item]));
+  const journeys = new Map(input.journeys.map(item => [item.id, item]));
+  if (journeys.size !== input.journeys.length) throw new Error("DUPLICATE_VIEW_JOURNEY");
+  const destinations = new Map(input.destinations.map(item => [item.id, item]));
+  if (destinations.size !== input.destinations.length) throw new Error("DUPLICATE_VIEW_DESTINATION");
+  for (const value of views.values()) {
+    if (value.leftDock || value.rightDock) throw new Error("UNSUPPORTED_PROGRAM_SIDE_DOCK");
+    if (value.content.some(item => item.kind === "header" && item.media)) throw new Error("UNSUPPORTED_PROGRAM_HEADER_MEDIA");
+    if (value.content.findIndex(item => item.kind === "header") > 0) throw new Error("INVALID_PROGRAM_HEADER_PLACEMENT");
+  }
+  const usedViews = new Set<string>();
+  // Exposure is checked before output references so forged canonical identities fail at their owner.
+  for (const journey of journeys.values()) validateJourneyExposure(journey, human);
+  if (input.journeys.filter(item => item.kind === "read").length !== 1 ||
+    input.journeys.filter(item => item.kind === "create").length !== 1) {
+    throw new Error("INVALID_VIEW_PROGRAM_JOURNEY_COUNT");
+  }
+  for (const journey of journeys.values()) {
+    const owned = journeyViews(journey, views);
+    owned.forEach(item => usedViews.add(item.id));
+    validateJourneyViews(journey, owned);
+    validateJourneyOutputs(journey, owned, new Set(journeys.keys()));
+  }
+  if (usedViews.size !== views.size) throw new Error("UNUSED_PROGRAM_VIEW");
+  for (const destination of destinations.values()) {
+    const journey = journeys.get(destination.entryJourney);
+    if (!journey) throw new Error("UNKNOWN_DESTINATION_JOURNEY");
+    if (journey.kind === "create") throw new Error("INVALID_DESTINATION_JOURNEY");
+  }
+  for (const journey of journeys.values()) {
+    if (journey.kind === "create") continue;
+    const entries = input.destinations.filter(item => item.entryJourney === journey.id);
+    if (entries.length !== 1) throw new Error("INVALID_JOURNEY_DESTINATION_COUNT");
+  }
+  if (!destinations.has(input.entry)) throw new Error("UNKNOWN_ENTRY_DESTINATION");
+  if (new Set(input.navigation).size !== input.navigation.length) throw new Error("DUPLICATE_NAVIGATION_DESTINATION");
+  if (input.navigation.some(id => !destinations.has(id))) throw new Error("UNKNOWN_NAVIGATION_DESTINATION");
+  if (!input.navigation.includes(input.entry)) throw new Error("UNLISTED_ENTRY_DESTINATION");
+  if (input.navigation.length !== destinations.size) throw new Error("UNLISTED_PROGRAM_DESTINATION");
+  const reachable = new Set(input.destinations.map(item => item.entryJourney));
+  const pending = [...reachable];
+  while (pending.length) {
+    for (const output of journeys.get(pending.pop()!)!.outputs) {
+      if (output.action.kind !== "journey" || reachable.has(output.action.journey)) continue;
+      reachable.add(output.action.journey);
+      pending.push(output.action.journey);
+    }
+  }
+  if (reachable.size !== journeys.size) throw new Error("UNREACHABLE_PROGRAM_JOURNEY");
+  return freezeDeep(input);
+}
+```
+
+## src/views/program-views.ts
+
+Source SHA-256: 7805433e90f3752bb31442a2fd537571d75262a29a28c5efddde1c8eff3601ed
+
+```ts
+import type { HumanSurface } from "../web/types.ts";
+import type { View } from "./schema.ts";
+import type { ViewJourney } from "./program-schema.ts";
+import { viewInputs } from "./ports.ts";
+
+export function journeyViews(journey: ViewJourney, views: ReadonlyMap<string, View>): readonly View[] {
+  const ids = journey.kind === "read" ? [journey.view, journey.detailView] : [journey.view];
+  if (new Set(ids).size !== ids.length) throw new Error("DUPLICATE_JOURNEY_VIEW");
+  return ids.map(id => {
+    const definition = views.get(id);
+    if (!definition) throw new Error("UNKNOWN_PROGRAM_VIEW");
+    return definition;
+  });
+}
+
+/** This slice binds the existing single collection/create engine, not a second executor. */
+export function validateJourneyExposure(journey: ViewJourney, surface: HumanSurface) {
+  const canonical = surface.journeys.find(item => item.id === journey.id);
+  if (journey.kind === "presentation") {
+    if (canonical) throw new Error("PRESENTATION_JOURNEY_COLLISION");
+    return;
+  }
+  if (!canonical) throw new Error("UNEXPOSED_VIEW_JOURNEY");
+  if (journey.kind === "read") {
+    if (canonical.kind !== "read") throw new Error("VIEW_JOURNEY_KIND_MISMATCH");
+    if (journey.id !== surface.navigation.entry) throw new Error("UNSUPPORTED_VIEW_READ_JOURNEY");
+  } else {
+    if (canonical.kind !== "mutation" || canonical.subject) throw new Error("VIEW_JOURNEY_KIND_MISMATCH");
+    if (journey.id !== surface.navigation.primaryAction) throw new Error("UNSUPPORTED_VIEW_CREATE_JOURNEY");
+    const read = surface.journeys.find(item => item.id === surface.navigation.entry);
+    if (read?.kind !== "read" || read.subject !== canonical.object) throw new Error("VIEW_JOURNEY_OBJECT_MISMATCH");
+  }
+}
+
+export function validateJourneyViews(journey: ViewJourney, owned: readonly View[]) {
+  const main = owned[0]!;
+  const expected = journey.kind === "presentation" ? [] : [journey.kind === "read" ? "collection" : "form"];
+  function inputs(definition: View, kinds: readonly string[]) {
+    const ports = viewInputs(definition);
+    if (ports.length !== kinds.length || ports.some((port, index) => port.kind !== kinds[index])) {
+      throw new Error("INVALID_JOURNEY_VIEW_INPUTS");
+    }
+  }
+  function panel(definition: View, kind: "form" | "context") {
+    inputs(definition, [kind]);
+    if (definition.content.length !== 2 || definition.content[0]?.kind !== "header" || definition.content[1]?.kind !== kind) {
+      throw new Error("UNSUPPORTED_PANEL_VIEW_CONTENT");
+    }
+  }
+  inputs(main, expected);
+  if (journey.kind === "create") panel(main, "form");
+  if (journey.kind === "read") panel(owned[1]!, "context");
+  for (const definition of owned) {
+    const catalogs = definition.content.filter(item => item.kind === "visual-catalog");
+    if (catalogs.length > 1 || (catalogs.length && journey.kind !== "presentation")) {
+      throw new Error("INVALID_JOURNEY_CATALOG_CONTENT");
+    }
+  }
+}
+```
+
+## src/views/program-outputs.ts
+
+Source SHA-256: b92cce17cb59b5e9a1f6cdbf0cfe7d2ac6b639d4c817a8c5d638a612e6f62ffa
+
+```ts
+import type { View } from "./schema.ts";
+import type { ViewJourney } from "./program-schema.ts";
+import { viewInputs } from "./ports.ts";
+
+export function validateJourneyOutputs(journey: ViewJourney, owned: readonly View[], journeys: ReadonlySet<string>) {
+  const seen = new Set<string>();
+  for (const binding of journey.outputs) {
+    const definition = owned.find(item => item.id === binding.view);
+    if (!definition) throw new Error("FOREIGN_OUTPUT_VIEW");
+    if (!definition.outputs?.includes(binding.output)) throw new Error("UNKNOWN_BOUND_VIEW_OUTPUT");
+    const key = `${binding.view}/${binding.output}`;
+    if (seen.has(key)) throw new Error("DUPLICATE_VIEW_OUTPUT_BINDING");
+    seen.add(key);
+    const collection = viewInputs(definition).find(port => port.kind === "collection" && port.output === binding.output);
+    if (collection && binding.action.kind !== "select") throw new Error("INVALID_COLLECTION_OUTPUT_ACTION");
+    switch (binding.action.kind) {
+      case "journey":
+        if (!journeys.has(binding.action.journey)) throw new Error("UNKNOWN_OUTPUT_JOURNEY");
+        break;
+      case "select":
+        if (journey.kind !== "read" || !collection) throw new Error("INVALID_VIEW_OUTPUT_ACTION");
+        break;
+      case "submit":
+        if (journey.kind !== "create") throw new Error("INVALID_VIEW_OUTPUT_ACTION");
+        break;
+      case "close":
+        if (journey.kind !== "create" && !(journey.kind === "read" && binding.view === journey.detailView)) {
+          throw new Error("INVALID_VIEW_OUTPUT_ACTION");
+        }
+        // Only runtime busy/uncertain state may lock dismissal across button, Escape and scrim.
+        if ([definition.topDock, definition.bottomDock].some(toolbar => toolbar?.actions.some(action =>
+          action.output === binding.output && action.disabled === true))) throw new Error("AUTHORED_CLOSE_DISABLED");
+    }
+  }
+  for (const definition of owned) {
+    if (definition.outputs?.some(output => !seen.has(`${definition.id}/${output}`))) throw new Error("UNBOUND_VIEW_OUTPUT");
+  }
+  if (journey.kind === "create" && (journey.outputs.filter(binding => binding.action.kind === "submit").length !== 1 ||
+    journey.outputs.filter(binding => binding.action.kind === "close").length !== 1)) {
+    throw new Error("INVALID_CREATE_OUTPUTS");
+  }
+  if (journey.kind === "read" && journey.outputs.filter(binding => binding.action.kind === "close").length !== 1) {
+    throw new Error("INVALID_DETAIL_OUTPUTS");
+  }
+  for (const definition of owned) {
+    const top = definition.topDock?.actions ?? [];
+    const bottom = definition.bottomDock?.actions ?? [];
+    const bindingFor = (output: string) => journey.outputs.find(item => item.view === definition.id && item.output === output);
+    if (bottom.length > 1 || bottom.some(item => bindingFor(item.output)?.action.kind === "close")) {
+      throw new Error("UNSUPPORTED_PROGRAM_BOTTOM_TOOLBAR");
+    }
+    const panel = journey.kind === "create" || (journey.kind === "read" && definition.id === journey.detailView);
+    if (panel && (bindingFor(top[0]?.output ?? "")?.action.kind !== "close" ||
+      top.slice(1).some(item => bindingFor(item.output)?.action.kind === "close"))) {
+      throw new Error("INVALID_PANEL_CLOSE_ACTION");
+    }
+    if (journey.kind === "create" && bindingFor(bottom[0]?.output ?? "")?.action.kind !== "submit") {
+      throw new Error("INVALID_CREATE_SUBMIT_PLACEMENT");
+    }
+    if (journey.kind === "read" && definition.id === journey.detailView && (top.length !== 1 || bottom.length !== 0)) {
+      throw new Error("UNSUPPORTED_CONTEXT_TOOLBAR");
+    }
+    if (new Set([...top, ...bottom].map(item => item.output)).size !== top.length + bottom.length) {
+      throw new Error("DUPLICATE_TOOLBAR_OUTPUT");
+    }
+    const collectionOutputs = viewInputs(definition).flatMap(port => port.kind === "collection" ? [port.output] : []);
+    if ([...top, ...bottom].some(item => collectionOutputs.includes(item.output))) {
+      throw new Error("CONFLICTING_VIEW_OUTPUT_PORT");
+    }
+    const emitted = new Set([
+      ...[...top, ...bottom].map(action => action.output), ...collectionOutputs,
+    ]);
+    for (const output of definition.outputs ?? []) {
+      if (!emitted.has(output)) throw new Error("UNREACHABLE_VIEW_OUTPUT");
+    }
+  }
 }
 ```

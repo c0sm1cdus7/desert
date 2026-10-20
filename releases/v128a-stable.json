@@ -1,0 +1,82 @@
+{
+  "format": "desert.approved-baseline/1",
+  "tag": "v128a-stable",
+  "approvalDate": "2026-10-20",
+  "approvalTimezone": "America/Argentina/Buenos_Aires",
+  "status": "owner-approved-stable-baseline",
+  "scope": "VOID N1 using the approved v127a visual owners; source checkpoint, not a production or all-platform release.",
+  "branch": "codex/void-notes-foundation",
+  "sourceRef": "refs/tags/v128a-stable",
+  "previousStable": {
+    "tag": "v127a-stable",
+    "commit": "d0a50d2ca5119645c89cb5a4ec6cb227a38e9360",
+    "preserved": true
+  },
+  "companion": {
+    "repository": "c0sm1cdus7/void",
+    "tag": "n1-stable"
+  },
+  "nodeVersion": "v24.16.0",
+  "rendererRevision": "07c29892086f09e7bbbe5e9ce8b020c8e0634ff8eefc9ae7c8a10af846e1d575",
+  "builds": [
+    {
+      "product": "landmarks",
+      "directory": "build/landmarks-v128-preservation-c",
+      "contractDigest": "7642a0bc0d664c73ee7728d441e1a534efe7767fb520e36edbaed8046f76c2d9",
+      "manifest": "PUBLIC-CATALOG-BUILD.json",
+      "manifestSha256": "519de09f7a8cc320c44cbda2cd662869517e02c18dc3160cedcfa59007cb9b65",
+      "verifiedFiles": 94
+    },
+    {
+      "product": "void",
+      "repository": "c0sm1cdus7/void",
+      "directory": "build/void-n1-preserved-c",
+      "contractDigest": "fcf9e7012a443c276aac2c121e7a85d81a8ce31b88be60978a6d15743b628d1c",
+      "manifest": "DESERT-BUILD.json",
+      "manifestSha256": "0a93ca7e8e7d4e3acb29d047bdd40de5014266d936cddc049a41775c9bd5c4ba",
+      "verifiedFiles": 92
+    }
+  ],
+  "verification": {
+    "sourceMatchesBothBuilds": true,
+    "exactVisualPairs": 20,
+    "changedPixels": 0,
+    "motionPairs": 12,
+    "voidBrowserTests": 7,
+    "voidRuntimeTests": 12,
+    "generatedSvelteErrors": 0,
+    "generatedSvelteWarnings": 0,
+    "typecheck": "passed",
+    "authoringReferences": "passed"
+  },
+  "localEvidence": [
+    {
+      "path": "artifacts/stable-parity-v128-final-c-20261020/report.json",
+      "sha256": "fd0d3513b8eb129c372774ce495df3ad9de47bc5d123512271e6a395e8c0cdc4"
+    },
+    {
+      "path": "artifacts/stable-motion-v128-final-c-20261020/report.json",
+      "sha256": "9352b79f9e6522b7774b19928a7a1ebdef34cced5222d067e3387d1a236eb660"
+    }
+  ],
+  "recovery": [
+    "Check out this tag in a new DESERT checkout, leaving existing stores and approved previews untouched.",
+    "Use the companion VOID n1-stable tag in a sibling checkout; its checkpoint records the exact SDK commit.",
+    "Use Node v24.16.0 and install the locked dependencies in both repositories.",
+    "From VOID, run node scripts/build-web.ts build/void-n1-restored using a fresh destination.",
+    "Start with a new local test store or an explicitly selected compatible existing store; never reset or repin a store to bypass admission.",
+    "Frozen generated builds and complete screenshot evidence remain local; this source checkpoint does not publish binaries or Apple sample assets."
+  ],
+  "qualification": "Owner-approved local web baseline. The finite Chromium matrix is not a whole-suite, native-browser or all-platform certification.",
+  "outstanding": [
+    "326-file ownership audit",
+    "Safe note editing and remaining roadmap",
+    "Production identity and MCP/API adapters",
+    "Qualified native distributions"
+  ],
+  "excludedFromPublication": [
+    "Local identity credentials, access invitations, browser state and PostgreSQL data",
+    "Generated builds, node_modules and local evidence images",
+    "Apple sample photographs"
+  ]
+}

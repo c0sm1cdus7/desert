@@ -1,7 +1,6 @@
 <script lang="ts">
   import { tick } from "svelte";
   import * as Empty from "@desert/svelte/vendor/components/ui/empty/index.js";
-  import type { PublicCatalogSurface } from "../../public-catalog/index.ts";
   import type { BankEvent } from "../../interaction/bank-events.ts";
   import type { PrimitiveId } from "../../interaction/catalog.ts";
   import { catalogGroups, matchingEntries } from "../catalog/navigation.ts";
@@ -13,10 +12,10 @@
   import SpecimenRow from "../catalog/SpecimenRow.svelte";
   import SpecimenUnavailable from "../catalog/SpecimenUnavailable.svelte";
   import PublicCatalogBankSpecimen from "./PublicCatalogBankSpecimen.svelte";
-  import { publicCatalogBankInventory } from "./PublicCatalogBank-model.ts";
+  import { publicCatalogBankInventory, type PublicBankInput } from "./PublicCatalogBank-model.ts";
   import PlaceHeader from "../pieces/PlaceHeader.svelte";
   let { surface, oncatalog, bodyOnly = false, query = $bindable("") }: {
-    surface: PublicCatalogSurface; oncatalog: (event: BankEvent) => void; bodyOnly?: boolean; query?: string;
+    surface: PublicBankInput; oncatalog: (event: BankEvent) => void; bodyOnly?: boolean; query?: string;
   } = $props();
   let inventory = $derived(publicCatalogBankInventory(surface));
   let entries = $derived(matchingEntries(query));
