@@ -2,12 +2,20 @@
 // cannot run code in the gate. The data is validated with the same schema the authoring API uses.
 import ts from "typescript";
 import { validateDeclaration } from "./define.ts";
-import type { DeclarationKind } from "./declaration-schema.ts";
+import type { CompositionData, DeclarationKind, FoundationData, MechanismData } from "./declaration-schema.ts";
 
 const calls: ReadonlyMap<string, DeclarationKind> = new Map([
   ["defineFoundation", "foundation"], ["defineComposition", "composition"], ["defineMechanism", "mechanism"]]);
 type Literal = string | number | boolean | readonly Literal[] | { readonly [key: string]: Literal };
-export type ReadDeclaration = Readonly<{ kind: DeclarationKind; binding: string; [field: string]: unknown }>;
+type Located = { readonly binding: string };
+export type ReadDeclaration = Readonly<FoundationData & Located & { kind: "foundation" }>
+  | Readonly<CompositionData & Located & { kind: "composition" }> | Readonly<MechanismData & Located & { kind: "mechanism" }>;
+
+function typed(kind: DeclarationKind, value: unknown, binding: string): ReadDeclaration {
+  if (kind === "foundation") return Object.freeze({ ...validateDeclaration(kind, value), kind, binding });
+  if (kind === "composition") return Object.freeze({ ...validateDeclaration(kind, value), kind, binding });
+  return Object.freeze({ ...validateDeclaration(kind, value), kind, binding });
+}
 
 function reader(path: string) {
   const fail = (node: ts.Node, what: string): never => {
@@ -48,7 +56,7 @@ function reader(path: string) {
     const argument = call.arguments[0];
     if (!argument || !ts.isAsExpression(argument) || argument.type.getText() !== "const") return fail(call, "declarations end with `as const`");
     const value = literal(argument.expression);
-    return Object.freeze({ ...validateDeclaration(kind, value), kind, binding: declared.name.text });
+    return typed(kind, value, declared.name.text);
   }
   return declaration;
 }
