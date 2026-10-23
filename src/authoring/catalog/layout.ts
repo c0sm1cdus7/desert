@@ -5,6 +5,8 @@ export type CatalogLayout = Readonly<{
   vendorFamilies: string;
   infra: string;
   fixed: Readonly<Record<string, readonly string[]>>;
+  /** Folders under which each declaration kind must live, as `<folder>/<id>/<id>.<kind file>`. */
+  pieces: Readonly<Record<"foundation" | "composition" | "mechanism", readonly string[]>>;
 }>;
 
 /** Companion files a piece folder may hold beside its entry and parts. */

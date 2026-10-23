@@ -8,6 +8,8 @@ import type { CatalogLayout } from "../src/authoring/catalog/layout.ts";
 const layout: CatalogLayout = {
   roots: ["src/svelte"], vendorFamilies: "src/svelte/vendor/components/ui", infra: "src/svelte/infra",
   fixed: { theme: ["src/svelte/theme.css"], documentation: ["src/svelte/vendor/LICENSE"] },
+  pieces: { foundation: ["src/svelte/catalog/foundations"], composition: ["src/svelte/catalog/compositions"],
+    mechanism: ["src/svelte/catalog/mechanisms"] },
 };
 const declaration = (path: string, source: string) => readDeclarations(path, source).map(item => ({ path, declaration: item }));
 const field = declaration("src/svelte/catalog/foundations/field/field.catalog.ts", `import { defineFoundation } from "x";
