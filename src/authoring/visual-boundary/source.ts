@@ -19,7 +19,7 @@ export async function readVisualBoundarySources(root: string) {
 export async function runWithVisualBoundaries<T>(root: string, operation: () => Promise<T>): Promise<T> {
   await assertGateSources(root, DesertLayout);
   const { runCatalogGate } = await import("../catalog/gate/run.ts");
-  await runCatalogGate(root, { layout: DesertLayout, rules: ["A", "B", "C", "L"] });
+  const tree = await runCatalogGate(root, { layout: DesertLayout, rules: ["A", "B", "C", "L"] });
   // The previous gate, until slice 1 ports each assertion into a catalog rule.
   const [{ assertClosedVisualBoundaries }, { assertCompleteAdapterSources }, { assertCompleteDispatcherSources },
     { assertCompleteBootstrapSources }, { assertNonvisualDependencies }, { assertWebCatalogDerivations }] = await Promise.all([
@@ -32,5 +32,8 @@ export async function runWithVisualBoundaries<T>(root: string, operation: () => 
   assertWebCatalogDerivations(sources);
   assertClosedVisualBoundaries(sources);
   await assertNonvisualDependencies(root, sources);
+  // Content rules D–T, after the previous gate so its own codes stay visible: every violation, one failure (Q1).
+  const { runContentRules } = await import("../catalog/gate/run.ts"), { contentRuleIds } = await import("../catalog/gate/content-rules.ts");
+  await runContentRules(root, tree, { layout: DesertLayout, rules: contentRuleIds });
   return await operation();
 }

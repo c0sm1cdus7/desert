@@ -9,6 +9,9 @@ import { assertDeclaredSources, type LocatedDeclaration } from "./inventory.ts";
 import { assertDeclarationsConsistent } from "./declarations.ts";
 import { assertCatalogDerivations } from "./derivation.ts";
 import { assertLedgerStructure } from "./ledger.ts";
+import { contentRules, type ContentRuleId } from "./content-rules.ts";
+import { createContext } from "./context.ts";
+import { CatalogGateViolations, type Violation } from "./violation.ts";
 
 export type CatalogRule = "A" | "B" | "C" | "L";
 export type CatalogTree = Readonly<{ paths: readonly string[]; declarations: readonly LocatedDeclaration[];
@@ -54,4 +57,17 @@ export async function runCatalogGate(root: string, options: Readonly<{ layout: C
   };
   for (const rule of options.rules) rules[rule]();
   return tree;
+}
+
+const textual = /\.(svelte|ts|js|mjs|cjs|css|html|json|md|txt)$/;
+
+/** Content rules D–T over a tree that passed the structural rules: every violation, then one failure listing them all. */
+export async function runContentRules(root: string, tree: CatalogTree, options: Readonly<{ layout: CatalogLayout; rules: readonly ContentRuleId[] }>) {
+  const sources = new Map<string, string>();
+  for (const path of tree.paths) if (textual.test(path)) sources.set(path, await readFile(join(root, path), "utf8"));
+  const context = createContext({ layout: options.layout, paths: tree.paths, declarations: tree.declarations, ledger: tree.ledger, sources });
+  const violations: Violation[] = [];
+  for (const rule of options.rules) violations.push(...contentRules[rule](context));
+  if (violations.length) throw new CatalogGateViolations(violations);
+  return context;
 }

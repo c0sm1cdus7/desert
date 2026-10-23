@@ -31,9 +31,12 @@ export const DesertLayout: CatalogLayout = Object.freeze({
   gate: {
     roots: ["src/authoring/catalog", "src/authoring/visual-boundary", "src/authoring/web-catalog"],
     modules: [
-      ...modules("src/authoring/catalog", ["approvals-schema.ts", "declaration-schema.ts", "define.ts", "generate.ts", "layout.ts",
-        "normalize-source.ts", "read-declaration.ts"]),
-      ...modules("src/authoring/catalog/gate", ["declarations.ts", "derivation.ts", "inventory.ts", "ledger.ts", "run.ts", "sources.ts"]),
+      ...modules("src/authoring/catalog", ["approvals-schema.ts", "declaration-schema.ts", "define.ts", "digest.ts", "generate.ts", "layout.ts",
+        "normalize-source.ts", "read-contract.ts", "read-declaration.ts"]),
+      ...modules("src/authoring/catalog/gate", ["approvals.ts", "composition-template.ts", "content-rules.ts", "context.ts",
+        "css-ownership.ts", "declarations.ts", "derivation.ts", "dom-access.ts", "emitted-css.ts", "grammar.ts", "inventory.ts", "ledger.ts",
+        "native-controls.ts", "owner-imports.ts", "ownership.ts", "parse.ts", "presentation.ts", "resolve-imports.ts", "run.ts",
+        "sources.ts", "specimens.ts", "template-artifacts.ts", "violation.ts"]),
       // The previous gate stays on the build path until slice 1 ports its assertions into the rules above.
       ...modules("src/authoring/visual-boundary", ["adapter-globals.ts", "adapter.ts", "bootstrap.ts", "closed.ts", "composition.ts",
         "dependency-graph.ts", "dispatch-contract.ts", "dispatch-script.ts", "dispatch.ts", "dom-ownership.ts", "finite-inputs.ts",
