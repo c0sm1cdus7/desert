@@ -2,16 +2,16 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { compile } from "../src/compile.ts";
 import { Notebook } from "../products/notebook/product.ts";
-import { InteractionCatalog, requireCatalog } from "../src/interaction/catalog.ts";
+import { ResolvedNodes, requireCatalog } from "../src/interaction/catalog.ts";
 import { deriveForm } from "../src/interaction/form.ts";
 
 test("the interaction bank is versioned, closed and shared rather than copied per renderer", () => {
   const surface = compile(Notebook).surface("human");
-  assert.deepEqual(surface.catalog, InteractionCatalog);
+  assert.deepEqual(surface.catalog, ResolvedNodes);
   assert.equal(Object.isFrozen(surface.catalog), true);
-  assert.throws(() => requireCatalog({ ...InteractionCatalog, version: "invented" }), /CATALOG_MISMATCH/);
-  assert.throws(() => requireCatalog({ ...InteractionCatalog, extra: "variant" }), /CATALOG_MISMATCH/);
-  assert.equal(new Set(InteractionCatalog.entries.map(entry => entry.id)).size, InteractionCatalog.entries.length);
+  assert.throws(() => requireCatalog({ ...ResolvedNodes, version: "invented" }), /CATALOG_MISMATCH/);
+  assert.throws(() => requireCatalog({ ...ResolvedNodes, extra: "variant" }), /CATALOG_MISMATCH/);
+  assert.equal(new Set(ResolvedNodes.entries.map(entry => entry.id)).size, ResolvedNodes.entries.length);
 });
 
 test("form needs come from the command and declared presentation, never field position", () => {

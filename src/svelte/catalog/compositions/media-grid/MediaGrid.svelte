@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { BankNodeFor } from '../../../../interaction/bank-node.ts';
+  import type { ResolvedNodeFor } from '../../../../interaction/resolved-node.ts';
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import Image from '../../foundations/image/Image.svelte';
   import ArtworkPlaceholder from '../../foundations/artwork-placeholder/ArtworkPlaceholder.svelte';
@@ -7,7 +7,7 @@
   import CollectionState from '../collection-state/CollectionState.svelte';
   import GroupedPanel from '../../foundations/grouped-panel/GroupedPanel.svelte';
   import AttentionIndicator from '../../foundations/attention-indicator/AttentionIndicator.svelte';
-  let { node, select }: { node: BankNodeFor<'collection'>; select: (id: string) => void } = $props();
+  let { node, select }: { node: ResolvedNodeFor<'collection'>; select: (id: string) => void } = $props();
   let presentation = $derived(node.presentation?.kind === 'media-grid' ? node.presentation : undefined);
 </script>
 

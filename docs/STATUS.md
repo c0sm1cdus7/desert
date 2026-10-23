@@ -435,10 +435,10 @@ ownership closure remain open. Evidence is recorded in VOID's
 
 The public string-reference helpers described in this historical checkpoint were
 superseded by the object-reference authoring contract at the top of this document.
-`viewCatalog` remains an internal wire validator, not a public authoring alternative.
+`viewIndex` remains an internal wire validator, not a public authoring alternative.
 
 The working branch adds `desert.view/1` and exported `View`, `view` and
-`viewCatalog`. Content is an ordered sequence: a standalone Header, titled
+`viewIndex`. Content is an ordered sequence: a standalone Header, titled
 Stacks and permitted passive catalog leaves. Top/bottom docks accept Toolbar
 output descriptors; side docks reference Views by ID. Outputs cannot name
 journeys/commands, and input bindings, editable controls and collections are

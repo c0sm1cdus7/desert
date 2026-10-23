@@ -2,14 +2,14 @@ import { localDatabase, type LocalDatabase } from "./database.ts";
 import { localProgram, type Application } from "./program.ts";
 import { identityAdministration } from "./identity.ts";
 import { localSession } from "./session.ts";
-import { requireActivityCatalog, type ActivityCatalog } from "../activities/catalog.ts";
+import { requireActivityCatalog, type ActivityIndex } from "../activities/activity-index.ts";
 import { humanIdentityAccess } from "../identity/access.ts";
 import { rememberController } from "./controller-binding.ts";
 import { privateImageHost, type PrivateImageStorage } from "../assets/host.ts";
 import { requirePrivateImageMechanism } from "../assets/requirements.ts";
 
 export async function openLocalController(application: Application, options: LocalDatabase & {
-  roles: readonly string[], runLifetimeMs?: number, activities?: ActivityCatalog, privateImages?: PrivateImageStorage,
+  roles: readonly string[], runLifetimeMs?: number, activities?: ActivityIndex, privateImages?: PrivateImageStorage,
 }) {
   const program = localProgram(application, options.roles);
   requirePrivateImageMechanism(program, options.privateImages !== undefined);

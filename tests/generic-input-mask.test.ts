@@ -6,7 +6,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
   import { tick } from 'svelte';
-  import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
+  import NodeRenderer from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
   let node = $state({ version: 'desert.bank-node/1', kind: 'input.text', name: 'quantity', label: 'Quantity',
     value: '', required: false, disabled: false, mask: { kind: 'decimal', locale: 'en-US', scale: 2 } });
   let events = $state([]);
@@ -14,7 +14,7 @@ const source = `<script lang="ts">
   window.replaceInput = async patch => { node = { ...node, ...patch }; await tick(); };
 </script>
 <main style="max-width:640px;padding:24px">
-  <BankRenderer {node} onevent={event => { events.push(event); if (event.kind === 'input.change' && window.echoInput) node = { ...node, value: event.value }; }} />
+  <NodeRenderer {node} onevent={event => { events.push(event); if (event.kind === 'input.change' && window.echoInput) node = { ...node, value: event.value }; }} />
   <button>Outside</button><output data-events>{JSON.stringify(events)}</output><output data-owner>{node.value}</output>
 </main>`;
 const update = (page: Page, patch: object) => page.evaluate(value =>

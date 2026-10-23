@@ -81,7 +81,7 @@ export function lowerProductReferences(source: Record<string, unknown>, admissio
       const item = declarationRecord(value);
       return { ...item, destination: admission.admit(item.destination, "destination").id };
     }),
-    surfaces: declarationArray(source.surfaces).map(value => {
+    exposures: declarationArray(source.exposures).map(value => {
       const item = declarationRecord(value);
       return { ...item, journeys: declarationArray(item.journeys).map(target => admission.admit(target, "journey", "execution").id) };
     }),

@@ -4,7 +4,7 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import BankRenderer from "@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte";
+  import NodeRenderer from "@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte";
   import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
   const version = 'desert.bank-node/1', controlVersion = 'desert.control/1';
   const nodes = [
@@ -16,7 +16,7 @@ const source = `<script lang="ts">
   ];
 </script>
 <div data-geometry-host style="max-width:600px;padding:16px">
-  <Field.FieldGroup>{#each nodes as node}<BankRenderer {node} />{/each}</Field.FieldGroup>
+  <Field.FieldGroup>{#each nodes as node}<NodeRenderer {node} />{/each}</Field.FieldGroup>
 </div>`;
 
 test("the shared field well keeps text, selection and money labels separate on one baseline in both profiles", { timeout: 30000 }, async t => {

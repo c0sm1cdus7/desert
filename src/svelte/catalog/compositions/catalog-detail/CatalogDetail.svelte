@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { BankNodeFor } from "../../../../interaction/bank-node.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { ResolvedNodeFor } from "../../../../interaction/resolved-node.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import Heading from "../../foundations/heading/Heading.svelte";
   import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
   import PhotoCollection from '../photo-collection/PhotoCollection.svelte';
   import { catalogPhotos } from '../../../infra/media-source.ts';
-  let { node, bodyOnly = false }: { node: BankNodeFor<"catalog.detail">; onevent: (event: BankEvent) => void; bodyOnly?: boolean } = $props();
+  let { node, bodyOnly = false }: { node: ResolvedNodeFor<"catalog.detail">; onevent: (event: NodeEvent) => void; bodyOnly?: boolean } = $props();
 </script>
 
 <article data-catalog-detail data-record={node.record}>

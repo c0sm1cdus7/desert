@@ -4,7 +4,7 @@ Generated from the bundled SDK documentation; do not edit this snapshot.
 
 ## Source: docs/WEB-RENDERER.md
 
-Source SHA-256: 281499d10ec95f2f3f6ff231ad9c924ef2c8e19c8bd59b192cacae5f5b3b9825
+Source SHA-256: 48ed4d1939f86f69eb2ca1f31983badb5046bb6e92e191824ea0adf008811cb3
 
 # The DESERT human web renderer
 
@@ -59,7 +59,7 @@ or `ViewDeclaration` does not bypass that check. This is a bounded guarantee, no
 a claim that TypeScript proves every nested property of every component. Runtime
 admission still checks untyped inputs.
 
-`ReadNotesExperience` binds this View to the read journey, its object View and
+`ReadNotesJourney` binds this View to the read journey, its object View and
 its outputs. Create emits a journey intent; Select emits a selection intent.
 The View cannot execute either operation. Object publication selects the object
 View, title fact, field labels/representations and toolbar actions. Notebook
@@ -109,7 +109,7 @@ Product modules + Views + journeys + workspace/navigation
 | `src/svelte/catalog/compositions/view-workspace/ViewWorkspace.svelte` | Adapt the resolved workspace to the existing catalog shell. |
 | `src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte` | Compose shared navigation, main surface, search and panels. |
 | `src/svelte/catalog/compositions/view-panel/ViewPanel.svelte` | Adapt the panel to existing Drawer/SurfaceFrame owners. |
-| `src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte` and `renderer-registry.ts` | Validate and dispatch installed bank descriptors. |
+| `src/svelte/catalog/renderer/bank-renderer/NodeRenderer.svelte` and `renderer-registry.ts` | Validate and dispatch installed bank descriptors. |
 
 `DESERT-BUILD.json` format `desert.distribution-build/3` binds files, renderer
 revision, contract, distribution, surface and `viewProgramDigest`. Activities add
@@ -142,11 +142,11 @@ product-command field. Text, labels and private-image inputs have canonical
 bindings; other controls remain local exercises unless their command grammar
 and execution binding are installed.
 
-`WebRendererBank` associates each entry with its own props/events.
+`NodeRendererTable` associates each entry with its own props/events.
 `renderer-registry.ts` binds entries to actual components. Generated
 `adapter-catalog.ts`, backed by `catalog-manifest.ts`, exposes finite composition
 owners to adapters. Neither registry is another product definition.
-`RendererBank<T>` alone checks inventory, not component compatibility.
+`RendererTable<T>` alone checks inventory, not component compatibility.
 
 A registered View requests `Components.VisualCatalog()`. It does not require
 a `?catalog=1` alternate renderer. Specimens reuse production owners. Missing
@@ -406,6 +406,7 @@ Regenerate with npm run authoring:generate; npm run authoring:check detects drif
 Paths below are relative to the SDK root. Read imports/types together; these are
 verbatim modules, not standalone snippets or a published package API.
 
+- products/notebook/src/exposures.ts
 - products/notebook/src/modules.ts
 - products/notebook/src/modules/notes/commands/archiveNote.command.ts
 - products/notebook/src/modules/notes/commands/createNote.command.ts
@@ -421,17 +422,16 @@ verbatim modules, not standalone snippets or a published package API.
 - products/notebook/src/modules/notes/views/note.view.ts
 - products/notebook/src/modules/notes/views/notes.view.ts
 - products/notebook/src/notebook.product.ts
-- products/notebook/src/surfaces.ts
 - products/notebook/src/views/navigation.view.ts
 - products/notebook/src/views/workspace.view.ts
 - products/notebook/distributions.ts
 - src/interaction/catalog.ts
 - src/field-representation.ts
 - src/interaction/form.ts
-- src/interaction/bank-schema.ts
-- src/interaction/bank-node.ts
-- src/interaction/bank-events.ts
-- src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte
+- src/interaction/resolved-node-schema.ts
+- src/interaction/resolved-node.ts
+- src/interaction/node-events.ts
+- src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte
 - src/check-surface.ts
 - src/project-surface.ts
 - src/web/build.ts
@@ -476,7 +476,7 @@ verbatim modules, not standalone snippets or a published package API.
 - src/interaction/selection-option.ts
 - src/interaction/transient-frame.ts
 - src/interaction/control-nodes.ts
-- src/interaction/control-bank.ts
+- src/interaction/control-specimens.ts
 - src/interaction/extended-nodes.ts
 - src/interaction/extended-controls.ts
 - src/interaction/money.ts
@@ -531,15 +531,28 @@ verbatim modules, not standalone snippets or a published package API.
 - src/local/accept.ts
 - src/local/database.ts
 
-## products/notebook/src/modules.ts
+## products/notebook/src/exposures.ts
 
-Source SHA-256: 06849dfe6a0673bd2955040b3a8c1018b1d4e14110ccfb0a980d252daa24b396
+Source SHA-256: 23bb863a893e027f2bd5c0d32e3fa828eb239b13f9ee28d3b8c8cc8890706a29
 
 ```ts
-import { moduleCatalog } from "desert-sdk/src/index.ts";
+import { agentExposure, humanExposure } from "desert-sdk/src/index.ts";
+import { Journeys } from "./modules.ts";
+
+const ExposedJourneys = [Journeys.createNote, Journeys.readNotes, Journeys.archiveNote] as const;
+export const HumanNotebook = humanExposure({ id: "human", journeys: ExposedJourneys, locale: "en" });
+export const AgentNotebook = agentExposure("agent", ExposedJourneys);
+```
+
+## products/notebook/src/modules.ts
+
+Source SHA-256: 2e748cd34f69791c10737084573a261f16e126cad043cd1dade39f5026fb574a
+
+```ts
+import { moduleIndex } from "desert-sdk/src/index.ts";
 import { NotesModule } from "./modules/notes/notes.module.ts";
 
-export const Modules = moduleCatalog([NotesModule]);
+export const Modules = moduleIndex([NotesModule]);
 export const Journeys = Modules.journeys;
 export const Views = Modules.views;
 export const Commands = Modules.commands;
@@ -576,7 +589,7 @@ export const CreateNoteRecord = createCommand("create-note-record", Note, {
 
 ## products/notebook/src/modules/notes/journeys/archiveNote.journey.ts
 
-Source SHA-256: 1589e1eb910b20ac2454fc0a75c0cd75337355b1afd4087a2572a8fc3e411700
+Source SHA-256: ec5d8d3445f640e8da4be4c83d01e6f613f89163725a3e52134d3da829ae033b
 
 ```ts
 import { mutationJourney, type ViewJourney } from "desert-sdk/src/index.ts";
@@ -585,12 +598,12 @@ import { NotesController } from "../notes.dependencies.ts";
 import { ReadNote } from "./readNotes.journey.ts";
 
 export const ArchiveNote = mutationJourney("archive-note", ArchiveNoteRecord, { controller: NotesController, dependencies: [] });
-export const ArchiveNoteExperience = { id: ArchiveNote.id, kind: "action", source: ReadNote, outputs: [] } satisfies ViewJourney;
+export const ArchiveNoteJourney = { id: ArchiveNote.id, kind: "action", source: ReadNote, outputs: [] } satisfies ViewJourney;
 ```
 
 ## products/notebook/src/modules/notes/journeys/browseNotes.journey.ts
 
-Source SHA-256: dc23591089a5f3cc6229d28484bea6db22fe57854dd0da01c7a951d01fc256ad
+Source SHA-256: f10ad5e9c559eac71f02d2a09cd56b4f3183ed78edc0ba8d5b1394892b048d8f
 
 ```ts
 import { viewOutput, type ViewJourney } from "desert-sdk/src/index.ts";
@@ -599,7 +612,7 @@ import { NotesView } from "../views/notes.view.ts";
 import { CreateNote } from "./createNote.journey.ts";
 import { ReadNote } from "./readNotes.journey.ts";
 
-export const ReadNotesExperience = {
+export const ReadNotesJourney = {
   id: ReadNote.id, kind: "read", view: NotesView, detailView: NoteView,
   outputs: [
     { ...viewOutput(NotesView, "create"), action: { kind: "journey", journey: CreateNote } },
@@ -611,7 +624,7 @@ export const ReadNotesExperience = {
 
 ## products/notebook/src/modules/notes/journeys/createNote.journey.ts
 
-Source SHA-256: 3556c69d675ebfbfaf046a0d3a7320be32f40c0b0ccdfff476bb174e098453ad
+Source SHA-256: 512963fbd95a086cdca7b9495f7355a834a209c91748230ba5edec75ce905bb6
 
 ```ts
 import { mutationJourney, viewOutput, type ViewJourney } from "desert-sdk/src/index.ts";
@@ -621,7 +634,7 @@ import { CreateNoteView } from "../views/createNote.view.ts";
 import { ReadNote } from "./readNotes.journey.ts";
 
 export const CreateNote = mutationJourney("create-note", CreateNoteRecord, { controller: NotesController, dependencies: [] });
-export const CreateNoteExperience = {
+export const CreateNoteJourney = {
   id: CreateNote.id, kind: "create", source: ReadNote, view: CreateNoteView, preferredDock: "right",
   outputs: [
     { ...viewOutput(CreateNoteView, "save"), action: { kind: "submit" } },
@@ -699,17 +712,17 @@ export const NotesController = controllerRole({ id: "notes", objects: [Note], re
 
 ## products/notebook/src/modules/notes/notes.module.ts
 
-Source SHA-256: 5bb397296a8113c3a1a0032756a0bafa625b9bb5d94b414c2f140fb7bc7d8223
+Source SHA-256: e522984693104840c2ad2020a2d3eb04049cf9b82de386e91a43d155dab40ed5
 
 ```ts
 import { defineModule } from "desert-sdk/src/index.ts";
 import { OnlyOwnerCanAccess } from "./note.object.ts";
 import { PublishedNote } from "./note.publication.ts";
 import { NotesController } from "./notes.dependencies.ts";
-import { CreateNote, CreateNoteExperience } from "./journeys/createNote.journey.ts";
+import { CreateNote, CreateNoteJourney } from "./journeys/createNote.journey.ts";
 import { ReadNote } from "./journeys/readNotes.journey.ts";
-import { ReadNotesExperience } from "./journeys/browseNotes.journey.ts";
-import { ArchiveNote, ArchiveNoteExperience } from "./journeys/archiveNote.journey.ts";
+import { ReadNotesJourney } from "./journeys/browseNotes.journey.ts";
+import { ArchiveNote, ArchiveNoteJourney } from "./journeys/archiveNote.journey.ts";
 import { NotesView } from "./views/notes.view.ts";
 import { NoteView } from "./views/note.view.ts";
 import { CreateNoteView } from "./views/createNote.view.ts";
@@ -719,9 +732,9 @@ const NotesDestination = { id: "notes", label: "Notes", icon: "open", entryJourn
 export const NotesModule = defineModule({
   id: "notes", objects: [PublishedNote], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   journeys: [
-    { execution: CreateNote, presentation: CreateNoteExperience, label: "Create note", humanReview: "not-required" },
-    { execution: ReadNote, presentation: ReadNotesExperience, label: "Read notes" },
-    { execution: ArchiveNote, presentation: ArchiveNoteExperience, label: "Archive note", humanReview: "required" },
+    { execution: CreateNote, presentation: CreateNoteJourney, label: "Create note", humanReview: "not-required" },
+    { execution: ReadNote, presentation: ReadNotesJourney, label: "Read notes" },
+    { execution: ArchiveNote, presentation: ArchiveNoteJourney, label: "Archive note", humanReview: "required" },
   ],
   views: [NotesView, NoteView, CreateNoteView], destinations: [NotesDestination],
   exports: {
@@ -786,37 +799,24 @@ export const NotesView = defineView({
 
 ## products/notebook/src/notebook.product.ts
 
-Source SHA-256: 5a0e862548d3b71b4a99efa33901b7394ce31aa06d938c27c58c90b882726e53
+Source SHA-256: b998453595eebace1acb28f71917791f66c2abe0b755e16afdea9a4f368a88cf
 
 ```ts
 import { composeProduct } from "desert-sdk/src/index.ts";
 import { Modules, Destinations } from "./modules.ts";
 import { WorkspaceView } from "./views/workspace.view.ts";
 import { NavigationView } from "./views/navigation.view.ts";
-import { HumanNotebook, AgentNotebook } from "./surfaces.ts";
+import { HumanNotebook, AgentNotebook } from "./exposures.ts";
 
 export const NotebookProduct = composeProduct({
   id: "notebook", label: "Notebook", modules: Modules,
   views: [WorkspaceView, NavigationView], workspace: WorkspaceView,
-  surfaces: [HumanNotebook, AgentNotebook], entry: Destinations.Notes,
+  exposures: [HumanNotebook, AgentNotebook], entry: Destinations.Notes,
   navigation: [{ destination: Destinations.Notes, group: "Explore", purpose: "content" }],
 });
 
 export const Notebook = NotebookProduct.definition;
 export const NotebookViewProgram = NotebookProduct.viewProgram;
-```
-
-## products/notebook/src/surfaces.ts
-
-Source SHA-256: c58b68a9f0f426ac934ccbdff0f1ee06bb2bf3b6c00974c3356e70b7083a835a
-
-```ts
-import { agentSurface, humanSurface } from "desert-sdk/src/index.ts";
-import { Journeys } from "./modules.ts";
-
-const ExposedJourneys = [Journeys.createNote, Journeys.readNotes, Journeys.archiveNote] as const;
-export const HumanNotebook = humanSurface({ id: "human", journeys: ExposedJourneys, locale: "en" });
-export const AgentNotebook = agentSurface("agent", ExposedJourneys);
 ```
 
 ## products/notebook/src/views/navigation.view.ts
@@ -842,13 +842,13 @@ export const WorkspaceView = defineView({ name: "workspace", leftDock: Component
 
 ## products/notebook/distributions.ts
 
-Source SHA-256: 43a37ef00600a67da93981211d2d70470fad28b9e3c1b1d8cf007de1c2088d94
+Source SHA-256: a62d110085decad81a9d5c9190b251472bffd72c94f995e100ac99833ed6b463
 
 ```ts
 import { clientDistribution, controllerDistribution, localBinding, remoteBinding } from "../../src/index.ts";
 import { Dependencies } from "./src/modules.ts";
 import { Notebook } from "./product.ts";
-import { AgentNotebook, HumanNotebook } from "./surfaces.ts";
+import { AgentNotebook, HumanNotebook } from "./exposures.ts";
 
 export const NotebookService = controllerDistribution({
   id: "notebook-service", product: Notebook, runtime: "node", storage: "postgresql",
@@ -878,11 +878,11 @@ export const NotebookLocal = clientDistribution({
 
 ## src/interaction/catalog.ts
 
-Source SHA-256: b2ddbe5499b183ceb1fe3d7524e3e6e07639c2502ffa31a86718602cb716e994
+Source SHA-256: 089ad202afeafe03969458925aa320ed3c3acd1049ab06717af224b67d13f8eb
 
 ```ts
 import { freezeDeep, jsonSnapshot } from "../json.ts";
-import { ControlBank } from "./control-bank.ts";
+import { ControlSpecimens } from "./control-specimens.ts";
 import { CatalogGroups, CatalogFoundations, catalogInspection, type DiscoveryGroup, type FoundationId } from "./catalog-ownership.ts";
 
 function entry<const Id extends string, const Family extends string, const States extends readonly string[]>(
@@ -891,7 +891,7 @@ function entry<const Id extends string, const Family extends string, const State
     ['tests/bank-node.test.ts', 'tests/public-catalog-bank.test.ts']) };
 }
 
-export const InteractionCatalog = freezeDeep({
+export const ResolvedNodes = freezeDeep({
   id: "desert.human-interaction", version: "0.5.0",
   groups: CatalogGroups, foundations: CatalogFoundations,
   entries: [
@@ -909,16 +909,16 @@ export const InteractionCatalog = freezeDeep({
     entry("catalog.card", "composition", ["featured", "item"], "compositions", ["stack", "action"]),
     entry("catalog.home", "composition", ["populated"], "compositions", ["stack"]),
     entry("catalog.detail", "composition", ["reading"], "compositions", ["stack"]),
-    ...ControlBank.map(({ id, family, specimens, inspection }) => ({ id, family, states: specimens.map(specimen => specimen.state), inspection })),
+    ...ControlSpecimens.map(({ id, family, specimens, inspection }) => ({ id, family, states: specimens.map(specimen => specimen.state), inspection })),
   ] as const,
 });
 
-export type PrimitiveId = typeof InteractionCatalog.entries[number]["id"];
-export type InputPrimitive = Extract<PrimitiveId, `input.${string}`>;
-export type RendererBank<T> = { readonly [K in PrimitiveId]: T };
+export type ResolvedNodeId = typeof ResolvedNodes.entries[number]["id"];
+export type ResolvedInputId = Extract<ResolvedNodeId, `input.${string}`>;
+export type RendererTable<T> = { readonly [K in ResolvedNodeId]: T };
 
 export function requireCatalog(candidate: unknown) {
-  if (JSON.stringify(jsonSnapshot(candidate)) !== JSON.stringify(jsonSnapshot(InteractionCatalog))) {
+  if (JSON.stringify(jsonSnapshot(candidate)) !== JSON.stringify(jsonSnapshot(ResolvedNodes))) {
     throw new Error("INTERACTION_CATALOG_MISMATCH");
   }
 }
@@ -990,15 +990,15 @@ export function requireFieldRepresentation(representations: Readonly<Record<stri
 
 ## src/interaction/form.ts
 
-Source SHA-256: d26423178d36c10e950f6577e94530ef164c03cc247f6cd8442ba0adbee5b848
+Source SHA-256: 6608babb0c19e4b9f4d2e8d2304edd2de8c7a4a23747d2855a427efbf898cebe
 
 ```ts
 import type { Mutation } from "../web/types.ts";
-import type { InputPrimitive } from "./catalog.ts";
+import type { ResolvedInputId } from "./catalog.ts";
 import { requireFieldRepresentation, type FieldRepresentation } from "../field-representation.ts";
 import { assetInputMedia } from "./image-input.ts";
 
-const inputPrimitives = { text: "input.text", paragraphs: "input.multiline" } as const satisfies Record<Exclude<FieldRepresentation, "image" | "tags">, InputPrimitive>;
+const inputPrimitives = { text: "input.text", paragraphs: "input.multiline" } as const satisfies Record<Exclude<FieldRepresentation, "image" | "tags">, ResolvedInputId>;
 
 export function deriveForm(journey: Mutation, representations: Readonly<Record<string, FieldRepresentation>>) {
   return journey.inputFields.map(name => {
@@ -1026,9 +1026,9 @@ export function deriveForm(journey: Mutation, representations: Readonly<Record<s
 }
 ```
 
-## src/interaction/bank-schema.ts
+## src/interaction/resolved-node-schema.ts
 
-Source SHA-256: fe45cefc4aedbf26e5ef169a4b417dee6c713f5e82f6408dcf05c0e2114f8bae
+Source SHA-256: 46510bba0fe7b9a85dc0094ca629498c842cd4373342fc64b1e6c941a34ccd61
 
 ```ts
 import { Type, type TProperties, type TSchema } from "@sinclair/typebox";
@@ -1081,7 +1081,7 @@ export const CollectionNodeSchema = node("collection", {
 });
 
 /** The complete bank's serializable grammar. Web callbacks and host handles are not values here. */
-export const BankNodeSchema = Type.Union([
+export const ResolvedNodeSchema = Type.Union([
   node("input.text", { ...input, mask: Type.Optional(InputMaskSchema) }), node("input.multiline", input),
   node("fact", { details: FactsSchema }),
   node("action", { action, role: Type.Union([Type.Literal("primary"), Type.Literal("secondary")]), form: Type.Optional(Type.Boolean()) }),
@@ -1101,31 +1101,31 @@ export const BankNodeSchema = Type.Union([
 ]);
 ```
 
-## src/interaction/bank-node.ts
+## src/interaction/resolved-node.ts
 
-Source SHA-256: 98654960419bb7aae7965d0aa0ded85bdb19f2586b7abeb22017b7307e3c0d76
+Source SHA-256: 0b2ed5eca86ae4daf3724fb4d5db08cbebe6bbf0fd4656297ac9dc82c4482715
 
 ```ts
 import { type Static } from "@sinclair/typebox";
 import { Check } from "@sinclair/typebox/value";
 import { freezeDeep, jsonSnapshot, type Frozen } from "../json.ts";
-import { BankNodeSchema } from "./bank-schema.ts";
+import { ResolvedNodeSchema } from "./resolved-node-schema.ts";
 import { controlNode, type ControlNode } from "./control-nodes.ts";
 import { surfaceFrame, checkFrameContent } from "./surface-frame.ts";
 import { transientFrame } from "./transient-frame.ts";
-import type { PrimitiveId } from "./catalog.ts";
+import type { ResolvedNodeId } from "./catalog.ts";
 import { checkCatalogHome } from "../public-catalog/node-schema.ts";
 import { inputMask } from "./input-mask.ts";
 import { collectionSummary } from './collection-summary.ts';
 
-export type BankNode = Frozen<Static<typeof BankNodeSchema>>;
-export type BankNodeFor<K extends PrimitiveId> = Extract<BankNode, { kind: K }>;
-export const BankVersion = "desert.bank-node/1" as const;
+export type ResolvedNode = Frozen<Static<typeof ResolvedNodeSchema>>;
+export type ResolvedNodeFor<K extends ResolvedNodeId> = Extract<ResolvedNode, { kind: K }>;
+export const ResolvedNodeVersion = "desert.bank-node/1" as const;
 
 /** Validate JSON shape and the same semantic owners used by product frames and controls. */
-export function bankNode(value: unknown): BankNode {
+export function resolvedNode(value: unknown): ResolvedNode {
   const node: unknown = jsonSnapshot(value);
-  if (!Check(BankNodeSchema, node)) throw new Error("INVALID_BANK_NODE");
+  if (!Check(ResolvedNodeSchema, node)) throw new Error("INVALID_BANK_NODE");
   if (node.kind === "input.text" && node.mask) inputMask(node.mask);
   if ("control" in node) controlNode(node.control);
   if (node.kind === "catalog.home") checkCatalogHome(node);
@@ -1153,16 +1153,16 @@ export function bankNode(value: unknown): BankNode {
 }
 
 /** Wrap the installed control grammar without widening it into product authoring. */
-export function controlBankNode(control: ControlNode): Extract<BankNode, { control: ControlNode }> {
-  const node = bankNode({ version: BankVersion, kind: `control.${control.kind}`, control });
+export function controlResolvedNode(control: ControlNode): Extract<ResolvedNode, { control: ControlNode }> {
+  const node = resolvedNode({ version: ResolvedNodeVersion, kind: `control.${control.kind}`, control });
   if (!("control" in node)) throw new Error("BANK_CONTROL_REQUIRED");
   return node;
 }
 ```
 
-## src/interaction/bank-events.ts
+## src/interaction/node-events.ts
 
-Source SHA-256: d730365c00d36acd28cc8e34ed72fddc92194258009d667d26adc0dcfe504396
+Source SHA-256: 08d4b38dac31cfda5872263de25efabea149b2d685acc19ac54bb8cb8165cd7e
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -1170,13 +1170,13 @@ import { Check } from "@sinclair/typebox/value";
 import { freezeDeep, jsonSnapshot, type Frozen } from "../json.ts";
 import { ControlEventSchema } from "./control-nodes.ts";
 import { SurfaceIntentSchema } from "./intent.ts";
-import { LocalIntentSchema } from "./bank-schema.ts";
+import { LocalIntentSchema } from "./resolved-node-schema.ts";
 import { CatalogEventSchema } from "../public-catalog/events.ts";
 import { RelatedSelectionEventSchema } from "./related-selection.ts";
 
 const closed = { additionalProperties: false };
 const text = () => Type.String({ minLength: 1 });
-export const BankEventSchema = Type.Union([
+export const NodeEventSchema = Type.Union([
   ...ControlEventSchema.anyOf,
   ...CatalogEventSchema.anyOf,
   ...RelatedSelectionEventSchema.anyOf,
@@ -1189,35 +1189,35 @@ export const BankEventSchema = Type.Union([
   Type.Object({ kind: Type.Literal("transient.closed") }, closed),
   Type.Object({ kind: Type.Literal("problem.close") }, closed),
 ]);
-export type BankEvent = Frozen<Static<typeof BankEventSchema>>;
-export function bankEvent(value: unknown): BankEvent {
+export type NodeEvent = Frozen<Static<typeof NodeEventSchema>>;
+export function nodeEvent(value: unknown): NodeEvent {
   const event = jsonSnapshot(value);
-  if (!Check(BankEventSchema, event)) throw new Error("INVALID_BANK_EVENT");
+  if (!Check(NodeEventSchema, event)) throw new Error("INVALID_BANK_EVENT");
   return freezeDeep(event);
 }
 ```
 
-## src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte
+## src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte
 
-Source SHA-256: 154be438bf28b24d1fe7502c8fcac3eab61b9b18c0d03301806376ae44998e6d
+Source SHA-256: b05d01483d5f0bb55aafb95e1c041b5866d267491db50c70a76b0a9730a5b066
 
 ```svelte
 <script lang="ts">
-  import type { BankRendererProps } from "../../../renderer-contracts.ts";
-  import { bankNode } from "../../../../interaction/bank-node.ts";
-  import { bankEvent, type BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { NodeRendererProps } from "../../../renderer-contracts.ts";
+  import { resolvedNode } from "../../../../interaction/resolved-node.ts";
+  import { nodeEvent, type NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ControlEvent } from "../../../../interaction/control-nodes.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import { webRenderers } from "../../../renderer-registry.ts";
+  import { nodeRenderers } from "../../../renderer-registry.ts";
   import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
 
-  let { node, onevent = () => {}, host, actionElementProps, frameIdentity }: BankRendererProps = $props();
-  let checked = $derived(bankNode(node));
-  const emit = (event: BankEvent) => onevent(bankEvent(event));
+  let { node, onevent = () => {}, host, actionElementProps, frameIdentity }: NodeRendererProps = $props();
+  let checked = $derived(resolvedNode(node));
+  const emit = (event: NodeEvent) => onevent(nodeEvent(event));
   const control = (event: ControlEvent) => emit(event);
   let frameEvents = $derived.by(() => {
     const sink = onevent;
-    const send = (event: BankEvent) => sink(bankEvent(event));
+    const send = (event: NodeEvent) => sink(nodeEvent(event));
     return {
       close: () => send({ kind: "transient.close" }),
       closed: () => send({ kind: "transient.closed" }),
@@ -1238,82 +1238,82 @@ Source SHA-256: 154be438bf28b24d1fe7502c8fcac3eab61b9b18c0d03301806376ae44998e6d
 </script>
 
 {#if checked.kind === "input.text"}
-  {@const Renderer = webRenderers[checked.kind]}
+  {@const Renderer = nodeRenderers[checked.kind]}
   <Renderer primitive={checked.kind} identity={checked.name} label={checked.label} value={checked.value} required={checked.required}
     disabled={checked.disabled} error={checked.error} helper={checked.helper} mask={checked.mask} maxLength={checked.maxLength}
     onchange={value => checked.kind === "input.text" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "input.multiline"}
-  {@const Renderer = webRenderers[checked.kind]}
+  {@const Renderer = nodeRenderers[checked.kind]}
   <Renderer primitive={checked.kind} label={checked.label} value={checked.value} required={checked.required}
     disabled={checked.disabled} error={checked.error} helper={checked.helper} maxLength={checked.maxLength}
     onchange={value => checked.kind === "input.multiline" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "action"}
-  {@const Renderer = webRenderers.action}
+  {@const Renderer = nodeRenderers.action}
   <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role} reason={checked.action.reason}
     type={checked.form ? "submit" : "button"} onclick={activate} elementProps={actionElementProps} />
 {:else if checked.kind === "availability"}
-  {@const Renderer = webRenderers.availability}<Renderer state={checked.state} label={checked.label} />
+  {@const Renderer = nodeRenderers.availability}<Renderer state={checked.state} label={checked.label} />
 {:else if checked.kind === "fact"}
-  {@const Renderer = webRenderers.fact}<Renderer {...checked.details} />
+  {@const Renderer = nodeRenderers.fact}<Renderer {...checked.details} />
 {:else if checked.kind === "form"}
-  {@const Renderer = webRenderers.form}<Renderer fields={checked.content.fields} edit={(name, value) => emit({ kind: "input.change", name, value })} controlEvent={emit} />
+  {@const Renderer = nodeRenderers.form}<Renderer fields={checked.content.fields} edit={(name, value) => emit({ kind: "input.change", name, value })} controlEvent={emit} />
 {:else if checked.kind === "context"}
-  {@const Renderer = webRenderers.context}<Renderer {...checked.content.details} attention={checked.content.attention} selectors={checked.content.selectors} presentation={checked.content.presentation}
+  {@const Renderer = nodeRenderers.context}<Renderer {...checked.content.details} attention={checked.content.attention} selectors={checked.content.selectors} presentation={checked.content.presentation}
     onselect={journey => emit({ kind: "surface.invoke", intent: { kind: "journey", journey } })} actions={checked.content.actions.map(action => ({
     id: action.destination, label: action.label, available: action.available,
     invoke: () => emit({ kind: "surface.invoke", intent: { kind: "journey", journey: action.destination } }),
   }))} />
 {:else if checked.kind === "review"}
-  {@const Renderer = webRenderers.review}<Renderer {...checked.content} />
+  {@const Renderer = nodeRenderers.review}<Renderer {...checked.content} />
 {:else if checked.kind === "collection"}
-  {@const Renderer = webRenderers.collection}<Renderer node={checked} select={id => emit({ kind: "collection.select", id })} />
+  {@const Renderer = nodeRenderers.collection}<Renderer node={checked} select={id => emit({ kind: "collection.select", id })} />
 {:else if checked.kind === "transient"}
-  {@const Renderer = webRenderers.transient}<Renderer label={checked.label} open={checked.open} locked={checked.locked} frame={checked.frame}
+  {@const Renderer = nodeRenderers.transient}<Renderer label={checked.label} open={checked.open} locked={checked.locked} frame={checked.frame}
     {frameIdentity} onclose={frameEvents.close} onclosed={frameEvents.closed} invoke={frameEvents.invoke} edit={frameEvents.edit} controlEvent={frameEvents.controls} />
 {:else if checked.kind === "problem"}
-  {@const Renderer = webRenderers.problem}<Renderer open={checked.open} title={checked.title} description={checked.description}
+  {@const Renderer = nodeRenderers.problem}<Renderer open={checked.open} title={checked.title} description={checked.description}
     locked={checked.locked} severity={checked.severity} close={() => emit({ kind: "problem.close" })} />
 {:else if checked.kind === "control.select"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.popover"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.files"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} host={fileHost()} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} host={fileHost()} />
 {:else if checked.kind === "control.labels"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.options"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.money"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.date"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.tag"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} />
 {:else if checked.kind === "control.image"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} />
 {:else if checked.kind === "control.avatar"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} />
 {:else if checked.kind === "catalog.card"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
 {:else if checked.kind === "catalog.home"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
 {:else if checked.kind === "catalog.detail"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
 {/if}
 ```
 
 ## src/check-surface.ts
 
-Source SHA-256: d339e09937a9decd8686696b3cfd21c23ffa920a250c3cdd14847bf9d50da04e
+Source SHA-256: 9e31bb159955c11f6bf8d439d15bc2e72887336f5c4f2736d9535d5b65fa809d
 
 ```ts
 import type { ObjectDefinition } from "./contracts.ts";
-import type { JourneyDefinition, SurfaceDefinition } from "./program-grammar.ts";
+import type { JourneyDefinition, ExposureDefinition } from "./program-grammar.ts";
 import { requireReference } from "./references.ts";
 import { surfaceFieldKinds, surfaceFields } from "./surface-fields.ts";
 import { requireFieldPresentation } from "./field-representation.ts";
 
-export function checkSurface(surface: SurfaceDefinition, journeys: Map<string, JourneyDefinition>, objects: Map<string, ObjectDefinition>) {
+export function checkSurface(surface: ExposureDefinition, journeys: Map<string, JourneyDefinition>, objects: Map<string, ObjectDefinition>) {
   const exposed = new Map(surface.journeys.map(id => [id, requireReference(journeys, id, "journey")]));
   if (surface.kind === "agent") return;
   const { presented } = surfaceFields([...exposed.values()]);
@@ -1341,22 +1341,22 @@ export function checkSurface(surface: SurfaceDefinition, journeys: Map<string, J
 
 ## src/project-surface.ts
 
-Source SHA-256: f46bcb1e605eadf6541331b16fe78724526ec0c4ccbb8ce98bd65ffd0dafea37
+Source SHA-256: 0165b8e035b370013af5e3dcc8f272e1bc3cd6f499ed19f46a91e82214248bcb
 
 ```ts
 import type { ProductDefinition } from "./contracts.ts";
 import type { compileProgram } from "./compile-program.ts";
-import type { SurfaceDefinition } from "./program-grammar.ts";
+import type { ExposureDefinition } from "./program-grammar.ts";
 import { emitObject } from "./schema.ts";
 import { freezeDeep } from "./json.ts";
-import { InteractionCatalog } from "./interaction/catalog.ts";
+import { ResolvedNodes } from "./interaction/catalog.ts";
 import { InteractionProtocolVersion } from "./interaction/protocol.ts";
 import { preparationFields } from "./preparation-projection.ts";
 import { surfaceFieldKinds, surfaceFields } from "./surface-fields.ts";
 import { referenceCapabilities } from './reference-capabilities.ts';
 import { mediaReferenceCapabilities } from './media-reference-capabilities.ts';
 
-export function projectSurface(product: ProductDefinition, program: ReturnType<typeof compileProgram>, surface: SurfaceDefinition, digest: string) {
+export function projectSurface(product: ProductDefinition, program: ReturnType<typeof compileProgram>, surface: ExposureDefinition, digest: string) {
   const exposed = surface.journeys.map(id => program.journeys.get(id)!);
   const journeys = surface.journeys.map(id => {
     const journey = program.journeys.get(id)!;
@@ -1385,7 +1385,7 @@ export function projectSurface(product: ProductDefinition, program: ReturnType<t
     protocol: InteractionProtocolVersion, id: surface.id, kind: surface.kind,
     productId: product.id, contractDigest: digest, execution: "not-installed" as const, journeys,
     ...(surface.kind === "human" ? {
-      catalog: InteractionCatalog, fieldRepresentations: surface.fieldRepresentations,
+      catalog: ResolvedNodes, fieldRepresentations: surface.fieldRepresentations,
       fieldReferences: referenceCapabilities(product, exposed),
       fieldMediaReferences:mediaReferenceCapabilities(product,exposed),
       fieldKinds: surfaceFieldKinds(surfaceFields(exposed).presented, new Map(product.objects.map(object => [object.id, object]))),
@@ -1467,26 +1467,26 @@ Source SHA-256: 8ceac8265236657fe8b46a343218e7f6cd05918e119120c35d1571a8dc7bb8ba
 
 ## src/svelte/renderer-contracts.ts
 
-Source SHA-256: af73ae494e1ebb0dbd384ada8062d19b2a285acec91d2110d11312583b61c297
+Source SHA-256: f1505f46c216c2459190f5ee5c225ce26679154b07941a1283844c084c2bd5d0
 
 ```ts
 import type { Component } from "svelte";
-import type { PrimitiveId, InputPrimitive } from "../interaction/catalog.ts";
+import type { ResolvedNodeId, ResolvedInputId } from "../interaction/catalog.ts";
 import type { ControlNode, ControlEvent } from "../interaction/control-nodes.ts";
 import type { SurfaceFrame, FrameContent, FactsContent, Destination } from "../interaction/surface-frame.ts";
 import type { ToolbarAction, TopToolbar } from "../interaction/toolbar.ts";
 import type { SurfaceIntent } from "../interaction/intent.ts";
-import type { BankNode, BankNodeFor } from "../interaction/bank-node.ts";
-import type { BankEvent } from "../interaction/bank-events.ts";
+import type { ResolvedNode, ResolvedNodeFor } from "../interaction/resolved-node.ts";
+import type { NodeEvent } from "../interaction/node-events.ts";
 import type { LocalFileHost } from "./infra/file-host.ts";
 import type { ActionElementProps } from "./action-adapter.ts";
 import type { InputMask } from "../interaction/input-mask.ts";
 import { freezeDeep } from "../json.ts";
 import type { FormControlEvent } from "../interaction/form-control-event.ts";
 
-/** Private dispatcher inputs; public authoring only supplies serializable BankNode. */
-export type BankRendererProps = {
-  node: BankNode; onevent?: (event: BankEvent) => void; host?: LocalFileHost;
+/** Private dispatcher inputs; public authoring only supplies serializable ResolvedNode. */
+export type NodeRendererProps = {
+  node: ResolvedNode; onevent?: (event: NodeEvent) => void; host?: LocalFileHost;
   actionElementProps?: ActionElementProps; frameIdentity?: object;
 };
 
@@ -1499,17 +1499,17 @@ export type ControlProps<K extends ControlKind> = { node: Extract<ControlNode, {
 type Invoke = (intent: SurfaceIntent) => void;
 type Edit = (name: string, value: string) => void;
 type FactsProps = Pick<FactsContent, "fields" | "facts" | "object" | "labels" | "multiline" | "images" | "tags" | "references">;
-type InputProps<P extends InputPrimitive> = {
+type InputProps<P extends ResolvedInputId> = {
   primitive: P; label: string; value?: string; required?: boolean; identity?: string; maxLength?: number | undefined;
   invalid?: boolean; error?: string | undefined; helper?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
 };
 type ControlRendererProps = { [K in ControlKind as `control.${K}`]: ControlProps<K> };
 
-/** Private web adapter bindings, never accepted as bank descriptors. BankRenderer alone resolves these. */
-export type WebRendererProps = ControlRendererProps & {
-  "catalog.card": { node: BankNodeFor<"catalog.card">; onevent: (event: BankEvent) => void };
-  "catalog.home": { node: BankNodeFor<"catalog.home">; onevent: (event: BankEvent) => void };
-  "catalog.detail": { node: BankNodeFor<"catalog.detail">; onevent: (event: BankEvent) => void };
+/** Private web adapter bindings, never accepted as bank descriptors. NodeRenderer alone resolves these. */
+export type NodeRendererInputs = ControlRendererProps & {
+  "catalog.card": { node: ResolvedNodeFor<"catalog.card">; onevent: (event: NodeEvent) => void };
+  "catalog.home": { node: ResolvedNodeFor<"catalog.home">; onevent: (event: NodeEvent) => void };
+  "catalog.detail": { node: ResolvedNodeFor<"catalog.detail">; onevent: (event: NodeEvent) => void };
   "input.text": InputProps<"input.text"> & { mask?: InputMask | undefined };
   "input.multiline": InputProps<"input.multiline">;
   fact: FactsProps;
@@ -1518,7 +1518,7 @@ export type WebRendererProps = ControlRendererProps & {
     onclick?: () => void; type?: "button" | "submit"; elementProps?: ActionElementProps | undefined;
   };
   availability: NonNullable<TopToolbar["availability"]>;
-  collection: { node: BankNodeFor<"collection">; select: (id: string) => void };
+  collection: { node: ResolvedNodeFor<"collection">; select: (id: string) => void };
   form: { fields: Extract<FrameContent, { kind: "form" }>["fields"]; edit: Edit; controlEvent: (event: FormControlEvent) => void };
   context: FactsProps & { attention?:Extract<FrameContent,{kind:'context'}>['attention']; presentation?: Extract<FrameContent, { kind: "context" }>["presentation"]; selectors?: Extract<FrameContent, { kind: "context" }>["selectors"]; onselect?: (journey: string) => void; actions: readonly (Pick<Destination, "label" | "available"> & {
     id: Destination["destination"]; invoke: () => void;
@@ -1535,25 +1535,25 @@ export type WebRendererProps = ControlRendererProps & {
 };
 
 /** Inventory and props are both checked; a component for another entry is not interchangeable. */
-export type WebRendererBank = { readonly [K in PrimitiveId]: Component<WebRendererProps[K]> };
+export type NodeRendererTable = { readonly [K in ResolvedNodeId]: Component<NodeRendererInputs[K]> };
 
 /** Only these private host channels may bypass serializable node data. */
 export const DispatcherCapabilities = freezeDeep({
   action: { property: "elementProps", input: "actionElementProps", required: false },
   transient: { property: "frameIdentity", input: "frameIdentity", required: false },
   "control.files": { property: "host", input: "host", required: true },
-} as const satisfies { [K in PrimitiveId]?: {
-  property: keyof WebRendererProps[K]; input: keyof BankRendererProps; required: boolean;
+} as const satisfies { [K in ResolvedNodeId]?: {
+  property: keyof NodeRendererInputs[K]; input: keyof NodeRendererProps; required: boolean;
 } });
 ```
 
 ## src/svelte/renderer-registry.ts
 
-Source SHA-256: 458c624b3cd76cda85458efea511ae33cfb69df983189141f80a322dfdcee2df
+Source SHA-256: 26b7c463f7b297ea71f4518c2db4be300e34b0fe3550c1e299431bbe45acd077
 
 ```ts
 // Generated from catalog-manifest.ts. Run scripts/web-catalog.ts --write; do not edit.
-import type { WebRendererBank } from "./renderer-contracts.ts";
+import type { NodeRendererTable } from "./renderer-contracts.ts";
 import TextInput from "./catalog/foundations/text-input/TextInput.svelte";
 import Action from "./catalog/foundations/action/Action.svelte";
 import Availability from "./catalog/foundations/availability/Availability.svelte";
@@ -1576,7 +1576,7 @@ import CatalogCard from "./catalog/foundations/catalog-card/CatalogCard.svelte";
 import CatalogHome from "./catalog/compositions/catalog-home/CatalogHome.svelte";
 import CatalogDetail from "./catalog/compositions/catalog-detail/CatalogDetail.svelte";
 
-export const webRenderers: WebRendererBank = Object.freeze({
+export const nodeRenderers: NodeRendererTable = Object.freeze({
   "input.text": TextInput,
   "input.multiline": TextInput,
   action: Action,
@@ -1601,7 +1601,7 @@ export const webRenderers: WebRendererBank = Object.freeze({
   "catalog.card": CatalogCard,
   "catalog.home": CatalogHome,
   "catalog.detail": CatalogDetail,
-} satisfies WebRendererBank);
+} satisfies NodeRendererTable);
 ```
 
 ## src/views/program-schema.ts
@@ -1681,7 +1681,7 @@ export type ViewOutputAction = Frozen<Static<typeof ViewOutputActionSchema>>;
 
 ## src/views/program.ts
 
-Source SHA-256: 828bdd5917e750aab099a4d663dc69d4d3fe1a99592f3d4d4f31e6cc7cc6f22e
+Source SHA-256: 2ace18ae7230bf027468e80728f5c6d9a7e950530a4d5918d67098a6dc6b996a
 
 ```ts
 import { Check } from "@sinclair/typebox/value";
@@ -1691,7 +1691,7 @@ import { freezeDeep } from "../json.ts";
 import type { Surface } from "../web/types.ts";
 import { ViewProgramSchema, type ViewProgram } from "./program-schema.ts";
 import { viewSnapshot } from "./snapshot.ts";
-import { viewCatalog } from "./catalog.ts";
+import { viewIndex } from "./view-index.ts";
 import { journeyViews, validateJourneyExposure, validateJourneyViews } from "./program-views.ts";
 import { validateJourneyOutputs } from "./program-outputs.ts";
 import { validateProgramBindings } from "./program-bindings.ts";
@@ -1713,7 +1713,7 @@ export function compileViewProgram(definition: unknown, surface: Surface): ViewP
   const human = { ...surface, language: surface.language,
     commit: surface.commit, connection: surface.connection, ...fieldPresentation };
   if (input.productId !== surface.productId) throw new Error("VIEW_PROGRAM_PRODUCT_MISMATCH");
-  const views = new Map(viewCatalog(input.views).map(item => [item.id, item]));
+  const views = new Map(viewIndex(input.views).map(item => [item.id, item]));
   const journeys = new Map(input.journeys.map(item => [item.id, item]));
   if (journeys.size !== input.journeys.length) throw new Error("DUPLICATE_VIEW_JOURNEY");
   const destinations = new Map(input.destinations.map(item => [item.id, item]));
@@ -1783,11 +1783,11 @@ export function compileViewProgram(definition: unknown, surface: Surface): ViewP
 
 ## src/views/resolved.ts
 
-Source SHA-256: 12b6d6c80619efc1e33b9d0c4db5998e49fd56af79ce813eef60cac620bfdd80
+Source SHA-256: dcc45b7f57773cafde43bc817e08c9544b993ed68ba8e9ee8f26066a9cd52233
 
 ```ts
 import type { View, ViewContent, ViewHeader } from "./schema.ts";
-import type { BankNode } from "../interaction/bank-node.ts";
+import type { ResolvedNode } from "../interaction/resolved-node.ts";
 import type { TopToolbar, BottomToolbar } from "../interaction/toolbar.ts";
 import type { FrameContent, SurfaceFrame } from "../interaction/surface-frame.ts";
 import type { AttentionSnapshot } from "../web/client/attention-feed.ts";
@@ -1800,7 +1800,7 @@ export type ResolvedViewDefinition = Omit<View, "content"> & {
 };
 export type ResolvedView = {
   readonly view: ResolvedViewDefinition;
-  readonly bindings: Readonly<Record<string, BankNode>>;
+  readonly bindings: Readonly<Record<string, ResolvedNode>>;
   readonly pending?: Readonly<Record<string, Extract<FrameContent, { kind: "message" }>>>;
   readonly disabledOutputs: readonly string[];
   readonly connection?: { readonly state: 'loading' | 'ready' | 'offline'; readonly label: string };
@@ -2301,7 +2301,7 @@ export function viewProgramModel(input: unknown, surface: HumanSurface, validate
 
 ## src/web/client/view-projection.ts
 
-Source SHA-256: aea141683ac7021a570c3ea40a3eb996a56c56e04188954849828cd3c1c19160
+Source SHA-256: 82f2c3898114a6522c1a286230125a8ee3728aa5a67c30d57edff93bc9c0444c
 
 ```ts
 import type { HumanSurface, ValidateInput } from "../types.ts";
@@ -2310,8 +2310,8 @@ import type { ViewProgram, ViewJourney } from "../../views/program-schema.ts";
 import type { View } from "../../views/schema.ts";
 import type { ResolvedView, ResolvedPanel } from "../../views/resolved.ts";
 import { viewInputs } from "../../views/ports.ts";
-import { presentCollection } from "../../interaction/bank-presenters.ts";
-import { bankNode, BankVersion, type BankNode } from "../../interaction/bank-node.ts";
+import { presentCollection } from "../../interaction/node-presenters.ts";
+import { resolvedNode, ResolvedNodeVersion, type ResolvedNode } from "../../interaction/resolved-node.ts";
 import { surfaceFrame } from "../../interaction/surface-frame.ts";
 import { toolbarAction } from "../../interaction/toolbar.ts";
 import { presentFrame } from "./frame.ts";
@@ -2354,7 +2354,7 @@ function contextContent(program: ViewProgram, definition: View, surface: HumanSu
 export function projectView(program: ViewProgram, journey: ViewJourney, definition: View,
   surface: HumanSurface, state: HumanState, validate: ValidateInput, scope: ModelScope, related: RelatedReads = new Map(),
   profile?: { displayName?: string; now?: Date },attention?:AttentionSnapshot): ResolvedView {
-  const bound: Record<string, BankNode> = {};
+  const bound: Record<string, ResolvedNode> = {};
   const pending: Record<string, Extract<FrameContent, { kind: "message" }>> = {};
   for (const port of viewInputs(definition)) {
     if (port.kind === "collection") {
@@ -2407,7 +2407,7 @@ export function projectView(program: ViewProgram, journey: ViewJourney, definiti
     else {
       const frame = presentFrame(surface, { ...state, view: port.kind === "form" ? journey.kind === "update" ? "edit" : "create" : "detail" }, validate, scope);
       if (frame.content.kind === "form" || frame.content.kind === "context") {
-        bound[port.input] = bankNode({ version: BankVersion, kind: frame.content.kind,
+        bound[port.input] = resolvedNode({ version: ResolvedNodeVersion, kind: frame.content.kind,
           content: contextContent(program, definition, surface, state, frame.content, scope,attention) });
       } else if (frame.content.kind === "message") pending[port.input] = frame.content;
     }
@@ -2540,12 +2540,12 @@ Source SHA-256: 1c14ff7942938504c6931a5e623c6e6aaa18f31dd31c324d2e4700f788d7f15e
 
 ## src/svelte/catalog/compositions/view-workspace/workspace-data.ts
 
-Source SHA-256: d89b8cf425e85b8a8eabbb67cc6f3fbd98ace04fe13b2bd7c3d50a770cfe9aa4
+Source SHA-256: 30c238c22281297b96ce34de3e7386502daec791d8e0bc61a3add0af687b83e0
 
 ```ts
 import type { ResolvedView } from "../../../../views/resolved.ts";
 import type { ViewItem } from "../../../../views/schema.ts";
-import type { BankEvent } from "../../../../interaction/bank-events.ts";
+import type { NodeEvent } from "../../../../interaction/node-events.ts";
 import type { PlaceIdentity } from "../../../infra/place-identity.ts";
 import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
 import { catalogTitle, matchingEntries } from "../../../infra/catalog-navigation.ts";
@@ -2608,7 +2608,7 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
   return results;
 }
 
-export function viewSearchSelection(resolved: ResolvedView, id: string): BankEvent | null {
+export function viewSearchSelection(resolved: ResolvedView, id: string): NodeEvent | null {
   for (const item of contentItems(resolved)) {
     if (item.kind !== "collection" || resolved.disabledOutputs.includes(item.output)) continue;
     const node = resolved.bindings[item.input];
@@ -2624,10 +2624,10 @@ export function viewSearchSelection(resolved: ResolvedView, id: string): BankEve
 
 ## src/svelte/infra/media-data.ts
 
-Source SHA-256: 4bf105bb6e75c13cb25fbcdf2f971e3e9cca90f13ab0082a47b75108b378c685
+Source SHA-256: 382c55593be07535e4e1e4225e2f0e791bad1f283348f77520c3192239329582
 
 ```ts
-import { BankVersion } from "../../interaction/bank-node.ts";
+import { ResolvedNodeVersion } from "../../interaction/resolved-node.ts";
 import type { CatalogHomeNode, CatalogItemNode } from "../../public-catalog/node-schema.ts";
 import { mediaArtwork, type MediaItem, type MediaLibrary } from "../../views/media-library.ts";
 import type { ResolvedView } from "../../views/resolved.ts";
@@ -2656,7 +2656,7 @@ export function mediaIdentity(library: MediaLibrary, album: string | null, home:
   };
 }
 function mediaCard(item: MediaItem): CatalogItemNode {
-  const base = { version: BankVersion, kind: "catalog.card" as const, presentation: "item" as const,
+  const base = { version: ResolvedNodeVersion, kind: "catalog.card" as const, presentation: "item" as const,
     record: `${item.kind}.${item.id}`, title: item.title };
   return item.kind === "image" ? { ...base, image: item.image } : {
     ...base, mediaType: item.kind, ...(item.artwork ? { image: item.artwork } : {}),
@@ -2675,7 +2675,7 @@ export function mediaContent(library: MediaLibrary, album: string | null): Catal
       return matches.length ? [{ id: kind, title, items: matches }] : [];
     }),
   ];
-  return { version: BankVersion, kind: "catalog.home", groups,
+  return { version: ResolvedNodeVersion, kind: "catalog.home", groups,
     featured: { ...groups[0]!.items[0]!, presentation: "featured", eyebrow: "Media", actionLabel: "Open" } };
 }
 export function mediaTarget(library: MediaLibrary, record: string) {
@@ -3006,11 +3006,11 @@ Source SHA-256: 9d8dfb809cc6f29990b0dd3ab7d4838763c4653e2572137edf7559af42dab7c3
 
 ## src/svelte/catalog/compositions/toolbar-layout/CatalogNavigationActions.svelte
 
-Source SHA-256: 3e579aa85a99a821112105e1f62440c0a3c860768dfbebefda7e660568969f47
+Source SHA-256: 7df7181af179da7bccc2dbef3e8ef68f3e32c0c436f922cda2be51e0c1d7bdc6
 
 ```svelte
 <script lang="ts">
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
   let { detail = false, onback, backAvailable=true }: {
     detail?: boolean; onback?: () => void; backAvailable?:boolean;
   } = $props();
@@ -3018,7 +3018,7 @@ Source SHA-256: 3e579aa85a99a821112105e1f62440c0a3c860768dfbebefda7e660568969f47
 
 <div data-catalog-navigation-actions>
   {#if detail && onback}
-    <BankRenderer node={{ version: "desert.bank-node/1", kind: "action", role: "secondary", action: {
+    <NodeRenderer node={{ version: "desert.bank-node/1", kind: "action", role: "secondary", action: {
       intent: { kind: "catalog.back" }, label: "Back", icon: "back", state: backAvailable?"ready":"unavailable",
     } }} onevent={event => { if (event.kind === "catalog.back"&&backAvailable) onback?.(); }} />
   {/if}
@@ -3115,28 +3115,28 @@ export type WorkspaceSearchResult = CatalogSearchResult |
 
 ## src/svelte/catalog/renderer/view-content/ViewContent.svelte
 
-Source SHA-256: 840d65db5e97daf6a890f1390d2f39734b16e922a54c7b560cf6031758617cd4
+Source SHA-256: c48c115cd7b252c8c088621cb6085b9f4b12842fb7cb9a79a125483a45b79637
 
 ```svelte
 <script lang="ts">
   import type { ResolvedView } from "../../../../views/resolved.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
-  import type { PrimitiveId } from "../../../../interaction/catalog.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import { ContentFlow } from "../../../adapter-catalog.ts";
   import type { RegisterContentActions } from "../../../infra/workspace-content.ts";
   let { resolved, onevent, album = null, onalbum, onactions }: {
     resolved: ResolvedView;
-    onevent: (event: BankEvent) => void;
+    onevent: (event: NodeEvent) => void;
     album?: string | null;
     onalbum: (id: string) => void;
     onactions?: RegisterContentActions;
   } = $props();
   let flow = $state<{
-    revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null>;
-    revealAndFocusEntry: (id: PrimitiveId) => Promise<void>;
+    revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null>;
+    revealAndFocusEntry: (id: ResolvedNodeId) => Promise<void>;
     selectMedia: (record: string) => boolean;
   } | null>(null);
-  export async function revealEntry(id: PrimitiveId) { return await flow?.revealEntry(id) ?? null; }
+  export async function revealEntry(id: ResolvedNodeId) { return await flow?.revealEntry(id) ?? null; }
   export function selectMedia(record: string) { return flow?.selectMedia(record) ?? false; }
   $effect(() => {
     const register = onactions;
@@ -3150,19 +3150,19 @@ Source SHA-256: 840d65db5e97daf6a890f1390d2f39734b16e922a54c7b560cf6031758617cd4
 
 ## src/svelte/catalog/renderer/view-item/ViewItem.svelte
 
-Source SHA-256: f988ddc0d498306e6e63a5d6f32f2de7ac2b43eee59c7fa826b9e54ccc4eab2b
+Source SHA-256: 328ab190d5ae5a0ad3536c81b416c11ad8c227808bcfa1d988c6a5b14f91a3fb
 
 ```svelte
 <script lang="ts">
   import type { ViewItem } from "../../../../views/schema.ts";
   import type { ResolvedView } from "../../../../views/resolved.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
-  import { controlBankNode } from "../../../../interaction/bank-node.ts";
-  import { BankRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../../adapter-catalog.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
+  import { NodeRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../../adapter-catalog.ts";
   let { item, resolved, onevent, host = "flow" }: {
-    item: ViewItem; resolved: ResolvedView; onevent: (event: BankEvent) => void; host?: "flow" | "frame";
+    item: ViewItem; resolved: ResolvedView; onevent: (event: NodeEvent) => void; host?: "flow" | "frame";
   } = $props();
-  function dispatch(event: BankEvent) {
+  function dispatch(event: NodeEvent) {
     if (item.kind === "collection" && event.kind === "collection.select") {
       if (!resolved.disabledOutputs.includes(item.output)) onevent({ kind: "surface.invoke", intent: {
         kind: "view.output", view: resolved.view.id, output: item.output, recordId: event.id,
@@ -3186,8 +3186,8 @@ Source SHA-256: f988ddc0d498306e6e63a5d6f32f2de7ac2b43eee59c7fa826b9e54ccc4eab2b
     reason={resolved.disabledOutputs.includes(item.output) ? resolved.connection?.label : undefined}
     available={!resolved.disabledOutputs.includes(item.output)} {onevent} />
 {:else if item.kind === "tag" || item.kind === "image" || item.kind === "avatar"}
-  {@const node = controlBankNode(item)}
-  <StackItem kind={node.kind}><BankRenderer {node} /></StackItem>
+  {@const node = controlResolvedNode(item)}
+  <StackItem kind={node.kind}><NodeRenderer {node} /></StackItem>
 {:else if item.kind==='collection' && item.presentation?.kind==='summary-widget'}
   {@const node=binding()}
   {#if node?.kind==='collection'}<SummaryWidget {node} available={!resolved.disabledOutputs.includes(item.output)}
@@ -3197,21 +3197,21 @@ Source SHA-256: f988ddc0d498306e6e63a5d6f32f2de7ac2b43eee59c7fa826b9e54ccc4eab2b
   {#if !node && "input" in item && resolved.pending?.[item.input]}
     <MessageBody content={resolved.pending[item.input]} />
   {:else if node}
-    {#if host === "frame"}<BankRenderer {node} onevent={dispatch} />
-    {:else}<StackItem kind={node.kind}><BankRenderer {node} onevent={dispatch} /></StackItem>{/if}
+    {#if host === "frame"}<NodeRenderer {node} onevent={dispatch} />
+    {:else}<StackItem kind={node.kind}><NodeRenderer {node} onevent={dispatch} /></StackItem>{/if}
   {/if}
 {/if}
 ```
 
 ## src/svelte/catalog/renderer/panel/Panel.svelte
 
-Source SHA-256: 6bff06ce18c553b663aa4e5913c994181c4df2f7420354aa20eb7f8eecd3763c
+Source SHA-256: 224516e7185a549221fd8ff6f558728314819cd3790dfa7d7b18fe1a8446bea0
 
 ```svelte
 <script lang="ts">
   import { tick, untrack } from "svelte";
   import { bindViewEvents, type OwnedResolvedPanel, type OwnedViewEvent, type ViewEventOwner } from "../../../../web/client/view-events.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { ViewPanel } from "../../../adapter-catalog.ts";
   let { panel, onevent }: { panel?: OwnedResolvedPanel | null; onevent: (event: OwnedViewEvent) => void } = $props();
   let mounted = $state.raw<OwnedResolvedPanel | null>(null);
@@ -3234,7 +3234,7 @@ Source SHA-256: 6bff06ce18c553b663aa4e5913c994181c4df2f7420354aa20eb7f8eecd3763c
   });
   function dispatch(owner: ViewEventOwner) {
     const send = bindViewEvents(owner, onevent);
-    return (event: BankEvent) => {
+    return (event: NodeEvent) => {
       if (event.kind === "transient.closed" && !panel && mounted?.owner === owner) mounted = null;
       send(event);
     };
@@ -3248,16 +3248,16 @@ Source SHA-256: 6bff06ce18c553b663aa4e5913c994181c4df2f7420354aa20eb7f8eecd3763c
 
 ## src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte
 
-Source SHA-256: 65dd47c67a7600c4b408ffd06f079323eedd4bc6b1c6a963cdbc1a9829a2e822
+Source SHA-256: 20f6910b3af7074e3e821136a02db6c06eaca91431338155ad5ac9025038b0d5
 
 ```svelte
 <script lang="ts">
-  import type { PrimitiveId } from "../../../../interaction/catalog.ts";
+  import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
   import { Inspection } from "../../../adapter-catalog.ts";
   let { catalog }: { catalog?: PublicBankInput } = $props();
-  let content = $state<{ revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null> }>();
-  export async function revealEntry(id: PrimitiveId) { return await content?.revealEntry(id) ?? null; }
+  let content = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null> }>();
+  export async function revealEntry(id: ResolvedNodeId) { return await content?.revealEntry(id) ?? null; }
 </script>
 
 <Inspection {catalog} bind:this={content} />
@@ -3265,11 +3265,11 @@ Source SHA-256: 65dd47c67a7600c4b408ffd06f079323eedd4bc6b1c6a963cdbc1a9829a2e822
 
 ## src/svelte/catalog/compositions/inspection/inspection-fixture.ts
 
-Source SHA-256: a00275bd81519a84016f5bde9b540579e89ff95ffe7104af922e37ab5ee2f336
+Source SHA-256: 13e45e0752b88676ab3faf5b265179538b254e090560cafbcf1ad5c30f9a16e6
 
 ```ts
 import { freezeDeep } from "../../../../json.ts";
-import { BankVersion as version } from "../../../../interaction/bank-node.ts";
+import { ResolvedNodeVersion as version } from "../../../../interaction/resolved-node.ts";
 import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
 import { inspectionMedia } from "../../../infra/inspection-media.ts";
 
@@ -3347,11 +3347,11 @@ Source SHA-256: c5702e47b08658b231be388a063f05ea2160431cbca50b24ed4d8d03926d56fc
 
 ## src/svelte/catalog/compositions/collection/Collection.svelte
 
-Source SHA-256: dd7184d83bbdf6ae635542ba0524e1720db761957a9eec1baa6828efbb3b2ad2
+Source SHA-256: 37375ed13f7027c904a307580f7dab15b41e0d5bd4f93bb3e12000036ef14883
 
 ```svelte
 <script lang="ts">
-  import type { BankNodeFor } from "../../../../interaction/bank-node.ts";
+  import type { ResolvedNodeFor } from "../../../../interaction/resolved-node.ts";
   import { presentFact, presentTitle, readingFields } from "../../../../interaction/fact-presentation.ts";
   import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
   import { Button } from "../../../vendor/components/ui/button/index.js";
@@ -3361,7 +3361,7 @@ Source SHA-256: dd7184d83bbdf6ae635542ba0524e1720db761957a9eec1baa6828efbb3b2ad2
   import MediaGrid from "../media-grid/MediaGrid.svelte";
   import MediaCollectionGrid from "../media-collection-grid/MediaCollectionGrid.svelte";
   import AttentionIndicator from '../../foundations/attention-indicator/AttentionIndicator.svelte';
-  let { node, select }: { node: BankNodeFor<"collection">; select: (id: string) => void } = $props();
+  let { node, select }: { node: ResolvedNodeFor<"collection">; select: (id: string) => void } = $props();
   let { records, disabled, loaded, selectedId } = $derived(node);
   // Collections present records. Search belongs exclusively to the toolbar overlay.
   let visibleRecords = $derived(node.presentation ? records : retrieveCollection(records, node.fields, ""));
@@ -3432,13 +3432,13 @@ export function retrieveCollection(records: readonly RecordView[], fields: reado
 
 ## src/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte
 
-Source SHA-256: f694bf074b5a388153debe1f51fd66ce0e0a89c19e5fba9e80cf31a8d8ebff88
+Source SHA-256: 8932a9dc6841f7b3f4ee23c02fb20c13732fbb7943bb9546d7a513ebcf299707
 
 ```svelte
 <script lang="ts">
   import { surfaceFrame, type SurfaceFrame } from "../../../../interaction/surface-frame.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ResolvedView } from "../../../../views/resolved.ts";
   import ContentFlow from "../content-flow/ContentFlow.svelte";
   import FrameBody from "../../renderer/frame-body/FrameBody.svelte";
@@ -3475,7 +3475,7 @@ let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEv
     const action = checked.bottom.primary;
     if (action?.state === "ready") invoke(action.intent);
   }
-  function dispatch(event: BankEvent) {
+  function dispatch(event: NodeEvent) {
     if (event.kind === "input.change") edit(event.name, event.value);
     else if (isFormControlEvent(event)) controlEvent?.(event);
     else if (event.kind === "surface.invoke") invoke(event.intent);
@@ -3852,34 +3852,34 @@ export function presentFrame(surface: HumanSurface, state: HumanState, validate:
 
 ## src/svelte/catalog/renderer/frame-body/FrameBody.svelte
 
-Source SHA-256: d34928716957c3c00c4997bdc59a9606594db05e74380a2cce140a9fd9800376
+Source SHA-256: 89da3cc1350b25770980bd15fe442237360e6a7b067c37ed44137c6c27c6977e
 
 ```svelte
 <script lang="ts">
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
-  import { BankVersion } from "../../../../interaction/bank-node.ts";
-  import { BankRenderer, Information, MessageBody, UtilityActions } from "../../../adapter-catalog.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
+  import { NodeRenderer, Information, MessageBody, UtilityActions } from "../../../adapter-catalog.ts";
   import { isFormControlEvent, type FormControlEvent } from "../../../../interaction/form-control-event.ts";
   let { content, invoke, edit, messageDialog = false, controlEvent }: { content: FrameContent; messageDialog?: boolean;
     invoke: (intent: SurfaceIntent) => void; edit: (name: string, value: string) => void;
     controlEvent?: ((event: FormControlEvent) => void) | undefined;
   } = $props();
-  function dispatch(event: BankEvent) {
+  function dispatch(event: NodeEvent) {
     if (event.kind === "input.change") edit(event.name, event.value);
     else if (isFormControlEvent(event)) controlEvent?.(event);
     else if (event.kind === "surface.invoke") invoke(event.intent);
   }
 </script>
 {#if content.kind === "form"}
-  <BankRenderer node={{ version: BankVersion, kind: "form", content }} onevent={dispatch} />
+  <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "form", content }} onevent={dispatch} />
 {:else if content.kind === "context"}
-  <BankRenderer node={{ version: BankVersion, kind: "context", content }} onevent={dispatch} />
+  <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "context", content }} onevent={dispatch} />
 {:else if content.kind === "facts"}
-  <BankRenderer node={{ version: BankVersion, kind: "fact", details: content }} />
+  <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "fact", details: content }} />
 {:else if content.kind === "review"}
-  <BankRenderer node={{ version: BankVersion, kind: "review", content }} />
+  <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "review", content }} />
 {:else if content.kind === "information"}
   <Information items={content.items} />
 {:else if content.kind === "utilities"}
@@ -4208,9 +4208,9 @@ export function applyControlEvent(value: ControlNode, input: unknown): ControlTr
 }
 ```
 
-## src/interaction/control-bank.ts
+## src/interaction/control-specimens.ts
 
-Source SHA-256: 059b82799b57531d902a40feba5684b2c43c78eeed81670b1d83a13f7bd40982
+Source SHA-256: 2de61eb983d417f1f52eee0f2444417de5592eab05406a864ae2b33050e63610
 
 ```ts
 import { controlNode, type ControlNode } from "./control-nodes.ts";
@@ -4238,7 +4238,7 @@ const money = { ...base, kind: 'money', label: 'Amount', required: true, locale:
 const image = { ...base, kind: "image", label: "Notebook cover", alt: "An open notebook with blue pages", aspect: "landscape" } as const;
 const lockReleaseMs = 3000;
 
-export const ControlBank = freezeDeep(([
+export const ControlSpecimens = freezeDeep(([
   { id: "control.select", family: "control", specimens: [
     sample("available", { ...base, kind: "select", id: "choice", label: "Single choice", required: false, value: null, options: choices }),
     sample("disabled", { ...base, kind: "select", id: "disabled-choice", label: "Disabled choice", disabled: true,
@@ -4711,17 +4711,17 @@ Source SHA-256: e51cbde7031c190246feea0c86e3685e1ce730aa35952d92c6ea36be7a9e60d0
 
 ## src/svelte/catalog/foundations/measured-field/MeasuredField.svelte
 
-Source SHA-256: 662f854a4a3c23a2b95f2cc46725742639e185df4d55376638b631a4032979a0
+Source SHA-256: 99f623fe6d0b1833b081b0b5458a875e4db1f92e10ee30ea103a22388bb591f3
 
 ```svelte
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import type { PrimitiveId } from '../../../../interaction/catalog.ts';
+  import type { ResolvedNodeId } from '../../../../interaction/catalog.ts';
   import * as Field from '../../../vendor/components/ui/field/index.js';
   // The outer box measures available space; the complete accessible field
   // (including validation/support) owns its preferred measure inside it.
   const measures = { 'input.text': 'writing', 'input.multiline': 'writing',
-    'control.select': 'choice', 'control.date': 'date', 'control.money': 'amount' } as const satisfies Partial<Record<PrimitiveId,string>>;
+    'control.select': 'choice', 'control.date': 'date', 'control.money': 'amount' } as const satisfies Partial<Record<ResolvedNodeId,string>>;
   let { kind, children, invalid, disabled }: {
     kind: keyof typeof measures; children?: Snippet; invalid?: boolean; disabled?: boolean;
   } = $props();
@@ -5276,12 +5276,12 @@ export function pressFeedback(element: HTMLElement) {
 
 ## src/svelte/catalog/compositions/select-control/SelectControl.svelte
 
-Source SHA-256: 3f66dc3bfc86f7f946b4d43ecb315672132ffeb8a2de1ca89c67bd9e86001b8e
+Source SHA-256: f099a015ec96c5e19cea3ae43b66d876894400b4432f29358424be317b0669e9
 
 ```svelte
 <script lang="ts">
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
-  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import SelectionField from "../../foundations/selection-field/SelectionField.svelte";
   import MeasuredField from "../../foundations/measured-field/MeasuredField.svelte";
   import { selectNode, selectInputRequired, applyControlEvent } from "../../../../interaction/control-nodes.ts";
@@ -5298,7 +5298,7 @@ Source SHA-256: 3f66dc3bfc86f7f946b4d43ecb315672132ffeb8a2de1ca89c67bd9e86001b8e
 <MeasuredField kind="control.select" disabled={checked.disabled}>
   <SelectionField {id} selection={checked.id} label={checked.label} value={checked.value} options={checked.options}
     disabled={checked.disabled} required={selectInputRequired(checked)} fieldControl onchange={change} />
-  {#if !checked.required}<BankRenderer node={{ version: BankVersion, kind: "action", role: "secondary", action: {
+  {#if !checked.required}<NodeRenderer node={{ version: ResolvedNodeVersion, kind: "action", role: "secondary", action: {
     icon: "close", label: "Clear selection", state: checked.disabled || checked.value === null ? "unavailable" : "ready",
     intent: { kind: "selection.clear" },
   } }} onevent={event => { if (event.kind === "local.invoke" && event.intent.kind === "selection.clear") change(null); }} />{/if}
@@ -5383,17 +5383,17 @@ Source SHA-256: f9a319e9fc0964b4ddca86749d500d7f28f76a2d8436c4dd5b966a3dc1db07f0
 
 ## src/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte
 
-Source SHA-256: 31c0beded83e52f27d1828d6d076b6cf9c866bf9697a3a30df067ff2591a9c7e
+Source SHA-256: aca60088f0dacd841f89008c6371259a2eb7139f81a11334f840e64821bf42b4
 
 ```svelte
 <script lang="ts">
   import type { ControlNode, ControlEvent } from "../../../../interaction/control-nodes.ts";
-  import { controlBankNode } from "../../../../interaction/bank-node.ts";
-  import { ControlBankRenderer } from "../../../adapter-catalog.ts";
+  import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
+  import { ControlNodeRenderer } from "../../../adapter-catalog.ts";
   import type { LocalFileHost } from "../../../infra/file-host.ts";
   let { node, onevent, host }: { node: ControlNode; onevent: (event: ControlEvent) => void; host: LocalFileHost } = $props();
 </script>
-<ControlBankRenderer node={controlBankNode(node)} {host} onevent={event => { if ("control" in event) onevent(event); }} />
+<ControlNodeRenderer node={controlResolvedNode(node)} {host} onevent={event => { if ("control" in event) onevent(event); }} />
 ```
 
 ## src/svelte/catalog/compositions/options-control/OptionsControl.svelte
@@ -5685,7 +5685,7 @@ Source SHA-256: e904db21bcc40bc7150e390415162f29913e0285bff05a8b17fafd76522bb4de
 
 ## src/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte
 
-Source SHA-256: 21b2a9b22ca2f78db3b0497eb82ce986a1feeedc17e5b6b24dffc66e7ab813fc
+Source SHA-256: 352c2a77a30f36ebfa9c14225de036e001943869e9ca8dde7206460137f5832b
 
 ```svelte
 <script lang="ts">
@@ -5693,8 +5693,8 @@ Source SHA-256: 21b2a9b22ca2f78db3b0497eb82ce986a1feeedc17e5b6b24dffc66e7ab813fc
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   import { anchoredTabExit } from '../../../infra/anchored-tab-exit.ts';
   import FrameBody from "../../renderer/frame-body/FrameBody.svelte";
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
-  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
   import type { ActionIcon } from "../../../../interaction/toolbar.ts";
@@ -5728,7 +5728,7 @@ Source SHA-256: 21b2a9b22ca2f78db3b0497eb82ce986a1feeedc17e5b6b24dffc66e7ab813fc
 <Popover.Root {open} onOpenChange={change}>
   <Popover.Trigger {disabled}>
     {#snippet child({ props })}
-      <BankRenderer node={{ version: BankVersion, kind: "action", role: "secondary", action: {
+      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "action", role: "secondary", action: {
         icon, label, state: disabled ? "unavailable" : "ready", intent: { kind: "transient.open" },
       } }} actionElementProps={{ ...props, "aria-controls": open ? panelId : undefined }} />
     {/snippet}
@@ -5746,13 +5746,13 @@ Source SHA-256: 21b2a9b22ca2f78db3b0497eb82ce986a1feeedc17e5b6b24dffc66e7ab813fc
 
 ## src/svelte/catalog/compositions/fields/Fields.svelte
 
-Source SHA-256: 7ac09bea846059e136770432132563ff34a4f7d17541ca821027d89064357247
+Source SHA-256: eb2ac80d182aa3862eddb658c69e984014c5f08972d79b9eaab61ea71c7b156c
 
 ```svelte
 <script lang="ts">
   import * as Field from "../../../vendor/components/ui/field/index.js";
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
-  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
   import { imageInputControl } from "../../../../interaction/image-input.ts";
   import { labelsInputControl } from "../../../../interaction/labels-control.ts";
@@ -5769,20 +5769,20 @@ Source SHA-256: 7ac09bea846059e136770432132563ff34a4f7d17541ca821027d89064357247
 <Field.FieldGroup data-composition="form">
   {#each fields as field (field.name)}
     {#if field.primitive === "control.files"}
-      <BankRenderer node={{ version: BankVersion, kind: "control.files",
+      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "control.files",
         control: imageInputControl(field.name, field.label, field.files,field.disabled ?? false,field.media) }} host={fileHost}
         onevent={event => { if (isFormControlEvent(event)) controlEvent(event); }} />
     {:else if field.primitive === "control.labels"}
-      <BankRenderer node={{ version: BankVersion, kind: "control.labels",
+      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "control.labels",
         control: { ...labelsInputControl(field.name, field.label, field.values, field.limits, field.error, field.reference,field.mediaReference), disabled: field.disabled ?? false } }}
         onevent={event => { if (isFormControlEvent(event)) controlEvent(event); }} />
     {:else if field.primitive === "control.select"}
-      <BankRenderer node={{ version: BankVersion, kind: "control.select", control: {
+      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "control.select", control: {
         version: "desert.control/1", kind: "select", id: field.name, label: field.label,
         required: true, disabled: field.disabled ?? false, value: field.value, options: field.options,
       } }} onevent={event => { if (event.kind === "select.change" && event.value !== null) edit(field.name, event.value); }} />
     {:else}
-    <BankRenderer node={{ version: BankVersion, kind: field.primitive, name: field.name, label: field.label,
+    <NodeRenderer node={{ version: ResolvedNodeVersion, kind: field.primitive, name: field.name, label: field.label,
       value: field.value, required: field.required, disabled: field.disabled ?? false, ...(field.error ? { error: field.error } : {}),
       ...(field.maxLength !== undefined ? { maxLength: field.maxLength } : {}) }}
       onevent={event => { if (event.kind === "input.change") edit(event.name, event.value); }} />
@@ -6132,20 +6132,20 @@ export function historyKey(event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaK
 
 ## src/svelte/catalog/compositions/context-panel/ContextPanel.svelte
 
-Source SHA-256: 5104835d6ddc56b494488031ad91e8c7b8443812c23e75c8d2ab066ccb729559
+Source SHA-256: 34d408ec99381d30a0b40ee909a7efb24eaddc988ae4fc7e1773e6bc59569459
 
 ```svelte
 <script lang="ts">
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
-  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import DestinationRow from "../../foundations/destination-row/DestinationRow.svelte";
   import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
   import ReadingContent from "../reading-content/ReadingContent.svelte";
   import ContextProperties from "../context-properties/ContextProperties.svelte";
   import MediaObject from "../media-object/MediaObject.svelte";
   import AttentionStatus from '../attention-status/AttentionStatus.svelte';
-  import type { WebRendererProps } from "../../../renderer-contracts.ts";
-  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {}, actions, selectors = [], attention=[],presentation, onselect }: WebRendererProps["context"] = $props();
+  import type { NodeRendererInputs } from "../../../renderer-contracts.ts";
+  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {}, actions, selectors = [], attention=[],presentation, onselect }: NodeRendererInputs["context"] = $props();
   let remaining = $derived(fields.filter(field => field !== presentation?.media && field !== presentation?.description));
   let prose = $derived(remaining.filter(field => multiline.includes(field)));
   let metadata = $derived(remaining.filter(field => !multiline.includes(field)));
@@ -6157,7 +6157,7 @@ Source SHA-256: 5104835d6ddc56b494488031ad91e8c7b8443812c23e75c8d2ab066ccb729559
     {#if presentation}<MediaObject {facts} {presentation} />{/if}
     {#if prose.length}<ReadingContent fields={prose} {facts} {object} {labels} />{/if}
     {#if imageFields.length}
-      <BankRenderer node={{ version: BankVersion, kind: "fact", details: { kind: "facts", fields: imageFields, facts, object, labels, images: imageFields } }} />
+      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "fact", details: { kind: "facts", fields: imageFields, facts, object, labels, images: imageFields } }} />
     {/if}
     <ContextProperties fields={properties} {facts} {object} {labels} {references} {selectors} {onselect}/>
     {#if actions.length}<section class="context-actions" aria-label="Actions">
@@ -6187,16 +6187,16 @@ Source SHA-256: 355a235c0d567a112e2a33dafca2cf0d02af200ec611128f03cf88db53a6fab4
 
 ## src/svelte/catalog/compositions/review/Review.svelte
 
-Source SHA-256: dc1b953e99583587274edc3e12ccd046e589751fffda6c620adf294a4d53a6c3
+Source SHA-256: 395abbd04337bf4633604cb267a2a0f0c8c4f640c7695d5da88e78159183d7a3
 
 ```svelte
 <script lang="ts">
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
-  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   let { details, recovery }: Extract<FrameContent, { kind: "review" }> = $props();
 </script>
-<div data-composition="review"><BankRenderer node={{ version: BankVersion, kind: "fact", details }} /></div>
+<div data-composition="review"><NodeRenderer node={{ version: ResolvedNodeVersion, kind: "fact", details }} /></div>
 {#if recovery}<p class="mt-4 text-muted-foreground" role="status">{recovery}</p>{/if}
 ```
 
@@ -6949,7 +6949,7 @@ export function dispatch(session: LocalSession, method: string, value: unknown) 
 
 ## src/local/session.ts
 
-Source SHA-256: da12f3f61a99669a028e563511455cc4b9634667fdf7e810b91c3f40bb7db762
+Source SHA-256: 84320c32740753faca1a7cc379379eae8680ce0477ce351f17263bf975860252
 
 ```ts
 import type { PoolClient } from "pg";
@@ -6967,7 +6967,7 @@ import { rememberSession } from "./session-binding.ts";
 import { snapshotPrepareOptions, type PrepareOptions } from "../prepare-options.ts";
 import { snapshotPreflightOptions, type PreflightOptions } from "../preflight.ts";
 import { preflightMutation } from "./preflight.ts";
-import { requireActivityCatalog, type ActivityCatalog } from "../activities/catalog.ts";
+import { requireActivityCatalog, type ActivityIndex } from "../activities/activity-index.ts";
 import { activityRecord, activitySnapshot } from "../activities/records.ts";
 import { answerActivity, cancelActivity, reopenActivity } from "../activities/drafts.ts";
 import { createActivity } from "../activities/create.ts";
@@ -6979,7 +6979,7 @@ import { privateImageSession } from "../assets/session.ts";
 import type { PrivateImageHost } from "../assets/host.ts";
 
 export function localSession(database: Database, program: LocalProgram, token: string, surface: string, lifetime: number,
-  activities?: ActivityCatalog, images?: PrivateImageHost) {
+  activities?: ActivityIndex, images?: PrivateImageHost) {
   database.assertOpen();
   program.application.surface(surface);
   const transact = <T>(operation: (client: PoolClient, actor: string) => Promise<T>, readOnly = false) =>
@@ -7157,7 +7157,7 @@ export async function prepareMutation(client: PoolClient, program: LocalProgram,
 
 ## src/local/accept.ts
 
-Source SHA-256: e56bef3942cdfbd59c8a36b677efe517f25b2fa26bc563eebd8a77c7b078debf
+Source SHA-256: 451e47fc7a890b2f9102e4f293801d1938b5d23aad00ff251f702a874f85685b
 
 ```ts
 import type { PoolClient } from "pg";
@@ -7167,7 +7167,7 @@ import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
 import { canonical, confirmationDigest, materialize } from "./effects.ts";
 import { requireUUID, type Intent, type Receipt } from "./types.ts";
 import { requireCurrentActivityIntent, completeActivityIntent } from "../activities/acceptance.ts";
-import type { ActivityCatalog } from "../activities/catalog.ts";
+import type { ActivityIndex } from "../activities/activity-index.ts";
 import { bindImageEffect, attachImageEffect } from "../assets/acceptance.ts";
 import { validateReferences } from './reference-validation.ts';
 
@@ -7192,7 +7192,7 @@ export async function recoverReceipt(client: PoolClient, program: LocalProgram, 
 }
 
 export async function acceptMutation(client: PoolClient, program: LocalProgram, actor: string,
-  surface: string, id: string, expectedDigest: string, activities?: ActivityCatalog, imageStoreId?: string) {
+  surface: string, id: string, expectedDigest: string, activities?: ActivityIndex, imageStoreId?: string) {
   await requireCurrentActivityIntent(client, id, actor, surface, activities);
   const { intent, run } = await loadIntent(client, program, actor, surface, id);
   if (expectedDigest !== intent.confirmation_digest) throw new Error("CONFIRMATION_MISMATCH");

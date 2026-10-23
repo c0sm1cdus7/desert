@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { BankNodeFor } from '../../../../interaction/bank-node.ts';
+  import type { ResolvedNodeFor } from '../../../../interaction/resolved-node.ts';
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import { presentTitle } from '../../../../interaction/fact-presentation.ts';
   import Image from '../../foundations/image/Image.svelte';
   import CollectionState from '../collection-state/CollectionState.svelte';
   import AttentionIndicator from '../../foundations/attention-indicator/AttentionIndicator.svelte';
-  let { node, select }: { node: BankNodeFor<'collection'>; select: (id: string) => void } = $props();
+  let { node, select }: { node: ResolvedNodeFor<'collection'>; select: (id: string) => void } = $props();
   let presentation = $derived(node.presentation?.kind === 'collection-grid' ? node.presentation : undefined);
 </script>
 

@@ -3,7 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { assertClosedVisualBoundaries } from "../src/authoring/visual-boundary/closed.ts";
 
-const path = "src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte";
+const path = "src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte";
 const original = readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const owners = ["src/svelte/renderer-registry.ts", "src/svelte/renderer-contracts.ts"].map(path => ({
   path, source: readFileSync(new URL(`../${path}`, import.meta.url), "utf8"),
@@ -12,17 +12,17 @@ const check = (source: string) => assertClosedVisualBoundaries([...owners, { pat
 
 test("bank dispatch accepts the actual exhaustive registry and validated node without a source snapshot", () => {
   assert.doesNotThrow(() => check(original));
-  assert.doesNotThrow(() => check(original.replace("import { webRenderers }", "import { webRenderers as Owners }")
-    .replaceAll("webRenderers[", "Owners[").replaceAll("webRenderers.", "Owners.")
+  assert.doesNotThrow(() => check(original.replace("import { nodeRenderers }", "import { nodeRenderers as Owners }")
+    .replaceAll("nodeRenderers[", "Owners[").replaceAll("nodeRenderers.", "Owners.")
     .replaceAll("{@const Renderer", "<!-- owner dispatch -->\n{@const Renderer")));
 });
 
 test("bank dispatch cannot substitute an arbitrary component or skip node admission", () => {
   for (const source of [
     original.replace('"./renderer-registry.ts"', '"./foreign-registry.ts"'),
-    original.replace("$derived(bankNode(node))", "$derived(node)"),
-    original.replace("webRenderers[checked.kind]", "arbitrary"),
-    original.replace("webRenderers.action", "webRenderers.problem"),
+    original.replace("$derived(resolvedNode(node))", "$derived(node)"),
+    original.replace("nodeRenderers[checked.kind]", "arbitrary"),
+    original.replace("nodeRenderers.action", "nodeRenderers.problem"),
     original.replace("let checked =", "let other =") + '\n<Other/>',
     original.replace("</script>", 'import Other from "./Other.svelte";\n</script>') + '\n<Other/>',
     original + '\n<div>Foreign paint</div>',
@@ -38,7 +38,7 @@ test("bank dispatch restricts privileged host channels to their canonical entrie
     original.replace('host={fileHost()}', 'host={node}'),
     original.replace('{frameIdentity} onclose=', 'frameIdentity={node} onclose='),
     original.replace('state={checked.state} label={checked.label}', 'state={checked.state} label={checked.label} host={host}'),
-    original.replace('</script>', 'const alias = webRenderers.action;\n</script>'),
+    original.replace('</script>', 'const alias = nodeRenderers.action;\n</script>'),
     original.replace('label={checked.label} value={checked.value}', 'label={node.label} value={checked.value}'),
   ]) assert.throws(() => check(source), /CLOSED_VISUAL_BOUNDARY/);
 });

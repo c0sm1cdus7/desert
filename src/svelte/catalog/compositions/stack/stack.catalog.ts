@@ -7,5 +7,5 @@ export const Stack = defineComposition({
   id: "stack",
   purpose: "Declared as found at the start of the migration: Stack.svelte.",
   owner: { entry: "Stack.svelte" },
-  uses: ["bank-renderer", "stack-item", "stack-layout"], approval: "none", contract: StackContract,
+  uses: ["node-renderer", "stack-item", "stack-layout"], approval: "none", contract: StackContract,
 } as const);

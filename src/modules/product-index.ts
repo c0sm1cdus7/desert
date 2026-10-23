@@ -1,13 +1,13 @@
 import type { ViewProgram } from "../views/program-schema.ts";
 import type { Frozen } from "../json.ts";
-import type { SurfaceDefinition } from "../program-grammar.ts";
+import type { ExposureDefinition } from "../program-grammar.ts";
 import type { ModuleEntryKind } from "./types.ts";
 import { entryKinds, entryIds, journeyId, productOwner, type Owner } from "./ownership.ts";
 import { publishedActionsFor } from "../views/program-bindings.ts";
 
 type CatalogEntry = { id: string; owner: string; public: boolean };
 /** Inspection data is derived from the same registered definitions, never a parallel inventory. */
-export function deriveModuleCatalog(owners: readonly Owner[], program: ViewProgram, surfaces: readonly Frozen<SurfaceDefinition>[]) {
+export function deriveModuleIndex(owners: readonly Owner[], program: ViewProgram, surfaces: readonly Frozen<ExposureDefinition>[]) {
   const entries = Object.fromEntries(entryKinds.map(kind => [kind, owners.flatMap(owner =>
     entryIds(owner.definition, kind).map(id => ({ id, owner: owner.id,
       public: owner.id === productOwner || owner.exports?.[kind]?.includes(id) === true }))),

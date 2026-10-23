@@ -6,7 +6,7 @@ import {humanState} from '../src/web/client/state.ts';
 import {program,surface} from './fixtures/view-program.ts';
 import {objectAttentionKey,type AttentionSignal} from '../src/attention.ts';
 import type {AttentionSnapshot} from '../src/web/client/attention-feed.ts';
-import {bankNode} from '../src/interaction/bank-node.ts';
+import {resolvedNode} from '../src/interaction/resolved-node.ts';
 
 test('Home, collection and detail project the same authorized signals, never a domain status',()=>{
   const scope=readModelScope(surface,{read:'read-note',creations:[],subjectActions:[]});
@@ -37,6 +37,6 @@ test('Home, collection and detail project the same authorized signals, never a d
     store.update({availability:{contractDigest:surface.contractDigest,journeys:{'read-note':{dependenciesReady:false,blockers:[]}}}});
     const blocked=projectView(program,read,program.views[1],surface,store.get(),()=>true,scope,new Map(),undefined,attention).bindings.records;
     assert.equal(blocked?.kind==='collection'?blocked.attention:undefined,undefined);
-    assert.throws(()=>bankNode({...list,attention:{[id]:[{...signal,target:{kind:'object',object:'task',id}}]}}),/INVALID_BANK_COLLECTION/);
+    assert.throws(()=>resolvedNode({...list,attention:{[id]:[{...signal,target:{kind:'object',object:'task',id}}]}}),/INVALID_BANK_COLLECTION/);
   }finally{store.dispose();}
 });

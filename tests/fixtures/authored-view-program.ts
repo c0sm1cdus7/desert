@@ -10,12 +10,12 @@ export const [HomeView, NotesView, NoteView, NoteEditorView, CatalogView] = auth
 export const HomeJourney = { ...program.journeys[0], view: HomeView, outputs: [
   { ...viewOutput(HomeView, "notes"), action: { kind: "journey", journey: ReadNote } },
 ] } as const;
-export const ReadNotesExperience = { ...program.journeys[1], view: NotesView, detailView: NoteView, outputs: [
+export const ReadNotesJourney = { ...program.journeys[1], view: NotesView, detailView: NoteView, outputs: [
   { ...viewOutput(NotesView, "create"), action: { kind: "journey", journey: CreateNote } },
   { ...viewOutput(NotesView, "select"), action: { kind: "select" } },
   { ...viewOutput(NoteView, "close"), action: { kind: "close" } },
 ] } as const;
-export const CreateNoteExperience = { ...program.journeys[2], source: ReadNote, view: NoteEditorView, outputs: [
+export const CreateNoteJourney = { ...program.journeys[2], source: ReadNote, view: NoteEditorView, outputs: [
   { ...viewOutput(NoteEditorView, "save"), action: { kind: "submit" } },
   { ...viewOutput(NoteEditorView, "close"), action: { kind: "close" } },
 ] } as const;
@@ -26,7 +26,7 @@ export const CatalogDestination = { ...program.destinations[2], entryJourney: Ca
 export const authoredProgram = {
   workspace: WorkspaceView,
   views: [HomeView, NotesView, NoteView, NoteEditorView, CatalogView, NavigationView, WorkspaceView],
-  journeys: [HomeJourney, ReadNotesExperience, CreateNoteExperience, CatalogJourney],
+  journeys: [HomeJourney, ReadNotesJourney, CreateNoteJourney, CatalogJourney],
   destinations: [HomeDestination, NotesDestination, CatalogDestination],
   entry: HomeDestination,
   navigation: program.navigation.map((item, index) => ({ ...item,

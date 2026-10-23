@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { InteractionCatalog, type PrimitiveId } from "../../../../interaction/catalog.ts";
+  import { ResolvedNodes, type ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import Information from "../information/Information.svelte";
   import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
-  let { id }: { id: PrimitiveId } = $props();
-  let inspection = $derived(InteractionCatalog.entries.find(entry => entry.id === id)!.inspection);
-  let owners = $derived(inspection.owners.map(owner => InteractionCatalog.foundations.find(item => item.id === owner)!.title));
+  let { id }: { id: ResolvedNodeId } = $props();
+  let inspection = $derived(ResolvedNodes.entries.find(entry => entry.id === id)!.inspection);
+  let owners = $derived(inspection.owners.map(owner => ResolvedNodes.foundations.find(item => item.id === owner)!.title));
 </script>
 
 <div data-contract-inspection class="grid min-w-0 gap-8">

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { publicCatalogBankInventory } from '../src/svelte/infra/PublicCatalogBank-model.ts';
 import { compilePublicCatalog } from '../src/public-catalog/index.ts';
-import { ControlBank } from '../src/interaction/control-bank.ts';
+import { ControlSpecimens } from '../src/interaction/control-specimens.ts';
 import { catalogFixture } from './fixtures/public-catalog.ts';
 import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
@@ -26,7 +26,7 @@ test('connection examples use real action and collection states and preserve off
   assert.equal(writing?.kind,'input.text');
   if(writing?.kind==='input.text') {assert.equal(writing.disabled,false);assert.ok(writing.value.length>0);}
   for(const id of ['control.select','control.options','control.money','control.date','control.files','control.labels']) {
-    const entry=ControlBank.find(item=>item.id===id)!;
+    const entry=ControlSpecimens.find(item=>item.id===id)!;
     assert.ok(entry.specimens.some(specimen=>specimen.state==='loading'),id);
     assert.ok(entry.specimens.some(specimen=>specimen.state==='offline'),id);
   }

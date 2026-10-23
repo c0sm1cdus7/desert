@@ -1,11 +1,11 @@
 <script lang="ts">
   import { untrack, type Snippet } from "svelte";
-  import { InteractionCatalog, type PrimitiveId } from "../../../../interaction/catalog.ts";
+  import { ResolvedNodes, type ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import { scopeHeadings } from "../../../infra/heading-context.ts";
   import StackItem from "../../foundations/stack-item/StackItem.svelte";
   import { useSpecimenState } from "../../../infra/specimen-state.ts";
   let { id, state, coverage, headingLevel = 3, children }: {
-    id: PrimitiveId;
+    id: ResolvedNodeId;
     state: string;
     coverage?: "gap" | "rendered";
     divided?: boolean;
@@ -14,7 +14,7 @@
   } = $props();
   // The catalog outline is fixed for this specimen's mounted lifetime.
   scopeHeadings(untrack(() => headingLevel));
-  let fixture = $derived(InteractionCatalog.entries.find(entry => entry.id === id)!.inspection.fixtures.find(item => item.state === state)!);
+  let fixture = $derived(ResolvedNodes.entries.find(entry => entry.id === id)!.inspection.fixtures.find(item => item.state === state)!);
   const selection=useSpecimenState();
 </script>
 

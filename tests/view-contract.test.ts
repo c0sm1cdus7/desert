@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { view } from "../src/views/view.ts";
-import { viewCatalog } from "../src/views/catalog.ts";
+import { viewIndex } from "../src/views/view-index.ts";
 import { ViewVersion, ViewSchema, type View } from "../src/views/schema.ts";
 import * as viewSchemas from "../src/views/schema.ts";
 import { TagNodeSchema } from "../src/interaction/extended-nodes.ts";
@@ -123,16 +123,16 @@ test("Non-JSON inputs fail without running accessors or accepting callbacks and 
 test("Catalog resolves reusable side views and rejects duplicate, missing and cyclic references", () => {
   const detail = { ...bare("detail"), content: [text] };
   const main = { ...valid, leftDock: reference("detail"), rightDock: reference("detail") };
-  const result = viewCatalog([main, detail]);
+  const result = viewIndex([main, detail]);
   assert.deepEqual(result, [main, detail]);
   assert.ok(Object.isFrozen(result) && result.every(Object.isFrozen));
   for (const invalid of [[], {}, [main, detail, ...Array.from({ length: 63 }, (_, i) => bare(`extra-${i}`))]]) {
-    assert.throws(() => viewCatalog(invalid), { message: "INVALID_VIEW_CATALOG" });
+    assert.throws(() => viewIndex(invalid), { message: "INVALID_VIEW_CATALOG" });
   }
-  assert.throws(() => viewCatalog([detail, detail]), { message: "DUPLICATE_VIEW_ID" });
-  assert.throws(() => viewCatalog([main]), { message: "UNKNOWN_VIEW_REFERENCE" });
-  assert.throws(() => viewCatalog([{ ...detail, rightDock: reference("detail") }]), { message: "CYCLIC_VIEW_REFERENCE" });
-  assert.throws(() => viewCatalog([main, { ...detail, rightDock: reference("notes") }]), { message: "CYCLIC_VIEW_REFERENCE" });
+  assert.throws(() => viewIndex([detail, detail]), { message: "DUPLICATE_VIEW_ID" });
+  assert.throws(() => viewIndex([main]), { message: "UNKNOWN_VIEW_REFERENCE" });
+  assert.throws(() => viewIndex([{ ...detail, rightDock: reference("detail") }]), { message: "CYCLIC_VIEW_REFERENCE" });
+  assert.throws(() => viewIndex([main, { ...detail, rightDock: reference("notes") }]), { message: "CYCLIC_VIEW_REFERENCE" });
 });
 
 test("Composition budgets distinguish reusable acyclic graphs from explosive expansion", () => {
@@ -141,10 +141,10 @@ test("Composition budgets distinguish reusable acyclic graphs from explosive exp
     ...(index + 1 < count ? { rightDock: reference(`view-${index + 1}`),
       ...(double ? { leftDock: reference(`view-${index + 1}`) } : {}) } : {}),
   }));
-  assert.equal(viewCatalog(chain(16)).length, 16);
-  assert.throws(() => viewCatalog(chain(17)), { message: "VIEW_REFERENCE_DEPTH_EXCEEDED" });
-  assert.equal(viewCatalog(chain(10, true)).length, 10);
-  assert.throws(() => viewCatalog(chain(11, true)), { message: "VIEW_EXPANSION_LIMIT_EXCEEDED" });
+  assert.equal(viewIndex(chain(16)).length, 16);
+  assert.throws(() => viewIndex(chain(17)), { message: "VIEW_REFERENCE_DEPTH_EXCEEDED" });
+  assert.equal(viewIndex(chain(10, true)).length, 10);
+  assert.throws(() => viewIndex(chain(11, true)), { message: "VIEW_EXPANSION_LIMIT_EXCEEDED" });
 });
 
 test("Raw input budgets reject before recursive normalization can exhaust the stack", () => {

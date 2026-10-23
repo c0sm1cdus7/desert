@@ -7,5 +7,5 @@ export const Inspection = defineComposition({
   id: "inspection",
   purpose: "Declared as found at the start of the migration: Inspection.svelte.",
   owner: { entry: "Inspection.svelte", parts: ["inspection-fixture.ts"] },
-  uses: ["bank-renderer", "catalog-detail", "retained-place", "toolbar"], approval: "none", contract: InspectionContract,
+  uses: ["node-renderer", "catalog-detail", "retained-place", "toolbar"], approval: "none", contract: InspectionContract,
 } as const);

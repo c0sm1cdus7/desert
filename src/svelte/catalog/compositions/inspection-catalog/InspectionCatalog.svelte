@@ -1,10 +1,10 @@
 <script lang="ts">
   // Closed catalog inventory composition: grouping, specimens and instance-local entry handles.
   import { onDestroy, tick } from "svelte";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
-  import type { PrimitiveId } from "../../../../interaction/catalog.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import { catalogGroups } from "../../../infra/catalog-navigation.ts";
-  import { InteractionCatalog } from "../../../../interaction/catalog.ts";
+  import { ResolvedNodes } from "../../../../interaction/catalog.ts";
   import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
   import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
   import DestinationRow from "../../foundations/destination-row/DestinationRow.svelte";
@@ -36,22 +36,22 @@
   providePrivateImages(images);
   onDestroy(() => images.close());
   let { surface, oncatalog, bodyOnly = false }: {
-    surface: PublicBankInput; oncatalog: (event: BankEvent) => void; bodyOnly?: boolean;
+    surface: PublicBankInput; oncatalog: (event: NodeEvent) => void; bodyOnly?: boolean;
   } = $props();
   let inventory = $derived(publicCatalogBankInventory(surface));
-  const entries = InteractionCatalog.entries;
+  const entries = ResolvedNodes.entries;
   const navigation = destinationNavigation(), destination = navigation?.destination();
-  let localSelected = $state<PrimitiveId | null>(null);
+  let localSelected = $state<ResolvedNodeId | null>(null);
   let localShared = $state<SharedOwner|null>(null);
   let sharedHistory = $state<SharedOwner[]>([]);
   let sharedOrigins:SharedOwner[]=[];
   let page = $derived(destination ? navigation?.current(destination) : undefined);
-  let selected = $derived(page?.id.startsWith("component:") ? page.id.slice(10) as PrimitiveId
+  let selected = $derived(page?.id.startsWith("component:") ? page.id.slice(10) as ResolvedNodeId
     : navigation || localShared ? null : localSelected);
   let sharedDetail = $derived(navigation ? Boolean(page?.id.startsWith("shared:")) : localShared !== null);
   let sharedSelected = $derived(page?.id.startsWith('shared:') ? page.id.slice(7) as SharedOwner : navigation ? null : localShared);
   let opener: HTMLElement | null = null;
-  async function select(id: PrimitiveId | null) {
+  async function select(id: ResolvedNodeId | null) {
     if (navigation && destination) {
       if (id) navigation.open(destination, { id: `component:${id}`, identity: { title: catalogTitle(id), subtitle: catalogPurpose[id] } }, true);
       else navigation.back(destination);
@@ -82,12 +82,12 @@
     if(id) owner.querySelector<HTMLElement>('[data-shared-owner-catalog] [data-place-title]')?.focus({preventScroll:true});
     else if(origin) owner.querySelector<HTMLElement>(`[data-destination="${origin}"]`)?.focus({preventScroll:true});
   }
-  export async function revealEntry(id: PrimitiveId): Promise<HTMLElement | null> {
+  export async function revealEntry(id: ResolvedNodeId): Promise<HTMLElement | null> {
     await select(id);
     await tick();
     return owner?.querySelector<HTMLElement>(`[data-catalog-entry="${id}"]`) ?? null;
   }
-  export async function revealAndFocusEntry(id: PrimitiveId) {
+  export async function revealAndFocusEntry(id: ResolvedNodeId) {
     const target = await revealEntry(id);
     if (target) revealSearchTarget(target, target.closest<HTMLElement>("[data-catalog-scroll]"));
   }

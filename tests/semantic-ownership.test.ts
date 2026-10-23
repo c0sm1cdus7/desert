@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { composeProduct, humanSurface, publishObject } from "../src/index.ts";
+import { composeProduct, humanExposure, publishObject } from "../src/index.ts";
 import { compile } from "../src/compile.ts";
 import { Note } from "../products/notebook/note.ts";
 import { ArchiveNote, CreateNote, ReadNote } from "../products/notebook/journeys.ts";
@@ -8,7 +8,7 @@ import { ViewNotebook } from "./fixtures/view-exposure.ts";
 import { authoredNotebookSource, notePublication } from "./fixtures/authored-notebook.ts";
 
 test("A composed human exposure names journeys and locale without duplicating their semantics", () => {
-  const exposure = humanSurface({ id: "human", journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" });
+  const exposure = humanExposure({ id: "human", journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" });
   assert.deepEqual(exposure, { id: "human", kind: "human", journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" });
   assert.equal(exposure.journeys[0], CreateNote, "Admission needs the exact authored journey object");
   assert.ok(Object.isFrozen(exposure));
@@ -30,10 +30,10 @@ test("Root maps are forbidden even when they exactly repeat derived metadata", (
     ["fieldRepresentations", old.fieldRepresentations], ["commit", old.commit], ["language", old.language]] as const) {
     for (const value of [map, undefined, null]) {
       const variable = { id: "human", journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en", [key]: value };
-      assert.throws(() => humanSurface(variable as never), /SURFACE_SEMANTICS_FORBIDDEN/);
+      assert.throws(() => humanExposure(variable as never), /SURFACE_SEMANTICS_FORBIDDEN/);
     }
     const source = authoredNotebookSource();
-    const raw = { ...source, surfaces: source.surfaces.map(surface =>
+    const raw = { ...source, exposures: source.exposures.map(surface =>
       surface.kind === "human" ? { ...surface, [key]: JSON.parse(JSON.stringify(map)) } : surface) };
     assert.throws(() => composeProduct(raw as never), /SURFACE_SEMANTICS_FORBIDDEN/);
   }

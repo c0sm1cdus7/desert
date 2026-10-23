@@ -5,7 +5,7 @@ import type { Application } from "../local/program.ts";
 import type { Mutation } from "../local/types.ts";
 import type { ViewTarget } from "../modules/authored-types.ts";
 import { authoredViewData, viewTargetDefinition } from "../views/authored-view.ts";
-import { viewCatalog } from "../views/catalog.ts";
+import { viewIndex } from "../views/view-index.ts";
 import { createSchemaValidator } from "../validation.ts";
 import { ActivityPlanSchema, type ActivityPlan } from "./schema.ts";
 import { authoredActivity, type ActivityDefinition } from "./authoring.ts";
@@ -22,7 +22,7 @@ const canonical = (value: unknown) => JSON.stringify(jsonSnapshot(value));
 export const activityDigest = (value: unknown) => createHash("sha256").update(canonical(value)).digest("hex");
 const registered = new WeakSet<object>();
 
-export function activityCatalog(application: Application, definitions: {
+export function activityIndex(application: Application, definitions: {
   readonly journeys: readonly ActivityJourney[]; readonly views: readonly ViewTarget[];
 }) {
   const installed = loadDefinition(application).journeys ?? [];
@@ -33,18 +33,18 @@ export function activityCatalog(application: Application, definitions: {
     return [journey.id, freezeDeep(jsonSnapshot(journey) as Mutation)] as const;
   }));
   if (!journeys.size || journeys.size !== definitions.journeys.length) throw new Error("INVALID_ACTIVITY_OPERATIONS");
-  const views = viewCatalog(definitions.views.map(value => {
+  const views = viewIndex(definitions.views.map(value => {
     // Issued module references have already crossed the same component admission boundary.
     if (!publicReference(value, "view")) requireDefinedView(value);
     return authoredViewData(viewTargetDefinition(value) as AuthoredView);
   }));
   const journeyReferences = new Map(definitions.journeys.map(value => [value, activityJourney(value).id]));
   const viewReferences = new Map(definitions.views.map(value => [value, String(viewTargetDefinition(value).id)]));
-  return installedActivityCatalog(application, [...journeys.values()], views, journeyReferences, viewReferences);
+  return installedActivityIndex(application, [...journeys.values()], views, journeyReferences, viewReferences);
 }
 
 /** Private host compiler: inputs have already crossed the canonical exposure and ViewProgram boundaries. */
-export function installedActivityCatalog(application: Application, operations: readonly Frozen<Mutation>[], views: readonly View[],
+export function installedActivityIndex(application: Application, operations: readonly Frozen<Mutation>[], views: readonly View[],
   journeyReferences: ReadonlyMap<object, string> = new Map(), viewReferences: ReadonlyMap<object, string> = new Map()) {
   const journeys = new Map(operations.map(journey => [journey.id, journey]));
   requireActivityViews(views);
@@ -72,8 +72,8 @@ export function installedActivityCatalog(application: Application, operations: r
   registered.add(catalog);
   return catalog;
 }
-export type ActivityCatalog = ReturnType<typeof activityCatalog>;
-export function requireActivityCatalog(catalog: ActivityCatalog | undefined, application: Application): ActivityCatalog {
+export type ActivityIndex = ReturnType<typeof activityIndex>;
+export function requireActivityCatalog(catalog: ActivityIndex | undefined, application: Application): ActivityIndex {
   if (!catalog || !registered.has(catalog)) throw new Error("ACTIVITY_CATALOG_NOT_INSTALLED");
   if (catalog.contractDigest !== application.digest) throw new Error("ACTIVITY_CONTRACT_MISMATCH");
   return catalog;

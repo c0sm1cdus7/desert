@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
-import { BankVersion, bankNode } from "../src/interaction/bank-node.ts";
+import { ResolvedNodeVersion, resolvedNode } from "../src/interaction/resolved-node.ts";
 
 const title = "We couldn’t complete that action";
 const description = "This action is no longer available for the current record. No change was accepted.";
@@ -22,7 +22,7 @@ async function fixture(initial: string | null) {
 }
 
 test("an absent failure mounts no message and leaves its host usable without relaxing the bank grammar", async () => {
-  assert.throws(() => bankNode({ version: BankVersion, kind: "problem", open: false,
+  assert.throws(() => resolvedNode({ version: ResolvedNodeVersion, kind: "problem", open: false,
     title, description: "", locked: false, severity: "error" }), /INVALID_BANK_NODE/);
   const f = await fixture(null);
   try {

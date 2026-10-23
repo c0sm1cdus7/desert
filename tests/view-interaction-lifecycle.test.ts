@@ -2,13 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { runtimeFixture, until } from "./fixtures/view-program-runtime.ts";
 import { bindViewEvents } from "../src/web/client/view-events.ts";
-import type { BankEvent } from "../src/interaction/bank-events.ts";
+import type { NodeEvent } from "../src/interaction/node-events.ts";
 
-const create: BankEvent = { kind: "surface.invoke", intent: { kind: "view.output", view: "notes", output: "create" } };
-const select = (id: string): BankEvent => ({ kind: "surface.invoke", intent: { kind: "view.output", view: "notes", output: "select", recordId: id } });
-const close: BankEvent = { kind: "surface.invoke", intent: { kind: "close" } };
-const save: BankEvent = { kind: "surface.invoke", intent: { kind: "view.output", view: "editor", output: "save" } };
-const input = (value: string): BankEvent => ({ kind: "input.change", name: "body", value });
+const create: NodeEvent = { kind: "surface.invoke", intent: { kind: "view.output", view: "notes", output: "create" } };
+const select = (id: string): NodeEvent => ({ kind: "surface.invoke", intent: { kind: "view.output", view: "notes", output: "select", recordId: id } });
+const close: NodeEvent = { kind: "surface.invoke", intent: { kind: "close" } };
+const save: NodeEvent = { kind: "surface.invoke", intent: { kind: "view.output", view: "editor", output: "save" } };
+const input = (value: string): NodeEvent => ({ kind: "input.change", name: "body", value });
 function deferred() { let resolve = () => {}; const promise = new Promise<void>(done => { resolve = done; }); return { promise, resolve }; }
 
 test("the current main output can select another record while a read panel is open", async t => {

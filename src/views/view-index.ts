@@ -4,7 +4,7 @@ import { viewSnapshot } from "./snapshot.ts";
 import { view } from "./view.ts";
 
 /** Resolve composition references only; navigation and journey bindings are not installed here. */
-export function viewCatalog(definitions: unknown): readonly View[] {
+export function viewIndex(definitions: unknown): readonly View[] {
   const input = viewSnapshot(definitions);
   if (!Array.isArray(input) || input.length === 0 || input.length > ViewLimits.catalogSize) {
     throw new Error("INVALID_VIEW_CATALOG");

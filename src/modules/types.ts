@@ -51,18 +51,18 @@ type Commands<M> = M extends ModuleDefinition
       Exports[Alias] extends { readonly command: infer C } ? ModuleReference<"command", M["id"], Identity<C>, C> : never;
   } : {} : never;
 type Merge<U> = [U] extends [never] ? {} : (U extends unknown ? (value: U) => void : never) extends (value: infer I) => void ? I : never;
-declare const registeredCatalog: unique symbol;
-export type ModuleCatalog<M extends readonly RegisteredModule[] = readonly RegisteredModule[]> = Readonly<{
-  [registeredCatalog]: M;
+declare const registeredIndex: unique symbol;
+export type ModuleIndex<M extends readonly RegisteredModule[] = readonly RegisteredModule[]> = Readonly<{
+  [registeredIndex]: M;
 }> & { readonly [K in ModuleEntryKind]: Merge<PublicMap<ModuleSource<M[number]>, K>> } & {
   readonly commands: Merge<Commands<ModuleSource<M[number]>>>;
 };
-export type AnyModuleCatalog = Readonly<{ [registeredCatalog]: readonly RegisteredModule[] }>;
-export type CatalogSource<C extends AnyModuleCatalog> = ModuleSource<C[typeof registeredCatalog][number]>;
-export type AuthoredSurface = ({ readonly id: string; readonly kind: "human"; readonly locale: string; readonly journeys: readonly ExposedJourney[] } & WithoutSurfaceSemantics)
+export type AnyModuleIndex = Readonly<{ [registeredIndex]: readonly RegisteredModule[] }>;
+export type CatalogSource<C extends AnyModuleIndex> = ModuleSource<C[typeof registeredIndex][number]>;
+export type AuthoredExposure = ({ readonly id: string; readonly kind: "human"; readonly locale: string; readonly journeys: readonly ExposedJourney[] } & WithoutSurfaceSemantics)
   | { readonly id: string; readonly kind: "agent"; readonly journeys: readonly ExposedJourney[] };
 export type ProductComposition = AuthoredOwnedDefinitions & {
-  readonly id: string; readonly label: string; readonly modules: AnyModuleCatalog; readonly surfaces: readonly AuthoredSurface[];
+  readonly id: string; readonly label: string; readonly modules: AnyModuleIndex; readonly exposures: readonly AuthoredExposure[];
   readonly workspace: ViewTarget;
   readonly entry: DestinationTarget; readonly navigation: readonly AuthoredViewNavigationEntry[];
 };

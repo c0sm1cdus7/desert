@@ -1,6 +1,6 @@
 import type { Toolbar, ToolbarAction } from "../../interaction/toolbar.ts";
-import type { BankNode } from "../../interaction/bank-node.ts";
-import type { BankEvent } from "../../interaction/bank-events.ts";
+import type { ResolvedNode } from "../../interaction/resolved-node.ts";
+import type { NodeEvent } from "../../interaction/node-events.ts";
 import type { SurfaceIntent } from "../../interaction/intent.ts";
 import type { ToolbarControls } from "./toolbar-controls.ts";
 import type { MediaPlayback } from "./playback.svelte.ts";
@@ -9,7 +9,7 @@ import type { ViewerMedia } from "./media-source.ts";
 export type ToolbarContent =
   | Readonly<{ kind: "commands"; toolbar: Toolbar; invoke: (intent: SurfaceIntent) => void;
       submit?: string; presentation?: "standard" | "message" | "transient"; controls?: ToolbarControls }>
-  | Readonly<{ kind: "actions"; actions: readonly Extract<BankNode,{kind:"action"}>["action"][]; onevent: (event: BankEvent) => void }>
+  | Readonly<{ kind: "actions"; actions: readonly Extract<ResolvedNode,{kind:"action"}>["action"][]; onevent: (event: NodeEvent) => void }>
   | Readonly<{ kind: "place-navigation"; detail?: boolean; onback?: () => void;
       backAvailable?:boolean;
       topActions?: readonly ToolbarAction[]; actionGroup?: "create"; searchAvailable?: boolean; invoke?: (intent: SurfaceIntent) => void }>

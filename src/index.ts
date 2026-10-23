@@ -3,13 +3,13 @@ export type { FieldDefinition, ObjectDefinition, ProductDefinition } from "./con
 export { compile } from "./modules/compiled-product.ts";
 export { createCommand, updateCommand, fromInput, literal, actorId } from "./commands.ts";
 export { mutationJourney, readJourney, ownershipPolicy } from "./journeys.ts";
-export { humanSurface, agentSurface } from "./surfaces.ts";
+export { humanExposure, agentExposure } from "./exposures.ts";
 export type { FactsOf, InputOf } from "./authoring-types.ts";
 export { clientDistribution, controllerDistribution } from "./distributions.ts";
 export { controllerRole, capability } from "./dependencies.ts";
 export { localBinding, remoteBinding } from "./bindings.ts";
-export { InteractionCatalog } from "./interaction/catalog.ts";
-export type { PrimitiveId, InputPrimitive, RendererBank } from "./interaction/catalog.ts";
+export { ResolvedNodes } from "./interaction/catalog.ts";
+export type { ResolvedNodeId, ResolvedInputId, RendererTable } from "./interaction/catalog.ts";
 export { inputMask, InputMaskSchema } from "./interaction/input-mask.ts";
 export type { InputMask } from "./interaction/input-mask.ts";
 export { ViewVersion, ViewLimits, ViewSchema, MediaLibrarySchema } from "./views/index.ts";
@@ -30,8 +30,8 @@ export type { FactReference } from "./views/reference-helpers.ts";
 export { ObjectPresentationSchema } from "./views/object-presentation.ts";
 export type { ObjectPresentation } from "./views/object-presentation.ts";
 export { composeProduct } from "./modules/compose.ts";
-export { moduleCatalog } from "./modules/module-catalog.ts";
-export type { ModuleDefinition, RegisteredModule, ModuleCatalog, ModuleJourney, ModuleReference, ProductComposition,
+export { moduleIndex } from "./modules/module-index.ts";
+export type { ModuleDefinition, RegisteredModule, ModuleIndex, ModuleJourney, ModuleReference, ProductComposition,
   AuthoredViewJourney, AuthoredViewDestination, AuthoredViewNavigationEntry } from "./modules/types.ts";
 export { Components, ViewTitles, defineView } from "./views/components.ts";
 export type { ViewDeclaration, ViewDock } from "./views/define-view.ts";

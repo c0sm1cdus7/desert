@@ -1,7 +1,7 @@
-import { clientDistribution, composeProduct, controllerDistribution, humanSurface, localBinding, remoteBinding } from "../src/index.ts";
+import { clientDistribution, composeProduct, controllerDistribution, humanExposure, localBinding, remoteBinding } from "../src/index.ts";
 import { compile } from "../src/compile.ts";
 import { Notebook } from "../products/notebook/product.ts";
-import { AgentNotebook, HumanNotebook } from "../products/notebook/surfaces.ts";
+import { AgentNotebook, HumanNotebook } from "../products/notebook/exposures.ts";
 import { ArchiveNote, CreateNote, ReadNote } from "../products/notebook/journeys.ts";
 import { NotebookService } from "../products/notebook/distributions.ts";
 import { NotesController } from "../products/notebook/dependencies.ts";
@@ -40,21 +40,21 @@ controllerDistribution({ ...controller, product: RootOwnedProduct, serves: [Huma
 controllerDistribution({ ...controller, product: RootOwnedProduct, serves: [HumanNotebook], provides: [{ ...NotesController, id: "foreign" }] });
 
 const human = { id: "human", journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" };
-humanSurface(human);
+humanExposure(human);
 // @ts-expect-error Entry belongs to the View program, never exposure.
-humanSurface({ ...human, entry: CreateNote });
+humanExposure({ ...human, entry: CreateNote });
 // @ts-expect-error Primary actions belong to View bindings, never exposure.
-humanSurface({ ...human, primaryAction: ReadNote });
+humanExposure({ ...human, primaryAction: ReadNote });
 // @ts-expect-error Subject actions belong to object publication, never exposure.
-humanSurface({ ...human, subjectActions: [ReadNote] });
+humanExposure({ ...human, subjectActions: [ReadNote] });
 // @ts-expect-error Journey labels come from the registered journey, never an exposure map.
-humanSurface({ ...human, language: { locale: "en", journeys: { "create-note": "Create" } } });
+humanExposure({ ...human, language: { locale: "en", journeys: { "create-note": "Create" } } });
 // @ts-expect-error Human review comes from the registered mutation, never an exposure map.
-humanSurface({ ...human, commit: { "create-note": "submit" } });
+humanExposure({ ...human, commit: { "create-note": "submit" } });
 // @ts-expect-error Reads cannot acquire an execution policy through exposure.
-humanSurface({ ...human, commit: { "read-note": "submit" } });
+humanExposure({ ...human, commit: { "read-note": "submit" } });
 // @ts-expect-error Automatic execution cannot be introduced through exposure.
-humanSurface({ ...human, commit: { "create-note": "automatic" } });
+humanExposure({ ...human, commit: { "create-note": "automatic" } });
 
 const projection = compile(Notebook).surface("human");
 // @ts-expect-error Compiled metadata is immutable, including in TypeScript.

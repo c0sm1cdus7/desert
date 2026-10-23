@@ -26,7 +26,7 @@ const accessScript = '  import AccessScreen from "../access-screen/AccessScreen.
 const importIntoAccessGate = (line: string) => (tree: SourceTree) => tree.replace(accessGate, accessScript, `${accessScript}\n${line}`);
 /** Appends to a declared mechanism, so the only violation is the rule itself. */
 const stylesheet = (css: string): Mutation => tree => tree.append(sharedStylesheet, `\n${css}`);
-const bankVersion = '  import { BankVersion } from "../../../../interaction/bank-node.ts";';
+const bankVersion = '  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";';
 
 export const stageA: readonly GateCase[] = [
   { id: "P0", title: "the unchanged tree builds", kind: "positive", expect: [], mutate: async () => {} },

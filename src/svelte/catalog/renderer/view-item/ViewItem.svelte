@@ -1,13 +1,13 @@
 <script lang="ts">
   import type { ViewItem } from "../../../../views/schema.ts";
   import type { ResolvedView } from "../../../../views/resolved.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
-  import { controlBankNode } from "../../../../interaction/bank-node.ts";
-  import { BankRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../../adapter-catalog.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
+  import { NodeRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../../adapter-catalog.ts";
   let { item, resolved, onevent, host = "flow" }: {
-    item: ViewItem; resolved: ResolvedView; onevent: (event: BankEvent) => void; host?: "flow" | "frame";
+    item: ViewItem; resolved: ResolvedView; onevent: (event: NodeEvent) => void; host?: "flow" | "frame";
   } = $props();
-  function dispatch(event: BankEvent) {
+  function dispatch(event: NodeEvent) {
     if (item.kind === "collection" && event.kind === "collection.select") {
       if (!resolved.disabledOutputs.includes(item.output)) onevent({ kind: "surface.invoke", intent: {
         kind: "view.output", view: resolved.view.id, output: item.output, recordId: event.id,
@@ -31,8 +31,8 @@
     reason={resolved.disabledOutputs.includes(item.output) ? resolved.connection?.label : undefined}
     available={!resolved.disabledOutputs.includes(item.output)} {onevent} />
 {:else if item.kind === "tag" || item.kind === "image" || item.kind === "avatar"}
-  {@const node = controlBankNode(item)}
-  <StackItem kind={node.kind}><BankRenderer {node} /></StackItem>
+  {@const node = controlResolvedNode(item)}
+  <StackItem kind={node.kind}><NodeRenderer {node} /></StackItem>
 {:else if item.kind==='collection' && item.presentation?.kind==='summary-widget'}
   {@const node=binding()}
   {#if node?.kind==='collection'}<SummaryWidget {node} available={!resolved.disabledOutputs.includes(item.output)}
@@ -42,7 +42,7 @@
   {#if !node && "input" in item && resolved.pending?.[item.input]}
     <MessageBody content={resolved.pending[item.input]} />
   {:else if node}
-    {#if host === "frame"}<BankRenderer {node} onevent={dispatch} />
-    {:else}<StackItem kind={node.kind}><BankRenderer {node} onevent={dispatch} /></StackItem>{/if}
+    {#if host === "frame"}<NodeRenderer {node} onevent={dispatch} />
+    {:else}<StackItem kind={node.kind}><NodeRenderer {node} onevent={dispatch} /></StackItem>{/if}
   {/if}
 {/if}

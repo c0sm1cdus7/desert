@@ -7,5 +7,5 @@ export const UtilityActions = defineComposition({
   id: "utility-actions",
   purpose: "Declared as found at the start of the migration: UtilityActions.svelte.",
   owner: { entry: "UtilityActions.svelte" },
-  uses: ["bank-renderer"], approval: "none", contract: UtilityActionsContract,
+  uses: ["node-renderer"], approval: "none", contract: UtilityActionsContract,
 } as const);

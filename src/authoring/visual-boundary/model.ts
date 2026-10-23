@@ -32,7 +32,7 @@ export function finding(path: string, source: string, code: string, start: numbe
 }
 
 /** These classify responsibilities for audit; none grants ownership approval. */
-const adapters = new Set([...sealedAdapterPaths, "src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte"]);
+const adapters = new Set([...sealedAdapterPaths, "src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte"]);
 const primitives = new Set([
   "Action", "Availability", "CharacterCounter", "ClearInput", "Face", "FactValue", "Heading",
   "MaskedInput", "SearchField", "TextInput", "media/Image", "ToolbarIdentity",

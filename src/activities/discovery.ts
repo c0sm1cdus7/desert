@@ -4,7 +4,7 @@ import type { LocalProgram } from "../local/program.ts";
 import { createSchemaValidator } from "../validation.ts";
 import { ActivityListSchema, type ActivityListOptions } from "./schema.ts";
 import type { ActivityRecord } from "./records.ts";
-import type { ActivityCatalog } from "./catalog.ts";
+import type { ActivityIndex } from "./activity-index.ts";
 import { activityAttention } from './attention.ts';
 
 const validate = createSchemaValidator<ActivityListOptions>(ActivityListSchema);
@@ -15,7 +15,7 @@ export function snapshotActivityListOptions(input: unknown): ActivityListOptions
   return options;
 }
 
-export async function listActivities(client: PoolClient, program: LocalProgram, catalog: ActivityCatalog,
+export async function listActivities(client: PoolClient, program: LocalProgram, catalog: ActivityIndex,
   actor: string, surface: string, options: ActivityListOptions) {
   const { limit = 50, after } = options;
   if (after && !(await client.query("SELECT id FROM desert_activities WHERE id = $1 AND actor = $2 AND surface = $3",

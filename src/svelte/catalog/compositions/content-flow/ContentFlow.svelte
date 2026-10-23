@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { ResolvedView } from "../../../../views/resolved.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
-  import type { PrimitiveId } from "../../../../interaction/catalog.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
   import PlaceHeading from "../place-heading/PlaceHeading.svelte";
   import InspectionContent from "../../renderer/inspection-content/InspectionContent.svelte";
@@ -16,13 +16,13 @@
   import { groupRelatedItems } from "../../../../interaction/content-groups.ts";
   import { revealSearchTarget } from "../../../infra/catalog-search-focus.ts";
   let { resolved, onevent, album = null, onalbum = () => {}, host = "page" }: {
-    resolved: ResolvedView; onevent: (event: BankEvent) => void;
+    resolved: ResolvedView; onevent: (event: NodeEvent) => void;
     album?: string | null; onalbum?: (id: string) => void; host?: "page" | "panel";
   } = $props();
-  let bank = $state<{ revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null> } | null>(null);
+  let bank = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null> } | null>(null);
   let media = $state<{ select: (record: string) => boolean } | null>(null);
-  export async function revealEntry(id: PrimitiveId) { return await bank?.revealEntry(id) ?? null; }
-  export async function revealAndFocusEntry(id: PrimitiveId) {
+  export async function revealEntry(id: ResolvedNodeId) { return await bank?.revealEntry(id) ?? null; }
+  export async function revealAndFocusEntry(id: ResolvedNodeId) {
     const target = await revealEntry(id);
     if (target) revealSearchTarget(target, target.closest<HTMLElement>("[data-catalog-scroll]"));
   }

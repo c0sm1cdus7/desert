@@ -1,7 +1,7 @@
 import type { Component, ComponentProps } from "svelte";
 import type { Owners } from "./catalog-owner-types.ts";
 import { AdapterCatalog as Admissions } from "./catalog-admissions.ts";
-import type { BankNode, BankNodeFor } from "../interaction/bank-node.ts";
+import type { ResolvedNode, ResolvedNodeFor } from "../interaction/resolved-node.ts";
 import type { ControlNode } from "../interaction/control-nodes.ts";
 
 type Exports<C> = C extends Component<any, infer E, any> ? E : never;
@@ -27,11 +27,11 @@ type OwnerInputs<K extends AdapterEntry> = Pick<ComponentProps<Owners[K]>, Extra
 // Runtime host capabilities are admitted only alongside the bank family that
 // consumes them. The generic serialized bank entry never acquires either one.
 type EntryInputs<K extends AdapterEntry> = K extends "TransientRenderer"
-  ? Omit<OwnerInputs<K>, "node" | "frameIdentity"> & { node: BankNodeFor<"transient">;
-      frameIdentity: NonNullable<ComponentProps<Owners["BankRenderer"]>["frameIdentity"]> }
-  : K extends "ControlBankRenderer"
-    ? Omit<OwnerInputs<K>, "node" | "host"> & { node: Extract<BankNode, { control: ControlNode }>;
-        host: NonNullable<ComponentProps<Owners["BankRenderer"]>["host"]> }
+  ? Omit<OwnerInputs<K>, "node" | "frameIdentity"> & { node: ResolvedNodeFor<"transient">;
+      frameIdentity: NonNullable<ComponentProps<Owners["NodeRenderer"]>["frameIdentity"]> }
+  : K extends "ControlNodeRenderer"
+    ? Omit<OwnerInputs<K>, "node" | "host"> & { node: Extract<ResolvedNode, { control: ControlNode }>;
+        host: NonNullable<ComponentProps<Owners["NodeRenderer"]>["host"]> }
     : OwnerInputs<K>;
 export type AdapterComponent<K extends AdapterEntry> = Component<
   EntryInputs<K>,

@@ -1,5 +1,5 @@
 import { freezeDeep } from "../../../../json.ts";
-import { BankVersion as version } from "../../../../interaction/bank-node.ts";
+import { ResolvedNodeVersion as version } from "../../../../interaction/resolved-node.ts";
 import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
 import { inspectionMedia } from "../../../infra/inspection-media.ts";
 

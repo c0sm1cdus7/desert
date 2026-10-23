@@ -1,8 +1,8 @@
-import type { PrimitiveId } from '../../interaction/catalog.ts';
+import type { ResolvedNodeId } from '../../interaction/catalog.ts';
 import type { DiscoveryGroup } from '../../interaction/catalog-ownership.ts';
 import { sharedCatalogOwners, type SharedOwner } from './shared-owners.ts';
 
-type Description = {title:string; purpose:string; group:DiscoveryGroup; partOf?:PrimitiveId|SharedOwner};
+type Description = {title:string; purpose:string; group:DiscoveryGroup; partOf?:ResolvedNodeId|SharedOwner};
 /** Implementation parts remain discoverable under the component they explain. */
 export const sharedPurpose: Record<SharedOwner,Description> = {
   Place: {title:'Surface', group:'compositions', purpose:'Arrange content and top or bottom toolbars, with lateral surfaces only at the root. Mounted surfaces keep their own content and toolbars.'},
@@ -39,4 +39,4 @@ export const sharedPurpose: Record<SharedOwner,Description> = {
 };
 
 export const sharedIndexOwners=(group:DiscoveryGroup)=>sharedCatalogOwners.filter(owner=>sharedPurpose[owner].group===group&&!sharedPurpose[owner].partOf);
-export const sharedParts=(id:PrimitiveId|SharedOwner)=>sharedCatalogOwners.filter(owner=>sharedPurpose[owner].partOf===id);
+export const sharedParts=(id:ResolvedNodeId|SharedOwner)=>sharedCatalogOwners.filter(owner=>sharedPurpose[owner].partOf===id);

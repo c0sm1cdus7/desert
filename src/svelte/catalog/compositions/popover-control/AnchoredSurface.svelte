@@ -3,8 +3,8 @@
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   import { anchoredTabExit } from '../../../infra/anchored-tab-exit.ts';
   import FrameBody from "../../renderer/frame-body/FrameBody.svelte";
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
-  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
   import type { ActionIcon } from "../../../../interaction/toolbar.ts";
@@ -38,7 +38,7 @@
 <Popover.Root {open} onOpenChange={change}>
   <Popover.Trigger {disabled}>
     {#snippet child({ props })}
-      <BankRenderer node={{ version: BankVersion, kind: "action", role: "secondary", action: {
+      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "action", role: "secondary", action: {
         icon, label, state: disabled ? "unavailable" : "ready", intent: { kind: "transient.open" },
       } }} actionElementProps={{ ...props, "aria-controls": open ? panelId : undefined }} />
     {/snippet}

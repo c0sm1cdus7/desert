@@ -1,7 +1,7 @@
 import { posix } from "node:path";
 import ts from "typescript";
 import { Value } from "@sinclair/typebox/value";
-import { InteractionCatalog } from "../../interaction/catalog.ts";
+import { ResolvedNodes } from "../../interaction/catalog.ts";
 import { freezeDeep } from "../../json.ts";
 import { WebCatalogManifestSchema, type WebCatalogDefinition } from "../../svelte/catalog-manifest-schema.ts";
 
@@ -55,7 +55,7 @@ export function readWebCatalogManifest(source: string): WebCatalogDefinition {
       adapters.add(name);
     }
   }
-  if (bank.size !== InteractionCatalog.entries.length || InteractionCatalog.entries.some(entry => !bank.has(entry.id))) fail("incomplete semantic bank");
+  if (bank.size !== ResolvedNodes.entries.length || ResolvedNodes.entries.some(entry => !bank.has(entry.id))) fail("incomplete semantic bank");
   return freezeDeep(manifest);
 }
 

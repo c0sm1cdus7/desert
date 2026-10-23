@@ -78,10 +78,10 @@ test("sealed control adapter retains its private file host and typed events", as
   const fixture = await svelteBrowser(`<script lang="ts">
     import ControlRenderer from '@desert/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte';
     import {LocalFileHost} from '@desert/svelte/infra/file-host.ts';
-    import {ControlBank} from '@desert/interaction/control-bank.ts';
+    import {ControlSpecimens} from '@desert/interaction/control-specimens.ts';
     import {applyControlEvent} from '@desert/interaction/control-nodes.ts';
     const host=new LocalFileHost();
-    let node=$state.raw(ControlBank.find(entry=>entry.id==='control.files').specimens[0].node);
+    let node=$state.raw(ControlSpecimens.find(entry=>entry.id==='control.files').specimens[0].node);
     let events=$state([]), bytes=$state('');
     async function receive(event) {
       node=applyControlEvent(node,event).node; events=[...events,event.kind];

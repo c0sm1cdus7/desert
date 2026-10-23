@@ -1,5 +1,5 @@
-import { Components, ViewTitles, agentSurface, composeProduct, controllerRole, defineView,
-  factReference, fromInput, humanSurface, mutationJourney, ownershipPolicy, publishObject,
+import { Components, ViewTitles, agentExposure, composeProduct, controllerRole, defineView,
+  factReference, fromInput, humanExposure, mutationJourney, ownershipPolicy, publishObject,
   readJourney, updateCommand, viewOutput, viewPorts } from "../../src/index.ts";
 import { authoredNotebookSource, notePublication } from "./authored-notebook.ts";
 import { Note, CreateNote, ReadNote, ArchiveNote } from "./notebook-domain.ts";
@@ -33,16 +33,16 @@ const list = viewPorts({ inputs: { records: "collection" }, outputs: ["create", 
 const CardsView = defineView({ name: "cards", outputs: list.outputs,
   topDock: Components.Toolbar({ actions: [{ output: list.output.create, label: "Create card", icon: "create" }] }),
   content: [Components.Header({ title: "Cards" }), Components.Collection({ input: list.inputs.records, output: list.output.select })] });
-const ReadCardsExperience = { id: ReadCards.id, kind: "read", view: CardsView, detailView: CardDetail, outputs: [
+const ReadCardsJourney = { id: ReadCards.id, kind: "read", view: CardsView, detailView: CardDetail, outputs: [
   { ...viewOutput(CardsView, "create"), action: { kind: "journey", journey: CreateCard } },
   { ...viewOutput(CardsView, "select"), action: { kind: "select" } },
   { ...viewOutput(CardDetail, "close"), action: { kind: "close" } },
 ] } as const;
-const CreateCardExperience = { id: CreateCard.id, kind: "create", source: ReadCards, view: CardEditor, preferredDock: "right", outputs: [
+const CreateCardJourney = { id: CreateCard.id, kind: "create", source: ReadCards, view: CardEditor, preferredDock: "right", outputs: [
   { ...viewOutput(CardEditor, "save"), action: { kind: "submit" } },
   { ...viewOutput(CardEditor, "close"), action: { kind: "close" } },
 ] } as const;
-const EditNoteExperience = { id: EditNote.id, kind: "update", source: ReadNote, view: NoteEditor, preferredDock: "right",
+const EditNoteJourney = { id: EditNote.id, kind: "update", source: ReadNote, view: NoteEditor, preferredDock: "right",
   initialize: [{ input: "title", fact: "title" }, { input: "body", fact: "body" }], outputs: [
     { ...viewOutput(NoteEditor, "save"), action: { kind: "submit" } },
     { ...viewOutput(NoteEditor, "close"), action: { kind: "close" } },
@@ -64,12 +64,12 @@ const product = {
       { fact: factReference(Card, "body"), label: "Card body", representation: "text" },
     ] })],
   dependencies: [controller], policies: [...source.policies, ownershipPolicy(Card, "owner")],
-  surfaces: [humanSurface({ id: "human", journeys: exposed, locale: "en" }), agentSurface("agent", exposed)],
+  exposures: [humanExposure({ id: "human", journeys: exposed, locale: "en" }), agentExposure("agent", exposed)],
   views: [...source.views.filter(view => view !== NoteView), NoteDetail, CardsView, CardDetail, CardEditor, NoteEditor],
   journeys: [source.journeys[0], source.journeys[1], readNotes, source.journeys[3], source.journeys[4],
-    { execution: CreateCard, presentation: CreateCardExperience, label: "Create card", humanReview: "not-required" },
-    { execution: ReadCards, presentation: ReadCardsExperience, label: "Read cards" },
-    { execution: EditNote, presentation: EditNoteExperience, label: "Edit note", humanReview: "not-required" }],
+    { execution: CreateCard, presentation: CreateCardJourney, label: "Create card", humanReview: "not-required" },
+    { execution: ReadCards, presentation: ReadCardsJourney, label: "Read cards" },
+    { execution: EditNote, presentation: EditNoteJourney, label: "Edit note", humanReview: "not-required" }],
   destinations: [...source.destinations, CardsDestination],
   navigation: [...source.navigation, { destination: CardsDestination, group: "Explore", purpose: "content" }],
 } as const;

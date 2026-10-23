@@ -1,6 +1,6 @@
 import { Check } from "@sinclair/typebox/value";
 import { ViewJourneySchema, ViewDestinationSchema, type ViewJourney, type ViewDestination } from "../views/program-schema.ts";
-import { viewCatalog } from "../views/catalog.ts";
+import { viewIndex } from "../views/view-index.ts";
 import type { OwnedDefinitions } from "./types.ts";
 import { ownershipRegistry } from "./ownership.ts";
 
@@ -40,6 +40,6 @@ export function resolvePresentation(owner: OwnedDefinitions, caller: string, own
   for (const view of owner.views ?? []) for (const dock of [view.leftDock, view.rightDock]) {
     if (dock) resolve(dock.view, "view", caller);
   }
-  if (owner.views?.length) viewCatalog(owner.views);
+  if (owner.views?.length) viewIndex(owner.views);
   return { journeys, destinations };
 }

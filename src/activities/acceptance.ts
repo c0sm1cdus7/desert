@@ -1,9 +1,9 @@
 import type { PoolClient } from "pg";
 import { requireUUID } from "../local/types.ts";
-import { activityDigest, type ActivityCatalog } from "./catalog.ts";
+import { activityDigest, type ActivityIndex } from "./activity-index.ts";
 
 export async function requireCurrentActivityIntent(client: PoolClient, intentId: string, actor: string, surface: string,
-  catalog?: ActivityCatalog) {
+  catalog?: ActivityIndex) {
   requireUUID(intentId);
   const { rows: [activity] } = await client.query(`SELECT a.*, link.revision AS prepared_revision
     FROM desert_activity_intents link JOIN desert_activities a ON a.id = link.activity_id

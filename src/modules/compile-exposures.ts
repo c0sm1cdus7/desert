@@ -2,13 +2,13 @@ import { Check } from "@sinclair/typebox/value";
 import type { Static } from "@sinclair/typebox";
 import { RuntimeConnectionPolicy } from "../connection-policy.ts";
 import { jsonSnapshot, type Frozen } from "../json.ts";
-import { ViewSurfaceSchema, type JourneyDefinition } from "../program-grammar.ts";
-import type { AuthoredHumanExposure, AuthoredSurfaceSchema } from "../human-exposure.ts";
+import { ViewExposureSchema, type JourneyDefinition } from "../program-grammar.ts";
+import type { AuthoredHumanExposure, AuthoredExposureSchema } from "../human-exposure.ts";
 import { surfaceFields } from "../surface-fields.ts";
 import type { OwnedDefinitions } from "./types.ts";
 import type { FieldRepresentation } from "../field-representation.ts";
 
-type Exposure = Frozen<Static<typeof AuthoredSurfaceSchema>>;
+type Exposure = Frozen<Static<typeof AuthoredExposureSchema>>;
 
 function compileHumanExposure(surface: AuthoredHumanExposure, owners: readonly OwnedDefinitions[]) {
   const registrations = new Map(owners.flatMap(owner => (owner.journeys ?? []).flatMap(registration =>
@@ -45,10 +45,10 @@ function compileHumanExposure(surface: AuthoredHumanExposure, owners: readonly O
   };
 }
 
-export function compileSurfaceExposures(surfaces: readonly Exposure[], owners: readonly OwnedDefinitions[]) {
+export function compileExposures(surfaces: readonly Exposure[], owners: readonly OwnedDefinitions[]) {
   return surfaces.map(surface => {
     const compiled = jsonSnapshot(surface.kind === "human" ? compileHumanExposure(surface, owners) : surface);
-    if (!Check(ViewSurfaceSchema, compiled)) throw new Error("INVALID_COMPILED_EXPOSURE");
+    if (!Check(ViewExposureSchema, compiled)) throw new Error("INVALID_COMPILED_EXPOSURE");
     return compiled;
   });
 }

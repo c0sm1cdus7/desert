@@ -48,7 +48,7 @@ export const CollectionNodeSchema = node("collection", {
 });
 
 /** The complete bank's serializable grammar. Web callbacks and host handles are not values here. */
-export const BankNodeSchema = Type.Union([
+export const ResolvedNodeSchema = Type.Union([
   node("input.text", { ...input, mask: Type.Optional(InputMaskSchema) }), node("input.multiline", input),
   node("fact", { details: FactsSchema }),
   node("action", { action, role: Type.Union([Type.Literal("primary"), Type.Literal("secondary")]), form: Type.Optional(Type.Boolean()) }),

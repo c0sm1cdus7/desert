@@ -1,9 +1,9 @@
 import type { Mutation } from "../web/types.ts";
-import type { InputPrimitive } from "./catalog.ts";
+import type { ResolvedInputId } from "./catalog.ts";
 import { requireFieldRepresentation, type FieldRepresentation } from "../field-representation.ts";
 import { assetInputMedia } from "./image-input.ts";
 
-const inputPrimitives = { text: "input.text", paragraphs: "input.multiline" } as const satisfies Record<Exclude<FieldRepresentation, "image" | "tags">, InputPrimitive>;
+const inputPrimitives = { text: "input.text", paragraphs: "input.multiline" } as const satisfies Record<Exclude<FieldRepresentation, "image" | "tags">, ResolvedInputId>;
 
 export function deriveForm(journey: Mutation, representations: Readonly<Record<string, FieldRepresentation>>) {
   return journey.inputFields.map(name => {

@@ -5,7 +5,7 @@ import { ViewSchema } from "../views/schema.ts";
 import { ViewJourneyVariants, ViewDestinationSchema, ViewNavigationEntrySchema, ViewOutputActionSchema } from "../views/program-schema.ts";
 import { closed, name, text } from "../views/definition.ts";
 import { AuthoredPublishedPresentationSchema, HumanReviewSchema } from "./human-presentation.ts";
-import { AuthoredSurfaceSchema } from "../human-exposure.ts";
+import { AuthoredExposureSchema } from "../human-exposure.ts";
 
 const reference = <K extends "view" | "journey" | "destination">(kind: K) => Type.Union([
   name, closed({ kind: Type.Literal(kind), owner: name, id: name }),
@@ -50,6 +50,6 @@ export const ModuleExportsSchema = closed({
 export const ModuleDefinitionSchema = closed({ id: name, ...OwnedProperties, exports: Type.Optional(ModuleExportsSchema) });
 export const ProductCompositionSchema = closed({
   id: name, label: text, workspace: reference("view"), ...OwnedProperties,
-  modules: Type.Array(ModuleDefinitionSchema), surfaces: Type.Array(AuthoredSurfaceSchema, { minItems: 1 }),
+  modules: Type.Array(ModuleDefinitionSchema), exposures: Type.Array(AuthoredExposureSchema, { minItems: 1 }),
   entry: reference("destination"), navigation: Type.Array(AuthoredViewNavigationEntrySchema, { minItems: 1 }),
 });

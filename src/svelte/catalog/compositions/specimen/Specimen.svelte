@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { PrimitiveId } from "../../../../interaction/catalog.ts";
+  import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import type { HumanSurface, ValidateInput } from "../../../../web/types.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
   import SurfaceFrame from "../surface-frame/SurfaceFrame.svelte";
   import { presentSpecimen } from "./specimen-presentation.ts";
   import type { ReadModelScope } from "../../../../web/client/model-scope.ts";
@@ -18,7 +18,7 @@
   providePrivateImages(specimenImages);
   onDestroy(() => specimenImages.close());
   let { id, state: scenario, surface, validateInput, scope }: {
-    id: PrimitiveId; state: string; surface: HumanSurface; validateInput: ValidateInput; scope: ReadModelScope;
+    id: ResolvedNodeId; state: string; surface: HumanSurface; validateInput: ValidateInput; scope: ReadModelScope;
   } = $props();
   let value = $state<string | undefined>();
   let open = $state(false);
@@ -26,7 +26,7 @@
   let draft = $state<Record<string, string>>({});
   let presentation = $derived(presentSpecimen(id, scenario, surface,
     { ...(value === undefined ? {} : { value }), open, locked, draft }, validateInput, scope));
-  function interact(event: BankEvent) {
+  function interact(event: NodeEvent) {
     if (event.kind === "input.change") {
       if (id === "form") draft = { ...draft, [event.name]: event.value };
       else value = event.value;
@@ -42,7 +42,7 @@
   }
 </script>
 {#each presentation.nodes as node, index (index)}
-  <BankRenderer {node} onevent={interact} />
+  <NodeRenderer {node} onevent={interact} />
 {/each}
 {#if presentation.frame}
   <SurfaceFrame frame={presentation.frame}

@@ -27,10 +27,10 @@ test("unsafe dormant renderer source rejects before the worker; safe source reta
     assert.ok((await readVisualBoundarySources(root)).some(item => item.path === "src/svelte/style.css"),
       "CSS participates even when no preview imports it");
     await writeFile(join(root, "src/svelte/catalog/renderer/frame-body/FrameBody.svelte"), "<!-- no renderer-owned paint -->");
-    await rm(join(root, "src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte"));
-    await assert.rejects(runWithVisualBoundaries(root, worker), /CLOSED_VISUAL_BOUNDARY.*BankRenderer/);
+    await rm(join(root, "src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte"));
+    await assert.rejects(runWithVisualBoundaries(root, worker), /CLOSED_VISUAL_BOUNDARY.*NodeRenderer/);
     assert.equal(calls, 0, "removing the dispatcher cannot disable its finite gate");
-    await writeFile(join(root, "src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte"), await readFile(new URL("../src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte", import.meta.url)));
+    await writeFile(join(root, "src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte"), await readFile(new URL("../src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte", import.meta.url)));
     assert.equal(await runWithVisualBoundaries(root, worker), "built");
     assert.equal(calls, 1);
     await writeFile(join(root, "src/svelte/catalog/renderer/frame-body/FrameBody.svelte"), '<script>import "./theme.css?direct";</script>');

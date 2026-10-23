@@ -4,7 +4,7 @@ Generated from the bundled SDK documentation; do not edit this snapshot.
 
 ## Source: docs/STATUS.md
 
-Source SHA-256: 1e8ad22e4ddadd86fe912b06cc5a7e440be1ce0b6ae454dcaa90d3d950ad2087
+Source SHA-256: 4e002f7991280c4dd99bb0b03c2ce128ad884c692675264d7c2036e587b4a50d
 
 # Implementation status — 2026-10-22
 
@@ -443,10 +443,10 @@ ownership closure remain open. Evidence is recorded in VOID's
 
 The public string-reference helpers described in this historical checkpoint were
 superseded by the object-reference authoring contract at the top of this document.
-`viewCatalog` remains an internal wire validator, not a public authoring alternative.
+`viewIndex` remains an internal wire validator, not a public authoring alternative.
 
 The working branch adds `desert.view/1` and exported `View`, `view` and
-`viewCatalog`. Content is an ordered sequence: a standalone Header, titled
+`viewIndex`. Content is an ordered sequence: a standalone Header, titled
 Stacks and permitted passive catalog leaves. Top/bottom docks accept Toolbar
 output descriptors; side docks reference Views by ID. Outputs cannot name
 journeys/commands, and input bindings, editable controls and collections are

@@ -6,8 +6,8 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 test('Stack and standalone options share explicit input requirements, never contextual cardinality',async()=>{
   const f=await svelteBrowser(`<script>
     import Stack from '@desert/svelte/catalog/compositions/stack/Stack.svelte';
-    import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
-    import { controlBankNode } from '@desert/interaction/bank-node.ts';
+    import NodeRenderer from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
+    import { controlResolvedNode } from '@desert/interaction/resolved-node.ts';
     import { applyControlEvent } from '@desert/interaction/control-nodes.ts';
     const base={version:'desert.control/1',kind:'options',disabled:false,minSelected:1,maxSelected:1,
       options:[{value:'one',label:'One',disabled:false},{value:'two',label:'Two',disabled:false}]};
@@ -22,8 +22,8 @@ test('Stack and standalone options share explicit input requirements, never cont
     function change(event){if(event.kind==='options.change')cases=cases.map(node=>node.id===event.control?applyControlEvent(node,event).node:node);}
   </script>
   {#each cases as node}<section data-case={node.id}>
-    <div data-presentation="stack"><Stack definition={{id:node.id,title:node.label,items:[controlBankNode(node)]}} onevent={change}/></div>
-    <div data-presentation="standalone"><BankRenderer node={controlBankNode(node)} onevent={change}/></div>
+    <div data-presentation="stack"><Stack definition={{id:node.id,title:node.label,items:[controlResolvedNode(node)]}} onevent={change}/></div>
+    <div data-presentation="standalone"><NodeRenderer node={controlResolvedNode(node)} onevent={change}/></div>
   </section>{/each}`);
   try {
     await f.page.addStyleTag({content:await rendererCss()});
@@ -46,8 +46,8 @@ test('Stack and standalone options share explicit input requirements, never cont
 
 test('select labels and open listbox semantics distinguish contextual, retained and clearable input values',async()=>{
   const f=await svelteBrowser(`<script>
-    import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
-    import { controlBankNode } from '@desert/interaction/bank-node.ts';
+    import NodeRenderer from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
+    import { controlResolvedNode } from '@desert/interaction/resolved-node.ts';
     import { applyControlEvent } from '@desert/interaction/control-nodes.ts';
     const base={version:'desert.control/1',kind:'select',disabled:false,required:true,
       options:[{value:'one',label:'One',disabled:false},{value:'two',label:'Two',disabled:false}]};
@@ -59,7 +59,7 @@ test('select labels and open listbox semantics distinguish contextual, retained 
       {...base,id:'clearable',label:'Clearable',inputRequired:true,required:false,value:'one'}
     ]);
     function change(event){if(event.kind==='select.change')cases=cases.map(node=>node.id===event.control?applyControlEvent(node,event).node:node);}
-  </script>{#each cases as node}<section data-case={node.id}><BankRenderer node={controlBankNode(node)} onevent={change}/></section>{/each}`);
+  </script>{#each cases as node}<section data-case={node.id}><NodeRenderer node={controlResolvedNode(node)} onevent={change}/></section>{/each}`);
   try {
     await f.page.addStyleTag({content:await rendererCss()});
     for(const id of ['context','unavailable','retained']) {

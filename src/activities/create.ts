@@ -4,10 +4,10 @@ import type { LocalProgram } from "../local/program.ts";
 import { requireUUID } from "../local/types.ts";
 import { preflightMutation } from "../local/preflight.ts";
 import { snapshotPreflightOptions, type PreflightOptions } from "../preflight.ts";
-import { activityDigest, type ActivityCatalog } from "./catalog.ts";
+import { activityDigest, type ActivityIndex } from "./activity-index.ts";
 import { activitySnapshot, checkedActivityRecord, type ActivityRecord } from "./records.ts";
 
-export async function createActivity(client: PoolClient, program: LocalProgram, catalog: ActivityCatalog,
+export async function createActivity(client: PoolClient, program: LocalProgram, catalog: ActivityIndex,
   actor: string, surface: string, occurrence: string, input: unknown, metadata: PreflightOptions = {}) {
   requireUUID(occurrence);
   const plan = catalog.admit(input), options = snapshotPreflightOptions(metadata);

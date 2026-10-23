@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { bankNode } from "../src/interaction/bank-node.ts";
+import { resolvedNode } from "../src/interaction/resolved-node.ts";
 import type { Face } from "../src/interaction/face.ts";
 import { publicCatalogRequirements, requirePublicCatalogCapabilities } from "../src/public-catalog/capabilities.ts";
 import { compilePublicCatalog, publicCatalogSurface } from "../src/public-catalog/index.ts";
@@ -15,11 +15,11 @@ const legacy = (nodes: string[], events: string[]) => ({
 });
 const input = { version: "desert.bank-node/1", kind: "input.text", name: "draft", label: "Draft",
   value: "", required: false, disabled: false } as const;
-const select = (face?: Face) => bankNode({ version: "desert.bank-node/1", kind: "control.select", control: {
+const select = (face?: Face) => resolvedNode({ version: "desert.bank-node/1", kind: "control.select", control: {
   version: "desert.control/1", kind: "select", id: "choice", label: "Choice", required: false,
   value: "one", disabled: false, options: [{ value: "one", label: "One", disabled: false, ...(face ? { face } : {}) }],
 } });
-const money = (face?: Face) => bankNode({ version: "desert.bank-node/1", kind: "control.money", control: {
+const money = (face?: Face) => resolvedNode({ version: "desert.bank-node/1", kind: "control.money", control: {
   version: "desert.control/1", kind: "money", id: "amount", label: "Amount", required: false,
   currency: "USD", minorUnits: "100", disabled: false,
   currencies: [{ code: "USD", scale: 2, ...(face ? { face } : {}) }],
@@ -27,12 +27,12 @@ const money = (face?: Face) => bankNode({ version: "desert.bank-node/1", kind: "
 
 test("unmasked text and ordinary selection retain exactly their existing capability contracts", () => {
   assert.deepEqual(publicCatalogRequirements(), { ...legacy([], []), features: baseFeatures });
-  assert.deepEqual(publicCatalogRequirements([bankNode(input)]), legacy(["input.text"], ["input.change"]));
+  assert.deepEqual(publicCatalogRequirements([resolvedNode(input)]), legacy(["input.text"], ["input.change"]));
   assert.deepEqual(publicCatalogRequirements([select()]), legacy(["control.select"], ["select.change"]));
 });
 
 test("decimal input masks reject old input-only renderers and accept an explicit mask capability", () => {
-  const masked = bankNode({ ...input, mask: { kind: "decimal", locale: "de-DE", scale: 2 } });
+  const masked = resolvedNode({ ...input, mask: { kind: "decimal", locale: "de-DE", scale: 2 } });
   const requirements = publicCatalogRequirements([masked]);
   const candidate = legacy(["input.text"], ["input.change"]);
   assert.deepEqual(requirements.features, [...candidate.features, "input.mask.decimal"]);
@@ -68,7 +68,7 @@ test("generic dropdown faces and new face kinds are independently negotiated", (
 
 test("money faces combine editing and selection requirements without duplicating shared features", () => {
   const requirements = publicCatalogRequirements([money({ kind: "flag", region: "US" }),
-    select({ kind: "flag", region: "AR" }), bankNode({ ...input, mask: { kind: "decimal", locale: "en-US", scale: 2 } })]);
+    select({ kind: "flag", region: "AR" }), resolvedNode({ ...input, mask: { kind: "decimal", locale: "en-US", scale: 2 } })]);
   const candidate = legacy(["control.money", "control.select", "input.text"], ["money.change", "select.change", "input.change"]);
   const expected = [...candidate.features, "input.mask.decimal", "selection.faces", "face.flag"];
   assert.deepEqual(requirements.features, expected);
@@ -81,7 +81,7 @@ test("money faces combine editing and selection requirements without duplicating
 
 test("shared toolbar faces require their new representation without claiming dropdown support", () => {
   for (const face of [{ kind: "symbol", text: "✦" }, { kind: "flag", region: "AR" }, { kind: "document" }] satisfies Face[]) {
-    const node = bankNode({ version: "desert.bank-node/1", kind: "transient", label: "Details", open: false, locked: false,
+    const node = resolvedNode({ version: "desert.bank-node/1", kind: "transient", label: "Details", open: false, locked: false,
       frame: { version: "desert.surface-frame/6", kind: "message", top: { title: "Details", face },
         content: { kind: "message", text: "Detail content" }, bottom: {} } });
     const requirements = publicCatalogRequirements([node]);
@@ -95,7 +95,7 @@ test("shared toolbar faces require their new representation without claiming dro
 });
 
 test("compiled catalog surfaces publish required features and reject a stale requirement declaration", () => {
-  const nodes = [bankNode({ ...input, mask: { kind: "decimal", locale: "en-US", scale: 2 } }), money({ kind: "symbol", text: "$" })];
+  const nodes = [resolvedNode({ ...input, mask: { kind: "decimal", locale: "en-US", scale: 2 } }), money({ kind: "symbol", text: "$" })];
   const compiled = compilePublicCatalog({ ...catalogFixture(), exercises: { title: "Numbers", subtitle: "Local values",
     stacks: [{ id: "numbers", title: "Numbers", description: "Edit values", items: nodes }] } });
   assert.deepEqual(compiled.surface.requirements.features,

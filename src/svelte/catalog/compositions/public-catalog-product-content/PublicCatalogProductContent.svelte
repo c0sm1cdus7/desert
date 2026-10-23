@@ -3,7 +3,7 @@
   import { mountCatalogAppearance } from "../../../infra/catalog-appearance.ts";
   import { initialPublicCatalogState, projectPublicCatalog, reducePublicCatalog, publicCatalogSurface,
     type PublicCatalogSurface, type PublicCatalogState } from "../../../../public-catalog/client.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import CatalogWorkspace from "../catalog-workspace/CatalogWorkspace.svelte";
   import type { PlaceIdentity } from "../../../infra/place-identity.ts";
   import { catalogSearchResults, catalogSearchScope, type CatalogDestination, type CatalogSearchResult } from "../../../infra/catalog-search.ts";
@@ -48,7 +48,7 @@
     searchQuery = query; searching = true;
     await tick(); searchScroll()?.scrollTo(0, 0);
   }
-  async function event(input: BankEvent) {
+  async function event(input: NodeEvent) {
     if (input.kind !== "catalog.open" && input.kind !== "catalog.back" && input.kind !== "catalog.search") return;
     if (input.kind === "catalog.search") { await querySearch(input.query); return; }
     if (input.kind === "catalog.open") {

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { InteractionCatalog } from "../src/interaction/catalog.ts";
+import { ResolvedNodes } from "../src/interaction/catalog.ts";
 import { compilePublicCatalog } from "../src/public-catalog/index.ts";
 import { catalogFixture } from "./fixtures/public-catalog.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
@@ -37,7 +37,7 @@ test("the View adapter renders the exact approved bank body for identical fixtur
     }));
     assert.deepEqual(await measure(adapted), await measure(direct));
     assert.equal(await adapted.page.locator("[data-specimen]").count(),
-      InteractionCatalog.entries.reduce((total, entry) => total + entry.states.length, 0));
+      ResolvedNodes.entries.reduce((total, entry) => total + entry.states.length, 0));
     assert.equal(await adapted.page.getByText("Not installed in product execution", { exact: true }).count(), 0);
     assert.deepEqual(adapted.errors, []);
   } finally { await Promise.all([direct.close(), adapted.close()]); }

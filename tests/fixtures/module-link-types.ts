@@ -1,4 +1,4 @@
-import { composeProduct, defineModule, moduleCatalog, view, viewOutput, viewPorts, ViewVersion, type View } from "../../src/index.ts";
+import { composeProduct, defineModule, moduleIndex, view, viewOutput, viewPorts, ViewVersion, type View } from "../../src/index.ts";
 import { WorkspaceView, NavigationView } from "./workspace-view.ts";
 
 const ports = viewPorts({ inputs: {}, outputs: ["open"] });
@@ -18,7 +18,7 @@ const source = { id: "example", views: [Home, Detail], journeys: [{ presentation
   destinations: [Destination], exports: { views: { Home }, journeys: { browse: Browse }, destinations: { home: Destination } },
 } as const;
 const Module = defineModule(source);
-const Modules = moduleCatalog([Module]);
+const Modules = moduleIndex([Module]);
 const mounted = view(Home);
 const sameId: "home" = mounted.id;
 const sameOutput: "open" = mounted.outputs[0];
@@ -58,7 +58,7 @@ Module.views;
 // @ts-expect-error Non-exported aliases are not available in the public catalog.
 Modules.views.Detail;
 
-const root = { id: "example", label: "Example", modules: Modules, surfaces: [],
+const root = { id: "example", label: "Example", modules: Modules, exposures: [],
   workspace: WorkspaceView, views: [WorkspaceView, NavigationView], entry: Modules.destinations.home,
   navigation: [{ destination: Modules.destinations.home, group: "Explore", purpose: "content" }],
 } as const;
@@ -84,5 +84,5 @@ composeProduct({ ...root, journeys: [{ presentation: { id: "root", kind: "presen
 // @ts-expect-error Raw module arrays cannot substitute for an issued catalog.
 composeProduct({ ...root, modules: [Module] });
 // @ts-expect-error A valid public handle still requires its module in this catalog.
-composeProduct({ ...root, modules: moduleCatalog([]) });
+composeProduct({ ...root, modules: moduleIndex([]) });
 void [sameId, sameOutput, stillLinked, publicViewId, publicJourneyId, publicOwner];

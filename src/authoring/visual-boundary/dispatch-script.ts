@@ -16,15 +16,15 @@ export function inspectDispatchScript(source: string, inputs: ReadonlySet<string
   const file = ts.createSourceFile(dispatcherPath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const owners = new Map<string, string>();
   const paths = new Map([
-    [from("src/interaction/bank-node.ts"), "bankNode"], [from("src/interaction/bank-events.ts"), "bankEvent"],
-    [from("src/svelte/renderer-registry.ts"), "webRenderers"],
+    [from("src/interaction/resolved-node.ts"), "resolvedNode"], [from("src/interaction/node-events.ts"), "nodeEvent"],
+    [from("src/svelte/renderer-registry.ts"), "nodeRenderers"],
   ]);
   let propsType: string | undefined;
   for (const statement of file.statements) if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
     const clause = statement.importClause, bindings = clause?.namedBindings, specifier = statement.moduleSpecifier.text;
     if (clause?.isTypeOnly) {
       if (specifier === from("src/svelte/renderer-contracts.ts") && bindings && ts.isNamedImports(bindings)) for (const item of bindings.elements) {
-        if ((item.propertyName ?? item.name).text === "BankRendererProps") propsType = item.name.text;
+        if ((item.propertyName ?? item.name).text === "NodeRendererProps") propsType = item.name.text;
       }
       continue;
     }
@@ -36,7 +36,7 @@ export function inspectDispatchScript(source: string, inputs: ReadonlySet<string
     }
   }
   if (owners.size !== paths.size || !propsType) fail("missing dispatcher authority");
-  const registry = owners.get("webRenderers")!, validator = owners.get("bankNode")!;
+  const registry = owners.get("nodeRenderers")!, validator = owners.get("resolvedNode")!;
   let props: ts.VariableDeclaration | undefined, checked: ts.VariableDeclaration | undefined;
   for (const statement of file.statements) if (ts.isVariableStatement(statement)) for (const node of statement.declarationList.declarations) {
     if (node.initializer && ts.isCallExpression(node.initializer) && node.initializer.expression.getText(file) === "$props") {

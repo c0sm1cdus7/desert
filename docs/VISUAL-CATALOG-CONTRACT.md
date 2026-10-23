@@ -56,7 +56,7 @@ documentation and the component bank. Its metadata must include:
 Private parts and mechanisms are recorded for ownership and reachability, not
 exported as extra consumer components. "Control" is a discovery category, not a
 third ownership model. States, presentations and filenames are not component counts.
-The current broad `PrimitiveId` must not continue naming compositions as primitives.
+The current broad `ResolvedNodeId` must not continue naming compositions as primitives.
 
 The current 23 semantic IDs remain compatibility inputs during migration. They
 resolve to entries in this same manifest; they must not become a parallel visual

@@ -8,23 +8,23 @@ test("adapter gateway retains owner prop types and removes native passthrough", 
   const project = createBuildProject("export const surface = {}; export const validateInput = () => false;");
   const page = join(project.directory, "src/routes/+page.svelte");
   const header = `<script lang="ts">
-    import { TextContent, BankRenderer, TransientRenderer, ControlBankRenderer, Feedback } from "@desert/svelte/adapter-catalog.ts";
-    import type { BankNode, BankNodeFor } from "@desert/interaction/bank-node.ts";
+    import { TextContent, NodeRenderer, TransientRenderer, ControlNodeRenderer, Feedback } from "@desert/svelte/adapter-catalog.ts";
+    import type { ResolvedNode, ResolvedNodeFor } from "@desert/interaction/resolved-node.ts";
     import type { ControlNode } from "@desert/interaction/control-nodes.ts";
     import type { LocalFileHost } from "@desert/svelte/infra/file-host.ts";
-    let node!: BankNode;
-    let transient!: BankNodeFor<"transient">;
-    let control!: Extract<BankNode, {control:ControlNode}>;
+    let node!: ResolvedNode;
+    let transient!: ResolvedNodeFor<"transient">;
+    let control!: Extract<ResolvedNode, {control:ControlNode}>;
     let host!: LocalFileHost;
     let owner!: object;
   </script>\n`;
   const invalid = ['<TextContent text={42}/>', '<TextContent text="Notes" class="padding-0"/>',
-    '<BankRenderer {node} actionElementProps={{ style: "color:red" }}/>',
-    '<BankRenderer {node} {host}/>', '<BankRenderer {node} frameIdentity={owner}/>',
+    '<NodeRenderer {node} actionElementProps={{ style: "color:red" }}/>',
+    '<NodeRenderer {node} {host}/>', '<NodeRenderer {node} frameIdentity={owner}/>',
     '<TransientRenderer node={control} frameIdentity={owner}/>', '<TransientRenderer node={transient}/>',
     '<TransientRenderer node={transient} frameIdentity={owner} {host}/>',
-    '<ControlBankRenderer node={transient} {host}/>', '<ControlBankRenderer node={control}/>',
-    '<ControlBankRenderer node={control} {host} frameIdentity={owner}/>',
+    '<ControlNodeRenderer node={transient} {host}/>', '<ControlNodeRenderer node={control}/>',
+    '<ControlNodeRenderer node={control} {host} frameIdentity={owner}/>',
     '<Feedback text={42}/>', '<Feedback text="Changed" class="large"/>', '<Feedback text="Changed" role="alert"/>'];
   try {
     const source = header + invalid.join("\n");
@@ -36,7 +36,7 @@ test("adapter gateway retains owner prop types and removes native passthrough", 
       return true;
     });
     writeFileSync(page, header + '<TextContent text="Notes"/><Feedback text="Changed"/>'
-      + '<TransientRenderer node={transient} frameIdentity={owner}/><ControlBankRenderer node={control} {host}/>');
+      + '<TransientRenderer node={transient} frameIdentity={owner}/><ControlNodeRenderer node={control} {host}/>');
     assert.match((await project.run("check")).stdout, /0 errors and 0 warnings/);
   } finally { project.close(); }
 });

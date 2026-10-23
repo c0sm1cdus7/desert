@@ -86,10 +86,10 @@ export function loadLandmarks() {
 
 ## products/landmarks/exercises.ts
 
-Source SHA-256: 5ffa933a2adffc1c7cce39d1f977dd5aeeb30cf35bb3c0b3b2fca54215f5f51c
+Source SHA-256: ace03342da5093d1c798ce3112d477529dade34a16913fbfbbc5c2bc5feedc22
 
 ```ts
-import { controlBankNode } from "../../src/interaction/bank-node.ts";
+import { controlResolvedNode } from "../../src/interaction/resolved-node.ts";
 import { stackNode } from "../../src/interaction/place.ts";
 import type { PublicCatalogExercises } from "../../src/public-catalog/exercises.ts";
 
@@ -103,27 +103,27 @@ export const travelKit: PublicCatalogExercises = {
   stacks: [
     { id: "visit", title: "Your next visit", description: "Give your idea a name and choose where to go.", items: [
       stackNode({ version: "desert.bank-node/1", kind: "input.text", name: "trip-name", label: "Trip name", value: "", required: true, disabled: false }),
-      controlBankNode({ ...base, kind: "select", id: "destination", label: "Destination", required: true, value: null,
+      controlResolvedNode({ ...base, kind: "select", id: "destination", label: "Destination", required: true, value: null,
         options: [option("1016", "Mount Fuji"), option("1017", "Wulingyuan"), option("1018", "Mount Everest")] }),
-      controlBankNode({ ...base, kind: "date", id: "arrival", label: "Arrival date", required: false, value: null }),
+      controlResolvedNode({ ...base, kind: "date", id: "arrival", label: "Arrival date", required: false, value: null }),
     ] },
     { id: "notes", title: "Notes", items: [
       stackNode({ version: "desert.bank-node/1", kind: "input.multiline", name: "notes", label: "Things to remember", value: "", required: false, disabled: false }),
     ] },
     { id: "pace", title: "Travel pace", items: [
-      controlBankNode({ ...base, kind: "options", id: "pace", label: "Travel pace", minSelected: 1, maxSelected: 1, selected: ["slow"],
+      controlResolvedNode({ ...base, kind: "options", id: "pace", label: "Travel pace", minSelected: 1, maxSelected: 1, selected: ["slow"],
         options: [option("slow", "Take it slowly"), option("active", "Keep exploring")] }),
     ] },
     { id: "interests", title: "Interests", items: [
-      controlBankNode({ ...base, kind: "options", id: "activities", label: "Interests", minSelected: 0, maxSelected: 3, selected: [],
+      controlResolvedNode({ ...base, kind: "options", id: "activities", label: "Interests", minSelected: 0, maxSelected: 3, selected: [],
         options: [option("walking", "Walking"), option("photography", "Photography"), option("culture", "Culture")] }),
     ] },
     { id: "budget", title: "Budget", items: [
-      controlBankNode({ ...base, kind: "money", id: "budget", label: "Estimated budget", required: false,
+      controlResolvedNode({ ...base, kind: "money", id: "budget", label: "Estimated budget", required: false,
         currencies: [{ code: "USD", scale: 2 }, { code: "ARS", scale: 2 }, { code: "JPY", scale: 0 }], currency: "USD", minorUnits: null }),
     ] },
     { id: "essentials", title: "Travel documents", description: "Files stay on this device. Nothing is uploaded.", items: [
-      controlBankNode({ ...base, kind: "files", id: "documents", label: "Travel documents", files: [],
+      controlResolvedNode({ ...base, kind: "files", id: "documents", label: "Travel documents", files: [],
         limits: { maxCount: 3, maxFileBytes: 5242880, maxTotalBytes: 10485760, accept: ["application/pdf", "image/*", "text/plain"] } }),
     ] },
     { id: "draft", title: "About this draft", items: [
@@ -631,10 +631,10 @@ export function projectPublicCatalog(value: PublicCatalogSurface, current: Publi
 
 ## src/public-catalog/exercises.ts
 
-Source SHA-256: a1c2871bb3dd285c7ce7e0b524f7eaf17401ead3e97c3ee4e21830d7b74d4c69
+Source SHA-256: 4285006514f594514e26ac19949052ecf3cc854c641e8fda531483b84fabe881
 
 ```ts
-import { bankNode } from "../interaction/bank-node.ts";
+import { resolvedNode } from "../interaction/resolved-node.ts";
 import { PlaceContentSchema, placeContent, stackNodes, type PlaceContent } from "../interaction/place.ts";
 
 export const PublicCatalogExercisesSchema = PlaceContentSchema;
@@ -645,7 +645,7 @@ export function checkPublicCatalogExercises(exercises: PublicCatalogExercises, a
   placeContent(exercises);
   for (const stack of exercises.stacks) {
     for (const value of stackNodes(stack.items)) {
-      const node = bankNode(value);
+      const node = resolvedNode(value);
       if (node.kind === "catalog.card") {
         if (assets && node.image && !assets.has(node.image.asset)) throw new Error("INVALID_CATALOG_EXERCISE_ASSET_REFERENCE");
         if (records && !records.has(node.record)) throw new Error("INVALID_CATALOG_EXERCISE_RECORD_REFERENCE");
@@ -665,11 +665,11 @@ export function checkPublicCatalogExercises(exercises: PublicCatalogExercises, a
 
 ## src/public-catalog/draft.ts
 
-Source SHA-256: f82788c202d781592d627d1b943918545118db3137df30cb4d7004f81920dfcb
+Source SHA-256: 79bbeef1ef37e42e763e0ff14650507c3c604ff06ea698eabc5496cbd3b98bba
 
 ```ts
-import { bankEvent } from "../interaction/bank-events.ts";
-import { controlBankNode } from "../interaction/bank-node.ts";
+import { nodeEvent } from "../interaction/node-events.ts";
+import { controlResolvedNode } from "../interaction/resolved-node.ts";
 import { applyControlEvent } from "../interaction/control-nodes.ts";
 import { freezeDeep } from "../json.ts";
 import { checkPublicCatalogExercises, type PublicCatalogExercises } from "./exercises.ts";
@@ -678,7 +678,7 @@ import { stackNode, type StackNode } from "../interaction/place.ts";
 /** Local session state only. No admission, persistence, controller command or success receipt. */
 export function reduceCatalogDraft(current: PublicCatalogExercises, input: unknown): PublicCatalogExercises {
   checkPublicCatalogExercises(current);
-  const event = bankEvent(input);
+  const event = nodeEvent(input);
   if (event.kind !== "input.change" && !("control" in event)) throw new Error("LOCAL_DRAFT_EVENT_REQUIRED");
   let matched = false;
   function update(node: StackNode): StackNode {
@@ -689,7 +689,7 @@ export function reduceCatalogDraft(current: PublicCatalogExercises, input: unkno
     }
     if ("control" in event && "control" in node && node.control.id === event.control) {
       matched = true;
-      return stackNode(controlBankNode(applyControlEvent(node.control, event).node));
+      return stackNode(controlResolvedNode(applyControlEvent(node.control, event).node));
     }
     return node;
   }
@@ -701,14 +701,14 @@ export function reduceCatalogDraft(current: PublicCatalogExercises, input: unkno
 
 ## src/public-catalog/capabilities.ts
 
-Source SHA-256: ca16d7387483da09c6dbff9929cf9f5430133beca3b10856ae82c2ba82d59207
+Source SHA-256: 9625057d326725322b7d1712cc6c85bbd1ceec21ddbb8e08e12ebff56bdf24d5
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
 import { Check } from "@sinclair/typebox/value";
 import { freezeDeep, jsonSnapshot, type Frozen } from "../json.ts";
 import { closedObject, nonemptyText } from "./node-schema.ts";
-import type { BankNode } from "../interaction/bank-node.ts";
+import type { ResolvedNode } from "../interaction/resolved-node.ts";
 import { ControlEventSchema } from "../interaction/control-nodes.ts";
 import type { Face } from "../interaction/face.ts";
 
@@ -743,7 +743,7 @@ function requireFace(features: Set<string>, face: Face | undefined): void {
 }
 
 /** Derive local workbench needs from the same canonical control event grammar. */
-export function publicCatalogRequirements(nodes: readonly BankNode[] = [], gallery = false): RendererRequirements {
+export function publicCatalogRequirements(nodes: readonly ResolvedNode[] = [], gallery = false): RendererRequirements {
   if (nodes.length === 0 && !gallery) return PublicCatalogRequirements;
   const nodeKinds = new Set<string>(PublicCatalogRequirements.nodes);
   const events = new Set<string>(PublicCatalogRequirements.events);
@@ -1451,15 +1451,15 @@ Source SHA-256: 4c94b559987050aadc562838de0814d48537204033437fbf6c1c1a9f30d69166
 
 ## src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte
 
-Source SHA-256: 0d7ed1ea91184fd931ce8cdbf3da102ccfa38abc772b93ae779d6bd7707114d4
+Source SHA-256: b332755a628938fb07410c6562f53e80d0d8c1d475f43e8a814698860576936b
 
 ```svelte
 <script lang="ts">
   import type { PublicCatalogExercises } from "../../../../public-catalog/client.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { LocalExerciseContent } from "../../../adapter-catalog.ts";
   let { definition, bodyOnly = false, oncatalog }: {
-    definition: PublicCatalogExercises; bodyOnly?: boolean; oncatalog?: (event: BankEvent) => void;
+    definition: PublicCatalogExercises; bodyOnly?: boolean; oncatalog?: (event: NodeEvent) => void;
   } = $props();
 </script>
 
@@ -1468,19 +1468,19 @@ Source SHA-256: 0d7ed1ea91184fd931ce8cdbf3da102ccfa38abc772b93ae779d6bd7707114d4
 
 ## src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
 
-Source SHA-256: 692257a1fe1941e6eafc8b69d8689477f864ceebe9fe78705fe703444039c022
+Source SHA-256: d7a0124eac64528c067e7b5b1ce389c48542cc07bfc697947fb9a17dc59f6ec8
 
 ```svelte
 <script lang="ts">
   import * as Card from "@desert/svelte/vendor/components/ui/card/index.js";
   import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
-  import type { BankNodeFor } from "../../../../interaction/bank-node.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { ResolvedNodeFor } from "../../../../interaction/resolved-node.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { getContext } from 'svelte';
   import Image from '../image/Image.svelte';
   import ArtworkPlaceholder from '../artwork-placeholder/ArtworkPlaceholder.svelte';
   import { mediaSource, prefetchImage } from '../../../infra/media-source.ts';
-  let { node, onevent }: { node: BankNodeFor<"catalog.card">; onevent: (event: BankEvent) => void } = $props();
+  let { node, onevent }: { node: ResolvedNodeFor<"catalog.card">; onevent: (event: NodeEvent) => void } = $props();
   const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');
   function prepare() {
     const asset = cover?.(node.record); if (asset) prefetchImage(mediaSource(asset), window.innerWidth*window.devicePixelRatio);
@@ -1520,22 +1520,22 @@ Source SHA-256: c89561457dad3fe54f01ec15f8d282eea2fea5cc4bbb09ca86af609a116e183a
 
 ## src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte
 
-Source SHA-256: 490b8c7f4233d930f09dc07da55c0257f4519fb4d4de07b30d794dd50fba9a4f
+Source SHA-256: 0aac419c50bfd89b6ec19558ad186372b0f65262587020fe1ba79bb2f2ee3f5a
 
 ```svelte
 <script lang="ts">
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
-  import type { PrimitiveId } from "../../../../interaction/catalog.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
   import { InspectionCatalog } from "../../../adapter-catalog.ts";
   import type { RegisterContentActions } from "../../../infra/workspace-content.ts";
   let { surface, oncatalog, bodyOnly, onactions }: {
-    surface: PublicBankInput; oncatalog: (event: BankEvent) => void; bodyOnly?: boolean;
+    surface: PublicBankInput; oncatalog: (event: NodeEvent) => void; bodyOnly?: boolean;
     onactions?: RegisterContentActions;
   } = $props();
-  let content = $state<{ revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null>;
-    revealAndFocusEntry: (id: PrimitiveId) => Promise<void> }>();
-  export async function revealEntry(id: PrimitiveId) { return await content?.revealEntry(id) ?? null; }
+  let content = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null>;
+    revealAndFocusEntry: (id: ResolvedNodeId) => Promise<void> }>();
+  export async function revealEntry(id: ResolvedNodeId) { return await content?.revealEntry(id) ?? null; }
   $effect(() => {
     const register = onactions;
     register?.({ revealEntry: async id => { await content?.revealAndFocusEntry(id); }, selectMedia: () => false });
@@ -1548,16 +1548,16 @@ Source SHA-256: 490b8c7f4233d930f09dc07da55c0257f4519fb4d4de07b30d794dd50fba9a4f
 
 ## src/svelte/infra/PublicCatalogBank-model.ts
 
-Source SHA-256: c3b0b178b5f0e55697045ce3cb920704c0d4a66f965e767b4e6a7409fa7318a5
+Source SHA-256: f4cc2350887f3d10b615302c2b751c8502615605ff8e04721842b89b0011f2a6
 
 ```ts
-import { InteractionCatalog, type PrimitiveId } from "../../interaction/catalog.ts";
-import { BankVersion as version, bankNode, type BankNode } from "../../interaction/bank-node.ts";
+import { ResolvedNodes, type ResolvedNodeId } from "../../interaction/catalog.ts";
+import { ResolvedNodeVersion as version, resolvedNode, type ResolvedNode } from "../../interaction/resolved-node.ts";
 import { surfaceFrame, type FactsContent } from "../../interaction/surface-frame.ts";
 import type { PublicCatalogSurface } from "../../public-catalog/index.ts";
 
-export type PublicBankSpecimen = Readonly<{ id: PrimitiveId; state: string;
-  owner: "bank" | "control-bank"; node?: BankNode; gap?: string }>;
+export type PublicBankSpecimen = Readonly<{ id: ResolvedNodeId; state: string;
+  owner: "bank" | "control-bank"; node?: ResolvedNode; gap?: string }>;
 export type PublicBankInput = Pick<PublicCatalogSurface, "productId" | "home" | "details">;
 
 /** Diagnostic coverage is not a capability declaration or an execution adapter. */
@@ -1565,9 +1565,9 @@ export function publicCatalogBankInventory(surface: PublicBankInput): readonly P
   const first = surface.details[0]!;
   const details: FactsContent = { kind: "facts", object: surface.productId, fields: ["title"],
     labels: { [`${surface.productId}.title`]: "Title" }, facts: { title: first.title } };
-  return InteractionCatalog.entries.flatMap(entry => entry.states.map(state => {
+  return ResolvedNodes.entries.flatMap(entry => entry.states.map(state => {
     const specimen = { id: entry.id, state, owner: "bank" as const };
-    const render = (node: BankNode): PublicBankSpecimen => ({ ...specimen, node: bankNode(node) });
+    const render = (node: ResolvedNode): PublicBankSpecimen => ({ ...specimen, node: resolvedNode(node) });
     const gap = (reason: string): PublicBankSpecimen => ({ ...specimen, gap: reason });
     if (entry.family === "control") return { ...specimen, owner: "control-bank" as const };
     if (entry.id === "catalog.home") return { ...specimen, node: surface.home };

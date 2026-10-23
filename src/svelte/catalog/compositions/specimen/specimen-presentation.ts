@@ -1,17 +1,17 @@
 import type { HumanSurface, ValidateInput } from "../../../../web/types.ts";
 import type { ReadModelScope } from "../../../../web/client/model-scope.ts";
-import type { PrimitiveId } from "../../../../interaction/catalog.ts";
-import { BankVersion as version, bankNode, type BankNode } from "../../../../interaction/bank-node.ts";
-import { presentCollection } from "../../../../interaction/bank-presenters.ts";
+import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
+import { ResolvedNodeVersion as version, resolvedNode, type ResolvedNode } from "../../../../interaction/resolved-node.ts";
+import { presentCollection } from "../../../../interaction/node-presenters.ts";
 import { formFrame, reviewFrame, toolbarAction } from "../../../../interaction/frame-presenters.ts";
 import { surfaceFrame, type SurfaceFrame } from "../../../../interaction/surface-frame.ts";
 import { presentFacts } from "../../../../interaction/fact-presentation.ts";
 
 export type SpecimenState = { value?: string; open: boolean; locked: boolean; draft: Readonly<Record<string, string>> };
-type Presentation = { nodes: BankNode[]; frame?: SurfaceFrame };
+type Presentation = { nodes: ResolvedNode[]; frame?: SurfaceFrame };
 
 /** Isolated witness data; all composition is the installed product bank/frame grammar. */
-export function presentSpecimen(id: PrimitiveId, scenario: string, surface: HumanSurface,
+export function presentSpecimen(id: ResolvedNodeId, scenario: string, surface: HumanSurface,
   state: SpecimenState, validate: ValidateInput, scope: ReadModelScope): Presentation {
   const mutation = scope.primaryCreation;
   if (!mutation) throw new Error("SPECIMEN_CREATION_REQUIRED");
@@ -19,8 +19,8 @@ export function presentSpecimen(id: PrimitiveId, scenario: string, surface: Huma
   const facts = Object.fromEntries(fields.map((field, index) => [field,
     index === 0 ? "An idea worth keeping" : "A quiet place to think.\nA second line, with room to breathe."]));
   const details = presentFacts(surface, mutation.object, fields, facts);
-  const nodes: BankNode[] = [];
-  const push = (node: BankNode) => nodes.push(bankNode(node));
+  const nodes: ResolvedNode[] = [];
+  const push = (node: ResolvedNode) => nodes.push(resolvedNode(node));
   const opener = (label: string) => push({ version, kind: "action", role: "secondary", action: {
     intent: { kind: "specimen", operation: "open" }, label, icon: "open", state: "ready" } });
   const context = surfaceFrame({ version: "desert.surface-frame/6", kind: "context",

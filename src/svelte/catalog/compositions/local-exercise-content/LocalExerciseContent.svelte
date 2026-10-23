@@ -4,10 +4,10 @@
   import { reduceCatalogDraft } from "../../../../public-catalog/draft.ts";
   import PlaceContent from "../place-content/PlaceContent.svelte";
   import { LocalFileHost } from "../../../infra/file-host.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { stackNodes } from "../../../../interaction/place.ts";
   let { definition, bodyOnly = false, oncatalog }: {
-    definition: PublicCatalogExercises; bodyOnly?: boolean; oncatalog?: (event: BankEvent) => void;
+    definition: PublicCatalogExercises; bodyOnly?: boolean; oncatalog?: (event: NodeEvent) => void;
   } = $props();
   let draft = $state.raw(untrack(() => definition));
   const host = new LocalFileHost();

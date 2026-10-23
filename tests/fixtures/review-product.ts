@@ -2,7 +2,7 @@ import {
   objectType, text, principal, enumeration, controllerRole, ownershipPolicy,
   createCommand, updateCommand, mutationJourney, readJourney, fromInput, literal, actorId,
   Components, ViewTitles, defineView, viewPorts, viewOutput, publishObject, factReference,
-  composeProduct, moduleCatalog, humanSurface, clientDistribution, controllerDistribution, remoteBinding,
+  composeProduct, moduleIndex, humanExposure, clientDistribution, controllerDistribution, remoteBinding,
 } from "../../src/index.ts";
 import { NavigationView, WorkspaceView } from "./workspace-view.ts";
 
@@ -52,8 +52,8 @@ export function reviewProduct(options: { renamed?: boolean; emptyTitle?: boolean
   });
   const Notes = { id: name("notes-home"), label: "Notes", icon: "open", entryJourney: Read } as const;
   const Statuses = { id: name("statuses-home"), label: "Statuses", icon: "open", entryJourney: ReadStatus } as const;
-  const Human = humanSurface({ id: "human", journeys: [Create, Read, ReadStatus, Archive], locale: "en" });
-  const Product = composeProduct({ id: name("notebook"), label: "Notebook", modules: moduleCatalog([]),
+  const Human = humanExposure({ id: "human", journeys: [Create, Read, ReadStatus, Archive], locale: "en" });
+  const Product = composeProduct({ id: name("notebook"), label: "Notebook", modules: moduleIndex([]),
     objects: [publishObject(Note, { view: NoteView, title: factReference(Note, fields.title),
       fields: [
         { fact: factReference(Note, fields.title), label: "Title", representation: "text" },
@@ -84,7 +84,7 @@ export function reviewProduct(options: { renamed?: boolean; emptyTitle?: boolean
     destinations: [Notes, Statuses], entry: Notes, navigation: [
       { destination: Notes, group: "Explore", purpose: "content" },
       { destination: Statuses, group: "Explore", purpose: "content" },
-    ], surfaces: [Human],
+    ], exposures: [Human],
   });
   const Service = controllerDistribution({ id: name("notebook-service"), product: Product.definition,
     runtime: "node", storage: "postgresql", serves: [Human], provides: [Controller] });

@@ -1,12 +1,12 @@
 <script lang="ts">
   // Local inspection navigation retains diagnostic state; it never invokes product commands.
   import { tick } from "svelte";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
-  import type { PrimitiveId } from "../../../../interaction/catalog.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
   import { InspectionCatalog } from "../../../adapter-catalog.ts";
   import RetainedPlace from "../retained-place/RetainedPlace.svelte";
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
   import CatalogDetail from "../catalog-detail/CatalogDetail.svelte";
   import Toolbar from "../toolbar/Toolbar.svelte";
   import { inspectionCatalog } from "./inspection-fixture.ts";
@@ -15,7 +15,7 @@
   let { catalog = inspectionCatalog }: {
     catalog?: PublicBankInput;
   } = $props();
-  let bank = $state<{ revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null> }>();
+  let bank = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null> }>();
   const navigation = destinationNavigation(), destination = navigation?.destination();
   let localSelected = $state<string | null>(null);
   let page = $derived(destination ? navigation?.current(destination) : undefined);
@@ -28,7 +28,7 @@
     await tick();
     if (opener?.isConnected) opener.focus({ preventScroll: true });
   }
-  function interact(event: BankEvent) {
+  function interact(event: NodeEvent) {
     if (event.kind === "catalog.open") {
       if (!catalog.details.some(item => item.record === event.record)) throw new Error("UNKNOWN_INSPECTION_RECORD");
       if(navigation && destination) {
@@ -41,7 +41,7 @@
       localSelected = event.record;
     } else if (event.kind === "catalog.back") void back();
   }
-  export async function revealEntry(id: PrimitiveId): Promise<HTMLElement | null> {
+  export async function revealEntry(id: ResolvedNodeId): Promise<HTMLElement | null> {
     localSelected = null;
     await tick();
     return bank?.revealEntry(id) ?? null;
@@ -56,5 +56,5 @@
     intent: { kind: "back" }, icon: "back", label: "Back to visual catalog", state: "ready",
   } }} invoke={() => void back()} />{/if}
   {#if navigation}<CatalogDetail node={detail} onevent={interact} bodyOnly />
-  {:else}<BankRenderer node={detail} onevent={interact} />{/if}
+  {:else}<NodeRenderer node={detail} onevent={interact} />{/if}
 {/if}

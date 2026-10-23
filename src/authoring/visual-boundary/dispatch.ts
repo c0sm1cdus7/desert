@@ -15,7 +15,7 @@ const pathOf = (node: Node | undefined): string | undefined => node?.type === "I
 /** A bounded dispatcher grammar, not a frozen source snapshot: every validated
  * kind selects exactly one typed catalog owner. No alternate render path exists
  * in this component. Transitive owner internals remain separately audited. */
-export function assertBankDispatcher(sources: readonly Source[]): void {
+export function assertNodeDispatcher(sources: readonly Source[]): void {
   const source = sources.find(item => item.path === dispatcherPath)?.source;
   if (source === undefined) return;
   const fail: (reason: string) => never = reason => { throw new Error(`CLOSED_VISUAL_BOUNDARY: ${dispatcherPath}: ${reason}`); };

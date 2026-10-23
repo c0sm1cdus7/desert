@@ -7,5 +7,5 @@ export const Fields = defineComposition({
   id: "fields",
   purpose: "Complete the inputs of one operation while retaining drafts and showing local feedback.",
   owner: { entry: "Fields.svelte" },
-  uses: ["bank-renderer"], approval: "none", contract: FieldsContract,
+  uses: ["node-renderer"], approval: "none", contract: FieldsContract,
 } as const);

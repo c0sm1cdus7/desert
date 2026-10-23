@@ -1,5 +1,5 @@
 import { Type, type Static } from "@sinclair/typebox";
-import { JourneySchema, PolicySchema, SurfaceSchema } from "./program-grammar.ts";
+import { JourneySchema, PolicySchema, ExposureSchema } from "./program-grammar.ts";
 import { DependencySchema } from "./dependencies.ts";
 import { FieldDefinitionSchema } from "./field-definition.ts";
 export { text, integer, principal, enumeration, imageAsset, mediaAsset, labels, references, namedReferences, mediaReferences, type FieldDefinition } from "./field-definition.ts";
@@ -13,7 +13,7 @@ export const ProductDefinitionSchema = Type.Object({
   objects: Type.Array(ObjectDefinition, { minItems: 1 }),
   policies: Type.Optional(Type.Array(PolicySchema)),
   journeys: Type.Optional(Type.Array(JourneySchema)),
-  surfaces: Type.Optional(Type.Array(SurfaceSchema)),
+  surfaces: Type.Optional(Type.Array(ExposureSchema)),
   dependencies: Type.Optional(Type.Array(DependencySchema)),
 }, { additionalProperties: false });
 

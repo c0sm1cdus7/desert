@@ -1,11 +1,11 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import type { PrimitiveId } from '../../../../interaction/catalog.ts';
+  import type { ResolvedNodeId } from '../../../../interaction/catalog.ts';
   import * as Field from '../../../vendor/components/ui/field/index.js';
   // The outer box measures available space; the complete accessible field
   // (including validation/support) owns its preferred measure inside it.
   const measures = { 'input.text': 'writing', 'input.multiline': 'writing',
-    'control.select': 'choice', 'control.date': 'date', 'control.money': 'amount' } as const satisfies Partial<Record<PrimitiveId,string>>;
+    'control.select': 'choice', 'control.date': 'date', 'control.money': 'amount' } as const satisfies Partial<Record<ResolvedNodeId,string>>;
   let { kind, children, invalid, disabled }: {
     kind: keyof typeof measures; children?: Snippet; invalid?: boolean; disabled?: boolean;
   } = $props();

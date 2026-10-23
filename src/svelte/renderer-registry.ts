@@ -1,5 +1,5 @@
 // Generated from catalog-manifest.ts. Run scripts/web-catalog.ts --write; do not edit.
-import type { WebRendererBank } from "./renderer-contracts.ts";
+import type { NodeRendererTable } from "./renderer-contracts.ts";
 import TextInput from "./catalog/foundations/text-input/TextInput.svelte";
 import Action from "./catalog/foundations/action/Action.svelte";
 import Availability from "./catalog/foundations/availability/Availability.svelte";
@@ -22,7 +22,7 @@ import CatalogCard from "./catalog/foundations/catalog-card/CatalogCard.svelte";
 import CatalogHome from "./catalog/compositions/catalog-home/CatalogHome.svelte";
 import CatalogDetail from "./catalog/compositions/catalog-detail/CatalogDetail.svelte";
 
-export const webRenderers: WebRendererBank = Object.freeze({
+export const nodeRenderers: NodeRendererTable = Object.freeze({
   "input.text": TextInput,
   "input.multiline": TextInput,
   action: Action,
@@ -47,4 +47,4 @@ export const webRenderers: WebRendererBank = Object.freeze({
   "catalog.card": CatalogCard,
   "catalog.home": CatalogHome,
   "catalog.detail": CatalogDetail,
-} satisfies WebRendererBank);
+} satisfies NodeRendererTable);

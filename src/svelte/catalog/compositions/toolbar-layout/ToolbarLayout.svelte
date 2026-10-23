@@ -10,8 +10,8 @@
   import { useToolbarCommands } from "./toolbar-commands.svelte.ts";
   import { assertToolbarControls } from "../../../infra/toolbar-controls.ts";
   import { intentKey, submitsJourney } from "../../../../interaction/intent.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
   import SpeedDial from "../speed-dial/SpeedDial.svelte";
   import CalendarNavigation from "./CalendarNavigation.svelte";
   import ToolbarSearch from "../toolbar-search/ToolbarSearch.svelte";
@@ -55,7 +55,7 @@
   let identity = $derived(toolbar?.edge === "top" ? {title:toolbar.title,subtitle:toolbar.subtitle} : suppliedIdentity);
   let identityRole = $derived(content.kind === "commands" ? content.presentation === "message" ? "message" : "heading" : suppliedRole);
   let leading = $derived(toolbar?.edge === "top" || content.kind === "place-navigation" || content.kind === "media-header");
-  const event = (value: BankEvent) => {
+  const event = (value: NodeEvent) => {
     if (content.kind === "actions") content.onevent(value);
     else if (value.kind === "surface.invoke" && (content.kind === "commands" || content.kind === "place-navigation")) content.invoke?.(value.intent);
   };
@@ -84,7 +84,7 @@
     {#if leading}<div bind:this={leadingElement} data-toolbar-leading data-occupied={leadingControls.occupied || undefined}>
       {#if content.kind === "commands" && toolbar?.edge === "top" && toolbar.leading && content.presentation !== "message"}
         <div bind:this={leadingRail} class="toolbar-action" data-toolbar-navigation data-toolbar-command={intentKey(toolbar.leading.intent)}>
-          <BankRenderer node={{version:"desert.bank-node/1",kind:"action",action:toolbar.leading,role:"secondary"}} onevent={event} />
+          <NodeRenderer node={{version:"desert.bank-node/1",kind:"action",action:toolbar.leading,role:"secondary"}} onevent={event} />
         </div>
       {:else if content.kind === "place-navigation"}
         <CatalogNavigationActions detail={content.detail} onback={content.onback} backAvailable={content.backAvailable} />
@@ -102,7 +102,7 @@
               invoke={intent=>{if(content.kind === "commands" || content.kind === "place-navigation")content.invoke?.(intent);}} />
           </div>{:else}
           {#each trailing.slice(0,commands.visibleCount) as action (intentKey(action.intent))}
-            <div class="toolbar-action" data-toolbar-command={intentKey(action.intent)}><BankRenderer node={{version:"desert.bank-node/1",kind:"action",action,role:"secondary"}} onevent={event} /></div>
+            <div class="toolbar-action" data-toolbar-command={intentKey(action.intent)}><NodeRenderer node={{version:"desert.bank-node/1",kind:"action",action,role:"secondary"}} onevent={event} /></div>
           {/each}
           {#if commands.overflow.length}<div class="toolbar-action" data-toolbar-overflow>
             <SpeedDial actions={commands.overflow} open={commands.open} onchange={commands.change}
@@ -110,15 +110,15 @@
           </div>{/if}
           {/if}
           {#if primary && content.kind === "commands"}<div class="toolbar-action" data-toolbar-primary data-toolbar-command={intentKey(primary.intent)}>
-            <BankRenderer node={{version:"desert.bank-node/1",kind:"action",action:primary,role:"primary",form:submitsJourney(primary.intent,content.submit)}} onevent={event}/>
+            <NodeRenderer node={{version:"desert.bank-node/1",kind:"action",action:primary,role:"primary",form:submitsJourney(primary.intent,content.submit)}} onevent={event}/>
           </div>{/if}
         </div>
       {/if}
     {:else if content.kind === "commands" && toolbar?.edge === "bottom"}
-      {#if toolbar.secondary}<BankRenderer node={{version:"desert.bank-node/1",kind:"action",action:toolbar.secondary,role:"secondary"}} onevent={event} />{/if}
-      {#if toolbar.primary}<BankRenderer node={{version:"desert.bank-node/1",kind:"action",action:toolbar.primary,role:"primary",form:submitsJourney(toolbar.primary.intent,content.submit)}} onevent={event} />{/if}
+      {#if toolbar.secondary}<NodeRenderer node={{version:"desert.bank-node/1",kind:"action",action:toolbar.secondary,role:"secondary"}} onevent={event} />{/if}
+      {#if toolbar.primary}<NodeRenderer node={{version:"desert.bank-node/1",kind:"action",action:toolbar.primary,role:"primary",form:submitsJourney(toolbar.primary.intent,content.submit)}} onevent={event} />{/if}
     {:else if content.kind === "actions"}
-      {#each content.actions as action}<BankRenderer node={{version:"desert.bank-node/1",kind:"action",action,role:"secondary"}} onevent={event} />{/each}
+      {#each content.actions as action}<NodeRenderer node={{version:"desert.bank-node/1",kind:"action",action,role:"secondary"}} onevent={event} />{/each}
     {:else if content.kind === "navigation-toggle"}
       <Sidebar.Trigger variant="secondary" size="icon" aria-label={content.show ? "Show navigation" : "Hide navigation"} title={content.show ? "Show navigation" : "Hide navigation"} inert={content.searching} aria-hidden={content.searching} />
     {:else if content.kind === "settings-placeholder"}
@@ -128,7 +128,7 @@
     {:else if content.kind === "media-controls"}<ToolbarMediaControls {content} />{/if}
   </div>
   {#if toolbar?.edge === "top" && toolbar.availability}<div class="toolbar-availability" title={toolbar.availability.label}>
-    <BankRenderer node={{version:"desert.bank-node/1",kind:"availability",...toolbar.availability}} />
+    <NodeRenderer node={{version:"desert.bank-node/1",kind:"availability",...toolbar.availability}} />
   </div>{/if}
   {#if content.kind === "media-controls" && content.items[content.index]?.kind !== "image"}<PlaybackControls playback={content.playback} part="seek" />{/if}
 </div>

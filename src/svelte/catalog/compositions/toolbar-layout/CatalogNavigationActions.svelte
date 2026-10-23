@@ -1,5 +1,5 @@
 <script lang="ts">
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
   let { detail = false, onback, backAvailable=true }: {
     detail?: boolean; onback?: () => void; backAvailable?:boolean;
   } = $props();
@@ -7,7 +7,7 @@
 
 <div data-catalog-navigation-actions>
   {#if detail && onback}
-    <BankRenderer node={{ version: "desert.bank-node/1", kind: "action", role: "secondary", action: {
+    <NodeRenderer node={{ version: "desert.bank-node/1", kind: "action", role: "secondary", action: {
       intent: { kind: "catalog.back" }, label: "Back", icon: "back", state: backAvailable?"ready":"unavailable",
     } }} onevent={event => { if (event.kind === "catalog.back"&&backAvailable) onback?.(); }} />
   {/if}

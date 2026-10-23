@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { bankNode } from "../src/interaction/bank-node.ts";
+import { resolvedNode } from "../src/interaction/resolved-node.ts";
 import { parseAmount, MoneyMinorUnitsLimit } from "../src/interaction/money.ts";
 
 const input = { version: "desert.bank-node/1", kind: "input.text", name: "quantity", label: "Quantity",
@@ -8,7 +8,7 @@ const input = { version: "desert.bank-node/1", kind: "input.text", name: "quanti
 const mask = { kind: "decimal", locale: "en-US", scale: 2 };
 
 test("only single-line bank inputs accept the closed installed mask", () => {
-  const node = bankNode({ ...input, mask });
+  const node = resolvedNode({ ...input, mask });
   assert.equal(node.kind, "input.text");
   assert.deepEqual(node.kind === "input.text" && node.mask, mask);
   for (const rejected of [
@@ -17,8 +17,8 @@ test("only single-line bank inputs accept the closed installed mask", () => {
     { ...input, mask: { ...mask, kind: "phone" } },
     { ...input, mask: { ...mask, rounding: "nearest" } },
     { ...input, kind: "input.multiline", mask },
-  ]) assert.throws(() => bankNode(rejected));
-  assert.equal(bankNode({ ...input, kind: "input.multiline" }).kind, "input.multiline");
+  ]) assert.throws(() => resolvedNode(rejected));
+  assert.equal(resolvedNode({ ...input, kind: "input.multiline" }).kind, "input.multiline");
 });
 
 test("money canonical length boundary counts sign and padded fraction without rounding", () => {

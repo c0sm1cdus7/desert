@@ -7,5 +7,5 @@ export const Specimen = defineComposition({
   id: "specimen",
   purpose: "Declared as found at the start of the migration: Specimen.svelte.",
   owner: { entry: "Specimen.svelte", parts: ["specimen-presentation.ts"] },
-  uses: ["bank-renderer", "surface-frame"], approval: "none", contract: SpecimenContract,
+  uses: ["node-renderer", "surface-frame"], approval: "none", contract: SpecimenContract,
 } as const);

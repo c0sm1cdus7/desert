@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import AxeBuilder from "@axe-core/playwright";
 import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
-import { InteractionCatalog } from "../../src/interaction/catalog.ts";
+import { ResolvedNodes } from "../../src/interaction/catalog.ts";
 
 test("the form has a labelled modal, keyboard focus containment, reduced motion and retained drafts", { timeout: 30000 }, async () => {
   const f = await browserFixture();
@@ -36,14 +36,14 @@ test("the kitchen sink covers every installed catalog state and opens the real s
   const f = await browserFixture();
   try {
     await openCatalog(f.page);
-    for (const entry of InteractionCatalog.entries) {
+    for (const entry of ResolvedNodes.entries) {
       for (const state of entry.states) assert.equal(await f.page.locator(`[data-specimen="${entry.id}:${state}"]`).count(), 1);
     }
     await f.page.locator('[data-specimen="transient:open"]').getByRole("button").click();
     await f.page.getByRole("dialog", { name: "Diagnostic transient", exact: true }).waitFor();
     await f.page.keyboard.press("Escape");
     await f.page.getByRole("dialog", { name: "Diagnostic transient", exact: true }).waitFor({ state: "hidden" });
-    for (const kind of ["form", "review"]) for (const entry of InteractionCatalog.entries.filter(entry => entry.id === kind)) {
+    for (const kind of ["form", "review"]) for (const entry of ResolvedNodes.entries.filter(entry => entry.id === kind)) {
       for (const state of entry.states) {
         const specimen = f.page.locator(`[data-specimen="${kind}:${state}"]`);
         assert.equal(await specimen.getAttribute("data-bank-coverage"), "gap");

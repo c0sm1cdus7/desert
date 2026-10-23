@@ -1,10 +1,10 @@
-import { InteractionCatalog, type PrimitiveId } from "../../interaction/catalog.ts";
-import { BankVersion as version, bankNode, type BankNode } from "../../interaction/bank-node.ts";
+import { ResolvedNodes, type ResolvedNodeId } from "../../interaction/catalog.ts";
+import { ResolvedNodeVersion as version, resolvedNode, type ResolvedNode } from "../../interaction/resolved-node.ts";
 import { surfaceFrame, type FactsContent } from "../../interaction/surface-frame.ts";
 import type { PublicCatalogSurface } from "../../public-catalog/index.ts";
 
-export type PublicBankSpecimen = Readonly<{ id: PrimitiveId; state: string;
-  owner: "bank" | "control-bank"; node?: BankNode; gap?: string }>;
+export type PublicBankSpecimen = Readonly<{ id: ResolvedNodeId; state: string;
+  owner: "bank" | "control-bank"; node?: ResolvedNode; gap?: string }>;
 export type PublicBankInput = Pick<PublicCatalogSurface, "productId" | "home" | "details">;
 
 /** Diagnostic coverage is not a capability declaration or an execution adapter. */
@@ -12,9 +12,9 @@ export function publicCatalogBankInventory(surface: PublicBankInput): readonly P
   const first = surface.details[0]!;
   const details: FactsContent = { kind: "facts", object: surface.productId, fields: ["title"],
     labels: { [`${surface.productId}.title`]: "Title" }, facts: { title: first.title } };
-  return InteractionCatalog.entries.flatMap(entry => entry.states.map(state => {
+  return ResolvedNodes.entries.flatMap(entry => entry.states.map(state => {
     const specimen = { id: entry.id, state, owner: "bank" as const };
-    const render = (node: BankNode): PublicBankSpecimen => ({ ...specimen, node: bankNode(node) });
+    const render = (node: ResolvedNode): PublicBankSpecimen => ({ ...specimen, node: resolvedNode(node) });
     const gap = (reason: string): PublicBankSpecimen => ({ ...specimen, gap: reason });
     if (entry.family === "control") return { ...specimen, owner: "control-bank" as const };
     if (entry.id === "catalog.home") return { ...specimen, node: surface.home };

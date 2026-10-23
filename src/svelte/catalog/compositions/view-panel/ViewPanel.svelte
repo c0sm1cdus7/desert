@@ -1,16 +1,16 @@
 <script lang="ts">
   import type { ResolvedPanel } from "../../../../views/resolved.ts";
-  import { bankEvent, type BankEvent } from "../../../../interaction/bank-events.ts";
+  import { nodeEvent, type NodeEvent } from "../../../../interaction/node-events.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
   import Drawer from "../../foundations/drawer/Drawer.svelte";
   import ConfirmationDialog from "../confirmation-dialog/ConfirmationDialog.svelte";
   import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
   let { panel, open, frameIdentity, onevent }: { panel: ResolvedPanel; open: boolean;
-    frameIdentity: object; onevent: (event: BankEvent) => void } = $props();
+    frameIdentity: object; onevent: (event: NodeEvent) => void } = $props();
   let events = $derived.by(() => {
     // Each keyed frame captures its own receiver, including delayed teardown.
     const sink = onevent;
-    const send = (event: BankEvent) => sink(bankEvent(event));
+    const send = (event: NodeEvent) => sink(nodeEvent(event));
     return {
       close: () => send({ kind: "transient.close" }),
       closed: () => send({ kind: "transient.closed" }),

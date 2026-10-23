@@ -1,13 +1,13 @@
 import { Type, type Static } from "@sinclair/typebox";
 import { Check } from "@sinclair/typebox/value";
 import { freezeDeep, jsonSnapshot, type Frozen } from "../json.ts";
-import { BankNodeSchema } from "./bank-schema.ts";
-import { bankNode } from "./bank-node.ts";
+import { ResolvedNodeSchema } from "./resolved-node-schema.ts";
+import { resolvedNode } from "./resolved-node.ts";
 
 const text = Type.String({ minLength: 1, pattern: "\\S" });
 const closed = <P extends import("@sinclair/typebox").TProperties>(properties: P) =>
   Type.Object(properties, { additionalProperties: false });
-const StackNodeSchema = Type.Extract(BankNodeSchema, Type.Object({ kind: Type.Union([
+const StackNodeSchema = Type.Extract(ResolvedNodeSchema, Type.Object({ kind: Type.Union([
   Type.Literal("input.text"), Type.Literal("input.multiline"), Type.Literal("fact"),
   Type.Literal("action"), Type.Literal("availability"), Type.Literal("collection"),
   Type.Literal("catalog.card"), Type.Literal("control.select"), Type.Literal("control.popover"),
@@ -17,7 +17,7 @@ const StackNodeSchema = Type.Extract(BankNodeSchema, Type.Object({ kind: Type.Un
 ]) }));
 export type StackNode = Frozen<Static<typeof StackNodeSchema>>;
 export function stackNode(value: unknown): StackNode {
-  const node = bankNode(value);
+  const node = resolvedNode(value);
   if (!Check(StackNodeSchema, node)) throw new Error("INVALID_PLACE_STACK_NODE");
   return node;
 }
@@ -46,7 +46,7 @@ export function placeContent(value: unknown): PlaceContent {
   if (new Set(ids).size !== ids.length) throw new Error("INVALID_PLACE_STACK_ID");
   const controls = new Set<string>();
   for (const stack of result.stacks) for (const node of stackNodes(stack.items)) {
-    bankNode(node);
+    resolvedNode(node);
     const identity = "control" in node ? node.control.id :
       node.kind === "input.text" || node.kind === "input.multiline" ? node.name : undefined;
     if (identity !== undefined) {

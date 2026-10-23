@@ -1,13 +1,13 @@
 <script lang="ts">
   import * as Card from "@desert/svelte/vendor/components/ui/card/index.js";
   import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
-  import type { BankNodeFor } from "../../../../interaction/bank-node.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { ResolvedNodeFor } from "../../../../interaction/resolved-node.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { getContext } from 'svelte';
   import Image from '../image/Image.svelte';
   import ArtworkPlaceholder from '../artwork-placeholder/ArtworkPlaceholder.svelte';
   import { mediaSource, prefetchImage } from '../../../infra/media-source.ts';
-  let { node, onevent }: { node: BankNodeFor<"catalog.card">; onevent: (event: BankEvent) => void } = $props();
+  let { node, onevent }: { node: ResolvedNodeFor<"catalog.card">; onevent: (event: NodeEvent) => void } = $props();
   const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');
   function prepare() {
     const asset = cover?.(node.record); if (asset) prefetchImage(mediaSource(asset), window.innerWidth*window.devicePixelRatio);

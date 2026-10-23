@@ -1,7 +1,7 @@
 <script lang="ts">
   import FactRow from "../../foundations/fact-row/FactRow.svelte";
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
-  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import type { FactsContent } from "../../../../interaction/surface-frame.ts";
   let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {} }: Omit<FactsContent, "kind"> = $props();
   const textual = $derived(fields.filter(field => !images.includes(field)));
@@ -10,7 +10,7 @@
 {#each fields.filter(field => images.includes(field)) as field}
   {@const value = facts[field]}
   {#if typeof value === 'object' && value !== null && 'kind' in value && value.kind === 'asset'}
-    <BankRenderer node={{ version: BankVersion, kind: "control.image", control: {
+    <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "control.image", control: {
       version: "desert.control/1", kind: "image", id: `fact:${object}:${field}`,
       label: labels[`${object}.${field}`]!, alt: labels[`${object}.${field}`]!,
       disabled: false, source: value, aspect: "landscape",

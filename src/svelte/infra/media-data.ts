@@ -1,4 +1,4 @@
-import { BankVersion } from "../../interaction/bank-node.ts";
+import { ResolvedNodeVersion } from "../../interaction/resolved-node.ts";
 import type { CatalogHomeNode, CatalogItemNode } from "../../public-catalog/node-schema.ts";
 import { mediaArtwork, type MediaItem, type MediaLibrary } from "../../views/media-library.ts";
 import type { ResolvedView } from "../../views/resolved.ts";
@@ -27,7 +27,7 @@ export function mediaIdentity(library: MediaLibrary, album: string | null, home:
   };
 }
 function mediaCard(item: MediaItem): CatalogItemNode {
-  const base = { version: BankVersion, kind: "catalog.card" as const, presentation: "item" as const,
+  const base = { version: ResolvedNodeVersion, kind: "catalog.card" as const, presentation: "item" as const,
     record: `${item.kind}.${item.id}`, title: item.title };
   return item.kind === "image" ? { ...base, image: item.image } : {
     ...base, mediaType: item.kind, ...(item.artwork ? { image: item.artwork } : {}),
@@ -46,7 +46,7 @@ export function mediaContent(library: MediaLibrary, album: string | null): Catal
       return matches.length ? [{ id: kind, title, items: matches }] : [];
     }),
   ];
-  return { version: BankVersion, kind: "catalog.home", groups,
+  return { version: ResolvedNodeVersion, kind: "catalog.home", groups,
     featured: { ...groups[0]!.items[0]!, presentation: "featured", eyebrow: "Media", actionLabel: "Open" } };
 }
 export function mediaTarget(library: MediaLibrary, record: string) {

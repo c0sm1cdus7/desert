@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { FactValue as Value } from "../../../../fact-values.ts";
   import FactValue from "../fact-value/FactValue.svelte";
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
-  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import ReferenceValues from '../reference-values/ReferenceValues.svelte';
   import type { ReferenceState } from '../../../../interaction/labels-control.ts';
   import { displayLabel } from '../../../../interaction/display-label.ts';
@@ -16,7 +16,7 @@
     {:else if Array.isArray(value)}
       {#if value.length}<div class="fact-labels">
         {#each value as text, index}
-          <BankRenderer node={{ version: BankVersion, kind: "control.tag", control: {
+          <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "control.tag", control: {
             version: "desert.control/1", kind: "tag", id: `${id}:${index}`, label: text,
             disabled: false, tone: "neutral",
           } }} />

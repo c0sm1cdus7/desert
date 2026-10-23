@@ -1,19 +1,19 @@
 <script lang="ts">
-  import type { BankRendererProps } from "../../../renderer-contracts.ts";
-  import { bankNode } from "../../../../interaction/bank-node.ts";
-  import { bankEvent, type BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { NodeRendererProps } from "../../../renderer-contracts.ts";
+  import { resolvedNode } from "../../../../interaction/resolved-node.ts";
+  import { nodeEvent, type NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ControlEvent } from "../../../../interaction/control-nodes.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import { webRenderers } from "../../../renderer-registry.ts";
+  import { nodeRenderers } from "../../../renderer-registry.ts";
   import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
 
-  let { node, onevent = () => {}, host, actionElementProps, frameIdentity }: BankRendererProps = $props();
-  let checked = $derived(bankNode(node));
-  const emit = (event: BankEvent) => onevent(bankEvent(event));
+  let { node, onevent = () => {}, host, actionElementProps, frameIdentity }: NodeRendererProps = $props();
+  let checked = $derived(resolvedNode(node));
+  const emit = (event: NodeEvent) => onevent(nodeEvent(event));
   const control = (event: ControlEvent) => emit(event);
   let frameEvents = $derived.by(() => {
     const sink = onevent;
-    const send = (event: BankEvent) => sink(bankEvent(event));
+    const send = (event: NodeEvent) => sink(nodeEvent(event));
     return {
       close: () => send({ kind: "transient.close" }),
       closed: () => send({ kind: "transient.closed" }),
@@ -34,65 +34,65 @@
 </script>
 
 {#if checked.kind === "input.text"}
-  {@const Renderer = webRenderers[checked.kind]}
+  {@const Renderer = nodeRenderers[checked.kind]}
   <Renderer primitive={checked.kind} identity={checked.name} label={checked.label} value={checked.value} required={checked.required}
     disabled={checked.disabled} error={checked.error} helper={checked.helper} mask={checked.mask} maxLength={checked.maxLength}
     onchange={value => checked.kind === "input.text" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "input.multiline"}
-  {@const Renderer = webRenderers[checked.kind]}
+  {@const Renderer = nodeRenderers[checked.kind]}
   <Renderer primitive={checked.kind} label={checked.label} value={checked.value} required={checked.required}
     disabled={checked.disabled} error={checked.error} helper={checked.helper} maxLength={checked.maxLength}
     onchange={value => checked.kind === "input.multiline" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "action"}
-  {@const Renderer = webRenderers.action}
+  {@const Renderer = nodeRenderers.action}
   <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role} reason={checked.action.reason}
     type={checked.form ? "submit" : "button"} onclick={activate} elementProps={actionElementProps} />
 {:else if checked.kind === "availability"}
-  {@const Renderer = webRenderers.availability}<Renderer state={checked.state} label={checked.label} />
+  {@const Renderer = nodeRenderers.availability}<Renderer state={checked.state} label={checked.label} />
 {:else if checked.kind === "fact"}
-  {@const Renderer = webRenderers.fact}<Renderer {...checked.details} />
+  {@const Renderer = nodeRenderers.fact}<Renderer {...checked.details} />
 {:else if checked.kind === "form"}
-  {@const Renderer = webRenderers.form}<Renderer fields={checked.content.fields} edit={(name, value) => emit({ kind: "input.change", name, value })} controlEvent={emit} />
+  {@const Renderer = nodeRenderers.form}<Renderer fields={checked.content.fields} edit={(name, value) => emit({ kind: "input.change", name, value })} controlEvent={emit} />
 {:else if checked.kind === "context"}
-  {@const Renderer = webRenderers.context}<Renderer {...checked.content.details} attention={checked.content.attention} selectors={checked.content.selectors} presentation={checked.content.presentation}
+  {@const Renderer = nodeRenderers.context}<Renderer {...checked.content.details} attention={checked.content.attention} selectors={checked.content.selectors} presentation={checked.content.presentation}
     onselect={journey => emit({ kind: "surface.invoke", intent: { kind: "journey", journey } })} actions={checked.content.actions.map(action => ({
     id: action.destination, label: action.label, available: action.available,
     invoke: () => emit({ kind: "surface.invoke", intent: { kind: "journey", journey: action.destination } }),
   }))} />
 {:else if checked.kind === "review"}
-  {@const Renderer = webRenderers.review}<Renderer {...checked.content} />
+  {@const Renderer = nodeRenderers.review}<Renderer {...checked.content} />
 {:else if checked.kind === "collection"}
-  {@const Renderer = webRenderers.collection}<Renderer node={checked} select={id => emit({ kind: "collection.select", id })} />
+  {@const Renderer = nodeRenderers.collection}<Renderer node={checked} select={id => emit({ kind: "collection.select", id })} />
 {:else if checked.kind === "transient"}
-  {@const Renderer = webRenderers.transient}<Renderer label={checked.label} open={checked.open} locked={checked.locked} frame={checked.frame}
+  {@const Renderer = nodeRenderers.transient}<Renderer label={checked.label} open={checked.open} locked={checked.locked} frame={checked.frame}
     {frameIdentity} onclose={frameEvents.close} onclosed={frameEvents.closed} invoke={frameEvents.invoke} edit={frameEvents.edit} controlEvent={frameEvents.controls} />
 {:else if checked.kind === "problem"}
-  {@const Renderer = webRenderers.problem}<Renderer open={checked.open} title={checked.title} description={checked.description}
+  {@const Renderer = nodeRenderers.problem}<Renderer open={checked.open} title={checked.title} description={checked.description}
     locked={checked.locked} severity={checked.severity} close={() => emit({ kind: "problem.close" })} />
 {:else if checked.kind === "control.select"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.popover"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.files"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} host={fileHost()} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} host={fileHost()} />
 {:else if checked.kind === "control.labels"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.options"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.money"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.date"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.tag"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} />
 {:else if checked.kind === "control.image"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} />
 {:else if checked.kind === "control.avatar"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} />
 {:else if checked.kind === "catalog.card"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
 {:else if checked.kind === "catalog.home"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
 {:else if checked.kind === "catalog.detail"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
 {/if}

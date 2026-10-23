@@ -55,7 +55,7 @@ export function viewImportProvenance(files: ReadonlyMap<string, ts.SourceFile>) 
         if (!imported) continue;
         const original = (imported.propertyName ?? imported.name).text;
         if (ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === authoringEntrypoint) {
-          return original === "moduleCatalog" ? "constructor" : undefined;
+          return original === "moduleIndex" ? "constructor" : undefined;
         }
         const target = targetOf(file, statement);
         return target ? binding(target, original, true) : undefined;

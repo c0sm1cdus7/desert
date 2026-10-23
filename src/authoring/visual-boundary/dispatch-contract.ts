@@ -1,12 +1,12 @@
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
-import { InteractionCatalog } from "../../interaction/catalog.ts";
+import { ResolvedNodes } from "../../interaction/catalog.ts";
 
-export const dispatcherPath = "src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte";
+export const dispatcherPath = "src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte";
 export const registryPath = "src/svelte/renderer-registry.ts";
 export const contractPath = "src/svelte/renderer-contracts.ts";
 export const requiredDispatcherSources = Object.freeze([dispatcherPath, registryPath, contractPath]);
-export const dispatchKinds: ReadonlySet<string> = new Set(InteractionCatalog.entries.map(entry => entry.id));
+export const dispatchKinds: ReadonlySet<string> = new Set(ResolvedNodes.entries.map(entry => entry.id));
 type Source = Readonly<{ path: string; source: string }>;
 type Fail = (reason: string) => never;
 export function assertCompleteDispatcherSources(sources: readonly Source[]): void {
@@ -32,8 +32,8 @@ export function dispatchTypes(source: string, fail: Fail) {
     if (!alias || !ts.isTypeAliasDeclaration(alias)) return fail(`missing owner type ${name}`);
     return checker.getTypeAtLocation(alias);
   }
-  const inputs = new Set(checker.getPropertiesOfType(named("BankRendererProps")).map(property => property.name));
-  const props = named("WebRendererProps"), entries = new Map<string, Set<string>>();
+  const inputs = new Set(checker.getPropertiesOfType(named("NodeRendererProps")).map(property => property.name));
+  const props = named("NodeRendererInputs"), entries = new Map<string, Set<string>>();
   for (const kind of dispatchKinds) {
     const property = checker.getPropertyOfType(props, kind);
     if (!property) fail(`missing typed owner ${kind}`);
@@ -53,12 +53,12 @@ export function assertRendererRegistry(source: string, fail: Fail): void {
     if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
       const from = statement.moduleSpecifier.text, clause = statement.importClause;
       if (clause?.isTypeOnly && from === "./renderer-contracts.ts" && clause.namedBindings && ts.isNamedImports(clause.namedBindings)) {
-        for (const item of clause.namedBindings.elements) if ((item.propertyName ?? item.name).text === "WebRendererBank") bankType = item.name.text;
+        for (const item of clause.namedBindings.elements) if ((item.propertyName ?? item.name).text === "NodeRendererTable") bankType = item.name.text;
       } else if (clause?.name && !clause.namedBindings && from.startsWith("./") && from.endsWith(".svelte")) imports.add(clause.name.text);
       else fail("opaque registry import");
     } else if (ts.isVariableStatement(statement) && statement.declarationList.declarations.length === 1) {
       const node = statement.declarationList.declarations[0]!;
-      if (initializer || !ts.isIdentifier(node.name) || node.name.text !== "webRenderers"
+      if (initializer || !ts.isIdentifier(node.name) || node.name.text !== "nodeRenderers"
         || !node.type || !ts.isTypeReferenceNode(node.type) || node.type.typeName.getText(file) !== bankType) fail("untyped registry");
       initializer = node.initializer;
     } else fail("executable registry extension");

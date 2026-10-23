@@ -1,4 +1,4 @@
-import { humanSurface, agentSurface, moduleCatalog, publishObject, factReference } from "../../src/index.ts";
+import { humanExposure, agentExposure, moduleIndex, publishObject, factReference } from "../../src/index.ts";
 import { Notebook } from "../../products/notebook/product.ts";
 import { Note, OnlyOwnerCanAccess, NotesController, ArchiveNote, CreateNote, ReadNote } from "./notebook-domain.ts";
 import { authoredProgram, NoteView } from "./authored-view-program.ts";
@@ -16,14 +16,14 @@ export function publishedNotebookNote() { return publishObject(Note, notePublica
 
 export function authoredNotebookSurfaces() {
   const journeys = [CreateNote, ReadNote, ArchiveNote];
-  return [humanSurface({ id: "human", journeys, locale: "en" }), agentSurface("agent", journeys)];
+  return [humanExposure({ id: "human", journeys, locale: "en" }), agentExposure("agent", journeys)];
 }
 
 export function authoredNotebookSource() {
   return {
-    id: Notebook.id, label: "Notebook", modules: moduleCatalog([]),
+    id: Notebook.id, label: "Notebook", modules: moduleIndex([]),
     objects: [publishedNotebookNote()], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
-    surfaces: authoredNotebookSurfaces(), views: authoredProgram.views, destinations: authoredProgram.destinations,
+    exposures: authoredNotebookSurfaces(), views: authoredProgram.views, destinations: authoredProgram.destinations,
     workspace: authoredProgram.workspace, entry: authoredProgram.entry, navigation: authoredProgram.navigation,
     journeys: [
       { presentation: authoredProgram.journeys[0] },

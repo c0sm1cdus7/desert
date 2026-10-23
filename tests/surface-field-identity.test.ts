@@ -4,7 +4,7 @@ import { compile } from "../src/compile.ts";
 import { RuntimeConnectionPolicy } from "../src/connection-policy.ts";
 import type { ObjectDefinition } from "../src/contracts.ts";
 import type { JourneyDefinition } from "../src/program-grammar.ts";
-import { compileSurfaceExposures } from "../src/modules/compile-surfaces.ts";
+import { compileExposures } from "../src/modules/compile-exposures.ts";
 import type { OwnedDefinitions } from "../src/modules/types.ts";
 
 type Field = { object: string; field: string };
@@ -32,7 +32,7 @@ function authoredSurface({ objects, journeys }: ReturnType<typeof fixture>) {
       ? { execution, label: execution.id, humanReview: "not-required" as const }
       : { execution, label: execution.id }),
   };
-  return compileSurfaceExposures([{
+  return compileExposures([{
     id: "human", kind: "human", locale: "en", journeys: journeys.map(journey => journey.id),
   }], [owner])[0]!;
 }

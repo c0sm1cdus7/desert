@@ -10,11 +10,11 @@ export function deriveWebCatalog(manifest: WebCatalogDefinition): readonly { pat
   const owners = Object.entries(manifest.owners);
   const bank = owners.filter(([, owner]) => owner.bank?.length);
   const adapters = owners.filter(([, owner]) => Object.keys(owner.adapters ?? {}).length);
-  const registry = [header + 'import type { WebRendererBank } from "./renderer-contracts.ts";',
+  const registry = [header + 'import type { NodeRendererTable } from "./renderer-contracts.ts";',
     ...bank.map(([name, owner]) => `import ${name} from ${JSON.stringify(request(owner.source))};`),
-    "", "export const webRenderers: WebRendererBank = Object.freeze({",
+    "", "export const nodeRenderers: NodeRendererTable = Object.freeze({",
     ...bank.flatMap(([name, owner]) => owner.bank!.map(id => `  ${/^[a-z]+$/.test(id) ? id : JSON.stringify(id)}: ${name},`)),
-    "} satisfies WebRendererBank);", ""].join("\n");
+    "} satisfies NodeRendererTable);", ""].join("\n");
   const gateway = [header + 'import type { AdapterComponent } from "./adapter-contract.ts";',
     ...adapters.map(([name, owner]) => `import ${name}Owner from ${JSON.stringify(request(owner.source))};`), "",
     ...adapters.flatMap(([name, owner]) => Object.keys(owner.adapters!).map(entry =>

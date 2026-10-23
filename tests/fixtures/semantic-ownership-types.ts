@@ -1,10 +1,10 @@
-import { composeProduct, defineModule, factReference, humanSurface, publishObject } from "../../src/index.ts";
+import { composeProduct, defineModule, factReference, humanExposure, publishObject } from "../../src/index.ts";
 import { Note } from "../../products/notebook/note.ts";
 import { ArchiveNote, CreateNote, ReadNote } from "../../products/notebook/journeys.ts";
 import { authoredNotebookSource, notePublication } from "./authored-notebook.ts";
 
 const exposure = { id: "human", journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" };
-const authored = humanSurface(exposure);
+const authored = humanExposure(exposure);
 const source = authoredNotebookSource();
 composeProduct(source);
 publishObject(Note, notePublication);
@@ -14,34 +14,34 @@ const commit = { "create-note": "submit", "archive-note": "review" } as const;
 const language = { locale: "en", fields: {}, journeys: {} };
 
 // @ts-expect-error Field representations belong to published objects, not surface literals.
-humanSurface({ ...exposure, inputs });
+humanExposure({ ...exposure, inputs });
 // @ts-expect-error Semantic representations are projected from publication, not authored on an exposure.
-humanSurface({ ...exposure, fieldRepresentations });
+humanExposure({ ...exposure, fieldRepresentations });
 // @ts-expect-error Review requirements belong to the executing journey, not surface literals.
-humanSurface({ ...exposure, commit });
+humanExposure({ ...exposure, commit });
 // @ts-expect-error Labels belong to published facts and operations, not a surface map.
-humanSurface({ ...exposure, language });
+humanExposure({ ...exposure, language });
 const withInputs = { ...exposure, inputs };
 const withCommit = { ...exposure, commit };
 const withLanguage = { ...exposure, language };
 // @ts-expect-error A variable cannot reopen field representation ownership.
-humanSurface(withInputs);
+humanExposure(withInputs);
 // @ts-expect-error A variable cannot reopen human review ownership.
-humanSurface(withCommit);
+humanExposure(withCommit);
 // @ts-expect-error A variable cannot reopen label ownership.
-humanSurface(withLanguage);
+humanExposure(withLanguage);
 const withUndefinedInputs = { ...exposure, inputs: undefined };
 // @ts-expect-error Presence of a forbidden property is rejected even when undefined.
-humanSurface(withUndefinedInputs);
+humanExposure(withUndefinedInputs);
 const withUndefinedRepresentations = { ...exposure, fieldRepresentations: undefined };
 // @ts-expect-error Presence of a forbidden representation property is rejected even when undefined.
-humanSurface(withUndefinedRepresentations);
-const canonicalInputs = { ...source, surfaces: [{ ...authored, inputs }] };
-const canonicalCommit = { ...source, surfaces: [{ ...authored, commit }] };
-const canonicalLanguage = { ...source, surfaces: [{ ...authored, language }] };
+humanExposure(withUndefinedRepresentations);
+const canonicalInputs = { ...source, exposures: [{ ...authored, inputs }] };
+const canonicalCommit = { ...source, exposures: [{ ...authored, commit }] };
+const canonicalLanguage = { ...source, exposures: [{ ...authored, language }] };
 // @ts-expect-error Composition cannot accept input maps hidden in a surface variable.
 composeProduct(canonicalInputs);
-const canonicalRepresentations = { ...source, surfaces: [{ ...authored, fieldRepresentations }] };
+const canonicalRepresentations = { ...source, exposures: [{ ...authored, fieldRepresentations }] };
 // @ts-expect-error Composition cannot accept representation maps hidden in a surface variable.
 composeProduct(canonicalRepresentations);
 // @ts-expect-error Composition cannot accept review maps hidden in a surface variable.

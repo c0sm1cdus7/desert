@@ -3,15 +3,15 @@ import test from "node:test";
 import { captureViewEvents } from "./fixtures/owned-view-events.ts";
 import { runtimeFixture, until } from "./fixtures/view-program-runtime.ts";
 import { multiViewRuntime, until as untilMulti } from "./fixtures/multi-view-runtime.ts";
-import type { BankEvent } from "../src/interaction/bank-events.ts";
+import type { NodeEvent } from "../src/interaction/node-events.ts";
 
-const input = (value: string): BankEvent => ({ kind: "input.change", name: "title", value });
-const close: BankEvent = { kind: "surface.invoke", intent: { kind: "close" } };
-const back: BankEvent = { kind: "surface.invoke", intent: { kind: "back" } };
-const save: BankEvent = { kind: "surface.invoke", intent: { kind: "view.output", view: "editor", output: "save" } };
-const accept: BankEvent = { kind: "surface.invoke", intent: { kind: "accept" } };
-const create: BankEvent = { kind: "surface.invoke", intent: { kind: "view.output", view: "notes", output: "create" } };
-const body: BankEvent = { kind: "input.change", name: "body", value: "Current body" };
+const input = (value: string): NodeEvent => ({ kind: "input.change", name: "title", value });
+const close: NodeEvent = { kind: "surface.invoke", intent: { kind: "close" } };
+const back: NodeEvent = { kind: "surface.invoke", intent: { kind: "back" } };
+const save: NodeEvent = { kind: "surface.invoke", intent: { kind: "view.output", view: "editor", output: "save" } };
+const accept: NodeEvent = { kind: "surface.invoke", intent: { kind: "accept" } };
+const create: NodeEvent = { kind: "surface.invoke", intent: { kind: "view.output", view: "notes", output: "create" } };
+const body: NodeEvent = { kind: "input.change", name: "body", value: "Current body" };
 
 test("late events from a Note editor cannot change a newer Card editor", async t => {
   const f = await multiViewRuntime(t);

@@ -7,5 +7,5 @@ export const LabelsControl = defineComposition({
   id: "labels-control",
   purpose: "Compose the field well, value rail and options from the same shared owners as every labels control.",
   owner: { entry: "LabelsControl.svelte" },
-  uses: ["bank-renderer", "character-counter", "label-rail", "media-reference-selector", "reference-selector", "stack-layout", "text-input"], approval: "none", contract: LabelsControlContract,
+  uses: ["node-renderer", "character-counter", "label-rail", "media-reference-selector", "reference-selector", "stack-layout", "text-input"], approval: "none", contract: LabelsControlContract,
 } as const);

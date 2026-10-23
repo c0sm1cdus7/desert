@@ -1,16 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { controlBankNode } from '../../src/interaction/bank-node.ts';
+import { controlResolvedNode } from '../../src/interaction/resolved-node.ts';
 import { svelteBrowser } from '../fixtures/svelte-browser.ts';
 import { rendererCss } from '../fixtures/renderer-css.ts';
 import { settle, near } from './public-catalog-expectations.ts';
 
 test('always-visible sibling Stacks retain independent labels, requirements and shared insets', async () => {
   const base = { version: 'desert.control/1', disabled: false } as const;
-  const files = (id: string) => controlBankNode({ ...base, kind: 'files', id, label: 'Shared label', files: [],
+  const files = (id: string) => controlResolvedNode({ ...base, kind: 'files', id, label: 'Shared label', files: [],
     limits: { maxCount: 2, maxFileBytes: 1024, maxTotalBytes: 2048, accept: ['text/plain'] } });
   const definitions = [{ id: 'direct', title: 'Shared label', items: [files('direct')] },
-    { id: 'details', title: 'Details', items: [controlBankNode({ ...base, kind: 'options', id: 'choices', label: 'Shared label', minSelected: 1,
+    { id: 'details', title: 'Details', items: [controlResolvedNode({ ...base, kind: 'options', id: 'choices', label: 'Shared label', minSelected: 1,
       maxSelected: 1, selected: ['first'], options: [{ value: 'first', label: 'First', disabled: false },
         { value: 'second', label: 'Second', disabled: false }] }), files('details-files')],
   }];

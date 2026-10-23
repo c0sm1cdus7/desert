@@ -1,12 +1,12 @@
 import type { OwnedResolvedView, OwnedResolvedPanel, OwnedViewEvent } from "../../web/client/view-events.ts";
-import type { PrimitiveId } from "../../interaction/catalog.ts";
-import type { BankEvent } from "../../interaction/bank-events.ts";
+import type { ResolvedNodeId } from "../../interaction/catalog.ts";
+import type { NodeEvent } from "../../interaction/node-events.ts";
 import type { PublicCatalogSurface, projectPublicCatalog } from "../../public-catalog/client.ts";
 import type { CatalogDestination, CatalogSearchResult } from "./catalog-search.ts";
 import type { WorkspaceSearchResult } from "./workspace-search.ts";
 
 export type WorkspaceContentActions = {
-  readonly revealEntry: (id: PrimitiveId) => Promise<void>;
+  readonly revealEntry: (id: ResolvedNodeId) => Promise<void>;
   readonly selectMedia: (record: string) => boolean;
 };
 export type RegisterContentActions = (actions: WorkspaceContentActions | null) => void;
@@ -41,7 +41,7 @@ export type WorkspaceContent = {
   readonly active: CatalogDestination;
   readonly selected: string | null;
   readonly bankVisited: boolean;
-  readonly onevent: (event: BankEvent) => void;
+  readonly onevent: (event: NodeEvent) => void;
   readonly onactions: RegisterContentActions;
 };
 

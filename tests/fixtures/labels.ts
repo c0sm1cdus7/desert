@@ -1,5 +1,5 @@
 import { objectType, labels, text, principal, controllerRole, ownershipPolicy, createCommand, updateCommand, mutationJourney, readJourney, fromInput, actorId,
-  agentSurface, humanSurface, composeProduct, moduleCatalog, publishObject, factReference, initializeInput, Components, ViewTitles, defineView, viewPorts, viewOutput,
+  agentExposure, humanExposure, composeProduct, moduleIndex, publishObject, factReference, initializeInput, Components, ViewTitles, defineView, viewPorts, viewOutput,
 } from "../../src/index.ts";
 import { compile } from "../../src/compile.ts";
 import type { HumanSurface } from "../../src/web/types.ts";
@@ -38,7 +38,7 @@ const editorOutputs = [
   { ...viewOutput(EditorView, "close"), action: { kind: "close" } },
 ] as const;
 const Home = { id: "items", label: "Items", icon: "open", entryJourney: ReadItems } as const;
-export const LabeledItemsProduct = composeProduct({ id: "labels-test", label: "Items", modules: moduleCatalog([]),
+export const LabeledItemsProduct = composeProduct({ id: "labels-test", label: "Items", modules: moduleIndex([]),
   objects: [publishObject(Item, { view: DetailView, title: factReference(Item, "title"),
     fields: [{ fact: factReference(Item, "title"), label: "Title", representation: "text" },
       { fact: factReference(Item, "projects"), label: "Projects", representation: "tags" }], actions: [{ journey: EditItem, icon: "edit" }] })],
@@ -59,7 +59,7 @@ export const LabeledItemsProduct = composeProduct({ id: "labels-test", label: "I
   ],
   views: [ListView, DetailView, EditorView, WorkspaceView, NavigationView], workspace: WorkspaceView,
   destinations: [Home], entry: Home, navigation: [{ destination: Home, group: "Explore", purpose: "content" }],
-  surfaces: [agentSurface("agent", [CreateItem, EditItem, ReadItems]), humanSurface({ id: "human", journeys: [CreateItem, EditItem, ReadItems], locale: "en" })],
+  exposures: [agentExposure("agent", [CreateItem, EditItem, ReadItems]), humanExposure({ id: "human", journeys: [CreateItem, EditItem, ReadItems], locale: "en" })],
 });
 export const LabeledItems = LabeledItemsProduct.definition;
 export const program = LabeledItemsProduct.viewProgram;

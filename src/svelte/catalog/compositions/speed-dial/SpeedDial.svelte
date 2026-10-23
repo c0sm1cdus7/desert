@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
   import { actionIcons } from "../../../infra/action-icons.ts";
   import { dismissWhenInactive } from "../../../infra/surface-activity.svelte.ts";
   import { anchoredTabExit } from "../../../infra/anchored-tab-exit.ts";
@@ -15,7 +15,7 @@
 </script>
 <Popover.Root {open} onOpenChange={onchange}>
   <span data-speed-dial-trigger><Popover.Trigger>
-    {#snippet child({ props })}<BankRenderer node={{version:"desert.bank-node/1",kind:"action",role:"secondary",action:{label:kind === "create" ? "Create" : "More actions",icon:kind === "create" ? "create" : "more",state:"ready",intent:{kind:"transient.open"}}}} actionElementProps={{...props,"aria-controls":open?panelId:undefined}} />{/snippet}
+    {#snippet child({ props })}<NodeRenderer node={{version:"desert.bank-node/1",kind:"action",role:"secondary",action:{label:kind === "create" ? "Create" : "More actions",icon:kind === "create" ? "create" : "more",state:"ready",intent:{kind:"transient.open"}}}} actionElementProps={{...props,"aria-controls":open?panelId:undefined}} />{/snippet}
   </Popover.Trigger></span>
   <Popover.Content id={panelId} presentation="speed-dial" align="end" aria-label={kind === "create" ? "Create" : "More actions"}
     onkeydowncapture={event => anchoredTabExit(event,event.currentTarget,()=>onchange(false))}>

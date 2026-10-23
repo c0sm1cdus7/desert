@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mkdir, readFile } from 'node:fs/promises';
-import { InteractionCatalog } from '../src/interaction/catalog.ts';
+import { ResolvedNodes } from '../src/interaction/catalog.ts';
 import { catalogTitle } from '../src/svelte/infra/catalog-navigation.ts';
 import { sharedCatalogOwners } from '../src/svelte/infra/shared-owners.ts';
 import { sharedPurpose, sharedIndexOwners } from '../src/svelte/infra/shared-purpose.ts';
@@ -22,16 +22,16 @@ test('the bank index groups the whole inventory and each detail exposes real sta
   try {
     const index=f.page.locator('[data-catalog-index]');
     assert.equal(await f.page.getByRole('navigation',{name:'Catalog navigation'}).count(),0,'no invented category-button rail');
-    for(const group of InteractionCatalog.groups) {
+    for(const group of ResolvedNodes.groups) {
       const stack=index.getByRole('group',{name:group.title,exact:true});
       assert.deepEqual((await stack.locator('[data-destination]').allTextContents()).map(text=>text.trim()),
-        [...InteractionCatalog.entries.filter(entry=>entry.inspection.group===group.id).map(entry=>catalogTitle(entry.id)),
+        [...ResolvedNodes.entries.filter(entry=>entry.inspection.group===group.id).map(entry=>catalogTitle(entry.id)),
           ...sharedIndexOwners(group.id).map(owner=>sharedPurpose[owner].title)]);
       assert.equal(await stack.locator('[data-grouped-panel]').count(),1);
     }
     assert.equal(await index.getByRole('group',{name:'Coverage',exact:true}).count(),0,'coverage belongs to each detail, not a third index category');
     assert.equal(await f.page.locator('[data-catalog-entry]:visible').count(),0);
-    for(const entry of InteractionCatalog.entries) {
+    for(const entry of ResolvedNodes.entries) {
       const opener=index.locator(`[data-destination="${entry.id}"]`);
       await opener.click();
       const section=f.page.locator(`[data-catalog-entry="${entry.id}"]`);
@@ -96,7 +96,7 @@ test('toolbar discovery opens indexed details without unmounting local writing a
     await f.page.getByRole('button',{name:'Search',exact:true}).click();
     for(const query of ['Foundations','Compositions','Product examples','no-such-entry','']) {
       await search.fill(query);
-      assert.equal(await f.page.locator('[data-catalog-entry]').count(),InteractionCatalog.entries.length);
+      assert.equal(await f.page.locator('[data-catalog-entry]').count(),ResolvedNodes.entries.length);
       if(query==='no-such-entry') assert.equal(await f.page.locator('[data-search-result]').count(),0);
     }
     await f.page.getByRole('button',{name:'Close search',exact:true}).click();

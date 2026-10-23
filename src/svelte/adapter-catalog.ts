@@ -6,7 +6,7 @@ import LocalExerciseContentOwner from "./catalog/compositions/local-exercise-con
 import SummaryWidgetOwner from "./catalog/compositions/summary-widget/SummaryWidget.svelte";
 import ViewDestinationLinkOwner from "./catalog/compositions/view-destination-link/ViewDestinationLink.svelte";
 import FactGroupOwner from "./catalog/compositions/fact-group/FactGroup.svelte";
-import BankOwner from "./catalog/renderer/bank-renderer/BankRenderer.svelte";
+import NodeRendererOwner from "./catalog/renderer/node-renderer/NodeRenderer.svelte";
 import InformationOwner from "./catalog/compositions/information/Information.svelte";
 import MessageOwner from "./catalog/foundations/message-body/MessageBody.svelte";
 import UtilityOwner from "./catalog/compositions/utility-actions/UtilityActions.svelte";
@@ -27,9 +27,9 @@ export const LocalExerciseContent: AdapterComponent<"LocalExerciseContent"> = Lo
 export const SummaryWidget: AdapterComponent<"SummaryWidget"> = SummaryWidgetOwner;
 export const ViewDestinationLink: AdapterComponent<"ViewDestinationLink"> = ViewDestinationLinkOwner;
 export const FactGroup: AdapterComponent<"FactGroup"> = FactGroupOwner;
-export const BankRenderer: AdapterComponent<"BankRenderer"> = BankOwner;
-export const TransientRenderer: AdapterComponent<"TransientRenderer"> = BankOwner;
-export const ControlBankRenderer: AdapterComponent<"ControlBankRenderer"> = BankOwner;
+export const NodeRenderer: AdapterComponent<"NodeRenderer"> = NodeRendererOwner;
+export const TransientRenderer: AdapterComponent<"TransientRenderer"> = NodeRendererOwner;
+export const ControlNodeRenderer: AdapterComponent<"ControlNodeRenderer"> = NodeRendererOwner;
 export const Information: AdapterComponent<"Information"> = InformationOwner;
 export const MessageBody: AdapterComponent<"MessageBody"> = MessageOwner;
 export const UtilityActions: AdapterComponent<"UtilityActions"> = UtilityOwner;

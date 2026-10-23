@@ -23,7 +23,7 @@ const money = { ...base, kind: 'money', label: 'Amount', required: true, locale:
 const image = { ...base, kind: "image", label: "Notebook cover", alt: "An open notebook with blue pages", aspect: "landscape" } as const;
 const lockReleaseMs = 3000;
 
-export const ControlBank = freezeDeep(([
+export const ControlSpecimens = freezeDeep(([
   { id: "control.select", family: "control", specimens: [
     sample("available", { ...base, kind: "select", id: "choice", label: "Single choice", required: false, value: null, options: choices }),
     sample("disabled", { ...base, kind: "select", id: "disabled-choice", label: "Disabled choice", disabled: true,

@@ -1,12 +1,12 @@
 <script lang="ts">
-  import type { WebRendererProps } from '../../../renderer-contracts.ts';
+  import type { NodeRendererInputs } from '../../../renderer-contracts.ts';
   import PhotoCollection from '../photo-collection/PhotoCollection.svelte';
   import PlaybackCanvas from '../../foundations/playback-canvas/PlaybackCanvas.svelte';
   import ToolbarLayout from '../toolbar-layout/ToolbarLayout.svelte';
   import { mediaPlayback } from '../../../infra/playback.svelte.ts';
   import type { ViewerMedia } from '../../../infra/media-source.ts';
   import type { AssetReference } from '../../../../assets/types.ts';
-  let { facts, presentation }: { facts: WebRendererProps['context']['facts']; presentation: NonNullable<WebRendererProps['context']['presentation']> } = $props();
+  let { facts, presentation }: { facts: NodeRendererInputs['context']['facts']; presentation: NonNullable<NodeRendererInputs['context']['presentation']> } = $props();
   let source = $derived(facts[presentation.media]);
   let description = $derived(presentation.description ? facts[presentation.description] : undefined);
   let alt = $derived(typeof description === 'string' ? description : 'Image');

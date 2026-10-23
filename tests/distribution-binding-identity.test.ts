@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { clientDistribution, composeProduct, controllerDistribution, defineModule, localBinding, moduleCatalog,
+import { clientDistribution, composeProduct, controllerDistribution, defineModule, localBinding, moduleIndex,
   remoteBinding } from "../src/index.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import { NotesController } from "../products/notebook/dependencies.ts";
@@ -18,7 +18,7 @@ function composedFixture() {
 for (const kind of ["local", "remote"] as const) {
   test(`A ${kind} client binding cannot erase an unmounted homonymous dependency's identity`, () => {
     const { product, surface } = composedFixture();
-    const foreign = moduleCatalog([defineModule(notesSource())]).dependencies.NotesController;
+    const foreign = moduleIndex([defineModule(notesSource())]).dependencies.NotesController;
     assert.throws(() => clientDistribution({ id: "client", product, surface, renderer: "svelte-web",
       bindings: [kind === "local" ? localBinding(foreign, "other-adapter")
         : remoteBinding(foreign, { id: "other-controller", kind: "controller" })],
@@ -94,7 +94,7 @@ for (const kind of ["local", "remote"] as const) {
 
 test("Controller distribution and client bindings enforce the same exact mounted dependency owner", () => {
   const { product, surface, modules } = composedFixture();
-  const foreign = moduleCatalog([defineModule(notesSource())]).dependencies.NotesController;
+  const foreign = moduleIndex([defineModule(notesSource())]).dependencies.NotesController;
   assert.throws(() => controllerDistribution({ id: "server", product, serves: [surface], runtime: "node",
     storage: "postgresql", provides: [foreign] }), /UNMOUNTED_MODULE_REFERENCE/);
   const controller = controllerDistribution({ id: "server", product, serves: [surface], runtime: "node",

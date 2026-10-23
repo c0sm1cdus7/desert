@@ -23,7 +23,7 @@ function exposedIdentity(value: unknown): string {
   return source.id;
 }
 
-export function humanSurface<const D extends HumanExposureAuthoring>(
+export function humanExposure<const D extends HumanExposureAuthoring>(
   definition: D & Record<Exclude<keyof D, keyof HumanExposureAuthoring>, never>,
 ) {
   requireJourneyOwnedSurfaceSemantics(definition);
@@ -35,7 +35,7 @@ export function humanSurface<const D extends HumanExposureAuthoring>(
     journeys: Object.freeze([...journeys]) as D["journeys"] });
 }
 
-export function agentSurface<const Id extends string, const J extends readonly ExposedJourney[]>(id: Id, journeys: J) {
+export function agentExposure<const Id extends string, const J extends readonly ExposedJourney[]>(id: Id, journeys: J) {
   declarationArray(journeys).forEach(exposedIdentity);
   if (!id) throw new Error("INVALID_AGENT_EXPOSURE");
   return Object.freeze({ id, kind: "agent" as const, journeys: Object.freeze([...journeys]) as J });

@@ -8,7 +8,7 @@ for (const composition of ["retained-bank", "view-panel"] as const) {
   test(`first transient entry preserves the installed motion: ${composition}`, async () => {
     const fixture = await svelteBrowser(`<script lang="ts">
       import Panel from '@desert/svelte/catalog/renderer/panel/Panel.svelte';
-      import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
+      import NodeRenderer from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
       import {surfaceFrame} from '@desert/interaction/surface-frame.ts';
       import {viewEventOwnership} from '@desert/web/client/view-events.ts';
       const ownership=viewEventOwnership();
@@ -20,7 +20,7 @@ for (const composition of ["retained-bank", "view-panel"] as const) {
     <button onclick={()=>open=true}>Open fixture</button>
     ${composition === "view-panel"
       ? '<Panel panel={open?{frame,label:"Entry fixture",locked:false,owner}:null} onevent={()=>open=false} />'
-      : '<BankRenderer node={{version:"desert.bank-node/1",kind:"transient",label:"Entry fixture",frame,open,locked:false}} onevent={()=>open=false} />'}`);
+      : '<NodeRenderer node={{version:"desert.bank-node/1",kind:"transient",label:"Entry fixture",frame,open,locked:false}} onevent={()=>open=false} />'}`);
     try {
       await fixture.page.setViewportSize({ width: 390, height: 844 });
       await fixture.page.emulateMedia({ reducedMotion: "no-preference" });

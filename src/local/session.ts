@@ -13,7 +13,7 @@ import { rememberSession } from "./session-binding.ts";
 import { snapshotPrepareOptions, type PrepareOptions } from "../prepare-options.ts";
 import { snapshotPreflightOptions, type PreflightOptions } from "../preflight.ts";
 import { preflightMutation } from "./preflight.ts";
-import { requireActivityCatalog, type ActivityCatalog } from "../activities/catalog.ts";
+import { requireActivityCatalog, type ActivityIndex } from "../activities/activity-index.ts";
 import { activityRecord, activitySnapshot } from "../activities/records.ts";
 import { answerActivity, cancelActivity, reopenActivity } from "../activities/drafts.ts";
 import { createActivity } from "../activities/create.ts";
@@ -25,7 +25,7 @@ import { privateImageSession } from "../assets/session.ts";
 import type { PrivateImageHost } from "../assets/host.ts";
 
 export function localSession(database: Database, program: LocalProgram, token: string, surface: string, lifetime: number,
-  activities?: ActivityCatalog, images?: PrivateImageHost) {
+  activities?: ActivityIndex, images?: PrivateImageHost) {
   database.assertOpen();
   program.application.surface(surface);
   const transact = <T>(operation: (client: PoolClient, actor: string) => Promise<T>, readOnly = false) =>

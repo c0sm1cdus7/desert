@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { WorkspaceView, NavigationView } from "./fixtures/workspace-view.ts";
-import { composeProduct, factReference, humanSurface, moduleCatalog, ownershipPolicy, publishObject, viewOutput, Components, ViewTitles, defineView, viewPorts, type AuthoredViewJourney } from "../src/index.ts";
+import { composeProduct, factReference, humanExposure, moduleIndex, ownershipPolicy, publishObject, viewOutput, Components, ViewTitles, defineView, viewPorts, type AuthoredViewJourney } from "../src/index.ts";
 import { compile } from "../src/compile.ts";
 import { Note, ReadNote, NotesController } from "./fixtures/notebook-domain.ts";
 import { Notebook } from "../products/notebook/product.ts";
@@ -39,7 +39,7 @@ const NotesDestination = { id: "notes", label: "Notes", icon: "open", entryJourn
 
 function readOnlyNotebook() {
   return {
-    id: "read-only-notebook", label: "Read-only Notebook", modules: moduleCatalog([]),
+    id: "read-only-notebook", label: "Read-only Notebook", modules: moduleIndex([]),
     objects: [publishObject(Note, {
       view: NoteView, title: factReference(Note, "title"), actions: [],
       fields: [
@@ -51,7 +51,7 @@ function readOnlyNotebook() {
     dependencies: [NotesController],
     policies: [ownershipPolicy(Note, "owner")],
     journeys: [{ execution: ReadNote, label: "Read notes", presentation: ReadNotes }],
-    surfaces: [humanSurface({ id: "human", journeys: [ReadNote], locale: "en" })],
+    exposures: [humanExposure({ id: "human", journeys: [ReadNote], locale: "en" })],
     workspace: WorkspaceView, views: [NotesView, NoteView, WorkspaceView, NavigationView], destinations: [NotesDestination], entry: NotesDestination,
     navigation: [{ destination: NotesDestination, group: "Explore", purpose: "content" }],
   } as const;
@@ -97,18 +97,18 @@ test("A read-only publication renders paragraphs without acquiring any mutation 
 
 test("A read-only exposure cannot provide its own field or input presentation maps", () => {
   const source = readOnlyNotebook();
-  const exposure = source.surfaces[0];
+  const exposure = source.exposures[0];
   for (const map of [
     { inputs: { "note.body": "input.multiline" } },
     { fieldRepresentations: { "note.body": "text" } },
     { language: { locale: "en", fields: { "note.body": "Other content" }, journeys: {} } },
     { commit: { "create-note": "submit" } },
   ]) {
-    assert.throws(() => composeProduct({ ...source, surfaces: [{ ...exposure, ...map }] } as never),
+    assert.throws(() => composeProduct({ ...source, exposures: [{ ...exposure, ...map }] } as never),
       /SURFACE_SEMANTICS_FORBIDDEN/);
   }
   for (const key of ["inputs", "fieldRepresentations"]) {
-    assert.throws(() => composeProduct({ ...source, surfaces: [{ ...exposure, [key]: undefined }] } as never),
+    assert.throws(() => composeProduct({ ...source, exposures: [{ ...exposure, [key]: undefined }] } as never),
       /SURFACE_SEMANTICS_FORBIDDEN/);
   }
 });

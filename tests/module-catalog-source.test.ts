@@ -53,11 +53,11 @@ test("capabilities cannot import root or foreign catalogs to acquire another mod
   }
 });
 
-test("moduleCatalog cannot authorize a direct private import or cloned module manifest", async () => {
+test("moduleIndex cannot authorize a direct private import or cloned module manifest", async () => {
   await sourceFixture({ ...catalogSource,
     "private.ts": 'import { NotesView } from "./modules/notes/views/notes.view.ts"; export const stolen = NotesView;',
   }, async root => assert.rejects(assertProductSource(root), /PRIVATE_MODULE_IMPORT/));
   await sourceFixture({ ...catalogSource,
-    "modules.ts": 'import { moduleCatalog } from "desert-sdk/src/index.ts"; import { NotesModule } from "./modules/notes/notes.module.ts"; export const Modules = moduleCatalog([{ ...NotesModule }]);',
+    "modules.ts": 'import { moduleIndex } from "desert-sdk/src/index.ts"; import { NotesModule } from "./modules/notes/notes.module.ts"; export const Modules = moduleIndex([{ ...NotesModule }]);',
   }, async root => assert.rejects(assertProductSource(root), /MODULE_MANIFEST_ACCESS/));
 });

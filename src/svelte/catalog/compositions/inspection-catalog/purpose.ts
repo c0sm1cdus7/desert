@@ -1,4 +1,4 @@
-import type { PrimitiveId } from '../../../../interaction/catalog.ts';
+import type { ResolvedNodeId } from '../../../../interaction/catalog.ts';
 
 /** Human-readable identity for each canonical component, never another inventory. */
 export const catalogPurpose = {
@@ -26,4 +26,4 @@ export const catalogPurpose = {
   'control.tag': 'Read a short semantic label without turning it into an action.',
   'control.image': 'Display an image with its aspect ratio, accessible description and unavailable state.',
   'control.avatar': 'Identify a person with an image or a seed-generated avatar, never initials.',
-} as const satisfies Record<PrimitiveId,string>;
+} as const satisfies Record<ResolvedNodeId,string>;

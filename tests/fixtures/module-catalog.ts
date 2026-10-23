@@ -7,7 +7,7 @@ import { HomeView, NotesView, NoteView as DetailView, NoteEditorView as EditorVi
 import { authorFixture } from "./author-fixture.ts";
 
 export { HomeView, NotesView, DetailView, EditorView };
-export const ReadExperience = {
+export const ReadJourney = {
   ...program.journeys[1], view: NotesView, detailView: DetailView,
   outputs: [
     { view: NotesView, output: "create", action: { kind: "journey", journey: CreateNote } },
@@ -15,7 +15,7 @@ export const ReadExperience = {
     { view: DetailView, output: "close", action: { kind: "close" } },
   ],
 } as const;
-export const CreateExperience = {
+export const CreateJourney = {
   ...program.journeys[2], source: ReadNote, view: EditorView,
   outputs: [
     { view: EditorView, output: "save", action: { kind: "submit" } },
@@ -29,8 +29,8 @@ export function notesSource() {
     id: "notes", objects: [SDK.publishObject(Note, notePublication)],
     dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
     journeys: [
-      { execution: CreateNote, presentation: CreateExperience, label: "Create note", humanReview: "not-required" },
-      { execution: ReadNote, presentation: ReadExperience, label: "Read notes" },
+      { execution: CreateNote, presentation: CreateJourney, label: "Create note", humanReview: "not-required" },
+      { execution: ReadNote, presentation: ReadJourney, label: "Read notes" },
       { execution: ArchiveNote, label: "Archive note", humanReview: "required" },
     ],
     views: [NotesView, DetailView, EditorView], destinations: [NotesDestination],
@@ -42,7 +42,7 @@ export function notesSource() {
   } as const);
 }
 
-export const mountModules = SDK.moduleCatalog;
+export const mountModules = SDK.moduleIndex;
 
 export function catalogFixture() {
   const owned = notesSource();
@@ -55,10 +55,10 @@ export function catalogFixture() {
   const HomeDestination = { ...program.destinations[0], entryJourney: HomeJourney };
   const source = {
     id: "notebook", label: "Notebook", modules,
-    surfaces: [
-      SDK.humanSurface({ id: "human", journeys: [modules.journeys.createNote, modules.journeys.readNotes,
+    exposures: [
+      SDK.humanExposure({ id: "human", journeys: [modules.journeys.createNote, modules.journeys.readNotes,
         modules.journeys.archiveNote], locale: "en" }),
-      SDK.agentSurface("agent", [modules.journeys.createNote, modules.journeys.readNotes, modules.journeys.archiveNote]),
+      SDK.agentExposure("agent", [modules.journeys.createNote, modules.journeys.readNotes, modules.journeys.archiveNote]),
     ],
     workspace: WorkspaceView, views: [HomeView, WorkspaceView, NavigationView],
     journeys: [{ presentation: HomeJourney }], destinations: [HomeDestination],

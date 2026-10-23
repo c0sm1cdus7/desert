@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { InteractionCatalog } from "../../src/interaction/catalog.ts";
+import { ResolvedNodes } from "../../src/interaction/catalog.ts";
 import { publicCatalogFixture } from "./public-catalog-fixture.ts";
 import { navigationAction, settle } from "./public-catalog-expectations.ts";
 
@@ -16,15 +16,15 @@ test("catalog navigation exposes the canonical inventory and its execution bound
   try {
     const navigation = f.page.getByRole("navigation", { name: "Catalog navigation" });
     assert.equal(await navigation.getByRole("searchbox").count(), 0);
-    for (const entry of InteractionCatalog.entries) {
+    for (const entry of ResolvedNodes.entries) {
       const section = f.page.locator(`[data-catalog-entry="${entry.id}"]`);
       assert.equal(await section.isVisible(), true, `${entry.id} is visible by default`);
       assert.equal(await section.locator("[data-specimen]").count(), entry.states.length);
     }
-    assert.equal(await navigation.getByRole("link").count(), InteractionCatalog.groups.length);
-    for (const group of InteractionCatalog.groups)
+    assert.equal(await navigation.getByRole("link").count(), ResolvedNodes.groups.length);
+    for (const group of ResolvedNodes.groups)
       assert.equal(await f.page.getByRole("heading", { name: group.title, exact: true }).count(), 1);
-    assert.equal(await f.page.locator('[data-foundation]').count(), InteractionCatalog.foundations.length);
+    assert.equal(await f.page.locator('[data-foundation]').count(), ResolvedNodes.foundations.length);
     const bench = f.page.getByRole("region", { name: "Controls", exact: true });
     assert.match(await bench.textContent() ?? "", /Local specimens do not execute commands/);
     assert.equal(await f.page.getByRole("searchbox").count(), 0);
@@ -57,7 +57,7 @@ test("catalog toolbar searches names, identifiers and states only in an overlay,
     assert.equal(await find.evaluate(element => element === document.activeElement), true);
     await f.page.getByRole("button", { name: "Close search", exact: true }).click();
     assert.equal(await writing.inputValue(), "Keep this local draft");
-    assert.equal(await f.page.locator("[data-catalog-entry]:visible").count(), InteractionCatalog.entries.length);
+    assert.equal(await f.page.locator("[data-catalog-entry]:visible").count(), ResolvedNodes.entries.length);
   } finally { await f.close(); }
 });
 

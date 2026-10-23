@@ -1,12 +1,12 @@
 import type { PoolClient } from "pg";
 import { jsonSnapshot } from "../json.ts";
 import type { LocalProgram } from "../local/program.ts";
-import type { ActivityCatalog } from "./catalog.ts";
+import type { ActivityIndex } from "./activity-index.ts";
 import { activityRecord, activitySnapshot, requireEditableActivity, type ActivityRecord } from "./records.ts";
 import { activityProgress } from "./progress.ts";
 import { activityAnswerValidation } from "./answer-validation.ts";
 
-export async function answerActivity(client: PoolClient, program: LocalProgram, catalog: ActivityCatalog,
+export async function answerActivity(client: PoolClient, program: LocalProgram, catalog: ActivityIndex,
   actor: string, surface: string, id: string, revision: number, stepIndex: number, input: unknown) {
   const record = await activityRecord(client, program, catalog, actor, surface, id, true);
   await requireEditableActivity(client, record, revision);
@@ -27,7 +27,7 @@ export async function answerActivity(client: PoolClient, program: LocalProgram, 
   return activitySnapshot(updated!);
 }
 
-export async function cancelActivity(client: PoolClient, program: LocalProgram, catalog: ActivityCatalog,
+export async function cancelActivity(client: PoolClient, program: LocalProgram, catalog: ActivityIndex,
   actor: string, surface: string, id: string, revision: number) {
   const record = await activityRecord(client, program, catalog, actor, surface, id, true);
   await requireEditableActivity(client, record, revision);
@@ -36,7 +36,7 @@ export async function cancelActivity(client: PoolClient, program: LocalProgram, 
   return activitySnapshot(updated!);
 }
 
-export async function reopenActivity(client: PoolClient, program: LocalProgram, catalog: ActivityCatalog,
+export async function reopenActivity(client: PoolClient, program: LocalProgram, catalog: ActivityIndex,
   actor: string, surface: string, id: string, revision: number, stepIndex: number) {
   const record = await activityRecord(client, program, catalog, actor, surface, id, true);
   await requireEditableActivity(client, record, revision);

@@ -1,4 +1,4 @@
-import { controlBankNode } from "../../src/interaction/bank-node.ts";
+import { controlResolvedNode } from "../../src/interaction/resolved-node.ts";
 import { stackNode } from "../../src/interaction/place.ts";
 import type { PublicCatalogExercises } from "../../src/public-catalog/exercises.ts";
 
@@ -12,27 +12,27 @@ export const travelKit: PublicCatalogExercises = {
   stacks: [
     { id: "visit", title: "Your next visit", description: "Give your idea a name and choose where to go.", items: [
       stackNode({ version: "desert.bank-node/1", kind: "input.text", name: "trip-name", label: "Trip name", value: "", required: true, disabled: false }),
-      controlBankNode({ ...base, kind: "select", id: "destination", label: "Destination", required: true, value: null,
+      controlResolvedNode({ ...base, kind: "select", id: "destination", label: "Destination", required: true, value: null,
         options: [option("1016", "Mount Fuji"), option("1017", "Wulingyuan"), option("1018", "Mount Everest")] }),
-      controlBankNode({ ...base, kind: "date", id: "arrival", label: "Arrival date", required: false, value: null }),
+      controlResolvedNode({ ...base, kind: "date", id: "arrival", label: "Arrival date", required: false, value: null }),
     ] },
     { id: "notes", title: "Notes", items: [
       stackNode({ version: "desert.bank-node/1", kind: "input.multiline", name: "notes", label: "Things to remember", value: "", required: false, disabled: false }),
     ] },
     { id: "pace", title: "Travel pace", items: [
-      controlBankNode({ ...base, kind: "options", id: "pace", label: "Travel pace", minSelected: 1, maxSelected: 1, selected: ["slow"],
+      controlResolvedNode({ ...base, kind: "options", id: "pace", label: "Travel pace", minSelected: 1, maxSelected: 1, selected: ["slow"],
         options: [option("slow", "Take it slowly"), option("active", "Keep exploring")] }),
     ] },
     { id: "interests", title: "Interests", items: [
-      controlBankNode({ ...base, kind: "options", id: "activities", label: "Interests", minSelected: 0, maxSelected: 3, selected: [],
+      controlResolvedNode({ ...base, kind: "options", id: "activities", label: "Interests", minSelected: 0, maxSelected: 3, selected: [],
         options: [option("walking", "Walking"), option("photography", "Photography"), option("culture", "Culture")] }),
     ] },
     { id: "budget", title: "Budget", items: [
-      controlBankNode({ ...base, kind: "money", id: "budget", label: "Estimated budget", required: false,
+      controlResolvedNode({ ...base, kind: "money", id: "budget", label: "Estimated budget", required: false,
         currencies: [{ code: "USD", scale: 2 }, { code: "ARS", scale: 2 }, { code: "JPY", scale: 0 }], currency: "USD", minorUnits: null }),
     ] },
     { id: "essentials", title: "Travel documents", description: "Files stay on this device. Nothing is uploaded.", items: [
-      controlBankNode({ ...base, kind: "files", id: "documents", label: "Travel documents", files: [],
+      controlResolvedNode({ ...base, kind: "files", id: "documents", label: "Travel documents", files: [],
         limits: { maxCount: 3, maxFileBytes: 5242880, maxTotalBytes: 10485760, accept: ["application/pdf", "image/*", "text/plain"] } }),
     ] },
     { id: "draft", title: "About this draft", items: [

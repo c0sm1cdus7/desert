@@ -10,7 +10,7 @@ them in a catalog does not install their product grammar, persistence or authori
 
 ## Mechanisms
 
-- `WebRendererBank` checks each entry's component props and event family against
+- `NodeRendererTable` checks each entry's component props and event family against
   canonical control types. Twelve negative Svelte examples must fail at their
   intended locations; valid bindings must compile. A real multiline/text registry
   mismatch was detected and corrected while introducing this boundary.

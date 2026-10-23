@@ -1,5 +1,5 @@
 import { objectType, text, imageAsset, principal, createCommand, fromInput, actorId, controllerRole, ownershipPolicy, mutationJourney, readJourney,
-  humanSurface, composeProduct, moduleCatalog, publishObject, factReference, Components, ViewTitles, defineView, viewPorts, viewOutput,
+  humanExposure, composeProduct, moduleIndex, publishObject, factReference, Components, ViewTitles, defineView, viewPorts, viewOutput,
 } from "../../src/index.ts";
 import { compile } from "../../src/compile.ts";
 import type { HumanSurface, Mutation } from "../../src/web/types.ts";
@@ -27,7 +27,7 @@ const ImportView = defineView({ name: "import-image", outputs: editorPorts.outpu
   bottomDock: Components.Toolbar({ actions: [{ output: editorPorts.output.save, label: "Import image", icon: "save" }] }),
   content: [Components.Header({ title: ViewTitles.operation }), Components.Form({ input: editorPorts.inputs.draft })] });
 const Home = { id: "images", label: "My images", icon: "media", entryJourney: ReadPhotos } as const;
-export const ImagesProduct = composeProduct({ id: "image-input", label: "Images", modules: moduleCatalog([]),
+export const ImagesProduct = composeProduct({ id: "image-input", label: "Images", modules: moduleIndex([]),
   objects: [publishObject(Photo, { view: PhotoView, title: factReference(Photo, "title"),
     fields: [{ fact: factReference(Photo, "title"), label: "Title", representation: "text" },
       { fact: factReference(Photo, "image"), label: "Image", representation: "image" }], actions: [] })],
@@ -44,7 +44,7 @@ export const ImagesProduct = composeProduct({ id: "image-input", label: "Images"
   ],
   views: [ListView, PhotoView, ImportView, WorkspaceView, NavigationView], workspace: WorkspaceView,
   destinations: [Home], entry: Home, navigation: [{ destination: Home, group: "Explore", purpose: "content" }],
-  surfaces: [humanSurface({ id: "human", journeys: [ImportPhoto, ReadPhotos], locale: "en" })],
+  exposures: [humanExposure({ id: "human", journeys: [ImportPhoto, ReadPhotos], locale: "en" })],
 });
 export const Images = ImagesProduct.definition;
 export const program = ImagesProduct.viewProgram;

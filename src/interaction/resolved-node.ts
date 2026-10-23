@@ -1,23 +1,23 @@
 import { type Static } from "@sinclair/typebox";
 import { Check } from "@sinclair/typebox/value";
 import { freezeDeep, jsonSnapshot, type Frozen } from "../json.ts";
-import { BankNodeSchema } from "./bank-schema.ts";
+import { ResolvedNodeSchema } from "./resolved-node-schema.ts";
 import { controlNode, type ControlNode } from "./control-nodes.ts";
 import { surfaceFrame, checkFrameContent } from "./surface-frame.ts";
 import { transientFrame } from "./transient-frame.ts";
-import type { PrimitiveId } from "./catalog.ts";
+import type { ResolvedNodeId } from "./catalog.ts";
 import { checkCatalogHome } from "../public-catalog/node-schema.ts";
 import { inputMask } from "./input-mask.ts";
 import { collectionSummary } from './collection-summary.ts';
 
-export type BankNode = Frozen<Static<typeof BankNodeSchema>>;
-export type BankNodeFor<K extends PrimitiveId> = Extract<BankNode, { kind: K }>;
-export const BankVersion = "desert.bank-node/1" as const;
+export type ResolvedNode = Frozen<Static<typeof ResolvedNodeSchema>>;
+export type ResolvedNodeFor<K extends ResolvedNodeId> = Extract<ResolvedNode, { kind: K }>;
+export const ResolvedNodeVersion = "desert.bank-node/1" as const;
 
 /** Validate JSON shape and the same semantic owners used by product frames and controls. */
-export function bankNode(value: unknown): BankNode {
+export function resolvedNode(value: unknown): ResolvedNode {
   const node: unknown = jsonSnapshot(value);
-  if (!Check(BankNodeSchema, node)) throw new Error("INVALID_BANK_NODE");
+  if (!Check(ResolvedNodeSchema, node)) throw new Error("INVALID_BANK_NODE");
   if (node.kind === "input.text" && node.mask) inputMask(node.mask);
   if ("control" in node) controlNode(node.control);
   if (node.kind === "catalog.home") checkCatalogHome(node);
@@ -45,8 +45,8 @@ export function bankNode(value: unknown): BankNode {
 }
 
 /** Wrap the installed control grammar without widening it into product authoring. */
-export function controlBankNode(control: ControlNode): Extract<BankNode, { control: ControlNode }> {
-  const node = bankNode({ version: BankVersion, kind: `control.${control.kind}`, control });
+export function controlResolvedNode(control: ControlNode): Extract<ResolvedNode, { control: ControlNode }> {
+  const node = resolvedNode({ version: ResolvedNodeVersion, kind: `control.${control.kind}`, control });
   if (!("control" in node)) throw new Error("BANK_CONTROL_REQUIRED");
   return node;
 }

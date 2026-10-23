@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { BankNodeFor } from '../../../../interaction/bank-node.ts';
+  import type { ResolvedNodeFor } from '../../../../interaction/resolved-node.ts';
   import { collectionSummary } from '../../../../interaction/collection-summary.ts';
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import { Skeleton } from '../../../vendor/components/ui/skeleton/index.js';
-  let {node,activate,available=true}:{node:BankNodeFor<'collection'>;activate:()=>void;available?:boolean}=$props();
+  let {node,activate,available=true}:{node:ResolvedNodeFor<'collection'>;activate:()=>void;available?:boolean}=$props();
   const id=$props.id();
   let specification=$derived(node.presentation?.kind==='summary-widget'?node.presentation:undefined);
   let summary=$derived(specification?collectionSummary(node.records,specification):undefined);

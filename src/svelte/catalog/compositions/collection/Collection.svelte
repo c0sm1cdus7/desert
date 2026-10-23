@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { BankNodeFor } from "../../../../interaction/bank-node.ts";
+  import type { ResolvedNodeFor } from "../../../../interaction/resolved-node.ts";
   import { presentFact, presentTitle, readingFields } from "../../../../interaction/fact-presentation.ts";
   import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
   import { Button } from "../../../vendor/components/ui/button/index.js";
@@ -9,7 +9,7 @@
   import MediaGrid from "../media-grid/MediaGrid.svelte";
   import MediaCollectionGrid from "../media-collection-grid/MediaCollectionGrid.svelte";
   import AttentionIndicator from '../../foundations/attention-indicator/AttentionIndicator.svelte';
-  let { node, select }: { node: BankNodeFor<"collection">; select: (id: string) => void } = $props();
+  let { node, select }: { node: ResolvedNodeFor<"collection">; select: (id: string) => void } = $props();
   let { records, disabled, loaded, selectedId } = $derived(node);
   // Collections present records. Search belongs exclusively to the toolbar overlay.
   let visibleRecords = $derived(node.presentation ? records : retrieveCollection(records, node.fields, ""));

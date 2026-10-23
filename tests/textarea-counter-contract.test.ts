@@ -5,7 +5,7 @@ import { protocolNotebookDefinition } from "./fixtures/notebook.ts";
 import { CreateNote } from "../products/notebook/journeys.ts";
 import type { ProductDefinition } from "../src/contracts.ts";
 import { formFrame, toolbarAction } from "../src/interaction/frame-presenters.ts";
-import { bankNode } from "../src/interaction/bank-node.ts";
+import { resolvedNode } from "../src/interaction/resolved-node.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import type { HumanSurface } from "../src/web/types.ts";
 
@@ -33,8 +33,8 @@ test("form projection retains declared maxima, including zero, without inventing
 
 test("multiline bank grammar accepts nonnegative integer limits and rejects malformed limits", () => {
   const base = { version: "desert.bank-node/1", kind: "input.multiline", name: "body", label: "Notes", value: "", required: false, disabled: false };
-  for (const maxLength of [0, 8]) assert.equal((bankNode({ ...base, maxLength }) as unknown as { maxLength: number }).maxLength, maxLength);
-  for (const maxLength of [-1, 0.5, "8", null]) assert.throws(() => bankNode({ ...base, maxLength }), /INVALID_BANK_NODE/);
+  for (const maxLength of [0, 8]) assert.equal((resolvedNode({ ...base, maxLength }) as unknown as { maxLength: number }).maxLength, maxLength);
+  for (const maxLength of [-1, 0.5, "8", null]) assert.throws(() => resolvedNode({ ...base, maxLength }), /INVALID_BANK_NODE/);
 });
 
 test("real form fields propagate the domain maximum through the bank into the shared textarea", async () => {

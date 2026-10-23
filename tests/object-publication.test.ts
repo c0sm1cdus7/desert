@@ -2,14 +2,14 @@ import test from "node:test";
 import { WorkspaceView, NavigationView } from "./fixtures/workspace-view.ts";
 import assert from "node:assert/strict";
 import { Check } from "@sinclair/typebox/value";
-import { defineModule, moduleCatalog, humanSurface, agentSurface, composeProduct, publishObject, ObjectPresentationSchema } from "../src/index.ts";
+import { defineModule, moduleIndex, humanExposure, agentExposure, composeProduct, publishObject, ObjectPresentationSchema } from "../src/index.ts";
 import { compile } from "../src/compile.ts";
 import { ActionIconSchema } from "../src/interaction/toolbar.ts";
 import { ViewNotebook as Notebook } from "./fixtures/view-exposure.ts";
 import { Note, OnlyOwnerCanAccess, NotesController, ArchiveNote, CreateNote, ReadNote } from "./fixtures/notebook-domain.ts";
 import { program } from "./fixtures/view-program.ts";
 import { notePublication } from "./fixtures/authored-notebook.ts";
-import { CreateNoteExperience, ReadNotesExperience, NotesDestination, NotesView, NoteView, NoteEditorView } from "./fixtures/authored-view-program.ts";
+import { CreateNoteJourney, ReadNotesJourney, NotesDestination, NotesView, NoteView, NoteEditorView } from "./fixtures/authored-view-program.ts";
 import { authorFixture } from "./fixtures/author-fixture.ts";
 
 const presentation = { view: "detail", title: { object: "note", field: "title" }, actions: [] } as const;
@@ -17,8 +17,8 @@ const authoredPresentation = { ...presentation, view: NoteView, fields: notePubl
 const definition = {
   id: "notes", objects: [{ ...Note, presentation: authoredPresentation }], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   journeys: [
-    { execution: CreateNote, label: "Create note", humanReview: "not-required", presentation: CreateNoteExperience },
-    { execution: ReadNote, label: "Read notes", presentation: ReadNotesExperience },
+    { execution: CreateNote, label: "Create note", humanReview: "not-required", presentation: CreateNoteJourney },
+    { execution: ReadNote, label: "Read notes", presentation: ReadNotesJourney },
     { execution: ArchiveNote, label: "Archive note", humanReview: "required" },
   ],
   views: [NotesView, NoteView, NoteEditorView], destinations: [NotesDestination],
@@ -27,11 +27,11 @@ const definition = {
 
 test("An object publishes its view without changing canonical facts or the persistence contract", () => {
   const Notes = defineModule(authorFixture(definition));
-  const modules = moduleCatalog([Notes]);
+  const modules = moduleIndex([Notes]);
   const journeys = [modules.journeys.createNote, modules.journeys.readNotes, modules.journeys.archiveNote];
   const result = composeProduct({ id: "notebook", label: "Notebook", modules,
     workspace: WorkspaceView, views: [WorkspaceView, NavigationView],
-    surfaces: [humanSurface({ id: "human", journeys, locale: "en" }), agentSurface("agent", journeys)],
+    exposures: [humanExposure({ id: "human", journeys, locale: "en" }), agentExposure("agent", journeys)],
     entry: modules.destinations.notes,
     navigation: [{ destination: modules.destinations.notes, group: "Explore", purpose: "content" }],
   });

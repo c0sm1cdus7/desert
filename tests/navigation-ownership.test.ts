@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { composeProduct, humanSurface, compile as compileProduct } from "../src/index.ts";
+import { composeProduct, humanExposure, compile as compileProduct } from "../src/index.ts";
 import { compile } from "../src/compile.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import { ArchiveNote, CreateNote, ReadNote } from "../products/notebook/journeys.ts";
@@ -15,7 +15,7 @@ test("human exposure rejects every authored navigation field by presence", () =>
   const exposure = { id: "human", journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" };
   for (const key of ["navigation", "entry", "primaryAction", "subjectActions"]) {
     for (const value of [undefined, null, ReadNote]) {
-      assert.throws(() => Reflect.apply(humanSurface, undefined, [{ ...exposure, [key]: value }]),
+      assert.throws(() => Reflect.apply(humanExposure, undefined, [{ ...exposure, [key]: value }]),
         { message: "DUPLICATE_NAVIGATION_OWNER" });
     }
   }
@@ -56,9 +56,9 @@ test("Even agreeing standalone navigation cannot be attached to a View program",
   assert.equal(sameEntry.destinations.find(item => item.id === sameEntry.entry)?.entryJourney, ReadNote.id);
   assert.throws(() => compileViewProgram(sameEntry, standalone), { message: "DUPLICATE_NAVIGATION_OWNER" });
   const { composition } = navigationOwnershipFixture();
-  const surfaces = composition.surfaces.map(surface => surface.kind === "human"
+  const surfaces = composition.exposures.map(surface => surface.kind === "human"
     ? { ...surface, entry: ReadNote.id, primaryAction: CreateNote.id, subjectActions: [ArchiveNote.id] } : surface);
-  assert.throws(() => composeProduct({ ...composition, surfaces } as never),
+  assert.throws(() => composeProduct({ ...composition, exposures: surfaces } as never),
     /DUPLICATE_NAVIGATION_OWNER|INVALID_PRODUCT_COMPOSITION/);
 });
 
@@ -71,8 +71,8 @@ test("Raw human surfaces reject partial and complete navigation triples, includi
     const source = structuredClone(Notebook);
     const surfaces = source.surfaces.map(surface => surface.kind === "human" ? { ...surface, ...partial } : surface);
     assert.throws(() => compile({ ...source, surfaces }), `Partial navigation mask ${mask} must not be inferred`);
-    const authoredSurfaces = composition.surfaces.map(surface => surface.kind === "human" ? { ...surface, ...partial } : surface);
-    assert.throws(() => composeProduct({ ...composition, surfaces: authoredSurfaces } as never),
+    const authoredSurfaces = composition.exposures.map(surface => surface.kind === "human" ? { ...surface, ...partial } : surface);
+    assert.throws(() => composeProduct({ ...composition, exposures: authoredSurfaces } as never),
       `Partial navigation mask ${mask} cannot enter a composed product`);
   }
   for (const wrong of [{ ...navigation, entry: CreateNote.id },

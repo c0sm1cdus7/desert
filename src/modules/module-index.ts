@@ -1,10 +1,10 @@
 import { moduleKinds, requireModuleHandle, type LocalEntry, type ModuleRecord } from "./references.ts";
 import { declarationArray } from "./declaration-data.ts";
-import type { ModuleCatalog, RegisteredModule, AnyModuleCatalog } from "./types.ts";
+import type { ModuleIndex, RegisteredModule, AnyModuleIndex } from "./types.ts";
 
 const catalogs = new WeakMap<object, readonly ModuleRecord[]>();
 const productModules = new WeakMap<object, { modules: readonly ModuleRecord[]; identities: ReadonlyMap<object, LocalEntry> }>();
-export function moduleCatalog<const M extends readonly RegisteredModule[]>(modules: M): ModuleCatalog<M> {
+export function moduleIndex<const M extends readonly RegisteredModule[]>(modules: M): ModuleIndex<M> {
   const registered = declarationArray(modules).map(requireModuleHandle);
   if (new Set(registered.map(module => module.definition.id)).size !== registered.length) throw new Error("DUPLICATE_MODULE_ID");
   const result = Object.create(null) as Record<string, Readonly<Record<string, object>>>;
@@ -18,9 +18,9 @@ export function moduleCatalog<const M extends readonly RegisteredModule[]>(modul
   }
   Object.freeze(result);
   catalogs.set(result, Object.freeze(registered));
-  return result as ModuleCatalog<M>;
+  return result as ModuleIndex<M>;
 }
-export function requireModuleCatalog(value: unknown): readonly ModuleRecord[] {
+export function requireModuleIndex(value: unknown): readonly ModuleRecord[] {
   const found = typeof value === "object" && value !== null ? catalogs.get(value) : undefined;
   if (!found) throw new Error("UNREGISTERED_MODULE_CATALOG");
   return found;

@@ -6,11 +6,11 @@ import { preflightMutation } from "../local/preflight.ts";
 import { admittedRun } from "../local/records.ts";
 import type { Intent } from "../local/types.ts";
 import { preparedView } from "../local/effects.ts";
-import type { ActivityCatalog } from "./catalog.ts";
+import type { ActivityIndex } from "./activity-index.ts";
 import { activityRecord, activitySnapshot, requireEditableActivity, type ActivityRecord } from "./records.ts";
 import { activityProgress } from "./progress.ts";
 
-export async function prepareActivity(client: PoolClient, program: LocalProgram, catalog: ActivityCatalog,
+export async function prepareActivity(client: PoolClient, program: LocalProgram, catalog: ActivityIndex,
   actor: string, surface: string, id: string, revision: number, lifetime: number) {
   const record = await activityRecord(client, program, catalog, actor, surface, id, true);
   await requireEditableActivity(client, record, revision);

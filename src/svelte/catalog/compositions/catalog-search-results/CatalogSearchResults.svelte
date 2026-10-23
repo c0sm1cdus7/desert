@@ -3,7 +3,7 @@
   import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
   import Search from "@lucide/svelte/icons/search";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
   import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
   import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
   let { title, description, query, results, onselect }: {
@@ -33,7 +33,7 @@
       <div data-catalog-search-items data-result-kind="record">
         {#each results as result (result.id)}
           {#if result.kind === "record"}<div data-search-result={result.id}>
-              <BankRenderer node={result.node} onevent={event => { if (event.kind === "catalog.open") onselect(result); }} />
+              <NodeRenderer node={result.node} onevent={event => { if (event.kind === "catalog.open") onselect(result); }} />
           </div>{/if}
         {/each}
       </div>

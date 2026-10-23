@@ -1,4 +1,4 @@
-import { humanSurface } from "../../src/surfaces.ts";
+import { humanExposure } from "../../src/exposures.ts";
 import { composeProduct } from "../../src/modules/compose.ts";
 import { navigationOwnershipFixture } from "./navigation-ownership.ts";
 import { ArchiveNote, CreateNote, ReadNote } from "../../products/notebook/journeys.ts";
@@ -6,21 +6,21 @@ import { ArchiveNote, CreateNote, ReadNote } from "../../products/notebook/journ
 const exposure = {
   id: "human", journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en",
 };
-humanSurface(exposure);
+humanExposure(exposure);
 
 const connection = {
   availability: "journey-dependencies" as const, draftRetention: "session-memory" as const,
   reconnect: "refresh-without-replay" as const,
 };
 // @ts-expect-error Connection semantics belong to the SDK, even if an author repeats the same values.
-humanSurface({ ...exposure, connection });
+humanExposure({ ...exposure, connection });
 const overriddenExposure = { ...exposure, connection };
 // @ts-expect-error A variable cannot bypass the ownership boundary.
-humanSurface(overriddenExposure);
+humanExposure(overriddenExposure);
 const withUndefinedPolicy = { ...exposure, connection: undefined };
 // @ts-expect-error Explicit undefined still attempts to own connection policy.
-humanSurface(withUndefinedPolicy);
+humanExposure(withUndefinedPolicy);
 const { composition } = navigationOwnershipFixture();
-const overriddenProduct = { ...composition, surfaces: [{ ...humanSurface(exposure), connection }] };
+const overriddenProduct = { ...composition, exposures: [{ ...humanExposure(exposure), connection }] };
 // @ts-expect-error Composition cannot bypass the same canonical policy owner.
 composeProduct(overriddenProduct);

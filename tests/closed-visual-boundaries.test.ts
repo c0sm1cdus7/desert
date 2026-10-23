@@ -41,14 +41,14 @@ test("sealed adapters reject HTML injection and opaque component selection", () 
 });
 
 test("sealed adapters cannot acquire legacy native props through a catalog component", () => {
-  const source = '<script>import BankRenderer from "./BankRenderer.svelte";</script>'
-    + '<BankRenderer {node} actionElementProps={{ style: "color:red" }}/>';
+  const source = '<script>import NodeRenderer from "./NodeRenderer.svelte";</script>'
+    + '<NodeRenderer {node} actionElementProps={{ style: "color:red" }}/>';
   assert.throws(() => assertClosedVisualBoundaries([{ path: "src/svelte/catalog/renderer/frame-body/FrameBody.svelte", source }]),
     /CLOSED_VISUAL_BOUNDARY/);
 });
 
 test("the adapter catalog admits owner-typed data and composition, not caller styling or slots", () => {
-  const script = '<script>import { BankRenderer as Bank, StackItem, ContentFlow } from "./adapter-catalog.ts";</script>';
+  const script = '<script>import { NodeRenderer as Bank, StackItem, ContentFlow } from "./adapter-catalog.ts";</script>';
   const assertSource = (markup: string) => assertClosedVisualBoundaries([{ path: "src/svelte/catalog/renderer/frame-body/FrameBody.svelte", source: script + markup }]);
   assert.doesNotThrow(() => assertSource('<StackItem kind="fact"><Bank {node} {onevent}/></StackItem>'));
   assert.doesNotThrow(() => assertSource('<ContentFlow {resolved} {onevent} {onalbum} bind:this={flow}/>'));
@@ -63,22 +63,22 @@ test("the adapter catalog admits owner-typed data and composition, not caller st
 
 test("catalog imports cannot be bypassed through shadowed names or opaque aliases", () => {
   const path = "src/svelte/catalog/renderer/frame-body/FrameBody.svelte";
-  const script = '<script>import { BankRenderer } from "./adapter-catalog.ts";</script>';
+  const script = '<script>import { NodeRenderer } from "./adapter-catalog.ts";</script>';
   for (const source of [
-    script + '{#each components as BankRenderer}<BankRenderer/>{/each}',
-    script + '{#each components as { component: BankRenderer }}<BankRenderer/>{/each}',
-    script + '{@const BankRenderer = arbitrary}<BankRenderer/>',
-    script + '{#await value then BankRenderer}<BankRenderer/>{/await}',
-    script + '{#snippet nested(BankRenderer)}<BankRenderer/>{/snippet}',
-    '<script>import * as Catalog from "./adapter-catalog.ts";</script><Catalog.BankRenderer/>',
-    '<script>import { BankRenderer } from "./adapter-catalog.ts"; const Other = BankRenderer;</script><Other/>',
-    '<script>import { BankRenderer } from "./adapter-catalog.ts"; const f = (BankRenderer) => BankRenderer;</script><BankRenderer/>',
+    script + '{#each components as NodeRenderer}<NodeRenderer/>{/each}',
+    script + '{#each components as { component: NodeRenderer }}<NodeRenderer/>{/each}',
+    script + '{@const NodeRenderer = arbitrary}<NodeRenderer/>',
+    script + '{#await value then NodeRenderer}<NodeRenderer/>{/await}',
+    script + '{#snippet nested(NodeRenderer)}<NodeRenderer/>{/snippet}',
+    '<script>import * as Catalog from "./adapter-catalog.ts";</script><Catalog.NodeRenderer/>',
+    '<script>import { NodeRenderer } from "./adapter-catalog.ts"; const Other = NodeRenderer;</script><Other/>',
+    '<script>import { NodeRenderer } from "./adapter-catalog.ts"; const f = (NodeRenderer) => NodeRenderer;</script><NodeRenderer/>',
     '<script>const Component = (await import("./Anything.svelte")).default;</script><Component/>',
     '<script>import { Missing } from "./adapter-catalog.ts";</script><Missing/>',
-    '<script module>import * as Catalog from "./adapter-catalog.ts";</script><Catalog.BankRenderer/>',
+    '<script module>import * as Catalog from "./adapter-catalog.ts";</script><Catalog.NodeRenderer/>',
   ]) assert.throws(() => assertClosedVisualBoundaries([{ path, source }]), /CLOSED_VISUAL_BOUNDARY/, source);
   assert.doesNotThrow(() => assertClosedVisualBoundaries([{ path,
-    source: '<script module>import { BankRenderer as Bank } from "./adapter-catalog.ts";</script><Bank {node}/>',
+    source: '<script module>import { NodeRenderer as Bank } from "./adapter-catalog.ts";</script><Bank {node}/>',
   }]));
 });
 
@@ -95,7 +95,7 @@ test("the event-lifetime adapter has the same sealed rendering boundary", () => 
 
 test("declaration names cannot shadow imported catalog identities across Svelte scripts", () => {
   const path = "src/svelte/catalog/renderer/frame-body/FrameBody.svelte";
-  const script = '<script module>import { BankRenderer as Bank } from "./adapter-catalog.ts";</script>';
+  const script = '<script module>import { NodeRenderer as Bank } from "./adapter-catalog.ts";</script>';
   for (const declaration of [
     'function Bank() { return {}; }',
     'class Bank {}',
@@ -122,15 +122,15 @@ test("sealed adapters cannot draw through runtime DOM globals or dynamic code", 
     '<script>new Function("document.write(\\"Foreign UI\\")")()</script>',
     '<script>const Execute = Function; new Execute("document.write(\\"Foreign UI\\")")()</script>',
     '<script>const observer = new MutationObserver(() => {});</script>',
-    '<script>import { BankRenderer } from "./adapter-catalog.ts";</script><BankRenderer {node} onevent={() => document.write("Foreign UI")}/>',
+    '<script>import { NodeRenderer } from "./adapter-catalog.ts";</script><NodeRenderer {node} onevent={() => document.write("Foreign UI")}/>',
   ]) assert.throws(() => assertClosedVisualBoundaries([{ path, source }]), /CLOSED_VISUAL_BOUNDARY: .*adapter runtime global:/, source);
   assert.doesNotThrow(() => assertClosedVisualBoundaries([{ path, source:
     '<script lang="ts">import { ContentFlow } from "./adapter-catalog.ts"; let target: HTMLElement | null = null; const semantic = { document: "Notes" };</script>'
       + '<ContentFlow {resolved} {onevent} {onalbum}/>',
   }]), "type-only DOM references and semantic object keys do not execute browser code");
   assert.doesNotThrow(() => assertClosedVisualBoundaries([{ path, source:
-    '<script>import { BankRenderer } from "./adapter-catalog.ts"; const read = (document) => document.title;</script>'
-      + '<BankRenderer {node} onevent={(event) => read(event)}/>',
+    '<script>import { NodeRenderer } from "./adapter-catalog.ts"; const read = (document) => document.title;</script>'
+      + '<NodeRenderer {node} onevent={(event) => read(event)}/>',
   }]), "local data bindings are not browser globals, including template callback parameters");
 });
 

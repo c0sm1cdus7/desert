@@ -7,5 +7,5 @@ export const PopoverControl = defineComposition({
   id: "popover-control",
   purpose: "Read contextual information in a temporary surface anchored to its trigger.",
   owner: { entry: "PopoverControl.svelte", parts: ["AnchoredSurface.svelte"] },
-  uses: ["bank-renderer", "frame-body"], approval: "none", contract: PopoverControlContract,
+  uses: ["node-renderer", "frame-body"], approval: "none", contract: PopoverControlContract,
 } as const);

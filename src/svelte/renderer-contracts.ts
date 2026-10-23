@@ -1,20 +1,20 @@
 import type { Component } from "svelte";
-import type { PrimitiveId, InputPrimitive } from "../interaction/catalog.ts";
+import type { ResolvedNodeId, ResolvedInputId } from "../interaction/catalog.ts";
 import type { ControlNode, ControlEvent } from "../interaction/control-nodes.ts";
 import type { SurfaceFrame, FrameContent, FactsContent, Destination } from "../interaction/surface-frame.ts";
 import type { ToolbarAction, TopToolbar } from "../interaction/toolbar.ts";
 import type { SurfaceIntent } from "../interaction/intent.ts";
-import type { BankNode, BankNodeFor } from "../interaction/bank-node.ts";
-import type { BankEvent } from "../interaction/bank-events.ts";
+import type { ResolvedNode, ResolvedNodeFor } from "../interaction/resolved-node.ts";
+import type { NodeEvent } from "../interaction/node-events.ts";
 import type { LocalFileHost } from "./infra/file-host.ts";
 import type { ActionElementProps } from "./action-adapter.ts";
 import type { InputMask } from "../interaction/input-mask.ts";
 import { freezeDeep } from "../json.ts";
 import type { FormControlEvent } from "../interaction/form-control-event.ts";
 
-/** Private dispatcher inputs; public authoring only supplies serializable BankNode. */
-export type BankRendererProps = {
-  node: BankNode; onevent?: (event: BankEvent) => void; host?: LocalFileHost;
+/** Private dispatcher inputs; public authoring only supplies serializable ResolvedNode. */
+export type NodeRendererProps = {
+  node: ResolvedNode; onevent?: (event: NodeEvent) => void; host?: LocalFileHost;
   actionElementProps?: ActionElementProps; frameIdentity?: object;
 };
 
@@ -27,17 +27,17 @@ export type ControlProps<K extends ControlKind> = { node: Extract<ControlNode, {
 type Invoke = (intent: SurfaceIntent) => void;
 type Edit = (name: string, value: string) => void;
 type FactsProps = Pick<FactsContent, "fields" | "facts" | "object" | "labels" | "multiline" | "images" | "tags" | "references">;
-type InputProps<P extends InputPrimitive> = {
+type InputProps<P extends ResolvedInputId> = {
   primitive: P; label: string; value?: string; required?: boolean; identity?: string; maxLength?: number | undefined;
   invalid?: boolean; error?: string | undefined; helper?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
 };
 type ControlRendererProps = { [K in ControlKind as `control.${K}`]: ControlProps<K> };
 
-/** Private web adapter bindings, never accepted as bank descriptors. BankRenderer alone resolves these. */
-export type WebRendererProps = ControlRendererProps & {
-  "catalog.card": { node: BankNodeFor<"catalog.card">; onevent: (event: BankEvent) => void };
-  "catalog.home": { node: BankNodeFor<"catalog.home">; onevent: (event: BankEvent) => void };
-  "catalog.detail": { node: BankNodeFor<"catalog.detail">; onevent: (event: BankEvent) => void };
+/** Private web adapter bindings, never accepted as bank descriptors. NodeRenderer alone resolves these. */
+export type NodeRendererInputs = ControlRendererProps & {
+  "catalog.card": { node: ResolvedNodeFor<"catalog.card">; onevent: (event: NodeEvent) => void };
+  "catalog.home": { node: ResolvedNodeFor<"catalog.home">; onevent: (event: NodeEvent) => void };
+  "catalog.detail": { node: ResolvedNodeFor<"catalog.detail">; onevent: (event: NodeEvent) => void };
   "input.text": InputProps<"input.text"> & { mask?: InputMask | undefined };
   "input.multiline": InputProps<"input.multiline">;
   fact: FactsProps;
@@ -46,7 +46,7 @@ export type WebRendererProps = ControlRendererProps & {
     onclick?: () => void; type?: "button" | "submit"; elementProps?: ActionElementProps | undefined;
   };
   availability: NonNullable<TopToolbar["availability"]>;
-  collection: { node: BankNodeFor<"collection">; select: (id: string) => void };
+  collection: { node: ResolvedNodeFor<"collection">; select: (id: string) => void };
   form: { fields: Extract<FrameContent, { kind: "form" }>["fields"]; edit: Edit; controlEvent: (event: FormControlEvent) => void };
   context: FactsProps & { attention?:Extract<FrameContent,{kind:'context'}>['attention']; presentation?: Extract<FrameContent, { kind: "context" }>["presentation"]; selectors?: Extract<FrameContent, { kind: "context" }>["selectors"]; onselect?: (journey: string) => void; actions: readonly (Pick<Destination, "label" | "available"> & {
     id: Destination["destination"]; invoke: () => void;
@@ -63,13 +63,13 @@ export type WebRendererProps = ControlRendererProps & {
 };
 
 /** Inventory and props are both checked; a component for another entry is not interchangeable. */
-export type WebRendererBank = { readonly [K in PrimitiveId]: Component<WebRendererProps[K]> };
+export type NodeRendererTable = { readonly [K in ResolvedNodeId]: Component<NodeRendererInputs[K]> };
 
 /** Only these private host channels may bypass serializable node data. */
 export const DispatcherCapabilities = freezeDeep({
   action: { property: "elementProps", input: "actionElementProps", required: false },
   transient: { property: "frameIdentity", input: "frameIdentity", required: false },
   "control.files": { property: "host", input: "host", required: true },
-} as const satisfies { [K in PrimitiveId]?: {
-  property: keyof WebRendererProps[K]; input: keyof BankRendererProps; required: boolean;
+} as const satisfies { [K in ResolvedNodeId]?: {
+  property: keyof NodeRendererInputs[K]; input: keyof NodeRendererProps; required: boolean;
 } });

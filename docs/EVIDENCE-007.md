@@ -4,7 +4,7 @@ Date: 2026-10-15. Scope: DESERT and Notebook. Tres Marías and Void are unchange
 
 ## Authored meaning
 
-`products/notebook/surfaces.ts` declares:
+`products/notebook/exposures.ts` declares:
 
 ```ts
 entry: ReadNote,

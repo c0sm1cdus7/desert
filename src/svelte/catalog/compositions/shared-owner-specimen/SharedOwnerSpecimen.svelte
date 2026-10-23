@@ -27,7 +27,7 @@
   import SelectionField from "../../foundations/selection-field/SelectionField.svelte";
   import MeasuredField from "../../foundations/measured-field/MeasuredField.svelte";
   import type { ResolvedView } from "../../../../views/resolved.ts";
-  import { BankVersion, type BankNodeFor } from "../../../../interaction/bank-node.ts";
+  import { ResolvedNodeVersion, type ResolvedNodeFor } from "../../../../interaction/resolved-node.ts";
   import type { RelatedSelectionSnapshot } from "../../../../interaction/related-selection.ts";
   import Collection from '../collection/Collection.svelte';
   import SummaryWidget from '../summary-widget/SummaryWidget.svelte';
@@ -44,23 +44,23 @@
     {kind:'stack',id:'collections',title:'Collections',items:[{kind:'collection',id:'collection-grid',input:'collections',output:'open'}]},
     {kind:'stack',id:'media',title:'Media',items:[{kind:'collection',id:'media-grid',input:'media',output:'open'}]},
   ]},disabledOutputs:[],bindings:{
-    collections:{version:BankVersion,kind:'collection',object:'collection',fields:['title'],labels:{'collection.title':'Title'},loaded:true,disabled:false,selectedId:null,
+    collections:{version:ResolvedNodeVersion,kind:'collection',object:'collection',fields:['title'],labels:{'collection.title':'Title'},loaded:true,disabled:false,selectedId:null,
       presentation:{kind:'collection-grid',title:'title',previews:[{id:'travel',count:3},{id:'research',count:2}]},
       records:[{id:'travel',version:1,facts:{title:'Travel'}},{id:'research',version:1,facts:{title:'Research'}}]},
-    media:{version:BankVersion,kind:'collection',object:'media',fields:['image'],labels:{'media.image':'Image'},loaded:true,disabled:false,selectedId:null,
+    media:{version:ResolvedNodeVersion,kind:'collection',object:'media',fields:['image'],labels:{'media.image':'Image'},loaded:true,disabled:false,selectedId:null,
       presentation:{kind:'media-grid',image:'image',layout:'grid'},
       records:[1,2,3].map(index=>({id:`image-${index}`,version:1,facts:{image:'/bank-image.svg'}}))},
   }};
   const attentionSignal:AttentionSignal={version:'desert.attention/1',recipient:'specimen',
     source:{kind:'activity',id:'10000000-0000-4000-8000-000000000001',revision:1,journey:'note'},
     target:{kind:'activity',id:'10000000-0000-4000-8000-000000000001'},reason:'activity.resume',resolution:'producer'};
-  const widget:BankNodeFor<'collection'>={version:BankVersion,kind:'collection',object:'task',fields:['status'],
+  const widget:ResolvedNodeFor<'collection'>={version:ResolvedNodeVersion,kind:'collection',object:'task',fields:['status'],
     labels:{'task.status':'Status'},loaded:true,disabled:false,selectedId:null,
     presentation:{kind:'summary-widget',title:'Tasks',description:'Work at a glance',totalLabel:'Tasks',field:'status',
       segments:[{value:'open',label:'Open'},{value:'completed',label:'Completed'}]},
     records:[{id:'first',version:1,facts:{status:'open'}},{id:'second',version:1,facts:{status:'open'}},
       {id:'third',version:1,facts:{status:'completed'}}]};
-  let shownWidget=$derived<BankNodeFor<'collection'>>({...widget,loaded:widgetState!=='loading',
+  let shownWidget=$derived<ResolvedNodeFor<'collection'>>({...widget,loaded:widgetState!=='loading',
     ...(widgetState==='loading'?{records:[]}:{}),
     connection:widgetState==='offline'?'offline':widgetState==='loading'?'loading':'ready',
   });
@@ -104,7 +104,7 @@
   {:else if owner === "ViewDestinationLink"}
     <MeasuredField kind="control.select"><SelectionField selection="action-row-state" label="State" value={commandState} fieldControl
       options={['ready','loading','offline'].map(value=>({value,label:value[0].toUpperCase()+value.slice(1),disabled:false}))} onchange={value=>commandState=value} /></MeasuredField>
-    <StackLayout title="Objects"><Collection node={{version:BankVersion,kind:'collection',object:'note',fields:['title','details'],
+    <StackLayout title="Objects"><Collection node={{version:ResolvedNodeVersion,kind:'collection',object:'note',fields:['title','details'],
       labels:{'note.title':'Title','note.details':'Details'},loaded:true,disabled:false,selectedId:null,
       records:[{id:'one-line',version:1,facts:{title:'Design ideas',details:''}},
         {id:'two-lines',version:1,facts:{title:'Next steps',details:'Only show secondary content when it exists.'}}]}}

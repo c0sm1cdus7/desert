@@ -1,13 +1,13 @@
 import { projectPublicCatalog, type PublicCatalogSurface } from "../../public-catalog/client.ts";
 import type { CatalogItemNode } from "../../public-catalog/node-schema.ts";
-import type { PrimitiveId } from "../../interaction/catalog.ts";
+import type { ResolvedNodeId } from "../../interaction/catalog.ts";
 import { catalogTitle, matchingEntries } from "./catalog-navigation.ts";
 import { stackNodes } from "../../interaction/place.ts";
 
 export type CatalogDestination = "browse" | "travel-kit" | "bank";
 export type CatalogSearchResult =
   | { kind: "record"; id: string; node: CatalogItemNode }
-  | { kind: "bank"; id: PrimitiveId; title: string; description: string }
+  | { kind: "bank"; id: ResolvedNodeId; title: string; description: string }
   | { kind: "exercise"; id: string; title: string; description: string };
 
 /** Renderer-local providers consume exposed metadata, never controller or draft data. */

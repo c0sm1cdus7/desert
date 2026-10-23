@@ -18,10 +18,10 @@ test('Home, list, detail and media use the same attention indicator, including r
   const collections={...collection,presentation:{kind:'collection-grid',title:'title',previews:[{id,count:3}]}};
   const state={loaded:true,error:null,objectSignals:{},items:[{id:signal.source.id,journey:'edit',title:'Review the draft',description:'Continue where you left off.',available:true,signals:[signal]}]};
   const f=await svelteBrowser(`<script lang="ts">
-    import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
+    import NodeRenderer from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
     import AttentionList from '@desert/svelte/catalog/compositions/attention-list/AttentionList.svelte';
     const collection=${JSON.stringify(collection)},context=${JSON.stringify(context)},media=${JSON.stringify(media)},collections=${JSON.stringify(collections)},state=${JSON.stringify(state)};
-  </script><main class="grid gap-4 p-4"><AttentionList {state} resume={()=>{}}/><BankRenderer node={collection}/><BankRenderer node={context}/><BankRenderer node={media}/><BankRenderer node={collections}/></main>`);
+  </script><main class="grid gap-4 p-4"><AttentionList {state} resume={()=>{}}/><NodeRenderer node={collection}/><NodeRenderer node={context}/><NodeRenderer node={media}/><NodeRenderer node={collections}/></main>`);
   try{
     await f.page.addStyleTag({content:await rendererCss()});
     const dots=f.page.locator('[data-attention-indicator]');assert.equal(await dots.count(),5);

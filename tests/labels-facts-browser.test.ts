@@ -4,9 +4,9 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 
 test("published label arrays use the existing Tag primitive in facts, not a JSON or CSV encoding", async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
+    import NodeRenderer from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
   </script>
-  <BankRenderer node={{version:'desert.bank-node/1',kind:'fact',details:{kind:'facts',
+  <NodeRenderer node={{version:'desert.bank-node/1',kind:'fact',details:{kind:'facts',
     object:'task',fields:['projects','status'],facts:{projects:['DESERT','Two words','🪴'],status:'open'},
     labels:{'task.projects':'Projects','task.status':'Status'},tags:['projects']}}} />`);
   try {

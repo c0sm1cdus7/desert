@@ -1,12 +1,12 @@
 <script lang="ts">
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { placeContent, type PlaceContent } from "../../../../interaction/place.ts";
   import type { LocalFileHost } from "../../../infra/file-host.ts";
   import PlaceHeader from "../place-header/PlaceHeader.svelte";
   import Stack from "../stack/Stack.svelte";
 
   let { definition, onevent = () => {}, host, bodyOnly = false }: {
-    definition: PlaceContent; onevent?: (event: BankEvent) => void; host?: LocalFileHost; bodyOnly?: boolean;
+    definition: PlaceContent; onevent?: (event: NodeEvent) => void; host?: LocalFileHost; bodyOnly?: boolean;
   } = $props();
   let checked = $derived(placeContent(definition));
 </script>

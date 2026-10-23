@@ -51,7 +51,7 @@ or `ViewDeclaration` does not bypass that check. This is a bounded guarantee, no
 a claim that TypeScript proves every nested property of every component. Runtime
 admission still checks untyped inputs.
 
-`ReadNotesExperience` binds this View to the read journey, its object View and
+`ReadNotesJourney` binds this View to the read journey, its object View and
 its outputs. Create emits a journey intent; Select emits a selection intent.
 The View cannot execute either operation. Object publication selects the object
 View, title fact, field labels/representations and toolbar actions. Notebook
@@ -101,7 +101,7 @@ Product modules + Views + journeys + workspace/navigation
 | `src/svelte/catalog/compositions/view-workspace/ViewWorkspace.svelte` | Adapt the resolved workspace to the existing catalog shell. |
 | `src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte` | Compose shared navigation, main surface, search and panels. |
 | `src/svelte/catalog/compositions/view-panel/ViewPanel.svelte` | Adapt the panel to existing Drawer/SurfaceFrame owners. |
-| `src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte` and `renderer-registry.ts` | Validate and dispatch installed bank descriptors. |
+| `src/svelte/catalog/renderer/bank-renderer/NodeRenderer.svelte` and `renderer-registry.ts` | Validate and dispatch installed bank descriptors. |
 
 `DESERT-BUILD.json` format `desert.distribution-build/3` binds files, renderer
 revision, contract, distribution, surface and `viewProgramDigest`. Activities add
@@ -134,11 +134,11 @@ product-command field. Text, labels and private-image inputs have canonical
 bindings; other controls remain local exercises unless their command grammar
 and execution binding are installed.
 
-`WebRendererBank` associates each entry with its own props/events.
+`NodeRendererTable` associates each entry with its own props/events.
 `renderer-registry.ts` binds entries to actual components. Generated
 `adapter-catalog.ts`, backed by `catalog-manifest.ts`, exposes finite composition
 owners to adapters. Neither registry is another product definition.
-`RendererBank<T>` alone checks inventory, not component compatibility.
+`RendererTable<T>` alone checks inventory, not component compatibility.
 
 A registered View requests `Components.VisualCatalog()`. It does not require
 a `?catalog=1` alternate renderer. Specimens reuse production owners. Missing

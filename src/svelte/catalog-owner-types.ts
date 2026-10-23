@@ -5,7 +5,7 @@ import type LocalExerciseContentOwner from "./catalog/compositions/local-exercis
 import type SummaryWidgetOwner from "./catalog/compositions/summary-widget/SummaryWidget.svelte";
 import type ViewDestinationLinkOwner from "./catalog/compositions/view-destination-link/ViewDestinationLink.svelte";
 import type FactGroupOwner from "./catalog/compositions/fact-group/FactGroup.svelte";
-import type BankOwner from "./catalog/renderer/bank-renderer/BankRenderer.svelte";
+import type NodeRendererOwner from "./catalog/renderer/node-renderer/NodeRenderer.svelte";
 import type InformationOwner from "./catalog/compositions/information/Information.svelte";
 import type MessageOwner from "./catalog/foundations/message-body/MessageBody.svelte";
 import type UtilityOwner from "./catalog/compositions/utility-actions/UtilityActions.svelte";
@@ -27,9 +27,9 @@ export type Owners = {
   SummaryWidget: typeof SummaryWidgetOwner;
   ViewDestinationLink: typeof ViewDestinationLinkOwner;
   FactGroup: typeof FactGroupOwner;
-  BankRenderer: typeof BankOwner;
-  TransientRenderer: typeof BankOwner;
-  ControlBankRenderer: typeof BankOwner;
+  NodeRenderer: typeof NodeRendererOwner;
+  TransientRenderer: typeof NodeRendererOwner;
+  ControlNodeRenderer: typeof NodeRendererOwner;
   Information: typeof InformationOwner;
   MessageBody: typeof MessageOwner;
   UtilityActions: typeof UtilityOwner;

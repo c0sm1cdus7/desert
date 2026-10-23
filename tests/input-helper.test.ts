@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Locator } from "playwright";
-import { BankVersion, bankNode } from "../src/interaction/bank-node.ts";
+import { ResolvedNodeVersion, resolvedNode } from "../src/interaction/resolved-node.ts";
 import { compilePublicCatalog } from "../src/public-catalog/index.ts";
 import { publicCatalogBankInventory } from "../src/svelte/infra/PublicCatalogBank-model.ts";
 import { catalogFixture } from "./fixtures/public-catalog.ts";
@@ -46,21 +46,21 @@ test("input helpers belong to each field and join errors/counters in every input
 });
 
 test("the closed bank carries helper copy and both input specimens demonstrate it", { timeout: 90000 }, async () => {
-  const base = { version: BankVersion, name: "example", label: "Example", value: "", required: false, disabled: false };
+  const base = { version: ResolvedNodeVersion, name: "example", label: "Example", value: "", required: false, disabled: false };
   for (const kind of ["input.text", "input.multiline"] as const) {
     const node = { ...base, kind, helper: "This guidance belongs to the input." };
-    assert.deepEqual(bankNode(node), node);
-    for (const helper of ["", 1, { text: "not plain text" }]) assert.throws(() => bankNode({ ...node, helper }), /INVALID_BANK_NODE/);
+    assert.deepEqual(resolvedNode(node), node);
+    for (const helper of ["", 1, { text: "not plain text" }]) assert.throws(() => resolvedNode({ ...node, helper }), /INVALID_BANK_NODE/);
   }
   const inventory = publicCatalogBankInventory(compilePublicCatalog(catalogFixture()).surface);
   for (const item of inventory.filter(item => item.id === "input.text" || item.id === "input.multiline")) {
     assert.ok(item.node && "helper" in item.node && typeof item.node.helper === "string" && item.node.helper.length > 0);
   }
   const f = await svelteBrowser(`<script lang="ts">
-    import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
+    import NodeRenderer from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
     const base = ${JSON.stringify(base)};
   </script>{#each ['input.text','input.multiline'] as kind}
-    <BankRenderer node={{...base, kind, label:kind, helper:'Field-specific guidance.'}} onevent={()=>{}}/>
+    <NodeRenderer node={{...base, kind, label:kind, helper:'Field-specific guidance.'}} onevent={()=>{}}/>
   {/each}`);
   try {
     for (const label of ["input.text", "input.multiline"]) {

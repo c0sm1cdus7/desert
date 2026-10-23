@@ -1,16 +1,16 @@
-import { bankEvent, type BankEvent } from "../../interaction/bank-events.ts";
+import { nodeEvent, type NodeEvent } from "../../interaction/node-events.ts";
 import type { ResolvedPanel, ResolvedView } from "../../views/resolved.ts";
 
 declare const instance: unique symbol;
 /** Runtime-local render identity, never a product ID or controller authority. */
 export type ViewEventOwner = Readonly<{ epoch: number; [instance]: true }>;
-export type OwnedViewEvent = Readonly<{ owner: ViewEventOwner; event: BankEvent }>;
+export type OwnedViewEvent = Readonly<{ owner: ViewEventOwner; event: NodeEvent }>;
 export type OwnedResolvedView = ResolvedView & { readonly owner: ViewEventOwner };
 export type OwnedResolvedPanel = ResolvedPanel & { readonly owner: ViewEventOwner };
 
 /** Capture once for the mounted instance, never look up a newer owner on dispatch. */
 export function bindViewEvents(owner: ViewEventOwner, send: (value: OwnedViewEvent) => void) {
-  return (event: BankEvent) => send(Object.freeze({ owner, event }));
+  return (event: NodeEvent) => send(Object.freeze({ owner, event }));
 }
 
 export function viewEventOwnership() {
@@ -31,7 +31,7 @@ export function viewEventOwnership() {
       }
       return owners;
     },
-    read(value: unknown, policy: { kind: "exclusive" } | { kind: "navigation"; view: string } = { kind: "exclusive" }): BankEvent | null {
+    read(value: unknown, policy: { kind: "exclusive" } | { kind: "navigation"; view: string } = { kind: "exclusive" }): NodeEvent | null {
       if (stopped) return null;
       if (!value || typeof value !== "object" || Object.getPrototypeOf(value) !== Object.prototype) {
         throw new Error("INVALID_VIEW_EVENT_ENVELOPE");
@@ -42,7 +42,7 @@ export function viewEventOwnership() {
       const owner: unknown = entries.owner.value;
       if (!owner || typeof owner !== "object" || !issued.has(owner)) throw new Error("INVALID_VIEW_EVENT_OWNER");
       if (owner !== owners.main && owner !== owners.panel) return null;
-      const event = bankEvent(entries.event.value);
+      const event = nodeEvent(entries.event.value);
       if (owner === owners.panel || !owners.panel) return event;
       return policy.kind === "navigation" && event.kind === "surface.invoke" && (event.intent.kind === "back" ||
         event.intent.kind === "view.output" && event.intent.view === policy.view) ? event : null;

@@ -30,6 +30,6 @@ test("a request suffix cannot disguise a private component or reopen a closed ow
     assert.throws(() => assertClosedVisualBoundaries([{ path: "src/svelte/example.svelte", source:
       `<script>import Heading from "./catalog/foundations/heading/Heading.svelte${suffix}";</script><Heading class="foreign"/>`,
     }]), /presentation escape/);
-    assert.throws(() => check(`<script>import { BankRenderer } from "../adapter-catalog.ts${suffix}";</script><BankRenderer {node}/>`), /component outside adapter catalog/);
+    assert.throws(() => check(`<script>import { NodeRenderer } from "../adapter-catalog.ts${suffix}";</script><NodeRenderer {node}/>`), /component outside adapter catalog/);
   }
 });

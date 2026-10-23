@@ -16,16 +16,16 @@ test("product, catalog and nested compositions use the one bank dispatch boundar
     "catalog/renderer/failure-dialog/FailureDialog.svelte", "catalog/compositions/specimen/Specimen.svelte", "catalog/compositions/inspection/Inspection.svelte", "catalog/compositions/fact-group/FactGroup.svelte", "catalog/renderer/control-renderer/ControlRenderer.svelte"];
   for (const consumer of consumers) {
     const text = source(consumer);
-    assert.match(text, /BankRenderer/, `${consumer} bypasses the bank`);
+    assert.match(text, /NodeRenderer/, `${consumer} bypasses the bank`);
     assert.doesNotMatch(text, /import .+ from ["'][^"']*(?:renderer-registry|pieces\/(?:TextInput|Action|Availability|Drawer|Problem)|\/(?:Fields|Facts|ContextPanel|Review|Collection)\.svelte)/,
       `${consumer} resolves a registered owner independently`);
   }
-  const dispatch = source("catalog/renderer/bank-renderer/BankRenderer.svelte");
-  assert.match(dispatch, /bankNode\(node\)/);
-  assert.match(dispatch, /webRenderers/);
+  const dispatch = source("catalog/renderer/node-renderer/NodeRenderer.svelte");
+  assert.match(dispatch, /resolvedNode\(node\)/);
+  assert.match(dispatch, /nodeRenderers/);
   // Collection is the registered leaf, not a caller that should dispatch to itself.
   assert.match(source("renderer-registry.ts"), /collection: Collection/);
-  assert.match(source("catalog/compositions/collection/Collection.svelte"), /import type \{ BankNodeFor \}/);
+  assert.match(source("catalog/compositions/collection/Collection.svelte"), /import type \{ ResolvedNodeFor \}/);
   assert.match(source("catalog/compositions/collection/Collection.svelte"), /<GroupedPanel>/);
   assert.match(source("catalog/renderer/inspection-content/InspectionContent.svelte"), /import \{ Inspection \} from "\.\.\/adapter-catalog\.ts"/);
   assert.match(source("adapter-catalog.ts"), /import InspectionOwner from "\.\/catalog\/compositions\/inspection\/Inspection\.svelte"/);

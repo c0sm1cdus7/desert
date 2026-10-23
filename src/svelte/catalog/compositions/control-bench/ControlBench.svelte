@@ -3,19 +3,19 @@
   import * as Field from "../../../vendor/components/ui/field/index.js";
   import ControlRenderer from "../../renderer/control-renderer/ControlRenderer.svelte";
   import { LocalFileHost } from "../../../infra/file-host.ts";
-  import { ControlBank } from "../../../../interaction/control-bank.ts";
+  import { ControlSpecimens } from "../../../../interaction/control-specimens.ts";
   import { applyControlEvent, controlNode, type ControlEvent } from "../../../../interaction/control-nodes.ts";
-  import type { PrimitiveId } from "../../../../interaction/catalog.ts";
+  import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import SpecimenGroup from "../specimen-group/SpecimenGroup.svelte";
   import SpecimenRow from "../specimen-row/SpecimenRow.svelte";
   import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
   import Information from "../information/Information.svelte";
-  let { visibleIds = ControlBank.map(entry => entry.id), entryIds = ControlBank.map(entry => entry.id) }: {
-    visibleIds?: readonly PrimitiveId[]; entryIds?: readonly PrimitiveId[];
+  let { visibleIds = ControlSpecimens.map(entry => entry.id), entryIds = ControlSpecimens.map(entry => entry.id) }: {
+    visibleIds?: readonly ResolvedNodeId[]; entryIds?: readonly ResolvedNodeId[];
   } = $props();
   // A discovery group's ownership is fixed at mount; search changes visibility,
   // never this scope or the local renderer instances and file references it owns.
-  const entries = untrack(() => ControlBank.filter(entry => entryIds.includes(entry.id)));
+  const entries = untrack(() => ControlSpecimens.filter(entry => entryIds.includes(entry.id)));
   const specimens = entries.flatMap(entry => entry.specimens);
   let nodes = $state.raw(Object.fromEntries(specimens.map(({ node }) => [node.id, node])));
   let notice = $state("No interaction yet.");

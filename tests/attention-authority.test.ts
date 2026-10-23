@@ -5,7 +5,7 @@ import {Pool} from 'pg';
 import {Check} from '@sinclair/typebox/value';
 import {compile} from '../src/compile.ts';
 import {openLocalController} from '../src/local/controller.ts';
-import {activityCatalog} from '../src/activities/catalog.ts';
+import {activityIndex} from '../src/activities/activity-index.ts';
 import {activityInputs} from '../src/activities/authoring.ts';
 import {Components,defineView} from '../src/views/components.ts';
 import {viewPorts} from '../src/views/authoring-ports.ts';
@@ -20,7 +20,7 @@ test('Activity produces identity-scoped attention; update targets require a curr
   const ports=viewPorts({inputs:{draft:'form',prepared:'context'},outputs:[]});
   const Form=defineView({name:'attention-form',content:[Components.Form({input:ports.inputs.draft})]});
   const Review=defineView({name:'attention-review',content:[Components.Context({input:ports.inputs.prepared})]});
-  const catalog=activityCatalog(application,{journeys:[CreateNote,EditNote],views:[Form,Review]});
+  const catalog=activityIndex(application,{journeys:[CreateNote,EditNote],views:[Form,Review]});
   const ci=activityInputs(CreateNote),ei=activityInputs(EditNote);
   const create=catalog.define({journey:CreateNote,steps:[{view:Form,inputs:[ci.title,ci.body]}],review:Review});
   const edit=catalog.define({journey:EditNote,steps:[{view:Form,inputs:[ei.title,ei.body]}],review:Review});

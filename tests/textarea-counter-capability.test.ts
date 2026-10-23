@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { bankNode } from "../src/interaction/bank-node.ts";
+import { resolvedNode } from "../src/interaction/resolved-node.ts";
 import { publicCatalogRequirements, requirePublicCatalogCapabilities } from "../src/public-catalog/capabilities.ts";
 import { compilePublicCatalog, publicCatalogSurface } from "../src/public-catalog/index.ts";
 import { catalogFixture } from "./fixtures/public-catalog.ts";
@@ -11,7 +11,7 @@ const feature = "input.length-hint";
 
 test("authored multiline maxima require an advisory length-hint capability, including zero", () => {
   for (const maxLength of [0, 280]) {
-    const requirements = publicCatalogRequirements([bankNode({ ...base, maxLength })]);
+    const requirements = publicCatalogRequirements([resolvedNode({ ...base, maxLength })]);
     assert.ok(requirements.features.includes(feature), `Maximum ${maxLength} needs an explicit renderer hint capability`);
     const olderHost = { ...requirements, features: requirements.features.filter(value => value !== feature) };
     assert.throws(() => requirePublicCatalogCapabilities(olderHost, requirements),
@@ -24,12 +24,12 @@ test("authored multiline maxima require an advisory length-hint capability, incl
 test("unlimited multiline and single-line metadata do not claim a length-hint requirement", () => {
   for (const node of [base, { ...base, kind: "input.text", maxLength: 0 },
     { ...base, kind: "input.text", maxLength: 280 }]) {
-    assert.equal(publicCatalogRequirements([bankNode(node)]).features.includes(feature), false);
+    assert.equal(publicCatalogRequirements([resolvedNode(node)]).features.includes(feature), false);
   }
 });
 
 test("portable catalog exercises retain length-hint requirements after serialization", () => {
-  const nodes = [bankNode({ ...base, maxLength: 0 }), bankNode({ ...base, name: "summary", maxLength: 280 })];
+  const nodes = [resolvedNode({ ...base, maxLength: 0 }), resolvedNode({ ...base, name: "summary", maxLength: 280 })];
   const compiled = compilePublicCatalog({ ...catalogFixture(), exercises: { title: "Writing", subtitle: "Local drafts",
     stacks: [{ id: "writing", title: "Writing", description: "Write locally", items: nodes }] } });
   assert.ok(compiled.surface.requirements.features.includes(feature));

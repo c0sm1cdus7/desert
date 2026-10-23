@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { WorkspaceView, NavigationView } from "./fixtures/workspace-view.ts";
-import { composeProduct, defineModule, moduleCatalog, factReference, initializeInput, publishObject, viewOutput, humanSurface, agentSurface } from "../src/index.ts";
+import { composeProduct, defineModule, moduleIndex, factReference, initializeInput, publishObject, viewOutput, humanExposure, agentExposure } from "../src/index.ts";
 import { compile } from "../src/compile.ts";
 import { Note, OnlyOwnerCanAccess, NotesController, ArchiveNote, CreateNote, ReadNote } from "./fixtures/notebook-domain.ts";
 import { EditingNotebook, EditNote } from "./fixtures/editing-notebook.ts";
@@ -9,10 +9,10 @@ import { program } from "./fixtures/view-program.ts";
 import { publishedActionsFor } from "../src/views/program-bindings.ts";
 import { viewExposure } from "./fixtures/view-exposure.ts";
 import { notePublication } from "./fixtures/authored-notebook.ts";
-import { HomeView, HomeJourney, CreateNoteExperience, ReadNotesExperience, NotesDestination,
+import { HomeView, HomeJourney, CreateNoteJourney, ReadNotesJourney, NotesDestination,
   NotesView, NoteView, NoteEditorView } from "./fixtures/authored-view-program.ts";
 import { authorFixture } from "./fixtures/author-fixture.ts";
-import type { ModuleCatalog, RegisteredModule, ModuleJourney } from "../src/modules/types.ts";
+import type { ModuleIndex, RegisteredModule, ModuleJourney } from "../src/modules/types.ts";
 
 const ViewEditingNotebook = { ...EditingNotebook, surfaces: EditingNotebook.surfaces.map(viewExposure) };
 
@@ -30,8 +30,8 @@ const moduleSource = { id: "notes",
   dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   views: [NotesView, NoteView, NoteEditorView, Editor],
   journeys: [
-    { execution: CreateNote, label: "Create note", humanReview: "not-required", presentation: { ...CreateNoteExperience, source: ReadNote } },
-    { execution: ReadNote, label: "Read notes", presentation: ReadNotesExperience },
+    { execution: CreateNote, label: "Create note", humanReview: "not-required", presentation: { ...CreateNoteJourney, source: ReadNote } },
+    { execution: ReadNote, label: "Read notes", presentation: ReadNotesJourney },
     { execution: ArchiveNote, label: "Archive note", humanReview: "required" },
     { execution: EditNote, label: "Edit note", humanReview: "not-required", presentation: EditPresentation },
   ], destinations: [NotesDestination],
@@ -39,12 +39,12 @@ const moduleSource = { id: "notes",
     destinations: { notes: NotesDestination } },
 } as const;
 type PublicNotes = { id: "notes"; exports: typeof moduleSource.exports; journeys: readonly ModuleJourney[] };
-function composition(modules: ModuleCatalog<readonly [RegisteredModule<PublicNotes>]> =
-  moduleCatalog([defineModule(authorFixture(moduleSource))])) {
+function composition(modules: ModuleIndex<readonly [RegisteredModule<PublicNotes>]> =
+  moduleIndex([defineModule(authorFixture(moduleSource))])) {
   const journeys = [modules.journeys.createNote, modules.journeys.readNotes, modules.journeys.archiveNote, modules.journeys.editNote];
   return { id: EditingNotebook.id, label: "Notebook", modules,
     workspace: WorkspaceView, views: [WorkspaceView, NavigationView],
-    surfaces: [humanSurface({ id: "human", journeys, locale: "en" }), agentSurface("agent", journeys)],
+    exposures: [humanExposure({ id: "human", journeys, locale: "en" }), agentExposure("agent", journeys)],
     entry: modules.destinations.notes,
     navigation: [{ destination: modules.destinations.notes, group: "Explore", purpose: "content" }],
   } as const;
@@ -73,7 +73,7 @@ test("one object publication resolves its detail, subject operation and explicit
 });
 
 test("subject source references cannot cross module ownership or point to missing journeys", () => {
-  const foreign = moduleCatalog([defineModule(structuredClone({ id: "other", objects: [Note], dependencies: [NotesController],
+  const foreign = moduleIndex([defineModule(structuredClone({ id: "other", objects: [Note], dependencies: [NotesController],
     policies: [OnlyOwnerCanAccess], journeys: [{ execution: ReadNote }], exports: { journeys: { readNotes: ReadNote } } }))]);
   const replaceEdit = (presentation: unknown) => ({ ...moduleSource, journeys: [
     ...moduleSource.journeys.slice(0, 3), { execution: EditNote, presentation },
@@ -117,7 +117,7 @@ test("a zero-input subject action is published and derived without inventing an 
     journeys: moduleSource.journeys.map(registration => registration.execution.id === ArchiveNote.id
       ? { ...registration, presentation: action } : registration),
   } as const;
-  const authored = composition(moduleCatalog([defineModule(authorFixture(source))]));
+  const authored = composition(moduleIndex([defineModule(authorFixture(source))]));
   const result = composeProduct(authored);
   assert.deepEqual(result.definition, ViewEditingNotebook, "Presentation cannot manufacture a new operation");
   assert.deepEqual(result.viewProgram.journeys.find(item => item.id === ArchiveNote.id), { ...action, source: ReadNote.id });

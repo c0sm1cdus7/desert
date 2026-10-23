@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { InteractionCatalog } from '../src/interaction/catalog.ts';
+import { ResolvedNodes } from '../src/interaction/catalog.ts';
 import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 import { catalogWorkspaceSource } from './fixtures/catalog-workspace.ts';
@@ -9,11 +9,11 @@ import { compileViewProgram } from '../src/views/program.ts';
 import { program, surface } from './fixtures/view-program.ts';
 
 test('the canonical inventory has only foundations and compositions, including ordinary controls and media foundations', () => {
-  assert.deepEqual(InteractionCatalog.groups.map(group=>group.title), ['Foundations','Compositions']);
+  assert.deepEqual(ResolvedNodes.groups.map(group=>group.title), ['Foundations','Compositions']);
   const expectedFoundations=['fact','action','availability','input.text','input.multiline','control.select',
     'control.files','control.labels','control.options','control.money','control.date','control.tag','control.image','control.avatar'];
-  assert.deepEqual(InteractionCatalog.entries.filter(entry=>entry.inspection.group==='foundations').map(entry=>entry.id).sort(),expectedFoundations.sort());
-  assert.equal(InteractionCatalog.entries.find(entry=>entry.id==='transient')!.inspection.group,'compositions');
+  assert.deepEqual(ResolvedNodes.entries.filter(entry=>entry.inspection.group==='foundations').map(entry=>entry.id).sort(),expectedFoundations.sort());
+  assert.equal(ResolvedNodes.entries.find(entry=>entry.id==='transient')!.inspection.group,'compositions');
 });
 
 test('surface areas reject non-toolbar vertical content and nested lateral surfaces',()=>{
@@ -70,7 +70,7 @@ test('the visual index has exactly two categories and gives button, avatar, imag
     const compositions=index.getByRole('group',{name:'Compositions',exact:true});
     assert.equal(await compositions.locator('[data-destination="Place"]').innerText(),'Surface');
     assert.equal(await compositions.locator('[data-destination="transient"]').innerText(),'Transient surface');
-    for(const entry of InteractionCatalog.entries) assert.equal(await index.locator(`[data-destination="${entry.id}"]`).count(),1,entry.id);
+    for(const entry of ResolvedNodes.entries) assert.equal(await index.locator(`[data-destination="${entry.id}"]`).count(),1,entry.id);
     assert.deepEqual(f.errors,[]);
   } finally {await f.close();}
 });

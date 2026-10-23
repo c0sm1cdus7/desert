@@ -1,7 +1,7 @@
 <script lang="ts">
   import { surfaceFrame, type SurfaceFrame } from "../../../../interaction/surface-frame.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ResolvedView } from "../../../../views/resolved.ts";
   import ContentFlow from "../content-flow/ContentFlow.svelte";
   import FrameBody from "../../renderer/frame-body/FrameBody.svelte";
@@ -38,7 +38,7 @@ let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEv
     const action = checked.bottom.primary;
     if (action?.state === "ready") invoke(action.intent);
   }
-  function dispatch(event: BankEvent) {
+  function dispatch(event: NodeEvent) {
     if (event.kind === "input.change") edit(event.name, event.value);
     else if (isFormControlEvent(event)) controlEvent?.(event);
     else if (event.kind === "surface.invoke") invoke(event.intent);

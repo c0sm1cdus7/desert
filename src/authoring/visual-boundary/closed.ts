@@ -6,7 +6,7 @@ import { walk, type SyntaxNode } from "./walk.ts";
 import { assertSealedAdapter, sealedAdapterPaths } from "./adapter.ts";
 import { assertCanonicalToolbarOwnership } from "./toolbar.ts";
 import { assertNoAdapterGlobals } from "./adapter-globals.ts";
-import { assertBankDispatcher } from "./dispatch.ts";
+import { assertNodeDispatcher } from "./dispatch.ts";
 import { closedCompositionOwners, assertPrivateCompositionSlots } from "./composition.ts";
 import { assertCanonicalBootstrap } from "./bootstrap.ts";
 import { requestPath } from "./source-request.ts";
@@ -44,7 +44,7 @@ export function assertClosedVisualBoundaries(sources: readonly Source[]): void {
   assertCatalogGateway(sources);
   assertCanonicalBootstrap(sources);
   assertCanonicalToolbarOwnership(sources);
-  assertBankDispatcher(sources);
+  assertNodeDispatcher(sources);
   assertFiniteCatalogInputs(sources);
   for (const { path, source } of sources) {
     if (!path.endsWith(".svelte")) continue;

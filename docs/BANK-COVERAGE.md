@@ -35,7 +35,7 @@ is recorded in `EVIDENCE-016.md`.
 
 The authoritative declared inventory remains `src/interaction/catalog.ts`, with
 23 entries at revision 0.3.0, consumed by `src/svelte/renderer-registry.ts`. Nine control entries and
-their states derive from `src/interaction/control-bank.ts`. Catalog specimens are
+their states derive from `src/interaction/control-specimens.ts`. Catalog specimens are
 isolated demonstrations, not controller execution. Declared states are test
 obligations; listing them does not prove their visual or behavioral correctness.
 

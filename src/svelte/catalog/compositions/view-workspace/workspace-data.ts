@@ -1,6 +1,6 @@
 import type { ResolvedView } from "../../../../views/resolved.ts";
 import type { ViewItem } from "../../../../views/schema.ts";
-import type { BankEvent } from "../../../../interaction/bank-events.ts";
+import type { NodeEvent } from "../../../../interaction/node-events.ts";
 import type { PlaceIdentity } from "../../../infra/place-identity.ts";
 import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
 import { catalogTitle, matchingEntries } from "../../../infra/catalog-navigation.ts";
@@ -63,7 +63,7 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
   return results;
 }
 
-export function viewSearchSelection(resolved: ResolvedView, id: string): BankEvent | null {
+export function viewSearchSelection(resolved: ResolvedView, id: string): NodeEvent | null {
   for (const item of contentItems(resolved)) {
     if (item.kind !== "collection" || resolved.disabledOutputs.includes(item.output)) continue;
     const node = resolved.bindings[item.input];

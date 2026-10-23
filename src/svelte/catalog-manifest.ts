@@ -93,10 +93,10 @@ export const WebCatalogManifest = freezeDeep({
     CatalogCard: { source: "src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte", closure: "unsealed", bank: ["catalog.card"] },
     CatalogHome: { source: "src/svelte/catalog/compositions/catalog-home/CatalogHome.svelte", closure: "unsealed", bank: ["catalog.home"] },
     CatalogDetail: { source: "src/svelte/catalog/compositions/catalog-detail/CatalogDetail.svelte", closure: "unsealed", bank: ["catalog.detail"] },
-    Bank: { source: "src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte", closure: "dispatcher", adapters: {
-      BankRenderer: { props: ["node", "onevent"], slots: [], instance: [] },
+    NodeRenderer: { source: "src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte", closure: "dispatcher", adapters: {
+      NodeRenderer: { props: ["node", "onevent"], slots: [], instance: [] },
       TransientRenderer: { props: ["node", "onevent", "frameIdentity"], slots: [], instance: [] },
-      ControlBankRenderer: { props: ["node", "onevent", "host"], slots: [], instance: [] },
+      ControlNodeRenderer: { props: ["node", "onevent", "host"], slots: [], instance: [] },
     } },
     Information: { source: "src/svelte/catalog/compositions/information/Information.svelte", closure: "unsealed", adapters: {
       Information: { props: ["items"], slots: [], instance: [] },

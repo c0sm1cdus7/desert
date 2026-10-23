@@ -3,7 +3,7 @@ import { Notebook } from "../../products/notebook/product.ts";
 import { Note, OnlyOwnerCanAccess } from "../../products/notebook/note.ts";
 import { NotesController } from "../../products/notebook/dependencies.ts";
 import { CreateNote, ReadNote, ArchiveNote } from "../../products/notebook/journeys.ts";
-import type { SurfaceDefinition } from "../../src/program-grammar.ts";
+import type { ExposureDefinition } from "../../src/program-grammar.ts";
 import { Check } from "@sinclair/typebox/value";
 import { ProductDefinitionSchema } from "../../src/contracts.ts";
 
@@ -13,7 +13,7 @@ type MutableInput<T> = T extends string ? string : T extends number ? number
 
 type NotebookFixture = Omit<typeof Notebook, "objects" | "journeys" | "surfaces" | "dependencies" | "policies"> & {
   objects: [typeof Note]; journeys: [typeof CreateNote, typeof ReadNote, typeof ArchiveNote];
-  surfaces: [Extract<SurfaceDefinition, { kind: "human" }>, Extract<SurfaceDefinition, { kind: "agent" }>];
+  surfaces: [Extract<ExposureDefinition, { kind: "human" }>, Extract<ExposureDefinition, { kind: "agent" }>];
   dependencies: [typeof NotesController]; policies: [typeof OnlyOwnerCanAccess];
 };
 

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
-  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import SelectionField from "../../foundations/selection-field/SelectionField.svelte";
   import MeasuredField from "../../foundations/measured-field/MeasuredField.svelte";
   import { selectNode, selectInputRequired, applyControlEvent } from "../../../../interaction/control-nodes.ts";
@@ -17,7 +17,7 @@
 <MeasuredField kind="control.select" disabled={checked.disabled}>
   <SelectionField {id} selection={checked.id} label={checked.label} value={checked.value} options={checked.options}
     disabled={checked.disabled} required={selectInputRequired(checked)} fieldControl onchange={change} />
-  {#if !checked.required}<BankRenderer node={{ version: BankVersion, kind: "action", role: "secondary", action: {
+  {#if !checked.required}<NodeRenderer node={{ version: ResolvedNodeVersion, kind: "action", role: "secondary", action: {
     icon: "close", label: "Clear selection", state: checked.disabled || checked.value === null ? "unavailable" : "ready",
     intent: { kind: "selection.clear" },
   } }} onevent={event => { if (event.kind === "local.invoke" && event.intent.kind === "selection.clear") change(null); }} />{/if}

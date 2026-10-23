@@ -46,7 +46,7 @@
     "avatar-shuffle": {
       "status": "implemented"
     },
-    "bank-renderer": {
+    "node-renderer": {
       "status": "implemented"
     },
     "catalog-card": {
