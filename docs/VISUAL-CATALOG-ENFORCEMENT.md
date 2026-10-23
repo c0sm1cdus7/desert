@@ -4,6 +4,24 @@ Implementation specification for the
 [visual catalog ownership contract](VISUAL-CATALOG-CONTRACT.md), dated 2026-10-20.
 The gates and tests below are required work, not currently passing capabilities.
 
+## What runs today (slice 0, 2026-10-23)
+
+Every build and check (`createBuildProject`, `scripts/check-visual-boundary.ts`) runs, in
+order: rule P (every gate module, the theme, the ledger and the catalog index are present),
+then rules A (every file under `src/svelte` and `src/build/svelte` belongs to one declaration
+or one fixed category), B (declarations agree with each other and with their files), C (the
+generated catalog files equal their regeneration) and L (the ledger names every piece), then
+the previous visual-boundary gate until slice 1 ports it. Paths live only in
+`src/authoring/catalog/layout.ts`.
+
+```bash
+node scripts/catalog.ts --write     # regenerate catalog/index.ts, manifest.json, types.d.ts
+node scripts/catalog.ts --check     # rule C alone
+node scripts/catalog.ts status      # ledger status per piece and specimen
+node scripts/catalog-gate.ts        # rules P, A, B, C, L on this tree
+npm run test:gate                   # negative suite: red cases wait for slice-1 rules
+```
+
 ## Build gate
 
 Use one manifest, an exhaustive shipped-source/asset inventory and the actual

@@ -1,11 +1,8 @@
-import ts from "typescript";
+import { normalizedTypeScript as normalized } from "../catalog/normalize-source.ts";
 import { deriveWebCatalog } from "./derive.ts";
 import { readWebCatalogManifest, webCatalogManifestPath } from "./manifest.ts";
 
 export type CatalogSource = Readonly<{ path: string; source: string }>;
-
-const normalized = (source: string) => ts.createPrinter({ removeComments: true }).printFile(
-  ts.createSourceFile("derived.ts", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS));
 
 /** Compare regenerated AST, never approve a historical source hash. Formatting
  * and comments are immaterial; imports, types, registrations and code are not. */

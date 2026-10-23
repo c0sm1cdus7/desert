@@ -3,14 +3,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { assertDeclaredSources } from "../src/authoring/catalog/gate/inventory.ts";
 import { readDeclarations } from "../src/authoring/catalog/read-declaration.ts";
-import type { CatalogLayout } from "../src/authoring/catalog/layout.ts";
+import { testLayout } from "./support/catalog-layout.ts";
 
-const layout: CatalogLayout = {
-  roots: ["src/svelte"], vendorFamilies: "src/svelte/vendor/components/ui", infra: "src/svelte/infra", ledger: "src/svelte/catalog/approvals.json",
-  fixed: { theme: ["src/svelte/theme.css"], documentation: ["src/svelte/vendor/LICENSE"] },
-  pieces: { foundation: ["src/svelte/catalog/foundations"], composition: ["src/svelte/catalog/compositions"],
-    mechanism: ["src/svelte/catalog/mechanisms"] },
-};
+const layout = testLayout({ fixed: { theme: ["src/svelte/theme.css"], documentation: ["src/svelte/vendor/LICENSE"] } });
 const declaration = (path: string, source: string) => readDeclarations(path, source).map(item => ({ path, declaration: item }));
 const field = declaration("src/svelte/catalog/foundations/field/field.catalog.ts", `import { defineFoundation } from "x";
 import { FieldContract } from "./field.contract.ts";

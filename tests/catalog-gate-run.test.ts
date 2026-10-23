@@ -5,13 +5,9 @@ import { mkdtemp, mkdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { runCatalogGate } from "../src/authoring/catalog/gate/run.ts";
-import type { CatalogLayout } from "../src/authoring/catalog/layout.ts";
+import { testLayout } from "./support/catalog-layout.ts";
 
-const layout: CatalogLayout = {
-  roots: ["src/svelte"], vendorFamilies: "src/svelte/vendor/components/ui", infra: "src/svelte/infra", ledger: "src/svelte/catalog/approvals.json", fixed: {},
-  pieces: { foundation: ["src/svelte/catalog/foundations"], composition: ["src/svelte/catalog/compositions"],
-    mechanism: ["src/svelte/catalog/mechanisms"] },
-};
+const layout = testLayout();
 const tree: Readonly<Record<string, string>> = {
   "src/svelte/catalog/foundations/field/field.catalog.ts": `import { defineFoundation } from "x";
 import { FieldContract } from "./field.contract.ts";

@@ -1,0 +1,2176 @@
+{
+  "mechanisms": {
+    "anchored-surface": {
+      "files": [
+        "anchored-surface.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/anchored-surface",
+      "owner": "theme"
+    },
+    "catalog-media": {
+      "files": [
+        "catalog-media.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/catalog-media",
+      "owner": "theme"
+    },
+    "catalog-profile": {
+      "files": [
+        "catalog-profile.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/catalog-profile",
+      "owner": "theme"
+    },
+    "catalog-search": {
+      "files": [
+        "catalog-search.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/catalog-search",
+      "owner": "theme"
+    },
+    "catalog-shell": {
+      "files": [
+        "catalog-shell.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/catalog-shell",
+      "owner": "theme"
+    },
+    "control-feedback": {
+      "files": [
+        "control-feedback.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/control-feedback",
+      "owner": "theme"
+    },
+    "control-measure": {
+      "files": [
+        "control-measure.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/control-measure",
+      "owner": "theme"
+    },
+    "lateral-surface-motion": {
+      "files": [
+        "lateral-surface-motion.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/lateral-surface-motion",
+      "owner": "theme"
+    },
+    "layout": {
+      "files": [
+        "layout.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/layout",
+      "owner": "theme"
+    },
+    "media": {
+      "files": [
+        "media.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/media",
+      "owner": "theme"
+    },
+    "navigation-selection": {
+      "files": [
+        "navigation-selection.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/navigation-selection",
+      "owner": "theme"
+    },
+    "pane-material": {
+      "files": [
+        "pane-material.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/pane-material",
+      "owner": "theme"
+    },
+    "personalization": {
+      "files": [
+        "personalization.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/personalization",
+      "owner": "theme"
+    },
+    "reading": {
+      "files": [
+        "reading.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/reading",
+      "owner": "theme"
+    },
+    "structured-content": {
+      "files": [
+        "structured-content.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/structured-content",
+      "owner": "theme"
+    },
+    "surface-chrome": {
+      "files": [
+        "surface-chrome.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/surface-chrome",
+      "owner": "theme"
+    },
+    "surface-reading": {
+      "files": [
+        "surface-reading.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/surface-reading",
+      "owner": "theme"
+    },
+    "theme": {
+      "files": [
+        "tokens.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/theme",
+      "owner": "theme"
+    },
+    "typography": {
+      "files": [
+        "typography.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/typography",
+      "owner": "theme"
+    }
+  },
+  "pieces": {
+    "access-appearance-specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/access-appearance-specimen",
+      "kind": "composition",
+      "owner": {
+        "entry": "AccessAppearanceSpecimen.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: AccessAppearanceSpecimen.svelte.",
+      "uses": [
+        "access-experience",
+        "appearance-preferences",
+        "appearance-preview",
+        "avatar-shuffle",
+        "feedback",
+        "lock-screen",
+        "seed-avatar",
+        "wallpaper"
+      ]
+    },
+    "access-experience": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/access-experience",
+      "kind": "composition",
+      "owner": {
+        "entry": "AccessExperience.svelte"
+      },
+      "purpose": "Create an identity in one step and choose appearance in the second, without a confirmation step.",
+      "uses": [
+        "access-form",
+        "feedback",
+        "lock-screen",
+        "stack-layout",
+        "wallpaper"
+      ]
+    },
+    "access-form": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/access-form",
+      "kind": "composition",
+      "owner": {
+        "entry": "AccessForm.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: AccessForm.svelte.",
+      "uses": [
+        "appearance-preferences",
+        "avatar-shuffle",
+        "feedback",
+        "stack-layout",
+        "text-input"
+      ]
+    },
+    "access-gate": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/access-gate",
+      "kind": "composition",
+      "owner": {
+        "entry": "AccessGate.svelte",
+        "parts": [
+          "browser-access-lock.ts"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: AccessGate.svelte.",
+      "uses": [
+        "access-screen",
+        "view-product"
+      ]
+    },
+    "access-screen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/access-screen",
+      "kind": "composition",
+      "owner": {
+        "entry": "AccessScreen.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: AccessScreen.svelte.",
+      "uses": [
+        "access-experience"
+      ]
+    },
+    "action": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/action",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Action.svelte",
+        "vendor": [
+          "button"
+        ]
+      },
+      "purpose": "Invoke one command with a text button or an icon button, never competing text and icons.",
+      "shape": "capsule",
+      "states": [
+        "default"
+      ]
+    },
+    "appearance": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/appearance",
+      "kind": "composition",
+      "owner": {
+        "entry": "Appearance.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: Appearance.svelte.",
+      "uses": [
+        "appearance-preferences",
+        "feedback"
+      ]
+    },
+    "appearance-preferences": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/appearance-preferences",
+      "kind": "composition",
+      "owner": {
+        "entry": "AppearancePreferences.svelte"
+      },
+      "purpose": "Choose mode, text size, tint and a system wallpaper with immediate local preview.",
+      "uses": [
+        "appearance-preview",
+        "selection-field",
+        "stack-layout",
+        "wallpaper"
+      ]
+    },
+    "appearance-preview": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/appearance-preview",
+      "kind": "composition",
+      "owner": {
+        "entry": "AppearancePreview.svelte"
+      },
+      "purpose": "Compare Dark and Light using the same surface, tint and wallpaper tokens as the running interface.",
+      "uses": [
+        "wallpaper"
+      ]
+    },
+    "artwork-placeholder": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/artwork-placeholder",
+      "kind": "foundation",
+      "owner": {
+        "entry": "ArtworkPlaceholder.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ArtworkPlaceholder.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "attention-indicator": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/attention-indicator",
+      "kind": "foundation",
+      "owner": {
+        "entry": "AttentionIndicator.svelte"
+      },
+      "purpose": "Mark objects needing attention with the same amber indicator everywhere, steady when reduced motion is enabled.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "attention-list": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/attention-list",
+      "kind": "composition",
+      "owner": {
+        "entry": "AttentionList.svelte"
+      },
+      "purpose": "Bring every object or activity needing the identity’s attention into one consistent Home list.",
+      "uses": [
+        "attention-indicator",
+        "collection-state",
+        "feedback",
+        "grouped-panel",
+        "stack-layout"
+      ]
+    },
+    "attention-status": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/attention-status",
+      "kind": "composition",
+      "owner": {
+        "entry": "AttentionStatus.svelte"
+      },
+      "purpose": "Pair the shared attention indicator with readable context for the attention signal.",
+      "uses": [
+        "attention-indicator",
+        "grouped-panel"
+      ]
+    },
+    "availability": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/availability",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Availability.svelte",
+        "vendor": [
+          "skeleton",
+          "spinner"
+        ]
+      },
+      "purpose": "Understand whether a capability is ready, unavailable or not yet known.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "avatar-shuffle": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/avatar-shuffle",
+      "kind": "composition",
+      "owner": {
+        "entry": "AvatarShuffle.svelte"
+      },
+      "purpose": "Generate a new avatar seed on activation and reveal the shuffle overlay on hover or focus.",
+      "uses": [
+        "seed-avatar"
+      ]
+    },
+    "catalog-card": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/catalog-card",
+      "kind": "foundation",
+      "owner": {
+        "entry": "CatalogCard.svelte"
+      },
+      "purpose": "Open a media item from a card composed of artwork and its supporting content.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "catalog-detail": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/catalog-detail",
+      "kind": "composition",
+      "owner": {
+        "entry": "CatalogDetail.svelte"
+      },
+      "purpose": "Read one catalog item with its media and details in the current destination.",
+      "uses": [
+        "heading",
+        "photo-collection",
+        "stack-layout"
+      ]
+    },
+    "catalog-home": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/catalog-home",
+      "kind": "composition",
+      "owner": {
+        "entry": "CatalogHome.svelte"
+      },
+      "purpose": "Arrange a catalog overview from the same content, media and navigation compositions.",
+      "uses": [
+        "node-renderer",
+        "heading"
+      ]
+    },
+    "catalog-navigation": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/catalog-navigation",
+      "kind": "composition",
+      "owner": {
+        "entry": "CatalogNavigation.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: CatalogNavigation.svelte.",
+      "uses": [
+        "place",
+        "toolbar-layout"
+      ]
+    },
+    "catalog-search-results": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/catalog-search-results",
+      "kind": "composition",
+      "owner": {
+        "entry": "CatalogSearchResults.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: CatalogSearchResults.svelte.",
+      "uses": [
+        "node-renderer",
+        "grouped-panel"
+      ]
+    },
+    "catalog-workspace": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/catalog-workspace",
+      "kind": "composition",
+      "owner": {
+        "entry": "CatalogWorkspace.svelte",
+        "parts": [
+          "AdaptiveSurfaceLayout.svelte",
+          "CatalogEdgeNavigation.svelte",
+          "CatalogNavigationToggle.svelte",
+          "CatalogToolbar.svelte",
+          "place-heading-motion.ts"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: CatalogWorkspace.svelte.",
+      "uses": [
+        "catalog-navigation",
+        "catalog-search-results",
+        "catalog-workspace-content",
+        "failure-dialog",
+        "panel",
+        "place",
+        "place-heading",
+        "toolbar",
+        "toolbar-layout",
+        "wallpaper"
+      ]
+    },
+    "catalog-workspace-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/catalog-workspace-content",
+      "kind": "composition",
+      "owner": {
+        "entry": "CatalogWorkspaceContent.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: CatalogWorkspaceContent.svelte.",
+      "uses": [
+        "catalog-detail",
+        "catalog-home",
+        "local-exercises",
+        "public-catalog-bank",
+        "retained-place",
+        "view-content"
+      ]
+    },
+    "character-counter": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/character-counter",
+      "kind": "foundation",
+      "owner": {
+        "entry": "CharacterCounter.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: CharacterCounter.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "choice-item": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/choice-item",
+      "kind": "foundation",
+      "owner": {
+        "entry": "ChoiceItem.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ChoiceItem.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "choice-list": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/choice-list",
+      "kind": "foundation",
+      "owner": {
+        "entry": "ChoiceList.svelte",
+        "vendor": [
+          "checkbox",
+          "radio-group"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: ChoiceList.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "choice-row": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/choice-row",
+      "kind": "foundation",
+      "owner": {
+        "entry": "ChoiceRow.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ChoiceRow.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "clear-input": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/clear-input",
+      "kind": "foundation",
+      "owner": {
+        "entry": "ClearInput.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ClearInput.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "collection": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/collection",
+      "kind": "composition",
+      "owner": {
+        "entry": "Collection.svelte"
+      },
+      "purpose": "Browse objects with shared row geometry, or present media in a gallery.",
+      "uses": [
+        "attention-indicator",
+        "collection-state",
+        "grouped-panel",
+        "media-collection-grid",
+        "media-grid"
+      ]
+    },
+    "collection-state": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/collection-state",
+      "kind": "composition",
+      "owner": {
+        "entry": "CollectionState.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: CollectionState.svelte.",
+      "uses": [
+        "grouped-panel"
+      ]
+    },
+    "color-bullet": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/color-bullet",
+      "kind": "foundation",
+      "owner": {
+        "entry": "ColorBullet.svelte"
+      },
+      "purpose": "Show a label’s color alongside its text without using color as its only meaning.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "confirmation-dialog": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/confirmation-dialog",
+      "kind": "composition",
+      "owner": {
+        "entry": "ConfirmationDialog.svelte"
+      },
+      "purpose": "Ask for explicit confirmation in a compact temporary surface with clear primary and secondary actions.",
+      "uses": [
+        "surface-frame"
+      ]
+    },
+    "content-flow": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/content-flow",
+      "kind": "composition",
+      "owner": {
+        "entry": "ContentFlow.svelte"
+      },
+      "purpose": "Arrange reading, overview or gallery stacks within the shared content measures and responsive layout.",
+      "uses": [
+        "appearance",
+        "feedback",
+        "identity",
+        "information",
+        "inspection-content",
+        "media-content",
+        "place-heading",
+        "stack-layout",
+        "view-attention",
+        "view-item",
+        "view-related-selection"
+      ]
+    },
+    "context-panel": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/context-panel",
+      "kind": "composition",
+      "owner": {
+        "entry": "ContextPanel.svelte"
+      },
+      "purpose": "Read an object and use its contextual commands without leaving its destination.",
+      "uses": [
+        "attention-status",
+        "node-renderer",
+        "context-properties",
+        "destination-row",
+        "grouped-panel",
+        "media-object",
+        "reading-content"
+      ]
+    },
+    "context-properties": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/context-properties",
+      "kind": "composition",
+      "owner": {
+        "entry": "ContextProperties.svelte"
+      },
+      "purpose": "Read related facts and use state commands in one shared pane, separate from reading paragraphs.",
+      "uses": [
+        "fact-row",
+        "object-state-row",
+        "stack-layout"
+      ]
+    },
+    "contract-inspection": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/contract-inspection",
+      "kind": "composition",
+      "owner": {
+        "entry": "ContractInspection.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ContractInspection.svelte.",
+      "uses": [
+        "information",
+        "stack-layout"
+      ]
+    },
+    "control-bench": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/control-bench",
+      "kind": "composition",
+      "owner": {
+        "entry": "ControlBench.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ControlBench.svelte.",
+      "uses": [
+        "control-renderer",
+        "information",
+        "specimen-group",
+        "specimen-row",
+        "stack-layout"
+      ]
+    },
+    "control-renderer": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/control-renderer",
+      "kind": "composition",
+      "owner": {
+        "entry": "ControlRenderer.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ControlRenderer.svelte.",
+      "uses": []
+    },
+    "date-control": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/date-control",
+      "kind": "foundation",
+      "owner": {
+        "entry": "DateControl.svelte",
+        "parts": [
+          "DateCalendar.svelte"
+        ],
+        "vendor": [
+          "calendar"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: DateControl.svelte.",
+      "shape": "radius",
+      "states": [
+        "default"
+      ]
+    },
+    "destination-row": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/destination-row",
+      "kind": "foundation",
+      "owner": {
+        "entry": "DestinationRow.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: DestinationRow.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "drawer": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/drawer",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Drawer.svelte",
+        "parts": [
+          "adaptive-modality.svelte.ts",
+          "adaptive-surface-layout.ts"
+        ],
+        "vendor": [
+          "dialog"
+        ]
+      },
+      "purpose": "Open a temporary surface over its parent with content and top or bottom toolbars, never lateral child surfaces.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "drawer-grip": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/drawer-grip",
+      "kind": "foundation",
+      "owner": {
+        "entry": "DrawerGrip.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: DrawerGrip.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "face": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/face",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Face.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: Face.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "fact-group": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/fact-group",
+      "kind": "composition",
+      "owner": {
+        "entry": "FactGroup.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: FactGroup.svelte.",
+      "uses": [
+        "node-renderer",
+        "fact-row"
+      ]
+    },
+    "fact-row": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/fact-row",
+      "kind": "foundation",
+      "owner": {
+        "entry": "FactRow.svelte"
+      },
+      "purpose": "Keep a capitalized label on the left and its value right-aligned, with shared horizontal dividers and balanced wrapping.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "fact-value": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/fact-value",
+      "kind": "foundation",
+      "owner": {
+        "entry": "FactValue.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: FactValue.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "facts": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/facts",
+      "kind": "composition",
+      "owner": {
+        "entry": "Facts.svelte"
+      },
+      "purpose": "Read a labeled value, including the difference between an empty value and an unknown value.",
+      "uses": []
+    },
+    "failure-dialog": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/failure-dialog",
+      "kind": "composition",
+      "owner": {
+        "entry": "FailureDialog.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: FailureDialog.svelte.",
+      "uses": []
+    },
+    "feedback": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/feedback",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Feedback.svelte",
+        "vendor": [
+          "empty"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: Feedback.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "field-well": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/field-well",
+      "kind": "foundation",
+      "owner": {
+        "entry": "FieldWell.svelte",
+        "parts": [
+          "field-well.css"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: FieldWell.svelte.",
+      "shape": "radius",
+      "states": [
+        "default"
+      ]
+    },
+    "field-well-content": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/field-well-content",
+      "kind": "foundation",
+      "owner": {
+        "entry": "FieldWellContent.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: FieldWellContent.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "fields": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/fields",
+      "kind": "composition",
+      "owner": {
+        "entry": "Fields.svelte"
+      },
+      "purpose": "Complete the inputs of one operation while retaining drafts and showing local feedback.",
+      "uses": [
+        "node-renderer"
+      ]
+    },
+    "file-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/file-control",
+      "kind": "composition",
+      "owner": {
+        "entry": "FileControl.svelte",
+        "parts": [
+          "file-size.ts"
+        ]
+      },
+      "purpose": "Select supported local files and inspect their limits before an operation uses them.",
+      "uses": [
+        "action"
+      ]
+    },
+    "frame-body": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/frame-body",
+      "kind": "composition",
+      "owner": {
+        "entry": "FrameBody.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: FrameBody.svelte.",
+      "uses": []
+    },
+    "grouped-panel": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/grouped-panel",
+      "kind": "foundation",
+      "owner": {
+        "entry": "GroupedPanel.svelte",
+        "vendor": [
+          "card"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: GroupedPanel.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "heading": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/heading",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Heading.svelte",
+        "parts": [
+          "heading-content.ts"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: Heading.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "identity": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/identity",
+      "kind": "composition",
+      "owner": {
+        "entry": "Identity.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: Identity.svelte.",
+      "uses": [
+        "feedback",
+        "information",
+        "stack-layout"
+      ]
+    },
+    "image": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/image",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Image.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: Image.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "information": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/information",
+      "kind": "composition",
+      "owner": {
+        "entry": "Information.svelte"
+      },
+      "purpose": "Group related facts in one pane while leaving reading paragraphs in the content stack.",
+      "uses": [
+        "fact-row"
+      ]
+    },
+    "inspection": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/inspection",
+      "kind": "composition",
+      "owner": {
+        "entry": "Inspection.svelte",
+        "parts": [
+          "inspection-fixture.ts"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: Inspection.svelte.",
+      "uses": [
+        "node-renderer",
+        "catalog-detail",
+        "retained-place",
+        "toolbar"
+      ]
+    },
+    "inspection-catalog": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/inspection-catalog",
+      "kind": "composition",
+      "owner": {
+        "entry": "InspectionCatalog.svelte",
+        "parts": [
+          "purpose.ts"
+        ]
+      },
+      "purpose": "Discover foundations and compositions through the same action rows and destination navigation used by the product.",
+      "uses": [
+        "control-bench",
+        "destination-row",
+        "grouped-panel",
+        "place-header",
+        "public-catalog-bank-specimen",
+        "shared-owner-catalog",
+        "specimen-group",
+        "specimen-row",
+        "specimen-unavailable",
+        "stack-layout",
+        "toolbar-layout"
+      ]
+    },
+    "inspection-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/inspection-content",
+      "kind": "composition",
+      "owner": {
+        "entry": "InspectionContent.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: InspectionContent.svelte.",
+      "uses": []
+    },
+    "instance-frame": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/instance-frame",
+      "kind": "composition",
+      "owner": {
+        "entry": "InstanceFrame.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: InstanceFrame.svelte.",
+      "uses": []
+    },
+    "label-rail": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/label-rail",
+      "kind": "foundation",
+      "owner": {
+        "entry": "LabelRail.svelte",
+        "vendor": [
+          "badge"
+        ]
+      },
+      "purpose": "Present selected labels in a wrapping rail using the same value representation as the field.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "labels-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/labels-control",
+      "kind": "composition",
+      "owner": {
+        "entry": "LabelsControl.svelte"
+      },
+      "purpose": "Compose the field well, value rail and options from the same shared owners as every labels control.",
+      "uses": [
+        "node-renderer",
+        "character-counter",
+        "label-rail",
+        "media-reference-selector",
+        "reference-selector",
+        "stack-layout",
+        "text-input"
+      ]
+    },
+    "library": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/library",
+      "kind": "composition",
+      "owner": {
+        "entry": "Library.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: Library.svelte.",
+      "uses": [
+        "catalog-home",
+        "viewer"
+      ]
+    },
+    "local-exercise-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/local-exercise-content",
+      "kind": "composition",
+      "owner": {
+        "entry": "LocalExerciseContent.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: LocalExerciseContent.svelte.",
+      "uses": [
+        "place-content"
+      ]
+    },
+    "local-exercises": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/local-exercises",
+      "kind": "composition",
+      "owner": {
+        "entry": "LocalExercises.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: LocalExercises.svelte.",
+      "uses": []
+    },
+    "lock-screen": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/lock-screen",
+      "kind": "composition",
+      "owner": {
+        "entry": "LockScreen.svelte"
+      },
+      "purpose": "Unlock the selected identity while its private content stays hidden.",
+      "uses": [
+        "field-well",
+        "measured-field",
+        "seed-avatar",
+        "stack-layout",
+        "text-input"
+      ]
+    },
+    "masked-input": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/masked-input",
+      "kind": "foundation",
+      "owner": {
+        "entry": "MaskedInput.svelte",
+        "parts": [
+          "input-edit-history.ts"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: MaskedInput.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "measured-field": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/measured-field",
+      "kind": "foundation",
+      "owner": {
+        "entry": "MeasuredField.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: MeasuredField.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "media-collection-grid": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/media-collection-grid",
+      "kind": "composition",
+      "owner": {
+        "entry": "MediaCollectionGrid.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: MediaCollectionGrid.svelte.",
+      "uses": [
+        "attention-indicator",
+        "collection-state",
+        "image"
+      ]
+    },
+    "media-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/media-content",
+      "kind": "composition",
+      "owner": {
+        "entry": "MediaContent.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: MediaContent.svelte.",
+      "uses": []
+    },
+    "media-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/media-control",
+      "kind": "composition",
+      "owner": {
+        "entry": "MediaControl.svelte"
+      },
+      "purpose": "Read a short semantic label without turning it into an action.",
+      "uses": [
+        "image",
+        "photo-collection"
+      ]
+    },
+    "media-grid": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/media-grid",
+      "kind": "composition",
+      "owner": {
+        "entry": "MediaGrid.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: MediaGrid.svelte.",
+      "uses": [
+        "artwork-placeholder",
+        "attention-indicator",
+        "collection-state",
+        "grouped-panel",
+        "image"
+      ]
+    },
+    "media-object": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/media-object",
+      "kind": "composition",
+      "owner": {
+        "entry": "MediaObject.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: MediaObject.svelte.",
+      "uses": [
+        "photo-collection",
+        "playback-canvas",
+        "toolbar-layout"
+      ]
+    },
+    "media-reference-selector": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/media-reference-selector",
+      "kind": "composition",
+      "owner": {
+        "entry": "MediaReferenceSelector.svelte"
+      },
+      "purpose": "Select media references from a shared field without introducing another media library or creation path.",
+      "uses": [
+        "collection-state",
+        "image",
+        "stack-layout"
+      ]
+    },
+    "media-reference-specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/media-reference-specimen",
+      "kind": "composition",
+      "owner": {
+        "entry": "MediaReferenceSpecimen.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: MediaReferenceSpecimen.svelte.",
+      "uses": [
+        "media-reference-selector"
+      ]
+    },
+    "message-body": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/message-body",
+      "kind": "foundation",
+      "owner": {
+        "entry": "MessageBody.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: MessageBody.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "money-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/money-control",
+      "kind": "composition",
+      "owner": {
+        "entry": "MoneyControl.svelte"
+      },
+      "purpose": "Enter an amount and choose its currency without losing the lexical draft.",
+      "uses": [
+        "clear-input",
+        "field-well",
+        "masked-input",
+        "measured-field",
+        "selection-field"
+      ]
+    },
+    "node-renderer": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/node-renderer",
+      "kind": "composition",
+      "owner": {
+        "entry": "NodeRenderer.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: NodeRenderer.svelte.",
+      "uses": []
+    },
+    "object-state-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/object-state-control",
+      "kind": "composition",
+      "owner": {
+        "entry": "ObjectStateControl.svelte"
+      },
+      "purpose": "Choose an object state through a contextual command; a retained selection is not a required form input.",
+      "uses": [
+        "object-state-row"
+      ]
+    },
+    "object-state-row": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/object-state-row",
+      "kind": "composition",
+      "owner": {
+        "entry": "ObjectStateRow.svelte"
+      },
+      "purpose": "Use a named state selector that dispatches canonical commands without adding toolbar shortcuts.",
+      "uses": [
+        "selection-field"
+      ]
+    },
+    "options-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/options-control",
+      "kind": "composition",
+      "owner": {
+        "entry": "OptionsControl.svelte"
+      },
+      "purpose": "Choose one or several values from a divided group of options.",
+      "uses": [
+        "choice-list",
+        "choice-row",
+        "grouped-panel"
+      ]
+    },
+    "panel": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/panel",
+      "kind": "composition",
+      "owner": {
+        "entry": "Panel.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: Panel.svelte.",
+      "uses": []
+    },
+    "photo-collection": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/photo-collection",
+      "kind": "composition",
+      "owner": {
+        "entry": "PhotoCollection.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: PhotoCollection.svelte.",
+      "uses": [
+        "image",
+        "viewer"
+      ]
+    },
+    "picker-sheet": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/picker-sheet",
+      "kind": "foundation",
+      "owner": {
+        "entry": "PickerSheet.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: PickerSheet.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "place": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/place",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Place.svelte",
+        "parts": [
+          "place-focus.ts",
+          "place.css"
+        ],
+        "vendor": [
+          "sidebar",
+          "tooltip"
+        ]
+      },
+      "purpose": "Arrange content and top or bottom toolbars, with lateral surfaces only at the root. Mounted surfaces keep their own content and toolbars.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "place-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/place-content",
+      "kind": "composition",
+      "owner": {
+        "entry": "PlaceContent.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: PlaceContent.svelte.",
+      "uses": [
+        "place-header",
+        "stack"
+      ]
+    },
+    "place-header": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/place-header",
+      "kind": "composition",
+      "owner": {
+        "entry": "PlaceHeader.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: PlaceHeader.svelte.",
+      "uses": [
+        "heading"
+      ]
+    },
+    "place-heading": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/place-heading",
+      "kind": "composition",
+      "owner": {
+        "entry": "PlaceHeading.svelte",
+        "parts": [
+          "place-heading.css"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: PlaceHeading.svelte.",
+      "uses": [
+        "heading",
+        "photo-collection"
+      ]
+    },
+    "playback-canvas": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/playback-canvas",
+      "kind": "foundation",
+      "owner": {
+        "entry": "PlaybackCanvas.svelte",
+        "vendor": [
+          "slider"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: PlaybackCanvas.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "playback-controls": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/playback-controls",
+      "kind": "composition",
+      "owner": {
+        "entry": "PlaybackControls.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: PlaybackControls.svelte.",
+      "uses": []
+    },
+    "popover-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/popover-control",
+      "kind": "composition",
+      "owner": {
+        "entry": "PopoverControl.svelte",
+        "parts": [
+          "AnchoredSurface.svelte"
+        ]
+      },
+      "purpose": "Read contextual information in a temporary surface anchored to its trigger.",
+      "uses": [
+        "node-renderer",
+        "frame-body"
+      ]
+    },
+    "problem": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/problem",
+      "kind": "composition",
+      "owner": {
+        "entry": "Problem.svelte"
+      },
+      "purpose": "Explain a warning or error and keep any available recovery action beside it.",
+      "uses": [
+        "surface-frame"
+      ]
+    },
+    "public-catalog-bank": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/public-catalog-bank",
+      "kind": "composition",
+      "owner": {
+        "entry": "PublicCatalogBank.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: PublicCatalogBank.svelte.",
+      "uses": []
+    },
+    "public-catalog-bank-specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/public-catalog-bank-specimen",
+      "kind": "composition",
+      "owner": {
+        "entry": "PublicCatalogBankSpecimen.svelte",
+        "parts": [
+          "catalog-specimen.svelte.ts"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: PublicCatalogBankSpecimen.svelte.",
+      "uses": []
+    },
+    "public-catalog-product": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/public-catalog-product",
+      "kind": "composition",
+      "owner": {
+        "entry": "PublicCatalogProduct.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: PublicCatalogProduct.svelte.",
+      "uses": []
+    },
+    "public-catalog-product-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/public-catalog-product-content",
+      "kind": "composition",
+      "owner": {
+        "entry": "PublicCatalogProductContent.svelte",
+        "parts": [
+          "catalog-history.ts"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: PublicCatalogProductContent.svelte.",
+      "uses": [
+        "catalog-workspace"
+      ]
+    },
+    "reading-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/reading-content",
+      "kind": "composition",
+      "owner": {
+        "entry": "ReadingContent.svelte"
+      },
+      "purpose": "Read paragraphs at a comfortable measure, outside the two-column layout used for properties.",
+      "uses": [
+        "fact-value",
+        "stack-layout"
+      ]
+    },
+    "reference-selector": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/reference-selector",
+      "kind": "composition",
+      "owner": {
+        "entry": "ReferenceSelector.svelte"
+      },
+      "purpose": "Choose referenced objects through a labeled field and the shared selection popover.",
+      "uses": [
+        "choice-list",
+        "choice-row",
+        "color-bullet",
+        "field-well-content",
+        "reference-values",
+        "selection-field",
+        "stack-layout",
+        "text-input"
+      ]
+    },
+    "reference-specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/reference-specimen",
+      "kind": "composition",
+      "owner": {
+        "entry": "ReferenceSpecimen.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ReferenceSpecimen.svelte.",
+      "uses": [
+        "color-bullet",
+        "label-rail",
+        "labels-control",
+        "reference-selector",
+        "reference-values"
+      ]
+    },
+    "reference-values": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/reference-values",
+      "kind": "foundation",
+      "owner": {
+        "entry": "ReferenceValues.svelte"
+      },
+      "purpose": "Read selected object references using their labels and shared value layout.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "related-selection": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/related-selection",
+      "kind": "composition",
+      "owner": {
+        "entry": "RelatedSelection.svelte"
+      },
+      "purpose": "Edit related objects within the current context using shared choices and explicit local feedback.",
+      "uses": [
+        "artwork-placeholder",
+        "choice-list",
+        "choice-row",
+        "feedback",
+        "grouped-panel",
+        "image",
+        "information",
+        "stack-layout"
+      ]
+    },
+    "retained-place": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/retained-place",
+      "kind": "composition",
+      "owner": {
+        "entry": "RetainedPlace.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: RetainedPlace.svelte.",
+      "uses": []
+    },
+    "review": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/review",
+      "kind": "composition",
+      "owner": {
+        "entry": "Review.svelte"
+      },
+      "purpose": "Inspect the prepared result before accepting a change or recovering an uncertain result.",
+      "uses": [
+        "node-renderer"
+      ]
+    },
+    "scroll-edges": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/scroll-edges",
+      "kind": "foundation",
+      "owner": {
+        "entry": "ScrollEdges.svelte",
+        "parts": [
+          "scroll-edges.css",
+          "scroll-edges.ts"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: ScrollEdges.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "search-field": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/search-field",
+      "kind": "foundation",
+      "owner": {
+        "entry": "SearchField.svelte",
+        "parts": [
+          "search-field.css"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: SearchField.svelte.",
+      "shape": "capsule",
+      "states": [
+        "default"
+      ]
+    },
+    "seed-avatar": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/seed-avatar",
+      "kind": "foundation",
+      "owner": {
+        "entry": "SeedAvatar.svelte",
+        "vendor": [
+          "avatar"
+        ]
+      },
+      "purpose": "Generate a deterministic visual identity from a seed without displaying letters or initials.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "select-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/select-control",
+      "kind": "composition",
+      "owner": {
+        "entry": "SelectControl.svelte"
+      },
+      "purpose": "Choose one value from a labeled field and a shared options popover.",
+      "uses": [
+        "node-renderer",
+        "measured-field",
+        "selection-field"
+      ]
+    },
+    "selection-field": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/selection-field",
+      "kind": "foundation",
+      "owner": {
+        "entry": "SelectionField.svelte",
+        "parts": [
+          "SelectionList.svelte"
+        ],
+        "vendor": [
+          "popover"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: SelectionField.svelte.",
+      "shape": "radius",
+      "states": [
+        "default"
+      ]
+    },
+    "shared-owner-catalog": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/shared-owner-catalog",
+      "kind": "composition",
+      "owner": {
+        "entry": "SharedOwnerCatalog.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: SharedOwnerCatalog.svelte.",
+      "uses": [
+        "destination-row",
+        "grouped-panel",
+        "information",
+        "place-header",
+        "shared-owner-specimen",
+        "stack-layout",
+        "toolbar-layout"
+      ]
+    },
+    "shared-owner-specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/shared-owner-specimen",
+      "kind": "composition",
+      "owner": {
+        "entry": "SharedOwnerSpecimen.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: SharedOwnerSpecimen.svelte.",
+      "uses": [
+        "access-appearance-specimen",
+        "attention-indicator",
+        "attention-list",
+        "attention-status",
+        "collection",
+        "confirmation-dialog",
+        "content-flow",
+        "context-properties",
+        "destination-row",
+        "feedback",
+        "grouped-panel",
+        "information",
+        "measured-field",
+        "media-reference-specimen",
+        "object-state-control",
+        "object-state-row",
+        "reading-content",
+        "reference-specimen",
+        "related-selection",
+        "selection-field",
+        "speed-dial",
+        "stack-layout",
+        "summary-widget",
+        "surface-specimen",
+        "toolbar-layout",
+        "view-destination-link"
+      ]
+    },
+    "specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/specimen",
+      "kind": "composition",
+      "owner": {
+        "entry": "Specimen.svelte",
+        "parts": [
+          "specimen-presentation.ts"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: Specimen.svelte.",
+      "uses": [
+        "node-renderer",
+        "surface-frame"
+      ]
+    },
+    "specimen-group": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/specimen-group",
+      "kind": "composition",
+      "owner": {
+        "entry": "SpecimenGroup.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: SpecimenGroup.svelte.",
+      "uses": [
+        "contract-inspection",
+        "feedback",
+        "measured-field",
+        "selection-field",
+        "stack-layout"
+      ]
+    },
+    "specimen-row": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/specimen-row",
+      "kind": "composition",
+      "owner": {
+        "entry": "SpecimenRow.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: SpecimenRow.svelte.",
+      "uses": [
+        "stack-item"
+      ]
+    },
+    "specimen-unavailable": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/specimen-unavailable",
+      "kind": "composition",
+      "owner": {
+        "entry": "SpecimenUnavailable.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: SpecimenUnavailable.svelte.",
+      "uses": []
+    },
+    "speed-dial": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/speed-dial",
+      "kind": "composition",
+      "owner": {
+        "entry": "SpeedDial.svelte"
+      },
+      "purpose": "Reveal overflowing contextual commands beside their readable labels, without putting content navigation in the toolbar.",
+      "uses": [
+        "node-renderer"
+      ]
+    },
+    "stack": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/stack",
+      "kind": "composition",
+      "owner": {
+        "entry": "Stack.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: Stack.svelte.",
+      "uses": [
+        "node-renderer",
+        "stack-item",
+        "stack-layout"
+      ]
+    },
+    "stack-item": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/stack-item",
+      "kind": "foundation",
+      "owner": {
+        "entry": "StackItem.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: StackItem.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "stack-layout": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/stack-layout",
+      "kind": "foundation",
+      "owner": {
+        "entry": "StackLayout.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: StackLayout.svelte.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "summary-widget": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/summary-widget",
+      "kind": "composition",
+      "owner": {
+        "entry": "SummaryWidget.svelte"
+      },
+      "purpose": "Show module status at a glance and open its destination.",
+      "uses": []
+    },
+    "surface-frame": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/surface-frame",
+      "kind": "composition",
+      "owner": {
+        "entry": "SurfaceFrame.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: SurfaceFrame.svelte.",
+      "uses": [
+        "content-flow",
+        "frame-body",
+        "scroll-edges",
+        "toolbar"
+      ]
+    },
+    "surface-specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/surface-specimen",
+      "kind": "composition",
+      "owner": {
+        "entry": "SurfaceSpecimen.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: SurfaceSpecimen.svelte.",
+      "uses": [
+        "drawer",
+        "information",
+        "stack-layout",
+        "surface-frame"
+      ]
+    },
+    "text-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/text-content",
+      "kind": "composition",
+      "owner": {
+        "entry": "TextContent.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: TextContent.svelte.",
+      "uses": [
+        "information"
+      ]
+    },
+    "text-input": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/text-input",
+      "kind": "foundation",
+      "owner": {
+        "entry": "TextInput.svelte",
+        "parts": [
+          "editor-capacity.ts"
+        ],
+        "vendor": [
+          "field",
+          "input",
+          "input-group",
+          "label",
+          "textarea"
+        ]
+      },
+      "purpose": "Write a single line with a persistent label, field help and validation feedback.",
+      "shape": "radius",
+      "states": [
+        "default"
+      ]
+    },
+    "toolbar": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/toolbar",
+      "kind": "composition",
+      "owner": {
+        "entry": "Toolbar.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: Toolbar.svelte.",
+      "uses": [
+        "toolbar-layout"
+      ]
+    },
+    "toolbar-layout": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/toolbar-layout",
+      "kind": "composition",
+      "owner": {
+        "entry": "ToolbarLayout.svelte",
+        "parts": [
+          "CalendarNavigation.svelte",
+          "CatalogNavigationActions.svelte",
+          "ToolbarIdentity.svelte",
+          "toolbar-commands.svelte.ts",
+          "toolbar-identity.ts",
+          "toolbar-layout.css",
+          "toolbar-leading.svelte.ts"
+        ]
+      },
+      "purpose": "Keep navigation and contextual commands in the surface toolbar; reveal its title and subtitle only after the content header scrolls away.",
+      "uses": [
+        "node-renderer",
+        "face",
+        "playback-controls",
+        "speed-dial",
+        "toolbar-media-controls",
+        "toolbar-search",
+        "zoom-controls"
+      ]
+    },
+    "toolbar-media-controls": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/toolbar-media-controls",
+      "kind": "composition",
+      "owner": {
+        "entry": "ToolbarMediaControls.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ToolbarMediaControls.svelte.",
+      "uses": [
+        "artwork-placeholder",
+        "image",
+        "playback-controls"
+      ]
+    },
+    "toolbar-search": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/toolbar-search",
+      "kind": "composition",
+      "owner": {
+        "entry": "ToolbarSearch.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ToolbarSearch.svelte.",
+      "uses": [
+        "search-field"
+      ]
+    },
+    "utility-actions": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/utility-actions",
+      "kind": "composition",
+      "owner": {
+        "entry": "UtilityActions.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: UtilityActions.svelte.",
+      "uses": [
+        "node-renderer"
+      ]
+    },
+    "view-attention": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/view-attention",
+      "kind": "composition",
+      "owner": {
+        "entry": "ViewAttention.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ViewAttention.svelte.",
+      "uses": [
+        "attention-list"
+      ]
+    },
+    "view-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/view-content",
+      "kind": "composition",
+      "owner": {
+        "entry": "ViewContent.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ViewContent.svelte.",
+      "uses": []
+    },
+    "view-destination-link": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/view-destination-link",
+      "kind": "composition",
+      "owner": {
+        "entry": "ViewDestinationLink.svelte"
+      },
+      "purpose": "Navigate or invoke an action through a row with a representative icon, distinct from object rows.",
+      "uses": [
+        "destination-row",
+        "grouped-panel"
+      ]
+    },
+    "view-item": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/view-item",
+      "kind": "composition",
+      "owner": {
+        "entry": "ViewItem.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ViewItem.svelte.",
+      "uses": []
+    },
+    "view-panel": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/view-panel",
+      "kind": "composition",
+      "owner": {
+        "entry": "ViewPanel.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ViewPanel.svelte.",
+      "uses": [
+        "confirmation-dialog",
+        "drawer"
+      ]
+    },
+    "view-product": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/view-product",
+      "kind": "composition",
+      "owner": {
+        "entry": "ViewProduct.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ViewProduct.svelte.",
+      "uses": []
+    },
+    "view-product-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/view-product-content",
+      "kind": "composition",
+      "owner": {
+        "entry": "ViewProductContent.svelte",
+        "parts": [
+          "activity-host.ts"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: ViewProductContent.svelte.",
+      "uses": [
+        "view-workspace"
+      ]
+    },
+    "view-related-selection": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/view-related-selection",
+      "kind": "composition",
+      "owner": {
+        "entry": "ViewRelatedSelection.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ViewRelatedSelection.svelte.",
+      "uses": [
+        "related-selection"
+      ]
+    },
+    "view-workspace": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/view-workspace",
+      "kind": "composition",
+      "owner": {
+        "entry": "ViewWorkspace.svelte",
+        "parts": [
+          "workspace-data.ts"
+        ]
+      },
+      "purpose": "Declared as found at the start of the migration: ViewWorkspace.svelte.",
+      "uses": [
+        "catalog-workspace"
+      ]
+    },
+    "viewer": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/viewer",
+      "kind": "composition",
+      "owner": {
+        "entry": "Viewer.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: Viewer.svelte.",
+      "uses": [
+        "image",
+        "playback-canvas",
+        "toolbar-layout"
+      ]
+    },
+    "wallpaper": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/wallpaper",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Wallpaper.svelte"
+      },
+      "purpose": "Provide system-generated Silk, Mist or Plain backgrounds that follow the selected appearance.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "workspace": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/workspace",
+      "kind": "composition",
+      "owner": {
+        "entry": "Workspace.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: Workspace.svelte.",
+      "uses": []
+    },
+    "zoom-controls": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/zoom-controls",
+      "kind": "composition",
+      "owner": {
+        "entry": "ZoomControls.svelte"
+      },
+      "purpose": "Declared as found at the start of the migration: ZoomControls.svelte.",
+      "uses": []
+    }
+  },
+  "version": "desert.catalog-manifest/1"
+}

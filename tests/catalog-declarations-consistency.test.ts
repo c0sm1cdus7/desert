@@ -3,13 +3,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { assertDeclarationsConsistent } from "../src/authoring/catalog/gate/declarations.ts";
 import { readDeclarations } from "../src/authoring/catalog/read-declaration.ts";
-import type { CatalogLayout } from "../src/authoring/catalog/layout.ts";
+import { testLayout } from "./support/catalog-layout.ts";
 
-const layout: CatalogLayout = {
-  roots: ["src/svelte"], vendorFamilies: "src/svelte/vendor/components/ui", infra: "src/svelte/infra", ledger: "src/svelte/catalog/approvals.json", fixed: {},
-  pieces: { foundation: ["src/svelte/catalog/foundations"], composition: ["src/svelte/catalog/compositions", "src/svelte/catalog/renderer"],
-    mechanism: ["src/svelte/catalog/mechanisms"] },
-};
+const layout = testLayout({ pieces: { foundation: ["src/svelte/catalog/foundations"],
+  composition: ["src/svelte/catalog/compositions", "src/svelte/catalog/renderer"], mechanism: ["src/svelte/catalog/mechanisms"] } });
 const foundations = "src/svelte/catalog/foundations", compositions = "src/svelte/catalog/compositions";
 const at = (path: string, source: string) => readDeclarations(path, source).map(declaration => ({ path, declaration }));
 const foundation = (id: string, extra = "") => at(`${foundations}/${id}/${id}.catalog.ts`, `import { C } from "./c.ts";

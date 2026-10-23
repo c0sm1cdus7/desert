@@ -1,15 +1,18 @@
 // Entry of the Visual Catalog gate: read the visual roots of a tree from disk, then apply each rule in order.
-// Raises VISUAL_SOURCE_SYMLINK before any rule, and the code of the first rule that fails.
+// Raises VISUAL_SOURCE_SYMLINK before any rule, and the code of the first rule that fails. Rule P runs before this
+// module is loaded (gate/sources.ts), so a deleted rule module is reported, not a crash.
 import { lstat, readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { declarationSuffixes, type CatalogLayout } from "../layout.ts";
 import { readDeclarations } from "../read-declaration.ts";
 import { assertDeclaredSources, type LocatedDeclaration } from "./inventory.ts";
 import { assertDeclarationsConsistent } from "./declarations.ts";
+import { assertCatalogDerivations } from "./derivation.ts";
 import { assertLedgerStructure } from "./ledger.ts";
 
-export type CatalogRule = "A" | "B" | "L";
-export type CatalogTree = Readonly<{ paths: readonly string[]; declarations: readonly LocatedDeclaration[]; ledger: unknown }>;
+export type CatalogRule = "A" | "B" | "C" | "L";
+export type CatalogTree = Readonly<{ paths: readonly string[]; declarations: readonly LocatedDeclaration[];
+  generated: ReadonlyMap<string, string>; ledger: unknown }>;
 
 async function walk(root: string, folder: string, paths: string[]): Promise<void> {
   let entries: string[];
@@ -35,8 +38,10 @@ export async function readCatalogTree(root: string, layout: CatalogLayout): Prom
   for (const path of paths) if (declarationSuffixes.some(suffix => path.endsWith(suffix))) {
     for (const declaration of readDeclarations(path, await readFile(join(root, path), "utf8"))) declarations.push({ path, declaration });
   }
+  const generated = new Map<string, string>();
+  for (const path of Object.values(layout.generated)) if (paths.includes(path)) generated.set(path, await readFile(join(root, path), "utf8"));
   const ledger: unknown = paths.includes(layout.ledger) ? parseLedger(layout.ledger, await readFile(join(root, layout.ledger), "utf8")) : undefined;
-  return Object.freeze({ paths: Object.freeze(paths), declarations: Object.freeze(declarations), ledger });
+  return Object.freeze({ paths: Object.freeze(paths), declarations: Object.freeze(declarations), generated, ledger });
 }
 
 export async function runCatalogGate(root: string, options: Readonly<{ layout: CatalogLayout; rules: readonly CatalogRule[] }>) {
@@ -44,6 +49,7 @@ export async function runCatalogGate(root: string, options: Readonly<{ layout: C
   const rules: Record<CatalogRule, () => void> = {
     A: () => assertDeclaredSources(tree.paths, tree.declarations, options.layout),
     B: () => assertDeclarationsConsistent(tree.declarations, new Set(tree.paths), options.layout),
+    C: () => assertCatalogDerivations(tree.declarations, tree.generated, options.layout),
     L: () => assertLedgerStructure(tree.ledger, tree.declarations),
   };
   for (const rule of options.rules) rules[rule]();

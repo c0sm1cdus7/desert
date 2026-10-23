@@ -7,6 +7,10 @@ export type CatalogLayout = Readonly<{
   /** The approvals ledger, written only by the owner's approve command. */
   ledger: string;
   fixed: Readonly<Record<string, readonly string[]>>;
+  /** Files written only by `node scripts/catalog.ts --write` from the declarations (rule C). */
+  generated: Readonly<{ index: string; manifest: string; types: string }>;
+  /** Rule P: every module of the gate, the folders that hold only those modules, and other files the gate needs. */
+  gate: Readonly<{ roots: readonly string[]; modules: readonly string[]; required: readonly string[] }>;
   /** Folders under which each declaration kind must live, as `<folder>/<id>/<id>.<kind file>`. */
   pieces: Readonly<Record<"foundation" | "composition" | "mechanism", readonly string[]>>;
 }>;
@@ -15,17 +19,35 @@ export type CatalogLayout = Readonly<{
 export const pieceCompanions = Object.freeze(["catalog", "contract", "specimens"] as const);
 export const declarationSuffixes = Object.freeze([".catalog.ts", ".mechanism.ts"] as const);
 
-const build = "src/build/svelte";
+const build = "src/build/svelte", theme = "src/svelte/theme.css";
+const modules = (folder: string, names: readonly string[]) => names.map(name => `${folder}/${name}`);
 /** The DESERT tree. Every path a category claims is written here and nowhere else. */
 export const DesertLayout: CatalogLayout = Object.freeze({
   roots: ["src/svelte", build],
   vendorFamilies: "src/svelte/vendor/components/ui",
   infra: "src/svelte/infra",
   ledger: "src/svelte/catalog/approvals.json",
+  generated: { index: "src/svelte/catalog/index.ts", manifest: "src/svelte/catalog/manifest.json", types: "src/svelte/catalog/types.d.ts" },
+  gate: {
+    roots: ["src/authoring/catalog", "src/authoring/visual-boundary", "src/authoring/web-catalog"],
+    modules: [
+      ...modules("src/authoring/catalog", ["approvals-schema.ts", "declaration-schema.ts", "define.ts", "generate.ts", "layout.ts",
+        "normalize-source.ts", "read-declaration.ts"]),
+      ...modules("src/authoring/catalog/gate", ["declarations.ts", "derivation.ts", "inventory.ts", "ledger.ts", "run.ts", "sources.ts"]),
+      // The previous gate stays on the build path until slice 1 ports its assertions into the rules above.
+      ...modules("src/authoring/visual-boundary", ["adapter-globals.ts", "adapter.ts", "bootstrap.ts", "closed.ts", "composition.ts",
+        "dependency-graph.ts", "dispatch-contract.ts", "dispatch-script.ts", "dispatch.ts", "dom-ownership.ts", "finite-inputs.ts",
+        "gateway.ts", "inspect.ts", "interpreter-sources.ts", "inventory.ts", "model.ts", "nonvisual-capabilities.ts",
+        "opaque-execution.ts", "runtime-globals.ts", "script.ts", "source-request.ts", "source.ts", "toolbar-css.ts",
+        "toolbar-placement.ts", "toolbar-properties.ts", "toolbar.ts", "unload-capability.ts", "walk.ts"]),
+      ...modules("src/authoring/web-catalog", ["check.ts", "derive.ts", "manifest.ts"]),
+    ],
+    required: [theme],
+  },
   pieces: { foundation: ["src/svelte/catalog/foundations"], composition: ["src/svelte/catalog/compositions", "src/svelte/catalog/renderer"],
     mechanism: ["src/svelte/catalog/mechanisms"] },
   fixed: {
-    theme: ["src/svelte/theme.css"],
+    theme: [theme],
     "renderer-infrastructure": ["action-adapter.ts", "adapter-catalog.ts", "adapter-contract.ts", "catalog-admissions.ts",
       "catalog-manifest-schema.ts", "catalog-manifest.ts", "catalog-owner-types.ts", "collection-retrieval.ts",
       "renderer-contracts.ts", "renderer-registry.ts"].map(name => `src/svelte/${name}`),
