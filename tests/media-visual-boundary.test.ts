@@ -33,3 +33,17 @@ test("media viewer owns lexical composition without accepting caller rendering o
   ]) assert.throws(() => assertClosedVisualBoundaries([{ path: caller,
     source: `<script>import Viewer from "${viewerSpecifier}";</script>${markup}` }]), /CLOSED_VISUAL_BOUNDARY/);
 });
+
+// Restored from the debt-baseline test retired in slice 0 (§5.3): media sources inspect clean and cannot render raw HTML.
+// infra/playback.svelte.ts touches the media element: catalog rule I (slice 1) refuses it until its owner is decided.
+test("media playback sources inspect clean and refuse raw HTML", async () => {
+  for (const path of ["src/svelte/catalog/foundations/artwork-placeholder/ArtworkPlaceholder.svelte",
+    "src/svelte/catalog/foundations/playback-canvas/PlaybackCanvas.svelte", "src/svelte/catalog/compositions/playback-controls/PlaybackControls.svelte",
+    "src/svelte/vendor/components/ui/slider/index.ts", "src/svelte/vendor/components/ui/slider/slider.svelte"]) {
+    const source = await readFile(new URL(`../${path}`, import.meta.url), "utf8");
+    assert.deepEqual(inspectVisualSource(path, source).findings, [], path);
+    if (path.endsWith(".svelte") && !path.includes("/vendor/")) {
+      assert.throws(() => assertClosedVisualBoundaries([{ path, source: `${source}\n{@html foreign}` }]), /CLOSED_VISUAL_BOUNDARY/, path);
+    }
+  }
+});

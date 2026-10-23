@@ -37,3 +37,44 @@ test("renderers only select their finite catalog owners", async () => {
   }
   }
 });
+
+// Restored from the debt-baseline tests retired in slice 0 (§5.3): the baseline is gone, the guard is not.
+// Each source inspects clean, and each escape added to it is found, until catalog rules D–I replace the inspector.
+// appearance-state.ts writes root styles: a DOM helper, not infra; catalog rule I (slice 1) refuses it until its owner is decided.
+const compositions = "src/svelte/catalog/compositions", foundations = "src/svelte/catalog/foundations";
+const accessAndAppearance = [
+  "src/svelte/infra/access-context.ts", `${compositions}/access-form/AccessForm.svelte`, `${compositions}/access-gate/AccessGate.svelte`,
+  `${compositions}/access-screen/AccessScreen.svelte`, "src/svelte/infra/appearance-preferences.ts",
+  `${compositions}/appearance/Appearance.svelte`, `${compositions}/access-gate/browser-access-lock.ts`, `${compositions}/identity/Identity.svelte`,
+  `${compositions}/view-product-content/ViewProductContent.svelte`, `${compositions}/local-exercise-content/LocalExerciseContent.svelte`,
+  `${compositions}/public-catalog-product-content/PublicCatalogProductContent.svelte`, "src/svelte/catalog/mechanisms/surface-reading/surface-reading.css",
+  `${compositions}/toolbar-layout/toolbar-identity.ts`, `${compositions}/toolbar-layout/toolbar-leading.svelte.ts`,
+];
+const walkthroughOwners = [
+  `${compositions}/access-experience/AccessExperience.svelte`, `${compositions}/appearance-preferences/AppearancePreferences.svelte`,
+  `${compositions}/avatar-shuffle/AvatarShuffle.svelte`, `${foundations}/seed-avatar/SeedAvatar.svelte`, `${foundations}/wallpaper/Wallpaper.svelte`,
+  `${compositions}/lock-screen/LockScreen.svelte`, `${compositions}/reference-selector/ReferenceSelector.svelte`, `${foundations}/label-rail/LabelRail.svelte`,
+  `${compositions}/labels-control/LabelsControl.svelte`, `${compositions}/attention-list/AttentionList.svelte`,
+  `${foundations}/attention-indicator/AttentionIndicator.svelte`, `${compositions}/attention-status/AttentionStatus.svelte`,
+  `${compositions}/media-reference-selector/MediaReferenceSelector.svelte`, `${compositions}/media-grid/MediaGrid.svelte`,
+  `${compositions}/media-collection-grid/MediaCollectionGrid.svelte`, `${compositions}/speed-dial/SpeedDial.svelte`,
+  `${compositions}/confirmation-dialog/ConfirmationDialog.svelte`, `${compositions}/view-workspace/ViewWorkspace.svelte`,
+];
+const inspected = async (path: string, addition = "") =>
+  inspectVisualSource(path, await readFile(new URL(`../${path}`, import.meta.url), "utf8") + addition).findings;
+
+test("access and appearance sources inspect clean and an added raw HTML render is found", async () => {
+  for (const path of accessAndAppearance) {
+    assert.deepEqual(await inspected(path), [], path);
+    if (path.endsWith(".svelte")) assert.notDeepEqual(await inspected(path, "\n{@html foreign}"), [], `${path}: {@html}`);
+  }
+});
+
+test("walkthrough owners inspect clean and refuse component and CSS escapes", async () => {
+  for (const path of walkthroughOwners) {
+    assert.deepEqual(await inspected(path), [], path);
+    for (const addition of ['<Foreign class="custom"/>', '<Foreign style="padding:0"/>', '<Foreign {...attrs}/>', '<style>:global(.foreign){padding:0}</style>']) {
+      assert.notDeepEqual(await inspected(path, addition), [], `${path}: ${addition}`);
+    }
+  }
+});
