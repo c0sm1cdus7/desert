@@ -16,8 +16,6 @@
 [data-catalog-card="featured"] [data-catalog-card-overlay] { bottom:46px; }
 [data-catalog-card="featured"] [data-slot="card-header"] { gap:2px; }
 [data-catalog-card="featured"] [data-slot="card-title"] { font:var(--text-title--font-weight) var(--text-display)/var(--text-display--line-height) var(--font-sans); }
-[data-catalog-card="featured"] [data-slot="card-description"] { font:var(--text-control--font-weight) var(--text-caption)/var(--text-caption--line-height) var(--font-sans); color:inherit; opacity:.8; }
-[data-catalog-card="featured"] [data-slot="card-footer"] { display:flex; justify-content:center; margin-top:14px; padding:0; border:0; border-radius:0; background:transparent; }
 [data-catalog-card="featured"] [data-catalog-feature-action] { pointer-events:auto; }
 [data-catalog-group] { padding-top:22px; }
 [data-catalog-rail] { display:flex; gap:14px; padding:0 var(--place-surface-inset,26px); overflow-x:auto; scrollbar-width:none; }

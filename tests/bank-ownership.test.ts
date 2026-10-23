@@ -27,8 +27,6 @@ test("product, catalog and nested compositions use the one bank dispatch boundar
   assert.match(source("renderer-registry.ts"), /collection: Collection/);
   assert.match(source("Collection.svelte"), /import type \{ BankNodeFor \}/);
   assert.match(source("Collection.svelte"), /<GroupedPanel>/);
-  assert.match(source("catalog/KitchenSink.svelte"), /import InspectionContent from "\.\.\/views\/InspectionContent\.svelte"/);
-  assert.match(source("catalog/KitchenSink.svelte"), /<InspectionContent\s*\/>/);
   assert.match(source("views/InspectionContent.svelte"), /import \{ Inspection \} from "\.\.\/adapter-catalog\.ts"/);
   assert.match(source("adapter-catalog.ts"), /import InspectionOwner from "\.\/pieces\/Inspection\.svelte"/);
 });

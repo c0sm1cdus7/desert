@@ -82,4 +82,4 @@
 }
 /* Transient reading bounds supersede the primitives' generic flex utilities. */
 .drawer [data-frame-presentation]:not([data-frame-presentation="message"]) .surface-content { min-height:calc(2lh + 2 * var(--surface-reading-inset)); }
-[data-slot="popover-content"], [data-slot="dialog-content"], [data-slot="sheet-content"], [data-slot="select-content"] { --focus-ring-offset:-3px; }
+[data-slot="popover-content"], [data-slot="dialog-content"], [data-slot="select-content"] { --focus-ring-offset:-3px; }

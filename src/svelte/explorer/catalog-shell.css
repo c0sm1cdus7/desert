@@ -39,5 +39,4 @@
   [data-catalog-navigation] [data-slot="sidebar-menu-button"] { min-height:44px; }
 }
 @media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
-  [data-renderer-profile="apple-reference"] [data-slot="sheet-overlay"] { -webkit-backdrop-filter:none; backdrop-filter:none; }
 }

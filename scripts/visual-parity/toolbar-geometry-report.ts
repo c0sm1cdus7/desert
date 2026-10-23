@@ -38,7 +38,7 @@ const paths=[
   'src/svelte/pieces/toolbar-bounds.ts','src/svelte/pieces/Toolbar.svelte',
   'src/svelte/explorer/CatalogWorkspace.svelte','src/svelte/explorer/CatalogToolbar.svelte',
   'src/svelte/explorer/CatalogNavigation.svelte','src/svelte/HumanProduct.svelte',
-  'src/svelte/catalog/KitchenSink.svelte','src/svelte/pieces/DateCalendar.svelte',
+  'src/svelte/pieces/DateCalendar.svelte',
   'src/svelte/controls/DateControl.svelte','src/svelte/pieces/PickerSheet.svelte',
   'src/svelte/vendor/components/ui/calendar/calendar.svelte','src/svelte/pieces/media/Viewer.svelte',
   'src/svelte/pieces/media/ZoomControls.svelte','src/svelte/pieces/media/gestures.ts',

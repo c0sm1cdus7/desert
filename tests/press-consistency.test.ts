@@ -9,7 +9,6 @@ const variants = ["default", "secondary", "outline", "ghost", "destructive", "li
 const source = `<script lang="ts">
   import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
   import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
-  import * as Select from "@desert/svelte/vendor/components/ui/select/index.js";
   import * as Calendar from "@desert/svelte/vendor/components/ui/calendar/index.js";
   import Plus from "@lucide/svelte/icons/plus";
   import { CalendarDate } from "@internationalized/date";
@@ -38,10 +37,6 @@ const source = `<script lang="ts">
       <Sidebar.MenuItem><Sidebar.MenuButton data-probe="sidebar-custom-raw">{#snippet child({props})}<a {...props} href="#target" onclick={event=>event.preventDefault()}><Plus /><span>Custom raw link</span></a>{/snippet}</Sidebar.MenuButton></Sidebar.MenuItem>
     </Sidebar.Menu>
   </Sidebar.Provider>
-  {#each ['outline','within-well','field-control'] as appearance}
-    <div style="width:220px"><Select.Root type="single"><Select.Trigger data-probe={'select-'+appearance}
-      withinWell={appearance==='within-well'} fieldControl={appearance==='field-control'}>A selected value</Select.Trigger></Select.Root></div>
-  {/each}
   <div data-case="select-control" style="width:250px"><SelectControl node={select} onevent={()=>{}} /></div>
   <div data-case="popover-control"><PopoverControl node={popover} onevent={event=>popover=applyControlEvent(popover,event).node} /></div>
   <div data-case="calendar" style="width:320px"><Calendar.Calendar type="single" placeholder={new CalendarDate(2026,10,16)} /></div>
@@ -78,8 +73,8 @@ function target(page: Page, name: string) {
   return page.locator(`[data-probe="${name}"]`);
 }
 const names = [...variants.flatMap(variant => [`${variant}-text`, `${variant}-icon`]), "action-label", "action-icon",
-  "sidebar-trigger", "sidebar-standard", "sidebar-custom-button", "sidebar-custom-raw", "select-outline", "select-within-well",
-  "select-field-control", "select-control", "popover-control", "calendar-next", "calendar-day", "calendar-day-custom-button", "calendar-day-custom-raw"];
+  "sidebar-trigger", "sidebar-standard", "sidebar-custom-button", "sidebar-custom-raw",
+  "select-control", "popover-control", "calendar-next", "calendar-day", "calendar-day-custom-button", "calendar-day-custom-raw"];
 const customRaw = (name: string) => name.endsWith("custom-raw");
 const opening = (name: string) => name === "select-control" || name === "popover-control";
 async function save(name: string, evidence: unknown) {

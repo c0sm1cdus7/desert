@@ -36,8 +36,7 @@ test("production search controls have exactly one toolbar owner and no inline al
 });
 
 test("catalog content cannot receive a query or filter its retained inventory", async () => {
-  for (const path of ["src/svelte/explorer/PublicCatalogBank.svelte", "src/svelte/views/InspectionContent.svelte",
-    "src/svelte/catalog/CatalogNavigation.svelte"]) {
+  for (const path of ["src/svelte/explorer/PublicCatalogBank.svelte", "src/svelte/views/InspectionContent.svelte"]) {
     const source = await sourceText(path);
     assert.doesNotMatch(source, /\bquery\b|\bmatchingEntries\b|\bbind:query\b/,
       `${path} is display content, not a search provider or query consumer`);
