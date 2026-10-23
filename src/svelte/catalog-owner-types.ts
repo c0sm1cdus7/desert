@@ -1,24 +1,24 @@
 // Generated from catalog-manifest.ts. Run scripts/web-catalog.ts --write; do not edit.
-import type ViewProductContentOwner from "./pieces/ViewProductContent.svelte";
-import type PublicCatalogProductContentOwner from "./pieces/PublicCatalogProductContent.svelte";
-import type LocalExerciseContentOwner from "./pieces/LocalExerciseContent.svelte";
-import type SummaryWidgetOwner from "./pieces/SummaryWidget.svelte";
-import type ViewDestinationLinkOwner from "./pieces/ViewDestinationLink.svelte";
-import type FactGroupOwner from "./pieces/FactGroup.svelte";
-import type BankOwner from "./BankRenderer.svelte";
-import type InformationOwner from "./pieces/Information.svelte";
-import type MessageOwner from "./pieces/MessageBody.svelte";
-import type UtilityOwner from "./pieces/UtilityActions.svelte";
-import type StackOwner from "./pieces/StackItem.svelte";
-import type TextOwner from "./pieces/TextContent.svelte";
-import type FlowOwner from "./pieces/ContentFlow.svelte";
-import type FrameOwner from "./SurfaceFrame.svelte";
-import type FeedbackOwner from "./pieces/Feedback.svelte";
-import type LibraryOwner from "./pieces/media/Library.svelte";
-import type InspectionOwner from "./pieces/Inspection.svelte";
-import type InspectionCatalogOwner from "./catalog/InspectionCatalog.svelte";
-import type WorkspaceOwner from "./pieces/ViewWorkspace.svelte";
-import type PanelOwner from "./pieces/ViewPanel.svelte";
+import type ViewProductContentOwner from "./catalog/compositions/view-product-content/ViewProductContent.svelte";
+import type PublicCatalogProductContentOwner from "./catalog/compositions/public-catalog-product-content/PublicCatalogProductContent.svelte";
+import type LocalExerciseContentOwner from "./catalog/compositions/local-exercise-content/LocalExerciseContent.svelte";
+import type SummaryWidgetOwner from "./catalog/compositions/summary-widget/SummaryWidget.svelte";
+import type ViewDestinationLinkOwner from "./catalog/compositions/view-destination-link/ViewDestinationLink.svelte";
+import type FactGroupOwner from "./catalog/compositions/fact-group/FactGroup.svelte";
+import type BankOwner from "./catalog/renderer/bank-renderer/BankRenderer.svelte";
+import type InformationOwner from "./catalog/compositions/information/Information.svelte";
+import type MessageOwner from "./catalog/foundations/message-body/MessageBody.svelte";
+import type UtilityOwner from "./catalog/compositions/utility-actions/UtilityActions.svelte";
+import type StackOwner from "./catalog/foundations/stack-item/StackItem.svelte";
+import type TextOwner from "./catalog/compositions/text-content/TextContent.svelte";
+import type FlowOwner from "./catalog/compositions/content-flow/ContentFlow.svelte";
+import type FrameOwner from "./catalog/compositions/surface-frame/SurfaceFrame.svelte";
+import type FeedbackOwner from "./catalog/foundations/feedback/Feedback.svelte";
+import type LibraryOwner from "./catalog/compositions/library/Library.svelte";
+import type InspectionOwner from "./catalog/compositions/inspection/Inspection.svelte";
+import type InspectionCatalogOwner from "./catalog/compositions/inspection-catalog/InspectionCatalog.svelte";
+import type WorkspaceOwner from "./catalog/compositions/view-workspace/ViewWorkspace.svelte";
+import type PanelOwner from "./catalog/compositions/view-panel/ViewPanel.svelte";
 
 export type Owners = {
   ViewProductContent: typeof ViewProductContentOwner;

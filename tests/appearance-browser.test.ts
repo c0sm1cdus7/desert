@@ -2,14 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { workspaceCss } from "./fixtures/workspace-css.ts";
-import { appearanceStorageKey } from "../src/svelte/pieces/appearance-preferences.ts";
+import { appearanceStorageKey } from "../src/svelte/infra/appearance-preferences.ts";
 
 test("appearance uses shared choices, persists locally and applies to the whole catalog", async () => {
   const browser = await svelteBrowser(`
     <script>
       import { onMount } from 'svelte';
-      import Appearance from '@desert/svelte/pieces/Appearance.svelte';
-      import { mountCatalogAppearance } from '@desert/svelte/pieces/catalog-appearance.ts';
+      import Appearance from '@desert/svelte/catalog/compositions/appearance/Appearance.svelte';
+      import { mountCatalogAppearance } from '@desert/svelte/infra/catalog-appearance.ts';
       onMount(mountCatalogAppearance);
     </script>
     <Appearance />`, {}, "http://desert-appearance.test/");
@@ -44,8 +44,8 @@ test("legacy system follows the effective preview without rewriting storage unti
   const browser = await svelteBrowser(`
     <script>
       import { onMount } from 'svelte';
-      import Appearance from '@desert/svelte/pieces/Appearance.svelte';
-      import { mountCatalogAppearance } from '@desert/svelte/pieces/catalog-appearance.ts';
+      import Appearance from '@desert/svelte/catalog/compositions/appearance/Appearance.svelte';
+      import { mountCatalogAppearance } from '@desert/svelte/infra/catalog-appearance.ts';
       localStorage.setItem(${JSON.stringify(appearanceStorageKey)}, ${JSON.stringify(JSON.stringify(stored))});
       onMount(mountCatalogAppearance);
     </script><Appearance />`, {}, "http://desert-legacy-appearance.test/");

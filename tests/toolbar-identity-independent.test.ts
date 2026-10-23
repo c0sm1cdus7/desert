@@ -6,8 +6,8 @@ import { identityEvidence, identityGeometry, assertIdentityGeometry, assertVisib
 
 const longTitle = "Independent warning about a connection that stopped responding while your current writing remains safely available";
 const source = `<script lang="ts">
-  import SurfaceFrame from "@desert/svelte/SurfaceFrame.svelte";
-  import Problem from "@desert/svelte/pieces/Problem.svelte";
+  import SurfaceFrame from "@desert/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte";
+  import Problem from "@desert/svelte/catalog/compositions/problem/Problem.svelte";
   import { surfaceFrame, SurfaceFrameVersion } from "@desert/interaction/surface-frame.ts";
   import { transientFrame } from "@desert/interaction/transient-frame.ts";
   import { toolbarAction } from "@desert/interaction/toolbar.ts";

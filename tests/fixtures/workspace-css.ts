@@ -4,7 +4,7 @@ import { compile } from "svelte/compiler";
 import { rendererCss } from "./renderer-css.ts";
 
 export async function workspaceCss() {
-  const filename = resolve(import.meta.dirname, "../../src/svelte/explorer/CatalogWorkspace.svelte");
+  const filename = resolve(import.meta.dirname, "../../src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte");
   // The isolated harness injects child styles after parent styles. The production
   // bundle places this unchanged shell-owner rule after AdaptiveSurfaceLayout.
   // Match that order, not an invented geometry override; built-app QA remains a gate.

@@ -8,7 +8,7 @@ import { compilePublicCatalog } from "../src/public-catalog/compile.ts";
 import { catalogFixture } from "./fixtures/public-catalog.ts";
 
 const source = `<script lang="ts">
-  import CatalogWorkspace from "@desert/svelte/explorer/CatalogWorkspace.svelte";
+  import CatalogWorkspace from "@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte";
   let query = $state(''), events = $state([]), searching = $state(false);
   const image = {asset:'mountain',alt:'Mountain above a forest'};
   const node = {version:'desert.bank-node/1',kind:'catalog.home',featured:{version:'desert.bank-node/1',kind:'catalog.card',
@@ -28,7 +28,7 @@ const source = `<script lang="ts">
 
 test("catalog composes real shadcn owners and emits one typed destination event", { timeout: 20000 }, async () => {
   // This harness checks semantics, not stylesheet fidelity (the built-app gate owns that).
-  const workspace = resolve(import.meta.dirname, "../src/svelte/explorer/CatalogWorkspace.svelte");
+  const workspace = resolve(import.meta.dirname, "../src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte");
   const component = (await readFile(workspace, "utf8")).replace(/^\s*import "\.\/catalog-[^"]+\.css";$/gm, "");
   const f = await svelteBrowser(source, { [workspace]: component });
   try {
@@ -51,7 +51,7 @@ test("catalog composes real shadcn owners and emits one typed destination event"
 });
 
 test("compact sidebar navigation closes its genuine sheet after choosing a destination", { timeout: 20000 }, async () => {
-  const workspace = resolve(import.meta.dirname, "../src/svelte/explorer/CatalogWorkspace.svelte");
+  const workspace = resolve(import.meta.dirname, "../src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte");
   const component = (await readFile(workspace, "utf8")).replace(/^\s*import "\.\/catalog-[^"]+\.css";$/gm, "");
   const f = await svelteBrowser(source, { [workspace]: component });
   try {

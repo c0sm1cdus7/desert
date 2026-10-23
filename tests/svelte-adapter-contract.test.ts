@@ -11,7 +11,7 @@ test("adapter gateway retains owner prop types and removes native passthrough", 
     import { TextContent, BankRenderer, TransientRenderer, ControlBankRenderer, Feedback } from "@desert/svelte/adapter-catalog.ts";
     import type { BankNode, BankNodeFor } from "@desert/interaction/bank-node.ts";
     import type { ControlNode } from "@desert/interaction/control-nodes.ts";
-    import type { LocalFileHost } from "@desert/svelte/controls/file-host.ts";
+    import type { LocalFileHost } from "@desert/svelte/infra/file-host.ts";
     let node!: BankNode;
     let transient!: BankNodeFor<"transient">;
     let control!: Extract<BankNode, {control:ControlNode}>;

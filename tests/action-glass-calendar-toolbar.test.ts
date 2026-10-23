@@ -6,7 +6,7 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 
 const source = `<script>
   import { Button } from '@desert/svelte/vendor/components/ui/button/index.js';
-  import DateControl from '@desert/svelte/controls/DateControl.svelte';
+  import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
   let node = $state({version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival date',
     required:false,disabled:false,value:'2026-10-15',minimum:'2026-10-01',maximum:'2026-11-30'});
 </script>

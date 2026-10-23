@@ -5,7 +5,7 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 
 test('disabled search dims content once without changing its glass pane', async () => {
   const f = await svelteBrowser(`<script>
-    import SearchField from '@desert/svelte/pieces/SearchField.svelte';
+    import SearchField from '@desert/svelte/catalog/foundations/search-field/SearchField.svelte';
     let disabled = $state(false);
   </script><button onclick={() => disabled = !disabled}>Toggle disabled</button>
   <SearchField {disabled} aria-label="Search specimen" value="A query" />`);

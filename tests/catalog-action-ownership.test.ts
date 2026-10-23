@@ -8,8 +8,8 @@ import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 
 const css = rendererCss();
 const source = `<script lang="ts">
-  import CatalogWorkspace from "@desert/svelte/explorer/CatalogWorkspace.svelte";
-  import BankRenderer from "@desert/svelte/BankRenderer.svelte";
+  import CatalogWorkspace from "@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte";
+  import BankRenderer from "@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte";
   ${workspaceBodySource()}
   let events = $state([]);
   const record = 'mountain';
@@ -60,7 +60,7 @@ test("catalog CTA and Back use the shared Action owner, preserving adaptive face
 });
 
 test("replacing the bank's single Action renderer reaches both catalog consumers and retains pending suppression", async () => {
-  const owner = resolve(import.meta.dirname, "../src/svelte/pieces/Action.svelte");
+  const owner = resolve(import.meta.dirname, "../src/svelte/catalog/foundations/action/Action.svelte");
   const f = await svelteBrowser(source, { [owner]: `<script lang="ts">
     let {label,icon,onclick} = $props();
   </script><button data-shared-action-replacement data-icon={icon} aria-label={label} onclick={onclick}>{label}</button>` });
@@ -76,7 +76,7 @@ test("replacing the bank's single Action renderer reaches both catalog consumers
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
   const pending = await svelteBrowser(`<script lang="ts">
-    import BankRenderer from "@desert/svelte/BankRenderer.svelte";
+    import BankRenderer from "@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte";
     let events = $state([]);
     const node = {version:'desert.bank-node/1',kind:'action',role:'primary',action:{label:'Opening',icon:'open',
       state:'pending',intent:{kind:'catalog.open',record:'mountain'}}};

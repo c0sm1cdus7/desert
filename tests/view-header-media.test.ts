@@ -3,7 +3,7 @@ import test from "node:test";
 import { compileViewProgram } from "../src/views/program.ts";
 import { requireViewMediaBindings } from "../src/build/media-references.ts";
 import { viewProgramModel } from "../src/web/client/view-program.ts";
-import { viewIdentity } from "../src/svelte/views/workspace-data.ts";
+import { viewIdentity } from "../src/svelte/catalog/compositions/view-workspace/workspace-data.ts";
 import type { ViewProgram } from "../src/views/program-schema.ts";
 import type { ViewHeader } from "../src/views/schema.ts";
 import { program, surface } from "./fixtures/view-program.ts";

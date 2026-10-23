@@ -4,7 +4,7 @@ import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 
 const source = `<script>
-import DateControl from '@desert/svelte/controls/DateControl.svelte';
+import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
 let node = $state({version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival date',
 required:false,disabled:false,value:'2026-10-17'});
 </script><main style="padding:24px"><DateControl {node} onevent={e => node={...node,value:e.value}} /></main>`;

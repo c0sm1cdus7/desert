@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { appearancePreferences } from "../src/svelte/pieces/appearance-preferences.ts";
+import { appearancePreferences } from "../src/svelte/infra/appearance-preferences.ts";
 import { accessInput } from "../src/identity/contract.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
@@ -24,7 +24,7 @@ test("identity initialization admits a bounded seed, never avatar markup or URLs
 
 test("onboarding is two steps with one password, seeded avatar and a text-only final action", { timeout: 180000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import AccessForm from '@desert/svelte/pieces/AccessForm.svelte';
+    import AccessForm from '@desert/svelte/catalog/compositions/access-form/AccessForm.svelte';
     let submitted = $state('');
   </script><AccessForm mode="initialize" onsubmit={async input => { submitted = JSON.stringify(input); }}/><output>{submitted}</output>`);
   try {

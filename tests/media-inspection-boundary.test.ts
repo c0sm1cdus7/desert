@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { assertClosedVisualBoundaries } from '../src/authoring/visual-boundary/closed.ts';
 import { requiredAdapterSources } from '../src/authoring/visual-boundary/adapter.ts';
 
-const paths=['views/MediaContent','views/InspectionContent','explorer/PublicCatalogBank']
+const paths=['catalog/renderer/media-content/MediaContent','catalog/renderer/inspection-content/InspectionContent','catalog/renderer/public-catalog-bank/PublicCatalogBank']
   .map(path=>'src/svelte/'+path+'.svelte');
 for(const path of paths)test(path+' only selects semantic catalog entries, never paint or raw composition',async()=>{
   for(const source of [
@@ -20,7 +20,7 @@ for(const path of paths)test(path+' only selects semantic catalog entries, never
   assert.doesNotThrow(()=>assertClosedVisualBoundaries([{path,source}]));
 });
 
-for(const owner of ['pieces/media/Library','pieces/Inspection','catalog/InspectionCatalog','pieces/media/ZoomControls']){
+for(const owner of ['catalog/compositions/library/Library','catalog/compositions/inspection/Inspection','catalog/compositions/inspection-catalog/InspectionCatalog','catalog/compositions/zoom-controls/ZoomControls']){
   test(owner+' exposes semantic data/events, not native attributes or render slots',()=>{
     const path='src/svelte/'+owner+'.svelte';
     for(const source of [

@@ -58,9 +58,9 @@ test("the complete AST guard normalizes CSS declaration spellings", () => {
 
 test("foundation responsibility does not allow arbitrary title geometry", () => {
   for (const [path, css] of [
-    ["src/svelte/pieces/pane-material.css", "h2 {opacity:0}"],
-    ["src/svelte/pieces/control-feedback.css", "@utility tm-control { h2 {transform:scale(2)} }"],
-    ["src/svelte/typography.css", "h2 {padding:99px}"],
+    ["src/svelte/catalog/mechanisms/pane-material/pane-material.css", "h2 {opacity:0}"],
+    ["src/svelte/catalog/mechanisms/control-feedback/control-feedback.css", "@utility tm-control { h2 {transform:scale(2)} }"],
+    ["src/svelte/catalog/mechanisms/typography/typography.css", "h2 {padding:99px}"],
   ]) assert.throws(() => assertCanonicalToolbarOwnership(sources.map(source => source.path === path
     ? { ...source, source: `${source.source}\n${css}` } : source)), /TOOLBAR_OWNERSHIP/);
 });
@@ -69,12 +69,12 @@ test("measured placement has one profile reference and cannot be overridden by a
   for (const property of ["--place-leading-inset", "--sidebar-width", "--catalog-sidebar-width"])
     assert.throws(() => check(`:global([data-catalog-workspace]) { ${property}:99px; }`), /TOOLBAR_OWNERSHIP/);
   for (const replacement of ["--sidebar-width:99px", "--sidebar-width:var(--catalog-sidebar-width);padding:99px"])
-    assert.throws(() => assertCanonicalToolbarOwnership(sources.map(source => source.path === "src/svelte/explorer/CatalogWorkspace.svelte"
+    assert.throws(() => assertCanonicalToolbarOwnership(sources.map(source => source.path === "src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte"
       ? { ...source, source: source.source.replace("--sidebar-width:var(--catalog-sidebar-width)", replacement) } : source)), /TOOLBAR_OWNERSHIP/);
 });
 
 test("an intermediate reading variable inherits its canonical writer transitively", () => {
-  const aliased = sources.map(source => source.path === "src/svelte/pieces/surface-reading.css"
+  const aliased = sources.map(source => source.path === "src/svelte/catalog/mechanisms/surface-reading/surface-reading.css"
     ? { ...source, source: source.source.replace("--place-surface-inset:26px;",
       "--place-surface-inset:var(--reading-intermediate); --reading-intermediate:26px;") } : source);
   assert.doesNotThrow(() => assertCanonicalToolbarOwnership(aliased));
@@ -104,7 +104,7 @@ test("the real worker boundary rejects a catalog consumer's generic heading over
   try {
     await cp(new URL("../src", import.meta.url), join(root, "src"), { recursive: true });
     await runWithVisualBoundaries(root, worker);
-    const path = join(root, "src/svelte/explorer/CatalogWorkspace.svelte");
+    const path = join(root, "src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte");
     const original = await readFile(path, "utf8");
     const candidate = original.replace("</style>",
       ":global([data-catalog-workspace] h2) { padding-inline-start:99px; }\n</style>");

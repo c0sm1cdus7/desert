@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mkdir, readFile } from 'node:fs/promises';
 import { InteractionCatalog } from '../src/interaction/catalog.ts';
-import { catalogTitle } from '../src/svelte/catalog/navigation.ts';
-import { sharedCatalogOwners } from '../src/svelte/catalog/shared-owners.ts';
-import { sharedPurpose, sharedIndexOwners } from '../src/svelte/catalog/shared-purpose.ts';
+import { catalogTitle } from '../src/svelte/infra/catalog-navigation.ts';
+import { sharedCatalogOwners } from '../src/svelte/infra/shared-owners.ts';
+import { sharedPurpose, sharedIndexOwners } from '../src/svelte/infra/shared-purpose.ts';
 import { compilePublicCatalog } from '../src/public-catalog/index.ts';
 import { catalogFixture } from './fixtures/public-catalog.ts';
 import { svelteBrowser } from './fixtures/svelte-browser.ts';
@@ -13,7 +13,7 @@ import { catalogWorkspaceSource } from './fixtures/catalog-workspace.ts';
 
 const surface = compilePublicCatalog(catalogFixture()).surface;
 const source = `<script>
-  import PublicCatalogBank from './src/svelte/explorer/PublicCatalogBank.svelte';
+  import PublicCatalogBank from './src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte';
   const surface = ${JSON.stringify(surface)};
 </script><main style="padding:16px"><PublicCatalogBank {surface} oncatalog={() => {}} /></main>`;
 
@@ -137,7 +137,7 @@ test('indexed component navigation is keyboard-accessible and details reflow at 
 
 test('media bank states mount the real owners with isolated installed artwork and no product commands', async () => {
   const f=await svelteBrowser(`<script>
-    import PublicCatalogBank from './src/svelte/explorer/PublicCatalogBank.svelte';
+    import PublicCatalogBank from './src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte';
     let show=$state(false); const surface=${JSON.stringify(surface)};
   </script><button onclick={()=>show=true}>Mount bank</button>
   {#if show}<PublicCatalogBank {surface} oncatalog={()=>{}} />{/if}`,{},'http://bank-fixture.test/');

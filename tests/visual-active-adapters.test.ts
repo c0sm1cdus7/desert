@@ -4,14 +4,14 @@ import test from "node:test";
 import { assertClosedVisualBoundaries } from "../src/authoring/visual-boundary/closed.ts";
 import { assertCompleteAdapterSources, requiredAdapterSources } from "../src/authoring/visual-boundary/adapter.ts";
 
-const paths = ["views/Panel", "FailureDialog", "controls/ControlRenderer", "explorer/PublicCatalogBankSpecimen"]
+const paths = ["catalog/renderer/panel/Panel", "FailureDialog", "catalog/renderer/control-renderer/ControlRenderer", "catalog/renderer/public-catalog-bank-specimen/PublicCatalogBankSpecimen"]
   .map(name => `src/svelte/${name}.svelte`);
 const check = (path: string, source: string) => assertClosedVisualBoundaries([{ path, source }]);
 
 for (const path of paths) test(`${path} cannot paint or bypass its catalog`, () => {
   for (const source of [
     "<div />", "Text outside a catalog owner", "<style>p { color: red }</style>",
-    `<script>import Owner from '@desert/svelte/BankRenderer.svelte';</script><Owner node={node}/>` ,
+    `<script>import Owner from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';</script><Owner node={node}/>` ,
     `<script>import { BankRenderer } from '@desert/svelte/adapter-catalog.ts';</script><BankRenderer node={node} class="p-0"/>`,
     `<script>import { BankRenderer } from '@desert/svelte/adapter-catalog.ts';</script><BankRenderer node={node} {...extra}/>` ,
     `<script>import { BankRenderer } from '@desert/svelte/adapter-catalog.ts';</script><BankRenderer node={node} host={host}/>` ,

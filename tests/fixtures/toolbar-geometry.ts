@@ -1,10 +1,10 @@
 export const toolbarGeometrySource = `<script lang="ts">
-  import CatalogWorkspace from '@desert/svelte/explorer/CatalogWorkspace.svelte';
-  import Drawer from '@desert/svelte/pieces/Drawer.svelte';
-  import Problem from '@desert/svelte/pieces/Problem.svelte';
-  import DateControl from '@desert/svelte/controls/DateControl.svelte';
-  import Viewer from '@desert/svelte/pieces/media/Viewer.svelte';
-  import Toolbar from '@desert/svelte/pieces/Toolbar.svelte';
+  import CatalogWorkspace from '@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte';
+  import Drawer from '@desert/svelte/catalog/foundations/drawer/Drawer.svelte';
+  import Problem from '@desert/svelte/catalog/compositions/problem/Problem.svelte';
+  import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
+  import Viewer from '@desert/svelte/catalog/compositions/viewer/Viewer.svelte';
+  import Toolbar from '@desert/svelte/catalog/compositions/toolbar/Toolbar.svelte';
   import { SurfaceFrameVersion } from '@desert/interaction/surface-frame.ts';
   import {viewEventOwnership} from '@desert/web/client/view-events.ts';
   let task=$state(false), message=$state(false), viewer=$state(false), viewerIndex=$state(0), searching=$state(false), query=$state('');

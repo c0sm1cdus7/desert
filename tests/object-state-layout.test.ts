@@ -6,7 +6,7 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 
 test('contextual status values stay complete and end aligned at narrow widths and 200% text', async () => {
   const f = await svelteBrowser(`<script>
-    import ObjectStateControl from '@desert/svelte/pieces/ObjectStateControl.svelte';
+    import ObjectStateControl from '@desert/svelte/catalog/compositions/object-state-control/ObjectStateControl.svelte';
     let value=$state('completed');
     const options=[{value:'open',label:'Open',available:true,journey:'open'},
       {value:'completed',label:'Completed',available:true,journey:'completed'},

@@ -7,7 +7,7 @@ import { createBuildProject } from "../src/build/svelte/project.ts";
 test("Svelte consumers cannot omit or invent Action icons", { timeout: 60000 }, async () => {
   const project = createBuildProject("export const surface = {}; export const validateInput = () => false;");
   const page = join(project.directory, "src/routes/+page.svelte");
-  const header = '<script lang="ts">import Action from "@desert/svelte/pieces/Action.svelte";</script>\n';
+  const header = '<script lang="ts">import Action from "@desert/svelte/catalog/foundations/action/Action.svelte";</script>\n';
   try {
     writeFileSync(page, header + '<Action label="Close" /><Action label="Save" icon="invented" />');
     await assert.rejects(project.run("check"), error => {

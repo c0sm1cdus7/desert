@@ -20,7 +20,7 @@ test('gallery is an admitted finite View layout, not a caller-provided width or 
 
 for(const [width,scale] of [[1600,1],[390,1],[320,2]] as const){
   test(`the actual Flow gallery specimen keeps wide vertical stacks and responsive media at ${width}px / ${scale*100}%`,async()=>{
-    const f=await svelteBrowser(`<script>import SharedOwnerSpecimen from './src/svelte/catalog/SharedOwnerSpecimen.svelte';</script><SharedOwnerSpecimen owner="Flow" />`,{},'http://gallery-fixture.test/');
+    const f=await svelteBrowser(`<script>import SharedOwnerSpecimen from './src/svelte/catalog/compositions/shared-owner-specimen/SharedOwnerSpecimen.svelte';</script><SharedOwnerSpecimen owner="Flow" />`,{},'http://gallery-fixture.test/');
     try{
       await f.page.setViewportSize({width,height:1000});
       await f.page.addStyleTag({content:await rendererCss()});

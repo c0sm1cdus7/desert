@@ -4,7 +4,7 @@ import { compilePublicCatalog } from "../src/public-catalog/index.ts";
 import { catalogFixture } from "./fixtures/public-catalog.ts";
 import { InteractionCatalog } from "../src/interaction/catalog.ts";
 import { bankNode } from "../src/interaction/bank-node.ts";
-import { publicCatalogBankInventory } from "../src/svelte/explorer/PublicCatalogBank-model.ts";
+import { publicCatalogBankInventory } from "../src/svelte/infra/PublicCatalogBank-model.ts";
 
 test("public diagnostic bank accounts for every canonical entry/state without fabricating domain execution", () => {
   const surface = compilePublicCatalog(catalogFixture()).surface;

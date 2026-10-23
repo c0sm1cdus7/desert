@@ -7,7 +7,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 test("long labels reflow in editing and published facts at 320px and 200% text", async () => {
   const f = await svelteBrowser(`<script>
-    import BankRenderer from '@desert/svelte/BankRenderer.svelte';
+    import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
     const values=['🌵'.repeat(64),'x'.repeat(64),'Two words'];
   </script>
   <BankRenderer node={{version:'desert.bank-node/1',kind:'control.labels',control:{version:'desert.control/1',
@@ -40,7 +40,7 @@ test("the shared badge keeps short neutral and status labels pixel-identical at 
   const badgePath = resolve(import.meta.dirname, "../src/svelte/vendor/components/ui/badge/badge.svelte");
   const current = await readFile(badgePath, "utf8");
   const previous = current.replace(/base: "[^"]*"/, 'base: "h-5 gap-1 rounded-4xl px-2 py-0.5 text-xs font-medium transition-colors has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! group/badge inline-flex w-fit shrink-0 items-center justify-center overflow-hidden whitespace-nowrap [&>svg]:pointer-events-none"');
-  const source = `<script>import BankRenderer from '@desert/svelte/BankRenderer.svelte';</script>
+  const source = `<script>import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';</script>
     {#each ['neutral','accent','success','warning','destructive'] as tone}
       <BankRenderer node={{version:'desert.bank-node/1',kind:'control.tag',control:{version:'desert.control/1',
         kind:'tag',id:tone,label:'Work',tone,disabled:false}}}/>

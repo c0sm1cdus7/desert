@@ -6,7 +6,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 const css = rendererCss();
 async function fixture(text: string) {
   const f = await svelteBrowser(`<script lang="ts">
-    import AnchoredSurface from "@desert/svelte/pieces/AnchoredSurface.svelte";
+    import AnchoredSurface from "@desert/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte";
     let open = $state(false), clicks = $state(0);
   </script>
   <main style="width:100%;height:100dvh;display:flex;align-items:center;justify-content:center">

@@ -4,9 +4,9 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { assertFiniteCatalogInputs } from "../src/authoring/visual-boundary/finite-inputs.ts";
 
-const owner = "src/svelte/pieces/SearchField.svelte";
+const owner = "src/svelte/catalog/foundations/search-field/SearchField.svelte";
 const caller = "src/svelte/explorer/AnyConsumer.svelte";
-const source = (markup: string) => '<script>import Search from "../pieces/SearchField.svelte";</script>' + markup;
+const source = (markup: string) => '<script>import Search from "../catalog/foundations/search-field/SearchField.svelte";</script>' + markup;
 
 test("finite-input owners reject native contracts, rest forwarding and visual props", () => {
   for (const text of [
@@ -26,23 +26,23 @@ test("every finite-input caller loses class/style/directive/attributes escapes i
     assert.throws(() => assertFiniteCatalogInputs([{path:caller,source:source(markup)}]), /FINITE_CATALOG_INPUT/, markup);
   }
   for (const path of [caller,"src/svelte/pieces/Arbitrary.svelte","src/svelte/vendor/Arbitrary.svelte"]) {
-    assert.throws(() => assertFiniteCatalogInputs([{path,source:'<script>import Search from "@desert/svelte/pieces/SearchField.svelte";</script><Search class="p-0"/>'}]), /FINITE_CATALOG_INPUT/);
+    assert.throws(() => assertFiniteCatalogInputs([{path,source:'<script>import Search from "@desert/svelte/catalog/foundations/search-field/SearchField.svelte";</script><Search class="p-0"/>'}]), /FINITE_CATALOG_INPUT/);
   }
 });
 
 test("finite inputs retain semantic values, typed bindables and explicit private slots", () => {
   assert.doesNotThrow(() => assertFiniteCatalogInputs([{path:caller,source:source('<Search value="query" label="Find" bind:ref={input}/>')}]));
-  assert.doesNotThrow(() => assertFiniteCatalogInputs([{path:"src/svelte/pieces/MeasuredField.svelte",source:
+  assert.doesNotThrow(() => assertFiniteCatalogInputs([{path:"src/svelte/catalog/foundations/measured-field/MeasuredField.svelte",source:
     '<script lang="ts">import type {Snippet} from "svelte"; let {children,measure}: {children?:Snippet;measure:"writing"}=$props();</script><div>{@render children?.()}</div>'}]));
 });
 
 test("finite owners cannot be aliased opaquely across scripts or template expressions", () => {
   for (const text of [
-    '<script>import Search from "../pieces/SearchField.svelte"; const Alias=Search;</script><Alias class="p-0"/>',
-    '<script>const Alias=Search;</script><script module>import Search from "../pieces/SearchField.svelte";</script><Alias class="p-0"/>',
-    '<script>import Search from "../pieces/SearchField.svelte";</script>{@const Alias=Search}<Alias class="p-0"/>',
-    '<script>import * as Search from "../pieces/SearchField.svelte";</script><Search.default class="p-0"/>',
-    '<script>const module=import("../pieces/SearchField.svelte");</script>',
+    '<script>import Search from "../catalog/foundations/search-field/SearchField.svelte"; const Alias=Search;</script><Alias class="p-0"/>',
+    '<script>const Alias=Search;</script><script module>import Search from "../catalog/foundations/search-field/SearchField.svelte";</script><Alias class="p-0"/>',
+    '<script>import Search from "../catalog/foundations/search-field/SearchField.svelte";</script>{@const Alias=Search}<Alias class="p-0"/>',
+    '<script>import * as Search from "../catalog/foundations/search-field/SearchField.svelte";</script><Search.default class="p-0"/>',
+    '<script>const module=import("../catalog/foundations/search-field/SearchField.svelte");</script>',
   ]) assert.throws(()=>assertFiniteCatalogInputs([{path:caller,source:text}]),/FINITE_CATALOG_INPUT/);
 });
 

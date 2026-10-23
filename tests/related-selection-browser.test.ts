@@ -5,7 +5,7 @@ import {rendererCss} from './fixtures/renderer-css.ts';
 
 test('membership choices share a grouped pane and stop accepting toggles while an outcome is uncertain',async()=>{
   const f=await svelteBrowser(`<script lang="ts">
-    import RelatedSelection from '@desert/svelte/pieces/RelatedSelection.svelte';
+    import RelatedSelection from '@desert/svelte/catalog/compositions/related-selection/RelatedSelection.svelte';
     let checked=$state(false),uncertain=$state(false),events=$state(0);
     let state=$derived({revision:0,busy:false,uncertain,dirty:false,committing:uncertain,groups:[{input:'media',label:'Media',loading:false,busy:false,uncertain,
       ...(uncertain?{error:'Check the same operation.'}:{}),items:[{id:'image',label:'Image 1',checked},{id:'video',label:'Video 2',checked:false}]}]});

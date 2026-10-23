@@ -3,9 +3,9 @@ import test from "node:test";
 import { resolve } from "node:path";
 import { assertClosedVisualBoundaries, closedComponents } from "../src/authoring/visual-boundary/closed.ts";
 
-const heading = "src/svelte/pieces/Heading.svelte";
+const heading = "src/svelte/catalog/foundations/heading/Heading.svelte";
 const consumer = "src/svelte/explorer/Example.svelte";
-const source = (markup: string) => `<script>import Renamed from '../pieces/Heading.svelte';</script>${markup}`;
+const source = (markup: string) => `<script>import Renamed from '../catalog/foundations/heading/Heading.svelte';</script>${markup}`;
 
 test("closed consumer boundaries resolve imported identity, not component spelling or caller folder", () => {
   assert.doesNotThrow(() => assertClosedVisualBoundaries([{ path: consumer, source: source('<Renamed kind="page" text="Notes"/>') }]));
@@ -24,7 +24,7 @@ test("closed component contracts cannot reopen native attribute forwarding", () 
 
 test("a closed renderer adapter cannot regain DOM or CSS even if the debt snapshot is regenerated", () => {
   for (const source of ['<div/>', '<style>div{padding:3px}</style>', '<script>element.style.color="red"</script>']) {
-    assert.throws(() => assertClosedVisualBoundaries([{ path: "src/svelte/FrameBody.svelte", source }]), /CLOSED_VISUAL_BOUNDARY/);
+    assert.throws(() => assertClosedVisualBoundaries([{ path: "src/svelte/catalog/renderer/frame-body/FrameBody.svelte", source }]), /CLOSED_VISUAL_BOUNDARY/);
   }
 });
 
@@ -35,7 +35,7 @@ test("sealed adapters reject HTML injection and opaque component selection", () 
     '<script>let { Component } = $props();</script><Component/>',
     '<script>import Arbitrary from "./Anything.svelte";</script><Arbitrary/>',
   ]) {
-    assert.throws(() => assertClosedVisualBoundaries([{ path: "src/svelte/FrameBody.svelte", source }]),
+    assert.throws(() => assertClosedVisualBoundaries([{ path: "src/svelte/catalog/renderer/frame-body/FrameBody.svelte", source }]),
       /CLOSED_VISUAL_BOUNDARY/, source);
   }
 });
@@ -43,13 +43,13 @@ test("sealed adapters reject HTML injection and opaque component selection", () 
 test("sealed adapters cannot acquire legacy native props through a catalog component", () => {
   const source = '<script>import BankRenderer from "./BankRenderer.svelte";</script>'
     + '<BankRenderer {node} actionElementProps={{ style: "color:red" }}/>';
-  assert.throws(() => assertClosedVisualBoundaries([{ path: "src/svelte/FrameBody.svelte", source }]),
+  assert.throws(() => assertClosedVisualBoundaries([{ path: "src/svelte/catalog/renderer/frame-body/FrameBody.svelte", source }]),
     /CLOSED_VISUAL_BOUNDARY/);
 });
 
 test("the adapter catalog admits owner-typed data and composition, not caller styling or slots", () => {
   const script = '<script>import { BankRenderer as Bank, StackItem, ContentFlow } from "./adapter-catalog.ts";</script>';
-  const assertSource = (markup: string) => assertClosedVisualBoundaries([{ path: "src/svelte/FrameBody.svelte", source: script + markup }]);
+  const assertSource = (markup: string) => assertClosedVisualBoundaries([{ path: "src/svelte/catalog/renderer/frame-body/FrameBody.svelte", source: script + markup }]);
   assert.doesNotThrow(() => assertSource('<StackItem kind="fact"><Bank {node} {onevent}/></StackItem>'));
   assert.doesNotThrow(() => assertSource('<ContentFlow {resolved} {onevent} {onalbum} bind:this={flow}/>'));
   for (const markup of ['<Bank {node} actionElementProps={attrs}/>', '<Bank {node} style="color:red"/>',
@@ -62,7 +62,7 @@ test("the adapter catalog admits owner-typed data and composition, not caller st
 });
 
 test("catalog imports cannot be bypassed through shadowed names or opaque aliases", () => {
-  const path = "src/svelte/FrameBody.svelte";
+  const path = "src/svelte/catalog/renderer/frame-body/FrameBody.svelte";
   const script = '<script>import { BankRenderer } from "./adapter-catalog.ts";</script>';
   for (const source of [
     script + '{#each components as BankRenderer}<BankRenderer/>{/each}',
@@ -83,7 +83,7 @@ test("catalog imports cannot be bypassed through shadowed names or opaque aliase
 });
 
 test("the event-lifetime adapter has the same sealed rendering boundary", () => {
-  const path = "src/svelte/InstanceFrame.svelte";
+  const path = "src/svelte/catalog/renderer/instance-frame/InstanceFrame.svelte";
   assert.throws(() => assertClosedVisualBoundaries([{ path, source: '<div/>' }]), /CLOSED_VISUAL_BOUNDARY/);
   assert.throws(() => assertClosedVisualBoundaries([{ path, source:
     '<script>import { SurfaceFrame } from "./adapter-catalog.ts";</script><SurfaceFrame {frame} {invoke} style="padding:0"/>',
@@ -94,7 +94,7 @@ test("the event-lifetime adapter has the same sealed rendering boundary", () => 
 });
 
 test("declaration names cannot shadow imported catalog identities across Svelte scripts", () => {
-  const path = "src/svelte/FrameBody.svelte";
+  const path = "src/svelte/catalog/renderer/frame-body/FrameBody.svelte";
   const script = '<script module>import { BankRenderer as Bank } from "./adapter-catalog.ts";</script>';
   for (const declaration of [
     'function Bank() { return {}; }',
@@ -107,7 +107,7 @@ test("declaration names cannot shadow imported catalog identities across Svelte 
 });
 
 test("sealed adapters cannot draw through runtime DOM globals or dynamic code", () => {
-  const path = "src/svelte/FrameBody.svelte";
+  const path = "src/svelte/catalog/renderer/frame-body/FrameBody.svelte";
   for (const source of [
     '<script>document.write("<h1>Foreign UI</h1>")</script>',
     '<script>const body = document.body;</script>',
@@ -135,7 +135,7 @@ test("sealed adapters cannot draw through runtime DOM globals or dynamic code", 
 });
 
 test("a returned catalog focus target cannot become a native mutation channel", () => {
-  const path = "src/svelte/views/InspectionContent.svelte";
+  const path = "src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte";
   const fixture = (operation: string) => `<script lang="ts">
     import { Inspection } from "../adapter-catalog.ts";
     let { catalog } = $props();

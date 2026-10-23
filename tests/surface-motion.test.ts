@@ -12,8 +12,8 @@ import { settleMotion } from "./web/fixture.ts";
 const directory = resolve("artifacts/surface-motion", process.env.DESERT_SURFACE_PHASE ?? "source");
 async function fixture(reduced = false, locked = false) {
   const f = await svelteBrowser(`<script lang="ts">
-    import Drawer from '@desert/svelte/pieces/Drawer.svelte';
-    import Problem from '@desert/svelte/pieces/Problem.svelte';
+    import Drawer from '@desert/svelte/catalog/foundations/drawer/Drawer.svelte';
+    import Problem from '@desert/svelte/catalog/compositions/problem/Problem.svelte';
     import { SurfaceFrameVersion } from '@desert/interaction/surface-frame.ts';
     let panel = $state(false), message = $state(false);
     const frame = {version:SurfaceFrameVersion,kind:'specimen',top:{title:'Context'},

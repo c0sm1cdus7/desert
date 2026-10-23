@@ -4,7 +4,7 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import SurfaceFrame from "@desert/svelte/SurfaceFrame.svelte";
+  import SurfaceFrame from "@desert/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte";
   import { surfaceFrame, SurfaceFrameVersion } from "@desert/interaction/surface-frame.ts";
   import { transientFrame } from "@desert/interaction/transient-frame.ts";
   import { toolbarAction } from "@desert/interaction/toolbar.ts";

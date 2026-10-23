@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { compilePublicCatalog } from "../src/public-catalog/index.ts";
 import { catalogFixture } from "./fixtures/public-catalog.ts";
-import { catalogSearchResults, catalogSearchScope } from "../src/svelte/explorer/catalog-search.ts";
+import { catalogSearchResults, catalogSearchScope } from "../src/svelte/infra/catalog-search.ts";
 
 test("page search names and providers come from the current destination", () => {
   const surface = compilePublicCatalog(catalogFixture()).surface;

@@ -6,7 +6,7 @@ import { settle } from './web/public-catalog-expectations.ts';
 
 for (const initialWidth of [600, 320]) test(`date cursor survives presentation replacement from ${initialWidth}`, async () => {
   const f = await svelteBrowser(`<script>
-    import DateControl from '@desert/svelte/controls/DateControl.svelte';
+    import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
     let node=$state({version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival',required:false,
       disabled:false,value:'2026-10-16'}), edits=$state(0);
   </script><main style="padding:20px">
@@ -44,7 +44,7 @@ for (const initialWidth of [600, 320]) test(`date cursor survives presentation r
 
 test('date dismissal preserves focus already moved outside its own surface', async () => {
   const f=await svelteBrowser(`<script>
-    import DateControl from '@desert/svelte/controls/DateControl.svelte';
+    import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
   </script><DateControl node={{version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival',
     required:false,disabled:false,value:'2026-10-16'}} onevent={()=>{}}/>
     <input aria-label="Other field" style="position:fixed;bottom:20px;right:20px"/>`);

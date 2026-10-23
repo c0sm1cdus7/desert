@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { InteractionCatalog } from "../../interaction/catalog.ts";
 
-export const dispatcherPath = "src/svelte/BankRenderer.svelte";
+export const dispatcherPath = "src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte";
 export const registryPath = "src/svelte/renderer-registry.ts";
 export const contractPath = "src/svelte/renderer-contracts.ts";
 export const requiredDispatcherSources = Object.freeze([dispatcherPath, registryPath, contractPath]);

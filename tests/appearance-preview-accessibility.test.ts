@@ -6,7 +6,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 test("appearance previews preserve their own material border and accessibility preferences", async () => {
   const f = await svelteBrowser(`<script>
-    import AppearancePreview from '@desert/svelte/pieces/AppearancePreview.svelte';
+    import AppearancePreview from '@desert/svelte/catalog/compositions/appearance-preview/AppearancePreview.svelte';
   </script><AppearancePreview mode="dark" tint="rose" wallpaper="mist"/>
   <AppearancePreview mode="light" tint="rose" wallpaper="mist"/>`, {}, undefined, { initialCss: await rendererCss() });
   try {

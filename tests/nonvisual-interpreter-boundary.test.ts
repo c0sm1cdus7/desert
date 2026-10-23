@@ -40,7 +40,7 @@ test("dormant and nested interpreter helpers cannot obtain drawing authority", a
 
 test("a catalog owner importing an interpreter helper does not grant the helper visual authority", async () => {
   await candidate(directory => {
-    const owner = join(directory, "src/svelte/pieces/ViewProductContent.svelte");
+    const owner = join(directory, "src/svelte/catalog/compositions/view-product-content/ViewProductContent.svelte");
     writeFileSync(owner, readFileSync(owner, "utf8").replace('<script lang="ts">',
       '<script lang="ts">\n import { observe } from "../../web/client/owner-helper.ts"; observe();'));
     writeFileSync(join(directory, "src/web/client/owner-helper.ts"),

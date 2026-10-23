@@ -5,7 +5,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 test("transient materials preserve context and respect reduced transparency, including draggable sheets", async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import Drawer from '@desert/svelte/pieces/Drawer.svelte';
+    import Drawer from '@desert/svelte/catalog/foundations/drawer/Drawer.svelte';
     import { SurfaceFrameVersion } from '@desert/interaction/surface-frame.ts';
     let open = $state(false);
     const frame = {version:SurfaceFrameVersion,kind:'specimen',top:{title:'Context'},

@@ -5,10 +5,10 @@ import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 
 const source = `<script lang="ts">
-  import Collection from '@desert/svelte/Collection.svelte';
-  import ViewDestinationLink from '@desert/svelte/pieces/ViewDestinationLink.svelte';
-  import Information from '@desert/svelte/pieces/Information.svelte';
-  import ContextPanel from '@desert/svelte/ContextPanel.svelte';
+  import Collection from '@desert/svelte/catalog/compositions/collection/Collection.svelte';
+  import ViewDestinationLink from '@desert/svelte/catalog/compositions/view-destination-link/ViewDestinationLink.svelte';
+  import Information from '@desert/svelte/catalog/compositions/information/Information.svelte';
+  import ContextPanel from '@desert/svelte/catalog/compositions/context-panel/ContextPanel.svelte';
   const common={version:'desert.bank-node/1',kind:'collection',object:'note',loaded:true,disabled:false,selectedId:null,
     labels:{'note.title':'Title','note.details':'Details'},createLabel:'Create'};
   const record=(id,title,details)=>({id,version:1,facts:{title,details}});

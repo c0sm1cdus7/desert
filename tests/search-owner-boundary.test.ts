@@ -29,14 +29,14 @@ test("production search controls have exactly one toolbar owner and no inline al
     if (/(?:\btype|\brole)\s*=\s*(?:["'](?:search|searchbox)["']|\{\s*["'](?:search|searchbox)["']\s*\})/.test(source))
       rawControls.push(path);
   }
-  assert.deepEqual(consumers.sort(), ["src/svelte/pieces/ToolbarSearch.svelte"],
+  assert.deepEqual(consumers.sort(), ["src/svelte/catalog/compositions/toolbar-search/ToolbarSearch.svelte"],
     "SearchField belongs only to the expanding toolbar; no collection, catalog or product may create another owner");
-  assert.deepEqual(rawControls.sort(), ["src/svelte/pieces/SearchField.svelte"],
+  assert.deepEqual(rawControls.sort(), ["src/svelte/catalog/foundations/search-field/SearchField.svelte"],
     "raw search controls belong only to the shared SearchField primitive");
 });
 
 test("catalog content cannot receive a query or filter its retained inventory", async () => {
-  for (const path of ["src/svelte/explorer/PublicCatalogBank.svelte", "src/svelte/views/InspectionContent.svelte"]) {
+  for (const path of ["src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte", "src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte"]) {
     const source = await sourceText(path);
     assert.doesNotMatch(source, /\bquery\b|\bmatchingEntries\b|\bbind:query\b/,
       `${path} is display content, not a search provider or query consumer`);

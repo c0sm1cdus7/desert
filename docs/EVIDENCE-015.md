@@ -25,7 +25,7 @@ action is surface dismissal. There is no data repin, migration or reset.
 
 - `src/web/client/frame.ts` and `src/interaction/frame-presenters.ts` derive frames
   from the compiled contract and current state. They do not redeclare constraints.
-- `SurfaceFrame.svelte` owns visible top, padded scroll content and stable bottom.
+- `catalog/compositions/surface-frame/SurfaceFrame.svelte` owns visible top, padded scroll content and stable bottom.
   Drawer accepts a frame instead of arbitrary children. Catalog uses that renderer.
 - Existing shadcn Field/InputGroup/Button and Bits UI dialog behavior are reused.
   Tailwind supplies frame layout. No new product-specific page or control engine.

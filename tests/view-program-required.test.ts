@@ -33,7 +33,7 @@ test("read execution scopes derive exclusively from declared View journeys", () 
 });
 
 test("AccessGate has one mandatory ViewProduct route and no standalone renderer remains installed", async () => {
-  const gate = await readFile(new URL("../src/svelte/pieces/AccessGate.svelte", import.meta.url), "utf8");
+  const gate = await readFile(new URL("../src/svelte/catalog/compositions/access-gate/AccessGate.svelte", import.meta.url), "utf8");
   assert.match(gate, /viewProgram: ViewProgram/);
   assert.match(gate, /<ViewProduct program=\{viewProgram\}/);
   assert.doesNotMatch(gate, /HumanProduct|Standalone|viewProgram\?/);

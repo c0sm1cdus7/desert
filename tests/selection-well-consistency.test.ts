@@ -6,9 +6,9 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 // Independent walkthrough expectation: catalog selectors use Appearance's well.
 // Embedded currency/state selectors may continue to reuse their parent's boundary.
 const source = `<script>
-  import SelectionField from '@desert/svelte/pieces/SelectionField.svelte';
-  import AppearancePreferences from '@desert/svelte/pieces/AppearancePreferences.svelte';
-  import SpecimenGroup from '@desert/svelte/catalog/SpecimenGroup.svelte';
+  import SelectionField from '@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte';
+  import AppearancePreferences from '@desert/svelte/catalog/compositions/appearance-preferences/AppearancePreferences.svelte';
+  import SpecimenGroup from '@desert/svelte/catalog/compositions/specimen-group/SpecimenGroup.svelte';
   let value=$state('empty'), edits=$state(0);
 </script><main style="padding:16px;max-width:560px">
   <div data-default><SelectionField selection="state" label="State" {value} fieldControl

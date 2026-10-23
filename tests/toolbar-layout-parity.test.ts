@@ -5,9 +5,9 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 // The approved toolbar moves commands right and uses a labeled speed dial.
 // Compare current canonical consumers, not pixels from the superseded design.
 const source=`<script lang="ts">
-  import Toolbar from '@desert/svelte/pieces/Toolbar.svelte';
-  import ToolbarLayout from '@desert/svelte/pieces/ToolbarLayout.svelte';
-  import Viewer from '@desert/svelte/pieces/media/Viewer.svelte';
+  import Toolbar from '@desert/svelte/catalog/compositions/toolbar/Toolbar.svelte';
+  import ToolbarLayout from '@desert/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte';
+  import Viewer from '@desert/svelte/catalog/compositions/viewer/Viewer.svelte';
   let open=$state(false),index=$state(0);
   const items=[{kind:'image',source:'/media/coast',alt:'Coast'},{kind:'image',source:'/media/peak',alt:'Peak'}];
   const leading={intent:{kind:'back'},label:'Back',icon:'back',state:'ready'};

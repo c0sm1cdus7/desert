@@ -25,7 +25,7 @@ test(`build rejects executable code obtained through a runtime function construc
   assert.equal(sandbox.document.body.textContent, "Injected");
   try {
     cpSync(join(root, "src"), join(directory, "src"), { recursive: true });
-    const adapter = join(directory, "src/svelte/views/ViewItem.svelte");
+    const adapter = join(directory, "src/svelte/catalog/renderer/view-item/ViewItem.svelte");
     writeFileSync(adapter, readFileSync(adapter, "utf8").replace('<script lang="ts">',
       '<script lang="ts">\n import { observe } from "../../web/client/constructor-witness.ts"; observe();'));
     writeFileSync(join(directory, "src/web/client/constructor-witness.ts"), source);

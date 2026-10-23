@@ -4,9 +4,9 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import Heading from '@desert/svelte/pieces/Heading.svelte';
-  import TextContent from '@desert/svelte/pieces/TextContent.svelte';
-  import Information from '@desert/svelte/pieces/Information.svelte';
+  import Heading from '@desert/svelte/catalog/foundations/heading/Heading.svelte';
+  import TextContent from '@desert/svelte/catalog/compositions/text-content/TextContent.svelte';
+  import Information from '@desert/svelte/catalog/compositions/information/Information.svelte';
   let migrated = $state(false);
 </script>
 <button data-toggle onclick={()=>migrated=!migrated}>Toggle implementation</button>

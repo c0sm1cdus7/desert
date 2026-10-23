@@ -5,9 +5,9 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 test("message headings keep the shared tight gap and muted description; ordinary actions remain intrinsic", { timeout: 90000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import SharedOwnerSpecimen from '@desert/svelte/catalog/SharedOwnerSpecimen.svelte';
-    import PlaceHeading from '@desert/svelte/pieces/PlaceHeading.svelte';
-    import Toolbar from '@desert/svelte/pieces/Toolbar.svelte';
+    import SharedOwnerSpecimen from '@desert/svelte/catalog/compositions/shared-owner-specimen/SharedOwnerSpecimen.svelte';
+    import PlaceHeading from '@desert/svelte/catalog/compositions/place-heading/PlaceHeading.svelte';
+    import Toolbar from '@desert/svelte/catalog/compositions/toolbar/Toolbar.svelte';
   </script><main style="max-width:720px">
     <PlaceHeading identity={{title:'Collection',subtitle:'A short description.'}}/>
     <Toolbar toolbar={{edge:'top',title:'Collection',subtitle:'A short description.'}} invoke={()=>{}}/>
@@ -50,7 +50,7 @@ test("message headings keep the shared tight gap and muted description; ordinary
 });
 
 test("known-empty fact values use a dash alone without hiding unknown or literal Empty values", { timeout: 90000 }, async () => {
-  const f = await svelteBrowser(`<script lang="ts">import FactValue from '@desert/svelte/pieces/FactValue.svelte';</script>
+  const f = await svelteBrowser(`<script lang="ts">import FactValue from '@desert/svelte/catalog/foundations/fact-value/FactValue.svelte';</script>
     <FactValue value=""/><FactValue value={null}/><FactValue value="Empty"/>`, {}, undefined, { initialCss: await rendererCss() });
   try {
     const empty = f.page.locator('[data-fact-state="empty"]');
@@ -64,8 +64,8 @@ test("known-empty fact values use a dash alone without hiding unknown or literal
 
 test("appearance and embedded selection use compact rounded controls and content-sized option panes", { timeout: 90000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import AppearancePreferences from '@desert/svelte/pieces/AppearancePreferences.svelte';
-    import ObjectStateControl from '@desert/svelte/pieces/ObjectStateControl.svelte';
+    import AppearancePreferences from '@desert/svelte/catalog/compositions/appearance-preferences/AppearancePreferences.svelte';
+    import ObjectStateControl from '@desert/svelte/catalog/compositions/object-state-control/ObjectStateControl.svelte';
     let value = $state({theme:'dark',textSize:'standard',tint:'blue',wallpaper:'plain'});
   </script><main style="width:760px;max-width:100%">
     <AppearancePreferences {value} onchange={next=>value=next}/>

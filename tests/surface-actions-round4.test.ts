@@ -4,7 +4,7 @@ import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 
 const ordinary = `<script lang="ts">
-  import Drawer from '@desert/svelte/pieces/Drawer.svelte';
+  import Drawer from '@desert/svelte/catalog/foundations/drawer/Drawer.svelte';
   import { surfaceFrame } from '@desert/interaction/surface-frame.ts';
   import { toolbarAction } from '@desert/interaction/toolbar.ts';
   let open=$state(false),observed=$state('');
@@ -48,7 +48,7 @@ test('ordinary transient saves through a primary top check, has no footer and no
 
 test('an explicit create action group opens one + with separate object creation actions',{timeout:180000},async()=>{
   const f=await svelteBrowser(`<script lang="ts">
-    import Toolbar from '@desert/svelte/pieces/Toolbar.svelte';
+    import Toolbar from '@desert/svelte/catalog/compositions/toolbar/Toolbar.svelte';
     import {toolbarAction} from '@desert/interaction/toolbar.ts';
     let observed=$state('');
   </script><Toolbar toolbar={{edge:'top',title:'Tasks',actionGroup:'create',trailing:[
@@ -70,7 +70,7 @@ test('an explicit create action group opens one + with separate object creation 
 });
 
 test('reference choices have a persistent full-well label and never create a project inside the dropdown', {timeout:180000},async()=>{
-  const f=await svelteBrowser(`<script lang="ts">import ReferenceSpecimen from '@desert/svelte/pieces/ReferenceSpecimen.svelte';</script><ReferenceSpecimen owner="ReferenceSelector"/>`);
+  const f=await svelteBrowser(`<script lang="ts">import ReferenceSpecimen from '@desert/svelte/catalog/compositions/reference-specimen/ReferenceSpecimen.svelte';</script><ReferenceSpecimen owner="ReferenceSelector"/>`);
   try {
     await f.page.addStyleTag({content:await rendererCss()});
     const trigger=f.page.getByRole('button',{name:'Projects',exact:true});

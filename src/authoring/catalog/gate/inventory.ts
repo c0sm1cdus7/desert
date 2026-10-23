@@ -36,6 +36,7 @@ export function assertDeclaredSources(paths: readonly string[], declarations: re
     if (previous) throw new Error(`CATALOG_DECLARATION: ${path} is claimed by ${previous} and ${owner}`);
     owners.set(path, owner);
   };
+  claim(layout.ledger, "ledger");
   for (const [category, files] of Object.entries(layout.fixed)) for (const path of files) claim(path, category);
   for (const located of declarations) {
     const claims = claimsOf(located, layout);

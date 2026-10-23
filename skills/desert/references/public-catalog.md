@@ -30,17 +30,17 @@ verbatim modules, not standalone snippets or a published package API.
 - src/build/public-catalog/assets.ts
 - src/build/public-catalog/serve.ts
 - src/build/public-catalog/renditions.ts
-- src/svelte/pieces/media/source.ts
-- src/svelte/pieces/media/Image.svelte
-- src/svelte/pieces/media/PhotoCollection.svelte
-- src/svelte/pieces/media/Viewer.svelte
-- src/svelte/pieces/media/gestures.ts
-- src/svelte/explorer/PublicCatalogProduct.svelte
-- src/svelte/explorer/LocalExercises.svelte
-- src/svelte/explorer/CatalogCard.svelte
-- src/svelte/explorer/CatalogToolbar.svelte
-- src/svelte/explorer/PublicCatalogBank.svelte
-- src/svelte/explorer/PublicCatalogBank-model.ts
+- src/svelte/infra/media-source.ts
+- src/svelte/catalog/foundations/image/Image.svelte
+- src/svelte/catalog/compositions/photo-collection/PhotoCollection.svelte
+- src/svelte/catalog/compositions/viewer/Viewer.svelte
+- src/svelte/infra/gestures.ts
+- src/svelte/catalog/renderer/public-catalog-product/PublicCatalogProduct.svelte
+- src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte
+- src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
+- src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte
+- src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte
+- src/svelte/infra/PublicCatalogBank-model.ts
 
 ## products/landmarks/product.ts
 
@@ -1110,13 +1110,13 @@ export async function prepareRenditions(assets: readonly BoundCatalogAsset[]) {
 }
 ```
 
-## src/svelte/pieces/media/source.ts
+## src/svelte/infra/media-source.ts
 
-Source SHA-256: 9315402daa1e61fe90aa820bc3f0fc246cfb516b44e8ffc168193977ef6e7934
+Source SHA-256: cd924a1d8ef6699b1fb02cf674e3820e3ec3da3882bdeace698355811da42dc8
 
 ```ts
-import type { MediaItem } from '../../../views/media-library.ts';
-import type { AssetReference } from '../../../assets/types.ts';
+import type { MediaItem } from '../../views/media-library.ts';
+import type { AssetReference } from '../../assets/types.ts';
 export type ImageSource = string | AssetReference;
 export type Photo = Readonly<{ source: ImageSource; alt: string }>;
 type PublicPhoto = Readonly<{ source: string; alt: string }>;
@@ -1165,18 +1165,18 @@ function drain() {
 }
 ```
 
-## src/svelte/pieces/media/Image.svelte
+## src/svelte/catalog/foundations/image/Image.svelte
 
-Source SHA-256: 914d00001268d4ca552d53914323f79b2cd8551c2bde0d4da28b380fc34ad28e
+Source SHA-256: 11029a2e9099e4d7d61b7bb45eae3b19e358a0e17e533e8a41563995fcc3edd9
 
 ```svelte
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { Button } from '../../vendor/components/ui/button/index.js';
-  import { imageSource, imageIdentity, type ImageSource } from './source.ts';
-  import { usePrivateImages } from './private-image-context.ts';
-  import { privateImageResource } from './private-image-resource.ts';
-  import { renditionWidths } from '../../../media/rendition-policy.ts';
+  import { Button } from '../../../vendor/components/ui/button/index.js';
+  import { imageSource, imageIdentity, type ImageSource } from '../../../infra/media-source.ts';
+  import { usePrivateImages } from '../../../infra/private-image-context.ts';
+  import { privateImageResource } from '../../../infra/private-image-resource.ts';
+  import { renditionWidths } from '../../../../media/rendition-policy.ts';
   let { source, alt, edge = 640, zoom = 1, retry = false, fit = 'fill', onready, fallback = 'Image unavailable' }: {
     source: ImageSource; alt: string; edge?: number; zoom?: number; retry?: boolean;
     fit?: 'fill' | 'fit';
@@ -1245,16 +1245,16 @@ Source SHA-256: 914d00001268d4ca552d53914323f79b2cd8551c2bde0d4da28b380fc34ad28e
 </div>
 ```
 
-## src/svelte/pieces/media/PhotoCollection.svelte
+## src/svelte/catalog/compositions/photo-collection/PhotoCollection.svelte
 
-Source SHA-256: 5bc2a42ca01aa1e35ebce8b5fc741464715d7a1645f38e7c6a03dfb29743ee85
+Source SHA-256: d6673b7090dd2cd85274235c2fe0ae361a83305c82eec35794198f00675ad855
 
 ```svelte
 <script lang="ts">
-  import Image from './Image.svelte';
-  import Viewer from './Viewer.svelte';
-  import { mediaGestures } from './gestures.ts';
-  import { prefetchImage, imageIdentity, type Photo } from './source.ts';
+  import Image from '../../foundations/image/Image.svelte';
+  import Viewer from '../viewer/Viewer.svelte';
+  import { mediaGestures } from '../../../infra/gestures.ts';
+  import { prefetchImage, imageIdentity, type Photo } from '../../../infra/media-source.ts';
   let { photos, title, header = false, fit = 'fill' }: { photos: readonly Photo[]; title: string; header?: boolean; fit?: 'fit'|'fill' } = $props();
   let index = $state(0), open = $state(false);
   let host!: HTMLDivElement, opener!: HTMLButtonElement;
@@ -1296,22 +1296,22 @@ Source SHA-256: 5bc2a42ca01aa1e35ebce8b5fc741464715d7a1645f38e7c6a03dfb29743ee85
 {/if}
 ```
 
-## src/svelte/pieces/media/Viewer.svelte
+## src/svelte/catalog/compositions/viewer/Viewer.svelte
 
-Source SHA-256: 448b021df91563c23357402bf73563b44d5543517f042876dfa87ad397dd20e6
+Source SHA-256: f02c108eacda3b9cfd87dbe819f9c7a0eff0d6f0d8a568ef098a0219690cc5c1
 
 ```svelte
 <script lang="ts">
-  import * as Dialog from '../../vendor/components/ui/dialog/index.js';
-  import { Button } from '../../vendor/components/ui/button/index.js';
+  import * as Dialog from '../../../vendor/components/ui/dialog/index.js';
+  import { Button } from '../../../vendor/components/ui/button/index.js';
   import ChevronLeft from '@lucide/svelte/icons/chevron-left';
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
-  import ToolbarLayout from '../ToolbarLayout.svelte';
-  import Image from './Image.svelte';
-  import PlaybackCanvas from './PlaybackCanvas.svelte';
-  import { mediaPlayback } from './playback.svelte.ts';
-  import { mediaGestures } from './gestures.ts';
-  import { imageIdentity, type ViewerMedia } from './source.ts';
+  import ToolbarLayout from '../toolbar-layout/ToolbarLayout.svelte';
+  import Image from '../../foundations/image/Image.svelte';
+  import PlaybackCanvas from '../../foundations/playback-canvas/PlaybackCanvas.svelte';
+  import { mediaPlayback } from '../../../infra/playback.svelte.ts';
+  import { mediaGestures } from '../../../infra/gestures.ts';
+  import { imageIdentity, type ViewerMedia } from '../../../infra/media-source.ts';
   let { items, title, index, open, onindex, onopen, onreturn }: {
     items: readonly ViewerMedia[]; title: string; index: number; open: boolean;
     onindex: (index: number) => void; onopen: (open: boolean) => void; onreturn: () => void;
@@ -1365,7 +1365,7 @@ Source SHA-256: 448b021df91563c23357402bf73563b44d5543517f042876dfa87ad397dd20e6
 </Dialog.Root>
 ```
 
-## src/svelte/pieces/media/gestures.ts
+## src/svelte/infra/gestures.ts
 
 Source SHA-256: 4fb9b943478ae780a241fb87fe0272da4903f7b87551b1f13d724fae63f74cce
 
@@ -1435,29 +1435,29 @@ export function mediaGestures(element: HTMLElement, options: Options) {
 }
 ```
 
-## src/svelte/explorer/PublicCatalogProduct.svelte
+## src/svelte/catalog/renderer/public-catalog-product/PublicCatalogProduct.svelte
 
-Source SHA-256: 20ce23020bdf90493e34ff75b587c76e59f071396efeb59aa6e9ecd7d13cd2db
+Source SHA-256: 4c94b559987050aadc562838de0814d48537204033437fbf6c1c1a9f30d69166
 
 ```svelte
 <script lang="ts">
-  import type { PublicCatalogSurface } from "../../public-catalog/client.ts";
-  import { PublicCatalogProductContent } from "../adapter-catalog.ts";
+  import type { PublicCatalogSurface } from "../../../../public-catalog/client.ts";
+  import { PublicCatalogProductContent } from "../../../adapter-catalog.ts";
   let { surface }: { surface: PublicCatalogSurface } = $props();
 </script>
 
 <PublicCatalogProductContent {surface} />
 ```
 
-## src/svelte/explorer/LocalExercises.svelte
+## src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte
 
-Source SHA-256: 232bcfaa1d125aaee5920b47f336e0b07ac9501e647659382a381743acf02f80
+Source SHA-256: 0d7ed1ea91184fd931ce8cdbf3da102ccfa38abc772b93ae779d6bd7707114d4
 
 ```svelte
 <script lang="ts">
-  import type { PublicCatalogExercises } from "../../public-catalog/client.ts";
-  import type { BankEvent } from "../../interaction/bank-events.ts";
-  import { LocalExerciseContent } from "../adapter-catalog.ts";
+  import type { PublicCatalogExercises } from "../../../../public-catalog/client.ts";
+  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import { LocalExerciseContent } from "../../../adapter-catalog.ts";
   let { definition, bodyOnly = false, oncatalog }: {
     definition: PublicCatalogExercises; bodyOnly?: boolean; oncatalog?: (event: BankEvent) => void;
   } = $props();
@@ -1466,20 +1466,20 @@ Source SHA-256: 232bcfaa1d125aaee5920b47f336e0b07ac9501e647659382a381743acf02f80
 <LocalExerciseContent {definition} {bodyOnly} {oncatalog} />
 ```
 
-## src/svelte/explorer/CatalogCard.svelte
+## src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
 
-Source SHA-256: 99184f8f9b007e56e4672c0eb129d50f1d6288f5d47a1fae8788f5499fce2cd5
+Source SHA-256: 692257a1fe1941e6eafc8b69d8689477f864ceebe9fe78705fe703444039c022
 
 ```svelte
 <script lang="ts">
   import * as Card from "@desert/svelte/vendor/components/ui/card/index.js";
   import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
-  import type { BankNodeFor } from "../../interaction/bank-node.ts";
-  import type { BankEvent } from "../../interaction/bank-events.ts";
+  import type { BankNodeFor } from "../../../../interaction/bank-node.ts";
+  import type { BankEvent } from "../../../../interaction/bank-events.ts";
   import { getContext } from 'svelte';
-  import Image from '../pieces/media/Image.svelte';
-  import ArtworkPlaceholder from '../pieces/media/ArtworkPlaceholder.svelte';
-  import { mediaSource, prefetchImage } from '../pieces/media/source.ts';
+  import Image from '../image/Image.svelte';
+  import ArtworkPlaceholder from '../artwork-placeholder/ArtworkPlaceholder.svelte';
+  import { mediaSource, prefetchImage } from '../../../infra/media-source.ts';
   let { node, onevent }: { node: BankNodeFor<"catalog.card">; onevent: (event: BankEvent) => void } = $props();
   const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');
   function prepare() {
@@ -1499,13 +1499,13 @@ Source SHA-256: 99184f8f9b007e56e4672c0eb129d50f1d6288f5d47a1fae8788f5499fce2cd5
   </Card.Root>
 ```
 
-## src/svelte/explorer/CatalogToolbar.svelte
+## src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte
 
-Source SHA-256: 42da9081bc9d9339d09795ceda3806dea0daaf8204987de5088e6f2aca860101
+Source SHA-256: c89561457dad3fe54f01ec15f8d282eea2fea5cc4bbb09ca86af609a116e183a
 
 ```svelte
 <script lang="ts">
-  import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
+  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
   let { title, query, onquery, searching, resultsId, onsearch, oncancel, searchAvailable = true }: {
     title: string; query: string; onquery: (query: string) => void; searching: boolean;
     resultsId: string; onsearch: () => void; oncancel: () => void; searchAvailable?: boolean;
@@ -1518,17 +1518,17 @@ Source SHA-256: 42da9081bc9d9339d09795ceda3806dea0daaf8204987de5088e6f2aca860101
 {/if}
 ```
 
-## src/svelte/explorer/PublicCatalogBank.svelte
+## src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte
 
-Source SHA-256: d8851951b1398c3da00f839c126a6e681baed1bfbb0b782218434d027506c9b2
+Source SHA-256: 490b8c7f4233d930f09dc07da55c0257f4519fb4d4de07b30d794dd50fba9a4f
 
 ```svelte
 <script lang="ts">
-  import type { BankEvent } from "../../interaction/bank-events.ts";
-  import type { PrimitiveId } from "../../interaction/catalog.ts";
-  import type { PublicBankInput } from "./PublicCatalogBank-model.ts";
-  import { InspectionCatalog } from "../adapter-catalog.ts";
-  import type { RegisterContentActions } from "../pieces/workspace-content.ts";
+  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { PrimitiveId } from "../../../../interaction/catalog.ts";
+  import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
+  import { InspectionCatalog } from "../../../adapter-catalog.ts";
+  import type { RegisterContentActions } from "../../../infra/workspace-content.ts";
   let { surface, oncatalog, bodyOnly, onactions }: {
     surface: PublicBankInput; oncatalog: (event: BankEvent) => void; bodyOnly?: boolean;
     onactions?: RegisterContentActions;
@@ -1546,7 +1546,7 @@ Source SHA-256: d8851951b1398c3da00f839c126a6e681baed1bfbb0b782218434d027506c9b2
 <InspectionCatalog {surface} {oncatalog} {bodyOnly} bind:this={content} />
 ```
 
-## src/svelte/explorer/PublicCatalogBank-model.ts
+## src/svelte/infra/PublicCatalogBank-model.ts
 
 Source SHA-256: c3b0b178b5f0e55697045ce3cb920704c0d4a66f965e767b4e6a7409fa7318a5
 

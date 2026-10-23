@@ -7,7 +7,7 @@ import { avatarEvidence, avatarGeometry, avatarViolations } from "./web/avatar-i
 
 test("shared avatar keeps long names readable in actual light and dark themes at 200 percent", { timeout: 60000 }, async () => {
   const source = `<script lang="ts">
-    import MediaControl from "@desert/svelte/controls/MediaControl.svelte";
+    import MediaControl from "@desert/svelte/catalog/compositions/media-control/MediaControl.svelte";
     import * as Card from "@desert/svelte/vendor/components/ui/card/index.js";
     const node = {version:"desert.control/1",kind:"avatar",id:"independent-identity",disabled:false,
       label:"AlexandraVeryLongUnbrokenFamilyName Rivera",source:null,fallback:"AR"};
@@ -39,7 +39,7 @@ test("shared avatar keeps long names readable in actual light and dark themes at
 
 test("all four contract-permitted wide fallback characters fit without truncation", { timeout: 30000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import MediaControl from "@desert/svelte/controls/MediaControl.svelte";
+    import MediaControl from "@desert/svelte/catalog/compositions/media-control/MediaControl.svelte";
     const node = {version:"desert.control/1",kind:"avatar",id:"wide-fallback",disabled:false,
       label:"William West",source:null,fallback:"WWWW"};
   </script><main style="padding:16px"><MediaControl {node}/></main>`);

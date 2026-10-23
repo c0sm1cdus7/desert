@@ -5,7 +5,7 @@ import {rendererCss} from './fixtures/renderer-css.ts';
 
 test('labels use a creation popover and compact removable rail without an exposed input',{timeout:180000},async()=>{
   const f=await svelteBrowser(`<script lang="ts">
-    import BankRenderer from '@desert/svelte/BankRenderer.svelte';
+    import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
     import {applyControlEvent} from '@desert/interaction/control-nodes.ts';
     let control=$state({version:'desert.control/1',kind:'labels',id:'labels',label:'Labels',disabled:false,values:[],limits:{maxItems:2,maxLength:64}});
   </script><BankRenderer node={{version:'desert.bank-node/1',kind:'control.labels',control}} onevent={event=>{if(event.kind==='labels.change')control=applyControlEvent(control,event).node}}/>`);

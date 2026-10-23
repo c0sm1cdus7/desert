@@ -4,7 +4,7 @@ import { pathToFileURL } from "node:url";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { sdkRoot } from "./revision.ts";
-import { inspectionMedia } from "../../svelte/catalog/inspection-media.ts";
+import { inspectionMedia } from "../../svelte/infra/inspection-media.ts";
 import { runWithVisualBoundaries } from "../../authoring/visual-boundary/source.ts";
 
 export function createBuildProject(module: string, family: "human" | "public-catalog" = "human") {

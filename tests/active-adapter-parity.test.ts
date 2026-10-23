@@ -6,7 +6,7 @@ import { settleMotion } from "./web/fixture.ts";
 
 test("specimen feedback retains the exact approved paragraph, pixels and local-only editing", async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import Specimen from '@desert/svelte/explorer/PublicCatalogBankSpecimen.svelte';
+    import Specimen from '@desert/svelte/catalog/renderer/public-catalog-bank-specimen/PublicCatalogBankSpecimen.svelte';
     const initial={version:'desert.bank-node/1',kind:'input.text',name:'writing',label:'Writing',value:'',required:false,disabled:false};
     let calls=$state(0);
   </script>
@@ -31,7 +31,7 @@ test("specimen feedback retains the exact approved paragraph, pixels and local-o
 
 test("sealed specimen preserves locked transient release and close without product events", async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import Specimen from '@desert/svelte/explorer/PublicCatalogBankSpecimen.svelte';
+    import Specimen from '@desert/svelte/catalog/renderer/public-catalog-bank-specimen/PublicCatalogBankSpecimen.svelte';
     import {surfaceFrame} from '@desert/interaction/surface-frame.ts';
     const frame=surfaceFrame({version:'desert.surface-frame/6',kind:'message',top:{title:'Isolated transient'},
       content:{kind:'message',text:'A local example.'},bottom:{}});
@@ -59,7 +59,7 @@ test("sealed specimen preserves locked transient release and close without produ
 
 test("sealed failure adapter retains its shared problem presentation and close", async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import FailureDialog from '@desert/svelte/FailureDialog.svelte';
+    import FailureDialog from '@desert/svelte/catalog/renderer/failure-dialog/FailureDialog.svelte';
     let code=$state('READ_REFRESH_FAILED');
   </script><FailureDialog {code} close={()=>code=null}/>`);
   try {
@@ -76,8 +76,8 @@ test("sealed failure adapter retains its shared problem presentation and close",
 
 test("sealed control adapter retains its private file host and typed events", async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import ControlRenderer from '@desert/svelte/controls/ControlRenderer.svelte';
-    import {LocalFileHost} from '@desert/svelte/controls/file-host.ts';
+    import ControlRenderer from '@desert/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte';
+    import {LocalFileHost} from '@desert/svelte/infra/file-host.ts';
     import {ControlBank} from '@desert/interaction/control-bank.ts';
     import {applyControlEvent} from '@desert/interaction/control-nodes.ts';
     const host=new LocalFileHost();

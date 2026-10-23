@@ -32,7 +32,7 @@ export function finding(path: string, source: string, code: string, start: numbe
 }
 
 /** These classify responsibilities for audit; none grants ownership approval. */
-const adapters = new Set([...sealedAdapterPaths, "src/svelte/BankRenderer.svelte"]);
+const adapters = new Set([...sealedAdapterPaths, "src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte"]);
 const primitives = new Set([
   "Action", "Availability", "CharacterCounter", "ClearInput", "Face", "FactValue", "Heading",
   "MaskedInput", "SearchField", "TextInput", "media/Image", "ToolbarIdentity",
@@ -45,7 +45,7 @@ export function classifyVisualSource(path: string): { role: VisualRole; owner: s
   }
   if (!/\.(ts|[cm]?js|svelte|css)$/.test(path)) return { role: "asset", owner: "unqualified-asset" };
   if (adapters.has(path) || path.startsWith("src/build/svelte/")) return { role: "adapter", owner: "renderer" };
-  if (path.endsWith(".css") || path.includes("/pieces/") && path.endsWith(".ts")) {
+  if (path.endsWith(".css") || path.includes("/catalog/") && path.endsWith(".ts")) {
     return { role: "mechanism", owner: `candidate:${stem}` };
   }
   if (path.endsWith(".ts")) return { role: "data", owner: "renderer-data" };

@@ -6,7 +6,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 test("compact message presentation cannot hide navigation on a task frame", async () => {
   const source = `<script lang="ts">
-    import SurfaceFrame from "@desert/svelte/SurfaceFrame.svelte";
+    import SurfaceFrame from "@desert/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte";
     const frame = {version:"desert.surface-frame/6",kind:"journey",top:{title:"Review"},
       content:{kind:"message",text:"A task, not an alert"},bottom:{}};
   </script><SurfaceFrame {frame} presentation="message" invoke={()=>{}} />`;
@@ -19,7 +19,7 @@ test("compact message presentation cannot hide navigation on a task frame", asyn
 
 test("visible shadcn message identity labels its dialog in both actual theme palettes", async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import Problem from "@desert/svelte/pieces/Problem.svelte";
+    import Problem from "@desert/svelte/catalog/compositions/problem/Problem.svelte";
     let open = $state(false);
   </script><button onclick={()=>open=true}>Open warning</button>
     <Problem {open} title="Connection interrupted" description="Your writing remains available. Try again when the connection returns."

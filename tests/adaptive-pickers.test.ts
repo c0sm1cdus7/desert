@@ -5,8 +5,8 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import DateControl from '@desert/svelte/controls/DateControl.svelte';
-  import SelectControl from '@desert/svelte/controls/SelectControl.svelte';
+  import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
+  import SelectControl from '@desert/svelte/catalog/compositions/select-control/SelectControl.svelte';
   import { applyControlEvent } from '@desert/interaction/control-nodes.ts';
   let date = $state({version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival date',required:true,
     disabled:false,value:'2026-10-16',minimum:'2026-10-10',maximum:'2026-10-24'});
@@ -114,7 +114,7 @@ test('picker presentation follows available content-and-context space, including
 });
 
 test('a narrow owning surface uses picker sheets even inside a wide window', async () => {
-  const embedded=source.replace('import DateControl', `import { provideSurfaceHost } from '@desert/svelte/pieces/surface-host.svelte.ts';
+  const embedded=source.replace('import DateControl', `import { provideSurfaceHost } from '@desert/svelte/infra/surface-host.svelte.ts';
   import DateControl`).replace('let edits = $state(0);', `let edits = $state(0);
   let host=$state<HTMLElement|null>(null);provideSurfaceHost(()=>host);`)
     .replace('<main style="padding:20px;width:100%;max-width:600px">','<main bind:this={host} style="padding:20px;width:390px">');

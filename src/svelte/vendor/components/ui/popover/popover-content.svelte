@@ -2,8 +2,8 @@
   // Adapted from Tres Marías design-system popover-content; Apache-2.0 (vendor/LICENSE).
   import { Popover } from "bits-ui";
   import { cn } from "../../../utils.js";
-  import { surfaceFocus } from "@desert/svelte/pieces/surface-focus.svelte.ts";
-  import { useSurfaceTypography } from '@desert/svelte/pieces/surface-typography.svelte.ts';
+  import { surfaceFocus } from "@desert/svelte/infra/surface-focus.svelte.ts";
+  import { useSurfaceTypography } from '@desert/svelte/infra/surface-typography.svelte.ts';
   let { ref = $bindable(null), class: className, onOpenAutoFocus, onCloseAutoFocus, onFocusOutside, presentation = "pane",
     ...props }: Omit<Popover.ContentProps, "child"> & { presentation?: "pane" | "speed-dial" | "reference" | "selection" } = $props();
   const focus = surfaceFocus(() => ref, event => onFocusOutside?.(event));

@@ -12,9 +12,9 @@ const source = `<script lang="ts">
   import * as Calendar from "@desert/svelte/vendor/components/ui/calendar/index.js";
   import Plus from "@lucide/svelte/icons/plus";
   import { CalendarDate } from "@internationalized/date";
-  import Action from "@desert/svelte/pieces/Action.svelte";
-  import SelectControl from "@desert/svelte/controls/SelectControl.svelte";
-  import PopoverControl from "@desert/svelte/controls/PopoverControl.svelte";
+  import Action from "@desert/svelte/catalog/foundations/action/Action.svelte";
+  import SelectControl from "@desert/svelte/catalog/compositions/select-control/SelectControl.svelte";
+  import PopoverControl from "@desert/svelte/catalog/compositions/popover-control/PopoverControl.svelte";
   import { applyControlEvent } from "@desert/interaction/control-nodes.ts";
   let popover = $state({version:'desert.control/1',kind:'popover',id:'help',label:'Popover action',disabled:false,
     open:false,title:'Help',locked:false,content:[{kind:'text',text:'Contextual information.'}]});

@@ -6,7 +6,7 @@ import { settle } from "./public-catalog-expectations.ts";
 
 test("contextual commands stay right and progressively overflow into the labeled speed dial", async () => {
   const f = await svelteBrowser(`<script>
-    import ToolbarLayout from '@desert/svelte/pieces/ToolbarLayout.svelte';
+    import ToolbarLayout from '@desert/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte';
     let feedback=$state('');
     const actions=['Create','Edit','View options','Archive','Inspect'].map((label,index)=>({label,icon:['create','edit','review','archive','settings'][index],state:'ready',intent:{kind:'journey',journey:label}}));
   </script>
@@ -40,7 +40,7 @@ test("contextual commands stay right and progressively overflow into the labeled
 
 test("confirmation is a compact dialog and dispatches only an explicit accepted command", async () => {
   const f=await svelteBrowser(`<script>
-    import ConfirmationDialog from '@desert/svelte/pieces/ConfirmationDialog.svelte';
+    import ConfirmationDialog from '@desert/svelte/catalog/compositions/confirmation-dialog/ConfirmationDialog.svelte';
     import {surfaceFrame,SurfaceFrameVersion} from '@desert/interaction/surface-frame.ts';
     let open=$state(false),result=$state('none');
     const frame=surfaceFrame({version:SurfaceFrameVersion,kind:'confirmation',top:{title:'Move to Trash?'},content:{kind:'message',text:'You can restore this note.'},bottom:{secondary:{label:'Cancel',icon:'back',state:'ready',intent:{kind:'back'}},primary:{label:'Move to Trash',icon:'archive',state:'ready',intent:{kind:'accept'}}}});
@@ -64,9 +64,9 @@ test("confirmation is a compact dialog and dispatches only an explicit accepted 
 
 test('confirmation releases modality when a docked context replaces it or its owner closes', async () => {
   const f=await svelteBrowser(`<script>
-    import ConfirmationDialog from '@desert/svelte/pieces/ConfirmationDialog.svelte';
-    import Drawer from '@desert/svelte/pieces/Drawer.svelte';
-    import AdaptiveSurfaceLayout from '@desert/svelte/pieces/AdaptiveSurfaceLayout.svelte';
+    import ConfirmationDialog from '@desert/svelte/catalog/compositions/confirmation-dialog/ConfirmationDialog.svelte';
+    import Drawer from '@desert/svelte/catalog/foundations/drawer/Drawer.svelte';
+    import AdaptiveSurfaceLayout from '@desert/svelte/catalog/compositions/catalog-workspace/AdaptiveSurfaceLayout.svelte';
     import {surfaceFrame,SurfaceFrameVersion} from '@desert/interaction/surface-frame.ts';
     let stage=$state('closed'), result=$state('none');
     const frame=surfaceFrame({version:SurfaceFrameVersion,kind:'confirmation',top:{title:'Move to Trash?'},content:{kind:'message',text:'You can restore this note.'},bottom:{secondary:{label:'Cancel',icon:'back',state:'ready',intent:{kind:'back'}},primary:{label:'Move to Trash',icon:'archive',state:'ready',intent:{kind:'accept'}}}});
@@ -93,7 +93,7 @@ test('confirmation releases modality when a docked context replaces it or its ow
 
 test("visual bank index opens actual owners inside titled stacks and returns keyboard focus", async () => {
   const f=await svelteBrowser(`<script>
-    import SharedOwnerCatalog from '@desert/svelte/catalog/SharedOwnerCatalog.svelte';
+    import SharedOwnerCatalog from '@desert/svelte/catalog/compositions/shared-owner-catalog/SharedOwnerCatalog.svelte';
   </script><SharedOwnerCatalog onchange={()=>{}} />`);
   try {
     await f.page.addStyleTag({content:await rendererCss()});

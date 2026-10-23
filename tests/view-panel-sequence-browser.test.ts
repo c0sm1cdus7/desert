@@ -54,7 +54,7 @@ for (const width of [390, 1280]) for (const kind of ["form", "context"] as const
   test(`default ${kind} panel retains exact DOM and pixels at ${width}px`, async () => {
     const captures: Buffer[] = [], structures: string[] = [];
     for (const before of [true, false]) {
-      const overrides = before ? { [resolve(import.meta.dirname, "../src/svelte/SurfaceFrame.svelte")]: surfaceFrameBeforeViewBody } : {};
+      const overrides = before ? { [resolve(import.meta.dirname, "../src/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte")]: surfaceFrameBeforeViewBody } : {};
       const fixture = await svelteBrowser(panelSequenceFixture(kind, false), overrides);
       try {
         const { page } = fixture;

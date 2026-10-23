@@ -1,8 +1,14 @@
+import { posix } from "node:path";
 import ts from "typescript";
 import { dispatcherPath } from "./dispatch-contract.ts";
 import { DispatcherCapabilities } from "../../svelte/renderer-contracts.ts";
 type Fail = (reason: string) => never;
 const capabilities = new Set<string>(Object.values(DispatcherCapabilities).map(channel => channel.input));
+/** Specifiers are derived from the dispatcher's location, never written as relative literals. */
+const from = (target: string) => {
+  const path = posix.relative(posix.dirname(dispatcherPath), target);
+  return path.startsWith(".") ? path : `./${path}`;
+};
 
 /** The dispatcher may adapt semantic events, but component identity and node
  * admission have fixed owners and cannot be replaced by a caller or callback. */
@@ -10,22 +16,22 @@ export function inspectDispatchScript(source: string, inputs: ReadonlySet<string
   const file = ts.createSourceFile(dispatcherPath, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const owners = new Map<string, string>();
   const paths = new Map([
-    ["../interaction/bank-node.ts", "bankNode"], ["../interaction/bank-events.ts", "bankEvent"],
-    ["./renderer-registry.ts", "webRenderers"],
+    [from("src/interaction/bank-node.ts"), "bankNode"], [from("src/interaction/bank-events.ts"), "bankEvent"],
+    [from("src/svelte/renderer-registry.ts"), "webRenderers"],
   ]);
   let propsType: string | undefined;
   for (const statement of file.statements) if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
-    const clause = statement.importClause, bindings = clause?.namedBindings, from = statement.moduleSpecifier.text;
+    const clause = statement.importClause, bindings = clause?.namedBindings, specifier = statement.moduleSpecifier.text;
     if (clause?.isTypeOnly) {
-      if (from === "./renderer-contracts.ts" && bindings && ts.isNamedImports(bindings)) for (const item of bindings.elements) {
+      if (specifier === from("src/svelte/renderer-contracts.ts") && bindings && ts.isNamedImports(bindings)) for (const item of bindings.elements) {
         if ((item.propertyName ?? item.name).text === "BankRendererProps") propsType = item.name.text;
       }
       continue;
     }
-    if (!paths.has(from) || clause?.name || !bindings || !ts.isNamedImports(bindings)) fail("foreign dispatcher import");
+    if (!paths.has(specifier) || clause?.name || !bindings || !ts.isNamedImports(bindings)) fail("foreign dispatcher import");
     for (const item of bindings.elements) if (!item.isTypeOnly) {
       const name = (item.propertyName ?? item.name).text;
-      if (name !== paths.get(from) || owners.has(name)) fail("foreign dispatcher binding");
+      if (name !== paths.get(specifier) || owners.has(name)) fail("foreign dispatcher binding");
       owners.set(name, item.name.text);
     }
   }

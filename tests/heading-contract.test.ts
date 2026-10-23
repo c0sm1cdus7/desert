@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { assertHeadingContent } from "../src/svelte/pieces/heading-content.ts";
+import { assertHeadingContent } from "../src/svelte/catalog/foundations/heading/heading-content.ts";
 
 test("heading content uses finite semantic roles, not HTML/typographic customization", () => {
   for (const value of [

@@ -1,9 +1,9 @@
 /** Independent S1 specimen: real owners, not the approved artifact's adapter CSS. */
 export const paneFamilySource = `<script lang="ts">
-  import Action from '@desert/svelte/pieces/Action.svelte';
-  import TextInput from '@desert/svelte/pieces/TextInput.svelte';
-  import MoneyControl from '@desert/svelte/controls/MoneyControl.svelte';
-  import OptionsControl from '@desert/svelte/controls/OptionsControl.svelte';
+  import Action from '@desert/svelte/catalog/foundations/action/Action.svelte';
+  import TextInput from '@desert/svelte/catalog/foundations/text-input/TextInput.svelte';
+  import MoneyControl from '@desert/svelte/catalog/compositions/money-control/MoneyControl.svelte';
+  import OptionsControl from '@desert/svelte/catalog/compositions/options-control/OptionsControl.svelte';
   import * as Sidebar from '@desert/svelte/vendor/components/ui/sidebar/index.js';
   import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
   import * as Dialog from '@desert/svelte/vendor/components/ui/dialog/index.js';

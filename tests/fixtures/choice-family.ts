@@ -6,8 +6,8 @@ export const choiceOptions = [
 ];
 
 export const choiceFamilySource = `<script lang="ts">
-  import OptionsControl from '@desert/svelte/controls/OptionsControl.svelte';
-  import SelectionField from '@desert/svelte/pieces/SelectionField.svelte';
+  import OptionsControl from '@desert/svelte/catalog/compositions/options-control/OptionsControl.svelte';
+  import SelectionField from '@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte';
   import { controlNode, applyControlEvent } from '@desert/interaction/control-nodes.ts';
   const options = ${JSON.stringify(choiceOptions)};
   const descriptor = {version:'desert.control/1',kind:'options',disabled:false,inputRequired:true,minSelected:1,options};

@@ -22,17 +22,17 @@ const geometry = (rows: Locator) => rows.evaluateAll(elements => elements.map(el
 }));
 
 test('inline and picker hosts consume one choice item and divided-list owner', async () => {
-  for (const filename of ['pieces/ChoiceRow.svelte','pieces/SelectionList.svelte']) {
+  for (const filename of ['catalog/foundations/choice-row/ChoiceRow.svelte','catalog/foundations/selection-field/SelectionList.svelte']) {
     const source = await readFile(new URL(`../src/svelte/${filename}`, import.meta.url), 'utf8');
     assert.match(source, /import ChoiceItem from/);
     assert.match(source, /<ChoiceItem/);
   }
-  for (const filename of ['controls/OptionsControl.svelte','pieces/SelectionList.svelte']) {
+  for (const filename of ['catalog/compositions/options-control/OptionsControl.svelte','catalog/foundations/selection-field/SelectionList.svelte']) {
     const source = await readFile(new URL(`../src/svelte/${filename}`, import.meta.url), 'utf8');
     assert.match(source, /import ChoiceList from/);
     assert.match(source, /<ChoiceList/);
   }
-  const picker = await readFile(new URL('../src/svelte/pieces/SelectionList.svelte', import.meta.url), 'utf8');
+  const picker = await readFile(new URL('../src/svelte/catalog/foundations/selection-field/SelectionList.svelte', import.meta.url), 'utf8');
   assert.doesNotMatch(picker, /class="selection-option|rounded-xl|px-3|type-support/);
 });
 

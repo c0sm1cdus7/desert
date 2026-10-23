@@ -5,7 +5,7 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 import { saveFixedEvidence } from './web/fixed-toolbar-expectations.ts';
 
 const source = `<script lang="ts">
-  import Drawer from "@desert/svelte/pieces/Drawer.svelte";
+  import Drawer from "@desert/svelte/catalog/foundations/drawer/Drawer.svelte";
   import { surfaceFrame, SurfaceFrameVersion } from "@desert/interaction/surface-frame.ts";
   import { toolbarAction } from "@desert/interaction/toolbar.ts";
   let open = $state(false), observed = $state("");

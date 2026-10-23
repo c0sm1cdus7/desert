@@ -6,8 +6,8 @@ import ts from "typescript";
 import { assertClosedVisualBoundaries } from "../src/authoring/visual-boundary/closed.ts";
 import { inspectVisualSource } from "../src/authoring/visual-boundary/inspect.ts";
 
-const workspace = "src/svelte/explorer/CatalogWorkspace.svelte";
-const content = "src/svelte/pieces/CatalogWorkspaceContent.svelte";
+const workspace = "src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte";
+const content = "src/svelte/catalog/compositions/catalog-workspace-content/CatalogWorkspaceContent.svelte";
 const check = (path: string, source: string) => assertClosedVisualBoundaries([{ path, source }]);
 
 test("the workspace has finite content data, never incoming render slots", () => {
@@ -19,16 +19,16 @@ test("the workspace has finite content data, never incoming render slots", () =>
     '<script>let {body}=$props();</script>{@html body}',
     '<script>let {props}=$props();</script><main {...props}/>',
   ]) assert.throws(() => check(workspace, source), /CLOSED_VISUAL_BOUNDARY/, source);
-  for (const path of [workspace, content, "src/svelte/pieces/ViewWorkspace.svelte", "src/svelte/pieces/AccessScreen.svelte"]) {
+  for (const path of [workspace, content, "src/svelte/catalog/compositions/view-workspace/ViewWorkspace.svelte", "src/svelte/catalog/compositions/access-screen/AccessScreen.svelte"]) {
     const source = readFileSync(path, "utf8");
     assert.doesNotThrow(() => check(path, source), path);
   }
   assert.deepEqual(inspectVisualSource(content, readFileSync(content, "utf8")).findings, []);
-  assert.deepEqual(inspectVisualSource("src/svelte/pieces/workspace-content.ts", readFileSync("src/svelte/pieces/workspace-content.ts", "utf8")).findings, []);
+  assert.deepEqual(inspectVisualSource("src/svelte/infra/workspace-content.ts", readFileSync("src/svelte/infra/workspace-content.ts", "utf8")).findings, []);
 });
 
 test("aliased workspace consumers cannot supply markup, geometry or a DOM binding", () => {
-  const importOwner = '<script>import Shell from "../explorer/CatalogWorkspace.svelte";</script>';
+  const importOwner = '<script>import Shell from "../catalog/compositions/catalog-workspace/CatalogWorkspace.svelte";</script>';
   const caller = "src/svelte/pieces/Example.svelte";
   assert.doesNotThrow(() => check(caller, importOwner + '<Shell content={body} onviewport={registerActions}/>'));
   for (const markup of [

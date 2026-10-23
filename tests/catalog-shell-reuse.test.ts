@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { workspaceCss as styles } from "./fixtures/workspace-css.ts";
-import { workspaceNavigation } from "../src/svelte/explorer/workspace-navigation.ts";
+import { workspaceNavigation } from "../src/svelte/infra/workspace-navigation.ts";
 import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 import { settle } from "./web/public-catalog-expectations.ts";
 
 const source = `<script lang="ts">
-  import CatalogWorkspace from "@desert/svelte/explorer/CatalogWorkspace.svelte";
+  import CatalogWorkspace from "@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte";
   let active=$state('notes'), events=$state([]), panelOpen=$state(false);
   ${workspaceBodySource(Array.from({length:80},(_,index)=>({kind:'text',text:`Writing line ${index}`})))}
   const panel={owner:owners.panel,label:'Panel fixture',locked:false,frame:{version:'desert.surface-frame/6',kind:'message',

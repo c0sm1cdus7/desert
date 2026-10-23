@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test, { type TestContext } from "node:test";
 import { humanProduct } from "../src/web/client/model.ts";
 import { webTransport } from "../src/web/client/transport.ts";
-import { privateImageResource } from "../src/svelte/pieces/media/private-image-resource.ts";
+import { privateImageResource } from "../src/svelte/infra/private-image-resource.ts";
 import { surface, validate, ready, scope } from "./fixtures/image-input.ts";
 import { until } from "./fixtures/client-edit.ts";
 

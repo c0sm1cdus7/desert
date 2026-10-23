@@ -9,8 +9,8 @@ const header = `<script lang="ts">
   import { webRenderers } from "@desert/svelte/renderer-registry.ts";
   import type { WebRendererBank, WebRendererProps, ControlEventFor } from "@desert/svelte/renderer-contracts.ts";
   import type { ControlEvent } from "@desert/interaction/control-nodes.ts";
-  import SelectControl from "@desert/svelte/controls/SelectControl.svelte";
-  import DateControl from "@desert/svelte/controls/DateControl.svelte";
+  import SelectControl from "@desert/svelte/catalog/compositions/select-control/SelectControl.svelte";
+  import DateControl from "@desert/svelte/catalog/foundations/date-control/DateControl.svelte";
   const date: WebRendererProps["control.date"]["node"] = {
     version: "desert.control/1", kind: "date", id: "date", label: "Date", disabled: false, required: false, value: null,
   };

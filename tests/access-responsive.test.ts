@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
-import { accessProfile } from "../src/svelte/pieces/access-profile.ts";
-import { avatarGeometry, identityAvatarSeed } from "../src/svelte/pieces/avatar-seed.ts";
+import { accessProfile } from "../src/svelte/infra/access-profile.ts";
+import { avatarGeometry, identityAvatarSeed } from "../src/svelte/infra/avatar-seed.ts";
 
 test("remembered identity is bounded presentation data, never session authority", () => {
   const profile = { login:"sample-user", displayName:"Sample user", avatarSeed:"0011223344556677" };
@@ -17,8 +17,8 @@ test("remembered identity is bounded presentation data, never session authority"
 test("access stays operable at wide, narrow and enlarged text sizes with a real bank composition", { timeout:240000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
     import { onMount } from 'svelte';
-    import AccessExperience from '@desert/svelte/pieces/AccessExperience.svelte';
-    import { mountCatalogAppearance } from '@desert/svelte/pieces/catalog-appearance.ts';
+    import AccessExperience from '@desert/svelte/catalog/compositions/access-experience/AccessExperience.svelte';
+    import { mountCatalogAppearance } from '@desert/svelte/infra/catalog-appearance.ts';
     let current = $state({state:{kind:'onboarding'},busy:false,error:null});
     const profile={login:'sample-user',displayName:'Sample user',avatarSeed:'0011223344556677'};
     onMount(mountCatalogAppearance);

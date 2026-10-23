@@ -15,8 +15,8 @@ test('always-visible sibling Stacks retain independent labels, requirements and 
         { value: 'second', label: 'Second', disabled: false }] }), files('details-files')],
   }];
   const f = await svelteBrowser(`<script>
-    import Stack from '@desert/svelte/pieces/Stack.svelte';
-    import { LocalFileHost } from '@desert/svelte/controls/file-host.ts';
+    import Stack from '@desert/svelte/catalog/compositions/stack/Stack.svelte';
+    import { LocalFileHost } from '@desert/svelte/infra/file-host.ts';
     const definitions=${JSON.stringify(definitions)}, host=new LocalFileHost();
   </script>{#each definitions as definition}<Stack {definition} {host} onevent={()=>{}} />{/each}`);
   try {

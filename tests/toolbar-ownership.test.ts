@@ -8,9 +8,9 @@ import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 import AxeBuilder from "@axe-core/playwright";
 
 const source = `<script lang="ts">
-  import SurfaceFrame from '@desert/svelte/SurfaceFrame.svelte';
-  import Problem from '@desert/svelte/pieces/Problem.svelte';
-  import CatalogWorkspace from '@desert/svelte/explorer/CatalogWorkspace.svelte';
+  import SurfaceFrame from '@desert/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte';
+  import Problem from '@desert/svelte/catalog/compositions/problem/Problem.svelte';
+  import CatalogWorkspace from '@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte';
   ${workspaceBodySource()}
   let open = $state(false);
   const frame = {version:'desert.surface-frame/6',kind:'message',
@@ -28,7 +28,7 @@ const source = `<script lang="ts">
 </section>`;
 
 test("one toolbar owner reaches persistent frames, transient dialogs and the catalog shell", { timeout: 30000 }, async () => {
-  const owner = resolve(import.meta.dirname, "../src/svelte/pieces/ToolbarLayout.svelte");
+  const owner = resolve(import.meta.dirname, "../src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte");
   const original = await readFile(owner, "utf8");
   assert.ok(original.includes('data-piece="toolbar"'));
   const f = await svelteBrowser(source, {

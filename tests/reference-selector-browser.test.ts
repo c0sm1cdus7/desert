@@ -5,7 +5,7 @@ import {rendererCss} from './fixtures/renderer-css.ts';
 
 const fixture=`<script lang="ts">
   import {onMount} from 'svelte';
-  import ReferenceSelector from '@desert/svelte/pieces/ReferenceSelector.svelte';
+  import ReferenceSelector from '@desert/svelte/catalog/compositions/reference-selector/ReferenceSelector.svelte';
   import type {LabelsNode} from '@desert/interaction/labels-control.ts';
   let node=$state<LabelsNode>({version:'desert.control/1',kind:'labels',id:'projects',label:'Projects',disabled:false,
     values:[],limits:{maxItems:12,maxLength:64},reference:{options:[],loading:false,busy:false,uncertain:false,
@@ -78,7 +78,7 @@ test('only an installed reference creation capability exposes a companion form a
 });
 
 test('reference dropdown keeps a full labeled well and readable choices at narrow and wide widths',{timeout:180000},async()=>{
-  const f=await svelteBrowser(`<script lang="ts">import ReferenceSpecimen from '@desert/svelte/pieces/ReferenceSpecimen.svelte';</script><ReferenceSpecimen owner="ReferenceSelector"/>`);
+  const f=await svelteBrowser(`<script lang="ts">import ReferenceSpecimen from '@desert/svelte/catalog/compositions/reference-specimen/ReferenceSpecimen.svelte';</script><ReferenceSpecimen owner="ReferenceSelector"/>`);
   try{
     await f.page.addStyleTag({content:await rendererCss()});
     await f.page.emulateMedia({colorScheme:'dark',reducedMotion:'reduce'});

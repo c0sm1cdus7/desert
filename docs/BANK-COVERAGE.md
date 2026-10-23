@@ -71,7 +71,7 @@ principals; their existence does not provide matching human input controls.
 ## Newly integrated typed control bench — renderer-only
 
 Source: `src/interaction/control-nodes.ts`, `src/svelte/controls/`, and
-`src/svelte/catalog/ControlBench.svelte`. These are renderer-only entries in the
+`src/svelte/catalog/compositions/control-bench/ControlBench.svelte`. These are renderer-only entries in the
 same versioned bank; they are not admitted product form primitives.
 
 | Control | Present in source | Still required for product capability |

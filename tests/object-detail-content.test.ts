@@ -6,8 +6,8 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 
 const body='First paragraph.\n\n  Indented thought, with original spacing.\nA long identifier: '+ 'unchanged'.repeat(36);
 const source=`<script lang="ts">
-  import ContextPanel from '@desert/svelte/ContextPanel.svelte';
-  import ReadingContent from '@desert/svelte/pieces/ReadingContent.svelte';
+  import ContextPanel from '@desert/svelte/catalog/compositions/context-panel/ContextPanel.svelte';
+  import ReadingContent from '@desert/svelte/catalog/compositions/reading-content/ReadingContent.svelte';
   let status=$state('open'); let commands=$state([]);
   const labels={'task.body':'details','task.projects':'projects'};
   const references={projects:[{value:'project-a',label:'iPhone research and a long project name',color:'violet'},
@@ -83,7 +83,7 @@ test('object detail reads prose before one property group, omits known empties, 
 
 test('the existing multiline editor preserves long drafts, native selection and explicitly empty content', {timeout:60000}, async()=>{
   const f=await svelteBrowser(`<script lang="ts">
-    import TextInput from '@desert/svelte/pieces/TextInput.svelte';
+    import TextInput from '@desert/svelte/catalog/foundations/text-input/TextInput.svelte';
     let body=$state(${JSON.stringify(body)});
   </script><main style="padding:16px">
     <TextInput primitive="input.multiline" label="Details" value={body} identity="task:existing-version" onchange={value=>body=value}/>

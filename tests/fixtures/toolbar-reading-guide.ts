@@ -1,6 +1,6 @@
 /** Production compositions and theme own every dimension; this fixture supplies content only. */
 export const toolbarReadingGuideSource = (withAction: boolean) => `<script lang="ts">
-  import CatalogWorkspace from '@desert/svelte/explorer/CatalogWorkspace.svelte';
+  import CatalogWorkspace from '@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte';
   import {viewEventOwnership} from '@desert/web/client/view-events.ts';
   import type { ResolvedView } from '@desert/views/resolved.ts';
   import type { ToolbarAction } from '@desert/interaction/toolbar.ts';

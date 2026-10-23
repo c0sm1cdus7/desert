@@ -2,7 +2,7 @@ import type { Page } from "playwright";
 
 export const textClearSource = `<script lang="ts">
   import { tick } from 'svelte';
-  import TextInput from '@desert/svelte/pieces/TextInput.svelte';
+  import TextInput from '@desert/svelte/catalog/foundations/text-input/TextInput.svelte';
   let props = $state({ primitive: 'input.text', label: 'Writing', value: '', disabled: false });
   let events = $state([]), submissions = $state(0);
   window.echoClear = true;
@@ -16,7 +16,7 @@ export const textClearSource = `<script lang="ts">
 
 export const moneyClearSource = `<script lang="ts">
   import { tick } from 'svelte';
-  import MoneyControl from '@desert/svelte/controls/MoneyControl.svelte';
+  import MoneyControl from '@desert/svelte/catalog/compositions/money-control/MoneyControl.svelte';
   let node = $state({ id: 'budget', label: 'Amount', currency: 'ARS', minorUnits: null,
     currencies: [{ code: 'ARS', scale: 2 }, { code: 'USD', scale: 2 }], locale: 'es-AR', disabled: false, required: false });
   let events = $state([]);
@@ -29,7 +29,7 @@ export const moneyClearSource = `<script lang="ts">
 <output data-events>{JSON.stringify(events)}</output><output data-currency>{node.currency}</output>`;
 
 export const searchClearSource = `<script lang="ts">
-  import SearchField from '@desert/svelte/pieces/SearchField.svelte';
+  import SearchField from '@desert/svelte/catalog/foundations/search-field/SearchField.svelte';
   let value = $state(''), events = $state([]);
   window.echoClear = true;
 </script>
@@ -38,8 +38,8 @@ export const searchClearSource = `<script lang="ts">
 <output data-events>{JSON.stringify(events)}</output>`;
 
 export const selectionClearSource = `<script lang="ts">
-  import SelectionField from '@desert/svelte/pieces/SelectionField.svelte';
-  import DateControl from '@desert/svelte/controls/DateControl.svelte';
+  import SelectionField from '@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte';
+  import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
 </script>
 <section data-select>
   <SelectionField selection="choice" label="Choice" value="one" fieldControl
@@ -50,7 +50,7 @@ export const selectionClearSource = `<script lang="ts">
 </section>`;
 
 export const layoutClearSource = `<script lang="ts">
-  import TextInput from '@desert/svelte/pieces/TextInput.svelte';
+  import TextInput from '@desert/svelte/catalog/foundations/text-input/TextInput.svelte';
   const longLabel = 'A descriptive field label that must remain readable when text is enlarged';
   let title = $state('An editable thought'), notes = $state('First line\\nLast editable line');
 </script>

@@ -8,12 +8,12 @@ import { toolbarPlacement } from "./toolbar-placement.ts";
 type Source = Readonly<{ path: string; source: string }>;
 type Element = Readonly<{ tag: string; attributes: ReadonlyMap<string, readonly string[] | null>; classes: ReadonlySet<string> }>;
 type Parsed = Source & { text: string; tree: ReturnType<typeof parse> };
-const toolbar = "src/svelte/pieces/ToolbarLayout.svelte";
-const identity = "src/svelte/pieces/ToolbarIdentity.svelte";
+const toolbar = "src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte";
+const identity = "src/svelte/catalog/compositions/toolbar-layout/ToolbarIdentity.svelte";
 const button = "src/svelte/vendor/components/ui/button/button.svelte";
-const material = "src/svelte/pieces/toolbar-layout.css";
-const mechanisms = new Set([material, "src/svelte/pieces/surface-reading.css",
-  "src/svelte/pieces/surface-chrome.css", "src/svelte/typography.css", "src/svelte/explorer/catalog-profile.css"]);
+const material = "src/svelte/catalog/compositions/toolbar-layout/toolbar-layout.css";
+const mechanisms = new Set([material, "src/svelte/catalog/mechanisms/surface-reading/surface-reading.css",
+  "src/svelte/catalog/mechanisms/surface-chrome/surface-chrome.css", "src/svelte/catalog/mechanisms/typography/typography.css", "src/svelte/catalog/mechanisms/catalog-profile/catalog-profile.css"]);
 const nodes = (value: unknown): Node[] => Array.isArray(value) ? value as Node[] : [];
 const variableReads = (value: unknown) => [...decode(String(value)).replace(/\/\*[\s\S]*?\*\//g, "")
   .matchAll(/\bvar\(\s*(--[\w-]+)/g)].map(match => match[1]!);
@@ -195,7 +195,7 @@ export function assertIndirectToolbarCss(sources: readonly Source[]): boolean {
             const subject = chain.at(-1)!;
             const targets = profile.protectedElements.filter(candidate => relativeMatches(subject, candidate.value));
             if (!targets.length || targets.every(candidate => candidate.owner === item.path)) continue;
-            const typographyRule = item.path === "src/svelte/typography.css" && declarations.every(declaration =>
+            const typographyRule = item.path === "src/svelte/catalog/mechanisms/typography/typography.css" && declarations.every(declaration =>
               /^(?:font|line-height|letter-spacing)(?:-|$)/.test(cssDeclarationProperty(declaration, item.text))
               || layer === "base" && cssDeclarationProperty(declaration, item.text) === "margin" && declaration.value === "0"
               && chain.length === 1 && nodes(subject.selectors).every(selector => selector.type === "TypeSelector" && /^(?:h[1-6]|p)$/.test(String(selector.name))));
@@ -205,7 +205,7 @@ export function assertIndirectToolbarCss(sources: readonly Source[]): boolean {
               && declarations.every(declaration => cssDeclarationProperty(declaration, item.text) === "box-sizing" && declaration.value === "border-box");
             if (universalReset) continue;
             const buttonContent = targets.every(candidate => candidate.owner === button && candidate.value.attributes.has("data-button-content"));
-            const controlFeedback = item.path === "src/svelte/pieces/control-feedback.css" && utility === "tm-control"
+            const controlFeedback = item.path === "src/svelte/catalog/mechanisms/control-feedback/control-feedback.css" && utility === "tm-control"
               && buttonContent && declarations.every(declaration => cssDeclarationProperty(declaration, item.text) === "transform");
             if (controlFeedback) continue;
             let disabled = false, materialState = false;
@@ -217,7 +217,7 @@ export function assertIndirectToolbarCss(sources: readonly Source[]): boolean {
                 if (name === "data-material" || name === "data-search-field" || name === "data-slot" && value === "field") materialState = true;
               }
             });
-            const disabledMaterial = item.path === "src/svelte/pieces/pane-material.css" && disabled && materialState
+            const disabledMaterial = item.path === "src/svelte/catalog/mechanisms/pane-material/pane-material.css" && disabled && materialState
               && declarations.every(declaration => cssDeclarationProperty(declaration, item.text) === "opacity");
             if (disabledMaterial) continue;
             const ancestors = chain.slice(0, -1);

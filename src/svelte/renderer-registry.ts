@@ -1,26 +1,26 @@
 // Generated from catalog-manifest.ts. Run scripts/web-catalog.ts --write; do not edit.
 import type { WebRendererBank } from "./renderer-contracts.ts";
-import TextInput from "./pieces/TextInput.svelte";
-import Action from "./pieces/Action.svelte";
-import Availability from "./pieces/Availability.svelte";
-import Drawer from "./pieces/Drawer.svelte";
-import Problem from "./pieces/Problem.svelte";
-import Facts from "./Facts.svelte";
-import Fields from "./Fields.svelte";
-import Collection from "./Collection.svelte";
-import ContextPanel from "./ContextPanel.svelte";
-import Review from "./Review.svelte";
-import SelectControl from "./controls/SelectControl.svelte";
-import PopoverControl from "./controls/PopoverControl.svelte";
-import FileControl from "./controls/FileControl.svelte";
-import LabelsControl from "./pieces/LabelsControl.svelte";
-import OptionsControl from "./controls/OptionsControl.svelte";
-import MoneyControl from "./controls/MoneyControl.svelte";
-import DateControl from "./controls/DateControl.svelte";
-import MediaControl from "./controls/MediaControl.svelte";
-import CatalogCard from "./explorer/CatalogCard.svelte";
-import CatalogHome from "./explorer/CatalogHome.svelte";
-import CatalogDetail from "./explorer/CatalogDetail.svelte";
+import TextInput from "./catalog/foundations/text-input/TextInput.svelte";
+import Action from "./catalog/foundations/action/Action.svelte";
+import Availability from "./catalog/foundations/availability/Availability.svelte";
+import Drawer from "./catalog/foundations/drawer/Drawer.svelte";
+import Problem from "./catalog/compositions/problem/Problem.svelte";
+import Facts from "./catalog/renderer/facts/Facts.svelte";
+import Fields from "./catalog/compositions/fields/Fields.svelte";
+import Collection from "./catalog/compositions/collection/Collection.svelte";
+import ContextPanel from "./catalog/compositions/context-panel/ContextPanel.svelte";
+import Review from "./catalog/compositions/review/Review.svelte";
+import SelectControl from "./catalog/compositions/select-control/SelectControl.svelte";
+import PopoverControl from "./catalog/compositions/popover-control/PopoverControl.svelte";
+import FileControl from "./catalog/compositions/file-control/FileControl.svelte";
+import LabelsControl from "./catalog/compositions/labels-control/LabelsControl.svelte";
+import OptionsControl from "./catalog/compositions/options-control/OptionsControl.svelte";
+import MoneyControl from "./catalog/compositions/money-control/MoneyControl.svelte";
+import DateControl from "./catalog/foundations/date-control/DateControl.svelte";
+import MediaControl from "./catalog/compositions/media-control/MediaControl.svelte";
+import CatalogCard from "./catalog/foundations/catalog-card/CatalogCard.svelte";
+import CatalogHome from "./catalog/compositions/catalog-home/CatalogHome.svelte";
+import CatalogDetail from "./catalog/compositions/catalog-detail/CatalogDetail.svelte";
 
 export const webRenderers: WebRendererBank = Object.freeze({
   "input.text": TextInput,

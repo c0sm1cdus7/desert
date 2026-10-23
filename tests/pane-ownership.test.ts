@@ -21,13 +21,13 @@ test('S1 role-aware source gate keeps pane recipes out of foundation variants',a
 
 test('S1 role-aware source gate protects neutral geometry owners and permits semantic ink',async()=>{
   const rules:Record<string,readonly string[]>={
-    'pieces/field-well.css':['@field-well'],
-    'pieces/structured-content.css':['@grouped-panel','.bank-stack'],
-    'pieces/anchored-surface.css':['.floating-pane','.anchored-surface','.selection-surface'],
-    'pieces/surface-chrome.css':['.drawer','.drawer,.problem',':is(.drawer,.problem,.centered-dialog)'],
-    'explorer/catalog-shell.css':['[data-catalog-workspace] [data-slot="sidebar-inner"]'],
-    'explorer/catalog-search.css':['[data-catalog-search-actions] [data-slot="input-group"]','[data-catalog-search] [data-slot="input-group"]'],
-    'pieces/control-feedback.css':['@tm-control'],
+    'catalog/foundations/field-well/field-well.css':['@field-well'],
+    'catalog/mechanisms/structured-content/structured-content.css':['@grouped-panel','.bank-stack'],
+    'catalog/mechanisms/anchored-surface/anchored-surface.css':['.floating-pane','.anchored-surface','.selection-surface'],
+    'catalog/mechanisms/surface-chrome/surface-chrome.css':['.drawer','.drawer,.problem',':is(.drawer,.problem,.centered-dialog)'],
+    'catalog/mechanisms/catalog-shell/catalog-shell.css':['[data-catalog-workspace] [data-slot="sidebar-inner"]'],
+    'catalog/mechanisms/catalog-search/catalog-search.css':['[data-catalog-search-actions] [data-slot="input-group"]','[data-catalog-search] [data-slot="input-group"]'],
+    'catalog/mechanisms/control-feedback/control-feedback.css':['@tm-control'],
     'theme.css':['@tm-tinted'],
   };
   const forbidden=/^(?:background(?:-color|-image)?|(?:-webkit-)?backdrop-filter|border(?:-color|-width|-style)?|box-shadow|opacity)$/;
@@ -48,7 +48,7 @@ test('S1 role-aware source gate protects neutral geometry owners and permits sem
         assert.fail(file+': '+owner+' must not own '+declaration.prop);
     });
   }
-  const central=await readFile('src/svelte/pieces/pane-material.css','utf8');
+  const central=await readFile('src/svelte/catalog/mechanisms/pane-material/pane-material.css','utf8');
   assert.equal((central.match(/background-color:var\(--pane-fill\)/g)??[]).length,1);
   assert.equal((central.match(/border:1px solid var\(--pane-border\)/g)??[]).length,1);
 });

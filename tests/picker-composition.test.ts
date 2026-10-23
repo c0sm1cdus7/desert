@@ -5,8 +5,8 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import SelectionField from '@desert/svelte/pieces/SelectionField.svelte';
-  import DateControl from '@desert/svelte/controls/DateControl.svelte';
+  import SelectionField from '@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte';
+  import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
   let value=$state('first');
 </script>
 <main style="padding:24px">

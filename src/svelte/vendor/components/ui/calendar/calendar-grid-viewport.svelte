@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
-	import { revealSurfaceFocus } from "@desert/svelte/pieces/surface-focus.svelte.ts";
+	import { revealSurfaceFocus } from "@desert/svelte/infra/surface-focus.svelte.ts";
 	let { children }: { children: Snippet } = $props();
 
 	function revealFocus(event: FocusEvent & { currentTarget: HTMLDivElement }) {

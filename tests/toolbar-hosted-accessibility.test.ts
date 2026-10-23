@@ -7,7 +7,7 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 import { workspaceBodySource } from './fixtures/workspace-body.ts';
 
 const source = `<script lang="ts">
-  import CatalogWorkspace from '@desert/svelte/explorer/CatalogWorkspace.svelte';
+  import CatalogWorkspace from '@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte';
   ${workspaceBodySource([
     {kind:'visual-catalog',id:'bank'},
     {kind:'media-library',id:'library',library:{id:'photos',

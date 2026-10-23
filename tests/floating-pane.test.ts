@@ -4,8 +4,8 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import AnchoredSurface from '@desert/svelte/pieces/AnchoredSurface.svelte';
-  import SelectionField from '@desert/svelte/pieces/SelectionField.svelte';
+  import AnchoredSurface from '@desert/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte';
+  import SelectionField from '@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte';
   import { toolbarAction } from '@desert/interaction/toolbar.ts';
   let open=$state(false), value=$state('one');
 </script>

@@ -6,7 +6,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
   import { tick } from 'svelte';
-  import TextInput from '@desert/svelte/pieces/TextInput.svelte';
+  import TextInput from '@desert/svelte/catalog/foundations/text-input/TextInput.svelte';
   let props = $state({ primitive: 'input.multiline', label: 'Notes', value: '', maxLength: undefined, disabled: false, error: undefined });
   window.echoTextarea = true;
   window.replaceTextarea = async patch => { props = { ...props, ...patch }; await tick(); };

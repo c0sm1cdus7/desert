@@ -5,8 +5,8 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 
 test('Stack and standalone options share explicit input requirements, never contextual cardinality',async()=>{
   const f=await svelteBrowser(`<script>
-    import Stack from '@desert/svelte/pieces/Stack.svelte';
-    import BankRenderer from '@desert/svelte/BankRenderer.svelte';
+    import Stack from '@desert/svelte/catalog/compositions/stack/Stack.svelte';
+    import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
     import { controlBankNode } from '@desert/interaction/bank-node.ts';
     import { applyControlEvent } from '@desert/interaction/control-nodes.ts';
     const base={version:'desert.control/1',kind:'options',disabled:false,minSelected:1,maxSelected:1,
@@ -46,7 +46,7 @@ test('Stack and standalone options share explicit input requirements, never cont
 
 test('select labels and open listbox semantics distinguish contextual, retained and clearable input values',async()=>{
   const f=await svelteBrowser(`<script>
-    import BankRenderer from '@desert/svelte/BankRenderer.svelte';
+    import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
     import { controlBankNode } from '@desert/interaction/bank-node.ts';
     import { applyControlEvent } from '@desert/interaction/control-nodes.ts';
     const base={version:'desert.control/1',kind:'select',disabled:false,required:true,

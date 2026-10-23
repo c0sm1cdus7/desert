@@ -6,7 +6,7 @@ import { settle } from './web/public-catalog-expectations.ts';
 
 for (const initialWidth of [600, 320]) test(`selection cursor survives presentation replacement from ${initialWidth}`, async () => {
   const f = await svelteBrowser(`<script>
-    import SelectControl from '@desert/svelte/controls/SelectControl.svelte';
+    import SelectControl from '@desert/svelte/catalog/compositions/select-control/SelectControl.svelte';
     let node=$state({version:'desert.control/1',kind:'select',id:'destination',label:'Destination',required:false,
       disabled:false,value:'fuji',options:[{value:'fuji',label:'Mount Fuji',disabled:false},
       {value:'closed',label:'Closed',disabled:true},{value:'alps',label:'Alps',disabled:false},

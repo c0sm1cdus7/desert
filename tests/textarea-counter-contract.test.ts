@@ -40,7 +40,7 @@ test("multiline bank grammar accepts nonnegative integer limits and rejects malf
 test("real form fields propagate the domain maximum through the bank into the shared textarea", async () => {
   const frame = form(8);
   const f = await svelteBrowser(`<script lang="ts">
-    import SurfaceFrame from '@desert/svelte/SurfaceFrame.svelte';
+    import SurfaceFrame from '@desert/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte';
     const frame = ${JSON.stringify(frame)};
   </script><SurfaceFrame {frame} invoke={() => {}} />`);
   try {

@@ -4,8 +4,8 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import SelectControl from "@desert/svelte/controls/SelectControl.svelte";
-  import MoneyControl from "@desert/svelte/controls/MoneyControl.svelte";
+  import SelectControl from "@desert/svelte/catalog/compositions/select-control/SelectControl.svelte";
+  import MoneyControl from "@desert/svelte/catalog/compositions/money-control/MoneyControl.svelte";
   import { controlNode, applyControlEvent } from "@desert/interaction/control-nodes.ts";
   let selection = $state.raw(controlNode({version:'desert.control/1',kind:'select',id:'delivery',label:'Delivery',
     disabled:false,required:true,value:'collect',options:[{value:'collect',label:'Collect',disabled:false},
@@ -117,7 +117,7 @@ test("selection dismisses when focus moves to another field without stealing its
 
 test('dismissal never restores selection focus over another popover', async () => {
   const f=await svelteBrowser(`<script>
-    import SelectionField from '@desert/svelte/pieces/SelectionField.svelte';
+    import SelectionField from '@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte';
     import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
     let unavailable=$state(false), details=$state(false);
   </script><SelectionField selection="choice" label="Choice" value="first" disabled={unavailable}

@@ -24,9 +24,9 @@ async function previousCss() {
 }
 
 const source = `<script lang="ts">
-  import CatalogHome from '@desert/svelte/explorer/CatalogHome.svelte';
-  import SpecimenRow from '@desert/svelte/catalog/SpecimenRow.svelte';
-  import Problem from '@desert/svelte/pieces/Problem.svelte';
+  import CatalogHome from '@desert/svelte/catalog/compositions/catalog-home/CatalogHome.svelte';
+  import SpecimenRow from '@desert/svelte/catalog/compositions/specimen-row/SpecimenRow.svelte';
+  import Problem from '@desert/svelte/catalog/compositions/problem/Problem.svelte';
   let message=$state(false);
   const cssBeforeMount=!!document.querySelector('[data-fixture-initial-css]');
   const card=(record,title)=>({version:'desert.bank-node/1',kind:'catalog.card',presentation:'item',record,title,mediaType:'audio'});

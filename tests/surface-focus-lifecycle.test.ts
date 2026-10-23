@@ -4,7 +4,7 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 
 const source = `<script>
   import { tick } from 'svelte';
-  import { surfaceFocus } from '@desert/svelte/pieces/surface-focus.svelte.ts';
+  import { surfaceFocus } from '@desert/svelte/infra/surface-focus.svelte.ts';
   let panel=$state(null), trigger=$state(null), phase=$state('open'), revision=$state(0), closes=$state(0);
   const focus=surfaceFocus(()=>panel);
   const event=kind=>new Event(kind,{cancelable:true});
@@ -110,7 +110,7 @@ test("removing an open popover restores its retained opener without a synthetic 
 
 test("entry before the bound element exists retains its real opener for close", async () => {
   const f = await svelteBrowser(`<script>
-    import { tick } from 'svelte';import { surfaceFocus } from '@desert/svelte/pieces/surface-focus.svelte.ts';
+    import { tick } from 'svelte';import { surfaceFocus } from '@desert/svelte/infra/surface-focus.svelte.ts';
     let panel=$state(null),present=$state(false),phase=$state('open');const focus=surfaceFocus(()=>panel);
     globalThis.closeLate=async()=>{phase='closed';await tick();focus.close(new Event('close',{cancelable:true}));};
   </script><button onclick={()=>{present=true;focus.open(new Event('open',{cancelable:true}));}}>Open</button>

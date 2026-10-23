@@ -8,12 +8,12 @@ import { catalogFixture } from "./fixtures/public-catalog.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { createBuildProject } from "../src/build/svelte/project.ts";
-import { imageSource } from "../src/svelte/pieces/media/source.ts";
+import { imageSource } from "../src/svelte/infra/media-source.ts";
 import { catalogWorkspaceSource } from "./fixtures/catalog-workspace.ts";
 
 const catalog = compilePublicCatalog(catalogFixture()).surface;
 const mount = (adapter: boolean) => `<script>
-  import Bank from './src/svelte/${adapter ? "views/InspectionContent" : "explorer/PublicCatalogBank"}.svelte';
+  import Bank from './src/svelte/${adapter ? "catalog/renderer/inspection-content/InspectionContent" : "catalog/renderer/public-catalog-bank/PublicCatalogBank"}.svelte';
   const catalog = ${JSON.stringify(catalog)};
 </script><main data-renderer-profile="apple-reference" style="padding:16px"><Bank ${adapter
   ? 'catalog={catalog}' : 'surface={catalog} bodyOnly oncatalog={() => {}}'} /></main>`;
@@ -85,8 +85,8 @@ test("local catalog previews reuse the installed detail and retain bank drafts t
 
 test("a nested catalog activity cannot keep a popup alive after its parent is deactivated", async () => {
   const fixture = await svelteBrowser(`<script>
-    import InspectionContent from './src/svelte/views/InspectionContent.svelte';
-    import RetainedPlace from './src/svelte/explorer/RetainedPlace.svelte';
+    import InspectionContent from './src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte';
+    import RetainedPlace from './src/svelte/catalog/compositions/retained-place/RetainedPlace.svelte';
     let active = $state(true);
   </script>
   <svelte:window onkeydown={event => { if (event.key === 'F8') active = !active; }} />

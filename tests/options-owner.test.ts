@@ -28,7 +28,7 @@ test("option availability and accepted transition share disabled-retention and c
 
 for (const retained of [false, true]) test(`option owner and view remain equal with retained disabled=${retained}`, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import OptionsControl from "@desert/svelte/controls/OptionsControl.svelte";
+    import OptionsControl from "@desert/svelte/catalog/compositions/options-control/OptionsControl.svelte";
     import { controlNode, applyControlEvent } from "@desert/interaction/control-nodes.ts";
     let node = $state.raw(controlNode(${JSON.stringify(descriptor(retained))}));
   </script>
@@ -47,7 +47,7 @@ for (const retained of [false, true]) test(`option owner and view remain equal w
 
 test("choice primitives cannot display an emitted edit before the owner accepts it", async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import OptionsControl from "@desert/svelte/controls/OptionsControl.svelte";
+    import OptionsControl from "@desert/svelte/catalog/compositions/options-control/OptionsControl.svelte";
     import { controlNode } from "@desert/interaction/control-nodes.ts";
     const node = controlNode(${JSON.stringify(descriptor(false))});
     let proposals = $state(0);

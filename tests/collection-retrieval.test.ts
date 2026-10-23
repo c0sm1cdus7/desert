@@ -20,8 +20,8 @@ async function collectionFixture(records: readonly RecordView[], options: {
     ? { ...journey, collection: options.fields ?? journey.collection } : journey) };
   const scope = notebookScope(surface);
   return svelteBrowser(`<script lang="ts">
-    import BankRenderer from "@desert/svelte/BankRenderer.svelte";
-    import ViewContent from "@desert/svelte/views/ViewContent.svelte";
+    import BankRenderer from "@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte";
+    import ViewContent from "@desert/svelte/catalog/renderer/view-content/ViewContent.svelte";
     import { presentCollection } from "@desert/interaction/bank-presenters.ts";
     import type { View } from "@desert/views/schema.ts";
     const surface = ${JSON.stringify(surface)};

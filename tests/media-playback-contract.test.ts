@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Check } from "@sinclair/typebox/value";
 import { MediaLibrarySchema, checkMediaLibrary } from "../src/views/media-library.ts";
-import { mediaContent, mediaIdentity, mediaResults } from "../src/svelte/views/media-data.ts";
+import { mediaContent, mediaIdentity, mediaResults } from "../src/svelte/infra/media-data.ts";
 import { requireViewMediaBindings } from "../src/build/media-references.ts";
 import { program } from "./fixtures/view-program.ts";
 

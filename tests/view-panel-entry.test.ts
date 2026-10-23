@@ -7,8 +7,8 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 for (const composition of ["retained-bank", "view-panel"] as const) {
   test(`first transient entry preserves the installed motion: ${composition}`, async () => {
     const fixture = await svelteBrowser(`<script lang="ts">
-      import Panel from '@desert/svelte/views/Panel.svelte';
-      import BankRenderer from '@desert/svelte/BankRenderer.svelte';
+      import Panel from '@desert/svelte/catalog/renderer/panel/Panel.svelte';
+      import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
       import {surfaceFrame} from '@desert/interaction/surface-frame.ts';
       import {viewEventOwnership} from '@desert/web/client/view-events.ts';
       const ownership=viewEventOwnership();

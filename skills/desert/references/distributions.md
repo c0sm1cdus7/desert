@@ -437,11 +437,11 @@ export async function localMediaHandler(directory: string, files: Readonly<Recor
 
 ## src/build/media-references.ts
 
-Source SHA-256: 52128991ca41586ffb92e5b1190b7dfec1d09acc4badc294e2dd49877b628851
+Source SHA-256: ff9383491a1aa1e41acfbc50fde1d495fe5a3b51c8ab12b6749e25fba9a02b9d
 
 ```ts
 import type { ViewProgram } from "../views/program-schema.ts";
-import { inspectionMedia } from "../svelte/catalog/inspection-media.ts";
+import { inspectionMedia } from "../svelte/infra/inspection-media.ts";
 import { viewHeaderImages } from "../views/header-media.ts";
 import { mediaArtwork } from "../views/media-library.ts";
 
@@ -490,11 +490,11 @@ export function requireViewMediaBindings(program: ViewProgram | undefined, asset
 
 ## src/build/svelte/template/src/routes/+page.svelte
 
-Source SHA-256: 07788affe67fb7b89960bb5ded4a7ec7cda11216547118ecaf6d48aa1fdbbb01
+Source SHA-256: 8ceac8265236657fe8b46a343218e7f6cd05918e119120c35d1571a8dc7bb8ba
 
 ```svelte
 <script lang="ts">
-  import AccessGate from "@desert/svelte/pieces/AccessGate.svelte";
+  import AccessGate from "@desert/svelte/catalog/compositions/access-gate/AccessGate.svelte";
   import { surface, validateInput, viewProgram } from "virtual:desert/surface";
 </script>
 

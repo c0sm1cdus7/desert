@@ -5,8 +5,8 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import TextInput from "@desert/svelte/pieces/TextInput.svelte";
-  import MoneyControl from "@desert/svelte/controls/MoneyControl.svelte";
+  import TextInput from "@desert/svelte/catalog/foundations/text-input/TextInput.svelte";
+  import MoneyControl from "@desert/svelte/catalog/compositions/money-control/MoneyControl.svelte";
   import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
   import { Input } from "@desert/svelte/vendor/components/ui/input/index.js";
   let invalid = $state(false), single = $state('A clear value'), multiline = $state('More than one line');

@@ -7,8 +7,8 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 // an additional readable Place; these are independent space budgets.
 async function fixture() {
   const f = await svelteBrowser(`<script lang="ts">
-    import Drawer from '@desert/svelte/pieces/Drawer.svelte';
-    import { provideSurfaceHost } from '@desert/svelte/pieces/surface-host.svelte.ts';
+    import Drawer from '@desert/svelte/catalog/foundations/drawer/Drawer.svelte';
+    import { provideSurfaceHost } from '@desert/svelte/infra/surface-host.svelte.ts';
     import { SurfaceFrameVersion } from '@desert/interaction/surface-frame.ts';
     let host = $state<HTMLElement|null>(null), open = $state(false);
     provideSurfaceHost(() => host);

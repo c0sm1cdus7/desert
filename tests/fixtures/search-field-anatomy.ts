@@ -7,9 +7,9 @@ export const searchLabel = { collection: "Search notes", catalog: "Search compon
 
 export async function searchFixture(consumer: SearchConsumer) {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import CatalogWorkspace from "@desert/svelte/explorer/CatalogWorkspace.svelte";
+    import CatalogWorkspace from "@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte";
     import {viewEventOwnership} from '@desert/web/client/view-events.ts';
-    import { matchingEntries, catalogTitle } from "@desert/svelte/catalog/navigation.ts";
+    import { matchingEntries, catalogTitle } from "@desert/svelte/infra/catalog-navigation.ts";
     import { retrieveCollection } from "@desert/svelte/collection-retrieval.ts";
     let query = $state("");
     let searching = $state(false);
@@ -46,7 +46,7 @@ export async function searchFixture(consumer: SearchConsumer) {
 
 export async function directSearchFixture() {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import SearchField from "@desert/svelte/pieces/SearchField.svelte";
+    import SearchField from "@desert/svelte/catalog/foundations/search-field/SearchField.svelte";
     let query = $state("");
     let readonly = $state(false);
     let disabled = $state(false);

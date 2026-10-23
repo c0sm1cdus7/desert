@@ -6,8 +6,8 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 
 test('collection loading, empty and offline are distinct and retained records never flash empty', {timeout:60000}, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import Collection from '@desert/svelte/Collection.svelte';
-    import Action from '@desert/svelte/pieces/Action.svelte';
+    import Collection from '@desert/svelte/catalog/compositions/collection/Collection.svelte';
+    import Action from '@desert/svelte/catalog/foundations/action/Action.svelte';
     let mode = $state('loading');
     const base={version:'desert.bank-node/1',kind:'collection',object:'note',fields:['title'],labels:{'note.title':'Title'},selectedId:null};
     const node=$derived({...base,loaded:['empty','records','cached'].includes(mode),disabled:mode!=='records',

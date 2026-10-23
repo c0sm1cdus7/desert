@@ -1,7 +1,7 @@
 export const groupedRowsSource = `<script lang="ts">
-  import Collection from "@desert/svelte/Collection.svelte";
-  import ContextPanel from "@desert/svelte/ContextPanel.svelte";
-  import OptionsControl from "@desert/svelte/controls/OptionsControl.svelte";
+  import Collection from "@desert/svelte/catalog/compositions/collection/Collection.svelte";
+  import ContextPanel from "@desert/svelte/catalog/compositions/context-panel/ContextPanel.svelte";
+  import OptionsControl from "@desert/svelte/catalog/compositions/options-control/OptionsControl.svelte";
   import { applyControlEvent } from "@desert/interaction/control-nodes.ts";
   const choices = ['First','Middle','Last'].map(label => ({value:label,label,disabled:false}));
   let disabled = $state(false);

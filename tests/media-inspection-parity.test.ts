@@ -62,7 +62,7 @@ async function compare(name:string,fixtures:Awaited<ReturnType<typeof prepare>>[
 
 test('closed Media library preserves card/gallery pixels, queue, zoom controls and focus',async()=>{
   const source=`<script lang="ts">
-    import Media from '@desert/svelte/views/MediaContent.svelte';
+    import Media from '@desert/svelte/catalog/renderer/media-content/MediaContent.svelte';
     let mounted=$state(false),album=$state<string|null>(null),media;
     const library=${JSON.stringify(library)};
   </script><button onclick={()=>mounted=true}>Mount fixture</button>
@@ -109,7 +109,7 @@ test('closed Media library preserves card/gallery pixels, queue, zoom controls a
 
 test('closed inspection preserves indexed inventory pixels, detail, drafts and retained focus',async()=>{
   const source=`<script>
-    import Inspection from '@desert/svelte/views/InspectionContent.svelte';
+    import Inspection from '@desert/svelte/catalog/renderer/inspection-content/InspectionContent.svelte';
     let mounted=$state(false);
   </script><button onclick={()=>mounted=true}>Mount fixture</button>
   <main data-renderer-profile="apple-reference" style="padding:16px">{#if mounted}<Inspection/>{/if}</main>`;
@@ -151,8 +151,8 @@ test('closed inspection preserves indexed inventory pixels, detail, drafts and r
 
 test('inspection entry lookup stays within its own catalog instance',async()=>{
   const fixture=await prepare(`<script>
-    import Bank from '@desert/svelte/explorer/PublicCatalogBank.svelte';
-    import {inspectionCatalog} from '@desert/svelte/catalog/inspection-fixture.ts';
+    import Bank from '@desert/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte';
+    import {inspectionCatalog} from '@desert/svelte/catalog/compositions/inspection/inspection-fixture.ts';
     let mounted=$state(false),second,result=$state('');
   </script><button onclick={()=>mounted=true}>Mount fixture</button>
   <button onclick={async()=>{const target=await second.revealEntry('control.tag');result=target?.closest('[data-test-bank]')?.getAttribute('data-test-bank')??'missing';}}>Reveal second Tag</button>

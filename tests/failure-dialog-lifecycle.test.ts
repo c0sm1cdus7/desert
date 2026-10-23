@@ -7,7 +7,7 @@ import { BankVersion, bankNode } from "../src/interaction/bank-node.ts";
 const title = "We couldn’t complete that action";
 const description = "This action is no longer available for the current record. No change was accepted.";
 const source = (initial: string | null) => `<script lang="ts">
-  import FailureDialog from "@desert/svelte/FailureDialog.svelte";
+  import FailureDialog from "@desert/svelte/catalog/renderer/failure-dialog/FailureDialog.svelte";
   let code = $state<string | null>(${JSON.stringify(initial)}), calls = $state(0);
 </script>
 <button onclick={() => code = "PRECONDITION_FAILED"}>Open failure</button>

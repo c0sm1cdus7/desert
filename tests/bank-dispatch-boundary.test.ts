@@ -3,7 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { assertClosedVisualBoundaries } from "../src/authoring/visual-boundary/closed.ts";
 
-const path = "src/svelte/BankRenderer.svelte";
+const path = "src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte";
 const original = readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const owners = ["src/svelte/renderer-registry.ts", "src/svelte/renderer-contracts.ts"].map(path => ({
   path, source: readFileSync(new URL(`../${path}`, import.meta.url), "utf8"),

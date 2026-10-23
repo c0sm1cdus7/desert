@@ -25,7 +25,7 @@ test("semantic faces retain tint while every pane shares neutral material and ac
     import * as Avatar from '@desert/svelte/vendor/components/ui/avatar/index.js';
     import { Button } from '@desert/svelte/vendor/components/ui/button/index.js';
     import * as InputGroup from '@desert/svelte/vendor/components/ui/input-group/index.js';
-    import Face from '@desert/svelte/pieces/Face.svelte';
+    import Face from '@desert/svelte/catalog/foundations/face/Face.svelte';
     import SearchIcon from '@lucide/svelte/icons/search';
     const photo = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Cpath fill="%238e6352" d="M0 0h40v40H0z"/%3E%3C/svg%3E';
   </script><main style="padding:24px">

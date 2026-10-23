@@ -3,7 +3,7 @@ import test from "node:test";
 import { inspectVisualSource } from "../src/authoring/visual-boundary/inspect.ts";
 import { assertClosedVisualBoundaries } from "../src/authoring/visual-boundary/closed.ts";
 
-const path = "src/svelte/pieces/ContentFlow.svelte";
+const path = "src/svelte/catalog/compositions/content-flow/ContentFlow.svelte";
 const codes = (source: string, target = path) => inspectVisualSource(target, source).findings.map(item => item.code);
 
 test("registered private compositions distinguish proven lexical snippets from public render slots", () => {
@@ -11,7 +11,7 @@ test("registered private compositions distinguish proven lexical snippets from p
     + "{#snippet content()}{@render title()}{/snippet}{@render content()}";
   assert.deepEqual(codes(source), []);
   assert.doesNotThrow(() => assertClosedVisualBoundaries([{ path, source }]));
-  for (const target of ["src/svelte/pieces/Unregistered.svelte", "src/svelte/FrameBody.svelte"]) {
+  for (const target of ["src/svelte/pieces/Unregistered.svelte", "src/svelte/catalog/renderer/frame-body/FrameBody.svelte"]) {
     assert.ok(codes(source, target).includes("RENDER_SLOT"), "location alone cannot approve lexical ownership");
   }
 });

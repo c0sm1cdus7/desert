@@ -6,9 +6,10 @@ import { declarationSuffixes, type CatalogLayout } from "../layout.ts";
 import { readDeclarations } from "../read-declaration.ts";
 import { assertDeclaredSources, type LocatedDeclaration } from "./inventory.ts";
 import { assertDeclarationsConsistent } from "./declarations.ts";
+import { assertLedgerStructure } from "./ledger.ts";
 
-export type CatalogRule = "A" | "B";
-export type CatalogTree = Readonly<{ paths: readonly string[]; declarations: readonly LocatedDeclaration[] }>;
+export type CatalogRule = "A" | "B" | "L";
+export type CatalogTree = Readonly<{ paths: readonly string[]; declarations: readonly LocatedDeclaration[]; ledger: unknown }>;
 
 async function walk(root: string, folder: string, paths: string[]): Promise<void> {
   let entries: string[];
@@ -23,6 +24,10 @@ async function walk(root: string, folder: string, paths: string[]): Promise<void
   }
 }
 
+function parseLedger(path: string, text: string): unknown {
+  try { return JSON.parse(text); } catch { throw new Error(`APPROVALS_LEDGER: ${path} is not JSON`); }
+}
+
 export async function readCatalogTree(root: string, layout: CatalogLayout): Promise<CatalogTree> {
   const paths: string[] = [];
   for (const folder of layout.roots) await walk(root, relative(root, join(root, folder)).split("\\").join("/"), paths);
@@ -30,7 +35,8 @@ export async function readCatalogTree(root: string, layout: CatalogLayout): Prom
   for (const path of paths) if (declarationSuffixes.some(suffix => path.endsWith(suffix))) {
     for (const declaration of readDeclarations(path, await readFile(join(root, path), "utf8"))) declarations.push({ path, declaration });
   }
-  return Object.freeze({ paths: Object.freeze(paths), declarations: Object.freeze(declarations) });
+  const ledger: unknown = paths.includes(layout.ledger) ? parseLedger(layout.ledger, await readFile(join(root, layout.ledger), "utf8")) : undefined;
+  return Object.freeze({ paths: Object.freeze(paths), declarations: Object.freeze(declarations), ledger });
 }
 
 export async function runCatalogGate(root: string, options: Readonly<{ layout: CatalogLayout; rules: readonly CatalogRule[] }>) {
@@ -38,6 +44,7 @@ export async function runCatalogGate(root: string, options: Readonly<{ layout: C
   const rules: Record<CatalogRule, () => void> = {
     A: () => assertDeclaredSources(tree.paths, tree.declarations, options.layout),
     B: () => assertDeclarationsConsistent(tree.declarations, new Set(tree.paths), options.layout),
+    L: () => assertLedgerStructure(tree.ledger, tree.declarations),
   };
   for (const rule of options.rules) rules[rule]();
   return tree;

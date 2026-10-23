@@ -42,7 +42,7 @@ test("toolbar consumers cannot substitute raw identity markup", () => {
   for (const child of ['<span data-product-name>VOID</span>', '<h2>Title</h2>', '<div><span>Title</span></div>']) {
     assert.throws(() => assertCanonicalToolbarOwnership([{
       path: "src/svelte/explorer/Consumer.svelte",
-      source: `<script>import ToolbarLayout from '../pieces/ToolbarLayout.svelte';</script><ToolbarLayout>${child}</ToolbarLayout>`,
+      source: `<script>import ToolbarLayout from '../catalog/compositions/toolbar-layout/ToolbarLayout.svelte';</script><ToolbarLayout>${child}</ToolbarLayout>`,
     }]), /TOOLBAR_OWNERSHIP/);
   }
 });

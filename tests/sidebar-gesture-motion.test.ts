@@ -7,8 +7,8 @@ import { settle } from './web/public-catalog-expectations.ts';
 for(const reducedMotion of ['reduce','no-preference'] as const) test(`sidebar direct reveal owns its painted endpoint (${reducedMotion})`,async()=>{
  const f=await svelteBrowser(`<script lang="ts">
  import * as Sidebar from '@desert/svelte/vendor/components/ui/sidebar/index.js';
- import CatalogEdgeNavigation from '@desert/svelte/explorer/CatalogEdgeNavigation.svelte';
- import CatalogNavigation from '@desert/svelte/explorer/CatalogNavigation.svelte';
+ import CatalogEdgeNavigation from '@desert/svelte/catalog/compositions/catalog-workspace/CatalogEdgeNavigation.svelte';
+ import CatalogNavigation from '@desert/svelte/catalog/compositions/catalog-navigation/CatalogNavigation.svelte';
  let viewport=$state<HTMLElement|null>(null);
  </script>
  <div data-catalog-workspace><Sidebar.Provider>

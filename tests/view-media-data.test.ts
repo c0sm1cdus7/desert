@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { MediaLibrary } from "../src/views/media-library.ts";
-import { mediaContent, mediaIdentity, mediaTarget, mediaResults, mediaItems } from "../src/svelte/views/media-data.ts";
+import { mediaContent, mediaIdentity, mediaTarget, mediaResults, mediaItems } from "../src/svelte/infra/media-data.ts";
 
 const library = {
   id: "library", items: [

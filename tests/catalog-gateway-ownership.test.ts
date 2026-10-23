@@ -13,7 +13,7 @@ const check = (gateway: string) => assertClosedVisualBoundaries([
 
 test("catalog gateway cannot replace an admitted owner with a different implementation", () => {
   for (const candidate of [
-    source.replace('from "./pieces/ViewWorkspace.svelte"', 'from "./pieces/Heading.svelte"'),
+    source.replace('from "./catalog/compositions/view-workspace/ViewWorkspace.svelte"', 'from "./catalog/foundations/heading/Heading.svelte"'),
     source.replace('= WorkspaceOwner;', '= TextOwner;'),
     source.replace('= WorkspaceOwner;', '= wrap(WorkspaceOwner);'),
     source + '\nexport const Arbitrary = WorkspaceOwner;',

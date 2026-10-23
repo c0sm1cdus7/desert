@@ -7,7 +7,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 
 const source = `<script lang="ts">
-  import CatalogWorkspace from '@desert/svelte/explorer/CatalogWorkspace.svelte';
+  import CatalogWorkspace from '@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte';
   ${workspaceBodySource()}
 </script>
 <CatalogWorkspace navigationSurface={{title:'Notebook',settingsPlaceholder:true}} title="Notes" identity={{title:'Notes',subtitle:'Your writing'}}
@@ -15,8 +15,8 @@ const source = `<script lang="ts">
   onquery={()=>{}} onnavigate={()=>{}} content={workspaceBody} />`;
 
 test("correcting pane landmark semantics leaves navigation, headings and toolbar pixels unchanged", { timeout: 60000 }, async () => {
-  const paths = ["src/svelte/pieces/ToolbarLayout.svelte", "src/svelte/pieces/PlaceHeading.svelte",
-    "src/svelte/pieces/Place.svelte", "src/svelte/explorer/CatalogNavigation.svelte"];
+  const paths = ["src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte", "src/svelte/catalog/compositions/place-heading/PlaceHeading.svelte",
+    "src/svelte/catalog/foundations/place/Place.svelte", "src/svelte/catalog/compositions/catalog-navigation/CatalogNavigation.svelte"];
   const before: Record<string,string> = {};
   for (const path of paths) {
     const current = await readFile(path, 'utf8');

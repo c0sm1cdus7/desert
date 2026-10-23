@@ -4,9 +4,9 @@ import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 
 const source = `<script lang="ts">
-  import Action from '@desert/svelte/pieces/Action.svelte';
+  import Action from '@desert/svelte/catalog/foundations/action/Action.svelte';
   import { Button } from '@desert/svelte/vendor/components/ui/button/index.js';
-  import TextInput from '@desert/svelte/pieces/TextInput.svelte';
+  import TextInput from '@desert/svelte/catalog/foundations/text-input/TextInput.svelte';
   let state = $state('ready');
 </script>
 <div data-test-controls>{#each ['ready','unavailable','pending'] as value}

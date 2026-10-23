@@ -94,14 +94,14 @@ Product modules + Views + journeys + workspace/navigation
 | `src/modules/compiled-product.ts` | Bind the application to its admitted View program. |
 | `src/views/program.ts` | Validate View bindings against the exposed surface. |
 | `src/web/build.ts` | Generate surface/program and standalone command validators. |
-| `src/svelte/pieces/AccessGate.svelte` | Mount content only for an admitted session or explicit developer host. |
+| `src/svelte/catalog/compositions/access-gate/AccessGate.svelte` | Mount content only for an admitted session or explicit developer host. |
 | `src/web/client/view-program.ts` and `view-projection.ts` | Resolve destinations, Views and panels without drawing. |
 | `src/web/client/view-scopes.ts` | Derive read/mutation scopes while sharing one connection observer. |
 | `src/svelte/views/` | Forward typed projections through the registered adapter catalog. |
-| `src/svelte/pieces/ViewWorkspace.svelte` | Adapt the resolved workspace to the existing catalog shell. |
-| `src/svelte/explorer/CatalogWorkspace.svelte` | Compose shared navigation, main surface, search and panels. |
-| `src/svelte/pieces/ViewPanel.svelte` | Adapt the panel to existing Drawer/SurfaceFrame owners. |
-| `src/svelte/BankRenderer.svelte` and `renderer-registry.ts` | Validate and dispatch installed bank descriptors. |
+| `src/svelte/catalog/compositions/view-workspace/ViewWorkspace.svelte` | Adapt the resolved workspace to the existing catalog shell. |
+| `src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte` | Compose shared navigation, main surface, search and panels. |
+| `src/svelte/catalog/compositions/view-panel/ViewPanel.svelte` | Adapt the panel to existing Drawer/SurfaceFrame owners. |
+| `src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte` and `renderer-registry.ts` | Validate and dispatch installed bank descriptors. |
 
 `DESERT-BUILD.json` format `desert.distribution-build/3` binds files, renderer
 revision, contract, distribution, surface and `viewProgramDigest`. Activities add
@@ -210,7 +210,7 @@ owners; they do not add a separate wizard layout.
 
 ## Material, text and interaction
 
-`pieces/pane-material.css` owns Glass: a neutral 88% translucent fill, 24px blur
+`catalog/mechanisms/pane-material/pane-material.css` owns Glass: a neutral 88% translucent fill, 24px blur
 and one perimeter. Independent action faces, wells, grouped lists, navigation
 and transient surfaces use it; interiors stay transparent. Primary actions tint
 the same material with the primary color. This supersedes the earlier neutral-

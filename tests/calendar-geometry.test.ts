@@ -6,7 +6,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 const source = `<script lang="ts">
   import { Calendar } from "@desert/svelte/vendor/components/ui/calendar/index.js";
   import { parseDate } from '@internationalized/date';
-  import TextInput from "@desert/svelte/pieces/TextInput.svelte";
+  import TextInput from "@desert/svelte/catalog/foundations/text-input/TextInput.svelte";
   import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
   import { Badge } from "@desert/svelte/vendor/components/ui/badge/index.js";
   const node={version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival',required:false,disabled:false,value:'2026-10-15'};

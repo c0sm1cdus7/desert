@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { adaptiveSurfaceLayout } from '../src/svelte/pieces/adaptive-surface-layout.ts';
+import { adaptiveSurfaceLayout } from '../src/svelte/catalog/foundations/drawer/adaptive-surface-layout.ts';
 
 test('approved pane-fit and dock-fit boundaries are independent and have no width cliff', () => {
   const expected = [

@@ -34,7 +34,7 @@ test('logical dimensions and identity displacement remain shared toolbar geometr
 });
 test('toolbar owner cannot reopen arbitrary attributes or class/style inputs',()=>{
   for(const source of ['<script>let {class:className,...rest}=$props();</script><header {...rest}/>','<script>let {style}=$props();</script><header/>','<script lang="ts">import type {HTMLAttributes} from "svelte/elements";let props:HTMLAttributes<HTMLElement>=$props();</script><header/>'])
-    assert.throws(()=>check(source,'src/svelte/pieces/ToolbarLayout.svelte'),/TOOLBAR_OWNERSHIP/);
+    assert.throws(()=>check(source,'src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte'),/TOOLBAR_OWNERSHIP/);
 });
 test('inline ancestor variables and direct scripted metric mutations cannot bypass the owner',()=>{
   for(const source of ['<div style="--catalog-toolbar-height:20px"/>','<div style:--toolbar-inset="0"/>','<script>element.style.setProperty("--toolbar-target","20px")</script>','<button onclick={()=>element.style.setProperty("--toolbar-inset","0")}/>'])

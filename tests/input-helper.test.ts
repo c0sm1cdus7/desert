@@ -3,7 +3,7 @@ import test from "node:test";
 import type { Locator } from "playwright";
 import { BankVersion, bankNode } from "../src/interaction/bank-node.ts";
 import { compilePublicCatalog } from "../src/public-catalog/index.ts";
-import { publicCatalogBankInventory } from "../src/svelte/explorer/PublicCatalogBank-model.ts";
+import { publicCatalogBankInventory } from "../src/svelte/infra/PublicCatalogBank-model.ts";
 import { catalogFixture } from "./fixtures/public-catalog.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
@@ -17,7 +17,7 @@ async function descriptions(control: Locator) {
 
 test("input helpers belong to each field and join errors/counters in every input branch", { timeout: 90000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import TextInput from '@desert/svelte/pieces/TextInput.svelte';
+    import TextInput from '@desert/svelte/catalog/foundations/text-input/TextInput.svelte';
     let helper = $state('Use a recognizable name.');
   </script>
   <TextInput primitive="input.text" label="Name" {helper} error="Name is unavailable." onchange={()=>{}}/>
@@ -57,7 +57,7 @@ test("the closed bank carries helper copy and both input specimens demonstrate i
     assert.ok(item.node && "helper" in item.node && typeof item.node.helper === "string" && item.node.helper.length > 0);
   }
   const f = await svelteBrowser(`<script lang="ts">
-    import BankRenderer from '@desert/svelte/BankRenderer.svelte';
+    import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
     const base = ${JSON.stringify(base)};
   </script>{#each ['input.text','input.multiline'] as kind}
     <BankRenderer node={{...base, kind, label:kind, helper:'Field-specific guidance.'}} onevent={()=>{}}/>
@@ -73,7 +73,7 @@ test("the closed bank carries helper copy and both input specimens demonstrate i
 
 test("onboarding places constraints at their inputs and leaves general context in its subtitle", { timeout: 90000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import AccessForm from '@desert/svelte/pieces/AccessForm.svelte';
+    import AccessForm from '@desert/svelte/catalog/compositions/access-form/AccessForm.svelte';
     let mode = $state<'initialize'|'signIn'>('initialize');
   </script><AccessForm {mode} onsubmit={async()=>{}}/><button onclick={()=>mode='signIn'}>Show unlock</button>`);
   try {

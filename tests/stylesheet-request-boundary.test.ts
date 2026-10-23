@@ -3,7 +3,7 @@ import test from "node:test";
 import { assertClosedVisualBoundaries } from "../src/authoring/visual-boundary/closed.ts";
 import { inspectVisualSource } from "../src/authoring/visual-boundary/inspect.ts";
 
-const path = "src/svelte/views/ViewProduct.svelte";
+const path = "src/svelte/catalog/renderer/view-product/ViewProduct.svelte";
 const check = (source: string) => assertClosedVisualBoundaries([{ path, source }]);
 
 test("sealed adapters reject stylesheet requests independently of extension, query, fragment or import syntax", () => {
@@ -26,9 +26,9 @@ test("sealed adapters reject stylesheet requests independently of extension, que
 
 test("a request suffix cannot disguise a private component or reopen a closed owner", () => {
   for (const suffix of ["?audit", "#component", "?svelte&type=script"]) {
-    assert.throws(() => check(`<script>import Foreign from "../pieces/Heading.svelte${suffix}";</script>`), /private component import/);
+    assert.throws(() => check(`<script>import Foreign from "../catalog/foundations/heading/Heading.svelte${suffix}";</script>`), /private component import/);
     assert.throws(() => assertClosedVisualBoundaries([{ path: "src/svelte/example.svelte", source:
-      `<script>import Heading from "./pieces/Heading.svelte${suffix}";</script><Heading class="foreign"/>`,
+      `<script>import Heading from "./catalog/foundations/heading/Heading.svelte${suffix}";</script><Heading class="foreign"/>`,
     }]), /presentation escape/);
     assert.throws(() => check(`<script>import { BankRenderer } from "../adapter-catalog.ts${suffix}";</script><BankRenderer {node}/>`), /component outside adapter catalog/);
   }

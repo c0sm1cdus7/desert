@@ -23,7 +23,7 @@ async function snapshot(grip: Locator, name: string) {
 
 async function drawerFixture(locked = false) {
   return svelteBrowser(`<script lang="ts">
-    import Drawer from '@desert/svelte/pieces/Drawer.svelte';
+    import Drawer from '@desert/svelte/catalog/foundations/drawer/Drawer.svelte';
     import { SurfaceFrameVersion } from '@desert/interaction/surface-frame.ts';
     let open = $state(false);
     const frame = {version:SurfaceFrameVersion,kind:'specimen',top:{title:'Context'},

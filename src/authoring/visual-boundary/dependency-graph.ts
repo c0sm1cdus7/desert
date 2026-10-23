@@ -59,7 +59,7 @@ export async function assertNonvisualDependencies(root: string, adapters: readon
       }
       if (target === gateway && adapter && request === canonical) continue;
       if (request !== canonical || !target.startsWith("src/") || !/\.(ts|[cm]?js)$/.test(target)
-        || target === gateway || target.startsWith("src/svelte/pieces/") || target.includes("/vendor/")) fail(`visual or opaque dependency: ${request}`);
+        || target === gateway || /^src\/svelte\/catalog\/(?:foundations|compositions|mechanisms)\//.test(target) || target.includes("/vendor/")) fail(`visual or opaque dependency: ${request}`);
       const absolute = resolve(root, target);
       if (relative(root, absolute).startsWith("..")) fail("dependency outside SDK");
       try {

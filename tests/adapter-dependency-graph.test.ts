@@ -12,7 +12,7 @@ async function withDependency(source: string, check: (root: string) => Promise<v
   const directory = mkdtempSync(join(tmpdir(), "desert-adapter-graph-"));
   try {
     cpSync(join(root, "src"), join(directory, "src"), { recursive: true });
-    const adapter = join(directory, "src/svelte/views/ViewItem.svelte");
+    const adapter = join(directory, "src/svelte/catalog/renderer/view-item/ViewItem.svelte");
     writeFileSync(adapter, readFileSync(adapter, "utf8").replace('<script lang="ts">',
       '<script lang="ts">\n  import { observe } from "../../web/client/graph-fixture.ts";\n  observe();'));
     writeFileSync(join(directory, "src/web/client/graph-fixture.ts"), source);
@@ -23,7 +23,7 @@ async function withDependency(source: string, check: (root: string) => Promise<v
 test("build rejects visual authority hidden behind an adapter's TypeScript dependency", async () => {
   for (const source of [
     'import "../../svelte/theme.css"; export const observe = () => {};',
-    'export { default as observe } from "../../svelte/pieces/Action.svelte";',
+    'export { default as observe } from "../../svelte/catalog/foundations/action/Action.svelte";',
     'export const observe = () => { document.body.textContent = "Injected"; };',
     'export const observe = () => import("../../svelte/theme.css?inline");',
     'export const observe = () => { const host = globalThis; host["document"].write("Injected"); };',
@@ -69,7 +69,7 @@ test("barrels do not launder visual authority, and missing/opaque dependency edg
 test("ordinary nonvisual helper chains and type-only visual references remain legal", async () => {
   await withDependency('export { observe } from "./graph-second.ts";', async directory => {
     writeFileSync(join(directory, "src/web/client/graph-second.ts"),
-      'import type Action from "../../svelte/pieces/Action.svelte";\n'
+      'import type Action from "../../svelte/catalog/foundations/action/Action.svelte";\n'
       + 'export const observe = () => ({ title: "Notes", value: 1 });');
     let invoked = false;
     await runWithVisualBoundaries(directory, async () => { invoked = true; });

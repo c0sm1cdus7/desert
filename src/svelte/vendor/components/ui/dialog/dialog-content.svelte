@@ -8,8 +8,8 @@
 	import DialogPortal from "./dialog-portal.svelte";
 	import type { Snippet } from "svelte";
 	import type { ComponentProps } from "svelte";
-	import { surfaceFocus } from "@desert/svelte/pieces/surface-focus.svelte.ts";
-  import { useSurfaceTypography } from '@desert/svelte/pieces/surface-typography.svelte.ts';
+	import { surfaceFocus } from "@desert/svelte/infra/surface-focus.svelte.ts";
+  import { useSurfaceTypography } from '@desert/svelte/infra/surface-typography.svelte.ts';
 
 	let {
 		ref = $bindable(null),

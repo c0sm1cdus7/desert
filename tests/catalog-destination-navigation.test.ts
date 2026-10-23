@@ -66,7 +66,7 @@ for (const width of [390, 1440]) test(`catalog detail title hands off to the too
 
 test("each destination retains its catalog path and nested samples return through the same toolbar", async () => {
   const fixture = await svelteBrowser(`<script>
-    import Workspace from './src/svelte/views/Workspace.svelte';
+    import Workspace from './src/svelte/catalog/renderer/workspace/Workspace.svelte';
     const program = ${JSON.stringify(program)};
     let active = $state('catalog');
     let resolved = $derived({view:program.views.find(view=>view.id===active),bindings:{},disabledOutputs:[]});

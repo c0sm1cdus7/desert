@@ -5,7 +5,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 import { settleMotion } from "./web/fixture.ts";
 
 const source = `<script>
-  import { frameContinuity } from '@desert/svelte/pieces/frame-continuity.svelte.ts';
+  import { frameContinuity } from '@desert/svelte/infra/frame-continuity.svelte.ts';
   import { intentKey } from '@desert/interaction/intent.ts';
   let panel=$state(null), owner=$state({}), kind=$state('context'), open=$state(true);
   const archive={kind:'journey',journey:'archive-note',recordId:'one'};
@@ -37,11 +37,11 @@ async function settle(f: Awaited<ReturnType<typeof svelteBrowser>>) {
 
 test("retained Panel post-effects preserve focus and scroll after replacing the real keyed Drawer frame", async () => {
   const f = await svelteBrowser(`<script>
-    import Panel from '@desert/svelte/views/Panel.svelte';
-    import AdaptiveSurfaceLayout from '@desert/svelte/pieces/AdaptiveSurfaceLayout.svelte';
+    import Panel from '@desert/svelte/catalog/renderer/panel/Panel.svelte';
+    import AdaptiveSurfaceLayout from '@desert/svelte/catalog/compositions/catalog-workspace/AdaptiveSurfaceLayout.svelte';
     import { surfaceFrame } from '@desert/interaction/surface-frame.ts';
     import { viewEventOwnership } from '@desert/web/client/view-events.ts';
-    import { provideFrameActivation } from '@desert/svelte/pieces/frame-continuity.svelte.ts';
+    import { provideFrameActivation } from '@desert/svelte/infra/frame-continuity.svelte.ts';
     const activateFrame=provideFrameActivation();
     const ownership=viewEventOwnership(),readingIdentity=Object.freeze({});
     const action={intent:{kind:'journey',journey:'archive-note'},label:'Archive note',icon:'archive',state:'ready'};
@@ -167,7 +167,7 @@ test("a command in a portaled descendant keeps the parent frame's focus continui
   const f = await svelteBrowser(`<script>
     import * as Dialog from '@desert/svelte/vendor/components/ui/dialog/index.js';
     import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
-    import { frameContinuity } from '@desert/svelte/pieces/frame-continuity.svelte.ts';
+    import { frameContinuity } from '@desert/svelte/infra/frame-continuity.svelte.ts';
     let panel=$state(null),owner=$state({}),kind=$state('context');
     const continuity=frameContinuity(()=>panel,()=>owner,()=>({kind}),()=>undefined);
     function review(){continuity.invoking({kind:'journey',journey:'archive-note'});kind='journey';owner={};}
@@ -193,7 +193,7 @@ test("a command in a portaled descendant keeps the parent frame's focus continui
 test("one suspended reading position belongs only to its opaque subject identity", async () => {
   const f = await svelteBrowser(`<script>
     import { tick } from 'svelte';
-    import { frameContinuity } from '@desert/svelte/pieces/frame-continuity.svelte.ts';
+    import { frameContinuity } from '@desert/svelte/infra/frame-continuity.svelte.ts';
     const first=Object.freeze({}),second=Object.freeze({});
     let panel=$state(null),owner=$state({}),reading=$state.raw(first),kind=$state('context');
     frameContinuity(()=>panel,()=>owner,()=>({kind}),()=>reading);

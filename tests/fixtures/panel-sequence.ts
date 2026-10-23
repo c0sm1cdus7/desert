@@ -30,8 +30,8 @@ export function panelSequenceFixture(kind: "form" | "context", complex: boolean,
   const panel = projectViewPanel(value, value.journeys[index]!, value.views.find(view => view.id === id)!,
     surface, store.get(), validate, scope);
   return `<script lang="ts">
-    import Panel from '@desert/svelte/views/Panel.svelte';
-    import AdaptiveSurfaceLayout from '@desert/svelte/pieces/AdaptiveSurfaceLayout.svelte';
+    import Panel from '@desert/svelte/catalog/renderer/panel/Panel.svelte';
+    import AdaptiveSurfaceLayout from '@desert/svelte/catalog/compositions/catalog-workspace/AdaptiveSurfaceLayout.svelte';
     import { viewEventOwnership } from '@desert/web/client/view-events.ts';
     const initial=${JSON.stringify(panel)}, ownership=viewEventOwnership();
     let open=$state(false), generation=$state(0), value=$state('Writing'), accepted=$state(0), rejected=$state(0);

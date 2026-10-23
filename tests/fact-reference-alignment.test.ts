@@ -4,7 +4,7 @@ import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 test('reference facts paint against the same right edge as scalar facts at wide and compact sizes',async()=>{
   const f=await svelteBrowser(`<script lang="ts">
-    import FactRow from '@desert/svelte/pieces/FactRow.svelte';
+    import FactRow from '@desert/svelte/catalog/foundations/fact-row/FactRow.svelte';
     const references=[{value:'one',label:'Research',color:'blue'},{value:'two',label:'VOID',color:'green'}];
   </script><dl><FactRow label="Projects" value={['one','two']} {references}/><FactRow label="Status" value="Open"/></dl>`);
   try{

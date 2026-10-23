@@ -7,7 +7,8 @@ export const PieceId = immutable(Type.String({ pattern: "^[a-z][a-z0-9]*(?:-[a-z
 const FileName = immutable(Type.String({ pattern: "^[A-Za-z0-9][A-Za-z0-9._-]*\\.(?:svelte|css|ts)$" }));
 const unique = <T extends ReturnType<typeof Type.String>>(item: T, minItems = 0) =>
   Type.Array(item, { uniqueItems: true, minItems });
-export const Shape = immutable(Type.Union([Type.Literal("capsule"), Type.Literal("radius")]));
+/** Curvature family of a foundation (owner decision Q3): capsule or radius; "none" for pieces that own no rounded geometry. */
+export const Shape = immutable(Type.Union([Type.Literal("capsule"), Type.Literal("radius"), Type.Literal("none")]));
 const Axis = immutable(Type.Record(PieceId, unique(PieceId, 1), { additionalProperties: false }));
 const Slot = closed({ accepts: unique(PieceId, 1), variants: Type.Optional(Axis) });
 const Slots = immutable(Type.Record(PieceId, Slot, { additionalProperties: false }));

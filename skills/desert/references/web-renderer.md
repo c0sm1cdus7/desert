@@ -4,7 +4,7 @@ Generated from the bundled SDK documentation; do not edit this snapshot.
 
 ## Source: docs/WEB-RENDERER.md
 
-Source SHA-256: e1d87fc3d225e0fa213aeb2da5ff3770a7397b8ba608b25e37dee15513fb4259
+Source SHA-256: 281499d10ec95f2f3f6ff231ad9c924ef2c8e19c8bd59b192cacae5f5b3b9825
 
 # The DESERT human web renderer
 
@@ -102,14 +102,14 @@ Product modules + Views + journeys + workspace/navigation
 | `src/modules/compiled-product.ts` | Bind the application to its admitted View program. |
 | `src/views/program.ts` | Validate View bindings against the exposed surface. |
 | `src/web/build.ts` | Generate surface/program and standalone command validators. |
-| `src/svelte/pieces/AccessGate.svelte` | Mount content only for an admitted session or explicit developer host. |
+| `src/svelte/catalog/compositions/access-gate/AccessGate.svelte` | Mount content only for an admitted session or explicit developer host. |
 | `src/web/client/view-program.ts` and `view-projection.ts` | Resolve destinations, Views and panels without drawing. |
 | `src/web/client/view-scopes.ts` | Derive read/mutation scopes while sharing one connection observer. |
 | `src/svelte/views/` | Forward typed projections through the registered adapter catalog. |
-| `src/svelte/pieces/ViewWorkspace.svelte` | Adapt the resolved workspace to the existing catalog shell. |
-| `src/svelte/explorer/CatalogWorkspace.svelte` | Compose shared navigation, main surface, search and panels. |
-| `src/svelte/pieces/ViewPanel.svelte` | Adapt the panel to existing Drawer/SurfaceFrame owners. |
-| `src/svelte/BankRenderer.svelte` and `renderer-registry.ts` | Validate and dispatch installed bank descriptors. |
+| `src/svelte/catalog/compositions/view-workspace/ViewWorkspace.svelte` | Adapt the resolved workspace to the existing catalog shell. |
+| `src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte` | Compose shared navigation, main surface, search and panels. |
+| `src/svelte/catalog/compositions/view-panel/ViewPanel.svelte` | Adapt the panel to existing Drawer/SurfaceFrame owners. |
+| `src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte` and `renderer-registry.ts` | Validate and dispatch installed bank descriptors. |
 
 `DESERT-BUILD.json` format `desert.distribution-build/3` binds files, renderer
 revision, contract, distribution, surface and `viewProgramDigest`. Activities add
@@ -218,7 +218,7 @@ owners; they do not add a separate wizard layout.
 
 ## Material, text and interaction
 
-`pieces/pane-material.css` owns Glass: a neutral 88% translucent fill, 24px blur
+`catalog/mechanisms/pane-material/pane-material.css` owns Glass: a neutral 88% translucent fill, 24px blur
 and one perimeter. Independent action faces, wells, grouped lists, navigation
 and transient surfaces use it; interiors stay transparent. Primary actions tint
 the same material with the primary color. This supersedes the earlier neutral-
@@ -431,7 +431,7 @@ verbatim modules, not standalone snippets or a published package API.
 - src/interaction/bank-schema.ts
 - src/interaction/bank-node.ts
 - src/interaction/bank-events.ts
-- src/svelte/BankRenderer.svelte
+- src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte
 - src/check-surface.ts
 - src/project-surface.ts
 - src/web/build.ts
@@ -443,33 +443,33 @@ verbatim modules, not standalone snippets or a published package API.
 - src/views/resolved.ts
 - src/web/client/view-program.ts
 - src/web/client/view-projection.ts
-- src/svelte/views/ViewProduct.svelte
-- src/svelte/views/Workspace.svelte
-- src/svelte/views/workspace-data.ts
-- src/svelte/views/media-data.ts
-- src/svelte/views/MediaContent.svelte
-- src/svelte/explorer/CatalogWorkspace.svelte
-- src/svelte/explorer/CatalogNavigation.svelte
-- src/svelte/explorer/CatalogNavigationActions.svelte
-- src/svelte/explorer/CatalogToolbar.svelte
-- src/svelte/explorer/workspace-navigation.ts
-- src/svelte/explorer/workspace-search.ts
-- src/svelte/views/ViewContent.svelte
-- src/svelte/views/ViewItem.svelte
-- src/svelte/views/Panel.svelte
-- src/svelte/views/InspectionContent.svelte
-- src/svelte/catalog/inspection-fixture.ts
-- src/svelte/catalog/inspection-media.ts
-- src/svelte/pieces/AccessGate.svelte
-- src/svelte/Collection.svelte
+- src/svelte/catalog/renderer/view-product/ViewProduct.svelte
+- src/svelte/catalog/renderer/workspace/Workspace.svelte
+- src/svelte/catalog/compositions/view-workspace/workspace-data.ts
+- src/svelte/infra/media-data.ts
+- src/svelte/catalog/renderer/media-content/MediaContent.svelte
+- src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte
+- src/svelte/catalog/compositions/catalog-navigation/CatalogNavigation.svelte
+- src/svelte/catalog/compositions/toolbar-layout/CatalogNavigationActions.svelte
+- src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte
+- src/svelte/infra/workspace-navigation.ts
+- src/svelte/infra/workspace-search.ts
+- src/svelte/catalog/renderer/view-content/ViewContent.svelte
+- src/svelte/catalog/renderer/view-item/ViewItem.svelte
+- src/svelte/catalog/renderer/panel/Panel.svelte
+- src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte
+- src/svelte/catalog/compositions/inspection/inspection-fixture.ts
+- src/svelte/infra/inspection-media.ts
+- src/svelte/catalog/compositions/access-gate/AccessGate.svelte
+- src/svelte/catalog/compositions/collection/Collection.svelte
 - src/svelte/collection-retrieval.ts
-- src/svelte/SurfaceFrame.svelte
+- src/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte
 - src/interaction/surface-frame.ts
 - src/interaction/frame-presenters.ts
 - src/interaction/fact-presentation.ts
 - src/interaction/review-changes.ts
 - src/web/client/frame.ts
-- src/svelte/FrameBody.svelte
+- src/svelte/catalog/renderer/frame-body/FrameBody.svelte
 - src/interaction/toolbar.ts
 - src/interaction/intent.ts
 - src/interaction/face.ts
@@ -483,41 +483,41 @@ verbatim modules, not standalone snippets or a published package API.
 - src/interaction/input-mask.ts
 - src/interaction/decimal-mask-locale.ts
 - src/interaction/information-content.ts
-- src/svelte/pieces/Toolbar.svelte
-- src/svelte/pieces/Face.svelte
-- src/svelte/pieces/FieldWell.svelte
-- src/svelte/pieces/SearchField.svelte
-- src/svelte/pieces/MeasuredField.svelte
-- src/svelte/pieces/control-measure.css
-- src/svelte/pieces/GroupedPanel.svelte
-- src/svelte/pieces/ChoiceRow.svelte
-- src/svelte/pieces/SelectionField.svelte
-- src/svelte/pieces/CollectionState.svelte
-- src/svelte/pieces/Action.svelte
-- src/svelte/pieces/action-icons.ts
+- src/svelte/catalog/compositions/toolbar/Toolbar.svelte
+- src/svelte/catalog/foundations/face/Face.svelte
+- src/svelte/catalog/foundations/field-well/FieldWell.svelte
+- src/svelte/catalog/foundations/search-field/SearchField.svelte
+- src/svelte/catalog/foundations/measured-field/MeasuredField.svelte
+- src/svelte/catalog/mechanisms/control-measure/control-measure.css
+- src/svelte/catalog/foundations/grouped-panel/GroupedPanel.svelte
+- src/svelte/catalog/foundations/choice-row/ChoiceRow.svelte
+- src/svelte/catalog/foundations/selection-field/SelectionField.svelte
+- src/svelte/catalog/compositions/collection-state/CollectionState.svelte
+- src/svelte/catalog/foundations/action/Action.svelte
+- src/svelte/infra/action-icons.ts
 - src/svelte/vendor/components/ui/button/button.svelte
 - src/svelte/vendor/components/ui/button/press-feedback.ts
-- src/svelte/controls/SelectControl.svelte
-- src/svelte/controls/PopoverControl.svelte
-- src/svelte/controls/FileControl.svelte
-- src/svelte/controls/ControlRenderer.svelte
-- src/svelte/controls/OptionsControl.svelte
-- src/svelte/controls/MoneyControl.svelte
-- src/svelte/controls/DateControl.svelte
-- src/svelte/controls/MediaControl.svelte
-- src/svelte/pieces/AnchoredSurface.svelte
-- src/svelte/Fields.svelte
-- src/svelte/pieces/TextInput.svelte
-- src/svelte/pieces/MaskedInput.svelte
-- src/svelte/pieces/CharacterCounter.svelte
-- src/svelte/pieces/ClearInput.svelte
-- src/svelte/pieces/input-edit-history.ts
-- src/svelte/ContextPanel.svelte
-- src/svelte/Facts.svelte
-- src/svelte/Review.svelte
-- src/svelte/pieces/DestinationRow.svelte
-- src/svelte/pieces/Drawer.svelte
-- src/svelte/pieces/drawer-motion.svelte.ts
+- src/svelte/catalog/compositions/select-control/SelectControl.svelte
+- src/svelte/catalog/compositions/popover-control/PopoverControl.svelte
+- src/svelte/catalog/compositions/file-control/FileControl.svelte
+- src/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte
+- src/svelte/catalog/compositions/options-control/OptionsControl.svelte
+- src/svelte/catalog/compositions/money-control/MoneyControl.svelte
+- src/svelte/catalog/foundations/date-control/DateControl.svelte
+- src/svelte/catalog/compositions/media-control/MediaControl.svelte
+- src/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte
+- src/svelte/catalog/compositions/fields/Fields.svelte
+- src/svelte/catalog/foundations/text-input/TextInput.svelte
+- src/svelte/catalog/foundations/masked-input/MaskedInput.svelte
+- src/svelte/catalog/foundations/character-counter/CharacterCounter.svelte
+- src/svelte/catalog/foundations/clear-input/ClearInput.svelte
+- src/svelte/catalog/foundations/masked-input/input-edit-history.ts
+- src/svelte/catalog/compositions/context-panel/ContextPanel.svelte
+- src/svelte/catalog/renderer/facts/Facts.svelte
+- src/svelte/catalog/compositions/review/Review.svelte
+- src/svelte/catalog/foundations/destination-row/DestinationRow.svelte
+- src/svelte/catalog/foundations/drawer/Drawer.svelte
+- src/svelte/infra/drawer-motion.svelte.ts
 - src/validation-result.ts
 - src/web/client/field-feedback.ts
 - src/web/client/model.ts
@@ -1197,19 +1197,19 @@ export function bankEvent(value: unknown): BankEvent {
 }
 ```
 
-## src/svelte/BankRenderer.svelte
+## src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte
 
-Source SHA-256: 9d0a342494fa99c8d01ce66ad2a5463adb61051484c9193445d909eaa27a94f6
+Source SHA-256: 154be438bf28b24d1fe7502c8fcac3eab61b9b18c0d03301806376ae44998e6d
 
 ```svelte
 <script lang="ts">
-  import type { BankRendererProps } from "./renderer-contracts.ts";
-  import { bankNode } from "../interaction/bank-node.ts";
-  import { bankEvent, type BankEvent } from "../interaction/bank-events.ts";
-  import type { ControlEvent } from "../interaction/control-nodes.ts";
-  import type { SurfaceIntent } from "../interaction/intent.ts";
-  import { webRenderers } from "./renderer-registry.ts";
-  import type { FormControlEvent } from "../interaction/form-control-event.ts";
+  import type { BankRendererProps } from "../../../renderer-contracts.ts";
+  import { bankNode } from "../../../../interaction/bank-node.ts";
+  import { bankEvent, type BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { ControlEvent } from "../../../../interaction/control-nodes.ts";
+  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import { webRenderers } from "../../../renderer-registry.ts";
+  import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
 
   let { node, onevent = () => {}, host, actionElementProps, frameIdentity }: BankRendererProps = $props();
   let checked = $derived(bankNode(node));
@@ -1454,11 +1454,11 @@ export async function buildHumanModule(application: ReturnType<typeof compile>, 
 
 ## src/build/svelte/template/src/routes/+page.svelte
 
-Source SHA-256: 07788affe67fb7b89960bb5ded4a7ec7cda11216547118ecaf6d48aa1fdbbb01
+Source SHA-256: 8ceac8265236657fe8b46a343218e7f6cd05918e119120c35d1571a8dc7bb8ba
 
 ```svelte
 <script lang="ts">
-  import AccessGate from "@desert/svelte/pieces/AccessGate.svelte";
+  import AccessGate from "@desert/svelte/catalog/compositions/access-gate/AccessGate.svelte";
   import { surface, validateInput, viewProgram } from "virtual:desert/surface";
 </script>
 
@@ -1467,7 +1467,7 @@ Source SHA-256: 07788affe67fb7b89960bb5ded4a7ec7cda11216547118ecaf6d48aa1fdbbb01
 
 ## src/svelte/renderer-contracts.ts
 
-Source SHA-256: c3360038de39c044a42e288884070f7a638112504dd5518786f79f584c59e48c
+Source SHA-256: af73ae494e1ebb0dbd384ada8062d19b2a285acec91d2110d11312583b61c297
 
 ```ts
 import type { Component } from "svelte";
@@ -1478,7 +1478,7 @@ import type { ToolbarAction, TopToolbar } from "../interaction/toolbar.ts";
 import type { SurfaceIntent } from "../interaction/intent.ts";
 import type { BankNode, BankNodeFor } from "../interaction/bank-node.ts";
 import type { BankEvent } from "../interaction/bank-events.ts";
-import type { LocalFileHost } from "./controls/file-host.ts";
+import type { LocalFileHost } from "./infra/file-host.ts";
 import type { ActionElementProps } from "./action-adapter.ts";
 import type { InputMask } from "../interaction/input-mask.ts";
 import { freezeDeep } from "../json.ts";
@@ -1549,32 +1549,32 @@ export const DispatcherCapabilities = freezeDeep({
 
 ## src/svelte/renderer-registry.ts
 
-Source SHA-256: 9547dc82da486a4075733b8eb5a8d5940c086aeee6e140ea610bb95f212d56c9
+Source SHA-256: 458c624b3cd76cda85458efea511ae33cfb69df983189141f80a322dfdcee2df
 
 ```ts
 // Generated from catalog-manifest.ts. Run scripts/web-catalog.ts --write; do not edit.
 import type { WebRendererBank } from "./renderer-contracts.ts";
-import TextInput from "./pieces/TextInput.svelte";
-import Action from "./pieces/Action.svelte";
-import Availability from "./pieces/Availability.svelte";
-import Drawer from "./pieces/Drawer.svelte";
-import Problem from "./pieces/Problem.svelte";
-import Facts from "./Facts.svelte";
-import Fields from "./Fields.svelte";
-import Collection from "./Collection.svelte";
-import ContextPanel from "./ContextPanel.svelte";
-import Review from "./Review.svelte";
-import SelectControl from "./controls/SelectControl.svelte";
-import PopoverControl from "./controls/PopoverControl.svelte";
-import FileControl from "./controls/FileControl.svelte";
-import LabelsControl from "./pieces/LabelsControl.svelte";
-import OptionsControl from "./controls/OptionsControl.svelte";
-import MoneyControl from "./controls/MoneyControl.svelte";
-import DateControl from "./controls/DateControl.svelte";
-import MediaControl from "./controls/MediaControl.svelte";
-import CatalogCard from "./explorer/CatalogCard.svelte";
-import CatalogHome from "./explorer/CatalogHome.svelte";
-import CatalogDetail from "./explorer/CatalogDetail.svelte";
+import TextInput from "./catalog/foundations/text-input/TextInput.svelte";
+import Action from "./catalog/foundations/action/Action.svelte";
+import Availability from "./catalog/foundations/availability/Availability.svelte";
+import Drawer from "./catalog/foundations/drawer/Drawer.svelte";
+import Problem from "./catalog/compositions/problem/Problem.svelte";
+import Facts from "./catalog/renderer/facts/Facts.svelte";
+import Fields from "./catalog/compositions/fields/Fields.svelte";
+import Collection from "./catalog/compositions/collection/Collection.svelte";
+import ContextPanel from "./catalog/compositions/context-panel/ContextPanel.svelte";
+import Review from "./catalog/compositions/review/Review.svelte";
+import SelectControl from "./catalog/compositions/select-control/SelectControl.svelte";
+import PopoverControl from "./catalog/compositions/popover-control/PopoverControl.svelte";
+import FileControl from "./catalog/compositions/file-control/FileControl.svelte";
+import LabelsControl from "./catalog/compositions/labels-control/LabelsControl.svelte";
+import OptionsControl from "./catalog/compositions/options-control/OptionsControl.svelte";
+import MoneyControl from "./catalog/compositions/money-control/MoneyControl.svelte";
+import DateControl from "./catalog/foundations/date-control/DateControl.svelte";
+import MediaControl from "./catalog/compositions/media-control/MediaControl.svelte";
+import CatalogCard from "./catalog/foundations/catalog-card/CatalogCard.svelte";
+import CatalogHome from "./catalog/compositions/catalog-home/CatalogHome.svelte";
+import CatalogDetail from "./catalog/compositions/catalog-detail/CatalogDetail.svelte";
 
 export const webRenderers: WebRendererBank = Object.freeze({
   "input.text": TextInput,
@@ -2503,16 +2503,16 @@ export function projectViewPanel(program: ViewProgram, journey: ViewJourney, def
 }
 ```
 
-## src/svelte/views/ViewProduct.svelte
+## src/svelte/catalog/renderer/view-product/ViewProduct.svelte
 
-Source SHA-256: 15f9d62e18fc5101a52c5b9df348235af9c145b47ad21b2cc90ab4dae583785f
+Source SHA-256: 5e9360164ac3fcfc1297b010774190831d7c22ccdf9526dfdb8ec47baa7cc9d7
 
 ```svelte
 <script lang="ts">
-  import type { ViewProgram } from "../../views/program-schema.ts";
-  import type { HumanSurface, ValidateInput } from "../../web/types.ts";
-  import { ViewProductContent } from "../adapter-catalog.ts";
-  import type { AccessClient } from "../../web/client/access.ts";
+  import type { ViewProgram } from "../../../../views/program-schema.ts";
+  import type { HumanSurface, ValidateInput } from "../../../../web/types.ts";
+  import { ViewProductContent } from "../../../adapter-catalog.ts";
+  import type { AccessClient } from "../../../../web/client/access.ts";
 
   let { program, surface, validateInput, access }: {
     program: ViewProgram; surface: HumanSurface; validateInput: ValidateInput; access?: Pick<AccessClient, "lock">;
@@ -2522,14 +2522,14 @@ Source SHA-256: 15f9d62e18fc5101a52c5b9df348235af9c145b47ad21b2cc90ab4dae583785f
 <ViewProductContent {program} {surface} {validateInput} {access} />
 ```
 
-## src/svelte/views/Workspace.svelte
+## src/svelte/catalog/renderer/workspace/Workspace.svelte
 
-Source SHA-256: 77f92fc7d4125bd906c78bc912b3b347c05722111a125d990156f7c8db5dcfde
+Source SHA-256: 1c14ff7942938504c6931a5e623c6e6aaa18f31dd31c324d2e4700f788d7f15e
 
 ```svelte
 <script lang="ts">
-  import { ViewWorkspace } from "../adapter-catalog.ts";
-  import type { WorkspaceProps } from "./types.ts";
+  import { ViewWorkspace } from "../../../adapter-catalog.ts";
+  import type { WorkspaceProps } from "../../../infra/view-types.ts";
   let props: WorkspaceProps = $props();
 </script>
 
@@ -2538,19 +2538,19 @@ Source SHA-256: 77f92fc7d4125bd906c78bc912b3b347c05722111a125d990156f7c8db5dcfde
   onevent={props.onevent} onnavigate={props.onnavigate} />
 ```
 
-## src/svelte/views/workspace-data.ts
+## src/svelte/catalog/compositions/view-workspace/workspace-data.ts
 
-Source SHA-256: dd95185716e64f3c51788c81b1285289815e549346e933d83704c503dd38a59c
+Source SHA-256: d89b8cf425e85b8a8eabbb67cc6f3fbd98ace04fe13b2bd7c3d50a770cfe9aa4
 
 ```ts
-import type { ResolvedView } from "../../views/resolved.ts";
-import type { ViewItem } from "../../views/schema.ts";
-import type { BankEvent } from "../../interaction/bank-events.ts";
-import type { PlaceIdentity } from "../pieces/place-identity.ts";
-import type { WorkspaceSearchResult } from "../explorer/workspace-search.ts";
-import { catalogTitle, matchingEntries } from "../catalog/navigation.ts";
-import { retrieveCollection } from "../collection-retrieval.ts";
-import { presentFact, presentTitle } from "../../interaction/fact-presentation.ts";
+import type { ResolvedView } from "../../../../views/resolved.ts";
+import type { ViewItem } from "../../../../views/schema.ts";
+import type { BankEvent } from "../../../../interaction/bank-events.ts";
+import type { PlaceIdentity } from "../../../infra/place-identity.ts";
+import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
+import { catalogTitle, matchingEntries } from "../../../infra/catalog-navigation.ts";
+import { retrieveCollection } from "../../../collection-retrieval.ts";
+import { presentFact, presentTitle } from "../../../../interaction/fact-presentation.ts";
 
 /** Data adapter only. Geometry, material, focus and motion remain in CatalogWorkspace. */
 export function viewIdentity(resolved: ResolvedView, fallback: string): PlaceIdentity {
@@ -2622,17 +2622,17 @@ export function viewSearchSelection(resolved: ResolvedView, id: string): BankEve
 }
 ```
 
-## src/svelte/views/media-data.ts
+## src/svelte/infra/media-data.ts
 
-Source SHA-256: 1b103432102bd53cc6aa0340bd7555e86576aae2644fd48864ef24d95a693b04
+Source SHA-256: 4bf105bb6e75c13cb25fbcdf2f971e3e9cca90f13ab0082a47b75108b378c685
 
 ```ts
 import { BankVersion } from "../../interaction/bank-node.ts";
 import type { CatalogHomeNode, CatalogItemNode } from "../../public-catalog/node-schema.ts";
 import { mediaArtwork, type MediaItem, type MediaLibrary } from "../../views/media-library.ts";
 import type { ResolvedView } from "../../views/resolved.ts";
-import type { PlaceIdentity } from "../pieces/place-identity.ts";
-import type { WorkspaceSearchResult } from "../explorer/workspace-search.ts";
+import type { PlaceIdentity } from "./place-identity.ts";
+import type { WorkspaceSearchResult } from "./workspace-search.ts";
 
 export const viewMedia = (resolved: ResolvedView) =>
   resolved.view.content.find(item => item.kind === "media-library")?.library;
@@ -2698,14 +2698,14 @@ export function mediaResults(library: MediaLibrary, query: string): readonly Wor
 }
 ```
 
-## src/svelte/views/MediaContent.svelte
+## src/svelte/catalog/renderer/media-content/MediaContent.svelte
 
-Source SHA-256: 4f77ec4fb4a58ee1175828c33beea4bae5e34f06c59a86df79fb982c1dc1079c
+Source SHA-256: e620fbae2d2481df2cdc3df46a5a45edc402dcad19f2baf731af638268079450
 
 ```svelte
 <script lang="ts">
-  import type { MediaLibrary as LibraryData } from "../../views/media-library.ts";
-  import { MediaLibrary } from "../adapter-catalog.ts";
+  import type { MediaLibrary as LibraryData } from "../../../../views/media-library.ts";
+  import { MediaLibrary } from "../../../adapter-catalog.ts";
   let { library, album, onalbum }: {
     library: LibraryData; album: string | null; onalbum: (id: string) => void;
   } = $props();
@@ -2716,37 +2716,37 @@ Source SHA-256: 4f77ec4fb4a58ee1175828c33beea4bae5e34f06c59a86df79fb982c1dc1079c
 <MediaLibrary {library} {album} {onalbum} bind:this={content} />
 ```
 
-## src/svelte/explorer/CatalogWorkspace.svelte
+## src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte
 
-Source SHA-256: deb36c33b7419fa72a978b19ac9b500b066890851b02ce6e4828b216abfdf2b5
+Source SHA-256: 41e9649e379e0cf00a62b1b58fa410bccd818a2b2fd6080b28e7ff370639f84c
 
 ```svelte
 <script lang="ts" generics="Destination extends string">
   import { tick } from "svelte";
   import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
-  import CatalogNavigation from "./CatalogNavigation.svelte";
+  import CatalogNavigation from "../catalog-navigation/CatalogNavigation.svelte";
   import CatalogNavigationToggle from "./CatalogNavigationToggle.svelte";
   import CatalogToolbar from "./CatalogToolbar.svelte";
-  import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
-  import PlaceHeading from "../pieces/PlaceHeading.svelte";
-  import { observePlaceHeading } from "../pieces/place-heading-motion.ts";
-  import type { PlaceIdentity } from "../pieces/place-identity.ts";
+  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
+  import PlaceHeading from "../place-heading/PlaceHeading.svelte";
+  import { observePlaceHeading } from "./place-heading-motion.ts";
+  import type { PlaceIdentity } from "../../../infra/place-identity.ts";
   import CatalogEdgeNavigation from "./CatalogEdgeNavigation.svelte";
-  import Place from "../pieces/Place.svelte";
-  import AdaptiveSurfaceLayout from "../pieces/AdaptiveSurfaceLayout.svelte";
-  import type { WorkspaceDestination } from "./workspace-navigation.ts";
-  import type { ToolbarAction, BottomToolbar } from "../../interaction/toolbar.ts";
-  import type { SurfaceIntent } from "../../interaction/intent.ts";
-  import CatalogWorkspaceContent from "../pieces/CatalogWorkspaceContent.svelte";
-  import CatalogSearchResults from "./CatalogSearchResults.svelte";
-  import Toolbar from "../pieces/Toolbar.svelte";
-  import Panel from "../views/Panel.svelte";
-  import FailureDialog from "../FailureDialog.svelte";
-  import Wallpaper from "../pieces/Wallpaper.svelte";
-  import { appearance } from "../pieces/appearance-state.ts";
-  import type { WorkspaceContent, WorkspaceSearch, WorkspacePanels, WorkspaceViewportActions } from "../pieces/workspace-content.ts";
-  import { revealSearchTarget } from "./catalog-search-focus.ts";
-  import { provideDestinationNavigation } from "../pieces/destination-navigation.svelte.ts";
+  import Place from "../../foundations/place/Place.svelte";
+  import AdaptiveSurfaceLayout from "./AdaptiveSurfaceLayout.svelte";
+  import type { WorkspaceDestination } from "../../../infra/workspace-navigation.ts";
+  import type { ToolbarAction, BottomToolbar } from "../../../../interaction/toolbar.ts";
+  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import CatalogWorkspaceContent from "../catalog-workspace-content/CatalogWorkspaceContent.svelte";
+  import CatalogSearchResults from "../catalog-search-results/CatalogSearchResults.svelte";
+  import Toolbar from "../toolbar/Toolbar.svelte";
+  import Panel from "../../renderer/panel/Panel.svelte";
+  import FailureDialog from "../../renderer/failure-dialog/FailureDialog.svelte";
+  import Wallpaper from "../../foundations/wallpaper/Wallpaper.svelte";
+  import { appearance } from "../../../infra/appearance-state.ts";
+  import type { WorkspaceContent, WorkspaceSearch, WorkspacePanels, WorkspaceViewportActions } from "../../../infra/workspace-content.ts";
+  import { revealSearchTarget } from "../../../infra/catalog-search-focus.ts";
+  import { provideDestinationNavigation } from "../../../infra/destination-navigation.svelte.ts";
   let { navigationSurface, title, navigation, active, query, onquery, onnavigate, content: body, searchContent, searching,
     onsearch, oncancel, detail = false, onback, backAvailable=true, identity, searchAvailable = true, topActions = [], actionGroup, invoke,
     panelState, bottomToolbar, onviewport }: {
@@ -2936,9 +2936,9 @@ Source SHA-256: deb36c33b7419fa72a978b19ac9b500b066890851b02ce6e4828b216abfdf2b5
 </style>
 ```
 
-## src/svelte/explorer/CatalogNavigation.svelte
+## src/svelte/catalog/compositions/catalog-navigation/CatalogNavigation.svelte
 
-Source SHA-256: b47dcfbb56db49a1e423390997b818f0fac02a7822fe834477bccdfb48085664
+Source SHA-256: 9d8dfb809cc6f29990b0dd3ab7d4838763c4653e2572137edf7559af42dab7c3
 
 ```svelte
 <script lang="ts" generics="Destination extends string">
@@ -2947,11 +2947,11 @@ Source SHA-256: b47dcfbb56db49a1e423390997b818f0fac02a7822fe834477bccdfb48085664
   import Landmark from "@lucide/svelte/icons/landmark";
   import Backpack from "@lucide/svelte/icons/backpack";
   import PanelsTopLeft from "@lucide/svelte/icons/panels-top-left";
-  import { swipeMotion } from "../pieces/swipe-motion.svelte.js";
-  import Place from "../pieces/Place.svelte";
-  import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
-  import { actionIcons } from "../pieces/action-icons.ts";
-  import { workspaceNavigation, type WorkspaceDestination } from "./workspace-navigation.ts";
+  import { swipeMotion } from "../../../infra/swipe-motion.svelte.js";
+  import Place from "../../foundations/place/Place.svelte";
+  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
+  import { actionIcons } from "../../../infra/action-icons.ts";
+  import { workspaceNavigation, type WorkspaceDestination } from "../../../infra/workspace-navigation.ts";
   let { identity, navigation, active, onnavigate, searching = false, settingsPlaceholder = false }: {
     identity: { title: string; subtitle?: string }; settingsPlaceholder?: boolean;
     navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
@@ -3004,13 +3004,13 @@ Source SHA-256: b47dcfbb56db49a1e423390997b818f0fac02a7822fe834477bccdfb48085664
 </Place>
 ```
 
-## src/svelte/explorer/CatalogNavigationActions.svelte
+## src/svelte/catalog/compositions/toolbar-layout/CatalogNavigationActions.svelte
 
-Source SHA-256: 725617e6b3af44b2bc9b35b4ba882394e8ee5d9f216fb4c56b9164e61b45f14a
+Source SHA-256: 3e579aa85a99a821112105e1f62440c0a3c860768dfbebefda7e660568969f47
 
 ```svelte
 <script lang="ts">
-  import BankRenderer from "../BankRenderer.svelte";
+  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
   let { detail = false, onback, backAvailable=true }: {
     detail?: boolean; onback?: () => void; backAvailable?:boolean;
   } = $props();
@@ -3025,13 +3025,13 @@ Source SHA-256: 725617e6b3af44b2bc9b35b4ba882394e8ee5d9f216fb4c56b9164e61b45f14a
 </div>
 ```
 
-## src/svelte/explorer/CatalogToolbar.svelte
+## src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte
 
-Source SHA-256: 42da9081bc9d9339d09795ceda3806dea0daaf8204987de5088e6f2aca860101
+Source SHA-256: c89561457dad3fe54f01ec15f8d282eea2fea5cc4bbb09ca86af609a116e183a
 
 ```svelte
 <script lang="ts">
-  import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
+  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
   let { title, query, onquery, searching, resultsId, onsearch, oncancel, searchAvailable = true }: {
     title: string; query: string; onquery: (query: string) => void; searching: boolean;
     resultsId: string; onsearch: () => void; oncancel: () => void; searchAvailable?: boolean;
@@ -3044,7 +3044,7 @@ Source SHA-256: 42da9081bc9d9339d09795ceda3806dea0daaf8204987de5088e6f2aca860101
 {/if}
 ```
 
-## src/svelte/explorer/workspace-navigation.ts
+## src/svelte/infra/workspace-navigation.ts
 
 Source SHA-256: 9cb03abc069c3e94c0fabb0f37fed5e321b820068c24623e39deed24203da3e5
 
@@ -3101,7 +3101,7 @@ export function workspaceNavigation<Id extends string>(navigation: readonly Work
 }
 ```
 
-## src/svelte/explorer/workspace-search.ts
+## src/svelte/infra/workspace-search.ts
 
 Source SHA-256: 5f07832f9e2e5889e1f83e90ae9810d94e73857c419b50041d1a03f0170fdf15
 
@@ -3113,17 +3113,17 @@ export type WorkspaceSearchResult = CatalogSearchResult |
   { readonly kind: "content"; readonly id: string; readonly title: string; readonly description: string };
 ```
 
-## src/svelte/views/ViewContent.svelte
+## src/svelte/catalog/renderer/view-content/ViewContent.svelte
 
-Source SHA-256: 6446fc620453c7f2a4b2044ddc032049ad3c5ae01e44a5222280db62e9b8e381
+Source SHA-256: 840d65db5e97daf6a890f1390d2f39734b16e922a54c7b560cf6031758617cd4
 
 ```svelte
 <script lang="ts">
-  import type { ResolvedView } from "../../views/resolved.ts";
-  import type { BankEvent } from "../../interaction/bank-events.ts";
-  import type { PrimitiveId } from "../../interaction/catalog.ts";
-  import { ContentFlow } from "../adapter-catalog.ts";
-  import type { RegisterContentActions } from "../pieces/workspace-content.ts";
+  import type { ResolvedView } from "../../../../views/resolved.ts";
+  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { PrimitiveId } from "../../../../interaction/catalog.ts";
+  import { ContentFlow } from "../../../adapter-catalog.ts";
+  import type { RegisterContentActions } from "../../../infra/workspace-content.ts";
   let { resolved, onevent, album = null, onalbum, onactions }: {
     resolved: ResolvedView;
     onevent: (event: BankEvent) => void;
@@ -3148,17 +3148,17 @@ Source SHA-256: 6446fc620453c7f2a4b2044ddc032049ad3c5ae01e44a5222280db62e9b8e381
 <ContentFlow {resolved} {onevent} {album} {onalbum} bind:this={flow} />
 ```
 
-## src/svelte/views/ViewItem.svelte
+## src/svelte/catalog/renderer/view-item/ViewItem.svelte
 
-Source SHA-256: 902f433e4d989384034d53dd8b6d36d390b4efa25a688fb0358a1792b033c5e0
+Source SHA-256: f988ddc0d498306e6e63a5d6f32f2de7ac2b43eee59c7fa826b9e54ccc4eab2b
 
 ```svelte
 <script lang="ts">
-  import type { ViewItem } from "../../views/schema.ts";
-  import type { ResolvedView } from "../../views/resolved.ts";
-  import type { BankEvent } from "../../interaction/bank-events.ts";
-  import { controlBankNode } from "../../interaction/bank-node.ts";
-  import { BankRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../adapter-catalog.ts";
+  import type { ViewItem } from "../../../../views/schema.ts";
+  import type { ResolvedView } from "../../../../views/resolved.ts";
+  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import { controlBankNode } from "../../../../interaction/bank-node.ts";
+  import { BankRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../../adapter-catalog.ts";
   let { item, resolved, onevent, host = "flow" }: {
     item: ViewItem; resolved: ResolvedView; onevent: (event: BankEvent) => void; host?: "flow" | "frame";
   } = $props();
@@ -3203,16 +3203,16 @@ Source SHA-256: 902f433e4d989384034d53dd8b6d36d390b4efa25a688fb0358a1792b033c5e0
 {/if}
 ```
 
-## src/svelte/views/Panel.svelte
+## src/svelte/catalog/renderer/panel/Panel.svelte
 
-Source SHA-256: 26a5b00b1ee976927aaca669336ae38ced84e95d8957eb75d8b8a6dc99ee7c9c
+Source SHA-256: 6bff06ce18c553b663aa4e5913c994181c4df2f7420354aa20eb7f8eecd3763c
 
 ```svelte
 <script lang="ts">
   import { tick, untrack } from "svelte";
-  import { bindViewEvents, type OwnedResolvedPanel, type OwnedViewEvent, type ViewEventOwner } from "../../web/client/view-events.ts";
-  import type { BankEvent } from "../../interaction/bank-events.ts";
-  import { ViewPanel } from "../adapter-catalog.ts";
+  import { bindViewEvents, type OwnedResolvedPanel, type OwnedViewEvent, type ViewEventOwner } from "../../../../web/client/view-events.ts";
+  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import { ViewPanel } from "../../../adapter-catalog.ts";
   let { panel, onevent }: { panel?: OwnedResolvedPanel | null; onevent: (event: OwnedViewEvent) => void } = $props();
   let mounted = $state.raw<OwnedResolvedPanel | null>(null);
   let open = $state(false);
@@ -3246,15 +3246,15 @@ Source SHA-256: 26a5b00b1ee976927aaca669336ae38ced84e95d8957eb75d8b8a6dc99ee7c9c
 {/each}
 ```
 
-## src/svelte/views/InspectionContent.svelte
+## src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte
 
-Source SHA-256: 1637dc7fa45a6a79524f7008c1b8a6b3af33d10f3a9b883e72c0f49ba1188011
+Source SHA-256: 65dd47c67a7600c4b408ffd06f079323eedd4bc6b1c6a963cdbc1a9829a2e822
 
 ```svelte
 <script lang="ts">
-  import type { PrimitiveId } from "../../interaction/catalog.ts";
-  import type { PublicBankInput } from "../explorer/PublicCatalogBank-model.ts";
-  import { Inspection } from "../adapter-catalog.ts";
+  import type { PrimitiveId } from "../../../../interaction/catalog.ts";
+  import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
+  import { Inspection } from "../../../adapter-catalog.ts";
   let { catalog }: { catalog?: PublicBankInput } = $props();
   let content = $state<{ revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null> }>();
   export async function revealEntry(id: PrimitiveId) { return await content?.revealEntry(id) ?? null; }
@@ -3263,15 +3263,15 @@ Source SHA-256: 1637dc7fa45a6a79524f7008c1b8a6b3af33d10f3a9b883e72c0f49ba1188011
 <Inspection {catalog} bind:this={content} />
 ```
 
-## src/svelte/catalog/inspection-fixture.ts
+## src/svelte/catalog/compositions/inspection/inspection-fixture.ts
 
-Source SHA-256: b43e7bd1b23c5bf989edcb7505610804b1607ba87f6a38e9f93b76e7280f1c2f
+Source SHA-256: a00275bd81519a84016f5bde9b540579e89ff95ffe7104af922e37ab5ee2f336
 
 ```ts
-import { freezeDeep } from "../../json.ts";
-import { BankVersion as version } from "../../interaction/bank-node.ts";
-import type { PublicBankInput } from "../explorer/PublicCatalogBank-model.ts";
-import { inspectionMedia } from "./inspection-media.ts";
+import { freezeDeep } from "../../../../json.ts";
+import { BankVersion as version } from "../../../../interaction/bank-node.ts";
+import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
+import { inspectionMedia } from "../../../infra/inspection-media.ts";
 
 const image = { asset: inspectionMedia.asset, alt: inspectionMedia.alt };
 const card = { version, kind: "catalog.card", record: "notebook-cover", title: "Notebook cover", image } as const;
@@ -3289,7 +3289,7 @@ export const inspectionCatalog = freezeDeep({
 } as const satisfies PublicBankInput);
 ```
 
-## src/svelte/catalog/inspection-media.ts
+## src/svelte/infra/inspection-media.ts
 
 Source SHA-256: 82b252301725837a1bc4b0d9d392e6fe12fa5496a8cc00d54dbe000cd1840c59
 
@@ -3300,21 +3300,21 @@ export const inspectionMedia = Object.freeze({
 });
 ```
 
-## src/svelte/pieces/AccessGate.svelte
+## src/svelte/catalog/compositions/access-gate/AccessGate.svelte
 
-Source SHA-256: 2cfb65490de14eaff646d0c8f82e608c4ed4c073de125d224f44f535e4b4cb61
+Source SHA-256: c5702e47b08658b231be388a063f05ea2160431cbca50b24ed4d8d03926d56fc
 
 ```svelte
 <script lang="ts">
   import { onMount, untrack } from "svelte";
-  import type { HumanSurface, ValidateInput } from "../../web/types.ts";
-  import type { ViewProgram } from "../../views/program-schema.ts";
-  import ViewProduct from "../views/ViewProduct.svelte";
-  import { accessClient } from "../../web/client/access.ts";
-  import { provideAccess } from "./access-context.ts";
-  import AccessScreen from "./AccessScreen.svelte";
+  import type { HumanSurface, ValidateInput } from "../../../../web/types.ts";
+  import type { ViewProgram } from "../../../../views/program-schema.ts";
+  import ViewProduct from "../../renderer/view-product/ViewProduct.svelte";
+  import { accessClient } from "../../../../web/client/access.ts";
+  import { provideAccess } from "../../../infra/access-context.ts";
+  import AccessScreen from "../access-screen/AccessScreen.svelte";
   import { browserAccessLock } from "./browser-access-lock.ts";
-  import { rememberAccessProfile } from "./access-profile.ts";
+  import { rememberAccessProfile } from "../../../infra/access-profile.ts";
   let { surface, validateInput, viewProgram }: {
     surface: HumanSurface; validateInput: ValidateInput; viewProgram: ViewProgram;
   } = $props();
@@ -3345,22 +3345,22 @@ Source SHA-256: 2cfb65490de14eaff646d0c8f82e608c4ed4c073de125d224f44f535e4b4cb61
 {:else}<AccessScreen {productLabel} {current} {client} />{/if}
 ```
 
-## src/svelte/Collection.svelte
+## src/svelte/catalog/compositions/collection/Collection.svelte
 
-Source SHA-256: 59479303be508af5a7b22a33ccf88549d06fafecf266e0e8b9fd263bf3fb15e7
+Source SHA-256: dd7184d83bbdf6ae635542ba0524e1720db761957a9eec1baa6828efbb3b2ad2
 
 ```svelte
 <script lang="ts">
-  import type { BankNodeFor } from "../interaction/bank-node.ts";
-  import { presentFact, presentTitle, readingFields } from "../interaction/fact-presentation.ts";
-  import GroupedPanel from "./pieces/GroupedPanel.svelte";
-  import { Button } from "./vendor/components/ui/button/index.js";
+  import type { BankNodeFor } from "../../../../interaction/bank-node.ts";
+  import { presentFact, presentTitle, readingFields } from "../../../../interaction/fact-presentation.ts";
+  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
+  import { Button } from "../../../vendor/components/ui/button/index.js";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import CollectionState from "./pieces/CollectionState.svelte";
-  import { retrieveCollection } from "./collection-retrieval.ts";
-  import MediaGrid from "./pieces/media/MediaGrid.svelte";
-  import MediaCollectionGrid from "./pieces/media/MediaCollectionGrid.svelte";
-  import AttentionIndicator from './pieces/AttentionIndicator.svelte';
+  import CollectionState from "../collection-state/CollectionState.svelte";
+  import { retrieveCollection } from "../../../collection-retrieval.ts";
+  import MediaGrid from "../media-grid/MediaGrid.svelte";
+  import MediaCollectionGrid from "../media-collection-grid/MediaCollectionGrid.svelte";
+  import AttentionIndicator from '../../foundations/attention-indicator/AttentionIndicator.svelte';
   let { node, select }: { node: BankNodeFor<"collection">; select: (id: string) => void } = $props();
   let { records, disabled, loaded, selectedId } = $derived(node);
   // Collections present records. Search belongs exclusively to the toolbar overlay.
@@ -3430,23 +3430,23 @@ export function retrieveCollection(records: readonly RecordView[], fields: reado
 }
 ```
 
-## src/svelte/SurfaceFrame.svelte
+## src/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte
 
-Source SHA-256: 295e442cb0349d0c38a4cb95a31d18b63871bd653c83f207184719672cf73ed2
+Source SHA-256: f694bf074b5a388153debe1f51fd66ce0e0a89c19e5fba9e80cf31a8d8ebff88
 
 ```svelte
 <script lang="ts">
-  import { surfaceFrame, type SurfaceFrame } from "../interaction/surface-frame.ts";
-  import type { SurfaceIntent } from "../interaction/intent.ts";
-  import type { BankEvent } from "../interaction/bank-events.ts";
-  import type { ResolvedView } from "../views/resolved.ts";
-  import ContentFlow from "./pieces/ContentFlow.svelte";
-  import FrameBody from "./FrameBody.svelte";
-  import Toolbar from "./pieces/Toolbar.svelte";
-  import ScrollEdges from "./pieces/ScrollEdges.svelte";
-  import { provideSurfaceHost } from "./pieces/surface-host.svelte.ts";
-  import { provideToolbarScroll } from "./pieces/toolbar-scroll.svelte.ts";
-  import { isFormControlEvent, type FormControlEvent } from "../interaction/form-control-event.ts";
+  import { surfaceFrame, type SurfaceFrame } from "../../../../interaction/surface-frame.ts";
+  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import type { ResolvedView } from "../../../../views/resolved.ts";
+  import ContentFlow from "../content-flow/ContentFlow.svelte";
+  import FrameBody from "../../renderer/frame-body/FrameBody.svelte";
+  import Toolbar from "../toolbar/Toolbar.svelte";
+  import ScrollEdges from "../../foundations/scroll-edges/ScrollEdges.svelte";
+  import { provideSurfaceHost } from "../../../infra/surface-host.svelte.ts";
+  import { provideToolbarScroll } from "../../../infra/toolbar-scroll.svelte.ts";
+  import { isFormControlEvent, type FormControlEvent } from "../../../../interaction/form-control-event.ts";
 let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEvent }: { frame: SurfaceFrame;
     body?: ResolvedView | undefined;
     presentation?: "standard" | "message" | "transient";
@@ -3850,18 +3850,18 @@ export function presentFrame(surface: HumanSurface, state: HumanState, validate:
 }
 ```
 
-## src/svelte/FrameBody.svelte
+## src/svelte/catalog/renderer/frame-body/FrameBody.svelte
 
-Source SHA-256: 3158fffbad99a404c9c6c2b93b26784ee827d9e78a0e3b3a79b51d4079a9eb0b
+Source SHA-256: d34928716957c3c00c4997bdc59a9606594db05e74380a2cce140a9fd9800376
 
 ```svelte
 <script lang="ts">
-  import type { FrameContent } from "../interaction/surface-frame.ts";
-  import type { SurfaceIntent } from "../interaction/intent.ts";
-  import type { BankEvent } from "../interaction/bank-events.ts";
-  import { BankVersion } from "../interaction/bank-node.ts";
-  import { BankRenderer, Information, MessageBody, UtilityActions } from "./adapter-catalog.ts";
-  import { isFormControlEvent, type FormControlEvent } from "../interaction/form-control-event.ts";
+  import type { FrameContent } from "../../../../interaction/surface-frame.ts";
+  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import type { BankEvent } from "../../../../interaction/bank-events.ts";
+  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import { BankRenderer, Information, MessageBody, UtilityActions } from "../../../adapter-catalog.ts";
+  import { isFormControlEvent, type FormControlEvent } from "../../../../interaction/form-control-event.ts";
   let { content, invoke, edit, messageDialog = false, controlEvent }: { content: FrameContent; messageDialog?: boolean;
     invoke: (intent: SurfaceIntent) => void; edit: (name: string, value: string) => void;
     controlEvent?: ((event: FormControlEvent) => void) | undefined;
@@ -4598,16 +4598,16 @@ export const InformationSchema = Type.Object({ kind: Type.Literal("information")
 }, { additionalProperties: false });
 ```
 
-## src/svelte/pieces/Toolbar.svelte
+## src/svelte/catalog/compositions/toolbar/Toolbar.svelte
 
-Source SHA-256: ae9e2cb9a1146dbf37fdf2186565807073423f4a4ca879153a7b8dc12123a8bb
+Source SHA-256: 054893bd905d2be87b6512d90f1f67640760ca0bdc5a162a6fc2d90b01d0b463
 
 ```svelte
 <script lang="ts">
-  import type { Toolbar } from "../../interaction/toolbar.ts";
-  import type { SurfaceIntent } from "../../interaction/intent.ts";
-  import type { ToolbarControls } from "./toolbar-controls.ts";
-  import ToolbarLayout from "./ToolbarLayout.svelte";
+  import type { Toolbar } from "../../../../interaction/toolbar.ts";
+  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import type { ToolbarControls } from "../../../infra/toolbar-controls.ts";
+  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
   let { toolbar, invoke, submit, presentation = "standard", controls }: {
     toolbar: Toolbar; invoke: (intent: SurfaceIntent) => void; submit?: string;
     presentation?: "standard" | "message" | "transient"; controls?: ToolbarControls;
@@ -4617,17 +4617,17 @@ Source SHA-256: ae9e2cb9a1146dbf37fdf2186565807073423f4a4ca879153a7b8dc12123a8bb
 <ToolbarLayout content={{kind:"commands",toolbar,invoke,submit,presentation,controls}} />
 ```
 
-## src/svelte/pieces/Face.svelte
+## src/svelte/catalog/foundations/face/Face.svelte
 
-Source SHA-256: 58d74564178cf17dc11a97fe51e09423bfae4e1968fbb3b0fa547b5af492954b
+Source SHA-256: 2bc1066c29a39b00ad7a0da1533d7e010d97e3a6a73e633e1277e00e21801d59
 
 ```svelte
 <script lang="ts">
   import CircleAlert from "@lucide/svelte/icons/circle-alert";
   import FileText from "@lucide/svelte/icons/file-text";
-  import type { Face } from "../../interaction/face.ts";
-  import * as Avatar from "../vendor/components/ui/avatar/index.js";
-  import { actionIcons } from './action-icons.ts';
+  import type { Face } from "../../../../interaction/face.ts";
+  import * as Avatar from "../../../vendor/components/ui/avatar/index.js";
+  import { actionIcons } from '../../../infra/action-icons.ts';
   let { face, compact = false }: { face: Face; compact?: boolean } = $props();
   let glyph = $derived(face.kind === "symbol" ? face.text : face.kind === "flag"
     ? Array.from(face.region, letter => String.fromCodePoint(0x1f1e6 + letter.charCodeAt(0) - 65)).join("") : "");
@@ -4639,16 +4639,16 @@ Source SHA-256: 58d74564178cf17dc11a97fe51e09423bfae4e1968fbb3b0fa547b5af492954b
 </Avatar.Root>
 ```
 
-## src/svelte/pieces/FieldWell.svelte
+## src/svelte/catalog/foundations/field-well/FieldWell.svelte
 
-Source SHA-256: 74223814c131736a82a24887887d77f631e15a8077f4b3fd072d470ad34fa777
+Source SHA-256: 54be8258fca2f926bc094928071c6e3da8b1f337e0e32652d3ab68a17fed66d3
 
 ```svelte
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import * as Group from "../vendor/components/ui/input-group/index.js";
-  import FieldWellContent from "./FieldWellContent.svelte";
-  import { cn } from "../vendor/utils.js";
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
+  import FieldWellContent from "../field-well-content/FieldWellContent.svelte";
+  import { cn } from "../../../vendor/utils.js";
   let { id, label, filled, required = false, prefix, accessory, footer, children, presentation = "standard" }: {
     id: string; label: string; filled: boolean; required?: boolean;
     prefix?: Snippet; accessory?: Snippet; footer?: Snippet | undefined; children: Snippet;
@@ -4673,15 +4673,15 @@ Source SHA-256: 74223814c131736a82a24887887d77f631e15a8077f4b3fd072d470ad34fa777
 </Group.Root>
 ```
 
-## src/svelte/pieces/SearchField.svelte
+## src/svelte/catalog/foundations/search-field/SearchField.svelte
 
-Source SHA-256: 82718e929f00a881d0e8522ab4648e668908463c4187a37d209e91880e766dc2
+Source SHA-256: e51cbde7031c190246feea0c86e3685e1ce730aa35952d92c6ea36be7a9e60d0
 
 ```svelte
 <script lang="ts">
-  import * as InputGroup from "../vendor/components/ui/input-group/index.js";
+  import * as InputGroup from "../../../vendor/components/ui/input-group/index.js";
   import Search from "@lucide/svelte/icons/search";
-  import ClearInput from "./ClearInput.svelte";
+  import ClearInput from "../clear-input/ClearInput.svelte";
 
   const generatedId = $props.id();
   let { id = generatedId, value = $bindable(""), ref = $bindable(null), onvalue, disabled = false, readonly = false,
@@ -4709,15 +4709,15 @@ Source SHA-256: 82718e929f00a881d0e8522ab4648e668908463c4187a37d209e91880e766dc2
 </InputGroup.Root>
 ```
 
-## src/svelte/pieces/MeasuredField.svelte
+## src/svelte/catalog/foundations/measured-field/MeasuredField.svelte
 
-Source SHA-256: 7878ecb445d83b7e2ac823ada6924831b8e24900b3b5fe66eb264f3bed0d3d2e
+Source SHA-256: 662f854a4a3c23a2b95f2cc46725742639e185df4d55376638b631a4032979a0
 
 ```svelte
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import type { PrimitiveId } from '../../interaction/catalog.ts';
-  import * as Field from '../vendor/components/ui/field/index.js';
+  import type { PrimitiveId } from '../../../../interaction/catalog.ts';
+  import * as Field from '../../../vendor/components/ui/field/index.js';
   // The outer box measures available space; the complete accessible field
   // (including validation/support) owns its preferred measure inside it.
   const measures = { 'input.text': 'writing', 'input.multiline': 'writing',
@@ -4734,7 +4734,7 @@ Source SHA-256: 7878ecb445d83b7e2ac823ada6924831b8e24900b3b5fe66eb264f3bed0d3d2e
 </div>
 ```
 
-## src/svelte/pieces/control-measure.css
+## src/svelte/catalog/mechanisms/control-measure/control-measure.css
 
 Source SHA-256: d84a698ed4e2a0ac55dfff442cb0f905666a565dc0e83086605c5d7ef727e91a
 
@@ -4763,14 +4763,14 @@ Source SHA-256: d84a698ed4e2a0ac55dfff442cb0f905666a565dc0e83086605c5d7ef727e91a
 }
 ```
 
-## src/svelte/pieces/GroupedPanel.svelte
+## src/svelte/catalog/foundations/grouped-panel/GroupedPanel.svelte
 
-Source SHA-256: c5a9335a837e50bf5e507d914b14c6e94be8a5e7dac60864f2b722627d288058
+Source SHA-256: 1e8accddc84e7a3455be356919ad0d75b6023a5bec3f228f1b9ff908510e2f20
 
 ```svelte
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import * as Card from "../vendor/components/ui/card/index.js";
+  import * as Card from "../../../vendor/components/ui/card/index.js";
   let { children, measure = 'reading' }: { children: Snippet; measure?: 'reading' | 'overview' } = $props();
 </script>
 
@@ -4780,16 +4780,16 @@ Source SHA-256: c5a9335a837e50bf5e507d914b14c6e94be8a5e7dac60864f2b722627d288058
 </div>
 ```
 
-## src/svelte/pieces/ChoiceRow.svelte
+## src/svelte/catalog/foundations/choice-row/ChoiceRow.svelte
 
-Source SHA-256: a65a3a320e791fdfa02a92d874d5db16d5a5fc0bb7becfd7b918fcf379f106e4
+Source SHA-256: fe6285c228b1a1d1af98c27a2b5bee82c0d4aed33a2f0806d7ee3fb4a2979dc0
 
 ```svelte
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import * as Field from "../vendor/components/ui/field/index.js";
-  import ChoiceItem from "./ChoiceItem.svelte";
-  import { pressFeedback } from "../vendor/components/ui/button/press-feedback.js";
+  import * as Field from "../../../vendor/components/ui/field/index.js";
+  import ChoiceItem from "../choice-item/ChoiceItem.svelte";
+  import { pressFeedback } from "../../../vendor/components/ui/button/press-feedback.js";
   let { id, labelId, descriptionId, label, description, disabled, children }: {
     id: string; labelId: string; descriptionId?: string; label: string;
     description?: string | undefined; disabled: boolean; children: Snippet;
@@ -4805,24 +4805,24 @@ Source SHA-256: a65a3a320e791fdfa02a92d874d5db16d5a5fc0bb7becfd7b918fcf379f106e4
 </Field.FieldLabel>
 ```
 
-## src/svelte/pieces/SelectionField.svelte
+## src/svelte/catalog/foundations/selection-field/SelectionField.svelte
 
-Source SHA-256: 0e23753b18c3a2443ad3d0d355a249ada6c857d44fe30c5dd44ce1b97abaadf4
+Source SHA-256: 6eb24e7159b270f34801633384cf7cf2721505c8bef1dc6798c2e265f6ad198e
 
 ```svelte
 <script lang="ts">
   import { tick, untrack, type Snippet } from "svelte";
-  import { dismissWhenInactive } from './surface-activity.svelte.ts';
-  import * as Popover from "../vendor/components/ui/popover/index.js";
-  import { Button } from "../vendor/components/ui/button/index.js";
+  import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
+  import * as Popover from "../../../vendor/components/ui/popover/index.js";
+  import { Button } from "../../../vendor/components/ui/button/index.js";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
-  import FieldWellContent from "./FieldWellContent.svelte";
-  import Face from "./Face.svelte";
-  import PickerSheet from "./PickerSheet.svelte";
+  import FieldWellContent from "../field-well-content/FieldWellContent.svelte";
+  import Face from "../face/Face.svelte";
+  import PickerSheet from "../picker-sheet/PickerSheet.svelte";
   import SelectionList from "./SelectionList.svelte";
-  import { surfaceFocus, revealSurfaceFocus } from "./surface-focus.svelte.ts";
-  import { PickerPresentation } from "./picker-presentation.svelte.ts";
-  import type { SelectionOption } from "../../interaction/selection-option.ts";
+  import { surfaceFocus, revealSurfaceFocus } from "../../../infra/surface-focus.svelte.ts";
+  import { PickerPresentation } from "../../../infra/picker-presentation.svelte.ts";
+  import type { SelectionOption } from "../../../../interaction/selection-option.ts";
   let { id, selection, label, triggerLabel = label, value, options, disabled = false, required = false,
     fieldControl = false, contextual = false, selectedContent, optionLeading, onchange }: {
     id?: string; selection: string; label: string; triggerLabel?: string; value: string | null;
@@ -4932,15 +4932,15 @@ Source SHA-256: 0e23753b18c3a2443ad3d0d355a249ada6c857d44fe30c5dd44ce1b97abaadf4
 </style>
 ```
 
-## src/svelte/pieces/CollectionState.svelte
+## src/svelte/catalog/compositions/collection-state/CollectionState.svelte
 
-Source SHA-256: ffd7011f5aa5d2163624e2399c1e404af3a6882ca1c0ee2d51df5840ae512a3d
+Source SHA-256: f6bf204987783774f138fa5b864ec196a7775e0467c1ed15417453c65c5e808f
 
 ```svelte
 <script lang="ts">
-  import * as Empty from "../vendor/components/ui/empty/index.js";
-  import { Skeleton } from "../vendor/components/ui/skeleton/index.js";
-  import GroupedPanel from "./GroupedPanel.svelte";
+  import * as Empty from "../../../vendor/components/ui/empty/index.js";
+  import { Skeleton } from "../../../vendor/components/ui/skeleton/index.js";
+  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
   let { loaded, createLabel, connection }: { loaded: boolean; createLabel?: string; connection?: 'loading' | 'ready' | 'offline' | undefined } = $props();
   let offline = $derived(connection === 'offline');
   let pending = $derived(!loaded && !offline);
@@ -4962,18 +4962,18 @@ Source SHA-256: ffd7011f5aa5d2163624e2399c1e404af3a6882ca1c0ee2d51df5840ae512a3d
 </Empty.Root></div></GroupedPanel>
 ```
 
-## src/svelte/pieces/Action.svelte
+## src/svelte/catalog/foundations/action/Action.svelte
 
-Source SHA-256: 858b2b5df9c483fd896605d31a372889e8002861056852bc14c62f78a4f8783b
+Source SHA-256: d034009a90de8a0e1f0561d42da59587f6a3200367a521d6ae4a15da608c7785
 
 ```svelte
 <script lang="ts">
-  import { Button } from "../vendor/components/ui/button/index.js";
+  import { Button } from "../../../vendor/components/ui/button/index.js";
   import Loader2 from "@lucide/svelte/icons/loader-2";
-  import { cn } from "../vendor/utils.js";
-  import type { ToolbarAction } from "../../interaction/toolbar.ts";
-  import { actionIcons } from "./action-icons.ts";
-  import type { ActionElementProps } from "../action-adapter.ts";
+  import { cn } from "../../../vendor/utils.js";
+  import type { ToolbarAction } from "../../../../interaction/toolbar.ts";
+  import { actionIcons } from "../../../infra/action-icons.ts";
+  import type { ActionElementProps } from "../../../action-adapter.ts";
   let { label, icon, state: status = "ready", emphasis = "secondary", onclick, type = "button", elementProps, reason }: {
     label: string; icon: keyof typeof actionIcons; state?: ToolbarAction["state"];
     emphasis?: "primary" | "secondary"; onclick?: () => void; type?: "button" | "submit";
@@ -5027,7 +5027,7 @@ Source SHA-256: 858b2b5df9c483fd896605d31a372889e8002861056852bc14c62f78a4f8783b
 {#if reason}<span id={descriptionId} class="sr-only">{reason}</span>{/if}
 ```
 
-## src/svelte/pieces/action-icons.ts
+## src/svelte/infra/action-icons.ts
 
 Source SHA-256: d8adbfe7e273f688a7e3a7f4b5dd3df1e068e8865069e6c5b4a8c4ba603f6f41
 
@@ -5274,18 +5274,18 @@ export function pressFeedback(element: HTMLElement) {
 }
 ```
 
-## src/svelte/controls/SelectControl.svelte
+## src/svelte/catalog/compositions/select-control/SelectControl.svelte
 
-Source SHA-256: cb266e4a9d65b3501471458b0902b580f79f164c73c3d1b738b7a8f86f741910
+Source SHA-256: 3f66dc3bfc86f7f946b4d43ecb315672132ffeb8a2de1ca89c67bd9e86001b8e
 
 ```svelte
 <script lang="ts">
-  import BankRenderer from "../BankRenderer.svelte";
-  import { BankVersion } from "../../interaction/bank-node.ts";
-  import SelectionField from "../pieces/SelectionField.svelte";
-  import MeasuredField from "../pieces/MeasuredField.svelte";
-  import { selectNode, selectInputRequired, applyControlEvent } from "../../interaction/control-nodes.ts";
-  import type { ControlProps, ControlEventFor } from "../renderer-contracts.ts";
+  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
+  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import SelectionField from "../../foundations/selection-field/SelectionField.svelte";
+  import MeasuredField from "../../foundations/measured-field/MeasuredField.svelte";
+  import { selectNode, selectInputRequired, applyControlEvent } from "../../../../interaction/control-nodes.ts";
+  import type { ControlProps, ControlEventFor } from "../../../renderer-contracts.ts";
   let { node, onevent }: ControlProps<"select"> = $props();
   let checked = $derived(selectNode(node));
   const id = $props.id();
@@ -5305,15 +5305,15 @@ Source SHA-256: cb266e4a9d65b3501471458b0902b580f79f164c73c3d1b738b7a8f86f741910
 </MeasuredField>
 ```
 
-## src/svelte/controls/PopoverControl.svelte
+## src/svelte/catalog/compositions/popover-control/PopoverControl.svelte
 
-Source SHA-256: 25053edaa3ce2f51e11e2cce907c24beb95e1dd7e4280a6f9704f76aee1dad2e
+Source SHA-256: eee21215e9873d6d0ac25526591ef5f767f1f7d09bd8e9e41350e34fb2ea8bdf
 
 ```svelte
 <script lang="ts">
-  import AnchoredSurface from "../pieces/AnchoredSurface.svelte";
-  import { popoverNode, applyControlEvent } from "../../interaction/control-nodes.ts";
-  import type { ControlProps, ControlEventFor } from "../renderer-contracts.ts";
+  import AnchoredSurface from "./AnchoredSurface.svelte";
+  import { popoverNode, applyControlEvent } from "../../../../interaction/control-nodes.ts";
+  import type { ControlProps, ControlEventFor } from "../../../renderer-contracts.ts";
   let { node, onevent }: ControlProps<"popover"> = $props();
   let checked = $derived(popoverNode(node));
   function change(open: boolean) {
@@ -5326,19 +5326,19 @@ Source SHA-256: 25053edaa3ce2f51e11e2cce907c24beb95e1dd7e4280a6f9704f76aee1dad2e
   title={checked.title} content={{ kind: "information", items: checked.content }} onchange={change} />
 ```
 
-## src/svelte/controls/FileControl.svelte
+## src/svelte/catalog/compositions/file-control/FileControl.svelte
 
-Source SHA-256: a69e108118328d683743f0a46fee9645830201e7b872874da7d8833552378be3
+Source SHA-256: f9a319e9fc0964b4ddca86749d500d7f28f76a2d8436c4dd5b966a3dc1db07f0
 
 ```svelte
 <script lang="ts">
-  import * as Field from "../vendor/components/ui/field/index.js";
-  import Action from "../pieces/Action.svelte";
-  import { Input } from "../vendor/components/ui/input/index.js";
-  import { fileNode, type FileRejection } from "../../interaction/control-nodes.ts";
-  import type { ControlProps } from "../renderer-contracts.ts";
-  import { fileSize } from "../pieces/file-size.ts";
-  import { currentStackTitle } from "../pieces/stack-context.ts";
+  import * as Field from "../../../vendor/components/ui/field/index.js";
+  import Action from "../../foundations/action/Action.svelte";
+  import { Input } from "../../../vendor/components/ui/input/index.js";
+  import { fileNode, type FileRejection } from "../../../../interaction/control-nodes.ts";
+  import type { ControlProps } from "../../../renderer-contracts.ts";
+  import { fileSize } from "./file-size.ts";
+  import { currentStackTitle } from "../../../infra/stack-context.ts";
   let { node, host, onevent }: ControlProps<"files"> = $props();
   let checked = $derived(fileNode(node));
   let rejected = $state<readonly FileRejection[]>([]);
@@ -5381,36 +5381,36 @@ Source SHA-256: a69e108118328d683743f0a46fee9645830201e7b872874da7d8833552378be3
 </Field.Field>
 ```
 
-## src/svelte/controls/ControlRenderer.svelte
+## src/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte
 
-Source SHA-256: eb67524d3afc505c941e3b9b6bf8283720ed958ec4a7edeccdfd7e412f39cb6e
+Source SHA-256: 31c0beded83e52f27d1828d6d076b6cf9c866bf9697a3a30df067ff2591a9c7e
 
 ```svelte
 <script lang="ts">
-  import type { ControlNode, ControlEvent } from "../../interaction/control-nodes.ts";
-  import { controlBankNode } from "../../interaction/bank-node.ts";
-  import { ControlBankRenderer } from "../adapter-catalog.ts";
-  import type { LocalFileHost } from "./file-host.ts";
+  import type { ControlNode, ControlEvent } from "../../../../interaction/control-nodes.ts";
+  import { controlBankNode } from "../../../../interaction/bank-node.ts";
+  import { ControlBankRenderer } from "../../../adapter-catalog.ts";
+  import type { LocalFileHost } from "../../../infra/file-host.ts";
   let { node, onevent, host }: { node: ControlNode; onevent: (event: ControlEvent) => void; host: LocalFileHost } = $props();
 </script>
 <ControlBankRenderer node={controlBankNode(node)} {host} onevent={event => { if ("control" in event) onevent(event); }} />
 ```
 
-## src/svelte/controls/OptionsControl.svelte
+## src/svelte/catalog/compositions/options-control/OptionsControl.svelte
 
-Source SHA-256: 53f7f87189edf6097da3d6a4517dec48d6ffcb61f461ca0a44b4d36c42857854
+Source SHA-256: c6455191a51253a60e68a0362d8f63d80eef0f5593fdfce85d7eb4d3bf23f64f
 
 ```svelte
 <script lang="ts">
-  import * as Field from "../vendor/components/ui/field/index.js";
-  import * as RadioGroup from "../vendor/components/ui/radio-group/index.js";
-  import { Checkbox } from "../vendor/components/ui/checkbox/index.js";
-  import GroupedPanel from "../pieces/GroupedPanel.svelte";
-  import ChoiceRow from "../pieces/ChoiceRow.svelte";
-  import ChoiceList from "../pieces/ChoiceList.svelte";
-  import type { ControlProps } from "../renderer-contracts.ts";
-  import { permitsOptionsSelection, optionsInputRequired } from "../../interaction/extended-controls.ts";
-  import { currentStackTitle } from "../pieces/stack-context.ts";
+  import * as Field from "../../../vendor/components/ui/field/index.js";
+  import * as RadioGroup from "../../../vendor/components/ui/radio-group/index.js";
+  import { Checkbox } from "../../../vendor/components/ui/checkbox/index.js";
+  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
+  import ChoiceRow from "../../foundations/choice-row/ChoiceRow.svelte";
+  import ChoiceList from "../../foundations/choice-list/ChoiceList.svelte";
+  import type { ControlProps } from "../../../renderer-contracts.ts";
+  import { permitsOptionsSelection, optionsInputRequired } from "../../../../interaction/extended-controls.ts";
+  import { currentStackTitle } from "../../../infra/stack-context.ts";
   let { node, onevent }: ControlProps<"options"> = $props();
   const prefix = $props.id();
   const stackTitle = currentStackTitle();
@@ -5448,23 +5448,23 @@ Source SHA-256: 53f7f87189edf6097da3d6a4517dec48d6ffcb61f461ca0a44b4d36c42857854
 </Field.FieldSet>
 ```
 
-## src/svelte/controls/MoneyControl.svelte
+## src/svelte/catalog/compositions/money-control/MoneyControl.svelte
 
-Source SHA-256: ff012a8c18eea035da5cde909eaa18caa43e4b7973fce327b667d10c77acaa28
+Source SHA-256: b8310d8429dda379969861765c3d8ebe21c8397eb9a4b543bbd8638df464fc07
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
-  import * as Field from "../vendor/components/ui/field/index.js";
-  import * as Group from "../vendor/components/ui/input-group/index.js";
-  import MaskedInput from "../pieces/MaskedInput.svelte";
-  import SelectionField from "../pieces/SelectionField.svelte";
-  import type { ControlProps } from "../renderer-contracts.ts";
-  import { displayAmount, parseAmount } from "../../interaction/money.ts";
-  import { formatMaskedValue, type InputMask } from "../../interaction/input-mask.ts";
-  import FieldWell from "../pieces/FieldWell.svelte";
-  import MeasuredField from "../pieces/MeasuredField.svelte";
-  import ClearInput from "../pieces/ClearInput.svelte";
+  import * as Field from "../../../vendor/components/ui/field/index.js";
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
+  import MaskedInput from "../../foundations/masked-input/MaskedInput.svelte";
+  import SelectionField from "../../foundations/selection-field/SelectionField.svelte";
+  import type { ControlProps } from "../../../renderer-contracts.ts";
+  import { displayAmount, parseAmount } from "../../../../interaction/money.ts";
+  import { formatMaskedValue, type InputMask } from "../../../../interaction/input-mask.ts";
+  import FieldWell from "../../foundations/field-well/FieldWell.svelte";
+  import MeasuredField from "../../foundations/measured-field/MeasuredField.svelte";
+  import ClearInput from "../../foundations/clear-input/ClearInput.svelte";
   let { node, onevent }: ControlProps<"money"> = $props();
   const id = $props.id();
   let scale = $derived(node.currencies.find(currency => currency.code === node.currency)!.scale);
@@ -5545,24 +5545,24 @@ Source SHA-256: ff012a8c18eea035da5cde909eaa18caa43e4b7973fce327b667d10c77acaa28
 </MeasuredField>
 ```
 
-## src/svelte/controls/DateControl.svelte
+## src/svelte/catalog/foundations/date-control/DateControl.svelte
 
-Source SHA-256: afdc07b429ec3836ae84cfb97003e3d5d11035e4f8e39b5b1ca53f2d5031c7bd
+Source SHA-256: 324edc89a807293a14f14ad59ebe19a4bfac95ea3f69c0d21a550332ead426a0
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
-  import { dismissWhenInactive } from '../pieces/surface-activity.svelte.ts';
+  import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   import { parseDate, today, DateFormatter, getLocalTimeZone, type DateValue } from "@internationalized/date";
-  import * as Popover from "../vendor/components/ui/popover/index.js";
-  import { Button } from "../vendor/components/ui/button/index.js";
-  import DateCalendar from "../pieces/DateCalendar.svelte";
+  import * as Popover from "../../../vendor/components/ui/popover/index.js";
+  import { Button } from "../../../vendor/components/ui/button/index.js";
+  import DateCalendar from "./DateCalendar.svelte";
   import CalendarIcon from "@lucide/svelte/icons/calendar";
-  import FieldWellContent from "../pieces/FieldWellContent.svelte";
-  import MeasuredField from "../pieces/MeasuredField.svelte";
-  import PickerSheet from "../pieces/PickerSheet.svelte";
-  import { PickerPresentation } from "../pieces/picker-presentation.svelte.ts";
-  import type { ControlProps } from "../renderer-contracts.ts";
+  import FieldWellContent from "../../foundations/field-well-content/FieldWellContent.svelte";
+  import MeasuredField from "../../foundations/measured-field/MeasuredField.svelte";
+  import PickerSheet from "../../foundations/picker-sheet/PickerSheet.svelte";
+  import { PickerPresentation } from "../../../infra/picker-presentation.svelte.ts";
+  import type { ControlProps } from "../../../renderer-contracts.ts";
   let { node, onevent }: ControlProps<"date"> = $props();
   // Six week rows plus month controls, field and collision margins must fit.
   const id = $props.id(), picker = new PickerPresentation({ panelRem: 20, minimumBlockRem: 28 });
@@ -5642,20 +5642,20 @@ Source SHA-256: afdc07b429ec3836ae84cfb97003e3d5d11035e4f8e39b5b1ca53f2d5031c7bd
 </MeasuredField>
 ```
 
-## src/svelte/controls/MediaControl.svelte
+## src/svelte/catalog/compositions/media-control/MediaControl.svelte
 
-Source SHA-256: 7941501ad2433ddca755f7924f381257a49ac8607f9e13ec3c641406310714c5
+Source SHA-256: e904db21bcc40bc7150e390415162f29913e0285bff05a8b17fafd76522bb4de
 
 ```svelte
 <script lang="ts">
-  import * as Avatar from "../vendor/components/ui/avatar/index.js";
-  import { Badge } from "../vendor/components/ui/badge/index.js";
-  import { cn } from "../vendor/utils.js";
+  import * as Avatar from "../../../vendor/components/ui/avatar/index.js";
+  import { Badge } from "../../../vendor/components/ui/badge/index.js";
+  import { cn } from "../../../vendor/utils.js";
   import ImageOff from "@lucide/svelte/icons/image-off";
-  import type { AvatarNode, ImageNode, TagNode } from "../../interaction/extended-nodes.ts";
-  import PhotoCollection from '../pieces/media/PhotoCollection.svelte';
-  import Image from '../pieces/media/Image.svelte';
-  import { imageIdentity } from '../pieces/media/source.ts';
+  import type { AvatarNode, ImageNode, TagNode } from "../../../../interaction/extended-nodes.ts";
+  import PhotoCollection from '../photo-collection/PhotoCollection.svelte';
+  import Image from '../../foundations/image/Image.svelte';
+  import { imageIdentity } from '../../../infra/media-source.ts';
   let { node }: { node: AvatarNode | ImageNode | TagNode } = $props();
   let source = $derived(node.kind === "tag" ? null : typeof node.source === "object" && node.source !== null
     ? 'asset' in node.source ? `/media/${encodeURIComponent(node.source.asset)}` : node.source : node.source);
@@ -5683,21 +5683,21 @@ Source SHA-256: 7941501ad2433ddca755f7924f381257a49ac8607f9e13ec3c641406310714c5
 {/if}
 ```
 
-## src/svelte/pieces/AnchoredSurface.svelte
+## src/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte
 
-Source SHA-256: ecbfc040041e9e74130a014f72ba73dcb4e23f35c7d055a25dce7b4b76d94f3d
+Source SHA-256: 21b2a9b22ca2f78db3b0497eb82ce986a1feeedc17e5b6b24dffc66e7ab813fc
 
 ```svelte
 <script lang="ts">
-  import * as Popover from "../vendor/components/ui/popover/index.js";
-  import { dismissWhenInactive } from './surface-activity.svelte.ts';
-  import { anchoredTabExit } from './anchored-tab-exit.ts';
-  import FrameBody from "../FrameBody.svelte";
-  import BankRenderer from "../BankRenderer.svelte";
-  import { BankVersion } from "../../interaction/bank-node.ts";
-  import type { FrameContent } from "../../interaction/surface-frame.ts";
-  import type { SurfaceIntent } from "../../interaction/intent.ts";
-  import type { ActionIcon } from "../../interaction/toolbar.ts";
+  import * as Popover from "../../../vendor/components/ui/popover/index.js";
+  import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
+  import { anchoredTabExit } from '../../../infra/anchored-tab-exit.ts';
+  import FrameBody from "../../renderer/frame-body/FrameBody.svelte";
+  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
+  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import type { FrameContent } from "../../../../interaction/surface-frame.ts";
+  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import type { ActionIcon } from "../../../../interaction/toolbar.ts";
   let { label, title, content, open, disabled = false, locked = false, onchange, invoke = () => {}, icon = "open" }: {
     label: string; title: string; content: Extract<FrameContent, { kind: "information" | "utilities" }>;
     open: boolean; disabled?: boolean; locked?: boolean | undefined; onchange: (open: boolean) => void;
@@ -5744,20 +5744,20 @@ Source SHA-256: ecbfc040041e9e74130a014f72ba73dcb4e23f35c7d055a25dce7b4b76d94f3d
 </Popover.Root>
 ```
 
-## src/svelte/Fields.svelte
+## src/svelte/catalog/compositions/fields/Fields.svelte
 
-Source SHA-256: da9c9ac7d83931ffcc877ed47898fae0c116978ddd62cb5eabf34a8629641835
+Source SHA-256: 7ac09bea846059e136770432132563ff34a4f7d17541ca821027d89064357247
 
 ```svelte
 <script lang="ts">
-  import * as Field from "./vendor/components/ui/field/index.js";
-  import BankRenderer from "./BankRenderer.svelte";
-  import { BankVersion } from "../interaction/bank-node.ts";
-  import type { FrameContent } from "../interaction/surface-frame.ts";
-  import { imageInputControl } from "../interaction/image-input.ts";
-  import { labelsInputControl } from "../interaction/labels-control.ts";
-  import { isFormControlEvent, type FormControlEvent } from "../interaction/form-control-event.ts";
-  import { useFormFiles } from "./pieces/form-files.ts";
+  import * as Field from "../../../vendor/components/ui/field/index.js";
+  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
+  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import type { FrameContent } from "../../../../interaction/surface-frame.ts";
+  import { imageInputControl } from "../../../../interaction/image-input.ts";
+  import { labelsInputControl } from "../../../../interaction/labels-control.ts";
+  import { isFormControlEvent, type FormControlEvent } from "../../../../interaction/form-control-event.ts";
+  import { useFormFiles } from "../../../infra/form-files.ts";
   const fileHost = useFormFiles();
   let { fields, edit, controlEvent }: {
     fields: Extract<FrameContent, { kind: "form" }>["fields"];
@@ -5791,21 +5791,21 @@ Source SHA-256: da9c9ac7d83931ffcc877ed47898fae0c116978ddd62cb5eabf34a8629641835
 </Field.FieldGroup>
 ```
 
-## src/svelte/pieces/TextInput.svelte
+## src/svelte/catalog/foundations/text-input/TextInput.svelte
 
-Source SHA-256: 9896fa4947b64e41610cb4d914c88c6f893711a3da380426443beb9c1f92380c
+Source SHA-256: 7250a40f31cea8f7060a1eb56d73d94e7a271662bd2b1a750e8913c5b37deea6
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
-  import * as Field from "../vendor/components/ui/field/index.js";
-  import * as Group from "../vendor/components/ui/input-group/index.js";
-  import type { InputMask } from "../../interaction/input-mask.ts";
-  import FieldWell from "./FieldWell.svelte";
-  import MeasuredField from "./MeasuredField.svelte";
-  import MaskedInput from "./MaskedInput.svelte";
-  import CharacterCounter from "./CharacterCounter.svelte";
-  import ClearInput from "./ClearInput.svelte";
+  import * as Field from "../../../vendor/components/ui/field/index.js";
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
+  import type { InputMask } from "../../../../interaction/input-mask.ts";
+  import FieldWell from "../field-well/FieldWell.svelte";
+  import MeasuredField from "../measured-field/MeasuredField.svelte";
+  import MaskedInput from "../masked-input/MaskedInput.svelte";
+  import CharacterCounter from "../character-counter/CharacterCounter.svelte";
+  import ClearInput from "../clear-input/ClearInput.svelte";
   import { observeEditorCapacity } from "./editor-capacity.ts";
   let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
     identity = "", mask, maxLength, purpose = "text", onchange }: {
@@ -5873,15 +5873,15 @@ Source SHA-256: 9896fa4947b64e41610cb4d914c88c6f893711a3da380426443beb9c1f92380c
 </MeasuredField>
 ```
 
-## src/svelte/pieces/MaskedInput.svelte
+## src/svelte/catalog/foundations/masked-input/MaskedInput.svelte
 
-Source SHA-256: 1594084e6939a7b040a7c190a485ee760e0a9ec073898be92d313fd9d21ae011
+Source SHA-256: 666c40cb082cdc306c715a8665f25853fe5ef50bced7a79f5498b50e3ef7925f
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
-  import * as Group from "../vendor/components/ui/input-group/index.js";
-  import { formatMaskedValue, readMaskedValue, maskSeparators, type InputMask } from "../../interaction/input-mask.ts";
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
+  import { formatMaskedValue, readMaskedValue, maskSeparators, type InputMask } from "../../../../interaction/input-mask.ts";
   import { historyKey, inputEditHistory, inputSnapshot, type InputSnapshot } from "./input-edit-history.ts";
   let { value, mask, identity = "", display = $bindable(""), onvalue, id, placeholder, disabled, required,
     "aria-required": ariaRequired, "aria-invalid": invalid, "aria-label": label, "aria-describedby": describedBy }: {
@@ -5997,14 +5997,14 @@ Source SHA-256: 1594084e6939a7b040a7c190a485ee760e0a9ec073898be92d313fd9d21ae011
   onblur={() => history.boundary()} />
 ```
 
-## src/svelte/pieces/CharacterCounter.svelte
+## src/svelte/catalog/foundations/character-counter/CharacterCounter.svelte
 
-Source SHA-256: e8de6debfc5b6ef0a8021b6f7854c1a61e9ca9b486f5cd27ae2d8dde5623c117
+Source SHA-256: 62de2505a6b4009edb2b39673c455a3341fabc336d61eb98f5bed84d53be5c5c
 
 ```svelte
 <script lang="ts">
-  import * as Group from "../vendor/components/ui/input-group/index.js";
-  import { cn } from "../vendor/utils.js";
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
+  import { cn } from "../../../vendor/utils.js";
   let { id, value, maxLength }: { id: string; value: string; maxLength?: number | undefined } = $props();
   // Match JSON Schema's code-point length, not HTML maxlength's UTF-16 units.
   const count = $derived([...value].length);
@@ -6022,13 +6022,13 @@ Source SHA-256: e8de6debfc5b6ef0a8021b6f7854c1a61e9ca9b486f5cd27ae2d8dde5623c117
 </Group.Addon>
 ```
 
-## src/svelte/pieces/ClearInput.svelte
+## src/svelte/catalog/foundations/clear-input/ClearInput.svelte
 
-Source SHA-256: 68a2c3645b28ff57dbdf29fb9e1f2aa04970dc1d60b47dd856a512c2839528d1
+Source SHA-256: 9c6f9c3de674450ddad2beb1c632a2192efc36db38755b4e1c64181935887789
 
 ```svelte
 <script lang="ts">
-  import * as Group from "../vendor/components/ui/input-group/index.js";
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import CircleX from "@lucide/svelte/icons/circle-x";
   let { control, value, label, disabled = false }: {
     control: string; value: string; label: string; disabled?: boolean;
@@ -6073,7 +6073,7 @@ Source SHA-256: 68a2c3645b28ff57dbdf29fb9e1f2aa04970dc1d60b47dd856a512c2839528d1
 {/if}
 ```
 
-## src/svelte/pieces/input-edit-history.ts
+## src/svelte/catalog/foundations/masked-input/input-edit-history.ts
 
 Source SHA-256: ec677b92cd776a73189497b282612f08583be120fcf12915225b00d863f0d600
 
@@ -6130,21 +6130,21 @@ export function historyKey(event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaK
 }
 ```
 
-## src/svelte/ContextPanel.svelte
+## src/svelte/catalog/compositions/context-panel/ContextPanel.svelte
 
-Source SHA-256: dec9e5e4a711edccc5da6138a4fb467d30dc56f1a6a669b77539e21d76b43ad5
+Source SHA-256: 5104835d6ddc56b494488031ad91e8c7b8443812c23e75c8d2ab066ccb729559
 
 ```svelte
 <script lang="ts">
-  import BankRenderer from "./BankRenderer.svelte";
-  import { BankVersion } from "../interaction/bank-node.ts";
-  import DestinationRow from "./pieces/DestinationRow.svelte";
-  import GroupedPanel from "./pieces/GroupedPanel.svelte";
-  import ReadingContent from "./pieces/ReadingContent.svelte";
-  import ContextProperties from "./pieces/ContextProperties.svelte";
-  import MediaObject from "./pieces/media/MediaObject.svelte";
-  import AttentionStatus from './pieces/AttentionStatus.svelte';
-  import type { WebRendererProps } from "./renderer-contracts.ts";
+  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
+  import { BankVersion } from "../../../../interaction/bank-node.ts";
+  import DestinationRow from "../../foundations/destination-row/DestinationRow.svelte";
+  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
+  import ReadingContent from "../reading-content/ReadingContent.svelte";
+  import ContextProperties from "../context-properties/ContextProperties.svelte";
+  import MediaObject from "../media-object/MediaObject.svelte";
+  import AttentionStatus from '../attention-status/AttentionStatus.svelte';
+  import type { WebRendererProps } from "../../../renderer-contracts.ts";
   let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {}, actions, selectors = [], attention=[],presentation, onselect }: WebRendererProps["context"] = $props();
   let remaining = $derived(fields.filter(field => field !== presentation?.media && field !== presentation?.description));
   let prose = $derived(remaining.filter(field => multiline.includes(field)));
@@ -6171,45 +6171,45 @@ Source SHA-256: dec9e5e4a711edccc5da6138a4fb467d30dc56f1a6a669b77539e21d76b43ad5
 </div>
 ```
 
-## src/svelte/Facts.svelte
+## src/svelte/catalog/renderer/facts/Facts.svelte
 
-Source SHA-256: 0c92122325568de402726afcf826d603b6b25e70db1d2e79fff60e744b78fe2b
+Source SHA-256: 355a235c0d567a112e2a33dafca2cf0d02af200ec611128f03cf88db53a6fab4
 
 ```svelte
 <script lang="ts">
-  import { FactGroup } from "./adapter-catalog.ts";
-  import type { FactsContent } from "../interaction/surface-frame.ts";
+  import { FactGroup } from "../../../adapter-catalog.ts";
+  import type { FactsContent } from "../../../../interaction/surface-frame.ts";
   let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {} }: Omit<FactsContent, "kind"> = $props();
 </script>
 
 <FactGroup {fields} {facts} {object} {labels} {multiline} {images} {tags} {references} />
 ```
 
-## src/svelte/Review.svelte
+## src/svelte/catalog/compositions/review/Review.svelte
 
-Source SHA-256: 74b7a56c8022381d8b605c07f1afe2b748afbf2bb07694c4d1778b1716575b29
+Source SHA-256: dc1b953e99583587274edc3e12ccd046e589751fffda6c620adf294a4d53a6c3
 
 ```svelte
 <script lang="ts">
-  import type { FrameContent } from "../interaction/surface-frame.ts";
-  import BankRenderer from "./BankRenderer.svelte";
-  import { BankVersion } from "../interaction/bank-node.ts";
+  import type { FrameContent } from "../../../../interaction/surface-frame.ts";
+  import BankRenderer from "../../renderer/bank-renderer/BankRenderer.svelte";
+  import { BankVersion } from "../../../../interaction/bank-node.ts";
   let { details, recovery }: Extract<FrameContent, { kind: "review" }> = $props();
 </script>
 <div data-composition="review"><BankRenderer node={{ version: BankVersion, kind: "fact", details }} /></div>
 {#if recovery}<p class="mt-4 text-muted-foreground" role="status">{recovery}</p>{/if}
 ```
 
-## src/svelte/pieces/DestinationRow.svelte
+## src/svelte/catalog/foundations/destination-row/DestinationRow.svelte
 
-Source SHA-256: 867e2904c82482fc5afa6451811e5b82f3ea197f0af39abd9d0e74228d65f990
+Source SHA-256: 71093ac8e892a284e9065c999a93c114e87ee9f78e9874a3fc755f16af9ec25e
 
 ```svelte
 <script lang="ts">
-  import { Button } from "../vendor/components/ui/button/index.js";
+  import { Button } from "../../../vendor/components/ui/button/index.js";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import Face from './Face.svelte';
-  import type { ActionIcon } from '../../interaction/action-icon.ts';
+  import Face from '../face/Face.svelte';
+  import type { ActionIcon } from '../../../../interaction/action-icon.ts';
 let { destination, label, available, open, icon = 'open', reason }: {
     destination: string; label: string; available: boolean; open: () => void; icon?: ActionIcon | undefined; reason?: string | undefined;
   } = $props();
@@ -6226,29 +6226,29 @@ let { destination, label, available, open, icon = 'open', reason }: {
 {#if !available && reason}<span id={descriptionId} class="sr-only">{reason}</span>{/if}
 ```
 
-## src/svelte/pieces/Drawer.svelte
+## src/svelte/catalog/foundations/drawer/Drawer.svelte
 
-Source SHA-256: aff757d004de36528b8a29e4aa46466b3bd7846ce454b17b848e120120509630
+Source SHA-256: 921fcff6c176630714e825a8656a2745b615df449f4a6ba2bf7b91e0a081a883
 
 ```svelte
 <script lang="ts">
   import { tick } from 'svelte';
-  import * as Dialog from "../vendor/components/ui/dialog/index.js";
-  import DrawerGrip from "./DrawerGrip.svelte";
+  import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
+  import DrawerGrip from "../drawer-grip/DrawerGrip.svelte";
   import { prefersReducedMotion } from "svelte/motion";
-  import { drawerMotion } from "./drawer-motion.svelte.ts";
-  import { useSurfaceHost } from "./surface-host.svelte.ts";
-  import SurfaceFrame from "../SurfaceFrame.svelte";
-  import InstanceFrame from "../InstanceFrame.svelte";
-  import type { SurfaceFrame as Frame } from "../../interaction/surface-frame.ts";
-  import type { ResolvedView } from "../../views/resolved.ts";
-  import { transientFrame } from "../../interaction/transient-frame.ts";
-  import type { SurfaceIntent } from "../../interaction/intent.ts";
-  import { surfaceFocus } from "./surface-focus.svelte.ts";
+  import { drawerMotion } from "../../../infra/drawer-motion.svelte.ts";
+  import { useSurfaceHost } from "../../../infra/surface-host.svelte.ts";
+  import SurfaceFrame from "../../compositions/surface-frame/SurfaceFrame.svelte";
+  import InstanceFrame from "../../renderer/instance-frame/InstanceFrame.svelte";
+  import type { SurfaceFrame as Frame } from "../../../../interaction/surface-frame.ts";
+  import type { ResolvedView } from "../../../../views/resolved.ts";
+  import { transientFrame } from "../../../../interaction/transient-frame.ts";
+  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import { surfaceFocus } from "../../../infra/surface-focus.svelte.ts";
   import { adaptiveSurfaceLayout } from './adaptive-surface-layout.ts';
   import { adaptiveModality } from './adaptive-modality.svelte.ts';
-  import type { FormControlEvent } from "../../interaction/form-control-event.ts";
-  import { frameContinuity } from "./frame-continuity.svelte.ts";
+  import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
+  import { frameContinuity } from "../../../infra/frame-continuity.svelte.ts";
 let { label, open, locked = false, onclose, onclosed, frame, invoke, edit, frameIdentity, readingIdentity, body, controlEvent, presentation }: {
     label: string; open: boolean; locked?: boolean; onclose: () => void;
     onclosed?: () => void; frame: Frame; invoke: (intent: SurfaceIntent) => void;
@@ -6349,7 +6349,7 @@ let { label, open, locked = false, onclose, onclosed, frame, invoke, edit, frame
 </style>
 ```
 
-## src/svelte/pieces/drawer-motion.svelte.ts
+## src/svelte/infra/drawer-motion.svelte.ts
 
 Source SHA-256: 9f0106f6693c5479d864ae100c75098c02aa2754849691c236413d43205f7297
 

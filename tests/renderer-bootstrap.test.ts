@@ -14,7 +14,7 @@ test("the shared bootstrap styles a View-only build without either legacy produc
     export const validateInput = () => true;`;
   const project = createBuildProject(module);
   const page = `<script lang="ts">
-    import AccessGate from "@desert/svelte/pieces/AccessGate.svelte";
+    import AccessGate from "@desert/svelte/catalog/compositions/access-gate/AccessGate.svelte";
     import { surface, validateInput, viewProgram } from "virtual:desert/surface";
   </script>
   {#if viewProgram}<AccessGate {viewProgram} {surface} {validateInput}/>{/if}`;

@@ -7,7 +7,7 @@ const settle=async(f:Awaited<ReturnType<typeof svelteBrowser>>)=>f.page.evaluate
 
 test('selection observes a real outside focus transfer during its opening microtask',async()=>{
   const f=await svelteBrowser(`<script>
-    import SelectionField from '@desert/svelte/pieces/SelectionField.svelte';
+    import SelectionField from '@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte';
     let changes=$state(0);
   </script><SelectionField selection="choice" label="Choice" value="first"
     options={[{value:'first',label:'First'}]} onchange={()=>changes++}/>
@@ -96,7 +96,7 @@ test('a portaled child belongs to its parent focus scope, while an unrelated sib
 test('a nested picker sheet retains its parent popover and restores the inner opener',async()=>{
   const f=await svelteBrowser(`<script>
     import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
-    import PickerSheet from '@desert/svelte/pieces/PickerSheet.svelte';
+    import PickerSheet from '@desert/svelte/catalog/foundations/picker-sheet/PickerSheet.svelte';
     let parent=$state(false),sheet=$state(false),exits=$state(0);
   </script><Popover.Root bind:open={parent}><Popover.Trigger>Parent</Popover.Trigger>
     <Popover.Content role="dialog" aria-label="Parent content" onFocusOutside={()=>{exits++;parent=false;}}>
@@ -129,7 +129,7 @@ test('a nested picker sheet retains its parent popover and restores the inner op
 for(const childKind of ['popover','sheet'] as const) test(`closing a parent with focus in its portaled ${childKind} restores the parent opener`,async()=>{
   const f=await svelteBrowser(`<script>
     import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
-    import PickerSheet from '@desert/svelte/pieces/PickerSheet.svelte';
+    import PickerSheet from '@desert/svelte/catalog/foundations/picker-sheet/PickerSheet.svelte';
     let parent=$state(false),child=$state(false);
     globalThis.hideParent=()=>parent=false;
   </script><Popover.Root bind:open={parent}><Popover.Trigger>Parent</Popover.Trigger>

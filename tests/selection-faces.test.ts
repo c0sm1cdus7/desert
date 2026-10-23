@@ -35,7 +35,7 @@ test("face descriptors reject unknown kinds, missing regions and empty or oversi
 });
 
 const source = `<script lang="ts">
-  import SelectionField from "@desert/svelte/pieces/SelectionField.svelte";
+  import SelectionField from "@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte";
   let value = $state('ar'), edits = $state(0);
   const options = [
     {value:'ar',label:'Argentina',disabled:false,face:{kind:'flag',region:'AR'}},

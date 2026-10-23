@@ -5,7 +5,7 @@ import {rendererCss} from './fixtures/renderer-css.ts';
 
 test('standalone media content shares its specimen reading guide',async()=>{
  const f=await svelteBrowser(`<script>
- import ControlBench from '@desert/svelte/catalog/ControlBench.svelte';
+ import ControlBench from '@desert/svelte/catalog/compositions/control-bench/ControlBench.svelte';
  </script><ControlBench entryIds={['control.tag','control.avatar','control.image']} />`);
  try {
   await f.page.addStyleTag({content:await rendererCss()});

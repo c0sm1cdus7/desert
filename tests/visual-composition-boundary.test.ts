@@ -11,7 +11,7 @@ function nativeNodes(value: unknown): string[] {
 }
 
 test("frame and leaf view adapters do not construct visual wrappers", async () => {
-  for (const name of ["FrameBody", "views/ViewItem", "views/ViewContent"]) {
+  for (const name of ["FrameBody", "catalog/renderer/view-item/ViewItem", "catalog/renderer/view-content/ViewContent"]) {
     const source = await readFile(new URL(`../src/svelte/${name}.svelte`, import.meta.url), "utf8");
     assert.deepEqual(nativeNodes(parse(source, { modern: true }).fragment), [], name);
   }
@@ -25,8 +25,8 @@ test("text and utility compositions retain closed content/event contracts, not H
 });
 
 test("toolbar calendar controls cannot be supplied as arbitrary rendering", async () => {
-  const toolbar = await readFile(new URL("../src/svelte/pieces/Toolbar.svelte", import.meta.url), "utf8");
-  const calendar = await readFile(new URL("../src/svelte/pieces/DateCalendar.svelte", import.meta.url), "utf8");
+  const toolbar = await readFile(new URL("../src/svelte/catalog/compositions/toolbar/Toolbar.svelte", import.meta.url), "utf8");
+  const calendar = await readFile(new URL("../src/svelte/catalog/foundations/date-control/DateCalendar.svelte", import.meta.url), "utf8");
   assert.doesNotMatch(toolbar, /controls\??:\s*Snippet|@render controls/);
   assert.doesNotMatch(calendar, /#snippet controls/);
 });

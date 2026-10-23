@@ -4,7 +4,7 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import BankRenderer from "@desert/svelte/BankRenderer.svelte";
+  import BankRenderer from "@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte";
   import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
   const version = 'desert.bank-node/1', controlVersion = 'desert.control/1';
   const nodes = [

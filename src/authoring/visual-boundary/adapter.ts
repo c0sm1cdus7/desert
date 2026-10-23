@@ -6,15 +6,15 @@ import { requestPath } from "./source-request.ts";
 
 const gateway = "src/svelte/adapter-catalog.ts";
 export const sealedAdapterPaths = Object.freeze([
-  "src/svelte/Facts.svelte",
-  "src/svelte/explorer/PublicCatalogProduct.svelte",
-  "src/svelte/explorer/LocalExercises.svelte",
-  "src/svelte/FrameBody.svelte", "src/svelte/InstanceFrame.svelte",
-  "src/svelte/views/ViewItem.svelte", "src/svelte/views/ViewContent.svelte",
-  "src/svelte/views/Panel.svelte", "src/svelte/FailureDialog.svelte",
-  "src/svelte/controls/ControlRenderer.svelte", "src/svelte/explorer/PublicCatalogBankSpecimen.svelte",
-  "src/svelte/views/MediaContent.svelte", "src/svelte/views/InspectionContent.svelte",
-  "src/svelte/explorer/PublicCatalogBank.svelte", "src/svelte/views/Workspace.svelte", "src/svelte/views/ViewProduct.svelte",
+  "src/svelte/catalog/renderer/facts/Facts.svelte",
+  "src/svelte/catalog/renderer/public-catalog-product/PublicCatalogProduct.svelte",
+  "src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte",
+  "src/svelte/catalog/renderer/frame-body/FrameBody.svelte", "src/svelte/catalog/renderer/instance-frame/InstanceFrame.svelte",
+  "src/svelte/catalog/renderer/view-item/ViewItem.svelte", "src/svelte/catalog/renderer/view-content/ViewContent.svelte",
+  "src/svelte/catalog/renderer/panel/Panel.svelte", "src/svelte/catalog/renderer/failure-dialog/FailureDialog.svelte",
+  "src/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte", "src/svelte/catalog/renderer/public-catalog-bank-specimen/PublicCatalogBankSpecimen.svelte",
+  "src/svelte/catalog/renderer/media-content/MediaContent.svelte", "src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte",
+  "src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte", "src/svelte/catalog/renderer/workspace/Workspace.svelte", "src/svelte/catalog/renderer/view-product/ViewProduct.svelte",
 ]);
 export const requiredAdapterSources = Object.freeze([
   ...sealedAdapterPaths, gateway, "src/svelte/adapter-contract.ts",

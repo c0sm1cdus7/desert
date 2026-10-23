@@ -6,7 +6,7 @@ import { bankEvent } from "../src/interaction/bank-events.ts";
 import { InteractionCatalog } from "../src/interaction/catalog.ts";
 import { ControlBank } from "../src/interaction/control-bank.ts";
 import { presentCollection } from "../src/interaction/bank-presenters.ts";
-import { presentSpecimen } from "../src/svelte/catalog/specimen-presentation.ts";
+import { presentSpecimen } from "../src/svelte/catalog/compositions/specimen/specimen-presentation.ts";
 import { compile } from "../src/compile.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import type { HumanSurface } from "../src/web/types.ts";

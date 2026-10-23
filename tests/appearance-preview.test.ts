@@ -6,7 +6,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 test("appearance tiles preview actual modes, keep separate text settings and compact accessible tints", { timeout: 90000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import AppearancePreferences from '@desert/svelte/pieces/AppearancePreferences.svelte';
+    import AppearancePreferences from '@desert/svelte/catalog/compositions/appearance-preferences/AppearancePreferences.svelte';
     let value = $state({theme:'system',textSize:'standard',tint:'rose',wallpaper:'mist'});
     let changes = $state(0);
   </script><main style="max-width:540px;padding:24px">

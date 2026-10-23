@@ -17,7 +17,7 @@ test("a generated gateway cannot substitute another type-compatible drawing owne
   // Feedback and TextContent both accept {text}; type compatibility is not
   // authorization to replace the registered implementation.
   const candidate = change("src/svelte/adapter-catalog.ts", source =>
-    source.replace('from "./pieces/TextContent.svelte"', 'from "./pieces/Feedback.svelte"'));
+    source.replace('from "./catalog/compositions/text-content/TextContent.svelte"', 'from "./catalog/foundations/feedback/Feedback.svelte"'));
   assert.throws(() => assertWebCatalogDerivations(candidate), /WEB_CATALOG_DERIVATION/);
 });
 
@@ -46,7 +46,7 @@ test("the source manifest is closed literal data and cannot run a registration f
     manifest.replace('closure: "closed"', 'closure: "approved"'),
     manifest.replace('closure: "closed"', 'closure: "closed", stylesheet: "override.css"'),
     manifest.replace('bank: ["action"]', 'bank: ["input.text"]'),
-    manifest.replace('source: "src/svelte/pieces/Action.svelte"', 'source: "src/svelte/pieces/../pieces/Action.svelte"'),
+    manifest.replace('source: "src/svelte/catalog/foundations/action/Action.svelte"', 'source: "src/svelte/pieces/../catalog/foundations/action/Action.svelte"'),
     manifest.replace('"input.text", "input.multiline"', '"input.text"'),
     manifest.replace('version: "desert.web-catalog/1"', 'version: makeVersion()'),
     manifest + '\nthrow new Error("Executed fixture source");',
@@ -54,7 +54,7 @@ test("the source manifest is closed literal data and cannot run a registration f
 });
 
 test("neither deleting a derivation nor removing its registered owner disables the boundary", () => {
-  for (const missing of ["src/svelte/catalog-manifest.ts", "src/svelte/catalog-owner-types.ts", "src/svelte/pieces/TextContent.svelte"]) {
+  for (const missing of ["src/svelte/catalog-manifest.ts", "src/svelte/catalog-owner-types.ts", "src/svelte/catalog/compositions/text-content/TextContent.svelte"]) {
     assert.throws(() => assertWebCatalogDerivations(sources.filter(item => item.path !== missing)), /WEB_CATALOG_DERIVATION/);
   }
 });

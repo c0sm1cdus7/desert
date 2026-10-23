@@ -5,7 +5,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 import { fieldGeometry, geometryProblems } from "./web/field-geometry.ts";
 
 const source = `<script lang="ts">
-  import TextInput from "@desert/svelte/pieces/TextInput.svelte";
+  import TextInput from "@desert/svelte/catalog/foundations/text-input/TextInput.svelte";
   import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
   let values = $state({ text: '', multiline: '' });
   const label = 'A long label with enough detail to wrap safely in a compact shared form';

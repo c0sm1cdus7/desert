@@ -13,7 +13,7 @@ const candidate = { ...program, views: program.views.map((view, index) =>
     ] },
   } : item) }) };
 const source = `<script>
-  import Workspace from './src/svelte/views/Workspace.svelte';
+  import Workspace from './src/svelte/catalog/renderer/workspace/Workspace.svelte';
   import { viewProgramModel } from './src/web/client/view-program.ts';
   import { onDestroy } from 'svelte';
   const model=viewProgramModel(${JSON.stringify(candidate)},${JSON.stringify(surface)},()=>true);

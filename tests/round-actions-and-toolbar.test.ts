@@ -4,8 +4,8 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import Toolbar from '@desert/svelte/pieces/Toolbar.svelte';
-  import Action from '@desert/svelte/pieces/Action.svelte';
+  import Toolbar from '@desert/svelte/catalog/compositions/toolbar/Toolbar.svelte';
+  import Action from '@desert/svelte/catalog/foundations/action/Action.svelte';
   import { Button } from '@desert/svelte/vendor/components/ui/button/index.js';
   import * as InputGroup from '@desert/svelte/vendor/components/ui/input-group/index.js';
   const close = {label:'Close',icon:'close',state:'ready',intent:{kind:'close'}};

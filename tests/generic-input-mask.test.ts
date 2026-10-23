@@ -6,7 +6,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
   import { tick } from 'svelte';
-  import BankRenderer from '@desert/svelte/BankRenderer.svelte';
+  import BankRenderer from '@desert/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte';
   let node = $state({ version: 'desert.bank-node/1', kind: 'input.text', name: 'quantity', label: 'Quantity',
     value: '', required: false, disabled: false, mask: { kind: 'decimal', locale: 'en-US', scale: 2 } });
   let events = $state([]);

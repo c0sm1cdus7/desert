@@ -6,8 +6,8 @@ import { settleMotion } from './web/fixture.ts';
 
 for (const reduced of [false, true]) test(`View panel preserves draft and presence across resize (${reduced ? 'reduced' : 'full'} motion)`, async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import Panel from '@desert/svelte/views/Panel.svelte';
-    import AdaptiveSurfaceLayout from '@desert/svelte/pieces/AdaptiveSurfaceLayout.svelte';
+    import Panel from '@desert/svelte/catalog/renderer/panel/Panel.svelte';
+    import AdaptiveSurfaceLayout from '@desert/svelte/catalog/compositions/catalog-workspace/AdaptiveSurfaceLayout.svelte';
     import {surfaceFrame} from '@desert/interaction/surface-frame.ts';
     import {viewEventOwnership} from '@desert/web/client/view-events.ts';
     const ownership=viewEventOwnership();

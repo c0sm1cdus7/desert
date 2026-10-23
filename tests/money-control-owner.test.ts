@@ -5,7 +5,7 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 
 const source = `<script>
   import { tick } from "svelte";
-  import MoneyControl from "./src/svelte/controls/MoneyControl.svelte";
+  import MoneyControl from "./src/svelte/catalog/compositions/money-control/MoneyControl.svelte";
   let node = $state({ version: "desert.control/1", kind: "money", id: "amount", label: "Amount", disabled: false,
     required: false, currencies: [{ code: "ARS", scale: 2 }, { code: "USD", scale: 2 }], currency: "ARS", minorUnits: "100" });
   window.moneyEvents = []; window.moneyEcho = true;

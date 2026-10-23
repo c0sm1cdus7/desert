@@ -18,8 +18,8 @@ export const informationItems = factCases.map(item => ({ kind: "fact", label: it
 export const storedSnapshot = JSON.stringify({ facts: storedFacts, items: informationItems });
 
 export const factStateSource = `<script lang="ts">
-  import Facts from "@desert/svelte/Facts.svelte";
-  import Information from "@desert/svelte/pieces/Information.svelte";
+  import Facts from "@desert/svelte/catalog/renderer/facts/Facts.svelte";
+  import Information from "@desert/svelte/catalog/compositions/information/Information.svelte";
   const facts = Object.freeze(${JSON.stringify(storedFacts)});
   const fields = ${JSON.stringify(factCases.map(item => item.field))};
   const labels = ${JSON.stringify(Object.fromEntries(factCases.map(item => [`place.${item.field}`, item.label])))};

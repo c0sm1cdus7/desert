@@ -6,10 +6,10 @@ import { assertIndirectToolbarCss } from './toolbar-css.ts';
 import { cssProperty, cssDeclarationProperty, decodeCss, isToolbarGeometry } from './toolbar-properties.ts';
 
 type Source=Readonly<{path:string;source:string}>;
-const owner='src/svelte/pieces/ToolbarLayout.svelte';
-const material='src/svelte/pieces/toolbar-layout.css';
-const identityOwner='src/svelte/pieces/ToolbarIdentity.svelte';
-const readingOwner='src/svelte/pieces/surface-reading.css';
+const owner='src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte';
+const material='src/svelte/catalog/compositions/toolbar-layout/toolbar-layout.css';
+const identityOwner='src/svelte/catalog/compositions/toolbar-layout/ToolbarIdentity.svelte';
+const readingOwner='src/svelte/catalog/mechanisms/surface-reading/surface-reading.css';
 const target=/(?:\.(?:workspace-header|bank-footer|sidebar-toolbar|toolbar-row|toolbar-action|toolbar-heading|toolbar-title|toolbar-subtitle)\b|\[data-(?:piece\s*=\s*["']?toolbar|toolbar(?:\]|=|-(?:controls|utilities|navigation|auxiliary|heading|identity|leading|title|subtitle)\b)|identity-(?:title|subtitle)\b|product-name\b|(?:catalog|place)-toolbar(?:\]|=)|catalog-navigation-actions\b))/;
 const variable=/^--(?:toolbar-|catalog-toolbar-)/;
 const readingVariable=/^--(?:surface-reading-inset|navigation-(?:group|row)-inset)$/;

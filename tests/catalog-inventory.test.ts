@@ -6,7 +6,7 @@ import { readDeclarations } from "../src/authoring/catalog/read-declaration.ts";
 import type { CatalogLayout } from "../src/authoring/catalog/layout.ts";
 
 const layout: CatalogLayout = {
-  roots: ["src/svelte"], vendorFamilies: "src/svelte/vendor/components/ui", infra: "src/svelte/infra",
+  roots: ["src/svelte"], vendorFamilies: "src/svelte/vendor/components/ui", infra: "src/svelte/infra", ledger: "src/svelte/catalog/approvals.json",
   fixed: { theme: ["src/svelte/theme.css"], documentation: ["src/svelte/vendor/LICENSE"] },
   pieces: { foundation: ["src/svelte/catalog/foundations"], composition: ["src/svelte/catalog/compositions"],
     mechanism: ["src/svelte/catalog/mechanisms"] },

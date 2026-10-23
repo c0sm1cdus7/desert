@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { inspectVisualSource } from "../src/authoring/visual-boundary/inspect.ts";
 
-const adapter = "src/svelte/FrameBody.svelte";
-const composition = "src/svelte/pieces/DateCalendar.svelte";
+const adapter = "src/svelte/catalog/renderer/frame-body/FrameBody.svelte";
+const composition = "src/svelte/catalog/foundations/date-control/DateCalendar.svelte";
 const codes = (path: string, source: string) => inspectVisualSource(path, source).findings.map(item => item.code);
 
 test("a renderer can select catalog pieces and emit typed events without drawing", () => {
-  assert.deepEqual(codes(adapter, `<script lang="ts">import UtilityActions from './pieces/UtilityActions.svelte';
+  assert.deepEqual(codes(adapter, `<script lang="ts">import UtilityActions from './catalog/compositions/utility-actions/UtilityActions.svelte';
     let { actions, invoke } = $props();</script><UtilityActions {actions} {invoke} />`), []);
 });
 

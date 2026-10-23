@@ -9,7 +9,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 test("all shared faces retain their own fill and unblended border", { timeout: 60000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
     import * as Avatar from "@desert/svelte/vendor/components/ui/avatar/index.js";
-    import Face from "@desert/svelte/pieces/Face.svelte";
+    import Face from "@desert/svelte/catalog/foundations/face/Face.svelte";
     const image = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Ccircle cx="20" cy="20" r="10" fill="%23888"/%3E%3C/svg%3E';
   </script><main style="padding:24px">
     <h1>Shared faces</h1>

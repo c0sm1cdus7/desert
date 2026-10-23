@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { assertClosedVisualBoundaries } from "../src/authoring/visual-boundary/closed.ts";
 
-const path = "src/svelte/pieces/ViewWorkspace.svelte";
+const path = "src/svelte/catalog/compositions/view-workspace/ViewWorkspace.svelte";
 const check = (source: string) => assertClosedVisualBoundaries([{ path, source }]);
 
 test("a composition owns private lexical snippets without exposing a public render slot", () => {
@@ -21,7 +21,7 @@ test("a composition owns private lexical snippets without exposing a public rend
 });
 
 test("composition consumers cannot redefine appearance or supply render children", () => {
-  const source = (markup: string) => '<script>import Workspace from "../pieces/ViewWorkspace.svelte";</script>' + markup;
+  const source = (markup: string) => '<script>import Workspace from "../catalog/compositions/view-workspace/ViewWorkspace.svelte";</script>' + markup;
   const use = (markup: string) => assertClosedVisualBoundaries([{ path: "src/svelte/views/Example.svelte", source: source(markup) }]);
   assert.doesNotThrow(() => use('<Workspace {resolved} {program}/>'));
   for (const markup of ['<Workspace class="override"/>', '<Workspace style="padding:0"/>',

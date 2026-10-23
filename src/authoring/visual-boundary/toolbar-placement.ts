@@ -8,7 +8,7 @@ type Parsed = Source & { tree: ReturnType<typeof parse> };
 const provider = "src/svelte/vendor/components/ui/sidebar/sidebar-provider.svelte";
 const entry = "src/svelte/vendor/components/ui/sidebar/index.js";
 const constants = "src/svelte/vendor/components/ui/sidebar/constants.ts";
-const workspace = "src/svelte/explorer/CatalogWorkspace.svelte";
+const workspace = "src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte";
 const nodes = (value: unknown): Node[] => Array.isArray(value) ? value as Node[] : [];
 const resolve = (from: string, value: string) => value.startsWith(".") ? posix.normalize(posix.join(posix.dirname(from), value))
   : value.startsWith("@desert/") ? `src/${value.slice(8)}` : value;

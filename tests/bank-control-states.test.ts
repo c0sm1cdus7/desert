@@ -5,7 +5,7 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 import type { Page } from 'playwright';
 
 const source = `<script>
-  import ControlBench from '@desert/svelte/catalog/ControlBench.svelte';
+  import ControlBench from '@desert/svelte/catalog/compositions/control-bench/ControlBench.svelte';
 </script><main style="padding:24px"><ControlBench entryIds={['control.money','control.options']} /></main>`;
 
 async function state(page: Page, entry: string, value: string) {

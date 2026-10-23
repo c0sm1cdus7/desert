@@ -273,8 +273,8 @@ navigation node consuming the one list above. No leftDock means no navigation
 surface. The renderer cannot fabricate one from exposure metadata. Unsupported
 slots, nested docks and right docks fail; this is not a general side-dock engine.
 
-The shared [ToolbarLayout](../../src/svelte/pieces/ToolbarLayout.svelte) accepts
-identity data and alone mounts [ToolbarIdentity](../../src/svelte/pieces/ToolbarIdentity.svelte).
+The shared [ToolbarLayout](../../src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte) accepts
+identity data and alone mounts [ToolbarIdentity](../../src/svelte/catalog/compositions/toolbar-layout/ToolbarIdentity.svelte).
 Its title uses the surface reading guide when no leading control is present;
 otherwise it follows the actual control group. Consumer title markup and padding
 overrides are rejected by the toolbar ownership gate. The guide and title formula
@@ -376,7 +376,7 @@ admitted branch must still collect all canonical inputs exactly once.
 
 [`serveIdentityHost`](../../src/local/identity-host.ts) mounts a protected local
 product without manufacturing a developer identity. The shared
-[AccessGate](../../src/svelte/pieces/AccessGate.svelte) chooses onboarding when no
+[AccessGate](../../src/svelte/catalog/compositions/access-gate/AccessGate.svelte) chooses onboarding when no
 administrator exists, locked sign-in when there is no valid session, or the
 declared product workspace when access is ready. Home remains the product entry;
 the access gate is not a competing navigation registry.
@@ -432,7 +432,7 @@ for these facts.
 
 The [form projection](../../src/interaction/frame-presenters.ts) selects the
 existing `control.files` catalog owner. The session's
-[file host](../../src/svelte/controls/file-host.ts) retains actual browser `File`
+[file host](../../src/svelte/infra/file-host.ts) retains actual browser `File`
 handles; the draft/frame contain only bounded metadata. Selecting a file does
 not upload it. [Draft validation](../../src/web/client/draft-validation.ts)
 validates all scalar inputs and the selected file policy without manufacturing
@@ -519,7 +519,7 @@ does not make a command available.
 for each mounted activity. A late blur, submit, Close or Accept from a superseded
 instance cannot act on the current one, even when both use the same View and input
 names. This identity is runtime-local, not a product ID, serialized contract field
-or controller credential. [InstanceFrame](../../src/svelte/InstanceFrame.svelte)
+or controller credential. [InstanceFrame](../../src/svelte/catalog/renderer/instance-frame/InstanceFrame.svelte)
 captures that instance's callbacks while the outer Drawer remains mounted; this
 preserves the existing entry/exit motion and responsive host.
 
@@ -559,7 +559,7 @@ These are distinct inventories, not competing sources of truth:
 | Semantic interaction pieces | [InteractionCatalog](../../src/interaction/catalog.ts), with states, groups and [foundation ownership](../../src/interaction/catalog-ownership.ts). |
 | Web implementations | [webRenderers](../../src/svelte/renderer-registry.ts), checked exhaustively for `PrimitiveId` by [WebRendererBank](../../src/svelte/renderer-contracts.ts). |
 | Sealed adapter gateway | [adapter-catalog.ts](../../src/svelte/adapter-catalog.ts) exports actual existing owners; [adapter-contract.ts](../../src/svelte/adapter-contract.ts) restricts the admitted props/slots and derives their types from those owners. No new DOM or alternative controls. |
-| Visual inspection | [InspectionCatalog](../../src/svelte/catalog/InspectionCatalog.svelte) derives entries from the semantic catalog and [public bank inventory](../../src/svelte/explorer/PublicCatalogBank-model.ts); specimens use the same registered owners. |
+| Visual inspection | [InspectionCatalog](../../src/svelte/catalog/compositions/inspection-catalog/InspectionCatalog.svelte) derives entries from the semantic catalog and [public bank inventory](../../src/svelte/infra/PublicCatalogBank-model.ts); specimens use the same registered owners. |
 
 Header, Stack, toolbar, media-library, Appearance, System and Identity compositions have View grammar and shared
 owners; they are not all entries of `InteractionCatalog`. Exhaustiveness of that
@@ -583,14 +583,14 @@ ViewProduct: model snapshot + owned events
 
 | Read this implementation | What it owns |
 | --- | --- |
-| [ViewProduct](../../src/svelte/views/ViewProduct.svelte) | Closed catalog adapter. [ViewProductContent](../../src/svelte/pieces/ViewProductContent.svelte) instantiates the shared model with its authenticated browser binding and hands resolved data/events to the workspace. [Browser session lifecycle](../../src/web/client/browser-session.ts) owns invitation consumption, subscriptions, unload protection and disposal, not layout. |
-| [ViewWorkspace](../../src/svelte/pieces/ViewWorkspace.svelte) | Finite workspace composition; retains destination content and coordinates search, album navigation and focus using the approved shell. [Workspace](../../src/svelte/views/Workspace.svelte) is a thin compatibility adapter to that same owner. |
-| [CatalogWorkspace](../../src/svelte/explorer/CatalogWorkspace.svelte) | Owns the existing viewport, heading motion, navigation, search overlay and panels. Accepts typed data, not incoming content, search, panel or bottom render slots. |
-| [CatalogWorkspaceContent](../../src/svelte/pieces/CatalogWorkspaceContent.svelte) | Selects the installed `view-program`, `public-catalog` or `access` body from the private [workspace content contract](../../src/svelte/pieces/workspace-content.ts). Retains the same existing DOM and catalog owners. |
-| [ContentFlow](../../src/svelte/pieces/ContentFlow.svelte) | Renders ordered content; standalone header identity belongs to the workspace, titled Stacks group their own children. |
-| [Inspection](../../src/svelte/pieces/Inspection.svelte) | Retains the local Visual catalog and opens its examples. [InspectionCatalog](../../src/svelte/catalog/InspectionCatalog.svelte) owns bank/group wrappers and instance-scoped entry lookup. |
-| [MediaLibrary](../../src/svelte/pieces/media/Library.svelte) | Owns the media wrapper, selection queue and viewer focus; reuses [Viewer](../../src/svelte/pieces/media/Viewer.svelte), not a second media UI. |
-| [Panel](../../src/svelte/views/Panel.svelte) | Adapts a resolved panel and its event identity to the existing [Drawer](../../src/svelte/pieces/Drawer.svelte); it does not choose sizes or paint. |
+| [ViewProduct](../../src/svelte/catalog/renderer/view-product/ViewProduct.svelte) | Closed catalog adapter. [ViewProductContent](../../src/svelte/catalog/compositions/view-product-content/ViewProductContent.svelte) instantiates the shared model with its authenticated browser binding and hands resolved data/events to the workspace. [Browser session lifecycle](../../src/web/client/browser-session.ts) owns invitation consumption, subscriptions, unload protection and disposal, not layout. |
+| [ViewWorkspace](../../src/svelte/catalog/compositions/view-workspace/ViewWorkspace.svelte) | Finite workspace composition; retains destination content and coordinates search, album navigation and focus using the approved shell. [Workspace](../../src/svelte/catalog/renderer/workspace/Workspace.svelte) is a thin compatibility adapter to that same owner. |
+| [CatalogWorkspace](../../src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte) | Owns the existing viewport, heading motion, navigation, search overlay and panels. Accepts typed data, not incoming content, search, panel or bottom render slots. |
+| [CatalogWorkspaceContent](../../src/svelte/catalog/compositions/catalog-workspace-content/CatalogWorkspaceContent.svelte) | Selects the installed `view-program`, `public-catalog` or `access` body from the private [workspace content contract](../../src/svelte/infra/workspace-content.ts). Retains the same existing DOM and catalog owners. |
+| [ContentFlow](../../src/svelte/catalog/compositions/content-flow/ContentFlow.svelte) | Renders ordered content; standalone header identity belongs to the workspace, titled Stacks group their own children. |
+| [Inspection](../../src/svelte/catalog/compositions/inspection/Inspection.svelte) | Retains the local Visual catalog and opens its examples. [InspectionCatalog](../../src/svelte/catalog/compositions/inspection-catalog/InspectionCatalog.svelte) owns bank/group wrappers and instance-scoped entry lookup. |
+| [MediaLibrary](../../src/svelte/catalog/compositions/library/Library.svelte) | Owns the media wrapper, selection queue and viewer focus; reuses [Viewer](../../src/svelte/catalog/compositions/viewer/Viewer.svelte), not a second media UI. |
+| [Panel](../../src/svelte/catalog/renderer/panel/Panel.svelte) | Adapts a resolved panel and its event identity to the existing [Drawer](../../src/svelte/catalog/foundations/drawer/Drawer.svelte); it does not choose sizes or paint. |
 
 The migrated adapters import only admitted gateway entries. The
 [adapter gate](../../src/authoring/visual-boundary/adapter.ts) rejects raw HTML,
@@ -611,7 +611,7 @@ or consumer styling override. Media reuses the same hero/cards/viewer for the
 installed image, video and audio types; a typed sample library is not an upload
 service or an authenticated managed media store.
 
-[BankRenderer](../../src/svelte/BankRenderer.svelte) validates its node and selects
+[BankRenderer](../../src/svelte/catalog/renderer/bank-renderer/BankRenderer.svelte) validates its node and selects
 the corresponding registered owner. Its [dispatcher gate](../../src/authoring/visual-boundary/dispatch.ts)
 checks that finite dispatch path separately from ordinary component adapters.
 Catalog owners legitimately implement DOM and motion. Their
@@ -650,14 +650,14 @@ tokens, typography, geometry and material. The
 renderer; `ViewProduct` does not import CSS or depend on a legacy renderer to
 load it. The [bootstrap gate](../../src/authoring/visual-boundary/bootstrap.ts)
 admits that theme import and the framework-owned child slot, not another public
-render extension. [Catalog appearance](../../src/svelte/pieces/catalog-appearance.ts)
+render extension. [Catalog appearance](../../src/svelte/infra/catalog-appearance.ts)
 separately mounts/restores the shared root profile; it is not product styling.
 
 Geometry/material/motion belong to shared owners such as
-[StackLayout](../../src/svelte/pieces/StackLayout.svelte),
-[Action](../../src/svelte/pieces/Action.svelte),
-[FieldWell](../../src/svelte/pieces/FieldWell.svelte) and
-[pane material](../../src/svelte/pieces/pane-material.css).
+[StackLayout](../../src/svelte/catalog/foundations/stack-layout/StackLayout.svelte),
+[Action](../../src/svelte/catalog/foundations/action/Action.svelte),
+[FieldWell](../../src/svelte/catalog/foundations/field-well/FieldWell.svelte) and
+[pane material](../../src/svelte/catalog/mechanisms/pane-material/pane-material.css).
 The web implementation uses the installed Svelte/shadcn bank. Separate native
 catalogs are not implemented; there is no claim of iOS/Android/Linux native parity.
 

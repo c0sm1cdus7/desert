@@ -7,7 +7,7 @@ import { requiredAdapterSources } from "../src/authoring/visual-boundary/adapter
 for (const name of ["Workspace", "ViewProduct"]) test(`${name} selects catalog entries and cannot draw`, async () => {
   const path = `src/svelte/views/${name}.svelte`;
   for (const source of ["<div/>", "<style>div{padding:0}</style>", "<script>document.title='Changed'</script>",
-    '<script>import Private from "../pieces/Toolbar.svelte";</script><Private/>',
+    '<script>import Private from "../catalog/compositions/toolbar/Toolbar.svelte";</script><Private/>',
     '<script>import { ViewWorkspace } from "../adapter-catalog.ts";</script><ViewWorkspace {...props}/>']) {
     assert.throws(() => assertClosedVisualBoundaries([{ path, source }]), /CLOSED_VISUAL_BOUNDARY/);
   }
@@ -17,7 +17,7 @@ for (const name of ["Workspace", "ViewProduct"]) test(`${name} selects catalog e
 });
 
 test("ViewProduct cannot supply slots or visual overrides to its finite session owner", () => {
-  const path = "src/svelte/views/ViewProduct.svelte";
+  const path = "src/svelte/catalog/renderer/view-product/ViewProduct.svelte";
   const script = '<script>import { ViewProductContent } from "../adapter-catalog.ts";</script>';
   for (const markup of ['<ViewProductContent class="p-0"/>', '<ViewProductContent style="padding:0"/>',
     '<ViewProductContent {...native}/>', '<ViewProductContent><div>Unowned</div></ViewProductContent>',

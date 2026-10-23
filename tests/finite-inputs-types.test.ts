@@ -8,10 +8,10 @@ test("actual Svelte APIs reject arbitrary native attributes without duplicating 
   const project=createBuildProject("export const surface = {}; export const validateInput = () => false;");
   const path=join(project.directory,"src/routes/+page.svelte");
   const header=`<script lang="ts">
-    import Place from '@desert/svelte/pieces/Place.svelte';
-    import Search from '@desert/svelte/pieces/SearchField.svelte';
-    import Masked from '@desert/svelte/pieces/MaskedInput.svelte';
-    import Measured from '@desert/svelte/pieces/MeasuredField.svelte';
+    import Place from '@desert/svelte/catalog/foundations/place/Place.svelte';
+    import Search from '@desert/svelte/catalog/foundations/search-field/SearchField.svelte';
+    import Masked from '@desert/svelte/catalog/foundations/masked-input/MaskedInput.svelte';
+    import Measured from '@desert/svelte/catalog/foundations/measured-field/MeasuredField.svelte';
     import type {InputMask} from '@desert/interaction/input-mask.ts';
     const mask:InputMask={kind:'decimal',locale:'en-US',scale:2};
   </script>

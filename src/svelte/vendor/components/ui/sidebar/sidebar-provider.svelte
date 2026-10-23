@@ -9,7 +9,7 @@
 	} from "./constants.js";
 	import { setSidebar } from "./context.svelte.js";
 	import type { HTMLAttributes } from "svelte/elements";
-  import { provideSurfaceTypography } from '@desert/svelte/pieces/surface-typography.svelte.ts';
+  import { provideSurfaceTypography } from '@desert/svelte/infra/surface-typography.svelte.ts';
 
 	let {
 		ref = $bindable(null),

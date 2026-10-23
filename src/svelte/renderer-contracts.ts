@@ -6,7 +6,7 @@ import type { ToolbarAction, TopToolbar } from "../interaction/toolbar.ts";
 import type { SurfaceIntent } from "../interaction/intent.ts";
 import type { BankNode, BankNodeFor } from "../interaction/bank-node.ts";
 import type { BankEvent } from "../interaction/bank-events.ts";
-import type { LocalFileHost } from "./controls/file-host.ts";
+import type { LocalFileHost } from "./infra/file-host.ts";
 import type { ActionElementProps } from "./action-adapter.ts";
 import type { InputMask } from "../interaction/input-mask.ts";
 import { freezeDeep } from "../json.ts";

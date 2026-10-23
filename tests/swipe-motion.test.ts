@@ -4,7 +4,7 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 
 for (const edge of ["left", "right", "bottom"] as const) test(`${edge}: shared swipe cancels perpendicular intent and unexpected capture loss`, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import { swipeMotion } from '@desert/svelte/pieces/swipe-motion.svelte.ts';
+    import { swipeMotion } from '@desert/svelte/infra/swipe-motion.svelte.ts';
     let count = $state(0);
     const motion = swipeMotion({edge:()=> '${edge}', enabled:()=>true, commit:()=>count++});
   </script><button style="position:fixed;left:200px;top:200px;width:180px;height:80px;touch-action:none"

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { publicCatalogBankInventory } from '../src/svelte/explorer/PublicCatalogBank-model.ts';
+import { publicCatalogBankInventory } from '../src/svelte/infra/PublicCatalogBank-model.ts';
 import { compilePublicCatalog } from '../src/public-catalog/index.ts';
 import { ControlBank } from '../src/interaction/control-bank.ts';
 import { catalogFixture } from './fixtures/public-catalog.ts';

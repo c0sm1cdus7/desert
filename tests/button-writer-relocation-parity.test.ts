@@ -11,8 +11,8 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 const buttonPath = "src/svelte/vendor/components/ui/button/button.svelte";
 const source = `<script lang="ts">
   import { Button } from '@desert/svelte/vendor/components/ui/button/index.js';
-  import Toolbar from '@desert/svelte/pieces/Toolbar.svelte';
-  import CatalogToolbar from '@desert/svelte/explorer/CatalogToolbar.svelte';
+  import Toolbar from '@desert/svelte/catalog/compositions/toolbar/Toolbar.svelte';
+  import CatalogToolbar from '@desert/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte';
   import * as Sidebar from '@desert/svelte/vendor/components/ui/sidebar/index.js';
   let query=$state(''),searching=$state(false);
   const cssBeforeMount=!!document.querySelector('[data-fixture-initial-css]');
@@ -40,7 +40,7 @@ async function previousCss() {
   // Compare ownership of the eight relocated rules inside today's approved
   // shell. An obsolete whole-theme snapshot would also undo new toolbar
   // placement and heading spacing, which are not this regression's contract.
-  const original = buttonWritersBefore["src/svelte/theme.css"] + controlWritersBefore["src/svelte/explorer/catalog-search.css"];
+  const original = buttonWritersBefore["src/svelte/theme.css"] + controlWritersBefore["src/svelte/catalog/mechanisms/catalog-search/catalog-search.css"];
   const rules = [
     '[data-slot="button"]', '[data-button-content]', '[data-catalog-search-toggle]',
     '[data-catalog-search-toggle] [data-button-content]', '[data-catalog-search-toggle] svg',
@@ -61,7 +61,7 @@ test("moving control writers preserves exact markup, declarations and computed g
   assert.equal(current.replace(/<style>[\s\S]*?<\/style>/g,"").trim(),buttonWritersBefore[buttonPath].trim(),
     "Only CSS ownership changed; the Button script and markup are byte-identical");
   const style=current.match(/<style>([\s\S]*?)<\/style>/)![1]!;
-  const originalRules=buttonWritersBefore["src/svelte/theme.css"]+controlWritersBefore["src/svelte/explorer/catalog-search.css"];
+  const originalRules=buttonWritersBefore["src/svelte/theme.css"]+controlWritersBefore["src/svelte/catalog/mechanisms/catalog-search/catalog-search.css"];
   const rules=[...style.matchAll(/:global\(([^)]+)\)\s*\{([^{}]*)\}/g)];
   assert.equal(rules.length,8,"The two geometry rules and six search feedback rules moved literally");
   for(const [,selector,declarations] of rules){

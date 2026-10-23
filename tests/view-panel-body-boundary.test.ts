@@ -4,15 +4,15 @@ import test from "node:test";
 import { assertClosedVisualBoundaries } from "../src/authoring/visual-boundary/closed.ts";
 
 test("panel adapters forward only finite projected body data, never rendering or native overrides", async () => {
-  for (const path of ["src/svelte/views/Panel.svelte", "src/svelte/InstanceFrame.svelte", "src/svelte/views/ViewItem.svelte"]) {
+  for (const path of ["src/svelte/catalog/renderer/panel/Panel.svelte", "src/svelte/catalog/renderer/instance-frame/InstanceFrame.svelte", "src/svelte/catalog/renderer/view-item/ViewItem.svelte"]) {
     const original = await readFile(new URL(`../${path}`, import.meta.url), "utf8");
     assert.doesNotThrow(() => assertClosedVisualBoundaries([{ path, source: original }]));
     for (const suffix of ["<div>Private body</div>", "<style>div{padding:0}</style>",
-      '<script>import Private from "./pieces/Drawer.svelte";</script><Private/>']) {
+      '<script>import Private from "./catalog/foundations/drawer/Drawer.svelte";</script><Private/>']) {
       assert.throws(() => assertClosedVisualBoundaries([{ path, source: suffix }]), /CLOSED_VISUAL_BOUNDARY/);
     }
   }
-  const path = "src/svelte/views/Panel.svelte";
+  const path = "src/svelte/catalog/renderer/panel/Panel.svelte";
   for (const markup of ['<ViewPanel {...props}/>', '<ViewPanel class="override"/>',
     '<ViewPanel children={draw}/>', '<ViewPanel><div>Override</div></ViewPanel>']) {
     const source = '<script>import { ViewPanel } from "../adapter-catalog.ts";</script>' + markup;
@@ -21,7 +21,7 @@ test("panel adapters forward only finite projected body data, never rendering or
 });
 
 test("the shared sequence owner admits only private lexical composition, not caller slots", async () => {
-  const path = "src/svelte/pieces/ContentFlow.svelte";
+  const path = "src/svelte/catalog/compositions/content-flow/ContentFlow.svelte";
   const original = await readFile(new URL(`../${path}`, import.meta.url), "utf8");
   assert.doesNotThrow(() => assertClosedVisualBoundaries([{ path, source: original }]));
   for (const source of ['<script>let {children}=$props();</script>{@render children()}',

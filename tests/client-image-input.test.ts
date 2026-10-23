@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { humanProduct } from "../src/web/client/model.ts";
 import { webTransport } from "../src/web/client/transport.ts";
 import { imageInputControl } from "../src/interaction/image-input.ts";
-import { LocalFileHost } from "../src/svelte/controls/file-host.ts";
+import { LocalFileHost } from "../src/svelte/infra/file-host.ts";
 import { presentFrame } from "../src/web/client/frame.ts";
 import { surface, mutation, validate, ready, scope } from "./fixtures/image-input.ts";
 import { until } from "./fixtures/client-edit.ts";

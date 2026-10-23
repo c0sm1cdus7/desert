@@ -1,4 +1,4 @@
-import type { WorkspaceContent, WorkspaceContentActions, WorkspaceViewportActions, WorkspaceSearch } from "../../src/svelte/pieces/workspace-content.ts";
+import type { WorkspaceContent, WorkspaceContentActions, WorkspaceViewportActions, WorkspaceSearch } from "../../src/svelte/infra/workspace-content.ts";
 const view = { kind: "view-program", visited: [], activeView: "notes", albums: {},
   onevent() {}, onalbum() {}, onactions() {} } as const satisfies WorkspaceContent;
 const search = { kind: "view", title: "Notes", description: "Find a note.", results: [], onselect() {} } as const satisfies WorkspaceSearch;

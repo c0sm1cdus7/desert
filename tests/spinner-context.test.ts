@@ -6,8 +6,8 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 // Loading does not introduce an accent: the icon inherits its immediate context.
 for (const colorScheme of ['light', 'dark'] as const) test(`passive spinners inherit their context (${colorScheme})`, async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import Availability from '@desert/svelte/pieces/Availability.svelte';
-    import CollectionState from '@desert/svelte/pieces/CollectionState.svelte';
+    import Availability from '@desert/svelte/catalog/foundations/availability/Availability.svelte';
+    import CollectionState from '@desert/svelte/catalog/compositions/collection-state/CollectionState.svelte';
   </script>
   <Availability state="unknown" label="Example: unknown. No controller is connected." />
   <CollectionState loaded={false} createLabel="Create record" />`);

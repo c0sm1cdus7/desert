@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { controlNode, applyControlEvent, type FileNode } from "../src/interaction/control-nodes.ts";
-import { LocalFileHost } from "../src/svelte/controls/file-host.ts";
+import { LocalFileHost } from "../src/svelte/infra/file-host.ts";
 
 const select = { version: "desert.control/1", kind: "select", id: "color", label: "Color", disabled: false,
   required: false, value: null, options: [{ value: "red", label: "Red", disabled: false },

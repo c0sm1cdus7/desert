@@ -13,7 +13,7 @@ test("the real Svelte worker boundary rejects substituted, unregistered and drif
     await cp(new URL("../src", import.meta.url), join(root, "src"), { recursive: true });
     assert.equal(await runWithVisualBoundaries(root, worker), "verified worker result");
     for (const [path, mutate] of [
-      ["adapter-catalog.ts", (source: string) => source.replace('from "./pieces/TextContent.svelte"', 'from "./pieces/Feedback.svelte"')],
+      ["adapter-catalog.ts", (source: string) => source.replace('from "./catalog/compositions/text-content/TextContent.svelte"', 'from "./catalog/foundations/feedback/Feedback.svelte"')],
       ["adapter-catalog.ts", (source: string) => source + "\nexport const Unregistered = TextOwner;"],
       ["catalog-owner-types.ts", (source: string) => source.replace("TextContent: typeof TextOwner", "TextContent: typeof FeedbackOwner")],
       ["renderer-registry.ts", (source: string) => source.replace("availability: Availability,", "availability: Action,")],
