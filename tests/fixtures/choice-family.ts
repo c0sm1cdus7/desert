@@ -10,7 +10,7 @@ export const choiceFamilySource = `<script lang="ts">
   import SelectionField from '@desert/svelte/pieces/SelectionField.svelte';
   import { controlNode, applyControlEvent } from '@desert/interaction/control-nodes.ts';
   const options = ${JSON.stringify(choiceOptions)};
-  const descriptor = {version:'desert.control/1',kind:'options',disabled:false,minSelected:1,options};
+  const descriptor = {version:'desert.control/1',kind:'options',disabled:false,inputRequired:true,minSelected:1,options};
   let single = $state.raw(controlNode({...descriptor,id:'single',label:'Inline route',maxSelected:1,selected:['alpine']}));
   let multiple = $state.raw(controlNode({...descriptor,id:'multiple',label:'Interests',maxSelected:2,selected:['alpine']}));
   let selected = $state('alpine');

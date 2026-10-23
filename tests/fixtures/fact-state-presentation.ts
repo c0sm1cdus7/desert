@@ -44,7 +44,9 @@ export const factStateSource = `<script lang="ts">
 export async function factVisual(value: Locator, expected: string) {
   return value.evaluate((element, expected) => {
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
-    let node: Node | null, text: HTMLElement = element as HTMLElement;
+    // A known-empty value now paints only its dash; measure that visible ink,
+    // not the neutral <dd> or the clipped screen-reader explanation.
+    let node: Node | null, text: Element = element.querySelector("svg") ?? element;
     while ((node = walker.nextNode())) if (node.textContent === expected && node.parentElement) { text = node.parentElement; break; }
     const style = getComputedStyle(text), row = element.parentElement!, rowStyle = getComputedStyle(row);
     const rect = element.getBoundingClientRect(), rowRect = row.getBoundingClientRect();

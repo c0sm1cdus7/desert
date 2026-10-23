@@ -3,7 +3,7 @@
   import { BankVersion } from "../../interaction/bank-node.ts";
   import SelectionField from "../pieces/SelectionField.svelte";
   import MeasuredField from "../pieces/MeasuredField.svelte";
-  import { selectNode, applyControlEvent } from "../../interaction/control-nodes.ts";
+  import { selectNode, selectInputRequired, applyControlEvent } from "../../interaction/control-nodes.ts";
   import type { ControlProps, ControlEventFor } from "../renderer-contracts.ts";
   let { node, onevent }: ControlProps<"select"> = $props();
   let checked = $derived(selectNode(node));
@@ -14,9 +14,9 @@
     onevent(event);
   }
 </script>
-<MeasuredField measure="choice" data-disabled={checked.disabled} data-control="select">
+<MeasuredField kind="control.select" disabled={checked.disabled}>
   <SelectionField {id} selection={checked.id} label={checked.label} value={checked.value} options={checked.options}
-    disabled={checked.disabled} required={checked.required} fieldControl onchange={change} />
+    disabled={checked.disabled} required={selectInputRequired(checked)} fieldControl onchange={change} />
   {#if !checked.required}<BankRenderer node={{ version: BankVersion, kind: "action", role: "secondary", action: {
     icon: "close", label: "Clear selection", state: checked.disabled || checked.value === null ? "unavailable" : "ready",
     intent: { kind: "selection.clear" },

@@ -3,6 +3,7 @@ import { checkCommand } from "./check-command.ts";
 import { checkSurface } from "./check-surface.ts";
 import { requireField, requireReference, uniqueById } from "./references.ts";
 import { compileDependencies } from "./compile-dependencies.ts";
+import { checkLiteral } from "./check-assignments.ts";
 
 export function compileProgram(definition: ProductDefinition) {
   const objects = uniqueById(definition.objects, "object");
@@ -16,6 +17,17 @@ export function compileProgram(definition: ProductDefinition) {
     policies.set(object.id, policy.field);
   }
   const journeys = uniqueById(definition.journeys ?? [], "journey");
+  for (const object of objects.values()) for (const field of Object.values(object.facts)) {
+    if (field.kind !== 'labels' || !field.reference) continue;
+    const target = requireReference(objects,field.reference.object,'reference target');
+    if (!policies.has(target.id) || ('media' in field.reference ? requireField(target,field.reference.media).kind !== 'asset'
+      : requireField(target,field.reference.label).kind !== 'text' || field.reference.color !== undefined && requireField(target,field.reference.color).kind !== 'enum')) throw new Error('INVALID_REFERENCE_TARGET');
+    if ('media' in field.reference && field.reference.memberOf) {
+      const membership=requireField(target,field.reference.memberOf);
+      if (membership.kind!=='labels' || membership.reference?.object!==object.id) throw new Error('INVALID_REFERENCE_MEMBERSHIP');
+    }
+    if ('media' in field.reference) for(const [name,value]of Object.entries(field.reference.where ?? {})) checkLiteral(requireField(target,name),value,name);
+  }
   const commands = new Map<string, { definition: object, inputSchema: ReturnType<typeof checkCommand> }>();
   for (const journey of journeys.values()) {
     const objectId = journey.kind === "read" ? journey.object : journey.command.object;
@@ -25,6 +37,7 @@ export function compileProgram(definition: ProductDefinition) {
     if (!owner) throw new Error(`Missing ownership policy: ${objectId}`);
     if (journey.kind === "read") {
       for (const name of [...journey.fields, ...journey.collection]) requireField(object, name);
+      for (const [name, value] of Object.entries(journey.where ?? {})) checkLiteral(requireField(object, name), value, name);
     } else {
       const command = journey.command;
       const existing = commands.get(command.id);

@@ -12,10 +12,10 @@
   import { PickerPresentation } from "./picker-presentation.svelte.ts";
   import type { SelectionOption } from "../../interaction/selection-option.ts";
   let { id, selection, label, triggerLabel = label, value, options, disabled = false, required = false,
-    fieldControl = false, selectedContent, optionLeading, onchange }: {
+    fieldControl = false, contextual = false, selectedContent, optionLeading, onchange }: {
     id?: string; selection: string; label: string; triggerLabel?: string; value: string | null;
     options: readonly (SelectionOption & { readonly description?: string })[];
-    disabled?: boolean; required?: boolean; fieldControl?: boolean; onchange: (value: string) => void;
+    disabled?: boolean; required?: boolean; fieldControl?: boolean; contextual?: boolean; onchange: (value: string) => void;
     selectedContent?: Snippet<[SelectionOption | undefined]>;
     optionLeading?: Snippet<[SelectionOption]>;
   } = $props();
@@ -63,9 +63,9 @@
 </script>
 {#snippet selectedValue()}
   {#if selectedContent}{@render selectedContent(selectedOption)}{:else}
-  <span class="flex min-w-0 items-center gap-2">
+  <span class="selection-value" data-contextual={contextual || undefined}>
     {#if selectedOption?.face}<Face face={selectedOption.face} compact />{/if}
-    <span class="min-w-0 truncate">{valueLabel}</span>
+    <span class="selection-label">{valueLabel}</span>
   </span>
   {/if}
 {/snippet}
@@ -76,9 +76,9 @@
 <Popover.Root bind:open>
   <Popover.Trigger id={triggerId} {disabled}>
     {#snippet child({ props })}
-    <Button {...props} {disabled} variant={fieldControl ? 'well' : 'field'} size={fieldControl ? 'well' : 'default'}
+    <Button {...props} {disabled} wrap variant={fieldControl ? 'well' : 'field'} size={fieldControl ? 'well' : 'default'}
       data-slot="select-trigger" data-floating-field={fieldControl || undefined} data-filled={fieldControl || undefined}
-      class={`w-full justify-between gap-3 ${fieldControl ? 'field-well overflow-hidden' : ''}`}
+      presentation={fieldControl ? 'selection-well' : contextual ? 'selection-context' : 'selection-inline'}
       aria-haspopup="listbox" aria-controls={open ? list?.id : undefined}
       aria-label={fieldControl ? `${label} · ${valueLabel}` : triggerLabel}
       aria-describedby={required ? `${triggerId}-requirement` : undefined} data-selection-trigger
@@ -106,10 +106,15 @@
     </PickerSheet>
   {:else}
     <Popover.Content role="presentation" onOpenAutoFocus={focus} onCloseAutoFocus={restore}
-      style="padding:.25rem;gap:0;width:max-content;min-width:min(var(--bits-popover-anchor-width),calc(100dvw - 24px))"
+      presentation="selection"
       onFocusOutside={event => { if (!(event.target instanceof HTMLElement) || event.target.id !== triggerId) open = false; }}>
       {@render choices()}
     </Popover.Content>
   {/if}
 </Popover.Root>
 {#if required}<span id={`${triggerId}-requirement`} class="sr-only">Required</span>{/if}
+<style>
+  .selection-value { display:flex; flex:1; min-width:0; align-items:center; gap:.5rem; }
+  .selection-value[data-contextual] { justify-content:flex-end; text-align:end; }
+  .selection-label { min-width:0; white-space:normal; overflow-wrap:anywhere; text-wrap:balance; }
+</style>

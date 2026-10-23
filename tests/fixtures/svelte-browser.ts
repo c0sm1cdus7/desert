@@ -6,7 +6,8 @@ import { chromium } from "playwright";
 import { resolveBitsScrollLock } from "../../src/build/svelte/bits-scroll-lock.ts";
 
 /** Actual browser components, compiled in memory; no product server or database. */
-export async function svelteBrowser(source: string, overrides: Readonly<Record<string, string>> = {}) {
+export async function svelteBrowser(source: string, overrides: Readonly<Record<string, string>> = {}, origin?: string,
+  options: { readonly headed?: boolean; readonly channel?: "chrome"; readonly initialCss?: string } = {}) {
   const root = resolve(import.meta.dirname, "../..");
   const result = await build({
     stdin: { contents: 'import { mount } from "svelte"; import App from "virtual-component.svelte"; mount(App, { target: document.body });',
@@ -35,14 +36,22 @@ export async function svelteBrowser(source: string, overrides: Readonly<Record<s
         { contents: overrides[path], loader: "ts", resolveDir: dirname(path) });
     } }],
   });
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: !options.headed, ...(options.channel ? { channel: options.channel } : {}) });
   try {
     const context = await browser.newContext();
     const page = await context.newPage();
     page.setDefaultTimeout(5000);
     const errors: string[] = [];
     page.on("pageerror", error => errors.push(error.message));
-    await page.setContent("<!doctype html><html><body></body></html>");
+    const html="<!doctype html><html><body></body></html>";
+    if(origin){
+      await page.route(origin,route=>route.fulfill({contentType:'text/html',body:html}));
+      await page.goto(origin);
+    } else await page.setContent(html);
+    if (options.initialCss !== undefined) {
+      const stylesheet=await page.addStyleTag({ content:options.initialCss });
+      await stylesheet.evaluate(element=>(element as HTMLStyleElement).setAttribute('data-fixture-initial-css',''));
+    }
     await page.addScriptTag({ content: result.outputFiles[0]!.text });
     return { page, errors, close: () => browser.close() };
   } catch (error) { await browser.close(); throw error; }

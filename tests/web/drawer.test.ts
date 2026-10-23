@@ -1,17 +1,19 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import AxeBuilder from "@axe-core/playwright";
-import { browserFixture, settleMotion } from "./fixture.ts";
+import { activePanel, settleMotion, waitForNote } from "./fixture.ts";
+import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
 
-test("creation closes its transient before the saved object is read nonmodally", { timeout: 30000 }, async () => {
+test("creation replaces its form with the saved object's own view in its dock", { timeout: 30000 }, async () => {
   const f = await browserFixture();
   try {
+    await f.page.setViewportSize({ width: 1600, height: 1000 });
     await f.page.getByRole("button", { name: "Create note", exact: true }).click();
-    const old = await f.page.getByRole("dialog").elementHandle();
+    const old = await activePanel(f.page).locator('form').elementHandle();
     await f.page.getByRole("textbox", { name: "Title", exact: true }).fill("Separate surfaces");
     await f.page.getByRole("textbox", { name: "Content", exact: true }).fill("One identity per transient.");
-    await f.page.locator("form").getByRole("button", { name: "Create note", exact: true }).click();
-    await f.page.getByRole("region", { name: "Object context", exact: true }).waitFor();
+    await activePanel(f.page).getByRole("button", { name: "Create note", exact: true }).click();
+    await waitForNote(f.page, "Separate surfaces");
     await f.page.getByRole("dialog").waitFor({ state: "hidden" });
     assert.equal(await old!.evaluate(element => element.isConnected), false);
     assert.equal(await f.page.getByRole("dialog").count(), 0);
@@ -25,10 +27,10 @@ test("mobile dark drawer follows a drag, springs back, respects reduced motion a
   try {
     await f.page.setViewportSize({ width: 390, height: 844 });
     await f.page.emulateMedia({ colorScheme: "dark" });
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
+    await openCatalog(f.page);
     const trigger = f.page.locator('[data-specimen="transient:open"]').getByRole("button");
     await trigger.click();
-    const dialog = f.page.getByRole("dialog", { name: "Transient specimen", exact: true });
+    const dialog = f.page.getByRole("dialog", { name: "Diagnostic transient", exact: true });
     const grip = dialog.getByRole("button", { name: "Close panel", exact: true });
     await settleMotion(f.page);
     const box = (await grip.boundingBox())!;
@@ -57,10 +59,10 @@ test("mobile dark drawer follows a drag, springs back, respects reduced motion a
     assert.equal(await dialog.evaluate(node => getComputedStyle(node).animationName), "none");
     await f.page.keyboard.press("Escape");
     assert.equal(await dialog.isVisible(), true);
-    for (const slot of ["top", "bottom"]) {
-      assert.equal(await dialog.locator(`[data-surface-slot="${slot}"]`).getByRole("button", { name: "Close", exact: true }).isDisabled(), true);
-    }
-    await dialog.getByRole("button", { name: "Finish specimen operation" }).click();
+    assert.equal(await dialog.locator('[data-surface-slot="top"]').getByRole("button", { name: "Close", exact: true }).isDisabled(), true);
+    assert.equal(await dialog.getByRole("button", { name: "Close panel", exact: true }).isDisabled(), true);
+    assert.equal(await dialog.locator('[data-surface-slot="bottom"]').count(), 0, "diagnostic information has no invented footer operation");
+    await dialog.locator('[data-surface-slot="top"]').getByRole("button", { name: "Close", exact: true }).and(f.page.locator(':enabled')).waitFor();
     await dialog.locator('[data-surface-slot="top"]').getByRole("button", { name: "Close", exact: true }).click();
     await dialog.waitFor({ state: "hidden" });
     assert.equal(await f.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);

@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { compile } from "../src/compile.ts";
 import { Notebook } from "../products/notebook/product.ts";
-import { buildHumanModule } from "../src/web/build.ts";
 import { formFrame } from "../src/interaction/frame-presenters.ts";
 import { surfaceFrame } from "../src/interaction/surface-frame.ts";
 import { transientFrame } from "../src/interaction/transient-frame.ts";
@@ -15,10 +14,9 @@ test("product journey names never share a dispatch namespace with renderer opera
     const definition = JSON.parse(JSON.stringify(Notebook).replaceAll("create-note", name));
     const application = compile(definition);
     const projected = application.surface("human");
-    assert.ok(projected.language && projected.navigation && projected.connection && projected.commit);
-    const surface: HumanSurface = { ...projected, language: projected.language, navigation: projected.navigation,
-      connection: projected.connection, commit: projected.commit };
-    assert.ok((await buildHumanModule(application, "human")).length > 0);
+    assert.ok(projected.language && projected.connection && projected.commit && projected.fieldRepresentations);
+    const surface: HumanSurface = { ...projected, language: projected.language,
+      connection: projected.connection, commit: projected.commit, fieldRepresentations: projected.fieldRepresentations };
     const journey = surface.journeys.find(candidate => candidate.id === name);
     assert.ok(journey?.kind === "mutation");
     const frame = transientFrame(formFrame(surface, journey, { title: "A note", body: "Writing" }, {

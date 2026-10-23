@@ -1,7 +1,7 @@
 /* Renderer-owned chrome decoration, composed over the existing native viewport.
    No filtering of controls, no new scroll owner, tab stops or pointer targets. */
 @layer components {
-  :root { --scroll-edge-shade:rgb(0 0 0 / .24); }
+  :root { --scroll-edge-shade:color-mix(in srgb,var(--background) 24%,transparent); }
   [data-scroll-owner] { position:relative; --scroll-edge-feather:32px; }
   [data-surface-slot="content"] { scroll-padding-block:var(--scroll-edge-feather); }
   /* Isolate decoration from layout even before the next resize measurement. */
@@ -9,7 +9,7 @@
   [data-scroll-edge] { position:absolute; z-index:1; pointer-events:none; --edge-direction:to bottom; }
   [data-scroll-edge="bottom"] { --edge-direction:to top; }
   [data-scroll-edge][data-active="false"] { visibility:hidden; }
-  /* One shadow, mirrored by direction. Page boundaries are not glass surfaces. */
+  /* One background-colored fade, mirrored by direction. Never darken/lighten the canvas. */
   [data-scroll-edge]::after {
     content:""; position:absolute; inset:0; opacity:var(--edge-strength);
     background:linear-gradient(var(--edge-direction),var(--scroll-edge-shade) var(--edge-core),transparent);

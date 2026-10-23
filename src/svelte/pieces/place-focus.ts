@@ -1,3 +1,5 @@
+import { toolbarBounds } from './toolbar-bounds.ts';
+
 /** Browser focus scrolling knows the viewport, not the floating rails over it.
  * Reveal in response to focus or editing; ordinary scrolling stays user-owned. */
 export function observePlaceFocus(viewport: HTMLElement, owner: HTMLElement): () => void {
@@ -10,7 +12,7 @@ export function observePlaceFocus(viewport: HTMLElement, owner: HTMLElement): ()
     let top = bounds.top, bottom = bounds.bottom;
     for (const bar of owner.querySelectorAll<HTMLElement>('[data-toolbar]')) {
       if (bar.closest('[data-scroll-owner]') !== owner || !bar.getClientRects().length) continue;
-      const rect = bar.getBoundingClientRect();
+      const rect = toolbarBounds(bar);
       if (bar.dataset.toolbar === 'top') top = Math.max(top, rect.bottom);
       else bottom = Math.min(bottom, rect.top);
     }

@@ -9,6 +9,8 @@ export type State = typeof states[number];
 export type Theme = typeof themes[number];
 export type Size = typeof sizes[number];
 export const hash = (value: string | Buffer) => createHash("sha256").update(value).digest("hex");
+const family = process.env.DESERT_PARITY_FAMILY ?? "public-catalog";
+if (!["public-catalog", "void"].includes(family)) throw new Error("UNKNOWN_PARITY_FAMILY");
 
 export async function fingerprint(origin: string) {
   const response = await fetch(origin);
@@ -35,7 +37,13 @@ export async function openBank(browser: Browser, origin: string, size: Size, the
   page.on("request", request => {
     if (!["GET", "HEAD", "OPTIONS"].includes(request.method())) writes.push(`${request.method()} ${request.url()}`);
   });
-  await page.goto(new URL("?place=bank", origin).href);
+  await page.goto(new URL(family === "void" ? "/" : "?place=bank", origin).href);
+  if (family === "void") {
+    await page.getByRole("main", { name: "Home", exact: true }).waitFor();
+    const show = page.getByRole("button", { name: "Show navigation", exact: true });
+    if (await show.isVisible()) await show.click();
+    await page.getByRole("button", { name: "Visual catalog", exact: true }).click();
+  }
   await page.locator('[data-public-catalog-bank]').waitFor();
   await settle(page);
   return { page, errors, writes, close: () => context.close() };
@@ -58,7 +66,7 @@ export async function selectState(page: Page, state: State) {
     if (await show.isVisible()) await show.click();
     // Wide starts with the sidebar docked; compact starts with it transient.
     // Entry/exit trajectories are verified separately, not by clocked screenshots.
-    await page.getByRole("button", { name: "Component bank", exact: true }).waitFor();
+    await page.getByRole("button", { name: family === "void" ? "Visual catalog" : "Component bank", exact: true }).waitFor();
   } else if (state === "transient") {
     await page.getByRole("button", { name: "Open transient example", exact: true }).first().click();
     await page.getByRole("dialog", { name: "Diagnostic transient", exact: true }).waitFor();

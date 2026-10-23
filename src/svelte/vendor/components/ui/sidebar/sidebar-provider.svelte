@@ -14,6 +14,7 @@
 	let {
 		ref = $bindable(null),
 		open = $bindable(true),
+		available = true,
 		onOpenChange = () => {},
 		contentMinWidth = "32rem",
 		class: className,
@@ -22,6 +23,7 @@
 		...restProps
 	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & {
 		open?: boolean;
+		available?: boolean;
 		onOpenChange?: (open: boolean) => void;
 		/** Reading space reserved beside the docked sidebar, in CSS length units. */
 		contentMinWidth?: string;
@@ -32,6 +34,7 @@
 	let dockedBudget = $state<HTMLElement | null>(null);
 	const sidebar = setSidebar({
 		panelId,
+		available: () => available,
 		root: () => ref,
 		dockedBudget: () => dockedBudget,
 		open: () => open,

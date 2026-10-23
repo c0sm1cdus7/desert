@@ -40,12 +40,12 @@ for (const width of [390, 1280]) test(`sidebar toggle belongs to its header; set
     await navigationAction(f.page, 'Travel kit');
     const nav = f.page.locator('[data-catalog-navigation]:visible');
     const trigger = nav.getByRole('button', { name: 'Hide navigation', exact: true });
-    assert.equal(await nav.locator('[data-slot="sidebar-header"]').getByRole('button', { name: 'Hide navigation', exact: true }).count(), 1);
-    const name = (await nav.locator('[data-product-name]').boundingBox())!, toggle = (await trigger.boundingBox())!;
+    assert.equal(await nav.locator('[data-toolbar="top"]').getByRole('button', { name: 'Hide navigation', exact: true }).count(), 1);
+    const name = (await nav.locator('[data-toolbar-title]').boundingBox())!, toggle = (await trigger.boundingBox())!;
     assert.ok(Math.abs(name.y + name.height / 2 - toggle.y - toggle.height / 2) < 2);
     assert.ok(toggle.x > name.x + name.width);
     assert.notEqual(await trigger.evaluate(element => getComputedStyle(element).backgroundColor), 'rgba(0, 0, 0, 0)');
-    assert.equal(await nav.locator('[data-slot="sidebar-footer"]').getByRole('button', { name: 'Settings', exact: true }).count(), 1);
+    assert.equal(await nav.locator('[data-toolbar="bottom"]').getByRole('button', { name: 'Settings', exact: true }).count(), 1);
     await trigger.click(); await settle(f.page);
     const opener = f.page.getByRole('button', { name: 'Show navigation', exact: true });
     assert.equal(await f.page.locator('[data-catalog-place-toolbar]').getByRole('button', { name: 'Show navigation', exact: true }).count(), 1);

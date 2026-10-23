@@ -1,71 +1,62 @@
 <script lang="ts">
   import * as Dialog from '../../vendor/components/ui/dialog/index.js';
   import { Button } from '../../vendor/components/ui/button/index.js';
-  import X from '@lucide/svelte/icons/x';
-  import Minus from '@lucide/svelte/icons/minus';
-  import Plus from '@lucide/svelte/icons/plus';
   import ChevronLeft from '@lucide/svelte/icons/chevron-left';
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import ToolbarLayout from '../ToolbarLayout.svelte';
   import Image from './Image.svelte';
+  import PlaybackCanvas from './PlaybackCanvas.svelte';
+  import { mediaPlayback } from './playback.svelte.ts';
   import { mediaGestures } from './gestures.ts';
-  import { type Photo } from './source.ts';
-  let { photos, title, index = $bindable(0), open = $bindable(false), onreturn }: {
-    photos: readonly Photo[]; title: string; index?: number; open?: boolean; onreturn: () => void;
+  import { imageIdentity, type ViewerMedia } from './source.ts';
+  let { items, title, index, open, onindex, onopen, onreturn }: {
+    items: readonly ViewerMedia[]; title: string; index: number; open: boolean;
+    onindex: (index: number) => void; onopen: (open: boolean) => void; onreturn: () => void;
   } = $props();
-  let scale = $state(1), stage!: HTMLDivElement;
+  let scale = $state(1);
   let closeButton = $state<HTMLButtonElement | null>(null);
   let gesture: ReturnType<typeof mediaGestures> | undefined;
-  const selected = $derived(photos[index]!);
-  function select(next: number) { index=Math.max(0,Math.min(photos.length-1,next)); gesture?.reset(); }
+  const selected = $derived(items[index]!);
+  const playback = mediaPlayback();
+  function select(next: number) { playback.stop(); onindex(Math.max(0,Math.min(items.length-1,next))); gesture?.reset(); }
+  function changeOpen(value: boolean) { if (!value) playback.stop(); onopen(value); }
   function manipulate(element: HTMLDivElement) {
     gesture=mediaGestures(element,{ image:()=>element.querySelector('img'),
-      page:direction=>select(index+direction), canPage:()=>photos.length>1, zoomable:true, onzoom:value=>scale=value });
+      page:direction=>select(index+direction), canPage:()=>items.length>1, zoomable:selected.kind === 'image', onzoom:value=>scale=value });
     return { destroy:()=>gesture?.destroy() };
   }
   function key(event: KeyboardEvent) {
-    if ((event.target as HTMLElement).closest('[data-media-thumbs]')) return;
+    if ((event.target as HTMLElement).closest('input,[role="slider"],[data-media-thumbs]')) return;
     if (event.key==='ArrowRight' || event.key==='ArrowLeft') {
       event.preventDefault(); if (scale===1) select(index+(event.key==='ArrowRight'?1:-1));
-    } else if (event.key==='+' || event.key==='=') { event.preventDefault(); gesture?.zoom(scale+1); }
-    else if (event.key==='-') { event.preventDefault(); gesture?.zoom(scale-1); }
-    else if (event.key==='0') { event.preventDefault(); gesture?.reset(); }
+    } else if (event.code === 'Space' && selected.kind !== 'image' && !(event.target as HTMLElement).closest('button')) { event.preventDefault(); void playback.toggle(); }
+    else if (selected.kind === 'image' && (event.key==='+' || event.key==='=')) { event.preventDefault(); gesture?.zoom(scale+1); }
+    else if (selected.kind === 'image' && event.key==='-') { event.preventDefault(); gesture?.zoom(scale-1); }
+    else if (selected.kind === 'image' && event.key==='0') { event.preventDefault(); gesture?.reset(); }
   }
 </script>
 
-<Dialog.Root bind:open>
+<Dialog.Root {open} onOpenChange={changeOpen}>
   <Dialog.Content presentation="media" showCloseButton={false} data-media-viewer
     onOpenAutoFocus={event=>{ event.preventDefault(); closeButton?.focus({preventScroll:true}); }}
     onCloseAutoFocus={event=>{ event.preventDefault(); onreturn(); }} onkeydown={key}>
-    <ToolbarLayout>
-      <Button bind:ref={closeButton} variant="secondary" size="icon-lg" aria-label="Close photo viewer" onclick={()=>open=false}><X /></Button>
-      <div data-media-identity>
-        <Dialog.Title>{title}</Dialog.Title>
-        <span data-media-count>{index+1} / {photos.length}</span>
-      </div>
-      <div data-media-zoom-tools>
-        <Button variant="secondary" size="icon-lg" aria-label="Zoom out" disabled={scale<=1} onclick={()=>gesture?.zoom(scale-1)}><Minus /></Button>
-        <Button variant="secondary" aria-label="Reset zoom" onclick={()=>gesture?.reset()}><span data-media-zoom>{Math.round(scale*100)}%</span></Button>
-        <Button variant="secondary" size="icon-lg" aria-label="Zoom in" disabled={scale>=4} onclick={()=>gesture?.zoom(scale+1)}><Plus /></Button>
-      </div>
-    </ToolbarLayout>
-    <Dialog.Description class="sr-only">Swipe or use arrows to change photos. Pinch, double-click or use plus and minus to zoom. Drag to pan when zoomed. Escape closes the viewer.</Dialog.Description>
-    <div bind:this={stage} use:manipulate data-media-stage>
-      <Image source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry onready={()=>gesture?.refresh()} />
-      {#if photos.length>1}
-        <Button data-media-prev variant="secondary" size="icon-lg" aria-label="Previous photo" disabled={index===0 || scale>1} onclick={()=>select(index-1)}><ChevronLeft /></Button>
-        <Button data-media-next variant="secondary" size="icon-lg" aria-label="Next photo" disabled={index===photos.length-1 || scale>1} onclick={()=>select(index+1)}><ChevronRight /></Button>
+    <ToolbarLayout identity={{title,subtitle:`${index+1} / ${items.length}`}} identityRole="dialog"
+      oncloseElement={element=>closeButton=element}
+      content={{kind:"media-header",close:()=>changeOpen(false),zoom:selected.kind === 'image'
+        ? {scale,onzoom:value=>gesture?.zoom(value),onreset:()=>gesture?.reset()} : undefined}} />
+    <Dialog.Description class="sr-only">Swipe or use arrows to change media. Pinch, double-click or use plus and minus to zoom images. Space plays or pauses audio and video. Escape closes the viewer.</Dialog.Description>
+    {#key `${index}:${imageIdentity(selected.source)}`}
+    <div use:manipulate data-media-stage>
+      {#if selected.kind === 'image'}<Image source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry onready={()=>gesture?.refresh()} />
+      {:else}<PlaybackCanvas item={selected} {playback} />{/if}
+      {#if items.length>1}
+        <Button data-media-prev variant="secondary" size="icon-lg" aria-label="Previous media" disabled={index===0 || scale>1} onclick={()=>select(index-1)}><ChevronLeft /></Button>
+        <Button data-media-next variant="secondary" size="icon-lg" aria-label="Next media" disabled={index===items.length-1 || scale>1} onclick={()=>select(index+1)}><ChevronRight /></Button>
       {/if}
     </div>
-    {#if photos.length>1}
-      <ToolbarLayout edge="bottom">
-        <div data-media-thumbs aria-label="Photos">
-          {#each photos as photo, i (photo.source)}
-            <Button variant="ghost" aria-label={`Photo ${i+1}: ${photo.alt}`} aria-current={i===index ? 'true' : undefined}
-              onclick={()=>select(i)}><Image source={photo.source} alt="" edge={160} /></Button>
-          {/each}
-        </div>
-      </ToolbarLayout>
+    {/key}
+    {#if items.length>1 || selected.kind !== 'image'}
+      <ToolbarLayout content={{kind:"media-controls",items,index,onindex:select,playback}} />
     {/if}
   </Dialog.Content>
 </Dialog.Root>

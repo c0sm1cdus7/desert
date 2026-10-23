@@ -18,7 +18,7 @@ test("navigation has a named header and an inset bottom disclosure", async () =>
     assert.ok(t.y > p.y + p.height * .8, "Disclosure belongs in the sidebar footer");
     assert.ok(t.x - p.x >= 8 && p.y + p.height - t.y - t.height >= 8, "Disclosure clears the rounded edges");
     assert.ok(t.y > b.y + b.height, "Disclosure does not compete with Back");
-    assert.ok(await page.locator('[data-slot="sidebar-header"]').innerText(), "Header identifies the product");
+    assert.ok(await page.locator('[data-catalog-navigation] [data-toolbar="top"]').innerText(), "Header identifies the product");
     await toggle.focus(); await page.keyboard.press("Enter"); await settle(page);
     const show = action(page, "Show navigation"), closed = await box(show);
     assert.ok(closed.y > 760 * .8, "Collapsed disclosure stays below content");

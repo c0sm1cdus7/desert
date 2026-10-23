@@ -3,7 +3,9 @@ import { test } from "node:test";
 import { compile } from "../src/compile.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import { humanProduct } from "../src/web/client/model.ts";
+import { webTransport } from "../src/web/client/transport.ts";
 import type { HumanSurface } from "../src/web/types.ts";
+import { notebookScope } from "./fixtures/notebook-scope.ts";
 
 for (const newerDraft of [false, true]) {
   test(`successful creation ${newerDraft ? "retains newer" : "clears submitted"} draft contact state`, async t => {
@@ -11,7 +13,9 @@ for (const newerDraft of [false, true]) {
     const surface = application.surface("human") as HumanSurface;
     const ready = { contractDigest: surface.contractDigest, journeys: Object.fromEntries(surface.journeys.map(journey =>
       [journey.id, { dependenciesReady: true, blockers: [] }])) };
-    const model = humanProduct(surface, (id, input) => application.validateInput(id, input).valid);
+    const model = humanProduct(surface, (id, input) => application.validateInput(id, input).valid, {
+      scope: notebookScope(surface), transport: webTransport(surface.contractDigest, { kind: "developer" }),
+    });
     let acceptStarted!: () => void, finishAcceptance!: () => void;
     const accepting = new Promise<void>(resolve => { acceptStarted = resolve; });
     const finish = new Promise<void>(resolve => { finishAcceptance = resolve; });
@@ -21,10 +25,11 @@ for (const newerDraft of [false, true]) {
       if (operation === "availability") data = { snapshot: ready, validForMs: 5000 };
       if (operation === "begin") data = { id: "run" };
       if (operation === "prepare") data = { id: "intent", runId: "run", journeyId: model.primary.id,
-        object: { id: "record" }, confirmationDigest: "confirmation", facts: { title: "Saved", body: "Text" } };
+        object: { id: "record", type: "note", expectedVersion: 0 }, confirmationDigest: "confirmation", facts: { title: "Saved", body: "Text" } };
       if (operation === "accept") {
         acceptStarted(); await finish;
-        data = { id: "intent", object: { id: "record" } };
+        data = { id: "intent", runId: "run", commandId: model.primary.commandId, status: "completed",
+          object: { id: "record", type: "note", version: 1 } };
       }
       return new Response(JSON.stringify(data));
     });

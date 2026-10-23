@@ -1,4 +1,5 @@
 import type { ActionIcon } from "../../interaction/toolbar.ts";
+import type { ViewNavigationEntry } from "../../views/program-schema.ts";
 
 /** Renderer-owned navigation data. No component, CSS or layout escape hatches. */
 export type WorkspaceIcon = ActionIcon | "landmark" | "backpack" | "panels";
@@ -8,6 +9,7 @@ export interface WorkspaceDestination<Id extends string = string> {
   readonly shortLabel?: string;
   readonly icon?: WorkspaceIcon;
   readonly group?: string;
+  readonly purpose?: ViewNavigationEntry["purpose"];
 }
 
 const legacy = {
@@ -20,10 +22,19 @@ type ResolvedDestination<Id extends string> = WorkspaceDestination<Id> & {
 };
 
 export function workspaceNavigation<Id extends string>(navigation: readonly WorkspaceDestination<Id>[]) {
-  const groups: { label: string; items: ResolvedDestination<Id>[] }[] = [
+  const groups: { label: string; items: ResolvedDestination<Id>[] }[] = navigation.every(item => item.purpose) ? [] : [
     { label: "Explore", items: [] }, { label: "Developer", items: [] },
   ];
   for (const destination of navigation) {
+    if (destination.purpose) {
+      if (!destination.group || !destination.icon) throw new Error("WORKSPACE_NAVIGATION_METADATA_REQUIRED");
+      let group = groups.find(item => item.label === destination.group);
+      if (!group) { group = { label: destination.group, items: [] }; groups.push(group); }
+      group.items.push({ ...destination, icon: destination.icon, appearance: destination.purpose === "utility" ? "bank" : "browse" });
+      continue;
+    }
+    // Frozen catalog clients predate authored navigation. Their legacy adapter is
+    // not used by a View program, whose closed contract requires purpose/group.
     const defaults = destination.id === "browse" ? legacy.browse
       : destination.id === "travel-kit" ? legacy["travel-kit"]
       : destination.id === "bank" ? legacy.bank : undefined;

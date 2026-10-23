@@ -1,9 +1,7 @@
 /** Renderer ownership is canonical metadata, not a second list of semantic IDs. */
 export const CatalogGroups = [
-  { id: 'foundations', title: 'Foundations', description: 'Shared material, reading, row, field, action and status rules.' },
-  { id: 'controls', title: 'Controls', description: 'Writing, selection, dates, money and files. Local specimens do not execute commands.' },
-  { id: 'compositions', title: 'Compositions', description: 'Collections, forms, context, review and adaptive surfaces assembled from shared owners.' },
-  { id: 'product', title: 'Product examples', description: 'Content and media using the same renderer rules.' },
+  { id: 'foundations', title: 'Foundations', description: 'Buttons, inputs, selection, reading and media primitives.' },
+  { id: 'compositions', title: 'Compositions', description: 'Surfaces, toolbars and content assembled from the same foundations.' },
 ] as const;
 export type DiscoveryGroup = typeof CatalogGroups[number]['id'];
 export const CatalogFoundations = [
@@ -39,8 +37,7 @@ export function catalogInspection(id: string, states: readonly string[], group: 
 }
 
 export function controlInspection(kind: string, states: readonly string[]) {
-  const group: DiscoveryGroup = ['tag'].includes(kind) ? 'foundations'
-    : ['image', 'avatar'].includes(kind) ? 'product' : kind === 'popover' ? 'compositions' : 'controls';
+  const group: DiscoveryGroup = kind === 'popover' ? 'compositions' : 'foundations';
   const owners: FoundationId[] = kind === 'options' || kind === 'select' ? ['pane', 'choice', 'well']
     : kind === 'tag' ? ['pane', 'status'] : ['image', 'avatar'].includes(kind) ? ['stack'] : ['pane', 'well', 'action'];
   const result = catalogInspection(`control.${kind}`, states, group, owners, ['tests/control-bank.test.ts', 'tests/extended-controls.test.ts']);

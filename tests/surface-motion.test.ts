@@ -68,6 +68,7 @@ test("panel and message share visible entrance and exit timing", async () => {
       });
       const entry = samples.filter(sample => sample.state === 'open');
       const exit = samples.filter(sample => sample.state === 'closed');
+      await writeFile(resolve(directory, `${kind}-timing.json`), JSON.stringify({entry,exit}, null, 2));
       assert.ok(entry.some(sample => sample.opacity > 0 && sample.opacity < 1), `${kind} has painted intermediate entrance frames`);
       assert.ok(exit.some(sample => sample.opacity > 0 && sample.opacity < 1), `${kind} retains painted exit frames before removal`);
       assert.ok(entry.some(sample => sample.translate !== '0px' && sample.translate !== '0px 0px'), `${kind} moves, not only fades`);

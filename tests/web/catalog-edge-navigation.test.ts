@@ -24,8 +24,11 @@ test("edge drag previews the actual sidebar, cancels, then opens on release", as
     assert.ok((await box(nav)).x >= 8);
     assert.equal(await action(f.page, "Hide navigation").getAttribute("aria-expanded"), "true");
     const header = await box(f.page.locator("[data-navigation-drag]"));
-    await f.page.mouse.move(header.x + header.width - 20, header.y + header.height / 2); await f.page.mouse.down();
-    await f.page.mouse.move(header.x + 30, header.y + header.height / 2, { steps: 12 });
+    const blank={x:header.x+header.width/2,y:header.y+header.height-4};
+    assert.equal(await f.page.evaluate(({x,y})=>!!document.elementFromPoint(x,y)?.closest('button,a,input,select,textarea'),blank),false,
+      "Dismissal starts in the toolbar's blank area, never its navigation toggle");
+    await f.page.mouse.move(blank.x, blank.y); await f.page.mouse.down();
+    await f.page.mouse.move(header.x - 20, blank.y, { steps: 12 });
     assert.ok((await box(nav)).x < 0, "Open sidebar also follows a dismiss drag");
     await f.page.mouse.up(); await nav.waitFor({ state: "hidden" });
     await f.page.mouse.move(3, 200); await f.page.mouse.down();
@@ -54,8 +57,8 @@ test("detail edge drag has live feedback and commits Back only when released", a
   const f = await publicCatalogFixture();
   try {
     await f.page.setViewportSize({ width: 390, height: 844 });
-    await action(f.page, "Learn More").click(); await settle(f.page);
-    const detail = f.page.locator("[data-catalog-detail-title]");
+    await action(f.page, "Mount Fuji").click(); await settle(f.page);
+    const detail = f.page.getByRole("heading", {name:"Mount Fuji",exact:true,level:1});
     const before = await box(detail);
     await f.page.mouse.move(3, 220); await f.page.mouse.down();
     await f.page.mouse.move(65, 220, { steps: 8 });
@@ -65,7 +68,7 @@ test("detail edge drag has live feedback and commits Back only when released", a
     await f.page.mouse.move(3, 220); await f.page.mouse.down();
     await f.page.mouse.move(200, 220, { steps: 12 });
     assert.equal(await detail.isVisible(), true, "No premature navigation while held");
-    await f.page.mouse.up(); await action(f.page, "Learn More").waitFor(); await settle(f.page);
+    await f.page.mouse.up(); await f.page.getByRole("heading", {name:"Landmarks",exact:true,level:1}).waitFor(); await settle(f.page);
     assert.equal(await action(f.page, "Back").isVisible(), false);
     assert.equal(await f.page.getByRole("dialog", { name: "Navigation", exact: true }).isVisible(), false);
   } finally { await f.close(); }

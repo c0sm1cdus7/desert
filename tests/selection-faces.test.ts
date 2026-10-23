@@ -57,6 +57,7 @@ test("faces appear in triggers and options while labels own typeahead, activatio
   const f = await svelteBrowser(source);
   try {
     const trigger = f.page.getByRole("button", { name: "Representation", exact: true });
+    await trigger.waitFor();
     assert.equal(await trigger.locator('[data-piece="face"]').count(), 1);
     assert.match(await trigger.innerText(), /Argentina/);
     assert.match(await trigger.innerText(), /🇦🇷/);

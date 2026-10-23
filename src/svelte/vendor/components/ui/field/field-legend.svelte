@@ -6,10 +6,12 @@
 		ref = $bindable(null),
 		class: className,
 		variant = "legend",
+		visibility = "visible",
 		children,
 		...restProps
 	}: WithElementRef<HTMLAttributes<HTMLLegendElement>> & {
 		variant?: "legend" | "label";
+		visibility?: "visible" | "accessible";
 	} = $props();
 </script>
 
@@ -17,7 +19,7 @@
 	bind:this={ref}
 	data-slot="field-legend"
 	data-variant={variant}
-	class={cn("mb-1.5 max-w-full break-words type-control", className)}
+	class={cn("mb-1.5 max-w-full break-words type-control", className, visibility === "accessible" && "sr-only")}
 	{...restProps}
 >
 	{@render children?.()}

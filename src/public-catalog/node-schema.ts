@@ -10,10 +10,16 @@ const node = <K extends string, P extends TProperties>(kind: K, properties: P) =
 });
 export const CatalogImageSchema = closedObject({ asset: LogicalIdSchema, alt: nonemptyText() });
 const card = { record: LogicalIdSchema, title: nonemptyText(), image: CatalogImageSchema };
-export const CatalogItemSchema = node("catalog.card", { ...card, presentation: Type.Literal("item") });
-export const CatalogFeaturedSchema = node("catalog.card", {
-  ...card, presentation: Type.Literal("featured"), eyebrow: nonemptyText(), actionLabel: nonemptyText(),
-});
+const mediaCard = { record: LogicalIdSchema, title: nonemptyText(), image: Type.Optional(CatalogImageSchema),
+  mediaType: Type.Union([Type.Literal("video"), Type.Literal("audio")]) };
+const item = { presentation: Type.Literal("item") };
+const featured = { presentation: Type.Literal("featured"), eyebrow: nonemptyText(), actionLabel: nonemptyText() };
+export const CatalogItemSchema = Type.Union([
+  node("catalog.card", { ...card, ...item }), node("catalog.card", { ...mediaCard, ...item }),
+]);
+export const CatalogFeaturedSchema = Type.Union([
+  node("catalog.card", { ...card, ...featured }), node("catalog.card", { ...mediaCard, ...featured }),
+]);
 export const CatalogCardSchema = Type.Union([CatalogFeaturedSchema, CatalogItemSchema]);
 export const CatalogHomeSchema = node("catalog.home", {
   featured: CatalogFeaturedSchema,

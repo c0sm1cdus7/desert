@@ -1,6 +1,8 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { ProductDefinition } from "./contracts.ts";
-import { BindingSchema, type DependencyBinding } from "./bindings.ts";
+import type { Frozen } from "./json.ts";
+import { BindingSchema, dependencyIdentity, type AuthoredDependencyBinding } from "./bindings.ts";
+import type { ModuleReference } from "./modules/reference-types.ts";
 
 const closed = { additionalProperties: false };
 const Name = Type.String({ minLength: 1 });
@@ -13,23 +15,29 @@ export const DistributionSchema = Type.Union([
     renderer: Type.Union([Type.Literal("svelte-web"), Type.Literal("swiftui-ios"), Type.Literal("terminal-cli")]) }, closed),
 ]);
 export type DistributionDefinition = Static<typeof DistributionSchema>;
-type SurfaceOf<P extends ProductDefinition> = NonNullable<P["surfaces"]>[number];
+type SurfaceOf<P extends Frozen<ProductDefinition>> = NonNullable<P["surfaces"]>[number];
+type SurfaceIdentity<S> = S extends { id: string; kind: string } ? Pick<S, "id" | "kind"> : never;
+type SurfaceReference<P extends Frozen<ProductDefinition>> = SurfaceIdentity<SurfaceOf<P>>;
+type HumanSurfaceReference<P extends Frozen<ProductDefinition>> = Pick<Extract<SurfaceOf<P>, { kind: "human" }>, "id" | "kind">;
 type Client = Extract<DistributionDefinition, { kind: "client" }>;
-type DependencyOf<P extends ProductDefinition> = NonNullable<P["dependencies"]>[number];
+type DependencyOf<P extends Frozen<ProductDefinition>> = NonNullable<P["dependencies"]>[number];
+type DependencyReference<P extends Frozen<ProductDefinition>> = NoInfer<DependencyOf<P>>
+  | ModuleReference<"dependency", string, NoInfer<DependencyOf<P>["id"]>, NoInfer<DependencyOf<P>>>;
 
-export function controllerDistribution<const Id extends string, const P extends ProductDefinition>(definition: {
-  id: Id, product: P, runtime: "node", storage: "postgresql", serves: NoInfer<SurfaceOf<P>>[],
-  provides: NoInfer<DependencyOf<P>>[],
+export function controllerDistribution<const Id extends string, const P extends Frozen<ProductDefinition>>(definition: {
+  id: Id, product: P, runtime: "node", storage: "postgresql", serves: NoInfer<SurfaceReference<P>>[],
+  provides: DependencyReference<P>[],
 }) {
   return { ...definition, kind: "controller" as const, product: definition.product.id as P["id"],
-    serves: definition.serves.map(surface => surface.id), provides: definition.provides.map(dependency => dependency.id) };
+    serves: definition.serves.map(surface => surface.id), provides: definition.provides.map(dependency => dependencyIdentity(dependency, definition.product)) };
 }
 
-export function clientDistribution<const Id extends string, const P extends ProductDefinition>(definition: {
-  id: Id, product: P, surface: NoInfer<Extract<SurfaceOf<P>, { kind: "human" }>>,
+export function clientDistribution<const Id extends string, const P extends Frozen<ProductDefinition>>(definition: {
+  id: Id, product: P, surface: NoInfer<HumanSurfaceReference<P>>,
   renderer: Client["renderer"],
-  bindings: (DependencyBinding & { dependency: NoInfer<DependencyOf<P>["id"]> })[],
+  bindings: AuthoredDependencyBinding<DependencyReference<P>>[],
 }) {
   return { ...definition, kind: "client" as const, product: definition.product.id,
-    surface: definition.surface.id };
+    surface: definition.surface.id,
+    bindings: definition.bindings.map(binding => ({ ...binding, dependency: dependencyIdentity(binding.dependency, definition.product) })) };
 }

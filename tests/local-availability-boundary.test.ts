@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
-import { agentSurface, compile, controllerRole, objectType, ownershipPolicy, product, readJourney } from "../src/index.ts";
+import { controllerRole, objectType, ownershipPolicy, readJourney } from "../src/index.ts";
+import { compile } from "../src/compile.ts";
 import { openLocalController } from "../src/local.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import { Note } from "../products/notebook/note.ts";
 import { CreateNote, ReadNote, ArchiveNote } from "../products/notebook/journeys.ts";
-import { HumanNotebook } from "../products/notebook/surfaces.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { notebookDefinition } from "./fixtures/notebook.ts";
 
 let cluster: ReturnType<typeof postgresCluster>;
 before(() => { cluster = postgresCluster(); });
@@ -26,14 +27,15 @@ test("a real local controller does not announce other controllers as ready", asy
   const OtherController = controllerRole({ id: "other-controller", objects: [OtherNote], requires: [] });
   const ReadOther = readJourney("read-other", OtherNote, { fields: ["title"], collection: ["title"],
     requires: { controller: OtherController, dependencies: [] } });
-  const fixture = product({ ...Notebook,
-    objects: [...Notebook.objects, OtherNote],
-    dependencies: [...Notebook.dependencies, OtherController],
-    policies: [...Notebook.policies, ownershipPolicy(OtherNote, "owner")],
-    journeys: [...Notebook.journeys, ReadOther],
-    surfaces: [HumanNotebook, agentSurface("agent", [CreateNote, ReadNote, ArchiveNote, ReadOther])],
-  });
-  const host = await openLocalController(compile(fixture), { ...await cluster.database(), role: "notes" });
+  const source = notebookDefinition();
+  const fixture = { ...source,
+    objects: [...source.objects, OtherNote],
+    dependencies: [...source.dependencies, OtherController],
+    policies: [...source.policies, ownershipPolicy(OtherNote, "owner")],
+    journeys: [...source.journeys, ReadOther],
+    surfaces: [{ id: "agent", kind: "agent" as const, journeys: [CreateNote, ReadNote, ArchiveNote, ReadOther].map(journey => journey.id) }],
+  };
+  const host = await openLocalController(compile(fixture), { ...await cluster.database(), roles: ["notes"] });
   try {
     const identity = await host.identities.issue("Owner");
     const session = host.connect(identity.token, "agent");
@@ -48,7 +50,7 @@ test("a real local controller does not announce other controllers as ready", asy
 });
 
 test("throwing observers and diagnostics cannot interrupt polling or controller cleanup", async () => {
-  const host = await openLocalController(compile(Notebook), { ...await cluster.database(), role: "notes" });
+  const host = await openLocalController(compile(Notebook), { ...await cluster.database(), roles: ["notes"] });
   try {
     const identity = await host.identities.issue("Owner");
     const session = host.connect(identity.token, "human");

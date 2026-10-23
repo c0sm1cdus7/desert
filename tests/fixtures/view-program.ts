@@ -3,14 +3,17 @@ import { Notebook } from "../../products/notebook/product.ts";
 import { CreateNote, ReadNote } from "../../products/notebook/journeys.ts";
 import type { HumanSurface } from "../../src/web/types.ts";
 import type { ViewProgram } from "../../src/views/program-schema.ts";
+import { ViewNotebook } from "./view-exposure.ts";
+import { WorkspaceView, workspaceViews } from "./workspace-view.ts";
 
-export const surface = compile(Notebook).surface("human") as HumanSurface;
+export const surface = compile(ViewNotebook).surface("human") as HumanSurface;
 export const program = {
-  version: "desert.view-program/1", productId: Notebook.id, label: "Notebook",
+  version: "desert.view-program/4", productId: Notebook.id, label: "Notebook", workspace: WorkspaceView.id,
   views: [
     { version: "desert.view/1", id: "home", outputs: ["notes"],
-      topDock: { kind: "toolbar", actions: [{ output: "notes", label: "Notes", icon: "open" }] },
-      content: [{ kind: "header", id: "heading", title: "Home", subtitle: "Your notebook." }] },
+      content: [{ kind: "header", id: "heading", title: "Home", subtitle: "Your notebook." },
+        { kind: "stack", id: "destinations", title: "Explore", items: [
+          { kind: "destination-link", id: "notes-link", output: "notes", label: "Notes" }] }] },
     { version: "desert.view/1", id: "notes", outputs: ["create", "select"],
       topDock: { kind: "toolbar", actions: [{ output: "create", label: "New note", icon: "create" }] },
       content: [{ kind: "header", id: "heading", title: "Notes", subtitle: "Private writing." },
@@ -28,6 +31,7 @@ export const program = {
     { version: "desert.view/1", id: "catalog", content: [
       { kind: "header", id: "heading", title: "Visual catalog", subtitle: "Installed pieces." },
       { kind: "visual-catalog", id: "inspection" }] },
+    ...workspaceViews,
   ],
   journeys: [
     { id: "home", kind: "presentation", view: "home", outputs: [
@@ -36,7 +40,7 @@ export const program = {
       { view: "notes", output: "create", action: { kind: "journey", journey: CreateNote.id } },
       { view: "notes", output: "select", action: { kind: "select" } },
       { view: "detail", output: "close", action: { kind: "close" } }] },
-    { id: CreateNote.id, kind: "create", view: "editor", preferredDock: "right", outputs: [
+    { id: CreateNote.id, kind: "create", source: ReadNote.id, view: "editor", preferredDock: "right", outputs: [
       { view: "editor", output: "save", action: { kind: "submit" } },
       { view: "editor", output: "close", action: { kind: "close" } }] },
     { id: "catalog", kind: "presentation", view: "catalog", outputs: [] },
@@ -46,5 +50,9 @@ export const program = {
     { id: "notes", label: "Notes", icon: "open", entryJourney: ReadNote.id },
     { id: "catalog", label: "Visual catalog", icon: "catalog", entryJourney: "catalog" },
   ],
-  entry: "home", navigation: ["home", "notes", "catalog"],
+  entry: "home", navigation: [
+    { destination: "home", group: "Explore", purpose: "content" },
+    { destination: "notes", group: "Explore", purpose: "content" },
+    { destination: "catalog", group: "Developer", purpose: "utility" },
+  ],
 } as const satisfies ViewProgram;

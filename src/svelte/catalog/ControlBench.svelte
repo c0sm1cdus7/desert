@@ -8,6 +8,8 @@
   import type { PrimitiveId } from "../../interaction/catalog.ts";
   import SpecimenGroup from "./SpecimenGroup.svelte";
   import SpecimenRow from "./SpecimenRow.svelte";
+  import StackLayout from "../pieces/StackLayout.svelte";
+  import Information from "../pieces/Information.svelte";
   let { visibleIds = ControlBank.map(entry => entry.id), entryIds = ControlBank.map(entry => entry.id) }: {
     visibleIds?: readonly PrimitiveId[]; entryIds?: readonly PrimitiveId[];
   } = $props();
@@ -46,5 +48,5 @@
       {/each}
     </SpecimenGroup>
   {/each}
-  <p role="status" aria-live="polite" class="type-caption px-4 text-muted-foreground">{notice}</p>
+  <StackLayout title="Interaction"><div role="status" aria-live="polite"><Information items={[{kind:"text",text:notice}]} /></div></StackLayout>
 </div>

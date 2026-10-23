@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { Locator, Page } from "playwright";
 import { settleMotion } from "./fixture.ts";
-import { appearance, catalog, evidence, target } from "./press-fixture.ts";
+import { appearance, catalog, evidence, finishTarget, target, openNotes } from "./press-fixture.ts";
+import { openCatalog } from "./inspection-fixture.ts";
+import { panelToolbar } from "./fixture.ts";
 
 async function idle(page: Page, button: Locator, before: Awaited<ReturnType<typeof appearance>>, held?: string) {
   await settleMotion(page);
@@ -18,7 +20,7 @@ async function idle(page: Page, button: Locator, before: Awaited<ReturnType<type
 async function compressed(page: Page, button: Locator) {
   await settleMotion(page);
   const pressed = await appearance(button);
-  assert.ok(pressed.contentScale !== null && Math.abs(pressed.contentScale - .985) < .001,
+  assert.ok(pressed.contentScale !== null && Math.abs(pressed.contentScale - .96) < .001,
     "the test must establish a real held state before cancelling it");
   return pressed;
 }
@@ -37,8 +39,8 @@ for (const theme of ["light", "dark"] as const) {
         });
         await button.scrollIntoViewIfNeeded(); await f.page.mouse.move(0, 0); await settleMotion(f.page);
         const before = await appearance(button), box = before.box;
-        const previousFocus = name === "middle-row" ? f.page.getByRole("dialog").locator('[data-surface-slot="bottom"]').getByRole("button", { name: "Close", exact: true })
-          : f.page.locator('[data-specimen="review:uncertain"]').locator(`[data-emphasis="${name === "primary" ? "secondary" : "primary"}"]`);
+        const previousFocus = name === "middle-row" ? f.page.getByRole("button", { name: "Create note", exact: true })
+          : panelToolbar(f.page, "top").getByRole("button", { name: "Close", exact: true });
         await previousFocus.focus();
         assert.equal(await previousFocus.evaluate(element => element === document.activeElement), true);
         await button.hover(); await f.page.mouse.down();
@@ -76,7 +78,7 @@ for (const theme of ["light", "dark"] as const) {
         assert.equal(await clicks.evaluate(state => state.count), 1, "native Enter still activates exactly once");
         await clicks.dispose();
         await evidence(f.page, `cancelled-${theme}-${name}`, { before, pointerOut, cancelled, blurred });
-        if (name === "middle-row") { await f.page.keyboard.press("Escape"); await f.page.getByRole("dialog").waitFor({ state: "hidden" }); }
+        await finishTarget(f.page);
       }
 
       const disabled = async (button: Locator, name: string) => {
@@ -89,11 +91,16 @@ for (const theme of ["light", "dark"] as const) {
         try { await evidence(f.page, `disabled-${theme}-${name}`, { before, held: await idle(f.page, button, before) }); }
         finally { await f.page.mouse.up(); }
       };
+      await openCatalog(f.page);
       await disabled(f.page.locator('[data-specimen="action:unavailable"] button'), "action");
-      await f.page.locator('[data-specimen="context:unavailable"]').getByRole("button").click();
-      await settleMotion(f.page);
-      const rows = f.page.getByRole("dialog").locator('[data-piece="destination-row"]');
-      for (const index of [0, 1, 2]) await disabled(rows.nth(index), `row-${index}`);
+      await disabled(f.page.locator('[data-specimen="control.select:disabled"] [data-selection-trigger]'), "selection");
+      await openNotes(f.page);
+      const rows = f.page.locator('[data-composition="collection"]:visible button');
+      for (const index of [0, 1, 2]) {
+        // Exercise native disabled paint on the same real row, without claiming controller availability.
+        await rows.nth(index).evaluate(node => { (node as HTMLButtonElement).disabled = true; });
+        await disabled(rows.nth(index), `row-${index}`);
+      }
     } finally { await touch.detach(); await f.close(); }
   });
 }

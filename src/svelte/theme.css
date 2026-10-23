@@ -14,6 +14,8 @@
 @import "./pieces/place-heading.css";
 @import "./pieces/media/media.css";
 @import "./pieces/surface-chrome.css";
+@import "./pieces/surface-reading.css";
+@import "./pieces/toolbar-layout.css";
 @import "./pieces/scroll-edges.css";
 @import "./pieces/anchored-surface.css";
 @import "./reading.css";
@@ -21,6 +23,8 @@
 @import "./explorer/catalog-shell.css";
 @import "./explorer/catalog-search.css";
 @import "./explorer/catalog-media.css";
+@import "./pieces/lateral-surface-motion.css";
+@import "./pieces/personalization.css";
 @source "./";
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 @theme inline {
@@ -43,22 +47,6 @@
   --color-sidebar-border:var(--sidebar-border); --color-sidebar-ring:var(--sidebar-ring);
   --radius-sm:var(--radius); --radius-md:var(--radius); --radius-lg:var(--radius); --radius-xl:var(--radius); --radius-2xl:var(--radius);
 }
-@utility tm-control {
-  transition:color var(--dur-feedback) var(--ease-tm);
-  & > :is([data-button-content],[data-grouped-content]),
-  &[data-slot="sidebar-menu-button"]:not(:has(> [data-button-content])) > * { transition:transform var(--dur-snap) var(--ease-tm); }
-  /* Pointer hover must not turn neutral or destructive actions into primary ones.
-     Keep their semantic ink; tooltips, press feedback and keyboard focus remain. */
-  &:is(button,a,label[data-choice-row])[data-pressed]:not(:disabled):not([aria-disabled="true"]):not([data-drawer-grip]) {
-    & > :is([data-button-content],[data-grouped-content]),
-    &[data-slot="sidebar-menu-button"]:not(:has(> [data-button-content])) > * { transform:scale(var(--press-scale)); }
-  }
-  &:focus-visible { outline:2px solid var(--ring); outline-offset:var(--focus-ring-offset,3px); }
-  @media (prefers-reduced-motion:reduce) {
-    & > :is([data-button-content],[data-grouped-content]),
-    &[data-slot="sidebar-menu-button"]:not(:has(> [data-button-content])) > * { transform:none!important; }
-  }
-}
 @utility tm-tinted {
   color:color-mix(in oklab,var(--tone) 60%,var(--foreground));
 }
@@ -75,14 +63,12 @@
   [hidden] { display:none!important; }
   html { background:var(--background); color:var(--foreground); font-family:var(--font-sans); font-size:calc(100% * var(--text-scale, 1)); }
   body { margin:0; min-width:320px; font-size:var(--text-body); line-height:var(--text-body--line-height); }
-  button,input,textarea { font:inherit; } button { cursor:pointer; } button:disabled { cursor:default; }
-  input,textarea { min-width:0; } h1,h2,h3,p { margin:0; } a { color:inherit; }
+  button { cursor:pointer; } button:disabled { cursor:default; }
+  input,textarea { min-width:0; } a { color:inherit; }
   :focus-visible { outline:2px solid var(--ring); outline-offset:var(--focus-ring-offset,3px); }
   @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
 }
 @layer components {
-  [data-slot="button"] { min-height:2.75rem; }
-  [data-button-content] { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
   [data-control-chevron] { color:var(--muted-foreground); flex-shrink:0; }
   [data-slot="input-group-control"] { min-height:2.75rem; }
   .required { color:var(--destructive); }

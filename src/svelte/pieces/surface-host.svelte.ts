@@ -14,11 +14,19 @@ export function provideSurfaceHost(element: Host, layout?: Layout): void {
 export function useSurfaceHost(anchor: Host = () => null) {
   const inherited = getContext<SurfaceHost | undefined>(hostKey);
   let availableInline = $state(0), availableBlock = $state(0), textSize = $state(16);
+  let measured = $state(false);
   let hostLeft = $state(0), hostTop = $state(0), hostRight = $state(0), hostBottom = $state(0);
   $effect(() => {
     const root = document.documentElement, viewport = window.visualViewport;
     const source = inherited?.element() ?? anchor()?.closest<HTMLElement>("[data-surface-host], [data-surface-frame]") ?? root;
-    let contentInline = 0;
+    // Resolve the host before a newly mounted pane starts its entry. Waiting for
+    // ResizeObserver would present a zero-width host first, briefly selecting
+    // the bottom edge even when the pane belongs on the right.
+    const initialStyle = getComputedStyle(source);
+    const initialInset = initialStyle.boxSizing === 'border-box'
+      ? ['padding-left', 'padding-right', 'border-left-width', 'border-right-width']
+        .reduce((sum, property) => sum + Number.parseFloat(initialStyle.getPropertyValue(property)), 0) : 0;
+    let contentInline = Math.max(0, Number.parseFloat(initialStyle.width) - initialInset);
     const measure = () => {
       const rect = source.getBoundingClientRect();
       const leading = Number.parseFloat(getComputedStyle(source).getPropertyValue('--place-leading-inset')) || 0;
@@ -31,6 +39,7 @@ export function useSurfaceHost(anchor: Host = () => null) {
       availableInline = Math.max(0, Math.min(contentInline - leading, root.clientWidth - Math.max(0, rect.left + leading), viewport?.width ?? root.clientWidth));
       availableBlock = Math.min(window.innerHeight, viewport?.height ?? window.innerHeight);
       textSize = Number.parseFloat(getComputedStyle(root).fontSize);
+      measured = true;
     };
     const size = new ResizeObserver(entries => {
       const entry = entries.find(entry => entry.target === source);
@@ -49,6 +58,7 @@ export function useSurfaceHost(anchor: Host = () => null) {
     };
   });
   return {
+    get measured() { return measured; },
     get availableInline() { return availableInline; }, get availableBlock() { return availableBlock; }, get textSize() { return textSize; },
     get bounds() { return { left: hostLeft, top: hostTop, right: hostRight, bottom: hostBottom }; },
     canDock(owner: symbol) { return Boolean(inherited?.layout && (!inherited.owner || inherited.owner === owner)); },

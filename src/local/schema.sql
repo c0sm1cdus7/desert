@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS desert_installation (
   schema_version integer NOT NULL,
   product_id text NOT NULL,
   contract_digest text NOT NULL,
-  controller_role text NOT NULL
+  controller_roles text[] NOT NULL
 );
 CREATE TABLE IF NOT EXISTS desert_identities (
   id uuid PRIMARY KEY,

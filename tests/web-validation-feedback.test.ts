@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compile } from "../src/compile.ts";
+import { compile, composeProduct } from "../src/index.ts";
 import { buildHumanModule } from "../src/web/build.ts";
-import { Notebook } from "../products/notebook/product.ts";
+import { authoredNotebookSource } from "./fixtures/authored-notebook.ts";
 
 test("standalone validation retains immutable field issues with exact canonical limits", async () => {
-  const definition = structuredClone(Notebook);
-  Object.assign(definition.objects[0]!.facts.title, { minLength: 2, maxLength: 3 });
-  const application = compile(definition);
+  const source = authoredNotebookSource();
+  const note = source.objects[0]!;
+  const application = compile(composeProduct({ ...source, objects: [{ ...note,
+    facts: { ...note.facts, title: { ...note.facts.title, minLength: 2, maxLength: 3 } } }] }));
   const code = await buildHumanModule(application, "human");
   const browser = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
   const command = application.surface("human").journeys.find(journey => journey.kind === "mutation" && !journey.subject)!;

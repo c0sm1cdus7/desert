@@ -10,7 +10,7 @@ export function localPostgresTestHost(): HostFactory {
       revision: () => cluster.version(),
       async open(application, role) {
         const database = await cluster.database();
-        const controller = await openLocalController(application, { ...database, role });
+        const controller = await openLocalController(application, { ...database, roles: [role] });
         const admin = new Pool({ host: database.socketDirectory, database: database.database, user: database.user,
           connectionTimeoutMillis: 3000, statement_timeout: 5000 });
         admin.on("error", () => {});

@@ -1,5 +1,5 @@
 import type { ObjectDefinition } from "./contracts.ts";
-import type { FieldKey } from "./authoring-types.ts";
+import type { Conditions, FieldKey } from "./authoring-types.ts";
 import type { CommandDefinition } from "./program-grammar.ts";
 import { requirementReferences, type ControllerDefinition, type RequirementsFor } from "./dependencies.ts";
 
@@ -11,7 +11,8 @@ export function mutationJourney<const Id extends string, const C extends Command
 }
 
 export function readJourney<const Id extends string, const O extends ObjectDefinition, const R extends ControllerDefinition>(
-  id: Id, object: O, definition: { fields: FieldKey<NoInfer<O>>[], collection: FieldKey<NoInfer<O>>[], requires: RequirementsFor<NoInfer<O["id"]>, R> },
+  id: Id, object: O, definition: { fields: FieldKey<NoInfer<O>>[], collection: FieldKey<NoInfer<O>>[],
+    where?: Conditions<NoInfer<O>>, requires: RequirementsFor<NoInfer<O["id"]>, R> },
 ) {
   return { id, kind: "read" as const, object: object.id as O["id"], ...definition, requires: requirementReferences(definition.requires) };
 }

@@ -6,8 +6,6 @@
 [data-search-field] [data-slot="button"] { height:28px; min-height:28px; width:28px; padding:0; border:0; border-radius:50%; }
 [data-search-field] input::-webkit-search-cancel-button,
 [data-search-field] input::-webkit-search-decoration { appearance:none; }
-[data-search-field][data-disabled="true"] { opacity:.5; }
-[data-search-field][data-disabled="true"] [data-slot="input-group-control"] { opacity:1; }
 /* An overlay sidebar can be required even inside a wide browser window. */
 [data-slot="sidebar-wrapper"][data-presentation="overlay"] [data-search-field] { padding-block:0; }
 [data-slot="sidebar-wrapper"][data-presentation="overlay"] [data-search-field] [data-slot="button"] { width:44px; height:44px; min-height:44px; }

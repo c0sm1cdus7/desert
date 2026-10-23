@@ -12,6 +12,8 @@ const messages: Record<string, string> = {
 export function failureFeedback(code: string | null, uncertain = false) {
   if (uncertain) return { title: "The result isn’t confirmed", description:
     "The result of this confirmation is not known yet. Close this message, then check the result when the connection is available. Checking does not create another operation." };
+  if (code === "READ_REFRESH_FAILED") return { title: "We couldn’t refresh the data", description:
+    "The latest data could not be loaded. Your unsent changes are preserved." };
   return { title: "We couldn’t complete that action", description: code
     ? messages[code] ?? "The operation could not be completed. Your draft has been kept. Restore the connection and try again."
     : "" };

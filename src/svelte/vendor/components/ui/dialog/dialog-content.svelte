@@ -22,6 +22,8 @@
 		adaptiveModal,
 		preventScroll = true,
 		restoreScrollDelay = null,
+		onOpenAutoFocus,
+		onCloseAutoFocus,
 		...restProps
 	}: WithoutChildrenOrChild<DialogPrimitive.ContentProps> & {
 		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof DialogPortal>>;
@@ -43,7 +45,8 @@
 		data-slot="dialog-content"
     data-material="pane"
     data-type-density={density()}
-		onOpenAutoFocus={focus}
+		onOpenAutoFocus={event => focus.open(event, onOpenAutoFocus)}
+		onCloseAutoFocus={event => focus.close(event, onCloseAutoFocus)}
 		class={cn(
 			presentation === "default"
 				? "centered-dialog text-popover-foreground grid max-w-[calc(100%_-_2rem)] gap-4 rounded-xl p-4 text-sm sm:max-w-sm z-50 w-full overflow-y-auto outline-none"

@@ -1,6 +1,7 @@
 import type { PoolClient } from "pg";
 
-export type Installation = { product: string, digest: string, role: string };
+export type Installation = { product: string, digest: string, roles: readonly string[] };
+export const LocalSchemaVersion = 4;
 
 export async function requireDurablePrimary(client: PoolClient) {
   const { rows: [settings] } = await client.query(`SELECT current_setting('fsync') AS fsync,
@@ -14,8 +15,8 @@ export async function requireDurablePrimary(client: PoolClient) {
 export async function requireInstallation(client: PoolClient, expected: Installation, lock = true) {
   await requireDurablePrimary(client);
   const { rows: [installed] } = await client.query(`SELECT * FROM desert_installation${lock ? " FOR SHARE" : ""}`);
-  if (!installed || installed.schema_version !== 1 || installed.product_id !== expected.product ||
-    installed.contract_digest !== expected.digest || installed.controller_role !== expected.role) {
+  if (!installed || installed.schema_version !== LocalSchemaVersion || installed.product_id !== expected.product ||
+    installed.contract_digest !== expected.digest || JSON.stringify(installed.controller_roles) !== JSON.stringify(expected.roles)) {
     throw new Error("INSTALLATION_MISMATCH");
   }
 }

@@ -1,17 +1,21 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { compile } from "../src/compile.ts";
-import { Notebook } from "../products/notebook/product.ts";
+import { protocolNotebookDefinition } from "./fixtures/notebook.ts";
+import { CreateNote } from "../products/notebook/journeys.ts";
+import type { ProductDefinition } from "../src/contracts.ts";
 import { formFrame, toolbarAction } from "../src/interaction/frame-presenters.ts";
 import { bankNode } from "../src/interaction/bank-node.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import type { HumanSurface } from "../src/web/types.ts";
 
 function form(maxLength: number) {
-  const definition = structuredClone(Notebook);
-  Object.assign(definition.objects[0]!.facts.body, { minLength: 0, maxLength });
+  const definition: ProductDefinition = protocolNotebookDefinition();
+  const body = definition.objects[0]!.facts.body;
+  assert.ok(body?.kind === "text");
+  Object.assign(body, { minLength: 0, maxLength });
   const surface = compile(definition).surface("human") as HumanSurface;
-  const journey = surface.journeys.find(item => item.id === surface.navigation.primaryAction);
+  const journey = surface.journeys.find(item => item.id === CreateNote.id);
   assert.ok(journey?.kind === "mutation");
   return formFrame(surface, journey, { body: "💡" }, {
     primary: toolbarAction({ kind: "journey", journey: journey.id }, "Save", "save"),

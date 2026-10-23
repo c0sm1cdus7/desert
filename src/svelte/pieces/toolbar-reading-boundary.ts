@@ -1,3 +1,5 @@
+import { toolbarBounds } from './toolbar-bounds.ts';
+
 /** Accepted R2: protect compact identity without a hard paint boundary or a
  * second material. Called by docking updates, never by a persistent frame loop. */
 export function toolbarReadingBoundary(viewport: HTMLElement, compact: HTMLElement) {
@@ -15,7 +17,7 @@ export function toolbarReadingBoundary(viewport: HTMLElement, compact: HTMLEleme
   function paint(value: number) {
     progress = value;
     const toolbar = compact.closest<HTMLElement>('[data-toolbar]') ?? compact.parentElement!;
-    core = Math.max(0, toolbar.getBoundingClientRect().bottom - viewport.getBoundingClientRect().top);
+    core = Math.max(0, toolbarBounds(toolbar).bottom - viewport.getBoundingClientRect().top);
     const owner = viewport.closest<HTMLElement>('[data-scroll-owner]') ?? viewport;
     const feather = parseFloat(getComputedStyle(owner).getPropertyValue('--scroll-edge-feather')) || 32;
     const stops = Array.from({ length: 9 }, (_, index) => {

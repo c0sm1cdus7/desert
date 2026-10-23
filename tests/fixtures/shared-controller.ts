@@ -1,6 +1,5 @@
-import { actorId, agentSurface, controllerRole, createCommand, enumeration, fromInput,
-  literal, mutationJourney, objectType, ownershipPolicy, principal, product, readJourney,
-  text, updateCommand } from "../../src/index.ts";
+import { actorId, controllerRole, createCommand, enumeration, fromInput, literal, mutationJourney, objectType, ownershipPolicy, principal, readJourney, text, updateCommand } from "../../src/index.ts";
+import { product } from "../../src/contracts.ts";
 
 const Memo = objectType({ id: "memo", facts: {
   title: text({ minLength: 1 }), owner: principal(), state: enumeration(["active", "archived"]),
@@ -28,5 +27,6 @@ export const SharedProduct = product({
   id: "shared-store", objects: [Memo, Bookmark], dependencies: [SharedController],
   policies: [ownershipPolicy(Memo, "owner"), ownershipPolicy(Bookmark, "owner")],
   journeys: [CreateMemo, ReadMemo, ArchiveMemo, CreateBookmark, ReadBookmark, RemoveBookmark],
-  surfaces: [agentSurface("agent", [CreateMemo, ReadMemo, ArchiveMemo, CreateBookmark, ReadBookmark, RemoveBookmark])],
+  surfaces: [{ id: "agent", kind: "agent", journeys:
+    [CreateMemo, ReadMemo, ArchiveMemo, CreateBookmark, ReadBookmark, RemoveBookmark].map(journey => journey.id) }],
 });

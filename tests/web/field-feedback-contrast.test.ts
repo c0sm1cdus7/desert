@@ -3,7 +3,8 @@ import test from "node:test";
 import { mkdir, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
 import type { Locator } from "playwright";
-import { browserFixture, settleMotion } from "./fixture.ts";
+import { settleMotion } from "./fixture.ts";
+import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
 
 async function textContrast(message: Locator) {
   return message.evaluate(element => {
@@ -60,8 +61,9 @@ test("real product field explanations retain at least 4.5:1 contrast on their ac
             assert.equal(await input.getAttribute("aria-invalid"), "true");
             const messageId = await input.getAttribute("aria-describedby");
             assert.ok(messageId, "the measured explanation is associated with the actual invalid field");
+            const descriptions = messageId.split(/\s+/).map(id => `[id="${id}"]`).join(",");
             const message = form.locator('[data-slot="field-error"]').filter({ hasText: "Enter a value." })
-              .and(form.locator(`[id="${messageId}"]`));
+              .and(form.locator(descriptions));
             assert.equal(await message.isVisible(), true);
             results.push({ theme: `${colorScheme}/${explicit ? "explicit" : "system"}`, width, field, values: await textContrast(message) });
           }

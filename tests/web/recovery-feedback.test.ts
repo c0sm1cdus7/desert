@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { browserFixture, settleMotion } from "./fixture.ts";
+import { activePanel, browserFixture, panelToolbar, settleMotion, waitForNote } from "./fixture.ts";
 
 function gate() {
   let release = () => {};
@@ -31,14 +31,14 @@ test("receipt feedback stays in recovery and each pending control identifies its
     await f.page.getByRole("button", { name: "Create note", exact: true }).first().click();
     await f.page.getByRole("textbox", { name: "Title", exact: true }).fill("Recover one operation");
     await f.page.getByRole("textbox", { name: "Content", exact: true }).fill("Keep feedback with this confirmation.");
-    await f.page.locator("form").getByRole("button", { name: "Create note", exact: true }).click();
+    await panelToolbar(f.page, "bottom").getByRole("button", { name: "Create note", exact: true }).click();
     const failure = f.page.getByRole("dialog", { name: "The result isn’t confirmed", exact: true });
     await failure.waitFor();
     assert.match(await failure.innerText(), /not known yet/);
     assert.doesNotMatch(await failure.innerText(), /couldn’t complete|No change was accepted/);
     await failure.locator('[data-surface-slot="bottom"]').getByRole("button", { name: "Close", exact: true }).click();
     await failure.waitFor({ state: "hidden" });
-    const recovery = f.page.getByRole("dialog", { name: "Create note", exact: true });
+    const recovery = activePanel(f.page);
     const check = recovery.locator('[data-surface-slot="top"]').getByRole("button", { name: "Check result", exact: true });
     const retry = recovery.locator('[data-surface-slot="bottom"]').getByRole("button", { name: "Retry same confirmation", exact: true });
     await check.click();
@@ -78,7 +78,7 @@ test("receipt feedback stays in recovery and each pending control identifies its
     assert.equal(await check.isDisabled(), true);
     assert.deepEqual(attempts[1], attempts[0]);
     acceptGate.release();
-    await f.page.getByText("Saved", { exact: true }).waitFor();
+    await waitForNote(f.page, "Recover one operation");
     const notes = await f.session.read((await f.session.begin("read-note")).id);
     assert.equal(notes.length, 1);
     assert.equal(notes[0]!.facts.title, "Recover one operation");

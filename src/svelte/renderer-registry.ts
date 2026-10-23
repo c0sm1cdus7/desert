@@ -1,3 +1,4 @@
+// Generated from catalog-manifest.ts. Run scripts/web-catalog.ts --write; do not edit.
 import type { WebRendererBank } from "./renderer-contracts.ts";
 import TextInput from "./pieces/TextInput.svelte";
 import Action from "./pieces/Action.svelte";
@@ -12,6 +13,7 @@ import Review from "./Review.svelte";
 import SelectControl from "./controls/SelectControl.svelte";
 import PopoverControl from "./controls/PopoverControl.svelte";
 import FileControl from "./controls/FileControl.svelte";
+import LabelsControl from "./pieces/LabelsControl.svelte";
 import OptionsControl from "./controls/OptionsControl.svelte";
 import MoneyControl from "./controls/MoneyControl.svelte";
 import DateControl from "./controls/DateControl.svelte";
@@ -23,18 +25,19 @@ import CatalogDetail from "./explorer/CatalogDetail.svelte";
 export const webRenderers: WebRendererBank = Object.freeze({
   "input.text": TextInput,
   "input.multiline": TextInput,
-  fact: Facts,
   action: Action,
   availability: Availability,
-  collection: Collection,
-  form: Fields,
-  context: ContextPanel,
-  review: Review,
   transient: Drawer,
   problem: Problem,
+  fact: Facts,
+  form: Fields,
+  collection: Collection,
+  context: ContextPanel,
+  review: Review,
   "control.select": SelectControl,
   "control.popover": PopoverControl,
   "control.files": FileControl,
+  "control.labels": LabelsControl,
   "control.options": OptionsControl,
   "control.money": MoneyControl,
   "control.date": DateControl,

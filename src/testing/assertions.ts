@@ -13,7 +13,7 @@ export function assertMutation(command: CommandDefinition, input: Facts, actor: 
     assert.equal(actual.id, previous.id);
     for (const [field, value] of Object.entries(command.when)) assert.equal(previous.facts[field], value, "GUARD_VIOLATION");
     for (const [field, value] of Object.entries(previous.facts)) {
-      if (!Object.hasOwn(command.set, field)) assert.equal(actual.facts[field], value, "PRESERVATION_VIOLATION");
+      if (!Object.hasOwn(command.set, field)) assert.deepEqual(actual.facts[field], value, "PRESERVATION_VIOLATION");
     }
     assert.deepEqual(Object.keys(actual.facts).sort(), Object.keys(previous.facts).sort(), "FACT_SHAPE_CHANGED");
   } else {
@@ -22,9 +22,9 @@ export function assertMutation(command: CommandDefinition, input: Facts, actor: 
   }
   for (const [field, assignment] of Object.entries(command.kind === "create" ? command.values : command.set)) {
     switch (assignment.kind) {
-      case "literal": assert.equal(actual.facts[field], assignment.value, "LITERAL_VIOLATION"); break;
+      case "literal": assert.deepEqual(actual.facts[field], assignment.value, "LITERAL_VIOLATION"); break;
       case "input": assert.ok(Object.hasOwn(input, assignment.field));
-        assert.equal(actual.facts[field], input[assignment.field], "INPUT_ASSIGNMENT_VIOLATION"); break;
+        assert.deepEqual(actual.facts[field], input[assignment.field], "INPUT_ASSIGNMENT_VIOLATION"); break;
       case "actor": assert.equal(actual.facts[field], actor, "ACTOR_ASSIGNMENT_VIOLATION"); break;
       default: assert.fail("UNSUPPORTED_ASSIGNMENT");
     }
@@ -44,7 +44,8 @@ export function assertRead(journey: Extract<JourneyDefinition, { kind: "read" }>
   assert.deepEqual(after, before, "READ_CHANGED_DOMAIN");
   const fields = subject ? journey.fields : journey.collection;
   const expected = before.objects.filter(object => object.object_type === journey.object
-    && object.facts[ownerField] === actor && (!subject || object.id === subject))
+    && object.facts[ownerField] === actor && (!subject || object.id === subject)
+    && Object.entries(journey.where ?? {}).every(([field, value]) => object.facts[field] === value))
     .map(object => ({ id: object.id, version: object.version,
       facts: Object.fromEntries(fields.map(field => [field, object.facts[field]])) }));
   assert.deepEqual(actual, expected, "READ_PROJECTION_OR_AUTHORITY_VIOLATION");

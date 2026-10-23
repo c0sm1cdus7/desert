@@ -5,11 +5,13 @@
   import type { ToolbarAction } from "../../interaction/toolbar.ts";
   import { actionIcons } from "./action-icons.ts";
   import type { ActionElementProps } from "../action-adapter.ts";
-  let { label, icon, state: status = "ready", emphasis = "secondary", onclick, type = "button", elementProps }: {
+  let { label, icon, state: status = "ready", emphasis = "secondary", onclick, type = "button", elementProps, reason }: {
     label: string; icon: keyof typeof actionIcons; state?: ToolbarAction["state"];
     emphasis?: "primary" | "secondary"; onclick?: () => void; type?: "button" | "submit";
-    elementProps?: ActionElementProps | undefined;
+    elementProps?: ActionElementProps | undefined; reason?: string | undefined;
   } = $props();
+  const id = $props.id();
+  const descriptionId = `${id}-reason`;
   function buttonEvent<E extends Event>(event: E): event is E & { currentTarget: EventTarget & HTMLButtonElement } {
     return event.currentTarget instanceof HTMLButtonElement;
   }
@@ -41,10 +43,11 @@
     return () => { observer.disconnect(); document.fonts.removeEventListener("loadingdone", measure); };
   });
 </script>
-<Button {...overlay} bind:ref={button} variant={status === "pending" ? "secondary" : emphasis === "primary" ? "default" : "secondary"}
+<Button {...overlay} bind:ref={button} variant={emphasis === "primary" ? "default" : "secondary"}
   size="default" spin={status === "pending"} {type} onclick={event => { if (status !== "ready") return;
     if (buttonEvent(event)) elementProps?.onclick?.(event); if (!event.defaultPrevented) onclick?.(); }} class="relative w-fit min-w-0 max-w-[min(100%,22rem)] self-start justify-self-start overflow-hidden"
-  disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={compact ? label : undefined}
+  disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
+  aria-describedby={reason ? descriptionId : undefined}
   data-primitive="action" data-button-face={face} data-emphasis={emphasis}>
   <span bind:this={caption} data-button-label aria-hidden="true" class={cn("min-w-0 truncate", face !== "label" && "invisible")}>{label}</span>
     <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
@@ -52,3 +55,4 @@
       <Icon data-icon="inline-start" aria-hidden="true" />
     </span>
 </Button>
+{#if reason}<span id={descriptionId} class="sr-only">{reason}</span>{/if}

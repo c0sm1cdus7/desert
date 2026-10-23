@@ -5,10 +5,12 @@ import { Notebook } from "../products/notebook/product.ts";
 import { humanState, type HumanState } from "../src/web/client/state.ts";
 import { presentFrame } from "../src/web/client/frame.ts";
 import type { HumanSurface } from "../src/web/types.ts";
+import { notebookScope } from "./fixtures/notebook-scope.ts";
 
 const surface = compile(Notebook).surface("human") as HumanSurface;
+const scope = notebookScope(surface);
 function reviewState(): HumanState {
-  return { ...humanState(surface).get(), view: "review", mutationId: "archive-note",
+  return { ...humanState(surface, scope).get(), view: "review", mutationId: "archive-note",
     detail: { id: "note-a", version: 3, facts: { title: "Field notes", body: "Long unchanged prose.", state: "active" } },
     prepared: { id: "intent-a", runId: "run-a", journeyId: "archive-note", confirmationDigest: "digest-a",
       object: { id: "note-a", type: "note", expectedVersion: 3 },
@@ -16,7 +18,7 @@ function reviewState(): HumanState {
 }
 
 test("review leads with changes from the exact known object revision, without granting more visibility", () => {
-  const frame = presentFrame(surface, reviewState(), () => true);
+  const frame = presentFrame(surface, reviewState(), () => true, scope);
   assert.equal(frame.top.subtitle, "Status: active → archived");
   assert.equal(frame.content.kind, "review");
   if (frame.content.kind !== "review") throw new Error("REVIEW_REQUIRED");
@@ -31,7 +33,7 @@ test("review does not invent a before value for an unknown field, different obje
     state.detail = { ...state.detail!, ...(mismatch === "object" ? { id: "note-b" } : {}),
       ...(mismatch === "revision" ? { version: 2 } : {}),
       facts: mismatch === "unknown" ? { title: "Field notes", body: "Long unchanged prose." } : state.detail!.facts };
-    const frame = presentFrame(surface, state, () => true);
+    const frame = presentFrame(surface, state, () => true, scope);
     assert.equal(frame.top.subtitle, "Review the resulting record before confirming.", mismatch);
     assert.equal(frame.content.kind, "review");
     if (frame.content.kind !== "review") throw new Error("REVIEW_REQUIRED");
@@ -43,10 +45,10 @@ test("change summaries keep zero and empty distinct and bound prose without shor
   const state = reviewState();
   state.detail = { ...state.detail!, facts: { ...state.detail!.facts, state: 0 } };
   state.prepared = { ...state.prepared!, facts: { ...state.prepared!.facts, state: "" } };
-  assert.equal(presentFrame(surface, state, () => true).top.subtitle, "Status: 0 → Empty");
+  assert.equal(presentFrame(surface, state, () => true, scope).top.subtitle, "Status: 0 → Empty");
   const prose = "A long replacement value. ".repeat(20);
   state.prepared = { ...state.prepared!, facts: { ...state.prepared!.facts, state: prose } };
-  const frame = presentFrame(surface, state, () => true);
+  const frame = presentFrame(surface, state, () => true, scope);
   assert.equal(frame.top.subtitle, "1 field will change. Review the updated value first.");
   if (frame.content.kind !== "review") throw new Error("REVIEW_REQUIRED");
   assert.equal(frame.content.details.facts.state, prose);

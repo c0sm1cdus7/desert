@@ -4,8 +4,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { hash } from '../files.ts';
 import type { BoundCatalogAsset } from './assets.ts';
+import { renditionWidths, imageInputPixelLimit } from '../../media/rendition-policy.ts';
+export { renditionWidths } from '../../media/rendition-policy.ts';
 
-export const renditionWidths = [160, 320, 640, 1280, 1920, 2560] as const;
 const recipe = `webp-q82-alpha100-effort4-srgb-auto-orient-v1-${sharp.versions.sharp}-${sharp.versions.vips}`;
 const cache = join(tmpdir(), 'desert-media-renditions-v1');
 export type Rendition = { bytes: Buffer; size: number; mediaType: string; digest: string };
@@ -13,7 +14,7 @@ export type Rendition = { bytes: Buffer; size: number; mediaType: string; digest
 /** Decode at build/host preparation, not while handling display requests. Originals are immutable. */
 export async function createRendition(bytes: Buffer, edge: number): Promise<Buffer> {
   if (!(renditionWidths as readonly number[]).includes(edge)) throw new Error('INVALID_MEDIA_RENDITION_SIZE');
-  return sharp(bytes, { limitInputPixels: 80_000_000 }).autoOrient()
+  return sharp(bytes, { limitInputPixels: imageInputPixelLimit }).autoOrient()
     .resize({ width: edge, height: edge, fit: 'inside', withoutEnlargement: true })
     .withIccProfile('srgb').webp({ quality: 82, alphaQuality: 100, effort: 4 }).toBuffer();
 }

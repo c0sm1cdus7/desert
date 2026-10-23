@@ -4,22 +4,25 @@ import { resolve } from "node:path";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { bankNode, BankVersion as version } from "../src/interaction/bank-node.ts";
+import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 
 const css = rendererCss();
 const source = `<script lang="ts">
   import CatalogWorkspace from "@desert/svelte/explorer/CatalogWorkspace.svelte";
   import BankRenderer from "@desert/svelte/BankRenderer.svelte";
+  ${workspaceBodySource()}
   let events = $state([]);
   const record = 'mountain';
   const node = {version:'desert.bank-node/1',kind:'action',role:'primary',action:{label:'Learn More',icon:'open',
     state:'ready',intent:{kind:'catalog.open',record}}};
 </script>
-<CatalogWorkspace productName="Explorer" title="Explorer" identity={{title:'Explorer',subtitle:'Explore places.'}}
+<CatalogWorkspace navigationSurface={{title:'Explorer',settingsPlaceholder:true}} title="Explorer" identity={{title:'Explorer',subtitle:'Explore places.'}}
   navigation={[{id:'browse',label:'Explore'}]} active="browse" searching={false} onsearch={()=>{}} oncancel={()=>{}}
-  query="" onquery={() => {}} onnavigate={() => {}} detail onback={() => events = [...events,{kind:'catalog.back'}]}>
-  {#snippet searchResults()}<p>No search results</p>{/snippet}
-  <BankRenderer {node} onevent={event => events = [...events,event]} />
-</CatalogWorkspace>
+  query="" onquery={() => {}} onnavigate={() => {}} detail onback={() => events = [...events,{kind:'catalog.back'}]}
+  content={workspaceBody} />
+<aside data-standalone-action style="position:fixed;left:2rem;top:10rem;z-index:1">
+  <BankRenderer {node} onevent={event=>events=[...events,event]} />
+</aside>
 <output hidden data-events>{JSON.stringify(events)}</output>`;
 
 test("catalog action intents stay closed and cannot become business submissions or primary dismissal", () => {

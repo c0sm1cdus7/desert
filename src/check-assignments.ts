@@ -15,10 +15,15 @@ function acceptsAll(target: FieldDefinition, source: FieldDefinition) {
       && (source.maximum ?? Number.MAX_SAFE_INTEGER) <= (target.maximum ?? Number.MAX_SAFE_INTEGER);
   }
   if (target.kind === "enum" && source.kind === "enum") return source.values.every(value => target.values.includes(value));
+  if (target.kind === "labels" && source.kind === "labels") {
+    return source.maxItems <= target.maxItems && source.maxLength <= target.maxLength;
+  }
   return true;
 }
 
 export function checkLiteral(field: FieldDefinition, value: unknown, name: string) {
+  if (field.kind === "asset") throw new Error(`Asset assignment requires input: ${name}`);
+  if (field.kind === "labels" && (!Array.isArray(value) || value.length)) throw new Error(`Labels assignment requires input: ${name}`);
   if (!createShapeValidator(emitField(field))(value).valid) throw new Error(`Invalid literal: ${name}`);
 }
 

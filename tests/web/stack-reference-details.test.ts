@@ -45,7 +45,7 @@ for (const colorScheme of ['light', 'dark'] as const) test(`v1 stack details and
     assert.equal(observed.title.weight, '400');
     near(observed.title.inset, 16, 'Caption inset', .1);
     near(observed.title.paneOffset, 24, 'Caption to pane', .1);
-    assert.equal(observed.title.stars, 1, 'Required marker remains visible after duplicate legend is hidden');
+    assert.equal(observed.title.stars, 0, 'Contextual cardinality does not imply an operation input requirement');
     assert.equal(observed.optionalStars, false, 'Optional group does not gain a requirement');
     assert.deepEqual(observed.separator, { left: '40px', right: '16px', height: '1px' });
     assert.equal(observed.descriptionInset, '16px');

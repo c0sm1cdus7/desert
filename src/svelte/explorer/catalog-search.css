@@ -5,7 +5,6 @@
 }
 /* Keep the rail stable while the actual rounded capsule grows. No reveal mask
    or glyph scaling; the empty retained rail cannot intercept navigation. */
-[data-catalog-toolbar] .toolbar-row > [data-catalog-search-actions] { pointer-events:none; }
 [data-catalog-search-actions] [data-catalog-search] {
   width:auto; min-width:0; flex:1 1 0; gap:0; visibility:hidden; opacity:0; pointer-events:none;
   transition:opacity var(--motion-overlay-exit) var(--ease-exit),visibility 0s linear var(--motion-overlay-exit);
@@ -38,12 +37,6 @@
 [data-catalog-search] [data-slot="input-group-control"] { height:var(--catalog-toolbar-height); min-height:0; padding:0; font:var(--text-body--font-weight) var(--text-body)/var(--text-body--line-height) var(--font-sans); color:var(--foreground); outline:none; }
 [data-catalog-search] [data-slot="input-group-control"]::placeholder { color:var(--catalog-search-foreground); opacity:1; }
 [data-catalog-search] [data-slot="input-group-addon"] { padding:0; color:var(--catalog-search-foreground); }
-[data-catalog-search-toggle] { position:relative; flex-shrink:0; pointer-events:auto; width:var(--catalog-toolbar-height); height:var(--catalog-toolbar-height); min-height:var(--catalog-toolbar-height); padding:0; }
-[data-catalog-search-toggle] [data-button-content] { display:grid; place-items:center; }
-[data-catalog-search-toggle] svg { grid-area:1/1; transition:opacity 180ms var(--ease-tm),transform 220ms var(--ease-tm); }
-[data-catalog-search-toggle] [data-search-icon="close"] { opacity:0; transform:rotate(-90deg) scale(.75); }
-[data-catalog-search-actions][data-expanded="true"] [data-search-icon="open"] { opacity:0; transform:rotate(90deg) scale(.75); }
-[data-catalog-search-actions][data-expanded="true"] [data-search-icon="close"] { opacity:1; transform:none; }
 /* Input ownership changes, but the underlying viewport and its edge geometry do not. */
 [data-search-active="true"] [data-catalog-scroll] { pointer-events:none; }
 [data-catalog-search-material] {
@@ -90,10 +83,6 @@
 @media (max-width:639px) {
   [data-catalog-search-scroll] { padding-inline:18px; }
   [data-catalog-search-items][data-result-kind="record"] { grid-template-columns:minmax(0,1fr); }
-}
-/* Toolbar placement follows the sidebar's measured docked/overlay presentation. */
-[data-catalog-workspace]:has([data-slot="sidebar-wrapper"][data-presentation="overlay"]) [data-catalog-toolbar] {
-  inset:auto max(var(--catalog-toolbar-inset),env(safe-area-inset-right,0px)) calc(var(--catalog-toolbar-inset) + env(safe-area-inset-bottom,0px)) max(var(--catalog-toolbar-inset),env(safe-area-inset-left,0px));
 }
 [data-catalog-workspace]:has([data-slot="sidebar-wrapper"][data-presentation="overlay"]) [data-catalog-search-scroll] {
   padding-block:26px calc(var(--catalog-toolbar-height) + var(--catalog-toolbar-inset) + env(safe-area-inset-bottom,0px) + 32px);

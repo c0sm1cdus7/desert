@@ -29,7 +29,7 @@
   <Action icon="open" label="Choose files" state={checked.disabled ? "unavailable" : "ready"} onclick={() => picker?.click()} />
   <Field.FieldDescription id={`${id}-limits`}>
     Up to {checked.limits.maxCount} files · {fileSize(checked.limits.maxFileBytes)} each · {fileSize(checked.limits.maxTotalBytes)} total.
-    Nothing is uploaded.
+    Choosing files does not upload them.
   </Field.FieldDescription>
   {#if checked.files.length}
     <ul class="flex flex-col gap-2" aria-label="Selected local files">

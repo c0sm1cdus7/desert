@@ -1,14 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compile } from "../src/compile.ts";
+import { compile, composeProduct } from "../src/index.ts";
 import { buildHumanModule } from "../src/web/build.ts";
-import { Notebook } from "../products/notebook/product.ts";
+import { authoredNotebookSource } from "./fixtures/authored-notebook.ts";
 import { localBrowserAccess } from "../src/web/access.ts";
 
 test("standalone browser validation follows the contract without a second schema or runtime compiler", async () => {
-  const definition = structuredClone(Notebook);
-  Object.assign(definition.objects[0]!.facts.title, { maxLength: 2 });
-  const application = compile(definition);
+  const source = authoredNotebookSource();
+  const note = source.objects[0]!;
+  const application = compile(composeProduct({ ...source, objects: [{ ...note,
+    facts: { ...note.facts, title: { ...note.facts.title, maxLength: 2 } } }] }));
   const code = await buildHumanModule(application, "human");
   assert.doesNotMatch(code, /new Function|node:crypto/);
   const browser = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);

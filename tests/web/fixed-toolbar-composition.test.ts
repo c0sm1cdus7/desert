@@ -15,20 +15,20 @@ test('fixed toolbar composition preserves content layout and action identity thr
     let identity={title:'A deliberately descriptive place title',subtitle:'Supporting copy belongs to the page.'};
   </script>
   <div style="height:568px;position:relative">
-    <Place data-test-frame viewportAttributes={{'data-test-viewport':''}}>
-      {#snippet top()}<ToolbarLayout style="position:absolute;top:0;inset-inline:0;z-index:2"><button style="width:44px;height:44px">Back</button></ToolbarLayout>{/snippet}
+    <Place>
+      {#snippet top()}<ToolbarLayout content={{kind:'actions',actions:[{intent:{kind:'back'},icon:'back',label:'Back',state:'ready'}],onevent:()=>{}}}/>{/snippet}
       {#snippet content()}<PlaceHeading {identity}/><div style="height:2400px">Content</div>{/snippet}
-      {#snippet bottom()}<ToolbarLayout edge="bottom" style="position:absolute;bottom:0;inset-inline:0;z-index:2"><button style="width:44px;height:44px">Search</button></ToolbarLayout>{/snippet}
+      {#snippet bottom()}<ToolbarLayout edge="bottom" content={{kind:'actions',actions:[{intent:{kind:'journey',journey:'search'},icon:'search',label:'Search',state:'ready'}],onevent:()=>{}}}/>{/snippet}
     </Place>
   </div>`);
   const { page } = f;
   try {
     await page.addStyleTag({ content: await rendererCss() });
-    const viewport = page.locator('[data-test-viewport]'), title = page.getByRole('heading', { level: 1 });
+    const viewport = page.locator('.place-viewport'), title = page.getByRole('heading', { level: 1 });
     const search = page.getByRole('button', { name: 'Search', exact: true });
     const titleNode = await title.elementHandle(), searchNode = await search.elementHandle();
-    const measure = () => page.locator('[data-test-frame]').evaluate(owner => {
-      const viewport = owner.querySelector('[data-test-viewport]')!, title = owner.querySelector('h1')!;
+    const measure = () => page.locator('[data-place]').evaluate(owner => {
+      const viewport = owner.querySelector('.place-viewport')!, title = owner.querySelector('h1')!;
       const range = document.createRange(); range.selectNodeContents(title);
       return { scrollHeight: viewport.scrollHeight, scrollTop: viewport.scrollTop,
         titleY: title.getBoundingClientRect().y, lines: range.getClientRects().length, font: getComputedStyle(title).fontSize,
@@ -69,5 +69,6 @@ test('source composition has one ordinary ToolbarLayout and no expansion delegat
   assert.match(layout, /data-toolbar=\{edge\}/, 'Both directions are instances of the same primitive');
   for (const source of [heading, embeddedHeading]) assert.doesNotMatch(source, /ToolbarLayout|ExpandingToolbar/);
   assert.match(workspace, /<ToolbarLayout\b/); assert.match(search, /<ToolbarLayout\b/);
-  assert.match(toolbar, /<ToolbarLayout[^>]*edge="bottom"/, 'Task footers use the same layout instead of hand-coded toolbar anatomy');
+  assert.match(toolbar, /<ToolbarLayout content=\{\{kind:"commands",toolbar,/, 'Task footers delegate their typed edge to the same owner');
+  assert.match(layout, /toolbar\?\.edge \?\?/, 'The shared owner derives the edge from the command toolbar');
 });

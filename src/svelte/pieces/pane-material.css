@@ -1,19 +1,29 @@
 /* One material law. Shape and behavior belong to components, not this role.
    Interiors, images, selection marks, separators and focus/error outlines are
    not independent panes. Nesting is the only source of material compounding. */
-:root {
-  --pane-fill:color-mix(in oklab,var(--background) 88%,transparent);
+:root, [data-appearance-preview] {
+  --pane-opacity:88%;
   --pane-filter:blur(24px);
   --pane-border:var(--border);
 }
 @media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
-  :root { --pane-fill:var(--background); --pane-filter:none; }
+  :root, [data-appearance-preview] { --pane-opacity:100%; --pane-filter:none; }
 }
-@media (prefers-contrast:more) { :root { --pane-border:var(--foreground); } }
+@media (prefers-contrast:more) { :root, [data-appearance-preview] { --pane-border:var(--foreground); } }
 [data-material="pane"] {
+  --pane-color:var(--background);
+  --control-feedback-ink:var(--foreground);
+  --pane-fill:color-mix(in oklab,var(--pane-color) var(--pane-opacity),transparent);
   background-color:var(--pane-fill); background-image:none;
   border:1px solid var(--pane-border); box-shadow:none;
   -webkit-backdrop-filter:var(--pane-filter); backdrop-filter:var(--pane-filter);
+}
+/* Prominence tints the same material. Each pane resets its color, so nested
+   neutral wells and buttons cannot accidentally inherit the parent's tint. */
+[data-slot="button"][data-material="pane"][data-variant="default"] {
+  --pane-color:var(--primary);
+  /* Darken the tinted face in both appearances so its white label stays legible. */
+  --control-feedback-ink:#000;
 }
 [data-material="interior"] {
   background-color:transparent; background-image:none;
@@ -24,11 +34,13 @@
 /* Disabled state belongs to content. The pane and its boundary never fade.
    FieldWell's row is one content unit, including the compound currency part. */
 [data-slot="field"][data-disabled="true"] .field-well > *,
+[data-search-field][data-disabled="true"] > *,
 :is(button,a)[data-material]:not([data-choice-row]):is(:disabled,[aria-disabled="true"]) > [data-button-content] {
   opacity:var(--disabled-opacity);
 }
 [data-slot="field"][data-disabled="true"] .field-well :is([data-slot="field-label"],[data-slot="input-group-control"],[data-slot="input-group-addon"]),
-[data-slot="field"][data-disabled="true"] .field-well [data-button-content] { opacity:1; }
+[data-slot="field"][data-disabled="true"] .field-well [data-button-content],
+[data-search-field][data-disabled="true"] :is(button,a)[data-material] > [data-button-content] { opacity:1; }
 :is(input,textarea)[data-material="pane"]:disabled { color:var(--muted-foreground); }
 /* Invalidity is additional semantic ink, never a different material perimeter. */
 [data-slot="field"][data-invalid="true"] > .field-well,

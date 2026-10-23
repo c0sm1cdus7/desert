@@ -3,10 +3,10 @@ import type { LocalProgram } from "./program.ts";
 import type { Run, StoredObject } from "./types.ts";
 import { requireUUID } from "./types.ts";
 
-export async function ownedObject(client: PoolClient, program: LocalProgram, actor: string, type: string, id: string) {
+export async function ownedObject(client: PoolClient, program: LocalProgram, actor: string, type: string, id: string, lock = true) {
   requireUUID(id);
   const { rows: [record] } = await client.query<StoredObject>(
-    "SELECT * FROM desert_objects WHERE id = $1 AND object_type = $2 FOR UPDATE", [id, type]);
+    `SELECT * FROM desert_objects WHERE id = $1 AND object_type = $2${lock ? " FOR UPDATE" : ""}`, [id, type]);
   if (!record || record.facts[program.owners.get(type)!] !== actor) throw new Error("NOT_FOUND");
   if (!program.application.validate(type, record.facts).valid) throw new Error("CORRUPT_OBJECT");
   return record;

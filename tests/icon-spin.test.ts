@@ -111,8 +111,8 @@ test("spin is visual only while pending actions preserve accessible names, disab
       assert.equal(item.iconColor, item.color, "pending icon uses the ordinary button foreground");
       assert.notEqual(item.animation, "none", "pending icon rotates under normal motion preferences");
     }
-    assert.equal(observed[0]!.color, observed[1]!.color, "pending primary retains existing neutral busy variant");
-    assert.equal(observed[0]!.background, observed[1]!.background);
+    assert.notEqual(observed[0]!.color, observed[1]!.color, "pending primary retains its prominent foreground");
+    assert.notEqual(observed[0]!.background, observed[1]!.background, "pending primary retains its tinted glass pane");
     assert.equal(observed[2]!.face, "icon"); assert.equal(observed[2]!.animation, "none");
     assert.equal(observed[2]!.busy, "false"); assert.equal(observed[2]!.disabled, false);
     assert.equal(observed[3]!.busy, "false"); assert.equal(observed[3]!.disabled, true);

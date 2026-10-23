@@ -16,7 +16,7 @@ for (const width of [1100, 402]) {
       if (width < 960) await action(page, "Show navigation").click();
       const nav = page.getByRole("navigation", { name: "Main navigation", exact: true });
       await nav.waitFor(); await settle(page);
-      const rows = await nav.getByRole("button").evaluateAll(elements => elements.map(element => ({
+      const rows = await nav.locator('[data-slot="sidebar-menu-button"]').evaluateAll(elements => elements.map(element => ({
         name: element.getAttribute("aria-label"), current: element.getAttribute("aria-current"),
         background: getComputedStyle(element).backgroundColor,
       })));

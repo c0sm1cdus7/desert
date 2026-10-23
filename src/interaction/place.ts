@@ -13,6 +13,7 @@ const StackNodeSchema = Type.Extract(BankNodeSchema, Type.Object({ kind: Type.Un
   Type.Literal("catalog.card"), Type.Literal("control.select"), Type.Literal("control.popover"),
   Type.Literal("control.options"), Type.Literal("control.date"), Type.Literal("control.money"),
   Type.Literal("control.files"), Type.Literal("control.tag"), Type.Literal("control.image"), Type.Literal("control.avatar"),
+  Type.Literal("control.labels"),
 ]) }));
 export type StackNode = Frozen<Static<typeof StackNodeSchema>>;
 export function stackNode(value: unknown): StackNode {

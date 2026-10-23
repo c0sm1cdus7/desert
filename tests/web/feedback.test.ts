@@ -1,15 +1,19 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { browserFixture, settleMotion } from "./fixture.ts";
+import { settleMotion } from "./fixture.ts";
+import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
 import { mkdir } from "node:fs/promises";
 
 test("feedback uses semantic colors and destination rows never shrink out of their well", { timeout: 30000 }, async () => {
   const f = await browserFixture();
   try {
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
+    await openCatalog(f.page);
     for (const colorScheme of ["light", "dark"] as const) {
       await f.page.emulateMedia({ colorScheme });
-      for (const [specimen, token] of [["availability:unknown", "--primary"], ["availability:ready", "--positive"], ["availability:unavailable", "--warning"]]) {
+      assert.equal(await f.page.locator('[data-specimen="availability:unknown"] svg').evaluate(node =>
+        getComputedStyle(node).color === getComputedStyle(node.closest('[data-primitive="availability"]')!).color), true,
+        "unknown availability inherits neutral status text; uncertainty does not claim readiness or a primary action");
+      for (const [specimen, token] of [["availability:ready", "--positive"], ["availability:unavailable", "--warning"]]) {
         const icon = f.page.locator(`[data-specimen="${specimen}"] svg`);
         const matches = await icon.evaluate((node, token) => {
           const probe = document.createElement("span"); probe.style.color = `var(${token})`;
@@ -35,9 +39,15 @@ test("feedback uses semantic colors and destination rows never shrink out of the
         await dialog.waitFor({ state: "hidden" });
       }
     }
-    await f.page.locator('[data-specimen="context:available"]').getByRole("button").click();
+    for (const title of ["First row", "Middle row", "Last row"]) {
+      const run = await f.session.begin("create-note");
+      const prepared = await f.session.prepare(run.id, { title, body: "A real published record." });
+      await f.session.accept(prepared.id, prepared.confirmationDigest);
+    }
+    await f.page.getByRole("button", { name: "Notes", exact: true }).click();
+    const rows = f.page.locator('[data-catalog-content] .record-button:visible');
+    await rows.nth(2).waitFor();
     await settleMotion(f.page);
-    const rows = f.page.getByRole("dialog").locator('[data-piece="destination-row"]');
     assert.equal(await rows.count(), 3);
     for (const row of await rows.all()) {
       const before = (await row.boundingBox())!;
@@ -46,7 +56,7 @@ test("feedback uses semantic colors and destination rows never shrink out of the
       const during = (await row.boundingBox())!;
       assert.deepEqual(during, before, "press cannot expose rectangular edges or detach row separators");
       assert.equal(await row.evaluate(node => getComputedStyle(node).transform), "none");
-      await f.page.mouse.up();
+      await f.page.mouse.move(0, 0); await f.page.mouse.up();
     }
     const corners = await rows.evaluateAll(nodes => nodes.map(node => ({
       top: parseFloat(getComputedStyle(node).borderTopLeftRadius), bottom: parseFloat(getComputedStyle(node).borderBottomLeftRadius),

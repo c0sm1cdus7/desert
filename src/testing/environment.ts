@@ -6,6 +6,7 @@ import { assertMutation } from "./assertions.ts";
 import { setupFor } from "./setup-plan.ts";
 import { commandInputs } from "./values.ts";
 import type { Step, TestSandbox, Facts } from "./types.ts";
+import { observedEditBase } from "./edit-base.ts";
 
 export async function environment(product: ProductDefinition, journey: JourneyDefinition,
   surfaceId: string, seed: number, sandbox: TestSandbox) {
@@ -20,7 +21,7 @@ export async function environment(product: ProductDefinition, journey: JourneyDe
       const actor = sandbox.controller.connect(token, step.surfaceId);
       const before = await sandbox.snapshot();
       const run = await actor.begin(step.journey.id, step.journey.command.kind === "create" ? undefined : subject);
-      const intent = await actor.prepare(run.id, step.input);
+      const intent = await actor.prepare(run.id, step.input, observedEditBase(step.journey, before, subject));
       assert.deepEqual(await sandbox.snapshot(), before, "PREPARATION_CHANGED_DOMAIN");
       const receipt = await actor.accept(intent.id, intent.confirmationDigest);
       assertMutation(step.journey.command, step.input, actorId, before, await sandbox.snapshot(), receipt,
@@ -34,7 +35,10 @@ export async function environment(product: ProductDefinition, journey: JourneyDe
   const inputs = journey.kind === "mutation" ? commandInputs(product, journey.command, seed) : [{}];
   const input = inputs[0]!;
   const begin = (actor: LocalSession = session, target = subject) => actor.begin(journey.id, target);
-  const prepare = async (value: Facts = input) => session.prepare((await begin()).id, value);
+  const prepare = async (value: Facts = input) => {
+    const before = await sandbox.snapshot();
+    return session.prepare((await begin()).id, value, observedEditBase(journey, before, subject));
+  };
   return { product, journey, surfaceId, seed, sandbox, owner, stranger, session, other, setup,
     subject, inputs, input, begin, prepare, prepareSetup };
 }

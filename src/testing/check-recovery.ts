@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { setTimeout as delay } from "node:timers/promises";
 import { assertMutation, assertRead } from "./assertions.ts";
 import type { Environment } from "./environment.ts";
+import { observedEditBase } from "./edit-base.ts";
 
 async function eventually(condition: () => boolean) {
   for (let i = 0; i < 400; i++) {
@@ -18,7 +19,8 @@ export async function checkRecovery(f: Environment) {
     await eventually(ready);
     const before = await f.sandbox.snapshot();
     const run = await f.begin();
-    const intent = f.journey.kind === "mutation" ? await f.session.prepare(run.id, f.input) : undefined;
+    const intent = f.journey.kind === "mutation"
+      ? await f.session.prepare(run.id, f.input, observedEditBase(f.journey, before, f.subject)) : undefined;
     f.sandbox.stop();
     try {
       await eventually(() => !ready());

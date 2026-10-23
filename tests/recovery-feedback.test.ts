@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { compile } from "../src/compile.ts";
 import { Notebook } from "../products/notebook/product.ts";
+import { ArchiveNoteRecord } from "../products/notebook/commands.ts";
 import type { ApiMethods, HumanSurface, Prepared, Receipt } from "../src/web/types.ts";
 import { humanState } from "../src/web/client/state.ts";
 import { mutationFlow } from "../src/web/client/mutations.ts";
@@ -9,10 +10,11 @@ import { presentFrame } from "../src/web/client/frame.ts";
 import { transientFrame } from "../src/interaction/transient-frame.ts";
 import { TransportError, type Transport } from "../src/web/client/transport.ts";
 import { failureFeedback } from "../src/web/client/failure-feedback.ts";
+import { notebookScope } from "./fixtures/notebook-scope.ts";
 
 function fixture(uncertain = true) {
   const surface = compile(Notebook).surface("human") as HumanSurface;
-  const store = humanState(surface);
+  const scope = notebookScope(surface), store = humanState(surface, scope);
   const prepared: Prepared = { id: "original-intent", runId: "original-run", journeyId: "archive-note",
     object: { id: "original-note", type: "note", expectedVersion: 1 },
     facts: { title: "Keep this", body: "Same operation", state: "archived" }, confirmationDigest: "original-digest" };
@@ -23,7 +25,7 @@ function fixture(uncertain = true) {
   let respond!: (value: Receipt | null) => void;
   let reject!: (error: Error) => void;
   const response = new Promise<Receipt | null>((resolve, fail) => { respond = resolve; reject = fail; });
-  const transport: Transport = {
+  const transport: Pick<Transport, "connect" | "evidence" | "call"> = {
     connect: async () => {}, evidence: async () => ({ snapshot: store.get().availability, validForMs: 1000 }),
     async call<K extends keyof ApiMethods>(method: K, input: ApiMethods[K]["input"]) {
       requests.push({ method, input });
@@ -31,9 +33,9 @@ function fixture(uncertain = true) {
     },
   };
   let refreshes = 0;
-  const flow = mutationFlow(surface, store, transport, () => true, async () => { refreshes++; });
-  const frame = () => presentFrame(surface, store.get(), () => true);
-  const receipt: Receipt = { id: prepared.id, runId: prepared.runId, commandId: "archive-note",
+  const flow = mutationFlow(surface, store, transport, () => true, async () => { refreshes++; }, scope);
+  const frame = () => presentFrame(surface, store.get(), () => true, scope);
+  const receipt: Receipt = { id: prepared.id, runId: prepared.runId, commandId: ArchiveNoteRecord.id,
     status: "completed", object: { id: prepared.object.id, type: "note", version: 2 } };
   return { store, flow, frame, requests, respond, reject, prepared, receipt, refreshes: () => refreshes };
 }

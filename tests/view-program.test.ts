@@ -13,7 +13,7 @@ test("A presentation program binds canonical reads and create inputs without cop
   assert.deepEqual(result, program);
   assert.equal(result.journeys[1]?.id, ReadNote.id);
   assert.equal(result.journeys[2]?.id, CreateNote.id);
-  assert.deepEqual(result.navigation, ["home", "notes", "catalog"]);
+  assert.deepEqual(result.navigation, program.navigation);
   for (const value of [result, result.views, result.views[1]?.content, result.journeys,
     result.journeys[1]?.outputs, result.destinations, result.navigation]) assert.ok(Object.isFrozen(value));
   const source = candidate();
@@ -30,7 +30,7 @@ test("Closed authoring rejects schema, style, controller and callback escape hat
     const value = candidate(); value.journeys[2] = { ...value.journeys[2], ...extra };
     reject(value, "INVALID_VIEW_PROGRAM");
   }
-  reject({ ...program, version: "desert.view-program/2" }, "INVALID_VIEW_PROGRAM");
+  reject({ ...program, version: "desert.view-program/99" }, "INVALID_VIEW_PROGRAM");
   reject({ ...program, label: " " }, "INVALID_VIEW_PROGRAM");
   reject({ ...program, callback() {} }, "INVALID_VIEW_JSON");
   reject({ ...program, productId: "another-product" }, "VIEW_PROGRAM_PRODUCT_MISMATCH");
@@ -48,8 +48,8 @@ test("Every reference is exact and duplicate registrations fail before mounting"
   const missingOutputJourney = candidate(); missingOutputJourney.journeys[0].outputs[0].action.journey = "missing";
   reject(missingOutputJourney, "UNKNOWN_OUTPUT_JOURNEY");
   reject({ ...program, entry: "missing" }, "UNKNOWN_ENTRY_DESTINATION");
-  reject({ ...program, navigation: ["home", "missing"] }, "UNKNOWN_NAVIGATION_DESTINATION");
-  reject({ ...program, navigation: ["home", "home"] }, "DUPLICATE_NAVIGATION_DESTINATION");
+  reject({ ...program, navigation: [program.navigation[0], { ...program.navigation[0], destination: "missing" }] }, "UNKNOWN_NAVIGATION_DESTINATION");
+  reject({ ...program, navigation: [program.navigation[0], program.navigation[0]] }, "DUPLICATE_NAVIGATION_DESTINATION");
 });
 
 test("Bindings cannot invent exposure, replace read with mutation or turn update into create", () => {
@@ -63,16 +63,16 @@ test("Bindings cannot invent exposure, replace read with mutation or turn update
   reject(collision, "PRESENTATION_JOURNEY_COLLISION");
 });
 
-test("Data slots enforce cardinality, kind and finite panel geometry", () => {
+test("Data slots enforce cardinality and kind across loose content and stacks", () => {
   const missing = candidate(); missing.views[1].content.pop(); reject(missing, "INVALID_JOURNEY_VIEW_INPUTS");
   const duplicate = candidate(); duplicate.views[1].content.push({ kind: "collection", id: "other", input: "other", output: "select" });
   reject(duplicate, "INVALID_JOURNEY_VIEW_INPUTS");
   const wrong = candidate(); wrong.views[3].content[1] = { kind: "context", id: "context", input: "detail" };
   reject(wrong, "INVALID_JOURNEY_VIEW_INPUTS");
   const panelStack = candidate(); panelStack.views[3].content[1] = { kind: "stack", id: "wrapped", title: "Write", items: [panelStack.views[3].content[1]] };
-  reject(panelStack, "UNSUPPORTED_PANEL_VIEW_CONTENT");
+  assert.doesNotThrow(() => compileViewProgram(panelStack, surface));
   const extra = candidate(); extra.views[2].content.push({ kind: "text", text: "Not mounted by a panel." });
-  reject(extra, "UNSUPPORTED_PANEL_VIEW_CONTENT");
+  assert.doesNotThrow(() => compileViewProgram(extra, surface));
   const dock = candidate(); dock.views[0].rightDock = { kind: "view", view: "catalog" };
   reject(dock, "UNSUPPORTED_PROGRAM_SIDE_DOCK");
   const unsafePresentation = candidate(); unsafePresentation.views[4].content.push({ kind: "form", id: "write", input: "draft" });
@@ -90,7 +90,7 @@ test("Every declared output binds exactly once to an available semantic action",
   const select = candidate(); select.journeys[1].outputs[1].action = { kind: "journey", journey: CreateNote.id };
   reject(select, "INVALID_COLLECTION_OUTPUT_ACTION");
   const submit = candidate(); submit.journeys[0].outputs[0].action = { kind: "submit" };
-  reject(submit, "INVALID_VIEW_OUTPUT_ACTION");
+  reject(submit, "INVALID_DESTINATION_LINK_ACTION");
   const absentSubmit = candidate(); absentSubmit.journeys[2].outputs[0].action = { kind: "close" };
   reject(absentSubmit, "INVALID_CREATE_OUTPUTS");
 });

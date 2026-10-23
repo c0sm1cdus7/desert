@@ -6,6 +6,7 @@ import { compile } from "../src/compile.ts";
 import { openLocalController } from "../src/local.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { notebookDefinition, protocolNotebookDefinition } from "./fixtures/notebook.ts";
 
 let cluster: ReturnType<typeof postgresCluster>;
 before(() => { cluster = postgresCluster(); });
@@ -14,7 +15,7 @@ after(() => { cluster?.dispose(); });
 async function fixture(source: unknown = Notebook) {
   const database = await cluster.database();
   const app = compile(source);
-  const host = await openLocalController(app, { ...database, role: "notes" });
+  const host = await openLocalController(app, { ...database, roles: ["notes"] });
   const identity = await host.identities.issue("Owner");
   const session = host.connect(identity.token, "human");
   const admin = new Pool({ host: database.socketDirectory, user: database.user, database: database.database });
@@ -65,23 +66,23 @@ test("surface binding, exact installation digest and declared dependency support
     const agent = f.host.connect(f.identity.token, "agent");
     await assert.rejects(agent.accept(intent.id, intent.confirmationDigest), /NOT_FOUND/);
     await assert.rejects(f.session.begin("invented-journey"), /JOURNEY_NOT_EXPOSED/);
-    const changed = structuredClone(Notebook);
+    const changed = notebookDefinition();
     changed.objects[0]!.facts.title.minLength = 2;
-    await assert.rejects(openLocalController(compile(changed), { ...f.database, role: "notes" }), /INSTALLATION_MISMATCH/);
-    const unsupported = structuredClone(Notebook) as any;
-    unsupported.dependencies.push({ id: "provider", kind: "capability", requires: [] });
-    unsupported.journeys[0].requires.dependencies.push("provider");
-    await assert.rejects(openLocalController(compile(unsupported), { ...f.database, role: "notes" }), /UNSUPPORTED_LOCAL_DEPENDENCY/);
-    await assert.rejects(openLocalController({ ...f.app }, { ...f.database, role: "notes" }), /UNCOMPILED_APPLICATION/);
-    await assert.rejects(openLocalController(f.app, { ...f.database, socketDirectory: "localhost", role: "notes" }), /LOCAL_SOCKET_REQUIRED/);
+    await assert.rejects(openLocalController(compile(changed), { ...f.database, roles: ["notes"] }), /INSTALLATION_MISMATCH/);
+    const unsupported = protocolNotebookDefinition();
+    unsupported.dependencies!.push({ id: "provider", kind: "capability", requires: [] });
+    unsupported.journeys![0]!.requires.dependencies.push("provider");
+    await assert.rejects(openLocalController(compile(unsupported), { ...f.database, roles: ["notes"] }), /UNSUPPORTED_LOCAL_DEPENDENCY/);
+    await assert.rejects(openLocalController({ ...f.app }, { ...f.database, roles: ["notes"] }), /UNCOMPILED_APPLICATION/);
+    await assert.rejects(openLocalController(f.app, { ...f.database, socketDirectory: "localhost", roles: ["notes"] }), /LOCAL_SOCKET_REQUIRED/);
     assert.equal((await f.admin.query("SELECT count(*) FROM desert_objects")).rows[0].count, "0");
   } finally { await f.close(); }
 });
 
 test("changing only contract effects changes execution without Notebook branches in the engine", async () => {
-  const source = structuredClone(Notebook) as any;
+  const source = notebookDefinition();
   source.objects[0].facts.state.values = ["active", "filed"];
-  source.journeys[2].command.set.state.value = "filed";
+  source.journeys[2].command.set.state!.value = "filed";
   const f = await fixture(source);
   try {
     const intent = await f.session.prepare((await f.session.begin("create-note")).id, { title: "Contract", body: "Driven" });

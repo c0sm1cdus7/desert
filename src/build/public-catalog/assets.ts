@@ -9,6 +9,7 @@ export type BoundCatalogAsset = Readonly<{
 export const catalogMediaTypes: Readonly<Record<string, string>> = Object.freeze({
   ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".avif": "image/avif",
   ".mp4": "video/mp4", ".webm": "video/webm",
+  ".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".ogg": "audio/ogg", ".wav": "audio/wav", ".vtt": "text/vtt",
 });
 
 /** Host-owned file bindings never enter the portable surface or downloadable build. */

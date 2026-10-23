@@ -5,18 +5,24 @@ import { freezeDeep } from "../json.ts";
 import type { JourneyDefinition } from "../program-grammar.ts";
 
 export type Application = ReturnType<typeof compile>;
-export function localProgram(application: Application, role: string) {
+export function localProgram(application: Application, requestedRoles: readonly string[]) {
   const definition = loadDefinition(application);
   const graph = compileDependencies(definition);
-  const controller = graph.definitions.get(role);
-  if (controller?.kind !== "controller") throw new Error("UNKNOWN_CONTROLLER");
+  if (!Array.isArray(requestedRoles) || !requestedRoles.length || new Set(requestedRoles).size !== requestedRoles.length) {
+    throw new Error("INVALID_CONTROLLER_ROLES");
+  }
+  const roles = Object.freeze([...requestedRoles].sort());
+  for (const role of roles) if (graph.definitions.get(role)?.kind !== "controller") throw new Error("UNKNOWN_CONTROLLER");
+  const installed = new Set(roles);
   const journeys = new Map<string, JourneyDefinition>();
   for (const journey of definition.journeys ?? []) {
-    if (journey.requires.controller !== role) continue;
-    if (graph.forJourney(journey).some(dependency => dependency !== role)) throw new Error("UNSUPPORTED_LOCAL_DEPENDENCY");
+    if (!installed.has(journey.requires.controller)) continue;
+    if (graph.forJourney(journey).some(dependency => !installed.has(dependency))) throw new Error("UNSUPPORTED_LOCAL_DEPENDENCY");
     journeys.set(journey.id, journey);
   }
-  if (!journeys.size) throw new Error("EMPTY_CONTROLLER");
+  for (const role of roles) if (![...journeys.values()].some(journey => journey.requires.controller === role)) {
+    throw new Error("EMPTY_CONTROLLER");
+  }
   const owners = new Map((definition.policies ?? []).map(policy => [policy.object, policy.field]));
   freezeDeep(definition);
   function journey(surface: string, id: string) {
@@ -25,6 +31,6 @@ export function localProgram(application: Application, role: string) {
     if (!found) throw new Error("JOURNEY_NOT_INSTALLED");
     return found;
   }
-  return { application, role, owners, journey };
+  return { application, roles, owners, journey, objects:new Map(definition.objects.map(object => [object.id,object])) };
 }
 export type LocalProgram = ReturnType<typeof localProgram>;

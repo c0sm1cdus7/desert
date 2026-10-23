@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
 import type { Locator } from "playwright";
-import { browserFixture, settleMotion } from "./fixture.ts";
+import { activePanel, panelToolbar, settleMotion, waitForNote } from "./fixture.ts";
+import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
 
 const title = "Independent review: Field observations from the northern route, including road access, seasonal changes, " +
   "conversations with local residents, proposed follow-up visits, equipment needs, and the remaining questions for next planning day";
@@ -38,7 +39,7 @@ async function reachableChrome(dialog: Locator, evidencePath: string) {
 
 async function readableText(value: Locator, end = false) {
   const visibility = await value.evaluate((node, last) => {
-    const inDocument = !!node.closest(".reading-pane");
+    const header = node.closest<HTMLElement>('[data-surface-slot="top"]');
     const content = node.closest<HTMLElement>('[data-surface-slot="content"]');
     const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
     const texts: Node[] = [];
@@ -49,9 +50,8 @@ async function readableText(value: Locator, end = false) {
     const range = document.createRange();
     const offset = last ? (text.textContent?.length ?? 1) - 1 : 0;
     range.setStart(text, offset); range.setEnd(text, offset + 1);
-    const viewport = inDocument ? new DOMRect(0, 0, innerWidth, innerHeight) : content!.getBoundingClientRect();
-    if (inDocument) window.scrollBy(0, range.getBoundingClientRect().top - 16);
-    else content!.scrollTop += range.getBoundingClientRect().top - viewport.top - parseFloat(getComputedStyle(content!).paddingTop);
+    const viewport = (header ?? content)!.getBoundingClientRect();
+    if (!header) content!.scrollTop += range.getBoundingClientRect().top - viewport.top - parseFloat(getComputedStyle(content!).paddingTop);
     const glyph = range.getBoundingClientRect();
     const hit = document.elementFromPoint(glyph.x + glyph.width / 2, glyph.y + glyph.height / 2);
     return { glyph: glyph.toJSON(), viewport: viewport.toJSON(), unobscured: node === hit || node.contains(hit) };
@@ -68,6 +68,7 @@ async function readableWorkspace(context: Locator, evidencePath: string) {
     const heading = node.querySelector<HTMLElement>('[data-surface-slot="top"] h2')!;
     return { width: node.getBoundingClientRect().width, viewportWidth: innerWidth,
       documentHeight: document.documentElement.scrollHeight, viewportHeight: innerHeight,
+      contentHeight: content.clientHeight, contentScrollHeight: content.scrollHeight,
       contentWidth: content.clientWidth, contentScrollWidth: content.scrollWidth,
       bodyLineHeight: parseFloat(getComputedStyle(content).lineHeight),
       titleLineHeight: parseFloat(getComputedStyle(heading).lineHeight) };
@@ -76,7 +77,8 @@ async function readableWorkspace(context: Locator, evidencePath: string) {
   assert.equal(await context.locator('[data-surface-slot="bottom"]').count(), 0);
   assert.ok(geometry.width <= geometry.viewportWidth && geometry.contentScrollWidth <= geometry.contentWidth + 1,
     "long reading wraps within the viewport without horizontal clipping");
-  assert.ok(geometry.documentHeight > geometry.viewportHeight, "the complete context remains in document flow");
+  assert.ok(geometry.contentScrollHeight > geometry.contentHeight, "the complete context remains reachable inside the surface viewport");
+  assert.equal(geometry.documentHeight, geometry.viewportHeight, "reading does not create an outer document scrollbar");
   return geometry;
 }
 
@@ -93,10 +95,9 @@ test("long reading and review stay reachable at compact heights and enlarged tex
     await f.page.getByRole("button", { name: "Create note", exact: true }).click();
     await f.page.getByRole("textbox", { name: "Title", exact: true }).fill(title);
     await f.page.getByRole("textbox", { name: "Content", exact: true }).fill(body);
-    await f.page.locator("form").getByRole("button", { name: "Create note", exact: true }).click();
-    const context = f.page.getByRole("region", { name: "Object context", exact: true });
-    await context.waitFor();
-    await f.page.getByRole("dialog").waitFor({ state: "hidden" });
+    await panelToolbar(f.page, "bottom").getByRole("button", { name: "Create note", exact: true }).click();
+    const context = activePanel(f.page);
+    await waitForNote(f.page, title);
     await mkdir(directory, { recursive: true });
     const cases = [
       ...[1, 1.3, 2].map(scale => ({ width: 320, height: 568, scale })),
@@ -109,10 +110,10 @@ test("long reading and review stay reachable at compact heights and enlarged tex
       await f.page.evaluate(value => document.documentElement.style.setProperty("--text-scale", String(value)), scale);
       const dialog = f.page.getByRole("dialog");
       await settleMotion(f.page);
-      const heading = context.getByRole("heading", { name: title, exact: true });
+      const heading = context.locator('[data-toolbar-title]').getByText(title, { exact: true });
       assert.equal(await heading.textContent(), title, "CSS bounds do not shorten the accessible name");
       const content = context.locator('[data-surface-slot="content"]');
-      assert.equal(await context.getByText(title, { exact: true }).count(), 1, "reading identity is not repeated as a metadata row");
+      assert.equal(await content.getByText(title, { exact: true }).count(), 0, "reading identity is not repeated as a metadata row");
       const prose = content.locator('[data-reading="multiline"]').filter({ hasText: "Final retained paragraph." });
       assert.equal(await prose.textContent(), body);
       const geometry = await readableWorkspace(context, `${directory}/context-${example}`);
@@ -126,12 +127,12 @@ test("long reading and review stay reachable at compact heights and enlarged tex
       if (scale === 2) await f.page.screenshot({ path: `${directory}/context-title-${example}.png` });
       const bodyVisibility = await readableText(prose, true);
       if (scale === 2) await f.page.screenshot({ path: `${directory}/context-end-${example}.png` });
-      await context.locator('[data-surface-slot="top"]').getByRole("button", { name: "Back", exact: true }).scrollIntoViewIfNeeded();
+      await panelToolbar(f.page, "top").getByRole("button", { name: "Close", exact: true }).scrollIntoViewIfNeeded();
       await f.page.screenshot({ path: `${directory}/context-${example}.png` });
       const archive = context.getByRole("button", { name: "Archive note", exact: true });
       await archive.click();
-      const journey = f.page.getByRole("region", { name: "Journey", exact: true });
-      await journey.waitFor();
+      const journey = activePanel(f.page);
+      await journey.locator('[data-toolbar-title]').getByText("Review · Archive note", { exact: true }).waitFor();
       const review = await reachableChrome(dialog, `${directory}/review-${example}`);
       assert.equal(await journey.locator('[data-surface-slot="top"] p').textContent(), "Status: active → archived");
       assert.equal(await journey.locator(".fact-row").first().locator(".fact-label").textContent(), "Status",
@@ -144,19 +145,17 @@ test("long reading and review stay reachable at compact heights and enlarged tex
       await f.page.screenshot({ path: `${directory}/review-${example}.png` });
       measurements.push({ width, height, scale, context: geometry, review, titleVisibility, bodyVisibility, reviewTitleVisibility, reviewBodyVisibility });
       await journey.locator('[data-surface-slot="bottom"]').getByRole("button", { name: "Back", exact: true }).click();
-      await dialog.waitFor({ state: "hidden" });
-      await context.waitFor();
+      await waitForNote(f.page, title);
       } finally {
         // A failed geometry case must not prevent evidence for the remaining sizes.
         await f.page.evaluate(() => document.documentElement.style.setProperty("--text-scale", "1"));
         await f.page.setViewportSize({ width: 1280, height: 900 });
-        const journey = f.page.getByRole("region", { name: "Journey", exact: true });
-        if (await journey.isVisible()) await journey.locator('[data-surface-slot="bottom"]').getByRole("button", { name: "Back", exact: true }).click();
-        await f.page.getByRole("dialog").waitFor({ state: "hidden" });
-        await context.waitFor();
+        const back = panelToolbar(f.page, "bottom").getByRole("button", { name: "Back", exact: true });
+        if (await back.isVisible()) await back.click();
+        await waitForNote(f.page, title);
       }
     });
-    await context.locator('[data-surface-slot="top"]').getByRole("button", { name: "Back", exact: true }).click();
+    await panelToolbar(f.page, "top").getByRole("button", { name: "Close", exact: true }).click();
     await context.waitFor({ state: "hidden" });
     await writeFile(`${directory}/measurements.json`, JSON.stringify({ titleLength: title.length, measurements, errors: f.errors }, null, 2));
     assert.deepEqual(f.errors, []);

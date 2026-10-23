@@ -4,15 +4,19 @@ import type { BankEvent } from "../../interaction/bank-events.ts";
 import type { PlaceIdentity } from "../pieces/place-identity.ts";
 import type { WorkspaceSearchResult } from "../explorer/workspace-search.ts";
 import { catalogTitle, matchingEntries } from "../catalog/navigation.ts";
+import { retrieveCollection } from "../collection-retrieval.ts";
+import { presentFact, presentTitle } from "../../interaction/fact-presentation.ts";
 
 /** Data adapter only. Geometry, material, focus and motion remain in CatalogWorkspace. */
 export function viewIdentity(resolved: ResolvedView, fallback: string): PlaceIdentity {
   const header = resolved.view.content.find(item => item.kind === "header");
-  return header ?? { title: resolved.top?.title ?? fallback, subtitle: resolved.top?.subtitle ?? "" };
+  return header ? { ...header, subtitle: header.subtitle ?? "" }
+    : { title: resolved.top?.title ?? fallback, subtitle: resolved.top?.subtitle ?? "" };
 }
 
 const contentItems = (resolved: ResolvedView): readonly ViewItem[] => resolved.view.content.flatMap(item =>
-  item.kind === "stack" ? item.items : item.kind === "header" || item.kind === "visual-catalog" ? [] : [item]);
+  item.kind === "stack" ? item.items : item.kind === "header" || item.kind === "visual-catalog" || item.kind === "media-library" ||
+    item.kind === "navigation" || item.kind === "destination" || item.kind === "appearance" || item.kind === "identity" || item.kind === "attention" ? [] : [item]);
 const recordKey = (item: string, record: string) => JSON.stringify([item, record]);
 
 export function viewSearchResults(resolved: ResolvedView, query: string): readonly WorkspaceSearchResult[] {
@@ -31,10 +35,29 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
     if (item.kind !== "collection") continue;
     const node = resolved.bindings[item.input];
     if (node?.kind !== "collection" || !node.loaded || node.disabled) continue;
-    for (const record of node.records) {
-      const values = node.fields.map(field => String(record.facts[field] ?? ""));
-      if (matches(values)) results.push({ kind: "content", id: recordKey(item.id, record.id),
-        title: values[0] || record.id, description: values.slice(1).join(" · ") });
+    if (node.presentation?.kind === "media-grid") {
+      const presentation = node.presentation;
+      for (const record of node.records) {
+        const asset = record.facts[presentation.image];
+        const title = typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'video' ? 'Video'
+          : typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'audio' ? 'Audio' : 'Image';
+        const detail = presentation.description ? record.facts[presentation.description] : undefined;
+        const description = typeof detail === 'string' ? detail : '';
+        if (matches([title, description])) results.push({kind:'content',id:recordKey(item.id,record.id),title,description});
+      }
+      continue;
+    }
+    if (node.presentation?.kind === "collection-grid") {
+      for (const record of node.records) {
+        const title = presentTitle(record.facts[node.presentation.title]);
+        if (matches([title])) results.push({kind:'content',id:recordKey(item.id,record.id),title,description:'Collection'});
+      }
+      continue;
+    }
+    for (const record of retrieveCollection(node.records, node.fields, query)) {
+      results.push({ kind: "content", id: recordKey(item.id, record.id),
+        title: presentTitle(record.facts[node.fields[0]!]),
+        description: node.fields.slice(1).map(field => presentFact(record.facts[field])).join(" · ") });
     }
   }
   return results;

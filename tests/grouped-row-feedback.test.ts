@@ -31,7 +31,7 @@ test("first, middle and last grouped rows keep surfaces fixed while only content
         await settle(f.page);
         const pressed=await appearance(target);
         assert.deepEqual(await target.boundingBox(),bounds,`${family}/${index}: fixed hit surface`);
-        assert.equal(pressed.transform,'none'); assert.ok(Math.abs(pressed.contentScale-.985)<.001);
+        assert.equal(pressed.transform,'none'); assert.ok(Math.abs(pressed.contentScale-.96)<.001);
         assert.equal(pressed.background,'none', 'pressed content never repaints the shared pane'); assert.deepEqual(pressed.corners,before.corners);
         await f.page.mouse.move(0,0); await settle(f.page);
         assert.equal((await appearance(target)).contentScale,1,'pointer departure cancels content feedback');

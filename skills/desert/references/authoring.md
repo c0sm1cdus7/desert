@@ -15,12 +15,13 @@ npm run inspect
 
 Inspect compiles Notebook and prints schemas, validation results, surfaces and plans.
 Execution remains not-installed and distributions unbuilt until explicitly supplied.
-Read [Notebook](notebook.md) in file order: the complete product, actual Svelte
-binding and build integration. These source files are what the bundle tests.
+Read [Notebook](notebook.md): the complete declarations under `products/notebook/src/`,
+then the host and build integration outside that directory. These are the files
+the source gate and runtime tests consume; the root bridge files only re-export.
 
 ## Facts and ownership
 
-Use objectType({ id, facts }), text, integer, enumeration and principal.
+Use objectType({ id, facts }), text, integer, enumeration, principal, imageAsset and labels.
 Text accepts minLength/maxLength; integer accepts minimum/maximum within safe-integer
 bounds. Enums are closed. Facts are required in this vocabulary. See [API](api.md)
 for exact generic signatures and the closed runtime grammar.
@@ -40,7 +41,7 @@ cannot substitute for a Director/Being collaboration policy.
 Use createCommand(id, object, { input, values }) and
 updateCommand(id, object, { input, when, set }). Inputs reference existing fact keys;
 their schemas are derived. fromInput, literal and actorId are the expressions.
-Creates cover every fact. Updates require nonempty equality conditions and changes.
+Creates cover every fact. Updates declare equality conditions and nonempty changes.
 Unknown fields, incompatible assignments and invalid enums are rejected.
 
 Notebook's archive declares when: { state: "active" } and sets state to "archived".
@@ -66,8 +67,9 @@ JavaScript or assertions bypass authoring checks. See the bundle's
 tests/fixtures/shared-controller.ts and tests/shared-controller.test.ts for an
 executable two-object product, six journeys and one local store.
 
-This does not enable a command to mutate several objects, cross-controller
-transactions or a multi-object human renderer. Those remain separate capabilities.
+This does not enable one command to mutate several objects or execute a
+cross-controller transaction. A composed product may expose multiple read contexts;
+each operation still declares its own authoritative source and controller.
 
 Mutation helpers derive confirmation: "prepared-effect" and outcome: "receipt".
 These bind execution, not screen count. There is no confirmation: "none",
@@ -77,31 +79,45 @@ The current local executor rejects extra unsupported capability dependencies.
 
 ## Human and agent interaction
 
-humanSurface accepts journey references in journeys, entry, primaryAction and
-subjectActions, not a nested navigation authoring object. Its current family has
-a read entry, create primary action and update subject actions on the entry object.
-It is not a general multi-object context framework.
+humanSurface({ id, journeys, locale }) and agentSurface(id, journeys) expose exact
+journey references from the mounted module catalog. They cannot define navigation,
+labels, input presentation, review policy or connection behavior a second time.
 
-Every exposed mutation has an explicit commit entry: submit for the form/action
-invocation, or review to await another confirmation. Reads have no commit mode.
-Neither grants consent authority. Notebook creates directly and archives from
-Actions with review. Reading an object does not create a mutation-step footer.
+Each module registers its execution journey with a label, presentation and (for a
+mutation) humanReview. `publishObject` owns the object's detail View, title fact,
+field representations and subject actions. The compiler derives wire labels,
+commit modes and field metadata from those declarations. Notebook creates without
+an additional review and archives only after review; neither choice grants authority.
 
-Provide complete language labels and the connection contract shown in Notebook.
-Missing labels and unsupported semantics are errors. agentSurface(id, journeys)
-exposes only listed journeys. No general MCP renderer is installed.
+Views are `defineView` objects composed from `Components` and typed ports, without
+CSS, callbacks or renderer identifiers. Journeys bind outputs to operations or
+navigation. The root owns workspace, destinations, entry and navigation exactly
+once. Read scopes derive from the admitted View program, not an implicit collection.
+
+Connection policy is SDK-owned. It tracks controller dependencies, keeps drafts
+only in session memory and reconnects without replaying commands. The agent surface
+uses the same canonical preparation and acceptance; it exposes only listed journeys
+and published fields. Binary image acquisition is currently browser-only.
 
 ## Assemble, build and test
 
-product({ id, objects, dependencies, policies, journeys, surfaces }) composes
-definitions. version, execution, profile fields and callbacks are not accepted
-product fields. compile(product) checks grammar and references and freezes projections.
-Use surface(id) for clients, not the private execution plan.
+Declare each capability with `defineModule`, mount it through `moduleCatalog`, and
+assemble one root with `composeProduct`. `compile(NotebookProduct)` accepts that
+issued composition, not a detached wire definition or a copy. The internal wire
+compiler remains available to protocol tests; it is not a second product authoring API.
+
+The Notebook anatomy is `src/modules/notes/{commands,journeys,views}` plus
+`note.object.ts`, `note.publication.ts`, `notes.dependencies.ts` and `notes.module.ts`.
+`src/modules.ts` publishes the integrated catalogs. `src/views/` owns workspace and
+navigation; `src/notebook.product.ts` is the root. Host scripts run the source gate
+before importing this authored tree. Use surface(id) for clients, not the execution plan.
 
 The Svelte builder rejects unsupported compositions, languages and primitives.
-The SDK's generic template renders HumanProduct with the generated surface and
-validator, without business CRUD. Distribution helpers produce plans only; the
-separate buildDistribution entrypoint realizes the installed svelte-web target.
+The SDK template renders the admitted View program using its shared visual catalog,
+generated surface and validator, without product CRUD handlers. `buildHumanModule`
+and `buildDistribution` derive the program from the compiled composition; callers
+cannot supply another program. Distribution helpers produce plans; the separate
+buildDistribution entrypoint realizes the installed svelte-web target.
 Read [distribution builds](distributions.md) before building or mounting. Compiling
 a native, CLI or controller target name does not implement that target.
 

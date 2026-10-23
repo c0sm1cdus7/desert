@@ -13,7 +13,7 @@
 <DialogPrimitive.Description
 	bind:ref
 	data-slot="dialog-description"
-	class={cn(presentation === "message" ? "type-body text-foreground" : "text-muted-foreground text-sm",
+	class={cn("text-muted-foreground", presentation === "message" ? "type-body" : "text-sm",
 		"*:[a]:hover:text-foreground *:[a]:underline *:[a]:underline-offset-3", className)}
 	{...restProps}
 />

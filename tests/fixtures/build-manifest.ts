@@ -9,7 +9,11 @@ export async function verifyManifestBoundaries(output: string, directory: string
   const cases: [string, (manifest: BuildManifest) => void, RegExp][] = [
     ["renderer", value => { value.renderer.revision = "0".repeat(64); }, /BUILD_RENDERER_MISMATCH/],
     ["surface", value => { value.surfaceDigest = "0".repeat(64); }, /BUILD_SURFACE_MISMATCH/],
-    ["binding", value => { value.connection.role = "other"; }, /BUILD_BINDING_MISMATCH/],
+    ["view-program", value => { value.viewProgramDigest = "0".repeat(64); }, /BUILD_VIEW_PROGRAM_MISMATCH/],
+    ["missing-view-program", value => { Reflect.deleteProperty(value, "viewProgramDigest"); }, /INVALID_BUILD_MANIFEST/],
+    ["legacy-format", value => { Reflect.set(value, "format", "desert.distribution-build/2"); }, /INVALID_BUILD_MANIFEST/],
+    ["binding", value => { value.connection.roles = ["other"]; }, /BUILD_BINDING_MISMATCH/],
+    ["activities", value => { value.activitiesDigest = "0".repeat(64); }, /BUILD_ACTIVITY_CATALOG_MISMATCH/],
     ["distribution", value => { value.distributionDigest = "0".repeat(64); }, /DISTRIBUTION_DIGEST_MISMATCH/],
     ["unknown", value => { Object.assign(value, { silentOverride: true }); }, /INVALID_BUILD_MANIFEST/],
   ];

@@ -1,20 +1,11 @@
 <script lang="ts">
   import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
-  import SearchField from "../pieces/SearchField.svelte";
-  import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
   import { InteractionCatalog } from "../../interaction/catalog.ts";
   import { catalogGroups, navigateCatalog, type CatalogEntry } from "./navigation.ts";
-  let { query = $bindable(""), entries }: { query?: string; entries: readonly CatalogEntry[] } = $props();
+  let { entries }: { entries: readonly CatalogEntry[] } = $props();
 </script>
 
-<nav id="catalog-navigation" aria-label="Catalog navigation" class="flex flex-col gap-3 scroll-mt-4">
-  <Field.FieldGroup>
-    <Field.Field class="relative">
-      <Field.FieldLabel for="catalog-search" class="sr-only left-0 top-0">Find component</Field.FieldLabel>
-      <SearchField id="catalog-search" bind:value={query} placeholder="Name, identifier or state" aria-describedby="catalog-search-help" />
-      <Field.FieldDescription id="catalog-search-help" class="sr-only left-0 top-0 max-w-px">Filter examples without losing local changes.</Field.FieldDescription>
-    </Field.Field>
-  </Field.FieldGroup>
+<nav id="catalog-navigation" tabindex="-1" aria-label="Catalog navigation" class="flex flex-col gap-3 scroll-mt-4">
   <div class="flex flex-wrap items-center gap-2">
     {#each catalogGroups as group (group.family)}
       {@const count = entries.filter(entry => entry.inspection.group === group.id).length}

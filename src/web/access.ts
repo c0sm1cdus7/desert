@@ -7,18 +7,20 @@ function equals(left: unknown, right: string) {
   return candidate.length === expected.length && timingSafeEqual(candidate, expected);
 }
 
-export function localBrowserAccess() {
+export function localBrowserAccess(cookieName = "desert-local") {
   let invitation: string | undefined = randomBytes(32).toString("base64url");
   const session = randomBytes(32).toString("base64url");
+  let active = true;
   return {
     invitation,
     connect(candidate: unknown) {
       if (!invitation || !equals(candidate, invitation)) throw new Error("BROWSER_SESSION_REQUIRED");
       invitation = undefined;
-      return `desert-local=${session}; HttpOnly; SameSite=Strict; Path=/`;
+      return `${cookieName}=${session}; HttpOnly; SameSite=Strict; Path=/`;
     },
     authenticated(cookie: string | undefined) {
-      return (cookie ?? "").split(";").some(part => equals(part.trim(), `desert-local=${session}`));
+      return active && (cookie ?? "").split(";").some(part => equals(part.trim(), `${cookieName}=${session}`));
     },
+    invalidate() { active = false; invitation = undefined; },
   };
 }

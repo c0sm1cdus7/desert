@@ -27,7 +27,8 @@ test('S1 role-aware source gate protects neutral geometry owners and permits sem
     'pieces/surface-chrome.css':['.drawer','.drawer,.problem',':is(.drawer,.problem,.centered-dialog)'],
     'explorer/catalog-shell.css':['[data-catalog-workspace] [data-slot="sidebar-inner"]'],
     'explorer/catalog-search.css':['[data-catalog-search-actions] [data-slot="input-group"]','[data-catalog-search] [data-slot="input-group"]'],
-    'theme.css':['@tm-control','@tm-tinted'],
+    'pieces/control-feedback.css':['@tm-control'],
+    'theme.css':['@tm-tinted'],
   };
   const forbidden=/^(?:background(?:-color|-image)?|(?:-webkit-)?backdrop-filter|border(?:-color|-width|-style)?|box-shadow|opacity)$/;
   for(const [file,owners] of Object.entries(rules)) {

@@ -17,6 +17,12 @@ set explicitly with `DESERT_PARITY_BASELINE`. Candidate must serve the same
 Landmarks component-bank content. VOID has different authored labels/content and
 must not be claimed pixel-identical to Landmarks using this command.
 
+For a VOID-to-VOID architecture migration, set `DESERT_PARITY_FAMILY=void` and
+point the baseline at the approved VOID server. This opens Home and navigates
+through the real sidebar to Visual catalog in fresh unauthenticated contexts;
+it neither consumes the owner's launch invitation nor creates notes. Both pixel
+and motion scripts use the same family selector. Do not compare unlike products.
+
 The matrix is 390×844 and 1280×900, dark/light, initial/real-wheel scroll/search/
 sidebar/transient: 20 pairs, 40 viewport PNGs, exact RGBA comparison. No masks,
 tolerance, resized images, color correction, injected CSS, or font substitution.
@@ -65,6 +71,18 @@ independent first-open coverage.
 
 ## Executed evidence, 2026-10-20
 
+- `module-void-parity-self-20261020`: first VOID self-control; wrong dialog-name
+  selector caused four timeouts, and one wide scroll pair differed by eight
+  Home-icon corner pixels. The selector was corrected; evidence is retained.
+- `module-void-parity-self-20261020-b`: corrected 4400→4400 self-control,
+  19/20 exact; eight Home-icon corner pixels differ in wide/dark/scroll.
+  Additional repeated-context inspection found two persistent per-context
+  rasterizations, not a transition that disappeared after waiting more frames.
+- `module-void-parity-20261020-a`: approved VOID→module-composed VOID,
+  18/20 exact; both wide/scroll pairs have that same eight-pixel variation.
+  This is not a green full-matrix result; no tolerance/mask was added.
+- `module-void-motion-20261020-a`: 12/12 exact transition comparisons for the
+  module-composed build against approved VOID, with unchanged visual owners.
 - `stable-parity-self-20261020-c`: 4292→4292, 20/20 exact, zero changed pixels.
 - `stable-parity-v128-20261020-a`: 4292→4397, 20/20 exact, zero changed pixels.
 - `stable-motion-v128-20261020-a`: 4292→4397, 12/12 exact motion comparisons.

@@ -4,7 +4,7 @@
   padding:calc(var(--catalog-toolbar-inset,12px) + var(--catalog-toolbar-height,44px) + 24px) var(--place-content-inset,42px) 24px;
   padding-inline-start:calc(var(--place-leading-inset,0px) + var(--place-content-inset,42px));
 }
-.place-heading-copy { display:flex; flex-direction:column; align-items:flex-start; gap:8px; min-width:0; overflow-wrap:anywhere; }
+.place-heading-copy { display:flex; flex-direction:column; align-items:flex-start; gap:var(--heading-copy-gap); min-width:0; overflow-wrap:anywhere; }
 .place-heading-copy > * { margin:0; max-width:100%; overflow-wrap:anywhere; }
 .place-heading-copy [data-place-title] { outline:none; }
 .place-heading-copy [data-place-subtitle] { color:var(--muted-foreground); max-width:65ch; }
@@ -23,10 +23,3 @@
 [data-header-collection] [data-media-dots] { left:calc(50% + var(--place-leading-inset,0px)/2); }
 .place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) [data-place-subtitle] { color:color-mix(in srgb,var(--catalog-image-foreground) 74%,transparent); }
 @media(prefers-contrast:more) { .place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) [data-place-subtitle] { color:var(--catalog-image-foreground); } }
-[data-toolbar-identity] { display:flex; flex:1 1 0; flex-direction:column; min-width:0; opacity:0; text-align:start; pointer-events:none !important; padding-inline-end:calc(var(--catalog-toolbar-height,44px) + 12px); }
-/* Chrome fits its shared action rail; the full reading header keeps text scaling. */
-[data-toolbar-identity] [data-identity-title] { font-size:min(var(--text-title),calc(var(--catalog-toolbar-height,44px) * .43)); line-height:calc(var(--catalog-toolbar-height,44px) * .52); }
-[data-toolbar-identity] [data-identity-subtitle] { color:var(--muted-foreground); font-size:min(var(--text-caption),calc(var(--catalog-toolbar-height,44px) * .3)); line-height:calc(var(--catalog-toolbar-height,44px) * .4); }
-[data-place-toolbar] .toolbar-row { justify-content:flex-start; }
-[data-catalog-navigation-actions]:not(:has(button)) { display:none; }
-[data-catalog-navigation-actions]:not(:has(button)) + [data-toolbar-identity] { padding-inline-start:calc(var(--place-content-inset,42px) - var(--catalog-toolbar-inset,12px)); }

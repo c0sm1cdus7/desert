@@ -1,5 +1,5 @@
 <script lang="ts">
-  import BankRenderer from "./BankRenderer.svelte";
+  import { BankRenderer } from "./adapter-catalog.ts";
   import { BankVersion } from "../interaction/bank-node.ts";
   import { failureFeedback } from "../web/client/failure-feedback.ts";
   let { code, uncertain = false, close }: { code: string | null, uncertain?: boolean, close: () => void } = $props();

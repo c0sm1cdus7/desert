@@ -1,37 +1,38 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { browserFixture } from "./fixture.ts";
+import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
 
 test("typed select changes, clears explicitly and retains disabled control state", { timeout: 30000 }, async () => {
   const f = await browserFixture();
   try {
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
+    await openCatalog(f.page);
     const bench = f.page.locator("[data-control-bench]");
-    const padding = await bench.locator('[data-slot="card-content"]').evaluateAll(elements =>
-      elements.map(element => Number.parseFloat(getComputedStyle(element).paddingLeft)));
-    assert.ok(padding.length > 0 && padding.every(value => value >= 16), "bench content uses the shared 16px spacing token");
-    const select = bench.getByRole("button", { name: "Single choice", exact: true });
-    const field = bench.locator('[data-control="select"]').filter({ has: f.page.getByRole("button", { name: "Single choice", exact: true }) });
+    const field = bench.locator('[data-specimen="control.select:available"]');
+    const select = field.locator('[data-selection-trigger]');
+    const padding = await select.evaluate(element => element.querySelector('[data-slot="field-label"]')!.getBoundingClientRect().left - element.getBoundingClientRect().left);
+    assert.ok(padding >= 16, "the whole-well trigger retains the shared inner spacing");
     const clear = field.getByRole("button", { name: "Clear selection", exact: true });
     assert.equal(await clear.isDisabled(), true);
     await select.click();
-    assert.equal(await f.page.getByRole("radio", { name: "Unavailable option" }).isDisabled(), true);
-    await f.page.getByRole("dialog", { name: "Single choice", exact: true }).getByRole("radio", { name: "First option", exact: true }).focus();
+    const menu = f.page.getByRole("listbox");
+    assert.equal(await menu.getByRole("option", { name: "Unavailable option" }).getAttribute("aria-disabled"), "true");
+    await menu.getByRole("option", { name: "First option", exact: true }).focus();
     await f.page.keyboard.press("End");
-    assert.equal((await select.textContent())?.trim(), "Not selected", "navigation stages rather than commits a choice");
-    await f.page.getByRole("dialog", { name: "Single choice", exact: true }).getByRole("button", { name: "Confirm", exact: true }).click();
-    assert.equal((await select.textContent())?.trim(), "Second option", "keyboard skips the disabled final option");
+    assert.equal(await select.locator('[data-field-value]').innerText(), "Not selected", "keyboard focus alone never commits");
+    await f.page.keyboard.press("Enter");
+    await menu.waitFor({ state: "hidden" });
+    assert.equal(await select.locator('[data-field-value]').innerText(), "Second option", "keyboard skips the disabled final option");
     await select.click();
-    await f.page.getByRole("dialog", { name: "Single choice", exact: true }).getByRole("radio", { name: "First option", exact: true }).click();
-    await f.page.getByRole("dialog", { name: "Single choice", exact: true }).getByRole("button", { name: "Confirm", exact: true }).click();
-    assert.equal((await select.textContent())?.trim(), "First option");
+    await menu.getByRole("option", { name: "First option", exact: true }).click();
+    await menu.waitFor({ state: "hidden" });
+    assert.equal(await select.locator('[data-field-value]').innerText(), "First option");
     assert.equal(await clear.getAttribute("data-primitive"), "action");
     await clear.click();
-    assert.equal((await select.textContent())?.trim(), "Not selected");
+    assert.equal(await select.locator('[data-field-value]').innerText(), "Not selected");
     assert.equal(await clear.isDisabled(), true);
-    const disabled = bench.getByRole("button", { name: "Disabled choice", exact: true });
+    const disabled = bench.locator('[data-specimen="control.select:disabled"] [data-selection-trigger]');
     assert.equal(await disabled.isDisabled(), true);
-    assert.equal((await disabled.textContent())?.trim(), "Retained selection");
+    assert.equal(await disabled.locator('[data-field-value]').innerText(), "Retained selection");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
@@ -39,7 +40,7 @@ test("typed select changes, clears explicitly and retains disabled control state
 test("typed popover uses canonical actions, keyboard Escape and trigger focus restoration", { timeout: 30000 }, async () => {
   const f = await browserFixture();
   try {
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
+    await openCatalog(f.page);
     const trigger = f.page.getByRole("button", { name: "Open contextual information", exact: true });
     assert.equal(await trigger.getAttribute("data-primitive"), "action");
     await trigger.focus();
@@ -47,16 +48,16 @@ test("typed popover uses canonical actions, keyboard Escape and trigger focus re
     const popover = f.page.getByRole("dialog", { name: "Local interaction", exact: true });
     await popover.waitFor({ state: "visible" });
     assert.equal(await trigger.getAttribute("aria-expanded"), "true");
-    const close = popover.locator('[data-surface-slot="bottom"]').getByRole("button", { name: "Close", exact: true });
-    assert.equal(await close.getAttribute("data-primitive"), "action");
+    assert.equal(await popover.getAttribute("aria-modal"), "false");
+    assert.equal(await popover.getByRole("toolbar").count(), 0, "contextual information is not a modal task");
     await f.page.keyboard.press("Escape");
     await popover.waitFor({ state: "hidden" });
     assert.equal(await trigger.evaluate(element => element === document.activeElement), true);
     assert.equal(await trigger.getAttribute("aria-expanded"), "false");
     await trigger.click();
-    await close.click();
+    await f.page.keyboard.press("Tab");
     await popover.waitFor({ state: "hidden" });
-    assert.equal(await trigger.evaluate(element => element === document.activeElement), true);
+    assert.equal(await popover.count(), 0, "Tab continues ordinary document navigation instead of trapping focus");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
@@ -64,7 +65,7 @@ test("typed popover uses canonical actions, keyboard Escape and trigger focus re
 test("local file selection rejects limits and removes handles without uploading", { timeout: 30000 }, async () => {
   const f = await browserFixture();
   try {
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
+    await openCatalog(f.page);
     const writes: string[] = [];
     f.page.on("request", request => { if (request.method() !== "GET") writes.push(request.url()); });
     const bench = f.page.locator("[data-control-bench]");

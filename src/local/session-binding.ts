@@ -1,6 +1,6 @@
 import type { Application } from "./program.ts";
 
-type Binding = { application: Application, surface: string, role: string };
+type Binding = { application: Application, surface: string, roles: readonly string[]; activitiesDigest?: string };
 const bindings = new WeakMap<object, Readonly<Binding>>();
 
 export function rememberSession(session: object, binding: Binding) {

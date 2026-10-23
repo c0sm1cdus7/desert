@@ -11,13 +11,14 @@ const close = toolbarAction({ kind: "close" }, "Close", "close");
 const recover = toolbarAction({ kind: "recover" }, "Check result", "recover");
 const save = toolbarAction({ kind: "journey", journey: "save" }, "Save", "save");
 
-test("context journeys remain destinations, never hidden header commands", () => {
-  for (const action of [save, toolbarAction({ kind: "accept" }, "Accept", "confirm")]) {
+test("context headers expose semantic journeys without acceptance or navigation impersonation", () => {
+  assert.doesNotThrow(() => surfaceFrame({ ...base, top: { ...base.top, leading: close, trailing: [save, recover] } }));
+  assert.throws(() => surfaceFrame({ ...base, top: { ...base.top, leading: save } }), /INVALID_SURFACE_FRAME/);
+  for (const action of [toolbarAction({ kind: "accept" }, "Accept", "confirm")]) {
     for (const top of [{ ...base.top, leading: action }, { ...base.top, trailing: [action] }]) {
       assert.throws(() => surfaceFrame({ ...base, top }), /INVALID_SURFACE_FRAME/);
     }
   }
-  assert.doesNotThrow(() => surfaceFrame({ ...base, top: { ...base.top, leading: close, trailing: [recover] } }));
 });
 
 test("message headers admit dismissal without command or recovery bypass", () => {

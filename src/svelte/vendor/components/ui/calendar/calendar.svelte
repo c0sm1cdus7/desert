@@ -67,7 +67,7 @@ get along, so we shut typescript up by casting `value` to `never`.
 >
 	{#snippet children({ months, weekdays })}
 		{#if header && months[0]}{@render header(months[0].value)}{/if}
-		<Calendar.Months class="min-h-0">
+		<Calendar.Months class={cn("min-h-0",presentation === "picker" && "picker-content-inset pt-2 pb-4 @container")}>
 			{#if !header}
 			<Calendar.Nav>
 				<Calendar.PrevButton variant={buttonVariant} />

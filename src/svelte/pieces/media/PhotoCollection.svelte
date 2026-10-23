@@ -2,8 +2,8 @@
   import Image from './Image.svelte';
   import Viewer from './Viewer.svelte';
   import { mediaGestures } from './gestures.ts';
-  import { prefetchImage, type Photo } from './source.ts';
-  let { photos, title, header = false }: { photos: readonly Photo[]; title: string; header?: boolean } = $props();
+  import { prefetchImage, imageIdentity, type Photo } from './source.ts';
+  let { photos, title, header = false, fit = 'fill' }: { photos: readonly Photo[]; title: string; header?: boolean; fit?: 'fit'|'fill' } = $props();
   let index = $state(0), open = $state(false);
   let host!: HTMLDivElement, opener!: HTMLButtonElement;
   const selected = $derived(photos[index] ?? photos[0]!);
@@ -26,18 +26,19 @@
 </script>
 
 <div bind:this={host} data-photo-collection data-header-collection={header || undefined}>
-  <Image source={selected.source} alt={selected.alt} edge={header ? 1280 : 640} retry />
-  <button bind:this={opener} use:drag data-media-open aria-label="Open photo viewer"
+  <Image source={selected.source} alt={selected.alt} edge={header ? 1280 : 640} {fit} retry />
+  <button type="button" bind:this={opener} use:drag data-media-open aria-label="Open photo viewer"
     onclick={() => open=true} onkeydown={key}></button>
   {#if photos.length>1}
     <div data-media-dots aria-label="Choose photo">
-      {#each photos as photo, i (photo.source)}
-        <button aria-label={`Photo ${i+1}: ${photo.alt}`} aria-current={i===index ? 'true' : undefined}
+      {#each photos as photo, i (`${i}:${imageIdentity(photo.source)}`)}
+        <button type="button" aria-label={`Photo ${i+1}: ${photo.alt}`} aria-current={i===index ? 'true' : undefined}
           onclick={() => select(i)}></button>
       {/each}
     </div>
   {/if}
 </div>
 {#if open}
-  <Viewer {photos} {title} bind:index bind:open onreturn={() => opener?.focus({ preventScroll:true })} />
+  <Viewer items={photos.map(photo => ({kind:'image', ...photo}))} {title} {index} {open}
+    onindex={value => index=value} onopen={value => open=value} onreturn={() => opener?.focus({ preventScroll:true })} />
 {/if}

@@ -6,19 +6,36 @@
   import { drawerMotion } from "./drawer-motion.svelte.ts";
   import { useSurfaceHost } from "./surface-host.svelte.ts";
   import SurfaceFrame from "../SurfaceFrame.svelte";
+  import InstanceFrame from "../InstanceFrame.svelte";
   import type { SurfaceFrame as Frame } from "../../interaction/surface-frame.ts";
+  import type { ResolvedView } from "../../views/resolved.ts";
   import { transientFrame } from "../../interaction/transient-frame.ts";
   import type { SurfaceIntent } from "../../interaction/intent.ts";
   import { surfaceFocus } from "./surface-focus.svelte.ts";
   import { adaptiveSurfaceLayout } from './adaptive-surface-layout.ts';
   import { adaptiveModality } from './adaptive-modality.svelte.ts';
-let { label, open, locked = false, onclose, onclosed, frame, invoke, edit }: {
+  import type { FormControlEvent } from "../../interaction/form-control-event.ts";
+  import { frameContinuity } from "./frame-continuity.svelte.ts";
+let { label, open, locked = false, onclose, onclosed, frame, invoke, edit, frameIdentity, readingIdentity, body, controlEvent, presentation }: {
     label: string; open: boolean; locked?: boolean; onclose: () => void;
     onclosed?: () => void; frame: Frame; invoke: (intent: SurfaceIntent) => void;
     edit?: (name: string, value: string) => void;
+    frameIdentity?: object | undefined;
+    readingIdentity?: object | undefined;
+    body?: ResolvedView | undefined;
+    controlEvent?: ((event: FormControlEvent) => void) | undefined;
+    presentation?: "transient" | undefined;
   } = $props();
   let composition = $derived(transientFrame(frame, locked));
   let content = $state<HTMLElement | null>(null);
+  const continuity = frameContinuity(() => content, () => frameIdentity, () => frame, () => readingIdentity);
+  let dispatch = $derived.by(() => {
+    const receiver = invoke, owner = frameIdentity;
+    return (intent: SurfaceIntent) => {
+      if (owner === frameIdentity) continuity.invoking(intent);
+      receiver(intent);
+    };
+  });
   let opener: HTMLElement | null = null;
   let wasOpen = false;
   $effect.pre(() => {
@@ -28,14 +45,17 @@ let { label, open, locked = false, onclose, onclosed, frame, invoke, edit }: {
   const close = () => {
     const navigation = composition.bottom.secondary;
     if (locked || navigation?.state !== "ready") return;
-    if (navigation.intent.kind === "close") onclose();
-    else invoke(navigation.intent);
+    if (navigation.intent.kind === "close") { continuity.invoking(navigation.intent); onclose(); }
+    else dispatch(navigation.intent);
   };
   const host = useSurfaceHost();
   const owner = Symbol('adaptive-pane');
-  const layout = $derived(adaptiveSurfaceLayout(host.availableInline, host.textSize, host.canDock(owner)));
+  const layout = $derived(adaptiveSurfaceLayout(host.availableInline, host.textSize, presentation !== "transient" && host.canDock(owner)));
   const docked = $derived(layout.docked);
-  const modal = $derived(open && !docked);
+  // A docked replacement may mount already open. Do not acquire a transient
+  // body lock against the pre-measurement zero width: that false modal can be
+  // removed before the lock's teardown effect has even registered.
+  const modal = $derived(open && host.measured && !docked);
   $effect(() => { host.reserve(owner, open && docked ? layout.reservation : 0); });
   $effect(() => () => host.reserve(owner, 0));
   adaptiveModality(() => content, () => modal);
@@ -70,12 +90,16 @@ let { label, open, locked = false, onclose, onclosed, frame, invoke, edit }: {
       onpointerdown={dragHeader} onpointermove={motion.move} onpointerup={motion.up}
       onpointercancel={motion.cancel} onlostpointercapture={motion.lost}
       onOpenAutoFocus={focus} onCloseAutoFocus={restore}
-      onEscapeKeydown={event => { if (locked || (docked && !content?.contains(document.activeElement))) event.preventDefault(); }}
-      onInteractOutside={event => { if (locked || docked) event.preventDefault(); }}>
+      onEscapeKeydown={event => { event.preventDefault(); if (!locked && (!docked || content?.contains(document.activeElement))) close(); }}
+      onInteractOutside={event => { event.preventDefault(); if (!locked && !docked) close(); }}>
       <Dialog.Title class="sr-only">{label}</Dialog.Title>
       <Dialog.Description class="sr-only">Close to return. Unsaved writing stays in this session.</Dialog.Description>
       {#if motion.edge === "bottom" && !docked}<DrawerGrip {motion} {locked} />{/if}
-      <SurfaceFrame frame={composition} {edit} presentation="transient" invoke={intent => intent.kind === "close" ? close() : invoke(intent)} />
+      {#if frameIdentity}
+        {#key frameIdentity}<InstanceFrame frame={composition} {body} {edit} invoke={dispatch} {controlEvent} />{/key}
+      {:else}
+        <SurfaceFrame frame={composition} {edit} {controlEvent} presentation="transient" invoke={intent => intent.kind === "close" ? close() : dispatch(intent)} />
+      {/if}
     </Dialog.Content>
 </Dialog.Root>
 

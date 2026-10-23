@@ -31,7 +31,7 @@
       <Toolbar toolbar={{ edge: "top", title: label,
         leading: toolbarAction({ kind: "close" }, `Close ${label}`, "close") }} invoke={close} />
     {/if}
-    <div class="min-h-0 picker-content-inset pt-2 pb-4 @container" class:overflow-auto={!contentToolbar}
+    <div class="min-h-0 @container" class:picker-content-inset={!contentToolbar} class:pt-2={!contentToolbar} class:pb-4={!contentToolbar} class:overflow-auto={!contentToolbar}
       class:flex={contentToolbar} class:flex-col={contentToolbar} class:overflow-hidden={contentToolbar}
       data-picker-content>{@render children()}</div>
   </Dialog.Content>

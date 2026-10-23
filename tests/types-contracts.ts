@@ -48,6 +48,9 @@ const contextForm: SurfaceFrame = { ...contextFrame, content: { kind: "form", su
 const contextCommand: SurfaceFrame = { ...contextFrame, bottom: { primary: { intent: { kind: "journey", journey: "save" }, label: "Save", icon: "save", state: "ready" } } };
 void [contextForm, contextCommand];
 import { humanSurface } from "../src/surfaces.ts";
+import { factReference, publishObject } from "../src/index.ts";
+import { Note as PublishedNote } from "./fixtures/notebook-domain.ts";
+import { notePublication } from "./fixtures/authored-notebook.ts";
 import { HumanNotebook } from "../products/notebook/surfaces.ts";
 import { CreateNote, ReadNote, ArchiveNote } from "../products/notebook/journeys.ts";
 
@@ -61,13 +64,16 @@ declare const completeBank: RendererBank<string>;
 // @ts-expect-error A renderer cannot extend the vocabulary independently.
 const inventedBank: RendererBank<string> = { ...completeBank, rainbow: "Rainbow" };
 void [unknownPrimitive, incompleteBank, inventedBank];
-const human = { ...HumanNotebook, journeys: [CreateNote, ReadNote, ArchiveNote],
-  entry: ReadNote, primaryAction: CreateNote, subjectActions: [ArchiveNote] };
+const human = { id: HumanNotebook.id, journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" };
+humanSurface(human);
+// @ts-expect-error A product cannot present an unknown fact.
+publishObject(PublishedNote, { ...notePublication, fields: [{ fact: factReference(PublishedNote, "imagined"), label: "Imagined", representation: "text" }] });
+// @ts-expect-error A renderer primitive is not a semantic field representation.
+publishObject(PublishedNote, { ...notePublication, fields: [{ fact: factReference(PublishedNote, "body"), label: "Content", representation: "input.multiline" }] });
+// @ts-expect-error Composed exposure cannot redefine an object's field representation.
 humanSurface({ ...human, inputs: { "note.body": "input.multiline" } });
-// @ts-expect-error A product cannot present an unknown command input.
-humanSurface({ ...human, inputs: { "note.imagined": "input.text" } });
-// @ts-expect-error An action is not an input primitive.
-humanSurface({ ...human, inputs: { "note.body": "action" } });
+// @ts-expect-error Composed exposure cannot override a published representation.
+humanSurface({ ...human, fieldRepresentations: { "note.body": "paragraphs" } });
 // @ts-expect-error Product contracts cannot supply renderer CSS.
 humanSurface({ ...human, class: "custom-layout" });
 

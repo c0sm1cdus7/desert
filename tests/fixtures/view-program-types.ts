@@ -1,4 +1,5 @@
-import type { View, ViewJourney, ViewProgram, ViewOutputBinding } from "../../src/index.ts";
+import type { View } from "../../src/views/schema.ts";
+import type { ViewJourney, ViewProgram, ViewOutputBinding } from "../../src/views/program-schema.ts";
 import { program } from "./view-program.ts";
 
 const positive: ViewProgram = program;
@@ -14,6 +15,17 @@ const directJourney = { ...bound, content: [{ kind: "collection", id: "list", in
 const leftEditor = { ...program.journeys[2], preferredDock: "left" } satisfies ViewJourney;
 // @ts-expect-error A read binding must name its detail view.
 const noDetail = { id: "read-note", kind: "read", view: "notes", outputs: [] } satisfies ViewJourney;
+// @ts-expect-error A creation's result source is mandatory even with one matching read.
+const noCreationSource = { id: "create-note", kind: "create", view: "editor", preferredDock: "right", outputs: [] } satisfies ViewJourney;
+// @ts-expect-error Explicit undefined is not a result-source declaration.
+const undefinedCreationSource = { ...program.journeys[2], source: undefined } satisfies ViewJourney;
+const subjectAction = { id: "archive-note", kind: "action", source: "read-note", outputs: [] } satisfies ViewJourney;
+// @ts-expect-error An input-free action cannot invent a form/view.
+const actionView = { ...subjectAction, view: "editor" } satisfies ViewJourney;
+// @ts-expect-error Subject identity comes from an explicit read, never a default source.
+const actionSource = { id: "archive-note", kind: "action", outputs: [] } satisfies ViewJourney;
+// @ts-expect-error Input-free actions cannot bind authored outputs or callbacks.
+const actionOutput = { ...subjectAction, outputs: [{ view: "notes", output: "submit", action: { kind: "submit" } }] } satisfies ViewJourney;
 // @ts-expect-error Unknown output behavior is not a callback or extensible action bag.
 const customAction = { view: "notes", output: "select", action: { kind: "custom", run: "anything" } } satisfies ViewOutputBinding;
 // @ts-expect-error Navigation is a sequence of destination identities, not component implementations.

@@ -1,37 +1,85 @@
 <script lang="ts" generics="Destination extends string">
-  import { tick, type Snippet } from "svelte";
+  import { tick } from "svelte";
   import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
   import CatalogNavigation from "./CatalogNavigation.svelte";
+  import CatalogNavigationToggle from "./CatalogNavigationToggle.svelte";
   import CatalogToolbar from "./CatalogToolbar.svelte";
-  import CatalogNavigationActions from "./CatalogNavigationActions.svelte";
   import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
   import PlaceHeading from "../pieces/PlaceHeading.svelte";
-  import ToolbarIdentity from "../pieces/ToolbarIdentity.svelte";
   import { observePlaceHeading } from "../pieces/place-heading-motion.ts";
   import type { PlaceIdentity } from "../pieces/place-identity.ts";
   import CatalogEdgeNavigation from "./CatalogEdgeNavigation.svelte";
   import Place from "../pieces/Place.svelte";
   import AdaptiveSurfaceLayout from "../pieces/AdaptiveSurfaceLayout.svelte";
   import type { WorkspaceDestination } from "./workspace-navigation.ts";
-  import type { ToolbarAction } from "../../interaction/toolbar.ts";
+  import type { ToolbarAction, BottomToolbar } from "../../interaction/toolbar.ts";
   import type { SurfaceIntent } from "../../interaction/intent.ts";
-  let { productName, title, navigation, active, query, onquery, onnavigate, children, searchResults, searching,
-    onsearch, oncancel, detail = false, onback, identity, searchAvailable = true, topActions = [], invoke,
-    panels, bottom, viewport = $bindable(null) }: {
-    productName: string; title: string; navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
+  import CatalogWorkspaceContent from "../pieces/CatalogWorkspaceContent.svelte";
+  import CatalogSearchResults from "./CatalogSearchResults.svelte";
+  import Toolbar from "../pieces/Toolbar.svelte";
+  import Panel from "../views/Panel.svelte";
+  import FailureDialog from "../FailureDialog.svelte";
+  import Wallpaper from "../pieces/Wallpaper.svelte";
+  import { appearance } from "../pieces/appearance-state.ts";
+  import type { WorkspaceContent, WorkspaceSearch, WorkspacePanels, WorkspaceViewportActions } from "../pieces/workspace-content.ts";
+  import { revealSearchTarget } from "./catalog-search-focus.ts";
+  import { provideDestinationNavigation } from "../pieces/destination-navigation.svelte.ts";
+  let { navigationSurface, title, navigation, active, query, onquery, onnavigate, content: body, searchContent, searching,
+    onsearch, oncancel, detail = false, onback, backAvailable=true, identity, searchAvailable = true, topActions = [], actionGroup, invoke,
+    panelState, bottomToolbar, onviewport }: {
+    navigationSurface: { title: string; subtitle?: string; settingsPlaceholder?: true } | null;
+    title: string; navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
     query: string; onquery: (query: string) => void; onnavigate: (id: Destination) => void;
-    children: Snippet; searchResults: Snippet; searching: boolean; onsearch: () => void; oncancel: () => void;
-    detail?: boolean; onback?: () => void;
+    content: WorkspaceContent; searchContent?: WorkspaceSearch;
+    searching: boolean; onsearch: () => void; oncancel: () => void;
+    detail?: boolean; onback?: () => void; backAvailable?:boolean;
     identity: PlaceIdentity;
-    searchAvailable?: boolean; topActions?: readonly ToolbarAction[]; invoke?: (intent: SurfaceIntent) => void;
-    /** Renderer-private composition; product View data never receives snippets. */
-    panels?: Snippet; bottom?: Snippet; viewport?: HTMLDivElement | null;
+    searchAvailable?: boolean; topActions?: readonly ToolbarAction[]; actionGroup?: "create"; invoke?: (intent: SurfaceIntent) => void;
+    panelState?: WorkspacePanels; bottomToolbar?: BottomToolbar;
+    onviewport?: (actions: WorkspaceViewportActions | null) => void;
   } = $props();
   let owner = $state<HTMLDivElement | null>(null);
+  let viewport = $state<HTMLDivElement | null>(null);
   let heading = $state<HTMLElement | null>(null);
   let compact = $state<HTMLDivElement | null>(null);
+  const presentation = provideDestinationNavigation(() => active, change => {
+    void tick().then(() => {
+      if (change.destination !== active) return;
+      viewport?.scrollTo({ top: change.kind === "back" ? change.origin.scroll : 0 });
+      const origin = change.origin.element;
+      // An index may remount after its detail closes. Restore the same semantic
+      // action in this destination, not the detached historical button.
+      const replacement = origin?.matches('[data-piece="destination-row"][data-destination]')
+        ? viewport?.querySelector<HTMLElement>(`[data-piece="destination-row"][data-destination="${CSS.escape(origin.dataset.destination!)}"]`) : null;
+      const target = (change.kind === "back" ? origin?.isConnected ? origin : replacement : null)
+        ?? heading?.querySelector<HTMLElement>("[data-place-title]");
+      target?.focus({ preventScroll: true });
+    });
+  });
+  let presented = $derived(presentation.current(active));
+  let presentedIdentity = $derived(presented?.identity ?? identity);
+  let presentedDetail = $derived(Boolean(presented) || detail);
+  const goBack = () => presented ? presentation.back(active) : onback?.();
   $effect(() => {
-    identity;
+    const register = onviewport;
+    register?.({
+      scrollToTop: () => viewport?.scrollTo({ top: 0 }),
+      scrollTop: () => viewport?.scrollTop ?? 0,
+      focusTitle: () => viewport?.querySelector<HTMLElement>("[data-place-title]")?.focus({ preventScroll: true }),
+      restoreRecord: (top, view, record) => {
+        viewport?.scrollTo({ top });
+        viewport?.querySelector<HTMLElement>(`[data-view-content="${CSS.escape(view)}"] [data-record="${CSS.escape(record)}"] button`)
+          ?.focus({ preventScroll: true });
+      },
+      revealItem: id => {
+        const target = viewport?.querySelector<HTMLElement>(`[data-view-item="${CSS.escape(id)}"]`);
+        if (target) revealSearchTarget(target, viewport);
+      },
+    });
+    return () => register?.(null);
+  });
+  $effect(() => {
+    presentedIdentity;
     if (viewport && heading && compact) return observePlaceHeading(viewport, heading, compact);
   });
   let searchViewport = $state<HTMLDivElement | null>(null);
@@ -113,32 +161,50 @@
   onpointerup={finishPointerActivation} onpointercancel={finishPointerActivation} />
 
 <div data-renderer-profile="apple-reference" data-catalog-workspace data-search-active={searching}>
-  <Sidebar.Provider contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
+  <Wallpaper wallpaper={$appearance.wallpaper} />
+  <Sidebar.Provider available={navigationSurface !== null} contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
+    {#if navigationSurface}
     <Sidebar.Root variant="floating" overlayTitle="Navigation" overlayDescription="Choose a destination.">
-      <CatalogNavigation {productName} {navigation} {active} {onnavigate} {searching} />
+      <CatalogNavigation identity={navigationSurface} settingsPlaceholder={navigationSurface.settingsPlaceholder === true}
+        {navigation} {active} {onnavigate} {searching} />
     </Sidebar.Root>
+    {/if}
     <AdaptiveSurfaceLayout>
-    <Place bind:owner bind:viewport {bottom} role="main" data-catalog-content data-destination={active} tabindex={-1} aria-label={title}
-      oncompositionstart={() => composing = true} oncompositionend={() => composing = false}
-      viewportAttributes={{ 'data-catalog-scroll': '', tabindex: -1, inert: searching, 'aria-hidden': searching ? 'true' : undefined }}>
+    <Place bind:owner bind:viewport landmark="main" destination={active} label={presentedIdentity.title} {searching}
+      oncomposition={active => composing = active}>
       {#snippet top()}
-      <ToolbarLayout data-place-toolbar inert={searching} aria-hidden={searching}>
-        <CatalogNavigationActions {detail} {onback} {topActions} {invoke} />
-        <ToolbarIdentity {identity} bind:element={compact} />
-      </ToolbarLayout>
+      <ToolbarLayout layer="content" inert={searching} identity={presentedIdentity} identityRole="continuation" onidentityElement={element => { compact = element; }}
+        content={{ kind: "place-navigation", detail: presentedDetail, onback: goBack, backAvailable: Boolean(presented) || backAvailable, topActions, actionGroup, invoke, searchAvailable }} />
       <CatalogToolbar {title} {query} {onquery} {searching} {resultsId} {searchAvailable} onsearch={openSearch} oncancel={cancel} />
       {/snippet}
-      {#snippet content()}<PlaceHeading {identity} bind:element={heading} />{@render children()}{/snippet}
+      {#snippet content()}<PlaceHeading identity={presentedIdentity} bind:element={heading} /><CatalogWorkspaceContent content={body} {searching} />{/snippet}
+      {#snippet bottom()}
+        <CatalogNavigationToggle {searching} />
+        {#if bottomToolbar && invoke && (bottomToolbar.primary || bottomToolbar.secondary)}
+          <Toolbar toolbar={{ edge: "bottom", ...bottomToolbar }} {invoke} />
+        {/if}
+      {/snippet}
       {#snippet overlay()}
       {#if searching}
-        <div bind:this={searchViewport} id={resultsId} data-catalog-search-scroll data-has-query={Boolean(query.trim())}>{@render searchResults()}</div>
+        <div bind:this={searchViewport} id={resultsId} data-catalog-search-scroll data-has-query={Boolean(query.trim())}>
+          {#if searchContent?.kind === "catalog"}
+            <CatalogSearchResults title={searchContent.title} description={searchContent.description} {query}
+              results={searchContent.results} onselect={searchContent.onselect} />
+          {:else if searchContent?.kind === "view"}
+            <CatalogSearchResults title={searchContent.title} description={searchContent.description} {query}
+              results={searchContent.results} onselect={searchContent.onselect} />
+          {/if}
+        </div>
       {/if}
       {/snippet}
     </Place>
-    {@render panels?.()}
+    {#if panelState}
+      <Panel panel={panelState.panel} onevent={panelState.onevent} />
+      <FailureDialog code={panelState.error} uncertain={panelState.uncertain} close={panelState.dismissError} />
+    {/if}
     </AdaptiveSurfaceLayout>
     <div data-catalog-search-material data-active={searching} aria-hidden="true"></div>
-    <CatalogEdgeNavigation {searching} {detail} {onback} {viewport} />
+    <CatalogEdgeNavigation {searching} detail={presentedDetail} onback={presented || backAvailable ? goBack : undefined} {viewport} />
   </Sidebar.Provider>
 </div>
 

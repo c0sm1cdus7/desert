@@ -226,7 +226,7 @@ export class VerificationGap extends Error {}
 
 ## src/testing/postgres.ts
 
-Source SHA-256: a629d1cff09fcbb297348855ab5887981760ffd61580fcb838aa6d90a97c777d
+Source SHA-256: 169d630aee5ac9933c9832158aa4a2928b73e8429f37ca8ea223a4b5792916d2
 
 ```ts
 import { Pool } from "pg";
@@ -241,7 +241,7 @@ export function localPostgresTestHost(): HostFactory {
       revision: () => cluster.version(),
       async open(application, role) {
         const database = await cluster.database();
-        const controller = await openLocalController(application, { ...database, role });
+        const controller = await openLocalController(application, { ...database, roles: [role] });
         const admin = new Pool({ host: database.socketDirectory, database: database.database, user: database.user,
           connectionTimeoutMillis: 3000, statement_timeout: 5000 });
         admin.on("error", () => {});
@@ -273,12 +273,16 @@ export function localPostgresTestHost(): HostFactory {
 
 ## products/notebook/verify.ts
 
-Source SHA-256: fd3d7698f47d71e2bdc5be65533f811f5e395d032e0eab2dce98f3ca79f6f214
+Source SHA-256: 5bc15814d5ece75576051ac07b22dc4aeff5f6223a37997869fc61bb2b0c7bcd
 
 ```ts
-import { Notebook } from "./product.ts";
+import { fileURLToPath } from "node:url";
+import { assertProductSource } from "../../src/authoring/index.ts";
 import { deriveVerification } from "../../src/testing/index.ts";
 import { localPostgresTestHost } from "../../src/testing/postgres.ts";
+
+await assertProductSource(fileURLToPath(new URL("./src", import.meta.url)));
+const { Notebook } = await import("./product.ts");
 
 const verification = deriveVerification(Notebook);
 const report = await verification.run({ host: localPostgresTestHost(), seed: 42 });

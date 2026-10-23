@@ -18,8 +18,8 @@ test('header gallery uses compact dots, silent loading and the shared zoomable v
     await viewer.getByRole('button', { name: 'Zoom in', exact: true }).click();
     assert.match(await viewer.locator('[data-media-zoom]').innerText(), /200%/);
     await viewer.getByRole('button', { name: 'Reset zoom', exact: true }).click();
-    await viewer.getByRole('button', { name: 'Next photo', exact: true }).click();
-    assert.equal(await viewer.locator('[data-media-count]').innerText(), '2 / 3');
+    await viewer.getByRole('button', { name: 'Next media', exact: true }).click();
+    assert.equal(await viewer.locator('[data-toolbar-subtitle]').innerText(), '2 / 3');
     await page.keyboard.press('Escape');
     await viewer.waitFor({ state: 'hidden' });
     assert.equal(await dots.nth(1).getAttribute('aria-current'), 'true');

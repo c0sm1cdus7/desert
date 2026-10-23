@@ -6,30 +6,27 @@ import type { compile } from "../compile.ts";
 import { requireCatalog } from "../interaction/catalog.ts";
 import { deriveForm } from "../interaction/form.ts";
 import { compileViewProgram } from "../views/program.ts";
+import { productViewProgram } from "../modules/compiled-product.ts";
+import { requireFieldPresentation } from "../field-representation.ts";
+import { viewProgramActivities } from "../activities/presentation.ts";
 
-export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string, program?: unknown) {
+export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string) {
+  if (arguments.length > 2) throw new Error("VIEW_PROGRAM_OVERRIDE_FORBIDDEN");
   const surface = application.surface(surfaceId);
   if (surface.kind !== "human") throw new Error("HUMAN_SURFACE_REQUIRED");
   requireCatalog(surface.catalog);
   if (surface.language?.locale !== "en") throw new Error("UNSUPPORTED_RENDERER_LANGUAGE");
-  const viewProgram = program === undefined ? null : compileViewProgram(program, surface);
-  const entry = surface.journeys.find(journey => journey.id === surface.navigation?.entry);
-  if (entry?.kind !== "read") throw new Error("UNSUPPORTED_RENDERER_ENTRY");
-  const navigation = new Set([surface.navigation!.entry, surface.navigation!.primaryAction, ...surface.navigation!.subjectActions]);
-  for (const journey of surface.journeys) {
-    if (!navigation.has(journey.id) || (journey.kind === "mutation" &&
-        (journey.object !== entry.subject || (journey.subject && journey.inputFields.length)))) {
-      throw new Error("UNSUPPORTED_RENDERER_COMPOSITION");
-    }
-  }
+  const fieldPresentation = requireFieldPresentation(surface.fieldRepresentations, surface.fieldKinds, Object.keys(surface.language.fields));
+  const viewProgram = compileViewProgram(productViewProgram(application), surface);
+  viewProgramActivities(application, viewProgram, surfaceId);
   const engine = new Ajv({ strict: true, allErrors: true, ownProperties: true,
     coerceTypes: false, removeAdditional: false, useDefaults: false, code: { source: true, esm: true } });
   const exports: Record<string, string> = {};
   const commands = new Map<string, string>();
   for (const journey of surface.journeys) {
     if (journey.kind !== "mutation" || commands.has(journey.commandId)) continue;
-    deriveForm(journey, surface.inputs ?? {});
-    const name = `validate${commands.size}`;
+    deriveForm(journey, fieldPresentation.fieldRepresentations);
+    const name = `desertInputValidator${commands.size}`;
     engine.addSchema(journey.inputSchema, journey.commandId);
     exports[name] = journey.commandId;
     commands.set(journey.commandId, name);

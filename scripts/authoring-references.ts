@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -33,12 +33,22 @@ export function generatedReferences(root = sourceRoot) {
   const index = read(root, "src/index.ts");
   const exports = [...index.matchAll(/from "\.\/(.+?)"/g)].map(match => `src/${match[1]}`);
   const api = [...new Set(["src/index.ts", ...exports, "src/program-grammar.ts", "src/validation.ts",
-    "src/local.ts", "src/local/controller.ts", "src/local/session.ts", "src/local/identity.ts",
-    "src/web/build.ts", "src/views/schema.ts", "src/views/ports.ts",
+    "src/local.ts", "src/prepare-options.ts", "src/local/controller.ts", "src/local/session.ts", "src/local/identity.ts",
+    "src/web/build.ts", "src/views/schema.ts", "src/views/media-library.ts", "src/views/ports.ts",
     "src/views/program-schema.ts", "src/views/program.ts", "src/views/program-views.ts",
-    "src/views/program-outputs.ts"])];
-  const notebook = ["note", "dependencies", "commands", "journeys", "surfaces", "product", "distributions", "inspect", "local", "run-local", "build-web", "check-web", "run-web", "verify"]
-    .map(name => `products/notebook/${name}.ts`);
+    "src/views/program-outputs.ts", "src/modules/schema.ts", "src/modules/ownership.ts",
+    "src/modules/presentation.ts", "src/modules/catalog.ts", "src/modules/human-presentation.ts", "src/modules/compile-surfaces.ts",
+    "src/modules/admission.ts", "src/modules/references.ts", "src/modules/reference-types.ts", "src/modules/lower-references.ts",
+    "src/modules/declaration-data.ts", "src/modules/links.ts", "src/modules/module-source.ts",
+    "src/human-exposure.ts", "src/navigation-ownership.ts", "src/connection-policy.ts", "src/surface-fields.ts",
+    "src/field-definition.ts", "src/field-representation.ts", "src/command-input-targets.ts", "src/preparation-projection.ts", "src/interaction/protocol.ts",
+    "src/authoring/index.ts", "src/authoring/imports.ts", "src/authoring/syntax.ts", "src/authoring/expressions.ts"])];
+  const notebookAuthoring = readdirSync(join(root, "products/notebook/src"), { recursive: true })
+    .filter((path): path is string => typeof path === "string" && path.endsWith(".ts"))
+    .sort().map(path => `products/notebook/src/${path}`);
+  const notebook = [...notebookAuthoring,
+    ...["product", "distributions", "inspect", "local", "run-local", "build-web", "check-web", "run-web", "verify"]
+      .map(name => `products/notebook/${name}.ts`)];
   return {
     "api.md": sourceBook(root, "Real DESERT API and runtime grammar", api),
     "notebook.md": sourceBook(root, "Complete executable Notebook source", notebook),
@@ -63,6 +73,7 @@ export function generatedReferences(root = sourceRoot) {
     "runtime.md": documentBook(root, "Runtime, authority and stack", ["docs/STACK.md", "docs/NATIVE-RENDERER-MAPPING.md", "docs/LOCAL-CONTROLLER.md"]),
     "distributions.md": documentBook(root, "Building supported distributions", ["docs/DISTRIBUTION-BUILDS.md"]) + "\n" +
       sourceBook(root, "Distribution build entrypoints", ["src/build/index.ts", "src/build/serve.ts", "src/build/manifest.ts",
+        "src/build/media.ts", "src/build/media-handler.ts", "src/build/media-references.ts",
         "src/build/svelte/template/src/routes/+page.svelte",
         "src/local/developer-host.ts", "src/local/developer-identity.ts"]),
     "testing.md": documentBook(root, "Derived local verification", ["docs/DERIVED-VERIFICATION.md"]) + "\n" +
@@ -70,23 +81,22 @@ export function generatedReferences(root = sourceRoot) {
         "src/testing/postgres.ts", "products/notebook/verify.ts"]),
     "web-renderer.md": documentBook(root, "Web renderer: ownership and boundaries", ["docs/WEB-RENDERER.md"]) + "\n" +
       sourceBook(root, "Complete contract-to-controller source walkthrough", [
-        ...["note", "commands", "journeys", "surfaces", "product", "dependencies", "distributions"]
-          .map(name => `products/notebook/${name}.ts`),
-        "src/interaction/catalog.ts", "src/interaction/grammar.ts", "src/interaction/form.ts",
+        ...notebookAuthoring, "products/notebook/distributions.ts",
+        "src/interaction/catalog.ts", "src/field-representation.ts", "src/interaction/form.ts",
         "src/interaction/bank-schema.ts", "src/interaction/bank-node.ts", "src/interaction/bank-events.ts", "src/svelte/BankRenderer.svelte",
         "src/check-surface.ts", "src/project-surface.ts", "src/web/build.ts",
         "src/build/svelte/template/src/routes/+page.svelte", "src/svelte/renderer-contracts.ts", "src/svelte/renderer-registry.ts",
         "src/views/program-schema.ts", "src/views/program.ts", "src/views/resolved.ts",
         "src/web/client/view-program.ts", "src/web/client/view-projection.ts",
         "src/svelte/views/ViewProduct.svelte", "src/svelte/views/Workspace.svelte",
-        "src/svelte/views/workspace-data.ts",
+        "src/svelte/views/workspace-data.ts", "src/svelte/views/media-data.ts", "src/svelte/views/MediaContent.svelte",
         "src/svelte/explorer/CatalogWorkspace.svelte", "src/svelte/explorer/CatalogNavigation.svelte",
         "src/svelte/explorer/CatalogNavigationActions.svelte", "src/svelte/explorer/CatalogToolbar.svelte",
         "src/svelte/explorer/workspace-navigation.ts", "src/svelte/explorer/workspace-search.ts",
         "src/svelte/views/ViewContent.svelte", "src/svelte/views/ViewItem.svelte",
         "src/svelte/views/Panel.svelte", "src/svelte/views/InspectionContent.svelte",
         "src/svelte/catalog/inspection-fixture.ts", "src/svelte/catalog/inspection-media.ts",
-        "src/svelte/HumanProduct.svelte", "src/svelte/ProductWorkspace.svelte", "src/svelte/Collection.svelte", "src/svelte/collection-retrieval.ts", "src/svelte/SurfaceHost.svelte", "src/svelte/SurfaceFrame.svelte",
+        "src/svelte/pieces/AccessGate.svelte", "src/svelte/Collection.svelte", "src/svelte/collection-retrieval.ts", "src/svelte/SurfaceFrame.svelte",
         "src/interaction/surface-frame.ts", "src/interaction/frame-presenters.ts", "src/interaction/fact-presentation.ts", "src/interaction/review-changes.ts", "src/web/client/frame.ts", "src/svelte/FrameBody.svelte",
         "src/interaction/toolbar.ts", "src/interaction/intent.ts", "src/interaction/face.ts", "src/interaction/selection-option.ts", "src/interaction/transient-frame.ts", "src/interaction/control-nodes.ts",
         "src/interaction/control-bank.ts", "src/interaction/extended-nodes.ts", "src/interaction/extended-controls.ts",

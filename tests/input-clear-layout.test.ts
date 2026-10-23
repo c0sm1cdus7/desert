@@ -52,15 +52,25 @@ test("clear inherits the shared button hover and pressed feedback", async () => 
     await f.page.addStyleTag({ content: await rendererCss() });
     await f.page.setViewportSize({ width: 1280, height: 800 });
     const clear = f.page.getByRole("button", { name: /^Clear / }).first();
+    await f.page.evaluate(async () => {
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      await Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {})));
+    });
     const rest = await clear.evaluate(element => getComputedStyle(element).color);
+    const restingShadow = await clear.evaluate(element => getComputedStyle(element).boxShadow);
     await clear.hover();
-    await f.page.waitForFunction(() => getComputedStyle(document.querySelector('[data-input-clear]')!).color !== getComputedStyle(document.body).color);
+    await f.page.waitForFunction(resting => getComputedStyle(document.querySelector('[data-input-clear]')!).boxShadow !== resting, restingShadow);
+    await f.page.evaluate(async () => { await Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {}))); });
     const hover = await clear.evaluate(element => getComputedStyle(element).color);
-    assert.notEqual(hover, rest, "S1 hover changes foreground, never adds another material");
+    const hoverShadow = await clear.evaluate(element => getComputedStyle(element).boxShadow);
+    assert.equal(hover, rest, "neutral hover preserves semantic foreground");
+    assert.notEqual(hoverShadow, restingShadow, "neutral hover feedback remains perceptible");
     assert.equal(await clear.evaluate(element => getComputedStyle(element).backgroundImage), 'none');
     await f.page.mouse.down();
     assert.notEqual(await clear.getAttribute("data-pressed"), null);
     await f.page.waitForFunction(() => getComputedStyle(document.querySelector('[data-input-clear] [data-button-content]')!).transform !== 'none');
+    await f.page.evaluate(async () => { await Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {}))); });
+    assert.notEqual(await clear.evaluate(element => getComputedStyle(element).boxShadow), hoverShadow);
     assert.equal(await clear.evaluate(element => getComputedStyle(element).backgroundImage), 'none');
     await f.page.mouse.move(1000, 750); await f.page.mouse.up();
     assert.deepEqual(f.errors, []);

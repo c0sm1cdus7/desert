@@ -22,7 +22,7 @@ for (const surface of Notebook.surfaces.map(surface => surface.id)) {
       assert.equal(receipt.status, "completed");
       const archived = (await f.session.read(read.id))[0]!;
       const writes = new Set(Object.keys(ArchiveNote.command.set));
-      const preserved = (facts: Readonly<Record<string, string | number>>) =>
+      const preserved = (facts: typeof archived.facts) =>
         Object.fromEntries(Object.entries(facts).filter(([field]) => !writes.has(field)));
       assert.deepEqual(preserved(archived.facts), preserved(initial.facts), "ARCHIVE_PRESERVATION_VIOLATION");
       for (const [field, expression] of Object.entries(ArchiveNote.command.set)) {

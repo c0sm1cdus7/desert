@@ -11,11 +11,12 @@ export function checkPublicCatalogExercises(exercises: PublicCatalogExercises, a
     for (const value of stackNodes(stack.items)) {
       const node = bankNode(value);
       if (node.kind === "catalog.card") {
-        if (assets && !assets.has(node.image.asset)) throw new Error("INVALID_CATALOG_EXERCISE_ASSET_REFERENCE");
+        if (assets && node.image && !assets.has(node.image.asset)) throw new Error("INVALID_CATALOG_EXERCISE_ASSET_REFERENCE");
         if (records && !records.has(node.record)) throw new Error("INVALID_CATALOG_EXERCISE_RECORD_REFERENCE");
       } else if ("control" in node) {
         if (node.control.kind === "image" || node.control.kind === "avatar") {
           if (typeof node.control.source === "string") throw new Error("INVALID_CATALOG_EXERCISE_HOST_MEDIA");
+          if (node.control.source !== null && !("asset" in node.control.source)) throw new Error("CATALOG_PRIVATE_MEDIA_FORBIDDEN");
           if (node.control.source !== null && assets && !assets.has(node.control.source.asset)) {
             throw new Error("INVALID_CATALOG_EXERCISE_ASSET_REFERENCE");
           }

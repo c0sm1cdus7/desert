@@ -71,7 +71,7 @@
     disabled={node.disabled} onchange={change} onclear={node.required ? undefined : clear}
     onclose={picker.current === "sheet" ? () => { open = false; } : undefined} />
 {/snippet}
-<MeasuredField measure="date" data-control="date" data-disabled={node.disabled}>
+<MeasuredField kind="control.date" disabled={node.disabled}>
   {#if picker.current === "sheet"}
     {@render trigger({ onclick: () => { open = true; } })}
     <PickerSheet bind:open label={node.label} triggerId={id} contentToolbar>{@render calendar()}</PickerSheet>
@@ -81,7 +81,7 @@
         {#snippet child({ props })}{@render trigger(props)}{/snippet}
       </Popover.Trigger>
       <Popover.Content bind:ref={anchoredContent} onCloseAutoFocus={restoreFocus}
-        role="dialog" aria-label={node.label} aria-modal="false" class="p-3" style="width:20rem;overflow:hidden">
+        role="dialog" aria-label={node.label} aria-modal="false" style="width:20rem;overflow:hidden">
         {@render calendar()}
       </Popover.Content>
     </Popover.Root>

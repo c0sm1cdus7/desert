@@ -9,6 +9,7 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { createBuildProject } from "../src/build/svelte/project.ts";
 import { imageSource } from "../src/svelte/pieces/media/source.ts";
+import { catalogWorkspaceSource } from "./fixtures/catalog-workspace.ts";
 
 const catalog = compilePublicCatalog(catalogFixture()).surface;
 const mount = (adapter: boolean) => `<script>
@@ -35,40 +36,49 @@ test("the View adapter renders the exact approved bank body for identical fixtur
       })),
     }));
     assert.deepEqual(await measure(adapted), await measure(direct));
-    assert.equal(await adapted.page.locator("[data-specimen]").count(), 57);
+    assert.equal(await adapted.page.locator("[data-specimen]").count(),
+      InteractionCatalog.entries.reduce((total, entry) => total + entry.states.length, 0));
     assert.equal(await adapted.page.getByText("Not installed in product execution", { exact: true }).count(), 0);
     assert.deepEqual(adapted.errors, []);
   } finally { await Promise.all([direct.close(), adapted.close()]); }
 });
 
-test("local catalog previews reuse the installed detail and retain bank drafts and search delegation", async () => {
-  const source = `<script>
-    import InspectionContent from './src/svelte/views/InspectionContent.svelte';
-    let bank; let query = $state('');
-    async function reveal() { const target = await bank.revealEntry('control.money'); target?.scrollIntoView(); }
-  </script>
-  <main data-renderer-profile="apple-reference"><button onclick={reveal}>Reveal money</button>
-  <output data-query>{query}</output>
-  <InspectionContent bind:this={bank} bind:query /></main>`;
-  const fixture = await svelteBrowser(source);
+test("local catalog previews reuse the installed detail and retain bank drafts through toolbar search", async () => {
+  const fixture = await svelteBrowser(catalogWorkspaceSource);
   try {
     await fixture.page.addStyleTag({ content: await rendererCss() });
+    await fixture.page.emulateMedia({ reducedMotion: "reduce" });
+    await fixture.page.locator('[data-catalog-index] [data-destination="input.text"]').click();
+    await fixture.page.locator('[data-catalog-entry="input.text"]').getByRole('button',{name:/^State ·/}).click();
+    await fixture.page.getByRole('option',{name:'value',exact:true}).click();
     const writing = fixture.page.locator('[data-specimen="input.text:value"] input');
     await writing.fill("Keep my diagnostic draft");
     const original = await writing.elementHandle();
+    await fixture.page.getByRole('button',{name:'Back',exact:true}).click();
+    await fixture.page.locator('[data-catalog-index] [data-destination="catalog.card"]').click();
+    await fixture.page.locator('[data-catalog-entry="catalog.card"]').getByRole('button',{name:/^State ·/}).click();
+    await fixture.page.getByRole('option',{name:'item',exact:true}).click();
     await fixture.page.locator('[data-specimen="catalog.card:item"] button').click();
     assert.ok(await fixture.page.locator('[data-catalog-detail]:visible').isVisible());
     assert.equal(await fixture.page.locator('[data-public-catalog-bank]:visible').count(), 0);
-    await fixture.page.getByRole("button", { name: "Back to visual catalog", exact: true }).click();
+    await fixture.page.locator('[data-catalog-content] > [data-toolbar="top"]')
+      .getByRole("button", { name: "Back", exact: true }).click();
     assert.equal(await writing.inputValue(), "Keep my diagnostic draft");
     assert.ok(await writing.evaluate((element, previous) => element === previous, original));
-    const search = fixture.page.getByRole("searchbox", { name: "Find component", exact: true });
+    const search = fixture.page.getByRole("searchbox", { name: "Search visual catalog", exact: true });
+    await fixture.page.getByRole("button",{ name:"Search", exact:true }).click();
     await search.fill("control.options");
-    assert.equal(await fixture.page.locator("[data-query]").textContent(), "control.options");
-    await fixture.page.getByRole("button", { name: "Reveal money", exact: true }).click();
-    assert.equal(await search.inputValue(), "");
+    await fixture.page.locator('[data-search-result="control.options"] button').click();
+    assert.equal(await search.count(),0,'selecting a result dismisses the accessible overlay search');
+    await fixture.page.getByRole("button",{ name:"Search", exact:true }).click();
+    assert.equal(await search.inputValue(), "", 'new search starts clear');
+    await search.fill("control.money");
+    await fixture.page.locator('[data-search-result="control.money"] button').click();
     assert.ok(await fixture.page.locator('[data-catalog-entry="control.money"]').isVisible());
-    assert.equal(await fixture.page.locator("[data-catalog-entry]:visible").count(), InteractionCatalog.entries.length);
+    assert.equal(await fixture.page.locator("[data-catalog-entry]:visible").count(), 1,
+      'search opens only the selected indexed detail; other local drafts remain mounted');
+    assert.equal(await writing.inputValue(), "Keep my diagnostic draft");
+    assert.ok(await writing.evaluate((element, previous) => element === previous, original));
     assert.deepEqual(fixture.errors, []);
   } finally { await fixture.close(); }
 });
@@ -83,6 +93,7 @@ test("a nested catalog activity cannot keep a popup alive after its parent is de
   <main data-renderer-profile="apple-reference"><RetainedPlace {active}><InspectionContent /></RetainedPlace></main>`);
   try {
     await fixture.page.addStyleTag({ content: await rendererCss() });
+    await fixture.page.locator('[data-catalog-index] [data-destination="control.popover"]').click();
     await fixture.page.getByRole("button", { name: "Open contextual information", exact: true }).click();
     assert.equal(await fixture.page.locator('[data-presentation="anchored"]:visible').count(), 1);
     await fixture.page.keyboard.press("F8");

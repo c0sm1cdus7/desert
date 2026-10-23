@@ -4,8 +4,12 @@ import type { LocalProgram } from "./program.ts";
 import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
 import { canonical, confirmationDigest, materialize } from "./effects.ts";
 import { requireUUID, type Intent, type Receipt } from "./types.ts";
+import { requireCurrentActivityIntent, completeActivityIntent } from "../activities/acceptance.ts";
+import type { ActivityCatalog } from "../activities/catalog.ts";
+import { bindImageEffect, attachImageEffect } from "../assets/acceptance.ts";
+import { validateReferences } from './reference-validation.ts';
 
-async function loadIntent(client: PoolClient, program: LocalProgram, actor: string, surface: string, id: string) {
+export async function loadIntent(client: PoolClient, program: LocalProgram, actor: string, surface: string, id: string) {
   requireUUID(id);
   const { rows: [intent] } = await client.query<Intent>(`SELECT i.* FROM desert_intents i
     JOIN desert_runs r ON i.run_id = r.id WHERE i.id = $1 AND r.actor = $2 AND r.surface = $3`, [id, actor, surface]);
@@ -26,7 +30,8 @@ export async function recoverReceipt(client: PoolClient, program: LocalProgram, 
 }
 
 export async function acceptMutation(client: PoolClient, program: LocalProgram, actor: string,
-  surface: string, id: string, expectedDigest: string) {
+  surface: string, id: string, expectedDigest: string, activities?: ActivityCatalog, imageStoreId?: string) {
+  await requireCurrentActivityIntent(client, id, actor, surface, activities);
   const { intent, run } = await loadIntent(client, program, actor, surface, id);
   if (expectedDigest !== intent.confirmation_digest) throw new Error("CONFIRMATION_MISMATCH");
   const existing = await receipt(client, id);
@@ -38,8 +43,10 @@ export async function acceptMutation(client: PoolClient, program: LocalProgram, 
   const record = journey.command.kind === "update"
     ? await ownedObject(client, program, actor, journey.command.object, run.subject!) : undefined;
   if ((record?.version ?? 0) !== intent.effect.expectedVersion) throw new Error("VERSION_CONFLICT");
-  const effect = materialize(program, journey, actor, intent.input, intent.effect.objectId, record);
+  const effect = await bindImageEffect(client, program, run, journey, intent.input,
+    materialize(program, journey, actor, intent.input, intent.effect.objectId, record), imageStoreId);
   if (canonical(effect) !== canonical(intent.effect)) throw new Error("EFFECT_CHANGED");
+  await validateReferences(client,program,actor,effect.objectType,effect.facts,effect.objectId);
   await requireLiveRun(client, run);
   const version = effect.expectedVersion + 1;
   if (effect.kind === "create") {
@@ -50,9 +57,11 @@ export async function acceptMutation(client: PoolClient, program: LocalProgram, 
       [version, JSON.stringify(effect.facts), effect.objectId, effect.expectedVersion]);
     if (updated.rowCount !== 1) throw new Error("VERSION_CONFLICT");
   }
+  await attachImageEffect(client, effect);
   const result: Receipt = { id, runId: run.id, commandId: journey.command.id, status: "completed",
     object: { id: effect.objectId, type: effect.objectType, version } };
   await client.query("INSERT INTO desert_receipts (intent_id, result) VALUES ($1, $2)", [id, JSON.stringify(result)]);
   await client.query("UPDATE desert_runs SET state = 'completed' WHERE id = $1", [run.id]);
+  await completeActivityIntent(client, id);
   return freezeDeep(result);
 }

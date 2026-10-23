@@ -1,8 +1,12 @@
 import * as desert from "../../src/index.ts";
-import { Notebook } from "./product.ts";
-import { NotebookCLI, NotebookIOS, NotebookLocal, NotebookService, NotebookWeb } from "./distributions.ts";
+import { fileURLToPath } from "node:url";
+import { assertProductSource } from "../../src/authoring/index.ts";
 
-const application = desert.compile(Notebook);
+await assertProductSource(fileURLToPath(new URL("./src", import.meta.url)));
+const { NotebookProduct } = await import("./product.ts");
+const { NotebookCLI, NotebookIOS, NotebookLocal, NotebookService, NotebookWeb } = await import("./distributions.ts");
+
+const application = desert.compile(NotebookProduct);
 
 console.log(JSON.stringify({
   product: application.id,

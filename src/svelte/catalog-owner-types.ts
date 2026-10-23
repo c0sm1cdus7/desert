@@ -1,0 +1,46 @@
+// Generated from catalog-manifest.ts. Run scripts/web-catalog.ts --write; do not edit.
+import type ViewProductContentOwner from "./pieces/ViewProductContent.svelte";
+import type PublicCatalogProductContentOwner from "./pieces/PublicCatalogProductContent.svelte";
+import type LocalExerciseContentOwner from "./pieces/LocalExerciseContent.svelte";
+import type SummaryWidgetOwner from "./pieces/SummaryWidget.svelte";
+import type ViewDestinationLinkOwner from "./pieces/ViewDestinationLink.svelte";
+import type FactGroupOwner from "./pieces/FactGroup.svelte";
+import type BankOwner from "./BankRenderer.svelte";
+import type InformationOwner from "./pieces/Information.svelte";
+import type MessageOwner from "./pieces/MessageBody.svelte";
+import type UtilityOwner from "./pieces/UtilityActions.svelte";
+import type StackOwner from "./pieces/StackItem.svelte";
+import type TextOwner from "./pieces/TextContent.svelte";
+import type FlowOwner from "./pieces/ContentFlow.svelte";
+import type FrameOwner from "./SurfaceFrame.svelte";
+import type FeedbackOwner from "./pieces/Feedback.svelte";
+import type LibraryOwner from "./pieces/media/Library.svelte";
+import type InspectionOwner from "./pieces/Inspection.svelte";
+import type InspectionCatalogOwner from "./catalog/InspectionCatalog.svelte";
+import type WorkspaceOwner from "./pieces/ViewWorkspace.svelte";
+import type PanelOwner from "./pieces/ViewPanel.svelte";
+
+export type Owners = {
+  ViewProductContent: typeof ViewProductContentOwner;
+  PublicCatalogProductContent: typeof PublicCatalogProductContentOwner;
+  LocalExerciseContent: typeof LocalExerciseContentOwner;
+  SummaryWidget: typeof SummaryWidgetOwner;
+  ViewDestinationLink: typeof ViewDestinationLinkOwner;
+  FactGroup: typeof FactGroupOwner;
+  BankRenderer: typeof BankOwner;
+  TransientRenderer: typeof BankOwner;
+  ControlBankRenderer: typeof BankOwner;
+  Information: typeof InformationOwner;
+  MessageBody: typeof MessageOwner;
+  UtilityActions: typeof UtilityOwner;
+  StackItem: typeof StackOwner;
+  TextContent: typeof TextOwner;
+  ContentFlow: typeof FlowOwner;
+  SurfaceFrame: typeof FrameOwner;
+  Feedback: typeof FeedbackOwner;
+  MediaLibrary: typeof LibraryOwner;
+  Inspection: typeof InspectionOwner;
+  InspectionCatalog: typeof InspectionCatalogOwner;
+  ViewWorkspace: typeof WorkspaceOwner;
+  ViewPanel: typeof PanelOwner;
+};

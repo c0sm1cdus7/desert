@@ -7,12 +7,14 @@ import { presentFrame } from "../src/web/client/frame.ts";
 import { surfaceFrame } from "../src/interaction/surface-frame.ts";
 import type { HumanSurface } from "../src/web/types.ts";
 import { presentFact, presentTitle } from "../src/interaction/fact-presentation.ts";
+import { notebookScope } from "./fixtures/notebook-scope.ts";
 
 test("context derives multiline reading from the declared field need and does not repeat its title", () => {
   const surface = compile(Notebook).surface("human") as HumanSurface;
-  const state = { ...humanState(surface).get(), view: "detail" as const,
+  const scope = notebookScope(surface);
+  const state = { ...humanState(surface, scope).get(), view: "detail" as const,
     detail: { id: "a", version: 1, facts: { title: "A full title", body: "First paragraph.\n\nSecond paragraph.", state: "active" } } };
-  const frame = presentFrame(surface, state, () => true);
+  const frame = presentFrame(surface, state, () => true, scope);
   assert.equal(frame.top.title, "A full title");
   assert.equal(frame.content.kind, "context");
   if (frame.content.kind !== "context") throw new Error("CONTEXT_REQUIRED");

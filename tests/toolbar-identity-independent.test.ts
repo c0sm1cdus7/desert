@@ -64,6 +64,7 @@ test("normal and transient frames share centered face geometry independently of 
     }
     const header = f.page.locator('[data-fixture-normal] [data-surface-slot="top"]');
     const withFace = await identityGeometry(header);
+    const withFaceScrollHeight = await header.evaluate(node=>node.scrollHeight);
     await f.page.getByRole("button", { name: "Toggle pending", exact: true }).click();
     const duringPending = await identityGeometry(header);
     assertIdentityGeometry(duringPending);
@@ -74,8 +75,11 @@ test("normal and transient frames share centered face geometry independently of 
     await f.page.getByRole("button", { name: "Toggle face", exact: true }).click();
     assert.equal(await f.page.locator('[data-fixture-normal] [data-piece="face"]').count(), 0,
       "omitting a face renders no decorative identity");
-    assert.ok((await header.boundingBox())!.height <= withFace.header.height - withFace.face.height,
-      "omitting a face reserves no empty face row");
+    const noFace=await header.evaluate(node=>({top:node.getBoundingClientRect().top,
+      rowTop:node.querySelector('.toolbar-row')!.getBoundingClientRect().top,scrollHeight:node.scrollHeight}));
+    assert.equal(noFace.rowTop-noFace.top,8,"omitting a face starts the action row at the canonical inset");
+    assert.ok(noFace.scrollHeight<=withFaceScrollHeight-withFace.face.height,
+      "omitting a face removes its content allocation even when the viewport is height-capped");
     await f.page.locator('[data-fixture-normal]').getByRole("button", { name: "Close", exact: true }).click();
     assert.deepEqual(JSON.parse(await f.page.locator('[data-observed]').innerText()), { kind: "close" },
       "chrome composition preserves the closed navigation intent");

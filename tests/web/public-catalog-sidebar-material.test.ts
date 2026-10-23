@@ -14,6 +14,8 @@ test("sidebar samples its current image without painting a separate gutter or al
     const { page } = app;
     await page.setViewportSize({ width: 1280, height: 900 });
     await setSearchPreferences(page, false); await settle(page);
+    await page.locator('[data-photo-collection] img').first().evaluate(image => (image as HTMLImageElement).decode());
+    await settle(page);
     const influence = await sidebarPaintInfluence(page);
     await evidence(page, `sidebar-containment-${basename(process.env.DESERT_CATALOG_BUILD ?? "default")}`, influence);
     assert.ok(influence.find(region => region.name === "pane")!.changedPixels > 0,
@@ -34,7 +36,7 @@ test("sidebar material follows the visible record and honors transparency prefer
       { name: "prefers-reduced-transparency", value: "no-preference" },
     ] });
     await page.getByRole("button", { name: "South Shetland Islands", exact: true }).click();
-    const image = page.locator("[data-catalog-detail-image] img");
+    const image = page.locator('[data-photo-collection] img[alt="South Shetland Islands"]');
     const extension = page.locator("[data-catalog-background-extension]");
     assert.equal(await extension.count(), 0);
     const bounds = (await image.boundingBox())!;
@@ -61,14 +63,15 @@ test("sidebar material follows the visible record and honors transparency prefer
     ] });
     await selectionTrigger(page, "Destination").click();
     const popup = page.getByRole("listbox");
+    const popupPane = page.locator('[data-slot="popover-content"]').filter({has:popup});
     await popup.waitFor();
-    assert.match(await popup.evaluate(element => getComputedStyle(element).backdropFilter), /blur/,
+    assert.match(await popupPane.evaluate(element => getComputedStyle(element).backdropFilter), /blur/,
       "the shared floating material must also survive CSS compilation");
     await cdp.send("Emulation.setEmulatedMedia", { features: [
       { name: "prefers-reduced-transparency", value: "no-preference" },
       { name: "prefers-contrast", value: "more" },
     ] });
-    assert.equal(await popup.evaluate(element => getComputedStyle(element).backdropFilter), "none");
+    assert.equal(await popupPane.evaluate(element => getComputedStyle(element).backdropFilter), "none");
   } finally { await app.close(); }
 });
 

@@ -1,7 +1,9 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { Frozen } from "../json.ts";
+import { ActionIconSchema } from './action-icon.ts';
 
 export const FaceSchema = Type.Union([
+  Type.Object({ kind: Type.Literal('icon'), icon: ActionIconSchema }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal("document") }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal("status"), severity: Type.Union([
     Type.Literal("warning"), Type.Literal("error"),

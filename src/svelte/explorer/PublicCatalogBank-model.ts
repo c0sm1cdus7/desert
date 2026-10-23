@@ -22,22 +22,48 @@ export function publicCatalogBankInventory(surface: PublicBankInput): readonly P
     if (entry.id === "catalog.card") return { ...specimen,
       node: state === "featured" ? surface.home.featured : surface.home.groups.flatMap(group => group.items)[0]! };
     if (entry.id === "input.text" || entry.id === "input.multiline") return render({ version, kind: entry.id,
-      name: `${entry.id}-${state}`, label: "Local writing example", value: state === "value" ? "A thought worth keeping" : "",
+      name: `${entry.id}-${state}`, label: "Local writing example", value: state === "value" || state === "offline" ? "A thought worth keeping" : "",
+      helper: state === "offline" ? "Keep editing this local draft while offline. Saving requires reconnection."
+        : state === "loading" ? "Waiting for the controller to provide this operation’s inputs."
+        : "Write a short thought. This helper belongs to the input, not the surrounding page.",
       ...(entry.id === "input.multiline" && state === "value" ? { maxLength: 280 } : {}),
-      required: true, disabled: state === "disabled", ...(state === "invalid" ? { error: "Example validation message; no product validator is connected." } : {}) });
+      required: true, disabled: state === "disabled" || state === "loading", ...(state === "invalid" ? { error: "Example validation message; no product validator is connected." } : {}) });
     if (entry.id === "fact") return render({ version, kind: "fact", details: { ...details,
       facts: state === "known" ? details.facts : state === "empty" ? { title: "" } : {} } });
     if (entry.id === "action") return render({ version, kind: "action", role: "secondary", action: {
       intent: { kind: "specimen", operation: "press" }, label: "Diagnostic action", icon: "open",
-      state: state === "pending" ? "pending" : state === "unavailable" ? "unavailable" : "ready" } });
+      state: state === "pending" || state === "loading" ? "pending" : state === "unavailable" || state === "offline" ? "unavailable" : "ready",
+      ...(state === "loading" ? {reason:"Connecting to the controller…"} : state === "offline" ? {reason:"Offline. Reconnect to use this action."} : {}) } });
     if (entry.id === "availability") return render({ version, kind: "availability",
       state: state === "ready" ? "ready" : state === "unknown" ? "unknown" : "unavailable",
       label: `Example: ${state}. No controller is connected.` });
+    if (entry.id === "collection" && (state === "loading" || state === "offline")) return render({version,kind:"collection",object:surface.productId,
+      fields:["title"],labels:details.labels,disabled:true,loaded:state==="offline",connection:state,selectedId:null,
+      records:state==="loading"?[]:surface.details.map(detail=>({id:detail.record,version:1,facts:{title:detail.title}}))});
+    if (entry.id === "collection" && state === "state-summary") return render({ version, kind: "collection", object: "task-specimen",
+      fields: ["title", "status"], labels: { "task-specimen.title": "Title", "task-specimen.status": "Status" },
+      valueLabels: { status: { open: "Open", completed: "Completed" } }, loaded: true, disabled: false, selectedId: null,
+      records: [{ id: "open", version: 1, facts: { title: "Review the visual bank", status: "open" } },
+        { id: "done", version: 1, facts: { title: "Verify grouped rows", status: "completed" } }] });
+    if (entry.id === "collection" && (state === "media-grid" || state === "media-list")) return render({ version, kind: "collection", object: "media-specimen",
+      fields: ["image"], labels: { "media-specimen.image": "Image" }, loaded: true, disabled: false, selectedId: null,
+      presentation: { kind: "media-grid", image: "image", layout: state === "media-list" ? "list" : "grid" },
+      records: [1, 2, 3].map(index => ({ id: `image-${index}`, version: 1, facts: { image: "/bank-image.svg" } })) });
+    if (entry.id === "collection" && state === "collection-grid") return render({ version, kind: "collection", object: "collection-specimen",
+      fields: ["title"], labels: { "collection-specimen.title": "Title" }, loaded: true, disabled: false, selectedId: null,
+      presentation: { kind: "collection-grid", title: "title", previews: [{ id: "travel", count: 3,
+        media: { kind: "asset", reference: "a7000000-0000-4000-8000-000000000001" } }, { id: "empty", count: 0 }] },
+      records: [{ id: "travel", version: 1, facts: { title: "Travel" } }, { id: "empty", version: 1, facts: { title: "Research" } }] });
     if (entry.id === "collection") return state === "empty"
       ? gap("An empty collection's create guidance requires an installed create journey. This read-only catalog has no create operation.")
       : render({ version, kind: "collection", object: surface.productId,
         fields: ["title"], labels: details.labels, createLabel: "Create", disabled: false, loaded: true,
         selectedId: null, records: surface.details.map(detail => ({ id: detail.record, version: 1, facts: { title: detail.title } })) });
+    if (entry.id === "context" && state === "media-object") return render({ version, kind: "context", content: {
+      kind: "context", actions: [], presentation: { kind: "media-object", media: "image", description: "description" },
+      details: { kind: "facts", object: "media-specimen", fields: ["image", "description"], images: ["image"], multiline: ["description"],
+        labels: { "media-specimen.image": "Image", "media-specimen.description": "Description" },
+        facts: { image: { kind: "asset", reference: "a7000000-0000-4000-8000-000000000001" }, description: "An isolated image example. Original proportions are preserved." } } } });
     if (entry.id === "context") return state === "available"
       ? render({ version, kind: "context", content: { kind: "context", details, actions: [] } })
       : gap("Journey availability requires actual contract-derived offers. This public catalog supplies read-only context, not a controller.");

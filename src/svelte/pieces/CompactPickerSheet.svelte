@@ -32,7 +32,7 @@
     <DrawerGrip {motion} />
     <div class="flex shrink-0 items-center gap-3 px-5 pb-3">
       <Dialog.Title class="min-w-0 flex-1">{label}</Dialog.Title>
-      <Button variant="ghost" size="icon" aria-label={`Close ${label}`} onclick={close}><X /></Button>
+      <Button variant="secondary" size="icon" aria-label={`Close ${label}`} onclick={close}><X /></Button>
     </div>
     <div class="min-h-0 overflow-auto px-3 pb-4 @container" data-picker-content>{@render children()}</div>
   </Dialog.Content>

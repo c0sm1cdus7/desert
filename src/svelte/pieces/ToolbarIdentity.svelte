@@ -1,10 +1,24 @@
 <script lang="ts">
-  import type { PlaceIdentity } from './place-identity.ts';
-  let { identity, element = $bindable(null) }: { identity: PlaceIdentity; element?: HTMLDivElement | null } = $props();
+  import { Title } from "../vendor/components/ui/dialog/index.js";
+  import type { ToolbarIdentityContent, ToolbarIdentityRole } from "./toolbar-identity.ts";
+  let { identity, identityRole: role = "heading", onelement }: {
+    identity: ToolbarIdentityContent; identityRole?: ToolbarIdentityRole; onelement?: (element: HTMLDivElement | null) => void;
+  } = $props();
+  let element = $state<HTMLDivElement | null>(null);
+  $effect(() => { onelement?.(element); return () => onelement?.(null); });
 </script>
 
-<!-- A visual continuation, not a second heading or another focus stop. -->
-<div bind:this={element} data-toolbar-identity aria-hidden="true">
-  <span class="type-title truncate" data-identity-title>{identity.title}</span>
-  <span class="type-caption truncate" data-identity-subtitle>{identity.subtitle}</span>
+<div bind:this={element} class="toolbar-heading" data-toolbar-heading
+  data-toolbar-identity={role === "continuation" || undefined} aria-hidden={role === "continuation" || undefined}>
+  {#if role === "continuation"}
+    <span class="toolbar-title type-title truncate" data-toolbar-title data-identity-title>{identity.title}</span>
+  {:else if role === "dialog" || role === "message"}
+    <Title presentation="toolbar">{identity.title}</Title>
+  {:else}
+    <h2 class="toolbar-title type-title" data-toolbar-title title={identity.title}>{identity.title}</h2>
+  {/if}
+  {#if identity.subtitle}
+    <p class="toolbar-subtitle type-support" data-toolbar-subtitle
+      data-identity-subtitle={role === "continuation" || undefined} title={identity.subtitle}>{identity.subtitle}</p>
+  {/if}
 </div>

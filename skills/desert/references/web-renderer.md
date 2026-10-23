@@ -4,755 +4,385 @@ Generated from the bundled SDK documentation; do not edit this snapshot.
 
 ## Source: docs/WEB-RENDERER.md
 
-Source SHA-256: 7aa3196110f69673ca20ac8c708a33a8d85276fbf4288fa44934ffa39669dab6
+Source SHA-256: e1d87fc3d225e0fa213aeb2da5ff3770a7397b8ba608b25e37dee15513fb4259
 
 # The DESERT human web renderer
 
-This is an implemented, finite renderer, not a proposal for arbitrary UI generation.
-The surface defines interaction meaning; the distribution chooses how it reaches
-a device. “Surface renderer” is the right name. The installed implementation is
-the human web renderer, built with SvelteKit and an audited Tres Marías/shadcn port.
+This describes the current source contract, not certification of every state or
+device. The installed human renderer uses SvelteKit and the shared shadcn/Bits UI
+bank. It interprets the product's admitted View program; it does not invent
+product pages, commands or presentation rules.
 
-## Authoring boundary
+Historical approvals and screenshots remain evidence for their exact revisions.
+They do not qualify a later build automatically. See STATUS (SDK file: `docs/STATUS.md`),
+bank coverage (SDK file: `docs/BANK-COVERAGE.md`) and VOID verification (SDK file: `../void/docs/VERIFICATION.md`)
+for recorded limits.
 
-Notebook authors objects, commands, journeys, policies, language, navigation,
-commit modes and controller requirements. It does not author Svelte pages.
-Its only added input presentation is:
+## The product declares its experience once
+
+Notebook is an example composed product in `products/notebook/src/`. Its modules
+publish objects, commands, execution journeys, Views and destinations. Root
+composition supplies the workspace, navigation and entry destination. Root
+Notebook files are compatibility reexports, not another product definition.
+
+The actual Notes View uses SDK-issued component values:
 
 ```ts
-inputs: { "note.body": "input.multiline" }
+import { Components, defineView, viewPorts } from "desert-sdk/src/index.ts";
+
+const Ports = viewPorts({ inputs: { notes: "collection" }, outputs: ["create", "select"] });
+
+export const NotesView = defineView({
+  name: "notes", outputs: Ports.outputs,
+  topDock: Components.Toolbar({
+    actions: [{ output: Ports.output.create, label: "Create note", icon: "create" }],
+  }),
+  content: [
+    Components.Header({ title: "Read notes", subtitle: "Your private notebook." }),
+    Components.Stack({ title: "Notes", items: [
+      Components.Collection({ input: Ports.inputs.notes, output: Ports.output.select }),
+    ] }),
+  ],
+});
 ```
 
-This selects an installed need, not a CSS variant. The field must be a text input
-of an exposed command. Unknown fields and unknown primitives are rejected.
-The remaining text input uses the bank's canonical single-line representation.
-Requiredness, field order and input schemas derive from the command, which
-references the object's facts. They are not copied into form components.
+The Header is a sibling of the Stack, not another stack. Each component has
+closed typed properties. The SDK emits component wire identities. View/output
+names are local declarations; references to other Views, journeys, facts and
+inputs use admitted objects or issued references. Internal serialized IDs are
+not a second product authoring API.
 
-Product code cannot supply classes, styles, raw HTML, shadcn sizes, motion timings
-or custom component callbacks through the closed contract grammar.
-This is an authoring boundary, not a sandbox against someone editing SDK source.
+Static authoring checks reject extra nested Toolbar properties, including values
+held in variables. `defineView` checks top/bottom Toolbar outputs and Collection
+outputs nested in Stacks against the declared output ports; widening to `string[]`
+or `ViewDeclaration` does not bypass that check. This is a bounded guarantee, not
+a claim that TypeScript proves every nested property of every component. Runtime
+admission still checks untyped inputs.
 
-## Installed composition anatomy
+`ReadNotesExperience` binds this View to the read journey, its object View and
+its outputs. Create emits a journey intent; Select emits a selection intent.
+The View cannot execute either operation. Object publication selects the object
+View, title fact, field labels/representations and toolbar actions. Notebook
+publishes body as `paragraphs` and Archive as an icon action. The command remains
+the single owner of its input requirements and effects.
+
+The navigation surface is declared too. `WorkspaceView` has
+`leftDock: Components.Dock(NavigationView)` and `Components.Destination()` as
+content. `NavigationView` uses `ViewTitles.product` and `Components.Navigation()`.
+The sidebar is not an implicit extra surface added by the renderer.
+
+`composeProduct` registers that workspace, the modules, surface exposure, entry
+destination and navigation groups. Notebook's entry is Notes; VOID's entry and
+access policy belong to VOID's composition/host, not a Notebook fallback.
+Surface declarations expose journeys and locale. They no longer author another
+entry, primary action, subject-action list, input map or commit map. The compiler
+derives field presentation, read scopes and confirmation behavior from the
+registered publications and journeys.
+
+Public `compile(composedProduct)` accepts only an issued composition. Builds and
+controller hosts derive its one bound View program. They reject raw wire
+applications and a separately supplied `viewProgram` override for a served UI.
+Internal protocol tests may compile wire definitions; this is not a public
+authoring path or an alternative renderer.
+
+## From declarations to pixels
 
 ```text
-Place — one full-width parent surface
-├─ ToolbarLayout (top, expanding)
-│  ├─ feature media, behind floating siblings
-│  ├─ navigation/action rail
-│  ├─ eyebrow + one title + subtitle
-│  └─ optional search + primary action
-├─ scroll viewport — fixed expanded-toolbar reservation
-│  └─ titled sibling stacks
-│     └─ inputs / facts / actions / lists (always-visible content)
-├─ ToolbarLayout (bottom, static; optional)
-└─ ScrollEdges — local overflow shadows, no blur
-
-Floating sidebar — its own Place
-├─ ToolbarLayout: product name + navigation toggle
-├─ navigation groups
-└─ ToolbarLayout: settings
-
-Transient/search layers compose above retained places.
-They change input ownership, not the lower layer's geometry or paint.
-
-Content does not collapse. A titled Stack contains direct nodes, never a
-disclosure, accordion or expandable summary. Facts and supporting explanations
-remain visible without activation; a Stack does not add a shared material around
-unrelated inputs. This rule does not prohibit opening navigation surfaces,
-selection/calendar popovers, search or dock-above identity transitions. Older
-disclosure definitions are rejected by the closed contract, not silently flattened.
+Product modules + Views + journeys + workspace/navigation
+  → composeProduct → compile(composedProduct)
+  → admitted ViewProgram + projected HumanSurface + command validators
+  → AccessGate → ViewProduct → typed client projection
+  → registered adapters → shared web catalog owners
+  → Place / Toolbar / content / adaptive panel
 ```
 
-The actual Svelte assembly is in `src/svelte/explorer/CatalogWorkspace.svelte`.
-`src/svelte/pieces/Place.svelte` owns the frame;
-`ToolbarLayout.svelte` selects static or expanding composition;
-`ExpandingToolbar.svelte` retains one identity/action tree;
-`toolbar-geometry.ts` measures capacity and paints the scroll transformation.
-`src/interaction/place.ts` validates the closed TypeScript stack/content contract,
-and `Stack.svelte` dispatches its typed rows through the shared renderer bank.
-These renderer-private Svelte slots are not an author-facing arbitrary markup API.
+| Owner | Responsibility |
+| --- | --- |
+| `src/modules/compose.ts` | Admit and connect module/root declarations. |
+| `src/modules/compiled-product.ts` | Bind the application to its admitted View program. |
+| `src/views/program.ts` | Validate View bindings against the exposed surface. |
+| `src/web/build.ts` | Generate surface/program and standalone command validators. |
+| `src/svelte/pieces/AccessGate.svelte` | Mount content only for an admitted session or explicit developer host. |
+| `src/web/client/view-program.ts` and `view-projection.ts` | Resolve destinations, Views and panels without drawing. |
+| `src/web/client/view-scopes.ts` | Derive read/mutation scopes while sharing one connection observer. |
+| `src/svelte/views/` | Forward typed projections through the registered adapter catalog. |
+| `src/svelte/pieces/ViewWorkspace.svelte` | Adapt the resolved workspace to the existing catalog shell. |
+| `src/svelte/explorer/CatalogWorkspace.svelte` | Compose shared navigation, main surface, search and panels. |
+| `src/svelte/pieces/ViewPanel.svelte` | Adapt the panel to existing Drawer/SurfaceFrame owners. |
+| `src/svelte/BankRenderer.svelte` and `renderer-registry.ts` | Validate and dispatch installed bank descriptors. |
 
-Focus reveal belongs to `Place`, which measures the actual top/bottom rails and
-reveals the focused control (preferably its complete well). It reacts to focus
-and multiline editing, not ordinary scrolling; wheel/touch movement remains
-user-owned. Multiline autosizing is bounded by the viewport minus compact chrome
-and the well's measured label/accessory/footer space. Further text uses the native
-editor's internal caret scrolling. This is capacity-based, not a device breakpoint.
+`DESERT-BUILD.json` format `desert.distribution-build/3` binds files, renderer
+revision, contract, distribution, surface and `viewProgramDigest`. Activities add
+their derived digest when present. Two products with the same wire domain but
+different View programs cannot serve each other's build. A source change
+invalidates the prior renderer fingerprint; source must stay fixed throughout
+the entire browser verification window, not only during compilation.
 
-Picker browsing state belongs to the field owner, separate from its selected
-value. Calendar month and selection exploration survive popover/drawer replacement;
-only activation commits a value. Reopening starts from the selected value. Both
-selection presentations compose the same roving-focus list, and repeated surface
-autofocus callbacks replace their keyboard listener instead of accumulating it.
+Products cannot provide CSS, classes, HTML, arbitrary callbacks, Svelte snippets,
+motion timings or component overrides. `defineView` admits only issued
+`Components` values. Source admission and visual-boundary checks also constrain
+renderer adapters and their dependency graph. Closed private owners have finite
+props; a private lexical slot is not a consumer-supplied markup extension.
+This is not a sandbox against a trusted developer editing the SDK itself.
+Historical visual debt is inventoried, not permission for a new bypass.
 
-## One versioned bank
+## One semantic bank and one web implementation catalog
 
-`src/interaction/catalog.ts` is renderer-neutral and exported by the SDK.
-`desert.human-interaction@0.4.1` contains twenty-three stable semantic entries and
-fifty-seven specimen labels. The explicit 0.3→0.4 migration adds canonical inspection
-metadata to the serialized catalog, without adding command capabilities or changing
-semantic IDs. Discovery groups (Foundations, Controls, Compositions, Product examples)
-are distinct from compatibility families. `catalog-ownership.ts` records shared
-visual owners, applicable axes, fixture identities, behavior assertions and evidence
-paths; the bank generates its ownership and coverage view from this metadata.
-Evidence paths are not certification. Qualification gaps remain explicit, including
-native Safari/VoiceOver. Money now includes populated, disabled and fixed-currency
-specimens; options include disabled and bounded multiple selection. Invalid money
-drafts are exercised through real typing rather than invalid canonical values.
-These additions do not certify every locale or native platform. Existing specimen
-instances remain mounted through filtering; no collapsible or lazy-unmount behavior
-is introduced.
-Eleven are product-backed:
-text, multiline, fact, action, availability, collection, form, context, review,
-transient and problem. Nine renderer-only control families and their specimens
-are declared once in `src/interaction/control-bank.ts`; catalog states derive from
-those typed objects. These are select, popover, files, options, money, date, tag,
-image and avatar. This does not admit those controls as product command inputs.
-Three experimental public-catalog compositions add card, home and detail without
-pretending that public records are privately owned controller objects.
-The human projection carries the exact catalog under
-`desert.interaction/6`; the build's surface digest binds its content.
+`src/interaction/catalog.ts` is the renderer-neutral semantic inventory.
+At this source revision, `desert.human-interaction@0.4.2` contains 24 entries and
+60 specimen states. Counts derive from that object, not this document.
+`catalog-ownership.ts` records owners, axes, fixture identities, assertions and
+evidence paths. A referenced test path is not certification.
 
-The web builder and mounted renderer reject catalog mismatch. Generic
-`RendererBank<T>` checks inventory only; it must not be used as evidence of
-component compatibility. The web's `WebRendererBank` maps every entry to its own
-props and event contract. Mutable control nodes and events derive from the canonical
-discriminated unions; unrelated components and wrong event callbacks fail Svelte checking.
-`src/svelte/renderer-registry.ts` binds the bank to actual components used by the application.
-This implementation registry is not the bank itself. Field and typed-control
-selection dispatch through it, rather than guessing a component from field position.
-`BankRenderer` validates the closed `desert.bank-node/1` descriptor and dispatches
-through this registry. Nested forms, context and catalog compositions dispatch
-their installed leaf owners through the same bank; private renderer adapters may
-carry handlers, but serializable descriptors cannot carry callbacks or markup.
+The inventory includes text/multiline inputs, facts, actions, availability,
+collection, form, context, review, transient and problem compositions; public
+catalog card/home/detail; and select, popover, files, labels, options, money,
+date, tag, image and avatar controls. A visual specimen alone does not install a
+product-command field. Text, labels and private-image inputs have canonical
+bindings; other controls remain local exercises unless their command grammar
+and execution binding are installed.
 
-Human terminal and native renderers must consume the same vocabulary when they
-are implemented. That means semantic parity, not copying HTML or drag gestures
-into a terminal. Those renderers are not implemented or certified by this work.
-The agent surface shares domain journeys and schemas, not decorative UI controls.
+`WebRendererBank` associates each entry with its own props/events.
+`renderer-registry.ts` binds entries to actual components. Generated
+`adapter-catalog.ts`, backed by `catalog-manifest.ts`, exposes finite composition
+owners to adapters. Neither registry is another product definition.
+`RendererBank<T>` alone checks inventory, not component compatibility.
 
-## Public catalog navigation shell
+A registered View requests `Components.VisualCatalog()`. It does not require
+a `?catalog=1` alternate renderer. Specimens reuse production owners. Missing
+form/review execution is labelled as a gap, not fabricated with fake commands.
+Real Notebook/VOID journeys exercise actual controller effects and receipts.
+Search filtering retains mounted specimens and their local writing.
 
-### Approved v117 implementation (v118)
+Native and terminal renderers are not installed or certified here. Future
+renderers must consume the same semantic program while owning their platform's
+catalog. The agent surface shares journeys and command semantics, not HTML or
+decorative controls.
 
-The owner approved the sealed five-decision review; its acceptance event is in
-`artifacts/ui-maturity-v118/acceptance.json`. The v117 bytes remain unchanged.
+## Shared surface anatomy
 
-- **S1:** `pieces/pane-material.css` is the single material role: 88% neutral
-  background, blur(24px), one 1px perimeter. Independent wells, buttons, grouped
-  lists, sidebar and transient panes consume it; interiors remain transparent.
-  Disabled content dims once without dimming its pane. Invalid/focus outlines are
-  additional semantic ink. Contrast/reduced-transparency fallback changes the
-  shared recipe once. Unconsumed vendor variants are not implicitly qualified.
-- **S2:** `ChoiceList`/`ChoiceItem` own divided option anatomy. Inline and picker
-  hosts share metrics, not commit semantics: radio arrows select, listbox arrows
-  explore, Enter/Space commits. Requiredness does not prevent editing an incomplete
-  draft. Existing min/max/disabled eligibility remains authoritative.
-- **V1:** record identity is title plus its existing group title; the full original
-  description stays in an always-visible About stack with a 65ch reading measure
-  aligned to the shared content axis. No synopsis or hidden reading content.
-- **M1 r2:** one mounted frame adapts between docked, right transient and bottom
-  transient. Fit uses remaining host width after navigation: 45rem Place +36rem
-  pane +24px. Right transient fits at36rem+24px, without a width discontinuity.
-  Native inert/focus-boundary adaptation complements the existing Bits presence,
-  dismissal and focus-return lifecycle. Locked, pending and uncertain work cannot
-  be orphaned through navigation. Geometry changes do not replay entrance motion.
-- **S3:** canonical ownership/fixture metadata generates the bank rather than a
-  second UI inventory; gaps are displayed instead of simulated domain capability.
+```text
+WorkspaceView
+├─ left dock: NavigationView → navigation Place
+│  ├─ ToolbarLayout: product title + navigation toggle
+│  ├─ destination groups
+│  └─ ToolbarLayout: installed utility actions
+└─ active destination → main Place
+   ├─ fixed ToolbarLayout: identity + icon actions
+   ├─ native scroll viewport
+   │  ├─ ordinary PlaceHeading / media hero
+   │  └─ typed sibling content and titled Stacks
+   └─ optional fixed bottom ToolbarLayout
 
-Search growth, mirrored scroll-edge shading, heading snap thresholds and the field
-measure system are preserved by this increment. This is a web implementation, not
-a claim of native Liquid Glass fidelity or complete platform qualification.
+Search and adaptive panels compose above retained workspace content.
+Each scrolling surface owns its ScrollEdges and focus revelation.
+```
 
-Landmarks and its bank share `CatalogWorkspace`, composed from the installed
-shadcn Sidebar/Dialog and InputGroup. The Apple-reference profile allocates a
-240px navigation column and reserves 45rem of reading space beside it. The provider
-measures its actual containing box against that CSS-resolved budget: `docked` when
-both fit, `overlay` otherwise. It does not classify devices or inspect user agents.
-Changing the host or text size can change presentation without resizing the browser.
-Other consumers explicitly reserve their own content width (default 32rem).
-Docked Back and Search occupy the upper rail; overlay Back is top-leading while
-Search remains bottom-trailing. Targets are 36px, or 44px for overlay/coarse pointers.
-The sidebar toggle lives at the trailing end of its upper toolbar, aligned with
-the product name; Settings occupies the aligned trailing lower toolbar. When
-collapsed, the toggle appears in the place's upper toolbar. Both use ordinary
-glass action faces, not ghost controls.
-The header displays the authored product name, without invented window controls.
-Explore and Developer groups separate destinations, with distinct colored icon faces.
-Overlay navigation uses the same `Dialog.Content presentation="panel"` as task
-transients, with a narrower width and leading edge. Both share 28px corners,
-12px safe-area-aware screen insets, material, focus lifecycle and directional
-motion. Persistent navigation retains its layout and shares the panel radius
-and material tokens. Search excludes the underlying navigation toggle from input and
-accessibility while retaining its painted geometry beneath the foreground.
-The full destination name remains visible; abbreviations do not hide poor fit.
-All root destinations expose one mounted identity in the same expandable toolbar.
-Edge drags preview the actual sidebar or move the
-current detail before release; short, canceled and vertical gestures do not navigate.
-Sidebar header dismissal and transient grips share the same directional gesture
-mechanism, and buttons remain the keyboard alternative.
+`Place.svelte` owns the viewport; `PlaceHeading.svelte` is ordinary scrolling
+content. There is no `ExpandingToolbar` API or phantom header reservation.
+`ToolbarLayout.svelte` owns page, navigation, picker and transient geometry.
+An unpreceded toolbar title shares its surface's reading axis; a leading action
+occupies the defined leading lane. Consumers cannot replace toolbar padding.
 
-The parent place viewport and shadows span the full workspace. A docked sibling
-reserves only a leading content/control inset; it never clips the parent's media.
-The original hero/detail image extends underneath the sidebar. No mirrored image
-or separate scroll-synchronized decoration is mounted. Foreground search retains
-the underlying viewport, toolbar and edge instances; its own material and controls
-compose above them. Edge shadows are mirrored gradients without optical blur.
-The owner's23:11 correction separates content identity from chrome. `Place`
-owns the viewport; `PlaceHeading` is ordinary scrolling content with title,
-subtitle, optional eyebrow/media and primary action. There is no expansion API,
-reserved phantom header, duplicate compact title or CTA transfer. Top and bottom
-use the same fixed `ToolbarLayout`, including task footers. Catalog navigation
-and search remain icon controls. The bank uses the shared magnifier/search
-overlay; its permanently expanded search, category shortcuts and count rails
-remain removed. `PlaceHeader` is a static content adapter for embedded specimens,
-not a toolbar or a second root heading.
+The navigation Place is one named landmark including its top toolbar,
+destinations and bottom toolbar. It is not a nav fragment beneath a page banner.
+Internal toolbar/heading wrappers do not declare banners. Shared embedding
+context controls semantic heading levels, independently of typography. Catalog
+annotations use note semantics rather than unrelated landmark asides.
 
-The approved lower fade is restored:24% black shading with a32px feather,
-mirrored above. Search composes over it without changing underlying edge state.
-Transient frames omit the redundant lower dismissal when there is no primary
-footer action. The upper dismissal, Escape, gesture and focus-return mechanisms
-remain. With a primary action, the paired secondary dismissal remains available.
+The main surface stays full width. Docked navigation reserves a leading
+content/control inset without clipping hero media underneath it. Fit depends on
+available host space and text size, not device names. Navigation becomes an
+overlay when its shared width and reading budget no longer fit.
 
-`PlaceIdentity` is a renderer-private TypeScript interface for title, subtitle,
-eyebrow and image/video media. Video has explicit playback controls and does not
-autoplay; this does not install a public catalog video authoring/host contract.
-Root catalog adapters derive identity and actions from their existing closed
-semantic data, not product-authored Svelte snippets. See STATUS for the exact
-frozen candidate, independent findings and preview verification.
+An adaptive right panel retains one mounted identity across docked, right-
+transient and bottom-transient presentations. Fit reserves a 45rem main Place,
+36rem pane and 24px spacing after navigation. A right transient fits at 36rem
+plus 24px; less available space selects the bottom presentation. This is a
+shared renderer rule, not a per-product media query. Adaptation does not replay
+entrance motion or discard drafts. Wide entrance is lateral; compact entrance
+is vertical. Reduced motion removes entrance/exit animation.
 
-The owner superseded the earlier Indigo visual language with a shared
-Settings-inspired foundation. System typography, neutral light/dark surfaces,
-semantic blue accents and restrained content groups apply to product and catalog,
-not just the Landmarks page. The catalog profile owns geometry, not a second
-forced-dark palette. Explicit renderer theme overrides still take precedence;
-otherwise system appearance is followed. Reduced transparency, reduced motion
-and increased contrast remain authoritative.
+A held drag stays reversible. Release beyond the dismissal threshold closes;
+a short or reversed drag returns to rest. Right transients have no bottom grip.
+Close/Escape remain alternatives whenever dismissal is permitted. Locked or
+uncertain work cannot silently disappear through ordinary navigation.
 
-Sibling specimens use transparent layout, with the same
-`SpecimenGroup`/`SpecimenRow` in public bank, product catalog and typed bench.
-They do not become a shared pane merely because they demonstrate one component.
-Component identity uses the section role, and state metadata uses caption. The
-public bank omits redundant category headings; its components are h2. Unavailable
-specimens are compact catalog annotations, not fabricated product empty states.
-Field descriptions and collection search/sort metadata use the shared caption
-role; real specimen controls are not scaled down to fit the bank.
-Content groups have no optical blur or outer shadow/frame. Glass belongs to
-navigation, action faces and transient layers. Controls retain meaningful outlines, including
-the whole-well input exception: its 62px base geometry, 12/16px caption and
-16/24px value roles remain shared across text, selection and money.
-Invalid-state color belongs to the field label and error explanation, never to
-entered content. Floating and ordinary labels use the same readable error-text
-token; the field retains its error border and independent keyboard focus ring.
+SurfaceFrame's closed `desert.surface-frame/6` carries typed top/content/bottom
+data. A transient without a primary action omits redundant bottom Close.
+A form with a primary action keeps its paired secondary action and top icon
+dismissal. Messages use a closed message presentation with one secondary Close.
+A context has no command-step footer or invented Actions list: published object
+actions appear as icons in its top toolbar. Conditional activities reuse these
+owners; they do not add a separate wizard layout.
 
-**Titled input groups — owner rule, 2026-10-16.** Every input belongs to an
-explicitly titled semantic group, even when that group contains only one input.
-Related inputs may share a group; this does not require a separate group for each
-field. The visible group title sits outside the controls. A stack arranges
-siblings through spacing without adding a painted parent card. Each standalone
-input retains its own well. Only genuine row groups, such as options or facts,
-own a shared quiet content surface.
-Individual controls keep their own accessible labels; a group title is not a
-placeholder or a replacement for the field label. Titles describe the content
-and must be explicitly authored, not inferred from device classes or control types.
-For example, **Budget** names the group containing **Estimated budget** and its
-currency control. No implicit exception for singleton inputs is permitted.
-This is a general composition requirement, not just a Travel kit styling rule.
-`PlaceContent` validates typed stacks and `StackLayout` composes their visible
-titles outside the children. Budget is a separate authored group. Its compound
-amount/currency control owns one well, not a second enclosing card.
-Controls retain family-specific maximum measures and align to the leading edge.
-The transparent reading group is bounded independently of its children's
-family-specific measures. It never paints the empty space beside a narrower field.
-This is installed in current source; older frozen
-builds and screenshots remain historical evidence, not proof of this revision.
+## Material, text and interaction
 
-Embedded catalog compositions scope their heading levels through a private
-renderer context: native pages keep h1/h2; public-bank specimens sit at h3/h4
-below the component's h2 (the separately grouped developer catalog retains
-h3 components and h4/h5 specimens). Appearance is independent of heading rank. No author-facing
-heading/style grammar or additional controller capability is introduced.
+`pieces/pane-material.css` owns Glass: a neutral 88% translucent fill, 24px blur
+and one perimeter. Independent action faces, wells, grouped lists, navigation
+and transient surfaces use it; interiors stay transparent. Primary actions tint
+the same material with the primary color. This supersedes the earlier neutral-
+primary treatment without adding a button owner. Reduced transparency/increased
+contrast use the common opaque fallback. Disabled content dims once, not its
+pane. Invalid/focus outlines are semantic ink. This is web Glass, not certified
+native Liquid Glass refraction.
 
-At enlarged text sizes, Calendar preserves its meaningful seven-column grid in
-a local horizontal viewport. Month caption/navigation remain outside that
-viewport and can wrap without smaller type. Focus revelation adjusts only that
-grid's horizontal scroll; date and arrow-key behavior stay with Bits UI.
-Standard transient toolbars bound summary titles/subtitles to two lines and
-yield height to at least two enlarged body lines. Complete titles and prose
-remain available in the reading body; ordinary document contexts are not clamped.
+`ScrollEdges` observes each surface's own viewport and actual toolbar bounds.
+Mirrored, pointer-inert surface-colored fades appear only beside installed
+toolbars where content overflows. They clear at beginning/end and cannot enlarge
+the document. The earlier black wash is superseded. There is no page-edge
+backdrop blur: toolbar text/actions paint above the fade, content below; actual
+panes alone filter their background. Focus revelation reserves measured chrome
+and feather without taking over ordinary wheel/touch scrolling.
 
-Catalog jumps distinguish the scroll anchor from the focus destination. Return
-links scroll to catalog navigation and focus its shadcn search input, never the
-whole navigation region. Group jumps focus their concise heading and preserve
-normal Tab order. The scroll container reserves its floating toolbar's actual
-height when revealing anchors, so keyboard focus is not covered by chrome.
-The application viewport clips without becoming a second scroll container;
-native focus revelation must not shift the surrounding navigation.
-Visible focus indicators remain enabled; query and specimen drafts are preserved.
+Click/tap or keyboard activation of the top toolbar's title/free area scrolls
+its surface to zero. Action buttons retain their own operations. Catalog section
+arrows are not another scroll-to-top control.
 
-`ScrollEdges` is shared by the floating catalog shell and `SurfaceFrame`. It
-observes each pane's own native viewport, toolbar geometry and content size.
-Top/bottom bands exist only beside installed toolbars and become active only
-while content overflows in that direction. The floating shell protects the
-toolbar plus a 32px feather; framed surfaces soften the content's approach to
-their nonoverlapping header/footer. At the beginning/end the corresponding band
-clears, preserving first/last lines. Keyboard revelation reserves the feather.
-Progressive shading gives the controls depth without blurring the page. Actual
-Glass panes alone filter what is beneath their own silhouettes; toolbar labels
-remain sharp, clickable and independently focusable. Decorations are pointer-inert and aria-hidden.
-Their clipped overlay plane cannot enlarge layout during the interval between
-a container resize and its next geometry measurement.
-Both edges use the same surface-colored fade. The media and scrolling content
-paint below that shared plane; toolbar titles and controls paint above it. There
-is no additional opaque toolbar panel and no page-edge backdrop blur.
-Ordinary edge shading does not require backdrop-filter support. Scroll drives intensity directly, without
-delayed animation. Resize, font and content changes remeasure the local pane;
-document-flow reading does not gain artificial floating chrome.
+Stacks group visible content with a title and spacing, not a painted card,
+disclosure or accordion. Text uses shared semantic roles. Supporting metadata
+must not outrank its group. Field wells keep accessible labels. Collections do
+not inject sort captions as Stack subtitles. Embedded heading levels follow
+actual hierarchy, not font size.
 
-All renderer searches compose `pieces/SearchField.svelte`: a leading magnifier,
-semantic search input and embedded Clear search accessory while nonempty. Clearing
-emits one empty-value update and restores input focus without scrolling, submitting
-or closing search. Disabled/read-only fields cannot clear. The shared component
-suppresses the browser's duplicate clear affordance and reuses InputGroup/Button
-feedback; each consumer retains its own query, filtering scope and lifecycle.
+FieldWellContent owns label/value geometry across text, selection and money.
+Labels reserve actual wrapped height. The editing row is separate; textarea
+scrolling cannot run beneath its caption. Selection uses the whole well as
+trigger. Multiline counters live outside the editor scrollport and join errors
+in `aria-describedby`, without per-keystroke live announcements. Counts follow
+JSON Schema Unicode code points; native UTF-16 `maxlength` does not truncate
+drafts. Controls grow for content/enlarged text rather than shrinking type.
 
-The catalog toolbar search starts as a magnifier. Activating it expands a Glass
-input across the available toolbar width, leaving only the close X beside it;
-other toolbar actions become unavailable until search closes. Compact layouts
-place this toolbar at the bottom with safe-area clearance. Short, reversible
-transitions respect reduced motion.
+Clear retains editing focus and uses the existing input pipeline. It does not
+submit, dismiss, or change Money's currency. Plain-text native undo is attempted
+through the existing browser bridge; cross-browser undo parity is not certified.
+Money uses exact minor-unit strings, never floating-point amounts, rounding or
+FX conversion. Locale-aware incomplete writing stays editable without emitting
+a canonical value. Invalid precision/scale changes preserve the prior value.
 
-Search expansion animates a rounded paint clip, not width, gap, typography or
-the underlying navigation layout. The original input remains mounted and usable
-immediately. Closing retains its outgoing text and foreground plane until hidden;
-product cancellation still clears the functional query. Modal messages and drawers
-share the search overlay timing tokens. Centered dialogs move vertically without
-scaling or transform-based centering. Surface/scrim transitions start from their
-current presented values on interruption; Bits transition-presence attributes
-own entry and unmounting. Reduced motion removes these transitions entirely.
-The empty invitation names the current scope
-over an inert retained page. One translucent, blurred material spans the entire
-workspace underneath navigation in every search state: blank, matching and empty
-results. Results never replace the retained page with a neutral backdrop.
-Landmarks searches published record fields, the bank searches canonical component
-metadata, and Travel kit searches declared section/control labels, never draft
-values. Results navigate only when activated. Clear keeps search active;
-Close/Escape restore the retained page and reading position without remounting
-draft controls. Close/Escape return focus to the Search opener when available;
-otherwise the retained content control or viewport is the fallback.
-An outside pointer or focus leaving the search composite closes it. Internal
-Clear, close and result activation remain usable, and intentional outside focus
-is not stolen by dismissal. Composition Escape is left to the input method. Returning from
-a record opened through search restores its query, result position and focus.
-Reduced transparency/increased contrast remove the search blur. There is no
-stored search history, rotating-language animation or remote search provider.
+Selection/date pickers use an anchored panel when readable width/context fits,
+otherwise the shared bottom sheet. Exploring a choice does not commit it;
+activating a permitted value does. Calendar has a local seven-column horizontal
+viewport at enlarged text sizes. Native keyboard/listbox behavior is retained.
 
-The reflected background derives from the currently visible home/detail image
-and follows that page's scroll. Exercises and bank pages have no unrelated
-photographic decoration. Search retains its originating page and current image
-under the workspace material. The image extension covers the navigation column
-including its outer inset, so the hero no longer stops at the pane's rounded top.
-Sharp content remains above that background layer.
-The functional navigation pane filters its background, not its text or controls.
-Reduced transparency/increased contrast use an opaque navigation surface without
-the reflected image. Modal scrims dim, while their actual panes may use Glass.
-This is a web
-approximation of background extension, not native Liquid Glass refraction or
-pixel parity. Width and responsive changes intentionally differ from the pinned
-900px native reference, which remains unchanged as comparison evidence.
+`labels()` is a canonical string-array field, not CSV or JSON text. Its shared
+control adds/removes labels; reading uses the existing Tag owner. The policy is
+at most 12 labels of 64 Unicode code points each, preserving order and case.
+Explicit Add trims the candidate. The server rejects noncanonical whitespace
+and exact duplicates rather than silently changing the submitted intent.
+The canonical command validator owns validity.
 
-## Complete execution path
+Shared Button owns stationary bounds/perimeters and inner press feedback.
+Pending replaces the face with a loader while retaining geometry and accessible
+name. Disabled controls do not acquire hover/press. Reduced motion retains
+color feedback without compression. Toolbar actions have icons and accessible
+names; footer labels adapt to actual available width through the same Action
+owner. An icon or enabled-looking control does not grant authority.
 
-1. `products/notebook/note.ts`: facts, constraints and ownership.
-2. `commands.ts` and `journeys.ts`: requested input, effects, guards and dependencies.
-3. `surfaces.ts`: human exposure, context actions, review choice and input needs.
-4. `src/project-surface.ts`: frozen, limited interaction projection.
-5. `src/web/build.ts`: supported-composition gate and standalone schema validators.
-6. `src/build/svelte/template/src/routes/+page.svelte`: generic entry, no Notebook rules.
-7. `src/svelte/HumanProduct.svelte`, `ProductWorkspace.svelte`, `SurfaceHost.svelte`, `src/web/client/frame.ts`:
-   collection, context lifecycle and a derived typed frame, not arbitrary children.
-8. `SurfaceFrame.svelte` → `FrameBody.svelte` → `TextInput.svelte`:
-   declared need rendered using Field and InputGroup from the audited port.
-9. `src/web/client/mutations.ts`: explicit human submission → begin → prepare →
-   accept, or contract-required review. It never treats availability as permission.
-10. `transport.ts` → `src/web/gateway.ts` → `dispatch.ts`: authenticated local
-    HTTP request, exact contract header, closed request shape and origin checks.
-11. `src/local/session.ts`, `admission.ts`, `prepare.ts`, `accept.ts`:
-    identity, installed journey, owned subject, effect identity and atomic acceptance.
+## Search, reading and execution
 
-The generated complete source walkthrough (SDK file: `skills/desert/references/web-renderer.md`)
-contains the actual modules, including Svelte and the controller path, with source
-hashes. Regeneration and drift detection use the existing authoring tools.
+Search is a toolbar action opening the common overlay, never a permanent field
+inserted into destination content. SearchField supplies magnifier/input/Clear.
+The overlay retains its originating page, scroll and drafts, restoring focus on
+Close/Escape. The actual rounded input capsule grows inside a stable rail; no
+reveal mask, glyph scaling or page reflow substitutes for that growth. Reversing
+retains the same input. Compact placement, safe areas and reduced motion belong
+to the owner.
 
-## Human behavior
+Search uses only declared scope: loaded published collection values, installed
+catalog metadata or public media data. It cannot inspect hidden facts or claim
+remote search. Unknown collection state, known empty and no matches stay distinct.
+Typing does not execute a command; activating a result navigates.
 
-The bank's `src/interaction/surface-frame.ts` defines the versioned, serializable
-`desert.surface-frame/6` object. Its top, content and bottom slots are mandatory
-for task/dialog frames, not for every temporary control presentation.
-Header identity is a closed `Face` value in the top slot, not body decoration.
-Messages carry text in content; status severity belongs to their header face.
-`ToolbarLayout.svelte` owns the header anatomy for both `Toolbar.svelte` (all
-persistent and transient frames), the catalog's search/navigation toolbar, and
-the normal product and product-catalog shell headers.
-An optional face occupies its own full-width row above navigation, place/title
-and actions, centered against the complete header rather than the leftover title
-lane. When absent, neither that row nor its spacing is rendered. Current product
-presenters supply a toolbar face only for messages/dialogs. Renderer-internal
-snippets compose shadcn controls; they are not added to product authoring or the
-serialized bank. The typed top slot continues to require its meaningful title.
-At narrow widths, the action rail yields a full row to the title. Bounded transient
-hosts constrain oversized header identity to a scrollable region, retaining room
-for content and dismissal; persistent reading keeps its natural document flow.
-Neither path truncates the title to a fixed line count.
-Ordinary toolbar text enlarges independently of the decorative face and width-constrained
-actions: its face grows from 32px to at most 40px, and compact action rails keep
-44px touch targets. Compact messages instead use a 3rem identity face with the
-same rem-scaled reading stack. A short message title must remain fully visible initially,
-not merely be recoverable by discovering a second scroll region.
-Content accepts only the installed form, facts, context, review, ordered information, utility-list or status-message
-objects. HTML, CSS, classes, callbacks and arbitrary child snippets are not values
-in this contract. Static types derive from the same closed runtime grammar.
-Product presentation derives these values from the compiled contract and current
-state; the author does not repeat fields, input constraints or action authority.
+Object title/fields/actions derive from publication and its canonical read.
+Prose, labels and images have explicit representations, not field-name/array
+heuristics. Unknown/Empty/Untitled are display states, never rewritten facts.
+Literal stored values such as "Empty" remain ordinary text. Current offers,
+policies and subject version determine available actions; acceptance rechecks
+authority.
 
-The task/dialog transient renderer owns visible top chrome, padded scrolling content and a non-scrolling
-bottom toolbar. Persistent reading uses document flow and does not fabricate an empty footer.
-Drawer does not accept a Svelte children snippet. Catalog forms
-and drawers use the same frame rather than recreating its layout. Context footer
-contains surface dismissal only, not journey confirmation; context/form and
-context/primary-command combinations are rejected statically and at runtime. Action destinations
-remain in the context's Actions collection. The web realization uses existing
-shadcn port pieces and Tailwind layout utilities; custom styling remains below
-this boundary only for behavior/tokens not supplied by those pieces.
+Execution is `begin → prepare → accept`, with explicit review when required.
+`src/web/client/mutations.ts` sends the canonical operation through transport,
+gateway and dispatch. Local admission/preparation/acceptance own identity,
+subject/version, effects and atomic receipts. Availability is an observation,
+not permission. Uncertain responses use receipt recovery, never implicit replay.
 
-TypeScript does not prove pixel geometry. Runtime grammar rejects malformed
-objects; browser tests separately check layout, overflow, focus and pressed states.
-This is a finite implemented frame contract, not proof of every future primitive
-or renderer. It does not introduce a new product contract or repin existing data.
+Preparation visibility is enforced in the controller for both human and agent
+surfaces: only their own published reads and operation input targets authorize
+returned facts. Ownership/internal facts remain excluded. The earlier
+prepare-response finding (SDK file: `docs/BANK-SECURITY-FINDING.md`) is corrected; its historical
+reproduction is retained. UI filtering alone is not that confidentiality
+boundary. Complete stored effects and their confirmation/receipt integrity
+remain canonical.
 
-`FieldWellContent` and the shared field-well role own label/value geometry for
-text, selection and money. Captions
-reserve their actual wrapped height in normal flow, with a separate editing row;
-textarea scrolling never paints values underneath the caption. Empty single-line
-labels retain their floating presentation, without a fixed reserve that assumes
-one line. Text and money compose shadcn Field, FieldLabel and InputGroup. A standalone
-selection instead makes the native shadcn Select Trigger the entire well, using the
-shared Button well variant: caption, value, chevron and padding belong to that one
-hit target. One outer plane retains its material through hover/press; one inner content layer compresses
-the caption and value together, without moving the border or changing its hitbox.
-No click relay, nested button or transparent overlay expands the target. Its
-accessible name includes the visible field label and current option; requiredness
-is semantic, not a spoken asterisk. Money keeps currency and amount independently
-operable. Native pointer/keyboard selection and reduced-motion behavior remain
-owned by their existing primitives.
+One shared connection observer reports controller availability to active read
+scopes. Eligible reads refresh through a bounded coalescing scheduler.
+Navigation, selection, stop and connection loss invalidate obsolete work.
+Equal snapshots do not remount the view or replay motion. Drafts remain editable
+during controller loss; reconnection refreshes without replaying writes. These
+are controller-specific states, not a generic Internet-connected badge.
 
-Every multiline editor has a passive bottom-trailing `CharacterCounter`, composed
-from InputGroup Addon/Text in FieldWell's optional footer. The footer is outside
-the native editing scrollport, never laid over the final text line. It uses the
-shared caption role and joins existing errors in `aria-describedby`, without a
-tab stop or per-keystroke live announcement. Its click focuses the textarea.
-Unlimited fields show characters written; a declared `maxLength` shows remaining
-characters, including zero. Excess text is retained and described as over limit.
-Counts follow JSON Schema's Unicode code-point semantics. Native `maxlength`
-(UTF-16 units) is intentionally not an editing/truncation policy.
-Form projection carries the existing command schema maximum through the shared
-bank; no duplicate product validator is introduced. Portable catalog exercises
-with a multiline maximum require `input.length-hint`, an advisory renderer feature,
-not enforcement or submission authority.
+Conditional activities collect ordered typed inputs and prepare the same
+command. VOID's Guided note reuses the real create command. Durable runtime
+drafts/revisions and pending receipts are separate from the identity/contract/
+surface-scoped browser journal. Conditional business requirements, human subject
+activities, delegated identity assignment and a Capibara document product are
+not installed. Activity conditions cannot weaken current command requirements.
+See ACTIVITIES (SDK file: `docs/ACTIVITIES.md`) for grammar, recovery and remaining limits.
 
-- Create submits without an extra review; Archive is a context action and retains
-  its contract-required review. A context has no command-step footer.
-- Context Actions are destination rows in a stack: leading title, trailing chevron,
-  whole-row interaction and dependency/authority-driven disabled state. They are
-  not the command buttons used in journey footers. The shared ContextPanel uses
-  the audited shadcn port's existing row variant, including keyboard activation.
-  In Notebook, opening Archive enters review and leaves the note active until
-  the separate confirmation is accepted. The catalog uses the same composition.
-- Ordinary object reading is nonmodal: a collection rail and reading pane on wide
-  screens, a full-width context with Back on compact screens. Reading does not
-  borrow a command footer or trap collection navigation behind an overlay.
-- The collection offers explicitly local retrieval over its already-exposed loaded
-  values and a labelled ascending order derived from its first collection field.
-  Filtering neither calls a journey nor searches detail-only or private facts. It
-  keeps the selected reading context and does not mutate the controller's record array.
-  An unread collection, a known-empty collection and no search matches remain distinct.
-  Selected rows retain a visible state after hover and keyboard focus leave.
-- Collection rows center their complete content stack. Title-only rows omit the
-  metadata container entirely, so no empty second line or gap displaces the title
-  and chevron. With metadata, the chevron remains centered on the heading while
-  the complete stack stays centered in the hit surface. Grouped radio/checkbox
-  rows center their indicators on FieldContent without Field's top-aligned margin.
-  These are shared layout rules, not per-icon offsets; fixed hit geometry and
-  ordinary pointer/keyboard activation remain unchanged.
-- A transient has one bound identity. Creation outcome closes the creation drawer
-  and opens the saved object in the persistent reading pane. Review and uncertain
-  recovery remain task transients; neither silently replaces another identity.
-- Back, Escape, backdrop and handle dismissal use the same typed navigation intent.
-  Cancelling review retains the object and restores its originating action. A successful
-  command focuses the resulting reading region instead of abandoning focus on the page.
-- Creation remembers whether it started from the collection or a reading context.
-  Cancelling restores that context and reading position while keeping its draft. Back
-  from primary review still returns to its composer before leaving the transient.
-  If local filtering removed a record opener, context Back focuses the collection search.
-- Review compares exposed values only when the known object identity and version match
-  the prepared operation. Changed fields precede unchanged prose; a concise derived
-  summary leads the review. Unknown or stale baselines never invent a previous value.
-  This presentation does not change effects, grant visibility or weaken confirmation.
-- The declared `input.multiline` field need also derives multiline reading. Prose
-  uses start alignment, paragraph-preserving whitespace and a reading type role,
-  alongside always-visible metadata. A record title is presented once.
-  This is a derivation from existing exposure, not inference from field names.
-- Unknown facts display as Unknown; visually blank values display as Empty and
-  visually blank record titles as Untitled. These are presentation fallbacks only:
-  they do not trim, reject or rewrite valid stored facts.
-  Fact rows and typed information share one passive value renderer: actual content
-  retains normal emphasis; Empty uses a minus and Unknown a circled question mark,
-  both with semantic secondary text. Accessible reading identifies these as value
-  states; literal stored "Empty"/"Unknown" remains ordinary content. No control,
-  loading, error or live-announcement semantics are inferred. Missing fact keys
-  use own-property lookup; Information's null sentinel shares the same classifier.
-- Dialogs compose the installed shadcn Dialog; its Bits UI foundation supplies
-  focus containment, labelled modal semantics, Escape and
-  focus restoration. An uncertain operation prevents dismissing its recovery
-  surface; an error dialog closes independently above it.
-- Input labels expose requiredness with the owner's red asterisk rule and native/
-  ARIA required semantics. Footer actions share its horizontal space.
-- Editable text, multiline, masked amount and search fields share one trailing
-  Clear accessory while their visible draft is nonempty, including whitespace
-  and invalid masked writing. It retains typing focus, never submits, and honors
-  disabled/read-only controls. Selection/calendar triggers do not receive it;
-  clearing Money leaves its currency unchanged. The textarea counter remains in
-  its separate footer. Compact clear targets are at least 44px.
-  Clearing uses the editor's existing input pipeline. Masked history remains
-  managed by the mask; plain text/search use the browser's native delete command
-  to preserve undo rather than assigning over its history. This narrowly scoped
-  `execCommand` bridge is deprecated but has no equivalent standard undo-preserving
-  replacement API (see [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Document/execCommand)).
-  A direct-edit fallback keeps clearing available without promising native undo
-  where that command is unavailable; cross-browser parity is not certified.
-- Touched fields receive accessible, plain-language feedback from the compiled
-  validator's immutable issues. Core and standalone web validation share the same
-  issue snapshot, not independently copied constraints. Pristine inputs stay quiet;
-  correction clears errors, and controller loss retains both writing and feedback.
-- Shared FieldError uses the semantic destructive-text token. Contrast is measured on
-  actual product drawer fills, in system and explicit light/dark appearance, not only
-  on the catalog's specimen cards. The icon/border destructive token is unchanged.
-- The active surface receives real controller availability. It remains editable
-  during a database or transport outage. Recovery refreshes without replaying a
-  command or discarding the session draft.
-- Desktop drawers enter laterally; narrow drawers enter vertically. A short
-  handle drag follows the pointer and springs back; crossing the dismissal threshold
-  closes before pointer release. Right-side drawers have no handle.
-  Reduced motion removes entrance/exit animation and makes spring return immediate.
-- Touch targets are at least 44px for bank actions and the drawer handle. Keyboard
-  dismissal is always available when dismissal is permitted.
+## Media and access boundaries
 
-This does not claim an installable offline PWA, persistence of drafts after browser
-exit, VoiceOver certification, cross-browser parity or native haptics. The local
-controller can work without Internet; a loaded web surface tolerates loss of its
-controller. Initial page delivery still requires its local web host.
+The common media library/viewer supports installed public image/video/audio
+fixtures in one layout. Playback state belongs to a queue entry, not only its
+URL. Image gestures and thumbnails remain shared; media-specific playback/time/
+volume controls use the same toolbar owners. This does not trust arbitrary
+uploads or external media URLs.
 
-## Kitchen sink and its limits
+Private images use canonical `imageAsset()` inputs. Browser acquisition stages
+bytes through the authenticated controller, preserves the original and produces
+bounded renditions. Prepare/accept bind issued references to identity, run,
+input and contract. Private bytes never enter the public build media directory.
+Reading a blob requires a canonical authorized read, not knowledge of its UUID.
+The private-image context/resource aborts requests, discards stale results and
+revokes blob URLs on invalid scope, controller unavailability, departure or
+lock. A rendition change of the same authorized image retains the current
+image while the replacement loads instead of deliberately flashing blank.
 
-`?catalog=1` displays every installed entry/state. It reuses the production bank,
-including real context, review, drawer and dialog components. Specimen callbacks
-are isolated visual exercises, labelled as such; they do not imply domain writes
-or healthy connectivity. Notebook, not those callbacks, exercises the real controller.
-Search, family counts and jump links derive from that same catalog. Filtering hides
-mounted specimens rather than discarding their local edits. Product-backed families
-and bench-only controls are explicitly distinguished.
+VOID supports private image import, detail viewing, rename and recoverable
+Trash/Restore. Its private collection is title-only: private thumbnail galleries,
+private albums and private video/audio import are not installed. The public
+demo library is separate from this private authority path.
 
-This is all of the current finite product bank, not all possible combinations or all of
-Void's legacy pieces. Dates, money, product-bound selectors, uploads, charts, tables and nested
-object editors remain unsupported until they have typed semantics, compilation
-and behavioral evidence. An imported visual widget is not a new product capability.
+AccessGate keys admitted content by identity. Lock/revocation removes the private
+product scope. The local lock barrier survives offline lock/reload and propagates
+across tabs; an old valid cookie cannot clear that barrier. Explicit developer
+mode is distinct from identity authentication. This does not complete identity
+administration, password recovery, remote deployment or MCP OAuth provisioning.
+No installable offline PWA, native renderer or persistent ordinary text draft
+after browser exit is claimed. Initial page delivery still requires its host.
 
-The typed control bench is part of that same catalog, not a parallel unversioned
-inventory. Options derive radio versus checkbox behavior from cardinality. Money
-uses exact decimal minor-unit strings. Its locale-aware decimal mask groups the
-visible writing without converting the amount to a JavaScript Number. Changing
-currency preserves the numerical amount only when exactly representable at the
-destination scale; otherwise it keeps the original currency and reports an error.
-It never rounds or performs FX conversion. Owner amount/currency/identity/scale changes reconcile
-the visible draft and obsolete validation; acknowledgements preserve the human's
-lexical writing and newer incomplete edits without emitting another change.
-The shared closed `InputMask` currently installs only `decimal`, with an explicit
-locale and scale (0–6). Single-line bank inputs may declare it; multiline inputs
-cannot. Money derives scale from its selected currency and defaults locale to
-`en-US`; the Money bank specimen explicitly uses `es-AR`. Plain text input events
-carry canonical dot-decimal strings; Money events remain exact minor-unit strings.
-Empty Money emits null. Impossible characters, malformed paste and excess precision
-are rejected atomically, preserving the prior text and selection. Noncancelable edits
-and committed IME writing use the same rollback without publishing an invalid value.
-Incomplete numeric writing remains editable without emitting an accepted value;
-amounts exceeding the wire's 80-character minor-unit limit are rejected. Unsupported locale affix/bidi
-patterns fail explicitly. This is not a generic regex mask or domain validation.
+## Verification and reproduction
 
-Dropdown options can carry an optional typed Face, rendered through the same
-passive Avatar primitive in both the selected trigger and option list. Explicit
-`flag` region and short `symbol` variants join document/status faces. Currency
-codes remain visible and own the accessible name. Money derives currency symbols
-from Intl and uses the same plain muted, unboxed symbol in its trigger, anchored
-options and sheet options. Currency metadata faces do not override that monetary
-presentation. Generic dropdown options retain their authored faces.
-A country is never inferred
-from a currency. Flag color/glyphs follow the host emoji font. Arbitrary remote
-image faces are not installed by this increment.
-Portable catalog requirements explicitly declare `input.mask.decimal`,
-`selection.faces`, and the installed `face.flag` / `face.symbol` representations
-when used. An older adapter cannot silently claim support through its node-kind
-list alone. These requirements do not install or certify a native adapter.
-Dates are calendar dates with explicit bounds, not timestamps. Their whole-well
-input opens a calendar, anchored when there is space and in the shared bottom sheet
-otherwise; the grid is not permanently embedded in the form. Selecting a permitted
-date commits directly and restores trigger focus. Media sources currently allow only same-origin paths and require
-accessible descriptions. Tags use closed semantic tones, never arbitrary colors.
-Person avatars use the vendored shadcn/Bits image-loading lifecycle and a visible
-secondary-surface circular fallback. Their adjacent full name owns the accessible
-identity; the image/initials are decorative, not another focus stop. Long names wrap
-without shrinking the face. The renderer preserves all 1–4 permitted fallback
-characters, using a compact, rem-scaled role for decorative 3–4-letter monograms;
-the full name retains body type. Object/status faces keep their separate inherited
-tones. Media demonstrations must not invent a traveler or imply a saved trip:
-Landmarks' inspiration contains only a sample photo and its reference facts, while
-the canonical bank retains the avatar examples.
-These are real local mechanisms, not product input grammar, storage, currency
-conversion or upload capabilities. See coverage (SDK file: `docs/BANK-COVERAGE.md`).
+Runtime/type tests establish admission and operation invariants, not pixel
+acceptance. Shared-owner browser tests cover geometry, keyboard, motion,
+overflow, accessibility and interaction. Passing fixtures do not certify every
+combination, browser or native assistive technology.
 
-## Canonical actions and chrome
+Historical visual approval remains at
+`artifacts/ui-maturity-v118/acceptance.json`. Its bytes are unchanged. Current
+source supersedes the old expanding chrome, black fade, neutral primary and
+standalone product renderer; those older descriptions are not current APIs.
+Semantic-wrapper fixes have their own screenshot-parity tests rather than
+resetting approved baselines.
 
-Every toolbar action requires a closed icon identifier and accessible label.
-Its operation is a closed typed intent, not an overloaded string ID. A journey
-named `accept`, `recover`, `back` or `surface.close` remains a journey; it cannot
-be mistaken for renderer navigation or confirmation. Form submission matches the
-primary journey intent, and transient dismissal checks intent meaning rather than
-labels or icons. The same validated dispatcher handles the mounted product.
-The top toolbar has leading/trailing slots; the bottom has secondary/primary slots,
-not an arbitrary list carrying visual emphasis. The renderer derives primary styling.
-Task frames retain a bottom Close or Back,
-even alongside a primary CTA. That same action is mounted in the top leading slot
-at icon width. The host rejects conflicting navigation instead of silently replacing
-it. Locked state disables dismissal without removing it. Utility actions such as
-Check result occupy top trailing slots; they do not displace the footer navigation.
+The test-only InspectionProduct composes real Notebook modules with an authored
+Visual catalog View. It is not a user preview or alternative renderer.
+`tests/web/inspection-migration.json` records retired assumptions and retained
+invariants. Diagnostic callbacks do not replace real create/review/accept/
+recovery tests. Rebuild after source changes, then freeze source for the complete
+browser run.
 
-The owner's 2026-10-16 decision supersedes anchored-only selection. Select and date
-pickers reserve 24rem for a readable panel and 4rem of visible surrounding context;
-the shared launch-surface measurement includes available width and root text size.
-If that budget does not fit, both compose the same content-sized bottom sheet,
-bounded by that panel width rather than stretched across the window. Pickers use
-the same Toolbar and Action as task transient surfaces: close precedes the title,
-with no header divider. The inset scrolling body preserves focus outlines. A
-toolbar without trailing utilities does not reserve a utility rail or stack its
-title below navigation. Single-choice options
-share the radio mark with radio groups; multiple-option groups retain checkboxes.
-Calendar picker cells derive their size from the panel's content box, not viewport
-width. Enlarged text preserves a local horizontal day-grid viewport.
-The anchored Select retains Bits list-selection semantics; sheet choices compose
-the installed roving choice primitive. Activating a permitted option
-emits `select.change` immediately; no staged candidate or Confirm action is
-required. Merely opening, highlighting or dismissing the list is not a change.
-The current value, disabled options, requiredness and optional null remain owned
-by the unchanged `SelectNode` grammar and canonical transition.
-
-Currency selection follows the same direct-choice interaction. Its `money.change`
-transition carries the chosen code and exact amount; the control refuses scale
-changes that would lose precision, without pretending to convert it. Contextual popovers preserve ordered typed
-information and `popover.open` state. Outside interaction or Escape dismisses
-when permitted; focus returns on dismissal without trapping background use.
-The inherited `locked` flag prevents dismissal only, never makes a popup modal
-or grants authority. It is not permission to conceal a blocked task in a popover.
-
-Frame revision 6 removes selection content and the old selection frame. The
-`selection.confirm` intent is retained only as deprecated bank-wire compatibility;
-it has no current frame/selection host and the product dispatcher rejects it.
-Revision 5 frames are rejected rather than silently reinterpreted. Rebuild local
-surface artifacts; do not migrate or repin the controller or its data.
-Problem dialogs also use the same Toolbar/SurfaceFrame owners and closed message
-frame, not an object context pretending to be an error. The owner's 2026-10-16
-macOS-dialog request supersedes duplicate header/footer dismissal for these alerts:
-one secondary Close remains below centered identity and copy. The renderer-private
-message presentation is selected by Problem, never product JSON, and rejects any
-frame kind other than message. Persistent message frames and diagnostic task drawers
-keep their existing presentation. Native shadcn Dialog.Title/Description are the
-visible heading and copy; their semantic typography variants prevent registry
-default classes competing with the shared type scale. Message width is 20rem,
-bounded by 12px viewport insets, with 17/22px title and 13/19px body at default text
-scale. These are web design choices inspired by macOS, not measured native parity.
-Locked dismissal, Escape, outside interaction, focus containment and restoration
-remain owned by the existing modal host; Close is never promoted to primary authority.
-
-Toolbars are borderless. Their actions use the same shared circular icon-face or
-capsule label-face treatment as actions elsewhere; placement cannot introduce
-a second button variant. Pending, disabled, icon fallback and accessible naming
-remain the canonical Action owner's policy. Container rows, field wells and
-media/card press targets keep their own semantic container anatomy; they are
-not converted into standalone pill buttons. The only approved footer-layout
-exception is a genuine step wizard; no such wizard contract is installed, so a
-generic journey, product name or label cannot be treated as that exception.
-
-The foundation owns widgets; DESERT owns their finite semantic composition.
-Text, selection and money share FieldWellContent and field-well geometry, with
-InputGroup for editors and a full-well Select Trigger for selection. Option cardinality
-selects RadioGroup or Checkbox with the same FieldLabel row anatomy. Faces compose
-Avatar with an object shape; image failure retains the original aspect container.
-Action renders ordinary Lucide icons through Button; its visual-only `spin` prop
-rotates marked SVG icons without changing color, label, geometry or authority.
-Pending selects the loader glyph in the same icon path, preserving the existing
-neutral disabled face and accessible name. Spinner inherits its surrounding
-foreground; availability and unread collections explicitly retain their status
-accent. Rotation shares the existing animation utility and reduced-motion policy.
-Known-empty and unread collections share
-one Empty composition in Notebook and the catalog. These extensions live in the
-SDK, not in products.
-
-Dialogs use shared vendor content components with private frame presentations;
-contextual popovers and selectors use their nonmodal vendor foundations without
-task chrome. Responsive task-drawer presentation and forced-snap gesture physics
-remain custom DESERT extensions. Migrating the gesture mechanism
-to the official Drawer/Vaul foundation has not been verified; this increment does
-not claim that importing shadcn eliminated every custom widget behavior.
-
-Shared Button owns press feedback: stationary bounds/borders and an inner content
-layer with common scale/easing and semantic foreground. Destination
-rows use that same mechanism. Keyboard focus is separate from pressed
-feedback; reduced motion retains color feedback without compression.
-The shared press owner clears feedback on pointer exit, touch cancellation and
-keyboard blur, restores it on pointer re-entry, and never synthesizes activation.
-Hover and held foreground states are exclusive. Disabled controls do not acquire either.
-Long shared titles are visually bounded without shortening their accessible names;
-the complete content remains scrollable and the footer remains visible at enlarged
-text sizes. Narrow or short viewports cap decorative spacing, not font sizes.
-Critical message titles wrap instead of truncating the cause of an error.
-Semantic tag variants retain a neutral pane and explicit text plus semantic foreground.
-The approved v117 S1 law supersedes the earlier tinted tag/action/navigation fills.
-The isolated locked-popover specimen announces and completes its demonstration
-lock; this timer belongs only to the catalog and is not an operation timeout or
-permission to release an actual pending command.
-
-Recovery records which action is pending. Checking a receipt cannot animate Retry;
-a missing receipt is reported inside the active recovery surface. Unknown acceptance
-results are described as unknown, not as a proven failed write.
-
-The one Action renderer measures available label space and switches to the declared
-icon only when needed. Pending replaces the visible face with a centered spinner,
-preserving button geometry and accessible naming. Products cannot supply CSS or
-override these decisions. Internal Bits UI adapters forward only overlay semantics,
-events and ref attachments; they do not open the product contract to HTML props.
-
-Human review fields derive from exposed object details and consequential effect fields.
-This closes review omissions, but is not a transport privacy guarantee: see the
-open prepare-response finding (SDK file: `docs/BANK-SECURITY-FINDING.md`). Installation and confirmation
-digests are not changed by presentation-only review filtering.
-
-Whole-experience review is separate from component correctness. The nonmodal reading
-and feedback increment addresses reproduced composition gaps, but does not establish
-consumer readiness. Large-collection paging/previews, authored action consequences,
-healthy-state messaging and actual assistive-technology/device review still need work.
-Those gaps are not a reason to replace the visual foundation.
-Behavioral tests and negative type tests do not constitute visual acceptance.
-
-## Reproduce without touching an older Notebook store
+From the SDK directory, with Node 24 and local PostgreSQL available:
 
 ```sh
 npm ci
@@ -761,11 +391,13 @@ npm run web:build -- build/my-notebook-preview
 npm run notebook:web -- build/my-notebook-preview .local/my-notebook-preview 4273
 ```
 
-Use Node 24 and the local PostgreSQL prerequisite described in LOCAL-CONTROLLER.md.
-Open the private launch URL written to that store's web-launch.json. Subsequent
-navigation uses the browser's local cookie. Never publish the invitation.
-Use a new build directory. Do not overwrite, migrate or repin an older store to
-silence a contract mismatch. The input presentation changes Notebook's digest.
+Use the host launch/access flow in LOCAL-CONTROLLER (SDK file: `docs/LOCAL-CONTROLLER.md`) and
+DISTRIBUTION-BUILDS (SDK file: `docs/DISTRIBUTION-BUILDS.md`). Never publish a private invitation.
+Use a new build/store when a contract is incompatible; do not repin or overwrite
+an older store to silence a mismatch. The generated
+source walkthrough (SDK file: `skills/desert/references/web-renderer.md`) is hash-checked
+and must be regenerated for its own source checkpoint. Documentation does not
+replace executable evidence.
 
 # Complete contract-to-controller source walkthrough
 
@@ -774,15 +406,27 @@ Regenerate with npm run authoring:generate; npm run authoring:check detects drif
 Paths below are relative to the SDK root. Read imports/types together; these are
 verbatim modules, not standalone snippets or a published package API.
 
-- products/notebook/note.ts
-- products/notebook/commands.ts
-- products/notebook/journeys.ts
-- products/notebook/surfaces.ts
-- products/notebook/product.ts
-- products/notebook/dependencies.ts
+- products/notebook/src/modules.ts
+- products/notebook/src/modules/notes/commands/archiveNote.command.ts
+- products/notebook/src/modules/notes/commands/createNote.command.ts
+- products/notebook/src/modules/notes/journeys/archiveNote.journey.ts
+- products/notebook/src/modules/notes/journeys/browseNotes.journey.ts
+- products/notebook/src/modules/notes/journeys/createNote.journey.ts
+- products/notebook/src/modules/notes/journeys/readNotes.journey.ts
+- products/notebook/src/modules/notes/note.object.ts
+- products/notebook/src/modules/notes/note.publication.ts
+- products/notebook/src/modules/notes/notes.dependencies.ts
+- products/notebook/src/modules/notes/notes.module.ts
+- products/notebook/src/modules/notes/views/createNote.view.ts
+- products/notebook/src/modules/notes/views/note.view.ts
+- products/notebook/src/modules/notes/views/notes.view.ts
+- products/notebook/src/notebook.product.ts
+- products/notebook/src/surfaces.ts
+- products/notebook/src/views/navigation.view.ts
+- products/notebook/src/views/workspace.view.ts
 - products/notebook/distributions.ts
 - src/interaction/catalog.ts
-- src/interaction/grammar.ts
+- src/field-representation.ts
 - src/interaction/form.ts
 - src/interaction/bank-schema.ts
 - src/interaction/bank-node.ts
@@ -802,6 +446,8 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/views/ViewProduct.svelte
 - src/svelte/views/Workspace.svelte
 - src/svelte/views/workspace-data.ts
+- src/svelte/views/media-data.ts
+- src/svelte/views/MediaContent.svelte
 - src/svelte/explorer/CatalogWorkspace.svelte
 - src/svelte/explorer/CatalogNavigation.svelte
 - src/svelte/explorer/CatalogNavigationActions.svelte
@@ -814,11 +460,9 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/views/InspectionContent.svelte
 - src/svelte/catalog/inspection-fixture.ts
 - src/svelte/catalog/inspection-media.ts
-- src/svelte/HumanProduct.svelte
-- src/svelte/ProductWorkspace.svelte
+- src/svelte/pieces/AccessGate.svelte
 - src/svelte/Collection.svelte
 - src/svelte/collection-retrieval.ts
-- src/svelte/SurfaceHost.svelte
 - src/svelte/SurfaceFrame.svelte
 - src/interaction/surface-frame.ts
 - src/interaction/frame-presenters.ts
@@ -887,12 +531,126 @@ verbatim modules, not standalone snippets or a published package API.
 - src/local/accept.ts
 - src/local/database.ts
 
-## products/notebook/note.ts
+## products/notebook/src/modules.ts
 
-Source SHA-256: bb794f0169a5c5144e9bfb2f0ea3b6ea19e9f66e8cdb8890290fa6831800da75
+Source SHA-256: 06849dfe6a0673bd2955040b3a8c1018b1d4e14110ccfb0a980d252daa24b396
 
 ```ts
-import { enumeration, objectType, ownershipPolicy, principal, text } from "../../src/index.ts";
+import { moduleCatalog } from "desert-sdk/src/index.ts";
+import { NotesModule } from "./modules/notes/notes.module.ts";
+
+export const Modules = moduleCatalog([NotesModule]);
+export const Journeys = Modules.journeys;
+export const Views = Modules.views;
+export const Commands = Modules.commands;
+export const Destinations = Modules.destinations;
+export const Dependencies = Modules.dependencies;
+```
+
+## products/notebook/src/modules/notes/commands/archiveNote.command.ts
+
+Source SHA-256: 089e17553c2419e87038ef5ff9a30c97e02b8333c6e27dd9255d4884c8386e8e
+
+```ts
+import { literal, updateCommand } from "desert-sdk/src/index.ts";
+import { Note } from "../note.object.ts";
+
+export const ArchiveNoteRecord = updateCommand("archive-note-record", Note, {
+  input: [], when: { state: "active" }, set: { state: literal("archived") },
+});
+```
+
+## products/notebook/src/modules/notes/commands/createNote.command.ts
+
+Source SHA-256: 982cdaff8b1af83a122df5be58ed4d7cb7f92a3cc2b0f6c3068f379f2a2da5d9
+
+```ts
+import { actorId, createCommand, fromInput, literal } from "desert-sdk/src/index.ts";
+import { Note } from "../note.object.ts";
+
+export const CreateNoteRecord = createCommand("create-note-record", Note, {
+  input: ["title", "body"],
+  values: { title: fromInput("title"), body: fromInput("body"), owner: actorId(), state: literal("active") },
+});
+```
+
+## products/notebook/src/modules/notes/journeys/archiveNote.journey.ts
+
+Source SHA-256: 1589e1eb910b20ac2454fc0a75c0cd75337355b1afd4087a2572a8fc3e411700
+
+```ts
+import { mutationJourney, type ViewJourney } from "desert-sdk/src/index.ts";
+import { ArchiveNoteRecord } from "../commands/archiveNote.command.ts";
+import { NotesController } from "../notes.dependencies.ts";
+import { ReadNote } from "./readNotes.journey.ts";
+
+export const ArchiveNote = mutationJourney("archive-note", ArchiveNoteRecord, { controller: NotesController, dependencies: [] });
+export const ArchiveNoteExperience = { id: ArchiveNote.id, kind: "action", source: ReadNote, outputs: [] } satisfies ViewJourney;
+```
+
+## products/notebook/src/modules/notes/journeys/browseNotes.journey.ts
+
+Source SHA-256: dc23591089a5f3cc6229d28484bea6db22fe57854dd0da01c7a951d01fc256ad
+
+```ts
+import { viewOutput, type ViewJourney } from "desert-sdk/src/index.ts";
+import { NoteView } from "../views/note.view.ts";
+import { NotesView } from "../views/notes.view.ts";
+import { CreateNote } from "./createNote.journey.ts";
+import { ReadNote } from "./readNotes.journey.ts";
+
+export const ReadNotesExperience = {
+  id: ReadNote.id, kind: "read", view: NotesView, detailView: NoteView,
+  outputs: [
+    { ...viewOutput(NotesView, "create"), action: { kind: "journey", journey: CreateNote } },
+    { ...viewOutput(NotesView, "select"), action: { kind: "select" } },
+    { ...viewOutput(NoteView, "close"), action: { kind: "close" } },
+  ],
+} satisfies ViewJourney;
+```
+
+## products/notebook/src/modules/notes/journeys/createNote.journey.ts
+
+Source SHA-256: 3556c69d675ebfbfaf046a0d3a7320be32f40c0b0ccdfff476bb174e098453ad
+
+```ts
+import { mutationJourney, viewOutput, type ViewJourney } from "desert-sdk/src/index.ts";
+import { CreateNoteRecord } from "../commands/createNote.command.ts";
+import { NotesController } from "../notes.dependencies.ts";
+import { CreateNoteView } from "../views/createNote.view.ts";
+import { ReadNote } from "./readNotes.journey.ts";
+
+export const CreateNote = mutationJourney("create-note", CreateNoteRecord, { controller: NotesController, dependencies: [] });
+export const CreateNoteExperience = {
+  id: CreateNote.id, kind: "create", source: ReadNote, view: CreateNoteView, preferredDock: "right",
+  outputs: [
+    { ...viewOutput(CreateNoteView, "save"), action: { kind: "submit" } },
+    { ...viewOutput(CreateNoteView, "close"), action: { kind: "close" } },
+  ],
+} satisfies ViewJourney;
+```
+
+## products/notebook/src/modules/notes/journeys/readNotes.journey.ts
+
+Source SHA-256: 73f003644cc55f21cca8c8d25f54ff251ece86222c3489270dd3b958560eeacb
+
+```ts
+import { readJourney } from "desert-sdk/src/index.ts";
+import { Note } from "../note.object.ts";
+import { NotesController } from "../notes.dependencies.ts";
+
+export const ReadNote = readJourney("read-note", Note, {
+  fields: ["title", "body", "state"], collection: ["title", "state"],
+  requires: { controller: NotesController, dependencies: [] },
+});
+```
+
+## products/notebook/src/modules/notes/note.object.ts
+
+Source SHA-256: 6ebaa8ea294933c9047bdc908a6d7aba241d4d0c9be994e8af5cf5f65c03f659
+
+```ts
+import { enumeration, objectType, ownershipPolicy, principal, text } from "desert-sdk/src/index.ts";
 
 export const Note = objectType({
   id: "note",
@@ -907,161 +665,220 @@ export const Note = objectType({
 export const OnlyOwnerCanAccess = ownershipPolicy(Note, "owner");
 ```
 
-## products/notebook/commands.ts
+## products/notebook/src/modules/notes/note.publication.ts
 
-Source SHA-256: b814565b55954ac07a12558e1e2f091bafa987e46732b063eb931f1c4e6e72f6
+Source SHA-256: dc57289f22dfb4fb91207c9d865bf342d615f40ccdeb23840ce29c2a08180603
 
 ```ts
-import { actorId, createCommand, fromInput, literal, updateCommand } from "../../src/index.ts";
-import { Note } from "./note.ts";
+import { factReference, publishObject } from "desert-sdk/src/index.ts";
+import { Note } from "./note.object.ts";
+import { NoteView } from "./views/note.view.ts";
+import { ArchiveNote } from "./journeys/archiveNote.journey.ts";
 
-export const CreateNoteRecord = createCommand("create-note-record", Note, {
-  input: ["title", "body"],
-  values: {
-    title: fromInput("title"),
-    body: fromInput("body"),
-    owner: actorId(),
-    state: literal("active"),
-  },
-});
-
-export const ArchiveNoteRecord = updateCommand("archive-note-record", Note, {
-  input: [],
-  when: { state: "active" },
-  set: { state: literal("archived") },
+export const PublishedNote = publishObject(Note, {
+  view: NoteView, title: factReference(Note, "title"),
+  fields: [
+    { fact: factReference(Note, "title"), label: "Title", representation: "text" },
+    { fact: factReference(Note, "body"), label: "Content", representation: "paragraphs" },
+    { fact: factReference(Note, "state"), label: "Status", representation: "text" },
+  ],
+  actions: [{ journey: ArchiveNote, icon: "archive" }],
 });
 ```
 
-## products/notebook/journeys.ts
+## products/notebook/src/modules/notes/notes.dependencies.ts
 
-Source SHA-256: 3f09b5c57cd6712122fc89b8efa17705e9b6b1c27dfdfe98a6ce706d5d597a6d
+Source SHA-256: daa1acd09dea50cda2d9d38c0047056f0a3944f7a85be5f2877b9c9e47de1a50
 
 ```ts
-import { mutationJourney, readJourney } from "../../src/index.ts";
-import { ArchiveNoteRecord, CreateNoteRecord } from "./commands.ts";
-import { Note } from "./note.ts";
-import { NotesController } from "./dependencies.ts";
+import { controllerRole } from "desert-sdk/src/index.ts";
+import { Note } from "./note.object.ts";
 
-export const CreateNote = mutationJourney("create-note", CreateNoteRecord, {
-  controller: NotesController, dependencies: [],
-});
-export const ReadNote = readJourney("read-note", Note, {
-  fields: ["title", "body", "state"],
-  collection: ["title", "state"],
-  requires: { controller: NotesController, dependencies: [] },
-});
-export const ArchiveNote = mutationJourney("archive-note", ArchiveNoteRecord, {
-  controller: NotesController, dependencies: [],
+export const NotesController = controllerRole({ id: "notes", objects: [Note], requires: [] });
+```
+
+## products/notebook/src/modules/notes/notes.module.ts
+
+Source SHA-256: 5bb397296a8113c3a1a0032756a0bafa625b9bb5d94b414c2f140fb7bc7d8223
+
+```ts
+import { defineModule } from "desert-sdk/src/index.ts";
+import { OnlyOwnerCanAccess } from "./note.object.ts";
+import { PublishedNote } from "./note.publication.ts";
+import { NotesController } from "./notes.dependencies.ts";
+import { CreateNote, CreateNoteExperience } from "./journeys/createNote.journey.ts";
+import { ReadNote } from "./journeys/readNotes.journey.ts";
+import { ReadNotesExperience } from "./journeys/browseNotes.journey.ts";
+import { ArchiveNote, ArchiveNoteExperience } from "./journeys/archiveNote.journey.ts";
+import { NotesView } from "./views/notes.view.ts";
+import { NoteView } from "./views/note.view.ts";
+import { CreateNoteView } from "./views/createNote.view.ts";
+
+const NotesDestination = { id: "notes", label: "Notes", icon: "open", entryJourney: ReadNote } as const;
+
+export const NotesModule = defineModule({
+  id: "notes", objects: [PublishedNote], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
+  journeys: [
+    { execution: CreateNote, presentation: CreateNoteExperience, label: "Create note", humanReview: "not-required" },
+    { execution: ReadNote, presentation: ReadNotesExperience, label: "Read notes" },
+    { execution: ArchiveNote, presentation: ArchiveNoteExperience, label: "Archive note", humanReview: "required" },
+  ],
+  views: [NotesView, NoteView, CreateNoteView], destinations: [NotesDestination],
+  exports: {
+    dependencies: { notes: NotesController },
+    journeys: { createNote: CreateNote, readNotes: ReadNote, archiveNote: ArchiveNote },
+    views: { Notes: NotesView, Note: NoteView, CreateNote: CreateNoteView }, destinations: { Notes: NotesDestination },
+  },
 });
 ```
 
-## products/notebook/surfaces.ts
+## products/notebook/src/modules/notes/views/createNote.view.ts
 
-Source SHA-256: 7a261d134a8735e27830a4bd51f76ab0129d44a3be5590e3523f36632d6b36a1
-
-```ts
-import { agentSurface, humanSurface } from "../../src/index.ts";
-import { ArchiveNote, CreateNote, ReadNote } from "./journeys.ts";
-
-export const HumanNotebook = humanSurface({
-  id: "human",
-  journeys: [CreateNote, ReadNote, ArchiveNote],
-  entry: ReadNote,
-  primaryAction: CreateNote,
-  subjectActions: [ArchiveNote],
-  inputs: { "note.body": "input.multiline" },
-  commit: {
-    "create-note": "submit",
-    "archive-note": "review",
-  },
-  language: {
-    locale: "en",
-    fields: { "note.title": "Title", "note.body": "Content", "note.state": "Status" },
-    journeys: { "create-note": "Create note", "read-note": "Read notes", "archive-note": "Archive note" },
-  },
-  connection: {
-    availability: "journey-dependencies",
-    draftRetention: "session-memory",
-    reconnect: "refresh-without-replay",
-  },
-});
-
-export const AgentNotebook = agentSurface("agent", [CreateNote, ReadNote, ArchiveNote]);
-```
-
-## products/notebook/product.ts
-
-Source SHA-256: aca3d8f9b48b6526e891474d1ad3643d1b311ed37b63b8d02696ecff83314488
+Source SHA-256: 34ffd636aa6d423afca0f4426f5074133ae36b9b3a4cc855487c542033917fa9
 
 ```ts
-import { product } from "../../src/index.ts";
-import { Note, OnlyOwnerCanAccess } from "./note.ts";
-import { ArchiveNote, CreateNote, ReadNote } from "./journeys.ts";
-import { AgentNotebook, HumanNotebook } from "./surfaces.ts";
-import { NotesController } from "./dependencies.ts";
+import { Components, ViewTitles, defineView, viewPorts } from "desert-sdk/src/index.ts";
 
-export const Notebook = product({
-  id: "notebook",
-  objects: [Note],
-  dependencies: [NotesController],
-  policies: [OnlyOwnerCanAccess],
-  journeys: [CreateNote, ReadNote, ArchiveNote],
-  surfaces: [HumanNotebook, AgentNotebook],
+const Ports = viewPorts({ inputs: { draft: "form" }, outputs: ["save", "close"] });
+
+export const CreateNoteView = defineView({
+  name: "create-note", outputs: Ports.outputs,
+  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: "Close", icon: "close" }] }),
+  bottomDock: Components.Toolbar({ actions: [{ output: Ports.output.save, label: "Create note", icon: "save" }] }),
+  content: [Components.Header({ title: ViewTitles.operation }), Components.Form({ input: Ports.inputs.draft })],
 });
 ```
 
-## products/notebook/dependencies.ts
+## products/notebook/src/modules/notes/views/note.view.ts
 
-Source SHA-256: 7a1df50bc7470a0dd7d3e259cd2db87ed41505e08f3eb205af6fd9edbba8d79c
+Source SHA-256: 3dfeaf5a978b7bf451b0f01f6aa035a44593ad1627a9b3e2c0fc146c3b5cbd17
 
 ```ts
-import { controllerRole } from "../../src/dependencies.ts";
-import { Note } from "./note.ts";
+import { Components, ViewTitles, defineView, viewPorts } from "desert-sdk/src/index.ts";
 
-export const NotesController = controllerRole({
-  id: "notes", objects: [Note], requires: [],
+const Ports = viewPorts({ inputs: { note: "context" }, outputs: ["close"] });
+
+export const NoteView = defineView({
+  name: "note", outputs: Ports.outputs,
+  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: "Close", icon: "close" }] }),
+  content: [Components.Header({ title: ViewTitles.subject }), Components.Context({ input: Ports.inputs.note })],
 });
+```
+
+## products/notebook/src/modules/notes/views/notes.view.ts
+
+Source SHA-256: 7184dae2291e832919b0b7e6d21a4b1ce232bba27b5d3da11d2228e982df2fda
+
+```ts
+import { Components, defineView, viewPorts } from "desert-sdk/src/index.ts";
+
+const Ports = viewPorts({ inputs: { notes: "collection" }, outputs: ["create", "select"] });
+
+export const NotesView = defineView({
+  name: "notes", outputs: Ports.outputs,
+  topDock: Components.Toolbar({ actions: [{ output: Ports.output.create, label: "Create note", icon: "create" }] }),
+  content: [
+    Components.Header({ title: "Read notes", subtitle: "Your private notebook." }),
+    Components.Stack({ title: "Notes", items: [Components.Collection({ input: Ports.inputs.notes, output: Ports.output.select })] }),
+  ],
+});
+```
+
+## products/notebook/src/notebook.product.ts
+
+Source SHA-256: 5a0e862548d3b71b4a99efa33901b7394ce31aa06d938c27c58c90b882726e53
+
+```ts
+import { composeProduct } from "desert-sdk/src/index.ts";
+import { Modules, Destinations } from "./modules.ts";
+import { WorkspaceView } from "./views/workspace.view.ts";
+import { NavigationView } from "./views/navigation.view.ts";
+import { HumanNotebook, AgentNotebook } from "./surfaces.ts";
+
+export const NotebookProduct = composeProduct({
+  id: "notebook", label: "Notebook", modules: Modules,
+  views: [WorkspaceView, NavigationView], workspace: WorkspaceView,
+  surfaces: [HumanNotebook, AgentNotebook], entry: Destinations.Notes,
+  navigation: [{ destination: Destinations.Notes, group: "Explore", purpose: "content" }],
+});
+
+export const Notebook = NotebookProduct.definition;
+export const NotebookViewProgram = NotebookProduct.viewProgram;
+```
+
+## products/notebook/src/surfaces.ts
+
+Source SHA-256: c58b68a9f0f426ac934ccbdff0f1ee06bb2bf3b6c00974c3356e70b7083a835a
+
+```ts
+import { agentSurface, humanSurface } from "desert-sdk/src/index.ts";
+import { Journeys } from "./modules.ts";
+
+const ExposedJourneys = [Journeys.createNote, Journeys.readNotes, Journeys.archiveNote] as const;
+export const HumanNotebook = humanSurface({ id: "human", journeys: ExposedJourneys, locale: "en" });
+export const AgentNotebook = agentSurface("agent", ExposedJourneys);
+```
+
+## products/notebook/src/views/navigation.view.ts
+
+Source SHA-256: a3934fda54f738b1c6b195dac297165afdbaba3f305334b2327c26d0ceb0c1ed
+
+```ts
+import { Components, ViewTitles, defineView } from "desert-sdk/src/index.ts";
+
+export const NavigationView = defineView({ name: "navigation", content: [Components.Header({ title: ViewTitles.product }), Components.Navigation()] });
+```
+
+## products/notebook/src/views/workspace.view.ts
+
+Source SHA-256: 9564a63f411eaa7c790840d7bf8151fe4a4a919ef935466894f5efd2d5c3f051
+
+```ts
+import { Components, defineView } from "desert-sdk/src/index.ts";
+import { NavigationView } from "./navigation.view.ts";
+
+export const WorkspaceView = defineView({ name: "workspace", leftDock: Components.Dock(NavigationView), content: [Components.Destination()] });
 ```
 
 ## products/notebook/distributions.ts
 
-Source SHA-256: 8c7e3f3b9baa48272cfd51bc22b7d1b4cae7177c8a0f8d82d217a58a743edc8b
+Source SHA-256: 43a37ef00600a67da93981211d2d70470fad28b9e3c1b1d8cf007de1c2088d94
 
 ```ts
 import { clientDistribution, controllerDistribution, localBinding, remoteBinding } from "../../src/index.ts";
-import { NotesController } from "./dependencies.ts";
+import { Dependencies } from "./src/modules.ts";
 import { Notebook } from "./product.ts";
 import { AgentNotebook, HumanNotebook } from "./surfaces.ts";
 
 export const NotebookService = controllerDistribution({
   id: "notebook-service", product: Notebook, runtime: "node", storage: "postgresql",
-  serves: [HumanNotebook, AgentNotebook], provides: [NotesController],
+  serves: [HumanNotebook, AgentNotebook], provides: [Dependencies.notes],
 });
 
 export const NotebookWeb = clientDistribution({
   id: "notebook-web", product: Notebook, surface: HumanNotebook,
-  renderer: "svelte-web", bindings: [remoteBinding(NotesController, NotebookService)],
+  renderer: "svelte-web", bindings: [remoteBinding(Dependencies.notes, NotebookService)],
 });
 
 export const NotebookIOS = clientDistribution({
   id: "notebook-ios", product: Notebook, surface: HumanNotebook,
-  renderer: "swiftui-ios", bindings: [remoteBinding(NotesController, NotebookService)],
+  renderer: "swiftui-ios", bindings: [remoteBinding(Dependencies.notes, NotebookService)],
 });
 
 export const NotebookCLI = clientDistribution({
   id: "notebook-cli", product: Notebook, surface: HumanNotebook,
-  renderer: "terminal-cli", bindings: [remoteBinding(NotesController, NotebookService)],
+  renderer: "terminal-cli", bindings: [remoteBinding(Dependencies.notes, NotebookService)],
 });
 
 export const NotebookLocal = clientDistribution({
   id: "notebook-local", product: Notebook, surface: HumanNotebook,
-  renderer: "terminal-cli", bindings: [localBinding(NotesController, "notes-local")],
+  renderer: "terminal-cli", bindings: [localBinding(Dependencies.notes, "notes-local")],
 });
 ```
 
 ## src/interaction/catalog.ts
 
-Source SHA-256: 9892a6e7c36fed79838a2eede72419d692e8b2044675cc7c1fd6c285ef393f30
+Source SHA-256: b2ddbe5499b183ceb1fe3d7524e3e6e07639c2502ffa31a86718602cb716e994
 
 ```ts
 import { freezeDeep, jsonSnapshot } from "../json.ts";
@@ -1075,23 +892,23 @@ function entry<const Id extends string, const Family extends string, const State
 }
 
 export const InteractionCatalog = freezeDeep({
-  id: "desert.human-interaction", version: "0.4.1",
+  id: "desert.human-interaction", version: "0.5.0",
   groups: CatalogGroups, foundations: CatalogFoundations,
   entries: [
-    entry("input.text", "primitive", ["empty", "value", "invalid", "disabled"], "controls", ["pane", "well"]),
-    entry("input.multiline", "primitive", ["empty", "value", "invalid", "disabled"], "controls", ["pane", "well"]),
+    entry("input.text", "primitive", ["empty", "value", "invalid", "disabled", "loading", "offline"], "foundations", ["pane", "well"]),
+    entry("input.multiline", "primitive", ["empty", "value", "invalid", "disabled", "loading", "offline"], "foundations", ["pane", "well"]),
     entry("fact", "primitive", ["known", "empty", "unknown"], "foundations", ["stack", "status"]),
-    entry("action", "primitive", ["ready", "unavailable", "pending"], "foundations", ["pane", "action"]),
+    entry("action", "primitive", ["ready", "unavailable", "pending", "loading", "offline"], "foundations", ["pane", "action"]),
     entry("availability", "primitive", ["unknown", "ready", "unavailable"], "foundations", ["status"]),
-    entry("collection", "composition", ["empty", "records"], "compositions", ["stack", "pane", "action"]),
+    entry("collection", "composition", ["empty", "records", "state-summary", "media-grid", "media-list", "collection-grid", "loading", "offline"], "compositions", ["stack", "pane", "action"]),
     entry("form", "composition", ["incomplete", "ready", "disconnected"], "compositions", ["stack", "well", "action"]),
-    entry("context", "composition", ["available", "unavailable"], "compositions", ["stack", "action"]),
+    entry("context", "composition", ["available", "unavailable", "media-object"], "compositions", ["stack", "action"]),
     entry("review", "composition", ["prepared", "uncertain"], "compositions", ["stack", "status", "action"]),
     entry("transient", "composition", ["open", "locked"], "compositions", ["pane", "stack", "action"]),
     entry("problem", "composition", ["error", "warning"], "compositions", ["pane", "status", "action"]),
-    entry("catalog.card", "composition", ["featured", "item"], "product", ["stack", "action"]),
-    entry("catalog.home", "composition", ["populated"], "product", ["stack"]),
-    entry("catalog.detail", "composition", ["reading"], "product", ["stack"]),
+    entry("catalog.card", "composition", ["featured", "item"], "compositions", ["stack", "action"]),
+    entry("catalog.home", "composition", ["populated"], "compositions", ["stack"]),
+    entry("catalog.detail", "composition", ["reading"], "compositions", ["stack"]),
     ...ControlBank.map(({ id, family, specimens, inspection }) => ({ id, family, states: specimens.map(specimen => specimen.state), inspection })),
   ] as const,
 });
@@ -1107,33 +924,102 @@ export function requireCatalog(candidate: unknown) {
 }
 ```
 
-## src/interaction/grammar.ts
+## src/field-representation.ts
 
-Source SHA-256: 4d68dc159434d9e9f9bfc48b26160d1fe99629af565a62ef7306908b9530c9d7
+Source SHA-256: 25379afa2a202dfd506491d33251b4f3c132d1a02678908f60986a70bfb1d692
 
 ```ts
-import { Type } from "@sinclair/typebox";
-import { InteractionCatalog } from "./catalog.ts";
-import type { InputPrimitive } from "./catalog.ts";
+import { Type, type Static } from "@sinclair/typebox";
+import { Check } from "@sinclair/typebox/value";
+import { FieldDefinitionSchema, type FieldDefinition } from "./field-definition.ts";
 
-export const InputPrimitiveSchema = Type.Union(InteractionCatalog.entries
-  .filter((entry): entry is Extract<typeof entry, { id: InputPrimitive }> => entry.id.startsWith("input."))
-  .map(entry => Type.Literal(entry.id)));
+export const FieldRepresentationSchema = Type.Union([Type.Literal("text"), Type.Literal("paragraphs"), Type.Literal("image"), Type.Literal("tags")]);
+export type FieldRepresentation = Static<typeof FieldRepresentationSchema>;
+export const FieldRepresentationsSchema = Type.Record(Type.String({ minLength: 1 }), FieldRepresentationSchema,
+  { additionalProperties: false });
+const FieldKindSchema = Type.Index(FieldDefinitionSchema, ["kind"]);
+export const FieldKindsSchema = Type.Record(Type.String({ minLength: 1 }), FieldKindSchema, { additionalProperties: false });
+export type FieldKind = Static<typeof FieldKindSchema>;
+
+export function supportsFieldRepresentation(fact: Pick<FieldDefinition, "kind">, representation: FieldRepresentation): boolean {
+  if (fact.kind === "asset") return representation === "image";
+  if (fact.kind === "labels") return representation === "tags";
+  return representation !== "image" && representation !== "tags" && fact.kind !== "principal" && (representation !== "paragraphs" || fact.kind === "text");
+}
+
+export function requireFieldRepresentations(value: unknown, fields: Iterable<string>): asserts value is Record<string, FieldRepresentation> {
+  if (!Check(FieldRepresentationsSchema, value)) throw new Error("INVALID_FIELD_REPRESENTATIONS");
+  const expected = new Set(fields);
+  for (const name of Object.keys(value)) {
+    if (!expected.has(name)) throw new Error(`Unknown field representation: ${name}`);
+  }
+  for (const name of expected) {
+    if (!Object.hasOwn(value, name)) throw new Error(`Missing field representation: ${name}`);
+  }
+}
+
+export function requireFieldKinds(value: unknown, fields: Iterable<string>): asserts value is Record<string, FieldKind> {
+  if (!Check(FieldKindsSchema, value)) throw new Error("INVALID_FIELD_KINDS");
+  const expected = new Set(fields);
+  for (const name of Object.keys(value)) {
+    if (!expected.has(name)) throw new Error(`Unknown field kind: ${name}`);
+  }
+  for (const name of expected) {
+    if (!Object.hasOwn(value, name)) throw new Error(`Missing field kind: ${name}`);
+  }
+}
+
+export function requireFieldPresentation(representations: unknown, kinds: unknown, fields: Iterable<string>) {
+  const names = [...fields];
+  requireFieldRepresentations(representations, names);
+  requireFieldKinds(kinds, names);
+  for (const [name, representation] of Object.entries(representations)) {
+    if (!supportsFieldRepresentation({ kind: kinds[name]! }, representation)) {
+      throw new Error(`Field representation type mismatch: ${name}`);
+    }
+  }
+  return { fieldRepresentations: representations, fieldKinds: kinds };
+}
+
+export function requireFieldRepresentation(representations: Readonly<Record<string, FieldRepresentation>>, field: string): FieldRepresentation {
+  const representation = Object.hasOwn(representations, field) ? representations[field] : undefined;
+  if (!Check(FieldRepresentationSchema, representation)) throw new Error(`INVALID_FIELD_REPRESENTATION: ${field}`);
+  return representation;
+}
 ```
 
 ## src/interaction/form.ts
 
-Source SHA-256: 7a0a8cadcdd62bf144185d07aad69e7a29802a22a128a6d41247310794c7eb51
+Source SHA-256: d26423178d36c10e950f6577e94530ef164c03cc247f6cd8442ba0adbee5b848
 
 ```ts
 import type { Mutation } from "../web/types.ts";
 import type { InputPrimitive } from "./catalog.ts";
+import { requireFieldRepresentation, type FieldRepresentation } from "../field-representation.ts";
+import { assetInputMedia } from "./image-input.ts";
 
-export function deriveForm(journey: Mutation, presentations: Readonly<Record<string, InputPrimitive>>) {
+const inputPrimitives = { text: "input.text", paragraphs: "input.multiline" } as const satisfies Record<Exclude<FieldRepresentation, "image" | "tags">, InputPrimitive>;
+
+export function deriveForm(journey: Mutation, representations: Readonly<Record<string, FieldRepresentation>>) {
   return journey.inputFields.map(name => {
     const schema = journey.inputSchema.properties[name]!;
+    const representation = requireFieldRepresentation(representations, `${journey.object}.${name}`);
+    if (representation === "image") {
+      if (schema.type !== "object") throw new Error("UNSUPPORTED_FORM_PRIMITIVE");
+      return { name, primitive: "control.files" as const, required: journey.inputSchema.required.includes(name), schema,media:assetInputMedia(schema) };
+    }
+    if (representation === "tags") {
+      if (schema.type !== "array" || typeof schema.maxItems !== "number" || typeof schema.items !== "object"
+        || !schema.items || Array.isArray(schema.items) || !("maxLength" in schema.items) || typeof schema.items.maxLength !== "number") throw new Error("UNSUPPORTED_FORM_PRIMITIVE");
+      return { name, primitive: "control.labels" as const, required: false,
+        limits: { maxItems: schema.maxItems, maxLength: schema.items.maxLength }, schema };
+    }
+    if (schema.type === "string" && Array.isArray(schema.enum) && schema.enum.every(value => typeof value === "string" && value.length > 0)) {
+      return { name, primitive: "control.select" as const, required: false, schema,
+        options: schema.enum.map(value => ({ value, label: value.charAt(0).toUpperCase() + value.slice(1), disabled: false })) };
+    }
     if (schema.type !== "string" || schema.enum) throw new Error("UNSUPPORTED_FORM_PRIMITIVE");
-    return { name, primitive: presentations[`${journey.object}.${name}`] ?? "input.text",
+    return { name, primitive: inputPrimitives[representation],
       // JSON Schema required means presence; the control's required means nonempty.
       required: journey.inputSchema.required.includes(name) && typeof schema.minLength === "number" && schema.minLength > 0, schema };
   });
@@ -1142,16 +1028,19 @@ export function deriveForm(journey: Mutation, presentations: Readonly<Record<str
 
 ## src/interaction/bank-schema.ts
 
-Source SHA-256: d9b069fa9c6b40a853d616929347301b2f8249a136a788ecbf203074a560366d
+Source SHA-256: fe45cefc4aedbf26e5ef169a4b417dee6c713f5e82f6408dcf05c0e2114f8bae
 
 ```ts
 import { Type, type TProperties, type TSchema } from "@sinclair/typebox";
 import { ControlNodeSchema } from "./control-nodes.ts";
-import { FactsSchema, FormSchema, ContextSchema, ReviewSchema, SurfaceFrameSchema } from "./surface-frame.ts";
+import { FactsSchema, FormSchema, TextFormFieldSchema, ContextSchema, ReviewSchema, SurfaceFrameSchema } from "./surface-frame.ts";
 import { ToolbarActionSchema, TopToolbarSchema, actionSchema } from "./toolbar.ts";
 import { CatalogFeaturedSchema, CatalogItemSchema, CatalogHomeSchema, CatalogDetailSchema } from "../public-catalog/node-schema.ts";
 import { CatalogEventSchema } from "../public-catalog/events.ts";
 import { InputMaskSchema } from "./input-mask.ts";
+import { LabelsNodeSchema } from "./labels-control.ts";
+import { AssetReferenceSchema } from "../assets/types.ts";
+import {AttentionSignalSchema} from '../attention.ts';
 
 const object = <T extends TProperties>(properties: T) => Type.Object(properties, { additionalProperties: false });
 const text = () => Type.String({ minLength: 1 });
@@ -1159,7 +1048,7 @@ const version = Type.Literal("desert.bank-node/1");
 const node = <K extends string, P extends TProperties>(kind: K, properties: P) => object({ version, kind: Type.Literal(kind), ...properties });
 const control = <K extends string, S extends TSchema>(kind: K, schema: S) => node(kind, { control: schema });
 const input = { name: text(), label: text(), value: Type.String(), required: Type.Boolean(),
-  disabled: Type.Boolean(), error: Type.Optional(text()), maxLength: FormSchema.properties.fields.items.properties.maxLength };
+  disabled: Type.Boolean(), error: Type.Optional(text()), helper: Type.Optional(text()), maxLength: TextFormFieldSchema.properties.maxLength };
 
 /** Local renderer operations cannot be confused with product journey identities. */
 export const LocalIntentSchema = Type.Union([
@@ -1175,8 +1064,19 @@ const action = Type.Union([ToolbarActionSchema, actionSchema(LocalIntentSchema),
   actionSchema(Type.Union([CatalogEventSchema.anyOf[0], CatalogEventSchema.anyOf[1]]))]);
 const record = object({ id: text(), version: Type.Integer({ minimum: 1 }), facts: FactsSchema.properties.facts });
 export const CollectionNodeSchema = node("collection", {
+  presentation: Type.Optional(Type.Union([
+    object({ kind: Type.Literal("media-grid"), image: text(), fit: Type.Optional(text()), description: Type.Optional(text()),
+      layout: Type.Optional(Type.Union([Type.Literal("grid"), Type.Literal("list")])) }),
+    object({ kind: Type.Literal("collection-grid"), title: text(), previews: Type.Array(object({ id: text(),
+      count: Type.Integer({ minimum: 0 }), media: Type.Optional(AssetReferenceSchema) }), { maxItems: 200 }) }),
+    object({ kind: Type.Literal("summary-widget"), title: text(), description: text(), totalLabel: text(), field: text(),
+      segments: Type.Array(object({ value:text(), label:text() }), {minItems:2,maxItems:6}), truncated: Type.Optional(Type.Boolean()) }),
+  ])),
   object: text(), fields: Type.Array(text(), { minItems: 1, uniqueItems: true }), labels: FactsSchema.properties.labels,
-  createLabel: text(), records: Type.Array(record), disabled: Type.Boolean(), loaded: Type.Boolean(),
+  valueLabels: Type.Optional(Type.Record(Type.String(), Type.Record(Type.String(), text()))),
+  attention:Type.Optional(Type.Record(Type.String(),Type.Array(AttentionSignalSchema))),
+  createLabel: Type.Optional(text()), records: Type.Array(record), disabled: Type.Boolean(), loaded: Type.Boolean(),
+  connection: Type.Optional(Type.Union([Type.Literal('loading'), Type.Literal('ready'), Type.Literal('offline')])),
   selectedId: Type.Union([Type.Null(), text()]),
 });
 
@@ -1196,13 +1096,14 @@ export const BankNodeSchema = Type.Union([
   control("control.money", ControlNodeSchema.anyOf[4]), control("control.date", ControlNodeSchema.anyOf[5]),
   control("control.tag", ControlNodeSchema.anyOf[6]), control("control.image", ControlNodeSchema.anyOf[7]),
   control("control.avatar", ControlNodeSchema.anyOf[8]),
+  control("control.labels", LabelsNodeSchema),
   CatalogFeaturedSchema, CatalogItemSchema, CatalogHomeSchema, CatalogDetailSchema,
 ]);
 ```
 
 ## src/interaction/bank-node.ts
 
-Source SHA-256: e6d2ac2754132949d3f0cbd0ae6306104ab1cec2b94b559adc2a59d79dcdabf3
+Source SHA-256: 98654960419bb7aae7965d0aa0ded85bdb19f2586b7abeb22017b7307e3c0d76
 
 ```ts
 import { type Static } from "@sinclair/typebox";
@@ -1215,6 +1116,7 @@ import { transientFrame } from "./transient-frame.ts";
 import type { PrimitiveId } from "./catalog.ts";
 import { checkCatalogHome } from "../public-catalog/node-schema.ts";
 import { inputMask } from "./input-mask.ts";
+import { collectionSummary } from './collection-summary.ts';
 
 export type BankNode = Frozen<Static<typeof BankNodeSchema>>;
 export type BankNodeFor<K extends PrimitiveId> = Extract<BankNode, { kind: K }>;
@@ -1232,8 +1134,20 @@ export function bankNode(value: unknown): BankNode {
   if (node.kind === "transient") transientFrame(surfaceFrame(node.frame), node.locked);
   if (node.kind === "action" && ((node.role === "primary" && ["back", "close", "catalog.back"].includes(node.action.intent.kind)) ||
     (node.form && node.action.intent.kind !== "journey"))) throw new Error("INVALID_BANK_ACTION");
+  if(node.kind==='collection'&&node.presentation?.kind==='summary-widget'){
+    if(!node.fields.includes(node.presentation.field))throw new Error('INVALID_WIDGET_FIELD');
+    collectionSummary(node.records,node.presentation);
+  }
   if (node.kind === "collection" && (new Set(node.records.map(record => record.id)).size !== node.records.length ||
+    (node.presentation?.kind === "media-grid" && [node.presentation.image, node.presentation.fit, node.presentation.description]
+      .some(field => field !== undefined && !node.fields.includes(field))) ||
+    (node.presentation?.kind === "collection-grid" && (!node.fields.includes(node.presentation.title) ||
+      new Set(node.presentation.previews.map(preview => preview.id)).size !== node.presentation.previews.length ||
+      node.presentation.previews.some(preview => !node.records.some(record => record.id === preview.id)))) ||
     node.records.some(record => Object.keys(record.facts).some(field => !node.fields.includes(field))) ||
+    Object.keys(node.valueLabels ?? {}).some(field => !node.fields.includes(field)) ||
+    Object.entries(node.attention ?? {}).some(([id,signals])=>!node.records.some(record=>record.id===id)||signals.some(signal=>
+      signal.target.kind!=='object'||signal.target.object!==node.object||signal.target.id!==id)) ||
     node.fields.some(field => !Object.hasOwn(node.labels, `${node.object}.${field}`)))) throw new Error("INVALID_BANK_COLLECTION");
   return freezeDeep(node);
 }
@@ -1248,7 +1162,7 @@ export function controlBankNode(control: ControlNode): Extract<BankNode, { contr
 
 ## src/interaction/bank-events.ts
 
-Source SHA-256: 70909a652b9ee71db921c06f4df5913684730c0ad9e8c434e3852b5034e8fa02
+Source SHA-256: d730365c00d36acd28cc8e34ed72fddc92194258009d667d26adc0dcfe504396
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -1258,16 +1172,19 @@ import { ControlEventSchema } from "./control-nodes.ts";
 import { SurfaceIntentSchema } from "./intent.ts";
 import { LocalIntentSchema } from "./bank-schema.ts";
 import { CatalogEventSchema } from "../public-catalog/events.ts";
+import { RelatedSelectionEventSchema } from "./related-selection.ts";
 
 const closed = { additionalProperties: false };
 const text = () => Type.String({ minLength: 1 });
 export const BankEventSchema = Type.Union([
   ...ControlEventSchema.anyOf,
   ...CatalogEventSchema.anyOf,
+  ...RelatedSelectionEventSchema.anyOf,
   Type.Object({ kind: Type.Literal("input.change"), name: text(), value: Type.String() }, closed),
   Type.Object({ kind: Type.Literal("surface.invoke"), intent: SurfaceIntentSchema }, closed),
   Type.Object({ kind: Type.Literal("local.invoke"), intent: LocalIntentSchema }, closed),
   Type.Object({ kind: Type.Literal("collection.select"), id: text() }, closed),
+  Type.Object({ kind: Type.Literal("attention.resume"), id: text() }, closed),
   Type.Object({ kind: Type.Literal("transient.close") }, closed),
   Type.Object({ kind: Type.Literal("transient.closed") }, closed),
   Type.Object({ kind: Type.Literal("problem.close") }, closed),
@@ -1282,24 +1199,33 @@ export function bankEvent(value: unknown): BankEvent {
 
 ## src/svelte/BankRenderer.svelte
 
-Source SHA-256: 43fb2abdf1ca5b50c22bcd28d22af133fe5c89b6db6e1a8864aa61b2433a3739
+Source SHA-256: 9d0a342494fa99c8d01ce66ad2a5463adb61051484c9193445d909eaa27a94f6
 
 ```svelte
 <script lang="ts">
-  import type { ActionElementProps } from "./action-adapter.ts";
-  import { bankNode, type BankNode } from "../interaction/bank-node.ts";
+  import type { BankRendererProps } from "./renderer-contracts.ts";
+  import { bankNode } from "../interaction/bank-node.ts";
   import { bankEvent, type BankEvent } from "../interaction/bank-events.ts";
   import type { ControlEvent } from "../interaction/control-nodes.ts";
-  import type { LocalFileHost } from "./controls/file-host.ts";
+  import type { SurfaceIntent } from "../interaction/intent.ts";
   import { webRenderers } from "./renderer-registry.ts";
+  import type { FormControlEvent } from "../interaction/form-control-event.ts";
 
-  let { node, onevent = () => {}, host, actionElementProps }: {
-    node: BankNode; onevent?: (event: BankEvent) => void; host?: LocalFileHost;
-    actionElementProps?: ActionElementProps;
-  } = $props();
+  let { node, onevent = () => {}, host, actionElementProps, frameIdentity }: BankRendererProps = $props();
   let checked = $derived(bankNode(node));
   const emit = (event: BankEvent) => onevent(bankEvent(event));
   const control = (event: ControlEvent) => emit(event);
+  let frameEvents = $derived.by(() => {
+    const sink = onevent;
+    const send = (event: BankEvent) => sink(bankEvent(event));
+    return {
+      close: () => send({ kind: "transient.close" }),
+      closed: () => send({ kind: "transient.closed" }),
+      invoke: (intent: SurfaceIntent) => send({ kind: "surface.invoke", intent }),
+      edit: (name: string, value: string) => send({ kind: "input.change", name, value }),
+      controls: (event: FormControlEvent) => send(event),
+    };
+  });
   function activate() {
     if (checked.kind !== "action" || checked.form || checked.action.state !== "ready") return;
     const intent = checked.action.intent;
@@ -1314,25 +1240,26 @@ Source SHA-256: 43fb2abdf1ca5b50c22bcd28d22af133fe5c89b6db6e1a8864aa61b2433a3739
 {#if checked.kind === "input.text"}
   {@const Renderer = webRenderers[checked.kind]}
   <Renderer primitive={checked.kind} identity={checked.name} label={checked.label} value={checked.value} required={checked.required}
-    disabled={checked.disabled} error={checked.error} mask={checked.mask} maxLength={checked.maxLength}
+    disabled={checked.disabled} error={checked.error} helper={checked.helper} mask={checked.mask} maxLength={checked.maxLength}
     onchange={value => checked.kind === "input.text" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "input.multiline"}
   {@const Renderer = webRenderers[checked.kind]}
   <Renderer primitive={checked.kind} label={checked.label} value={checked.value} required={checked.required}
-    disabled={checked.disabled} error={checked.error} maxLength={checked.maxLength}
+    disabled={checked.disabled} error={checked.error} helper={checked.helper} maxLength={checked.maxLength}
     onchange={value => checked.kind === "input.multiline" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "action"}
   {@const Renderer = webRenderers.action}
-  <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role}
+  <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role} reason={checked.action.reason}
     type={checked.form ? "submit" : "button"} onclick={activate} elementProps={actionElementProps} />
 {:else if checked.kind === "availability"}
   {@const Renderer = webRenderers.availability}<Renderer state={checked.state} label={checked.label} />
 {:else if checked.kind === "fact"}
   {@const Renderer = webRenderers.fact}<Renderer {...checked.details} />
 {:else if checked.kind === "form"}
-  {@const Renderer = webRenderers.form}<Renderer fields={checked.content.fields} edit={(name, value) => emit({ kind: "input.change", name, value })} />
+  {@const Renderer = webRenderers.form}<Renderer fields={checked.content.fields} edit={(name, value) => emit({ kind: "input.change", name, value })} controlEvent={emit} />
 {:else if checked.kind === "context"}
-  {@const Renderer = webRenderers.context}<Renderer {...checked.content.details} actions={checked.content.actions.map(action => ({
+  {@const Renderer = webRenderers.context}<Renderer {...checked.content.details} attention={checked.content.attention} selectors={checked.content.selectors} presentation={checked.content.presentation}
+    onselect={journey => emit({ kind: "surface.invoke", intent: { kind: "journey", journey } })} actions={checked.content.actions.map(action => ({
     id: action.destination, label: action.label, available: action.available,
     invoke: () => emit({ kind: "surface.invoke", intent: { kind: "journey", journey: action.destination } }),
   }))} />
@@ -1342,8 +1269,7 @@ Source SHA-256: 43fb2abdf1ca5b50c22bcd28d22af133fe5c89b6db6e1a8864aa61b2433a3739
   {@const Renderer = webRenderers.collection}<Renderer node={checked} select={id => emit({ kind: "collection.select", id })} />
 {:else if checked.kind === "transient"}
   {@const Renderer = webRenderers.transient}<Renderer label={checked.label} open={checked.open} locked={checked.locked} frame={checked.frame}
-    onclose={() => emit({ kind: "transient.close" })} onclosed={() => emit({ kind: "transient.closed" })}
-    invoke={intent => emit({ kind: "surface.invoke", intent })} edit={(name, value) => emit({ kind: "input.change", name, value })} />
+    {frameIdentity} onclose={frameEvents.close} onclosed={frameEvents.closed} invoke={frameEvents.invoke} edit={frameEvents.edit} controlEvent={frameEvents.controls} />
 {:else if checked.kind === "problem"}
   {@const Renderer = webRenderers.problem}<Renderer open={checked.open} title={checked.title} description={checked.description}
     locked={checked.locked} severity={checked.severity} close={() => emit({ kind: "problem.close" })} />
@@ -1353,6 +1279,8 @@ Source SHA-256: 43fb2abdf1ca5b50c22bcd28d22af133fe5c89b6db6e1a8864aa61b2433a3739
   {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.files"}
   {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} host={fileHost()} />
+{:else if checked.kind === "control.labels"}
+  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.options"}
   {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.money"}
@@ -1376,23 +1304,20 @@ Source SHA-256: 43fb2abdf1ca5b50c22bcd28d22af133fe5c89b6db6e1a8864aa61b2433a3739
 
 ## src/check-surface.ts
 
-Source SHA-256: bb1f277baa4bbb15f77ed63440af57b934daa4110724e535c2143eefcfdbbdf5
+Source SHA-256: d339e09937a9decd8686696b3cfd21c23ffa920a250c3cdd14847bf9d50da04e
 
 ```ts
 import type { ObjectDefinition } from "./contracts.ts";
 import type { JourneyDefinition, SurfaceDefinition } from "./program-grammar.ts";
 import { requireReference } from "./references.ts";
+import { surfaceFieldKinds, surfaceFields } from "./surface-fields.ts";
+import { requireFieldPresentation } from "./field-representation.ts";
 
 export function checkSurface(surface: SurfaceDefinition, journeys: Map<string, JourneyDefinition>, objects: Map<string, ObjectDefinition>) {
   const exposed = new Map(surface.journeys.map(id => [id, requireReference(journeys, id, "journey")]));
   if (surface.kind === "agent") return;
-  for (const [name] of Object.entries(surface.inputs ?? {})) {
-    const match = [...exposed.values()].find(journey => journey.kind === "mutation" &&
-      journey.command.input.some(field => `${journey.command.object}.${field}` === name));
-    if (!match || match.kind !== "mutation") throw new Error(`Unknown input presentation: ${name}`);
-    const field = name.slice(match.command.object.length + 1);
-    if (objects.get(match.command.object)!.facts[field]!.kind !== "text") throw new Error(`Input presentation type mismatch: ${name}`);
-  }
+  const { presented } = surfaceFields([...exposed.values()]);
+  requireFieldPresentation(surface.fieldRepresentations, surfaceFieldKinds(presented, objects), presented.keys());
   for (const journey of exposed.values()) {
     if (journey.kind === "mutation" && !Object.hasOwn(surface.commit, journey.id)) {
       throw new Error(`Missing commit mode: ${journey.id}`);
@@ -1401,78 +1326,53 @@ export function checkSurface(surface: SurfaceDefinition, journeys: Map<string, J
   for (const id of Object.keys(surface.commit)) {
     if (requireReference(exposed, id, "commit journey").kind !== "mutation") throw new Error("Only mutations have commit modes");
   }
-  for (const id of [surface.entry, surface.primaryAction, ...surface.subjectActions]) requireReference(exposed, id, "exposed journey");
-  if (exposed.get(surface.entry)?.kind !== "read") throw new Error("Human entry must be a read journey");
-  const primary = exposed.get(surface.primaryAction)!;
-  if (primary.kind !== "mutation" || primary.command.kind !== "create") throw new Error("Primary action must create");
-  for (const id of surface.subjectActions) {
-    const action = exposed.get(id)!;
-    if (action.kind !== "mutation" || action.command.kind !== "update") throw new Error("Subject action must update");
-    const entry = exposed.get(surface.entry)!;
-    if (entry.kind === "read" && entry.object !== action.command.object) throw new Error("Subject action object mismatch");
-  }
-  const requiredFields = new Set<string>();
   for (const journey of exposed.values()) {
     if (!Object.hasOwn(surface.language.journeys, journey.id)) throw new Error(`Missing journey label: ${journey.id}`);
-    const objectId = journey.kind === "read" ? journey.object : journey.command.object;
-    const object = objects.get(objectId)!;
-    const fields = journey.kind === "read" ? [...journey.fields, ...journey.collection]
-      : journey.command.kind === "create" ? journey.command.input : Object.keys(journey.command.set);
-    for (const name of fields) requiredFields.add(`${object.id}.${name}`);
   }
-  for (const name of requiredFields) {
+  for (const name of presented.keys()) {
     if (!Object.hasOwn(surface.language.fields, name)) throw new Error(`Missing field label: ${name}`);
   }
   for (const id of Object.keys(surface.language.journeys)) requireReference(exposed, id, "labeled journey");
   for (const name of Object.keys(surface.language.fields)) {
-    if (!requiredFields.has(name)) throw new Error(`Unknown field label: ${name}`);
+    if (!presented.has(name)) throw new Error(`Unknown field label: ${name}`);
   }
 }
 ```
 
 ## src/project-surface.ts
 
-Source SHA-256: 6fdea0f10be242340ed373a39195971af715107fe98f68f2aa537e1bb310c8bc
+Source SHA-256: f46bcb1e605eadf6541331b16fe78724526ec0c4ccbb8ce98bd65ffd0dafea37
 
 ```ts
 import type { ProductDefinition } from "./contracts.ts";
 import type { compileProgram } from "./compile-program.ts";
-import type { JourneyDefinition, SurfaceDefinition } from "./program-grammar.ts";
+import type { SurfaceDefinition } from "./program-grammar.ts";
 import { emitObject } from "./schema.ts";
 import { freezeDeep } from "./json.ts";
 import { InteractionCatalog } from "./interaction/catalog.ts";
-
-function reviewFields(product: ProductDefinition, program: ReturnType<typeof compileProgram>,
-  surface: Extract<SurfaceDefinition, { kind: "human" }>, journey: Extract<JourneyDefinition, { kind: "mutation" }>) {
-  const command = journey.command;
-  const owner = product.policies?.find(policy => policy.object === command.object)?.field;
-  const reads = surface.journeys.map(id => program.journeys.get(id)!)
-    .filter(journey => journey.kind === "read" && journey.object === command.object);
-  const details = reads.flatMap(journey => journey.kind === "read" ? journey.fields : []);
-  const exposed = new Set([...command.input, ...details,
-    ...reads.flatMap(journey => journey.kind === "read" ? journey.collection : [])]);
-  const effects = Object.keys(command.kind === "create" ? command.values : command.set).filter(name => name !== owner);
-  // Review never grants visibility: unsupported consequential private changes fail closed.
-  if (surface.commit[journey.id] === "review") {
-    for (const name of effects) {
-      if (!exposed.has(name)) throw new Error(`UNSUPPORTED_REVIEW_PROJECTION: ${journey.id}.${name}`);
-    }
-  }
-  return [...new Set([...details, ...effects.filter(name => exposed.has(name))])].filter(name => name !== owner);
-}
+import { InteractionProtocolVersion } from "./interaction/protocol.ts";
+import { preparationFields } from "./preparation-projection.ts";
+import { surfaceFieldKinds, surfaceFields } from "./surface-fields.ts";
+import { referenceCapabilities } from './reference-capabilities.ts';
+import { mediaReferenceCapabilities } from './media-reference-capabilities.ts';
 
 export function projectSurface(product: ProductDefinition, program: ReturnType<typeof compileProgram>, surface: SurfaceDefinition, digest: string) {
+  const exposed = surface.journeys.map(id => program.journeys.get(id)!);
   const journeys = surface.journeys.map(id => {
     const journey = program.journeys.get(id)!;
     const dependencies = program.journeyDependencies.get(id)!;
-    if (journey.kind === "mutation") return {
-      id, kind: "mutation" as const, commandId: journey.command.id, dependencies,
-      object: journey.command.object, inputFields: journey.command.input,
-      inputSchema: program.commands.get(journey.command.id)!.inputSchema,
-      ...(surface.kind === "human" ? { reviewFields: reviewFields(product, program, surface, journey) } : {}),
-      ...(journey.command.kind === "update" ? { subject: journey.command.object } : {}),
-      confirmation: journey.confirmation, outcome: journey.outcome,
-    };
+    if (journey.kind === "mutation") {
+      const responseFields = preparationFields(product, program, surface, journey);
+      return {
+        id, kind: "mutation" as const, commandId: journey.command.id, dependencies,
+        object: journey.command.object, inputFields: journey.command.input,
+        inputSchema: program.commands.get(journey.command.id)!.inputSchema,
+        responseFields,
+        ...(surface.kind === "human" ? { reviewFields: responseFields } : {}),
+        ...(journey.command.kind === "update" ? { subject: journey.command.object } : {}),
+        confirmation: journey.confirmation, outcome: journey.outcome,
+      };
+    }
     const object = product.objects.find(object => object.id === journey.object)!;
     const projection = (fields: string[]) => emitObject({
       id: object.id, facts: Object.fromEntries(fields.map(name => [name, object.facts[name]!])),
@@ -1482,11 +1382,13 @@ export function projectSurface(product: ProductDefinition, program: ReturnType<t
       detailSchema: projection(journey.fields), collectionSchema: projection(journey.collection) };
   });
   return freezeDeep({
-    protocol: "desert.interaction/6" as const, id: surface.id, kind: surface.kind,
+    protocol: InteractionProtocolVersion, id: surface.id, kind: surface.kind,
     productId: product.id, contractDigest: digest, execution: "not-installed" as const, journeys,
     ...(surface.kind === "human" ? {
-      catalog: InteractionCatalog, inputs: surface.inputs ?? {},
-      navigation: { entry: surface.entry, primaryAction: surface.primaryAction, subjectActions: surface.subjectActions },
+      catalog: InteractionCatalog, fieldRepresentations: surface.fieldRepresentations,
+      fieldReferences: referenceCapabilities(product, exposed),
+      fieldMediaReferences:mediaReferenceCapabilities(product,exposed),
+      fieldKinds: surfaceFieldKinds(surfaceFields(exposed).presented, new Map(product.objects.map(object => [object.id, object]))),
       language: surface.language, connection: surface.connection, commit: surface.commit,
     } : {}),
   });
@@ -1495,7 +1397,7 @@ export function projectSurface(product: ProductDefinition, program: ReturnType<t
 
 ## src/web/build.ts
 
-Source SHA-256: 3d43f9a00047a303fe47e288117a1cb14ccfd9b4f44402d24a4052ec1ddf1582
+Source SHA-256: 07122649d0f000116a0bbb2d80f47d52910ea7875c7e84dab434df5706a4e392
 
 ```ts
 import { Ajv } from "ajv";
@@ -1506,30 +1408,27 @@ import type { compile } from "../compile.ts";
 import { requireCatalog } from "../interaction/catalog.ts";
 import { deriveForm } from "../interaction/form.ts";
 import { compileViewProgram } from "../views/program.ts";
+import { productViewProgram } from "../modules/compiled-product.ts";
+import { requireFieldPresentation } from "../field-representation.ts";
+import { viewProgramActivities } from "../activities/presentation.ts";
 
-export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string, program?: unknown) {
+export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string) {
+  if (arguments.length > 2) throw new Error("VIEW_PROGRAM_OVERRIDE_FORBIDDEN");
   const surface = application.surface(surfaceId);
   if (surface.kind !== "human") throw new Error("HUMAN_SURFACE_REQUIRED");
   requireCatalog(surface.catalog);
   if (surface.language?.locale !== "en") throw new Error("UNSUPPORTED_RENDERER_LANGUAGE");
-  const viewProgram = program === undefined ? null : compileViewProgram(program, surface);
-  const entry = surface.journeys.find(journey => journey.id === surface.navigation?.entry);
-  if (entry?.kind !== "read") throw new Error("UNSUPPORTED_RENDERER_ENTRY");
-  const navigation = new Set([surface.navigation!.entry, surface.navigation!.primaryAction, ...surface.navigation!.subjectActions]);
-  for (const journey of surface.journeys) {
-    if (!navigation.has(journey.id) || (journey.kind === "mutation" &&
-        (journey.object !== entry.subject || (journey.subject && journey.inputFields.length)))) {
-      throw new Error("UNSUPPORTED_RENDERER_COMPOSITION");
-    }
-  }
+  const fieldPresentation = requireFieldPresentation(surface.fieldRepresentations, surface.fieldKinds, Object.keys(surface.language.fields));
+  const viewProgram = compileViewProgram(productViewProgram(application), surface);
+  viewProgramActivities(application, viewProgram, surfaceId);
   const engine = new Ajv({ strict: true, allErrors: true, ownProperties: true,
     coerceTypes: false, removeAdditional: false, useDefaults: false, code: { source: true, esm: true } });
   const exports: Record<string, string> = {};
   const commands = new Map<string, string>();
   for (const journey of surface.journeys) {
     if (journey.kind !== "mutation" || commands.has(journey.commandId)) continue;
-    deriveForm(journey, surface.inputs ?? {});
-    const name = `validate${commands.size}`;
+    deriveForm(journey, fieldPresentation.fieldRepresentations);
+    const name = `desertInputValidator${commands.size}`;
     engine.addSchema(journey.inputSchema, journey.commandId);
     exports[name] = journey.commandId;
     commands.set(journey.commandId, name);
@@ -1555,25 +1454,20 @@ export async function buildHumanModule(application: ReturnType<typeof compile>, 
 
 ## src/build/svelte/template/src/routes/+page.svelte
 
-Source SHA-256: 1fa3b0f098ffb0d2a538268465800a1a1b5822f21026b09f3138e8f99ad5e123
+Source SHA-256: 07788affe67fb7b89960bb5ded4a7ec7cda11216547118ecaf6d48aa1fdbbb01
 
 ```svelte
 <script lang="ts">
-  import HumanProduct from "@desert/svelte/HumanProduct.svelte";
-  import ViewProduct from "@desert/svelte/views/ViewProduct.svelte";
+  import AccessGate from "@desert/svelte/pieces/AccessGate.svelte";
   import { surface, validateInput, viewProgram } from "virtual:desert/surface";
 </script>
 
-{#if viewProgram}
-  <ViewProduct program={viewProgram} {surface} {validateInput} />
-{:else}
-  <HumanProduct {surface} {validateInput} />
-{/if}
+<AccessGate {surface} {validateInput} {viewProgram} />
 ```
 
 ## src/svelte/renderer-contracts.ts
 
-Source SHA-256: b8dc0be703191c62aa5d008490edfd3426368542c5a69ab3c9e3317a9db30c67
+Source SHA-256: c3360038de39c044a42e288884070f7a638112504dd5518786f79f584c59e48c
 
 ```ts
 import type { Component } from "svelte";
@@ -1582,24 +1476,32 @@ import type { ControlNode, ControlEvent } from "../interaction/control-nodes.ts"
 import type { SurfaceFrame, FrameContent, FactsContent, Destination } from "../interaction/surface-frame.ts";
 import type { ToolbarAction, TopToolbar } from "../interaction/toolbar.ts";
 import type { SurfaceIntent } from "../interaction/intent.ts";
-import type { BankNodeFor } from "../interaction/bank-node.ts";
+import type { BankNode, BankNodeFor } from "../interaction/bank-node.ts";
 import type { BankEvent } from "../interaction/bank-events.ts";
 import type { LocalFileHost } from "./controls/file-host.ts";
 import type { ActionElementProps } from "./action-adapter.ts";
 import type { InputMask } from "../interaction/input-mask.ts";
+import { freezeDeep } from "../json.ts";
+import type { FormControlEvent } from "../interaction/form-control-event.ts";
+
+/** Private dispatcher inputs; public authoring only supplies serializable BankNode. */
+export type BankRendererProps = {
+  node: BankNode; onevent?: (event: BankEvent) => void; host?: LocalFileHost;
+  actionElementProps?: ActionElementProps; frameIdentity?: object;
+};
 
 export type ControlKind = ControlNode["kind"];
-export type ControlEventFor<K extends ControlKind> = Extract<ControlEvent, { kind: `${K}.${string}` }>;
+export type ControlEventFor<K extends ControlKind> = Extract<ControlEvent, { kind: `${K}.${string}` | (K extends 'labels' ? `reference.${string}` : never) }>;
 export type ControlProps<K extends ControlKind> = { node: Extract<ControlNode, { kind: K }> } &
   ([ControlEventFor<K>] extends [never] ? {} : { onevent: (event: ControlEventFor<K>) => void }) &
   (K extends "files" ? { host: LocalFileHost } : {});
 
 type Invoke = (intent: SurfaceIntent) => void;
 type Edit = (name: string, value: string) => void;
-type FactsProps = Pick<FactsContent, "fields" | "facts" | "object" | "labels" | "multiline">;
+type FactsProps = Pick<FactsContent, "fields" | "facts" | "object" | "labels" | "multiline" | "images" | "tags" | "references">;
 type InputProps<P extends InputPrimitive> = {
   primitive: P; label: string; value?: string; required?: boolean; identity?: string; maxLength?: number | undefined;
-  invalid?: boolean; error?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
+  invalid?: boolean; error?: string | undefined; helper?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
 };
 type ControlRendererProps = { [K in ControlKind as `control.${K}`]: ControlProps<K> };
 
@@ -1612,19 +1514,19 @@ export type WebRendererProps = ControlRendererProps & {
   "input.multiline": InputProps<"input.multiline">;
   fact: FactsProps;
   action: Pick<ToolbarAction, "label" | "icon"> & {
-    state?: ToolbarAction["state"]; emphasis?: "primary" | "secondary";
+    state?: ToolbarAction["state"]; emphasis?: "primary" | "secondary"; reason?: string | undefined;
     onclick?: () => void; type?: "button" | "submit"; elementProps?: ActionElementProps | undefined;
   };
   availability: NonNullable<TopToolbar["availability"]>;
   collection: { node: BankNodeFor<"collection">; select: (id: string) => void };
-  form: { fields: Extract<FrameContent, { kind: "form" }>["fields"]; edit: Edit };
-  context: FactsProps & { actions: readonly (Pick<Destination, "label" | "available"> & {
+  form: { fields: Extract<FrameContent, { kind: "form" }>["fields"]; edit: Edit; controlEvent: (event: FormControlEvent) => void };
+  context: FactsProps & { attention?:Extract<FrameContent,{kind:'context'}>['attention']; presentation?: Extract<FrameContent, { kind: "context" }>["presentation"]; selectors?: Extract<FrameContent, { kind: "context" }>["selectors"]; onselect?: (journey: string) => void; actions: readonly (Pick<Destination, "label" | "available"> & {
     id: Destination["destination"]; invoke: () => void;
   })[] };
   review: Extract<FrameContent, { kind: "review" }>;
   transient: {
     label: string; open: boolean; locked?: boolean; onclose: () => void; onclosed?: () => void;
-    frame: SurfaceFrame; invoke: Invoke; edit?: Edit;
+    frame: SurfaceFrame; invoke: Invoke; edit?: Edit; frameIdentity?: object | undefined; controlEvent?: ((event: FormControlEvent) => void) | undefined;
   };
   problem: {
     open: boolean; title: TopToolbar["title"]; description: Extract<FrameContent, { kind: "message" }>["text"];
@@ -1634,13 +1536,23 @@ export type WebRendererProps = ControlRendererProps & {
 
 /** Inventory and props are both checked; a component for another entry is not interchangeable. */
 export type WebRendererBank = { readonly [K in PrimitiveId]: Component<WebRendererProps[K]> };
+
+/** Only these private host channels may bypass serializable node data. */
+export const DispatcherCapabilities = freezeDeep({
+  action: { property: "elementProps", input: "actionElementProps", required: false },
+  transient: { property: "frameIdentity", input: "frameIdentity", required: false },
+  "control.files": { property: "host", input: "host", required: true },
+} as const satisfies { [K in PrimitiveId]?: {
+  property: keyof WebRendererProps[K]; input: keyof BankRendererProps; required: boolean;
+} });
 ```
 
 ## src/svelte/renderer-registry.ts
 
-Source SHA-256: 485a298f113df082edcb280949b9a1ef837d6735893f2632d07488346b93932d
+Source SHA-256: 9547dc82da486a4075733b8eb5a8d5940c086aeee6e140ea610bb95f212d56c9
 
 ```ts
+// Generated from catalog-manifest.ts. Run scripts/web-catalog.ts --write; do not edit.
 import type { WebRendererBank } from "./renderer-contracts.ts";
 import TextInput from "./pieces/TextInput.svelte";
 import Action from "./pieces/Action.svelte";
@@ -1655,6 +1567,7 @@ import Review from "./Review.svelte";
 import SelectControl from "./controls/SelectControl.svelte";
 import PopoverControl from "./controls/PopoverControl.svelte";
 import FileControl from "./controls/FileControl.svelte";
+import LabelsControl from "./pieces/LabelsControl.svelte";
 import OptionsControl from "./controls/OptionsControl.svelte";
 import MoneyControl from "./controls/MoneyControl.svelte";
 import DateControl from "./controls/DateControl.svelte";
@@ -1666,18 +1579,19 @@ import CatalogDetail from "./explorer/CatalogDetail.svelte";
 export const webRenderers: WebRendererBank = Object.freeze({
   "input.text": TextInput,
   "input.multiline": TextInput,
-  fact: Facts,
   action: Action,
   availability: Availability,
-  collection: Collection,
-  form: Fields,
-  context: ContextPanel,
-  review: Review,
   transient: Drawer,
   problem: Problem,
+  fact: Facts,
+  form: Fields,
+  collection: Collection,
+  context: ContextPanel,
+  review: Review,
   "control.select": SelectControl,
   "control.popover": PopoverControl,
   "control.files": FileControl,
+  "control.labels": LabelsControl,
   "control.options": OptionsControl,
   "control.money": MoneyControl,
   "control.date": DateControl,
@@ -1692,7 +1606,7 @@ export const webRenderers: WebRendererBank = Object.freeze({
 
 ## src/views/program-schema.ts
 
-Source SHA-256: 101ceedcc4f735de98c7c599f2b8b4370c7373aad42c8644526f151d75784fb1
+Source SHA-256: a7ca597c6071e74e811a99c43165fc406933869113bcb9d54d6b55e27ea42237
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -1700,42 +1614,79 @@ import type { Frozen } from "../json.ts";
 import { ActionIconSchema } from "../interaction/toolbar.ts";
 import { ViewSchema, ViewLimits } from "./schema.ts";
 import { closed, immutable, name, text } from "./definition.ts";
+import { ObjectPresentationSchema, FactReferenceSchema } from "./object-presentation.ts";
+import { ActivityPlanSchema } from "../activities/schema.ts";
 
-export const ViewProgramVersion = "desert.view-program/1" as const;
+export const ViewProgramVersion = "desert.view-program/4" as const;
 export const ViewOutputActionSchema = immutable(Type.Union([
   closed({ kind: Type.Literal("journey"), journey: name }),
   closed({ kind: Type.Literal("select") }),
   closed({ kind: Type.Literal("submit") }),
   closed({ kind: Type.Literal("close") }),
+  closed({ kind: Type.Literal("back") }),
+  closed({ kind: Type.Literal("lock") }),
 ]));
 export const ViewOutputBindingSchema = closed({ view: name, output: name, action: ViewOutputActionSchema });
 const outputs = Type.Array(ViewOutputBindingSchema, { maxItems: ViewLimits.catalogSize });
+export const ViewJourneyVariants = Object.freeze({
+  presentation: closed({ id: name, kind: Type.Literal("presentation"), view: name,
+    collections: Type.Optional(Type.Array(closed({ input: name, read: name, limit: Type.Integer({ minimum: 1, maximum: 200 }),
+      summary: Type.Optional(closed({ field: FactReferenceSchema,
+        segments: Type.Array(closed({ value:text,label:text }), {minItems:2,maxItems:6}) })),
+      preview: Type.Optional(closed({ read: name, where: FactReferenceSchema, media: FactReferenceSchema,
+        cover: Type.Optional(FactReferenceSchema) })),
+      where: Type.Optional(closed({ field: name, value: text })) }), { maxItems: 8 })), outputs }),
+  read: closed({ id: name, kind: Type.Literal("read"), view: name, detailView: name,
+    presentation: Type.Optional(Type.Literal("main")),
+    referenceCreation: Type.Optional(Type.Literal("separate")),
+    related: Type.Optional(Type.Array(closed({ input: name, read: name,
+      layout: Type.Optional(FactReferenceSchema),
+      membership: Type.Optional(closed({ update: name, input: name })),
+      where: closed({ field: FactReferenceSchema, includes: Type.Literal("subject") }) }), { maxItems: 8 })), outputs }),
+  create: closed({ id: name, kind: Type.Literal("create"), source: name, view: name, preferredDock: Type.Literal("right"),
+    initializeFrom: Type.Optional(closed({ input: name, source: name })),
+    presentation: Type.Optional(Type.Literal("transient")),
+    startWith: Type.Optional(closed({ kind: Type.Literal("file-picker"), input: name })), outputs }),
+  update: closed({ id: name, kind: Type.Literal("update"), source: name, view: name, preferredDock: Type.Literal("right"),
+    presentation: Type.Optional(Type.Literal("transient")),
+    initialize: Type.Array(closed({ input: name, fact: name }), { maxItems: ViewLimits.catalogSize }), outputs }),
+  action: closed({ id: name, kind: Type.Literal("action"), source: name, outputs: Type.Tuple([]) }),
+  activity: closed({ id: name, kind: Type.Literal("activity"), source: name, activity: ActivityPlanSchema,
+    preferredDock: Type.Literal("right"), outputs: Type.Tuple([]) }),
+});
 export const ViewJourneySchema = immutable(Type.Union([
-  closed({ id: name, kind: Type.Literal("presentation"), view: name, outputs }),
-  closed({ id: name, kind: Type.Literal("read"), view: name, detailView: name, outputs }),
-  closed({ id: name, kind: Type.Literal("create"), view: name, preferredDock: Type.Literal("right"), outputs }),
+  ViewJourneyVariants.presentation, ViewJourneyVariants.read, ViewJourneyVariants.create,
+  ViewJourneyVariants.update, ViewJourneyVariants.action, ViewJourneyVariants.activity,
 ]));
 export const ViewDestinationSchema = closed({ id: name, label: text, icon: ActionIconSchema, entryJourney: name });
+/** Product navigation owns selection, order and semantic grouping; icons are not routing rules. */
+export const ViewNavigationEntrySchema = immutable(closed({
+  destination: name, group: text, purpose: Type.Union([Type.Literal("content"), Type.Literal("utility")]),
+}));
 export const ViewProgramSchema = closed({
-  version: Type.Literal(ViewProgramVersion), productId: name, label: text,
+  version: Type.Literal(ViewProgramVersion), productId: name, label: text, workspace: name,
+  objects: Type.Optional(Type.Array(ObjectPresentationSchema, { maxItems: ViewLimits.catalogSize })),
   views: Type.Array(ViewSchema, { minItems: 1, maxItems: ViewLimits.catalogSize }),
   journeys: Type.Array(ViewJourneySchema, { minItems: 1, maxItems: ViewLimits.catalogSize }),
   destinations: Type.Array(ViewDestinationSchema, { minItems: 1, maxItems: ViewLimits.catalogSize }),
-  entry: name, navigation: Type.Array(name, { minItems: 1, maxItems: ViewLimits.catalogSize }),
+  entry: name, navigation: Type.Array(ViewNavigationEntrySchema, { minItems: 1, maxItems: ViewLimits.catalogSize }),
 });
 export type ViewProgram = Frozen<Static<typeof ViewProgramSchema>>;
 export type ViewJourney = Frozen<Static<typeof ViewJourneySchema>>;
 export type ViewDestination = Frozen<Static<typeof ViewDestinationSchema>>;
+export type ViewNavigationEntry = Frozen<Static<typeof ViewNavigationEntrySchema>>;
 export type ViewOutputBinding = Frozen<Static<typeof ViewOutputBindingSchema>>;
 export type ViewOutputAction = Frozen<Static<typeof ViewOutputActionSchema>>;
 ```
 
 ## src/views/program.ts
 
-Source SHA-256: 12eeb1aadff30b09fd799a315045bf8f354f30025de4f1dad0daa10a471e378a
+Source SHA-256: 828bdd5917e750aab099a4d663dc69d4d3fe1a99592f3d4d4f31e6cc7cc6f22e
 
 ```ts
 import { Check } from "@sinclair/typebox/value";
+import { ConnectionPolicySchema } from "../connection-policy.ts";
+import { requireProgramOwnedNavigation } from "../navigation-ownership.ts";
 import { freezeDeep } from "../json.ts";
 import type { Surface } from "../web/types.ts";
 import { ViewProgramSchema, type ViewProgram } from "./program-schema.ts";
@@ -1743,59 +1694,83 @@ import { viewSnapshot } from "./snapshot.ts";
 import { viewCatalog } from "./catalog.ts";
 import { journeyViews, validateJourneyExposure, validateJourneyViews } from "./program-views.ts";
 import { validateJourneyOutputs } from "./program-outputs.ts";
+import { validateProgramBindings } from "./program-bindings.ts";
+import { validateProgramHeaders } from "./program-headers.ts";
+import { viewHeaderImages } from "./header-media.ts";
+import { InteractionProtocolVersion } from "../interaction/protocol.ts";
+import { requireFieldPresentation } from "../field-representation.ts";
+import { validateProgramWorkspace } from "./program-workspace.ts";
 
 /** Bind presentation to an already compiled human exposure; this grants no execution authority. */
 export function compileViewProgram(definition: unknown, surface: Surface): ViewProgram {
+  requireProgramOwnedNavigation(surface);
   const input = viewSnapshot(definition);
   if (!Check(ViewProgramSchema, input)) throw new Error("INVALID_VIEW_PROGRAM");
-  if (surface.kind !== "human" || surface.protocol !== "desert.interaction/6" || !surface.navigation ||
-    !surface.language || !surface.commit || !surface.connection) throw new Error("INVALID_VIEW_PROGRAM_SURFACE");
-  const human = { ...surface, navigation: surface.navigation, language: surface.language,
-    commit: surface.commit, connection: surface.connection };
+  if (surface.kind !== "human" || surface.protocol !== InteractionProtocolVersion ||
+    !surface.language || !surface.commit || !surface.connection ||
+    !Check(ConnectionPolicySchema, surface.connection)) throw new Error("INVALID_VIEW_PROGRAM_SURFACE");
+  const fieldPresentation = requireFieldPresentation(surface.fieldRepresentations, surface.fieldKinds, Object.keys(surface.language.fields));
+  const human = { ...surface, language: surface.language,
+    commit: surface.commit, connection: surface.connection, ...fieldPresentation };
   if (input.productId !== surface.productId) throw new Error("VIEW_PROGRAM_PRODUCT_MISMATCH");
   const views = new Map(viewCatalog(input.views).map(item => [item.id, item]));
   const journeys = new Map(input.journeys.map(item => [item.id, item]));
   if (journeys.size !== input.journeys.length) throw new Error("DUPLICATE_VIEW_JOURNEY");
   const destinations = new Map(input.destinations.map(item => [item.id, item]));
   if (destinations.size !== input.destinations.length) throw new Error("DUPLICATE_VIEW_DESTINATION");
+  const usedViews = new Set(validateProgramWorkspace(input));
   for (const value of views.values()) {
-    if (value.leftDock || value.rightDock) throw new Error("UNSUPPORTED_PROGRAM_SIDE_DOCK");
-    if (value.content.some(item => item.kind === "header" && item.media)) throw new Error("UNSUPPORTED_PROGRAM_HEADER_MEDIA");
+    for (const item of value.content) if (item.kind === "header" && item.media) viewHeaderImages(item.media);
     if (value.content.findIndex(item => item.kind === "header") > 0) throw new Error("INVALID_PROGRAM_HEADER_PLACEMENT");
   }
-  const usedViews = new Set<string>();
   // Exposure is checked before output references so forged canonical identities fail at their owner.
   for (const journey of journeys.values()) validateJourneyExposure(journey, human);
-  if (input.journeys.filter(item => item.kind === "read").length !== 1 ||
-    input.journeys.filter(item => item.kind === "create").length !== 1) {
-    throw new Error("INVALID_VIEW_PROGRAM_JOURNEY_COUNT");
-  }
+  validateProgramBindings(input, human);
+  validateProgramHeaders(input);
   for (const journey of journeys.values()) {
     const owned = journeyViews(journey, views);
     owned.forEach(item => usedViews.add(item.id));
     validateJourneyViews(journey, owned);
-    validateJourneyOutputs(journey, owned, new Set(journeys.keys()));
+    validateJourneyOutputs(journey, owned, journeys);
   }
   if (usedViews.size !== views.size) throw new Error("UNUSED_PROGRAM_VIEW");
   for (const destination of destinations.values()) {
     const journey = journeys.get(destination.entryJourney);
     if (!journey) throw new Error("UNKNOWN_DESTINATION_JOURNEY");
-    if (journey.kind === "create") throw new Error("INVALID_DESTINATION_JOURNEY");
+    if (journey.kind !== "presentation" && journey.kind !== "read") throw new Error("INVALID_DESTINATION_JOURNEY");
   }
   for (const journey of journeys.values()) {
-    if (journey.kind === "create") continue;
+    if (journey.kind !== "presentation" && journey.kind !== "read") continue;
     const entries = input.destinations.filter(item => item.entryJourney === journey.id);
-    if (entries.length !== 1) throw new Error("INVALID_JOURNEY_DESTINATION_COUNT");
+    const companionRead = Object.values(human.fieldReferences ?? {}).some(reference => reference.read === journey.id);
+    const boundRead = journey.kind === "read" && journey.presentation !== "main" && (companionRead || input.journeys.some(owner =>
+      owner.kind === "presentation" ? owner.collections?.some(binding => binding.read === journey.id)
+        : owner.kind === "read" && owner.related?.some(binding => binding.read === journey.id)));
+    if (entries.length !== 1 && !(entries.length === 0 && boundRead)) throw new Error("INVALID_JOURNEY_DESTINATION_COUNT");
   }
   if (!destinations.has(input.entry)) throw new Error("UNKNOWN_ENTRY_DESTINATION");
-  if (new Set(input.navigation).size !== input.navigation.length) throw new Error("DUPLICATE_NAVIGATION_DESTINATION");
-  if (input.navigation.some(id => !destinations.has(id))) throw new Error("UNKNOWN_NAVIGATION_DESTINATION");
-  if (!input.navigation.includes(input.entry)) throw new Error("UNLISTED_ENTRY_DESTINATION");
-  if (input.navigation.length !== destinations.size) throw new Error("UNLISTED_PROGRAM_DESTINATION");
-  const reachable = new Set(input.destinations.map(item => item.entryJourney));
+  const navigation = input.navigation.map(item => item.destination);
+  if (new Set(navigation).size !== navigation.length) throw new Error("DUPLICATE_NAVIGATION_DESTINATION");
+  if (navigation.some(id => !destinations.has(id))) throw new Error("UNKNOWN_NAVIGATION_DESTINATION");
+  const reachable = new Set([input.entry, ...navigation].map(id => destinations.get(id)!.entryJourney));
+  for (const object of input.objects ?? []) for (const action of object.actions) reachable.add(action.journey);
+  for (const reference of Object.values(human.fieldReferences ?? {})) {
+    if (journeys.has(reference.read)) reachable.add(reference.read);
+  }
+  // Attention is a resume route for existing occurrences, never a second creation entry.
+  if (input.views.some(view => view.content.some(item => item.kind === "attention"))) {
+    for (const journey of input.journeys) if (journey.kind === "activity") reachable.add(journey.id);
+  }
   const pending = [...reachable];
   while (pending.length) {
-    for (const output of journeys.get(pending.pop()!)!.outputs) {
+    const current = journeys.get(pending.pop()!)!;
+    if (current.kind === "presentation") for (const binding of current.collections ?? []) {
+      if (!reachable.has(binding.read)) { reachable.add(binding.read); pending.push(binding.read); }
+    }
+    if (current.kind === "read") for (const binding of current.related ?? []) {
+      if (!reachable.has(binding.read)) { reachable.add(binding.read); pending.push(binding.read); }
+    }
+    for (const output of current.outputs) {
       if (output.action.kind !== "journey" || reachable.has(output.action.journey)) continue;
       reachable.add(output.action.journey);
       pending.push(output.action.journey);
@@ -1808,24 +1783,37 @@ export function compileViewProgram(definition: unknown, surface: Surface): ViewP
 
 ## src/views/resolved.ts
 
-Source SHA-256: e07312b71a52f057c6457797ac1f3481ae311595a9b461acca3efd23d0ef8059
+Source SHA-256: 12b6d6c80619efc1e33b9d0c4db5998e49fd56af79ce813eef60cac620bfdd80
 
 ```ts
-import type { View } from "./schema.ts";
+import type { View, ViewContent, ViewHeader } from "./schema.ts";
 import type { BankNode } from "../interaction/bank-node.ts";
 import type { TopToolbar, BottomToolbar } from "../interaction/toolbar.ts";
-import type { SurfaceFrame } from "../interaction/surface-frame.ts";
+import type { FrameContent, SurfaceFrame } from "../interaction/surface-frame.ts";
+import type { AttentionSnapshot } from "../web/client/attention-feed.ts";
+import type { RelatedSelectionSnapshot } from "../interaction/related-selection.ts";
 
 /** Private, validated projection. Products cannot provide runtime bindings or render callbacks. */
+export type ResolvedViewDefinition = Omit<View, "content"> & {
+  readonly content: readonly (Exclude<ViewContent, ViewHeader | { readonly kind: "system-status" }>
+    | (Omit<ViewHeader, "title"> & { readonly title: string }))[];
+};
 export type ResolvedView = {
-  readonly view: View;
+  readonly view: ResolvedViewDefinition;
   readonly bindings: Readonly<Record<string, BankNode>>;
+  readonly pending?: Readonly<Record<string, Extract<FrameContent, { kind: "message" }>>>;
   readonly disabledOutputs: readonly string[];
+  readonly connection?: { readonly state: 'loading' | 'ready' | 'offline'; readonly label: string };
+  readonly attention?: AttentionSnapshot;
+  readonly relations?: RelatedSelectionSnapshot;
   readonly top?: TopToolbar;
   readonly bottom?: BottomToolbar;
 };
 export type ResolvedPanel = {
+  readonly presentation?: "transient";
   readonly frame: SurfaceFrame;
+  readonly readingIdentity?: object;
+  readonly body?: ResolvedView;
   readonly label: string;
   readonly locked: boolean;
 };
@@ -1833,144 +1821,491 @@ export type ResolvedPanel = {
 
 ## src/web/client/view-program.ts
 
-Source SHA-256: bf7ab9623d88adb0b5e048096f982250df3e9d99f9b4513d7d83d408f5e470bb
+Source SHA-256: 13ec6a4a622963237f6fd92ec4f389ecf3a8932be9d30a8257aee47370ee931e
 
 ```ts
 import type { HumanSurface, ValidateInput } from "../types.ts";
-import type { BankEvent } from "../../interaction/bank-events.ts";
-import { bankEvent } from "../../interaction/bank-events.ts";
+import { viewEventOwnership, type OwnedViewEvent } from "./view-events.ts";
 import { compileViewProgram } from "../../views/program.ts";
+import { sourceRead } from "../../views/program-bindings.ts";
 import { projectView, projectViewPanel } from "./view-projection.ts";
-import { humanProduct } from "./model.ts";
+import { viewScopes } from "./view-scopes.ts";
+import { webTransport, type ControllerTransport } from "./transport.ts";
+import type { AccessClient } from "./access.ts";
+import type { DraftFileHost } from "../../interaction/image-input.ts";
+import type { AssetReference, AssetImageVariant } from "../../assets/types.ts";
+import { activityModel } from "./activity-model.ts";
+import { projectActivityPanel } from "./activity-projection.ts";
+import { activityEvent } from "./activity-events.ts";
+import type { ActivityHost } from "./activity-host.ts";
+import { fileEntry } from "./file-entry.ts";
+import { attentionFeed } from "./attention-feed.ts";
+import { viewInputs } from "../../views/ports.ts";
+import { modelRelatedSelection } from "./model-related-selection.ts";
+import {readRefresh} from './read-refresh.ts';
+import type { ViewJourney } from '../../views/program-schema.ts';
+import { relatedMediaDraft, lockRelatedForm } from './view-related-draft.ts';
+import { connectionPresentation } from './connection-presentation.ts';
 
 /** Nonvisual interpreter; the installed controller remains the only operation executor. */
-export function viewProgramModel(input: unknown, surface: HumanSurface, validate: ValidateInput) {
-  const program = compileViewProgram(input, surface);
-  const model = humanProduct(surface, validate, { reading: false });
-  let destinationId = program.entry;
-  let current = model.snapshot();
-  let creating = false;
+export function viewProgramModel(input: unknown, surface: HumanSurface, validate: ValidateInput, transport?: ControllerTransport,
+  access?: Pick<AccessClient, "lock">, files?: DraftFileHost, activityHost?: ActivityHost, profile?: { displayName?: string }) {
+  const controller = transport ?? webTransport(surface.contractDigest);
+  const program = compileViewProgram(input, surface), scopes = viewScopes(program, surface, validate, controller, files);
+  if (program.journeys.some(journey => journey.kind === "activity") && !activityHost) throw new Error("ACTIVITY_HOST_REQUIRED");
+  let destinationId = program.entry, creating = false, stopped = false;
+  const history: string[] = [];
+  let observeAttention=()=>{};
+  const picker = fileEntry(surface, files);
+  let entryError: string | null = null;
   const listeners = new Set<() => void>();
   const destination = () => program.destinations.find(item => item.id === destinationId)!;
   const journeyFor = (id: string) => program.journeys.find(item => item.id === id)!;
   const definition = (id: string) => program.views.find(item => item.id === id)!;
-  const read = program.journeys.find(item => item.kind === "read")!;
-  const create = program.journeys.find(item => item.kind === "create")!;
-  const notify = () => { for (const listener of listeners) listener(); };
-  const unsubscribe = model.subscribe(next => {
-    current = next;
+  function activeJourney() {
+    const active = journeyFor(destination().entryJourney);
+    if (active.kind !== "read" && active.kind !== "presentation") throw new Error("INVALID_DESTINATION_JOURNEY");
+    return active;
+  }
+  function readScope(id: string) {
+    const value = scopes.find(item => item.scope.kind === "read" && item.scope.read.id === id);
+    if (!value) throw new Error("INVALID_VIEW_SOURCE");
+    return value;
+  }
+  function presentationScope() {
+    const value = scopes.find(item => item.scope.kind === "presentation");
+    if (!value) throw new Error("INVALID_VIEW_PRESENTATION_SCOPE");
+    return value;
+  }
+  const entry = activeJourney();
+  let scope = entry.kind === "read" ? readScope(entry.id) : presentationScope();
+  const state = () => scope.model.snapshot();
+  let relatedSave: { panel: Extract<ViewJourney,{kind:'update'}>; read: Extract<ViewJourney,{kind:'read'}>;
+    draft: ReturnType<typeof state>; accepted: boolean; working: boolean } | undefined;
+  function mainScope() { const active = activeJourney(); return active.kind === "read" ? readScope(active.id) : presentationScope(); }
+  function mainView() {
+    const active = activeJourney(), selected = mainScope().model.snapshot();
+    return active.kind === "read" && active.presentation === "main" && selected.selectedId ? active.detailView : active.view;
+  }
+  function currentRead() {
+    return scope.scope.kind === "read" ? journeyFor(scope.scope.read.id) : undefined;
+  }
+  let readingContext: { scope: typeof scope; subject: string; identity: object } | undefined;
+  function readingIdentity() {
+    const current = state();
+    if (stopped || scope.scope.kind !== "read" || !current.selectedId) { readingContext = undefined; return undefined; }
+    if (readingContext?.scope !== scope || readingContext.subject !== current.selectedId) {
+      readingContext = { scope, subject: current.selectedId, identity: Object.freeze({}) };
+    }
+    return current.view === "detail" && current.detail?.id === current.selectedId ? readingContext.identity : undefined;
+  }
+  const ownership = viewEventOwnership();
+  function syncOwners() {
+    const current = state(), panel = panelJourney(), activity = activities.snapshot();
+    return ownership.sync([destinationId, mainView(), mainScope().model.snapshot().selectedId, current.view, panel?.id, current.selectedId, current.prepared?.id,
+      activity.activity?.id, activity.activity?.revision, activity.prepared?.id, activity.uncertain], Boolean(panel));
+  }
+  const notify = () => {
+    const current = state();
+    if (relatedSave && !relatedSave.accepted && current.view === 'detail' && current.notice === 'Saved' &&
+      current.selectedId === relatedSave.draft.editing?.subject && !current.editing) relatedSave.accepted = true;
+    observeAttention();syncRelations(); syncOwners(); for (const listener of listeners) listener();
+  };
+  const activities = activityModel(surface, controller, notify, async (experience, receipt) => {
+    const read = sourceRead(program, surface, experience);
+    activate(read.id); settleRead(read.id);
+    creating = false; syncReading(); await scope.model.select(receipt.object.id); void attention.refresh(); notify();
+  }, activityHost);
+  const attention = attentionFeed(program, surface, controller, notify);
+  attention.availability(false, true);
+  const relations = modelRelatedSelection(program, surface, controller, validate, notify);
+  let relatedRevision = 0;
+  const hasAttention = program.journeys.some(journey=>journey.kind==='activity')||program.views.some(view => view.content.some(item => item.kind === "attention"));
+  let attentionReady=false,attentionConnecting=true,activityRevision='';
+  const attentionRefresh=readRefresh(()=>attention.refresh(),()=>!stopped&&hasAttention&&attentionReady);
+  observeAttention=()=>{
+    const activityJourneys=program.journeys.filter(journey=>journey.kind==='activity');
+    const ready=!stopped&&activityJourneys.every(journey=>state().availability.journeys[journey.id]?.dependenciesReady===true);
+    const connecting=!ready&&!stopped&&activityJourneys.every(journey=>connectionPresentation(state().availability.journeys[journey.id])!=='offline');
+    const current=activities.snapshot().activity,revision=current?`${current.id}:${current.revision}:${current.phase}`:'';
+    if(ready!==attentionReady||connecting!==attentionConnecting){attentionReady=ready;attentionConnecting=connecting;attention.availability(ready,connecting);if(ready)void attentionRefresh.request();else attentionRefresh.invalidate();}
+    else if(ready&&revision!==activityRevision)void attentionRefresh.request();
+    activityRevision=revision;
+    attentionRefresh.observe();
+  };
+  function syncRelations() {
+    const panel = panelJourney(), current = state();
+    const read = relatedSave?.read ?? (panel?.kind === "update" ? sourceRead(program, surface, panel) : undefined);
+    relations.updateContext({ ...(read ? { readJourneyId: read.id } : {}), ...(current.selectedId ? { parentId: current.selectedId } : {}),
+      editing: Boolean(relatedSave) || current.view === "edit" && panel?.kind === "update",
+      active: !stopped && Boolean(read && current.availability.journeys[read.id]?.dependenciesReady &&
+        read.related?.filter(binding => binding.membership).every(binding =>
+          current.availability.journeys[binding.read]?.dependenciesReady &&
+          current.availability.journeys[binding.membership!.update]?.dependenciesReady)) });
+    const revision = relations.snapshot().revision;
+    if (revision !== relatedRevision) {
+      relatedRevision = revision;
+      const included = new Set(overviewReads());
+      for (const item of scopes) if (item.scope.kind === "read" && (item === scope || included.has(item.scope.read.id))) void item.model.refresh();
+    }
+  }
+  function interactionLocked() {
+    const current = state(), activity = activities.snapshot(), related = relations.snapshot();
+    return current.busy || current.uncertain || activity.busy || activity.uncertain || related.busy || related.uncertain ||
+      related.committing || Boolean(relatedSave?.working || relatedSave?.accepted);
+  }
+  function overviewReads() {
+    const active = activeJourney();
+    return active.kind === "presentation" ? active.collections?.flatMap(binding => [binding.read, ...(binding.preview ? [binding.preview.read] : [])]) ?? []
+      : [active.id, ...(mainScope().model.snapshot().selectedId ? active.related?.map(binding => binding.read) ?? [] : [])];
+  }
+  function settleRead(id: string) {
+    if (overviewReads().includes(id)) return;
+    const target = program.destinations.find(item => item.entryJourney === id);
+    if (target && target.id !== destinationId) { history.push(destinationId); destinationId = target.id; }
+  }
+  function syncReading() {
+    const included = new Set(overviewReads());
+    for (const item of scopes) if (item.scope.kind === "read") item.model.setReading(item === scope || included.has(item.scope.read.id));
+  }
+  function relatedReads() {
+    return new Map(program.journeys.flatMap(journey => journey.kind === "read" ? [[journey.id,
+      { journey, state: readScope(journey.id).model.snapshot(), scope: readScope(journey.id).scope }] as const] : []));
+  }
+  function activate(read: string) {
+    const next = readScope(read);
+    scope = next; syncReading();
+  }
+  const unsubscribes = scopes.map(item => item.model.subscribe(next => {
+    if (scope !== item) {
+      if (item.scope.kind === "read" && overviewReads().includes(item.scope.read.id)) notify();
+      return;
+    }
     if (creating && next.view === "detail") {
       creating = false;
-      destinationId = program.destinations.find(item => item.entryJourney === read.id)!.id;
+      if (scope.scope.kind !== "read") throw new Error("INVALID_VIEW_SOURCE");
+      const read = scope.scope.read;
+      settleRead(read.id); syncReading();
     }
     if (next.view === "list") creating = false;
+    syncReading();
     notify();
-  });
-  function snapshot() {
-    const active = journeyFor(destination().entryJourney);
-    const main = definition(active.view);
-    const panelJourney = current.view === "create" || current.view === "review" || current.view === "recovery"
-      ? create : current.view === "detail" && active.kind === "read" ? read : null;
-    const panelView = panelJourney?.kind === "read" ? definition(panelJourney.detailView)
-      : panelJourney ? definition(panelJourney.view) : null;
-    return { program, activeDestination: destinationId,
-      resolved: projectView(program, active, main, surface, current, validate),
-      panel: panelJourney && panelView ? projectViewPanel(program, panelJourney, panelView, surface, current, validate) : null,
-      error: current.error, uncertain: current.uncertain, state: current };
+  }));
+  function panelJourney() {
+    if (activities.snapshot().experience) return activities.snapshot().experience;
+    if (relatedSave?.accepted) return relatedSave.panel;
+    const current = state(), active = activeJourney();
+    if (["create", "edit", "review", "recovery"].includes(current.view)) {
+      const id = current.view === "review" || current.view === "recovery" ? current.mutationId
+        : current.editing?.journeyId ?? current.creationJourneyId;
+      if (!id) throw new Error("FORM_JOURNEY_REQUIRED");
+      return journeyFor(id);
+    }
+    const read = currentRead();
+    return current.view === "detail" && read?.kind === "read" &&
+      !(active.id === read.id && read.presentation === "main") ? read : null;
   }
-  function navigate(id: string) {
-    if (!program.navigation.includes(id)) throw new Error("UNKNOWN_VIEW_DESTINATION");
-    if (current.busy || current.uncertain) return;
-    model.close();
-    if (current.view === "detail") model.back();
-    destinationId = id;
-    model.setReading(journeyFor(destination().entryJourney).kind === "read");
+  function panelView(panel: ReturnType<typeof panelJourney>) {
+    if (panel?.kind === "activity") return panel.activity.steps[activities.snapshot().activity?.progress.nextStep ?? 0]?.view;
+    return panel?.kind === "read" ? panel.detailView : panel?.kind === "action"
+      ? sourceRead(program, surface, panel).detailView : panel?.view;
+  }
+  function snapshot() {
+    const active = activeJourney(), panel = panelJourney(), current = state(), related = relations.snapshot();
+    const view = panelView(panel), panelDefinition = view ? definition(view) : null;
+    const owners = syncOwners(), reading = readingIdentity();
+    const activity = activities.snapshot(), activityPanel = projectActivityPanel(program, surface, current, activity, validate);
+    const main = mainScope(), mainState = main.model.snapshot();
+    const projected = projectView(program, active, definition(mainView()), surface,
+      { ...mainState, busy: current.busy || mainState.busy || related.busy || related.committing || Boolean(relatedSave?.accepted), uncertain: current.uncertain || mainState.uncertain || related.uncertain },
+      validate, main.scope, relatedReads(), profile,attention.snapshot());
+    const backUnavailable = !history.length && projected.top?.leading?.intent.kind === "back";
+    return { program, activeDestination: destinationId,
+      resolved: { ...projected, ...(hasAttention ? { attention: attention.snapshot() } : {}),
+        ...(backUnavailable ? { top: { ...projected.top!, leading: { ...projected.top!.leading!, state: "unavailable" as const } } } : {}), owner: owners.main },
+      panel: activityPanel && owners.panel ? { ...activityPanel, owner: owners.panel } : panel && panelDefinition && owners.panel ? {
+        ...relatedPanel(panel, panelDefinition, current), owner: owners.panel,
+        ...(reading ? { readingIdentity: reading } : {}) } : null,
+      error: entryError ?? activity.error ?? current.error, uncertain: activity.uncertain || current.uncertain || related.uncertain, state: current, activity };
+  }
+  function relatedPanel(panel: NonNullable<ReturnType<typeof panelJourney>>, view: ReturnType<typeof definition>, current: ReturnType<typeof state>) {
+    const related = relations.snapshot();
+    const read = panel.kind === 'update' ? sourceRead(program,surface,panel) : undefined;
+    const display = relatedSave?.accepted ? { ...relatedSave.draft, availability:current.availability, error:current.error,
+      busy:true, uncertain:false } : current;
+    const filtered = read ? relatedMediaDraft(surface,read,display,related).state : display;
+    let projected = projectViewPanel(program, panel, view, surface,
+      { ...filtered, busy: filtered.busy || related.busy, uncertain: filtered.uncertain || related.uncertain }, validate, scope.scope,attention.snapshot());
+    if (relatedSave?.accepted || relatedSave?.working) projected = lockRelatedForm(projected);
+    const controls = current.busy || current.uncertain ? { ...related, groups: related.groups.map(group => ({ ...group, disabled: true })) } : related;
+    return projected.body && related.groups.length ? { ...projected, body: { ...projected.body, relations: controls } } : projected;
+  }
+  function navigate(id: string, remember = true) {
+    if (stopped) return;
+    if (!program.destinations.some(destination => destination.id === id)) throw new Error("UNKNOWN_VIEW_DESTINATION");
+    if (interactionLocked()) return;
+    picker.cancel(); entryError = null;
+    activities.close();
+    const previousMain = mainScope();
+    scope.model.close();
+    if (state().view === "detail") scope.model.back();
+    if (previousMain !== scope) { previousMain.model.close(); if (previousMain.model.snapshot().view === "detail") previousMain.model.back(); }
+    if (remember && id !== destinationId) history.push(destinationId);
+    creating = false; destinationId = id; readingContext = undefined;
+    const target = journeyFor(destination().entryJourney);
+    if (target.kind === "read") activate(target.id);
+    else scope = presentationScope();
+    syncReading();
+    if (hasAttention) void attention.refresh();
     notify();
+  }
+  function goBack() {
+    if (stopped || interactionLocked()) return;
+    const previous = history.pop();
+    if (previous) navigate(previous, false);
+  }
+  function closePanel() {
+    if (interactionLocked()) return;
+    relatedSave = undefined;
+    scope.model.close();
+    const main = mainScope();
+    if (state().view === "list" && scope !== main) { scope = main; syncReading(); notify(); }
   }
   function startJourney(id: string) {
     const target = journeyFor(id);
     if (!target) throw new Error("UNKNOWN_VIEW_JOURNEY");
-    if (target.kind === "create") {
-      model.setReading(true);
-      model.create();
-      creating = current.view === "create";
+    if (target.kind === "activity") {
+      activate(sourceRead(program, surface, target).id); void activities.open(target);
+    } else if (target.kind === "create") {
+      const initiatingOwner = syncOwners().main;
+      const origin = target.initializeFrom && activeJourney().id === target.initializeFrom.source
+        ? { scope: mainScope(), subject: mainScope().model.snapshot().selectedId } : undefined;
+      const begin = () => {
+        if (stopped || interactionLocked() || syncOwners().main !== initiatingOwner) return false;
+        if (origin && (mainScope() !== origin.scope || mainScope().model.snapshot().selectedId !== origin.subject)) return false;
+        activate(sourceRead(program, surface, target).id);
+        scope.model.create(target.id); creating = state().view === "create";
+        if (creating && origin?.subject && target.initializeFrom) {
+          scope.model.initializeReference(target.initializeFrom.input, origin.subject);
+        }
+        return creating;
+      };
+      if (target.startWith) {
+        entryError = null;
+        void picker.select(target, selection => {
+          if (!begin()) return false;
+          scope.model.editFiles(selection); return true;
+        }).catch(() => { if (!stopped) { entryError = "FILE_SELECTION_REJECTED"; notify(); } });
+      } else begin();
+    } else if (target.kind === "update" || target.kind === "action") {
+      if (scope.scope.kind !== "read" || target.source !== scope.scope.read.id ||
+        !program.objects?.some(object => object.actions.some(action => action.journey === id))) {
+        throw new Error("INVALID_VIEW_EVENT");
+      }
+      if (target.kind === "update") scope.model.startEdit(id);
+      else {
+        const current = state(), mutation = surface.journeys.find(item => item.id === id);
+        if (current.view !== "detail" || !current.detail || current.selectedId !== current.detail.id || mutation?.kind !== "mutation") return;
+        void scope.model.invoke(mutation, current.detail.id);
+      }
     } else {
       const next = program.destinations.find(item => item.entryJourney === id);
       if (!next) throw new Error("UNKNOWN_VIEW_DESTINATION");
       navigate(next.id);
     }
   }
-  function event(value: BankEvent) {
-    const event = bankEvent(value);
+  function event(value: OwnedViewEvent) {
+    syncOwners();
+    const current = state(), model = scope.model;
+    const navigation = current.view === "detail" && panelJourney()?.kind === "read" && !current.busy && !current.uncertain;
+    const event = ownership.read(value, navigation ? { kind: "navigation", view: mainView() } : { kind: "exclusive" });
+    if (!event) return;
+    if (event.kind === "related.change" || event.kind === "related.recover") {
+      const activity = activities.snapshot();
+      if (!current.busy && !current.uncertain && !activity.busy && !activity.uncertain &&
+        (event.kind === 'related.recover' || !relatedSave)) void relations.event(event).then(() => {
+          if (event.kind === 'related.change') clearRemovedCover();
+          if (relatedSave?.accepted && !relations.snapshot().dirty && !relations.snapshot().committing) relatedSave = undefined;
+          notify();
+        });
+      return;
+    }
+    if (relations.snapshot().busy || relations.snapshot().uncertain || relations.snapshot().committing || relatedSave?.accepted || relatedSave?.working) return;
+    if (event.kind === "attention.resume") {
+      if (current.busy || current.uncertain || panelJourney() ||
+        !definition(activeJourney().view).content.some(item => item.kind === "attention")) return;
+      const item = attention.snapshot().items.find(item => item.id === event.id && item.available);
+      const experience = item ? journeyFor(item.journey) : undefined;
+      if (!item || experience?.kind !== "activity") throw new Error("INVALID_ATTENTION_ITEM");
+      activate(sourceRead(program, surface, experience).id);
+      void activities.open(experience, item.id); return;
+    }
+    const activityId = activities.snapshot().experience?.id;
+    if (activityEvent(activities, event, Boolean(activityId && current.availability.journeys[activityId]?.dependenciesReady))) return;
+    if (event.kind === "files.choose" || event.kind === "files.remove") { model.editFiles(event); return; }
+    if (event.kind === "labels.change") { model.editLabels(event); return; }
+    if (event.kind === 'reference.create' || event.kind === 'reference.refresh' || event.kind === 'reference.recover') { void model.referenceEvent(event); return; }
     if (event.kind === "input.change") {
-      if (current.view === "create" && !current.busy && !current.uncertain) {
-        if (!model.primary.inputFields.includes(event.name)) throw new Error("INVALID_VIEW_INPUT");
+      if ((current.view === "create" || current.view === "edit") && !current.uncertain) {
+        const mutation = surface.journeys.find(item => item.id === (current.editing?.journeyId ?? current.creationJourneyId));
+        if (mutation?.kind !== "mutation" || !mutation.inputFields.includes(event.name)) throw new Error("INVALID_VIEW_INPUT");
         model.edit(event.name, event.value);
       }
       return;
     }
-    if (event.kind === "problem.close") { model.dismissError(); return; }
+    if (event.kind === "problem.close") { entryError = null; model.dismissError(); notify(); return; }
     if (event.kind === "transient.closed") return;
-    if (event.kind === "transient.close") { model.close(); return; }
+    if (event.kind === "transient.close") { closePanel(); return; }
     if (event.kind !== "surface.invoke") throw new Error("INVALID_VIEW_EVENT");
     const intent = event.intent;
-    if (intent.kind === "close") { model.close(); return; }
-    if (intent.kind === "back") { model.back(); return; }
-    if (intent.kind === "accept") {
-      if (current.view !== "review" && current.view !== "recovery") throw new Error("INVALID_VIEW_EVENT");
-      void model.accept(); return;
+    if (intent.kind === "close") { closePanel(); return; }
+    if (intent.kind === "back") {
+      if (value.owner === syncOwners().main) goBack();
+      else { relatedSave = undefined; model.back(); }
+      return;
     }
-    if (intent.kind === "recover") {
-      if (current.view !== "recovery") throw new Error("INVALID_VIEW_EVENT");
-      void model.recover(); return;
+    if (intent.kind === "accept" || intent.kind === "recover") {
+      if ((intent.kind === "accept" && current.view !== "review" && current.view !== "recovery") ||
+        (intent.kind === "recover" && current.view !== "recovery")) throw new Error("INVALID_VIEW_EVENT");
+      void primaryRelatedSave(() => model[intent.kind]()); return;
     }
     if (intent.kind === "journey") {
-      if (current.view !== "create" || intent.journey !== create.id) throw new Error("INVALID_VIEW_EVENT");
-      const submit = create.outputs.find(binding => binding.action.kind === "submit")!;
-      dispatchOutput(submit.view, submit.output);
-      return;
+      const panel = panelJourney();
+      if ((current.view === "create" || current.view === "edit") && panel?.id === intent.journey) {
+        const submit = panel.outputs.find(binding => binding.action.kind === "submit")!;
+        dispatchOutput(submit.view, submit.output); return;
+      }
+      const read = currentRead();
+      if (current.view !== "detail" || read?.kind !== "read" || !program.objects?.some(object =>
+        object.view === read.detailView && object.actions.some(action => action.journey === intent.journey))) throw new Error("INVALID_VIEW_EVENT");
+      startJourney(intent.journey); return;
     }
     if (intent.kind !== "view.output") throw new Error("INVALID_VIEW_EVENT");
     dispatchOutput(intent.view, intent.output, intent.recordId);
   }
   function dispatchOutput(view: string, output: string, recordId?: string) {
-    const active = journeyFor(destination().entryJourney);
-    const owner = view === active.view ? active :
-      current.view === "create" && view === create.view ? create :
-      current.view === "detail" && active.kind === "read" && read.kind === "read" && view === read.detailView ? read : undefined;
+    const current = state(), active = activeJourney(), panel = panelJourney();
+    const mainAvailable = !panel || current.view === "detail" && panel.kind === "read";
+    const owner = mainAvailable && view === mainView() ? active :
+      !["review", "recovery"].includes(current.view) && view === panelView(panel) ? panel : undefined;
     const binding = owner?.outputs.find(item => item.view === view && item.output === output);
     if (!binding) throw new Error("UNKNOWN_VIEW_OUTPUT");
     if (binding.action.kind !== "select" && recordId !== undefined) throw new Error("INVALID_VIEW_OUTPUT_PAYLOAD");
-    if (current.busy || current.uncertain) return;
-    if (projectView(program, owner!, definition(view), surface, current, validate).disabledOutputs.includes(output)) return;
+    if (interactionLocked()) return;
+    const sourceScope = owner === active ? mainScope() : scope;
+    const sourceState = sourceScope.model.snapshot();
+    if (projectView(program, owner!, definition(view), surface, sourceState, validate, sourceScope.scope, relatedReads()).disabledOutputs.includes(output)) return;
     switch (binding.action.kind) {
+      case "lock":
+        if (!access) throw new Error("IDENTITY_ACCESS_REQUIRED");
+        stop(); void access.lock(); break;
       case "journey": startJourney(binding.action.journey); break;
-      case "select":
-        if (!recordId || !current.records.some(record => record.id === recordId)) throw new Error("INVALID_VIEW_RECORD");
-        void model.select(recordId); break;
-      case "submit": void model.invoke(model.primary); break;
-      case "close": model.close(); break;
+      case "select": {
+        if (owner?.kind === "presentation") {
+          const port = viewInputs(definition(view)).find(port => port.kind === "collection" && port.output === output);
+          const binding = owner.collections?.find(binding => binding.input === port?.input);
+          if (!binding) throw new Error("INVALID_OVERVIEW_INPUT");
+          const source = readScope(binding.read).model.snapshot();
+          const visible = source.records.filter(record => !binding.where || record.facts[binding.where.field] === binding.where.value).slice(0, binding.limit);
+          if (!recordId || !visible.some(record => record.id === recordId)) throw new Error("INVALID_VIEW_RECORD");
+          const target = program.destinations.find(destination => destination.entryJourney === binding.read);
+          if (target) navigate(target.id); else activate(binding.read);
+          void scope.model.select(recordId); break;
+        }
+        if (owner?.kind === "read" && view === owner.detailView) {
+          const port = viewInputs(definition(view)).find(port => port.kind === "collection" && port.output === output);
+          const binding = owner.related?.find(binding => binding.input === port?.input);
+          if (!binding) throw new Error("INVALID_RELATED_READ");
+          const source = readScope(binding.read).model.snapshot();
+          if (!recordId || !sourceState.selectedId || !source.records.some(record => {
+            const memberships = record.facts[binding.where.field.field];
+            return record.id === recordId && Array.isArray(memberships) && memberships.includes(sourceState.selectedId);
+          })) throw new Error("INVALID_VIEW_RECORD");
+          activate(binding.read); void scope.model.select(recordId); break;
+        }
+        if (!recordId || !sourceState.records.some(record => record.id === recordId)) throw new Error("INVALID_VIEW_RECORD");
+        if (owner?.kind === "read") activate(owner.id);
+        void scope.model.select(recordId); break;
+      }
+      case "submit": {
+        const mutation = surface.journeys.find(item => item.id === owner!.id);
+        if (mutation?.kind !== "mutation") throw new Error("INVALID_VIEW_EVENT");
+        clearRemovedCover();
+        if (owner?.kind === 'update' && relations.snapshot().dirty) relatedSave = { panel:owner,
+          read:sourceRead(program,surface,owner),draft:state(),accepted:false,working:true };
+        void primaryRelatedSave(() => scope.model.invoke(mutation)); break;
+      }
+      case "close": closePanel(); break;
+      case "back": goBack(); break;
     }
+  }
+  function clearRemovedCover() {
+    const panel = panelJourney();
+    if (panel?.kind !== 'update' || state().view !== 'edit' || relatedSave?.accepted) return;
+    const read = sourceRead(program,surface,panel);
+    for (const field of relatedMediaDraft(surface,read,state(),relations.snapshot()).clear) {
+      scope.model.editLabels({kind:'labels.change',control:field,values:[]});
+    }
+  }
+  async function primaryRelatedSave(action:()=>Promise<unknown>) {
+    const pending = relatedSave;
+    if (pending) pending.working = true;
+    await action();
+    if (stopped || !pending || relatedSave !== pending) return;
+    pending.working = false;
+    if (pending.accepted) {
+      if (await relations.commit()) relatedSave = undefined;
+    } else if (!['review','recovery'].includes(state().view)) relatedSave = undefined;
+    notify();
+  }
+  function stop() {
+    relatedSave = undefined;
+    picker.cancel();
+    attentionRefresh.stop();
+    attention.dispose();
+    relations.stop();
+    stopped = true; readingContext = undefined; ownership.stop(); unsubscribes.forEach(stop => stop());
+    activities.dispose();
+    scopes.forEach(item => item.model.dispose()); listeners.clear();
   }
   return {
     snapshot, event, navigate,
+    images: {
+      lease: (asset: AssetReference) => relations.images.lease(asset) ?? scopes.map(item => item.model.images.lease(asset)).find(Boolean),
+      subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
+    },
+    image: (asset: AssetReference, variant: AssetImageVariant, signal?: AbortSignal) => {
+      const lease = relations.images.lease(asset) ?? scopes.map(item => item.model.images.lease(asset)).find(Boolean);
+      return lease ? lease.read(variant, signal) : scope.model.image(asset, variant, signal);
+    },
     subscribe(listener: () => void) { listeners.add(listener); listener(); return () => { listeners.delete(listener); }; },
     async start(invitation?: string) {
-      model.setReading(journeyFor(destination().entryJourney).kind === "read");
-      await model.start(invitation);
+      if (stopped) return;
+      const active = journeyFor(destination().entryJourney);
+      if (active.kind === "read") activate(active.id);
+      else syncReading();
+      const connectedModel = scope.model;
+      const initial = connectedModel.start(invitation);
+      if (invitation) await initial;
+      await Promise.all([initial, ...scopes.filter(item => item.model !== connectedModel).map(item => item.model.start())]);
+      if (hasAttention && !stopped) {
+        await attention.refresh();
+      }
+      const pending = activities.pendingJourney(), experience = pending ? journeyFor(pending) : undefined;
+      if (experience?.kind === "activity") { activate(sourceRead(program, surface, experience).id); await activities.open(experience); }
     },
-    stop() { unsubscribe(); model.stop(); listeners.clear(); },
+    stop,
   };
 }
 ```
 
 ## src/web/client/view-projection.ts
 
-Source SHA-256: 6164494829f361e0e276342a3a5edb038281263f0467490da97952d5aad51da6
+Source SHA-256: aea141683ac7021a570c3ea40a3eb996a56c56e04188954849828cd3c1c19160
 
 ```ts
 import type { HumanSurface, ValidateInput } from "../types.ts";
-import type { HumanState } from "./state.ts";
+import { subjectActionAvailable, type HumanState } from "./state.ts";
 import type { ViewProgram, ViewJourney } from "../../views/program-schema.ts";
 import type { View } from "../../views/schema.ts";
 import type { ResolvedView, ResolvedPanel } from "../../views/resolved.ts";
@@ -1980,32 +2315,101 @@ import { bankNode, BankVersion, type BankNode } from "../../interaction/bank-nod
 import { surfaceFrame } from "../../interaction/surface-frame.ts";
 import { toolbarAction } from "../../interaction/toolbar.ts";
 import { presentFrame } from "./frame.ts";
-import { readPresentation } from "./presentation.ts";
-import { presentFacts } from "../../interaction/fact-presentation.ts";
+import { requireReadScope, type ModelScope } from "./model-scope.ts";
+import { presentFacts, readingFields } from "../../interaction/fact-presentation.ts";
 import type { FrameContent } from "../../interaction/surface-frame.ts";
+import { resolveViewIdentity } from "./view-identity.ts";
+import { publishedActionsFor } from "../../views/program-bindings.ts";
+import { inspectMutationDraft } from "./draft-validation.ts";
+import { objectSelectors } from "./object-selectors.ts";
+import { Check } from "@sinclair/typebox/value";
+import { AssetReferenceSchema } from "../../assets/types.ts";
+import {objectAttentionKey} from '../../attention.ts';
+import type {AttentionSnapshot} from './attention-feed.ts';
+import { connectionPresentation, unavailableReason } from './connection-presentation.ts';
 
-function contextContent(surface: HumanSurface, state: HumanState, content: FrameContent): FrameContent {
+export type RelatedRead = { readonly journey: Extract<ViewJourney, { kind: "read" }>; readonly state: HumanState; readonly scope: ModelScope };
+export type RelatedReads = ReadonlyMap<string, RelatedRead>;
+
+function contextContent(program: ViewProgram, definition: View, surface: HumanSurface, state: HumanState, content: FrameContent, scope: ModelScope,attention?:AttentionSnapshot): FrameContent {
   if (content.kind !== "context" || !state.detail) return content;
-  const read = readPresentation(surface);
-  // Authored identity replaces the record title; keep that authorized fact in the body.
-  // Subject mutations are not bound by this finite read/create presentation program.
-  return { kind: "context", details: presentFacts(surface, read.subject, read.fields, state.detail.facts), actions: [] };
+  const { read } = requireReadScope(scope);
+  const publication = program.objects?.find(object => object.object === read.subject && object.view === definition.id);
+  const title = definition.content.find(item => item.kind === "header")?.title;
+  const selectors = objectSelectors(program, definition.id, surface, state, scope);
+  const context = viewInputs(definition).find(port => port.kind === "context");
+  const visible = context?.kind === "context" && context.fields ? context.fields.map(field => field.field) : read.fields;
+  const fields = readingFields(visible, state.detail.facts).filter(field => !selectors.some(selector => selector.field === field) &&
+    !(typeof title !== "string" && title?.kind === "subject-title" && field === publication?.title.field));
+  const media = context?.kind === "context" ? context.presentation : undefined;
+  const signals=attention?.objectSignals[objectAttentionKey(read.subject,state.detail.id)];
+  // Published identity belongs in the shared top toolbar, not duplicated in the body.
+  return { kind: "context", details: presentFacts(surface, read.subject,
+    fields, state.detail.facts, state.references), actions: [], ...(selectors.length ? { selectors } : {}),
+    ...(signals?.length&&state.availability.journeys[read.id]?.dependenciesReady?{attention:signals}:{}),
+    ...(media ? { presentation: { kind: "media-object" as const, media: media.media.field,
+      ...(media.description && fields.includes(media.description.field) ? { description: media.description.field } : {}) } } : {}) };
 }
 
 export function projectView(program: ViewProgram, journey: ViewJourney, definition: View,
-  surface: HumanSurface, state: HumanState, validate: ValidateInput): ResolvedView {
+  surface: HumanSurface, state: HumanState, validate: ValidateInput, scope: ModelScope, related: RelatedReads = new Map(),
+  profile?: { displayName?: string; now?: Date },attention?:AttentionSnapshot): ResolvedView {
   const bound: Record<string, BankNode> = {};
+  const pending: Record<string, Extract<FrameContent, { kind: "message" }>> = {};
   for (const port of viewInputs(definition)) {
-    if (port.kind === "collection") bound[port.input] = presentCollection(surface, state.records, {
-      loaded: state.loaded, selectedId: state.selectedId,
-      disabled: state.busy || state.uncertain || !state.availability.journeys[journey.id]?.dependenciesReady,
-    });
+    if (port.kind === "collection") {
+      const binding = journey.kind === "presentation" ? journey.collections?.find(binding => binding.input === port.input) : undefined;
+      const relation = journey.kind === "read" && definition.id === journey.detailView ? journey.related?.find(binding => binding.input === port.input) : undefined;
+      const source = binding || relation ? related.get((binding ?? relation)!.read) : { journey, state, scope };
+      if (!source) throw new Error("MISSING_OVERVIEW_READ");
+      const subject = requireReadScope(source.scope).read.subject;
+      const published = program.objects?.find(object => object.object === subject);
+      const valueLabels: Record<string, Record<string, string>> = {};
+      for (const action of published?.actions ?? []) if (action.selection) {
+        const { fact, value, label } = action.selection;
+        (valueLabels[fact.field] ??= {})[value] = label;
+      }
+      const records = binding ? source.state.records.filter(record => !binding.where || record.facts[binding.where.field] === binding.where.value).slice(0, binding.limit)
+        : relation ? source.state.records.filter(record => {
+          const value = record.facts[relation.where.field.field];
+          return state.detail?.id === state.selectedId && Array.isArray(value) && value.includes(state.selectedId);
+        }) : source.state.records;
+      bound[port.input] = presentCollection(surface, records, {
+      loaded: source.state.loaded && (!relation || Boolean(state.selectedId && state.detail?.id === state.selectedId)), selectedId: source.state.selectedId,
+      connection: connectionPresentation(source.state.availability.journeys[source.journey.id]),
+      disabled: state.busy || state.uncertain || (port.presentation?.kind!=='summary-widget' && !source.state.availability.journeys[source.journey.id]?.dependenciesReady),
+    }, source.scope, port.presentation?.kind==='summary-widget' && binding?.summary ? {...port.presentation,...binding.summary,field:binding.summary.field.field,
+      truncated:Boolean(binding&&source.state.records.length>binding.limit)} : port.presentation?.kind === "collection-grid" && binding?.preview ? {
+      kind: "collection-grid", title: port.presentation.title.field,
+      previews: records.map(record => {
+        const preview = binding.preview!;
+        const members = (related.get(preview.read)?.state.records ?? []).filter(member => {
+          const memberships = member.facts[preview.where.field];
+          return Array.isArray(memberships) && memberships.includes(record.id);
+        });
+        const chosen = preview.cover ? record.facts[preview.cover.field] : undefined;
+        const images = members.filter(member => {
+          const media = member.facts[preview.media.field];
+          return Check(AssetReferenceSchema, media) && (!media.media || media.media === "image");
+        });
+        const cover = images.find(member => Array.isArray(chosen) && chosen.includes(member.id)) ?? images[0];
+        const media = cover?.facts[preview.media.field];
+        return { id: record.id, count: members.length, ...(Check(AssetReferenceSchema, media) ? { media } : {}) };
+      }),
+    } : port.presentation?.kind === "media-grid" ? { kind: "media-grid", image: port.presentation.image.field,
+      ...(relation?.layout ? {layout: state.detail?.facts[relation.layout.field] === "list" ? "list" as const : "grid" as const} : {}),
+      ...(port.presentation.fit ? { fit: port.presentation.fit.field } : {}),
+      ...(port.presentation.description ? { description: port.presentation.description.field } : {}) } : undefined,
+      port.fields?.map(field => field.field), valueLabels,source.state.availability.journeys[source.journey.id]?.dependenciesReady?
+        Object.fromEntries(records.flatMap(record=>{const signals=attention?.objectSignals[objectAttentionKey(subject,record.id)];
+          return signals?.length?[[record.id,signals]]:[];})):undefined);
+    }
     else {
-      const frame = presentFrame(surface, { ...state, view: port.kind === "form" ? "create" : "detail" }, validate);
+      const frame = presentFrame(surface, { ...state, view: port.kind === "form" ? journey.kind === "update" ? "edit" : "create" : "detail" }, validate, scope);
       if (frame.content.kind === "form" || frame.content.kind === "context") {
         bound[port.input] = bankNode({ version: BankVersion, kind: frame.content.kind,
-          content: contextContent(surface, state, frame.content) });
-      }
+          content: contextContent(program, definition, surface, state, frame.content, scope,attention) });
+      } else if (frame.content.kind === "message") pending[port.input] = frame.content;
     }
   }
   const disabledOutputs = journey.outputs.filter(binding => {
@@ -2017,201 +2421,126 @@ export function projectView(program: ViewProgram, journey: ViewJourney, definiti
     if (binding.action.kind === "journey") {
       const targetId = binding.action.journey;
       const target = program.journeys.find(item => item.id === targetId);
-      return target?.kind !== "presentation" && !state.availability.journeys[targetId]?.dependenciesReady;
+      // Opening a browsing destination is local navigation. Its cached reading remains
+      // available offline; selecting an uncached object and all writes stay gated below.
+      return target?.kind !== "presentation" && target?.kind !== "read" && !state.availability.journeys[targetId]?.dependenciesReady;
     }
     if (binding.action.kind === "submit") {
       const primary = surface.journeys.find(item => item.id === journey.id);
       return primary?.kind !== "mutation" || !state.availability.journeys[journey.id]?.dependenciesReady ||
-        !validate(primary.commandId, state.draft);
+        !inspectMutationDraft(surface, primary, state.draft, validate).valid || (journey.kind === "update" &&
+          (!state.editing || !subjectActionAvailable(surface, state, journey.id, state.editing.subject, undefined, scope)));
     }
-    if (binding.action.kind === "select") return !state.availability.journeys[journey.id]?.dependenciesReady;
+    if (binding.action.kind === "select") {
+      const port = viewInputs(definition).find(port => port.kind === "collection" && port.output === binding.output);
+      const read = journey.kind === "presentation" ? journey.collections?.find(binding => binding.input === port?.input)?.read
+        : journey.kind === "read" && definition.id === journey.detailView ? journey.related?.find(binding => binding.input === port?.input)?.read : journey.id;
+      return !read || !state.availability.journeys[read]?.dependenciesReady;
+    }
     return false;
   }).map(binding => binding.output);
   const action = (item: NonNullable<View["topDock"]>["actions"][number]) => {
     const binding = journey.outputs.find(binding => binding.view === definition.id && binding.output === item.output);
     const enabled = !item.disabled && !disabledOutputs.includes(item.output);
+    const targetId = binding?.action.kind === 'journey' ? binding.action.journey : undefined;
+    const dependency = targetId ? program.journeys.find(target => target.id === targetId)
+      : binding?.action.kind === 'submit' ? journey : undefined;
+    const reason = dependency && dependency.kind !== 'presentation' ? unavailableReason(state.availability.journeys[dependency.id]) : undefined;
     if (binding?.action.kind === "close") return toolbarAction({ kind: "close" }, item.label, item.icon, enabled);
-    if (binding?.action.kind === "submit" && journey.kind === "create") {
-      return toolbarAction({ kind: "journey", journey: journey.id }, item.label, item.icon, enabled);
+    if (binding?.action.kind === "back") return toolbarAction({ kind: "back" }, item.label, "back", enabled);
+    if (binding?.action.kind === "submit" && (journey.kind === "create" || journey.kind === "update")) {
+      return { ...toolbarAction({ kind: "journey", journey: journey.id }, item.label, item.icon, enabled), ...(reason ? {reason} : {}) };
     }
-    return toolbarAction({ kind: "view.output", view: definition.id, output: item.output },
-      item.label, item.icon, enabled);
+    return { ...toolbarAction({ kind: "view.output", view: definition.id, output: item.output },
+      item.label, item.icon, enabled), ...(reason ? {reason} : {}) };
   };
-  const header = definition.content.find(item => item.kind === "header");
+  const resolvedDefinition = resolveViewIdentity(program, journey, definition, surface, state, profile);
+  const header = resolvedDefinition.content.find(item => item.kind === "header");
   const topActions = definition.topDock?.actions.map(action) ?? [];
+  const subjectActions = publishedActionsFor(program, journey).filter(action => action.view === definition.id && !action.selection)
+    .map(({ journey: id, icon }) => {
+      const reason = unavailableReason(state.availability.journeys[id]);
+      return { ...toolbarAction({ kind: "journey", journey: id },
+        surface.language.journeys[id]!, icon, subjectActionAvailable(surface, state, id, undefined, undefined, scope)),
+        ...(reason ? {reason} : {}) };
+    });
   const bottomActions = definition.bottomDock?.actions.map(action) ?? [];
   const close = topActions.flatMap(item => item.intent.kind === "close" ? [{ ...item, intent: item.intent }] : [])[0];
-  const primary = bottomActions.flatMap(item => item.intent.kind !== "close" ? [{ ...item, intent: item.intent }] : [])[0];
+  const back = topActions.flatMap(item => item.intent.kind === "back" ? [{ ...item, intent: item.intent }] : [])[0];
+  const primary = bottomActions.flatMap(item => item.intent.kind !== "close" && item.intent.kind !== "back" ? [{ ...item, intent: item.intent }] : [])[0];
+  const dependencies = journey.kind === 'presentation' ? journey.collections?.map(binding => binding.read) ?? [] : [journey.id];
+  const missing = dependencies.map(id => state.availability.journeys[id]).find(value => !value?.dependenciesReady);
+  const connection = missing ? {state:connectionPresentation(missing), label:unavailableReason(missing)!} : undefined;
   return {
-    view: definition, bindings: bound, disabledOutputs,
+    view: resolvedDefinition, bindings: bound, ...(Object.keys(pending).length ? { pending } : {}), disabledOutputs,
+    ...(connection ? {connection} : {}),
     top: { title: header?.title ?? program.destinations.find(item => item.entryJourney === journey.id)?.label ?? program.label,
+      ...(definition.topDock?.actionGroup ? {actionGroup:definition.topDock.actionGroup} : {}),
       ...(header?.subtitle ? { subtitle: header.subtitle } : {}),
-      ...(close ? { leading: close } : {}),
-      trailing: topActions.flatMap(item => item.intent.kind !== "close" ? [{ ...item, intent: item.intent }] : []) },
+      ...(close ? { leading: close } : back ? { leading: back } : {}),
+      trailing: [...topActions.flatMap(item => item.intent.kind !== "close" && item.intent.kind !== "back" ? [{ ...item, intent: item.intent }] : []), ...subjectActions] },
     bottom: { ...(close ? { secondary: close } : {}), ...(primary ? { primary } : {}) },
   };
 }
 
-/** Panel grammar is checked at admission: one Header and one form/context, never discarded content. */
+/** Canonical chrome and submit semantics surround the same admitted View sequence. */
 export function projectViewPanel(program: ViewProgram, journey: ViewJourney, definition: View,
-  surface: HumanSurface, state: HumanState, validate: ValidateInput): ResolvedPanel {
-  const canonical = presentFrame(surface, state, validate);
+  surface: HumanSurface, state: HumanState, validate: ValidateInput, scope: ModelScope,attention?:AttentionSnapshot): ResolvedPanel {
+  const canonical = presentFrame(surface, state, validate, scope);
+  const presentation = (journey.kind === "create" || journey.kind === "update") && journey.presentation ? { presentation: journey.presentation } : {};
   if (state.view === "review" || state.view === "recovery") {
-    return { frame: canonical, label: canonical.top.title, locked: state.busy || state.uncertain };
+    return { ...presentation, frame: canonical, label: canonical.top.title, locked: state.busy || state.uncertain };
   }
-  const resolved = projectView(program, journey, definition, surface, state, validate);
+  const resolved = projectView(program, journey, definition, surface, state, validate, scope,new Map(),undefined,attention);
   const primary = resolved.bottom?.primary;
   const bottom = { ...resolved.bottom, ...(primary && canonical.bottom.primary?.state === "pending"
     ? { primary: { ...primary, state: "pending" as const } } : {}) };
-  const frame = surfaceFrame({ ...canonical, content: contextContent(surface, state, canonical.content),
-    top: resolved.top!, bottom });
-  return { frame, label: frame.top.title, locked: state.busy || state.uncertain };
+  const top = definition.content.some(item => item.kind === "header") ? resolved.top!
+    : { ...resolved.top!, title: canonical.top.title };
+  const frame = surfaceFrame({ ...canonical, content: contextContent(program, definition, surface, state, canonical.content, scope,attention),
+    top, bottom });
+  return { ...presentation, frame, body: resolved, label: frame.top.title, locked: state.busy || state.uncertain };
 }
 ```
 
 ## src/svelte/views/ViewProduct.svelte
 
-Source SHA-256: d90d82f6c69a7d1237de78c187d4b6ede2594113d39d817753318931eecfe44d
+Source SHA-256: 15f9d62e18fc5101a52c5b9df348235af9c145b47ad21b2cc90ab4dae583785f
 
 ```svelte
 <script lang="ts">
-  import { onMount, untrack } from "svelte";
   import type { ViewProgram } from "../../views/program-schema.ts";
   import type { HumanSurface, ValidateInput } from "../../web/types.ts";
-  import { viewProgramModel } from "../../web/client/view-program.ts";
-  import { requireCatalog } from "../../interaction/catalog.ts";
-  import Workspace from "./Workspace.svelte";
-  import "../theme.css";
+  import { ViewProductContent } from "../adapter-catalog.ts";
+  import type { AccessClient } from "../../web/client/access.ts";
 
-  let { program, surface, validateInput }: {
-    program: ViewProgram; surface: HumanSurface; validateInput: ValidateInput;
+  let { program, surface, validateInput, access }: {
+    program: ViewProgram; surface: HumanSurface; validateInput: ValidateInput; access?: Pick<AccessClient, "lock">;
   } = $props();
-  const model = untrack(() => {
-    requireCatalog(surface.catalog);
-    return viewProgramModel(program, surface, validateInput);
-  });
-  let current = $state.raw(model.snapshot());
-  onMount(() => {
-    const root = document.documentElement;
-    const previousProfile = root.dataset.rendererProfile;
-    root.dataset.rendererProfile = "apple-reference";
-    const unsubscribe = model.subscribe(() => { current = model.snapshot(); });
-    const invitation = new URLSearchParams(location.hash.slice(1)).get("access");
-    history.replaceState(null, "", location.pathname + location.search);
-    void model.start(invitation ?? undefined);
-    const protectDraft = (event: BeforeUnloadEvent) => {
-      if (Object.values(current.state.draft).some(Boolean) || current.state.prepared) {
-        event.preventDefault(); event.returnValue = "";
-      }
-    };
-    window.addEventListener("beforeunload", protectDraft);
-    return () => {
-      unsubscribe(); model.stop();
-      window.removeEventListener("beforeunload", protectDraft);
-      if (previousProfile === undefined) delete root.dataset.rendererProfile;
-      else root.dataset.rendererProfile = previousProfile;
-    };
-  });
 </script>
 
-<Workspace program={current.program} activeDestination={current.activeDestination}
-  resolved={current.resolved} panel={current.panel} error={current.error} uncertain={current.uncertain}
-  {surface} {validateInput} onevent={model.event} onnavigate={model.navigate} />
+<ViewProductContent {program} {surface} {validateInput} {access} />
 ```
 
 ## src/svelte/views/Workspace.svelte
 
-Source SHA-256: 19b73fc1e3533d5f0b4d350d452276294cba7c097a05c7416f71a7f0ffde698b
+Source SHA-256: 77f92fc7d4125bd906c78bc912b3b347c05722111a125d990156f7c8db5dcfde
 
 ```svelte
 <script lang="ts">
-  import { tick, untrack } from "svelte";
-  import CatalogWorkspace from "../explorer/CatalogWorkspace.svelte";
-  import CatalogSearchResults from "../explorer/CatalogSearchResults.svelte";
-  import RetainedPlace from "../explorer/RetainedPlace.svelte";
-  import { revealSearchTarget } from "../explorer/catalog-search-focus.ts";
-  import type { WorkspaceSearchResult } from "../explorer/workspace-search.ts";
-  import type { ResolvedView } from "../../views/resolved.ts";
-  import type { SurfaceIntent } from "../../interaction/intent.ts";
-  import type { PrimitiveId } from "../../interaction/catalog.ts";
-  import Toolbar from "../pieces/Toolbar.svelte";
-  import FailureDialog from "../FailureDialog.svelte";
-  import ViewContent from "./ViewContent.svelte";
-  import Panel from "./Panel.svelte";
-  import { viewIdentity, viewSearchResults, viewSearchSelection } from "./workspace-data.ts";
+  import { ViewWorkspace } from "../adapter-catalog.ts";
   import type { WorkspaceProps } from "./types.ts";
   let props: WorkspaceProps = $props();
-  let searching = $state(false), query = $state("");
-  let viewport = $state<HTMLDivElement | null>(null);
-  let visited = $state.raw<readonly ResolvedView[]>([]);
-  let contentOwners = $state<Record<string, { revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null> }>>({});
-  let identity = $derived(viewIdentity(props.resolved, props.program.label));
-  let results = $derived(viewSearchResults(props.resolved, query));
-  $effect(() => {
-    const next = props.resolved;
-    untrack(() => { visited = [...visited.filter(item => item.view.id !== next.view.id), next]; });
-  });
-  let scrollDestination: string | undefined;
-  $effect(() => {
-    const destination = props.activeDestination;
-    untrack(() => {
-      // Availability snapshots may refresh while the user scrolls. Only a real
-      // navigation changes the viewport, never another projection of this view.
-      if (destination === scrollDestination) return;
-      scrollDestination = destination;
-      cancelSearch(); viewport?.scrollTo({ top: 0 });
-    });
-  });
-  let destinations = $derived(props.program.navigation.map(id => {
-    const destination = props.program.destinations.find(item => item.id === id);
-    if (!destination) throw new Error("UNRESOLVED_VIEW_DESTINATION");
-    return destination;
-  }));
-  function invoke(intent: SurfaceIntent) { props.onevent({ kind: "surface.invoke", intent }); }
-  function cancelSearch() { searching = false; query = ""; }
-  async function selectSearchResult(result: WorkspaceSearchResult) {
-    cancelSearch(); await tick();
-    const selection = viewSearchSelection(props.resolved, result.id);
-    if (selection) { props.onevent(selection); return; }
-    const owner = contentOwners[props.resolved.view.id];
-    const target = result.kind === "bank" ? await owner?.revealEntry(result.id)
-      : viewport?.querySelector<HTMLElement>(`[data-view-item="${CSS.escape(result.id)}"]`);
-    if (target) revealSearchTarget(target, viewport);
-  }
 </script>
 
-<svelte:head><title>{props.resolved.top?.title ?? props.program.label} · {props.program.label}</title></svelte:head>
-
-<CatalogWorkspace productName={props.program.label} title={identity.title} {identity}
-  navigation={destinations} active={props.activeDestination} {query} {searching} bind:viewport
-  onquery={value => { query = value; searching = true; }} onsearch={() => searching = true}
-  oncancel={cancelSearch} onnavigate={props.onnavigate} topActions={props.resolved.top?.trailing} {invoke}>
-  {#snippet searchResults()}
-    <CatalogSearchResults title={identity.title} description="Find content in this destination."
-      {query} {results} onselect={selectSearchResult} />
-  {/snippet}
-  {#snippet bottom()}
-    {#if props.resolved.bottom?.primary || props.resolved.bottom?.secondary}
-      <Toolbar toolbar={{ edge: "bottom", ...props.resolved.bottom }} {invoke} />
-    {/if}
-  {/snippet}
-  {#snippet panels()}
-    <Panel panel={props.panel} onevent={props.onevent} />
-    <FailureDialog code={props.error} uncertain={props.uncertain}
-      close={() => props.onevent({ kind: "problem.close" })} />
-  {/snippet}
-  {#each visited as resolved (resolved.view.id)}
-    <RetainedPlace visible={resolved.view.id === props.resolved.view.id}
-      active={resolved.view.id === props.resolved.view.id && !searching}>
-      <ViewContent bind:this={contentOwners[resolved.view.id]} {resolved} onevent={props.onevent} />
-    </RetainedPlace>
-  {/each}
-</CatalogWorkspace>
+<ViewWorkspace program={props.program} activeDestination={props.activeDestination}
+  resolved={props.resolved} panel={props.panel} error={props.error} uncertain={props.uncertain}
+  onevent={props.onevent} onnavigate={props.onnavigate} />
 ```
 
 ## src/svelte/views/workspace-data.ts
 
-Source SHA-256: a11621895146be747dd2f6f38b32cbefe3c34f2a68f4f6aeccd753bea72df4e1
+Source SHA-256: dd95185716e64f3c51788c81b1285289815e549346e933d83704c503dd38a59c
 
 ```ts
 import type { ResolvedView } from "../../views/resolved.ts";
@@ -2220,15 +2549,19 @@ import type { BankEvent } from "../../interaction/bank-events.ts";
 import type { PlaceIdentity } from "../pieces/place-identity.ts";
 import type { WorkspaceSearchResult } from "../explorer/workspace-search.ts";
 import { catalogTitle, matchingEntries } from "../catalog/navigation.ts";
+import { retrieveCollection } from "../collection-retrieval.ts";
+import { presentFact, presentTitle } from "../../interaction/fact-presentation.ts";
 
 /** Data adapter only. Geometry, material, focus and motion remain in CatalogWorkspace. */
 export function viewIdentity(resolved: ResolvedView, fallback: string): PlaceIdentity {
   const header = resolved.view.content.find(item => item.kind === "header");
-  return header ?? { title: resolved.top?.title ?? fallback, subtitle: resolved.top?.subtitle ?? "" };
+  return header ? { ...header, subtitle: header.subtitle ?? "" }
+    : { title: resolved.top?.title ?? fallback, subtitle: resolved.top?.subtitle ?? "" };
 }
 
 const contentItems = (resolved: ResolvedView): readonly ViewItem[] => resolved.view.content.flatMap(item =>
-  item.kind === "stack" ? item.items : item.kind === "header" || item.kind === "visual-catalog" ? [] : [item]);
+  item.kind === "stack" ? item.items : item.kind === "header" || item.kind === "visual-catalog" || item.kind === "media-library" ||
+    item.kind === "navigation" || item.kind === "destination" || item.kind === "appearance" || item.kind === "identity" || item.kind === "attention" ? [] : [item]);
 const recordKey = (item: string, record: string) => JSON.stringify([item, record]);
 
 export function viewSearchResults(resolved: ResolvedView, query: string): readonly WorkspaceSearchResult[] {
@@ -2247,10 +2580,29 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
     if (item.kind !== "collection") continue;
     const node = resolved.bindings[item.input];
     if (node?.kind !== "collection" || !node.loaded || node.disabled) continue;
-    for (const record of node.records) {
-      const values = node.fields.map(field => String(record.facts[field] ?? ""));
-      if (matches(values)) results.push({ kind: "content", id: recordKey(item.id, record.id),
-        title: values[0] || record.id, description: values.slice(1).join(" · ") });
+    if (node.presentation?.kind === "media-grid") {
+      const presentation = node.presentation;
+      for (const record of node.records) {
+        const asset = record.facts[presentation.image];
+        const title = typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'video' ? 'Video'
+          : typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'audio' ? 'Audio' : 'Image';
+        const detail = presentation.description ? record.facts[presentation.description] : undefined;
+        const description = typeof detail === 'string' ? detail : '';
+        if (matches([title, description])) results.push({kind:'content',id:recordKey(item.id,record.id),title,description});
+      }
+      continue;
+    }
+    if (node.presentation?.kind === "collection-grid") {
+      for (const record of node.records) {
+        const title = presentTitle(record.facts[node.presentation.title]);
+        if (matches([title])) results.push({kind:'content',id:recordKey(item.id,record.id),title,description:'Collection'});
+      }
+      continue;
+    }
+    for (const record of retrieveCollection(node.records, node.fields, query)) {
+      results.push({ kind: "content", id: recordKey(item.id, record.id),
+        title: presentTitle(record.facts[node.fields[0]!]),
+        description: node.fields.slice(1).map(field => presentFact(record.facts[field])).join(" · ") });
     }
   }
   return results;
@@ -2270,45 +2622,187 @@ export function viewSearchSelection(resolved: ResolvedView, id: string): BankEve
 }
 ```
 
+## src/svelte/views/media-data.ts
+
+Source SHA-256: 1b103432102bd53cc6aa0340bd7555e86576aae2644fd48864ef24d95a693b04
+
+```ts
+import { BankVersion } from "../../interaction/bank-node.ts";
+import type { CatalogHomeNode, CatalogItemNode } from "../../public-catalog/node-schema.ts";
+import { mediaArtwork, type MediaItem, type MediaLibrary } from "../../views/media-library.ts";
+import type { ResolvedView } from "../../views/resolved.ts";
+import type { PlaceIdentity } from "../pieces/place-identity.ts";
+import type { WorkspaceSearchResult } from "../explorer/workspace-search.ts";
+
+export const viewMedia = (resolved: ResolvedView) =>
+  resolved.view.content.find(item => item.kind === "media-library")?.library;
+export const mediaAlbum = (library: MediaLibrary, album: string | null) =>
+  library.albums.find(item => item.id === album);
+export function mediaItems(library: MediaLibrary, album: string | null): readonly MediaItem[] {
+  const selected = mediaAlbum(library, album);
+  return selected ? selected.items.map(id => library.items.find(item => item.id === id)!) : library.items;
+}
+export function mediaIdentity(library: MediaLibrary, album: string | null, home: PlaceIdentity): PlaceIdentity {
+  const selected = mediaAlbum(library, album);
+  const items = selected ? mediaItems(library, album) : library.featured.map(id => {
+    const cover = library.albums.find(item => item.id === id)!.cover;
+    return library.items.find(item => item.id === cover)!;
+  });
+  const images = items.flatMap(item => { const image = mediaArtwork(item); return image ? [image] : []; });
+  const noun = items.every(item => item.kind === "image") ? "image" : "item";
+  return {
+    ...(selected ? { title: selected.title, subtitle: `${items.length} ${noun}${items.length === 1 ? "" : "s"}` } : home),
+    ...(images.length ? { media: { kind: "gallery" as const, images } } : {}),
+  };
+}
+function mediaCard(item: MediaItem): CatalogItemNode {
+  const base = { version: BankVersion, kind: "catalog.card" as const, presentation: "item" as const,
+    record: `${item.kind}.${item.id}`, title: item.title };
+  return item.kind === "image" ? { ...base, image: item.image } : {
+    ...base, mediaType: item.kind, ...(item.artwork ? { image: item.artwork } : {}),
+  };
+}
+/** Catalog data projection only: existing owners keep every visual and interaction rule. */
+export function mediaContent(library: MediaLibrary, album: string | null): CatalogHomeNode {
+  const items = mediaItems(library, album);
+  const albums = library.albums.map(item => ({ ...mediaCard(library.items.find(media => media.id === item.cover)!),
+    record: `album.${item.id}`, title: item.title }));
+  const kinds = [{ kind: "image", title: "Images" }, { kind: "video", title: "Videos" }, { kind: "audio", title: "Music" }];
+  const groups = [
+    ...(album ? [] : [{ id: "albums", title: "Albums", items: albums }]),
+    ...kinds.flatMap(({ kind, title }) => {
+      const matches = items.filter(item => item.kind === kind).map(mediaCard);
+      return matches.length ? [{ id: kind, title, items: matches }] : [];
+    }),
+  ];
+  return { version: BankVersion, kind: "catalog.home", groups,
+    featured: { ...groups[0]!.items[0]!, presentation: "featured", eyebrow: "Media", actionLabel: "Open" } };
+}
+export function mediaTarget(library: MediaLibrary, record: string) {
+  const album = library.albums.find(item => `album.${item.id}` === record);
+  if (album) return { kind: "album" as const, album };
+  const item = library.items.find(item => `${item.kind}.${item.id}` === record);
+  return item ? { kind: "item" as const, item } : null;
+}
+export function mediaResults(library: MediaLibrary, query: string): readonly WorkspaceSearchResult[] {
+  const terms = query.trim().toLocaleLowerCase().split(/\s+/u).filter(Boolean);
+  if (!terms.length) return [];
+  const results = [
+    ...library.albums.map(album => ({ id: `album.${album.id}`, title: album.title,
+      description: `Album · ${album.items.length} items` })),
+    ...library.items.map(item => ({ id: `${item.kind}.${item.id}`, title: item.title,
+      description: item.kind === "image" ? "Image" : item.kind === "video" ? "Video" : "Music" })),
+  ];
+  return results.filter(item => terms.every(term => item.title.toLocaleLowerCase().includes(term)))
+    .map(item => ({ kind: "content" as const, ...item }));
+}
+```
+
+## src/svelte/views/MediaContent.svelte
+
+Source SHA-256: 4f77ec4fb4a58ee1175828c33beea4bae5e34f06c59a86df79fb982c1dc1079c
+
+```svelte
+<script lang="ts">
+  import type { MediaLibrary as LibraryData } from "../../views/media-library.ts";
+  import { MediaLibrary } from "../adapter-catalog.ts";
+  let { library, album, onalbum }: {
+    library: LibraryData; album: string | null; onalbum: (id: string) => void;
+  } = $props();
+  let content = $state<{ select: (record: string) => boolean }>();
+  export function select(record: string) { return content?.select(record) ?? false; }
+</script>
+
+<MediaLibrary {library} {album} {onalbum} bind:this={content} />
+```
+
 ## src/svelte/explorer/CatalogWorkspace.svelte
 
-Source SHA-256: 6fc956dcd5a92a8f9680899e23444b35ce3ca8e67001ee4c8a3ac4e95d6286a4
+Source SHA-256: deb36c33b7419fa72a978b19ac9b500b066890851b02ce6e4828b216abfdf2b5
 
 ```svelte
 <script lang="ts" generics="Destination extends string">
-  import { tick, type Snippet } from "svelte";
+  import { tick } from "svelte";
   import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
   import CatalogNavigation from "./CatalogNavigation.svelte";
+  import CatalogNavigationToggle from "./CatalogNavigationToggle.svelte";
   import CatalogToolbar from "./CatalogToolbar.svelte";
-  import CatalogNavigationActions from "./CatalogNavigationActions.svelte";
   import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
   import PlaceHeading from "../pieces/PlaceHeading.svelte";
-  import ToolbarIdentity from "../pieces/ToolbarIdentity.svelte";
   import { observePlaceHeading } from "../pieces/place-heading-motion.ts";
   import type { PlaceIdentity } from "../pieces/place-identity.ts";
   import CatalogEdgeNavigation from "./CatalogEdgeNavigation.svelte";
   import Place from "../pieces/Place.svelte";
   import AdaptiveSurfaceLayout from "../pieces/AdaptiveSurfaceLayout.svelte";
   import type { WorkspaceDestination } from "./workspace-navigation.ts";
-  import type { ToolbarAction } from "../../interaction/toolbar.ts";
+  import type { ToolbarAction, BottomToolbar } from "../../interaction/toolbar.ts";
   import type { SurfaceIntent } from "../../interaction/intent.ts";
-  let { productName, title, navigation, active, query, onquery, onnavigate, children, searchResults, searching,
-    onsearch, oncancel, detail = false, onback, identity, searchAvailable = true, topActions = [], invoke,
-    panels, bottom, viewport = $bindable(null) }: {
-    productName: string; title: string; navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
+  import CatalogWorkspaceContent from "../pieces/CatalogWorkspaceContent.svelte";
+  import CatalogSearchResults from "./CatalogSearchResults.svelte";
+  import Toolbar from "../pieces/Toolbar.svelte";
+  import Panel from "../views/Panel.svelte";
+  import FailureDialog from "../FailureDialog.svelte";
+  import Wallpaper from "../pieces/Wallpaper.svelte";
+  import { appearance } from "../pieces/appearance-state.ts";
+  import type { WorkspaceContent, WorkspaceSearch, WorkspacePanels, WorkspaceViewportActions } from "../pieces/workspace-content.ts";
+  import { revealSearchTarget } from "./catalog-search-focus.ts";
+  import { provideDestinationNavigation } from "../pieces/destination-navigation.svelte.ts";
+  let { navigationSurface, title, navigation, active, query, onquery, onnavigate, content: body, searchContent, searching,
+    onsearch, oncancel, detail = false, onback, backAvailable=true, identity, searchAvailable = true, topActions = [], actionGroup, invoke,
+    panelState, bottomToolbar, onviewport }: {
+    navigationSurface: { title: string; subtitle?: string; settingsPlaceholder?: true } | null;
+    title: string; navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
     query: string; onquery: (query: string) => void; onnavigate: (id: Destination) => void;
-    children: Snippet; searchResults: Snippet; searching: boolean; onsearch: () => void; oncancel: () => void;
-    detail?: boolean; onback?: () => void;
+    content: WorkspaceContent; searchContent?: WorkspaceSearch;
+    searching: boolean; onsearch: () => void; oncancel: () => void;
+    detail?: boolean; onback?: () => void; backAvailable?:boolean;
     identity: PlaceIdentity;
-    searchAvailable?: boolean; topActions?: readonly ToolbarAction[]; invoke?: (intent: SurfaceIntent) => void;
-    /** Renderer-private composition; product View data never receives snippets. */
-    panels?: Snippet; bottom?: Snippet; viewport?: HTMLDivElement | null;
+    searchAvailable?: boolean; topActions?: readonly ToolbarAction[]; actionGroup?: "create"; invoke?: (intent: SurfaceIntent) => void;
+    panelState?: WorkspacePanels; bottomToolbar?: BottomToolbar;
+    onviewport?: (actions: WorkspaceViewportActions | null) => void;
   } = $props();
   let owner = $state<HTMLDivElement | null>(null);
+  let viewport = $state<HTMLDivElement | null>(null);
   let heading = $state<HTMLElement | null>(null);
   let compact = $state<HTMLDivElement | null>(null);
+  const presentation = provideDestinationNavigation(() => active, change => {
+    void tick().then(() => {
+      if (change.destination !== active) return;
+      viewport?.scrollTo({ top: change.kind === "back" ? change.origin.scroll : 0 });
+      const origin = change.origin.element;
+      // An index may remount after its detail closes. Restore the same semantic
+      // action in this destination, not the detached historical button.
+      const replacement = origin?.matches('[data-piece="destination-row"][data-destination]')
+        ? viewport?.querySelector<HTMLElement>(`[data-piece="destination-row"][data-destination="${CSS.escape(origin.dataset.destination!)}"]`) : null;
+      const target = (change.kind === "back" ? origin?.isConnected ? origin : replacement : null)
+        ?? heading?.querySelector<HTMLElement>("[data-place-title]");
+      target?.focus({ preventScroll: true });
+    });
+  });
+  let presented = $derived(presentation.current(active));
+  let presentedIdentity = $derived(presented?.identity ?? identity);
+  let presentedDetail = $derived(Boolean(presented) || detail);
+  const goBack = () => presented ? presentation.back(active) : onback?.();
   $effect(() => {
-    identity;
+    const register = onviewport;
+    register?.({
+      scrollToTop: () => viewport?.scrollTo({ top: 0 }),
+      scrollTop: () => viewport?.scrollTop ?? 0,
+      focusTitle: () => viewport?.querySelector<HTMLElement>("[data-place-title]")?.focus({ preventScroll: true }),
+      restoreRecord: (top, view, record) => {
+        viewport?.scrollTo({ top });
+        viewport?.querySelector<HTMLElement>(`[data-view-content="${CSS.escape(view)}"] [data-record="${CSS.escape(record)}"] button`)
+          ?.focus({ preventScroll: true });
+      },
+      revealItem: id => {
+        const target = viewport?.querySelector<HTMLElement>(`[data-view-item="${CSS.escape(id)}"]`);
+        if (target) revealSearchTarget(target, viewport);
+      },
+    });
+    return () => register?.(null);
+  });
+  $effect(() => {
+    presentedIdentity;
     if (viewport && heading && compact) return observePlaceHeading(viewport, heading, compact);
   });
   let searchViewport = $state<HTMLDivElement | null>(null);
@@ -2390,32 +2884,50 @@ Source SHA-256: 6fc956dcd5a92a8f9680899e23444b35ce3ca8e67001ee4c8a3ac4e95d6286a4
   onpointerup={finishPointerActivation} onpointercancel={finishPointerActivation} />
 
 <div data-renderer-profile="apple-reference" data-catalog-workspace data-search-active={searching}>
-  <Sidebar.Provider contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
+  <Wallpaper wallpaper={$appearance.wallpaper} />
+  <Sidebar.Provider available={navigationSurface !== null} contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
+    {#if navigationSurface}
     <Sidebar.Root variant="floating" overlayTitle="Navigation" overlayDescription="Choose a destination.">
-      <CatalogNavigation {productName} {navigation} {active} {onnavigate} {searching} />
+      <CatalogNavigation identity={navigationSurface} settingsPlaceholder={navigationSurface.settingsPlaceholder === true}
+        {navigation} {active} {onnavigate} {searching} />
     </Sidebar.Root>
+    {/if}
     <AdaptiveSurfaceLayout>
-    <Place bind:owner bind:viewport {bottom} role="main" data-catalog-content data-destination={active} tabindex={-1} aria-label={title}
-      oncompositionstart={() => composing = true} oncompositionend={() => composing = false}
-      viewportAttributes={{ 'data-catalog-scroll': '', tabindex: -1, inert: searching, 'aria-hidden': searching ? 'true' : undefined }}>
+    <Place bind:owner bind:viewport landmark="main" destination={active} label={presentedIdentity.title} {searching}
+      oncomposition={active => composing = active}>
       {#snippet top()}
-      <ToolbarLayout data-place-toolbar inert={searching} aria-hidden={searching}>
-        <CatalogNavigationActions {detail} {onback} {topActions} {invoke} />
-        <ToolbarIdentity {identity} bind:element={compact} />
-      </ToolbarLayout>
+      <ToolbarLayout layer="content" inert={searching} identity={presentedIdentity} identityRole="continuation" onidentityElement={element => { compact = element; }}
+        content={{ kind: "place-navigation", detail: presentedDetail, onback: goBack, backAvailable: Boolean(presented) || backAvailable, topActions, actionGroup, invoke, searchAvailable }} />
       <CatalogToolbar {title} {query} {onquery} {searching} {resultsId} {searchAvailable} onsearch={openSearch} oncancel={cancel} />
       {/snippet}
-      {#snippet content()}<PlaceHeading {identity} bind:element={heading} />{@render children()}{/snippet}
+      {#snippet content()}<PlaceHeading identity={presentedIdentity} bind:element={heading} /><CatalogWorkspaceContent content={body} {searching} />{/snippet}
+      {#snippet bottom()}
+        <CatalogNavigationToggle {searching} />
+        {#if bottomToolbar && invoke && (bottomToolbar.primary || bottomToolbar.secondary)}
+          <Toolbar toolbar={{ edge: "bottom", ...bottomToolbar }} {invoke} />
+        {/if}
+      {/snippet}
       {#snippet overlay()}
       {#if searching}
-        <div bind:this={searchViewport} id={resultsId} data-catalog-search-scroll data-has-query={Boolean(query.trim())}>{@render searchResults()}</div>
+        <div bind:this={searchViewport} id={resultsId} data-catalog-search-scroll data-has-query={Boolean(query.trim())}>
+          {#if searchContent?.kind === "catalog"}
+            <CatalogSearchResults title={searchContent.title} description={searchContent.description} {query}
+              results={searchContent.results} onselect={searchContent.onselect} />
+          {:else if searchContent?.kind === "view"}
+            <CatalogSearchResults title={searchContent.title} description={searchContent.description} {query}
+              results={searchContent.results} onselect={searchContent.onselect} />
+          {/if}
+        </div>
       {/if}
       {/snippet}
     </Place>
-    {@render panels?.()}
+    {#if panelState}
+      <Panel panel={panelState.panel} onevent={panelState.onevent} />
+      <FailureDialog code={panelState.error} uncertain={panelState.uncertain} close={panelState.dismissError} />
+    {/if}
     </AdaptiveSurfaceLayout>
     <div data-catalog-search-material data-active={searching} aria-hidden="true"></div>
-    <CatalogEdgeNavigation {searching} {detail} {onback} {viewport} />
+    <CatalogEdgeNavigation {searching} detail={presentedDetail} onback={presented || backAvailable ? goBack : undefined} {viewport} />
   </Sidebar.Provider>
 </div>
 
@@ -2426,7 +2938,7 @@ Source SHA-256: 6fc956dcd5a92a8f9680899e23444b35ce3ca8e67001ee4c8a3ac4e95d6286a4
 
 ## src/svelte/explorer/CatalogNavigation.svelte
 
-Source SHA-256: dc960791e30f129049bc77307470264088bd40d95e723ba8429d35658ae1a0d7
+Source SHA-256: b47dcfbb56db49a1e423390997b818f0fac02a7822fe834477bccdfb48085664
 
 ```svelte
 <script lang="ts" generics="Destination extends string">
@@ -2435,15 +2947,13 @@ Source SHA-256: dc960791e30f129049bc77307470264088bd40d95e723ba8429d35658ae1a0d7
   import Landmark from "@lucide/svelte/icons/landmark";
   import Backpack from "@lucide/svelte/icons/backpack";
   import PanelsTopLeft from "@lucide/svelte/icons/panels-top-left";
-  import Settings from "@lucide/svelte/icons/settings";
-  import { Button } from "../vendor/components/ui/button/index.js";
   import { swipeMotion } from "../pieces/swipe-motion.svelte.js";
   import Place from "../pieces/Place.svelte";
   import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
   import { actionIcons } from "../pieces/action-icons.ts";
   import { workspaceNavigation, type WorkspaceDestination } from "./workspace-navigation.ts";
-  let { productName, navigation, active, onnavigate, searching = false }: {
-    productName: string;
+  let { identity, navigation, active, onnavigate, searching = false, settingsPlaceholder = false }: {
+    identity: { title: string; subtitle?: string }; settingsPlaceholder?: boolean;
     navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
     onnavigate: (id: Destination) => void; searching?: boolean;
   } = $props();
@@ -2461,17 +2971,12 @@ Source SHA-256: dc960791e30f129049bc77307470264088bd40d95e723ba8429d35658ae1a0d7
   }
 </script>
 
-<Place data-renderer-profile="apple-reference" data-catalog-navigation
-  viewportAttributes={{ 'data-slot': 'sidebar-content' }}>
+<Place landmark="navigation" label="Main navigation">
   {#snippet top()}
-  <ToolbarLayout class="sidebar-toolbar" data-slot="sidebar-header" data-navigation-drag role="presentation" onpointerdown={startHeaderDrag} onpointermove={motion.move}
-    onpointerup={motion.up} onpointercancel={motion.cancel} onlostpointercapture={motion.lost}>
-    <span data-product-name>{productName}</span>
-    <Sidebar.Trigger variant="secondary" size="icon" aria-label="Hide navigation" title="Hide navigation" inert={searching} aria-hidden={searching} />
-  </ToolbarLayout>
+  <ToolbarLayout {identity} content={{kind:"actions",actions:[],onevent:()=>{}}} drag={{down:startHeaderDrag,move:motion.move,up:motion.up,cancel:motion.cancel,lost:motion.lost}} />
   {/snippet}
   {#snippet content()}
-    <nav aria-label="Main navigation">
+    <div>
       {#each groups as group (group.label)}
       <Sidebar.Group aria-label={group.label}>
         <Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
@@ -2488,113 +2993,64 @@ Source SHA-256: dc960791e30f129049bc77307470264088bd40d95e723ba8429d35658ae1a0d7
         {/each}
       </Sidebar.Menu></Sidebar.GroupContent></Sidebar.Group>
       {/each}
-    </nav>
+    </div>
   {/snippet}
   {#snippet bottom()}
-  <ToolbarLayout class="sidebar-toolbar" data-slot="sidebar-footer" edge="bottom">
-    <Button variant="secondary" size="icon" aria-label="Settings" title="Settings — not available in this preview" disabled>
-      <Settings aria-hidden="true" />
-    </Button>
-  </ToolbarLayout>
+  <ToolbarLayout edge="bottom" content={{kind:"navigation-toggle",searching}} />
+  {#if settingsPlaceholder}
+  <ToolbarLayout content={{kind:"settings-placeholder"}} />
+  {/if}
   {/snippet}
 </Place>
 ```
 
 ## src/svelte/explorer/CatalogNavigationActions.svelte
 
-Source SHA-256: 4f79c5b5b0d110f84747848ba4a817d904ec8232be5d4a27229c177c35bef473
+Source SHA-256: 725617e6b3af44b2bc9b35b4ba882394e8ee5d9f216fb4c56b9164e61b45f14a
 
 ```svelte
 <script lang="ts">
-  import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
   import BankRenderer from "../BankRenderer.svelte";
-  import type { ToolbarAction } from "../../interaction/toolbar.ts";
-  import type { SurfaceIntent } from "../../interaction/intent.ts";
-  let { detail = false, onback, topActions = [], invoke }: {
-    detail?: boolean; onback?: () => void;
-    topActions?: readonly ToolbarAction[]; invoke?: (intent: SurfaceIntent) => void;
+  let { detail = false, onback, backAvailable=true }: {
+    detail?: boolean; onback?: () => void; backAvailable?:boolean;
   } = $props();
-  const sidebar = Sidebar.useSidebar();
 </script>
 
 <div data-catalog-navigation-actions>
-  {#if !sidebar.expanded}
-    <Sidebar.Trigger variant="secondary" size="icon" aria-label="Show navigation" title="Show navigation" />
-  {/if}
   {#if detail && onback}
     <BankRenderer node={{ version: "desert.bank-node/1", kind: "action", role: "secondary", action: {
-      intent: { kind: "catalog.back" }, label: "Back", icon: "back", state: "ready",
-    } }} onevent={event => { if (event.kind === "catalog.back") onback?.(); }} />
+      intent: { kind: "catalog.back" }, label: "Back", icon: "back", state: backAvailable?"ready":"unavailable",
+    } }} onevent={event => { if (event.kind === "catalog.back"&&backAvailable) onback?.(); }} />
   {/if}
-  {#each topActions as action}
-    <BankRenderer node={{ version: "desert.bank-node/1", kind: "action", action, role: "secondary" }}
-      onevent={event => { if (event.kind === "surface.invoke") invoke?.(event.intent); }} />
-  {/each}
 </div>
 ```
 
 ## src/svelte/explorer/CatalogToolbar.svelte
 
-Source SHA-256: 0cb7da1c2091556c30e9c61fe6f524aca1808766cc82a539d584f2b83882f53c
+Source SHA-256: 42da9081bc9d9339d09795ceda3806dea0daaf8204987de5088e6f2aca860101
 
 ```svelte
 <script lang="ts">
-  import { tick, untrack } from "svelte";
-  import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
-  import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
-  import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
   import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
-  import SearchField from "../pieces/SearchField.svelte";
-  import Search from "@lucide/svelte/icons/search";
-  import X from "@lucide/svelte/icons/x";
   let { title, query, onquery, searching, resultsId, onsearch, oncancel, searchAvailable = true }: {
     title: string; query: string; onquery: (query: string) => void; searching: boolean;
     resultsId: string; onsearch: () => void; oncancel: () => void; searchAvailable?: boolean;
   } = $props();
-  const sidebar = Sidebar.useSidebar();
-  const id = $props.id();
-  let input = $state<HTMLInputElement | null>(null);
-  let toggleButton = $state<HTMLButtonElement | null>(null);
-  // Product cancellation may clear its query immediately. Retain only the
-  // outgoing field's paint until the next opening; no stale search is executed.
-  let displayedQuery = $state(untrack(() => query));
-  $effect(() => { if (searching) displayedQuery = query; });
-  async function toggle() {
-    if (searching) { oncancel(); return; }
-    onsearch(); await tick(); input?.focus({ preventScroll: true });
-  }
 </script>
 
-{#snippet searchActions()}
-  <div data-catalog-search-actions data-expanded={searching}>
-  <Field.Field data-catalog-search inert={!searching} aria-hidden={!searching}>
-    <Field.Label class="sr-only" for={id}>Search {title.toLowerCase()}</Field.Label>
-    <SearchField {id} bind:ref={input} value={displayedQuery} onvalue={onquery} placeholder={`Search in ${title}`}
-      aria-controls={searching ? resultsId : undefined} tabindex={searching ? undefined : -1} />
-  </Field.Field>
-  <Button bind:ref={toggleButton} variant="secondary" size="icon" data-catalog-search-toggle data-catalog-search-cancel={searching || undefined}
-    aria-label={searching ? "Close search" : "Search"} title={searching ? "Close search" : "Search"}
-    aria-expanded={searching} aria-controls={searching ? resultsId : undefined} onclick={toggle}>
-    <Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />
-  </Button>
-  </div>
-{/snippet}
-
-<!-- Search stays mounted when its edge changes, preserving composition and focus. -->
 {#if searchAvailable}
-<ToolbarLayout data-catalog-toolbar
-  data-searching={searching} edge={sidebar.presentation === "overlay" ? "bottom" : "top"}>
-  {@render searchActions()}
-</ToolbarLayout>
+  <ToolbarLayout layer="search" {searching} edge="top"
+    content={{kind:"search",title,query,onquery,searching,resultsId,onsearch,oncancel}} />
 {/if}
 ```
 
 ## src/svelte/explorer/workspace-navigation.ts
 
-Source SHA-256: 7ae004adf54089eb39d984b86b6d52e148b70a8ee949ff86ccc26b7efabd901e
+Source SHA-256: 9cb03abc069c3e94c0fabb0f37fed5e321b820068c24623e39deed24203da3e5
 
 ```ts
 import type { ActionIcon } from "../../interaction/toolbar.ts";
+import type { ViewNavigationEntry } from "../../views/program-schema.ts";
 
 /** Renderer-owned navigation data. No component, CSS or layout escape hatches. */
 export type WorkspaceIcon = ActionIcon | "landmark" | "backpack" | "panels";
@@ -2604,6 +3060,7 @@ export interface WorkspaceDestination<Id extends string = string> {
   readonly shortLabel?: string;
   readonly icon?: WorkspaceIcon;
   readonly group?: string;
+  readonly purpose?: ViewNavigationEntry["purpose"];
 }
 
 const legacy = {
@@ -2616,10 +3073,19 @@ type ResolvedDestination<Id extends string> = WorkspaceDestination<Id> & {
 };
 
 export function workspaceNavigation<Id extends string>(navigation: readonly WorkspaceDestination<Id>[]) {
-  const groups: { label: string; items: ResolvedDestination<Id>[] }[] = [
+  const groups: { label: string; items: ResolvedDestination<Id>[] }[] = navigation.every(item => item.purpose) ? [] : [
     { label: "Explore", items: [] }, { label: "Developer", items: [] },
   ];
   for (const destination of navigation) {
+    if (destination.purpose) {
+      if (!destination.group || !destination.icon) throw new Error("WORKSPACE_NAVIGATION_METADATA_REQUIRED");
+      let group = groups.find(item => item.label === destination.group);
+      if (!group) { group = { label: destination.group, items: [] }; groups.push(group); }
+      group.items.push({ ...destination, icon: destination.icon, appearance: destination.purpose === "utility" ? "bank" : "browse" });
+      continue;
+    }
+    // Frozen catalog clients predate authored navigation. Their legacy adapter is
+    // not used by a View program, whose closed contract requires purpose/group.
     const defaults = destination.id === "browse" ? legacy.browse
       : destination.id === "travel-kit" ? legacy["travel-kit"]
       : destination.id === "bank" ? legacy.bank : undefined;
@@ -2649,45 +3115,42 @@ export type WorkspaceSearchResult = CatalogSearchResult |
 
 ## src/svelte/views/ViewContent.svelte
 
-Source SHA-256: 2569616610c1102ae777f80064a881df28db4a3ad6268279bd1df7c6978ba148
+Source SHA-256: 6446fc620453c7f2a4b2044ddc032049ad3c5ae01e44a5222280db62e9b8e381
 
 ```svelte
 <script lang="ts">
   import type { ResolvedView } from "../../views/resolved.ts";
   import type { BankEvent } from "../../interaction/bank-events.ts";
   import type { PrimitiveId } from "../../interaction/catalog.ts";
-  import StackLayout from "../pieces/StackLayout.svelte";
-  import InspectionContent from "./InspectionContent.svelte";
-  import ViewItem from "./ViewItem.svelte";
-  let { resolved, onevent }: {
+  import { ContentFlow } from "../adapter-catalog.ts";
+  import type { RegisterContentActions } from "../pieces/workspace-content.ts";
+  let { resolved, onevent, album = null, onalbum, onactions }: {
     resolved: ResolvedView;
     onevent: (event: BankEvent) => void;
+    album?: string | null;
+    onalbum: (id: string) => void;
+    onactions?: RegisterContentActions;
   } = $props();
-  let bank = $state<{ revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null> } | null>(null);
-  export async function revealEntry(id: PrimitiveId) { return await bank?.revealEntry(id) ?? null; }
-  let hasCatalog = $derived(resolved.view.content.some(item => item.kind === "visual-catalog"));
+  let flow = $state<{
+    revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null>;
+    revealAndFocusEntry: (id: PrimitiveId) => Promise<void>;
+    selectMedia: (record: string) => boolean;
+  } | null>(null);
+  export async function revealEntry(id: PrimitiveId) { return await flow?.revealEntry(id) ?? null; }
+  export function selectMedia(record: string) { return flow?.selectMedia(record) ?? false; }
+  $effect(() => {
+    const register = onactions;
+    register?.({ revealEntry: async id => { await flow?.revealAndFocusEntry(id); }, selectMedia });
+    return () => register?.(null);
+  });
 </script>
 
-<div class:place-content={!hasCatalog} data-view-content={resolved.view.id}>
-  {#each resolved.view.content as item, index (index)}
-    {#if item.kind === "header"}
-      <!-- The shared workspace owns the heading and its scroll-driven toolbar echo. -->
-    {:else if item.kind === "stack"}
-      <div data-view-item={item.id}>
-      <StackLayout title={item.title} description={item.description}>
-        {#each item.items as child, childIndex (childIndex)}<ViewItem item={child} {resolved} {onevent} />{/each}
-      </StackLayout>
-      </div>
-    {:else if item.kind === "visual-catalog"}
-      <InspectionContent bind:this={bank} />
-    {:else}<ViewItem {item} {resolved} {onevent} />{/if}
-  {/each}
-</div>
+<ContentFlow {resolved} {onevent} {album} {onalbum} bind:this={flow} />
 ```
 
 ## src/svelte/views/ViewItem.svelte
 
-Source SHA-256: 8a18eeaa77690b154969e44344ae5744203b1801ffbee823ccdf2d655ab99d0a
+Source SHA-256: 902f433e4d989384034d53dd8b6d36d390b4efa25a688fb0358a1792b033c5e0
 
 ```svelte
 <script lang="ts">
@@ -2695,11 +3158,9 @@ Source SHA-256: 8a18eeaa77690b154969e44344ae5744203b1801ffbee823ccdf2d655ab99d0a
   import type { ResolvedView } from "../../views/resolved.ts";
   import type { BankEvent } from "../../interaction/bank-events.ts";
   import { controlBankNode } from "../../interaction/bank-node.ts";
-  import BankRenderer from "../BankRenderer.svelte";
-  import Information from "../pieces/Information.svelte";
-  import StackItem from "../pieces/StackItem.svelte";
-  let { item, resolved, onevent }: {
-    item: ViewItem; resolved: ResolvedView; onevent: (event: BankEvent) => void;
+  import { BankRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../adapter-catalog.ts";
+  let { item, resolved, onevent, host = "flow" }: {
+    item: ViewItem; resolved: ResolvedView; onevent: (event: BankEvent) => void; host?: "flow" | "frame";
   } = $props();
   function dispatch(event: BankEvent) {
     if (item.kind === "collection" && event.kind === "collection.select") {
@@ -2711,37 +3172,49 @@ Source SHA-256: 8a18eeaa77690b154969e44344ae5744203b1801ffbee823ccdf2d655ab99d0a
   function binding() {
     if (!("input" in item)) throw new Error("VIEW_INPUT_REQUIRED");
     const node = resolved.bindings[item.input];
-    if (!node || node.kind !== item.kind) throw new Error("INVALID_VIEW_INPUT_BINDING");
+    if ((!node && !resolved.pending?.[item.input]) || node && node.kind !== item.kind) throw new Error("INVALID_VIEW_INPUT_BINDING");
     return node;
   }
 </script>
 
 {#if item.kind === "text"}
-  <div data-stack-item data-stack-placement="content"><Information items={[item]} /></div>
+  <TextContent text={item.text} />
 {:else if item.kind === "fact"}
   <Information items={[item]} />
+{:else if item.kind === "destination-link"}
+  <ViewDestinationLink view={resolved.view.id} output={item.output} label={item.label} icon={item.icon}
+    reason={resolved.disabledOutputs.includes(item.output) ? resolved.connection?.label : undefined}
+    available={!resolved.disabledOutputs.includes(item.output)} {onevent} />
 {:else if item.kind === "tag" || item.kind === "image" || item.kind === "avatar"}
   {@const node = controlBankNode(item)}
   <StackItem kind={node.kind}><BankRenderer {node} /></StackItem>
+{:else if item.kind==='collection' && item.presentation?.kind==='summary-widget'}
+  {@const node=binding()}
+  {#if node?.kind==='collection'}<SummaryWidget {node} available={!resolved.disabledOutputs.includes(item.output)}
+    activate={()=>onevent({kind:'surface.invoke',intent:{kind:'view.output',view:resolved.view.id,output:item.output}})} />{/if}
 {:else}
   {@const node = binding()}
-  <StackItem kind={node.kind}><BankRenderer {node} onevent={dispatch} /></StackItem>
+  {#if !node && "input" in item && resolved.pending?.[item.input]}
+    <MessageBody content={resolved.pending[item.input]} />
+  {:else if node}
+    {#if host === "frame"}<BankRenderer {node} onevent={dispatch} />
+    {:else}<StackItem kind={node.kind}><BankRenderer {node} onevent={dispatch} /></StackItem>{/if}
+  {/if}
 {/if}
 ```
 
 ## src/svelte/views/Panel.svelte
 
-Source SHA-256: 9e7fb9ee171266a67163654e4c6da285a881753bd138a4028dcb73553a1e5610
+Source SHA-256: 26a5b00b1ee976927aaca669336ae38ced84e95d8957eb75d8b8a6dc99ee7c9c
 
 ```svelte
 <script lang="ts">
   import { tick, untrack } from "svelte";
-  import type { ResolvedPanel } from "../../views/resolved.ts";
+  import { bindViewEvents, type OwnedResolvedPanel, type OwnedViewEvent, type ViewEventOwner } from "../../web/client/view-events.ts";
   import type { BankEvent } from "../../interaction/bank-events.ts";
-  import { BankVersion } from "../../interaction/bank-node.ts";
-  import BankRenderer from "../BankRenderer.svelte";
-  let { panel, onevent }: { panel?: ResolvedPanel | null; onevent: (event: BankEvent) => void } = $props();
-  let mounted = $state.raw<ResolvedPanel | null>(null);
+  import { ViewPanel } from "../adapter-catalog.ts";
+  let { panel, onevent }: { panel?: OwnedResolvedPanel | null; onevent: (event: OwnedViewEvent) => void } = $props();
+  let mounted = $state.raw<OwnedResolvedPanel | null>(null);
   let open = $state(false);
   let revision = 0;
   $effect(() => {
@@ -2759,70 +3232,35 @@ Source SHA-256: 9e7fb9ee171266a67163654e4c6da285a881753bd138a4028dcb73553a1e5610
       else open = false;
     });
   });
-  function dispatch(event: BankEvent) {
-    if (event.kind === "transient.closed" && !panel) mounted = null;
-    onevent(event);
+  function dispatch(owner: ViewEventOwner) {
+    const send = bindViewEvents(owner, onevent);
+    return (event: BankEvent) => {
+      if (event.kind === "transient.closed" && !panel && mounted?.owner === owner) mounted = null;
+      send(event);
+    };
   }
 </script>
 
-{#if mounted}
-  <BankRenderer node={{ version: BankVersion, kind: "transient", label: mounted.label,
-    frame: mounted.frame, locked: mounted.locked, open }} onevent={dispatch} />
-{/if}
+{#each mounted ? [mounted] : [] as current}
+  <ViewPanel panel={current} {open} frameIdentity={current.owner} onevent={dispatch(current.owner)} />
+{/each}
 ```
 
 ## src/svelte/views/InspectionContent.svelte
 
-Source SHA-256: a87df7e78368b62dc843b29269dcd320f202eebf51dcb5e8aea7bc50059b183d
+Source SHA-256: 1637dc7fa45a6a79524f7008c1b8a6b3af33d10f3a9b883e72c0f49ba1188011
 
 ```svelte
 <script lang="ts">
-  import { tick } from "svelte";
-  import type { BankEvent } from "../../interaction/bank-events.ts";
   import type { PrimitiveId } from "../../interaction/catalog.ts";
   import type { PublicBankInput } from "../explorer/PublicCatalogBank-model.ts";
-  import PublicCatalogBank from "../explorer/PublicCatalogBank.svelte";
-  import RetainedPlace from "../explorer/RetainedPlace.svelte";
-  import BankRenderer from "../BankRenderer.svelte";
-  import Toolbar from "../pieces/Toolbar.svelte";
-  import { inspectionCatalog } from "../catalog/inspection-fixture.ts";
-
-  let { catalog = inspectionCatalog, query = $bindable("") }: {
-    catalog?: PublicBankInput; query?: string;
-  } = $props();
-  let bank: PublicCatalogBank | undefined = $state();
-  let selected = $state<string | null>(null);
-  let detail = $derived(catalog.details.find(item => item.record === selected));
-  let opener: HTMLElement | null = null;
-  async function back() {
-    selected = null;
-    await tick();
-    if (opener?.isConnected) opener.focus({ preventScroll: true });
-  }
-  function interact(event: BankEvent) {
-    if (event.kind === "catalog.open") {
-      if (!catalog.details.some(item => item.record === event.record)) throw new Error("UNKNOWN_INSPECTION_RECORD");
-      opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      selected = event.record;
-    } else if (event.kind === "catalog.back") void back();
-    else if (event.kind === "catalog.search") { query = event.query; selected = null; }
-  }
-  export async function revealEntry(id: PrimitiveId): Promise<HTMLElement | null> {
-    selected = null;
-    await tick();
-    return bank?.revealEntry(id) ?? null;
-  }
+  import { Inspection } from "../adapter-catalog.ts";
+  let { catalog }: { catalog?: PublicBankInput } = $props();
+  let content = $state<{ revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null> }>();
+  export async function revealEntry(id: PrimitiveId) { return await content?.revealEntry(id) ?? null; }
 </script>
 
-<RetainedPlace active={!detail}>
-  <PublicCatalogBank bind:this={bank} surface={catalog} oncatalog={interact} bodyOnly bind:query />
-</RetainedPlace>
-{#if detail}
-  <Toolbar toolbar={{ edge: "top", title: detail.title, subtitle: "Local renderer example", leading: {
-    intent: { kind: "back" }, icon: "back", label: "Back to visual catalog", state: "ready",
-  } }} invoke={() => void back()} />
-  <BankRenderer node={detail} onevent={interact} />
-{/if}
+<Inspection {catalog} bind:this={content} />
 ```
 
 ## src/svelte/catalog/inspection-fixture.ts
@@ -2862,212 +3300,103 @@ export const inspectionMedia = Object.freeze({
 });
 ```
 
-## src/svelte/HumanProduct.svelte
+## src/svelte/pieces/AccessGate.svelte
 
-Source SHA-256: 1e5d07eb24529182eb60051a9281475e6ddefc7d75658a03ec6d5e3951d9c89d
+Source SHA-256: 2cfb65490de14eaff646d0c8f82e608c4ed4c073de125d224f44f535e4b4cb61
 
 ```svelte
 <script lang="ts">
-  import { onMount, untrack, tick } from "svelte";
-  import type { HumanSurface, ValidateInput } from "../web/types.ts";
-  import { humanProduct } from "../web/client/model.ts";
-  import { readPresentation } from "../web/client/presentation.ts";
-  import SurfaceHost from "./SurfaceHost.svelte";
-  import ProductWorkspace from "./ProductWorkspace.svelte";
-  import BankRenderer from "./BankRenderer.svelte";
-  import { BankVersion } from "../interaction/bank-node.ts";
-  import KitchenSink from "./catalog/KitchenSink.svelte";
-  import { requireCatalog } from "../interaction/catalog.ts";
-  import FailureDialog from "./FailureDialog.svelte";
-  import ToolbarLayout from "./pieces/ToolbarLayout.svelte";
-  import AdaptiveSurfaceLayout from './pieces/AdaptiveSurfaceLayout.svelte';
-  import "./theme.css";
-let { surface, validateInput }: { surface: HumanSurface, validateInput: ValidateInput } = $props();
-  const model = untrack(() => humanProduct(surface, validateInput));
-  let viewState = $state.raw(model.snapshot());
-  let catalog = $state(false);
-  let workspace = $state<ReturnType<typeof ProductWorkspace>>();
-  untrack(() => requireCatalog(surface.catalog));
-  let read = $derived(readPresentation(surface));
-  let reason = $derived(viewState.availability.journeys[read.id]?.blockers[0]?.reason);
-  let connected = $derived(viewState.availability.journeys[read.id]?.dependenciesReady === true);
-  let status = $derived(connected ? "Local controller ready" : reason === "session-required" ? "Local access required" :
-    reason === "incompatible" ? "Contract mismatch" : reason === "unknown" ? "Connecting to local controller…" : "Local controller unavailable · draft kept");
+  import { onMount, untrack } from "svelte";
+  import type { HumanSurface, ValidateInput } from "../../web/types.ts";
+  import type { ViewProgram } from "../../views/program-schema.ts";
+  import ViewProduct from "../views/ViewProduct.svelte";
+  import { accessClient } from "../../web/client/access.ts";
+  import { provideAccess } from "./access-context.ts";
+  import AccessScreen from "./AccessScreen.svelte";
+  import { browserAccessLock } from "./browser-access-lock.ts";
+  import { rememberAccessProfile } from "./access-profile.ts";
+  let { surface, validateInput, viewProgram }: {
+    surface: HumanSurface; validateInput: ValidateInput; viewProgram: ViewProgram;
+  } = $props();
+  let productLabel = $derived(viewProgram.label);
+  const client = untrack(() => accessClient(surface.contractDigest, browserAccessLock()));
+  let current = $state.raw(client.snapshot());
+  provideAccess({ client, snapshot: () => current });
   onMount(() => {
-    catalog = new URLSearchParams(location.search).get("catalog") === "1";
-    const unsubscribe = model.subscribe(value => { viewState = value; });
+    const stop = client.subscribe(() => {
+      current = client.snapshot();
+      if (current.state.kind === "ready") rememberAccessProfile(current.state.identity);
+    });
     const invitation = new URLSearchParams(location.hash.slice(1)).get("access");
     history.replaceState(null, "", location.pathname + location.search);
-    void model.start(invitation ?? undefined);
-    const protectDraft = (event: BeforeUnloadEvent) => {
-      if (Object.values(viewState.draft).some(Boolean) || viewState.prepared) { event.preventDefault(); event.returnValue = ""; }
-    };
-    window.addEventListener("beforeunload", protectDraft);
-    return () => { unsubscribe(); model.stop(); window.removeEventListener("beforeunload", protectDraft); };
+    void client.start(invitation ?? undefined);
+    const refresh = () => { if (document.visibilityState === "visible") void client.refresh(); };
+    const timer = setInterval(refresh, 5000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { stop(); client.stop(); clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
   });
 </script>
 
-<svelte:head><title>{surface.productId} · DESERT</title></svelte:head>
-{#if catalog}
-  <KitchenSink {surface} {validateInput} back={() => { catalog = false; history.replaceState(null, "", "/"); }} />
-{:else}
-<AdaptiveSurfaceLayout>
-<div class="product">
-  <ToolbarLayout class="topbar"><div class="brand"><span aria-hidden="true" class="brand-mark">{surface.productId.slice(0,1).toUpperCase()}</span><h1>{surface.productId}</h1></div>
-    <BankRenderer node={{ version: BankVersion, kind: "action", role: "secondary", action: {
-      intent: { kind: "catalog", open: true }, icon: "catalog", label: "Renderer catalog", state: viewState.busy || viewState.uncertain ? "unavailable" : "ready" } }}
-      onevent={() => { if (viewState.busy || viewState.uncertain) return; catalog = true; history.replaceState(null, "", "?catalog=1"); }} /></ToolbarLayout>
-  <div class="connection">
-    <BankRenderer node={{ version: BankVersion, kind: "availability", state: connected ? "ready" : reason === "unknown" ? "unknown" : "unavailable", label: status }} />
-    <span class="saved-feedback" role="status">{viewState.notice}</span>
-  </div>
-  <ProductWorkspace bind:this={workspace} {surface} state={viewState} {model} {validateInput} {connected} />
-</div>
-<SurfaceHost {surface} state={viewState} {model} {validateInput} {status}
-  afterClose={() => { void tick().then(() => workspace?.settleFocus()); }}
-  connection={connected ? "ready" : reason === "unknown" ? "unknown" : "unavailable"} />
-<FailureDialog code={viewState.error} uncertain={viewState.uncertain} close={model.dismissError} />
-</AdaptiveSurfaceLayout>
-{/if}
-```
-
-## src/svelte/ProductWorkspace.svelte
-
-Source SHA-256: 7fa4ed899f62ef196bab7ee3c74764fb9cfadaeb764c36459dffc68a0ea3727a
-
-```svelte
-<script lang="ts">
-  import { tick } from "svelte";
-  import type { HumanSurface, ValidateInput } from "../web/types.ts";
-  import type { HumanState } from "../web/client/state.ts";
-  import type { humanProduct } from "../web/client/model.ts";
-  import { readPresentation, mutationPresentation } from "../web/client/presentation.ts";
-  import { presentFrame } from "../web/client/frame.ts";
-  import { toolbarAction } from "../interaction/toolbar.ts";
-  import type { SurfaceIntent } from "../interaction/intent.ts";
-  import BankRenderer from "./BankRenderer.svelte";
-  import { BankVersion } from "../interaction/bank-node.ts";
-  import { surfaceFrame } from "../interaction/surface-frame.ts";
-  import { presentCollection } from "../interaction/bank-presenters.ts";
-  import SurfaceFrame from "./SurfaceFrame.svelte";
-  let { surface, state: current, model, validateInput, connected }: {
-    surface: HumanSurface; state: HumanState; model: ReturnType<typeof humanProduct>;
-    validateInput: ValidateInput; connected: boolean;
-  } = $props();
-  let read = $derived(readPresentation(surface));
-  let selected = $derived(current.selectedId !== null && (current.view === "detail" ||
-    (current.view === "create" && current.creationOrigin === "detail") ||
-    ((current.view === "review" || current.view === "recovery") &&
-      (current.mutationId !== model.primary.id || current.creationOrigin === "detail"))));
-  let frame = $derived(presentFrame(surface, { ...current, view: "detail" }, validateInput));
-  let pane = $state<HTMLDivElement>();
-  let collection = $state<HTMLElement>();
-  let opener: HTMLElement | null = null;
-  let journeyOpener: HTMLElement | null = null;
-  export function settleFocus() {
-    if (current.view === "detail" && pane) {
-      if (journeyOpener && pane.contains(journeyOpener) && !journeyOpener.matches(":disabled")) journeyOpener.focus({ preventScroll: true });
-      else pane.querySelector<HTMLElement>("[data-surface-frame]")?.focus({ preventScroll: true });
-    }
-    journeyOpener = null;
-  }
-  async function select(id: string) {
-    opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    await model.select(id);
-    await tick();
-    if (current.view === "detail" && current.selectedId === id) pane?.querySelector<HTMLElement>("[data-surface-frame]")?.focus();
-  }
-  function invoke(intent: SurfaceIntent) {
-    if (intent.kind === "back") {
-      model.back();
-      void tick().then(() => {
-        if (opener?.isConnected && opener.getClientRects().length && !opener.matches(":disabled")) opener.focus();
-        else collection?.querySelector<HTMLInputElement>("[data-collection-search] input")?.focus();
-      });
-    } else if (intent.kind === "journey" && current.selectedId) {
-      journeyOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      void model.invoke(mutationPresentation(surface, intent.journey), current.selectedId);
-    }
-  }
-</script>
-<main class="reading-layout" data-selected={selected}>
-  <section bind:this={collection} data-collection-pane aria-label={surface.language.journeys[read.id]}>
-    <div class="collection-heading"><h2>{surface.language.journeys[read.id]}</h2>
-      {#if current.loaded}<span class="type-support text-muted-foreground">{current.records.length}</span>{/if}</div>
-    <div class="collection-heading"><BankRenderer node={{ version: BankVersion, kind: "action", role: "primary",
-      action: toolbarAction({ kind: "journey", journey: model.primary.id }, surface.language.journeys[model.primary.id]!, "create",
-        !!current.availability.journeys[model.primary.id]?.dependenciesReady && !current.busy && !current.uncertain) }} onevent={model.create} /></div>
-    <BankRenderer node={presentCollection(surface, current.records, { loaded: current.loaded,
-      selectedId: selected ? current.selectedId : null, disabled: !connected || current.busy || current.uncertain })}
-      onevent={event => { if (event.kind === "collection.select") void select(event.id); }} />
-  </section>
-  {#if selected}
-    <div class="reading-pane" bind:this={pane}>
-      <SurfaceFrame frame={surfaceFrame({ ...frame, top: { ...frame.top, leading: toolbarAction({ kind: "back" }, "Back", "back", !current.busy) } })} {invoke} />
-    </div>
-  {/if}
-</main>
+{#if current.state.kind === "ready" || current.state.kind === "developer"}
+  {#key current.state.kind === "ready" ? current.state.sessionBinding : "developer"}
+    <ViewProduct program={viewProgram} {surface} {validateInput} access={{ lock: client.lock }} />
+  {/key}
+{:else}<AccessScreen {productLabel} {current} {client} />{/if}
 ```
 
 ## src/svelte/Collection.svelte
 
-Source SHA-256: bf267ec0de572a64d4713615801cd72c71da71c33cdad589eba8ddbdfa21eb3f
+Source SHA-256: 59479303be508af5a7b22a33ccf88549d06fafecf266e0e8b9fd263bf3fb15e7
 
 ```svelte
 <script lang="ts">
   import type { BankNodeFor } from "../interaction/bank-node.ts";
-  import { presentFact, presentTitle } from "../interaction/fact-presentation.ts";
+  import { presentFact, presentTitle, readingFields } from "../interaction/fact-presentation.ts";
   import GroupedPanel from "./pieces/GroupedPanel.svelte";
-  import * as Field from "./vendor/components/ui/field/index.js";
-  import * as Empty from "./vendor/components/ui/empty/index.js";
   import { Button } from "./vendor/components/ui/button/index.js";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import CollectionState from "./pieces/CollectionState.svelte";
-  import SearchField from "./pieces/SearchField.svelte";
   import { retrieveCollection } from "./collection-retrieval.ts";
+  import MediaGrid from "./pieces/media/MediaGrid.svelte";
+  import MediaCollectionGrid from "./pieces/media/MediaCollectionGrid.svelte";
+  import AttentionIndicator from './pieces/AttentionIndicator.svelte';
   let { node, select }: { node: BankNodeFor<"collection">; select: (id: string) => void } = $props();
   let { records, disabled, loaded, selectedId } = $derived(node);
-  let query = $state("");
-  const searchId = $props.id();
-  let visibleRecords = $derived(retrieveCollection(records, node.fields, query));
-  let fieldLabels = $derived(node.fields.map(field => node.labels[`${node.object}.${field}`] ?? field));
+  // Collections present records. Search belongs exclusively to the toolbar overlay.
+  let visibleRecords = $derived(node.presentation ? records : retrieveCollection(records, node.fields, ""));
 </script>
-<Field.FieldGroup data-collection-search class="mb-4">
-  <Field.Field>
-    <Field.Label class="sr-only" for={searchId}>Search loaded records</Field.Label>
-    <SearchField id={searchId} bind:value={query} placeholder="Search loaded records"
-      disabled={!loaded || records.length === 0} aria-describedby={`${searchId}-help`} />
-    <Field.Description id={`${searchId}-help`}>Only loaded collection values are searched: {fieldLabels.join(", ")}.</Field.Description>
-  </Field.Field>
-</Field.FieldGroup>
-<p class="mb-4 type-caption text-muted-foreground">Sorted by {fieldLabels[0]} · ascending</p>
-{#if loaded && records.length > 0 && query.trim().length > 0}
-  <p class="mb-4 type-caption text-muted-foreground" role="status" aria-live="polite">{visibleRecords.length} of {records.length} loaded records</p>
-{/if}
-{#if visibleRecords.length}<GroupedPanel>
+{#if node.presentation?.kind === "media-grid"}<MediaGrid {node} {select} />
+{:else if node.presentation?.kind === "collection-grid"}<MediaCollectionGrid {node} {select} />
+{:else if visibleRecords.length}<GroupedPanel>
 <ul class="records" data-composition="collection" data-grouped-rows>
   {#each visibleRecords as record (record.id)}
+    {@const secondary = readingFields(node.fields.slice(1), record.facts)}
     <li data-grouped-row>
-      <Button variant="row" data-grouped-action class="record-button flex-col items-stretch justify-center gap-1.5 px-4 py-3 aria-[current=true]:bg-muted" onclick={() => select(record.id)} {disabled} aria-current={record.id === selectedId ? "true" : undefined}>
-        <span data-record-heading><strong>{presentTitle(record.facts[node.fields[0]!])}</strong><ChevronRight data-icon="inline-end" data-control-chevron aria-hidden="true" /></span>
-        {#if node.fields.length > 1}
-          <span data-record-metadata>{#each node.fields.slice(1) as field}<span>{node.labels[`${node.object}.${field}`]} · {presentFact(record.facts[field])}</span>{/each}</span>
-        {/if}
+      <Button variant="row" presentation="record-row" data-grouped-action onclick={() => select(record.id)} {disabled} aria-current={record.id === selectedId ? "true" : undefined}>
+        <AttentionIndicator required={Boolean(node.attention?.[record.id]?.length)} />
+        <span data-record-copy>
+          <span data-record-heading><strong>{presentTitle(record.facts[node.fields[0]!])}</strong></span>
+          {#if secondary.length}
+            <span data-record-metadata>{#each secondary as field}<span data-record-value>{node.valueLabels?.[field]?.[String(record.facts[field])] ?? `${node.labels[`${node.object}.${field}`]} · ${presentFact(record.facts[field])}`}</span>{/each}</span>
+          {/if}
+        </span>
+        <ChevronRight data-icon="inline-end" data-control-chevron aria-hidden="true" />
       </Button>
     </li>
   {/each}
 </ul>
 </GroupedPanel>{/if}
-{#if !records.length}
-  <CollectionState {loaded} createLabel={node.createLabel} />
-{:else if !visibleRecords.length}
-  <Empty.Root role="group" aria-label="Collection search results">
-    <Empty.Header>
-      <Empty.Title role="heading" aria-level={2}>No matching records.</Empty.Title>
-      <Empty.Description>Try another search or clear it to show all loaded records.</Empty.Description>
-    </Empty.Header>
-  </Empty.Root>
+{#if !records.length && !node.presentation}
+  <CollectionState {loaded} createLabel={node.createLabel} connection={node.connection} />
 {/if}
+<style>
+  strong { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); overflow-wrap:anywhere; text-align:start; }
+  [data-record-heading] { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+  [data-record-copy] { display:flex; flex:1; min-width:0; flex-direction:column; gap:.25rem; }
+  [data-record-value] { display:block; }
+  [data-record-metadata] { display:flex; flex-wrap:wrap; gap:.375rem 1rem; text-align:start; color:var(--muted-foreground); font-size:var(--text-body); }
+</style>
 ```
 
 ## src/svelte/collection-retrieval.ts
@@ -3101,113 +3430,65 @@ export function retrieveCollection(records: readonly RecordView[], fields: reado
 }
 ```
 
-## src/svelte/SurfaceHost.svelte
-
-Source SHA-256: e772eac46b1dd400f681b88abf881b8bbd59f06ba4114c479b9cd96151d22e8a
-
-```svelte
-<script lang="ts">
-  import { untrack } from "svelte";
-  import type { HumanSurface, ValidateInput } from "../web/types.ts";
-  import type { HumanState } from "../web/client/state.ts";
-  import type { humanProduct } from "../web/client/model.ts";
-  import BankRenderer from "./BankRenderer.svelte";
-  import { BankVersion } from "../interaction/bank-node.ts";
-  import { surfaceFrame } from "../interaction/surface-frame.ts";
-  import type { BankEvent } from "../interaction/bank-events.ts";
-  import { presentFrame } from "../web/client/frame.ts";
-  import { mutationPresentation } from "../web/client/presentation.ts";
-  import { dispatchSurfaceIntent, type SurfaceIntent } from "../interaction/intent.ts";
-let { surface, state: current, model, validateInput, status, connection, afterClose }: {
-    surface: HumanSurface; state: HumanState; model: ReturnType<typeof humanProduct>; validateInput: ValidateInput;
-    status: string; connection: "ready" | "unknown" | "unavailable";
-    afterClose?: () => void;
-  } = $props();
-  const identity = (value: HumanState) => value.view === "list" || value.view === "detail" ? null : value.view === "create" ||
-    (value.mutationId === model.primary.id && (value.view === "review" || value.view === "recovery"))
-      ? `journey:${model.primary.id}` : `journey:${value.mutationId}:${value.selectedId}`;
-  let mounted = $state.raw<HumanState | null>(null);
-  let key = $state<string | null>(null);
-  let open = $state(false);
-  $effect(() => {
-    const next = identity(current);
-    untrack(() => {
-      if (key === next) { if (key) mounted = current; }
-      else if (key) open = false;
-      else if (next) { key = next; mounted = current; open = true; }
-    });
-  });
-  function closed() {
-    key = identity(current);
-    // Presence completion can flush a child's derived frame before its branch
-    // is destroyed. Keep that departing snapshot valid through teardown.
-    if (key) mounted = current;
-    open = !!key;
-    if (!key) afterClose?.();
-  }
-  function invoke(intent: SurfaceIntent) {
-    dispatchSurfaceIntent(intent, {
-      back: model.back, close: model.close,
-      recover: () => { void model.recover(); }, accept: () => { void model.accept(); },
-      journey: id => { void model.invoke(mutationPresentation(surface, id), mounted?.view === "detail" ? mounted.selectedId! : undefined); },
-    });
-  }
-  function dispatch(event: BankEvent) {
-    if (event.kind === "surface.invoke") invoke(event.intent);
-    else if (event.kind === "input.change") model.edit(event.name, event.value);
-    else if (event.kind === "transient.close") model.close();
-    else if (event.kind === "transient.closed") closed();
-  }
-</script>
-{#if mounted && key}
-  {#key key}
-    {@const frame = presentFrame(surface, mounted, validateInput)}
-    <BankRenderer node={{ version: BankVersion, kind: "transient", label: mounted.view === "detail" ? surface.language.journeys[surface.navigation.entry]! :
-      surface.language.journeys[mounted.mutationId && mounted.view !== "create" ? mounted.mutationId : model.primary.id]!,
-      open, locked: current.busy || current.uncertain,
-      frame: surfaceFrame({ ...frame, top: { ...frame.top, availability: { state: connection, label: status } } }) }} onevent={dispatch} />
-  {/key}
-{/if}
-```
-
 ## src/svelte/SurfaceFrame.svelte
 
-Source SHA-256: b73c3d92482bcda8389213d07ba27f03347426e879876d7917f4b5d93df06b5c
+Source SHA-256: 295e442cb0349d0c38a4cb95a31d18b63871bd653c83f207184719672cf73ed2
 
 ```svelte
 <script lang="ts">
   import { surfaceFrame, type SurfaceFrame } from "../interaction/surface-frame.ts";
   import type { SurfaceIntent } from "../interaction/intent.ts";
+  import type { BankEvent } from "../interaction/bank-events.ts";
+  import type { ResolvedView } from "../views/resolved.ts";
+  import ContentFlow from "./pieces/ContentFlow.svelte";
   import FrameBody from "./FrameBody.svelte";
   import Toolbar from "./pieces/Toolbar.svelte";
   import ScrollEdges from "./pieces/ScrollEdges.svelte";
   import { provideSurfaceHost } from "./pieces/surface-host.svelte.ts";
-let { frame, invoke, edit = () => {}, presentation = "standard" }: { frame: SurfaceFrame;
+  import { provideToolbarScroll } from "./pieces/toolbar-scroll.svelte.ts";
+  import { isFormControlEvent, type FormControlEvent } from "../interaction/form-control-event.ts";
+let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEvent }: { frame: SurfaceFrame;
+    body?: ResolvedView | undefined;
     presentation?: "standard" | "message" | "transient";
-    invoke: (intent: SurfaceIntent) => void; edit?: ((name: string, value: string) => void) | undefined } = $props();
+    invoke: (intent: SurfaceIntent) => void; edit?: ((name: string, value: string) => void) | undefined;
+    controlEvent?: ((event: FormControlEvent) => void) | undefined } = $props();
   let host = $state<HTMLElement | null>(null);
   let viewport = $state<HTMLDivElement | null>(null);
   provideSurfaceHost(() => host);
+  provideToolbarScroll({ owner: () => host, viewport: () => viewport });
   let checked = $derived.by(() => {
     const value = surfaceFrame(frame);
     // A modal message may consolidate dismissal, never suppress task navigation.
-    if (presentation === "message" && value.kind !== "message") throw new Error("INVALID_MESSAGE_PRESENTATION");
+    if (presentation === "message" && value.kind !== "message" && value.kind !== "confirmation") throw new Error("INVALID_MESSAGE_PRESENTATION");
     return value;
   });
+  // A commit belongs to the top rail. Only an explicitly multi-step journey
+  // owns a bottom navigation rail; confirmations retain their compact choices.
+  let steps = $derived(checked.kind === "journey" && checked.navigation === "steps");
+  let topCommit = $derived(!steps && (checked.kind === "journey" || checked.kind === "specimen") ? checked.bottom.primary : undefined);
+  let top = $derived(topCommit ? {...checked.top, primary:{...topCommit,
+    icon:checked.content.kind === "form" || checked.content.kind === "review" ? "confirm" as const : topCommit.icon}} : checked.top);
+  let bottom = $derived(steps || checked.kind === "confirmation" || checked.kind === "message");
   function submit(event: SubmitEvent) {
     event.preventDefault();
     if (checked.content.kind !== "form") return;
     const action = checked.bottom.primary;
     if (action?.state === "ready") invoke(action.intent);
   }
+  function dispatch(event: BankEvent) {
+    if (event.kind === "input.change") edit(event.name, event.value);
+    else if (isFormControlEvent(event)) controlEvent?.(event);
+    else if (event.kind === "surface.invoke") invoke(event.intent);
+  }
 </script>
 {#snippet slots()}
-  <Toolbar toolbar={{ edge: "top", ...checked.top }} {invoke} {presentation} />
+  <Toolbar toolbar={{ edge: "top", ...top }} {invoke} {presentation} submit={checked.content.kind === "form" ? checked.content.submit : undefined} />
   <div bind:this={viewport} class="surface-content min-h-0 flex-1 overflow-auto" data-surface-slot="content">
-    <FrameBody content={checked.content} {invoke} {edit} messageDialog={presentation === "message"} />
+    {#if body}<ContentFlow resolved={body} onevent={dispatch} host="panel" />
+    {:else}<FrameBody content={checked.content} {invoke} {edit} {controlEvent} messageDialog={presentation === "message"} />{/if}
   </div>
-  {#if checked.bottom.primary || (checked.bottom.secondary && presentation !== "transient")}
-    <Toolbar toolbar={{ edge: "bottom", ...checked.bottom }} {invoke} {presentation} submit={checked.content.kind === "form" ? checked.content.submit : undefined} />
+  {#if bottom && (checked.bottom.primary || (checked.bottom.secondary && presentation !== "transient"))}
+    <Toolbar toolbar={{ edge: "bottom", ...checked.bottom, ...(steps ? {navigation:"steps" as const} : {}) }} {invoke} {presentation} submit={checked.content.kind === "form" ? checked.content.submit : undefined} />
   {/if}
   <ScrollEdges {viewport} owner={host} />
 {/snippet}
@@ -3221,7 +3502,7 @@ let { frame, invoke, edit = () => {}, presentation = "standard" }: { frame: Surf
 
 ## src/interaction/surface-frame.ts
 
-Source SHA-256: 8d2c274c09ab2759d265a6d5d9d8edca6cfbd69c6ec612c684aa69be074adb55
+Source SHA-256: 3ab09f6bf41ac859d4894dd9832518e532f606b295f9dd1dfaca38307a88f9d9
 
 ```ts
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
@@ -3230,7 +3511,11 @@ import { freezeDeep, jsonSnapshot, type Frozen } from "../json.ts";
 import { TopToolbarSchema, BottomToolbarSchema, ToolbarActionSchema, NavigationActionSchema,
   UtilityActionSchema, actionSchema } from "./toolbar.ts";
 import { InformationSchema } from "./information-content.ts";
-import { CloseIntentSchema, RecoverIntentSchema, intentKey, submitsJourney } from "./intent.ts";
+import { FactValueSchema } from "../fact-values.ts";
+import { FileMetadataSchema } from "./control-nodes.ts";
+import { LabelControlLimitsSchema, ReferenceStateSchema, ReferenceChoiceSchema,MediaReferenceStateSchema } from "./labels-control.ts";
+import { CloseIntentSchema, RecoverIntentSchema, JourneyIntentSchema, intentKey, submitsJourney } from "./intent.ts";
+import {AttentionSignalSchema} from '../attention.ts';
 export { ToolbarActionSchema, type ToolbarAction } from "./toolbar.ts";
 
 const object = <T extends TProperties>(properties: T) => Type.Object(properties, { additionalProperties: false });
@@ -3238,18 +3523,43 @@ const text = () => Type.String({ minLength: 1 });
 export const DestinationSchema = object({ destination: text(), label: text(), available: Type.Boolean() });
 export const FactsSchema = object({
   kind: Type.Literal("facts"), object: text(), fields: Type.Array(text()),
-  facts: Type.Record(Type.String(), Type.Union([Type.String(), Type.Number()])),
+  facts: Type.Record(Type.String(), FactValueSchema),
   labels: Type.Record(Type.String(), Type.String()),
   multiline: Type.Optional(Type.Array(text(), { uniqueItems: true })),
+  images: Type.Optional(Type.Array(text(), { uniqueItems: true })),
+  tags: Type.Optional(Type.Array(text(), { uniqueItems: true })),
+  references:Type.Optional(Type.Record(Type.String(),Type.Array(ReferenceChoiceSchema))),
+});
+export const TextFormFieldSchema = object({ name: text(), label: text(), value: Type.String(), required: Type.Boolean(),
+    disabled: Type.Optional(Type.Boolean()),
+    error: Type.Optional(text()), maxLength: Type.Optional(Type.Integer({ minimum: 0 })),
+    primitive: Type.Union([Type.Literal("input.text"), Type.Literal("input.multiline")]),
 });
 export const FormSchema = object({
   kind: Type.Literal("form"), submit: text(),
-  fields: Type.Array(object({ name: text(), label: text(), value: Type.String(), required: Type.Boolean(),
-    error: Type.Optional(text()), maxLength: Type.Optional(Type.Integer({ minimum: 0 })),
-    primitive: Type.Union([Type.Literal("input.text"), Type.Literal("input.multiline")]),
-  })),
+  fields: Type.Array(Type.Union([TextFormFieldSchema, object({ name: text(), label: text(), required: Type.Boolean(),
+    disabled: Type.Optional(Type.Boolean()),
+    primitive: Type.Literal("control.files"), files: Type.Array(FileMetadataSchema, { maxItems: 1 }), error: Type.Optional(text()),
+    media:Type.Optional(Type.Union([Type.Literal("image"),Type.Literal("media")])),
+  }), object({ name: text(), label: text(), required: Type.Boolean(), primitive: Type.Literal("control.labels"),
+    disabled: Type.Optional(Type.Boolean()),
+    values: Type.Array(Type.String()), limits: LabelControlLimitsSchema, error: Type.Optional(text()),
+    reference:Type.Optional(ReferenceStateSchema),
+    mediaReference:Type.Optional(MediaReferenceStateSchema),
+  }), object({ name: text(), label: text(), required: Type.Literal(false), primitive: Type.Literal("control.select"),
+    disabled: Type.Optional(Type.Boolean()),
+    value: text(), options: Type.Array(object({ value: text(), label: text(), disabled: Type.Boolean() }), { minItems: 1 }),
+    error: Type.Optional(text()),
+  })])),
 });
-export const ContextSchema = object({ kind: Type.Literal("context"), details: FactsSchema, actions: Type.Array(DestinationSchema) });
+export const ObjectSelectorSchema = object({ field: text(), label: text(), value: Type.Union([text(), Type.Null()]), disabled: Type.Boolean(),
+  options: Type.Array(object({ value: text(), label: text(), journey: text(), available: Type.Boolean() }), { minItems: 1 }),
+});
+export const ContextSchema = object({ kind: Type.Literal("context"), details: FactsSchema, actions: Type.Array(DestinationSchema),
+  attention:Type.Optional(Type.Array(AttentionSignalSchema)),
+  selectors: Type.Optional(Type.Array(ObjectSelectorSchema)),
+  presentation: Type.Optional(object({ kind: Type.Literal("media-object"), media: text(), description: Type.Optional(text()) })),
+});
 export const ReviewSchema = object({ kind: Type.Literal("review"), details: FactsSchema, recovery: Type.Optional(text()) });
 const MessageSchema = object({ kind: Type.Literal("message"), text: text() });
 export const UtilitiesContentSchema = object({ kind: Type.Literal("utilities"), actions: Type.Array(UtilityActionSchema, { minItems: 1 }) });
@@ -3258,9 +3568,10 @@ export const FrameContentSchema = Type.Union([GeneralContentSchema, UtilitiesCon
 export const SurfaceFrameVersion = "desert.surface-frame/6" as const;
 const common = { version: Type.Literal(SurfaceFrameVersion), top: TopToolbarSchema };
 const DismissActionSchema = actionSchema(CloseIntentSchema);
-const MessageTopSchema = object({ ...TopToolbarSchema.properties, trailing: Type.Optional(Type.Array(Type.Never())) });
+const MessageTopSchema = object({ ...TopToolbarSchema.properties, primary: Type.Optional(Type.Never()), trailing: Type.Optional(Type.Array(Type.Never())) });
 const ContextTopSchema = object({ ...TopToolbarSchema.properties,
-  trailing: Type.Optional(Type.Array(actionSchema(RecoverIntentSchema))),
+  primary: Type.Optional(Type.Never()),
+  trailing: Type.Optional(Type.Array(actionSchema(Type.Union([RecoverIntentSchema, JourneyIntentSchema])))),
 });
 const DismissBottomSchema = object({ secondary: Type.Optional(DismissActionSchema), primary: Type.Optional(Type.Never()) });
 export const SurfaceFrameSchema = Type.Union([
@@ -3270,7 +3581,8 @@ export const SurfaceFrameSchema = Type.Union([
   }),
   object({ ...common, kind: Type.Literal("message"), top: MessageTopSchema, content: MessageSchema, bottom: DismissBottomSchema }),
   object({ ...common, kind: Type.Literal("utilities"), top: MessageTopSchema, content: UtilitiesContentSchema, bottom: DismissBottomSchema }),
-  object({ ...common, kind: Type.Literal("journey"), content: GeneralContentSchema, bottom: BottomToolbarSchema }),
+  object({ ...common, kind: Type.Literal("journey"), navigation: Type.Optional(Type.Literal("steps")), content: GeneralContentSchema, bottom: BottomToolbarSchema }),
+  object({ ...common, kind: Type.Literal("confirmation"), content: MessageSchema, bottom: BottomToolbarSchema }),
   object({ ...common, kind: Type.Literal("specimen"), content: GeneralContentSchema, bottom: BottomToolbarSchema }),
 ]);
 
@@ -3283,8 +3595,25 @@ export type FactsContent = Frozen<Static<typeof FactsSchema>>;
 export function checkFrameContent(content: FrameContent): void {
   const details = content.kind === "facts" ? content :
     content.kind === "context" || content.kind === "review" ? content.details : undefined;
+  if (content.kind === "context" && content.presentation &&
+    (!content.details.images?.includes(content.presentation.media) ||
+      (content.presentation.description && !content.details.fields.includes(content.presentation.description)))) {
+    throw new Error("INVALID_MEDIA_OBJECT_FIELDS");
+  }
   if (details && (new Set(details.fields).size !== details.fields.length ||
-    details.multiline?.some(field => !details.fields.includes(field)))) throw new Error("INVALID_SURFACE_FRAME_FIELDS");
+    details.multiline?.some(field => !details.fields.includes(field)) ||
+    details.images?.some(field => !details.fields.includes(field) || details.multiline?.includes(field)) ||
+    details.tags?.some(field => !details.fields.includes(field) || details.multiline?.includes(field) || details.images?.includes(field)))) {
+    throw new Error("INVALID_SURFACE_FRAME_FIELDS");
+  }
+  if (details && details.fields.some(field => {
+    if (!Object.hasOwn(details.facts, field)) return false;
+    const value = details.facts[field];
+    return Array.isArray(value) !== Boolean(details.tags?.includes(field)) ||
+      (typeof value === "object" && !Array.isArray(value)) !== Boolean(details.images?.includes(field));
+  })) {
+    throw new Error("INVALID_SURFACE_FRAME_FACT_REPRESENTATION");
+  }
   if (details && details.fields.some(field => !Object.hasOwn(details.labels, `${details.object}.${field}`) ||
     !details.labels[`${details.object}.${field}`]?.trim())) throw new Error("INVALID_SURFACE_FRAME_LABELS");
   if (content.kind === "form" && new Set(content.fields.map(field => field.name)).size !== content.fields.length) {
@@ -3301,7 +3630,7 @@ export function surfaceFrame(value: unknown): SurfaceFrame {
   checkFrameContent(snapshot.content);
   const actions = [snapshot.bottom.secondary, snapshot.bottom.primary].filter(action => action !== undefined);
   const ids = actions.map(action => intentKey(action.intent));
-  const topIds = [snapshot.top.leading, ...(snapshot.top.trailing ?? [])]
+  const topIds = [snapshot.top.leading, snapshot.top.primary, ...(snapshot.top.trailing ?? [])]
     .filter(action => action !== undefined).map(action => intentKey(action.intent));
   if (new Set(ids).size !== ids.length || new Set(topIds).size !== topIds.length ||
     (snapshot.content.kind === "form" && !submitsJourney(snapshot.bottom.primary?.intent, snapshot.content.submit))) {
@@ -3313,36 +3642,69 @@ export function surfaceFrame(value: unknown): SurfaceFrame {
 
 ## src/interaction/frame-presenters.ts
 
-Source SHA-256: 0b1e9856cafd7ac1c87ea66e82da5be891c0cf5e7b54f88fde0a8a1f2d234ddc
+Source SHA-256: 6e3eadd899e75ddb5292bc8c44247d4ac60e4a98b39544877a61cc0f76512cb1
 
 ```ts
 import type { HumanSurface, Mutation } from "../web/types.ts";
 import { deriveForm } from "./form.ts";
 import { surfaceFrame, type SurfaceFrame } from "./surface-frame.ts";
 import { toolbarAction, type BottomToolbar } from "./toolbar.ts";
-import { presentFacts } from "./fact-presentation.ts";
+import { presentFacts, presentTitle } from "./fact-presentation.ts";
 import { reviewChanges } from "./review-changes.ts";
+import type { Facts } from "../fact-values.ts";
+import { isImageFileSelection } from "./image-input.ts";
+import type { Draft } from "./draft.ts";
+import type { ReferenceState,MediaReferenceState } from './labels-control.ts';
 export { toolbarAction } from "./toolbar.ts";
 
-export function formFrame(surface: HumanSurface, journey: Mutation, draft: Readonly<Record<string, string>>,
-  bottom: BottomToolbar, errors: Readonly<Record<string, string>> = {}): SurfaceFrame {
+export function formFrame(surface: HumanSurface, journey: Mutation, draft: Readonly<Draft>,
+  bottom: BottomToolbar, errors: Readonly<Record<string, string>> = {}, references:Readonly<Record<string,ReferenceState>>={},mediaReferences:Readonly<Record<string,MediaReferenceState>>={}): SurfaceFrame {
   return surfaceFrame({ version: "desert.surface-frame/6", kind: "journey",
     top: { title: surface.language.journeys[journey.id]! },
-    content: { kind: "form", submit: journey.id, fields: deriveForm(journey, surface.inputs ?? {}).map(field => ({
-      name: field.name, primitive: field.primitive, required: field.required,
-      label: surface.language.fields[`${journey.object}.${field.name}`]!, value: draft[field.name] ?? "",
-      ...(field.schema.maxLength !== undefined ? { maxLength: field.schema.maxLength } : {}),
-      ...(Object.hasOwn(errors, field.name) ? { error: errors[field.name] } : {}),
-    })) }, bottom,
+    content: { kind: "form", submit: journey.id, fields: deriveForm(journey, surface.fieldRepresentations).map(field => {
+      const common = { name: field.name, required: field.required, label: surface.language.fields[`${journey.object}.${field.name}`]!,
+        ...(Object.hasOwn(errors, field.name) ? { error: errors[field.name] } : {}) };
+      const value = draft[field.name];
+      const reference=surface.fieldReferences?.[`${journey.object}.${field.name}`];
+      return field.primitive === "control.labels" ? { ...common, primitive: field.primitive,
+        values: Array.isArray(value) ? value : [], limits: field.limits,
+        ...(surface.fieldMediaReferences?.[`${journey.object}.${field.name}`] ? {mediaReference:mediaReferences[`${journey.object}.${field.name}`] ?? {options:[],loading:true}} : {}),
+        ...(reference ? {reference:references[`${journey.object}.${field.name}`] ?? {
+          options:[],loading:true,busy:false,uncertain:false,...(reference.create ? {createLabel:surface.language.journeys[reference.create]!} : {}),
+          colors:reference.colors,maxLength:reference.maxLength}} : {}) }
+        : field.primitive === "control.select" ? { ...common, required: false, primitive: field.primitive,
+          value: typeof value === "string" && field.options.some(option => option.value === value) ? value : field.options[0]!.value,
+          options: field.options }
+        : field.primitive === "control.files" ? { ...common, primitive: field.primitive,
+        files: isImageFileSelection(value) ? [value.file] : [],media:field.media }
+        : { ...common, primitive: field.primitive, value: typeof value === "string" ? value : "",
+          ...(field.schema.maxLength !== undefined ? { maxLength: field.schema.maxLength } : {}) };
+    }) }, bottom,
   });
 }
 
-export function reviewFrame(surface: HumanSurface, mutation: Mutation, facts: Readonly<Record<string, string | number>>,
-  uncertain: boolean, busy: boolean, ready: boolean,
+export type ReviewPhase = { kind: "review" } | { kind: "recovery"; method: "same-confirmation" | "receipt-only" };
+
+export function reviewFrame(surface: HumanSurface, mutation: Mutation, facts: Readonly<Facts>,
+  phase: ReviewPhase, busy: boolean, ready: boolean,
   feedback: { pendingAction?: "invoke" | "accept" | "recover" | null, receiptMissing?: boolean,
-    previous?: Readonly<Record<string, string | number>> } = {}): SurfaceFrame {
+    previous?: Readonly<Facts> } = {}): SurfaceFrame {
   const label = surface.language.journeys[mutation.id]!;
+  const uncertain = phase.kind === "recovery", receiptOnly = phase.kind === "recovery" && phase.method === "receipt-only";
   const pending = feedback.pendingAction === undefined ? (busy ? "accept" : null) : feedback.pendingAction;
+  if (!uncertain && surface.commit[mutation.id] === "confirm") {
+    const read = surface.journeys.find(item => item.kind === "read" && item.subject === mutation.object);
+    const candidate = read?.kind === "read" ? facts[read.collection[0]!] : undefined;
+    // An asset-led collection has no text title. Never stringify private asset metadata.
+    const title = typeof candidate === "string" || typeof candidate === "number" || typeof candidate === "boolean" ? candidate : undefined;
+    return surfaceFrame({ version: "desert.surface-frame/6", kind: "confirmation",
+      top: { title: `${label}?` }, content: { kind: "message", text: title === undefined ?
+        "Confirm this change to the selected item." : `“${presentTitle(title)}”` },
+      bottom: { secondary: toolbarAction({ kind: "back" }, "Cancel", "back", !busy),
+        primary: { ...toolbarAction({ kind: "accept" }, label, "confirm", ready && !busy),
+          ...(busy && pending === "accept" ? { state: "pending" as const } : {}) } },
+    });
+  }
   const changes = reviewChanges(surface, mutation, facts, feedback.previous);
   return surfaceFrame({ version: "desert.surface-frame/6", kind: "journey",
     top: { title: uncertain ? "Check result" : `Review · ${label}`,
@@ -3351,63 +3713,81 @@ export function reviewFrame(surface: HumanSurface, mutation: Mutation, facts: Re
         ...(busy && pending === "recover" ? { state: "pending" as const } : {}) }] } : {}) },
     content: { kind: "review", details: presentFacts(surface, mutation.object, changes.fields, facts),
       ...(uncertain ? { recovery: feedback.receiptMissing
-        ? "No saved result was found for this confirmation. Check again or retry this same confirmation."
+        ? receiptOnly ? "No saved result was found yet. Check again; this operation will not be repeated."
+          : "No saved result was found for this confirmation. Check again or retry this same confirmation."
         : "The result needs confirmation. Recovery checks this operation; it does not create another one." } : {}) },
     bottom: { ...(!uncertain ? { secondary: toolbarAction({ kind: "back" }, "Back", "back", !busy) } : {}),
-      primary: { ...toolbarAction({ kind: "accept" }, uncertain ? "Retry same confirmation" : label, uncertain ? "retry" : "confirm", ready),
-        state: busy && pending === "accept" ? "pending" : !busy && ready ? "ready" : "unavailable" } },
+      ...(!receiptOnly ? { primary: { ...toolbarAction({ kind: "accept" }, uncertain ? "Retry same confirmation" : label, uncertain ? "retry" : "confirm", ready),
+        state: busy && pending === "accept" ? "pending" as const : !busy && ready ? "ready" as const : "unavailable" as const } } : {}) },
   });
 }
 ```
 
 ## src/interaction/fact-presentation.ts
 
-Source SHA-256: 9b5602e379112eeceb98510b6596f4186b80118d4630276fe4ac33bdfcbea119
+Source SHA-256: 0dbafe99fa51471c6d6a4274c21b0bcf93dff10cda615cd5cc0225ccfea68ab3
 
 ```ts
 import type { HumanSurface } from "../web/types.ts";
 import type { FactsContent } from "./surface-frame.ts";
+import { requireFieldRepresentation } from "../field-representation.ts";
+import type { FactValue, Facts } from "../fact-values.ts";
+import type { ReferenceState } from './labels-control.ts';
 
-type FactValue = string | number | null | undefined;
-const blank = (value: FactValue) => typeof value === "string" && value.trim().length === 0;
+type PresentedValue = FactValue | null | undefined;
+const blank = (value: PresentedValue) => typeof value === "string" && value.trim().length === 0 || Array.isArray(value) && value.length === 0;
 /** Bridge absent fact keys and information's null sentinel only at presentation. */
-export const factState = (value: FactValue) => value == null ? "unknown" : blank(value) ? "empty" : "known";
+export const factState = (value: PresentedValue) => value == null ? "unknown" : blank(value) ? "empty" : "known";
+/** Hide only confirmed empty fields in object reading. Reviews still expose deletions. */
+export const readingFields = (fields: readonly string[], facts: Readonly<Facts>) =>
+  fields.filter(field => !Object.hasOwn(facts, field) || factState(facts[field]) !== "empty");
 /** Presentation fallbacks never normalize, validate or rewrite the stored value. */
-export const presentFact = (value: FactValue) => {
+export const presentFact = (value: PresentedValue) => {
   const state = factState(value);
-  return state === "unknown" ? "Unknown" : state === "empty" ? "Empty" : String(value);
+  return state === "unknown" ? "Unknown" : state === "empty" ? "Empty" : Array.isArray(value) ? "Labels" : typeof value === "object" ? "Image" : String(value);
 };
-export const presentTitle = (value: string | number | undefined) => value === undefined ? "Unknown" : blank(value) ? "Untitled" : String(value);
+export const presentTitle = (value: FactValue | undefined) => {
+  if (typeof value === "object") throw new Error("ASSET_CANNOT_BE_TITLE");
+  return value === undefined ? "Unknown" : blank(value) ? "Untitled" : String(value);
+};
 
-/** The field's declared multiline need owns both editing and reading, without name heuristics. */
+/** Reading follows the published fact representation, independently of editing authority. */
 export function presentFacts(surface: HumanSurface, object: string, fields: readonly string[],
-  facts: Readonly<Record<string, string | number>>): FactsContent {
+  facts: Readonly<Facts>, references:Readonly<Record<string,ReferenceState>>={}): FactsContent {
+  const images = fields.filter(field => requireFieldRepresentation(surface.fieldRepresentations, `${object}.${field}`) === "image");
+  const tags = fields.filter(field => requireFieldRepresentation(surface.fieldRepresentations, `${object}.${field}`) === "tags");
   return { kind: "facts", object, fields, labels: surface.language.fields,
     facts: Object.fromEntries(fields.filter(field => Object.hasOwn(facts, field)).map(field => [field, facts[field]!])),
-    multiline: fields.filter(field => surface.inputs?.[`${object}.${field}`] === "input.multiline"),
+    multiline: fields.filter(field => requireFieldRepresentation(surface.fieldRepresentations, `${object}.${field}`) === "paragraphs"),
+    ...(images.length ? { images } : {}),
+    ...(tags.length ? { tags } : {}),
+    ...(tags.some(field => surface.fieldReferences?.[`${object}.${field}`]) ? {references:Object.fromEntries(tags
+      .filter(field => surface.fieldReferences?.[`${object}.${field}`]).map(field => [field,references[`${object}.${field}`]?.options ?? []]))} : {}),
   };
 }
 ```
 
 ## src/interaction/review-changes.ts
 
-Source SHA-256: e74571c0aa53ebc21b158f13130c7160ff6900ac43328a3a865f257f5beb449c
+Source SHA-256: 8c9003a09e95cdcd7fa2cbef2a5798c419c794ec311cbb37b300210b30764109
 
 ```ts
 import type { HumanSurface, Mutation } from "../web/types.ts";
 import { presentFact } from "./fact-presentation.ts";
+import { sameFact, type Facts as FactValues } from "../fact-values.ts";
 
-type Facts = Readonly<Record<string, string | number>>;
+type Facts = Readonly<FactValues>;
 /** Compare only exposed facts with an exact-version baseline supplied by the presenter. */
 export function reviewChanges(surface: HumanSurface, mutation: Mutation, facts: Facts, previous?: Facts) {
   if (!mutation.reviewFields) throw new Error("UNSUPPORTED_REVIEW_PROJECTION");
   const changed = mutation.reviewFields.filter(field => previous && Object.hasOwn(previous, field) &&
-    Object.hasOwn(facts, field) && previous[field] !== facts[field]);
+    Object.hasOwn(facts, field) && !sameFact(previous[field], facts[field]));
   let summary = "Review the resulting record before confirming.";
   if (changed.length) {
     const field = changed[0]!;
     const concise = `${surface.language.fields[`${mutation.object}.${field}`]}: ${presentFact(previous![field])} → ${presentFact(facts[field])}`;
-    summary = changed.length === 1 && concise.length <= 64 && !concise.includes("\n") ? concise :
+    const structured = typeof previous![field] === "object" || typeof facts[field] === "object";
+    summary = !structured && changed.length === 1 && concise.length <= 64 && !concise.includes("\n") ? concise :
       `${changed.length} ${changed.length === 1 ? "field will change. Review the updated value" : "fields will change. Review the updated values"} first.`;
   }
   return { summary, fields: [...changed, ...mutation.reviewFields.filter(field => !changed.includes(field))] };
@@ -3416,43 +3796,54 @@ export function reviewChanges(surface: HumanSurface, mutation: Mutation, facts: 
 
 ## src/web/client/frame.ts
 
-Source SHA-256: 55b9a7f6ccd6a932941643aabfcb31e2185ec236709c8ef0003472e83e6a55e2
+Source SHA-256: ef23e42c051b9c01c5f4accdfdbbf2079a0adf5884c5b7de5566f3a23ff90b8a
 
 ```ts
 import type { HumanSurface, ValidateInput } from "../types.ts";
-import type { HumanState } from "./state.ts";
-import { readPresentation, mutationPresentation } from "./presentation.ts";
+import { subjectActionAvailable, type HumanState } from "./state.ts";
+import { mutationPresentation } from "./presentation.ts";
+import { referenceScopeSurface, requireReadScope, type ModelScope } from "./model-scope.ts";
 import { formFrame, reviewFrame, toolbarAction } from "../../interaction/frame-presenters.ts";
 import { surfaceFrame } from "../../interaction/surface-frame.ts";
 import { fieldFeedback } from "./field-feedback.ts";
 import { presentFacts, presentTitle } from "../../interaction/fact-presentation.ts";
+import { inspectMutationDraft } from "./draft-validation.ts";
 
-export function presentFrame(surface: HumanSurface, state: HumanState, validate: ValidateInput) {
+export function presentFrame(surface: HumanSurface, state: HumanState, validate: ValidateInput,
+  scope: ModelScope) {
+  surface=referenceScopeSurface(surface,scope);
   const ready = (id: string) => state.availability.journeys[id]?.dependenciesReady === true;
-  if (state.view === "create") {
-    const primary = mutationPresentation(surface, surface.navigation.primaryAction);
+  if (state.view === "create" || state.view === "edit") {
+    if (state.view === "edit" && !state.editing) throw new Error("EDIT_CONTEXT_REQUIRED");
+    const id = state.editing?.journeyId ?? state.creationJourneyId;
+    if (!id) throw new Error("FORM_JOURNEY_REQUIRED");
+    const primary = mutationPresentation(surface, id);
     const label = surface.commit[primary.id] === "review" ? "Review" : surface.language.journeys[primary.id]!;
-    const validation = validate.inspect?.(primary.commandId, state.draft) ??
-      { valid: validate(primary.commandId, state.draft), issues: [] };
+    const validation = inspectMutationDraft(surface, primary, state.draft, validate);
     return formFrame(surface, primary, state.draft, { secondary: toolbarAction({ kind: "back" }, "Back", "back", !state.busy), primary: {
-      ...toolbarAction({ kind: "journey", journey: primary.id }, label, surface.commit[primary.id] === "review" ? "review" : "save", ready(primary.id) && validation.valid),
+      ...toolbarAction({ kind: "journey", journey: primary.id }, label, surface.commit[primary.id] === "review" ? "review" : "save",
+        ready(primary.id) && validation.valid && (!state.editing || subjectActionAvailable(surface, state, primary.id, state.editing.subject, undefined, scope))),
       ...(state.busy ? { state: "pending" as const } : {}),
-    }}, fieldFeedback(validation, state.touchedFields));
+    }}, fieldFeedback(validation, state.touchedFields,
+      primary.inputFields.filter(field => surface.fieldKinds?.[`${primary.object}.${field}`] === "labels")), state.references,state.mediaReferences);
   }
   if ((state.view === "review" || state.view === "recovery") && state.prepared && state.mutationId) {
     const mutation = mutationPresentation(surface, state.mutationId);
-    const previous = state.detail?.id === state.prepared.object.id && state.detail.version === state.prepared.object.expectedVersion &&
-      readPresentation(surface).subject === mutation.object ? state.detail.facts : undefined;
-    return reviewFrame(surface, mutation, state.prepared.facts, state.uncertain, state.busy, ready(mutation.id),
+    const previous = state.editing?.journeyId === mutation.id && state.editing.expectedVersion === state.prepared.object.expectedVersion
+      ? state.editing.facts : state.detail?.id === state.prepared.object.id && state.detail.version === state.prepared.object.expectedVersion &&
+      requireReadScope(scope).read.subject === mutation.object ? state.detail.facts : undefined;
+    return reviewFrame(surface, mutation, state.prepared.facts,
+      state.uncertain ? { kind: "recovery", method: "same-confirmation" } : { kind: "review" }, state.busy, ready(mutation.id),
       { pendingAction: state.pendingAction, receiptMissing: state.receiptMissing, ...(previous ? { previous } : {}) });
   }
-  const read = readPresentation(surface);
+  const { read, subjectActions } = requireReadScope(scope);
+  const identity = state.detail?.facts[read.collection[0]!];
   return surfaceFrame({ version: "desert.surface-frame/6", kind: "context",
-    top: { title: state.detail ? presentTitle(state.detail.facts[read.collection[0]!]) : surface.language.journeys[read.id]! },
+    top: { title: state.detail ? typeof identity === "object" ? "Media" : presentTitle(identity) : surface.language.journeys[read.id]! },
     content: state.detail ? { kind: "context", details: presentFacts(surface, read.subject,
-      read.fields.filter(field => field !== read.collection[0]), state.detail.facts),
-      actions: surface.navigation.subjectActions.map(id => ({ destination: id, label: surface.language.journeys[id]!,
-        available: !state.busy && ready(id) && state.offers[id]?.eligible === true })) }
+      read.fields.filter(field => field !== read.collection[0]), state.detail.facts, state.references),
+      actions: subjectActions.map(({ id }) => ({ destination: id, label: surface.language.journeys[id]!,
+        available: subjectActionAvailable(surface, state, id, undefined, undefined, scope) })) }
       : { kind: "message", text: ready(read.id) ? "Loading…" : "Waiting for the local controller." },
     bottom: {},
   });
@@ -3461,7 +3852,7 @@ export function presentFrame(surface: HumanSurface, state: HumanState, validate:
 
 ## src/svelte/FrameBody.svelte
 
-Source SHA-256: c24a55e8875bfa30dc359f9ca38ac53d7ddec1c25d5c3dcab0bc23b249f9b3b4
+Source SHA-256: 3158fffbad99a404c9c6c2b93b26784ee827d9e78a0e3b3a79b51d4079a9eb0b
 
 ```svelte
 <script lang="ts">
@@ -3469,14 +3860,15 @@ Source SHA-256: c24a55e8875bfa30dc359f9ca38ac53d7ddec1c25d5c3dcab0bc23b249f9b3b4
   import type { SurfaceIntent } from "../interaction/intent.ts";
   import type { BankEvent } from "../interaction/bank-events.ts";
   import { BankVersion } from "../interaction/bank-node.ts";
-  import BankRenderer from "./BankRenderer.svelte";
-  import Information from "./pieces/Information.svelte";
-  import MessageBody from "./pieces/MessageBody.svelte";
-  let { content, invoke, edit, messageDialog = false }: { content: FrameContent; messageDialog?: boolean;
+  import { BankRenderer, Information, MessageBody, UtilityActions } from "./adapter-catalog.ts";
+  import { isFormControlEvent, type FormControlEvent } from "../interaction/form-control-event.ts";
+  let { content, invoke, edit, messageDialog = false, controlEvent }: { content: FrameContent; messageDialog?: boolean;
     invoke: (intent: SurfaceIntent) => void; edit: (name: string, value: string) => void;
+    controlEvent?: ((event: FormControlEvent) => void) | undefined;
   } = $props();
   function dispatch(event: BankEvent) {
     if (event.kind === "input.change") edit(event.name, event.value);
+    else if (isFormControlEvent(event)) controlEvent?.(event);
     else if (event.kind === "surface.invoke") invoke(event.intent);
   }
 </script>
@@ -3491,11 +3883,7 @@ Source SHA-256: c24a55e8875bfa30dc359f9ca38ac53d7ddec1c25d5c3dcab0bc23b249f9b3b4
 {:else if content.kind === "information"}
   <Information items={content.items} />
 {:else if content.kind === "utilities"}
-  <div class="flex min-w-0 flex-col gap-3" data-utility-actions>
-    {#each content.actions as action}
-      <BankRenderer node={{ version: BankVersion, kind: "action", action, role: "secondary" }} onevent={dispatch} />
-    {/each}
-  </div>
+  <UtilityActions actions={content.actions} {invoke} />
 {:else}
   <MessageBody {content} {messageDialog} />
 {/if}
@@ -3503,26 +3891,23 @@ Source SHA-256: c24a55e8875bfa30dc359f9ca38ac53d7ddec1c25d5c3dcab0bc23b249f9b3b4
 
 ## src/interaction/toolbar.ts
 
-Source SHA-256: ecb44379e190bfd27f61432ba376c0e1a6fcfe1ce89046e8f03aeb5d0742eb1c
+Source SHA-256: 833796455aa3c75d118f9f65398adc28bbe47989f74a44139c0f69b91cba4e7e
 
 ```ts
 import { Type, type Static, type TProperties, type TSchema } from "@sinclair/typebox";
 import type { Frozen } from "../json.ts";
 import { FaceSchema } from "./face.ts";
+import { ActionIconSchema, type ActionIcon } from './action-icon.ts';
+export { ActionIconSchema, type ActionIcon } from './action-icon.ts';
 import { SurfaceIntentSchema, ProductSurfaceIntentSchema, CloseIntentSchema, BackIntentSchema,
   JourneyIntentSchema, AcceptIntentSchema, RecoverIntentSchema, ViewOutputIntentSchema,
   NavigationToggleIntentSchema, type SurfaceIntent } from "./intent.ts";
 
 const object = <T extends TProperties>(properties: T) => Type.Object(properties, { additionalProperties: false });
 const text = () => Type.String({ minLength: 1 });
-export const ActionIconSchema = Type.Union([
-  Type.Literal("back"), Type.Literal("close"), Type.Literal("save"), Type.Literal("review"),
-  Type.Literal("recover"), Type.Literal("retry"), Type.Literal("create"), Type.Literal("archive"),
-  Type.Literal("catalog"), Type.Literal("open"), Type.Literal("confirm"), Type.Literal("search"), Type.Literal("more"),
-  Type.Literal("navigation"),
-]);
 export const actionSchema = <T extends TSchema>(intent: T) => object({
   intent, label: text(), icon: ActionIconSchema,
+  reason: Type.Optional(text()),
   state: Type.Union([Type.Literal("ready"), Type.Literal("unavailable"), Type.Literal("pending")]),
 });
 export const ToolbarActionSchema = actionSchema(SurfaceIntentSchema);
@@ -3532,6 +3917,7 @@ export const TopToolbarSchema = object({
   title: text(), subtitle: Type.Optional(text()),
   face: Type.Optional(FaceSchema),
   leading: Type.Optional(NavigationActionSchema), trailing: Type.Optional(Type.Array(UtilityActionSchema)),
+  primary: Type.Optional(UtilityActionSchema), actionGroup: Type.Optional(Type.Literal("create")),
   availability: Type.Optional(object({
     state: Type.Union([Type.Literal("ready"), Type.Literal("unknown"), Type.Literal("unavailable")]), label: text(),
   })),
@@ -3539,12 +3925,11 @@ export const TopToolbarSchema = object({
 export const BottomToolbarSchema = object({
   secondary: Type.Optional(actionSchema(ProductSurfaceIntentSchema)), primary: Type.Optional(UtilityActionSchema),
 });
-export type ActionIcon = Static<typeof ActionIconSchema>;
 export type ToolbarAction = Frozen<Static<typeof ToolbarActionSchema>>;
 export type TopToolbar = Frozen<Static<typeof TopToolbarSchema>>;
 export type BottomToolbar = Frozen<Static<typeof BottomToolbarSchema>>;
 export type Toolbar = ({ readonly edge: "top" } & TopToolbar) |
-  { readonly edge: "bottom"; readonly secondary?: ToolbarAction; readonly primary?: ToolbarAction };
+  { readonly edge: "bottom"; readonly secondary?: ToolbarAction; readonly primary?: ToolbarAction; readonly navigation?: "steps" };
 
 export const toolbarAction = <const I extends SurfaceIntent>(intent: I, label: string, icon: ActionIcon, available = true):
   Omit<ToolbarAction, "intent"> & { readonly intent: I } => ({
@@ -3616,13 +4001,15 @@ export function dispatchSurfaceIntent(value: SurfaceIntent, handlers: IntentHand
 
 ## src/interaction/face.ts
 
-Source SHA-256: b1a6f4cd31857311155aefeb9b5cb7afea5ddef47d45840f5cee5127096abc7d
+Source SHA-256: 1b34816a97afaea89a13751b4369c931938168d31672ebeaf7e5b6bf86a06b75
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
 import type { Frozen } from "../json.ts";
+import { ActionIconSchema } from './action-icon.ts';
 
 export const FaceSchema = Type.Union([
+  Type.Object({ kind: Type.Literal('icon'), icon: ActionIconSchema }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal("document") }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal("status"), severity: Type.Union([
     Type.Literal("warning"), Type.Literal("error"),
@@ -3689,7 +4076,7 @@ export function transientFrame(frame: SurfaceFrame, locked: boolean): SurfaceFra
 
 ## src/interaction/control-nodes.ts
 
-Source SHA-256: ee8d888fb4744201e7361a5bd90adbfe7a7eef8e16991cc1186555657e4dd3e6
+Source SHA-256: caef0598961bbcbbdda53f32c4e9b1a28bfe002b0309ebb1481e0b4e11d3bb13
 
 ```ts
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
@@ -3699,12 +4086,14 @@ import { InformationItemSchema } from "./information-content.ts";
 import { ExtendedNodeSchemas, ExtendedEventSchemas } from "./extended-nodes.ts";
 import { checkExtendedControl, changeExtendedControl } from "./extended-controls.ts";
 import { SelectionOptionSchema } from "./selection-option.ts";
+import { LabelsNodeSchema, LabelsEventSchema, ReferenceEventSchema } from "./labels-control.ts";
 
 const object = <T extends TProperties>(properties: T) => Type.Object(properties, { additionalProperties: false });
 const text = () => Type.String({ minLength: 1 });
 const integer = (minimum = 0) => Type.Integer({ minimum, maximum: Number.MAX_SAFE_INTEGER });
 const base = { version: Type.Literal("desert.control/1"), id: text(), label: text(), disabled: Type.Boolean() };
 export const SelectNodeSchema = object({ ...base, kind: Type.Literal("select"), required: Type.Boolean(),
+  inputRequired: Type.Optional(Type.Boolean()),
   value: Type.Union([Type.Null(), text()]), options: Type.Array(SelectionOptionSchema, { minItems: 1 }) });
 export const PopoverNodeSchema = object({ ...base, kind: Type.Literal("popover"), open: Type.Boolean(), title: text(),
   locked: Type.Optional(Type.Boolean()), content: Type.Array(InformationItemSchema, { minItems: 1 }) });
@@ -3714,7 +4103,7 @@ export const FileNodeSchema = object({ ...base, kind: Type.Literal("files"),
   limits: object({ maxCount: integer(1), maxFileBytes: integer(1), maxTotalBytes: integer(1),
     accept: Type.Array(Type.String({ pattern: "^[a-z0-9!#$&^_.+-]+/([a-z0-9!#$&^_.+-]+|\\*)$" }), { uniqueItems: true }) }),
   files: Type.Array(FileMetadataSchema) });
-export const ControlNodeSchema = Type.Union([SelectNodeSchema, PopoverNodeSchema, FileNodeSchema, ...ExtendedNodeSchemas]);
+export const ControlNodeSchema = Type.Union([SelectNodeSchema, PopoverNodeSchema, FileNodeSchema, ...ExtendedNodeSchemas, LabelsNodeSchema]);
 export type ControlNode = Frozen<Static<typeof ControlNodeSchema>>;
 export type SelectNode = Extract<ControlNode, { kind: "select" }>;
 export type PopoverNode = Extract<ControlNode, { kind: "popover" }>;
@@ -3722,12 +4111,20 @@ export type FileNode = Extract<ControlNode, { kind: "files" }>;
 export type FileMetadata = Frozen<Static<typeof FileMetadataSchema>>;
 export type FileRejection = { readonly file: FileMetadata; readonly reason: "media-type" | "file-size" | "total-size" | "count" };
 
+/** `required` preserves the non-clearable value contract. Only an operation's
+ * explicit input requirement is presented to the person as form participation. */
+export function selectInputRequired(node: SelectNode): boolean {
+  return node.inputRequired === true && (!node.required || node.value === null);
+}
+
 export const ControlEventSchema = Type.Union([
   object({ kind: Type.Literal("select.change"), control: text(), value: Type.Union([text(), Type.Null()]) }),
   object({ kind: Type.Literal("popover.open"), control: text(), open: Type.Boolean() }),
   object({ kind: Type.Literal("files.choose"), control: text(), files: Type.Array(FileMetadataSchema) }),
   object({ kind: Type.Literal("files.remove"), control: text(), file: text() }),
   ...ExtendedEventSchemas,
+  LabelsEventSchema,
+  ...ReferenceEventSchema.anyOf,
 ]);
 export type ControlEvent = Frozen<Static<typeof ControlEventSchema>>;
 export type ControlTransition = { readonly node: ControlNode; readonly rejected: readonly FileRejection[] };
@@ -3754,7 +4151,7 @@ export function controlNode(value: unknown): ControlNode {
       throw new Error("INVALID_CONTROL_FILES");
     }
   }
-  if (node.kind !== "select" && node.kind !== "popover" && node.kind !== "files") checkExtendedControl(node);
+  if (node.kind !== "select" && node.kind !== "popover" && node.kind !== "files" && node.kind !== "labels") checkExtendedControl(node);
   return freezeDeep(node);
 }
 
@@ -3801,7 +4198,9 @@ export function applyControlEvent(value: ControlNode, input: unknown): ControlTr
     next = { ...node, files };
   } else if (node.kind === "files" && event.kind === "files.remove" && node.files.some(file => file.id === event.file)) {
     next = { ...node, files: node.files.filter(file => file.id !== event.file) };
-  } else if (node.kind !== "select" && node.kind !== "popover" && node.kind !== "files" &&
+  } else if (node.kind === "labels" && event.kind === "labels.change") {
+    next = { ...node, values: event.values };
+  } else if (node.kind !== "select" && node.kind !== "popover" && node.kind !== "files" && node.kind !== "labels" &&
     (event.kind === "options.change" || event.kind === "money.change" || event.kind === "date.change")) {
     next = changeExtendedControl(node, event);
   } else throw new Error("INVALID_CONTROL_EVENT");
@@ -3811,12 +4210,13 @@ export function applyControlEvent(value: ControlNode, input: unknown): ControlTr
 
 ## src/interaction/control-bank.ts
 
-Source SHA-256: 63bbd15fb89d5fe17d656c783fd8117722a5cdc42e417de2e7a92e7615b413bb
+Source SHA-256: 059b82799b57531d902a40feba5684b2c43c78eeed81670b1d83a13f7bd40982
 
 ```ts
 import { controlNode, type ControlNode } from "./control-nodes.ts";
 import { freezeDeep } from "../json.ts";
 import { controlInspection } from "./catalog-ownership.ts";
+import { labelLimits } from "../labels.ts";
 
 const sample = (state: string, node: ControlNode, releaseAfterMs?: number) => ({
   state, node: controlNode(node), ...(releaseAfterMs === undefined ? {} : { releaseAfterMs }),
@@ -3843,6 +4243,11 @@ export const ControlBank = freezeDeep(([
     sample("available", { ...base, kind: "select", id: "choice", label: "Single choice", required: false, value: null, options: choices }),
     sample("disabled", { ...base, kind: "select", id: "disabled-choice", label: "Disabled choice", disabled: true,
       required: false, value: "retained", options: [{ value: "retained", label: "Retained selection", disabled: false }] }),
+    sample("contextual-selected", { ...base, kind: "select", id: "contextual-select", label: "Display mode", required: true, value: "first", options: choices }),
+    sample("contextual-unavailable", { ...base, kind: "select", id: "unavailable-select", label: "Unavailable display mode", required: true, value: null, disabled: true, options: choices }),
+    sample("input-empty", { ...base, kind: "select", id: "empty-select-input", label: "Required input", required: false, inputRequired: true, value: null, options: choices }),
+    sample("input-clearable", { ...base, kind: "select", id: "clearable-select-input", label: "Required clearable input", required: false, inputRequired: true, value: "first", options: choices }),
+    sample("input-retained", { ...base, kind: "select", id: "retained-select-input", label: "Retained input", required: true, inputRequired: true, value: "first", options: choices }),
   ] },
   { id: "control.popover", family: "control", specimens: [
     sample("available", { ...base, kind: "popover", id: "help", label: "Open contextual information", open: false,
@@ -3855,6 +4260,11 @@ export const ControlBank = freezeDeep(([
     sample("empty", { ...base, kind: "files", id: "local-files", label: "Choose local text files",
       limits: { maxCount: 2, maxFileBytes: 10240, maxTotalBytes: 15360, accept: ["text/plain"] }, files: [] }),
   ] },
+  { id: "control.labels", family: "control", specimens: [
+    sample("empty", { ...base, kind: "labels", id: "labels-empty", label: "Labels", values: [], limits: labelLimits }),
+    sample("value", { ...base, kind: "labels", id: "labels-value", label: "Labels", values: ["Work", "Personal"], limits: labelLimits }),
+    sample("disabled", { ...base, kind: "labels", id: "labels-disabled", label: "Labels", values: ["Work"], disabled: true, limits: labelLimits }),
+  ] },
   { id: "control.options", family: "control", specimens: [
     sample("one", { ...options, id: "one-choice", label: "Choose one option", maxSelected: 1 }),
     sample("many", { ...options, id: "many-choices", label: "Choose up to two options", maxSelected: 2 }),
@@ -3862,6 +4272,10 @@ export const ControlBank = freezeDeep(([
       disabled: true, selected: ['first'] }),
     sample("constrained", { ...options, id: "constrained-options", label: "Keep one or two options", maxSelected: 2,
       selected: ['first', 'second'], options: [...choices, { value: 'third', label: 'Third option', disabled: false }] }),
+    sample("contextual-selected", { ...options, id: "contextual-selected-options", label: "Display mode", maxSelected: 1, selected: ['first'] }),
+    sample("input-empty", { ...options, id: "input-empty-options", label: "Required input", inputRequired: true, maxSelected: 1 }),
+    sample("input-selected", { ...options, id: "input-selected-options", label: "Retained input", inputRequired: true, maxSelected: 1, selected: ['first'] }),
+    sample("input-multiple", { ...options, id: "input-multiple-options", label: "Required choices", inputRequired: true, maxSelected: 2 }),
   ] },
   { id: "control.money", family: "control", specimens: [
     sample("empty", { ...money, id: 'amount' }),
@@ -3886,12 +4300,20 @@ export const ControlBank = freezeDeep(([
     sample("image", { ...base, kind: "avatar", id: "author-photo", label: "Alex Rivera", source: "/bank-image.svg", fallback: "AR" }),
     sample("fallback", { ...base, kind: "avatar", id: "author-initials", label: "Sam Lee", source: null, fallback: "SL" }),
   ] },
-] as const).map(entry => ({ ...entry, inspection: controlInspection(entry.id.slice(8), entry.specimens.map(specimen => specimen.state)) })));
+] as const).map(entry => {
+  const local = entry.specimens.find(specimen => specimen.state === 'value') ?? entry.specimens[0];
+  const specimens = ['control.select','control.files','control.labels','control.options','control.money','control.date'].includes(entry.id)
+    ? [...entry.specimens, ...(['loading','offline'] as const).map(state=>sample(state, {
+      ...local.node, id:`${entry.id}-${state}`,
+      disabled:state==='loading'||local.node.kind==='select'||local.node.kind==='options',
+    }))] : entry.specimens;
+  return {...entry,specimens,inspection:controlInspection(entry.id.slice(8),specimens.map(specimen=>specimen.state))};
+}));
 ```
 
 ## src/interaction/extended-nodes.ts
 
-Source SHA-256: 47bcee965373271cffe5e96a08cf0b0a8f1fb06651049423effae0bb30701b91
+Source SHA-256: f5059f98d3bc7da0f6f1dea8b251e2fb635295b86d0325a73a4da60ce5a66d99
 
 ```ts
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
@@ -3899,6 +4321,7 @@ import type { Frozen } from "../json.ts";
 import { FaceSchema } from "./face.ts";
 import { InputMaskSchema } from "./input-mask.ts";
 import { MoneyMinorUnitsLimit } from "./money.ts";
+import { AssetReferenceSchema } from "../assets/types.ts";
 
 const object = <T extends TProperties>(properties: T) => Type.Object(properties, { additionalProperties: false });
 const text = () => Type.String({ minLength: 1 });
@@ -3908,9 +4331,10 @@ const option = object({ value: text(), label: text(), disabled: Type.Boolean(), 
 const day = Type.String({ pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" });
 const minor = Type.String({ pattern: "^-?(0|[1-9][0-9]*)$", maxLength: MoneyMinorUnitsLimit });
 const source = Type.Union([Type.Null(), Type.String({ pattern: "^/(?!/)[^\\\\\\s]*$" }),
-  object({ asset: Type.String({ pattern: "^[a-zA-Z0-9][a-zA-Z0-9._-]*$" }) })]);
+  object({ asset: Type.String({ pattern: "^[a-zA-Z0-9][a-zA-Z0-9._-]*$" }) }), AssetReferenceSchema]);
 
 export const OptionsNodeSchema = object({ ...base, kind: Type.Literal("options"),
+  inputRequired: Type.Optional(Type.Boolean()),
   minSelected: integer(), maxSelected: integer(1), selected: Type.Array(text(), { uniqueItems: true }),
   options: Type.Array(option, { minItems: 1 }) });
 export const MoneyNodeSchema = object({ ...base, kind: Type.Literal("money"), required: Type.Boolean(),
@@ -3947,11 +4371,18 @@ export type ExtendedEvent = Frozen<Static<typeof ExtendedEventSchema>>;
 
 ## src/interaction/extended-controls.ts
 
-Source SHA-256: dcd5dc4a7439ca437e9ef5dd39f7214356dd8ff6f7b78347f38f231791e0926a
+Source SHA-256: 38c9f43b1af4bd0272ce8e4ce5236621c553a775d6c6bc42cc93122205b1a041
 
 ```ts
 import type { ExtendedNode, ExtendedEvent, OptionsNode } from "./extended-nodes.ts";
 import { inputMask } from "./input-mask.ts";
+
+/** Cardinality belongs to the value, not to a journey. Contextual commands never
+ * become required inputs merely because they retain at least one selection. */
+export function optionsInputRequired(node: OptionsNode): boolean {
+  return node.inputRequired === true && node.minSelected > 0 &&
+    (node.maxSelected !== 1 || node.selected.length === 0);
+}
 
 /** The view and reducer ask this same law before offering or accepting an edit.
  * Requiredness is validation, not an editing lock: incomplete drafts remain legal. */
@@ -4169,114 +4600,26 @@ export const InformationSchema = Type.Object({ kind: Type.Literal("information")
 
 ## src/svelte/pieces/Toolbar.svelte
 
-Source SHA-256: 56e57b1d662a6ca80fd932839a3e6198312878d37ff6c4ede1043336e805f37d
+Source SHA-256: ae9e2cb9a1146dbf37fdf2186565807073423f4a4ca879153a7b8dc12123a8bb
 
 ```svelte
 <script lang="ts">
   import type { Toolbar } from "../../interaction/toolbar.ts";
-  import { intentKey, submitsJourney, type SurfaceIntent } from "../../interaction/intent.ts";
-  import type { BankEvent } from "../../interaction/bank-events.ts";
-  import BankRenderer from "../BankRenderer.svelte";
-  import AnchoredSurface from "./AnchoredSurface.svelte";
+  import type { SurfaceIntent } from "../../interaction/intent.ts";
+  import type { ToolbarControls } from "./toolbar-controls.ts";
   import ToolbarLayout from "./ToolbarLayout.svelte";
-  import { cn } from "../vendor/utils.js";
-  import { Title } from "../vendor/components/ui/dialog/index.js";
-  import type { Snippet } from "svelte";
-let { toolbar, invoke, submit, presentation = "standard", controls }: { toolbar: Toolbar;
-    controls?: Snippet;
-    invoke: (intent: SurfaceIntent) => void; submit?: string | undefined; presentation?: "standard" | "message" | "transient" } = $props();
-  let row = $state<HTMLDivElement | null>(null), leading = $state<HTMLDivElement | null>(null);
-  let utilities = $state<HTMLDivElement | null>(null);
-  let customControls = $state<HTMLDivElement | null>(null);
-  let capacity = $state(1), open = $state(false), heldCount = $state<number | null>(null), stacked = $state(false);
-  let trailing = $derived(toolbar.edge === "top" ? toolbar.trailing ?? [] : []);
-  let visibleCount = $derived(heldCount ?? (trailing.length <= capacity ? trailing.length : Math.max(0, capacity - 1)));
-  let overflow = $derived(trailing.slice(visibleCount));
-  const event = (value: BankEvent) => { if (value.kind === "surface.invoke") invoke(value.intent); };
-  function change(next: boolean) { heldCount = next ? visibleCount : null; open = next; }
-  $effect(() => {
-    trailing.length;
-    if (!row) return;
-    const container = row, rail = utilities, navigationRail = leading, controlRail = customControls;
-    const measure = () => {
-      const navigation = navigationRail?.getBoundingClientRect().width ?? 0;
-      const slot = rail?.firstElementChild?.getBoundingClientRect().width ?? (navigation || 44);
-      const gap = parseFloat(getComputedStyle(container).columnGap) || 0;
-      const railGap = rail ? parseFloat(getComputedStyle(rail).columnGap) || 0 : 0;
-      const titleSize = parseFloat(getComputedStyle(container.querySelector('h2, [role="heading"]') ?? container).fontSize);
-      // Heading and utilities share the remaining rail; surplus utilities stay reachable in one typed surface.
-      const remaining = container.clientWidth - navigation - gap * (navigation ? 2 : 1);
-      stacked = controlRail
-        ? remaining - controlRail.getBoundingClientRect().width - gap < titleSize * 4
-        : trailing.length > 0 && remaining < Math.max(slot * 2, titleSize * 10);
-      const budget = Math.max(slot, stacked ? container.clientWidth - navigation - gap : remaining / 2);
-      capacity = Math.max(1, Math.floor((budget + railGap) / (slot + railGap)));
-    };
-    const observer = new ResizeObserver(measure);
-    observer.observe(container);
-    if (rail) observer.observe(rail);
-    if (navigationRail) observer.observe(navigationRail);
-    if (controlRail) observer.observe(controlRail);
-    measure();
-    document.fonts.addEventListener("loadingdone", measure);
-    return () => { observer.disconnect(); document.fonts.removeEventListener("loadingdone", measure); };
-  });
+  let { toolbar, invoke, submit, presentation = "standard", controls }: {
+    toolbar: Toolbar; invoke: (intent: SurfaceIntent) => void; submit?: string;
+    presentation?: "standard" | "message" | "transient"; controls?: ToolbarControls;
+  } = $props();
 </script>
-{#if toolbar.edge === "top"}
-  <ToolbarLayout class="workspace-header" data-surface-slot="top" face={toolbar.face} bind:row {stacked}>
-    {#snippet children()}
-      {#if toolbar.leading && presentation !== "message"}
-        <div bind:this={leading} class="toolbar-action" data-toolbar-navigation>
-          <BankRenderer node={{ version: "desert.bank-node/1", kind: "action", action: toolbar.leading, role: "secondary" }} onevent={event} />
-        </div>
-      {/if}
-      <div class={cn("toolbar-heading flex min-w-0 flex-1 items-center gap-3", stacked && "order-last basis-full")}>
-        <div class="min-w-0 flex-1">
-          {#if presentation === "message"}<Title presentation="message" class="toolbar-title">{toolbar.title}</Title>
-          {:else}<h2 class="toolbar-title type-title" title={toolbar.title}>{toolbar.title}</h2>{/if}
-          {#if toolbar.subtitle}<p class="toolbar-subtitle type-support" title={toolbar.subtitle}>{toolbar.subtitle}</p>{/if}
-        </div>
-      </div>
-      {#if controls}<div bind:this={customControls} class="ml-auto flex shrink-0 items-center gap-2" data-toolbar-controls>{@render controls()}</div>{/if}
-      {#if trailing.length}
-        <div bind:this={utilities} class="ml-auto flex min-w-0 shrink-0 gap-3" data-toolbar-utilities>
-          {#each trailing.slice(0, visibleCount) as action (intentKey(action.intent))}
-            <div class="toolbar-action">
-              <BankRenderer node={{ version: "desert.bank-node/1", kind: "action", action, role: "secondary" }} onevent={event} />
-            </div>
-          {/each}
-          {#if overflow.length}
-            <div class="toolbar-action" data-toolbar-overflow>
-              <AnchoredSurface label="More actions" title="More actions" content={{kind:"utilities",actions:overflow}}
-                icon="more" {open} onchange={change}
-                invoke={intent => { change(false); invoke(intent); }} />
-            </div>
-          {/if}
-        </div>
-      {/if}
-    {/snippet}
-    {#snippet support()}
-      {#if toolbar.availability}<div class="toolbar-availability" title={toolbar.availability.label}>
-        <BankRenderer node={{ version: "desert.bank-node/1", kind: "availability", ...toolbar.availability }} />
-      </div>{/if}
-    {/snippet}
-  </ToolbarLayout>
-{:else}
-  <ToolbarLayout edge="bottom" class="bank-footer drawer-dismiss shrink-0" data-surface-slot="bottom">
-    {#if toolbar.secondary}
-      <BankRenderer node={{ version: "desert.bank-node/1", kind: "action", action: toolbar.secondary, role: "secondary" }} onevent={event} />
-    {/if}
-    {#if toolbar.primary}
-      <BankRenderer node={{ version: "desert.bank-node/1", kind: "action", action: toolbar.primary, role: "primary",
-        form: submitsJourney(toolbar.primary.intent, submit) }} onevent={event} />
-    {/if}
-  </ToolbarLayout>
-{/if}
+
+<ToolbarLayout content={{kind:"commands",toolbar,invoke,submit,presentation,controls}} />
 ```
 
 ## src/svelte/pieces/Face.svelte
 
-Source SHA-256: a53880aaa0a2d4153142cbe79042f4008437c70c18526ffddb6c184f211df604
+Source SHA-256: 58d74564178cf17dc11a97fe51e09423bfae4e1968fbb3b0fa547b5af492954b
 
 ```svelte
 <script lang="ts">
@@ -4284,19 +4627,21 @@ Source SHA-256: a53880aaa0a2d4153142cbe79042f4008437c70c18526ffddb6c184f211df604
   import FileText from "@lucide/svelte/icons/file-text";
   import type { Face } from "../../interaction/face.ts";
   import * as Avatar from "../vendor/components/ui/avatar/index.js";
+  import { actionIcons } from './action-icons.ts';
   let { face, compact = false }: { face: Face; compact?: boolean } = $props();
   let glyph = $derived(face.kind === "symbol" ? face.text : face.kind === "flag"
     ? Array.from(face.region, letter => String.fromCodePoint(0x1f1e6 + letter.charCodeAt(0) - 65)).join("") : "");
+  let Icon = $derived(face.kind === 'icon' ? actionIcons[face.icon] : FileText);
 </script>
 <Avatar.Root shape="object" class="bank-face size-[var(--face-size,2rem)]" data-piece="face" data-face-kind={face.kind}
   data-compact={compact || undefined} data-tone={face.kind === "status" ? face.severity : "neutral"} aria-hidden="true">
-  <Avatar.Fallback>{#if face.kind === "status"}<CircleAlert />{:else if face.kind === "document"}<FileText />{:else}<span data-face-glyph>{glyph}</span>{/if}</Avatar.Fallback>
+  <Avatar.Fallback>{#if face.kind === 'icon'}<Icon />{:else if face.kind === "status"}<CircleAlert />{:else if face.kind === "document"}<FileText />{:else}<span data-face-glyph>{glyph}</span>{/if}</Avatar.Fallback>
 </Avatar.Root>
 ```
 
 ## src/svelte/pieces/FieldWell.svelte
 
-Source SHA-256: 945d8588258303e34c978891b41d341658d6c8bc767cbee2d0c9ad575cce1138
+Source SHA-256: 74223814c131736a82a24887887d77f631e15a8077f4b3fd072d470ad34fa777
 
 ```svelte
 <script lang="ts">
@@ -4304,9 +4649,10 @@ Source SHA-256: 945d8588258303e34c978891b41d341658d6c8bc767cbee2d0c9ad575cce1138
   import * as Group from "../vendor/components/ui/input-group/index.js";
   import FieldWellContent from "./FieldWellContent.svelte";
   import { cn } from "../vendor/utils.js";
-  let { id, label, filled, required = false, prefix, accessory, footer, children }: {
+  let { id, label, filled, required = false, prefix, accessory, footer, children, presentation = "standard" }: {
     id: string; label: string; filled: boolean; required?: boolean;
     prefix?: Snippet; accessory?: Snippet; footer?: Snippet | undefined; children: Snippet;
+    presentation?: "standard" | "access";
   } = $props();
   function focusEditor(event: MouseEvent) {
     if (event.defaultPrevented || !(event.target instanceof Element)) return;
@@ -4317,7 +4663,7 @@ Source SHA-256: 945d8588258303e34c978891b41d341658d6c8bc767cbee2d0c9ad575cce1138
     }
   }
 </script>
-<Group.Root onclick={focusEditor} class={cn("field-well overflow-hidden p-0", footer && "flex-col items-stretch")} data-floating-field data-field-focus="within" data-compound-field={!!prefix} data-filled={filled}>
+<Group.Root {presentation} onclick={focusEditor} class={cn("field-well overflow-hidden p-0", footer && "flex-col items-stretch")} data-floating-field data-field-focus="within" data-compound-field={!!prefix} data-filled={filled}>
   <div data-field-row class="flex w-full min-w-0 items-center">
     <FieldWellContent {id} {label} {required} {children} />
     {#if prefix}<Group.Addon align="inline-start" class="field-prefix">{@render prefix()}</Group.Addon>{/if}
@@ -4329,20 +4675,24 @@ Source SHA-256: 945d8588258303e34c978891b41d341658d6c8bc767cbee2d0c9ad575cce1138
 
 ## src/svelte/pieces/SearchField.svelte
 
-Source SHA-256: 847cc1446b1ac011a729dff81997032c423dab7420ff28f6409342e9efd6cc41
+Source SHA-256: 82718e929f00a881d0e8522ab4648e668908463c4187a37d209e91880e766dc2
 
 ```svelte
 <script lang="ts">
-  import type { HTMLInputAttributes } from "svelte/elements";
   import * as InputGroup from "../vendor/components/ui/input-group/index.js";
   import Search from "@lucide/svelte/icons/search";
   import ClearInput from "./ClearInput.svelte";
 
   const generatedId = $props.id();
-  let { id = generatedId, value = $bindable(""), ref = $bindable(null), onvalue, disabled = false, readonly = false, ...props }: {
+  let { id = generatedId, value = $bindable(""), ref = $bindable(null), onvalue, disabled = false, readonly = false,
+    placeholder, "aria-label": label, "aria-controls": controls, tabindex, onready }: {
+    id?: string; placeholder?: string; disabled?: boolean; readonly?: boolean;
+    "aria-label"?: string; "aria-controls"?: string; tabindex?: -1 | 0;
     value?: string; ref?: HTMLInputElement | null; onvalue?: (value: string) => void;
-  } & Omit<HTMLInputAttributes, "value" | "type" | "files" | "oninput" | "children"> = $props();
+    onready?: (element: HTMLInputElement | null) => void;
+  } = $props();
   let fieldId = $derived(id ?? generatedId);
+  $effect(() => { onready?.(ref); return () => onready?.(null); });
 
   function update(next: string) { value = next; onvalue?.(next); }
 </script>
@@ -4351,7 +4701,8 @@ Source SHA-256: 847cc1446b1ac011a729dff81997032c423dab7420ff28f6409342e9efd6cc41
   onclick={event => {
     if (!(event.target as Element).closest("button,input")) ref?.focus({ preventScroll: true });
   }}>
-  <InputGroup.Input {...props} id={fieldId} bind:ref type="search" {value} {disabled} {readonly}
+  <InputGroup.Input id={fieldId} bind:ref type="search" {value} {disabled} {readonly}
+    {placeholder} aria-label={label} aria-controls={controls} {tabindex}
     autocomplete="off" oninput={event => update(event.currentTarget.value)} />
   <InputGroup.Addon align="inline-start"><Search data-search-icon="leading" aria-hidden="true" /></InputGroup.Addon>
   <ClearInput control={fieldId} {value} label="Clear search" disabled={!!(disabled || readonly)} />
@@ -4360,21 +4711,26 @@ Source SHA-256: 847cc1446b1ac011a729dff81997032c423dab7420ff28f6409342e9efd6cc41
 
 ## src/svelte/pieces/MeasuredField.svelte
 
-Source SHA-256: bb5eb2e2f65677c4001272059b6e78132e21ae662a46110d7ba1ce77e88d579b
+Source SHA-256: 7878ecb445d83b7e2ac823ada6924831b8e24900b3b5fe66eb264f3bed0d3d2e
 
 ```svelte
 <script lang="ts">
-  import type { ComponentProps } from 'svelte';
+  import type { Snippet } from 'svelte';
+  import type { PrimitiveId } from '../../interaction/catalog.ts';
   import * as Field from '../vendor/components/ui/field/index.js';
   // The outer box measures available space; the complete accessible field
   // (including validation/support) owns its preferred measure inside it.
-  let { measure, children, ...attributes }: ComponentProps<typeof Field.Field> & {
-    measure: 'writing' | 'choice' | 'date' | 'amount';
+  const measures = { 'input.text': 'writing', 'input.multiline': 'writing',
+    'control.select': 'choice', 'control.date': 'date', 'control.money': 'amount' } as const satisfies Partial<Record<PrimitiveId,string>>;
+  let { kind, children, invalid, disabled }: {
+    kind: keyof typeof measures; children?: Snippet; invalid?: boolean; disabled?: boolean;
   } = $props();
 </script>
 
-<div data-control-measure={measure}>
-  <Field.Field {...attributes}>{@render children?.()}</Field.Field>
+<div data-control-measure={measures[kind]}>
+  <Field.Field data-primitive={kind.startsWith('input.') ? kind : undefined}
+    data-control={kind.startsWith('control.') ? kind.slice(8) : undefined}
+    data-invalid={invalid} data-disabled={disabled}>{@render children?.()}</Field.Field>
 </div>
 ```
 
@@ -4409,17 +4765,19 @@ Source SHA-256: d84a698ed4e2a0ac55dfff442cb0f905666a565dc0e83086605c5d7ef727e91a
 
 ## src/svelte/pieces/GroupedPanel.svelte
 
-Source SHA-256: 975476dab101dc1f06d9f45ab19b1fe7f9b3e8b0dbdd7b34974d839c4ac813d1
+Source SHA-256: c5a9335a837e50bf5e507d914b14c6e94be8a5e7dac60864f2b722627d288058
 
 ```svelte
 <script lang="ts">
   import type { Snippet } from "svelte";
   import * as Card from "../vendor/components/ui/card/index.js";
-  let { children }: { children: Snippet } = $props();
+  let { children, measure = 'reading' }: { children: Snippet; measure?: 'reading' | 'overview' } = $props();
 </script>
 
 <!-- One shared pane for sibling rows; Stack only supplies hierarchy. -->
-<Card.Root class="grouped-panel" data-grouped-panel>{@render children()}</Card.Root>
+<div data-reading-measure={measure === 'reading' || undefined}>
+  <Card.Root class="grouped-panel" data-grouped-panel>{@render children()}</Card.Root>
+</div>
 ```
 
 ## src/svelte/pieces/ChoiceRow.svelte
@@ -4449,7 +4807,7 @@ Source SHA-256: a65a3a320e791fdfa02a92d874d5db16d5a5fc0bb7becfd7b918fcf379f106e4
 
 ## src/svelte/pieces/SelectionField.svelte
 
-Source SHA-256: 52078971fe7e8d978a263313a0ffd52d9da85d421c87c271b0929aac6ec200e4
+Source SHA-256: 0e23753b18c3a2443ad3d0d355a249ada6c857d44fe30c5dd44ce1b97abaadf4
 
 ```svelte
 <script lang="ts">
@@ -4466,10 +4824,10 @@ Source SHA-256: 52078971fe7e8d978a263313a0ffd52d9da85d421c87c271b0929aac6ec200e4
   import { PickerPresentation } from "./picker-presentation.svelte.ts";
   import type { SelectionOption } from "../../interaction/selection-option.ts";
   let { id, selection, label, triggerLabel = label, value, options, disabled = false, required = false,
-    fieldControl = false, selectedContent, optionLeading, onchange }: {
+    fieldControl = false, contextual = false, selectedContent, optionLeading, onchange }: {
     id?: string; selection: string; label: string; triggerLabel?: string; value: string | null;
     options: readonly (SelectionOption & { readonly description?: string })[];
-    disabled?: boolean; required?: boolean; fieldControl?: boolean; onchange: (value: string) => void;
+    disabled?: boolean; required?: boolean; fieldControl?: boolean; contextual?: boolean; onchange: (value: string) => void;
     selectedContent?: Snippet<[SelectionOption | undefined]>;
     optionLeading?: Snippet<[SelectionOption]>;
   } = $props();
@@ -4517,9 +4875,9 @@ Source SHA-256: 52078971fe7e8d978a263313a0ffd52d9da85d421c87c271b0929aac6ec200e4
 </script>
 {#snippet selectedValue()}
   {#if selectedContent}{@render selectedContent(selectedOption)}{:else}
-  <span class="flex min-w-0 items-center gap-2">
+  <span class="selection-value" data-contextual={contextual || undefined}>
     {#if selectedOption?.face}<Face face={selectedOption.face} compact />{/if}
-    <span class="min-w-0 truncate">{valueLabel}</span>
+    <span class="selection-label">{valueLabel}</span>
   </span>
   {/if}
 {/snippet}
@@ -4530,9 +4888,9 @@ Source SHA-256: 52078971fe7e8d978a263313a0ffd52d9da85d421c87c271b0929aac6ec200e4
 <Popover.Root bind:open>
   <Popover.Trigger id={triggerId} {disabled}>
     {#snippet child({ props })}
-    <Button {...props} {disabled} variant={fieldControl ? 'well' : 'field'} size={fieldControl ? 'well' : 'default'}
+    <Button {...props} {disabled} wrap variant={fieldControl ? 'well' : 'field'} size={fieldControl ? 'well' : 'default'}
       data-slot="select-trigger" data-floating-field={fieldControl || undefined} data-filled={fieldControl || undefined}
-      class={`w-full justify-between gap-3 ${fieldControl ? 'field-well overflow-hidden' : ''}`}
+      presentation={fieldControl ? 'selection-well' : contextual ? 'selection-context' : 'selection-inline'}
       aria-haspopup="listbox" aria-controls={open ? list?.id : undefined}
       aria-label={fieldControl ? `${label} · ${valueLabel}` : triggerLabel}
       aria-describedby={required ? `${triggerId}-requirement` : undefined} data-selection-trigger
@@ -4560,39 +4918,53 @@ Source SHA-256: 52078971fe7e8d978a263313a0ffd52d9da85d421c87c271b0929aac6ec200e4
     </PickerSheet>
   {:else}
     <Popover.Content role="presentation" onOpenAutoFocus={focus} onCloseAutoFocus={restore}
-      style="padding:.25rem;gap:0;width:max-content;min-width:min(var(--bits-popover-anchor-width),calc(100dvw - 24px))"
+      presentation="selection"
       onFocusOutside={event => { if (!(event.target instanceof HTMLElement) || event.target.id !== triggerId) open = false; }}>
       {@render choices()}
     </Popover.Content>
   {/if}
 </Popover.Root>
 {#if required}<span id={`${triggerId}-requirement`} class="sr-only">Required</span>{/if}
+<style>
+  .selection-value { display:flex; flex:1; min-width:0; align-items:center; gap:.5rem; }
+  .selection-value[data-contextual] { justify-content:flex-end; text-align:end; }
+  .selection-label { min-width:0; white-space:normal; overflow-wrap:anywhere; text-wrap:balance; }
+</style>
 ```
 
 ## src/svelte/pieces/CollectionState.svelte
 
-Source SHA-256: 406a2dc2d1e6bc370c44a125c2dd9e65b4d553133c958bd7f63384be3c103fe5
+Source SHA-256: ffd7011f5aa5d2163624e2399c1e404af3a6882ca1c0ee2d51df5840ae512a3d
 
 ```svelte
 <script lang="ts">
   import * as Empty from "../vendor/components/ui/empty/index.js";
-  import { Spinner } from "../vendor/components/ui/spinner/index.js";
-  import FileText from "@lucide/svelte/icons/file-text";
-  let { loaded, createLabel }: { loaded: boolean; createLabel: string } = $props();
+  import { Skeleton } from "../vendor/components/ui/skeleton/index.js";
+  import GroupedPanel from "./GroupedPanel.svelte";
+  let { loaded, createLabel, connection }: { loaded: boolean; createLabel?: string; connection?: 'loading' | 'ready' | 'offline' | undefined } = $props();
+  let offline = $derived(connection === 'offline');
+  let pending = $derived(!loaded && !offline);
 </script>
-<Empty.Root role="group" aria-label="Collection state" data-collection-state={loaded ? "empty" : "unread"}>
+<GroupedPanel><div role="group" aria-label="Collection state" aria-busy={pending}
+  data-collection-state={offline ? 'offline' : loaded ? 'empty' : 'loading'}><Empty.Root>
+  {#if pending}
+    <div class="flex w-full flex-col gap-2" aria-hidden="true">
+      <Skeleton line="primary" />
+      <Skeleton line="secondary" />
+    </div>
+    <span class="sr-only" role="status">Loading content…</span>
+  {:else}
   <Empty.Header>
-    <Empty.Media variant="icon">{#if loaded}<FileText aria-hidden="true" />{:else}<Spinner aria-hidden="true" />{/if}</Empty.Media>
-    <Empty.Title role="heading" aria-level={2}>{loaded ? "Nothing here yet." : "Waiting for your records."}</Empty.Title>
-    <Empty.Description>{loaded ? `Use “${createLabel}” to get started.` :
-      "Nothing has been loaded yet. This does not mean the collection is empty."}</Empty.Description>
+    <Empty.Title role="heading" aria-level={2}>{offline ? 'Controller unavailable.' : 'Nothing here yet.'}</Empty.Title>
+    {#if offline || createLabel}<Empty.Description>{offline ? 'Reconnect to load this content.' : `Use “${createLabel}” to get started.`}</Empty.Description>{/if}
   </Empty.Header>
-</Empty.Root>
+  {/if}
+</Empty.Root></div></GroupedPanel>
 ```
 
 ## src/svelte/pieces/Action.svelte
 
-Source SHA-256: 468f019f68e5ff18c8c053329c8c6d872532117a69eaf437cfe4b8b07e45d2eb
+Source SHA-256: 858b2b5df9c483fd896605d31a372889e8002861056852bc14c62f78a4f8783b
 
 ```svelte
 <script lang="ts">
@@ -4602,11 +4974,13 @@ Source SHA-256: 468f019f68e5ff18c8c053329c8c6d872532117a69eaf437cfe4b8b07e45d2eb
   import type { ToolbarAction } from "../../interaction/toolbar.ts";
   import { actionIcons } from "./action-icons.ts";
   import type { ActionElementProps } from "../action-adapter.ts";
-  let { label, icon, state: status = "ready", emphasis = "secondary", onclick, type = "button", elementProps }: {
+  let { label, icon, state: status = "ready", emphasis = "secondary", onclick, type = "button", elementProps, reason }: {
     label: string; icon: keyof typeof actionIcons; state?: ToolbarAction["state"];
     emphasis?: "primary" | "secondary"; onclick?: () => void; type?: "button" | "submit";
-    elementProps?: ActionElementProps | undefined;
+    elementProps?: ActionElementProps | undefined; reason?: string | undefined;
   } = $props();
+  const id = $props.id();
+  const descriptionId = `${id}-reason`;
   function buttonEvent<E extends Event>(event: E): event is E & { currentTarget: EventTarget & HTMLButtonElement } {
     return event.currentTarget instanceof HTMLButtonElement;
   }
@@ -4638,10 +5012,11 @@ Source SHA-256: 468f019f68e5ff18c8c053329c8c6d872532117a69eaf437cfe4b8b07e45d2eb
     return () => { observer.disconnect(); document.fonts.removeEventListener("loadingdone", measure); };
   });
 </script>
-<Button {...overlay} bind:ref={button} variant={status === "pending" ? "secondary" : emphasis === "primary" ? "default" : "secondary"}
+<Button {...overlay} bind:ref={button} variant={emphasis === "primary" ? "default" : "secondary"}
   size="default" spin={status === "pending"} {type} onclick={event => { if (status !== "ready") return;
     if (buttonEvent(event)) elementProps?.onclick?.(event); if (!event.defaultPrevented) onclick?.(); }} class="relative w-fit min-w-0 max-w-[min(100%,22rem)] self-start justify-self-start overflow-hidden"
-  disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={compact ? label : undefined}
+  disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
+  aria-describedby={reason ? descriptionId : undefined}
   data-primitive="action" data-button-face={face} data-emphasis={emphasis}>
   <span bind:this={caption} data-button-label aria-hidden="true" class={cn("min-w-0 truncate", face !== "label" && "invisible")}>{label}</span>
     <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
@@ -4649,11 +5024,12 @@ Source SHA-256: 468f019f68e5ff18c8c053329c8c6d872532117a69eaf437cfe4b8b07e45d2eb
       <Icon data-icon="inline-start" aria-hidden="true" />
     </span>
 </Button>
+{#if reason}<span id={descriptionId} class="sr-only">{reason}</span>{/if}
 ```
 
 ## src/svelte/pieces/action-icons.ts
 
-Source SHA-256: d907548fbfcb0eef467b5535eeb7980cf730247566c7218e4a7fadae53a19736
+Source SHA-256: d8adbfe7e273f688a7e3a7f4b5dd3df1e068e8865069e6c5b4a8c4ba603f6f41
 
 ```ts
 import ArrowLeft from "@lucide/svelte/icons/arrow-left";
@@ -4669,17 +5045,24 @@ import ArrowRight from "@lucide/svelte/icons/arrow-right";
 import Check from "@lucide/svelte/icons/check";
 import Ellipsis from "@lucide/svelte/icons/ellipsis";
 import PanelLeft from "@lucide/svelte/icons/panel-left";
+import Images from "@lucide/svelte/icons/images";
+import Pencil from "@lucide/svelte/icons/pencil";
+import Settings from "@lucide/svelte/icons/settings";
+import Palette from "@lucide/svelte/icons/palette";
+import Lock from "@lucide/svelte/icons/lock";
+import Undo2 from "@lucide/svelte/icons/undo-2";
 import type { ActionIcon } from "../../interaction/toolbar.ts";
 
 export const actionIcons = {
   back: ArrowLeft, close: X, save: Save, review: Eye, recover: Search, retry: RotateCw,
   create: Plus, archive: Archive, catalog: LayoutGrid, open: ArrowRight, confirm: Check, search: Search, more: Ellipsis, navigation: PanelLeft,
+  media: Images, edit: Pencil, settings: Settings, lock: Lock, restore: Undo2, palette: Palette,
 } satisfies Record<ActionIcon, typeof X>;
 ```
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: aa8d18cedb88aa2039ed2b0c0a4b839eea50dbe7fbb58edf5b5d9255e6c7992c
+Source SHA-256: 80686ff625fb056caccf4dd0baaf6a5c418bcdb026157ec6d3af7f2a0237b71c
 
 ```svelte
 <script lang="ts" module>
@@ -4689,11 +5072,11 @@ Source SHA-256: aa8d18cedb88aa2039ed2b0c0a4b839eea50dbe7fbb58edf5b5d9255e6c7992c
 
 	/** The public buttonVariants contract. */
 	export const buttonVariants = tv({
-        base: "tm-control inline-flex shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-full type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+        base: "tm-control inline-flex shrink-0 self-start justify-self-start items-center justify-center whitespace-nowrap gap-2 rounded-full type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
         variants: {
             spin: { true: "[&_svg[data-icon]]:animate-spin" },
             variant: {
-                default: "text-primary-text font-semibold",
+                default: "text-primary-foreground font-semibold",
                 outline: "text-foreground",
                 secondary: "text-secondary-foreground",
                 ghost: "bg-transparent text-foreground",
@@ -4708,6 +5091,8 @@ Source SHA-256: aa8d18cedb88aa2039ed2b0c0a4b839eea50dbe7fbb58edf5b5d9255e6c7992c
                 default: "min-h-11 px-4 py-2", xs: "min-h-6 px-2", sm: "min-h-9 px-3",
                 lg: "min-h-11 px-5", icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
                 row: "px-4 py-3", field: "min-h-10 px-3", well: "p-0",
+                avatar: "size-[5.625rem] p-0 relative overflow-hidden rounded-full",
+                "label-remove": "size-[28px] min-h-[28px] p-0 [@media(pointer:coarse)]:size-[44px] [@media(pointer:coarse)]:min-h-[44px]",
             },
         },
 		defaultVariants: {
@@ -4728,16 +5113,27 @@ Source SHA-256: aa8d18cedb88aa2039ed2b0c0a4b839eea50dbe7fbb58edf5b5d9255e6c7992c
 			size?: ButtonSize;
 			/** Rotate marked icons only; busy/disabled semantics remain the caller's responsibility. */
 			spin?: boolean;
+			presentation?: "standard" | "toolbar-return" | "search-toggle" | "media-tile" | "media-list-item" | "media-collection" | "media-cover-choice" | "record-row" | "selection-well" | "selection-inline" | "selection-context" | "summary-widget";
+			searching?: boolean;
+			/** Grouping and wrapping are finite recipe policies, never consumer CSS. */
+			wrap?: boolean;
+			onready?: (element: HTMLButtonElement | HTMLAnchorElement | null) => void;
 		};
 </script>
 
 <script lang="ts">
 	import { pressFeedbackProps } from "./press-feedback.js";
+	import Search from "@lucide/svelte/icons/search";
+	import X from "@lucide/svelte/icons/x";
 	let {
 		class: className,
 		variant = "default",
 		size = "default",
 		spin = false,
+		presentation = "standard",
+		searching = false,
+		wrap = false,
+		onready,
 		ref = $bindable(null),
 		href = undefined,
 		type = "button",
@@ -4745,6 +5141,7 @@ Source SHA-256: aa8d18cedb88aa2039ed2b0c0a4b839eea50dbe7fbb58edf5b5d9255e6c7992c
 		children,
 		...restProps
 	}: ButtonProps = $props();
+	$effect(() => { onready?.(ref instanceof HTMLButtonElement || ref instanceof HTMLAnchorElement ? ref : null); return () => onready?.(null); });
 </script>
 
 {#if href}
@@ -4752,13 +5149,19 @@ Source SHA-256: aa8d18cedb88aa2039ed2b0c0a4b839eea50dbe7fbb58edf5b5d9255e6c7992c
 		{...pressFeedbackProps}
 		bind:this={ref}
 		data-slot="button"
+		data-summary-widget={presentation === "summary-widget" || undefined}
+		data-media-grid-item={presentation === "media-tile" || presentation === "media-list-item" || undefined}
+		data-media-list-item={presentation === "media-list-item" || undefined}
+		data-media-collection-card={presentation === "media-collection" || undefined}
+		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
 		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
-		class={cn(buttonVariants({ variant, size, spin }), "tm-control", className)}
+		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 aria-[current=true]:bg-muted focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		href={disabled ? undefined : href}
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
 		tabindex={disabled ? -1 : undefined}
 		{...restProps}
+		data-variant={variant}
 	>
 		<span data-button-content>{@render children?.()}</span>
 	</a>
@@ -4767,15 +5170,48 @@ Source SHA-256: aa8d18cedb88aa2039ed2b0c0a4b839eea50dbe7fbb58edf5b5d9255e6c7992c
 		{...pressFeedbackProps}
 		bind:this={ref}
 		data-slot="button"
+		data-summary-widget={presentation === "summary-widget" || undefined}
+		data-media-grid-item={presentation === "media-tile" || presentation === "media-list-item" || undefined}
+		data-media-list-item={presentation === "media-list-item" || undefined}
+		data-media-collection-card={presentation === "media-collection" || undefined}
+		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
 		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
-		class={cn(buttonVariants({ variant, size, spin }), "tm-control", className)}
+		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 aria-[current=true]:bg-muted focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		data-toolbar-scroll-top={presentation === "toolbar-return" || undefined}
+		data-catalog-search-toggle={presentation === "search-toggle" || undefined}
+		data-catalog-search-cancel={presentation === "search-toggle" && searching || undefined}
 		{type}
 		{disabled}
 		{...restProps}
+		data-variant={variant}
 	>
-		<span data-button-content>{@render children?.()}</span>
+		<span data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
 	</button>
 {/if}
+
+<style>
+  :global([data-summary-widget]) { width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem; padding:var(--space-4,1rem); border-radius:var(--radius-group); text-align:start; white-space:normal; align-items:stretch; }
+  :global([data-summary-widget] > [data-button-content]) { display:flex; flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
+  @layer components {
+    :global([data-slot="button"]) { min-height:2.75rem; }
+    :global([data-button-content]) { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
+  }
+  :global([data-catalog-search-toggle]) { position:relative; pointer-events:auto; }
+  :global([data-catalog-search-toggle] [data-button-content]) { display:grid; place-items:center; }
+  :global([data-catalog-search-toggle] svg) { grid-area:1/1; transition:opacity 180ms var(--ease-tm),transform 220ms var(--ease-tm); }
+  :global([data-catalog-search-toggle] [data-search-icon="close"]) { opacity:0; transform:rotate(-90deg) scale(.75); }
+  :global([data-catalog-search-actions][data-expanded="true"] [data-search-icon="open"]) { opacity:0; transform:rotate(90deg) scale(.75); }
+  :global([data-catalog-search-actions][data-expanded="true"] [data-search-icon="close"]) { opacity:1; transform:none; }
+  :global([data-media-reference-choice]) { position:relative; aspect-ratio:4/3; overflow:hidden; width:100%; }
+  :global([data-media-reference-choice] [data-button-content]) { height:100%; }
+  :global([data-media-collection-card]) { position:relative; width:100%; display:block; overflow:hidden; text-align:start; }
+  :global([data-media-collection-card] > [data-button-content]) { display:block; }
+  :global([data-media-grid-item]) { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:var(--radius); }
+  :global([data-media-grid-item] > [data-button-content]) { height:100%; }
+  :global([data-media-grid-item][aria-current="true"]) { outline:2px solid var(--primary); outline-offset:2px; }
+  :global([data-media-list-item]) { aspect-ratio:auto; border-radius:0; }
+  :global([data-media-list-item] > [data-button-content]) { display:flex; align-items:center; gap:var(--stack-gap,16px); padding:12px 16px; }
+</style>
 ```
 
 ## src/svelte/vendor/components/ui/button/press-feedback.ts
@@ -4840,7 +5276,7 @@ export function pressFeedback(element: HTMLElement) {
 
 ## src/svelte/controls/SelectControl.svelte
 
-Source SHA-256: 742a71eb4de73fae36d848a3058f5328969167e2695aa8caa572b51711f66487
+Source SHA-256: cb266e4a9d65b3501471458b0902b580f79f164c73c3d1b738b7a8f86f741910
 
 ```svelte
 <script lang="ts">
@@ -4848,7 +5284,7 @@ Source SHA-256: 742a71eb4de73fae36d848a3058f5328969167e2695aa8caa572b51711f66487
   import { BankVersion } from "../../interaction/bank-node.ts";
   import SelectionField from "../pieces/SelectionField.svelte";
   import MeasuredField from "../pieces/MeasuredField.svelte";
-  import { selectNode, applyControlEvent } from "../../interaction/control-nodes.ts";
+  import { selectNode, selectInputRequired, applyControlEvent } from "../../interaction/control-nodes.ts";
   import type { ControlProps, ControlEventFor } from "../renderer-contracts.ts";
   let { node, onevent }: ControlProps<"select"> = $props();
   let checked = $derived(selectNode(node));
@@ -4859,9 +5295,9 @@ Source SHA-256: 742a71eb4de73fae36d848a3058f5328969167e2695aa8caa572b51711f66487
     onevent(event);
   }
 </script>
-<MeasuredField measure="choice" data-disabled={checked.disabled} data-control="select">
+<MeasuredField kind="control.select" disabled={checked.disabled}>
   <SelectionField {id} selection={checked.id} label={checked.label} value={checked.value} options={checked.options}
-    disabled={checked.disabled} required={checked.required} fieldControl onchange={change} />
+    disabled={checked.disabled} required={selectInputRequired(checked)} fieldControl onchange={change} />
   {#if !checked.required}<BankRenderer node={{ version: BankVersion, kind: "action", role: "secondary", action: {
     icon: "close", label: "Clear selection", state: checked.disabled || checked.value === null ? "unavailable" : "ready",
     intent: { kind: "selection.clear" },
@@ -4892,7 +5328,7 @@ Source SHA-256: 25053edaa3ce2f51e11e2cce907c24beb95e1dd7e4280a6f9704f76aee1dad2e
 
 ## src/svelte/controls/FileControl.svelte
 
-Source SHA-256: 626eacda98060e2955aea130e1a2c5ce23ca213443e0b45831e0cceef6462995
+Source SHA-256: a69e108118328d683743f0a46fee9645830201e7b872874da7d8833552378be3
 
 ```svelte
 <script lang="ts">
@@ -4926,7 +5362,7 @@ Source SHA-256: 626eacda98060e2955aea130e1a2c5ce23ca213443e0b45831e0cceef6462995
   <Action icon="open" label="Choose files" state={checked.disabled ? "unavailable" : "ready"} onclick={() => picker?.click()} />
   <Field.FieldDescription id={`${id}-limits`}>
     Up to {checked.limits.maxCount} files · {fileSize(checked.limits.maxFileBytes)} each · {fileSize(checked.limits.maxTotalBytes)} total.
-    Nothing is uploaded.
+    Choosing files does not upload them.
   </Field.FieldDescription>
   {#if checked.files.length}
     <ul class="flex flex-col gap-2" aria-label="Selected local files">
@@ -4947,22 +5383,22 @@ Source SHA-256: 626eacda98060e2955aea130e1a2c5ce23ca213443e0b45831e0cceef6462995
 
 ## src/svelte/controls/ControlRenderer.svelte
 
-Source SHA-256: 16a39d9d943d0cd0dd9f064444026fe29e866db438e3ce7bcc6bd087713b090e
+Source SHA-256: eb67524d3afc505c941e3b9b6bf8283720ed958ec4a7edeccdfd7e412f39cb6e
 
 ```svelte
 <script lang="ts">
   import type { ControlNode, ControlEvent } from "../../interaction/control-nodes.ts";
   import { controlBankNode } from "../../interaction/bank-node.ts";
-  import BankRenderer from "../BankRenderer.svelte";
+  import { ControlBankRenderer } from "../adapter-catalog.ts";
   import type { LocalFileHost } from "./file-host.ts";
   let { node, onevent, host }: { node: ControlNode; onevent: (event: ControlEvent) => void; host: LocalFileHost } = $props();
 </script>
-<BankRenderer node={controlBankNode(node)} {host} onevent={event => { if ("control" in event) onevent(event); }} />
+<ControlBankRenderer node={controlBankNode(node)} {host} onevent={event => { if ("control" in event) onevent(event); }} />
 ```
 
 ## src/svelte/controls/OptionsControl.svelte
 
-Source SHA-256: 045df8f13e98ca99022c0723d330bffbb464a422cca3f11e9c10bc2b898cb47e
+Source SHA-256: 53f7f87189edf6097da3d6a4517dec48d6ffcb61f461ca0a44b4d36c42857854
 
 ```svelte
 <script lang="ts">
@@ -4973,11 +5409,12 @@ Source SHA-256: 045df8f13e98ca99022c0723d330bffbb464a422cca3f11e9c10bc2b898cb47e
   import ChoiceRow from "../pieces/ChoiceRow.svelte";
   import ChoiceList from "../pieces/ChoiceList.svelte";
   import type { ControlProps } from "../renderer-contracts.ts";
-  import { permitsOptionsSelection } from "../../interaction/extended-controls.ts";
+  import { permitsOptionsSelection, optionsInputRequired } from "../../interaction/extended-controls.ts";
   import { currentStackTitle } from "../pieces/stack-context.ts";
   let { node, onevent }: ControlProps<"options"> = $props();
   const prefix = $props.id();
   const stackTitle = currentStackTitle();
+  let inputRequired = $derived(optionsInputRequired(node));
   const change = (selected: readonly string[]) => {
     if (permitsOptionsSelection(node, selected)) onevent({ kind: "options.change", control: node.id, selected });
   };
@@ -5003,17 +5440,17 @@ Source SHA-256: 045df8f13e98ca99022c0723d330bffbb464a422cca3f11e9c10bc2b898cb47e
     {/each}
 {/snippet}
 <Field.FieldSet data-control="options" data-cardinality={node.maxSelected === 1 ? "one" : "many"}>
-  <Field.FieldLegend variant="label" class={stackTitle() === node.label ? "sr-only" : "options-title"}>{node.label}{#if node.minSelected > 0}<span class="required" aria-hidden="true">*</span>{/if}</Field.FieldLegend>
+  <Field.FieldLegend variant="label" class={stackTitle() === node.label ? "sr-only" : "options-title"}>{node.label}{#if inputRequired}<span class="required" aria-hidden="true">*</span>{/if}</Field.FieldLegend>
   <GroupedPanel><ChoiceList>{#if node.maxSelected === 1}
     <RadioGroup.Root bind:value={() => node.selected[0] ?? "", value => change(value ? [value] : [])}
-      disabled={node.disabled} required={node.minSelected > 0} aria-label={node.label} data-grouped-rows>{@render choices()}</RadioGroup.Root>
+      disabled={node.disabled} required={inputRequired} aria-label={node.label} data-grouped-rows>{@render choices()}</RadioGroup.Root>
   {:else}<Field.FieldGroup data-grouped-rows>{@render choices()}</Field.FieldGroup>{/if}</ChoiceList></GroupedPanel>
 </Field.FieldSet>
 ```
 
 ## src/svelte/controls/MoneyControl.svelte
 
-Source SHA-256: 5a0c1e6629270e5e97782c89be9a51e4449d30136dc99c0748108ef6595f1599
+Source SHA-256: ff012a8c18eea035da5cde909eaa18caa43e4b7973fce327b667d10c77acaa28
 
 ```svelte
 <script lang="ts">
@@ -5084,7 +5521,7 @@ Source SHA-256: 5a0c1e6629270e5e97782c89be9a51e4449d30136dc99c0748108ef6595f1599
 {#snippet currencySymbol(currency: string)}
   <Group.Text data-currency-symbol aria-hidden="true">{symbol(currency)}</Group.Text>
 {/snippet}
-<MeasuredField measure="amount" data-control="money" data-invalid={!!error} data-disabled={node.disabled}>
+<MeasuredField kind="control.money" invalid={!!error} disabled={node.disabled}>
   <FieldWell {id} label={node.label} required={node.required} filled={true}>
     {#snippet accessory()}<ClearInput control={id} value={display} label={`Clear ${node.label}`} disabled={node.disabled} />{/snippet}
     {#snippet prefix()}
@@ -5110,7 +5547,7 @@ Source SHA-256: 5a0c1e6629270e5e97782c89be9a51e4449d30136dc99c0748108ef6595f1599
 
 ## src/svelte/controls/DateControl.svelte
 
-Source SHA-256: a226c75886c9f92c3291061526e8d7fd02716e7a70606e7c7563fa57efa4eae3
+Source SHA-256: afdc07b429ec3836ae84cfb97003e3d5d11035e4f8e39b5b1ca53f2d5031c7bd
 
 ```svelte
 <script lang="ts">
@@ -5186,7 +5623,7 @@ Source SHA-256: a226c75886c9f92c3291061526e8d7fd02716e7a70606e7c7563fa57efa4eae3
     disabled={node.disabled} onchange={change} onclear={node.required ? undefined : clear}
     onclose={picker.current === "sheet" ? () => { open = false; } : undefined} />
 {/snippet}
-<MeasuredField measure="date" data-control="date" data-disabled={node.disabled}>
+<MeasuredField kind="control.date" disabled={node.disabled}>
   {#if picker.current === "sheet"}
     {@render trigger({ onclick: () => { open = true; } })}
     <PickerSheet bind:open label={node.label} triggerId={id} contentToolbar>{@render calendar()}</PickerSheet>
@@ -5196,7 +5633,7 @@ Source SHA-256: a226c75886c9f92c3291061526e8d7fd02716e7a70606e7c7563fa57efa4eae3
         {#snippet child({ props })}{@render trigger(props)}{/snippet}
       </Popover.Trigger>
       <Popover.Content bind:ref={anchoredContent} onCloseAutoFocus={restoreFocus}
-        role="dialog" aria-label={node.label} aria-modal="false" class="p-3" style="width:20rem;overflow:hidden">
+        role="dialog" aria-label={node.label} aria-modal="false" style="width:20rem;overflow:hidden">
         {@render calendar()}
       </Popover.Content>
     </Popover.Root>
@@ -5207,7 +5644,7 @@ Source SHA-256: a226c75886c9f92c3291061526e8d7fd02716e7a70606e7c7563fa57efa4eae3
 
 ## src/svelte/controls/MediaControl.svelte
 
-Source SHA-256: e4a019228338c4dfe7de68f6b1a38c5394b8e42470294cffac5c32132af91e9c
+Source SHA-256: 7941501ad2433ddca755f7924f381257a49ac8607f9e13ec3c641406310714c5
 
 ```svelte
 <script lang="ts">
@@ -5218,9 +5655,10 @@ Source SHA-256: e4a019228338c4dfe7de68f6b1a38c5394b8e42470294cffac5c32132af91e9c
   import type { AvatarNode, ImageNode, TagNode } from "../../interaction/extended-nodes.ts";
   import PhotoCollection from '../pieces/media/PhotoCollection.svelte';
   import Image from '../pieces/media/Image.svelte';
+  import { imageIdentity } from '../pieces/media/source.ts';
   let { node }: { node: AvatarNode | ImageNode | TagNode } = $props();
   let source = $derived(node.kind === "tag" ? null : typeof node.source === "object" && node.source !== null
-    ? `/media/${encodeURIComponent(node.source.asset)}` : node.source);
+    ? 'asset' in node.source ? `/media/${encodeURIComponent(node.source.asset)}` : node.source : node.source);
   const aspects = { square: "aspect-square", landscape: "aspect-video", portrait: "aspect-[3/4]" };
 </script>
 {#if node.kind === "tag"}
@@ -5236,7 +5674,7 @@ Source SHA-256: e4a019228338c4dfe7de68f6b1a38c5394b8e42470294cffac5c32132af91e9c
   <figure data-control="image" class="flex min-w-0 flex-col gap-2">
     <div class={cn("relative w-full overflow-hidden rounded-xl", aspects[node.aspect])} data-aspect={node.aspect}>
       {#if source}
-        <div class="absolute inset-0">{#key source}<PhotoCollection photos={[{source,alt:node.alt}]} title={node.label} />{/key}</div>
+        <div class="absolute inset-0">{#key imageIdentity(source)}<PhotoCollection photos={[{source,alt:node.alt}]} title={node.label} />{/key}</div>
       {:else}<div class="absolute inset-0 flex items-center justify-center gap-3 rounded-xl border" role="img" aria-label={node.alt}>
         <ImageOff aria-hidden="true" /><span>Image unavailable</span></div>{/if}
     </div>
@@ -5247,7 +5685,7 @@ Source SHA-256: e4a019228338c4dfe7de68f6b1a38c5394b8e42470294cffac5c32132af91e9c
 
 ## src/svelte/pieces/AnchoredSurface.svelte
 
-Source SHA-256: 2621884e794675c290d76ecbc03e4e73fa171bd44b11cc79565001cafb75f76c
+Source SHA-256: ecbfc040041e9e74130a014f72ba73dcb4e23f35c7d055a25dce7b4b76d94f3d
 
 ```svelte
 <script lang="ts">
@@ -5265,6 +5703,7 @@ Source SHA-256: 2621884e794675c290d76ecbc03e4e73fa171bd44b11cc79565001cafb75f76c
     open: boolean; disabled?: boolean; locked?: boolean | undefined; onchange: (open: boolean) => void;
     invoke?: (intent: SurfaceIntent) => void; icon?: ActionIcon;
   } = $props();
+  const panelId = $props.id();
   const change = (next: boolean) => { if (!disabled && (next || !locked)) onchange(next); };
   dismissWhenInactive(() => onchange(false));
   const guard = (event: Event) => { if (locked) event.preventDefault(); };
@@ -5291,10 +5730,10 @@ Source SHA-256: 2621884e794675c290d76ecbc03e4e73fa171bd44b11cc79565001cafb75f76c
     {#snippet child({ props })}
       <BankRenderer node={{ version: BankVersion, kind: "action", role: "secondary", action: {
         icon, label, state: disabled ? "unavailable" : "ready", intent: { kind: "transient.open" },
-      } }} actionElementProps={props} />
+      } }} actionElementProps={{ ...props, "aria-controls": open ? panelId : undefined }} />
     {/snippet}
   </Popover.Trigger>
-  <Popover.Content bind:ref={panel} role="dialog" aria-label={title} aria-modal="false" trapFocus={false} preventScroll={false}
+  <Popover.Content id={panelId} bind:ref={panel} role="dialog" aria-label={title} aria-modal="false" trapFocus={false} preventScroll={false}
     onkeydowncapture={event => {
       if (panel && !locked) anchoredTabExit(event, panel, () => { outside = true; change(false); });
     }}
@@ -5307,7 +5746,7 @@ Source SHA-256: 2621884e794675c290d76ecbc03e4e73fa171bd44b11cc79565001cafb75f76c
 
 ## src/svelte/Fields.svelte
 
-Source SHA-256: 9aa81c9211fdf43e1ffb39e6c9b31ef739088c4d3f1507b3f2e8c640b514c4bc
+Source SHA-256: da9c9ac7d83931ffcc877ed47898fae0c116978ddd62cb5eabf34a8629641835
 
 ```svelte
 <script lang="ts">
@@ -5315,25 +5754,46 @@ Source SHA-256: 9aa81c9211fdf43e1ffb39e6c9b31ef739088c4d3f1507b3f2e8c640b514c4bc
   import BankRenderer from "./BankRenderer.svelte";
   import { BankVersion } from "../interaction/bank-node.ts";
   import type { FrameContent } from "../interaction/surface-frame.ts";
-let { fields, edit }: {
+  import { imageInputControl } from "../interaction/image-input.ts";
+  import { labelsInputControl } from "../interaction/labels-control.ts";
+  import { isFormControlEvent, type FormControlEvent } from "../interaction/form-control-event.ts";
+  import { useFormFiles } from "./pieces/form-files.ts";
+  const fileHost = useFormFiles();
+  let { fields, edit, controlEvent }: {
     fields: Extract<FrameContent, { kind: "form" }>["fields"];
     edit: (name: string, value: string) => void;
+    controlEvent: (event: FormControlEvent) => void;
   } = $props();
 </script>
 
 <Field.FieldGroup data-composition="form">
   {#each fields as field (field.name)}
+    {#if field.primitive === "control.files"}
+      <BankRenderer node={{ version: BankVersion, kind: "control.files",
+        control: imageInputControl(field.name, field.label, field.files,field.disabled ?? false,field.media) }} host={fileHost}
+        onevent={event => { if (isFormControlEvent(event)) controlEvent(event); }} />
+    {:else if field.primitive === "control.labels"}
+      <BankRenderer node={{ version: BankVersion, kind: "control.labels",
+        control: { ...labelsInputControl(field.name, field.label, field.values, field.limits, field.error, field.reference,field.mediaReference), disabled: field.disabled ?? false } }}
+        onevent={event => { if (isFormControlEvent(event)) controlEvent(event); }} />
+    {:else if field.primitive === "control.select"}
+      <BankRenderer node={{ version: BankVersion, kind: "control.select", control: {
+        version: "desert.control/1", kind: "select", id: field.name, label: field.label,
+        required: true, disabled: field.disabled ?? false, value: field.value, options: field.options,
+      } }} onevent={event => { if (event.kind === "select.change" && event.value !== null) edit(field.name, event.value); }} />
+    {:else}
     <BankRenderer node={{ version: BankVersion, kind: field.primitive, name: field.name, label: field.label,
-      value: field.value, required: field.required, disabled: false, ...(field.error ? { error: field.error } : {}),
+      value: field.value, required: field.required, disabled: field.disabled ?? false, ...(field.error ? { error: field.error } : {}),
       ...(field.maxLength !== undefined ? { maxLength: field.maxLength } : {}) }}
       onevent={event => { if (event.kind === "input.change") edit(event.name, event.value); }} />
+    {/if}
   {/each}
 </Field.FieldGroup>
 ```
 
 ## src/svelte/pieces/TextInput.svelte
 
-Source SHA-256: 9596ec14aa24d49b950b912cbefb18fb01f5b215ea4495d23bb3601175589df4
+Source SHA-256: 9896fa4947b64e41610cb4d914c88c6f893711a3da380426443beb9c1f92380c
 
 ```svelte
 <script lang="ts">
@@ -5347,10 +5807,11 @@ Source SHA-256: 9596ec14aa24d49b950b912cbefb18fb01f5b215ea4495d23bb3601175589df4
   import CharacterCounter from "./CharacterCounter.svelte";
   import ClearInput from "./ClearInput.svelte";
   import { observeEditorCapacity } from "./editor-capacity.ts";
-  let { primitive, label, value = "", required = false, invalid = false, error, disabled = false,
-    identity = "", mask, maxLength, onchange }: {
+  let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
+    identity = "", mask, maxLength, purpose = "text", onchange }: {
     label: string; value?: string; required?: boolean; identity?: string; maxLength?: number | undefined;
-    invalid?: boolean; error?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
+    invalid?: boolean; error?: string | undefined; helper?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
+    purpose?: "text" | "username" | "new-password" | "current-password";
   } & ({ primitive: "input.text"; mask?: InputMask | undefined } | { primitive: "input.multiline"; mask?: never }) = $props();
   const id = $props.id();
   let writing = $derived(value);
@@ -5371,6 +5832,11 @@ Source SHA-256: 9596ec14aa24d49b950b912cbefb18fb01f5b215ea4495d23bb3601175589df4
     });
   });
   let message = $derived(error || draftError);
+  let describedBy = $derived([
+    helper ? `${id}-helper` : undefined,
+    primitive === "input.multiline" ? `${id}-counter` : undefined,
+    message ? `${id}-error` : undefined,
+  ].filter(Boolean).join(" ") || undefined);
   let invalidField = $derived(invalid || !!message);
   function editMasked(next: string, valid: boolean, complete: boolean) {
     if (disabled) return;
@@ -5380,44 +5846,48 @@ Source SHA-256: 9596ec14aa24d49b950b912cbefb18fb01f5b215ea4495d23bb3601175589df4
   }
 </script>
 {#snippet counter()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
-<MeasuredField measure="writing" data-invalid={invalidField} data-disabled={disabled} data-primitive={primitive}>
+<MeasuredField kind={primitive} invalid={invalidField} {disabled}>
   <FieldWell {id} {label} {required} footer={primitive === "input.multiline" ? counter : undefined}
     filled={(mask ? display : writing).length > 0}>
     {#snippet accessory()}<ClearInput control={id} value={mask ? display : writing} label={`Clear ${label}`} {disabled} />{/snippet}
     {#if primitive === "input.multiline"}
       <Group.Textarea {id} bind:ref={editor} bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} rows={4} placeholder=" "
-        aria-describedby={`${id}-counter${message ? ` ${id}-error` : ''}`} onblur={event => onchange(event.currentTarget.value)}
+        aria-describedby={describedBy} onblur={event => onchange(event.currentTarget.value)}
         class="focus-visible:outline-none"
         oninput={event => onchange(event.currentTarget.value)} />
     {:else if mask}
       <MaskedInput {id} {value} {mask} {identity} bind:display {required} {disabled}
         aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
-        aria-describedby={message ? `${id}-error` : undefined} class="focus-visible:outline-none" onvalue={editMasked} />
+        aria-describedby={describedBy} onvalue={editMasked} />
     {:else}
-      <Group.Input {id} bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
-        aria-describedby={message ? `${id}-error` : undefined} onblur={event => onchange(event.currentTarget.value)}
+      <Group.Input {id} type={purpose.endsWith("password") ? "password" : "text"} autocomplete={purpose === "text" ? undefined : purpose}
+        autocapitalize={purpose === "username" ? "none" : undefined} spellcheck={purpose === "text" ? undefined : false}
+        bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
+        aria-describedby={describedBy} onblur={event => onchange(event.currentTarget.value)}
         class="focus-visible:outline-none"
         oninput={event => onchange(event.currentTarget.value)} />
     {/if}
   </FieldWell>
+  {#if helper}<Field.FieldDescription id={`${id}-helper`}>{helper}</Field.FieldDescription>{/if}
   {#if message}<Field.FieldError id={`${id}-error`} role="status">{message}</Field.FieldError>{/if}
 </MeasuredField>
 ```
 
 ## src/svelte/pieces/MaskedInput.svelte
 
-Source SHA-256: 03356f0b57c4d9c313b92ab402686c410abb5996970a6d2e9d5f5554eed31b8d
+Source SHA-256: 1594084e6939a7b040a7c190a485ee760e0a9ec073898be92d313fd9d21ae011
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
-  import type { HTMLInputAttributes } from "svelte/elements";
   import * as Group from "../vendor/components/ui/input-group/index.js";
   import { formatMaskedValue, readMaskedValue, maskSeparators, type InputMask } from "../../interaction/input-mask.ts";
   import { historyKey, inputEditHistory, inputSnapshot, type InputSnapshot } from "./input-edit-history.ts";
-  let { value, mask, identity = "", display = $bindable(""), onvalue, onblur, onkeydown, onpointerdown, ...props }: Omit<HTMLInputAttributes,
-    "value" | "type" | "files" | "oninput" | "onbeforeinput" | "oncompositionstart" | "oncompositionend" | "onchange"> & {
+  let { value, mask, identity = "", display = $bindable(""), onvalue, id, placeholder, disabled, required,
+    "aria-required": ariaRequired, "aria-invalid": invalid, "aria-label": label, "aria-describedby": describedBy }: {
     value: string; mask: InputMask; identity?: string; display?: string;
+    id?: string; placeholder?: string; disabled?: boolean; required?: boolean;
+    "aria-required"?: boolean; "aria-invalid"?: boolean; "aria-label"?: string; "aria-describedby"?: string;
     onvalue: (value: string, valid: boolean, complete: boolean) => void;
   } = $props();
   let composing = false, compositionInput = false, allowDisplacedGrouping = false;
@@ -5478,7 +5948,7 @@ Source SHA-256: 03356f0b57c4d9c313b92ab402686c410abb5996970a6d2e9d5f5554eed31b8d
     edit(input, true, false);
   }
   function keydown(event: KeyboardEvent & { currentTarget: HTMLInputElement }) {
-    onkeydown?.(event); if (event.defaultPrevented || composing || event.isComposing) return;
+    if (event.defaultPrevented || composing || event.isComposing) return;
     const direction = historyKey(event);
     if (direction) { event.preventDefault(); restore(event.currentTarget, direction); }
     else if (event.key.length > 1 && !["Backspace", "Delete"].includes(event.key)) history.boundary();
@@ -5511,10 +5981,11 @@ Source SHA-256: 03356f0b57c4d9c313b92ab402686c410abb5996970a6d2e9d5f5554eed31b8d
       input.setSelectionRange(start, start + group.length + 1);
   }
 </script>
-<Group.Input {...props} type="text" inputmode="decimal" value={display} data-input-mask={mask.kind}
+<Group.Input {id} {placeholder} {disabled} {required} aria-required={ariaRequired} aria-invalid={invalid}
+  aria-label={label} aria-describedby={describedBy} type="text" inputmode="decimal" value={display} data-input-mask={mask.kind}
   onbeforeinput={before}
   onkeydown={keydown}
-  onpointerdown={event => { history.boundary(); onpointerdown?.(event); }}
+  onpointerdown={() => history.boundary()}
   oncompositionstart={event => { composing = true; pending = { state: inputSnapshot(event.currentTarget), kind: "composition" }; }}
   oncompositionend={event => { composing = false; edit(event.currentTarget, true); compositionInput = true; }}
   oninput={event => {
@@ -5523,7 +5994,7 @@ Source SHA-256: 03356f0b57c4d9c313b92ab402686c410abb5996970a6d2e9d5f5554eed31b8d
     compositionInput = false;
     edit(event.currentTarget, !allowDisplacedGrouping); allowDisplacedGrouping = false;
   }}
-  onblur={event => { history.boundary(); onblur?.(event); }} />
+  onblur={() => history.boundary()} />
 ```
 
 ## src/svelte/pieces/CharacterCounter.svelte
@@ -5661,7 +6132,7 @@ export function historyKey(event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaK
 
 ## src/svelte/ContextPanel.svelte
 
-Source SHA-256: d51d2913ea8065caf85d4ca46797017f93bd7d6849fc742a20794f49e66c7a1f
+Source SHA-256: dec9e5e4a711edccc5da6138a4fb467d30dc56f1a6a669b77539e21d76b43ad5
 
 ```svelte
 <script lang="ts">
@@ -5669,16 +6140,26 @@ Source SHA-256: d51d2913ea8065caf85d4ca46797017f93bd7d6849fc742a20794f49e66c7a1f
   import { BankVersion } from "../interaction/bank-node.ts";
   import DestinationRow from "./pieces/DestinationRow.svelte";
   import GroupedPanel from "./pieces/GroupedPanel.svelte";
+  import ReadingContent from "./pieces/ReadingContent.svelte";
+  import ContextProperties from "./pieces/ContextProperties.svelte";
+  import MediaObject from "./pieces/media/MediaObject.svelte";
+  import AttentionStatus from './pieces/AttentionStatus.svelte';
   import type { WebRendererProps } from "./renderer-contracts.ts";
-  let { fields, facts, object, labels, multiline = [], actions }: WebRendererProps["context"] = $props();
-  let prose = $derived(fields.filter(field => multiline.includes(field)));
-  let metadata = $derived(fields.filter(field => !multiline.includes(field)));
+  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {}, actions, selectors = [], attention=[],presentation, onselect }: WebRendererProps["context"] = $props();
+  let remaining = $derived(fields.filter(field => field !== presentation?.media && field !== presentation?.description));
+  let prose = $derived(remaining.filter(field => multiline.includes(field)));
+  let metadata = $derived(remaining.filter(field => !multiline.includes(field)));
+  let imageFields = $derived(metadata.filter(field => images.includes(field)));
+  let properties = $derived(metadata.filter(field => !images.includes(field)));
 </script>
 <div data-composition="context">
-    {#if prose.length}<BankRenderer node={{ version: BankVersion, kind: "fact", details: { kind: "facts", fields: prose, facts, object, labels, multiline } }} />{/if}
-    {#if metadata.length}
-      <BankRenderer node={{ version: BankVersion, kind: "fact", details: { kind: "facts", fields: metadata, facts, object, labels } }} />
+    <AttentionStatus signals={attention} />
+    {#if presentation}<MediaObject {facts} {presentation} />{/if}
+    {#if prose.length}<ReadingContent fields={prose} {facts} {object} {labels} />{/if}
+    {#if imageFields.length}
+      <BankRenderer node={{ version: BankVersion, kind: "fact", details: { kind: "facts", fields: imageFields, facts, object, labels, images: imageFields } }} />
     {/if}
+    <ContextProperties fields={properties} {facts} {object} {labels} {references} {selectors} {onselect}/>
     {#if actions.length}<section class="context-actions" aria-label="Actions">
       <h3>Actions</h3>
       <GroupedPanel><div data-grouped-rows>
@@ -5692,21 +6173,16 @@ Source SHA-256: d51d2913ea8065caf85d4ca46797017f93bd7d6849fc742a20794f49e66c7a1f
 
 ## src/svelte/Facts.svelte
 
-Source SHA-256: 5c766a15b2bd27f5e4748ff64b30738ee6264be8574e6403cccd7763e641f795
+Source SHA-256: 0c92122325568de402726afcf826d603b6b25e70db1d2e79fff60e744b78fe2b
 
 ```svelte
 <script lang="ts">
-  import FactValue from "./pieces/FactValue.svelte";
+  import { FactGroup } from "./adapter-catalog.ts";
   import type { FactsContent } from "../interaction/surface-frame.ts";
-  let { fields, facts, object, labels, multiline = [] }: Omit<FactsContent, "kind"> = $props();
+  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {} }: Omit<FactsContent, "kind"> = $props();
 </script>
 
-<dl class="bank-stack" data-material={fields.length > 0 && fields.every(field => multiline.includes(field)) ? 'interior' : 'pane'} data-prose-only={fields.length > 0 && fields.every(field => multiline.includes(field))}>
-  {#each fields as field}
-    <div class="fact-row" data-primitive="fact" data-multiline={multiline.includes(field)}><dt class="fact-label type-support">{labels[`${object}.${field}`]}</dt>
-      <dd class="fact-value" data-reading={multiline.includes(field) ? "multiline" : "scalar"}><FactValue value={Object.hasOwn(facts, field) ? facts[field] : undefined} /></dd></div>
-  {/each}
-</dl>
+<FactGroup {fields} {facts} {object} {labels} {multiline} {images} {tags} {references} />
 ```
 
 ## src/svelte/Review.svelte
@@ -5726,27 +6202,33 @@ Source SHA-256: 74b7a56c8022381d8b605c07f1afe2b748afbf2bb07694c4d1778b1716575b29
 
 ## src/svelte/pieces/DestinationRow.svelte
 
-Source SHA-256: 26085952bead7db8adbe02dfdb0ef1f05befb054cd4b4a63a55fc9ab15253886
+Source SHA-256: 867e2904c82482fc5afa6451811e5b82f3ea197f0af39abd9d0e74228d65f990
 
 ```svelte
 <script lang="ts">
   import { Button } from "../vendor/components/ui/button/index.js";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
-let { destination, label, available, open }: {
-    destination: string; label: string; available: boolean; open: () => void;
+  import Face from './Face.svelte';
+  import type { ActionIcon } from '../../interaction/action-icon.ts';
+let { destination, label, available, open, icon = 'open', reason }: {
+    destination: string; label: string; available: boolean; open: () => void; icon?: ActionIcon | undefined; reason?: string | undefined;
   } = $props();
+  const generatedId = $props.id();
+  const descriptionId = `${generatedId}-reason`;
 </script>
 <Button variant="row" size="row" class="destination-row" type="button"
   data-piece="destination-row" data-destination={destination} data-grouped-row
-  disabled={!available} onclick={open}>
+  disabled={!available} aria-describedby={!available && reason ? descriptionId : undefined} title={!available ? reason : undefined} onclick={()=>{if(available)open();}}>
+  <Face face={{kind:'icon',icon}} />
   <span class="destination-title">{label}</span>
   <ChevronRight data-icon="inline-end" data-control-chevron data-destination-chevron aria-hidden="true" />
 </Button>
+{#if !available && reason}<span id={descriptionId} class="sr-only">{reason}</span>{/if}
 ```
 
 ## src/svelte/pieces/Drawer.svelte
 
-Source SHA-256: 5a5e7fcdb483ef87b67ad45f284e8b89cdef437e565310705c2565e504117567
+Source SHA-256: aff757d004de36528b8a29e4aa46466b3bd7846ce454b17b848e120120509630
 
 ```svelte
 <script lang="ts">
@@ -5757,19 +6239,36 @@ Source SHA-256: 5a5e7fcdb483ef87b67ad45f284e8b89cdef437e565310705c2565e504117567
   import { drawerMotion } from "./drawer-motion.svelte.ts";
   import { useSurfaceHost } from "./surface-host.svelte.ts";
   import SurfaceFrame from "../SurfaceFrame.svelte";
+  import InstanceFrame from "../InstanceFrame.svelte";
   import type { SurfaceFrame as Frame } from "../../interaction/surface-frame.ts";
+  import type { ResolvedView } from "../../views/resolved.ts";
   import { transientFrame } from "../../interaction/transient-frame.ts";
   import type { SurfaceIntent } from "../../interaction/intent.ts";
   import { surfaceFocus } from "./surface-focus.svelte.ts";
   import { adaptiveSurfaceLayout } from './adaptive-surface-layout.ts';
   import { adaptiveModality } from './adaptive-modality.svelte.ts';
-let { label, open, locked = false, onclose, onclosed, frame, invoke, edit }: {
+  import type { FormControlEvent } from "../../interaction/form-control-event.ts";
+  import { frameContinuity } from "./frame-continuity.svelte.ts";
+let { label, open, locked = false, onclose, onclosed, frame, invoke, edit, frameIdentity, readingIdentity, body, controlEvent, presentation }: {
     label: string; open: boolean; locked?: boolean; onclose: () => void;
     onclosed?: () => void; frame: Frame; invoke: (intent: SurfaceIntent) => void;
     edit?: (name: string, value: string) => void;
+    frameIdentity?: object | undefined;
+    readingIdentity?: object | undefined;
+    body?: ResolvedView | undefined;
+    controlEvent?: ((event: FormControlEvent) => void) | undefined;
+    presentation?: "transient" | undefined;
   } = $props();
   let composition = $derived(transientFrame(frame, locked));
   let content = $state<HTMLElement | null>(null);
+  const continuity = frameContinuity(() => content, () => frameIdentity, () => frame, () => readingIdentity);
+  let dispatch = $derived.by(() => {
+    const receiver = invoke, owner = frameIdentity;
+    return (intent: SurfaceIntent) => {
+      if (owner === frameIdentity) continuity.invoking(intent);
+      receiver(intent);
+    };
+  });
   let opener: HTMLElement | null = null;
   let wasOpen = false;
   $effect.pre(() => {
@@ -5779,14 +6278,17 @@ let { label, open, locked = false, onclose, onclosed, frame, invoke, edit }: {
   const close = () => {
     const navigation = composition.bottom.secondary;
     if (locked || navigation?.state !== "ready") return;
-    if (navigation.intent.kind === "close") onclose();
-    else invoke(navigation.intent);
+    if (navigation.intent.kind === "close") { continuity.invoking(navigation.intent); onclose(); }
+    else dispatch(navigation.intent);
   };
   const host = useSurfaceHost();
   const owner = Symbol('adaptive-pane');
-  const layout = $derived(adaptiveSurfaceLayout(host.availableInline, host.textSize, host.canDock(owner)));
+  const layout = $derived(adaptiveSurfaceLayout(host.availableInline, host.textSize, presentation !== "transient" && host.canDock(owner)));
   const docked = $derived(layout.docked);
-  const modal = $derived(open && !docked);
+  // A docked replacement may mount already open. Do not acquire a transient
+  // body lock against the pre-measurement zero width: that false modal can be
+  // removed before the lock's teardown effect has even registered.
+  const modal = $derived(open && host.measured && !docked);
   $effect(() => { host.reserve(owner, open && docked ? layout.reservation : 0); });
   $effect(() => () => host.reserve(owner, 0));
   adaptiveModality(() => content, () => modal);
@@ -5821,12 +6323,16 @@ let { label, open, locked = false, onclose, onclosed, frame, invoke, edit }: {
       onpointerdown={dragHeader} onpointermove={motion.move} onpointerup={motion.up}
       onpointercancel={motion.cancel} onlostpointercapture={motion.lost}
       onOpenAutoFocus={focus} onCloseAutoFocus={restore}
-      onEscapeKeydown={event => { if (locked || (docked && !content?.contains(document.activeElement))) event.preventDefault(); }}
-      onInteractOutside={event => { if (locked || docked) event.preventDefault(); }}>
+      onEscapeKeydown={event => { event.preventDefault(); if (!locked && (!docked || content?.contains(document.activeElement))) close(); }}
+      onInteractOutside={event => { event.preventDefault(); if (!locked && !docked) close(); }}>
       <Dialog.Title class="sr-only">{label}</Dialog.Title>
       <Dialog.Description class="sr-only">Close to return. Unsaved writing stays in this session.</Dialog.Description>
       {#if motion.edge === "bottom" && !docked}<DrawerGrip {motion} {locked} />{/if}
-      <SurfaceFrame frame={composition} {edit} presentation="transient" invoke={intent => intent.kind === "close" ? close() : invoke(intent)} />
+      {#if frameIdentity}
+        {#key frameIdentity}<InstanceFrame frame={composition} {body} {edit} invoke={dispatch} {controlEvent} />{/key}
+      {:else}
+        <SurfaceFrame frame={composition} {edit} {controlEvent} presentation="transient" invoke={intent => intent.kind === "close" ? close() : dispatch(intent)} />
+      {/if}
     </Dialog.Content>
 </Dialog.Root>
 
@@ -5902,7 +6408,7 @@ export function inspectValidation(validate: Validator, value: unknown): Validati
 
 ## src/web/client/field-feedback.ts
 
-Source SHA-256: 95db0fa98b98139b62f0d0069bdcf71bc8f7427e89fd2d44bcd68dab7936c8fc
+Source SHA-256: 7e1810ccc1f46097167ba66179e9140447ab7b145ba34837a927d138b57e2ac5
 
 ```ts
 import type { ValidationIssue, ValidationResult } from "../../validation-result.ts";
@@ -5912,17 +6418,21 @@ function message(issue: ValidationIssue): string {
   if (issue.keyword === "required" || (issue.keyword === "minLength" && limit === 1)) return "Enter a value.";
   if (issue.keyword === "minLength" && typeof limit === "number") return `Enter at least ${limit} characters.`;
   if (issue.keyword === "maxLength" && typeof limit === "number") return `Use no more than ${limit} ${limit === 1 ? "character" : "characters"}.`;
+  if (issue.keyword === "maxItems" && typeof limit === "number") return `Use no more than ${limit} labels.`;
+  if (issue.keyword === "uniqueItems") return "Remove the repeated label.";
   return "Check this value.";
 }
 
 /** Presentation only: paths and keyword parameters are supplied by canonical validation. */
-export function fieldFeedback(result: ValidationResult, touched: readonly string[]): Readonly<Record<string, string>> {
+export function fieldFeedback(result: ValidationResult, touched: readonly string[], labelFields: readonly string[] = []): Readonly<Record<string, string>> {
   if (result.valid) return {};
   const errors: Record<string, string> = {};
   for (const issue of result.issues) {
     const path = issue.instancePath.split("/");
+    const field = path[1]?.replace(/~1/g, "/").replace(/~0/g, "~");
+    const labelItem = path.length === 3 && field !== undefined && labelFields.includes(field) && /^(0|[1-9][0-9]*)$/.test(path[2]!);
     const name = issue.keyword === "required" && issue.instancePath === "" ? issue.params?.missingProperty
-      : path.length === 2 ? path[1]!.replace(/~1/g, "/").replace(/~0/g, "~") : undefined;
+      : path.length === 2 || labelItem ? field : undefined;
     if (typeof name === "string" && touched.includes(name) && !Object.hasOwn(errors, name)) {
       Object.defineProperty(errors, name, { value: message(issue), enumerable: true });
     }
@@ -5933,151 +6443,275 @@ export function fieldFeedback(result: ValidationResult, touched: readonly string
 
 ## src/web/client/model.ts
 
-Source SHA-256: b6a9d6624fc970ac5f54ad42b128242569d0a7b94750f6f4a0ca2233bbb6035c
+Source SHA-256: 6bc6950fe64fd1239fe7c49b2075c68572302e0a755996ef48fa6c5f177c3717
 
 ```ts
-import type { HumanSurface, Mutation, ValidateInput, Offer } from "../types.ts";
-import { humanState } from "./state.ts";
-import { webTransport } from "./transport.ts";
-import { observeWebConnection } from "./connection.ts";
+import type { HumanSurface, Mutation, ValidateInput } from "../types.ts";
+import { humanState, restoreCreationDraft, subjectActionAvailable, type HumanState } from "./state.ts";
+import { webTransport, type ControllerTransport, type Transport } from "./transport.ts";
+import { observeWebConnection, type ConnectionObserver } from "./connection.ts";
 import { mutationFlow } from "./mutations.ts";
+import { referenceScopeSurface, type ModelScope } from "./model-scope.ts";
+import type { ViewJourney } from "../../views/program-schema.ts";
+import { releaseDraftFiles, type DraftFileHost } from "../../interaction/image-input.ts";
+import type { AssetReference } from "../../assets/types.ts";
+import { TransportError } from "./transport.ts";
+import { emptyInputDraft } from "./input-draft.ts";
+import { modelInputs } from "./model-inputs.ts";
+import { canInitializeInput, isInitialInputValue } from "../../interaction/input-initialization.ts";
+import { modelReads } from "./model-reads.ts";
+import { samePublishedData } from "./published-data.ts";
+import { privateImageAccess, type PrivateImageContext } from "./private-images.ts";
+import { modelReferences } from './model-references.ts';
+import { modelMediaReferences } from './model-media-references.ts';
 
-export function humanProduct(surface: HumanSurface, validate: ValidateInput, options: { reading?: boolean } = {}) {
-  const store = humanState(surface);
-  const transport = webTransport(surface.contractDigest);
+export type InputInitialization = Extract<ViewJourney, { kind: "update" }>["initialize"];
+export function humanProduct(surface: HumanSurface, validate: ValidateInput,
+  options: { reading?: boolean; initialize?: Readonly<Record<string, InputInitialization>>; scope: ModelScope;
+    transport?: ControllerTransport; files?: DraftFileHost; observeConnection?: ConnectionObserver }) {
+  const scope = options.scope;
+  surface=referenceScopeSurface(surface,scope);
+  const read = scope.kind === "read" ? scope.read : undefined;
+  const store = humanState(surface, scope);
+  const transport: ControllerTransport & Partial<Pick<Transport, "connect">> = options.transport ?? webTransport(surface.contractDigest);
   let readEpoch = 0;
   let stopped = false;
+  let starting: Promise<void> | undefined;
   let reading = options.reading ?? true;
   let stopConnection: (() => void) | undefined;
-  const primary = surface.journeys.find(journey => journey.id === surface.navigation.primaryAction) as Mutation;
+  const primary = () => scope.kind === "read" ? scope.creations.find(journey => journey.id === store.get().creationJourneyId) : undefined;
   const ready = (id: string) => store.get().availability.journeys[id]?.dependenciesReady === true;
+  const reads = modelReads(scope, store, transport, () => !stopped && reading, () => readEpoch);
+  const images = privateImageAccess(imageContext);
+  const references=modelReferences(surface,store,transport,()=>!stopped&&reading,validate,read?.subject);
+  const mediaReferences=modelMediaReferences(surface,store,transport,()=>!stopped&&reading,read?.subject);
+  store.subscribe(() => images.refresh());
 
-  async function refresh() {
-    const epoch = ++readEpoch;
-    if (!reading || !ready(surface.navigation.entry)) return;
-    const selectedId = store.get().selectedId;
-    try {
-      const run = await transport.call("begin", { journeyId: surface.navigation.entry });
-      const records = await transport.call("read", { runId: run.id });
-      if (epoch !== readEpoch) return;
-      store.update({ records, loaded: true });
-      if (selectedId) {
-        const detailRun = await transport.call("begin", { journeyId: surface.navigation.entry, subject: selectedId });
-        const [detail] = await transport.call("read", { runId: detailRun.id });
-        const offers: Record<string, Offer> = {};
-        for (const journeyId of surface.navigation.subjectActions) {
-          if (ready(journeyId)) offers[journeyId] = await transport.call("offer", { journeyId, subject: selectedId });
-        }
-        if (epoch === readEpoch) store.update({ detail: detail ?? null, offers });
-      }
-    } catch { /* Retain the last view; the independent observer reports dependency failures. */ }
+  function imageContext(asset: AssetReference): PrivateImageContext | undefined {
+    const choice=mediaReferences.imageContext(asset);if(choice)return choice;
+    const current = store.get(), epoch = readEpoch;
+    const records = current.view === "detail" && current.detail?.id === current.selectedId ? [current.detail, ...current.records.filter(record => record.id !== current.detail!.id)]
+      : current.view === "list" ? current.records : [];
+    const publishesImage = (record: (typeof records)[number]) => read?.fields.some(field => {
+      const value = record.facts[field];
+      return typeof value === "object" && value !== null && "reference" in value && value.reference === asset.reference;
+    }) === true;
+    const record = records.find(publishesImage);
+    if (!read || !record || stopped || !reading || !ready(read.id) || !transport.image) return undefined;
+    const valid = () => {
+      const next = store.get();
+      return !stopped && reading && readEpoch === epoch && ready(read.id)
+        && next.view === current.view && next.selectedId === current.selectedId
+        && (next.detail?.id === record.id ? next.detail.version === record.version && publishesImage(next.detail)
+          : next.records.some(item => item.id === record.id && item.version === record.version && publishesImage(item)));
+    };
+    return { valid, async read(variant, signal) {
+      const run = await transport.call("begin", { journeyId: read.id, subject: record.id });
+      if (!valid() || signal.aborted) throw new TransportError("IMAGE_READ_EXPIRED");
+      return transport.image!({ runId: run.id, reference: asset.reference, variant }, { signal });
+    } };
   }
-  const mutations = mutationFlow(surface, store, transport, validate, refresh);
+
+  function invalidateReading() { readEpoch++; reads.invalidate(); images.refresh(); }
+  function refresh() { invalidateReading(); return Promise.all([reads.request(),references.refresh(),mediaReferences.refresh()]).then(()=>{}); }
+  function leaveSelection(view: HumanState["view"]): Partial<HumanState> {
+    if (view !== "list") return {};
+    invalidateReading();
+    return { selectedId: null, detail: null, offers: {} };
+  }
+  const mutations = mutationFlow(surface, store, transport, validate, refresh, scope, options.files);
+  function stop() { stopped = true; readEpoch++; reads.stop(); references.stop(); mediaReferences.stop(); images.close(); stopConnection?.(); mutations.cancelPending(); }
   return {
-    snapshot: store.get, subscribe: store.subscribe, ...mutations,
-    async start(invitation?: string) {
-      if (stopped) return;
-      if (invitation) {
-        try { await transport.connect(invitation); }
-        catch { store.update({ error: "BROWSER_SESSION_REQUIRED" }); }
-      }
-      if (stopped) return;
-      stopConnection = observeWebConnection(surface, transport, snapshot => {
-        const wasReady = ready(surface.navigation.entry);
-        store.update({ availability: snapshot });
-        const isReady = ready(surface.navigation.entry);
-        if (!isReady) readEpoch++;
-        if (!wasReady && isReady) void refresh();
-      });
+    snapshot: store.get, subscribe: store.subscribe, refresh, ...mutations, ...modelInputs(surface, store, options.files),
+    referenceEvent(event:Parameters<typeof references.event>[0]){return event.kind==='reference.refresh'&&surface.fieldMediaReferences?.[`${read?.subject}.${event.control}`]
+      ?mediaReferences.event(event.control):references.event(event);},
+    start(invitation?: string) {
+      if (stopped) return Promise.resolve();
+      return starting ??= (async () => {
+        if (invitation) {
+          try {
+            if (!transport.connect) throw new Error("BROWSER_SESSION_REQUIRED");
+            await transport.connect(invitation);
+          }
+          catch { store.update({ error: "BROWSER_SESSION_REQUIRED" }); }
+        }
+        if (stopped) return;
+        const observe = options.observeConnection ?? (publish => observeWebConnection(surface, transport, publish));
+        stopConnection = observe(snapshot => {
+          const wasReady = read ? ready(read.id) : false;
+          if (!samePublishedData(store.get().availability, snapshot)) store.update({ availability: snapshot });
+          const isReady = read ? ready(read.id) : false;
+          if (wasReady && !isReady) { invalidateReading(); references.invalidate(); mediaReferences.invalidate(); }
+          if (!wasReady && isReady) void refresh(); else if (isReady) reads.observe();
+        });
+      })();
     },
-    stop() { stopped = true; readEpoch++; stopConnection?.(); },
+    stop,
+    dispose() { stop(); releaseDraftFiles(store.get().draft, options.files);
+      if (store.get().editing) releaseDraftFiles(store.get().editing!.creationDraft.draft, options.files); store.dispose(); },
+    images, image: images.read,
     setReading(enabled: boolean) {
       if (reading === enabled) return;
       reading = enabled;
-      readEpoch++;
-      if (enabled) void refresh();
+      invalidateReading();
+      if (enabled) { void reads.request(); void references.refresh(); void mediaReferences.refresh(); }
     },
-    create() {
-      if (store.get().busy || store.get().uncertain || !ready(primary.id)) return;
+    create(journeyId = scope.kind === "read" ? scope.primaryCreation?.id : undefined) {
+      const mutation = scope.kind === "read" ? scope.creations.find(item => item.id === journeyId) : undefined;
+      if (!mutation || !read ||
+        store.get().busy || store.get().uncertain || store.get().editing || !ready(mutation.id)) return;
       const current = store.get();
-      const draft = Object.fromEntries(primary.inputFields.map(name => [name, current.draft[name] ?? ""]));
+      const sameDraft = current.creationJourneyId === journeyId;
+      if (!sameDraft) releaseDraftFiles(current.draft, options.files);
+      const draft = emptyInputDraft(surface, mutation, sameDraft ? current.draft : {});
       store.update({ view: "create", creationOrigin: current.view === "detail" ? "detail" : "list",
-        draft, prepared: null, notice: "", error: null });
+        creationJourneyId: mutation.id, draft, ...(sameDraft ? {} : { touchedFields: [], draftRevision: 0 }),
+        prepared: null, notice: "", error: null });
+      void references.refresh();
+      void mediaReferences.refresh();
     },
-    edit(field: string, value: string) {
-      if (!primary.inputFields.includes(field)) return;
-      const current = store.get();
-      // A departing control can blur after completion; it no longer owns the draft.
-      if (current.view !== "create" && current.view !== "list") return;
-      store.update({ draft: { ...current.draft, [field]: value },
-        draftRevision: current.draftRevision + (current.draft[field] === value ? 0 : 1),
-        touchedFields: current.touchedFields.includes(field) ? current.touchedFields : [...current.touchedFields, field] });
+    startEdit(journeyId: string): boolean {
+      const current = store.get(), detail = current.detail;
+      const journey = surface.journeys.find(item => item.id === journeyId);
+      const mapping = options.initialize?.[journeyId];
+      if (current.view !== "detail" || !detail || current.selectedId !== detail.id ||
+        journey?.kind !== "mutation" || !journey.subject || !journey.inputFields.length ||
+        !subjectActionAvailable(surface, current, journeyId, detail.id, detail.version, scope) ||
+        read?.kind !== "read" || read.subject !== journey.subject || !mapping ||
+        mapping.length !== journey.inputFields.length || new Set(mapping.map(item => item.input)).size !== mapping.length ||
+        mapping.some(item => !journey.inputFields.includes(item.input) || !read.fields.includes(item.fact) ||
+          !canInitializeInput(journey.inputSchema.properties[item.input], read.detailSchema.properties[item.fact]) ||
+          !isInitialInputValue(journey.inputSchema.properties[item.input], detail.facts[item.fact]))) return false;
+      store.update({ view: "edit", editing: { journeyId, subject: detail.id, expectedVersion: detail.version,
+        facts: { ...detail.facts }, creationDraft: { draft: { ...current.draft }, draftRevision: current.draftRevision,
+          touchedFields: [...current.touchedFields] } },
+        draft: Object.fromEntries(mapping.map(item => [item.input, structuredClone(detail.facts[item.fact]) as string | readonly string[]])),
+        draftRevision: 0, touchedFields: [], prepared: null, mutationId: null, notice: "", error: null });
+      void references.refresh();
+      void mediaReferences.refresh();
+      return true;
     },
     async select(id: string) {
-      if (store.get().busy || store.get().uncertain || !ready(surface.navigation.entry)) return;
+      if (!read || store.get().busy || store.get().uncertain || store.get().editing || !ready(read.id)) return;
       store.update({ view: "detail", selectedId: id, detail: null, offers: {}, prepared: null, notice: "" });
       await refresh();
     },
     back() {
       if (store.get().busy || store.get().uncertain) return;
       const current = store.get();
-      const view = current.view === "review" ? (current.mutationId === primary.id ? "create" : "detail")
-        : current.view === "create" ? current.creationOrigin : "list";
-      store.update({ view, prepared: null, notice: "" });
+      const view = current.view === "review" ? (current.editing ? "edit" : current.mutationId === current.creationJourneyId ? "create" : "detail")
+        : current.view === "edit" ? "detail" : current.view === "create" ? current.creationOrigin : "list";
+      if (current.view === "edit") releaseDraftFiles(current.draft, options.files);
+      store.update({ view, ...leaveSelection(view), prepared: null, notice: "", ...(current.view === "edit" ? restoreCreationDraft(current) : {}) });
     },
     dismissError() { store.update({ error: null }); },
     close() {
       if (store.get().busy || store.get().uncertain) return;
       const current = store.get();
-      store.update({ view: current.view === "create" ? current.creationOrigin : "list", prepared: null, notice: "" });
+      if (current.editing) releaseDraftFiles(current.draft, options.files);
+      const view = current.editing ? "detail" : current.view === "create" ? current.creationOrigin : "list";
+      store.update({ view, ...leaveSelection(view),
+        ...restoreCreationDraft(current), prepared: null, mutationId: null, notice: "" });
     },
-    primary,
+    get primary(): Mutation { const value = primary(); if (!value) throw new Error("PRIMARY_CREATION_REQUIRED"); return value; },
   };
 }
 ```
 
 ## src/web/client/mutations.ts
 
-Source SHA-256: 39feb004ca4374bd86acffa87771c5d5bbc32e33670d95ef368370e3bfdf78f3
+Source SHA-256: 14f3cec03f0686b0f79cf3dcaeaa1e858c9ebb8f68664c67ccfa585c97ba4acd
 
 ```ts
 import type { HumanSurface, Mutation, ValidateInput, Receipt } from "../types.ts";
-import type { HumanStore } from "./state.ts";
-import { TransportError, type Transport } from "./transport.ts";
+import { restoreCreationDraft, subjectActionAvailable, type HumanState, type HumanStore } from "./state.ts";
+import { TransportError, acceptanceOutcomeUnknown, type ControllerTransport } from "./transport.ts";
+import type { ModelScope } from "./model-scope.ts";
+import { inspectMutationDraft } from "./draft-validation.ts";
+import { isImageFileSelection, releaseDraftFiles, type DraftFileHost } from "../../interaction/image-input.ts";
+import type { Facts } from "../../fact-values.ts";
+import { requireMutationReceipt } from "./mutation-receipt.ts";
 
-export function mutationFlow(surface: HumanSurface, store: HumanStore, transport: Transport,
-  validate: ValidateInput, refresh: () => Promise<void>) {
+export function mutationFlow(surface: HumanSurface, store: HumanStore, transport: ControllerTransport,
+  validate: ValidateInput, refresh: () => Promise<void>, scope: ModelScope, files?: DraftFileHost) {
+  let activeOperation: object | null = null;
+  let upload: AbortController | undefined;
   function ready(id: string) { return store.get().availability.journeys[id]?.dependenciesReady === true; }
   function failure(error: unknown) { store.update({ error: error instanceof TransportError ? error.code : "OPERATION_FAILED" }); }
-  async function completed(receipt: Receipt) {
+  function startOperation(action: NonNullable<HumanState["pendingAction"]>) {
+    const operation = activeOperation = {};
+    store.update({ busy: true, pendingAction: action, receiptMissing: false, error: null, notice: "" });
+    return operation;
+  }
+  function finishOperation(operation: object, patch: Partial<HumanState> = {}) {
+    if (activeOperation !== operation) return false;
+    activeOperation = null;
+    store.update({ ...patch, busy: false, pendingAction: null });
+    return true;
+  }
+  async function completed(receipt: Receipt, operation: object) {
     const current = store.get();
-    if (!current.prepared || receipt.id !== current.prepared.id || receipt.object.id !== current.prepared.object.id) {
-      throw new TransportError("INVALID_RESPONSE");
-    }
-    const wasCreate = current.mutationId === surface.navigation.primaryAction;
-    store.update({ prepared: null, uncertain: false, receiptMissing: false, view: "detail", selectedId: receipt.object.id,
+    const prepared = current.prepared, journey = surface.journeys.find(item => item.id === current.mutationId);
+    requireMutationReceipt(prepared, journey, receipt);
+    if (!prepared || journey?.kind !== "mutation") throw new TransportError("INVALID_RESPONSE");
+    const wasCreate = !journey.subject;
+    const wasEdit = current.editing?.journeyId === current.mutationId;
+    const newerEdit = wasEdit && current.preparedRevision !== current.draftRevision;
+    if ((wasCreate || wasEdit) && current.preparedRevision === current.draftRevision) releaseDraftFiles(current.draft, files);
+    const finished = finishOperation(operation, { prepared: null, uncertain: false, receiptMissing: false,
+      view: newerEdit ? "edit" : "detail", selectedId: receipt.object.id,
       detail: null, offers: {},
-      notice: "Saved", ...(wasCreate && current.preparedRevision === current.draftRevision ? { draft: {}, touchedFields: [] } : {}) });
-    await refresh();
+      notice: "Saved", ...(wasCreate && current.preparedRevision === current.draftRevision ? { draft: {}, touchedFields: [] } : {}),
+      ...(wasEdit ? newerEdit ? { editing: { ...current.editing!, expectedVersion: receipt.object.version, facts: prepared.facts } }
+        : restoreCreationDraft(current) : {}) });
+    if (finished) await refresh();
   }
   async function invoke(journey: Mutation, subject?: string) {
     const current = store.get();
-    const input = subject ? {} : { ...current.draft };
-    if (current.busy || current.uncertain || !ready(journey.id) || !validate(journey.commandId, input)) return;
-    store.update({ busy: true, pendingAction: "invoke", receiptMissing: false, error: null, notice: "" });
+    if (scope.kind !== "read" || ![...scope.creations, ...scope.subjectActions].some(item => item.id === journey.id)) return;
+    const editing = current.editing;
+    if (editing && (current.view !== "edit" || journey.id !== editing.journeyId || subject && subject !== editing.subject)) return;
+    const target = editing?.subject ?? subject;
+    if ((journey.subject && !target) || (!journey.subject && target)) return;
+    if (target && !subjectActionAvailable(surface, current, journey.id, target, undefined, scope)) return;
+    const input = target && !editing ? {} : { ...current.draft };
+    if (current.busy || current.uncertain || !ready(journey.id) || !inspectMutationDraft(surface, journey, input, validate).valid) return;
+    const selected = Object.entries(input).flatMap(([inputField, value]) => {
+      if (!isImageFileSelection(value)) return [];
+      const file = files?.resolve(value.file.id);
+      return [{ inputField, file }];
+    });
+    if (selected.some(item => !item.file) || selected.length && !transport.stageImage) {
+      failure(new TransportError("IMAGE_UPLOAD_UNAVAILABLE")); return;
+    }
+    const operation = startOperation("invoke");
+    const abort = upload = new AbortController();
     try {
-      const run = await transport.call("begin", { journeyId: journey.id, ...(subject ? { subject } : {}) });
-      const prepared = await transport.call("prepare", { runId: run.id, input });
+      const run = await transport.call("begin", { journeyId: journey.id, ...(target ? { subject: target } : {}) });
+      if (activeOperation !== operation || current.draftRevision !== store.get().draftRevision) return;
+      const staged = Object.fromEntries(Object.entries(input).filter(([, value]) => !isImageFileSelection(value))) as Facts;
+      for (const item of selected) {
+        staged[item.inputField] = await transport.stageImage!({ runId: run.id, inputField: item.inputField, file: item.file! }, { signal: abort.signal });
+        if (activeOperation !== operation || current.draftRevision !== store.get().draftRevision) return;
+      }
+      if (!validate(journey.commandId, staged)) throw new TransportError("INVALID_INPUT");
+      const prepared = await transport.call("prepare", { runId: run.id, input: staged,
+        ...(editing ? { options: { expectedVersion: editing.expectedVersion } } : {}) });
+      if (activeOperation !== operation) return;
       if (prepared.runId !== run.id || prepared.journeyId !== journey.id) throw new TransportError("INVALID_RESPONSE");
-      if (!subject && current.draftRevision !== store.get().draftRevision) return;
+      if (target && prepared.object.id !== target) throw new TransportError("INVALID_RESPONSE");
+      if (editing && (prepared.object.id !== editing.subject || prepared.object.expectedVersion !== editing.expectedVersion)) {
+        throw new TransportError("INVALID_RESPONSE");
+      }
+      if ((!target || editing) && current.draftRevision !== store.get().draftRevision) return;
       store.update({ prepared, mutationId: journey.id, preparedRevision: current.draftRevision });
-      if (surface.commit[journey.id] === "review") store.update({ view: "review" });
-      else if (surface.commit[journey.id] === "submit") await acceptPrepared();
+      if (surface.commit[journey.id] !== "submit") store.update({ view: "review" });
+      else if (surface.commit[journey.id] === "submit") await acceptPrepared(operation);
       else throw new TransportError("INVALID_COMMIT_MODE");
-    } catch (error) { failure(error); }
-    finally { store.update({ busy: false, pendingAction: null }); }
+    } catch (error) { if (activeOperation === operation) failure(error); }
+    finally { if (upload === abort) upload = undefined; finishOperation(operation); }
   }
-  async function acceptPrepared() {
+  async function acceptPrepared(operation: object) {
     const current = store.get();
     if (!current.prepared || !current.mutationId) throw new TransportError("INVALID_OPERATION");
     try {
@@ -6085,10 +6719,10 @@ export function mutationFlow(surface: HumanSurface, store: HumanStore, transport
       store.update({ pendingAction: "accept", receiptMissing: false });
       const receipt = await transport.call("accept", { intentId: current.prepared.id,
         confirmationDigest: current.prepared.confirmationDigest });
-      await completed(receipt);
+      await completed(receipt, operation);
     } catch (error) {
-      const code = error instanceof TransportError ? error.code : "OPERATION_FAILED";
-      const uncertain = current.uncertain || ["CONNECTION_LOST", "COMMIT_UNCERTAIN", "CONTROLLER_UNAVAILABLE", "INVALID_RESPONSE"].includes(code);
+      if (activeOperation !== operation) return;
+      const uncertain = current.uncertain || acceptanceOutcomeUnknown(error);
       store.update({ uncertain, ...(uncertain ? { view: "recovery" } : {}) });
       failure(error);
     }
@@ -6097,45 +6731,81 @@ export function mutationFlow(surface: HumanSurface, store: HumanStore, transport
     const current = store.get();
     if (current.busy || !current.prepared || !current.mutationId || !ready(current.mutationId)) return;
     if (current.view !== "review" && current.view !== "recovery") return;
-    store.update({ busy: true, pendingAction: "accept", receiptMissing: false, error: null, notice: "" });
-    try { await acceptPrepared(); }
-    finally { store.update({ busy: false, pendingAction: null }); }
+    const operation = startOperation("accept");
+    try { await acceptPrepared(operation); }
+    finally { finishOperation(operation); }
   }
   async function recover() {
     const current = store.get();
     if (current.busy || !current.prepared || !current.mutationId || !ready(current.mutationId)) return;
-    store.update({ busy: true, pendingAction: "recover", receiptMissing: false, error: null, notice: "" });
+    const operation = startOperation("recover");
     try {
       const receipt = await transport.call("receipt", { intentId: current.prepared.id });
-      if (receipt) await completed(receipt);
+      if (receipt) await completed(receipt, operation);
       else store.update({ receiptMissing: true });
-    } catch (error) { failure(error); }
-    finally { store.update({ busy: false, pendingAction: null }); }
+    } catch (error) { if (activeOperation === operation) failure(error); }
+    finally { finishOperation(operation); }
   }
-  return { invoke, accept, recover };
+  return { invoke, accept, recover, cancelPending() { activeOperation = null; upload?.abort(); upload = undefined; } };
 }
 ```
 
 ## src/web/client/transport.ts
 
-Source SHA-256: 369d3f15d3b805fad99bd1ee92887391e637f525a773d262c822e7c2e834d382
+Source SHA-256: a84cea81e116914be6a7a018cff29f47aa7ca64d86bcbd22130f72347212c0ef
 
 ```ts
 import type { ApiMethods, Evidence } from "../types.ts";
+import { Check } from "@sinclair/typebox/value";
+import { AssetReferenceSchema, type AssetReference, type AssetImageVariant } from "../../assets/types.ts";
+import {privateMediaTypes} from "../../assets/policy.ts";
+import { schedulePrivateImageRead, waitForPrivateImageCapacity } from './private-image-queue.ts';
 
 export class TransportError extends Error {
   readonly code: string;
   constructor(code: string) { super(code); this.code = code; }
 }
 
-export function webTransport(digest: string) {
-  async function request(path: string, body?: unknown): Promise<unknown> {
+export function acceptanceOutcomeUnknown(error: unknown): boolean {
+  return !(error instanceof TransportError) || ["CONNECTION_LOST", "COMMIT_UNCERTAIN", "CONTROLLER_UNAVAILABLE",
+    "INVALID_RESPONSE", "BROWSER_SESSION_CHANGED"].includes(error.code);
+}
+
+export type WebSessionBinding = { readonly kind: "developer" } | {
+  readonly kind: "identity"; readonly sessionBinding: string;
+  isCurrent(): boolean; invalidate(): void;
+};
+
+export function webTransport(digest: string, binding?: WebSessionBinding) {
+  function requireCurrentSession() {
+    if (!binding) throw new TransportError("BROWSER_SESSION_BINDING_REQUIRED");
+    if (binding.kind === "identity" && !binding.isCurrent()) throw new TransportError("BROWSER_SESSION_CHANGED");
+  }
+  function headers(contentType?: string) {
+    requireCurrentSession();
+    return { ...(contentType ? { "Content-Type": contentType } : {}), "X-Desert-Contract": digest,
+      ...(binding?.kind === "identity" ? { "X-Desert-Session": binding.sessionBinding } : {}) };
+  }
+  function requireBoundResponse(response: Response) {
+    requireCurrentSession();
+    if (binding?.kind === "identity") {
+      if (response.status === 401) { binding.invalidate(); throw new TransportError("BROWSER_SESSION_CHANGED"); }
+      if (response.headers.get("X-Desert-Session") !== binding.sessionBinding) {
+        if (!response.ok) throw new TransportError("CONTROLLER_UNAVAILABLE");
+        binding.invalidate(); throw new TransportError("BROWSER_SESSION_CHANGED");
+      }
+    }
+  }
+  async function request(path: string, body?: unknown, signal?: AbortSignal): Promise<unknown> {
     try {
       const response = await fetch(`/api/${path}`, { method: body === undefined ? "GET" : "POST",
-        headers: { "Content-Type": "application/json", "X-Desert-Contract": digest },
-        credentials: "same-origin", cache: "no-store", signal: AbortSignal.timeout(path === "availability" ? 1200 : 20000),
+        headers: headers("application/json"),
+        credentials: "same-origin", cache: "no-store", signal: signal
+          ? AbortSignal.any([signal, AbortSignal.timeout(20000)]) : AbortSignal.timeout(path === "availability" ? 1200 : 20000),
         ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+      requireBoundResponse(response);
       const result = await response.json();
+      requireCurrentSession();
       if (!response.ok) throw new TransportError(typeof result.error === "string" ? result.error : "INVALID_RESPONSE");
       return result;
     } catch (error) {
@@ -6149,97 +6819,125 @@ export function webTransport(digest: string) {
       if (result.contractDigest !== digest) throw new TransportError("CONTRACT_MISMATCH");
     },
     async evidence() { return await request("availability") as Evidence; },
-    async call<K extends keyof ApiMethods>(method: K, input: ApiMethods[K]["input"]): Promise<ApiMethods[K]["output"]> {
-      return await request(method, input) as ApiMethods[K]["output"];
+    async call<K extends keyof ApiMethods>(method: K, input: ApiMethods[K]["input"], options: { signal?: AbortSignal } = {}): Promise<ApiMethods[K]["output"]> {
+      return await request(method, input, options.signal) as ApiMethods[K]["output"];
+    },
+    async stageImage(input: { runId: string; inputField: string; file: Blob }, options: { signal?: AbortSignal } = {}): Promise<AssetReference> {
+      options.signal?.throwIfAborted();
+      const reserved = await request("reserveImage", { runId: input.runId, inputField: input.inputField, size: input.file.size });
+      if (!Check(AssetReferenceSchema, reserved)) throw new TransportError("INVALID_RESPONSE");
+      const query = new URLSearchParams({ runId: input.runId, inputField: input.inputField });
+      try {
+        const response = await fetch(`/api/private-images/${reserved.reference}?${query}`, { method: "POST", body: input.file,
+          headers: headers("application/octet-stream"), credentials: "same-origin", cache: "no-store",
+          signal: options.signal ? AbortSignal.any([options.signal, AbortSignal.timeout(120000)]) : AbortSignal.timeout(120000) });
+        requireBoundResponse(response);
+        const result = await response.json();
+        requireCurrentSession();
+        if (!response.ok) throw new TransportError(typeof result.error === "string" ? result.error : "INVALID_RESPONSE");
+        if (!Check(AssetReferenceSchema, result) || result.reference !== reserved.reference) throw new TransportError("INVALID_RESPONSE");
+        return result;
+      } catch (error) {
+        if (options.signal?.aborted) throw error;
+        if (error instanceof TransportError) throw error;
+        const status = await request("imageStatus", { runId: input.runId, inputField: input.inputField, reference: reserved.reference }) as ApiMethods["imageStatus"]["output"];
+        if ((status.state === "ready" || status.state === "attached") && Check(AssetReferenceSchema, status.asset)
+          && status.asset.reference === reserved.reference) return status.asset;
+        throw new TransportError("IMAGE_UPLOAD_NOT_READY");
+      }
+    },
+    async image(input: { runId: string; reference: string; variant: AssetImageVariant }, options: { signal?: AbortSignal } = {}): Promise<Blob> {
+      const query = new URLSearchParams({ runId: input.runId, variant: String(input.variant) });
+      const signal = AbortSignal.any([AbortSignal.timeout(20000), ...(options.signal ? [options.signal] : [])]);
+      try {
+        return await schedulePrivateImageRead(signal, async () => {
+          for (let attempt = 0; ; attempt++) {
+            signal.throwIfAborted();
+            const response = await fetch(`/api/private-images/${encodeURIComponent(input.reference)}?${query}`, {
+              headers: headers(), credentials: "same-origin", cache: "no-store", signal });
+            requireBoundResponse(response);
+            if (!response.ok) {
+              const result = await response.json(); requireCurrentSession();
+              if (result.error === 'ASSET_TRANSFER_BUSY' && attempt < 4) {
+                await waitForPrivateImageCapacity(signal, 100 * 2 ** attempt); continue;
+              }
+              throw new TransportError(typeof result.error === "string" ? result.error : "INVALID_RESPONSE");
+            }
+            const blob = await response.blob();
+            requireCurrentSession();
+            if (!(input.variant==="original"?privateMediaTypes:["image/webp"]).includes(blob.type)) throw new TransportError("INVALID_RESPONSE");
+            return blob;
+          }
+        });
+      } catch (error) {
+        if (options.signal?.aborted || error instanceof TransportError) throw error;
+        if (error instanceof Error && error.message === 'ASSET_TRANSFER_BUSY') throw new TransportError('ASSET_TRANSFER_BUSY');
+        throw new TransportError("CONNECTION_LOST");
+      }
     },
   };
 }
 export type Transport = ReturnType<typeof webTransport>;
+/** Trusted host port; connection provisioning stays in the host-specific adapter. */
+export type ControllerTransport = Pick<Transport, "call" | "evidence"> & Partial<Pick<Transport, "stageImage" | "image">>;
 ```
 
 ## src/web/gateway.ts
 
-Source SHA-256: 5f5509536eb450568c4f901780ae9eb5b30f929c3eb75b3d682bb777265faf0c
+Source SHA-256: 7570a6d4ab7c2dc65f2f7e7603d3b5582ccc1cc624573a67efd0fbfc91e05bd5
 
 ```ts
-import type { IncomingMessage, ServerResponse } from "node:http";
 import type { LocalSession } from "../local.ts";
 import { localBrowserAccess } from "./access.ts";
-import { dispatch } from "./dispatch.ts";
-
-async function readBody(request: IncomingMessage) {
-  if (request.headers["content-type"] !== "application/json") throw new Error("INVALID_REQUEST");
-  const chunks: Buffer[] = [];
-  let size = 0;
-  for await (const chunk of request) {
-    size += chunk.length;
-    if (size > 65536) throw new Error("REQUEST_TOO_LARGE");
-    chunks.push(chunk);
-  }
-  try { return JSON.parse(Buffer.concat(chunks).toString("utf8")); }
-  catch { throw new Error("INVALID_REQUEST"); }
-}
+import { gatewayTransport } from "./gateway-transport.ts";
 
 export function localWebGateway(session: LocalSession, digest: string) {
   const access = localBrowserAccess();
-  const availability = session.watchAvailability();
-  const exposedErrors = new Set(["INVALID_REQUEST", "REQUEST_TOO_LARGE", "UNKNOWN_OPERATION", "UNAUTHENTICATED",
-    "BROWSER_SESSION_REQUIRED", "INSTALLATION_MISMATCH", "CONTRACT_MISMATCH", "PRECONDITION_FAILED", "VERSION_CONFLICT",
-    "NOT_FOUND", "RUN_EXPIRED", "INVALID_INPUT", "CONFIRMATION_MISMATCH", "INTENT_CONFLICT", "INVALID_RUN_STATE",
-    "JOURNEY_NOT_EXPOSED", "JOURNEY_NOT_INSTALLED"]);
-  return {
-    invitation: access.invitation,
-    close: availability.dispose,
-    async handle(request: IncomingMessage, response: ServerResponse, origin: string) {
-      response.setHeader("Content-Type", "application/json");
-      response.setHeader("Cache-Control", "no-store");
-      function send(status: number, value: unknown) { response.writeHead(status); response.end(JSON.stringify(value)); }
-      try {
-        if (request.headers.host !== new URL(origin).host ||
-          (request.headers["sec-fetch-site"] && !["same-origin", "none"].includes(String(request.headers["sec-fetch-site"])))) {
-          return send(403, { error: "ORIGIN_REJECTED" });
-        }
-        if (request.method === "POST" && request.headers.origin !== origin) return send(403, { error: "ORIGIN_REJECTED" });
-        const operation = new URL(request.url!, origin).pathname.slice("/api/".length);
-        if (operation === "connect" && request.method === "POST") {
-          const input = await readBody(request);
-          response.setHeader("Set-Cookie", access.connect(input?.invitation));
-          return send(200, { contractDigest: digest });
-        }
-        if (!access.authenticated(request.headers.cookie)) return send(401, { error: "BROWSER_SESSION_REQUIRED" });
-        if (request.headers["x-desert-contract"] !== digest) return send(409, { error: "CONTRACT_MISMATCH" });
-        if (operation === "availability" && request.method === "GET") return send(200, availability.evidence());
-        if (request.method !== "POST") return send(405, { error: "METHOD_NOT_ALLOWED" });
-        return send(200, await dispatch(session, operation, await readBody(request)));
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "";
-        const code = message.startsWith("COMMIT_UNCERTAIN") ? "COMMIT_UNCERTAIN" :
-          exposedErrors.has(message) ? message : "CONTROLLER_UNAVAILABLE";
-        send(code === "CONTROLLER_UNAVAILABLE" ? 503 : 409, { error: code });
-      }
+  return { invitation: access.invitation, ...gatewayTransport(digest, {
+    initial: session,
+    resolve: cookie => access.authenticated(cookie) ? { session } : undefined,
+    async request({ operation, request, body }) {
+      if (operation === "accessState" && request.method === "GET") return { status: 200, value: { kind: "developer" } };
+      if (operation !== "connect" || request.method !== "POST") return undefined;
+      const input = await body();
+      const invitation = input && typeof input === "object" && "invitation" in input ? input.invitation : undefined;
+      return { status: 200, value: { contractDigest: digest }, cookie: access.connect(invitation) };
     },
-  };
+  }) };
 }
 ```
 
 ## src/web/dispatch.ts
 
-Source SHA-256: c4d79d1a2fea0da070b1757863af4ef5ceaa79918bc44b616a5f0f962449dc55
+Source SHA-256: 9a851b2451b7acba3f5edb51a1a7bcc37c2cebcaccdc50a75ffc0dc165f14f49
 
 ```ts
 import type { LocalSession } from "../local.ts";
 import { createSchemaValidator } from "../validation.ts";
 import { Requests, type Method, type RequestInput } from "./protocol.ts";
+import type { ApiMethods } from "./types.ts";
 
 const validators = Object.fromEntries(Object.entries(Requests).map(([method, schema]) =>
   [method, createSchemaValidator(schema)]));
 
+export function dispatch<K extends Method>(session: LocalSession, method: K, value: RequestInput<K>): Promise<ApiMethods[K]["output"]>;
+export function dispatch(session: LocalSession, method: string, value: unknown): Promise<ApiMethods[Method]["output"]>;
 export function dispatch(session: LocalSession, method: string, value: unknown) {
   if (!Object.hasOwn(Requests, method)) throw new Error("UNKNOWN_OPERATION");
   if (!validators[method]!(value)) throw new Error("INVALID_REQUEST");
   const handlers: { [K in Method]: (input: RequestInput<K>) => ReturnType<LocalSession[K]> } = {
+    reserveImage: input => session.reserveImage(input.runId, input.inputField, input.size),
+    imageStatus: input => session.imageStatus(input.runId, input.inputField, input.reference),
+    activityCreate: input => session.activityCreate(input.occurrence, input.plan, input.options),
+    activityList: input => session.activityList(input),
+    activityRead: input => session.activityRead(input.id),
+    activityAnswer: input => session.activityAnswer(input.id, input.revision, input.step, input.input),
+    activityReopen: input => session.activityReopen(input.id, input.revision, input.step),
+    activityPrepare: input => session.activityPrepare(input.id, input.revision),
+    activityCancel: input => session.activityCancel(input.id, input.revision),
+    preflight: input => session.preflight(input.journeyId, input.input, input.options),
     begin: input => session.begin(input.journeyId, input.subject),
-    prepare: input => session.prepare(input.runId, input.input),
+    prepare: input => session.prepare(input.runId, input.input, input.options),
     read: input => session.read(input.runId),
     accept: input => session.accept(input.intentId, input.confirmationDigest),
     receipt: input => session.receipt(input.intentId),
@@ -6251,7 +6949,7 @@ export function dispatch(session: LocalSession, method: string, value: unknown) 
 
 ## src/local/session.ts
 
-Source SHA-256: 14aad4401461750325fa0125842eac4cfdee72f072c2069e4c8af9d50e30fe11
+Source SHA-256: da12f3f61a99669a028e563511455cc4b9634667fdf7e810b91c3f40bb7db762
 
 ```ts
 import type { PoolClient } from "pg";
@@ -6266,18 +6964,68 @@ import { requireInstallation } from "./installation.ts";
 import { watchLocalAvailability, type LocalAvailabilityOptions } from "./availability.ts";
 import { inspectOffer } from "./offer.ts";
 import { rememberSession } from "./session-binding.ts";
+import { snapshotPrepareOptions, type PrepareOptions } from "../prepare-options.ts";
+import { snapshotPreflightOptions, type PreflightOptions } from "../preflight.ts";
+import { preflightMutation } from "./preflight.ts";
+import { requireActivityCatalog, type ActivityCatalog } from "../activities/catalog.ts";
+import { activityRecord, activitySnapshot } from "../activities/records.ts";
+import { answerActivity, cancelActivity, reopenActivity } from "../activities/drafts.ts";
+import { createActivity } from "../activities/create.ts";
+import { listActivities, snapshotActivityListOptions } from "../activities/discovery.ts";
+import type { ActivityListOptions } from "../activities/schema.ts";
+import { prepareActivity } from "../activities/prepare.ts";
+import { readActivity } from "../activities/read.ts";
+import { privateImageSession } from "../assets/session.ts";
+import type { PrivateImageHost } from "../assets/host.ts";
 
-export function localSession(database: Database, program: LocalProgram, token: string, surface: string, lifetime: number) {
+export function localSession(database: Database, program: LocalProgram, token: string, surface: string, lifetime: number,
+  activities?: ActivityCatalog, images?: PrivateImageHost) {
   database.assertOpen();
   program.application.surface(surface);
-  const transact = <T>(operation: (client: PoolClient, actor: string) => Promise<T>) =>
+  const transact = <T>(operation: (client: PoolClient, actor: string) => Promise<T>, readOnly = false) =>
     database.transaction(async client => {
-      await requireInstallation(client, { product: program.application.id, digest: program.application.digest, role: program.role });
-      const result = await operation(client, await authenticate(client, token));
-      await authenticate(client, token);
+      await requireInstallation(client, { product: program.application.id, digest: program.application.digest, roles: program.roles }, !readOnly);
+      const result = await operation(client, await authenticate(client, token, !readOnly));
+      await authenticate(client, token, !readOnly);
       return result;
-    });
+    }, readOnly);
   const session = Object.freeze({
+    ...privateImageSession(transact, program, surface, images),
+    activityCreate(occurrence: string, plan: unknown, options: PreflightOptions = {}) {
+      const catalog = requireActivityCatalog(activities, program.application), snapshot = jsonSnapshot(plan);
+      const metadata = snapshotPreflightOptions(options);
+      return transact((client, actor) => createActivity(client, program, catalog, actor, surface, occurrence, snapshot, metadata));
+    },
+    async activityList(options: ActivityListOptions = {}) {
+      const catalog = requireActivityCatalog(activities, program.application);
+      const snapshot = snapshotActivityListOptions(options);
+      return transact((client, actor) => listActivities(client, program, catalog, actor, surface, snapshot), true);
+    },
+    activityRead(id: string) {
+      const catalog = requireActivityCatalog(activities, program.application);
+      return transact((client, actor) => readActivity(client, program, catalog, actor, surface, id));
+    },
+    activityAnswer(id: string, revision: number, step: number, input: unknown) {
+      const catalog = requireActivityCatalog(activities, program.application), snapshot = jsonSnapshot(input);
+      return transact((client, actor) => answerActivity(client, program, catalog, actor, surface, id, revision, step, snapshot));
+    },
+    activityReopen(id: string, revision: number, step: number) {
+      const catalog = requireActivityCatalog(activities, program.application);
+      return transact((client, actor) => reopenActivity(client, program, catalog, actor, surface, id, revision, step));
+    },
+    activityPrepare(id: string, revision: number) {
+      const catalog = requireActivityCatalog(activities, program.application);
+      return transact((client, actor) => prepareActivity(client, program, catalog, actor, surface, id, revision, lifetime));
+    },
+    activityCancel(id: string, revision: number) {
+      const catalog = requireActivityCatalog(activities, program.application);
+      return transact((client, actor) => cancelActivity(client, program, catalog, actor, surface, id, revision));
+    },
+    async preflight(journeyId: string, input: unknown, options: PreflightOptions = {}) {
+      const snapshot = jsonSnapshot(input);
+      const metadata = snapshotPreflightOptions(options);
+      return transact((client, actor) => preflightMutation(client, program, actor, surface, journeyId, snapshot, metadata), true);
+    },
     offer(journeyId: string, subject: string) {
       return transact((client, actor) => inspectOffer(client, program, actor, surface, journeyId, subject));
     },
@@ -6290,18 +7038,20 @@ export function localSession(database: Database, program: LocalProgram, token: s
     read(runId: string) {
       return transact((client, actor) => readJourney(client, program, actor, surface, runId));
     },
-    async prepare(runId: string, input: unknown) {
+    async prepare(runId: string, input: unknown, options?: PrepareOptions) {
       const snapshot = jsonSnapshot(input);
-      return transact((client, actor) => prepareMutation(client, program, actor, surface, runId, snapshot));
+      const base = options === undefined ? undefined : snapshotPrepareOptions(options);
+      return transact((client, actor) => prepareMutation(client, program, actor, surface, runId, snapshot, base, images?.store.id));
     },
     accept(intentId: string, confirmationDigest: string) {
-      return transact((client, actor) => acceptMutation(client, program, actor, surface, intentId, confirmationDigest));
+      return transact((client, actor) => acceptMutation(client, program, actor, surface, intentId, confirmationDigest, activities, images?.store.id));
     },
     receipt(intentId: string) {
       return transact((client, actor) => recoverReceipt(client, program, actor, surface, intentId));
     },
   });
-  rememberSession(session, { application: program.application, surface, role: program.role });
+  rememberSession(session, { application: program.application, surface, roles: program.roles,
+    ...(activities ? { activitiesDigest: activities.digest } : {}) });
   return session;
 }
 export type LocalSession = ReturnType<typeof localSession>;
@@ -6309,7 +7059,7 @@ export type LocalSession = ReturnType<typeof localSession>;
 
 ## src/local/admission.ts
 
-Source SHA-256: 459ba00f7a0f320a7e80f6d9a77c8d157ed28d9c6e2d79b73804727e64578204
+Source SHA-256: 071dd51524f18ffb032b070ad3d7a41539f072bb0bb19b481d960f7381d8aba4
 
 ```ts
 import { randomUUID } from "node:crypto";
@@ -6318,6 +7068,7 @@ import { freezeDeep } from "../json.ts";
 import type { LocalProgram } from "./program.ts";
 import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
 import type { StoredObject } from "./types.ts";
+import { matchesConditions } from "./conditions.ts";
 
 export async function beginJourney(client: PoolClient, program: LocalProgram, actor: string,
   surface: string, journeyId: string, subject: string | undefined, lifetime: number) {
@@ -6345,17 +7096,18 @@ export async function readJourney(client: PoolClient, program: LocalProgram, act
       WHERE object_type = $1 AND facts ->> $2 = $3 ORDER BY id`, [journey.object, program.owners.get(journey.object), actor])).rows;
   const fields = run.subject ? journey.fields : journey.collection;
   await requireLiveRun(client, run);
-  return freezeDeep(records.map(record => {
+  return freezeDeep(records.flatMap(record => {
     if (!program.application.validate(journey.object, record.facts).valid) throw new Error("CORRUPT_OBJECT");
-    return { id: record.id, version: record.version,
-      facts: Object.fromEntries(fields.map(field => [field, record.facts[field]!])) };
+    if (!matchesConditions(record.facts, journey.where ?? {})) return [];
+    return [{ id: record.id, version: record.version,
+      facts: Object.fromEntries(fields.map(field => [field, record.facts[field]!])) }];
   }));
 }
 ```
 
 ## src/local/prepare.ts
 
-Source SHA-256: acf9ec0e1e481e93fa223f77dcf28f553f5d11b96f0840777a351972d17672a1
+Source SHA-256: 1be06e63a0cf67a59e5b8f3b5339d631356166dba43c54612bb135b02e534cd9
 
 ```ts
 import { randomUUID } from "node:crypto";
@@ -6364,23 +7116,35 @@ import type { LocalProgram } from "./program.ts";
 import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
 import { canonical, confirmationDigest, materialize, preparedView } from "./effects.ts";
 import type { Facts, Intent } from "./types.ts";
+import type { PrepareOptions } from "../prepare-options.ts";
+import { bindImageEffect } from "../assets/acceptance.ts";
+import { validateReferences } from './reference-validation.ts';
 
 export async function prepareMutation(client: PoolClient, program: LocalProgram, actor: string,
-  surface: string, runId: string, input: unknown) {
+  surface: string, runId: string, input: unknown, options?: PrepareOptions, imageStoreId?: string) {
   const run = await admittedRun(client, program, actor, surface, runId);
   const journey = program.journey(surface, run.journey);
   if (journey.kind !== "mutation") throw new Error("NOT_A_MUTATION_JOURNEY");
   if (!program.application.validateInput(journey.command.id, input).valid) throw new Error("INVALID_INPUT");
+  const expectedVersion = options?.expectedVersion;
+  if (journey.command.kind === "create" && options !== undefined) throw new Error("INVALID_EDIT_BASE");
+  if (journey.command.kind === "update" && journey.command.input.length && expectedVersion === undefined) {
+    throw new Error("EDIT_BASE_REQUIRED");
+  }
   const values = input as Facts;
   const { rows: [existing] } = await client.query<Intent>("SELECT * FROM desert_intents WHERE run_id = $1", [run.id]);
   if (existing) {
-    if (canonical(existing.input) !== canonical(values)) throw new Error("INTENT_CONFLICT");
+    if (canonical(existing.input) !== canonical(values) ||
+      (expectedVersion !== undefined && expectedVersion !== existing.effect.expectedVersion)) throw new Error("INTENT_CONFLICT");
     return preparedView(program, run, existing);
   }
   if (run.state !== "admitted") throw new Error("INVALID_RUN_STATE");
   const record = journey.command.kind === "update"
     ? await ownedObject(client, program, actor, journey.command.object, run.subject!) : undefined;
-  const effect = materialize(program, journey, actor, values, record?.id ?? randomUUID(), record);
+  if (expectedVersion !== undefined && record?.version !== expectedVersion) throw new Error("VERSION_CONFLICT");
+  const effect = await bindImageEffect(client, program, run, journey, values,
+    materialize(program, journey, actor, values, record?.id ?? randomUUID(), record), imageStoreId);
+  await validateReferences(client,program,actor,effect.objectType,effect.facts,effect.objectId);
   const intent: Intent = { id: randomUUID(), run_id: run.id, input: values, effect,
     confirmation_digest: confirmationDigest(run, values, effect) };
   await requireLiveRun(client, run);
@@ -6393,7 +7157,7 @@ export async function prepareMutation(client: PoolClient, program: LocalProgram,
 
 ## src/local/accept.ts
 
-Source SHA-256: a8b57bde79b65a8decd9b314f6b0826b1cc294af9e1879d450a441905b5ad38b
+Source SHA-256: e56bef3942cdfbd59c8a36b677efe517f25b2fa26bc563eebd8a77c7b078debf
 
 ```ts
 import type { PoolClient } from "pg";
@@ -6402,8 +7166,12 @@ import type { LocalProgram } from "./program.ts";
 import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
 import { canonical, confirmationDigest, materialize } from "./effects.ts";
 import { requireUUID, type Intent, type Receipt } from "./types.ts";
+import { requireCurrentActivityIntent, completeActivityIntent } from "../activities/acceptance.ts";
+import type { ActivityCatalog } from "../activities/catalog.ts";
+import { bindImageEffect, attachImageEffect } from "../assets/acceptance.ts";
+import { validateReferences } from './reference-validation.ts';
 
-async function loadIntent(client: PoolClient, program: LocalProgram, actor: string, surface: string, id: string) {
+export async function loadIntent(client: PoolClient, program: LocalProgram, actor: string, surface: string, id: string) {
   requireUUID(id);
   const { rows: [intent] } = await client.query<Intent>(`SELECT i.* FROM desert_intents i
     JOIN desert_runs r ON i.run_id = r.id WHERE i.id = $1 AND r.actor = $2 AND r.surface = $3`, [id, actor, surface]);
@@ -6424,7 +7192,8 @@ export async function recoverReceipt(client: PoolClient, program: LocalProgram, 
 }
 
 export async function acceptMutation(client: PoolClient, program: LocalProgram, actor: string,
-  surface: string, id: string, expectedDigest: string) {
+  surface: string, id: string, expectedDigest: string, activities?: ActivityCatalog, imageStoreId?: string) {
+  await requireCurrentActivityIntent(client, id, actor, surface, activities);
   const { intent, run } = await loadIntent(client, program, actor, surface, id);
   if (expectedDigest !== intent.confirmation_digest) throw new Error("CONFIRMATION_MISMATCH");
   const existing = await receipt(client, id);
@@ -6436,8 +7205,10 @@ export async function acceptMutation(client: PoolClient, program: LocalProgram, 
   const record = journey.command.kind === "update"
     ? await ownedObject(client, program, actor, journey.command.object, run.subject!) : undefined;
   if ((record?.version ?? 0) !== intent.effect.expectedVersion) throw new Error("VERSION_CONFLICT");
-  const effect = materialize(program, journey, actor, intent.input, intent.effect.objectId, record);
+  const effect = await bindImageEffect(client, program, run, journey, intent.input,
+    materialize(program, journey, actor, intent.input, intent.effect.objectId, record), imageStoreId);
   if (canonical(effect) !== canonical(intent.effect)) throw new Error("EFFECT_CHANGED");
+  await validateReferences(client,program,actor,effect.objectType,effect.facts,effect.objectId);
   await requireLiveRun(client, run);
   const version = effect.expectedVersion + 1;
   if (effect.kind === "create") {
@@ -6448,23 +7219,25 @@ export async function acceptMutation(client: PoolClient, program: LocalProgram, 
       [version, JSON.stringify(effect.facts), effect.objectId, effect.expectedVersion]);
     if (updated.rowCount !== 1) throw new Error("VERSION_CONFLICT");
   }
+  await attachImageEffect(client, effect);
   const result: Receipt = { id, runId: run.id, commandId: journey.command.id, status: "completed",
     object: { id: effect.objectId, type: effect.objectType, version } };
   await client.query("INSERT INTO desert_receipts (intent_id, result) VALUES ($1, $2)", [id, JSON.stringify(result)]);
   await client.query("UPDATE desert_runs SET state = 'completed' WHERE id = $1", [run.id]);
+  await completeActivityIntent(client, id);
   return freezeDeep(result);
 }
 ```
 
 ## src/local/database.ts
 
-Source SHA-256: d27d992ab8dc0ef099865e51066235e9bf2c5644e0426486ab7c81b9d1c7636e
+Source SHA-256: e08211c56cd59d991bf5cf172e86caa2116f20d2611668ea6cad4d85071c9c61
 
 ```ts
 import { readFileSync, statSync } from "node:fs";
 import { isAbsolute } from "node:path";
 import { Pool, type PoolClient } from "pg";
-import { requireDurablePrimary, requireInstallation } from "./installation.ts";
+import { LocalSchemaVersion, requireDurablePrimary, requireInstallation } from "./installation.ts";
 
 export type LocalDatabase = { socketDirectory: string, database: string, user: string, port?: number };
 
@@ -6518,14 +7291,16 @@ export function localDatabase(options: LocalDatabase) {
     } finally { client.release(broken || clientFaults.has(client)); }
   }
 
-  async function install(product: string, digest: string, role: string) {
+  async function install(product: string, digest: string, roles: readonly string[]) {
     await transaction(async client => {
       await requireDurablePrimary(client);
       await client.query("SELECT pg_advisory_xact_lock(842721)");
       await client.query(readFileSync(new URL("./schema.sql", import.meta.url), "utf8"));
-      await client.query(`INSERT INTO desert_installation VALUES (true, 1, $1, $2, $3)
-        ON CONFLICT DO NOTHING`, [product, digest, role]);
-      await requireInstallation(client, { product, digest, role });
+      await client.query(readFileSync(new URL("../activities/schema.sql", import.meta.url), "utf8"));
+      await client.query(readFileSync(new URL("../identity/schema.sql", import.meta.url), "utf8"));
+      await client.query(`INSERT INTO desert_installation VALUES (true, $1, $2, $3, $4)
+        ON CONFLICT DO NOTHING`, [LocalSchemaVersion, product, digest, roles]);
+      await requireInstallation(client, { product, digest, roles });
     });
   }
   return { transaction, install, assertOpen,

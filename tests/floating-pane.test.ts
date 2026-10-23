@@ -53,6 +53,8 @@ test("a nonmodal utility popover dismisses when Tab or ShiftTab leaves without w
     for(const [action,key] of [['Last','Tab'],['First','Shift+Tab']] as const) {
       await f.page.getByRole('button',{name:'Open actions',exact:true}).press('Enter');
       const panel=f.page.getByRole('dialog',{name:'Actions',exact:true});await panel.waitFor();
+      assert.equal(await f.page.getByRole('button',{name:'Open actions',exact:true}).getAttribute('aria-controls'),
+        await panel.getAttribute('id'), "the trigger identifies its actual floating surface");
       await f.page.waitForFunction(()=>document.activeElement?.getAttribute('aria-label')==='First');
       await f.page.keyboard.press('Tab');
       assert.equal(await panel.isVisible(),true,"Tab between interior actions does not dismiss");

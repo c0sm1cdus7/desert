@@ -77,14 +77,17 @@ test(`single divided-choice anatomy at ${width}px ${colorScheme}`, async () => {
   } finally {await f.close();}
 });
 
-test('choice descriptions reflow at 320px and 200% text with visible required title', async () => {
+test('choice descriptions reflow at 320px and 200% text without marking an always-selected command required', async () => {
   const f=await svelteBrowser(choiceFamilySource);
   try {
     await f.page.setViewportSize({width:320,height:900});
     await f.page.addStyleTag({content:await rendererCss()});
     await f.page.evaluate(()=>document.documentElement.style.fontSize='32px');
     const legend=f.page.locator('[data-case="single"] legend');
-    assert.match(await legend.innerText(),/Inline route\*/);
+    assert.equal(await legend.innerText(),'Inline route');
+    assert.equal(await legend.locator('.required').count(),0);
+    assert.match(await f.page.locator('[data-case="multiple"] legend').innerText(),/Interests\*/,
+      'A genuinely incomplete-capable multi-selection keeps its requirement');
     assert.ok(await legend.evaluate(el=>el.getBoundingClientRect().height>1));
     await f.page.getByRole('button',{name:'Picker route',exact:true}).click();
     const list=f.page.getByRole('listbox'); await list.waitFor();

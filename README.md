@@ -9,6 +9,11 @@ The human cost of correcting those inconsistencies motivates this work.
 
 **Status: typed contracts, a local PostgreSQL executor and a working Svelte Notebook surface with real availability and draft recovery. Not a complete SDK.**
 See [current support](docs/STATUS.md) and the [accepted stack](docs/STACK.md).
+The [2026-10-23 external enforcement handoff](docs/HANDOFF-VISUAL-ENFORCEMENT-2026-10-23.md)
+records the current visual-ownership failures, owner requirements and independent
+review plan. This development checkpoint is not a qualified visual release.
+The [SDK anatomy](docs/architecture/ANATOMY.md) maps the real authoring contracts,
+module composition, execution lifecycle and catalogs; VOID is its modular product example.
 For the complete skill, actual API and reproducible Notebook, start at
 [the authoring bundle guide](AUTHORING.md). Share the whole bundle, not isolated snippets.
 The controller/compiler remain a fresh implementation. The owner-authorized
@@ -22,23 +27,21 @@ Products select typed interaction needs, not custom CSS or component variants.
 ## The code that works today
 
 ```ts
-import * as desert from "./src/index.ts";
+import { compile } from "./src/index.ts";
+import { NotebookProduct } from "./products/notebook/product.ts";
 
-const Note = desert.objectType({
-  id: "note",
-  facts: {
-    title: desert.text({ minLength: 1 }),
-    body: desert.text({ minLength: 1 }),
-  },
+const application = compile(NotebookProduct);
+application.inputSchema("create-note-record");
+application.validateInput("create-note-record", {
+  title: "Idea", body: "Define the product.",
 });
-
-const Notebook = desert.product({ id: "notebook", objects: [Note] });
-const application = desert.compile(Notebook);
-
-application.schema("note");
-application.validate("note", { title: "Idea", body: "Define the product." });
 application.describe();
 ```
+
+`NotebookProduct` is issued by `composeProduct`, from one module catalog and one
+workspace View. Its declarations live in `products/notebook/src/`; the flat files
+beside that directory are import bridges, not another product definition. Public
+compilation rejects raw domain objects and copied compositions.
 
 The author writes the field meaning once. The compiler produces a closed JSON
 schema, and validation consumes that exact schema. Changing a supported contract
@@ -76,8 +79,8 @@ Open the private, single-use URL in `.local/notebook/web-launch.json`. The host
 listens only on `127.0.0.1:4271`. Keep this file private; it admits a browser to
 your local identity. After admission the address contains no secret.
 
-Create a note directly from its form. Read it as an object context and choose
-Archive note from Actions; archival still requires its declared review. Data lives
+Open Create note from the toolbar, submit its form, then open the saved note.
+Archive note is an object toolbar action and requires its declared review. Data lives
 in the same private PostgreSQL store as the local runner. Do not run both hosts
 against that directory concurrently. Ctrl-C stops the host and preserves the store.
 
@@ -87,37 +90,29 @@ reloading or submitting the draft. Draft retention is **session memory**, not a
 promise to survive closing the tab. No service worker, sync or automatic write queue
 is installed. A lost confirmation response can be checked against its original receipt.
 
-The product's entire Svelte binding is:
+Products do not write a second Svelte application. The SDK template mounts the
+admitted View program through its access boundary:
 
 ```svelte
 <script lang="ts">
-  import HumanProduct from "../../../../src/svelte/HumanProduct.svelte";
-  import { surface, validateInput } from "virtual:desert/notebook";
+  import AccessGate from "@desert/svelte/pieces/AccessGate.svelte";
+  import { surface, validateInput, viewProgram } from "virtual:desert/surface";
 </script>
 
-<HumanProduct {surface} {validateInput} />
+<AccessGate {surface} {validateInput} {viewProgram} />
 ```
 
-The build derives that module from `compile(Notebook)`: field order, labels,
-journeys, dependency references and standalone input validators. The renderer does
+The build derives that module from `compile(NotebookProduct)`: field order, labels,
+journeys, dependency references, precompiled input validators and the bound View
+program. A build or host cannot supply a replacement program. The renderer does
 not reimplement note ownership, state transitions or archive conditions.
-Notebook also declares the human interaction, shared by its human distribution targets:
 
-```ts
-entry: ReadNote,
-primaryAction: CreateNote,
-subjectActions: [ArchiveNote],
-commit: {
-  "create-note": "submit",
-  "archive-note": "review",
-},
-```
-
-Every exposed mutation needs a commit mode. A read cannot have one. `submit`
-uses the explicit form/action invocation; `review` waits for a separate confirmation.
-Neither mode removes controller admission, exact-effect binding or atomic acceptance.
-The object context shows facts and Actions, not a mutation-journey footer.
-See [context and commit-mode evidence](docs/EVIDENCE-007.md).
+The root composition owns the entry destination. Views own toolbar outputs;
+journeys bind them to operations. The Notes module registers each mutation's
+`humanReview` once: creation is `"not-required"`, archival is `"required"`.
+The compiler derives submission/review behavior from that registration; the surface
+does not repeat it. Both modes retain controller admission, exact-effect binding
+and atomic acceptance. See the [current anatomy](docs/architecture/ANATOMY.md).
 
 This contract revision changes the installation digest. Existing stores are not
 automatically migrated, reset or repinned. Keep older installations intact; use a
@@ -127,10 +122,12 @@ See [surface boundaries and evidence](docs/EVIDENCE-006.md). Run
 
 ## Read the implementation
 
-- `products/notebook/product.ts`: product composition; adjacent modules own facts,
-  effects, journeys, interaction and distribution definitions. Not a complete app.
+- `products/notebook/src/notebook.product.ts`: product composition and workspace.
+- `products/notebook/src/modules/notes/`: object publication, commands, journeys,
+  views and the module's exported capabilities.
 - `src/contracts.ts`: bootstrap grammar and inferred authoring types.
-- `src/compile.ts`: validates definitions and builds immutable artifacts.
+- `src/modules/compiled-product.ts`: public compilation of an issued composition.
+- `src/compile.ts`: internal wire-contract validation and immutable artifacts.
 - `src/schema.ts`: converts supported fact definitions to JSON Schema.
 - `src/validation.ts`: shared strict validation mechanism.
 - `src/client.ts`: controller-independent client entry.
@@ -142,11 +139,11 @@ See [surface boundaries and evidence](docs/EVIDENCE-006.md). Run
 
 ```ts
 import { compile } from "./src/index.ts";
-import { Notebook } from "./products/notebook/product.ts";
+import { NotebookProduct } from "./products/notebook/product.ts";
 import { NotebookService, NotebookWeb, NotebookIOS, NotebookCLI }
   from "./products/notebook/distributions.ts";
 
-const application = compile(Notebook);
+const application = compile(NotebookProduct);
 application.validateInput("create-note-record", { title: "Idea", body: "Write it down." });
 application.surface("human");
 application.planDistributions([NotebookService, NotebookWeb, NotebookIOS, NotebookCLI]);
@@ -168,12 +165,13 @@ Notebook declares a `NotesController` role. Create, read and archive explicitly
 reference it. A distribution can bind that same role locally or remotely:
 
 ```ts
-localBinding(NotesController, "notes-local");
-remoteBinding(NotesController, NotebookService);
+localBinding(Dependencies.notes, "notes-local");
+remoteBinding(Dependencies.notes, NotebookService);
 ```
 
-The actual declarations are in `products/notebook/dependencies.ts`, `journeys.ts`
-and `distributions.ts`. `NotebookLocal` compiles without a remote service. The explicit
+`Dependencies` is the issued export catalog from `products/notebook/src/modules.ts`.
+The role and journeys are declared inside `src/modules/notes/`; distribution bindings
+are in `products/notebook/distributions.ts`. `NotebookLocal` compiles without a remote service. The explicit
 bootstrap in `products/notebook/local.ts` supplies local execution on PostgreSQL.
 `buildDistribution` now realizes the `svelte-web` target through a generic SDK
 template. CLI, native and controller builders remain unavailable. Read
@@ -189,7 +187,7 @@ See [dependency evidence and limitations](docs/EVIDENCE-003.md).
 
 ```ts
 const controller = await openLocalController(application, {
-  socketDirectory, database, user, role: "notes",
+  socketDirectory, database, user, roles: [Dependencies.notes.id],
 });
 
 const identity = await controller.identities.issue("Local owner");
@@ -249,7 +247,10 @@ The reference stack is TypeScript, Node.js, PostgreSQL and Svelte/SvelteKit.
 Local, remote and mixed binding plans now share per-journey dependency semantics.
 The local Node/PostgreSQL runtime executes Notebook without Internet dependencies.
 Complete application packaging, automatic distribution installation and additional human renderers
-remain work ahead; the initial English, text-record Svelte renderer is implemented.
+remain work ahead. The English Svelte renderer supports the admitted finite View
+vocabulary, including typed forms, object contexts, media and guided activities;
+unsupported compositions still fail admission. It is not a complete renderer for
+every planned product capability.
 See [execution dependencies](docs/EXECUTION-DEPENDENCIES.md).
 Native consumers must share the
 semantic protocol rather than duplicate product rules. Capacitor is an unresolved

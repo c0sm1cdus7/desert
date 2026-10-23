@@ -1,0 +1,93 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { mkdir, readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { svelteBrowser } from './fixtures/svelte-browser.ts';
+import { rendererCss } from './fixtures/renderer-css.ts';
+import { workspaceBodySource } from './fixtures/workspace-body.ts';
+
+const source = `<script lang="ts">
+  import CatalogWorkspace from '@desert/svelte/explorer/CatalogWorkspace.svelte';
+  ${workspaceBodySource([
+    {kind:'visual-catalog',id:'bank'},
+    {kind:'media-library',id:'library',library:{id:'photos',
+      items:[{id:'coast',kind:'image',title:'Coast',image:{asset:'coast',alt:'A coast'}}],
+      albums:[{id:'trip',title:'Trip',cover:'coast',items:['coast']}],featured:['trip']}},
+  ])}
+</script>
+<CatalogWorkspace navigationSurface={{title:'VOID',settingsPlaceholder:true}}
+  title="Visual catalog" identity={{title:'Visual catalog',subtitle:'Hosted typography.'}}
+  navigation={[{id:'catalog',label:'Visual catalog',icon:'catalog',group:'Developer'}]} active="catalog"
+  searching={false} query="" onquery={()=>{}} onsearch={()=>{}} oncancel={()=>{}} onnavigate={()=>{}}
+  content={workspaceBody} />`;
+
+for(const direction of ['ltr','rtl']) test(`hosted calendar, transient, problem and viewer retain enlarged workspace targets ${direction}`,async()=>{
+  const f=await svelteBrowser(source,{},'http://toolbar.test/');
+  try{
+    await f.page.setViewportSize({width:1280,height:900});
+    await f.page.emulateMedia({reducedMotion:'reduce',colorScheme:'dark'});
+    await f.page.route('**/media/**',route=>route.fulfill({contentType:'image/svg+xml',body:
+      '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#69757a"/></svg>'}));
+    await f.page.addStyleTag({content:await rendererCss()});
+    await f.page.evaluate(direction=>{document.documentElement.dir=direction;document.documentElement.style.setProperty('--text-scale','2');},direction);
+    await f.page.locator('[data-slot="sidebar-wrapper"][data-type-density="comfortable"]').waitFor();
+    const target=(await f.page.getByRole('button',{name:'Search',exact:true}).boundingBox())!.height;
+    assert.equal(target,60);
+    await mkdir('artifacts/toolbar-canonical-geometry/hosted-accessibility',{recursive:true});
+    for(const[name,entry,state,opener,selector]of[
+      ['calendar','control.date','calendar','[data-specimen="control.date:calendar"] button','[data-date-calendar] [data-piece="toolbar"]'],
+      ['transient','transient','open','[data-specimen="transient:open"] button','[data-surface-frame] [data-piece="toolbar"]'],
+      ['problem','problem','error','[data-specimen="problem:error"] button','[data-frame-presentation="message"] [data-piece="toolbar"]'],
+      ['viewer',null,null,'[data-record="image.coast"] button','[data-media-viewer] [data-piece="toolbar"]'],
+    ]){
+      if(entry) {
+        await f.page.locator(`[data-catalog-index] [data-destination="${entry}"]`).click();
+        await f.page.locator(`[data-catalog-entry="${entry}"]`).getByRole('button',{name:/^State ·/}).click();
+        await f.page.getByRole('option',{name:state!,exact:true}).click();
+      }
+      await f.page.locator(opener!).click();
+      const bars=f.page.locator(selector!);await bars.first().waitFor();
+      const measurements=await bars.evaluateAll(nodes=>nodes.map(node=>{
+        const box=node.getBoundingClientRect(),row=node.querySelector('.toolbar-row')!;
+        return{density:node.closest('[data-type-density]')?.getAttribute('data-type-density'),
+          width:node.clientWidth,scroll:node.scrollWidth,left:box.left,right:box.right,
+          buttons:[...row.querySelectorAll<HTMLElement>('button:not([data-media-thumbs] button)')].map(button=>button.getBoundingClientRect().toJSON())};
+      }));
+      for(const bar of measurements){
+        assert.equal(bar.density,'comfortable',`${name} keeps the launch workspace typography after portal`);
+        assert.ok(bar.scroll<=bar.width+1,`${name} does not overflow`);
+        for(const button of bar.buttons){
+          assert.equal(button.height,target,`${name} shares the real workspace target`);
+          assert.ok(button.left>=bar.left&&button.right<=bar.right,`${name} keeps controls inside its rail`);
+        }
+      }
+      await f.page.screenshot({path:`artifacts/toolbar-canonical-geometry/hosted-accessibility/${direction}-${name}.png`});
+      await f.page.keyboard.press('Escape');await bars.first().waitFor({state:'hidden'});
+      if(entry) await f.page.getByRole('button',{name:'Back',exact:true}).click();
+    }
+    assert.deepEqual(f.errors,[]);
+  }finally{await f.close();}
+});
+
+test('hosted target witness detects a portal that loses its launch typography',async()=>{
+  const path=resolve('src/svelte/vendor/components/ui/dialog/dialog-content.svelte');
+  const broken=(await readFile(path,'utf8')).replace('data-type-density={density()}','');
+  const f=await svelteBrowser(source,{[path]:broken},'http://toolbar.test/');
+  try{
+    await f.page.setViewportSize({width:1280,height:900});
+    await f.page.emulateMedia({reducedMotion:'reduce'});
+    await f.page.addStyleTag({content:await rendererCss()});
+    await f.page.evaluate(()=>document.documentElement.style.setProperty('--text-scale','2'));
+    await f.page.locator('[data-slot="sidebar-wrapper"][data-type-density="comfortable"]').waitFor();
+    const workspace=(await f.page.getByRole('button',{name:'Search',exact:true}).boundingBox())!.height;
+    await f.page.locator('[data-catalog-index] [data-destination="problem"]').click();
+    await f.page.locator('[data-catalog-entry="problem"]').getByRole('button',{name:/^State ·/}).click();
+    await f.page.getByRole('option',{name:'error',exact:true}).click();
+    await f.page.locator('[data-specimen="problem:error"] button').click();
+    const close=f.page.locator('[data-frame-presentation="message"] button');await close.waitFor();
+    const portalled=(await close.boundingBox())!.height;
+    assert.equal(workspace,60);assert.equal(portalled,48);
+    assert.notEqual(portalled,workspace,'the hosted regression is observable instead of being normalized away');
+    assert.deepEqual(f.errors,[]);
+  }finally{await f.close();}
+});

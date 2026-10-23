@@ -1,11 +1,14 @@
 import { Check } from "@sinclair/typebox/value";
-import { freezeDeep } from "../json.ts";
+import { freezeDeep, type Frozen } from "../json.ts";
 import { controlNode } from "../interaction/control-nodes.ts";
 import { ViewSchema, type View, type ViewItem } from "./schema.ts";
 import { viewSnapshot } from "./snapshot.ts";
 import { viewInputs } from "./ports.ts";
+import { checkMediaLibrary } from "./media-library.ts";
 
 /** Validated authoring data, not a mounted view or authority to execute an output. */
+export function view<const V extends View>(value: V): Frozen<V>;
+export function view(value: unknown): View;
 export function view(value: unknown): View {
   const snapshot = viewSnapshot(value);
   if (!Check(ViewSchema, snapshot)) throw new Error("INVALID_VIEW");
@@ -16,15 +19,20 @@ export function view(value: unknown): View {
   }
   function leaf(node: ViewItem) {
     if (node.kind === "text" || node.kind === "fact") return;
-    if (node.kind !== "collection" && node.kind !== "form" && node.kind !== "context") controlNode(node);
+    if (node.kind !== "collection" && node.kind !== "form" && node.kind !== "context" && node.kind !== "destination-link") controlNode(node);
     identity(node.id);
   }
   let headers = 0;
   for (const item of snapshot.content) {
+    if (item.kind === "destination" || item.kind === "navigation") continue;
     if (item.kind === "header") {
       if (++headers > 1) throw new Error("MULTIPLE_VIEW_HEADERS");
       identity(item.id);
-    } else if (item.kind === "visual-catalog") identity(item.id);
+    } else if (item.kind === "visual-catalog" || item.kind === "appearance" || item.kind === "system-status" || item.kind === "identity" || item.kind === "attention") identity(item.id);
+    else if (item.kind === "media-library") {
+      identity(item.id);
+      checkMediaLibrary(item.library);
+    }
     else if (item.kind === "stack") {
       identity(item.id);
       for (const child of item.items) leaf(child);
@@ -32,6 +40,9 @@ export function view(value: unknown): View {
   }
   const outputs = new Set(snapshot.outputs ?? []);
   if (outputs.size !== (snapshot.outputs?.length ?? 0)) throw new Error("DUPLICATE_VIEW_OUTPUT");
+  for (const item of snapshot.content.flatMap(item => item.kind === "stack" ? item.items : [item])) {
+    if (item.kind === "destination-link" && !outputs.has(item.output)) throw new Error("UNDECLARED_VIEW_OUTPUT");
+  }
   const inputs = viewInputs(snapshot);
   if (new Set(inputs.map(port => port.input)).size !== inputs.length) throw new Error("DUPLICATE_VIEW_INPUT");
   for (const port of inputs) {
@@ -41,6 +52,9 @@ export function view(value: unknown): View {
     for (const action of toolbar?.actions ?? []) {
       if (!outputs.has(action.output)) throw new Error("UNDECLARED_VIEW_OUTPUT");
     }
+  }
+  if (snapshot.bottomDock?.actionGroup || (snapshot.topDock?.actionGroup && snapshot.topDock.actions.length < 2)) {
+    throw new Error("INVALID_VIEW_ACTION_GROUP");
   }
   return freezeDeep(snapshot);
 }

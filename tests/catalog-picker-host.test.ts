@@ -2,20 +2,26 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
+import { compilePublicCatalog } from "../src/public-catalog/compile.ts";
+import { catalogFixture } from "./fixtures/public-catalog.ts";
+import { travelKit } from "../products/landmarks/exercises.ts";
 
+const definition = catalogFixture();
+const surface = compilePublicCatalog({ ...definition, exercises: travelKit, source: { ...definition.source,
+  assets: [...definition.source.assets, {id:'thumb-1016',path:'media/fuji.jpg',alt:'Mount Fuji'}],
+  records: [...definition.source.records, {id:'1016',image:'thumb-1016',facts:{name:'Mount Fuji',story:'A mountain.',region:'north',privateMemo:''}}],
+} }).surface;
 const source = `<script lang="ts">
   import CatalogWorkspace from '@desert/svelte/explorer/CatalogWorkspace.svelte';
-  import LocalExercises from '@desert/svelte/explorer/LocalExercises.svelte';
-  import { travelKit as definition } from './products/landmarks/exercises.ts';
+  const surface = ${JSON.stringify(surface)};
 </script>
 <div data-embedded-catalog style="width:320px">
-  <CatalogWorkspace productName="Landmarks" title="Travel kit" active="travel-kit"
+  <CatalogWorkspace navigationSurface={{title:'Landmarks',settingsPlaceholder:true}} title="Travel kit" active="travel-kit"
     identity={{title:'Travel kit',subtitle:'Plan your next visit.'}}
     navigation={[{id:'browse',label:'Landmarks'},{id:'travel-kit',label:'Travel kit'},{id:'bank',label:'Component bank'}]}
-    query="" searching={false} onquery={()=>{}} onnavigate={()=>{}} onsearch={()=>{}} oncancel={()=>{}}>
-    {#snippet children()}<LocalExercises {definition} bodyOnly oncatalog={()=>{}} />{/snippet}
-    {#snippet searchResults()}<p>No search results</p>{/snippet}
-  </CatalogWorkspace>
+    query="" searching={false} onquery={()=>{}} onnavigate={()=>{}} onsearch={()=>{}} oncancel={()=>{}}
+    content={{kind:'public-catalog',surface,projected:surface.home,active:'travel-kit',selected:null,
+      bankVisited:false,onevent:()=>{},onactions:()=>{}}} />
 </div>`;
 
 test('actual catalog exercises inherit their content owner rather than the outer window for picker layout', async () => {

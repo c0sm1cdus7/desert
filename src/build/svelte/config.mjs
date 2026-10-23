@@ -13,7 +13,8 @@ export default {
     },
     csp: { mode: "hash", directives: {
       "default-src": ["self"], "script-src": ["self"], "style-src": ["self"],
-      "connect-src": ["self"], "img-src": ["self", "data:"],
+      "connect-src": ["self"], "img-src": ["self", "data:", "blob:"],
+      "media-src": ["self", "blob:"],
       "style-src-attr": ["unsafe-inline"],
       "object-src": ["none"], "base-uri": ["none"], "frame-ancestors": ["none"],
     } },

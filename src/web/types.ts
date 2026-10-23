@@ -5,7 +5,7 @@ import type { Method, RequestInput } from "./protocol.ts";
 import type { ValidationResult } from "../validation-result.ts";
 
 export type Surface = ReturnType<ReturnType<typeof compile>["surface"]>;
-export type HumanSurface = Surface & Required<Pick<Surface, "language" | "navigation" | "connection" | "commit">>;
+export type HumanSurface = Surface & Required<Pick<Surface, "language" | "connection" | "commit" | "fieldRepresentations">>;
 export type Journey = Surface["journeys"][number];
 export type Mutation = Extract<Journey, { kind: "mutation" }>;
 export type Read = Extract<Journey, { kind: "read" }>;

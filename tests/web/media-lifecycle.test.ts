@@ -35,7 +35,7 @@ for (const width of [390,1280]) for (const theme of ['light','dark'] as const) {
       await header.locator('[data-media-open]').click();
       const viewer=page.locator('[data-media-viewer]'); await viewer.waitFor();
       assert.equal(await viewer.locator('[data-media-stage] img').evaluate(e=>getComputedStyle(e).visibility),'hidden');
-      await viewer.getByRole('button',{name:'Next photo',exact:true}).click();
+      await viewer.getByRole('button',{name:'Next media',exact:true}).click();
       await viewer.locator('[data-media-stage] [data-image-state="ready"]').waitFor();
       await page.unroute('**/media/place-1019*');
       await Promise.all(held.splice(0).map(route=>route.continue().catch(()=>{})));
@@ -62,7 +62,7 @@ for (const width of [390,1280]) for (const theme of ['light','dark'] as const) {
       await header.locator('[data-image-state="ready"]').waitFor();
       await header.locator('[data-media-open]').click(); await viewer.waitFor();
       assert.equal(await viewer.locator('[data-media-thumbs]').count(),0);
-      assert.equal(await viewer.getByRole('button',{name:'Next photo',exact:true}).count(),0);
+      assert.equal(await viewer.getByRole('button',{name:'Next media',exact:true}).count(),0);
       await page.keyboard.press('Escape');
       await writeFile(`${directory}/${width}-${theme}-lifecycle.json`,JSON.stringify({width,theme,
         dotsPitch:24, silentLoading:true, staleCompletionIgnored:true, navigationRemovesPreviousPixels:true,

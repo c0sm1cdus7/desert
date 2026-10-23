@@ -6,13 +6,14 @@
   import StackLayout from "./StackLayout.svelte";
   import StackItem from "./StackItem.svelte";
   import { provideStackTitle } from "./stack-context.ts";
+  import { optionsInputRequired } from "../../interaction/extended-controls.ts";
   let { definition, onevent, host }: {
     definition: Stack; onevent: (event: BankEvent) => void; host?: LocalFileHost;
   } = $props();
   provideStackTitle(() => definition.title);
-  // A deduplicated options legend must not hide its visible requirement.
+  // A deduplicated legend retains the same semantic law as its standalone owner.
   let required = $derived(definition.items.some(item => item.kind === "control.options"
-    && item.control.label === definition.title && item.control.minSelected > 0));
+    && item.control.label === definition.title && optionsInputRequired(item.control)));
 </script>
 
 <section data-place-stack={definition.id}>

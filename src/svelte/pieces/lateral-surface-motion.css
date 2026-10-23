@@ -1,0 +1,26 @@
+/* One lateral motion owner: the approved navigation surface, mirrored by edge.
+   Reservation and both surfaces use the same duration and easing on reversal. */
+:root { --motion-lateral:200ms; --ease-lateral:var(--ease-nav); }
+@property --place-leading-inset { syntax:"<length>"; inherits:true; initial-value:0px; }
+[data-slot="sidebar-container"], [data-slot="sidebar-gap"] {
+  transition-duration:var(--motion-lateral); transition-timing-function:var(--ease-lateral);
+}
+[data-slot="sidebar-wrapper"] { transition:--place-leading-inset var(--motion-lateral) var(--ease-lateral); }
+[data-adaptive-host-content] { transition:width var(--motion-lateral) var(--ease-lateral); }
+.drawer:is([data-adaptive-surface],[data-sidebar]):not([data-edge="bottom"]) {
+  --surface-x:calc(100% + var(--surface-inset)); --surface-y:0px;
+  opacity:1; transition:translate var(--motion-lateral) var(--ease-lateral);
+}
+.drawer:is([data-adaptive-surface],[data-sidebar])[data-edge="left"] { --surface-x:calc(-100% - var(--surface-inset)); }
+.drawer:is([data-adaptive-surface],[data-sidebar]):not([data-edge="bottom"]):is([data-starting-style],[data-state="closed"]) {
+  translate:var(--surface-x) 0; opacity:1;
+  transition-duration:var(--motion-lateral); transition-timing-function:var(--ease-lateral);
+}
+/* A pointer already owns the painted position during a reveal. Preserve that
+   position through the committed gesture; do not add the ordinary CSS entrance. */
+.drawer:is([data-adaptive-surface],[data-sidebar]):not([data-edge="bottom"]):is([data-revealing],[data-gesture-enter][data-state="open"]) {
+  translate:0 0; opacity:1; transition:none;
+}
+@media (prefers-reduced-motion:reduce) {
+  [data-slot="sidebar-container"], [data-slot="sidebar-gap"], [data-slot="sidebar-wrapper"], [data-adaptive-host-content], .drawer:is([data-adaptive-surface],[data-sidebar]) { transition:none; }
+}

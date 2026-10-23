@@ -9,7 +9,7 @@ const item = { version, kind: "catalog.card", record: "place.1", title: "Blue La
 const featured = { ...item, presentation: "featured", eyebrow: "Featured", actionLabel: "Explore" } as const;
 
 test("public catalog nodes belong to the same closed versioned bank", () => {
-  assert.equal(InteractionCatalog.version, "0.4.1");
+  assert.equal(InteractionCatalog.version, "0.5.0");
   assert.deepEqual(InteractionCatalog.entries.filter(entry => entry.id.startsWith("catalog.")).map(entry => entry.id),
     ["catalog.card", "catalog.home", "catalog.detail"]);
   assert.deepEqual(bankNode(item), item);

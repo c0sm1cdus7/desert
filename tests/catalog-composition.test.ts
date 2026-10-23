@@ -4,23 +4,26 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
+import { compilePublicCatalog } from "../src/public-catalog/compile.ts";
+import { catalogFixture } from "./fixtures/public-catalog.ts";
 
 const source = `<script lang="ts">
   import CatalogWorkspace from "@desert/svelte/explorer/CatalogWorkspace.svelte";
-  import BankRenderer from "@desert/svelte/BankRenderer.svelte";
   let query = $state(''), events = $state([]), searching = $state(false);
   const image = {asset:'mountain',alt:'Mountain above a forest'};
   const node = {version:'desert.bank-node/1',kind:'catalog.home',featured:{version:'desert.bank-node/1',kind:'catalog.card',
     presentation:'featured',record:'mountain',title:'Mountain',image,eyebrow:'Featured place',actionLabel:'Learn More'},
-    groups:[{id:'places',title:'Places',items:[{version:'desert.bank-node/1',kind:'catalog.card',presentation:'item',record:'mountain',title:'Mountain',image}]}]};
+    groups:[{id:'places',title:'Places',items:[{version:'desert.bank-node/1',kind:'catalog.card',presentation:'item',record:'mountain',title:'Mountain',image},
+      {version:'desert.bank-node/1',kind:'catalog.card',presentation:'item',record:'mountain-other',title:'Mountain',image}]}]};
+  const surface = {...${JSON.stringify(compilePublicCatalog(catalogFixture()).surface)}, home:node};
 </script>
-<CatalogWorkspace productName="Explorer" title="Explorer" identity={{title:'Explorer',subtitle:'Explore places.'}}
+<CatalogWorkspace navigationSurface={{title:'Explorer',settingsPlaceholder:true}} title="Explorer" identity={{title:'Explorer',subtitle:'Explore places.'}}
   navigation={[{id:'browse',label:'Explore'},{id:'travel-kit',label:'Travel kit'}]} active="browse"
   {searching} onsearch={()=>searching=true} oncancel={()=>searching=false}
-  {query} onquery={value => query = value} onnavigate={id => events = [...events,id]}>
-  {#snippet searchResults()}<p>No search results</p>{/snippet}
-  <BankRenderer {node} onevent={event => events = [...events,event]} />
-</CatalogWorkspace>
+  {query} onquery={value => query = value} onnavigate={id => events = [...events,id]}
+  searchContent={{kind:'catalog',title:'Explorer',description:'Find places.',results:[],onselect:()=>{}}}
+  content={{kind:'public-catalog',surface,projected:node,active:'browse',selected:null,bankVisited:false,
+    onevent:event=>events=[...events,event],onactions:()=>{}}} />
 <output hidden data-events>{JSON.stringify(events)}</output>`;
 
 test("catalog composes real shadcn owners and emits one typed destination event", { timeout: 20000 }, async () => {

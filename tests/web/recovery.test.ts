@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { mkdirSync } from "node:fs";
-import { browserFixture } from "./fixture.ts";
+import { browserFixture, panelToolbar, waitForEnabled, waitForNote } from "./fixture.ts";
 
 test("a lost acceptance response is recovered from its real receipt, without another submission", { timeout: 30000 }, async () => {
   const f = await browserFixture();
@@ -23,10 +23,10 @@ test("a lost acceptance response is recovered from its real receipt, without ano
       await f.page.keyboard.press("Tab");
       assert.equal(await failure.evaluate(node => node.contains(document.activeElement)), true);
     }
-    await failure.locator("footer").getByRole("button", { name: "Close", exact: true }).click();
+    await failure.locator('[data-surface-slot="bottom"]').getByRole("button", { name: "Close", exact: true }).click();
     await failure.waitFor({ state: "hidden" });
     await f.page.getByRole("button", { name: "Check result", exact: true }).click();
-    await f.page.getByText("Saved", { exact: true }).waitFor();
+    await waitForNote(f.page, "Only once");
     await f.page.getByText("The reply is lost, not the note.", { exact: true }).waitFor();
     assert.equal(submissions, 1);
     const notes = await f.session.read((await f.session.begin("read-note")).id);
@@ -45,8 +45,7 @@ test("revocation blocks the existing browser without erasing its mobile draft", 
     await f.page.getByRole("textbox", { name: "Title", exact: true }).fill("Keep me private");
     await f.page.getByRole("textbox", { name: "Content", exact: true }).fill("An expired identity must not silently become another one.");
     await f.host.identities.revoke(f.identity.id);
-    await f.page.getByRole("region", { name: "Journey", exact: true }).getByText("Local access required", { exact: true }).waitFor();
-    assert.equal(await f.page.locator("form").getByRole("button", { name: "Create note", exact: true }).isDisabled(), true);
+    await waitForEnabled(panelToolbar(f.page, "bottom").getByRole("button", { name: "Create note", exact: true }), false);
     assert.equal(await f.page.getByRole("textbox", { name: "Title", exact: true }).inputValue(), "Keep me private");
     assert.equal(await f.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     assert.equal(await f.page.getByRole("textbox", { name: "Title", exact: true }).getAttribute("aria-required"), "true");

@@ -113,7 +113,7 @@ for (const motion of ["no-preference", "reduce"] as const) for (const input of [
           assert.equal(held.pressed, null, "Actual focus transfer cancels keyboard feedback, like any genuine blur");
           assert.equal(held.contentScale, 1); t.diagnostic(`${name}: keyboard feedback cancelled after opening moved focus`); continue;
         }
-        const expected = motion === "reduce" ? 1 : .985;
+        const expected = motion === "reduce" ? 1 : .96;
         if (held.contentScale === null || Math.abs(held.contentScale - expected) > .001)
           failures.push(`${name}: held scale=${held.contentScale}; pressed=${held.pressed}; focused=${held.focused}`);
         const selectedDuringKeydown = name === 'calendar-day' && !before.selected && held.selected;

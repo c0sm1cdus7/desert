@@ -1,25 +1,42 @@
-import type { JourneyDefinition, SurfaceDefinition } from "./program-grammar.ts";
-import type { InputPrimitive } from "./interaction/catalog.ts";
+import { Check } from "@sinclair/typebox/value";
+import { JourneySchema } from "./program-grammar.ts";
+import { AuthoredHumanExposureSchema, requireJourneyOwnedSurfaceSemantics, type WithoutSurfaceSemantics } from "./human-exposure.ts";
+import { jsonSnapshot } from "./json.ts";
+import { closed } from "./views/definition.ts";
+import type { ExposedJourney } from "./modules/authored-types.ts";
+import { publicReference, requireJourneyUse } from "./modules/references.ts";
+import { declarationArray, declarationRecord } from "./modules/declaration-data.ts";
 
-type Human = Extract<SurfaceDefinition, { kind: "human" }>;
-type Read = Extract<JourneyDefinition, { kind: "read" }>;
-type Mutation = Extract<JourneyDefinition, { kind: "mutation" }>;
-type Create = Mutation & { command: { kind: "create" } };
-type Update = Mutation & { command: { kind: "update" } };
-type InputKey<J> = J extends Mutation ? `${J["command"]["object"]}.${J["command"]["input"][number]}` : never;
-
-export function humanSurface<const Id extends string, const J extends JourneyDefinition[]>(definition: {
-  id: Id, journeys: J, entry: Extract<J[number], Read>, primaryAction: Extract<J[number], Create>,
-  subjectActions: Extract<J[number], Update>[], connection: Human["connection"],
-  inputs?: Partial<Record<NoInfer<InputKey<J[number]>>, InputPrimitive>>,
-  commit: Record<NoInfer<Extract<J[number], Mutation>["id"]>, "submit" | "review">,
-  language: Omit<Human["language"], "journeys"> & { journeys: Record<NoInfer<J[number]["id"]>, string> },
-}) {
-  return { ...definition, kind: "human" as const, journeys: definition.journeys.map(journey => journey.id),
-    entry: definition.entry.id, primaryAction: definition.primaryAction.id,
-    subjectActions: definition.subjectActions.map(journey => journey.id) };
+type HumanExposureAuthoring = {
+  readonly id: string; readonly journeys: readonly ExposedJourney[]; readonly locale: string;
+} & WithoutSurfaceSemantics;
+const HumanExposureAuthoringSchema = closed({
+  id: AuthoredHumanExposureSchema.properties.id, locale: AuthoredHumanExposureSchema.properties.locale,
+  journeys: AuthoredHumanExposureSchema.properties.journeys,
+});
+function exposedIdentity(value: unknown): string {
+  const emitted = publicReference(value, "journey");
+  if (emitted) { requireJourneyUse(emitted, "execution"); return emitted.id; }
+  if (typeof value === "string") throw new Error("STRING_MODULE_REFERENCE_FORBIDDEN");
+  const source = jsonSnapshot(value);
+  if (!Check(JourneySchema, source)) throw new Error("MODULE_EXPOSURE_REQUIRES_EXECUTION");
+  return source.id;
 }
 
-export function agentSurface<const Id extends string>(id: Id, journeys: JourneyDefinition[]) {
-  return { id, kind: "agent" as const, journeys: journeys.map(journey => journey.id) };
+export function humanSurface<const D extends HumanExposureAuthoring>(
+  definition: D & Record<Exclude<keyof D, keyof HumanExposureAuthoring>, never>,
+) {
+  requireJourneyOwnedSurfaceSemantics(definition);
+  const source = declarationRecord(definition);
+  const journeys = declarationArray(source.journeys);
+  const checked = jsonSnapshot({ ...source, journeys: journeys.map(exposedIdentity) });
+  if (!Check(HumanExposureAuthoringSchema, checked)) throw new Error("INVALID_HUMAN_EXPOSURE");
+  return Object.freeze({ id: checked.id as D["id"], kind: "human" as const, locale: checked.locale,
+    journeys: Object.freeze([...journeys]) as D["journeys"] });
+}
+
+export function agentSurface<const Id extends string, const J extends readonly ExposedJourney[]>(id: Id, journeys: J) {
+  declarationArray(journeys).forEach(exposedIdentity);
+  if (!id) throw new Error("INVALID_AGENT_EXPOSURE");
+  return Object.freeze({ id, kind: "agent" as const, journeys: Object.freeze([...journeys]) as J });
 }

@@ -1,12 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { browserFixture } from "./fixture.ts";
+import { activePanel, browserFixture, waitForEnabled } from "./fixture.ts";
 
 test("product fields explain touched invalid input accessibly and keep writing during an outage", async () => {
   const f = await browserFixture();
   try {
     await f.page.getByRole("button", { name: "Create note", exact: true }).click();
-    const form = f.page.getByRole("dialog", { name: "Create note", exact: true });
+    const form = activePanel(f.page);
     const title = form.getByRole("textbox", { name: "Title", exact: true });
     const body = form.getByRole("textbox", { name: "Content", exact: true });
     const save = form.getByRole("button", { name: "Create note", exact: true });
@@ -25,20 +25,14 @@ test("product fields explain touched invalid input accessibly and keep writing d
     assert.equal(await form.locator('[data-slot="field-error"]').count(), 0);
     assert.equal(await title.getAttribute("aria-describedby"), null);
     await f.page.route("**/api/availability", route => route.abort());
-    await f.page.waitForFunction(() => {
-      const button = document.querySelector('form button[type="submit"]');
-      return button instanceof HTMLButtonElement && button.disabled;
-    });
+    await waitForEnabled(save, false);
     assert.equal(await body.inputValue(), "Retained writing");
     assert.equal(await body.isEditable(), true);
     await body.fill("");
     assert.equal(await body.getAttribute("aria-invalid"), "true");
     await body.fill("Kept through reconnect");
     await f.page.unroute("**/api/availability");
-    await f.page.waitForFunction(() => {
-      const button = document.querySelector('form button[type="submit"]');
-      return button instanceof HTMLButtonElement && !button.disabled;
-    });
+    await waitForEnabled(save);
     assert.equal(await body.inputValue(), "Kept through reconnect");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }

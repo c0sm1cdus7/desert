@@ -4,15 +4,13 @@
   import Landmark from "@lucide/svelte/icons/landmark";
   import Backpack from "@lucide/svelte/icons/backpack";
   import PanelsTopLeft from "@lucide/svelte/icons/panels-top-left";
-  import Settings from "@lucide/svelte/icons/settings";
-  import { Button } from "../vendor/components/ui/button/index.js";
   import { swipeMotion } from "../pieces/swipe-motion.svelte.js";
   import Place from "../pieces/Place.svelte";
   import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
   import { actionIcons } from "../pieces/action-icons.ts";
   import { workspaceNavigation, type WorkspaceDestination } from "./workspace-navigation.ts";
-  let { productName, navigation, active, onnavigate, searching = false }: {
-    productName: string;
+  let { identity, navigation, active, onnavigate, searching = false, settingsPlaceholder = false }: {
+    identity: { title: string; subtitle?: string }; settingsPlaceholder?: boolean;
     navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
     onnavigate: (id: Destination) => void; searching?: boolean;
   } = $props();
@@ -30,17 +28,12 @@
   }
 </script>
 
-<Place data-renderer-profile="apple-reference" data-catalog-navigation
-  viewportAttributes={{ 'data-slot': 'sidebar-content' }}>
+<Place landmark="navigation" label="Main navigation">
   {#snippet top()}
-  <ToolbarLayout class="sidebar-toolbar" data-slot="sidebar-header" data-navigation-drag role="presentation" onpointerdown={startHeaderDrag} onpointermove={motion.move}
-    onpointerup={motion.up} onpointercancel={motion.cancel} onlostpointercapture={motion.lost}>
-    <span data-product-name>{productName}</span>
-    <Sidebar.Trigger variant="secondary" size="icon" aria-label="Hide navigation" title="Hide navigation" inert={searching} aria-hidden={searching} />
-  </ToolbarLayout>
+  <ToolbarLayout {identity} content={{kind:"actions",actions:[],onevent:()=>{}}} drag={{down:startHeaderDrag,move:motion.move,up:motion.up,cancel:motion.cancel,lost:motion.lost}} />
   {/snippet}
   {#snippet content()}
-    <nav aria-label="Main navigation">
+    <div>
       {#each groups as group (group.label)}
       <Sidebar.Group aria-label={group.label}>
         <Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
@@ -57,13 +50,12 @@
         {/each}
       </Sidebar.Menu></Sidebar.GroupContent></Sidebar.Group>
       {/each}
-    </nav>
+    </div>
   {/snippet}
   {#snippet bottom()}
-  <ToolbarLayout class="sidebar-toolbar" data-slot="sidebar-footer" edge="bottom">
-    <Button variant="secondary" size="icon" aria-label="Settings" title="Settings — not available in this preview" disabled>
-      <Settings aria-hidden="true" />
-    </Button>
-  </ToolbarLayout>
+  <ToolbarLayout edge="bottom" content={{kind:"navigation-toggle",searching}} />
+  {#if settingsPlaceholder}
+  <ToolbarLayout content={{kind:"settings-placeholder"}} />
+  {/if}
   {/snippet}
 </Place>

@@ -7,9 +7,10 @@ export function observeDockAbove(viewport: HTMLElement, copy: HTMLElement, compa
   const clamp = (value: number) => Math.max(0, Math.min(1, value));
   function paint() {
     const progress = clamp((viewport.scrollTop - startEdge) / (end - startEdge));
-    // Large identity leaves before the compact copy becomes fully legible.
-    const outgoing = 1 - clamp(progress / .5);
-    const incoming = clamp((progress - .5) / .5);
+    // The compact title is a continuation, never a second visible identity.
+    // Its measured threshold is the reading block's bottom clearing the toolbar.
+    const outgoing = progress < 1 ? 1 : 0;
+    const incoming = progress === 1 ? 1 : 0;
     copy.style.opacity = String(outgoing);
     compact.style.opacity = String(incoming);
     compact.style.translate = reduced.matches ? 'none' : `0 ${(1 - incoming) * 6}px`;

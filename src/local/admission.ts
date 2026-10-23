@@ -4,6 +4,7 @@ import { freezeDeep } from "../json.ts";
 import type { LocalProgram } from "./program.ts";
 import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
 import type { StoredObject } from "./types.ts";
+import { matchesConditions } from "./conditions.ts";
 
 export async function beginJourney(client: PoolClient, program: LocalProgram, actor: string,
   surface: string, journeyId: string, subject: string | undefined, lifetime: number) {
@@ -31,9 +32,10 @@ export async function readJourney(client: PoolClient, program: LocalProgram, act
       WHERE object_type = $1 AND facts ->> $2 = $3 ORDER BY id`, [journey.object, program.owners.get(journey.object), actor])).rows;
   const fields = run.subject ? journey.fields : journey.collection;
   await requireLiveRun(client, run);
-  return freezeDeep(records.map(record => {
+  return freezeDeep(records.flatMap(record => {
     if (!program.application.validate(journey.object, record.facts).valid) throw new Error("CORRUPT_OBJECT");
-    return { id: record.id, version: record.version,
-      facts: Object.fromEntries(fields.map(field => [field, record.facts[field]!])) };
+    if (!matchesConditions(record.facts, journey.where ?? {})) return [];
+    return [{ id: record.id, version: record.version,
+      facts: Object.fromEntries(fields.map(field => [field, record.facts[field]!])) }];
   }));
 }

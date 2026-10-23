@@ -1,6 +1,37 @@
 import type { HumanSurface, Evidence } from "../types.ts";
 import type { AvailabilitySnapshot, BlockedReason } from "../../availability-types.ts";
-import { TransportError, type Transport } from "./transport.ts";
+import { TransportError, type ControllerTransport } from "./transport.ts";
+import { freezeDeep } from "../../json.ts";
+
+export type ConnectionObserver = (publish: (snapshot: AvailabilitySnapshot) => void) => () => void;
+type ConnectionDiagnostic = { readonly code: "CONNECTION_SUBSCRIBER_FAILED"; readonly subscriptions: number };
+type SharedConnectionObserver = ConnectionObserver & { diagnostics(): readonly ConnectionDiagnostic[] };
+
+export function sharedWebConnection(surface: HumanSurface, transport: ControllerTransport): SharedConnectionObserver {
+  const subscribers = new Set<{ publish: (snapshot: AvailabilitySnapshot) => void; reported: boolean }>();
+  let stop: (() => void) | undefined;
+  let failedSubscriptions = 0;
+  const subscribe: ConnectionObserver = publish => {
+    const subscriber = { publish, reported: false };
+    subscribers.add(subscriber);
+    stop ??= observeWebConnection(surface, transport, snapshot => {
+      const observation = freezeDeep(structuredClone(snapshot));
+      for (const current of [...subscribers]) if (subscribers.has(current)) {
+        // A broken consumer must still receive future invalidations and cannot poison other scopes.
+        try { current.publish(observation); }
+        catch {
+          if (!current.reported) { current.reported = true; failedSubscriptions++; }
+        }
+      }
+    });
+    return () => {
+      subscribers.delete(subscriber);
+      if (!subscribers.size) { stop?.(); stop = undefined; }
+    };
+  };
+  return Object.assign(subscribe, { diagnostics: (): readonly ConnectionDiagnostic[] => freezeDeep(failedSubscriptions
+    ? [{ code: "CONNECTION_SUBSCRIBER_FAILED", subscriptions: failedSubscriptions }] : []) });
+}
 
 export function blockedSnapshot(surface: HumanSurface, reason: BlockedReason): AvailabilitySnapshot {
   return { contractDigest: surface.contractDigest, journeys: Object.fromEntries(surface.journeys.map(journey =>
@@ -23,7 +54,7 @@ function verifyEvidence(surface: HumanSurface, evidence: Evidence) {
   }
 }
 
-export function observeWebConnection(surface: HumanSurface, transport: Transport,
+export function observeWebConnection(surface: HumanSurface, transport: ControllerTransport,
   publish: (snapshot: AvailabilitySnapshot) => void) {
   let disposed = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -38,7 +69,9 @@ export function observeWebConnection(surface: HumanSurface, transport: Transport
       const remaining = Math.floor(evidence.validForMs - (performance.now() - started));
       const anyReady = Object.values(evidence.snapshot.journeys).some(journey => journey.dependenciesReady);
       publish(anyReady && remaining <= 0 ? blockedSnapshot(surface, "stale") : evidence.snapshot);
-      if (anyReady && remaining > 0) expiry = setTimeout(() => publish(blockedSnapshot(surface, "stale")), remaining);
+      if (!disposed && anyReady && remaining > 0) expiry = setTimeout(() => {
+        if (!disposed) publish(blockedSnapshot(surface, "stale"));
+      }, remaining);
     } catch (error) {
       if (disposed) return;
       clearTimeout(expiry);

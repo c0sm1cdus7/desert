@@ -66,7 +66,7 @@
 {#snippet currencySymbol(currency: string)}
   <Group.Text data-currency-symbol aria-hidden="true">{symbol(currency)}</Group.Text>
 {/snippet}
-<MeasuredField measure="amount" data-control="money" data-invalid={!!error} data-disabled={node.disabled}>
+<MeasuredField kind="control.money" invalid={!!error} disabled={node.disabled}>
   <FieldWell {id} label={node.label} required={node.required} filled={true}>
     {#snippet accessory()}<ClearInput control={id} value={display} label={`Clear ${node.label}`} disabled={node.disabled} />{/snippet}
     {#snippet prefix()}

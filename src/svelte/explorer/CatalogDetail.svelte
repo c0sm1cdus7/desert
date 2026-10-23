@@ -15,7 +15,7 @@
   </div></section>
   {/if}
   <div data-catalog-prose>
-    {#if !bodyOnly}<Heading tabindex={-1} data-catalog-detail-title data-place-title>{node.title}</Heading>{/if}
+    {#if !bodyOnly}<Heading kind="document-title" text={node.title} />{/if}
     <section data-place-stack="about">
       <StackLayout title="About"><div data-stack-item><p>{node.description}</p></div></StackLayout>
     </section>

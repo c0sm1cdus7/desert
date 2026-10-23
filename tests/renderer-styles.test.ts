@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { parse } from "svelte/compiler";
 
 test("renderer global style layers enter through one theme, never component-side CSS imports", () => {
-  const directory = resolve(import.meta.dirname, "../src/svelte");
+  const directory = resolve(import.meta.dirname, "../src");
   const imports: { file: string; source: string }[] = [];
   for (const file of globSync("**/*.svelte", { cwd: directory })) {
     const component = parse(readFileSync(resolve(directory, file), "utf8"), { modern: true });
@@ -19,9 +19,8 @@ test("renderer global style layers enter through one theme, never component-side
   // A standalone @layer components import can precede Tailwind's layer prelude
   // after bundling, allowing the base reset to erase all shared bank geometry.
   // Filesystem traversal order is not part of the renderer contract.
+  // The generated host loads the same theme independently of either renderer.
   assert.deepEqual(imports.sort((a, b) => a.file < b.file ? -1 : a.file > b.file ? 1 : 0), [
-    { file: "HumanProduct.svelte", source: "./theme.css" },
-    { file: "explorer/PublicCatalogProduct.svelte", source: "../theme.css" },
-    { file: "views/ViewProduct.svelte", source: "../theme.css" },
+    { file: "build/svelte/template/src/routes/+layout.svelte", source: "@desert/svelte/theme.css" },
   ]);
 });

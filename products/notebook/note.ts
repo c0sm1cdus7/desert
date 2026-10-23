@@ -1,13 +1,1 @@
-import { enumeration, objectType, ownershipPolicy, principal, text } from "../../src/index.ts";
-
-export const Note = objectType({
-  id: "note",
-  facts: {
-    title: text({ minLength: 1 }),
-    body: text({ minLength: 1 }),
-    owner: principal(),
-    state: enumeration(["active", "archived"]),
-  },
-});
-
-export const OnlyOwnerCanAccess = ownershipPolicy(Note, "owner");
+export { Note, OnlyOwnerCanAccess } from "./src/modules/notes/note.object.ts";

@@ -3,35 +3,44 @@ import { rendererCss } from "./renderer-css.ts";
 
 const css = rendererCss();
 export type SearchConsumer = "collection" | "catalog";
-export const searchLabel = { collection: "Search loaded records", catalog: "Find component" };
+export const searchLabel = { collection: "Search notes", catalog: "Search component bank" };
 
 export async function searchFixture(consumer: SearchConsumer) {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import Collection from "@desert/svelte/Collection.svelte";
-    import CatalogNavigation from "@desert/svelte/catalog/CatalogNavigation.svelte";
-    import { matchingEntries } from "@desert/svelte/catalog/navigation.ts";
+    import CatalogWorkspace from "@desert/svelte/explorer/CatalogWorkspace.svelte";
+    import {viewEventOwnership} from '@desert/web/client/view-events.ts';
+    import { matchingEntries, catalogTitle } from "@desert/svelte/catalog/navigation.ts";
+    import { retrieveCollection } from "@desert/svelte/collection-retrieval.ts";
     let query = $state("");
-    let loaded = $state(true);
+    let searching = $state(false);
     let submissions = $state(0);
-    const entries = $derived(matchingEntries(query));
-    const node = $derived({ version: "desert.bank-node/1", kind: "collection", object: "note",
-      fields: ["title"], labels: { "note.title": "Title" }, createLabel: "Create note", loaded,
+    const title = ${JSON.stringify(consumer === "collection" ? "Notes" : "Component bank")};
+    const entries = matchingEntries("");
+    const node = { version: "desert.bank-node/1", kind: "collection", object: "note",
+      fields: ["title"], labels: { "note.title": "Title" }, createLabel: "Create note", loaded: true,
       disabled: false, selectedId: null, records: [
         { id: "a", version: 1, facts: { title: "Alpha" } },
         { id: "b", version: 1, facts: { title: "Beta" } },
-      ] });
+      ] };
+    const results = $derived(!query.trim() ? [] : ${consumer === "collection"
+      ? 'retrieveCollection(node.records, node.fields, query).map(record => ({ kind: "content", id: record.id, title: record.facts.title, description: "Note" }))'
+      : 'matchingEntries(query).map(entry => ({ kind: "bank", id: entry.id, title: catalogTitle(entry.id), description: entry.id }))'});
+    const resolved={view:{version:'desert.view/1',id:'search-fixture',outputs:['select'],content:[
+      ${consumer === "collection" ? "{kind:'collection',id:'notes',input:'notes',output:'select'}" : "{kind:'visual-catalog',id:'bank',catalog:'web'}"}
+    ]},bindings:{notes:node},disabledOutputs:[],owner:viewEventOwnership().sync([],false).main};
   </script>
-  <main style="max-width:520px;padding:24px">
-    <form onsubmit={event => { event.preventDefault(); submissions += 1; }}>
-      ${consumer === "collection" ? '<Collection {node} select={() => {}} />'
-        : '<CatalogNavigation bind:query {entries} />'}
-      <button type="submit">Submit fixture</button>
-    </form>
-    <button onclick={() => { loaded = false; }}>Unload records</button>
-    <output aria-label="Form submissions">{submissions}</output>
-  </main>`);
+  <form onsubmit={event => { event.preventDefault(); submissions += 1; }}>
+    <CatalogWorkspace navigationSurface={{title:'Test',settingsPlaceholder:true}} {title} active="home" navigation={[{ id: "home", label: title, icon: "catalog" }]}
+      identity={{ title, subtitle: "Search anatomy fixture" }} onnavigate={() => {}}
+      {query} onquery={value => query = value} {searching} onsearch={() => searching = true}
+      oncancel={() => { searching = false; query = ""; }}
+      content={{kind:'view-program',visited:[resolved],activeView:resolved.view.id,albums:{},onevent:()=>{},onalbum:()=>{},onactions:()=>{}}}
+      searchContent={{kind:'catalog',title,results,description:'Search only exposed values.',onselect:()=>{searching=false;query='';}}} />
+  </form>
+  <output aria-label="Form submissions">{submissions}</output>`);
   await fixture.page.addStyleTag({ content: await css });
   await fixture.page.emulateMedia({ reducedMotion: "reduce" });
+  await fixture.page.getByRole("button", { name: "Search", exact: true }).click();
   return fixture;
 }
 

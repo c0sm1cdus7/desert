@@ -7,12 +7,13 @@
 		class: className,
 		presentation = "default",
 		...restProps
-	}: DialogPrimitive.TitleProps & { presentation?: "default" | "message" | "picker" } = $props();
+	}: DialogPrimitive.TitleProps & { presentation?: "default" | "message" | "picker" | "toolbar" } = $props();
 </script>
 
 <DialogPrimitive.Title
 	bind:ref
 	data-slot="dialog-title"
-	class={cn(presentation === "default" ? "text-base leading-none font-medium" : "type-title", className)}
+	data-toolbar-title={presentation === "toolbar" || undefined}
+	class={cn(presentation === "default" ? "text-base leading-none font-medium" : "type-title", presentation === "toolbar" && "toolbar-title", className)}
 	{...restProps}
 />

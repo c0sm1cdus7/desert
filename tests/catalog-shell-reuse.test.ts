@@ -1,36 +1,26 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
-import { compile } from "svelte/compiler";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
-import { rendererCss } from "./fixtures/renderer-css.ts";
+import { workspaceCss as styles } from "./fixtures/workspace-css.ts";
 import { workspaceNavigation } from "../src/svelte/explorer/workspace-navigation.ts";
-
-async function styles() {
-  const filename=resolve(import.meta.dirname,'../src/svelte/explorer/CatalogWorkspace.svelte');
-  // The isolated harness injects child styles after parent styles. The production
-  // bundle places this unchanged shell-owner rule after AdaptiveSurfaceLayout.
-  // Match that order, not an invented geometry override; built-app QA remains a gate.
-  const owner=compile(await readFile(filename,'utf8'),{filename,generate:'client',css:'external'}).css?.code??'';
-  return `${await rendererCss()}\n${owner}`;
-}
+import { workspaceBodySource } from "./fixtures/workspace-body.ts";
+import { settle } from "./web/public-catalog-expectations.ts";
 
 const source = `<script lang="ts">
   import CatalogWorkspace from "@desert/svelte/explorer/CatalogWorkspace.svelte";
-  let active=$state('notes'), events=$state([]);
+  let active=$state('notes'), events=$state([]), panelOpen=$state(false);
+  ${workspaceBodySource(Array.from({length:80},(_,index)=>({kind:'text',text:`Writing line ${index}`})))}
+  const panel={owner:owners.panel,label:'Panel fixture',locked:false,frame:{version:'desert.surface-frame/6',kind:'message',
+    top:{title:'Panel fixture'},content:{kind:'message',text:'A real panel in the shared host.'},bottom:{}}};
 </script>
-<CatalogWorkspace productName="Notebook" title="Notes" identity={{title:'Notes',subtitle:'Your writing.'}}
+<CatalogWorkspace navigationSurface={{title:'Notebook',settingsPlaceholder:true}} title="Notes" identity={{title:'Notes',subtitle:'Your writing.'}}
   navigation={[{id:'home',label:'Home',icon:'open'},{id:'notes',label:'Notes',icon:'create'},
     {id:'visual',label:'Visual catalog',icon:'catalog'}]} {active}
   searching={false} query="" onquery={()=>{}} onsearch={()=>{}} oncancel={()=>{}}
   searchAvailable={false} onnavigate={id=>{active=id;events=[...events,id]}}
   topActions={[{intent:{kind:'view.output',view:'notes.home',output:'create'},label:'New note',icon:'create',state:'ready'}]}
-  invoke={intent=>events=[...events,intent]}>
-  {#snippet searchResults()}<p>No results</p>{/snippet}
-  {#snippet panels()}<span hidden data-panel-host-witness></span>{/snippet}
-  {#each Array(80) as _, index}<p>Writing line {index}</p>{/each}
-</CatalogWorkspace>
+  invoke={intent=>{events=[...events,intent];panelOpen=true;}} content={workspaceBody}
+  panelState={{panel:panelOpen?panel:null,error:null,uncertain:false,dismissError:()=>{},onevent:()=>{panelOpen=false;}}} />
 <output hidden data-events>{JSON.stringify(events)}</output>`;
 
 test("generic declarations retain the approved full-span shell, scroll and heading handoff", { timeout: 20000 }, async () => {
@@ -52,11 +42,21 @@ test("generic declarations retain the approved full-span shell, scroll and headi
     await f.page.waitForFunction(()=>Number(getComputedStyle(document.querySelector('[data-toolbar-identity]')!).opacity)>.9);
     assert.equal(await viewport.evaluate(e=>e.scrollTop),500);
     assert.match(await viewport.evaluate(e=>(e as HTMLElement).style.maskImage),/linear-gradient/);
-    assert.equal(await f.page.locator('[data-adaptive-host-content] > [data-panel-host-witness]').count(),1,
-      'panels consume the same measured host without nesting inside scrolling content');
     await f.page.getByRole('button',{name:'New note',exact:true}).click();
     assert.deepEqual(JSON.parse(await f.page.locator('[data-events]').textContent()??'[]'),
       [{kind:'view.output',view:'notes.home',output:'create'}]);
+    const panel=f.page.getByRole('dialog',{name:'Panel fixture',exact:true});
+    await panel.waitFor();
+    const hostBounds=await f.page.locator('[data-adaptive-host]').evaluate(element=>{
+      const rect=element.getBoundingClientRect();
+      return {left:rect.left+(Number.parseFloat(getComputedStyle(element).getPropertyValue('--place-leading-inset'))||0),
+        top:rect.top,right:document.documentElement.clientWidth-rect.right,bottom:innerHeight-rect.bottom};
+    });
+    const panelBounds=await panel.evaluate(element=>Object.fromEntries(['left','top','right','bottom'].map(edge=>
+      [edge,Number.parseFloat((element as HTMLElement).style.getPropertyValue('--adaptive-'+edge))])));
+    assert.deepEqual(panelBounds,hostBounds,'portalled panels retain the measured host bounds');
+    assert.equal(await panel.evaluate(element=>element.closest('[data-catalog-scroll]')!==null),false,
+      'panels never nest inside scrolling content');
     assert.deepEqual(f.errors,[]);
   } finally {await f.close();}
 });
@@ -75,7 +75,7 @@ test("generic navigation keeps the approved compact sidebar and dispatches its d
   } finally {await f.close();}
 });
 
-test("declared top actions stay in the top dock while compact search remains below", { timeout: 20000 }, async()=>{
+test("declared actions and search share the trailing top dock at narrow and wide widths", { timeout: 20000 }, async()=>{
   const f=await svelteBrowser(source.replace('searchAvailable={false}','searchAvailable={true}'));
   try {
     await f.page.setViewportSize({width:390,height:844});
@@ -83,9 +83,14 @@ test("declared top actions stay in the top dock while compact search remains bel
     const action=f.page.getByRole('button',{name:'New note',exact:true});
     const search=f.page.getByRole('button',{name:'Search',exact:true});
     await action.waitFor();
+    await settle(f.page);
     const compactAction=await action.boundingBox(), compactSearch=await search.boundingBox();
     assert.ok(compactAction && compactAction.y<100,'topDock action must not migrate to the compact bottom search rail');
-    assert.ok(compactSearch && compactSearch.y>700,'search keeps its approved compact bottom placement');
+    assert.ok(compactSearch && compactSearch.y<100,'search uses the same approved top placement at every width');
+    assert.ok(Math.abs(compactAction.y-compactSearch.y)<=4,'actions and search share a rail');
+    assert.ok(compactSearch.x>compactAction.x,'search remains the final trailing action');
+    const navigation=await f.page.getByRole('button',{name:'Show navigation',exact:true}).boundingBox();
+    assert.ok(navigation && navigation.x<60 && navigation.y>700,`navigation return stays at the main surface bottom-left: ${JSON.stringify(navigation)}`);
     assert.equal(await action.evaluate(e=>e.closest('[data-place-toolbar]')!==null),true);
     assert.equal(compactAction.width,44); assert.equal(compactAction.height,44);
     await action.click();

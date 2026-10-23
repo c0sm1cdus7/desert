@@ -50,7 +50,7 @@ test("custom raw sidebar link inherits shared feedback without losing native sem
     await f.page.mouse.move(900, 700); await settle(f.page); const cancelled = await paint(link);
     await f.page.mouse.up();
     assert.equal(hover.overlay, normal.overlay); assert.equal(held.overlay, hover.overlay);
-    assert.ok(Math.abs(held.contentScale-.985)<.001,'raw child content shares the press scale');
+    assert.ok(Math.abs(held.contentScale-.96)<.001,'raw child content shares the approved press scale');
     assert.equal(cancelled.contentScale,1,'pointer departure restores child content');
     assert.equal(held.pressed, "pointer"); assert.equal(cancelled.pressed, null);
     assert.equal(cancelled.overlay, normal.overlay);

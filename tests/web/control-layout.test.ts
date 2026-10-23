@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Locator } from "playwright";
-import { browserFixture, settleMotion } from "./fixture.ts";
+import { settleMotion } from "./fixture.ts";
+import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
 
 async function choiceGeometry(choice: Locator) {
   return choice.evaluate(element => {
@@ -11,7 +12,7 @@ async function choiceGeometry(choice: Locator) {
     const indicator = element.getBoundingClientRect();
     const labelBox = label.getBoundingClientRect();
     const nameBox = name.getBoundingClientRect();
-    const row = element.closest('[data-slot="field"]')!.getBoundingClientRect();
+    const row = element.closest('[data-choice-row]')!.getBoundingClientRect();
     return { centerOffset: Math.abs(indicator.y + indicator.height / 2 - nameBox.y - nameBox.height / 2),
       labelHeight: labelBox.height, rowHeight: row.height,
       horizontalGap: nameBox.left - indicator.right,
@@ -31,7 +32,7 @@ async function mediaGeometry(media: Locator) {
 test("option indicators align with their interactive labels at compact widths and enlarged text", { timeout: 30000 }, async () => {
   const f = await browserFixture();
   try {
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
+    await openCatalog(f.page);
     for (const width of [1280, 390, 320]) {
       await f.page.setViewportSize({ width, height: 900 });
       for (const scale of [1, 1.3]) {
@@ -42,7 +43,7 @@ test("option indicators align with their interactive labels at compact widths an
           const specimen = f.page.locator(`[data-specimen="control.options:${cardinality}"]`);
           const choices = specimen.getByRole(cardinality === "one" ? "radio" : "checkbox");
           assert.equal(await choices.count(), 3);
-          const rows = await specimen.locator('[data-slot="field"]').evaluateAll(elements => elements.map(element => {
+          const rows = await specimen.locator('[data-choice-row]').evaluateAll(elements => elements.map(element => {
             const box = element.getBoundingClientRect();
             return { top: box.top, bottom: box.bottom };
           }));
@@ -65,7 +66,7 @@ test("option indicators align with their interactive labels at compact widths an
 test("option label activation, keyboard selection and disabled semantics survive shared composition", { timeout: 30000 }, async () => {
   const f = await browserFixture();
   try {
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
+    await openCatalog(f.page);
     const single = f.page.locator('[data-specimen="control.options:one"]');
     const many = f.page.locator('[data-specimen="control.options:many"]');
     assert.equal(await single.getByRole("radiogroup", { name: "Choose one option", exact: true }).count(), 1);
@@ -87,7 +88,7 @@ test("option label activation, keyboard selection and disabled semantics survive
 test("loaded and absent image sources preserve the declared landscape ratio", { timeout: 30000 }, async () => {
   const f = await browserFixture();
   try {
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
+    await openCatalog(f.page);
     for (const width of [1280, 390, 320]) {
       await f.page.setViewportSize({ width, height: 900 });
       await settleMotion(f.page);
@@ -107,13 +108,14 @@ test("loaded and absent image sources preserve the declared landscape ratio", { 
 test("a failed image request preserves the same media geometry and accessible alternative", { timeout: 30000 }, async () => {
   const f = await browserFixture();
   try {
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
+    await openCatalog(f.page);
     const specimen = f.page.locator('[data-specimen="control.image:available"]');
     const loaded = specimen.getByRole("img", { name: "An open notebook with blue pages", exact: true });
     assert.equal(await loaded.evaluate(element => (element as HTMLImageElement).naturalWidth > 0), true);
     const before = await mediaGeometry(loaded);
     await f.page.route("**/bank-image.svg", route => route.abort());
     await f.page.reload();
+    await openCatalog(f.page);
     await specimen.getByText("Image unavailable", { exact: true }).waitFor();
     const fallback = specimen.getByRole("img", { name: "An open notebook with blue pages", exact: true });
     const after = await mediaGeometry(fallback);

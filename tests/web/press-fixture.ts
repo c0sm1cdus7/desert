@@ -1,28 +1,54 @@
 import { mkdir, writeFile } from "node:fs/promises";
-import { chromium, type Locator, type Page } from "playwright";
-import { browserFixture, settleMotion } from "./fixture.ts";
+import { type Locator, type Page } from "playwright";
+import { activePanel, panelToolbar, settleMotion, waitForEnabled } from "./fixture.ts";
+import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
 
 export async function catalog() {
-  if (process.env.DESERT_VISUAL_URL) {
-    const browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, colorScheme: "light" });
-    await page.goto(process.env.DESERT_VISUAL_URL);
-    await page.locator('[data-specimen="context:available"]').waitFor();
-    return { page, close: () => browser.close() };
-  }
   const f = await browserFixture();
-  try { await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click(); return f; }
+  try {
+    for (const title of ["First press witness", "Middle press witness", "Third press witness"]) {
+      const run = await f.session.begin("create-note");
+      const prepared = await f.session.prepare(run.id, { title, body: "Published reading content." });
+      await f.session.accept(prepared.id, prepared.confirmationDigest);
+    }
+    await f.page.reload();
+    await f.page.locator('[data-composition="collection"]:visible button').nth(2).waitFor();
+    await openCatalog(f.page);
+    return f;
+  }
   catch (error) { await f.close(); throw error; }
 }
 export const cases = ["neutral", "primary", "first-row", "middle-row", "last-row"] as const;
 export type Case = typeof cases[number];
-export async function target(page: Page, name: Case) {
-  if (name === "neutral" || name === "primary") return page.locator('[data-specimen="review:uncertain"]')
-    .locator(`[data-emphasis="${name === "primary" ? "primary" : "secondary"}"]`);
-  await page.locator('[data-specimen="context:available"]').getByRole("button").click();
-  const dialog = page.getByRole("dialog", { name: "Context specimen", exact: true });
+export async function finishTarget(page: Page) {
+  if (await activePanel(page).isVisible()) {
+    await panelToolbar(page, "top").getByRole("button", { name: "Close", exact: true }).click();
+    await activePanel(page).waitFor({ state: "hidden" });
+  }
+}
+export async function openNotes(page: Page) {
+  await finishTarget(page);
+  await page.getByRole("button", { name: "Notes", exact: true }).click();
+  await page.locator('[data-composition="collection"]:visible button').nth(2).waitFor();
   await settleMotion(page);
-  return dialog.locator('[data-piece="destination-row"]').nth(name === "first-row" ? 0 : name === "middle-row" ? 1 : 2);
+}
+export async function target(page: Page, name: Case) {
+  await openNotes(page);
+  let button: Locator;
+  if (name === "neutral" || name === "primary") {
+    await page.getByRole("button", { name: "Create note", exact: true }).click();
+    await page.getByRole("textbox", { name: "Title", exact: true }).fill("Press feedback only");
+    await page.getByRole("textbox", { name: "Content", exact: true }).fill("A valid published draft.");
+    button = panelToolbar(page, "bottom").locator(`[data-emphasis="${name === "primary" ? "primary" : "secondary"}"]`);
+    await waitForEnabled(button);
+  } else button = page.locator('[data-composition="collection"]:visible button').nth(name === "first-row" ? 0 : name === "middle-row" ? 1 : 2);
+  // These tests isolate native held/cancelled paint on real product controls.
+  // Execution and navigation are covered separately; prevent only activation.
+  await button.evaluate(node => node.addEventListener("click", event => {
+    event.preventDefault(); event.stopPropagation();
+  }));
+  await settleMotion(page);
+  return button;
 }
 export async function appearance(node: Locator) {
   return node.evaluate(element => {
@@ -30,7 +56,7 @@ export async function appearance(node: Locator) {
     const contentStyle = content && getComputedStyle(content);
     return { box: element.getBoundingClientRect().toJSON(), transform: style.transform,
       contentScale: contentStyle ? new DOMMatrix(contentStyle.transform).m11 : null,
-      background: style.backgroundColor, overlay: style.backgroundImage, color: style.color,
+      background: style.backgroundColor, overlay: style.boxShadow, color: style.color,
       topBorder: style.borderTopWidth, bottomBorder: style.borderBottomWidth,
       focus: element.matches(":focus-visible") };
   });

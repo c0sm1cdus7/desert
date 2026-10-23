@@ -12,7 +12,7 @@ after(() => { cluster?.dispose(); });
 
 async function fixture() {
   const database = await cluster.database();
-  const host = await openLocalController(compile(Notebook), { ...database, role: "notes" });
+  const host = await openLocalController(compile(Notebook), { ...database, roles: ["notes"] });
   const owner = await host.identities.issue("Owner");
   return { database, host, owner, session: host.connect(owner.token, "human") };
 }

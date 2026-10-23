@@ -3,30 +3,32 @@ import { mkdtempSync, rmSync, readFileSync, writeFileSync, cpSync, symlinkSync, 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { compile } from "../src/compile.ts";
+import { compile, composeProduct } from "../src/index.ts";
+import { compile as compileContract } from "../src/compile.ts";
 import { buildDistribution, loadVerifiedBuild } from "../src/build/index.ts";
 import { serveBuiltLocalSurface } from "../src/build/serve.ts";
 import { openLocalController } from "../src/local.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
-import { Notebook } from "../products/notebook/product.ts";
+import { NotebookProduct } from "../products/notebook/product.ts";
+import { notebookDefinition } from "./fixtures/notebook.ts";
+import { authoredNotebookSource } from "./fixtures/authored-notebook.ts";
 import { NotebookService, NotebookWeb, NotebookCLI, NotebookIOS } from "../products/notebook/distributions.ts";
 import { verifyManifestBoundaries } from "./fixtures/build-manifest.ts";
-import type { ProductDefinition } from "../src/contracts.ts";
 
 test("a declared web distribution produces a built artifact instead of only a plan", { timeout: 90000 }, async () => {
   const directory = mkdtempSync(join(tmpdir(), "desert-build-test-"));
   try {
-    const result = await buildDistribution(compile(Notebook), {
+    const result = await buildDistribution(compile(NotebookProduct), {
       distributions: [NotebookService, NotebookWeb], target: NotebookWeb.id,
       outputDirectory: join(directory, "web"),
     });
     assert.equal(result.status, "built");
     const output = join(directory, "web");
-    assert.equal(result.contractDigest, compile(Notebook).digest);
+    assert.equal(result.contractDigest, compile(NotebookProduct).digest);
     assert.deepEqual(loadVerifiedBuild(output), result);
     assert.ok(Object.hasOwn(result.files, "web/handler.js"));
     const original = readFileSync(join(output, "web/handler.js"), "utf8");
-    await assert.rejects(buildDistribution(compile(Notebook), {
+    await assert.rejects(buildDistribution(compile(NotebookProduct), {
       distributions: [NotebookService, NotebookWeb], target: NotebookWeb.id, outputDirectory: output,
     }), /BUILD_DESTINATION_EXISTS/);
     assert.equal(readFileSync(join(output, "web/handler.js"), "utf8"), original);
@@ -48,7 +50,7 @@ test("a declared web distribution produces a built artifact instead of only a pl
 
 async function verifySessionBoundary(output: string, directory: string) {
   const cluster = postgresCluster();
-  const controller = await openLocalController(compile(Notebook), { ...await cluster.database(), role: "notes" });
+  const controller = await openLocalController(compile(NotebookProduct), { ...await cluster.database(), roles: ["notes"] });
   const identity = await controller.identities.issue("Build test");
   const session = controller.connect(identity.token, "human");
   try {
@@ -59,9 +61,9 @@ async function verifySessionBoundary(output: string, directory: string) {
       /UNTRUSTED_LOCAL_SESSION/);
     await assert.rejects(serveBuiltLocalSurface({ buildDirectory: join(directory, "altered"), session, port: 0 }),
       /BUILD_FILES_MISMATCH/);
-    const changed = structuredClone(Notebook);
+    const changed = notebookDefinition();
     changed.objects[0].facts.title.minLength = 2;
-    const newer = await openLocalController(compile(changed), { ...await cluster.database(), role: "notes" });
+    const newer = await openLocalController(compileContract(changed), { ...await cluster.database(), roles: ["notes"] });
     try {
       const actor = await newer.identities.issue("Other revision");
       await assert.rejects(serveBuiltLocalSurface({ buildDirectory: output,
@@ -90,18 +92,20 @@ test("uninstalled builders and unsupported web bindings never publish an output"
   try {
     for (const target of [NotebookCLI, NotebookIOS, NotebookService]) {
       const output = join(directory, target.id);
-      await assert.rejects(buildDistribution(compile(Notebook), {
+      await assert.rejects(buildDistribution(compile(NotebookProduct), {
         distributions: [NotebookService, NotebookWeb, NotebookCLI, NotebookIOS], target: target.id, outputDirectory: output,
       }), /BUILDER_NOT_INSTALLED/);
       assert.equal(existsSync(output), false);
     }
     const localWeb = { ...NotebookWeb, bindings: [{ kind: "local", dependency: "notes", adapter: "uninstalled" }] };
-    await assert.rejects(buildDistribution(compile(Notebook), {
+    await assert.rejects(buildDistribution(compile(NotebookProduct), {
       distributions: [localWeb], target: localWeb.id, outputDirectory: join(directory, "local"),
     }), /UNSUPPORTED_WEB_BINDING/);
     assert.equal(existsSync(join(directory, "local")), false);
-    const unsupported: ProductDefinition = structuredClone(Notebook);
-    unsupported.objects[0]!.facts.title = { kind: "integer", minimum: 1, maximum: 10 };
+    const source = authoredNotebookSource();
+    const note = source.objects[0];
+    const unsupported = composeProduct({ ...source, objects: [{ ...note,
+      facts: { ...note.facts, title: { kind: "integer", minimum: 1, maximum: 10 } } }] });
     await assert.rejects(buildDistribution(compile(unsupported), {
       distributions: [NotebookService, NotebookWeb], target: NotebookWeb.id,
       outputDirectory: join(directory, "primitive"),

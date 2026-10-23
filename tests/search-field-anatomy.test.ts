@@ -3,11 +3,14 @@ import assert from "node:assert/strict";
 import { directSearchFixture, searchFixture, searchLabel } from "./fixtures/search-field-anatomy.ts";
 
 for (const consumer of ["collection", "catalog"] as const) {
-  test(`${consumer}: search has a persistent leading icon and one embedded clear accessory`, async () => {
+  test(`${consumer}: toolbar overlay search has a persistent leading icon and one embedded clear accessory`, async () => {
     const f = await searchFixture(consumer);
     try {
       const search = f.page.getByRole("searchbox", { name: searchLabel[consumer], exact: true });
       assert.equal(await search.count(), 1, "a search field exposes searchbox semantics");
+      assert.equal(await f.page.locator("[data-catalog-scroll] [data-search-field]").count(), 0,
+        "the underlying surface never owns an inline search field");
+      assert.equal(await search.evaluate(element => !!element.closest("[data-catalog-toolbar]")), true);
       const group = f.page.locator("[data-search-field]").filter({ has: search });
       assert.equal(await group.count(), 1, "the search field owns its accessories");
       const icon = group.locator('svg[data-search-icon="leading"]');
@@ -57,38 +60,28 @@ for (const consumer of ["collection", "catalog"] as const) {
       const search = f.page.getByRole("searchbox", { name: searchLabel[consumer], exact: true });
       assert.equal(await search.count(), 1);
       await search.fill("no-such-component-or-record-713");
-      if (consumer === "collection") await f.page.getByRole("heading", { name: "No matching records.", exact: true }).waitFor();
-      else assert.match(await f.page.locator("nav [role=status]").innerText(), /^0 of /);
+      await f.page.getByText("No matching results", { exact: true }).waitFor();
+      assert.equal(await f.page.locator("[data-catalog-search-scroll] [data-search-result]").count(), 0);
       const clear = f.page.locator("[data-search-field]").getByRole("button", { name: "Clear search", exact: true });
       assert.equal(await clear.count(), 1, "zero results retain the embedded recovery action");
       assert.equal(await f.page.getByRole("button", { name: "Clear search", exact: true }).count(), 1);
       await clear.click();
       assert.equal(await search.inputValue(), "");
       assert.equal(await search.evaluate(element => element === document.activeElement), true);
+      await f.page.getByRole("heading", { name: `Search in ${consumer === "collection" ? "Notes" : "Component bank"}`, exact: true }).waitFor();
+      await f.page.getByRole("button", { name: "Close search", exact: true }).click();
+      assert.equal(await f.page.getByRole("searchbox").count(), 0);
       if (consumer === "collection") assert.equal(await f.page.locator(".record-button").count(), 2);
-      else assert.doesNotMatch(await f.page.locator("nav [role=status]").innerText(), /^0 of /);
+      else {
+        const index = f.page.locator('[data-catalog-index]');
+        assert.ok(await index.isVisible(), 'clearing discovery returns the complete component index');
+        assert.ok(await index.locator('[data-destination]').count() > 0);
+        assert.match(await index.getByRole('group', { name:'Coverage', exact:true }).innerText(), /Semantic components/);
+      }
       assert.deepEqual(f.errors, []);
     } finally { await f.close(); }
   });
 }
-
-test("a disabled collection search keeps its query and makes the clear accessory non-actionable", async () => {
-  const f = await searchFixture("collection");
-  try {
-    const search = f.page.getByRole("searchbox", { name: searchLabel.collection, exact: true });
-    assert.equal(await search.count(), 1);
-    await search.fill("Alpha");
-    await f.page.getByRole("button", { name: "Unload records", exact: true }).click();
-    assert.equal(await search.isDisabled(), true);
-    const clear = f.page.locator("[data-search-field]").getByRole("button", { name: "Clear search", exact: true });
-    assert.equal(await clear.count(), 1);
-    assert.equal(await clear.isDisabled(), true);
-    await clear.evaluate(element => (element as HTMLButtonElement).click());
-    assert.equal(await search.inputValue(), "Alpha");
-    assert.equal(await f.page.getByRole("status", { name: "Form submissions" }).textContent(), "0");
-    assert.deepEqual(f.errors, []);
-  } finally { await f.close(); }
-});
 
 test("shared search clears whitespace once, preserves read-only values, and fits both themes at 320px and 200% text", async () => {
   const f = await directSearchFixture();

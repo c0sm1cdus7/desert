@@ -9,7 +9,7 @@
 </script>
 
 <!-- The sole semantic page heading stays mounted; chrome mirrors only identity. -->
-<header bind:this={element} class="place-heading-content" data-place-header data-featured-media={identity.media?.kind} data-media-unavailable={failed}>
+<div bind:this={element} class="place-heading-content" data-place-header data-featured-media={identity.media?.kind} data-media-unavailable={failed}>
   {#if identity.media && !failed}
     {#if identity.media.kind === 'image' || identity.media.kind === 'gallery'}
       {@const photos = catalogPhotos(identity.media.kind === 'gallery' ? identity.media.images : [identity.media])}
@@ -23,7 +23,7 @@
     {/if}
   {/if}
   <div class="place-heading-copy" data-dock-above>
-    <Heading tabindex={-1} class="type-page" data-place-title>{identity.title}</Heading>
+    <Heading kind="page" text={identity.title} focusTarget />
     <p class="type-support" data-place-subtitle>{identity.subtitle}</p>
   </div>
-</header>
+</div>

@@ -48,6 +48,7 @@
   .field-well [data-field-row] > [data-field-well] { display:contents; }
   .field-well [data-field-row] > [data-field-well] > [data-slot="field-label"] {
     grid-column:1 / -1; grid-row:1; padding-block-start:var(--field-label-inset);
+    transform:none; font-size:var(--text-field-caption);
   }
   .field-well [data-field-row] > [data-field-well] > [data-slot="input-group-control"] { grid-column:1; grid-row:2; }
   .field-well .field-clear { grid-column:2; grid-row:2; }

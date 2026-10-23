@@ -1,3 +1,5 @@
+export const maximumMediaZoom = 4;
+
 type Options = {
   image: () => HTMLImageElement | null; page: (direction: number) => void;
   canPage: () => boolean; zoomable?: boolean; onzoom?: (scale: number) => void;
@@ -18,7 +20,7 @@ export function mediaGestures(element: HTMLElement, options: Options) {
     x = clamp(x, -maxX, maxX); y = clamp(y, -maxY, maxY);
     img.style.transform = scale === 1 ? '' : `translate(${x}px,${y}px) scale(${scale})`;
   }
-  function zoom(value: number) { scale = clamp(value, 1, 4); if (scale === 1) x = y = 0; paint(); }
+  function zoom(value: number) { scale = clamp(value, 1, maximumMediaZoom); if (scale === 1) x = y = 0; paint(); }
   function distance() { const [a,b] = [...points.values()]; return a && b ? Math.hypot(a.x-b.x, a.y-b.y) : 1; }
   function down(e: PointerEvent) {
     if (e.button !== 0 || ((e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[data-media-open]'))) return;

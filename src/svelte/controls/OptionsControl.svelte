@@ -6,11 +6,12 @@
   import ChoiceRow from "../pieces/ChoiceRow.svelte";
   import ChoiceList from "../pieces/ChoiceList.svelte";
   import type { ControlProps } from "../renderer-contracts.ts";
-  import { permitsOptionsSelection } from "../../interaction/extended-controls.ts";
+  import { permitsOptionsSelection, optionsInputRequired } from "../../interaction/extended-controls.ts";
   import { currentStackTitle } from "../pieces/stack-context.ts";
   let { node, onevent }: ControlProps<"options"> = $props();
   const prefix = $props.id();
   const stackTitle = currentStackTitle();
+  let inputRequired = $derived(optionsInputRequired(node));
   const change = (selected: readonly string[]) => {
     if (permitsOptionsSelection(node, selected)) onevent({ kind: "options.change", control: node.id, selected });
   };
@@ -36,9 +37,9 @@
     {/each}
 {/snippet}
 <Field.FieldSet data-control="options" data-cardinality={node.maxSelected === 1 ? "one" : "many"}>
-  <Field.FieldLegend variant="label" class={stackTitle() === node.label ? "sr-only" : "options-title"}>{node.label}{#if node.minSelected > 0}<span class="required" aria-hidden="true">*</span>{/if}</Field.FieldLegend>
+  <Field.FieldLegend variant="label" class={stackTitle() === node.label ? "sr-only" : "options-title"}>{node.label}{#if inputRequired}<span class="required" aria-hidden="true">*</span>{/if}</Field.FieldLegend>
   <GroupedPanel><ChoiceList>{#if node.maxSelected === 1}
     <RadioGroup.Root bind:value={() => node.selected[0] ?? "", value => change(value ? [value] : [])}
-      disabled={node.disabled} required={node.minSelected > 0} aria-label={node.label} data-grouped-rows>{@render choices()}</RadioGroup.Root>
+      disabled={node.disabled} required={inputRequired} aria-label={node.label} data-grouped-rows>{@render choices()}</RadioGroup.Root>
   {:else}<Field.FieldGroup data-grouped-rows>{@render choices()}</Field.FieldGroup>{/if}</ChoiceList></GroupedPanel>
 </Field.FieldSet>

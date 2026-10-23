@@ -33,7 +33,7 @@ test("runtime contracts still reject a controller missing the journey object", (
 
 test("one local store executes every journey with per-object ownership and durable state", async () => {
   const database = await cluster.database();
-  const host = await openLocalController(application, { ...database, role: "workspace" });
+  const host = await openLocalController(application, { ...database, roles: ["workspace"] });
   const identity = await host.identities.issue("Alice");
   const alice = host.connect(identity.token, "agent");
   const bob = host.connect((await host.identities.issue("Bob")).token, "agent");
@@ -53,7 +53,7 @@ test("one local store executes every journey with per-object ownership and durab
     await assert.rejects(alice.begin("archive-memo", bookmark.object.id), /NOT_FOUND/);
     await assert.rejects(alice.begin("remove-bookmark", memo.object.id), /NOT_FOUND/);
   } finally { await host.close(); }
-  const reopened = await openLocalController(application, { ...database, role: "workspace" });
+  const reopened = await openLocalController(application, { ...database, roles: ["workspace"] });
   try {
     const session = reopened.connect(identity.token, "agent");
     for (const [read, state] of [["read-memo", "archived"], ["read-bookmark", "removed"]]) {

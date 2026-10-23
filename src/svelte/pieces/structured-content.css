@@ -1,10 +1,17 @@
 /* A single row/face lane for always-visible facts and destinations. */
 @layer components {
-  .bank-stack { border-radius:var(--radius-group); overflow:hidden; }
-  .fact-row { padding:.75rem 1rem; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:1rem; align-items:baseline; border-bottom:1px solid var(--separator); }
+  [data-reading-measure], .bank-stack { width:100%; max-width:34rem; min-width:0; }
+  .bank-stack { border-radius:var(--radius-group); overflow:hidden; container:fact-group / inline-size; }
+  .fact-row { min-height:2.75rem; padding:.75rem 1rem; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:1rem; align-items:baseline; border-bottom:1px solid var(--separator); }
   .fact-row:last-child { border:0; }
   .fact-label { color:var(--muted-foreground); }
-  .fact-value { white-space:pre-wrap; overflow-wrap:anywhere; text-align:end; }
+  .fact-value { min-width:0; white-space:pre-wrap; overflow-wrap:anywhere; text-align:end; text-wrap:balance; justify-content:flex-end; }
+  .fact-label { min-width:0; overflow-wrap:anywhere; text-wrap:balance; }
+  .fact-labels { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:.5rem; }
+  @container fact-group (max-width:14em) {
+    .fact-row { grid-template-columns:minmax(0,1fr); gap:.25rem; }
+  }
+  [data-composition="context"] { display:grid; gap:1.5rem; }
   .destination-title { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); }
   .destination-row:focus-visible { outline-offset:-3px; }
   .context-actions { margin-top:1.5rem; }
@@ -12,10 +19,6 @@
   .destination-row { min-height:2.75rem; gap:.75rem; }
   .destination-title { flex:1; min-width:0; }
   .destination-row [data-destination-chevron] { margin-inline-start:auto; }
-  @container (max-width:30rem) {
-    .fact-row { grid-template-columns:minmax(0,1fr); gap:.375rem; }
-    .fact-value { text-align:start; }
-  }
 }
 
 /* One pane for the group. Rows remain interiors; press transforms content. */

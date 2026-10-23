@@ -4,15 +4,28 @@ import { resolveBuild, type Application } from "./plan.ts";
 import { installedBuilder } from "./builders.ts";
 import { digest, fileInventory } from "./files.ts";
 import { loadVerifiedBuild, manifestFile, type BuildManifest } from "./manifest.ts";
+import { bindLocalMedia, writeLocalMedia, requireDistinctMedia, type LocalMediaBinding } from "./media.ts";
+import { prepareRenditions } from "./public-catalog/renditions.ts";
+import { compileViewProgram } from "../views/program.ts";
+import { requireViewMediaBindings } from "./media-references.ts";
+import { viewProgramActivities } from "../activities/presentation.ts";
+import { productViewProgram } from "../modules/compiled-product.ts";
 
 export { loadVerifiedBuild } from "./manifest.ts";
+export type { LocalMediaBinding } from "./media.ts";
 export async function buildDistribution(application: Application, options: {
   distributions: unknown, target: string, outputDirectory: string,
-  viewProgram?: unknown,
+  media?: LocalMediaBinding,
 }) {
+  if (Object.hasOwn(options, "viewProgram")) throw new Error("VIEW_PROGRAM_OVERRIDE_FORBIDDEN");
   const resolved = resolveBuild(application, options.distributions, options.target);
   const { builder, plan } = installedBuilder(resolved.plan);
-  const prepared = await builder.prepare(application, plan, options.viewProgram);
+  const viewProgram = compileViewProgram(productViewProgram(application), plan.interaction);
+  const activities = viewProgramActivities(application, viewProgram, plan.surface);
+  const media = options.media ? bindLocalMedia(options.media) : undefined;
+  requireViewMediaBindings(viewProgram, media ?? []);
+  const prepared = await builder.prepare(application, plan);
+  if (media) await prepareRenditions(media);
   const output = resolve(options.outputDirectory);
   try { lstatSync(output); throw new Error("BUILD_DESTINATION_EXISTS"); }
   catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; }
@@ -22,12 +35,15 @@ export async function buildDistribution(application: Application, options: {
   let ownsOutput = false;
   try {
     await prepared.build(stage);
+    if (media) { requireDistinctMedia(media, fileInventory(stage)); writeLocalMedia(stage, media); }
     if (builder.revision() !== before) throw new Error("BUILDER_CHANGED_DURING_BUILD");
     const manifest: BuildManifest = {
-      format: "desert.distribution-build/1", status: "built", productId: application.id,
+      format: "desert.distribution-build/3", status: "built", productId: application.id,
       contractDigest: application.digest, distributionId: plan.id,
       distributionDigest: digest({ target: plan.id, distributions: resolved.definitions }),
       distributions: resolved.definitions, surfaceId: plan.surface, surfaceDigest: digest(plan.interaction),
+      viewProgramDigest: digest(viewProgram),
+      ...(activities ? { activitiesDigest: activities.digest } : {}),
       renderer: { id: builder.id, revision: before }, connection: prepared.connection,
       files: fileInventory(stage),
     };

@@ -36,7 +36,9 @@ test("renamed objects, policies, fields and journeys plus new integer inputs nee
 
 test("unreachable generated preparation stays blocked, never silently skipped", { timeout: 90000 }, async () => {
   const changed = structuredClone(Notebook);
-  changed.journeys[0].command.values.state = { kind: "literal", value: "archived" };
+  const creation = changed.journeys.find(journey => journey.kind === "mutation" && journey.command.kind === "create");
+  assert.ok(creation?.kind === "mutation" && creation.command.kind === "create");
+  assert.equal(Reflect.set(creation.command.values, "state", { kind: "literal", value: "archived" }), true);
   const verification = deriveVerification(changed);
   const report = await verification.run({ host: localPostgresTestHost(), seed: 42 });
   assert.ok(report.cases.some(item => item.status === "passed"));

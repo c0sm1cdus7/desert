@@ -1,6 +1,13 @@
 import type { ExtendedNode, ExtendedEvent, OptionsNode } from "./extended-nodes.ts";
 import { inputMask } from "./input-mask.ts";
 
+/** Cardinality belongs to the value, not to a journey. Contextual commands never
+ * become required inputs merely because they retain at least one selection. */
+export function optionsInputRequired(node: OptionsNode): boolean {
+  return node.inputRequired === true && node.minSelected > 0 &&
+    (node.maxSelected !== 1 || node.selected.length === 0);
+}
+
 /** The view and reducer ask this same law before offering or accepting an edit.
  * Requiredness is validation, not an editing lock: incomplete drafts remain legal. */
 export function permitsOptionsSelection(node: OptionsNode, selected: readonly string[]): boolean {

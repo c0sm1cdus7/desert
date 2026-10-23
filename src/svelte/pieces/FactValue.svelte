@@ -10,7 +10,8 @@
   {#if state !== "known"}
     {@const Icon = state === "empty" ? Minus : CircleQuestionMark}
     <Icon size="1em" aria-hidden="true" />
-    <span><span class="sr-only">Value state: </span>{presentFact(value)}</span>
+    {#if state === "empty"}<span class="sr-only">Value state: {presentFact(value)}</span>
+    {:else}<span><span class="sr-only">Value state: </span>{presentFact(value)}</span>{/if}
   {:else}{presentFact(value)}{/if}
 </span>
 

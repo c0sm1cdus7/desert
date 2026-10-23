@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { mkdir } from "node:fs/promises";
 import { chromium } from "playwright";
-import { browserFixture, settleMotion } from "./fixture.ts";
+import { settleMotion } from "./fixture.ts";
+import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
 import { identityGeometry, assertIdentityGeometry } from "../fixtures/toolbar-identity-expectations.ts";
 
 async function catalog() {
@@ -13,12 +14,14 @@ async function catalog() {
     return { page, close: () => browser.close() };
   }
   const fixture = await browserFixture();
-  assert.equal(await fixture.page.locator('.topbar[data-piece="toolbar"] > .toolbar-row').count(), 1,
+  try {
+  assert.equal(await fixture.page.locator('[data-catalog-toolbar][data-piece="toolbar"] > .toolbar-row').count(), 1,
     "the normal product shell also uses the shared toolbar owner");
-  await fixture.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
-  assert.equal(await fixture.page.locator('.catalog-header[data-piece="toolbar"] > .toolbar-row').count(), 1,
+  await openCatalog(fixture.page);
+  assert.equal(await fixture.page.locator('[data-catalog-toolbar][data-piece="toolbar"] > .toolbar-row').count(), 1,
     "the product catalog shell cannot recreate its own toolbar anatomy");
   return fixture;
+  } catch (error) { await fixture.close(); throw error; }
 }
 
 test("message identity belongs to the header, with readable body and shared dismissal", { timeout: 30000 }, async () => {

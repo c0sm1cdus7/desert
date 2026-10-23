@@ -13,6 +13,7 @@
     open: boolean; disabled?: boolean; locked?: boolean | undefined; onchange: (open: boolean) => void;
     invoke?: (intent: SurfaceIntent) => void; icon?: ActionIcon;
   } = $props();
+  const panelId = $props.id();
   const change = (next: boolean) => { if (!disabled && (next || !locked)) onchange(next); };
   dismissWhenInactive(() => onchange(false));
   const guard = (event: Event) => { if (locked) event.preventDefault(); };
@@ -39,10 +40,10 @@
     {#snippet child({ props })}
       <BankRenderer node={{ version: BankVersion, kind: "action", role: "secondary", action: {
         icon, label, state: disabled ? "unavailable" : "ready", intent: { kind: "transient.open" },
-      } }} actionElementProps={props} />
+      } }} actionElementProps={{ ...props, "aria-controls": open ? panelId : undefined }} />
     {/snippet}
   </Popover.Trigger>
-  <Popover.Content bind:ref={panel} role="dialog" aria-label={title} aria-modal="false" trapFocus={false} preventScroll={false}
+  <Popover.Content id={panelId} bind:ref={panel} role="dialog" aria-label={title} aria-modal="false" trapFocus={false} preventScroll={false}
     onkeydowncapture={event => {
       if (panel && !locked) anchoredTabExit(event, panel, () => { outside = true; change(false); });
     }}

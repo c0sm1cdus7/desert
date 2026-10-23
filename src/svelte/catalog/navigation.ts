@@ -10,6 +10,8 @@ export const catalogGroups = InteractionCatalog.groups.map(group => ({
 }));
 
 export function catalogTitle(id: PrimitiveId): string {
+  if (id === 'action') return 'Button';
+  if (id === 'transient') return 'Transient surface';
   const words = id.startsWith("input.") ? `${id.slice(6)} input` : id.replace(/^control\./, "");
   return words.charAt(0).toUpperCase() + words.slice(1).replaceAll(".", " ");
 }

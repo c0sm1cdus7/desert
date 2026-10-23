@@ -4,9 +4,9 @@ import { mkdir } from "node:fs/promises";
 import { publicCatalogFixture } from "./public-catalog-fixture.ts";
 import { navigationAction, settle } from "./public-catalog-expectations.ts";
 
-// Owner expectation: all search fields expose the same icon/accessory anatomy.
-// Filtering, clearing, and closing remain distinct operations.
-test("toolbar, catalog and collection share search anatomy without losing local scope", async () => {
+// Search always expands from the shared toolbar, never from surface content.
+// Clearing the query and closing the overlay remain distinct operations.
+test("toolbar search keeps its anatomy while catalog and collection content have no inline search", async () => {
   const f = await publicCatalogFixture();
   const evidence = "artifacts/search-field-anatomy";
   try {
@@ -30,32 +30,39 @@ test("toolbar, catalog and collection share search anatomy without losing local 
     await page.getByRole("button", { name: "Close search", exact: true }).click();
     await (await navigationAction(page, "Component bank")).click();
     const navigation = page.getByRole("navigation", { name: "Catalog navigation", exact: true });
-    const find = navigation.getByRole("searchbox", { name: "Find component", exact: true });
-    await find.fill("collection");
-    assert.equal(await navigation.locator('svg[data-search-icon="leading"]').count(), 1);
-    assert.equal(await navigation.getByRole("button", { name: "Clear search", exact: true }).count(), 1);
+    assert.equal(await navigation.getByRole("searchbox").count(), 0);
+    assert.equal(await page.locator("[data-catalog-scroll] [data-search-field]").count(), 0);
     const collection = page.locator('[data-specimen="collection:records"]');
-    const local = collection.getByRole("searchbox", { name: "Search loaded records", exact: true });
-    await local.fill("Fuji");
-    assert.equal(await collection.locator('svg[data-search-icon="leading"]').count(), 1);
-    assert.deepEqual(await collection.locator(".record-button strong").allTextContents(), ["Mount Fuji"]);
+    assert.equal(await collection.getByRole("searchbox").count(), 0);
+    await page.getByRole("button", { name: "Search", exact: true }).click();
+    const find = toolbar.getByRole("searchbox", { name: "Search component bank", exact: true });
+    await find.fill("collection");
+    assert.equal(await toolbar.locator('svg[data-search-icon="leading"]').count(), 1);
+    assert.equal(await toolbar.getByRole("button", { name: "Clear search", exact: true }).count(), 1);
+    const overlay = page.locator("[data-catalog-search-scroll]");
+    assert.equal(await overlay.locator('[data-search-result="collection"]').count(), 1);
+    const inventory = await page.locator("[data-catalog-entry]").count();
+    assert.ok(inventory > 1, "query changes overlay results, not the underlying inventory");
     for (const scheme of ["dark", "light"] as const) {
       await page.emulateMedia({ colorScheme: scheme });
-      await local.scrollIntoViewIfNeeded(); await settle(page);
+      await settle(page);
       await mkdir(evidence, { recursive: true });
-      await collection.screenshot({ path: `${evidence}/collection-${scheme}.png` });
+      await page.screenshot({ path: `${evidence}/overlay-${scheme}.png` });
     }
     for (const width of [390, 320]) {
       await page.setViewportSize({ width, height: 740 });
-      await local.fill("no-such-record");
-      const accessory = collection.getByRole("button", { name: "Clear search", exact: true });
-      await accessory.scrollIntoViewIfNeeded(); await settle(page);
+      await find.fill("no-such-record");
+      const accessory = toolbar.getByRole("button", { name: "Clear search", exact: true });
+      await settle(page);
       const box = (await accessory.boundingBox())!;
       assert.ok(box.width >= 44 && box.height >= 44, "Compact clear is a touch target");
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
       await accessory.click();
-      assert.ok(await local.evaluate(el => el === document.activeElement));
-      assert.equal(await find.inputValue(), "collection", "Local clearing does not clear the catalog filter");
+      assert.ok(await find.evaluate(el => el === document.activeElement));
+      assert.equal(await find.inputValue(), "");
+      assert.equal(await page.locator("[data-catalog-entry]").count(), inventory);
     }
+    await page.getByRole("button", { name: "Close search", exact: true }).click();
+    assert.equal(await page.getByRole("searchbox").count(), 0);
   } finally { await f.close(); }
 });

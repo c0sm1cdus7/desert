@@ -19,9 +19,12 @@ test("the public bank reuses inventory search, preserves drafts and returns from
     const navigation = page.getByRole("navigation", { name: "Catalog navigation", exact: true });
     await navigation.getByRole("link", { name: /^Controls/ }).click();
     assert.equal(await page.evaluate(() => document.activeElement?.id), "catalog-controls");
-    await page.getByRole("region", { name: "Controls", exact: true })
-      .getByRole("link", { name: "Back to catalog navigation", exact: true }).click();
-    assert.equal(await page.evaluate(() => document.activeElement?.id), "catalog-search");
+    assert.equal(await page.getByRole("region", { name: "Controls", exact: true })
+      .getByRole("link", { name: "Back to catalog navigation", exact: true }).count(), 0);
+    await page.locator('[data-catalog-content] [data-place-toolbar]')
+      .getByRole("button", { name: "Back to top", exact: true }).focus();
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => document.querySelector('[data-catalog-content] > .place-viewport')!.scrollTop === 0);
     await find.fill("collection");
     const opener = page.locator('[data-specimen="collection:records"]').getByRole("button", { name: "Alps", exact: true });
     await opener.click();

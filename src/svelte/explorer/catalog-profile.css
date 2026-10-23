@@ -3,7 +3,7 @@
 [data-renderer-profile="apple-reference"] {
   --catalog-image-foreground:#fff; --catalog-image-shade:#000c;
   --catalog-search-foreground:var(--muted-foreground);
-  --catalog-sidebar-width:240px; --catalog-toolbar-height:36px; --catalog-toolbar-inset:8px;
+  --catalog-sidebar-width:240px;
   --catalog-hero-height:max(199px,calc((100dvh - 52px) / 2));
   --catalog-media-height:max(140px,calc((100dvh - 52px) * .2));
 }

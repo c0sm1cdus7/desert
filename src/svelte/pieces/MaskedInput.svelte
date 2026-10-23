@@ -1,12 +1,13 @@
 <script lang="ts">
   import { untrack } from "svelte";
-  import type { HTMLInputAttributes } from "svelte/elements";
   import * as Group from "../vendor/components/ui/input-group/index.js";
   import { formatMaskedValue, readMaskedValue, maskSeparators, type InputMask } from "../../interaction/input-mask.ts";
   import { historyKey, inputEditHistory, inputSnapshot, type InputSnapshot } from "./input-edit-history.ts";
-  let { value, mask, identity = "", display = $bindable(""), onvalue, onblur, onkeydown, onpointerdown, ...props }: Omit<HTMLInputAttributes,
-    "value" | "type" | "files" | "oninput" | "onbeforeinput" | "oncompositionstart" | "oncompositionend" | "onchange"> & {
+  let { value, mask, identity = "", display = $bindable(""), onvalue, id, placeholder, disabled, required,
+    "aria-required": ariaRequired, "aria-invalid": invalid, "aria-label": label, "aria-describedby": describedBy }: {
     value: string; mask: InputMask; identity?: string; display?: string;
+    id?: string; placeholder?: string; disabled?: boolean; required?: boolean;
+    "aria-required"?: boolean; "aria-invalid"?: boolean; "aria-label"?: string; "aria-describedby"?: string;
     onvalue: (value: string, valid: boolean, complete: boolean) => void;
   } = $props();
   let composing = false, compositionInput = false, allowDisplacedGrouping = false;
@@ -67,7 +68,7 @@
     edit(input, true, false);
   }
   function keydown(event: KeyboardEvent & { currentTarget: HTMLInputElement }) {
-    onkeydown?.(event); if (event.defaultPrevented || composing || event.isComposing) return;
+    if (event.defaultPrevented || composing || event.isComposing) return;
     const direction = historyKey(event);
     if (direction) { event.preventDefault(); restore(event.currentTarget, direction); }
     else if (event.key.length > 1 && !["Backspace", "Delete"].includes(event.key)) history.boundary();
@@ -100,10 +101,11 @@
       input.setSelectionRange(start, start + group.length + 1);
   }
 </script>
-<Group.Input {...props} type="text" inputmode="decimal" value={display} data-input-mask={mask.kind}
+<Group.Input {id} {placeholder} {disabled} {required} aria-required={ariaRequired} aria-invalid={invalid}
+  aria-label={label} aria-describedby={describedBy} type="text" inputmode="decimal" value={display} data-input-mask={mask.kind}
   onbeforeinput={before}
   onkeydown={keydown}
-  onpointerdown={event => { history.boundary(); onpointerdown?.(event); }}
+  onpointerdown={() => history.boundary()}
   oncompositionstart={event => { composing = true; pending = { state: inputSnapshot(event.currentTarget), kind: "composition" }; }}
   oncompositionend={event => { composing = false; edit(event.currentTarget, true); compositionInput = true; }}
   oninput={event => {
@@ -112,4 +114,4 @@
     compositionInput = false;
     edit(event.currentTarget, !allowDisplacedGrouping); allowDisplacedGrouping = false;
   }}
-  onblur={event => { history.boundary(); onblur?.(event); }} />
+  onblur={() => history.boundary()} />

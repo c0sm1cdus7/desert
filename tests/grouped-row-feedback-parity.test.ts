@@ -11,7 +11,7 @@ const settle = (page: Page) => page.evaluate(async () => {
 async function expectedInk(page: Page) {
   return page.evaluate(() => {
     const probe = document.createElement("span");
-    probe.style.color = 'var(--primary-text)';
+    probe.style.color = 'var(--foreground)';
     document.body.append(probe);
     const color = getComputedStyle(probe).color;
     probe.remove(); return color;
@@ -35,19 +35,26 @@ test("action and choice rows share semantic hover, press, cancellation and disab
         const row = target(family);
         await row.scrollIntoViewIfNeeded(); await f.page.mouse.move(0,0); await settle(f.page);
         const before = await row.boundingBox();
+        const restingInk = await row.evaluate(node => getComputedStyle(node).color);
+        const restingShadow = await row.evaluate(node => getComputedStyle(node).boxShadow);
         await row.hover(); await settle(f.page);
         assert.equal(await row.evaluate(node => getComputedStyle(node).color),hover,`${profile}/${family}: shared hover ink`);
+        assert.equal(await row.evaluate(node => getComputedStyle(node).color),restingInk,'hover preserves semantic ink');
+        const hoverShadow = await row.evaluate(node => getComputedStyle(node).boxShadow);
+        assert.notEqual(hoverShadow,restingShadow,'neutral hover feedback remains perceptible');
         assert.equal(await row.evaluate(node => getComputedStyle(node).backgroundImage),'none','hover does not repaint the pane');
         await f.page.mouse.down();
         try {
           await settle(f.page);
           assert.equal(await row.evaluate(node => getComputedStyle(node).backgroundImage),'none','press does not repaint the pane');
           const scale = await row.evaluate(node => new DOMMatrix(getComputedStyle(node.querySelector('[data-button-content],[data-grouped-content]')!).transform).a);
-          assert.ok(Math.abs(scale - .985) < .001,`${profile}/${family}: shared held content feedback`);
+          assert.ok(Math.abs(scale - .96) < .001,`${profile}/${family}: shared held content feedback`);
+          assert.notEqual(await row.evaluate(node => getComputedStyle(node).boxShadow),hoverShadow,'held feedback is distinct from hover');
           assert.deepEqual(await row.boundingBox(),before,"feedback does not resize its surface");
           await f.page.mouse.move(0,0); await settle(f.page);
           assert.equal(await row.evaluate(node => getComputedStyle(node).backgroundImage),"none","pointer departure clears held feedback");
           assert.equal(await row.getAttribute('data-pressed'),null,'pointer departure clears the pressed state');
+          assert.equal(await row.evaluate(node => getComputedStyle(node).boxShadow),restingShadow,'departure clears neutral feedback');
         } finally { await f.page.mouse.up(); }
       }
     }

@@ -33,7 +33,8 @@ test('always-visible sibling Stacks retain independent labels, requirements and 
     const choicesLegend = details.locator('[data-control="options"] > legend');
     assert.equal(await choicesLegend.evaluate(element => element.classList.contains('sr-only')), false,
       'A sibling Stack owns its label scope independently of the previous heading');
-    assert.equal(await choicesLegend.locator('.required').isVisible(), true);
+    assert.equal(await choicesLegend.locator('.required').count(), 0,
+      'A retained contextual choice has no required marker');
     assert.equal(await details.getByRole('radio', { name: 'First', exact: true }).isVisible(), true,
       'Choice content is immediately available without expansion');
     assert.equal(await details.locator('[data-control="files"] [data-slot="field-label"]').evaluate(element => element.classList.contains('sr-only')), false);

@@ -1,4 +1,378 @@
-# Implementation status — 2026-10-20
+# Implementation status — 2026-10-22
+
+## External review checkpoint on 2026-10-23
+
+The owner requested a source snapshot and independent external proposal for visual
+catalog enforcement. The [handoff](HANDOFF-VISUAL-ENFORCEMENT-2026-10-23.md) records
+current counterexamples, requirements and acceptance gates. Shared compositions
+can still reconstruct visual blocks outside the approved foundation model;
+the normal build's partial checks do not establish global ownership. This snapshot
+is **NOT QUALIFIED** and contains known defects. No product tests or browser build
+were rerun as part of preparing the handoff. Preserve the historical evidence
+below with its original artifact/scope; do not use its totals to certify this source.
+
+## Current source: one composed product path
+
+The public compiler now accepts only an issued `composeProduct(...)` result.
+It binds the execution application to that composition's admitted View program.
+`buildDistribution`, `buildHumanModule` and controller hosts derive that program;
+they do not accept a second program override. Human/agent standalone authoring
+and the human renderer's implicit navigation fallback have been removed. Internal
+wire compilation remains a protocol/testing boundary, not a public product path.
+
+Notebook now exercises the same architecture as VOID: capability module,
+object publication, commands, journeys, component-built Views, declared workspace
+and minimal exposure. Its canonical source is `products/notebook/src/`; older flat
+example filenames only re-export. Builds and hosts check that source tree before
+importing it. The example's controller distribution consumes its issued dependency
+reference, not a private module implementation.
+
+Checkpoint N now has post-migration qualification: **1441/1441** SDK tests,
+**54/54** generated VOID browser tests, **16/16** Notebook continuity cases,
+**40/40** Inspection cases, **31/31** public catalog/motion cases, **19/19** press
+cases and **27/27** shared-owner cases passed. VOID source admission accepts 85
+declaration files; its 40 contract/runtime tests and TypeScript pass. Production
+sources were frozen for the builds and qualification. Test-only transport/CSS
+loading fixtures were corrected without weakening assertions; earlier failed
+runs remain recorded as failed. Exact artifacts, digests and evidence are in
+[VOID verification](../../void/docs/VERIFICATION.md).
+
+The N protected local host is running at the existing port 4400 and first-admin
+initialization is ready for the owner. No credentials, push or release were
+created. The result is bounded local qualification, not whole-product completion,
+all-platform certification or global legacy visual-ownership closure. The latter
+remains **NOT QUALIFIED**. Historical results below must not supersede this scope.
+
+The conditional-activity kernel and human interpreter are now installed. They
+provide authenticated preflight, durable acknowledged steps, bounded scalar
+branches, Back with approval invalidation, explicit canonical preparation and
+receipt recovery. VOID's Guided note reuses its ordinary create command.
+Runtime-created plans are restricted to an installed command/View catalog;
+cross-identity assignment, cross-surface continuation, conditional business-input
+requirements and arbitrary document workflows remain open. See
+[activities](ACTIVITIES.md), not the older proposal-only checkpoint below.
+
+VOID additionally has Notes Trash/Restore, typed Task Project labels, shared
+System/Appearance/Identity destinations, sample image/video/audio playback and
+authenticated private-image import/read/rename/Trash/Restore. Private originals
+and optimized renditions stay outside public build assets. This does not install
+private album management, video/audio imports, identity recovery/OAuth, canonical
+identity administration, remote environments/provider execution or native binaries.
+The [SDK anatomy](architecture/ANATOMY.md) and [VOID anatomy](../../void/docs/ANATOMY.md)
+map actual owners and remaining boundaries.
+
+## Historical checkpoints — not current authoring instructions
+
+The entries below retain their evidence and limitations at the time recorded.
+Earlier standalone, proposal-only activity and image-only Media statements are
+superseded by the current-source section above. They must not be used to restore
+removed APIs, bypass composition or claim that a later build was already tested.
+
+## Declared workspace and shared toolbar identity
+
+Composed products now require a Workspace View object reference. The `/3` View
+program admits a destination outlet and an optional left navigation View; that
+View declares the header and consumes the existing single navigation list.
+The runtime resolves the same contract instead of mounting navigation implicitly.
+No leftDock means no navigation surface, toggle, shortcut or phantom reservation.
+Unsupported root slots and nested/right docks fail rather than being ignored.
+
+ToolbarLayout now owns title/subtitle rendering through ToolbarIdentity. Navigation,
+page continuation, calendar, panels and viewer use this owner. Shared surface
+reading guides align the identity with body content without consumer offsets;
+actual leading controls and wrapped layouts use the same rule. Raw consumer
+identity markup and external identity padding fail the source boundary.
+Buttons, material and motion implementations are retained. Viewer identity now
+uses the common toolbar typography. VOID's undeclared disabled Settings placeholder
+is omitted from its declared navigation View, not replaced with a fake action.
+
+This increment does not install generic conditional/multi-step journeys, preflight
+driven step graphs, dynamic assignments between identities or arbitrary docked
+View composition. The Capibara discussion is a proposal, not an implemented
+contract. It also does not qualify the complete legacy visual ownership graph.
+
+## Architecture closure in progress — not a new stable release
+
+Composed products now have one navigation owner: the View program. Human
+exposure no longer requires a second entry, primary action or subject-action
+list. The authoring helper, composition and View compiler share the same
+navigation-ownership guard; declarations that attempt a second owner fail even
+when their values agree. The web builder and runtime use the program's declared
+read scopes, not a guessed first exposed operation. The independent standalone
+Notebook route requires its own complete navigation and cannot be combined with
+a View program. There is no compatibility fallback between those routes.
+
+Connection availability, draft retention and reconnect behavior are one frozen
+SDK policy. Composition and standalone authoring derive it; products cannot override it, even
+with identical values. The wire schema and View-program admission validate that
+same policy. This removes duplicated declarations, not controller authority or
+receipt safeguards. Removing navigation metadata changes VOID's contract digest;
+no existing store has been repinned or reset for this source change.
+
+Composed human exposure now declares only identity, journeys and locale. Object
+publication owns each presented fact's label and finite representation; execution
+registration owns its label and explicit human-review requirement. Composition
+derives the canonical field, representation and review maps before domain compilation.
+Authored maps are rejected rather than ignored, including properties with an
+undefined value. No review behavior is inferred from an output name. The compiled
+VOID domain initially remained byte-for-byte identical to the navigation-only
+migration; the later neutral representation change below is an explicit new
+canonical contract.
+
+Public module catalogs now derive typed journey, View, command, destination and
+dependency references from exact registered exports. Local links use objects;
+cross-module consumers use opaque references such as `Journeys.createNote`.
+Admission checks mounting, kind and ownership before snapshotting/serialization.
+The old string-lookup authoring helpers are removed, not kept as a parallel path.
+The public `View` and `ViewJourney` types describe authored object references;
+wire IDs remain in the compiled protocol. The reference migration itself preserved
+VOID's domain, View program, derived catalog and storyboard exactly; it does not
+claim that the separate representation-contract migration preserves that digest.
+
+After a verified mutation receipt, the shared client now releases that operation's
+navigation lock before refreshing reads. A later read completion or failure cannot
+clear another operation's busy state or replace its recovery/error state. The
+caller still awaits its refresh; this is not a write replay or a delay-based UI
+workaround. Independent model tests cover invoke, reviewed acceptance and recovery.
+
+Canonical surfaces now carry one `fieldRepresentations` map derived from the
+object publication. Reading no longer infers paragraphs from editor availability;
+forms derive controls only for the command's actual inputs. A read-only paragraph
+does not require a mutation. Standalone Notebook migrates to this same explicit
+contract; the old `inputs` map is not a compatibility fallback. This intentional
+wire-definition change alters the installation digest and is not installed into
+an existing store automatically. Independent per-View representation overrides
+remain disallowed because the publication owns the representation.
+
+Preparation response projection is also shared: the owner-approved agent rule
+uses the same minimal same-surface read/operation-input authority as human
+responses. `responseFields` is derived once; human review reuses it. Input aliases
+identify their assigned targets, not unrelated stored facts with matching names.
+The response excludes internal facts without changing the complete stored effect,
+confirmation digest or atomic receipt. Interaction protocol `/7` explicitly
+versions the new projection; old or missing response authority fails closed.
+
+This closes competing navigation, connection and exposure-semantic owners,
+the public string-lookup migration and the reading/editing coupling, **not all
+SDK debt or global visual qualification**.
+
+The current source implements capability composition, typed View ports and
+references, object presentation publication, and a multi-read/create/update web
+interpreter. VOID now declares Note's detail View, title fact and Edit action in
+one publication. Explicit initialization maps authorized facts to editor inputs;
+the runtime no longer guesses a same-name mapping or assumes every action is Edit.
+Literal View titles remain literal; subject/operation titles are explicit bindings.
+The derived storyboard includes subject actions and their source reads.
+
+The product source gate remains in front of build/host/inspection. No product
+renderer, private controller or duplicate business validator was introduced.
+The [SDK anatomy](architecture/ANATOMY.md) and VOID's `docs/ANATOMY.md` map the
+actual source and separate installed behavior from open requirements.
+
+This does **not** close the global visual ownership contract. The active View
+route now selects finite catalog entries through a typed gateway: workspace,
+content, panels, failures, controls, inspection and media adapters cannot add
+native markup, CSS, browser drawing or arbitrary components. The bank dispatcher
+is checked against the actual registry and owner prop types. Real Svelte builds
+run this source gate and Svelte typechecking before Vite emits an artifact.
+The generated framework root loads the existing theme explicitly, independently
+of legacy renderer imports. Its canonical theme/route-child bootstrap is also
+sealed; it cannot add markup, arbitrary CSS, effects or public rendering props.
+Legacy routes and the complete private-owner/CSS dependency graph remain
+unqualified; the strict whole-renderer audit still fails.
+
+The build now also traverses sealed adapters' nonvisual runtime dependencies,
+including TypeScript helper chains and barrel exports. Those cannot launder CSS,
+private components, opaque imports or browser drawing authority. The gateway's
+implementation identities are derived from its existing owner map; owner
+substitutions, executable wrappers and extra imports fail independently of prop
+typing. Independent negative tests first reproduced the missing rejections.
+
+View-program navigation now explicitly authors group and content/utility purpose.
+Destination IDs/icons no longer choose these in the View route, and a reachable
+registered destination may stay out of navigation. The wire shape is versioned
+as `desert.view-program/2`, not silently added to version 1. Existing VOID page
+and search pixels remain exact in the 390/1280px comparison.
+
+An input-free subject action binding now uses the canonical update command and
+preparation/review/receipt lifecycle without an invented form. Entry from Home
+or a collection into a subject action/update without a subject fails compilation.
+The isolated controller witness covers real PostgreSQL effects, prepared-target
+integrity, receipt recovery, controller availability and scope/draft isolation.
+This does not create a VOID deletion command or define deletion policy.
+
+On 2026-10-21 the owner explicitly selected the actual approved page toolbar
+geometry as the single rule: 8px inset, 12px rail gap and 44px minimum target at
+normal text size, using one shared responsive typography reference. Sidebar,
+calendar, transient/message and viewer toolbars now use that owner. Pane-relative
+measurements include ancestor padding, not merely the local header. Page/search
+pixels are unchanged at 320/390/1280px; other toolbar spacing changes are the
+explicitly authorized correction. Buttons, glass and motion were not redesigned.
+See the
+[ownership audit](architecture/VISUAL-OWNERSHIP-AUDIT.md).
+
+Adding Edit deliberately changes the domain digest. On 2026-10-21 the owner
+explicitly authorized deleting the disposable VOID test data. The stopped local
+host's exact `.local/void` directory was removed and architecture-f recreated it
+on port 4400. No store was repinned, no general migration was claimed, and SDK
+sources, stable builds and reference media were not removed. Subsequent source
+changes are not automatically present in that artifact. No commit/push is part
+of this ongoing architecture work.
+Current verification is recorded in VOID's `docs/VERIFICATION.md`; older entries
+below describe the evidence and limitations at their respective checkpoints.
+
+## Media in the existing View workspace
+
+The closed `media-library` View composition now declares logical image references,
+ordered albums, explicit covers and featured albums. It mounts through a
+presentation journey, not a second product renderer or a controller mutation.
+The adapter reuses `CatalogWorkspace`, `PlaceHeading`, `CatalogHome`,
+`CatalogCard`, `PhotoCollection` and `Viewer`. Album state is scoped to its View;
+search remains in the shared overlay. Geometry, materials and motion are unchanged.
+
+VOID mounts this composition alongside Notes and Visual catalog using the 21
+local reference photographs. Typed and runtime checks reject invalid memberships,
+covers, unknown references and styling escapes. Build/host checks require an exact
+external asset binding and attest its content without copying photographs into the
+artifact. Existing rendition generation and bounded prefetch remain shared.
+
+This restores local photo browsing, not a complete media service. Video/audio
+playback, imports, persistence, nested album ancestry and private-media authorization
+are not implemented. Reference media is loopback-served sample content, not private
+controller data. Native parity is not implied. See VOID `docs/MEDIA.md` for scope.
+
+## Object editing — installed in the new isolated VOID build
+
+The local session and its HTTP protocol now require an original `expectedVersion`
+for input-bearing updates. A shared closed metadata schema rejects malformed bases;
+stale editors fail before intent creation, and acceptance still checks the exact
+prepared version. Identical input/base retries and receipt recovery preserve the
+same occurrence. The derived verifier carries versions observed before admission,
+including its setup paths; it does not rebase or bypass the runtime guard.
+
+Independent kernel/protocol checks pass, including stale-before-prepare,
+post-prepare conflict, malformed/missing metadata, retries and unchanged creation/
+zero-input updates. Derived verification exercises all 50 fixture obligations,
+including 14 input-edit cases across human and agent exposure. These are mechanism
+checks, separate from the new VOID editor's browser evidence.
+
+The human client has a nonvisual editing foundation for authorized loaded facts,
+retained drafts/bases, availability/eligible-offer checks and explicit recovery.
+Independent review reproduced receipt-correlation and post-accept read-failure
+defects before correction. The client now checks the complete occurrence, canonical
+object type and exact acknowledged revision before adopting an edit base. A failed
+refresh gets at most one read-only retry; repeated failure preserves the draft and
+reports a read error without replaying a write or unconfirming a valid receipt.
+The final focused client/creation/recovery/multiple-scope set passes 82 checks.
+SDK and VOID TypeScript checks pass; generated Svelte checking reports zero errors
+and warnings. The View-program builder now admits input-bearing subject updates
+with an explicit source read and typed initialization projection. The legacy
+no-View-program path still rejects this unsupported binding rather than guessing.
+
+VOID's publication binds Note to its detail View, title fact and Edit journey.
+The same declared editor serves create and edit. Its canonical command retains
+ownership, original-version and receipt semantics across human/agent exposure.
+Input-free canonical subject updates now have an action binding as described
+above. VOID deletion/archive commands and generic multi-step activities remain open.
+Remote controller federation, native renderers and safe contract/store migration
+are separate gaps. Existing controller availability uses expiring evidence and
+polling, not Internet status or push synchronization. A connected controller is
+not by itself permission to execute a command.
+
+## Toolbar fade follows the page background
+
+The shared scroll-edge decoration now blends the page background at 24%,
+replacing the former black tint. This explicitly supersedes the historical
+black24% contract: a blank canvas must retain its tone in both appearances.
+The mirrored 32px feather, reading mask, geometry, input handling and motion
+remain unchanged. There is no product or catalog-specific override.
+
+Independent painted-pixel tests reproduced the old dark 30-to-23 and light
+245-to-186 shifts before the fix; both appearances now stay within one 8-bit
+compositor rounding step of the canvas. Seven shared fade/reading checks and
+all 17 rebuilt VOID browser tests pass. Svelte checking has zero errors or
+warnings; all 12 search/sidebar/transient motion comparisons are exact.
+All 20 static comparisons retain identical recorded geometry/scroll metrics;
+edge pixels intentionally change, including their sampling through glass.
+Evidence: `artifacts/toolbar-background-fade/` and
+`artifacts/toolbar-fade-motion-20261020-a/`. This is Chromium coverage, not
+native-platform qualification. The fade color is an intentional visual change.
+
+## Responsive pane entry and shared primary glass
+
+Newly mounted View panels now resolve their host content-box before opening.
+The initial zero-width measurement previously selected bottom entry on wide
+hosts, then changed geometry to the right during that same animation. Independent
+RED checks reproduced the defect at 1200/1600px; 390px already passed. The shared
+Panel lifetime also avoids reading a removed panel during close/reopen.
+Approved geometry, motion curves and duration tokens are unchanged.
+
+Primary buttons now tint the canonical pane material rather than only their
+label. Neutral panes retain the same fill; all panes retain the shared 88%
+opacity, 24px backdrop blur and perimeter. Primary labels are white, including
+pending actions. Shared feedback darkens that tinted face without changing
+neutral hover/press output, scale or timing. Reduced-transparency/high-contrast
+preferences retain the opaque/no-blur accessibility fallback. Disabled search
+now fades its contents once, not the whole pane. No refraction effect was added.
+
+Verification: 22 responsive entry/lifetime/resize/motion/picker tests and 17
+rebuilt VOID browser tests pass; TypeScript and generated Svelte checks pass.
+Focused material tests cover primary/neutral, pending/disabled, both appearances,
+accessibility preferences and painted white-label contrast (minimum 4.74:1 over
+the tested white/black backdrops). Existing search/sidebar/catalog-transient
+motion matches the previous preview in all 12 comparisons. Static parity is
+19/20 exact; the remaining eight Home-icon corner pixels match the previously
+recorded baseline-versus-itself raster variation, with identical layout metrics.
+Evidence: `artifacts/pane-{motion,static}-parity-20261020-a/` and
+`artifacts/view-panel-axis-{red,green}/`. This is finite Chromium coverage,
+not native refraction, all-platform qualification or closure of the 326-file
+consumer-override audit.
+
+## Module composition — preserved VOID architecture migration
+
+`defineModule` now owns a capability's objects, policies, execution roles,
+journey registrations, views, destinations and explicit public exports.
+`composeProduct` mounts issued module definitions and adds product-level
+compositions. It derives the canonical execution definition, View program,
+definition catalog and storyboard; there is no second handwritten inventory.
+Schemas own structural authoring types and runtime shape checks. Qualified
+public references distinguish views, journeys and destinations; duplicate,
+unknown, private, foreign-owned and forged module references are rejected.
+Modules are self-contained. Cross-capability presentation collaboration belongs
+to the root, through public contracts, not imports of another module's internals.
+
+The separate Node authoring entrypoint `src/authoring/index.ts` checks the entire
+product `src/` tree before evaluation. The modular source gate requires one
+`.product.ts` composition root and canonical `.module.ts` public entrypoints.
+It rejects private/cross-module imports, manifest aliases/reexports/property
+access, view-to-activity dependencies, callbacks, import-time effects, private
+SDK infrastructure, CSS and product components. VOID's build, run and inspection
+scripts invoke this gate before dynamically importing authored declarations.
+This is a trusted authoring/build boundary, not a malicious-code sandbox or a
+replacement for runtime admission. Legacy SDK products remain supported outside
+this new modular source contract; no global legacy migration is claimed.
+
+Execution still uses the same admitted session operations, prepare/accept and
+receipt reconciliation. No module gets a private controller, write dispatcher
+or event broker. This increment does not install arbitrary multi-step activities,
+cross-object collaboration effects, MCP/API transports, bootstrap/recovery or
+additional VOID roadmap capabilities. A module may be headless; the current
+composed web product still requires the finite one-read/one-create View program.
+
+VOID has one `src/void.product.ts`, root Home/navigation/exposures and
+`src/modules/notes` plus `src/modules/visualCatalog`. Its stable canonical digest
+is unchanged. All stable Svelte/catalog/interaction/view-client owners are
+unchanged. The 326-file legacy consumer-override audit remains open; this module
+boundary does not retroactively certify that unrelated internal renderer code.
+
+Verification: 44 module/source-boundary tests, VOID's 19 contract/runtime tests
+and seven rebuilt-browser tests pass. Both TypeScript checks and generated
+Svelte checks pass. Motion matches approved VOID in all 12 comparisons. Static
+captures match in 18/20 pairs; two wide/scroll captures differ in eight icon
+corner pixels, also reproduced when the stable build is compared to itself.
+No masks, tolerances or visual code changes hide that Chromium raster variation;
+full-matrix exact pixel qualification is not claimed. See VOID verification and
+`artifacts/module-void-{parity,motion}-20261020-a/` for this rebuilt artifact.
 
 ## Owner-approved checkpoint — v128a-stable
 
@@ -52,12 +426,16 @@ store; it is not production enrollment, authentication or identity recovery.
 The frozen v127a preview/data are not used or modified.
 
 The local product exposes Home, Notes, create/read panels and the existing web
-Visual catalog. Editing, general module composition, MCP/API adapters, native
-renderers, media-header handoff in the new program and global no-override
+Visual catalog. Module composition is installed by the increment above. Editing, MCP/API adapters, native
+renderers and global no-override
 ownership closure remain open. Evidence is recorded in VOID's
 `docs/VERIFICATION.md`; this is not a new qualified public release.
 
-## Literal View authoring foundation
+## Historical checkpoint: literal View authoring foundation
+
+The public string-reference helpers described in this historical checkpoint were
+superseded by the object-reference authoring contract at the top of this document.
+`viewCatalog` remains an internal wire validator, not a public authoring alternative.
 
 The working branch adds `desert.view/1` and exported `View`, `view` and
 `viewCatalog`. Content is an ordered sequence: a standalone Header, titled
@@ -1468,7 +1846,7 @@ attestation or conformance. See [distribution builds](DISTRIBUTION-BUILDS.md).
 - Device/native parity, offline browser installation, full visual/accessibility gates.
 
 Notebook compiles into checked, frozen plans marked `not-installed`; interaction
-format is now `desert.interaction/6`. The separate local bootstrap installs execution
+format is now `desert.interaction/7`. The separate local bootstrap installs execution
 against PostgreSQL. The explicit web bootstrap now serves a real Svelte GUI over
 loopback HTTP. The explicit build entrypoint supports only the Svelte web target;
 there is no generic `execute` bypass or automatic installation.

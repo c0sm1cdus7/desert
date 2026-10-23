@@ -1,7 +1,7 @@
 import { readFileSync, statSync } from "node:fs";
 import { isAbsolute } from "node:path";
 import { Pool, type PoolClient } from "pg";
-import { requireDurablePrimary, requireInstallation } from "./installation.ts";
+import { LocalSchemaVersion, requireDurablePrimary, requireInstallation } from "./installation.ts";
 
 export type LocalDatabase = { socketDirectory: string, database: string, user: string, port?: number };
 
@@ -55,14 +55,16 @@ export function localDatabase(options: LocalDatabase) {
     } finally { client.release(broken || clientFaults.has(client)); }
   }
 
-  async function install(product: string, digest: string, role: string) {
+  async function install(product: string, digest: string, roles: readonly string[]) {
     await transaction(async client => {
       await requireDurablePrimary(client);
       await client.query("SELECT pg_advisory_xact_lock(842721)");
       await client.query(readFileSync(new URL("./schema.sql", import.meta.url), "utf8"));
-      await client.query(`INSERT INTO desert_installation VALUES (true, 1, $1, $2, $3)
-        ON CONFLICT DO NOTHING`, [product, digest, role]);
-      await requireInstallation(client, { product, digest, role });
+      await client.query(readFileSync(new URL("../activities/schema.sql", import.meta.url), "utf8"));
+      await client.query(readFileSync(new URL("../identity/schema.sql", import.meta.url), "utf8"));
+      await client.query(`INSERT INTO desert_installation VALUES (true, $1, $2, $3, $4)
+        ON CONFLICT DO NOTHING`, [LocalSchemaVersion, product, digest, roles]);
+      await requireInstallation(client, { product, digest, roles });
     });
   }
   return { transaction, install, assertOpen,

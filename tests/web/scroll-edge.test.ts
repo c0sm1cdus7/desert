@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { publicCatalogFixture } from "./public-catalog-fixture.ts";
-import { browserFixture, settleMotion } from "./fixture.ts";
-import { navigationAction, settle } from "./public-catalog-expectations.ts";
+import { activePanel, settleMotion, waitForNote } from "./fixture.ts";
+import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
+import { settle } from "./public-catalog-expectations.ts";
 import { assertEdge, edgeState, paint, saveEdgeEvidence, scrollTo, usableControl } from "./scroll-edge-fixture.ts";
 
 // Written independently before implementation. A floating toolbar's content edge
@@ -11,14 +11,14 @@ import { assertEdge, edgeState, paint, saveEdgeEvidence, scrollTo, usableControl
 // toolbar means no invented edge. Framed start/end boundaries reveal all content.
 // Run against separately hosted frozen baseline and candidate builds; preserve RED.
 test("normal workspace edge follows the rendered toolbar and responsive scroll boundaries", { timeout: 30000 }, async t => {
-  const f = await publicCatalogFixture();
+  const f = await browserFixture();
   try {
     const { page } = f;
     await page.setViewportSize({ width: 1280, height: 700 });
     await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
     const cdp = await f.context.newCDPSession(page);
     await cdp.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-transparency", value: "no-preference" }] });
-    await (await navigationAction(page, "Component bank")).click(); await settle(page);
+    await openCatalog(page);
     const scope = page.locator("[data-catalog-content]"), content = scope.locator("[data-catalog-scroll]");
     const search = scope.locator("[data-catalog-toolbar]").getByRole("button", { name: "Search", exact: true });
     async function checkSearchFocus() {
@@ -59,7 +59,7 @@ test("normal workspace edge follows the rendered toolbar and responsive scroll b
     await paint(page); await assertEdge(scope, "top", true, true);
     await checkSearchFocus();
     await assertEdge(scope, "top", true, true); await saveEdgeEvidence(page, "catalog-reduced-transparency", scope);
-    await (await navigationAction(page, "Travel kit")).click(); await settle(page);
+    await page.getByRole('button', { name:'Notes', exact:true }).click(); await settle(page);
     await scrollTo(content, "start");
     await page.setViewportSize({ width: 1280, height: 2000 }); await paint(page);
     const dimensions = await content.evaluate(node => ({ height: node.clientHeight, scrollHeight: node.scrollHeight }));
@@ -68,15 +68,15 @@ test("normal workspace edge follows the rendered toolbar and responsive scroll b
   } finally { await f.close(); }
 });
 
-test("read-only diagnostic transient grows from no edge to both local edges", { timeout: 30000 }, async t => {
-  const f = await publicCatalogFixture();
+test("read-only diagnostic transient grows a local top edge without inventing footer chrome", { timeout: 30000 }, async t => {
+  const f = await browserFixture();
   try {
     const { page } = f;
     await page.setViewportSize({ width: 1100, height: 700 });
     await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
     const cdp = await f.context.newCDPSession(page);
     await cdp.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-transparency", value: "no-preference" }] });
-    await (await navigationAction(page, "Component bank")).click();
+    await openCatalog(page);
     await page.locator('[data-specimen="transient:open"]').getByRole("button").click();
     const dialog = page.getByRole("dialog", { name: "Diagnostic transient", exact: true });
     await dialog.waitFor(); await settle(page);
@@ -89,8 +89,9 @@ test("read-only diagnostic transient grows from no edge to both local edges", { 
     });
     await paint(page); await scrollTo(content, "middle");
     t.diagnostic(await saveEdgeEvidence(page, "public-transient-dark-middle", scope));
-    await assertEdge(scope, "top", true); await assertEdge(scope, "bottom", true);
-    await usableControl(scope.locator('[data-surface-slot="bottom"]').getByRole("button", { name: "Close", exact: true }), true);
+    await assertEdge(scope, "top", true);
+    assert.equal((await edgeState(scope)).filter(edge => edge.edge === 'bottom').length, 0);
+    await usableControl(scope.locator('[data-surface-slot="top"]').getByRole("button", { name: "Close", exact: true }), true);
     const before = (await edgeState(scope)).map(edge => edge.active);
     await page.locator("[data-catalog-scroll]").evaluate(node => { node.scrollTop = 0; }); await paint(page);
     assert.deepEqual((await edgeState(scope)).map(edge => edge.active), before, "background pane scroll does not control the transient");
@@ -101,19 +102,20 @@ test("transient top and bottom edges clear at boundaries, stay local, and preser
   const f = await browserFixture();
   try {
     const { page } = f;
+    await page.setViewportSize({width:1600,height:900});
     await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
     const cdp = await f.context.newCDPSession(page);
     await cdp.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-transparency", value: "no-preference" }] });
     await page.getByRole("button", { name: "Create note", exact: true }).click();
     await page.getByRole("textbox", { name: "Title", exact: true }).fill("Scroll edge regression fixture");
     await page.getByRole("textbox", { name: "Content", exact: true }).fill("A complete readable line of review content.\n".repeat(60) + "Final visible line.");
-    await page.locator("form").getByRole("button", { name: "Create note", exact: true }).click();
-    const reading = page.getByRole("region", { name: "Object context", exact: true });
-    await reading.waitFor(); await page.getByRole("dialog").waitFor({ state: "hidden" });
-    assert.equal(await reading.locator('[data-scroll-edge][data-active="true"]').count(), 0, "document-flow reading does not invent floating chrome");
+    await activePanel(page).getByRole("button", { name: "Create note", exact: true }).click();
+    const reading = activePanel(page);
+    await waitForNote(page, 'Scroll edge regression fixture');
     const opener = reading.getByRole("button", { name: "Archive note", exact: true });
     await opener.click();
-    const dialog = page.getByRole("dialog"), scope = page.getByRole("region", { name: "Journey", exact: true });
+    const panel = activePanel(page), scope = panel.locator('[data-surface-frame]');
+    await panel.locator('[data-toolbar-title]').getByText('Review · Archive note', {exact:true}).waitFor();
     await scope.waitFor(); await settleMotion(page);
     const content = scope.locator('[data-surface-slot="content"]');
     const back = scope.locator('[data-surface-slot="bottom"]').getByRole("button", { name: "Back", exact: true });
@@ -161,8 +163,13 @@ test("transient top and bottom edges clear at boundaries, stay local, and preser
     await content.evaluate(node => { for (const child of node.children) (child as HTMLElement).style.display = "none"; });
     await paint(page);
     await assertEdge(scope, "top", false, true); await assertEdge(scope, "bottom", false, true);
-    await back.click(); await dialog.waitFor({ state: "hidden" });
-    assert.equal(await opener.evaluate(node => node === document.activeElement), true, "dismissal restores original control focus");
+    await back.click(); await waitForNote(page, 'Scroll edge regression fixture');
+    assert.equal(await opener.evaluate(node => node === document.activeElement), true,
+      `dismissal restores original control focus; ${JSON.stringify(await page.evaluate(() => ({
+        active: { tag: document.activeElement?.tagName, role: document.activeElement?.getAttribute('role'),
+          label: document.activeElement?.getAttribute('aria-label') },
+        targets: [...document.querySelectorAll('[data-toolbar-command]')].map(node => node.getAttribute('data-toolbar-command')),
+      })))}`);
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
@@ -172,8 +179,8 @@ test("decorative edges cannot enlarge the document during a container resize", {
   try {
     const { page } = f;
     await page.setViewportSize({ width: 390, height: 740 });
-    await page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
-    const catalog = page.locator("main.catalog");
+    await openCatalog(page);
+    const catalog = page.locator("[data-catalog-content]");
     // Hold the old container size while resizing the viewport, then release it
     // synchronously. This exposes the pre-observer layout without a timing race.
     await catalog.evaluate(node => { node.style.width = "390px"; }); await paint(page);

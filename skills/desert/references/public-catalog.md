@@ -322,7 +322,7 @@ export type CatalogAsset = Frozen<Static<typeof CatalogAssetSchema>>;
 
 ## src/public-catalog/validate-definition.ts
 
-Source SHA-256: 948549e48f07519d049c455c35ee7afb49dfcab81805ea9e09c73a230d131e5f
+Source SHA-256: 9aa68115b505c2c15a21c5bf412a39df71ebb8e31b583d8dc3e3b49d604f3c58
 
 ```ts
 import { Check } from "@sinclair/typebox/value";
@@ -346,6 +346,7 @@ export function validatePublicCatalogDefinition(value: unknown): PublicCatalogDe
   if (!Check(PublicCatalogDefinitionSchema, definition)) throw new Error("INVALID_PUBLIC_CATALOG_DEFINITION");
   const { object, source, view } = definition;
   if (Object.values(object.facts).some(fact => fact.kind === "principal")) throw new Error("INVALID_PUBLIC_CATALOG_PRINCIPAL");
+  if (Object.values(object.facts).some(fact => fact.kind === "asset")) throw new Error("PRIVATE_ASSET_REQUIRES_CONTROLLER_READ");
   const field = (name: string) => Object.hasOwn(object.facts, name) ? object.facts[name] : undefined;
   if (field(view.title)?.kind !== "text" || field(view.description)?.kind !== "text") throw new Error("INVALID_CATALOG_TEXT_EXPOSURE");
   const group = field(view.home.groups.field);
@@ -442,7 +443,7 @@ export function compilePublicCatalog(input: unknown): CompiledPublicCatalog {
 
 ## src/public-catalog/surface.ts
 
-Source SHA-256: b52bbcc0501f1b054d4408e2959d952ed2e5927f45d84fc329e21ea115811724
+Source SHA-256: a2439a729083d513d55c1f9ec026287543f5893a6fd352cd62c896a8723f51ac
 
 ```ts
 import { Check } from "@sinclair/typebox/value";
@@ -482,7 +483,7 @@ export function publicCatalogSurface(value: unknown): PublicCatalogSurface {
       cards.some(card => !details.has(card.record) || details.get(card.record)?.title !== card.title) ||
       [...documents.keys()].some(record => !details.has(record))) throw new Error("INVALID_CATALOG_SURFACE_REFERENCES");
   const featuredDetail = details.get(surface.home.featured.record);
-  if (!featuredDetail || featuredDetail.title !== surface.home.featured.title ||
+  if (!featuredDetail || !surface.home.featured.image || featuredDetail.title !== surface.home.featured.title ||
       featuredDetail.image.asset !== surface.home.featured.image.asset || featuredDetail.image.alt !== surface.home.featured.image.alt) {
     throw new Error("INVALID_CATALOG_FEATURED_REFERENCE");
   }
@@ -503,7 +504,7 @@ export function publicCatalogState(surface: PublicCatalogSurface, value: unknown
 
 ## src/public-catalog/node-schema.ts
 
-Source SHA-256: a91ec145b9c0fc96f213cb85866ac9ea35dccb06d48a8bd738f8df5514ae3075
+Source SHA-256: ff7a4ddc06019e1afc3cb26ac9d71db66beb5cc7812a2934f8899f00f1c560bd
 
 ```ts
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
@@ -518,10 +519,16 @@ const node = <K extends string, P extends TProperties>(kind: K, properties: P) =
 });
 export const CatalogImageSchema = closedObject({ asset: LogicalIdSchema, alt: nonemptyText() });
 const card = { record: LogicalIdSchema, title: nonemptyText(), image: CatalogImageSchema };
-export const CatalogItemSchema = node("catalog.card", { ...card, presentation: Type.Literal("item") });
-export const CatalogFeaturedSchema = node("catalog.card", {
-  ...card, presentation: Type.Literal("featured"), eyebrow: nonemptyText(), actionLabel: nonemptyText(),
-});
+const mediaCard = { record: LogicalIdSchema, title: nonemptyText(), image: Type.Optional(CatalogImageSchema),
+  mediaType: Type.Union([Type.Literal("video"), Type.Literal("audio")]) };
+const item = { presentation: Type.Literal("item") };
+const featured = { presentation: Type.Literal("featured"), eyebrow: nonemptyText(), actionLabel: nonemptyText() };
+export const CatalogItemSchema = Type.Union([
+  node("catalog.card", { ...card, ...item }), node("catalog.card", { ...mediaCard, ...item }),
+]);
+export const CatalogFeaturedSchema = Type.Union([
+  node("catalog.card", { ...card, ...featured }), node("catalog.card", { ...mediaCard, ...featured }),
+]);
 export const CatalogCardSchema = Type.Union([CatalogFeaturedSchema, CatalogItemSchema]);
 export const CatalogHomeSchema = node("catalog.home", {
   featured: CatalogFeaturedSchema,
@@ -624,7 +631,7 @@ export function projectPublicCatalog(value: PublicCatalogSurface, current: Publi
 
 ## src/public-catalog/exercises.ts
 
-Source SHA-256: dce0d0f6bd3f7f7901d026dd362e24853c4adade586ba505a36c530a0ce7fd77
+Source SHA-256: a1c2871bb3dd285c7ce7e0b524f7eaf17401ead3e97c3ee4e21830d7b74d4c69
 
 ```ts
 import { bankNode } from "../interaction/bank-node.ts";
@@ -640,11 +647,12 @@ export function checkPublicCatalogExercises(exercises: PublicCatalogExercises, a
     for (const value of stackNodes(stack.items)) {
       const node = bankNode(value);
       if (node.kind === "catalog.card") {
-        if (assets && !assets.has(node.image.asset)) throw new Error("INVALID_CATALOG_EXERCISE_ASSET_REFERENCE");
+        if (assets && node.image && !assets.has(node.image.asset)) throw new Error("INVALID_CATALOG_EXERCISE_ASSET_REFERENCE");
         if (records && !records.has(node.record)) throw new Error("INVALID_CATALOG_EXERCISE_RECORD_REFERENCE");
       } else if ("control" in node) {
         if (node.control.kind === "image" || node.control.kind === "avatar") {
           if (typeof node.control.source === "string") throw new Error("INVALID_CATALOG_EXERCISE_HOST_MEDIA");
+          if (node.control.source !== null && !("asset" in node.control.source)) throw new Error("CATALOG_PRIVATE_MEDIA_FORBIDDEN");
           if (node.control.source !== null && assets && !assets.has(node.control.source.asset)) {
             throw new Error("INVALID_CATALOG_EXERCISE_ASSET_REFERENCE");
           }
@@ -855,7 +863,7 @@ export async function buildPublicCatalogWeb(application: CompiledPublicCatalog, 
 
 ## src/build/public-catalog/manifest.ts
 
-Source SHA-256: ba60e1df672a294b290a1a1a9034b04da05c33a876d1e2c06fd3b4c7b130fa35
+Source SHA-256: ed356ca1cddbfdf48a49be61f78019b6ea2060f449644cac401e0b44044c559d
 
 ```ts
 import { readFileSync } from "node:fs";
@@ -890,8 +898,9 @@ export function loadPublicCatalogBuild(directory: string) {
   if (value.productId !== surface.productId || value.contractDigest !== surface.digest) throw new Error("BUILD_SURFACE_MISMATCH");
   const identities = new Set(value.assets.map(asset => asset.id));
   if (identities.size !== value.assets.length) throw new Error("INVALID_PUBLIC_CATALOG_BUILD");
-  const references = [surface.home.featured.image.asset, ...surface.details.map(detail => detail.image.asset),
-    ...surface.home.groups.flatMap(group => group.items.map(item => item.image.asset))];
+  const references = [...(surface.home.featured.image ? [surface.home.featured.image.asset] : []),
+    ...surface.details.map(detail => detail.image.asset),
+    ...surface.home.groups.flatMap(group => group.items.flatMap(item => item.image ? [item.image.asset] : []))];
   for (const detail of surface.details) references.push(...(detail.gallery ?? []).map(image => image.asset));
   if (surface.featuredMedia?.kind === 'gallery') {
     references.push(...surface.featuredMedia.images.map(image => image.asset));
@@ -903,9 +912,12 @@ export function loadPublicCatalogBuild(directory: string) {
     if (media && !media.mediaType.startsWith(`${surface.featuredMedia.kind}/`)) throw new Error('CATALOG_FEATURED_MEDIA_TYPE_MISMATCH');
   }
   for (const stack of surface.exercises?.stacks ?? []) for (const node of stackNodes(stack.items)) {
-    if (node.kind === "catalog.card") references.push(node.image.asset);
+    if (node.kind === "catalog.card" && node.image) references.push(node.image.asset);
     if ("control" in node && (node.control.kind === "image" || node.control.kind === "avatar") &&
-        node.control.source !== null && typeof node.control.source !== "string") references.push(node.control.source.asset);
+        node.control.source !== null && typeof node.control.source !== "string") {
+      if (!("asset" in node.control.source)) throw new Error("CATALOG_PRIVATE_MEDIA_FORBIDDEN");
+      references.push(node.control.source.asset);
+    }
   }
   if (references.some(id => !identities.has(id))) throw new Error("CATALOG_MEDIA_REFERENCE_MISSING");
   const galleryImages = [...surface.details.flatMap(detail=>(detail.gallery ?? []).map(image=>image.asset)),
@@ -919,7 +931,7 @@ export function loadPublicCatalogBuild(directory: string) {
 
 ## src/build/public-catalog/assets.ts
 
-Source SHA-256: c2132f31c386c078c6257adbc187a7d24ce8ecf9f8a6118eabc75941c38d8cf4
+Source SHA-256: 989816d76a4c265df6980906d0b1505f6e14e81ee64b1b878a21ae744790ae6a
 
 ```ts
 import { lstatSync, readFileSync, realpathSync } from "node:fs";
@@ -933,6 +945,7 @@ export type BoundCatalogAsset = Readonly<{
 export const catalogMediaTypes: Readonly<Record<string, string>> = Object.freeze({
   ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".avif": "image/avif",
   ".mp4": "video/mp4", ".webm": "video/webm",
+  ".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".ogg": "audio/ogg", ".wav": "audio/wav", ".vtt": "text/vtt",
 });
 
 /** Host-owned file bindings never enter the portable surface or downloadable build. */
@@ -1041,7 +1054,7 @@ export async function servePublicCatalog(options: {
 
 ## src/build/public-catalog/renditions.ts
 
-Source SHA-256: 5572437d2ecc0025c9a49186c3481a236760a642d073a9c726049fa66e9b8e42
+Source SHA-256: e51f82b2866075d608e2eeea889006a4d6309b8631a2da0c01974ba11c1efab1
 
 ```ts
 import sharp from 'sharp';
@@ -1050,8 +1063,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { hash } from '../files.ts';
 import type { BoundCatalogAsset } from './assets.ts';
+import { renditionWidths, imageInputPixelLimit } from '../../media/rendition-policy.ts';
+export { renditionWidths } from '../../media/rendition-policy.ts';
 
-export const renditionWidths = [160, 320, 640, 1280, 1920, 2560] as const;
 const recipe = `webp-q82-alpha100-effort4-srgb-auto-orient-v1-${sharp.versions.sharp}-${sharp.versions.vips}`;
 const cache = join(tmpdir(), 'desert-media-renditions-v1');
 export type Rendition = { bytes: Buffer; size: number; mediaType: string; digest: string };
@@ -1059,7 +1073,7 @@ export type Rendition = { bytes: Buffer; size: number; mediaType: string; digest
 /** Decode at build/host preparation, not while handling display requests. Originals are immutable. */
 export async function createRendition(bytes: Buffer, edge: number): Promise<Buffer> {
   if (!(renditionWidths as readonly number[]).includes(edge)) throw new Error('INVALID_MEDIA_RENDITION_SIZE');
-  return sharp(bytes, { limitInputPixels: 80_000_000 }).autoOrient()
+  return sharp(bytes, { limitInputPixels: imageInputPixelLimit }).autoOrient()
     .resize({ width: edge, height: edge, fit: 'inside', withoutEnlargement: true })
     .withIccProfile('srgb').webp({ quality: 82, alphaQuality: 100, effort: 4 }).toBuffer();
 }
@@ -1098,13 +1112,28 @@ export async function prepareRenditions(assets: readonly BoundCatalogAsset[]) {
 
 ## src/svelte/pieces/media/source.ts
 
-Source SHA-256: f7bf07675e64effdeea738907e3a73ccce692d97ac9f0dc9cd656479503a236f
+Source SHA-256: 9315402daa1e61fe90aa820bc3f0fc246cfb516b44e8ffc168193977ef6e7934
 
 ```ts
-export type Photo = Readonly<{ source: string; alt: string }>;
+import type { MediaItem } from '../../../views/media-library.ts';
+import type { AssetReference } from '../../../assets/types.ts';
+export type ImageSource = string | AssetReference;
+export type Photo = Readonly<{ source: ImageSource; alt: string }>;
+type PublicPhoto = Readonly<{ source: string; alt: string }>;
+export type ViewerMedia = Readonly<
+  { kind: 'image'; source: ImageSource; alt: string } |
+  { kind: 'video' | 'audio'; source: ImageSource; alt: string; artwork?: PublicPhoto;
+    captions: readonly { source: string; language: string; label: string }[] }
+>;
 export const mediaSource = (asset: string) => `/media/${encodeURIComponent(asset)}`;
+export const imageIdentity = (source: ImageSource) => typeof source === 'string' ? source : `private:${source.reference}`;
 export const catalogPhotos = (images: readonly { asset: string; alt: string }[]): Photo[] =>
   images.map(image => ({ source: mediaSource(image.asset), alt: image.alt }));
+export const viewerMedia = (items: readonly MediaItem[]): ViewerMedia[] => items.map(item => item.kind === 'image'
+  ? { kind: 'image', source: mediaSource(item.image.asset), alt: item.image.alt }
+  : { kind: item.kind, source: mediaSource(item.source.asset), alt: item.title,
+      ...(item.artwork ? { artwork: { source: mediaSource(item.artwork.asset), alt: item.artwork.alt } } : {}),
+      captions: (item.captions ?? []).map(track => ({ ...track, source: mediaSource(track.asset) })) });
 export function imageSource(source: string, edge: number) {
   if (!/^\/media\/[^/?#]+$/.test(source) || source.endsWith(".svg")) return source;
   const bucket = [160, 320, 640, 1280, 1920, 2560].find(size => size >= edge) ?? 2560;
@@ -1114,7 +1143,8 @@ export function imageSource(source: string, edge: number) {
 const pending = new Set<string>(), decoded = new Map<string, HTMLImageElement>();
 let active = 0;
 /** Intent/neighbor warming only: at most two requests, four queued, eight decoded photos. */
-export function prefetchImage(source: string, edge: number) {
+export function prefetchImage(source: ImageSource, edge: number) {
+  if (typeof source !== 'string' || !source.startsWith('/media/')) return;
   if (typeof navigator === 'undefined' || (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return;
   const url = imageSource(source, edge);
   if (decoded.has(url) || pending.has(url) || pending.size >= 4) return;
@@ -1137,24 +1167,43 @@ function drain() {
 
 ## src/svelte/pieces/media/Image.svelte
 
-Source SHA-256: 174198ce4e636302fd98b6e4ad6b077fb7dde0be9760cc1d2399c302ce09e463
+Source SHA-256: 914d00001268d4ca552d53914323f79b2cd8551c2bde0d4da28b380fc34ad28e
 
 ```svelte
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { Button } from '../../vendor/components/ui/button/index.js';
-  import { imageSource } from './source.ts';
-  let { source, alt, edge = 640, zoom = 1, retry = false, onready, fallback = 'Image unavailable' }: {
-    source: string; alt: string; edge?: number; zoom?: number; retry?: boolean;
+  import { imageSource, imageIdentity, type ImageSource } from './source.ts';
+  import { usePrivateImages } from './private-image-context.ts';
+  import { privateImageResource } from './private-image-resource.ts';
+  import { renditionWidths } from '../../../media/rendition-policy.ts';
+  let { source, alt, edge = 640, zoom = 1, retry = false, fit = 'fill', onready, fallback = 'Image unavailable' }: {
+    source: ImageSource; alt: string; edge?: number; zoom?: number; retry?: boolean;
+    fit?: 'fill' | 'fit';
     onready?: () => void; fallback?: string;
   } = $props();
   let host!: HTMLDivElement;
   let measured = $state(0), attempt = $state(0), ready = $state(''), failed = $state('');
   let original = $state('');
-  const url = $derived(original === source ? source : imageSource(source, (measured || edge) * zoom));
+  let privateURL = $state<string | undefined>(), privateReference = $state<string | undefined>(), privateFailed = $state(false), privateRevision = $state(0);
+  const resource = privateImageResource(usePrivateImages(),
+    () => { privateURL = resource.url; privateReference = resource.reference; privateFailed = resource.failed; privateRevision = resource.revision; });
+  const requestedEdge = $derived((measured || edge) * zoom);
+  const variant = $derived(renditionWidths.find(width => width >= requestedEdge) ?? 2560);
+  const sourceIdentity = $derived(imageIdentity(source));
+  const url = $derived(typeof source === 'string'
+    ? original === source ? source : imageSource(source, requestedEdge)
+    : privateReference === source.reference ? privateURL : undefined);
+  const privateError = $derived(typeof source !== 'string' && privateReference === source.reference && privateFailed);
+  $effect(() => {
+    const asset = source, rendition = variant; attempt;
+    if (typeof asset === 'string') { resource.clear(); return; }
+    void resource.load(asset, rendition);
+  });
+  onDestroy(() => resource.dispose());
   // A new asset gets a new DOM image immediately. A larger rendition of the SAME
   // asset keeps its decoded pixels while loading, so pinch/resize never flashes.
-  const identity = $derived(`${source}|${attempt}`);
+  const identity = $derived(`${sourceIdentity}|${typeof source === 'string' ? 0 : privateRevision}|${attempt}`);
   onMount(() => {
     const resize = () => { measured = Math.ceil(Math.max(host.clientWidth,host.clientHeight)*window.devicePixelRatio); };
     const observer = new ResizeObserver(([entry]) => {
@@ -1175,18 +1224,19 @@ Source SHA-256: 174198ce4e636302fd98b6e4ad6b077fb7dde0be9760cc1d2399c302ce09e463
   function error(key: string) {
     if (key !== identity) return;
     // Older hosts and unsupported codecs keep an original-file fallback.
-    if (url !== source) { original = source; return; }
+    if (typeof source === 'string' && url !== source) { original = source; return; }
     failed = key;
   }
 </script>
 
-<div bind:this={host} data-media-image data-image-state={failed === identity ? 'error' : ready === identity ? 'ready' : 'loading'}>
+<div bind:this={host} data-media-image data-image-fit={fit} data-image-state={failed === identity || privateError ? 'error' : url && ready === identity ? 'ready' : 'loading'}>
   {#key identity}
     {@const key = identity}
-    <img src={url} {alt} decoding="async" draggable="false" style:visibility={ready === key && failed !== key ? 'visible' : 'hidden'}
+    {#if url}<img src={url} {alt} decoding="async" draggable="false" style:visibility={ready === key && failed !== key && !privateError ? 'visible' : 'hidden'}
       onload={event => loaded(event.currentTarget as HTMLImageElement, key)} onerror={() => error(key)} />
+    {/if}
   {/key}
-  {#if failed === identity}
+  {#if failed === identity || privateError}
     <div data-media-error role="img" aria-label={alt}>
       <span>{fallback}</span>
       {#if retry}<Button variant="secondary" onclick={() => { original = ''; attempt++; }}>Retry</Button>{/if}
@@ -1197,15 +1247,15 @@ Source SHA-256: 174198ce4e636302fd98b6e4ad6b077fb7dde0be9760cc1d2399c302ce09e463
 
 ## src/svelte/pieces/media/PhotoCollection.svelte
 
-Source SHA-256: 3e8cc80583db050581fcf445e2ed8b02651dcf0d28ca905710d02cfcf190dae2
+Source SHA-256: 5bc2a42ca01aa1e35ebce8b5fc741464715d7a1645f38e7c6a03dfb29743ee85
 
 ```svelte
 <script lang="ts">
   import Image from './Image.svelte';
   import Viewer from './Viewer.svelte';
   import { mediaGestures } from './gestures.ts';
-  import { prefetchImage, type Photo } from './source.ts';
-  let { photos, title, header = false }: { photos: readonly Photo[]; title: string; header?: boolean } = $props();
+  import { prefetchImage, imageIdentity, type Photo } from './source.ts';
+  let { photos, title, header = false, fit = 'fill' }: { photos: readonly Photo[]; title: string; header?: boolean; fit?: 'fit'|'fill' } = $props();
   let index = $state(0), open = $state(false);
   let host!: HTMLDivElement, opener!: HTMLButtonElement;
   const selected = $derived(photos[index] ?? photos[0]!);
@@ -1228,96 +1278,88 @@ Source SHA-256: 3e8cc80583db050581fcf445e2ed8b02651dcf0d28ca905710d02cfcf190dae2
 </script>
 
 <div bind:this={host} data-photo-collection data-header-collection={header || undefined}>
-  <Image source={selected.source} alt={selected.alt} edge={header ? 1280 : 640} retry />
-  <button bind:this={opener} use:drag data-media-open aria-label="Open photo viewer"
+  <Image source={selected.source} alt={selected.alt} edge={header ? 1280 : 640} {fit} retry />
+  <button type="button" bind:this={opener} use:drag data-media-open aria-label="Open photo viewer"
     onclick={() => open=true} onkeydown={key}></button>
   {#if photos.length>1}
     <div data-media-dots aria-label="Choose photo">
-      {#each photos as photo, i (photo.source)}
-        <button aria-label={`Photo ${i+1}: ${photo.alt}`} aria-current={i===index ? 'true' : undefined}
+      {#each photos as photo, i (`${i}:${imageIdentity(photo.source)}`)}
+        <button type="button" aria-label={`Photo ${i+1}: ${photo.alt}`} aria-current={i===index ? 'true' : undefined}
           onclick={() => select(i)}></button>
       {/each}
     </div>
   {/if}
 </div>
 {#if open}
-  <Viewer {photos} {title} bind:index bind:open onreturn={() => opener?.focus({ preventScroll:true })} />
+  <Viewer items={photos.map(photo => ({kind:'image', ...photo}))} {title} {index} {open}
+    onindex={value => index=value} onopen={value => open=value} onreturn={() => opener?.focus({ preventScroll:true })} />
 {/if}
 ```
 
 ## src/svelte/pieces/media/Viewer.svelte
 
-Source SHA-256: 78abaf4f43ad4afed18ac463a77682a82379b08ad2bdfd8f7b5982f6f997aae4
+Source SHA-256: 448b021df91563c23357402bf73563b44d5543517f042876dfa87ad397dd20e6
 
 ```svelte
 <script lang="ts">
   import * as Dialog from '../../vendor/components/ui/dialog/index.js';
   import { Button } from '../../vendor/components/ui/button/index.js';
-  import X from '@lucide/svelte/icons/x';
-  import Minus from '@lucide/svelte/icons/minus';
-  import Plus from '@lucide/svelte/icons/plus';
   import ChevronLeft from '@lucide/svelte/icons/chevron-left';
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
   import ToolbarLayout from '../ToolbarLayout.svelte';
   import Image from './Image.svelte';
+  import PlaybackCanvas from './PlaybackCanvas.svelte';
+  import { mediaPlayback } from './playback.svelte.ts';
   import { mediaGestures } from './gestures.ts';
-  import { type Photo } from './source.ts';
-  let { photos, title, index = $bindable(0), open = $bindable(false), onreturn }: {
-    photos: readonly Photo[]; title: string; index?: number; open?: boolean; onreturn: () => void;
+  import { imageIdentity, type ViewerMedia } from './source.ts';
+  let { items, title, index, open, onindex, onopen, onreturn }: {
+    items: readonly ViewerMedia[]; title: string; index: number; open: boolean;
+    onindex: (index: number) => void; onopen: (open: boolean) => void; onreturn: () => void;
   } = $props();
-  let scale = $state(1), stage!: HTMLDivElement;
+  let scale = $state(1);
   let closeButton = $state<HTMLButtonElement | null>(null);
   let gesture: ReturnType<typeof mediaGestures> | undefined;
-  const selected = $derived(photos[index]!);
-  function select(next: number) { index=Math.max(0,Math.min(photos.length-1,next)); gesture?.reset(); }
+  const selected = $derived(items[index]!);
+  const playback = mediaPlayback();
+  function select(next: number) { playback.stop(); onindex(Math.max(0,Math.min(items.length-1,next))); gesture?.reset(); }
+  function changeOpen(value: boolean) { if (!value) playback.stop(); onopen(value); }
   function manipulate(element: HTMLDivElement) {
     gesture=mediaGestures(element,{ image:()=>element.querySelector('img'),
-      page:direction=>select(index+direction), canPage:()=>photos.length>1, zoomable:true, onzoom:value=>scale=value });
+      page:direction=>select(index+direction), canPage:()=>items.length>1, zoomable:selected.kind === 'image', onzoom:value=>scale=value });
     return { destroy:()=>gesture?.destroy() };
   }
   function key(event: KeyboardEvent) {
-    if ((event.target as HTMLElement).closest('[data-media-thumbs]')) return;
+    if ((event.target as HTMLElement).closest('input,[role="slider"],[data-media-thumbs]')) return;
     if (event.key==='ArrowRight' || event.key==='ArrowLeft') {
       event.preventDefault(); if (scale===1) select(index+(event.key==='ArrowRight'?1:-1));
-    } else if (event.key==='+' || event.key==='=') { event.preventDefault(); gesture?.zoom(scale+1); }
-    else if (event.key==='-') { event.preventDefault(); gesture?.zoom(scale-1); }
-    else if (event.key==='0') { event.preventDefault(); gesture?.reset(); }
+    } else if (event.code === 'Space' && selected.kind !== 'image' && !(event.target as HTMLElement).closest('button')) { event.preventDefault(); void playback.toggle(); }
+    else if (selected.kind === 'image' && (event.key==='+' || event.key==='=')) { event.preventDefault(); gesture?.zoom(scale+1); }
+    else if (selected.kind === 'image' && event.key==='-') { event.preventDefault(); gesture?.zoom(scale-1); }
+    else if (selected.kind === 'image' && event.key==='0') { event.preventDefault(); gesture?.reset(); }
   }
 </script>
 
-<Dialog.Root bind:open>
+<Dialog.Root {open} onOpenChange={changeOpen}>
   <Dialog.Content presentation="media" showCloseButton={false} data-media-viewer
     onOpenAutoFocus={event=>{ event.preventDefault(); closeButton?.focus({preventScroll:true}); }}
     onCloseAutoFocus={event=>{ event.preventDefault(); onreturn(); }} onkeydown={key}>
-    <ToolbarLayout>
-      <Button bind:ref={closeButton} variant="secondary" size="icon-lg" aria-label="Close photo viewer" onclick={()=>open=false}><X /></Button>
-      <div data-media-identity>
-        <Dialog.Title>{title}</Dialog.Title>
-        <span data-media-count>{index+1} / {photos.length}</span>
-      </div>
-      <div data-media-zoom-tools>
-        <Button variant="secondary" size="icon-lg" aria-label="Zoom out" disabled={scale<=1} onclick={()=>gesture?.zoom(scale-1)}><Minus /></Button>
-        <Button variant="secondary" aria-label="Reset zoom" onclick={()=>gesture?.reset()}><span data-media-zoom>{Math.round(scale*100)}%</span></Button>
-        <Button variant="secondary" size="icon-lg" aria-label="Zoom in" disabled={scale>=4} onclick={()=>gesture?.zoom(scale+1)}><Plus /></Button>
-      </div>
-    </ToolbarLayout>
-    <Dialog.Description class="sr-only">Swipe or use arrows to change photos. Pinch, double-click or use plus and minus to zoom. Drag to pan when zoomed. Escape closes the viewer.</Dialog.Description>
-    <div bind:this={stage} use:manipulate data-media-stage>
-      <Image source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry onready={()=>gesture?.refresh()} />
-      {#if photos.length>1}
-        <Button data-media-prev variant="secondary" size="icon-lg" aria-label="Previous photo" disabled={index===0 || scale>1} onclick={()=>select(index-1)}><ChevronLeft /></Button>
-        <Button data-media-next variant="secondary" size="icon-lg" aria-label="Next photo" disabled={index===photos.length-1 || scale>1} onclick={()=>select(index+1)}><ChevronRight /></Button>
+    <ToolbarLayout identity={{title,subtitle:`${index+1} / ${items.length}`}} identityRole="dialog"
+      oncloseElement={element=>closeButton=element}
+      content={{kind:"media-header",close:()=>changeOpen(false),zoom:selected.kind === 'image'
+        ? {scale,onzoom:value=>gesture?.zoom(value),onreset:()=>gesture?.reset()} : undefined}} />
+    <Dialog.Description class="sr-only">Swipe or use arrows to change media. Pinch, double-click or use plus and minus to zoom images. Space plays or pauses audio and video. Escape closes the viewer.</Dialog.Description>
+    {#key `${index}:${imageIdentity(selected.source)}`}
+    <div use:manipulate data-media-stage>
+      {#if selected.kind === 'image'}<Image source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry onready={()=>gesture?.refresh()} />
+      {:else}<PlaybackCanvas item={selected} {playback} />{/if}
+      {#if items.length>1}
+        <Button data-media-prev variant="secondary" size="icon-lg" aria-label="Previous media" disabled={index===0 || scale>1} onclick={()=>select(index-1)}><ChevronLeft /></Button>
+        <Button data-media-next variant="secondary" size="icon-lg" aria-label="Next media" disabled={index===items.length-1 || scale>1} onclick={()=>select(index+1)}><ChevronRight /></Button>
       {/if}
     </div>
-    {#if photos.length>1}
-      <ToolbarLayout edge="bottom">
-        <div data-media-thumbs aria-label="Photos">
-          {#each photos as photo, i (photo.source)}
-            <Button variant="ghost" aria-label={`Photo ${i+1}: ${photo.alt}`} aria-current={i===index ? 'true' : undefined}
-              onclick={()=>select(i)}><Image source={photo.source} alt="" edge={160} /></Button>
-          {/each}
-        </div>
-      </ToolbarLayout>
+    {/key}
+    {#if items.length>1 || selected.kind !== 'image'}
+      <ToolbarLayout content={{kind:"media-controls",items,index,onindex:select,playback}} />
     {/if}
   </Dialog.Content>
 </Dialog.Root>
@@ -1325,9 +1367,11 @@ Source SHA-256: 78abaf4f43ad4afed18ac463a77682a82379b08ad2bdfd8f7b5982f6f997aae4
 
 ## src/svelte/pieces/media/gestures.ts
 
-Source SHA-256: 3d854b195074a47facde60372cfa4dcf951ae48eafcf1077d216640f537a6dde
+Source SHA-256: 4fb9b943478ae780a241fb87fe0272da4903f7b87551b1f13d724fae63f74cce
 
 ```ts
+export const maximumMediaZoom = 4;
+
 type Options = {
   image: () => HTMLImageElement | null; page: (direction: number) => void;
   canPage: () => boolean; zoomable?: boolean; onzoom?: (scale: number) => void;
@@ -1348,7 +1392,7 @@ export function mediaGestures(element: HTMLElement, options: Options) {
     x = clamp(x, -maxX, maxX); y = clamp(y, -maxY, maxY);
     img.style.transform = scale === 1 ? '' : `translate(${x}px,${y}px) scale(${scale})`;
   }
-  function zoom(value: number) { scale = clamp(value, 1, 4); if (scale === 1) x = y = 0; paint(); }
+  function zoom(value: number) { scale = clamp(value, 1, maximumMediaZoom); if (scale === 1) x = y = 0; paint(); }
   function distance() { const [a,b] = [...points.values()]; return a && b ? Math.hypot(a.x-b.x, a.y-b.y) : 1; }
   function down(e: PointerEvent) {
     if (e.button !== 0 || ((e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[data-media-open]'))) return;
@@ -1393,210 +1437,38 @@ export function mediaGestures(element: HTMLElement, options: Options) {
 
 ## src/svelte/explorer/PublicCatalogProduct.svelte
 
-Source SHA-256: ecf20c1c51d3f66fed911a5790e00ec34bf9a8043f85cb456c5f8e4751722827
+Source SHA-256: 20ce23020bdf90493e34ff75b587c76e59f071396efeb59aa6e9ecd7d13cd2db
 
 ```svelte
 <script lang="ts">
-  import { onMount, tick, untrack, setContext } from "svelte";
-  import { initialPublicCatalogState, projectPublicCatalog, reducePublicCatalog, publicCatalogSurface,
-    type PublicCatalogSurface, type PublicCatalogState } from "../../public-catalog/client.ts";
-  import type { BankEvent } from "../../interaction/bank-events.ts";
-  import CatalogWorkspace from "./CatalogWorkspace.svelte";
-  import RetainedPlace from "./RetainedPlace.svelte";
-  import CatalogHome from "./CatalogHome.svelte";
-  import CatalogDetail from "./CatalogDetail.svelte";
-  import type { PlaceIdentity } from "../pieces/place-identity.ts";
-  import LocalExercises from "./LocalExercises.svelte";
-  import PublicCatalogBank from "./PublicCatalogBank.svelte";
-  import CatalogSearchResults from "./CatalogSearchResults.svelte";
-  import { catalogSearchResults, catalogSearchScope, type CatalogDestination, type CatalogSearchResult } from "./catalog-search.ts";
-  import { revealSearchTarget } from "./catalog-search-focus.ts";
-  import type { PrimitiveId } from "../../interaction/catalog.ts";
-  import { catalogHistory } from "./catalog-history.ts";
-  import "../theme.css";
+  import type { PublicCatalogSurface } from "../../public-catalog/client.ts";
+  import { PublicCatalogProductContent } from "../adapter-catalog.ts";
   let { surface }: { surface: PublicCatalogSurface } = $props();
-  const definition = untrack(() => publicCatalogSurface(surface));
-  setContext('catalog-photo-intent', (record: string) => definition.details.find(detail=>detail.record===record)?.image.asset);
-  let viewState = $state.raw(initialPublicCatalogState());
-  let active = $state<CatalogDestination>("browse");
-  let bankVisited = $state(false);
-  let bankQuery = $state("");
-  let searching = $state(false);
-  let searchQuery = $state("");
-  let bank = $state<{ revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null> } | null>(null);
-  let view = $derived(projectPublicCatalog(definition, viewState));
-  let scope = $derived(catalogSearchScope(definition, active));
-  let results = $derived(catalogSearchResults(definition, active, searchQuery));
-  let identity: PlaceIdentity = $derived(active === "bank"
-    ? { title: "Component bank", subtitle: "Interactive examples. Changes stay here; no product commands are executed." }
-    : active === "travel-kit" && definition.exercises
-      ? { title: definition.exercises.title, subtitle: definition.exercises.subtitle }
-      : view.content.kind === "catalog.detail"
-        ? { title: view.content.title,
-          subtitle: definition.home.groups.find(group => group.items.some(item => item.record === viewState.selectedId))?.title ?? '',
-          media: view.content.gallery ? { kind: 'gallery', images:view.content.gallery } : { kind: 'image', ...view.content.image } }
-        : { title: definition.title, subtitle: definition.description, media: definition.featuredMedia ?? { kind: 'image', ...definition.home.featured.image } });
-  type Origin = { selector: string; scroll: number; destination: CatalogDestination; state: PublicCatalogState;
-    search?: { query: string; scroll: number }; previous?: Origin };
-  let opener: Origin | undefined;
-  type Snapshot = { active: CatalogDestination; state: PublicCatalogState; opener?: Origin;
-    searching: boolean; query: string; scroll: number; searchScroll: number; focus?: string };
-  let browserNavigation: ReturnType<typeof catalogHistory<Snapshot>> | undefined;
-  const navigation = [{ id: "browse", label: definition.title },
-    ...(definition.exercises ? [{ id: "travel-kit", label: definition.exercises.title } as const] : []),
-    { id: "bank", label: "Component bank" }] as const;
-  const scroll = () => document.querySelector<HTMLElement>("[data-catalog-scroll]");
-  const searchScroll = () => document.querySelector<HTMLElement>("[data-catalog-search-scroll]");
-  function cancelSearch() { searching = false; searchQuery = ""; }
-  async function querySearch(query: string) {
-    searchQuery = query; searching = true;
-    await tick(); searchScroll()?.scrollTo(0, 0);
-  }
-  async function event(input: BankEvent) {
-    if (input.kind !== "catalog.open" && input.kind !== "catalog.back" && input.kind !== "catalog.search") return;
-    if (input.kind === "catalog.search") { await querySearch(input.query); return; }
-    if (input.kind === "catalog.open") {
-      const focused = document.activeElement as HTMLElement | null;
-      const marker = `catalog-return-${crypto.randomUUID()}`;
-      if (focused) focused.dataset.catalogReturn = marker;
-      browserNavigation?.capture();
-      opener = { selector: searching ? `[data-search-result="${input.record}"] button` : `[data-catalog-return="${marker}"]`,
-        scroll: scroll()?.scrollTop ?? 0, destination: active, state: viewState, previous: opener,
-        ...(searching ? { search: { query: searchQuery, scroll: searchScroll()?.scrollTop ?? 0 } } : {}) };
-      viewState = reducePublicCatalog(definition, viewState, input);
-      active = "browse"; cancelSearch();
-      await tick();
-      scroll()?.scrollTo(0, 0);
-      document.querySelector<HTMLElement>("[data-place-header] [data-place-title]")?.focus({ preventScroll: true });
-      browserNavigation?.push();
-      return;
-    }
-    if (browserNavigation?.back()) return;
-    const origin = opener;
-    opener = origin?.previous;
-    viewState = origin?.state ?? reducePublicCatalog(definition, viewState, input);
-    active = origin?.destination ?? "browse";
-    searching = Boolean(origin?.search); searchQuery = origin?.search?.query ?? "";
-    await tick();
-    scroll()?.scrollTo(0, origin?.scroll ?? 0);
-    if (origin?.search) searchScroll()?.scrollTo(0, origin.search.scroll);
-    if (origin) document.querySelector<HTMLElement>(origin.selector)?.focus({ preventScroll: true });
-    browserNavigation?.capture();
-  }
-  async function selectSearchResult(result: CatalogSearchResult) {
-    if (result.kind === "record") {
-      // The activated result owns the return target even when pointer activation
-      // does not focus buttons (WebKit). Capture it before changing the place.
-      document.querySelector<HTMLElement>(`[data-search-result="${result.id}"] button`)?.focus({ preventScroll: true });
-      await event({ kind: "catalog.open", record: result.id }); return;
-    }
-    cancelSearch(); await tick();
-    const target = result.kind === "bank" ? await bank?.revealEntry(result.id)
-      : document.querySelector<HTMLElement>(`[data-place-stack="${result.id}"]`);
-    if (target) revealSearchTarget(target, scroll());
-  }
-  async function navigate(destination: typeof active) {
-    if (destination === active && viewState.selectedId === null) return;
-    browserNavigation?.capture();
-    if (destination === "bank") bankVisited = true;
-    active = destination;
-    cancelSearch(); opener = undefined;
-    if (destination === "browse") viewState = reducePublicCatalog(definition, viewState, { kind: "catalog.back" });
-    await tick(); scroll()?.scrollTo(0, 0);
-    document.querySelector<HTMLElement>("[data-catalog-content]")?.focus({ preventScroll: true });
-    browserNavigation?.push();
-  }
-  onMount(() => {
-    const root = document.documentElement;
-    const previous = root.dataset.rendererProfile;
-    root.dataset.rendererProfile = "apple-reference";
-    const location = new URL(window.location.href);
-    const place = location.searchParams.get('place'), record = location.searchParams.get('record');
-    if (place === 'bank' || (place === 'travel-kit' && definition.exercises)) active = place;
-    bankVisited = active === 'bank';
-    if (record && active === 'browse') {
-      try { viewState = reducePublicCatalog(definition, viewState, { kind: 'catalog.open', record }); }
-      catch { /* Unknown public record: retain the safe catalog home. */ }
-    }
-    browserNavigation = catalogHistory<Snapshot>(() => ({ active, state: viewState, opener, searching,
-      query: searchQuery, scroll: scroll()?.scrollTop ?? 0, searchScroll: searchScroll()?.scrollTop ?? 0,
-      focus: document.activeElement?.closest<HTMLElement>('[data-search-result]')
-        ? `[data-search-result="${document.activeElement.closest<HTMLElement>('[data-search-result]')!.dataset.searchResult}"] button`
-        : (document.activeElement as HTMLElement | null)?.dataset.catalogReturn
-          ? `[data-catalog-return="${(document.activeElement as HTMLElement).dataset.catalogReturn}"]` : undefined }), async snapshot => {
-      active = snapshot.active; viewState = snapshot.state; opener = snapshot.opener;
-      bankVisited ||= active === 'bank'; searching = snapshot.searching; searchQuery = snapshot.query;
-      await tick(); scroll()?.scrollTo(0, snapshot.scroll); searchScroll()?.scrollTo(0, snapshot.searchScroll);
-      const target = snapshot.focus ? document.querySelector<HTMLElement>(snapshot.focus)
-        : document.querySelector<HTMLElement>('[data-place-header] [data-place-title]');
-      (target ?? scroll())?.focus({ preventScroll: true });
-    }, snapshot => {
-      const url = new URL(window.location.href);
-      if (snapshot.active === 'browse') url.searchParams.delete('place'); else url.searchParams.set('place', snapshot.active);
-      if (snapshot.active === 'browse' && snapshot.state.selectedId) url.searchParams.set('record', snapshot.state.selectedId);
-      else url.searchParams.delete('record');
-      return url.href;
-    });
-    return () => {
-      browserNavigation?.dispose();
-      if (previous === undefined) delete root.dataset.rendererProfile; else root.dataset.rendererProfile = previous;
-    };
-  });
 </script>
 
-<svelte:head><title>{definition.title} · DESERT</title></svelte:head>
-<CatalogWorkspace productName={definition.title} title={scope.title} {identity} {navigation} {active} query={searchQuery} {searching}
-  onquery={querySearch} onsearch={() => searching = true} oncancel={cancelSearch} onnavigate={navigate}
-  detail={active === "browse" && viewState.selectedId !== null} onback={() => void event({ kind: "catalog.back" })}>
-  {#snippet searchResults()}
-    <CatalogSearchResults title={scope.title} description={scope.description} query={searchQuery} {results} onselect={selectSearchResult} />
-  {/snippet}
-  <div hidden={active !== "browse" || viewState.selectedId !== null}>
-    <CatalogHome node={definition.home} onevent={event} bodyOnly />
-  </div>
-  {#if active === "browse" && view.content.kind === "catalog.detail"}<CatalogDetail node={view.content} onevent={event} bodyOnly />{/if}
-  {#if definition.exercises}<RetainedPlace visible={active === "travel-kit"} active={active === "travel-kit" && !searching}><LocalExercises definition={definition.exercises} oncatalog={event} bodyOnly /></RetainedPlace>{/if}
-  {#if bankVisited}<RetainedPlace visible={active === "bank"} active={active === "bank" && !searching}><PublicCatalogBank bind:this={bank} bind:query={bankQuery} surface={definition} oncatalog={event} bodyOnly /></RetainedPlace>{/if}
-</CatalogWorkspace>
+<PublicCatalogProductContent {surface} />
 ```
 
 ## src/svelte/explorer/LocalExercises.svelte
 
-Source SHA-256: c8fc9893319a61ea28140f6aeee2dd1862aa1d49f1df391abb92cacdcc6668c2
+Source SHA-256: 232bcfaa1d125aaee5920b47f336e0b07ac9501e647659382a381743acf02f80
 
 ```svelte
 <script lang="ts">
-  import { onDestroy, untrack } from "svelte";
   import type { PublicCatalogExercises } from "../../public-catalog/client.ts";
-  import { reduceCatalogDraft } from "../../public-catalog/draft.ts";
-  import PlaceContent from "../pieces/PlaceContent.svelte";
-  import { LocalFileHost } from "../controls/file-host.ts";
   import type { BankEvent } from "../../interaction/bank-events.ts";
-  import { stackNodes } from "../../interaction/place.ts";
+  import { LocalExerciseContent } from "../adapter-catalog.ts";
   let { definition, bodyOnly = false, oncatalog }: {
     definition: PublicCatalogExercises; bodyOnly?: boolean; oncatalog?: (event: BankEvent) => void;
   } = $props();
-  let draft = $state.raw(untrack(() => definition));
-  const host = new LocalFileHost();
-  $effect(() => {
-    if (!oncatalog && definition.stacks.some(stack => stackNodes(stack.items).some(node => node.kind === 'catalog.card'))) {
-      throw new Error('CATALOG_NAVIGATION_HOST_REQUIRED');
-    }
-  });
-  onDestroy(() => host.dispose());
 </script>
 
-<div data-local-exercises>
-  <PlaceContent definition={draft} {host} {bodyOnly} onevent={event => {
-    if (event.kind === 'catalog.open') oncatalog?.(event);
-    else draft = reduceCatalogDraft(draft, event);
-  }} />
-</div>
+<LocalExerciseContent {definition} {bodyOnly} {oncatalog} />
 ```
 
 ## src/svelte/explorer/CatalogCard.svelte
 
-Source SHA-256: 5d369a6373d9c2b24a5769bc13b13f459159fa5934c46a1c928a9068ce031914
+Source SHA-256: 99184f8f9b007e56e4672c0eb129d50f1d6288f5d47a1fae8788f5499fce2cd5
 
 ```svelte
 <script lang="ts">
@@ -1606,6 +1478,7 @@ Source SHA-256: 5d369a6373d9c2b24a5769bc13b13f459159fa5934c46a1c928a9068ce031914
   import type { BankEvent } from "../../interaction/bank-events.ts";
   import { getContext } from 'svelte';
   import Image from '../pieces/media/Image.svelte';
+  import ArtworkPlaceholder from '../pieces/media/ArtworkPlaceholder.svelte';
   import { mediaSource, prefetchImage } from '../pieces/media/source.ts';
   let { node, onevent }: { node: BankNodeFor<"catalog.card">; onevent: (event: BankEvent) => void } = $props();
   const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');
@@ -1615,12 +1488,9 @@ Source SHA-256: 5d369a6373d9c2b24a5769bc13b13f459159fa5934c46a1c928a9068ce031914
   const open = () => onevent({ kind: "catalog.open", record: node.record });
 </script>
 
-{#snippet media()}
-  <Image source={mediaSource(node.image.asset)} alt={node.image.alt} />
-{/snippet}
-
   <Card.Root data-catalog-card="item" data-record={node.record} data-public-card={node.record}>
-    {@render media()}
+    {#if node.image}<Image source={mediaSource(node.image.asset)} alt={node.image.alt} />
+    {:else if 'mediaType' in node}<ArtworkPlaceholder kind={node.mediaType} />{/if}
     <Card.Header><Card.Title>
       <Button variant="row" data-catalog-image-action aria-label={node.title} onclick={open} onpointerenter={prepare} onfocus={prepare}>
         <span data-catalog-card-overlay data-catalog-item-title data-public-card-title>{node.title}</span>
@@ -1631,124 +1501,54 @@ Source SHA-256: 5d369a6373d9c2b24a5769bc13b13f459159fa5934c46a1c928a9068ce031914
 
 ## src/svelte/explorer/CatalogToolbar.svelte
 
-Source SHA-256: 0cb7da1c2091556c30e9c61fe6f524aca1808766cc82a539d584f2b83882f53c
+Source SHA-256: 42da9081bc9d9339d09795ceda3806dea0daaf8204987de5088e6f2aca860101
 
 ```svelte
 <script lang="ts">
-  import { tick, untrack } from "svelte";
-  import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
-  import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
-  import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
   import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
-  import SearchField from "../pieces/SearchField.svelte";
-  import Search from "@lucide/svelte/icons/search";
-  import X from "@lucide/svelte/icons/x";
   let { title, query, onquery, searching, resultsId, onsearch, oncancel, searchAvailable = true }: {
     title: string; query: string; onquery: (query: string) => void; searching: boolean;
     resultsId: string; onsearch: () => void; oncancel: () => void; searchAvailable?: boolean;
   } = $props();
-  const sidebar = Sidebar.useSidebar();
-  const id = $props.id();
-  let input = $state<HTMLInputElement | null>(null);
-  let toggleButton = $state<HTMLButtonElement | null>(null);
-  // Product cancellation may clear its query immediately. Retain only the
-  // outgoing field's paint until the next opening; no stale search is executed.
-  let displayedQuery = $state(untrack(() => query));
-  $effect(() => { if (searching) displayedQuery = query; });
-  async function toggle() {
-    if (searching) { oncancel(); return; }
-    onsearch(); await tick(); input?.focus({ preventScroll: true });
-  }
 </script>
 
-{#snippet searchActions()}
-  <div data-catalog-search-actions data-expanded={searching}>
-  <Field.Field data-catalog-search inert={!searching} aria-hidden={!searching}>
-    <Field.Label class="sr-only" for={id}>Search {title.toLowerCase()}</Field.Label>
-    <SearchField {id} bind:ref={input} value={displayedQuery} onvalue={onquery} placeholder={`Search in ${title}`}
-      aria-controls={searching ? resultsId : undefined} tabindex={searching ? undefined : -1} />
-  </Field.Field>
-  <Button bind:ref={toggleButton} variant="secondary" size="icon" data-catalog-search-toggle data-catalog-search-cancel={searching || undefined}
-    aria-label={searching ? "Close search" : "Search"} title={searching ? "Close search" : "Search"}
-    aria-expanded={searching} aria-controls={searching ? resultsId : undefined} onclick={toggle}>
-    <Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />
-  </Button>
-  </div>
-{/snippet}
-
-<!-- Search stays mounted when its edge changes, preserving composition and focus. -->
 {#if searchAvailable}
-<ToolbarLayout data-catalog-toolbar
-  data-searching={searching} edge={sidebar.presentation === "overlay" ? "bottom" : "top"}>
-  {@render searchActions()}
-</ToolbarLayout>
+  <ToolbarLayout layer="search" {searching} edge="top"
+    content={{kind:"search",title,query,onquery,searching,resultsId,onsearch,oncancel}} />
 {/if}
 ```
 
 ## src/svelte/explorer/PublicCatalogBank.svelte
 
-Source SHA-256: 54abbcf90ae06df5ec1d480ba884259f3dbbf8c55da16ae472c1c780f6f45623
+Source SHA-256: d8851951b1398c3da00f839c126a6e681baed1bfbb0b782218434d027506c9b2
 
 ```svelte
 <script lang="ts">
-  import { tick } from "svelte";
-  import * as Empty from "@desert/svelte/vendor/components/ui/empty/index.js";
   import type { BankEvent } from "../../interaction/bank-events.ts";
   import type { PrimitiveId } from "../../interaction/catalog.ts";
-  import { catalogGroups, matchingEntries } from "../catalog/navigation.ts";
-  import CatalogNavigation from "../catalog/CatalogNavigation.svelte";
-  import CatalogGroupHeader from "../catalog/CatalogGroupHeader.svelte";
-  import CatalogFoundations from "../catalog/CatalogFoundations.svelte";
-  import ControlBench from "../catalog/ControlBench.svelte";
-  import SpecimenGroup from "../catalog/SpecimenGroup.svelte";
-  import SpecimenRow from "../catalog/SpecimenRow.svelte";
-  import SpecimenUnavailable from "../catalog/SpecimenUnavailable.svelte";
-  import PublicCatalogBankSpecimen from "./PublicCatalogBankSpecimen.svelte";
-  import { publicCatalogBankInventory, type PublicBankInput } from "./PublicCatalogBank-model.ts";
-  import PlaceHeader from "../pieces/PlaceHeader.svelte";
-  let { surface, oncatalog, bodyOnly = false, query = $bindable("") }: {
-    surface: PublicBankInput; oncatalog: (event: BankEvent) => void; bodyOnly?: boolean; query?: string;
+  import type { PublicBankInput } from "./PublicCatalogBank-model.ts";
+  import { InspectionCatalog } from "../adapter-catalog.ts";
+  import type { RegisterContentActions } from "../pieces/workspace-content.ts";
+  let { surface, oncatalog, bodyOnly, onactions }: {
+    surface: PublicBankInput; oncatalog: (event: BankEvent) => void; bodyOnly?: boolean;
+    onactions?: RegisterContentActions;
   } = $props();
-  let inventory = $derived(publicCatalogBankInventory(surface));
-  let entries = $derived(matchingEntries(query));
-  let visibleIds = $derived(entries.map(entry => entry.id));
-  export async function revealEntry(id: PrimitiveId): Promise<HTMLElement | null> {
-    if (!visibleIds.includes(id)) query = "";
-    await tick();
-    return document.querySelector<HTMLElement>(`[data-public-catalog-bank] [data-catalog-entry="${id}"]`);
-  }
+  let content = $state<{ revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null>;
+    revealAndFocusEntry: (id: PrimitiveId) => Promise<void> }>();
+  export async function revealEntry(id: PrimitiveId) { return await content?.revealEntry(id) ?? null; }
+  $effect(() => {
+    const register = onactions;
+    register?.({ revealEntry: async id => { await content?.revealAndFocusEntry(id); }, selectMedia: () => false });
+    return () => register?.(null);
+  });
 </script>
 
-<section data-public-catalog-bank class="flex w-full min-w-0 max-w-[52rem] flex-col gap-8" aria-label="Component bank">
-  {#if !bodyOnly}
-  <PlaceHeader title="Component bank" subtitle="Interactive examples. Changes stay here; no product commands are executed." />
-  {/if}
-  <CatalogNavigation bind:query {entries} />
-  {#each catalogGroups as group (group.id)}
-    <section class="flex min-w-0 flex-col gap-8" aria-label={group.title} hidden={!group.entries.some(entry => visibleIds.includes(entry.id))}>
-    <CatalogGroupHeader family={group.family} />
-    {#if group.id === "foundations"}<CatalogFoundations />{/if}
-    {#each group.entries.filter(entry => entry.family !== "control") as entry (entry.id)}
-    <SpecimenGroup id={entry.id} hidden={!visibleIds.includes(entry.id)}>
-      {#each inventory.filter(item => item.id === entry.id) as specimen (specimen.state)}
-        <SpecimenRow id={entry.id} state={specimen.state} coverage={specimen.gap ? "gap" : "rendered"}>
-          {#if specimen.node}<PublicCatalogBankSpecimen initial={specimen.node} {oncatalog} />
-          {:else if specimen.gap}<SpecimenUnavailable reason={specimen.gap} />{/if}
-        </SpecimenRow>
-      {/each}
-    </SpecimenGroup>
-    {/each}
-    <ControlBench entryIds={group.entries.filter(entry => entry.family === "control").map(entry => entry.id)} {visibleIds} />
-    </section>
-  {/each}
-  {#if !entries.length}<Empty.Root><Empty.Header><Empty.Title>No matching components</Empty.Title>
-    <Empty.Description>Try a component name, identifier or state.</Empty.Description></Empty.Header></Empty.Root>{/if}
-</section>
+<InspectionCatalog {surface} {oncatalog} {bodyOnly} bind:this={content} />
 ```
 
 ## src/svelte/explorer/PublicCatalogBank-model.ts
 
-Source SHA-256: ac68b660b8c32564b5c3ca436c33e93bf21254791aee70c657b25511d854c1fd
+Source SHA-256: c3b0b178b5f0e55697045ce3cb920704c0d4a66f965e767b4e6a7409fa7318a5
 
 ```ts
 import { InteractionCatalog, type PrimitiveId } from "../../interaction/catalog.ts";
@@ -1775,22 +1575,48 @@ export function publicCatalogBankInventory(surface: PublicBankInput): readonly P
     if (entry.id === "catalog.card") return { ...specimen,
       node: state === "featured" ? surface.home.featured : surface.home.groups.flatMap(group => group.items)[0]! };
     if (entry.id === "input.text" || entry.id === "input.multiline") return render({ version, kind: entry.id,
-      name: `${entry.id}-${state}`, label: "Local writing example", value: state === "value" ? "A thought worth keeping" : "",
+      name: `${entry.id}-${state}`, label: "Local writing example", value: state === "value" || state === "offline" ? "A thought worth keeping" : "",
+      helper: state === "offline" ? "Keep editing this local draft while offline. Saving requires reconnection."
+        : state === "loading" ? "Waiting for the controller to provide this operation’s inputs."
+        : "Write a short thought. This helper belongs to the input, not the surrounding page.",
       ...(entry.id === "input.multiline" && state === "value" ? { maxLength: 280 } : {}),
-      required: true, disabled: state === "disabled", ...(state === "invalid" ? { error: "Example validation message; no product validator is connected." } : {}) });
+      required: true, disabled: state === "disabled" || state === "loading", ...(state === "invalid" ? { error: "Example validation message; no product validator is connected." } : {}) });
     if (entry.id === "fact") return render({ version, kind: "fact", details: { ...details,
       facts: state === "known" ? details.facts : state === "empty" ? { title: "" } : {} } });
     if (entry.id === "action") return render({ version, kind: "action", role: "secondary", action: {
       intent: { kind: "specimen", operation: "press" }, label: "Diagnostic action", icon: "open",
-      state: state === "pending" ? "pending" : state === "unavailable" ? "unavailable" : "ready" } });
+      state: state === "pending" || state === "loading" ? "pending" : state === "unavailable" || state === "offline" ? "unavailable" : "ready",
+      ...(state === "loading" ? {reason:"Connecting to the controller…"} : state === "offline" ? {reason:"Offline. Reconnect to use this action."} : {}) } });
     if (entry.id === "availability") return render({ version, kind: "availability",
       state: state === "ready" ? "ready" : state === "unknown" ? "unknown" : "unavailable",
       label: `Example: ${state}. No controller is connected.` });
+    if (entry.id === "collection" && (state === "loading" || state === "offline")) return render({version,kind:"collection",object:surface.productId,
+      fields:["title"],labels:details.labels,disabled:true,loaded:state==="offline",connection:state,selectedId:null,
+      records:state==="loading"?[]:surface.details.map(detail=>({id:detail.record,version:1,facts:{title:detail.title}}))});
+    if (entry.id === "collection" && state === "state-summary") return render({ version, kind: "collection", object: "task-specimen",
+      fields: ["title", "status"], labels: { "task-specimen.title": "Title", "task-specimen.status": "Status" },
+      valueLabels: { status: { open: "Open", completed: "Completed" } }, loaded: true, disabled: false, selectedId: null,
+      records: [{ id: "open", version: 1, facts: { title: "Review the visual bank", status: "open" } },
+        { id: "done", version: 1, facts: { title: "Verify grouped rows", status: "completed" } }] });
+    if (entry.id === "collection" && (state === "media-grid" || state === "media-list")) return render({ version, kind: "collection", object: "media-specimen",
+      fields: ["image"], labels: { "media-specimen.image": "Image" }, loaded: true, disabled: false, selectedId: null,
+      presentation: { kind: "media-grid", image: "image", layout: state === "media-list" ? "list" : "grid" },
+      records: [1, 2, 3].map(index => ({ id: `image-${index}`, version: 1, facts: { image: "/bank-image.svg" } })) });
+    if (entry.id === "collection" && state === "collection-grid") return render({ version, kind: "collection", object: "collection-specimen",
+      fields: ["title"], labels: { "collection-specimen.title": "Title" }, loaded: true, disabled: false, selectedId: null,
+      presentation: { kind: "collection-grid", title: "title", previews: [{ id: "travel", count: 3,
+        media: { kind: "asset", reference: "a7000000-0000-4000-8000-000000000001" } }, { id: "empty", count: 0 }] },
+      records: [{ id: "travel", version: 1, facts: { title: "Travel" } }, { id: "empty", version: 1, facts: { title: "Research" } }] });
     if (entry.id === "collection") return state === "empty"
       ? gap("An empty collection's create guidance requires an installed create journey. This read-only catalog has no create operation.")
       : render({ version, kind: "collection", object: surface.productId,
         fields: ["title"], labels: details.labels, createLabel: "Create", disabled: false, loaded: true,
         selectedId: null, records: surface.details.map(detail => ({ id: detail.record, version: 1, facts: { title: detail.title } })) });
+    if (entry.id === "context" && state === "media-object") return render({ version, kind: "context", content: {
+      kind: "context", actions: [], presentation: { kind: "media-object", media: "image", description: "description" },
+      details: { kind: "facts", object: "media-specimen", fields: ["image", "description"], images: ["image"], multiline: ["description"],
+        labels: { "media-specimen.image": "Image", "media-specimen.description": "Description" },
+        facts: { image: { kind: "asset", reference: "a7000000-0000-4000-8000-000000000001" }, description: "An isolated image example. Original proportions are preserved." } } } });
     if (entry.id === "context") return state === "available"
       ? render({ version, kind: "context", content: { kind: "context", details, actions: [] } })
       : gap("Journey availability requires actual contract-derived offers. This public catalog supplies read-only context, not a controller.");

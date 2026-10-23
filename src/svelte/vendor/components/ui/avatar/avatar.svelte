@@ -10,7 +10,7 @@
 		class: className,
 		...restProps
 	}: AvatarPrimitive.RootProps & {
-		size?: "default" | "sm" | "lg";
+		size?: "default" | "sm" | "lg" | "portrait" | "compact";
 		shape?: "person" | "object";
 	} = $props();
 </script>
@@ -22,7 +22,7 @@
 	data-size={size}
 	data-shape={shape}
 	class={cn(
-		"size-8 data-[size=lg]:size-10 data-[size=sm]:size-6 group/avatar relative flex shrink-0 select-none tm-face after:pointer-events-none after:absolute after:inset-0 after:border",
+		"size-8 data-[size=lg]:size-10 data-[size=sm]:size-6 data-[size=portrait]:size-[5.625rem] data-[size=compact]:size-11 overflow-hidden group/avatar relative flex shrink-0 select-none tm-face after:pointer-events-none after:absolute after:inset-0 after:border",
 		shape === "person" ? "rounded-full after:rounded-full" : "rounded-[30%] after:rounded-[30%]",
 		className
 	)}

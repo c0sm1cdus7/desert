@@ -1,6 +1,7 @@
 import { controlNode, type ControlNode } from "./control-nodes.ts";
 import { freezeDeep } from "../json.ts";
 import { controlInspection } from "./catalog-ownership.ts";
+import { labelLimits } from "../labels.ts";
 
 const sample = (state: string, node: ControlNode, releaseAfterMs?: number) => ({
   state, node: controlNode(node), ...(releaseAfterMs === undefined ? {} : { releaseAfterMs }),
@@ -27,6 +28,11 @@ export const ControlBank = freezeDeep(([
     sample("available", { ...base, kind: "select", id: "choice", label: "Single choice", required: false, value: null, options: choices }),
     sample("disabled", { ...base, kind: "select", id: "disabled-choice", label: "Disabled choice", disabled: true,
       required: false, value: "retained", options: [{ value: "retained", label: "Retained selection", disabled: false }] }),
+    sample("contextual-selected", { ...base, kind: "select", id: "contextual-select", label: "Display mode", required: true, value: "first", options: choices }),
+    sample("contextual-unavailable", { ...base, kind: "select", id: "unavailable-select", label: "Unavailable display mode", required: true, value: null, disabled: true, options: choices }),
+    sample("input-empty", { ...base, kind: "select", id: "empty-select-input", label: "Required input", required: false, inputRequired: true, value: null, options: choices }),
+    sample("input-clearable", { ...base, kind: "select", id: "clearable-select-input", label: "Required clearable input", required: false, inputRequired: true, value: "first", options: choices }),
+    sample("input-retained", { ...base, kind: "select", id: "retained-select-input", label: "Retained input", required: true, inputRequired: true, value: "first", options: choices }),
   ] },
   { id: "control.popover", family: "control", specimens: [
     sample("available", { ...base, kind: "popover", id: "help", label: "Open contextual information", open: false,
@@ -39,6 +45,11 @@ export const ControlBank = freezeDeep(([
     sample("empty", { ...base, kind: "files", id: "local-files", label: "Choose local text files",
       limits: { maxCount: 2, maxFileBytes: 10240, maxTotalBytes: 15360, accept: ["text/plain"] }, files: [] }),
   ] },
+  { id: "control.labels", family: "control", specimens: [
+    sample("empty", { ...base, kind: "labels", id: "labels-empty", label: "Labels", values: [], limits: labelLimits }),
+    sample("value", { ...base, kind: "labels", id: "labels-value", label: "Labels", values: ["Work", "Personal"], limits: labelLimits }),
+    sample("disabled", { ...base, kind: "labels", id: "labels-disabled", label: "Labels", values: ["Work"], disabled: true, limits: labelLimits }),
+  ] },
   { id: "control.options", family: "control", specimens: [
     sample("one", { ...options, id: "one-choice", label: "Choose one option", maxSelected: 1 }),
     sample("many", { ...options, id: "many-choices", label: "Choose up to two options", maxSelected: 2 }),
@@ -46,6 +57,10 @@ export const ControlBank = freezeDeep(([
       disabled: true, selected: ['first'] }),
     sample("constrained", { ...options, id: "constrained-options", label: "Keep one or two options", maxSelected: 2,
       selected: ['first', 'second'], options: [...choices, { value: 'third', label: 'Third option', disabled: false }] }),
+    sample("contextual-selected", { ...options, id: "contextual-selected-options", label: "Display mode", maxSelected: 1, selected: ['first'] }),
+    sample("input-empty", { ...options, id: "input-empty-options", label: "Required input", inputRequired: true, maxSelected: 1 }),
+    sample("input-selected", { ...options, id: "input-selected-options", label: "Retained input", inputRequired: true, maxSelected: 1, selected: ['first'] }),
+    sample("input-multiple", { ...options, id: "input-multiple-options", label: "Required choices", inputRequired: true, maxSelected: 2 }),
   ] },
   { id: "control.money", family: "control", specimens: [
     sample("empty", { ...money, id: 'amount' }),
@@ -70,4 +85,12 @@ export const ControlBank = freezeDeep(([
     sample("image", { ...base, kind: "avatar", id: "author-photo", label: "Alex Rivera", source: "/bank-image.svg", fallback: "AR" }),
     sample("fallback", { ...base, kind: "avatar", id: "author-initials", label: "Sam Lee", source: null, fallback: "SL" }),
   ] },
-] as const).map(entry => ({ ...entry, inspection: controlInspection(entry.id.slice(8), entry.specimens.map(specimen => specimen.state)) })));
+] as const).map(entry => {
+  const local = entry.specimens.find(specimen => specimen.state === 'value') ?? entry.specimens[0];
+  const specimens = ['control.select','control.files','control.labels','control.options','control.money','control.date'].includes(entry.id)
+    ? [...entry.specimens, ...(['loading','offline'] as const).map(state=>sample(state, {
+      ...local.node, id:`${entry.id}-${state}`,
+      disabled:state==='loading'||local.node.kind==='select'||local.node.kind==='options',
+    }))] : entry.specimens;
+  return {...entry,specimens,inspection:controlInspection(entry.id.slice(8),specimens.map(specimen=>specimen.state))};
+}));

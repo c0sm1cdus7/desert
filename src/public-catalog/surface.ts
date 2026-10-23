@@ -35,7 +35,7 @@ export function publicCatalogSurface(value: unknown): PublicCatalogSurface {
       cards.some(card => !details.has(card.record) || details.get(card.record)?.title !== card.title) ||
       [...documents.keys()].some(record => !details.has(record))) throw new Error("INVALID_CATALOG_SURFACE_REFERENCES");
   const featuredDetail = details.get(surface.home.featured.record);
-  if (!featuredDetail || featuredDetail.title !== surface.home.featured.title ||
+  if (!featuredDetail || !surface.home.featured.image || featuredDetail.title !== surface.home.featured.title ||
       featuredDetail.image.asset !== surface.home.featured.image.asset || featuredDetail.image.alt !== surface.home.featured.image.alt) {
     throw new Error("INVALID_CATALOG_FEATURED_REFERENCE");
   }

@@ -13,7 +13,7 @@
   const motion = swipeMotion({ edge: () => "right", enabled: () => !settling && !searching,
     threshold: () => Math.min(120, (viewport?.clientWidth ?? 0) * .25), commit: () => { accepted = true; void finish(true); } });
   const panel = () => document.getElementById(sidebar.panelId);
-  let available = $derived(Boolean(viewport) && !sidebar.expanded && !searching);
+  let available = $derived(Boolean(viewport) && !sidebar.expanded && !searching && (sidebar.available || detail && Boolean(onback)));
   // A changed layout or destination invalidates the gesture's starting geometry.
   $effect(() => { sidebar.presentation; searching; detail; untrack(() => { if (motion.tracking) cancel(); }); });
 

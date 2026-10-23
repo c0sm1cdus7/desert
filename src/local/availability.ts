@@ -19,19 +19,22 @@ export function watchLocalAvailability(database: Database, program: LocalProgram
   }
   const interaction = program.application.surface(surface);
   const dependencies = new Set(interaction.journeys.flatMap(journey => journey.dependencies));
-  if (!dependencies.has(program.role)) throw new Error("CONTROLLER_NOT_EXPOSED");
+  const exposedRoles = program.roles.filter(role => dependencies.has(role));
+  if (!exposedRoles.length) throw new Error("CONTROLLER_NOT_EXPOSED");
   const availability = createAvailability({ contractDigest: program.application.digest, interaction,
     bindings: [...dependencies].map(dependency => ({ dependency })) }, options);
-  const report = availability.begin(program.role);
-  const installation = { product: program.application.id, digest: program.application.digest, role: program.role };
+  const reports = exposedRoles.map(role => availability.begin(role));
+  const installation = { product: program.application.id, digest: program.application.digest, roles: program.roles };
   let disposed = false;
   let revision = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
 
   function fail(error: unknown) {
     const reason = failureReason(error);
-    if (reason === "incompatible") report.incompatible();
-    else report.unavailable(reason);
+    for (const report of reports) {
+      if (reason === "incompatible") report.incompatible();
+      else report.unavailable(reason);
+    }
   }
   const stopFaults = database.onFault(error => { revision++; fail(error); });
   const stopClosing = database.onClose(dispose);
@@ -43,8 +46,10 @@ export function watchLocalAvailability(database: Database, program: LocalProgram
       await inspectLocalSession(database, installation, token);
       if (!disposed && current === revision) {
         const remaining = Math.floor(validFor - (performance.now() - started));
-        if (remaining > 0) report.ready(installation.digest, remaining);
-        else report.unavailable("unavailable");
+        for (const report of reports) {
+          if (remaining > 0) report.ready(installation.digest, remaining);
+          else report.unavailable("unavailable");
+        }
       }
     } catch (error) { if (!disposed && current === revision) fail(error); }
     finally { if (!disposed) timer = setTimeout(probe, pollInterval); }

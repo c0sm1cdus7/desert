@@ -9,7 +9,7 @@ const source = `<script lang="ts">
   import { surfaceFrame, SurfaceFrameVersion } from "@desert/interaction/surface-frame.ts";
   import { toolbarAction } from "@desert/interaction/toolbar.ts";
   let open = $state(false), observed = $state("");
-  const frame = surfaceFrame({ version: SurfaceFrameVersion, kind:"journey",
+  const frame = surfaceFrame({ version: SurfaceFrameVersion, kind:"journey", navigation:"steps",
     top:{ title:"Independent task" }, content:{ kind:"message",text:"A task with a real next action." },
     bottom:{primary:toolbarAction({kind:"accept"},"Continue","confirm")} });
 </script>
@@ -31,6 +31,9 @@ for (const width of [390, 1280]) test(`a real Continue footer remains executable
     const footer = dialog.locator('[data-surface-slot="bottom"]');
     const next = footer.getByRole('button', { name: 'Continue', exact: true });
     assert.equal(await next.count(), 1, 'Removing a lone dismissal must not remove real task actions');
+    const close=footer.getByRole('button',{name:'Close',exact:true});
+    const left=await close.boundingBox(), right=await next.boundingBox();
+    assert.ok(left && right && Math.abs(left.width-right.width)<1,'Wizard navigation divides its rail equally');
     await next.click();
     assert.deepEqual(JSON.parse(await page.locator('[data-observed]').innerText()), { kind: 'accept' });
     assert.equal(await dialog.isVisible(), true, 'The renderer does not fake task completion');

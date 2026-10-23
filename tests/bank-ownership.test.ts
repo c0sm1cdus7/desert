@@ -4,14 +4,16 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { compile } from "../src/compile.ts";
 import { Notebook } from "../products/notebook/product.ts";
+import { CreateNote } from "../products/notebook/journeys.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
+import { notebookScope } from "./fixtures/notebook-scope.ts";
+import type { HumanSurface } from "../src/web/types.ts";
 
 const source = (path: string) => readFileSync(new URL(`../src/svelte/${path}`, import.meta.url), "utf8");
 
 test("product, catalog and nested compositions use the one bank dispatch boundary", () => {
   const consumers = ["FrameBody.svelte", "Fields.svelte", "ContextPanel.svelte", "Review.svelte",
-    "HumanProduct.svelte", "ProductWorkspace.svelte", "SurfaceHost.svelte",
-    "FailureDialog.svelte", "catalog/Specimen.svelte", "catalog/KitchenSink.svelte", "controls/ControlRenderer.svelte"];
+    "FailureDialog.svelte", "catalog/Specimen.svelte", "pieces/Inspection.svelte", "pieces/FactGroup.svelte", "controls/ControlRenderer.svelte"];
   for (const consumer of consumers) {
     const text = source(consumer);
     assert.match(text, /BankRenderer/, `${consumer} bypasses the bank`);
@@ -25,20 +27,25 @@ test("product, catalog and nested compositions use the one bank dispatch boundar
   assert.match(source("renderer-registry.ts"), /collection: Collection/);
   assert.match(source("Collection.svelte"), /import type \{ BankNodeFor \}/);
   assert.match(source("Collection.svelte"), /<GroupedPanel>/);
+  assert.match(source("catalog/KitchenSink.svelte"), /import InspectionContent from "\.\.\/views\/InspectionContent\.svelte"/);
+  assert.match(source("catalog/KitchenSink.svelte"), /<InspectionContent\s*\/>/);
+  assert.match(source("views/InspectionContent.svelte"), /import \{ Inspection \} from "\.\.\/adapter-catalog\.ts"/);
+  assert.match(source("adapter-catalog.ts"), /import InspectionOwner from "\.\/pieces\/Inspection\.svelte"/);
 });
 
 test("replacing a registered leaf reaches real product frame and catalog specimen together", { timeout: 20000 }, async () => {
-  const surface = compile(Notebook).surface("human");
+  const surface = compile(Notebook).surface("human") as HumanSurface;
   const page = `<script lang="ts">
     import SurfaceFrame from "@desert/svelte/SurfaceFrame.svelte";
     import Specimen from "@desert/svelte/catalog/Specimen.svelte";
     import { formFrame, toolbarAction } from "@desert/interaction/frame-presenters.ts";
     const surface = ${JSON.stringify(surface)};
-    const mutation = surface.journeys.find(journey => journey.id === surface.navigation.primaryAction);
+    const scope = ${JSON.stringify(notebookScope(surface))};
+    const mutation = surface.journeys.find(journey => journey.id === ${JSON.stringify(CreateNote.id)});
     const frame = formFrame(surface, mutation, {}, {primary:toolbarAction({kind:'journey',journey:mutation.id},'Save','save')});
   </script>
   <section data-product><SurfaceFrame {frame} invoke={() => {}} /></section>
-  <section data-catalog><Specimen id="input.text" state="empty" {surface} validateInput={() => true} /></section>`;
+  <section data-catalog><Specimen id="input.text" state="empty" {surface} {scope} validateInput={() => true} /></section>`;
   const path = (name: string) => fileURLToPath(new URL(`../src/svelte/${name}`, import.meta.url));
   const replacement = `<script lang="ts">let {label, value = '', onchange = () => {}} = $props();</script>
     <input data-bank-mutant aria-label={label} {value} oninput={event => onchange(event.currentTarget.value)} />`;

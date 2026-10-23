@@ -8,9 +8,9 @@ import { webConnection, type Application, type ClientPlan } from "../plan.ts";
 export const svelteWebBuilder = Object.freeze({
   id: "svelte-web",
   revision: rendererRevision,
-  async prepare(application: Application, plan: ClientPlan, viewProgram?: unknown) {
+  async prepare(application: Application, plan: ClientPlan) {
     const connection = webConnection(plan);
-    const module = await buildHumanModule(application, plan.surface, viewProgram);
+    const module = await buildHumanModule(application, plan.surface);
     return { connection,
       async build(destination: string) {
         const project = createBuildProject(module);

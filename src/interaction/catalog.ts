@@ -9,23 +9,23 @@ function entry<const Id extends string, const Family extends string, const State
 }
 
 export const InteractionCatalog = freezeDeep({
-  id: "desert.human-interaction", version: "0.4.1",
+  id: "desert.human-interaction", version: "0.5.0",
   groups: CatalogGroups, foundations: CatalogFoundations,
   entries: [
-    entry("input.text", "primitive", ["empty", "value", "invalid", "disabled"], "controls", ["pane", "well"]),
-    entry("input.multiline", "primitive", ["empty", "value", "invalid", "disabled"], "controls", ["pane", "well"]),
+    entry("input.text", "primitive", ["empty", "value", "invalid", "disabled", "loading", "offline"], "foundations", ["pane", "well"]),
+    entry("input.multiline", "primitive", ["empty", "value", "invalid", "disabled", "loading", "offline"], "foundations", ["pane", "well"]),
     entry("fact", "primitive", ["known", "empty", "unknown"], "foundations", ["stack", "status"]),
-    entry("action", "primitive", ["ready", "unavailable", "pending"], "foundations", ["pane", "action"]),
+    entry("action", "primitive", ["ready", "unavailable", "pending", "loading", "offline"], "foundations", ["pane", "action"]),
     entry("availability", "primitive", ["unknown", "ready", "unavailable"], "foundations", ["status"]),
-    entry("collection", "composition", ["empty", "records"], "compositions", ["stack", "pane", "action"]),
+    entry("collection", "composition", ["empty", "records", "state-summary", "media-grid", "media-list", "collection-grid", "loading", "offline"], "compositions", ["stack", "pane", "action"]),
     entry("form", "composition", ["incomplete", "ready", "disconnected"], "compositions", ["stack", "well", "action"]),
-    entry("context", "composition", ["available", "unavailable"], "compositions", ["stack", "action"]),
+    entry("context", "composition", ["available", "unavailable", "media-object"], "compositions", ["stack", "action"]),
     entry("review", "composition", ["prepared", "uncertain"], "compositions", ["stack", "status", "action"]),
     entry("transient", "composition", ["open", "locked"], "compositions", ["pane", "stack", "action"]),
     entry("problem", "composition", ["error", "warning"], "compositions", ["pane", "status", "action"]),
-    entry("catalog.card", "composition", ["featured", "item"], "product", ["stack", "action"]),
-    entry("catalog.home", "composition", ["populated"], "product", ["stack"]),
-    entry("catalog.detail", "composition", ["reading"], "product", ["stack"]),
+    entry("catalog.card", "composition", ["featured", "item"], "compositions", ["stack", "action"]),
+    entry("catalog.home", "composition", ["populated"], "compositions", ["stack"]),
+    entry("catalog.detail", "composition", ["reading"], "compositions", ["stack"]),
     ...ControlBank.map(({ id, family, specimens, inspection }) => ({ id, family, states: specimens.map(specimen => specimen.state), inspection })),
   ] as const,
 });

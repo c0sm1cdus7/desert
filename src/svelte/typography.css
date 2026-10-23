@@ -1,4 +1,5 @@
 /* Shared renderer roles. Components choose a role, never an independent type scale. */
+:root { --heading-copy-gap:4px; }
 @theme {
   --text-control:.8125rem;
   --text-control--line-height:1.125rem;
@@ -65,3 +66,13 @@
 /* Decorative 3–4-letter monograms; the adjacent full name retains body size. */
 @utility type-initials-compact { font-size:var(--text-initials-compact); line-height:1; font-weight:400; }
 @utility type-prose { font-size:var(--text-prose); line-height:var(--text-prose--line-height); font-weight:400; }
+@layer components {
+  [data-frame-presentation="message"] {
+    --text-title:1.0625rem; --text-title--line-height:1.375rem; --text-title--font-weight:600;
+    --text-body:.8125rem; --text-body--line-height:1.1875rem;
+  }
+}
+@layer base {
+  button,input,textarea { font:inherit; }
+  h1,h2,h3,p { margin:0; }
+}

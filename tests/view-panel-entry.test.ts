@@ -10,13 +10,16 @@ for (const composition of ["retained-bank", "view-panel"] as const) {
       import Panel from '@desert/svelte/views/Panel.svelte';
       import BankRenderer from '@desert/svelte/BankRenderer.svelte';
       import {surfaceFrame} from '@desert/interaction/surface-frame.ts';
+      import {viewEventOwnership} from '@desert/web/client/view-events.ts';
+      const ownership=viewEventOwnership();
+      const owner=ownership.sync(['entry'],true).panel;
       let open=$state(false);
       const frame=surfaceFrame({version:'desert.surface-frame/6',kind:'message',top:{title:'Entry fixture'},
         content:{kind:'message',text:'Same frame, same primitive, same first-open motion.'},bottom:{}});
     </script>
     <button onclick={()=>open=true}>Open fixture</button>
     ${composition === "view-panel"
-      ? '<Panel panel={open?{frame,label:"Entry fixture",locked:false}:null} onevent={()=>open=false} />'
+      ? '<Panel panel={open?{frame,label:"Entry fixture",locked:false,owner}:null} onevent={()=>open=false} />'
       : '<BankRenderer node={{version:"desert.bank-node/1",kind:"transient",label:"Entry fixture",frame,open,locked:false}} onevent={()=>open=false} />'}`);
     try {
       await fixture.page.setViewportSize({ width: 390, height: 844 });

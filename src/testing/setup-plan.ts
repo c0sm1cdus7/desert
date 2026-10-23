@@ -55,7 +55,8 @@ export function setupFor(product: ProductDefinition, journey: JourneyDefinition,
   if (journey.kind === "mutation" && journey.command.kind === "create") return [];
   const states = reachableStates(product, objectIdOf(journey), seed);
   const command = journey.kind === "mutation" ? journey.command : undefined;
-  const matching = states.find(state => command?.kind !== "update" || conditionsHold(state.facts, command.when));
+  const matching = states.find(state => journey.kind === "read" ? conditionsHold(state.facts, journey.where ?? {})
+    : command?.kind !== "update" || conditionsHold(state.facts, command.when));
   if (!matching) throw new VerificationGap("NO_GENERATED_SETUP");
   return matching.steps;
 }

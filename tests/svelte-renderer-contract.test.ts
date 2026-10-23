@@ -22,7 +22,7 @@ const header = `<script lang="ts">
   const acceptSelection = (_event: ControlEventFor<"select">) => {};
   const unrelated: Component<{ arbitrary: string }> = () => ({});
   const wrongEmitter: Component<{ node: WebRendererProps["control.date"]["node"]; onevent: (event: ControlEventFor<"select">) => void }> = () => ({});
-  const { "control.date": Date, "control.select": Select } = webRenderers;
+  const { "control.date": Date, "control.select": Select, "input.text": Text, "input.multiline": Multiline } = webRenderers;
 `;
 
 test("Svelte bank rejects wrong components, nodes, events and inventory; compatible bindings pass", { timeout: 60000 }, async () => {
@@ -38,6 +38,9 @@ test("Svelte bank rejects wrong components, nodes, events and inventory; compati
     'const incompleteInventory: WebRendererBank = { "control.date": DateControl };',
     'const inventedEntry: WebRendererBank = { ...webRenderers, rainbow: DateControl };',
     'const wrongInput: WebRendererProps["input.text"]["primitive"] = "input.multiline";',
+    'const numericHelper: WebRendererProps["input.text"] = { primitive: "input.text", label: "Name", helper: 12, onchange: () => {} };',
+    'const callableHelper: WebRendererProps["input.multiline"] = { primitive: "input.multiline", label: "Description", helper: () => "Not plain text", onchange: () => {} };',
+    'const foreignInputProp: WebRendererProps["input.text"] = { primitive: "input.text", label: "Name", style: "color:red", onchange: () => {} };',
     'const wrongEmittedEvent: ControlEventFor<"date"> = { kind: "select.change", control: "date", value: null };',
   ];
   try {
@@ -57,8 +60,11 @@ test("Svelte bank rejects wrong components, nodes, events and inventory; compati
       const dateBinding: Component<WebRendererProps["control.date"]> = DateControl;
       const selectionBinding: Component<WebRendererProps["control.select"]> = SelectControl;
       const dateEvent: ControlEventFor<"date"> = { kind: "date.change", control: date.id, value: null };
+      const textInput: WebRendererProps["input.text"] = { primitive: "input.text", label: "Name", helper: "Use a recognizable name.", onchange: () => {} };
+      const multilineInput: WebRendererProps["input.multiline"] = { primitive: "input.multiline", label: "Description", helper: "Describe the image.", onchange: () => {} };
     </script>
-    <Date node={date} onevent={acceptAll} /><Select node={choice} onevent={acceptAll} />`);
+    <Date node={date} onevent={acceptAll} /><Select node={choice} onevent={acceptAll} />
+    <Text {...textInput}/><Multiline {...multilineInput}/>`);
     const checked = await project.run("check");
     assert.match(checked.stdout, /0 errors and 0 warnings/);
   } finally { project.close(); }

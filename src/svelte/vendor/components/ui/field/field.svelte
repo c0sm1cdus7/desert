@@ -30,10 +30,12 @@
 		ref = $bindable(null),
 		class: className,
 		orientation = "vertical",
+		purpose = "content",
 		children,
 		...restProps
 	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & {
 		orientation?: FieldOrientation;
+		purpose?: "content" | "toolbar-search";
 	} = $props();
 </script>
 
@@ -42,6 +44,7 @@
 	role="group"
 	data-slot="field"
 	data-orientation={orientation}
+	data-catalog-search={purpose === "toolbar-search" || undefined}
 	class={cn(fieldVariants({ orientation }), className)}
 	{...restProps}
 >

@@ -4,16 +4,21 @@ import { compile } from "../src/compile.ts";
 import type { ProductDefinition } from "../src/contracts.ts";
 import type { HumanSurface } from "../src/web/types.ts";
 import { humanProduct } from "../src/web/client/model.ts";
+import { webTransport } from "../src/web/client/transport.ts";
 import { Notebook } from "../products/notebook/product.ts";
+import { CreateNote } from "../products/notebook/journeys.ts";
+import { notebookScope } from "./fixtures/notebook-scope.ts";
 
 for (const origin of ["list", "detail"] as const) {
   test(`primary review Back returns to the composer, then cancellation returns to ${origin}`, async t => {
-    const definition: ProductDefinition = structuredClone(Notebook);
+    const definition: ProductDefinition = JSON.parse(JSON.stringify(Notebook));
     const human = definition.surfaces!.find(surface => surface.kind === "human")!;
     assert.equal(human.kind, "human");
-    human.commit[human.primaryAction] = "review";
+    human.commit[CreateNote.id] = "review";
     const application = compile(definition), surface = application.surface("human") as HumanSurface;
-    const model = humanProduct(surface, (id, input) => application.validateInput(id, input).valid);
+    const model = humanProduct(surface, (id, input) => application.validateInput(id, input).valid, {
+      scope: notebookScope(surface), transport: webTransport(surface.contractDigest, { kind: "developer" }),
+    });
     const record = { id: "existing-record", version: 1, facts: { title: "Existing", body: "Preserve context", state: "active" } };
     const ready = { contractDigest: surface.contractDigest, journeys: Object.fromEntries(surface.journeys.map(journey =>
       [journey.id, { dependenciesReady: true, blockers: [] }])) };
@@ -48,8 +53,8 @@ for (const origin of ["list", "detail"] as const) {
       assert.deepEqual(model.snapshot().draft, { title: "Unfinished", body: "Keep me" });
       model.back();
       assert.equal(model.snapshot().view, origin);
-      assert.equal(model.snapshot().selectedId, record.id);
-      assert.deepEqual(model.snapshot().detail, record);
+      assert.equal(model.snapshot().selectedId, origin === "detail" ? record.id : null);
+      assert.deepEqual(model.snapshot().detail, origin === "detail" ? record : null);
       model.create(); model.close();
       assert.equal(model.snapshot().view, origin, "close follows the same creation-origin boundary");
       assert.deepEqual(model.snapshot().draft, { title: "Unfinished", body: "Keep me" });

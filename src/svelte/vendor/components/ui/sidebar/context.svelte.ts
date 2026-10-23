@@ -8,6 +8,7 @@ const FOCUSABLE = 'button, a[href], input, select, textarea, [tabindex]';
 
 export type SidebarStateProps = {
 	panelId: string;
+	available: Getter<boolean>;
 	root: Getter<HTMLElement | null>;
 	dockedBudget: Getter<HTMLElement | null>;
 	/**
@@ -27,7 +28,7 @@ export type SidebarStateProps = {
 
 class SidebarState {
 	readonly props: SidebarStateProps;
-	open = $derived.by(() => this.props.open());
+	open = $derived.by(() => this.available && this.props.open());
 	overlayOpen = $state(false);
 	/** Visual preview only; no navigation, focus or modality is accepted mid-gesture. */
 	revealOffset = $state<number | null>(null);
@@ -59,7 +60,8 @@ class SidebarState {
 	}
 
 	get panelId() { return this.props.panelId; }
-	get expanded() { return this.presentation === "overlay" ? this.overlayOpen : this.open; }
+	get available() { return this.props.available(); }
+	get expanded() { return this.available && (this.presentation === "overlay" ? this.overlayOpen : this.open); }
 	get revealing() { return this.revealOffset !== null; }
 	private panel() { return document.getElementById(this.panelId); }
 	private focusOrigin(): FocusOrigin | undefined {
@@ -96,19 +98,21 @@ class SidebarState {
 
 	// Event handler to apply to the `<svelte:window>`
 	handleShortcutKeydown = (e: KeyboardEvent) => {
-		if (e.key === SIDEBAR_KEYBOARD_SHORTCUT && (e.metaKey || e.ctrlKey)) {
+		if (this.available && e.key === SIDEBAR_KEYBOARD_SHORTCUT && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
 			this.toggle();
 		}
 	};
 
 	setOverlayOpen = (value: boolean) => {
+		if (value && !this.available) return;
 		if (value && !this.overlayOpen) this.#overlayOrigin = this.focusOrigin();
 		if (!value) this.revealedByGesture = false;
 		this.overlayOpen = value;
 	};
 
 	toggle = () => {
+		if (!this.available) return;
 		return this.presentation === "overlay" ? this.setOverlayOpen(!this.overlayOpen) : this.setOpen(!this.open);
 	};
 }

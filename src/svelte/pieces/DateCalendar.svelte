@@ -27,19 +27,13 @@
     <CalendarPrimitive.Heading class="sr-only" />
     <Toolbar toolbar={{ edge: "top", title: month.format(visibleMonth.toDate(getLocalTimeZone())),
       ...(onclose ? { leading: toolbarAction({ kind: "close" }, `Close ${label}`, "close") } : {}) }}
-      invoke={() => onclose?.()}>
-      {#snippet controls()}
-        <Calendar.PrevButton variant="secondary" aria-label="Previous month" />
-        <Calendar.NextButton variant="secondary" aria-label="Next month" />
-      {/snippet}
-    </Toolbar>
+      invoke={() => onclose?.()} controls={{ kind: "calendar" }} />
   {/snippet}
 </Calendar.Calendar>
-{#if value && onclear}<Button variant="ghost" class="shrink-0" onclick={onclear} {disabled}>Clear date</Button>{/if}
+{#if value && onclear}<Button variant="secondary" class="shrink-0" onclick={onclear} {disabled}>Clear date</Button>{/if}
 
 <style>
   :global([data-date-calendar]) { display:flex; flex-direction:column; min-height:0; }
-  :global([data-date-calendar] .workspace-header) { padding:.25rem 0 .75rem; flex-shrink:0; overflow:visible; }
   :global([data-date-calendar="anchored"]) { --cell-size:max(2rem,calc((100cqi - 1rem)/7)); }
   /* Preserve legible, nonoverlapping targets; extreme text sizes scroll locally.
      Use the shared type role's rem length, not ch/em: cell, weekday and button
@@ -47,10 +41,5 @@
   :global([data-date-calendar="sheet"]) { --cell-size:max(calc(var(--text-control) * 1.5),calc((100cqi - 4px)/7)); }
   :global([data-date-calendar="sheet"] td) { height:max(var(--cell-size),44px); }
   :global([data-date-calendar="sheet"] [data-calendar-day]) { min-width:0; }
-  :global([data-date-calendar] [data-toolbar-controls] button) { width:36px; height:36px; min-height:36px; }
-  :global([data-date-calendar="sheet"] [data-toolbar-controls] button) { width:44px; height:44px; min-height:44px; }
   :global([data-date-calendar] [data-calendar-grid-viewport]) { padding:2px; }
-  @media (pointer:coarse) {
-    :global([data-date-calendar] [data-toolbar-controls] button) { width:44px; height:44px; min-height:44px; }
-  }
 </style>

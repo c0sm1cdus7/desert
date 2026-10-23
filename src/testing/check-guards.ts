@@ -3,6 +3,7 @@ import { reachableStates, conditionsHold } from "./setup-plan.ts";
 import { VerificationGap } from "./types.ts";
 import type { Environment } from "./environment.ts";
 import { successfulOperation } from "./check-success.ts";
+import { observedEditBase } from "./edit-base.ts";
 
 export async function checkGuards(f: Environment) {
   const command = f.journey.kind === "mutation" ? f.journey.command : undefined;
@@ -22,7 +23,7 @@ export async function checkGuards(f: Environment) {
     const before = await f.sandbox.snapshot();
     await assert.rejects(async () => {
       const run = await f.session.begin(f.journey.id, subject);
-      await f.session.prepare(run.id, f.input);
+      await f.session.prepare(run.id, f.input, observedEditBase(f.journey, before, subject));
     }, /PRECONDITION_FAILED/);
     assert.deepEqual(await f.sandbox.snapshot(), before, "GUARD_REJECTION_CHANGED_DOMAIN");
   }

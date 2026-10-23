@@ -27,7 +27,7 @@ async function focusState(page: Page) {
     return { tag: element?.tagName, label: element?.getAttribute("aria-label"),
       text: element?.textContent?.slice(0, 100), visible: !!rect && rect.width > 0 && rect.height > 0 &&
         rect.left >= 0 && rect.top >= 0 && rect.right <= innerWidth && rect.bottom <= innerHeight,
-      inNavigation: !!element?.closest("nav"), focusVisible: element?.matches(":focus-visible") };
+      inNavigation: !!element?.closest('[role="navigation"]'), focusVisible: element?.matches(":focus-visible") };
   });
 }
 
@@ -37,8 +37,8 @@ test("desktop sidebar shows complete destination names without truncation", asyn
     const { page } = fixture;
     await page.setViewportSize({ width: 1100, height: 760 });
     await navigation(page).waitFor(); await settle(page);
-    const rows = await navigation(page).getByRole("button").evaluateAll(elements => elements.map(element => {
-      const label = element.querySelector("span:last-child") as HTMLElement;
+    const rows = await navigation(page).locator('[data-slot="sidebar-menu-button"]').evaluateAll(elements => elements.map(element => {
+      const label = element.querySelector("[data-button-content] > span:last-child") as HTMLElement;
       const range = document.createRange(); range.selectNodeContents(label);
       const glyphs = range.getBoundingClientRect(), bounds = label.getBoundingClientRect();
       return { name: element.getAttribute("aria-label"), text: label.textContent?.trim(),
@@ -58,10 +58,10 @@ test("sidebar toggle aligns with the product name while Back stays in the place 
   try {
     const { page } = fixture;
     await page.setViewportSize({ width: 1100, height: 760 });
-    await action(page, "Learn More").click(); await action(page, "Back").waitFor(); await settle(page);
+    await action(page, "Mount Fuji").click(); await action(page, "Back").waitFor(); await settle(page);
     const toggle = await box(hideNavigation(page)), back = await box(action(page, "Back"));
     // The owner superseded the bottom ghost disclosure with a filled header action.
-    const name = await box(page.locator('[data-product-name]'));
+    const name = await box(page.locator('[data-catalog-navigation] [data-toolbar-title]'));
     await capture(page, "header-disclosure", { toggle, back, name,
       expectation: "Sidebar disclosure aligns with the product identity; place navigation stays above its content." });
     assert.ok(Math.abs(toggle.y + toggle.height / 2 - name.y - name.height / 2) < 2);

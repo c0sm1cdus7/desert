@@ -1,14 +1,21 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { InteractionCatalog } from "../../src/interaction/catalog.ts";
-import { browserFixture } from "./fixture.ts";
+import { publicCatalogFixture } from "./public-catalog-fixture.ts";
+import { navigationAction, settle } from "./public-catalog-expectations.ts";
+
+async function catalogFixture() {
+  const fixture = await publicCatalogFixture();
+  await fixture.page.setViewportSize({ width: 1280, height: 900 });
+  await (await navigationAction(fixture.page, "Component bank")).click();
+  return fixture;
+}
 
 test("catalog navigation exposes the canonical inventory and its execution boundary", async () => {
-  const f = await browserFixture();
+  const f = await catalogFixture();
   try {
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
     const navigation = f.page.getByRole("navigation", { name: "Catalog navigation" });
-    assert.equal(await navigation.getByRole("searchbox", { name: "Find component" }).count(), 1);
+    assert.equal(await navigation.getByRole("searchbox").count(), 0);
     for (const entry of InteractionCatalog.entries) {
       const section = f.page.locator(`[data-catalog-entry="${entry.id}"]`);
       assert.equal(await section.isVisible(), true, `${entry.id} is visible by default`);
@@ -17,44 +24,46 @@ test("catalog navigation exposes the canonical inventory and its execution bound
     assert.equal(await navigation.getByRole("link").count(), InteractionCatalog.groups.length);
     for (const group of InteractionCatalog.groups)
       assert.equal(await f.page.getByRole("heading", { name: group.title, exact: true }).count(), 1);
-    assert.equal(await f.page.locator('[data-foundation]').count(), 6);
+    assert.equal(await f.page.locator('[data-foundation]').count(), InteractionCatalog.foundations.length);
     const bench = f.page.getByRole("region", { name: "Controls", exact: true });
     assert.match(await bench.textContent() ?? "", /Local specimens do not execute commands/);
-    assert.equal(await f.page.getByRole('heading', {name:'Not installed in product execution',exact:true}).count(),1);
-    assert.deepEqual(f.errors, []);
+    assert.equal(await f.page.getByRole("searchbox").count(), 0);
   } finally { await f.close(); }
 });
 
-test("catalog search filters by names, identifiers and states without discarding specimen edits", async () => {
-  const f = await browserFixture();
+test("catalog toolbar searches names, identifiers and states only in an overlay, preserving specimen edits", async () => {
+  const f = await catalogFixture();
   try {
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
-    const find = f.page.getByRole("searchbox", { name: "Find component" });
     const writing = f.page.locator('[data-specimen="input.text:value"]').getByRole("textbox", { name: "Writing" });
     await writing.fill("Keep this local draft");
+    await f.page.getByRole("button", { name: "Search", exact: true }).click();
+    const find = f.page.getByRole("searchbox", { name: "Search component bank", exact: true });
+    const results = f.page.locator("[data-catalog-search-scroll]");
     await find.fill("  MONEY  ");
-    assert.equal(await f.page.locator("[data-catalog-entry]:visible").count(), 1);
-    assert.equal(await f.page.locator('[data-catalog-entry="control.money"]').isVisible(), true);
+    assert.equal(await results.locator("[data-search-result]").count(), 1);
+    assert.equal(await results.locator('[data-search-result="control.money"]').isVisible(), true);
     await find.fill("input.multiline");
-    assert.equal(await f.page.locator("[data-catalog-entry]:visible").count(), 1);
+    assert.equal(await results.locator("[data-search-result]").count(), 1);
+    assert.equal(await results.locator('[data-search-result="input.multiline"]').isVisible(), true);
     await find.fill("uncertain");
-    assert.equal(await f.page.locator('[data-catalog-entry="review"]').isVisible(), true);
+    assert.equal(await results.locator('[data-search-result="review"]').isVisible(), true);
     await find.fill("not-a-catalog-component");
-    assert.equal(await f.page.locator("[data-catalog-entry]:visible").count(), 0);
-    await f.page.getByText("No matching components", { exact: true }).waitFor();
+    assert.equal(await results.locator("[data-search-result]").count(), 0);
+    await results.getByText("No matching results", { exact: true }).waitFor();
+    assert.equal(await f.page.locator("[data-catalog-entry][hidden]").count(), 0,
+      "search never filters retained surface content");
     await f.page.getByRole("button", { name: "Clear search", exact: true }).click();
     assert.equal(await find.inputValue(), "");
     assert.equal(await find.evaluate(element => element === document.activeElement), true);
+    await f.page.getByRole("button", { name: "Close search", exact: true }).click();
     assert.equal(await writing.inputValue(), "Keep this local draft");
     assert.equal(await f.page.locator("[data-catalog-entry]:visible").count(), InteractionCatalog.entries.length);
-    assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
 
 test("invalid text specimens explain their state and associate the error with the field", async () => {
-  const f = await browserFixture();
+  const f = await catalogFixture();
   try {
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
     for (const primitive of ["input.text", "input.multiline"]) {
       const specimen = f.page.locator(`[data-specimen="${primitive}:invalid"]`);
       const field = specimen.getByRole("textbox", { name: "Writing", exact: true });
@@ -68,18 +77,17 @@ test("invalid text specimens explain their state and associate the error with th
       assert.equal(await normal.getByRole("textbox", { name: "Writing", exact: true }).getAttribute("aria-describedby"), null);
       assert.equal(await normal.getByRole("status").count(), 0);
     }
-    assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
 
-test("catalog section navigation and return links are keyboard-accessible at compact width", async () => {
-  const f = await browserFixture();
+test("catalog section navigation and toolbar return are keyboard-accessible at compact width", async () => {
+  const f = await catalogFixture();
   try {
     await f.page.setViewportSize({ width: 390, height: 740 });
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
     for (const width of [390, 320]) {
       await f.page.setViewportSize({ width, height: 740 });
-      const geometry = await f.page.locator(".catalog-header h1").evaluate(heading => {
+      await settle(f.page);
+      const geometry = await f.page.locator("[data-catalog-content] [data-place-title]").first().evaluate(heading => {
         const style = getComputedStyle(heading);
         return { fontSize: parseFloat(style.fontSize), lineHeight: parseFloat(style.lineHeight),
           titleBottom: heading.getBoundingClientRect().bottom,
@@ -94,10 +102,11 @@ test("catalog section navigation and return links are keyboard-accessible at com
     await f.page.keyboard.press("Enter");
     assert.equal(await f.page.evaluate(() => document.activeElement?.id), "catalog-controls");
     const bench = f.page.getByRole("region", { name: "Controls", exact: true });
-    await bench.getByRole("link", { name: "Back to catalog navigation", exact: true }).focus();
+    assert.equal(await bench.getByRole("link", { name: "Back to catalog navigation", exact: true }).count(), 0);
+    await f.page.locator('[data-catalog-content] [data-place-toolbar]')
+      .getByRole("button", { name: "Back to top", exact: true }).focus();
     await f.page.keyboard.press("Enter");
-    assert.equal(await f.page.evaluate(() => document.activeElement?.id), "catalog-search");
+    await f.page.waitForFunction(() => document.querySelector('[data-catalog-content] > .place-viewport')!.scrollTop === 0);
     assert.equal(await f.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-    assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

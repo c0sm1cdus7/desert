@@ -6,13 +6,19 @@ import { controlNode } from "../src/interaction/control-nodes.ts";
 
 test('money and options expose retained, disabled and genuinely constrained specimens', () => {
   const money = ControlBank.find(entry => entry.id === 'control.money')!;
-  assert.deepEqual(money.specimens.map(item => item.state), ['empty', 'value', 'disabled', 'constrained']);
+  assert.deepEqual(money.specimens.map(item => item.state), ['empty', 'value', 'disabled', 'constrained', 'loading', 'offline']);
   const options = ControlBank.find(entry => entry.id === 'control.options')!;
-  assert.deepEqual(options.specimens.map(item => item.state), ['one', 'many', 'disabled', 'constrained']);
+  assert.deepEqual(options.specimens.map(item => item.state), ['one', 'many', 'disabled', 'constrained',
+    'contextual-selected', 'input-empty', 'input-selected', 'input-multiple', 'loading', 'offline']);
   for (const entry of [money, options]) {
     assert.equal(entry.specimens.find(item => item.state === 'disabled')!.node.disabled, true);
     assert.equal(entry.specimens.find(item => item.state === 'constrained')!.node.disabled, false);
+    assert.equal(entry.specimens.find(item => item.state === 'loading')!.node.disabled, true);
   }
+  assert.equal(money.specimens.find(item => item.state === 'offline')!.node.disabled, false,
+    'a local money draft remains editable offline');
+  assert.equal(options.specimens.find(item => item.state === 'offline')!.node.disabled, true,
+    'dependent choices are unavailable offline');
 });
 
 test("the versioned catalog derives its control inventory from canonical typed specimens", () => {

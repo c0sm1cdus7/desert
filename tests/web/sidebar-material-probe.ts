@@ -50,12 +50,12 @@ export async function sidebarPaintInfluence(page: Page) {
 export async function navigationPixelContrast(page: Page, pane: Locator) {
   await page.mouse.move(page.viewportSize()!.width - 1, page.viewportSize()!.height - 1);
   await settle(page);
-  const rows = await pane.locator('[data-slot="sidebar-menu-button"] > span').evaluateAll(elements => elements.map(element => {
+  const rows = await pane.locator('[data-slot="sidebar-menu-button"] [data-button-content] > span:last-child').evaluateAll(elements => elements.map(element => {
     const rect = element.getBoundingClientRect();
     return { name: element.textContent?.trim(), color: getComputedStyle(element).color,
       x: rect.x, y: rect.y, width: rect.width, height: rect.height };
   }));
-  const labels = pane.locator('[data-slot="sidebar-menu-button"] > :is(span,svg)');
+  const labels = pane.locator('[data-slot="sidebar-menu-button"] [data-button-content] > span:last-child');
   const previous = await labels.evaluateAll(elements => elements.map(element => {
     const node = element as HTMLElement, visibility = node.style.visibility;
     node.style.visibility = "hidden"; return visibility;

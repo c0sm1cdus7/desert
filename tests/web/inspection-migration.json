@@ -1,0 +1,81 @@
+{
+  "purpose": "Migrate browser evidence to canonical products after deleting the standalone renderer. This is a change ledger, not a blanket qualification claim.",
+  "fixture": {
+    "authoring": "tests/fixtures/inspection-product.ts",
+    "build": "tests/fixtures/build-inspection.ts",
+    "browser": "tests/web/inspection-fixture.ts",
+    "setup": "node tests/fixtures/build-inspection.ts (DESERT_INSPECTION_BUILD selects an explicit output for frozen-source test windows)",
+    "contract": "A test-only composeProduct mounts the real Notebook Notes module and an explicitly authored Visual catalog destination. Both use the same shared renderer and visual bank."
+  },
+  "changes": [
+    {
+      "tests": ["catalog-edge-navigation", "media-toolbar", "public-catalog-sidebar", "public-catalog-sidebar-material", "media-gestures", "search-motion-continuity"],
+      "before": "Older probes expected a Learn More hero action, a private detail-image wrapper, vertically centered multi-line toolbar blocks and glass on the inner listbox. Some began resize or paint comparisons while the initial responsive hero image was still decoding.",
+      "after": "Card navigation opens the real detail, while the shared photo hero opens its viewer. Probes use the heading and PhotoCollection owners. Tall identity text starts beside the leading control; shorter blocks remain centered. Floating glass is measured on the Popover pane containing the listbox. Image readiness is awaited before resize or paint isolation, not ignored in diagnostics.",
+      "retained": ["real Back navigation and direct drag", "focus return and keyboard order", "no overlapping controls", "complete wrapped identity text", "exact zero changed pixels outside the sidebar pane", "normal/reduced-transparency glass", "no ignored failed requests", "search layout/input continuity", "photo pan/pinch ownership"]
+    },
+    {
+      "tests": ["sidebar-gesture-motion", "surface-motion", "catalog-edge-navigation"],
+      "before": "Bits forceMount retained data-starting-style on a directly revealed overlay. The shared entrance endpoint added -64px translation and opacity0 to the finger-driven transform; a committed open drawer remained invisible at x=-52 instead of x12. The old catalog animation:none rule did not address CSS transitions.",
+      "after": "The shared surface motion owner suppresses entrance endpoints while the pointer supplies position and on a gesture-committed open state. Normal button entry and later closure keep their existing motion. The obsolete catalog-specific animation suppression was removed.",
+      "retained": ["normal entrance/exit timing", "full/reduced-motion support", "one-to-one preview", "cancel after reversing", "release commit", "closing lifecycle", "no gesture state leaking to subsequent button entry"]
+    },
+    {
+      "tests": ["geometry-writer-relocation-parity", "button-writer-relocation-parity", "fixtures/svelte-browser"],
+      "before": "The isolated Svelte helper mounted components before injecting the global theme. Moving an owner rule into a component could therefore establish components before base in CSS layer order, unlike the generated application bootstrap. The difference was observed in computed border styles and exact toolbar pixels.",
+      "after": "An optional initialCss fixture port loads the real compiled theme before component mounting. Both baseline and candidate use that order and assert its presence during initialization. The generated layout imports theme.css; Inspection K prerendered HTML loads its stylesheets before the bootstrap script. Earlier source snapshots remain unchanged.",
+      "retained": ["geometry/typography relocation exact pixels with no tolerance", "Button exact script/markup, eight relocated declarations and cascade layers", "computed geometry and typography equality", "light and dark", "390px and 1280px", "search closed, writing and cleared states", "original pre-relocation source snapshots"],
+      "rasterQualification": "Button raster parity is NOT certified. An identical-source, identical-DOM, same-page control also produced sparse 1–2 RGB differences after two individually stable frames. The exact-pixel probe and control remain diagnostic under .local/button-exact-dom.test.ts and .local/button-identical-dom.test.ts, with PNG evidence under .local/button-writer-parity. No tolerance, ignored region or baseline reset was introduced. The regular gate asserts byte-identical markup/script, literal rule relocation and exact computed styles/bounds; it does not claim screenshot equality."
+    },
+    {
+      "tests": ["public-catalog-sidebar", "public-catalog-sidebar-selection", "sidebar-material-probe"],
+      "before": "Navigation probes treated every button in the old inner nav as a destination and inspected text before the shared Button content wrapper existed.",
+      "after": "The complete navigation Place remains the landmark. Destination assertions select actual sidebar-menu-button owners and their text children, excluding header/footer actions. Focus containment uses the navigation role rather than a specific HTML tag.",
+      "retained": ["complete destination labels", "no truncation", "selected destination distinction", "composited text contrast", "visible focus", "hidden destinations excluded from navigation"]
+    },
+    {
+      "tests": ["press-fixture", "pressed-feedback", "pressed-cancellation", "visual-scale"],
+      "before": "Press fixtures depended on the retired standalone renderer, fabricated review/Confirm actions and older geometry selectors.",
+      "after": "Real Notebook typed contexts and shared catalog controls exercise the canonical 0.96 press-content scale and box-shadow feedback. Date selection commits on keyboard activation and closes its picker. Wide controls retain 13px text while prose is 16px; compact icon fallback follows measured overflow at enlarged text, not a viewport label. Grouped rows use their actual GroupedPanel owner.",
+      "retained": ["stationary hit bounds", "pointer and keyboard press cancellation", "reduced-motion behavior", "disabled controls", "existing semantic color and perimeter", "text enlargement", "no fabricated review or confirmation authority"]
+    },
+    {
+      "tests": ["framework", "catalog-validation", "buttons", "visual-contract", "interaction-polish", "feedback", "drawer", "scroll-edge"],
+      "before": "The deleted standalone renderer supplied implicit catalog navigation, synthetic execution contexts and fake form/review actions.",
+      "after": "Catalog navigation is an authored destination. Diagnostic specimens do not execute product operations. Form, review, read, row and toolbar assertions use real published Notebook journeys with canonical prepare/accept receipts.",
+      "retained": ["execution authority", "draft preservation", "no mutation when only inspecting or closing", "mandatory dismissal", "keyboard focus", "touch targets", "responsive geometry", "Axe checks"]
+    },
+    {
+      "tests": ["controls", "anchored-surface", "control-layout", "field-well-notebook"],
+      "before": "Single selection was asserted as a modal confirmation flow with nested field groups.",
+      "after": "The shared selection control is an anchored non-modal listbox. Keyboard navigation does not commit; explicit Enter/click commits. Escape restores the trigger; Tab can leave the popover.",
+      "retained": ["disabled choices", "clear selection", "stable trigger geometry", "label activation", "whole-well focus", "anchor containment and flipping", "no product writes"]
+    },
+    {
+      "tests": ["extended-controls", "foundation-composition"],
+      "before": "Money assertions ignored declared locale and required compound wells to remain the same total height at every width.",
+      "after": "Money uses its declared decimal separator and exact decimal text. Shared row padding, line height and minimum height stay identical; compound rows may wrap at compact widths rather than overlap controls.",
+      "retained": ["exact large decimals", "no floating-point conversion", "invalid precision rejection", "draft retained on invalid currency switch", "no implicit FX", "wide-width height parity", "no overlap", "44px targets"]
+    },
+    {
+      "tests": ["interaction-polish"],
+      "before": "Crossing the drag threshold while the pointer remained down was expected to dismiss immediately; grip focus was asserted on a span selected before the shared button content wrapper existed.",
+      "after": "The current drawer contract holds the gesture until release and permits reversing to cancel. Keyboard focus uses the shared Button boundary; the visual grip mark stays smaller than its at-least-44px hit target.",
+      "evidence": ["tests/drawer-grip-feedback.test.ts", "src/svelte/pieces/DrawerGrip.svelte"],
+      "retained": ["short-drag spring back", "reversible held gesture", "release dismissal", "visible keyboard focus", "disabled locked grip"]
+    },
+    {
+      "tests": ["feedback"],
+      "before": "Unknown availability was expected to use the primary-action color.",
+      "after": "Unknown inherits neutral status text. Ready remains positive; unavailable remains warning. Pending action icons inherit the button foreground.",
+      "evidence": ["src/svelte/pieces/Availability.svelte"],
+      "retained": ["semantic color in light and dark", "non-color status text", "stable pressed rows and corner ownership"]
+    },
+    {
+      "tests": ["framework", "drawer", "shared-owner-semantics.test.ts"],
+      "before": "Axe found internal toolbar/content headers announced as page banners, repeated unavailable landmarks, and an embedded media rail skipping a heading level.",
+      "after": "Shared owners use generic containers for pane chrome, note semantics for unavailability, and a continuous embedded heading outline. The navigation Place is one landmark containing its top toolbar, content and bottom dock. No CSS, material, spacing or motion changes were made for these fixes.",
+      "retained": ["all Axe rules", "exact heading hierarchy", "shared ownership", "existing typography and geometry"]
+    }
+  ]
+}

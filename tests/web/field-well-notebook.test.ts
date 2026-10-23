@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
-import { browserFixture, settleMotion } from "./fixture.ts";
+import { settleMotion } from "./fixture.ts";
+import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
 import { selectionTrigger } from "./public-catalog-expectations.ts";
 
 // The isolated Notebook host must consume the same native whole-well select as
@@ -14,7 +15,7 @@ test("Notebook catalog shares whole-well activation without coupling currency an
   const observations: unknown[] = [];
   try {
     await mkdir(directory, { recursive: true });
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
+    await openCatalog(f.page);
     const trigger = selectionTrigger(f.page, "Single choice"), menu = f.page.getByRole("listbox");
     assert.equal(await trigger.evaluate(element => element.matches("button[data-floating-field]")), true,
       "The visible field boundary itself is the native selection button");
@@ -40,9 +41,9 @@ test("Notebook catalog shares whole-well activation without coupling currency an
     assert.equal(await trigger.locator('[data-field-value]').innerText(), "Second option");
     await f.page.screenshot({ path: `${directory}/notebook-whole-well-selected.png` });
 
-    const money = f.page.locator('[data-control="money"]');
+    const money = f.page.locator('[data-specimen="control.money:value"]');
     const amount = money.getByRole("textbox", { name: "Amount", exact: true });
-    await amount.fill("123.40");
+    await amount.fill("123,40");
     await amount.blur();
     await money.locator('[data-slot="field-label"]').click();
     assert.equal(await amount.evaluate(element => element === document.activeElement), true,
@@ -50,13 +51,13 @@ test("Notebook catalog shares whole-well activation without coupling currency an
     assert.equal(await menu.count(), 0);
     await amount.click();
     assert.equal(await menu.count(), 0, "Amount editing does not open the currency popup");
-    const currency = selectionTrigger(f.page, "ARS · Amount currency");
+    const currency = money.getByRole("button", { name: "ARS · Amount currency", exact: true });
     await currency.click(); await menu.waitFor();
-    assert.equal(await amount.inputValue(), "123.40", "Opening currency preserves the lexical draft");
+    assert.equal(await amount.inputValue(), "123,40", "Opening currency preserves the lexical draft");
     await menu.getByRole("option", { name: "USD", exact: true }).click();
     await menu.waitFor({ state: "hidden" }); await settleMotion(f.page);
-    assert.equal(await amount.inputValue(), "123.40", "Same-scale currency commit keeps trailing decimal zeroes");
-    const selectedCurrency = selectionTrigger(f.page, "USD · Amount currency");
+    assert.equal(await amount.inputValue(), "123,40", "Same-scale currency commit keeps trailing decimal zeroes");
+    const selectedCurrency = money.getByRole("button", { name: "USD · Amount currency", exact: true });
     assert.equal(await selectedCurrency.evaluate(element => element === document.activeElement), true);
     await amount.click();
     assert.equal(await amount.evaluate(element => element === document.activeElement), true);

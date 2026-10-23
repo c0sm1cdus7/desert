@@ -14,7 +14,7 @@ after(() => { cluster?.dispose(); });
 async function setup() {
   const database = await cluster.database();
   const app = compile(Notebook);
-  const host = await openLocalController(app, { ...database, role: "notes" });
+  const host = await openLocalController(app, { ...database, roles: ["notes"] });
   const identity = await host.identities.issue("Alice");
   const alice = host.connect(identity.token, "human");
   return { app, database, host, identity, alice };
@@ -114,7 +114,7 @@ test("notes, identity and receipt survive a database and controller restart", as
   await host.close();
   cluster.stop();
   cluster.start();
-  const reopened = await openLocalController(app, { ...database, role: "notes" });
+  const reopened = await openLocalController(app, { ...database, roles: ["notes"] });
   try {
     const session = reopened.connect(identity.token, "human");
     assert.deepEqual(await session.receipt(intent.id), receipt);

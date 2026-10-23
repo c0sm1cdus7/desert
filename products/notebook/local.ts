@@ -1,17 +1,20 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { compile } from "../../src/index.ts";
 import { openLocalController } from "../../src/local.ts";
 import { requirePrivatePath, startLocalPostgres } from "../../src/local/postgres-host.ts";
-import { NotesController } from "./dependencies.ts";
-import { Notebook } from "./product.ts";
+import { assertProductSource } from "../../src/authoring/index.ts";
 
 export async function openNotebookLocal(directory: string) {
+  await assertProductSource(fileURLToPath(new URL("./src", import.meta.url)));
+  const { NotebookProduct } = await import("./product.ts");
+  const { NotesController } = await import("./dependencies.ts");
   const postgres = startLocalPostgres(directory);
-  const application = compile(Notebook);
+  const application = compile(NotebookProduct);
   let controller: Awaited<ReturnType<typeof openLocalController>> | undefined;
   try {
-    controller = await openLocalController(application, { ...postgres.database, role: NotesController.id });
+    controller = await openLocalController(application, { ...postgres.database, roles: [NotesController.id] });
     const identityPath = join(directory, "identity.json");
     let identity: { id: string, token: string };
     if (existsSync(identityPath)) {

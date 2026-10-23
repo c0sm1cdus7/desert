@@ -1,5 +1,8 @@
 /* A place arranges visible sibling stacks; their children own their materials. */
 .place-content { display:flex; flex-direction:column; gap:2rem; min-width:0; width:100%; max-width:34rem; margin-inline:0; }
+.place-content[data-content-layout="overview"] { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,24rem),1fr)); max-width:72rem; align-items:start; }
+.place-content[data-content-layout="overview"] > :not([data-view-item]) { grid-column:1 / -1; }
+.place-content[data-content-layout="gallery"] { max-width:72rem; }
 .place-frame { position:relative; display:flex; flex-direction:column; min-width:0; min-height:0; height:100%; }
 .place-viewport { flex:1; min-width:0; min-height:0; overflow:auto; overscroll-behavior:contain; overflow-anchor:none; }
 [data-place-toolbar-reservation] { flex-shrink:0; pointer-events:none; }
@@ -14,7 +17,6 @@
 [data-stack-placement="content"] { padding-inline:1rem; }
 /* A nested catalog starts at its host's surface guide. Its own group titles
    share the host's reading inset; only horizontal rails retain the outer lane. */
-[data-stack-kind="catalog.home"] { --place-surface-inset:0px; --place-content-inset:1rem; }
 [data-stack-kind="catalog.home"] [data-catalog-home] > [data-place-stack="featured"] { padding-inline:1rem; }
 [data-stack-placement="content"] > [data-catalog-card] { max-width:100%; }
 /* A Stack never removes or supplies a child's material. Standalone wells keep

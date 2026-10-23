@@ -3,6 +3,7 @@ import { assertRead } from "./assertions.ts";
 import { objectIdOf, reachableStates } from "./setup-plan.ts";
 import type { Environment } from "./environment.ts";
 import { VerificationGap } from "./types.ts";
+import { observedEditBase } from "./edit-base.ts";
 
 export async function checkAuthority(f: Environment) {
   const before = await f.sandbox.snapshot();
@@ -10,8 +11,9 @@ export async function checkAuthority(f: Environment) {
   await assert.rejects(f.begin(f.sandbox.controller.connect("invalid", f.surfaceId)), /UNAUTHENTICATED/);
   if (f.subject) await assert.rejects(f.begin(f.other), /NOT_FOUND/);
   if (f.journey.kind === "mutation") {
-    const intent = await f.session.prepare(run.id, f.input);
-    await assert.rejects(f.other.prepare(run.id, f.input), /NOT_FOUND/);
+    const options = observedEditBase(f.journey, before, f.subject);
+    const intent = await f.session.prepare(run.id, f.input, options);
+    await assert.rejects(f.other.prepare(run.id, f.input, options), /NOT_FOUND/);
     await assert.rejects(f.other.accept(intent.id, intent.confirmationDigest), /NOT_FOUND/);
     await assert.rejects(f.session.accept(intent.id, "forged"), /CONFIRMATION_MISMATCH/);
     assert.equal(await f.session.receipt(intent.id), null);

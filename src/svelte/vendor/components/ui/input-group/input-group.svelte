@@ -6,8 +6,9 @@
 		ref = $bindable(null),
 		class: className,
 		children,
+		presentation = "standard",
 		...props
-	}: WithElementRef<HTMLAttributes<HTMLDivElement>> = $props();
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & { presentation?: "standard" | "access" } = $props();
 </script>
 
 <div
@@ -17,7 +18,8 @@
 	role="group"
 	class={cn(
 		"tm-control group/input-group relative flex w-full min-w-0 items-center rounded-lg p-1 has-[textarea]:h-auto has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-offset-3",
-		className
+		className,
+		presentation === "access" && "rounded-full pr-1.5"
 	)}
 	{...props}
 >

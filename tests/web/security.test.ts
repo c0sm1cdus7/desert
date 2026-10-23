@@ -23,7 +23,10 @@ test("HTTP gateway requires browser access, same origin, exact contract and clos
     const forgedOwner = await post("prepare", { runId: run.id, input: { title: "Injected", body: "No", owner: "root" } });
     assert.deepEqual(await forgedOwner.json(), { error: "INVALID_INPUT" });
     const invitation = new URL(f.server.launchUrl).hash.slice("#access=".length);
-    assert.equal((await post("connect", { invitation })).status, 409);
+    const reusedInvitation = await post("connect", { invitation });
+    assert.equal(reusedInvitation.status, 401);
+    assert.deepEqual(await reusedInvitation.json(), { error: "BROWSER_SESSION_REQUIRED" },
+      "an already-consumed launch invitation never opens another browser session");
     assert.deepEqual(await f.session.read((await f.session.begin("read-note")).id), []);
     const html = await (await fetch(f.server.origin)).text();
     assert.equal(html.includes(f.identity.token), false);

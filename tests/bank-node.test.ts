@@ -10,15 +10,23 @@ import { presentSpecimen } from "../src/svelte/catalog/specimen-presentation.ts"
 import { compile } from "../src/compile.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import type { HumanSurface } from "../src/web/types.ts";
+import type { TSchema } from "@sinclair/typebox";
+import { notebookScope } from "./fixtures/notebook-scope.ts";
 
 const surface = compile(Notebook).surface("human") as HumanSurface;
+const scope = notebookScope(surface);
 const input = { version, kind: "input.text", name: "title", label: "Title", value: "", disabled: false, required: true } as const;
 
 test("one bank grammar covers the exact installed catalog and every isolated specimen validates", () => {
-  assert.deepEqual([...new Set(BankNodeSchema.anyOf.map(schema => schema.properties.kind.const))].sort(),
+  const kinds = (schema: TSchema): string[] => {
+    if (Array.isArray(schema.anyOf)) return schema.anyOf.flatMap(kinds);
+    assert.equal(typeof schema.properties?.kind?.const, "string", "Every bank branch must declare its kind");
+    return [schema.properties.kind.const];
+  };
+  assert.deepEqual([...new Set(kinds(BankNodeSchema))].sort(),
     InteractionCatalog.entries.map(entry => entry.id).sort());
   for (const entry of InteractionCatalog.entries) for (const scenario of entry.states) {
-    const { nodes } = presentSpecimen(entry.id, scenario, surface, { open: false, locked: false, draft: {} }, () => true);
+    const { nodes } = presentSpecimen(entry.id, scenario, surface, { open: false, locked: false, draft: {} }, () => true, scope);
     for (const node of nodes) assert.deepEqual(bankNode(node), node);
   }
   for (const entry of ControlBank) for (const sample of entry.specimens) {
@@ -55,7 +63,7 @@ test("local events cannot become journey intents and dismissal cannot become pri
 
 test("collection projection carries only declared collection fields without modifying input records", () => {
   const records = [{ id: "record", version: 1, facts: { title: "Visible", state: "active", body: "Detail only", owner: "Private" } }];
-  const node = presentCollection(surface, records, { loaded: true, disabled: false, selectedId: null });
+  const node = presentCollection(surface, records, { loaded: true, disabled: false, selectedId: null }, scope);
   assert.deepEqual(node.records[0]!.facts, { state: "active", title: "Visible" });
   assert.equal(records[0]!.facts.owner, "Private");
   assert.throws(() => bankNode({ ...node, records }), /INVALID_BANK_COLLECTION/);

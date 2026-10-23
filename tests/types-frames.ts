@@ -9,7 +9,7 @@ const context = { version: "desert.surface-frame/6", kind: "context", top: { tit
   content: { kind: "message", text: "Reading" }, bottom: {} } as const satisfies SurfaceFrame;
 const validContext: SurfaceFrame = { ...context, top: { title: "Object", leading: close, trailing: [recover] } };
 const validJourney: SurfaceFrame = { ...context, kind: "journey", bottom: { secondary: close, primary: save } };
-// @ts-expect-error Context journeys belong to Actions destinations, not the header.
+// Published subject journeys use the context toolbar; acceptance remains a review concern.
 const contextCommand: SurfaceFrame = { ...context, top: { title: "Object", trailing: [save] } };
 // @ts-expect-error Context headers cannot confirm a command.
 const contextAccept: SurfaceFrame = { ...context, top: { title: "Object", trailing: [accept] } };

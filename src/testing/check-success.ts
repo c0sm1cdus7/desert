@@ -2,12 +2,13 @@ import assert from "node:assert/strict";
 import { assertMutation, assertRead } from "./assertions.ts";
 import type { Environment } from "./environment.ts";
 import type { Facts } from "./types.ts";
+import { observedEditBase } from "./edit-base.ts";
 
 export async function successfulOperation(f: Environment, input: Facts = f.input) {
   const before = await f.sandbox.snapshot();
   const run = await f.begin();
   if (f.journey.kind === "mutation") {
-    const intent = await f.session.prepare(run.id, input);
+    const intent = await f.session.prepare(run.id, input, observedEditBase(f.journey, before, f.subject));
     assert.deepEqual(await f.sandbox.snapshot(), before, "PREPARATION_CHANGED_DOMAIN");
     const receipt = await f.session.accept(intent.id, intent.confirmationDigest);
     assertMutation(f.journey.command, input, f.owner.id, before, await f.sandbox.snapshot(), receipt, f.subject);

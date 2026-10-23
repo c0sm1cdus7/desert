@@ -3,7 +3,7 @@
 
 	/** The public badgeVariants contract. */
 	export const badgeVariants = tv({
-		base: "h-5 gap-1 rounded-4xl px-2 py-0.5 text-xs font-medium transition-colors has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! group/badge inline-flex w-fit shrink-0 items-center justify-center overflow-hidden whitespace-nowrap [&>svg]:pointer-events-none",
+		base: "min-h-5 gap-1 rounded-4xl px-2 py-px text-xs font-medium transition-colors has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! group/badge inline-flex w-fit max-w-full min-w-0 shrink items-center justify-center overflow-hidden whitespace-normal [overflow-wrap:anywhere] [&>svg]:pointer-events-none",
 		variants: {
 			variant: {
 				default: "text-primary-text",
@@ -35,10 +35,12 @@
 		href,
 		class: className,
 		variant = "default",
+		removable = false,
 		children,
 		...restProps
 	}: WithElementRef<HTMLAnchorAttributes> & {
 		variant?: BadgeVariant;
+		removable?: boolean;
 	} = $props();
 </script>
 
@@ -48,7 +50,7 @@
 	data-slot="badge"
 	data-material="pane"
 	{href}
-	class={cn(badgeVariants({ variant }), className)}
+	class={cn(badgeVariants({ variant }), removable && "py-[.2rem] pr-1 pl-[.65rem] gap-[.3rem]", className)}
 	{...restProps}
 >
 	{@render children?.()}

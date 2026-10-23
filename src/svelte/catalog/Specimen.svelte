@@ -5,15 +5,27 @@
   import BankRenderer from "../BankRenderer.svelte";
   import SurfaceFrame from "../SurfaceFrame.svelte";
   import { presentSpecimen } from "./specimen-presentation.ts";
-  let { id, state: scenario, surface, validateInput }: {
-    id: PrimitiveId; state: string; surface: HumanSurface; validateInput: ValidateInput;
+  import type { ReadModelScope } from "../../web/client/model-scope.ts";
+  import { onDestroy } from "svelte";
+  import { providePrivateImages } from "../pieces/media/private-image-context.ts";
+  import { privateImageAccess } from "../../web/client/private-images.ts";
+  const specimenImages = privateImageAccess(asset => asset.reference === 'a7000000-0000-4000-8000-000000000001'
+    ? { valid: () => true, read: async (_variant, signal) => {
+      const response = await fetch('/bank-image.svg', { signal });
+      if (!response.ok) throw new Error('SPECIMEN_IMAGE_UNAVAILABLE');
+      return response.blob();
+    } } : undefined);
+  providePrivateImages(specimenImages);
+  onDestroy(() => specimenImages.close());
+  let { id, state: scenario, surface, validateInput, scope }: {
+    id: PrimitiveId; state: string; surface: HumanSurface; validateInput: ValidateInput; scope: ReadModelScope;
   } = $props();
   let value = $state<string | undefined>();
   let open = $state(false);
   let locked = $state(false);
   let draft = $state<Record<string, string>>({});
   let presentation = $derived(presentSpecimen(id, scenario, surface,
-    { ...(value === undefined ? {} : { value }), open, locked, draft }, validateInput));
+    { ...(value === undefined ? {} : { value }), open, locked, draft }, validateInput, scope));
   function interact(event: BankEvent) {
     if (event.kind === "input.change") {
       if (id === "form") draft = { ...draft, [event.name]: event.value };

@@ -7,6 +7,7 @@ for (const width of [390, 1280]) test(`search interruption retains layout and in
   const fixture = await publicCatalogFixture();
   try {
     const { page } = fixture;
+    await page.locator('[data-photo-collection] img').first().evaluate(image => (image as HTMLImageElement).decode());
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await page.setViewportSize({ width, height: 740 }); await settle(page);
     const result = await page.evaluate(async () => {

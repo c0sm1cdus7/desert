@@ -4,24 +4,28 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
+import { workspaceBodySource } from "./fixtures/workspace-body.ts";
+import AxeBuilder from "@axe-core/playwright";
 
 const source = `<script lang="ts">
   import SurfaceFrame from '@desert/svelte/SurfaceFrame.svelte';
   import Problem from '@desert/svelte/pieces/Problem.svelte';
   import CatalogWorkspace from '@desert/svelte/explorer/CatalogWorkspace.svelte';
+  ${workspaceBodySource()}
   let open = $state(false);
   const frame = {version:'desert.surface-frame/6',kind:'message',
     top:{title:'Persistent message',face:{kind:'status',severity:'warning'}},
     content:{kind:'message',text:'This is a renderer fixture, not a product failure.'},bottom:{}};
 </script>
 <Problem {open} title="Transient message" description="This is the same header composition." close={()=>open=false} />
-<CatalogWorkspace productName="Places" title="Places" identity={{title:'Places',subtitle:'Explore places.'}}
+<CatalogWorkspace navigationSurface={{title:'Places',settingsPlaceholder:true}} title="Places" identity={{title:'Places',subtitle:'Explore places.'}}
   navigation={[{id:'browse',label:'Places'}]} active="browse" query="" searching={false} onsearch={()=>{}} oncancel={()=>{}}
-  onquery={()=>{}} onnavigate={()=>{}}>
-  {#snippet searchResults()}<p>No search results</p>{/snippet}
-  <section data-persistent><SurfaceFrame {frame} invoke={()=>{}} /></section>
-  <button onclick={()=>open=true}>Open message</button>
-</CatalogWorkspace>`;
+  onquery={()=>{}} onnavigate={()=>{}} content={workspaceBody}
+  topActions={[{label:'Open message',icon:'open',state:'ready',intent:{kind:'view.output',view:'fixture',output:'open'}}]}
+  invoke={()=>open=true} />
+<section aria-label="Persistent message fixture" data-persistent style="position:fixed;top:10rem;left:2rem;z-index:1;pointer-events:none">
+  <SurfaceFrame {frame} invoke={()=>{}} />
+</section>`;
 
 test("one toolbar owner reaches persistent frames, transient dialogs and the catalog shell", { timeout: 30000 }, async () => {
   const owner = resolve(import.meta.dirname, "../src/svelte/pieces/ToolbarLayout.svelte");
@@ -33,6 +37,13 @@ test("one toolbar owner reaches persistent frames, transient dialogs and the cat
   try {
     await f.page.addStyleTag({ content: await rendererCss() });
     await f.page.emulateMedia({ reducedMotion: "reduce" });
+    const navigation = f.page.getByRole('navigation', { name: 'Main navigation', exact: true });
+    assert.equal(await navigation.count(), 1, "the whole navigation surface is one landmark");
+    assert.equal(await navigation.locator('[data-toolbar="top"]').count(), 1, "navigation chrome belongs to its landmark");
+    assert.equal(await navigation.getByRole('button', {name:'Hide navigation', exact:true}).count(), 1);
+    assert.equal(await navigation.locator('[data-toolbar="bottom"]').count(), 2,
+      "the navigation return and this fixture's optional settings toolbar belong to the same landmark");
+    assert.deepEqual((await new AxeBuilder({ page: f.page }).withRules(['landmark-banner-is-top-level', 'landmark-unique', 'region']).analyze()).violations, []);
     assert.equal(await f.page.locator('[data-persistent] [data-owner-probe="shared"]').count(), 1);
     assert.equal(await f.page.locator('[data-catalog-toolbar][data-owner-probe="shared"]').count(), 1);
     assert.equal(await f.page.locator('[data-catalog-toolbar] [data-piece="face"]').count(), 0,

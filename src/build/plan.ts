@@ -22,8 +22,11 @@ export function resolveBuild(application: Application, definitions: unknown, tar
 
 export function webConnection(plan: ClientPlan) {
   const dependencies = [...new Set(plan.interaction.journeys.flatMap(journey => journey.dependencies))];
-  if (dependencies.length !== 1 || plan.bindings.length !== 1) throw new Error("UNSUPPORTED_WEB_DEPENDENCIES");
-  const binding = plan.bindings[0]!;
-  if (binding.kind !== "remote") throw new Error("UNSUPPORTED_WEB_BINDING");
-  return { kind: "local-http-session" as const, role: binding.dependency, service: binding.service };
+  if (!dependencies.length || dependencies.length !== plan.bindings.length) throw new Error("UNSUPPORTED_WEB_DEPENDENCIES");
+  const bindings = plan.bindings;
+  if (bindings.some(binding => binding.kind !== "remote")) throw new Error("UNSUPPORTED_WEB_BINDING");
+  const services = new Set(bindings.map(binding => binding.kind === "remote" ? binding.service : undefined));
+  if (services.size !== 1) throw new Error("UNSUPPORTED_WEB_SERVICES");
+  const service = [...services][0]!;
+  return { kind: "local-http-session" as const, roles: dependencies.sort(), service };
 }

@@ -33,4 +33,15 @@ test("public diagnostic bank accounts for every canonical entry/state without fa
   }
   assert.equal(inventory.find(item => item.id === "catalog.home")?.node, surface.home);
   assert.equal(inventory.find(item => item.id === "catalog.detail")?.node, surface.details[0]);
+  for (const state of ['media-grid', 'media-list', 'collection-grid']) {
+    const node = inventory.find(item => item.id === 'collection' && item.state === state)!.node!;
+    assert.equal(node.kind, 'collection');
+    if (node.kind === 'collection') {
+      assert.equal(node.presentation?.kind, state === 'collection-grid' ? 'collection-grid' : 'media-grid');
+      if (node.presentation?.kind === 'media-grid') assert.equal(node.presentation.layout, state === 'media-list' ? 'list' : 'grid');
+    }
+  }
+  const media = inventory.find(item => item.id === 'context' && item.state === 'media-object')!.node!;
+  assert.equal(media.kind, 'context');
+  if (media.kind === 'context') assert.equal(media.content.presentation?.kind, 'media-object');
 });

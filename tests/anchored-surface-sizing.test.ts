@@ -50,6 +50,10 @@ test("long contextual content scrolls inside its anchored collision budget witho
     await f.page.setViewportSize({width:900,height:450});
     await f.page.getByRole("button",{name:"Open details",exact:true}).click();
     const popup=f.page.getByRole("dialog",{name:"Details",exact:true}); await popup.waitFor();
+    await f.page.waitForFunction(()=>{
+      const panel=document.querySelector('[data-slot="popover-content"]');
+      return !!panel && !panel.hasAttribute('data-starting-style');
+    });
     const geometry=await popup.evaluate(element=>{const box=element.getBoundingClientRect();return {
       top:box.top,bottom:box.bottom,height:box.height,scroll:element.scrollHeight,client:element.clientHeight};});
     assert.ok(geometry.top>=11 && geometry.bottom<=439,JSON.stringify(geometry));

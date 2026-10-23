@@ -1,11 +1,10 @@
 <script lang="ts">
   import { tick, untrack } from "svelte";
-  import type { ResolvedPanel } from "../../views/resolved.ts";
+  import { bindViewEvents, type OwnedResolvedPanel, type OwnedViewEvent, type ViewEventOwner } from "../../web/client/view-events.ts";
   import type { BankEvent } from "../../interaction/bank-events.ts";
-  import { BankVersion } from "../../interaction/bank-node.ts";
-  import BankRenderer from "../BankRenderer.svelte";
-  let { panel, onevent }: { panel?: ResolvedPanel | null; onevent: (event: BankEvent) => void } = $props();
-  let mounted = $state.raw<ResolvedPanel | null>(null);
+  import { ViewPanel } from "../adapter-catalog.ts";
+  let { panel, onevent }: { panel?: OwnedResolvedPanel | null; onevent: (event: OwnedViewEvent) => void } = $props();
+  let mounted = $state.raw<OwnedResolvedPanel | null>(null);
   let open = $state(false);
   let revision = 0;
   $effect(() => {
@@ -23,13 +22,15 @@
       else open = false;
     });
   });
-  function dispatch(event: BankEvent) {
-    if (event.kind === "transient.closed" && !panel) mounted = null;
-    onevent(event);
+  function dispatch(owner: ViewEventOwner) {
+    const send = bindViewEvents(owner, onevent);
+    return (event: BankEvent) => {
+      if (event.kind === "transient.closed" && !panel && mounted?.owner === owner) mounted = null;
+      send(event);
+    };
   }
 </script>
 
-{#if mounted}
-  <BankRenderer node={{ version: BankVersion, kind: "transient", label: mounted.label,
-    frame: mounted.frame, locked: mounted.locked, open }} onevent={dispatch} />
-{/if}
+{#each mounted ? [mounted] : [] as current}
+  <ViewPanel panel={current} {open} frameIdentity={current.owner} onevent={dispatch(current.owner)} />
+{/each}

@@ -53,7 +53,7 @@ function alignment(item: Geometry, context: string): string[] {
   const near = (actual: number, expected: number, reason: string) => {
     if (Math.abs(actual-expected) > .6) failures.push(`${name}: ${reason} (${actual.toFixed(2)} vs ${expected.toFixed(2)})`);
   };
-  near(item.icon.cy, item.heading.cy, 'chevron centers on the heading');
+  near(item.icon.cy, item.content.cy, 'chevron centers on the complete title and subtitle content');
   if (item.metadata) {
     near((item.heading.y+item.metadata.bottom)/2, item.row.cy, 'complete heading and metadata stack centers in the row');
     if (item.metadata.y < item.heading.bottom+1) failures.push(`${name}: metadata needs its own separated line`);

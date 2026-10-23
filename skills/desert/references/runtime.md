@@ -154,7 +154,7 @@ journey or multi-step implementation is not an authored wizard by inference.
 
 ## Source: docs/LOCAL-CONTROLLER.md
 
-Source SHA-256: 43424f36c71f00ab75e27c86c0c8179dea3cbcb86a2abb5525ec65246b280c18
+Source SHA-256: 0eaccdaadf8b89f8e7a94ab5a97d3ade9a3d12506451b5a22a1db10266505b68
 
 # Local controller: Notebook on Node and PostgreSQL
 
@@ -162,13 +162,13 @@ Status: implemented and integration-tested on Node 24.16.0 and PostgreSQL 18.6,
 macOS. No Internet, HTTP server, cloud identity or external provider is required
 for the implemented operations. Dependencies and PostgreSQL must already be installed.
 Linux uses the same Unix facilities but was not tested; Windows and native app hosts
-are not implemented. This is a developer runtime, not a completed Human Surface.
-The separate Svelte bootstrap (SDK file: `docs/EVIDENCE-006.md`) now exposes the same local session
+are not implemented. This is a developer runtime, not production qualification.
+The canonical Svelte Notebook build exposes the same local session
 through a loopback-only HTTP host; no Internet service is required.
 
 ## Product code stays declarative
 
-`products/notebook/commands.ts` defines the effects. The local interpreter evaluates
+`products/notebook/src/modules/notes/commands/` defines the effects. The local interpreter evaluates
 those expressions directly. It does not know what a note or an archive means.
 `OnlyOwnerCanAccess` provides the owner field; it is not restated in a Notebook service.
 The runtime supports the existing finite read/create/update and ownership vocabulary.
@@ -179,14 +179,15 @@ Unsupported extra dependencies fail installation rather than being treated as av
 ```ts
 import { compile } from "../src/index.ts";
 import { openLocalController } from "../src/local.ts";
-import { Notebook } from "../products/notebook/product.ts";
+import { NotebookProduct } from "../products/notebook/product.ts";
+import { Dependencies } from "../products/notebook/src/modules.ts";
 
-const application = compile(Notebook);
+const application = compile(NotebookProduct);
 const controller = await openLocalController(application, {
   socketDirectory: "/private/path/to/postgres-socket",
   database: "notebook",
   user: "local-host",
-  role: "notes",
+  roles: [Dependencies.notes.id],
 });
 ```
 
@@ -197,7 +198,7 @@ only an absolute Unix socket directory owned by the current OS user with no grou
 or other access. Installation requires a writable primary with `fsync` and
 `full_page_writes` enabled; transactions explicitly request synchronous commit.
 
-Each database is pinned to one product, exact contract digest, role and schema
+Each database is pinned to one product, exact contract digest, installed role set and schema
 revision. Reopening a different contract fails with `INSTALLATION_MISMATCH`.
 Session operations recheck that installation inside their transaction, even if
 an earlier availability snapshot was ready.
@@ -242,7 +243,10 @@ await session.accept(archiveIntent.id, archiveIntent.confirmationDigest);
 ```
 
 Human renderers follow the declared commit mode: explicit submission or a separate
-review. Both retain exact prepared-effect acceptance. Its digest binds actor,
+review, derived from each module journey's `humanReview` registration. Surface
+declarations do not repeat entry, action lists or review rules. IDs in these session
+calls are protocol values; authored journeys and views use issued object references.
+Both retain exact prepared-effect acceptance. Its digest binds actor,
 surface, run, journey, contract, input and exact effect, including subject/version.
 The digest is not proof that a human saw a UI. An authenticated call accepts that
 intent; this product does not declare an additional human-only approval policy.
@@ -260,6 +264,19 @@ run expiry, provided the identity remains valid. Two separately prepared mutatio
 against one version cannot both succeed. `session.receipt(intentId)` recovers a known
 operation without replay. A commit transport error is reported as `COMMIT_UNCERTAIN`;
 do not create a replacement intent automatically. Recovery itself can also be unavailable.
+
+Input-bearing updates additionally require `session.prepare(runId, input,
+{ expectedVersion })`. This is execution metadata, not an authored business field:
+the editor supplies the positive safe-integer revision it originally read. Missing
+metadata fails with `EDIT_BASE_REQUIRED`; malformed metadata with `INVALID_EDIT_BASE`.
+A change accepted since that original read fails with `VERSION_CONFLICT` before
+preparing a new intent. Preparation never silently rebases an editor onto the latest
+record. Repeating the same input and base returns the original intent; changing either
+fails with `INTENT_CONFLICT`. Acceptance retains its independent version check.
+Create commands reject edit metadata. Existing zero-input updates can omit it; when
+supplied, it must match. The same closed metadata schema validates session and HTTP
+requests. This kernel capability does not by itself install an object editor in the
+View program or qualify a product's UI.
 
 Reads also require an admitted, unexpired read journey and current identity. They
 apply the ownership policy and only return fields declared by the read contract.
@@ -308,7 +325,7 @@ availability.dispose();
 This is executable API, not a suggested future adapter. The session supplies its
 actual controller, exact compiled contract, exposed surface and credential. The
 consumer cannot supply a digest, actor ID or a `ready` event. The controller derives
-journey dependency closures from the existing compiled surface; only its own role
+journey dependency closures from the existing compiled surface; only its installed roles
 receives observations. Other dependencies remain unknown. This does not install or
 validate an arbitrary distribution plan or claim its renderer exists.
 
@@ -366,6 +383,9 @@ certification. Command transactions remain responsible for actual execution fail
 ## Still outside this increment
 
 Native packaging, browser offline installation, remote availability probes,
-remote transport, external effects, sync, offline write queues, general multi-step
-graphs, credential renewal UX, backup/restore and power-loss fault injection.
+remote controller deployment, external effects, sync, offline write queues,
+unrestricted multi-step graphs, credential renewal UX, backup/restore and power-loss
+fault injection. The installed conditional activity mechanism is bounded by an
+admitted catalog and uses the same prepare/accept protocol; it is not an arbitrary
+workflow engine. See activities (SDK file: `docs/ACTIVITIES.md`) for its exact limits.
 Local transactions are real; these missing integrations are not implied by them.

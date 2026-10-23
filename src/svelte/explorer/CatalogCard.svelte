@@ -5,6 +5,7 @@
   import type { BankEvent } from "../../interaction/bank-events.ts";
   import { getContext } from 'svelte';
   import Image from '../pieces/media/Image.svelte';
+  import ArtworkPlaceholder from '../pieces/media/ArtworkPlaceholder.svelte';
   import { mediaSource, prefetchImage } from '../pieces/media/source.ts';
   let { node, onevent }: { node: BankNodeFor<"catalog.card">; onevent: (event: BankEvent) => void } = $props();
   const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');
@@ -14,12 +15,9 @@
   const open = () => onevent({ kind: "catalog.open", record: node.record });
 </script>
 
-{#snippet media()}
-  <Image source={mediaSource(node.image.asset)} alt={node.image.alt} />
-{/snippet}
-
   <Card.Root data-catalog-card="item" data-record={node.record} data-public-card={node.record}>
-    {@render media()}
+    {#if node.image}<Image source={mediaSource(node.image.asset)} alt={node.image.alt} />
+    {:else if 'mediaType' in node}<ArtworkPlaceholder kind={node.mediaType} />{/if}
     <Card.Header><Card.Title>
       <Button variant="row" data-catalog-image-action aria-label={node.title} onclick={open} onpointerenter={prepare} onfocus={prepare}>
         <span data-catalog-card-overlay data-catalog-item-title data-public-card-title>{node.title}</span>

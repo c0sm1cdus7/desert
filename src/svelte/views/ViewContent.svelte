@@ -2,30 +2,27 @@
   import type { ResolvedView } from "../../views/resolved.ts";
   import type { BankEvent } from "../../interaction/bank-events.ts";
   import type { PrimitiveId } from "../../interaction/catalog.ts";
-  import StackLayout from "../pieces/StackLayout.svelte";
-  import InspectionContent from "./InspectionContent.svelte";
-  import ViewItem from "./ViewItem.svelte";
-  let { resolved, onevent }: {
+  import { ContentFlow } from "../adapter-catalog.ts";
+  import type { RegisterContentActions } from "../pieces/workspace-content.ts";
+  let { resolved, onevent, album = null, onalbum, onactions }: {
     resolved: ResolvedView;
     onevent: (event: BankEvent) => void;
+    album?: string | null;
+    onalbum: (id: string) => void;
+    onactions?: RegisterContentActions;
   } = $props();
-  let bank = $state<{ revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null> } | null>(null);
-  export async function revealEntry(id: PrimitiveId) { return await bank?.revealEntry(id) ?? null; }
-  let hasCatalog = $derived(resolved.view.content.some(item => item.kind === "visual-catalog"));
+  let flow = $state<{
+    revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null>;
+    revealAndFocusEntry: (id: PrimitiveId) => Promise<void>;
+    selectMedia: (record: string) => boolean;
+  } | null>(null);
+  export async function revealEntry(id: PrimitiveId) { return await flow?.revealEntry(id) ?? null; }
+  export function selectMedia(record: string) { return flow?.selectMedia(record) ?? false; }
+  $effect(() => {
+    const register = onactions;
+    register?.({ revealEntry: async id => { await flow?.revealAndFocusEntry(id); }, selectMedia });
+    return () => register?.(null);
+  });
 </script>
 
-<div class:place-content={!hasCatalog} data-view-content={resolved.view.id}>
-  {#each resolved.view.content as item, index (index)}
-    {#if item.kind === "header"}
-      <!-- The shared workspace owns the heading and its scroll-driven toolbar echo. -->
-    {:else if item.kind === "stack"}
-      <div data-view-item={item.id}>
-      <StackLayout title={item.title} description={item.description}>
-        {#each item.items as child, childIndex (childIndex)}<ViewItem item={child} {resolved} {onevent} />{/each}
-      </StackLayout>
-      </div>
-    {:else if item.kind === "visual-catalog"}
-      <InspectionContent bind:this={bank} />
-    {:else}<ViewItem {item} {resolved} {onevent} />{/if}
-  {/each}
-</div>
+<ContentFlow {resolved} {onevent} {album} {onalbum} bind:this={flow} />

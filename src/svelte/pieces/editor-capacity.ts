@@ -1,3 +1,5 @@
+import { toolbarBounds } from './toolbar-bounds.ts';
+
 /** Autosizing is bounded by the reading area, not a device category. The
  * editor retains native caret scrolling once its complete well fills it. */
 export function observeEditorCapacity(editor: HTMLTextAreaElement): () => void {
@@ -13,7 +15,7 @@ export function observeEditorCapacity(editor: HTMLTextAreaElement): () => void {
     let bottom = 0;
     for (const bar of owner.querySelectorAll<HTMLElement>('[data-toolbar]')) {
       if (bar.closest('[data-scroll-owner]') !== owner || !bar.getClientRects().length) continue;
-      const rect = bar.getBoundingClientRect();
+      const rect = toolbarBounds(bar);
       if (bar.dataset.toolbar === 'bottom') bottom = Math.max(bottom, bounds.bottom - rect.top);
       else top = Math.max(top, rect.bottom - bounds.top);
     }

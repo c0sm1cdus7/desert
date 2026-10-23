@@ -1,10 +1,21 @@
 import { createServer, type RequestListener } from "node:http";
 import type { LocalSession } from "../local.ts";
 import { localWebGateway } from "./gateway.ts";
+import { identityWebGateway } from "../identity/gateway.ts";
+import { requireControllerBinding } from "../local/controller-binding.ts";
+import type { LocalController } from "../local/controller.ts";
 
 export async function serveLocalSurface(session: LocalSession, digest: string,
   render: RequestListener, port = 4271) {
-  const gateway = localWebGateway(session, digest);
+  return serveGatewaySurface(localWebGateway(session, digest), render, port);
+}
+export async function serveIdentitySurface(controller: LocalController, surface: string, render: RequestListener, port = 4271) {
+  const { application } = requireControllerBinding(controller);
+  if (application.surface(surface).kind !== "human") throw new Error("HUMAN_SURFACE_REQUIRED");
+  return serveGatewaySurface(identityWebGateway(controller.access, token => controller.connect(token, surface), application.digest), render, port);
+}
+async function serveGatewaySurface(gateway: Pick<ReturnType<typeof localWebGateway>, "handle" | "close" | "invitation">,
+  render: RequestListener, port: number) {
   let origin = "";
   const server = createServer((request, response) => {
     response.setHeader("X-Content-Type-Options", "nosniff");

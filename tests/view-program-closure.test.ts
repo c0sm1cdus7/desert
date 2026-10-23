@@ -15,8 +15,8 @@ const reject = (value: unknown, message: string) =>
 test("Navigation, destinations and bindings cannot strand authored experience", () => {
   const editorDestination = candidate(); editorDestination.destinations[0].entryJourney = program.journeys[2].id;
   reject(editorDestination, "INVALID_DESTINATION_JOURNEY");
-  reject({ ...program, navigation: ["notes", "catalog"] }, "UNLISTED_ENTRY_DESTINATION");
-  reject({ ...program, navigation: ["home", "notes"] }, "UNLISTED_PROGRAM_DESTINATION");
+  assert.doesNotThrow(() => compileViewProgram({ ...program, navigation: program.navigation.slice(1) }, surface));
+  reject({ ...program, navigation: program.navigation.slice(0, 2) }, "UNREACHABLE_PROGRAM_JOURNEY");
   const unusedView = candidate(); unusedView.views.push({ version: "desert.view/1", id: "unused", content: [] });
   reject(unusedView, "UNUSED_PROGRAM_VIEW");
   const unreachable = candidate(); unreachable.journeys[1].outputs[0].action.journey = "catalog";
@@ -26,20 +26,20 @@ test("Navigation, destinations and bindings cannot strand authored experience", 
   reject(silentOutput, "UNREACHABLE_VIEW_OUTPUT");
 });
 
-test("Executable program requires its one canonical read/create pair and unambiguous destinations", () => {
+test("Executable program requires referenced journeys and unambiguous destinations", () => {
   const incomplete = candidate(); incomplete.journeys.splice(2, 1);
-  reject(incomplete, "INVALID_VIEW_PROGRAM_JOURNEY_COUNT");
+  reject(incomplete, "UNKNOWN_OUTPUT_JOURNEY");
   const orphan = candidate(); orphan.journeys.push({ id: "orphan", kind: "presentation", view: "catalog", outputs: [] });
   reject(orphan, "INVALID_JOURNEY_DESTINATION_COUNT");
   const ambiguous = candidate(); ambiguous.destinations.push({ ...ambiguous.destinations[1], id: "other-notes" });
   reject(ambiguous, "INVALID_JOURNEY_DESTINATION_COUNT");
 });
 
-test("Unrendered panel media and catalog duplication fail instead of being silently dropped", () => {
+test("Shared header media is admitted while catalog duplication fails instead of being silently dropped", () => {
   const media = candidate(); media.views[2].content[0].media = { kind: "image", asset: "cover", alt: "Cover" };
-  reject(media, "UNSUPPORTED_PROGRAM_HEADER_MEDIA");
+  assert.doesNotThrow(() => compileViewProgram(media, surface));
   const mainMedia = candidate(); mainMedia.views[0].content[0].media = { kind: "image", asset: "cover", alt: "Cover" };
-  reject(mainMedia, "UNSUPPORTED_PROGRAM_HEADER_MEDIA");
+  assert.doesNotThrow(() => compileViewProgram(mainMedia, surface));
   const duplicate = candidate(); duplicate.views[4].content.push({ kind: "visual-catalog", id: "second" });
   reject(duplicate, "INVALID_JOURNEY_CATALOG_CONTENT");
   const readCatalog = candidate(); readCatalog.views[1].content.push({ kind: "visual-catalog", id: "inspection" });
@@ -89,7 +89,7 @@ test("Program validates human exposure and keeps review policy in the canonical 
   assert.equal(reviewed.commit[program.journeys[2].id], "review");
   const create = surface.journeys.find(item => item.id === program.journeys[2].id)!;
   const mismatched = { ...surface, journeys: surface.journeys.map(item => item === create ? { ...item, object: "other" } : item) };
-  assert.throws(() => compileViewProgram(program, mismatched), { message: "VIEW_JOURNEY_OBJECT_MISMATCH" });
+  assert.throws(() => compileViewProgram(program, mismatched), { message: "INVALID_VIEW_SOURCE" });
 });
 
 test("Program schemas are sealed clones and caller property access is never executed", () => {

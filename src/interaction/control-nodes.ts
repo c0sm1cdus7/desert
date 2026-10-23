@@ -5,12 +5,14 @@ import { InformationItemSchema } from "./information-content.ts";
 import { ExtendedNodeSchemas, ExtendedEventSchemas } from "./extended-nodes.ts";
 import { checkExtendedControl, changeExtendedControl } from "./extended-controls.ts";
 import { SelectionOptionSchema } from "./selection-option.ts";
+import { LabelsNodeSchema, LabelsEventSchema, ReferenceEventSchema } from "./labels-control.ts";
 
 const object = <T extends TProperties>(properties: T) => Type.Object(properties, { additionalProperties: false });
 const text = () => Type.String({ minLength: 1 });
 const integer = (minimum = 0) => Type.Integer({ minimum, maximum: Number.MAX_SAFE_INTEGER });
 const base = { version: Type.Literal("desert.control/1"), id: text(), label: text(), disabled: Type.Boolean() };
 export const SelectNodeSchema = object({ ...base, kind: Type.Literal("select"), required: Type.Boolean(),
+  inputRequired: Type.Optional(Type.Boolean()),
   value: Type.Union([Type.Null(), text()]), options: Type.Array(SelectionOptionSchema, { minItems: 1 }) });
 export const PopoverNodeSchema = object({ ...base, kind: Type.Literal("popover"), open: Type.Boolean(), title: text(),
   locked: Type.Optional(Type.Boolean()), content: Type.Array(InformationItemSchema, { minItems: 1 }) });
@@ -20,7 +22,7 @@ export const FileNodeSchema = object({ ...base, kind: Type.Literal("files"),
   limits: object({ maxCount: integer(1), maxFileBytes: integer(1), maxTotalBytes: integer(1),
     accept: Type.Array(Type.String({ pattern: "^[a-z0-9!#$&^_.+-]+/([a-z0-9!#$&^_.+-]+|\\*)$" }), { uniqueItems: true }) }),
   files: Type.Array(FileMetadataSchema) });
-export const ControlNodeSchema = Type.Union([SelectNodeSchema, PopoverNodeSchema, FileNodeSchema, ...ExtendedNodeSchemas]);
+export const ControlNodeSchema = Type.Union([SelectNodeSchema, PopoverNodeSchema, FileNodeSchema, ...ExtendedNodeSchemas, LabelsNodeSchema]);
 export type ControlNode = Frozen<Static<typeof ControlNodeSchema>>;
 export type SelectNode = Extract<ControlNode, { kind: "select" }>;
 export type PopoverNode = Extract<ControlNode, { kind: "popover" }>;
@@ -28,12 +30,20 @@ export type FileNode = Extract<ControlNode, { kind: "files" }>;
 export type FileMetadata = Frozen<Static<typeof FileMetadataSchema>>;
 export type FileRejection = { readonly file: FileMetadata; readonly reason: "media-type" | "file-size" | "total-size" | "count" };
 
+/** `required` preserves the non-clearable value contract. Only an operation's
+ * explicit input requirement is presented to the person as form participation. */
+export function selectInputRequired(node: SelectNode): boolean {
+  return node.inputRequired === true && (!node.required || node.value === null);
+}
+
 export const ControlEventSchema = Type.Union([
   object({ kind: Type.Literal("select.change"), control: text(), value: Type.Union([text(), Type.Null()]) }),
   object({ kind: Type.Literal("popover.open"), control: text(), open: Type.Boolean() }),
   object({ kind: Type.Literal("files.choose"), control: text(), files: Type.Array(FileMetadataSchema) }),
   object({ kind: Type.Literal("files.remove"), control: text(), file: text() }),
   ...ExtendedEventSchemas,
+  LabelsEventSchema,
+  ...ReferenceEventSchema.anyOf,
 ]);
 export type ControlEvent = Frozen<Static<typeof ControlEventSchema>>;
 export type ControlTransition = { readonly node: ControlNode; readonly rejected: readonly FileRejection[] };
@@ -60,7 +70,7 @@ export function controlNode(value: unknown): ControlNode {
       throw new Error("INVALID_CONTROL_FILES");
     }
   }
-  if (node.kind !== "select" && node.kind !== "popover" && node.kind !== "files") checkExtendedControl(node);
+  if (node.kind !== "select" && node.kind !== "popover" && node.kind !== "files" && node.kind !== "labels") checkExtendedControl(node);
   return freezeDeep(node);
 }
 
@@ -107,7 +117,9 @@ export function applyControlEvent(value: ControlNode, input: unknown): ControlTr
     next = { ...node, files };
   } else if (node.kind === "files" && event.kind === "files.remove" && node.files.some(file => file.id === event.file)) {
     next = { ...node, files: node.files.filter(file => file.id !== event.file) };
-  } else if (node.kind !== "select" && node.kind !== "popover" && node.kind !== "files" &&
+  } else if (node.kind === "labels" && event.kind === "labels.change") {
+    next = { ...node, values: event.values };
+  } else if (node.kind !== "select" && node.kind !== "popover" && node.kind !== "files" && node.kind !== "labels" &&
     (event.kind === "options.change" || event.kind === "money.change" || event.kind === "date.change")) {
     next = changeExtendedControl(node, event);
   } else throw new Error("INVALID_CONTROL_EVENT");

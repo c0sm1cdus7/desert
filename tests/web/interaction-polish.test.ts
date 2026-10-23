@@ -2,12 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { mkdir } from "node:fs/promises";
 import type { Locator, Page } from "playwright";
-import { browserFixture, settleMotion } from "./fixture.ts";
+import { activePanel, settleMotion, waitForNote } from "./fixture.ts";
+import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
 
 async function catalog() {
   const f = await browserFixture();
   try {
-    await f.page.getByRole("button", { name: "Renderer catalog", exact: true }).click();
+    await openCatalog(f.page);
     return f;
   } catch (error) { await f.close(); throw error; }
 }
@@ -25,17 +26,21 @@ async function clickOverlay(page: Page, dialog: Locator) {
   await page.mouse.click(point.x, point.y);
 }
 
-test("context facts are immediately visible, and each catalog opening restores its own trigger", { timeout: 30000 }, async () => {
-  const f = await catalog();
+test("published object facts are immediately visible and each opening restores its own trigger", { timeout: 30000 }, async () => {
+  const f = await browserFixture();
   try {
-    const trigger = f.page.locator('[data-specimen="context:available"]').getByRole("button");
+    const run = await f.session.begin("create-note");
+    const prepared = await f.session.prepare(run.id, { title: "Context witness", body: "Visible without disclosure." });
+    await f.session.accept(prepared.id, prepared.confirmationDigest);
+    await f.page.reload();
+    const trigger = f.page.getByRole("button", { name: /Context witness/ });
     for (const closeWith of ["Escape", "button"] as const) {
       await trigger.focus(); await f.page.keyboard.press("Enter");
-      const dialog = f.page.getByRole("dialog", { name: "Context specimen", exact: true });
-      await settleMotion(f.page);
+      const dialog = activePanel(f.page);
+      await waitForNote(f.page, "Context witness");
       assert.equal(await dialog.getByRole("button", { name: "Close panel", exact: true }).isVisible(), false,
         "desktop has no visible mobile drag grip");
-      const content = dialog.locator('[data-composition="context"]');
+      const content = dialog.locator('[data-surface-slot="content"]');
       const facts = content.locator(".fact-row");
       assert.ok(await facts.count() > 0, "the fixture must exercise real context facts");
       for (const fact of await facts.all()) assert.equal(await fact.isVisible(), true,
@@ -43,15 +48,15 @@ test("context facts are immediately visible, and each catalog opening restores i
       assert.equal(await content.locator('details, [data-slot^="collapsible"], [aria-expanded]').count(), 0,
         "context content must not hide facts behind an expansion control");
       assert.equal(await dialog.getByRole("button", { name: "Details", exact: true }).count(), 0);
-      assert.equal(await dialog.getByRole("region", { name: "Actions", exact: true }).isVisible(), true);
-      const action = content.locator('[data-piece="destination-row"]').first();
+      const action = dialog.locator('[data-surface-slot="top"]').getByRole("button", { name: "Archive note", exact: true });
+      assert.equal(await action.isVisible(), true);
       await action.focus();
       assert.equal(await action.evaluate(node => node === document.activeElement), true);
       for (const fact of await facts.all()) assert.equal(await fact.isVisible(), true,
         "moving focus to an action must not change fact visibility");
       await evidence(f.page, `visible-context-${closeWith}`);
       if (closeWith === "Escape") await f.page.keyboard.press("Escape");
-      else await dialog.locator('[data-surface-slot="bottom"]').getByRole("button", { name: "Close", exact: true }).click();
+      else await dialog.locator('[data-surface-slot="top"]').getByRole("button", { name: "Close", exact: true }).click();
       await dialog.waitFor({ state: "hidden" });
       assert.equal(await trigger.evaluate(node => node === document.activeElement), true,
         "focus must return after both the first and second opening");
@@ -60,7 +65,7 @@ test("context facts are immediately visible, and each catalog opening restores i
   } finally { await f.close(); }
 });
 
-test("mobile keyboard focus outlines the grip bar, not its oversized hit target", { timeout: 30000 }, async () => {
+test("mobile grip keeps shared button keyboard focus and a generous target around its small mark", { timeout: 30000 }, async () => {
   const f = await catalog();
   try {
     await f.page.setViewportSize({ width: 390, height: 844 });
@@ -70,7 +75,7 @@ test("mobile keyboard focus outlines the grip bar, not its oversized hit target"
     assert.equal(await grip.isVisible(), true);
     await f.page.keyboard.press("Tab"); await grip.focus();
     const styles = await grip.evaluate(node => {
-      const bar = node.querySelector("span")!;
+      const bar = node.querySelector("[data-drawer-grip-mark]")!;
       const target = getComputedStyle(node), line = getComputedStyle(bar);
       return { focus: node.matches(":focus-visible"), targetOutline: target.outlineStyle,
         targetWidth: parseFloat(target.outlineWidth), targetShadow: target.boxShadow,
@@ -78,22 +83,22 @@ test("mobile keyboard focus outlines the grip bar, not its oversized hit target"
         target: node.getBoundingClientRect().toJSON(), bar: bar.getBoundingClientRect().toJSON() };
     });
     assert.equal(styles.focus, true);
-    assert.ok(styles.targetOutline === "none" || styles.targetWidth === 0);
-    assert.equal(styles.targetShadow, "none", "the transparent hit target must not gain a focus ring");
-    assert.ok(styles.barOutline !== "none" && styles.barWidth > 0);
+    assert.ok(styles.targetOutline !== "none" && styles.targetWidth > 0,
+      "the grip remains a shared button with a visible keyboard focus boundary");
+    assert.ok(styles.target.height >= 44 && styles.target.width >= 44);
     assert.ok(styles.bar.width < styles.target.width && styles.bar.height < styles.target.height);
     await evidence(f.page, "mobile-grip-focus");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
 
-test("a short drag springs back, but a slow 100px crossing dismisses before release", { timeout: 30000 }, async () => {
+test("a drag stays reversible while held, springs back on cancellation and dismisses on release", { timeout: 30000 }, async () => {
   const f = await catalog();
   try {
     await f.page.setViewportSize({ width: 390, height: 844 });
     await f.page.emulateMedia({ reducedMotion: "no-preference" });
     await f.page.locator('[data-specimen="transient:open"]').getByRole("button").click();
-    const dialog = f.page.getByRole("dialog", { name: "Transient specimen", exact: true });
+    const dialog = f.page.getByRole("dialog", { name: "Diagnostic transient", exact: true });
     await settleMotion(f.page);
     const box = (await dialog.getByRole("button", { name: "Close panel", exact: true }).boundingBox())!;
     const x = box.x + box.width / 2, y = box.y + box.height / 2;
@@ -117,9 +122,15 @@ test("a short drag springs back, but a slow 100px crossing dismisses before rele
         await f.page.waitForTimeout(80); // Slow movement must not depend on a release/velocity shortcut.
         assert.equal(await dialog.isVisible(), true, "below 100px the drawer stays open");
       }
-      await f.page.mouse.move(x, y + 101);
-      await dialog.waitFor({ state: "hidden" }); // Deliberately asserted while the pointer is still down.
+      await f.page.mouse.move(x, y + 140);
+      assert.equal(await dialog.isVisible(), true, "crossing the distance threshold does not commit while held");
+      await f.page.mouse.move(x, y + 20); // The user can reverse the held gesture before committing it.
     } finally { await f.page.mouse.up(); }
+    await settleMotion(f.page);
+    assert.equal(await dialog.isVisible(), true, "reversing below the threshold cancels dismissal");
+    await f.page.mouse.move(x, y); await f.page.mouse.down();
+    await f.page.mouse.move(x, y + 140, { steps: 8 }); await f.page.mouse.up();
+    await dialog.waitFor({ state: "hidden" });
     await evidence(f.page, "threshold-dismissed");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
@@ -142,7 +153,7 @@ test("overlay click dismisses unlocked surfaces and cannot dismiss a locked tran
     await f.page.keyboard.press("Escape"); await settleMotion(f.page);
     assert.equal(await dialog.isVisible(), true);
     await evidence(f.page, "locked-overlay");
-    await dialog.getByRole("button", { name: "Finish specimen operation", exact: true }).click();
+    await dialog.locator('[data-surface-slot="top"]').getByRole("button", { name: "Close", exact: true }).and(f.page.locator(':enabled')).waitFor();
     await clickOverlay(f.page, dialog); await dialog.waitFor({ state: "hidden" });
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }

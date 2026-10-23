@@ -5,6 +5,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { sdkRoot } from "./revision.ts";
 import { inspectionMedia } from "../../svelte/catalog/inspection-media.ts";
+import { runWithVisualBoundaries } from "../../authoring/visual-boundary/source.ts";
 
 export function createBuildProject(module: string, family: "human" | "public-catalog" = "human") {
   const directory = mkdtempSync(join(sdkRoot, ".desert-build-"));
@@ -25,12 +26,12 @@ export function createBuildProject(module: string, family: "human" | "public-cat
   return { directory,
     async run(mode: "build" | "check") {
       try {
-        return await promisify(execFile)(process.execPath, [join(sdkRoot, "src/build/svelte/worker.mjs"), mode], {
+        return await runWithVisualBoundaries(sdkRoot, () => promisify(execFile)(process.execPath, [join(sdkRoot, "src/build/svelte/worker.mjs"), mode], {
           cwd: directory, env: { PATH: process.env.PATH ?? "" }, timeout: 120000, maxBuffer: 8 * 1024 * 1024,
-        });
+        }));
       } catch (error) {
         const failure = error as Error & { stdout?: string, stderr?: string };
-        throw new Error(`SVELTE_${mode.toUpperCase()}_FAILED\n${failure.stdout ?? ""}\n${failure.stderr ?? ""}`, { cause: error });
+        throw new Error(`SVELTE_${mode.toUpperCase()}_FAILED\n${failure.message}\n${failure.stdout ?? ""}\n${failure.stderr ?? ""}`, { cause: error });
       }
     },
     close() { rmSync(directory, { recursive: true }); },

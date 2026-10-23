@@ -1,3 +1,5 @@
+import { toolbarBounds } from './toolbar-bounds.ts';
+
 export type ScrollEdge = { edge: "top" | "bottom"; top: number; left: number; width: number;
   height: number; core: number; strength: number };
 
@@ -24,7 +26,7 @@ export function observeScrollEdges(viewport: HTMLElement, owner: HTMLElement, up
     for (const edge of ["top", "bottom"] as const) {
       const bar = bars.find(bar => bar.dataset.toolbar === edge);
       if (!bar) continue;
-      const chrome = bar.getBoundingClientRect();
+      const chrome = toolbarBounds(bar);
       const overlap = Math.max(0, edge === "top" ? chrome.bottom - bounds.top : bounds.bottom - chrome.top);
       const core = Math.min(overlap, bounds.height / 2);
       const height = Math.min(core + feather, bounds.height / 2);

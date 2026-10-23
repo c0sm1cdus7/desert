@@ -6,9 +6,10 @@ import type { ProductDefinition } from "../src/contracts.ts";
 import type { HumanSurface } from "../src/web/types.ts";
 import { deriveForm } from "../src/interaction/form.ts";
 import { humanState } from "../src/web/client/state.ts";
+import { notebookScope } from "./fixtures/notebook-scope.ts";
 
 test("property presence does not impose nonempty text and initial draft matches displayed controls", () => {
-  const definition: ProductDefinition = structuredClone(Notebook);
+  const definition: ProductDefinition = JSON.parse(JSON.stringify(Notebook));
   definition.objects[0]!.facts.title = { kind: "text", minLength: 0 };
   const application = compile(definition);
   const surface = application.surface("human") as HumanSurface;
@@ -16,8 +17,8 @@ test("property presence does not impose nonempty text and initial draft matches 
   assert.equal(create.kind, "mutation");
   assert.equal(application.validateInput(create.commandId, { title: "", body: "Body" }).valid, true);
   assert.equal(application.validateInput(create.commandId, { body: "Body" }).valid, false);
-  const fields = deriveForm(create, surface.inputs ?? {});
+  const fields = deriveForm(create, surface.fieldRepresentations);
   assert.equal(fields.find(field => field.name === "title")!.required, false);
   assert.equal(fields.find(field => field.name === "body")!.required, true);
-  assert.deepEqual(humanState(surface).get().draft, { title: "", body: "" });
+  assert.deepEqual(humanState(surface, notebookScope(surface)).get().draft, { title: "", body: "" });
 });

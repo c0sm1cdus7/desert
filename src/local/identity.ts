@@ -1,13 +1,17 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
 import type { Database } from "./database.ts";
+import { humanSession } from "../identity/sessions.ts";
 
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 
 export async function authenticate(client: PoolClient, token: string, lock = true): Promise<string> {
   if (typeof token !== "string" || !/^[A-Za-z0-9_-]{43}$/.test(token)) throw new Error("UNAUTHENTICATED");
+  const human = await humanSession(client, token, lock);
+  if (human) return human.id;
   const { rows: [identity] } = await client.query(
-    `SELECT id, revoked, expires_at FROM desert_identities WHERE credential_hash = $1${lock ? " FOR SHARE" : ""}`, [hash(token)]);
+    `SELECT id, revoked, expires_at FROM desert_identities i WHERE credential_hash = $1
+      AND NOT EXISTS (SELECT 1 FROM desert_identity_accounts a WHERE a.identity_id = i.id)${lock ? " FOR SHARE" : ""}`, [hash(token)]);
   const { rows: [clock] } = await client.query("SELECT clock_timestamp() AS time");
   if (!identity || identity.revoked || identity.expires_at <= clock.time) throw new Error("UNAUTHENTICATED");
   return identity.id;

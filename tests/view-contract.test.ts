@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { view, viewCatalog, ViewVersion, ViewSchema, type View } from "../src/index.ts";
+import { view } from "../src/views/view.ts";
+import { viewCatalog } from "../src/views/catalog.ts";
+import { ViewVersion, ViewSchema, type View } from "../src/views/schema.ts";
 import * as viewSchemas from "../src/views/schema.ts";
 import { TagNodeSchema } from "../src/interaction/extended-nodes.ts";
 

@@ -9,7 +9,7 @@ export const noteSamples = {
   create: { title: "New note", body: "New content" },
 };
 
-function literalState(expression: { kind: string, value?: string | number } | undefined) {
+function literalState(expression: { kind: string, value?: string | number | readonly [] } | undefined) {
   assert.equal(expression?.kind, "literal", "Notebook case requires a declared literal state");
   assert.equal(typeof expression?.value, "string");
   return expression!.value as string;
@@ -19,7 +19,10 @@ export const initialState = literalState(CreateNote.command.values.state);
 
 export function notebookCase(journey: NotebookJourney) {
   const command = journey.kind === "mutation" ? journey.command : undefined;
-  const input = Object.fromEntries((command?.input ?? []).map(field => [field, noteSamples.create[field]]));
+  const input = Object.fromEntries((command?.input ?? []).map(field => {
+    assert.ok(field === "title" || field === "body", `Missing independent Notebook input case: ${field}`);
+    return [field, noteSamples.create[field]];
+  }));
   const state = command?.kind === "create" ? command.values.state
     : command?.kind === "update" ? command.set.state : CreateNote.command.values.state;
   return {

@@ -29,10 +29,12 @@ test("grouped lists retain one visible pane on a card, with an opaque accessibil
       await session.send("Emulation.setEmulatedMedia", { features: [{ name: preference, value: preference === "prefers-contrast" ? "more" : "reduce" }] });
       const material = await f.page.locator('[data-test="options"] [data-grouped-panel]').evaluate(element => {
         const style = getComputedStyle(element);
-        return { blur: style.backdropFilter, fill: style.backgroundColor, border: style.borderTopWidth };
+        const canvas = document.createElement('canvas').getContext('2d')!;
+        canvas.fillStyle = style.backgroundColor; canvas.fillRect(0, 0, 1, 1);
+        return { blur: style.backdropFilter, alpha: canvas.getImageData(0, 0, 1, 1).data[3], border: style.borderTopWidth };
       });
       assert.equal(material.blur, "none");
-      assert.match(material.fill, /^rgb\(/, "opaque fill when transparency is reduced");
+      assert.equal(material.alpha, 255, "opaque fill regardless of browser color serialization");
       assert.equal(material.border, "1px", "group boundary survives opaque fallback");
       await session.detach();
     }
