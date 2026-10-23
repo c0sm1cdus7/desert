@@ -4,7 +4,7 @@ import test from "node:test";
 import { assertClosedVisualBoundaries } from "../src/authoring/visual-boundary/closed.ts";
 import { assertCompleteAdapterSources, requiredAdapterSources } from "../src/authoring/visual-boundary/adapter.ts";
 
-const paths = ["catalog/renderer/panel/Panel", "FailureDialog", "catalog/renderer/control-renderer/ControlRenderer", "catalog/renderer/public-catalog-bank-specimen/PublicCatalogBankSpecimen"]
+const paths = ["catalog/renderer/panel/Panel", "catalog/renderer/failure-dialog/FailureDialog", "catalog/renderer/control-renderer/ControlRenderer", "catalog/renderer/public-catalog-bank-specimen/PublicCatalogBankSpecimen"]
   .map(name => `src/svelte/${name}.svelte`);
 const check = (path: string, source: string) => assertClosedVisualBoundaries([{ path, source }]);
 

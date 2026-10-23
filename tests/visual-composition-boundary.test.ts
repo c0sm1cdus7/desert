@@ -11,15 +11,15 @@ function nativeNodes(value: unknown): string[] {
 }
 
 test("frame and leaf view adapters do not construct visual wrappers", async () => {
-  for (const name of ["FrameBody", "catalog/renderer/view-item/ViewItem", "catalog/renderer/view-content/ViewContent"]) {
+  for (const name of ["catalog/renderer/frame-body/FrameBody", "catalog/renderer/view-item/ViewItem", "catalog/renderer/view-content/ViewContent"]) {
     const source = await readFile(new URL(`../src/svelte/${name}.svelte`, import.meta.url), "utf8");
     assert.deepEqual(nativeNodes(parse(source, { modern: true }).fragment), [], name);
   }
 });
 
 test("text and utility compositions retain closed content/event contracts, not HTML forwarding", async () => {
-  for (const name of ["TextContent", "UtilityActions", "ContentFlow", "PlaceHeader"]) {
-    const source = await readFile(new URL(`../src/svelte/pieces/${name}.svelte`, import.meta.url), "utf8");
+  for (const name of ["text-content/TextContent", "utility-actions/UtilityActions", "content-flow/ContentFlow", "place-header/PlaceHeader"]) {
+    const source = await readFile(new URL(`../src/svelte/catalog/compositions/${name}.svelte`, import.meta.url), "utf8");
     assert.doesNotMatch(source, /HTMLAttributes|Snippet|className|\.\.\.attributes|\.\.\.props/);
   }
 });

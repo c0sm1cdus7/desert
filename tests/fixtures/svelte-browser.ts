@@ -23,6 +23,11 @@ export async function svelteBrowser(source: string, overrides: Readonly<Record<s
         contents: compile(source, { filename: resolve(root, "virtual-component.svelte"), generate: "client", css: "injected" }).js.code,
         loader: "js", resolveDir: root,
       }));
+      // A frozen "before" source may name a file the tree no longer has: resolve it to its override.
+      builder.onResolve({ filter: /\.svelte$/ }, ({ path, resolveDir }) => {
+        const absolute = resolve(resolveDir, path);
+        return overrides[absolute] === undefined ? undefined : { path: absolute };
+      });
       builder.onLoad({ filter: /\.svelte$/ }, async ({ path }) => ({
         contents: compile(overrides[path] ?? await readFile(path, "utf8"), { filename: path, generate: "client", css: "injected" }).js.code,
         loader: "js", resolveDir: dirname(path),

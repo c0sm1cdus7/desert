@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { resolve } from "node:path";
+import { dirname, relative, resolve } from "node:path";
 import { assertClosedVisualBoundaries, closedComponents } from "../src/authoring/visual-boundary/closed.ts";
 
 const heading = "src/svelte/catalog/foundations/heading/Heading.svelte";
+const frameBody = "src/svelte/catalog/renderer/frame-body/FrameBody.svelte";
+/** Import specifiers as written from the renderer adapters' real folders (frame-body, instance-frame, inspection-content). */
+const adapterCatalog = relative(dirname(frameBody), "src/svelte/adapter-catalog.ts");
+const nodeRenderer = relative(dirname(frameBody), "src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte");
 const consumer = "src/svelte/explorer/Example.svelte";
 const source = (markup: string) => `<script>import Renamed from '../catalog/foundations/heading/Heading.svelte';</script>${markup}`;
 
@@ -24,7 +28,7 @@ test("closed component contracts cannot reopen native attribute forwarding", () 
 
 test("a closed renderer adapter cannot regain DOM or CSS even if the debt snapshot is regenerated", () => {
   for (const source of ['<div/>', '<style>div{padding:3px}</style>', '<script>element.style.color="red"</script>']) {
-    assert.throws(() => assertClosedVisualBoundaries([{ path: "src/svelte/catalog/renderer/frame-body/FrameBody.svelte", source }]), /CLOSED_VISUAL_BOUNDARY/);
+    assert.throws(() => assertClosedVisualBoundaries([{ path: frameBody, source }]), /CLOSED_VISUAL_BOUNDARY/);
   }
 });
 
@@ -35,21 +39,21 @@ test("sealed adapters reject HTML injection and opaque component selection", () 
     '<script>let { Component } = $props();</script><Component/>',
     '<script>import Arbitrary from "./Anything.svelte";</script><Arbitrary/>',
   ]) {
-    assert.throws(() => assertClosedVisualBoundaries([{ path: "src/svelte/catalog/renderer/frame-body/FrameBody.svelte", source }]),
+    assert.throws(() => assertClosedVisualBoundaries([{ path: frameBody, source }]),
       /CLOSED_VISUAL_BOUNDARY/, source);
   }
 });
 
 test("sealed adapters cannot acquire legacy native props through a catalog component", () => {
-  const source = '<script>import NodeRenderer from "./NodeRenderer.svelte";</script>'
+  const source = `<script>import NodeRenderer from "${nodeRenderer}";</script>`
     + '<NodeRenderer {node} actionElementProps={{ style: "color:red" }}/>';
-  assert.throws(() => assertClosedVisualBoundaries([{ path: "src/svelte/catalog/renderer/frame-body/FrameBody.svelte", source }]),
+  assert.throws(() => assertClosedVisualBoundaries([{ path: frameBody, source }]),
     /CLOSED_VISUAL_BOUNDARY/);
 });
 
 test("the adapter catalog admits owner-typed data and composition, not caller styling or slots", () => {
-  const script = '<script>import { NodeRenderer as Bank, StackItem, ContentFlow } from "./adapter-catalog.ts";</script>';
-  const assertSource = (markup: string) => assertClosedVisualBoundaries([{ path: "src/svelte/catalog/renderer/frame-body/FrameBody.svelte", source: script + markup }]);
+  const script = `<script>import { NodeRenderer as Bank, StackItem, ContentFlow } from "${adapterCatalog}";</script>`;
+  const assertSource = (markup: string) => assertClosedVisualBoundaries([{ path: frameBody, source: script + markup }]);
   assert.doesNotThrow(() => assertSource('<StackItem kind="fact"><Bank {node} {onevent}/></StackItem>'));
   assert.doesNotThrow(() => assertSource('<ContentFlow {resolved} {onevent} {onalbum} bind:this={flow}/>'));
   for (const markup of ['<Bank {node} actionElementProps={attrs}/>', '<Bank {node} style="color:red"/>',
@@ -62,23 +66,23 @@ test("the adapter catalog admits owner-typed data and composition, not caller st
 });
 
 test("catalog imports cannot be bypassed through shadowed names or opaque aliases", () => {
-  const path = "src/svelte/catalog/renderer/frame-body/FrameBody.svelte";
-  const script = '<script>import { NodeRenderer } from "./adapter-catalog.ts";</script>';
+  const path = frameBody;
+  const script = `<script>import { NodeRenderer } from "${adapterCatalog}";</script>`;
   for (const source of [
     script + '{#each components as NodeRenderer}<NodeRenderer/>{/each}',
     script + '{#each components as { component: NodeRenderer }}<NodeRenderer/>{/each}',
     script + '{@const NodeRenderer = arbitrary}<NodeRenderer/>',
     script + '{#await value then NodeRenderer}<NodeRenderer/>{/await}',
     script + '{#snippet nested(NodeRenderer)}<NodeRenderer/>{/snippet}',
-    '<script>import * as Catalog from "./adapter-catalog.ts";</script><Catalog.NodeRenderer/>',
-    '<script>import { NodeRenderer } from "./adapter-catalog.ts"; const Other = NodeRenderer;</script><Other/>',
-    '<script>import { NodeRenderer } from "./adapter-catalog.ts"; const f = (NodeRenderer) => NodeRenderer;</script><NodeRenderer/>',
+    `<script>import * as Catalog from "${adapterCatalog}";</script><Catalog.NodeRenderer/>`,
+    `<script>import { NodeRenderer } from "${adapterCatalog}"; const Other = NodeRenderer;</script><Other/>`,
+    `<script>import { NodeRenderer } from "${adapterCatalog}"; const f = (NodeRenderer) => NodeRenderer;</script><NodeRenderer/>`,
     '<script>const Component = (await import("./Anything.svelte")).default;</script><Component/>',
-    '<script>import { Missing } from "./adapter-catalog.ts";</script><Missing/>',
-    '<script module>import * as Catalog from "./adapter-catalog.ts";</script><Catalog.NodeRenderer/>',
+    `<script>import { Missing } from "${adapterCatalog}";</script><Missing/>`,
+    `<script module>import * as Catalog from "${adapterCatalog}";</script><Catalog.NodeRenderer/>`,
   ]) assert.throws(() => assertClosedVisualBoundaries([{ path, source }]), /CLOSED_VISUAL_BOUNDARY/, source);
   assert.doesNotThrow(() => assertClosedVisualBoundaries([{ path,
-    source: '<script module>import { NodeRenderer as Bank } from "./adapter-catalog.ts";</script><Bank {node}/>',
+    source: `<script module>import { NodeRenderer as Bank } from "${adapterCatalog}";</script><Bank {node}/>`,
   }]));
 });
 
@@ -86,16 +90,16 @@ test("the event-lifetime adapter has the same sealed rendering boundary", () => 
   const path = "src/svelte/catalog/renderer/instance-frame/InstanceFrame.svelte";
   assert.throws(() => assertClosedVisualBoundaries([{ path, source: '<div/>' }]), /CLOSED_VISUAL_BOUNDARY/);
   assert.throws(() => assertClosedVisualBoundaries([{ path, source:
-    '<script>import { SurfaceFrame } from "./adapter-catalog.ts";</script><SurfaceFrame {frame} {invoke} style="padding:0"/>',
+    `<script>import { SurfaceFrame } from "${adapterCatalog}";</script><SurfaceFrame {frame} {invoke} style="padding:0"/>`,
   }]), /CLOSED_VISUAL_BOUNDARY/);
   assert.doesNotThrow(() => assertClosedVisualBoundaries([{ path, source:
-    '<script>import { SurfaceFrame } from "./adapter-catalog.ts";</script><SurfaceFrame {frame} {invoke} {edit} presentation="transient"/>',
+    `<script>import { SurfaceFrame } from "${adapterCatalog}";</script><SurfaceFrame {frame} {invoke} {edit} presentation="transient"/>`,
   }]));
 });
 
 test("declaration names cannot shadow imported catalog identities across Svelte scripts", () => {
-  const path = "src/svelte/catalog/renderer/frame-body/FrameBody.svelte";
-  const script = '<script module>import { NodeRenderer as Bank } from "./adapter-catalog.ts";</script>';
+  const path = frameBody;
+  const script = `<script module>import { NodeRenderer as Bank } from "${adapterCatalog}";</script>`;
   for (const declaration of [
     'function Bank() { return {}; }',
     'class Bank {}',
@@ -107,7 +111,7 @@ test("declaration names cannot shadow imported catalog identities across Svelte 
 });
 
 test("sealed adapters cannot draw through runtime DOM globals or dynamic code", () => {
-  const path = "src/svelte/catalog/renderer/frame-body/FrameBody.svelte";
+  const path = frameBody;
   for (const source of [
     '<script>document.write("<h1>Foreign UI</h1>")</script>',
     '<script>const body = document.body;</script>',
@@ -122,14 +126,14 @@ test("sealed adapters cannot draw through runtime DOM globals or dynamic code", 
     '<script>new Function("document.write(\\"Foreign UI\\")")()</script>',
     '<script>const Execute = Function; new Execute("document.write(\\"Foreign UI\\")")()</script>',
     '<script>const observer = new MutationObserver(() => {});</script>',
-    '<script>import { NodeRenderer } from "./adapter-catalog.ts";</script><NodeRenderer {node} onevent={() => document.write("Foreign UI")}/>',
+    `<script>import { NodeRenderer } from "${adapterCatalog}";</script><NodeRenderer {node} onevent={() => document.write("Foreign UI")}/>`,
   ]) assert.throws(() => assertClosedVisualBoundaries([{ path, source }]), /CLOSED_VISUAL_BOUNDARY: .*adapter runtime global:/, source);
   assert.doesNotThrow(() => assertClosedVisualBoundaries([{ path, source:
-    '<script lang="ts">import { ContentFlow } from "./adapter-catalog.ts"; let target: HTMLElement | null = null; const semantic = { document: "Notes" };</script>'
+    `<script lang="ts">import { ContentFlow } from "${adapterCatalog}"; let target: HTMLElement | null = null; const semantic = { document: "Notes" };</script>`
       + '<ContentFlow {resolved} {onevent} {onalbum}/>',
   }]), "type-only DOM references and semantic object keys do not execute browser code");
   assert.doesNotThrow(() => assertClosedVisualBoundaries([{ path, source:
-    '<script>import { NodeRenderer } from "./adapter-catalog.ts"; const read = (document) => document.title;</script>'
+    `<script>import { NodeRenderer } from "${adapterCatalog}"; const read = (document) => document.title;</script>`
       + '<NodeRenderer {node} onevent={(event) => read(event)}/>',
   }]), "local data bindings are not browser globals, including template callback parameters");
 });
@@ -137,7 +141,7 @@ test("sealed adapters cannot draw through runtime DOM globals or dynamic code", 
 test("a returned catalog focus target cannot become a native mutation channel", () => {
   const path = "src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte";
   const fixture = (operation: string) => `<script lang="ts">
-    import { Inspection } from "../adapter-catalog.ts";
+    import { Inspection } from "${adapterCatalog}";
     let { catalog } = $props();
     let content = $state<{ revealEntry: (id: string) => Promise<HTMLElement | null> }>();
     export async function revealEntry(id: string) {

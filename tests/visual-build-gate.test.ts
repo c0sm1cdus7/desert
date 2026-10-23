@@ -22,13 +22,16 @@ test("unsafe dormant renderer source rejects before the worker; safe source reta
     await cp(new URL("../src", import.meta.url), join(root, "src"), { recursive: true });
     await writeFile(join(root, "src/svelte/catalog/renderer/frame-body/FrameBody.svelte"), "<div>Forbidden renderer markup</div>");
     await writeFile(join(root, "src/svelte/style.css"), ":root { color: inherit; }");
-    await assert.rejects(runWithVisualBoundaries(root, worker), /CLOSED_VISUAL_BOUNDARY/);
-    assert.equal(calls, 0);
+    await assert.rejects(runWithVisualBoundaries(root, worker), /UNDECLARED_VISUAL_SOURCE: .*src\/svelte\/style\.css/,
+      "an undeclared stylesheet is refused by catalog rule A even when no preview imports it");
     assert.ok((await readVisualBoundarySources(root)).some(item => item.path === "src/svelte/style.css"),
       "CSS participates even when no preview imports it");
+    await rm(join(root, "src/svelte/style.css"));
+    await assert.rejects(runWithVisualBoundaries(root, worker), /CLOSED_VISUAL_BOUNDARY/);
+    assert.equal(calls, 0);
     await writeFile(join(root, "src/svelte/catalog/renderer/frame-body/FrameBody.svelte"), "<!-- no renderer-owned paint -->");
     await rm(join(root, "src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte"));
-    await assert.rejects(runWithVisualBoundaries(root, worker), /CLOSED_VISUAL_BOUNDARY.*NodeRenderer/);
+    await assert.rejects(runWithVisualBoundaries(root, worker), /CATALOG_DECLARATION: .*NodeRenderer/);
     assert.equal(calls, 0, "removing the dispatcher cannot disable its finite gate");
     await writeFile(join(root, "src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte"), await readFile(new URL("../src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte", import.meta.url)));
     assert.equal(await runWithVisualBoundaries(root, worker), "built");
@@ -42,7 +45,7 @@ test("unsafe dormant renderer source rejects before the worker; safe source reta
     assert.equal(calls, 1, "removing the bootstrap cannot silently remove its theme or its guard");
     await writeFile(join(root, requiredBootstrapSources[0]!), await readFile(new URL(`../${requiredBootstrapSources[0]}`, import.meta.url)));
     await rm(join(root, "src/svelte/catalog/renderer/frame-body/FrameBody.svelte"));
-    await assert.rejects(runWithVisualBoundaries(root, worker), /CLOSED_VISUAL_BOUNDARY.*FrameBody/);
+    await assert.rejects(runWithVisualBoundaries(root, worker), /CATALOG_DECLARATION: .*FrameBody/);
     assert.equal(calls, 1, "missing or renamed sealed sources cannot silently disable the guard");
     await writeFile(join(root, "src/svelte/catalog/renderer/frame-body/FrameBody.svelte"), "<!-- no renderer-owned paint -->");
     await symlink(join(root, "src/svelte/catalog/renderer/frame-body/FrameBody.svelte"), join(root, "src/build/svelte/linked.svelte"));

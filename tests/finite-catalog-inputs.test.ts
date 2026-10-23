@@ -49,8 +49,8 @@ test("finite owners cannot be aliased opaquely across scripts or template expres
 test("the four native-input owners contain no broad native API and every current caller passes", async () => {
   const { readVisualBoundarySources } = await import("../src/authoring/visual-boundary/source.ts");
   const sources = await readVisualBoundarySources(resolve(import.meta.dirname,".."));
-  for (const name of ["Place","SearchField","MaskedInput","MeasuredField"]) {
-    const text = await readFile(resolve(import.meta.dirname,`../src/svelte/pieces/${name}.svelte`),"utf8");
+  for (const path of ["place/Place","search-field/SearchField","masked-input/MaskedInput","measured-field/MeasuredField"]) {
+    const text = await readFile(resolve(import.meta.dirname,`../src/svelte/catalog/foundations/${path}.svelte`),"utf8");
     assert.doesNotMatch(text,/HTML\w*Attributes|ComponentProps|viewportAttributes|\.\.\.attributes|\.\.\.props/);
   }
   assert.doesNotThrow(() => assertFiniteCatalogInputs(sources));

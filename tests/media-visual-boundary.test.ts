@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { dirname, relative } from "node:path";
 import { assertClosedVisualBoundaries } from "../src/authoring/visual-boundary/closed.ts";
 import { inspectVisualSource } from "../src/authoring/visual-boundary/inspect.ts";
 import { WebCatalogManifest } from "../src/svelte/catalog-manifest.ts";
@@ -23,11 +24,12 @@ test("media viewer owns lexical composition without accepting caller rendering o
     '{@html content}',
   ]) assert.throws(() => assertClosedVisualBoundaries([{ path: viewerPath, source }]), /CLOSED_VISUAL_BOUNDARY/);
 
-  const caller = "src/svelte/pieces/MediaCaller.svelte";
+  const caller = "src/svelte/catalog/compositions/media-caller/MediaCaller.svelte";
+  const viewerSpecifier = relative(dirname(caller), viewerPath);
   for (const markup of [
     '<Viewer {...props}/>', '<Viewer class="override"/>', '<Viewer style="padding:0"/>',
     '<Viewer data-layout="custom"/>', '<Viewer children={draw}/>', '<Viewer><div>Override</div></Viewer>',
     '<Viewer bind:index/>', '<Viewer bind:open/>',
   ]) assert.throws(() => assertClosedVisualBoundaries([{ path: caller,
-    source: `<script>import Viewer from "./media/Viewer.svelte";</script>${markup}` }]), /CLOSED_VISUAL_BOUNDARY/);
+    source: `<script>import Viewer from "${viewerSpecifier}";</script>${markup}` }]), /CLOSED_VISUAL_BOUNDARY/);
 });

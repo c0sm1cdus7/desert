@@ -55,7 +55,7 @@ test("onboarding is two steps with one password, seeded avatar and a text-only f
 });
 
 test("access copy and choices contain no image upload, ghost action or redundant workspace slogan", async () => {
-  const files = await Promise.all(["AccessScreen.svelte", "AccessForm.svelte", "Appearance.svelte"]
-    .map(file => readFile(new URL(`../src/svelte/pieces/${file}`, import.meta.url), "utf8")));
+  const files = await Promise.all(["access-screen/AccessScreen.svelte", "access-form/AccessForm.svelte", "appearance/Appearance.svelte"]
+    .map(file => readFile(new URL(`../src/svelte/catalog/compositions/${file}`, import.meta.url), "utf8")));
   assert.doesNotMatch(files.join("\n"), /Your private workspace|Unlock your private workspace|Choose image|UI tint|variant="ghost"/);
 });

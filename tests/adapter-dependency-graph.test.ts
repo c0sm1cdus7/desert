@@ -2,20 +2,25 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { runWithVisualBoundaries } from "../src/authoring/visual-boundary/source.ts";
 
 const root = resolve(import.meta.dirname, "..");
+const adapterPath = "src/svelte/catalog/renderer/view-item/ViewItem.svelte";
+const fixturePath = "src/web/client/graph-fixture.ts";
+const fixtureSpecifier = relative(dirname(adapterPath), fixturePath);
 
 /** Exercise the real build admission, not only a standalone AST helper. */
 async function withDependency(source: string, check: (root: string) => Promise<void>) {
   const directory = mkdtempSync(join(tmpdir(), "desert-adapter-graph-"));
   try {
     cpSync(join(root, "src"), join(directory, "src"), { recursive: true });
-    const adapter = join(directory, "src/svelte/catalog/renderer/view-item/ViewItem.svelte");
-    writeFileSync(adapter, readFileSync(adapter, "utf8").replace('<script lang="ts">',
-      '<script lang="ts">\n  import { observe } from "../../web/client/graph-fixture.ts";\n  observe();'));
-    writeFileSync(join(directory, "src/web/client/graph-fixture.ts"), source);
+    const adapter = join(directory, adapterPath);
+    const original = readFileSync(adapter, "utf8");
+    assert.ok(original.includes('<script lang="ts">'), `${adapterPath} must keep its TypeScript script anchor`);
+    writeFileSync(adapter, original.replace('<script lang="ts">',
+      `<script lang="ts">\n  import { observe } from "${fixtureSpecifier}";\n  observe();`));
+    writeFileSync(join(directory, fixturePath), source);
     await check(directory);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 }

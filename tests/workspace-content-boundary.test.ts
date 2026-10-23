@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, relative, resolve } from "node:path";
 import test from "node:test";
 import ts from "typescript";
 import { assertClosedVisualBoundaries } from "../src/authoring/visual-boundary/closed.ts";
@@ -28,8 +28,8 @@ test("the workspace has finite content data, never incoming render slots", () =>
 });
 
 test("aliased workspace consumers cannot supply markup, geometry or a DOM binding", () => {
-  const importOwner = '<script>import Shell from "../catalog/compositions/catalog-workspace/CatalogWorkspace.svelte";</script>';
-  const caller = "src/svelte/pieces/Example.svelte";
+  const caller = "src/svelte/catalog/compositions/example/Example.svelte";
+  const importOwner = `<script>import Shell from "${relative(dirname(caller), workspace)}";</script>`;
   assert.doesNotThrow(() => check(caller, importOwner + '<Shell content={body} onviewport={registerActions}/>'));
   for (const markup of [
     '<Shell><div>Foreign</div></Shell>', '<Shell children={foreign}/>', '<Shell style="padding:0"/>',
@@ -37,7 +37,7 @@ test("aliased workspace consumers cannot supply markup, geometry or a DOM bindin
     '<Shell bind:viewport={element}/>', '<Shell bind:this={instance}/>',
     '<Shell>{#snippet searchResults()}<div>Foreign</div>{/snippet}</Shell>',
   ]) assert.throws(() => check(caller, importOwner + markup), /CLOSED_VISUAL_BOUNDARY/, markup);
-  const importContent = '<script>import Body from "./CatalogWorkspaceContent.svelte";</script>';
+  const importContent = `<script>import Body from "${relative(dirname(caller), content)}";</script>`;
   for (const markup of ['<Body children={foreign}/>', '<Body>{@render foreign()}</Body>', '<Body {...props}/>']) {
     assert.throws(() => check(caller, importContent + markup), /CLOSED_VISUAL_BOUNDARY/, markup);
   }

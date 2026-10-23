@@ -8,6 +8,7 @@ const original = readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const owners = ["src/svelte/renderer-registry.ts", "src/svelte/renderer-contracts.ts"].map(path => ({
   path, source: readFileSync(new URL(`../${path}`, import.meta.url), "utf8"),
 }));
+const registrySpecifier = '"../../../renderer-registry.ts"';
 const check = (source: string) => assertClosedVisualBoundaries([...owners, { path, source }]);
 
 test("bank dispatch accepts the actual exhaustive registry and validated node without a source snapshot", () => {
@@ -19,7 +20,7 @@ test("bank dispatch accepts the actual exhaustive registry and validated node wi
 
 test("bank dispatch cannot substitute an arbitrary component or skip node admission", () => {
   for (const source of [
-    original.replace('"./renderer-registry.ts"', '"./foreign-registry.ts"'),
+    original.replace(registrySpecifier, registrySpecifier.replace("renderer-registry", "foreign-registry")),
     original.replace("$derived(resolvedNode(node))", "$derived(node)"),
     original.replace("nodeRenderers[checked.kind]", "arbitrary"),
     original.replace("nodeRenderers.action", "nodeRenderers.problem"),
@@ -29,7 +30,10 @@ test("bank dispatch cannot substitute an arbitrary component or skip node admiss
     original + '\n{@html markup}',
     original.replace('<Renderer primitive={checked.kind}', '<Renderer style="color:red" primitive={checked.kind}'),
     original.replace('<Renderer primitive={checked.kind}', '<Renderer {...input} primitive={checked.kind}'),
-  ]) assert.throws(() => check(source), /CLOSED_VISUAL_BOUNDARY/, source.slice(-160));
+  ]) {
+    assert.notEqual(source, original, "every dispatch mutation must alter the actual source");
+    assert.throws(() => check(source), /CLOSED_VISUAL_BOUNDARY/, source.slice(-160));
+  }
 });
 
 test("bank dispatch restricts privileged host channels to their canonical entries", () => {
@@ -40,7 +44,10 @@ test("bank dispatch restricts privileged host channels to their canonical entrie
     original.replace('state={checked.state} label={checked.label}', 'state={checked.state} label={checked.label} host={host}'),
     original.replace('</script>', 'const alias = nodeRenderers.action;\n</script>'),
     original.replace('label={checked.label} value={checked.value}', 'label={node.label} value={checked.value}'),
-  ]) assert.throws(() => check(source), /CLOSED_VISUAL_BOUNDARY/);
+  ]) {
+    assert.notEqual(source, original, "every host-channel mutation must alter the actual source");
+    assert.throws(() => check(source), /CLOSED_VISUAL_BOUNDARY/);
+  }
 });
 
 test("the dispatcher must cover every catalog entry exactly once", () => {

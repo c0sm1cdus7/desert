@@ -48,7 +48,7 @@ test("the shared badge keeps short neutral and status labels pixel-identical at 
   const old = await svelteBrowser(source, { [badgePath]: previous });
   const next = await svelteBrowser(source);
   try {
-    const css = await rendererCss();
+    const css = await rendererCss([previous]);
     for (const f of [old, next]) {
       await f.page.emulateMedia({ reducedMotion: "reduce" });
       await f.page.addStyleTag({ content: css });
