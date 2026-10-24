@@ -91,7 +91,7 @@ export function modelReferences(surface:HumanSurface,store:HumanStore,transport:
       const journey=surface.journeys.find(item => item.id === capability.create);
       if (journey?.kind !== 'mutation' || journey.subject) throw new Error('INVALID_REFERENCE_CAPABILITY');
       if (event.kind === 'reference.create') {
-        const input={[capability.label]:event.name,...(capability.color ? {[capability.color]:event.color} : {})};
+        const input={[capability.label]:event.name,...(capability.color && event.color !== undefined ? {[capability.color]:event.color} : {})};
         if (!validate(journey.commandId,input) || capability.color && (!event.color || !capability.colors.includes(event.color))) throw new Error('INVALID_REFERENCE_INPUT');
         const run=await transport.call('begin',{journeyId:journey.id});
         if (!owns()) return;

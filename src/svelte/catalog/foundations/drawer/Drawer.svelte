@@ -21,7 +21,7 @@ let { label, open, locked = false, onclose, onclosed, frame, invoke, edit, frame
     onclosed?: () => void; frame: Frame; invoke: (intent: SurfaceIntent) => void;
     edit?: (name: string, value: string) => void;
     frameIdentity?: object | undefined;
-    readingIdentity?: object | undefined;
+    readingIdentity?: string | undefined;
     body?: ResolvedView | undefined;
     controlEvent?: ((event: FormControlEvent) => void) | undefined;
     presentation?: "transient" | undefined;

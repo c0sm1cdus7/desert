@@ -43,7 +43,7 @@ test("retained Panel post-effects preserve focus and scroll after replacing the 
     import { viewEventOwnership } from '@desert/web/client/view-events.ts';
     import { provideFrameActivation } from '@desert/svelte/infra/frame-continuity.svelte.ts';
     const activateFrame=provideFrameActivation();
-    const ownership=viewEventOwnership(),readingIdentity=Object.freeze({});
+    const ownership=viewEventOwnership(),readingIdentity='reading-1';
     const action={intent:{kind:'journey',journey:'archive-note'},label:'Archive note',icon:'archive',state:'ready'};
     const details={kind:'facts',object:'note',fields:['body'],facts:{body:'Reading needs continuity.\\n\\n'.repeat(80)},labels:{'note.body':'Content'},multiline:['body']};
     let phase=$state('context');
@@ -194,7 +194,7 @@ test("one suspended reading position belongs only to its opaque subject identity
   const f = await svelteBrowser(`<script>
     import { tick } from 'svelte';
     import { frameContinuity } from '@desert/svelte/infra/frame-continuity.svelte.ts';
-    const first=Object.freeze({}),second=Object.freeze({});
+    const first='reading-1',second='reading-2';
     let panel=$state(null),owner=$state({}),reading=$state.raw(first),kind=$state('context');
     frameContinuity(()=>panel,()=>owner,()=>({kind}),()=>reading);
     globalThis.readingContinuity={

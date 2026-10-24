@@ -8,7 +8,7 @@ test("negative type examples fail at their intended lines without suppression", 
   const configFile = ts.readConfigFile("tsconfig.json", ts.sys.readFile);
   const config = ts.parseJsonConfigFileContent(configFile.config, ts.sys, process.cwd());
   const files = ["tests/types-contracts.ts", "tests/types-distributions.ts", "tests/types-dependencies.ts",
-    "tests/types-public-catalog.ts", "tests/types-catalog-props.ts"].map(file => resolve(file));
+    "tests/types-public-catalog.ts", "tests/types-catalog-props.ts", "tests/types-domain-closures.ts"].map(file => resolve(file));
   const expected = new Map(files.map(file => {
     const lines = readFileSync(file, "utf8").split("\n");
     return [file, lines.flatMap((line, index) => line.includes("@ts-expect-error") ? [index + 1] : [])];

@@ -1,5 +1,7 @@
 import type { ProductDefinition } from "./contracts.ts";
 import { checkCommand } from "./check-command.ts";
+import type { JourneyInputSchema } from "./input-schema.ts";
+import type { CommandDefinition } from "./program-grammar.ts";
 import { checkSurface } from "./check-surface.ts";
 import { requireField, requireReference, uniqueById } from "./references.ts";
 import { compileDependencies } from "./compile-dependencies.ts";
@@ -28,7 +30,7 @@ export function compileProgram(definition: ProductDefinition) {
     }
     if ('media' in field.reference) for(const [name,value]of Object.entries(field.reference.where ?? {})) checkLiteral(requireField(target,name),value,name);
   }
-  const commands = new Map<string, { definition: object, inputSchema: ReturnType<typeof checkCommand> }>();
+  const commands = new Map<string, { definition: CommandDefinition, inputSchema: JourneyInputSchema }>();
   for (const journey of journeys.values()) {
     const objectId = journey.kind === "read" ? journey.object : journey.command.object;
     const object = requireReference(objects, objectId, "object");

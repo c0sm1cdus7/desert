@@ -20,6 +20,7 @@ import {readRefresh} from './read-refresh.ts';
 import type { ViewJourney } from '../../views/program-schema.ts';
 import { relatedMediaDraft, lockRelatedForm } from './view-related-draft.ts';
 import { connectionPresentation } from './connection-presentation.ts';
+import { runtimeToken } from './runtime-token.ts';
 
 /** Nonvisual interpreter; the installed controller remains the only operation executor. */
 export function viewProgramModel(input: unknown, surface: HumanSurface, validate: ValidateInput, transport?: ControllerTransport,
@@ -64,12 +65,12 @@ export function viewProgramModel(input: unknown, surface: HumanSurface, validate
   function currentRead() {
     return scope.scope.kind === "read" ? journeyFor(scope.scope.read.id) : undefined;
   }
-  let readingContext: { scope: typeof scope; subject: string; identity: object } | undefined;
+  let readingContext: { scope: typeof scope; subject: string; identity: string } | undefined;
   function readingIdentity() {
     const current = state();
     if (stopped || scope.scope.kind !== "read" || !current.selectedId) { readingContext = undefined; return undefined; }
     if (readingContext?.scope !== scope || readingContext.subject !== current.selectedId) {
-      readingContext = { scope, subject: current.selectedId, identity: Object.freeze({}) };
+      readingContext = { scope, subject: current.selectedId, identity: runtimeToken("reading") };
     }
     return current.view === "detail" && current.detail?.id === current.selectedId ? readingContext.identity : undefined;
   }
