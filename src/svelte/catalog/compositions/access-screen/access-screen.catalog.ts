@@ -5,7 +5,7 @@ import { AccessScreenContract } from "./access-screen.contract.ts";
 
 export const AccessScreen = defineComposition({
   id: "access-screen",
-  purpose: "Sign a person in to the product through the access experience, with the remembered profile and appearance.",
+  purpose: { key: "accessScreen.purpose" }, messages: ["accessScreen.purpose"],
   owner: { entry: "AccessScreen.svelte" },
   uses: ["access-experience", "appearance-root"], approval: "none", contract: AccessScreenContract,
 } as const);

@@ -6,6 +6,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import test from "node:test";
 import type { Page } from "playwright";
+import { appearancePreviewBefore } from "./fixtures/appearance-before.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { inlineImports, measureProbes, renderCases, settle, type Probes } from "./fixtures/parity.ts";
@@ -132,8 +133,10 @@ test("theme-preview keeps the appearance preview's pixels, its glyph aside (the 
     import AppearancePreview from "@desert/svelte/catalog/compositions/appearance-preview/AppearancePreview.svelte";
     import ThemePreview from "@desert/svelte/catalog/foundations/theme-preview/ThemePreview.svelte";
   </script>${["dark", "light"].map(mode => `<div data-case="${mode}" style="width:12rem">${foundation ? "<ThemePreview" : "<AppearancePreview"} mode="${mode}" tint="rose" wallpaper="mist" /></div>`).join("")}`;
-  const css = await rendererCss();
-  const [was, is] = [await renderCases(preview(false), {}, css), await renderCases(preview(true), {}, css)];
+  // AppearancePreview as it was, before it became a ThemePreview delegate (tests/fixtures/appearance-before.ts).
+  const before = Object.fromEntries(Object.entries(appearancePreviewBefore).map(([path, source]) => [resolve(import.meta.dirname, "..", path), source]));
+  const css = await rendererCss(Object.values(appearancePreviewBefore));
+  const [was, is] = [await renderCases(preview(false), before, css), await renderCases(preview(true), {}, css)];
   try {
     const parts = (foundation: boolean) => ({ root: "[data-appearance-preview]", panes: '.material-pane', lines: '.material-pane > span',
       wallpaper: "[data-system-wallpaper]", glyph: foundation ? ".preview-glyph" : "strong" });

@@ -6,8 +6,26 @@ import { contractShape, mounted, specimenFindings } from "./support/foundation.t
 test("heading: the contract offers four kinds; focus, id and required belong to one kind each", async () => {
   assert.deepEqual(await contractShape("heading"), {
     kind: ["display", "page", "section", "group"], text: "text", "align?": ["start", "center"],
-    "focusTarget?": ["boolean", "undefined"], "id?": ["undefined", "string"], "required?": ["undefined", "boolean"],
+    "focusTarget?": ["boolean", "undefined"], "focusKey?": ["string", "undefined"], "id?": ["undefined", "string"], "required?": ["undefined", "boolean"],
   });
+});
+
+test("heading: a display or page title given a focusKey takes focus through the nearest focus scope, by key", async () => {
+  const f = await mounted(`<Catalog.Column gap="regular"><Catalog.Heading kind="display" text="Feel at home." focusKey="access-heading" />
+  <Catalog.Heading kind="page" text="Notes" /></Catalog.Column>
+  <button onclick={() => { moved = scope.focus("access-heading"); missing = scope.focus("other"); }}>Move</button>
+  <output>{moved}:{missing}</output>`, `  import { provideFocusScope } from "@desert/svelte/infra/focus-scope.ts";
+  const scope = provideFocusScope();
+  let moved = $state(false), missing = $state(true);`);
+  try {
+    assert.deepEqual(await f.page.locator("h1").evaluateAll(nodes => nodes.map(node => node.getAttribute("tabindex"))), ["-1", null]);
+    await f.page.getByRole("button", { name: "Move", exact: true }).click();
+    assert.equal(await f.page.locator("output").innerText(), "true:false");
+    assert.deepEqual(await f.page.evaluate(() => [document.activeElement?.textContent?.trim(),
+      document.activeElement ? getComputedStyle(document.activeElement).outlineStyle : null]), ["Feel at home.", "none"],
+      "a title focus moves to draws no ring, as a place title");
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
 });
 
 test("heading: every kind has exactly one specimen", async () => {

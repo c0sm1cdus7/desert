@@ -5,7 +5,7 @@ import { AppearanceContract } from "./appearance.contract.ts";
 
 export const Appearance = defineComposition({
   id: "appearance",
-  purpose: "Choose the interface appearance and see whether the choice could be kept.",
+  purpose: { key: "appearance.purpose" }, messages: ["appearance.purpose"],
   owner: { entry: "Appearance.svelte" },
-  uses: ["appearance-preferences", "feedback"], approval: "none", contract: AppearanceContract,
+  uses: ["appearance-preferences", "text"], approval: "none", contract: AppearanceContract,
 } as const);

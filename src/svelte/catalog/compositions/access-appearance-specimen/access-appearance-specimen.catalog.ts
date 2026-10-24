@@ -5,7 +5,9 @@ import { AccessAppearanceSpecimenContract } from "./access-appearance-specimen.c
 
 export const AccessAppearanceSpecimen = defineComposition({
   id: "access-appearance-specimen",
-  purpose: "Exercise one access or appearance owner in the bank with local example state and no authentication or saved preference.",
+  purpose: { key: "accessAppearanceSpecimen.purpose" },
+  messages: ["accessAppearanceSpecimen.purpose", "accessAppearanceSpecimen.noAuthentication", "accessAppearanceSpecimen.noIdentity",
+    "accessAppearanceSpecimen.avatar", "accessAppearanceSpecimen.shuffleAvatar"],
   owner: { entry: "AccessAppearanceSpecimen.svelte" },
-  uses: ["access-experience", "appearance-preferences", "appearance-preview", "avatar-shuffle", "feedback", "lock-screen", "seed-avatar", "wallpaper"], approval: "none", contract: AccessAppearanceSpecimenContract,
+  uses: ["access-experience", "appearance-preferences", "avatar", "lock-screen", "text", "theme-preview", "wallpaper"], approval: "none", contract: AccessAppearanceSpecimenContract,
 } as const);

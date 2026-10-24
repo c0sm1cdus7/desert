@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { absorbedPiecesBefore } from "./fixtures/absorbed-pieces-before.ts";
+import { avatarShuffleBefore } from "./fixtures/appearance-before.ts";
 import { mountedBefore } from "./support/before.ts";
 import { contractShape, specimenFindings } from "./support/foundation.ts";
 
@@ -30,9 +31,11 @@ const page = `<div data-probe-host style="display:flex;gap:16px;align-items:cent
   <span data-old-seed><Catalog.SeedAvatar seed="3f9a1c07d2e85b46" label="Ada's avatar" /></span>
 </div><output data-seed>{seed}</output><output data-shuffles>{shuffles}</output>`;
 const script = `  let seed = $state("3f9a1c07d2e85b46"), shuffles = $state(0);`;
+/** SeedAvatar and AvatarShuffle as they were, before both became Avatar delegates. */
+const before = { ...absorbedPiecesBefore, ...avatarShuffleBefore };
 
 test("avatar: sizes, names and drawings; decorative without a label; initials while a picture cannot load", async () => {
-  const f = await mountedBefore(absorbedPiecesBefore, page, script);
+  const f = await mountedBefore(before, page, script);
   try {
     const marks = await f.page.locator('[data-probe-host] > [data-slot="avatar"]').evaluateAll(nodes => nodes.map(node => ({
       size: node.getBoundingClientRect().width, round: parseFloat(getComputedStyle(node).borderRadius) >= node.getBoundingClientRect().width / 2,
@@ -54,7 +57,7 @@ test("avatar: sizes, names and drawings; decorative without a label; initials wh
 });
 
 test("avatar: the shuffle button draws a new seed, keeps the AvatarShuffle pixels, and its overlay is the theme token", async () => {
-  const f = await mountedBefore(absorbedPiecesBefore, page, script);
+  const f = await mountedBefore(before, page, script);
   try {
     const shuffle = f.page.locator("[data-shuffle]").getByRole("button", { name: "Shuffle avatar", exact: true });
     const box = async (selector: string) => f.page.locator(selector).evaluate(node => {

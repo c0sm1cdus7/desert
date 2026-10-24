@@ -3,6 +3,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { choiceOptions } from "./fixtures/choice-family.ts";
+import { appearancePreferencesBefore } from "./fixtures/appearance-before.ts";
+import { mountedBefore } from "./support/before.ts";
 import { contractShape, mounted, specimenFindings } from "./support/foundation.ts";
 
 test("choice: the contract offers exactly DESIGN §1.3: label, presentation, cardinality, options, selection, menu trigger", async () => {
@@ -87,7 +89,7 @@ const appearanceScript = `  import { appearanceChoices } from "@desert/svelte/in
   let theme = $state(["dark"]), changes = $state(0);`;
 
 test("choice cards, swatches and the well menu: AppearancePreferences' pixels; the chosen card reports itself again", async () => {
-  const f = await mounted(appearancePage, appearanceScript);
+  const f = await mountedBefore(appearancePreferencesBefore, appearancePage, appearanceScript);
   try {
     const measure = (selector: string) => f.page.evaluate(geometry(selector));
     const pairs: readonly (readonly [string, string])[] = [
@@ -103,6 +105,8 @@ test("choice cards, swatches and the well menu: AppearancePreferences' pixels; t
     const listbox = async (section: string) => {
       await f.page.locator(`${section} [data-selection-trigger]`).click();
       await f.page.getByRole("listbox").waitFor();
+      // The entrance may not have started when the listbox appears: wait until the pane is shown, then for its motion.
+      await f.page.waitForFunction(() => getComputedStyle(document.querySelector('[data-slot="popover-content"]')!).opacity === "1");
       await f.page.locator('[data-slot="popover-content"]').evaluate(async node => { await Promise.all(node.getAnimations({ subtree: true }).map(motion => motion.finished)); });
       const shape = [await measure('[role="listbox"]'), await measure('[role="option"]'), await measure('[role="option"] [data-choice-anatomy]'),
         await measure('[data-slot="popover-content"]')];

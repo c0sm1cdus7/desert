@@ -1,18 +1,18 @@
 <script lang="ts">
+  import { m } from "../../../../messages/keys.ts";
   import { useAccess } from "../../../infra/access-context.ts";
-  import { StackLayout } from "../../index.ts";
-  import { Information } from "../../index.ts";
-  import { Feedback } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { Information, StackLayout, Text } from "../../index.ts";
   const access = useAccess();
   let state = $derived(access?.snapshot().state);
 </script>
 
 {#if state?.kind === "ready"}
-  <StackLayout title="Your identity">
+  <StackLayout title={say(m.identity.identity)}>
     <Information items={[
-      {kind:"fact",label:"Display name",value:state.identity.displayName},
-      {kind:"fact",label:"Identity name",value:state.identity.login},
-      {kind:"fact",label:"Role",value:state.identity.role},
+      { kind: "fact", label: say(m.identity.displayName), value: state.identity.displayName },
+      { kind: "fact", label: say(m.identity.identityName), value: state.identity.login },
+      { kind: "fact", label: say(m.identity.role), value: state.identity.role },
     ]} />
   </StackLayout>
-{:else}<Feedback text="Human identity access is not installed in this developer session." />{/if}
+{:else}<Text kind="support" live="polite" text={say(m.identity.notInstalled)} />{/if}

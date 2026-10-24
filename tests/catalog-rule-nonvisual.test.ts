@@ -120,6 +120,25 @@ test("N: the browser session's capability cannot become arbitrary host access", 
     .some(line => line.startsWith(`NONVISUAL_DEPENDENCY: ${session}`)), extension);
 });
 
+// DESIGN §8 Q3: access refreshes when the page returns to view. The session module alone may read whether the page is
+// visible and hear it become visible or regain focus, with a handler that never receives its event.
+test("N: the session may hear the page return to view, and nothing more of the document", async () => {
+  const session = DesertLayout.nonvisual.browserSession;
+  const appended = (extension: string) => addedBy(root => writeFileSync(join(root, session), `${readFileSync(join(root, session), "utf8")}\n${extension}`));
+  assert.deepEqual(await appended('const again = () => { if (document.visibilityState === "visible") void 0; };\n'
+    + 'window.addEventListener("focus", again); document.addEventListener("visibilitychange", again);\n'
+    + 'window.removeEventListener("focus", again); document.removeEventListener("visibilitychange", again);'), []);
+  for (const extension of ['document.body.hidden = true;', 'document.title = "Changed";', 'document.visibilityState = "hidden";',
+    'const leaked = document; leaked.title = "Changed";', 'document.addEventListener("click", () => {});',
+    'document.addEventListener("visibilitychange", () => {}, { capture: true });',
+    'document.addEventListener("visibilitychange", event => { (event.target as Document).body.hidden = true; });',
+    'window.addEventListener("focus", event => { (event.currentTarget as Window).document.body.hidden = true; });',
+    'const hide = (event: Event) => { (event.target as Document).body.hidden = true; }; document.addEventListener("visibilitychange", hide);',
+    'function register(handler: () => void) { document.addEventListener("visibilitychange", handler); }',
+    'const read = document.visibilityState; document.dispatchEvent(new Event(read));',
+  ]) assert.ok((await appended(extension)).some(line => line.startsWith(`NONVISUAL_DEPENDENCY: ${session}`)), extension);
+});
+
 test("N: dormant and nested interpreter helpers, and their dependency chains, cannot draw", async () => {
   for (const path of ["dormant.ts", "nested/dormant.ts", "dormant.js"]) assert.ok((await addedBy(root => {
     mkdirSync(dirname(join(root, "src/web/client", path)), { recursive: true });

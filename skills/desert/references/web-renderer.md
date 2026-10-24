@@ -3369,16 +3369,16 @@ export const inspectionMedia = Object.freeze({
 
 ## src/svelte/catalog/compositions/access-gate/AccessGate.svelte
 
-Source SHA-256: 0675612650325900a2d0c7dcb61b359163ebc92a966a8309cce44c62e114a09f
+Source SHA-256: f87759d72ba8a9a4ab0863cd867bebb05654c4ae840a8382f87f770eb05f2a8a
 
 ```svelte
 <script lang="ts">
   import { onMount, untrack } from "svelte";
   import type { CatalogProps } from "../../types.d.ts";
-  import { ViewProduct } from "../../index.ts";
+  import { AccessScreen, ViewProduct } from "../../index.ts";
   import { accessClient } from "../../../../web/client/access.ts";
+  import { mountAccessSession } from "../../../../web/client/browser-session.ts";
   import { provideAccess } from "../../../infra/access-context.ts";
-  import { AccessScreen } from "../../index.ts";
   import { browserAccessLock } from "./browser-access-lock.ts";
   import { rememberAccessProfile } from "../../../infra/access-profile.ts";
   let { surface, validateInput, viewProgram }: CatalogProps<"access-gate"> = $props();
@@ -3386,20 +3386,11 @@ Source SHA-256: 0675612650325900a2d0c7dcb61b359163ebc92a966a8309cce44c62e114a09f
   const client = untrack(() => accessClient(surface.contractDigest, browserAccessLock()));
   let current = $state.raw(client.snapshot());
   provideAccess({ client, snapshot: () => current });
-  onMount(() => {
-    const stop = client.subscribe(() => {
-      current = client.snapshot();
-      if (current.state.kind === "ready") rememberAccessProfile(current.state.identity);
-    });
-    const invitation = new URLSearchParams(location.hash.slice(1)).get("access");
-    history.replaceState(null, "", location.pathname + location.search);
-    void client.start(invitation ?? undefined);
-    const refresh = () => { if (document.visibilityState === "visible") void client.refresh(); };
-    const timer = setInterval(refresh, 5000);
-    window.addEventListener("focus", refresh);
-    document.addEventListener("visibilitychange", refresh);
-    return () => { stop(); client.stop(); clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
-  });
+  // The session module owns the launch invitation and the refresh while the page is in view (DESIGN §8 Q3).
+  onMount(() => mountAccessSession(client, () => {
+    current = client.snapshot();
+    if (current.state.kind === "ready") rememberAccessProfile(current.state.identity);
+  }));
 </script>
 
 {#if current.state.kind === "ready" || current.state.kind === "developer"}
