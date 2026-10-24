@@ -7,5 +7,5 @@ export const Information = defineComposition({
   id: "information",
   purpose: "Group related facts in one pane while leaving reading paragraphs in the content stack.",
   owner: { entry: "Information.svelte" },
-  uses: ["fact-row"], approval: "none", contract: InformationContract,
+  uses: ["column", "fact-list", "fact-row", "text"], approval: "none", contract: InformationContract,
 } as const);

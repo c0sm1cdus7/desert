@@ -636,6 +636,36 @@
         "default"
       ]
     },
+    "column": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/column",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Column.svelte"
+      },
+      "purpose": "Stack pieces vertically with a gap from the spacing scale, optionally at the reading measure.",
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "text",
+            "fact-list"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "gap": [
+          "snug",
+          "close",
+          "regular",
+          "relaxed",
+          "section"
+        ]
+      }
+    },
     "confirmation-dialog": {
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/confirmation-dialog",
@@ -844,6 +874,26 @@
       "uses": [
         "fact-row",
         "node-renderer"
+      ]
+    },
+    "fact-list": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/fact-list",
+      "kind": "foundation",
+      "owner": {
+        "entry": "FactList.svelte"
+      },
+      "purpose": "One pane holding fact rows as a description list.",
+      "shape": "radius",
+      "slots": {
+        "children": {
+          "accepts": [
+            "fact-row"
+          ]
+        }
+      },
+      "states": [
+        "default"
       ]
     },
     "fact-row": {
@@ -1133,7 +1183,10 @@
       },
       "purpose": "Group related facts in one pane while leaving reading paragraphs in the content stack.",
       "uses": [
-        "fact-row"
+        "column",
+        "fact-list",
+        "fact-row",
+        "text"
       ]
     },
     "inspection": {
@@ -2188,6 +2241,28 @@
         "stack-layout",
         "surface-frame"
       ]
+    },
+    "text": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/text",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Text.svelte"
+      },
+      "purpose": "A paragraph of plain text in a type role (`kind`), optionally inset to align with rows.",
+      "shape": "none",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "inset": [
+          "none",
+          "row"
+        ],
+        "kind": [
+          "body"
+        ]
+      }
     },
     "text-content": {
       "approval": "none",

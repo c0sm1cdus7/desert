@@ -13,9 +13,11 @@ import type { ChoiceListContract as ChoiceListContract } from "./foundations/cho
 import type { ChoiceRowContract as ChoiceRowContract } from "./foundations/choice-row/choice-row.contract.ts";
 import type { ClearInputContract as ClearInputContract } from "./foundations/clear-input/clear-input.contract.ts";
 import type { ColorBulletContract as ColorBulletContract } from "./foundations/color-bullet/color-bullet.contract.ts";
+import type { ColumnContract as ColumnContract } from "./foundations/column/column.contract.ts";
 import type { DateControlContract as DateControlContract } from "./foundations/date-control/date-control.contract.ts";
 import type { DestinationRowContract as DestinationRowContract } from "./foundations/destination-row/destination-row.contract.ts";
 import type { FaceContract as FaceContract } from "./foundations/face/face.contract.ts";
+import type { FactListContract as FactListContract } from "./foundations/fact-list/fact-list.contract.ts";
 import type { FactRowContract as FactRowContract } from "./foundations/fact-row/fact-row.contract.ts";
 import type { FactValueContract as FactValueContract } from "./foundations/fact-value/fact-value.contract.ts";
 import type { FeedbackContract as FeedbackContract } from "./foundations/feedback/feedback.contract.ts";
@@ -32,6 +34,7 @@ import type { ReferenceValuesContract as ReferenceValuesContract } from "./found
 import type { SeedAvatarContract as SeedAvatarContract } from "./foundations/seed-avatar/seed-avatar.contract.ts";
 import type { StackItemContract as StackItemContract } from "./foundations/stack-item/stack-item.contract.ts";
 import type { StackLayoutContract as StackLayoutContract } from "./foundations/stack-layout/stack-layout.contract.ts";
+import type { TextContract as TextContract } from "./foundations/text/text.contract.ts";
 import type { TextInputContract as TextInputContract } from "./foundations/text-input/text-input.contract.ts";
 import type { WallpaperContract as WallpaperContract } from "./foundations/wallpaper/wallpaper.contract.ts";
 
@@ -42,7 +45,7 @@ type ContractProps<C> = C extends { readonly props: infer P extends TSchema } ? 
 type ContractEvents<C> = C extends { readonly events: infer E extends TSchema }
   ? { [K in keyof Static<E> & string as `on${K}`]?: (value: DeepReadonly<Static<E>[K]>) => void } : {};
 
-export type CatalogId = "access-appearance-specimen" | "access-experience" | "access-form" | "access-gate" | "access-screen" | "action" | "appearance" | "appearance-preferences" | "appearance-preview" | "artwork-placeholder" | "attention-indicator" | "attention-list" | "attention-status" | "availability" | "avatar-shuffle" | "catalog-card" | "catalog-detail" | "catalog-home" | "catalog-navigation" | "catalog-search-results" | "catalog-workspace" | "catalog-workspace-content" | "character-counter" | "choice-item" | "choice-list" | "choice-row" | "clear-input" | "collection" | "collection-state" | "color-bullet" | "confirmation-dialog" | "content-flow" | "context-panel" | "context-properties" | "contract-inspection" | "control-bench" | "control-renderer" | "date-control" | "destination-row" | "drawer" | "drawer-grip" | "face" | "fact-group" | "fact-row" | "fact-value" | "facts" | "failure-dialog" | "feedback" | "field-well" | "field-well-content" | "fields" | "file-control" | "frame-body" | "grouped-panel" | "heading" | "identity" | "image" | "information" | "inspection" | "inspection-catalog" | "inspection-content" | "instance-frame" | "label-rail" | "labels-control" | "library" | "local-exercise-content" | "local-exercises" | "lock-screen" | "masked-input" | "measured-field" | "media-collection-grid" | "media-content" | "media-control" | "media-grid" | "media-object" | "media-reference-selector" | "media-reference-specimen" | "message-body" | "money-control" | "node-renderer" | "object-state-control" | "object-state-row" | "options-control" | "panel" | "photo-collection" | "picker-sheet" | "place" | "place-content" | "place-header" | "place-heading" | "playback-canvas" | "playback-controls" | "popover-control" | "problem" | "public-catalog-bank" | "public-catalog-bank-specimen" | "public-catalog-product" | "public-catalog-product-content" | "reading-content" | "reference-selector" | "reference-specimen" | "reference-values" | "related-selection" | "retained-place" | "review" | "scroll-edges" | "search-field" | "seed-avatar" | "select-control" | "selection-field" | "shared-owner-catalog" | "shared-owner-specimen" | "specimen" | "specimen-group" | "specimen-row" | "specimen-unavailable" | "speed-dial" | "stack" | "stack-item" | "stack-layout" | "summary-widget" | "surface-frame" | "surface-specimen" | "text-content" | "text-input" | "toolbar" | "toolbar-layout" | "toolbar-media-controls" | "toolbar-search" | "utility-actions" | "view-attention" | "view-content" | "view-destination-link" | "view-item" | "view-panel" | "view-product" | "view-product-content" | "view-related-selection" | "view-workspace" | "viewer" | "wallpaper" | "workspace" | "zoom-controls";
+export type CatalogId = "access-appearance-specimen" | "access-experience" | "access-form" | "access-gate" | "access-screen" | "action" | "appearance" | "appearance-preferences" | "appearance-preview" | "artwork-placeholder" | "attention-indicator" | "attention-list" | "attention-status" | "availability" | "avatar-shuffle" | "catalog-card" | "catalog-detail" | "catalog-home" | "catalog-navigation" | "catalog-search-results" | "catalog-workspace" | "catalog-workspace-content" | "character-counter" | "choice-item" | "choice-list" | "choice-row" | "clear-input" | "collection" | "collection-state" | "color-bullet" | "column" | "confirmation-dialog" | "content-flow" | "context-panel" | "context-properties" | "contract-inspection" | "control-bench" | "control-renderer" | "date-control" | "destination-row" | "drawer" | "drawer-grip" | "face" | "fact-group" | "fact-list" | "fact-row" | "fact-value" | "facts" | "failure-dialog" | "feedback" | "field-well" | "field-well-content" | "fields" | "file-control" | "frame-body" | "grouped-panel" | "heading" | "identity" | "image" | "information" | "inspection" | "inspection-catalog" | "inspection-content" | "instance-frame" | "label-rail" | "labels-control" | "library" | "local-exercise-content" | "local-exercises" | "lock-screen" | "masked-input" | "measured-field" | "media-collection-grid" | "media-content" | "media-control" | "media-grid" | "media-object" | "media-reference-selector" | "media-reference-specimen" | "message-body" | "money-control" | "node-renderer" | "object-state-control" | "object-state-row" | "options-control" | "panel" | "photo-collection" | "picker-sheet" | "place" | "place-content" | "place-header" | "place-heading" | "playback-canvas" | "playback-controls" | "popover-control" | "problem" | "public-catalog-bank" | "public-catalog-bank-specimen" | "public-catalog-product" | "public-catalog-product-content" | "reading-content" | "reference-selector" | "reference-specimen" | "reference-values" | "related-selection" | "retained-place" | "review" | "scroll-edges" | "search-field" | "seed-avatar" | "select-control" | "selection-field" | "shared-owner-catalog" | "shared-owner-specimen" | "specimen" | "specimen-group" | "specimen-row" | "specimen-unavailable" | "speed-dial" | "stack" | "stack-item" | "stack-layout" | "summary-widget" | "surface-frame" | "surface-specimen" | "text" | "text-content" | "text-input" | "toolbar" | "toolbar-layout" | "toolbar-media-controls" | "toolbar-search" | "utility-actions" | "view-attention" | "view-content" | "view-destination-link" | "view-item" | "view-panel" | "view-product" | "view-product-content" | "view-related-selection" | "view-workspace" | "viewer" | "wallpaper" | "workspace" | "zoom-controls";
 export type CatalogExports = {
   readonly "access-appearance-specimen": typeof Catalog.AccessAppearanceSpecimen;
   readonly "access-experience": typeof Catalog.AccessExperience;
@@ -74,6 +77,7 @@ export type CatalogExports = {
   readonly "collection": typeof Catalog.Collection;
   readonly "collection-state": typeof Catalog.CollectionState;
   readonly "color-bullet": typeof Catalog.ColorBullet;
+  readonly "column": typeof Catalog.Column;
   readonly "confirmation-dialog": typeof Catalog.ConfirmationDialog;
   readonly "content-flow": typeof Catalog.ContentFlow;
   readonly "context-panel": typeof Catalog.ContextPanel;
@@ -87,6 +91,7 @@ export type CatalogExports = {
   readonly "drawer-grip": typeof Catalog.DrawerGrip;
   readonly "face": typeof Catalog.Face;
   readonly "fact-group": typeof Catalog.FactGroup;
+  readonly "fact-list": typeof Catalog.FactList;
   readonly "fact-row": typeof Catalog.FactRow;
   readonly "fact-value": typeof Catalog.FactValue;
   readonly "facts": typeof Catalog.Facts;
@@ -167,6 +172,7 @@ export type CatalogExports = {
   readonly "summary-widget": typeof Catalog.SummaryWidget;
   readonly "surface-frame": typeof Catalog.SurfaceFrame;
   readonly "surface-specimen": typeof Catalog.SurfaceSpecimen;
+  readonly "text": typeof Catalog.Text;
   readonly "text-content": typeof Catalog.TextContent;
   readonly "text-input": typeof Catalog.TextInput;
   readonly "toolbar": typeof Catalog.Toolbar;
@@ -220,6 +226,7 @@ export type CatalogPropsTable = {
   readonly "collection": ComponentProps<typeof Catalog.Collection>;
   readonly "collection-state": ComponentProps<typeof Catalog.CollectionState>;
   readonly "color-bullet": ContractProps<typeof ColorBulletContract> & ContractEvents<typeof ColorBulletContract>;
+  readonly "column": ContractProps<typeof ColumnContract> & ContractEvents<typeof ColumnContract> & { readonly "children"?: Snippet };
   readonly "confirmation-dialog": ComponentProps<typeof Catalog.ConfirmationDialog>;
   readonly "content-flow": ComponentProps<typeof Catalog.ContentFlow>;
   readonly "context-panel": ComponentProps<typeof Catalog.ContextPanel>;
@@ -233,6 +240,7 @@ export type CatalogPropsTable = {
   readonly "drawer-grip": ComponentProps<typeof Catalog.DrawerGrip>;
   readonly "face": ContractProps<typeof FaceContract> & ContractEvents<typeof FaceContract>;
   readonly "fact-group": ComponentProps<typeof Catalog.FactGroup>;
+  readonly "fact-list": ContractProps<typeof FactListContract> & ContractEvents<typeof FactListContract> & { readonly "children"?: Snippet };
   readonly "fact-row": ContractProps<typeof FactRowContract> & ContractEvents<typeof FactRowContract>;
   readonly "fact-value": ContractProps<typeof FactValueContract> & ContractEvents<typeof FactValueContract>;
   readonly "facts": ComponentProps<typeof Catalog.Facts>;
@@ -313,6 +321,7 @@ export type CatalogPropsTable = {
   readonly "summary-widget": ComponentProps<typeof Catalog.SummaryWidget>;
   readonly "surface-frame": ComponentProps<typeof Catalog.SurfaceFrame>;
   readonly "surface-specimen": ComponentProps<typeof Catalog.SurfaceSpecimen>;
+  readonly "text": ContractProps<typeof TextContract> & ContractEvents<typeof TextContract>;
   readonly "text-content": ComponentProps<typeof Catalog.TextContent>;
   readonly "text-input": ContractProps<typeof TextInputContract> & ContractEvents<typeof TextInputContract>;
   readonly "toolbar": ComponentProps<typeof Catalog.Toolbar>;
@@ -335,7 +344,7 @@ export type CatalogPropsTable = {
   readonly "zoom-controls": ComponentProps<typeof Catalog.ZoomControls>;
 };
 export type CatalogProps<Id extends CatalogId> = CatalogPropsTable[Id];
-/** Pieces whose contract is closed: 31. */
-export type ClosedContractId = "artwork-placeholder" | "attention-indicator" | "availability" | "catalog-card" | "character-counter" | "choice-item" | "choice-list" | "choice-row" | "clear-input" | "color-bullet" | "date-control" | "destination-row" | "face" | "fact-row" | "fact-value" | "feedback" | "field-well" | "field-well-content" | "grouped-panel" | "heading" | "image" | "label-rail" | "masked-input" | "measured-field" | "message-body" | "reference-values" | "seed-avatar" | "stack-item" | "stack-layout" | "text-input" | "wallpaper";
+/** Pieces whose contract is closed: 34. */
+export type ClosedContractId = "artwork-placeholder" | "attention-indicator" | "availability" | "catalog-card" | "character-counter" | "choice-item" | "choice-list" | "choice-row" | "clear-input" | "color-bullet" | "column" | "date-control" | "destination-row" | "face" | "fact-list" | "fact-row" | "fact-value" | "feedback" | "field-well" | "field-well-content" | "grouped-panel" | "heading" | "image" | "label-rail" | "masked-input" | "measured-field" | "message-body" | "reference-values" | "seed-avatar" | "stack-item" | "stack-layout" | "text" | "text-input" | "wallpaper";
 /** One witness of a piece in one state and one value per variant axis (`<id>.specimens.ts`, rule J). */
 export type CatalogSpecimen<Id extends CatalogId> = Readonly<{ state: string; variants?: Readonly<Record<string, string>>; props: CatalogProps<Id> }>;

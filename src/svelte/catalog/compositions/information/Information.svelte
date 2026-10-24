@@ -1,14 +1,14 @@
 <script lang="ts">
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
-  import { FactRow } from "../../index.ts";
+  import { Column, FactList, FactRow, Text } from "../../index.ts";
   import { groupRelatedItems } from "../../../../interaction/content-groups.ts";
   let { items }: Pick<Extract<FrameContent, { kind: "information" }>, "items"> = $props();
 </script>
-<div class="grid min-w-0 gap-4 break-words" data-reading-measure>
+<Column gap="regular" measure="reading">
   {#each groupRelatedItems(items) as group}
-    {#if group[0]?.kind === "text"}<p class="type-body min-w-0 px-4">{group[0].text}</p>
-    {:else}<dl class="bank-stack" data-material="pane">
+    {#if group[0]?.kind === "text"}<Text kind="body" inset="row" text={group[0].text} />
+    {:else}<FactList>
       {#each group as item}{#if item.kind === "fact"}<FactRow label={item.label} value={item.value} />{/if}{/each}
-    </dl>{/if}
+    </FactList>{/if}
   {/each}
-</div>
+</Column>

@@ -30,6 +30,7 @@ export { default as ClearInput } from "./foundations/clear-input/ClearInput.svel
 export { default as Collection } from "./compositions/collection/Collection.svelte";
 export { default as CollectionState } from "./compositions/collection-state/CollectionState.svelte";
 export { default as ColorBullet } from "./foundations/color-bullet/ColorBullet.svelte";
+export { default as Column } from "./foundations/column/Column.svelte";
 export { default as ConfirmationDialog } from "./compositions/confirmation-dialog/ConfirmationDialog.svelte";
 export { default as ContentFlow } from "./compositions/content-flow/ContentFlow.svelte";
 export { default as ContextPanel } from "./compositions/context-panel/ContextPanel.svelte";
@@ -43,6 +44,7 @@ export { default as Drawer } from "./foundations/drawer/Drawer.svelte";
 export { default as DrawerGrip } from "./foundations/drawer-grip/DrawerGrip.svelte";
 export { default as Face } from "./foundations/face/Face.svelte";
 export { default as FactGroup } from "./compositions/fact-group/FactGroup.svelte";
+export { default as FactList } from "./foundations/fact-list/FactList.svelte";
 export { default as FactRow } from "./foundations/fact-row/FactRow.svelte";
 export { default as FactValue } from "./foundations/fact-value/FactValue.svelte";
 export { default as Facts } from "./renderer/facts/Facts.svelte";
@@ -123,6 +125,7 @@ export { default as StackLayout } from "./foundations/stack-layout/StackLayout.s
 export { default as SummaryWidget } from "./compositions/summary-widget/SummaryWidget.svelte";
 export { default as SurfaceFrame } from "./compositions/surface-frame/SurfaceFrame.svelte";
 export { default as SurfaceSpecimen } from "./compositions/surface-specimen/SurfaceSpecimen.svelte";
+export { default as Text } from "./foundations/text/Text.svelte";
 export { default as TextContent } from "./compositions/text-content/TextContent.svelte";
 export { default as TextInput } from "./foundations/text-input/TextInput.svelte";
 export { default as Toolbar } from "./compositions/toolbar/Toolbar.svelte";

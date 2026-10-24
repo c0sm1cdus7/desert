@@ -55,3 +55,13 @@ test("the four native-input owners contain no broad native API and every current
   }
   assert.doesNotThrow(() => assertFiniteCatalogInputs(sources));
 });
+
+test("a finite owner typed by its closed contract passes, and a visual input in that contract still fails", () => {
+  const entry = "src/svelte/catalog/foundations/masked-input/MaskedInput.svelte";
+  const source = `<script lang="ts">\n  import type { CatalogProps } from "../../types.d.ts";\n  let { value }: CatalogProps<"masked-input"> = $props();\n</script>\n<input {value} />\n`;
+  const contract = (props: string) => ({ path: "src/svelte/catalog/foundations/masked-input/masked-input.contract.ts",
+    source: `import { Type } from "@sinclair/typebox";\nexport const C = { props: Type.Object({ ${props} }, { additionalProperties: false }) } as const;\n` });
+  assert.doesNotThrow(() => assertFiniteCatalogInputs([{ path: entry, source }, contract("value: Type.String()")]));
+  assert.throws(() => assertFiniteCatalogInputs([{ path: entry, source }, contract("value: Type.String(), class: Type.String()")]), /visual input class/);
+  assert.throws(() => assertFiniteCatalogInputs([{ path: entry, source }]), /finite literal contract/, "a stub or missing contract is not finite");
+});
