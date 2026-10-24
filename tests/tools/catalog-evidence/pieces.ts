@@ -10,6 +10,7 @@ import { DesertLayout } from "../../../src/authoring/catalog/layout.ts";
 import type { LocatedDeclaration } from "../../../src/authoring/catalog/gate/inventory.ts";
 import { sharedOwnerPieces } from "../../../src/svelte/infra/shared-owners.ts";
 import { sharedPurpose } from "../../../src/svelte/infra/shared-purpose.ts";
+import { Messages } from "../../../src/messages/keys.ts";
 
 export type EvidenceSpecimen = Readonly<{ index: number; key: string; file: string }>;
 /** A Visual Catalog destination and the destinations to open before it (a shared owner's part opens from its parent). */
@@ -73,7 +74,8 @@ export async function readEvidencePieces(root: string, ids: readonly string[] | 
       const read = await piece(candidate, depth + 1);
       if (read.specimens?.list.length) { filler = read; break; }
     }
-    const built: EvidencePiece = { id, kind: declaration.kind, purpose: declaration.purpose, approval: declaration.approval,
+    const built: EvidencePiece = { id, kind: declaration.kind,
+      purpose: typeof declaration.purpose === "string" ? declaration.purpose : Messages.bundle("en").text(declaration.purpose), approval: declaration.approval,
       entry: request(posix.join(posix.dirname(path), declaration.owner.entry)), specimens: await specimensOf(root, tree, item),
       filler, destinations: destinationsOf(id, declaration.renders ?? []) };
     if (depth === 0) memo.set(id, built);
