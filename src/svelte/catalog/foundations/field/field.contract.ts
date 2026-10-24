@@ -10,7 +10,7 @@ import { Type } from "@sinclair/typebox";
 import { text } from "../../../../views/definition.ts";
 import { InputMaskSchema } from "../../../../interaction/input-mask.ts";
 import { DisclosureSchema } from "../../../infra/disclosure.ts";
-import { FieldDisplaySchema, FieldMeasureSchema } from "../../../infra/field-display.ts";
+import { FieldDisplaySchema } from "../../../infra/field-display.ts";
 
 export const FieldContract = {
   props: Type.Intersect([Type.Object({
@@ -22,7 +22,7 @@ export const FieldContract = {
     helper: Type.Optional(text),
     error: Type.Optional(text),
     identity: Type.Optional(Type.String()),
-    measure: FieldMeasureSchema,
+    measure: Type.Union([Type.Literal("writing"), Type.Literal("choice"), Type.Literal("date"), Type.Literal("amount"), Type.Literal("fill")]),
   }, { additionalProperties: false }), Type.Union([
     Type.Object({
       primitive: Type.Literal("input.text"),

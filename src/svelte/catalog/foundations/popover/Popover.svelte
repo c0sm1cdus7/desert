@@ -33,7 +33,10 @@
     {disabled} measure={trigger.measure} display={trigger.display} {disclosure} onopen={() => change(!open)} />
 {/if}
 {#if sheet}
-  <Modal {label} {open} {locked} presentation="sheet" ondismiss={() => change(false)}>{@render children?.()}</Modal>
+  <!-- In a sheet a list keeps the picker inset of its rows; a calendar frames its own header. -->
+  <Modal {label} {open} {locked} presentation="sheet" ondismiss={() => change(false)}>
+    {#if content === "list"}<div class="picker-content-inset pt-2 pb-4">{@render children?.()}</div>{:else}{@render children?.()}{/if}
+  </Modal>
 {:else}
   <PopoverSurface {label} {open} {locked} {content} {align} {triggerId} {panelId} {calendar} {openFocus}
     density={density()} {change} {children} />

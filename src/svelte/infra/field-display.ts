@@ -18,7 +18,8 @@ export type TagView = Static<typeof TagViewSchema>;
 /** A public URL or a private asset, as Image takes it. */
 export const ImageSourceSchema = Type.Union([Type.String(), AssetReferenceSchema]);
 
-/** The preferred measure of a field's family: writing, a choice, a date, an amount, or the whole slot. */
+/** The preferred measure of a field's family: writing, a choice, a date, an amount, or the whole slot. Field's contract
+ * spells the same literals inline, because a variant axis is read from its contract's literals (rule J). */
 export const FieldMeasureSchema = Type.Union([Type.Literal("writing"), Type.Literal("choice"), Type.Literal("date"),
   Type.Literal("amount"), Type.Literal("fill")]);
 export type FieldMeasure = Static<typeof FieldMeasureSchema>;

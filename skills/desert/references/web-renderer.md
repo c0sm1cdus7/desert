@@ -5590,7 +5590,7 @@ Source SHA-256: f8b318d3aa251f3ee56540af29ddaedf36d8bc3de78be34e56dcf4abf128f9d9
 
 ## src/svelte/catalog/foundations/popover/Popover.svelte
 
-Source SHA-256: a38e4b47a533197be16fb8532a998186cd70d9b1b9316a2630ef9c2acef10838
+Source SHA-256: e082cea30287da0ac1a3c3084e6bda213ea6b483d4e3b65d4e47a83c7201ade1
 
 ```svelte
 <script lang="ts">
@@ -5628,7 +5628,10 @@ Source SHA-256: a38e4b47a533197be16fb8532a998186cd70d9b1b9316a2630ef9c2acef10838
     {disabled} measure={trigger.measure} display={trigger.display} {disclosure} onopen={() => change(!open)} />
 {/if}
 {#if sheet}
-  <Modal {label} {open} {locked} presentation="sheet" ondismiss={() => change(false)}>{@render children?.()}</Modal>
+  <!-- In a sheet a list keeps the picker inset of its rows; a calendar frames its own header. -->
+  <Modal {label} {open} {locked} presentation="sheet" ondismiss={() => change(false)}>
+    {#if content === "list"}<div class="picker-content-inset pt-2 pb-4">{@render children?.()}</div>{:else}{@render children?.()}{/if}
+  </Modal>
 {:else}
   <PopoverSurface {label} {open} {locked} {content} {align} {triggerId} {panelId} {calendar} {openFocus}
     density={density()} {change} {children} />
