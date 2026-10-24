@@ -26,7 +26,7 @@ test("typed select changes, clears explicitly and retains disabled control state
     await menu.getByRole("option", { name: "First option", exact: true }).click();
     await menu.waitFor({ state: "hidden" });
     assert.equal(await select.locator('[data-field-value]').innerText(), "First option");
-    assert.equal(await clear.getAttribute("data-primitive"), "action");
+    assert.equal(await clear.getAttribute("data-action"), "");
     await clear.click();
     assert.equal(await select.locator('[data-field-value]').innerText(), "Not selected");
     assert.equal(await clear.isDisabled(), true);
@@ -42,7 +42,7 @@ test("typed popover uses canonical actions, keyboard Escape and trigger focus re
   try {
     await openCatalog(f.page);
     const trigger = f.page.getByRole("button", { name: "Open contextual information", exact: true });
-    assert.equal(await trigger.getAttribute("data-primitive"), "action");
+    assert.equal(await trigger.getAttribute("data-action"), "");
     await trigger.focus();
     await f.page.keyboard.press("Enter");
     const popover = f.page.getByRole("dialog", { name: "Local interaction", exact: true });
@@ -81,7 +81,7 @@ test("local file selection rejects limits and removes handles without uploading"
     assert.equal(await bench.getByText("large.txt: File is too large.", { exact: true }).isVisible(), true);
     assert.equal(await bench.getByText("wrong.png: File type is not accepted.", { exact: true }).isVisible(), true);
     const remove = list.getByRole("button", { name: "Remove accepted.txt", exact: true });
-    assert.equal(await remove.getAttribute("data-primitive"), "action");
+    assert.equal(await remove.getAttribute("data-action"), "");
     await remove.click();
     assert.equal(await bench.getByText("No local files selected.", { exact: true }).isVisible(), true);
     await input.setInputFiles({ name: "accepted.txt", mimeType: "text/plain", buffer: Buffer.from("hello") });

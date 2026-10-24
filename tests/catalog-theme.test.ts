@@ -38,7 +38,7 @@ test("theme: one radius family; circles only for marks, never a capsule control"
   const button = await read(`${vendor}/button/button.svelte`), group = await read(`${vendor}/input-group/input-group.svelte`);
   assert.doesNotMatch(button.split("\n").find(line => line.includes("base:")) ?? "", /rounded-full/, "the action base is a radius, not a capsule");
   assert.doesNotMatch(group, /rounded-full/, "the access well is a radius");
-  for (const path of [`${svelte}/catalog/foundations/search-field/search-field.css`, `${mechanisms}/catalog-search/catalog-search.css`]) {
+  for (const path of [`${svelte}/catalog/foundations/field/field.css`, `${mechanisms}/catalog-search/catalog-search.css`]) {
     assert.doesNotMatch(await read(path), /999px/, `${path}: the search well is a radius`);
   }
   assert.match(await read(`${mechanisms}/surface-chrome/surface-chrome.css`), /--surface-radius:var\(--radius-surface\)/);

@@ -249,7 +249,7 @@ test("visual-active-adapters, workspace-catalog-boundary: a renderer passes its 
   for (const markup of ['<ViewPanel {...props} />', '<ViewPanel class="override" />', "<ViewPanel children={draw} />", "<ViewPanel><div>Override</div></ViewPanel>"]) {
     rejects(markup, append(path, markup), ["PRESENTATION_ESCAPE", "COMPOSITION_NATIVE_ELEMENT"]);
   }
-  for (const markup of ["<NodeRenderer node={node} host={host} />", "<NodeRenderer node={node} actionElementProps={extra} />", '<NodeRenderer node={node} class="p-0" />']) {
+  for (const markup of ["<NodeRenderer node={node} host={host} />", "<NodeRenderer node={node} actionDisclosure={extra} />", '<NodeRenderer node={node} class="p-0" />']) {
     rejects(markup, append(`${renderer}/failure-dialog/FailureDialog.svelte`, markup), ["PRESENTATION_ESCAPE"]);
   }
   rejects("direct import of the dispatcher", whole(`${renderer}/failure-dialog/FailureDialog.svelte`,

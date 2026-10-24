@@ -67,7 +67,7 @@ for (const { width, scale } of [{ width: 1280, scale: 1 }, { width: 320, scale: 
       await page.evaluate(value => document.documentElement.style.setProperty('--text-scale', String(value)), scale);
       await settle(page);
       const families = [
-        { selector: '[data-primitive="action"]', maximum: 352 },
+        { selector: '[data-action]', maximum: 352 },
         { selector: '[data-primitive="input.text"], [data-primitive="input.multiline"], [data-control="money"], [data-control="date"], [data-control="select"], [data-control="files"]', maximum: 512 },
         { selector: '[data-control="options"]', maximum: 576 },
       ];

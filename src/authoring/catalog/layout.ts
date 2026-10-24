@@ -77,7 +77,7 @@ export const DesertLayout: CatalogLayout = Object.freeze({
     mechanism: ["src/svelte/catalog/mechanisms"] },
   fixed: {
     theme: [theme],
-    "renderer-infrastructure": [...["action-adapter.ts", "collection-retrieval.ts"].map(name => `src/svelte/${name}`), rendererTypes],
+    "renderer-infrastructure": ["src/svelte/collection-retrieval.ts", rendererTypes],
     "vendor-shared": ["utils.ts", "LICENSE", "PROVENANCE.json"].map(name => `src/svelte/vendor/${name}`),
     "build-host": ["bits-scroll-lock.ts", "builder.ts", "config.mjs", "project.ts", "public-catalog-app.d.ts",
       "public-catalog-page.svelte", "revision.ts", "vite.mjs", "worker.mjs", "template/package.json", "template/tsconfig.json",

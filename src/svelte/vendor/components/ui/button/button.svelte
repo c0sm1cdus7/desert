@@ -15,14 +15,13 @@
                 ghost: "bg-transparent text-foreground",
                 grip: "bg-transparent text-muted-foreground rounded-lg",
                 destructive: "text-destructive",
-                link: "bg-transparent text-primary-text underline-offset-4 hover:underline",
                 row: "bg-transparent text-foreground border-0 rounded-none justify-start whitespace-normal h-auto text-left font-normal w-full",
                 field: "bg-transparent text-foreground border-0 rounded-none justify-start w-full font-normal",
                 well: "text-foreground rounded-[var(--radius)] justify-start text-left whitespace-normal w-full font-normal",
             },
             size: {
                 default: "min-h-11 px-4 py-2", xs: "min-h-6 px-2", sm: "min-h-9 px-3",
-                lg: "min-h-11 px-5", icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
+                icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
                 row: "px-4 py-3", field: "min-h-10 px-3", well: "p-0",
                 avatar: "size-[5.625rem] p-0 relative overflow-hidden rounded-full",
                 "label-remove": "size-[28px] min-h-[28px] p-0 [@media(pointer:coarse)]:size-[44px] [@media(pointer:coarse)]:min-h-[44px]",
@@ -75,7 +74,7 @@
 		...restProps
 	}: ButtonProps = $props();
 	// The material is the variant's unless the caller names one (a sidebar row); prominence tints the pane.
-	const interiors: readonly ButtonVariant[] = ["ghost", "grip", "link", "row", "field"];
+	const interiors: readonly ButtonVariant[] = ["ghost", "grip", "row", "field"];
 	let material = $derived(/\bmaterial-(?:pane|interior)\b/.test(cn(className)) ? undefined
 		: interiors.includes(variant) ? "material-interior" : variant === "default" ? "material-pane material-pane-primary" : "material-pane");
 	$effect(() => { onready?.(ref instanceof HTMLButtonElement || ref instanceof HTMLAnchorElement ? ref : null); return () => onready?.(null); });

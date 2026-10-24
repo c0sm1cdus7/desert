@@ -26,7 +26,8 @@
   <Field.FieldLabel for={id} class={stackTitle() === checked.label ? "sr-only" : undefined}>{checked.label}</Field.FieldLabel>
   <Input bind:ref={picker} {id} type="file" hidden tabindex={-1} multiple={checked.limits.maxCount > 1} accept={checked.limits.accept.join(",")}
     disabled={checked.disabled} onchange={choose} aria-describedby={`${id}-limits`} aria-invalid={rejected.length > 0} />
-  <Action icon="open" label="Choose files" state={checked.disabled ? "unavailable" : "ready"} onclick={() => picker?.click()} />
+  <Action icon="open" label="Choose files" emphasis="secondary" face="fit" type="button" state={checked.disabled ? "unavailable" : "ready"}
+    onclick={() => picker?.click()} />
   <Field.FieldDescription id={`${id}-limits`}>
     Up to {checked.limits.maxCount} files · {fileSize(checked.limits.maxFileBytes)} each · {fileSize(checked.limits.maxTotalBytes)} total.
     Choosing files does not upload them.
@@ -36,7 +37,7 @@
       {#each checked.files as file (file.id)}
         <li class="flex flex-wrap items-center justify-between gap-2">
           <span class="min-w-0 break-all">{file.name} · {fileSize(file.size)}</span>
-          <Action icon="close" label={`Remove ${file.name}`} state={checked.disabled ? "unavailable" : "ready"}
+          <Action icon="close" label={`Remove ${file.name}`} emphasis="secondary" face="fit" type="button" state={checked.disabled ? "unavailable" : "ready"}
             onclick={() => onevent?.(host.remove(checked, file.id))} />
         </li>
       {/each}

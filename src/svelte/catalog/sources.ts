@@ -53,6 +53,7 @@ export const CatalogSources = Object.freeze({
   "facts": "src/svelte/catalog/renderer/facts/Facts.svelte",
   "failure-dialog": "src/svelte/catalog/renderer/failure-dialog/FailureDialog.svelte",
   "feedback": "src/svelte/catalog/foundations/feedback/Feedback.svelte",
+  "field": "src/svelte/catalog/foundations/field/Field.svelte",
   "field-well": "src/svelte/catalog/foundations/field-well/FieldWell.svelte",
   "field-well-content": "src/svelte/catalog/foundations/field-well-content/FieldWellContent.svelte",
   "fields": "src/svelte/catalog/compositions/fields/Fields.svelte",

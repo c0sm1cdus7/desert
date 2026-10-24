@@ -49,8 +49,8 @@ export const stageA: readonly GateCase[] = [
     mutate: addToFlow(headingImport, '<svelte:component this={Heading} kind="page" text="x" />') },
   { id: "N15", title: "a foundation styles everything with a global selector", kind: "escape", expect: ["CROSS_OWNER_CSS"], at: heading,
     mutate: tree => tree.append(heading, "\n<style>\n  :global(h1) { color: red; }\n</style>\n") },
-  { id: "N16", title: "a stylesheet targets another owner's slot", kind: "escape", expect: ["CROSS_OWNER_CSS"], at: `${catalog}/foundations/field-well/field-well.css`,
-    mutate: tree => tree.append(`${catalog}/foundations/field-well/field-well.css`, '\n[data-slot="button"] { color: red; }\n') },
+  { id: "N16", title: "a stylesheet targets another owner's slot", kind: "escape", expect: ["CROSS_OWNER_CSS"], at: `${catalog}/foundations/field/field.css`,
+    mutate: tree => tree.append(`${catalog}/foundations/field/field.css`, '\n[data-slot="button"] { color: red; }\n') },
   { id: "N17", title: "a new stylesheet restyles every button without geometry", kind: "escape", expect: ["CROSS_OWNER_CSS"],
     mutate: stylesheet("button { background: red; border-radius: 0; color: lime; }\n") },
   { id: "N18", title: "a non-.css stylesheet is imported by a foundation", kind: "escape", expect: ["UNDECLARED_VISUAL_SOURCE"],
@@ -88,8 +88,8 @@ export const stageA: readonly GateCase[] = [
   { id: "N35", title: "the Vite configuration gains a plugin", kind: "escape", expect: ["UNQUALIFIED_ARTIFACT"],
     mutate: tree => tree.replace("src/build/svelte/vite.mjs", "  tailwindcss(), sveltekit(),", '  { name: "rogue" }, tailwindcss(), sveltekit(),') },
   { id: "N44", title: "a generated registry is edited by hand", kind: "control", expect: ["CATALOG_DERIVATION"],
-    mutate: tree => tree.replace("src/svelte/renderer-registry.ts", 'import TextInput from "./catalog/foundations/text-input/TextInput.svelte";',
-      'import TextInput from "./catalog/foundations/text-input/TextInput.svelte";\nimport Rogue from "./catalog/foundations/heading/Heading.svelte";') },
+    mutate: tree => tree.replace("src/svelte/renderer-registry.ts", 'import Field from "./catalog/foundations/field/Field.svelte";',
+      'import Field from "./catalog/foundations/field/Field.svelte";\nimport Rogue from "./catalog/foundations/heading/Heading.svelte";') },
   // The previous registry relabelled an owner "unsealed"; the catalog's equivalent is reopening the contract to a stub.
   { id: "N47", title: "reopening a piece's contract to a stub hides a class escape", kind: "escape", expect: ["PRESENTATION_ESCAPE"], at: contentFlow,
     mutate: async tree => { await tree.remove(`${foundations}/heading/heading.contract.ts`);

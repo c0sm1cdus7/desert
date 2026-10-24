@@ -51,6 +51,7 @@ export { default as FactValue } from "./foundations/fact-value/FactValue.svelte"
 export { default as Facts } from "./renderer/facts/Facts.svelte";
 export { default as FailureDialog } from "./renderer/failure-dialog/FailureDialog.svelte";
 export { default as Feedback } from "./foundations/feedback/Feedback.svelte";
+export { default as Field } from "./foundations/field/Field.svelte";
 export { default as FieldWell } from "./foundations/field-well/FieldWell.svelte";
 export { default as FieldWellContent } from "./foundations/field-well-content/FieldWellContent.svelte";
 export { default as Fields } from "./compositions/fields/Fields.svelte";

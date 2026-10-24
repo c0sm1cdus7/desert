@@ -33,8 +33,8 @@ test("production search controls have exactly one toolbar owner and no inline al
   for (const [id, piece] of Object.entries(manifest.pieces)) if (piece.uses?.includes("search-field")) consumers.push(id);
   assert.deepEqual(consumers.sort(), ["toolbar-search"],
     "SearchField belongs only to the expanding toolbar; no collection, catalog or product may create another owner");
-  assert.deepEqual(rawControls.sort(), ["src/svelte/catalog/foundations/search-field/SearchField.svelte"],
-    "raw search controls belong only to the shared SearchField primitive");
+  assert.deepEqual(rawControls.sort(), ["src/svelte/catalog/foundations/field/SearchWell.svelte", "src/svelte/catalog/foundations/search-field/SearchField.svelte"],
+    "raw search controls belong only to the shared search primitives: Field's search well and SearchField until Batch 3");
 });
 
 test("catalog content cannot receive a query or filter its retained inventory", async () => {

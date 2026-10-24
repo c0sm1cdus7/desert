@@ -29,7 +29,7 @@ const source = `<script lang="ts">
         <Button>Save note</Button><Button variant="outline">Close</Button>
         <Button variant="destructive">Delete</Button><Button disabled>Unavailable</Button>
         <Button variant="row">A readable row with a longer label</Button>
-        <Button href="#results" variant="link">View results</Button>
+        <Button href="#results" variant="ghost">View results</Button>
       </section>
       <section id="results" aria-label="Search results"><p>Writing remains visible.</p></section>
     </div>

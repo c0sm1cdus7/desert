@@ -13,9 +13,9 @@ const source = `<script lang="ts">
 </script>
 <section data-surface-frame>
   <Toolbar toolbar={{edge:'top',title:'Edit trip',leading:close}} invoke={()=>{}} />
-  <div class="flex gap-3"><Action label="Save" icon="save" emphasis="primary" />
-    <Action label="Saving" icon="save" state="pending" />
-    <Action label="Unavailable" icon="save" state="unavailable" /></div>
+  <div class="flex gap-3"><Action label="Save" icon="save" emphasis="primary" state="ready" face="fit" type="button" />
+    <Action label="Saving" icon="save" state="pending" emphasis="secondary" face="fit" type="button" />
+    <Action label="Unavailable" icon="save" state="unavailable" emphasis="secondary" face="fit" type="button" /></div>
   <Button variant="row" size="row" data-test-row>List row</Button>
   <InputGroup.Root><InputGroup.Input aria-label="Search" />
     <InputGroup.Addon><InputGroup.Button aria-label="Clear">Clear</InputGroup.Button></InputGroup.Addon>
@@ -36,12 +36,12 @@ test("standalone actions share the one radius while toolbar edges have no divide
         const value = getComputedStyle(probe).borderTopLeftRadius; probe.remove(); return value;
       });
       assert.equal(radius, "14px");
-      const buttons = f.page.locator('[data-primitive="action"], [data-slot="input-group"] [data-slot="button"]');
+      const buttons = f.page.locator('[data-action], [data-slot="input-group"] [data-slot="button"]');
       for (const button of await buttons.all()) {
         assert.equal(await button.evaluate(element => getComputedStyle(element).borderTopLeftRadius), radius,
           `${profile}/${width}: ${await button.getAttribute('aria-label')} takes the one radius`);
       }
-      const close = f.page.locator('[data-toolbar="top"] [data-primitive="action"]');
+      const close = f.page.locator('[data-toolbar="top"] [data-action]');
       const box = (await close.boundingBox())!;
       assert.equal(box.width,box.height,"an icon action is a rounded square");
       for (const bar of await f.page.locator('[data-toolbar]').all()) {

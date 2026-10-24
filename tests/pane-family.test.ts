@@ -5,7 +5,7 @@ import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 import { paneFamilySource } from './fixtures/pane-family.ts';
 
-const owners='[data-sidebar="sidebar"],.field-well,[data-grouped-panel],[data-primitive="action"],[data-slot="badge"],[data-slot="popover-content"],[data-slot="dialog-content"]';
+const owners='[data-sidebar="sidebar"],.field-well,[data-grouped-panel],[data-action],[data-slot="badge"],[data-slot="popover-content"],[data-slot="dialog-content"]';
 
 test('S1 all independent panes share material, with primary tint only for prominent actions', async()=>{
   const f=await svelteBrowser(paneFamilySource);
@@ -66,7 +66,7 @@ test('S1 material recipe has one explicit owner; legacy state tint owners are re
   const material=await readFile('src/svelte/catalog/mechanisms/pane-material/pane-material.css','utf8');
   assert.match(material,/88%/);assert.match(material,/blur\(24px\)/);
   assert.match(material,/@utility material-pane \{/);assert.match(material,/@utility material-interior \{/);assert.match(material,/prefers-reduced-transparency/);
-  for(const file of ['theme.css','catalog/mechanisms/theme/tokens.css','catalog/mechanisms/surface-chrome/surface-chrome.css','catalog/mechanisms/anchored-surface/anchored-surface.css','catalog/foundations/field-well/field-well.css','catalog/mechanisms/catalog-shell/catalog-shell.css']) {
+  for(const file of ['theme.css','catalog/mechanisms/theme/tokens.css','catalog/mechanisms/surface-chrome/surface-chrome.css','catalog/mechanisms/anchored-surface/anchored-surface.css','catalog/foundations/field/field.css','catalog/mechanisms/catalog-shell/catalog-shell.css']) {
     const source=await readFile('src/svelte/'+file,'utf8');
     assert.doesNotMatch(source,/--(?:surface-pane|floating-pane|glass-primary|glass-action|glass-control-filter):/,file);
     assert.doesNotMatch(source,/background-image:linear-gradient\(color-mix/,file+' state overlay');
