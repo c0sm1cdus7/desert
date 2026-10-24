@@ -1,17 +1,15 @@
-# The Visual Catalog gate in CI (plan 3.7, owner decision Q4). Required checks on the protected branch: gate,
-# gate-from-base, ledger-integrity (see docs/REPOSITORY-PROTECTION.md). Under the strict build (Q1) `gate` stays red
+# The Visual Catalog gate in CI (plan 3.7, owner decision Q4). Required checks on the protected branch: gate (this file),
+# gate-from-base and ledger-integrity (gate-base.yml, defined by the base branch); see docs/REPOSITORY-PROTECTION.md. Under the strict build (Q1) `gate` stays red
 # until slice 6 closes the violation list; that is expected and reported, never patched around.
 name: gate
 on:
   pull_request:
-  pull_request_target:
   push:
     branches: [codex/module-architecture, main]
 permissions:
   contents: read
 jobs:
   gate:
-    if: github.event_name != 'pull_request_target'
     runs-on: ubuntu-24.04
     env:
       DESERT_PG_BIN: /usr/lib/postgresql/18/bin
@@ -38,58 +36,3 @@ jobs:
         if: always()
       - run: npm run test:gate
         if: always()
-
-  gate-from-base:
-    # The base branch's gate judges the PR tree, so a PR cannot weaken the gate that checks it. pull_request_target takes
-    # this job's definition from the base branch too; the PR tree is only read and run with a read-only token.
-    if: github.event_name == 'pull_request_target'
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-        with: { ref: "${{ github.event.pull_request.head.sha }}", fetch-depth: 0, persist-credentials: false }
-      - uses: actions/setup-node@v4
-        with: { node-version: 24.16.0 }
-      - run: npm ci --ignore-scripts
-      - name: Run the base gate and its build wiring on the PR tree
-        env: { BASE: "${{ github.event.pull_request.base.ref }}" }
-        run: |
-          git worktree add --detach "$RUNNER_TEMP/base" "origin/$BASE"
-          if [ ! -d "$RUNNER_TEMP/base/src/authoring/catalog" ]; then
-            echo "::notice::The base branch has no catalog gate yet (first PR); nothing to compare."
-            exit 0
-          fi
-          for path in src/authoring scripts/catalog-gate.ts scripts/catalog.ts src/build/svelte/project.ts src/build/svelte/builder.ts \
-              src/build/qualification.ts src/build/manifest.ts src/build/public-catalog/manifest.ts; do
-            rm -rf "$path"
-            if [ -e "$RUNNER_TEMP/base/$path" ]; then mkdir -p "$(dirname "$path")"; cp -R "$RUNNER_TEMP/base/$path" "$path"; fi
-          done
-          node scripts/catalog-gate.ts
-
-  ledger-integrity:
-    # Only the owner stamps approvals: every commit of the PR that touches the ledger must carry a signature GitHub
-    # verifies for the owner's account. pull_request_target: the check's definition comes from the base branch.
-    if: github.event_name == 'pull_request_target'
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    env:
-      GH_TOKEN: ${{ github.token }}
-      OWNER: c0sm1cdus7
-    steps:
-      - uses: actions/checkout@v4
-        with: { ref: "${{ github.event.pull_request.head.sha }}", fetch-depth: 0, persist-credentials: false }
-      - name: Ledger commits are signed by the owner
-        env: { BASE_SHA: "${{ github.event.pull_request.base.sha }}", HEAD_SHA: "${{ github.event.pull_request.head.sha }}" }
-        run: |
-          status=0
-          for sha in $(git rev-list "$BASE_SHA..$HEAD_SHA" -- src/svelte/catalog/approvals.json); do
-            verified=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha" --jq '.commit.verification.verified')
-            login=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha" --jq '.committer.login // ""')
-            if [ "$verified" != "true" ] || [ "$login" != "$OWNER" ]; then
-              echo "::error::$sha changes the approvals ledger without a verified signature of $OWNER"
-              status=1
-            fi
-          done
-          exit $status

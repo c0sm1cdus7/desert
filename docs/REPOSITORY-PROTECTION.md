@@ -12,10 +12,16 @@ files they rely on: `.github/workflows/gate.yml` and `CODEOWNERS`, in DESERT and
 | `gate-from-base` | DESERT only. The base branch's gate rejects the PR tree, so a PR cannot loosen the rules that judge it. It is skipped, with a notice, while the base has no catalog gate. |
 | `ledger-integrity` | DESERT only. A commit of the PR changes `src/svelte/catalog/approvals.json` without a signature that GitHub verifies for `c0sm1cdus7`. |
 
-`gate-from-base` and `ledger-integrity` run on `pull_request_target`, so their definitions come from the base branch: a PR
-cannot rewrite the checks that judge it. They use a read-only token and no secrets. `gate-from-base` also restores the base's
-gate wiring (`src/authoring/**`, `scripts/catalog*.ts`, `src/build/svelte/project.ts`, `builder.ts`, the manifests) before it
-runs. The rest of the PR tree still executes there with that read-only token; this is the residual risk of the design.
+`gate-from-base` and `ledger-integrity` live in `.github/workflows/gate-base.yml` and run on `pull_request_target`, so
+the workflow and the code that run come from the base branch: a PR cannot rewrite the checks that judge it. They use a
+read-only token, no secrets and no caches. `gate-from-base` checks out the base, installs the base's lockfile, copies in only
+the PR's visual roots and the files the gate reads as data (the list comes from the base layout), and runs the base's
+catalog rules, which never evaluate the PR's code. The previous visual-boundary gate is not run there, because it evaluates
+modules of the tree; `gate` runs it. `ledger-integrity` runs no PR code.
+
+Two consequences to expect. `pull_request_target` takes the workflow from the base branch, so these two checks do not run
+at all on a PR whose base does not have `gate-base.yml` yet; do not mark them required before the base has it. And under
+the strict build (Q1), `gate-from-base` is red until slice 6, like `gate`.
 
 VOID's workflow checks out DESERT, which is private. It needs a repository secret `DESERT_READ_TOKEN`: a fine-grained
 personal access token with read-only Contents access to `c0sm1cdus7/desert`. Until the owner creates it, VOID's `gate`

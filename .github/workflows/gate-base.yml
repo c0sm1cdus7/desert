@@ -1,0 +1,59 @@
+# Checks whose definition and code come from the base branch (pull_request_target), so a PR cannot rewrite what judges it.
+# Read-only token, no secrets, no caches. The PR tree is never executed: only its visual roots and the files the gate reads
+# as data are copied into a checkout of the base, whose own lockfile and gate modules run.
+name: gate-base
+on:
+  pull_request_target:
+permissions:
+  contents: read
+jobs:
+  gate-from-base:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: The base branch, with its own gate and lockfile
+        uses: actions/checkout@v4
+        with: { ref: "${{ github.event.pull_request.base.sha }}", persist-credentials: false }
+      - name: The PR tree, as data only
+        uses: actions/checkout@v4
+        with: { ref: "${{ github.event.pull_request.head.sha }}", path: .pr, persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24.16.0 }
+      - run: npm ci --ignore-scripts
+      - name: Run the base gate's catalog rules on the PR's visual sources
+        run: |
+          if [ ! -d src/authoring/catalog ]; then echo "::notice::The base branch has no catalog gate yet."; exit 0; fi
+          # The paths the gate reads come from the base layout (one fact, one place).
+          paths=$(node --input-type=module -e 'const { DesertLayout: l } = await import("./src/authoring/catalog/layout.ts"); console.log([...l.roots, ...l.gate.reads].join("\n"));')
+          for path in $paths; do
+            rm -rf "$path"
+            if [ -e ".pr/$path" ]; then mkdir -p "$(dirname "$path")"; cp -R ".pr/$path" "$path"; fi
+          done
+          rm -rf .pr
+          # Catalog rules read sources as data; the previous visual-boundary gate evaluates tree modules, so it is not run here.
+          rules=$(node --input-type=module -e 'const { contentRuleIds } = await import("./src/authoring/catalog/gate/content-rules.ts"); console.log(["A","B","C","L",...contentRuleIds].join(","));')
+          node scripts/catalog-gate.ts --rules "$rules"
+
+  ledger-integrity:
+    # Only the owner stamps approvals: every commit of the PR that touches the ledger carries a signature GitHub verifies
+    # for the owner's account. Runs no PR code.
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OWNER: c0sm1cdus7
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event.pull_request.head.sha }}", fetch-depth: 0, persist-credentials: false }
+      - name: Ledger commits are signed by the owner
+        env: { BASE_SHA: "${{ github.event.pull_request.base.sha }}", HEAD_SHA: "${{ github.event.pull_request.head.sha }}" }
+        run: |
+          git fetch --no-tags origin "$BASE_SHA"
+          status=0
+          for sha in $(git rev-list "$BASE_SHA..$HEAD_SHA" -- src/svelte/catalog/approvals.json); do
+            verified=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha" --jq '.commit.verification.verified')
+            login=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha" --jq '.committer.login // ""')
+            if [ "$verified" != "true" ] || [ "$login" != "$OWNER" ]; then
+              echo "::error::$sha changes the approvals ledger without a verified signature of $OWNER"
+              status=1
+            fi
+          done
+          exit $status
