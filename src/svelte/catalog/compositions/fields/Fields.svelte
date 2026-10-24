@@ -6,8 +6,8 @@
   import { imageInputControl } from "../../../../interaction/image-input.ts";
   import { labelsInputControl } from "../../../../interaction/labels-control.ts";
   import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
-  import { useFormFiles } from "../../../infra/form-files.ts";
-  const fileHost = useFormFiles();
+  import { useFileHost } from "../../../infra/file-host-context.ts";
+  const fileHost = useFileHost();
   let { fields, edit, controlEvent }: CatalogProps<"fields"> = $props();
 </script>
 

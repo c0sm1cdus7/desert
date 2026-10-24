@@ -5699,7 +5699,7 @@ Source SHA-256: 4c03a07941866471ad4af30c8d300029fce8c62709bef25220435de3ea4706f3
 
 ## src/svelte/catalog/compositions/fields/Fields.svelte
 
-Source SHA-256: 457fc5f593b38a668a5e270a8c0e45d287439db0da01aea269c0a9e4e482d86a
+Source SHA-256: 0bbd7d98e932df42d7f14a85b29565dd0f6a83478521a7feb3c8d594e0702994
 
 ```svelte
 <script lang="ts">
@@ -5710,8 +5710,8 @@ Source SHA-256: 457fc5f593b38a668a5e270a8c0e45d287439db0da01aea269c0a9e4e482d86a
   import { imageInputControl } from "../../../../interaction/image-input.ts";
   import { labelsInputControl } from "../../../../interaction/labels-control.ts";
   import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
-  import { useFormFiles } from "../../../infra/form-files.ts";
-  const fileHost = useFormFiles();
+  import { useFileHost } from "../../../infra/file-host-context.ts";
+  const fileHost = useFileHost();
   let { fields, edit, controlEvent }: CatalogProps<"fields"> = $props();
 </script>
 

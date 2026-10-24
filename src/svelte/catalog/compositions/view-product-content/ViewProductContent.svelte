@@ -5,14 +5,14 @@
   import { requireCatalog } from "../../../../interaction/catalog.ts";
   import { ViewWorkspace } from "../../index.ts";
   import { mountBrowserSession } from "../../../../web/client/browser-session.ts";
-  import { provideFormFiles } from "../../../infra/form-files.ts";
+  import { provideFileHost } from "../../../infra/file-host-context.ts";
   import { providePrivateImages } from "../../../infra/private-image-context.ts";
   import { browserActivityHost } from "./activity-host.ts";
   import { useAccess } from "../../../infra/access-context.ts";
   import { webTransport } from "../../../../web/client/transport.ts";
 
   let { program, surface, validateInput, access }: CatalogProps<"view-product-content"> = $props();
-  const files = provideFormFiles();
+  const files = provideFileHost();
   const session = useAccess();
   const model = untrack(() => {
     requireCatalog(surface.catalog);
