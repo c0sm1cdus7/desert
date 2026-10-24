@@ -9,7 +9,10 @@ const unique = <T extends ReturnType<typeof Type.String>>(item: T, minItems = 0)
   Type.Array(item, { uniqueItems: true, minItems });
 /** Curvature family of a foundation (owner decision Q3): capsule or radius; "none" for pieces that own no rounded geometry. */
 export const Shape = immutable(Type.Union([Type.Literal("capsule"), Type.Literal("radius"), Type.Literal("none")]));
-const Axis = immutable(Type.Record(PieceId, unique(PieceId, 1), { additionalProperties: false }));
+/** A variant axis is a prop of the contract (camelCase name); its values are that prop's literals (ids like `input.text`). */
+export const AxisName = immutable(Type.String({ pattern: "^[a-z][A-Za-z0-9]*$" }));
+export const AxisValue = immutable(Type.String({ pattern: "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$" }));
+const Axis = immutable(Type.Record(AxisName, unique(AxisValue, 1), { additionalProperties: false }));
 const Slot = closed({ accepts: unique(PieceId, 1), variants: Type.Optional(Axis) });
 const Slots = immutable(Type.Record(PieceId, Slot, { additionalProperties: false }));
 const Contract = immutable(Type.Object({}, { additionalProperties: true }));

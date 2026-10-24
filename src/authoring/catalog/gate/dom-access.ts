@@ -118,7 +118,8 @@ function templateScripts(parsed: Parsed, path: string): readonly Script[] {
   const maximal = ranges.filter(range => !ranges.some(other => other !== range && other.start <= range.start && range.end <= other.end
     && (other.start < range.start || range.end < other.end)));
   const unique = [...new Map(maximal.map(range => [`${range.start}:${range.end}`, range])).values()];
-  return unique.map(range => ({ offset: range.start,
+  // Template expressions run in the component instance, written in TypeScript.
+  return unique.map(range => ({ offset: range.start, module: false, lang: "ts",
     file: ts.createSourceFile(path, parsed.source.slice(range.start, range.end), ts.ScriptTarget.Latest, true, ts.ScriptKind.TS) }));
 }
 

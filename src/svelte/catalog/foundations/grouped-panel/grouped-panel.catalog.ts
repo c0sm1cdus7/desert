@@ -1,11 +1,13 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// GroupedPanel: one shared pane that holds sibling rows, at reading or overview width.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { GroupedPanelContract } from "./grouped-panel.contract.ts";
 
 export const GroupedPanel = defineFoundation({
   id: "grouped-panel",
-  purpose: "Declared as found at the start of the migration: GroupedPanel.svelte.",
+  purpose: "Hold sibling rows in one shared pane, at the reading measure or the full overview width.",
   owner: { entry: "GroupedPanel.svelte", vendor: ["card"] },
-  shape: "none", states: ["default"], approval: "required", contract: GroupedPanelContract,
+  shape: "none", states: ["default"],
+  variants: { measure: ["reading", "overview"] },
+  slots: { children: { accepts: ["destination-row", "choice-list", "choice-row", "information", "attention-indicator", "action", "image"] } },
+  approval: "required", contract: GroupedPanelContract,
 } as const);

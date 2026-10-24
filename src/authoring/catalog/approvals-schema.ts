@@ -8,7 +8,7 @@ export const LedgerVersion = "desert.catalog-approvals/1" as const;
 const Day = immutable(Type.String({ pattern: "^\\d{4}-\\d{2}-\\d{2}$" }));
 const Digest = immutable(Type.String({ pattern: "^[a-f0-9]{64}$" }));
 /** Specimen key: `<state>|<axis>=<value>,...` with axes sorted, or just `<state>`. */
-const SpecimenKey = immutable(Type.String({ pattern: "^[a-z][a-z0-9-]*(?:\\|[a-z][a-z0-9-]*=[a-z0-9-]+(?:,[a-z][a-z0-9-]*=[a-z0-9-]+)*)?$" }));
+const SpecimenKey = immutable(Type.String({ pattern: "^[a-z][a-z0-9-]*(?:\\|[a-z][A-Za-z0-9]*=[a-z0-9.-]+(?:,[a-z][A-Za-z0-9]*=[a-z0-9.-]+)*)?$" }));
 const Specimens = immutable(Type.Record(SpecimenKey, Type.Union([Type.Literal("proposed"), Type.Literal("approved")])));
 
 export const PieceApprovalSchema = immutable(Type.Union([

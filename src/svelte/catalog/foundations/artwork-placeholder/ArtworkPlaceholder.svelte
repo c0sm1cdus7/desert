@@ -1,7 +1,8 @@
 <script lang="ts">
   import Music from '@lucide/svelte/icons/music-2';
   import Film from '@lucide/svelte/icons/film';
-  let { kind }: { kind: 'video' | 'audio' } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { kind }: CatalogProps<"artwork-placeholder"> = $props();
 </script>
 
 <div data-media-artwork-placeholder aria-label={kind === 'audio' ? 'No cover artwork' : 'No video poster'}>

@@ -1,10 +1,10 @@
 <script lang="ts">
   import CircleAlert from "@lucide/svelte/icons/circle-alert";
   import FileText from "@lucide/svelte/icons/file-text";
-  import type { Face } from "../../../../interaction/face.ts";
   import * as Avatar from "../../../vendor/components/ui/avatar/index.js";
   import { actionIcons } from '../../../infra/action-icons.ts';
-  let { face, compact = false }: { face: Face; compact?: boolean } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { face, compact = false }: CatalogProps<"face"> = $props();
   let glyph = $derived(face.kind === "symbol" ? face.text : face.kind === "flag"
     ? Array.from(face.region, letter => String.fromCodePoint(0x1f1e6 + letter.charCodeAt(0) - 65)).join("") : "");
   let Icon = $derived(face.kind === 'icon' ? actionIcons[face.icon] : FileText);

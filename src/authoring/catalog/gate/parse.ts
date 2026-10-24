@@ -4,7 +4,8 @@ import { parse } from "svelte/compiler";
 import ts from "typescript";
 import type { SyntaxNode } from "../../visual-boundary/walk.ts";
 
-export type Script = Readonly<{ file: ts.SourceFile; offset: number }>;
+/** `module`: the `<script module>` block of a component; `lang`: its lang attribute ("ts" for TypeScript). */
+export type Script = Readonly<{ file: ts.SourceFile; offset: number; module: boolean; lang: string | undefined }>;
 export type ParsedSvelte = Readonly<{ kind: "svelte"; source: string; fragment: SyntaxNode; css: SyntaxNode | undefined;
   scripts: readonly Script[]; line: (position: number) => number }>;
 export type ParsedScript = Readonly<{ kind: "script"; source: string; scripts: readonly Script[]; line: (position: number) => number }>;
@@ -20,13 +21,25 @@ function range(node: unknown): { start: number; end: number } | undefined {
   return typeof start === "number" && typeof end === "number" ? { start, end } : undefined;
 }
 
+/** The static `lang` attribute of a `<script>` block. */
+function langOf(block: unknown): string | undefined {
+  const attributes: unknown = isNode(block) ? block.attributes : undefined;
+  for (const attribute of Array.isArray(attributes) ? attributes : []) {
+    if (!isNode(attribute) || attribute.name !== "lang") continue;
+    const value: unknown = attribute.value, first: unknown = Array.isArray(value) ? value[0] : undefined;
+    if (isNode(first) && typeof first.data === "string") return first.data;
+  }
+  return undefined;
+}
+
 export function parseSource(path: string, source: string): Parsed {
-  if (!path.endsWith(".svelte")) return Object.freeze({ kind: "script", source, scripts: [{ file: tsFile(path, source), offset: 0 }], line: lineOf(source) });
+  if (!path.endsWith(".svelte")) return Object.freeze({ kind: "script", source,
+    scripts: [{ file: tsFile(path, source), offset: 0, module: true, lang: path.endsWith(".ts") ? "ts" : undefined }], line: lineOf(source) });
   const tree = parse(source, { modern: true });
   const scripts: Script[] = [];
-  for (const block of [tree.module, tree.instance]) {
+  for (const [block, module] of [[tree.module, true], [tree.instance, false]] as const) {
     const content = range(block?.content);
-    if (content) scripts.push({ file: tsFile(path, source.slice(content.start, content.end)), offset: content.start });
+    if (content) scripts.push({ file: tsFile(path, source.slice(content.start, content.end)), offset: content.start, module, lang: langOf(block) });
   }
   const fragment: unknown = tree.fragment, css: unknown = tree.css;
   if (!isNode(fragment)) throw new Error(`CATALOG_DECLARATION: ${path}: no template`);

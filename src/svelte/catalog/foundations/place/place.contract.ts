@@ -1,2 +1,4 @@
-// Stub contract of Place.svelte: its props and events are declared when the piece is migrated (slices 2-4).
+// Stub contract of Place.svelte (migration debt): `owner` and `viewport` are bindable HTMLDivElements, which a contract
+// cannot type; the entry keeps its own props declaration (landmark, destination, label, searching, oncomposition and
+// the top, content, bottom and overlay snippets).
 export const PlaceContract = {} as const;

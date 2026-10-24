@@ -1,7 +1,8 @@
 <script lang="ts">
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import { cn } from "../../../vendor/utils.js";
-  let { id, value, maxLength }: { id: string; value: string; maxLength?: number | undefined } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { id, value, maxLength }: CatalogProps<"character-counter"> = $props();
   // Match JSON Schema's code-point length, not HTML maxlength's UTF-16 units.
   const count = $derived([...value].length);
   const remaining = $derived(maxLength === undefined ? undefined : maxLength - count);

@@ -1,15 +1,11 @@
 <script lang="ts">
   import { untrack } from "svelte";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import { formatMaskedValue, readMaskedValue, maskSeparators, type InputMask } from "../../../../interaction/input-mask.ts";
+  import { formatMaskedValue, readMaskedValue, maskSeparators } from "../../../../interaction/input-mask.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { historyKey, inputEditHistory, inputSnapshot, type InputSnapshot } from "./input-edit-history.ts";
   let { value, mask, identity = "", display = $bindable(""), onvalue, id, placeholder, disabled, required,
-    "aria-required": ariaRequired, "aria-invalid": invalid, "aria-label": label, "aria-describedby": describedBy }: {
-    value: string; mask: InputMask; identity?: string; display?: string;
-    id?: string; placeholder?: string; disabled?: boolean; required?: boolean;
-    "aria-required"?: boolean; "aria-invalid"?: boolean; "aria-label"?: string; "aria-describedby"?: string;
-    onvalue: (value: string, valid: boolean, complete: boolean) => void;
-  } = $props();
+    "aria-required": ariaRequired, "aria-invalid": invalid, "aria-label": label, "aria-describedby": describedBy }: CatalogProps<"masked-input"> = $props();
   let composing = false, compositionInput = false, allowDisplacedGrouping = false;
   let published: string | undefined;
   let incomingValue: string | undefined;

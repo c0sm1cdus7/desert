@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { AppearancePreferences } from "../../../infra/appearance-preferences.ts";
-  let { wallpaper, preview = false }: { wallpaper: AppearancePreferences["wallpaper"]; preview?: boolean } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { wallpaper, preview = false }: CatalogProps<"wallpaper"> = $props();
 </script>
 <div class="system-wallpaper" class:wallpaper-preview={preview} data-system-wallpaper={wallpaper} aria-hidden="true">
   {#if wallpaper === "silk"}<svg viewBox="0 0 1000 1000" preserveAspectRatio="none">

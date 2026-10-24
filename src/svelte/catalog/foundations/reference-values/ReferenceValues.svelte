@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ColorBullet } from '../../index.ts';
-  import type { ReferenceState } from '../../../../interaction/labels-control.ts';
-  let {values,options}:{values:readonly string[];options:ReferenceState['options']}=$props();
+  import type { CatalogProps } from '../../types.d.ts';
+  let {values,options}:CatalogProps<'reference-values'>=$props();
 </script>
 <span class="reference-values">
   {#each values as value (value)}

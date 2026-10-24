@@ -1,2 +1,8 @@
-// Stub contract of FactValue.svelte: its props and events are declared when the piece is migrated (slices 2-4).
-export const FactValueContract = {} as const;
+// The props of FactValue: one scalar fact; null or absent reads as unknown, blank text as empty.
+import { Type } from "@sinclair/typebox";
+
+export const FactValueContract = {
+  props: Type.Object({
+    value: Type.Optional(Type.Union([Type.String(), Type.Number(), Type.Null()])),
+  }, { additionalProperties: false }),
+} as const;

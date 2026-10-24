@@ -1,13 +1,9 @@
 <script lang="ts">
-  import type { Snippet } from "svelte";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import { FieldWellContent } from "../../index.ts";
   import { cn } from "../../../vendor/utils.js";
-  let { id, label, filled, required = false, prefix, accessory, footer, children, presentation = "standard" }: {
-    id: string; label: string; filled: boolean; required?: boolean;
-    prefix?: Snippet; accessory?: Snippet; footer?: Snippet | undefined; children: Snippet;
-    presentation?: "standard" | "access";
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { id, label, filled, required = false, prefix, accessory, footer, children, presentation = "standard" }: CatalogProps<"field-well"> = $props();
   function focusEditor(event: MouseEvent) {
     if (event.defaultPrevented || !(event.target instanceof Element)) return;
     if (event.target.closest('input, textarea, button, select, a, label, [contenteditable]')) return;
@@ -19,7 +15,7 @@
 </script>
 <Group.Root {presentation} onclick={focusEditor} class={cn("field-well overflow-hidden p-0", footer && "flex-col items-stretch")} data-floating-field data-field-focus="within" data-compound-field={!!prefix} data-filled={filled}>
   <div data-field-row class="flex w-full min-w-0 items-center">
-    <FieldWellContent {id} {label} {required} {children} />
+    <FieldWellContent {id} {label} {required}>{@render children?.()}</FieldWellContent>
     {#if prefix}<Group.Addon align="inline-start" class="field-prefix">{@render prefix()}</Group.Addon>{/if}
     {@render accessory?.()}
   </div>

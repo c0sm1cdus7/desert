@@ -1,15 +1,12 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { Button } from '../../../vendor/components/ui/button/index.js';
-  import { imageSource, imageIdentity, type ImageSource } from '../../../infra/media-source.ts';
+  import { imageSource, imageIdentity } from '../../../infra/media-source.ts';
   import { usePrivateImages } from '../../../infra/private-image-context.ts';
   import { privateImageResource } from '../../../infra/private-image-resource.ts';
   import { renditionWidths } from '../../../../media/rendition-policy.ts';
-  let { source, alt, edge = 640, zoom = 1, retry = false, fit = 'fill', onready, fallback = 'Image unavailable' }: {
-    source: ImageSource; alt: string; edge?: number; zoom?: number; retry?: boolean;
-    fit?: 'fill' | 'fit';
-    onready?: () => void; fallback?: string;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { source, alt, edge = 640, zoom = 1, retry = false, fit = 'fill', onready, fallback = 'Image unavailable' }: CatalogProps<"image"> = $props();
   let host!: HTMLDivElement;
   let measured = $state(0), attempt = $state(0), ready = $state(''), failed = $state('');
   let original = $state('');
@@ -47,7 +44,7 @@
       return;
     }
     if (key !== identity || !img.isConnected || requested !== img.src) return;
-    ready = key; onready?.();
+    ready = key; onready?.(null);
   }
   function error(key: string) {
     if (key !== identity) return;

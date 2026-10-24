@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { posix, resolve } from "node:path";
 import test from "node:test";
 import { ruleT } from "../src/authoring/catalog/gate/template-artifacts.ts";
-import { DesertLayout } from "../src/authoring/catalog/layout.ts";
+import { DesertLayout, type CatalogLayout } from "../src/authoring/catalog/layout.ts";
 import { codes, contextOf } from "./support/catalog-context.ts";
 import { testLayout } from "./support/catalog-layout.ts";
 
@@ -18,8 +18,10 @@ const tree = (): Record<string, string> => ({
   ...Object.fromEntries(listed.filter(path => path !== image).map(path => [path, readFileSync(resolve(root, path), "utf8")])),
   [index]: "export const AccessGate = 1;\nexport const PublicCatalogProduct = 1;\n",
 });
-const layout = (hostFiles: readonly string[] = listed) => testLayout({ roots: ["src/svelte", "src/build/svelte"], fixed: { "build-host": hostFiles } });
-const run = (files: Record<string, string>, hostFiles?: readonly string[]) => codes(ruleT(contextOf(files, layout(hostFiles))));
+const layout = (hostFiles: readonly string[] = listed, overrides: Partial<CatalogLayout> = {}) => testLayout({ roots: ["src/svelte", "src/build/svelte"],
+  fixed: { "build-host": hostFiles, theme: DesertLayout.fixed.theme ?? [] }, ...overrides });
+const run = (files: Record<string, string>, hostFiles?: readonly string[], overrides?: Partial<CatalogLayout>) =>
+  codes(ruleT(contextOf(files, layout(hostFiles, overrides))));
 const edit = (path: string, from: string, to: string) => {
   const files = tree(), text = files[path] ?? "";
   assert.ok(text.includes(from), `${path} holds ${from}`);
@@ -119,4 +121,67 @@ test("T worker: a new spawned binary, or new arguments to a known one, are rejec
 test("T worker: imports and bindings are fixed", () => {
   assert.deepEqual(run(edit(worker, 'import { execFileSync } from "node:child_process";', 'import { execFileSync, execSync } from "node:child_process";')),
     [artifact(worker, "imports from node:child_process only execFileSync; found execFileSync, execSync")]);
+});
+
+// +layout.svelte, +page.svelte, public-catalog-page.svelte: an exact statement grammar, one instance script
+const layoutRoute = at("+layout.svelte"), pageRoute = at("+page.svelte"), publicPage = at("public-catalog-page.svelte");
+const layoutShape = "the layout script holds exactly the theme import, the Snippet type import and let { children }: { children: Snippet } = $props()";
+const pageShape = (composition: string) => `a page script holds exactly the ${composition} import from the catalog index and the surface module import`;
+
+test("T layout: a dynamic import, an extra statement or a module script is rejected", () => {
+  const mounted = run(edit(layoutRoute, "  let { children }", '  import("svelte").then(s => s.mount(null, { target: document.body }));\n  let { children }'));
+  assert.deepEqual(mounted, [artifact(layoutRoute, `${layoutShape}; found ExpressionStatement`),
+    artifact(layoutRoute, "the layout imports only the theme and the Snippet type; found @desert/svelte/theme.css, import(svelte), type svelte")]);
+  assert.deepEqual(run(edit(layoutRoute, "  let { children }", "  const x = 1;\n  let { children }")), [artifact(layoutRoute, `${layoutShape}; found VariableStatement`)]);
+  assert.deepEqual(run(edit(layoutRoute, "  let { children }: { children: Snippet } = $props();", "  let { children, x }: { children: Snippet; x: string } = $props();")),
+    [artifact(layoutRoute, `${layoutShape}; found VariableStatement`), artifact(layoutRoute, `${layoutShape}; missing let { children }: { children: Snippet } = $props();`)]);
+  assert.deepEqual(run(edit(layoutRoute, '<script lang="ts">', '<script module>\n  globalThis.x = 1;\n</script>\n<script lang="ts">')),
+    [artifact(layoutRoute, 'holds one <script lang="ts"> and no module script')]);
+});
+
+test("T layout: the theme import is the layout's theme, written through its alias", () => {
+  assert.deepEqual(run(edit(layoutRoute, '"@desert/svelte/theme.css"', '"@desert/svelte/other.css"')),
+    [artifact(layoutRoute, `${layoutShape}; found ImportDeclaration`), artifact(layoutRoute, `${layoutShape}; missing import "@desert/svelte/theme.css";`),
+      artifact(layoutRoute, "the layout imports only the theme and the Snippet type; found @desert/svelte/other.css, type svelte")]);
+});
+
+for (const [path, composition] of [[pageRoute, "AccessGate"], [publicPage, "PublicCatalogProduct"]] as const) {
+  test(`T ${posix.basename(path)}: an extra statement, a dynamic import or a module script is rejected`, () => {
+    assert.deepEqual(run(edit(path, "</script>", "  const x = 1;\n</script>")), [artifact(path, `${pageShape(composition)}; found VariableStatement`)]);
+    assert.deepEqual(run(edit(path, "</script>", '  void import("svelte");\n</script>')),
+      [artifact(path, `${pageShape(composition)}; found ExpressionStatement`),
+        artifact(path, `a page imports only ${composition} from the catalog index and the surface module; found import(svelte)`)]);
+    assert.deepEqual(run(edit(path, '<script lang="ts">', '<script module>\n  export const x = 1;\n</script>\n<script lang="ts">')),
+      [artifact(path, 'holds one <script lang="ts"> and no module script')]);
+  });
+}
+
+// bits-scroll-lock.ts: the resolver's statements and returned path are pinned
+const bits = at("bits-scroll-lock.ts");
+test("T bits-scroll-lock: the returned path, the statements and the signature of resolveBitsScrollLock are pinned", () => {
+  const shape = "resolveBitsScrollLock returns only the bits-ui scroll-lock file under the installed package root, after its version check";
+  assert.deepEqual(run(edit(bits, '"dist/bits/utilities/scroll-lock/scroll-lock.svelte"', '"../../src/svelte/catalog/foundations/lock-screen/LockScreen.svelte"')),
+    [artifact(bits, `${shape}; found const file = join(root, "../../src/svelte/catalog/foundations/lock-screen/LockScreen.svelte");`)]);
+  assert.deepEqual(run(edit(bits, "  return file;", '  return file;\n  globalThis.x = file;')), [artifact(bits, `${shape}; found globalThis.x = file;`)]);
+  assert.deepEqual(run(edit(bits, "  return file;", '  globalThis.x = file;\n  return file;')),
+    [artifact(bits, `${shape}; found globalThis.x = file;`), artifact(bits, `${shape}; found return file;`)]);
+  assert.deepEqual(run(edit(bits, "  return file;", '  return file + "";')), [artifact(bits, `${shape}; found return file + "";`)]);
+  assert.deepEqual(run(edit(bits, 'installed.name !== "bits-ui"', '(globalThis.x = installed.name) !== "bits-ui"')),
+    [artifact(bits, `${shape}; found the version check calls or assigns`)]);
+  assert.deepEqual(run(edit(bits, '(entry: string = require.resolve("bits-ui"))', '(entry: string = require.resolve("other"))')),
+    [artifact(bits, 'resolveBitsScrollLock is exactly export function resolveBitsScrollLock(entry: string = require.resolve("bits-ui")): string')]);
+  assert.deepEqual(run(edit(bits, "export function resolveBitsScrollLock", "export function resolveBitsScrollLock(): string { return \"\"; }\nexport function resolveBitsScrollLock")),
+    [artifact(bits, "holds exactly one require and one resolveBitsScrollLock")]);
+});
+
+test("T: the theme import and the tree-root alias are read from the layout, not written in the rule", () => {
+  const theme = { "build-host": listed, theme: ["src/svelte/other.css"] };
+  assert.deepEqual(run(tree(), undefined, { fixed: theme }), [
+    artifact(layoutRoute, `${layoutShape}; found ImportDeclaration`), artifact(layoutRoute, `${layoutShape}; missing import "@desert/svelte/other.css";`),
+    artifact(layoutRoute, "the layout imports only the theme and the Snippet type; found @desert/svelte/theme.css, type svelte")]);
+  assert.deepEqual(run(edit(layoutRoute, '"@desert/svelte/theme.css"', '"@desert/svelte/other.css"'), undefined, { fixed: theme }), []);
+  const aliases = [["@desert/svelte/", "src/svelte/"], ["@root/", "src/"]] as const;
+  assert.deepEqual(run(tree(), undefined, { aliases }),
+    [artifact(config, "kit.alias holds exactly @root, @desert-internal/bits-scroll-lock; found @desert, @desert-internal/bits-scroll-lock"),
+      artifact(config, 'alias @root is fileURLToPath(new URL("../../", import.meta.url))')]);
 });

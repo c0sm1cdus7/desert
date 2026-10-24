@@ -1,11 +1,10 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// MessageBody: the text of a surface frame's message, read as a status paragraph or as a message dialog's description.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { MessageBodyContract } from "./message-body.contract.ts";
 
 export const MessageBody = defineFoundation({
   id: "message-body",
-  purpose: "Declared as found at the start of the migration: MessageBody.svelte.",
+  purpose: "Read a surface frame's message as a status paragraph, or as the description of a message dialog.",
   owner: { entry: "MessageBody.svelte" },
-  shape: "none", states: ["default"], approval: "required", contract: MessageBodyContract,
+  shape: "none", states: ["default", "dialog"], approval: "required", contract: MessageBodyContract,
 } as const);

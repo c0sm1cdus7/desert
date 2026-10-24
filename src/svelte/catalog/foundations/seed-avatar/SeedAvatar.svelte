@@ -1,7 +1,8 @@
 <script lang="ts">
   import * as Avatar from "../../../vendor/components/ui/avatar/index.js";
   import { avatarGeometry } from "../../../infra/avatar-seed.ts";
-  let { seed, label = "Identity avatar", size = "portrait" }: { seed: string; label?: string; size?: "portrait" | "compact" } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { seed, label = "Identity avatar", size = "portrait" }: CatalogProps<"seed-avatar"> = $props();
   let geometry = $derived(avatarGeometry(seed));
   const id = $props.id();
 </script>

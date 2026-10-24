@@ -1,11 +1,11 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// PlaybackCanvas: the video, or the artwork and audio element, of a media item in the viewer, attached to its playback
+// controller, with a retry when the media is unavailable. Its contract stays a stub.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { PlaybackCanvasContract } from "./playback-canvas.contract.ts";
 
 export const PlaybackCanvas = defineFoundation({
   id: "playback-canvas",
-  purpose: "Declared as found at the start of the migration: PlaybackCanvas.svelte.",
+  purpose: "Play a video or audio item attached to its playback controller, showing artwork for audio and a retry when unavailable.",
   owner: { entry: "PlaybackCanvas.svelte", vendor: ["slider"] },
-  shape: "none", states: ["default"], approval: "required", contract: PlaybackCanvasContract,
+  shape: "none", states: ["video", "audio"], approval: "required", contract: PlaybackCanvasContract,
 } as const);

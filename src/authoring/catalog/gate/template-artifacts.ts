@@ -6,7 +6,8 @@
 import { posix } from "node:path";
 import ts from "typescript";
 import type { ContentRule, GateContext } from "./context.ts";
-import type { ParsedSvelte } from "./parse.ts";
+import { scriptLine, type ParsedSvelte, type Script } from "./parse.ts";
+import type { Import } from "./resolve-imports.ts";
 import { violation, type Violation } from "./violation.ts";
 import type { SyntaxNode } from "../../visual-boundary/walk.ts";
 
@@ -21,18 +22,59 @@ type Check = (context: GateContext, path: string, fail: Fail) => void;
 const isNode = (value: unknown): value is SyntaxNode => typeof value === "object" && value !== null && !Array.isArray(value);
 const nodeList = (value: unknown): SyntaxNode[] => Array.isArray(value) ? value.filter(isNode) : [];
 const meaningful = (fragment: SyntaxNode) => nodeList(fragment.nodes).filter(item => !(item.type === "Text" && !String(item.data ?? "").trim()) && item.type !== "Comment");
-const importsOf = (context: GateContext, path: string) => context.imports(path).filter(item => item.form === "import");
+const flat = (node: ts.Node) => node.getText().replace(/\s+/g, " ").trim();
 const line = (parsed: ParsedSvelte, node: SyntaxNode | undefined) => typeof node?.start === "number" ? parsed.line(node.start) : 1;
+/** An import as a message names it: `type svelte`, `x.css`, or `import(x)` / `require(x)` / `reexport(x)` for the other forms. */
+const importLabel = (item: Import) => item.form === "import" ? `${item.typeOnly ? "type " : ""}${item.specifier}`
+  : item.form === "dynamic" ? `import(${item.specifier})` : item.form === "require" ? `require(${item.specifier})` : `export from ${item.specifier}`;
+/** A statement's kind as a message names it; TypeScript's enum reverse map names some kinds by their range marker. */
+const kindOf = (statement: ts.Node) => ts.isVariableStatement(statement) ? "VariableStatement"
+  : statement.kind === ts.SyntaxKind.DebuggerStatement ? "DebuggerStatement" : ts.SyntaxKind[statement.kind];
+
+/** The one script of a route: `<script lang="ts">`, with no module script beside it. */
+function instanceScript(parsed: ParsedSvelte, fail: Fail): Script | undefined {
+  const [only, ...rest] = parsed.scripts;
+  if (only && !rest.length && !only.module && only.lang === "ts") return only;
+  fail('holds one <script lang="ts"> and no module script');
+  return undefined;
+}
+
+/** A tree path written through the longest alias that reaches it (`src/svelte/theme.css` → `@desert/svelte/theme.css`). */
+function aliased(context: GateContext, path: string) {
+  const alias = context.layout.aliases.find(([, target]) => path.startsWith(target));
+  return alias ? `${alias[0]}${path.slice(alias[1].length)}` : path;
+}
+/** The theme stylesheet the layout lists, as the generated layout imports it. */
+function themeSpecifier(context: GateContext): string | undefined {
+  const [only, ...rest] = context.layout.fixed.theme ?? [];
+  return only !== undefined && !rest.length ? aliased(context, only) : undefined;
+}
+
+/** Each statement of `script` must be one of `expected` (by its text), each exactly once, and all of them present. */
+function exactStatements(script: Script, expected: readonly string[], shape: string, fail: Fail, at: (node: ts.Node) => number) {
+  const remaining = [...expected];
+  for (const statement of script.file.statements) {
+    const index = remaining.indexOf(flat(statement));
+    if (index < 0) fail(`${shape}; found ${kindOf(statement)}`, at(statement));
+    else remaining.splice(index, 1);
+  }
+  for (const missing of remaining) fail(`${shape}; missing ${missing}`);
+}
 
 const htmlShell: Check = (context, path, fail) => {
   if ((context.text(path) ?? "").replace(/\s+/g, " ").trim() !== shell) fail("the HTML shell holds only its fixed markup and the SvelteKit placeholders");
 };
 
+const layoutShape = "the layout script holds exactly the theme import, the Snippet type import and let { children }: { children: Snippet } = $props()";
 const layout: Check = (context, path, fail) => {
-  const parsed = context.parsed(path);
+  const parsed = context.parsed(path), theme = themeSpecifier(context);
   if (parsed.kind !== "svelte" || parsed.css) return fail("the layout holds no style");
-  const specifiers = importsOf(context, path).map(item => `${item.typeOnly ? "type " : ""}${item.specifier}`).sort();
-  if (specifiers.join(",") !== "@desert/svelte/theme.css,type svelte") fail(`the layout imports only the theme and the Snippet type; found ${specifiers.join(", ")}`);
+  if (theme === undefined) return fail("the layout lists no single theme stylesheet");
+  const script = instanceScript(parsed, fail);
+  if (script) exactStatements(script, ['import type { Snippet } from "svelte";', `import "${theme}";`, "let { children }: { children: Snippet } = $props();"],
+    layoutShape, fail, node => scriptLine(parsed, script, node));
+  const specifiers = context.imports(path).map(importLabel).sort();
+  if (specifiers.join(",") !== [theme, "type svelte"].sort().join(",")) fail(`the layout imports only the theme and the Snippet type; found ${specifiers.join(", ")}`);
   const body = meaningful(parsed.fragment), only = body[0], call = isNode(only?.expression) ? only.expression : undefined;
   const callee = isNode(call?.callee) ? call.callee : undefined;
   if (body.length !== 1 || only?.type !== "RenderTag" || callee?.name !== "children") fail("the layout renders exactly {@render children()}");
@@ -42,16 +84,23 @@ function page(composition: string): Check {
   return (context, path, fail) => {
     const parsed = context.parsed(path);
     if (parsed.kind !== "svelte" || parsed.css) return fail("a page holds no style");
-    const index = context.layout.generated.index, surfaceNames = new Set<string>();
-    let mounted = false, foreign = false;
-    for (const item of importsOf(context, path)) {
-      if (item.specifier === surfaceModule) { for (const binding of item.bindings) surfaceNames.add(binding.local); continue; }
+    const index = context.layout.generated.index, surfaceNames = new Set<string>(), shape = `a page script holds exactly the ${composition} import from the catalog index and the surface module import`;
+    const script = instanceScript(parsed, fail);
+    if (script) for (const statement of script.file.statements) {
+      const plain = ts.isImportDeclaration(statement) && !statement.importClause?.isTypeOnly && statement.importClause !== undefined;
+      if (!plain) fail(`${shape}; found ${kindOf(statement)}`, scriptLine(parsed, script, statement));
+    }
+    let mounted = 0, surfaces = 0, foreign = false;
+    for (const item of context.imports(path)) {
+      const plain = item.form === "import" && !item.typeOnly;
+      if (plain && item.specifier === surfaceModule) { surfaces += 1; for (const binding of item.bindings) surfaceNames.add(binding.local); continue; }
       const fromIndex = item.target.kind === "file" && item.target.path === index;
       const binding = item.bindings.length === 1 ? item.bindings[0] : undefined;
-      if (fromIndex && binding?.imported === composition && binding.local === composition) mounted = true;
-      else { foreign = true; fail(`a page imports only ${composition} from the catalog index and the surface module; found ${item.specifier}`, item.line); }
+      if (plain && fromIndex && binding?.imported === composition && binding.local === composition) mounted += 1;
+      else { foreign = true; fail(`a page imports only ${composition} from the catalog index and the surface module; found ${importLabel(item)}`, item.line); }
     }
     if (!mounted && !foreign) fail(`a page imports ${composition} from the catalog index (${posix.basename(index)})`);
+    if (mounted > 1 || surfaces > 1) fail(`${shape}; found more than one of them`);
     const body = meaningful(parsed.fragment), tag = body[0];
     if (body.length !== 1 || tag?.type !== "Component" || tag.name !== composition) return fail(`a page renders exactly one <${composition}>`, line(parsed, tag));
     for (const attribute of nodeList(tag.attributes)) {
@@ -88,7 +137,6 @@ function json(expected: (value: unknown) => boolean, what: string): Check {
 const jsonKeys = (value: unknown) => value && typeof value === "object" ? Object.keys(value).sort().join(",") : "";
 
 // ---- Syntax helpers for the configuration files ----------------------------------------------------------------------
-const flat = (node: ts.Node) => node.getText().replace(/\s+/g, " ").trim();
 const nameOf = (name: ts.PropertyName) => ts.isIdentifier(name) || ts.isStringLiteral(name) ? name.text : `[${flat(name)}]`;
 /** The keys of an object literal in source order; a spread or computed key is named by its text, so it never matches. */
 const keysOf = (object: ts.ObjectLiteralExpression) => object.properties.map(property => property.name ? nameOf(property.name) : flat(property));
@@ -138,7 +186,7 @@ function defaultExport(body: (context: GateContext, path: string, expression: ts
     for (const statement of statements(context, path)) {
       if (ts.isImportDeclaration(statement)) continue;
       if (ts.isExportAssignment(statement) && !statement.isExportEquals) { exports.push(statement); continue; }
-      fail(`holds only its imports and one export default; found ${ts.SyntaxKind[statement.kind]}`, statementLine(statement));
+      fail(`holds only its imports and one export default; found ${kindOf(statement)}`, statementLine(statement));
     }
     const [only] = exports;
     if (exports.length !== 1 || !only) return fail("holds only its imports and one export default");
@@ -195,7 +243,13 @@ const viteConfig: Check = all(imports(viteImports), defaultExport((context, path
 // ---- config.mjs: { preprocess: vitePreprocess(), kit: { adapter, alias, csp } } --------------------------------------
 const configImports: ImportGrammar = { "@sveltejs/adapter-node": ["default"], "@sveltejs/vite-plugin-svelte": ["vitePreprocess"],
   "node:url": ["fileURLToPath"], "./bits-scroll-lock.ts": ["resolveBitsScrollLock"] };
-const desertAlias = "@desert", bitsAlias = "@desert-internal/bits-scroll-lock";
+const bitsAlias = "@desert-internal/bits-scroll-lock", treeRootUrl = "../../";
+/** The alias config.mjs maps to the tree root (`treeRootUrl` from its own folder): the layout's alias for that folder. */
+function treeRootAlias(context: GateContext, path: string): string | undefined {
+  const folder = `${posix.normalize(posix.join(posix.dirname(path), treeRootUrl)).replace(/\/$/, "")}/`;
+  const alias = context.layout.aliases.find(([, target]) => target === folder);
+  return alias ? alias[0].replace(/\/$/, "") : undefined;
+}
 /** The host's CSP: each directive and the sources it may allow; a directive may allow fewer, never more. */
 const directives: Readonly<Record<string, readonly string[]>> = {
   "default-src": ["self"], "script-src": ["self"], "style-src": ["self"], "connect-src": ["self"], "img-src": ["self", "data:", "blob:"],
@@ -222,10 +276,12 @@ function adapterCall(context: GateContext, path: string, kit: ts.ObjectLiteralEx
 
 function aliases(context: GateContext, path: string, kit: ts.ObjectLiteralExpression, fail: Fail) {
   const alias = objectAt(kit, "alias");
+  const desertAlias = treeRootAlias(context, path);
   if (!alias) return fail("kit.alias is an object literal");
+  if (desertAlias === undefined) return fail(`the layout lists no alias for the folder ${treeRootUrl} of config.mjs`);
   exactKeys(alias, [desertAlias, bitsAlias], "kit.alias", fail);
-  if (!isPackageUrl(propertyOf(alias, desertAlias), localOf(context, path, "node:url", "fileURLToPath"), "../../")) {
-    fail(`alias ${desertAlias} is fileURLToPath(new URL("../../", import.meta.url))`);
+  if (!isPackageUrl(propertyOf(alias, desertAlias), localOf(context, path, "node:url", "fileURLToPath"), treeRootUrl)) {
+    fail(`alias ${desertAlias} is fileURLToPath(new URL("${treeRootUrl}", import.meta.url))`);
   }
   if (!isCall(propertyOf(alias, bitsAlias), localOf(context, path, "./bits-scroll-lock.ts", "resolveBitsScrollLock"), 0)) fail(`alias ${bitsAlias} is resolveBitsScrollLock()`);
 }
@@ -309,7 +365,7 @@ const worker: Check = all(imports(workerImports), (context, path, fail) => {
   const buildOnly = (statement: ts.Statement) => {
     if (!ts.isIfStatement(statement) || statement.elseStatement || !ts.isBlock(statement.thenStatement)
       || !modeTest(statement.expression, ts.SyntaxKind.EqualsEqualsEqualsToken, "build")) return false;
-    for (const inner of statement.thenStatement.statements) if (!spawn(inner)) fail(`${workerShape}; found ${ts.SyntaxKind[inner.kind]}`, statementLine(inner));
+    for (const inner of statement.thenStatement.statements) if (!spawn(inner)) fail(`${workerShape}; found ${kindOf(inner)}`, statementLine(inner));
     return true;
   };
   for (const statement of statements(context, path)) {
@@ -317,19 +373,75 @@ const worker: Check = all(imports(workerImports), (context, path, fail) => {
       || constant(statement, "root", initializer => isPackageUrl(initializer, names.fileURLToPath, "../../../"))
       || constant(statement, "mode", initializer => isAccess(initializer, "process.argv[2]"))
       || modeGuard(statement) || spawn(statement) || buildOnly(statement);
-    if (!known) fail(`${workerShape}; found ${ts.SyntaxKind[statement.kind]}`, statementLine(statement));
+    if (!known) fail(`${workerShape}; found ${kindOf(statement)}`, statementLine(statement));
   }
 });
 
 // ---- bits-scroll-lock.ts: a path resolver, no visual statement -------------------------------------------------------
 const bitsImports: ImportGrammar = { "node:module": ["createRequire"], "node:path": ["dirname", "join"], "node:fs": ["existsSync", "readFileSync"] };
+const bitsEntry = "dist/bits/utilities/scroll-lock/scroll-lock.svelte";
+const bitsSignature = 'export function resolveBitsScrollLock(entry: string = require.resolve("bits-ui")): string';
+const bitsShape = "resolveBitsScrollLock returns only the bits-ui scroll-lock file under the installed package root, after its version check";
+/** Expression kinds a version check may hold: reads, comparisons and string literals; never a call or an assignment. */
+const checkOperators = new Set([ts.SyntaxKind.BarBarToken, ts.SyntaxKind.AmpersandAmpersandToken, ts.SyntaxKind.EqualsEqualsEqualsToken,
+  ts.SyntaxKind.ExclamationEqualsEqualsToken, ts.SyntaxKind.InKeyword]);
+function readsOnly(node: ts.Expression): boolean {
+  if (ts.isParenthesizedExpression(node) || ts.isTypeOfExpression(node)) return readsOnly(node.expression);
+  if (ts.isPrefixUnaryExpression(node)) return node.operator === ts.SyntaxKind.ExclamationToken && readsOnly(node.operand);
+  if (ts.isBinaryExpression(node)) return checkOperators.has(node.operatorToken.kind) && readsOnly(node.left) && readsOnly(node.right);
+  if (ts.isPropertyAccessExpression(node)) return !node.questionDotToken && readsOnly(node.expression);
+  return ts.isIdentifier(node) && node.text === "installed" || ts.isStringLiteral(node);
+}
+/** The one throw of `if (...) throw ...;` or `if (...) { throw ...; }`. */
+function thrownBy(then: ts.Statement): ts.ThrowStatement | undefined {
+  const [only, ...rest] = ts.isBlock(then) ? then.statements : [then];
+  return only && !rest.length && ts.isThrowStatement(only) ? only : undefined;
+}
+/** `if (<condition>) throw new Error("<CODE>");`, the condition read by `condition`. */
+function guard(statement: ts.Statement, condition: (node: ts.Expression) => boolean) {
+  const throwing = ts.isIfStatement(statement) && !statement.elseStatement ? thrownBy(statement.thenStatement) : undefined;
+  if (!ts.isIfStatement(statement) || !throwing) return false;
+  const thrown = throwing.expression;
+  return condition(statement.expression) && ts.isNewExpression(thrown) && ts.isIdentifier(thrown.expression) && thrown.expression.text === "Error"
+    && thrown.arguments?.length === 1 && stringOf(thrown.arguments[0]) !== undefined;
+}
+/** The body of resolveBitsScrollLock: the package root, its package.json, the version check, the entry, its existence check. */
+function bitsBody(context: GateContext, path: string, body: ts.Block, fail: Fail) {
+  const local = (specifier: string, name: string) => localOf(context, path, specifier, name) ?? name;
+  const join = local("node:path", "join"), dirname = local("node:path", "dirname");
+  const fixed: readonly ((statement: ts.Statement) => boolean)[] = [
+    statement => flat(statement) === `const root = ${dirname}(${dirname}(entry));`,
+    statement => flat(statement) === `const installed: unknown = JSON.parse(${local("node:fs", "readFileSync")}(${join}(root, "package.json"), "utf8"));`,
+    statement => guard(statement, readsOnly),
+    statement => flat(statement) === `const file = ${join}(root, "${bitsEntry}");`,
+    statement => guard(statement, condition => flat(condition) === `!${local("node:fs", "existsSync")}(file)`),
+    statement => flat(statement) === "return file;",
+  ];
+  const found = body.statements, versionCheck = 2;
+  /** A version check that calls or assigns is named as such, so its message never quotes the injected code. */
+  const described = (statement: ts.Statement, at: number) =>
+    at === versionCheck && ts.isIfStatement(statement) && !readsOnly(statement.expression) ? "the version check calls or assigns" : flat(statement);
+  fixed.forEach((expected, at) => {
+    const statement = found[at];
+    if (!statement) return fail(`${bitsShape}; missing statement ${at + 1}`);
+    if (!expected(statement)) fail(`${bitsShape}; found ${described(statement, at)}`, statementLine(statement));
+  });
+  for (const extra of found.slice(fixed.length)) fail(`${bitsShape}; found ${flat(extra)}`, statementLine(extra));
+}
 const bitsResolver: Check = all(imports(bitsImports), (context, path, fail) => {
+  const requires: ts.Statement[] = [], resolvers: ts.FunctionDeclaration[] = [];
   for (const statement of statements(context, path)) {
-    const known = ts.isImportDeclaration(statement)
-      || constant(statement, "require", initializer => isCall(initializer, localOf(context, path, "node:module", "createRequire"), 1))
-      || ts.isFunctionDeclaration(statement) && statement.name?.text === "resolveBitsScrollLock";
-    if (!known) fail(`holds only its imports, require and resolveBitsScrollLock; found ${ts.SyntaxKind[statement.kind]}`, statementLine(statement));
+    if (ts.isImportDeclaration(statement)) continue;
+    if (constant(statement, "require", initializer => isCall(initializer, localOf(context, path, "node:module", "createRequire"), 1)
+      && isAccess(initializer.arguments[0], "import.meta.url"))) { requires.push(statement); continue; }
+    if (ts.isFunctionDeclaration(statement) && statement.name?.text === "resolveBitsScrollLock") { resolvers.push(statement); continue; }
+    fail(`holds only its imports, require and resolveBitsScrollLock; found ${kindOf(statement)}`, statementLine(statement));
   }
+  const [resolver] = resolvers;
+  if (requires.length !== 1 || resolvers.length !== 1 || !resolver) return fail("holds exactly one require and one resolveBitsScrollLock");
+  const body = resolver.body, header = body ? resolver.getText().slice(0, body.getStart() - resolver.getStart()).replace(/\s+/g, " ").trim() : "";
+  if (!body || header !== bitsSignature) return fail(`resolveBitsScrollLock is exactly ${bitsSignature}`, statementLine(resolver));
+  bitsBody(context, path, body, fail);
 });
 
 // ---- The host files, found by name in the layout ---------------------------------------------------------------------

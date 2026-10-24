@@ -1,11 +1,11 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// MaskedInput: the text input of a masked value (a decimal amount): it formats as the person types, keeps the caret
+// and its own undo history, and reports the canonical value.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { MaskedInputContract } from "./masked-input.contract.ts";
 
 export const MaskedInput = defineFoundation({
   id: "masked-input",
-  purpose: "Declared as found at the start of the migration: MaskedInput.svelte.",
+  purpose: "Edit a masked value such as a decimal amount: format while typing, keep the caret and undo, report the canonical value.",
   owner: { entry: "MaskedInput.svelte", parts: ["input-edit-history.ts"] },
-  shape: "none", states: ["default"], approval: "required", contract: MaskedInputContract,
+  shape: "none", states: ["default", "invalid", "disabled"], approval: "required", contract: MaskedInputContract,
 } as const);

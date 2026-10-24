@@ -2,19 +2,15 @@
   import { untrack } from "svelte";
   import * as Field from "../../../vendor/components/ui/field/index.js";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import type { InputMask } from "../../../../interaction/input-mask.ts";
   import { FieldWell } from "../../index.ts";
   import { MeasuredField } from "../../index.ts";
   import { MaskedInput } from "../../index.ts";
   import { CharacterCounter } from "../../index.ts";
   import { ClearInput } from "../../index.ts";
   import { observeEditorCapacity } from "./editor-capacity.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
-    identity = "", mask, maxLength, purpose = "text", onchange }: {
-    label: string; value?: string; required?: boolean; identity?: string; maxLength?: number | undefined;
-    invalid?: boolean; error?: string | undefined; helper?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
-    purpose?: "text" | "username" | "new-password" | "current-password";
-  } & ({ primitive: "input.text"; mask?: InputMask | undefined } | { primitive: "input.multiline"; mask?: never }) = $props();
+    identity = "", mask, maxLength, purpose = "text", onchange }: CatalogProps<"text-input"> = $props();
   const id = $props.id();
   let writing = $derived(value);
   let editor = $state<HTMLTextAreaElement | null>(null);
@@ -44,7 +40,7 @@
     if (disabled) return;
     draftError = valid && complete ? "" : valid ? "Enter a complete number." :
       `Enter a number with up to ${mask!.scale} decimal places using this field's format.`;
-    if (valid && complete) { pending.push(next); onchange(next); }
+    if (valid && complete) { pending.push(next); onchange?.(next); }
   }
 </script>
 {#snippet counter()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
@@ -54,9 +50,9 @@
     {#snippet accessory()}<ClearInput control={id} value={mask ? display : writing} label={`Clear ${label}`} {disabled} />{/snippet}
     {#if primitive === "input.multiline"}
       <Group.Textarea {id} bind:ref={editor} bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} rows={4} placeholder=" "
-        aria-describedby={describedBy} onblur={event => onchange(event.currentTarget.value)}
+        aria-describedby={describedBy} onblur={event => onchange?.(event.currentTarget.value)}
         class="focus-visible:outline-none"
-        oninput={event => onchange(event.currentTarget.value)} />
+        oninput={event => onchange?.(event.currentTarget.value)} />
     {:else if mask}
       <MaskedInput {id} {value} {mask} {identity} bind:display {required} {disabled}
         aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
@@ -65,9 +61,9 @@
       <Group.Input {id} type={purpose.endsWith("password") ? "password" : "text"} autocomplete={purpose === "text" ? undefined : purpose}
         autocapitalize={purpose === "username" ? "none" : undefined} spellcheck={purpose === "text" ? undefined : false}
         bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
-        aria-describedby={describedBy} onblur={event => onchange(event.currentTarget.value)}
+        aria-describedby={describedBy} onblur={event => onchange?.(event.currentTarget.value)}
         class="focus-visible:outline-none"
-        oninput={event => onchange(event.currentTarget.value)} />
+        oninput={event => onchange?.(event.currentTarget.value)} />
     {/if}
   </FieldWell>
   {#if helper}<Field.FieldDescription id={`${id}-helper`}>{helper}</Field.FieldDescription>{/if}

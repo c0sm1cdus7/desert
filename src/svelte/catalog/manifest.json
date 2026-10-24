@@ -228,8 +228,16 @@
       "purpose": "Invoke one command with a text button or an icon button, never competing text and icons.",
       "shape": "capsule",
       "states": [
-        "default"
-      ]
+        "ready",
+        "unavailable",
+        "pending"
+      ],
+      "variants": {
+        "emphasis": [
+          "primary",
+          "secondary"
+        ]
+      }
     },
     "appearance": {
       "approval": "none",
@@ -278,11 +286,17 @@
       "owner": {
         "entry": "ArtworkPlaceholder.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ArtworkPlaceholder.svelte.",
+      "purpose": "Stand in for the missing cover artwork of audio or poster of video with the glyph of its media kind.",
       "shape": "none",
       "states": [
         "default"
-      ]
+      ],
+      "variants": {
+        "kind": [
+          "video",
+          "audio"
+        ]
+      }
     },
     "attention-indicator": {
       "approval": "required",
@@ -294,8 +308,15 @@
       "purpose": "Mark objects needing attention with the same amber indicator everywhere, steady when reduced motion is enabled.",
       "shape": "none",
       "states": [
-        "default"
-      ]
+        "required",
+        "clear"
+      ],
+      "variants": {
+        "placement": [
+          "inline",
+          "overlay"
+        ]
+      }
     },
     "attention-list": {
       "approval": "required",
@@ -340,7 +361,9 @@
       "purpose": "Understand whether a capability is ready, unavailable or not yet known.",
       "shape": "none",
       "states": [
-        "default"
+        "ready",
+        "unavailable",
+        "unknown"
       ]
     },
     "avatar-shuffle": {
@@ -365,7 +388,8 @@
       "purpose": "Open a media item from a card composed of artwork and its supporting content.",
       "shape": "none",
       "states": [
-        "default"
+        "image",
+        "placeholder"
       ]
     },
     "catalog-detail": {
@@ -473,10 +497,12 @@
       "owner": {
         "entry": "CharacterCounter.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: CharacterCounter.svelte.",
+      "purpose": "Count the characters of a text value, or how many remain before its limit and by how many it is over.",
       "shape": "none",
       "states": [
-        "default"
+        "unlimited",
+        "remaining",
+        "exceeded"
       ]
     },
     "choice-item": {
@@ -486,10 +512,22 @@
       "owner": {
         "entry": "ChoiceItem.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ChoiceItem.svelte.",
+      "purpose": "Lay out one choice as its selection mark beside a title and an optional description.",
       "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "choice-list",
+            "face",
+            "color-bullet",
+            "artwork-placeholder",
+            "image"
+          ]
+        }
+      },
       "states": [
-        "default"
+        "label",
+        "described"
       ]
     },
     "choice-list": {
@@ -503,8 +541,16 @@
           "radio-group"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: ChoiceList.svelte.",
+      "purpose": "Hold the rows of a single or multiple choice in one transparent geometry inside its host.",
       "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "choice-row",
+            "choice-item"
+          ]
+        }
+      },
       "states": [
         "default"
       ]
@@ -516,10 +562,22 @@
       "owner": {
         "entry": "ChoiceRow.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ChoiceRow.svelte.",
+      "purpose": "One pressable row of a choice list whose label activates the checkbox or radio it holds.",
       "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "choice-list",
+            "color-bullet",
+            "image",
+            "artwork-placeholder"
+          ]
+        }
+      },
       "states": [
-        "default"
+        "default",
+        "described",
+        "disabled"
       ]
     },
     "clear-input": {
@@ -529,10 +587,12 @@
       "owner": {
         "entry": "ClearInput.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ClearInput.svelte.",
+      "purpose": "Empty a text control in one press, keeping its masks and undo history, shown only while it holds a value.",
       "shape": "none",
       "states": [
-        "default"
+        "empty",
+        "value",
+        "disabled"
       ]
     },
     "collection": {
@@ -696,10 +756,13 @@
           "calendar"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: DateControl.svelte.",
+      "purpose": "Choose one day from a month calendar opened from a labelled field well, within optional bounds.",
       "shape": "radius",
       "states": [
-        "default"
+        "empty",
+        "value",
+        "required",
+        "disabled"
       ]
     },
     "destination-row": {
@@ -709,10 +772,11 @@
       "owner": {
         "entry": "DestinationRow.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: DestinationRow.svelte.",
+      "purpose": "A grouped row that opens one destination, or shows why that destination is unavailable.",
       "shape": "none",
       "states": [
-        "default"
+        "available",
+        "unavailable"
       ]
     },
     "drawer": {
@@ -732,7 +796,8 @@
       "purpose": "Open a temporary surface over its parent with content and top or bottom toolbars, never lateral child surfaces.",
       "shape": "none",
       "states": [
-        "default"
+        "open",
+        "locked"
       ]
     },
     "drawer-grip": {
@@ -742,10 +807,11 @@
       "owner": {
         "entry": "DrawerGrip.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: DrawerGrip.svelte.",
+      "purpose": "The handle of a bottom-edge drawer that closes it by drag or press, disabled while the drawer is locked.",
       "shape": "none",
       "states": [
-        "default"
+        "default",
+        "locked"
       ]
     },
     "face": {
@@ -755,10 +821,16 @@
       "owner": {
         "entry": "Face.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: Face.svelte.",
+      "purpose": "A round decorative mark that identifies a title or an option by icon, document, status, symbol or flag.",
       "shape": "none",
       "states": [
-        "default"
+        "icon",
+        "document",
+        "warning",
+        "error",
+        "symbol",
+        "flag",
+        "compact"
       ]
     },
     "fact-group": {
@@ -784,7 +856,11 @@
       "purpose": "Keep a capitalized label on the left and its value right-aligned, with shared horizontal dividers and balanced wrapping.",
       "shape": "none",
       "states": [
-        "default"
+        "value",
+        "unknown",
+        "labels",
+        "no-labels",
+        "references"
       ]
     },
     "fact-value": {
@@ -794,10 +870,12 @@
       "owner": {
         "entry": "FactValue.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: FactValue.svelte.",
+      "purpose": "Read one scalar fact as text, or show that it is unknown or empty with a muted icon and an accessible state.",
       "shape": "none",
       "states": [
-        "default"
+        "known",
+        "empty",
+        "unknown"
       ]
     },
     "facts": {
@@ -834,7 +912,7 @@
           "empty"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: Feedback.svelte.",
+      "purpose": "A short status sentence, announced politely, that tells the person what just happened.",
       "shape": "none",
       "states": [
         "default"
@@ -850,11 +928,42 @@
           "field-well.css"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: FieldWell.svelte.",
+      "purpose": "Frame one editor in a rounded well whose label floats when empty and settles above the value when filled or focused.",
       "shape": "radius",
+      "slots": {
+        "accessory": {
+          "accepts": [
+            "clear-input",
+            "action"
+          ]
+        },
+        "children": {
+          "accepts": [
+            "masked-input",
+            "text-input"
+          ]
+        },
+        "footer": {
+          "accepts": [
+            "character-counter"
+          ]
+        },
+        "prefix": {
+          "accepts": [
+            "selection-field"
+          ]
+        }
+      },
       "states": [
-        "default"
-      ]
+        "empty",
+        "filled"
+      ],
+      "variants": {
+        "presentation": [
+          "standard",
+          "access"
+        ]
+      }
     },
     "field-well-content": {
       "approval": "required",
@@ -863,10 +972,20 @@
       "owner": {
         "entry": "FieldWellContent.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: FieldWellContent.svelte.",
+      "purpose": "Keep a field's label persistently above its editor or value, as a label for the editor or as text inside a button.",
       "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "masked-input",
+            "text-input",
+            "reference-values"
+          ]
+        }
+      },
       "states": [
-        "default"
+        "for-editor",
+        "in-button"
       ]
     },
     "fields": {
@@ -921,11 +1040,30 @@
           "card"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: GroupedPanel.svelte.",
+      "purpose": "Hold sibling rows in one shared pane, at the reading measure or the full overview width.",
       "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "destination-row",
+            "choice-list",
+            "choice-row",
+            "information",
+            "attention-indicator",
+            "action",
+            "image"
+          ]
+        }
+      },
       "states": [
         "default"
-      ]
+      ],
+      "variants": {
+        "measure": [
+          "reading",
+          "overview"
+        ]
+      }
     },
     "heading": {
       "approval": "required",
@@ -972,11 +1110,19 @@
       "owner": {
         "entry": "Image.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: Image.svelte.",
+      "purpose": "Show a public or private image at the rendition its frame needs, hidden until decoded, with a fallback and optional retry.",
       "shape": "none",
       "states": [
-        "default"
-      ]
+        "loading",
+        "ready",
+        "error"
+      ],
+      "variants": {
+        "fit": [
+          "fill",
+          "fit"
+        ]
+      }
     },
     "information": {
       "approval": "none",
@@ -1071,7 +1217,9 @@
       "purpose": "Present selected labels in a wrapping rail using the same value representation as the field.",
       "shape": "none",
       "states": [
-        "default"
+        "read-only",
+        "removable",
+        "disabled"
       ]
     },
     "labels-control": {
@@ -1155,10 +1303,12 @@
           "input-edit-history.ts"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: MaskedInput.svelte.",
+      "purpose": "Edit a masked value such as a decimal amount: format while typing, keep the caret and undo, report the canonical value.",
       "shape": "none",
       "states": [
-        "default"
+        "default",
+        "invalid",
+        "disabled"
       ]
     },
     "measured-field": {
@@ -1168,11 +1318,32 @@
       "owner": {
         "entry": "MeasuredField.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: MeasuredField.svelte.",
+      "purpose": "Give one form control the preferred measure of its family inside the available space, with its invalid and disabled state.",
       "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "field-well",
+            "selection-field",
+            "picker-sheet",
+            "node-renderer"
+          ]
+        }
+      },
       "states": [
-        "default"
-      ]
+        "default",
+        "invalid",
+        "disabled"
+      ],
+      "variants": {
+        "kind": [
+          "input.text",
+          "input.multiline",
+          "control.select",
+          "control.date",
+          "control.money"
+        ]
+      }
     },
     "media-collection-grid": {
       "approval": "none",
@@ -1276,10 +1447,11 @@
       "owner": {
         "entry": "MessageBody.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: MessageBody.svelte.",
+      "purpose": "Read a surface frame's message as a status paragraph, or as the description of a message dialog.",
       "shape": "none",
       "states": [
-        "default"
+        "default",
+        "dialog"
       ]
     },
     "money-control": {
@@ -1401,10 +1573,11 @@
       "owner": {
         "entry": "PickerSheet.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: PickerSheet.svelte.",
+      "purpose": "Present a picker as a bottom sheet with a grip and a close toolbar, returning focus to its trigger on dismissal.",
       "shape": "none",
       "states": [
-        "default"
+        "default",
+        "content-toolbar"
       ]
     },
     "place": {
@@ -1425,7 +1598,8 @@
       "purpose": "Arrange content and top or bottom toolbars, with lateral surfaces only at the root. Mounted surfaces keep their own content and toolbars.",
       "shape": "none",
       "states": [
-        "default"
+        "default",
+        "searching"
       ]
     },
     "place-content": {
@@ -1479,10 +1653,11 @@
           "slider"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: PlaybackCanvas.svelte.",
+      "purpose": "Play a video or audio item attached to its playback controller, showing artwork for audio and a retry when unavailable.",
       "shape": "none",
       "states": [
-        "default"
+        "video",
+        "audio"
       ]
     },
     "playback-controls": {
@@ -1636,7 +1811,8 @@
       "purpose": "Read selected object references using their labels and shared value layout.",
       "shape": "none",
       "states": [
-        "default"
+        "default",
+        "unavailable"
       ]
     },
     "related-selection": {
@@ -1691,7 +1867,7 @@
           "scroll-edges.ts"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: ScrollEdges.svelte.",
+      "purpose": "Fade the edges of a scroll viewport under its toolbars while there is content left to scroll there.",
       "shape": "none",
       "states": [
         "default"
@@ -1707,10 +1883,12 @@
           "search-field.css"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: SearchField.svelte.",
+      "purpose": "Type a query in a capsule search well with a search icon and a clear button.",
       "shape": "capsule",
       "states": [
-        "default"
+        "empty",
+        "value",
+        "disabled"
       ]
     },
     "seed-avatar": {
@@ -1727,7 +1905,13 @@
       "shape": "none",
       "states": [
         "default"
-      ]
+      ],
+      "variants": {
+        "size": [
+          "portrait",
+          "compact"
+        ]
+      }
     },
     "select-control": {
       "approval": "none",
@@ -1756,10 +1940,13 @@
           "popover"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: SelectionField.svelte.",
+      "purpose": "Choose one value from a list of options, inline, as a field well or as a contextual value.",
       "shape": "radius",
       "states": [
-        "default"
+        "inline",
+        "field-control",
+        "contextual",
+        "disabled"
       ]
     },
     "shared-owner-catalog": {
@@ -1904,10 +2091,18 @@
       "owner": {
         "entry": "StackItem.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: StackItem.svelte.",
+      "purpose": "Place one entry of a stack by the kind of node it holds, at the content or the surface inset.",
       "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "node-renderer"
+          ]
+        }
+      },
       "states": [
-        "default"
+        "content",
+        "surface"
       ]
     },
     "stack-layout": {
@@ -1917,11 +2112,42 @@
       "owner": {
         "entry": "StackLayout.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: StackLayout.svelte.",
+      "purpose": "Group related content under one title, with an optional description and required mark.",
       "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "character-counter",
+            "choice-list",
+            "collection",
+            "collection-state",
+            "fact-row",
+            "fact-value",
+            "feedback",
+            "grouped-panel",
+            "information",
+            "measured-field",
+            "object-state-row",
+            "selection-field",
+            "shared-owner-specimen",
+            "stack-item",
+            "text-input",
+            "view-destination-link",
+            "view-item"
+          ]
+        }
+      },
       "states": [
-        "default"
-      ]
+        "default",
+        "described",
+        "required"
+      ],
+      "variants": {
+        "headingVisibility": [
+          "visible",
+          "accessible"
+        ]
+      }
     },
     "summary-widget": {
       "approval": "required",
@@ -1992,11 +2218,21 @@
           "textarea"
         ]
       },
-      "purpose": "Write a single line with a persistent label, field help and validation feedback.",
+      "purpose": "Write a single line or several with a persistent label, field help and validation feedback.",
       "shape": "radius",
       "states": [
-        "default"
-      ]
+        "empty",
+        "value",
+        "invalid",
+        "disabled",
+        "masked"
+      ],
+      "variants": {
+        "primitive": [
+          "input.text",
+          "input.multiline"
+        ]
+      }
     },
     "toolbar": {
       "approval": "none",
@@ -2222,8 +2458,16 @@
       "purpose": "Provide system-generated Silk, Mist or Plain backgrounds that follow the selected appearance.",
       "shape": "none",
       "states": [
-        "default"
-      ]
+        "default",
+        "preview"
+      ],
+      "variants": {
+        "wallpaper": [
+          "silk",
+          "mist",
+          "plain"
+        ]
+      }
     },
     "workspace": {
       "approval": "none",

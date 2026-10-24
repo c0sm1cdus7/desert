@@ -1,5 +1,6 @@
 <script lang="ts">
-  let { required,placement='inline' }: { required:boolean;placement?:'inline'|'overlay' } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { required, placement = 'inline' }: CatalogProps<"attention-indicator"> = $props();
 </script>
 {#if required}<span data-attention-indicator data-attention-placement={placement} role="img" aria-label="Requires attention"></span>{/if}
 <style>

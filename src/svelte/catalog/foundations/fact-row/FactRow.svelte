@@ -1,12 +1,11 @@
 <script lang="ts">
-  import type { FactValue as Value } from "../../../../fact-values.ts";
   import { FactValue } from "../../index.ts";
   import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import { ReferenceValues } from '../../index.ts';
-  import type { ReferenceState } from '../../../../interaction/labels-control.ts';
+  import type { CatalogProps } from "../../types.d.ts";
   import { displayLabel } from '../../../../interaction/display-label.ts';
-  let { label, value, references }: { label: string; value: Value | null | undefined; references?:ReferenceState['options']|undefined } = $props();
+  let { label, value, references }: CatalogProps<"fact-row"> = $props();
   const id = $props.id();
 </script>
 <div class="fact-row" data-primitive="fact">

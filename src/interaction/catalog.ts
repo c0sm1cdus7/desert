@@ -1,3 +1,4 @@
+import { Type } from "@sinclair/typebox";
 import { freezeDeep, jsonSnapshot } from "../json.ts";
 import { ControlSpecimens } from "./control-specimens.ts";
 import { CatalogGroups, CatalogFoundations, catalogInspection, type DiscoveryGroup, type FoundationId } from "./catalog-ownership.ts";
@@ -31,6 +32,8 @@ export const ResolvedNodes = freezeDeep({
 });
 
 export type ResolvedNodeId = typeof ResolvedNodes.entries[number]["id"];
+/** The id of a resolved node kind, as a TypeBox schema derived from the entries above (not a second list). */
+export const ResolvedNodeIdSchema = Type.Union(ResolvedNodes.entries.map(entry => Type.Literal(entry.id)));
 export type ResolvedInputId = Extract<ResolvedNodeId, `input.${string}`>;
 export type RendererTable<T> = { readonly [K in ResolvedNodeId]: T };
 

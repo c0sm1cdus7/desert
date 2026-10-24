@@ -1,4 +1,4 @@
-<script lang="ts">let {color}:{color:string}=$props();</script>
+<script lang="ts">import type { CatalogProps } from "../../types.d.ts"; let {color}:CatalogProps<"color-bullet">=$props();</script>
 <span class="color-bullet" data-color={color} aria-hidden="true"></span>
 <style>
   .color-bullet {display:inline-block;flex:none;width:.55em;height:.55em;border-radius:50%;background:var(--muted-foreground);}

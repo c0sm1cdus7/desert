@@ -1,11 +1,12 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// Face: the round decorative mark beside a title or an option: an action icon, a document, a status, a short symbol or
+// a region flag. It is hidden from assistive technology; the text next to it carries the meaning.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { FaceContract } from "./face.contract.ts";
 
 export const Face = defineFoundation({
   id: "face",
-  purpose: "Declared as found at the start of the migration: Face.svelte.",
+  purpose: "A round decorative mark that identifies a title or an option by icon, document, status, symbol or flag.",
   owner: { entry: "Face.svelte" },
-  shape: "none", states: ["default"], approval: "required", contract: FaceContract,
+  shape: "none", states: ["icon", "document", "warning", "error", "symbol", "flag", "compact"],
+  approval: "required", contract: FaceContract,
 } as const);

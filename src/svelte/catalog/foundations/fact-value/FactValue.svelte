@@ -2,7 +2,8 @@
   import Minus from "@lucide/svelte/icons/minus";
   import CircleQuestionMark from "@lucide/svelte/icons/circle-question-mark";
   import { factState, presentFact } from "../../../../interaction/fact-presentation.ts";
-  let { value }: { value: string | number | null | undefined } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { value }: CatalogProps<"fact-value"> = $props();
   const state = $derived(factState(value));
 </script>
 

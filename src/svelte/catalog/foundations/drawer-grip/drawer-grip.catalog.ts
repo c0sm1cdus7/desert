@@ -1,11 +1,10 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// DrawerGrip: the handle at the top of a bottom-edge drawer or sheet; dragging it down or pressing it closes the surface.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { DrawerGripContract } from "./drawer-grip.contract.ts";
 
 export const DrawerGrip = defineFoundation({
   id: "drawer-grip",
-  purpose: "Declared as found at the start of the migration: DrawerGrip.svelte.",
+  purpose: "The handle of a bottom-edge drawer that closes it by drag or press, disabled while the drawer is locked.",
   owner: { entry: "DrawerGrip.svelte" },
-  shape: "none", states: ["default"], approval: "required", contract: DrawerGripContract,
+  shape: "none", states: ["default", "locked"], approval: "required", contract: DrawerGripContract,
 } as const);

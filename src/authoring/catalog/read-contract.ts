@@ -10,12 +10,12 @@ export type ContractSchema = Readonly<
   | { kind: "object"; properties: Readonly<Record<string, ContractProperty>> }
   | { kind: "literal"; value: string | number | boolean } | { kind: "union"; members: readonly ContractSchema[] }
   | { kind: "array"; items: ContractSchema } | { kind: "record"; values: ContractSchema } | { kind: "function" }
-  | { kind: "reference"; name: string; from: string } | { kind: "string" | "number" | "boolean" | "integer" | "null" }>;
+  | { kind: "reference"; name: string; from: string } | { kind: "string" | "number" | "boolean" | "integer" | "null" | "void" | "undefined" }>;
 export type ContractProperty = Readonly<{ schema: ContractSchema; optional: boolean }>;
 export type ReadContract = Readonly<{ binding: string; closed: false } | { binding: string; closed: true;
   props: Readonly<Record<string, ContractProperty>>; events: Readonly<Record<string, ContractProperty>>; marks: readonly string[] }>;
 
-const scalars = new Set(["String", "Number", "Boolean", "Integer", "Null"]);
+const scalars = new Set(["String", "Number", "Boolean", "Integer", "Null", "Void", "Undefined"]);
 
 export function readContract(path: string, source: string): ReadContract {
   const file = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);

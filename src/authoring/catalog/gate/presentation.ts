@@ -3,6 +3,11 @@
 // `{@const R = table[key]}` lookup (D2 owns only the dispatcher's grammar and its spreads). A computed lookup mounts one of
 // the table's pieces: the forbidden list, aria attributes and child content are judged now; judging its plain props needs
 // the entries' closed contracts (a prop passes when every entry declares it) and waits for them.
+// A Component tag must resolve to a direct import, a member of one, or a `{@const}` alias of those (plus a dispatcher's
+// table lookup); anything else that mounts a component (`<svelte:component>`, a script variable, `$derived`, a prop, an
+// each/snippet/await binding, a computed or destructured `{@const}`, a local object member) cannot be checked and escapes.
+// Child content fills the piece's declared `children` slot and a snippet its named slot; each slot takes only the pieces it
+// accepts (raw text and native elements inside it are rule D's).
 import ts from "typescript";
 import type { SyntaxNode } from "../../visual-boundary/walk.ts";
 import type { ReadContract } from "../read-contract.ts";
@@ -73,10 +78,15 @@ function importedName(context: GateContext, path: string, local: string) {
   return name !== undefined && file && !file.endsWith(".svelte") ? { file, name } : undefined;
 }
 
-/** What a tag mounts: one piece's entry file, or one of the pieces of an imported component table (a computed lookup). */
-type Mount = Readonly<{ file: string } | { table: string }> | undefined;
+/** What a tag mounts: one piece's entry file, one of the pieces of an imported component table (a dispatcher's computed
+ * lookup), or a component E cannot see through, named by how it was mounted. Undefined: nothing E judges (a non-piece). */
+type Mount = Readonly<{ file: string } | { table: string } | { through: string }> | undefined;
+/** Names the template binds: a `{@const}` with what it mounts, or a block binding (each, snippet, await, let:). */
 type Scope = ReadonlyMap<string, Mount>;
+/** What a file's tags are resolved against: its imports, its script declarations, its snippets, and whether it dispatches. */
+type FileFacts = Readonly<{ context: GateContext; path: string; script: ReadonlyMap<string, string>; snippets: ReadonlySet<string>; dispatch: boolean }>;
 const fileMount = (file: string | undefined): Mount => file === undefined ? undefined : { file };
+const through = (form: string): Mount => ({ through: form });
 
 /** An imported binding that is not itself a component: a table of components, or a namespace of them. */
 function isComponentTable(context: GateContext, path: string, local: string): boolean {
@@ -84,39 +94,113 @@ function isComponentTable(context: GateContext, path: string, local: string): bo
   return found !== undefined && (found.binding.imported === "*" || !(context.definition(found.item, found.binding.imported) ?? "").endsWith(".svelte"));
 }
 
-/** What `{@const Local = init}` binds: an alias of a tag in scope or imported, a namespace member, or a table lookup. */
-function constMount(context: GateContext, path: string, init: unknown, scope: Scope): Mount {
-  if (field(init, "type") === "Identifier") return mounted(context, path, text(init, "name"), scope);
-  const object = field(init, "object"), property = field(init, "property");
-  if (field(init, "type") !== "MemberExpression" || field(object, "type") !== "Identifier") return undefined;
-  const table = text(object, "name"), computed = field(init, "computed") === true, literal = field(property, "value");
-  if (scope.has(table) || !isComponentTable(context, path, table)) return undefined;
-  const key = computed ? typeof literal === "string" ? literal : undefined : text(property, "name");
-  if (key === undefined) return { table };
-  return fileMount(componentDefinition(context, path, `${table}.${key}`) ?? registryEntry(context, path, table, key));
+/** Every name a binding pattern declares (`H`, `{ a, b: [c] }`, `...rest`, `x = 1`), in the Svelte AST or in TypeScript. */
+function patternNames(pattern: unknown): string[] {
+  switch (field(pattern, "type")) {
+    case "Identifier": return [text(pattern, "name")];
+    case "ObjectPattern": return nodes(pattern, "properties").flatMap(property => patternNames(property.type === "RestElement" ? property : field(property, "value")));
+    case "ArrayPattern": return nodes(pattern, "elements").flatMap(patternNames);
+    case "AssignmentPattern": return patternNames(field(pattern, "left"));
+    case "RestElement": return patternNames(field(pattern, "argument"));
+    default: return [];
+  }
+}
+function bindingNames(name: ts.BindingName): string[] {
+  if (ts.isIdentifier(name)) return [name.text];
+  return name.elements.flatMap(element => ts.isOmittedExpression(element) ? [] : bindingNames(element.name));
 }
 
-/** What a tag mounts: a `{@const}` in scope wins over an import of the same name. */
-function mounted(context: GateContext, path: string, name: string, scope: Scope): Mount {
-  const local = name.split(".")[0] ?? "";
-  if (!scope.has(local)) return fileMount(componentDefinition(context, path, name));
-  return name === local ? scope.get(local) : undefined;
+/** `$props()`, `$derived(...)` / `$derived.by(...)`, or anything else, as a mount form. */
+function declarationForm(initializer: ts.Expression | undefined): string {
+  const callee = initializer && ts.isCallExpression(initializer) ? initializer.expression.getText() : "";
+  return callee === "$props" ? "a prop" : callee === "$derived" || callee === "$derived.by" ? "$derived" : "a script variable";
 }
-/** Every Component tag with what it mounts; `{@const}` names shadow imports inside their block. */
-function componentTags(context: GateContext, path: string, value: unknown, scope: Scope, found: { tag: SyntaxNode; mount: Mount }[]) {
-  if (Array.isArray(value)) { const items: readonly unknown[] = value; for (const item of items) componentTags(context, path, item, scope, found); return; }
-  if (!isNode(value)) return;
-  let inner = scope;
-  const children = nodes(value, "nodes"), consts = children.filter(child => child.type === "ConstTag");
-  if (consts.length) {
-    const next = new Map(scope);
-    for (const constant of consts) for (const declarator of nodes(field(constant, "declaration"), "declarations")) {
-      next.set(text(field(declarator, "id"), "name"), constMount(context, path, field(declarator, "init"), next));
+/** Every name the scripts of a file declare at their top level, with the form a tag mounted through it would have. */
+function scriptDeclarations(parsed: ParsedSvelte): Map<string, string> {
+  const found = new Map<string, string>();
+  for (const { file } of parsed.scripts) for (const statement of file.statements) {
+    if (ts.isVariableStatement(statement)) for (const declaration of statement.declarationList.declarations) {
+      for (const name of bindingNames(declaration.name)) found.set(name, declarationForm(declaration.initializer));
     }
-    inner = next;
+    if ((ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement)) && statement.name) found.set(statement.name.text, "a script variable");
   }
-  if (field(value, "type") === "Component") found.push({ tag: value, mount: mounted(context, path, text(value, "name"), inner) });
-  for (const [key, child] of Object.entries(value)) if (!skippedKeys.has(key)) componentTags(context, path, child, inner, found);
+  return found;
+}
+function snippetNames(value: unknown, found = new Set<string>()): Set<string> {
+  if (Array.isArray(value)) { const items: readonly unknown[] = value; for (const item of items) snippetNames(item, found); return found; }
+  if (!isNode(value)) return found;
+  if (value.type === "SnippetBlock") found.add(text(field(value, "expression"), "name"));
+  for (const [key, child] of Object.entries(value)) if (!skippedKeys.has(key)) snippetNames(child, found);
+  return found;
+}
+
+/** A tag name not bound by the template: a direct import (a component, a namespace member, a static table entry), or a
+ * name E cannot see through (a script declaration, a snippet, an undeclared name). */
+function importedMount(facts: FileFacts, local: string, member: string | undefined): Mount {
+  const { context, path } = facts;
+  if (importOf(context, path, local)) {
+    if (member === undefined) return fileMount(componentDefinition(context, path, local));
+    return fileMount(importedDefinition(context, path, local, member) ?? registryEntry(context, path, local, member));
+  }
+  const declared = facts.script.get(local);
+  if (declared !== undefined) return through(member !== undefined && declared === "a script variable" ? "a local object member" : declared);
+  return through(facts.snippets.has(local) ? "a snippet" : "an undeclared name");
+}
+
+/** What `local` (or its `member`) mounts: a template binding in scope wins over an import of the same name. */
+function mounted(facts: FileFacts, local: string, member: string | undefined, scope: Scope): Mount {
+  if (!scope.has(local)) return importedMount(facts, local, member);
+  const bound = scope.get(local);
+  return member === undefined || bound && "through" in bound ? bound : through("a {@const} namespace alias");
+}
+
+/** What `{@const Local = init}` binds: an alias of a name, a static member, or (in a dispatcher) a table lookup. */
+function constMount(facts: FileFacts, init: unknown, scope: Scope): Mount {
+  if (field(init, "type") === "Identifier") return mounted(facts, text(init, "name"), undefined, scope);
+  const object = field(init, "object"), property = field(init, "property");
+  if (field(init, "type") !== "MemberExpression" || field(object, "type") !== "Identifier") return through("a computed {@const}");
+  const table = text(object, "name"), literal = field(property, "value");
+  const key = field(init, "computed") !== true ? text(property, "name") : typeof literal === "string" ? literal : undefined;
+  if (key !== undefined) return mounted(facts, table, key, scope);
+  const lookup = facts.dispatch && !scope.has(table) && isComponentTable(facts.context, facts.path, table);
+  return lookup ? { table } : through("a computed {@const}");
+}
+
+/** The names a block binds for its children: each items and index, snippet parameters, await values, `let:` directives. */
+function blockBindings(node: SyntaxNode): readonly (readonly [string, string])[] {
+  const named = (form: string, ...patterns: unknown[]) => patterns.flatMap(patternNames).map(name => [name, form] as const);
+  switch (node.type) {
+    case "EachBlock": return [...named("an each binding", field(node, "context")), ...text(node, "index") ? [[text(node, "index"), "an each binding"] as const] : []];
+    case "SnippetBlock": return named("a snippet parameter", ...nodes(node, "parameters"));
+    case "AwaitBlock": return named("an await binding", field(node, "value"), field(node, "error"));
+    default: return nodes(node, "attributes").filter(attribute => attribute.type === "LetDirective")
+      .flatMap(attribute => field(attribute, "expression") ? named("a let: binding", field(attribute, "expression")) : [[text(attribute, "name"), "a let: binding"] as const]);
+  }
+}
+
+/** The scope inside a node: its block bindings, then the `{@const}` tags among its children, in order. */
+function innerScope(facts: FileFacts, value: SyntaxNode, scope: Scope): Scope {
+  const bindings = blockBindings(value), consts = nodes(value, "nodes").filter(child => child.type === "ConstTag");
+  if (!bindings.length && !consts.length) return scope;
+  const next = new Map(scope);
+  for (const [name, form] of bindings) next.set(name, through(form));
+  for (const constant of consts) for (const declarator of nodes(field(constant, "declaration"), "declarations")) {
+    const id = field(declarator, "id");
+    if (field(id, "type") === "Identifier") next.set(text(id, "name"), constMount(facts, field(declarator, "init"), next));
+    else for (const name of patternNames(id)) next.set(name, through("a {@const} destructure"));
+  }
+  return next;
+}
+
+/** Every Component tag (and `<svelte:component>`) with what it mounts. */
+function componentTags(facts: FileFacts, value: unknown, scope: Scope, found: { tag: SyntaxNode; mount: Mount }[]) {
+  if (Array.isArray(value)) { const items: readonly unknown[] = value; for (const item of items) componentTags(facts, item, scope, found); return; }
+  if (!isNode(value)) return;
+  const inner = innerScope(facts, value, scope);
+  const [local = "", member] = text(value, "name").split(".");
+  if (value.type === "Component") found.push({ tag: value, mount: mounted(facts, local, member, inner) });
+  if (value.type === "SvelteComponent") found.push({ tag: value, mount: through("svelte:component") });
+  for (const [key, child] of Object.entries(value)) if (!skippedKeys.has(key)) componentTags(facts, child, inner, found);
 }
 
 /** How an attribute reads in a message, or undefined when it is a plain attribute that only the contract can judge. */
@@ -140,16 +224,19 @@ export function forbiddenAttribute(parsed: ParsedSvelte, attribute: SyntaxNode):
 const declares = (contract: ReadContract, name: string) => contract.closed
   && (name in contract.props || name in contract.events || name.startsWith("on") && name.slice(2) in contract.events);
 
-/** The piece(s) a tag mounts, as the law judges them: `label` names them, `plain` says whether plain props are judged now. */
-type Target = Readonly<{ label: string; contract: ReadContract | undefined; slots: readonly string[]; plain: boolean }>;
+/** The piece(s) a tag mounts, as the law judges them: `label` names them, `slots` maps each declared slot to the piece ids
+ * it accepts, `plain` says whether plain props are judged now. */
+type Target = Readonly<{ label: string; contract: ReadContract | undefined; slots: ReadonlyMap<string, readonly string[]>; plain: boolean }>;
 function pieceTarget(context: GateContext, id: string): Target {
   const declaration = context.owners.declaration(id)?.declaration;
-  const slots = declaration && declaration.kind !== "mechanism" ? Object.keys(declaration.slots ?? {}) : [];
-  return { label: id, contract: context.contract(id), slots, plain: true };
+  const slots = declaration && declaration.kind !== "mechanism" ? Object.entries(declaration.slots ?? {}).map(([name, slot]) => [name, slot.accepts] as const) : [];
+  return { label: id, contract: context.contract(id), slots: new Map(slots), plain: true };
 }
-const tableTarget = (table: string): Target => ({ label: `an entry of ${table}`, contract: undefined, slots: [], plain: false });
+const tableTarget = (table: string): Target => ({ label: `an entry of ${table}`, contract: undefined, slots: new Map(), plain: false });
+/** The piece a Component tag of this file mounts, by its node. */
+type PieceOf = (tag: SyntaxNode) => string | undefined;
 
-function checkTag(path: string, parsed: ParsedSvelte, tag: SyntaxNode, target: Target, skipSpreads: boolean): Violation[] {
+function checkTag(path: string, parsed: ParsedSvelte, tag: SyntaxNode, target: Target, skipSpreads: boolean, pieceOf: PieceOf): Violation[] {
   const found: Violation[] = [], line = parsed.line(tag.start ?? 0), name = text(tag, "name"), { label: id, contract } = target;
   const escape = (what: string) => found.push(violation("PRESENTATION_ESCAPE", path, line, `<${name}> ${what}`));
   const forbid = (attribute: string) => escape(`passes ${attribute}: a piece takes only the plain props its contract declares; contract: ${id}`);
@@ -164,22 +251,43 @@ function checkTag(path: string, parsed: ParsedSvelte, tag: SyntaxNode, target: T
     else if (target.plain) undeclared.push(attributeName);
   }
   if (undeclared.length) escape(`passes ${undeclared.join(", ")}: the contract of ${id} declares no props yet`);
-  checkChildren(tag, target, escape, forbid);
+  checkChildren(tag, target, escape, forbid, pieceOf);
   return found;
 }
 
-/** Element children are content the piece did not declare; only snippets for the piece's declared slots pass. */
-function checkChildren(tag: SyntaxNode, { label: id, slots }: Target, escape: (what: string) => void, forbid: (attribute: string) => void) {
-  let content = false;
+/** The pieces mounted directly in slot content: through elements and blocks, not inside another piece's own content. */
+function slotPieces(value: unknown, pieceOf: PieceOf, found: string[] = []): string[] {
+  if (Array.isArray(value)) { const items: readonly unknown[] = value; for (const item of items) slotPieces(item, pieceOf, found); return found; }
+  if (!isNode(value)) return found;
+  if (value.type === "Component") { const id = pieceOf(value); if (id !== undefined) found.push(id); return found; }
+  for (const [key, child] of Object.entries(value)) if (!skippedKeys.has(key)) slotPieces(child, pieceOf, found);
+  return found;
+}
+
+/** Child content fills the piece's `children` slot and each snippet its named slot; a slot takes only the pieces it accepts.
+ * Raw text and native elements inside a slot are rule D's. Content for a slot the piece does not declare is an escape. */
+function checkChildren(tag: SyntaxNode, { label: id, slots }: Target, escape: (what: string) => void, forbid: (attribute: string) => void, pieceOf: PieceOf) {
+  const accepts = (slot: string, content: unknown) => {
+    const accepted = slots.get(slot) ?? [];
+    for (const child of slotPieces(content, pieceOf)) if (!accepted.includes(child)) escape(`slot ${slot} of ${id} accepts ${accepted.join(", ")}; got ${child}`);
+  };
+  const content: SyntaxNode[] = [];
   for (const child of nodes(field(tag, "fragment"), "nodes")) {
     if (child.type === "Comment" || child.type === "Text" && text(child, "data").trim() === "") continue;
-    if (child.type !== "SnippetBlock") { content = true; continue; }
+    if (child.type !== "SnippetBlock") { content.push(child); continue; }
     const snippet = text(field(child, "expression"), "name");
-    if (snippet === "children") forbid("children");
-    else if (!slots.includes(snippet)) escape(`receives snippet ${snippet}, which ${id} declares no slot for`);
+    if (slots.has(snippet)) accepts(snippet, field(child, "body"));
+    else if (snippet === "children") forbid("children");
+    else escape(`receives snippet ${snippet}, which ${id} declares no slot for`);
   }
-  if (content) escape(`receives child content, which ${id} declares no slot for`);
+  if (!content.length) return;
+  if (slots.has("children")) accepts("children", content);
+  else escape(`receives child content, which ${id} declares no slot for`);
 }
+
+/** A tag E cannot resolve to a piece: whatever it mounts escapes the law. */
+const unchecked = (path: string, parsed: ParsedSvelte, tag: SyntaxNode, form: string) => violation("PRESENTATION_ESCAPE", path, parsed.line(tag.start ?? 0),
+  `<${text(tag, "name")}>: a component mounted through ${form} cannot be checked; import it from the catalog index`);
 
 export const ruleE: ContentRule = context => {
   const found: Violation[] = [];
@@ -188,12 +296,16 @@ export const ruleE: ContentRule = context => {
     const parsed = context.parsed(path);
     if (parsed.kind !== "svelte") continue;
     const tags: { tag: SyntaxNode; mount: Mount }[] = [], owner = context.owners.of(path);
-    const skipSpreads = owner?.kind === "piece" && owner.dispatch;
-    componentTags(context, path, parsed.fragment, new Map(), tags);
+    const dispatch = owner?.kind === "piece" && owner.dispatch, skipSpreads = dispatch;
+    const facts: FileFacts = { context, path, script: scriptDeclarations(parsed), snippets: snippetNames(parsed.fragment), dispatch };
+    componentTags(facts, parsed.fragment, new Map(), tags);
+    const pieces = new Map(tags.map(({ tag, mount }) => [tag, mount && "file" in mount ? context.owners.pieceOfEntry(mount.file) : undefined] as const));
+    const pieceOf: PieceOf = tag => pieces.get(tag);
     for (const { tag, mount } of tags) {
-      const id = mount && "file" in mount ? context.owners.pieceOfEntry(mount.file) : undefined;
+      if (mount && "through" in mount) { found.push(unchecked(path, parsed, tag, mount.through)); continue; }
+      const id = pieceOf(tag);
       const target = mount && "table" in mount ? tableTarget(mount.table) : id === undefined ? undefined : pieceTarget(context, id);
-      if (target) found.push(...checkTag(path, parsed, tag, target, skipSpreads));
+      if (target) found.push(...checkTag(path, parsed, tag, target, skipSpreads, pieceOf));
     }
   }
   return found;

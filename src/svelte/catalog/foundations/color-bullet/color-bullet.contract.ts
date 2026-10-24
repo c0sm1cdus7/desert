@@ -1,2 +1,6 @@
-// Stub contract of ColorBullet.svelte: its props and events are declared when the piece is migrated (slices 2-4).
-export const ColorBulletContract = {} as const;
+// The props of ColorBullet: the name of a label's color. Six names have their own paint; any other reads as muted.
+import { Type } from "@sinclair/typebox";
+
+export const ColorBulletContract = {
+  props: Type.Object({ color: Type.String() }, { additionalProperties: false }),
+} as const;

@@ -1,11 +1,12 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// ArtworkPlaceholder: the glyph that stands in for missing media artwork, a note for audio and a film strip for video.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { ArtworkPlaceholderContract } from "./artwork-placeholder.contract.ts";
 
 export const ArtworkPlaceholder = defineFoundation({
   id: "artwork-placeholder",
-  purpose: "Declared as found at the start of the migration: ArtworkPlaceholder.svelte.",
+  purpose: "Stand in for the missing cover artwork of audio or poster of video with the glyph of its media kind.",
   owner: { entry: "ArtworkPlaceholder.svelte" },
-  shape: "none", states: ["default"], approval: "required", contract: ArtworkPlaceholderContract,
+  shape: "none", states: ["default"],
+  variants: { kind: ["video", "audio"] },
+  approval: "required", contract: ArtworkPlaceholderContract,
 } as const);

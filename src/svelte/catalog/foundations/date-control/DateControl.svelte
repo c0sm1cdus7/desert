@@ -10,8 +10,8 @@
   import { MeasuredField } from "../../index.ts";
   import { PickerSheet } from "../../index.ts";
   import { PickerPresentation } from "../../../infra/picker-presentation.svelte.ts";
-  import type { ControlProps } from "../../../renderer-contracts.ts";
-  let { node, onevent }: ControlProps<"date"> = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { node, onevent }: CatalogProps<"date-control"> = $props();
   // Six week rows plus month controls, field and collision margins must fit.
   const id = $props.id(), picker = new PickerPresentation({ panelRem: 20, minimumBlockRem: 28 });
   const format = new DateFormatter("en-US", { dateStyle: "medium" });
@@ -45,12 +45,12 @@
   });
   function change(value: DateValue | undefined) {
     if (!value || node.disabled) return;
-    if (value.toString() !== node.value) onevent({ kind: "date.change", control: node.id, value: value.toString() });
+    if (value.toString() !== node.value) onevent?.({ kind: "date.change", control: node.id, value: value.toString() });
     open = false;
   }
   function clear() {
     if (node.disabled || node.required) return;
-    onevent({ kind: "date.change", control: node.id, value: null });
+    onevent?.({ kind: "date.change", control: node.id, value: null });
     open = false;
   }
 </script>

@@ -29,7 +29,7 @@ test("E control: contract props and events pass, on a closed contract", () => {
 });
 
 test("E control: tags of non-pieces are not rule E's business", () => {
-  const files = { ...heading(), ...pageWith("<Local class=\"x\" />\n{#snippet Local()}{/snippet}"),
+  const files = { ...heading(), ...pageWith('<Dialog.Root class="x" />', 'import { Dialog } from "bits-ui";'),
     "src/svelte/vendor/components/ui/button/button.svelte": "<button></button>\n",
     ...foundation("action", "Action.svelte", '<script lang="ts">\n  import B from "../../../vendor/components/ui/button/button.svelte";\n</script>\n<B class="x" />\n',
       ', vendor: ["button"]') };
@@ -112,7 +112,8 @@ test("E: a piece mounted through {@const} over an imported component table is he
     + "{#if b}{@const Renderer = table.plain}<Renderer kind=\"page\" text=\"x\" />{/if}\n<Renderer class=\"outside its block\" />\n",
     ', dispatch: "resolved-node"', "src/svelte/catalog/renderer");
   assert.deepEqual(run({ ...heading(), ...registry, ...renderer }),
-    [escape("<Renderer> passes elementProps: a piece takes only the plain props its contract declares; contract: heading", "src/svelte/catalog/renderer/node-view/NodeView.svelte")]);
+    [escape("<Renderer> passes elementProps: a piece takes only the plain props its contract declares; contract: heading", "src/svelte/catalog/renderer/node-view/NodeView.svelte"),
+      escape("<Renderer>: a component mounted through an undeclared name cannot be checked; import it from the catalog index", "src/svelte/catalog/renderer/node-view/NodeView.svelte")]);
 });
 
 const lookupOwner = (attribute: string) =>
@@ -145,4 +146,74 @@ test("E: a {@const} alias of an imported piece, a namespace member or another al
   assert.deepEqual(run({ ...heading(), ...barrel, ...card('{#if true}{@const H = Catalog.Heading}<H kind="page" text="x" class="x" style="y" />{/if}',
     'import * as Catalog from "../../index.ts";') }), expected("H"));
   assert.deepEqual(run({ ...heading(), ...card('{#if true}{@const H = Heading}{#if true}{@const T = H}<T kind="page" text="x" class="x" style="y" />{/if}{/if}') }), expected("T"));
+});
+
+const cardPath = "src/svelte/catalog/foundations/card/Card.svelte";
+const cardWith = (markup: string, script = "") =>
+  foundation("card", "Card.svelte", `<script lang="ts">\n  ${directImport}\n  import * as Catalog from "../../index.ts";\n  import { table } from "../../../renderer-registry.ts";\n  ${script}\n</script>\n${markup}\n`);
+const unchecked = (tag: string, form: string, path = cardPath) =>
+  escape(`<${tag}>: a component mounted through ${form} cannot be checked; import it from the catalog index`, path);
+const aliasTree = (markup: string, script = "") => ({ ...heading(), ...cardWith(markup, script),
+  "src/svelte/catalog/index.ts": 'export { default as Heading } from "./foundations/heading/Heading.svelte";\n',
+  "src/svelte/renderer-registry.ts": 'import Heading from "./catalog/foundations/heading/Heading.svelte";\nexport const table = Object.freeze({ a: Heading });\n' });
+
+const computedMounts: readonly (readonly [string, string, string, string?])[] = [
+  ["an each binding", "H", '{#each [Heading] as H}<H kind="page" class="x" style="y" />{/each}'],
+  ["an each binding", "Heading", '{#each items as Heading}<Heading class="x" />{/each}'],
+  ["a script variable", "H2", '<H2 kind="page" class="x" />', "const H2 = Heading;"],
+  ["$derived", "H3", '<H3 class="x" />', "let H3 = $derived(Heading);"],
+  ["svelte:component", "svelte:component", '<svelte:component this={Heading} class="x" />'],
+  ["a snippet parameter", "C", '{#snippet row(C)}<C class="x" />{/snippet}'],
+  ["a snippet", "Local", '<Local class="x" />\n{#snippet Local()}{/snippet}'],
+  ["an await binding", "H", '{#await load then H}<H class="x" />{/await}'],
+  ["a computed {@const}", "C", '{#if true}{@const C = flag ? Heading : Heading}<C class="x" />{/if}'],
+  ["a computed {@const}", "R", '{#if true}{@const R = table[key]}<R class="x" />{/if}'],
+  ["a {@const} destructure", "H", '{#if true}{@const { H } = { H: Heading }}<H class="x" />{/if}'],
+  ["a {@const} namespace alias", "C.Heading", '{#if true}{@const C = Catalog}<C.Heading class="x" />{/if}'],
+  ["a local object member", "tb.a", '<tb.a class="x" />', "const tb = { a: Heading };"],
+  ["a prop", "Icon", '<Icon class="x" />', "let { Icon } = $props();"],
+  ["a script variable", "H", '{#if true}{@const H = H4}<H class="x" />{/if}', "const H4 = Heading;"],
+];
+for (const [form, tag, markup, script] of computedMounts) {
+  test(`E: in a foundation, a component mounted through ${form} (${markup}) is refused`, () => {
+    assert.deepEqual(run(aliasTree(markup, script)), [unchecked(tag, form)]);
+  });
+}
+
+test("E: the direct forms stay legal in a foundation: an import, a namespace member, a {@const} alias, a static table entry", () => {
+  const legal = '{#if true}{@const H = Heading}{@const T = Catalog.Heading}{@const E = table.a}<H kind="page" class="x" /><T class="x" /><E class="x" />{/if}'
+    + '<Heading class="x" /><Catalog.Heading class="x" />';
+  const forbiddenClass = (tag: string) => escape(`<${tag}> passes class: a piece takes only the plain props its contract declares; contract: heading`, cardPath);
+  assert.deepEqual(run(aliasTree(legal)), ["H", "T", "E", "Heading", "Catalog.Heading"].map(forbiddenClass));
+});
+
+test("E: a dispatcher's computed lookup into an imported table stays a table mount, not an unchecked one", () => {
+  const registry = 'import Heading from "./catalog/foundations/heading/Heading.svelte";\nexport const table = Object.freeze({ a: Heading });\n';
+  assert.deepEqual(run(lookupView('{@const Renderer = table[node.kind]}<Renderer kind="page" />', registry)), []);
+});
+
+const listFolder = "src/svelte/catalog/foundations/list";
+const list = (slots = '{ children: { accepts: ["heading"] } }') => {
+  const files = foundation("list", "List.svelte", "<script lang=\"ts\">let { children } = $props();</script>\n{@render children?.()}\n");
+  const declaration = `${listFolder}/list.catalog.ts`;
+  return { ...files, [declaration]: (files[declaration] ?? "").replace("approval:", `slots: ${slots}, approval:`) };
+};
+const card = foundation("card", "Card.svelte", "<div></div>\n");
+const listImports = `${directImport}\n  import List from "../../foundations/list/List.svelte";\n  import Card from "../../foundations/card/Card.svelte";`;
+const slotTree = (markup: string, slots?: string) => ({ ...heading(), ...withSlot(heading()), ...list(slots), ...card, ...pageWith(markup, listImports) });
+
+test("E: child content is legal when the piece declares a children slot, and its pieces are the slot's accepted ids", () => {
+  assert.deepEqual(run(slotTree('<List><Heading kind="page" text="x" /><p>raw text is rule D\'s</p></List>')), []);
+  assert.deepEqual(run(slotTree('<List>{#snippet children()}<Heading kind="page" text="x" />{/snippet}</List>')), []);
+  assert.deepEqual(run(slotTree('<Heading kind="page" text="x">{#snippet accessory()}<Heading kind="page" text="y" />{/snippet}</Heading>')), []);
+});
+
+test("E: a piece the slot does not accept is rejected, through elements and blocks, in children and in named slots", () => {
+  assert.deepEqual(run(slotTree('<List><Card /><div>{#if a}<Card />{/if}</div></List>')), [
+    escape("<List> slot children of list accepts heading; got card"), escape("<List> slot children of list accepts heading; got card")]);
+  assert.deepEqual(run(slotTree('<List>{#snippet children()}<Card />{/snippet}</List>')), [escape("<List> slot children of list accepts heading; got card")]);
+  assert.deepEqual(run(slotTree('<Heading kind="page" text="x">{#snippet accessory()}<Card />{/snippet}</Heading>')),
+    [escape("<Heading> slot accessory of heading accepts heading; got card")]);
+  assert.deepEqual(run(slotTree('<List><Heading kind="page" text="x"><Card /></Heading></List>')),
+    [escape("<Heading> receives child content, which heading declares no slot for")]);
 });

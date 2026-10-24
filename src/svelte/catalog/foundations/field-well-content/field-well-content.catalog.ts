@@ -1,11 +1,12 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// FieldWellContent: the persistent label of a field well above its editor or value; a real <label> when it names an editor.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { FieldWellContentContract } from "./field-well-content.contract.ts";
 
 export const FieldWellContent = defineFoundation({
   id: "field-well-content",
-  purpose: "Declared as found at the start of the migration: FieldWellContent.svelte.",
+  purpose: "Keep a field's label persistently above its editor or value, as a label for the editor or as text inside a button.",
   owner: { entry: "FieldWellContent.svelte" },
-  shape: "none", states: ["default"], approval: "required", contract: FieldWellContentContract,
+  shape: "none", states: ["for-editor", "in-button"],
+  slots: { children: { accepts: ["masked-input", "text-input", "reference-values"] } },
+  approval: "required", contract: FieldWellContentContract,
 } as const);

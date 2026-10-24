@@ -1,9 +1,8 @@
 <script lang="ts">
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import CircleX from "@lucide/svelte/icons/circle-x";
-  let { control, value, label, disabled = false }: {
-    control: string; value: string; label: string; disabled?: boolean;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { control, value, label, disabled = false }: CatalogProps<"clear-input"> = $props();
 
   function clear() {
     const input = document.getElementById(control);

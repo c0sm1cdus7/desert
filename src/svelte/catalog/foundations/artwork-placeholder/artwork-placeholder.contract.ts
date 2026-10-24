@@ -1,2 +1,8 @@
-// Stub contract of ArtworkPlaceholder.svelte: its props and events are declared when the piece is migrated (slices 2-4).
-export const ArtworkPlaceholderContract = {} as const;
+// The props of ArtworkPlaceholder: the kind of media whose cover artwork or poster is missing.
+import { Type } from "@sinclair/typebox";
+
+export const ArtworkPlaceholderContract = {
+  props: Type.Object({
+    kind: Type.Union([Type.Literal("video"), Type.Literal("audio")]),
+  }, { additionalProperties: false }),
+} as const;

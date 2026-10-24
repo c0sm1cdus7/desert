@@ -1,11 +1,11 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// PickerSheet: the bottom sheet that presents a picker (a calendar, a list of choices) on a narrow screen, with a grip,
+// a close toolbar unless its content brings its own, and focus returned to the trigger. Its contract stays a stub.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { PickerSheetContract } from "./picker-sheet.contract.ts";
 
 export const PickerSheet = defineFoundation({
   id: "picker-sheet",
-  purpose: "Declared as found at the start of the migration: PickerSheet.svelte.",
+  purpose: "Present a picker as a bottom sheet with a grip and a close toolbar, returning focus to its trigger on dismissal.",
   owner: { entry: "PickerSheet.svelte" },
-  shape: "none", states: ["default"], approval: "required", contract: PickerSheetContract,
+  shape: "none", states: ["default", "content-toolbar"], approval: "required", contract: PickerSheetContract,
 } as const);

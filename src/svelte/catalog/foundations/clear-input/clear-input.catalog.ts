@@ -1,11 +1,11 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// ClearInput: the trailing button of a text field that empties its control through the editor's own edit pipeline.
+// It renders nothing while the control is empty.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { ClearInputContract } from "./clear-input.contract.ts";
 
 export const ClearInput = defineFoundation({
   id: "clear-input",
-  purpose: "Declared as found at the start of the migration: ClearInput.svelte.",
+  purpose: "Empty a text control in one press, keeping its masks and undo history, shown only while it holds a value.",
   owner: { entry: "ClearInput.svelte" },
-  shape: "none", states: ["default"], approval: "required", contract: ClearInputContract,
+  shape: "none", states: ["empty", "value", "disabled"], approval: "required", contract: ClearInputContract,
 } as const);
