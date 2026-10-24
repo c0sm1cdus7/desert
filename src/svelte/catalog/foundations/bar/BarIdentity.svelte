@@ -11,7 +11,7 @@
   {#if continuation}
     <span class="toolbar-title type-section truncate" data-toolbar-title data-identity-title>{title}</span>
   {:else if role === "dialog" || role === "message"}
-    <!-- F1-merge: modal names its dialog by `label` (F1d); the bar title is no longer the bits Dialog.Title. -->
+    <!-- A dialog's or message's title: the modal names its dialog by its own label, so this is a plain heading. -->
     <h2 class="type-section toolbar-title" data-toolbar-title>{title}</h2>
   {:else}
     <h2 class="toolbar-title type-section" data-toolbar-title {title}>{title}</h2>

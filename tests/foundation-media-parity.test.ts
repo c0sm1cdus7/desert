@@ -7,6 +7,8 @@ import type { Page } from "playwright";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { measureProbes, renderCases, settle, type Probes } from "./fixtures/parity.ts";
+import { resolve } from "node:path";
+import { placeHeadingBefore } from "./fixtures/place-heading-before.ts";
 
 const photo = (fill: string) => `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect width='800' height='600' fill='%23${fill}'/%3E%3C/svg%3E`;
 const images = `[{ kind: "image", source: "${photo("468")}", alt: "Lake" }, { kind: "image", source: "${photo("864")}", alt: "Dunes" }]`;
@@ -27,7 +29,8 @@ const viewer = (items: string, foundation: boolean) => `<script lang="ts">
 </script>
 ${foundation ? `<MediaViewer {items} title="Studio" index={0} open />` : `<Viewer {items} title="Studio" index={0} open onreturn={() => {}} />`}`;
 const viewerProbes = (foundation: boolean, playable: boolean): Probes => ({ viewer: {
-  dialog: "[data-media-viewer]", top: '[data-media-viewer] > [data-toolbar="top"]',
+  // The dialog surface the viewer drew is the media Modal's surface now; the viewer's own mark is its content.
+  dialog: foundation ? '[data-modal="media"]' : "[data-media-viewer]", top: '[data-media-viewer] > [data-toolbar="top"]',
   ...playable ? {} : { stage: "[data-media-stage]", image: "[data-media-stage] [data-media-image]" },
   thumbs: "[data-media-thumbs]", thumb: "[data-media-thumbs] button", band: foundation ? (playable ? "[data-media-band]" : ".viewer-band") : '[data-toolbar="bottom"]',
   ...playable ? { video: "video", seek: '[role="slider"][aria-label="Playback position"]', volume: '[role="slider"][aria-label="Volume"]' } : {},
@@ -68,7 +71,7 @@ const hosts = (foundation: boolean) => `<script lang="ts">
   import CatalogDetail from "@desert/svelte/catalog/compositions/catalog-detail/CatalogDetail.svelte";
   import Gallery from "@desert/svelte/catalog/foundations/gallery/Gallery.svelte";
   import MediaPlayer from "@desert/svelte/catalog/foundations/media-player/MediaPlayer.svelte";
-  import PlaceHeading from "@desert/svelte/catalog/compositions/place-heading/PlaceHeading.svelte";
+  import PlaceHeading from "./src/svelte/catalog/compositions/place-header/PlaceHeadingBefore.svelte";
   import Heading from "@desert/svelte/catalog/foundations/heading/Heading.svelte";
 </script>
 <main data-renderer-profile="apple-reference" style="display:grid;gap:24px;width:640px;padding:16px">
@@ -97,12 +100,15 @@ const galleryProbes: Probes = {
   header: { heading: "[data-place-header]", gallery: "[data-photo-collection]", open: "[data-media-open]", dots: "[data-media-dots]",
     dot: "[data-media-dots] button", copy: ".place-heading-copy" },
 };
+/** The place-heading composition became a foundation (F1f): the old side mounts its frozen copy (as
+ * tests/place-heading-foundation.test.ts does), beside the place-header folder that still exists at the same depth. */
+const oldPlaceHeading = { [resolve(import.meta.dirname, "../src/svelte/catalog/compositions/place-header/PlaceHeadingBefore.svelte")]: placeHeadingBefore };
 const playerBoxes: Probes = { "object-video": { video: "video", play: 'button[aria-label="Play"]', mute: 'button[aria-label="Mute"]',
   seek: '[role="slider"][aria-label="Playback position"]', volume: '[role="slider"][aria-label="Volume"]' } };
 
 test("gallery and media-player keep the photo collection's and the media object's pixels in their hosts", { timeout: 60000 }, async () => {
   const css = await rendererCss();
-  const [was, is] = [await renderCases(hosts(false), {}, css), await renderCases(hosts(true), {}, css)];
+  const [was, is] = [await renderCases(hosts(false), oldPlaceHeading, css), await renderCases(hosts(true), oldPlaceHeading, css)];
   try {
     await squareIcons(is.page);
     for (const f of [was, is]) {

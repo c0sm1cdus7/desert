@@ -3,7 +3,7 @@
   // toolbar close it; focus returns to the trigger that opened it (provided by the popover through surface-focus).
   import type { Snippet } from "svelte";
   import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
-  import { Toolbar } from "../../index.ts";
+  import { Bar } from "../../index.ts";
   import { toolbarAction } from "../../../../interaction/toolbar.ts";
   import { PICKER_PANEL_REM } from "../../../infra/picker-measure.ts";
   import { surfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
@@ -35,9 +35,8 @@
     onInteractOutside={event => { event.preventDefault(); dismiss(); }}>
     <DrawerGrip {motion} {locked} />
     <Dialog.Title class="sr-only">{label}</Dialog.Title>
-    <!-- F1-merge: Bar(top, identity label, leading close) replaces the Toolbar composition. -->
-    <Toolbar toolbar={{ edge: "top", title: label, leading: toolbarAction({ kind: "close" }, `Close ${label}`, "close", !locked) }}
-      invoke={dismiss} />
+    <Bar edge="top" purpose="commands" identity={{ title: label }} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false}
+      leading={toolbarAction({ kind: "close" }, `Close ${label}`, "close", !locked)} oninvoke={dismiss} />
     <!-- The picker brings its own insets: a calendar frames its header, a list insets its rows. -->
     <div class="flex min-h-0 flex-col overflow-auto @container" data-picker-content>{@render children?.()}</div>
   </Dialog.Content>

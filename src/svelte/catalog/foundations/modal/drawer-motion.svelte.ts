@@ -1,6 +1,6 @@
 // The drag of a modal's edge: direct manipulation until release, dismissing past the threshold (a modal part).
 import { untrack } from "svelte";
-import { swipeMotion } from "../../../infra/swipe-motion.svelte.ts";
+import { swipeMotion } from "../../mechanisms/swipe-motion/swipe-motion.svelte.ts";
 
 export function drawerMotion(close: () => void, locked: () => boolean, edge: () => "bottom" | "right") {
   const motion = swipeMotion({ edge, enabled: () => !locked(), commit: close });

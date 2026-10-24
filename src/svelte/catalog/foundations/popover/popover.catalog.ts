@@ -14,8 +14,8 @@ export const Popover = defineFoundation({
   },
   shape: "radius", states: ["closed", "open", "disabled", "locked"],
   variants: { content: ["information", "form", "list", "menu"] },
-  // F1-merge: accepts gains "list" (lane F1e). "action" is the command beside each label of a menu (design §1.3 menu).
-  slots: { children: { accepts: ["frame-body", "column", "choice", "form", "stack-layout", "text", "status", "loading", "inline", "tag",
-    "action"] } },
+  // "action" is the command beside each label of a menu (design §1.3 menu).
+  slots: { children: { accepts: ["frame-body", "column", "choice", "form", "stack-layout", "text", "status", "loading", "list", "inline",
+    "tag", "action"] } },
   approval: "required", contract: PopoverContract,
 } as const);

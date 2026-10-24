@@ -2142,9 +2142,6 @@
           "Transport.svelte",
           "Seek.svelte",
           "Volume.svelte"
-        ],
-        "vendor": [
-          "slider"
         ]
       },
       "purpose": "Play a video or audio item with its transport, seek and volume controls, showing artwork for audio and a retry when unavailable.",
@@ -2207,7 +2204,8 @@
       "owner": {
         "entry": "MediaViewer.svelte",
         "mechanisms": [
-          "media-gestures"
+          "media-gestures",
+          "surface-focus"
         ],
         "parts": [
           "MediaStrip.svelte"
@@ -2273,7 +2271,8 @@
         "entry": "Modal.svelte",
         "mechanisms": [
           "surface-focus",
-          "surface-host"
+          "surface-host",
+          "swipe-motion"
         ],
         "parts": [
           "ModalPane.svelte",
@@ -2300,7 +2299,11 @@
             "face",
             "heading",
             "text",
-            "inline"
+            "inline",
+            "bar",
+            "image",
+            "media-player",
+            "toolbar-layout"
           ]
         }
       },
@@ -2580,6 +2583,7 @@
             "text",
             "status",
             "loading",
+            "list",
             "inline",
             "tag",
             "action"

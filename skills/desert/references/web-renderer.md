@@ -6564,12 +6564,12 @@ Source SHA-256: 3cf6727d8151d4e3edcd57fb731431a203bdcf91828f711f43a2e315aed36599
 
 ## src/svelte/catalog/foundations/modal/drawer-motion.svelte.ts
 
-Source SHA-256: fcf3f971ac1cc3be7d5d9f088d6437f825353353d0ea5f4cfac1945d405d0986
+Source SHA-256: 8c68b871f6267f78f8acd60dec7a4decc53ec0d6ebc6ff4834c15dad863e2214
 
 ```ts
 // The drag of a modal's edge: direct manipulation until release, dismissing past the threshold (a modal part).
 import { untrack } from "svelte";
-import { swipeMotion } from "../../../infra/swipe-motion.svelte.ts";
+import { swipeMotion } from "../../mechanisms/swipe-motion/swipe-motion.svelte.ts";
 
 export function drawerMotion(close: () => void, locked: () => boolean, edge: () => "bottom" | "right") {
   const motion = swipeMotion({ edge, enabled: () => !locked(), commit: close });

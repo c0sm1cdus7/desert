@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Action, Availability, Face, SpeedDial } from "../../index.ts";
+  import { Action, Availability, Face, Menu } from "../../index.ts";
   import { intentKey } from "../../../../interaction/intent.ts";
   import type { BarCommand } from "../../../infra/bar-command.ts";
   import type { CatalogProps } from "../../types.d.ts";
@@ -53,15 +53,16 @@
     {#if identity}<BarIdentity title={identity.title} subtitle={identity.subtitle} role={identityRole} />{/if}
     {#if rail && (trailing.length || primary)}
       <div bind:this={utilities} class="ml-auto flex min-w-0 shrink-0" data-toolbar-utilities>
-        <!-- F1-merge: Menu (F1d) replaces the speed-dial composition for the create group and the overflow. -->
         {#if group && trailing.length}<div class="toolbar-action" data-toolbar-create>
-          <SpeedDial kind="create" actions={trailing} open={groupedOpen} onchange={open => groupedOpen = open} invoke={intent => oninvoke?.(intent)} />
+          <Menu label="Create" icon="create" actions={trailing} open={groupedOpen} align="end"
+            onopenchange={open => groupedOpen = open} oninvoke={intent => oninvoke?.(intent)} />
         </div>{:else}
           {#each trailing.slice(0, commands.visibleCount) as value (intentKey(value.intent))}
             <div class="toolbar-action" data-toolbar-command={intentKey(value.intent)}>{@render command(value, "secondary", "icon")}</div>
           {/each}
           {#if commands.overflow.length}<div class="toolbar-action" data-toolbar-overflow>
-            <SpeedDial actions={commands.overflow} open={commands.open} onchange={commands.change} invoke={intent => oninvoke?.(intent)} />
+            <Menu label="More actions" icon="more" actions={commands.overflow} open={commands.open} align="end"
+              onopenchange={commands.change} oninvoke={intent => oninvoke?.(intent)} />
           </div>{/if}
         {/if}
         {#if primary}<div class="toolbar-action" data-toolbar-primary data-toolbar-command={intentKey(primary.intent)}>

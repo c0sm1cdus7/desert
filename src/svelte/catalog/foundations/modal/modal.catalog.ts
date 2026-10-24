@@ -11,10 +11,13 @@ export const Modal = defineFoundation({
     entry: "Modal.svelte",
     parts: ["ModalPane.svelte", "ModalSheet.svelte", "ModalDialog.svelte", "DrawerGrip.svelte", "drawer-motion.svelte.ts",
       "frame-continuity.svelte.ts", "adaptive-modality.svelte.ts", "adaptive-surface-layout.ts", "modal.css"],
-    vendor: ["dialog"], mechanisms: ["surface-focus", "surface-host"],
+    vendor: ["dialog"], mechanisms: ["surface-focus", "surface-host", "swipe-motion"],
   },
   shape: "radius", states: ["open", "locked"],
   variants: { presentation: ["adaptive", "transient", "sheet", "message", "media", "navigation"] },
-  slots: { children: { accepts: ["surface-frame", "instance-frame", "face", "heading", "text", "inline"] } },
+  // The media stage holds what media-viewer mounts in it (design §1.5): its image or player, and its top bar.
+  // F1-merge: "toolbar-layout" leaves once the viewer's top bar is Bar (Bar's commands cannot carry zoom yet).
+  slots: { children: { accepts: ["surface-frame", "instance-frame", "face", "heading", "text", "inline", "bar", "image", "media-player",
+    "toolbar-layout"] } },
   approval: "required", contract: ModalContract,
 } as const);
