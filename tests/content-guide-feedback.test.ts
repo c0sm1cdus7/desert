@@ -15,7 +15,7 @@ test('standalone media content shares its specimen reading guide',async()=>{
   }));
   assert.equal(offsets.length,3,'each component presents only its selected state');
   for(const value of offsets) assert.equal(value.content,value.label);
-  const notice=await f.page.getByRole('group',{name:'Interaction',exact:true}).getByRole('status').locator('p').evaluate(e=>e.getBoundingClientRect().left+parseFloat(getComputedStyle(e).paddingLeft));
+  const notice=await f.page.getByRole('group',{name:'Interaction',exact:true}).getByRole('status').evaluate(e=>e.getBoundingClientRect().left+parseFloat(getComputedStyle(e).paddingLeft));
   assert.equal(notice,offsets[0]!.label);
  } finally {await f.close();}
 });

@@ -155,7 +155,8 @@ test('inspection entry lookup stays within its own catalog instance',async()=>{
     import {inspectionCatalog} from '@desert/svelte/catalog/compositions/inspection/inspection-fixture.ts';
     let mounted=$state(false),second,result=$state('');
   </script><button onclick={()=>mounted=true}>Mount fixture</button>
-  <button onclick={async()=>{const target=await second.revealEntry('control.tag');result=target?.closest('[data-test-bank]')?.getAttribute('data-test-bank')??'missing';}}>Reveal second Tag</button>
+  <button onclick={async()=>{const revealed=await second.revealEntry('control.tag');
+    result=revealed?document.activeElement?.closest('[data-test-bank]')?.getAttribute('data-test-bank')??'missing':'missing';}}>Reveal second Tag</button>
   <output>{result}</output>{#if mounted}
     <div data-test-bank="first"><Bank surface={inspectionCatalog} oncatalog={()=>{}}/></div>
     <div data-test-bank="second"><Bank bind:this={second} surface={inspectionCatalog} oncatalog={()=>{}}/></div>
