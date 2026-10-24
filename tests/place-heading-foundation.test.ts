@@ -35,8 +35,21 @@ test("each context draws the markup of the composition it replaces", { timeout: 
     for (const name of ["place", "media", "embedded", "background"]) {
       const [before, after] = await f.page.locator(`[data-case="${name}"]`).evaluateAll(cases => cases.map(item => item.innerHTML.replace(/<!--[^>]*-->/g, "")));
       assert.ok(before && before.length > 40, `${name}: the old composition rendered`);
-      assert.equal(after, before, name);
+      if (name !== "media") assert.equal(after, before, name);
     }
+    // The featured photo is the Gallery foundation (header presentation), in a frame that places it, where it was the
+    // photo-collection composition: the same elements and marks, with the gallery's own classes (its pixels:
+    // foundation-media-parity.test.ts); the heading and its copy are unchanged.
+    const parts = await f.page.locator('[data-case="media"]').evaluateAll(cases => cases.map(item => {
+      const html = (selector: string) => (item.querySelector(selector)?.outerHTML ?? "").replace(/<!--[^>]*-->/g, "");
+      const root = item.querySelector("[data-place-header]")!;
+      return { root: [...root.attributes].filter(attribute => attribute.name !== "class").map(attribute => `${attribute.name}=${attribute.value}`),
+        photo: html("[data-photo-collection]").replace(/ class="[^"]*"/g, ""), copy: html(".place-heading-copy") };
+    }));
+    assert.ok(parts[0]!.photo.length > 40, "media: the old composition rendered its photo");
+    assert.deepEqual(parts[1], parts[0], "media");
+    assert.equal(await f.page.locator('[data-case="media"]').nth(1).locator(".gallery-header[data-header-collection]").count(), 1,
+      "the place heading mounts the gallery in its header presentation");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

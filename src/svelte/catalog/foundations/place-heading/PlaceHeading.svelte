@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { Heading } from "../../index.ts";
-  import { PhotoCollection } from "../../index.ts";
-  import { catalogPhotos } from "../../../infra/media-source.ts";
+  import { Gallery, Heading, MediaPlayer } from "../../index.ts";
+  import { catalogPhotos, mediaSource } from "../../../infra/media-source.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { title, subtitle, media, context, background }: CatalogProps<"place-heading"> = $props();
   let failed = $state(false);
@@ -10,19 +9,22 @@
 
 {#if context === "place"}
 <!-- The sole semantic page heading stays mounted; chrome mirrors only identity. -->
-<div class="place-heading-content" data-place-header data-featured-media={media?.kind} data-media-unavailable={failed}>
+<!-- A gallery of several photos pages with dots under the copy (data-paged-media). -->
+<div class="place-heading-content" data-place-header data-featured-media={media?.kind} data-media-unavailable={failed}
+  data-paged-media={(media?.kind === 'gallery' && media.images.length > 1) || undefined}>
   {#if media && !failed}
     {#if media.kind === 'image' || media.kind === 'gallery'}
       {@const photos = catalogPhotos(media.kind === 'gallery' ? media.images : [media])}
       {#key photos.map(photo=>photo.source).join('|')}
-        <!-- F1-merge: Gallery (presentation "header", F1e) replaces the photo-collection composition. -->
-        <PhotoCollection {photos} {title} header />
+        <div class="place-heading-gallery"><Gallery {photos} {title} presentation="header" fit="fill" aspect="fill" /></div>
       {/key}
     {:else}
-      <!-- F1-merge: MediaPlayer (presentation "header", F1e) replaces native controls (DESIGN §7 item 6). -->
-      <video data-header-media src={`/media/${encodeURIComponent(media.asset)}`}
-        poster={media.poster ? `/media/${encodeURIComponent(media.poster)}` : undefined}
-        aria-label={media.alt} muted playsinline controls preload="metadata" onerror={() => failed = true}></video>
+      <!-- The video plays with the player's header controls (DESIGN §7 item 6), under the heading's shade. -->
+      <div class="place-heading-media" data-header-media>
+        <MediaPlayer item={{ kind: "video", source: mediaSource(media.asset), alt: media.alt, captions: [],
+          ...(media.poster ? { artwork: { source: mediaSource(media.poster), alt: media.alt } } : {}) }}
+          presentation="header" onunavailable={() => failed = true} />
+      </div>
     {/if}
   {/if}
   <div class="place-heading-copy" data-dock-above>

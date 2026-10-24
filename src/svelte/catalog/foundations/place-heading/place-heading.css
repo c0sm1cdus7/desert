@@ -9,18 +9,17 @@
 .place-heading-copy [data-place-title] { outline:none; }
 .place-heading-copy [data-place-subtitle] { color:var(--muted-foreground); max-width:65ch; }
 .place-heading-content[data-featured-media] { display:flex; align-items:flex-end; min-height:min(65dvh,36rem); padding-bottom:32px; }
-[data-header-media] { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2; }
+/* The video and its controls sit under the shade, as the native video did; the copy leaves room for the controls. */
+.place-heading-media { position:absolute; inset:0; z-index:-2; }
 .place-heading-content[data-featured-media]:not([data-media-unavailable="true"])::before { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background:linear-gradient(transparent 35%,var(--catalog-image-shade)); }
 .place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) .place-heading-copy,
 .place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) [data-place-subtitle] { color:var(--catalog-image-foreground); text-shadow:0 1px 4px var(--catalog-image-shade); }
 .place-heading-content[data-featured-media="video"] { padding-bottom:64px; }
-.place-heading-content > [data-header-collection] { position:absolute; inset:0; z-index:0; }
-.place-heading-content[data-featured-media]:has([data-header-collection])::before { content:none; }
-[data-header-collection]::before { content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(transparent 35%,var(--catalog-image-shade)); }
-[data-header-collection] > [data-media-open] { z-index:2; }
-.place-heading-content:has([data-header-collection]) .place-heading-copy { position:relative; z-index:2; pointer-events:none; }
-.place-heading-content:has([data-media-dots]) .place-heading-copy { padding-bottom:32px; }
-[data-header-collection] [data-media-dots] { left:calc(50% + var(--place-leading-inset,0px)/2); }
+/* A featured photo is the gallery, filling the heading under the copy; the gallery draws its own shade. */
+.place-heading-gallery { position:absolute; inset:0; z-index:0; }
+.place-heading-content:is([data-featured-media="image"],[data-featured-media="gallery"])::before { content:none; }
+.place-heading-content:is([data-featured-media="image"],[data-featured-media="gallery"]) .place-heading-copy { position:relative; z-index:2; pointer-events:none; }
+.place-heading-content[data-paged-media] .place-heading-copy { padding-bottom:32px; }
 .place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) [data-place-subtitle] { color:color-mix(in srgb,var(--catalog-image-foreground) 74%,transparent); }
 @media(prefers-contrast:more) { .place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) [data-place-subtitle] { color:var(--catalog-image-foreground); } }
 /* The embedded heading: content inside a place, never a toolbar or scroll owner. */

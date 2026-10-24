@@ -2,11 +2,14 @@
 // viewer (its stage, paging, thumbnails and media controls band), MediaPlayer the media object's player and controls,
 // Gallery the photo collection in each host, ThemePreview the appearance preview (but for the "Aa" glyph, design §7.3).
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import test from "node:test";
 import type { Page } from "playwright";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
-import { measureProbes, renderCases, settle, type Probes } from "./fixtures/parity.ts";
+import { inlineImports, measureProbes, renderCases, settle, type Probes } from "./fixtures/parity.ts";
+import { placeHeadingBefore, placeHeadingCssBefore } from "./fixtures/place-heading-before.ts";
 
 const photo = (fill: string) => `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect width='800' height='600' fill='%23${fill}'/%3E%3C/svg%3E`;
 const images = `[{ kind: "image", source: "${photo("468")}", alt: "Lake" }, { kind: "image", source: "${photo("864")}", alt: "Dunes" }]`;
@@ -68,8 +71,8 @@ const hosts = (foundation: boolean) => `<script lang="ts">
   import CatalogDetail from "@desert/svelte/catalog/compositions/catalog-detail/CatalogDetail.svelte";
   import Gallery from "@desert/svelte/catalog/foundations/gallery/Gallery.svelte";
   import MediaPlayer from "@desert/svelte/catalog/foundations/media-player/MediaPlayer.svelte";
-  import PlaceHeading from "@desert/svelte/catalog/compositions/place-heading/PlaceHeading.svelte";
-  import Heading from "@desert/svelte/catalog/foundations/heading/Heading.svelte";
+  import PlaceHeadingBefore from "./src/svelte/catalog/compositions/place-header/PlaceHeadingBefore.svelte";
+  import PlaceHeading from "@desert/svelte/catalog/foundations/place-heading/PlaceHeading.svelte";
 </script>
 <main data-renderer-profile="apple-reference" style="display:grid;gap:24px;width:640px;padding:16px">
 ${foundation ? `
@@ -77,18 +80,15 @@ ${foundation ? `
   <div data-case="object-video"><figure style="margin:0;display:grid;gap:16px"><MediaPlayer item={{ kind: "video", source: { kind: "asset", reference: "10000000-0000-4000-8000-000000000003", media: "video" }, alt: "Image", captions: [] }} presentation="inline" /></figure></div>
   <div data-case="control-image" style="display:flex;flex-direction:column;gap:8px"><Gallery photos={[{ source: "/media/lake.jpg", alt: "Lake" }]} title="Cover" presentation="inline" fit="fill" aspect="landscape" /></div>
   <div data-case="detail"><Gallery photos={[{ source: "/media/lake.jpg", alt: "Lake" }, { source: "/media/lake.jpg", alt: "Lake again" }]} title="Lake" presentation="detail" fit="fill" aspect="fill" /></div>
-  <!-- The place heading as PlaceHeading draws it, holding the gallery in its header presentation (F1f mounts it so). -->
-  <div data-case="header"><div class="place-heading-content" data-place-header data-featured-media="gallery" data-media-unavailable={false}>
-    <Gallery photos={[{ source: "/media/lake", alt: "Lake" }, { source: "/media/dunes", alt: "Dunes" }]} title="Trip" presentation="header" fit="fill" aspect="fill" />
-    <div class="place-heading-copy" data-dock-above><Heading kind="page" text="Trip" focusTarget /><p class="type-support" data-place-subtitle>Two days</p></div>
-  </div></div>`
+  <!-- The place heading holds the gallery in its header presentation. -->
+  <div data-case="header"><PlaceHeading context="place" title="Trip" subtitle="Two days" media={{ kind: "gallery", images: [{ asset: "lake", alt: "Lake" }, { asset: "dunes", alt: "Dunes" }] }} /></div>`
   : `
   <div data-case="object-image"><MediaObject facts={{ media: "/media/lake.jpg" }} presentation={{ kind: "media-object", media: "media" }} /></div>
   <div data-case="object-video"><MediaObject facts={{ media: { kind: "asset", reference: "10000000-0000-4000-8000-000000000003", media: "video" } }} presentation={{ kind: "media-object", media: "media" }} /></div>
   <div data-case="control-image"><MediaControl node={{ kind: "image", label: "Cover", alt: "Lake", aspect: "landscape", source: "/media/lake.jpg" }} /></div>
   <div data-case="detail"><CatalogDetail node={{ version: "desert.bank-node/1", kind: "catalog.detail", record: "lake", title: "Lake", description: "A lake.",
     image: { asset: "lake", alt: "Lake" }, gallery: [{ asset: "lake", alt: "Lake" }, { asset: "lake", alt: "Lake again" }] }} /></div>
-  <div data-case="header"><PlaceHeading identity={{ title: "Trip", subtitle: "Two days", media: { kind: "gallery", images: [{ asset: "lake", alt: "Lake" }, { asset: "dunes", alt: "Dunes" }] } }} /></div>`}
+  <div data-case="header"><PlaceHeadingBefore identity={{ title: "Trip", subtitle: "Two days", media: { kind: "gallery", images: [{ asset: "lake", alt: "Lake" }, { asset: "dunes", alt: "Dunes" }] } }} /></div>`}
 </main>`;
 const galleryProbes: Probes = {
   "object-image": { gallery: "[data-photo-collection]", image: "[data-media-image]", open: "[data-media-open]" },
@@ -102,7 +102,12 @@ const playerBoxes: Probes = { "object-video": { video: "video", play: 'button[ar
 
 test("gallery and media-player keep the photo collection's and the media object's pixels in their hosts", { timeout: 60000 }, async () => {
   const css = await rendererCss();
-  const [was, is] = [await renderCases(hosts(false), {}, css), await renderCases(hosts(true), {}, css)];
+  // The place heading before it mounted Gallery: its frozen copy, at the depth of its old folder (both pages import it),
+  // over its frozen stylesheet.
+  const before = { [resolve(import.meta.dirname, "../src/svelte/catalog/compositions/place-header/PlaceHeadingBefore.svelte")]: placeHeadingBefore };
+  const theme = await readFile(resolve(import.meta.dirname, "../src/svelte/theme.css"), "utf8");
+  const frozenCss = await rendererCss([], inlineImports(theme, { "src/svelte/catalog/foundations/place-heading/place-heading.css": placeHeadingCssBefore }));
+  const [was, is] = [await renderCases(hosts(false), before, frozenCss), await renderCases(hosts(true), before, css)];
   try {
     await squareIcons(is.page);
     for (const f of [was, is]) {
