@@ -6,6 +6,7 @@ test("heading content uses finite semantic roles, not HTML/typographic customiza
   for (const value of [
     { kind: "display", text: "Franco", focusTarget: true },
     { kind: "page", text: "Notes", focusTarget: true, align: "center" },
+    { kind: "display", text: "Feel at home.", focusKey: "access-heading" },
     { kind: "section", text: "Albums", id: "albums" },
     { kind: "section", text: "Albums" },
     { kind: "group", text: "All notes", required: true },
@@ -20,6 +21,9 @@ test("heading content uses finite semantic roles, not HTML/typographic customiza
     { kind: "page", text: "Notes", [Symbol("style")]: "red" },
     { kind: "page", text: "Notes", required: true },
     { kind: "group", text: "All notes", focusTarget: true },
+    { kind: "section", text: "Albums", focusKey: "albums" },
+    { kind: "group", text: "All notes", focusKey: "notes" },
+    { kind: "page", text: "Notes", focusKey: "" },
     { kind: "section", text: "Albums", id: "" },
     { kind: "page", text: " " },
     { kind: "page", text: "Notes", align: "end" },
