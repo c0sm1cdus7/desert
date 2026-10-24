@@ -1,0 +1,56 @@
+/* Modal: the temporary surface over its parent. A pane at the right or bottom edge (adaptive, transient, sheet), a
+   lateral pane at the left (navigation), a centred message, or the full-screen media stage; its scrim; its grip.
+   Bits presence retains the node through CSS transitions: starting and ending states are endpoints, not keyframes. */
+@layer components {
+  .scrim { position:fixed; inset:0; background:var(--surface-dimmer); z-index:10; }
+  .transient-content { z-index:11; }
+  .problem-scrim { z-index:20; }
+  .drawer,.problem { display:flex; flex-direction:column; overflow:hidden; outline:none; border-radius:var(--surface-radius); }
+  .drawer { position:fixed; top:max(var(--surface-inset),env(safe-area-inset-top,0px)); right:max(var(--surface-inset),env(safe-area-inset-right,0px)); bottom:max(var(--surface-inset),env(safe-area-inset-bottom,0px)); width:var(--panel-width,36rem); max-width:calc(100% - 2 * var(--surface-inset)); }
+  .drawer[data-edge="left"] { right:auto; left:max(var(--surface-inset),env(safe-area-inset-left,0px)); }
+  .drawer[data-edge="bottom"] { left:max(var(--surface-inset),env(safe-area-inset-left,0px)); width:auto; max-width:none; }
+  .drawer[data-edge="bottom"][data-size="content"] { top:auto; max-height:calc(100dvh - 2 * var(--surface-inset)); }
+  .drawer[data-picker-sheet] { width:min(var(--panel-width),calc(100% - 2 * var(--surface-inset))); margin-inline:auto; }
+  /* Layout owns centering; motion only translates on the vertical axis. */
+  .problem,.centered-dialog { position:fixed; inset:0; margin:auto; height:fit-content; max-height:calc(100dvh - 24px); }
+  .problem { z-index:21; width:min(20rem,calc(100% - 24px)); }
+  .drawer-grip { align-self:center; min-height:44px; height:44px; width:80px; padding:0; touch-action:none; flex-shrink:0; }
+  [data-drawer-grip-mark] { width:36px; height:4px; border-radius:var(--radius); background:var(--muted-foreground); transition:background-color var(--dur-feedback) var(--ease-tm); }
+  .drawer-grip:hover:not(:disabled) [data-drawer-grip-mark] { background:var(--foreground); }
+  .drawer-grip[data-pressed]:not(:disabled) [data-drawer-grip-mark] { background:var(--primary-text); }
+  .drawer { --modal-x:4rem; --modal-y:0px; }
+  .drawer[data-edge="left"] { --modal-x:-4rem; }
+  .drawer[data-edge="bottom"] { --modal-x:0px; --modal-y:4rem; }
+  .problem,.centered-dialog { --modal-x:0px; --modal-y:12px; }
+  /* Interruption continues from real paint. */
+  :is(.drawer,.problem,.centered-dialog) {
+    translate:0 0; opacity:1;
+    transition:translate var(--motion-overlay-enter) var(--ease-enter),opacity var(--motion-overlay-enter) var(--ease-enter);
+  }
+  :is(.drawer,.problem,.centered-dialog):is([data-starting-style],[data-ending-style]) {
+    translate:var(--modal-x) var(--modal-y); opacity:0;
+  }
+  :is(.drawer,.problem,.centered-dialog)[data-ending-style] {
+    transition-duration:var(--motion-overlay-exit); transition-timing-function:var(--ease-exit);
+  }
+  .scrim { opacity:var(--surface-scrim-opacity,1); transition:opacity var(--motion-overlay-enter) var(--ease-enter); }
+  .scrim:is([data-starting-style],[data-ending-style]) { opacity:0; }
+  .scrim[data-ending-style] { transition-duration:var(--motion-overlay-exit); transition-timing-function:var(--ease-exit); }
+  /* Narrow pickers spend space on content before ornamental outer gutters (4px instead of the surface inset).
+     Rows retain their own insets; typography is never shrunk to force a fit. */
+  @media (max-width:24rem) {
+    .drawer[data-picker-sheet][data-size="content"] {
+      right:max(4px,env(safe-area-inset-right,0px)); bottom:max(4px,env(safe-area-inset-bottom,0px));
+      left:max(4px,env(safe-area-inset-left,0px)); width:min(var(--panel-width),calc(100% - 8px)); max-height:calc(100dvh - 8px);
+    }
+  }
+  /* An adaptive pane sits inside the launching host's bounds, beside the reserved navigation. */
+  .drawer[data-adaptive-surface] {
+    top:calc(var(--adaptive-top) + max(var(--surface-inset),env(safe-area-inset-top,0px)));
+    right:calc(var(--adaptive-right) + max(var(--surface-inset),env(safe-area-inset-right,0px)));
+    bottom:calc(var(--adaptive-bottom) + max(var(--surface-inset),env(safe-area-inset-bottom,0px)));
+  }
+  .drawer[data-adaptive-surface][data-edge="bottom"] {
+    left:calc(var(--adaptive-left) + max(var(--surface-inset),env(safe-area-inset-left,0px)));
+  }
+}

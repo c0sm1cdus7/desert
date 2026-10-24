@@ -55,6 +55,7 @@ export { default as FieldWell } from "./foundations/field-well/FieldWell.svelte"
 export { default as FieldWellContent } from "./foundations/field-well-content/FieldWellContent.svelte";
 export { default as Fields } from "./compositions/fields/Fields.svelte";
 export { default as FileControl } from "./compositions/file-control/FileControl.svelte";
+export { default as Files } from "./foundations/files/Files.svelte";
 export { default as Form } from "./foundations/form/Form.svelte";
 export { default as FrameBody } from "./renderer/frame-body/FrameBody.svelte";
 export { default as GroupedPanel } from "./foundations/grouped-panel/GroupedPanel.svelte";
@@ -82,7 +83,9 @@ export { default as MediaGrid } from "./compositions/media-grid/MediaGrid.svelte
 export { default as MediaObject } from "./compositions/media-object/MediaObject.svelte";
 export { default as MediaReferenceSelector } from "./compositions/media-reference-selector/MediaReferenceSelector.svelte";
 export { default as MediaReferenceSpecimen } from "./compositions/media-reference-specimen/MediaReferenceSpecimen.svelte";
+export { default as Menu } from "./foundations/menu/Menu.svelte";
 export { default as MessageBody } from "./foundations/message-body/MessageBody.svelte";
+export { default as Modal } from "./foundations/modal/Modal.svelte";
 export { default as MoneyControl } from "./compositions/money-control/MoneyControl.svelte";
 export { default as NodeRenderer } from "./renderer/node-renderer/NodeRenderer.svelte";
 export { default as ObjectStateControl } from "./compositions/object-state-control/ObjectStateControl.svelte";
@@ -97,6 +100,7 @@ export { default as PlaceHeader } from "./compositions/place-header/PlaceHeader.
 export { default as PlaceHeading } from "./compositions/place-heading/PlaceHeading.svelte";
 export { default as PlaybackCanvas } from "./foundations/playback-canvas/PlaybackCanvas.svelte";
 export { default as PlaybackControls } from "./compositions/playback-controls/PlaybackControls.svelte";
+export { default as Popover } from "./foundations/popover/Popover.svelte";
 export { default as PopoverControl } from "./compositions/popover-control/PopoverControl.svelte";
 export { default as Problem } from "./compositions/problem/Problem.svelte";
 export { default as PublicCatalogBank } from "./renderer/public-catalog-bank/PublicCatalogBank.svelte";
@@ -117,6 +121,7 @@ export { default as SelectControl } from "./compositions/select-control/SelectCo
 export { default as SelectionField } from "./foundations/selection-field/SelectionField.svelte";
 export { default as SharedOwnerCatalog } from "./compositions/shared-owner-catalog/SharedOwnerCatalog.svelte";
 export { default as SharedOwnerSpecimen } from "./compositions/shared-owner-specimen/SharedOwnerSpecimen.svelte";
+export { default as Slider } from "./foundations/slider/Slider.svelte";
 export { default as Specimen } from "./compositions/specimen/Specimen.svelte";
 export { default as SpecimenGroup } from "./compositions/specimen-group/SpecimenGroup.svelte";
 export { default as SpecimenRow } from "./compositions/specimen-row/SpecimenRow.svelte";

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
-  import { provideSurfaceHost } from '../../../infra/surface-host.svelte.ts';
+  import { provideSurfaceHost } from '../../mechanisms/surface-host/surface-host.svelte.ts';
   let { children }: { children: Snippet } = $props();
   let element = $state<HTMLDivElement | null>(null);
   let reservation = $state(0);

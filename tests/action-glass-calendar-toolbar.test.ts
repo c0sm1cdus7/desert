@@ -51,7 +51,7 @@ for (const colorScheme of ['dark', 'light'] as const) test(`shared action glass 
   } finally { await f.close(); }
 });
 
-for (const width of [320, 390, 1024]) test(`date picker has one month toolbar with trailing navigation at ${width}px`, async () => {
+for (const width of [320, 390, 1024]) test(`date picker has one month header with trailing navigation at ${width}px`, async () => {
   const f = await svelteBrowser(source);
   try {
     await f.page.addStyleTag({ content: await rendererCss() });
@@ -60,31 +60,39 @@ for (const width of [320, 390, 1024]) test(`date picker has one month toolbar wi
     const trigger = f.page.locator('[data-date-trigger]');
     await trigger.click();
     const dialog = f.page.getByRole('dialog', { name: 'Arrival date', exact: true });
-    const toolbar = dialog.locator('[data-piece="toolbar"]');
-    await toolbar.waitFor();
-    assert.equal(await toolbar.count(), 1);
-    const title = toolbar.getByRole('heading', { name: 'October 2026', exact: true });
+    const header = dialog.locator('[data-date-calendar-header]');
+    await header.waitFor();
+    assert.equal(await header.count(), 1);
+    const title = header.getByRole('heading', { name: 'October 2026', exact: true });
     await title.waitFor();
-    const previous = toolbar.getByRole('button', { name: 'Previous month', exact: true });
-    const next = toolbar.getByRole('button', { name: 'Next month', exact: true });
+    const previous = header.getByRole('button', { name: 'Previous month', exact: true });
+    const next = header.getByRole('button', { name: 'Next month', exact: true });
     assert.equal(await previous.isDisabled(), true, 'minimum month constrains navigation');
     const heading = (await title.boundingBox())!, prev = (await previous.boundingBox())!, following = (await next.boundingBox())!;
     assert.ok(heading.x + heading.width <= prev.x && prev.x + prev.width <= following.x, 'month then both arrows on the right');
     if (width < 384) {
+      // The sheet keeps one toolbar of its own (its title and the shared close), above the calendar's month header.
+      const toolbar = dialog.locator('[data-piece="toolbar"]');
+      assert.equal(await toolbar.count(), 1);
       const close = (await toolbar.getByRole('button', { name: 'Close Arrival date', exact: true }).boundingBox())!;
-      assert.ok(close.x + close.width <= heading.x, 'shared close remains on the left');
-    }
+      assert.ok(close.y + close.height <= heading.y, 'shared close stays in the sheet toolbar above the month');
+      assert.equal(await toolbar.getByRole('button', { name: 'Next month', exact: true }).count(), 0, 'navigation is not hosted by the sheet toolbar');
+    } else assert.equal(await dialog.locator('[data-piece="toolbar"]').count(), 0, 'the anchored calendar hosts no toolbar');
     await next.click();
-    await toolbar.getByRole('heading', { name: 'November 2026', exact: true }).waitFor();
+    await header.getByRole('heading', { name: 'November 2026', exact: true }).waitFor();
     assert.equal(await next.isDisabled(), true, 'maximum month constrains navigation');
     await previous.click();
-    await toolbar.getByRole('heading', { name: 'October 2026', exact: true }).waitFor();
+    await header.getByRole('heading', { name: 'October 2026', exact: true }).waitFor();
     assert.ok(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth + 1));
     await mkdir('artifacts/action-glass-calendar-toolbar', { recursive: true });
     await f.page.screenshot({ path: `artifacts/action-glass-calendar-toolbar/calendar-${width}.png` });
     if (width === 320) {
       await f.page.evaluate(() => document.documentElement.style.setProperty('--text-scale', '2'));
-      await f.page.waitForFunction(() => document.querySelector('[data-date-calendar] [data-toolbar-layout]')?.getAttribute('data-toolbar-layout') === 'stacked');
+      await f.page.waitForFunction(() => {
+        const month = document.querySelector('[data-date-calendar-month]')?.getBoundingClientRect();
+        const navigation = document.querySelector('[data-date-calendar-navigation]')?.getBoundingClientRect();
+        return month && navigation && navigation.top >= month.bottom;
+      });
       assert.ok(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth + 1), 'enlarged text stays inside the picker');
       assert.ok((await title.boundingBox())!.width > 200, 'enlarged title receives a complete row, not a narrow column');
       await f.page.screenshot({ path: 'artifacts/action-glass-calendar-toolbar/calendar-320-enlarged.png' });

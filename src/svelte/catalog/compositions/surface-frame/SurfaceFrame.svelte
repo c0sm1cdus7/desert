@@ -6,7 +6,7 @@
   import { FrameBody } from "../../index.ts";
   import { Toolbar } from "../../index.ts";
   import { ScrollEdges } from "../../index.ts";
-  import { provideSurfaceHost } from "../../../infra/surface-host.svelte.ts";
+  import { provideSurfaceHost } from "../../mechanisms/surface-host/surface-host.svelte.ts";
   import { provideToolbarScroll } from "../../../infra/toolbar-scroll.svelte.ts";
   import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
   let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEvent }: CatalogProps<"surface-frame"> = $props();

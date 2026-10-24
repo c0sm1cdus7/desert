@@ -4,7 +4,6 @@
 	import { cn, type WithoutChildrenOrChild } from "@desert/svelte/vendor/utils.js";
 	import * as Calendar from "./index.js";
 	import CalendarGridViewport from "./calendar-grid-viewport.svelte";
-	import type { ButtonVariant } from "../button/button.svelte";
 	import type { Snippet } from "svelte";
 
 	let {
@@ -13,7 +12,6 @@
 		placeholder = $bindable(Array.isArray(value) ? value[0] ?? today(getLocalTimeZone()) : value ?? today(getLocalTimeZone())),
 		class: className,
 		weekdayFormat = "short",
-		buttonVariant = "ghost",
 		captionLayout = "label",
 		presentation = "inline",
 		locale = "en-US",
@@ -23,10 +21,10 @@
 		yearFormat = "numeric",
 		day,
 		header,
+		revealFocus,
 		disableDaysOutsideMonth = false,
 		...restProps
 	}: WithoutChildrenOrChild<CalendarPrimitive.RootProps> & {
-		buttonVariant?: ButtonVariant;
 		presentation?: "inline" | "picker";
 		captionLayout?: "dropdown" | "dropdown-months" | "dropdown-years" | "label";
 		months?: CalendarPrimitive.MonthSelectProps["months"];
@@ -36,6 +34,8 @@
 		day?: Snippet<[{ day: DateValue; outsideMonth: boolean }]>;
 		/** Host chrome rendered inside the calendar context, retaining native navigation semantics. */
 		header?: Snippet<[DateValue]>;
+		/** The owner reveals a focused day inside the grid viewport (its focus policy, passed as a prop). */
+		revealFocus?: ((target: HTMLElement, viewport: HTMLElement) => void) | undefined;
 	} = $props();
 
 	const monthFormat = $derived.by(() => {
@@ -70,8 +70,8 @@ get along, so we shut typescript up by casting `value` to `never`.
 		<Calendar.Months class={cn("min-h-0",presentation === "picker" && "picker-content-inset pt-2 pb-4 @container")}>
 			{#if !header}
 			<Calendar.Nav>
-				<Calendar.PrevButton variant={buttonVariant} />
-				<Calendar.NextButton variant={buttonVariant} />
+				<Calendar.PrevButton />
+				<Calendar.NextButton />
 			</Calendar.Nav>
 			{/if}
 			{#each months as month, monthIndex (month)}
@@ -89,7 +89,7 @@ get along, so we shut typescript up by casting `value` to `never`.
 							{monthIndex}
 						/>
 					</Calendar.Header>{/if}
-					<CalendarGridViewport>
+					<CalendarGridViewport {revealFocus}>
 					<Calendar.Grid class="w-max min-w-full">
 						<Calendar.GridHead>
 							<Calendar.GridRow class="select-none">

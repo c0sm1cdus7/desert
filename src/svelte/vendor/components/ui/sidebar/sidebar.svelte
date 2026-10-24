@@ -45,11 +45,11 @@
 		<Dialog.Content
 			bind:ref
 			presentation="panel"
+			density="comfortable"
 			forceMount={sidebar.revealing}
 			preventScroll={!sidebar.revealing}
 			data-revealing={sidebar.revealing || undefined}
 			data-gesture-enter={sidebar.revealedByGesture || undefined}
-			showCloseButton={false}
 			data-edge={side}
 			data-sidebar="sidebar"
 			data-slot="sidebar"

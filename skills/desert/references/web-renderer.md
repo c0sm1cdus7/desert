@@ -507,7 +507,9 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/compositions/money-control/MoneyControl.svelte
 - src/svelte/catalog/foundations/date-control/DateControl.svelte
 - src/svelte/catalog/compositions/media-control/MediaControl.svelte
-- src/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte
+- src/svelte/catalog/foundations/popover/Popover.svelte
+- src/svelte/catalog/foundations/popover/PopoverSurface.svelte
+- src/svelte/catalog/foundations/files/Files.svelte
 - src/svelte/catalog/compositions/fields/Fields.svelte
 - src/svelte/catalog/foundations/text-input/TextInput.svelte
 - src/svelte/catalog/foundations/masked-input/MaskedInput.svelte
@@ -519,7 +521,9 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/compositions/review/Review.svelte
 - src/svelte/catalog/foundations/destination-row/DestinationRow.svelte
 - src/svelte/catalog/foundations/drawer/Drawer.svelte
-- src/svelte/infra/drawer-motion.svelte.ts
+- src/svelte/catalog/foundations/modal/Modal.svelte
+- src/svelte/catalog/foundations/modal/ModalPane.svelte
+- src/svelte/catalog/foundations/modal/drawer-motion.svelte.ts
 - src/validation-result.ts
 - src/web/client/field-feedback.ts
 - src/web/client/model.ts
@@ -1554,7 +1558,7 @@ export const DispatcherCapabilities = freezeDeep({
 
 ## src/svelte/renderer-registry.ts
 
-Source SHA-256: 21c1c9e34e65b3c418360d84666957174da75e56139a8167ee4c589e6167e77f
+Source SHA-256: 63b33fedf7c83e99e6d3b6eb4ca474945675146f5f653f3bf9b00fda1371430d
 
 ```ts
 // Generated from the catalog declarations by `node scripts/catalog.ts --write`; do not edit.
@@ -1570,7 +1574,7 @@ import DateControl from "./catalog/foundations/date-control/DateControl.svelte";
 import Drawer from "./catalog/foundations/drawer/Drawer.svelte";
 import Facts from "./catalog/renderer/facts/Facts.svelte";
 import Fields from "./catalog/compositions/fields/Fields.svelte";
-import FileControl from "./catalog/compositions/file-control/FileControl.svelte";
+import Files from "./catalog/foundations/files/Files.svelte";
 import LabelsControl from "./catalog/compositions/labels-control/LabelsControl.svelte";
 import MediaControl from "./catalog/compositions/media-control/MediaControl.svelte";
 import MoneyControl from "./catalog/compositions/money-control/MoneyControl.svelte";
@@ -1593,7 +1597,7 @@ export const nodeRenderers: NodeRendererTable = Object.freeze({
   transient: Drawer,
   fact: Facts,
   form: Fields,
-  "control.files": FileControl,
+  "control.files": Files,
   "control.labels": LabelsControl,
   "control.tag": MediaControl,
   "control.image": MediaControl,
@@ -3425,7 +3429,7 @@ export function retrieveCollection(records: readonly RecordView[], fields: reado
 
 ## src/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte
 
-Source SHA-256: 753835a8c83da9c8ce28ee18c971988fdad23a3175cf42b55c118ec3e9d3eed5
+Source SHA-256: 21ff3b192695a6ba6b89dda6d48ab9a68a44a88253d73fe61e9a960ebd7376cf
 
 ```svelte
 <script lang="ts">
@@ -3436,7 +3440,7 @@ Source SHA-256: 753835a8c83da9c8ce28ee18c971988fdad23a3175cf42b55c118ec3e9d3eed5
   import { FrameBody } from "../../index.ts";
   import { Toolbar } from "../../index.ts";
   import { ScrollEdges } from "../../index.ts";
-  import { provideSurfaceHost } from "../../../infra/surface-host.svelte.ts";
+  import { provideSurfaceHost } from "../../mechanisms/surface-host/surface-host.svelte.ts";
   import { provideToolbarScroll } from "../../../infra/toolbar-scroll.svelte.ts";
   import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
   let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEvent }: CatalogProps<"surface-frame"> = $props();
@@ -4774,12 +4778,13 @@ Source SHA-256: 20d5309ef63ca189aad5ca9c625aff69302f58ae5266228b61504e12f6ba0d1c
 
 ## src/svelte/catalog/foundations/selection-field/SelectionField.svelte
 
-Source SHA-256: 4b6c6f71dd925183b6449ae47b9f5127f679e6502f95471135ca916e7475211e
+Source SHA-256: 0f8bb82b6b6b70605c0cd873fa2b207981cd740fc4779392341c5af7c80f0566
 
 ```svelte
 <script lang="ts">
   import { tick, untrack, type Snippet } from "svelte";
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
+  import { useSurfaceTypography } from "../../../infra/surface-typography.svelte.ts";
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import { Icon } from "../../index.ts";
@@ -4787,8 +4792,9 @@ Source SHA-256: 4b6c6f71dd925183b6449ae47b9f5127f679e6502f95471135ca916e7475211e
   import { Face } from "../../index.ts";
   import { PickerSheet } from "../../index.ts";
   import SelectionList from "./SelectionList.svelte";
-  import { surfaceFocus, revealSurfaceFocus } from "../../../infra/surface-focus.svelte.ts";
-  import { PickerPresentation } from "../../../infra/picker-presentation.svelte.ts";
+  import { surfaceFocus, revealSurfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
+  // F1-merge: choice (lane F1c) presents its menu through Popover and stops importing this popover part.
+  import { PickerPresentation, pickerBudget } from "../popover/picker-presentation.svelte.ts";
   import type { SelectionOption } from "../../../../interaction/selection-option.ts";
   let { id, selection, label, triggerLabel = label, value, options, disabled = false, required = false,
     fieldControl = false, contextual = false, selectedContent, optionLeading, onchange }: {
@@ -4799,7 +4805,7 @@ Source SHA-256: 4b6c6f71dd925183b6449ae47b9f5127f679e6502f95471135ca916e7475211e
     optionLeading?: Snippet<[SelectionOption]>;
   } = $props();
   const generatedId = $props.id();
-  const picker = new PickerPresentation();
+  const picker = new PickerPresentation(() => pickerBudget);
   let triggerId = $derived(id ?? generatedId);
   let selectedOption = $derived(options.find(option => option.value === value));
   let valueLabel = $derived(selectedOption?.label ?? "Not selected");
@@ -4809,6 +4815,12 @@ Source SHA-256: 4b6c6f71dd925183b6449ae47b9f5127f679e6502f95471135ca916e7475211e
   let focusBoundary: HTMLElement | null = null;
   const boundary = () => list?.closest<HTMLElement>('[data-picker-sheet],[data-slot="popover-content"]') ?? null;
   const initialFocus = surfaceFocus(boundary);
+  // The anchored surface owns its focus scope; focus moving anywhere but the trigger dismisses it.
+  let selectionSurface = $state<HTMLElement | null>(null);
+  const surface = surfaceFocus(() => selectionSurface, event => {
+    if (!(event.target instanceof HTMLElement) || event.target.id !== triggerId) open = false;
+  });
+  const density = useSurfaceTypography();
   function focus(event: Event) {
     void tick().then(() => { focusBoundary = boundary() ?? focusBoundary; });
     const retained = activeValue;
@@ -4880,13 +4892,12 @@ Source SHA-256: 4b6c6f71dd925183b6449ae47b9f5127f679e6502f95471135ca916e7475211e
     {/snippet}
   </Popover.Trigger>
   {#if picker.current === "sheet"}
-    <PickerSheet bind:open {label} {triggerId} onOpenAutoFocus={focus}>
+    <PickerSheet bind:open {label} {triggerId}>
       {@render choices()}
     </PickerSheet>
   {:else}
-    <Popover.Content role="presentation" onOpenAutoFocus={focus} onCloseAutoFocus={restore}
-      presentation="selection"
-      onFocusOutside={event => { if (!(event.target instanceof HTMLElement) || event.target.id !== triggerId) open = false; }}>
+    <Popover.Content bind:ref={selectionSurface} role="presentation" density={density()} presentation="selection"
+      onOpenAutoFocus={event => surface.open(event, focus)} onCloseAutoFocus={event => surface.close(event, restore)}>
       {@render choices()}
     </Popover.Content>
   {/if}
@@ -5259,11 +5270,12 @@ Source SHA-256: d931d1c9820d65d295f082238a6b35a420ffee96aa5c07d96372fe9c0fb8f50e
 
 ## src/svelte/catalog/compositions/popover-control/PopoverControl.svelte
 
-Source SHA-256: 0fadcd9705154b5c09e6bc135a31d3f4a581cb5f1cd4dc5541bc2aa52c61128b
+Source SHA-256: 163f9f559f949e1b766e4397ac5408375f35a8f6ffad927638482d1f53fbee21
 
 ```svelte
 <script lang="ts">
-  import AnchoredSurface from "./AnchoredSurface.svelte";
+  import { Popover } from "../../index.ts";
+  import { FrameBody } from "../../index.ts";
   import { popoverNode, applyControlEvent } from "../../../../interaction/control-nodes.ts";
   import type { ControlEventFor } from "../../../renderer-contracts.ts";
   import type { CatalogProps } from "../../types.d.ts";
@@ -5275,13 +5287,16 @@ Source SHA-256: 0fadcd9705154b5c09e6bc135a31d3f4a581cb5f1cd4dc5541bc2aa52c61128b
     onevent?.(event);
   }
 </script>
-<AnchoredSurface label={checked.label} open={checked.open} disabled={checked.disabled} locked={checked.locked}
-  title={checked.title} content={{ kind: "information", items: checked.content }} onchange={change} />
+<Popover label={checked.title} open={checked.open} disabled={checked.disabled} locked={checked.locked === true} content="information"
+  placement="anchored" align="start" onopenchange={change}
+  trigger={{ kind: "action", label: checked.label, icon: "open", face: "fit", emphasis: "secondary", state: "ready" }}>
+  <FrameBody content={{ kind: "information", items: checked.content }} invoke={() => {}} edit={() => {}} />
+</Popover>
 ```
 
 ## src/svelte/catalog/compositions/file-control/FileControl.svelte
 
-Source SHA-256: fd6913cb64a993a2ab1298f95b138e367c5bf4a8ba89797c9417bc67adf32e6a
+Source SHA-256: da11fff4f8cb33e5b30eeed0d99429c970ece7116cc4e07b5df504bef6645691
 
 ```svelte
 <script lang="ts">
@@ -5290,7 +5305,7 @@ Source SHA-256: fd6913cb64a993a2ab1298f95b138e367c5bf4a8ba89797c9417bc67adf32e6a
   import { Input } from "../../../vendor/components/ui/input/index.js";
   import { fileNode, type FileRejection } from "../../../../interaction/control-nodes.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  import { fileSize } from "./file-size.ts";
+  import { fileSize } from "../../foundations/files/file-size.ts";
   import { currentStackTitle } from "../../../infra/stack-context.ts";
   let { node, host, onevent }: CatalogProps<"file-control"> = $props();
   let checked = $derived(fileNode(node));
@@ -5500,47 +5515,27 @@ Source SHA-256: f36e5aaab86092bfc71d6aaf8d1e406c6dd46db6894e54ef6ad7aebe87d601fa
 
 ## src/svelte/catalog/foundations/date-control/DateControl.svelte
 
-Source SHA-256: d82c4631f9c6207a91a33d2766c6af6154c6b435912caa4b2ee04b951c9b78bc
+Source SHA-256: d0d309245c0cb986bd5674d1c92b2ce08eb6373ba63c494231a269a273bb2cd1
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
-  import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   import { parseDate, today, DateFormatter, getLocalTimeZone, type DateValue } from "@internationalized/date";
-  import * as Popover from "../../../vendor/components/ui/popover/index.js";
-  import { Button } from "../../../vendor/components/ui/button/index.js";
   import DateCalendar from "./DateCalendar.svelte";
-  import { Icon } from "../../index.ts";
-  import { FieldWellContent } from "../../index.ts";
-  import { MeasuredField } from "../../index.ts";
-  import { PickerSheet } from "../../index.ts";
-  import { PickerPresentation } from "../../../infra/picker-presentation.svelte.ts";
+  import { Popover } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { node, onevent }: CatalogProps<"date-control"> = $props();
-  // Six week rows plus month controls, field and collision margins must fit.
-  const id = $props.id(), picker = new PickerPresentation({ panelRem: 20, minimumBlockRem: 28 });
   const format = new DateFormatter("en-US", { dateStyle: "medium" });
   let open = $state(false);
-  let anchoredContent = $state<HTMLElement | null>(null);
-  let focusBoundary: HTMLElement | null = null;
-  $effect(() => { if (anchoredContent) focusBoundary = anchoredContent; });
-  function restoreFocus(event: Event) {
-    event.preventDefault();
-    const active = document.activeElement, trigger = document.getElementById(id);
-    if (!open && (!active || active === document.body || focusBoundary?.contains(active))
-      && !node.disabled && trigger?.checkVisibility() && !trigger.closest('[hidden],[inert]'))
-      trigger.focus({ preventScroll: true });
-  }
-  dismissWhenInactive(() => { open = false; });
   let observed = untrack(() => node.id);
   let observedValue = untrack(() => node.value);
   let visibleDate = $state<DateValue>(untrack(() => node.value ? parseDate(node.value) : today(getLocalTimeZone())));
   let date = $derived(node.value ? parseDate(node.value) : undefined);
   let label = $derived(date ? format.format(date.toDate(getLocalTimeZone())) : "No date selected");
   $effect(() => {
-    const next = node.id, disabled = node.disabled, value = node.value, isOpen = open;
+    const next = node.id, value = node.value, isOpen = open;
     untrack(() => {
-      if (disabled || next !== observed) open = false;
+      if (next !== observed) open = false;
       // Presentation may remount the calendar, but it does not start a new
       // browsing task. Closing or an owner replacement resets its cursor.
       if (!isOpen || next !== observed || value !== observedValue)
@@ -5559,40 +5554,13 @@ Source SHA-256: d82c4631f9c6207a91a33d2766c6af6154c6b435912caa4b2ee04b951c9b78bc
     open = false;
   }
 </script>
-{#snippet trigger(props: Record<string, unknown>)}
-  <Button {...props} {id} variant="well" size="well" class="field-well w-full overflow-hidden"
-    data-floating-field data-filled data-date-trigger disabled={node.disabled}
-    aria-label={`${node.label} · ${label}`} aria-describedby={node.required ? `${id}-requirement` : undefined}
-    aria-haspopup="dialog" aria-expanded={open}>
-    <FieldWellContent label={node.label} required={node.required}>
-      <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
-        <span>{label}</span><Icon name="calendar" placement="inline-end" decorative />
-      </span>
-    </FieldWellContent>
-  </Button>
-{/snippet}
-{#snippet calendar()}
-  <DateCalendar value={date} bind:visibleDate label={node.label} minimum={node.minimum} maximum={node.maximum} presentation={picker.current}
-    disabled={node.disabled} onchange={change} onclear={node.required ? undefined : clear}
-    onclose={picker.current === "sheet" ? () => { open = false; } : undefined} />
-{/snippet}
-<MeasuredField kind="control.date" disabled={node.disabled}>
-  {#if picker.current === "sheet"}
-    {@render trigger({ onclick: () => { open = true; } })}
-    <PickerSheet bind:open label={node.label} triggerId={id} contentToolbar>{@render calendar()}</PickerSheet>
-  {:else}
-    <Popover.Root bind:open>
-      <Popover.Trigger {id} disabled={node.disabled}>
-        {#snippet child({ props })}{@render trigger(props)}{/snippet}
-      </Popover.Trigger>
-      <Popover.Content bind:ref={anchoredContent} onCloseAutoFocus={restoreFocus}
-        role="dialog" aria-label={node.label} aria-modal="false" style="width:20rem;overflow:hidden">
-        {@render calendar()}
-      </Popover.Content>
-    </Popover.Root>
-  {/if}
-  {#if node.required}<span id={`${id}-requirement`} class="sr-only">Required</span>{/if}
-</MeasuredField>
+<Popover label={node.label} {open} disabled={node.disabled} locked={false} content="information" placement="adaptive" align="start"
+  trigger={{ kind: "field", label: node.label, required: node.required, invalid: false,
+    display: { kind: "text", text: label, placeholder: date === undefined }, measure: "date" }}
+  onopenchange={next => { open = next; }}>
+  <DateCalendar value={date} bind:visibleDate label={node.label} minimum={node.minimum} maximum={node.maximum}
+    disabled={node.disabled} onchange={change} onclear={node.required ? undefined : clear} />
+</Popover>
 ```
 
 ## src/svelte/catalog/compositions/media-control/MediaControl.svelte
@@ -5636,65 +5604,169 @@ Source SHA-256: f8b318d3aa251f3ee56540af29ddaedf36d8bc3de78be34e56dcf4abf128f9d9
 {/if}
 ```
 
-## src/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte
+## src/svelte/catalog/foundations/popover/Popover.svelte
 
-Source SHA-256: 4c03a07941866471ad4af30c8d300029fce8c62709bef25220435de3ea4706f3
+Source SHA-256: d3789a70b3e9fc20eca7f0af01ac50e5420aff12deb1d4f0a18b2aa1aa7c163c
 
 ```svelte
 <script lang="ts">
+  import type { CatalogProps } from "../../types.d.ts";
+  import { Action } from "../../index.ts";
+  import { Modal } from "../../index.ts";
+  import type { Disclosure } from "../../../infra/disclosure.ts";
+  import { dismissWhenInactive } from "../../../infra/surface-activity.svelte.ts";
+  import { useSurfaceTypography } from "../../../infra/surface-typography.svelte.ts";
+  import { provideFocusReturn } from "../../mechanisms/surface-focus/focus-return.ts";
+  import { PickerPresentation, pickerBudget, calendarBudget } from "./picker-presentation.svelte.ts";
+  import PopoverSurface from "./PopoverSurface.svelte";
+  import FieldTrigger from "./FieldTrigger.svelte";
+  let { label, open, disabled, locked, trigger, content, placement, align, onopenchange, children }: CatalogProps<"popover"> = $props();
+  const id = $props.id(), triggerId = `${id}-trigger`, panelId = `${id}-surface`;
+  const density = useSurfaceTypography();
+  const calendar = $derived(trigger.kind === "field" && trigger.measure === "date");
+  const picker = new PickerPresentation(() => calendar ? calendarBudget : pickerBudget);
+  const sheet = $derived(placement === "adaptive" && picker.current === "sheet");
+  const disclosure: Disclosure = $derived({ id: triggerId, controls: panelId, expanded: open,
+    haspopup: content === "list" ? "listbox" : "dialog" });
+  /** The person asks to open or close; a disabled popover refuses both, a locked one refuses closing. */
+  function change(next: boolean) { if (!disabled && next !== open && (next || !locked)) onopenchange?.(next); }
+  provideFocusReturn(() => document.getElementById(triggerId));
+  dismissWhenInactive(() => { if (open) onopenchange?.(false); });
+  $effect(() => { if (disabled && open) onopenchange?.(false); });
+</script>
+{#if trigger.kind === "action"}
+  <!-- F1-merge: <Action … disclosure={disclosure} onclick> replaces elementProps (lane F1b). -->
+  <Action label={trigger.label} icon={trigger.icon} face={trigger.face} emphasis={trigger.emphasis}
+    state={disabled ? "unavailable" : trigger.state} onclick={() => change(!open)}
+    elementProps={{ id: disclosure.id, "aria-expanded": disclosure.expanded, "aria-haspopup": disclosure.haspopup,
+      "aria-controls": open ? disclosure.controls : undefined, "data-state": open ? "open" : "closed" }} />
+{:else}
+  <FieldTrigger label={trigger.label} required={trigger.required} invalid={trigger.invalid} {disabled} display={trigger.display}
+    measure={trigger.measure} {disclosure} onopen={() => change(!open)} />
+{/if}
+{#if sheet}
+  <Modal {label} {open} {locked} presentation="sheet" ondismiss={() => change(false)}>{@render children?.()}</Modal>
+{:else}
+  <PopoverSurface {label} {open} {locked} {content} {align} {triggerId} {panelId} {calendar}
+    density={density()} {change} {children} />
+{/if}
+```
+
+## src/svelte/catalog/foundations/popover/PopoverSurface.svelte
+
+Source SHA-256: 88c3b27b54c8532b18dd918df92088c75600e3eb8c77a3d3e8bd2ff24629b300
+
+```svelte
+<script lang="ts">
+  // Popover part: the anchored surface. Bits draws no trigger: the surface anchors to the trigger by id (customAnchor),
+  // ignores presses on it (the trigger itself toggles once), and returns focus to it unless dismissal came from outside.
+  import type { Snippet } from "svelte";
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
-  import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
-  import { anchoredTabExit } from '../../../infra/anchored-tab-exit.ts';
-  import { FrameBody } from "../../index.ts";
-  import { NodeRenderer } from "../../index.ts";
-  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import type { FrameContent } from "../../../../interaction/surface-frame.ts";
-  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import type { ActionIcon } from "../../../../interaction/toolbar.ts";
-  let { label, title, content, open, disabled = false, locked = false, onchange, invoke = () => {}, icon = "open" }: {
-    label: string; title: string; content: Extract<FrameContent, { kind: "information" | "utilities" }>;
-    open: boolean; disabled?: boolean; locked?: boolean | undefined; onchange: (open: boolean) => void;
-    invoke?: (intent: SurfaceIntent) => void; icon?: ActionIcon;
+  import { surfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
+  import { anchoredTabExit } from "./anchored-tab-exit.ts";
+  import { calendarBudget } from "./picker-presentation.svelte.ts";
+  let { label, open, locked, content, align, triggerId, panelId, calendar, density, change, children }: {
+    label: string; open: boolean; locked: boolean; content: "information" | "form" | "list" | "menu"; align: "start" | "end";
+    triggerId: string; panelId: string; calendar: boolean; density: "comfortable" | "compact" | undefined;
+    change: (open: boolean) => void; children: Snippet | undefined;
   } = $props();
-  const panelId = $props.id();
-  const change = (next: boolean) => { if (!disabled && (next || !locked)) onchange(next); };
-  dismissWhenInactive(() => onchange(false));
-  const guard = (event: Event) => { if (locked) event.preventDefault(); };
-  let outside = false;
+  const presentations = { information: "pane", form: "reference", list: "selection", menu: "speed-dial" } as const;
+  /** A month calendar frames itself (its header is the surface's top row) at the calendar budget's width. */
+  const calendarFrame = `width:${calendarBudget.panelRem}rem;overflow:hidden;padding:0;gap:0`;
   let panel = $state<HTMLElement | null>(null);
-  const interactOutside = (event: Event) => { guard(event); outside = !event.defaultPrevented; };
-  const focusOutside = (event?: Event) => {
-    event?.preventDefault();
-    // DismissibleLayer can report the opener's earlier focus event after the
-    // surface has mounted. Judge the settled destination, not that stale event.
-    queueMicrotask(() => {
-      if (panel?.contains(document.activeElement)) return;
-      if (open && !locked) { outside = true; change(false); }
-    });
-  };
-  const closeFocus = (event: Event) => {
-    // A nonmodal outside interaction keeps the target's focus; Escape returns to the trigger.
-    if (outside) event.preventDefault();
+  let boundary: HTMLElement | null = null;
+  $effect(() => { if (panel) boundary = panel; });
+  /** Whether the person dismissed it by interacting elsewhere: focus then stays where they went. */
+  let outside = false;
+  const onTrigger = (target: EventTarget | null) => target instanceof Element && target.closest(`#${CSS.escape(triggerId)}`) !== null;
+  const dismissOutside = () => { if (open && !locked) { outside = true; change(false); } };
+  // Focus can leave for the trigger (a press toggles it) without dismissing; elsewhere it dismisses.
+  const focus = surfaceFocus(() => panel, () => queueMicrotask(() => {
+    const active = document.activeElement;
+    if (!panel?.contains(active) && !onTrigger(active)) dismissOutside();
+  }));
+  function interactOutside(event: Event) {
+    if (onTrigger(event.target) || locked) event.preventDefault();
+    else outside = true;
+  }
+  function returnFocus(event: Event) {
+    event.preventDefault();
+    const leaving = outside, active = document.activeElement, trigger = document.getElementById(triggerId);
     outside = false;
-  };
+    if (leaving || open || active && active !== document.body && !boundary?.contains(active)) return;
+    if (trigger?.checkVisibility() && !trigger.closest("[hidden],[inert]")) trigger.focus({ preventScroll: true });
+  }
 </script>
 <Popover.Root {open} onOpenChange={change}>
-  <Popover.Trigger {disabled}>
-    {#snippet child({ props })}
-      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "action", role: "secondary", action: {
-        icon, label, state: disabled ? "unavailable" : "ready", intent: { kind: "transient.open" },
-      } }} actionElementProps={{ ...props, "aria-controls": open ? panelId : undefined }} />
-    {/snippet}
-  </Popover.Trigger>
-  <Popover.Content id={panelId} bind:ref={panel} role="dialog" aria-label={title} aria-modal="false" trapFocus={false} preventScroll={false}
-    onkeydowncapture={event => {
-      if (panel && !locked) anchoredTabExit(event, panel, () => { outside = true; change(false); });
-    }}
-    onEscapeKeydown={guard} onInteractOutside={interactOutside} onCloseAutoFocus={closeFocus} onFocusOutside={focusOutside}
-    data-presentation="anchored">
-    <FrameBody {content} {invoke} edit={() => {}} />
+  <Popover.Content bind:ref={panel} id={panelId} customAnchor={`#${triggerId}`} presentation={presentations[content]} {density} {align}
+    role={content === "list" ? "presentation" : content === "menu" ? undefined : "dialog"}
+    aria-label={content === "list" ? undefined : label} aria-modal={content === "list" || content === "menu" ? undefined : "false"}
+    style={calendar ? calendarFrame : undefined} data-popover={content} data-presentation="anchored"
+    onOpenAutoFocus={event => focus.open(event)} onCloseAutoFocus={event => focus.close(event, returnFocus)}
+    onkeydowncapture={event => { if (panel && !locked) anchoredTabExit(event, panel, dismissOutside); }}
+    onEscapeKeydown={event => { if (locked) event.preventDefault(); }} onInteractOutside={interactOutside}>
+    {@render children?.()}
   </Popover.Content>
 </Popover.Root>
+```
+
+## src/svelte/catalog/foundations/files/Files.svelte
+
+Source SHA-256: 74b8fcc94cd01051fd08e07d40066746be04dee40b7633e7881bbe1fe066317c
+
+```svelte
+<script lang="ts">
+  import { Action } from "../../index.ts";
+  import { fileNode, type FileRejection } from "../../../../interaction/control-nodes.ts";
+  import { useFileHost } from "../../../infra/file-host-context.ts";
+  import { currentStackTitle } from "../../../infra/stack-context.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { fileSize } from "./file-size.ts";
+  import { nativeFilePicker } from "./native-file-picker.ts";
+  let { node, onevent }: CatalogProps<"files"> = $props();
+  const provided = useFileHost();
+  if (!provided) throw new Error("LOCAL_FILE_HOST_REQUIRED: files renders inside a subtree that provides a file host (provideFileHost)");
+  const host = provided;
+  let checked = $derived(fileNode(node));
+  let rejected = $state<readonly FileRejection[]>([]);
+  const id = $props.id();
+  const stackTitle = currentStackTitle();
+  const reasons = { "media-type": "File type is not accepted", "file-size": "File is too large",
+    "total-size": "Total size limit exceeded", count: "File count limit reached" };
+  /** The browser's chooser supplies the files; the host checks them against the limits and keeps the accepted handles. */
+  async function choose() {
+    const files = await nativeFilePicker(checked);
+    if (!files) return;
+    const selection = host.choose(checked, files);
+    rejected = selection.result.rejected;
+    onevent?.(selection.event);
+  }
+</script>
+<!-- F1-merge: Text(support|caption) (lane F1a) replaces the label and note paragraphs. -->
+<div role="group" class="group/field flex w-full flex-col gap-2 [&>.sr-only]:w-auto" data-files data-disabled={checked.disabled}
+  data-invalid={rejected.length > 0} aria-labelledby={`${id}-label`} aria-describedby={`${id}-limits`}>
+  <span id={`${id}-label`} data-files-label class={stackTitle() === checked.label ? "sr-only"
+    : "flex w-fit items-center gap-2 type-control leading-snug select-none group-data-[invalid=true]/field:text-destructive-text"}>{checked.label}</span>
+  <Action icon="open" label="Choose files" state={checked.disabled ? "unavailable" : "ready"} onclick={choose} />
+  <p id={`${id}-limits`} data-files-note class="text-muted-foreground text-left type-caption last:mt-0 nth-last-2:-mt-1">
+    Up to {checked.limits.maxCount} files · {fileSize(checked.limits.maxFileBytes)} each · {fileSize(checked.limits.maxTotalBytes)} total.
+    Choosing files does not upload them.
+  </p>
+  {#if checked.files.length}
+    <ul class="flex flex-col gap-2" aria-label="Selected local files" data-files-list>
+      {#each checked.files as file (file.id)}
+        <li class="flex flex-wrap items-center justify-between gap-2">
+          <span class="min-w-0 break-all">{file.name} · {fileSize(file.size)}</span>
+          <Action icon="close" label={`Remove ${file.name}`} state={checked.disabled ? "unavailable" : "ready"}
+            onclick={() => onevent?.(host.remove(checked, file.id))} />
+        </li>
+      {/each}
+    </ul>
+  {:else}<p data-files-note class="text-muted-foreground text-left type-caption last:mt-0 nth-last-2:-mt-1">No local files selected.</p>{/if}
+  <div role="status" aria-live="polite" data-files-status>
+    {#each rejected as item (item.file.id)}<p class="text-destructive">{item.file.name}: {reasons[item.reason]}.</p>{/each}
+  </div>
+</div>
 ```
 
 ## src/svelte/catalog/compositions/fields/Fields.svelte
@@ -6167,28 +6239,21 @@ let { destination, label, available, open, icon = 'open', reason }: CatalogProps
 
 ## src/svelte/catalog/foundations/drawer/Drawer.svelte
 
-Source SHA-256: deaa1466e204b0feb353be84f18e75ddf114c74874443b6892a95b9f2f8825ed
+Source SHA-256: 27f643311d667cd4a22ca9d6f0aa9c4c80140038e1951243e501686444be26ed
 
 ```svelte
 <script lang="ts">
-  import { tick } from 'svelte';
-  import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
-  import { DrawerGrip } from "../../index.ts";
-  import { prefersReducedMotion } from "svelte/motion";
-  import { drawerMotion } from "../../../infra/drawer-motion.svelte.ts";
-  import { useSurfaceHost } from "../../../infra/surface-host.svelte.ts";
+  // F1-merge: transitional adapter of the renamed piece. View-panel (lane E) mounts Modal(adaptive|transient, continuity)
+  // over SurfaceFrame itself and maps dismissal to the frame's secondary intent; this folder is deleted in Batch 3.
+  import { Modal } from "../../index.ts";
   import { SurfaceFrame } from "../../index.ts";
   import { InstanceFrame } from "../../index.ts";
   import type { SurfaceFrame as Frame } from "../../../../interaction/surface-frame.ts";
   import type { ResolvedView } from "../../../../views/resolved.ts";
   import { transientFrame } from "../../../../interaction/transient-frame.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import { surfaceFocus } from "../../../infra/surface-focus.svelte.ts";
-  import { adaptiveSurfaceLayout } from './adaptive-surface-layout.ts';
-  import { adaptiveModality } from './adaptive-modality.svelte.ts';
   import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
-  import { frameContinuity } from "../../../infra/frame-continuity.svelte.ts";
-let { label, open, locked = false, onclose, onclosed, frame, invoke, edit, frameIdentity, readingIdentity, body, controlEvent, presentation }: {
+  let { label, open, locked = false, onclose, onclosed, frame, invoke, edit, frameIdentity, readingIdentity, body, controlEvent, presentation }: {
     label: string; open: boolean; locked?: boolean; onclose: () => void;
     onclosed?: () => void; frame: Frame; invoke: (intent: SurfaceIntent) => void;
     edit?: (name: string, value: string) => void;
@@ -6198,103 +6263,166 @@ let { label, open, locked = false, onclose, onclosed, frame, invoke, edit, frame
     controlEvent?: ((event: FormControlEvent) => void) | undefined;
     presentation?: "transient" | undefined;
   } = $props();
+  const minted = new WeakMap<object, string>();
+  /** The string continuity of a frame identity: a view owner's own key, else a token minted for that object. */
+  function frameKey(identity: object): string {
+    if ("key" in identity && typeof identity.key === "string") return identity.key;
+    const known = minted.get(identity);
+    if (known !== undefined) return known;
+    const token = crypto.randomUUID();
+    minted.set(identity, token);
+    return token;
+  }
   let composition = $derived(transientFrame(frame, locked));
-  let content = $state<HTMLElement | null>(null);
-  const continuity = frameContinuity(() => content, () => frameIdentity, () => frame, () => readingIdentity);
+  let continuity = $derived(frameIdentity ? { frame: frameKey(frameIdentity), ...readingIdentity ? { reading: readingIdentity } : {} } : undefined);
+  let modal = $state<ReturnType<typeof Modal>>();
   let dispatch = $derived.by(() => {
     const receiver = invoke, owner = frameIdentity;
     return (intent: SurfaceIntent) => {
-      if (owner === frameIdentity) continuity.invoking(intent);
+      if (owner === frameIdentity) modal?.noteInvocation(intent.kind === "back" || intent.kind === "close" ? "close" : "other");
       receiver(intent);
     };
-  });
-  let opener: HTMLElement | null = null;
-  let wasOpen = false;
-  $effect.pre(() => {
-    if (open && !wasOpen) opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    wasOpen = open;
   });
   const close = () => {
     const navigation = composition.bottom.secondary;
     if (locked || navigation?.state !== "ready") return;
-    if (navigation.intent.kind === "close") { continuity.invoking(navigation.intent); onclose(); }
+    if (navigation.intent.kind === "close") { modal?.noteInvocation("close"); onclose(); }
     else dispatch(navigation.intent);
   };
+</script>
+<Modal bind:this={modal} {label} {open} {locked} presentation={presentation === "transient" ? "transient" : "adaptive"} {continuity}
+  ondismiss={close} {onclosed}>
+  {#if frameIdentity}
+    {#key frameIdentity}<InstanceFrame frame={composition} {body} {edit} invoke={dispatch} {controlEvent} />{/key}
+  {:else}
+    <SurfaceFrame frame={composition} {edit} {controlEvent} presentation="transient" invoke={intent => intent.kind === "close" ? close() : dispatch(intent)} />
+  {/if}
+</Modal>
+```
+
+## src/svelte/catalog/foundations/modal/Modal.svelte
+
+Source SHA-256: 8c10129c744f3348fdb23bffe6641860c1c71832ed7829a0b5485e5a274d6f59
+
+```svelte
+<script lang="ts">
+  import type { CatalogProps } from "../../types.d.ts";
+  import { dismissWhenInactive } from "../../../infra/surface-activity.svelte.ts";
+  import { useSurfaceTypography } from "../../../infra/surface-typography.svelte.ts";
+  import type { FrameInvocation } from "./frame-continuity.svelte.ts";
+  import ModalPane from "./ModalPane.svelte";
+  import ModalSheet from "./ModalSheet.svelte";
+  import ModalDialog from "./ModalDialog.svelte";
+  let { label, open, locked, presentation, continuity, ondismiss, onclosed, children }: CatalogProps<"modal"> = $props();
+  const density = useSurfaceTypography();
+  /** Escape, the scrim and the grip ask to dismiss; a locked modal refuses, and the caller decides what dismissal means. */
+  const dismiss = () => { if (!locked) ondismiss?.(); };
+  // A task pane stays open while its surface is hidden (a retained place); a sheet, message or media stage does not.
+  dismissWhenInactive(() => { if (open && presentation !== "adaptive" && presentation !== "transient") dismiss(); });
+  let pane = $state<ReturnType<typeof ModalPane>>();
+  /** Called by the caller just before it invokes something: "close" before Back or Close, "other" otherwise. */
+  export function noteInvocation(kind: FrameInvocation): void { pane?.noteInvocation(kind); }
+</script>
+{#if presentation === "adaptive" || presentation === "transient" || presentation === "navigation"}
+  <ModalPane bind:this={pane} {label} {open} {locked} {presentation} {continuity} density={density()} {dismiss} {onclosed} {children} />
+{:else if presentation === "sheet"}
+  <ModalSheet {label} {open} {locked} density={density()} {dismiss} {onclosed} {children} />
+{:else}
+  <ModalDialog {label} {open} {presentation} density={density()} {dismiss} {onclosed} {children} />
+{/if}
+```
+
+## src/svelte/catalog/foundations/modal/ModalPane.svelte
+
+Source SHA-256: 8f4a3bf15e7aa718856d0981f58f4ff766f4f4558713ac83f0aa8a0360a621a9
+
+```svelte
+<script lang="ts">
+  // Modal part: the pane of an adaptive, transient or navigation modal. An adaptive pane docks beside its parent when the
+  // launching host has room (it is then not modal); otherwise it is modal at the right edge, or at the bottom edge with
+  // its grip. Fit, modality and edge come from the host's available space, never a browser breakpoint.
+  import { tick, type Snippet } from "svelte";
+  import { prefersReducedMotion } from "svelte/motion";
+  import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
+  import { useSurfaceHost } from "../../mechanisms/surface-host/surface-host.svelte.ts";
+  import { surfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
+  import DrawerGrip from "./DrawerGrip.svelte";
+  import { drawerMotion } from "./drawer-motion.svelte.ts";
+  import { frameContinuity, type FrameIdentity, type FrameInvocation } from "./frame-continuity.svelte.ts";
+  import { adaptiveSurfaceLayout } from "./adaptive-surface-layout.ts";
+  import { adaptiveModality } from "./adaptive-modality.svelte.ts";
+  let { label, open, locked, presentation, continuity, density, dismiss, onclosed, children }: {
+    label: string; open: boolean; locked: boolean; presentation: "adaptive" | "transient" | "navigation";
+    continuity: FrameIdentity | undefined; density: "comfortable" | "compact" | undefined;
+    dismiss: () => void; onclosed: (() => void) | undefined; children: Snippet | undefined;
+  } = $props();
+  let content = $state<HTMLElement | null>(null);
+  const frames = frameContinuity(() => content, () => continuity);
+  export function noteInvocation(kind: FrameInvocation) { frames.note(kind); }
+  let opener: HTMLElement | null = null, wasOpen = false;
+  $effect.pre(() => {
+    if (open && !wasOpen) opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    wasOpen = open;
+  });
   const host = useSurfaceHost();
-  const owner = Symbol('adaptive-pane');
-  const layout = $derived(adaptiveSurfaceLayout(host.availableInline, host.textSize, presentation !== "transient" && host.canDock(owner)));
+  const owner = Symbol("adaptive-pane");
+  const lateral = $derived(presentation === "navigation");
+  const layout = $derived(adaptiveSurfaceLayout(host.availableInline, host.textSize, presentation === "adaptive" && host.canDock(owner)));
   const docked = $derived(layout.docked);
-  // A docked replacement may mount already open. Do not acquire a transient
-  // body lock against the pre-measurement zero width: that false modal can be
-  // removed before the lock's teardown effect has even registered.
+  // A docked replacement may mount already open. Do not acquire a transient body lock against the pre-measurement zero
+  // width: that false modal can be removed before the lock's teardown effect has even registered.
   const modal = $derived(open && host.measured && !docked);
-  $effect(() => { host.reserve(owner, open && docked ? layout.reservation : 0); });
+  $effect(() => { host.reserve(owner, open && docked && !lateral ? layout.reservation : 0); });
   $effect(() => () => host.reserve(owner, 0));
-  adaptiveModality(() => content, () => modal);
-  const motion = drawerMotion(close, () => locked || docked, () => layout.edge);
+  adaptiveModality(() => content, () => modal && !lateral);
+  const motion = drawerMotion(dismiss, () => locked || docked || lateral, () => layout.edge);
+  const edge = $derived(lateral ? "left" : motion.edge);
+  const width = $derived(lateral ? "18rem" : `${layout.paneWidth}px`);
   const dragHeader = (event: PointerEvent) => {
-    const target = event.target as HTMLElement;
-    if (docked || layout.edge === 'bottom' || !target.closest(".workspace-header") || target.closest(
-      "button,a,input,textarea,select,[contenteditable],.toolbar-title,.toolbar-subtitle")) return;
+    const target = event.target;
+    if (docked || lateral || layout.edge === "bottom" || !(target instanceof Element) || !target.closest(".workspace-header")
+      || target.closest("button,a,input,textarea,select,[contenteditable],.toolbar-title,.toolbar-subtitle")) return;
     motion.down(event);
   };
-  const enter = surfaceFocus(() => content);
-  const focus = (event: Event) => {
-    enter(event);
-  };
+  const focus = surfaceFocus(() => content);
   const restore = (event: Event) => {
     event.preventDefault();
     const target = opener, active = document.activeElement;
     const ownsFocus = !active || active === document.body || content?.contains(active);
     if (ownsFocus) void tick().then(() => {
-      if (target?.isConnected && !target.closest('[inert],[hidden]')) target.focus({ preventScroll: true });
+      if (target?.isConnected && !target.closest("[inert],[hidden]")) target.focus({ preventScroll: true });
     });
   };
 </script>
-<Dialog.Root {open} dismissOnInactive={false} onOpenChange={next => { if (!next) close(); }}
+<Dialog.Root {open} onOpenChange={next => { if (!next) dismiss(); }}
   onOpenChangeComplete={next => { if (!next) { motion.reset(); onclosed?.(); } }}>
-    <Dialog.Content bind:ref={content} presentation="panel" showCloseButton={false} data-composition="transient"
-      adaptiveModal={!docked} trapFocus={false} preventScroll={modal}
-      data-adaptive-surface data-presentation={docked ? 'docked' : 'transient'} data-locked={locked || undefined}
-      overlayStyle={motion.overlayStyle}
-      data-reduced-motion={prefersReducedMotion.current} data-edge={motion.edge}
-      style={`--panel-width:${layout.paneWidth}px;--adaptive-left:${host.bounds.left}px;--adaptive-top:${host.bounds.top}px;--adaptive-right:${host.bounds.right}px;--adaptive-bottom:${host.bounds.bottom}px;transform:${motion.transform}`} data-dragging={motion.dragging || undefined}
-      onpointerdown={dragHeader} onpointermove={motion.move} onpointerup={motion.up}
-      onpointercancel={motion.cancel} onlostpointercapture={motion.lost}
-      onOpenAutoFocus={focus} onCloseAutoFocus={restore}
-      onEscapeKeydown={event => { event.preventDefault(); if (!locked && (!docked || content?.contains(document.activeElement))) close(); }}
-      onInteractOutside={event => { event.preventDefault(); if (!locked && !docked) close(); }}>
-      <Dialog.Title class="sr-only">{label}</Dialog.Title>
-      <Dialog.Description class="sr-only">Close to return. Unsaved writing stays in this session.</Dialog.Description>
-      {#if motion.edge === "bottom" && !docked}<DrawerGrip {motion} {locked} />{/if}
-      {#if frameIdentity}
-        {#key frameIdentity}<InstanceFrame frame={composition} {body} {edit} invoke={dispatch} {controlEvent} />{/key}
-      {:else}
-        <SurfaceFrame frame={composition} {edit} {controlEvent} presentation="transient" invoke={intent => intent.kind === "close" ? close() : dispatch(intent)} />
-      {/if}
-    </Dialog.Content>
+  <Dialog.Content bind:ref={content} presentation="panel" {density} data-modal={presentation} data-composition="transient"
+    adaptiveModal={lateral ? undefined : !docked} trapFocus={lateral ? undefined : false} preventScroll={lateral ? undefined : modal}
+    data-adaptive-surface={lateral ? undefined : ""} data-presentation={lateral ? "overlay" : docked ? "docked" : "transient"}
+    data-locked={locked || undefined} data-reduced-motion={prefersReducedMotion.current} data-edge={edge}
+    overlayStyle={motion.overlayStyle} data-dragging={motion.dragging || undefined}
+    style={`--panel-width:${width};--adaptive-left:${host.bounds.left}px;--adaptive-top:${host.bounds.top}px;--adaptive-right:${host.bounds.right}px;--adaptive-bottom:${host.bounds.bottom}px;transform:${motion.transform}`}
+    onpointerdown={dragHeader} onpointermove={motion.move} onpointerup={motion.up}
+    onpointercancel={motion.cancel} onlostpointercapture={motion.lost}
+    onOpenAutoFocus={event => focus.open(event)} onCloseAutoFocus={event => focus.close(event, restore)}
+    onEscapeKeydown={event => { event.preventDefault(); if (!docked || content?.contains(document.activeElement)) dismiss(); }}
+    onInteractOutside={event => { event.preventDefault(); if (!docked) dismiss(); }}>
+    <Dialog.Title class="sr-only">{label}</Dialog.Title>
+    <Dialog.Description class="sr-only">Close to return. Unsaved writing stays in this session.</Dialog.Description>
+    {#if edge === "bottom" && !docked}<DrawerGrip {motion} {locked} />{/if}
+    {@render children?.()}
+  </Dialog.Content>
 </Dialog.Root>
-
-<style>
-  :global(.drawer[data-adaptive-surface]) {
-    top:calc(var(--adaptive-top) + max(var(--surface-inset),env(safe-area-inset-top,0px)));
-    right:calc(var(--adaptive-right) + max(var(--surface-inset),env(safe-area-inset-right,0px)));
-    bottom:calc(var(--adaptive-bottom) + max(var(--surface-inset),env(safe-area-inset-bottom,0px)));
-  }
-  :global(.drawer[data-adaptive-surface][data-edge="bottom"]) {
-    left:calc(var(--adaptive-left) + max(var(--surface-inset),env(safe-area-inset-left,0px)));
-  }
-  :global(.drawer[data-adaptive-surface][data-presentation="docked"] .workspace-header) { cursor:auto; }
-</style>
 ```
 
-## src/svelte/infra/drawer-motion.svelte.ts
+## src/svelte/catalog/foundations/modal/drawer-motion.svelte.ts
 
-Source SHA-256: 9f0106f6693c5479d864ae100c75098c02aa2754849691c236413d43205f7297
+Source SHA-256: fcf3f971ac1cc3be7d5d9f088d6437f825353353d0ea5f4cfac1945d405d0986
 
 ```ts
+// The drag of a modal's edge: direct manipulation until release, dismissing past the threshold (a modal part).
 import { untrack } from "svelte";
-import { swipeMotion } from "./swipe-motion.svelte.ts";
+import { swipeMotion } from "../../../infra/swipe-motion.svelte.ts";
 
 export function drawerMotion(close: () => void, locked: () => boolean, edge: () => "bottom" | "right") {
   const motion = swipeMotion({ edge, enabled: () => !locked(), commit: close });
@@ -6306,9 +6434,8 @@ export function drawerMotion(close: () => void, locked: () => boolean, edge: () 
     get overlayStyle() { return `--surface-scrim-opacity:${1 - motion.progress * .6}`; },
     get transform() { return motion.transform; },
     down(event: PointerEvent) {
-      if (locked()) return;
-      const target = event.currentTarget as HTMLElement;
-      target.closest(".drawer")?.getAnimations().forEach(animation => animation.finish());
+      if (locked() || !(event.currentTarget instanceof HTMLElement)) return;
+      event.currentTarget.closest("[data-modal]")?.getAnimations().forEach(animation => animation.finish());
       motion.down(event);
     },
     move: motion.move, up: motion.up, click: motion.click, cancel: motion.cancel, lost: motion.lost, reset: motion.reset,

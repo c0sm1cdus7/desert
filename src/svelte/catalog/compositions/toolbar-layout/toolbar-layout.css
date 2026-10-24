@@ -80,7 +80,6 @@
 :is([data-catalog-toolbar],[data-place-toolbar]) { position:absolute; inset:max(0px,calc(env(safe-area-inset-top,0px) - var(--catalog-toolbar-inset))) max(0px,calc(env(safe-area-inset-right,0px) - var(--catalog-toolbar-inset))) auto max(0px,calc(env(safe-area-inset-left,0px) - var(--catalog-toolbar-inset))); z-index:2; margin-inline-start:var(--place-leading-inset); }
 [data-navigation-return] { position:absolute; z-index:2; bottom:0; inset-inline-start:var(--place-leading-inset,0px); inline-size:calc(var(--catalog-toolbar-height) + 2 * var(--catalog-toolbar-inset)); }
 [data-navigation-return] [data-piece="toolbar"] { overflow:visible; }
-.speed-dial { z-index:50; display:grid; gap:12px; max-width:calc(100vw - 24px); }
 [data-speed-dial-action] { display:flex; align-items:center; justify-content:flex-end; gap:12px; }
 [data-speed-dial-label] { padding:8px 12px; border:1px solid var(--border); border-radius:16px; max-width:18rem; overflow-wrap:anywhere; text-align:end; }
 [data-speed-dial-action] button { flex-shrink:0; width:var(--catalog-toolbar-height); height:var(--catalog-toolbar-height); }

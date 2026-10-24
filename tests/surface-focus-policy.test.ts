@@ -5,7 +5,7 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 
 test('repeated autofocus callbacks install only one boundary navigation handler', async () => {
   const f = await svelteBrowser(`<script>
-    import { surfaceFocus } from '@desert/svelte/infra/surface-focus.svelte.ts';
+    import { surfaceFocus } from '@desert/svelte/catalog/mechanisms/surface-focus/surface-focus.svelte.ts';
     let surface=$state(null), received=$state(0);
     const first=surfaceFocus(()=>surface), second=surfaceFocus(()=>surface);
   </script><button onclick={()=>{first(new Event('open'));second(new Event('open'))}}>Open</button>

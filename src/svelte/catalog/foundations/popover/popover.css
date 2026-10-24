@@ -1,4 +1,4 @@
-/* Anchored geometry and presence; Pane owns the material. */
+/* Popover: the nonmodal surface anchored to its trigger. Anchored geometry and presence; the pane owns the material. */
 @layer components {
   .floating-pane {
     position:relative; z-index:30;
@@ -15,11 +15,6 @@
     max-width:min(calc(100dvw - 24px),var(--bits-popover-content-available-width));
     max-height:var(--bits-popover-content-available-height);
   }
-  .selection-surface {
-    min-width:min(var(--bits-select-anchor-width),calc(100dvw - 24px));
-    max-width:min(calc(100dvw - 24px),var(--bits-select-content-available-width));
-    max-height:var(--bits-select-content-available-height);
-  }
-  .selection-option { min-height:2rem; padding-block:.375rem; }
-  @media (pointer:coarse) { .selection-option { min-height:2.75rem; padding-block:.75rem; } }
 }
+/* A menu holds no pane of its own: its commands stand in one column above the page. */
+.speed-dial { z-index:50; display:grid; gap:12px; max-width:calc(100vw - 24px); }

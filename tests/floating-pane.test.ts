@@ -4,7 +4,8 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import AnchoredSurface from '@desert/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte';
+  import Popover from '@desert/svelte/catalog/foundations/popover/Popover.svelte';
+  import FrameBody from '@desert/svelte/catalog/renderer/frame-body/FrameBody.svelte';
   import SelectionField from '@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte';
   import { toolbarAction } from '@desert/interaction/toolbar.ts';
   let open=$state(false), value=$state('one');
@@ -12,8 +13,11 @@ const source = `<script lang="ts">
 <main style="padding:100px 24px">
   <SelectionField selection="example" label="Choose" {value} onchange={next=>value=next}
     options={[{value:'one',label:'One',disabled:false},{value:'two',label:'Two',disabled:false}]} />
-  <AnchoredSurface label="Open actions" title="Actions" {open} onchange={next=>open=next}
-    content={{kind:'utilities',actions:[toolbarAction({kind:'journey',journey:'first'},'First','open'),toolbarAction({kind:'journey',journey:'last'},'Last','open')]}} />
+  <Popover label="Actions" {open} disabled={false} locked={false} content="information" placement="anchored" align="start"
+    trigger={{kind:'action',label:'Open actions',icon:'open',face:'fit',emphasis:'secondary',state:'ready'}} onopenchange={next=>open=next}>
+    <FrameBody content={{kind:'utilities',actions:[toolbarAction({kind:'journey',journey:'first'},'First','open'),toolbarAction({kind:'journey',journey:'last'},'Last','open')]}}
+      invoke={() => {}} edit={() => {}} />
+  </Popover>
   <button>Outside target</button>
 </main>`;
 

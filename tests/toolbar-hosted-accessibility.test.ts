@@ -35,7 +35,7 @@ for(const direction of ['ltr','rtl']) test(`hosted calendar, transient, problem 
     assert.equal(target,60);
     await mkdir('artifacts/toolbar-canonical-geometry/hosted-accessibility',{recursive:true});
     for(const[name,entry,state,opener,selector]of[
-      ['calendar','control.date','calendar','[data-specimen="control.date:calendar"] button','[data-date-calendar] [data-piece="toolbar"]'],
+      ['calendar','control.date','calendar','[data-specimen="control.date:calendar"] button','[data-date-calendar-header]'],
       ['transient','transient','open','[data-specimen="transient:open"] button','[data-surface-frame] [data-piece="toolbar"]'],
       ['problem','problem','error','[data-specimen="problem:error"] button','[data-frame-presentation="message"] [data-piece="toolbar"]'],
       ['viewer',null,null,'[data-record="image.coast"] button','[data-media-viewer] [data-piece="toolbar"]'],
@@ -48,7 +48,7 @@ for(const direction of ['ltr','rtl']) test(`hosted calendar, transient, problem 
       await f.page.locator(opener!).click();
       const bars=f.page.locator(selector!);await bars.first().waitFor();
       const measurements=await bars.evaluateAll(nodes=>nodes.map(node=>{
-        const box=node.getBoundingClientRect(),row=node.querySelector('.toolbar-row')!;
+        const box=node.getBoundingClientRect(),row=node.querySelector('.toolbar-row,[data-date-calendar-row]')!;
         return{density:node.closest('[data-type-density]')?.getAttribute('data-type-density'),
           width:node.clientWidth,scroll:node.scrollWidth,left:box.left,right:box.right,
           buttons:[...row.querySelectorAll<HTMLElement>('button:not([data-media-thumbs] button)')].map(button=>button.getBoundingClientRect().toJSON())};
@@ -71,7 +71,7 @@ for(const direction of ['ltr','rtl']) test(`hosted calendar, transient, problem 
 
 test('hosted target witness detects a portal that loses its launch typography',async()=>{
   const path=resolve('src/svelte/vendor/components/ui/dialog/dialog-content.svelte');
-  const broken=(await readFile(path,'utf8')).replace('data-type-density={density()}','');
+  const broken=(await readFile(path,'utf8')).replace('data-type-density={density}','');
   const f=await svelteBrowser(source,{[path]:broken},'http://toolbar.test/');
   try{
     await f.page.setViewportSize({width:1280,height:900});

@@ -1,5 +1,6 @@
 <script lang="ts">
-  import AnchoredSurface from "./AnchoredSurface.svelte";
+  import { Popover } from "../../index.ts";
+  import { FrameBody } from "../../index.ts";
   import { popoverNode, applyControlEvent } from "../../../../interaction/control-nodes.ts";
   import type { ControlEventFor } from "../../../renderer-contracts.ts";
   import type { CatalogProps } from "../../types.d.ts";
@@ -11,5 +12,8 @@
     onevent?.(event);
   }
 </script>
-<AnchoredSurface label={checked.label} open={checked.open} disabled={checked.disabled} locked={checked.locked}
-  title={checked.title} content={{ kind: "information", items: checked.content }} onchange={change} />
+<Popover label={checked.title} open={checked.open} disabled={checked.disabled} locked={checked.locked === true} content="information"
+  placement="anchored" align="start" onopenchange={change}
+  trigger={{ kind: "action", label: checked.label, icon: "open", face: "fit", emphasis: "secondary", state: "ready" }}>
+  <FrameBody content={{ kind: "information", items: checked.content }} invoke={() => {}} edit={() => {}} />
+</Popover>

@@ -19,7 +19,7 @@ for (const initialWidth of [600, 320]) test(`date cursor survives presentation r
     await f.page.locator('[data-date-trigger]').click();
     await f.page.getByRole('button', { name: 'Next month', exact: true }).click();
     await settle(f.page);
-    const title = f.page.locator('[data-date-calendar] .toolbar-title');
+    const title = f.page.locator('[data-date-calendar-month]');
     assert.equal(await title.textContent(), 'November 2026');
     await f.page.setViewportSize({ width: initialWidth === 600 ? 320 : 600, height: 900 });
     await settle(f.page);

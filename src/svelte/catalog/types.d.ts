@@ -50,6 +50,7 @@ import type { FieldWellContract as FieldWellContract } from "./foundations/field
 import type { FieldWellContentContract as FieldWellContentContract } from "./foundations/field-well-content/field-well-content.contract.ts";
 import type { FieldsContract as FieldsContract } from "./compositions/fields/fields.contract.ts";
 import type { FileControlContract as FileControlContract } from "./compositions/file-control/file-control.contract.ts";
+import type { FilesContract as FilesContract } from "./foundations/files/files.contract.ts";
 import type { FormContract as FormContract } from "./foundations/form/form.contract.ts";
 import type { FrameBodyContract as FrameBodyContract } from "./renderer/frame-body/frame-body.contract.ts";
 import type { GroupedPanelContract as GroupedPanelContract } from "./foundations/grouped-panel/grouped-panel.contract.ts";
@@ -74,7 +75,9 @@ import type { MediaGridContract as MediaGridContract } from "./compositions/medi
 import type { MediaObjectContract as MediaObjectContract } from "./compositions/media-object/media-object.contract.ts";
 import type { MediaReferenceSelectorContract as MediaReferenceSelectorContract } from "./compositions/media-reference-selector/media-reference-selector.contract.ts";
 import type { MediaReferenceSpecimenContract as MediaReferenceSpecimenContract } from "./compositions/media-reference-specimen/media-reference-specimen.contract.ts";
+import type { MenuContract as MenuContract } from "./foundations/menu/menu.contract.ts";
 import type { MessageBodyContract as MessageBodyContract } from "./foundations/message-body/message-body.contract.ts";
+import type { ModalContract as ModalContract } from "./foundations/modal/modal.contract.ts";
 import type { MoneyControlContract as MoneyControlContract } from "./compositions/money-control/money-control.contract.ts";
 import type { ObjectStateControlContract as ObjectStateControlContract } from "./compositions/object-state-control/object-state-control.contract.ts";
 import type { ObjectStateRowContract as ObjectStateRowContract } from "./compositions/object-state-row/object-state-row.contract.ts";
@@ -83,6 +86,7 @@ import type { PanelContract as PanelContract } from "./renderer/panel/panel.cont
 import type { PhotoCollectionContract as PhotoCollectionContract } from "./compositions/photo-collection/photo-collection.contract.ts";
 import type { PlaceHeaderContract as PlaceHeaderContract } from "./compositions/place-header/place-header.contract.ts";
 import type { PlaybackControlsContract as PlaybackControlsContract } from "./compositions/playback-controls/playback-controls.contract.ts";
+import type { PopoverContract as PopoverContract } from "./foundations/popover/popover.contract.ts";
 import type { PopoverControlContract as PopoverControlContract } from "./compositions/popover-control/popover-control.contract.ts";
 import type { ProblemContract as ProblemContract } from "./compositions/problem/problem.contract.ts";
 import type { PublicCatalogBankContract as PublicCatalogBankContract } from "./renderer/public-catalog-bank/public-catalog-bank.contract.ts";
@@ -100,6 +104,7 @@ import type { SeedAvatarContract as SeedAvatarContract } from "./foundations/see
 import type { SelectControlContract as SelectControlContract } from "./compositions/select-control/select-control.contract.ts";
 import type { SharedOwnerCatalogContract as SharedOwnerCatalogContract } from "./compositions/shared-owner-catalog/shared-owner-catalog.contract.ts";
 import type { SharedOwnerSpecimenContract as SharedOwnerSpecimenContract } from "./compositions/shared-owner-specimen/shared-owner-specimen.contract.ts";
+import type { SliderContract as SliderContract } from "./foundations/slider/slider.contract.ts";
 import type { SpecimenContract as SpecimenContract } from "./compositions/specimen/specimen.contract.ts";
 import type { SpecimenGroupContract as SpecimenGroupContract } from "./compositions/specimen-group/specimen-group.contract.ts";
 import type { SpecimenRowContract as SpecimenRowContract } from "./compositions/specimen-row/specimen-row.contract.ts";
@@ -138,7 +143,7 @@ type ContractProps<C> = C extends { readonly props: infer P extends TSchema } ? 
 type ContractEvents<C> = C extends { readonly events: infer E extends TSchema }
   ? { [K in keyof Static<E> & string as `on${K}`]?: (value: DeepReadonly<Static<E>[K]>) => void } : {};
 
-export type CatalogId = "access-appearance-specimen" | "access-experience" | "access-form" | "access-gate" | "access-screen" | "action" | "appearance" | "appearance-preferences" | "appearance-preview" | "artwork-placeholder" | "attention-indicator" | "attention-list" | "attention-status" | "availability" | "avatar-shuffle" | "catalog-card" | "catalog-detail" | "catalog-home" | "catalog-navigation" | "catalog-search-results" | "catalog-workspace" | "catalog-workspace-content" | "character-counter" | "choice-item" | "choice-list" | "choice-row" | "clear-input" | "clock" | "collection" | "collection-state" | "color-bullet" | "column" | "confirmation-dialog" | "content-flow" | "context-panel" | "context-properties" | "contract-inspection" | "control-bench" | "control-renderer" | "date-control" | "destination-row" | "drawer" | "drawer-grip" | "face" | "fact-group" | "fact-list" | "fact-row" | "fact-value" | "facts" | "failure-dialog" | "feedback" | "field-well" | "field-well-content" | "fields" | "file-control" | "form" | "frame-body" | "grouped-panel" | "heading" | "icon" | "identity" | "image" | "information" | "inspection" | "inspection-catalog" | "inspection-content" | "instance-frame" | "label-rail" | "labels-control" | "library" | "local-exercise-content" | "local-exercises" | "lock-screen" | "masked-input" | "measured-field" | "media-collection-grid" | "media-content" | "media-control" | "media-grid" | "media-object" | "media-reference-selector" | "media-reference-specimen" | "message-body" | "money-control" | "node-renderer" | "object-state-control" | "object-state-row" | "options-control" | "panel" | "photo-collection" | "picker-sheet" | "place" | "place-content" | "place-header" | "place-heading" | "playback-canvas" | "playback-controls" | "popover-control" | "problem" | "public-catalog-bank" | "public-catalog-bank-specimen" | "public-catalog-product" | "public-catalog-product-content" | "reading-content" | "reference-selector" | "reference-specimen" | "reference-values" | "related-selection" | "retained-place" | "review" | "scroll-edges" | "search-field" | "seed-avatar" | "select-control" | "selection-field" | "shared-owner-catalog" | "shared-owner-specimen" | "specimen" | "specimen-group" | "specimen-row" | "specimen-unavailable" | "speed-dial" | "stack" | "stack-item" | "stack-layout" | "summary-widget" | "surface-frame" | "surface-specimen" | "text" | "text-content" | "text-input" | "toolbar" | "toolbar-layout" | "toolbar-media-controls" | "toolbar-search" | "utility-actions" | "view-attention" | "view-content" | "view-destination-link" | "view-item" | "view-panel" | "view-product" | "view-product-content" | "view-region" | "view-related-selection" | "view-workspace" | "viewer" | "wallpaper" | "workspace" | "zoom-controls";
+export type CatalogId = "access-appearance-specimen" | "access-experience" | "access-form" | "access-gate" | "access-screen" | "action" | "appearance" | "appearance-preferences" | "appearance-preview" | "artwork-placeholder" | "attention-indicator" | "attention-list" | "attention-status" | "availability" | "avatar-shuffle" | "catalog-card" | "catalog-detail" | "catalog-home" | "catalog-navigation" | "catalog-search-results" | "catalog-workspace" | "catalog-workspace-content" | "character-counter" | "choice-item" | "choice-list" | "choice-row" | "clear-input" | "clock" | "collection" | "collection-state" | "color-bullet" | "column" | "confirmation-dialog" | "content-flow" | "context-panel" | "context-properties" | "contract-inspection" | "control-bench" | "control-renderer" | "date-control" | "destination-row" | "drawer" | "drawer-grip" | "face" | "fact-group" | "fact-list" | "fact-row" | "fact-value" | "facts" | "failure-dialog" | "feedback" | "field-well" | "field-well-content" | "fields" | "file-control" | "files" | "form" | "frame-body" | "grouped-panel" | "heading" | "icon" | "identity" | "image" | "information" | "inspection" | "inspection-catalog" | "inspection-content" | "instance-frame" | "label-rail" | "labels-control" | "library" | "local-exercise-content" | "local-exercises" | "lock-screen" | "masked-input" | "measured-field" | "media-collection-grid" | "media-content" | "media-control" | "media-grid" | "media-object" | "media-reference-selector" | "media-reference-specimen" | "menu" | "message-body" | "modal" | "money-control" | "node-renderer" | "object-state-control" | "object-state-row" | "options-control" | "panel" | "photo-collection" | "picker-sheet" | "place" | "place-content" | "place-header" | "place-heading" | "playback-canvas" | "playback-controls" | "popover" | "popover-control" | "problem" | "public-catalog-bank" | "public-catalog-bank-specimen" | "public-catalog-product" | "public-catalog-product-content" | "reading-content" | "reference-selector" | "reference-specimen" | "reference-values" | "related-selection" | "retained-place" | "review" | "scroll-edges" | "search-field" | "seed-avatar" | "select-control" | "selection-field" | "shared-owner-catalog" | "shared-owner-specimen" | "slider" | "specimen" | "specimen-group" | "specimen-row" | "specimen-unavailable" | "speed-dial" | "stack" | "stack-item" | "stack-layout" | "summary-widget" | "surface-frame" | "surface-specimen" | "text" | "text-content" | "text-input" | "toolbar" | "toolbar-layout" | "toolbar-media-controls" | "toolbar-search" | "utility-actions" | "view-attention" | "view-content" | "view-destination-link" | "view-item" | "view-panel" | "view-product" | "view-product-content" | "view-region" | "view-related-selection" | "view-workspace" | "viewer" | "wallpaper" | "workspace" | "zoom-controls";
 export type CatalogExports = {
   readonly "access-appearance-specimen": typeof Catalog.AccessAppearanceSpecimen;
   readonly "access-experience": typeof Catalog.AccessExperience;
@@ -195,6 +200,7 @@ export type CatalogExports = {
   readonly "field-well-content": typeof Catalog.FieldWellContent;
   readonly "fields": typeof Catalog.Fields;
   readonly "file-control": typeof Catalog.FileControl;
+  readonly "files": typeof Catalog.Files;
   readonly "form": typeof Catalog.Form;
   readonly "frame-body": typeof Catalog.FrameBody;
   readonly "grouped-panel": typeof Catalog.GroupedPanel;
@@ -222,7 +228,9 @@ export type CatalogExports = {
   readonly "media-object": typeof Catalog.MediaObject;
   readonly "media-reference-selector": typeof Catalog.MediaReferenceSelector;
   readonly "media-reference-specimen": typeof Catalog.MediaReferenceSpecimen;
+  readonly "menu": typeof Catalog.Menu;
   readonly "message-body": typeof Catalog.MessageBody;
+  readonly "modal": typeof Catalog.Modal;
   readonly "money-control": typeof Catalog.MoneyControl;
   readonly "node-renderer": typeof Catalog.NodeRenderer;
   readonly "object-state-control": typeof Catalog.ObjectStateControl;
@@ -237,6 +245,7 @@ export type CatalogExports = {
   readonly "place-heading": typeof Catalog.PlaceHeading;
   readonly "playback-canvas": typeof Catalog.PlaybackCanvas;
   readonly "playback-controls": typeof Catalog.PlaybackControls;
+  readonly "popover": typeof Catalog.Popover;
   readonly "popover-control": typeof Catalog.PopoverControl;
   readonly "problem": typeof Catalog.Problem;
   readonly "public-catalog-bank": typeof Catalog.PublicCatalogBank;
@@ -257,6 +266,7 @@ export type CatalogExports = {
   readonly "selection-field": typeof Catalog.SelectionField;
   readonly "shared-owner-catalog": typeof Catalog.SharedOwnerCatalog;
   readonly "shared-owner-specimen": typeof Catalog.SharedOwnerSpecimen;
+  readonly "slider": typeof Catalog.Slider;
   readonly "specimen": typeof Catalog.Specimen;
   readonly "specimen-group": typeof Catalog.SpecimenGroup;
   readonly "specimen-row": typeof Catalog.SpecimenRow;
@@ -348,6 +358,7 @@ export type CatalogPropsTable = {
   readonly "field-well-content": ContractProps<typeof FieldWellContentContract> & ContractEvents<typeof FieldWellContentContract> & { readonly "children"?: Snippet };
   readonly "fields": ContractProps<typeof FieldsContract> & ContractEvents<typeof FieldsContract>;
   readonly "file-control": ContractProps<typeof FileControlContract> & ContractEvents<typeof FileControlContract>;
+  readonly "files": ContractProps<typeof FilesContract> & ContractEvents<typeof FilesContract>;
   readonly "form": ContractProps<typeof FormContract> & ContractEvents<typeof FormContract> & { readonly "children"?: Snippet };
   readonly "frame-body": ContractProps<typeof FrameBodyContract> & ContractEvents<typeof FrameBodyContract>;
   readonly "grouped-panel": ContractProps<typeof GroupedPanelContract> & ContractEvents<typeof GroupedPanelContract> & { readonly "children"?: Snippet };
@@ -375,7 +386,9 @@ export type CatalogPropsTable = {
   readonly "media-object": ContractProps<typeof MediaObjectContract> & ContractEvents<typeof MediaObjectContract>;
   readonly "media-reference-selector": ContractProps<typeof MediaReferenceSelectorContract> & ContractEvents<typeof MediaReferenceSelectorContract>;
   readonly "media-reference-specimen": ContractProps<typeof MediaReferenceSpecimenContract> & ContractEvents<typeof MediaReferenceSpecimenContract>;
+  readonly "menu": ContractProps<typeof MenuContract> & ContractEvents<typeof MenuContract>;
   readonly "message-body": ContractProps<typeof MessageBodyContract> & ContractEvents<typeof MessageBodyContract>;
+  readonly "modal": ContractProps<typeof ModalContract> & ContractEvents<typeof ModalContract> & { readonly "children"?: Snippet };
   readonly "money-control": ContractProps<typeof MoneyControlContract> & ContractEvents<typeof MoneyControlContract>;
   readonly "node-renderer": ComponentProps<typeof Catalog.NodeRenderer>;
   readonly "object-state-control": ContractProps<typeof ObjectStateControlContract> & ContractEvents<typeof ObjectStateControlContract>;
@@ -390,6 +403,7 @@ export type CatalogPropsTable = {
   readonly "place-heading": ComponentProps<typeof Catalog.PlaceHeading>;
   readonly "playback-canvas": ComponentProps<typeof Catalog.PlaybackCanvas>;
   readonly "playback-controls": ContractProps<typeof PlaybackControlsContract> & ContractEvents<typeof PlaybackControlsContract>;
+  readonly "popover": ContractProps<typeof PopoverContract> & ContractEvents<typeof PopoverContract> & { readonly "children"?: Snippet };
   readonly "popover-control": ContractProps<typeof PopoverControlContract> & ContractEvents<typeof PopoverControlContract>;
   readonly "problem": ContractProps<typeof ProblemContract> & ContractEvents<typeof ProblemContract>;
   readonly "public-catalog-bank": ContractProps<typeof PublicCatalogBankContract> & ContractEvents<typeof PublicCatalogBankContract>;
@@ -410,6 +424,7 @@ export type CatalogPropsTable = {
   readonly "selection-field": ComponentProps<typeof Catalog.SelectionField>;
   readonly "shared-owner-catalog": ContractProps<typeof SharedOwnerCatalogContract> & ContractEvents<typeof SharedOwnerCatalogContract>;
   readonly "shared-owner-specimen": ContractProps<typeof SharedOwnerSpecimenContract> & ContractEvents<typeof SharedOwnerSpecimenContract>;
+  readonly "slider": ContractProps<typeof SliderContract> & ContractEvents<typeof SliderContract>;
   readonly "specimen": ContractProps<typeof SpecimenContract> & ContractEvents<typeof SpecimenContract>;
   readonly "specimen-group": ContractProps<typeof SpecimenGroupContract> & ContractEvents<typeof SpecimenGroupContract> & { readonly "children"?: Snippet };
   readonly "specimen-row": ContractProps<typeof SpecimenRowContract> & ContractEvents<typeof SpecimenRowContract> & { readonly "children"?: Snippet };
@@ -445,7 +460,7 @@ export type CatalogPropsTable = {
   readonly "zoom-controls": ContractProps<typeof ZoomControlsContract> & ContractEvents<typeof ZoomControlsContract>;
 };
 export type CatalogProps<Id extends CatalogId> = CatalogPropsTable[Id];
-/** Pieces whose contract is closed: 126. */
-export type ClosedContractId = "access-appearance-specimen" | "access-experience" | "access-form" | "access-gate" | "access-screen" | "appearance" | "appearance-preferences" | "appearance-preview" | "artwork-placeholder" | "attention-indicator" | "attention-list" | "attention-status" | "availability" | "avatar-shuffle" | "catalog-card" | "catalog-detail" | "catalog-home" | "catalog-workspace-content" | "character-counter" | "choice-item" | "choice-list" | "choice-row" | "clear-input" | "clock" | "collection" | "collection-state" | "color-bullet" | "column" | "confirmation-dialog" | "context-panel" | "context-properties" | "contract-inspection" | "control-bench" | "date-control" | "destination-row" | "face" | "fact-group" | "fact-list" | "fact-row" | "fact-value" | "facts" | "failure-dialog" | "feedback" | "field-well" | "field-well-content" | "fields" | "file-control" | "form" | "frame-body" | "grouped-panel" | "heading" | "icon" | "identity" | "image" | "information" | "instance-frame" | "label-rail" | "labels-control" | "library" | "local-exercise-content" | "local-exercises" | "lock-screen" | "masked-input" | "measured-field" | "media-collection-grid" | "media-content" | "media-control" | "media-grid" | "media-object" | "media-reference-selector" | "media-reference-specimen" | "message-body" | "money-control" | "object-state-control" | "object-state-row" | "options-control" | "panel" | "photo-collection" | "place-header" | "playback-controls" | "popover-control" | "problem" | "public-catalog-bank" | "public-catalog-bank-specimen" | "public-catalog-product" | "public-catalog-product-content" | "reading-content" | "reference-selector" | "reference-specimen" | "reference-values" | "related-selection" | "retained-place" | "review" | "seed-avatar" | "select-control" | "shared-owner-catalog" | "shared-owner-specimen" | "specimen" | "specimen-group" | "specimen-row" | "specimen-unavailable" | "speed-dial" | "stack-item" | "stack-layout" | "summary-widget" | "surface-frame" | "surface-specimen" | "text" | "text-content" | "text-input" | "toolbar" | "toolbar-media-controls" | "toolbar-search" | "utility-actions" | "view-attention" | "view-destination-link" | "view-item" | "view-product" | "view-product-content" | "view-region" | "view-related-selection" | "view-workspace" | "viewer" | "wallpaper" | "workspace" | "zoom-controls";
+/** Pieces whose contract is closed: 131. */
+export type ClosedContractId = "access-appearance-specimen" | "access-experience" | "access-form" | "access-gate" | "access-screen" | "appearance" | "appearance-preferences" | "appearance-preview" | "artwork-placeholder" | "attention-indicator" | "attention-list" | "attention-status" | "availability" | "avatar-shuffle" | "catalog-card" | "catalog-detail" | "catalog-home" | "catalog-workspace-content" | "character-counter" | "choice-item" | "choice-list" | "choice-row" | "clear-input" | "clock" | "collection" | "collection-state" | "color-bullet" | "column" | "confirmation-dialog" | "context-panel" | "context-properties" | "contract-inspection" | "control-bench" | "date-control" | "destination-row" | "face" | "fact-group" | "fact-list" | "fact-row" | "fact-value" | "facts" | "failure-dialog" | "feedback" | "field-well" | "field-well-content" | "fields" | "file-control" | "files" | "form" | "frame-body" | "grouped-panel" | "heading" | "icon" | "identity" | "image" | "information" | "instance-frame" | "label-rail" | "labels-control" | "library" | "local-exercise-content" | "local-exercises" | "lock-screen" | "masked-input" | "measured-field" | "media-collection-grid" | "media-content" | "media-control" | "media-grid" | "media-object" | "media-reference-selector" | "media-reference-specimen" | "menu" | "message-body" | "modal" | "money-control" | "object-state-control" | "object-state-row" | "options-control" | "panel" | "photo-collection" | "place-header" | "playback-controls" | "popover" | "popover-control" | "problem" | "public-catalog-bank" | "public-catalog-bank-specimen" | "public-catalog-product" | "public-catalog-product-content" | "reading-content" | "reference-selector" | "reference-specimen" | "reference-values" | "related-selection" | "retained-place" | "review" | "seed-avatar" | "select-control" | "shared-owner-catalog" | "shared-owner-specimen" | "slider" | "specimen" | "specimen-group" | "specimen-row" | "specimen-unavailable" | "speed-dial" | "stack-item" | "stack-layout" | "summary-widget" | "surface-frame" | "surface-specimen" | "text" | "text-content" | "text-input" | "toolbar" | "toolbar-media-controls" | "toolbar-search" | "utility-actions" | "view-attention" | "view-destination-link" | "view-item" | "view-product" | "view-product-content" | "view-region" | "view-related-selection" | "view-workspace" | "viewer" | "wallpaper" | "workspace" | "zoom-controls";
 /** One witness of a piece in one state and one value per variant axis (`<id>.specimens.ts`, rule J). */
 export type CatalogSpecimen<Id extends CatalogId> = Readonly<{ state: string; variants?: Readonly<Record<string, string>>; props: CatalogProps<Id> }>;

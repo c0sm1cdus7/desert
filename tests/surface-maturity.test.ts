@@ -41,7 +41,7 @@ test('enlarged calendar keeps navigation outside its locally scrolling day grid'
     await f.page.locator('[data-date-trigger]').focus();
     await f.page.keyboard.press('Enter');
     await f.page.waitForFunction(() => document.activeElement?.hasAttribute('data-calendar-day'));
-    const toolbar = f.page.locator('[data-date-calendar] .workspace-header');
+    const toolbar = f.page.locator('[data-date-calendar-header]');
     const before = (await toolbar.boundingBox())!;
     const day = (await f.page.locator(':focus').boundingBox())!;
     assert.ok(day.y >= before.y + before.height && day.y + day.height <= 568, 'initial day is visible below fixed chrome');

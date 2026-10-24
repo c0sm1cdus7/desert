@@ -1,6 +1,7 @@
 <script lang="ts">
   import { tick, untrack, type Snippet } from "svelte";
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
+  import { useSurfaceTypography } from "../../../infra/surface-typography.svelte.ts";
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import { Icon } from "../../index.ts";
@@ -8,8 +9,9 @@
   import { Face } from "../../index.ts";
   import { PickerSheet } from "../../index.ts";
   import SelectionList from "./SelectionList.svelte";
-  import { surfaceFocus, revealSurfaceFocus } from "../../../infra/surface-focus.svelte.ts";
-  import { PickerPresentation } from "../../../infra/picker-presentation.svelte.ts";
+  import { surfaceFocus, revealSurfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
+  // F1-merge: choice (lane F1c) presents its menu through Popover and stops importing this popover part.
+  import { PickerPresentation, pickerBudget } from "../popover/picker-presentation.svelte.ts";
   import type { SelectionOption } from "../../../../interaction/selection-option.ts";
   let { id, selection, label, triggerLabel = label, value, options, disabled = false, required = false,
     fieldControl = false, contextual = false, selectedContent, optionLeading, onchange }: {
@@ -20,7 +22,7 @@
     optionLeading?: Snippet<[SelectionOption]>;
   } = $props();
   const generatedId = $props.id();
-  const picker = new PickerPresentation();
+  const picker = new PickerPresentation(() => pickerBudget);
   let triggerId = $derived(id ?? generatedId);
   let selectedOption = $derived(options.find(option => option.value === value));
   let valueLabel = $derived(selectedOption?.label ?? "Not selected");
@@ -30,6 +32,12 @@
   let focusBoundary: HTMLElement | null = null;
   const boundary = () => list?.closest<HTMLElement>('[data-picker-sheet],[data-slot="popover-content"]') ?? null;
   const initialFocus = surfaceFocus(boundary);
+  // The anchored surface owns its focus scope; focus moving anywhere but the trigger dismisses it.
+  let selectionSurface = $state<HTMLElement | null>(null);
+  const surface = surfaceFocus(() => selectionSurface, event => {
+    if (!(event.target instanceof HTMLElement) || event.target.id !== triggerId) open = false;
+  });
+  const density = useSurfaceTypography();
   function focus(event: Event) {
     void tick().then(() => { focusBoundary = boundary() ?? focusBoundary; });
     const retained = activeValue;
@@ -101,13 +109,12 @@
     {/snippet}
   </Popover.Trigger>
   {#if picker.current === "sheet"}
-    <PickerSheet bind:open {label} {triggerId} onOpenAutoFocus={focus}>
+    <PickerSheet bind:open {label} {triggerId}>
       {@render choices()}
     </PickerSheet>
   {:else}
-    <Popover.Content role="presentation" onOpenAutoFocus={focus} onCloseAutoFocus={restore}
-      presentation="selection"
-      onFocusOutside={event => { if (!(event.target instanceof HTMLElement) || event.target.id !== triggerId) open = false; }}>
+    <Popover.Content bind:ref={selectionSurface} role="presentation" density={density()} presentation="selection"
+      onOpenAutoFocus={event => surface.open(event, focus)} onCloseAutoFocus={event => surface.close(event, restore)}>
       {@render choices()}
     </Popover.Content>
   {/if}

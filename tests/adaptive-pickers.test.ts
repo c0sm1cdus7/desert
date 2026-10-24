@@ -114,7 +114,7 @@ test('picker presentation follows available content-and-context space, including
 });
 
 test('a narrow owning surface uses picker sheets even inside a wide window', async () => {
-  const embedded=source.replace('import DateControl', `import { provideSurfaceHost } from '@desert/svelte/infra/surface-host.svelte.ts';
+  const embedded=source.replace('import DateControl', `import { provideSurfaceHost } from '@desert/svelte/catalog/mechanisms/surface-host/surface-host.svelte.ts';
   import DateControl`).replace('let edits = $state(0);', `let edits = $state(0);
   let host=$state<HTMLElement|null>(null);provideSurfaceHost(()=>host);`)
     .replace('<main style="padding:20px;width:100%;max-width:600px">','<main bind:this={host} style="padding:20px;width:390px">');
