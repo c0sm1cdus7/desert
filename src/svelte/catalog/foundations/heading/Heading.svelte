@@ -20,8 +20,10 @@
   let element = $state<HTMLElement | null>(null);
   let title = $derived(content.kind === "display" || content.kind === "page");
   let focusable = $derived(title && (content.focusTarget === true || content.focusKey !== undefined));
+  let keyed = $derived((content.kind === "display" || content.kind === "page") && content.focusKey !== undefined);
   let tag = $derived(`h${Math.min(6, (title ? 1 : 2) + offset)}` as `h${HeadingLevel}`);
-  // A keyed title answers its scope's focus(key): it takes focus without scrolling and says whether it holds it.
+  // A keyed title answers its scope's focus(key): it takes focus without scrolling and says whether it holds it. Focus
+  // moves there programmatically (a step changed), so, like a place title, it draws no focus ring.
   $effect(() => {
     const key = content.kind === "display" || content.kind === "page" ? content.focusKey : undefined, target = element;
     if (!scope || key === undefined || !target) return;
@@ -29,7 +31,7 @@
   });
 </script>
 
-<svelte:element this={tag} bind:this={element} class="min-w-0 break-words {roles[content.kind]} {content.align ? aligns[content.align] : ''}"
+<svelte:element this={tag} bind:this={element} class="min-w-0 break-words {roles[content.kind]} {content.align ? aligns[content.align] : ''} {keyed ? 'outline-none' : ''}"
   id={content.kind === "section" ? content.id : undefined}
   tabindex={focusable ? -1 : undefined}
   data-place-title={content.kind === "page" ? "" : undefined}>

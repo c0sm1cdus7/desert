@@ -29,7 +29,8 @@ test("appearance uses shared choices, persists locally and applies to the whole 
     assert.deepEqual(saved, { theme: "dark", textSize: "larger", tint: "rose", wallpaper: "mist" });
     assert.equal(await browser.page.locator(".required, input[type=file]").count(), 0);
     assert.equal(await browser.page.getByRole("button", { name: /Choose image/ }).count(), 0);
-    assert.equal(await browser.page.getByText("Tint", { exact: true }).count(), 1);
+    // One shown "Tint" title: the stack's. The swatch choice inside it keeps its own legend for assistive technology only.
+    assert.equal(await browser.page.getByText("Tint", { exact: true }).evaluateAll(nodes => nodes.filter(node => !node.closest(".sr-only")).length), 1);
     await browser.page.getByRole("radio", { name: "Light", exact: true }).click();
     assert.equal(await browser.page.locator("html").getAttribute("data-theme"), "light");
     assert.equal(await browser.page.getByRole("radio", { name: "System", exact: true }).count(), 0);

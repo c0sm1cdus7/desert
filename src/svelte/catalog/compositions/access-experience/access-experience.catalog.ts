@@ -4,7 +4,9 @@ import { AccessExperienceContract } from "./access-experience.contract.ts";
 
 export const AccessExperience = defineComposition({
   id: "access-experience",
-  purpose: "Show the access screen over the wallpaper: the onboarding form, the lock screen or the connection state, with its error.",
+  purpose: { key: "accessExperience.purpose" },
+  messages: ["accessExperience.purpose", "accessExperience.access", "accessExperience.connecting", "accessExperience.unavailable",
+    "accessExperience.tryAgain"],
   owner: { entry: "AccessExperience.svelte" },
-  uses: ["access-form", "feedback", "lock-screen", "stack-layout", "wallpaper"], approval: "required", contract: AccessExperienceContract,
+  uses: ["access-form", "action", "column", "heading", "inline", "lock-screen", "stack-layout", "surface", "text"], approval: "required", contract: AccessExperienceContract,
 } as const);

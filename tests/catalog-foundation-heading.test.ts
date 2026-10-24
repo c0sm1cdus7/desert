@@ -21,7 +21,9 @@ test("heading: a display or page title given a focusKey takes focus through the 
     assert.deepEqual(await f.page.locator("h1").evaluateAll(nodes => nodes.map(node => node.getAttribute("tabindex"))), ["-1", null]);
     await f.page.getByRole("button", { name: "Move", exact: true }).click();
     assert.equal(await f.page.locator("output").innerText(), "true:false");
-    assert.equal(await f.page.evaluate(() => document.activeElement?.textContent?.trim()), "Feel at home.");
+    assert.deepEqual(await f.page.evaluate(() => [document.activeElement?.textContent?.trim(),
+      document.activeElement ? getComputedStyle(document.activeElement).outlineStyle : null]), ["Feel at home.", "none"],
+      "a title focus moves to draws no ring, as a place title");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

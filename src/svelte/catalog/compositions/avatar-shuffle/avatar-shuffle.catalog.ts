@@ -4,7 +4,7 @@ import { AvatarShuffleContract } from "./avatar-shuffle.contract.ts";
 
 export const AvatarShuffle = defineComposition({
   id: "avatar-shuffle",
-  purpose: "Generate a new avatar seed on activation and reveal the shuffle overlay on hover or focus.",
+  purpose: { key: "avatarShuffle.purpose" }, messages: ["avatarShuffle.purpose", "avatarShuffle.shuffleAvatar"],
   owner: { entry: "AvatarShuffle.svelte" },
-  uses: ["icon", "seed-avatar"], approval: "none", contract: AvatarShuffleContract,
+  uses: ["avatar"], approval: "none", contract: AvatarShuffleContract,
 } as const);

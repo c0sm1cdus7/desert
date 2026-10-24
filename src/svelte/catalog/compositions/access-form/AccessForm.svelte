@@ -2,33 +2,30 @@
   import { Check } from "@sinclair/typebox/value";
   import { onMount, tick } from "svelte";
   import { AccessRequests } from "../../../../identity/contract.ts";
-  import { StackLayout } from "../../index.ts";
-  import { Field } from "../../index.ts";
-  import { Button } from "../../../vendor/components/ui/button/index.js";
-  import { Icon } from "../../index.ts";
-  import { AvatarShuffle } from "../../index.ts";
-  import { AppearancePreferences } from "../../index.ts";
+  import { m } from "../../../../messages/keys.ts";
+  import { Action, AppearancePreferences, Avatar, Column, Field, Form, Heading, Inline, StackLayout, Text } from "../../index.ts";
   import { appearance, appearancePersistence, chooseAppearance } from "../../../infra/appearance-state.ts";
+  import { systemScheme } from "../../../infra/appearance-store.ts";
   import type { AppearancePreferences as Preferences } from "../../../infra/appearance-preferences.ts";
   import { newAvatarSeed } from "../../../infra/avatar-seed.ts";
-  import { Feedback } from "../../index.ts";
+  import { provideFocusScope } from "../../../infra/focus-scope.ts";
+  import { say } from "../../../infra/messages.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { mode, busy = false, onsubmit, productLabel = "VOID", preferences, onappearancechange }: CatalogProps<"access-form"> = $props();
   let login = $state(""), displayName = $state(""), password = $state("");
   let avatarSeed = $state(newAvatarSeed());
   let step = $state<1 | 2>(1);
-  let heading: HTMLHeadingElement;
+  // The step title registers under this scope; moving between steps asks the scope for it by key, never the element.
+  const { focus: focusKey } = provideFocusScope();
   let creating = $derived(mode !== "signIn");
   let personal = $derived(preferences ?? $appearance);
   function personalize(value: Preferences) { if (onappearancechange) onappearancechange(value); else chooseAppearance(value); }
   let input = $derived(creating ? { login, displayName, password, avatarSeed } : { login, password });
   let valid = $derived(Check(AccessRequests[mode], input));
-  onMount(() => {
-    if (creating && personal.theme === "system") personalize({ ...personal, theme: matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light" });
-  });
-  async function move(next: 1 | 2) { step = next; await tick(); heading?.focus(); }
-  async function submit(event: SubmitEvent) {
-    event.preventDefault();
+  // A new identity starts from an explicit dark or light choice: the system scheme AppearanceRoot published.
+  onMount(() => { if (creating && personal.theme === "system") personalize({ ...personal, theme: $systemScheme }); });
+  async function move(next: 1 | 2) { step = next; await tick(); focusKey("access-heading"); }
+  async function submit() {
     if (!valid || busy) return;
     if (creating && step === 1) { await move(2); return; }
     const submitted = { login, displayName, password, ...(creating ? { avatarSeed } : {}) };
@@ -36,43 +33,45 @@
     password = "";
     if (creating) await move(1);
   }
+  let headline = $derived(!creating ? say(m.accessForm.unlock) : step === 1 ? say(m.accessForm.headlineIdentity, { product: productLabel })
+    : say(m.accessForm.headlineAppearance));
+  let finish = $derived(busy ? say(m.accessForm.pleaseWait) : !creating ? say(m.accessForm.unlock)
+    : step === 1 ? say(m.accessForm.continue) : say(m.accessForm.getStarted));
 </script>
 
-<form onsubmit={submit} aria-label={creating ? "Create identity" : "Unlock"} class="access-form">
-  <header class="access-form-header">
-    {#if creating}<p class="type-caption text-muted-foreground" aria-label={`Step ${step} of 2`}>{step === 1 ? "Identity" : "Appearance"} · {step} of 2</p>{/if}
-    {#if creating && step === 1}<AvatarShuffle seed={avatarSeed} disabled={busy} onchange={value => avatarSeed = value} />{/if}
-    <h1 bind:this={heading} tabindex="-1">{creating ? step === 1 ? `Make ${productLabel} yours.` : "Feel at home." : "Unlock"}</h1>
-    {#if creating}<p class="access-intro">{step === 1 ? `Create your identity to access ${productLabel}.` : `Choose how ${productLabel} looks and feels.`}</p>{/if}
-  </header>
-  {#if step === 1}
-    <StackLayout title="Your identity">
-      {#if creating}<Field primitive="input.text" label="Display name" labelVisibility="visible" measure="writing" purpose="text" value={displayName}
-        required invalid={false} disabled={busy} clear onchange={value => displayName = value} />{/if}
-      <Field primitive="input.text" label="Identity name" labelVisibility="visible" measure="writing" value={login} purpose="username" required
-        invalid={false} disabled={busy} clear helper={creating ? "3–64 lowercase letters, numbers, dots, hyphens or underscores." : undefined}
-        onchange={value => login = value} />
-      <Field primitive="input.text" label="Password" labelVisibility="visible" measure="writing" value={password}
-        purpose={creating ? "new-password" : "current-password"}
-        helper={creating ? "At least 12 characters. Keep the password safe; recovery is not available yet." : undefined}
-        required invalid={false} disabled={busy} clear onchange={value => password = value} />
-    </StackLayout>
-  {:else}
-    <AppearancePreferences value={personal} onchange={personalize} disabled={busy} />
-    {#if !preferences && $appearancePersistence}<Feedback text={$appearancePersistence} />{/if}
-  {/if}
-  <div class="access-actions">
-    {#if creating && step === 2}<Button variant="secondary" size="icon-lg" aria-label="Back to identity" disabled={busy} onclick={() => move(1)}><Icon name="arrow-left" decorative /></Button>{/if}
-    <Button type="submit" disabled={busy || !valid} aria-busy={busy}>{busy ? "Please wait…" : creating ? step === 1 ? "Continue" : "Get started" : "Unlock"}</Button>
-  </div>
-  {#if creating && step === 2}<p class="access-footnote">You can change all of this in Appearance.</p>{/if}
-</form>
-
-<style>
-  .access-form { width:min(100%,34rem); margin-inline:auto; display:grid; gap:1.75rem; }
-  .access-form-header { display:flex; flex-direction:column; align-items:center; text-align:center; gap:.5rem; }
-  .access-form-header h1 { font-size:clamp(1.75rem,4vw,2.75rem); font-weight:650; line-height:1.12; letter-spacing:-.04em; margin:.75rem 0 0; text-wrap:balance; outline:none; }
-  .access-intro { color:var(--muted-foreground); margin:0; text-wrap:balance; }
-  .access-actions { display:flex; flex-wrap:wrap; gap:.75rem; align-items:center; justify-content:center; }
-  .access-footnote { margin:0; text-align:center; color:var(--muted-foreground); font-size:var(--text-caption); }
-</style>
+<!-- Centred at the reading measure, as the form was (margin-inline:auto); the form starts its fields' text again. -->
+<Column gap="relaxed" align="center"><Column gap="relaxed" measure="reading">
+  <Form label={creating ? say(m.accessForm.createIdentity) : say(m.accessForm.unlock)} fill={false} submit={() => void submit()}>
+    <Column gap="relaxed">
+      <Column gap="snug" align="center">
+        {#if creating}<Text kind="caption" tone="muted" text={step === 1 ? say(m.accessForm.stepIdentity) : say(m.accessForm.stepAppearance)} />{/if}
+        {#if creating && step === 1}<Avatar size="portrait" interaction="shuffle" source={{ kind: "seed", seed: avatarSeed }}
+          shuffleLabel={say(m.accessForm.shuffleAvatar)} disabled={busy} onshuffle={value => avatarSeed = value} />{/if}
+        <Heading kind="display" text={headline} focusKey="access-heading" />
+        {#if creating}<Text kind="body" tone="muted" align="center" text={step === 1 ? say(m.accessForm.introIdentity, { product: productLabel })
+          : say(m.accessForm.introAppearance, { product: productLabel })} />{/if}
+      </Column>
+      {#if step === 1}
+        <StackLayout title={say(m.accessForm.identity)}>
+          {#if creating}<Field primitive="input.text" label={say(m.accessForm.displayName)} labelVisibility="visible" measure="writing" purpose="text"
+            value={displayName} required invalid={false} disabled={busy} clear onchange={value => displayName = value} />{/if}
+          <Field primitive="input.text" label={say(m.accessForm.identityName)} labelVisibility="visible" measure="writing" value={login}
+            purpose="username" required invalid={false} disabled={busy} clear
+            helper={creating ? say(m.accessForm.identityNameHelper) : undefined} onchange={value => login = value} />
+          <Field primitive="input.text" label={say(m.accessForm.password)} labelVisibility="visible" measure="writing" value={password}
+            purpose={creating ? "new-password" : "current-password"} helper={creating ? say(m.accessForm.passwordHelper) : undefined}
+            required invalid={false} disabled={busy} clear onchange={value => password = value} />
+        </StackLayout>
+      {:else}
+        <AppearancePreferences value={personal} onchange={personalize} disabled={busy} />
+        {#if !preferences && $appearancePersistence}<Text kind="support" live="polite" text={$appearancePersistence} />{/if}
+      {/if}
+      <Inline gap="close" justify="center" overflow="wrap">
+        {#if creating && step === 2}<Action label={say(m.accessForm.backToIdentity)} icon="back" emphasis="secondary" face="icon" type="button"
+          state={busy ? "unavailable" : "ready"} onclick={() => void move(1)} />{/if}
+        <Action label={finish} icon="confirm" emphasis="primary" face="text" type="submit" state={busy ? "pending" : valid ? "ready" : "unavailable"} />
+      </Inline>
+      {#if creating && step === 2}<Text kind="caption" tone="muted" align="center" text={say(m.accessForm.footnote)} />{/if}
+    </Column>
+  </Form>
+</Column></Column>

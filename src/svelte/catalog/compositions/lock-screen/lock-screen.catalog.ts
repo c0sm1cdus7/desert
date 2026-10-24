@@ -5,7 +5,9 @@ import { LockScreenContract } from "./lock-screen.contract.ts";
 
 export const LockScreen = defineComposition({
   id: "lock-screen",
-  purpose: "Unlock the selected identity while its private content stays hidden.",
+  purpose: { key: "lockScreen.purpose" },
+  messages: ["lockScreen.purpose", "lockScreen.unlock", "lockScreen.avatar", "lockScreen.identity", "lockScreen.identityName",
+    "lockScreen.password", "lockScreen.useAnotherIdentity"],
   owner: { entry: "LockScreen.svelte" },
-  uses: ["action", "clock", "column", "field", "form", "heading", "seed-avatar", "stack-layout"], approval: "required", contract: LockScreenContract,
+  uses: ["action", "avatar", "clock", "column", "field", "form", "heading", "stack-layout"], approval: "required", contract: LockScreenContract,
 } as const);

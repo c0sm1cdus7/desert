@@ -79,18 +79,18 @@ test("onboarding places constraints at their inputs and leaves general context i
   try {
     await f.page.addStyleTag({ content: await rendererCss() });
     await f.page.setViewportSize({ width: 320, height: 844 });
-    assert.equal(await f.page.locator(".access-intro").textContent(), "Create your identity to access VOID.");
+    assert.equal(await f.page.locator('form h1 + p').textContent(), "Create your identity to access VOID.");
     assert.deepEqual(await descriptions(f.page.getByLabel("Identity name", { exact: true })), [
       { text: "3–64 lowercase letters, numbers, dots, hyphens or underscores.", owned: true },
     ]);
     assert.deepEqual(await descriptions(f.page.getByLabel("Password", { exact: true })), [
       { text: "At least 12 characters. Keep the password safe; recovery is not available yet.", owned: true },
     ]);
-    assert.equal(await f.page.locator('.access-form [data-slot="field-description"]').count(), 2);
+    assert.equal(await f.page.locator('form [data-slot="field-description"]').count(), 2);
     assert.equal(await f.page.getByText(/Use a lowercase identity name/).count(), 0);
     assert.equal(await f.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await f.page.getByRole("button", { name: "Show unlock", exact: true }).click();
-    assert.equal(await f.page.locator('.access-form [data-slot="field-description"]').count(), 0);
+    assert.equal(await f.page.locator('form [data-slot="field-description"]').count(), 0);
     assert.equal(await f.page.getByLabel("Password", { exact: true }).getAttribute("autocomplete"), "current-password");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }

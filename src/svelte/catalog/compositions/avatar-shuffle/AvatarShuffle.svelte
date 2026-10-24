@@ -1,19 +1,11 @@
 <script lang="ts">
+  import { m } from "../../../../messages/keys.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { Avatar } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  import { Button } from "../../../vendor/components/ui/button/index.js";
-  import { Icon } from "../../index.ts";
-  import { SeedAvatar } from "../../index.ts";
-  import { newAvatarSeed } from "../../../infra/avatar-seed.ts";
+  // AvatarShuffle is Avatar with the shuffle interaction (the foundation owns the button and its overlay); this folder
+  // stays until Batch 3 prunes it.
   let { seed, onchange, disabled = false }: CatalogProps<"avatar-shuffle"> = $props();
 </script>
-<span class="avatar-shuffle">
-<Button variant="secondary" size="avatar" aria-label="Shuffle avatar" {disabled} onclick={() => onchange?.(newAvatarSeed())}>
-  <SeedAvatar {seed} /><span class="shuffle-overlay"><Icon name="shuffle" decorative /></span>
-</Button>
-</span>
-<style>
-  .avatar-shuffle { display:inline-flex; position:relative; }
-  .shuffle-overlay { position:absolute; inset:0; display:grid; place-items:center; background:#10162199; color:white; opacity:0; }
-  .avatar-shuffle:hover .shuffle-overlay, .avatar-shuffle:focus-within .shuffle-overlay { opacity:1; }
-  @media (hover:none) { .shuffle-overlay { inset:auto 0 0 auto; width:2rem; height:2rem; border-radius:50%; opacity:1; } }
-</style>
+<Avatar size="portrait" interaction="shuffle" source={{ kind: "seed", seed }} shuffleLabel={say(m.avatarShuffle.shuffleAvatar)} {disabled}
+  onshuffle={value => onchange?.(value)} />

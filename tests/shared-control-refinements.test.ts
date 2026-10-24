@@ -92,7 +92,7 @@ test("appearance and embedded selection use compact rounded controls and content
       await f.page.keyboard.press("Escape");
       await pane.waitFor({ state: "hidden" });
     }
-    const swatches = await f.page.locator(".appearance-swatch").evaluateAll(labels => labels.map(label => ({
+    const swatches = await f.page.locator("[data-swatch-tint]").evaluateAll(labels => labels.map(label => ({
       hit: label.getBoundingClientRect().width,
       color: parseFloat(getComputedStyle(label, "::before").width),
     })));

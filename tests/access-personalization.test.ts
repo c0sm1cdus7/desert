@@ -54,6 +54,22 @@ test("onboarding is two steps with one password, seeded avatar and a text-only f
   } finally { await f.close(); }
 });
 
+test("a new identity on a dark system starts from the dark appearance, the scheme AppearanceRoot publishes", async () => {
+  const f = await svelteBrowser(`<script lang="ts">
+    import AccessForm from '@desert/svelte/catalog/compositions/access-form/AccessForm.svelte';
+    import AppearanceRoot from '@desert/svelte/catalog/foundations/appearance-root/AppearanceRoot.svelte';
+    let shown = $state(false), chosen = $state('');
+  </script><button onclick={() => shown = true}>Show</button>
+  {#if shown}<AppearanceRoot /><AccessForm mode="initialize" preferences={{ theme: 'system', textSize: 'standard', tint: 'blue', wallpaper: 'silk' }}
+    onappearancechange={value => chosen = value.theme} onsubmit={async () => {}} />{/if}<output>{chosen}</output>`);
+  try {
+    await f.page.emulateMedia({ colorScheme: "dark" });
+    await f.page.getByRole("button", { name: "Show", exact: true }).click();
+    assert.equal(await f.page.locator("output").textContent(), "dark");
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
 test("access copy and choices contain no image upload, ghost action or redundant workspace slogan", async () => {
   const files = await Promise.all(["access-screen/AccessScreen.svelte", "access-form/AccessForm.svelte", "appearance/Appearance.svelte"]
     .map(file => readFile(new URL(`../src/svelte/catalog/compositions/${file}`, import.meta.url), "utf8")));

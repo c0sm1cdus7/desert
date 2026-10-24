@@ -4,7 +4,9 @@ import { AppearancePreferencesContract } from "./appearance-preferences.contract
 
 export const AppearancePreferences = defineComposition({
   id: "appearance-preferences",
-  purpose: "Choose mode, text size, tint and a system wallpaper with immediate local preview.",
+  purpose: { key: "appearancePreferences.purpose" },
+  messages: ["appearancePreferences.purpose", "appearancePreferences.appearance", "appearancePreferences.textSize", "appearancePreferences.tint",
+    "appearancePreferences.wallpaper"],
   owner: { entry: "AppearancePreferences.svelte" },
-  uses: ["appearance-preview", "selection-field", "stack-layout", "wallpaper"], approval: "required", contract: AppearancePreferencesContract,
+  uses: ["choice", "column", "stack-layout"], approval: "required", contract: AppearancePreferencesContract,
 } as const);

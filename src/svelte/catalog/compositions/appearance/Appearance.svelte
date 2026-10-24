@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { AppearancePreferences } from "../../index.ts";
-  import { Feedback } from "../../index.ts";
+  import { AppearancePreferences, Text } from "../../index.ts";
   import { appearance, appearancePersistence, chooseAppearance } from "../../../infra/appearance-state.ts";
 </script>
 
 <AppearancePreferences value={$appearance} onchange={chooseAppearance} />
-{#if $appearancePersistence}<Feedback text={$appearancePersistence} />{/if}
+{#if $appearancePersistence}<Text kind="support" live="polite" text={$appearancePersistence} />{/if}

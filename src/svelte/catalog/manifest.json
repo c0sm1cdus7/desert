@@ -161,18 +161,26 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/access-appearance-specimen",
       "kind": "composition",
+      "messages": [
+        "accessAppearanceSpecimen.purpose",
+        "accessAppearanceSpecimen.noAuthentication",
+        "accessAppearanceSpecimen.noIdentity",
+        "accessAppearanceSpecimen.avatar",
+        "accessAppearanceSpecimen.shuffleAvatar"
+      ],
       "owner": {
         "entry": "AccessAppearanceSpecimen.svelte"
       },
-      "purpose": "Exercise one access or appearance owner in the bank with local example state and no authentication or saved preference.",
+      "purpose": {
+        "key": "accessAppearanceSpecimen.purpose"
+      },
       "uses": [
         "access-experience",
         "appearance-preferences",
-        "appearance-preview",
-        "avatar-shuffle",
-        "feedback",
+        "avatar",
         "lock-screen",
-        "seed-avatar",
+        "text",
+        "theme-preview",
         "wallpaper"
       ]
     },
@@ -180,46 +188,93 @@
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/access-experience",
       "kind": "composition",
+      "messages": [
+        "accessExperience.purpose",
+        "accessExperience.access",
+        "accessExperience.connecting",
+        "accessExperience.unavailable",
+        "accessExperience.tryAgain"
+      ],
       "owner": {
         "entry": "AccessExperience.svelte"
       },
-      "purpose": "Show the access screen over the wallpaper: the onboarding form, the lock screen or the connection state, with its error.",
+      "purpose": {
+        "key": "accessExperience.purpose"
+      },
       "uses": [
         "access-form",
-        "feedback",
+        "action",
+        "column",
+        "heading",
+        "inline",
         "lock-screen",
         "stack-layout",
-        "wallpaper"
+        "surface",
+        "text"
       ]
     },
     "access-form": {
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/access-form",
       "kind": "composition",
+      "messages": [
+        "accessForm.purpose",
+        "accessForm.createIdentity",
+        "accessForm.unlock",
+        "accessForm.stepIdentity",
+        "accessForm.stepAppearance",
+        "accessForm.shuffleAvatar",
+        "accessForm.headlineIdentity",
+        "accessForm.headlineAppearance",
+        "accessForm.introIdentity",
+        "accessForm.introAppearance",
+        "accessForm.identity",
+        "accessForm.displayName",
+        "accessForm.identityName",
+        "accessForm.identityNameHelper",
+        "accessForm.password",
+        "accessForm.passwordHelper",
+        "accessForm.backToIdentity",
+        "accessForm.pleaseWait",
+        "accessForm.continue",
+        "accessForm.getStarted",
+        "accessForm.footnote"
+      ],
       "owner": {
         "entry": "AccessForm.svelte"
       },
-      "purpose": "Create an identity in two steps, identity then appearance, or unlock an existing one.",
+      "purpose": {
+        "key": "accessForm.purpose"
+      },
       "uses": [
+        "action",
         "appearance-preferences",
-        "avatar-shuffle",
-        "feedback",
+        "avatar",
+        "column",
         "field",
-        "icon",
-        "stack-layout"
+        "form",
+        "heading",
+        "inline",
+        "stack-layout",
+        "text"
       ]
     },
     "access-gate": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/access-gate",
       "kind": "composition",
+      "messages": [
+        "accessGate.purpose"
+      ],
       "owner": {
         "entry": "AccessGate.svelte",
         "parts": [
           "browser-access-lock.ts"
         ]
       },
-      "purpose": "Hold the product behind access: show the access screen until a session is ready, then the view product.",
+      "purpose": {
+        "key": "accessGate.purpose"
+      },
       "uses": [
         "access-screen",
         "view-product"
@@ -229,10 +284,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/access-screen",
       "kind": "composition",
+      "messages": [
+        "accessScreen.purpose"
+      ],
       "owner": {
         "entry": "AccessScreen.svelte"
       },
-      "purpose": "Sign a person in to the product through the access experience, with the remembered profile and appearance.",
+      "purpose": {
+        "key": "accessScreen.purpose"
+      },
       "uses": [
         "access-experience",
         "appearance-root"
@@ -275,40 +335,58 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/appearance",
       "kind": "composition",
+      "messages": [
+        "appearance.purpose"
+      ],
       "owner": {
         "entry": "Appearance.svelte"
       },
-      "purpose": "Choose the interface appearance and see whether the choice could be kept.",
+      "purpose": {
+        "key": "appearance.purpose"
+      },
       "uses": [
         "appearance-preferences",
-        "feedback"
+        "text"
       ]
     },
     "appearance-preferences": {
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/appearance-preferences",
       "kind": "composition",
+      "messages": [
+        "appearancePreferences.purpose",
+        "appearancePreferences.appearance",
+        "appearancePreferences.textSize",
+        "appearancePreferences.tint",
+        "appearancePreferences.wallpaper"
+      ],
       "owner": {
         "entry": "AppearancePreferences.svelte"
       },
-      "purpose": "Choose mode, text size, tint and a system wallpaper with immediate local preview.",
+      "purpose": {
+        "key": "appearancePreferences.purpose"
+      },
       "uses": [
-        "appearance-preview",
-        "selection-field",
-        "stack-layout",
-        "wallpaper"
+        "choice",
+        "column",
+        "stack-layout"
       ]
     },
     "appearance-preview": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/appearance-preview",
       "kind": "composition",
+      "messages": [
+        "appearancePreview.purpose"
+      ],
       "owner": {
         "entry": "AppearancePreview.svelte"
       },
-      "purpose": "Compare Dark and Light using the same surface, tint and wallpaper tokens as the running interface.",
+      "purpose": {
+        "key": "appearancePreview.purpose"
+      },
       "uses": [
-        "wallpaper"
+        "theme-preview"
       ]
     },
     "appearance-root": {
@@ -449,13 +527,18 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/avatar-shuffle",
       "kind": "composition",
+      "messages": [
+        "avatarShuffle.purpose",
+        "avatarShuffle.shuffleAvatar"
+      ],
       "owner": {
         "entry": "AvatarShuffle.svelte"
       },
-      "purpose": "Generate a new avatar seed on activation and reveal the shuffle overlay on hover or focus.",
+      "purpose": {
+        "key": "avatarShuffle.purpose"
+      },
       "uses": [
-        "icon",
-        "seed-avatar"
+        "avatar"
       ]
     },
     "bar": {
@@ -898,12 +981,18 @@
       "slots": {
         "children": {
           "accepts": [
+            "access-form",
             "action",
+            "appearance-preferences",
+            "avatar",
             "clock",
+            "column",
             "fact-list",
             "form",
             "heading",
-            "seed-avatar",
+            "inline",
+            "lock-screen",
+            "stack-layout",
             "text"
           ]
         }
@@ -1488,7 +1577,8 @@
           "accepts": [
             "stack-layout",
             "field",
-            "action"
+            "action",
+            "column"
           ]
         }
       },
@@ -1654,14 +1744,24 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/identity",
       "kind": "composition",
+      "messages": [
+        "identity.purpose",
+        "identity.identity",
+        "identity.displayName",
+        "identity.identityName",
+        "identity.role",
+        "identity.notInstalled"
+      ],
       "owner": {
         "entry": "Identity.svelte"
       },
-      "purpose": "Show the signed-in identity's display name, identity name and role, or say that identity access is not installed.",
+      "purpose": {
+        "key": "identity.purpose"
+      },
       "uses": [
-        "feedback",
         "information",
-        "stack-layout"
+        "stack-layout",
+        "text"
       ]
     },
     "image": {
@@ -1737,6 +1837,7 @@
           "accepts": [
             "action",
             "color-bullet",
+            "column",
             "face",
             "icon",
             "seed-avatar",
@@ -1964,18 +2065,29 @@
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/lock-screen",
       "kind": "composition",
+      "messages": [
+        "lockScreen.purpose",
+        "lockScreen.unlock",
+        "lockScreen.avatar",
+        "lockScreen.identity",
+        "lockScreen.identityName",
+        "lockScreen.password",
+        "lockScreen.useAnotherIdentity"
+      ],
       "owner": {
         "entry": "LockScreen.svelte"
       },
-      "purpose": "Unlock the selected identity while its private content stays hidden.",
+      "purpose": {
+        "key": "lockScreen.purpose"
+      },
       "uses": [
         "action",
+        "avatar",
         "clock",
         "column",
         "field",
         "form",
         "heading",
-        "seed-avatar",
         "stack-layout"
       ]
     },
@@ -3090,7 +3202,9 @@
       "slots": {
         "children": {
           "accepts": [
+            "action",
             "character-counter",
+            "choice",
             "choice-list",
             "collection",
             "collection-state",
@@ -3105,6 +3219,7 @@
             "selection-field",
             "shared-owner-specimen",
             "stack-item",
+            "text",
             "view-destination-link",
             "view-item"
           ]

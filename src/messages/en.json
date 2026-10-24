@@ -87,5 +87,82 @@
       "title": "The result isn’t confirmed",
       "description": "The result of this confirmation is not known yet. Close this message, then check the result when the connection is available. Checking does not create another operation."
     }
+  },
+  "accessAppearanceSpecimen": {
+    "purpose": "Exercise one access or appearance owner in the bank with local example state and no authentication or saved preference.",
+    "noAuthentication": "Example only. No authentication request was sent.",
+    "noIdentity": "Example only. No identity was created.",
+    "avatar": "Identity avatar",
+    "shuffleAvatar": "Shuffle avatar"
+  },
+  "accessExperience": {
+    "purpose": "Show the access screen over the wallpaper: the onboarding form, the lock screen or the connection state, with its error.",
+    "access": "Access",
+    "connecting": "Connecting…",
+    "unavailable": "Access is unavailable.",
+    "tryAgain": "Try again"
+  },
+  "accessForm": {
+    "purpose": "Create an identity in two steps, identity then appearance, or unlock an existing one.",
+    "createIdentity": "Create identity",
+    "unlock": "Unlock",
+    "stepIdentity": "Identity · 1 of 2",
+    "stepAppearance": "Appearance · 2 of 2",
+    "shuffleAvatar": "Shuffle avatar",
+    "headlineIdentity": "Make {product} yours.",
+    "headlineAppearance": "Feel at home.",
+    "introIdentity": "Create your identity to access {product}.",
+    "introAppearance": "Choose how {product} looks and feels.",
+    "identity": "Your identity",
+    "displayName": "Display name",
+    "identityName": "Identity name",
+    "identityNameHelper": "3–64 lowercase letters, numbers, dots, hyphens or underscores.",
+    "password": "Password",
+    "passwordHelper": "At least 12 characters. Keep the password safe; recovery is not available yet.",
+    "backToIdentity": "Back to identity",
+    "pleaseWait": "Please wait…",
+    "continue": "Continue",
+    "getStarted": "Get started",
+    "footnote": "You can change all of this in Appearance."
+  },
+  "accessGate": {
+    "purpose": "Hold the product behind access: show the access screen until a session is ready, then the view product."
+  },
+  "accessScreen": {
+    "purpose": "Sign a person in to the product through the access experience, with the remembered profile and appearance."
+  },
+  "appearance": {
+    "purpose": "Choose the interface appearance and see whether the choice could be kept."
+  },
+  "appearancePreferences": {
+    "purpose": "Choose mode, text size, tint and a system wallpaper with immediate local preview.",
+    "appearance": "Appearance",
+    "textSize": "Text size",
+    "tint": "Tint",
+    "wallpaper": "Wallpaper"
+  },
+  "appearancePreview": {
+    "purpose": "Compare Dark and Light using the same surface, tint and wallpaper tokens as the running interface."
+  },
+  "avatarShuffle": {
+    "purpose": "Generate a new avatar seed on activation and reveal the shuffle overlay on hover or focus.",
+    "shuffleAvatar": "Shuffle avatar"
+  },
+  "identity": {
+    "purpose": "Show the signed-in identity's display name, identity name and role, or say that identity access is not installed.",
+    "identity": "Your identity",
+    "displayName": "Display name",
+    "identityName": "Identity name",
+    "role": "Role",
+    "notInstalled": "Human identity access is not installed in this developer session."
+  },
+  "lockScreen": {
+    "purpose": "Unlock the selected identity while its private content stays hidden.",
+    "unlock": "Unlock",
+    "avatar": "{name}'s avatar",
+    "identity": "Your identity",
+    "identityName": "Identity name",
+    "password": "Password",
+    "useAnotherIdentity": "Use another identity"
   }
 }

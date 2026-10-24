@@ -5,7 +5,7 @@ import { AppearancePreviewContract } from "./appearance-preview.contract.ts";
 
 export const AppearancePreview = defineComposition({
   id: "appearance-preview",
-  purpose: "Compare Dark and Light using the same surface, tint and wallpaper tokens as the running interface.",
+  purpose: { key: "appearancePreview.purpose" }, messages: ["appearancePreview.purpose"],
   owner: { entry: "AppearancePreview.svelte" },
-  uses: ["wallpaper"], approval: "none", contract: AppearancePreviewContract,
+  uses: ["theme-preview"], approval: "none", contract: AppearancePreviewContract,
 } as const);
