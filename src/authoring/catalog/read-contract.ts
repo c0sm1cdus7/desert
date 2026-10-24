@@ -4,9 +4,12 @@
 // written in a closed TypeBox subset: Object (closed), Literal, Union, Optional, Array, Record, Function, String, Number,
 // Boolean, Integer, Null, and a reference to a TypeBox schema imported from a non-visual module (domain data such as a
 // resolved node): the gate records its name, TypeScript types it. Domain data that has a TypeScript type but no schema is
-// `Type.Unsafe<ImportedType>()`, the type imported from a non-visual module. Open forms (Any, Unknown, bare Unsafe) are
-// refused. `instance` lists the methods a piece exposes to a caller that binds it (`bind:this`).
+// `Type.Unsafe<T>()`, where T only names types imported from non-visual tree modules (domain or src/svelte/infra) or TS utility
+// types; open types (any, unknown, object, never), inline object/function types, typeof, packages and visual code are refused.
+// `instance` lists the methods (required closed Type.Function members) a piece exposes to a caller that binds it (`bind:this`).
+import { posix } from "node:path";
 import ts from "typescript";
+import type { CatalogLayout } from "./layout.ts";
 
 export type ContractSchema = Readonly<
   | { kind: "object"; properties: Readonly<Record<string, ContractProperty>> }
@@ -19,46 +22,83 @@ export type ReadContract = Readonly<{ binding: string; closed: false } | { bindi
   props: Readonly<Record<string, ContractProperty>>; events: Readonly<Record<string, ContractProperty>>;
   instance: Readonly<Record<string, ContractProperty>>; marks: readonly string[] }>;
 
-const scalars = new Set(["String", "Number", "Boolean", "Integer", "Null", "Void", "Undefined"]);
+const scalars: ReadonlyMap<string, "string" | "number" | "boolean" | "integer" | "null" | "void" | "undefined"> = new Map([
+  ["String", "string"], ["Number", "number"], ["Boolean", "boolean"], ["Integer", "integer"], ["Null", "null"], ["Void", "void"], ["Undefined", "undefined"]]);
 /** TypeScript's own utility types, which a typed reference may combine with imported types. */
 const utilityTypes = new Set(["Pick", "Omit", "Partial", "Required", "Readonly", "ReadonlyArray", "Record", "ReturnType", "Parameters",
   "Awaited", "Extract", "Exclude", "NonNullable", "Promise", "Array"]);
-/** Visual code: a Svelte file, or any module of src/svelte that is not infra/ (infra is nonvisual TypeScript, rule I). */
-const visualModule = (from: string) => /\.svelte$/.test(from) || /\/svelte\//.test(from) && !/\/infra\//.test(from)
-  || /\/catalog\/(foundations|compositions|renderer|mechanisms)\//.test(from);
-/** `any`, `unknown` or `object` anywhere in a type expression: an open type that would let any data through. */
-function openKeyword(node: ts.Node): string | undefined {
-  if (node.kind === ts.SyntaxKind.AnyKeyword) return "any";
-  if (node.kind === ts.SyntaxKind.UnknownKeyword) return "unknown";
-  if (node.kind === ts.SyntaxKind.ObjectKeyword) return "object";
-  return ts.forEachChild(node, openKeyword);
-}
-/** Every type name a type expression refers to (`Pick<AccessClient, "lock">` → Pick, AccessClient). */
-function typeNames(node: ts.Node, found: Set<string> = new Set()): Set<string> {
-  if (ts.isTypeReferenceNode(node)) found.add(ts.isIdentifier(node.typeName) ? node.typeName.text : node.typeName.getText());
-  if (ts.isTypeQueryNode(node)) found.add(node.exprName.getText());
-  ts.forEachChild(node, child => { typeNames(child, found); });
-  return found;
-}
+const scalarTypes = new Set([ts.SyntaxKind.StringKeyword, ts.SyntaxKind.NumberKeyword, ts.SyntaxKind.BooleanKeyword, ts.SyntaxKind.BigIntKeyword,
+  ts.SyntaxKind.UndefinedKeyword, ts.SyntaxKind.NullKeyword, ts.SyntaxKind.VoidKeyword]);
 
-export function readContract(path: string, source: string): ReadContract {
+/** Where an import of a contract lands: a tree module (visual or not) or a package. */
+export type ContractPlaces = Readonly<Pick<CatalogLayout, "aliases" | "roots" | "infra">>;
+function resolveImport(contract: string, specifier: string, places: ContractPlaces): string | undefined {
+  const alias = places.aliases.find(([prefix]) => specifier.startsWith(prefix));
+  if (alias) return `${alias[1]}${specifier.slice(alias[0].length)}`;
+  return specifier.startsWith(".") ? posix.normalize(posix.join(posix.dirname(contract), specifier)) : undefined;
+}
+/** Visual code is a Svelte component or any module under the visual roots except infra (nonvisual TypeScript, rule I). */
+const visualModule = (module: string, places: ContractPlaces) => module.endsWith(".svelte")
+  || places.roots.some(root => module.startsWith(`${root}/`)) && !module.startsWith(`${places.infra}/`);
+
+export function readContract(path: string, source: string, places: ContractPlaces): ReadContract {
   const file = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const fail = (node: ts.Node, what: string): never => {
     throw new Error(`CATALOG_DECLARATION: ${path}:${file.getLineAndCharacterOfPosition(node.getStart(file)).line + 1}: ${what}`);
   };
+  /** The tree module an imported name comes from: never a package, never visual code. */
+  function treeModule(node: ts.Node, name: string, what: "schemas" | "types"): string {
+    const specifier = imported.get(name);
+    if (specifier === undefined) return fail(node, `${name} is not imported (a contract references imported ${what} only)`);
+    const module = resolveImport(path, specifier, places);
+    if (module === undefined) return fail(node, `${name} comes from the package ${specifier}; a contract references domain or infra ${what} of the tree only`);
+    if (visualModule(module, places)) return fail(node, `${name} comes from visual code (${specifier}); a contract references domain or infra ${what} only`);
+    return specifier;
+  }
+  /** A typed reference names types; it never spells one: no keyword escape, no inline object, function, typeof or mapped type. */
+  function closedType(node: ts.TypeNode, modules: string[]): void {
+    if (scalarTypes.has(node.kind) || ts.isLiteralTypeNode(node) || ts.isTemplateLiteralTypeNode(node)) return;
+    if (ts.isTypeReferenceNode(node)) {
+      const name = ts.isIdentifier(node.typeName) ? node.typeName.text : node.typeName.getText(file);
+      if (imported.has(name)) modules.push(treeModule(node, name, "types"));
+      else if (!utilityTypes.has(name)) fail(node, `${name} is neither imported from a module nor a standard utility type`);
+      const [union, filter] = node.typeArguments ?? [];
+      if (!imported.has(name) && (name === "Extract" || name === "Exclude") && union && filter && ts.isTypeLiteralNode(filter)) {
+        closedType(union, modules);
+        return discriminant(filter);
+      }
+      for (const argument of node.typeArguments ?? []) closedType(argument, modules);
+      return;
+    }
+    if (ts.isIndexedAccessTypeNode(node)) { closedType(node.objectType, modules); closedType(node.indexType, modules); return; }
+    if (ts.isUnionTypeNode(node) || ts.isIntersectionTypeNode(node)) { for (const member of node.types) closedType(member, modules); return; }
+    if (ts.isArrayTypeNode(node)) return closedType(node.elementType, modules);
+    if (ts.isTupleTypeNode(node)) { for (const element of node.elements) closedType(ts.isNamedTupleMember(element) ? element.type : element, modules); return; }
+    if (ts.isParenthesizedTypeNode(node)) return closedType(node.type, modules);
+    if (ts.isTypeOperatorNode(node) && node.operator !== ts.SyntaxKind.UniqueKeyword) return closedType(node.type, modules);
+    const open = node.kind === ts.SyntaxKind.AnyKeyword ? "any" : node.kind === ts.SyntaxKind.UnknownKeyword ? "unknown"
+      : node.kind === ts.SyntaxKind.ObjectKeyword ? "object" : node.kind === ts.SyntaxKind.NeverKeyword ? "never" : undefined;
+    fail(node, open ? `Type.Unsafe holds the open type ${open}; name a domain or infra type`
+      : `Type.Unsafe holds ${ts.SyntaxKind[node.kind]} (${node.getText(file)}); name a domain or infra type instead of spelling one`);
+  }
+  /** `Extract<Union, { kind: "form" }>` narrows a union by literal discriminants; that filter is the one inline object allowed. */
+  function discriminant(filter: ts.TypeLiteralNode): void {
+    for (const member of filter.members) {
+      if (!ts.isPropertySignature(member) || member.questionToken || !member.type
+        || !(ts.isLiteralTypeNode(member.type) || ts.isTemplateLiteralTypeNode(member.type))) {
+        fail(member, `an Extract or Exclude filter holds literal discriminants only (${member.getText(file)})`);
+      }
+    }
+  }
   const call = (node: ts.Expression) => ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)
     && ts.isIdentifier(node.expression.expression) && node.expression.expression.text === "Type" ? { name: node.expression.name.text, node } : undefined;
   function schema(node: ts.Expression): ContractSchema {
-    if (ts.isIdentifier(node)) {
-      const from = imported.get(node.text);
-      if (!from) return fail(node, `${node.text} is not a schema imported from a module`);
-      if (visualModule(from)) return fail(node, `${node.text} comes from visual code (${from}); a contract references domain or infra schemas only`);
-      return { kind: "reference", name: node.text, from };
-    }
+    if (ts.isIdentifier(node)) return { kind: "reference", name: node.text, from: treeModule(node, node.text, "schemas") };
     const found = call(node);
     if (!found) return fail(node, "a contract schema is a Type.* call of the closed subset or an imported schema");
     const [first] = found.node.arguments;
-    if (scalars.has(found.name)) return { kind: found.name.toLowerCase() as "string" };
+    const scalar = scalars.get(found.name);
+    if (scalar) return { kind: scalar };
     if (found.name === "Literal" && first && (ts.isStringLiteral(first) || ts.isNumericLiteral(first) || first.kind === ts.SyntaxKind.TrueKeyword || first.kind === ts.SyntaxKind.FalseKeyword)) {
       return { kind: "literal", value: ts.isStringLiteral(first) ? first.text : ts.isNumericLiteral(first) ? Number(first.text) : first.kind === ts.SyntaxKind.TrueKeyword };
     }
@@ -67,15 +107,9 @@ export function readContract(path: string, source: string): ReadContract {
     if (found.name === "Unsafe") {
       const [argument] = found.node.typeArguments ?? [];
       if (!argument || found.node.arguments.length) return fail(node, "Type.Unsafe takes one type argument and no schema: Type.Unsafe<DomainType>()");
-      const open = openKeyword(argument);
-      if (open) return fail(node, `Type.Unsafe<${argument.getText(file)}> holds the open type ${open}; name a domain or infra type`);
-      const names = typeNames(argument);
-      for (const name of names) {
-        const from = imported.get(name);
-        if (!from && !utilityTypes.has(name)) return fail(node, `${name} is neither imported from a module nor a standard utility type`);
-        if (from && visualModule(from)) return fail(node, `${name} comes from visual code (${from}); a contract references domain or infra types only`);
-      }
-      return { kind: "typed", name: argument.getText(file), from: [...names].map(name => imported.get(name)).find(Boolean) ?? "" };
+      const modules: string[] = [];
+      closedType(argument, modules);
+      return { kind: "typed", name: argument.getText(file), from: modules[0] ?? "" };
     }
     if (found.name === "Promise" && first) return { kind: "promise", value: schema(first) };
     const second = found.node.arguments[1];
@@ -129,8 +163,14 @@ export function readContract(path: string, source: string): ReadContract {
     } else if (name === "props" || name === "events" || name === "instance") {
       const object = schema(at);
       if (object.kind !== "object") return fail(at, `${name} is a Type.Object`);
+      if (name === "instance") for (const [member, item] of Object.entries(object.properties)) {
+        if (item.optional || item.schema.kind !== "function") return fail(at, `instance member ${member} is a required Type.Function; a bound piece exposes methods only`);
+      }
       read[name] = { ...object.properties };
     } else return fail(field, `unknown contract field ${name}`);
   }
   return { binding, closed: true, props: read.props ?? {}, events: read.events ?? {}, instance: read.instance ?? {}, marks: read.marks ?? [] };
 }
+
+/** The contract file of a declared piece: `<id>.contract.ts` beside its declaration. One place for that path, for every reader. */
+export const contractPath = (declaration: string, id: string) => posix.join(posix.dirname(declaration), `${id}.contract.ts`);

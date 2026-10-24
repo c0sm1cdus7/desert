@@ -5,7 +5,7 @@ import { lstat, readdir, readFile } from "node:fs/promises";
 import { join, posix, relative } from "node:path";
 import { declarationSuffixes, type CatalogLayout } from "../layout.ts";
 import { readDeclarations } from "../read-declaration.ts";
-import { readContract, type ReadContract } from "../read-contract.ts";
+import { contractPath, readContract, type ReadContract } from "../read-contract.ts";
 import { assertDeclaredSources, type LocatedDeclaration } from "./inventory.ts";
 import { assertDeclarationsConsistent } from "./declarations.ts";
 import { assertCatalogDerivations } from "./derivation.ts";
@@ -46,8 +46,8 @@ export async function readCatalogTree(root: string, layout: CatalogLayout): Prom
   }
   const contracts = new Map<string, ReadContract>();
   for (const { path, declaration } of declarations) if (declaration.kind !== "mechanism") {
-    const contract = posix.join(posix.dirname(path), `${declaration.id}.contract.ts`);
-    if (paths.includes(contract)) contracts.set(declaration.id, readContract(contract, await readFile(join(root, contract), "utf8")));
+    const contract = contractPath(path, declaration.id);
+    if (paths.includes(contract)) contracts.set(declaration.id, readContract(contract, await readFile(join(root, contract), "utf8"), layout));
   }
   const generated = new Map<string, string>();
   for (const path of Object.values(layout.generated)) if (paths.includes(path)) generated.set(path, await readFile(join(root, path), "utf8"));

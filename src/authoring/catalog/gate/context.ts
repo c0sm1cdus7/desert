@@ -2,7 +2,7 @@
 // file, and the ownership map. Rules are pure functions of this context and return violations.
 import { posix } from "node:path";
 import type { CatalogLayout } from "../layout.ts";
-import { readContract, type ReadContract } from "../read-contract.ts";
+import { contractPath, readContract, type ReadContract } from "../read-contract.ts";
 import type { LocatedDeclaration } from "./inventory.ts";
 import { ownershipOf, type Ownership } from "./ownership.ts";
 import { parseSource, type Parsed } from "./parse.ts";
@@ -59,9 +59,9 @@ export function createContext(input: Readonly<{ layout: CatalogLayout; paths: re
   const owners = ownershipOf(input.declarations, input.layout), contracts = new Map<string, ReadContract | undefined>();
   const contract = (id: string) => {
     if (contracts.has(id)) return contracts.get(id);
-    const located = owners.declaration(id), path = located && posix.join(posix.dirname(located.path), `${id}.contract.ts`);
+    const located = owners.declaration(id), path = located && contractPath(located.path, id);
     const source = path === undefined ? undefined : text(path);
-    const value = path === undefined || source === undefined ? undefined : readContract(path, source);
+    const value = path === undefined || source === undefined ? undefined : readContract(path, source, input.layout);
     contracts.set(id, value);
     return value;
   };

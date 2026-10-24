@@ -4,7 +4,8 @@ import ts from "typescript";
 import { catalogClosureSources } from "../../svelte/catalog-admissions.ts";
 import { requestPath } from "./source-request.ts";
 import { walk, type SyntaxNode } from "./walk.ts";
-import { readContract } from "../catalog/read-contract.ts";
+import { DesertLayout } from "../catalog/layout.ts";
+import { contractPath, readContract } from "../catalog/read-contract.ts";
 
 const visualInput = /^(class|style|role|elementProps|viewportAttributes|data-.*)$/;
 const owners = catalogClosureSources("finite-inputs");
@@ -16,9 +17,9 @@ const resolveImport = (path: string, request: string) => {
 
 /** The prop names of a piece's closed contract (`<folder>/<id>.contract.ts` beside the entry), or undefined when it is a stub. */
 function closedContractProps(sources: readonly { path: string; source: string }[], entry: string, id: string): (string | undefined)[] | undefined {
-  const path = posix.join(posix.dirname(entry), `${id}.contract.ts`), source = sources.find(item => item.path === path)?.source;
+  const path = contractPath(entry, id), source = sources.find(item => item.path === path)?.source;
   if (source === undefined) return undefined;
-  const contract = readContract(path, source);
+  const contract = readContract(path, source, DesertLayout);
   return contract.closed ? Object.keys(contract.props) : undefined;
 }
 
