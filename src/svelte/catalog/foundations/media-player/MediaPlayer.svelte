@@ -71,7 +71,6 @@
     .player-header { width:100%; height:100%; }
     .player-header .player-stage { flex:1; }
     .player-video { display:block; width:100%; height:100%; object-fit:contain; }
-    .player-header .player-video { object-fit:cover; }
     .player-error { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--foreground); }
     /* The band keeps the toolbar's media geometry: its inset, target height and gap. */
     .player-band { flex-shrink:0; min-width:0; padding:var(--catalog-toolbar-inset,8px); container:toolbar / inline-size;
@@ -80,4 +79,7 @@
       min-height:var(--catalog-toolbar-height,44px); }
     .player-header-controls { position:absolute; inset-inline-end:16px; inset-block-end:16px; z-index:2; display:flex; gap:8px; }
   }
+  /* Heading a place, the video covers the heading. Outside the layer: the playback canvas's media.css rule, unlayered,
+     draws its video contained, and the player's own mark is the same. */
+  .player-header .player-video { object-fit:cover; }
 </style>

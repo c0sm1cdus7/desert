@@ -14,5 +14,5 @@ export const PlaceHeadingContract = {
     background: Type.Optional(Type.Object({ asset: Type.String(), alt: Type.String() }, { additionalProperties: false })),
   }, { additionalProperties: false }),
   marks: ["data-place-header", "data-dock-above", "data-featured-media", "data-media-unavailable", "data-place-subtitle",
-    "data-embedded-place-heading", "data-header-media"],
+    "data-embedded-place-heading", "data-header-media", "data-paged-media"],
 } as const;
