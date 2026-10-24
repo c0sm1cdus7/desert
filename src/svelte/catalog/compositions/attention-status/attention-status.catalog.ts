@@ -4,7 +4,8 @@ import { AttentionStatusContract } from "./attention-status.contract.ts";
 
 export const AttentionStatus = defineComposition({
   id: "attention-status",
-  purpose: "Pair the shared attention indicator with readable context for the attention signal.",
+  purpose: { key: "attentionStatus.purpose" },
+  messages: ["attentionStatus.purpose", "attentionStatus.one", "attentionStatus.many"],
   owner: { entry: "AttentionStatus.svelte" },
-  uses: ["attention-indicator", "grouped-panel"], approval: "none", contract: AttentionStatusContract,
+  uses: ["list", "row"], approval: "none", contract: AttentionStatusContract,
 } as const);

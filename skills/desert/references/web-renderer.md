@@ -3411,56 +3411,38 @@ Source SHA-256: 0675612650325900a2d0c7dcb61b359163ebc92a966a8309cce44c62e114a09f
 
 ## src/svelte/catalog/compositions/collection/Collection.svelte
 
-Source SHA-256: ce86d2f9f45c500534a357463c52deb1ce84cb09cb2f19c37d00e518db846b9e
+Source SHA-256: 30ed28c3a767728bd2368a37a572b8014b0f8661dd9681618519610c0d95c5b5
 
 ```svelte
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
   import { presentFact, presentTitle, readingFields } from "../../../../interaction/fact-presentation.ts";
-  import { GroupedPanel } from "../../index.ts";
-  import { Button } from "../../../vendor/components/ui/button/index.js";
-  import { Icon } from "../../index.ts";
-  import { CollectionState } from "../../index.ts";
   import { retrieveCollection } from "../../../collection-retrieval.ts";
-  import { MediaGrid } from "../../index.ts";
-  import { MediaCollectionGrid } from "../../index.ts";
-  import { AttentionIndicator } from '../../index.ts';
+  import { CollectionState, List, MediaCollectionGrid, MediaGrid, Row } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let { node, select }: CatalogProps<"collection"> = $props();
   let { records, disabled, loaded, selectedId } = $derived(node);
   // Collections present records. Search belongs exclusively to the toolbar overlay.
   let visibleRecords = $derived(node.presentation ? records : retrieveCollection(records, node.fields, ""));
+  /** The secondary lines of a record row: each further field's value label, or the field's label and its value. */
+  function metadata(record: (typeof records)[number]): string[] {
+    return readingFields(node.fields.slice(1), record.facts).map(field => node.valueLabels?.[field]?.[String(record.facts[field])]
+      ?? say(m.collection.metadata, { label: node.labels[`${node.object}.${field}`]!, value: presentFact(record.facts[field]) }));
+  }
 </script>
 {#if node.presentation?.kind === "media-grid"}<MediaGrid {node} {select} />
 {:else if node.presentation?.kind === "collection-grid"}<MediaCollectionGrid {node} {select} />
-{:else if visibleRecords.length}<GroupedPanel>
-<ul class="records" data-composition="collection" data-grouped-rows>
+{:else if visibleRecords.length}<List kind="rows" measure="reading">
   {#each visibleRecords as record (record.id)}
-    {@const secondary = readingFields(node.fields.slice(1), record.facts)}
-    <li data-grouped-row>
-      <Button variant="row" presentation="record-row" data-grouped-action onclick={() => select(record.id)} {disabled} aria-current={record.id === selectedId ? "true" : undefined}>
-        <AttentionIndicator required={Boolean(node.attention?.[record.id]?.length)} />
-        <span data-record-copy>
-          <span data-record-heading><strong>{presentTitle(record.facts[node.fields[0]!])}</strong></span>
-          {#if secondary.length}
-            <span data-record-metadata>{#each secondary as field}<span data-record-value>{node.valueLabels?.[field]?.[String(record.facts[field])] ?? `${node.labels[`${node.object}.${field}`]} · ${presentFact(record.facts[field])}`}</span>{/each}</span>
-          {/if}
-        </span>
-        <Icon name="chevron-right" placement="inline-end" chevron decorative />
-      </Button>
-    </li>
+    <Row label={presentTitle(record.facts[node.fields[0]!])} metadata={metadata(record)}
+      leading={{ kind: "attention", required: Boolean(node.attention?.[record.id]?.length) }} trailing="chevron" interaction="open"
+      available={!disabled} current={record.id === selectedId} focusKey={record.id} onopen={() => select(record.id)} />
   {/each}
-</ul>
-</GroupedPanel>{/if}
+</List>{/if}
 {#if !records.length && !node.presentation}
   <CollectionState {loaded} createLabel={node.createLabel} connection={node.connection} />
 {/if}
-<style>
-  strong { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); overflow-wrap:anywhere; text-align:start; }
-  [data-record-heading] { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
-  [data-record-copy] { display:flex; flex:1; min-width:0; flex-direction:column; gap:.25rem; }
-  [data-record-value] { display:block; }
-  [data-record-metadata] { display:flex; flex-wrap:wrap; gap:.375rem 1rem; text-align:start; color:var(--muted-foreground); font-size:var(--text-body); }
-</style>
 ```
 
 ## src/svelte/collection-retrieval.ts
@@ -4994,33 +4976,25 @@ Source SHA-256: 4b6c6f71dd925183b6449ae47b9f5127f679e6502f95471135ca916e7475211e
 
 ## src/svelte/catalog/compositions/collection-state/CollectionState.svelte
 
-Source SHA-256: 4e347ef602728408441bac6eb8e62e6c0cd7d9c2c5202aed237f1f59cd54d262
+Source SHA-256: 2dd45bbbf5e91c5b83fecb441ed60e8ae6fede0d34f614039184a18e0722e0de
 
 ```svelte
 <script lang="ts">
-  import * as Empty from "../../../vendor/components/ui/empty/index.js";
-  import { Skeleton } from "../../../vendor/components/ui/skeleton/index.js";
-  import { GroupedPanel } from "../../index.ts";
+  import { List, Loading, Status } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { loaded, createLabel, connection }: CatalogProps<"collection-state"> = $props();
   let offline = $derived(connection === 'offline');
   let pending = $derived(!loaded && !offline);
 </script>
-<GroupedPanel><div role="group" aria-label="Collection state" aria-busy={pending}
-  data-collection-state={offline ? 'offline' : loaded ? 'empty' : 'loading'}><Empty.Root>
-  {#if pending}
-    <div class="flex w-full flex-col gap-2" aria-hidden="true">
-      <Skeleton line="primary" />
-      <Skeleton line="secondary" />
-    </div>
-    <span class="sr-only" role="status">Loading content…</span>
-  {:else}
-  <Empty.Header>
-    <Empty.Title role="heading" aria-level={2}>{offline ? 'Controller unavailable.' : 'Nothing here yet.'}</Empty.Title>
-    {#if offline || createLabel}<Empty.Description>{offline ? 'Reconnect to load this content.' : `Use “${createLabel}” to get started.`}</Empty.Description>{/if}
-  </Empty.Header>
-  {/if}
-</Empty.Root></div></GroupedPanel>
+<List kind="rows" measure="reading" label={say(m.collectionState.label)} busy={pending}>
+  {#if pending}<Loading kind="lines" inset="block" label={say(m.collectionState.loading)} />
+  {:else if offline}<Status tone="offline" size="regular" heading title={say(m.collectionState.offlineTitle)}
+    description={say(m.collectionState.offlineDescription)} />
+  {:else}<Status tone="neutral" size="regular" heading title={say(m.collectionState.emptyTitle)}
+    description={createLabel ? say(m.collectionState.emptyDescription, { command: createLabel }) : undefined} />{/if}
+</List>
 ```
 
 ## src/svelte/catalog/foundations/action/Action.svelte
@@ -6215,18 +6189,14 @@ export function historyKey(event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaK
 
 ## src/svelte/catalog/compositions/context-panel/ContextPanel.svelte
 
-Source SHA-256: 0e21e5c348efb7518a9f97f1a42ef9cf02f78e1e673bec44ef39ef24b939413d
+Source SHA-256: fba3a8e92a72958a4093dcc42c225fc5c14648e353e239c211f394064cbdcd74
 
 ```svelte
 <script lang="ts">
-  import { NodeRenderer } from "../../index.ts";
+  import { AttentionStatus, Column, ContextProperties, List, MediaObject, NodeRenderer, ReadingContent, Row, Spacer, StackLayout } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import { DestinationRow } from "../../index.ts";
-  import { GroupedPanel } from "../../index.ts";
-  import { ReadingContent } from "../../index.ts";
-  import { ContextProperties } from "../../index.ts";
-  import { MediaObject } from "../../index.ts";
-  import { AttentionStatus } from '../../index.ts';
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {}, actions, selectors = [], attention=[],presentation, onselect }: CatalogProps<"context-panel"> = $props();
   let remaining = $derived(fields.filter(field => field !== presentation?.media && field !== presentation?.description));
@@ -6235,7 +6205,7 @@ Source SHA-256: 0e21e5c348efb7518a9f97f1a42ef9cf02f78e1e673bec44ef39ef24b939413d
   let imageFields = $derived(metadata.filter(field => images.includes(field)));
   let properties = $derived(metadata.filter(field => !images.includes(field)));
 </script>
-<div data-composition="context">
+<Column gap="relaxed">
     <AttentionStatus signals={attention} />
     {#if presentation}<MediaObject {facts} {presentation} />{/if}
     {#if prose.length}<ReadingContent fields={prose} {facts} {object} {labels} />{/if}
@@ -6243,15 +6213,19 @@ Source SHA-256: 0e21e5c348efb7518a9f97f1a42ef9cf02f78e1e673bec44ef39ef24b939413d
       <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "fact", details: { kind: "facts", fields: imageFields, facts, object, labels, images: imageFields } }} />
     {/if}
     <ContextProperties fields={properties} {facts} {object} {labels} {references} {selectors} {onselect}/>
-    {#if actions.length}<section class="context-actions" aria-label="Actions">
-      <h3>Actions</h3>
-      <GroupedPanel><div data-grouped-rows>
-        {#each actions as action (action.id)}
-          <DestinationRow destination={action.id} label={action.label} open={action.invoke} available={action.available} />
-        {/each}
-      </div></GroupedPanel>
-    </section>{/if}
-</div>
+    {#if actions.length}
+      <!-- The empty track keeps one more gap before the actions, which sets them apart from what the object reads. -->
+      <Spacer size="fill" />
+      <StackLayout title={say(m.contextPanel.actions)}>
+        <List kind="rows" measure="reading">
+          {#each actions as action (action.id)}
+            <Row label={action.label} leading={{ kind: "face", face: { kind: "icon", icon: "open" } }} trailing="chevron" interaction="open"
+              available={action.available} current={false} onopen={action.invoke} />
+          {/each}
+        </List>
+      </StackLayout>
+    {/if}
+</Column>
 ```
 
 ## src/svelte/catalog/renderer/facts/Facts.svelte

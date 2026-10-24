@@ -11,7 +11,7 @@ async function populatedCollection() {
       await f.session.accept(prepared.id, prepared.confirmationDigest);
     }
     await f.page.reload();
-    await f.page.locator(".record-button").nth(1).waitFor();
+    await f.page.locator('[data-row-leading="attention"]').nth(1).waitFor();
     return f;
   } catch (error) { await f.close(); throw error; }
 }
@@ -19,7 +19,7 @@ async function populatedCollection() {
 test("toolbar search stays local to published collection fields, even after loading private detail", { timeout: 30000 }, async () => {
   const f = await populatedCollection();
   try {
-    const rows = f.page.locator(".record-button strong");
+    const rows = f.page.locator('[data-row-leading="attention"] .row-label');
     assert.deepEqual(await rows.allTextContents(), ["Alpha public", "Zulu public"]);
     assert.equal(await f.page.getByRole("searchbox").count(), 0, "no inline collection search is exposed");
     assert.equal(await f.page.getByText("Sorted by Title · ascending", { exact: true }).count(), 0);

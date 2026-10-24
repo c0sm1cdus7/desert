@@ -35,14 +35,14 @@ test('object detail reads prose before one property group, omits known empties, 
       await f.page.setViewportSize({width,height:1100});
       await f.page.evaluate(()=>document.documentElement.style.setProperty('font-size',innerWidth===320?'200%':'100%'));
       const detail=f.page.locator('[data-case="detail"]');
-      assert.equal(await detail.locator('.reading-copy').textContent(),body,'reader preserves exact user content');
+      assert.equal(await detail.locator('[data-fact-presentation="paragraph"]').textContent(),body,'reader preserves exact user content');
       const property=detail.locator('dl').filter({has:f.page.getByRole('button',{name:'Status',exact:true})});
       assert.equal(await property.count(),1,'state and factual properties share one semantic property group');
       assert.equal(await property.locator('.fact-label').first().textContent(),'Projects');
       assert.equal(await property.locator('.color-bullet[data-color]').count(),2,'project identity includes both readable name and color');
       assert.match(await property.textContent() ?? '',/iPhone research/,'reference labels retain original case');
       const geometry=await detail.evaluate(el=>{
-        const prose=el.querySelector('.reading-content')!.getBoundingClientRect();
+        const prose=[...el.querySelectorAll('[data-fact-presentation="paragraph"]')].at(-1)!.getBoundingClientRect();
         const properties=el.querySelector('dl')!.getBoundingClientRect();
         const rows=[...el.querySelectorAll('dl > div')].map(row=>getComputedStyle(row));
         const label=el.querySelector('dl dt')!.getBoundingClientRect(),value=el.querySelector('dl dd')!.getBoundingClientRect();
@@ -52,7 +52,7 @@ test('object detail reads prose before one property group, omits known empties, 
         return {ordered:prose.bottom<=properties.top,width:properties.width,overflow:document.documentElement.scrollWidth>innerWidth,
           colorOnFirstLine:bullet.top>=firstLine.top-1&&bullet.bottom<=firstLine.bottom+1,
           reflowed:value.top>=label.bottom,
-          dividers:rows.map(row=>Number.parseFloat(row.borderBottomWidth)),reading:getComputedStyle(el.querySelector('.reading-copy')!).whiteSpace};
+          dividers:rows.map(row=>Number.parseFloat(row.borderBottomWidth)),reading:getComputedStyle(el.querySelector('[data-fact-presentation="paragraph"]')!).whiteSpace};
       });
       assert.equal(geometry.ordered,true,'reading precedes metadata and commands');
       assert.equal(geometry.overflow,false,'long content and project names reflow at 320px and 200%');
@@ -61,8 +61,8 @@ test('object detail reads prose before one property group, omits known empties, 
       assert.equal(geometry.reading,'pre-wrap');
       assert.equal(geometry.colorOnFirstLine,true,'a project color belongs to the first line of its name, not the middle of a wrapped paragraph');
       if(width===320)assert.equal(geometry.reflowed,true,'enlarged text uses full row width instead of breaking project names into tiny columns');
-      assert.equal(await f.page.locator('[data-case="empty"] :is(dl,[data-composition="reading-content"])').count(),0,'empty object fields do not create empty panels or headings');
-      assert.equal(await f.page.locator('[data-case="reading"] [data-composition="reading-content"]').count(),0,'reading owner itself omits known empty prose');
+      assert.equal(await f.page.locator('[data-case="empty"] :is(dl,fieldset,legend,[data-fact-presentation])').count(),0,'empty object fields do not create empty panels or headings');
+      assert.equal(await f.page.locator('[data-case="reading"] :is(fieldset,[data-fact-presentation])').count(),0,'reading owner itself omits known empty prose');
       assert.match(await f.page.locator('[data-case="unknown"]').textContent() ?? '',/Unknown/,'unknown is not silently treated as empty');
       if(process.env.DESERT_DETAIL_EVIDENCE){await mkdir('artifacts/object-detail-round3',{recursive:true});await f.page.screenshot({path:`artifacts/object-detail-round3/${width}.png`,fullPage:true});}
     }

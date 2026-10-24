@@ -26,7 +26,8 @@ test("product, catalog and nested compositions use the one bank dispatch boundar
   // Collection is the registered leaf, not a caller that should dispatch to itself.
   assert.match(source("renderer-registry.ts"), /collection: Collection/);
   assert.match(source("catalog/compositions/collection/Collection.svelte"), /: CatalogProps<"collection"> = \$props\(\)/);
-  assert.match(source("catalog/compositions/collection/Collection.svelte"), /<GroupedPanel>/);
+  // Its records are one List of Rows (composition lane C).
+  assert.match(source("catalog/compositions/collection/Collection.svelte"), /<List kind="rows"/);
   assert.match(source("catalog/renderer/inspection-content/InspectionContent.svelte"), /import \{ Inspection \} from "\.\.\/\.\.\/index\.ts"/);
   assert.match(source("catalog/index.ts"), /export \{ default as Inspection \} from "\.\/compositions\/inspection\/Inspection\.svelte";/);
 });

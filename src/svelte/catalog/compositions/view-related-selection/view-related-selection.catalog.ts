@@ -4,7 +4,8 @@ import { ViewRelatedSelectionContract } from "./view-related-selection.contract.
 
 export const ViewRelatedSelection = defineComposition({
   id: "view-related-selection",
-  purpose: "Mount the related selection of a view panel and forward its changes as node events.",
+  purpose: { key: "viewRelatedSelection.purpose" },
+  messages: ["viewRelatedSelection.purpose"],
   owner: { entry: "ViewRelatedSelection.svelte" },
   uses: ["related-selection"], approval: "none", contract: ViewRelatedSelectionContract,
 } as const);

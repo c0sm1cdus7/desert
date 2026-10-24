@@ -46,9 +46,10 @@
 {/if}
 
 <style>
-  /* The grouped row's geometry: a full-width, at least 44px interior, one hairline between rows of the same list. */
+  /* The grouped row's geometry: a full-width, at least 44px interior, one hairline between rows of the same list. It sets
+     no box-shadow: this unlayered rule would win over control-feedback's hover and press tints, which are box-shadows. */
   .row { display:flex; align-items:center; justify-content:flex-start; gap:.5rem; width:100%; min-width:0; min-height:2.75rem;
-    margin:0; padding:.75rem 1rem; border:0; border-radius:0; background:transparent; box-shadow:none; color:var(--foreground);
+    margin:0; padding:.75rem 1rem; border:0; border-radius:0; background:transparent; color:var(--foreground);
     font:inherit; font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:400;
     text-align:left; white-space:normal; outline:none; }
   .row:not(:first-child) { border-top:1px solid var(--separator); }

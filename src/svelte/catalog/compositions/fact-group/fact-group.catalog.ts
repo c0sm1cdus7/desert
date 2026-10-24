@@ -4,7 +4,8 @@ import { FactGroupContract } from "./fact-group.contract.ts";
 
 export const FactGroup = defineComposition({
   id: "fact-group",
-  purpose: "Show the facts of one object: image fields as images and every other field as a labelled row.",
+  purpose: { key: "factGroup.purpose" },
+  messages: ["factGroup.purpose"],
   owner: { entry: "FactGroup.svelte" },
-  uses: ["fact-row", "node-renderer"], approval: "none", contract: FactGroupContract,
+  uses: ["fact-row", "list", "node-renderer"], approval: "none", contract: FactGroupContract,
 } as const);

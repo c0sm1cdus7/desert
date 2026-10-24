@@ -5,7 +5,8 @@ import { ContextPropertiesContract } from "./context-properties.contract.ts";
 
 export const ContextProperties = defineComposition({
   id: "context-properties",
-  purpose: "Read related facts and use state commands in one shared pane, separate from reading paragraphs.",
+  purpose: { key: "contextProperties.purpose" },
+  messages: ["contextProperties.purpose", "contextProperties.title"],
   owner: { entry: "ContextProperties.svelte" },
-  uses: ["fact-row", "object-state-row", "stack-layout"], approval: "none", contract: ContextPropertiesContract,
+  uses: ["fact-row", "list", "object-state-row", "stack-layout"], approval: "none", contract: ContextPropertiesContract,
 } as const);

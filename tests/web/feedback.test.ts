@@ -45,7 +45,7 @@ test("feedback uses semantic colors and destination rows never shrink out of the
       await f.session.accept(prepared.id, prepared.confirmationDigest);
     }
     await f.page.getByRole("button", { name: "Notes", exact: true }).click();
-    const rows = f.page.locator('[data-catalog-content] .record-button:visible');
+    const rows = f.page.locator('[data-catalog-content] [data-row-leading="attention"]:visible');
     await rows.nth(2).waitFor();
     await settleMotion(f.page);
     assert.equal(await rows.count(), 3);

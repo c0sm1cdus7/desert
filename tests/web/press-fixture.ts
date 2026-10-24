@@ -12,7 +12,7 @@ export async function catalog() {
       await f.session.accept(prepared.id, prepared.confirmationDigest);
     }
     await f.page.reload();
-    await f.page.locator('[data-composition="collection"]:visible button').nth(2).waitFor();
+    await f.page.locator('[data-list] [data-row-leading="attention"]:visible').nth(2).waitFor();
     await openCatalog(f.page);
     return f;
   }
@@ -29,7 +29,7 @@ export async function finishTarget(page: Page) {
 export async function openNotes(page: Page) {
   await finishTarget(page);
   await page.getByRole("button", { name: "Notes", exact: true }).click();
-  await page.locator('[data-composition="collection"]:visible button').nth(2).waitFor();
+  await page.locator('[data-list] [data-row-leading="attention"]:visible').nth(2).waitFor();
   await settleMotion(page);
 }
 export async function target(page: Page, name: Case) {
@@ -41,7 +41,7 @@ export async function target(page: Page, name: Case) {
     await page.getByRole("textbox", { name: "Content", exact: true }).fill("A valid published draft.");
     button = panelToolbar(page, "bottom").locator(`[data-emphasis="${name === "primary" ? "primary" : "secondary"}"]`);
     await waitForEnabled(button);
-  } else button = page.locator('[data-composition="collection"]:visible button').nth(name === "first-row" ? 0 : name === "middle-row" ? 1 : 2);
+  } else button = page.locator('[data-list] [data-row-leading="attention"]:visible').nth(name === "first-row" ? 0 : name === "middle-row" ? 1 : 2);
   // These tests isolate native held/cancelled paint on real product controls.
   // Execution and navigation are covered separately; prevent only activation.
   await button.evaluate(node => node.addEventListener("click", event => {

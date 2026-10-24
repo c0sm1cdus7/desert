@@ -8,7 +8,8 @@ test('neutral interiors preserve action-list dividers without acquiring another 
   const f = await svelteBrowser(groupedRowsSource);
   try {
     await f.page.addStyleTag({content:await rendererCss()});
-    const rows = f.page.locator('[data-test="actions"] [data-grouped-row]');
+    // Context actions are Rows in a List (composition lane C).
+    const rows = f.page.locator('[data-test="actions"] [data-row]');
     assert.equal(await rows.count(),3);
     for (let i=0;i<3;i++) {
       const style=await rows.nth(i).evaluate(e=>{const s=getComputedStyle(e);return {

@@ -5,6 +5,11 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { groupedRowsSource } from "./fixtures/grouped-rows.ts";
 
+/** Collections and context actions are Lists of Rows (composition lane C); choices still draw grouped panels. */
+const listed = (family: string) => family === "collection" || family === "actions";
+const panelOf = (family: string) => listed(family) ? "[data-list]" : "[data-grouped-panel]";
+const rowOf = (family: string) => listed(family) ? "[data-row]" : "[data-grouped-row]";
+
 const settle = (page: Page) => page.evaluate(async () => {
   await Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {})));
 });
@@ -22,8 +27,7 @@ test("action and choice rows share semantic hover, press, cancellation and disab
   const f = await svelteBrowser(groupedRowsSource);
   const families = ["collection", "actions", "options", "checks", "selection"];
   const target = (family: string) => {
-    const row = f.page.locator(`[data-test="${family}"] [data-grouped-row]`).nth(1);
-    return family === "collection" ? row.locator("[data-grouped-action]") : row;
+    return f.page.locator(`[data-test="${family}"] ${rowOf(family)}`).nth(1);
   };
   try {
     await f.page.addStyleTag({content:await rendererCss()});

@@ -37,7 +37,7 @@ test("published reading, editing and catalog controls preserve their distinct ac
       assert.ok(Math.abs(closeStyle.size - 13 * scale) < .05);
       assert.ok(Math.abs(entry.size - 16 * scale) < .05 && selection.size === entry.size);
       await finishTarget(f.page);
-      const row = f.page.locator('[data-composition="collection"]:visible button').first();
+      const row = f.page.locator('[data-list] [data-row-leading="attention"]:visible').first();
       const rowIcon = await iconStyle(row.locator("svg"));
       for (const icon of [rowIcon, selectIcon]) {
         assert.ok(Math.abs(icon.width - 16 * scale) < .05 && Math.abs(icon.height - 16 * scale) < .05);
@@ -68,7 +68,7 @@ test("collection row focus follows the shared grouped boundary", { timeout: 3000
   const f = await catalog();
   try {
     await openNotes(f.page);
-    const rows = f.page.locator('[data-composition="collection"]:visible button');
+    const rows = f.page.locator('[data-list] [data-row-leading="attention"]:visible');
     assert.equal(await rows.count(), 3);
     for (const edge of ["first", "last"] as const) {
       const row = edge === "first" ? rows.first() : rows.last();

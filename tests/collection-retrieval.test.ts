@@ -74,12 +74,12 @@ test("collection ordering stays deterministic without an automatic sorting capti
     const f = await collectionFixture(input);
     try {
       assert.equal(await f.page.getByText(/^Sorted by /).count(), 0, "sorting does not add presentation copy");
-      assert.deepEqual(await f.page.locator(".record-button strong").allTextContents(), ["Alpha", "Alpha", "Beta", "Zulu"]);
-      assert.deepEqual(await f.page.locator("[data-record-metadata]").allTextContents(),
+      assert.deepEqual(await f.page.locator('[data-row-leading="attention"] .row-label').allTextContents(), ["Alpha", "Alpha", "Beta", "Zulu"]);
+      assert.deepEqual(await f.page.locator(".row-metadata").allTextContents(),
         ["Status · active", "Status · archived", "Status · active", "Status · active"]);
-      await f.page.locator(".record-button").nth(0).click();
+      await f.page.locator('[data-row-leading="attention"]').nth(0).click();
       assert.equal(await f.page.getByRole("status", { name: "Selected test record" }).textContent(), "a");
-      await f.page.locator(".record-button").nth(1).click();
+      await f.page.locator('[data-row-leading="attention"]').nth(1).click();
       assert.equal(await f.page.getByRole("status", { name: "Selected test record" }).textContent(), "b");
       assert.equal(await f.page.getByRole("status", { name: "Source record order" }).textContent(), input.map(record => record.id).join(","));
       assert.deepEqual(f.errors, []);
@@ -88,8 +88,8 @@ test("collection ordering stays deterministic without an automatic sorting capti
   const f = await collectionFixture([record("a", "A title", "archived"), record("z", "Z title", "active")], { fields: ["state", "title"] });
   try {
     assert.equal(await f.page.getByText(/^Sorted by /).count(), 0);
-    assert.deepEqual(await f.page.locator(".record-button strong").allTextContents(), ["active", "archived"]);
-    assert.deepEqual(await f.page.locator("[data-record-metadata]").allTextContents(), ["Title · Z title", "Title · A title"]);
+    assert.deepEqual(await f.page.locator('[data-row-leading="attention"] .row-label').allTextContents(), ["active", "archived"]);
+    assert.deepEqual(await f.page.locator(".row-metadata").allTextContents(), ["Title · Z title", "Title · A title"]);
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
@@ -101,7 +101,7 @@ for (const loaded of [false, true]) {
       assert.equal(await f.page.getByRole("searchbox").count(), 0, "collection content never owns search");
       assert.equal(await f.page.getByText(/^Sorted by /).count(), 0);
       if (loaded) await f.page.getByRole("heading", { name: "Nothing here yet.", exact: true }).waitFor();
-      else await f.page.locator('[data-collection-state="loading"][aria-busy="true"]').waitFor();
+      else await f.page.getByRole("group", { name: "Collection state", exact: true }).and(f.page.locator('[aria-busy="true"]:has([data-loading="lines"])')).waitFor();
       assert.equal(await f.page.getByRole("heading", { name: "No matching records.", exact: true }).count(), 0);
       assert.equal(await f.page.getByText("0 matching records", { exact: true }).count(), 0, "unread/empty is not a failed search");
       assert.deepEqual(f.errors, []);
@@ -115,8 +115,8 @@ test("collection content has no search controls and keeps disabled record action
     assert.equal(await f.page.getByRole("searchbox").count(), 0);
     assert.equal(await f.page.getByText(/^Sorted by /).count(), 0);
     assert.equal(await f.page.getByRole("button", { name: "Clear search", exact: true }).count(), 0);
-    assert.deepEqual(await f.page.locator(".record-button strong").allTextContents(), ["Alpha", "Beta"]);
-    for (const button of await f.page.locator(".record-button").all()) assert.equal(await button.isDisabled(), true);
+    assert.deepEqual(await f.page.locator('[data-row-leading="attention"] .row-label').allTextContents(), ["Alpha", "Beta"]);
+    for (const button of await f.page.locator('[data-row-leading="attention"]').all()) assert.equal(await button.isDisabled(), true);
     assert.equal(await f.page.getByRole("status", { name: "Selection calls" }).textContent(), "0");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
@@ -138,7 +138,7 @@ test("a View stack aligns All notes with collection text without an invented sub
           range.selectNodeContents(document.querySelector(selector)!);
           return range.getBoundingClientRect().left;
         };
-        return { heading: textLeft(".place-stack-title h2"), row: textLeft(".record-button strong") };
+        return { heading: textLeft(".place-stack-title h2"), row: textLeft('[data-row-leading="attention"] .row-label') };
       });
       context.diagnostic(`${width}px reading guide: heading=${inset.heading}, row=${inset.row}`);
       assert.ok(Math.abs(inset.heading - inset.row) <= 1,

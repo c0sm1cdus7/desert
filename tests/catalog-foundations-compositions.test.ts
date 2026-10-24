@@ -43,7 +43,7 @@ test('surface specimen mounts the actual frame and opens a transient, never a do
     const specimen=f.page.locator('[data-owner-specimen="Place"]');
     assert.equal(await specimen.locator('[data-surface-frame]').count(),1);
     assert.equal(await specimen.locator('[data-toolbar="bottom"]').count(),0,'ordinary surface content has no detached footer action');
-    assert.equal(await specimen.locator('[data-destination="open-transient"]').count(),1,'launching a transient is an explicit action row');
+    assert.equal(await specimen.locator('[data-row]').getByText('Open transient',{exact:true}).count(),1,'launching a transient is an explicit action row');
     await specimen.getByRole('button',{name:'Open transient',exact:true}).click();
     const transient=f.page.locator('[data-composition="transient"]');
     await transient.waitFor();

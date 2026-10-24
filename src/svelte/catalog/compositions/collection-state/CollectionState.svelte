@@ -1,24 +1,16 @@
 <script lang="ts">
-  import * as Empty from "../../../vendor/components/ui/empty/index.js";
-  import { Skeleton } from "../../../vendor/components/ui/skeleton/index.js";
-  import { GroupedPanel } from "../../index.ts";
+  import { List, Loading, Status } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { loaded, createLabel, connection }: CatalogProps<"collection-state"> = $props();
   let offline = $derived(connection === 'offline');
   let pending = $derived(!loaded && !offline);
 </script>
-<GroupedPanel><div role="group" aria-label="Collection state" aria-busy={pending}
-  data-collection-state={offline ? 'offline' : loaded ? 'empty' : 'loading'}><Empty.Root>
-  {#if pending}
-    <div class="flex w-full flex-col gap-2" aria-hidden="true">
-      <Skeleton line="primary" />
-      <Skeleton line="secondary" />
-    </div>
-    <span class="sr-only" role="status">Loading content…</span>
-  {:else}
-  <Empty.Header>
-    <Empty.Title role="heading" aria-level={2}>{offline ? 'Controller unavailable.' : 'Nothing here yet.'}</Empty.Title>
-    {#if offline || createLabel}<Empty.Description>{offline ? 'Reconnect to load this content.' : `Use “${createLabel}” to get started.`}</Empty.Description>{/if}
-  </Empty.Header>
-  {/if}
-</Empty.Root></div></GroupedPanel>
+<List kind="rows" measure="reading" label={say(m.collectionState.label)} busy={pending}>
+  {#if pending}<Loading kind="lines" inset="block" label={say(m.collectionState.loading)} />
+  {:else if offline}<Status tone="offline" size="regular" heading title={say(m.collectionState.offlineTitle)}
+    description={say(m.collectionState.offlineDescription)} />
+  {:else}<Status tone="neutral" size="regular" heading title={say(m.collectionState.emptyTitle)}
+    description={createLabel ? say(m.collectionState.emptyDescription, { command: createLabel }) : undefined} />{/if}
+</List>

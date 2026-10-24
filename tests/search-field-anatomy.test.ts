@@ -74,7 +74,7 @@ for (const consumer of ["collection", "catalog"] as const) {
       await f.page.getByRole("heading", { name: `Search in ${consumer === "collection" ? "Notes" : "Component bank"}`, exact: true }).waitFor();
       await f.page.getByRole("button", { name: "Close search", exact: true }).click();
       assert.equal(await f.page.getByRole("searchbox").count(), 0);
-      if (consumer === "collection") assert.equal(await f.page.locator(".record-button").count(), 2);
+      if (consumer === "collection") assert.equal(await f.page.locator('[data-row-leading="attention"]').count(), 2);
       else {
         const index = f.page.locator('[data-catalog-index]');
         assert.ok(await index.isVisible(), 'clearing discovery returns the complete component index');

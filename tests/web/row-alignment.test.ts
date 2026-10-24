@@ -22,9 +22,9 @@ for (const colorScheme of ["light", "dark"] as const) test(`frozen collection an
       await row.scrollIntoViewIfNeeded();
       const geometry = await row.evaluate(button => {
         const center = (element: Element) => { const r = element.getBoundingClientRect(); return r.y + r.height / 2; };
-        return { row: center(button), title: center(button.querySelector("strong")!),
+        return { row: center(button), title: center(button.querySelector(".row-label")!),
           icon: center(button.querySelector("svg")!), height: button.getBoundingClientRect().height,
-          emptyMetadata: button.querySelector("[data-record-metadata]") !== null };
+          emptyMetadata: button.querySelector(".row-metadata") !== null };
       });
       assert.ok(Math.abs(geometry.title - geometry.row) < .1);
       assert.ok(Math.abs(geometry.icon - geometry.row) < .1);

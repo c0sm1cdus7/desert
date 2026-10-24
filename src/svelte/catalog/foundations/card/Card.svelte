@@ -46,7 +46,10 @@
       {:else if presentation === "collection"}
         <span class="card-cover">{#if artwork !== undefined}{@render art()}{:else}<span class="card-cover-empty" aria-hidden="true"></span>{/if}</span>
         <span class="card-copy">{#if title}<strong>{title}</strong>{/if}{#if subtitle}<span class="card-subtitle">{subtitle}</span>{/if}</span>
-      {:else}{@render children?.()}{/if}
+      {:else}
+        {#if title}<span class="card-summary-heading"><strong>{title}</strong>{#if subtitle}<span class="card-subtitle">{subtitle}</span>{/if}</span>{/if}
+        {@render children?.()}
+      {/if}
     </span>
   </button>
 {/if}
@@ -90,4 +93,7 @@
   .card-summary { align-items:stretch; width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem;
     padding:var(--space-4,1rem); border-radius:var(--radius-group); text-align:start; }
   .card-summary > .card-content { flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
+  /* Its title over its description, 4px apart, wrapping anywhere; the description reads at the regular weight. */
+  .card-summary-heading { display:flex; flex-direction:column; gap:var(--title-subtitle-gap,4px); min-width:0; overflow-wrap:anywhere; }
+  .card-summary-heading > .card-subtitle { font-weight:400; }
 </style>

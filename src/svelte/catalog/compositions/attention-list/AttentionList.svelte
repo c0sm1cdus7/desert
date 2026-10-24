@@ -1,41 +1,23 @@
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
-  import { Button } from "../../../vendor/components/ui/button/index.js";
-  import { Icon } from "../../index.ts";
-  import { GroupedPanel } from "../../index.ts";
-  import { StackLayout } from "../../index.ts";
-  import { AttentionIndicator } from "../../index.ts";
-  import { Feedback } from "../../index.ts";
-  import * as Empty from '../../../vendor/components/ui/empty/index.js';
-  import { CollectionState } from '../../index.ts';
+  import { CollectionState, List, Row, StackLayout, Status, Text } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let { state, resume }: CatalogProps<"attention-list"> = $props();
 </script>
 
-  <StackLayout title="Attention">
-    {#if state.error}<Feedback text={state.error} />{/if}
+  <StackLayout title={say(m.attentionList.title)}>
+    {#if state.error}<Text kind="support" live="polite" text={state.error} />{/if}
     {#if !state.loaded}<CollectionState loaded={false} />
     {:else if state.items.length}
-      <GroupedPanel measure="overview">
-        <div data-grouped-rows>
+      <List kind="rows" measure="overview">
         {#each state.items as item (item.id)}
-          <div data-grouped-row><Button variant="row" size="row" disabled={!item.available} onclick={() => resume(item.id)}>
-            <span class="attention-row">
-            <AttentionIndicator required={true} />
-            <span data-record-copy><strong>{item.title}</strong><span class="fact-label">{item.description}</span></span>
-            <span data-control-chevron><Icon name="chevron-right" decorative /></span>
-            </span>
-          </Button></div>
+          <Row label={item.title} description={item.description} leading={{ kind: "attention", required: true }} trailing="chevron"
+            interaction="open" available={item.available} current={false} onopen={() => resume(item.id)} />
         {/each}
-        </div>
-      </GroupedPanel>
+      </List>
     {:else if !state.error}
-      <GroupedPanel><Empty.Root><Empty.Header><Empty.Title>Nothing needs your attention.</Empty.Title>
-        <Empty.Description>Items from every module appear here when they need you.</Empty.Description>
-      </Empty.Header></Empty.Root></GroupedPanel>
+      <List kind="rows" measure="reading"><Status tone="neutral" size="regular" heading={false} title={say(m.attentionList.emptyTitle)}
+        description={say(m.attentionList.emptyDescription)} /></List>
     {/if}
   </StackLayout>
-
-<style>
-  .attention-row { display:flex; align-items:center; gap:var(--space-4,1rem); width:100%; }
-  [data-record-copy] { display:flex; flex:1; flex-direction:column; gap:var(--title-subtitle-gap,4px); min-width:0; text-align:start; }
-</style>
