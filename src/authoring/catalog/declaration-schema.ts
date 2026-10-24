@@ -9,8 +9,11 @@ const FileName = immutable(Type.String({ pattern: "^[A-Za-z0-9][A-Za-z0-9._-]*\\
 const AssetName = immutable(Type.String({ pattern: "^[A-Za-z0-9][A-Za-z0-9._-]*\\.(?:svg|png|jpg|webp)$" }));
 const unique = <T extends ReturnType<typeof Type.String>>(item: T, minItems = 0) =>
   Type.Array(item, { uniqueItems: true, minItems });
-/** Curvature family of a foundation (owner decision Q3): capsule or radius; "none" for pieces that own no rounded geometry. */
+/** Curvature family of a foundation: radius, or "none" for pieces that own no rounded geometry. Owner law (slice 3): one
+ * radius family, and nothing is a capsule except the switch; rule B enforces it through `capsuleOwner`. */
 export const Shape = immutable(Type.Union([Type.Literal("capsule"), Type.Literal("radius"), Type.Literal("none")]));
+/** The one foundation id that may declare the capsule shape, as its shape or a variant's. */
+export const capsuleOwner = "switch";
 /** A variant axis is a prop of the contract (camelCase name); its values are that prop's literals (ids like `input.text`). */
 export const AxisName = immutable(Type.String({ pattern: "^[a-z][A-Za-z0-9]*$" }));
 export const AxisValue = immutable(Type.String({ pattern: "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$" }));

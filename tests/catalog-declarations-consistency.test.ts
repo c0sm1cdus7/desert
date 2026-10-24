@@ -77,3 +77,17 @@ export const O = defineComposition({ id: "other", purpose: "x", owner: { entry: 
   assert.doesNotThrow(() => assertDeclarationsConsistent(rendering([]).filter(item => item.declaration.id !== "node-renderer"), files(), layout),
     "a tree without a resolved-node dispatcher needs no renderers");
 });
+
+// Owner law (slice 3): one radius family; nothing is a capsule except the switch, by declaration or by variant.
+test("shape: only the switch may declare a capsule, as its shape or as a variant's shape", () => {
+  const shaped = (id: string, shape: string, variantShapes = "") => at(`${foundations}/${id}/${id}.catalog.ts`, `import { C } from "./c.ts";
+export const F = defineFoundation({ id: "${id}", purpose: "x", owner: { entry: "${id}.svelte" }, shape: "${shape}",${variantShapes}
+  states: ["empty"], approval: "required", contract: C } as const);`);
+  const present = files(`${foundations}/switch/switch.svelte`, `${foundations}/switch/switch.contract.ts`,
+    `${foundations}/action/action.svelte`, `${foundations}/action/action.contract.ts`);
+  assert.doesNotThrow(() => assertDeclarationsConsistent([...valid, ...shaped("switch", "capsule")], present, layout));
+  assert.throws(() => assertDeclarationsConsistent([...valid, ...shaped("action", "capsule")], present, layout),
+    /^Error: CATALOG_DECLARATION: action declares shape capsule; only switch may be a capsule \(one radius family\)$/);
+  assert.throws(() => assertDeclarationsConsistent([...valid, ...shaped("action", "radius", ' variantShapes: { face: { pill: "capsule" } },')], present, layout),
+    /^Error: CATALOG_DECLARATION: action declares shape capsule for face pill; only switch may be a capsule \(one radius family\)$/);
+});

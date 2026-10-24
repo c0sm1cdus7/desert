@@ -230,7 +230,7 @@
       "renders": [
         "action"
       ],
-      "shape": "capsule",
+      "shape": "radius",
       "states": [
         "ready",
         "unavailable",
@@ -2084,8 +2084,8 @@
           "search-field.css"
         ]
       },
-      "purpose": "Type a query in a capsule search well with a search icon and a clear button.",
-      "shape": "capsule",
+      "purpose": "Type a query in a search well with a search icon and a clear button.",
+      "shape": "radius",
       "states": [
         "empty",
         "value",
