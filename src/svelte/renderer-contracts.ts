@@ -1,21 +1,21 @@
 import type { Component } from "svelte";
-import type { ResolvedNodeId, ResolvedInputId } from "../interaction/catalog.ts";
+import type { ResolvedNodeId } from "../interaction/catalog.ts";
 import type { ControlNode, ControlEvent } from "../interaction/control-nodes.ts";
 import type { SurfaceFrame, FrameContent, FactsContent, Destination } from "../interaction/surface-frame.ts";
-import type { ToolbarAction, TopToolbar } from "../interaction/toolbar.ts";
+import type { TopToolbar } from "../interaction/toolbar.ts";
 import type { SurfaceIntent } from "../interaction/intent.ts";
 import type { ResolvedNode, ResolvedNodeFor } from "../interaction/resolved-node.ts";
 import type { NodeEvent } from "../interaction/node-events.ts";
 import type { LocalFileHost } from "./infra/file-host.ts";
-import type { ActionElementProps } from "./action-adapter.ts";
-import type { InputMask } from "../interaction/input-mask.ts";
+import type { Disclosure } from "./infra/disclosure.ts";
+import type { CatalogProps } from "./catalog/types.d.ts";
 import { freezeDeep } from "../json.ts";
 import type { FormControlEvent } from "../interaction/form-control-event.ts";
 
 /** Private dispatcher inputs; public authoring only supplies serializable ResolvedNode. */
 export type NodeRendererProps = {
   node: ResolvedNode; onevent?: (event: NodeEvent) => void; host?: LocalFileHost;
-  actionElementProps?: ActionElementProps; frameIdentity?: object;
+  actionDisclosure?: Disclosure; frameIdentity?: object;
 };
 
 export type ControlKind = ControlNode["kind"];
@@ -27,10 +27,6 @@ export type ControlProps<K extends ControlKind> = { node: Extract<ControlNode, {
 type Invoke = (intent: SurfaceIntent) => void;
 type Edit = (name: string, value: string) => void;
 type FactsProps = Pick<FactsContent, "fields" | "facts" | "object" | "labels" | "multiline" | "images" | "tags" | "references">;
-type InputProps<P extends ResolvedInputId> = {
-  primitive: P; label: string; value?: string; required?: boolean; identity?: string; maxLength?: number | undefined;
-  invalid?: boolean; error?: string | undefined; helper?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
-};
 type ControlRendererProps = { [K in ControlKind as `control.${K}`]: ControlProps<K> };
 
 /** Private web adapter bindings, never accepted as bank descriptors. NodeRenderer alone resolves these. */
@@ -38,13 +34,10 @@ export type NodeRendererInputs = ControlRendererProps & {
   "catalog.card": { node: ResolvedNodeFor<"catalog.card">; onevent: (event: NodeEvent) => void };
   "catalog.home": { node: ResolvedNodeFor<"catalog.home">; onevent: (event: NodeEvent) => void };
   "catalog.detail": { node: ResolvedNodeFor<"catalog.detail">; onevent: (event: NodeEvent) => void };
-  "input.text": InputProps<"input.text"> & { mask?: InputMask | undefined };
-  "input.multiline": InputProps<"input.multiline">;
+  "input.text": Extract<CatalogProps<"field">, { primitive: "input.text" }>;
+  "input.multiline": Extract<CatalogProps<"field">, { primitive: "input.multiline" }>;
   fact: FactsProps;
-  action: Pick<ToolbarAction, "label" | "icon"> & {
-    state?: ToolbarAction["state"]; emphasis?: "primary" | "secondary"; reason?: string | undefined;
-    onclick?: () => void; type?: "button" | "submit"; elementProps?: ActionElementProps | undefined;
-  };
+  action: CatalogProps<"action">;
   availability: NonNullable<TopToolbar["availability"]>;
   collection: { node: ResolvedNodeFor<"collection">; select: (id: string) => void };
   form: { fields: Extract<FrameContent, { kind: "form" }>["fields"]; edit: Edit; controlEvent: (event: FormControlEvent) => void };
@@ -67,7 +60,7 @@ export type NodeRendererTable = { readonly [K in ResolvedNodeId]: Component<Node
 
 /** Only these private host channels may bypass serializable node data. */
 export const DispatcherCapabilities = freezeDeep({
-  action: { property: "elementProps", input: "actionElementProps", required: false },
+  action: { property: "disclosure", input: "actionDisclosure", required: false },
   transient: { property: "frameIdentity", input: "frameIdentity", required: false },
   "control.files": { property: "host", input: "host", required: true },
 } as const satisfies { [K in ResolvedNodeId]?: {

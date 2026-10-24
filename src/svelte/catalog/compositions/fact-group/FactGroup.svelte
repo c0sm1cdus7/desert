@@ -18,7 +18,7 @@
   {/if}
 {/each}
 {#if textual.length || fields.length === 0}
-<dl class="bank-stack" data-material="pane">
+<dl class="bank-stack material-pane">
   {#each textual as field}
     {@const value = facts[field]}
     <FactRow label={labels[`${object}.${field}`]!} value={Object.hasOwn(facts, field) ? value : undefined} references={references[field]} />

@@ -1,4 +1,5 @@
 import type { Static, TSchema } from "@sinclair/typebox";
+import type { jobsTable } from "../storage/tables/execution.ts";
 
 declare const environmentBrand: unique symbol;
 declare const actorBrand: unique symbol;
@@ -16,7 +17,7 @@ export type ProcessAdapterDefinition<S extends TSchema> = Readonly<{
   name: string; executable: string; arguments: readonly string[]; workingDirectory: string;
   input: S; timeoutMs: number; maxOutputBytes: number;
 }>;
-export type ExecutionState = "queued" | "leased" | "running" | "succeeded" | "failed" | "cancelled" | "uncertain";
+export type ExecutionState = JobRow["state"];
 export type ExecutionResult = Readonly<{ exitCode: number | null; signal: string | null; stdout: string; stderr: string }>;
 export type ExecutionSnapshot = Readonly<{
   job: ExecutionJob; state: ExecutionState; cancellationRequested: boolean;
@@ -35,6 +36,4 @@ export type ExecutionQueue = Readonly<{
   close(): Promise<void>;
 }>;
 
-export type JobRow = { id: string; actor_id: string; submission_key: string; input_digest: string;
-  input: unknown; state: ExecutionState; cancel_requested: boolean; claim_token: string | null;
-  reason: string | null; result: ExecutionResult | null };
+export type JobRow = Static<typeof jobsTable.row>;

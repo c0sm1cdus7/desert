@@ -26,10 +26,10 @@ const source = `<script lang="ts">
     <Button {variant} data-probe={variant+'-text'}>Save changes</Button>
     <Button {variant} size="icon" aria-label={variant+' icon'} data-probe={variant+'-icon'}><Plus /></Button>
   {/each}
-  <div data-case="action-label"><Action label="Action label" icon="save" /></div>
-  <div data-case="action-icon" style="width:44px"><Action label="An intentionally long compact action" icon="save" /></div>
+  <div data-case="action-label"><Action label="Action label" icon="save" state="ready" emphasis="secondary" face="fit" type="button" /></div>
+  <div data-case="action-icon" style="width:44px"><Action label="An intentionally long compact action" icon="save" state="ready" emphasis="secondary" face="fit" type="button" /></div>
   <Button disabled data-probe="disabled">Disabled action</Button>
-  <div data-case="pending"><Action label="Saving" icon="save" state="pending" /></div>
+  <div data-case="pending"><Action label="Saving" icon="save" state="pending" emphasis="secondary" face="fit" type="button" /></div>
   <Sidebar.Provider style="min-height:0;width:320px;display:block">
     <Sidebar.Trigger data-probe="sidebar-trigger" onclick={event=>event.preventDefault()} />
     <Sidebar.Menu><Sidebar.MenuItem><Sidebar.MenuButton data-probe="sidebar-standard"><Plus /><span>Destination</span></Sidebar.MenuButton></Sidebar.MenuItem>
@@ -59,11 +59,11 @@ const appearance = (node: Locator) => node.evaluate(element => {
     ?? (element.matches('[data-slot="sidebar-menu-button"]') ? element.firstElementChild : null);
   const glyph = element.querySelector("svg"), label = element.querySelector("[data-button-label]");
   return { box: element.getBoundingClientRect().toJSON(), transform: style.transform, background: style.backgroundColor,
-    overlay: style.backgroundImage, material:element.getAttribute('data-material'), selected:element.hasAttribute('data-selected'),
+    overlay: style.backgroundImage, material:(element.classList.contains('material-pane') ? 'pane' : element.classList.contains('material-interior') ? 'interior' : null), selected:element.hasAttribute('data-selected'),
     pressed: element.getAttribute("data-pressed"), focused: element === document.activeElement,
     contentScale: content ? new DOMMatrix(getComputedStyle(content).transform).m11 : null,
     contentBox: content?.getBoundingClientRect().toJSON() ?? null, glyphBox: glyph?.getBoundingClientRect().toJSON() ?? null,
-    labelBox: label?.getBoundingClientRect().toJSON() ?? null, face: element.getAttribute("data-button-face") };
+    labelBox: label?.getBoundingClientRect().toJSON() ?? null, face: element.getAttribute("data-action-face") };
 });
 function target(page: Page, name: string) {
   if (name === "calendar-next") return page.locator('[data-case="calendar"] [data-calendar-next-button]');

@@ -14,6 +14,6 @@
 	bind:ref
 	data-slot="dialog-title"
 	data-toolbar-title={presentation === "toolbar" || undefined}
-	class={cn(presentation === "default" ? "text-base leading-none font-medium" : "type-title", presentation === "toolbar" && "toolbar-title", className)}
+	class={cn(presentation === "default" ? "text-base leading-none font-medium" : "type-section", presentation === "toolbar" && "toolbar-title", className)}
 	{...restProps}
 />

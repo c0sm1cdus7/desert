@@ -9,13 +9,15 @@ test("Svelte consumers cannot omit or invent Action icons", { timeout: 60000 }, 
   const project = createEvidenceProject("export const surface = {}; export const validateInput = () => false;");
   const page = join(project.directory, "src/routes/+page.svelte");
   const header = '<script lang="ts">import Action from "@desert/svelte/catalog/foundations/action/Action.svelte";</script>\n';
+  // Every other prop of the closed contract is present, so the icon is the only one missing.
+  const rest = 'state="ready" emphasis="secondary" face="fit" type="button"';
   try {
-    writeFileSync(page, header + '<Action label="Close" /><Action label="Save" icon="invented" />');
+    writeFileSync(page, header + `<Action label="Close" ${rest} /><Action label="Save" icon="invented" ${rest} />`);
     await assert.rejects(project.run("check"), error => {
       const report = String(error);
       return report.includes("Property 'icon' is missing") && report.includes('"invented"');
     });
-    writeFileSync(page, header + '<Action label="Close" icon="close" /><Action label="Save" icon="save" />');
+    writeFileSync(page, header + `<Action label="Close" icon="close" ${rest} /><Action label="Save" icon="save" ${rest} />`);
     const checked = await project.run("check");
     assert.match(checked.stdout, /0 errors and 0 warnings/);
   } finally { project.close(); }

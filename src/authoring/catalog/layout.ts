@@ -69,7 +69,7 @@ export const DesertLayout: CatalogLayout = Object.freeze({
         "composition-template.ts", "content-rules.ts", "context.ts", "css-marks.ts", "css-ownership.ts", "declarations.ts", "derivation.ts",
         "dispatch-admission.ts", "dom-access.ts", "emitted-css.ts", "grammar.ts", "inventory.ts", "ledger.ts", "message-keys.ts", "messages.ts", "native-controls.ts",
         "nonvisual-sources.ts", "nonvisual.ts", "opaque-source.ts", "owner-imports.ts", "ownership.ts", "parse.ts", "presentation-contract.ts", "presentation.ts",
-        "resolve-imports.ts", "run.ts", "runtime-globals.ts", "sources.ts", "specimens.ts", "stylesheet.ts", "template-artifacts.ts",
+        "resolve-imports.ts", "run.ts", "runtime-globals.ts", "sources.ts", "specimen-combinations.ts", "specimens.ts", "stylesheet.ts", "template-artifacts.ts",
         "template-assets.ts", "violation.ts", "walk.ts"]),
     ],
     required: [theme, rendererTypes, "src/messages/en.json"],
@@ -83,7 +83,7 @@ export const DesertLayout: CatalogLayout = Object.freeze({
     mechanism: ["src/svelte/catalog/mechanisms"] },
   fixed: {
     theme: [theme],
-    "renderer-infrastructure": [...["action-adapter.ts", "collection-retrieval.ts"].map(name => `src/svelte/${name}`), rendererTypes],
+    "renderer-infrastructure": ["src/svelte/collection-retrieval.ts", rendererTypes],
     "vendor-shared": ["utils.ts", "LICENSE", "PROVENANCE.json"].map(name => `src/svelte/vendor/${name}`),
     "build-host": ["bits-scroll-lock.ts", "builder.ts", "config.mjs", "project.ts", "public-catalog-app.d.ts",
       "public-catalog-page.svelte", "revision.ts", "vite.mjs", "worker.mjs", "template/package.json", "template/tsconfig.json",

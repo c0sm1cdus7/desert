@@ -7,10 +7,10 @@ const settle=async(f:Awaited<ReturnType<typeof svelteBrowser>>)=>f.page.evaluate
 
 test('selection observes a real outside focus transfer during its opening microtask',async()=>{
   const f=await svelteBrowser(`<script>
-    import SelectionField from '@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte';
+    import Choice from '@desert/svelte/catalog/foundations/choice/Choice.svelte';
     let changes=$state(0);
-  </script><SelectionField selection="choice" label="Choice" value="first"
-    options={[{value:'first',label:'First'}]} onchange={()=>changes++}/>
+  </script><Choice presentation="menu" cardinality="one" menuTrigger="contextual" label="Choice" labelVisibility="visible" selected={["first"]}
+    disabled={false} required={false} options={[{value:'first',label:'First',disabled:false}]} onchange={()=>changes++}/>
   <input aria-label="Other field"/><output>{changes}</output>`);
   try{
     await f.page.evaluate(()=>document.addEventListener('focusin',event=>{

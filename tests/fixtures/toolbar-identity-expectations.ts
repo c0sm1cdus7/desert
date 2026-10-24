@@ -28,6 +28,8 @@ export async function identityGeometry(header: Locator) {
       titleSize: parseFloat(getComputedStyle(title).fontSize),
       titleTextContent: title.textContent,
       faceHidden: face.getAttribute("aria-hidden"),
+      themeRadius: (() => { const probe = document.createElement("i"); probe.style.borderRadius = "var(--radius)"; node.append(probe);
+        const value = parseFloat(getComputedStyle(probe).borderTopLeftRadius); probe.remove(); return value; })(),
       buttons: [...node.querySelectorAll("button")].map(button => ({ ...rect(button),
         label: button.getAttribute("aria-label") ?? button.textContent, disabled: button.disabled,
         icon: button.querySelector("svg") ? rect(button.querySelector("svg")!) : null,
@@ -47,8 +49,8 @@ export function assertIdentityGeometry(geometry: Awaited<ReturnType<typeof ident
   assert.ok(buttons.every(button => button.left >= header.left - 1 && button.right <= header.right + 1),
     "visible toolbar actions stay inside the toolbar");
   assert.ok(buttons.every(button => button.width >= 44 && button.height >= 44), "task actions keep 44px hit targets");
-  assert.ok(buttons.every(button => Math.abs(button.width - button.height) <= 1 && button.radius >= button.width / 2),
-    "width-constrained toolbar actions keep the shared circular face, not an ellipse");
+  assert.ok(buttons.every(button => Math.abs(button.width - button.height) <= 1 && button.radius === geometry.themeRadius),
+    "width-constrained toolbar actions keep the shared square target and the one radius (DESIGN §7.1), not an ellipse");
   assert.ok(buttons.every(button => !button.icon || button.icon.left >= button.left && button.icon.right <= button.right &&
     button.icon.top >= button.top && button.icon.bottom <= button.bottom), "scaled action glyphs fit inside their target");
   assert.ok(buttons.every(button => button.right <= title.left + 1 || button.left >= title.right - 1 ||

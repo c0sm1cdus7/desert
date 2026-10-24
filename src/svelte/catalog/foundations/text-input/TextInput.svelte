@@ -1,71 +1,18 @@
 <script lang="ts">
-  import { untrack } from "svelte";
-  import * as Field from "../../../vendor/components/ui/field/index.js";
-  import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import { FieldWell } from "../../index.ts";
-  import { MeasuredField } from "../../index.ts";
-  import { MaskedInput } from "../../index.ts";
-  import { CharacterCounter } from "../../index.ts";
-  import { ClearInput } from "../../index.ts";
-  import { observeEditorCapacity } from "./editor-capacity.ts";
+  // TextInput was renamed Field (design §1.7). The folder stays until Batch 3 deletes it, and its entry draws through
+  // Field, so the catalog keeps one implementation of the writing well.
+  import { Field } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
-    identity = "", mask, maxLength, purpose = "text", onchange, accessory: trailing }: CatalogProps<"text-input"> = $props();
-  const id = $props.id();
-  let writing = $derived(value);
-  let editor = $state<HTMLTextAreaElement | null>(null);
-  $effect(() => { if (editor) return observeEditorCapacity(editor); });
-  let display = $state(""), draftError = $state("");
-  const context = () => `${identity}/${primitive}/${mask?.kind ?? ""}/${mask?.locale ?? ""}/${mask?.scale ?? ""}`;
-  let observed = untrack(() => ({ value, context: context() }));
-  let pending: string[] = [];
-  $effect(() => {
-    const next = { value, context: context() };
-    untrack(() => {
-      const acknowledgement = pending.indexOf(next.value);
-      if (next.context !== observed.context || next.value !== observed.value && acknowledgement < 0) {
-        draftError = ""; pending = [];
-      } else if (acknowledgement >= 0) pending.splice(0, acknowledgement + 1);
-      observed = next;
-    });
-  });
-  let message = $derived(error || draftError);
-  let describedBy = $derived([
-    helper ? `${id}-helper` : undefined,
-    primitive === "input.multiline" ? `${id}-counter` : undefined,
-    message ? `${id}-error` : undefined,
-  ].filter(Boolean).join(" ") || undefined);
-  let invalidField = $derived(invalid || !!message);
-  function editMasked(next: string, valid: boolean, complete: boolean) {
-    if (disabled) return;
-    draftError = valid && complete ? "" : valid ? "Enter a complete number." :
-      `Enter a number with up to ${mask!.scale} decimal places using this field's format.`;
-    if (valid && complete) { pending.push(next); onchange?.(next); }
-  }
+    identity, mask, maxLength, purpose = "text", onchange, accessory: trailing }: CatalogProps<"text-input"> = $props();
 </script>
-{#snippet counter()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
-<MeasuredField kind={primitive} invalid={invalidField} {disabled}>
-  <FieldWell {id} {label} {required} footer={primitive === "input.multiline" ? counter : undefined}
-    filled={(mask ? display : writing).length > 0}>
-    {#snippet accessory()}{#if trailing}{@render trailing()}{:else}<ClearInput control={id} value={mask ? display : writing} label={`Clear ${label}`} {disabled} />{/if}{/snippet}
-    {#if primitive === "input.multiline"}
-      <Group.Textarea {id} bind:ref={editor} bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} rows={4} placeholder=" "
-        aria-describedby={describedBy} onblur={event => onchange?.(event.currentTarget.value)}
-        class="focus-visible:outline-none"
-        oninput={event => onchange?.(event.currentTarget.value)} />
-    {:else if mask}
-      <MaskedInput {id} {value} {mask} {identity} bind:display {required} {disabled}
-        aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
-        aria-describedby={describedBy} onvalue={editMasked} />
-    {:else}
-      <Group.Input {id} type={purpose.endsWith("password") ? "password" : "text"} autocomplete={purpose === "text" ? undefined : purpose}
-        autocapitalize={purpose === "username" ? "none" : undefined} spellcheck={purpose === "text" ? undefined : false}
-        bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
-        aria-describedby={describedBy} onblur={event => onchange?.(event.currentTarget.value)}
-        class="focus-visible:outline-none"
-        oninput={event => onchange?.(event.currentTarget.value)} />
-    {/if}
-  </FieldWell>
-  {#if helper}<Field.FieldDescription id={`${id}-helper`}>{helper}</Field.FieldDescription>{/if}
-  {#if message}<Field.FieldError id={`${id}-error`} role="status">{message}</Field.FieldError>{/if}
-</MeasuredField>
+{#if primitive === "input.multiline"}
+  <Field primitive="input.multiline" {label} labelVisibility="visible" {required} {invalid} {disabled} {error} {helper} {identity}
+    measure="writing" {value} {maxLength} {onchange} />
+{:else if trailing}
+  <Field primitive="input.text" {label} labelVisibility="visible" {required} {invalid} {disabled} {error} {helper} {identity}
+    measure="writing" {purpose} {value} {mask} clear {onchange}>{#snippet accessory()}{@render trailing()}{/snippet}</Field>
+{:else}
+  <Field primitive="input.text" {label} labelVisibility="visible" {required} {invalid} {disabled} {error} {helper} {identity}
+    measure="writing" {purpose} {value} {mask} clear {onchange} />
+{/if}

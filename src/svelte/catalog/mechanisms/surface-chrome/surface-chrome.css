@@ -1,6 +1,6 @@
 /* Modal SurfaceFrame owns three slots. Nonmodal menus/popovers own no chrome. */
 :root {
-  --surface-radius:28px;
+  --surface-radius:var(--radius-surface);
   --surface-inset:12px;
   --surface-dimmer:rgb(0 0 0 / .32);
 }

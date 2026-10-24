@@ -26,8 +26,8 @@ export const paneFamilySource = `<script lang="ts">
     error={invalid?'Give this trip a name.':undefined} onchange={next=>text=next}/>
   <MoneyControl node={{...amount,disabled}} onevent={()=>{}}/>
   <OptionsControl node={{...pace,disabled}} onevent={()=>{}}/>
-  <Action label="Continue" icon="open" emphasis="primary" state={state==='pending'?'pending':disabled?'unavailable':'ready'}/>
-  <Action label="Keep editing" icon="review" state={disabled?'unavailable':'ready'}/>
+  <Action label="Continue" icon="open" emphasis="primary" state={state==='pending'?'pending':disabled?'unavailable':'ready'} face="fit" type="button"/>
+  <Action label="Keep editing" icon="review" state={disabled?'unavailable':'ready'} emphasis="secondary" face="fit" type="button"/>
   <Badge variant="secondary">Draft</Badge><Badge variant="success">Ready</Badge>
   <Badge variant="warning">Attention</Badge><Badge variant="destructive">Failed</Badge>
   <Popover.Root><Popover.Trigger>Open anchored</Popover.Trigger>

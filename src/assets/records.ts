@@ -1,16 +1,14 @@
 import { randomUUID } from "node:crypto";
+import type { Static } from "@sinclair/typebox";
 import type { PoolClient } from "pg";
 import type { Run } from "../local/types.ts";
 import { requirePrivateAssetInstallation } from "./installation.ts";
 import { assetReservationBytes } from "./policy.ts";
-import { requireAssetReference, type PrivateAssetMetadata } from "./types.ts";
+import { requireAssetReference } from "./types.ts";
+import type { assetsTable } from "../storage/tables/assets.ts";
 
 export type AssetScope = Readonly<{ actor: string; surface: string; runId: string; inputField: string; contractDigest: string; storeId: string; media?:"image"|"media" }>;
-export type AssetRecord = {
-  id: string; actor: string; run_id: string; input_field: string; contract_digest: string; store_id: string;
-  state: "reserved" | "uploading" | "ready" | "failed" | "attached";
-  declared_size: number; reserved_bytes: string; metadata: PrivateAssetMetadata | null;
-};
+export type AssetRecord = Static<typeof assetsTable.row>;
 
 export async function requireAssetRun(client: PoolClient, scope: AssetScope, state: Run["state"] = "admitted") {
   requireAssetReference(scope.runId); requireAssetReference(scope.actor);

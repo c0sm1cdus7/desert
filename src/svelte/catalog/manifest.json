@@ -42,13 +42,6 @@
       "folder": "src/svelte/catalog/mechanisms/control-feedback",
       "owner": "theme"
     },
-    "control-measure": {
-      "files": [
-        "control-measure.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/control-measure",
-      "owner": "theme"
-    },
     "lateral-surface-motion": {
       "files": [
         "lateral-surface-motion.css"
@@ -183,9 +176,9 @@
         "appearance-preferences",
         "avatar-shuffle",
         "feedback",
+        "field",
         "icon",
-        "stack-layout",
-        "text-input"
+        "stack-layout"
       ]
     },
     "access-gate": {
@@ -239,7 +232,13 @@
       "variants": {
         "emphasis": [
           "primary",
-          "secondary"
+          "secondary",
+          "destructive"
+        ],
+        "face": [
+          "fit",
+          "icon",
+          "text"
         ]
       }
     },
@@ -357,11 +356,7 @@
       "folder": "src/svelte/catalog/foundations/availability",
       "kind": "foundation",
       "owner": {
-        "entry": "Availability.svelte",
-        "vendor": [
-          "skeleton",
-          "spinner"
-        ]
+        "entry": "Availability.svelte"
       },
       "purpose": "Understand whether a capability is ready, unavailable or not yet known.",
       "renders": [
@@ -373,6 +368,37 @@
         "unavailable",
         "unknown"
       ]
+    },
+    "avatar": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/avatar",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Avatar.svelte",
+        "parts": [
+          "SeedPortrait.svelte",
+          "ShuffleButton.svelte"
+        ],
+        "vendor": [
+          "avatar"
+        ]
+      },
+      "purpose": "Show a person or identity as a seeded drawing, a picture or initials, optionally as the button that shuffles its seed.",
+      "shape": "none",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "interaction": [
+          "none",
+          "shuffle"
+        ],
+        "size": [
+          "portrait",
+          "compact",
+          "row"
+        ]
+      }
     },
     "avatar-shuffle": {
       "approval": "none",
@@ -525,6 +551,74 @@
         "exceeded"
       ]
     },
+    "choice": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/choice",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Choice.svelte",
+        "parts": [
+          "ChoiceRows.svelte",
+          "ChoiceCards.svelte",
+          "ChoiceSwatches.svelte",
+          "ChoiceMenu.svelte",
+          "ChoiceMenuList.svelte",
+          "ChoiceAnatomy.svelte",
+          "ChoiceLeading.svelte",
+          "choice-row.ts"
+        ],
+        "vendor": [
+          "checkbox",
+          "radio-group"
+        ]
+      },
+      "purpose": "Choose one or several options given as data, as rows, cards, swatches or a menu, with a persistent label.",
+      "shape": "radius",
+      "states": [
+        "default",
+        "described",
+        "disabled",
+        "required"
+      ],
+      "variantLimits": {
+        "presentation": {
+          "cards": {
+            "menuTrigger": []
+          },
+          "menu": {
+            "cardinality": [
+              "one"
+            ]
+          },
+          "rows": {
+            "menuTrigger": []
+          },
+          "swatches": {
+            "cardinality": [
+              "one"
+            ],
+            "menuTrigger": []
+          }
+        }
+      },
+      "variants": {
+        "cardinality": [
+          "one",
+          "many"
+        ],
+        "menuTrigger": [
+          "well",
+          "inline",
+          "contextual"
+        ],
+        "presentation": [
+          "rows",
+          "cards",
+          "swatches",
+          "menu"
+        ]
+      }
+    },
     "choice-item": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/choice-item",
@@ -555,11 +649,7 @@
       "folder": "src/svelte/catalog/foundations/choice-list",
       "kind": "foundation",
       "owner": {
-        "entry": "ChoiceList.svelte",
-        "vendor": [
-          "checkbox",
-          "radio-group"
-        ]
+        "entry": "ChoiceList.svelte"
       },
       "purpose": "Hold the rows of a single or multiple choice in one transparent geometry inside its host.",
       "shape": "none",
@@ -680,7 +770,7 @@
       "owner": {
         "entry": "Column.svelte"
       },
-      "purpose": "Stack pieces vertically with a gap from the spacing scale, optionally at the reading measure.",
+      "purpose": "Stack pieces vertically with a gap from the spacing scale, at the reading, narrow or wide measure, aligned or centred.",
       "shape": "none",
       "slots": {
         "children": {
@@ -699,12 +789,22 @@
         "default"
       ],
       "variants": {
+        "align": [
+          "start",
+          "center",
+          "stretch"
+        ],
         "gap": [
           "snug",
           "close",
           "regular",
           "relaxed",
           "section"
+        ],
+        "measure": [
+          "reading",
+          "narrow",
+          "wide"
         ]
       }
     },
@@ -1012,10 +1112,7 @@
       "folder": "src/svelte/catalog/foundations/feedback",
       "kind": "foundation",
       "owner": {
-        "entry": "Feedback.svelte",
-        "vendor": [
-          "empty"
-        ]
+        "entry": "Feedback.svelte"
       },
       "purpose": "A short status sentence, announced politely, that tells the person what just happened.",
       "shape": "none",
@@ -1023,15 +1120,87 @@
         "default"
       ]
     },
+    "field": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/field",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Field.svelte",
+        "parts": [
+          "FieldWell.svelte",
+          "FieldLabel.svelte",
+          "FieldEditor.svelte",
+          "FieldTrigger.svelte",
+          "SearchWell.svelte",
+          "MaskedInput.svelte",
+          "input-edit-history.ts",
+          "ClearInput.svelte",
+          "CharacterCounter.svelte",
+          "editor-capacity.ts",
+          "field.css",
+          "field-measure.css"
+        ],
+        "vendor": [
+          "field",
+          "input",
+          "input-group",
+          "label",
+          "textarea"
+        ]
+      },
+      "purpose": "Write a single line or several, or open a choice, in one labelled well with field help and validation feedback.",
+      "renders": [
+        "input.text",
+        "input.multiline"
+      ],
+      "shape": "radius",
+      "slots": {
+        "accessory": {
+          "accepts": [
+            "action"
+          ]
+        },
+        "prefix": {
+          "accepts": [
+            "selection-field"
+          ]
+        }
+      },
+      "stateVariants": {
+        "masked": {
+          "primitive": [
+            "input.text"
+          ]
+        }
+      },
+      "states": [
+        "empty",
+        "value",
+        "invalid",
+        "disabled",
+        "masked"
+      ],
+      "variants": {
+        "measure": [
+          "writing",
+          "choice",
+          "date",
+          "amount",
+          "fill"
+        ],
+        "primitive": [
+          "input.text",
+          "input.multiline",
+          "trigger"
+        ]
+      }
+    },
     "field-well": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/field-well",
       "kind": "foundation",
       "owner": {
-        "entry": "FieldWell.svelte",
-        "parts": [
-          "field-well.css"
-        ]
+        "entry": "FieldWell.svelte"
       },
       "purpose": "Frame one editor in a rounded well whose label floats when empty and settles above the value when filled or focused.",
       "shape": "radius",
@@ -1140,13 +1309,14 @@
         "children": {
           "accepts": [
             "stack-layout",
-            "text-input",
+            "field",
             "action"
           ]
         }
       },
       "states": [
-        "default"
+        "default",
+        "filling"
       ]
     },
     "frame-body": {
@@ -1163,6 +1333,36 @@
         "node-renderer",
         "utility-actions"
       ]
+    },
+    "grid": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/grid",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Grid.svelte"
+      },
+      "purpose": "Lay pieces out in auto-fitted tracks of one recipe (tiles, collections, cards, covers) with a gap from the spacing scale.",
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "catalog-card",
+            "image",
+            "text"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "tracks": [
+          "tiles",
+          "collections",
+          "cards",
+          "covers"
+        ]
+      }
     },
     "grouped-panel": {
       "approval": "required",
@@ -1209,17 +1409,17 @@
           "heading-content.ts"
         ]
       },
-      "purpose": "A title whose meaning picks its type role and level: page, document, rail group or field group.",
+      "purpose": "A title whose meaning picks its type role and level: display, page, section or field group.",
       "shape": "none",
       "states": [
         "default"
       ],
       "variants": {
         "kind": [
+          "display",
           "page",
-          "document-title",
-          "rail-title",
-          "group-label"
+          "section",
+          "group"
         ]
       }
     },
@@ -1295,6 +1495,44 @@
         "text"
       ]
     },
+    "inline": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/inline",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Inline.svelte"
+      },
+      "purpose": "Lay pieces out in a horizontal sequence with a gap from the spacing scale: wrapping, in a labelled scroll rail, or neither.",
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "action",
+            "color-bullet",
+            "face",
+            "icon",
+            "seed-avatar",
+            "text"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "justify": [
+          "start",
+          "center",
+          "end",
+          "between"
+        ],
+        "overflow": [
+          "wrap",
+          "scroll",
+          "none"
+        ]
+      }
+    },
     "inspection": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/inspection",
@@ -1368,10 +1606,7 @@
       "folder": "src/svelte/catalog/foundations/label-rail",
       "kind": "foundation",
       "owner": {
-        "entry": "LabelRail.svelte",
-        "vendor": [
-          "badge"
-        ]
+        "entry": "LabelRail.svelte"
       },
       "purpose": "Present selected labels in a wrapping rail using the same value representation as the field.",
       "shape": "none",
@@ -1394,12 +1629,12 @@
       ],
       "uses": [
         "character-counter",
+        "field",
         "label-rail",
         "media-reference-selector",
         "node-renderer",
         "reference-selector",
-        "stack-layout",
-        "text-input"
+        "stack-layout"
       ]
     },
     "library": {
@@ -1414,6 +1649,29 @@
         "catalog-home",
         "viewer"
       ]
+    },
+    "loading": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/loading",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Loading.svelte",
+        "vendor": [
+          "skeleton",
+          "spinner"
+        ]
+      },
+      "purpose": "Show that content is on its way, as skeleton lines or a spinner, and announce it by its label.",
+      "shape": "radius",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "kind": [
+          "lines",
+          "spinner"
+        ]
+      }
     },
     "local-exercise-content": {
       "approval": "none",
@@ -1451,11 +1709,11 @@
         "action",
         "clock",
         "column",
+        "field",
         "form",
         "heading",
         "seed-avatar",
-        "stack-layout",
-        "text-input"
+        "stack-layout"
       ]
     },
     "masked-input": {
@@ -1626,6 +1884,19 @@
         "dialog"
       ]
     },
+    "meter": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/meter",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Meter.svelte"
+      },
+      "purpose": "Show a total split into labelled segments: the total, a bar proportional to each segment and the legend.",
+      "shape": "radius",
+      "states": [
+        "default"
+      ]
+    },
     "money-control": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/money-control",
@@ -1665,6 +1936,7 @@
         "date-control",
         "drawer",
         "facts",
+        "field",
         "fields",
         "file-control",
         "labels-control",
@@ -1674,8 +1946,7 @@
         "popover-control",
         "problem",
         "review",
-        "select-control",
-        "text-input"
+        "select-control"
       ]
     },
     "object-state-control": {
@@ -1964,12 +2235,12 @@
         "choice-list",
         "choice-row",
         "color-bullet",
+        "field",
         "field-well-content",
         "icon",
         "reference-values",
         "selection-field",
-        "stack-layout",
-        "text-input"
+        "stack-layout"
       ]
     },
     "reference-specimen": {
@@ -2079,10 +2350,7 @@
       "folder": "src/svelte/catalog/foundations/search-field",
       "kind": "foundation",
       "owner": {
-        "entry": "SearchField.svelte",
-        "parts": [
-          "search-field.css"
-        ]
+        "entry": "SearchField.svelte"
       },
       "purpose": "Type a query in a search well with a search icon and a clear button.",
       "shape": "radius",
@@ -2097,10 +2365,7 @@
       "folder": "src/svelte/catalog/foundations/seed-avatar",
       "kind": "foundation",
       "owner": {
-        "entry": "SeedAvatar.svelte",
-        "vendor": [
-          "avatar"
-        ]
+        "entry": "SeedAvatar.svelte"
       },
       "purpose": "Generate a deterministic visual identity from a seed without displaying letters or initials.",
       "shape": "none",
@@ -2152,6 +2417,29 @@
         "contextual",
         "disabled"
       ]
+    },
+    "separator": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/separator",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Separator.svelte"
+      },
+      "purpose": "Draw a hairline in the separator ink between the pieces of a column or a row, optionally inset like grouped rows.",
+      "shape": "none",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "inset": [
+          "none",
+          "row"
+        ],
+        "orientation": [
+          "horizontal",
+          "vertical"
+        ]
+      }
     },
     "shared-owner-catalog": {
       "approval": "none",
@@ -2207,6 +2495,29 @@
         "toolbar-layout",
         "view-destination-link"
       ]
+    },
+    "spacer": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/spacer",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Spacer.svelte"
+      },
+      "purpose": "Leave an empty space of one spacing step, or take the space a row or column leaves over.",
+      "shape": "none",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "size": [
+          "snug",
+          "close",
+          "regular",
+          "relaxed",
+          "section",
+          "fill"
+        ]
+      }
     },
     "specimen": {
       "approval": "none",
@@ -2348,6 +2659,7 @@
             "fact-row",
             "fact-value",
             "feedback",
+            "field",
             "grouped-panel",
             "information",
             "measured-field",
@@ -2355,7 +2667,6 @@
             "selection-field",
             "shared-owner-specimen",
             "stack-item",
-            "text-input",
             "view-destination-link",
             "view-item"
           ]
@@ -2370,6 +2681,33 @@
         "headingVisibility": [
           "visible",
           "accessible"
+        ]
+      }
+    },
+    "status": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/status",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Status.svelte",
+        "vendor": [
+          "empty"
+        ]
+      },
+      "purpose": "Say why there is nothing to show (empty, offline, a note) and what to do next, as a block or a compact caption.",
+      "shape": "radius",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "size": [
+          "regular",
+          "compact"
+        ],
+        "tone": [
+          "neutral",
+          "offline",
+          "note"
         ]
       }
     },
@@ -2413,6 +2751,60 @@
         "surface-frame"
       ]
     },
+    "tag": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/tag",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Tag.svelte",
+        "parts": [
+          "TagRemove.svelte"
+        ],
+        "vendor": [
+          "badge"
+        ]
+      },
+      "purpose": "Show one label as a toned chip, removable when its owner allows, or a reference as its name beside its color.",
+      "shape": "none",
+      "stateVariants": {
+        "disabled": {
+          "presentation": [
+            "chip"
+          ]
+        },
+        "removable": {
+          "presentation": [
+            "chip"
+          ]
+        }
+      },
+      "states": [
+        "known",
+        "unavailable",
+        "removable",
+        "disabled"
+      ],
+      "variantLimits": {
+        "presentation": {
+          "text": {
+            "tone": []
+          }
+        }
+      },
+      "variants": {
+        "presentation": [
+          "chip",
+          "text"
+        ],
+        "tone": [
+          "neutral",
+          "accent",
+          "success",
+          "warning",
+          "destructive"
+        ]
+      }
+    },
     "text": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/text",
@@ -2420,18 +2812,21 @@
       "owner": {
         "entry": "Text.svelte"
       },
-      "purpose": "A paragraph of plain text in a type role (`kind`), optionally inset to align with rows.",
+      "purpose": "A paragraph of plain text in a type role and tone, optionally announced as a status or inset to align with rows.",
       "shape": "none",
       "states": [
         "default"
       ],
       "variants": {
-        "inset": [
-          "none",
-          "row"
-        ],
         "kind": [
-          "body"
+          "body",
+          "support",
+          "caption"
+        ],
+        "tone": [
+          "default",
+          "muted",
+          "destructive"
         ]
       }
     },
@@ -2452,23 +2847,9 @@
       "folder": "src/svelte/catalog/foundations/text-input",
       "kind": "foundation",
       "owner": {
-        "entry": "TextInput.svelte",
-        "parts": [
-          "editor-capacity.ts"
-        ],
-        "vendor": [
-          "field",
-          "input",
-          "input-group",
-          "label",
-          "textarea"
-        ]
+        "entry": "TextInput.svelte"
       },
       "purpose": "Write a single line or several with a persistent label, field help and validation feedback.",
-      "renders": [
-        "input.text",
-        "input.multiline"
-      ],
       "shape": "radius",
       "slots": {
         "accessory": {

@@ -48,9 +48,8 @@
 	this={href ? "a" : "span"}
 	bind:this={ref}
 	data-slot="badge"
-	data-material="pane"
 	{href}
-	class={cn(badgeVariants({ variant }), removable && "py-[.2rem] pr-1 pl-[.65rem] gap-[.3rem]", className)}
+	class={cn("material-pane", badgeVariants({ variant }), removable && "py-[.2rem] pr-1 pl-[.65rem] gap-[.3rem]", className)}
 	{...restProps}
 >
 	{@render children?.()}

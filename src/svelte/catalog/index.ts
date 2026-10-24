@@ -14,6 +14,7 @@ export { default as AttentionIndicator } from "./foundations/attention-indicator
 export { default as AttentionList } from "./compositions/attention-list/AttentionList.svelte";
 export { default as AttentionStatus } from "./compositions/attention-status/AttentionStatus.svelte";
 export { default as Availability } from "./foundations/availability/Availability.svelte";
+export { default as Avatar } from "./foundations/avatar/Avatar.svelte";
 export { default as AvatarShuffle } from "./compositions/avatar-shuffle/AvatarShuffle.svelte";
 export { default as CatalogCard } from "./foundations/catalog-card/CatalogCard.svelte";
 export { default as CatalogDetail } from "./compositions/catalog-detail/CatalogDetail.svelte";
@@ -23,6 +24,7 @@ export { default as CatalogSearchResults } from "./compositions/catalog-search-r
 export { default as CatalogWorkspace } from "./compositions/catalog-workspace/CatalogWorkspace.svelte";
 export { default as CatalogWorkspaceContent } from "./compositions/catalog-workspace-content/CatalogWorkspaceContent.svelte";
 export { default as CharacterCounter } from "./foundations/character-counter/CharacterCounter.svelte";
+export { default as Choice } from "./foundations/choice/Choice.svelte";
 export { default as ChoiceItem } from "./foundations/choice-item/ChoiceItem.svelte";
 export { default as ChoiceList } from "./foundations/choice-list/ChoiceList.svelte";
 export { default as ChoiceRow } from "./foundations/choice-row/ChoiceRow.svelte";
@@ -51,18 +53,21 @@ export { default as FactValue } from "./foundations/fact-value/FactValue.svelte"
 export { default as Facts } from "./renderer/facts/Facts.svelte";
 export { default as FailureDialog } from "./renderer/failure-dialog/FailureDialog.svelte";
 export { default as Feedback } from "./foundations/feedback/Feedback.svelte";
+export { default as Field } from "./foundations/field/Field.svelte";
 export { default as FieldWell } from "./foundations/field-well/FieldWell.svelte";
 export { default as FieldWellContent } from "./foundations/field-well-content/FieldWellContent.svelte";
 export { default as Fields } from "./compositions/fields/Fields.svelte";
 export { default as FileControl } from "./compositions/file-control/FileControl.svelte";
 export { default as Form } from "./foundations/form/Form.svelte";
 export { default as FrameBody } from "./renderer/frame-body/FrameBody.svelte";
+export { default as Grid } from "./foundations/grid/Grid.svelte";
 export { default as GroupedPanel } from "./foundations/grouped-panel/GroupedPanel.svelte";
 export { default as Heading } from "./foundations/heading/Heading.svelte";
 export { default as Icon } from "./foundations/icon/Icon.svelte";
 export { default as Identity } from "./compositions/identity/Identity.svelte";
 export { default as Image } from "./foundations/image/Image.svelte";
 export { default as Information } from "./compositions/information/Information.svelte";
+export { default as Inline } from "./foundations/inline/Inline.svelte";
 export { default as Inspection } from "./compositions/inspection/Inspection.svelte";
 export { default as InspectionCatalog } from "./compositions/inspection-catalog/InspectionCatalog.svelte";
 export { default as InspectionContent } from "./renderer/inspection-content/InspectionContent.svelte";
@@ -70,6 +75,7 @@ export { default as InstanceFrame } from "./renderer/instance-frame/InstanceFram
 export { default as LabelRail } from "./foundations/label-rail/LabelRail.svelte";
 export { default as LabelsControl } from "./compositions/labels-control/LabelsControl.svelte";
 export { default as Library } from "./compositions/library/Library.svelte";
+export { default as Loading } from "./foundations/loading/Loading.svelte";
 export { default as LocalExerciseContent } from "./compositions/local-exercise-content/LocalExerciseContent.svelte";
 export { default as LocalExercises } from "./renderer/local-exercises/LocalExercises.svelte";
 export { default as LockScreen } from "./compositions/lock-screen/LockScreen.svelte";
@@ -83,6 +89,7 @@ export { default as MediaObject } from "./compositions/media-object/MediaObject.
 export { default as MediaReferenceSelector } from "./compositions/media-reference-selector/MediaReferenceSelector.svelte";
 export { default as MediaReferenceSpecimen } from "./compositions/media-reference-specimen/MediaReferenceSpecimen.svelte";
 export { default as MessageBody } from "./foundations/message-body/MessageBody.svelte";
+export { default as Meter } from "./foundations/meter/Meter.svelte";
 export { default as MoneyControl } from "./compositions/money-control/MoneyControl.svelte";
 export { default as NodeRenderer } from "./renderer/node-renderer/NodeRenderer.svelte";
 export { default as ObjectStateControl } from "./compositions/object-state-control/ObjectStateControl.svelte";
@@ -115,8 +122,10 @@ export { default as SearchField } from "./foundations/search-field/SearchField.s
 export { default as SeedAvatar } from "./foundations/seed-avatar/SeedAvatar.svelte";
 export { default as SelectControl } from "./compositions/select-control/SelectControl.svelte";
 export { default as SelectionField } from "./foundations/selection-field/SelectionField.svelte";
+export { default as Separator } from "./foundations/separator/Separator.svelte";
 export { default as SharedOwnerCatalog } from "./compositions/shared-owner-catalog/SharedOwnerCatalog.svelte";
 export { default as SharedOwnerSpecimen } from "./compositions/shared-owner-specimen/SharedOwnerSpecimen.svelte";
+export { default as Spacer } from "./foundations/spacer/Spacer.svelte";
 export { default as Specimen } from "./compositions/specimen/Specimen.svelte";
 export { default as SpecimenGroup } from "./compositions/specimen-group/SpecimenGroup.svelte";
 export { default as SpecimenRow } from "./compositions/specimen-row/SpecimenRow.svelte";
@@ -125,9 +134,11 @@ export { default as SpeedDial } from "./compositions/speed-dial/SpeedDial.svelte
 export { default as Stack } from "./compositions/stack/Stack.svelte";
 export { default as StackItem } from "./foundations/stack-item/StackItem.svelte";
 export { default as StackLayout } from "./foundations/stack-layout/StackLayout.svelte";
+export { default as Status } from "./foundations/status/Status.svelte";
 export { default as SummaryWidget } from "./compositions/summary-widget/SummaryWidget.svelte";
 export { default as SurfaceFrame } from "./compositions/surface-frame/SurfaceFrame.svelte";
 export { default as SurfaceSpecimen } from "./compositions/surface-specimen/SurfaceSpecimen.svelte";
+export { default as Tag } from "./foundations/tag/Tag.svelte";
 export { default as Text } from "./foundations/text/Text.svelte";
 export { default as TextContent } from "./compositions/text-content/TextContent.svelte";
 export { default as TextInput } from "./foundations/text-input/TextInput.svelte";

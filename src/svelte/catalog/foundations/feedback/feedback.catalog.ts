@@ -5,7 +5,7 @@ import { FeedbackContract } from "./feedback.contract.ts";
 export const Feedback = defineFoundation({
   id: "feedback",
   purpose: "A short status sentence, announced politely, that tells the person what just happened.",
-  owner: { entry: "Feedback.svelte", vendor: ["empty"] },
+  owner: { entry: "Feedback.svelte" },
   shape: "none", states: ["default"],
   approval: "required", contract: FeedbackContract,
 } as const);

@@ -15,10 +15,9 @@
 <div
 	bind:this={ref}
 	data-slot="card"
-	data-material="pane"
 	data-size={size}
     data-interactive={interactive || undefined}
-	class={cn("text-card-foreground overflow-hidden rounded-[var(--radius-group)] group/card flex flex-col data-interactive:tm-control", className)}
+	class={cn("material-pane text-card-foreground overflow-hidden rounded-[var(--radius-group)] group/card flex flex-col data-interactive:control-focus", className)}
 	{...restProps}
 >
 	{@render children?.()}

@@ -14,10 +14,9 @@
 <textarea
 	bind:this={ref}
 	data-slot={dataSlot}
-	data-material={dataSlot === "input-group-control" ? "interior" : "pane"}
 	class={cn(
 		"rounded-lg px-2.5 py-2 text-base transition-colors md:text-sm flex field-sizing-content min-h-16 w-full outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed",
-		"tm-control", className
+		dataSlot === "input-group-control" ? "material-interior" : "material-pane", "control-focus", className
 	)}
 	bind:value
 	{...restProps}></textarea>
