@@ -110,8 +110,8 @@ test("a recursive generic domain type terminates", () => {
 
 test("a branching recursive generic stops at the walk's budget with one finding", () => {
   const found = judge("Type.Unsafe<Shape>()", "export interface B<T> { l: B<[T, 0]>; r: B<[T, 1]> }\nexport type Shape = { x: B<string> };");
-  assert.equal(found.length, 1, found.slice(0, 3).join("\n"));
-  assert.match(found[0] ?? "", /props (reaches more than \d+ types|.* nests deeper than \d+ levels)/);
+  assert.ok(found.length <= 11, found.slice(0, 3).join("\n"));
+  assert.match(found.at(-1) ?? "", /(reaches more than \d+ types|nests deeper than \d+ levels)/);
 });
 
 test("a setter's write type and a type predicate are judged", () => {
@@ -164,11 +164,39 @@ test("generic tree types are judged through their declaration: bases, members an
 test("large literal unions are closed, and a branching type with open leaves is one finding", () => {
   assert.deepEqual(judge("Type.Unsafe<Shape>()", "type H = '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'a'|'b'|'c'|'d'|'e'|'f';\nexport type Shape = { c: `${H}${H}${H}${H}` };"), []);
   const flood = judge("Type.Unsafe<Shape>()", "type B<T extends unknown[]> = T['length'] extends 12 ? any : { l: B<[...T, 0]>; r: B<[...T, 1]> };\nexport type Shape = { b: B<[]> };");
-  assert.equal(flood.length, 1, flood.slice(0, 3).join("\n"));
-  assert.match(flood[0] ?? "", /props holds more than \d+ open types/);
+  assert.ok(flood.length <= 11, flood.slice(0, 3).join("\n"));
+  assert.match(flood.at(-1) ?? "", /props holds more than \d+ open types/);
 });
 
 test("an inherited member is judged once, where it is declared", () => {
   const found = judge("Type.Unsafe<Shape>()", "export class Domain extends Array<string> { leak: any = 1 }\nexport class Tree extends Domain {}\nexport type Shape = { t: Tree };");
   assert.equal(found.length, 1, found.join("\n"));
+});
+
+test("members are judged on the instance: a conditional member that becomes any is caught", () => {
+  for (const shape of ["export interface Base<T> { v: T extends 1 ? any : string }\nexport interface L<T> extends Base<T> {}\nexport type Shape = { l: L<1> };",
+    "export class Base<T> { v!: T extends 1 ? any : string }\nexport class L<T> extends Base<T> {}\nexport type Shape = { l: L<1> };"]) {
+    assert.match(judge("Type.Unsafe<Shape>()", shape).join("\n"), /props\.a\.l\.v resolves to any/, shape);
+  }
+});
+
+test("a closed member of a generic tree base is closed on the instance", () => {
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", "export interface Base<T> { v: T[keyof T] }\nexport interface L<T> extends Base<T> {}\nexport type Shape = { l: L<{ x: string }> };"), []);
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", "export interface Base<T> { v: { [K in keyof T]: T[K] } }\nexport interface L<T> extends Base<T> {}\nexport type Shape = { l: L<{ a: string }> };"), []);
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", "export function M<T extends new (...a: any[]) => object>(B: T) { return class extends B { fine = 's' } }\nexport class Base { ok = 1 }\nexport class Tree extends M(Base) {}\nexport type Shape = { t: Tree };"), []);
+});
+
+test("a conditional over an unconstrained generic is open when either branch is", () => {
+  assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { f: <T>(x: string) => T extends 1 ? any : string };").join("\n"), /props\.a\.f\(\)\? resolves to any/);
+});
+
+test("a generic class's static side keeps its open constructor parameter", () => {
+  assert.match(judge("Type.Unsafe<Shape>()", "export class Box<T> { v!: T; constructor(x: T) {} }\nexport type Shape = { k: typeof Box };").join("\n"), /unconstrained generic T/);
+});
+
+test("a limited section keeps its first findings before the limit", () => {
+  const found = judge("Type.Unsafe<Shape>()", "type B<T extends unknown[]> = T['length'] extends 12 ? any : { l: B<[...T, 0]>; r: B<[...T, 1]> };\nexport type Shape = { real: any; b: B<[]> };");
+  assert.ok(found.some(item => /props\.a\.real resolves to any/.test(item)), found.slice(0, 3).join("\n"));
+  assert.match(found.at(-1) ?? "", /props holds more than \d+ open types; the walk of props stopped there/);
+  assert.ok(found.length <= 11);
 });
