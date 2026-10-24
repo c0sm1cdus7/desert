@@ -5013,7 +5013,7 @@ export const actionIconNames = {
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: 4880566c820a36430617ceb988e72a8273b85220673c243243713f6359c90a31
+Source SHA-256: 2ce314724cab3205c47c01dce33ef837caab74ae1fe967fe04e7bb7f0d4227f3
 
 ```svelte
 <script lang="ts" module>
@@ -5023,7 +5023,7 @@ Source SHA-256: 4880566c820a36430617ceb988e72a8273b85220673c243243713f6359c90a31
 
 	/** The public buttonVariants contract. */
 	export const buttonVariants = tv({
-        base: "tm-control inline-flex shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-full type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+        base: "tm-control inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-full type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
         variants: {
             spin: { true: "[&_svg[data-icon]]:animate-spin" },
             variant: {
