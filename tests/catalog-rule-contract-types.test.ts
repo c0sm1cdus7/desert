@@ -108,6 +108,25 @@ test("a recursive generic domain type terminates", () => {
   assert.ok(found.every(item => !/any|unknown/.test(item)), found.join("\n"));
 });
 
+test("a branching recursive generic stops at the walk's budget with one finding", () => {
+  const found = judge("Type.Unsafe<Shape>()", "export interface B<T> { l: B<[T, 0]>; r: B<[T, 1]> }\nexport type Shape = { x: B<string> };");
+  assert.equal(found.length, 1, found.slice(0, 3).join("\n"));
+  assert.match(found[0] ?? "", /props (reaches more than \d+ types|.* nests deeper than \d+ levels)/);
+});
+
+test("a setter's write type and a type predicate are judged", () => {
+  assert.match(judge("Type.Unsafe<Shape>()", "export interface X { get v(): string; set v(value: any) }\nexport type Shape = { x: X };").join("\n"), /props\.a\.x\.v= resolves to any/);
+  assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { check: (v: string) => v is any };").join("\n"), /props\.a\.check\(\) is resolves to any/);
+});
+
+test("a tree type over a library base is its own members plus the base as the library type it is", () => {
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", "export class Path extends Array<string> { label = \"x\" }\nexport type Shape = { path: Path };"), []);
+  assert.match(judge("Type.Unsafe<Shape>()", "export class Failure extends Error { code = \"x\" }\nexport type Shape = { failure: Failure };").join("\n"),
+    /props\.a\.failure:Error resolves to the library type Error/);
+  assert.match(judge("Type.Unsafe<Shape>()", "export interface Labels extends Array<string> { leak: any }\nexport type Shape = { labels: Labels };").join("\n"),
+    /props\.a\.labels\.leak resolves to any/);
+});
+
 test("a quoted \"#name\" key is an ordinary member", () => {
   assert.match(judge("Type.Unsafe<Shape>()", 'export type Shape = { "#leak": any };').join("\n"), /#leak resolves to any/);
 });
