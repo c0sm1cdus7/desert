@@ -1,5 +1,5 @@
 // Runs the Visual Catalog gate on this tree. Without arguments it calls exactly what the build calls
-// (runWithVisualBoundaries: P, A–L, the previous gate, D–T). With --rules A,B,C,L,D,... it runs only those rules.
+// (runWithCatalogGate: P, A–L, then every content rule). With --rules A,B,C,L,D,... it runs only those rules.
 // Structural rules stop at the first error; content rules report every violation (scripts/catalog-violations.ts groups them).
 import { resolve } from "node:path";
 import { assertGateSources } from "../src/authoring/catalog/gate/sources.ts";
@@ -13,8 +13,8 @@ if (process.argv.includes("--check-project")) {
   process.exit(run.status ?? 1);
 }
 if (!process.argv.includes("--rules")) {
-  const { runWithVisualBoundaries } = await import("../src/authoring/visual-boundary/source.ts");
-  await runWithVisualBoundaries(root, async () => undefined);
+  const { runWithCatalogGate } = await import("../src/authoring/catalog/gate/build-gate.ts");
+  await runWithCatalogGate(root, async () => undefined);
   console.log("Catalog gate passed: the same gate the build runs.");
   process.exit(0);
 }

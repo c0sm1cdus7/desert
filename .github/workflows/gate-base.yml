@@ -23,13 +23,13 @@ jobs:
         run: |
           if [ ! -d src/authoring/catalog ]; then echo "::notice::The base branch has no catalog gate yet."; exit 0; fi
           # The paths the gate reads come from the base layout (one fact, one place).
-          paths=$(node --input-type=module -e 'const { DesertLayout: l } = await import("./src/authoring/catalog/layout.ts"); console.log([...l.roots, ...l.gate.reads].join("\n"));')
+          paths=$(node --input-type=module -e 'const { DesertLayout: l } = await import("./src/authoring/catalog/layout.ts"); console.log([...l.roots, ...l.gate.reads, ...l.nonvisual.roots].join("\n"));')
           for path in $paths; do
             rm -rf "$path"
             if [ -e ".pr/$path" ]; then mkdir -p "$(dirname "$path")"; cp -R ".pr/$path" "$path"; fi
           done
           rm -rf .pr
-          # Catalog rules read sources as data; the previous visual-boundary gate evaluates tree modules, so it is not run here.
+          # Every catalog rule reads the PR's sources as data; the gate imports only its own (base) modules.
           rules=$(node --input-type=module -e 'const { contentRuleIds } = await import("./src/authoring/catalog/gate/content-rules.ts"); console.log(["A","B","C","L",...contentRuleIds].join(","));')
           node scripts/catalog-gate.ts --rules "$rules"
 

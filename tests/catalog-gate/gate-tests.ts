@@ -12,9 +12,7 @@ export function defineGateTests(cases: readonly GateCase[]): void {
         // A legal tree builds, or (strict build, Q1) is refused only by content rules already refused in the unmutated
         // tree: never a structural rule, a crash, or a violation the mutation added.
         assert.ok(result.outcome === "built" || result.outcome === "rejected" && result.violations !== undefined, JSON.stringify(result).slice(0, 2000));
-        const tolerated = new Set(gateCase.previousGateStricter ?? []);
-        return assert.deepEqual((addedViolations(result, baseline) ?? []).filter(item => !tolerated.has(item.code)), [],
-          "a legal mutation adds no violation");
+        return assert.deepEqual(addedViolations(result, baseline) ?? [], [], "a legal mutation adds no violation");
       }
       if (result.outcome !== "rejected") assert.fail(`expected a rejection naming ${gateCase.expect.join(" or ")}; observed ${JSON.stringify(result).slice(0, 2000)}`);
       const added = addedViolations(result, baseline);

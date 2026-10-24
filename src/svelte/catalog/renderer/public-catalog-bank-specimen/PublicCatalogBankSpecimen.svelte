@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, untrack } from "svelte";
   import type { CatalogProps } from "../../types.d.ts";
-  import { NodeRenderer, Feedback } from "../../../adapter-catalog.ts";
+  import { NodeRenderer, Feedback } from "../../index.ts";
   import { catalogSpecimen } from "./catalog-specimen.svelte.ts";
   let { initial, oncatalog }: CatalogProps<"public-catalog-bank-specimen"> = $props();
   const specimen = untrack(() => catalogSpecimen(initial, event => oncatalog?.(event)));

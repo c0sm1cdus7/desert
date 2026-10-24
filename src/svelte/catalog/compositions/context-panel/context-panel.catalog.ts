@@ -6,5 +6,5 @@ export const ContextPanel = defineComposition({
   id: "context-panel",
   purpose: "Read an object and use its contextual commands without leaving its destination.",
   owner: { entry: "ContextPanel.svelte" },
-  uses: ["attention-status", "context-properties", "destination-row", "grouped-panel", "media-object", "node-renderer", "reading-content"], approval: "none", contract: ContextPanelContract,
+  uses: ["attention-status", "context-properties", "destination-row", "grouped-panel", "media-object", "node-renderer", "reading-content"], renders: ["context"], approval: "none", contract: ContextPanelContract,
 } as const);

@@ -557,8 +557,8 @@ These are distinct inventories, not competing sources of truth:
 | Product definitions and storyboard | Derived from module/root registrations by [modules/product-index.ts](../../src/modules/product-index.ts). |
 | Public component values | [Components](../../src/views/components.ts) derives closed typed builders from the View grammar, with issuance checks in [component-values.ts](../../src/views/component-values.ts). |
 | Semantic interaction pieces | [ResolvedNodes](../../src/interaction/catalog.ts), with states, groups and [foundation ownership](../../src/interaction/catalog-ownership.ts). |
-| Web implementations | [nodeRenderers](../../src/svelte/renderer-registry.ts), checked exhaustively for `ResolvedNodeId` by [NodeRendererTable](../../src/svelte/renderer-contracts.ts). |
-| Sealed adapter gateway | [adapter-catalog.ts](../../src/svelte/adapter-catalog.ts) exports actual existing owners; [adapter-contract.ts](../../src/svelte/adapter-contract.ts) restricts the admitted props/slots and derives their types from those owners. No new DOM or alternative controls. |
+| Web implementations | [nodeRenderers](../../src/svelte/renderer-registry.ts), generated from each declaration's `renders` and checked exhaustively for `ResolvedNodeId` by [NodeRendererTable](../../src/svelte/renderer-contracts.ts). |
+| Catalog index | [catalog/index.ts](../../src/svelte/catalog/index.ts), generated from the declarations, exports every piece; renderer compositions mount pieces from it and pass only what their contracts declare. No new DOM or alternative controls. |
 | Visual inspection | [InspectionCatalog](../../src/svelte/catalog/compositions/inspection-catalog/InspectionCatalog.svelte) derives entries from the semantic catalog and [public bank inventory](../../src/svelte/infra/PublicCatalogBank-model.ts); specimens use the same registered owners. |
 
 Header, Stack, toolbar, media-library, Appearance, System and Identity compositions have View grammar and shared
@@ -569,14 +569,14 @@ The active authored-View route is concrete:
 
 ```text
 ViewProduct: model snapshot + owned events
-  → adapter-catalog.ViewWorkspace
+  → catalog index: ViewWorkspace
     → CatalogWorkspace: existing shell, left navigation and search overlay
       → CatalogWorkspaceContent: finite body selection
         → ViewContent → ContentFlow: ordered content, not a mandatory Stack
       ├─ ViewItem → catalog owners / NodeRenderer
       ├─ InspectionContent → Inspection → InspectionCatalog
-      └─ MediaContent → MediaLibrary → existing CatalogHome + Viewer
-    → Panel → TransientRenderer → existing Drawer
+      └─ MediaContent → Library → existing CatalogHome + Viewer
+    → Panel → NodeRenderer (transient) → existing Drawer
       → InstanceFrame → SurfaceFrame → FrameBody → catalog owners
     → FailureDialog → NodeRenderer
 ```
@@ -589,17 +589,15 @@ ViewProduct: model snapshot + owned events
 | [CatalogWorkspaceContent](../../src/svelte/catalog/compositions/catalog-workspace-content/CatalogWorkspaceContent.svelte) | Selects the installed `view-program`, `public-catalog` or `access` body from the private [workspace content contract](../../src/svelte/infra/workspace-content.ts). Retains the same existing DOM and catalog owners. |
 | [ContentFlow](../../src/svelte/catalog/compositions/content-flow/ContentFlow.svelte) | Renders ordered content; standalone header identity belongs to the workspace, titled Stacks group their own children. |
 | [Inspection](../../src/svelte/catalog/compositions/inspection/Inspection.svelte) | Retains the local Visual catalog and opens its examples. [InspectionCatalog](../../src/svelte/catalog/compositions/inspection-catalog/InspectionCatalog.svelte) owns bank/group wrappers and instance-scoped entry lookup. |
-| [MediaLibrary](../../src/svelte/catalog/compositions/library/Library.svelte) | Owns the media wrapper, selection queue and viewer focus; reuses [Viewer](../../src/svelte/catalog/compositions/viewer/Viewer.svelte), not a second media UI. |
+| [Library](../../src/svelte/catalog/compositions/library/Library.svelte) | Owns the media wrapper, selection queue and viewer focus; reuses [Viewer](../../src/svelte/catalog/compositions/viewer/Viewer.svelte), not a second media UI. |
 | [Panel](../../src/svelte/catalog/renderer/panel/Panel.svelte) | Adapts a resolved panel and its event identity to the existing [Drawer](../../src/svelte/catalog/foundations/drawer/Drawer.svelte); it does not choose sizes or paint. |
 
-The migrated adapters import only admitted gateway entries. The
-[adapter gate](../../src/authoring/visual-boundary/adapter.ts) rejects raw HTML,
-native markup, CSS, arbitrary/dynamic components, native-attribute forwarding
-and shadowed catalog names; the [runtime-global gate](../../src/authoring/visual-boundary/adapter-globals.ts)
-also rejects direct DOM/global escape routes. `TransientRenderer` and
-`ControlNodeRenderer` alias the same actual NodeRenderer but admit only their
-respective private frame identity/file-host capabilities. The generic entry
-does not gain those capabilities or native action attributes.
+Renderer compositions import pieces only from the catalog index. Catalog rules D
+and E reject raw HTML, native markup, arbitrary/dynamic components,
+native-attribute forwarding and shadowed piece names; G rejects their CSS; I
+rejects DOM access and any browser global in a renderer composition; O rejects
+evaluators and computed imports. Only the dispatcher passes a private frame
+identity or file host, and only to the kind that owns it (rule D2).
 
 `Components.SystemStatus()` expands through
 [system-status.ts](../../src/web/client/system-status.ts) into existing Stack,
@@ -611,13 +609,12 @@ or consumer styling override. Media reuses the same hero/cards/viewer for the
 installed image, video and audio types; a typed sample library is not an upload
 service or an authenticated managed media store.
 
-[NodeRenderer](../../src/svelte/catalog/renderer/bank-renderer/NodeRenderer.svelte) validates its node and selects
-the corresponding registered owner. Its [dispatcher gate](../../src/authoring/visual-boundary/dispatch.ts)
-checks that finite dispatch path separately from ordinary component adapters.
-Catalog owners legitimately implement DOM and motion. Their
-[closed composition boundary](../../src/authoring/visual-boundary/composition.ts)
-distinguishes locally owned internal snippets from caller-supplied rendering;
-moving a wrapper into an owner does not authorize arbitrary public slots.
+[NodeRenderer](../../src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte) validates its node and selects
+the corresponding registered owner. Rule D2
+([composition-dispatch.ts](../../src/authoring/catalog/gate/composition-dispatch.ts),
+[dispatch-admission.ts](../../src/authoring/catalog/gate/dispatch-admission.ts))
+checks that finite dispatch path. Foundations legitimately implement DOM and
+motion; a composition renders only the slots its declaration names.
 
 Workspace consumers receive semantic focus, scroll and catalog-selection actions,
 not a DOM element or arbitrary component instance. The finite body contract has no
@@ -625,19 +622,18 @@ component/render callback, child markup or native attributes. Its negative sourc
 and type tests reject those escape routes. This closure does not retroactively
 qualify every private owner or eliminate the separately inventoried legacy debt.
 
-The [gateway integrity check](../../src/authoring/visual-boundary/gateway.ts)
-derives implementation identities from the existing owner type map. A gateway
-cannot substitute an owner, wrap it, import styles or execute extra code. The
-[nonvisual dependency graph](../../src/authoring/visual-boundary/dependency-graph.ts)
-follows each sealed adapter's runtime helpers and barrel exports beyond the
-Svelte directory. Private styles/components, opaque imports, unregistered packages
+The catalog index is generated (rule C): it cannot substitute an owner, wrap it,
+import styles or execute extra code. Rule N
+([nonvisual.ts](../../src/authoring/catalog/gate/nonvisual.ts)) reads the whole
+interpreter and follows every runtime helper and barrel export the page reaches
+beyond the visual roots. Private styles/components, opaque imports, unregistered packages
 and browser drawing authority fail the build there too. Type-only references
 remain legal. The browser-session host admits only its registered invitation,
 history and unload capabilities, not arbitrary access to the browser.
 
 The actual [generated-project runner](../../src/build/svelte/project.ts) calls
-the [shared visual boundary](../../src/authoring/visual-boundary/source.ts) before
-its worker. Removing a required sealed source does not disable the check.
+the [catalog gate](../../src/authoring/catalog/gate/build-gate.ts) before
+its worker. Removing a declared source or a gate module does not disable the check.
 The [worker](../../src/build/svelte/worker.mjs) performs Svelte/TypeScript checking
 before Vite can emit a build. An invalid semantic prop value cannot pass merely
 because Vite normally transpiles TypeScript without typechecking it.
@@ -648,7 +644,7 @@ the existing [theme.css](../../src/svelte/theme.css), which assembles shared
 tokens, typography, geometry and material. The
 [page](../../src/build/svelte/template/src/routes/+page.svelte) selects the
 renderer; `ViewProduct` does not import CSS or depend on a legacy renderer to
-load it. The [bootstrap gate](../../src/authoring/visual-boundary/bootstrap.ts)
+load it. Rule T ([template-artifacts.ts](../../src/authoring/catalog/gate/template-artifacts.ts))
 admits that theme import and the framework-owned child slot, not another public
 render extension. [Catalog appearance](../../src/svelte/infra/catalog-appearance.ts)
 separately mounts/restores the shared root profile; it is not product styling.

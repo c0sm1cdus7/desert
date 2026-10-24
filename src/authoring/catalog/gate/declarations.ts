@@ -1,6 +1,7 @@
-// Rule B. Law: declarations agree with each other and with the files they name.
-// Raises CATALOG_DECLARATION naming the declaration and the broken reference.
+// Rule B. Law: declarations agree with each other and with the files they name, and the pieces that render resolved
+// nodes cover the resolved-node grammar exactly once. Raises CATALOG_DECLARATION naming the declaration and the broken reference.
 import { posix } from "node:path";
+import { ResolvedNodes } from "../../../interaction/catalog.ts";
 import { themeMechanism, type CatalogLayout } from "../layout.ts";
 import type { LocatedDeclaration } from "./inventory.ts";
 
@@ -38,4 +39,20 @@ export function assertDeclarationsConsistent(declarations: readonly LocatedDecla
       if (!mechanisms.has(mechanism)) fail(`${id} uses unknown mechanism ${mechanism}`);
     }
   }
+  assertRendersCoverGrammar(declarations, fail);
+}
+
+/** Every resolved node kind is rendered by exactly one declared piece, and nothing else is rendered (once the tree has a
+ * resolved-node dispatcher, whose generated table needs every kind). */
+function assertRendersCoverGrammar(declarations: readonly LocatedDeclaration[], fail: (what: string) => never): void {
+  const kinds = new Set<string>(ResolvedNodes.entries.map(entry => entry.id)), renderer = new Map<string, string>();
+  for (const { declaration } of declarations) if (declaration.kind !== "mechanism") for (const kind of declaration.renders ?? []) {
+    if (!kinds.has(kind)) fail(`${declaration.id} renders ${kind}, which is not a resolved node kind`);
+    const previous = renderer.get(kind);
+    if (previous) fail(`${kind} is rendered by ${previous} and ${declaration.id}`);
+    renderer.set(kind, declaration.id);
+  }
+  const missing = [...kinds].filter(kind => !renderer.has(kind));
+  const dispatcher = declarations.some(({ declaration }) => declaration.kind === "composition" && declaration.dispatch === "resolved-node");
+  if (dispatcher && missing.length) fail(`the resolved node kinds ${missing.join(", ")} are rendered by no piece (incomplete semantic bank)`);
 }

@@ -2,7 +2,7 @@
   import type { ResolvedView } from "../../../../views/resolved.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
-  import { ContentFlow } from "../../../adapter-catalog.ts";
+  import { ContentFlow } from "../../index.ts";
   import type { RegisterContentActions } from "../../../infra/workspace-content.ts";
   let { resolved, onevent, album = null, onalbum, onactions }: {
     resolved: ResolvedView;

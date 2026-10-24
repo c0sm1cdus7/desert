@@ -1,13 +1,16 @@
 // Rule I. Law: DOM, style and motion facilities run only in a foundation folder, a vendor family a foundation owns, or a
-// mechanism a foundation owns; and no visual-root file imports src/testing. Raises VISUAL_RUNTIME_GLOBAL.
+// mechanism a foundation owns; a renderer composition names no browser global at all (it selects pieces for data); and
+// no visual-root file imports src/testing. Raises VISUAL_RUNTIME_GLOBAL.
 import { posix } from "node:path";
 import ts from "typescript";
-import { walk } from "../../visual-boundary/walk.ts";
+import { walk } from "./walk.ts";
 import { parseable, type ContentRule, type GateContext } from "./context.ts";
 import { scriptLine, type Parsed, type Script } from "./parse.ts";
 import { resolveSpecifier } from "./resolve-imports.ts";
 import { violation, type Violation } from "./violation.ts";
 import { themeMechanism } from "../layout.ts";
+import { componentRuntime } from "./component-runtime.ts";
+import { browserGlobalUses, nonvisualGlobals } from "./runtime-globals.ts";
 
 const code = "VISUAL_RUNTIME_GLOBAL";
 const globalObjects = new Set(["window", "globalThis", "self"]);
@@ -17,14 +20,15 @@ const globalFunctions = new Set(["getComputedStyle", "matchMedia", "requestAnima
 const observers = new Set(["ResizeObserver", "IntersectionObserver", "MutationObserver"]);
 /** Element members read or written as properties (a call of the same name is someone else's method). */
 const elementProperties = new Set(["style", "classList", "className", "innerHTML", "outerHTML", "textContent", "innerText",
-  "adoptedStyleSheets", "scrollTop", "scrollLeft", "scrollWidth", "scrollHeight", "clientWidth", "clientHeight", "offsetWidth",
+  "adoptedStyleSheets", "nodeValue", "scrollTop", "scrollLeft", "scrollWidth", "scrollHeight", "clientWidth", "clientHeight", "offsetWidth",
   "offsetHeight", "offsetTop", "offsetLeft"]);
 /** Element members that act when called. */
 const elementMethods = new Set(["animate", "insertAdjacentHTML", "insertAdjacentText", "insertAdjacentElement", "setAttribute",
   "removeAttribute", "toggleAttribute", "setProperty", "focus", "scrollTo", "scrollBy", "scrollIntoView", "getBoundingClientRect",
   "getClientRects", "querySelector", "querySelectorAll", "getElementById", "getElementsByClassName", "getElementsByTagName",
   "createElement", "createElementNS", "appendChild", "append", "prepend", "before", "after", "replaceWith", "remove",
-  "insertBefore", "replaceChild", "removeChild", "replaceChildren", "closest", "attachShadow", "getAnimations"]);
+  "insertBefore", "replaceChild", "removeChild", "replaceChildren", "closest", "attachShadow", "getAnimations",
+  "appendData", "deleteData", "insertData", "replaceData"]);
 /** `element.remove()` takes no argument; `host.remove(record, id)` is a domain method of the same name. */
 const argumentless = new Set(["remove"]);
 
@@ -106,7 +110,7 @@ function rangeOf(value: unknown): Range | undefined {
 }
 
 /** Each maximal script expression of a Svelte template (event handlers, attribute values, block tests), as its own tree. */
-function templateScripts(parsed: Parsed, path: string): readonly Script[] {
+export function templateScripts(parsed: Parsed, path: string): readonly Script[] {
   if (parsed.kind !== "svelte") return [];
   const ranges: Range[] = [];
   walk(parsed.fragment, node => {
@@ -135,24 +139,40 @@ function branchesOf(node: ts.Node): readonly ts.Node[] {
   return ts.isElementAccessExpression(node) ? [node.argumentExpression] : [];
 }
 
-/** One use per DOM-operation chain: the outermost access is reported, the links below it are not. */
-function domUses(context: GateContext, path: string, reason: string): Violation[] {
-  const parsed = context.parsed(path), found: Violation[] = [];
-  for (const script of [...parsed.scripts, ...templateScripts(parsed, path)]) {
-    const skipChain = (node: ts.Node): void => {
-      for (const branch of branchesOf(node)) visit(branch);
-      const receiver = receiverOf(node);
-      if (receiver) skipChain(receiver); else if (!ts.isIdentifier(node)) ts.forEachChild(node, visit);
-    };
-    const visit = (node: ts.Node): void => {
-      const operation = operationOf(node);
-      if (operation === undefined) { ts.forEachChild(node, visit); return; }
-      found.push(violation(code, path, scriptLine(parsed, script, node), `${operation}: ${reason}`));
-      skipChain(node);
-    };
-    visit(script.file);
-  }
+/** One use per DOM-operation chain: the outermost access is a use, the links below it are not. Shared with rule N. */
+export function domOperations(root: ts.Node): readonly Readonly<{ node: ts.Node; operation: string }>[] {
+  const found: { node: ts.Node; operation: string }[] = [];
+  const skipChain = (node: ts.Node): void => {
+    for (const branch of branchesOf(node)) visit(branch);
+    const receiver = receiverOf(node);
+    if (receiver) skipChain(receiver); else if (!ts.isIdentifier(node)) ts.forEachChild(node, visit);
+  };
+  const visit = (node: ts.Node): void => {
+    const operation = operationOf(node);
+    if (operation === undefined) { ts.forEachChild(node, visit); return; }
+    found.push({ node, operation });
+    skipChain(node);
+  };
+  visit(root);
   return found;
+}
+
+function domUses(context: GateContext, path: string, reason: string): Violation[] {
+  const parsed = context.parsed(path);
+  return [...parsed.scripts, ...templateScripts(parsed, path)].flatMap(script => domOperations(script.file)
+    .map(({ node, operation }) => violation(code, path, scriptLine(parsed, script, node), `${operation}: ${reason}`)));
+}
+
+/** In a renderer composition, every browser global its runtime code names (its script parts may keep the nonvisual ones:
+ * timers, timing, network); a DOM use already reported names it once. */
+function rendererGlobals(context: GateContext, path: string, reported: readonly Violation[]): Violation[] {
+  if (!path.startsWith(`${context.layout.rendererFolder}/`)) return [];
+  const parsed = context.parsed(path), runtime = componentRuntime(parsed, path);
+  const known = new Set(reported.map(item => `${item.line}:${item.what.replace(/^new /, "").split(/[.:]/)[0]}`));
+  return browserGlobalUses(runtime, path.endsWith(".svelte") ? new Set() : nonvisualGlobals).flatMap(use => {
+    const line = parsed.line(runtime.position(use.node));
+    return known.has(`${line}:${use.name}`) ? [] : [violation(code, path, line, `${use.name}: a renderer composition holds no browser capability`)];
+  });
 }
 
 /** N54: the test-only evidence project never enters the build path. */
@@ -168,7 +188,7 @@ export const ruleI: ContentRule = context => {
   const foundationFolders = context.declarations.filter(located => located.declaration.kind === "foundation")
     .map(located => `${posix.dirname(located.path)}/`);
   return context.paths.filter(path => parseable(path) && context.text(path) !== undefined).flatMap(path => {
-    const reason = forbiddenReason(context, path, foundationFolders);
-    return [...testOnlyImports(context, path), ...reason === undefined ? [] : domUses(context, path, reason)];
+    const reason = forbiddenReason(context, path, foundationFolders), uses = reason === undefined ? [] : domUses(context, path, reason);
+    return [...testOnlyImports(context, path), ...uses, ...rendererGlobals(context, path, uses)];
   });
 };

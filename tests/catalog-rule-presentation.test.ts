@@ -230,3 +230,20 @@ test("bind:this is legal only on a piece whose contract declares an instance API
   const without = ruleE(contextOf(files("")));
   assert.ok(codes(without).some(line => line.includes("bind:this")), "a piece with no instance API cannot be bound");
 });
+
+// Ported from the previous gate's shadowed-catalog-entry and finite-input laws.
+test("E: a script declaration that shadows an imported piece mounts the declaration, not the piece", () => {
+  for (const declaration of ["function Heading() { return {}; }", "class Heading {}", "const Heading = () => ({});"]) {
+    assert.deepEqual(run({ ...heading(), ...composition("page", "Page.svelte", ["heading"],
+      `<script module lang="ts">\n  ${directImport}\n</script>\n<script lang="ts">\n  ${declaration}\n</script>\n<Heading kind="page" text="x" />\n`) }),
+    [escape("<Heading>: a component mounted through a script declaration that shadows an import cannot be checked; import it from the catalog index")], declaration);
+  }
+});
+test("E: a closed contract that declares a presentation input is itself the escape", () => {
+  const contract = (props: string) => `import { Type } from "@sinclair/typebox";
+export const C = { props: Type.Object({ ${props} }, { additionalProperties: false }), events: Type.Object({ "data-x": Type.String() }, { additionalProperties: false }) } as const;\n`;
+  assert.deepEqual(run(heading(contract("text: Type.String(), class: Type.Optional(Type.String()), viewportAttributes: Type.Optional(Type.String())"))), [
+    escape("the contract of heading declares the prop class: a contract holds no presentation input", `${headingFolder}/heading.contract.ts`),
+    escape("the contract of heading declares the prop viewportAttributes: a contract holds no presentation input", `${headingFolder}/heading.contract.ts`),
+    escape("the contract of heading declares the event data-x: a contract holds no presentation input", `${headingFolder}/heading.contract.ts`)]);
+});

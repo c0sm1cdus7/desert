@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { compilePublicCatalog } from "../../src/public-catalog/index.ts";
 import { bindCatalogAssets } from "../../src/build/public-catalog/assets.ts";
 import { catalogBuildFile, publicCatalogBuildFormat, type PublicCatalogBuild } from "../../src/build/public-catalog/manifest.ts";
-import { catalogGateEvidence } from "../../src/authoring/visual-boundary/source.ts";
+import { catalogGateEvidence } from "../../src/authoring/catalog/gate/build-gate.ts";
 import { fileInventory } from "../../src/build/files.ts";
 import { catalogFixture } from "./public-catalog.ts";
 

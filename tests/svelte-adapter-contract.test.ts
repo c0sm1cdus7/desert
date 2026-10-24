@@ -5,11 +5,13 @@ import { join } from "node:path";
 // svelte-check of the generated project, not the gate: the test-only evidence project (plan 3.5) while the strict build is red.
 import { createEvidenceProject } from "../src/testing/evidence-project.ts";
 
-test("adapter gateway retains owner prop types and removes native passthrough", { timeout: 60000 }, async () => {
+// The previous adapter gateway's typing, now through the catalog index: closed contracts type their pieces, and the
+// node dispatcher's private inputs keep their own types (its contract is still a stub; rule E reports every caller).
+test("catalog index pieces retain contract prop types and refuse native passthrough", { timeout: 60000 }, async () => {
   const project = createEvidenceProject("export const surface = {}; export const validateInput = () => false;");
   const page = join(project.directory, "src/routes/+page.svelte");
   const header = `<script lang="ts">
-    import { TextContent, NodeRenderer, TransientRenderer, ControlNodeRenderer, Feedback } from "@desert/svelte/adapter-catalog.ts";
+    import { TextContent, NodeRenderer, Feedback } from "@desert/svelte/catalog/index.ts";
     import type { ResolvedNode, ResolvedNodeFor } from "@desert/interaction/resolved-node.ts";
     import type { ControlNode } from "@desert/interaction/control-nodes.ts";
     import type { LocalFileHost } from "@desert/svelte/infra/file-host.ts";
@@ -21,11 +23,6 @@ test("adapter gateway retains owner prop types and removes native passthrough", 
   </script>\n`;
   const invalid = ['<TextContent text={42}/>', '<TextContent text="Notes" class="padding-0"/>',
     '<NodeRenderer {node} actionElementProps={{ style: "color:red" }}/>',
-    '<NodeRenderer {node} {host}/>', '<NodeRenderer {node} frameIdentity={owner}/>',
-    '<TransientRenderer node={control} frameIdentity={owner}/>', '<TransientRenderer node={transient}/>',
-    '<TransientRenderer node={transient} frameIdentity={owner} {host}/>',
-    '<ControlNodeRenderer node={transient} {host}/>', '<ControlNodeRenderer node={control}/>',
-    '<ControlNodeRenderer node={control} {host} frameIdentity={owner}/>',
     '<Feedback text={42}/>', '<Feedback text="Changed" class="large"/>', '<Feedback text="Changed" role="alert"/>'];
   try {
     const source = header + invalid.join("\n");
@@ -37,7 +34,7 @@ test("adapter gateway retains owner prop types and removes native passthrough", 
       return true;
     });
     writeFileSync(page, header + '<TextContent text="Notes"/><Feedback text="Changed"/>'
-      + '<TransientRenderer node={transient} frameIdentity={owner}/><ControlNodeRenderer node={control} {host}/>');
+      + '<NodeRenderer node={transient} frameIdentity={owner}/><NodeRenderer node={control} {host}/>');
     assert.match((await project.run("check")).stdout, /0 errors and 0 warnings/);
   } finally { project.close(); }
 });

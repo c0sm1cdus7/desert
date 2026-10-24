@@ -11,7 +11,8 @@ import { assertDeclarationsConsistent } from "./declarations.ts";
 import { assertCatalogDerivations } from "./derivation.ts";
 import { assertLedgerStructure } from "./ledger.ts";
 import { contentRules, type ContentRuleId } from "./content-rules.ts";
-import { createContext } from "./context.ts";
+import { createContext, withNonvisual } from "./context.ts";
+import { readNonvisualSources } from "./nonvisual-sources.ts";
 import { CatalogGateViolations, type Violation } from "./violation.ts";
 
 export type CatalogRule = "A" | "B" | "C" | "L";
@@ -82,7 +83,8 @@ export async function contentViolations(root: string, tree: CatalogTree, options
   // Text files by extension, plus extensionless ones (vendor LICENSE): Tailwind scans their prose too, so G2 must see it.
   const loadable = (path: string) => textual.test(path) || !posix.basename(path).includes(".");
   for (const path of [...tree.paths, ...options.layout.gate.reads]) if (loadable(path)) sources.set(path, await readFile(join(root, path), "utf8"));
-  const context = createContext({ layout: options.layout, paths: tree.paths, declarations: tree.declarations, ledger: tree.ledger, sources });
+  const visual = createContext({ layout: options.layout, paths: tree.paths, declarations: tree.declarations, ledger: tree.ledger, sources });
+  const context = options.rules.includes("N") ? withNonvisual(visual, await readNonvisualSources(root, visual)) : visual;
   const violations: Violation[] = [];
   for (const rule of options.rules) violations.push(...contentRules[rule](context));
   return { context, violations: Object.freeze(violations) };

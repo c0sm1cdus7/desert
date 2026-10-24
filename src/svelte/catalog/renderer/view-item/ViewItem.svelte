@@ -2,7 +2,7 @@
   import type { CatalogProps } from "../../types.d.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
-  import { NodeRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../../adapter-catalog.ts";
+  import { NodeRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../index.ts";
   let { item, resolved, onevent, host = "flow" }: CatalogProps<"view-item"> = $props();
   function dispatch(event: NodeEvent) {
     if (item.kind === "collection" && event.kind === "collection.select") {

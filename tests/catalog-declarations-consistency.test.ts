@@ -53,3 +53,27 @@ test("a declared entry, part or contract that does not exist is refused", () => 
   const withoutContract = new Set([...files()].filter(path => !path.endsWith("field.contract.ts")));
   assert.throws(() => assertDeclarationsConsistent(valid, withoutContract, layout), /CATALOG_DECLARATION: .*field\.contract\.ts/);
 });
+
+// Ported from the previous registry's "incomplete semantic bank" check: the bank mapping is one fact per declaration
+// (`renders`), and once a resolved-node dispatcher exists, every resolved node kind is rendered by exactly one piece.
+test("renders: every resolved node kind by exactly one piece, nothing outside the grammar", async () => {
+  const { ResolvedNodes } = await import("../src/interaction/catalog.ts");
+  const kinds = ResolvedNodes.entries.map(entry => entry.id), [first = "", second = ""] = kinds;
+  const dispatcher = at("src/svelte/catalog/renderer/node-renderer/node-renderer.catalog.ts", `import { C } from "./c.ts";
+export const N = defineComposition({ id: "node-renderer", purpose: "x", owner: { entry: "node-renderer.svelte" }, uses: [], dispatch: "resolved-node",
+  approval: "none", contract: C } as const);`);
+  const rendering = (renders: readonly string[]) => [...foundation("field"), ...at(`${compositions}/lock/lock.catalog.ts`, `import { C } from "./c.ts";
+export const P = defineComposition({ id: "lock", purpose: "x", owner: { entry: "lock.svelte" }, uses: ["field"],${renders.length ? ` renders: ${JSON.stringify(renders)},` : ""}
+  approval: "none", contract: C } as const);`), ...theme, ...dispatcher];
+  const present = files("src/svelte/catalog/renderer/node-renderer/node-renderer.svelte", "src/svelte/catalog/renderer/node-renderer/node-renderer.contract.ts");
+  assert.doesNotThrow(() => assertDeclarationsConsistent(rendering(kinds), present, layout));
+  assert.throws(() => assertDeclarationsConsistent(rendering(kinds.slice(1)), present, layout), new RegExp(`CATALOG_DECLARATION: the resolved node kinds ${first.replace(".", "\\.")} are rendered by no piece`));
+  assert.throws(() => assertDeclarationsConsistent(rendering([...kinds, "outside.visual"]), present, layout), /lock renders outside\.visual, which is not a resolved node kind/);
+  const twice = [...rendering(kinds.slice(1)), ...at(`${compositions}/other/other.catalog.ts`, `import { C } from "./c.ts";
+export const O = defineComposition({ id: "other", purpose: "x", owner: { entry: "other.svelte" }, uses: [], renders: [${JSON.stringify(first)}, ${JSON.stringify(second)}],
+  approval: "none", contract: C } as const);`)];
+  assert.throws(() => assertDeclarationsConsistent(twice, new Set([...present, `${compositions}/other/other.svelte`, `${compositions}/other/other.contract.ts`]), layout),
+    new RegExp(`${second.replace(".", "\\.")} is rendered by lock and other`));
+  assert.doesNotThrow(() => assertDeclarationsConsistent(rendering([]).filter(item => item.declaration.id !== "node-renderer"), files(), layout),
+    "a tree without a resolved-node dispatcher needs no renderers");
+});

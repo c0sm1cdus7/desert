@@ -7,5 +7,5 @@ export const Drawer = defineFoundation({
   id: "drawer",
   purpose: "Open a temporary surface over its parent with content and top or bottom toolbars, never lateral child surfaces.",
   owner: { entry: "Drawer.svelte", parts: ["adaptive-modality.svelte.ts", "adaptive-surface-layout.ts"], vendor: ["dialog"] },
-  shape: "none", states: ["open", "locked"], approval: "required", contract: DrawerContract,
+  shape: "none", states: ["open", "locked"], renders: ["transient"], approval: "required", contract: DrawerContract,
 } as const);

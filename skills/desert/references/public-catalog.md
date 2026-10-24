@@ -1173,7 +1173,7 @@ function drain() {
 
 ## src/svelte/catalog/foundations/image/Image.svelte
 
-Source SHA-256: ee53db59053fdc319b9084d6e79cfd4eb8f38ebde3e5a1f2df990263620b4e80
+Source SHA-256: a6e247544a06ef9690ab80fc1827cdbfa9281f9a025dfd5c4d34c596f058ebb7
 
 ```svelte
 <script lang="ts">
@@ -1222,7 +1222,7 @@ Source SHA-256: ee53db59053fdc319b9084d6e79cfd4eb8f38ebde3e5a1f2df990263620b4e80
       return;
     }
     if (key !== identity || !img.isConnected || requested !== img.src) return;
-    ready = key; onready?.(null);
+    ready = key; onready?.();
   }
   function error(key: string) {
     if (key !== identity) return;
@@ -1438,12 +1438,12 @@ export function mediaGestures(element: HTMLElement, options: Options) {
 
 ## src/svelte/catalog/renderer/public-catalog-product/PublicCatalogProduct.svelte
 
-Source SHA-256: 6a7705093565bddd3972eb6e50194f523820295697ed67bfb153d8fa53f622e8
+Source SHA-256: 5e9565947fc873e6cfcdecc2d9874afadbf1e423260523aff03c443136d066fd
 
 ```svelte
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
-  import { PublicCatalogProductContent } from "../../../adapter-catalog.ts";
+  import { PublicCatalogProductContent } from "../../index.ts";
   let { surface }: CatalogProps<"public-catalog-product"> = $props();
 </script>
 
@@ -1452,12 +1452,12 @@ Source SHA-256: 6a7705093565bddd3972eb6e50194f523820295697ed67bfb153d8fa53f622e8
 
 ## src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte
 
-Source SHA-256: f56e9b5b99c3d5b40469e962711f4e573111ea427f40322767c1678a42ebb325
+Source SHA-256: 1e20f01d45949b10db016b064f59258fbc18e24af4ddb974a44c7cb6812ec77b
 
 ```svelte
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
-  import { LocalExerciseContent } from "../../../adapter-catalog.ts";
+  import { LocalExerciseContent } from "../../index.ts";
   let { definition, bodyOnly = false, oncatalog }: CatalogProps<"local-exercises"> = $props();
 </script>
 
@@ -1517,12 +1517,12 @@ Source SHA-256: d9f7a7276785de44f6cd1eda8451b1a1cce4f82c0f61e49bc956a339ab561c04
 
 ## src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte
 
-Source SHA-256: 5951af2b85856899a274ed3f3295c5fe41c27e59c4e04b0a4713a8272382c5c6
+Source SHA-256: 7426cd9789988392ffcaddb67a91ba9087b7c0d840835cc9ed5c7158a13418aa
 
 ```svelte
 <script lang="ts">
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
-  import { InspectionCatalog } from "../../../adapter-catalog.ts";
+  import { InspectionCatalog } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { surface, oncatalog, bodyOnly, onactions }: CatalogProps<"public-catalog-bank"> = $props();
   let content = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null>;

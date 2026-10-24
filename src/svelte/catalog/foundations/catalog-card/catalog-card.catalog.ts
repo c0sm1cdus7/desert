@@ -7,5 +7,5 @@ export const CatalogCard = defineFoundation({
   id: "catalog-card",
   purpose: "Open a media item from a card composed of artwork and its supporting content.",
   owner: { entry: "CatalogCard.svelte" },
-  shape: "none", states: ["image", "placeholder"], approval: "required", contract: CatalogCardContract,
+  shape: "none", states: ["image", "placeholder"], renders: ["catalog.card"], approval: "required", contract: CatalogCardContract,
 } as const);

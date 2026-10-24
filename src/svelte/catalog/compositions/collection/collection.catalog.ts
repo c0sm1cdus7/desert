@@ -6,5 +6,5 @@ export const Collection = defineComposition({
   id: "collection",
   purpose: "Browse objects with shared row geometry, or present media in a gallery.",
   owner: { entry: "Collection.svelte" },
-  uses: ["attention-indicator", "collection-state", "grouped-panel", "icon", "media-collection-grid", "media-grid"], approval: "none", contract: CollectionContract,
+  uses: ["attention-indicator", "collection-state", "grouped-panel", "icon", "media-collection-grid", "media-grid"], renders: ["collection"], approval: "none", contract: CollectionContract,
 } as const);

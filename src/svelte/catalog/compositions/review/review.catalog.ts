@@ -6,5 +6,5 @@ export const Review = defineComposition({
   id: "review",
   purpose: "Inspect the prepared result before accepting a change or recovering an uncertain result.",
   owner: { entry: "Review.svelte" },
-  uses: ["node-renderer"], approval: "none", contract: ReviewContract,
+  uses: ["node-renderer"], renders: ["review"], approval: "none", contract: ReviewContract,
 } as const);

@@ -6,5 +6,5 @@ export const OptionsControl = defineComposition({
   id: "options-control",
   purpose: "Choose one or several values from a divided group of options.",
   owner: { entry: "OptionsControl.svelte" },
-  uses: ["choice-list", "choice-row", "grouped-panel"], approval: "none", contract: OptionsControlContract,
+  uses: ["choice-list", "choice-row", "grouped-panel"], renders: ["control.options"], approval: "none", contract: OptionsControlContract,
 } as const);

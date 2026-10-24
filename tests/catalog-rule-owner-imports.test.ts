@@ -126,3 +126,21 @@ function contextless(vendor: string) {
   return `import { defineFoundation } from "x";\nimport { C } from "./action.contract.ts";\nexport const F = defineFoundation({ id: "action", purpose: "x", `
     + `owner: { entry: "Action.svelte", parts: ["ActionIcon.svelte"], ${vendor} }, shape: "radius", states: ["default"], approval: "required", contract: C } as const);\n`;
 }
+
+// Ported from the previous gate's PRIVATE_VISUAL_IMPORT and nonvisual framework laws: a composition (renderers included)
+// and an infra module import only nonvisual packages; visual packages belong to a foundation and its vendor families.
+test("F: a composition or an infra module importing a visual package, or Svelte beyond lifecycle and context", () => {
+  const infraModule = "src/svelte/infra/focus.ts";
+  assert.deepEqual(run({ ...legal(), ...pageImporting('import { mergeProps } from "bits-ui";\n  import Check from "@lucide/svelte/icons/check";\n'
+    + '  import { mount, onMount, setContext } from "svelte";\n  import { prefersReducedMotion } from "svelte/motion";\n  import type { Snippet } from "svelte";\n'
+    + '  import { Type } from "@sinclair/typebox";\n  import { writable } from "svelte/store";'),
+    [infraModule]: 'import { tabbable } from "tabbable";\nexport const first = tabbable;\n' }), [
+    `VENDOR_OUTSIDE_OWNER ${page} composition page imports the package bits-ui: visual packages belong to a foundation`,
+    `VENDOR_OUTSIDE_OWNER ${page} composition page imports the package @lucide/svelte/icons/check: visual packages belong to a foundation`,
+    `VENDOR_OUTSIDE_OWNER ${page} composition page imports mount from svelte: only its lifecycle and context functions`,
+    `VENDOR_OUTSIDE_OWNER ${page} composition page imports the package svelte/motion: visual packages belong to a foundation`,
+    `VENDOR_OUTSIDE_OWNER ${infraModule} an infra module imports the package tabbable: visual packages belong to a foundation`]);
+});
+test("F control: a foundation and its vendor family import visual packages", () => {
+  assert.deepEqual(run({ ...legal(), ...action('import { Button } from "../../../vendor/components/ui/button/index.js";\n  import Check from "@lucide/svelte/icons/check";') }), []);
+});

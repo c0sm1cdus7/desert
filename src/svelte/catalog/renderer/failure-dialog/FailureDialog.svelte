@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { NodeRenderer } from "../../../adapter-catalog.ts";
+  import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import { failureFeedback } from "../../../../web/client/failure-feedback.ts";
   import type { CatalogProps } from "../../types.d.ts";

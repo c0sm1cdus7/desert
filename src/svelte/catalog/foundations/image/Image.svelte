@@ -44,7 +44,7 @@
       return;
     }
     if (key !== identity || !img.isConnected || requested !== img.src) return;
-    ready = key; onready?.(null);
+    ready = key; onready?.();
   }
   function error(key: string) {
     if (key !== identity) return;

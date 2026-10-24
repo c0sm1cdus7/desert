@@ -14,7 +14,8 @@ export type Import = Readonly<{ specifier: string; target: Target; bindings: rea
 /** `default`, a named export, or `*` for a namespace or a whole re-export. */
 export type Aliases = readonly (readonly [prefix: string, target: string])[];
 export function resolveSpecifier(from: string, specifier: string, exists: (path: string) => boolean, aliases: Aliases): Target {
-  const [request = "", ...rest] = specifier.split("?"), query = rest.length ? `?${rest.join("?")}` : "";
+  // A query (`?inline`) or a fragment (`#x`) is the bundler's; the module is the path before it.
+  const cut = specifier.search(/[?#]/), request = cut < 0 ? specifier : specifier.slice(0, cut), query = cut < 0 ? "" : specifier.slice(cut);
   const alias = aliases.find(([prefix]) => request.startsWith(prefix));
   const base = alias ? `${alias[1]}${request.slice(alias[0].length)}`
     : request.startsWith(".") ? posix.normalize(posix.join(posix.dirname(from), request)) : undefined;
@@ -97,7 +98,7 @@ export function exportedNames(parsed: Parsed): ReadonlyMap<string, string> {
     }
     const exported = ts.canHaveModifiers(statement) && ts.getModifiers(statement)?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword);
     if (!exported) continue;
-    // `export const X: T = Owner;` re-exports the binding Owner under the name X (adapter-catalog.ts is written this way).
+    // `export const X: T = Owner;` re-exports the binding Owner under the name X, so a typed alias cannot hide a piece.
     if (ts.isVariableStatement(statement)) for (const declaration of statement.declarationList.declarations) {
       if (!ts.isIdentifier(declaration.name)) continue;
       const initializer = declaration.initializer;

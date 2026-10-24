@@ -6,5 +6,5 @@ export const CatalogHome = defineComposition({
   id: "catalog-home",
   purpose: "Arrange a catalog overview from the same content, media and navigation compositions.",
   owner: { entry: "CatalogHome.svelte" },
-  uses: ["heading", "node-renderer"], approval: "none", contract: CatalogHomeContract,
+  uses: ["heading", "node-renderer"], renders: ["catalog.home"], approval: "none", contract: CatalogHomeContract,
 } as const);

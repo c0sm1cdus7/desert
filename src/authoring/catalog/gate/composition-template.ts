@@ -2,7 +2,7 @@
 // catalog index and listed in `uses`, and renders only declared slots. Rule D2 (dispatchers) is composition-dispatch.ts.
 // Raises COMPOSITION_NATIVE_ELEMENT, COMPOSITION_UNKNOWN_PIECE, SLOT_NOT_TYPED.
 import { posix } from "node:path";
-import type { SyntaxNode } from "../../visual-boundary/walk.ts";
+import type { SyntaxNode } from "./walk.ts";
 import type { ContentRule, GateContext } from "./context.ts";
 import type { ParsedSvelte } from "./parse.ts";
 import { violation, type Violation } from "./violation.ts";

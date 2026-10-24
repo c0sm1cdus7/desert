@@ -9,7 +9,7 @@ import type { ContentRule, GateContext } from "./context.ts";
 import { scriptLine, type ParsedSvelte, type Script } from "./parse.ts";
 import type { Import } from "./resolve-imports.ts";
 import { violation, type Violation } from "./violation.ts";
-import type { SyntaxNode } from "../../visual-boundary/walk.ts";
+import type { SyntaxNode } from "./walk.ts";
 
 const code = "UNQUALIFIED_ARTIFACT", surfaceModule = "virtual:desert/surface", surfaceId = "\0desert-surface";
 const shell = '<!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <meta name="viewport" content="width=device-width, initial-scale=1" /> '

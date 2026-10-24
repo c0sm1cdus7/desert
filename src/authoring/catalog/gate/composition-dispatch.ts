@@ -2,23 +2,16 @@
 // the catalog index (or the entry a generated, typed table names), and only the node's own record may be spread onto it.
 // Raises DISPATCHER_GRAMMAR. Every other attribute and the child content of a mounted tag, a table entry included, are
 // rule E's (presentation.ts); a <style> block is rule G's.
-import type { SyntaxNode } from "../../visual-boundary/walk.ts";
-import { compositionFiles, describe, field, importViolations, isBlank, nodesOf, resolveTag, sourceOf, tagProblems, text,
+import type { SyntaxNode } from "./walk.ts";
+import { compositionFiles, describe, importViolations, isBlank, nodesOf, resolveTag, sourceOf, tagProblems, text,
   type CompositionFile } from "./composition-template.ts";
+import { admissionViolations, field, pathOf, type Branch } from "./dispatch-admission.ts";
 import type { ContentRule, GateContext } from "./context.ts";
 import { violation, type Violation } from "./violation.ts";
 
 const grammar = "DISPATCHER_GRAMMAR";
 type KindTest = Readonly<{ subject: string; kinds: readonly string[] }>;
 
-/** `a.b.c` of a plain member path, or undefined for anything computed. */
-function pathOf(node: unknown): string | undefined {
-  const type = field(node, "type");
-  if (type === "Identifier") return text(node, "name");
-  if (type !== "MemberExpression" || field(node, "computed") === true || field(node, "optional") === true) return undefined;
-  const object = pathOf(field(node, "object")), property = pathOf(field(node, "property"));
-  return object === undefined || property === undefined ? undefined : `${object}.${property}`;
-}
 
 /** `subject.kind === "x"`, or a `||` of such tests on one subject. */
 function kindTest(test: unknown): KindTest | undefined {
@@ -32,14 +25,20 @@ function kindTest(test: unknown): KindTest | undefined {
   return { subject: left.slice(0, -".kind".length), kinds: [kind] };
 }
 
-/** A table is a lookup source only when it is a generated renderer-infrastructure module. */
+/** A table is a lookup source only when it is the renderer table the catalog generates from the declarations (rule C). */
 function isGeneratedTable(context: GateContext, file: CompositionFile, local: string): boolean {
   const item = context.imports(file.path).find(candidate => candidate.form === "import" && candidate.bindings.some(binding => binding.local === local));
   const binding = item?.bindings.find(candidate => candidate.local === local);
   const defined = item && binding && binding.imported !== "*" ? context.definition(item, binding.imported) : undefined;
-  const infrastructure = context.layout.fixed["renderer-infrastructure"] ?? [];
-  return defined !== undefined && infrastructure.includes(defined) && (context.text(defined) ?? "").startsWith("// Generated");
+  return defined !== undefined && defined === context.layout.generated.renderers;
 }
+
+/** The table of a `{@const Local = table[kind]}`, when it is the generated table. */
+const tableOf = (node: SyntaxNode) => {
+  const declarators = field(field(node, "declaration"), "declarations");
+  const declarator: unknown = Array.isArray(declarators) && declarators.length === 1 ? declarators[0] : undefined;
+  return pathOf(field(field(declarator, "init"), "object"));
+};
 
 /** The local a `{@const Local = table[kind]}` binds, when `table` is a generated table. */
 function lookupOf(context: GateContext, file: CompositionFile, node: SyntaxNode): string | undefined {
@@ -69,21 +68,24 @@ function dispatcherViolations(context: GateContext, file: CompositionFile): Viol
       if (spread !== undefined && !own) report(attribute, `spread ${sourceOf(file.parsed, attribute)} onto <${name}>: only the node's typed record may be spread`);
     }
   };
-  const checkBranch = (fragment: unknown, anchor: SyntaxNode) => {
-    const lookups = new Set<string>();
+  const branches: Branch[] = [], tables = new Set<string>();
+  const checkBranch = (fragment: unknown, anchor: SyntaxNode, kinds: readonly string[]) => {
+    const lookups = new Set<string>(), lookupTags: SyntaxNode[] = [], tags: SyntaxNode[] = [];
     let mounted = 0;
     for (const node of nodesOf(fragment)) {
       if (isBlank(node)) continue;
       if (node.type === "ConstTag") {
         const local = lookupOf(context, file, node);
         if (local === undefined) report(node, `${sourceOf(file.parsed, node)} is not a lookup in a generated, typed table`);
-        else lookups.add(local);
+        else { lookups.add(local); lookupTags.push(node); tables.add(tableOf(node) ?? ""); }
       } else if (node.type === "Component") {
         mounted += 1;
+        tags.push(node);
         checkTag(node, lookups.has(text(node, "name")));
       } else report(node, `${describe(file.parsed, node)} in a dispatch branch`);
     }
     if (mounted !== 1) report(anchor, `branch mounts ${mounted} pieces; each kind mounts exactly one`);
+    branches.push({ kinds, node: anchor, lookups: lookupTags, tags });
   };
   const checkChain = (chain: SyntaxNode) => {
     const seen = new Set<string>();
@@ -96,12 +98,12 @@ function dispatcherViolations(context: GateContext, file: CompositionFile): Viol
         subject = test.subject;
         for (const kind of test.kinds) if (seen.has(kind)) report(branch, `kind "${kind}" dispatched twice`); else seen.add(kind);
       }
-      checkBranch(field(branch, "consequent"), branch);
+      checkBranch(field(branch, "consequent"), branch, test?.kinds ?? []);
       const alternate = field(branch, "alternate"), rest = nodesOf(alternate).filter(node => !isBlank(node)), [first] = rest;
       branch = rest.length === 1 && first?.type === "IfBlock" && field(first, "elseif") === true ? first : undefined;
       if (branch === undefined && first !== undefined) {
         report(first, "{:else} branch without a kind test");
-        checkBranch(alternate, first);
+        checkBranch(alternate, first, []);
       }
     }
   };
@@ -109,7 +111,7 @@ function dispatcherViolations(context: GateContext, file: CompositionFile): Viol
   if (chain) checkChain(chain);
   else report(file.parsed.fragment, "the template is not an if-chain over the node kind");
   for (const node of roots) if (node !== chain) report(node, `${describe(file.parsed, node)} outside the kind chain`);
-  return found;
+  return [...found, ...admissionViolations(context, file, { subject, branches }, tables)];
 }
 
 export const ruleD2: ContentRule = context => compositionFiles(context, true)

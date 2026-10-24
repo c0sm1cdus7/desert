@@ -102,3 +102,20 @@ export const FieldContract = { props: Type.Object({ label: Type.String() }, { ad
   assert.match(types, /readonly "sign-in-form": ComponentProps<typeof Catalog\.SignInForm>;/);
   assert.match(types, /export type ClosedContractId = "field";/);
 });
+
+test("the renderer table imports each rendering piece's entry and maps every kind it renders; the sources list every entry", async () => {
+  const files = { ...declarations,
+    "src/svelte/catalog/foundations/field/field.catalog.ts": field.replace('approval: "required"', 'renders: ["input.text", "input.multiline"], approval: "required"') };
+  const generated = await generatedFor(files), table = generated[layout.generated.renderers] ?? "";
+  assert.match(table, /^\/\/ Generated from the catalog declarations/);
+  assert.match(table, /import type \{ NodeRendererTable \} from "\.\/renderer-contracts\.ts";\nimport Field from "\.\/catalog\/foundations\/field\/Field\.svelte";/);
+  assert.match(table, /export const nodeRenderers: NodeRendererTable = Object\.freeze\(\{\n  "input\.text": Field,\n  "input\.multiline": Field,\n\} satisfies NodeRendererTable\);/);
+  assert.doesNotMatch(table, /SignInForm/, "a piece that renders no kind is not in the table");
+  assert.match(generated[layout.generated.sources] ?? "", /"sign-in-form": "src\/svelte\/catalog\/compositions\/sign-in-form\/SignInForm\.svelte",/);
+});
+
+test("a renderer table edited by hand fails rule C", async () => {
+  await withTree(await generatedTree(files => { files[layout.generated.renderers] += "export const extra = 1;\n"; }), async root => {
+    await assert.rejects(runCatalogGate(root, { layout, rules: ["C"] }), /CATALOG_DERIVATION: src\/svelte\/renderer-registry\.ts differs/);
+  });
+});

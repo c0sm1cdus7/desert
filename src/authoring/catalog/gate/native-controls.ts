@@ -1,7 +1,7 @@
 // Law: native controls are drawn only inside a foundation (its folder, or a vendor family it owns), and the browser's own
 // media controls nowhere. Raises NATIVE_CONTROL_OUTSIDE_FOUNDATION.
 import { posix } from "node:path";
-import { walk, type SyntaxNode } from "../../visual-boundary/walk.ts";
+import { walk, type SyntaxNode } from "./walk.ts";
 import type { ContentRule, GateContext } from "./context.ts";
 import { violation, type Violation } from "./violation.ts";
 

@@ -15,9 +15,9 @@ files they rely on: `.github/workflows/gate.yml` and `CODEOWNERS`, in DESERT and
 `gate-from-base` and `ledger-integrity` live in `.github/workflows/gate-base.yml` and run on `pull_request_target`, so
 the workflow and the code that run come from the base branch: a PR cannot rewrite the checks that judge it. They use a
 read-only token, no secrets and no caches. `gate-from-base` checks out the base, installs the base's lockfile, copies in only
-the PR's visual roots and the files the gate reads as data (the list comes from the base layout), and runs the base's
-catalog rules, which never evaluate the PR's code. The previous visual-boundary gate is not run there, because it evaluates
-modules of the tree; `gate` runs it. `ledger-integrity` runs no PR code.
+the PR's visual roots, the interpreter sources and the files the gate reads as data (the list comes from the base
+layout), and runs every base catalog rule, none of which evaluates the PR's code (the gate imports only its own modules;
+the renderer contracts and the declarations are read as data). `ledger-integrity` runs no PR code.
 
 Two consequences to expect. `pull_request_target` takes the workflow from the base branch, so these two checks do not run
 at all on a PR whose base does not have `gate-base.yml` yet; do not mark them required before the base has it. And under

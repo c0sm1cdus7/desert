@@ -223,3 +223,32 @@ test("G2: Svelte's scoping classes are the compiler's, at most one per component
   assert.deepEqual(g2(utilities(""), ".svelte-Glow-1{color:red}"),
     [cross("build/_app/immutable/assets/0.abc.css", 'utility class "svelte-Glow-1" is in the emitted CSS but no owner writes it: no source and no source stylesheet holds it')]);
 });
+
+// Ported from the previous gate's toolbar ownership laws, generalised: a global stylesheet names only what its owner
+// draws (classes and data marks written in markup), and a custom property has one writing owner (the theme's, when it writes it).
+const toolbarCss = `${foundations}/toolbar/toolbar.css`;
+const withToolbar = (css: string) => ({ ...tree(), ...foundation("toolbar", "Toolbar.svelte",
+  '<header class="toolbar-row" data-toolbar-title></header>\n', ', parts: ["toolbar.css"]'), [toolbarCss]: css });
+test("G: a global stylesheet naming a class or a data mark that only another owner draws", () => {
+  for (const selector of [".toolbar-row", "[data-toolbar-title]", "[data-catalog-workspace] .toolbar-row button", ":is([data-toolbar-title], .x)"]) {
+    const found = run(append(withToolbar(""), shared, `\n${selector} { padding-inline-start: 99px; }\n`));
+    assert.ok(found.some(line => line.startsWith(`CROSS_OWNER_CSS ${shared} selector`) && line.includes("which only toolbar draws")), selector);
+  }
+  assert.ok(!run(append(withToolbar(".toolbar-row { gap: 1px; }\n"), shared, "")).some(line => line.includes(toolbarCss)), "the owner styles its own mark");
+  assert.deepEqual(run(append(tree(), heading, "")).filter(line => line.includes("draws")), [], "a scoped <style> reaches only its own markup");
+});
+test("G: a custom property has one writing owner, in CSS, inline styles, style directives and setProperty", () => {
+  const writes = withToolbar(":root { --toolbar-inset: 0; }\n");
+  for (const [path, text] of [
+    [shared, "\n.x { --toolbar-inset: 99px; }\n"],
+    [`${foundations}/action/Action.svelte`, '<div style="--toolbar-inset:0"></div>\n'],
+    [`${foundations}/action/Action.svelte`, '<div style:--toolbar-inset="0"></div>\n'],
+    [`${foundations}/action/Action.svelte`, '<script lang="ts">\n  const set = (node: HTMLElement) => node.style.setProperty("--toolbar-inset", "0");\n</script>\n'],
+  ] as const) {
+    const found = run(append(writes, path, text));
+    assert.ok(found.some(line => line.includes("writes --toolbar-inset") && line.includes("a custom property has one writing owner")), `${path}: ${text}`);
+  }
+  const themed = run(append(append(tree(), tokens, ":root { --face-size: 2rem; }\n"), wellCss, "[data-field-well] { --face-size: 3rem; }\n"));
+  assert.deepEqual(themed.filter(line => line.includes("--face-size")), [cross(wellCss, "field-well writes --face-size, which mechanism theme also writes: a custom property has one writing owner")],
+    "when the theme writes a token, only the other writers are reported");
+});

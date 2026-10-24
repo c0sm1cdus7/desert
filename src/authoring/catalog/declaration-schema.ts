@@ -16,6 +16,9 @@ const Axis = immutable(Type.Record(AxisName, unique(AxisValue, 1), { additionalP
 const Slot = closed({ accepts: unique(PieceId, 1), variants: Type.Optional(Axis) });
 const Slots = immutable(Type.Record(PieceId, Slot, { additionalProperties: false }));
 const Contract = immutable(Type.Object({}, { additionalProperties: true }));
+/** Resolved node kinds a piece renders for the node dispatcher (`input.text`, `control.select`); rule B checks them against
+ * the resolved-node grammar: every kind rendered by exactly one piece. */
+const Renders = unique(immutable(Type.String({ pattern: "^[a-z]+(?:\\.[a-z]+)?$" })), 1);
 
 export const FoundationDataSchema = closed({
   id: PieceId, purpose: text,
@@ -25,7 +28,11 @@ export const FoundationDataSchema = closed({
   variantShapes: Type.Optional(Type.Record(PieceId, Type.Record(PieceId, Shape))),
   states: unique(PieceId, 1),
   variants: Type.Optional(Axis),
+  /** A state that exists only for some variant values (TextInput's `masked` is single-line only): rule J then requires
+   * no specimen elsewhere, and the contract's exclusive variants make one there fail to type-check. */
+  stateVariants: Type.Optional(Type.Record(PieceId, Axis, { additionalProperties: false })),
   slots: Type.Optional(Slots),
+  renders: Type.Optional(Renders),
   approval: Type.Literal("required"),
   contract: Contract,
 });
@@ -35,6 +42,7 @@ export const CompositionDataSchema = closed({
   uses: unique(PieceId),
   slots: Type.Optional(Slots),
   authorable: Type.Optional(Type.Boolean()),
+  renders: Type.Optional(Renders),
   dispatch: Type.Optional(Type.Union([Type.Literal("resolved-node"), Type.Literal("view-content")])),
   approval: Type.Union([Type.Literal("required"), Type.Literal("none")]),
   contract: Contract,

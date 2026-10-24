@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
-  import { ViewProductContent } from "../../../adapter-catalog.ts";
+  import { ViewProductContent } from "../../index.ts";
 
   let { program, surface, validateInput, access }: CatalogProps<"view-product"> = $props();
 </script>

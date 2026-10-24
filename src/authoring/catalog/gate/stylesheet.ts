@@ -1,7 +1,7 @@
 // Reads stylesheets for the CSS rules (G, G2): every `.css` file and every Svelte `<style>`, with Svelte's own CSS parser,
 // placed at the lines of the file that holds them. Shared so both rules read CSS one way.
 import { parse } from "svelte/compiler";
-import type { SyntaxNode } from "../../visual-boundary/walk.ts";
+import type { SyntaxNode } from "./walk.ts";
 
 const wrapper = "<style>";
 export type Stylesheet = Readonly<{ path: string; tree: SyntaxNode; text: (node: unknown) => string; line: (node: unknown) => number;

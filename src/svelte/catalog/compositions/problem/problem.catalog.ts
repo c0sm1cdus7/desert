@@ -6,5 +6,5 @@ export const Problem = defineComposition({
   id: "problem",
   purpose: "Explain a warning or error in a modal message the person dismisses unless it is locked.",
   owner: { entry: "Problem.svelte" },
-  uses: ["surface-frame"], approval: "required", contract: ProblemContract,
+  uses: ["surface-frame"], renders: ["problem"], approval: "required", contract: ProblemContract,
 } as const);

@@ -25,10 +25,10 @@ test("product, catalog and nested compositions use the one bank dispatch boundar
   assert.match(dispatch, /nodeRenderers/);
   // Collection is the registered leaf, not a caller that should dispatch to itself.
   assert.match(source("renderer-registry.ts"), /collection: Collection/);
-  assert.match(source("catalog/compositions/collection/Collection.svelte"), /import type \{ ResolvedNodeFor \}/);
+  assert.match(source("catalog/compositions/collection/Collection.svelte"), /: CatalogProps<"collection"> = \$props\(\)/);
   assert.match(source("catalog/compositions/collection/Collection.svelte"), /<GroupedPanel>/);
-  assert.match(source("catalog/renderer/inspection-content/InspectionContent.svelte"), /import \{ Inspection \} from "\.\.\/\.\.\/\.\.\/adapter-catalog\.ts"/);
-  assert.match(source("adapter-catalog.ts"), /import InspectionOwner from "\.\/catalog\/compositions\/inspection\/Inspection\.svelte"/);
+  assert.match(source("catalog/renderer/inspection-content/InspectionContent.svelte"), /import \{ Inspection \} from "\.\.\/\.\.\/index\.ts"/);
+  assert.match(source("catalog/index.ts"), /export \{ default as Inspection \} from "\.\/compositions\/inspection\/Inspection\.svelte";/);
 });
 
 test("replacing a registered leaf reaches real product frame and catalog specimen together", { timeout: 20000 }, async () => {

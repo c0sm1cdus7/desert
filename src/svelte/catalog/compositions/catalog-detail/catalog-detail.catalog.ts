@@ -6,5 +6,5 @@ export const CatalogDetail = defineComposition({
   id: "catalog-detail",
   purpose: "Read one catalog item with its media and details in the current destination.",
   owner: { entry: "CatalogDetail.svelte" },
-  uses: ["heading", "photo-collection", "stack-layout"], approval: "none", contract: CatalogDetailContract,
+  uses: ["heading", "photo-collection", "stack-layout"], renders: ["catalog.detail"], approval: "none", contract: CatalogDetailContract,
 } as const);

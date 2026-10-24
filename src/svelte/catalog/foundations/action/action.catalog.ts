@@ -9,5 +9,5 @@ export const Action = defineFoundation({
   owner: { entry: "Action.svelte", vendor: ["button"] },
   shape: "capsule", states: ["ready", "unavailable", "pending"],
   variants: { emphasis: ["primary", "secondary"] },
-  approval: "required", contract: ActionContract,
+  renders: ["action"], approval: "required", contract: ActionContract,
 } as const);

@@ -6,7 +6,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { sdkRoot } from "./revision.ts";
 import { inspectionMedia } from "../../svelte/infra/inspection-media.ts";
-import { catalogGateEvidence, runWithVisualBoundaries } from "../../authoring/visual-boundary/source.ts";
+import { catalogGateEvidence, runWithCatalogGate } from "../../authoring/catalog/gate/build-gate.ts";
 
 /** The generated SvelteKit project and its worker, without any gate: private to this module. Only `createBuildProject`
  * (gated) and `createEvidenceProject` (test-only, no manifest) reach it. */
@@ -40,7 +40,7 @@ export function createBuildProject(module: string, family: "human" | "public-cat
   return { directory: project.directory,
     async run(mode: "build" | "check") {
       try {
-        const output = await runWithVisualBoundaries(sdkRoot, () => project.worker(mode),
+        const output = await runWithCatalogGate(sdkRoot, () => project.worker(mode),
           mode === "build" ? () => emittedStylesheets(join(project.directory, "build")) : undefined);
         return { ...output, gate: catalogGateEvidence };
       } catch (error) {

@@ -4,22 +4,34 @@ Implementation specification for the
 [visual catalog ownership contract](VISUAL-CATALOG-CONTRACT.md), dated 2026-10-20.
 The gates and tests below are required work, not currently passing capabilities.
 
-## What runs today (slice 1, 2026-10-23)
+## What runs today (slice 2, 2026-10-24)
 
-Every build and check (`createBuildProject`, `scripts/check-visual-boundary.ts`) runs, in order:
+Every build and check (`createBuildProject`, `scripts/catalog-gate.ts`) runs `runWithCatalogGate`
+(`src/authoring/catalog/gate/build-gate.ts`), in order:
 
-1. Rule P: every gate module, the theme, the ledger, the catalog index and the sources the gate reads are present.
+1. Rule P: every gate module, the theme, the renderer contracts, the ledger, the catalog index and the sources the gate
+   reads are present.
 2. Structural rules, which stop at the first error: A (every file under `src/svelte` and `src/build/svelte` belongs to
-   one declaration or one fixed category), B (declarations agree), C (generated catalog files equal their regeneration),
-   L (the ledger names every piece).
-3. The previous visual-boundary gate, until its assertions are ported.
-4. Content rules, which report every violation in one failure: D/D2 (compositions and dispatchers compose catalog pieces
-   only), E (pieces receive only their contract's props), F (parts, vendor families and foundation props stay with their
-   owner), G (CSS styles only what its owner draws), H (native controls only in foundations), I (DOM only in foundations
-   and foundation-owned mechanisms), J (specimens cover every state and variant), K (the view grammar maps to authorable
-   compositions), L2 (approved pieces are unchanged; approved and dispatching pieces mount approved pieces), T (the host
-   files keep their fixed grammar).
-5. The worker; then, for a build, G2 on the emitted CSS.
+   one declaration or one fixed category), B (declarations agree; the pieces that `renders` resolved node kinds cover the
+   resolved-node grammar exactly once), C (generated catalog files, the renderer table included, equal their
+   regeneration), L (the ledger is well formed).
+3. Content rules, which report every violation in one failure: D/D2 (compositions and dispatchers compose catalog pieces
+   only; a dispatcher admits its node through its validator, has one branch per kind, looks each kind up in the generated
+   table, and passes a private host capability only to its own kind), E (pieces receive only their contract's props; a
+   contract declares no presentation input), F (parts, vendor families, visual packages and foundation props stay with
+   their owner), G (CSS styles only what its owner draws: no global or element selectors outside the theme, no other
+   owner's slots, contract marks or markup marks in a stylesheet, one writer per custom property), H (native controls
+   only in foundations), I (DOM only in foundations and foundation-owned mechanisms; a renderer composition names no
+   browser global), J (specimens cover every state and variant), K (the view grammar maps to authorable compositions),
+   L2 (approved pieces are unchanged; approved and dispatching pieces mount approved pieces), N (the interpreter and every
+   module outside the visual roots the page reaches stay nonvisual), O (no `{@html}` outside compositions, no evaluator,
+   `require` or computed `import()` in page code), T (the host files keep their fixed grammar).
+4. The worker; then, for a build, G2 on the emitted CSS.
+
+The previous visual-boundary gate (`src/authoring/visual-boundary`, `src/authoring/web-catalog`, `catalog-manifest.ts`
+and its generated `adapter-catalog.ts`) was retired in slice 2 once every assertion had a catalog rule; the mapping is in
+the slice-2 port inventory of the plan. Which resolved node kind renders through which piece is one fact per declaration
+(`renders`), and `src/svelte/renderer-registry.ts` is generated from it.
 
 The build is strict (owner decision Q1): today the content rules report the migration worklist, so every build fails
 until slice 6 closes it. A qualified build records `gate: { version: "desert.catalog-gate/1" }` in a
@@ -27,7 +39,7 @@ until slice 6 closes it. A qualified build records `gate: { version: "desert.cat
 `src/authoring/catalog/layout.ts`.
 
 ```bash
-node scripts/catalog.ts --write          # regenerate catalog/index.ts, manifest.json, types.d.ts
+node scripts/catalog.ts --write          # regenerate catalog/index.ts, manifest.json, types.d.ts, sources.ts, renderer-registry.ts
 node scripts/catalog.ts --check          # rule C alone
 node scripts/catalog.ts status           # ledger status per piece and specimen, digests of approved pieces
 node scripts/catalog.ts approve <id>...  # owner only: stamp digests in approvals.json

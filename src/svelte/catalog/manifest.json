@@ -227,6 +227,9 @@
         ]
       },
       "purpose": "Invoke one command with a text button or an icon button, never competing text and icons.",
+      "renders": [
+        "action"
+      ],
       "shape": "capsule",
       "states": [
         "ready",
@@ -361,6 +364,9 @@
         ]
       },
       "purpose": "Understand whether a capability is ready, unavailable or not yet known.",
+      "renders": [
+        "availability"
+      ],
       "shape": "none",
       "states": [
         "ready",
@@ -389,6 +395,9 @@
         "entry": "CatalogCard.svelte"
       },
       "purpose": "Open a media item from a card composed of artwork and its supporting content.",
+      "renders": [
+        "catalog.card"
+      ],
       "shape": "none",
       "states": [
         "image",
@@ -403,6 +412,9 @@
         "entry": "CatalogDetail.svelte"
       },
       "purpose": "Read one catalog item with its media and details in the current destination.",
+      "renders": [
+        "catalog.detail"
+      ],
       "uses": [
         "heading",
         "photo-collection",
@@ -417,6 +429,9 @@
         "entry": "CatalogHome.svelte"
       },
       "purpose": "Arrange a catalog overview from the same content, media and navigation compositions.",
+      "renders": [
+        "catalog.home"
+      ],
       "uses": [
         "heading",
         "node-renderer"
@@ -608,6 +623,9 @@
         "entry": "Collection.svelte"
       },
       "purpose": "Browse objects with shared row geometry, or present media in a gallery.",
+      "renders": [
+        "collection"
+      ],
       "uses": [
         "attention-indicator",
         "collection-state",
@@ -715,6 +733,9 @@
         "entry": "ContextPanel.svelte"
       },
       "purpose": "Read an object and use its contextual commands without leaving its destination.",
+      "renders": [
+        "context"
+      ],
       "uses": [
         "attention-status",
         "context-properties",
@@ -794,6 +815,9 @@
         ]
       },
       "purpose": "Choose one day from a month calendar opened from a labelled field well, within optional bounds.",
+      "renders": [
+        "control.date"
+      ],
       "shape": "radius",
       "states": [
         "empty",
@@ -831,6 +855,9 @@
         ]
       },
       "purpose": "Open a temporary surface over its parent with content and top or bottom toolbars, never lateral child surfaces.",
+      "renders": [
+        "transient"
+      ],
       "shape": "none",
       "states": [
         "open",
@@ -943,6 +970,9 @@
         "entry": "Facts.svelte"
       },
       "purpose": "Read a labeled value, including the difference between an empty value and an unknown value.",
+      "renders": [
+        "fact"
+      ],
       "uses": [
         "fact-group"
       ]
@@ -1054,6 +1084,9 @@
         "entry": "Fields.svelte"
       },
       "purpose": "Mount each field of a form frame through the node renderer and report its edits and control events.",
+      "renders": [
+        "form"
+      ],
       "uses": [
         "node-renderer"
       ]
@@ -1069,6 +1102,9 @@
         ]
       },
       "purpose": "Select supported local files and inspect their limits before an operation uses them.",
+      "renders": [
+        "control.files"
+      ],
       "uses": [
         "action"
       ]
@@ -1310,6 +1346,9 @@
         "entry": "LabelsControl.svelte"
       },
       "purpose": "Compose the field well, value rail and options from the same shared owners as every labels control.",
+      "renders": [
+        "control.labels"
+      ],
       "uses": [
         "character-counter",
         "label-rail",
@@ -1460,6 +1499,11 @@
         "entry": "MediaControl.svelte"
       },
       "purpose": "Show a tag, an avatar or a captioned image read-only, without turning it into an action.",
+      "renders": [
+        "control.tag",
+        "control.image",
+        "control.avatar"
+      ],
       "uses": [
         "icon",
         "image",
@@ -1545,6 +1589,9 @@
         "entry": "MoneyControl.svelte"
       },
       "purpose": "Enter an amount and choose its currency without losing the lexical draft.",
+      "renders": [
+        "control.money"
+      ],
       "uses": [
         "clear-input",
         "field-well",
@@ -1618,6 +1665,9 @@
         "entry": "OptionsControl.svelte"
       },
       "purpose": "Choose one or several values from a divided group of options.",
+      "renders": [
+        "control.options"
+      ],
       "uses": [
         "choice-list",
         "choice-row",
@@ -1766,6 +1816,9 @@
         ]
       },
       "purpose": "Read contextual information in a temporary surface anchored to its trigger.",
+      "renders": [
+        "control.popover"
+      ],
       "uses": [
         "frame-body",
         "node-renderer"
@@ -1779,6 +1832,9 @@
         "entry": "Problem.svelte"
       },
       "purpose": "Explain a warning or error in a modal message the person dismisses unless it is locked.",
+      "renders": [
+        "problem"
+      ],
       "uses": [
         "surface-frame"
       ]
@@ -1949,6 +2005,9 @@
         "entry": "Review.svelte"
       },
       "purpose": "Inspect the prepared result before accepting a change or recovering an uncertain result.",
+      "renders": [
+        "review"
+      ],
       "uses": [
         "node-renderer"
       ]
@@ -2018,6 +2077,9 @@
         "entry": "SelectControl.svelte"
       },
       "purpose": "Choose one value from a labeled field and a shared options popover.",
+      "renders": [
+        "control.select"
+      ],
       "uses": [
         "measured-field",
         "node-renderer",
@@ -2358,7 +2420,18 @@
         ]
       },
       "purpose": "Write a single line or several with a persistent label, field help and validation feedback.",
+      "renders": [
+        "input.text",
+        "input.multiline"
+      ],
       "shape": "radius",
+      "stateVariants": {
+        "masked": {
+          "primitive": [
+            "input.text"
+          ]
+        }
+      },
       "states": [
         "empty",
         "value",

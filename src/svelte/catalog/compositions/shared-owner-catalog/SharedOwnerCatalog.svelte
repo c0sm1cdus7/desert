@@ -6,7 +6,8 @@
   import { ToolbarLayout } from "../../index.ts";
   import { PlaceHeader } from "../../index.ts";
   import { SharedOwnerSpecimen } from "../../index.ts";
-  import { WebCatalogManifest } from "../../../catalog-manifest.ts";
+  import { CatalogSources } from "../../sources.ts";
+  import { sharedOwnerPieces } from "../../../infra/shared-owners.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import { sharedPurpose, sharedParts } from '../../../infra/shared-purpose.ts';
   let { selected, hosted, onselect }: CatalogProps<"shared-owner-catalog">=$props();
@@ -23,8 +24,7 @@
     </div></GroupedPanel></StackLayout>{/if}
     <StackLayout title="Contract"><Information items={[
       {kind:"fact",label:"Owner",value:selected},
-      {kind:"fact",label:"Source",value:WebCatalogManifest.owners[selected].source},
-      {kind:"fact",label:"Boundary",value:WebCatalogManifest.owners[selected].closure},
+      {kind:"fact",label:"Source",value:CatalogSources[sharedOwnerPieces[selected]]},
     ]} /></StackLayout>
   {/if}
 </div>

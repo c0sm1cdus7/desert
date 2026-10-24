@@ -1,28 +1,24 @@
 // Rule G. Law: a stylesheet styles only what its owner draws, and only its owner loads it. Raises CROSS_OWNER_CSS.
 // Every `.css` file and every Svelte `<style>` is read with Svelte's own CSS parser. Only the theme mechanism styles
 // elements or styles globally; a selector may name a vendor slot (`data-slot`) or a contract mark only inside the
-// piece that owns it; compositions own no CSS; theme.css loads only the theme's mechanism stylesheets.
+// piece that owns it; compositions own no CSS; theme.css loads only the theme's mechanism stylesheets. What owners draw
+// (marks written in markup, custom properties) is css-marks.ts.
 // G reports, it never fixes: the stylesheets keep the pixels the owner approved.
 import ts from "typescript";
-import { walk, type SyntaxNode } from "../../visual-boundary/walk.ts";
+import { isCSSRequest } from "vite";
+import { walk, type SyntaxNode } from "./walk.ts";
 import { parseable, type ContentRule, type GateContext } from "./context.ts";
 import type { Owner } from "./ownership.ts";
 import { resolveSpecifier, type Target } from "./resolve-imports.ts";
 import { violation, type Violation } from "./violation.ts";
 import { isNode, lineOf, nodes, position, readStylesheet, rulesOf, decodeCss, type Stylesheet } from "./stylesheet.ts";
 import { themeMechanism } from "../layout.ts";
+import { customPropertyViolations, foreignMarkViolations, ownerId } from "./css-marks.ts";
 
 const code = "CROSS_OWNER_CSS", theme = themeMechanism;
 type StylesheetImport = Readonly<{ from: string; line: number; specifier: string; target: Target }>;
 type Marks = Readonly<{ slots: ReadonlyMap<string, ReadonlySet<string>>; marks: ReadonlyMap<string, string>; families: ReadonlyMap<string, string> }>;
 
-/** The piece that owns a file, for CSS: a vendor family and a mechanism belong to their foundation; theme.css to the theme. */
-function ownerId(owner: Owner | undefined): string | undefined {
-  if (owner?.kind === "piece") return owner.id;
-  if (owner?.kind === "vendor") return owner.foundation;
-  if (owner?.kind === "mechanism") return owner.owner;
-  return owner?.kind === "fixed" && owner.category === theme ? theme : undefined;
-}
 const isThemeMechanism = (owner: Owner | undefined) => owner?.kind === "mechanism" && owner.id === theme;
 const isThemeEntry = (owner: Owner | undefined) => owner?.kind === "fixed" && owner.category === theme;
 const compositionOf = (owner: Owner | undefined) => owner?.kind === "piece" && owner.pieceKind === "composition" ? owner.id : undefined;
@@ -137,12 +133,13 @@ function stylesheetsOf(context: GateContext): { sheets: Stylesheet[]; direct: Vi
   return { sheets, direct };
 }
 
-const isStylesheet = (specifier: string) => (specifier.split("?")[0] ?? "").endsWith(".css");
-/** Stylesheets loaded by script imports (`import "./x.css"`) and by CSS `@import` / `@reference`. */
+/** A stylesheet request in any language the installed builder reads (`.css`, `.scss`, `.less`…), whatever its query. */
+const isStylesheet = (specifier: string) => isCSSRequest(specifier.split(/[?#]/, 1)[0] ?? "");
+/** Stylesheets loaded by script imports and re-exports (`import "./x.css"`, `export * from "./x.css"`) and by CSS `@import` / `@reference`. */
 function stylesheetImports(context: GateContext, sheets: readonly Stylesheet[]): StylesheetImport[] {
   const present = new Set(context.paths), exists = (path: string) => present.has(path), found: StylesheetImport[] = [];
   for (const path of context.paths) for (const item of context.imports(path)) {
-    if (item.form !== "reexport" && isStylesheet(item.specifier)) found.push({ from: path, line: item.line, specifier: item.specifier, target: item.target });
+    if (isStylesheet(item.specifier)) found.push({ from: path, line: item.line, specifier: item.specifier, target: item.target });
   }
   for (const sheet of sheets) if (sheet.path.endsWith(".css")) for (const atRule of sheet.atRules) {
     if (atRule.name !== "import" && atRule.name !== "reference") continue;
@@ -170,6 +167,7 @@ function importViolation(context: GateContext, item: StylesheetImport): string |
 export const ruleG: ContentRule = context => {
   const { sheets, direct } = stylesheetsOf(context), known = ownedMarks(context), found = [...direct];
   for (const sheet of sheets) found.push(...selectorViolations(context, sheet, known));
+  found.push(...foreignMarkViolations(context, sheets, new Set([...known.marks.keys()].map(mark => `[${mark}]`))), ...customPropertyViolations(context, sheets));
   for (const item of stylesheetImports(context, sheets)) {
     const what = importViolation(context, item);
     if (what !== undefined) found.push(violation(code, item.from, item.line, what));

@@ -1,5 +1,9 @@
 # Visual ownership: implementation slice and remaining debt
 
+> Historical record (2026-10-20 to 2026-10-22). The gate it describes (`src/authoring/visual-boundary`,
+> `catalog-manifest.ts`, `scripts/check-visual-boundary.ts`) was retired in slice 2 (2026-10-24): every assertion is a
+> Visual Catalog rule now (docs/VISUAL-CATALOG-ENFORCEMENT.md). File paths below are as they were then.
+
 This audit implements part of the source-boundary work required by
 `../VISUAL-CATALOG-CONTRACT.md`. It does not replace that contract, approve legacy
 overrides, or certify the renderer. The stable baseline remains preserved;

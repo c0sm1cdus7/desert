@@ -1,15 +1,13 @@
 // Stage A: one case per escape class, written against the 572b30f tree before any gate work and
-// retargeted to the slice-0 layout (same escape class, same required code).
+// retargeted to the slice-0 layout (same escape class, same required code), then to the index imports of slice 2.
 // `expect` is the code the finished gate must raise (escape cases: one future code;
 // controls: today's code or its future name). Both the test and the baseline recorder read this list.
 import type { GateMode, Mutation, SourceTree } from "./harness.ts";
 
-/** `at`: the file the new violation must name, when the case knows it (a code alone could come from anywhere).
- * `previousGateStricter`: codes of the previous visual-boundary gate a positive case may still trip, because that gate is
- * stricter than the catalog law until its assertion is ported; never a catalog rule code. */
+/** `at`: the file the new violation must name, when the case knows it (a code alone could come from anywhere). */
 export type GateCase = Readonly<{
   id: string; title: string; kind: "escape" | "control" | "positive";
-  expect: readonly string[]; mode?: GateMode; mutate: Mutation; at?: string; previousGateStricter?: readonly string[];
+  expect: readonly string[]; mode?: GateMode; mutate: Mutation; at?: string;
 }>;
 
 const catalog = "src/svelte/catalog", compositions = `${catalog}/compositions`, foundations = `${catalog}/foundations`;
@@ -17,7 +15,7 @@ const accessGateFolder = `${compositions}/access-gate`, accessGate = `${accessGa
 const contentFlow = `${compositions}/content-flow/ContentFlow.svelte`, heading = `${foundations}/heading/Heading.svelte`;
 const frameBody = `${catalog}/renderer/frame-body/FrameBody.svelte`;
 const sharedStylesheet = `${catalog}/mechanisms/structured-content/structured-content.css`;
-const flowScript = "  import Feedback from '../../foundations/feedback/Feedback.svelte';";
+const flowScript = "  import { Feedback } from '../../index.ts';";
 const addToFlow = (imports: string, markup: string): Mutation => async tree => {
   await tree.replace(contentFlow, flowScript, `${flowScript}\n${imports}`);
   await tree.append(contentFlow, `\n${markup}\n`);
@@ -25,7 +23,7 @@ const addToFlow = (imports: string, markup: string): Mutation => async tree => {
 const headingImport = '  import Heading from "../../foundations/heading/Heading.svelte";';
 const headingFromFlow = (attributes: string) => addToFlow(headingImport, `<Heading kind="page" text="x" ${attributes} />`);
 const vendorButton = "../../../vendor/components/ui/button/index.js";
-const accessScript = '  import AccessScreen from "../access-screen/AccessScreen.svelte";';
+const accessScript = '  import { AccessScreen } from "../../index.ts";';
 const importIntoAccessGate = (line: string) => (tree: SourceTree) => tree.replace(accessGate, accessScript, `${accessScript}\n${line}`);
 /** Appends to a declared mechanism, so the only violation is the rule itself. */
 const stylesheet = (css: string): Mutation => tree => tree.append(sharedStylesheet, `\n${css}`);
@@ -89,27 +87,30 @@ export const stageA: readonly GateCase[] = [
     mutate: tree => tree.append("src/build/svelte/public-catalog-page.svelte", "\n<marquee>x</marquee>\n") },
   { id: "N35", title: "the Vite configuration gains a plugin", kind: "escape", expect: ["UNQUALIFIED_ARTIFACT"],
     mutate: tree => tree.replace("src/build/svelte/vite.mjs", "  tailwindcss(), sveltekit(),", '  { name: "rogue" }, tailwindcss(), sveltekit(),') },
-  { id: "N44", title: "a generated registry is edited by hand", kind: "control", expect: ["WEB_CATALOG_DERIVATION", "CATALOG_DERIVATION"],
+  { id: "N44", title: "a generated registry is edited by hand", kind: "control", expect: ["CATALOG_DERIVATION"],
     mutate: tree => tree.replace("src/svelte/renderer-registry.ts", 'import TextInput from "./catalog/foundations/text-input/TextInput.svelte";',
       'import TextInput from "./catalog/foundations/text-input/TextInput.svelte";\nimport Rogue from "./catalog/foundations/heading/Heading.svelte";') },
-  { id: "N47", title: "relabelling an owner unsealed hides a class escape", kind: "escape", expect: ["PRESENTATION_ESCAPE"],
-    mutate: async tree => { await tree.replace("src/svelte/catalog-manifest.ts",
-      'Heading: { source: "src/svelte/catalog/foundations/heading/Heading.svelte", closure: "closed" }', 'Heading: { source: "src/svelte/catalog/foundations/heading/Heading.svelte", closure: "unsealed" }');
-      await headingFromFlow('class="x"')(tree); } },
+  // The previous registry relabelled an owner "unsealed"; the catalog's equivalent is reopening the contract to a stub.
+  { id: "N47", title: "reopening a piece's contract to a stub hides a class escape", kind: "escape", expect: ["PRESENTATION_ESCAPE"], at: contentFlow,
+    mutate: async tree => { await tree.remove(`${foundations}/heading/heading.contract.ts`);
+      await tree.create(`${foundations}/heading/heading.contract.ts`, "export const HeadingContract = {} as const;\n");
+      await tree.regenerateCatalog(); await headingFromFlow('class="x"')(tree); } },
   { id: "N49h", title: "the human build family runs the gate before its worker", kind: "control", mode: "project:human",
-    expect: ["RENDERER_DOM", "COMPOSITION_NATIVE_ELEMENT"], mutate: tree => tree.append(frameBody, "\n<div>x</div>\n") },
+    expect: ["COMPOSITION_NATIVE_ELEMENT"], at: frameBody, mutate: tree => tree.append(frameBody, "\n<div>x</div>\n") },
   { id: "N49p", title: "the public-catalog build family runs the gate before its worker", kind: "control", mode: "project:public-catalog",
-    expect: ["RENDERER_DOM", "COMPOSITION_NATIVE_ELEMENT"], mutate: tree => tree.append(frameBody, "\n<div>x</div>\n") },
+    expect: ["COMPOSITION_NATIVE_ELEMENT"], at: frameBody, mutate: tree => tree.append(frameBody, "\n<div>x</div>\n") },
   { id: "N51", title: "deleting a gate module cannot switch the gate off", kind: "escape", expect: ["CATALOG_GATE_SOURCES"],
-    mutate: tree => tree.remove("src/authoring/visual-boundary/closed.ts") },
-  { id: "C1", title: "a sealed adapter draws a native element", kind: "control", expect: ["RENDERER_DOM", "COMPOSITION_NATIVE_ELEMENT"],
+    mutate: tree => tree.remove("src/authoring/catalog/gate/nonvisual.ts") },
+  // C1–C4 were the previous gate's controls; they now expect the catalog rule that took each assertion over.
+  { id: "C1", title: "a renderer composition draws a native element", kind: "control", expect: ["COMPOSITION_NATIVE_ELEMENT"], at: frameBody,
     mutate: tree => tree.append(frameBody, "\n<div>x</div>\n") },
-  { id: "C2", title: "a finite-input owner receives a class", kind: "control", expect: ["FINITE_CATALOG_INPUT", "PRESENTATION_ESCAPE"],
+  { id: "C2", title: "a finite-input owner receives a class", kind: "control", expect: ["PRESENTATION_ESCAPE"], at: `${compositions}/catalog-workspace/CatalogWorkspace.svelte`,
     mutate: tree => tree.replace(`${compositions}/catalog-workspace/CatalogWorkspace.svelte`, '<Place bind:owner bind:viewport landmark="main"',
       '<Place bind:owner bind:viewport class="x" landmark="main"') },
-  { id: "C3", title: "a sealed adapter imports a visual helper", kind: "control", expect: ["NONVISUAL_DEPENDENCY", "VISUAL_RUNTIME_GLOBAL"],
-    mutate: tree => tree.replace(frameBody, bankVersion,
-      `${bankVersion}\n  import { observeDockAbove } from "../../../infra/dock-above.ts";\n  void observeDockAbove;`) },
-  { id: "C4", title: "a stylesheet gives every button toolbar geometry", kind: "control", expect: ["TOOLBAR_OWNERSHIP", "CROSS_OWNER_CSS"],
+  { id: "C3", title: "a renderer composition imports a visual helper from outside the visual roots", kind: "control", expect: ["NONVISUAL_DEPENDENCY"],
+    at: "src/web/client/rogue-dock.ts", mutate: async tree => {
+      await tree.create("src/web/client/rogue-dock.ts", 'export const observeDock = () => document.body.insertAdjacentHTML("beforeend", "x");\n');
+      await tree.replace(frameBody, bankVersion, `${bankVersion}\n  import { observeDock } from "../../../../web/client/rogue-dock.ts";\n  void observeDock;`); } },
+  { id: "C4", title: "a stylesheet gives every button toolbar geometry", kind: "control", expect: ["CROSS_OWNER_CSS"], at: sharedStylesheet,
     mutate: stylesheet("button { min-height: 12px; }\n") },
 ];

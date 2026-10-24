@@ -4,7 +4,7 @@
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
-  import { InspectionCatalog } from "../../../adapter-catalog.ts";
+  import { InspectionCatalog } from "../../index.ts";
   import { RetainedPlace } from "../../index.ts";
   import { NodeRenderer } from "../../index.ts";
   import { CatalogDetail } from "../../index.ts";

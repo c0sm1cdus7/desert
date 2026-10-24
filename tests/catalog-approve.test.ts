@@ -1,8 +1,8 @@
 // The owner's approve command, run only on temporary fixture trees: never on this checkout's ledger (plan L4).
-// The fixture holds a copy of scripts/catalog.ts and src/authoring, so the command's root is the fixture, not this tree.
+// The fixture holds a copy of scripts/catalog.ts, src/authoring and the modules the gate reads, so the command's root is the fixture.
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
@@ -42,7 +42,10 @@ const fixture: Readonly<Record<string, string>> = {
 async function withFixture(body: (root: string) => Promise<void>): Promise<void> {
   const root = await mkdtemp(join(tmpdir(), "desert-approve-"));
   try {
-    for (const path of ["scripts/catalog.ts", "src/authoring", "src/views", "src/json.ts", ...DesertLayout.gate.reads]) await cp(join(repository, path), join(root, path), { recursive: true });
+    // The gate reads the resolved-node grammar (rule B) and the renderer contracts (rule D2, a required gate source) from the SDK.
+    // The SDK's nonvisual modules come from this tree; the visual roots are the fixture's own.
+    const sdk = (await readdir(join(repository, "src"))).map(name => `src/${name}`).filter(path => !DesertLayout.roots.some(root => root === path || root.startsWith(`${path}/`)));
+    for (const path of ["scripts/catalog.ts", ...sdk, DesertLayout.rendererTypes, ...DesertLayout.gate.reads]) await cp(join(repository, path), join(root, path), { recursive: true });
     await symlink(join(repository, "node_modules"), join(root, "node_modules"));
     await writeFile(join(root, "package.json"), '{ "type": "module" }\n');
     for (const [path, text] of Object.entries(fixture)) { await mkdir(dirname(join(root, path)), { recursive: true }); await writeFile(join(root, path), text); }

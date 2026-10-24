@@ -125,3 +125,19 @@ test("N54 a build-path file that imports src/testing is rejected, however it imp
     runtime(`${infra}/late.ts`, testOnly),
   ]);
 });
+
+// Ported from the previous gate's sealed-adapter globals: a renderer composition selects pieces for data and names no
+// browser global at all; its script parts keep only the nonvisual ones (timers, timing, network).
+const frame = (script: string, markup = "") => composition("frame-body", "FrameBody.svelte", ["field"], svelte(script, markup), "", "src/svelte/catalog/renderer");
+const frameEntry = "src/svelte/catalog/renderer/frame-body/FrameBody.svelte", frameReason = "a renderer composition holds no browser capability";
+test("a renderer composition names no browser global, in its scripts or its template", () => {
+  assert.deepEqual(found(frame('  fetch("/bank-image.svg");\n  const read = fetch;\n  setTimeout(() => {}, 0);', "<p>{localStorage.length}</p>")), [
+    runtime(frameEntry, `fetch: ${frameReason}`), runtime(frameEntry, `fetch: ${frameReason}`), runtime(frameEntry, `setTimeout: ${frameReason}`),
+    runtime(frameEntry, `localStorage: ${frameReason}`)]);
+  assert.deepEqual(found(frame("  document.write(\"x\");")), [runtime(frameEntry, "document.write: a composition owns no DOM (frame-body)")],
+    "a DOM use is reported once, by the DOM law");
+});
+test("renderer control: type-only DOM names, semantic keys, local and template bindings named like globals are not browser globals", () => {
+  assert.deepEqual(found(frame('  let target: HTMLElement | null = null;\n  const semantic = { document: "Notes" };\n  const read = (status: { title: string }) => status.title;\n  let open = $state(false);',
+    "{#each items as name}<p>{name} {open} {read(semantic)}</p>{/each}")), []);
+});

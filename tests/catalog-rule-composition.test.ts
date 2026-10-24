@@ -130,7 +130,7 @@ test("D: foundations and dispatcher compositions are not rule D's", () => {
 
 // Rule D2.
 const registry = "src/svelte/renderer-registry.ts";
-const layout = testLayout({ fixed: { "renderer-infrastructure": [registry] } });
+const layout = testLayout({ fixed: { "renderer-infrastructure": ["src/svelte/hand-table.ts"] } });
 const view = "src/svelte/catalog/renderer/node-view/NodeView.svelte";
 const dispatcherImports = `${fromIndex}\n  import { nodeRenderers } from "../../../renderer-registry.ts";`;
 const dispatcherWith = (markup: string, imports = dispatcherImports, uses: readonly string[] = ["field", "action"]) =>
@@ -171,8 +171,10 @@ test("D2: each branch mounts exactly one piece", () => {
 });
 
 test("D2: a lookup in a table that is not generated, or a {@const} that is not a lookup, is not a dispatch", () => {
-  const handWritten = { [registry]: "export const nodeRenderers = {};\n" };
-  assert.deepEqual(runD2({ ...dispatcherWith(chain), ...handWritten }), [
+  // The generated table is the layout's `generated.renderers` path (rule C keeps it equal to the declarations); any other table is not.
+  const handWritten = { "src/svelte/hand-table.ts": "export const nodeRenderers = {};\n" };
+  const elsewhere = dispatcherWith(chain, `${fromIndex}\n  import { nodeRenderers } from "../../../hand-table.ts";`);
+  assert.deepEqual(runD2({ ...elsewhere, ...handWritten }), [
     grammar("{@const Renderer = nodeRenderers[node.kind]} is not a lookup in a generated, typed table"),
     grammar("<Renderer> is not an imported piece (a computed component)")]);
   assert.deepEqual(runD2(dispatcherWith('{#if node.kind === "a"}{@const label = node.label}<Action {label} />{/if}')),

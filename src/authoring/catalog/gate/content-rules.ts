@@ -10,9 +10,11 @@ import { ruleI } from "./dom-access.ts";
 import { ruleJ } from "./specimens.ts";
 import { ruleK } from "./grammar.ts";
 import { ruleL2 } from "./approvals.ts";
+import { ruleN } from "./nonvisual.ts";
+import { ruleO } from "./opaque-source.ts";
 import { ruleT } from "./template-artifacts.ts";
 
-export const contentRuleIds = Object.freeze(["D", "D2", "E", "F", "G", "H", "I", "J", "K", "L2", "T"] as const);
+export const contentRuleIds = Object.freeze(["D", "D2", "E", "F", "G", "H", "I", "J", "K", "L2", "N", "O", "T"] as const);
 export type ContentRuleId = typeof contentRuleIds[number];
 export const contentRules: Readonly<Record<ContentRuleId, ContentRule>> = Object.freeze({
-  D: ruleD, D2: ruleD2, E: ruleE, F: ruleF, G: ruleG, H: ruleH, I: ruleI, J: ruleJ, K: ruleK, L2: ruleL2, T: ruleT });
+  D: ruleD, D2: ruleD2, E: ruleE, F: ruleF, G: ruleG, H: ruleH, I: ruleI, J: ruleJ, K: ruleK, L2: ruleL2, N: ruleN, O: ruleO, T: ruleT });

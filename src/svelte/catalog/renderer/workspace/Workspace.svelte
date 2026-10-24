@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ViewWorkspace } from "../../../adapter-catalog.ts";
+  import { ViewWorkspace } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let props: CatalogProps<"workspace"> = $props();
 </script>

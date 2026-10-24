@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
-  import { InspectionCatalog } from "../../../adapter-catalog.ts";
+  import { InspectionCatalog } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { surface, oncatalog, bodyOnly, onactions }: CatalogProps<"public-catalog-bank"> = $props();
   let content = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null>;

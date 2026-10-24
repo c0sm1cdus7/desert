@@ -8,7 +8,7 @@ import { createEvidenceProject } from "../src/testing/evidence-project.ts";
 test("a generated build rejects invalid semantic prop values before producing an artifact", { timeout: 120000 }, async () => {
   const project = createEvidenceProject("export const surface = {}; export const validateInput = () => false;");
   const page = join(project.directory, "src/routes/+page.svelte");
-  const header = '<script lang="ts">import { TextContent } from "@desert/svelte/adapter-catalog.ts";</script>\n';
+  const header = '<script lang="ts">import { TextContent } from "@desert/svelte/catalog/index.ts";</script>\n';
   try {
     writeFileSync(page, header + '<TextContent text={42}/>');
     await assert.rejects(project.run("build"), error => {

@@ -1,5 +1,5 @@
 // Rule J. Law: a piece the owner approves shows every declared state × variant through one specimen, and a closed
-// contract offers exactly the variant values its declaration names. Raises: VARIANT_WITHOUT_SPECIMEN.
+// contract offers exactly the variant values its declaration names; `stateVariants` limits a state to some variant values. Raises: VARIANT_WITHOUT_SPECIMEN.
 //
 // `<id>.specimens.ts` sits beside the declaration and is read as data, never evaluated:
 //   import type { CatalogSpecimen } from "../../types.d.ts";
@@ -11,7 +11,7 @@
 // states: its one state is `default`.
 import { posix } from "node:path";
 import ts from "typescript";
-import type { ContractSchema, ReadContract } from "../read-contract.ts";
+import { contractPath, type ContractSchema, type ReadContract } from "../read-contract.ts";
 import type { GateContext, ContentRule } from "./context.ts";
 import type { LocatedDeclaration } from "./inventory.ts";
 import { violation, type Violation } from "./violation.ts";
@@ -89,10 +89,24 @@ export function readSpecimens(file: ts.SourceFile, binding: string, lineOf: (nod
   return { specimens, problems, line: lineOf(array) };
 }
 
-function combinations(states: readonly string[], axes: Axes): readonly string[] {
-  let partial: readonly Variants[] = [{}];
-  for (const [axis, values] of Object.entries(axes)) partial = partial.flatMap(variants => values.map(value => ({ ...variants, [axis]: value })));
-  return states.flatMap(state => partial.map(variants => specimenKey(state, variants)));
+type StateVariants = Readonly<Record<string, Axes>>;
+function combinations(states: readonly string[], axes: Axes, only: StateVariants = {}): readonly string[] {
+  return states.flatMap(state => {
+    let partial: readonly Variants[] = [{}];
+    for (const [axis, values] of Object.entries(axes)) {
+      const allowed = values.filter(value => only[state]?.[axis]?.includes(value) ?? true);
+      partial = partial.flatMap(variants => allowed.map(value => ({ ...variants, [axis]: value })));
+    }
+    return partial.map(variants => specimenKey(state, variants));
+  });
+}
+/** stateVariants restricts declared states to declared axis values only. */
+function restrictionNames(states: readonly string[], axes: Axes, only: StateVariants): readonly string[] {
+  return Object.entries(only).flatMap(([state, restricted]) => [
+    ...states.includes(state) ? [] : [`stateVariants names undeclared state ${state}`],
+    ...Object.entries(restricted).flatMap(([axis, values]) => !axes[axis] ? [`stateVariants.${state} names undeclared axis ${axis}`]
+      : values.filter(value => !axes[axis]?.includes(value)).map(value => `stateVariants.${state} names undeclared value ${value} of axis ${axis}`)),
+  ]);
 }
 
 function undeclaredNames(specimen: ReadSpecimen, states: readonly string[], axes: Axes): readonly string[] {
@@ -107,17 +121,19 @@ function undeclaredNames(specimen: ReadSpecimen, states: readonly string[], axes
   return names;
 }
 
-function specimenViolations(id: string, path: string, read: ReadSpecimens, states: readonly string[], axes: Axes, required: boolean): Violation[] {
+function specimenViolations(id: string, path: string, read: ReadSpecimens, states: readonly string[], axes: Axes, required: boolean,
+  only: StateVariants): Violation[] {
   const found: Violation[] = read.problems.map(problem => violation(code, path, problem.line, `${id} specimens: ${problem.what}`));
-  const covered = new Set<string>();
+  const covered = new Set<string>(), possible = new Set(combinations(states, axes, only));
   for (const specimen of read.specimens) {
     const names = undeclaredNames(specimen, states, axes), key = specimenKey(specimen.state, specimen.variants);
     for (const name of names) found.push(violation(code, path, specimen.line, `${id} specimen ${key} names ${name}`));
     if (names.length) continue;
     if (covered.has(key)) found.push(violation(code, path, specimen.line, `${id} specimen ${key} is written twice`));
+    if (!possible.has(key)) found.push(violation(code, path, specimen.line, `${id} specimen ${key} witnesses a combination stateVariants excludes`));
     covered.add(key);
   }
-  if (required && !read.problems.length) for (const key of combinations(states, axes)) {
+  if (required && !read.problems.length) for (const key of possible) {
     if (!covered.has(key)) found.push(violation(code, path, read.line, `${id} has no specimen for ${key}`));
   }
   return found;
@@ -152,16 +168,18 @@ function pieceViolations(context: GateContext, { path, declaration }: LocatedDec
   const folder = posix.dirname(path), id = declaration.id, specimensPath = posix.join(folder, `${id}.specimens.ts`);
   const states = declaration.kind === "foundation" ? declaration.states : ["default"];
   const axes: Axes = declaration.kind === "foundation" ? declaration.variants ?? {} : {};
+  const only: StateVariants = declaration.kind === "foundation" ? declaration.stateVariants ?? {} : {};
   const required = declaration.approval === "required", contract = context.contract(id);
-  const drift = contract ? contractDrift(id, posix.join(folder, `${id}.contract.ts`), contract, axes) : [];
+  const drift = [...contract ? contractDrift(id, contractPath(path, id), contract, axes) : [],
+    ...restrictionNames(states, axes, only).map(what => violation(code, path, 1, `${id} ${what}`))];
   if (context.text(specimensPath) === undefined) {
-    const uncovered = combinations(states, axes).length;
+    const uncovered = combinations(states, axes, only).length;
     return required ? [...drift, violation(code, path, 1, `${id} has no ${id}.specimens.ts: ${uncovered} state × variant combination${uncovered === 1 ? "" : "s"} uncovered`)] : drift;
   }
   const parsed = context.parsed(specimensPath), [script] = parsed.scripts;
   if (!script) return [...drift, violation(code, specimensPath, 1, `${id} specimens file holds no script`)];
   const read = readSpecimens(script.file, `${declaration.binding}Specimens`, node => parsed.line(script.offset + node.getStart(script.file)));
-  return [...drift, ...specimenViolations(id, specimensPath, read, states, axes, required)];
+  return [...drift, ...specimenViolations(id, specimensPath, read, states, axes, required, only)];
 }
 
 export const ruleJ: ContentRule = context => context.declarations.flatMap(located => pieceViolations(context, located));

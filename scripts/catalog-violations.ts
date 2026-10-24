@@ -1,5 +1,5 @@
 // Prints the content-rule violations of this tree by code, with a few examples each: node scripts/catalog-violations.ts [RULE...]
-// A diagnostic for migration work; the build runs the same rules through runWithVisualBoundaries and fails on any.
+// A diagnostic for migration work; the build runs the same rules through runWithCatalogGate and fails on any.
 import { resolve } from "node:path";
 import { readCatalogTree, runContentRules } from "../src/authoring/catalog/gate/run.ts";
 import { contentRuleIds } from "../src/authoring/catalog/gate/content-rules.ts";

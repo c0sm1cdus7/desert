@@ -21,9 +21,9 @@ const load = async (relative: string): Promise<Record<string, unknown>> => {
 };
 
 async function boundaries() {
-  const module = await load("src/authoring/visual-boundary/source.ts");
-  const run = module.runWithVisualBoundaries;
-  if (typeof run !== "function") return print({ outcome: "crashed", message: "runWithVisualBoundaries missing" });
+  const module = await load("src/authoring/catalog/gate/build-gate.ts");
+  const run = module.runWithCatalogGate;
+  if (typeof run !== "function") return print({ outcome: "crashed", message: "runWithCatalogGate missing" });
   try { await run(root, async () => "built"); print({ outcome: "built" }); }
   catch (error) { print(rejection(error)); }
 }

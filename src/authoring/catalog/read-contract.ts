@@ -6,6 +6,7 @@
 // resolved node): the gate records its name, TypeScript types it. Domain data that has a TypeScript type but no schema is
 // `Type.Unsafe<T>()`, where T only names types imported from non-visual tree modules (domain or src/svelte/infra) or TS utility
 // types; open types (any, unknown, object, never), inline object/function types, typeof, packages and visual code are refused.
+// Props may be exclusive variants (a Union of closed objects, Intersected with the shared closed object).
 // `instance` lists the methods (required closed Type.Function members) a piece exposes to a caller that binds it (`bind:this`).
 import { posix } from "node:path";
 import ts from "typescript";
@@ -139,6 +140,34 @@ export function readContract(path: string, source: string, places: ContractPlace
     }
     return result;
   }
+  /** Props are one closed object, or exclusive variants: `Type.Union` of closed objects, optionally `Type.Intersect`ed with
+   * the closed object every variant shares. The read view lists every prop once; a prop missing from a variant is optional. */
+  function pieceProps(node: ts.Expression): Record<string, ContractProperty> {
+    const found = call(node), [first] = found?.node.arguments ?? [];
+    if (found?.name === "Intersect" && first && ts.isArrayLiteralExpression(first)) {
+      const result: Record<string, ContractProperty> = {};
+      for (const part of first.elements) for (const [key, item] of Object.entries(pieceProps(part))) {
+        if (key in result) return fail(part, `prop ${key} is declared by two parts of the intersection`);
+        result[key] = item;
+      }
+      return result;
+    }
+    if (found?.name === "Union" && first && ts.isArrayLiteralExpression(first) && first.elements.length > 1) {
+      const variants = first.elements.map(pieceProps), result: Record<string, ContractProperty> = {};
+      for (const key of new Set(variants.flatMap(Object.keys))) {
+        const items = variants.map(variant => variant[key]);
+        const schemas = items.flatMap(item => item ? [item.schema] : []);
+        const members = [...new Map(schemas.flatMap(item => item.kind === "union" ? item.members : [item])
+          .map(member => [JSON.stringify(member), member])).values()];
+        result[key] = { schema: members.length === 1 && members[0] ? members[0] : { kind: "union", members },
+          optional: items.some(item => !item || item.optional) };
+      }
+      return result;
+    }
+    const object = schema(node);
+    if (object.kind !== "object") return fail(node, "props is a Type.Object, a Type.Union of them, or a Type.Intersect of those");
+    return { ...object.properties };
+  }
   const imported = new Map<string, string>();
   for (const statement of file.statements) if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
     const clause = statement.importClause, named = clause?.namedBindings;
@@ -160,7 +189,8 @@ export function readContract(path: string, source: string, places: ContractPlace
     if (name === "marks") {
       if (!ts.isArrayLiteralExpression(at) || at.elements.some(element => !ts.isStringLiteral(element))) return fail(at, "marks are string literals");
       read.marks = at.elements.flatMap(element => ts.isStringLiteral(element) ? [element.text] : []);
-    } else if (name === "props" || name === "events" || name === "instance") {
+    } else if (name === "props") read.props = pieceProps(at);
+    else if (name === "events" || name === "instance") {
       const object = schema(at);
       if (object.kind !== "object") return fail(at, `${name} is a Type.Object`);
       if (name === "instance") for (const [member, item] of Object.entries(object.properties)) {

@@ -6,7 +6,7 @@ import type { Mutation } from "./harness.ts";
 const catalog = "src/svelte/catalog", compositions = `${catalog}/compositions`, foundations = `${catalog}/foundations`;
 const heading = `${foundations}/heading`, accessGate = `${compositions}/access-gate/AccessGate.svelte`;
 const contentFlow = `${compositions}/content-flow/ContentFlow.svelte`, lockScreen = `${compositions}/lock-screen/LockScreen.svelte`;
-const flowScript = "  import Feedback from '../../foundations/feedback/Feedback.svelte';";
+const flowScript = "  import { Feedback } from '../../index.ts';";
 const headingImport = '  import Heading from "../../foundations/heading/Heading.svelte";';
 const script = '<script lang="ts">\n';
 const intoFlow = (imports: string, markup = ""): Mutation => async tree => {
@@ -35,9 +35,7 @@ export const stageB: readonly GateCase[] = [
         + "  const observer = new ResizeObserver(changed); observer.observe(node); return () => observer.disconnect();\n};\n");
       await tree.regenerateCatalog();
     } },
-  // The previous gate seals access-gate ("closed" in catalog-manifest.ts) and refuses any render; the catalog law allows a
-  // declared slot. The previous gate's code is tolerated here, and only here, until slice 4 ports that seal to rule D.
-  { id: "P3", title: "a composition renders a slot it declares", kind: "positive", expect: [], previousGateStricter: ["CLOSED_VISUAL_BOUNDARY"],
+  { id: "P3", title: "a composition renders a slot it declares", kind: "positive", expect: [],
     mutate: async tree => {
       await tree.replace(`${compositions}/access-gate/access-gate.catalog.ts`, "uses: [", 'slots: { footer: { accepts: ["action"] } }, uses: [');
       await tree.append(accessGate, "\n{#if footer}{@render footer()}{/if}\n");
@@ -74,12 +72,10 @@ export const stageB: readonly GateCase[] = [
   // A kind change is caught earlier by rule B (each kind has its own closed fields); any data change shows the same law.
   { id: "N45", title: "a declaration changed without regenerating", kind: "escape", expect: ["CATALOG_DERIVATION"],
     mutate: tree => tree.replace(`${heading}/heading.catalog.ts`, 'states: ["default"]', 'states: ["default", "loading"]') },
+  // Heading's contract is closed and its `kind` axis declared: the union gains a value in the contract only.
   { id: "N46", title: "a contract union gains a value the declaration and its specimens do not have", kind: "escape", expect: ["VARIANT_WITHOUT_SPECIMEN"],
-    mutate: async tree => {
-      await tree.replace(`${heading}/heading.catalog.ts`, 'states: ["default"]', 'states: ["default"], variants: { kind: ["page", "section"] }');
-      await tree.replace(`${heading}/heading.contract.ts`, "export const HeadingContract = {} as const;",
-        'import { Type } from "@sinclair/typebox";\nexport const HeadingContract = { props: Type.Object({ kind: Type.Union([Type.Literal("page"), '
-        + 'Type.Literal("section"), Type.Literal("access")]) }, { additionalProperties: false }) } as const;');
+    at: `${heading}/heading.contract.ts`, mutate: async tree => {
+      await tree.replace(`${heading}/heading.contract.ts`, 'Type.Literal("group-label")]', 'Type.Literal("group-label"), Type.Literal("access")]');
       await tree.regenerateCatalog();
     } },
   { id: "N48", title: "a Components constructor without a composition", kind: "escape", expect: ["GRAMMAR_NOT_IN_CATALOG"],

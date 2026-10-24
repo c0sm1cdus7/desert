@@ -1,12 +1,11 @@
-// The props of TextInput. `primitive` picks a single line or a multiline editor; `mask` (single line only, as the entry
-// renders it) installs a decimal editing syntax; `purpose` tells the browser what a single line holds. `change` is the
-// written value, emitted on input and on blur.
+// The props of TextInput. `primitive` picks a single line or a multiline editor; `mask` (single line only: the multiline
+// variant cannot take one) installs a decimal editing syntax; `purpose` tells the browser what a single line holds.
+// `change` is the written value, emitted on input and on blur.
 import { Type } from "@sinclair/typebox";
 import { InputMaskSchema } from "../../../../interaction/input-mask.ts";
 
 export const TextInputContract = {
-  props: Type.Object({
-    primitive: Type.Union([Type.Literal("input.text"), Type.Literal("input.multiline")]),
+  props: Type.Intersect([Type.Object({
     label: Type.String(),
     value: Type.Optional(Type.String()),
     required: Type.Optional(Type.Boolean()),
@@ -15,10 +14,12 @@ export const TextInputContract = {
     helper: Type.Optional(Type.String()),
     disabled: Type.Optional(Type.Boolean()),
     identity: Type.Optional(Type.String()),
-    mask: Type.Optional(InputMaskSchema),
     maxLength: Type.Optional(Type.Integer()),
     purpose: Type.Optional(Type.Union([Type.Literal("text"), Type.Literal("username"), Type.Literal("new-password"),
       Type.Literal("current-password")])),
-  }, { additionalProperties: false }),
+  }, { additionalProperties: false }), Type.Union([
+    Type.Object({ primitive: Type.Literal("input.text"), mask: Type.Optional(InputMaskSchema) }, { additionalProperties: false }),
+    Type.Object({ primitive: Type.Literal("input.multiline"), mask: Type.Optional(Type.Undefined()) }, { additionalProperties: false }),
+  ])]),
   events: Type.Object({ change: Type.String() }, { additionalProperties: false }),
 } as const;

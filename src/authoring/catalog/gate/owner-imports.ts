@@ -1,12 +1,15 @@
-// Law: a piece part and a vendor family are imported only by their owner, vendor code imports only vendor code, and a
-// foundation entry takes exactly CatalogProps<"<id>">. Raises FOUNDATION_OUTSIDE_OWNER, VENDOR_OUTSIDE_OWNER, FOUNDATION_PROPS.
+// Law: a piece part and a vendor family are imported only by their owner, vendor code imports only vendor code, a
+// composition or infra module imports only nonvisual packages (visual packages belong to foundations and their vendor
+// families), and a foundation entry takes exactly CatalogProps<"<id>">.
+// Raises FOUNDATION_OUTSIDE_OWNER, VENDOR_OUTSIDE_OWNER, FOUNDATION_PROPS.
 import { posix } from "node:path";
 import ts from "typescript";
-import { walk, type SyntaxNode } from "../../visual-boundary/walk.ts";
+import { walk, type SyntaxNode } from "./walk.ts";
 import type { ContentRule, GateContext } from "./context.ts";
 import { scriptLine, type Parsed } from "./parse.ts";
 import { componentDefinition } from "./presentation.ts";
 import type { Import } from "./resolve-imports.ts";
+import { nonvisualFramework, nonvisualPackages } from "./runtime-globals.ts";
 import { violation, type Violation } from "./violation.ts";
 
 const inside = (path: string, folder: string) => path.startsWith(`${folder}/`);
@@ -50,9 +53,22 @@ function vendorEscape(context: GateContext, importer: string, file: string): str
   return `imports vendor family ${family}, owned by foundation ${owner.foundation}`;
 }
 
+/** A package a composition or infra module may not import: not a nonvisual package, or Svelte beyond lifecycle and context. */
+function packageEscape(context: GateContext, importer: string, item: Import): string | undefined {
+  const owner = context.owners.of(importer);
+  const bound = owner?.kind === "infra" || owner?.kind === "piece" && owner.pieceKind === "composition" && owner.role !== "companion";
+  if (!bound || item.target.kind !== "package" || item.typeOnly) return undefined;
+  const name = item.target.name, who = owner.kind === "infra" ? "an infra module" : `composition ${owner.id}`;
+  if (!nonvisualPackages.has(name)) return `${who} imports the package ${name}: visual packages belong to a foundation`;
+  const visual = name === "svelte" ? item.bindings.filter(binding => !nonvisualFramework.has(binding.imported)).map(binding => binding.imported) : [];
+  return visual.length ? `${who} imports ${visual.join(", ")} from svelte: only its lifecycle and context functions` : undefined;
+}
+
 function importEscapes(context: GateContext, path: string): Violation[] {
   const found: Violation[] = [];
   for (const item of context.imports(path)) {
+    const packaged = packageEscape(context, path, item);
+    if (packaged !== undefined) found.push(violation("VENDOR_OUTSIDE_OWNER", path, item.line, packaged));
     const seen = new Set<string>();
     for (const file of reached(context, item)) {
       const escapes = [["FOUNDATION_OUTSIDE_OWNER", partEscape(context, path, file)], ["VENDOR_OUTSIDE_OWNER", vendorEscape(context, path, file)]] as const;

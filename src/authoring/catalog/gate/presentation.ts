@@ -9,14 +9,14 @@
 // Child content fills the piece's declared `children` slot and a snippet its named slot; each slot takes only the pieces it
 // accepts (raw text and native elements inside it are rule D's).
 import ts from "typescript";
-import type { SyntaxNode } from "../../visual-boundary/walk.ts";
+import type { SyntaxNode } from "./walk.ts";
 import type { ReadContract } from "../read-contract.ts";
 import { parseable, type ContentRule, type GateContext } from "./context.ts";
 import type { ParsedSvelte } from "./parse.ts";
 import { exportedNames } from "./resolve-imports.ts";
+import { contractEscapes, isPresentationName } from "./presentation-contract.ts";
 import { violation, type Violation } from "./violation.ts";
 
-const forbiddenNames = new Set(["class", "style", "role", "children", "elementProps", "viewportAttributes"]);
 const skippedKeys = new Set(["loc", "name_loc", "comments", "leadingComments", "trailingComments", "metadata"]);
 
 const field = (node: unknown, key: string): unknown => node && typeof node === "object" ? Reflect.get(node, key) : undefined;
@@ -138,6 +138,8 @@ function snippetNames(value: unknown, found = new Set<string>()): Set<string> {
  * name E cannot see through (a script declaration, a snippet, an undeclared name). */
 function importedMount(facts: FileFacts, local: string, member: string | undefined): Mount {
   const { context, path } = facts;
+  // A script declaration of the same name as an import is what the template mounts, whatever the import says.
+  if (importOf(context, path, local) && facts.script.has(local)) return through("a script declaration that shadows an import");
   if (importOf(context, path, local)) {
     if (member === undefined) return fileMount(componentDefinition(context, path, local));
     return fileMount(importedDefinition(context, path, local, member) ?? registryEntry(context, path, local, member));
@@ -207,7 +209,7 @@ function componentTags(facts: FileFacts, value: unknown, scope: Scope, found: { 
 export function forbiddenAttribute(parsed: ParsedSvelte, attribute: SyntaxNode): string | undefined {
   const name = text(attribute, "name");
   switch (attribute.type) {
-    case "Attribute": return forbiddenNames.has(name) || name.startsWith("data-") ? name : undefined;
+    case "Attribute": return isPresentationName(name) ? name : undefined;
     case "SpreadAttribute": case "AttachTag": return source(parsed, attribute);
     case "StyleDirective": return `style:${name}`;
     case "ClassDirective": return `class:${name}`;
@@ -292,7 +294,7 @@ const unchecked = (path: string, parsed: ParsedSvelte, tag: SyntaxNode, form: st
   `<${text(tag, "name")}>: a component mounted through ${form} cannot be checked; import it from the catalog index`);
 
 export const ruleE: ContentRule = context => {
-  const found: Violation[] = [];
+  const found: Violation[] = contractEscapes(context);
   for (const path of context.paths) {
     if (!path.endsWith(".svelte")) continue;
     const parsed = context.parsed(path);

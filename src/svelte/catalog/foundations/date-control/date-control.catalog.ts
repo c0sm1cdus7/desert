@@ -7,5 +7,5 @@ export const DateControl = defineFoundation({
   id: "date-control",
   purpose: "Choose one day from a month calendar opened from a labelled field well, within optional bounds.",
   owner: { entry: "DateControl.svelte", parts: ["DateCalendar.svelte"], vendor: ["calendar"] },
-  shape: "radius", states: ["empty", "value", "required", "disabled"], approval: "required", contract: DateControlContract,
+  shape: "radius", states: ["empty", "value", "required", "disabled"], renders: ["control.date"], approval: "required", contract: DateControlContract,
 } as const);

@@ -10,12 +10,12 @@ const files = {
   "src/svelte/catalog/more.ts": 'export { default as Field } from "./foundations/field/Field.svelte";\n',
   "src/svelte/catalog/foundations/heading/Heading.svelte": "<h1></h1>\n",
   "src/svelte/catalog/foundations/field/Field.svelte": "<input />\n",
-  "src/svelte/adapter-catalog.ts": 'import type { C } from "./c.ts";\nimport HeadingOwner from "./catalog/foundations/heading/Heading.svelte";\nexport const Title: C = HeadingOwner;\n',
+  "src/svelte/typed-aliases.ts": 'import type { C } from "./c.ts";\nimport HeadingOwner from "./catalog/foundations/heading/Heading.svelte";\nexport const Title: C = HeadingOwner;\n',
   "src/svelte/catalog/compositions/page/Page.svelte": `<script lang="ts">
   import { Root as B } from "../../../vendor/components/ui/button/index.js";
   import * as Catalog from "../../index.ts";
   import { Field } from "../../index.ts";
-  import { Title } from "@desert/svelte/adapter-catalog.ts";
+  import { Title } from "@desert/svelte/typed-aliases.ts";
   import Missing from "./Missing.svelte";
   import { tick } from "svelte";
 </script>\n`,
@@ -32,7 +32,7 @@ test("each binding resolves to the file that defines it", () => {
   assert.equal(defined("../../../vendor/components/ui/button/index.js", "Root"), "src/svelte/vendor/components/ui/button/button.svelte", ".js resolves to the .ts barrel");
   assert.equal(defined("../../index.ts", "*"), "src/svelte/catalog/index.ts", "a namespace is the module itself");
   assert.equal(defined("../../index.ts", "Field"), "src/svelte/catalog/foundations/field/Field.svelte", "export * is followed");
-  assert.equal(defined("@desert/svelte/adapter-catalog.ts", "Title"), "src/svelte/catalog/foundations/heading/Heading.svelte", "export const X = Owner follows Owner");
+  assert.equal(defined("@desert/svelte/typed-aliases.ts", "Title"), "src/svelte/catalog/foundations/heading/Heading.svelte", "export const X = Owner follows Owner");
 });
 
 test("unresolved files and packages are named, not guessed", () => {

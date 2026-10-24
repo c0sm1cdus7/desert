@@ -7,5 +7,5 @@ export const Availability = defineFoundation({
   id: "availability",
   purpose: "Understand whether a capability is ready, unavailable or not yet known.",
   owner: { entry: "Availability.svelte", vendor: ["skeleton", "spinner"] },
-  shape: "none", states: ["ready", "unavailable", "unknown"], approval: "required", contract: AvailabilityContract,
+  shape: "none", states: ["ready", "unavailable", "unknown"], renders: ["availability"], approval: "required", contract: AvailabilityContract,
 } as const);

@@ -1,5 +1,5 @@
-// One witness per state of TextInput (empty, written, invalid, disabled, masked) as a single line and as a multiline
-// editor with its counter. A multiline editor renders no mask: its masked witness shows the mask ignored.
+// One witness per state of TextInput (empty, written, invalid, disabled) as a single line and as a multiline editor with
+// its counter, and the masked state, which only a single line has.
 import type { CatalogSpecimen } from "../../types.d.ts";
 
 export const TextInputSpecimens = [
@@ -20,6 +20,4 @@ export const TextInputSpecimens = [
     value: "Review the open items before Friday.", maxLength: 500, disabled: true } },
   { state: "masked", variants: { primitive: "input.text" }, props: { primitive: "input.text", label: "Amount", value: "1250.5",
     identity: "amount", mask: { kind: "decimal", locale: "en-US", scale: 2 } } },
-  { state: "masked", variants: { primitive: "input.multiline" }, props: { primitive: "input.multiline", label: "Amount",
-    value: "1250.5", identity: "amount", mask: { kind: "decimal", locale: "en-US", scale: 2 }, maxLength: 500 } },
 ] as const satisfies readonly CatalogSpecimen<"text-input">[];

@@ -8,6 +8,6 @@ export const TextInput = defineFoundation({
   purpose: "Write a single line or several with a persistent label, field help and validation feedback.",
   owner: { entry: "TextInput.svelte", parts: ["editor-capacity.ts"], vendor: ["field", "input", "input-group", "label", "textarea"] },
   shape: "radius", states: ["empty", "value", "invalid", "disabled", "masked"],
-  variants: { primitive: ["input.text", "input.multiline"] },
-  approval: "required", contract: TextInputContract,
+  variants: { primitive: ["input.text", "input.multiline"] }, stateVariants: { masked: { primitive: ["input.text"] } },
+  renders: ["input.text", "input.multiline"], approval: "required", contract: TextInputContract,
 } as const);

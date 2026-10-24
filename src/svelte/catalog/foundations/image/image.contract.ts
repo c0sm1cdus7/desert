@@ -13,5 +13,5 @@ export const ImageContract = {
     fit: Type.Optional(Type.Union([Type.Literal("fill"), Type.Literal("fit")])),
     fallback: Type.Optional(Type.String()),
   }, { additionalProperties: false }),
-  events: Type.Object({ ready: Type.Null() }, { additionalProperties: false }),
+  events: Type.Object({ ready: Type.Void() }, { additionalProperties: false }),
 } as const;

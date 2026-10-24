@@ -6,5 +6,5 @@ export const MoneyControl = defineComposition({
   id: "money-control",
   purpose: "Enter an amount and choose its currency without losing the lexical draft.",
   owner: { entry: "MoneyControl.svelte" },
-  uses: ["clear-input", "field-well", "masked-input", "measured-field", "selection-field"], approval: "none", contract: MoneyControlContract,
+  uses: ["clear-input", "field-well", "masked-input", "measured-field", "selection-field"], renders: ["control.money"], approval: "none", contract: MoneyControlContract,
 } as const);

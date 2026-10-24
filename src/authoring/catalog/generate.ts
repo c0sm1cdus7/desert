@@ -1,4 +1,4 @@
-// The catalog generator: index, manifest and types are projections of the declarations, read as data.
+// The catalog generator: index, manifest, types and the renderer table are projections of the declarations, read as data.
 // A pure function of its input; `node scripts/catalog.ts --write` writes it and rule C compares with it.
 import { posix } from "node:path";
 import type { CatalogLayout } from "./layout.ts";
@@ -82,5 +82,25 @@ export function generateCatalog(source: Pick<CatalogSource, "declarations" | "co
     { path: layout.generated.index, source: index },
     { path: layout.generated.manifest, source: manifest },
     { path: layout.generated.types, source: types },
+    { path: layout.generated.renderers, source: rendererTable(pieces, layout) },
+    { path: layout.generated.sources, source: [header, "/** The entry file of every declared piece, as the visible catalog shows it. */",
+      "export const CatalogSources = Object.freeze({",
+      ...pieces.map(({ path, declaration }) => `  ${JSON.stringify(declaration.id)}: ${JSON.stringify(posix.join(posix.dirname(path), declaration.owner.entry))},`),
+      "} as const);", ""].join("\n") },
   ]);
+}
+
+/** The piece each resolved node kind renders through (each declaration's `renders`), typed by NodeRendererTable. Entries
+ * are imported directly, not through the index: the index also exports the dispatcher that imports this table. */
+function rendererTable(pieces: readonly LocatedDeclaration[], layout: CatalogLayout): string {
+  const from = posix.dirname(layout.generated.renderers);
+  const request = (path: string) => { const relative = posix.relative(from, path); return relative.startsWith(".") ? relative : `./${relative}`; };
+  const rendering = pieces.flatMap(({ path, declaration }) => declaration.kind !== "mechanism" && declaration.renders?.length
+    ? [{ name: exportName(declaration.id), entry: posix.join(posix.dirname(path), declaration.owner.entry), kinds: declaration.renders }] : []);
+  const key = (kind: string) => /^[a-z]+$/.test(kind) ? kind : JSON.stringify(kind);
+  return [header + `import type { NodeRendererTable } from ${JSON.stringify(request(layout.rendererTypes))};`,
+    ...rendering.map(item => `import ${item.name} from ${JSON.stringify(request(item.entry))};`), "",
+    "export const nodeRenderers: NodeRendererTable = Object.freeze({",
+    ...rendering.flatMap(item => item.kinds.map(kind => `  ${key(kind)}: ${item.name},`)),
+    "} satisfies NodeRendererTable);", ""].join("\n");
 }

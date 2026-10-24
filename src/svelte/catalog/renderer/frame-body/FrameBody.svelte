@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import { NodeRenderer, Information, MessageBody, UtilityActions } from "../../../adapter-catalog.ts";
+  import { NodeRenderer, Information, MessageBody, UtilityActions } from "../../index.ts";
   import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { content, invoke, edit, messageDialog = false, controlEvent }: CatalogProps<"frame-body"> = $props();

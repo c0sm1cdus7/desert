@@ -2,7 +2,7 @@
 // TypeScript trees with the offset of each script in the file, so every rule reports the same line numbers.
 import { parse } from "svelte/compiler";
 import ts from "typescript";
-import type { SyntaxNode } from "../../visual-boundary/walk.ts";
+import type { SyntaxNode } from "./walk.ts";
 
 /** `module`: the `<script module>` block of a component; `lang`: its lang attribute ("ts" for TypeScript). */
 export type Script = Readonly<{ file: ts.SourceFile; offset: number; module: boolean; lang: string | undefined }>;
@@ -35,7 +35,10 @@ function langOf(block: unknown): string | undefined {
 export function parseSource(path: string, source: string): Parsed {
   if (!path.endsWith(".svelte")) return Object.freeze({ kind: "script", source,
     scripts: [{ file: tsFile(path, source), offset: 0, module: true, lang: path.endsWith(".ts") ? "ts" : undefined }], line: lineOf(source) });
-  const tree = parse(source, { modern: true });
+  let tree: ReturnType<typeof parse>;
+  // A source the compiler cannot read is one the gate cannot judge: rule O's law, raised here, where reading fails.
+  try { tree = parse(source, { modern: true }); }
+  catch (error) { throw new Error(`OPAQUE_SOURCE: ${path}: the source does not parse: ${(error instanceof Error ? error.message : String(error)).split("\n")[0]}`); }
   const scripts: Script[] = [];
   for (const [block, module] of [[tree.module, true], [tree.instance, false]] as const) {
     const content = range(block?.content);

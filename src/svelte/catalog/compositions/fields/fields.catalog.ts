@@ -6,5 +6,5 @@ export const Fields = defineComposition({
   id: "fields",
   purpose: "Mount each field of a form frame through the node renderer and report its edits and control events.",
   owner: { entry: "Fields.svelte" },
-  uses: ["node-renderer"], approval: "none", contract: FieldsContract,
+  uses: ["node-renderer"], renders: ["form"], approval: "none", contract: FieldsContract,
 } as const);

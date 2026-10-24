@@ -112,9 +112,10 @@ the entire browser verification window, not only during compilation.
 
 Products cannot provide CSS, classes, HTML, arbitrary callbacks, Svelte snippets,
 motion timings or component overrides. `defineView` admits only issued
-`Components` values. Source admission and visual-boundary checks also constrain
-renderer adapters and their dependency graph. Closed private owners have finite
-props; a private lexical slot is not a consumer-supplied markup extension.
+`Components` values. The Visual Catalog gate (docs/VISUAL-CATALOG-ENFORCEMENT.md)
+also constrains renderer compositions and every nonvisual module the page reaches.
+Pieces with closed contracts have finite props; a composition renders only the
+slots its declaration names.
 This is not a sandbox against a trusted developer editing the SDK itself.
 Historical visual debt is inventoried, not permission for a new bypass.
 
@@ -135,9 +136,10 @@ bindings; other controls remain local exercises unless their command grammar
 and execution binding are installed.
 
 `NodeRendererTable` associates each entry with its own props/events.
-`renderer-registry.ts` binds entries to actual components. Generated
-`adapter-catalog.ts`, backed by `catalog-manifest.ts`, exposes finite composition
-owners to adapters. Neither registry is another product definition.
+`renderer-registry.ts`, generated from the `renders` field of each catalog
+declaration, binds entries to actual components. Renderer compositions import the
+pieces they mount from the generated catalog index. Neither is another product
+definition.
 `RendererTable<T>` alone checks inventory, not component compatibility.
 
 A registered View requests `Components.VisualCatalog()`. It does not require

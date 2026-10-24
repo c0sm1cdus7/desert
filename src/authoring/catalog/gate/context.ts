@@ -4,6 +4,7 @@ import { posix } from "node:path";
 import type { CatalogLayout } from "../layout.ts";
 import { contractPath, readContract, type ReadContract } from "../read-contract.ts";
 import type { LocatedDeclaration } from "./inventory.ts";
+import type { NonvisualSources } from "./nonvisual-sources.ts";
 import { ownershipOf, type Ownership } from "./ownership.ts";
 import { parseSource, type Parsed } from "./parse.ts";
 import { definingFile, exportedNames, importsOf, type Import } from "./resolve-imports.ts";
@@ -22,13 +23,17 @@ export type GateContext = Readonly<{
   definition: (item: Import, imported: string) => string | undefined;
   /** The contract of a declared piece, read as data; undefined when the piece or its contract file is absent. */
   contract: (id: string) => ReadContract | undefined;
+  /** The code outside the visual roots that rule N judges, read by nonvisual-sources.ts (empty until it is read). */
+  nonvisual: NonvisualSources;
 }>;
 export type ContentRule = (context: GateContext) => readonly Violation[];
 
 export const parseable = (path: string) => /\.(svelte|ts|js|mjs)$/.test(path) && !path.endsWith(".d.ts");
 
 export function createContext(input: Readonly<{ layout: CatalogLayout; paths: readonly string[]; declarations: readonly LocatedDeclaration[];
-  ledger: unknown; sources: ReadonlyMap<string, string> }>): GateContext {
+  ledger: unknown; sources: ReadonlyMap<string, string>; nonvisual?: NonvisualSources;
+  /** How a source is parsed; a caller that builds many contexts over mostly the same files may share one parse per text. */
+  parse?: (path: string, source: string) => Parsed }>): GateContext {
   const present = new Set(input.paths), parsedCache = new Map<string, Parsed>(), importCache = new Map<string, readonly Import[]>();
   const exportsCache = new Map<string, ReadonlyMap<string, string>>();
   const text = (path: string) => input.sources.get(path);
@@ -37,7 +42,7 @@ export function createContext(input: Readonly<{ layout: CatalogLayout; paths: re
     if (cached) return cached;
     const source = text(path);
     if (source === undefined) throw new Error(`CATALOG_GATE_SOURCES: ${path} is not a loaded visual source`);
-    const value = parseSource(path, source);
+    const value = (input.parse ?? parseSource)(path, source);
     parsedCache.set(path, value);
     return value;
   };
@@ -67,8 +72,11 @@ export function createContext(input: Readonly<{ layout: CatalogLayout; paths: re
   };
   return Object.freeze({
     layout: input.layout, paths: input.paths, declarations: input.declarations, ledger: input.ledger,
-    owners, text, parsed, imports, contract,
+    owners, text, parsed, imports, contract, nonvisual: input.nonvisual ?? Object.freeze({ files: [], problems: [] }),
     definition: (item: Import, imported: string) => item.target.kind === "file"
       ? imported === "*" ? item.target.path : definingFile(item.target.path, imported, imports, exported) : undefined,
   });
 }
+
+/** The same context, with the nonvisual code it reaches: rule N's input is read after the visual roots are parsed. */
+export const withNonvisual = (context: GateContext, nonvisual: NonvisualSources): GateContext => Object.freeze({ ...context, nonvisual });

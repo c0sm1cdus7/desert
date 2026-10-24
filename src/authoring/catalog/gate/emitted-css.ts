@@ -8,7 +8,7 @@
 // so the gate cannot recompute it. It bounds them instead: one per source holding a <style>, of the hash's shape.
 import { posix } from "node:path";
 import { Scanner } from "@tailwindcss/oxide";
-import { walk, type SyntaxNode } from "../../visual-boundary/walk.ts";
+import { walk, type SyntaxNode } from "./walk.ts";
 import type { GateContext } from "./context.ts";
 import { decodeCss, readStylesheet, rulesOf } from "./stylesheet.ts";
 import type { Owner } from "./ownership.ts";

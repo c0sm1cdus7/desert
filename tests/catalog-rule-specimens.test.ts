@@ -7,10 +7,10 @@ import { codes, contextOf } from "./support/catalog-context.ts";
 
 const folder = "src/svelte/catalog/foundations/field";
 const catalog = `${folder}/field.catalog.ts`, contractPath = `${folder}/field.contract.ts`, specimensPath = `${folder}/field.specimens.ts`;
-const declaration = (variants = `{ measure: ["writing", "compact"] }`) => `import { defineFoundation } from "x";
+const declaration = (variants = `{ measure: ["writing", "compact"] }`, extra = "") => `import { defineFoundation } from "x";
 import { FieldContract } from "./field.contract.ts";
 export const Field = defineFoundation({ id: "field", purpose: "x", owner: { entry: "Field.svelte" }, shape: "radius",
-  states: ["empty", "value"], variants: ${variants}, approval: "required", contract: FieldContract } as const);\n`;
+  states: ["empty", "value"], variants: ${variants},${extra} approval: "required", contract: FieldContract } as const);\n`;
 const closedContract = (measure = `Type.Union([Type.Literal("writing"), Type.Literal("compact")])`) => `import { Type } from "@sinclair/typebox";
 export const FieldContract = { props: Type.Object({ measure: ${measure}, label: Type.String() }, { additionalProperties: false }) } as const;\n`;
 const specimen = (state: string, measure: string) => `  { state: "${state}", variants: { measure: "${measure}" }, props: { label: label("Title"), measure: "${measure}" } },`;
@@ -128,4 +128,24 @@ test("a piece without owner approval needs no specimens, but the specimens it ha
   assert.deepEqual(codes(ruleJ(compositionTree("none"))), []);
   assert.deepEqual(codes(ruleJ(compositionTree("none", `export const LockScreenSpecimens = [{ state: "locked", props: {} }] as const;\n`))),
     [`VARIANT_WITHOUT_SPECIMEN ${compositionFolder}/lock-screen.specimens.ts lock-screen specimen locked names undeclared state locked`]);
+});
+
+test("stateVariants limits a state to some variant values: no specimen is required, or allowed, elsewhere", () => {
+  const only = declaration(undefined, ` stateVariants: { value: { measure: ["writing"] } },`);
+  const withoutCompactValue = specimensFile(allSpecimens.filter(line => !line.includes(`"value", variants: { measure: "compact"`)));
+  assert.deepEqual(found({ [catalog]: only, [specimensPath]: withoutCompactValue }), []);
+  assert.deepEqual(found({ [catalog]: only }),
+    [`VARIANT_WITHOUT_SPECIMEN ${specimensPath} field specimen value|measure=compact witnesses a combination stateVariants excludes`]);
+  assert.deepEqual(found({ [catalog]: only, [specimensPath]: specimensFile(allSpecimens.slice(0, 2)) }),
+    [`VARIANT_WITHOUT_SPECIMEN ${specimensPath} field has no specimen for value|measure=writing`]);
+});
+
+test("stateVariants names only declared states, axes and values", () => {
+  const wrong = declaration(undefined, ` stateVariants: { loading: { measure: ["writing"] }, value: { tone: ["loud"] }, empty: { measure: ["access"] } },`);
+  assert.deepEqual(found({ [catalog]: wrong }), [
+    `VARIANT_WITHOUT_SPECIMEN ${catalog} field stateVariants names undeclared state loading`,
+    `VARIANT_WITHOUT_SPECIMEN ${catalog} field stateVariants.value names undeclared axis tone`,
+    `VARIANT_WITHOUT_SPECIMEN ${catalog} field stateVariants.empty names undeclared value access of axis measure`,
+    `VARIANT_WITHOUT_SPECIMEN ${specimensPath} field specimen empty|measure=writing witnesses a combination stateVariants excludes`,
+    `VARIANT_WITHOUT_SPECIMEN ${specimensPath} field specimen empty|measure=compact witnesses a combination stateVariants excludes`]);
 });

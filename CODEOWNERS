@@ -4,9 +4,10 @@ src/build/** @c0sm1cdus7
 src/json.ts @c0sm1cdus7
 src/svelte/catalog/approvals.json @c0sm1cdus7
 scripts/catalog*.ts @c0sm1cdus7
-scripts/check-visual-boundary.ts @c0sm1cdus7
 tests/catalog-gate/** @c0sm1cdus7
 package.json @c0sm1cdus7
 package-lock.json @c0sm1cdus7
 .github/** @c0sm1cdus7
 CODEOWNERS @c0sm1cdus7
+src/interaction/catalog.ts @c0sm1cdus7
+src/svelte/renderer-contracts.ts @c0sm1cdus7

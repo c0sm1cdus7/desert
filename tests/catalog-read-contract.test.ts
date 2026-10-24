@@ -109,3 +109,23 @@ export const PContract = { props: Type.Object({ content: Type.Unsafe<ToolbarCont
   assert.equal(contract.props.many?.schema.kind, "typed");
   assert.deepEqual(contract.props.load?.schema, { kind: "function" });
 });
+
+test("exclusive variants read as one prop list; a prop absent from a variant is optional", () => {
+  const contract = read(`import { Type } from "@sinclair/typebox";
+export const C = { props: Type.Intersect([Type.Object({ label: Type.String() }, { additionalProperties: false }), Type.Union([
+  Type.Object({ primitive: Type.Literal("input.text"), mask: Type.Optional(Type.String()) }, { additionalProperties: false }),
+  Type.Object({ primitive: Type.Literal("input.multiline") }, { additionalProperties: false })])]) } as const;\n`);
+  assert.equal(contract.closed, true);
+  if (!contract.closed) return;
+  assert.deepEqual(Object.keys(contract.props), ["label", "primitive", "mask"]);
+  assert.deepEqual(contract.props.primitive, { optional: false, schema: { kind: "union", members: [{ kind: "literal", value: "input.text" }, { kind: "literal", value: "input.multiline" }] } });
+  assert.equal(contract.props.mask?.optional, true);
+});
+
+for (const [name, source, pattern] of [
+  ["an open variant", "export const C = { props: Type.Union([Type.Object({ a: Type.String() }, { additionalProperties: false }), Type.Object({ b: Type.String() })]) } as const;", /closed with/],
+  ["a prop declared twice in an intersection", "export const C = { props: Type.Intersect([Type.Object({ a: Type.String() }, { additionalProperties: false }), Type.Object({ a: Type.Number() }, { additionalProperties: false })]) } as const;", /prop a is declared by two parts/],
+  ["props that are not objects", "export const C = { props: Type.String() } as const;", /props is a Type\.Object/],
+] as const) test(`${name} is refused`, () => {
+  assert.throws(() => read(source), pattern);
+});

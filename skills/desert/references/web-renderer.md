@@ -4,7 +4,7 @@ Generated from the bundled SDK documentation; do not edit this snapshot.
 
 ## Source: docs/WEB-RENDERER.md
 
-Source SHA-256: 48ed4d1939f86f69eb2ca1f31983badb5046bb6e92e191824ea0adf008811cb3
+Source SHA-256: 695439b4fa9e5eb93f23d555304fa0f5a54b0b8b1c1d1fa73d398501b2b87c9a
 
 # The DESERT human web renderer
 
@@ -120,9 +120,10 @@ the entire browser verification window, not only during compilation.
 
 Products cannot provide CSS, classes, HTML, arbitrary callbacks, Svelte snippets,
 motion timings or component overrides. `defineView` admits only issued
-`Components` values. Source admission and visual-boundary checks also constrain
-renderer adapters and their dependency graph. Closed private owners have finite
-props; a private lexical slot is not a consumer-supplied markup extension.
+`Components` values. The Visual Catalog gate (docs/VISUAL-CATALOG-ENFORCEMENT.md)
+also constrains renderer compositions and every nonvisual module the page reaches.
+Pieces with closed contracts have finite props; a composition renders only the
+slots its declaration names.
 This is not a sandbox against a trusted developer editing the SDK itself.
 Historical visual debt is inventoried, not permission for a new bypass.
 
@@ -143,9 +144,10 @@ bindings; other controls remain local exercises unless their command grammar
 and execution binding are installed.
 
 `NodeRendererTable` associates each entry with its own props/events.
-`renderer-registry.ts` binds entries to actual components. Generated
-`adapter-catalog.ts`, backed by `catalog-manifest.ts`, exposes finite composition
-owners to adapters. Neither registry is another product definition.
+`renderer-registry.ts`, generated from the `renders` field of each catalog
+declaration, binds entries to actual components. Renderer compositions import the
+pieces they mount from the generated catalog index. Neither is another product
+definition.
 `RendererTable<T>` alone checks inventory, not component compatibility.
 
 A registered View requests `Components.VisualCatalog()`. It does not require
@@ -1552,58 +1554,58 @@ export const DispatcherCapabilities = freezeDeep({
 
 ## src/svelte/renderer-registry.ts
 
-Source SHA-256: 26b7c463f7b297ea71f4518c2db4be300e34b0fe3550c1e299431bbe45acd077
+Source SHA-256: 21c1c9e34e65b3c418360d84666957174da75e56139a8167ee4c589e6167e77f
 
 ```ts
-// Generated from catalog-manifest.ts. Run scripts/web-catalog.ts --write; do not edit.
+// Generated from the catalog declarations by `node scripts/catalog.ts --write`; do not edit.
 import type { NodeRendererTable } from "./renderer-contracts.ts";
-import TextInput from "./catalog/foundations/text-input/TextInput.svelte";
 import Action from "./catalog/foundations/action/Action.svelte";
 import Availability from "./catalog/foundations/availability/Availability.svelte";
-import Drawer from "./catalog/foundations/drawer/Drawer.svelte";
-import Problem from "./catalog/compositions/problem/Problem.svelte";
-import Facts from "./catalog/renderer/facts/Facts.svelte";
-import Fields from "./catalog/compositions/fields/Fields.svelte";
+import CatalogCard from "./catalog/foundations/catalog-card/CatalogCard.svelte";
+import CatalogDetail from "./catalog/compositions/catalog-detail/CatalogDetail.svelte";
+import CatalogHome from "./catalog/compositions/catalog-home/CatalogHome.svelte";
 import Collection from "./catalog/compositions/collection/Collection.svelte";
 import ContextPanel from "./catalog/compositions/context-panel/ContextPanel.svelte";
-import Review from "./catalog/compositions/review/Review.svelte";
-import SelectControl from "./catalog/compositions/select-control/SelectControl.svelte";
-import PopoverControl from "./catalog/compositions/popover-control/PopoverControl.svelte";
+import DateControl from "./catalog/foundations/date-control/DateControl.svelte";
+import Drawer from "./catalog/foundations/drawer/Drawer.svelte";
+import Facts from "./catalog/renderer/facts/Facts.svelte";
+import Fields from "./catalog/compositions/fields/Fields.svelte";
 import FileControl from "./catalog/compositions/file-control/FileControl.svelte";
 import LabelsControl from "./catalog/compositions/labels-control/LabelsControl.svelte";
-import OptionsControl from "./catalog/compositions/options-control/OptionsControl.svelte";
-import MoneyControl from "./catalog/compositions/money-control/MoneyControl.svelte";
-import DateControl from "./catalog/foundations/date-control/DateControl.svelte";
 import MediaControl from "./catalog/compositions/media-control/MediaControl.svelte";
-import CatalogCard from "./catalog/foundations/catalog-card/CatalogCard.svelte";
-import CatalogHome from "./catalog/compositions/catalog-home/CatalogHome.svelte";
-import CatalogDetail from "./catalog/compositions/catalog-detail/CatalogDetail.svelte";
+import MoneyControl from "./catalog/compositions/money-control/MoneyControl.svelte";
+import OptionsControl from "./catalog/compositions/options-control/OptionsControl.svelte";
+import PopoverControl from "./catalog/compositions/popover-control/PopoverControl.svelte";
+import Problem from "./catalog/compositions/problem/Problem.svelte";
+import Review from "./catalog/compositions/review/Review.svelte";
+import SelectControl from "./catalog/compositions/select-control/SelectControl.svelte";
+import TextInput from "./catalog/foundations/text-input/TextInput.svelte";
 
 export const nodeRenderers: NodeRendererTable = Object.freeze({
-  "input.text": TextInput,
-  "input.multiline": TextInput,
   action: Action,
   availability: Availability,
-  transient: Drawer,
-  problem: Problem,
-  fact: Facts,
-  form: Fields,
+  "catalog.card": CatalogCard,
+  "catalog.detail": CatalogDetail,
+  "catalog.home": CatalogHome,
   collection: Collection,
   context: ContextPanel,
-  review: Review,
-  "control.select": SelectControl,
-  "control.popover": PopoverControl,
+  "control.date": DateControl,
+  transient: Drawer,
+  fact: Facts,
+  form: Fields,
   "control.files": FileControl,
   "control.labels": LabelsControl,
-  "control.options": OptionsControl,
-  "control.money": MoneyControl,
-  "control.date": DateControl,
   "control.tag": MediaControl,
   "control.image": MediaControl,
   "control.avatar": MediaControl,
-  "catalog.card": CatalogCard,
-  "catalog.home": CatalogHome,
-  "catalog.detail": CatalogDetail,
+  "control.money": MoneyControl,
+  "control.options": OptionsControl,
+  "control.popover": PopoverControl,
+  problem: Problem,
+  review: Review,
+  "control.select": SelectControl,
+  "input.text": TextInput,
+  "input.multiline": TextInput,
 } satisfies NodeRendererTable);
 ```
 
@@ -2508,12 +2510,12 @@ export function projectViewPanel(program: ViewProgram, journey: ViewJourney, def
 
 ## src/svelte/catalog/renderer/view-product/ViewProduct.svelte
 
-Source SHA-256: bababa42ddaa1fc91bdba16e7cce1055fb9c705a4635af1fcb225c5396f252b5
+Source SHA-256: e8d6380e217a7765d15acedc3f4ebd1e5d794a7d018314ea5e0cb31a7e393d6f
 
 ```svelte
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
-  import { ViewProductContent } from "../../../adapter-catalog.ts";
+  import { ViewProductContent } from "../../index.ts";
 
   let { program, surface, validateInput, access }: CatalogProps<"view-product"> = $props();
 </script>
@@ -2523,11 +2525,11 @@ Source SHA-256: bababa42ddaa1fc91bdba16e7cce1055fb9c705a4635af1fcb225c5396f252b5
 
 ## src/svelte/catalog/renderer/workspace/Workspace.svelte
 
-Source SHA-256: 539d24c46a49711d905fbc63a611404a572404333445650de98cfb303794d937
+Source SHA-256: fe42fb417d97e8fc90ad1aad1885739123c35077b692be14e961ca235127df56
 
 ```svelte
 <script lang="ts">
-  import { ViewWorkspace } from "../../../adapter-catalog.ts";
+  import { ViewWorkspace } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let props: CatalogProps<"workspace"> = $props();
 </script>
@@ -2699,18 +2701,18 @@ export function mediaResults(library: MediaLibrary, query: string): readonly Wor
 
 ## src/svelte/catalog/renderer/media-content/MediaContent.svelte
 
-Source SHA-256: 821f0c83a086ab1ab302e4f2a66d68dc833d80a642fb14897ad33027d5f22a35
+Source SHA-256: 43ac0c7c5e8a68eb1a7683b8435156f6819fa6c66c4641f6f4fd8975491df663
 
 ```svelte
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
-  import { MediaLibrary } from "../../../adapter-catalog.ts";
+  import { Library } from "../../index.ts";
   let { library, album, onalbum }: CatalogProps<"media-content"> = $props();
   let content = $state<{ select: (record: string) => boolean }>();
   export function select(record: string) { return content?.select(record) ?? false; }
 </script>
 
-<MediaLibrary {library} {album} {onalbum} bind:this={content} />
+<Library {library} {album} {onalbum} bind:this={content} />
 ```
 
 ## src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte
@@ -3109,14 +3111,14 @@ export type WorkspaceSearchResult = CatalogSearchResult |
 
 ## src/svelte/catalog/renderer/view-content/ViewContent.svelte
 
-Source SHA-256: c48c115cd7b252c8c088621cb6085b9f4b12842fb7cb9a79a125483a45b79637
+Source SHA-256: 634e9ad95016ffd614166c239e981034c8a936ab4ca845ae4bf9591e5a0e3e0c
 
 ```svelte
 <script lang="ts">
   import type { ResolvedView } from "../../../../views/resolved.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
-  import { ContentFlow } from "../../../adapter-catalog.ts";
+  import { ContentFlow } from "../../index.ts";
   import type { RegisterContentActions } from "../../../infra/workspace-content.ts";
   let { resolved, onevent, album = null, onalbum, onactions }: {
     resolved: ResolvedView;
@@ -3144,14 +3146,14 @@ Source SHA-256: c48c115cd7b252c8c088621cb6085b9f4b12842fb7cb9a79a125483a45b79637
 
 ## src/svelte/catalog/renderer/view-item/ViewItem.svelte
 
-Source SHA-256: a7a43623cc40afaf9979a2ea3988662e54c7006839646e4dd197b9cab98632f1
+Source SHA-256: 503ce4256380523aa841f648ddc2c4d0e4029335b371e830ba8e421a6fd5d06f
 
 ```svelte
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
-  import { NodeRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../../adapter-catalog.ts";
+  import { NodeRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../index.ts";
   let { item, resolved, onevent, host = "flow" }: CatalogProps<"view-item"> = $props();
   function dispatch(event: NodeEvent) {
     if (item.kind === "collection" && event.kind === "collection.select") {
@@ -3196,14 +3198,14 @@ Source SHA-256: a7a43623cc40afaf9979a2ea3988662e54c7006839646e4dd197b9cab98632f1
 
 ## src/svelte/catalog/renderer/panel/Panel.svelte
 
-Source SHA-256: 2253b750bd4a0da071791c2f727e129a5c4a664d59c1ebc3eb7a07e98df4efeb
+Source SHA-256: 1b3d69041cf4cb2a6778e012a4f72e0df8c284d38707212b4b728b75f4ff3486
 
 ```svelte
 <script lang="ts">
   import { tick, untrack } from "svelte";
   import { bindViewEvents, type OwnedResolvedPanel, type ViewEventOwner } from "../../../../web/client/view-events.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
-  import { ViewPanel } from "../../../adapter-catalog.ts";
+  import { ViewPanel } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { panel, onevent }: CatalogProps<"panel"> = $props();
   let mounted = $state.raw<OwnedResolvedPanel | null>(null);
@@ -3240,13 +3242,13 @@ Source SHA-256: 2253b750bd4a0da071791c2f727e129a5c4a664d59c1ebc3eb7a07e98df4efeb
 
 ## src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte
 
-Source SHA-256: 20f6910b3af7074e3e821136a02db6c06eaca91431338155ad5ac9025038b0d5
+Source SHA-256: 7077d53a9e23ccdbf1f37eebcc6a7dfb1a5425a75584612a93c12750058e2d29
 
 ```svelte
 <script lang="ts">
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
-  import { Inspection } from "../../../adapter-catalog.ts";
+  import { Inspection } from "../../index.ts";
   let { catalog }: { catalog?: PublicBankInput } = $props();
   let content = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null> }>();
   export async function revealEntry(id: ResolvedNodeId) { return await content?.revealEntry(id) ?? null; }
@@ -3836,13 +3838,13 @@ export function presentFrame(surface: HumanSurface, state: HumanState, validate:
 
 ## src/svelte/catalog/renderer/frame-body/FrameBody.svelte
 
-Source SHA-256: 46420b3463ee31d2585c8ed44f5786a1cf85713af53bbbef6ed9f544f2fd6cf3
+Source SHA-256: 1d2e805f4dd9c133611704d2b9af8615b5474e42da654c54ff9d13e0785f92d6
 
 ```svelte
 <script lang="ts">
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import { NodeRenderer, Information, MessageBody, UtilityActions } from "../../../adapter-catalog.ts";
+  import { NodeRenderer, Information, MessageBody, UtilityActions } from "../../index.ts";
   import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { content, invoke, edit, messageDialog = false, controlEvent }: CatalogProps<"frame-body"> = $props();
@@ -5330,17 +5332,17 @@ Source SHA-256: fd6913cb64a993a2ab1298f95b138e367c5bf4a8ba89797c9417bc67adf32e6a
 
 ## src/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte
 
-Source SHA-256: aca60088f0dacd841f89008c6371259a2eb7139f81a11334f840e64821bf42b4
+Source SHA-256: 0525e5f788dc750122f9877170ed01781860127ecb05a97db7a0838c0b3e9819
 
 ```svelte
 <script lang="ts">
   import type { ControlNode, ControlEvent } from "../../../../interaction/control-nodes.ts";
   import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
-  import { ControlNodeRenderer } from "../../../adapter-catalog.ts";
+  import { NodeRenderer } from "../../index.ts";
   import type { LocalFileHost } from "../../../infra/file-host.ts";
   let { node, onevent, host }: { node: ControlNode; onevent: (event: ControlEvent) => void; host: LocalFileHost } = $props();
 </script>
-<ControlNodeRenderer node={controlResolvedNode(node)} {host} onevent={event => { if ("control" in event) onevent(event); }} />
+<NodeRenderer node={controlResolvedNode(node)} {host} onevent={event => { if ("control" in event) onevent(event); }} />
 ```
 
 ## src/svelte/catalog/compositions/options-control/OptionsControl.svelte
@@ -6108,11 +6110,11 @@ Source SHA-256: 0e21e5c348efb7518a9f97f1a42ef9cf02f78e1e673bec44ef39ef24b939413d
 
 ## src/svelte/catalog/renderer/facts/Facts.svelte
 
-Source SHA-256: 255a92c394d0b11b74027fdf93eed914ee4bbdcb3319bf5db7d6d51d6af6557b
+Source SHA-256: d023c99c1fe3e33a48481991be62fcf1f3976d54ad50c07f5370a3790a4b6667
 
 ```svelte
 <script lang="ts">
-  import { FactGroup } from "../../../adapter-catalog.ts";
+  import { FactGroup } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {} }: CatalogProps<"facts"> = $props();
 </script>

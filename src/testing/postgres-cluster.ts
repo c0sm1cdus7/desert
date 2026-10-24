@@ -2,6 +2,8 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { Pool } from "pg";
+// The cluster is created without a locale; macOS aborts a postmaster started without LC_ALL ("became multithreaded").
+const postgresEnvironment = { ...process.env, LC_ALL: "C" };
 
 export function postgresCluster() {
   const bin = process.env.DESERT_PG_BIN ?? execFileSync("pg_config", ["--bindir"], { encoding: "utf8" }).trim();
@@ -9,7 +11,7 @@ export function postgresCluster() {
   const data = join(root, "data");
   const socket = join(root, "socket");
   mkdirSync(socket, { mode: 0o700 });
-  const run = (name: string, args: string[]) => execFileSync(join(bin, name), args, { stdio: "pipe" });
+  const run = (name: string, args: string[]) => execFileSync(join(bin, name), args, { stdio: "pipe", env: postgresEnvironment });
   let running = false;
   function start() {
     if (running) return;

@@ -5,7 +5,7 @@
 import { Value } from "@sinclair/typebox/value";
 import { ApprovalsSchema, type Approvals } from "../approvals-schema.ts";
 import { contractDigest, sourceDigest, sourceFiles, type ReadBytes } from "../digest.ts";
-import { walk, type SyntaxNode } from "../../visual-boundary/walk.ts";
+import { walk, type SyntaxNode } from "./walk.ts";
 import type { ContentRule, GateContext } from "./context.ts";
 import type { LocatedDeclaration } from "./inventory.ts";
 import { violation, type Violation } from "./violation.ts";

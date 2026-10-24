@@ -25,11 +25,13 @@ test("production search controls have exactly one toolbar owner and no inline al
     : (await sources(resolve(root, "src/svelte"))).map(file => relative(root, file));
   for (const path of paths) {
     const source = await sourceText(path);
-    if (/\bfrom\s*["'][^"']*SearchField\.svelte["']/.test(source)) consumers.push(path);
     if (/(?:\btype|\brole)\s*=\s*(?:["'](?:search|searchbox)["']|\{\s*["'](?:search|searchbox)["']\s*\})/.test(source))
       rawControls.push(path);
   }
-  assert.deepEqual(consumers.sort(), ["src/svelte/catalog/compositions/toolbar-search/ToolbarSearch.svelte"],
+  // Who mounts SearchField is the `uses` of each declaration (rule D holds every mount to it), read from the generated manifest.
+  const manifest: { pieces: Record<string, { uses?: string[] }> } = JSON.parse(await sourceText("src/svelte/catalog/manifest.json"));
+  for (const [id, piece] of Object.entries(manifest.pieces)) if (piece.uses?.includes("search-field")) consumers.push(id);
+  assert.deepEqual(consumers.sort(), ["toolbar-search"],
     "SearchField belongs only to the expanding toolbar; no collection, catalog or product may create another owner");
   assert.deepEqual(rawControls.sort(), ["src/svelte/catalog/foundations/search-field/SearchField.svelte"],
     "raw search controls belong only to the shared SearchField primitive");

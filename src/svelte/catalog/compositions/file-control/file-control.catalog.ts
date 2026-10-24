@@ -6,5 +6,5 @@ export const FileControl = defineComposition({
   id: "file-control",
   purpose: "Select supported local files and inspect their limits before an operation uses them.",
   owner: { entry: "FileControl.svelte", parts: ["file-size.ts"] },
-  uses: ["action"], approval: "none", contract: FileControlContract,
+  uses: ["action"], renders: ["control.files"], approval: "none", contract: FileControlContract,
 } as const);

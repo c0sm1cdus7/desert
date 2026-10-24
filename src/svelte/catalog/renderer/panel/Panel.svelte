@@ -2,7 +2,7 @@
   import { tick, untrack } from "svelte";
   import { bindViewEvents, type OwnedResolvedPanel, type ViewEventOwner } from "../../../../web/client/view-events.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
-  import { ViewPanel } from "../../../adapter-catalog.ts";
+  import { ViewPanel } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { panel, onevent }: CatalogProps<"panel"> = $props();
   let mounted = $state.raw<OwnedResolvedPanel | null>(null);
