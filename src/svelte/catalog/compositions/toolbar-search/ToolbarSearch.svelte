@@ -1,10 +1,10 @@
 <script lang="ts">
+  import type { CatalogProps } from "../../types.d.ts";
   import { tick, untrack } from "svelte";
   import * as Field from "../../../vendor/components/ui/field/index.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import { SearchField } from "../../index.ts";
-  import type { ToolbarContent } from "../../../infra/toolbar-content.ts";
-  let { content }: { content: Extract<ToolbarContent, { kind: "search" }> } = $props();
+  let { content }: CatalogProps<"toolbar-search"> = $props();
   const id = $props.id();
   let input = $state<HTMLInputElement | null>(null);
   let displayedQuery = $state(untrack(() => content.query));

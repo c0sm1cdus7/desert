@@ -2,17 +2,13 @@
   import * as Field from "../../../vendor/components/ui/field/index.js";
   import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import type { FrameContent } from "../../../../interaction/surface-frame.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { imageInputControl } from "../../../../interaction/image-input.ts";
   import { labelsInputControl } from "../../../../interaction/labels-control.ts";
-  import { isFormControlEvent, type FormControlEvent } from "../../../../interaction/form-control-event.ts";
+  import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
   import { useFormFiles } from "../../../infra/form-files.ts";
   const fileHost = useFormFiles();
-  let { fields, edit, controlEvent }: {
-    fields: Extract<FrameContent, { kind: "form" }>["fields"];
-    edit: (name: string, value: string) => void;
-    controlEvent: (event: FormControlEvent) => void;
-  } = $props();
+  let { fields, edit, controlEvent }: CatalogProps<"fields"> = $props();
 </script>
 
 <Field.FieldGroup data-composition="form">

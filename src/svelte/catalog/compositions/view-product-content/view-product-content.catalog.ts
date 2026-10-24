@@ -1,5 +1,4 @@
 // ViewProductContent: mounts the browser session of a view program and renders its workspace from the live snapshot.
-// Its contract stays a stub: `access` is `Pick<AccessClient, "lock">`, which has no named non-visual type (migration debt).
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ViewProductContentContract } from "./view-product-content.contract.ts";
 

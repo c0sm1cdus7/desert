@@ -1,5 +1,4 @@
-// PlaybackControls: one part (transport, volume or seek) of the controls of a media playback. Its contract stays a stub:
-// `playback` is typed by MediaPlayback from src/svelte/infra (migration debt).
+// PlaybackControls: one part (transport, volume or seek) of the controls of a media playback.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { PlaybackControlsContract } from "./playback-controls.contract.ts";
 

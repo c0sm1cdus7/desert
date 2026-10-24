@@ -1,5 +1,5 @@
 // Stack: one titled stack of a place, each item drawn by the node renderer. Its contract stays a stub: `host` is a
-// LocalFileHost, a class that lives in src/svelte/infra (visual code), so no contract may reference it.
+// LocalFileHost, a class with a private field that the deep-readonly CatalogProps cannot carry (see the contract).
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { StackContract } from "./stack.contract.ts";
 

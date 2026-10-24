@@ -162,7 +162,7 @@
       "owner": {
         "entry": "AccessExperience.svelte"
       },
-      "purpose": "Create an identity in one step and choose appearance in the second, without a confirmation step.",
+      "purpose": "Show the access screen over the wallpaper: the onboarding form, the lock screen or the connection state, with its error.",
       "uses": [
         "access-form",
         "feedback",
@@ -2398,7 +2398,7 @@
       "owner": {
         "entry": "ToolbarSearch.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ToolbarSearch.svelte.",
+      "purpose": "Search the items of a toolbar's place: a search field revealed by a toggle that also closes the search.",
       "uses": [
         "search-field"
       ]

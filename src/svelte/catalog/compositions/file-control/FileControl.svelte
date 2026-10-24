@@ -3,10 +3,10 @@
   import { Action } from "../../index.ts";
   import { Input } from "../../../vendor/components/ui/input/index.js";
   import { fileNode, type FileRejection } from "../../../../interaction/control-nodes.ts";
-  import type { ControlProps } from "../../../renderer-contracts.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { fileSize } from "./file-size.ts";
   import { currentStackTitle } from "../../../infra/stack-context.ts";
-  let { node, host, onevent }: ControlProps<"files"> = $props();
+  let { node, host, onevent }: CatalogProps<"file-control"> = $props();
   let checked = $derived(fileNode(node));
   let rejected = $state<readonly FileRejection[]>([]);
   const id = $props.id();
@@ -18,7 +18,7 @@
     const input = event.currentTarget as HTMLInputElement;
     const selection = host.choose(checked, Array.from(input.files ?? []));
     rejected = selection.result.rejected;
-    onevent(selection.event);
+    onevent?.(selection.event);
     input.value = "";
   }
 </script>
@@ -37,7 +37,7 @@
         <li class="flex flex-wrap items-center justify-between gap-2">
           <span class="min-w-0 break-all">{file.name} · {fileSize(file.size)}</span>
           <Action icon="close" label={`Remove ${file.name}`} state={checked.disabled ? "unavailable" : "ready"}
-            onclick={() => onevent(host.remove(checked, file.id))} />
+            onclick={() => onevent?.(host.remove(checked, file.id))} />
         </li>
       {/each}
     </ul>

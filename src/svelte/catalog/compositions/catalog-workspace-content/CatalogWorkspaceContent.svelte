@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { WorkspaceContent } from "../../../infra/workspace-content.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { bindViewEvents } from "../../../../web/client/view-events.ts";
   import { RetainedPlace } from "../../index.ts";
   import { ViewContent } from "../../index.ts";
@@ -7,7 +7,7 @@
   import { CatalogDetail } from "../../index.ts";
   import { LocalExercises } from "../../index.ts";
   import { PublicCatalogBank } from "../../index.ts";
-  let { content, searching }: { content: WorkspaceContent; searching: boolean } = $props();
+  let { content, searching }: CatalogProps<"catalog-workspace-content"> = $props();
 </script>
 
 {#if content.kind === "view-program"}

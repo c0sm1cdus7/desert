@@ -1,5 +1,4 @@
-// ToolbarMediaControls: transport, thumbnails and volume of the selected media in a toolbar. Its contract stays a stub:
-// `content` is typed by ToolbarContent from src/svelte/infra (migration debt).
+// ToolbarMediaControls: transport, thumbnails and volume of the selected media in a toolbar.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ToolbarMediaControlsContract } from "./toolbar-media-controls.contract.ts";
 

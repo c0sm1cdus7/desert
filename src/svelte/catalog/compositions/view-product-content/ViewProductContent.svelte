@@ -1,21 +1,17 @@
 <script lang="ts">
+  import type { CatalogProps } from "../../types.d.ts";
   import { onMount, untrack } from "svelte";
-  import type { ViewProgram } from "../../../../views/program-schema.ts";
-  import type { HumanSurface, ValidateInput } from "../../../../web/types.ts";
   import { viewProgramModel } from "../../../../web/client/view-program.ts";
   import { requireCatalog } from "../../../../interaction/catalog.ts";
   import { ViewWorkspace } from "../../index.ts";
   import { mountBrowserSession } from "../../../../web/client/browser-session.ts";
-  import type { AccessClient } from "../../../../web/client/access.ts";
   import { provideFormFiles } from "../../../infra/form-files.ts";
   import { providePrivateImages } from "../../../infra/private-image-context.ts";
   import { browserActivityHost } from "./activity-host.ts";
   import { useAccess } from "../../../infra/access-context.ts";
   import { webTransport } from "../../../../web/client/transport.ts";
 
-  let { program, surface, validateInput, access }: {
-    program: ViewProgram; surface: HumanSurface; validateInput: ValidateInput; access?: Pick<AccessClient, "lock">;
-  } = $props();
+  let { program, surface, validateInput, access }: CatalogProps<"view-product-content"> = $props();
   const files = provideFormFiles();
   const session = useAccess();
   const model = untrack(() => {

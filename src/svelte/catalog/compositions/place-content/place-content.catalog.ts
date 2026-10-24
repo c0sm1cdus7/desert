@@ -1,5 +1,4 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// PlaceContent: a place's checked content, its header and each of its stacks.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { PlaceContentContract } from "./place-content.contract.ts";
 

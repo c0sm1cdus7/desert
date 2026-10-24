@@ -8,18 +8,16 @@
   import { PlaybackCanvas } from '../../index.ts';
   import { mediaPlayback } from '../../../infra/playback.svelte.ts';
   import { mediaGestures } from '../../../infra/gestures.ts';
-  import { imageIdentity, type ViewerMedia } from '../../../infra/media-source.ts';
-  let { items, title, index, open, onindex, onopen, onreturn }: {
-    items: readonly ViewerMedia[]; title: string; index: number; open: boolean;
-    onindex: (index: number) => void; onopen: (open: boolean) => void; onreturn: () => void;
-  } = $props();
+  import { imageIdentity } from '../../../infra/media-source.ts';
+  import type { CatalogProps } from '../../types.d.ts';
+  let { items, title, index, open, onindex, onopen, onreturn }: CatalogProps<"viewer"> = $props();
   let scale = $state(1);
   let closeButton = $state<HTMLButtonElement | null>(null);
   let gesture: ReturnType<typeof mediaGestures> | undefined;
   const selected = $derived(items[index]!);
   const playback = mediaPlayback();
-  function select(next: number) { playback.stop(); onindex(Math.max(0,Math.min(items.length-1,next))); gesture?.reset(); }
-  function changeOpen(value: boolean) { if (!value) playback.stop(); onopen(value); }
+  function select(next: number) { playback.stop(); onindex?.(Math.max(0,Math.min(items.length-1,next))); gesture?.reset(); }
+  function changeOpen(value: boolean) { if (!value) playback.stop(); onopen?.(value); }
   function manipulate(element: HTMLDivElement) {
     gesture=mediaGestures(element,{ image:()=>element.querySelector('img'),
       page:direction=>select(index+direction), canPage:()=>items.length>1, zoomable:selected.kind === 'image', onzoom:value=>scale=value });
@@ -39,7 +37,7 @@
 <Dialog.Root {open} onOpenChange={changeOpen}>
   <Dialog.Content presentation="media" showCloseButton={false} data-media-viewer
     onOpenAutoFocus={event=>{ event.preventDefault(); closeButton?.focus({preventScroll:true}); }}
-    onCloseAutoFocus={event=>{ event.preventDefault(); onreturn(); }} onkeydown={key}>
+    onCloseAutoFocus={event=>{ event.preventDefault(); onreturn?.(); }} onkeydown={key}>
     <ToolbarLayout identity={{title,subtitle:`${index+1} / ${items.length}`}} identityRole="dialog"
       oncloseElement={element=>closeButton=element}
       content={{kind:"media-header",close:()=>changeOpen(false),zoom:selected.kind === 'image'

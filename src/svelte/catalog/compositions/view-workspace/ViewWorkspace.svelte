@@ -9,16 +9,16 @@
   import type { WorkspaceContentActions, WorkspaceViewportActions } from "../../../infra/workspace-content.ts";
   import { viewIdentity, viewSearchResults, viewSearchSelection } from "./workspace-data.ts";
   import { viewMedia, mediaIdentity, mediaResults } from "../../../infra/media-data.ts";
-  import type { WorkspaceProps } from "../../../infra/view-types.ts";
   import { resolveProgramWorkspace } from "../../../../views/program-workspace.ts";
-  let props: WorkspaceProps = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let props: CatalogProps<"view-workspace"> = $props();
   const activateFrame = provideFrameActivation();
   function send(event: OwnedViewEvent) {
     const panel = props.panel, value = event.event;
     if (panel?.frame.kind === "context" && event.owner === props.resolved.owner && value.kind === "surface.invoke"
       && value.intent.kind === "view.output" && value.intent.view === props.resolved.view.id
-      && !props.resolved.disabledOutputs.includes(value.intent.output)) activateFrame(panel.owner, () => props.onevent(event));
-    else props.onevent(event);
+      && !props.resolved.disabledOutputs.includes(value.intent.output)) activateFrame(panel.owner, () => props.onevent?.(event));
+    else props.onevent?.(event);
   }
   let workspace = $derived(resolveProgramWorkspace(props.program));
   onMount(mountCatalogAppearance);
@@ -58,7 +58,7 @@
     return (intent: SurfaceIntent) => receive({ kind: "surface.invoke", intent });
   });
   let dismissError = $derived.by(() => {
-    const send = bindViewEvents(props.panel?.owner ?? props.resolved.owner, props.onevent);
+    const send = bindViewEvents(props.panel?.owner ?? props.resolved.owner, value => props.onevent?.(value));
     return () => send({ kind: "problem.close" });
   });
   function cancelSearch() { searching = false; query = ""; }
@@ -99,10 +99,10 @@
   detail={Boolean(media && album || mainBack)} backAvailable={Boolean(media&&album)||mainBack?.state==="ready"}
   onback={()=>{if(media&&album) void closeAlbum();else if(mainBack?.state==="ready") invoke(mainBack.intent);}}
   onquery={value => { query = value; searching = true; }} onsearch={() => searching = true}
-  oncancel={cancelSearch} onnavigate={props.onnavigate} topActions={props.resolved.top?.trailing} actionGroup={props.resolved.top?.actionGroup} {invoke}
+  oncancel={cancelSearch} onnavigate={destination => props.onnavigate?.(destination)} topActions={props.resolved.top?.trailing} actionGroup={props.resolved.top?.actionGroup} {invoke}
   searchContent={{ kind: "view", title: identity.title, description: "Find content in this destination.", results, onselect: selectSearchResult }}
   bottomToolbar={props.resolved.bottom}
-  panelState={{ panel: props.panel, onevent: props.onevent, error: props.error, uncertain: props.uncertain, dismissError }}
+  panelState={{ panel: props.panel, onevent: value => props.onevent?.(value), error: props.error, uncertain: props.uncertain, dismissError }}
   content={{ kind: "view-program", visited, activeView: props.resolved.view.id, albums: mediaPositions,
     onevent: send, onalbum: openAlbum,
     onactions: (id, actions) => { if (actions) contentOwners[id] = actions; else delete contentOwners[id]; } }} />

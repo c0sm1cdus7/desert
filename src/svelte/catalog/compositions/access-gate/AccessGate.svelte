@@ -1,16 +1,13 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
-  import type { HumanSurface, ValidateInput } from "../../../../web/types.ts";
-  import type { ViewProgram } from "../../../../views/program-schema.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { ViewProduct } from "../../index.ts";
   import { accessClient } from "../../../../web/client/access.ts";
   import { provideAccess } from "../../../infra/access-context.ts";
   import { AccessScreen } from "../../index.ts";
   import { browserAccessLock } from "./browser-access-lock.ts";
   import { rememberAccessProfile } from "../../../infra/access-profile.ts";
-  let { surface, validateInput, viewProgram }: {
-    surface: HumanSurface; validateInput: ValidateInput; viewProgram: ViewProgram;
-  } = $props();
+  let { surface, validateInput, viewProgram }: CatalogProps<"access-gate"> = $props();
   let productLabel = $derived(viewProgram.label);
   const client = untrack(() => accessClient(surface.contractDigest, browserAccessLock()));
   let current = $state.raw(client.snapshot());

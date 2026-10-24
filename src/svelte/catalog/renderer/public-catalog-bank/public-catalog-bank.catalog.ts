@@ -1,5 +1,4 @@
 // PublicCatalogBank: the component bank inside the workspace, which registers how the workspace reveals one of its entries.
-// Its contract stays a stub: `surface` and `onactions` are typed in src/svelte/infra (migration debt).
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { PublicCatalogBankContract } from "./public-catalog-bank.contract.ts";
 

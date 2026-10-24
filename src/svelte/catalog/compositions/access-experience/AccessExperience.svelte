@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { AccessClient } from "../../../../web/client/access.ts";
   import { AccessForm } from "../../index.ts";
   import { LockScreen } from "../../index.ts";
   import { Wallpaper } from "../../index.ts";
@@ -7,14 +6,8 @@
   import { StackLayout } from "../../index.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import { appearance } from "../../../infra/appearance-state.ts";
-  import type { AccessProfile } from "../../../infra/access-profile.ts";
-  import type { AppearancePreferences } from "../../../infra/appearance-preferences.ts";
-  let { productLabel, current, authenticate, refresh, profile = null, preferences, onappearancechange }: {
-    productLabel: string; current: ReturnType<AccessClient["snapshot"]>;
-    profile?: AccessProfile | null; preferences?: AppearancePreferences | undefined;
-    onappearancechange?: ((value: AppearancePreferences) => void) | undefined;
-    authenticate: AccessClient["authenticate"]; refresh: AccessClient["refresh"];
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { productLabel, current, authenticate, refresh, profile = null, preferences, onappearancechange }: CatalogProps<"access-experience"> = $props();
 </script>
 <div class="access-experience" data-access-experience>
   <div class="access-wallpaper"><Wallpaper wallpaper={(preferences ?? $appearance).wallpaper} /></div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { SharedOwner } from "../../../infra/shared-owners.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { ToolbarLayout } from "../../index.ts";
   import { SpeedDial } from "../../index.ts";
   import { Information } from "../../index.ts";
@@ -33,7 +33,7 @@
   import { SummaryWidget } from '../../index.ts';
   import { SurfaceSpecimen } from '../../index.ts';
   import { Feedback } from '../../index.ts';
-  let { owner }: {owner:SharedOwner} = $props();
+  let { owner }: CatalogProps<"shared-owner-specimen"> = $props();
   let open = $state(false), feedback = $state("Local example. No product changes.");
   let status=$state("open");
   let flowLayout=$state<'overview'|'gallery'>('overview');

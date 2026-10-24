@@ -1,11 +1,9 @@
 <script lang="ts">
-  import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
-  import type { HumanSurface, ValidateInput } from "../../../../web/types.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { NodeRenderer } from "../../index.ts";
   import { SurfaceFrame } from "../../index.ts";
   import { presentSpecimen } from "./specimen-presentation.ts";
-  import type { ReadModelScope } from "../../../../web/client/model-scope.ts";
   import { onDestroy } from "svelte";
   import { providePrivateImages } from "../../../infra/private-image-context.ts";
   import { privateImageAccess } from "../../../../web/client/private-images.ts";
@@ -17,9 +15,7 @@
     } } : undefined);
   providePrivateImages(specimenImages);
   onDestroy(() => specimenImages.close());
-  let { id, state: scenario, surface, validateInput, scope }: {
-    id: ResolvedNodeId; state: string; surface: HumanSurface; validateInput: ValidateInput; scope: ReadModelScope;
-  } = $props();
+  let { id, state: scenario, surface, validateInput, scope }: CatalogProps<"specimen"> = $props();
   let value = $state<string | undefined>();
   let open = $state(false);
   let locked = $state(false);

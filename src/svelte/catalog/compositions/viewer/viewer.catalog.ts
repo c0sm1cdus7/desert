@@ -1,5 +1,4 @@
-// Viewer: the full-screen media viewer with paging, zoom and playback. Its contract stays a stub: `items` are
-// ViewerMedia, a type that lives in src/svelte/infra (visual code), so no contract may reference it.
+// Viewer: the full-screen media viewer with paging, zoom and playback over a list of images, audio and video.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ViewerContract } from "./viewer.contract.ts";
 

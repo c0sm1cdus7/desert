@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { CatalogProps } from "../../types.d.ts";
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import { Slider } from '../../../vendor/components/ui/slider/index.js';
   import Play from '@lucide/svelte/icons/play';
@@ -6,10 +7,8 @@
   import Volume from '@lucide/svelte/icons/volume-2';
   import Muted from '@lucide/svelte/icons/volume-x';
   import Captions from '@lucide/svelte/icons/captions';
-  import { mediaTime, type MediaPlayback } from '../../../infra/playback.svelte.ts';
-  let { playback, part, hasCaptions = false }: {
-    playback: MediaPlayback; part: 'transport' | 'volume' | 'seek'; hasCaptions?: boolean;
-  } = $props();
+  import { mediaTime } from '../../../infra/playback.svelte.ts';
+  let { playback, part, hasCaptions = false }: CatalogProps<"playback-controls"> = $props();
 </script>
 
 {#if part === 'transport'}

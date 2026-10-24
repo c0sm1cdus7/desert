@@ -1,11 +1,11 @@
 <script lang="ts">
+  import type { CatalogProps } from "../../types.d.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import { Image } from "../../index.ts";
   import { ArtworkPlaceholder } from "../../index.ts";
   import { PlaybackControls } from "../../index.ts";
-  import type { ToolbarContent } from "../../../infra/toolbar-content.ts";
   import { imageIdentity } from "../../../infra/media-source.ts";
-  let { content }: { content: Extract<ToolbarContent, { kind: "media-controls" }> } = $props();
+  let { content }: CatalogProps<"toolbar-media-controls"> = $props();
   let selected = $derived(content.items[content.index]!);
 </script>
 

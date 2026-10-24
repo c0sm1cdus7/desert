@@ -1,5 +1,4 @@
-// Specimen: an isolated witness of one resolved node in one scenario, interactive through local state only. Its contract
-// stays a stub: the generated CatalogProps makes `surface` (HumanSurface) deep-readonly, which turns its tuples into arrays.
+// Specimen: an isolated witness of one resolved node in one scenario, interactive through local state only.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { SpecimenContract } from "./specimen.contract.ts";
 

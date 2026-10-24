@@ -4,6 +4,9 @@ import type { ComponentProps, Snippet } from "svelte";
 import type { Static, TSchema } from "@sinclair/typebox";
 import type * as Catalog from "./index.ts";
 import type { AccessAppearanceSpecimenContract as AccessAppearanceSpecimenContract } from "./compositions/access-appearance-specimen/access-appearance-specimen.contract.ts";
+import type { AccessExperienceContract as AccessExperienceContract } from "./compositions/access-experience/access-experience.contract.ts";
+import type { AccessFormContract as AccessFormContract } from "./compositions/access-form/access-form.contract.ts";
+import type { AccessGateContract as AccessGateContract } from "./compositions/access-gate/access-gate.contract.ts";
 import type { AccessScreenContract as AccessScreenContract } from "./compositions/access-screen/access-screen.contract.ts";
 import type { AppearanceContract as AppearanceContract } from "./compositions/appearance/appearance.contract.ts";
 import type { AppearancePreferencesContract as AppearancePreferencesContract } from "./compositions/appearance-preferences/appearance-preferences.contract.ts";
@@ -17,6 +20,7 @@ import type { AvatarShuffleContract as AvatarShuffleContract } from "./compositi
 import type { CatalogCardContract as CatalogCardContract } from "./foundations/catalog-card/catalog-card.contract.ts";
 import type { CatalogDetailContract as CatalogDetailContract } from "./compositions/catalog-detail/catalog-detail.contract.ts";
 import type { CatalogHomeContract as CatalogHomeContract } from "./compositions/catalog-home/catalog-home.contract.ts";
+import type { CatalogWorkspaceContentContract as CatalogWorkspaceContentContract } from "./compositions/catalog-workspace-content/catalog-workspace-content.contract.ts";
 import type { CharacterCounterContract as CharacterCounterContract } from "./foundations/character-counter/character-counter.contract.ts";
 import type { ChoiceItemContract as ChoiceItemContract } from "./foundations/choice-item/choice-item.contract.ts";
 import type { ChoiceListContract as ChoiceListContract } from "./foundations/choice-list/choice-list.contract.ts";
@@ -43,6 +47,8 @@ import type { FailureDialogContract as FailureDialogContract } from "./renderer/
 import type { FeedbackContract as FeedbackContract } from "./foundations/feedback/feedback.contract.ts";
 import type { FieldWellContract as FieldWellContract } from "./foundations/field-well/field-well.contract.ts";
 import type { FieldWellContentContract as FieldWellContentContract } from "./foundations/field-well-content/field-well-content.contract.ts";
+import type { FieldsContract as FieldsContract } from "./compositions/fields/fields.contract.ts";
+import type { FileControlContract as FileControlContract } from "./compositions/file-control/file-control.contract.ts";
 import type { FrameBodyContract as FrameBodyContract } from "./renderer/frame-body/frame-body.contract.ts";
 import type { GroupedPanelContract as GroupedPanelContract } from "./foundations/grouped-panel/grouped-panel.contract.ts";
 import type { HeadingContract as HeadingContract } from "./foundations/heading/heading.contract.ts";
@@ -55,6 +61,7 @@ import type { LabelsControlContract as LabelsControlContract } from "./compositi
 import type { LibraryContract as LibraryContract } from "./compositions/library/library.contract.ts";
 import type { LocalExerciseContentContract as LocalExerciseContentContract } from "./compositions/local-exercise-content/local-exercise-content.contract.ts";
 import type { LocalExercisesContract as LocalExercisesContract } from "./renderer/local-exercises/local-exercises.contract.ts";
+import type { LockScreenContract as LockScreenContract } from "./compositions/lock-screen/lock-screen.contract.ts";
 import type { MaskedInputContract as MaskedInputContract } from "./foundations/masked-input/masked-input.contract.ts";
 import type { MeasuredFieldContract as MeasuredFieldContract } from "./foundations/measured-field/measured-field.contract.ts";
 import type { MediaCollectionGridContract as MediaCollectionGridContract } from "./compositions/media-collection-grid/media-collection-grid.contract.ts";
@@ -72,8 +79,10 @@ import type { OptionsControlContract as OptionsControlContract } from "./composi
 import type { PanelContract as PanelContract } from "./renderer/panel/panel.contract.ts";
 import type { PhotoCollectionContract as PhotoCollectionContract } from "./compositions/photo-collection/photo-collection.contract.ts";
 import type { PlaceHeaderContract as PlaceHeaderContract } from "./compositions/place-header/place-header.contract.ts";
+import type { PlaybackControlsContract as PlaybackControlsContract } from "./compositions/playback-controls/playback-controls.contract.ts";
 import type { PopoverControlContract as PopoverControlContract } from "./compositions/popover-control/popover-control.contract.ts";
 import type { ProblemContract as ProblemContract } from "./compositions/problem/problem.contract.ts";
+import type { PublicCatalogBankContract as PublicCatalogBankContract } from "./renderer/public-catalog-bank/public-catalog-bank.contract.ts";
 import type { PublicCatalogBankSpecimenContract as PublicCatalogBankSpecimenContract } from "./renderer/public-catalog-bank-specimen/public-catalog-bank-specimen.contract.ts";
 import type { PublicCatalogProductContract as PublicCatalogProductContract } from "./renderer/public-catalog-product/public-catalog-product.contract.ts";
 import type { PublicCatalogProductContentContract as PublicCatalogProductContentContract } from "./compositions/public-catalog-product-content/public-catalog-product-content.contract.ts";
@@ -87,6 +96,8 @@ import type { ReviewContract as ReviewContract } from "./compositions/review/rev
 import type { SeedAvatarContract as SeedAvatarContract } from "./foundations/seed-avatar/seed-avatar.contract.ts";
 import type { SelectControlContract as SelectControlContract } from "./compositions/select-control/select-control.contract.ts";
 import type { SharedOwnerCatalogContract as SharedOwnerCatalogContract } from "./compositions/shared-owner-catalog/shared-owner-catalog.contract.ts";
+import type { SharedOwnerSpecimenContract as SharedOwnerSpecimenContract } from "./compositions/shared-owner-specimen/shared-owner-specimen.contract.ts";
+import type { SpecimenContract as SpecimenContract } from "./compositions/specimen/specimen.contract.ts";
 import type { SpecimenGroupContract as SpecimenGroupContract } from "./compositions/specimen-group/specimen-group.contract.ts";
 import type { SpecimenRowContract as SpecimenRowContract } from "./compositions/specimen-row/specimen-row.contract.ts";
 import type { SpecimenUnavailableContract as SpecimenUnavailableContract } from "./compositions/specimen-unavailable/specimen-unavailable.contract.ts";
@@ -99,14 +110,21 @@ import type { SurfaceSpecimenContract as SurfaceSpecimenContract } from "./compo
 import type { TextContract as TextContract } from "./foundations/text/text.contract.ts";
 import type { TextContentContract as TextContentContract } from "./compositions/text-content/text-content.contract.ts";
 import type { TextInputContract as TextInputContract } from "./foundations/text-input/text-input.contract.ts";
+import type { ToolbarContract as ToolbarContract } from "./compositions/toolbar/toolbar.contract.ts";
+import type { ToolbarMediaControlsContract as ToolbarMediaControlsContract } from "./compositions/toolbar-media-controls/toolbar-media-controls.contract.ts";
+import type { ToolbarSearchContract as ToolbarSearchContract } from "./compositions/toolbar-search/toolbar-search.contract.ts";
 import type { UtilityActionsContract as UtilityActionsContract } from "./compositions/utility-actions/utility-actions.contract.ts";
 import type { ViewAttentionContract as ViewAttentionContract } from "./compositions/view-attention/view-attention.contract.ts";
 import type { ViewDestinationLinkContract as ViewDestinationLinkContract } from "./compositions/view-destination-link/view-destination-link.contract.ts";
 import type { ViewItemContract as ViewItemContract } from "./renderer/view-item/view-item.contract.ts";
 import type { ViewProductContract as ViewProductContract } from "./renderer/view-product/view-product.contract.ts";
+import type { ViewProductContentContract as ViewProductContentContract } from "./compositions/view-product-content/view-product-content.contract.ts";
 import type { ViewRegionContract as ViewRegionContract } from "./foundations/view-region/view-region.contract.ts";
 import type { ViewRelatedSelectionContract as ViewRelatedSelectionContract } from "./compositions/view-related-selection/view-related-selection.contract.ts";
+import type { ViewWorkspaceContract as ViewWorkspaceContract } from "./compositions/view-workspace/view-workspace.contract.ts";
+import type { ViewerContract as ViewerContract } from "./compositions/viewer/viewer.contract.ts";
 import type { WallpaperContract as WallpaperContract } from "./foundations/wallpaper/wallpaper.contract.ts";
+import type { WorkspaceContract as WorkspaceContract } from "./renderer/workspace/workspace.contract.ts";
 import type { ZoomControlsContract as ZoomControlsContract } from "./compositions/zoom-controls/zoom-controls.contract.ts";
 
 /** Contract data reaches a piece read-only, so callers may pass frozen state; functions keep their own type. */
@@ -270,9 +288,9 @@ export type CatalogExports = {
 /** The props of a piece: from its closed contract, else (stub contract, not yet migrated) from its entry. */
 export type CatalogPropsTable = {
   readonly "access-appearance-specimen": ContractProps<typeof AccessAppearanceSpecimenContract> & ContractEvents<typeof AccessAppearanceSpecimenContract>;
-  readonly "access-experience": ComponentProps<typeof Catalog.AccessExperience>;
-  readonly "access-form": ComponentProps<typeof Catalog.AccessForm>;
-  readonly "access-gate": ComponentProps<typeof Catalog.AccessGate>;
+  readonly "access-experience": ContractProps<typeof AccessExperienceContract> & ContractEvents<typeof AccessExperienceContract>;
+  readonly "access-form": ContractProps<typeof AccessFormContract> & ContractEvents<typeof AccessFormContract>;
+  readonly "access-gate": ContractProps<typeof AccessGateContract> & ContractEvents<typeof AccessGateContract>;
   readonly "access-screen": ContractProps<typeof AccessScreenContract> & ContractEvents<typeof AccessScreenContract>;
   readonly "action": ComponentProps<typeof Catalog.Action>;
   readonly "appearance": ContractProps<typeof AppearanceContract> & ContractEvents<typeof AppearanceContract>;
@@ -290,7 +308,7 @@ export type CatalogPropsTable = {
   readonly "catalog-navigation": ComponentProps<typeof Catalog.CatalogNavigation>;
   readonly "catalog-search-results": ComponentProps<typeof Catalog.CatalogSearchResults>;
   readonly "catalog-workspace": ComponentProps<typeof Catalog.CatalogWorkspace>;
-  readonly "catalog-workspace-content": ComponentProps<typeof Catalog.CatalogWorkspaceContent>;
+  readonly "catalog-workspace-content": ContractProps<typeof CatalogWorkspaceContentContract> & ContractEvents<typeof CatalogWorkspaceContentContract>;
   readonly "character-counter": ContractProps<typeof CharacterCounterContract> & ContractEvents<typeof CharacterCounterContract>;
   readonly "choice-item": ContractProps<typeof ChoiceItemContract> & ContractEvents<typeof ChoiceItemContract> & { readonly "children"?: Snippet };
   readonly "choice-list": ContractProps<typeof ChoiceListContract> & ContractEvents<typeof ChoiceListContract> & { readonly "children"?: Snippet };
@@ -321,8 +339,8 @@ export type CatalogPropsTable = {
   readonly "feedback": ContractProps<typeof FeedbackContract> & ContractEvents<typeof FeedbackContract>;
   readonly "field-well": ContractProps<typeof FieldWellContract> & ContractEvents<typeof FieldWellContract> & { readonly "children"?: Snippet; readonly "prefix"?: Snippet; readonly "accessory"?: Snippet; readonly "footer"?: Snippet };
   readonly "field-well-content": ContractProps<typeof FieldWellContentContract> & ContractEvents<typeof FieldWellContentContract> & { readonly "children"?: Snippet };
-  readonly "fields": ComponentProps<typeof Catalog.Fields>;
-  readonly "file-control": ComponentProps<typeof Catalog.FileControl>;
+  readonly "fields": ContractProps<typeof FieldsContract> & ContractEvents<typeof FieldsContract>;
+  readonly "file-control": ContractProps<typeof FileControlContract> & ContractEvents<typeof FileControlContract>;
   readonly "frame-body": ContractProps<typeof FrameBodyContract> & ContractEvents<typeof FrameBodyContract>;
   readonly "grouped-panel": ContractProps<typeof GroupedPanelContract> & ContractEvents<typeof GroupedPanelContract> & { readonly "children"?: Snippet };
   readonly "heading": ContractProps<typeof HeadingContract> & ContractEvents<typeof HeadingContract>;
@@ -338,7 +356,7 @@ export type CatalogPropsTable = {
   readonly "library": ContractProps<typeof LibraryContract> & ContractEvents<typeof LibraryContract>;
   readonly "local-exercise-content": ContractProps<typeof LocalExerciseContentContract> & ContractEvents<typeof LocalExerciseContentContract>;
   readonly "local-exercises": ContractProps<typeof LocalExercisesContract> & ContractEvents<typeof LocalExercisesContract>;
-  readonly "lock-screen": ComponentProps<typeof Catalog.LockScreen>;
+  readonly "lock-screen": ContractProps<typeof LockScreenContract> & ContractEvents<typeof LockScreenContract>;
   readonly "masked-input": ContractProps<typeof MaskedInputContract> & ContractEvents<typeof MaskedInputContract>;
   readonly "measured-field": ContractProps<typeof MeasuredFieldContract> & ContractEvents<typeof MeasuredFieldContract> & { readonly "children"?: Snippet };
   readonly "media-collection-grid": ContractProps<typeof MediaCollectionGridContract> & ContractEvents<typeof MediaCollectionGridContract>;
@@ -362,10 +380,10 @@ export type CatalogPropsTable = {
   readonly "place-header": ContractProps<typeof PlaceHeaderContract> & ContractEvents<typeof PlaceHeaderContract>;
   readonly "place-heading": ComponentProps<typeof Catalog.PlaceHeading>;
   readonly "playback-canvas": ComponentProps<typeof Catalog.PlaybackCanvas>;
-  readonly "playback-controls": ComponentProps<typeof Catalog.PlaybackControls>;
+  readonly "playback-controls": ContractProps<typeof PlaybackControlsContract> & ContractEvents<typeof PlaybackControlsContract>;
   readonly "popover-control": ContractProps<typeof PopoverControlContract> & ContractEvents<typeof PopoverControlContract>;
   readonly "problem": ContractProps<typeof ProblemContract> & ContractEvents<typeof ProblemContract>;
-  readonly "public-catalog-bank": ComponentProps<typeof Catalog.PublicCatalogBank>;
+  readonly "public-catalog-bank": ContractProps<typeof PublicCatalogBankContract> & ContractEvents<typeof PublicCatalogBankContract>;
   readonly "public-catalog-bank-specimen": ContractProps<typeof PublicCatalogBankSpecimenContract> & ContractEvents<typeof PublicCatalogBankSpecimenContract>;
   readonly "public-catalog-product": ContractProps<typeof PublicCatalogProductContract> & ContractEvents<typeof PublicCatalogProductContract>;
   readonly "public-catalog-product-content": ContractProps<typeof PublicCatalogProductContentContract> & ContractEvents<typeof PublicCatalogProductContentContract>;
@@ -382,8 +400,8 @@ export type CatalogPropsTable = {
   readonly "select-control": ContractProps<typeof SelectControlContract> & ContractEvents<typeof SelectControlContract>;
   readonly "selection-field": ComponentProps<typeof Catalog.SelectionField>;
   readonly "shared-owner-catalog": ContractProps<typeof SharedOwnerCatalogContract> & ContractEvents<typeof SharedOwnerCatalogContract>;
-  readonly "shared-owner-specimen": ComponentProps<typeof Catalog.SharedOwnerSpecimen>;
-  readonly "specimen": ComponentProps<typeof Catalog.Specimen>;
+  readonly "shared-owner-specimen": ContractProps<typeof SharedOwnerSpecimenContract> & ContractEvents<typeof SharedOwnerSpecimenContract>;
+  readonly "specimen": ContractProps<typeof SpecimenContract> & ContractEvents<typeof SpecimenContract>;
   readonly "specimen-group": ContractProps<typeof SpecimenGroupContract> & ContractEvents<typeof SpecimenGroupContract> & { readonly "children"?: Snippet };
   readonly "specimen-row": ContractProps<typeof SpecimenRowContract> & ContractEvents<typeof SpecimenRowContract> & { readonly "children"?: Snippet };
   readonly "specimen-unavailable": ContractProps<typeof SpecimenUnavailableContract> & ContractEvents<typeof SpecimenUnavailableContract>;
@@ -397,10 +415,10 @@ export type CatalogPropsTable = {
   readonly "text": ContractProps<typeof TextContract> & ContractEvents<typeof TextContract>;
   readonly "text-content": ContractProps<typeof TextContentContract> & ContractEvents<typeof TextContentContract>;
   readonly "text-input": ContractProps<typeof TextInputContract> & ContractEvents<typeof TextInputContract>;
-  readonly "toolbar": ComponentProps<typeof Catalog.Toolbar>;
+  readonly "toolbar": ContractProps<typeof ToolbarContract> & ContractEvents<typeof ToolbarContract>;
   readonly "toolbar-layout": ComponentProps<typeof Catalog.ToolbarLayout>;
-  readonly "toolbar-media-controls": ComponentProps<typeof Catalog.ToolbarMediaControls>;
-  readonly "toolbar-search": ComponentProps<typeof Catalog.ToolbarSearch>;
+  readonly "toolbar-media-controls": ContractProps<typeof ToolbarMediaControlsContract> & ContractEvents<typeof ToolbarMediaControlsContract>;
+  readonly "toolbar-search": ContractProps<typeof ToolbarSearchContract> & ContractEvents<typeof ToolbarSearchContract>;
   readonly "utility-actions": ContractProps<typeof UtilityActionsContract> & ContractEvents<typeof UtilityActionsContract>;
   readonly "view-attention": ContractProps<typeof ViewAttentionContract> & ContractEvents<typeof ViewAttentionContract>;
   readonly "view-content": ComponentProps<typeof Catalog.ViewContent>;
@@ -408,17 +426,17 @@ export type CatalogPropsTable = {
   readonly "view-item": ContractProps<typeof ViewItemContract> & ContractEvents<typeof ViewItemContract>;
   readonly "view-panel": ComponentProps<typeof Catalog.ViewPanel>;
   readonly "view-product": ContractProps<typeof ViewProductContract> & ContractEvents<typeof ViewProductContract>;
-  readonly "view-product-content": ComponentProps<typeof Catalog.ViewProductContent>;
+  readonly "view-product-content": ContractProps<typeof ViewProductContentContract> & ContractEvents<typeof ViewProductContentContract>;
   readonly "view-region": ContractProps<typeof ViewRegionContract> & ContractEvents<typeof ViewRegionContract> & { readonly "children"?: Snippet };
   readonly "view-related-selection": ContractProps<typeof ViewRelatedSelectionContract> & ContractEvents<typeof ViewRelatedSelectionContract>;
-  readonly "view-workspace": ComponentProps<typeof Catalog.ViewWorkspace>;
-  readonly "viewer": ComponentProps<typeof Catalog.Viewer>;
+  readonly "view-workspace": ContractProps<typeof ViewWorkspaceContract> & ContractEvents<typeof ViewWorkspaceContract>;
+  readonly "viewer": ContractProps<typeof ViewerContract> & ContractEvents<typeof ViewerContract>;
   readonly "wallpaper": ContractProps<typeof WallpaperContract> & ContractEvents<typeof WallpaperContract>;
-  readonly "workspace": ComponentProps<typeof Catalog.Workspace>;
+  readonly "workspace": ContractProps<typeof WorkspaceContract> & ContractEvents<typeof WorkspaceContract>;
   readonly "zoom-controls": ContractProps<typeof ZoomControlsContract> & ContractEvents<typeof ZoomControlsContract>;
 };
 export type CatalogProps<Id extends CatalogId> = CatalogPropsTable[Id];
-/** Pieces whose contract is closed: 105. */
-export type ClosedContractId = "access-appearance-specimen" | "access-screen" | "appearance" | "appearance-preferences" | "appearance-preview" | "artwork-placeholder" | "attention-indicator" | "attention-list" | "attention-status" | "availability" | "avatar-shuffle" | "catalog-card" | "catalog-detail" | "catalog-home" | "character-counter" | "choice-item" | "choice-list" | "choice-row" | "clear-input" | "collection" | "collection-state" | "color-bullet" | "column" | "confirmation-dialog" | "context-panel" | "context-properties" | "contract-inspection" | "control-bench" | "date-control" | "destination-row" | "face" | "fact-group" | "fact-list" | "fact-row" | "fact-value" | "facts" | "failure-dialog" | "feedback" | "field-well" | "field-well-content" | "frame-body" | "grouped-panel" | "heading" | "identity" | "image" | "information" | "instance-frame" | "label-rail" | "labels-control" | "library" | "local-exercise-content" | "local-exercises" | "masked-input" | "measured-field" | "media-collection-grid" | "media-content" | "media-control" | "media-grid" | "media-object" | "media-reference-selector" | "media-reference-specimen" | "message-body" | "money-control" | "object-state-control" | "object-state-row" | "options-control" | "panel" | "photo-collection" | "place-header" | "popover-control" | "problem" | "public-catalog-bank-specimen" | "public-catalog-product" | "public-catalog-product-content" | "reading-content" | "reference-selector" | "reference-specimen" | "reference-values" | "related-selection" | "retained-place" | "review" | "seed-avatar" | "select-control" | "shared-owner-catalog" | "specimen-group" | "specimen-row" | "specimen-unavailable" | "speed-dial" | "stack-item" | "stack-layout" | "summary-widget" | "surface-frame" | "surface-specimen" | "text" | "text-content" | "text-input" | "utility-actions" | "view-attention" | "view-destination-link" | "view-item" | "view-product" | "view-region" | "view-related-selection" | "wallpaper" | "zoom-controls";
+/** Pieces whose contract is closed: 123. */
+export type ClosedContractId = "access-appearance-specimen" | "access-experience" | "access-form" | "access-gate" | "access-screen" | "appearance" | "appearance-preferences" | "appearance-preview" | "artwork-placeholder" | "attention-indicator" | "attention-list" | "attention-status" | "availability" | "avatar-shuffle" | "catalog-card" | "catalog-detail" | "catalog-home" | "catalog-workspace-content" | "character-counter" | "choice-item" | "choice-list" | "choice-row" | "clear-input" | "collection" | "collection-state" | "color-bullet" | "column" | "confirmation-dialog" | "context-panel" | "context-properties" | "contract-inspection" | "control-bench" | "date-control" | "destination-row" | "face" | "fact-group" | "fact-list" | "fact-row" | "fact-value" | "facts" | "failure-dialog" | "feedback" | "field-well" | "field-well-content" | "fields" | "file-control" | "frame-body" | "grouped-panel" | "heading" | "identity" | "image" | "information" | "instance-frame" | "label-rail" | "labels-control" | "library" | "local-exercise-content" | "local-exercises" | "lock-screen" | "masked-input" | "measured-field" | "media-collection-grid" | "media-content" | "media-control" | "media-grid" | "media-object" | "media-reference-selector" | "media-reference-specimen" | "message-body" | "money-control" | "object-state-control" | "object-state-row" | "options-control" | "panel" | "photo-collection" | "place-header" | "playback-controls" | "popover-control" | "problem" | "public-catalog-bank" | "public-catalog-bank-specimen" | "public-catalog-product" | "public-catalog-product-content" | "reading-content" | "reference-selector" | "reference-specimen" | "reference-values" | "related-selection" | "retained-place" | "review" | "seed-avatar" | "select-control" | "shared-owner-catalog" | "shared-owner-specimen" | "specimen" | "specimen-group" | "specimen-row" | "specimen-unavailable" | "speed-dial" | "stack-item" | "stack-layout" | "summary-widget" | "surface-frame" | "surface-specimen" | "text" | "text-content" | "text-input" | "toolbar" | "toolbar-media-controls" | "toolbar-search" | "utility-actions" | "view-attention" | "view-destination-link" | "view-item" | "view-product" | "view-product-content" | "view-region" | "view-related-selection" | "view-workspace" | "viewer" | "wallpaper" | "workspace" | "zoom-controls";
 /** One witness of a piece in one state and one value per variant axis (`<id>.specimens.ts`, rule J). */
 export type CatalogSpecimen<Id extends CatalogId> = Readonly<{ state: string; variants?: Readonly<Record<string, string>>; props: CatalogProps<Id> }>;

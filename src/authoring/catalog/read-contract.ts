@@ -24,7 +24,7 @@ const scalars = new Set(["String", "Number", "Boolean", "Integer", "Null", "Void
 const utilityTypes = new Set(["Pick", "Omit", "Partial", "Required", "Readonly", "ReadonlyArray", "Record", "ReturnType", "Parameters",
   "Awaited", "Extract", "Exclude", "NonNullable", "Promise", "Array"]);
 /** Visual code: a Svelte file, or any module of src/svelte that is not infra/ (infra is nonvisual TypeScript, rule I). */
-const visualModule = (from: string) => /\.svelte(\.ts)?$/.test(from) || /\/svelte\//.test(from) && !/\/infra\//.test(from)
+const visualModule = (from: string) => /\.svelte$/.test(from) || /\/svelte\//.test(from) && !/\/infra\//.test(from)
   || /\/catalog\/(foundations|compositions|renderer|mechanisms)\//.test(from);
 /** Every type name a type expression refers to (`Pick<AccessClient, "lock">` → Pick, AccessClient). */
 function typeNames(node: ts.Node, found: Set<string> = new Set()): Set<string> {

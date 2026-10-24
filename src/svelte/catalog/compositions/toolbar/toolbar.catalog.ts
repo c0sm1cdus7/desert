@@ -1,5 +1,4 @@
-// Toolbar: the command toolbar of a surface, drawn by the toolbar layout. Its contract stays a stub: `controls` is a
-// ToolbarControls, a type that lives in src/svelte/infra (visual code), so no contract may reference it.
+// Toolbar: the command toolbar of a surface, drawn by the toolbar layout.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ToolbarContract } from "./toolbar.contract.ts";
 

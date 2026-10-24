@@ -1,13 +1,8 @@
 <script lang="ts">
-  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
-  import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
   import { InspectionCatalog } from "../../../adapter-catalog.ts";
-  import type { RegisterContentActions } from "../../../infra/workspace-content.ts";
-  let { surface, oncatalog, bodyOnly, onactions }: {
-    surface: PublicBankInput; oncatalog: (event: NodeEvent) => void; bodyOnly?: boolean;
-    onactions?: RegisterContentActions;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { surface, oncatalog, bodyOnly, onactions }: CatalogProps<"public-catalog-bank"> = $props();
   let content = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null>;
     revealAndFocusEntry: (id: ResolvedNodeId) => Promise<void> }>();
   export async function revealEntry(id: ResolvedNodeId) { return await content?.revealEntry(id) ?? null; }
@@ -18,4 +13,4 @@
   });
 </script>
 
-<InspectionCatalog {surface} {oncatalog} {bodyOnly} bind:this={content} />
+<InspectionCatalog {surface} oncatalog={event => oncatalog?.(event)} {bodyOnly} bind:this={content} />

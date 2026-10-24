@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Check } from "@sinclair/typebox/value";
   import { onMount, tick } from "svelte";
-  import { AccessRequests, type AccessInput } from "../../../../identity/contract.ts";
+  import { AccessRequests } from "../../../../identity/contract.ts";
   import { StackLayout } from "../../index.ts";
   import { TextInput } from "../../index.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
@@ -12,11 +12,8 @@
   import type { AppearancePreferences as Preferences } from "../../../infra/appearance-preferences.ts";
   import { newAvatarSeed } from "../../../infra/avatar-seed.ts";
   import { Feedback } from "../../index.ts";
-  let { mode, busy = false, onsubmit, productLabel = "VOID", preferences, onappearancechange }: {
-    mode: "initialize" | "signIn"; busy?: boolean; productLabel?: string;
-    preferences?: Preferences | undefined; onappearancechange?: ((value: Preferences) => void) | undefined;
-    onsubmit: (input: AccessInput<"initialize">) => Promise<void>;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { mode, busy = false, onsubmit, productLabel = "VOID", preferences, onappearancechange }: CatalogProps<"access-form"> = $props();
   let login = $state(""), displayName = $state(""), password = $state("");
   let avatarSeed = $state(newAvatarSeed());
   let step = $state<1 | 2>(1);

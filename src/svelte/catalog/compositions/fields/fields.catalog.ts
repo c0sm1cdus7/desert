@@ -1,5 +1,4 @@
-// Fields: the fields of a form frame, each mounted through the node renderer. Its contract stays a stub: the type of
-// `fields` has no exported name or schema outside visual code (migration debt).
+// Fields: the fields of a form frame, each mounted through the node renderer.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { FieldsContract } from "./fields.contract.ts";
 

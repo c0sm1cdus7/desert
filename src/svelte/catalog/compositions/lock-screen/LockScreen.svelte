@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { Check } from "@sinclair/typebox/value";
-  import { AccessRequests, type AccessInput } from "../../../../identity/contract.ts";
+  import { AccessRequests } from "../../../../identity/contract.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import ArrowRight from "@lucide/svelte/icons/arrow-right";
@@ -11,10 +11,8 @@
   import { SeedAvatar } from "../../index.ts";
   import { TextInput } from "../../index.ts";
   import { StackLayout } from "../../index.ts";
-  import type { AccessProfile } from "../../../infra/access-profile.ts";
-  let { profile = null, busy = false, onsubmit }: {
-    profile?: AccessProfile | null; busy?: boolean; onsubmit: (input: AccessInput<"signIn">) => Promise<void>;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { profile = null, busy = false, onsubmit }: CatalogProps<"lock-screen"> = $props();
   let another = $state(false), login = $state(""), password = $state("");
   let now = $state(new Date());
   let known = $derived(profile && !another);

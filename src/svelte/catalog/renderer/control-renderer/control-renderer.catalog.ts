@@ -1,5 +1,4 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// ControlRenderer: draws one control node through the node renderer and forwards only its control events.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ControlRendererContract } from "./control-renderer.contract.ts";
 

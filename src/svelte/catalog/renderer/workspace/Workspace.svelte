@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ViewWorkspace } from "../../../adapter-catalog.ts";
-  import type { WorkspaceProps } from "../../../infra/view-types.ts";
-  let props: WorkspaceProps = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let props: CatalogProps<"workspace"> = $props();
 </script>
 
 <ViewWorkspace program={props.program} activeDestination={props.activeDestination}

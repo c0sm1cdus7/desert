@@ -1,5 +1,5 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// LockScreen: unlock an identity on this device: the remembered profile (or an identity name) and its password, with
+// the date and time over the wallpaper.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { LockScreenContract } from "./lock-screen.contract.ts";
 
