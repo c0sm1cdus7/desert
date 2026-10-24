@@ -3,13 +3,14 @@
 import { Type, type Static } from "@sinclair/typebox";
 import { text } from "../../views/definition.ts";
 import { AssetReferenceSchema } from "../../assets/types.ts";
+import { ReferenceColorSchema } from "../../interaction/reference-color.ts";
 
 const closed = { additionalProperties: false } as const;
 
 /** One chosen tag: its label, its reference color when it has one, and whether it is still known. */
 export const TagViewSchema = Type.Object({
   label: text,
-  color: Type.Optional(Type.String()),
+  color: Type.Optional(ReferenceColorSchema),
   state: Type.Union([Type.Literal("known"), Type.Literal("unavailable")]),
 }, closed);
 export type TagView = Static<typeof TagViewSchema>;

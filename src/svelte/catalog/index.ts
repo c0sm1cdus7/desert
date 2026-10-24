@@ -14,6 +14,7 @@ export { default as AttentionIndicator } from "./foundations/attention-indicator
 export { default as AttentionList } from "./compositions/attention-list/AttentionList.svelte";
 export { default as AttentionStatus } from "./compositions/attention-status/AttentionStatus.svelte";
 export { default as Availability } from "./foundations/availability/Availability.svelte";
+export { default as Avatar } from "./foundations/avatar/Avatar.svelte";
 export { default as AvatarShuffle } from "./compositions/avatar-shuffle/AvatarShuffle.svelte";
 export { default as CatalogCard } from "./foundations/catalog-card/CatalogCard.svelte";
 export { default as CatalogDetail } from "./compositions/catalog-detail/CatalogDetail.svelte";
@@ -23,6 +24,7 @@ export { default as CatalogSearchResults } from "./compositions/catalog-search-r
 export { default as CatalogWorkspace } from "./compositions/catalog-workspace/CatalogWorkspace.svelte";
 export { default as CatalogWorkspaceContent } from "./compositions/catalog-workspace-content/CatalogWorkspaceContent.svelte";
 export { default as CharacterCounter } from "./foundations/character-counter/CharacterCounter.svelte";
+export { default as Choice } from "./foundations/choice/Choice.svelte";
 export { default as ChoiceItem } from "./foundations/choice-item/ChoiceItem.svelte";
 export { default as ChoiceList } from "./foundations/choice-list/ChoiceList.svelte";
 export { default as ChoiceRow } from "./foundations/choice-row/ChoiceRow.svelte";
@@ -136,6 +138,7 @@ export { default as Status } from "./foundations/status/Status.svelte";
 export { default as SummaryWidget } from "./compositions/summary-widget/SummaryWidget.svelte";
 export { default as SurfaceFrame } from "./compositions/surface-frame/SurfaceFrame.svelte";
 export { default as SurfaceSpecimen } from "./compositions/surface-specimen/SurfaceSpecimen.svelte";
+export { default as Tag } from "./foundations/tag/Tag.svelte";
 export { default as Text } from "./foundations/text/Text.svelte";
 export { default as TextContent } from "./compositions/text-content/TextContent.svelte";
 export { default as TextInput } from "./foundations/text-input/TextInput.svelte";

@@ -36,6 +36,10 @@ export const FoundationDataSchema = closed({
   /** A state that exists only for some variant values (TextInput's `masked` is single-line only): rule J then requires
    * no specimen elsewhere, and the contract's exclusive variants make one there fail to type-check. */
   stateVariants: Type.Optional(Type.Record(PieceId, Axis, { additionalProperties: false })),
+  /** One axis value limiting other axes (Choice: a menu and swatches choose one; only a menu has a trigger): rule J then
+   * requires specimens only for the combinations left, and an empty list means the axis does not apply there. */
+  variantLimits: Type.Optional(Type.Record(AxisName, Type.Record(AxisValue, Type.Record(AxisName, unique(AxisValue),
+    { additionalProperties: false }), { additionalProperties: false }), { additionalProperties: false })),
   slots: Type.Optional(Slots),
   renders: Type.Optional(Renders),
   /** The template's static files this foundation draws (rule T qualifies each through exactly one foundation). */

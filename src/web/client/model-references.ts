@@ -4,6 +4,7 @@ import type { ControllerTransport } from './transport.ts';
 import { acceptanceOutcomeUnknown } from './transport.ts';
 import { requireMutationReceipt } from './mutation-receipt.ts';
 import type { ReferenceEvent, ReferenceState } from '../../interaction/labels-control.ts';
+import { referenceColor } from '../../interaction/reference-color.ts';
 
 /** Canonical companion reads/creates. This owner never swaps or submits the host draft. */
 export function modelReferences(surface:HumanSurface,store:HumanStore,transport:ControllerTransport,active:()=>boolean,validate:ValidateInput,object?:string) {
@@ -51,7 +52,7 @@ export function modelReferences(surface:HumanSurface,store:HumanStore,transport:
         if (journey?.kind !== 'read' || !Array.isArray(records) || records.some(record =>
           !/^[a-f0-9-]{36}$/.test(record.id) || typeof record.facts[capability.label] !== 'string'
           || String(record.facts[capability.label]).length > capability.maxLength || capability.color && !capability.colors.includes(String(record.facts[capability.color])))) throw new Error('INVALID_REFERENCE_RESPONSE');
-        const options=records.map(record => ({value:record.id,label:String(record.facts[capability.label]),...(capability.color ? {color:String(record.facts[capability.color])} : {})}));
+        const options=records.map(record => ({value:record.id,label:String(record.facts[capability.label]),...(capability.color ? {color:referenceColor(record.facts[capability.color])} : {})}));
         update(key,{options,loading:false,...(store.get().references?.[key]?.error==='Could not load choices. Try again.' ? {error:undefined} : {})});
         return true;
       } catch { if (active() && epoch === generation) update(key,{loading:false,error:'Could not load choices. Try again.'}); return false; }
