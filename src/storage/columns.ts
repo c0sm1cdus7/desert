@@ -2,6 +2,7 @@
 // The `storage` annotation is written only by these builders and read back only through ColumnStorageSchema.
 import { Type, type Static, type TLiteral, type TNull, type TSchema, type TUnion } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { labelsValueSchema, type LabelConstraints } from "../labels.ts";
 
 const closed = { additionalProperties: false } as const;
 const literals = <const V extends readonly [string, ...string[]]>(values: V) => Type.Union(values.map(value => Type.Literal(value)));
@@ -15,6 +16,8 @@ export const ColumnCheckSchema = Type.Union([
   Type.Object({ kind: Type.Literal("one-of"), values: Type.Array(Type.String(), { minItems: 1 }) }, closed),
   Type.Object({ kind: Type.Literal("pattern"), pattern: Type.String({ minLength: 1 }) }, closed),
   Type.Object({ kind: Type.Literal("json-object") }, closed),
+  Type.Object({ kind: Type.Literal("length"), minimum: Type.Integer({ minimum: 0 }), maximum: Type.Optional(Type.Integer({ minimum: 0 })) }, closed),
+  Type.Object({ kind: Type.Literal("labels"), maxItems: Type.Integer({ minimum: 1 }), maxLength: Type.Integer({ minimum: 1 }) }, closed),
 ]);
 export const ColumnDefaultSchema = Type.Union([Type.Boolean(), Type.Integer(), Type.Literal("clock_timestamp")]);
 export const ColumnStorageSchema = Type.Object({
@@ -39,19 +42,29 @@ function integerCheck(bounds: IntegerBounds): ColumnCheck {
 }
 const withCheck = (check: ColumnCheck | undefined) => check ? { check } : {};
 const withDefault = (value: ColumnStorage["default"]) => value === undefined ? {} : { default: value };
+type LengthBounds = Readonly<{ minLength?: number; maxLength?: number }>;
+/** Lengths count Unicode code points on both sides: Ajv's maxLength and Postgres char_length agree. */
+function lengthCheck({ minLength = 0, maxLength }: LengthBounds): ColumnCheck | undefined {
+  if (minLength === 0 && maxLength === undefined) return undefined;
+  return { kind: "length", minimum: minLength, ...(maxLength === undefined ? {} : { maximum: maxLength }) };
+}
+const lengthOptions = ({ minLength, maxLength }: LengthBounds) =>
+  ({ ...(minLength === undefined ? {} : { minLength }), ...(maxLength === undefined ? {} : { maxLength }) });
 
 export const column = {
   uuid: () => Type.String({ pattern: uuidPattern, storage: { type: "uuid", nullable: false } }),
   text: (options: Readonly<{ pattern?: string }> = {}) => options.pattern === undefined
     ? Type.String({ storage: { type: "text", nullable: false } })
     : Type.String({ pattern: options.pattern, storage: { type: "text", nullable: false, check: { kind: "pattern", pattern: options.pattern } } }),
+  boundedText: (bounds: LengthBounds) =>
+    Type.String({ ...lengthOptions(bounds), storage: { type: "text", nullable: false, ...withCheck(lengthCheck(bounds)) } }),
   /** A closed set stored as text with an IN check; the TypeScript union is the same list. */
   oneOf: <const V extends readonly [string, ...string[]]>(values: V): TUnion<TLiteral<V[number]>[]> =>
     Type.Union(values.map(value => Type.Literal(value)), { storage: { type: "text", nullable: false, check: { kind: "one-of", values: [...values] } } }),
   integer: (bounds?: IntegerBounds, initial?: number) => Type.Integer({ ...bounds,
     storage: { type: "integer", nullable: false, ...withCheck(bounds && integerCheck(bounds)), ...withDefault(initial) } }),
   /** pg returns int8 as a decimal string; the row type says so instead of pretending it is a number. */
-  bigint: (bounds?: Readonly<{ exclusiveMinimum: number }>) => Type.String({ pattern: bigintPattern,
+  bigint: (bounds?: IntegerBounds) => Type.String({ pattern: bigintPattern,
     storage: { type: "bigint", nullable: false, ...withCheck(bounds && integerCheck(bounds)) } }),
   identity: () => Type.String({ pattern: bigintPattern, storage: { type: "bigint", nullable: false, identity: "always" } }),
   boolean: (initial?: boolean) => Type.Boolean({ storage: { type: "boolean", nullable: false, ...withDefault(initial) } }),
@@ -59,6 +72,9 @@ export const column = {
   singleton: (initial?: true) => Type.Literal(true, { storage: { type: "boolean", nullable: false, check: { kind: "true" }, ...withDefault(initial) } }),
   timestamp: (initial?: "clock_timestamp") => Type.Date({ storage: { type: "timestamptz", nullable: false, ...withDefault(initial) } }),
   textArray: () => Type.Array(Type.String(), { storage: { type: "text[]", nullable: false } }),
+  /** A labels fact: the value schema of src/labels.ts; the same limits are checked by the namespace's labels function. */
+  labels: (limits: LabelConstraints) => ({ ...labelsValueSchema(limits),
+    storage: { type: "text[]", nullable: false, check: { kind: "labels", maxItems: limits.maxItems, maxLength: limits.maxLength } } }),
   /** jsonb holding a value of `schema`; `object` adds the jsonb_typeof check. */
   json: <S extends TSchema>(schema: S, shape: Readonly<{ object?: true }> = {}): S =>
     ({ ...schema, storage: { type: "jsonb", nullable: false, ...withCheck(shape.object ? { kind: "json-object" } : undefined) } }),

@@ -18,6 +18,9 @@ export function compileProgram(definition: ProductDefinition) {
     if (policies.has(object.id)) throw new Error(`Duplicate ownership policy: ${object.id}`);
     policies.set(object.id, policy.field);
   }
+  for (const object of objects.values()) for (const name of (object.unique ?? []).flat()) {
+    if (!Object.hasOwn(object.facts, name) || object.facts[name]?.kind === "labels") throw new Error(`INVALID_UNIQUE_DECLARATION: ${object.id}.${name}`);
+  }
   const journeys = uniqueById(definition.journeys ?? [], "journey");
   for (const object of objects.values()) for (const field of Object.values(object.facts)) {
     if (field.kind !== 'labels' || !field.reference) continue;

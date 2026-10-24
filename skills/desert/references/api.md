@@ -129,7 +129,7 @@ export {AttentionSignalSchema,type AttentionSignal} from './attention.ts';
 
 ## src/contracts.ts
 
-Source SHA-256: e0d851f463e39c486a905485d762537c25e73a75ac8702838bb004a01f20d4ac
+Source SHA-256: 4c0c7414c68217f6f9529151e1cade72b65077e579d515c63aa96d68ae3b5c66
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -140,6 +140,9 @@ export { text, integer, principal, enumeration, imageAsset, mediaAsset, labels, 
 const ObjectDefinition = Type.Object({
   id: Type.String({ minLength: 1 }),
   facts: Type.Record(Type.String({ minLength: 1 }), FieldDefinitionSchema, { minProperties: 1, additionalProperties: false }),
+  /** Sets of scalar facts no two objects of this type share, enforced by the typed object tables (src/storage/ddl.ts);
+   * the local controller refuses them (UNIQUE_NOT_YET_ENFORCED) until objects are stored there (plan §15, slice 7.2). */
+  unique: Type.Optional(Type.Array(Type.Array(Type.String({ minLength: 1 }), { minItems: 1, uniqueItems: true }), { minItems: 1, uniqueItems: true })),
 }, { additionalProperties: false });
 
 export const ProductDefinitionSchema = Type.Object({
@@ -1721,7 +1724,7 @@ export function snapshotPrepareOptions(input: unknown): PrepareOptions {
 
 ## src/local/controller.ts
 
-Source SHA-256: c3eda154d1cbf0051643ed3fda31f6983fb0bf615a2829b28b61e9c7a87c1569
+Source SHA-256: cdc1c09de857cccf70d3f8ea0291f4b6c1f385fd687be57a4bf620441490c03a
 
 ```ts
 import { localDatabase, type LocalDatabase } from "./database.ts";
@@ -1733,6 +1736,7 @@ import { humanIdentityAccess } from "../identity/access.ts";
 import { rememberController } from "./controller-binding.ts";
 import { privateImageHost, type PrivateImageStorage } from "../assets/host.ts";
 import { requirePrivateImageMechanism } from "../assets/requirements.ts";
+import { loadDefinition } from "../compiled-definition.ts";
 
 export async function openLocalController(application: Application, options: LocalDatabase & {
   roles: readonly string[], runLifetimeMs?: number, activities?: ActivityIndex, privateImages?: PrivateImageStorage,
@@ -1742,6 +1746,10 @@ export async function openLocalController(application: Application, options: Loc
   const activities = options.activities === undefined ? undefined : requireActivityCatalog(options.activities, application);
   const lifetime = options.runLifetimeMs ?? 5 * 60 * 1000;
   if (!Number.isSafeInteger(lifetime) || lifetime <= 0 || lifetime > 86400000) throw new Error("INVALID_RUN_LIFETIME");
+  // Declared uniqueness is enforced by the typed object tables (src/storage/ddl.ts). Until the runtime stores objects
+  // there (plan §15, slice 7.2) a product that declares it is refused rather than served without the guarantee.
+  const unique = loadDefinition(application).objects.find(object => object.unique);
+  if (unique) throw new Error(`UNIQUE_NOT_YET_ENFORCED: ${unique.id}: declared unique facts need typed object storage (slice 7.2)`);
   const database = localDatabase(options);
   try { await database.install(application.id, application.digest, program.roles); }
   catch (error) { await database.close(); throw error; }
