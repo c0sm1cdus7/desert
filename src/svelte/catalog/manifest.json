@@ -42,13 +42,6 @@
       "folder": "src/svelte/catalog/mechanisms/control-feedback",
       "owner": "theme"
     },
-    "control-measure": {
-      "files": [
-        "control-measure.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/control-measure",
-      "owner": "theme"
-    },
     "lateral-surface-motion": {
       "files": [
         "lateral-surface-motion.css"
@@ -183,9 +176,9 @@
         "appearance-preferences",
         "avatar-shuffle",
         "feedback",
+        "field",
         "icon",
-        "stack-layout",
-        "text-input"
+        "stack-layout"
       ]
     },
     "access-gate": {
@@ -1029,15 +1022,87 @@
         "default"
       ]
     },
+    "field": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/field",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Field.svelte",
+        "parts": [
+          "FieldWell.svelte",
+          "FieldLabel.svelte",
+          "FieldEditor.svelte",
+          "FieldTrigger.svelte",
+          "SearchWell.svelte",
+          "MaskedInput.svelte",
+          "input-edit-history.ts",
+          "ClearInput.svelte",
+          "CharacterCounter.svelte",
+          "editor-capacity.ts",
+          "field.css",
+          "field-measure.css"
+        ],
+        "vendor": [
+          "field",
+          "input",
+          "input-group",
+          "label",
+          "textarea"
+        ]
+      },
+      "purpose": "Write a single line or several, or open a choice, in one labelled well with field help and validation feedback.",
+      "renders": [
+        "input.text",
+        "input.multiline"
+      ],
+      "shape": "radius",
+      "slots": {
+        "accessory": {
+          "accepts": [
+            "action"
+          ]
+        },
+        "prefix": {
+          "accepts": [
+            "selection-field"
+          ]
+        }
+      },
+      "stateVariants": {
+        "masked": {
+          "primitive": [
+            "input.text"
+          ]
+        }
+      },
+      "states": [
+        "empty",
+        "value",
+        "invalid",
+        "disabled",
+        "masked"
+      ],
+      "variants": {
+        "measure": [
+          "writing",
+          "choice",
+          "date",
+          "amount",
+          "fill"
+        ],
+        "primitive": [
+          "input.text",
+          "input.multiline",
+          "trigger"
+        ]
+      }
+    },
     "field-well": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/field-well",
       "kind": "foundation",
       "owner": {
-        "entry": "FieldWell.svelte",
-        "parts": [
-          "field-well.css"
-        ]
+        "entry": "FieldWell.svelte"
       },
       "purpose": "Frame one editor in a rounded well whose label floats when empty and settles above the value when filled or focused.",
       "shape": "radius",
@@ -1146,13 +1211,14 @@
         "children": {
           "accepts": [
             "stack-layout",
-            "text-input",
+            "field",
             "action"
           ]
         }
       },
       "states": [
-        "default"
+        "default",
+        "filling"
       ]
     },
     "frame-body": {
@@ -1400,12 +1466,12 @@
       ],
       "uses": [
         "character-counter",
+        "field",
         "label-rail",
         "media-reference-selector",
         "node-renderer",
         "reference-selector",
-        "stack-layout",
-        "text-input"
+        "stack-layout"
       ]
     },
     "library": {
@@ -1457,11 +1523,11 @@
         "action",
         "clock",
         "column",
+        "field",
         "form",
         "heading",
         "seed-avatar",
-        "stack-layout",
-        "text-input"
+        "stack-layout"
       ]
     },
     "masked-input": {
@@ -1671,6 +1737,7 @@
         "date-control",
         "drawer",
         "facts",
+        "field",
         "fields",
         "file-control",
         "labels-control",
@@ -1680,8 +1747,7 @@
         "popover-control",
         "problem",
         "review",
-        "select-control",
-        "text-input"
+        "select-control"
       ]
     },
     "object-state-control": {
@@ -1970,12 +2036,12 @@
         "choice-list",
         "choice-row",
         "color-bullet",
+        "field",
         "field-well-content",
         "icon",
         "reference-values",
         "selection-field",
-        "stack-layout",
-        "text-input"
+        "stack-layout"
       ]
     },
     "reference-specimen": {
@@ -2085,10 +2151,7 @@
       "folder": "src/svelte/catalog/foundations/search-field",
       "kind": "foundation",
       "owner": {
-        "entry": "SearchField.svelte",
-        "parts": [
-          "search-field.css"
-        ]
+        "entry": "SearchField.svelte"
       },
       "purpose": "Type a query in a search well with a search icon and a clear button.",
       "shape": "radius",
@@ -2354,6 +2417,7 @@
             "fact-row",
             "fact-value",
             "feedback",
+            "field",
             "grouped-panel",
             "information",
             "measured-field",
@@ -2361,7 +2425,6 @@
             "selection-field",
             "shared-owner-specimen",
             "stack-item",
-            "text-input",
             "view-destination-link",
             "view-item"
           ]
@@ -2458,23 +2521,9 @@
       "folder": "src/svelte/catalog/foundations/text-input",
       "kind": "foundation",
       "owner": {
-        "entry": "TextInput.svelte",
-        "parts": [
-          "editor-capacity.ts"
-        ],
-        "vendor": [
-          "field",
-          "input",
-          "input-group",
-          "label",
-          "textarea"
-        ]
+        "entry": "TextInput.svelte"
       },
       "purpose": "Write a single line or several with a persistent label, field help and validation feedback.",
-      "renders": [
-        "input.text",
-        "input.multiline"
-      ],
       "shape": "radius",
       "slots": {
         "accessory": {

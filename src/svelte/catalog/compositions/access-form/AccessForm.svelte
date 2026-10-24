@@ -3,7 +3,7 @@
   import { onMount, tick } from "svelte";
   import { AccessRequests } from "../../../../identity/contract.ts";
   import { StackLayout } from "../../index.ts";
-  import { TextInput } from "../../index.ts";
+  import { Field } from "../../index.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import { Icon } from "../../index.ts";
   import { AvatarShuffle } from "../../index.ts";
@@ -47,12 +47,15 @@
   </header>
   {#if step === 1}
     <StackLayout title="Your identity">
-      {#if creating}<TextInput primitive="input.text" label="Display name" value={displayName} required disabled={busy} onchange={value => displayName = value} />{/if}
-      <TextInput primitive="input.text" label="Identity name" value={login} purpose="username" required disabled={busy}
-        helper={creating ? "3–64 lowercase letters, numbers, dots, hyphens or underscores." : undefined} onchange={value => login = value} />
-      <TextInput primitive="input.text" label="Password" value={password} purpose={creating ? "new-password" : "current-password"}
+      {#if creating}<Field primitive="input.text" label="Display name" labelVisibility="visible" measure="writing" purpose="text" value={displayName}
+        required invalid={false} disabled={busy} clear onchange={value => displayName = value} />{/if}
+      <Field primitive="input.text" label="Identity name" labelVisibility="visible" measure="writing" value={login} purpose="username" required
+        invalid={false} disabled={busy} clear helper={creating ? "3–64 lowercase letters, numbers, dots, hyphens or underscores." : undefined}
+        onchange={value => login = value} />
+      <Field primitive="input.text" label="Password" labelVisibility="visible" measure="writing" value={password}
+        purpose={creating ? "new-password" : "current-password"}
         helper={creating ? "At least 12 characters. Keep the password safe; recovery is not available yet." : undefined}
-        required disabled={busy} onchange={value => password = value} />
+        required invalid={false} disabled={busy} clear onchange={value => password = value} />
     </StackLayout>
   {:else}
     <AppearancePreferences value={personal} onchange={personalize} disabled={busy} />

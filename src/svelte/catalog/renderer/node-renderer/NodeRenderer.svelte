@@ -35,13 +35,14 @@
 
 {#if checked.kind === "input.text"}
   {@const Renderer = nodeRenderers[checked.kind]}
-  <Renderer primitive={checked.kind} identity={checked.name} label={checked.label} value={checked.value} required={checked.required}
-    disabled={checked.disabled} error={checked.error} helper={checked.helper} mask={checked.mask} maxLength={checked.maxLength}
+  <Renderer primitive={checked.kind} identity={checked.name} label={checked.label} labelVisibility="visible" measure="writing" purpose="text"
+    value={checked.value} required={checked.required} invalid={false} disabled={checked.disabled} error={checked.error} helper={checked.helper}
+    mask={checked.mask} maxLength={checked.maxLength} clear
     onchange={value => checked.kind === "input.text" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "input.multiline"}
   {@const Renderer = nodeRenderers[checked.kind]}
-  <Renderer primitive={checked.kind} label={checked.label} value={checked.value} required={checked.required}
-    disabled={checked.disabled} error={checked.error} helper={checked.helper} maxLength={checked.maxLength}
+  <Renderer primitive={checked.kind} label={checked.label} labelVisibility="visible" measure="writing" value={checked.value}
+    required={checked.required} invalid={false} disabled={checked.disabled} error={checked.error} helper={checked.helper} maxLength={checked.maxLength}
     onchange={value => checked.kind === "input.multiline" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "action"}
   {@const Renderer = nodeRenderers.action}

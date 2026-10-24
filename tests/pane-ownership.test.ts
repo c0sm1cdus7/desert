@@ -21,7 +21,7 @@ test('S1 role-aware source gate keeps pane recipes out of foundation variants',a
 
 test('S1 role-aware source gate protects neutral geometry owners and permits semantic ink',async()=>{
   const rules:Record<string,readonly string[]>={
-    'catalog/foundations/field-well/field-well.css':['@field-well'],
+    'catalog/foundations/field/field.css':['@field-well'],
     'catalog/mechanisms/structured-content/structured-content.css':['@grouped-panel','.bank-stack'],
     'catalog/mechanisms/anchored-surface/anchored-surface.css':['.floating-pane','.anchored-surface','.selection-surface'],
     'catalog/mechanisms/surface-chrome/surface-chrome.css':['.drawer','.drawer,.problem',':is(.drawer,.problem,.centered-dialog)'],

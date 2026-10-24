@@ -1,5 +1,5 @@
 import type { Component } from "svelte";
-import type { ResolvedNodeId, ResolvedInputId } from "../interaction/catalog.ts";
+import type { ResolvedNodeId } from "../interaction/catalog.ts";
 import type { ControlNode, ControlEvent } from "../interaction/control-nodes.ts";
 import type { SurfaceFrame, FrameContent, FactsContent, Destination } from "../interaction/surface-frame.ts";
 import type { TopToolbar } from "../interaction/toolbar.ts";
@@ -9,7 +9,6 @@ import type { NodeEvent } from "../interaction/node-events.ts";
 import type { LocalFileHost } from "./infra/file-host.ts";
 import type { Disclosure } from "./infra/disclosure.ts";
 import type { CatalogProps } from "./catalog/types.d.ts";
-import type { InputMask } from "../interaction/input-mask.ts";
 import { freezeDeep } from "../json.ts";
 import type { FormControlEvent } from "../interaction/form-control-event.ts";
 
@@ -28,10 +27,6 @@ export type ControlProps<K extends ControlKind> = { node: Extract<ControlNode, {
 type Invoke = (intent: SurfaceIntent) => void;
 type Edit = (name: string, value: string) => void;
 type FactsProps = Pick<FactsContent, "fields" | "facts" | "object" | "labels" | "multiline" | "images" | "tags" | "references">;
-type InputProps<P extends ResolvedInputId> = {
-  primitive: P; label: string; value?: string; required?: boolean; identity?: string; maxLength?: number | undefined;
-  invalid?: boolean; error?: string | undefined; helper?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
-};
 type ControlRendererProps = { [K in ControlKind as `control.${K}`]: ControlProps<K> };
 
 /** Private web adapter bindings, never accepted as bank descriptors. NodeRenderer alone resolves these. */
@@ -39,8 +34,8 @@ export type NodeRendererInputs = ControlRendererProps & {
   "catalog.card": { node: ResolvedNodeFor<"catalog.card">; onevent: (event: NodeEvent) => void };
   "catalog.home": { node: ResolvedNodeFor<"catalog.home">; onevent: (event: NodeEvent) => void };
   "catalog.detail": { node: ResolvedNodeFor<"catalog.detail">; onevent: (event: NodeEvent) => void };
-  "input.text": InputProps<"input.text"> & { mask?: InputMask | undefined };
-  "input.multiline": InputProps<"input.multiline">;
+  "input.text": Extract<CatalogProps<"field">, { primitive: "input.text" }>;
+  "input.multiline": Extract<CatalogProps<"field">, { primitive: "input.multiline" }>;
   fact: FactsProps;
   action: CatalogProps<"action">;
   availability: NonNullable<TopToolbar["availability"]>;

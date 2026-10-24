@@ -23,7 +23,7 @@ export const stageB: readonly GateCase[] = [
       await tree.append(lockScreen, '\n<Rebuilt.Input type="password" />\n');
     } },
   { id: "N01b", title: "the lock screen passes a presentation prop to its field", kind: "escape", expect: ["PRESENTATION_ESCAPE"], at: lockScreen,
-    mutate: tree => tree.replace(lockScreen, '<TextInput primitive="input.text"', '<TextInput primitive="input.text" presentation="access"') },
+    mutate: tree => tree.replace(lockScreen, '<Field primitive="input.text"', '<Field primitive="input.text" presentation="access"') },
   { id: "P1", title: "a foundation styles its own element with a scoped style", kind: "positive", expect: [],
     mutate: tree => tree.append(`${foundations}/availability/Availability.svelte`, "\n<style>.availability-note { opacity: 1; }</style>\n") },
   { id: "P2", title: "a mechanism owned by a foundation observes size", kind: "positive", expect: [],
@@ -56,7 +56,7 @@ export const stageB: readonly GateCase[] = [
   { id: "N27", title: "a composition defines a snippet that is not a declared slot", kind: "escape", expect: ["SLOT_NOT_TYPED"],
     mutate: tree => tree.append(accessGate, "\n{#snippet rogue()}{/snippet}\n") },
   { id: "N37", title: "a byte of an approved foundation's stylesheet changes", kind: "escape", expect: ["FOUNDATION_UNAPPROVED_CHANGE"],
-    mutate: async tree => { await tree.approveInCopy("field-well"); await tree.append(`${foundations}/field-well/field-well.css`, "\n/* x */\n"); } },
+    mutate: async tree => { await tree.approveInCopy("field"); await tree.append(`${foundations}/field/field.css`, "\n/* x */\n"); } },
   { id: "N38", title: "a vendor file owned by an approved foundation changes", kind: "escape", expect: ["FOUNDATION_UNAPPROVED_CHANGE"],
     mutate: async tree => { await tree.approveInCopy("action"); await tree.append("src/svelte/vendor/components/ui/button/button.svelte", "\n<!-- x -->\n"); } },
   { id: "N39", title: "the contract of an approved foundation changes", kind: "escape", expect: ["FOUNDATION_UNAPPROVED_CHANGE"],

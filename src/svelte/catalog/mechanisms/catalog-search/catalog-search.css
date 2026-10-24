@@ -14,7 +14,7 @@
   transition:opacity var(--motion-overlay-enter) var(--ease-enter),visibility 0s;
 }
 [data-catalog-search-actions] [data-slot="input-group"] {
-  border-radius:999px;
+  border-radius:var(--radius);
 }
 [data-catalog-search] [data-slot="input-group"] {
   width:var(--catalog-toolbar-height); max-width:100%; margin-inline-start:auto;

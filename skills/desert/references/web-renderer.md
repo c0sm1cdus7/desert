@@ -490,7 +490,7 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/foundations/field-well/FieldWell.svelte
 - src/svelte/catalog/foundations/search-field/SearchField.svelte
 - src/svelte/catalog/foundations/measured-field/MeasuredField.svelte
-- src/svelte/catalog/mechanisms/control-measure/control-measure.css
+- src/svelte/catalog/foundations/field/field-measure.css
 - src/svelte/catalog/foundations/grouped-panel/GroupedPanel.svelte
 - src/svelte/catalog/foundations/choice-row/ChoiceRow.svelte
 - src/svelte/catalog/foundations/selection-field/SelectionField.svelte
@@ -509,6 +509,8 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/compositions/media-control/MediaControl.svelte
 - src/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte
 - src/svelte/catalog/compositions/fields/Fields.svelte
+- src/svelte/catalog/foundations/field/Field.svelte
+- src/svelte/catalog/foundations/field/FieldEditor.svelte
 - src/svelte/catalog/foundations/text-input/TextInput.svelte
 - src/svelte/catalog/foundations/masked-input/MaskedInput.svelte
 - src/svelte/catalog/foundations/character-counter/CharacterCounter.svelte
@@ -1204,7 +1206,7 @@ export function nodeEvent(value: unknown): NodeEvent {
 
 ## src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte
 
-Source SHA-256: 03b95d816fadb1d2de3e643930c54ff4178341a4c32811f7d803f45895ccc7bb
+Source SHA-256: d26a87f994d45be0e67703e745640071433ebe046b0ebaff1e9da7e7370d8f30
 
 ```svelte
 <script lang="ts">
@@ -1244,13 +1246,14 @@ Source SHA-256: 03b95d816fadb1d2de3e643930c54ff4178341a4c32811f7d803f45895ccc7bb
 
 {#if checked.kind === "input.text"}
   {@const Renderer = nodeRenderers[checked.kind]}
-  <Renderer primitive={checked.kind} identity={checked.name} label={checked.label} value={checked.value} required={checked.required}
-    disabled={checked.disabled} error={checked.error} helper={checked.helper} mask={checked.mask} maxLength={checked.maxLength}
+  <Renderer primitive={checked.kind} identity={checked.name} label={checked.label} labelVisibility="visible" measure="writing" purpose="text"
+    value={checked.value} required={checked.required} invalid={false} disabled={checked.disabled} error={checked.error} helper={checked.helper}
+    mask={checked.mask} maxLength={checked.maxLength} clear
     onchange={value => checked.kind === "input.text" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "input.multiline"}
   {@const Renderer = nodeRenderers[checked.kind]}
-  <Renderer primitive={checked.kind} label={checked.label} value={checked.value} required={checked.required}
-    disabled={checked.disabled} error={checked.error} helper={checked.helper} maxLength={checked.maxLength}
+  <Renderer primitive={checked.kind} label={checked.label} labelVisibility="visible" measure="writing" value={checked.value}
+    required={checked.required} invalid={false} disabled={checked.disabled} error={checked.error} helper={checked.helper} maxLength={checked.maxLength}
     onchange={value => checked.kind === "input.multiline" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "action"}
   {@const Renderer = nodeRenderers.action}
@@ -1472,11 +1475,11 @@ Source SHA-256: 1b30b59ee4461594a05acd87260fb1cbcf3bfc001cbb7c680ebfe21c70790679
 
 ## src/svelte/renderer-contracts.ts
 
-Source SHA-256: f01e362b7d16e2268cc61efaa943ce5c7e8e96877726974511a67466da3d8914
+Source SHA-256: d11e81be1ed514dd018c383f1a491713b0db3303c0b7b15e8e1f4d7d41383778
 
 ```ts
 import type { Component } from "svelte";
-import type { ResolvedNodeId, ResolvedInputId } from "../interaction/catalog.ts";
+import type { ResolvedNodeId } from "../interaction/catalog.ts";
 import type { ControlNode, ControlEvent } from "../interaction/control-nodes.ts";
 import type { SurfaceFrame, FrameContent, FactsContent, Destination } from "../interaction/surface-frame.ts";
 import type { TopToolbar } from "../interaction/toolbar.ts";
@@ -1486,7 +1489,6 @@ import type { NodeEvent } from "../interaction/node-events.ts";
 import type { LocalFileHost } from "./infra/file-host.ts";
 import type { Disclosure } from "./infra/disclosure.ts";
 import type { CatalogProps } from "./catalog/types.d.ts";
-import type { InputMask } from "../interaction/input-mask.ts";
 import { freezeDeep } from "../json.ts";
 import type { FormControlEvent } from "../interaction/form-control-event.ts";
 
@@ -1505,10 +1507,6 @@ export type ControlProps<K extends ControlKind> = { node: Extract<ControlNode, {
 type Invoke = (intent: SurfaceIntent) => void;
 type Edit = (name: string, value: string) => void;
 type FactsProps = Pick<FactsContent, "fields" | "facts" | "object" | "labels" | "multiline" | "images" | "tags" | "references">;
-type InputProps<P extends ResolvedInputId> = {
-  primitive: P; label: string; value?: string; required?: boolean; identity?: string; maxLength?: number | undefined;
-  invalid?: boolean; error?: string | undefined; helper?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
-};
 type ControlRendererProps = { [K in ControlKind as `control.${K}`]: ControlProps<K> };
 
 /** Private web adapter bindings, never accepted as bank descriptors. NodeRenderer alone resolves these. */
@@ -1516,8 +1514,8 @@ export type NodeRendererInputs = ControlRendererProps & {
   "catalog.card": { node: ResolvedNodeFor<"catalog.card">; onevent: (event: NodeEvent) => void };
   "catalog.home": { node: ResolvedNodeFor<"catalog.home">; onevent: (event: NodeEvent) => void };
   "catalog.detail": { node: ResolvedNodeFor<"catalog.detail">; onevent: (event: NodeEvent) => void };
-  "input.text": InputProps<"input.text"> & { mask?: InputMask | undefined };
-  "input.multiline": InputProps<"input.multiline">;
+  "input.text": Extract<CatalogProps<"field">, { primitive: "input.text" }>;
+  "input.multiline": Extract<CatalogProps<"field">, { primitive: "input.multiline" }>;
   fact: FactsProps;
   action: CatalogProps<"action">;
   availability: NonNullable<TopToolbar["availability"]>;
@@ -1552,7 +1550,7 @@ export const DispatcherCapabilities = freezeDeep({
 
 ## src/svelte/renderer-registry.ts
 
-Source SHA-256: 21c1c9e34e65b3c418360d84666957174da75e56139a8167ee4c589e6167e77f
+Source SHA-256: 0f2a5a2dd9375afaf4048ec8f4ff7496b27d3c57d5662ea5b4722526becaf3ed
 
 ```ts
 // Generated from the catalog declarations by `node scripts/catalog.ts --write`; do not edit.
@@ -1567,6 +1565,7 @@ import ContextPanel from "./catalog/compositions/context-panel/ContextPanel.svel
 import DateControl from "./catalog/foundations/date-control/DateControl.svelte";
 import Drawer from "./catalog/foundations/drawer/Drawer.svelte";
 import Facts from "./catalog/renderer/facts/Facts.svelte";
+import Field from "./catalog/foundations/field/Field.svelte";
 import Fields from "./catalog/compositions/fields/Fields.svelte";
 import FileControl from "./catalog/compositions/file-control/FileControl.svelte";
 import LabelsControl from "./catalog/compositions/labels-control/LabelsControl.svelte";
@@ -1577,7 +1576,6 @@ import PopoverControl from "./catalog/compositions/popover-control/PopoverContro
 import Problem from "./catalog/compositions/problem/Problem.svelte";
 import Review from "./catalog/compositions/review/Review.svelte";
 import SelectControl from "./catalog/compositions/select-control/SelectControl.svelte";
-import TextInput from "./catalog/foundations/text-input/TextInput.svelte";
 
 export const nodeRenderers: NodeRendererTable = Object.freeze({
   action: Action,
@@ -1590,6 +1588,8 @@ export const nodeRenderers: NodeRendererTable = Object.freeze({
   "control.date": DateControl,
   transient: Drawer,
   fact: Facts,
+  "input.text": Field,
+  "input.multiline": Field,
   form: Fields,
   "control.files": FileControl,
   "control.labels": LabelsControl,
@@ -1602,8 +1602,6 @@ export const nodeRenderers: NodeRendererTable = Object.freeze({
   problem: Problem,
   review: Review,
   "control.select": SelectControl,
-  "input.text": TextInput,
-  "input.multiline": TextInput,
 } satisfies NodeRendererTable);
 ```
 
@@ -4702,32 +4700,34 @@ Source SHA-256: 589c0db710de5eccd4cc0c20d8c15d8c54b863111e562dc6039ec44b770f09e5
 </div>
 ```
 
-## src/svelte/catalog/mechanisms/control-measure/control-measure.css
+## src/svelte/catalog/foundations/field/field-measure.css
 
-Source SHA-256: d84a698ed4e2a0ac55dfff442cb0f905666a565dc0e83086605c5d7ef727e91a
+Source SHA-256: 4852c117ca5bce4898c412555493ca0e5a55dcfa8832d08335bfb94b6313bdd1
 
 ```ts
-/* Family measures stay stable while editing. A 3rem residual strip is absorbed
-   into the field. Queries measure the containing slot, never the device. */
-[data-control-measure] { container:control-measure / inline-size; width:100%; min-width:0; align-self:stretch; }
-[data-control-measure="writing"] { --control-preferred:32rem; }
-[data-control-measure="choice"] { --control-preferred:26rem; }
-[data-control-measure="date"] { --control-preferred:20rem; }
-[data-control-measure="amount"] { --control-preferred:22rem; }
-[data-control-measure] > [data-slot="field"] { width:100%; min-width:0; max-width:var(--control-preferred); margin-inline:0; }
+/* A Field's preferred measure stays stable while editing. A 3rem residual strip is absorbed into the field. Queries
+   measure the containing slot, never the device. `fill` takes the whole slot. `[data-control-measure]` is the box of
+   the measured-field foundation, which its callers keep until they mount Field (Batch 3 deletes it). */
+:is([data-measure], [data-control-measure]) { container:control-measure / inline-size; width:100%; min-width:0; align-self:stretch; }
+:is([data-measure="writing"], [data-control-measure="writing"]) { --control-preferred:32rem; }
+:is([data-measure="choice"], [data-control-measure="choice"]) { --control-preferred:26rem; }
+:is([data-measure="date"], [data-control-measure="date"]) { --control-preferred:20rem; }
+:is([data-measure="amount"], [data-control-measure="amount"]) { --control-preferred:22rem; }
+[data-measure="fill"] { --control-preferred:none; }
+:is([data-measure], [data-control-measure]) > [data-slot="field"] { width:100%; min-width:0; max-width:var(--control-preferred); margin-inline:0; }
 /* Each cutoff is the preferred measure above plus the same 3rem allowance.
    No width transition: resizing must not chase the pointer or reflow text late. */
 @container control-measure (max-width:35rem) {
-  [data-control-measure="writing"] > [data-slot="field"] { max-width:none; }
+  :is([data-measure="writing"], [data-control-measure="writing"]) > [data-slot="field"] { max-width:none; }
 }
 @container control-measure (max-width:29rem) {
-  [data-control-measure="choice"] > [data-slot="field"] { max-width:none; }
+  :is([data-measure="choice"], [data-control-measure="choice"]) > [data-slot="field"] { max-width:none; }
 }
 @container control-measure (max-width:23rem) {
-  [data-control-measure="date"] > [data-slot="field"] { max-width:none; }
+  :is([data-measure="date"], [data-control-measure="date"]) > [data-slot="field"] { max-width:none; }
 }
 @container control-measure (max-width:25rem) {
-  [data-control-measure="amount"] > [data-slot="field"] { max-width:none; }
+  :is([data-measure="amount"], [data-control-measure="amount"]) > [data-slot="field"] { max-width:none; }
 }
 ```
 
@@ -5717,82 +5717,149 @@ Source SHA-256: 0bbd7d98e932df42d7f14a85b29565dd0f6a83478521a7feb3c8d594e0702994
 </Field.FieldGroup>
 ```
 
-## src/svelte/catalog/foundations/text-input/TextInput.svelte
+## src/svelte/catalog/foundations/field/Field.svelte
 
-Source SHA-256: ec91582a17b29541c6432a4e280f83ecd906462c371a7063f09fadf4a17d2cf5
+Source SHA-256: b1bc77a17e29ccbff0aa41e4c57068b3f7a6cf322205af4ec4356035940fed40
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
-  import * as Field from "../../../vendor/components/ui/field/index.js";
-  import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import { FieldWell } from "../../index.ts";
-  import { MeasuredField } from "../../index.ts";
-  import { MaskedInput } from "../../index.ts";
-  import { CharacterCounter } from "../../index.ts";
-  import { ClearInput } from "../../index.ts";
-  import { observeEditorCapacity } from "./editor-capacity.ts";
+  import * as Vendor from "../../../vendor/components/ui/field/index.js";
+  import FieldWell from "./FieldWell.svelte";
+  import FieldEditor from "./FieldEditor.svelte";
+  import FieldTrigger from "./FieldTrigger.svelte";
+  import SearchWell from "./SearchWell.svelte";
+  import CharacterCounter from "./CharacterCounter.svelte";
+  import ClearInput from "./ClearInput.svelte";
   import type { CatalogProps } from "../../types.d.ts";
-  let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
-    identity = "", mask, maxLength, purpose = "text", onchange, accessory: trailing }: CatalogProps<"text-input"> = $props();
+  let { primitive, label, labelVisibility, required, invalid, disabled, helper, error, identity, measure, purpose, value, placeholder,
+    mask, maxLength, clear, focus, display, disclosure, onchange, onmasked, onopen, accessory: trailing, prefix }: CatalogProps<"field"> = $props();
   const id = $props.id();
-  let writing = $derived(value);
-  let editor = $state<HTMLTextAreaElement | null>(null);
-  $effect(() => { if (editor) return observeEditorCapacity(editor); });
-  let display = $state(""), draftError = $state("");
-  const context = () => `${identity}/${primitive}/${mask?.kind ?? ""}/${mask?.locale ?? ""}/${mask?.scale ?? ""}`;
-  let observed = untrack(() => ({ value, context: context() }));
+  // Both editors receive their value; the trigger owns none. `writing` is the live text, `shown` a mask's formatted text.
+  let written = $derived(typeof value === "string" ? value : "");
+  let writing = $derived(written);
+  let shown = $state("");
+  let draft = $derived(mask ? shown : writing);
+  let draftError = $state("");
+  // A rejected or incomplete masked edit keeps its message until the owner's value or the field's identity changes.
+  const context = () => `${identity ?? ""}/${primitive}/${mask?.kind ?? ""}/${mask?.locale ?? ""}/${mask?.scale ?? ""}`;
+  let observed = untrack(() => ({ value: written, context: context() }));
   let pending: string[] = [];
   $effect(() => {
-    const next = { value, context: context() };
+    const next = { value: written, context: context() };
     untrack(() => {
       const acknowledgement = pending.indexOf(next.value);
-      if (next.context !== observed.context || next.value !== observed.value && acknowledgement < 0) {
-        draftError = ""; pending = [];
-      } else if (acknowledgement >= 0) pending.splice(0, acknowledgement + 1);
+      if (next.context !== observed.context || next.value !== observed.value && acknowledgement < 0) { draftError = ""; pending = []; }
+      else if (acknowledgement >= 0) pending.splice(0, acknowledgement + 1);
       observed = next;
     });
   });
   let message = $derived(error || draftError);
-  let describedBy = $derived([
-    helper ? `${id}-helper` : undefined,
-    primitive === "input.multiline" ? `${id}-counter` : undefined,
-    message ? `${id}-error` : undefined,
-  ].filter(Boolean).join(" ") || undefined);
-  let invalidField = $derived(invalid || !!message);
-  function editMasked(next: string, valid: boolean, complete: boolean) {
-    if (disabled) return;
+  let marked = $derived(invalid || !!message);
+  let multiline = $derived(primitive === "input.multiline");
+  let describedBy = $derived([helper ? `${id}-helper` : undefined, multiline ? `${id}-counter` : undefined,
+    message ? `${id}-error` : undefined].filter(Boolean).join(" ") || undefined);
+  function edited(next: string, valid: boolean, complete: boolean) {
+    if (disabled || !mask) return;
+    onmasked?.({ value: next, valid, complete });
     draftError = valid && complete ? "" : valid ? "Enter a complete number." :
-      `Enter a number with up to ${mask!.scale} decimal places using this field's format.`;
+      `Enter a number with up to ${mask.scale} decimal places using this field's format.`;
     if (valid && complete) { pending.push(next); onchange?.(next); }
   }
 </script>
 {#snippet counter()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
-<MeasuredField kind={primitive} invalid={invalidField} {disabled}>
-  <FieldWell {id} {label} {required} footer={primitive === "input.multiline" ? counter : undefined}
-    filled={(mask ? display : writing).length > 0}>
-    {#snippet accessory()}{#if trailing}{@render trailing()}{:else}<ClearInput control={id} value={mask ? display : writing} label={`Clear ${label}`} {disabled} />{/if}{/snippet}
-    {#if primitive === "input.multiline"}
-      <Group.Textarea {id} bind:ref={editor} bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} rows={4} placeholder=" "
-        aria-describedby={describedBy} onblur={event => onchange?.(event.currentTarget.value)}
-        class="focus-visible:outline-none"
-        oninput={event => onchange?.(event.currentTarget.value)} />
-    {:else if mask}
-      <MaskedInput {id} {value} {mask} {identity} bind:display {required} {disabled}
-        aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
-        aria-describedby={describedBy} onvalue={editMasked} />
+{#snippet editor()}
+  {#if primitive !== "trigger"}
+    <FieldEditor {id} {primitive} {label} {purpose} value={written} {placeholder} {mask} {identity} {required} {disabled} {focus}
+      invalid={marked} {describedBy} bind:writing bind:shown onchange={next => onchange?.(next)} onmasked={edited} />
+  {/if}
+{/snippet}
+<div data-field data-field-filled={primitive === "trigger" || draft.length > 0} data-measure={measure}>
+  <Vendor.Field data-primitive={primitive} data-invalid={marked} data-disabled={disabled}>
+    {#if primitive === "trigger" && display && disclosure}
+      <FieldTrigger {label} {labelVisibility} {required} {disabled} {describedBy} {display} {disclosure}
+        onopen={() => onopen?.()} />
+    {:else if purpose === "search"}
+      <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} bind:writing onchange={next => onchange?.(next)} />
     {:else}
-      <Group.Input {id} type={purpose.endsWith("password") ? "password" : "text"} autocomplete={purpose === "text" ? undefined : purpose}
-        autocapitalize={purpose === "username" ? "none" : undefined} spellcheck={purpose === "text" ? undefined : false}
-        bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
-        aria-describedby={describedBy} onblur={event => onchange?.(event.currentTarget.value)}
-        class="focus-visible:outline-none"
-        oninput={event => onchange?.(event.currentTarget.value)} />
+      <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} {prefix} footer={multiline ? counter : undefined}>
+        {#snippet accessory()}
+          {#if trailing}{@render trailing()}
+          {:else if multiline || clear}<ClearInput control={id} value={draft} label={`Clear ${label}`} {disabled} />{/if}
+        {/snippet}
+        {@render editor()}
+      </FieldWell>
     {/if}
-  </FieldWell>
-  {#if helper}<Field.FieldDescription id={`${id}-helper`}>{helper}</Field.FieldDescription>{/if}
-  {#if message}<Field.FieldError id={`${id}-error`} role="status">{message}</Field.FieldError>{/if}
-</MeasuredField>
+    {#if helper}<Vendor.FieldDescription id={`${id}-helper`}>{helper}</Vendor.FieldDescription>{/if}
+    {#if message}<Vendor.FieldError id={`${id}-error`} role="status">{message}</Vendor.FieldError>{/if}
+  </Vendor.Field>
+</div>
+```
+
+## src/svelte/catalog/foundations/field/FieldEditor.svelte
+
+Source SHA-256: e142390ce5a9618285a1ea2cceb848b1ae46c1d8dcb99ae6e0d1727fbe2061d5
+
+```svelte
+<script lang="ts">
+  // The editor inside a Field's well: a single line (plain, credential or masked) or a multiline editor that grows to
+  // the reading area. `writing` is the live text of a plain editor, `shown` the formatted text of a masked one.
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
+  import type { InputMask } from "../../../../interaction/input-mask.ts";
+  import MaskedInput from "./MaskedInput.svelte";
+  import { observeEditorCapacity } from "./editor-capacity.ts";
+  let { id, primitive, label, purpose, value, placeholder, mask, identity, required, disabled, invalid, describedBy, focus,
+    writing = $bindable(""), shown = $bindable(""), onchange, onmasked }: {
+    id: string; primitive: "input.text" | "input.multiline"; label: string;
+    purpose: "text" | "username" | "new-password" | "current-password" | "search" | undefined; value: string; placeholder: string | undefined;
+    mask: InputMask | undefined; identity: string | undefined; required: boolean; disabled: boolean; invalid: boolean;
+    describedBy: string | undefined; focus: "on-mount" | undefined; writing?: string; shown?: string;
+    onchange: (value: string) => void; onmasked: (value: string, valid: boolean, complete: boolean) => void;
+  } = $props();
+  let editor = $state<HTMLTextAreaElement | null>(null);
+  let line = $state<HTMLInputElement | null>(null);
+  $effect(() => { if (editor) return observeEditorCapacity(editor); });
+  $effect(() => { if (focus === "on-mount" && line) line.focus({ preventScroll: true }); });
+</script>
+{#if primitive === "input.multiline"}
+  <Group.Textarea {id} bind:ref={editor} bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalid}
+    aria-label={label} rows={4} placeholder=" " aria-describedby={describedBy} class="focus-visible:outline-none"
+    data-field-editor="multiline" onblur={event => onchange(event.currentTarget.value)} oninput={event => onchange(event.currentTarget.value)} />
+{:else if mask}
+  <MaskedInput {id} {value} {mask} {identity} bind:display={shown} {required} {disabled} {invalid} {label} {describedBy}
+    placeholder={placeholder ?? " "} onvalue={onmasked} />
+{:else}
+  <Group.Input {id} bind:ref={line} type={purpose?.endsWith("password") ? "password" : "text"}
+    autocomplete={purpose === "text" || purpose === "search" || purpose === undefined ? undefined : purpose} autocapitalize={purpose === "username" ? "none" : undefined}
+    spellcheck={purpose === "text" ? undefined : false} bind:value={writing} {required} {disabled} aria-required={required}
+    aria-invalid={invalid} aria-label={label} placeholder={placeholder ?? " "} aria-describedby={describedBy}
+    class="focus-visible:outline-none" onblur={event => onchange(event.currentTarget.value)} oninput={event => onchange(event.currentTarget.value)} />
+{/if}
+```
+
+## src/svelte/catalog/foundations/text-input/TextInput.svelte
+
+Source SHA-256: b05990e130ffd2b4dfc3ba19e79ad21f0d96851632200cb61933d37f85c459d0
+
+```svelte
+<script lang="ts">
+  // TextInput was renamed Field (design §1.7). The folder stays until Batch 3 deletes it, and its entry draws through
+  // Field, so the catalog keeps one implementation of the writing well.
+  import { Field } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
+    identity, mask, maxLength, purpose = "text", onchange, accessory: trailing }: CatalogProps<"text-input"> = $props();
+</script>
+{#if primitive === "input.multiline"}
+  <Field primitive="input.multiline" {label} labelVisibility="visible" {required} {invalid} {disabled} {error} {helper} {identity}
+    measure="writing" {value} {maxLength} {onchange} />
+{:else if trailing}
+  <Field primitive="input.text" {label} labelVisibility="visible" {required} {invalid} {disabled} {error} {helper} {identity}
+    measure="writing" {purpose} {value} {mask} clear {onchange}>{#snippet accessory()}{@render trailing()}{/snippet}</Field>
+{:else}
+  <Field primitive="input.text" {label} labelVisibility="visible" {required} {invalid} {disabled} {error} {helper} {identity}
+    measure="writing" {purpose} {value} {mask} clear {onchange} />
+{/if}
 ```
 
 ## src/svelte/catalog/foundations/masked-input/MaskedInput.svelte

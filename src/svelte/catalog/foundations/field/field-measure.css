@@ -1,0 +1,24 @@
+/* A Field's preferred measure stays stable while editing. A 3rem residual strip is absorbed into the field. Queries
+   measure the containing slot, never the device. `fill` takes the whole slot. `[data-control-measure]` is the box of
+   the measured-field foundation, which its callers keep until they mount Field (Batch 3 deletes it). */
+:is([data-measure], [data-control-measure]) { container:control-measure / inline-size; width:100%; min-width:0; align-self:stretch; }
+:is([data-measure="writing"], [data-control-measure="writing"]) { --control-preferred:32rem; }
+:is([data-measure="choice"], [data-control-measure="choice"]) { --control-preferred:26rem; }
+:is([data-measure="date"], [data-control-measure="date"]) { --control-preferred:20rem; }
+:is([data-measure="amount"], [data-control-measure="amount"]) { --control-preferred:22rem; }
+[data-measure="fill"] { --control-preferred:none; }
+:is([data-measure], [data-control-measure]) > [data-slot="field"] { width:100%; min-width:0; max-width:var(--control-preferred); margin-inline:0; }
+/* Each cutoff is the preferred measure above plus the same 3rem allowance.
+   No width transition: resizing must not chase the pointer or reflow text late. */
+@container control-measure (max-width:35rem) {
+  :is([data-measure="writing"], [data-control-measure="writing"]) > [data-slot="field"] { max-width:none; }
+}
+@container control-measure (max-width:29rem) {
+  :is([data-measure="choice"], [data-control-measure="choice"]) > [data-slot="field"] { max-width:none; }
+}
+@container control-measure (max-width:23rem) {
+  :is([data-measure="date"], [data-control-measure="date"]) > [data-slot="field"] { max-width:none; }
+}
+@container control-measure (max-width:25rem) {
+  :is([data-measure="amount"], [data-control-measure="amount"]) > [data-slot="field"] { max-width:none; }
+}

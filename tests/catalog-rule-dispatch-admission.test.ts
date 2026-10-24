@@ -42,7 +42,7 @@ test("D2: a private host capability reaches only its own kind, as received", () 
     original.replace("{frameIdentity} onclose=", "frameIdentity={node} onclose="),
     original.replace("state={checked.action.state}", "state={checked.action.state} host={fileHost()}"),
     original.replace("</script>", "const alias = nodeRenderers.action;\n</script>"),
-    original.replace("label={checked.label} value={checked.value}", "label={node.label} value={checked.value}"),
+    original.replace("label={checked.label} labelVisibility=\"visible\" measure=\"writing\" purpose", "label={node.label} labelVisibility=\"visible\" measure=\"writing\" purpose"),
   ]) assert.notDeepEqual(grammar(source), [], source.slice(0, 120));
 });
 

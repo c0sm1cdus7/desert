@@ -6,7 +6,7 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 const source = `<script lang="ts">
   import Action from '@desert/svelte/catalog/foundations/action/Action.svelte';
   import { Button } from '@desert/svelte/vendor/components/ui/button/index.js';
-  import TextInput from '@desert/svelte/catalog/foundations/text-input/TextInput.svelte';
+  import Field from '@desert/svelte/catalog/foundations/field/Field.svelte';
   let state = $state('ready');
 </script>
 <div data-test-controls>{#each ['ready','unavailable','pending'] as value}
@@ -16,7 +16,7 @@ const source = `<script lang="ts">
   <Action label="Close" icon="close" state="ready" emphasis="secondary" face="fit" type="button"/>
   <Button href="#preview" data-variant="secondary">Primary link</Button>
   <Button variant="secondary" data-variant="default">Neutral role</Button>
-  <TextInput primitive="input.text" label="Title" value="" onchange={() => {}}/>
+  <Field primitive="input.text" labelVisibility="visible" measure="writing" required={false} invalid={false} disabled={false} purpose="text" clear label="Title" value="" onchange={() => {}}/>
 </main>`;
 
 // Independent owner requirement: primary color is a pane tint, not colored ink.
