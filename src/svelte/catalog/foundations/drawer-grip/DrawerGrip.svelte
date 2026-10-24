@@ -1,7 +1,10 @@
 <script lang="ts">
+  // F1-merge: absorbed by modal (its DrawerGrip part); this unmounted declaration stays only until Batch 3 deletes the
+  // folder with its ledger entry (design §0 P2, P3).
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import type { drawerMotion } from "../../../infra/drawer-motion.svelte.ts";
-  let { motion, locked = false }: { motion: ReturnType<typeof drawerMotion>; locked?: boolean } = $props();
+  type GripMotion = { click: () => void; down: (event: PointerEvent) => void; move: (event: PointerEvent) => void;
+    up: (event: PointerEvent) => void; cancel: () => void; lost: (event: PointerEvent) => void };
+  let { motion, locked = false }: { motion: GripMotion; locked?: boolean } = $props();
 </script>
 
 <svelte:window onblur={motion.cancel} />

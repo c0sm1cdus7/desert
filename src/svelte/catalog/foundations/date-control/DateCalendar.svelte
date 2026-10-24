@@ -1,45 +1,43 @@
 <script lang="ts">
+  // DateControl part: the month calendar. Its header holds the month and the previous/next controls in both
+  // presentations, anchored or in the popover's sheet (design §1.3); the cell measure follows the presentation it sits in.
   import { onMount, untrack } from "svelte";
   import { parseDate, DateFormatter, getLocalTimeZone, type DateValue } from "@internationalized/date";
   import { Calendar as CalendarPrimitive } from "bits-ui";
   import * as Calendar from "../../../vendor/components/ui/calendar/index.js";
-  import { Toolbar } from "../../index.ts";
-  import { toolbarAction } from "../../../../interaction/toolbar.ts";
-  import { Button } from "../../../vendor/components/ui/button/index.js";
-  let { value, visibleDate = $bindable(), label, minimum, maximum, disabled, onchange, onclose, onclear, presentation = "anchored" }: {
+  import { Action } from "../../index.ts";
+  import { revealSurfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
+  let { value, visibleDate = $bindable(), label, minimum, maximum, disabled, onchange, onclear }: {
     visibleDate: DateValue;
     value?: DateValue | undefined; label: string; minimum?: string | undefined; maximum?: string | undefined; disabled: boolean;
-    onchange: (value: DateValue | undefined) => void; onclose?: (() => void) | undefined;
-    presentation?: "anchored" | "sheet";
-    onclear?: (() => void) | undefined;
+    onchange: (value: DateValue | undefined) => void; onclear?: (() => void) | undefined;
   } = $props();
   const month = new DateFormatter("en-US", { month: "long", year: "numeric" });
+  let root = $state<HTMLElement | null>(null);
+  let presentation = $state<"anchored" | "sheet">("anchored");
+  $effect(() => { presentation = root?.closest('[data-modal="sheet"]') ? "sheet" : "anchored"; });
   // Bits synchronizes placeholder to its selected value during initialization.
   // Restore the owner's browsing cursor once that startup synchronization ends.
   const retainedDate = untrack(() => visibleDate);
   onMount(() => { visibleDate = retainedDate; });
 </script>
 
-<Calendar.Calendar type="single" {...(value ? { value } : {})} bind:placeholder={visibleDate} preventDeselect calendarLabel={label}
+<Calendar.Calendar bind:ref={root} type="single" {...(value ? { value } : {})} bind:placeholder={visibleDate} preventDeselect calendarLabel={label}
   {...(minimum ? { minValue: parseDate(minimum) } : {})} {...(maximum ? { maxValue: parseDate(maximum) } : {})}
-  {disabled} onValueChange={onchange} presentation="picker" class="p-0" data-date-calendar={presentation}>
+  {disabled} onValueChange={onchange} presentation="picker" class="p-0" data-date-calendar={presentation} revealFocus={revealSurfaceFocus}>
   {#snippet header(visibleMonth)}
     <CalendarPrimitive.Heading class="sr-only" />
-    <Toolbar toolbar={{ edge: "top", title: month.format(visibleMonth.toDate(getLocalTimeZone())),
-      ...(onclose ? { leading: toolbarAction({ kind: "close" }, `Close ${label}`, "close") } : {}) }}
-      invoke={() => onclose?.()} controls={{ kind: "calendar" }} />
+    <div data-date-calendar-header>
+      <div data-date-calendar-row>
+        <h2 class="type-section" data-date-calendar-month>{month.format(visibleMonth.toDate(getLocalTimeZone()))}</h2>
+        <span data-date-calendar-navigation>
+          <Calendar.PrevButton aria-label="Previous month" />
+          <Calendar.NextButton aria-label="Next month" />
+        </span>
+      </div>
+    </div>
   {/snippet}
 </Calendar.Calendar>
-{#if value && onclear}<Button variant="secondary" class="shrink-0" onclick={onclear} {disabled}>Clear date</Button>{/if}
-
-<style>
-  :global([data-date-calendar]) { display:flex; flex-direction:column; min-height:0; }
-  :global([data-date-calendar="anchored"]) { --cell-size:max(2rem,calc((100cqi - 1rem)/7)); }
-  /* Preserve legible, nonoverlapping targets; extreme text sizes scroll locally.
-     Use the shared type role's rem length, not ch/em: cell, weekday and button
-     have different fonts and must nevertheless resolve the SAME column size. */
-  :global([data-date-calendar="sheet"]) { --cell-size:max(calc(var(--text-control) * 1.5),calc((100cqi - 4px)/7)); }
-  :global([data-date-calendar="sheet"] td) { height:max(var(--cell-size),44px); }
-  :global([data-date-calendar="sheet"] [data-calendar-day]) { min-width:0; }
-  :global([data-date-calendar] [data-calendar-grid-viewport]) { padding:2px; }
-</style>
+{#if value && onclear}
+  <Action label="Clear date" icon="close" face="fit" emphasis="secondary" type="button" state={disabled ? "unavailable" : "ready"} onclick={onclear} />
+{/if}

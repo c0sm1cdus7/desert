@@ -48,7 +48,6 @@
 			preventScroll={!sidebar.revealing}
 			data-revealing={sidebar.revealing || undefined}
 			data-gesture-enter={sidebar.revealedByGesture || undefined}
-			showCloseButton={false}
 			data-edge={side}
 			data-sidebar="sidebar"
 			data-slot="sidebar"
@@ -57,7 +56,7 @@
 			inert={!sidebar.overlayOpen}
 			onCloseAutoFocus={sidebar.handleCloseAutoFocus}
 			class={cn(
-				"p-0 text-sidebar-foreground",
+				"p-0 text-sidebar-foreground density-comfortable",
 				className
 			)}
 			style="--panel-width: {SIDEBAR_OVERLAY_WIDTH}; transform:{sidebar.revealing ? `translateX(calc(-100% - var(--surface-inset) + ${sidebar.revealOffset}px))` : `translateX(${-sidebar.dismissOffset}px)`};"

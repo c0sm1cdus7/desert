@@ -31,7 +31,8 @@ const viewer = (items: string, foundation: boolean) => `<script lang="ts">
 </script>
 ${foundation ? `<MediaViewer {items} title="Studio" index={0} open />` : `<Viewer {items} title="Studio" index={0} open onreturn={() => {}} />`}`;
 const viewerProbes = (foundation: boolean, playable: boolean): Probes => ({ viewer: {
-  dialog: "[data-media-viewer]", top: '[data-media-viewer] > [data-toolbar="top"]',
+  // The dialog surface the viewer drew is the media Modal's surface now; the viewer's own mark is its content.
+  dialog: foundation ? '[data-modal="media"]' : "[data-media-viewer]", top: '[data-media-viewer] > [data-toolbar="top"]',
   ...playable ? {} : { stage: "[data-media-stage]", image: "[data-media-stage] [data-media-image]" },
   thumbs: "[data-media-thumbs]", thumb: "[data-media-thumbs] button", band: foundation ? (playable ? "[data-media-band]" : ".viewer-band") : '[data-toolbar="bottom"]',
   ...playable ? { video: "video", seek: '[role="slider"][aria-label="Playback position"]', volume: '[role="slider"][aria-label="Volume"]' } : {},

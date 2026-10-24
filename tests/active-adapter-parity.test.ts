@@ -80,10 +80,10 @@ test("sealed failure adapter retains its shared problem presentation and close",
 test("sealed control adapter retains its private file host and typed events", async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
     import ControlRenderer from '@desert/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte';
-    import {LocalFileHost} from '@desert/svelte/infra/file-host.ts';
+    import {provideFileHost} from '@desert/svelte/infra/file-host-context.ts';
     import {ControlSpecimens} from '@desert/interaction/control-specimens.ts';
     import {applyControlEvent} from '@desert/interaction/control-nodes.ts';
-    const host=new LocalFileHost();
+    const host=provideFileHost();
     let node=$state.raw(ControlSpecimens.find(entry=>entry.id==='control.files').specimens[0].node);
     let events=$state([]), bytes=$state('');
     async function receive(event) {
@@ -93,7 +93,9 @@ test("sealed control adapter retains its private file host and typed events", as
   </script><ControlRenderer {node} {host} onevent={receive}/><output data-events>{events.join(',')}</output><output data-bytes>{bytes}</output>`, {}, 'http://localhost/');
   try {
     const { page } = fixture;
-    await page.locator('input[type="file"]').setInputFiles({ name: 'example.txt', mimeType: 'text/plain', buffer: Buffer.from('Local host bytes') });
+    const chooser = page.waitForEvent('filechooser');
+    await page.getByRole('button', { name: 'Choose files', exact: true }).click();
+    await (await chooser).setFiles({ name: 'example.txt', mimeType: 'text/plain', buffer: Buffer.from('Local host bytes') });
     assert.deepEqual(fixture.errors, []);
     await page.getByRole('button', { name: 'Remove example.txt' }).waitFor();
     await page.waitForFunction(() => document.querySelector('[data-bytes]')?.textContent === 'Local host bytes');

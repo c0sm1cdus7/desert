@@ -6,12 +6,15 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 const css = rendererCss();
 async function fixture(text: string) {
   const f = await svelteBrowser(`<script lang="ts">
-    import AnchoredSurface from "@desert/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte";
+    import Popover from "@desert/svelte/catalog/foundations/popover/Popover.svelte";
+    import FrameBody from "@desert/svelte/catalog/renderer/frame-body/FrameBody.svelte";
     let open = $state(false), clicks = $state(0);
   </script>
   <main style="width:100%;height:100dvh;display:flex;align-items:center;justify-content:center">
-    <AnchoredSurface label="Open details" title="Details" content={{kind:'information',items:[{kind:'text',text:${JSON.stringify(text)}}]}}
-      {open} onchange={value => open = value} />
+    <Popover label="Details" {open} disabled={false} locked={false} content="information" placement="anchored" align="start"
+      trigger={{kind:'action',label:'Open details',icon:'open',face:'fit',emphasis:'secondary',state:'ready'}} onopenchange={value => open = value}>
+      <FrameBody content={{kind:'information',items:[{kind:'text',text:${JSON.stringify(text)}}]}} invoke={() => {}} edit={() => {}} />
+    </Popover>
     <button style="position:absolute;left:12px;top:12px" onclick={()=>clicks+=1}>Outside</button>
     <output data-clicks>{clicks}</output>
   </main>`);

@@ -24,8 +24,14 @@ export const stageB: readonly GateCase[] = [
     } },
   { id: "N01b", title: "the lock screen passes a presentation prop to its field", kind: "escape", expect: ["PRESENTATION_ESCAPE"], at: lockScreen,
     mutate: tree => tree.replace(lockScreen, '<Field primitive="input.text"', '<Field primitive="input.text" presentation="access"') },
+  // A component has one top-level <style> (Availability has had its own since F1e), so the rule joins that block and
+  // styles an element the foundation draws; each anchor fails loudly if it goes away.
   { id: "P1", title: "a foundation styles its own element with a scoped style", kind: "positive", expect: [],
-    mutate: tree => tree.append(`${foundations}/availability/Availability.svelte`, "\n<style>.availability-note { opacity: 1; }</style>\n") },
+    mutate: async tree => {
+      const availability = `${foundations}/availability/Availability.svelte`;
+      await tree.replace(availability, "<span>{label}</span>", '<span class="availability-note">{label}</span>');
+      await tree.replace(availability, "</style>", "  .availability-note { opacity: 1; }\n</style>");
+    } },
   { id: "P2", title: "a mechanism owned by a foundation observes size", kind: "positive", expect: [],
     mutate: async tree => {
       const folder = `${catalog}/mechanisms/availability-measure`;

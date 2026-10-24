@@ -20,7 +20,7 @@ test(`${kind}: ${direction} an open picker retains task, usable focus and trigge
     let month: string | null = null;
     if (kind === 'date') {
       await page.getByRole('button', { name: /Next month/i }).click(); await settle(page);
-      month = await page.locator('[data-date-calendar] .toolbar-title').textContent();
+      month = await page.locator('[data-date-calendar-month]').textContent();
     } else {
       await page.keyboard.press('ArrowDown');
       await page.keyboard.press('ArrowDown');
@@ -32,7 +32,7 @@ test(`${kind}: ${direction} an open picker retains task, usable focus and trigge
     assert.equal(await surface.count(), 1, 'An open task survives a presentation change exactly once');
     assert.ok(after.active.visible && !after.active.inert && after.active.tag !== 'BODY', 'Focus remains on a usable target, not the document body');
     if (kind === 'date') {
-      assert.equal(await page.locator('[data-date-calendar] .toolbar-title').textContent(), month, 'Resizing must not reset the browsed month');
+      assert.equal(await page.locator('[data-date-calendar-month]').textContent(), month, 'Resizing must not reset the browsed month');
     } else {
       assert.ok(before.active.option, 'Keyboard exploration identifies an option before resize');
       assert.equal(after.active.option, before.active.option, 'Presentation changes preserve the option being explored with the keyboard');

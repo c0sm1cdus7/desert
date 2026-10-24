@@ -1,5 +1,6 @@
 import { applyControlEvent, type ControlEvent, type FileNode, type FileMetadata } from "../../interaction/control-nodes.ts";
-import { nativeFilePicker } from "./native-file-picker.ts";
+// F1-merge: the create-from-file journey (web/client/file-entry.ts) still opens the chooser through this host.
+import { nativeFilePicker } from "../catalog/foundations/files/native-file-picker.ts";
 
 type FileEvent = Extract<ControlEvent, { kind: "files.choose" | "files.remove" }>;
 

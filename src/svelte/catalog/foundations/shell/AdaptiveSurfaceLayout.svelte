@@ -2,8 +2,7 @@
   // Shell part (from the catalog-workspace composition): the host docked panels reserve their inline space in, and
   // that transients size against. `fill` lays it over the whole workspace (the shell's place).
   import type { Snippet } from 'svelte';
-  // F1-merge: the surface-host mechanism (owned by modal, F1d) replaces this infra module; shell lists it then.
-  import { provideSurfaceHost } from '../../../infra/surface-host.svelte.ts';
+  import { provideSurfaceHost } from '../../mechanisms/surface-host/surface-host.svelte.ts';
   let { children, fill = false }: { children: Snippet; fill?: boolean } = $props();
   let element = $state<HTMLDivElement | null>(null);
   let reservation = $state(0);

@@ -8,7 +8,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 async function fixture() {
   const f = await svelteBrowser(`<script lang="ts">
     import Drawer from '@desert/svelte/catalog/foundations/drawer/Drawer.svelte';
-    import { provideSurfaceHost } from '@desert/svelte/infra/surface-host.svelte.ts';
+    import { provideSurfaceHost } from '@desert/svelte/catalog/mechanisms/surface-host/surface-host.svelte.ts';
     import { SurfaceFrameVersion } from '@desert/interaction/surface-frame.ts';
     let host = $state<HTMLElement|null>(null), open = $state(false);
     provideSurfaceHost(() => host);

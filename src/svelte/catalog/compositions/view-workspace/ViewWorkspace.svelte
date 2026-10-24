@@ -4,7 +4,7 @@
   import { CatalogWorkspace } from "../../index.ts";
   import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
   import { bindViewEvents, type OwnedResolvedView, type OwnedViewEvent } from "../../../../web/client/view-events.ts";
-  import { provideFrameActivation } from "../../../infra/frame-continuity.svelte.ts";
+  import { provideFrameActivation } from "../../../infra/frame-activation.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
   import type { WorkspaceContentActions, WorkspaceViewportActions } from "../../../infra/workspace-content.ts";
   import { viewIdentity, viewSearchResults, viewSearchSelection } from "./workspace-data.ts";
@@ -12,12 +12,12 @@
   import { resolveProgramWorkspace } from "../../../../views/program-workspace.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let props: CatalogProps<"view-workspace"> = $props();
-  const activateFrame = provideFrameActivation();
+  const frameActivation = provideFrameActivation();
   function send(event: OwnedViewEvent) {
     const panel = props.panel, value = event.event;
     if (panel?.frame.kind === "context" && event.owner === props.resolved.owner && value.kind === "surface.invoke"
       && value.intent.kind === "view.output" && value.intent.view === props.resolved.view.id
-      && !props.resolved.disabledOutputs.includes(value.intent.output)) activateFrame(panel.owner, () => props.onevent?.(event));
+      && !props.resolved.disabledOutputs.includes(value.intent.output)) frameActivation.activate(panel.owner.key, () => props.onevent?.(event));
     else props.onevent?.(event);
   }
   let workspace = $derived(resolveProgramWorkspace(props.program));

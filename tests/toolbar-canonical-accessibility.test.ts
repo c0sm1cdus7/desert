@@ -22,7 +22,7 @@ for(const width of [320,1280]) for(const direction of ['ltr','rtl']) test(`canon
     const measure=async(selector:string,target=expectedTarget)=>{
       await f.page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       const bars=await f.page.locator(selector).evaluateAll(nodes=>nodes.map(node=>{
-        const rect=node.getBoundingClientRect(),style=getComputedStyle(node),row=node.querySelector('.toolbar-row')!;
+        const rect=node.getBoundingClientRect(),style=getComputedStyle(node),row=node.querySelector('.toolbar-row,[data-date-calendar-row]')!;
         return{left:rect.left,right:rect.right,client:node.clientWidth,scroll:node.scrollWidth,
           padding:style.paddingTop,gap:getComputedStyle(row).columnGap,
           buttons:[...row.querySelectorAll<HTMLElement>('button:not([data-media-thumbs] button)')].map(button=>button.getBoundingClientRect().toJSON())};
@@ -42,7 +42,7 @@ for(const width of [320,1280]) for(const direction of ['ltr','rtl']) test(`canon
     await f.page.getByRole('button',{name:'Hide navigation',exact:true}).click();
     await mkdir('artifacts/toolbar-canonical-geometry/accessibility',{recursive:true});
     for(const[name,button,selector]of[
-      ['calendar','Arrival · Oct 20, 2026','[data-date-calendar] [data-piece="toolbar"]'],
+      ['calendar','Arrival · Oct 20, 2026','[data-date-calendar-header]'],
       ['task','Open task','[data-surface-frame] [data-piece="toolbar"]'],
       ['message','Open message','[data-frame-presentation="message"] [data-piece="toolbar"]'],
       ['viewer','Open viewer','[data-media-viewer] [data-piece="toolbar"]'],

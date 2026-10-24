@@ -16,7 +16,7 @@ export async function lifecycleEvidence(page: Page, name: string, extra: unknown
       scroll: viewport?.scrollTop, searching: document.querySelector('[data-catalog-workspace]')?.getAttribute('data-search-active'),
       sheets: document.querySelectorAll('[data-picker-sheet]').length,
       calendars: document.querySelectorAll('[data-date-calendar]').length,
-      calendarMonths: [...document.querySelectorAll('[data-date-calendar] .toolbar-title')].map(element => element.textContent),
+      calendarMonths: [...document.querySelectorAll('[data-date-calendar-month]')].map(element => element.textContent),
       listboxes: document.querySelectorAll('[role="listbox"]').length };
   });
   await writeFile(`${lifecycleDirectory}/${name}.json`, JSON.stringify({ state, extra }, null, 2));

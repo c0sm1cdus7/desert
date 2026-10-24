@@ -1,3 +1,3 @@
-// F1-merge: infra/drawer-motion.svelte.ts (becoming a modal part, F1d) and the catalog-navigation composition (lane F)
-// still import this path. Modal lists the swipe-motion mechanism and imports it directly; then this re-export goes.
+// F1-merge: the catalog-navigation composition (lane F) still imports this path; shell and modal list the swipe-motion
+// mechanism and import it directly. When lane F mounts Shell and deletes that composition, this re-export goes.
 export { swipeMotion } from "../catalog/mechanisms/swipe-motion/swipe-motion.svelte.ts";

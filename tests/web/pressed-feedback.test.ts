@@ -79,7 +79,7 @@ test("select and calendar compose the same feedback without changing native sele
   const f = await catalog();
   try {
     await openCatalog(f.page);
-    const date = f.page.locator('[data-date-trigger]');
+    const date = f.page.locator('[data-field-trigger]');
     await date.click();
     const calendar = f.page.getByRole("dialog", { name: "Date", exact: true });
     const press = async (button: Locator, key: "pointer" | "Space" | "Enter", name: string) => {

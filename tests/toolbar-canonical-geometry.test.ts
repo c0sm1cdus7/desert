@@ -21,7 +21,7 @@ for (const width of [1280, 390, 320]) test(`all toolbar consumers share approved
     const sample=async (name:string,selector:string) => {
       await f.page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
       const metrics=await f.page.locator(selector).evaluateAll(elements=>elements.map(element=>{
-        const style=getComputedStyle(element),row=element.querySelector<HTMLElement>('.toolbar-row')!;
+        const style=getComputedStyle(element),row=element.querySelector<HTMLElement>('.toolbar-row,[data-date-calendar-row]')!;
         const box=element.getBoundingClientRect(),rail=row.getBoundingClientRect(),css=getComputedStyle(row);
         const pane=element.closest<HTMLElement>('.material-pane');
         const perimeter=pane?.getBoundingClientRect();
@@ -46,7 +46,7 @@ for (const width of [1280, 390, 320]) test(`all toolbar consumers share approved
     const search=await sample('search','[data-catalog-toolbar]');
     await f.page.getByRole('button',{name:'Close search',exact:true}).click();
     for(const [name,button,selector] of [
-      ['calendar','Arrival · Oct 20, 2026','[data-date-calendar] [data-piece="toolbar"]'],
+      ['calendar','Arrival · Oct 20, 2026','[data-date-calendar-header]'],
       ['task','Open task','[data-surface-frame] [data-piece="toolbar"]'],
       ['message','Open message','[data-frame-presentation="message"] [data-piece="toolbar"]'],
       ['viewer','Open viewer','[data-media-viewer] [data-piece="toolbar"]'],

@@ -1,3 +1,4 @@
+// Popover part: Tab leaves an anchored surface at its trigger's place in the document, then the surface closes.
 import { tabbable } from 'tabbable';
 
 /** Bits Popover loops Tab even with trapFocus=false. A nonmodal utility instead

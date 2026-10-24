@@ -10,9 +10,11 @@
   import { ReferenceSelector } from '../../index.ts';
   import { MediaReferenceSelector } from '../../index.ts';
   import type { CatalogProps } from '../../types.d.ts';
+  import { useSurfaceDensityClass } from '../../../infra/surface-typography.svelte.ts';
   import { addWrittenLabel } from '../../../../interaction/label-writing.ts';
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   let {node,onevent}:CatalogProps<'labels-control'>=$props();
+  const density = useSurfaceDensityClass();
   const id=$props.id();
   let writing=$state(''),feedback=$state(''),open=$state(false);
   dismissWhenInactive(()=>open=false);
@@ -29,7 +31,7 @@
   <Popover.Root bind:open><NodeRenderer node={{version:'desert.bank-node/1',kind:'action',role:'secondary',action:{label:'Add label',icon:'create',state:node.disabled || node.values.length>=node.limits.maxItems ? 'unavailable' : 'ready',intent:{kind:'transient.open'}}}}
     actionDisclosure={{id:`${id}-add`,controls:`${id}-new-label`,expanded:open,haspopup:'dialog'}}
     onevent={event=>{if(event.kind==='local.invoke'&&event.intent.kind==='transient.open')open=!open;}}/>
-  <Popover.Content id={`${id}-new-label`} customAnchor={`#${id}-add`} presentation="reference"><form onsubmit={event=>{event.preventDefault();add();}}><StackLayout title="New label">
+  <Popover.Content id={`${id}-new-label`} class={density()} customAnchor={`#${id}-add`} presentation="reference"><form onsubmit={event=>{event.preventDefault();add();}}><StackLayout title="New label">
     <WritingField primitive="input.text" label="Label" labelVisibility="visible" measure="writing" purpose="text" value={writing} required={false}
       invalid={false} disabled={false} maxLength={node.limits.maxLength} clear onchange={value=>writing=value}/>
     <CharacterCounter id={`${id}-counter`} value={writing} maxLength={node.limits.maxLength}/>

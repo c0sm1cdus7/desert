@@ -7,8 +7,7 @@ import { MediaViewerContract } from "./media-viewer.contract.ts";
 export const MediaViewer = defineFoundation({
   id: "media-viewer",
   purpose: "Show images, audio and video full screen with paging, zoom and playback, and return focus to what opened them.",
-  // F1-merge: the vendor dialog belongs to modal (F1d); the viewer then mounts Modal and stops importing it.
-  owner: { entry: "MediaViewer.svelte", parts: ["MediaStrip.svelte"], mechanisms: ["media-gestures"] },
+  owner: { entry: "MediaViewer.svelte", parts: ["MediaStrip.svelte"], mechanisms: ["media-gestures", "surface-focus"] },
   shape: "none", states: ["image", "playable", "single"],
   approval: "required", contract: MediaViewerContract,
 } as const);
