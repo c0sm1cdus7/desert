@@ -59,7 +59,7 @@ const appearance = (node: Locator) => node.evaluate(element => {
     ?? (element.matches('[data-slot="sidebar-menu-button"]') ? element.firstElementChild : null);
   const glyph = element.querySelector("svg"), label = element.querySelector("[data-button-label]");
   return { box: element.getBoundingClientRect().toJSON(), transform: style.transform, background: style.backgroundColor,
-    overlay: style.backgroundImage, material:element.getAttribute('data-material'), selected:element.hasAttribute('data-selected'),
+    overlay: style.backgroundImage, material:(element.classList.contains('material-pane') ? 'pane' : element.classList.contains('material-interior') ? 'interior' : null), selected:element.hasAttribute('data-selected'),
     pressed: element.getAttribute("data-pressed"), focused: element === document.activeElement,
     contentScale: content ? new DOMMatrix(getComputedStyle(content).transform).m11 : null,
     contentBox: content?.getBoundingClientRect().toJSON() ?? null, glyphBox: glyph?.getBoundingClientRect().toJSON() ?? null,

@@ -357,11 +357,7 @@
       "folder": "src/svelte/catalog/foundations/availability",
       "kind": "foundation",
       "owner": {
-        "entry": "Availability.svelte",
-        "vendor": [
-          "skeleton",
-          "spinner"
-        ]
+        "entry": "Availability.svelte"
       },
       "purpose": "Understand whether a capability is ready, unavailable or not yet known.",
       "renders": [
@@ -680,7 +676,7 @@
       "owner": {
         "entry": "Column.svelte"
       },
-      "purpose": "Stack pieces vertically with a gap from the spacing scale, optionally at the reading measure.",
+      "purpose": "Stack pieces vertically with a gap from the spacing scale, at the reading, narrow or wide measure, aligned or centred.",
       "shape": "none",
       "slots": {
         "children": {
@@ -699,12 +695,22 @@
         "default"
       ],
       "variants": {
+        "align": [
+          "start",
+          "center",
+          "stretch"
+        ],
         "gap": [
           "snug",
           "close",
           "regular",
           "relaxed",
           "section"
+        ],
+        "measure": [
+          "reading",
+          "narrow",
+          "wide"
         ]
       }
     },
@@ -1012,10 +1018,7 @@
       "folder": "src/svelte/catalog/foundations/feedback",
       "kind": "foundation",
       "owner": {
-        "entry": "Feedback.svelte",
-        "vendor": [
-          "empty"
-        ]
+        "entry": "Feedback.svelte"
       },
       "purpose": "A short status sentence, announced politely, that tells the person what just happened.",
       "shape": "none",
@@ -1164,6 +1167,36 @@
         "utility-actions"
       ]
     },
+    "grid": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/grid",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Grid.svelte"
+      },
+      "purpose": "Lay pieces out in auto-fitted tracks of one recipe (tiles, collections, cards, covers) with a gap from the spacing scale.",
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "catalog-card",
+            "image",
+            "text"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "tracks": [
+          "tiles",
+          "collections",
+          "cards",
+          "covers"
+        ]
+      }
+    },
     "grouped-panel": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/grouped-panel",
@@ -1209,17 +1242,17 @@
           "heading-content.ts"
         ]
       },
-      "purpose": "A title whose meaning picks its type role and level: page, document, rail group or field group.",
+      "purpose": "A title whose meaning picks its type role and level: display, page, section or field group.",
       "shape": "none",
       "states": [
         "default"
       ],
       "variants": {
         "kind": [
+          "display",
           "page",
-          "document-title",
-          "rail-title",
-          "group-label"
+          "section",
+          "group"
         ]
       }
     },
@@ -1294,6 +1327,44 @@
         "fact-row",
         "text"
       ]
+    },
+    "inline": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/inline",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Inline.svelte"
+      },
+      "purpose": "Lay pieces out in a horizontal sequence with a gap from the spacing scale: wrapping, in a labelled scroll rail, or neither.",
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "action",
+            "color-bullet",
+            "face",
+            "icon",
+            "seed-avatar",
+            "text"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "justify": [
+          "start",
+          "center",
+          "end",
+          "between"
+        ],
+        "overflow": [
+          "wrap",
+          "scroll",
+          "none"
+        ]
+      }
     },
     "inspection": {
       "approval": "none",
@@ -1414,6 +1485,29 @@
         "catalog-home",
         "viewer"
       ]
+    },
+    "loading": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/loading",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Loading.svelte",
+        "vendor": [
+          "skeleton",
+          "spinner"
+        ]
+      },
+      "purpose": "Show that content is on its way, as skeleton lines or a spinner, and announce it by its label.",
+      "shape": "radius",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "kind": [
+          "lines",
+          "spinner"
+        ]
+      }
     },
     "local-exercise-content": {
       "approval": "none",
@@ -1624,6 +1718,19 @@
       "states": [
         "default",
         "dialog"
+      ]
+    },
+    "meter": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/meter",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Meter.svelte"
+      },
+      "purpose": "Show a total split into labelled segments: the total, a bar proportional to each segment and the legend.",
+      "shape": "radius",
+      "states": [
+        "default"
       ]
     },
     "money-control": {
@@ -2153,6 +2260,29 @@
         "disabled"
       ]
     },
+    "separator": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/separator",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Separator.svelte"
+      },
+      "purpose": "Draw a hairline in the separator ink between the pieces of a column or a row, optionally inset like grouped rows.",
+      "shape": "none",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "inset": [
+          "none",
+          "row"
+        ],
+        "orientation": [
+          "horizontal",
+          "vertical"
+        ]
+      }
+    },
     "shared-owner-catalog": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/shared-owner-catalog",
@@ -2207,6 +2337,29 @@
         "toolbar-layout",
         "view-destination-link"
       ]
+    },
+    "spacer": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/spacer",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Spacer.svelte"
+      },
+      "purpose": "Leave an empty space of one spacing step, or take the space a row or column leaves over.",
+      "shape": "none",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "size": [
+          "snug",
+          "close",
+          "regular",
+          "relaxed",
+          "section",
+          "fill"
+        ]
+      }
     },
     "specimen": {
       "approval": "none",
@@ -2373,6 +2526,33 @@
         ]
       }
     },
+    "status": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/status",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Status.svelte",
+        "vendor": [
+          "empty"
+        ]
+      },
+      "purpose": "Say why there is nothing to show (empty, offline, a note) and what to do next, as a block or a compact caption.",
+      "shape": "radius",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "size": [
+          "regular",
+          "compact"
+        ],
+        "tone": [
+          "neutral",
+          "offline",
+          "note"
+        ]
+      }
+    },
     "summary-widget": {
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/summary-widget",
@@ -2420,18 +2600,21 @@
       "owner": {
         "entry": "Text.svelte"
       },
-      "purpose": "A paragraph of plain text in a type role (`kind`), optionally inset to align with rows.",
+      "purpose": "A paragraph of plain text in a type role and tone, optionally announced as a status or inset to align with rows.",
       "shape": "none",
       "states": [
         "default"
       ],
       "variants": {
-        "inset": [
-          "none",
-          "row"
-        ],
         "kind": [
-          "body"
+          "body",
+          "support",
+          "caption"
+        ],
+        "tone": [
+          "default",
+          "muted",
+          "destructive"
         ]
       }
     },

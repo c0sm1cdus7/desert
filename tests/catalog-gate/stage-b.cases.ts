@@ -75,7 +75,7 @@ export const stageB: readonly GateCase[] = [
   // Heading's contract is closed and its `kind` axis declared: the union gains a value in the contract only.
   { id: "N46", title: "a contract union gains a value the declaration and its specimens do not have", kind: "escape", expect: ["VARIANT_WITHOUT_SPECIMEN"],
     at: `${heading}/heading.contract.ts`, mutate: async tree => {
-      await tree.replace(`${heading}/heading.contract.ts`, 'Type.Literal("group-label")]', 'Type.Literal("group-label"), Type.Literal("access")]');
+      await tree.replace(`${heading}/heading.contract.ts`, 'kind: Type.Literal("group"),', 'kind: Type.Union([Type.Literal("group"), Type.Literal("access")]),');
       await tree.regenerateCatalog();
     } },
   { id: "N48", title: "a Components constructor without a composition", kind: "escape", expect: ["GRAMMAR_NOT_IN_CATALOG"],

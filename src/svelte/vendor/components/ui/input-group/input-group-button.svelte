@@ -43,7 +43,7 @@
 	{type}
 	data-size={size}
 	{variant}
-	class={cn(inputGroupButtonVariants({ size }), "tm-control", className)}
+	class={cn(inputGroupButtonVariants({ size }), className)}
 	{...restProps}
 >
 	{@render children?.()}

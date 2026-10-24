@@ -6,6 +6,6 @@ import { AvailabilityContract } from "./availability.contract.ts";
 export const Availability = defineFoundation({
   id: "availability",
   purpose: "Understand whether a capability is ready, unavailable or not yet known.",
-  owner: { entry: "Availability.svelte", vendor: ["skeleton", "spinner"] },
+  owner: { entry: "Availability.svelte" },
   shape: "none", states: ["ready", "unavailable", "unknown"], renders: ["availability"], approval: "required", contract: AvailabilityContract,
 } as const);

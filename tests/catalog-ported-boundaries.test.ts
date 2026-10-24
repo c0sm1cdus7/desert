@@ -201,7 +201,7 @@ test("toolbar-boundary, toolbar-indirect-ownership, toolbar-title-ownership: no 
     rejects(css, append(shared, css), ["CROSS_OWNER_CSS"]);
   }
   for (const [path, css] of [[`${mechanisms}/pane-material/pane-material.css`, "h2 { opacity: 0 }"], [`${mechanisms}/control-feedback/control-feedback.css`,
-    "@utility tm-control { h2 { transform: scale(2) } }"], [`${mechanisms}/typography/typography.css`, "h2 { padding: 99px }"], ["src/svelte/theme.css", ":where(*) { padding: 99px }"]] as const) {
+    "@utility control-feedback { h2 { transform: scale(2) } }"], [`${mechanisms}/typography/typography.css`, "h2 { padding: 99px }"], ["src/svelte/theme.css", ":where(*) { padding: 99px }"]] as const) {
     rejects(`${path}: ${css}`, append(path, css), ["CROSS_OWNER_CSS"]);
   }
   rejects("consumer heading override", mutated(`${compositions}/catalog-workspace/CatalogWorkspace.svelte`, "</style>", ":global([data-catalog-workspace] h2) { padding-inline-start: 99px; }\n</style>"),

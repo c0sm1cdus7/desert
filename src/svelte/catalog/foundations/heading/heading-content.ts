@@ -1,15 +1,11 @@
-import { Type, type Static } from "@sinclair/typebox";
+import type { Static } from "@sinclair/typebox";
 import { Check } from "@sinclair/typebox/value";
+import { HeadingContract } from "./heading.contract.ts";
 
-/** Meaning determines the owner's type role. No CSS or arbitrary markup input. */
-const HeadingContentSchema = Type.Union([
-  Type.Object({ kind: Type.Literal("page"), text: Type.String(), focusTarget: Type.Optional(Type.Boolean()) }, { additionalProperties: false }),
-  Type.Object({ kind: Type.Literal("document-title"), text: Type.String() }, { additionalProperties: false }),
-  Type.Object({ kind: Type.Literal("rail-title"), text: Type.String(), id: Type.String({ minLength: 1 }) }, { additionalProperties: false }),
-  Type.Object({ kind: Type.Literal("group-label"), text: Type.String(), required: Type.Optional(Type.Boolean()) }, { additionalProperties: false }),
-]);
-export type HeadingContent = Static<typeof HeadingContentSchema>;
+/** Meaning determines the owner's type role: the contract is the one schema, and this rejects anything outside it at
+ * runtime (CSS, markup, a level, a prop of another kind, a symbol key). Raises INVALID_HEADING_CONTENT. */
+export type HeadingContent = Static<typeof HeadingContract.props>;
 export function assertHeadingContent(value: unknown): asserts value is HeadingContent {
   if (!value || typeof value !== "object" || Reflect.ownKeys(value).some(key => typeof key === "symbol")
-    || !Check(HeadingContentSchema, value)) throw new Error("INVALID_HEADING_CONTENT");
+    || !Check(HeadingContract.props, value)) throw new Error("INVALID_HEADING_CONTENT");
 }

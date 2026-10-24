@@ -14,10 +14,10 @@ test("standard triggers preserve child-owned material while selection triggers o
     await f.page.addStyleTag({content:await rendererCss()});
     const standard=f.page.getByRole('button',{name:'Secondary action',exact:true});
     const selection=f.page.getByRole('button',{name:'Reference selection',exact:true});
-    assert.equal(await standard.getAttribute('data-material'),'pane');
+    assert.equal(await standard.evaluate(element => element.classList.contains('material-pane')),true);
     assert.equal(await standard.getAttribute('data-variant'),'secondary');
     assert.equal(await standard.getAttribute('data-slot'),'button');
-    assert.equal(await selection.getAttribute('data-material'),'pane');
+    assert.equal(await selection.evaluate(element => element.classList.contains('material-pane')),true);
     assert.equal(await selection.getAttribute('data-variant'),'well');
     assert.equal(await selection.getAttribute('data-slot'),'button');
     const material=await selection.evaluate(element=>{
