@@ -11,6 +11,6 @@ export const ViewRegion = defineFoundation({
   variants: { kind: ["view", "item", "bare", "document", "retained"] },
   slots: { children: { accepts: ["appearance", "catalog-home", "feedback", "identity", "information", "inspection-catalog",
     "inspection-content", "local-exercises", "media-content", "place-heading", "public-catalog-bank", "stack", "stack-layout",
-    "view-attention", "view-content", "view-item", "view-related-selection"] } },
+    "view-attention", "view-content", "view-item", "view-region", "view-related-selection"] } },
   approval: "required", contract: ViewRegionContract,
 } as const);

@@ -2740,6 +2740,7 @@
             "view-attention",
             "view-content",
             "view-item",
+            "view-region",
             "view-related-selection"
           ]
         }
