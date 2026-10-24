@@ -10,7 +10,8 @@
   import { PickerSheet } from "../../index.ts";
   import SelectionList from "./SelectionList.svelte";
   import { surfaceFocus, revealSurfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
-  // F1-merge: choice (lane F1c) presents its menu through Popover and stops importing this popover part.
+  // F1-merge: absorbed by Choice (which opens through Popover); its composition callers move to Choice (lane B) and this
+  // folder, with its import of the popover part, goes in Batch 3.
   import { PickerPresentation, pickerBudget } from "../popover/picker-presentation.svelte.ts";
   import type { SelectionOption } from "../../../../interaction/selection-option.ts";
   let { id, selection, label, triggerLabel = label, value, options, disabled = false, required = false,
