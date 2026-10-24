@@ -1,6 +1,6 @@
 // Rule U: the checker judges what every closed contract's types resolve to, not only where they are imported from.
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
@@ -17,17 +17,18 @@ const contract = (field: string) => `import { Type } from "@sinclair/typebox";
 import type { Shape } from "../../../../views/shape.ts";
 export const CContract = { props: Type.Object({ a: ${field} }, { additionalProperties: false }) } as const;\n`;
 
-function judge(field: string, shape: string, extra: Readonly<Record<string, string>> = {}): readonly string[] {
-  const root = mkdtempSync(join(tmpdir(), "desert-contract-types-"));
+function judge(field: string, shape: string, extra: Readonly<Record<string, string>> = {}, throughLink = false): readonly string[] {
+  const root = mkdtempSync(join(tmpdir(), "desert-contract-types-")), link = `${root}-link`;
   try {
     const files = { [`${folder}/c.catalog.ts`]: declaration, [`${folder}/c.contract.ts`]: contract(field), "src/views/shape.ts": shape, ...extra };
     for (const [path, text] of Object.entries(files)) { mkdirSync(dirname(join(root, path)), { recursive: true }); writeFileSync(join(root, path), text); }
     const [read] = readDeclarations(`${folder}/c.catalog.ts`, declaration);
     const closed = readContract(`${folder}/c.contract.ts`, contract(field), DesertLayout);
     assert.ok(read && closed.closed);
-    return contractTypeViolations(root, DesertLayout, [{ declaration: { path: `${folder}/c.catalog.ts`, declaration: read }, contract: closed }])
+    if (throughLink) symlinkSync(root, link);
+    return contractTypeViolations(throughLink ? link : root, DesertLayout, [{ declaration: { path: `${folder}/c.catalog.ts`, declaration: read }, contract: closed }])
       .map(item => item.what);
-  } finally { rmSync(root, { recursive: true, force: true }); }
+  } finally { rmSync(root, { recursive: true, force: true }); rmSync(link, { force: true }); }
 }
 
 test("domain values, ES library generics and mapped utilities are closed", () => {
@@ -79,6 +80,25 @@ test("a tree file named like TypeScript's library is a tree file", () => {
   const spoof = { "src/views/typescript/lib/lib.es2099.evil.d.ts": "export interface Evil { loose: any }\n" };
   assert.match(judge("Type.Unsafe<Shape>()", 'import type { Evil } from "./typescript/lib/lib.es2099.evil.d.ts";\nexport type Shape = { evil: Evil };', spoof).join("\n"),
     /props\.a\.evil\.loose resolves to any/);
+});
+
+test("a library interface other than the trusted value types is walked member by member", () => {
+  assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { failure: PropertyDescriptor };").join("\n"), /props\.a\.failure\.value resolves to any/);
+  assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { make: ObjectConstructor };").join("\n"), /props\.a\.make\..* resolves to any/);
+  assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { failure: Error };").join("\n"), /props\.a\.failure\.cause resolves to unknown/);
+});
+
+test("a private or #private member is not part of the contract", () => {
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", "class Host { #raw: unknown = 1; private loose: any = 1; open(id: string): void {} }\nexport type Shape = { host: Host };"), []);
+});
+
+test("a no-default-lib directive in a tree file is a finding, never a crash or a replacement library", () => {
+  assert.match(judge("Type.Unsafe<Shape>()", '/// <reference no-default-lib="true" />\nexport type Shape = { id: string };').join("\n"), /holds \/\/\/ <reference no-default-lib="true" \/>/);
+});
+
+test("a judged tree reached through a symbolic link is judged the same", () => {
+  const found = judge("Type.Unsafe<Shape>()", "export type Shape = { raw: unknown };", {}, true);
+  assert.deepEqual(found.map(item => item.replace(/;.*/, "")), ["c props.a.raw resolves to unknown"]);
 });
 
 test("every member with an open type is its own finding", () => {

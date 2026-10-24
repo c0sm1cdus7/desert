@@ -9,6 +9,7 @@
 // checker believes. Packages (TypeBox, Svelte) resolve only in the gate's own checkout; a tree file may not reach other
 // files through `/// <reference>` directives, declare ambient modules or `declare global`, or import outside the tree;
 // TypeScript's library is recognised by the program (its default library files in the checkout), never by a path name.
+import { realpathSync } from "node:fs";
 import { dirname, join, posix, relative, resolve } from "node:path";
 import ts from "typescript";
 import type { CatalogLayout } from "../layout.ts";
@@ -18,13 +19,19 @@ import { contractPath, type ReadContract } from "../read-contract.ts";
 import { violation, type Violation } from "./violation.ts";
 
 const code = "CONTRACT_OPEN_TYPE";
-const checkout = resolve(import.meta.dirname, "../../../..");
+// Real paths: TypeScript hands over resolved files, so a symlinked node_modules or checkout must compare the same.
+const checkout = realpathSync(resolve(import.meta.dirname, "../../../.."));
 const packages = join(checkout, "node_modules");
 /** Library files whose types never cross a contract: browser globals. Packages whose types never do: Svelte and Node. */
 const foreignLibrary = /^lib\.(dom|webworker|scripthost)[^/]*\.d\.ts$/;
 const foreignPackages = ["svelte", "@types/node"].map(name => join(packages, name) + "/");
 /** ES library types that are open themselves. */
 const openLibrary = new Set(["Function", "Object", "CallableFunction", "NewableFunction"]);
+/** ES library types trusted as values: judged by their type arguments only (Promise<T>, ReadonlyMap<K, V>). Every other
+ * library interface (Error, PropertyDescriptor, JSON, a *Constructor) is walked member by member like a domain type. */
+const trustedLibrary = new Set(["Array", "ReadonlyArray", "Promise", "Map", "ReadonlyMap", "Set", "ReadonlySet", "Date", "RegExp",
+  "Int8Array", "Uint8Array", "Uint8ClampedArray", "Int16Array", "Uint16Array", "Int32Array", "Uint32Array", "Float32Array", "Float64Array",
+  "BigInt64Array", "BigUint64Array", "String", "Number", "Boolean", "Symbol", "BigInt"]);
 const sections = ["props", "events", "instance"] as const;
 const inside = (file: string, folder: string) => { const path = relative(folder, file); return path !== "" && !path.startsWith("..") && !posix.isAbsolute(path); };
 
@@ -57,13 +64,13 @@ function compilerHost(options: ts.CompilerOptions, entry: string, entryText: str
 }
 
 /** Every closed contract's props, events and instance as one checker program over the judged tree. */
-export function contractTypeViolations(root: string, layout: Pick<CatalogLayout, "aliases">, closed: readonly ClosedContract[]): readonly Violation[] {
+export function contractTypeViolations(judged: string, layout: Pick<CatalogLayout, "aliases">, closed: readonly ClosedContract[]): readonly Violation[] {
   if (!closed.length) return [];
-  const entry = join(root, "__catalog_contract_types__.ts");
+  const root = realpathSync(judged), entry = join(root, "__catalog_contract_types__.ts");
   const lines = ['import type { Static } from "@sinclair/typebox";'];
   closed.forEach(({ declaration, contract }, index) => {
     const file = contractPath(declaration.path, declaration.declaration.id);
-    lines.push(`import type { ${contract.binding} as C${index} } from "./${file}";`);
+    lines.push(`import type { ${contract.binding} as C${index} } from ${JSON.stringify(`./${file}`)};`);
     for (const section of sections) lines.push(`export type T${index}_${section} = typeof C${index} extends { readonly ${section}: infer S extends import("@sinclair/typebox").TSchema } ? Static<S> : never;`);
   });
   const options: ts.CompilerOptions = { strict: true, noEmit: true, target: ts.ScriptTarget.ES2023, module: ts.ModuleKind.ESNext,
@@ -78,7 +85,10 @@ export function contractTypeViolations(root: string, layout: Pick<CatalogLayout,
   const { host, resolution } = compilerHost(options, entry, text, root, layout.aliases, unresolved), runes = resolution("svelte", entry);
   if (!runes) throw new Error("CATALOG_GATE_CONTRACT_TYPES: svelte's types do not resolve");
   const program = ts.createProgram([entry, runes.resolvedFileName], options, host);
-  const library = (file: ts.SourceFile) => program.isSourceFileDefaultLibrary(file) && inside(resolve(file.fileName), dirname(ts.getDefaultLibFilePath(options)));
+  // The library is TypeScript's own default library files, by place first: a tree file is never asked (a tree file with
+  // `/// <reference no-default-lib="true" />` would otherwise pass as a library).
+  const libraryFolder = realpathSync(dirname(ts.getDefaultLibFilePath(options)));
+  const library = (file: ts.SourceFile) => inside(resolve(file.fileName), libraryFolder) && program.isSourceFileDefaultLibrary(file);
   const packaged = (file: ts.SourceFile) => inside(resolve(file.fileName), packages);
   for (const file of program.getSourceFiles()) {
     if (file.fileName === entry || library(file) || packaged(file)) continue;
@@ -109,7 +119,7 @@ export function contractTypeViolations(root: string, layout: Pick<CatalogLayout,
 function treeFileViolations(file: ts.SourceFile, path: string): Violation[] {
   const found: Violation[] = [];
   const directives = [...file.referencedFiles.map(item => `path="${item.fileName}"`), ...file.typeReferenceDirectives.map(item => `types="${item.fileName}"`),
-    ...file.libReferenceDirectives.map(item => `lib="${item.fileName}"`)];
+    ...file.libReferenceDirectives.map(item => `lib="${item.fileName}"`), ...file.hasNoDefaultLib ? ['no-default-lib="true"'] : []];
   for (const directive of directives) found.push(violation(code, path, 0, `holds /// <reference ${directive} />; a tree file reaches other files by import only`));
   const visit = (node: ts.Node): void => {
     if (ts.isModuleDeclaration(node) && (ts.isStringLiteral(node.name) || node.flags & ts.NodeFlags.GlobalAugmentation)) {
@@ -178,10 +188,13 @@ function walk(judge: Judge, type: ts.Type, trail: string, seen: Set<ts.Type>, re
     checker.getTypeArguments(type as ts.TypeReference).forEach((argument, index) => walk(judge, argument, `${trail}<${index}>`, seen, report));
     if (checker.isTupleType(type) || checker.isArrayType(type)) return;
   }
-  // An ES library interface or class (Promise, Array, Map, Date) that no tree file augments is judged by its type
-  // arguments only; a mapped utility (Readonly, Pick, Partial) is walked like any object, property by property.
-  if (fromLibrary && symbol && symbol.flags & (ts.SymbolFlags.Interface | ts.SymbolFlags.Class)) return;
+  // A trusted ES library type (Promise, Array, Map, Date) that no tree file augments is judged by its type arguments
+  // only; any other library interface and any mapped utility (Readonly, Pick) is walked like an object, member by member.
+  if (fromLibrary && symbol && trustedLibrary.has(symbol.name) && symbol.flags & (ts.SymbolFlags.Interface | ts.SymbolFlags.Class)) return;
   for (const property of checker.getPropertiesOfType(type)) {
+    // A private or #private member is not part of what a caller can reach.
+    const declared = property.valueDeclaration ?? property.declarations?.[0];
+    if (property.name.startsWith("#") || declared && ts.getCombinedModifierFlags(declared) & (ts.ModifierFlags.Private | ts.ModifierFlags.Protected)) continue;
     const declaration = property.valueDeclaration ?? property.declarations?.[0];
     const propertyType = declaration ? checker.getTypeOfSymbolAtLocation(property, declaration) : checker.getTypeOfSymbol(property);
     walk(judge, propertyType, `${trail}.${property.name}`, seen, report);
