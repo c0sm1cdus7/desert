@@ -22,7 +22,7 @@
   import { Wallpaper } from "../../index.ts";
   import { appearance } from "../../../infra/appearance-state.ts";
   import type { WorkspaceContent, WorkspaceSearch, WorkspacePanels, WorkspaceViewportActions } from "../../../infra/workspace-content.ts";
-  import { revealSearchTarget } from "../../../infra/catalog-search-focus.ts";
+  import { revealSearchTarget } from "../../mechanisms/reveal/reveal.ts";
   import { provideDestinationNavigation } from "../../../infra/destination-navigation.svelte.ts";
   let { navigationSurface, title, navigation, active, query, onquery, onnavigate, content: body, searchContent, searching,
     onsearch, oncancel, detail = false, onback, backAvailable=true, identity, searchAvailable = true, topActions = [], actionGroup, invoke,

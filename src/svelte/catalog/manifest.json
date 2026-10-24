@@ -98,6 +98,13 @@
       "folder": "src/svelte/catalog/mechanisms/reading",
       "owner": "theme"
     },
+    "reveal": {
+      "files": [
+        "reveal.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/reveal",
+      "owner": "view-region"
+    },
     "structured-content": {
       "files": [
         "structured-content.css"
@@ -2682,35 +2689,47 @@
       "folder": "src/svelte/catalog/foundations/view-region",
       "kind": "foundation",
       "owner": {
-        "entry": "ViewRegion.svelte"
+        "entry": "ViewRegion.svelte",
+        "mechanisms": [
+          "reveal"
+        ]
       },
-      "purpose": "Frame one view's content or one of its items with the identity navigation reveals; bare renders content unframed.",
+      "purpose": "Frame one view's content, one of its items, a place's document or a retained place with the identity navigation reveals; bare renders content unframed.",
       "shape": "none",
       "slots": {
         "children": {
           "accepts": [
             "appearance",
+            "catalog-home",
             "feedback",
             "identity",
             "information",
+            "inspection-catalog",
             "inspection-content",
+            "local-exercises",
             "media-content",
             "place-heading",
+            "public-catalog-bank",
+            "stack",
             "stack-layout",
             "view-attention",
+            "view-content",
             "view-item",
             "view-related-selection"
           ]
         }
       },
       "states": [
-        "default"
+        "default",
+        "hidden"
       ],
       "variants": {
         "kind": [
           "view",
           "item",
-          "bare"
+          "bare",
+          "document",
+          "retained"
         ]
       }
     },

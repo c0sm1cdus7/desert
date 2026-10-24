@@ -7,7 +7,7 @@
   import { CatalogWorkspace } from "../../index.ts";
   import type { PlaceIdentity } from "../../../infra/place-identity.ts";
   import { catalogSearchResults, catalogSearchScope, type CatalogDestination, type CatalogSearchResult } from "../../../infra/catalog-search.ts";
-  import { revealSearchTarget } from "../../../infra/catalog-search-focus.ts";
+  import { revealSearchTarget } from "../../mechanisms/reveal/reveal.ts";
   import type { WorkspaceContentActions } from "../../../infra/workspace-content.ts";
   import { catalogHistory } from "./catalog-history.ts";
   import type { CatalogProps } from "../../types.d.ts";

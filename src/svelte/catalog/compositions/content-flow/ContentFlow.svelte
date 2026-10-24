@@ -15,7 +15,7 @@
   import { Feedback } from '../../index.ts';
   import { ViewRegion } from "../../index.ts";
   import { groupRelatedItems } from "../../../../interaction/content-groups.ts";
-  import { revealSearchTarget } from "../../../infra/catalog-search-focus.ts";
+  import { revealSearchTarget } from "../../mechanisms/reveal/reveal.ts";
   let { resolved, onevent, album = null, onalbum = () => {}, host = "page" }: {
     resolved: ResolvedView; onevent: (event: NodeEvent) => void;
     album?: string | null; onalbum?: (id: string) => void; host?: "page" | "panel";

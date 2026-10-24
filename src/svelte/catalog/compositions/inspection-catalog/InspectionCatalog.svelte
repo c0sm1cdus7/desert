@@ -21,7 +21,7 @@
   import { PublicCatalogBankSpecimen } from "../../index.ts";
   import { publicCatalogBankInventory, type PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
   import { PlaceHeader } from "../../index.ts";
-  import { revealSearchTarget } from "../../../infra/catalog-search-focus.ts";
+  import { revealSearchTarget } from "../../mechanisms/reveal/reveal.ts";
   import { providePrivateImages } from "../../../infra/private-image-context.ts";
   import { privateImageAccess } from "../../../../web/client/private-images.ts";
   import { destinationNavigation } from "../../../infra/destination-navigation.svelte.ts";
