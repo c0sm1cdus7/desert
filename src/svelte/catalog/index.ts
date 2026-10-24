@@ -15,6 +15,7 @@ export { default as AttentionList } from "./compositions/attention-list/Attentio
 export { default as AttentionStatus } from "./compositions/attention-status/AttentionStatus.svelte";
 export { default as Availability } from "./foundations/availability/Availability.svelte";
 export { default as AvatarShuffle } from "./compositions/avatar-shuffle/AvatarShuffle.svelte";
+export { default as Card } from "./foundations/card/Card.svelte";
 export { default as CatalogCard } from "./foundations/catalog-card/CatalogCard.svelte";
 export { default as CatalogDetail } from "./compositions/catalog-detail/CatalogDetail.svelte";
 export { default as CatalogHome } from "./compositions/catalog-home/CatalogHome.svelte";

@@ -387,6 +387,38 @@
         "seed-avatar"
       ]
     },
+    "card": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/card",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Card.svelte"
+      },
+      "purpose": "Open one item, media, collection or summary from a card composed of artwork and its supporting content.",
+      "shape": "radius",
+      "slots": {
+        "children": {
+          "accepts": [
+            "heading",
+            "text"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "current",
+        "disabled"
+      ],
+      "variants": {
+        "presentation": [
+          "featured",
+          "item",
+          "tile",
+          "collection",
+          "summary"
+        ]
+      }
+    },
     "catalog-card": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/catalog-card",
