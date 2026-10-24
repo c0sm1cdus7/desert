@@ -1,10 +1,12 @@
 <script lang="ts">
+  // Shell part (from the catalog-workspace composition): a pointer-only edge swipe that reveals a hidden navigation pane
+  // or, on a detail, goes back. The visible Back and navigation toggles own keyboard semantics.
   import { onDestroy, untrack } from "svelte";
   import { prefersReducedMotion } from "svelte/motion";
   import { useSidebar } from "../../../vendor/components/ui/sidebar/index.js";
-  import { swipeMotion } from "../../../infra/swipe-motion.svelte.js";
+  import { swipeMotion } from "../../mechanisms/swipe-motion/swipe-motion.svelte.ts";
   let { searching, detail, onback, viewport }: {
-    searching: boolean; detail: boolean; onback?: () => void; viewport: HTMLElement | null;
+    searching: boolean; detail: boolean; onback?: (() => void) | undefined; viewport: HTMLElement | null;
   } = $props();
   const sidebar = useSidebar();
   let settling = $state(false);

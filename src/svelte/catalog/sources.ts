@@ -121,6 +121,7 @@ export const CatalogSources = Object.freeze({
   "selection-field": "src/svelte/catalog/foundations/selection-field/SelectionField.svelte",
   "shared-owner-catalog": "src/svelte/catalog/compositions/shared-owner-catalog/SharedOwnerCatalog.svelte",
   "shared-owner-specimen": "src/svelte/catalog/compositions/shared-owner-specimen/SharedOwnerSpecimen.svelte",
+  "shell": "src/svelte/catalog/foundations/shell/Shell.svelte",
   "specimen": "src/svelte/catalog/compositions/specimen/Specimen.svelte",
   "specimen-group": "src/svelte/catalog/compositions/specimen-group/SpecimenGroup.svelte",
   "specimen-row": "src/svelte/catalog/compositions/specimen-row/SpecimenRow.svelte",

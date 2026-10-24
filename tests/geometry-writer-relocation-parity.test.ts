@@ -18,7 +18,7 @@ const leadingInset = `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { -
 [data-catalog-workspace] [data-slot="sidebar-wrapper"][data-presentation="docked"][data-state="expanded"] { --place-leading-inset:var(--sidebar-width); }
 `;
 /** Each relocation reversed inside today's sources: [owner, today's text, text before the move, and the frozen file that
- * held it when that file has moved since (slice 3: place.css's stack rules are stack-item's own stylesheet)]. */
+ * held it when that file has moved since (slice 3: place.css's stack rules are stack-item's, catalog-shell.css is shell's)]. */
 const reversed: readonly (readonly [string, string, string, string?])[] = [
   ["catalog/mechanisms/surface-reading/surface-reading.css", catalogHome, ""],
   ["catalog/foundations/stack-item/stack-item.css", `[data-stack-kind="catalog.home"] [data-catalog-home]`, `${catalogHome}[data-stack-kind="catalog.home"] [data-catalog-home]`,
@@ -29,9 +29,10 @@ const reversed: readonly (readonly [string, string, string, string?])[] = [
   ["catalog/mechanisms/theme/base.css", `  button { cursor:pointer; }`, `  button,input,textarea { font:inherit; } button { cursor:pointer; }`],
   ["catalog/mechanisms/theme/base.css", `  input,textarea { min-width:0; } a {`, `  input,textarea { min-width:0; } h1,h2,h3,p { margin:0; } a {`],
   ["catalog/mechanisms/surface-reading/surface-reading.css", leadingInset, ""],
-  ["catalog/mechanisms/catalog-shell/catalog-shell.css", `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { height:100%; min-height:0; }`,
+  ["catalog/foundations/shell/catalog-shell.css", `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { height:100%; min-height:0; }`,
     `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { --place-leading-inset:0px; height:100%; min-height:0; }\n` +
-    `[data-catalog-workspace] [data-slot="sidebar-wrapper"][data-presentation="docked"][data-state="expanded"] { --place-leading-inset:var(--sidebar-width); }`],
+    `[data-catalog-workspace] [data-slot="sidebar-wrapper"][data-presentation="docked"][data-state="expanded"] { --place-leading-inset:var(--sidebar-width); }`,
+    "catalog/mechanisms/catalog-shell/catalog-shell.css"],
 ];
 
 async function previousCss() {

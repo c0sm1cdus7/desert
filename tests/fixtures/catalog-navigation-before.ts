@@ -1,4 +1,6 @@
-import { ResolvedNodes, type ResolvedNodeId } from "../../interaction/catalog.ts";
+// Frozen copy of src/svelte/infra/catalog-navigation.ts at 53f9c47, for the frozen sources that still import it
+// (media-inspection-before). Slice 3 split its data into infra/catalog-entries.ts and deleted its DOM helpers.
+import { ResolvedNodes, type ResolvedNodeId } from "../../src/interaction/catalog.ts";
 
 export type CatalogEntry = typeof ResolvedNodes.entries[number];
 export type CatalogFamily = typeof ResolvedNodes.groups[number]["id"];

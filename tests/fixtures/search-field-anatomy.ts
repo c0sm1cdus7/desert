@@ -9,7 +9,7 @@ export async function searchFixture(consumer: SearchConsumer) {
   const fixture = await svelteBrowser(`<script lang="ts">
     import CatalogWorkspace from "@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte";
     import {viewEventOwnership} from '@desert/web/client/view-events.ts';
-    import { matchingEntries, catalogTitle } from "@desert/svelte/infra/catalog-navigation.ts";
+    import { matchingEntries, catalogTitle } from "@desert/svelte/infra/catalog-entries.ts";
     import { retrieveCollection } from "@desert/svelte/collection-retrieval.ts";
     let query = $state("");
     let searching = $state(false);

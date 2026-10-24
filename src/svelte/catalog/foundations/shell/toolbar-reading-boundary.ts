@@ -1,4 +1,5 @@
-import { toolbarBounds } from '../catalog/mechanisms/toolbar-geometry/toolbar-bounds.ts';
+// Shell part (from infra/toolbar-reading-boundary.ts): fades content under the bar once its heading has docked.
+import { toolbarBounds } from '../../mechanisms/toolbar-geometry/toolbar-bounds.ts';
 
 /** Accepted R2: protect compact identity without a hard paint boundary or a
  * second material. Called by docking updates, never by a persistent frame loop. */

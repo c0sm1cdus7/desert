@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
-  import { catalogTitle } from "../../../infra/catalog-navigation.ts";
+  import { catalogTitle } from "../../../infra/catalog-entries.ts";
   import { ContractInspection } from "../../index.ts";
   import { StackLayout } from "../../index.ts";
   import { SelectionField } from "../../index.ts";

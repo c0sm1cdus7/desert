@@ -1,8 +1,26 @@
-import type { ActionIcon } from "../../interaction/toolbar.ts";
+import { Type, type Static } from "@sinclair/typebox";
+import { ActionIconSchema } from "../../interaction/action-icon.ts";
 import type { ViewNavigationEntry } from "../../views/program-schema.ts";
+import { text } from "../../views/definition.ts";
+import type { Frozen } from "../../json.ts";
 
 /** Renderer-owned navigation data. No component, CSS or layout escape hatches. */
-export type WorkspaceIcon = ActionIcon | "landmark" | "backpack" | "panels";
+export const WorkspaceIconSchema = Type.Union([ActionIconSchema, Type.Literal("landmark"), Type.Literal("backpack"), Type.Literal("panels")]);
+export type WorkspaceIcon = Static<typeof WorkspaceIconSchema>;
+const closed = { additionalProperties: false } as const;
+/** The navigation pane the shell draws (DESIGN §3.2): its identity, the active destination and the grouped destinations
+ * `workspaceNavigation` resolves. */
+export const ShellNavigationSchema = Type.Object({
+  identity: Type.Object({ title: text, subtitle: Type.Optional(text) }, closed),
+  settingsPlaceholder: Type.Boolean(),
+  active: Type.String(),
+  groups: Type.Array(Type.Object({
+    label: text,
+    items: Type.Array(Type.Object({ id: Type.String(), label: text, icon: WorkspaceIconSchema,
+      appearance: Type.Union([Type.Literal("browse"), Type.Literal("travel-kit"), Type.Literal("bank")]) }, closed)),
+  }, closed)),
+}, closed);
+export type ShellNavigation = Frozen<Static<typeof ShellNavigationSchema>>;
 export interface WorkspaceDestination<Id extends string = string> {
   readonly id: Id;
   readonly label: string;

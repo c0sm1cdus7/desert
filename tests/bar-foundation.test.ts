@@ -6,22 +6,7 @@ import assert from "node:assert/strict";
 import { writeFile } from "node:fs/promises";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
-
-/** Pixels whose channels differ by more than `tolerance` (count), and whether every difference stays within it. */
-async function pixelDifference(page: import("playwright").Page, first: Buffer, second: Buffer, tolerance: number) {
-  return page.evaluate(async ({ first, second, tolerance }) => {
-    const read = async (data: string) => {
-      const bitmap = await createImageBitmap(await (await fetch(`data:image/png;base64,${data}`)).blob());
-      const canvas = new OffscreenCanvas(bitmap.width, bitmap.height), context = canvas.getContext("2d")!;
-      context.drawImage(bitmap, 0, 0);
-      return context.getImageData(0, 0, bitmap.width, bitmap.height).data;
-    };
-    const [a, b] = [await read(first), await read(second)];
-    let count = 0, within = a.length === b.length;
-    for (let index = 0; index < a.length; index++) if (Math.abs(a[index]! - b[index]!) > tolerance) { count++; within = false; }
-    return { count, within };
-  }, { first: first.toString("base64"), second: second.toString("base64"), tolerance });
-}
+import { pixelDifference } from "./fixtures/pixel-difference.ts";
 
 const source = `<script lang="ts">
   import ToolbarLayout from "@desert/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte";

@@ -10,7 +10,7 @@ for (const width of [390, 1200, 1600]) {
   test(`new View panel enters on its responsive axis at ${width}px`, async () => {
     const fixture = await svelteBrowser(`<script lang="ts">
       import Panel from '@desert/svelte/catalog/renderer/panel/Panel.svelte';
-      import AdaptiveSurfaceLayout from '@desert/svelte/catalog/compositions/catalog-workspace/AdaptiveSurfaceLayout.svelte';
+      import AdaptiveSurfaceLayout from '@desert/svelte/catalog/foundations/shell/AdaptiveSurfaceLayout.svelte';
       import {surfaceFrame} from '@desert/interaction/surface-frame.ts';
       import {viewEventOwnership} from '@desert/web/client/view-events.ts';
       const ownership=viewEventOwnership();

@@ -38,7 +38,7 @@ async function settle(f: Awaited<ReturnType<typeof svelteBrowser>>) {
 test("retained Panel post-effects preserve focus and scroll after replacing the real keyed Drawer frame", async () => {
   const f = await svelteBrowser(`<script>
     import Panel from '@desert/svelte/catalog/renderer/panel/Panel.svelte';
-    import AdaptiveSurfaceLayout from '@desert/svelte/catalog/compositions/catalog-workspace/AdaptiveSurfaceLayout.svelte';
+    import AdaptiveSurfaceLayout from '@desert/svelte/catalog/foundations/shell/AdaptiveSurfaceLayout.svelte';
     import { surfaceFrame } from '@desert/interaction/surface-frame.ts';
     import { viewEventOwnership } from '@desert/web/client/view-events.ts';
     import { provideFrameActivation } from '@desert/svelte/infra/frame-continuity.svelte.ts';

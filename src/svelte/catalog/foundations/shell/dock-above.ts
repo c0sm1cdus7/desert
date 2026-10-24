@@ -1,3 +1,4 @@
+// Shell part (from infra/dock-above.ts): docks a heading into its bar as it scrolls away.
 export type DockAboveState = { start: number; end: number; state: 'expanded' | 'transition' | 'compact' };
 /** Geometry-owned docking. Any source block can hand off to a fixed upper slot. */
 export function observeDockAbove(viewport: HTMLElement, copy: HTMLElement, compact: HTMLElement,

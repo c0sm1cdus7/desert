@@ -50,7 +50,7 @@ class SidebarState {
 				if (previous && (previous.presentation !== presentation || previous.open !== open)) {
 					const origin = this.focusOrigin();
 					const ownsFocus = origin && (this.panel()?.contains(origin.element) ||
-						(this.props.root()?.contains(origin.element) && origin.element.matches('[data-sidebar="trigger"]')));
+						(this.props.root()?.contains(origin.element) && origin.element.matches(this.trigger())));
 					if (previous.presentation !== presentation) this.overlayOpen = false;
 					if (ownsFocus) void this.restoreFocus(origin);
 				}
@@ -64,6 +64,8 @@ class SidebarState {
 	get expanded() { return this.available && (this.presentation === "overlay" ? this.overlayOpen : this.open); }
 	get revealing() { return this.revealOffset !== null; }
 	private panel() { return document.getElementById(this.panelId); }
+	/** A control that shows or hides this sidebar: the vendor trigger, or any control of its panel (the shell's toggles). */
+	private trigger() { return `[data-sidebar="trigger"], [aria-controls="${CSS.escape(this.panelId)}"]`; }
 	private focusOrigin(): FocusOrigin | undefined {
 		const element = document.activeElement;
 		if (!(element instanceof HTMLElement) || element === document.body) return;
@@ -82,8 +84,8 @@ class SidebarState {
 		if (this.usable(origin?.element)) { origin.element.focus({ preventScroll: true }); return; }
 		const panel = this.panel();
 		const equivalent = origin && origin.index >= 0 ? panel?.querySelectorAll<HTMLElement>(FOCUSABLE)[origin.index] : null;
-		const preferred = equivalent ?? panel?.querySelector<HTMLElement>('[aria-current="page"], [data-sidebar="trigger"]');
-		const external = [...(this.props.root()?.querySelectorAll<HTMLElement>('[data-sidebar="trigger"]') ?? [])]
+		const preferred = equivalent ?? panel?.querySelector<HTMLElement>(`[aria-current="page"], ${this.trigger()}`);
+		const external = [...(this.props.root()?.querySelectorAll<HTMLElement>(this.trigger()) ?? [])]
 			.find(element => !panel?.contains(element) && this.usable(element));
 		const target = [preferred, external, panel].find(element => this.usable(element));
 		target?.focus({ preventScroll: true });

@@ -1,5 +1,6 @@
-import { observeDockAbove } from '../../../infra/dock-above.ts';
-import { toolbarReadingBoundary } from '../../../infra/toolbar-reading-boundary.ts';
+// Shell part (from the catalog-workspace composition): the place heading docks into the content bar.
+import { observeDockAbove } from './dock-above.ts';
+import { toolbarReadingBoundary } from './toolbar-reading-boundary.ts';
 
 /** Place identity is one consumer of the reusable dock-above behavior. */
 export function observePlaceHeading(viewport: HTMLElement, heading: HTMLElement, compact: HTMLElement) {

@@ -3,7 +3,7 @@ import type { ViewItem } from "../../../../views/schema.ts";
 import type { NodeEvent } from "../../../../interaction/node-events.ts";
 import type { PlaceIdentity } from "../../../infra/place-identity.ts";
 import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
-import { catalogTitle, matchingEntries } from "../../../infra/catalog-navigation.ts";
+import { catalogTitle, matchingEntries } from "../../../infra/catalog-entries.ts";
 import { retrieveCollection } from "../../../collection-retrieval.ts";
 import { presentFact, presentTitle } from "../../../../interaction/fact-presentation.ts";
 

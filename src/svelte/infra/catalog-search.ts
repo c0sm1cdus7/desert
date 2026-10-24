@@ -1,7 +1,7 @@
 import { projectPublicCatalog, type PublicCatalogSurface } from "../../public-catalog/client.ts";
 import type { CatalogItemNode } from "../../public-catalog/node-schema.ts";
 import type { ResolvedNodeId } from "../../interaction/catalog.ts";
-import { catalogTitle, matchingEntries } from "./catalog-navigation.ts";
+import { catalogTitle, matchingEntries } from "./catalog-entries.ts";
 import { stackNodes } from "../../interaction/place.ts";
 
 export type CatalogDestination = "browse" | "travel-kit" | "bank";

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mkdir, readFile } from 'node:fs/promises';
 import { ResolvedNodes } from '../src/interaction/catalog.ts';
-import { catalogTitle } from '../src/svelte/infra/catalog-navigation.ts';
+import { catalogTitle } from '../src/svelte/infra/catalog-entries.ts';
 import { sharedCatalogOwners } from '../src/svelte/infra/shared-owners.ts';
 import { sharedPurpose, sharedIndexOwners } from '../src/svelte/infra/shared-purpose.ts';
 import { compilePublicCatalog } from '../src/public-catalog/index.ts';

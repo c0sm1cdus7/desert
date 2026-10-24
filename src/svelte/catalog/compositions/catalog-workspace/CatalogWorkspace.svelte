@@ -6,11 +6,12 @@
   import CatalogToolbar from "./CatalogToolbar.svelte";
   import { ToolbarLayout } from "../../index.ts";
   import { PlaceHeading } from "../../index.ts";
-  import { observePlaceHeading } from "./place-heading-motion.ts";
+  // F1-merge: the shell owns these parts now (DESIGN §3.2); lane F mounts Shell and drops these imports.
+  import { observePlaceHeading } from "../../foundations/shell/place-heading-motion.ts";
   import type { PlaceIdentity } from "../../../infra/place-identity.ts";
-  import CatalogEdgeNavigation from "./CatalogEdgeNavigation.svelte";
+  import CatalogEdgeNavigation from "../../foundations/shell/CatalogEdgeNavigation.svelte";
   import { Place } from "../../index.ts";
-  import AdaptiveSurfaceLayout from "./AdaptiveSurfaceLayout.svelte";
+  import AdaptiveSurfaceLayout from "../../foundations/shell/AdaptiveSurfaceLayout.svelte";
   import type { WorkspaceDestination } from "../../../infra/workspace-navigation.ts";
   import type { ToolbarAction, BottomToolbar } from "../../../../interaction/toolbar.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
@@ -43,11 +44,22 @@
   // F1-merge: the shell owns the heading dock (DESIGN §3.2); until then the heading is found in the viewport.
   const placeHeader = () => viewport?.querySelector<HTMLElement>("[data-place-header]") ?? null;
   let compact = $state<HTMLDivElement | null>(null);
-  const presentation = provideDestinationNavigation(() => active, change => {
+  // F1-merge: origins are focus keys now (infra/destination-navigation.svelte.ts); until lane F mounts Shell (focus
+  // scope keys and its instance), this workspace keeps the origin elements under the keys it hands out.
+  const origins = new Map<string, HTMLElement>();
+  const capture = () => {
+    const element = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const scroll = element?.closest<HTMLElement>("[data-catalog-scroll]")?.scrollTop ?? 0;
+    if (!element) return { focusKey: null, scroll };
+    const focusKey = `origin:${origins.size}`;
+    origins.set(focusKey, element);
+    return { focusKey, scroll };
+  };
+  const presentation = provideDestinationNavigation(() => active, capture, change => {
     void tick().then(() => {
       if (change.destination !== active) return;
       viewport?.scrollTo({ top: change.kind === "back" ? change.origin.scroll : 0 });
-      const origin = change.origin.element;
+      const origin = change.origin.focusKey === null ? null : origins.get(change.origin.focusKey) ?? null;
       // An index may remount after its detail closes. Restore the same semantic
       // action in this destination, not the detached historical button.
       const replacement = origin?.matches('[data-piece="destination-row"][data-destination]')

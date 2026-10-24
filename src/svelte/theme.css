@@ -25,7 +25,7 @@
 @import "./catalog/mechanisms/anchored-surface/anchored-surface.css";
 @import "./catalog/mechanisms/reading/reading.css";
 @import "./catalog/mechanisms/catalog-profile/catalog-profile.css";
-@import "./catalog/mechanisms/catalog-shell/catalog-shell.css";
+@import "./catalog/foundations/shell/catalog-shell.css";
 @import "./catalog/mechanisms/catalog-search/catalog-search.css";
 @import "./catalog/mechanisms/catalog-media/catalog-media.css";
 @import "./catalog/mechanisms/lateral-surface-motion/lateral-surface-motion.css";

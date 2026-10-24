@@ -1,6 +1,6 @@
 /* The rest of the toolbar-layout composition's geometry: rules for marks only it (or a piece it mounts)
    draws. Bar owns the shared toolbar rules in foundations/bar/bar.css; lane E deletes this file with the
-   composition. Speed dial and popover rules move to menu and popover (F1d), the navigation return to shell. */
+   composition. Speed dial and popover rules move to menu and popover (F1d). */
 [data-piece="toolbar"] :is([data-catalog-navigation-actions],[data-toolbar-auxiliary]) { display:flex; min-width:0; align-items:center; }
 /* An empty action group must not allocate a rail gap before the identity. */
 [data-piece="toolbar"] [data-catalog-navigation-actions]:not(:has(button)) { display:none; }
@@ -14,8 +14,6 @@
 /* A pane containing its own toolbar is framed: only its body owns content
    insets. Contextual content without a toolbar retains the anchored body inset. */
 [data-slot="popover-content"]:has([data-piece="toolbar"]) { padding:0; gap:0; }
-[data-navigation-return] { position:absolute; z-index:2; bottom:0; inset-inline-start:var(--place-leading-inset,0px); inline-size:calc(var(--catalog-toolbar-height) + 2 * var(--catalog-toolbar-inset)); }
-[data-navigation-return] [data-piece="toolbar"] { overflow:visible; }
 .speed-dial { z-index:50; display:grid; gap:12px; max-width:calc(100vw - 24px); }
 [data-speed-dial-action] { display:flex; align-items:center; justify-content:flex-end; gap:12px; }
 [data-speed-dial-label] { padding:8px 12px; border:1px solid var(--border); border-radius:16px; max-width:18rem; overflow-wrap:anywhere; text-align:end; }

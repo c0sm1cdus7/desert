@@ -8,7 +8,7 @@ import { rendererCss } from '../fixtures/renderer-css.ts';
 const source = `<script>
  import { onMount } from 'svelte';
  import ScrollEdges from './src/svelte/catalog/foundations/scroll-edges/ScrollEdges.svelte';
- import { toolbarReadingBoundary } from './src/svelte/infra/toolbar-reading-boundary.ts';
+ import { toolbarReadingBoundary } from './src/svelte/catalog/foundations/shell/toolbar-reading-boundary.ts';
  let owner, viewport, compact;
  onMount(() => { const boundary = toolbarReadingBoundary(viewport, compact);
    boundary.paint(1); return boundary.dispose; });

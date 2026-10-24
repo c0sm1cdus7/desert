@@ -1,9 +1,12 @@
+// Presentation history local to each workspace destination (a component page opened inside the bank), never a product
+// command. Nonvisual: where focus and scroll were when a page opened is data the provider captures (a focus key and a
+// scroll offset); restoring them on the way back is the host's (the shell's) DOM work.
 import { getContext, setContext } from "svelte";
 import type { PlaceIdentity } from "./place-identity.ts";
 
 const key = Symbol("destination-presentation-navigation");
 export type DestinationPage = Readonly<{ id: string; identity: PlaceIdentity }>;
-export type DestinationOrigin = Readonly<{ element: HTMLElement | null; scroll: number }>;
+export type DestinationOrigin = Readonly<{ focusKey: string | null; scroll: number }>;
 type Frame = DestinationPage & { origin: DestinationOrigin };
 type Change = Readonly<{ destination: string; kind: "open" | "back"; origin: DestinationOrigin }>;
 export type DestinationNavigation = {
@@ -13,8 +16,9 @@ export type DestinationNavigation = {
   back(destination: string): void;
 };
 
-/** Presentation history is local to each workspace destination, never a product command. */
-export function provideDestinationNavigation(destination: () => string, changed: (change: Change) => void): DestinationNavigation {
+/** Opens the history for the subtree. `capture` reads the origin a page returns to; `changed` restores it. */
+export function provideDestinationNavigation(destination: () => string, capture: () => DestinationOrigin,
+  changed: (change: Change) => void): DestinationNavigation {
   let stacks = $state.raw<Readonly<Record<string, readonly Frame[]>>>({});
   const navigation: DestinationNavigation = {
     destination,
@@ -22,9 +26,7 @@ export function provideDestinationNavigation(destination: () => string, changed:
     open(id, page, replace = false) {
       const previous = stacks[id] ?? [];
       if (previous.at(-1)?.id === page.id) return;
-      const element = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      const scroll = element?.closest<HTMLElement>("[data-catalog-scroll]")?.scrollTop ?? 0;
-      const origin = replace && previous.length ? previous[0]!.origin : { element, scroll };
+      const origin = replace && previous.length ? previous[0]!.origin : capture();
       stacks = { ...stacks, [id]: [...(replace ? [] : previous), { ...page, origin }] };
       changed({ destination: id, kind: "open", origin });
     },

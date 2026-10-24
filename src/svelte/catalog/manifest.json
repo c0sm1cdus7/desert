@@ -28,13 +28,6 @@
       "folder": "src/svelte/catalog/mechanisms/catalog-search",
       "owner": "theme"
     },
-    "catalog-shell": {
-      "files": [
-        "catalog-shell.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/catalog-shell",
-      "owner": "theme"
-    },
     "control-feedback": {
       "files": [
         "control-feedback.css"
@@ -125,6 +118,13 @@
       ],
       "folder": "src/svelte/catalog/mechanisms/surface-reading",
       "owner": "theme"
+    },
+    "swipe-motion": {
+      "files": [
+        "swipe-motion.svelte.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/swipe-motion",
+      "owner": "shell"
     },
     "theme": {
       "files": [
@@ -556,11 +556,8 @@
       "owner": {
         "entry": "CatalogWorkspace.svelte",
         "parts": [
-          "AdaptiveSurfaceLayout.svelte",
-          "CatalogEdgeNavigation.svelte",
           "CatalogNavigationToggle.svelte",
-          "CatalogToolbar.svelte",
-          "place-heading-motion.ts"
+          "CatalogToolbar.svelte"
         ]
       },
       "purpose": "Host a catalog place with its navigation sidebar, toolbars, search overlay, panels and failure dialog.",
@@ -1853,10 +1850,6 @@
         ],
         "parts": [
           "place.css"
-        ],
-        "vendor": [
-          "sidebar",
-          "tooltip"
         ]
       },
       "purpose": "Arrange content and top or bottom toolbars, with lateral surfaces only at the root. Mounted surfaces keep their own content and toolbars.",
@@ -2296,6 +2289,71 @@
         "surface-specimen",
         "toolbar-layout",
         "view-destination-link"
+      ]
+    },
+    "shell": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/shell",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Shell.svelte",
+        "mechanisms": [
+          "swipe-motion",
+          "toolbar-geometry"
+        ],
+        "parts": [
+          "AdaptiveSurfaceLayout.svelte",
+          "CatalogEdgeNavigation.svelte",
+          "ShellBody.svelte",
+          "ShellNavigation.svelte",
+          "catalog-shell.css",
+          "dock-above.ts",
+          "navigation-icons.ts",
+          "place-heading-motion.ts",
+          "search-focus.svelte.ts",
+          "toolbar-reading-boundary.ts"
+        ],
+        "vendor": [
+          "sidebar",
+          "tooltip"
+        ]
+      },
+      "purpose": "Host a workspace place with its navigation sidebar, toolbars, search overlay, panels and failure dialog.",
+      "shape": "none",
+      "slots": {
+        "bottom": {
+          "accepts": [
+            "bar",
+            "toolbar"
+          ]
+        },
+        "content": {
+          "accepts": [
+            "catalog-workspace-content",
+            "place-heading"
+          ]
+        },
+        "panels": {
+          "accepts": [
+            "failure-dialog",
+            "panel"
+          ]
+        },
+        "search": {
+          "accepts": [
+            "catalog-search-results"
+          ]
+        },
+        "top": {
+          "accepts": [
+            "bar",
+            "toolbar"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "searching"
       ]
     },
     "specimen": {

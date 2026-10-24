@@ -119,6 +119,7 @@ export { default as SelectControl } from "./compositions/select-control/SelectCo
 export { default as SelectionField } from "./foundations/selection-field/SelectionField.svelte";
 export { default as SharedOwnerCatalog } from "./compositions/shared-owner-catalog/SharedOwnerCatalog.svelte";
 export { default as SharedOwnerSpecimen } from "./compositions/shared-owner-specimen/SharedOwnerSpecimen.svelte";
+export { default as Shell } from "./foundations/shell/Shell.svelte";
 export { default as Specimen } from "./compositions/specimen/Specimen.svelte";
 export { default as SpecimenGroup } from "./compositions/specimen-group/SpecimenGroup.svelte";
 export { default as SpecimenRow } from "./compositions/specimen-row/SpecimenRow.svelte";

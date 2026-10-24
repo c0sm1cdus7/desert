@@ -3,13 +3,13 @@
   import { onDestroy, tick } from "svelte";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
-  import { catalogGroups } from "../../../infra/catalog-navigation.ts";
+  import { catalogGroups } from "../../../infra/catalog-entries.ts";
   import { ResolvedNodes } from "../../../../interaction/catalog.ts";
   import { StackLayout } from "../../index.ts";
   import { GroupedPanel } from "../../index.ts";
   import { DestinationRow } from "../../index.ts";
   import { ToolbarLayout } from "../../index.ts";
-  import { catalogTitle } from "../../../infra/catalog-navigation.ts";
+  import { catalogTitle } from "../../../infra/catalog-entries.ts";
   import { SharedOwnerCatalog } from "../../index.ts";
   import type { SharedOwner } from '../../../infra/shared-owners.ts';
   import { sharedPurpose, sharedIndexOwners, sharedParts } from '../../../infra/shared-purpose.ts';

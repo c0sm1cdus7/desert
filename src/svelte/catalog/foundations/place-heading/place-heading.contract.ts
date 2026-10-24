@@ -8,8 +8,8 @@ import { FeaturedMediaSchema } from "../../../infra/place-identity.ts";
 export const PlaceHeadingContract = {
   props: Type.Object({
     title: text,
-    subtitle: Type.Optional(text),
-    media: Type.Optional(FeaturedMediaSchema),
+    subtitle: Type.Optional(Type.Union([text, Type.Undefined()])),
+    media: Type.Optional(Type.Union([FeaturedMediaSchema, Type.Undefined()])),
     context: Type.Union([Type.Literal("place"), Type.Literal("embedded")]),
     background: Type.Optional(Type.Object({ asset: Type.String(), alt: Type.String() }, { additionalProperties: false })),
   }, { additionalProperties: false }),

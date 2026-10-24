@@ -1,4 +1,4 @@
-/* The application viewport clips content but never owns scroll, even when the
+/* Shell (foundation): the application viewport clips content but never owns scroll, even when the
    browser reveals a focused descendant. Only data-catalog-scroll may move. */
 [data-catalog-workspace] { position:relative; height:100dvh; overflow:clip; background:var(--background); }
 [data-catalog-workspace] [data-slot="sidebar-wrapper"] { height:100%; min-height:0; }
@@ -40,3 +40,6 @@
 }
 @media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
 }
+/* The navigation return: the bottom toggle that shows a hidden navigation pane. */
+[data-navigation-return] { position:absolute; z-index:2; bottom:0; inset-inline-start:var(--place-leading-inset,0px); inline-size:calc(var(--catalog-toolbar-height) + 2 * var(--catalog-toolbar-inset)); }
+[data-navigation-return] [data-piece="toolbar"] { overflow:visible; }
