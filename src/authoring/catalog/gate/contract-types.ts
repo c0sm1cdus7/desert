@@ -25,7 +25,8 @@ import { violation, type Violation } from "./violation.ts";
 const code = "CONTRACT_OPEN_TYPE";
 // Real paths: TypeScript hands over resolved files, so a symlinked node_modules or checkout must compare the same.
 const checkout = realpathSync(resolve(import.meta.dirname, "../../../.."));
-const packages = join(checkout, "node_modules");
+// A symlinked node_modules is followed too: TypeScript hands over real paths.
+const packages = realpathSync(join(checkout, "node_modules"));
 /** Library files whose types never cross a contract: browser globals. Packages whose types never do: Svelte and Node. */
 const foreignLibrary = /^lib\.(dom|webworker|scripthost)[^/]*\.d\.ts$/;
 const foreignPackages = ["svelte", "@types/node"].map(name => join(packages, name) + "/");
