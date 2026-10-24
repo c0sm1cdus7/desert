@@ -9,8 +9,8 @@ test('catalog overview and widget show the actual Attention/Widgets composition 
   try {
     await f.page.emulateMedia({reducedMotion:'reduce'});
     await f.page.setViewportSize({width:1600,height:1000});
-    await f.page.locator('[data-catalog-index] [data-destination="Flow"]').click();
-    const flow=f.page.locator('[data-owner-specimen="Flow"]');
+    await f.page.locator('[data-view-item="catalog-index"] [data-focus-key="Flow"]').click();
+    const flow=f.page.locator('[data-view-item="owner:Flow"]');
     assert.equal(await flow.getByRole('group',{name:'Attention',exact:true}).count(),1);
     assert.equal(await flow.getByRole('group',{name:'Widgets',exact:true}).count(),1);
     assert.equal(await flow.getByRole('group',{name:'Open tasks',exact:true}).count(),0);
@@ -18,8 +18,8 @@ test('catalog overview and widget show the actual Attention/Widgets composition 
     await flow.getByRole('button',{name:'Open Tasks',exact:true}).click();
     assert.match(await flow.innerText(),/Open the Tasks destination locally/);
     await f.page.locator('[data-catalog-content] > [data-toolbar="top"]').getByRole('button',{name:'Back',exact:true}).click();
-    await f.page.locator('[data-catalog-index] [data-destination="SummaryWidget"]').click();
-    const specimen=f.page.locator('[data-owner-specimen="SummaryWidget"]');
+    await f.page.locator('[data-view-item="catalog-index"] [data-focus-key="SummaryWidget"]').click();
+    const specimen=f.page.locator('[data-view-item="owner:SummaryWidget"]');
     const widget=specimen.getByRole('button',{name:'Open Tasks',exact:true});
     assert.match(await widget.innerText(),/2 Open/);
     assert.match(await widget.innerText(),/1 Completed/);

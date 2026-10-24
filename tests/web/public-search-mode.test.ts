@@ -47,7 +47,7 @@ for (const name of ["Component bank", "Travel kit"]) test(`${name} search stays 
     const { page } = fixture;
     await openDestination(page, name);
     const field = name === "Travel kit" ? page.getByRole("textbox", { name: "Trip name", exact: true }) :
-      page.locator('[data-specimen="input.text:value"]').getByRole("textbox");
+      page.locator('[data-view-item="specimen:input.text:value"]').getByRole("textbox");
     await field.fill("Keep this local search witness");
     const handle = await field.elementHandle(), destination = (await content(page).getAttribute("data-destination"))!;
     const scroll = await setScroll(page), input = await enterSearch(page);

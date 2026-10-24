@@ -9,6 +9,6 @@ export const Column = defineFoundation({
   owner: { entry: "Column.svelte" },
   shape: "none", states: ["default"],
   variants: { gap: ["snug", "close", "regular", "relaxed", "section"], measure: ["reading", "narrow", "wide"], align: ["start", "center", "stretch"] },
-  slots: { children: { accepts: ["access-form", "action", "appearance-preferences", "attention-status", "avatar", "clock", "column", "context-properties", "fact-list", "form", "heading", "inline", "list", "lock-screen", "media-object", "node-renderer", "reading-content", "seed-avatar", "spacer", "stack-layout", "text"] } },
+  slots: { children: { accepts: ["access-appearance-specimen", "access-form", "action", "appearance-preferences", "attention-indicator", "attention-list", "attention-status", "avatar", "bar", "choice", "clock", "column", "confirmation-dialog", "content-flow", "context-properties", "contract-inspection", "control-bench", "fact-list", "form", "heading", "information", "inline", "list", "lock-screen", "media-object", "media-reference-specimen", "node-renderer", "object-state-control", "place-heading", "reading-content", "reference-specimen", "related-selection", "seed-avatar", "shared-owner-catalog", "spacer", "specimen-group", "speed-dial", "stack-layout", "summary-widget", "surface-specimen", "text", "theme-preview", "view-region"] } },
   approval: "required", contract: ColumnContract,
 } as const);

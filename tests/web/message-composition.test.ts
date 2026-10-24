@@ -32,7 +32,7 @@ test("message identity belongs to the header, with readable body and shared dism
       for (const width of [1280, 390, 320]) {
         await f.page.setViewportSize({ width, height: 844 });
         for (const severity of ["warning", "error"]) {
-          await f.page.locator(`[data-specimen="problem:${severity}"]`).getByRole("button").click();
+          await f.page.locator(`[data-view-item="specimen:problem:${severity}"]`).getByRole("button").click();
           const dialog = f.page.getByRole("dialog");
           await settleMotion(f.page);
           const header = dialog.locator('[data-surface-slot="top"]');

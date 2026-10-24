@@ -14,7 +14,7 @@ for (const colorScheme of ["light", "dark"] as const) test(`frozen bank masks ex
     await (await navigationAction(page, "Component bank")).click();
     const find = page.getByRole("searchbox", { name: "Find component", exact: true });
     await find.fill("control.money");
-    const specimen = page.locator('[data-specimen="control.money:empty"]');
+    const specimen = page.locator('[data-view-item="specimen:control.money:empty"]');
     const amount = specimen.getByRole("textbox", { name: "Amount", exact: true });
     await amount.fill("423423423,25");
     assert.equal(await amount.inputValue(), "423.423.423,25");

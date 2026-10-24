@@ -8,8 +8,8 @@ test("one and many options derive accessible radio and checkbox interaction", { 
   const f = await browserFixture();
   try {
     await openCatalog(f.page);
-    const single = f.page.locator('[data-specimen="control.options:one"]');
-    const many = f.page.locator('[data-specimen="control.options:many"]');
+    const single = f.page.locator('[data-view-item="specimen:control.options:one"]');
+    const many = f.page.locator('[data-view-item="specimen:control.options:many"]');
     const first = single.getByRole("radio", { name: "First option", exact: true });
     await first.click();
     assert.equal(await first.isChecked(), true);
@@ -29,7 +29,7 @@ test("money validates exact precision and currency changes never silently conver
   const f = await browserFixture();
   try {
     await openCatalog(f.page);
-    const money = f.page.locator('[data-specimen="control.money:value"]');
+    const money = f.page.locator('[data-view-item="specimen:control.money:value"]');
     const amount = money.getByRole("textbox", { name: "Amount", exact: true });
     await amount.fill("9007199254740993,07");
     assert.equal((await amount.inputValue()).replaceAll(".", ""), "9007199254740993,07");
@@ -59,7 +59,7 @@ test("calendar, tags and media remain accessible and contained at narrow widths"
   const f = await browserFixture();
   try {
     await openCatalog(f.page);
-    const date = f.page.locator('[data-specimen="control.date:calendar"] [data-date-trigger]');
+    const date = f.page.locator('[data-view-item="specimen:control.date:calendar"] [data-date-trigger]');
     await date.click();
     const calendar = f.page.getByRole("dialog", { name: "Date", exact: true });
     assert.equal(await calendar.getByRole("application", { name: "Date October 2026", exact: true }).count(), 1,
@@ -67,11 +67,11 @@ test("calendar, tags and media remain accessible and contained at narrow widths"
     await calendar.getByRole("button", { name: /Friday, October 16, 2026/ }).click();
     await calendar.waitFor({ state: "hidden" });
     assert.match(await date.innerText(), /Oct 16, 2026/);
-    assert.equal(await f.page.locator('[data-catalog-entry="control.tag"] [data-control="tag"]').count(), 5);
-    const image = f.page.locator('[data-specimen="control.image:available"] img');
+    assert.equal(await f.page.locator('[data-view-item="entry:control.tag"] [data-control="tag"]').count(), 5);
+    const image = f.page.locator('[data-view-item="specimen:control.image:available"] img');
     assert.equal(await image.evaluate(node => (node as HTMLImageElement).naturalWidth > 0), true);
-    assert.equal(await f.page.locator('[data-specimen="control.image:unavailable"]').getByRole("img").isVisible(), true);
-    assert.equal(await f.page.locator('[data-specimen="control.avatar:fallback"]').getByText("SL", { exact: true }).isVisible(), true);
+    assert.equal(await f.page.locator('[data-view-item="specimen:control.image:unavailable"]').getByRole("img").isVisible(), true);
+    assert.equal(await f.page.locator('[data-view-item="specimen:control.avatar:fallback"]').getByText("SL", { exact: true }).isVisible(), true);
     for (const width of [390, 320]) {
       await f.page.setViewportSize({ width, height: 844 });
       await settleMotion(f.page);
@@ -80,7 +80,7 @@ test("calendar, tags and media remain accessible and contained at narrow widths"
     for (const colorScheme of ["light", "dark"] as const) {
       await f.page.emulateMedia({ colorScheme });
       await settleMotion(f.page);
-      assert.deepEqual((await new AxeBuilder({ page: f.page }).include("[data-control-bench]").analyze()).violations, [], colorScheme);
+      assert.deepEqual((await new AxeBuilder({ page: f.page }).include("[data-view-item='control-bench']").analyze()).violations, [], colorScheme);
     }
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }

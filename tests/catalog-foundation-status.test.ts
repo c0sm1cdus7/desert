@@ -6,8 +6,20 @@ import { contractShape, mounted, specimenFindings } from "./support/foundation.t
 test("status: the contract offers a title, description, status glyph, tone, size and heading role, nothing else", async () => {
   assert.deepEqual(await contractShape("status"), {
     title: "text", "description?": "text", "icon?": ["info", "search", "image-off"], tone: ["neutral", "offline", "note"],
-    size: ["regular", "compact"], heading: "boolean",
+    size: ["regular", "compact"], heading: "boolean", "label?": "text",
   });
+});
+
+test("status: a labelled block is named by its label; an unlabelled one has no name of its own", async () => {
+  const f = await mounted(`<Catalog.Status title="Execution adapter required" description="Needs the local adapter." tone="note" size="compact" heading={false} icon="info" label="Specimen unavailable" />
+<Catalog.Status title="Execution adapter required" description="Needs the local adapter." tone="note" size="regular" heading={false} label="Specimen unavailable" />
+<Catalog.Status title="Nothing here yet." tone="note" size="compact" heading={false} />`);
+  try {
+    assert.equal(await f.page.getByRole("note", { name: "Specimen unavailable", exact: true }).count(), 2);
+    assert.deepEqual(await f.page.locator("[data-status]").evaluateAll(nodes => nodes.map(node => node.getAttribute("aria-label"))),
+      ["Specimen unavailable", "Specimen unavailable", null]);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
 });
 
 test("status: every tone × size has exactly one specimen", async () => {

@@ -12,8 +12,8 @@ for (const colorScheme of ["light", "dark"] as const) test(`frozen multiline wel
     await (await navigationAction(page, "Component bank")).click();
     const find = page.getByRole("searchbox", { name: "Find component", exact: true });
     await find.fill("input.multiline");
-    const empty = page.locator('[data-specimen="input.multiline:empty"]');
-    const bounded = page.locator('[data-specimen="input.multiline:value"]');
+    const empty = page.locator('[data-view-item="specimen:input.multiline:empty"]');
+    const bounded = page.locator('[data-view-item="specimen:input.multiline:value"]');
     await empty.getByRole("textbox").fill("One 💡");
     assert.equal(await empty.locator("[data-character-counter]").innerText(), "5 characters");
     const editor = bounded.getByRole("textbox");

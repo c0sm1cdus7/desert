@@ -118,30 +118,30 @@ test('closed inspection preserves indexed inventory pixels, detail, drafts and r
   const previousHost=Object.fromEntries(Object.entries(previous).filter(([path])=>path.endsWith('/views/InspectionContent.svelte')));
   const fixtures=[await prepare(source,previousHost),await prepare(source)];
   try{
-    await compare('inspection-inventory',fixtures,'[data-public-catalog-bank]');
+    await compare('inspection-inventory',fixtures,'[data-view-item="public-catalog-bank"]');
     const references=[];
     for(const f of fixtures){
-      await f.page.locator('[data-catalog-index] [data-destination="input.text"]').click();
-      await f.page.locator('[data-catalog-entry="input.text"]').getByRole('button',{name:/^State ·/}).click();
+      await f.page.locator('[data-view-item="catalog-index"] [data-focus-key="input.text"]').click();
+      await f.page.locator('[data-view-item="entry:input.text"]').getByRole('button',{name:/^State ·/}).click();
       await f.page.getByRole('option',{name:'value',exact:true}).click();
-      const field=f.page.locator('[data-specimen="input.text:value"] input');
+      const field=f.page.locator('[data-view-item="specimen:input.text:value"] input');
       await field.fill('Retain this diagnostic thought');
       references.push(await field.elementHandle());
       await f.page.getByRole('button',{name:'Back',exact:true}).click();
-      await f.page.locator('[data-catalog-index] [data-destination="catalog.card"]').click();
-      await f.page.locator('[data-catalog-entry="catalog.card"]').getByRole('button',{name:/^State ·/}).click();
+      await f.page.locator('[data-view-item="catalog-index"] [data-focus-key="catalog.card"]').click();
+      await f.page.locator('[data-view-item="entry:catalog.card"]').getByRole('button',{name:/^State ·/}).click();
       await f.page.getByRole('option',{name:'item',exact:true}).click();
-      await f.page.locator('[data-specimen="catalog.card:item"] button').click();
+      await f.page.locator('[data-view-item="specimen:catalog.card:item"] button').click();
       await f.page.locator('[data-catalog-detail]:visible').waitFor();
-      assert.equal(await f.page.locator('[data-public-catalog-bank]:visible').count(),0);
+      assert.equal(await f.page.locator('[data-view-item="public-catalog-bank"]:visible').count(),0);
     }
     await compare('inspection-detail',fixtures,'[data-catalog-detail]:visible');
     for(const[index,f]of fixtures.entries()){
       await f.page.getByRole('button',{name:'Back to visual catalog',exact:true}).click();
-      assert.ok(await f.page.locator('[data-specimen="catalog.card:item"] button').evaluate(button=>button===document.activeElement));
+      assert.ok(await f.page.locator('[data-view-item="specimen:catalog.card:item"] button').evaluate(button=>button===document.activeElement));
       await f.page.getByRole('button',{name:'Back',exact:true}).click();
-      await f.page.locator('[data-catalog-index] [data-destination="input.text"]').click();
-      const field=f.page.locator('[data-specimen="input.text:value"] input');
+      await f.page.locator('[data-view-item="catalog-index"] [data-focus-key="input.text"]').click();
+      const field=f.page.locator('[data-view-item="specimen:input.text:value"] input');
       assert.equal(await field.inputValue(),'Retain this diagnostic thought');
       assert.ok(await field.evaluate((element,before)=>element===before,references[index]));
       assert.deepEqual(f.errors,[]);
@@ -155,7 +155,8 @@ test('inspection entry lookup stays within its own catalog instance',async()=>{
     import {inspectionCatalog} from '@desert/svelte/catalog/compositions/inspection/inspection-fixture.ts';
     let mounted=$state(false),second,result=$state('');
   </script><button onclick={()=>mounted=true}>Mount fixture</button>
-  <button onclick={async()=>{const target=await second.revealEntry('control.tag');result=target?.closest('[data-test-bank]')?.getAttribute('data-test-bank')??'missing';}}>Reveal second Tag</button>
+  <button onclick={async()=>{const revealed=await second.revealEntry('control.tag');
+    result=revealed?document.activeElement?.closest('[data-test-bank]')?.getAttribute('data-test-bank')??'missing':'missing';}}>Reveal second Tag</button>
   <output>{result}</output>{#if mounted}
     <div data-test-bank="first"><Bank surface={inspectionCatalog} oncatalog={()=>{}}/></div>
     <div data-test-bank="second"><Bank bind:this={second} surface={inspectionCatalog} oncatalog={()=>{}}/></div>

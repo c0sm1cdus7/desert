@@ -35,8 +35,8 @@ test('connection examples use real action and collection states and preserve off
 test('action-row connection state explains disabled commands without executing them',async()=>{
   const f=await svelteBrowser(catalogWorkspaceSource,{},undefined,{initialCss:await rendererCss()});
   try {
-    await f.page.locator('[data-catalog-index] [data-destination="ViewDestinationLink"]').click();
-    const specimen=f.page.locator('[data-owner-specimen="ViewDestinationLink"]');
+    await f.page.locator('[data-view-item="catalog-index"] [data-focus-key="ViewDestinationLink"]').click();
+    const specimen=f.page.locator('[data-view-item="owner:ViewDestinationLink"]');
     await specimen.getByRole('button',{name:/^State ·/}).click();
     await f.page.getByRole('option',{name:'Offline',exact:true}).click();
     const row=specimen.getByRole('button',{name:'Trash',exact:true});

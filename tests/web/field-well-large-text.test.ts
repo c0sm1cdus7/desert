@@ -15,7 +15,7 @@ for (const kind of ['input.text', 'input.multiline', 'control.money']) {
       await page.goto(`${f.origin}/?place=bank`);
       await page.evaluate(() => document.documentElement.style.setProperty('--text-scale', '2'));
       await page.getByRole('searchbox', { name: 'Find component', exact: true }).fill(kind);
-      const specimen = page.locator(`[data-specimen="${kind}:${kind === 'control.money' ? 'empty' : 'value'}"]`);
+      const specimen = page.locator(`[data-view-item="specimen:${kind}:${kind === 'control.money' ? 'empty' : 'value'}"]`);
       const editor = specimen.getByRole('textbox');
       const well = specimen.locator('[data-floating-field]');
       const clear = specimen.locator('[data-input-clear]');

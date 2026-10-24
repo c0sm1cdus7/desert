@@ -23,6 +23,11 @@ const scene = `<script lang="ts">
 </script><button onclick={() => mounted = true}>Mount fixture</button>
 <main data-renderer-profile="apple-reference" style="padding:16px">{#if mounted}<PublicCatalogBank surface={inspectionCatalog} oncatalog={() => {}} />{/if}</main>`;
 
+// A baseline tree marks the bank, its index and its rows with composition marks; this tree with the view regions and the
+// row keys that replaced them (lane G). Each selector finds either.
+const bankSelector = ':is([data-public-catalog-bank], [data-view-item="public-catalog-bank"])';
+const indexSelector = ':is([data-catalog-index], [data-view-item="catalog-index"])';
+
 type Browser = Readonly<{ page: import("playwright").Page; errors: string[]; close: () => Promise<void> }>;
 async function bankIn(tree: string, size: typeof sizes[number], theme: typeof themes[number]): Promise<Browser> {
   const { svelteBrowser } = await import(pathToFileURL(join(tree, "tests/fixtures/svelte-browser.ts")).href);
@@ -42,13 +47,13 @@ async function bankIn(tree: string, size: typeof sizes[number], theme: typeof th
     };
   });
   await fixture.page.getByRole("button", { name: "Mount fixture", exact: true }).click();
-  await fixture.page.locator("[data-public-catalog-bank]").waitFor();
+  await fixture.page.locator(bankSelector).waitFor();
   await fixture.page.evaluate(async () => { await document.fonts.ready; for (let i = 0; i < 6; i++) await new Promise(requestAnimationFrame); });
   return fixture;
 }
 
-const destinations = (page: import("playwright").Page) => page.locator("[data-catalog-index] [data-destination]")
-  .evaluateAll(nodes => nodes.map(node => node.getAttribute("data-destination") ?? ""));
+const destinations = (page: import("playwright").Page) => page.locator(`${indexSelector} :is([data-destination], [data-focus-key])`)
+  .evaluateAll(nodes => nodes.map(node => node.getAttribute("data-destination") ?? node.getAttribute("data-focus-key") ?? ""));
 
 /** The whole page after the motion settles: the index, or one destination's entry or shared-owner specimen. */
 async function capture(fixture: Browser) {
@@ -61,12 +66,12 @@ async function capture(fixture: Browser) {
   return fixture.page.screenshot({ fullPage: true, caret: "hide", animations: "disabled" });
 }
 async function open(fixture: Browser, id: string) {
-  await fixture.page.locator(`[data-catalog-index] [data-destination="${id}"]`).first().click();
+  await fixture.page.locator(`${indexSelector} :is([data-destination="${id}"], [data-focus-key="${id}"])`).first().click();
 }
 async function back(fixture: Browser) {
   const button = fixture.page.getByRole("button", { name: "Back", exact: true }).filter({ visible: true }).first();
   if (await button.count()) await button.click();
-  await fixture.page.locator("[data-catalog-index]").filter({ visible: true }).first().waitFor();
+  await fixture.page.locator(indexSelector).filter({ visible: true }).first().waitFor();
 }
 
 async function rgba(png: Buffer) { return sharp(png).ensureAlpha().raw().toBuffer({ resolveWithObject: true }); }

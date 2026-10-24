@@ -1014,27 +1014,49 @@
       "slots": {
         "children": {
           "accepts": [
+            "access-appearance-specimen",
             "access-form",
             "action",
             "appearance-preferences",
+            "attention-indicator",
+            "attention-list",
             "attention-status",
             "avatar",
+            "bar",
+            "choice",
             "clock",
             "column",
+            "confirmation-dialog",
+            "content-flow",
             "context-properties",
+            "contract-inspection",
+            "control-bench",
             "fact-list",
             "form",
             "heading",
+            "information",
             "inline",
             "list",
             "lock-screen",
             "media-object",
+            "media-reference-specimen",
             "node-renderer",
+            "object-state-control",
+            "place-heading",
             "reading-content",
+            "reference-specimen",
+            "related-selection",
             "seed-avatar",
+            "shared-owner-catalog",
             "spacer",
+            "specimen-group",
+            "speed-dial",
             "stack-layout",
-            "text"
+            "summary-widget",
+            "surface-specimen",
+            "text",
+            "theme-preview",
+            "view-region"
           ]
         }
       },
@@ -1151,29 +1173,54 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/contract-inspection",
       "kind": "composition",
+      "messages": [
+        "contractInspection.purpose",
+        "contractInspection.contract",
+        "contractInspection.coverageGaps",
+        "contractInspection.evidence",
+        "contractInspection.component",
+        "contractInspection.sharedOwners",
+        "contractInspection.qualification",
+        "contractInspection.fixtures"
+      ],
       "owner": {
         "entry": "ContractInspection.svelte"
       },
-      "purpose": "Read the declared contract, coverage gaps and evidence of one resolved node kind.",
+      "purpose": {
+        "key": "contractInspection.purpose"
+      },
       "uses": [
+        "column",
         "information",
-        "stack-layout"
+        "stack-layout",
+        "view-region"
       ]
     },
     "control-bench": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/control-bench",
       "kind": "composition",
+      "messages": [
+        "controlBench.purpose",
+        "controlBench.interaction",
+        "controlBench.idle",
+        "controlBench.event",
+        "controlBench.released"
+      ],
       "owner": {
         "entry": "ControlBench.svelte"
       },
-      "purpose": "Exercise every control specimen locally in the bank, reporting each interaction without any product command.",
+      "purpose": {
+        "key": "controlBench.purpose"
+      },
       "uses": [
+        "column",
         "control-renderer",
-        "information",
         "specimen-group",
         "specimen-row",
-        "stack-layout"
+        "stack-layout",
+        "text",
+        "view-region"
       ]
     },
     "control-renderer": {
@@ -1411,10 +1458,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/facts",
       "kind": "composition",
+      "messages": [
+        "facts.purpose"
+      ],
       "owner": {
         "entry": "Facts.svelte"
       },
-      "purpose": "Read a labeled value, including the difference between an empty value and an unknown value.",
+      "purpose": {
+        "key": "facts.purpose"
+      },
       "renders": [
         "fact"
       ],
@@ -1909,6 +1961,7 @@
             "face",
             "icon",
             "seed-avatar",
+            "tag",
             "text"
           ]
         }
@@ -1934,54 +1987,77 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/inspection",
       "kind": "composition",
+      "messages": [
+        "inspection.purpose",
+        "inspection.example",
+        "inspection.back"
+      ],
       "owner": {
         "entry": "Inspection.svelte",
         "parts": [
           "inspection-fixture.ts"
         ]
       },
-      "purpose": "Browse the local inspection catalog and open one of its records as a detail, without product commands.",
+      "purpose": {
+        "key": "inspection.purpose"
+      },
       "uses": [
         "catalog-detail",
         "inspection-catalog",
         "node-renderer",
-        "retained-place",
-        "toolbar"
+        "toolbar",
+        "view-region"
       ]
     },
     "inspection-catalog": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/inspection-catalog",
       "kind": "composition",
+      "messages": [
+        "inspectionCatalog.purpose",
+        "inspectionCatalog.title",
+        "inspectionCatalog.subtitle",
+        "inspectionCatalog.parts",
+        "inspectionCatalog.back"
+      ],
       "owner": {
         "entry": "InspectionCatalog.svelte",
         "parts": [
           "purpose.ts"
         ]
       },
-      "purpose": "Discover foundations and compositions through the same action rows and destination navigation used by the product.",
+      "purpose": {
+        "key": "inspectionCatalog.purpose"
+      },
       "uses": [
+        "bar",
+        "column",
         "control-bench",
-        "destination-row",
-        "grouped-panel",
-        "place-header",
+        "list",
+        "place-heading",
         "public-catalog-bank-specimen",
+        "row",
         "shared-owner-catalog",
         "specimen-group",
         "specimen-row",
         "specimen-unavailable",
         "stack-layout",
-        "toolbar-layout"
+        "view-region"
       ]
     },
     "inspection-content": {
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/inspection-content",
       "kind": "composition",
+      "messages": [
+        "inspectionContent.purpose"
+      ],
       "owner": {
         "entry": "InspectionContent.svelte"
       },
-      "purpose": "Mount the visual catalog inspection and reveal one of its entries for a caller that binds it.",
+      "purpose": {
+        "key": "inspectionContent.purpose"
+      },
       "uses": [
         "inspection"
       ]
@@ -2347,10 +2423,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/media-reference-specimen",
       "kind": "composition",
+      "messages": [
+        "mediaReferenceSpecimen.purpose"
+      ],
       "owner": {
         "entry": "MediaReferenceSpecimen.svelte"
       },
-      "purpose": "Witness the media reference selector in the bank with one local image and local state.",
+      "purpose": {
+        "key": "mediaReferenceSpecimen.purpose"
+      },
       "uses": [
         "media-reference-selector"
       ]
@@ -2667,10 +2748,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/public-catalog-bank",
       "kind": "composition",
+      "messages": [
+        "publicCatalogBank.purpose"
+      ],
       "owner": {
         "entry": "PublicCatalogBank.svelte"
       },
-      "purpose": "Show the component bank in the workspace and let the workspace reveal and focus one of its entries.",
+      "purpose": {
+        "key": "publicCatalogBank.purpose"
+      },
       "uses": [
         "inspection-catalog"
       ]
@@ -2679,16 +2765,24 @@
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/public-catalog-bank-specimen",
       "kind": "composition",
+      "messages": [
+        "publicCatalogBankSpecimen.purpose",
+        "publicCatalogBankSpecimen.writing",
+        "publicCatalogBankSpecimen.pressed",
+        "publicCatalogBankSpecimen.open"
+      ],
       "owner": {
         "entry": "PublicCatalogBankSpecimen.svelte",
         "parts": [
           "catalog-specimen.svelte.ts"
         ]
       },
-      "purpose": "Render one bank node with local diagnostic interaction, an opener for dialogs, and a notice instead of product effects.",
+      "purpose": {
+        "key": "publicCatalogBankSpecimen.purpose"
+      },
       "uses": [
-        "feedback",
-        "node-renderer"
+        "node-renderer",
+        "text"
       ]
     },
     "public-catalog-product": {
@@ -2763,16 +2857,22 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/reference-specimen",
       "kind": "composition",
+      "messages": [
+        "referenceSpecimen.purpose",
+        "referenceSpecimen.remove",
+        "referenceSpecimen.unavailable"
+      ],
       "owner": {
         "entry": "ReferenceSpecimen.svelte"
       },
-      "purpose": "Exercise one labels or reference owner in the bank with local example values and no product command.",
+      "purpose": {
+        "key": "referenceSpecimen.purpose"
+      },
       "uses": [
-        "color-bullet",
-        "label-rail",
+        "inline",
         "labels-control",
         "reference-selector",
-        "reference-values"
+        "tag"
       ]
     },
     "reference-values": {
@@ -2994,55 +3094,111 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/shared-owner-catalog",
       "kind": "composition",
+      "messages": [
+        "sharedOwnerCatalog.purpose",
+        "sharedOwnerCatalog.example",
+        "sharedOwnerCatalog.parts",
+        "sharedOwnerCatalog.contract",
+        "sharedOwnerCatalog.owner",
+        "sharedOwnerCatalog.source",
+        "sharedOwnerCatalog.back"
+      ],
       "owner": {
         "entry": "SharedOwnerCatalog.svelte"
       },
-      "purpose": "Show one shared owner's live example, the parts it is composed of, and its contract: who owns it and where its source lives.",
+      "purpose": {
+        "key": "sharedOwnerCatalog.purpose"
+      },
       "uses": [
-        "destination-row",
-        "grouped-panel",
+        "bar",
+        "column",
         "information",
-        "place-header",
+        "list",
+        "place-heading",
+        "row",
         "shared-owner-specimen",
         "stack-layout",
-        "toolbar-layout"
+        "view-region"
       ]
     },
     "shared-owner-specimen": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/shared-owner-specimen",
       "kind": "composition",
+      "messages": [
+        "sharedOwnerSpecimen.purpose",
+        "sharedOwnerSpecimen.initial",
+        "sharedOwnerSpecimen.interaction",
+        "sharedOwnerSpecimen.layout",
+        "sharedOwnerSpecimen.overview",
+        "sharedOwnerSpecimen.gallery",
+        "sharedOwnerSpecimen.state",
+        "sharedOwnerSpecimen.ready",
+        "sharedOwnerSpecimen.loading",
+        "sharedOwnerSpecimen.offline",
+        "sharedOwnerSpecimen.openMedia",
+        "sharedOwnerSpecimen.resume",
+        "sharedOwnerSpecimen.resumeActivity",
+        "sharedOwnerSpecimen.openTasks",
+        "sharedOwnerSpecimen.openObject",
+        "sharedOwnerSpecimen.openTrash",
+        "sharedOwnerSpecimen.connecting",
+        "sharedOwnerSpecimen.reconnect",
+        "sharedOwnerSpecimen.objects",
+        "sharedOwnerSpecimen.actions",
+        "sharedOwnerSpecimen.moveToTrash",
+        "sharedOwnerSpecimen.confirmed",
+        "sharedOwnerSpecimen.cancelled",
+        "sharedOwnerSpecimen.back",
+        "sharedOwnerSpecimen.commandActivated",
+        "sharedOwnerSpecimen.shuffle",
+        "sharedOwnerSpecimen.foundations",
+        "sharedOwnerSpecimen.fact",
+        "sharedOwnerSpecimen.button",
+        "sharedOwnerSpecimen.openFact",
+        "sharedOwnerSpecimen.openButton",
+        "sharedOwnerSpecimen.attention"
+      ],
       "owner": {
-        "entry": "SharedOwnerSpecimen.svelte"
+        "entry": "SharedOwnerSpecimen.svelte",
+        "parts": [
+          "shared-owner-fixtures.ts"
+        ]
       },
-      "purpose": "Exercise one shared catalog owner with local example data, without running product commands.",
+      "purpose": {
+        "key": "sharedOwnerSpecimen.purpose"
+      },
       "uses": [
         "access-appearance-specimen",
+        "action",
         "attention-indicator",
         "attention-list",
         "attention-status",
+        "avatar",
+        "bar",
+        "choice",
         "collection",
+        "column",
         "confirmation-dialog",
         "content-flow",
         "context-properties",
-        "destination-row",
-        "feedback",
-        "grouped-panel",
         "information",
-        "measured-field",
+        "list",
         "media-reference-specimen",
         "object-state-control",
         "object-state-row",
         "reading-content",
         "reference-specimen",
         "related-selection",
-        "selection-field",
+        "row",
         "speed-dial",
         "stack-layout",
         "summary-widget",
         "surface-specimen",
-        "toolbar-layout",
-        "view-destination-link"
+        "text",
+        "theme-preview",
+        "view-destination-link",
+        "view-region"
       ]
     },
     "shell": {
@@ -3137,13 +3293,18 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/specimen",
       "kind": "composition",
+      "messages": [
+        "specimen.purpose"
+      ],
       "owner": {
         "entry": "Specimen.svelte",
         "parts": [
           "specimen-presentation.ts"
         ]
       },
-      "purpose": "Witness one resolved node in one scenario, with local interaction, through the product node and frame grammar.",
+      "purpose": {
+        "key": "specimen.purpose"
+      },
       "uses": [
         "node-renderer",
         "surface-frame"
@@ -3153,10 +3314,19 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/specimen-group",
       "kind": "composition",
+      "messages": [
+        "specimenGroup.purpose",
+        "specimenGroup.state",
+        "specimenGroup.examples",
+        "specimenGroup.loading",
+        "specimenGroup.offline"
+      ],
       "owner": {
         "entry": "SpecimenGroup.svelte"
       },
-      "purpose": "Group the bank examples of one resolved node kind under a state chooser and its contract inspection.",
+      "purpose": {
+        "key": "specimenGroup.purpose"
+      },
       "slots": {
         "children": {
           "accepts": [
@@ -3165,21 +3335,27 @@
         }
       },
       "uses": [
+        "choice",
+        "column",
         "contract-inspection",
-        "feedback",
-        "measured-field",
-        "selection-field",
-        "stack-layout"
+        "stack-layout",
+        "text",
+        "view-region"
       ]
     },
     "specimen-row": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/specimen-row",
       "kind": "composition",
+      "messages": [
+        "specimenRow.purpose"
+      ],
       "owner": {
         "entry": "SpecimenRow.svelte"
       },
-      "purpose": "Witness one fixture state of a bank entry, marking whether it is rendered or a gap, inside its own heading scope.",
+      "purpose": {
+        "key": "specimenRow.purpose"
+      },
       "slots": {
         "children": {
           "accepts": [
@@ -3191,19 +3367,27 @@
         }
       },
       "uses": [
-        "stack-item"
+        "stack-item",
+        "view-region"
       ]
     },
     "specimen-unavailable": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/specimen-unavailable",
       "kind": "composition",
+      "messages": [
+        "specimenUnavailable.purpose",
+        "specimenUnavailable.label",
+        "specimenUnavailable.title"
+      ],
       "owner": {
         "entry": "SpecimenUnavailable.svelte"
       },
-      "purpose": "Explain in place of a bank specimen why it cannot be executed here.",
+      "purpose": {
+        "key": "specimenUnavailable.purpose"
+      },
       "uses": [
-        "icon"
+        "status"
       ]
     },
     "speed-dial": {
@@ -3284,6 +3468,7 @@
             "choice-list",
             "collection",
             "collection-state",
+            "column",
             "fact-row",
             "fact-value",
             "feedback",
@@ -3824,6 +4009,7 @@
           "accepts": [
             "appearance",
             "catalog-home",
+            "column",
             "feedback",
             "identity",
             "information",
@@ -3835,6 +4021,7 @@
             "public-catalog-bank",
             "stack",
             "stack-layout",
+            "stack-item",
             "view-attention",
             "view-content",
             "view-item",

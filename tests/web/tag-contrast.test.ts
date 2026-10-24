@@ -10,7 +10,7 @@ test("all shared label tones retain readable text in light and dark", async () =
     await openCatalog(f.page);
     for (const colorScheme of ["light", "dark"] as const) {
       await f.page.emulateMedia({ colorScheme }); await settleMotion(f.page);
-      assert.equal(await f.page.locator('[data-catalog-entry="control.tag"] [data-control="tag"]').count(), 5);
+      assert.equal(await f.page.locator('[data-view-item="entry:control.tag"] [data-control="tag"]').count(), 5);
       const result = await new AxeBuilder({ page: f.page }).include('[data-control="tag"]')
         .withRules(["color-contrast"]).analyze();
       assert.deepEqual(result.violations.map(rule => ({ id: rule.id,

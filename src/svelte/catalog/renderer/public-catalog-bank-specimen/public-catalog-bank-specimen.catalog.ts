@@ -5,7 +5,9 @@ import { PublicCatalogBankSpecimenContract } from "./public-catalog-bank-specime
 
 export const PublicCatalogBankSpecimen = defineComposition({
   id: "public-catalog-bank-specimen",
-  purpose: "Render one bank node with local diagnostic interaction, an opener for dialogs, and a notice instead of product effects.",
+  purpose: { key: "publicCatalogBankSpecimen.purpose" },
+  messages: ["publicCatalogBankSpecimen.purpose", "publicCatalogBankSpecimen.writing", "publicCatalogBankSpecimen.pressed",
+    "publicCatalogBankSpecimen.open"],
   owner: { entry: "PublicCatalogBankSpecimen.svelte", parts: ["catalog-specimen.svelte.ts"] },
-  uses: ["feedback", "node-renderer"], approval: "none", contract: PublicCatalogBankSpecimenContract,
+  uses: ["node-renderer", "text"], approval: "none", contract: PublicCatalogBankSpecimenContract,
 } as const);

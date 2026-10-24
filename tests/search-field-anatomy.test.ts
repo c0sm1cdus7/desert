@@ -76,13 +76,13 @@ for (const consumer of ["collection", "catalog"] as const) {
       assert.equal(await f.page.getByRole("searchbox").count(), 0);
       if (consumer === "collection") assert.equal(await f.page.locator('[data-row-leading="attention"]').count(), 2);
       else {
-        const index = f.page.locator('[data-catalog-index]');
+        const index = f.page.locator('[data-view-item="catalog-index"]');
         assert.ok(await index.isVisible(), 'clearing discovery returns the complete component index');
-        assert.ok(await index.locator('[data-destination]').count() > 0);
+        assert.ok(await index.locator('[data-focus-key]').count() > 0);
         // Coverage lives in each detail (catalog-inspector); the index is every group with every destination: each semantic
         // entry of the group and each shared owner of the group that is not part of another, counted here from the data.
         for (const group of ResolvedNodes.groups) assert.equal(
-          await index.getByRole('group', { name:group.title, exact:true }).locator('[data-destination]').count(),
+          await index.getByRole('group', { name:group.title, exact:true }).locator('[data-focus-key]').count(),
           ResolvedNodes.entries.filter(entry => entry.inspection.group === group.id).length
             + sharedCatalogOwners.filter(owner => sharedPurpose[owner].group === group.id && !sharedPurpose[owner].partOf).length, group.title);
       }

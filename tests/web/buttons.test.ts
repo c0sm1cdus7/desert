@@ -7,21 +7,21 @@ test("one button adapts to actual space; pending replaces its face without chang
   const f = await browserFixture();
   try {
     await openCatalog(f.page);
-    const pending = f.page.locator('[data-specimen="action:pending"]').getByRole("button", { name: "Diagnostic action", exact: true });
+    const pending = f.page.locator('[data-view-item="specimen:action:pending"]').getByRole("button", { name: "Diagnostic action", exact: true });
     assert.equal(await pending.getAttribute("aria-busy"), "true");
     assert.equal(await pending.locator('[data-button-label]').isVisible(), false, "pending must not compete with visible text");
     assert.equal(await pending.locator('[data-action-face="pending"]').count(), 1);
     assert.equal(await pending.locator("svg").count(), 1);
-    const label = f.page.locator('[data-specimen="action:ready"]').getByRole("button", { name: "Diagnostic action", exact: true });
+    const label = f.page.locator('[data-view-item="specimen:action:ready"]').getByRole("button", { name: "Diagnostic action", exact: true });
     await f.page.setViewportSize({ width: 390, height: 844 });
     await label.evaluate(node => { node.style.maxWidth = "64px"; });
-    await f.page.waitForFunction(() => document.querySelector('[data-specimen="action:ready"] button')?.getAttribute("data-action-face") === "icon");
+    await f.page.waitForFunction(() => document.querySelector('[data-view-item="specimen:action:ready"] button')?.getAttribute("data-action-face") === "icon");
     assert.equal(await label.locator('[data-button-label]').isVisible(), false);
     await f.page.setViewportSize({ width: 1600, height: 1000 });
     await label.evaluate(node => { node.style.removeProperty("max-width"); });
-    await f.page.waitForFunction(() => document.querySelector('[data-specimen="action:ready"] button')?.getAttribute("data-action-face") === "label");
+    await f.page.waitForFunction(() => document.querySelector('[data-view-item="specimen:action:ready"] button')?.getAttribute("data-action-face") === "label");
     assert.equal(await label.locator('[data-button-label]').isVisible(), true);
-    const save = f.page.locator('[data-specimen="action:ready"]').getByRole("button");
+    const save = f.page.locator('[data-view-item="specimen:action:ready"]').getByRole("button");
     const before = (await save.boundingBox())!;
     const waiting = (await pending.boundingBox())!;
     assert.equal(before.width, waiting.width);
@@ -34,7 +34,7 @@ test("drawer requires top close; footer derives primary emphasis and order from 
   const f = await browserFixture();
   try {
     await openCatalog(f.page);
-    await f.page.locator('[data-specimen="transient:locked"]').getByRole("button").click();
+    await f.page.locator('[data-view-item="specimen:transient:locked"]').getByRole("button").click();
     await settleMotion(f.page);
     const dialog = f.page.getByRole("dialog");
     const close = dialog.locator('[data-surface-slot="top"]').getByRole("button", { name: "Close", exact: true });

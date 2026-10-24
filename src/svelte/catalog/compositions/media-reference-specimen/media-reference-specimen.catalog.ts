@@ -4,7 +4,8 @@ import { MediaReferenceSpecimenContract } from "./media-reference-specimen.contr
 
 export const MediaReferenceSpecimen = defineComposition({
   id: "media-reference-specimen",
-  purpose: "Witness the media reference selector in the bank with one local image and local state.",
+  purpose: { key: "mediaReferenceSpecimen.purpose" },
+  messages: ["mediaReferenceSpecimen.purpose"],
   owner: { entry: "MediaReferenceSpecimen.svelte" },
   uses: ["media-reference-selector"], approval: "none", contract: MediaReferenceSpecimenContract,
 } as const);

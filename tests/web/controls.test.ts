@@ -6,8 +6,8 @@ test("typed select changes, clears explicitly and retains disabled control state
   const f = await browserFixture();
   try {
     await openCatalog(f.page);
-    const bench = f.page.locator("[data-control-bench]");
-    const field = bench.locator('[data-specimen="control.select:available"]');
+    const bench = f.page.locator("[data-view-item='control-bench']");
+    const field = bench.locator('[data-view-item="specimen:control.select:available"]');
     const select = field.locator('[data-selection-trigger]');
     const padding = await select.evaluate(element => element.querySelector('[data-slot="field-label"]')!.getBoundingClientRect().left - element.getBoundingClientRect().left);
     assert.ok(padding >= 16, "the whole-well trigger retains the shared inner spacing");
@@ -30,7 +30,7 @@ test("typed select changes, clears explicitly and retains disabled control state
     await clear.click();
     assert.equal(await select.locator('[data-field-value]').innerText(), "Not selected");
     assert.equal(await clear.isDisabled(), true);
-    const disabled = bench.locator('[data-specimen="control.select:disabled"] [data-selection-trigger]');
+    const disabled = bench.locator('[data-view-item="specimen:control.select:disabled"] [data-selection-trigger]');
     assert.equal(await disabled.isDisabled(), true);
     assert.equal(await disabled.locator('[data-field-value]').innerText(), "Retained selection");
     assert.deepEqual(f.errors, []);
@@ -68,7 +68,7 @@ test("local file selection rejects limits and removes handles without uploading"
     await openCatalog(f.page);
     const writes: string[] = [];
     f.page.on("request", request => { if (request.method() !== "GET") writes.push(request.url()); });
-    const bench = f.page.locator("[data-control-bench]");
+    const bench = f.page.locator("[data-view-item='control-bench']");
     const input = bench.getByLabel("Choose local text files", { exact: true });
     await input.setInputFiles([
       { name: "accepted.txt", mimeType: "text/plain", buffer: Buffer.from("hello") },

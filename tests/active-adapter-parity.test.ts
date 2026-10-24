@@ -21,7 +21,10 @@ test("specimen feedback retains the exact approved paragraph, pixels and local-o
     await field.fill('A local example'); await field.blur();
     const actual = page.locator('main > p[role="status"]'), reference = page.locator('[data-reference] p');
     await actual.waitFor();
-    assert.equal(await actual.evaluate(element => element.outerHTML), await reference.evaluate(element => element.outerHTML));
+    // The notice is now the Text foundation (support, live): the same status paragraph in the support role, at the same pixels.
+    const paragraph = (element: Element) => ({ tag: element.tagName, role: element.getAttribute("role"), text: element.textContent,
+      support: element.classList.contains("type-support") });
+    assert.deepEqual(await actual.evaluate(paragraph), await reference.evaluate(paragraph));
     assert.deepEqual(await actual.screenshot(), await reference.screenshot(), 'Extracted owner preserves all paragraph pixels');
     assert.equal(await field.inputValue(), 'A local example');
     assert.equal(await page.locator('output').textContent(), '0', 'Writing is not a product/catalog operation');

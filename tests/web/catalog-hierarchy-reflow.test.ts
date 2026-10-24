@@ -23,7 +23,7 @@ test("catalog hierarchy reflows, retains search return, and uses accessible cont
       const component = page.getByRole("heading", { name: "Collection", exact: true });
       await component.scrollIntoViewIfNeeded();
       await settle(page);
-      const geometry = await page.locator('[data-catalog-entry="collection"]').evaluate(element => {
+      const geometry = await page.locator('[data-view-item="entry:collection"]').evaluate(element => {
         const header = element.querySelector(':scope > header')!;
         const title = header.querySelector("h2")!.getBoundingClientRect();
         const metadata = header.querySelector("code")!.getBoundingClientRect();
@@ -35,7 +35,7 @@ test("catalog hierarchy reflows, retains search return, and uses accessible cont
       });
       if (geometry.scrollWidth > geometry.width + 1 || geometry.titleBottom > geometry.metadataTop
         || geometry.documentWidth > geometry.viewport) failures.push({ colorScheme, width, scale, geometry });
-      const accessibility = await new AxeBuilder({ page }).include('[data-public-catalog-bank]')
+      const accessibility = await new AxeBuilder({ page }).include('[data-view-item="public-catalog-bank"]')
         .include('[data-catalog-content] > [data-place-header]')
         .withRules(["color-contrast", "heading-order", "link-name", "label"]).analyze();
       if (accessibility.violations.length) failures.push({ colorScheme, width, scale, violations: accessibility.violations });
@@ -73,7 +73,7 @@ for (const { width, scale } of [{ width: 1280, scale: 1 }, { width: 320, scale: 
       ];
       const measurements: unknown[] = [];
       for (const family of families) {
-        const controls = page.locator('[data-public-catalog-bank]').locator(family.selector);
+        const controls = page.locator('[data-view-item="public-catalog-bank"]').locator(family.selector);
         const rows = await controls.evaluateAll(elements => elements.filter(element => element.checkVisibility()).map(element => {
           const rect = element.getBoundingClientRect(), parent = element.parentElement!.getBoundingClientRect();
           return { identity: element.getAttribute('data-primitive') ?? element.getAttribute('data-control'),

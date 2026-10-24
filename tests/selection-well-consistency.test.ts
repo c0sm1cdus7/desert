@@ -28,7 +28,7 @@ test('standalone catalog selectors use the Appearance well at wide and narrow wi
       await f.page.setViewportSize({width,height:1000});
       const trigger=f.page.locator('[data-default] [data-selection-trigger]');
       const reference=f.page.getByRole('button',{name:'Text size · Default',exact:true});
-      const catalog=f.page.locator('[data-catalog-entry="input.text"] [data-selection-trigger]');
+      const catalog=f.page.locator('[data-view-item="entry:input.text"] [data-selection-trigger]');
       for (const control of [trigger,reference,catalog]) {
         await control.waitFor();
         assert.equal(await control.locator('[data-field-well]').count(),1);

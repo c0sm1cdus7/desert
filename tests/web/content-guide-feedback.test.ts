@@ -16,7 +16,7 @@ for(const theme of ['light','dark'] as const) for(const width of [390,1280]) {
    async function capture(name:string, locator?:Locator) {
     if(root) await (locator??f.page).screenshot({path:`${root}/${theme}-${width}-${name}.png`});
    }
-   const offsets=await f.page.locator('[data-specimen]').evaluateAll(rows=>rows.flatMap(row=>{
+   const offsets=await f.page.locator('[data-view-item^="specimen:"]').evaluateAll(rows=>rows.flatMap(row=>{
     const item=row.querySelector('[data-stack-placement="content"]');if(!item)return [];
     const content=item.querySelector('[data-control], [data-catalog-card]');if(!content)return [];
     const p=row.querySelector('p')!;
@@ -29,7 +29,7 @@ for(const theme of ['light','dark'] as const) for(const width of [390,1280]) {
     return title.getBoundingClientRect().left-card.getBoundingClientRect().left;
    });
    assert.equal(rail,16,'horizontal rail keeps its deliberate outer lane');
-   const firstInput=await f.page.locator('[data-specimen]:has([data-primitive="input.text"])').first().evaluate(e=>{
+   const firstInput=await f.page.locator('[data-view-item^="specimen:"]:has([data-primitive="input.text"])').first().evaluate(e=>{
     const p=e.querySelector('p')!,well=e.querySelector('.field-well')!;
     return p.getBoundingClientRect().left+parseFloat(getComputedStyle(p).paddingLeft)-well.getBoundingClientRect().left;
    });

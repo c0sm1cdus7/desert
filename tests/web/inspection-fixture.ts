@@ -8,6 +8,9 @@ export async function inspectionFixture() {
     buildDirectory: resolve(process.env.DESERT_INSPECTION_BUILD ?? "build/notebook-inspection-web") });
 }
 
+/** A bank coverage gap: the unavailable note SpecimenUnavailable draws in place of a specimen. */
+export const gapNote = '[role="note"][aria-label="Specimen unavailable"]';
+
 export async function openCatalog(page: Page) {
   await settleMotion(page);
   const destination = page.getByRole("button", { name: "Visual catalog", exact: true });
@@ -15,6 +18,6 @@ export async function openCatalog(page: Page) {
   await destination.or(trigger).first().waitFor({ state: "visible" });
   if (!await destination.isVisible()) await trigger.click();
   await destination.click();
-  await page.locator("[data-public-catalog-bank]").waitFor();
+  await page.locator("[data-view-item='public-catalog-bank']").waitFor();
   await settleMotion(page);
 }

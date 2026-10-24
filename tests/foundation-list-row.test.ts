@@ -163,6 +163,8 @@ test("row: opens when available, explains when not, marks the current object, an
     assert.equal(await list.getByRole("button").count(), 2, "a static row is not a control");
     const hairlines = await page.locator("[data-row]").evaluateAll(rows => rows.map(row => getComputedStyle(row).borderTopWidth));
     assert.deepEqual(hairlines, ["0px", "1px", "1px"], "every row after the first draws one hairline, after an explained one too");
+    assert.deepEqual(await page.locator("[data-row]").evaluateAll(rows => rows.map(row => row.getAttribute("data-focus-key"))),
+      [null, "record:1", null], "a keyed row names its key, so a host can find the row it returns to");
     assert.equal(await page.evaluate(() => Reflect.get(window, "scope").focus("record:1")), true);
     assert.equal(await record.evaluate(element => element === document.activeElement), true);
     await record.click();

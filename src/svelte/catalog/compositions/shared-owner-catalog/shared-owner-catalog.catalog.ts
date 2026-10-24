@@ -4,7 +4,10 @@ import { SharedOwnerCatalogContract } from "./shared-owner-catalog.contract.ts";
 
 export const SharedOwnerCatalog = defineComposition({
   id: "shared-owner-catalog",
-  purpose: "Show one shared owner's live example, the parts it is composed of, and its contract: who owns it and where its source lives.",
+  purpose: { key: "sharedOwnerCatalog.purpose" },
+  messages: ["sharedOwnerCatalog.purpose", "sharedOwnerCatalog.example", "sharedOwnerCatalog.parts", "sharedOwnerCatalog.contract",
+    "sharedOwnerCatalog.owner", "sharedOwnerCatalog.source", "sharedOwnerCatalog.back"],
   owner: { entry: "SharedOwnerCatalog.svelte" },
-  uses: ["destination-row", "grouped-panel", "information", "place-header", "shared-owner-specimen", "stack-layout", "toolbar-layout"], approval: "none", contract: SharedOwnerCatalogContract,
+  uses: ["bar", "column", "information", "list", "place-heading", "row", "shared-owner-specimen", "stack-layout", "view-region"],
+  approval: "none", contract: SharedOwnerCatalogContract,
 } as const);

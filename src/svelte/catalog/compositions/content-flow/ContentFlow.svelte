@@ -15,18 +15,16 @@
   import { Feedback } from '../../index.ts';
   import { ViewRegion } from "../../index.ts";
   import { groupRelatedItems } from "../../../../interaction/content-groups.ts";
-  import { revealSearchTarget } from "../../mechanisms/reveal/reveal.ts";
   let { resolved, onevent, album = null, onalbum = () => {}, host = "page" }: {
     resolved: ResolvedView; onevent: (event: NodeEvent) => void;
     album?: string | null; onalbum?: (id: string) => void; host?: "page" | "panel";
   } = $props();
-  let bank = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null> } | null>(null);
+  // lane-merge: content-flow (lane F). The inspection reveals and focuses its entry itself and answers whether it could
+  // (InspectionContent's instance, Promise<boolean>); lane F's closed instance replaces these two methods.
+  let bank = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<boolean> } | null>(null);
   let media = $state<{ select: (record: string) => boolean } | null>(null);
-  export async function revealEntry(id: ResolvedNodeId) { return await bank?.revealEntry(id) ?? null; }
-  export async function revealAndFocusEntry(id: ResolvedNodeId) {
-    const target = await revealEntry(id);
-    if (target) revealSearchTarget(target, target.closest<HTMLElement>("[data-catalog-scroll]"));
-  }
+  export async function revealEntry(id: ResolvedNodeId) { return await bank?.revealEntry(id) ?? false; }
+  export async function revealAndFocusEntry(id: ResolvedNodeId) { return await revealEntry(id); }
   export function selectMedia(record: string) { return media?.select(record) ?? false; }
   let hasCatalog = $derived(resolved.view.content.some(item => item.kind === "visual-catalog" || item.kind === "media-library"));
 </script>

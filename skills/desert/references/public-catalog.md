@@ -1500,7 +1500,7 @@ Source SHA-256: 1e20f01d45949b10db016b064f59258fbc18e24af4ddb974a44c7cb6812ec77b
 
 ## src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
 
-Source SHA-256: 463ac910f67109c98bcb97cb8795feb334b27cdbf2e1b9e20a4067e701296e3d
+Source SHA-256: 7a5a57bff4b3889275faad33c43849753aaed7b962ffbc2c1db7adb800452340
 
 ```svelte
 <script lang="ts">
@@ -1510,19 +1510,30 @@ Source SHA-256: 463ac910f67109c98bcb97cb8795feb334b27cdbf2e1b9e20a4067e701296e3d
   import { getContext } from 'svelte';
   import { Image } from '../../index.ts';
   import { mediaSource, prefetchImage } from '../../../infra/media-source.ts';
+  import { useFocusScope } from '../../../infra/focus-scope.ts';
   let { node, onevent }: CatalogProps<"catalog-card"> = $props();
   const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');
   function prepare() {
     const asset = cover?.(node.record); if (asset) prefetchImage(mediaSource(asset), window.innerWidth*window.devicePixelRatio);
   }
-  const open = () => onevent?.({ kind: "catalog.open", record: node.record });
+  // lane-merge: card focusKey. Until the catalog-card composition mounts Card with a focusKey, this card registers itself
+  // in the nearest focus scope under its own key and reports its activation, so a detail it opens can return focus to it.
+  const uid = $props.id();
+  const key = `catalog-card:${uid}`, scope = useFocusScope();
+  let button = $state<HTMLElement | null>(null);
+  $effect(() => {
+    const target = button;
+    if (!target || !scope) return;
+    return scope.register(key, () => { target.focus({ preventScroll: true }); return document.activeElement === target; });
+  });
+  const open = () => { scope?.activated(key); onevent?.({ kind: "catalog.open", record: node.record }); };
 </script>
 
   <Card.Root data-catalog-card="item" data-record={node.record} data-public-card={node.record}>
     {#if node.image}<Image source={mediaSource(node.image.asset)} alt={node.image.alt} />
     {:else if 'mediaType' in node}<Image placeholder={node.mediaType} />{/if}
     <Card.Header><Card.Title>
-      <Button variant="row" data-catalog-image-action aria-label={node.title} onclick={open} onpointerenter={prepare} onfocus={prepare}>
+      <Button bind:ref={button} variant="row" data-catalog-image-action aria-label={node.title} onclick={open} onpointerenter={prepare} onfocus={prepare}>
         <span data-catalog-card-overlay data-catalog-item-title data-public-card-title>{node.title}</span>
       </Button>
     </Card.Title></Card.Header>
@@ -1550,20 +1561,19 @@ Source SHA-256: d9f7a7276785de44f6cd1eda8451b1a1cce4f82c0f61e49bc956a339ab561c04
 
 ## src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte
 
-Source SHA-256: 7426cd9789988392ffcaddb67a91ba9087b7c0d840835cc9ed5c7158a13418aa
+Source SHA-256: c8347f8cf60381331d78fcbcc81412f1e406fa62de9e368f2816df05d6d78de8
 
 ```svelte
 <script lang="ts">
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import { InspectionCatalog } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  let { surface, oncatalog, bodyOnly, onactions }: CatalogProps<"public-catalog-bank"> = $props();
-  let content = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null>;
-    revealAndFocusEntry: (id: ResolvedNodeId) => Promise<void> }>();
-  export async function revealEntry(id: ResolvedNodeId) { return await content?.revealEntry(id) ?? null; }
+  let { surface, oncatalog, bodyOnly = false, onactions }: CatalogProps<"public-catalog-bank"> = $props();
+  let content = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<boolean> }>();
+  export async function revealEntry(id: ResolvedNodeId): Promise<boolean> { return await content?.revealEntry(id) ?? false; }
   $effect(() => {
     const register = onactions;
-    register?.({ revealEntry: async id => { await content?.revealAndFocusEntry(id); }, selectMedia: () => false });
+    register?.({ revealEntry: async id => { await content?.revealEntry(id); }, selectMedia: () => false });
     return () => register?.(null);
   });
 </script>

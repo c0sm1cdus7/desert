@@ -17,9 +17,9 @@ test("catalog navigation exposes the canonical inventory and its execution bound
     const navigation = f.page.getByRole("navigation", { name: "Catalog navigation" });
     assert.equal(await navigation.getByRole("searchbox").count(), 0);
     for (const entry of ResolvedNodes.entries) {
-      const section = f.page.locator(`[data-catalog-entry="${entry.id}"]`);
+      const section = f.page.locator(`[data-view-item="entry:${entry.id}"]`);
       assert.equal(await section.isVisible(), true, `${entry.id} is visible by default`);
-      assert.equal(await section.locator("[data-specimen]").count(), entry.states.length);
+      assert.equal(await section.locator("[data-view-item^='specimen:']").count(), entry.states.length);
     }
     assert.equal(await navigation.getByRole("link").count(), ResolvedNodes.groups.length);
     for (const group of ResolvedNodes.groups)
@@ -34,7 +34,7 @@ test("catalog navigation exposes the canonical inventory and its execution bound
 test("catalog toolbar searches names, identifiers and states only in an overlay, preserving specimen edits", async () => {
   const f = await catalogFixture();
   try {
-    const writing = f.page.locator('[data-specimen="input.text:value"]').getByRole("textbox", { name: "Writing" });
+    const writing = f.page.locator('[data-view-item="specimen:input.text:value"]').getByRole("textbox", { name: "Writing" });
     await writing.fill("Keep this local draft");
     await f.page.getByRole("button", { name: "Search", exact: true }).click();
     const find = f.page.getByRole("searchbox", { name: "Search component bank", exact: true });
@@ -50,14 +50,14 @@ test("catalog toolbar searches names, identifiers and states only in an overlay,
     await find.fill("not-a-catalog-component");
     assert.equal(await results.locator("[data-search-result]").count(), 0);
     await results.getByText("No matching results", { exact: true }).waitFor();
-    assert.equal(await f.page.locator("[data-catalog-entry][hidden]").count(), 0,
+    assert.equal(await f.page.locator("[data-view-item^='entry:'][hidden]").count(), 0,
       "search never filters retained surface content");
     await f.page.getByRole("button", { name: "Clear search", exact: true }).click();
     assert.equal(await find.inputValue(), "");
     assert.equal(await find.evaluate(element => element === document.activeElement), true);
     await f.page.getByRole("button", { name: "Close search", exact: true }).click();
     assert.equal(await writing.inputValue(), "Keep this local draft");
-    assert.equal(await f.page.locator("[data-catalog-entry]:visible").count(), ResolvedNodes.entries.length);
+    assert.equal(await f.page.locator("[data-view-item^='entry:']:visible").count(), ResolvedNodes.entries.length);
   } finally { await f.close(); }
 });
 
@@ -65,7 +65,7 @@ test("invalid text specimens explain their state and associate the error with th
   const f = await catalogFixture();
   try {
     for (const primitive of ["input.text", "input.multiline"]) {
-      const specimen = f.page.locator(`[data-specimen="${primitive}:invalid"]`);
+      const specimen = f.page.locator(`[data-view-item="specimen:${primitive}:invalid"]`);
       const field = specimen.getByRole("textbox", { name: "Writing", exact: true });
       const error = specimen.getByRole("status");
       assert.equal(await field.getAttribute("aria-invalid"), "true");
@@ -73,7 +73,7 @@ test("invalid text specimens explain their state and associate the error with th
       assert.equal(await error.isVisible(), true);
       assert.equal(await field.getAttribute("aria-describedby"), await error.getAttribute("id"));
       assert.ok(await error.getAttribute("id"), "the description references a real error element");
-      const normal = f.page.locator(`[data-specimen="${primitive}:value"]`);
+      const normal = f.page.locator(`[data-view-item="specimen:${primitive}:value"]`);
       assert.equal(await normal.getByRole("textbox", { name: "Writing", exact: true }).getAttribute("aria-describedby"), null);
       assert.equal(await normal.getByRole("status").count(), 0);
     }

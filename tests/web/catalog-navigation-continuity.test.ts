@@ -23,7 +23,7 @@ for (const width of [390, 1280]) test(`history restores place scroll and drafts 
     assert.ok(Math.abs(restored.scroll! - travel.scroll!) <= 1, 'Forward restores the retained place scroll');
     await (await navigationAction(page, 'Component bank')).click();
     await page.getByRole('searchbox', { name: 'Find component', exact: true }).fill('input');
-    const writing = page.locator('[data-specimen="input.text:value"] input');
+    const writing = page.locator('[data-view-item="specimen:input.text:value"] input');
     await writing.fill('Bank draft survives too');
     const bank = await lifecycleEvidence(page, `history-${width}-bank`);
     await page.goBack(); await settle(page);
