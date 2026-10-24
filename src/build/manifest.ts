@@ -6,12 +6,12 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileInventory, digest } from "./files.ts";
 import { loadLocalMedia, localMediaFile, requireDistinctMedia } from "./media.ts";
-import { catalogGateEvidence } from "../authoring/visual-boundary/source.ts";
+import { gateVersion, requireGateEvidence } from "./qualification.ts";
 
 export const manifestFile = "DESERT-BUILD.json";
 /** /4 adds the evidence of the catalog gate that let the build run (plan 3.5). */
 export const buildFormat = "desert.distribution-build/4";
-export const gateVersion = catalogGateEvidence.version;
+export { gateVersion };
 const name = Type.String({ minLength: 1 });
 const sha = Type.String({ pattern: "^[a-f0-9]{64}$" });
 const closed = { additionalProperties: false };
@@ -28,19 +28,10 @@ const ManifestSchema = Type.Object({
 export type BuildManifest = Static<typeof ManifestSchema>;
 const validManifest = createSchemaValidator<BuildManifest>(ManifestSchema);
 
-/** A build the catalog gate did not qualify is refused before any other check: an older format or an unknown gate. */
-function requireQualifiedArtifact(manifest: unknown): void {
-  const format = manifest && typeof manifest === "object" ? Reflect.get(manifest, "format") : undefined;
-  const gate = manifest && typeof manifest === "object" ? Reflect.get(manifest, "gate") : undefined;
-  const version = gate && typeof gate === "object" ? Reflect.get(gate, "version") : undefined;
-  if (format !== buildFormat) throw new Error(`UNQUALIFIED_ARTIFACT: build format ${String(format)} is not ${buildFormat}`);
-  if (version !== gateVersion) throw new Error(`UNQUALIFIED_ARTIFACT: no evidence of ${gateVersion}`);
-}
-
 export function loadVerifiedBuild(directory: string) {
   const files = fileInventory(directory, [manifestFile]);
   const manifest = jsonSnapshot(JSON.parse(readFileSync(join(directory, manifestFile), "utf8")));
-  requireQualifiedArtifact(manifest);
+  requireGateEvidence(manifest, buildFormat, "build");
   if (!validManifest(manifest)) throw new Error("INVALID_BUILD_MANIFEST");
   if (digest(files) !== digest(manifest.files)) throw new Error("BUILD_FILES_MISMATCH");
   if (Object.hasOwn(files, localMediaFile)) requireDistinctMedia(loadLocalMedia(directory).assets, files);

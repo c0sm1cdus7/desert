@@ -51,9 +51,9 @@ test("D control: aliases and namespace members of the index resolve; own parts m
   assert.deepEqual(runD(files), [native("<div>", "src/svelte/catalog/compositions/page/Row.svelte")]);
 });
 
-test("D: N02 elements, text and a <style> block are native drawing", () => {
-  assert.deepEqual(runD(pageWith('<div style="position:fixed"><h1>x</h1></div>\n<style>div { color: red; }</style>')),
-    [native("<style> block"), native("<div>"), native("<h1>"), native('text "x"')]);
+test("D: N02 elements are native drawing; text inside one is the element's, a <style> block is rule G's", () => {
+  assert.deepEqual(runD(pageWith('<div style="position:fixed"><h1>x {y}</h1>{#if a}z{/if}</div>\n{#if b}loose{/if}\n<style>div { color: red; }</style>')),
+    [native("<div>"), native("<h1>"), native('text "loose"')]);
 });
 
 test("D: N04 text, a text expression, nbsp, {@html} (N24), <svelte:element> (N25) and special elements draw or attach to the DOM", () => {
@@ -64,6 +64,11 @@ test("D: N04 text, a text expression, nbsp, {@html} (N24), <svelte:element> (N25
 
 test("D: text passed into a mounted piece is rule E's (child content); an element inside it is still drawn here", () => {
   assert.deepEqual(runD(pageWith("<Field>label {x}<span></span></Field>")), [native("<span>")]);
+});
+
+test("D: text inside an unknown component is that tag's content: one report, the tag's", () => {
+  assert.deepEqual(runD(pageWith("<Gone>label {x}<span></span></Gone>", 'import Gone from "./Gone.svelte";')),
+    [unknown('<Gone> from "./Gone.svelte" does not resolve to a declared piece'), native("<span>")]);
 });
 
 test("D: N13 <svelte:component> and a computed component are unknown pieces", () => {
@@ -150,7 +155,7 @@ test("D2 control: one kind chain, one index piece or generated-table entry per b
 
 test("D2: DOM, text, style and blocks inside the dispatcher break the grammar", () => {
   const markup = chain.replace("<Action label={node.label} />", "<Action label={node.label} /><div></div>text\n{#each a as b}<Action />{/each}") + "\n<p></p>\n<style>p {}</style>";
-  assert.deepEqual(runD2(dispatcherWith(markup)), [grammar("<style> block"), grammar("<div> in a dispatch branch"),
+  assert.deepEqual(runD2(dispatcherWith(markup)), [grammar("<div> in a dispatch branch"),
     grammar('text "text" in a dispatch branch'), grammar("{#each} in a dispatch branch"), grammar("<p> outside the kind chain")]);
 });
 
@@ -174,12 +179,11 @@ test("D2: a lookup in a table that is not generated, or a {@const} that is not a
     [grammar("{@const label = node.label} is not a lookup in a generated, typed table")]);
 });
 
-test("D2: elementProps and children on a table entry, a foreign spread, and pieces outside the index or uses", () => {
-  const markup = `{#if node.kind === "a"}{@const Renderer = nodeRenderers.a}<Renderer elementProps={x}>x</Renderer>
+test("D2: a foreign spread and pieces outside the index or uses; attributes and children of a table entry are rule E's", () => {
+  const markup = `{#if node.kind === "a"}{@const Renderer = nodeRenderers.a}<Renderer elementProps={x} class="y" {...node.details}>x</Renderer>
 {:else if node.kind === "b"}<Action {...props} />{:else if node.kind === "c"}<Direct />{:else if node.kind === "d"}<Field />{/if}`;
   assert.deepEqual(runD2(dispatcherWith(markup, `${dispatcherImports}\n  import Direct from "../../foundations/action/Action.svelte";`, ["action"])), [
     grammar('import Action from the catalog index, not "../../foundations/action/Action.svelte"'),
-    grammar("<Renderer> passes elementProps"), grammar("<Renderer> receives child content"),
     grammar("spread {...props} onto <Action>: only the node's typed record may be spread"),
     grammar("<Field> mounts field, which is not in uses")]);
 });

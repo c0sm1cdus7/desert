@@ -4,9 +4,12 @@
 // controls: today's code or its future name). Both the test and the baseline recorder read this list.
 import type { GateMode, Mutation, SourceTree } from "./harness.ts";
 
+/** `at`: the file the new violation must name, when the case knows it (a code alone could come from anywhere).
+ * `previousGateStricter`: codes of the previous visual-boundary gate a positive case may still trip, because that gate is
+ * stricter than the catalog law until its assertion is ported; never a catalog rule code. */
 export type GateCase = Readonly<{
   id: string; title: string; kind: "escape" | "control" | "positive";
-  expect: readonly string[]; mode?: GateMode; mutate: Mutation;
+  expect: readonly string[]; mode?: GateMode; mutate: Mutation; at?: string; previousGateStricter?: readonly string[];
 }>;
 
 const catalog = "src/svelte/catalog", compositions = `${catalog}/compositions`, foundations = `${catalog}/foundations`;
@@ -30,25 +33,25 @@ const bankVersion = '  import { ResolvedNodeVersion } from "../../../../interact
 
 export const stageA: readonly GateCase[] = [
   { id: "P0", title: "the unchanged tree builds", kind: "positive", expect: [], mutate: async () => {} },
-  { id: "N02", title: "a composition draws native elements and its own style", kind: "escape", expect: ["COMPOSITION_NATIVE_ELEMENT"],
+  { id: "N02", title: "a composition draws native elements and its own style", kind: "escape", expect: ["COMPOSITION_NATIVE_ELEMENT"], at: accessGate,
     mutate: tree => tree.append(accessGate, '\n<div style="position:fixed"><h1>x</h1></div>\n<style>div { color: red; }</style>\n') },
-  { id: "N03", title: "a registered composition invents a chart element", kind: "escape", expect: ["COMPOSITION_NATIVE_ELEMENT"],
+  { id: "N03", title: "a registered composition invents a chart element", kind: "escape", expect: ["COMPOSITION_NATIVE_ELEMENT"], at: `${compositions}/summary-widget/SummaryWidget.svelte`,
     mutate: tree => tree.replace(`${compositions}/summary-widget/SummaryWidget.svelte`, "\n<style>", '\n<span class="widget-chart2"></span>\n<style>') },
-  { id: "N05", title: "a composition imports the vendor Button", kind: "escape", expect: ["VENDOR_OUTSIDE_OWNER"],
+  { id: "N05", title: "a composition imports the vendor Button", kind: "escape", expect: ["VENDOR_OUTSIDE_OWNER"], at: contentFlow,
     mutate: addToFlow(`  import { Button } from "${vendorButton}";`, '<Button variant="ghost">x</Button>') },
-  { id: "N07", title: "a composition imports the vendor Button through an alias", kind: "escape", expect: ["VENDOR_OUTSIDE_OWNER"],
+  { id: "N07", title: "a composition imports the vendor Button through an alias", kind: "escape", expect: ["VENDOR_OUTSIDE_OWNER"], at: contentFlow,
     mutate: addToFlow(`  import { Root as B } from "${vendorButton}";`, "<B>x</B>") },
-  { id: "N08", title: "a class is passed to a catalog piece", kind: "escape", expect: ["PRESENTATION_ESCAPE"], mutate: headingFromFlow('class="x"') },
-  { id: "N08b", title: "a class is passed to a catalog piece imported under an alias", kind: "escape", expect: ["PRESENTATION_ESCAPE"],
+  { id: "N08", title: "a class is passed to a catalog piece", kind: "escape", expect: ["PRESENTATION_ESCAPE"], at: contentFlow, mutate: headingFromFlow('class="x"') },
+  { id: "N08b", title: "a class is passed to a catalog piece imported under an alias", kind: "escape", expect: ["PRESENTATION_ESCAPE"], at: contentFlow,
     mutate: addToFlow('  import { default as H } from "../../foundations/heading/Heading.svelte";', '<H kind="page" text="x" class="x" />') },
-  { id: "N09", title: "a style directive is passed to a catalog piece", kind: "escape", expect: ["PRESENTATION_ESCAPE"], mutate: headingFromFlow('style:color="red"') },
-  { id: "N10", title: "props are spread onto a catalog piece", kind: "escape", expect: ["PRESENTATION_ESCAPE"], mutate: headingFromFlow("{...resolved}") },
-  { id: "N11", title: "a data attribute is passed to a catalog piece", kind: "escape", expect: ["PRESENTATION_ESCAPE"], mutate: headingFromFlow("data-x") },
-  { id: "N13", title: "a catalog piece is mounted through svelte:component", kind: "escape", expect: ["COMPOSITION_UNKNOWN_PIECE"],
+  { id: "N09", title: "a style directive is passed to a catalog piece", kind: "escape", expect: ["PRESENTATION_ESCAPE"], at: contentFlow, mutate: headingFromFlow('style:color="red"') },
+  { id: "N10", title: "props are spread onto a catalog piece", kind: "escape", expect: ["PRESENTATION_ESCAPE"], at: contentFlow, mutate: headingFromFlow("{...resolved}") },
+  { id: "N11", title: "a data attribute is passed to a catalog piece", kind: "escape", expect: ["PRESENTATION_ESCAPE"], at: contentFlow, mutate: headingFromFlow("data-x") },
+  { id: "N13", title: "a catalog piece is mounted through svelte:component", kind: "escape", expect: ["COMPOSITION_UNKNOWN_PIECE"], at: contentFlow,
     mutate: addToFlow(headingImport, '<svelte:component this={Heading} kind="page" text="x" />') },
-  { id: "N15", title: "a foundation styles everything with a global selector", kind: "escape", expect: ["CROSS_OWNER_CSS"],
+  { id: "N15", title: "a foundation styles everything with a global selector", kind: "escape", expect: ["CROSS_OWNER_CSS"], at: heading,
     mutate: tree => tree.replace(heading, "<style>\n", "<style>\n  :global(h1) { color: red; }\n") },
-  { id: "N16", title: "a stylesheet targets another owner's slot", kind: "escape", expect: ["CROSS_OWNER_CSS"],
+  { id: "N16", title: "a stylesheet targets another owner's slot", kind: "escape", expect: ["CROSS_OWNER_CSS"], at: `${catalog}/foundations/field-well/field-well.css`,
     mutate: tree => tree.append(`${catalog}/foundations/field-well/field-well.css`, '\n[data-slot="button"] { color: red; }\n') },
   { id: "N17", title: "a new stylesheet restyles every button without geometry", kind: "escape", expect: ["CROSS_OWNER_CSS"],
     mutate: stylesheet("button { background: red; border-radius: 0; color: lime; }\n") },
@@ -61,13 +64,13 @@ export const stageA: readonly GateCase[] = [
   { id: "N21b", title: "an infra helper injects markup", kind: "escape", expect: ["VISUAL_RUNTIME_GLOBAL"],
     mutate: async tree => { await tree.create("src/svelte/infra/rogue-inject.ts", 'export const inject = () => document.body.insertAdjacentHTML("beforeend", "x");\n');
       await importIntoAccessGate('  import { inject } from "../../../infra/rogue-inject.ts";')(tree); } },
-  { id: "N22", title: "a composition queries the document", kind: "escape", expect: ["VISUAL_RUNTIME_GLOBAL"],
+  { id: "N22", title: "a composition queries the document", kind: "escape", expect: ["VISUAL_RUNTIME_GLOBAL"], at: contentFlow,
     mutate: tree => tree.replace(contentFlow, flowScript, `${flowScript}\n  const stray = () => document.getElementById("x");`) },
   { id: "N23", title: "a composition animates an element", kind: "escape", expect: ["VISUAL_RUNTIME_GLOBAL"],
     mutate: tree => tree.replace(contentFlow, flowScript, `${flowScript}\n  const fade = (element: HTMLElement) => element.animate([{ opacity: 0 }], 100);`) },
-  { id: "N24", title: "a composition renders raw HTML", kind: "escape", expect: ["COMPOSITION_NATIVE_ELEMENT"],
+  { id: "N24", title: "a composition renders raw HTML", kind: "escape", expect: ["COMPOSITION_NATIVE_ELEMENT"], at: accessGate,
     mutate: tree => tree.append(accessGate, '\n{@html "<b>x</b>"}\n') },
-  { id: "N25", title: "a composition renders a dynamic element", kind: "escape", expect: ["COMPOSITION_NATIVE_ELEMENT"],
+  { id: "N25", title: "a composition renders a dynamic element", kind: "escape", expect: ["COMPOSITION_NATIVE_ELEMENT"], at: accessGate,
     mutate: tree => tree.append(accessGate, '\n<svelte:element this="div">x</svelte:element>\n') },
   { id: "N28", title: "an undeclared Svelte file draws a control", kind: "escape", expect: ["UNDECLARED_VISUAL_SOURCE"],
     mutate: async tree => { await tree.create(`${accessGateFolder}/Rogue.svelte`, '<button style="all: unset">x</button>\n');

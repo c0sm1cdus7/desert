@@ -7,6 +7,10 @@ import type { ReadDeclaration } from "../read-declaration.ts";
 export type LocatedDeclaration = Readonly<{ path: string; declaration: ReadDeclaration }>;
 type Claim = Readonly<{ path: string; owner: string }>;
 type FolderClaim = Readonly<{ folder: string; owner: string; accept: (path: string) => boolean }>;
+/** What a vendor family folder may hold: components, their scripts and styles, and notes. Any other file there (a
+ * `.scss` or `.pcss` that rule G would not read, an asset) is claimed by no one. */
+const vendorExtensions = Object.freeze([".svelte", ".ts", ".js", ".css", ".md"]);
+const vendorFile = (path: string) => vendorExtensions.includes(posix.extname(path));
 
 function claimsOf({ path, declaration }: LocatedDeclaration, layout: CatalogLayout) {
   const folder = posix.dirname(path), at = (name: string) => posix.join(folder, name);
@@ -22,7 +26,7 @@ function claimsOf({ path, declaration }: LocatedDeclaration, layout: CatalogLayo
     if (at(name) !== path) files.push({ path: at(name), owner: declaration.id });
   }
   if (declaration.kind === "foundation") for (const family of declaration.owner.vendor ?? []) {
-    folders.push({ folder: posix.join(layout.vendorFamilies, family), owner: `${declaration.id} (vendor ${family})`, accept: () => true });
+    folders.push({ folder: posix.join(layout.vendorFamilies, family), owner: `${declaration.id} (vendor ${family})`, accept: vendorFile });
   }
   return { files, folders };
 }

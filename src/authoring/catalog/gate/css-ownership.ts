@@ -10,8 +10,9 @@ import type { Owner } from "./ownership.ts";
 import { resolveSpecifier, type Target } from "./resolve-imports.ts";
 import { violation, type Violation } from "./violation.ts";
 import { isNode, lineOf, nodes, position, readStylesheet, rulesOf, decodeCss, type Stylesheet } from "./stylesheet.ts";
+import { themeMechanism } from "../layout.ts";
 
-const code = "CROSS_OWNER_CSS", theme = "theme";
+const code = "CROSS_OWNER_CSS", theme = themeMechanism;
 type StylesheetImport = Readonly<{ from: string; line: number; specifier: string; target: Target }>;
 type Marks = Readonly<{ slots: ReadonlyMap<string, ReadonlySet<string>>; marks: ReadonlyMap<string, string>; families: ReadonlyMap<string, string> }>;
 
@@ -146,7 +147,7 @@ function stylesheetImports(context: GateContext, sheets: readonly Stylesheet[]):
   for (const sheet of sheets) if (sheet.path.endsWith(".css")) for (const atRule of sheet.atRules) {
     if (atRule.name !== "import" && atRule.name !== "reference") continue;
     const specifier = /^\s*(?:url\(\s*)?(["']?)([^"')\s]+)\1/.exec(atRule.prelude)?.[2];
-    if (specifier !== undefined) found.push({ from: sheet.path, line: atRule.line, specifier, target: resolveSpecifier(sheet.path, specifier, exists) });
+    if (specifier !== undefined) found.push({ from: sheet.path, line: atRule.line, specifier, target: resolveSpecifier(sheet.path, specifier, exists, context.layout.aliases) });
   }
   return found;
 }

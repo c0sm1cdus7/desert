@@ -6,6 +6,8 @@ export type CatalogLayout = Readonly<{
   infra: string;
   /** Test-only modules (the evidence project); no visual-root file may import them (rule I, N54). */
   testing: string;
+  /** Import aliases of the tree, longest prefix first (the same ones config.mjs and tsconfig.json resolve). */
+  aliases: readonly (readonly [prefix: string, target: string])[];
   /** The approvals ledger, written only by the owner's approve command. */
   ledger: string;
   fixed: Readonly<Record<string, readonly string[]>>;
@@ -21,6 +23,8 @@ export type CatalogLayout = Readonly<{
 /** Companion files a piece folder may hold beside its entry and parts. */
 export const pieceCompanions = Object.freeze(["catalog", "contract", "specimens"] as const);
 export const declarationSuffixes = Object.freeze([".catalog.ts", ".mechanism.ts"] as const);
+/** The mechanism that owns the design tokens and the only global CSS; its id is fixed. */
+export const themeMechanism = "theme";
 
 const build = "src/build/svelte", theme = "src/svelte/theme.css";
 const modules = (folder: string, names: readonly string[]) => names.map(name => `${folder}/${name}`);
@@ -30,6 +34,7 @@ export const DesertLayout: CatalogLayout = Object.freeze({
   vendorFamilies: "src/svelte/vendor/components/ui",
   infra: "src/svelte/infra",
   testing: "src/testing",
+  aliases: [["@desert/svelte/", "src/svelte/"], ["@desert/", "src/"]] as const,
   ledger: "src/svelte/catalog/approvals.json",
   generated: { index: "src/svelte/catalog/index.ts", manifest: "src/svelte/catalog/manifest.json", types: "src/svelte/catalog/types.d.ts" },
   gate: {

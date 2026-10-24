@@ -108,14 +108,18 @@ export function importViolations(context: GateContext, file: CompositionFile, co
   return found;
 }
 
-/** Template half: every node is a block, a comment, blank text, a declared slot or a mounted piece. */
+/** Where a template node sits: inside a mounted piece (`mounted`), or inside a native element or unknown tag already reported
+ * (`drawn`: text there is that report's content). */
+type Place = Readonly<{ mounted?: Resolution; drawn?: boolean }>;
+/** Template half: every node is a block, a comment, blank text, a declared slot or a mounted piece. A native element is one
+ * report: text inside it is its own content. A <style> block is rule G's (compositions own no CSS). */
 function templateViolations(context: GateContext, file: CompositionFile): Violation[] {
   const found: Violation[] = [];
   const report = (code: string, node: unknown, what: string) => {
     const start = field(node, "start");
     found.push(violation(code, file.path, file.parsed.line(typeof start === "number" ? start : 0), `${what}; ${file.suffix}`));
   };
-  const visitAll = (fragment: unknown, mounted?: Resolution) => { for (const node of nodesOf(fragment)) visit(node, mounted); };
+  const visitAll = (fragment: unknown, place: Place = {}) => { for (const node of nodesOf(fragment)) visit(node, place); };
   const checkSnippet = (node: SyntaxNode, mounted: Resolution | undefined) => {
     const name = text(field(node, "expression"), "name");
     if (mounted?.kind === "part") report(slotNotTyped, node, `{#snippet ${name}} passed to own part: parts declare no slots`);
@@ -126,22 +130,23 @@ function templateViolations(context: GateContext, file: CompositionFile): Violat
     const callee = field(call, "callee"), name = field(callee, "type") === "Identifier" ? text(callee, "name") : "";
     if (!file.slots.has(name)) report(slotNotTyped, node, `{@render ${name || "a computed snippet"}} renders no slot declared by ${file.id}`);
   };
-  function visit(node: SyntaxNode, mounted: Resolution | undefined): void {
+  function visit(node: SyntaxNode, place: Place): void {
     if (isBlank(node) || node.type === "ConstTag") return;
     if (node.type === "RenderTag") return checkRender(node);
-    if (node.type === "SnippetBlock") { checkSnippet(node, mounted); return visitAll(field(node, "body")); }
+    if (node.type === "SnippetBlock") { checkSnippet(node, place.mounted); return visitAll(field(node, "body"), { drawn: place.drawn === true }); }
     if (node.type === "Component") {
       const name = text(node, "name"), resolution = resolveTag(context, file, name);
       for (const problem of tagProblems(file, name, resolution)) report(unknownPiece, node, problem);
-      return visitAll(field(node, "fragment"), resolution);
+      return visitAll(field(node, "fragment"), { mounted: resolution, drawn: place.drawn === true || resolution.kind === "unknown" });
     }
-    // Text handed to a mounted piece is its child content: rule E judges it against the piece's slots.
-    if ((node.type === "Text" || node.type === "ExpressionTag") && mounted?.kind === "piece") return;
-    const computed = node.type === "SvelteComponent" || node.type === "SvelteSelf";
-    if (!blocks.has(node.type ?? "")) report(computed ? unknownPiece : nativeElement, node, describe(file.parsed, node));
-    for (const fragment of childFragments(node)) visitAll(fragment);
+    // Text handed to a mounted piece is its child content (rule E judges it); text in a reported element is that element's.
+    const isText = node.type === "Text" || node.type === "ExpressionTag";
+    if (isText && (place.mounted?.kind === "piece" || place.drawn)) return;
+    const computed = node.type === "SvelteComponent" || node.type === "SvelteSelf", block = blocks.has(node.type ?? "");
+    if (!block) report(computed ? unknownPiece : nativeElement, node, describe(file.parsed, node));
+    const drawn = place.drawn === true || !block && !computed && !isText;
+    for (const fragment of childFragments(node)) visitAll(fragment, { drawn });
   }
-  if (file.parsed.css) report(nativeElement, file.parsed.css, "<style> block");
   visitAll(file.parsed.fragment);
   return found;
 }

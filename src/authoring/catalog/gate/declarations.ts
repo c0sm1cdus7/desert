@@ -1,7 +1,7 @@
 // Rule B. Law: declarations agree with each other and with the files they name.
 // Raises CATALOG_DECLARATION naming the declaration and the broken reference.
 import { posix } from "node:path";
-import type { CatalogLayout } from "../layout.ts";
+import { themeMechanism, type CatalogLayout } from "../layout.ts";
 import type { LocatedDeclaration } from "./inventory.ts";
 
 const suffix = { foundation: ".catalog.ts", composition: ".catalog.ts", mechanism: ".mechanism.ts" } as const;
@@ -21,12 +21,12 @@ export function assertDeclarationsConsistent(declarations: readonly LocatedDecla
   const pieces = new Set(declarations.filter(item => item.declaration.kind !== "mechanism").map(item => item.declaration.id));
   const foundations = new Set(declarations.filter(item => item.declaration.kind === "foundation").map(item => item.declaration.id));
   const mechanisms = new Set(declarations.filter(item => item.declaration.kind === "mechanism").map(item => item.declaration.id));
-  if (!mechanisms.has("theme")) fail("the theme mechanism is not declared");
+  if (!mechanisms.has(themeMechanism)) fail("the theme mechanism is not declared");
   const exists = (id: string, path: string) => existing.has(path) || fail(`${id} names ${path}, which does not exist`);
   for (const { path, declaration } of declarations) {
     const folder = posix.dirname(path), id = declaration.id;
     if (declaration.kind === "mechanism") {
-      if (declaration.owner !== "theme" && !foundations.has(declaration.owner)) fail(`${id} is owned by unknown foundation ${declaration.owner}`);
+      if (declaration.owner !== themeMechanism && !foundations.has(declaration.owner)) fail(`${id} is owned by unknown foundation ${declaration.owner}`);
       for (const file of declaration.files) exists(id, posix.join(folder, file));
       continue;
     }

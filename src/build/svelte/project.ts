@@ -8,9 +8,9 @@ import { sdkRoot } from "./revision.ts";
 import { inspectionMedia } from "../../svelte/infra/inspection-media.ts";
 import { catalogGateEvidence, runWithVisualBoundaries } from "../../authoring/visual-boundary/source.ts";
 
-/** The generated SvelteKit project and its worker, without any gate. Only `createBuildProject` (gated) and the test-only
- * evidence project (`src/testing/evidence-project.ts`, which writes no manifest) may use it. */
-export function stageBuildProject(module: string, family: "human" | "public-catalog" = "human") {
+/** The generated SvelteKit project and its worker, without any gate: private to this module. Only `createBuildProject`
+ * (gated) and `createEvidenceProject` (test-only, no manifest) reach it. */
+function stageBuildProject(module: string, family: "human" | "public-catalog" = "human") {
   const directory = mkdtempSync(join(sdkRoot, ".desert-build-"));
   try {
     cpSync(join(sdkRoot, "src/build/svelte/template"), directory, { recursive: true });
@@ -56,6 +56,24 @@ async function emittedStylesheets(directory: string) {
   const files = await readdir(directory, { recursive: true });
   return await Promise.all(files.filter(path => path.endsWith(".css"))
     .map(async path => ({ path, source: await readFile(join(directory, path), "utf8") })));
+}
+
+/** Test-only renderer path (plan 3.5, L5): the project and its worker WITHOUT the catalog gate, so tests can type-check and
+ * screenshot pieces while the strict build is red. It writes no manifest, copies nothing out, and refuses to run outside
+ * node:test. Reached through src/testing/evidence-project.ts; nothing outside tests may import that module. */
+export function createEvidenceProject(module: string, family: "human" | "public-catalog" = "human") {
+  requireTestRun();
+  const project = stageBuildProject(module, family);
+  return { directory: project.directory,
+    async run(mode: "build" | "check") {
+      requireTestRun();
+      try { return await project.worker(mode); } catch (error) { throw buildFailure(mode, error); }
+    },
+    close: project.close,
+  };
+}
+function requireTestRun(): void {
+  if (process.env.NODE_TEST_CONTEXT === undefined) throw new Error("EVIDENCE_PROJECT_OUTSIDE_TESTS: the evidence project runs only under node --test");
 }
 
 export function buildFailure(mode: "build" | "check", error: unknown): Error {

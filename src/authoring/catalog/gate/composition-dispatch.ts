@@ -1,6 +1,7 @@
 // Rule D2. Law: a dispatcher composition is one if-chain over its node's kind; each branch mounts exactly one piece from
 // the catalog index (or the entry a generated, typed table names), and only the node's own record may be spread onto it.
-// Raises DISPATCHER_GRAMMAR.
+// Raises DISPATCHER_GRAMMAR. Every other attribute and the child content of a mounted tag, a table entry included, are
+// rule E's (presentation.ts); a <style> block is rule G's.
 import type { SyntaxNode } from "../../visual-boundary/walk.ts";
 import { compositionFiles, describe, field, importViolations, isBlank, nodesOf, resolveTag, sourceOf, tagProblems, text,
   type CompositionFile } from "./composition-template.ts";
@@ -66,10 +67,7 @@ function dispatcherViolations(context: GateContext, file: CompositionFile): Viol
       const spread = field(attribute, "type") === "SpreadAttribute" ? pathOf(field(attribute, "expression")) ?? "" : undefined;
       const own = spread !== undefined && subject !== undefined && (spread === subject || spread.startsWith(`${subject}.`));
       if (spread !== undefined && !own) report(attribute, `spread ${sourceOf(file.parsed, attribute)} onto <${name}>: only the node's typed record may be spread`);
-      // On a piece the index names, rule E rejects elementProps and child content; a table entry is judged here.
-      if (lookup && field(attribute, "type") === "Attribute" && text(attribute, "name") === "elementProps") report(attribute, `<${name}> passes elementProps`);
     }
-    if (lookup && nodesOf(field(node, "fragment")).some(child => !isBlank(child))) report(node, `<${name}> receives child content`);
   };
   const checkBranch = (fragment: unknown, anchor: SyntaxNode) => {
     const lookups = new Set<string>();
@@ -107,7 +105,6 @@ function dispatcherViolations(context: GateContext, file: CompositionFile): Viol
       }
     }
   };
-  if (file.parsed.css) report(file.parsed.css, "<style> block");
   const roots = nodesOf(file.parsed.fragment).filter(node => !isBlank(node)), chain = roots.find(node => node.type === "IfBlock");
   if (chain) checkChain(chain);
   else report(file.parsed.fragment, "the template is not an if-chain over the node kind");

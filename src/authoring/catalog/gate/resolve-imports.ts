@@ -12,10 +12,11 @@ export type Import = Readonly<{ specifier: string; target: Target; bindings: rea
   form: "import" | "reexport" | "dynamic" | "require"; line: number; script: Script; node: ts.Node }>;
 
 /** `default`, a named export, or `*` for a namespace or a whole re-export. */
-export function resolveSpecifier(from: string, specifier: string, exists: (path: string) => boolean): Target {
+export type Aliases = readonly (readonly [prefix: string, target: string])[];
+export function resolveSpecifier(from: string, specifier: string, exists: (path: string) => boolean, aliases: Aliases): Target {
   const [request = "", ...rest] = specifier.split("?"), query = rest.length ? `?${rest.join("?")}` : "";
-  const base = request.startsWith("@desert/svelte/") ? `src/svelte/${request.slice("@desert/svelte/".length)}`
-    : request.startsWith("@desert/") ? `src/${request.slice("@desert/".length)}`
+  const alias = aliases.find(([prefix]) => request.startsWith(prefix));
+  const base = alias ? `${alias[1]}${request.slice(alias[0].length)}`
     : request.startsWith(".") ? posix.normalize(posix.join(posix.dirname(from), request)) : undefined;
   if (base === undefined) return { kind: "package", name: request };
   for (const candidate of [base, base.replace(/\.js$/, ".ts"), `${base}.ts`, `${base}/index.ts`]) {
@@ -36,26 +37,26 @@ function bindingsOf(clause: ts.ImportClause | undefined): Binding[] {
   return bindings;
 }
 
-export function importsOf(path: string, parsed: Parsed, exists: (path: string) => boolean): readonly Import[] {
+export function importsOf(path: string, parsed: Parsed, exists: (path: string) => boolean, aliases: Aliases): readonly Import[] {
   const found: Import[] = [];
   for (const script of parsed.scripts) {
     const at = (node: ts.Node) => scriptLine(parsed, script, node);
     const visit = (node: ts.Node): void => {
       if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
         const clause = node.importClause, specifier = node.moduleSpecifier.text;
-        found.push({ specifier, target: resolveSpecifier(path, specifier, exists), bindings: bindingsOf(clause),
+        found.push({ specifier, target: resolveSpecifier(path, specifier, exists, aliases), bindings: bindingsOf(clause),
           typeOnly: Boolean(clause?.isTypeOnly), form: "import", line: at(node), script, node });
       } else if (ts.isExportDeclaration(node) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
         const specifier = node.moduleSpecifier.text, clause = node.exportClause;
         const bindings: Binding[] = clause && ts.isNamedExports(clause)
           ? clause.elements.map(element => ({ local: element.name.text, imported: (element.propertyName ?? element.name).text }))
           : [{ local: "*", imported: "*" }];
-        found.push({ specifier, target: resolveSpecifier(path, specifier, exists), bindings, typeOnly: node.isTypeOnly,
+        found.push({ specifier, target: resolveSpecifier(path, specifier, exists, aliases), bindings, typeOnly: node.isTypeOnly,
           form: "reexport", line: at(node), script, node });
       } else if (ts.isCallExpression(node) && (node.expression.kind === ts.SyntaxKind.ImportKeyword
         || ts.isIdentifier(node.expression) && node.expression.text === "require")) {
         const first = node.arguments[0], form = node.expression.kind === ts.SyntaxKind.ImportKeyword ? "dynamic" : "require";
-        const target: Target = first && ts.isStringLiteral(first) ? resolveSpecifier(path, first.text, exists) : { kind: "dynamic" };
+        const target: Target = first && ts.isStringLiteral(first) ? resolveSpecifier(path, first.text, exists, aliases) : { kind: "dynamic" };
         found.push({ specifier: first && ts.isStringLiteral(first) ? first.text : "", target, bindings: [], typeOnly: false, form, line: at(node), script, node });
       }
       ts.forEachChild(node, visit);

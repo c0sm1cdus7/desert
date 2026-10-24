@@ -45,7 +45,7 @@ export function createContext(input: Readonly<{ layout: CatalogLayout; paths: re
   const imports = (path: string): readonly Import[] => {
     const cached = importCache.get(path);
     if (cached) return cached;
-    const value = parseable(path) && text(path) !== undefined ? importsOf(path, parsed(path), exists) : [];
+    const value = parseable(path) && text(path) !== undefined ? importsOf(path, parsed(path), exists, input.layout.aliases) : [];
     importCache.set(path, value);
     return value;
   };

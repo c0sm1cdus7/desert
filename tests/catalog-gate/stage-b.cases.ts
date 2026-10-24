@@ -15,14 +15,34 @@ const intoFlow = (imports: string, markup = ""): Mutation => async tree => {
 };
 
 export const stageB: readonly GateCase[] = [
-  { id: "N01", title: "the lock password is rebuilt from vendor input parts and a presentation prop", kind: "escape",
-    expect: ["VENDOR_OUTSIDE_OWNER", "PRESENTATION_ESCAPE"],
+  // N01 recreates the lock password the way it was hand-built: vendor input parts first (VENDOR_OUTSIDE_OWNER), then, with
+  // no vendor import at all, a presentation prop the contract does not declare (PRESENTATION_ESCAPE).
+  { id: "N01", title: "the lock password is rebuilt from vendor input parts", kind: "escape", expect: ["VENDOR_OUTSIDE_OWNER"], at: lockScreen,
     mutate: async tree => {
       await tree.replace(lockScreen, script, `${script}  import * as Rebuilt from "../../../vendor/components/ui/input-group/index.js";\n`);
       await tree.append(lockScreen, '\n<Rebuilt.Input type="password" />\n');
     } },
-  { id: "N01b", title: "the lock screen passes a presentation prop to a field", kind: "escape", expect: ["PRESENTATION_ESCAPE"],
-    mutate: intoFlow('  import TextInput from "../../foundations/text-input/TextInput.svelte";', '<TextInput presentation="access" class="lock" />') },
+  { id: "N01b", title: "the lock screen passes a presentation prop to its field", kind: "escape", expect: ["PRESENTATION_ESCAPE"], at: lockScreen,
+    mutate: tree => tree.replace(lockScreen, '<TextInput primitive="input.text"', '<TextInput primitive="input.text" presentation="access"') },
+  { id: "P1", title: "a foundation styles its own element with a scoped style", kind: "positive", expect: [],
+    mutate: tree => tree.append(`${foundations}/availability/Availability.svelte`, "\n<style>.availability-note { opacity: 1; }</style>\n") },
+  { id: "P2", title: "a mechanism owned by a foundation observes size", kind: "positive", expect: [],
+    mutate: async tree => {
+      const folder = `${catalog}/mechanisms/availability-measure`;
+      await tree.create(`${folder}/availability-measure.mechanism.ts`, 'import { defineMechanism } from "../../../../authoring/catalog/define.ts";\n'
+        + 'export const AvailabilityMeasure = defineMechanism({ id: "availability-measure", owner: "availability", files: ["availability-measure.ts"] } as const);\n');
+      await tree.create(`${folder}/availability-measure.ts`, "export const observe = (node: HTMLElement, changed: () => void) => {\n"
+        + "  const observer = new ResizeObserver(changed); observer.observe(node); return () => observer.disconnect();\n};\n");
+      await tree.regenerateCatalog();
+    } },
+  // The previous gate seals access-gate ("closed" in catalog-manifest.ts) and refuses any render; the catalog law allows a
+  // declared slot. The previous gate's code is tolerated here, and only here, until slice 4 ports that seal to rule D.
+  { id: "P3", title: "a composition renders a slot it declares", kind: "positive", expect: [], previousGateStricter: ["CLOSED_VISUAL_BOUNDARY"],
+    mutate: async tree => {
+      await tree.replace(`${compositions}/access-gate/access-gate.catalog.ts`, "uses: [", 'slots: { footer: { accepts: ["action"] } }, uses: [');
+      await tree.append(accessGate, "\n{#if footer}{@render footer()}{/if}\n");
+      await tree.regenerateCatalog();
+    } },
   { id: "N04", title: "a composition writes a text node", kind: "escape", expect: ["COMPOSITION_NATIVE_ELEMENT"],
     mutate: tree => tree.append(accessGate, "\nWelcome back\n") },
   { id: "N06", title: "a foundation imports a vendor family it does not own", kind: "escape", expect: ["VENDOR_OUTSIDE_OWNER"],

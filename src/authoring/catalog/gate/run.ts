@@ -2,7 +2,7 @@
 // Raises VISUAL_SOURCE_SYMLINK before any rule, and the code of the first rule that fails. Rule P runs before this
 // module is loaded (gate/sources.ts), so a deleted rule module is reported, not a crash.
 import { lstat, readdir, readFile } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { join, posix, relative } from "node:path";
 import { declarationSuffixes, type CatalogLayout } from "../layout.ts";
 import { readDeclarations } from "../read-declaration.ts";
 import { assertDeclaredSources, type LocatedDeclaration } from "./inventory.ts";
@@ -71,7 +71,9 @@ export async function runContentRules(root: string, tree: CatalogTree, options: 
 /** The violations of the content rules without failing, for an entry that joins them with other findings. */
 export async function contentViolations(root: string, tree: CatalogTree, options: Readonly<{ layout: CatalogLayout; rules: readonly ContentRuleId[] }>) {
   const sources = new Map<string, string>();
-  for (const path of [...tree.paths, ...options.layout.gate.reads]) if (textual.test(path)) sources.set(path, await readFile(join(root, path), "utf8"));
+  // Text files by extension, plus extensionless ones (vendor LICENSE): Tailwind scans their prose too, so G2 must see it.
+  const loadable = (path: string) => textual.test(path) || !posix.basename(path).includes(".");
+  for (const path of [...tree.paths, ...options.layout.gate.reads]) if (loadable(path)) sources.set(path, await readFile(join(root, path), "utf8"));
   const context = createContext({ layout: options.layout, paths: tree.paths, declarations: tree.declarations, ledger: tree.ledger, sources });
   const violations: Violation[] = [];
   for (const rule of options.rules) violations.push(...contentRules[rule](context));

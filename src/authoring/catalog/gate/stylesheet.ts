@@ -20,12 +20,14 @@ export const decodeCss = (text: string) => text.replace(/\\([0-9a-fA-F]{1,6})\s?
 export function readStylesheet(path: string, css: string, offset: number, line: (at: number) => number):
   Readonly<{ kind: "sheet"; sheet: Stylesheet } | { kind: "unreadable"; line: number; reason: string }> {
   const at = (wrapped: number) => line(offset + Math.min(css.length, Math.max(0, wrapped - wrapper.length)));
-  let tree: SyntaxNode;
-  try { tree = Object(parse(`${wrapper}${css}</style>`, { modern: true }).css); }
+  let parsed: unknown;
+  try { parsed = parse(`${wrapper}${css}</style>`, { modern: true }).css; }
   catch (error) {
     const where = isNode(error) && Array.isArray(error.position) && typeof error.position[0] === "number" ? error.position[0] : 0;
     return { kind: "unreadable", line: at(where), reason: (error instanceof Error ? error.message : String(error)).split("\n")[0] ?? "" };
   }
+  if (!isNode(parsed)) return { kind: "unreadable", line: at(0), reason: "Svelte read no stylesheet" };
+  const tree = parsed;
   const text = (node: unknown) => css.slice(position(node, "start") - wrapper.length, position(node, "end") - wrapper.length);
   const atRules = nodes(tree.children).filter(node => node.type === "Atrule")
     .map(node => ({ name: String(node.name), prelude: String(node.prelude ?? ""), line: at(position(node, "start")) }));

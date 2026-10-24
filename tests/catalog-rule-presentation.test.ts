@@ -114,3 +114,35 @@ test("E: a piece mounted through {@const} over an imported component table is he
   assert.deepEqual(run({ ...heading(), ...registry, ...renderer }),
     [escape("<Renderer> passes elementProps: a piece takes only the plain props its contract declares; contract: heading", "src/svelte/catalog/renderer/node-view/NodeView.svelte")]);
 });
+
+const lookupOwner = (attribute: string) =>
+  escape(`<Renderer> passes ${attribute}: a piece takes only the plain props its contract declares; contract: an entry of table`, "src/svelte/catalog/renderer/node-view/NodeView.svelte");
+const lookupView = (markup: string, table: string) => ({ ...heading(), "src/svelte/renderer-registry.ts": table,
+  ...composition("node-view", "NodeView.svelte", ["heading"],
+    `<script lang="ts">\n  import { table } from "../../../renderer-registry.ts";\n  let { node } = $props();\n</script>\n${markup}\n`,
+    ', dispatch: "resolved-node"', "src/svelte/catalog/renderer") });
+
+test("E: a computed lookup into a component table mounts one of the table's pieces; the forbidden list holds (E owns it, not D2)", () => {
+  const registry = 'import Heading from "./catalog/foundations/heading/Heading.svelte";\nexport const table = Object.freeze({ a: Heading, b: Heading });\n';
+  const markup = '{#if node.kind === "a"}{@const Renderer = table[node.kind]}<Renderer kind="page" class="x" style="y" data-x aria-hidden="true" role="r" use:x transition:x bind:this={n} elementProps={p}>x</Renderer>{/if}';
+  const view = "src/svelte/catalog/renderer/node-view/NodeView.svelte";
+  const expected = [lookupOwner("class"), lookupOwner("style"), lookupOwner("data-x"),
+    escape("<Renderer> passes aria-hidden, which the contract of an entry of table does not declare", view),
+    lookupOwner("role"), lookupOwner("use:x"), lookupOwner("transition:x"), lookupOwner("bind:this"), lookupOwner("elementProps"),
+    escape("<Renderer> receives child content, which an entry of table declares no slot for", view)];
+  assert.deepEqual(run(lookupView(markup, registry)), expected);
+  assert.deepEqual(run(lookupView(markup, "// Generated; do not edit.\nexport const table = {};\n")), expected);
+});
+
+test("E: a {@const} alias of an imported piece, a namespace member or another alias is the piece", () => {
+  const card = (markup: string, imports = directImport) =>
+    foundation("card", "Card.svelte", `<script lang="ts">\n  ${imports}\n</script>\n${markup}\n`);
+  const path = "src/svelte/catalog/foundations/card/Card.svelte";
+  const barrel = { "src/svelte/catalog/index.ts": 'export { default as Heading } from "./foundations/heading/Heading.svelte";\n' };
+  const expected = (tag: string) => [escape(`<${tag}> passes class: a piece takes only the plain props its contract declares; contract: heading`, path),
+    escape(`<${tag}> passes style: a piece takes only the plain props its contract declares; contract: heading`, path)];
+  assert.deepEqual(run({ ...heading(), ...card('{#if true}{@const H = Heading}<H kind="page" text="x" class="x" style="y" />{/if}') }), expected("H"));
+  assert.deepEqual(run({ ...heading(), ...barrel, ...card('{#if true}{@const H = Catalog.Heading}<H kind="page" text="x" class="x" style="y" />{/if}',
+    'import * as Catalog from "../../index.ts";') }), expected("H"));
+  assert.deepEqual(run({ ...heading(), ...card('{#if true}{@const H = Heading}{#if true}{@const T = H}<T kind="page" text="x" class="x" style="y" />{/if}{/if}') }), expected("T"));
+});

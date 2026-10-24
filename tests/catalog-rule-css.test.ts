@@ -205,3 +205,21 @@ test("G2: the violation carries the line where the source writes the utility", (
   const [found] = emittedCssViolations({ cssFiles: emitted(".rounded-full{border-radius:9999px}"), context: contextOf(utilities("rounded-full")) });
   assert.equal(found?.line, 5);
 });
+
+test("G2: a utility no source writes (injected by a plugin or transform) is reported on the emitted CSS", () => {
+  const css = ".rounded-lg{border-radius:1rem}\n.injected-glow{box-shadow:0 0 1rem red}\n@media (width>=48rem){.md\\:hidden{display:none}}";
+  const found = emittedCssViolations({ cssFiles: emitted(css), context: contextOf(utilities("")) });
+  assert.deepEqual(codes(found), [
+    cross("build/_app/immutable/assets/0.abc.css", 'utility class "injected-glow" is in the emitted CSS but no owner writes it: no source and no source stylesheet holds it'),
+    cross("build/_app/immutable/assets/0.abc.css", 'utility class "md:hidden" is in the emitted CSS but no owner writes it: no source and no source stylesheet holds it'),
+  ]);
+  assert.deepEqual(found.map(item => item.line), [2, 3]);
+});
+
+test("G2: Svelte's scoping classes are the compiler's, at most one per component with a <style>; more, or another shape, need an owner", () => {
+  assert.deepEqual(g2(utilities(""), ".rounded-lg.svelte-1abc2de{color:red}.svelte-zz9{margin:0}"), []);
+  assert.deepEqual(g2(utilities(""), ".svelte-1abc2de{color:red}.svelte-zz9{margin:0}.svelte-x0{margin:0}"),
+    [cross("build/_app/immutable/assets/0.abc.css", "the emitted CSS holds 3 Svelte scoping classes but only 2 sources hold a <style>")]);
+  assert.deepEqual(g2(utilities(""), ".svelte-Glow-1{color:red}"),
+    [cross("build/_app/immutable/assets/0.abc.css", 'utility class "svelte-Glow-1" is in the emitted CSS but no owner writes it: no source and no source stylesheet holds it')]);
+});

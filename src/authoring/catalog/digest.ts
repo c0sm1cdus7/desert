@@ -7,9 +7,10 @@ import { createHash } from "node:crypto";
 import { posix } from "node:path";
 import { pieceCompanions, type CatalogLayout } from "./layout.ts";
 import type { LocatedDeclaration } from "./gate/inventory.ts";
+import { themeMechanism } from "./layout.ts";
 
 export const digestVersion = "desert.catalog-digest/1" as const;
-export const themeMechanism = "theme" as const;
+export { themeMechanism };
 export type DigestTree = Readonly<{ layout: CatalogLayout; paths: readonly string[]; declarations: readonly LocatedDeclaration[] }>;
 /** The bytes of a file of the tree, or undefined when the tree has no such file. */
 export type ReadBytes = (path: string) => Uint8Array | undefined;

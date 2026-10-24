@@ -53,3 +53,16 @@ export const Search = defineFoundation({ id: "search", purpose: "A search.", own
   shape: "capsule", states: ["empty"], approval: "required", contract: C } as const);`);
   assert.throws(() => assertDeclaredSources(owned, [...declared, ...other], layout), /CATALOG_DECLARATION: .*input.*field.*search/);
 });
+
+test("a vendor family folder holds only .svelte, .ts, .js, .css and .md files; another extension is unclaimed", () => {
+  const legal = ["src/svelte/vendor/components/ui/input/press.js", "src/svelte/vendor/components/ui/input/input.css",
+    "src/svelte/vendor/components/ui/input/module.md"];
+  assert.doesNotThrow(() => assertDeclaredSources([...owned, ...legal], declared, layout));
+  const strays = ["src/svelte/vendor/components/ui/input/input.scss", "src/svelte/vendor/components/ui/input/input.pcss",
+    "src/svelte/vendor/components/ui/input/nested/glow.styl", "src/svelte/vendor/components/ui/input/README"];
+  assert.throws(() => assertDeclaredSources([...owned, ...strays], declared, layout), error => {
+    assert.ok(error instanceof Error);
+    assert.equal(error.message, `UNDECLARED_VISUAL_SOURCE: ${[...strays].sort().join(", ")}`);
+    return true;
+  });
+});

@@ -7,6 +7,7 @@ import { parseable, type ContentRule, type GateContext } from "./context.ts";
 import { scriptLine, type Parsed, type Script } from "./parse.ts";
 import { resolveSpecifier } from "./resolve-imports.ts";
 import { violation, type Violation } from "./violation.ts";
+import { themeMechanism } from "../layout.ts";
 
 const code = "VISUAL_RUNTIME_GLOBAL";
 const globalObjects = new Set(["window", "globalThis", "self"]);
@@ -34,7 +35,7 @@ function forbiddenReason(context: GateContext, path: string, foundationFolders: 
   if (!owner) return "an undeclared file owns no DOM";
   if (owner.kind === "vendor") return undefined;
   if (owner.kind === "mechanism") {
-    if (owner.owner === "theme") return "a theme mechanism owns no script DOM";
+    if (owner.owner === themeMechanism) return "a theme mechanism owns no script DOM";
     return context.owners.declaration(owner.owner)?.declaration.kind === "foundation" ? undefined : `mechanism owner ${owner.owner} is not a foundation`;
   }
   if (owner.kind === "piece") {
@@ -95,14 +96,23 @@ function operationOf(node: ts.Node): string | undefined {
   return isBareDocument(node) ? "document" : undefined;
 }
 
+type Range = Readonly<{ start: number; end: number }>;
+const isObject = (value: unknown): value is object => typeof value === "object" && value !== null;
+/** The source range of a template expression node, when the value is one. */
+function rangeOf(value: unknown): Range | undefined {
+  if (!isObject(value)) return undefined;
+  const start: unknown = Reflect.get(value, "start"), end: unknown = Reflect.get(value, "end");
+  return typeof start === "number" && typeof end === "number" ? { start, end } : undefined;
+}
+
 /** Each maximal script expression of a Svelte template (event handlers, attribute values, block tests), as its own tree. */
 function templateScripts(parsed: Parsed, path: string): readonly Script[] {
   if (parsed.kind !== "svelte") return [];
-  const ranges: { start: number; end: number }[] = [];
+  const ranges: Range[] = [];
   walk(parsed.fragment, node => {
     for (const key of ["expression", "test", "declaration"]) {
-      const value: unknown = node[key], start = Reflect.get(Object(value), "start"), end = Reflect.get(Object(value), "end");
-      if (typeof start === "number" && typeof end === "number") ranges.push({ start, end });
+      const range = rangeOf(node[key]);
+      if (range) ranges.push(range);
     }
   });
   const maximal = ranges.filter(range => !ranges.some(other => other !== range && other.start <= range.start && range.end <= other.end
@@ -112,13 +122,32 @@ function templateScripts(parsed: Parsed, path: string): readonly Script[] {
     file: ts.createSourceFile(path, parsed.source.slice(range.start, range.end), ts.ScriptTarget.Latest, true, ts.ScriptKind.TS) }));
 }
 
+/** The receiver of a member access or the callee of a call: the next link down an access chain. */
+function receiverOf(node: ts.Node): ts.Expression | undefined {
+  if (ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node) || ts.isCallExpression(node)) return node.expression;
+  return ts.isNonNullExpression(node) || ts.isParenthesizedExpression(node) ? node.expression : undefined;
+}
+
+/** The parts of an access chain that are not the chain itself: call arguments and computed keys, each its own chain. */
+function branchesOf(node: ts.Node): readonly ts.Node[] {
+  if (ts.isCallExpression(node)) return [...node.typeArguments ?? [], ...node.arguments];
+  return ts.isElementAccessExpression(node) ? [node.argumentExpression] : [];
+}
+
+/** One use per DOM-operation chain: the outermost access is reported, the links below it are not. */
 function domUses(context: GateContext, path: string, reason: string): Violation[] {
   const parsed = context.parsed(path), found: Violation[] = [];
   for (const script of [...parsed.scripts, ...templateScripts(parsed, path)]) {
+    const skipChain = (node: ts.Node): void => {
+      for (const branch of branchesOf(node)) visit(branch);
+      const receiver = receiverOf(node);
+      if (receiver) skipChain(receiver); else if (!ts.isIdentifier(node)) ts.forEachChild(node, visit);
+    };
     const visit = (node: ts.Node): void => {
       const operation = operationOf(node);
-      if (operation !== undefined) found.push(violation(code, path, scriptLine(parsed, script, node), `${operation}: ${reason}`));
-      ts.forEachChild(node, visit);
+      if (operation === undefined) { ts.forEachChild(node, visit); return; }
+      found.push(violation(code, path, scriptLine(parsed, script, node), `${operation}: ${reason}`));
+      skipChain(node);
     };
     visit(script.file);
   }
@@ -128,7 +157,7 @@ function domUses(context: GateContext, path: string, reason: string): Violation[
 /** N54: the test-only evidence project never enters the build path. */
 function testOnlyImports(context: GateContext, path: string): Violation[] {
   return context.imports(path).flatMap(item => {
-    const requested = resolveSpecifier(path, item.specifier, () => true);
+    const requested = resolveSpecifier(path, item.specifier, () => true, context.layout.aliases);
     if (requested.kind !== "file" || !requested.path.startsWith(`${context.layout.testing}/`)) return [];
     return [violation(code, path, item.line, `imports ${requested.path}: test-only code must not enter the build path`)];
   });

@@ -10,6 +10,7 @@ export type ParsedSvelte = Readonly<{ kind: "svelte"; source: string; fragment: 
 export type ParsedScript = Readonly<{ kind: "script"; source: string; scripts: readonly Script[]; line: (position: number) => number }>;
 export type Parsed = ParsedSvelte | ParsedScript;
 
+const isNode = (value: unknown): value is SyntaxNode => typeof value === "object" && value !== null && !Array.isArray(value);
 const lineOf = (source: string) => (position: number) => source.slice(0, Math.max(0, position)).split("\n").length;
 const tsFile = (path: string, text: string) => ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
 
@@ -27,8 +28,9 @@ export function parseSource(path: string, source: string): Parsed {
     const content = range(block?.content);
     if (content) scripts.push({ file: tsFile(path, source.slice(content.start, content.end)), offset: content.start });
   }
-  const fragment: SyntaxNode = Object(tree.fragment), css: SyntaxNode | undefined = tree.css ? Object(tree.css) : undefined;
-  return Object.freeze({ kind: "svelte", source, fragment, css,
+  const fragment: unknown = tree.fragment, css: unknown = tree.css;
+  if (!isNode(fragment)) throw new Error(`CATALOG_DECLARATION: ${path}: no template`);
+  return Object.freeze({ kind: "svelte", source, fragment, css: isNode(css) ? css : undefined,
     scripts: Object.freeze(scripts), line: lineOf(source) });
 }
 

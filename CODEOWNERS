@@ -1,5 +1,9 @@
-# Owner review of the gate, its ledger and CI (plan 3.7).
+# Owner review of the gate, its build wiring, its tests, its ledger and CI (plan 3.7).
 src/authoring/** @c0sm1cdus7
+src/build/** @c0sm1cdus7
 src/svelte/catalog/approvals.json @c0sm1cdus7
+scripts/catalog*.ts @c0sm1cdus7
+scripts/check-visual-boundary.ts @c0sm1cdus7
+tests/catalog-gate/** @c0sm1cdus7
 .github/** @c0sm1cdus7
 CODEOWNERS @c0sm1cdus7

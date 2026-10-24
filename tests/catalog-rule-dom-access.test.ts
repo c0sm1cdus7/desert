@@ -51,7 +51,14 @@ test("a composition's template expressions are read like its script", () => {
 test("N21b an infra helper injects markup", () => {
   const path = `${infra}/rogue-inject.ts`;
   assert.deepEqual(found({ [path]: 'export const inject = () => document.body.insertAdjacentHTML("beforeend", "x");\n' }), [
-    runtime(path, `document.body.insertAdjacentHTML: ${nonvisual}`), runtime(path, `document.body: ${nonvisual}`)]);
+    runtime(path, `document.body.insertAdjacentHTML: ${nonvisual}`)]);
+});
+
+test("one use per DOM-operation chain: the outermost access; an argument is its own chain", () => {
+  const path = `${infra}/chain.ts`;
+  assert.deepEqual(found({ [path]: 'export const add = () => { document.body.append(document.createElement("x")); document.body.classList.add("y"); };\n' }), [
+    runtime(path, `document.body.append: ${nonvisual}`), runtime(path, `document.createElement: ${nonvisual}`),
+    runtime(path, `document.body.classList: ${nonvisual}`)]);
 });
 
 test("N52 a DOM-touching .svelte.ts moved from a foundation folder into infra", () => {
