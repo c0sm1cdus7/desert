@@ -2,7 +2,7 @@
 // `metadata` its supporting lines, `leading` the mark before it (a face, the attention dot, an image or the placeholder
 // of missing artwork) and `trailing` the chevron after it. An `open` row is a button; a `static` row only reads. An
 // unavailable row stays visible, disabled, with its `reason`; `current` marks the row of the shown object. `focusKey`
-// registers the row in the nearest focus scope, so a caller can return focus to it by key.
+// registers the row in the nearest focus scope, so a caller can return focus to it by key; the row names it as a mark.
 import { Type } from "@sinclair/typebox";
 import { text } from "../../../../views/definition.ts";
 import { FaceSchema } from "../../../../interaction/face.ts";
@@ -29,5 +29,5 @@ export const RowContract = {
     focusKey: Type.Optional(Type.String()),
   }, { additionalProperties: false }),
   events: Type.Object({ open: Type.Void() }, { additionalProperties: false }),
-  marks: ["data-row", "data-row-leading"],
+  marks: ["data-row", "data-row-leading", "data-focus-key"],
 } as const;

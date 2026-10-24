@@ -35,14 +35,14 @@
 
 <!-- A row sizes every glyph it holds (a face's, the chevron) to one rem, as the vendor row button did. -->
 {#if interaction === "open"}
-  <button bind:this={button} {@attach pressFeedback} type="button" class="row material-interior control-feedback [&_svg]:size-4 [&_svg]:shrink-0" data-row="open"
+  <button bind:this={button} {@attach pressFeedback} type="button" class="row material-interior control-feedback [&_svg]:size-4 [&_svg]:shrink-0" data-row="open" data-focus-key={focusKey}
     data-row-leading={leading?.kind} disabled={!available} aria-current={current ? "true" : undefined}
     aria-describedby={!available && reason ? reasonId : undefined} title={!available ? reason : undefined} onclick={open}>
     <span class="row-content control-feedback-content" data-button-content>{@render content()}</span>
   </button>
   {#if !available && reason}<span id={reasonId} class="sr-only">{reason}</span>{/if}
 {:else}
-  <div class="row [&_svg]:size-4 [&_svg]:shrink-0" data-row="static" data-row-leading={leading?.kind}><span class="row-content">{@render content()}</span></div>
+  <div class="row [&_svg]:size-4 [&_svg]:shrink-0" data-row="static" data-row-leading={leading?.kind} data-focus-key={focusKey}><span class="row-content">{@render content()}</span></div>
 {/if}
 
 <style>
