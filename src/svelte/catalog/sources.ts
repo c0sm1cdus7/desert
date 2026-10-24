@@ -97,7 +97,7 @@ export const CatalogSources = Object.freeze({
   "place": "src/svelte/catalog/foundations/place/Place.svelte",
   "place-content": "src/svelte/catalog/compositions/place-content/PlaceContent.svelte",
   "place-header": "src/svelte/catalog/compositions/place-header/PlaceHeader.svelte",
-  "place-heading": "src/svelte/catalog/compositions/place-heading/PlaceHeading.svelte",
+  "place-heading": "src/svelte/catalog/foundations/place-heading/PlaceHeading.svelte",
   "playback-canvas": "src/svelte/catalog/foundations/playback-canvas/PlaybackCanvas.svelte",
   "playback-controls": "src/svelte/catalog/compositions/playback-controls/PlaybackControls.svelte",
   "popover-control": "src/svelte/catalog/compositions/popover-control/PopoverControl.svelte",

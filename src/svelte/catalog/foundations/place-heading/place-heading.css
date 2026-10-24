@@ -23,3 +23,5 @@
 [data-header-collection] [data-media-dots] { left:calc(50% + var(--place-leading-inset,0px)/2); }
 .place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) [data-place-subtitle] { color:color-mix(in srgb,var(--catalog-image-foreground) 74%,transparent); }
 @media(prefers-contrast:more) { .place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) [data-place-subtitle] { color:var(--catalog-image-foreground); } }
+/* The embedded heading: content inside a place, never a toolbar or scroll owner. */
+.place-heading { display:flex; flex-direction:column; gap:.5rem; }

@@ -95,7 +95,7 @@ export { default as PickerSheet } from "./foundations/picker-sheet/PickerSheet.s
 export { default as Place } from "./foundations/place/Place.svelte";
 export { default as PlaceContent } from "./compositions/place-content/PlaceContent.svelte";
 export { default as PlaceHeader } from "./compositions/place-header/PlaceHeader.svelte";
-export { default as PlaceHeading } from "./compositions/place-heading/PlaceHeading.svelte";
+export { default as PlaceHeading } from "./foundations/place-heading/PlaceHeading.svelte";
 export { default as PlaybackCanvas } from "./foundations/playback-canvas/PlaybackCanvas.svelte";
 export { default as PlaybackControls } from "./compositions/playback-controls/PlaybackControls.svelte";
 export { default as PopoverControl } from "./compositions/popover-control/PopoverControl.svelte";

@@ -6,7 +6,6 @@
 .place-frame { position:relative; display:flex; flex-direction:column; min-width:0; min-height:0; height:100%; }
 .place-viewport { flex:1; min-width:0; min-height:0; overflow:auto; overscroll-behavior:contain; overflow-anchor:none; }
 [data-place-toolbar-reservation] { flex-shrink:0; pointer-events:none; }
-.place-heading { display:flex; flex-direction:column; gap:.5rem; }
 .place-stack { min-width:0; gap:.5rem; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; }
 .place-stack-title, .options-title { padding-inline:1rem; margin:0 0 .375rem; color:var(--muted-foreground); }
 .place-stack-title .type-caption { font-weight:400; }

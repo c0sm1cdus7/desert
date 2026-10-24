@@ -15,14 +15,14 @@ const source = `<script lang="ts">
   onquery={()=>{}} onnavigate={()=>{}} content={workspaceBody} />`;
 
 test("correcting pane landmark semantics leaves navigation, headings and toolbar pixels unchanged", { timeout: 60000 }, async () => {
-  const paths = ["src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte", "src/svelte/catalog/compositions/place-heading/PlaceHeading.svelte",
+  const paths = ["src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte", "src/svelte/catalog/foundations/place-heading/PlaceHeading.svelte",
     "src/svelte/catalog/foundations/place/Place.svelte", "src/svelte/catalog/compositions/catalog-navigation/CatalogNavigation.svelte"];
   const before: Record<string,string> = {};
   for (const path of paths) {
     const current = await readFile(path, 'utf8');
     let previous = current;
     if (path.endsWith('ToolbarLayout.svelte')) previous = current.replace('<div bind:this={element} class={edge', '<header bind:this={element} class={edge').replace(/<\/div>\s*$/, '</header>');
-    else if (path.endsWith('PlaceHeading.svelte')) previous = current.replace('<div bind:this={element}', '<header bind:this={element}').replace(/<\/div>\s*$/, '</header>');
+    else if (path.endsWith('PlaceHeading.svelte')) previous = current.replace('<div class="place-heading-content"', '<header class="place-heading-content"').replace('</div>\n{:else}', '</header>\n{:else}');
     else if (path.endsWith('Place.svelte')) previous = current.replace('role={landmark}', 'role={landmark === "main" ? "main" : undefined}');
     else previous = current.replace('<Place landmark="navigation" label="Main navigation">', '<Place landmark="navigation">')
       .replace('    <div>\n', '    <nav aria-label="Main navigation">\n').replace('    </div>\n', '    </nav>\n');

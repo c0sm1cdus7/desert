@@ -11,7 +11,7 @@
 @import "./catalog/mechanisms/structured-content/structured-content.css";
 @import "./catalog/foundations/place/place.css";
 @import "./catalog/mechanisms/control-measure/control-measure.css";
-@import "./catalog/compositions/place-heading/place-heading.css";
+@import "./catalog/foundations/place-heading/place-heading.css";
 @import "./catalog/mechanisms/media/media.css";
 @import "./catalog/mechanisms/surface-chrome/surface-chrome.css";
 @import "./catalog/mechanisms/surface-reading/surface-reading.css";

@@ -41,7 +41,7 @@
     {#if item.kind === "header"}
       <!-- Main headers belong to the workspace. Explicit panel media reuses the
            same content heading; ordinary panel identity stays in its toolbar. -->
-      {#if host === "panel" && item.media}<PlaceHeading identity={{...item, subtitle:item.subtitle ?? ""}} />{/if}
+      {#if host === "panel" && item.media}<PlaceHeading context="place" title={item.title} subtitle={item.subtitle} media={item.media} />{/if}
     {:else if item.kind === "stack"}
       <ViewRegion kind="item" id={item.id}>
       <StackLayout title={item.title} description={item.description}>

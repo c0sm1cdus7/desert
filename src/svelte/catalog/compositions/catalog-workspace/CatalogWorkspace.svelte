@@ -40,7 +40,8 @@
   } = $props();
   let owner = $state<HTMLDivElement | null>(null);
   let viewport = $state<HTMLDivElement | null>(null);
-  let heading = $state<HTMLElement | null>(null);
+  // F1-merge: the shell owns the heading dock (DESIGN §3.2); until then the heading is found in the viewport.
+  const placeHeader = () => viewport?.querySelector<HTMLElement>("[data-place-header]") ?? null;
   let compact = $state<HTMLDivElement | null>(null);
   const presentation = provideDestinationNavigation(() => active, change => {
     void tick().then(() => {
@@ -52,7 +53,7 @@
       const replacement = origin?.matches('[data-piece="destination-row"][data-destination]')
         ? viewport?.querySelector<HTMLElement>(`[data-piece="destination-row"][data-destination="${CSS.escape(origin.dataset.destination!)}"]`) : null;
       const target = (change.kind === "back" ? origin?.isConnected ? origin : replacement : null)
-        ?? heading?.querySelector<HTMLElement>("[data-place-title]");
+        ?? placeHeader()?.querySelector<HTMLElement>("[data-place-title]");
       target?.focus({ preventScroll: true });
     });
   });
@@ -80,6 +81,7 @@
   });
   $effect(() => {
     presentedIdentity;
+    const heading = placeHeader();
     if (viewport && heading && compact) return observePlaceHeading(viewport, heading, compact);
   });
   let searchViewport = $state<HTMLDivElement | null>(null);
@@ -177,7 +179,7 @@
         content={{ kind: "place-navigation", detail: presentedDetail, onback: goBack, backAvailable: Boolean(presented) || backAvailable, topActions, actionGroup, invoke, searchAvailable }} />
       <CatalogToolbar {title} {query} {onquery} {searching} {resultsId} {searchAvailable} onsearch={openSearch} oncancel={cancel} />
       {/snippet}
-      {#snippet content()}<PlaceHeading identity={presentedIdentity} bind:element={heading} /><CatalogWorkspaceContent content={body} {searching} />{/snippet}
+      {#snippet content()}<PlaceHeading context="place" title={presentedIdentity.title} subtitle={presentedIdentity.subtitle} media={presentedIdentity.media} /><CatalogWorkspaceContent content={body} {searching} />{/snippet}
       {#snippet bottom()}
         <CatalogNavigationToggle {searching} />
         {#if bottomToolbar && invoke && (bottomToolbar.primary || bottomToolbar.secondary)}

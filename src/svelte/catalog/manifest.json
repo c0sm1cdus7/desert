@@ -1830,20 +1830,27 @@
       ]
     },
     "place-heading": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/place-heading",
-      "kind": "composition",
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/place-heading",
+      "kind": "foundation",
       "owner": {
         "entry": "PlaceHeading.svelte",
         "parts": [
           "place-heading.css"
         ]
       },
-      "purpose": "Head a place with its title, subtitle and optional featured image, gallery or video.",
-      "uses": [
-        "heading",
-        "photo-collection"
-      ]
+      "purpose": "Head a place, or content embedded in one, with its title, subtitle and optional featured media.",
+      "shape": "none",
+      "states": [
+        "default",
+        "media"
+      ],
+      "variants": {
+        "context": [
+          "place",
+          "embedded"
+        ]
+      }
     },
     "playback-canvas": {
       "approval": "required",
