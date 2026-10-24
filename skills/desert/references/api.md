@@ -1011,7 +1011,7 @@ export type ObjectPresentation = Frozen<Static<typeof ObjectPresentationSchema>>
 
 ## src/modules/compose.ts
 
-Source SHA-256: 48d3c1b6f2a4591e3b4590dbbbc8c93a1c737431b04c685b287dc3694b258d3f
+Source SHA-256: a711b8908f7b124027c718dd2741bedd4dced8365022c344f0717a67ba916b60
 
 ```ts
 import { Check } from "@sinclair/typebox/value";
@@ -1042,8 +1042,8 @@ import type { ComposedDefinition } from "./composed-definition.ts";
 /** Compile one root into the existing domain/runtime and presentation protocols. */
 export function composeProduct<const P extends ProductComposition>(definition: Closed<P, ProductComposition> & ProductLinks<NoInfer<P>>) {
   const { messages, ...authored } = declarationRecord(definition);
-  const catalog = requireMessageCatalog(messages);
   const mounted = requireModuleIndex(authored.modules);
+  const catalog = requireMessageCatalog(messages);
   for (const value of declarationArray(authored.exposures)) {
     const surface = declarationRecord(value);
     if (surface.kind === "human") requireJourneyOwnedSurfaceSemantics(surface);
@@ -3595,7 +3595,7 @@ export const InteractionProtocolVersion = "desert.interaction/7" as const;
 
 ## src/authoring/index.ts
 
-Source SHA-256: 80306958e9b68cff43ad6f494ea1de7d84933ad0f4e2d98aed3576aa24c94089
+Source SHA-256: 56f9562cd3297009b7c0aff6d3cd7cc38649da4ccdd37e997034fd6653f0fa6d
 
 ```ts
 import { lstat, readdir, readFile, realpath } from "node:fs/promises";
@@ -3635,7 +3635,6 @@ export async function assertProductSource(directory: string): Promise<{ files: r
   for (const [path, text] of sources) {
     const file = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
     files.set(path, file);
-    assertNoLiteralText(root, file);
     const targets: { target: string; declaration: ts.ImportDeclaration | ts.ExportDeclaration }[] = [];
     roots += checkDeclarations(file, (specifier, declaration) => {
       const target = checkImport(root, path, specifier);
@@ -3646,6 +3645,8 @@ export async function assertProductSource(directory: string): Promise<{ files: r
     });
     edges.set(path, targets);
   }
+  // A declaration that is otherwise legal still writes no sentence (plan §14).
+  for (const file of files.values()) assertNoLiteralText(root, file);
   const active = new Set<string>();
   const checked = new Set<string>();
   function visit(path: string) {
