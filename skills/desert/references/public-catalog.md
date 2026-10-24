@@ -1173,18 +1173,19 @@ function drain() {
 
 ## src/svelte/catalog/foundations/image/Image.svelte
 
-Source SHA-256: a6e247544a06ef9690ab80fc1827cdbfa9281f9a025dfd5c4d34c596f058ebb7
+Source SHA-256: 77f1dfc7d064234d2391ed2fdf82fee6a3e3213ff9406123ae77cea8e9a6f24d
 
 ```svelte
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { Button } from '../../../vendor/components/ui/button/index.js';
+  import { Action, Icon } from '../../index.ts';
   import { imageSource, imageIdentity } from '../../../infra/media-source.ts';
   import { usePrivateImages } from '../../../infra/private-image-context.ts';
   import { privateImageResource } from '../../../infra/private-image-resource.ts';
   import { renditionWidths } from '../../../../media/rendition-policy.ts';
   import type { CatalogProps } from "../../types.d.ts";
-  let { source, alt, edge = 640, zoom = 1, retry = false, fit = 'fill', onready, fallback = 'Image unavailable' }: CatalogProps<"image"> = $props();
+  let { source, alt = "", edge = 640, zoom = 1, retry = false, fit = 'fill', backdrop = 'muted', placeholder, onready,
+    fallback = 'Image unavailable' }: CatalogProps<"image"> = $props();
   let host!: HTMLDivElement;
   let measured = $state(0), attempt = $state(0), ready = $state(''), failed = $state('');
   let original = $state('');
@@ -1193,20 +1194,21 @@ Source SHA-256: a6e247544a06ef9690ab80fc1827cdbfa9281f9a025dfd5c4d34c596f058ebb7
     () => { privateURL = resource.url; privateReference = resource.reference; privateFailed = resource.failed; privateRevision = resource.revision; });
   const requestedEdge = $derived((measured || edge) * zoom);
   const variant = $derived(renditionWidths.find(width => width >= requestedEdge) ?? 2560);
-  const sourceIdentity = $derived(imageIdentity(source));
-  const url = $derived(typeof source === 'string'
+  const sourceIdentity = $derived(source === undefined ? '' : imageIdentity(source));
+  const url = $derived(source === undefined ? undefined : typeof source === 'string'
     ? original === source ? source : imageSource(source, requestedEdge)
     : privateReference === source.reference ? privateURL : undefined);
-  const privateError = $derived(typeof source !== 'string' && privateReference === source.reference && privateFailed);
+  const privateError = $derived(typeof source === 'object' && privateReference === source.reference && privateFailed);
   $effect(() => {
     const asset = source, rendition = variant; attempt;
-    if (typeof asset === 'string') { resource.clear(); return; }
+    if (typeof asset !== 'object') { resource.clear(); return; }
     void resource.load(asset, rendition);
   });
   onDestroy(() => resource.dispose());
   // A new asset gets a new DOM image immediately. A larger rendition of the SAME
   // asset keeps its decoded pixels while loading, so pinch/resize never flashes.
-  const identity = $derived(`${sourceIdentity}|${typeof source === 'string' ? 0 : privateRevision}|${attempt}`);
+  const identity = $derived(`${sourceIdentity}|${typeof source === 'object' ? privateRevision : 0}|${attempt}`);
+  const status = $derived(placeholder ? 'placeholder' : failed === identity || privateError ? 'error' : url && ready === identity ? 'ready' : 'loading');
   onMount(() => {
     const resize = () => { measured = Math.ceil(Math.max(host.clientWidth,host.clientHeight)*window.devicePixelRatio); };
     const observer = new ResizeObserver(([entry]) => {
@@ -1232,20 +1234,48 @@ Source SHA-256: a6e247544a06ef9690ab80fc1827cdbfa9281f9a025dfd5c4d34c596f058ebb7
   }
 </script>
 
-<div bind:this={host} data-media-image data-image-fit={fit} data-image-state={failed === identity || privateError ? 'error' : url && ready === identity ? 'ready' : 'loading'}>
-  {#key identity}
-    {@const key = identity}
-    {#if url}<img src={url} {alt} decoding="async" draggable="false" style:visibility={ready === key && failed !== key && !privateError ? 'visible' : 'hidden'}
-      onload={event => loaded(event.currentTarget as HTMLImageElement, key)} onerror={() => error(key)} />
+<!-- A placeholder keeps the artwork placeholder mark, so hosts that have not migrated still place it as they placed
+     ArtworkPlaceholder. -->
+<div bind:this={host} class={placeholder === undefined ? "image" : "image-placeholder"} class:image-clear={backdrop === 'none'}
+  data-media-image={placeholder === undefined ? "" : undefined} data-media-artwork-placeholder={placeholder === undefined ? undefined : ""}
+  data-image-fit={placeholder === undefined ? fit : undefined} data-image-state={status} data-image-placeholder={placeholder}
+  aria-label={placeholder === 'audio' ? 'No cover artwork' : placeholder === 'video' ? 'No video poster' : undefined}>
+  {#if placeholder === 'audio'}<Icon name="music-2" size="artwork" decorative />
+  {:else if placeholder === 'video'}<Icon name="film" size="artwork" decorative />
+  {:else if placeholder === 'unavailable'}{fallback}
+  {:else}
+    {#key identity}
+      {@const key = identity}
+      {#if url}<img class="image-element" class:image-contain={fit === 'fit'} src={url} {alt} decoding="async" draggable="false"
+        style:visibility={ready === key && failed !== key && !privateError ? 'visible' : 'hidden'}
+        onload={event => { if (event.currentTarget instanceof HTMLImageElement) void loaded(event.currentTarget, key); }} onerror={() => error(key)} />
+      {/if}
+    {/key}
+    {#if status === 'error'}
+      <div class="image-error" data-media-error role="img" aria-label={alt}>
+        <span>{fallback}</span>
+        <!-- F1-merge: Action takes the slice 3 contract (emphasis secondary, face text). -->
+        {#if retry}<Action label="Retry" icon="retry" emphasis="secondary" onclick={() => { original = ''; attempt++; }} />{/if}
+      </div>
     {/if}
-  {/key}
-  {#if failed === identity || privateError}
-    <div data-media-error role="img" aria-label={alt}>
-      <span>{fallback}</span>
-      {#if retry}<Button variant="secondary" onclick={() => { original = ''; attempt++; }}>Retry</Button>{/if}
-    </div>
   {/if}
 </div>
+
+<style>
+  /* The components layer, as media.css was unlayered: a contextual rule of a host that has not migrated (a viewer
+     stage, a catalog card) still outranks this base geometry. */
+  @layer components {
+    .image { position:relative; width:100%; height:100%; overflow:hidden; background:var(--muted); }
+    .image-clear { background:transparent; }
+    .image-placeholder { display:grid; place-items:center; width:100%; height:100%; background:var(--muted); color:var(--muted-foreground); }
+    .image-element { display:block; width:100%; height:100%; object-fit:cover; user-select:none; }
+    .image-contain { object-fit:contain; }
+    .image[data-image-state="ready"] > .image-element { animation:image-in var(--dur-unfold) var(--ease-tm) both; }
+    .image-error { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--foreground); }
+  }
+  @keyframes image-in { from { opacity:0; } to { opacity:1; } }
+  @media(prefers-reduced-motion:reduce) { .image[data-image-state="ready"] > .image-element { animation:none; } }
+</style>
 ```
 
 ## src/svelte/catalog/compositions/photo-collection/PhotoCollection.svelte
@@ -1466,7 +1496,7 @@ Source SHA-256: 1e20f01d45949b10db016b064f59258fbc18e24af4ddb974a44c7cb6812ec77b
 
 ## src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
 
-Source SHA-256: 0a9fd8a07f4af68a2b2580094d439ed68eed7acc6abc24206d35ff325f8c2bc8
+Source SHA-256: 463ac910f67109c98bcb97cb8795feb334b27cdbf2e1b9e20a4067e701296e3d
 
 ```svelte
 <script lang="ts">
@@ -1475,7 +1505,6 @@ Source SHA-256: 0a9fd8a07f4af68a2b2580094d439ed68eed7acc6abc24206d35ff325f8c2bc8
   import type { CatalogProps } from "../../types.d.ts";
   import { getContext } from 'svelte';
   import { Image } from '../../index.ts';
-  import { ArtworkPlaceholder } from '../../index.ts';
   import { mediaSource, prefetchImage } from '../../../infra/media-source.ts';
   let { node, onevent }: CatalogProps<"catalog-card"> = $props();
   const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');
@@ -1487,7 +1516,7 @@ Source SHA-256: 0a9fd8a07f4af68a2b2580094d439ed68eed7acc6abc24206d35ff325f8c2bc8
 
   <Card.Root data-catalog-card="item" data-record={node.record} data-public-card={node.record}>
     {#if node.image}<Image source={mediaSource(node.image.asset)} alt={node.image.alt} />
-    {:else if 'mediaType' in node}<ArtworkPlaceholder kind={node.mediaType} />{/if}
+    {:else if 'mediaType' in node}<Image placeholder={node.mediaType} />{/if}
     <Card.Header><Card.Title>
       <Button variant="row" data-catalog-image-action aria-label={node.title} onclick={open} onpointerenter={prepare} onfocus={prepare}>
         <span data-catalog-card-overlay data-catalog-item-title data-public-card-title>{node.title}</span>

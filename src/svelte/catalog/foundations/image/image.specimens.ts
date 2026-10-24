@@ -1,4 +1,4 @@
-// One witness per state × fit of Image: still loading, decoded and shown, and failed with a retry.
+// One witness per state × fit of Image: still loading, decoded and shown, failed with a retry, and each placeholder.
 import type { CatalogSpecimen } from "../../types.d.ts";
 
 export const ImageSpecimens = [
@@ -12,4 +12,7 @@ export const ImageSpecimens = [
     props: { source: "/media/missing-photo.jpg", alt: "Missing photo", fit: "fill", retry: true, fallback: "Image unavailable" } },
   { state: "error", variants: { fit: "fit" },
     props: { source: "/media/missing-photo.jpg", alt: "Missing photo", fit: "fit", retry: true, fallback: "Image unavailable" } },
+  { state: "video", variants: { fit: "fill" }, props: { placeholder: "video" } },
+  { state: "audio", variants: { fit: "fill" }, props: { placeholder: "audio" } },
+  { state: "unavailable", variants: { fit: "fill" }, props: { placeholder: "unavailable", fallback: "Media unavailable" } },
 ] as const satisfies readonly CatalogSpecimen<"image">[];

@@ -70,6 +70,7 @@ export { default as InstanceFrame } from "./renderer/instance-frame/InstanceFram
 export { default as LabelRail } from "./foundations/label-rail/LabelRail.svelte";
 export { default as LabelsControl } from "./compositions/labels-control/LabelsControl.svelte";
 export { default as Library } from "./compositions/library/Library.svelte";
+export { default as List } from "./foundations/list/List.svelte";
 export { default as LocalExerciseContent } from "./compositions/local-exercise-content/LocalExerciseContent.svelte";
 export { default as LocalExercises } from "./renderer/local-exercises/LocalExercises.svelte";
 export { default as LockScreen } from "./compositions/lock-screen/LockScreen.svelte";
@@ -110,6 +111,7 @@ export { default as ReferenceValues } from "./foundations/reference-values/Refer
 export { default as RelatedSelection } from "./compositions/related-selection/RelatedSelection.svelte";
 export { default as RetainedPlace } from "./compositions/retained-place/RetainedPlace.svelte";
 export { default as Review } from "./compositions/review/Review.svelte";
+export { default as Row } from "./foundations/row/Row.svelte";
 export { default as ScrollEdges } from "./foundations/scroll-edges/ScrollEdges.svelte";
 export { default as SearchField } from "./foundations/search-field/SearchField.svelte";
 export { default as SeedAvatar } from "./foundations/seed-avatar/SeedAvatar.svelte";

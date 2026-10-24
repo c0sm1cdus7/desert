@@ -955,15 +955,61 @@
       "owner": {
         "entry": "FactRow.svelte"
       },
-      "purpose": "Keep a capitalized label on the left and its value right-aligned, with shared horizontal dividers and balanced wrapping.",
+      "purpose": "Keep a capitalized label on the left and its value or its control right-aligned, with shared horizontal dividers and balanced wrapping.",
       "shape": "none",
+      "slots": {
+        "control": {
+          "accepts": [
+            "selection-field"
+          ]
+        }
+      },
+      "stateVariants": {
+        "control": {
+          "kind": [
+            "control"
+          ]
+        },
+        "labels": {
+          "kind": [
+            "value"
+          ]
+        },
+        "no-labels": {
+          "kind": [
+            "value"
+          ]
+        },
+        "references": {
+          "kind": [
+            "value"
+          ]
+        },
+        "unknown": {
+          "kind": [
+            "value"
+          ]
+        },
+        "value": {
+          "kind": [
+            "value"
+          ]
+        }
+      },
       "states": [
         "value",
         "unknown",
         "labels",
         "no-labels",
-        "references"
-      ]
+        "references",
+        "control"
+      ],
+      "variants": {
+        "kind": [
+          "value",
+          "control"
+        ]
+      }
     },
     "fact-value": {
       "approval": "required",
@@ -978,7 +1024,13 @@
         "known",
         "empty",
         "unknown"
-      ]
+      ],
+      "variants": {
+        "presentation": [
+          "inline",
+          "paragraph"
+        ]
+      }
     },
     "facts": {
       "approval": "none",
@@ -1266,12 +1318,32 @@
       "owner": {
         "entry": "Image.svelte"
       },
-      "purpose": "Show a public or private image at the rendition its frame needs, hidden until decoded, with a fallback and optional retry.",
+      "purpose": "Show a public or private image at the rendition its frame needs, hidden until decoded, with a fallback and optional retry, or the placeholder of missing artwork.",
       "shape": "none",
+      "stateVariants": {
+        "audio": {
+          "fit": [
+            "fill"
+          ]
+        },
+        "unavailable": {
+          "fit": [
+            "fill"
+          ]
+        },
+        "video": {
+          "fit": [
+            "fill"
+          ]
+        }
+      },
       "states": [
         "loading",
         "ready",
-        "error"
+        "error",
+        "video",
+        "audio",
+        "unavailable"
       ],
       "variants": {
         "fit": [
@@ -1414,6 +1486,39 @@
         "catalog-home",
         "viewer"
       ]
+    },
+    "list": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/list",
+      "kind": "foundation",
+      "owner": {
+        "entry": "List.svelte"
+      },
+      "purpose": "Hold sibling rows or facts in one shared pane, at the reading measure or the full overview width.",
+      "shape": "radius",
+      "slots": {
+        "children": {
+          "accepts": [
+            "row",
+            "fact-row",
+            "object-state-row",
+            "text"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "kind": [
+          "rows",
+          "facts"
+        ],
+        "measure": [
+          "reading",
+          "overview"
+        ]
+      }
     },
     "local-exercise-content": {
       "approval": "none",
@@ -2056,6 +2161,43 @@
       "uses": [
         "node-renderer"
       ]
+    },
+    "row": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/row",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Row.svelte"
+      },
+      "purpose": "Open one object or destination from a list row, or read one, and say why an unavailable one cannot open.",
+      "shape": "none",
+      "stateVariants": {
+        "current": {
+          "interaction": [
+            "open"
+          ]
+        },
+        "unavailable": {
+          "interaction": [
+            "open"
+          ]
+        }
+      },
+      "states": [
+        "available",
+        "unavailable",
+        "current"
+      ],
+      "variants": {
+        "interaction": [
+          "open",
+          "static"
+        ],
+        "trailing": [
+          "chevron",
+          "none"
+        ]
+      }
     },
     "scroll-edges": {
       "approval": "required",

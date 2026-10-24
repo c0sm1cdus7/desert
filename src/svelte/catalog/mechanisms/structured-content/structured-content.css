@@ -7,7 +7,6 @@
   .fact-label { color:var(--muted-foreground); }
   .fact-value { min-width:0; white-space:pre-wrap; overflow-wrap:anywhere; text-align:end; text-wrap:balance; justify-content:flex-end; }
   .fact-label { min-width:0; overflow-wrap:anywhere; text-wrap:balance; }
-  .fact-labels { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:.5rem; }
   @container fact-group (max-width:14em) {
     .fact-row { grid-template-columns:minmax(0,1fr); gap:.25rem; }
   }

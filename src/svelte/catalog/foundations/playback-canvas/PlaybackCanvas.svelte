@@ -1,7 +1,6 @@
 <script lang="ts">
   import {onDestroy} from 'svelte';
   import { Image } from '../../index.ts';
-  import { ArtworkPlaceholder } from '../../index.ts';
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import { imageSource } from '../../../infra/media-source.ts';
   import type { ViewerMedia } from '../../../infra/media-source.ts';
@@ -26,7 +25,7 @@
   </video>
 {:else}
   {#if item.artwork}<Image source={item.artwork.source} alt={item.artwork.alt} edge={1280} />
-  {:else}<ArtworkPlaceholder kind="audio" />{/if}
+  {:else}<Image placeholder="audio" />{/if}
   <audio data-media-player="audio" use:playback.attach src={source} preload="metadata" aria-label={item.alt}>
     {#each item.captions as track (track.source)}
       <track kind="captions" src={track.source} srclang={track.language} label={track.label} />
