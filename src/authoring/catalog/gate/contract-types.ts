@@ -225,6 +225,7 @@ function walk(judge: Judge, type: ts.Type, trail: string, seen: Set<ts.Type>, re
     args.slice(0, judged).forEach((argument, index) => next(argument, `${trail}<${index}>`));
     return;
   }
+  if (pendingMapped(checker, type)) return report(trail, `the unresolved mapped type ${name}`);
   // A section with no members (`props: Type.Object({})`) is closed; an empty object type as a value is not.
   if (emptyObject(checker, type)) return sections.some(section => section === trail) ? undefined : report(trail, "{}");
   const reference = (type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference ? type as ts.TypeReference : undefined;
@@ -240,16 +241,19 @@ function walk(judge: Judge, type: ts.Type, trail: string, seen: Set<ts.Type>, re
   for (const property of checker.getPropertiesOfType(type)) {
     // A private or #private member is not part of what a caller can reach; a quoted "#name" key is an ordinary member.
     const declaration = property.valueDeclaration ?? property.declarations?.[0], named = declaration && ts.getNameOfDeclaration(declaration);
-    if (named && ts.isPrivateIdentifier(named) || declaration && ts.getCombinedModifierFlags(declaration) & (ts.ModifierFlags.Private | ts.ModifierFlags.Protected)) continue;
+    const hidden = (item: ts.Declaration) => !!(ts.getCombinedModifierFlags(item) & (ts.ModifierFlags.Private | ts.ModifierFlags.Protected));
+    if (named && ts.isPrivateIdentifier(named) || property.declarations?.length && property.declarations.every(hidden)) continue;
     const propertyType = declaration ? checker.getTypeOfSymbolAtLocation(property, declaration) : checker.getTypeOfSymbol(property);
     next(propertyType, `${trail}.${property.name}`);
     // A setter's write type is its parameter's. Read as declared, a parameter typed by the declaration's own generics
-    // would be judged uninstantiated; so a setter beside a getter must write exactly what the getter reads.
+    // would be judged uninstantiated; so only a setter in the getter's own declaration writing the very type the getter
+    // reads is skipped (merged declarations in two namespace blocks can give one name two meanings).
     const getter = property.declarations?.find(ts.isGetAccessorDeclaration), mapped = (type as ts.ObjectType).objectFlags & ts.ObjectFlags.Mapped;
     for (const setter of getter && !mapped ? property.declarations?.filter(ts.isSetAccessorDeclaration) ?? [] : []) {
       const [value] = setter.parameters;
       if (!value?.type || !getter?.type) { report(`${trail}.${property.name}=`, "an untyped setter or getter"); continue; }
-      if (value.type.getText() !== getter.type.getText()) next(checker.getTypeAtLocation(value), `${trail}.${property.name}=`);
+      const same = setter.parent === getter.parent && checker.getTypeFromTypeNode(value.type) === checker.getTypeFromTypeNode(getter.type);
+      if (!same) next(checker.getTypeAtLocation(value), `${trail}.${property.name}=`);
     }
   }
   for (const info of checker.getIndexInfosOfType(type)) next(info.type, `${trail}[]`);
@@ -265,6 +269,19 @@ function walk(judge: Judge, type: ts.Type, trail: string, seen: Set<ts.Type>, re
   }
 }
 
+/** A mapped type still waiting for its keys (`{ [K in keyof T]: … }` with T unresolved) shows only the keys T's constraint
+ * has; like a pending conditional it is refused. TypeScript exposes no public test, so its own field is read, and a
+ * mapped type without that field fails loudly instead of passing. */
+function pendingMapped(checker: ts.TypeChecker, type: ts.Type): boolean {
+  if (!((type as ts.ObjectType).objectFlags & ts.ObjectFlags.Mapped)) return false;
+  checker.getPropertiesOfType(type);  // resolving the members is what sets the field
+  const constraint: unknown = Reflect.get(type, "constraintType");
+  if (!(constraint instanceof Object) || typeof Reflect.get(constraint, "flags") !== "number") {
+    throw new Error("CATALOG_GATE_CONTRACT_TYPES: this TypeScript's mapped types carry no constraintType");
+  }
+  return !!(Reflect.get(constraint, "flags") & ts.TypeFlags.Instantiable);
+}
+
 /** The first library type in a class or interface's heritage, through tree bases, intersections and mixins. */
 function libraryHeritage(checker: ts.TypeChecker, judge: Judge, declared: ts.Type, climbed: Set<ts.Type>): string | undefined {
   if (climbed.has(declared)) return undefined;
@@ -272,8 +289,12 @@ function libraryHeritage(checker: ts.TypeChecker, judge: Judge, declared: ts.Typ
   if (climbed.size > maxTypes) throw new WalkLimit(`a heritage of more than ${maxTypes} types`);
   const bases = declared.isClassOrInterface() ? checker.getBaseTypes(declared) : declared.isIntersection() ? declared.types : [];
   for (const base of bases) {
-    const files = filesOf(base.getSymbol());
-    if (files.length > 0 && files.every(judge.library)) return checker.typeToString(base);
+    // A library interface or class is heritage; a library mapped utility (`extends Omit<Base, "b">`) is not, its members
+    // are this type's own and are judged on it.
+    const symbol = base.getSymbol(), files = filesOf(symbol);
+    if (files.length > 0 && files.every(judge.library) && symbol && symbol.flags & (ts.SymbolFlags.Interface | ts.SymbolFlags.Class)) {
+      return checker.typeToString(base);
+    }
     const target = (base as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference ? (base as ts.TypeReference).target : base;
     const found = libraryHeritage(checker, judge, target, climbed);
     if (found) return found;

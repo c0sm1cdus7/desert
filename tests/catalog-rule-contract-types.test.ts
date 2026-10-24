@@ -210,3 +210,18 @@ test("a deep or diamond heritage is bounded", () => {
   assert.ok(Date.now() - started < 20000, "diamond heritage is climbed once per declaration");
   assert.match(found.join("\n"), /extends the library type Error/);
 });
+
+test("a getter and setter merged from two namespace blocks are judged apart", () => {
+  const shape = "export namespace N { type A = string; export interface I { get v(): A } }\nexport namespace N { type A = any; export interface I { set v(x: A) } }\nexport type Shape = { b: N.I };";
+  assert.match(judge("Type.Unsafe<Shape>()", shape).join("\n"), /props\.a\.b\.v= resolves to any/);
+});
+
+test("a mapped type still waiting for its keys is refused", () => {
+  assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { f: <T extends { a: string }>(x: T) => { [K in keyof T]: K extends 'a' ? string : any } };").join("\n"),
+    /resolves to the unresolved mapped type/);
+});
+
+test("extending a library mapped utility is not library heritage: its members are judged", () => {
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", "type Base = { a: string; b: number };\nexport interface X extends Omit<Base, 'b'> { c: string }\nexport type Shape = { x: X };"), []);
+  assert.match(judge("Type.Unsafe<Shape>()", "type Base = { a: string; b: any };\nexport interface X extends Pick<Base, 'b'> {}\nexport type Shape = { x: X };").join("\n"), /props\.a\.x\.b resolves to any/);
+});
