@@ -9,8 +9,9 @@ import { contentRuleIds, contentRules } from "../src/authoring/catalog/gate/cont
 import type { ContentRule } from "../src/authoring/catalog/gate/context.ts";
 import { added, mutated, realSource } from "./support/real-tree.ts";
 
-/** Every content rule that reads only the visual roots (rule N reads disk; its scenarios have their own file). */
-const gate: ContentRule = context => contentRuleIds.filter(id => id !== "N").flatMap(id => contentRules[id](context));
+/** Every content rule that reads only the visual roots (rules N and U read disk; their scenarios have their own files). */
+const onDisk: readonly string[] = ["N", "U"];
+const gate: ContentRule = context => contentRuleIds.filter(id => !onDisk.includes(id)).flatMap(id => contentRules[id](context));
 type Changes = Readonly<Record<string, string>>;
 const catalog = "src/svelte/catalog", compositions = `${catalog}/compositions`, renderer = `${catalog}/renderer`, foundations = `${catalog}/foundations`;
 const mechanisms = `${catalog}/mechanisms`;

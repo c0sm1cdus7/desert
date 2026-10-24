@@ -9,6 +9,7 @@
 import { dirname, join, posix, resolve } from "node:path";
 import ts from "typescript";
 import type { CatalogLayout } from "../layout.ts";
+import type { ContentRule } from "./context.ts";
 import type { LocatedDeclaration } from "./inventory.ts";
 import { contractPath, type ReadContract } from "../read-contract.ts";
 import { violation, type Violation } from "./violation.ts";
@@ -62,7 +63,7 @@ export function contractTypeViolations(root: string, layout: Pick<CatalogLayout,
   const program = ts.createProgram([entry, runes.resolvedFileName], options, host);
   const checker = program.getTypeChecker(), source = program.getSourceFile(entry);
   if (!source) throw new Error("CATALOG_GATE_CONTRACT_TYPES: the contract type program has no entry");
-  const exportsOf = new Map(checker.getExportsOfModule(checker.getSymbolAtLocation(source) ?? fail()).map(symbol => [symbol.name, symbol]));
+  const exportsOf = new Map(checker.getExportsOfModule(checker.getSymbolAtLocation(source) ?? notModule()).map(symbol => [symbol.name, symbol]));
   const found: Violation[] = [];
   closed.forEach(({ declaration }, index) => {
     const id = declaration.declaration.id, path = contractPath(declaration.path, id), reported = new Set<string>();
@@ -79,7 +80,7 @@ export function contractTypeViolations(root: string, layout: Pick<CatalogLayout,
   return found;
 }
 
-function fail(): never { throw new Error("CATALOG_GATE_CONTRACT_TYPES: the contract type entry is not a module"); }
+function notModule(): never { throw new Error("CATALOG_GATE_CONTRACT_TYPES: the contract type entry is not a module"); }
 
 const fileOf = (symbol: ts.Symbol | undefined) => symbol?.declarations?.[0]?.getSourceFile().fileName.split("\\").join("/");
 
@@ -117,3 +118,8 @@ function walk(checker: ts.TypeChecker, type: ts.Type, trail: string, seen: Set<t
     walk(checker, signature.getReturnType(), `${trail}()`, seen, report);
   }
 }
+
+export const ruleU: ContentRule = context => {
+  if (context.contractTypes === "unread") throw new Error("CONTRACT_TYPES_UNREAD: rule U needs contractTypeViolations over the tree, then withContractTypes");
+  return context.contractTypes;
+};

@@ -43,7 +43,7 @@ export function realContext(changes: Readonly<Record<string, string>> = {}): Gat
     const [declaration] = readDeclarations(located.path, changed);
     return declaration ? { path: located.path, declaration } : located;
   });
-  return createContext({ layout: DesertLayout, paths, declarations, ledger: tree.ledger, sources, parse, nonvisual: "unread" });
+  return createContext({ layout: DesertLayout, paths, declarations, ledger: tree.ledger, sources, parse, nonvisual: "unread", contractTypes: "unread" });
 }
 
 const key = (item: Violation) => `${item.code}\u0000${item.path}\u0000${item.what}`;

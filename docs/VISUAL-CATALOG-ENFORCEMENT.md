@@ -26,8 +26,12 @@ Every build and check (`createBuildProject`, `scripts/catalog-gate.ts`) runs `ru
    L2 (approved pieces are unchanged; approved and dispatching pieces mount approved pieces), N (the interpreter and every
    module outside the visual roots the page reaches stay nonvisual), O (no `{@html}` outside compositions, no evaluator,
    `require` or computed `import()` in page code, and no `import()` at all in a template expression or a renderer), T (the
-   host files keep their fixed grammar).
+   host files keep their fixed grammar), U (the TypeScript checker resolves every prop, event and instance member of each
+   closed contract and finds no `any`, `unknown`, `object`, or DOM, Svelte or Node type anywhere inside it).
 4. The worker; then, for a build, G2 on the emitted CSS.
+
+The gate-from-base CI job runs these rules from the base checkout with `scripts/catalog-gate.ts --tree .pr`: the PR tree
+is judged as data, and no module of it is imported.
 
 The previous visual-boundary gate (`src/authoring/visual-boundary`, `src/authoring/web-catalog`, `catalog-manifest.ts`
 and its generated `adapter-catalog.ts`) was retired in slice 2 once every assertion had a catalog rule; the mapping is in

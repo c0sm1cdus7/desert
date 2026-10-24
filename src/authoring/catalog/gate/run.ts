@@ -11,7 +11,8 @@ import { assertDeclarationsConsistent } from "./declarations.ts";
 import { assertCatalogDerivations } from "./derivation.ts";
 import { assertLedgerStructure } from "./ledger.ts";
 import { contentRules, type ContentRuleId } from "./content-rules.ts";
-import { createContext, withNonvisual } from "./context.ts";
+import { contractTypeViolations } from "./contract-types.ts";
+import { createContext, withContractTypes, withNonvisual } from "./context.ts";
 import { readNonvisualSources } from "./nonvisual-sources.ts";
 import { CatalogGateViolations, type Violation } from "./violation.ts";
 
@@ -84,8 +85,13 @@ export async function contentViolations(root: string, tree: CatalogTree, options
   const loadable = (path: string) => textual.test(path) || !posix.basename(path).includes(".");
   for (const path of [...tree.paths, ...options.layout.gate.reads]) if (loadable(path)) sources.set(path, await readFile(join(root, path), "utf8"));
   const visual = createContext({ layout: options.layout, paths: tree.paths, declarations: tree.declarations, ledger: tree.ledger, sources,
-    nonvisual: "unread" });
-  const context = options.rules.includes("N") ? withNonvisual(visual, await readNonvisualSources(root, visual)) : visual;
+    nonvisual: "unread", contractTypes: "unread" });
+  const read = options.rules.includes("N") ? withNonvisual(visual, await readNonvisualSources(root, visual)) : visual;
+  const closed = tree.declarations.flatMap(declaration => {
+    const contract = tree.contracts.get(declaration.declaration.id);
+    return contract?.closed ? [{ declaration, contract }] : [];
+  });
+  const context = options.rules.includes("U") ? withContractTypes(read, contractTypeViolations(root, options.layout, closed)) : read;
   const violations: Violation[] = [];
   for (const rule of options.rules) violations.push(...contentRules[rule](context));
   return { context, violations: Object.freeze(violations) };

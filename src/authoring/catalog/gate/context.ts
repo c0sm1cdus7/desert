@@ -26,14 +26,18 @@ export type GateContext = Readonly<{
   /** The code outside the visual roots that rule N judges, read by nonvisual-sources.ts; "unread" until it is read, and
    * rule N refuses to run on it then, so a caller that never read it cannot pass rule N as if there were nothing to judge. */
   nonvisual: NonvisualInput;
+  /** What the TypeScript checker found in the closed contracts' types (contract-types.ts), "unread" until it ran; rule U
+   * refuses to run on "unread" for the same reason rule N does. */
+  contractTypes: ContractTypesInput;
 }>;
 export type NonvisualInput = NonvisualSources | "unread";
+export type ContractTypesInput = readonly Violation[] | "unread";
 export type ContentRule = (context: GateContext) => readonly Violation[];
 
 export const parseable = (path: string) => /\.(svelte|ts|js|mjs)$/.test(path) && !path.endsWith(".d.ts");
 
 export function createContext(input: Readonly<{ layout: CatalogLayout; paths: readonly string[]; declarations: readonly LocatedDeclaration[];
-  ledger: unknown; sources: ReadonlyMap<string, string>; nonvisual: NonvisualInput;
+  ledger: unknown; sources: ReadonlyMap<string, string>; nonvisual: NonvisualInput; contractTypes: ContractTypesInput;
   /** How a source is parsed; a caller that builds many contexts over mostly the same files may share one parse per text. */
   parse?: (path: string, source: string) => Parsed }>): GateContext {
   const present = new Set(input.paths), parsedCache = new Map<string, Parsed>(), importCache = new Map<string, readonly Import[]>();
@@ -74,7 +78,7 @@ export function createContext(input: Readonly<{ layout: CatalogLayout; paths: re
   };
   return Object.freeze({
     layout: input.layout, paths: input.paths, declarations: input.declarations, ledger: input.ledger,
-    owners, text, parsed, imports, contract, nonvisual: input.nonvisual,
+    owners, text, parsed, imports, contract, nonvisual: input.nonvisual, contractTypes: input.contractTypes,
     definition: (item: Import, imported: string) => item.target.kind === "file"
       ? imported === "*" ? item.target.path : definingFile(item.target.path, imported, imports, exported) : undefined,
   });
@@ -82,3 +86,5 @@ export function createContext(input: Readonly<{ layout: CatalogLayout; paths: re
 
 /** The same context, with the nonvisual code it reaches: rule N's input is read after the visual roots are parsed. */
 export const withNonvisual = (context: GateContext, nonvisual: NonvisualSources): GateContext => Object.freeze({ ...context, nonvisual });
+/** The same context, with what the checker found in the closed contracts' types: rule U's input needs the tree on disk. */
+export const withContractTypes = (context: GateContext, contractTypes: readonly Violation[]): GateContext => Object.freeze({ ...context, contractTypes });
