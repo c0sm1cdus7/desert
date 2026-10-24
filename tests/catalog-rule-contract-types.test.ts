@@ -46,7 +46,6 @@ for (const [name, shape, what] of [
   ["the Object type", "export type Shape = { box: Object };", /props\.a\.box resolves to the library type Object/],
   ["an empty object type", "export type Shape = { box: {} };", /props\.a\.box resolves to \{\}/],
   ["an unconstrained generic", "export type Shape = { echo: <T>(value: T) => T };", /props\.a\.echo\(value\) resolves to the unconstrained generic T/],
-  ["a conditional over a generic", "export type Shape = { pick: <T>(value: T) => T extends string ? number : boolean };", /unconstrained generic/],
   ["an open this parameter", "export type Shape = { call: (this: any, id: string) => void };", /props\.a\.call\(this\) resolves to any/],
 ] as const) test(`${name} is an open contract type`, () => {
   const found = judge("Type.Unsafe<Shape>()", shape);
@@ -119,14 +118,16 @@ test("a setter's write type and a type predicate are judged", () => {
   assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { check: (v: string) => v is any };").join("\n"), /props\.a\.check\(\) is resolves to any/);
 });
 
-test("a tree type over a library base is its own members plus the base as the library type it is", () => {
-  assert.deepEqual(judge("Type.Unsafe<Shape>()", "export class Path extends Array<string> { label = \"x\" }\nexport type Shape = { path: Path };"), []);
-  assert.match(judge("Type.Unsafe<Shape>()", "export class Failure extends Error { code = \"x\" }\nexport type Shape = { failure: Failure };").join("\n"),
-    /props\.a\.failure:Error resolves to the library type Error/);
-  assert.match(judge("Type.Unsafe<Shape>()", "export interface Labels extends Array<string> { leak: any }\nexport type Shape = { labels: Labels };").join("\n"),
-    /props\.a\.labels\.leak resolves to any/);
+test("a contract type composes library types, it never extends one", () => {
+  for (const shape of ["export class Path extends Array<string> { label = \"x\" }\nexport type Shape = { t: Path };",
+    "export class Failure extends Error { code = \"x\" }\nexport type Shape = { t: Failure };",
+    "export interface L<T> extends Array<T> { label: string }\nexport type Shape = { t: L<string> };",
+    "export interface Labels extends Array<string> { leak: any }\nexport type Shape = { t: Labels };",
+    "type Mix = PropertyDescriptor & { tag: string };\nexport interface L extends Mix {}\nexport type Shape = { t: L };",
+    "export function M<T extends new (...a: any[]) => object>(B: T) { return class extends B {} }\nexport class Tree extends M(Error) {}\nexport type Shape = { t: Tree };"]) {
+    assert.match(judge("Type.Unsafe<Shape>()", shape).join("\n"), /props\.a\.t resolves to a type that extends the library type/, shape);
+  }
 });
-
 test("a quoted \"#name\" key is an ordinary member", () => {
   assert.match(judge("Type.Unsafe<Shape>()", 'export type Shape = { "#leak": any };').join("\n"), /#leak resolves to any/);
 });
@@ -152,15 +153,12 @@ test("an open type in a callback of the contract itself is judged too", () => {
   assert.match(judge("Type.Function([Type.Unsafe<Shape>()], Type.Void())", "export type Shape = { raw: unknown };").join("\n"), /props\.a\(param\)<0>\.raw resolves to unknown/);
 });
 
-test("generic tree types are judged through their declaration: bases, members and setters", () => {
-  assert.deepEqual(judge("Type.Unsafe<Shape>()", "export interface L<T> extends Array<T> { label: string }\nexport type Shape = { l: L<string> };"), []);
-  assert.match(judge("Type.Unsafe<Shape>()", "export interface L<T> extends Intl.NumberFormatOptions { v: T }\nexport type Shape = { l: L<string> };").join("\n"),
-    /props\.a\.l:.*resolves to the library type NumberFormatOptions/);
-  assert.match(judge("Type.Unsafe<Shape>()", "export interface L<T> extends Array<T> { label: string }\nexport type Shape = { l: L<any> };").join("\n"), /props\.a\.l<0> resolves to any/);
+test("generic tree types are judged on the instance: members and setters", () => {
   assert.deepEqual(judge("Type.Unsafe<Shape>()", "export interface Box<T> { get v(): T; set v(value: T) }\nexport type Shape = { x: Box<string> };"), []);
+  assert.match(judge("Type.Unsafe<Shape>()", "export interface Box<T> { get v(): T; set v(value: T) }\nexport type Shape = { x: Box<any> };").join("\n"), /props\.a\.x<0> resolves to any/);
+  assert.match(judge("Type.Unsafe<Shape>()", "export interface Box<T> { get v(): string; set v(value: T) }\nexport type Shape = { x: Box<string> };").join("\n"), /props\.a\.x\.v= resolves to the unconstrained generic T/);
   assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { x: Readonly<{ a: any }> };").join("\n"), /props\.a\.x\.a resolves to any/);
 });
-
 test("large literal unions are closed, and a branching type with open leaves is one finding", () => {
   assert.deepEqual(judge("Type.Unsafe<Shape>()", "type H = '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'a'|'b'|'c'|'d'|'e'|'f';\nexport type Shape = { c: `${H}${H}${H}${H}` };"), []);
   const flood = judge("Type.Unsafe<Shape>()", "type B<T extends unknown[]> = T['length'] extends 12 ? any : { l: B<[...T, 0]>; r: B<[...T, 1]> };\nexport type Shape = { b: B<[]> };");
@@ -186,10 +184,14 @@ test("a closed member of a generic tree base is closed on the instance", () => {
   assert.deepEqual(judge("Type.Unsafe<Shape>()", "export function M<T extends new (...a: any[]) => object>(B: T) { return class extends B { fine = 's' } }\nexport class Base { ok = 1 }\nexport class Tree extends M(Base) {}\nexport type Shape = { t: Tree };"), []);
 });
 
-test("a conditional over an unconstrained generic is open when either branch is", () => {
-  assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { f: <T>(x: string) => T extends 1 ? any : string };").join("\n"), /props\.a\.f\(\)\? resolves to any/);
+test("a conditional still waiting for its input is refused, whatever its branches", () => {
+  for (const shape of ["export type Shape = { f: <T>(x: string) => T extends 1 ? any : string };",
+    "export type Box<T extends string> = { f<U extends string>(x: U): U extends 'a' ? T : number };\nexport type Shape = { b: Box<'z'> };",
+    "declare function make<T extends string>(): { f<U extends string>(x: U): U extends 'a' ? T : number };\nexport type Shape = { b: ReturnType<typeof make<'z'>> };"]) {
+    assert.match(judge("Type.Unsafe<Shape>()", shape).join("\n"), /resolves to the unresolved conditional/, shape);
+  }
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", "type Pick1<T> = T extends string ? 's' : 'n';\nexport type Shape = { k: Pick1<string> };"), []);
 });
-
 test("a generic class's static side keeps its open constructor parameter", () => {
   assert.match(judge("Type.Unsafe<Shape>()", "export class Box<T> { v!: T; constructor(x: T) {} }\nexport type Shape = { k: typeof Box };").join("\n"), /unconstrained generic T/);
 });
@@ -199,4 +201,12 @@ test("a limited section keeps its first findings before the limit", () => {
   assert.ok(found.some(item => /props\.a\.real resolves to any/.test(item)), found.slice(0, 3).join("\n"));
   assert.match(found.at(-1) ?? "", /props holds more than \d+ open types; the walk of props stopped there/);
   assert.ok(found.length <= 11);
+});
+
+test("a deep or diamond heritage is bounded", () => {
+  const diamond = Array.from({ length: 24 }, (_, i) => `interface A${i} extends A${i + 1}, B${i + 1} {}\ninterface B${i} extends A${i + 1}, B${i + 1} {}`).join("\n");
+  const started = Date.now();
+  const found = judge("Type.Unsafe<Shape>()", `${diamond}\ninterface A24 extends Error {}\ninterface B24 { id: string }\nexport type Shape = { t: A0 };`);
+  assert.ok(Date.now() - started < 20000, "diamond heritage is climbed once per declaration");
+  assert.match(found.join("\n"), /extends the library type Error/);
 });

@@ -3,8 +3,9 @@
 // checker what every prop, event and instance member of each closed contract resolves to, through every property,
 // union, array, map, call signature, setter, type predicate and `this` parameter. It refuses `any`, `unknown`,
 // `object`, `{}`, every ES library interface or class but a short list of value types (the library's mapped utilities
-// and namespaces are walked), generics without a closed constraint (`<T>`, a conditional, `keyof T`, `T[K]` over them)
-// and any type declared by the DOM, Svelte or Node.
+// and namespaces are walked), generics without a closed constraint, conditionals still waiting for their input, tree
+// types that extend a library type, and any type declared by the DOM, Svelte or Node. What it cannot judge for certain
+// it refuses rather than reasons about.
 // Raises: CONTRACT_OPEN_TYPE.
 //
 // The judged tree is read as data: the checker parses it and evaluates nothing, and the tree cannot change what the
@@ -113,7 +114,7 @@ export function contractTypeViolations(judged: string, layout: Pick<CatalogLayou
   const checker = program.getTypeChecker(), source = program.getSourceFile(entry);
   if (!source) throw new Error("CATALOG_GATE_CONTRACT_TYPES: the contract type program has no entry");
   const exportsOf = new Map(checker.getExportsOfModule(checker.getSymbolAtLocation(source) ?? notModule()).map(symbol => [symbol.name, symbol]));
-  const judge: Judge = { checker, library, packaged, bound: new Set() };
+  const judge: Judge = { checker, library, packaged };
   closed.forEach(({ declaration }, index) => {
     const id = declaration.declaration.id, path = contractPath(declaration.path, id);
     for (const section of sections) {
@@ -132,7 +133,6 @@ export function contractTypeViolations(judged: string, layout: Pick<CatalogLayou
       try { walk(judge, checker.getDeclaredTypeOfSymbol(alias), section, new Set(), report); found.push(...local); }
       catch (error) {
         if (!(error instanceof WalkLimit)) throw error;
-        judge.bound.clear();
         found.push(...local.slice(0, keptFindings), violation(code, path, 0, `${id} ${error.message}; the walk of ${section} stopped there`));
       }
     }
@@ -161,13 +161,10 @@ function treeFileViolations(file: ts.SourceFile, path: string): Violation[] {
   return found;
 }
 
-/** `bound` holds the type parameters of the declaration whose library bases are being judged: in `L<T> extends Array<T>`,
- * T stands for L's arguments, judged at `<i>`. It is emptied again right after, so it never hides a generic elsewhere. */
-type Judge = Readonly<{ checker: ts.TypeChecker; library: (file: ts.SourceFile) => boolean; packaged: (file: ts.SourceFile) => boolean;
-  bound: Set<ts.Type> }>;
+type Judge = Readonly<{ checker: ts.TypeChecker; library: (file: ts.SourceFile) => boolean; packaged: (file: ts.SourceFile) => boolean }>;
 const filesOf = (symbol: ts.Symbol | undefined) => symbol?.declarations?.map(item => item.getSourceFile()) ?? [];
 const primitive = ts.TypeFlags.StringLike | ts.TypeFlags.NumberLike | ts.TypeFlags.BigIntLike | ts.TypeFlags.BooleanLike | ts.TypeFlags.ESSymbolLike;
-const unresolvedGeneric = ts.TypeFlags.TypeParameter | ts.TypeFlags.Conditional | ts.TypeFlags.Index | ts.TypeFlags.IndexedAccess | ts.TypeFlags.Substitution;
+const unresolvedGeneric = ts.TypeFlags.TypeParameter | ts.TypeFlags.Index | ts.TypeFlags.IndexedAccess | ts.TypeFlags.Substitution;
 
 function notModule(): never { throw new Error("CATALOG_GATE_CONTRACT_TYPES: the contract type entry is not a module"); }
 
@@ -198,15 +195,11 @@ function walk(judge: Judge, type: ts.Type, trail: string, seen: Set<ts.Type>, re
   if (seen.has(type)) return;
   seen.add(type);
   if (seen.size > maxTypes) throw new WalkLimit(`${trail} reaches more than ${maxTypes} types`);
+  // What the checker cannot resolve here is refused rather than reasoned about: a conditional still waiting for its input
+  // (`U extends 'a' ? T : number`) may become anything once instantiated.
+  if (type.flags & ts.TypeFlags.Conditional) return report(trail, `the unresolved conditional ${checker.typeToString(type)}`);
   // A generic is judged by its constraint: `K extends AccessMethod` is as closed as AccessMethod; `T` alone is unknown.
-  // A conditional is open when either branch is: its constraint is only the branch TypeScript picks for an unknown input.
-  if (type.flags & ts.TypeFlags.Conditional) {
-    const { node } = (type as ts.ConditionalType).root;
-    next(checker.getTypeFromTypeNode(node.trueType), `${trail}?`);
-    return next(checker.getTypeFromTypeNode(node.falseType), `${trail}:`);
-  }
   if (type.flags & unresolvedGeneric) {
-    if (judge.bound.has(type)) return;
     const constraint = checker.getBaseConstraintOfType(type);
     if (!constraint || constraint === type || constraint.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) {
       return report(trail, `the unconstrained generic ${checker.typeToString(type)}`);
@@ -234,57 +227,29 @@ function walk(judge: Judge, type: ts.Type, trail: string, seen: Set<ts.Type>, re
   }
   // A section with no members (`props: Type.Object({})`) is closed; an empty object type as a value is not.
   if (emptyObject(checker, type)) return sections.some(section => section === trail) ? undefined : report(trail, "{}");
-  // A tree interface or class over a library base (`extends Array<string>`, `extends Error`) is its own members plus that
-  // base, judged as the library type it is: inherited library members are not walked as if the tree declared them.
-  // A type's members are judged on the type itself, instantiated (`L<1>`'s own `v`, inherited or not). Its library
-  // bases (`extends Array<string>`, `extends Error`) are judged as the library types they are, and the members those
-  // bases bring are not walked again; a tree base needs no walk of its own, its members are already this type's.
   const reference = (type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference ? type as ts.TypeReference : undefined;
   if (reference) {
     checker.getTypeArguments(reference).forEach((argument, index) => next(argument, `${trail}<${index}>`));
     if (checker.isTupleType(type)) return;
   }
-  const target = reference ? reference.target : type;
-  // The library bases of the whole tree chain (`Tree extends Domain`, `Domain extends Array<string>`); a tree base's own
-  // type arguments (`extends Domain<any>`) are judged where the chain names them.
-  const libraryBases: ts.Type[] = [], parameters: ts.Type[] = [];
-  const climb = (declared: ts.Type, at: string, depthLeft: number): void => {
-    if (!declared.isClassOrInterface() || depthLeft === 0) return;
-    parameters.push(...declared.typeParameters ?? []);
-    for (const base of checker.getBaseTypes(declared)) {
-      const files = filesOf(base.getSymbol()), name = `${at}:${checker.typeToString(base)}`;
-      if (files.length > 0 && files.every(judge.library)) { libraryBases.push(base); continue; }
-      const baseReference = (base as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference ? base as ts.TypeReference : undefined;
-      baseReference && checker.getTypeArguments(baseReference).forEach((argument, index) => libraryArguments.push([argument, `${name}<${index}>`]));
-      climb(baseReference ? baseReference.target : base, name, depthLeft - 1);
-    }
-  };
-  const libraryArguments: [ts.Type, string][] = [];
-  climb(target, trail, maxDepth);
-  // While the chain's bases are judged, its type parameters stand for the arguments judged at `<i>` (`Array<T>`).
-  for (const parameter of parameters) judge.bound.add(parameter);
-  for (const [argument, at] of libraryArguments) next(argument, at);
-  for (const base of libraryBases) next(base, `${trail}:${checker.typeToString(base)}`);
-  for (const parameter of parameters) judge.bound.delete(parameter);
-  const inherited = (property: ts.Symbol) => libraryBases.length > 0 && !!property.declarations?.length
-    && property.declarations.every(item => judge.library(item.getSourceFile()));
+  // A contract type composes library types, it never extends one: what a library base brings is not judged member by
+  // member, so a tree type with a library type anywhere in its heritage is refused (`class Path extends Array<string>`).
+  const heritage = libraryHeritage(checker, judge, reference ? reference.target : type, new Set());
+  if (heritage) return report(trail, `a type that extends the library type ${heritage}`);
+  // Members are judged on this type itself, instantiated, so inherited tree members are judged with this type's arguments.
   for (const property of checker.getPropertiesOfType(type)) {
-    if (inherited(property)) continue;
     // A private or #private member is not part of what a caller can reach; a quoted "#name" key is an ordinary member.
     const declaration = property.valueDeclaration ?? property.declarations?.[0], named = declaration && ts.getNameOfDeclaration(declaration);
     if (named && ts.isPrivateIdentifier(named) || declaration && ts.getCombinedModifierFlags(declaration) & (ts.ModifierFlags.Private | ts.ModifierFlags.Protected)) continue;
     const propertyType = declaration ? checker.getTypeOfSymbolAtLocation(property, declaration) : checker.getTypeOfSymbol(property);
     next(propertyType, `${trail}.${property.name}`);
-    // A setter's write type is its parameter's: `set v(value: any)` beside `get v(): string`. A setter alone is the
-    // property's type already, and a mapped utility (Readonly) has no setter of its own.
-    const getter = property.declarations?.some(ts.isGetAccessorDeclaration), mapped = (type as ts.ObjectType).objectFlags & ts.ObjectFlags.Mapped;
-    // The setter's parameter is read as declared, so the declaration's type parameters stand for this type's arguments.
+    // A setter's write type is its parameter's. Read as declared, a parameter typed by the declaration's own generics
+    // would be judged uninstantiated; so a setter beside a getter must write exactly what the getter reads.
+    const getter = property.declarations?.find(ts.isGetAccessorDeclaration), mapped = (type as ts.ObjectType).objectFlags & ts.ObjectFlags.Mapped;
     for (const setter of getter && !mapped ? property.declarations?.filter(ts.isSetAccessorDeclaration) ?? [] : []) {
       const [value] = setter.parameters;
-      if (!value) continue;
-      for (const parameter of parameters) judge.bound.add(parameter);
-      next(checker.getTypeAtLocation(value), `${trail}.${property.name}=`);
-      for (const parameter of parameters) judge.bound.delete(parameter);
+      if (!value?.type || !getter?.type) { report(`${trail}.${property.name}=`, "an untyped setter or getter"); continue; }
+      if (value.type.getText() !== getter.type.getText()) next(checker.getTypeAtLocation(value), `${trail}.${property.name}=`);
     }
   }
   for (const info of checker.getIndexInfosOfType(type)) next(info.type, `${trail}[]`);
@@ -298,6 +263,22 @@ function walk(judge: Judge, type: ts.Type, trail: string, seen: Set<ts.Type>, re
     const predicate = checker.getTypePredicateOfSignature(signature)?.type;
     if (predicate) next(predicate, `${trail}() is`);
   }
+}
+
+/** The first library type in a class or interface's heritage, through tree bases, intersections and mixins. */
+function libraryHeritage(checker: ts.TypeChecker, judge: Judge, declared: ts.Type, climbed: Set<ts.Type>): string | undefined {
+  if (climbed.has(declared)) return undefined;
+  climbed.add(declared);
+  if (climbed.size > maxTypes) throw new WalkLimit(`a heritage of more than ${maxTypes} types`);
+  const bases = declared.isClassOrInterface() ? checker.getBaseTypes(declared) : declared.isIntersection() ? declared.types : [];
+  for (const base of bases) {
+    const files = filesOf(base.getSymbol());
+    if (files.length > 0 && files.every(judge.library)) return checker.typeToString(base);
+    const target = (base as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference ? (base as ts.TypeReference).target : base;
+    const found = libraryHeritage(checker, judge, target, climbed);
+    if (found) return found;
+  }
+  return undefined;
 }
 
 export const ruleU: ContentRule = context => {
