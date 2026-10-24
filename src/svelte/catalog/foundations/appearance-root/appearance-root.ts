@@ -9,7 +9,8 @@ const rootKeys = ["rendererProfile", "theme", "tint", "wallpaper"] as const;
 
 export function mountAppearanceRoot(): () => void {
   const root = document.documentElement, scheme = matchMedia("(prefers-color-scheme: dark)");
-  const previous = { ...Object.fromEntries(rootKeys.map(key => [key, root.dataset[key]])), scale: root.style.getPropertyValue("--text-scale") };
+  const previous = new Map(rootKeys.map(key => [key, root.dataset[key]] as const));
+  const previousScale = root.style.getPropertyValue("--text-scale");
   // F1-merge: the renderer profile mark is dropped with the catalog-profile mechanism, and the tint becomes a tint-* class.
   root.dataset.rendererProfile = "apple-reference";
   appearance.set(storedAppearance());
@@ -30,11 +31,11 @@ export function mountAppearanceRoot(): () => void {
     window.removeEventListener("storage", synchronize);
     scheme.removeEventListener("change", publish);
     for (const key of rootKeys) {
-      const value = previous[key];
+      const value = previous.get(key);
       if (value === undefined) delete root.dataset[key];
       else root.dataset[key] = value;
     }
-    if (previous.scale) root.style.setProperty("--text-scale", previous.scale);
+    if (previousScale) root.style.setProperty("--text-scale", previousScale);
     else root.style.removeProperty("--text-scale");
   };
 }
