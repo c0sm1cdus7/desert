@@ -42,7 +42,7 @@
   height:var(--toolbar-target); min-height:var(--toolbar-target);
 }
 [data-piece="toolbar"] .toolbar-row :is(.toolbar-action > button,[data-toolbar-controls] button,
-  [data-catalog-navigation-actions] > button,[data-slot="sidebar-trigger"],[data-catalog-search-toggle],button:has(> [data-button-content] > svg):not([data-primitive="action"])) {
+  [data-catalog-navigation-actions] > button,[data-slot="sidebar-trigger"],[data-catalog-search-toggle],button:has(> [data-button-content] > svg):not([data-action])) {
   width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset);
 }
 [data-piece="toolbar"] :is([data-toolbar-controls],[data-toolbar-utilities],[data-catalog-navigation-actions],[data-toolbar-auxiliary]) { gap:var(--toolbar-gap); }

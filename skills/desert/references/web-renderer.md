@@ -1204,7 +1204,7 @@ export function nodeEvent(value: unknown): NodeEvent {
 
 ## src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte
 
-Source SHA-256: b05d01483d5f0bb55aafb95e1c041b5866d267491db50c70a76b0a9730a5b066
+Source SHA-256: 03b95d816fadb1d2de3e643930c54ff4178341a4c32811f7d803f45895ccc7bb
 
 ```svelte
 <script lang="ts">
@@ -1216,7 +1216,7 @@ Source SHA-256: b05d01483d5f0bb55aafb95e1c041b5866d267491db50c70a76b0a9730a5b066
   import { nodeRenderers } from "../../../renderer-registry.ts";
   import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
 
-  let { node, onevent = () => {}, host, actionElementProps, frameIdentity }: NodeRendererProps = $props();
+  let { node, onevent = () => {}, host, actionDisclosure, frameIdentity }: NodeRendererProps = $props();
   let checked = $derived(resolvedNode(node));
   const emit = (event: NodeEvent) => onevent(nodeEvent(event));
   const control = (event: ControlEvent) => emit(event);
@@ -1254,8 +1254,8 @@ Source SHA-256: b05d01483d5f0bb55aafb95e1c041b5866d267491db50c70a76b0a9730a5b066
     onchange={value => checked.kind === "input.multiline" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "action"}
   {@const Renderer = nodeRenderers.action}
-  <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role} reason={checked.action.reason}
-    type={checked.form ? "submit" : "button"} onclick={activate} elementProps={actionElementProps} />
+  <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role} face="fit"
+    reason={checked.action.reason} type={checked.form ? "submit" : "button"} onclick={activate} disclosure={actionDisclosure} />
 {:else if checked.kind === "availability"}
   {@const Renderer = nodeRenderers.availability}<Renderer state={checked.state} label={checked.label} />
 {:else if checked.kind === "fact"}
@@ -1472,19 +1472,20 @@ Source SHA-256: 1b30b59ee4461594a05acd87260fb1cbcf3bfc001cbb7c680ebfe21c70790679
 
 ## src/svelte/renderer-contracts.ts
 
-Source SHA-256: f1505f46c216c2459190f5ee5c225ce26679154b07941a1283844c084c2bd5d0
+Source SHA-256: f01e362b7d16e2268cc61efaa943ce5c7e8e96877726974511a67466da3d8914
 
 ```ts
 import type { Component } from "svelte";
 import type { ResolvedNodeId, ResolvedInputId } from "../interaction/catalog.ts";
 import type { ControlNode, ControlEvent } from "../interaction/control-nodes.ts";
 import type { SurfaceFrame, FrameContent, FactsContent, Destination } from "../interaction/surface-frame.ts";
-import type { ToolbarAction, TopToolbar } from "../interaction/toolbar.ts";
+import type { TopToolbar } from "../interaction/toolbar.ts";
 import type { SurfaceIntent } from "../interaction/intent.ts";
 import type { ResolvedNode, ResolvedNodeFor } from "../interaction/resolved-node.ts";
 import type { NodeEvent } from "../interaction/node-events.ts";
 import type { LocalFileHost } from "./infra/file-host.ts";
-import type { ActionElementProps } from "./action-adapter.ts";
+import type { Disclosure } from "./infra/disclosure.ts";
+import type { CatalogProps } from "./catalog/types.d.ts";
 import type { InputMask } from "../interaction/input-mask.ts";
 import { freezeDeep } from "../json.ts";
 import type { FormControlEvent } from "../interaction/form-control-event.ts";
@@ -1492,7 +1493,7 @@ import type { FormControlEvent } from "../interaction/form-control-event.ts";
 /** Private dispatcher inputs; public authoring only supplies serializable ResolvedNode. */
 export type NodeRendererProps = {
   node: ResolvedNode; onevent?: (event: NodeEvent) => void; host?: LocalFileHost;
-  actionElementProps?: ActionElementProps; frameIdentity?: object;
+  actionDisclosure?: Disclosure; frameIdentity?: object;
 };
 
 export type ControlKind = ControlNode["kind"];
@@ -1518,10 +1519,7 @@ export type NodeRendererInputs = ControlRendererProps & {
   "input.text": InputProps<"input.text"> & { mask?: InputMask | undefined };
   "input.multiline": InputProps<"input.multiline">;
   fact: FactsProps;
-  action: Pick<ToolbarAction, "label" | "icon"> & {
-    state?: ToolbarAction["state"]; emphasis?: "primary" | "secondary"; reason?: string | undefined;
-    onclick?: () => void; type?: "button" | "submit"; elementProps?: ActionElementProps | undefined;
-  };
+  action: CatalogProps<"action">;
   availability: NonNullable<TopToolbar["availability"]>;
   collection: { node: ResolvedNodeFor<"collection">; select: (id: string) => void };
   form: { fields: Extract<FrameContent, { kind: "form" }>["fields"]; edit: Edit; controlEvent: (event: FormControlEvent) => void };
@@ -1544,7 +1542,7 @@ export type NodeRendererTable = { readonly [K in ResolvedNodeId]: Component<Node
 
 /** Only these private host channels may bypass serializable node data. */
 export const DispatcherCapabilities = freezeDeep({
-  action: { property: "elementProps", input: "actionElementProps", required: false },
+  action: { property: "disclosure", input: "actionDisclosure", required: false },
   transient: { property: "frameIdentity", input: "frameIdentity", required: false },
   "control.files": { property: "host", input: "host", required: true },
 } as const satisfies { [K in ResolvedNodeId]?: {
@@ -4932,47 +4930,27 @@ Source SHA-256: 4e347ef602728408441bac6eb8e62e6c0cd7d9c2c5202aed237f1f59cd54d262
 
 ## src/svelte/catalog/foundations/action/Action.svelte
 
-Source SHA-256: e9b056bbc1ec24fe2eb5c7ad17c56153d1b7e86466414a5b371a9eac76ade0b9
+Source SHA-256: c901392215b7f9cd968d5a6ba77ba32b6372091dc627c18240f35f39bbeb0f6e
 
 ```svelte
 <script lang="ts">
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import { cn } from "../../../vendor/utils.js";
-  import type { ToolbarAction } from "../../../../interaction/toolbar.ts";
   import { actionIconNames } from "../../../infra/action-icons.ts";
   import { Icon } from "../../index.ts";
-  import type { ActionElementProps } from "../../../action-adapter.ts";
-  let { label, icon, state: status = "ready", emphasis = "secondary", face: shown = "fit", onclick, type = "button", elementProps, reason }: {
-    label: string; icon: keyof typeof actionIconNames; state?: ToolbarAction["state"];
-    /** `fit` shows the label while it fits and the icon otherwise; `icon` always shows the icon (a field's accessory). */
-    face?: "fit" | "icon";
-    emphasis?: "primary" | "secondary"; onclick?: () => void; type?: "button" | "submit";
-    elementProps?: ActionElementProps | undefined; reason?: string | undefined;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { label, icon, state: status, emphasis, face: shown, type, reason, form, disclosure, current, onclick }: CatalogProps<"action"> = $props();
   const id = $props.id();
   const descriptionId = `${id}-reason`;
-  function buttonEvent<E extends Event>(event: E): event is E & { currentTarget: EventTarget & HTMLButtonElement } {
-    return event.currentTarget instanceof HTMLButtonElement;
-  }
-  function forward<E extends Event>(handler: ((event: E & { currentTarget: EventTarget & HTMLButtonElement }) => void) | null | undefined) {
-    return (event: E) => { if (status === "ready" && buttonEvent(event)) handler?.(event); };
-  }
-  // Only overlay semantics/events and Svelte ref attachments cross this internal adapter.
-  let overlay = $derived.by(() => {
-    const props = elementProps ?? {};
-    return { id: props.id, "aria-expanded": props["aria-expanded"], "aria-controls": props["aria-controls"],
-      "aria-haspopup": props["aria-haspopup"], "data-state": props["data-state"], onkeydown: forward<KeyboardEvent>(props.onkeydown),
-      onpointerdown: forward<PointerEvent>(props.onpointerdown), onpointerenter: forward<PointerEvent>(props.onpointerenter),
-      onpointerleave: forward<PointerEvent>(props.onpointerleave),
-      ...Object.fromEntries(Object.getOwnPropertySymbols(props).map(key => [key, props[key]])) };
-  });
+  const variants = { primary: "default", secondary: "secondary", destructive: "destructive" } as const;
   let button = $state<HTMLButtonElement | null>(null);
   let caption = $state<HTMLSpanElement | null>(null);
   let compact = $state(false);
-  let face = $derived(status === "pending" ? "pending" : shown === "icon" || compact ? "icon" : "label");
+  // Only the `fit` face measures: it shows the icon once the label no longer fits. `text` keeps its label, `icon` its glyph.
+  let face = $derived(status === "pending" ? "pending" : shown === "icon" || shown === "fit" && compact ? "icon" : "label");
   $effect(() => {
     label;
-    if (!button || !caption) return;
+    if (shown !== "fit" || !button || !caption) { compact = false; return; }
     const element = button, text = caption;
     const measure = () => { compact = text.scrollWidth > text.clientWidth + 1; };
     const observer = new ResizeObserver(measure);
@@ -4981,17 +4959,19 @@ Source SHA-256: e9b056bbc1ec24fe2eb5c7ad17c56153d1b7e86466414a5b371a9eac76ade0b9
     return () => { observer.disconnect(); document.fonts.removeEventListener("loadingdone", measure); };
   });
 </script>
-<Button {...overlay} bind:ref={button} variant={emphasis === "primary" ? "default" : "secondary"}
-  size={shown === "icon" ? "icon-lg" : "default"} spin={status === "pending"} {type} onclick={event => { if (status !== "ready") return;
-    if (buttonEvent(event)) elementProps?.onclick?.(event); if (!event.defaultPrevented) onclick?.(); }} class="relative w-fit min-w-0 max-w-[min(100%,22rem)] overflow-hidden"
+<Button bind:ref={button} variant={variants[emphasis]} size={shown === "icon" ? "icon-lg" : "default"} spin={status === "pending"}
+  {type} {form} id={disclosure?.id} aria-haspopup={disclosure?.haspopup} aria-expanded={disclosure?.expanded}
+  aria-controls={disclosure?.expanded ? disclosure.controls : undefined}
+  data-state={disclosure ? disclosure.expanded ? "open" : "closed" : undefined} aria-current={current || undefined}
+  onclick={() => { if (status === "ready") onclick?.(); }} class="relative w-fit min-w-0 max-w-[min(100%,22rem)] overflow-hidden"
   disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
   aria-describedby={reason ? descriptionId : undefined}
-  data-primitive="action" data-button-face={face} data-emphasis={emphasis}>
+  data-action="" data-action-face={face} data-emphasis={emphasis}>
   <span bind:this={caption} data-button-label aria-hidden="true" class={cn("min-w-0 truncate", face !== "label" && "invisible")}>{label}</span>
-    <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
-      aria-hidden="true" data-button-glyph data-button-face={face}>
-      <Icon name={status === "pending" ? "loader-circle" : actionIconNames[icon]} placement="inline-start" decorative />
-    </span>
+  <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
+    aria-hidden="true" data-button-glyph data-action-face={face}>
+    <Icon name={status === "pending" ? "loader-circle" : actionIconNames[icon]} placement="inline-start" decorative />
+  </span>
 </Button>
 {#if reason}<span id={descriptionId} class="sr-only">{reason}</span>{/if}
 ```
@@ -5013,7 +4993,7 @@ export const actionIconNames = {
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: 2ce314724cab3205c47c01dce33ef837caab74ae1fe967fe04e7bb7f0d4227f3
+Source SHA-256: ba07e21054e88389b2d691a218a71a354172e515b257df535ea9e51083362480
 
 ```svelte
 <script lang="ts" module>
@@ -5033,14 +5013,13 @@ Source SHA-256: 2ce314724cab3205c47c01dce33ef837caab74ae1fe967fe04e7bb7f0d4227f3
                 ghost: "bg-transparent text-foreground",
                 grip: "bg-transparent text-muted-foreground rounded-lg",
                 destructive: "text-destructive",
-                link: "bg-transparent text-primary-text underline-offset-4 hover:underline",
                 row: "bg-transparent text-foreground border-0 rounded-none justify-start whitespace-normal h-auto text-left font-normal w-full",
                 field: "bg-transparent text-foreground border-0 rounded-none justify-start w-full font-normal",
                 well: "text-foreground rounded-[var(--radius)] justify-start text-left whitespace-normal w-full font-normal",
             },
             size: {
                 default: "min-h-11 px-4 py-2", xs: "min-h-6 px-2", sm: "min-h-9 px-3",
-                lg: "min-h-11 px-5", icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
+                icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
                 row: "px-4 py-3", field: "min-h-10 px-3", well: "p-0",
                 avatar: "size-[5.625rem] p-0 relative overflow-hidden rounded-full",
                 "label-remove": "size-[28px] min-h-[28px] p-0 [@media(pointer:coarse)]:size-[44px] [@media(pointer:coarse)]:min-h-[44px]",
@@ -5105,7 +5084,7 @@ Source SHA-256: 2ce314724cab3205c47c01dce33ef837caab74ae1fe967fe04e7bb7f0d4227f3
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
+		data-material={['ghost','grip','row','field'].includes(variant) ? 'interior' : 'pane'}
 		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		href={disabled ? undefined : href}
 		aria-disabled={disabled}
@@ -5126,7 +5105,7 @@ Source SHA-256: 2ce314724cab3205c47c01dce33ef837caab74ae1fe967fe04e7bb7f0d4227f3
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
+		data-material={['ghost','grip','row','field'].includes(variant) ? 'interior' : 'pane'}
 		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		data-toolbar-scroll-top={presentation === "toolbar-return" || undefined}
 		data-catalog-search-toggle={presentation === "search-toggle" || undefined}
@@ -5281,7 +5260,7 @@ Source SHA-256: 0fadcd9705154b5c09e6bc135a31d3f4a581cb5f1cd4dc5541bc2aa52c61128b
 
 ## src/svelte/catalog/compositions/file-control/FileControl.svelte
 
-Source SHA-256: fd6913cb64a993a2ab1298f95b138e367c5bf4a8ba89797c9417bc67adf32e6a
+Source SHA-256: 6ea24b2617e9244e23ec3584cd00891314008a17475eede7a7e42d1fc5a9d3bb
 
 ```svelte
 <script lang="ts">
@@ -5312,7 +5291,8 @@ Source SHA-256: fd6913cb64a993a2ab1298f95b138e367c5bf4a8ba89797c9417bc67adf32e6a
   <Field.FieldLabel for={id} class={stackTitle() === checked.label ? "sr-only" : undefined}>{checked.label}</Field.FieldLabel>
   <Input bind:ref={picker} {id} type="file" hidden tabindex={-1} multiple={checked.limits.maxCount > 1} accept={checked.limits.accept.join(",")}
     disabled={checked.disabled} onchange={choose} aria-describedby={`${id}-limits`} aria-invalid={rejected.length > 0} />
-  <Action icon="open" label="Choose files" state={checked.disabled ? "unavailable" : "ready"} onclick={() => picker?.click()} />
+  <Action icon="open" label="Choose files" emphasis="secondary" face="fit" type="button" state={checked.disabled ? "unavailable" : "ready"}
+    onclick={() => picker?.click()} />
   <Field.FieldDescription id={`${id}-limits`}>
     Up to {checked.limits.maxCount} files · {fileSize(checked.limits.maxFileBytes)} each · {fileSize(checked.limits.maxTotalBytes)} total.
     Choosing files does not upload them.
@@ -5322,7 +5302,7 @@ Source SHA-256: fd6913cb64a993a2ab1298f95b138e367c5bf4a8ba89797c9417bc67adf32e6a
       {#each checked.files as file (file.id)}
         <li class="flex flex-wrap items-center justify-between gap-2">
           <span class="min-w-0 break-all">{file.name} · {fileSize(file.size)}</span>
-          <Action icon="close" label={`Remove ${file.name}`} state={checked.disabled ? "unavailable" : "ready"}
+          <Action icon="close" label={`Remove ${file.name}`} emphasis="secondary" face="fit" type="button" state={checked.disabled ? "unavailable" : "ready"}
             onclick={() => onevent?.(host.remove(checked, file.id))} />
         </li>
       {/each}
@@ -5638,7 +5618,7 @@ Source SHA-256: f8b318d3aa251f3ee56540af29ddaedf36d8bc3de78be34e56dcf4abf128f9d9
 
 ## src/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte
 
-Source SHA-256: 4c03a07941866471ad4af30c8d300029fce8c62709bef25220435de3ea4706f3
+Source SHA-256: 4bad825bc300b309574318d6335049d0dda7c2e26a5d93c9027214c5afb764a3
 
 ```svelte
 <script lang="ts">
@@ -5656,7 +5636,7 @@ Source SHA-256: 4c03a07941866471ad4af30c8d300029fce8c62709bef25220435de3ea4706f3
     open: boolean; disabled?: boolean; locked?: boolean | undefined; onchange: (open: boolean) => void;
     invoke?: (intent: SurfaceIntent) => void; icon?: ActionIcon;
   } = $props();
-  const panelId = $props.id();
+  const panelId = $props.id(), triggerId = `${panelId}-trigger`;
   const change = (next: boolean) => { if (!disabled && (next || !locked)) onchange(next); };
   dismissWhenInactive(() => onchange(false));
   const guard = (event: Event) => { if (locked) event.preventDefault(); };
@@ -5679,14 +5659,11 @@ Source SHA-256: 4c03a07941866471ad4af30c8d300029fce8c62709bef25220435de3ea4706f3
   };
 </script>
 <Popover.Root {open} onOpenChange={change}>
-  <Popover.Trigger {disabled}>
-    {#snippet child({ props })}
-      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "action", role: "secondary", action: {
-        icon, label, state: disabled ? "unavailable" : "ready", intent: { kind: "transient.open" },
-      } }} actionElementProps={{ ...props, "aria-controls": open ? panelId : undefined }} />
-    {/snippet}
-  </Popover.Trigger>
-  <Popover.Content id={panelId} bind:ref={panel} role="dialog" aria-label={title} aria-modal="false" trapFocus={false} preventScroll={false}
+  <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "action", role: "secondary", action: {
+    icon, label, state: disabled ? "unavailable" : "ready", intent: { kind: "transient.open" },
+  } }} actionDisclosure={{ id: triggerId, controls: panelId, expanded: open, haspopup: "dialog" }}
+    onevent={event => { if (event.kind === "local.invoke" && event.intent.kind === "transient.open") change(!open); }} />
+  <Popover.Content id={panelId} customAnchor={`#${triggerId}`} bind:ref={panel} role="dialog" aria-label={title} aria-modal="false" trapFocus={false} preventScroll={false}
     onkeydowncapture={event => {
       if (panel && !locked) anchoredTabExit(event, panel, () => { outside = true; change(false); });
     }}

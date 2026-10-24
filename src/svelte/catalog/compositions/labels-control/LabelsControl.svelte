@@ -26,9 +26,10 @@
 <Field.FieldSet><Field.FieldLegend variant="label">{node.label}</Field.FieldLegend>
   {#if node.values.length}<LabelRail values={node.values} disabled={node.disabled}
     onremove={index=>onevent?.({kind:'labels.change',control:node.id,values:node.values.filter((_,position)=>position!==index)})}/>{/if}
-  <Popover.Root bind:open><Popover.Trigger disabled={node.disabled || node.values.length>=node.limits.maxItems}>
-    {#snippet child({props})}<NodeRenderer node={{version:'desert.bank-node/1',kind:'action',role:'secondary',action:{label:'Add label',icon:'create',state:node.disabled || node.values.length>=node.limits.maxItems ? 'unavailable' : 'ready',intent:{kind:'transient.open'}}}} actionElementProps={props}/>{/snippet}
-  </Popover.Trigger><Popover.Content presentation="reference"><form onsubmit={event=>{event.preventDefault();add();}}><StackLayout title="New label">
+  <Popover.Root bind:open><NodeRenderer node={{version:'desert.bank-node/1',kind:'action',role:'secondary',action:{label:'Add label',icon:'create',state:node.disabled || node.values.length>=node.limits.maxItems ? 'unavailable' : 'ready',intent:{kind:'transient.open'}}}}
+    actionDisclosure={{id:`${id}-add`,controls:`${id}-new-label`,expanded:open,haspopup:'dialog'}}
+    onevent={event=>{if(event.kind==='local.invoke'&&event.intent.kind==='transient.open')open=!open;}}/>
+  <Popover.Content id={`${id}-new-label`} customAnchor={`#${id}-add`} presentation="reference"><form onsubmit={event=>{event.preventDefault();add();}}><StackLayout title="New label">
     <TextInput primitive="input.text" label="Label" value={writing} maxLength={node.limits.maxLength} onchange={value=>writing=value}/>
     <CharacterCounter id={`${id}-counter`} value={writing} maxLength={node.limits.maxLength}/>
     {#if feedback}<Field.FieldError>{feedback}</Field.FieldError>{/if}

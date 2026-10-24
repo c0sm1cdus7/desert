@@ -22,7 +22,7 @@ test("catalog index pieces retain contract prop types and refuse native passthro
     let owner!: object;
   </script>\n`;
   const invalid = ['<TextContent text={42}/>', '<TextContent text="Notes" class="padding-0"/>',
-    '<NodeRenderer {node} actionElementProps={{ style: "color:red" }}/>',
+    '<NodeRenderer {node} actionDisclosure={{ style: "color:red" }}/>',
     '<Feedback text={42}/>', '<Feedback text="Changed" class="large"/>', '<Feedback text="Changed" role="alert"/>'];
   try {
     const source = header + invalid.join("\n");

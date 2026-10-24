@@ -21,9 +21,10 @@
     <StackLayout title="Your identity" headingVisibility="accessible">
       {#if !known}<TextInput primitive="input.text" label="Identity name" purpose="username" value={login} disabled={busy} onchange={value => login = value} />{/if}
       <TextInput primitive="input.text" label="Password" purpose="current-password" value={password} disabled={busy} onchange={value => password = value}>
-        {#snippet accessory()}<Action label="Unlock" icon="open" face="icon" type="submit" state={busy ? "pending" : valid ? "ready" : "unavailable"} />{/snippet}
+        {#snippet accessory()}<Action label="Unlock" icon="open" emphasis="secondary" face="icon" type="submit" state={busy ? "pending" : valid ? "ready" : "unavailable"} />{/snippet}
       </TextInput>
     </StackLayout>
   </Form>
-  {#if known}<Action label="Use another identity" icon="back" state={busy ? "unavailable" : "ready"} onclick={() => { another = true; password = ""; }} />{/if}
+  {#if known}<Action label="Use another identity" icon="back" emphasis="secondary" face="text" type="button" state={busy ? "unavailable" : "ready"}
+    onclick={() => { another = true; password = ""; }} />{/if}
 </Column>

@@ -239,7 +239,13 @@
       "variants": {
         "emphasis": [
           "primary",
-          "secondary"
+          "secondary",
+          "destructive"
+        ],
+        "face": [
+          "fit",
+          "icon",
+          "text"
         ]
       }
     },

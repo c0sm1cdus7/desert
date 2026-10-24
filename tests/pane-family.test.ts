@@ -5,7 +5,7 @@ import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 import { paneFamilySource } from './fixtures/pane-family.ts';
 
-const owners='[data-sidebar="sidebar"],.field-well,[data-grouped-panel],[data-primitive="action"],[data-slot="badge"],[data-slot="popover-content"],[data-slot="dialog-content"]';
+const owners='[data-sidebar="sidebar"],.field-well,[data-grouped-panel],[data-action],[data-slot="badge"],[data-slot="popover-content"],[data-slot="dialog-content"]';
 
 test('S1 all independent panes share material, with primary tint only for prominent actions', async()=>{
   const f=await svelteBrowser(paneFamilySource);

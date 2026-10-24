@@ -12,8 +12,8 @@ const source = `<script lang="ts">
 <div data-test-controls>{#each ['ready','unavailable','pending'] as value}
   <button onclick={() => state = value}>{value}</button>{/each}</div>
 <main>
-  <Action label="Save note" icon="save" emphasis="primary" {state}/>
-  <Action label="Close" icon="close"/>
+  <Action label="Save note" icon="save" emphasis="primary" {state} face="fit" type="button"/>
+  <Action label="Close" icon="close" state="ready" emphasis="secondary" face="fit" type="button"/>
   <Button href="#preview" data-variant="secondary">Primary link</Button>
   <Button variant="secondary" data-variant="default">Neutral role</Button>
   <TextInput primitive="input.text" label="Title" value="" onchange={() => {}}/>

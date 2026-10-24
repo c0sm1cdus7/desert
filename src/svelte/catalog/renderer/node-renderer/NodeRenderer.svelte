@@ -7,7 +7,7 @@
   import { nodeRenderers } from "../../../renderer-registry.ts";
   import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
 
-  let { node, onevent = () => {}, host, actionElementProps, frameIdentity }: NodeRendererProps = $props();
+  let { node, onevent = () => {}, host, actionDisclosure, frameIdentity }: NodeRendererProps = $props();
   let checked = $derived(resolvedNode(node));
   const emit = (event: NodeEvent) => onevent(nodeEvent(event));
   const control = (event: ControlEvent) => emit(event);
@@ -45,8 +45,8 @@
     onchange={value => checked.kind === "input.multiline" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "action"}
   {@const Renderer = nodeRenderers.action}
-  <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role} reason={checked.action.reason}
-    type={checked.form ? "submit" : "button"} onclick={activate} elementProps={actionElementProps} />
+  <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role} face="fit"
+    reason={checked.action.reason} type={checked.form ? "submit" : "button"} onclick={activate} disclosure={actionDisclosure} />
 {:else if checked.kind === "availability"}
   {@const Renderer = nodeRenderers.availability}<Renderer state={checked.state} label={checked.label} />
 {:else if checked.kind === "fact"}

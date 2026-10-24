@@ -15,14 +15,13 @@
                 ghost: "bg-transparent text-foreground",
                 grip: "bg-transparent text-muted-foreground rounded-lg",
                 destructive: "text-destructive",
-                link: "bg-transparent text-primary-text underline-offset-4 hover:underline",
                 row: "bg-transparent text-foreground border-0 rounded-none justify-start whitespace-normal h-auto text-left font-normal w-full",
                 field: "bg-transparent text-foreground border-0 rounded-none justify-start w-full font-normal",
                 well: "text-foreground rounded-[var(--radius)] justify-start text-left whitespace-normal w-full font-normal",
             },
             size: {
                 default: "min-h-11 px-4 py-2", xs: "min-h-6 px-2", sm: "min-h-9 px-3",
-                lg: "min-h-11 px-5", icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
+                icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
                 row: "px-4 py-3", field: "min-h-10 px-3", well: "p-0",
                 avatar: "size-[5.625rem] p-0 relative overflow-hidden rounded-full",
                 "label-remove": "size-[28px] min-h-[28px] p-0 [@media(pointer:coarse)]:size-[44px] [@media(pointer:coarse)]:min-h-[44px]",
@@ -87,7 +86,7 @@
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
+		data-material={['ghost','grip','row','field'].includes(variant) ? 'interior' : 'pane'}
 		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		href={disabled ? undefined : href}
 		aria-disabled={disabled}
@@ -108,7 +107,7 @@
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
+		data-material={['ghost','grip','row','field'].includes(variant) ? 'interior' : 'pane'}
 		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		data-toolbar-scroll-top={presentation === "toolbar-return" || undefined}
 		data-catalog-search-toggle={presentation === "search-toggle" || undefined}

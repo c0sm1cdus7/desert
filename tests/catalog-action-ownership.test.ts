@@ -43,9 +43,9 @@ test("catalog CTA and Back use the shared Action owner, preserving adaptive face
     await f.page.setViewportSize({ width: 900, height: 450 });
     const cta = f.page.getByRole("button", { name: "Learn More", exact: true });
     const back = f.page.getByRole("button", { name: "Back", exact: true });
-    for (const button of [cta, back]) assert.equal(await button.getAttribute("data-primitive"), "action");
-    await f.page.waitForFunction(() => document.querySelector('[aria-label="Back"]')?.getAttribute('data-button-face') === 'icon');
-    assert.equal(await cta.getAttribute("data-button-face"), "label");
+    for (const button of [cta, back]) assert.equal(await button.getAttribute("data-action"), "");
+    await f.page.waitForFunction(() => document.querySelector('[aria-label="Back"]')?.getAttribute('data-action-face') === 'icon');
+    assert.equal(await cta.getAttribute("data-action-face"), "label");
     assert.ok(await cta.evaluate(element => parseFloat(getComputedStyle(element).borderRadius) >= element.getBoundingClientRect().height / 2),
       "the catalog cannot override the shared capsule shape");
     assert.ok((await cta.boundingBox())!.height >= 44, 'catalog actions retain the shared accessible target');
@@ -85,7 +85,7 @@ test("replacing the bank's single Action renderer reaches both catalog consumers
     const button = pending.page.getByRole('button', {name:'Opening',exact:true});
     assert.equal(await button.isDisabled(), true);
     assert.equal(await button.getAttribute('aria-busy'), 'true');
-    assert.equal(await button.getAttribute('data-button-face'), 'pending');
+    assert.equal(await button.getAttribute('data-action-face'), 'pending');
     await button.dispatchEvent('click');
     assert.equal(await pending.page.locator('output').textContent(), '[]');
     assert.deepEqual(pending.errors, []);
