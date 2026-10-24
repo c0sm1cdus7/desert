@@ -109,7 +109,7 @@
     {/snippet}
   </Popover.Trigger>
   {#if picker.current === "sheet"}
-    <PickerSheet bind:open {label} {triggerId}>
+    <PickerSheet bind:open {label} {triggerId} onOpenAutoFocus={focus}>
       {@render choices()}
     </PickerSheet>
   {:else}

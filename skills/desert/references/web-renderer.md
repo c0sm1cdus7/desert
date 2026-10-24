@@ -4778,7 +4778,7 @@ Source SHA-256: 20d5309ef63ca189aad5ca9c625aff69302f58ae5266228b61504e12f6ba0d1c
 
 ## src/svelte/catalog/foundations/selection-field/SelectionField.svelte
 
-Source SHA-256: 0f8bb82b6b6b70605c0cd873fa2b207981cd740fc4779392341c5af7c80f0566
+Source SHA-256: 1927b641db293fc42588c925449c29ef62239147074088800629c2a9a87f40b5
 
 ```svelte
 <script lang="ts">
@@ -4892,7 +4892,7 @@ Source SHA-256: 0f8bb82b6b6b70605c0cd873fa2b207981cd740fc4779392341c5af7c80f0566
     {/snippet}
   </Popover.Trigger>
   {#if picker.current === "sheet"}
-    <PickerSheet bind:open {label} {triggerId}>
+    <PickerSheet bind:open {label} {triggerId} onOpenAutoFocus={focus}>
       {@render choices()}
     </PickerSheet>
   {:else}
@@ -5606,7 +5606,7 @@ Source SHA-256: f8b318d3aa251f3ee56540af29ddaedf36d8bc3de78be34e56dcf4abf128f9d9
 
 ## src/svelte/catalog/foundations/popover/Popover.svelte
 
-Source SHA-256: d3789a70b3e9fc20eca7f0af01ac50e5420aff12deb1d4f0a18b2aa1aa7c163c
+Source SHA-256: e77eeabce20687b0e9d16ed15f2d578e075f0aa14a60c6f22bdc1a9f9956ba62
 
 ```svelte
 <script lang="ts">
@@ -5616,7 +5616,7 @@ Source SHA-256: d3789a70b3e9fc20eca7f0af01ac50e5420aff12deb1d4f0a18b2aa1aa7c163c
   import type { Disclosure } from "../../../infra/disclosure.ts";
   import { dismissWhenInactive } from "../../../infra/surface-activity.svelte.ts";
   import { useSurfaceTypography } from "../../../infra/surface-typography.svelte.ts";
-  import { provideFocusReturn } from "../../mechanisms/surface-focus/focus-return.ts";
+  import { provideSheetFocus } from "../../mechanisms/surface-focus/focus-return.ts";
   import { PickerPresentation, pickerBudget, calendarBudget } from "./picker-presentation.svelte.ts";
   import PopoverSurface from "./PopoverSurface.svelte";
   import FieldTrigger from "./FieldTrigger.svelte";
@@ -5630,7 +5630,7 @@ Source SHA-256: d3789a70b3e9fc20eca7f0af01ac50e5420aff12deb1d4f0a18b2aa1aa7c163c
     haspopup: content === "list" ? "listbox" : "dialog" });
   /** The person asks to open or close; a disabled popover refuses both, a locked one refuses closing. */
   function change(next: boolean) { if (!disabled && next !== open && (next || !locked)) onopenchange?.(next); }
-  provideFocusReturn(() => document.getElementById(triggerId));
+  provideSheetFocus({ returnTo: () => document.getElementById(triggerId) });
   dismissWhenInactive(() => { if (open) onopenchange?.(false); });
   $effect(() => { if (disabled && open) onopenchange?.(false); });
 </script>
@@ -6239,7 +6239,7 @@ let { destination, label, available, open, icon = 'open', reason }: CatalogProps
 
 ## src/svelte/catalog/foundations/drawer/Drawer.svelte
 
-Source SHA-256: 27f643311d667cd4a22ca9d6f0aa9c4c80140038e1951243e501686444be26ed
+Source SHA-256: 7a17ae8a412f2ec06d9950ccbe3cbc79007b0e465d52e9d0e7ed4f47fe07b1de
 
 ```svelte
 <script lang="ts">
@@ -6264,12 +6264,13 @@ Source SHA-256: 27f643311d667cd4a22ca9d6f0aa9c4c80140038e1951243e501686444be26ed
     presentation?: "transient" | undefined;
   } = $props();
   const minted = new WeakMap<object, string>();
+  let issued = 0;
   /** The string continuity of a frame identity: a view owner's own key, else a token minted for that object. */
   function frameKey(identity: object): string {
     if ("key" in identity && typeof identity.key === "string") return identity.key;
     const known = minted.get(identity);
     if (known !== undefined) return known;
-    const token = crypto.randomUUID();
+    const token = `frame-${++issued}`;
     minted.set(identity, token);
     return token;
   }
@@ -6334,7 +6335,7 @@ Source SHA-256: 8c10129c744f3348fdb23bffe6641860c1c71832ed7829a0b5485e5a274d6f59
 
 ## src/svelte/catalog/foundations/modal/ModalPane.svelte
 
-Source SHA-256: 8f4a3bf15e7aa718856d0981f58f4ff766f4f4558713ac83f0aa8a0360a621a9
+Source SHA-256: 2a528ef13a1c8333e55f2a67965c74104dc6c4ea48ef21aa0cccec8bf87a7f24
 
 ```svelte
 <script lang="ts">
@@ -6375,7 +6376,7 @@ Source SHA-256: 8f4a3bf15e7aa718856d0981f58f4ff766f4f4558713ac83f0aa8a0360a621a9
   $effect(() => { host.reserve(owner, open && docked && !lateral ? layout.reservation : 0); });
   $effect(() => () => host.reserve(owner, 0));
   adaptiveModality(() => content, () => modal && !lateral);
-  const motion = drawerMotion(dismiss, () => locked || docked || lateral, () => layout.edge);
+  const motion = drawerMotion(() => dismiss(), () => locked || docked || lateral, () => layout.edge);
   const edge = $derived(lateral ? "left" : motion.edge);
   const width = $derived(lateral ? "18rem" : `${layout.paneWidth}px`);
   const dragHeader = (event: PointerEvent) => {

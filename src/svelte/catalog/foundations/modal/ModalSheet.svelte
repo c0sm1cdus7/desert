@@ -7,7 +7,7 @@
   import { toolbarAction } from "../../../../interaction/toolbar.ts";
   import { PICKER_PANEL_REM } from "../../../infra/picker-measure.ts";
   import { surfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
-  import { takeFocusReturn } from "../../mechanisms/surface-focus/focus-return.ts";
+  import { takeSheetFocus } from "../../mechanisms/surface-focus/focus-return.ts";
   import DrawerGrip from "./DrawerGrip.svelte";
   import { drawerMotion } from "./drawer-motion.svelte.ts";
   let { label, open, locked, density, dismiss, onclosed, children }: {
@@ -17,11 +17,11 @@
   let content = $state<HTMLElement | null>(null);
   const motion = drawerMotion(() => dismiss(), () => locked, () => "bottom");
   const focus = surfaceFocus(() => content);
-  const trigger = takeFocusReturn();
+  const policy = takeSheetFocus();
   function restore(event: Event) {
     event.preventDefault();
     if (open) return; // A presentation replacement is not dismissal.
-    const target = trigger?.();
+    const target = policy?.returnTo();
     if (target?.checkVisibility() && !target.closest("[hidden],[inert]")) target.focus({ preventScroll: true });
   }
 </script>
@@ -30,7 +30,7 @@
   <Dialog.Content bind:ref={content} presentation="panel" {density} data-modal="sheet" data-picker-sheet data-edge="bottom"
     data-size="content" data-locked={locked || undefined} data-dragging={motion.dragging || undefined} overlayStyle={motion.overlayStyle}
     style={`--panel-width:${PICKER_PANEL_REM}rem;transform:${motion.transform}`}
-    onOpenAutoFocus={event => focus.open(event)} onCloseAutoFocus={event => focus.close(event, trigger ? restore : undefined)}
+    onOpenAutoFocus={event => focus.open(event, policy?.open)} onCloseAutoFocus={event => focus.close(event, policy ? restore : undefined)}
     onEscapeKeydown={event => { event.preventDefault(); dismiss(); }}
     onInteractOutside={event => { event.preventDefault(); dismiss(); }}>
     <DrawerGrip {motion} {locked} />

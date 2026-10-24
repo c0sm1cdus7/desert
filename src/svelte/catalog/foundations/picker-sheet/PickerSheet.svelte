@@ -3,11 +3,11 @@
   // menu through Popover, which presents this sheet itself; this folder is deleted in Batch 3.
   import { type Snippet } from "svelte";
   import { Modal } from "../../index.ts";
-  import { provideFocusReturn } from "../../mechanisms/surface-focus/focus-return.ts";
-  let { open = $bindable(false), label, triggerId, children }: {
-    open: boolean; label: string; triggerId: string; children: Snippet;
+  import { provideSheetFocus } from "../../mechanisms/surface-focus/focus-return.ts";
+  let { open = $bindable(false), label, triggerId, children, onOpenAutoFocus }: {
+    open: boolean; label: string; triggerId: string; children: Snippet; onOpenAutoFocus?: ((event: Event) => void) | undefined;
   } = $props();
-  provideFocusReturn(() => document.getElementById(triggerId));
+  provideSheetFocus({ returnTo: () => document.getElementById(triggerId), get open() { return onOpenAutoFocus; } });
 </script>
 <Modal {label} {open} locked={false} presentation="sheet" ondismiss={() => { open = false; }}>
   <div class="picker-content-inset pt-2 pb-4">{@render children()}</div>

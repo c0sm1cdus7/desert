@@ -5,7 +5,7 @@
   import type { Disclosure } from "../../../infra/disclosure.ts";
   import { dismissWhenInactive } from "../../../infra/surface-activity.svelte.ts";
   import { useSurfaceTypography } from "../../../infra/surface-typography.svelte.ts";
-  import { provideFocusReturn } from "../../mechanisms/surface-focus/focus-return.ts";
+  import { provideSheetFocus } from "../../mechanisms/surface-focus/focus-return.ts";
   import { PickerPresentation, pickerBudget, calendarBudget } from "./picker-presentation.svelte.ts";
   import PopoverSurface from "./PopoverSurface.svelte";
   import FieldTrigger from "./FieldTrigger.svelte";
@@ -19,7 +19,7 @@
     haspopup: content === "list" ? "listbox" : "dialog" });
   /** The person asks to open or close; a disabled popover refuses both, a locked one refuses closing. */
   function change(next: boolean) { if (!disabled && next !== open && (next || !locked)) onopenchange?.(next); }
-  provideFocusReturn(() => document.getElementById(triggerId));
+  provideSheetFocus({ returnTo: () => document.getElementById(triggerId) });
   dismissWhenInactive(() => { if (open) onopenchange?.(false); });
   $effect(() => { if (disabled && open) onopenchange?.(false); });
 </script>
