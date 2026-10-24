@@ -130,6 +130,7 @@ export const CatalogSources = Object.freeze({
   "stack-item": "src/svelte/catalog/foundations/stack-item/StackItem.svelte",
   "stack-layout": "src/svelte/catalog/foundations/stack-layout/StackLayout.svelte",
   "summary-widget": "src/svelte/catalog/compositions/summary-widget/SummaryWidget.svelte",
+  "surface": "src/svelte/catalog/foundations/surface/Surface.svelte",
   "surface-frame": "src/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte",
   "surface-specimen": "src/svelte/catalog/compositions/surface-specimen/SurfaceSpecimen.svelte",
   "text": "src/svelte/catalog/foundations/text/Text.svelte",

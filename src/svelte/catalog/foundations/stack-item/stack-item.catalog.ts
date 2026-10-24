@@ -6,7 +6,7 @@ import { StackItemContract } from "./stack-item.contract.ts";
 export const StackItem = defineFoundation({
   id: "stack-item",
   purpose: "Place one entry of a stack at the content or the surface inset.",
-  owner: { entry: "StackItem.svelte" },
+  owner: { entry: "StackItem.svelte", parts: ["stack-item.css"] },
   shape: "none", states: ["default"],
   variants: { placement: ["content", "surface"] },
   slots: { children: { accepts: ["node-renderer"] } },

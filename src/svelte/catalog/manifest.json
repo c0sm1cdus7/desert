@@ -1849,11 +1849,9 @@
       "owner": {
         "entry": "Place.svelte",
         "mechanisms": [
-          "toolbar-geometry",
           "toolbar-scroll"
         ],
         "parts": [
-          "place-focus.ts",
           "place.css"
         ],
         "vendor": [
@@ -2158,14 +2156,7 @@
       "folder": "src/svelte/catalog/foundations/scroll-edges",
       "kind": "foundation",
       "owner": {
-        "entry": "ScrollEdges.svelte",
-        "mechanisms": [
-          "toolbar-geometry"
-        ],
-        "parts": [
-          "scroll-edges.css",
-          "scroll-edges.ts"
-        ]
+        "entry": "ScrollEdges.svelte"
       },
       "purpose": "Fade the edges of a scroll viewport under its toolbars while there is content left to scroll there.",
       "shape": "none",
@@ -2412,7 +2403,10 @@
       "folder": "src/svelte/catalog/foundations/stack-item",
       "kind": "foundation",
       "owner": {
-        "entry": "StackItem.svelte"
+        "entry": "StackItem.svelte",
+        "parts": [
+          "stack-item.css"
+        ]
       },
       "purpose": "Place one entry of a stack at the content or the surface inset.",
       "shape": "none",
@@ -2438,7 +2432,10 @@
       "folder": "src/svelte/catalog/foundations/stack-layout",
       "kind": "foundation",
       "owner": {
-        "entry": "StackLayout.svelte"
+        "entry": "StackLayout.svelte",
+        "parts": [
+          "stack-layout.css"
+        ]
       },
       "purpose": "Group related content under one title, with an optional description and required mark.",
       "shape": "none",
@@ -2486,6 +2483,76 @@
       },
       "purpose": "Show module status at a glance and open its destination.",
       "uses": []
+    },
+    "surface": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/surface",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Surface.svelte",
+        "mechanisms": [
+          "toolbar-geometry",
+          "toolbar-scroll"
+        ],
+        "parts": [
+          "ScrollEdges.svelte",
+          "place-focus.ts",
+          "scroll-edges.css",
+          "scroll-edges.ts",
+          "surface.css"
+        ]
+      },
+      "purpose": "Arrange content and top or bottom toolbars, with lateral surfaces only at the root. Mounted surfaces keep their own content and toolbars.",
+      "shape": "none",
+      "slots": {
+        "bottom": {
+          "accepts": [
+            "bar",
+            "toolbar"
+          ]
+        },
+        "content": {
+          "accepts": [
+            "catalog-workspace-content",
+            "column",
+            "content-flow",
+            "frame-body",
+            "icon",
+            "place-heading"
+          ]
+        },
+        "overlay": {
+          "accepts": [
+            "catalog-search-results"
+          ]
+        },
+        "top": {
+          "accepts": [
+            "bar",
+            "heading",
+            "toolbar"
+          ]
+        }
+      },
+      "stateVariants": {
+        "searching": {
+          "role": [
+            "main"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "searching"
+      ],
+      "variants": {
+        "role": [
+          "main",
+          "navigation",
+          "frame",
+          "page"
+        ]
+      }
     },
     "surface-frame": {
       "approval": "required",
@@ -2782,6 +2849,9 @@
         "entry": "ViewRegion.svelte",
         "mechanisms": [
           "reveal"
+        ],
+        "parts": [
+          "view-region.css"
         ]
       },
       "purpose": "Frame one view's content, one of its items, a place's document or a retained place with the identity navigation reveals; bare renders content unframed.",

@@ -1,7 +1,8 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import { ScrollEdges } from "../../index.ts";
-  import { observePlaceFocus } from "./place-focus.ts";
+  // F1-merge: place became surface (DESIGN §1.6); its focus reveal is a surface part until Batch 3 deletes this folder.
+  import { observePlaceFocus } from "../surface/place-focus.ts";
   import { provideToolbarScroll } from "../../mechanisms/toolbar-scroll/toolbar-scroll.svelte.ts";
 
   // Renderer-private slots. Products author the closed Place content contract,

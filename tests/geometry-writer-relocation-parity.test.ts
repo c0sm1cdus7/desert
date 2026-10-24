@@ -17,10 +17,12 @@ const catalogHome = `[data-stack-kind="catalog.home"] { --place-surface-inset:0p
 const leadingInset = `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { --place-leading-inset:0px; }
 [data-catalog-workspace] [data-slot="sidebar-wrapper"][data-presentation="docked"][data-state="expanded"] { --place-leading-inset:var(--sidebar-width); }
 `;
-/** Each relocation reversed inside today's sources: [owner, today's text, text before the move]. */
-const reversed: readonly (readonly [string, string, string])[] = [
+/** Each relocation reversed inside today's sources: [owner, today's text, text before the move, and the frozen file that
+ * held it when that file has moved since (slice 3: place.css's stack rules are stack-item's own stylesheet)]. */
+const reversed: readonly (readonly [string, string, string, string?])[] = [
   ["catalog/mechanisms/surface-reading/surface-reading.css", catalogHome, ""],
-  ["catalog/foundations/place/place.css", `[data-stack-kind="catalog.home"] [data-catalog-home]`, `${catalogHome}[data-stack-kind="catalog.home"] [data-catalog-home]`],
+  ["catalog/foundations/stack-item/stack-item.css", `[data-stack-kind="catalog.home"] [data-catalog-home]`, `${catalogHome}[data-stack-kind="catalog.home"] [data-catalog-home]`,
+    "catalog/foundations/place/place.css"],
   ["catalog/mechanisms/typography/typography.css", `@layer components {\n  [data-frame-presentation="message"] {\n${messageType}  }\n}\n`, ""],
   ["catalog/mechanisms/surface-chrome/surface-chrome.css", `    --chrome-inset:1.5rem;\n  }`, `    --chrome-inset:1.5rem;\n${messageType}  }`],
   ["catalog/mechanisms/typography/typography.css", `@layer base {\n  button,input,textarea { font:inherit; }\n  h1,h2,h3,p { margin:0; }\n}\n`, ""],
@@ -40,10 +42,10 @@ async function previousCss() {
   const frozen: Record<string, string> = { ...geometryWritersBefore, "catalog/mechanisms/theme/base.css": typographyThemeBefore,
     ...Object.fromEntries(Object.entries(controlWritersBefore).map(([path, source]) => [path.slice("src/svelte/".length), source])) };
   const sources = new Map<string, string>();
-  for (const [path, today, before] of reversed) {
+  for (const [path, today, before, held = path] of reversed) {
     const text = sources.get(path) ?? await readFile(resolve(base, path), "utf8");
     assert.equal(text.split(today).length, 2, `The moved writer is literal and unique in ${path}`);
-    if (before) assert.ok(frozen[path]!.includes(before), `The prior owner held it there: ${path}`);
+    if (before) assert.ok(frozen[held]!.includes(before), `The prior owner held it there: ${held}`);
     sources.set(path, text.replace(today, before));
   }
   let theme = await readFile(resolve(base, "theme.css"), "utf8");

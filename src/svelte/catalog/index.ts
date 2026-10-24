@@ -128,6 +128,7 @@ export { default as Stack } from "./compositions/stack/Stack.svelte";
 export { default as StackItem } from "./foundations/stack-item/StackItem.svelte";
 export { default as StackLayout } from "./foundations/stack-layout/StackLayout.svelte";
 export { default as SummaryWidget } from "./compositions/summary-widget/SummaryWidget.svelte";
+export { default as Surface } from "./foundations/surface/Surface.svelte";
 export { default as SurfaceFrame } from "./compositions/surface-frame/SurfaceFrame.svelte";
 export { default as SurfaceSpecimen } from "./compositions/surface-specimen/SurfaceSpecimen.svelte";
 export { default as Text } from "./foundations/text/Text.svelte";
