@@ -3315,16 +3315,16 @@ Source SHA-256: 1b3d69041cf4cb2a6778e012a4f72e0df8c284d38707212b4b728b75f4ff3486
 
 ## src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte
 
-Source SHA-256: 7077d53a9e23ccdbf1f37eebcc6a7dfb1a5425a75584612a93c12750058e2d29
+Source SHA-256: 2a90aa02e8124fa7702c99cffdc9e2b7c51a0b85b347db3b6807d1cc6aaa89bb
 
 ```svelte
 <script lang="ts">
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
-  import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
   import { Inspection } from "../../index.ts";
-  let { catalog }: { catalog?: PublicBankInput } = $props();
-  let content = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null> }>();
-  export async function revealEntry(id: ResolvedNodeId) { return await content?.revealEntry(id) ?? null; }
+  import type { CatalogProps } from "../../types.d.ts";
+  let { catalog }: CatalogProps<"inspection-content"> = $props();
+  let content = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<boolean> }>();
+  export async function revealEntry(id: ResolvedNodeId): Promise<boolean> { return await content?.revealEntry(id) ?? false; }
 </script>
 
 <Inspection {catalog} bind:this={content} />

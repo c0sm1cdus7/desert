@@ -24,9 +24,9 @@ test("published reading, editing and catalog controls preserve their distinct ac
     for (const scale of [1, 1.3]) {
       await f.page.evaluate(value => document.documentElement.style.setProperty("--text-scale", String(value)), scale);
       await openCatalog(f.page);
-      const select = f.page.locator('[data-specimen="control.select:available"] [data-selection-trigger]');
+      const select = f.page.locator('[data-view-item="specimen:control.select:available"] [data-selection-trigger]');
       const selectIcon = await iconStyle(select.locator("svg").last());
-      const entry = await textStyle(f.page.locator('[data-specimen="input.text:value"] [data-slot="input-group-control"]'));
+      const entry = await textStyle(f.page.locator('[data-view-item="specimen:input.text:value"] [data-slot="input-group-control"]'));
       const selection = await textStyle(select.locator('[data-field-value]'));
       const primary = await target(f.page, "primary");
       const close = panelToolbar(f.page, "bottom").getByRole("button", { name: "Close", exact: true });

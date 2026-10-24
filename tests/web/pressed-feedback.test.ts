@@ -115,7 +115,7 @@ test("select and calendar compose the same feedback without changing native sele
       assert.equal((await date.locator('[data-field-value]').innerText()).trim(), `Oct ${day}, 2026`,
         "native key-up must not double-toggle the date selected by Bits key-down");
     }
-    const select = f.page.locator('[data-specimen="control.select:available"] [data-selection-trigger]');
+    const select = f.page.locator('[data-view-item="specimen:control.select:available"] [data-selection-trigger]');
     await press(select, "pointer", "select");
     await f.page.getByRole("listbox").getByRole("option", { name: "Second option", exact: true }).click();
     await f.page.getByRole("listbox").waitFor({ state: "hidden" });

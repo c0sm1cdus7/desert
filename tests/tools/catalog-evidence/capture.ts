@@ -77,7 +77,7 @@ export async function captureSpecimens(browser: Browser, origin: string, piece: 
 
 /** The scrolling ancestor of the catalog grows the viewport until the whole destination is visible (capped). */
 async function revealWhole(page: Page, combination: Combination) {
-  const overflow = await page.locator("[data-public-catalog-bank]").first().evaluate(element => {
+  const overflow = await page.locator("[data-view-item='public-catalog-bank']").first().evaluate(element => {
     let extra = Math.max(0, document.documentElement.scrollHeight - innerHeight);
     for (let node = element.parentElement; node; node = node.parentElement) {
       const style = getComputedStyle(node);
@@ -90,7 +90,7 @@ async function revealWhole(page: Page, combination: Combination) {
 }
 async function open(page: Page, destination: CatalogDestination) {
   for (const step of [...destination.path, destination.id]) {
-    await page.locator(`[data-public-catalog-bank] [data-destination="${step}"]`).filter({ visible: true }).first().click();
+    await page.locator(`[data-view-item="public-catalog-bank"] [data-focus-key="${step}"]`).filter({ visible: true }).first().click();
     await settle(page);
   }
 }

@@ -113,13 +113,14 @@ test("closed-visual-boundaries, visual-active-adapters: a renderer composition h
   accepts("type-only DOM names and semantic keys", mutated(frameBody, "  function dispatch(", '  let target: HTMLElement | null = null;\n  const semantic = { document: "Notes" };\n  void target; void semantic;\n  function dispatch('));
 });
 
-test("closed-visual-boundaries: a returned focus target cannot become a native mutation channel", () => {
+test("closed-visual-boundaries: a revealed entry cannot become a native mutation channel", () => {
+  // The instance answers whether it revealed the entry (a boolean); whatever a renderer would call on it is still DOM.
   const path = `${renderer}/inspection-content/InspectionContent.svelte`;
   for (const operation of ['target.before("x");', 'target.after("x");', 'target.append("x");', 'target.prepend("x");', 'target.insertAdjacentText("beforeend", "x");',
     'target.textContent = "x";', 'target.innerText = "x";', 'target.replaceWith("x");', "target.remove();", "target.insertBefore(target, null);",
     "target.replaceChild(target, target);", "target.removeChild(target);", 'target["before"]("x");', 'target["textContent"] = "x";', 'target.nodeValue = "x";',
     'target.appendData("x");']) {
-    rejects(operation, mutated(path, "return await content?.revealEntry(id) ?? null;", `const target = await content?.revealEntry(id); if (target) { ${operation} } return target ?? null;`),
+    rejects(operation, mutated(path, "return await content?.revealEntry(id) ?? false;", `const target = await content?.revealEntry(id); if (target) { ${operation} } return target ?? false;`),
       ["VISUAL_RUNTIME_GLOBAL"]);
   }
 });

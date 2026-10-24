@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import AxeBuilder from "@axe-core/playwright";
-import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
+import { gapNote, inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
 import { ResolvedNodes } from "../../src/interaction/catalog.ts";
 
 test("the form has a labelled modal, keyboard focus containment, reduced motion and retained drafts", { timeout: 30000 }, async () => {
@@ -37,23 +37,23 @@ test("the kitchen sink covers every installed catalog state and opens the real s
   try {
     await openCatalog(f.page);
     for (const entry of ResolvedNodes.entries) {
-      for (const state of entry.states) assert.equal(await f.page.locator(`[data-specimen="${entry.id}:${state}"]`).count(), 1);
+      for (const state of entry.states) assert.equal(await f.page.locator(`[data-view-item="specimen:${entry.id}:${state}"]`).count(), 1);
     }
-    await f.page.locator('[data-specimen="transient:open"]').getByRole("button").click();
+    await f.page.locator('[data-view-item="specimen:transient:open"]').getByRole("button").click();
     await f.page.getByRole("dialog", { name: "Diagnostic transient", exact: true }).waitFor();
     await f.page.keyboard.press("Escape");
     await f.page.getByRole("dialog", { name: "Diagnostic transient", exact: true }).waitFor({ state: "hidden" });
     for (const kind of ["form", "review"]) for (const entry of ResolvedNodes.entries.filter(entry => entry.id === kind)) {
       for (const state of entry.states) {
-        const specimen = f.page.locator(`[data-specimen="${kind}:${state}"]`);
-        assert.equal(await specimen.getAttribute("data-bank-coverage"), "gap");
+        const specimen = f.page.locator(`[data-view-item="specimen:${kind}:${state}"]`);
+        assert.equal(await specimen.locator(gapNote).count(), 1, "a coverage gap is the unavailable note in place of the specimen");
         assert.equal(await specimen.getByRole("button").count(), 0, "read-only inspection never invents submission or acceptance");
       }
     }
-    assert.equal(await f.page.locator('[data-specimen="context:available"]').getAttribute("data-bank-coverage"), "rendered");
-    assert.equal(await f.page.locator('[data-specimen="context:available"] [data-piece="destination-row"]').count(), 0,
+    assert.equal(await f.page.locator('[data-view-item="specimen:context:available"]').locator(gapNote).count(), 0, "a rendered specimen has no gap note");
+    assert.equal(await f.page.locator('[data-view-item="specimen:context:available"] [data-piece="destination-row"]').count(), 0,
       "only published product commands can become object actions; a specimen cannot fake availability");
-    assert.equal(await f.page.locator('[data-specimen="context:unavailable"]').getAttribute("data-bank-coverage"), "gap");
+    assert.equal(await f.page.locator('[data-view-item="specimen:context:unavailable"]').locator(gapNote).count(), 1);
     assert.deepEqual((await new AxeBuilder({ page: f.page }).analyze()).violations, []);
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }

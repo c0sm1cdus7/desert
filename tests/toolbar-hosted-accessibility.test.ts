@@ -35,14 +35,14 @@ for(const direction of ['ltr','rtl']) test(`hosted calendar, transient, problem 
     assert.equal(target,60);
     await mkdir('artifacts/toolbar-canonical-geometry/hosted-accessibility',{recursive:true});
     for(const[name,entry,state,opener,selector]of[
-      ['calendar','control.date','calendar','[data-specimen="control.date:calendar"] button','[data-date-calendar] [data-piece="toolbar"]'],
-      ['transient','transient','open','[data-specimen="transient:open"] button','[data-surface-frame] [data-piece="toolbar"]'],
-      ['problem','problem','error','[data-specimen="problem:error"] button','[data-frame-presentation="message"] [data-piece="toolbar"]'],
+      ['calendar','control.date','calendar','[data-view-item="specimen:control.date:calendar"] button','[data-date-calendar] [data-piece="toolbar"]'],
+      ['transient','transient','open','[data-view-item="specimen:transient:open"] button','[data-surface-frame] [data-piece="toolbar"]'],
+      ['problem','problem','error','[data-view-item="specimen:problem:error"] button','[data-frame-presentation="message"] [data-piece="toolbar"]'],
       ['viewer',null,null,'[data-record="image.coast"] button','[data-media-viewer] [data-piece="toolbar"]'],
     ]){
       if(entry) {
-        await f.page.locator(`[data-catalog-index] [data-destination="${entry}"]`).click();
-        await f.page.locator(`[data-catalog-entry="${entry}"]`).getByRole('button',{name:/^State ·/}).click();
+        await f.page.locator(`[data-view-item="catalog-index"] [data-focus-key="${entry}"]`).click();
+        await f.page.locator(`[data-view-item="entry:${entry}"]`).getByRole('button',{name:/^State ·/}).click();
         await f.page.getByRole('option',{name:state!,exact:true}).click();
       }
       await f.page.locator(opener!).click();
@@ -80,10 +80,10 @@ test('hosted target witness detects a portal that loses its launch typography',a
     await f.page.evaluate(()=>document.documentElement.style.setProperty('--text-scale','2'));
     await f.page.locator('[data-slot="sidebar-wrapper"].density-comfortable').waitFor();
     const workspace=(await f.page.getByRole('button',{name:'Search',exact:true}).boundingBox())!.height;
-    await f.page.locator('[data-catalog-index] [data-destination="problem"]').click();
-    await f.page.locator('[data-catalog-entry="problem"]').getByRole('button',{name:/^State ·/}).click();
+    await f.page.locator('[data-view-item="catalog-index"] [data-focus-key="problem"]').click();
+    await f.page.locator('[data-view-item="entry:problem"]').getByRole('button',{name:/^State ·/}).click();
     await f.page.getByRole('option',{name:'error',exact:true}).click();
-    await f.page.locator('[data-specimen="problem:error"] button').click();
+    await f.page.locator('[data-view-item="specimen:problem:error"] button').click();
     const close=f.page.locator('[data-frame-presentation="message"] button');await close.waitFor();
     const portalled=(await close.boundingBox())!.height;
     assert.equal(workspace,60);assert.equal(portalled,48);

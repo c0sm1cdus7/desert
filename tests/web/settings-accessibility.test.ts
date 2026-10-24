@@ -16,7 +16,7 @@ test("Settings-like content retains accessible labels and contrast in both syste
       await f.page.emulateMedia({ colorScheme });
       for (const destination of ["Travel kit", "Component bank"]) {
         await (await navigationAction(f.page, destination)).click(); await settle(f.page);
-        const selector = destination === "Travel kit" ? "[data-local-exercises]" : "[data-public-catalog-bank]";
+        const selector = destination === "Travel kit" ? "[data-local-exercises]" : "[data-view-item='public-catalog-bank']";
         const result = await new AxeBuilder({ page: f.page }).include(selector).analyze();
         const values = { colorScheme, destination, violations: result.violations,
           incomplete: result.incomplete.map(rule => ({ id: rule.id, nodes: rule.nodes.map(node => node.target) })) };
@@ -38,7 +38,7 @@ test("shared explorer headings retain page hierarchy when embedded as bank speci
     await f.page.getByRole("button", { name: "Learn More", exact: true }).click(); await settle(f.page);
     const detail = await f.page.locator("[data-catalog-detail] [data-place-title]").evaluate(node => node.tagName);
     await (await navigationAction(f.page, "Component bank")).click(); await settle(f.page);
-    const nested = await f.page.locator("[data-public-catalog-bank]").evaluate(root => ({
+    const nested = await f.page.locator("[data-view-item='public-catalog-bank']").evaluate(root => ({
       heroes: [...root.querySelectorAll("[data-public-hero-title]")].map(node => node.tagName),
       groups: [...root.querySelectorAll("[data-catalog-group] > :is(h1,h2,h3,h4,h5,h6)")].map(node => node.tagName),
       details: [...root.querySelectorAll("[data-catalog-detail] [data-place-title]")].map(node => node.tagName),

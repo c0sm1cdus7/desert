@@ -11,7 +11,7 @@ test("Settings hierarchy groups sibling bank states into one quiet surface", { t
     await f.page.setViewportSize(expected.desktop);
     await (await navigationAction(f.page, "Component bank")).click();
     for (const id of ["input.text", "control.avatar"]) {
-      const group = f.page.locator(`[data-catalog-entry="${id}"]`);
+      const group = f.page.locator(`[data-view-item="entry:${id}"]`);
       await group.scrollIntoViewIfNeeded(); await settle(f.page);
       const paint = await settingsGroupPaint(group);
       await settingsEvidence(f.page, `group-${id}`, paint, group);

@@ -24,19 +24,21 @@ test("the View adapter renders the exact approved bank body for identical fixtur
   const adapted = await svelteBrowser(mount(true));
   try {
     for (const fixture of [direct, adapted]) await fixture.page.addStyleTag({ content: css });
-    const measure = async (fixture: typeof direct) => fixture.page.locator("[data-public-catalog-bank]").evaluate(bank => ({
-      text: bank.textContent,
-      gap: getComputedStyle(bank).rowGap,
-      families: [...bank.children].filter(element => element.matches("section")).map(element => ({
-        label: element.getAttribute("aria-label"), gap: getComputedStyle(element).rowGap,
+    // The bank region holds one column; its entries are the labelled sections of that column. A fixture is a gap when the
+    // unavailable note stands in for its specimen.
+    const measure = async (fixture: typeof direct) => fixture.page.locator("[data-view-item='public-catalog-bank'] > *").evaluate(column => ({
+      text: column.textContent,
+      gap: getComputedStyle(column).rowGap,
+      families: [...column.children].filter(element => element.matches("section")).map(element => ({
+        label: element.getAttribute("aria-label"), gap: getComputedStyle(element.firstElementChild!).rowGap,
         width: element.getBoundingClientRect().width,
       })),
-      fixtures: [...bank.querySelectorAll("[data-specimen]")].map(element => ({
-        id: element.getAttribute("data-specimen"), coverage: element.getAttribute("data-bank-coverage"),
+      fixtures: [...column.querySelectorAll("[data-view-item^='specimen:']")].map(element => ({
+        id: element.getAttribute("data-view-item"), coverage: element.querySelector('[role="note"]') ? "gap" : "rendered",
       })),
     }));
     assert.deepEqual(await measure(adapted), await measure(direct));
-    assert.equal(await adapted.page.locator("[data-specimen]").count(),
+    assert.equal(await adapted.page.locator("[data-view-item^='specimen:']").count(),
       ResolvedNodes.entries.reduce((total, entry) => total + entry.states.length, 0));
     assert.equal(await adapted.page.getByText("Not installed in product execution", { exact: true }).count(), 0);
     assert.deepEqual(adapted.errors, []);
@@ -48,19 +50,19 @@ test("local catalog previews reuse the installed detail and retain bank drafts t
   try {
     await fixture.page.addStyleTag({ content: await rendererCss() });
     await fixture.page.emulateMedia({ reducedMotion: "reduce" });
-    await fixture.page.locator('[data-catalog-index] [data-destination="input.text"]').click();
-    await fixture.page.locator('[data-catalog-entry="input.text"]').getByRole('button',{name:/^State ·/}).click();
+    await fixture.page.locator('[data-view-item="catalog-index"] [data-focus-key="input.text"]').click();
+    await fixture.page.locator('[data-view-item="entry:input.text"]').getByRole('button',{name:/^State ·/}).click();
     await fixture.page.getByRole('option',{name:'value',exact:true}).click();
-    const writing = fixture.page.locator('[data-specimen="input.text:value"] input');
+    const writing = fixture.page.locator('[data-view-item="specimen:input.text:value"] input');
     await writing.fill("Keep my diagnostic draft");
     const original = await writing.elementHandle();
     await fixture.page.getByRole('button',{name:'Back',exact:true}).click();
-    await fixture.page.locator('[data-catalog-index] [data-destination="catalog.card"]').click();
-    await fixture.page.locator('[data-catalog-entry="catalog.card"]').getByRole('button',{name:/^State ·/}).click();
+    await fixture.page.locator('[data-view-item="catalog-index"] [data-focus-key="catalog.card"]').click();
+    await fixture.page.locator('[data-view-item="entry:catalog.card"]').getByRole('button',{name:/^State ·/}).click();
     await fixture.page.getByRole('option',{name:'item',exact:true}).click();
-    await fixture.page.locator('[data-specimen="catalog.card:item"] button').click();
+    await fixture.page.locator('[data-view-item="specimen:catalog.card:item"] button').click();
     assert.ok(await fixture.page.locator('[data-catalog-detail]:visible').isVisible());
-    assert.equal(await fixture.page.locator('[data-public-catalog-bank]:visible').count(), 0);
+    assert.equal(await fixture.page.locator('[data-view-item="public-catalog-bank"]:visible').count(), 0);
     await fixture.page.locator('[data-catalog-content] > [data-toolbar="top"]')
       .getByRole("button", { name: "Back", exact: true }).click();
     assert.equal(await writing.inputValue(), "Keep my diagnostic draft");
@@ -74,8 +76,8 @@ test("local catalog previews reuse the installed detail and retain bank drafts t
     assert.equal(await search.inputValue(), "", 'new search starts clear');
     await search.fill("control.money");
     await fixture.page.locator('[data-search-result="control.money"] button').click();
-    assert.ok(await fixture.page.locator('[data-catalog-entry="control.money"]').isVisible());
-    assert.equal(await fixture.page.locator("[data-catalog-entry]:visible").count(), 1,
+    assert.ok(await fixture.page.locator('[data-view-item="entry:control.money"]').isVisible());
+    assert.equal(await fixture.page.locator("[data-view-item^='entry:']:visible").count(), 1,
       'search opens only the selected indexed detail; other local drafts remain mounted');
     assert.equal(await writing.inputValue(), "Keep my diagnostic draft");
     assert.ok(await writing.evaluate((element, previous) => element === previous, original));
@@ -93,14 +95,14 @@ test("a nested catalog activity cannot keep a popup alive after its parent is de
   <main data-renderer-profile="apple-reference"><RetainedPlace {active}><InspectionContent /></RetainedPlace></main>`);
   try {
     await fixture.page.addStyleTag({ content: await rendererCss() });
-    await fixture.page.locator('[data-catalog-index] [data-destination="control.popover"]').click();
+    await fixture.page.locator('[data-view-item="catalog-index"] [data-focus-key="control.popover"]').click();
     await fixture.page.getByRole("button", { name: "Open contextual information", exact: true }).click();
     assert.equal(await fixture.page.locator('[data-presentation="anchored"]:visible').count(), 1);
     await fixture.page.keyboard.press("F8");
     await fixture.page.locator('[data-presentation="anchored"]').waitFor({ state: "hidden" });
-    assert.equal(await fixture.page.locator('[data-public-catalog-bank]:visible').count(), 0);
+    assert.equal(await fixture.page.locator('[data-view-item="public-catalog-bank"]:visible').count(), 0);
     await fixture.page.keyboard.press("F8");
-    assert.equal(await fixture.page.locator('[data-public-catalog-bank]:visible').count(), 1);
+    assert.equal(await fixture.page.locator('[data-view-item="public-catalog-bank"]:visible').count(), 1);
     assert.equal(await fixture.page.locator('[data-presentation="anchored"]:visible').count(), 0);
     assert.deepEqual(fixture.errors, []);
   } finally { await fixture.close(); }

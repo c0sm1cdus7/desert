@@ -9,8 +9,8 @@ test('standalone media content shares its specimen reading guide',async()=>{
  </script><ControlBench entryIds={['control.tag','control.avatar','control.image']} />`);
  try {
   await f.page.addStyleTag({content:await rendererCss()});
-  const offsets=await f.page.locator('[data-specimen]:visible').evaluateAll(rows=>rows.map(row=>{
-   const title=row.closest('[data-catalog-entry]')!.querySelectorAll('.place-stack-title')[1]!,content=row.querySelector('[data-control]')!;
+  const offsets=await f.page.locator('[data-view-item^="specimen:"]:visible').evaluateAll(rows=>rows.map(row=>{
+   const title=row.closest('[data-view-item^="entry:"]')!.querySelectorAll('.place-stack-title')[1]!,content=row.querySelector('[data-control]')!;
    return {label:title.getBoundingClientRect().left+parseFloat(getComputedStyle(title).paddingLeft),content:content.getBoundingClientRect().left};
   }));
   assert.equal(offsets.length,3,'each component presents only its selected state');

@@ -11,8 +11,8 @@ for (const colorScheme of ["light", "dark"] as const) test(`frozen pending actio
     await page.emulateMedia({ colorScheme, reducedMotion: "no-preference" });
     await (await navigationAction(page, "Component bank")).click();
     await page.getByRole("searchbox", { name: "Find component", exact: true }).fill("action");
-    const pending = page.locator('[data-specimen="action:pending"]').getByRole("button");
-    const ready = page.locator('[data-specimen="action:ready"]').getByRole("button");
+    const pending = page.locator('[data-view-item="specimen:action:pending"]').getByRole("button");
+    const ready = page.locator('[data-view-item="specimen:action:ready"]').getByRole("button");
     const directory = "artifacts/icon-spin/frozen";
     await mkdir(directory, { recursive: true });
     const evidence = [];

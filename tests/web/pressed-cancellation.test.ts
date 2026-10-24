@@ -92,8 +92,8 @@ for (const theme of ["light", "dark"] as const) {
         finally { await f.page.mouse.up(); }
       };
       await openCatalog(f.page);
-      await disabled(f.page.locator('[data-specimen="action:unavailable"] button'), "action");
-      await disabled(f.page.locator('[data-specimen="control.select:disabled"] [data-selection-trigger]'), "selection");
+      await disabled(f.page.locator('[data-view-item="specimen:action:unavailable"] button'), "action");
+      await disabled(f.page.locator('[data-view-item="specimen:control.select:disabled"] [data-selection-trigger]'), "selection");
       await openNotes(f.page);
       const rows = f.page.locator('[data-composition="collection"]:visible button');
       for (const index of [0, 1, 2]) {

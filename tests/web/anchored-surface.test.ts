@@ -106,7 +106,7 @@ test("problem dialogs keep one shared bottom dismissal without losing severity",
   try {
     await openCatalog(f.page);
     for (const severity of ["error", "warning"] as const) {
-      const title = `Example ${severity}`, trigger = f.page.locator(`[data-specimen="problem:${severity}"]`).getByRole("button");
+      const title = `Example ${severity}`, trigger = f.page.locator(`[data-view-item="specimen:problem:${severity}"]`).getByRole("button");
       await trigger.click();
       const dialog = f.page.getByRole("dialog", { name: title, exact: true }); await dialog.waitFor();
       const top = dialog.locator('[data-surface-slot="top"]');

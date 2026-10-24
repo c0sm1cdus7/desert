@@ -81,7 +81,7 @@ test("existing locked transient still refuses Escape and pointer dismissal until
   try {
     await (await navigationAction(f.page, "Component bank")).click();
     await f.page.getByRole("searchbox", { name: "Find component", exact: true }).fill("transient");
-    const trigger = f.page.locator('[data-specimen="transient:locked"]').getByRole("button");
+    const trigger = f.page.locator('[data-view-item="specimen:transient:locked"]').getByRole("button");
     await trigger.click();
     const dialog = f.page.getByRole("dialog", { name: "Diagnostic transient", exact: true });
     await dialog.waitFor();

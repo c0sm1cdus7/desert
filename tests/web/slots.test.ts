@@ -11,7 +11,7 @@ test("shared transient and form surfaces preserve their declared toolbar slots a
     await openCatalog(f.page);
     for (const width of [1280, 390]) {
       await f.page.setViewportSize({ width, height: 844 });
-      await f.page.locator('[data-specimen="transient:open"]').getByRole("button").click();
+      await f.page.locator('[data-view-item="specimen:transient:open"]').getByRole("button").click();
       const dialog = f.page.getByRole("dialog");
       await dialog.waitFor();
       await settleMotion(f.page);

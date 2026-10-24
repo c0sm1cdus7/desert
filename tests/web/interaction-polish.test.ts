@@ -69,7 +69,7 @@ test("mobile grip keeps shared button keyboard focus and a generous target aroun
   const f = await catalog();
   try {
     await f.page.setViewportSize({ width: 390, height: 844 });
-    await f.page.locator('[data-specimen="transient:open"]').getByRole("button").click();
+    await f.page.locator('[data-view-item="specimen:transient:open"]').getByRole("button").click();
     await settleMotion(f.page);
     const grip = f.page.getByRole("dialog").getByRole("button", { name: "Close panel", exact: true });
     assert.equal(await grip.isVisible(), true);
@@ -97,7 +97,7 @@ test("a drag stays reversible while held, springs back on cancellation and dismi
   try {
     await f.page.setViewportSize({ width: 390, height: 844 });
     await f.page.emulateMedia({ reducedMotion: "no-preference" });
-    await f.page.locator('[data-specimen="transient:open"]').getByRole("button").click();
+    await f.page.locator('[data-view-item="specimen:transient:open"]').getByRole("button").click();
     const dialog = f.page.getByRole("dialog", { name: "Diagnostic transient", exact: true });
     await settleMotion(f.page);
     const box = (await dialog.getByRole("button", { name: "Close panel", exact: true }).boundingBox())!;
@@ -140,13 +140,13 @@ test("overlay click dismisses unlocked surfaces and cannot dismiss a locked tran
   const f = await catalog();
   try {
     for (const specimen of ["problem:error", "problem:warning", "transient:open"]) {
-      await f.page.locator(`[data-specimen="${specimen}"]`).getByRole("button").click();
+      await f.page.locator(`[data-view-item="specimen:${specimen}"]`).getByRole("button").click();
       const dialog = f.page.getByRole("dialog");
       await settleMotion(f.page);
       await clickOverlay(f.page, dialog);
       await dialog.waitFor({ state: "hidden" });
     }
-    await f.page.locator('[data-specimen="transient:locked"]').getByRole("button").click();
+    await f.page.locator('[data-view-item="specimen:transient:locked"]').getByRole("button").click();
     const dialog = f.page.getByRole("dialog");
     await settleMotion(f.page); await clickOverlay(f.page, dialog); await settleMotion(f.page);
     assert.equal(await dialog.isVisible(), true);
@@ -164,7 +164,7 @@ test("Problem has real type hierarchy and readiness uses the positive semantic c
   try {
     for (const colorScheme of ["light", "dark"] as const) {
       await f.page.emulateMedia({ colorScheme });
-      const icon = f.page.locator('[data-specimen="availability:ready"] svg');
+      const icon = f.page.locator('[data-view-item="specimen:availability:ready"] svg');
       assert.equal(await icon.evaluate(node => {
         const probe = document.createElement("span"); probe.style.color = "var(--positive)";
         node.parentElement!.append(probe);
@@ -172,7 +172,7 @@ test("Problem has real type hierarchy and readiness uses the positive semantic c
         probe.remove(); return same;
       }), true, `ready icon follows --positive in ${colorScheme}`);
       for (const severity of ["error", "warning"]) {
-        await f.page.locator(`[data-specimen="problem:${severity}"]`).getByRole("button").click();
+        await f.page.locator(`[data-view-item="specimen:problem:${severity}"]`).getByRole("button").click();
         const dialog = f.page.getByRole("dialog");
         const type = await dialog.evaluate(node => {
           const title = node.querySelector('[data-slot="dialog-title"]')!;

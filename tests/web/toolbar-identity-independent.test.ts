@@ -24,7 +24,7 @@ test("built shared bank separates centered dialog identity from navigation in bo
       await f.page.emulateMedia({ colorScheme: theme });
       await f.page.setViewportSize({ width, height: width === 320 ? 568 : 844 });
       await f.page.evaluate(scale => document.documentElement.style.setProperty("--text-scale", String(scale)), scale);
-      const opener = f.page.locator('[data-specimen="problem:error"]').getByRole("button");
+      const opener = f.page.locator('[data-view-item="specimen:problem:error"]').getByRole("button");
       await opener.click();
       const dialog = f.page.getByRole("dialog", { name: "Example error", exact: true });
       await dialog.waitFor(); await settle(f.page);
@@ -47,7 +47,7 @@ test("built shared bank separates centered dialog identity from navigation in bo
       await dialog.waitFor({ state: "hidden" });
       if (!await opener.evaluate(node => node === document.activeElement)) failures.push(`${theme}/${width}/${scale}: Close lost opener focus`);
     }
-    const opener = f.page.locator('[data-specimen="problem:warning"]').getByRole("button");
+    const opener = f.page.locator('[data-view-item="specimen:problem:warning"]').getByRole("button");
     await opener.click(); const dialog = f.page.getByRole("dialog", { name: "Example warning", exact: true });
     await dialog.waitFor(); await f.page.keyboard.press("Escape"); await dialog.waitFor({ state: "hidden" });
     if (!await opener.evaluate(node => node === document.activeElement)) failures.push("Escape lost opener focus");

@@ -44,7 +44,7 @@ async function catalog() {
     const address = server.address();
     assert.ok(address && typeof address === "object");
     await page.goto(`http://127.0.0.1:${address.port}/?catalog=1`);
-    await page.locator('[data-specimen="control.options:one"]').waitFor();
+    await page.locator('[data-view-item="specimen:control.options:one"]').waitFor();
     return { page, errors, close };
   } catch (error) {
     try { await close(); } catch (cleanupError) { throw new AggregateError([error, cleanupError], "CHOICE_CONTRAST_SETUP_FAILED"); }
@@ -125,7 +125,7 @@ test("choices meet 3:1 contrast and checked choices use primary roles in both th
         }, { explicit, colorScheme });
         await f.page.mouse.move(0, 0); await settle(f.page);
         for (const [choice, cardinality] of [["radio", "one"], ["checkbox", "many"]] as const) {
-          const selector = `[data-specimen="control.options:${cardinality}"] [role="${choice}"]:not(:disabled):not([aria-disabled="true"])`;
+          const selector = `[data-view-item="specimen:control.options:${cardinality}"] [role="${choice}"]:not(:disabled):not([aria-disabled="true"])`;
           const choices = f.page.locator(selector);
           assert.equal(await choices.count(), 2, "both enabled choice specimens remain represented");
           const unchecked = f.page.locator(`${selector}[aria-checked="false"]`).first();

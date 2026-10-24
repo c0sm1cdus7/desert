@@ -42,12 +42,12 @@ test('component bank has one expanded search and no category/count rails', async
     // Collection specimens may demonstrate their own search; they are content,
     // not a second search for the containing place.
     assert.equal(await page.getByRole('searchbox').evaluateAll(nodes =>
-      nodes.filter(node => !node.closest('[data-catalog-entry]')).length), 1);
+      nodes.filter(node => !node.closest('[data-view-item^="entry:"]')).length), 1);
     assert.equal(await page.getByRole('button', { name: 'Search', exact: true }).count(), 0);
     assert.equal(await page.locator('#catalog-navigation a, #catalog-navigation [role="status"]').count(), 0);
     const handle = await input.elementHandle();
     await input.fill('Money'); await settle(page);
-    assert.equal(await page.locator('[data-catalog-entry="control.money"]').isVisible(), true);
+    assert.equal(await page.locator('[data-view-item="entry:control.money"]').isVisible(), true);
     await scrollTo(page.locator('[data-catalog-scroll]'), 'middle');
     assert.ok(await input.evaluate((node, previous) => node === previous, handle));
     assert.equal(await input.inputValue(), 'Money');

@@ -100,9 +100,9 @@ test("visual bank index opens actual owners inside titled stacks and returns key
     await f.page.setViewportSize({width:390,height:844}); await settle(f.page);
     const row=f.page.getByRole('button',{name:'Information',exact:true});
     await row.click();
-    assert.equal(await f.page.locator('[data-owner-specimen="Information"]').count(),1);
-    assert.equal(await f.page.locator('[data-owner-specimen="Information"] .bank-stack').count(),1);
-    assert.equal(await f.page.locator('[data-owner-specimen="Information"]').evaluate(node=>node.scrollWidth<=node.clientWidth),true);
+    assert.equal(await f.page.locator('[data-view-item="owner:Information"]').count(),1);
+    assert.equal(await f.page.locator('[data-view-item="owner:Information"] .bank-stack').count(),1);
+    assert.equal(await f.page.locator('[data-view-item="owner:Information"]').evaluate(node=>node.scrollWidth<=node.clientWidth),true);
     await f.page.getByRole('button',{name:'Back',exact:true}).click();
     assert.equal(await row.evaluate(node=>node===document.activeElement),true);
     await f.page.getByRole('button',{name:'Attention Indicator',exact:true}).click();

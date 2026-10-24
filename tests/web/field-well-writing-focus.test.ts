@@ -13,7 +13,7 @@ for (const width of [1280, 390]) test(`compiled writing wells have no dead paddi
     const search = f.page.getByRole('searchbox', { name: 'Find component', exact: true });
     for (const kind of ['input.text', 'input.multiline']) {
       await search.fill(kind);
-      const specimen = f.page.locator(`[data-specimen="${kind}:empty"]`);
+      const specimen = f.page.locator(`[data-view-item="specimen:${kind}:empty"]`);
       const input = specimen.getByRole('textbox');
       const well = specimen.locator('[data-floating-field]');
       await well.scrollIntoViewIfNeeded(); await settle(f.page);

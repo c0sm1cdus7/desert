@@ -14,7 +14,7 @@ test("bank avatars retain a visible identity face and readable label at narrow w
       await f.page.evaluate(scale => document.documentElement.style.setProperty("--text-scale", String(scale)), scale);
       await settle(f.page);
       for (const state of ["image", "fallback"] as const) {
-        const specimen = f.page.locator(`[data-specimen="control.avatar:${state}"]`);
+        const specimen = f.page.locator(`[data-view-item="specimen:control.avatar:${state}"]`);
         const row = specimen.locator('[data-control="avatar"]');
         await row.scrollIntoViewIfNeeded();
         if (state === "image") await row.locator("img").waitFor();
@@ -35,7 +35,7 @@ test("failed avatar images preserve the same bounded fallback and recover when t
     await f.page.route("**/bank-image.svg", route => route.fulfill({ status: 200, contentType: "image/svg+xml", body: "not an image" }));
     await (await navigationAction(f.page, "Component bank")).click();
     await f.page.getByRole("searchbox", { name: "Find component", exact: true }).fill("avatar");
-    const specimen = f.page.locator('[data-specimen="control.avatar:image"]');
+    const specimen = f.page.locator('[data-view-item="specimen:control.avatar:image"]');
     const row = specimen.locator('[data-control="avatar"]');
     await row.getByText("AR", { exact: true }).waitFor(); await row.scrollIntoViewIfNeeded(); await settle(f.page);
     const failedGeometry = await avatarGeometry(row), violations = avatarViolations(failedGeometry, true);

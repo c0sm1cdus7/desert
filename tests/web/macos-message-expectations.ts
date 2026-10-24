@@ -12,7 +12,7 @@ export const messageBounds = Object.freeze({ width: [280, 380], inset: 12,
 export async function openMessage(page: Page, severity: "warning" | "error") {
   await (await navigationAction(page, "Component bank")).click();
   await page.getByRole("searchbox", { name: "Find component", exact: true }).fill("problem");
-  const trigger = page.locator(`[data-specimen="problem:${severity}"]`).getByRole("button");
+  const trigger = page.locator(`[data-view-item="specimen:problem:${severity}"]`).getByRole("button");
   await trigger.click();
   const dialog = page.getByRole("dialog", { name: `Example ${severity}`, exact: true });
   await dialog.waitFor(); await settle(page);

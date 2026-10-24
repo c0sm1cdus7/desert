@@ -77,7 +77,7 @@ test("read-only diagnostic transient grows a local top edge without inventing fo
     const cdp = await f.context.newCDPSession(page);
     await cdp.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-transparency", value: "no-preference" }] });
     await openCatalog(page);
-    await page.locator('[data-specimen="transient:open"]').getByRole("button").click();
+    await page.locator('[data-view-item="specimen:transient:open"]').getByRole("button").click();
     const dialog = page.getByRole("dialog", { name: "Diagnostic transient", exact: true });
     await dialog.waitFor(); await settle(page);
     const scope = dialog.locator("[data-surface-frame]"), content = scope.locator('[data-surface-slot="content"]');

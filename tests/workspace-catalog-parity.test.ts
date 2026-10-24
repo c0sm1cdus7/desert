@@ -24,9 +24,9 @@ for (const width of [390, 1280]) test(`workspace adapter preserves the approved 
         await new Promise<void>(done => requestAnimationFrame(() => requestAnimationFrame(() => done())));
       });
       await page.getByRole("heading", { name: "Visual catalog", exact: true }).first().waitFor();
-      assert.equal(await page.locator('[data-catalog-index]:visible').count(),1);
-      assert.equal(await page.locator('[data-catalog-entry]:visible').count(),0);
-      assert.equal(await page.locator('[data-catalog-index] [data-destination="fact"]').count(),1);
+      assert.equal(await page.locator('[data-view-item="catalog-index"]:visible').count(),1);
+      assert.equal(await page.locator('[data-view-item^="entry:"]:visible').count(),0);
+      assert.equal(await page.locator('[data-view-item="catalog-index"] [data-focus-key="fact"]').count(),1);
       await settled();
       const pixels = [await page.screenshot()];
       await page.getByRole("button", { name: "Search", exact: true }).click();

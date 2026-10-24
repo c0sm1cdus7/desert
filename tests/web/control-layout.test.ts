@@ -40,7 +40,7 @@ test("option indicators align with their interactive labels at compact widths an
         await settleMotion(f.page);
         const rhythms: number[] = [];
         for (const cardinality of ["one", "many"] as const) {
-          const specimen = f.page.locator(`[data-specimen="control.options:${cardinality}"]`);
+          const specimen = f.page.locator(`[data-view-item="specimen:control.options:${cardinality}"]`);
           const choices = specimen.getByRole(cardinality === "one" ? "radio" : "checkbox");
           assert.equal(await choices.count(), 3);
           const rows = await specimen.locator('[data-choice-row]').evaluateAll(elements => elements.map(element => {
@@ -67,8 +67,8 @@ test("option label activation, keyboard selection and disabled semantics survive
   const f = await browserFixture();
   try {
     await openCatalog(f.page);
-    const single = f.page.locator('[data-specimen="control.options:one"]');
-    const many = f.page.locator('[data-specimen="control.options:many"]');
+    const single = f.page.locator('[data-view-item="specimen:control.options:one"]');
+    const many = f.page.locator('[data-view-item="specimen:control.options:many"]');
     assert.equal(await single.getByRole("radiogroup", { name: "Choose one option", exact: true }).count(), 1);
     for (const [specimen, role] of [[single, "radio"], [many, "checkbox"]] as const) {
       const first = specimen.getByRole(role, { name: "First option", exact: true });
@@ -93,7 +93,7 @@ test("loaded and absent image sources preserve the declared landscape ratio", { 
       await f.page.setViewportSize({ width, height: 900 });
       await settleMotion(f.page);
       for (const state of ["available", "unavailable"]) {
-        const specimen = f.page.locator(`[data-specimen="control.image:${state}"]`);
+        const specimen = f.page.locator(`[data-view-item="specimen:control.image:${state}"]`);
         const media = specimen.getByRole("img", { name: "An open notebook with blue pages", exact: true });
         const geometry = await mediaGeometry(media);
         assert.ok(Math.abs(geometry.ratio - 16 / 9) < .01, `${state} at ${width}px: ${JSON.stringify(geometry)}`);
@@ -109,7 +109,7 @@ test("a failed image request preserves the same media geometry and accessible al
   const f = await browserFixture();
   try {
     await openCatalog(f.page);
-    const specimen = f.page.locator('[data-specimen="control.image:available"]');
+    const specimen = f.page.locator('[data-view-item="specimen:control.image:available"]');
     const loaded = specimen.getByRole("img", { name: "An open notebook with blue pages", exact: true });
     assert.equal(await loaded.evaluate(element => (element as HTMLImageElement).naturalWidth > 0), true);
     const before = await mediaGeometry(loaded);

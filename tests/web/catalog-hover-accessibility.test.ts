@@ -135,7 +135,7 @@ test("unavailable and pending catalog actions cannot acquire feedback or keyboar
     await f.page.setViewportSize({ width: 1100, height: 760 });
     await (await navigationAction(f.page, "Component bank")).click(); await settle(f.page);
     for (const state of ["unavailable", "pending"]) {
-      const control = f.page.locator(`[data-specimen="action:${state}"] button`);
+      const control = f.page.locator(`[data-view-item="specimen:action:${state}"] button`);
       await control.scrollIntoViewIfNeeded(); await f.page.mouse.move(1090, 740); await settle(f.page);
       assert.equal(await control.isDisabled(), true); const normal = await paint(control), box = (await control.boundingBox())!;
       await f.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await f.page.mouse.down();

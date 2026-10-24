@@ -39,8 +39,8 @@ test('surface specimen mounts the actual frame and opens a transient, never a do
   try {
     await f.page.setViewportSize({width:1600,height:900});
     await f.page.emulateMedia({reducedMotion:'reduce'});
-    await f.page.locator('[data-catalog-index] [data-destination="Place"]').click();
-    const specimen=f.page.locator('[data-owner-specimen="Place"]');
+    await f.page.locator('[data-view-item="catalog-index"] [data-focus-key="Place"]').click();
+    const specimen=f.page.locator('[data-view-item="owner:Place"]');
     assert.equal(await specimen.locator('[data-surface-frame]').count(),1);
     assert.equal(await specimen.locator('[data-toolbar="bottom"]').count(),0,'ordinary surface content has no detached footer action');
     assert.equal(await specimen.locator('[data-destination="open-transient"]').count(),1,'launching a transient is an explicit action row');
@@ -60,17 +60,17 @@ test('surface specimen mounts the actual frame and opens a transient, never a do
 test('the visual index has exactly two categories and gives button, avatar, image and surface an explicit home', async()=>{
   const f=await svelteBrowser(catalogWorkspaceSource,{},undefined,{initialCss:await rendererCss()});
   try {
-    const index=f.page.locator('[data-catalog-index]');
+    const index=f.page.locator('[data-view-item="catalog-index"]');
     const titles=await index.locator('.place-stack > legend:visible').allTextContents();
     assert.deepEqual(titles.map(value=>value.trim()),['Foundations','Compositions']);
     const foundations=index.getByRole('group',{name:'Foundations',exact:true});
     for(const [id,title] of [['action','Button'],['control.avatar','Avatar'],['control.image','Image']]) {
-      assert.equal(await foundations.locator(`[data-destination="${id}"]`).innerText(),title);
+      assert.equal(await foundations.locator(`[data-focus-key="${id}"]`).innerText(),title);
     }
     const compositions=index.getByRole('group',{name:'Compositions',exact:true});
-    assert.equal(await compositions.locator('[data-destination="Place"]').innerText(),'Surface');
-    assert.equal(await compositions.locator('[data-destination="transient"]').innerText(),'Transient surface');
-    for(const entry of ResolvedNodes.entries) assert.equal(await index.locator(`[data-destination="${entry.id}"]`).count(),1,entry.id);
+    assert.equal(await compositions.locator('[data-focus-key="Place"]').innerText(),'Surface');
+    assert.equal(await compositions.locator('[data-focus-key="transient"]').innerText(),'Transient surface');
+    for(const entry of ResolvedNodes.entries) assert.equal(await index.locator(`[data-focus-key="${entry.id}"]`).count(),1,entry.id);
     assert.deepEqual(f.errors,[]);
   } finally {await f.close();}
 });
@@ -81,7 +81,7 @@ test('component purpose is the actual content subtitle, never a detached Purpose
     await f.page.emulateMedia({reducedMotion:'reduce'});
     for(const [id,title,words] of [['input.text','Text input',/single line/i],['action','Button',/command/i],
       ['ToolbarLayout','Toolbar',/navigation/i],['Place','Surface',/content/i]] as const) {
-      await f.page.locator(`[data-catalog-index] [data-destination="${id}"]`).click();
+      await f.page.locator(`[data-view-item="catalog-index"] [data-focus-key="${id}"]`).click();
       const header=f.page.locator('[data-catalog-content] [data-place-header]').first();
       assert.equal(await header.locator('[data-place-title]').innerText(),title);
       assert.match(await header.locator('[data-place-subtitle]').innerText(),words);
