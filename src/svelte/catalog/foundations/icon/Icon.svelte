@@ -45,7 +45,9 @@
   import type { CatalogProps } from "../../types.d.ts";
   let { name, decorative, placement, chevron, destination, search, tone, size, leading }: CatalogProps<"icon"> = $props();
   const toneClass = { success: "text-success", warning: "text-warning" } as const;
-  let glyphClass = $derived([tone && toneClass[tone], leading === "list" && "mt-0.5 size-4 shrink-0"].filter(Boolean).join(" "));
+  // A chevron is muted and never shrinks beside the text it follows (the theme's [data-control-chevron] rule moves here).
+  let glyphClass = $derived([tone && toneClass[tone], chevron && "text-muted-foreground shrink-0",
+    size === "mark" && "size-[55%]", leading === "list" && "mt-0.5 size-4 shrink-0"].filter(Boolean).join(" "));
   // The glyph gets exactly the attributes the props ask for, nothing undefined: lucide hides an icon by itself when it
   // receives no aria attribute at all, so an absent `decorative` must stay absent.
   let attributes = $derived({
