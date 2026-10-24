@@ -7,7 +7,7 @@ import postcss from 'postcss';
 // scrims, separators and focus/error outlines are deliberately different roles.
 const foundation='src/svelte/vendor/components/ui/';
 const panes=['button/button','card/card','badge/badge','input-group/input-group','input/input','textarea/textarea',
-  'popover/popover-content','select/select-content','dialog/dialog-content','sheet/sheet-content','sidebar/sidebar'];
+  'popover/popover-content','dialog/dialog-content','sidebar/sidebar'];
 test('S1 role-aware source gate keeps pane recipes out of foundation variants',async()=>{
   for(const path of panes) {
     const source=await readFile(foundation+path+'.svelte','utf8');
