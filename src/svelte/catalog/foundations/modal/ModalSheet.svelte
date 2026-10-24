@@ -1,0 +1,44 @@
+<script lang="ts">
+  // Modal part: the sheet that presents a picker at the bottom edge when its anchor has no room. Its grip and its top
+  // toolbar close it; focus returns to the trigger that opened it (provided by the popover through surface-focus).
+  import type { Snippet } from "svelte";
+  import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
+  import { Toolbar } from "../../index.ts";
+  import { toolbarAction } from "../../../../interaction/toolbar.ts";
+  import { PICKER_PANEL_REM } from "../../../infra/picker-measure.ts";
+  import { surfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
+  import { takeSheetFocus } from "../../mechanisms/surface-focus/focus-return.ts";
+  import DrawerGrip from "./DrawerGrip.svelte";
+  import { drawerMotion } from "./drawer-motion.svelte.ts";
+  let { label, open, locked, density, dismiss, onclosed, children }: {
+    label: string; open: boolean; locked: boolean; density: string | undefined;
+    dismiss: () => void; onclosed: (() => void) | undefined; children: Snippet | undefined;
+  } = $props();
+  let content = $state<HTMLElement | null>(null);
+  const motion = drawerMotion(() => dismiss(), () => locked, () => "bottom");
+  const focus = surfaceFocus(() => content);
+  const policy = takeSheetFocus();
+  function restore(event: Event) {
+    event.preventDefault();
+    if (open) return; // A presentation replacement is not dismissal.
+    const target = policy?.returnTo();
+    if (target?.checkVisibility() && !target.closest("[hidden],[inert]")) target.focus({ preventScroll: true });
+  }
+</script>
+<Dialog.Root {open} onOpenChange={next => { if (!next) dismiss(); }}
+  onOpenChangeComplete={next => { if (!next) { motion.reset(); onclosed?.(); } }}>
+  <Dialog.Content bind:ref={content} presentation="panel" class={density} data-modal="sheet" data-picker-sheet data-edge="bottom"
+    data-size="content" data-locked={locked || undefined} data-dragging={motion.dragging || undefined} overlayStyle={motion.overlayStyle}
+    style={`--panel-width:${PICKER_PANEL_REM}rem;transform:${motion.transform}`}
+    onOpenAutoFocus={event => focus.open(event, policy?.open)} onCloseAutoFocus={event => focus.close(event, policy ? restore : undefined)}
+    onEscapeKeydown={event => { event.preventDefault(); dismiss(); }}
+    onInteractOutside={event => { event.preventDefault(); dismiss(); }}>
+    <DrawerGrip {motion} {locked} />
+    <Dialog.Title class="sr-only">{label}</Dialog.Title>
+    <!-- F1-merge: Bar(top, identity label, leading close) replaces the Toolbar composition. -->
+    <Toolbar toolbar={{ edge: "top", title: label, leading: toolbarAction({ kind: "close" }, `Close ${label}`, "close", !locked) }}
+      invoke={dismiss} />
+    <!-- The picker brings its own insets: a calendar frames its header, a list insets its rows. -->
+    <div class="flex min-h-0 flex-col overflow-auto @container" data-picker-content>{@render children?.()}</div>
+  </Dialog.Content>
+</Dialog.Root>

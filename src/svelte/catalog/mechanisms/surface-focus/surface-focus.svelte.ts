@@ -1,3 +1,5 @@
+// Mechanism surface-focus (owned by modal): one owner moves focus into a transient surface when it opens, and back to its
+// opener when it closes, across portalled descendants (a child popover inside a modal is still inside its scope).
 import { onDestroy, tick } from 'svelte';
 import { IsUsingKeyboard } from 'bits-ui';
 
@@ -102,7 +104,7 @@ export function surfaceFocus(element: () => HTMLElement | null, outside?: (event
         event.preventDefault();
         composite.focus({ preventScroll: true });
         composite.dispatchEvent(new KeyboardEvent('keydown', { key: event.key, bubbles: true, cancelable: true }));
-        revealSurfaceFocus(document.activeElement as HTMLElement, surface);
+        if (document.activeElement instanceof HTMLElement) revealSurfaceFocus(document.activeElement, surface);
       };
       boundaryNavigation.set(surface, navigate);
       surface.addEventListener('keydown', navigate);

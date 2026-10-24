@@ -1,0 +1,20 @@
+/* Popover: the nonmodal surface anchored to its trigger. Anchored geometry and presence; the pane owns the material. */
+@layer components {
+  .floating-pane {
+    position:relative; z-index:30;
+    min-height:0; overflow-x:hidden; overflow-y:auto; outline:none;
+    border-radius:var(--radius);
+    color:var(--popover-foreground); overscroll-behavior:contain;
+    translate:0 0; opacity:1;
+    transition:translate var(--motion-overlay-enter) var(--ease-enter),opacity var(--motion-overlay-enter) var(--ease-enter);
+  }
+  .floating-pane:is([data-starting-style],[data-ending-style]) { translate:0 12px; opacity:0; }
+  .floating-pane[data-ending-style] { transition-duration:var(--motion-overlay-exit); transition-timing-function:var(--ease-exit); }
+  .anchored-surface {
+    display:flex; flex-direction:column; gap:.75rem; padding:1rem; width:24rem;
+    max-width:min(calc(100dvw - 24px),var(--bits-popover-content-available-width));
+    max-height:var(--bits-popover-content-available-height);
+  }
+}
+/* A menu holds no pane of its own: its commands stand in one column above the page. */
+.speed-dial { z-index:50; display:grid; gap:12px; max-width:calc(100vw - 24px); }

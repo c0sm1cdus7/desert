@@ -8,12 +8,10 @@
   import { useToolbarLeading } from "../../foundations/bar/toolbar-leading.svelte.ts";
   import type { ToolbarContent } from "../../../infra/toolbar-content.ts";
   import { useToolbarCommands } from "../../foundations/bar/toolbar-commands.svelte.ts";
-  import { assertToolbarControls } from "../../../infra/toolbar-controls.ts";
   import { intentKey, submitsJourney } from "../../../../interaction/intent.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { NodeRenderer } from "../../index.ts";
   import { SpeedDial } from "../../index.ts";
-  import CalendarNavigation from "./CalendarNavigation.svelte";
   import { ToolbarSearch } from "../../index.ts";
   import { ToolbarMediaControls } from "../../index.ts";
   import { ZoomControls } from "../../index.ts";
@@ -42,10 +40,6 @@
   let primary = $derived(toolbar?.edge === "top" ? toolbar.primary : undefined);
   let actionGroup = $derived(content.kind === "place-navigation" ? content.actionGroup : toolbar?.edge === "top" ? toolbar.actionGroup : undefined);
   let groupedOpen = $state(false);
-  let checkedControls = $derived.by(() => {
-    const controls = content.kind === "commands" ? content.controls : undefined;
-    assertToolbarControls(controls); return controls;
-  });
   const commands = useToolbarCommands(() => actionGroup ? [] : trailing, () => ({row,leading:leadingElement,utilities,controls:customControls}), () => Boolean(primary) || content.kind === "place-navigation" && content.searchAvailable === true);
   let edge = $derived(toolbar?.edge ?? (content.kind === "media-controls" || content.kind === "settings-placeholder" ? "bottom" : suppliedEdge));
   let purpose = $derived(content.kind === "media-controls" ? "media" : toolbar?.edge === "bottom" ? toolbar.navigation === "steps" ? "steps" : "commit" : "commands");
@@ -93,7 +87,6 @@
     </div>{/if}
     {#if identity}<ToolbarIdentity {identity} {identityRole} onelement={onidentityElement} />{/if}
     {#if content.kind === "place-navigation" || content.kind === "commands" && toolbar?.edge === "top"}
-      {#if checkedControls}<div bind:this={customControls} class="ml-auto flex shrink-0 items-center" data-toolbar-controls><CalendarNavigation /></div>{/if}
       {#if trailing.length || primary}
         <div bind:this={utilities} class="ml-auto flex min-w-0 shrink-0" data-toolbar-utilities>
           {#if actionGroup && trailing.length}<div class="toolbar-action" data-toolbar-create>

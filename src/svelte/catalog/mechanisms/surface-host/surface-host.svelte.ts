@@ -1,3 +1,4 @@
+// Mechanism surface-host (owned by modal): a portalled transient measures the surface that launched it, never the window.
 import { getContext, setContext } from "svelte";
 
 const hostKey = Symbol("desert.surface-host");

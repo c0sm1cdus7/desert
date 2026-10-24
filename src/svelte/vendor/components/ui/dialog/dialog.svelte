@@ -1,13 +1,8 @@
 <script lang="ts">
+	// The owner (modal) decides dismissal, including when its surface becomes inactive; the root only holds open state.
 	import { Dialog as DialogPrimitive } from "bits-ui";
-  import { dismissWhenInactive } from '@desert/svelte/infra/surface-activity.svelte.ts';
 
-	let { open = $bindable(false), dismissOnInactive = true, ...restProps }:
-    DialogPrimitive.RootProps & { dismissOnInactive?: boolean } = $props();
-  dismissWhenInactive(() => {
-    if (!dismissOnInactive) return;
-    open = false; restProps.onOpenChange?.(false);
-  });
+	let { open = $bindable(false), ...restProps }: DialogPrimitive.RootProps = $props();
 </script>
 
 <DialogPrimitive.Root bind:open {...restProps} />

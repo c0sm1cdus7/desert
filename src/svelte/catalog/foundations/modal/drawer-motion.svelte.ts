@@ -1,5 +1,6 @@
+// The drag of a modal's edge: direct manipulation until release, dismissing past the threshold (a modal part).
 import { untrack } from "svelte";
-import { swipeMotion } from "./swipe-motion.svelte.ts";
+import { swipeMotion } from "../../../infra/swipe-motion.svelte.ts";
 
 export function drawerMotion(close: () => void, locked: () => boolean, edge: () => "bottom" | "right") {
   const motion = swipeMotion({ edge, enabled: () => !locked(), commit: close });
@@ -11,9 +12,8 @@ export function drawerMotion(close: () => void, locked: () => boolean, edge: () 
     get overlayStyle() { return `--surface-scrim-opacity:${1 - motion.progress * .6}`; },
     get transform() { return motion.transform; },
     down(event: PointerEvent) {
-      if (locked()) return;
-      const target = event.currentTarget as HTMLElement;
-      target.closest(".drawer")?.getAnimations().forEach(animation => animation.finish());
+      if (locked() || !(event.currentTarget instanceof HTMLElement)) return;
+      event.currentTarget.closest("[data-modal]")?.getAnimations().forEach(animation => animation.finish());
       motion.down(event);
     },
     move: motion.move, up: motion.up, click: motion.click, cancel: motion.cancel, lost: motion.lost, reset: motion.reset,

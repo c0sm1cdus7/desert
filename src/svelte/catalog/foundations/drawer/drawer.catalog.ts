@@ -1,11 +1,11 @@
-// Drawer: the temporary surface opened over its parent, docked beside it when the host has room, else a modal sheet at
-// the right or bottom edge. It shows one frame with its toolbars; a locked drawer cannot be dismissed.
+// Drawer: the transitional adapter of the piece renamed to modal (design §1.6). It keeps the frame props the node
+// renderer and view-panel pass today and draws them through Modal; lanes B and E move those callers to Modal itself.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { DrawerContract } from "./drawer.contract.ts";
 
 export const Drawer = defineFoundation({
   id: "drawer",
   purpose: "Open a temporary surface over its parent with content and top or bottom toolbars, never lateral child surfaces.",
-  owner: { entry: "Drawer.svelte", parts: ["adaptive-modality.svelte.ts", "adaptive-surface-layout.ts"], vendor: ["dialog"] },
+  owner: { entry: "Drawer.svelte" },
   shape: "none", states: ["open", "locked"], renders: ["transient"], approval: "required", contract: DrawerContract,
 } as const);

@@ -14,7 +14,9 @@
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   import type { CatalogProps } from '../../types.d.ts';
+  import { useSurfaceDensityClass } from '../../../infra/surface-typography.svelte.ts';
   let {node,onevent}:CatalogProps<'reference-selector'>=$props();
+  const density = useSurfaceDensityClass();
   const id=$props.id();
   let open=$state(false);
   let creating=$state(false), name=$state(''), color=$state(''), submitted=$state(false), observedBusy=$state(false);
@@ -50,7 +52,7 @@
           </span>
         </FieldWellContent>
   </Popover.Trigger>
-  <Popover.Content presentation="reference">
+  <Popover.Content presentation="reference" class={density()}>
     <StackLayout title={node.label}>
       {#if reference.loading}<Field.FieldDescription>Loading…</Field.FieldDescription>{/if}
       {#if reference.options.length}<ChoiceList><div data-grouped-rows>

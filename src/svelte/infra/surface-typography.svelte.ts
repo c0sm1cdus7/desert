@@ -9,3 +9,8 @@ export function provideSurfaceTypography(density: Density): void { setContext(ty
 export function useSurfaceTypography(): () => ReturnType<Density> | undefined {
   return getContext<Density | undefined>(typographyKey) ?? (() => undefined);
 }
+/** The density class of the layout a portal was launched from, for an owner to put on the portalled surface it draws. */
+export function useSurfaceDensityClass(): () => string | undefined {
+  const density = useSurfaceTypography();
+  return () => { const value = density(); return value && densityClass[value]; };
+}

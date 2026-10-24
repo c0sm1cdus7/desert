@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { svelteBrowser } from './fixtures/svelte-browser.ts';
+import { scopedPopoverContent } from './fixtures/scoped-popover-content.ts';
+
+// Raw Bits popovers get the surface-focus policy their owner applies (the vendor content applies none itself).
+const scopedBrowser = async (source: string) => svelteBrowser(source, await scopedPopoverContent());
 
 const settle=async(f:Awaited<ReturnType<typeof svelteBrowser>>)=>f.page.evaluate(()=>
   new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
@@ -28,7 +32,7 @@ test('selection observes a real outside focus transfer during its opening microt
 });
 
 test('outside focus is delivered once per native transfer and preserves custom ownership across reopen',async()=>{
-  const f=await svelteBrowser(`<script>
+  const f=await scopedBrowser(`<script>
     import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
     let open=$state(false),events=$state(0),closes=$state(0),allow=$state(false);
     globalThis.allowOutside=()=>allow=true;
@@ -61,7 +65,7 @@ test('outside focus is delivered once per native transfer and preserves custom o
 });
 
 test('a portaled child belongs to its parent focus scope, while an unrelated sibling does not',async()=>{
-  const f=await svelteBrowser(`<script>
+  const f=await scopedBrowser(`<script>
     import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
     let parent=$state(false),child=$state(false),sibling=$state(false),exits=$state(0);
   </script><Popover.Root bind:open={parent}><Popover.Trigger>Parent</Popover.Trigger>
@@ -94,7 +98,7 @@ test('a portaled child belongs to its parent focus scope, while an unrelated sib
 });
 
 test('a nested picker sheet retains its parent popover and restores the inner opener',async()=>{
-  const f=await svelteBrowser(`<script>
+  const f=await scopedBrowser(`<script>
     import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
     import PickerSheet from '@desert/svelte/catalog/foundations/picker-sheet/PickerSheet.svelte';
     let parent=$state(false),sheet=$state(false),exits=$state(0);
@@ -127,7 +131,7 @@ test('a nested picker sheet retains its parent popover and restores the inner op
 });
 
 for(const childKind of ['popover','sheet'] as const) test(`closing a parent with focus in its portaled ${childKind} restores the parent opener`,async()=>{
-  const f=await svelteBrowser(`<script>
+  const f=await scopedBrowser(`<script>
     import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
     import PickerSheet from '@desert/svelte/catalog/foundations/picker-sheet/PickerSheet.svelte';
     let parent=$state(false),child=$state(false);
@@ -157,7 +161,7 @@ for(const childKind of ['popover','sheet'] as const) test(`closing a parent with
 });
 
 for(const explicit of ['parent-cancel','child-outside'] as const) test(`nested close respects ${explicit} focus ownership`,async()=>{
-  const f=await svelteBrowser(`<script>
+  const f=await scopedBrowser(`<script>
     import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
     let parent=$state(false),child=$state(false),outside;
     globalThis.hideParent=()=>parent=false;

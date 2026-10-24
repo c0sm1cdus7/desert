@@ -3,8 +3,7 @@
   import { Wallpaper } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import { provideToolbarScroll } from "../../mechanisms/toolbar-scroll/toolbar-scroll.svelte.ts";
-  // F1-merge: the surface-host mechanism (owned by modal, F1d) replaces this infra module; surface lists it then.
-  import { provideSurfaceHost } from "../../../infra/surface-host.svelte.ts";
+  import { provideSurfaceHost } from "../../mechanisms/surface-host/surface-host.svelte.ts";
   import ScrollEdges from "./ScrollEdges.svelte";
   import { observePlaceFocus } from "./place-focus.ts";
   let { kind, label, destination, searching, presentation = "standard", backdrop, form, oncomposition, onsubmit,

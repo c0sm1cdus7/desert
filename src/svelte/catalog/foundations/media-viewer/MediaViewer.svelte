@@ -49,7 +49,7 @@
 {/snippet}
 
 <Dialog.Root {open} onOpenChange={changeOpen}>
-  <Dialog.Content presentation="media" showCloseButton={false} data-media-viewer
+  <Dialog.Content presentation="media" data-media-viewer
     onOpenAutoFocus={event => { event.preventDefault(); closeButton?.focus({ preventScroll: true }); }}
     onCloseAutoFocus={event => { event.preventDefault(); if (opener?.isConnected) opener.focus({ preventScroll: true }); }} onkeydown={key}>
     <ToolbarLayout identity={{ title, subtitle: `${index + 1} / ${items.length}` }} identityRole="dialog" oncloseElement={element => closeButton = element}

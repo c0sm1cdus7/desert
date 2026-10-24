@@ -4,7 +4,7 @@
   import { Input } from "../../../vendor/components/ui/input/index.js";
   import { fileNode, type FileRejection } from "../../../../interaction/control-nodes.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  import { fileSize } from "./file-size.ts";
+  import { fileSize } from "../../foundations/files/file-size.ts";
   import { currentStackTitle } from "../../../infra/stack-context.ts";
   let { node, host, onevent }: CatalogProps<"file-control"> = $props();
   let checked = $derived(fileNode(node));

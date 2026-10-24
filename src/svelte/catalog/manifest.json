@@ -1,12 +1,5 @@
 {
   "mechanisms": {
-    "anchored-surface": {
-      "files": [
-        "anchored-surface.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/anchored-surface",
-      "owner": "theme"
-    },
     "catalog-media": {
       "files": [
         "catalog-media.css"
@@ -111,6 +104,21 @@
       ],
       "folder": "src/svelte/catalog/mechanisms/surface-chrome",
       "owner": "theme"
+    },
+    "surface-focus": {
+      "files": [
+        "surface-focus.svelte.ts",
+        "focus-return.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/surface-focus",
+      "owner": "modal"
+    },
+    "surface-host": {
+      "files": [
+        "surface-host.svelte.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/surface-host",
+      "owner": "modal"
     },
     "surface-reading": {
       "files": [
@@ -680,6 +688,9 @@
       "kind": "foundation",
       "owner": {
         "entry": "Choice.svelte",
+        "mechanisms": [
+          "surface-focus"
+        ],
         "parts": [
           "ChoiceRows.svelte",
           "ChoiceCards.svelte",
@@ -1048,8 +1059,12 @@
       "kind": "foundation",
       "owner": {
         "entry": "DateControl.svelte",
+        "mechanisms": [
+          "surface-focus"
+        ],
         "parts": [
-          "DateCalendar.svelte"
+          "DateCalendar.svelte",
+          "date-control.css"
         ],
         "vendor": [
           "calendar"
@@ -1086,14 +1101,7 @@
       "folder": "src/svelte/catalog/foundations/drawer",
       "kind": "foundation",
       "owner": {
-        "entry": "Drawer.svelte",
-        "parts": [
-          "adaptive-modality.svelte.ts",
-          "adaptive-surface-layout.ts"
-        ],
-        "vendor": [
-          "dialog"
-        ]
+        "entry": "Drawer.svelte"
       },
       "purpose": "Open a temporary surface over its parent with content and top or bottom toolbars, never lateral child surfaces.",
       "renders": [
@@ -1461,17 +1469,34 @@
       "folder": "src/svelte/catalog/compositions/file-control",
       "kind": "composition",
       "owner": {
-        "entry": "FileControl.svelte",
+        "entry": "FileControl.svelte"
+      },
+      "purpose": "Select supported local files and inspect their limits before an operation uses them.",
+      "uses": [
+        "action"
+      ]
+    },
+    "files": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/files",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Files.svelte",
         "parts": [
-          "file-size.ts"
+          "native-file-picker.ts",
+          "file-size.ts",
+          "files.css"
         ]
       },
       "purpose": "Select supported local files and inspect their limits before an operation uses them.",
       "renders": [
         "control.files"
       ],
-      "uses": [
-        "action"
+      "shape": "none",
+      "states": [
+        "empty",
+        "chosen",
+        "disabled"
       ]
     },
     "form": {
@@ -2196,6 +2221,23 @@
         "single"
       ]
     },
+    "menu": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/menu",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Menu.svelte",
+        "parts": [
+          "menu.css"
+        ]
+      },
+      "purpose": "Reveal overflowing contextual commands beside their readable labels, without putting content navigation in the toolbar.",
+      "shape": "radius",
+      "states": [
+        "closed",
+        "open"
+      ]
+    },
     "message-body": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/message-body",
@@ -2222,6 +2264,60 @@
       "states": [
         "default"
       ]
+    },
+    "modal": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/modal",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Modal.svelte",
+        "mechanisms": [
+          "surface-focus",
+          "surface-host"
+        ],
+        "parts": [
+          "ModalPane.svelte",
+          "ModalSheet.svelte",
+          "ModalDialog.svelte",
+          "DrawerGrip.svelte",
+          "drawer-motion.svelte.ts",
+          "frame-continuity.svelte.ts",
+          "adaptive-modality.svelte.ts",
+          "adaptive-surface-layout.ts",
+          "modal.css"
+        ],
+        "vendor": [
+          "dialog"
+        ]
+      },
+      "purpose": "Present a temporary surface over its parent, dismissed by Escape, its scrim or its grip unless locked.",
+      "shape": "radius",
+      "slots": {
+        "children": {
+          "accepts": [
+            "surface-frame",
+            "instance-frame",
+            "face",
+            "heading",
+            "text",
+            "inline"
+          ]
+        }
+      },
+      "states": [
+        "open",
+        "locked"
+      ],
+      "variants": {
+        "presentation": [
+          "adaptive",
+          "transient",
+          "sheet",
+          "message",
+          "media",
+          "navigation"
+        ]
+      }
     },
     "money-control": {
       "approval": "none",
@@ -2346,13 +2442,15 @@
       "folder": "src/svelte/catalog/foundations/picker-sheet",
       "kind": "foundation",
       "owner": {
-        "entry": "PickerSheet.svelte"
+        "entry": "PickerSheet.svelte",
+        "mechanisms": [
+          "surface-focus"
+        ]
       },
       "purpose": "Present a picker as a bottom sheet with a grip and a close toolbar, returning focus to its trigger on dismissal.",
       "shape": "none",
       "states": [
-        "default",
-        "content-toolbar"
+        "default"
       ]
     },
     "place": {
@@ -2449,15 +2547,66 @@
         "icon"
       ]
     },
+    "popover": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/popover",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Popover.svelte",
+        "mechanisms": [
+          "surface-focus",
+          "surface-host"
+        ],
+        "parts": [
+          "PopoverSurface.svelte",
+          "anchored-tab-exit.ts",
+          "picker-presentation.svelte.ts",
+          "popover.css"
+        ],
+        "vendor": [
+          "popover"
+        ]
+      },
+      "purpose": "Open contextual content, a form, options or commands in a surface anchored to its trigger.",
+      "shape": "radius",
+      "slots": {
+        "children": {
+          "accepts": [
+            "frame-body",
+            "column",
+            "choice",
+            "form",
+            "stack-layout",
+            "text",
+            "status",
+            "loading",
+            "inline",
+            "tag",
+            "action"
+          ]
+        }
+      },
+      "states": [
+        "closed",
+        "open",
+        "disabled",
+        "locked"
+      ],
+      "variants": {
+        "content": [
+          "information",
+          "form",
+          "list",
+          "menu"
+        ]
+      }
+    },
     "popover-control": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/popover-control",
       "kind": "composition",
       "owner": {
-        "entry": "PopoverControl.svelte",
-        "parts": [
-          "AnchoredSurface.svelte"
-        ]
+        "entry": "PopoverControl.svelte"
       },
       "purpose": "Read contextual information in a temporary surface anchored to its trigger.",
       "renders": [
@@ -2465,7 +2614,7 @@
       ],
       "uses": [
         "frame-body",
-        "node-renderer"
+        "popover"
       ]
     },
     "problem": {
@@ -2764,11 +2913,11 @@
       "kind": "foundation",
       "owner": {
         "entry": "SelectionField.svelte",
+        "mechanisms": [
+          "surface-focus"
+        ],
         "parts": [
           "SelectionList.svelte"
-        ],
-        "vendor": [
-          "popover"
         ]
       },
       "purpose": "Choose one value from a list of options, inline, as a field well or as a contextual value.",
@@ -2865,6 +3014,7 @@
       "owner": {
         "entry": "Shell.svelte",
         "mechanisms": [
+          "surface-host",
           "swipe-motion",
           "toolbar-geometry"
         ],
@@ -2921,6 +3071,23 @@
       "states": [
         "default",
         "searching"
+      ]
+    },
+    "slider": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/slider",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Slider.svelte",
+        "vendor": [
+          "slider"
+        ]
+      },
+      "purpose": "Set one bounded value along a track, such as a playback position or a volume.",
+      "shape": "none",
+      "states": [
+        "default",
+        "disabled"
       ]
     },
     "spacer": {
@@ -3166,6 +3333,7 @@
       "owner": {
         "entry": "Surface.svelte",
         "mechanisms": [
+          "surface-host",
           "toolbar-geometry",
           "toolbar-scroll"
         ],
@@ -3425,7 +3593,6 @@
       "owner": {
         "entry": "ToolbarLayout.svelte",
         "parts": [
-          "CalendarNavigation.svelte",
           "CatalogNavigationActions.svelte",
           "ToolbarIdentity.svelte",
           "toolbar-identity.ts",

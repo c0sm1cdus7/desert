@@ -1,4 +1,4 @@
-import type { FileNode } from "../../interaction/control-nodes.ts";
+import type { FileNode } from "../../../../interaction/control-nodes.ts";
 
 /** Host mechanism, not a renderable composition: the browser owns this surface.
  * The hidden native input supplies format filters and ephemeral File handles;

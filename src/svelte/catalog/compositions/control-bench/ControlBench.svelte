@@ -2,7 +2,7 @@
   import { onDestroy, untrack } from "svelte";
   import * as Field from "../../../vendor/components/ui/field/index.js";
   import { ControlRenderer } from "../../index.ts";
-  import { LocalFileHost } from "../../../infra/file-host.ts";
+  import { provideFileHost } from "../../../infra/file-host-context.ts";
   import { ControlSpecimens } from "../../../../interaction/control-specimens.ts";
   import { applyControlEvent, controlNode, type ControlEvent } from "../../../../interaction/control-nodes.ts";
   import type { CatalogProps } from "../../types.d.ts";
@@ -17,9 +17,9 @@
   const specimens = entries.flatMap(entry => entry.specimens);
   let nodes = $state.raw(Object.fromEntries(specimens.map(({ node }) => [node.id, node])));
   let notice = $state("No interaction yet.");
-  const host = new LocalFileHost();
+  const host = provideFileHost();
   const releases = new Map<string, ReturnType<typeof setTimeout>>();
-  onDestroy(() => { host.dispose(); for (const timer of releases.values()) clearTimeout(timer); });
+  onDestroy(() => { for (const timer of releases.values()) clearTimeout(timer); });
   function interact(event: ControlEvent) {
     nodes = { ...nodes, [event.control]: applyControlEvent(nodes[event.control]!, event).node };
     notice = `${event.kind} · ${event.control}. Local interaction only.`;

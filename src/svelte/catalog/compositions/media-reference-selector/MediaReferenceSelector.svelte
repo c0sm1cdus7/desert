@@ -8,7 +8,9 @@
   import { CollectionState } from '../../index.ts';
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   import type { CatalogProps } from '../../types.d.ts';
+  import { useSurfaceDensityClass } from '../../../infra/surface-typography.svelte.ts';
   let { node, onevent }: CatalogProps<'media-reference-selector'> = $props();
+  const density = useSurfaceDensityClass();
   let open = $state(false);
   let reference = $derived(node.mediaReference!);
   let selected = $derived(reference.options.find(option => node.values.includes(option.value)));
@@ -26,7 +28,7 @@
       {#if selected}<span data-media-reference-thumbnail><Image source={selected.source} alt="" /></span><span>Selected image</span>
       {:else}<span>{node.values.length ? 'Unavailable cover' : 'Automatic'}</span>{/if}<span data-control-chevron><Icon name="chevron-down" decorative /></span>
     </Popover.Trigger>
-    <Popover.Content presentation="reference"><StackLayout title={node.label}>
+    <Popover.Content presentation="reference" class={density()}><StackLayout title={node.label}>
       {#if reference.loading}<Field.FieldDescription>Loading…</Field.FieldDescription>{/if}
       {#if reference.options.length}<div data-media-reference-options>
         {#each reference.options as option, index (option.value)}

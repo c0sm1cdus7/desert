@@ -12,7 +12,7 @@ import Drawer from "./catalog/foundations/drawer/Drawer.svelte";
 import Facts from "./catalog/renderer/facts/Facts.svelte";
 import Field from "./catalog/foundations/field/Field.svelte";
 import Fields from "./catalog/compositions/fields/Fields.svelte";
-import FileControl from "./catalog/compositions/file-control/FileControl.svelte";
+import Files from "./catalog/foundations/files/Files.svelte";
 import LabelsControl from "./catalog/compositions/labels-control/LabelsControl.svelte";
 import MediaControl from "./catalog/compositions/media-control/MediaControl.svelte";
 import MoneyControl from "./catalog/compositions/money-control/MoneyControl.svelte";
@@ -36,7 +36,7 @@ export const nodeRenderers: NodeRendererTable = Object.freeze({
   "input.text": Field,
   "input.multiline": Field,
   form: Fields,
-  "control.files": FileControl,
+  "control.files": Files,
   "control.labels": LabelsControl,
   "control.tag": MediaControl,
   "control.image": MediaControl,

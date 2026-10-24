@@ -7,6 +7,6 @@ import { SelectionFieldContract } from "./selection-field.contract.ts";
 export const SelectionField = defineFoundation({
   id: "selection-field",
   purpose: "Choose one value from a list of options, inline, as a field well or as a contextual value.",
-  owner: { entry: "SelectionField.svelte", parts: ["SelectionList.svelte"], vendor: ["popover"] },
+  owner: { entry: "SelectionField.svelte", parts: ["SelectionList.svelte"], mechanisms: ["surface-focus"] },
   shape: "radius", states: ["inline", "field-control", "contextual", "disabled"], approval: "required", contract: SelectionFieldContract,
 } as const);

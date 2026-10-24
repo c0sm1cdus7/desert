@@ -1,41 +1,31 @@
 <script lang="ts">
 	import { Dialog as DialogPrimitive } from "bits-ui";
 	import ScrollLock from "@desert-internal/bits-scroll-lock";
-	import XIcon from '@lucide/svelte/icons/x';
-	import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
 	import { cn, type WithoutChildrenOrChild } from "@desert/svelte/vendor/utils.js";
 	import * as Dialog from "./index.js";
 	import DialogPortal from "./dialog-portal.svelte";
 	import type { Snippet } from "svelte";
 	import type { ComponentProps } from "svelte";
-	import { surfaceFocus } from "@desert/svelte/infra/surface-focus.svelte.ts";
-  import { densityClass, useSurfaceTypography } from '@desert/svelte/infra/surface-typography.svelte.ts';
 
 	let {
 		ref = $bindable(null),
 		class: className,
 		portalProps,
 		children,
-		showCloseButton = true,
 		presentation = "default",
 		overlayStyle,
 		adaptiveModal,
 		preventScroll = true,
 		restoreScrollDelay = null,
-		onOpenAutoFocus,
-		onCloseAutoFocus,
 		...restProps
 	}: WithoutChildrenOrChild<DialogPrimitive.ContentProps> & {
 		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof DialogPortal>>;
 		children: Snippet;
-		showCloseButton?: boolean;
 		presentation?: "default" | "panel" | "message" | "media";
 		overlayStyle?: string;
 		/** Renderer-owned adaptive panels preserve this content node across modality. */
 		adaptiveModal?: boolean;
 	} = $props();
-	const focus = surfaceFocus(() => ref);
-  const density = useSurfaceTypography(), densityOf = () => { const value = density(); return value && densityClass[value]; };
 </script>
 
 <DialogPortal {...portalProps}>
@@ -43,9 +33,7 @@
 	<DialogPrimitive.Content
 		bind:ref
 		data-slot="dialog-content"
-		onOpenAutoFocus={event => focus.open(event, onOpenAutoFocus)}
-		onCloseAutoFocus={event => focus.close(event, onCloseAutoFocus)}
-		class={cn("material-pane", densityOf(),
+		class={cn("material-pane",
 			presentation === "default"
 				? "centered-dialog text-popover-foreground grid max-w-[calc(100%_-_2rem)] gap-4 rounded-xl p-4 text-sm sm:max-w-sm z-50 w-full overflow-y-auto outline-none"
 				: presentation === "panel" ? "drawer transient-content" : presentation === "media" ? "media-viewer" : "problem",
@@ -62,16 +50,6 @@
 		<div {...props} role={adaptiveModal === false ? 'region' : 'dialog'}
 			aria-modal={adaptiveModal === false ? undefined : 'true'}>
 		{@render children?.()}
-		{#if showCloseButton}
-			<DialogPrimitive.Close data-slot="dialog-close">
-				{#snippet child({ props })}
-					<Button variant="ghost" class="absolute top-2 right-2" size="icon-sm" {...props}>
-						<XIcon  />
-						<span class="sr-only">Close</span>
-					</Button>
-				{/snippet}
-			</DialogPrimitive.Close>
-		{/if}
 		</div>
 		{/snippet}
 	</DialogPrimitive.Content>
