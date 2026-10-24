@@ -1,4 +1,6 @@
+import type { Static } from "@sinclair/typebox";
 import type { PoolClient } from "pg";
+import type { installationTable } from "../storage/tables/local.ts";
 
 export type Installation = { product: string, digest: string, roles: readonly string[] };
 export const LocalSchemaVersion = 4;
@@ -14,7 +16,7 @@ export async function requireDurablePrimary(client: PoolClient) {
 
 export async function requireInstallation(client: PoolClient, expected: Installation, lock = true) {
   await requireDurablePrimary(client);
-  const { rows: [installed] } = await client.query(`SELECT * FROM desert_installation${lock ? " FOR SHARE" : ""}`);
+  const { rows: [installed] } = await client.query<Static<typeof installationTable.row>>(`SELECT * FROM desert_installation${lock ? " FOR SHARE" : ""}`);
   if (!installed || installed.schema_version !== LocalSchemaVersion || installed.product_id !== expected.product ||
     installed.contract_digest !== expected.digest || JSON.stringify(installed.controller_roles) !== JSON.stringify(expected.roles)) {
     throw new Error("INSTALLATION_MISMATCH");

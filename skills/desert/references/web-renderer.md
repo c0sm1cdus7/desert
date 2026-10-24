@@ -7109,7 +7109,7 @@ export async function prepareMutation(client: PoolClient, program: LocalProgram,
 
 ## src/local/accept.ts
 
-Source SHA-256: 451e47fc7a890b2f9102e4f293801d1938b5d23aad00ff251f702a874f85685b
+Source SHA-256: 985271ad5e36f08f43229323c598ff0867cab7dab7b6fea7e4fdacbbe0567c1a
 
 ```ts
 import type { PoolClient } from "pg";
@@ -7117,7 +7117,7 @@ import { freezeDeep } from "../json.ts";
 import type { LocalProgram } from "./program.ts";
 import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
 import { canonical, confirmationDigest, materialize } from "./effects.ts";
-import { requireUUID, type Intent, type Receipt } from "./types.ts";
+import { requireUUID, type Intent, type Receipt, type ReceiptRow } from "./types.ts";
 import { requireCurrentActivityIntent, completeActivityIntent } from "../activities/acceptance.ts";
 import type { ActivityIndex } from "../activities/activity-index.ts";
 import { bindImageEffect, attachImageEffect } from "../assets/acceptance.ts";
@@ -7134,7 +7134,7 @@ export async function loadIntent(client: PoolClient, program: LocalProgram, acto
 }
 
 async function receipt(client: PoolClient, id: string) {
-  const { rows: [row] } = await client.query<{ result: Receipt }>("SELECT result FROM desert_receipts WHERE intent_id = $1", [id]);
+  const { rows: [row] } = await client.query<Pick<ReceiptRow, "result">>("SELECT result FROM desert_receipts WHERE intent_id = $1", [id]);
   return row ? freezeDeep(row.result) : null;
 }
 
