@@ -243,6 +243,8 @@ function checkTag(path: string, parsed: ParsedSvelte, tag: SyntaxNode, target: T
   const undeclared: string[] = [];
   for (const attribute of nodes(tag, "attributes")) {
     if (attribute.type === "SpreadAttribute" && skipSpreads) continue;
+    // A caller may bind a piece's instance only when the contract declares the instance API it exposes.
+    if (attribute.type === "BindDirective" && text(attribute, "name") === "this" && contract?.closed && Object.keys(contract.instance).length) continue;
     const forbidden = forbiddenAttribute(parsed, attribute);
     if (forbidden !== undefined) { forbid(forbidden); continue; }
     const attributeName = text(attribute, "name");

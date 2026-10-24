@@ -45,8 +45,20 @@ export const NodeContract = { props: Type.Object({ node: ResolvedNodeSchema, lab
   assert.deepEqual(contract.props.edit?.schema, { kind: "function" });
 });
 
+test("domain data typed only by TypeScript is Type.Unsafe of an imported type; an instance API is declared", () => {
+  const contract = readContract("flow.contract.ts", `import { Type } from "@sinclair/typebox";
+import type { ResolvedView } from "../../../../views/resolved.ts";
+export const FlowContract = { props: Type.Object({ resolved: Type.Unsafe<ResolvedView>() }, { additionalProperties: false }),
+  instance: Type.Object({ revealEntry: Type.Function([Type.String()], Type.Void()) }, { additionalProperties: false }) } as const;\n`);
+  assert.equal(contract.closed, true);
+  if (!contract.closed) return;
+  assert.deepEqual(contract.props.resolved?.schema, { kind: "typed", name: "ResolvedView", from: "../../../../views/resolved.ts" });
+  assert.deepEqual(Object.keys(contract.instance), ["revealEntry"]);
+});
+
 for (const [name, source, pattern] of [
   ["a reference that is not imported", "export const C = { props: Type.Object({ a: Loose }, { additionalProperties: false }) } as const;", /Loose is not a schema imported/],
+  ["a bare Type.Unsafe", "export const C = { props: Type.Object({ a: Type.Unsafe({}) }, { additionalProperties: false }) } as const;", /one imported type argument/],
   ["a reference to visual code", 'import { Shape } from "../x/X.svelte";\nexport const C = { props: Type.Object({ a: Shape }, { additionalProperties: false }) } as const;', /comes from visual code/],
 ] as const) test(`${name} is refused`, () => {
   assert.throws(() => readContract("c.contract.ts", source), pattern);

@@ -217,3 +217,16 @@ test("E: a piece the slot does not accept is rejected, through elements and bloc
   assert.deepEqual(run(slotTree('<List><Heading kind="page" text="x"><Card /></Heading></List>')),
     [escape("<Heading> receives child content, which heading declares no slot for")]);
 });
+
+test("bind:this is legal only on a piece whose contract declares an instance API", () => {
+  const files = (instance: string) => ({
+    ...composition("host", "Host.svelte", ["bank"], `<script lang="ts">\n  import { Bank } from "../../index.ts";\n  let bank;\n</script>\n<Bank bind:this={bank} />\n`),
+    "src/svelte/catalog/index.ts": 'export { default as Bank } from "./compositions/bank/Bank.svelte";\n',
+    ...composition("bank", "Bank.svelte", [], "<p></p>\n"),
+    "src/svelte/catalog/compositions/bank/bank.contract.ts": `import { Type } from "@sinclair/typebox";\nexport const C = { props: Type.Object({}, { additionalProperties: false })${instance} } as const;\n`,
+  });
+  const withApi = ruleE(contextOf(files(', instance: Type.Object({ revealEntry: Type.Function([Type.String()], Type.Void()) }, { additionalProperties: false })')));
+  assert.deepEqual(codes(withApi).filter(line => line.includes("bind:this")), []);
+  const without = ruleE(contextOf(files("")));
+  assert.ok(codes(without).some(line => line.includes("bind:this")), "a piece with no instance API cannot be bound");
+});
