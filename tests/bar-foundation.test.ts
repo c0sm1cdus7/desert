@@ -7,6 +7,7 @@ import { writeFile } from "node:fs/promises";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { pixelDifference } from "./fixtures/pixel-difference.ts";
+import { settle } from "./fixtures/parity.ts";
 
 const source = `<script lang="ts">
   import ToolbarLayout from "@desert/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte";
@@ -70,7 +71,10 @@ test("each purpose draws the pixels the toolbar-layout composition drew for the 
     await f.page.addStyleTag({ content: await rendererCss() });
     await f.page.emulateMedia({ reducedMotion: "reduce" });
     await f.page.setViewportSize({ width: 1000, height: 1400 });
-    await f.page.evaluate(async () => { await document.fonts.ready; await new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))); });
+    await f.page.evaluate(async () => { await document.fonts.ready; });
+    // The stylesheet arrives after mount: the controls' color transitions (not motion, so not reduced) run from the
+    // unstyled ink, and a pair shot mid-transition differs. Every transition finishes before the first shot.
+    await settle(f.page);
     for (const pair of ["top", "commit", "steps", "navigation", "overflow", "place", "search"]) {
       const [before, after] = [f.page.locator(`[data-pair="${pair}"]`).nth(0), f.page.locator(`[data-pair="${pair}"]`).nth(1)];
       const [a, b] = [await before.boundingBox(), await after.boundingBox()];
