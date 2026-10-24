@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { directSearchFixture, searchFixture, searchLabel } from "./fixtures/search-field-anatomy.ts";
+import { ResolvedNodes } from "../src/interaction/catalog.ts";
+import { sharedIndexOwners } from "../src/svelte/infra/shared-purpose.ts";
 
 for (const consumer of ["collection", "catalog"] as const) {
   test(`${consumer}: toolbar overlay search has a persistent leading icon and one embedded clear accessory`, async () => {
@@ -76,7 +78,10 @@ for (const consumer of ["collection", "catalog"] as const) {
         const index = f.page.locator('[data-catalog-index]');
         assert.ok(await index.isVisible(), 'clearing discovery returns the complete component index');
         assert.ok(await index.locator('[data-destination]').count() > 0);
-        assert.match(await index.getByRole('group', { name:'Coverage', exact:true }).innerText(), /Semantic components/);
+        // Coverage lives in each detail (catalog-inspector); the index is every group with every destination.
+        for (const group of ResolvedNodes.groups) assert.equal(
+          await index.getByRole('group', { name:group.title, exact:true }).locator('[data-destination]').count(),
+          ResolvedNodes.entries.filter(entry => entry.inspection.group === group.id).length + sharedIndexOwners(group.id).length, group.title);
       }
       assert.deepEqual(f.errors, []);
     } finally { await f.close(); }

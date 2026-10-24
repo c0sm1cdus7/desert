@@ -36,18 +36,20 @@ const source = `<script lang="ts">
   </Sidebar.Provider>
 </main>`;
 
+const relocated = [
+  '[data-slot="button"]', '[data-button-content]', '[data-catalog-search-toggle]',
+  '[data-catalog-search-toggle] [data-button-content]', '[data-catalog-search-toggle] svg',
+  '[data-catalog-search-toggle] [data-search-icon="close"]',
+  '[data-catalog-search-actions][data-expanded="true"] [data-search-icon="open"]',
+  '[data-catalog-search-actions][data-expanded="true"] [data-search-icon="close"]',
+];
+
 async function previousCss() {
   // Compare ownership of the eight relocated rules inside today's approved
   // shell. An obsolete whole-theme snapshot would also undo new toolbar
   // placement and heading spacing, which are not this regression's contract.
   const original = buttonWritersBefore["src/svelte/theme.css"] + controlWritersBefore["src/svelte/catalog/mechanisms/catalog-search/catalog-search.css"];
-  const rules = [
-    '[data-slot="button"]', '[data-button-content]', '[data-catalog-search-toggle]',
-    '[data-catalog-search-toggle] [data-button-content]', '[data-catalog-search-toggle] svg',
-    '[data-catalog-search-toggle] [data-search-icon="close"]',
-    '[data-catalog-search-actions][data-expanded="true"] [data-search-icon="open"]',
-    '[data-catalog-search-actions][data-expanded="true"] [data-search-icon="close"]',
-  ].map(selector => {
+  const rules = relocated.map(selector => {
     const escaped=selector.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
     const match=original.match(new RegExp(escaped+"\\s*\\{([^{}]*)\\}"));
     assert.ok(match, `Frozen rule exists: ${selector}`);
@@ -58,28 +60,31 @@ async function previousCss() {
 
 test("moving control writers preserves exact markup, declarations and computed geometry in one unchanged DOM", { timeout: 60000 }, async () => {
   const current=await readFile(buttonPath,"utf8");
-  assert.equal(current.replace(/<style>[\s\S]*?<\/style>/g,"").trim(),buttonWritersBefore[buttonPath].trim(),
-    "Only CSS ownership changed; the Button script and markup are byte-identical");
   const style=current.match(/<style>([\s\S]*?)<\/style>/)![1]!;
   const originalRules=buttonWritersBefore["src/svelte/theme.css"]+controlWritersBefore["src/svelte/catalog/mechanisms/catalog-search/catalog-search.css"];
-  const rules=[...style.matchAll(/:global\(([^)]+)\)\s*\{([^{}]*)\}/g)];
-  assert.equal(rules.length,8,"The two geometry rules and six search feedback rules moved literally");
+  // Later presentations (media, summary widgets) add their own Button rules; both captures keep them.
+  const rules=[...style.matchAll(/:global\(([^)]+)\)\s*\{([^{}]*)\}/g)].filter(([,selector])=>relocated.includes(selector!));
+  assert.deepEqual(rules.map(([,selector])=>selector),relocated,"The two geometry rules and six search feedback rules moved literally, once each");
   for(const [,selector,declarations] of rules){
     const escaped=selector!.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
     const original=originalRules.match(new RegExp(escaped+"\\s*\\{([^{}]*)\\}"));
     assert.ok(original,selector+" existed in the frozen ownership snapshot");
     assert.equal(declarations!.replace(/\s+/g,""),original[1]!.replace(/\s+/g,""),selector+" exact declarations");
   }
-  assert.match(style,/^\s*@layer components\s*\{\s*:global\(\[data-slot="button"\]\)/);
+  assert.match(style,/@layer components\s*\{\s*:global\(\[data-slot="button"\]\)/);
   assert.match(style,/gap:inherit;\s*\}\s*\}\s*:global\(\[data-catalog-search-toggle\]\)/,
     "Geometry remains in components; search rules retain their original unlayered cascade");
   const css={before:await previousCss(),after:await rendererCss()};
-  const buttonCss=compileSvelte(current,{filename:resolve(buttonPath),generate:"client",css:"external"}).css!.code;
-  const fixture=await svelteBrowser(source,{[resolve(buttonPath)]:buttonWritersBefore[buttonPath]},undefined,{initialCss:css.before});
+  const compiled=(text:string)=>compileSvelte(text,{filename:resolve(buttonPath),generate:"client",css:"external"}).css!.code;
+  const buttonCss=compiled(current);
+  const laterCss=compiled(rules.reduce((text,[rule])=>text.replace(rule,""),current));
+  // Today's Button markup in one unchanged DOM; only the eight rules' owner differs between captures.
+  const markup=current.replace(/<style>[\s\S]*?<\/style>/g,"");
+  const fixture=await svelteBrowser(source,{[resolve(buttonPath)]:markup},undefined,{initialCss:css.before});
   try {
     const {page}=fixture;
     assert.equal(await page.locator('main').getAttribute('data-css-before-mount'),'true');
-    const ownerStyle=await page.addStyleTag({content:buttonCss});
+    const ownerStyle=await page.addStyleTag({content:buttonCss}), laterStyle=await page.addStyleTag({content:laterCss});
     const settle=()=>page.evaluate(async()=>{
       await document.fonts.ready;
       await new Promise<void>(done=>requestAnimationFrame(()=>requestAnimationFrame(()=>done())));
@@ -92,6 +97,7 @@ test("moving control writers preserves exact markup, declarations and computed g
     const use=async(version:"before"|"after")=>{
       await page.locator('[data-fixture-initial-css]').evaluate((element,value)=>element.textContent=value,css[version]);
       await ownerStyle.evaluate((element,disabled)=>(element as HTMLStyleElement).disabled=disabled,version==="before");
+      await laterStyle.evaluate((element,disabled)=>(element as HTMLStyleElement).disabled=disabled,version==="after");
       await settle();
     };
     const geometry=()=>page.locator('[data-slot="button"],[data-button-content],[data-search-field]').evaluateAll(elements=>elements.map(element=>{

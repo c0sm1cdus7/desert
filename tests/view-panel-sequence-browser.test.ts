@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import test from "node:test";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
@@ -50,11 +51,23 @@ test("authored panel sequence renders in order and keeps draft, native submit, f
   } finally { await fixture.close(); }
 });
 
+const surfaceFramePath = resolve(import.meta.dirname, "../src/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte");
+const frameBody = `<FrameBody content={checked.content} {invoke} {edit} {controlEvent} messageDialog={presentation === "message"} />`;
+const viewBody = `{#if body}<ContentFlow resolved={body} onevent={dispatch} host="panel" />\n    {:else}${frameBody}{/if}`;
+/** Today's SurfaceFrame without its view-body branch: later chrome, such as the top-rail commit, stays in both captures. */
+async function surfaceFrameWithoutViewBody() {
+  const current = await readFile(surfaceFramePath, "utf8");
+  assert.equal(current.split(viewBody).length, 2, "SurfaceFrame has exactly one view-body branch");
+  return current.replace(viewBody, frameBody);
+}
+
 for (const width of [390, 1280]) for (const kind of ["form", "context"] as const) {
   test(`default ${kind} panel retains exact DOM and pixels at ${width}px`, async () => {
     const captures: Buffer[] = [], structures: string[] = [];
-    for (const before of [true, false]) {
-      const overrides = before ? { [resolve(import.meta.dirname, "../src/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte")]: surfaceFrameBeforeViewBody } : {};
+    // The frozen pre-view-body source proves the content DOM; today's frame without the branch proves the pixels.
+    for (const before of ["frozen", "without-body", "current"] as const) {
+      const overrides = before === "frozen" ? { [surfaceFramePath]: surfaceFrameBeforeViewBody }
+        : before === "without-body" ? { [surfaceFramePath]: await surfaceFrameWithoutViewBody() } : {};
       const fixture = await svelteBrowser(panelSequenceFixture(kind, false), overrides);
       try {
         const { page } = fixture;
@@ -77,6 +90,7 @@ for (const width of [390, 1280]) for (const kind of ["form", "context"] as const
       } finally { await fixture.close(); }
     }
     assert.deepEqual(structures[1], structures[0]);
-    assert.ok(captures[1]!.equals(captures[0]!), 'default panel preserves exact viewport pixels');
+    assert.deepEqual(structures[2], structures[0]);
+    assert.ok(captures[2]!.equals(captures[1]!), 'default panel preserves exact viewport pixels');
   });
 }

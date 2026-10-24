@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
@@ -9,14 +10,46 @@ import { controlWritersBefore } from "./fixtures/control-writers-before.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
+const messageType = `    --text-title:1.0625rem; --text-title--line-height:1.375rem; --text-title--font-weight:600;
+    --text-body:.8125rem; --text-body--line-height:1.1875rem;
+`;
+const catalogHome = `[data-stack-kind="catalog.home"] { --place-surface-inset:0px; --place-content-inset:1rem; }\n`;
+const leadingInset = `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { --place-leading-inset:0px; }
+[data-catalog-workspace] [data-slot="sidebar-wrapper"][data-presentation="docked"][data-state="expanded"] { --place-leading-inset:var(--sidebar-width); }
+`;
+/** Each relocation reversed inside today's sources: [owner, today's text, text before the move]. */
+const reversed: readonly (readonly [string, string, string])[] = [
+  ["catalog/mechanisms/surface-reading/surface-reading.css", catalogHome, ""],
+  ["catalog/foundations/place/place.css", `[data-stack-kind="catalog.home"] [data-catalog-home]`, `${catalogHome}[data-stack-kind="catalog.home"] [data-catalog-home]`],
+  ["catalog/mechanisms/typography/typography.css", `@layer components {\n  [data-frame-presentation="message"] {\n${messageType}  }\n}\n`, ""],
+  ["catalog/mechanisms/surface-chrome/surface-chrome.css", `    --chrome-inset:1.5rem;\n  }`, `    --chrome-inset:1.5rem;\n${messageType}  }`],
+  ["catalog/mechanisms/typography/typography.css", `@layer base {\n  button,input,textarea { font:inherit; }\n  h1,h2,h3,p { margin:0; }\n}\n`, ""],
+  ["catalog/mechanisms/theme/base.css", `  button { cursor:pointer; }`, `  button,input,textarea { font:inherit; } button { cursor:pointer; }`],
+  ["catalog/mechanisms/theme/base.css", `  input,textarea { min-width:0; } a {`, `  input,textarea { min-width:0; } h1,h2,h3,p { margin:0; } a {`],
+  ["catalog/mechanisms/surface-reading/surface-reading.css", leadingInset, ""],
+  ["catalog/mechanisms/catalog-shell/catalog-shell.css", `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { height:100%; min-height:0; }`,
+    `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { --place-leading-inset:0px; height:100%; min-height:0; }\n` +
+    `[data-catalog-workspace] [data-slot="sidebar-wrapper"][data-presentation="docked"][data-state="expanded"] { --place-leading-inset:var(--sidebar-width); }`],
+];
+
 async function previousCss() {
+  // Compare ownership of the relocated writers inside today's approved shell.
+  // An obsolete whole-theme snapshot would also undo later message heading
+  // spacing and toolbar placement, which are not this relocation's contract.
   const base = resolve("src/svelte");
-  let theme = typographyThemeBefore;
-  const sources = { ...Object.fromEntries(Object.entries(controlWritersBefore)
-    .filter(([path])=>!path.endsWith('/theme.css')).map(([path,source])=>[path.slice('src/svelte/'.length),source])), ...geometryWritersBefore };
-  for (const [path, source] of Object.entries(sources)) {
+  const frozen: Record<string, string> = { ...geometryWritersBefore, "catalog/mechanisms/theme/base.css": typographyThemeBefore,
+    ...Object.fromEntries(Object.entries(controlWritersBefore).map(([path, source]) => [path.slice("src/svelte/".length), source])) };
+  const sources = new Map<string, string>();
+  for (const [path, today, before] of reversed) {
+    const text = sources.get(path) ?? await readFile(resolve(base, path), "utf8");
+    assert.equal(text.split(today).length, 2, `The moved writer is literal and unique in ${path}`);
+    if (before) assert.ok(frozen[path]!.includes(before), `The prior owner held it there: ${path}`);
+    sources.set(path, text.replace(today, before));
+  }
+  let theme = await readFile(resolve(base, "theme.css"), "utf8");
+  for (const [path, source] of sources) {
     const statement = `@import "./${path}";`;
-    assert.ok(theme.includes(statement), `The prior owner still has an explicit import: ${path}`);
+    assert.equal(theme.split(statement).length, 2, `The theme imports ${path} once`);
     theme = theme.replace(statement, source);
   }
   const compiler = await compile(theme, { base, onDependency: () => {} });

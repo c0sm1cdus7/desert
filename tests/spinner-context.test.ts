@@ -4,6 +4,7 @@ import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 
 // Loading does not introduce an accent: the icon inherits its immediate context.
+// Availability is the one passive spinner; collection loading is a skeleton (collection-loading-connection).
 for (const colorScheme of ['light', 'dark'] as const) test(`passive spinners inherit their context (${colorScheme})`, async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
     import Availability from '@desert/svelte/catalog/foundations/availability/Availability.svelte';
@@ -18,7 +19,9 @@ for (const colorScheme of ['light', 'dark'] as const) test(`passive spinners inh
       color: getComputedStyle(icon).color, stroke: getComputedStyle(icon).stroke,
       context: getComputedStyle(icon.parentElement!).color,
     })));
-    assert.equal(observed.length, 2);
+    assert.equal(observed.length, 1);
+    assert.equal(await fixture.page.locator('[data-collection-state="loading"]').count(), 1);
+    assert.equal(await fixture.page.locator('[data-collection-state="loading"] [data-slot="spinner"]').count(), 0);
     for (const icon of observed) {
       assert.equal(icon.color, icon.context, 'Spinner must not set its own accent');
       assert.equal(icon.stroke, icon.context, 'Stroke follows currentColor');

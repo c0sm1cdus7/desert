@@ -43,7 +43,7 @@ test("pending file metadata is a local draft, never a fabricated accepted asset"
   assert.equal(frame.content.kind, "form");
   if (frame.content.kind !== "form") throw new Error("FORM_EXPECTED");
   assert.deepEqual(frame.content.fields.find(field => field.name === "image"), {
-    name: "image", required: true, label: "Image", primitive: "control.files", files: [file],
+    name: "image", required: true, label: "Image", primitive: "control.files", files: [file], media: "image",
   });
   assert.doesNotThrow(() => JSON.stringify(frame));
 });
