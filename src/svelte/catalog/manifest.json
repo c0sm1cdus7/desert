@@ -615,6 +615,19 @@
         "disabled"
       ]
     },
+    "clock": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/clock",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Clock.svelte"
+      },
+      "purpose": "Show today's date and the current time, kept current while shown.",
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
     "collection": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/collection",
@@ -672,8 +685,13 @@
       "slots": {
         "children": {
           "accepts": [
-            "text",
-            "fact-list"
+            "action",
+            "clock",
+            "fact-list",
+            "form",
+            "heading",
+            "seed-avatar",
+            "text"
           ]
         }
       },
@@ -1109,6 +1127,28 @@
         "action"
       ]
     },
+    "form": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/form",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Form.svelte"
+      },
+      "purpose": "Submit a labelled group of fields together, from any of its fields or its submit action.",
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "stack-layout",
+            "text-input",
+            "action"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ]
+    },
     "frame-body": {
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/frame-body",
@@ -1405,9 +1445,11 @@
       },
       "purpose": "Unlock the selected identity while its private content stays hidden.",
       "uses": [
-        "field-well",
-        "icon",
-        "measured-field",
+        "action",
+        "clock",
+        "column",
+        "form",
+        "heading",
         "seed-avatar",
         "stack-layout",
         "text-input"
@@ -2425,6 +2467,13 @@
         "input.multiline"
       ],
       "shape": "radius",
+      "slots": {
+        "accessory": {
+          "accepts": [
+            "action"
+          ]
+        }
+      },
       "stateVariants": {
         "masked": {
           "primitive": [

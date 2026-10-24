@@ -10,7 +10,7 @@
   import { observeEditorCapacity } from "./editor-capacity.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
-    identity = "", mask, maxLength, purpose = "text", onchange }: CatalogProps<"text-input"> = $props();
+    identity = "", mask, maxLength, purpose = "text", onchange, accessory: trailing }: CatalogProps<"text-input"> = $props();
   const id = $props.id();
   let writing = $derived(value);
   let editor = $state<HTMLTextAreaElement | null>(null);
@@ -47,7 +47,7 @@
 <MeasuredField kind={primitive} invalid={invalidField} {disabled}>
   <FieldWell {id} {label} {required} footer={primitive === "input.multiline" ? counter : undefined}
     filled={(mask ? display : writing).length > 0}>
-    {#snippet accessory()}<ClearInput control={id} value={mask ? display : writing} label={`Clear ${label}`} {disabled} />{/snippet}
+    {#snippet accessory()}{#if trailing}{@render trailing()}{:else}<ClearInput control={id} value={mask ? display : writing} label={`Clear ${label}`} {disabled} />{/if}{/snippet}
     {#if primitive === "input.multiline"}
       <Group.Textarea {id} bind:ref={editor} bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} rows={4} placeholder=" "
         aria-describedby={describedBy} onblur={event => onchange?.(event.currentTarget.value)}

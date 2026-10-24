@@ -9,6 +9,6 @@ export const Column = defineFoundation({
   owner: { entry: "Column.svelte" },
   shape: "none", states: ["default"],
   variants: { gap: ["snug", "close", "regular", "relaxed", "section"] },
-  slots: { children: { accepts: ["text", "fact-list"] } },
+  slots: { children: { accepts: ["action", "clock", "fact-list", "form", "heading", "seed-avatar", "text"] } },
   approval: "required", contract: ColumnContract,
 } as const);

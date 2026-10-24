@@ -4930,7 +4930,7 @@ Source SHA-256: 4e347ef602728408441bac6eb8e62e6c0cd7d9c2c5202aed237f1f59cd54d262
 
 ## src/svelte/catalog/foundations/action/Action.svelte
 
-Source SHA-256: 67d4814e03d17cc8f2c19ef6c1b2d6edcbf447a4bef02202fd53530001a4bfab
+Source SHA-256: e9b056bbc1ec24fe2eb5c7ad17c56153d1b7e86466414a5b371a9eac76ade0b9
 
 ```svelte
 <script lang="ts">
@@ -4940,8 +4940,10 @@ Source SHA-256: 67d4814e03d17cc8f2c19ef6c1b2d6edcbf447a4bef02202fd53530001a4bfab
   import { actionIconNames } from "../../../infra/action-icons.ts";
   import { Icon } from "../../index.ts";
   import type { ActionElementProps } from "../../../action-adapter.ts";
-  let { label, icon, state: status = "ready", emphasis = "secondary", onclick, type = "button", elementProps, reason }: {
+  let { label, icon, state: status = "ready", emphasis = "secondary", face: shown = "fit", onclick, type = "button", elementProps, reason }: {
     label: string; icon: keyof typeof actionIconNames; state?: ToolbarAction["state"];
+    /** `fit` shows the label while it fits and the icon otherwise; `icon` always shows the icon (a field's accessory). */
+    face?: "fit" | "icon";
     emphasis?: "primary" | "secondary"; onclick?: () => void; type?: "button" | "submit";
     elementProps?: ActionElementProps | undefined; reason?: string | undefined;
   } = $props();
@@ -4965,7 +4967,7 @@ Source SHA-256: 67d4814e03d17cc8f2c19ef6c1b2d6edcbf447a4bef02202fd53530001a4bfab
   let button = $state<HTMLButtonElement | null>(null);
   let caption = $state<HTMLSpanElement | null>(null);
   let compact = $state(false);
-  let face = $derived(status === "pending" ? "pending" : compact ? "icon" : "label");
+  let face = $derived(status === "pending" ? "pending" : shown === "icon" || compact ? "icon" : "label");
   $effect(() => {
     label;
     if (!button || !caption) return;
@@ -4978,8 +4980,8 @@ Source SHA-256: 67d4814e03d17cc8f2c19ef6c1b2d6edcbf447a4bef02202fd53530001a4bfab
   });
 </script>
 <Button {...overlay} bind:ref={button} variant={emphasis === "primary" ? "default" : "secondary"}
-  size="default" spin={status === "pending"} {type} onclick={event => { if (status !== "ready") return;
-    if (buttonEvent(event)) elementProps?.onclick?.(event); if (!event.defaultPrevented) onclick?.(); }} class="relative w-fit min-w-0 max-w-[min(100%,22rem)] self-start justify-self-start overflow-hidden"
+  size={shown === "icon" ? "icon-lg" : "default"} spin={status === "pending"} {type} onclick={event => { if (status !== "ready") return;
+    if (buttonEvent(event)) elementProps?.onclick?.(event); if (!event.defaultPrevented) onclick?.(); }} class="relative w-fit min-w-0 max-w-[min(100%,22rem)] overflow-hidden"
   disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
   aria-describedby={reason ? descriptionId : undefined}
   data-primitive="action" data-button-face={face} data-emphasis={emphasis}>
@@ -5009,7 +5011,7 @@ export const actionIconNames = {
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: 01ba7517d21ad6435f31f4a8e4b136ad196c76a4fa20d263d7fd0385bbb422bc
+Source SHA-256: 4880566c820a36430617ceb988e72a8273b85220673c243243713f6359c90a31
 
 ```svelte
 <script lang="ts" module>
@@ -5019,7 +5021,7 @@ Source SHA-256: 01ba7517d21ad6435f31f4a8e4b136ad196c76a4fa20d263d7fd0385bbb422bc
 
 	/** The public buttonVariants contract. */
 	export const buttonVariants = tv({
-        base: "tm-control inline-flex shrink-0 self-start justify-self-start items-center justify-center whitespace-nowrap gap-2 rounded-full type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+        base: "tm-control inline-flex shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-full type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
         variants: {
             spin: { true: "[&_svg[data-icon]]:animate-spin" },
             variant: {
@@ -5738,7 +5740,7 @@ Source SHA-256: 457fc5f593b38a668a5e270a8c0e45d287439db0da01aea269c0a9e4e482d86a
 
 ## src/svelte/catalog/foundations/text-input/TextInput.svelte
 
-Source SHA-256: 6e2987692a9ace23e73ed89f04e484d125d88d67b10ab8ddea75f5ca8bbf15b9
+Source SHA-256: ec91582a17b29541c6432a4e280f83ecd906462c371a7063f09fadf4a17d2cf5
 
 ```svelte
 <script lang="ts">
@@ -5753,7 +5755,7 @@ Source SHA-256: 6e2987692a9ace23e73ed89f04e484d125d88d67b10ab8ddea75f5ca8bbf15b9
   import { observeEditorCapacity } from "./editor-capacity.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
-    identity = "", mask, maxLength, purpose = "text", onchange }: CatalogProps<"text-input"> = $props();
+    identity = "", mask, maxLength, purpose = "text", onchange, accessory: trailing }: CatalogProps<"text-input"> = $props();
   const id = $props.id();
   let writing = $derived(value);
   let editor = $state<HTMLTextAreaElement | null>(null);
@@ -5790,7 +5792,7 @@ Source SHA-256: 6e2987692a9ace23e73ed89f04e484d125d88d67b10ab8ddea75f5ca8bbf15b9
 <MeasuredField kind={primitive} invalid={invalidField} {disabled}>
   <FieldWell {id} {label} {required} footer={primitive === "input.multiline" ? counter : undefined}
     filled={(mask ? display : writing).length > 0}>
-    {#snippet accessory()}<ClearInput control={id} value={mask ? display : writing} label={`Clear ${label}`} {disabled} />{/snippet}
+    {#snippet accessory()}{#if trailing}{@render trailing()}{:else}<ClearInput control={id} value={mask ? display : writing} label={`Clear ${label}`} {disabled} />{/if}{/snippet}
     {#if primitive === "input.multiline"}
       <Group.Textarea {id} bind:ref={editor} bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} rows={4} placeholder=" "
         aria-describedby={describedBy} onblur={event => onchange?.(event.currentTarget.value)}

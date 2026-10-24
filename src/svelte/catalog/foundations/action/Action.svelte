@@ -5,8 +5,10 @@
   import { actionIconNames } from "../../../infra/action-icons.ts";
   import { Icon } from "../../index.ts";
   import type { ActionElementProps } from "../../../action-adapter.ts";
-  let { label, icon, state: status = "ready", emphasis = "secondary", onclick, type = "button", elementProps, reason }: {
+  let { label, icon, state: status = "ready", emphasis = "secondary", face: shown = "fit", onclick, type = "button", elementProps, reason }: {
     label: string; icon: keyof typeof actionIconNames; state?: ToolbarAction["state"];
+    /** `fit` shows the label while it fits and the icon otherwise; `icon` always shows the icon (a field's accessory). */
+    face?: "fit" | "icon";
     emphasis?: "primary" | "secondary"; onclick?: () => void; type?: "button" | "submit";
     elementProps?: ActionElementProps | undefined; reason?: string | undefined;
   } = $props();
@@ -30,7 +32,7 @@
   let button = $state<HTMLButtonElement | null>(null);
   let caption = $state<HTMLSpanElement | null>(null);
   let compact = $state(false);
-  let face = $derived(status === "pending" ? "pending" : compact ? "icon" : "label");
+  let face = $derived(status === "pending" ? "pending" : shown === "icon" || compact ? "icon" : "label");
   $effect(() => {
     label;
     if (!button || !caption) return;
@@ -43,8 +45,8 @@
   });
 </script>
 <Button {...overlay} bind:ref={button} variant={emphasis === "primary" ? "default" : "secondary"}
-  size="default" spin={status === "pending"} {type} onclick={event => { if (status !== "ready") return;
-    if (buttonEvent(event)) elementProps?.onclick?.(event); if (!event.defaultPrevented) onclick?.(); }} class="relative w-fit min-w-0 max-w-[min(100%,22rem)] self-start justify-self-start overflow-hidden"
+  size={shown === "icon" ? "icon-lg" : "default"} spin={status === "pending"} {type} onclick={event => { if (status !== "ready") return;
+    if (buttonEvent(event)) elementProps?.onclick?.(event); if (!event.defaultPrevented) onclick?.(); }} class="relative w-fit min-w-0 max-w-[min(100%,22rem)] overflow-hidden"
   disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
   aria-describedby={reason ? descriptionId : undefined}
   data-primitive="action" data-button-face={face} data-emphasis={emphasis}>
