@@ -15,6 +15,7 @@
 @import "./catalog/mechanisms/media/media.css";
 @import "./catalog/mechanisms/surface-chrome/surface-chrome.css";
 @import "./catalog/mechanisms/surface-reading/surface-reading.css";
+@import "./catalog/foundations/bar/bar.css";
 @import "./catalog/compositions/toolbar-layout/toolbar-layout.css";
 @import "./catalog/foundations/scroll-edges/scroll-edges.css";
 @import "./catalog/mechanisms/anchored-surface/anchored-surface.css";

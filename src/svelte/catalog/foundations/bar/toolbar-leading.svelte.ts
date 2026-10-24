@@ -1,3 +1,4 @@
+// Bar part (from the toolbar-layout composition): whether the leading slot holds a visible control.
 /** Geometry follows rendered leading controls, including reactive visibility and wrapping. */
 export function useToolbarLeading(element: () => HTMLElement | null) {
   let occupied = $state(false);

@@ -1,4 +1,4 @@
-import { toolbarBounds } from './toolbar-bounds.ts';
+import { toolbarBounds } from '../catalog/mechanisms/toolbar-geometry/toolbar-bounds.ts';
 
 /** Accepted R2: protect compact identity without a hard paint boundary or a
  * second material. Called by docking updates, never by a persistent frame loop. */

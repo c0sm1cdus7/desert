@@ -1,3 +1,5 @@
+// Bar part (from the toolbar-layout composition): fits the trailing commands of a top rail into the room its identity
+// leaves, overflowing the rest, and stacks the identity above the commands when the rail is too narrow for both.
 import type { ToolbarAction } from "../../../../interaction/toolbar.ts";
 import { toolbarVisibleCount } from "../../../infra/toolbar-capacity.ts";
 

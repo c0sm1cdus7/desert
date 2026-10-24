@@ -1,7 +1,3 @@
-/** Overlay padding belongs to the rail's hit region, not its reading occlusion.
- * Flow toolbars occupy their entire frame; overlay rails protect visible content. */
-export function toolbarBounds(toolbar: HTMLElement): DOMRect {
-  return (toolbar.hasAttribute('data-toolbar-overlay')
-    ? toolbar.querySelector<HTMLElement>(':scope > .toolbar-row') ?? toolbar
-    : toolbar).getBoundingClientRect();
-}
+// F1-merge: text-input's editor-capacity.ts (lane F1b, becoming field) still imports this path. Field lists the
+// toolbar-geometry mechanism and imports mechanisms/toolbar-geometry/toolbar-bounds.ts; then this re-export is deleted.
+export { toolbarBounds } from "../catalog/mechanisms/toolbar-geometry/toolbar-bounds.ts";

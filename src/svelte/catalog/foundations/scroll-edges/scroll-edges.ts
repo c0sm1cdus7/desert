@@ -1,4 +1,4 @@
-import { toolbarBounds } from '../../../infra/toolbar-bounds.ts';
+import { toolbarBounds } from '../../mechanisms/toolbar-geometry/toolbar-bounds.ts';
 
 export type ScrollEdge = { edge: "top" | "bottom"; top: number; left: number; width: number;
   height: number; core: number; strength: number };

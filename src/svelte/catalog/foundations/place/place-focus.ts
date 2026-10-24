@@ -1,4 +1,4 @@
-import { toolbarBounds } from '../../../infra/toolbar-bounds.ts';
+import { toolbarBounds } from '../../mechanisms/toolbar-geometry/toolbar-bounds.ts';
 
 /** Browser focus scrolling knows the viewport, not the floating rails over it.
  * Reveal in response to focus or editing; ordinary scrolling stays user-owned. */

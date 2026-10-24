@@ -134,6 +134,20 @@
       "folder": "src/svelte/catalog/mechanisms/theme",
       "owner": "theme"
     },
+    "toolbar-geometry": {
+      "files": [
+        "toolbar-bounds.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/toolbar-geometry",
+      "owner": "bar"
+    },
+    "toolbar-scroll": {
+      "files": [
+        "toolbar-scroll.svelte.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/toolbar-scroll",
+      "owner": "bar"
+    },
     "typography": {
       "files": [
         "typography.css"
@@ -410,6 +424,52 @@
         "icon",
         "seed-avatar"
       ]
+    },
+    "bar": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/bar",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Bar.svelte",
+        "mechanisms": [
+          "toolbar-geometry",
+          "toolbar-scroll"
+        ],
+        "parts": [
+          "BarIdentity.svelte",
+          "BarSearch.svelte",
+          "bar.css",
+          "toolbar-commands.svelte.ts",
+          "toolbar-leading.svelte.ts"
+        ]
+      },
+      "purpose": "Keep navigation and contextual commands in the surface toolbar; reveal its title and subtitle only after the content header scrolls away.",
+      "shape": "none",
+      "stateVariants": {
+        "overflow": {
+          "purpose": [
+            "commands"
+          ]
+        },
+        "searching": {
+          "purpose": [
+            "commands"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "searching",
+        "overflow"
+      ],
+      "variants": {
+        "purpose": [
+          "commands",
+          "commit",
+          "steps",
+          "navigation"
+        ]
+      }
     },
     "catalog-card": {
       "approval": "required",
@@ -1788,6 +1848,10 @@
       "kind": "foundation",
       "owner": {
         "entry": "Place.svelte",
+        "mechanisms": [
+          "toolbar-geometry",
+          "toolbar-scroll"
+        ],
         "parts": [
           "place-focus.ts",
           "place.css"
@@ -2095,6 +2159,9 @@
       "kind": "foundation",
       "owner": {
         "entry": "ScrollEdges.svelte",
+        "mechanisms": [
+          "toolbar-geometry"
+        ],
         "parts": [
           "scroll-edges.css",
           "scroll-edges.ts"
@@ -2557,10 +2624,8 @@
           "CalendarNavigation.svelte",
           "CatalogNavigationActions.svelte",
           "ToolbarIdentity.svelte",
-          "toolbar-commands.svelte.ts",
           "toolbar-identity.ts",
-          "toolbar-layout.css",
-          "toolbar-leading.svelte.ts"
+          "toolbar-layout.css"
         ]
       },
       "purpose": "Keep navigation and contextual commands in the surface toolbar; reveal its title and subtitle only after the content header scrolls away.",

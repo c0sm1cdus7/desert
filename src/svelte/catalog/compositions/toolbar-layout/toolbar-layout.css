@@ -1,83 +1,19 @@
-/* One toolbar geometry, measured from the approved page rail. Hosts position
-   the rail; no consumer supplies its inset, gap, or target dimensions. */
-:root, [data-type-density] {
-  --catalog-toolbar-inset:8px;
-  --catalog-toolbar-height:max(44px,calc(var(--text-body--line-height) + 12px));
-  --toolbar-gap:12px;
-}
-[data-piece="toolbar"] {
-  --toolbar-inset:var(--catalog-toolbar-inset);
-  --toolbar-target:var(--catalog-toolbar-height);
-  flex-shrink:0; padding:var(--toolbar-inset); min-width:0;
-  container:toolbar / inline-size;
-  max-height:min(50dvh,calc(100dvh - 10rem)); overflow-y:auto; overscroll-behavior:contain;
-  --focus-ring-offset:-3px;
-}
-/* The same owner supplies pointer return and its keyboard focus indication. */
-[data-piece="toolbar"][data-toolbar-return] { cursor:pointer; }
-[data-piece="toolbar"][data-toolbar-return] :is(.toolbar-title,.toolbar-subtitle,[data-toolbar-identity]) { cursor:pointer; }
-[data-piece="toolbar"]:has(> [data-toolbar-scroll-top]:focus-visible) { outline:2px solid var(--ring); outline-offset:-3px; }
-[data-piece="toolbar"] > .toolbar-row {
-  display:flex; flex-wrap:wrap; min-width:0; min-height:var(--toolbar-target); align-items:center; gap:var(--toolbar-gap);
-}
-[data-toolbar-leading] { display:contents; }
-[data-toolbar-leading][data-occupied] { display:flex; flex-shrink:0; align-self:flex-start; gap:var(--toolbar-gap); }
-[data-toolbar-heading] {
-  display:flex; flex:1 1 0; flex-direction:column; min-width:0; text-align:start;
-  padding-inline-start:max(0px,calc(var(--surface-reading-inset,8px) - var(--toolbar-inset)));
-}
-[data-toolbar-layout="inline"][data-toolbar-has-leading] > [data-toolbar-heading] { padding-inline-start:0; }
-[data-toolbar-layout="stacked"] > [data-toolbar-heading] { order:1; flex-basis:100%; }
-[data-toolbar-identity] { opacity:0; pointer-events:none !important; }
-[data-reserve-search] { padding-inline-end:calc(var(--toolbar-target) + var(--toolbar-gap)); }
-/* The continuation fits chrome while its semantic reading heading remains fully scaled. */
-[data-toolbar-identity] [data-identity-title] { font-size:min(var(--text-title),calc(var(--toolbar-target) * .43)); line-height:calc(var(--toolbar-target) * .52); }
-[data-toolbar-identity] [data-identity-subtitle] { font-size:min(var(--text-caption),calc(var(--toolbar-target) * .3)); line-height:calc(var(--toolbar-target) * .4); }
-[data-piece="toolbar"] .toolbar-action {
-  display:flex; width:var(--toolbar-target); flex-shrink:0; align-self:flex-start;
-}
-[data-piece="toolbar"] .toolbar-action [data-button-label] { visibility:hidden; }
-[data-piece="toolbar"] .toolbar-action [data-button-glyph] { visibility:visible; }
-[data-piece="toolbar"] .toolbar-row :is([data-slot="button"],[data-slot="sidebar-trigger"]):not([data-media-thumbs] button) {
-  height:var(--toolbar-target); min-height:var(--toolbar-target);
-}
-[data-piece="toolbar"] .toolbar-row :is(.toolbar-action > button,[data-toolbar-controls] button,
-  [data-catalog-navigation-actions] > button,[data-slot="sidebar-trigger"],[data-catalog-search-toggle],button:has(> [data-button-content] > svg):not([data-primitive="action"])) {
-  width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset);
-}
-[data-piece="toolbar"] :is([data-toolbar-controls],[data-toolbar-utilities],[data-catalog-navigation-actions],[data-toolbar-auxiliary]) { gap:var(--toolbar-gap); }
-[data-piece="toolbar"] [data-toolbar-utilities] { align-self:flex-start; }
+/* The rest of the toolbar-layout composition's geometry: rules for marks only it (or a piece it mounts)
+   draws. Bar owns the shared toolbar rules in foundations/bar/bar.css; lane E deletes this file with the
+   composition. Speed dial and popover rules move to menu and popover (F1d), the navigation return to shell. */
 [data-piece="toolbar"] :is([data-catalog-navigation-actions],[data-toolbar-auxiliary]) { display:flex; min-width:0; align-items:center; }
 /* An empty action group must not allocate a rail gap before the identity. */
 [data-piece="toolbar"] [data-catalog-navigation-actions]:not(:has(button)) { display:none; }
 @container toolbar (max-width:600px) { [data-toolbar-auxiliary] { flex-basis:100%; justify-content:center; } }
-[data-piece="toolbar"] .toolbar-face { --face-size:clamp(32px,2rem,40px); margin-bottom:var(--toolbar-gap); }
-[data-piece="toolbar"] .toolbar-availability { margin-top:var(--toolbar-gap); }
-[data-piece="toolbar"] :is(.toolbar-title,.toolbar-subtitle) { overflow-wrap:anywhere; }
-[data-piece="toolbar"] .toolbar-subtitle { color:var(--muted-foreground); margin-top:var(--heading-copy-gap); }
-[data-toolbar-identity] [data-identity-subtitle] { margin-top:0; }
-[data-piece="toolbar"][data-toolbar="bottom"] > .toolbar-row { justify-content:flex-end; }
-[data-piece="toolbar"][data-toolbar-purpose="commit"] > .toolbar-row > * { flex:0 1 auto; min-width:0; }
-[data-piece="toolbar"][data-toolbar-purpose="commit"] button { white-space:nowrap; }
-[data-piece="toolbar"][data-toolbar-purpose="steps"] > .toolbar-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
-[data-piece="toolbar"][data-toolbar-purpose="steps"] > .toolbar-row > button { width:100%; max-width:none; min-width:0; }
 /* Message headings have no action targets to reserve; their description follows
    at the same reading gap as a page or regular toolbar subtitle. */
 [data-frame-presentation="message"] [data-toolbar="top"] { padding-bottom:0; }
 [data-frame-presentation="message"] [data-toolbar="top"] > .toolbar-row { min-height:0; }
 [data-frame-presentation="message"] [data-toolbar-heading] { padding-inline-end:max(0px,calc(var(--surface-reading-inset,8px) - var(--toolbar-inset))); }
 [data-piece="toolbar"][data-toolbar-purpose="media"] > .toolbar-row { justify-content:center; }
-[data-piece="toolbar"][data-toolbar-overlay] { overflow:visible; pointer-events:none; }
-[data-piece="toolbar"][data-toolbar-return] { pointer-events:auto; }
-[data-piece="toolbar"][data-toolbar-overlay] > .toolbar-row > * { pointer-events:auto; }
-[data-piece="toolbar"][data-toolbar-overlay="search"] > .toolbar-row > [data-catalog-search-actions] { pointer-events:none; }
 /* A pane containing its own toolbar is framed: only its body owns content
    insets. Contextual content without a toolbar retains the anchored body inset. */
 [data-slot="popover-content"]:has([data-piece="toolbar"]) { padding:0; gap:0; }
-@media (max-height:640px) {
-  [data-piece="toolbar"] .toolbar-availability .bank-status > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-}
-:is([data-catalog-toolbar],[data-place-toolbar]) { position:absolute; inset:max(0px,calc(env(safe-area-inset-top,0px) - var(--catalog-toolbar-inset))) max(0px,calc(env(safe-area-inset-right,0px) - var(--catalog-toolbar-inset))) auto max(0px,calc(env(safe-area-inset-left,0px) - var(--catalog-toolbar-inset))); z-index:2; margin-inline-start:var(--place-leading-inset); }
 [data-navigation-return] { position:absolute; z-index:2; bottom:0; inset-inline-start:var(--place-leading-inset,0px); inline-size:calc(var(--catalog-toolbar-height) + 2 * var(--catalog-toolbar-inset)); }
 [data-navigation-return] [data-piece="toolbar"] { overflow:visible; }
 .speed-dial { z-index:50; display:grid; gap:12px; max-width:calc(100vw - 24px); }
