@@ -2,7 +2,8 @@
   import * as Empty from "../../../vendor/components/ui/empty/index.js";
   import { Skeleton } from "../../../vendor/components/ui/skeleton/index.js";
   import { GroupedPanel } from "../../index.ts";
-  let { loaded, createLabel, connection }: { loaded: boolean; createLabel?: string; connection?: 'loading' | 'ready' | 'offline' | undefined } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { loaded, createLabel, connection }: CatalogProps<"collection-state"> = $props();
   let offline = $derived(connection === 'offline');
   let pending = $derived(!loaded && !offline);
 </script>

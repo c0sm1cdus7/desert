@@ -1,11 +1,11 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// ViewProductContent: mounts the browser session of a view program and renders its workspace from the live snapshot.
+// Its contract stays a stub: `access` is `Pick<AccessClient, "lock">`, which has no named non-visual type (migration debt).
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ViewProductContentContract } from "./view-product-content.contract.ts";
 
 export const ViewProductContent = defineComposition({
   id: "view-product-content",
-  purpose: "Declared as found at the start of the migration: ViewProductContent.svelte.",
+  purpose: "Run a view program's browser session and render its workspace from the live snapshot.",
   owner: { entry: "ViewProductContent.svelte", parts: ["activity-host.ts"] },
   uses: ["view-workspace"], approval: "none", contract: ViewProductContentContract,
 } as const);

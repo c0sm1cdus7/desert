@@ -1,6 +1,7 @@
 <script lang="ts">
   import Info from "@lucide/svelte/icons/info";
-  let { reason }: { reason: string } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { reason }: CatalogProps<"specimen-unavailable"> = $props();
 </script>
 
 <div role="note" aria-label="Specimen unavailable" class="flex min-w-0 items-start gap-2 text-muted-foreground">

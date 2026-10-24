@@ -12,13 +12,27 @@ export type ContractSchema = Readonly<
   | { kind: "object"; properties: Readonly<Record<string, ContractProperty>> }
   | { kind: "literal"; value: string | number | boolean } | { kind: "union"; members: readonly ContractSchema[] }
   | { kind: "array"; items: ContractSchema } | { kind: "record"; values: ContractSchema } | { kind: "function" }
-  | { kind: "reference"; name: string; from: string } | { kind: "typed"; name: string; from: string } | { kind: "string" | "number" | "boolean" | "integer" | "null" | "void" | "undefined" }>;
+  | { kind: "reference"; name: string; from: string } | { kind: "typed"; name: string; from: string }
+  | { kind: "promise"; value: ContractSchema } | { kind: "string" | "number" | "boolean" | "integer" | "null" | "void" | "undefined" }>;
 export type ContractProperty = Readonly<{ schema: ContractSchema; optional: boolean }>;
 export type ReadContract = Readonly<{ binding: string; closed: false } | { binding: string; closed: true;
   props: Readonly<Record<string, ContractProperty>>; events: Readonly<Record<string, ContractProperty>>;
   instance: Readonly<Record<string, ContractProperty>>; marks: readonly string[] }>;
 
 const scalars = new Set(["String", "Number", "Boolean", "Integer", "Null", "Void", "Undefined"]);
+/** TypeScript's own utility types, which a typed reference may combine with imported types. */
+const utilityTypes = new Set(["Pick", "Omit", "Partial", "Required", "Readonly", "ReadonlyArray", "Record", "ReturnType", "Parameters",
+  "Awaited", "Extract", "Exclude", "NonNullable", "Promise", "Array"]);
+/** Visual code: a Svelte file, or any module of src/svelte that is not infra/ (infra is nonvisual TypeScript, rule I). */
+const visualModule = (from: string) => /\.svelte(\.ts)?$/.test(from) || /\/svelte\//.test(from) && !/\/infra\//.test(from)
+  || /\/catalog\/(foundations|compositions|renderer|mechanisms)\//.test(from);
+/** Every type name a type expression refers to (`Pick<AccessClient, "lock">` → Pick, AccessClient). */
+function typeNames(node: ts.Node, found: Set<string> = new Set()): Set<string> {
+  if (ts.isTypeReferenceNode(node)) found.add(ts.isIdentifier(node.typeName) ? node.typeName.text : node.typeName.getText());
+  if (ts.isTypeQueryNode(node)) found.add(node.exprName.getText());
+  ts.forEachChild(node, child => { typeNames(child, found); });
+  return found;
+}
 
 export function readContract(path: string, source: string): ReadContract {
   const file = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
@@ -31,7 +45,7 @@ export function readContract(path: string, source: string): ReadContract {
     if (ts.isIdentifier(node)) {
       const from = imported.get(node.text);
       if (!from) return fail(node, `${node.text} is not a schema imported from a module`);
-      if (/\.svelte$|\/svelte\//.test(from)) return fail(node, `${node.text} comes from visual code (${from}); a contract references domain schemas only`);
+      if (visualModule(from)) return fail(node, `${node.text} comes from visual code (${from}); a contract references domain or infra schemas only`);
       return { kind: "reference", name: node.text, from };
     }
     const found = call(node);
@@ -45,12 +59,16 @@ export function readContract(path: string, source: string): ReadContract {
     if (found.name === "Array" && first) return { kind: "array", items: schema(first) };
     if (found.name === "Unsafe") {
       const [argument] = found.node.typeArguments ?? [];
-      const typeName = argument && ts.isTypeReferenceNode(argument) && ts.isIdentifier(argument.typeName) ? argument.typeName.text : undefined;
-      const from = typeName === undefined ? undefined : imported.get(typeName);
-      if (!typeName || !from || found.node.arguments.length) return fail(node, "Type.Unsafe takes one imported type argument and no schema: Type.Unsafe<DomainType>()");
-      if (/\.svelte$|\/svelte\//.test(from)) return fail(node, `${typeName} comes from visual code (${from}); a contract references domain types only`);
-      return { kind: "typed", name: typeName, from };
+      if (!argument || found.node.arguments.length) return fail(node, "Type.Unsafe takes one type argument and no schema: Type.Unsafe<DomainType>()");
+      const names = typeNames(argument);
+      for (const name of names) {
+        const from = imported.get(name);
+        if (!from && !utilityTypes.has(name)) return fail(node, `${name} is neither imported from a module nor a standard utility type`);
+        if (from && visualModule(from)) return fail(node, `${name} comes from visual code (${from}); a contract references domain or infra types only`);
+      }
+      return { kind: "typed", name: argument.getText(file), from: [...names].map(name => imported.get(name)).find(Boolean) ?? "" };
     }
+    if (found.name === "Promise" && first) return { kind: "promise", value: schema(first) };
     const second = found.node.arguments[1];
     if (found.name === "Record" && first && second) { schema(first); return { kind: "record", values: schema(second) }; }
     if (found.name === "Function" && first && ts.isArrayLiteralExpression(first) && second) {

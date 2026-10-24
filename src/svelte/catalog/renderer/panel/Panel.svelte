@@ -1,9 +1,10 @@
 <script lang="ts">
   import { tick, untrack } from "svelte";
-  import { bindViewEvents, type OwnedResolvedPanel, type OwnedViewEvent, type ViewEventOwner } from "../../../../web/client/view-events.ts";
+  import { bindViewEvents, type OwnedResolvedPanel, type ViewEventOwner } from "../../../../web/client/view-events.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { ViewPanel } from "../../../adapter-catalog.ts";
-  let { panel, onevent }: { panel?: OwnedResolvedPanel | null; onevent: (event: OwnedViewEvent) => void } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { panel, onevent }: CatalogProps<"panel"> = $props();
   let mounted = $state.raw<OwnedResolvedPanel | null>(null);
   let open = $state(false);
   let revision = 0;
@@ -23,7 +24,7 @@
     });
   });
   function dispatch(owner: ViewEventOwner) {
-    const send = bindViewEvents(owner, onevent);
+    const send = bindViewEvents(owner, value => onevent?.(value));
     return (event: NodeEvent) => {
       if (event.kind === "transient.closed" && !panel && mounted?.owner === owner) mounted = null;
       send(event);

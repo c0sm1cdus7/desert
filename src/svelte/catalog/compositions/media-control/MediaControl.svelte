@@ -3,11 +3,11 @@
   import { Badge } from "../../../vendor/components/ui/badge/index.js";
   import { cn } from "../../../vendor/utils.js";
   import ImageOff from "@lucide/svelte/icons/image-off";
-  import type { AvatarNode, ImageNode, TagNode } from "../../../../interaction/extended-nodes.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { PhotoCollection } from '../../index.ts';
   import { Image } from '../../index.ts';
   import { imageIdentity } from '../../../infra/media-source.ts';
-  let { node }: { node: AvatarNode | ImageNode | TagNode } = $props();
+  let { node }: CatalogProps<"media-control"> = $props();
   let source = $derived(node.kind === "tag" ? null : typeof node.source === "object" && node.source !== null
     ? 'asset' in node.source ? `/media/${encodeURIComponent(node.source.asset)}` : node.source : node.source);
   const aspects = { square: "aspect-square", landscape: "aspect-video", portrait: "aspect-[3/4]" };

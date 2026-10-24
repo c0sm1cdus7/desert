@@ -1,5 +1,5 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// AccessExperience: the access screen over the wallpaper: onboarding form, lock screen or connection state, with its error.
+// Its contract stays a stub: `profile` and `preferences` are typed in src/svelte/infra (migration debt).
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { AccessExperienceContract } from "./access-experience.contract.ts";
 

@@ -5,10 +5,9 @@
   import { StackLayout } from "../../index.ts";
   import { Wallpaper } from "../../index.ts";
   import { AppearancePreview } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { appearanceChoices, appearancePreferences, effectiveAppearanceTheme, type AppearancePreferences } from "../../../infra/appearance-preferences.ts";
-  let { value, onchange, disabled = false }: {
-    value: AppearancePreferences; onchange: (value: AppearancePreferences) => void; disabled?: boolean;
-  } = $props();
+  let { value, onchange, disabled = false }: CatalogProps<"appearance-preferences"> = $props();
   const id = $props.id();
   let systemDark = $state(false);
   let selectedTheme = $derived(effectiveAppearanceTheme(value.theme, systemDark));
@@ -21,7 +20,7 @@
   });
   function choose(field: keyof AppearancePreferences, selected: string) {
     const next = appearancePreferences({ ...value, [field]: selected });
-    if (next) onchange(next);
+    if (next) onchange?.(next);
   }
 </script>
 <div class="appearance-preferences" data-appearance-preferences>

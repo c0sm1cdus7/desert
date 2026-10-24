@@ -1,5 +1,5 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// AppearancePreview: a finite miniature of the running interface in one mode, tint and wallpaper, so a person can compare
+// Dark and Light before choosing.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { AppearancePreviewContract } from "./appearance-preview.contract.ts";
 

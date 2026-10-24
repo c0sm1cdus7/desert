@@ -1,5 +1,4 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// ObjectStateControl: the state selectors of an object, one row per selector, each choosing a journey.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ObjectStateControlContract } from "./object-state-control.contract.ts";
 

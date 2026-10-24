@@ -5,7 +5,7 @@ import { CatalogWorkspaceContentContract } from "./catalog-workspace-content.con
 
 export const CatalogWorkspaceContent = defineComposition({
   id: "catalog-workspace-content",
-  purpose: "Declared as found at the start of the migration: CatalogWorkspaceContent.svelte.",
+  purpose: "Show the body of the catalog workspace: the visited views of a program, or the public catalog's browse, exercises and bank places.",
   owner: { entry: "CatalogWorkspaceContent.svelte" },
   uses: ["catalog-detail", "catalog-home", "local-exercises", "public-catalog-bank", "retained-place", "view-content"], approval: "none", contract: CatalogWorkspaceContentContract,
 } as const);

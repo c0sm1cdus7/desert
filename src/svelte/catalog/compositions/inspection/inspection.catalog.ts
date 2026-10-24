@@ -5,7 +5,7 @@ import { InspectionContract } from "./inspection.contract.ts";
 
 export const Inspection = defineComposition({
   id: "inspection",
-  purpose: "Declared as found at the start of the migration: Inspection.svelte.",
+  purpose: "Browse the local inspection catalog and open one of its records as a detail, without product commands.",
   owner: { entry: "Inspection.svelte", parts: ["inspection-fixture.ts"] },
   uses: ["catalog-detail", "inspection-catalog", "node-renderer", "retained-place", "toolbar"], approval: "none", contract: InspectionContract,
 } as const);

@@ -1,12 +1,8 @@
 <script lang="ts">
-  import type { FrameContent } from "../../../../interaction/surface-frame.ts";
-  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import { NodeRenderer } from "../../index.ts";
-  let { actions, invoke }: {
-    actions: Extract<FrameContent, { kind: "utilities" }>["actions"];
-    invoke: (intent: SurfaceIntent) => void;
-  } = $props();
+  let { actions, invoke }: CatalogProps<"utility-actions"> = $props();
 </script>
 
 <!-- One utility-action arrangement shared by anchored and frame hosts. -->

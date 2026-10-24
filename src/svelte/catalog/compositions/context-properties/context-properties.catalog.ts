@@ -1,5 +1,5 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// ContextProperties: the properties pane of an object's context, its facts as label/value rows and its state selectors,
+// separate from the reading paragraphs.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ContextPropertiesContract } from "./context-properties.contract.ts";
 

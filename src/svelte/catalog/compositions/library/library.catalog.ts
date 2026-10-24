@@ -1,11 +1,10 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// Library: a media library's cards and albums; opening an item shows it in the viewer and returns focus when it closes.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { LibraryContract } from "./library.contract.ts";
 
 export const Library = defineComposition({
   id: "library",
-  purpose: "Declared as found at the start of the migration: Library.svelte.",
+  purpose: "Browse a media library by album and open its items in the viewer, returning focus to the opener.",
   owner: { entry: "Library.svelte" },
   uses: ["catalog-home", "viewer"], approval: "none", contract: LibraryContract,
 } as const);

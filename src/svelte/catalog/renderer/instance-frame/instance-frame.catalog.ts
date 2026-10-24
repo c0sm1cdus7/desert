@@ -1,11 +1,10 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// InstanceFrame: the transient frame of one mounted drawer instance; it keeps that instance's callbacks after teardown.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { InstanceFrameContract } from "./instance-frame.contract.ts";
 
 export const InstanceFrame = defineComposition({
   id: "instance-frame",
-  purpose: "Declared as found at the start of the migration: InstanceFrame.svelte.",
+  purpose: "Draw the transient frame of one mounted instance, keeping its callbacks through teardown.",
   owner: { entry: "InstanceFrame.svelte" },
   uses: ["surface-frame"], approval: "none", contract: InstanceFrameContract,
 } as const);

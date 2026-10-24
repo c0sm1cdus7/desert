@@ -5,7 +5,8 @@
   import { ReferenceSelector } from '../../index.ts';
   import { LabelsControl } from '../../index.ts';
   import type { LabelsNode, ReferenceEvent } from '../../../../interaction/labels-control.ts';
-  let {owner}:{owner:'LabelRail'|'ColorBullet'|'ReferenceValues'|'ReferenceSelector'|'LabelsControl'}=$props();
+  import type { CatalogProps } from '../../types.d.ts';
+  let {owner}:CatalogProps<'reference-specimen'>=$props();
   let labels=$state(['Design','Research']);
   let node=$state<LabelsNode>({version:'desert.control/1',kind:'labels',id:'projects',label:'Projects',disabled:false,
     values:['10000000-0000-4000-8000-000000000001'],limits:{maxItems:12,maxLength:36},

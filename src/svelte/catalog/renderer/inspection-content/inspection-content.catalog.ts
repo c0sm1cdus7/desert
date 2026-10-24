@@ -1,11 +1,11 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// InspectionContent: the visual catalog inspection, which a caller binds to reveal one entry. Its contract stays a stub:
+// `catalog` is typed by PublicBankInput from src/svelte/infra and `revealEntry` returns an HTMLElement (migration debt).
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { InspectionContentContract } from "./inspection-content.contract.ts";
 
 export const InspectionContent = defineComposition({
   id: "inspection-content",
-  purpose: "Declared as found at the start of the migration: InspectionContent.svelte.",
+  purpose: "Mount the visual catalog inspection and reveal one of its entries for a caller that binds it.",
   owner: { entry: "InspectionContent.svelte" },
   uses: ["inspection"], approval: "none", contract: InspectionContentContract,
 } as const);

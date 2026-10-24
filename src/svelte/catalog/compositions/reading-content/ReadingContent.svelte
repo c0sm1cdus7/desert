@@ -1,10 +1,10 @@
 <script lang="ts">
-  import type { FactsContent } from "../../../../interaction/surface-frame.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { StackLayout } from "../../index.ts";
   import { FactValue } from "../../index.ts";
   import { displayLabel } from '../../../../interaction/display-label.ts';
   import { readingFields } from '../../../../interaction/fact-presentation.ts';
-  let { fields, facts, object, labels }: Pick<FactsContent, "fields" | "facts" | "object" | "labels"> = $props();
+  let { fields, facts, object, labels }: CatalogProps<"reading-content"> = $props();
   const visible = $derived(readingFields(fields, facts));
 </script>
 {#if visible.length}

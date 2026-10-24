@@ -5,7 +5,7 @@ import { ViewPanelContract } from "./view-panel.contract.ts";
 
 export const ViewPanel = defineComposition({
   id: "view-panel",
-  purpose: "Declared as found at the start of the migration: ViewPanel.svelte.",
+  purpose: "Present a view's resolved panel as a confirmation dialog or a drawer, reporting its events as node events.",
   owner: { entry: "ViewPanel.svelte" },
   uses: ["confirmation-dialog", "drawer"], approval: "none", contract: ViewPanelContract,
 } as const);

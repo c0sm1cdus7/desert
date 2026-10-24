@@ -58,8 +58,23 @@ export const FlowContract = { props: Type.Object({ resolved: Type.Unsafe<Resolve
 
 for (const [name, source, pattern] of [
   ["a reference that is not imported", "export const C = { props: Type.Object({ a: Loose }, { additionalProperties: false }) } as const;", /Loose is not a schema imported/],
-  ["a bare Type.Unsafe", "export const C = { props: Type.Object({ a: Type.Unsafe({}) }, { additionalProperties: false }) } as const;", /one imported type argument/],
+  ["a typed reference to an unimported type", "export const C = { props: Type.Object({ a: Type.Unsafe<Loose>() }, { additionalProperties: false }) } as const;", /Loose is neither imported/],
+  ["a typed reference to a component", 'import type { Shape } from "../catalog/compositions/x/x.ts";\nexport const C = { props: Type.Object({ a: Type.Unsafe<Shape>() }, { additionalProperties: false }) } as const;', /comes from visual code/],
+  ["a bare Type.Unsafe", "export const C = { props: Type.Object({ a: Type.Unsafe({}) }, { additionalProperties: false }) } as const;", /one type argument and no schema/],
   ["a reference to visual code", 'import { Shape } from "../x/X.svelte";\nexport const C = { props: Type.Object({ a: Shape }, { additionalProperties: false }) } as const;', /comes from visual code/],
 ] as const) test(`${name} is refused`, () => {
   assert.throws(() => readContract("c.contract.ts", source), pattern);
+});
+
+test("infra types, utility combinations and promises are typed references", () => {
+  const contract = readContract("p.contract.ts", `import { Type } from "@sinclair/typebox";
+import type { ToolbarContent } from "../../../infra/toolbar-content.ts";
+import type { AccessClient } from "../../../../web/client/access.ts";
+export const PContract = { props: Type.Object({ content: Type.Unsafe<ToolbarContent>(), access: Type.Unsafe<Pick<AccessClient, "lock">>(),
+  load: Type.Function([], Type.Promise(Type.Void())) }, { additionalProperties: false }) } as const;\n`);
+  assert.equal(contract.closed, true);
+  if (!contract.closed) return;
+  assert.equal(contract.props.content?.schema.kind, "typed");
+  assert.deepEqual(contract.props.access?.schema, { kind: "typed", name: 'Pick<AccessClient, "lock">', from: "../../../../web/client/access.ts" });
+  assert.deepEqual(contract.props.load?.schema, { kind: "function" });
 });

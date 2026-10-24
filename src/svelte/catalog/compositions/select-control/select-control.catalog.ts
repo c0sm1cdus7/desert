@@ -1,5 +1,4 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// SelectControl: the select control of a form; a selection field plus a clear action when the choice is optional.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { SelectControlContract } from "./select-control.contract.ts";
 

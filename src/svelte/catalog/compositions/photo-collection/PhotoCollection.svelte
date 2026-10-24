@@ -2,8 +2,9 @@
   import { Image } from '../../index.ts';
   import { Viewer } from '../../index.ts';
   import { mediaGestures } from '../../../infra/gestures.ts';
-  import { prefetchImage, imageIdentity, type Photo } from '../../../infra/media-source.ts';
-  let { photos, title, header = false, fit = 'fill' }: { photos: readonly Photo[]; title: string; header?: boolean; fit?: 'fit'|'fill' } = $props();
+  import { prefetchImage, imageIdentity } from '../../../infra/media-source.ts';
+  import type { CatalogProps } from '../../types.d.ts';
+  let { photos, title, header = false, fit = 'fill' }: CatalogProps<'photo-collection'> = $props();
   let index = $state(0), open = $state(false);
   let host!: HTMLDivElement, opener!: HTMLButtonElement;
   const selected = $derived(photos[index] ?? photos[0]!);

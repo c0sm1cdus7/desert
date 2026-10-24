@@ -4,14 +4,15 @@
   import { SelectionField } from "../../index.ts";
   import { MeasuredField } from "../../index.ts";
   import { selectNode, selectInputRequired, applyControlEvent } from "../../../../interaction/control-nodes.ts";
-  import type { ControlProps, ControlEventFor } from "../../../renderer-contracts.ts";
-  let { node, onevent }: ControlProps<"select"> = $props();
+  import type { ControlEventFor } from "../../../renderer-contracts.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { node, onevent }: CatalogProps<"select-control"> = $props();
   let checked = $derived(selectNode(node));
   const id = $props.id();
   function change(value: string | null) {
     const event: ControlEventFor<"select"> = { kind: "select.change", control: checked.id, value };
     applyControlEvent(checked, event);
-    onevent(event);
+    onevent?.(event);
   }
 </script>
 <MeasuredField kind="control.select" disabled={checked.disabled}>

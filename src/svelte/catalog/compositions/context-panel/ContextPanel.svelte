@@ -7,8 +7,8 @@
   import { ContextProperties } from "../../index.ts";
   import { MediaObject } from "../../index.ts";
   import { AttentionStatus } from '../../index.ts';
-  import type { NodeRendererInputs } from "../../../renderer-contracts.ts";
-  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {}, actions, selectors = [], attention=[],presentation, onselect }: NodeRendererInputs["context"] = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {}, actions, selectors = [], attention=[],presentation, onselect }: CatalogProps<"context-panel"> = $props();
   let remaining = $derived(fields.filter(field => field !== presentation?.media && field !== presentation?.description));
   let prose = $derived(remaining.filter(field => multiline.includes(field)));
   let metadata = $derived(remaining.filter(field => !multiline.includes(field)));

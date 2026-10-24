@@ -1,7 +1,6 @@
 <script lang="ts">
-  import type { AttentionSnapshot } from "../../../../web/client/attention-feed.ts";
-  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { AttentionList } from "../../index.ts";
-  let { state, onevent }: { state: AttentionSnapshot; onevent: (event: NodeEvent) => void } = $props();
+  let { state, onevent }: CatalogProps<"view-attention"> = $props();
 </script>
-<AttentionList {state} resume={id => onevent({ kind: "attention.resume", id })} />
+<AttentionList {state} resume={id => onevent?.({ kind: "attention.resume", id })} />

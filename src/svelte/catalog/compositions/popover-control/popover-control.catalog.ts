@@ -1,5 +1,4 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// PopoverControl: a popover control node drawn as a trigger with an anchored, nonmodal information surface.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { PopoverControlContract } from "./popover-control.contract.ts";
 

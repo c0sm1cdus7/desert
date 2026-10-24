@@ -4,13 +4,13 @@
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import { MaskedInput } from "../../index.ts";
   import { SelectionField } from "../../index.ts";
-  import type { ControlProps } from "../../../renderer-contracts.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { displayAmount, parseAmount } from "../../../../interaction/money.ts";
   import { formatMaskedValue, type InputMask } from "../../../../interaction/input-mask.ts";
   import { FieldWell } from "../../index.ts";
   import { MeasuredField } from "../../index.ts";
   import { ClearInput } from "../../index.ts";
-  let { node, onevent }: ControlProps<"money"> = $props();
+  let { node, onevent }: CatalogProps<"money-control"> = $props();
   const id = $props.id();
   let scale = $derived(node.currencies.find(currency => currency.code === node.currency)!.scale);
   let mask: InputMask = $derived({ kind: "decimal", locale: node.locale ?? "en-US", scale });
@@ -41,7 +41,7 @@
   });
   function publish(currency: string, minorUnits: string | null) {
     pending.push({ id: node.id, currency, minorUnits, scale: node.currencies.find(item => item.code === currency)!.scale, locale: mask.locale });
-    onevent({ kind: "money.change", control: node.id, currency, minorUnits });
+    onevent?.({ kind: "money.change", control: node.id, currency, minorUnits });
   }
   function edit(value: string, valid: boolean, complete: boolean) {
     draft = value; draftValid = valid && complete;

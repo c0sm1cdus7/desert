@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
+  import type { CatalogProps } from "../../types.d.ts";
   import { provideSurfaceActivity } from '../../../infra/surface-activity.svelte.ts';
-  let { active, visible = active, children }: { active: boolean; visible?: boolean; children: Snippet } = $props();
+  let { active, visible = active, children }: CatalogProps<"retained-place"> = $props();
   provideSurfaceActivity(() => active);
 </script>
-<div data-retained-place hidden={!visible}>{@render children()}</div>
+<div data-retained-place hidden={!visible}>{@render children?.()}</div>

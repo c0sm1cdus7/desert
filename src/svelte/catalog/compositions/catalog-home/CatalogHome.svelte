@@ -1,10 +1,9 @@
 <script lang="ts">
-  import type { ResolvedNodeFor } from "../../../../interaction/resolved-node.ts";
-  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { NodeRenderer } from "../../index.ts";
   import { Heading } from "../../index.ts";
   import { currentHeadingOffset, scopeHeadings } from "../../../infra/heading-context.ts";
-  let { node, onevent, bodyOnly = false }: { node: ResolvedNodeFor<"catalog.home">; onevent: (event: NodeEvent) => void; bodyOnly?: boolean } = $props();
+  let { node, onevent, bodyOnly = false }: CatalogProps<"catalog-home"> = $props();
   const id = $props.id();
   // This composition has rails but no page heading of its own.
   if (currentHeadingOffset() > 0) scopeHeadings(-1);

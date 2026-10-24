@@ -1,5 +1,4 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// OptionsControl: a labelled group of options, radio rows for one choice and checkbox rows for several.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { OptionsControlContract } from "./options-control.contract.ts";
 

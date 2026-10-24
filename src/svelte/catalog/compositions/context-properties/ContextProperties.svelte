@@ -1,15 +1,10 @@
 <script lang="ts">
-  import type { FactsContent, FrameContent } from "../../../../interaction/surface-frame.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { readingFields } from "../../../../interaction/fact-presentation.ts";
   import { FactRow } from "../../index.ts";
   import { ObjectStateRow } from "../../index.ts";
   import { StackLayout } from "../../index.ts";
-  let { fields, facts, object, labels, references = {}, selectors = [], onselect }: {
-    fields: FactsContent['fields']; facts: FactsContent['facts']; object: string; labels: FactsContent['labels'];
-    references?: FactsContent['references'];
-    selectors?: NonNullable<Extract<FrameContent, { kind: "context" }>["selectors"]>;
-    onselect?: (journey: string) => void;
-  } = $props();
+  let { fields, facts, object, labels, references = {}, selectors = [], onselect }: CatalogProps<"context-properties"> = $props();
   const visible = $derived(readingFields(fields, facts));
 </script>
 {#if visible.length || (selectors.length && onselect)}

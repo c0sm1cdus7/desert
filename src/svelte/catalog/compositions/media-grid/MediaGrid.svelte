@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ResolvedNodeFor } from '../../../../interaction/resolved-node.ts';
+  import type { CatalogProps } from '../../types.d.ts';
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import { Image } from '../../index.ts';
   import { ArtworkPlaceholder } from '../../index.ts';
@@ -7,7 +7,7 @@
   import { CollectionState } from '../../index.ts';
   import { GroupedPanel } from '../../index.ts';
   import { AttentionIndicator } from '../../index.ts';
-  let { node, select }: { node: ResolvedNodeFor<'collection'>; select: (id: string) => void } = $props();
+  let { node, select }: CatalogProps<'media-grid'> = $props();
   let presentation = $derived(node.presentation?.kind === 'media-grid' ? node.presentation : undefined);
 </script>
 

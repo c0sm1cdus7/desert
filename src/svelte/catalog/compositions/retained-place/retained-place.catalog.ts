@@ -1,11 +1,11 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// RetainedPlace: a place kept mounted while hidden, which tells its content whether it is the active surface.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { RetainedPlaceContract } from "./retained-place.contract.ts";
 
 export const RetainedPlace = defineComposition({
   id: "retained-place",
-  purpose: "Declared as found at the start of the migration: RetainedPlace.svelte.",
+  purpose: "Keep a place mounted while hidden and provide whether it is the active surface.",
   owner: { entry: "RetainedPlace.svelte" },
-  uses: [], approval: "none", contract: RetainedPlaceContract,
+  uses: [], slots: { children: { accepts: ["inspection-catalog", "inspection-content", "local-exercises", "public-catalog-bank", "view-content"] } },
+  approval: "none", contract: RetainedPlaceContract,
 } as const);

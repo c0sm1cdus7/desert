@@ -1,5 +1,5 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// ContentFlow: the vertical flow of a resolved view's content. Its contract stays a stub: the instance methods it exposes
+// (revealEntry, revealAndFocusEntry) return a Promise of an HTMLElement, which the contract subset cannot express.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ContentFlowContract } from "./content-flow.contract.ts";
 

@@ -1,11 +1,11 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// ToolbarMediaControls: transport, thumbnails and volume of the selected media in a toolbar. Its contract stays a stub:
+// `content` is typed by ToolbarContent from src/svelte/infra (migration debt).
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ToolbarMediaControlsContract } from "./toolbar-media-controls.contract.ts";
 
 export const ToolbarMediaControls = defineComposition({
   id: "toolbar-media-controls",
-  purpose: "Declared as found at the start of the migration: ToolbarMediaControls.svelte.",
+  purpose: "Show transport, media thumbnails and volume for the media selected in a toolbar.",
   owner: { entry: "ToolbarMediaControls.svelte" },
   uses: ["artwork-placeholder", "image", "playback-controls"], approval: "none", contract: ToolbarMediaControlsContract,
 } as const);

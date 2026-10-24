@@ -1,14 +1,11 @@
 <script lang="ts">
   import { onDestroy, untrack } from "svelte";
-  import type { PublicCatalogExercises } from "../../../../public-catalog/client.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { reduceCatalogDraft } from "../../../../public-catalog/draft.ts";
   import { PlaceContent } from "../../index.ts";
   import { LocalFileHost } from "../../../infra/file-host.ts";
-  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { stackNodes } from "../../../../interaction/place.ts";
-  let { definition, bodyOnly = false, oncatalog }: {
-    definition: PublicCatalogExercises; bodyOnly?: boolean; oncatalog?: (event: NodeEvent) => void;
-  } = $props();
+  let { definition, bodyOnly = false, oncatalog }: CatalogProps<"local-exercise-content"> = $props();
   let draft = $state.raw(untrack(() => definition));
   const host = new LocalFileHost();
   $effect(() => {

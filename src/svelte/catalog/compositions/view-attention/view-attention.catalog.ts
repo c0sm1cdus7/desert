@@ -1,11 +1,10 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// ViewAttention: the attention block of a view, the identity's pending items as a list that resumes one as a node event.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ViewAttentionContract } from "./view-attention.contract.ts";
 
 export const ViewAttention = defineComposition({
   id: "view-attention",
-  purpose: "Declared as found at the start of the migration: ViewAttention.svelte.",
+  purpose: "Show the work that needs attention in a view and resume one item from it.",
   owner: { entry: "ViewAttention.svelte" },
   uses: ["attention-list"], approval: "none", contract: ViewAttentionContract,
 } as const);

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { PublicCatalogSurface } from "../../../../public-catalog/client.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { PublicCatalogProductContent } from "../../../adapter-catalog.ts";
-  let { surface }: { surface: PublicCatalogSurface } = $props();
+  let { surface }: CatalogProps<"public-catalog-product"> = $props();
 </script>
 
 <PublicCatalogProductContent {surface} />

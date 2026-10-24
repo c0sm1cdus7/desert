@@ -1,9 +1,7 @@
 <script lang="ts">
   import { Heading } from "../../index.ts";
-  let { title, subtitle, background }: {
-    title: string; subtitle: string;
-    background?: { asset: string; alt: string };
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { title, subtitle, background }: CatalogProps<"place-header"> = $props();
   let failed = $state(false);
   $effect(() => { background?.asset; failed = false; });
 </script>

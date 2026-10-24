@@ -1,5 +1,4 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// RelatedSelection: one checklist per related group, with previews, loading and empty states and a retry on error.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { RelatedSelectionContract } from "./related-selection.contract.ts";
 

@@ -8,21 +8,21 @@
   import { StackLayout } from '../../index.ts';
   import { CollectionState } from '../../index.ts';
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
-  import type { ControlProps } from '../../../renderer-contracts.ts';
-  let { node, onevent }: ControlProps<'labels'> = $props();
+  import type { CatalogProps } from '../../types.d.ts';
+  let { node, onevent }: CatalogProps<'media-reference-selector'> = $props();
   let open = $state(false);
   let reference = $derived(node.mediaReference!);
   let selected = $derived(reference.options.find(option => node.values.includes(option.value)));
   dismissWhenInactive(() => open = false);
   function choose(value?: string) {
     if (node.disabled) return;
-    onevent({ kind: 'labels.change', control: node.id, values: value ? [value] : [] });
+    onevent?.({ kind: 'labels.change', control: node.id, values: value ? [value] : [] });
     open = false;
   }
 </script>
 
 <div data-composition="media-reference-selector"><Field.FieldSet><Field.FieldLegend variant="label">{node.label}</Field.FieldLegend>
-  <Popover.Root bind:open onOpenChange={next => { if (next) onevent({ kind: 'reference.refresh', control: node.id }); }}>
+  <Popover.Root bind:open onOpenChange={next => { if (next) onevent?.({ kind: 'reference.refresh', control: node.id }); }}>
     <Popover.Trigger disabled={node.disabled} presentation="selection" aria-label={node.label}>
       {#if selected}<span data-media-reference-thumbnail><Image source={selected.source} alt="" /></span><span>Selected image</span>
       {:else}<span>{node.values.length ? 'Unavailable cover' : 'Automatic'}</span>{/if}<span data-control-chevron><ChevronDown aria-hidden="true" /></span>

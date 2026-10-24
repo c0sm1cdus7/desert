@@ -1,2 +1,9 @@
-// Stub contract of PublicCatalogProduct.svelte: its props and events are declared when the piece is migrated (slices 2-4).
-export const PublicCatalogProductContract = {} as const;
+// The props of PublicCatalogProduct: the public catalog `surface` the built page mounts.
+import { Type } from "@sinclair/typebox";
+import type { PublicCatalogSurface } from "../../../../public-catalog/client.ts";
+
+export const PublicCatalogProductContract = {
+  props: Type.Object({
+    surface: Type.Unsafe<PublicCatalogSurface>(),
+  }, { additionalProperties: false }),
+} as const;

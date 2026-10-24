@@ -1,2 +1,6 @@
-// Stub contract of TextContent.svelte: its props and events are declared when the piece is migrated (slices 2-4).
-export const TextContentContract = {} as const;
+// The props of TextContent: the one paragraph of reading text it places.
+import { Type } from "@sinclair/typebox";
+
+export const TextContentContract = {
+  props: Type.Object({ text: Type.String() }, { additionalProperties: false }),
+} as const;

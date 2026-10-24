@@ -1,11 +1,10 @@
 <script lang="ts">
+  import type { CatalogProps } from "../../types.d.ts";
   import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
   import { SurfaceFrame } from "../../index.ts";
   import { surfaceFrame, SurfaceFrameVersion } from "../../../../interaction/surface-frame.ts";
   import { transientFrame } from "../../../../interaction/transient-frame.ts";
-let { open, title, description, close, severity = "error", locked = false }: {
-    open: boolean; title: string; description: string; close: () => void; severity?: "error" | "warning"; locked?: boolean;
-  } = $props();
+let { open, title, description, close, severity = "error", locked = false }: CatalogProps<"problem"> = $props();
   let frame = $derived(transientFrame(surfaceFrame({ version: SurfaceFrameVersion, kind: "message",
     top: { title, face: { kind: "status", severity } }, content: { kind: "message", text: description }, bottom: {} }), locked));
   const dismiss = () => { if (!locked) close(); };

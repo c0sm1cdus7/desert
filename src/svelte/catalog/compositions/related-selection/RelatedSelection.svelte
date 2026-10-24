@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { RelatedSelectionSnapshot, RelatedSelectionEvent } from '../../../../interaction/related-selection.ts';
+  import type { CatalogProps } from "../../types.d.ts";
   import { StackLayout } from '../../index.ts';
   import { GroupedPanel } from '../../index.ts';
   import { ChoiceList } from '../../index.ts';
@@ -10,7 +10,7 @@
   import { ArtworkPlaceholder } from '../../index.ts';
   import { Checkbox } from '../../../vendor/components/ui/checkbox/index.js';
   import { Button } from '../../../vendor/components/ui/button/index.js';
-  let {state,onevent}:{state:RelatedSelectionSnapshot;onevent:(event:RelatedSelectionEvent)=>void}=$props();
+  let { state, onevent }: CatalogProps<"related-selection"> = $props();
   const id=$props.id();
 </script>
 {#each state.groups as group (group.input)}
@@ -21,7 +21,7 @@
           disabled={group.disabled || state.busy || state.uncertain || state.committing || group.loading}>
           <Checkbox id={`${id}:${item.id}`} checked={item.checked} aria-labelledby={`${id}:${item.id}:label`}
             disabled={group.disabled || state.busy || state.uncertain || state.committing || group.loading}
-            onCheckedChange={checked=>onevent({kind:'related.change',input:group.input,id:item.id,checked:checked===true})}/>
+            onCheckedChange={checked=>onevent?.({kind:'related.change',input:group.input,id:item.id,checked:checked===true})}/>
           {#if item.asset}<span class="related-preview">
             {#if item.asset.media==='video' || item.asset.media==='audio'}<ArtworkPlaceholder kind={item.asset.media}/>
             {:else}<Image source={item.asset} alt={item.label} edge={96}/>{/if}
@@ -32,7 +32,7 @@
     {:else if group.loading}<Information items={[{kind:'text',text:'Loading items…'}]}/>
     {:else if !group.error}<GroupedPanel><Information items={[{kind:'text',text:'No media available yet.'}]}/></GroupedPanel>{/if}
     {#if group.error}<Feedback text={group.error}/>
-      <Button variant="secondary" disabled={group.disabled || state.busy} onclick={()=>onevent({kind:'related.recover',input:group.input})}>{group.uncertain?'Check result':'Try again'}</Button>
+      <Button variant="secondary" disabled={group.disabled || state.busy} onclick={()=>onevent?.({kind:'related.recover',input:group.input})}>{group.uncertain?'Check result':'Try again'}</Button>
     {/if}
   </StackLayout>
 {/each}

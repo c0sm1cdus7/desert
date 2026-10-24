@@ -1,2 +1,6 @@
-// Stub contract of Identity.svelte: its props and events are declared when the piece is migrated (slices 2-4).
-export const IdentityContract = {} as const;
+// Identity takes no props: it reads the signed-in identity from the access context.
+import { Type } from "@sinclair/typebox";
+
+export const IdentityContract = {
+  props: Type.Object({}, { additionalProperties: false }),
+} as const;

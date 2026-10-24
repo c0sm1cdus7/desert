@@ -2,8 +2,8 @@
   import { FactRow } from "../../index.ts";
   import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import type { FactsContent } from "../../../../interaction/surface-frame.ts";
-  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {} }: Omit<FactsContent, "kind"> = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {} }: CatalogProps<"fact-group"> = $props();
   const textual = $derived(fields.filter(field => !images.includes(field)));
 </script>
 

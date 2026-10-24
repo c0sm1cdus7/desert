@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { FrameContent } from "../../../../interaction/surface-frame.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { Column, FactList, FactRow, Text } from "../../index.ts";
   import { groupRelatedItems } from "../../../../interaction/content-groups.ts";
-  let { items }: Pick<Extract<FrameContent, { kind: "information" }>, "items"> = $props();
+  let { items }: CatalogProps<"information"> = $props();
 </script>
 <Column gap="regular" measure="reading">
   {#each groupRelatedItems(items) as group}

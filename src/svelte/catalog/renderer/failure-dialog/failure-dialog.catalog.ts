@@ -1,11 +1,10 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// FailureDialog: the problem dialog that explains a failed command by its code, and closes on any of its events.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { FailureDialogContract } from "./failure-dialog.contract.ts";
 
 export const FailureDialog = defineComposition({
   id: "failure-dialog",
-  purpose: "Declared as found at the start of the migration: FailureDialog.svelte.",
+  purpose: "Explain a failed command in a problem dialog derived from its failure code, saying when the outcome is uncertain.",
   owner: { entry: "FailureDialog.svelte" },
   uses: ["node-renderer"], approval: "none", contract: FailureDialogContract,
 } as const);

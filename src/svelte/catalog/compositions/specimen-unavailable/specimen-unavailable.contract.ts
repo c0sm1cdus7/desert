@@ -1,2 +1,8 @@
-// Stub contract of SpecimenUnavailable.svelte: its props and events are declared when the piece is migrated (slices 2-4).
-export const SpecimenUnavailableContract = {} as const;
+// The props of SpecimenUnavailable: the `reason` a bank specimen cannot be executed here.
+import { Type } from "@sinclair/typebox";
+
+export const SpecimenUnavailableContract = {
+  props: Type.Object({
+    reason: Type.String(),
+  }, { additionalProperties: false }),
+} as const;

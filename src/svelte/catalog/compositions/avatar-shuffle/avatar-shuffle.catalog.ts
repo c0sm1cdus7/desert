@@ -1,5 +1,4 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// AvatarShuffle: the avatar of a new identity as a button that draws a new seed.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { AvatarShuffleContract } from "./avatar-shuffle.contract.ts";
 

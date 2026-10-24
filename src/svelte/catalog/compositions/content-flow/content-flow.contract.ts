@@ -1,2 +1,3 @@
-// Stub contract of ContentFlow.svelte: its props and events are declared when the piece is migrated (slices 2-4).
+// Stub contract of ContentFlow.svelte: its instance methods revealEntry and revealAndFocusEntry return a Promise of an
+// HTMLElement (or of nothing), which the closed contract subset cannot express (no Promise, no HTMLElement).
 export const ContentFlowContract = {} as const;

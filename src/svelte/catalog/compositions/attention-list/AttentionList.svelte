@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { AttentionSnapshot } from "../../../../web/client/attention-feed.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
   import { GroupedPanel } from "../../index.ts";
@@ -8,7 +8,7 @@
   import { Feedback } from "../../index.ts";
   import * as Empty from '../../../vendor/components/ui/empty/index.js';
   import { CollectionState } from '../../index.ts';
-  let { state, resume }: { state: AttentionSnapshot; resume: (id: string) => void } = $props();
+  let { state, resume }: CatalogProps<"attention-list"> = $props();
 </script>
 
   <StackLayout title="Attention">

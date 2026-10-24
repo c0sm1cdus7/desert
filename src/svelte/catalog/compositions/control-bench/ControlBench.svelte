@@ -5,14 +5,12 @@
   import { LocalFileHost } from "../../../infra/file-host.ts";
   import { ControlSpecimens } from "../../../../interaction/control-specimens.ts";
   import { applyControlEvent, controlNode, type ControlEvent } from "../../../../interaction/control-nodes.ts";
-  import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { SpecimenGroup } from "../../index.ts";
   import { SpecimenRow } from "../../index.ts";
   import { StackLayout } from "../../index.ts";
   import { Information } from "../../index.ts";
-  let { visibleIds = ControlSpecimens.map(entry => entry.id), entryIds = ControlSpecimens.map(entry => entry.id) }: {
-    visibleIds?: readonly ResolvedNodeId[]; entryIds?: readonly ResolvedNodeId[];
-  } = $props();
+  let { visibleIds = ControlSpecimens.map(entry => entry.id), entryIds = ControlSpecimens.map(entry => entry.id) }: CatalogProps<"control-bench"> = $props();
   // A discovery group's ownership is fixed at mount; search changes visibility,
   // never this scope or the local renderer instances and file references it owns.
   const entries = untrack(() => ControlSpecimens.filter(entry => entryIds.includes(entry.id)));

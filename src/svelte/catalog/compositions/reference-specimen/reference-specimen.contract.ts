@@ -1,2 +1,9 @@
-// Stub contract of ReferenceSpecimen.svelte: its props and events are declared when the piece is migrated (slices 2-4).
-export const ReferenceSpecimenContract = {} as const;
+// The props of ReferenceSpecimen: which labels or reference owner to exercise locally in the bank.
+import { Type } from "@sinclair/typebox";
+
+export const ReferenceSpecimenContract = {
+  props: Type.Object({
+    owner: Type.Union([Type.Literal("LabelRail"), Type.Literal("ColorBullet"), Type.Literal("ReferenceValues"),
+      Type.Literal("ReferenceSelector"), Type.Literal("LabelsControl")]),
+  }, { additionalProperties: false }),
+} as const;

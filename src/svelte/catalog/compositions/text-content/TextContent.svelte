@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Information } from "../../index.ts";
-  let { text }: { text: string } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { text }: CatalogProps<"text-content"> = $props();
 </script>
 
 <!-- Reading placement belongs to this catalog composition, never its adapter. -->

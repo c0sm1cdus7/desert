@@ -1,11 +1,12 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// SpecimenRow: one fixture state of a bank entry, shown only when the specimen selection names that state.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { SpecimenRowContract } from "./specimen-row.contract.ts";
 
 export const SpecimenRow = defineComposition({
   id: "specimen-row",
-  purpose: "Declared as found at the start of the migration: SpecimenRow.svelte.",
+  purpose: "Witness one fixture state of a bank entry, marking whether it is rendered or a gap, inside its own heading scope.",
   owner: { entry: "SpecimenRow.svelte" },
-  uses: ["stack-item"], approval: "none", contract: SpecimenRowContract,
+  uses: ["stack-item"],
+  slots: { children: { accepts: ["public-catalog-bank-specimen", "specimen-unavailable", "control-renderer", "catalog-home"] } },
+  approval: "none", contract: SpecimenRowContract,
 } as const);

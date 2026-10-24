@@ -1,20 +1,15 @@
 <script lang="ts">
-  import { surfaceFrame, type SurfaceFrame } from "../../../../interaction/surface-frame.ts";
-  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import { surfaceFrame } from "../../../../interaction/surface-frame.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
-  import type { ResolvedView } from "../../../../views/resolved.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { ContentFlow } from "../../index.ts";
   import { FrameBody } from "../../index.ts";
   import { Toolbar } from "../../index.ts";
   import { ScrollEdges } from "../../index.ts";
   import { provideSurfaceHost } from "../../../infra/surface-host.svelte.ts";
   import { provideToolbarScroll } from "../../../infra/toolbar-scroll.svelte.ts";
-  import { isFormControlEvent, type FormControlEvent } from "../../../../interaction/form-control-event.ts";
-let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEvent }: { frame: SurfaceFrame;
-    body?: ResolvedView | undefined;
-    presentation?: "standard" | "message" | "transient";
-    invoke: (intent: SurfaceIntent) => void; edit?: ((name: string, value: string) => void) | undefined;
-    controlEvent?: ((event: FormControlEvent) => void) | undefined } = $props();
+  import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
+  let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEvent }: CatalogProps<"surface-frame"> = $props();
   let host = $state<HTMLElement | null>(null);
   let viewport = $state<HTMLDivElement | null>(null);
   provideSurfaceHost(() => host);

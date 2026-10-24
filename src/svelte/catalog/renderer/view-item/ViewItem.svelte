@@ -1,18 +1,15 @@
 <script lang="ts">
-  import type { ViewItem } from "../../../../views/schema.ts";
-  import type { ResolvedView } from "../../../../views/resolved.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
   import { NodeRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../../adapter-catalog.ts";
-  let { item, resolved, onevent, host = "flow" }: {
-    item: ViewItem; resolved: ResolvedView; onevent: (event: NodeEvent) => void; host?: "flow" | "frame";
-  } = $props();
+  let { item, resolved, onevent, host = "flow" }: CatalogProps<"view-item"> = $props();
   function dispatch(event: NodeEvent) {
     if (item.kind === "collection" && event.kind === "collection.select") {
-      if (!resolved.disabledOutputs.includes(item.output)) onevent({ kind: "surface.invoke", intent: {
+      if (!resolved.disabledOutputs.includes(item.output)) onevent?.({ kind: "surface.invoke", intent: {
         kind: "view.output", view: resolved.view.id, output: item.output, recordId: event.id,
       } });
-    } else onevent(event);
+    } else onevent?.(event);
   }
   function binding() {
     if (!("input" in item)) throw new Error("VIEW_INPUT_REQUIRED");
@@ -36,7 +33,7 @@
 {:else if item.kind==='collection' && item.presentation?.kind==='summary-widget'}
   {@const node=binding()}
   {#if node?.kind==='collection'}<SummaryWidget {node} available={!resolved.disabledOutputs.includes(item.output)}
-    activate={()=>onevent({kind:'surface.invoke',intent:{kind:'view.output',view:resolved.view.id,output:item.output}})} />{/if}
+    activate={()=>onevent?.({kind:'surface.invoke',intent:{kind:'view.output',view:resolved.view.id,output:item.output}})} />{/if}
 {:else}
   {@const node = binding()}
   {#if !node && "input" in item && resolved.pending?.[item.input]}

@@ -1,5 +1,4 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// CatalogDetail: one catalog item read in place, its photographs, its title and its description.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { CatalogDetailContract } from "./catalog-detail.contract.ts";
 

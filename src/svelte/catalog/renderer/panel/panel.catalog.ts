@@ -1,11 +1,11 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// Panel: the renderer entry that keeps an owned view panel mounted while it opens and closes, and routes its events
+// with the owner it was mounted for.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { PanelContract } from "./panel.contract.ts";
 
 export const Panel = defineComposition({
   id: "panel",
-  purpose: "Declared as found at the start of the migration: Panel.svelte.",
+  purpose: "Keep an owned view panel mounted across open and close, routing its events with the owner it was mounted for.",
   owner: { entry: "Panel.svelte" },
   uses: ["view-panel"], approval: "none", contract: PanelContract,
 } as const);

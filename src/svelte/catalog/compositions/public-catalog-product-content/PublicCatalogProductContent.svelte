@@ -2,7 +2,7 @@
   import { onMount, tick, untrack, setContext } from "svelte";
   import { mountCatalogAppearance } from "../../../infra/catalog-appearance.ts";
   import { initialPublicCatalogState, projectPublicCatalog, reducePublicCatalog, publicCatalogSurface,
-    type PublicCatalogSurface, type PublicCatalogState } from "../../../../public-catalog/client.ts";
+    type PublicCatalogState } from "../../../../public-catalog/client.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { CatalogWorkspace } from "../../index.ts";
   import type { PlaceIdentity } from "../../../infra/place-identity.ts";
@@ -10,7 +10,8 @@
   import { revealSearchTarget } from "../../../infra/catalog-search-focus.ts";
   import type { WorkspaceContentActions } from "../../../infra/workspace-content.ts";
   import { catalogHistory } from "./catalog-history.ts";
-  let { surface }: { surface: PublicCatalogSurface } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { surface }: CatalogProps<"public-catalog-product-content"> = $props();
   const definition = untrack(() => publicCatalogSurface(surface));
   setContext('catalog-photo-intent', (record: string) => definition.details.find(detail=>detail.record===record)?.image.asset);
   let viewState = $state.raw(initialPublicCatalogState());

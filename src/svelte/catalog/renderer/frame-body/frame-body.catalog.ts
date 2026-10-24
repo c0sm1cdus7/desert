@@ -1,11 +1,10 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// FrameBody: the body of a surface frame, dispatched by content kind to the node renderer, information, utilities or a message.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { FrameBodyContract } from "./frame-body.contract.ts";
 
 export const FrameBody = defineComposition({
   id: "frame-body",
-  purpose: "Declared as found at the start of the migration: FrameBody.svelte.",
+  purpose: "Render the body of a surface frame by its content kind and route its events to the frame.",
   owner: { entry: "FrameBody.svelte" },
   uses: ["information", "message-body", "node-renderer", "utility-actions"], approval: "none", contract: FrameBodyContract,
 } as const);

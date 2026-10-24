@@ -1,5 +1,4 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// Review: the prepared facts of a change, with a recovery note after an uncertain result.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ReviewContract } from "./review.contract.ts";
 

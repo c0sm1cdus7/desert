@@ -1,5 +1,5 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// ToolbarLayout: the top or bottom toolbar of a surface: leading navigation, identity, commands, search and media controls.
+// Its contract stays a stub: `content` is typed in src/svelte/infra and two props hand out HTML elements (migration debt).
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ToolbarLayoutContract } from "./toolbar-layout.contract.ts";
 

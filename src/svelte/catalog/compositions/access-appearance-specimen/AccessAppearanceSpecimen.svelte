@@ -8,7 +8,8 @@
   import { LockScreen } from "../../index.ts";
   import { Feedback } from "../../index.ts";
   import { defaultAppearance, type AppearancePreferences as Preferences } from "../../../infra/appearance-preferences.ts";
-  let { owner }: { owner: "AppearancePreferences" | "AppearancePreview" | "SeedAvatar" | "AvatarShuffle" | "Wallpaper" | "AccessExperience" | "LockScreen" } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { owner }: CatalogProps<"access-appearance-specimen"> = $props();
   let preferences = $state<Preferences>({ ...defaultAppearance, theme:"dark" });
   let seed = $state("0011223344556677");
   let feedback = $state("");

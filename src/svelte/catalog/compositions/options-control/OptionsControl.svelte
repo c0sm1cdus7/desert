@@ -5,15 +5,15 @@
   import { GroupedPanel } from "../../index.ts";
   import { ChoiceRow } from "../../index.ts";
   import { ChoiceList } from "../../index.ts";
-  import type { ControlProps } from "../../../renderer-contracts.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { permitsOptionsSelection, optionsInputRequired } from "../../../../interaction/extended-controls.ts";
   import { currentStackTitle } from "../../../infra/stack-context.ts";
-  let { node, onevent }: ControlProps<"options"> = $props();
+  let { node, onevent }: CatalogProps<"options-control"> = $props();
   const prefix = $props.id();
   const stackTitle = currentStackTitle();
   let inputRequired = $derived(optionsInputRequired(node));
   const change = (selected: readonly string[]) => {
-    if (permitsOptionsSelection(node, selected)) onevent({ kind: "options.change", control: node.id, selected });
+    if (permitsOptionsSelection(node, selected)) onevent?.({ kind: "options.change", control: node.id, selected });
   };
   const nextSelection = (value: string) => node.maxSelected === 1 ? [value] :
     node.selected.includes(value) ? node.selected.filter(item => item !== value) : [...node.selected, value];

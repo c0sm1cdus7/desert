@@ -1,11 +1,10 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// ZoomControls: zoom out, the current zoom percentage (which resets it) and zoom in, for media in the toolbar.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ZoomControlsContract } from "./zoom-controls.contract.ts";
 
 export const ZoomControls = defineComposition({
   id: "zoom-controls",
-  purpose: "Declared as found at the start of the migration: ZoomControls.svelte.",
+  purpose: "Step a media view's zoom out or in between 100% and its maximum, and reset it from the shown percentage.",
   owner: { entry: "ZoomControls.svelte" },
   uses: [], approval: "none", contract: ZoomControlsContract,
 } as const);

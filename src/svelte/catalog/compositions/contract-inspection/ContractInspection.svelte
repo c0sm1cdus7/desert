@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { ResolvedNodes, type ResolvedNodeId } from "../../../../interaction/catalog.ts";
+  import { ResolvedNodes } from "../../../../interaction/catalog.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { Information } from "../../index.ts";
   import { StackLayout } from "../../index.ts";
-  let { id }: { id: ResolvedNodeId } = $props();
+  let { id }: CatalogProps<"contract-inspection"> = $props();
   let inspection = $derived(ResolvedNodes.entries.find(entry => entry.id === id)!.inspection);
   let owners = $derived(inspection.owners.map(owner => ResolvedNodes.foundations.find(item => item.id === owner)!.title));
 </script>

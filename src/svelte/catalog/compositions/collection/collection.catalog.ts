@@ -1,5 +1,4 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// Collection: the records of a resolved collection node as grouped rows, or its media grid or collection grid.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { CollectionContract } from "./collection.contract.ts";
 

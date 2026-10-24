@@ -143,7 +143,7 @@
       "owner": {
         "entry": "AccessAppearanceSpecimen.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: AccessAppearanceSpecimen.svelte.",
+      "purpose": "Exercise one access or appearance owner in the bank with local example state and no authentication or saved preference.",
       "uses": [
         "access-experience",
         "appearance-preferences",
@@ -178,7 +178,7 @@
       "owner": {
         "entry": "AccessForm.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: AccessForm.svelte.",
+      "purpose": "Create an identity in two steps, identity then appearance, or unlock an existing one.",
       "uses": [
         "appearance-preferences",
         "avatar-shuffle",
@@ -197,7 +197,7 @@
           "browser-access-lock.ts"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: AccessGate.svelte.",
+      "purpose": "Hold the product behind access: show the access screen until a session is ready, then the view product.",
       "uses": [
         "access-screen",
         "view-product"
@@ -210,7 +210,7 @@
       "owner": {
         "entry": "AccessScreen.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: AccessScreen.svelte.",
+      "purpose": "Sign a person in to the product through the access experience, with the remembered profile and appearance.",
       "uses": [
         "access-experience"
       ]
@@ -246,7 +246,7 @@
       "owner": {
         "entry": "Appearance.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: Appearance.svelte.",
+      "purpose": "Choose the interface appearance and see whether the choice could be kept.",
       "uses": [
         "appearance-preferences",
         "feedback"
@@ -439,7 +439,7 @@
       "owner": {
         "entry": "CatalogSearchResults.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: CatalogSearchResults.svelte.",
+      "purpose": "Show what a search in one destination found, as record cards or grouped result rows, and open one result.",
       "uses": [
         "grouped-panel",
         "node-renderer"
@@ -459,7 +459,7 @@
           "place-heading-motion.ts"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: CatalogWorkspace.svelte.",
+      "purpose": "Host a catalog place with its navigation sidebar, toolbars, search overlay, panels and failure dialog.",
       "uses": [
         "catalog-navigation",
         "catalog-search-results",
@@ -480,7 +480,7 @@
       "owner": {
         "entry": "CatalogWorkspaceContent.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: CatalogWorkspaceContent.svelte.",
+      "purpose": "Show the body of the catalog workspace: the visited views of a program, or the public catalog's browse, exercises and bank places.",
       "uses": [
         "catalog-detail",
         "catalog-home",
@@ -618,7 +618,7 @@
       "owner": {
         "entry": "CollectionState.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: CollectionState.svelte.",
+      "purpose": "Show a collection's loading, empty or offline state inside a grouped panel.",
       "uses": [
         "grouped-panel"
       ]
@@ -740,7 +740,7 @@
       "owner": {
         "entry": "ContractInspection.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ContractInspection.svelte.",
+      "purpose": "Read the declared contract, coverage gaps and evidence of one resolved node kind.",
       "uses": [
         "information",
         "stack-layout"
@@ -753,7 +753,7 @@
       "owner": {
         "entry": "ControlBench.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ControlBench.svelte.",
+      "purpose": "Exercise every control specimen locally in the bank, reporting each interaction without any product command.",
       "uses": [
         "control-renderer",
         "information",
@@ -769,7 +769,7 @@
       "owner": {
         "entry": "ControlRenderer.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ControlRenderer.svelte.",
+      "purpose": "Mount the piece for one control node and forward only its control events.",
       "uses": [
         "node-renderer"
       ]
@@ -871,7 +871,7 @@
       "owner": {
         "entry": "FactGroup.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: FactGroup.svelte.",
+      "purpose": "Show the facts of one object: image fields as images and every other field as a labelled row.",
       "uses": [
         "fact-row",
         "node-renderer"
@@ -948,7 +948,7 @@
       "owner": {
         "entry": "FailureDialog.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: FailureDialog.svelte.",
+      "purpose": "Explain a failed command in a problem dialog derived from its failure code, saying when the outcome is uncertain.",
       "uses": [
         "node-renderer"
       ]
@@ -1046,7 +1046,7 @@
       "owner": {
         "entry": "Fields.svelte"
       },
-      "purpose": "Complete the inputs of one operation while retaining drafts and showing local feedback.",
+      "purpose": "Mount each field of a form frame through the node renderer and report its edits and control events.",
       "uses": [
         "node-renderer"
       ]
@@ -1073,7 +1073,7 @@
       "owner": {
         "entry": "FrameBody.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: FrameBody.svelte.",
+      "purpose": "Render the body of a surface frame by its content kind and route its events to the frame.",
       "uses": [
         "information",
         "message-body",
@@ -1147,7 +1147,7 @@
       "owner": {
         "entry": "Identity.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: Identity.svelte.",
+      "purpose": "Show the signed-in identity's display name, identity name and role, or say that identity access is not installed.",
       "uses": [
         "feedback",
         "information",
@@ -1200,7 +1200,7 @@
           "inspection-fixture.ts"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: Inspection.svelte.",
+      "purpose": "Browse the local inspection catalog and open one of its records as a detail, without product commands.",
       "uses": [
         "catalog-detail",
         "inspection-catalog",
@@ -1241,7 +1241,7 @@
       "owner": {
         "entry": "InspectionContent.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: InspectionContent.svelte.",
+      "purpose": "Mount the visual catalog inspection and reveal one of its entries for a caller that binds it.",
       "uses": [
         "inspection"
       ]
@@ -1253,7 +1253,7 @@
       "owner": {
         "entry": "InstanceFrame.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: InstanceFrame.svelte.",
+      "purpose": "Draw the transient frame of one mounted instance, keeping its callbacks through teardown.",
       "uses": [
         "surface-frame"
       ]
@@ -1301,7 +1301,7 @@
       "owner": {
         "entry": "Library.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: Library.svelte.",
+      "purpose": "Browse a media library by album and open its items in the viewer, returning focus to the opener.",
       "uses": [
         "catalog-home",
         "viewer"
@@ -1314,7 +1314,7 @@
       "owner": {
         "entry": "LocalExerciseContent.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: LocalExerciseContent.svelte.",
+      "purpose": "Present the local exercises place as a draft its own events reduce, forwarding catalog navigation to the host.",
       "uses": [
         "place-content"
       ]
@@ -1326,7 +1326,7 @@
       "owner": {
         "entry": "LocalExercises.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: LocalExercises.svelte.",
+      "purpose": "Draw the public catalog's local exercises and raise their node events toward the catalog.",
       "uses": [
         "local-exercise-content"
       ]
@@ -1406,7 +1406,7 @@
       "owner": {
         "entry": "MediaCollectionGrid.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: MediaCollectionGrid.svelte.",
+      "purpose": "Show media collections as a grid of covers with title and item count, and open the one the person picks.",
       "uses": [
         "attention-indicator",
         "collection-state",
@@ -1420,7 +1420,7 @@
       "owner": {
         "entry": "MediaContent.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: MediaContent.svelte.",
+      "purpose": "Mount a view's media library at its open album and reveal a record in it on request.",
       "uses": [
         "library"
       ]
@@ -1432,7 +1432,7 @@
       "owner": {
         "entry": "MediaControl.svelte"
       },
-      "purpose": "Read a short semantic label without turning it into an action.",
+      "purpose": "Show a tag, an avatar or a captioned image read-only, without turning it into an action.",
       "uses": [
         "image",
         "photo-collection"
@@ -1445,7 +1445,7 @@
       "owner": {
         "entry": "MediaGrid.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: MediaGrid.svelte.",
+      "purpose": "Browse a media collection as artwork tiles or list rows and open one item.",
       "uses": [
         "artwork-placeholder",
         "attention-indicator",
@@ -1461,7 +1461,7 @@
       "owner": {
         "entry": "MediaObject.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: MediaObject.svelte.",
+      "purpose": "Show the media fact of an object's context: playable audio or video, an image, or a placeholder when unavailable.",
       "uses": [
         "photo-collection",
         "playback-canvas",
@@ -1489,7 +1489,7 @@
       "owner": {
         "entry": "MediaReferenceSpecimen.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: MediaReferenceSpecimen.svelte.",
+      "purpose": "Witness the media reference selector in the bank with one local image and local state.",
       "uses": [
         "media-reference-selector"
       ]
@@ -1532,7 +1532,7 @@
       "owner": {
         "entry": "NodeRenderer.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: NodeRenderer.svelte.",
+      "purpose": "Mount the piece for a resolved node kind and translate its callbacks into node events.",
       "uses": [
         "action",
         "availability",
@@ -1602,7 +1602,7 @@
       "owner": {
         "entry": "Panel.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: Panel.svelte.",
+      "purpose": "Keep an owned view panel mounted across open and close, routing its events with the owner it was mounted for.",
       "uses": [
         "view-panel"
       ]
@@ -1614,7 +1614,7 @@
       "owner": {
         "entry": "PhotoCollection.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: PhotoCollection.svelte.",
+      "purpose": "Page through a set of photos in place and open them in the full-screen viewer.",
       "uses": [
         "image",
         "viewer"
@@ -1663,7 +1663,7 @@
       "owner": {
         "entry": "PlaceContent.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: PlaceContent.svelte.",
+      "purpose": "Show a place's checked content: its header and each of its stacks.",
       "uses": [
         "place-header",
         "stack"
@@ -1676,7 +1676,7 @@
       "owner": {
         "entry": "PlaceHeader.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: PlaceHeader.svelte.",
+      "purpose": "Head a place's content with its title, its subtitle and an optional background image, never a toolbar.",
       "uses": [
         "heading"
       ]
@@ -1691,7 +1691,7 @@
           "place-heading.css"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: PlaceHeading.svelte.",
+      "purpose": "Head a place with its title, subtitle and optional featured image, gallery or video.",
       "uses": [
         "heading",
         "photo-collection"
@@ -1721,7 +1721,7 @@
       "owner": {
         "entry": "PlaybackControls.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: PlaybackControls.svelte.",
+      "purpose": "Play, pause, mute, set the volume of and seek a media playback, one part at a time.",
       "uses": []
     },
     "popover-control": {
@@ -1747,7 +1747,7 @@
       "owner": {
         "entry": "Problem.svelte"
       },
-      "purpose": "Explain a warning or error and keep any available recovery action beside it.",
+      "purpose": "Explain a warning or error in a modal message the person dismisses unless it is locked.",
       "uses": [
         "surface-frame"
       ]
@@ -1759,7 +1759,7 @@
       "owner": {
         "entry": "PublicCatalogBank.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: PublicCatalogBank.svelte.",
+      "purpose": "Show the component bank in the workspace and let the workspace reveal and focus one of its entries.",
       "uses": [
         "inspection-catalog"
       ]
@@ -1774,7 +1774,7 @@
           "catalog-specimen.svelte.ts"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: PublicCatalogBankSpecimen.svelte.",
+      "purpose": "Render one bank node with local diagnostic interaction, an opener for dialogs, and a notice instead of product effects.",
       "uses": [
         "feedback",
         "node-renderer"
@@ -1787,7 +1787,7 @@
       "owner": {
         "entry": "PublicCatalogProduct.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: PublicCatalogProduct.svelte.",
+      "purpose": "Mount the public catalog product content for the built public catalog page.",
       "uses": [
         "public-catalog-product-content"
       ]
@@ -1802,7 +1802,7 @@
           "catalog-history.ts"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: PublicCatalogProductContent.svelte.",
+      "purpose": "Browse a published catalog, its exercises and its component bank, with search and browser history that return to where the person was.",
       "uses": [
         "catalog-workspace"
       ]
@@ -1846,7 +1846,7 @@
       "owner": {
         "entry": "ReferenceSpecimen.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ReferenceSpecimen.svelte.",
+      "purpose": "Exercise one labels or reference owner in the bank with local example values and no product command.",
       "uses": [
         "color-bullet",
         "label-rail",
@@ -1895,7 +1895,18 @@
       "owner": {
         "entry": "RetainedPlace.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: RetainedPlace.svelte.",
+      "purpose": "Keep a place mounted while hidden and provide whether it is the active surface.",
+      "slots": {
+        "children": {
+          "accepts": [
+            "inspection-catalog",
+            "inspection-content",
+            "local-exercises",
+            "public-catalog-bank",
+            "view-content"
+          ]
+        }
+      },
       "uses": []
     },
     "review": {
@@ -2010,7 +2021,7 @@
       "owner": {
         "entry": "SharedOwnerCatalog.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: SharedOwnerCatalog.svelte.",
+      "purpose": "Show one shared owner's live example, the parts it is composed of and where its source and boundary live.",
       "uses": [
         "destination-row",
         "grouped-panel",
@@ -2028,7 +2039,7 @@
       "owner": {
         "entry": "SharedOwnerSpecimen.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: SharedOwnerSpecimen.svelte.",
+      "purpose": "Exercise one shared catalog owner with local example data, without running product commands.",
       "uses": [
         "access-appearance-specimen",
         "attention-indicator",
@@ -2068,7 +2079,7 @@
           "specimen-presentation.ts"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: Specimen.svelte.",
+      "purpose": "Witness one resolved node in one scenario, with local interaction, through the product node and frame grammar.",
       "uses": [
         "node-renderer",
         "surface-frame"
@@ -2081,7 +2092,14 @@
       "owner": {
         "entry": "SpecimenGroup.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: SpecimenGroup.svelte.",
+      "purpose": "Group the bank examples of one resolved node kind under a state chooser and its contract inspection.",
+      "slots": {
+        "children": {
+          "accepts": [
+            "specimen-row"
+          ]
+        }
+      },
       "uses": [
         "contract-inspection",
         "feedback",
@@ -2097,7 +2115,17 @@
       "owner": {
         "entry": "SpecimenRow.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: SpecimenRow.svelte.",
+      "purpose": "Witness one fixture state of a bank entry, marking whether it is rendered or a gap, inside its own heading scope.",
+      "slots": {
+        "children": {
+          "accepts": [
+            "public-catalog-bank-specimen",
+            "specimen-unavailable",
+            "control-renderer",
+            "catalog-home"
+          ]
+        }
+      },
       "uses": [
         "stack-item"
       ]
@@ -2109,7 +2137,7 @@
       "owner": {
         "entry": "SpecimenUnavailable.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: SpecimenUnavailable.svelte.",
+      "purpose": "Explain in place of a bank specimen why it cannot be executed here.",
       "uses": []
     },
     "speed-dial": {
@@ -2131,7 +2159,7 @@
       "owner": {
         "entry": "Stack.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: Stack.svelte.",
+      "purpose": "Draw one titled stack of a place's items, each through the node renderer.",
       "uses": [
         "node-renderer",
         "stack-item",
@@ -2220,7 +2248,7 @@
       "owner": {
         "entry": "SurfaceFrame.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: SurfaceFrame.svelte.",
+      "purpose": "Frame one surface with its top toolbar, scrolling content and, when it has choices to make, its bottom toolbar.",
       "uses": [
         "content-flow",
         "frame-body",
@@ -2235,7 +2263,7 @@
       "owner": {
         "entry": "SurfaceSpecimen.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: SurfaceSpecimen.svelte.",
+      "purpose": "Demonstrate a mounted surface, the transient it launches, and the rules of surface composition.",
       "uses": [
         "drawer",
         "information",
@@ -2272,7 +2300,7 @@
       "owner": {
         "entry": "TextContent.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: TextContent.svelte.",
+      "purpose": "Place a view's text item as reading content in the stack.",
       "uses": [
         "information"
       ]
@@ -2317,7 +2345,7 @@
       "owner": {
         "entry": "Toolbar.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: Toolbar.svelte.",
+      "purpose": "Show a surface's toolbar commands (title, navigation, actions) and invoke the intent of the one pressed.",
       "uses": [
         "toolbar-layout"
       ]
@@ -2356,7 +2384,7 @@
       "owner": {
         "entry": "ToolbarMediaControls.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ToolbarMediaControls.svelte.",
+      "purpose": "Show transport, media thumbnails and volume for the media selected in a toolbar.",
       "uses": [
         "artwork-placeholder",
         "image",
@@ -2382,7 +2410,7 @@
       "owner": {
         "entry": "UtilityActions.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: UtilityActions.svelte.",
+      "purpose": "Stack a frame's utility actions as secondary actions and pass the pressed one's intent to the host.",
       "uses": [
         "node-renderer"
       ]
@@ -2394,7 +2422,7 @@
       "owner": {
         "entry": "ViewAttention.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ViewAttention.svelte.",
+      "purpose": "Show the work that needs attention in a view and resume one item from it.",
       "uses": [
         "attention-list"
       ]
@@ -2432,7 +2460,7 @@
       "owner": {
         "entry": "ViewItem.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ViewItem.svelte.",
+      "purpose": "Mount the piece for one view item's kind (text, fact, destination link, bound node or summary widget).",
       "uses": [
         "information",
         "message-body",
@@ -2450,7 +2478,7 @@
       "owner": {
         "entry": "ViewPanel.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ViewPanel.svelte.",
+      "purpose": "Present a view's resolved panel as a confirmation dialog or a drawer, reporting its events as node events.",
       "uses": [
         "confirmation-dialog",
         "drawer"
@@ -2478,7 +2506,7 @@
           "activity-host.ts"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: ViewProductContent.svelte.",
+      "purpose": "Run a view program's browser session and render its workspace from the live snapshot.",
       "uses": [
         "view-workspace"
       ]
@@ -2527,7 +2555,7 @@
       "owner": {
         "entry": "ViewRelatedSelection.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ViewRelatedSelection.svelte.",
+      "purpose": "Mount the related selection of a view panel and forward its changes as node events.",
       "uses": [
         "related-selection"
       ]
@@ -2542,7 +2570,7 @@
           "workspace-data.ts"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: ViewWorkspace.svelte.",
+      "purpose": "Present a view program as a workspace with navigation, search, retained views and its panel.",
       "uses": [
         "catalog-workspace"
       ]
@@ -2554,7 +2582,7 @@
       "owner": {
         "entry": "Viewer.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: Viewer.svelte.",
+      "purpose": "Show images, audio and video full screen with paging, zoom and playback controls.",
       "uses": [
         "image",
         "playback-canvas",
@@ -2589,7 +2617,7 @@
       "owner": {
         "entry": "Workspace.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: Workspace.svelte.",
+      "purpose": "Mount the workspace of a view program with its resolved view, panel, error and events.",
       "uses": [
         "view-workspace"
       ]
@@ -2601,7 +2629,7 @@
       "owner": {
         "entry": "ZoomControls.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ZoomControls.svelte.",
+      "purpose": "Step a media view's zoom out or in between 100% and its maximum, and reset it from the shown percentage.",
       "uses": []
     }
   },

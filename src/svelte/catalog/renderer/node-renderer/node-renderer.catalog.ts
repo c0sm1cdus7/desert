@@ -5,7 +5,7 @@ import { NodeRendererContract } from "./node-renderer.contract.ts";
 
 export const NodeRenderer = defineComposition({
   id: "node-renderer",
-  purpose: "Declared as found at the start of the migration: NodeRenderer.svelte.",
+  purpose: "Mount the piece for a resolved node kind and translate its callbacks into node events.",
   owner: { entry: "NodeRenderer.svelte" },
   uses: ["action", "availability", "catalog-card", "catalog-detail", "catalog-home", "collection", "context-panel", "date-control", "drawer", "facts", "fields", "file-control", "labels-control", "media-control", "money-control", "options-control", "popover-control", "problem", "review", "select-control", "text-input"], dispatch: "resolved-node", approval: "none", contract: NodeRendererContract,
 } as const);

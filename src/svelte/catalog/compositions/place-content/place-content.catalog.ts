@@ -5,7 +5,7 @@ import { PlaceContentContract } from "./place-content.contract.ts";
 
 export const PlaceContent = defineComposition({
   id: "place-content",
-  purpose: "Declared as found at the start of the migration: PlaceContent.svelte.",
+  purpose: "Show a place's checked content: its header and each of its stacks.",
   owner: { entry: "PlaceContent.svelte" },
   uses: ["place-header", "stack"], approval: "none", contract: PlaceContentContract,
 } as const);

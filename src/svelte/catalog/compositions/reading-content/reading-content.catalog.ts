@@ -1,5 +1,4 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// ReadingContent: the long-text fields of an object, each under its label as a paragraph at reading measure.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ReadingContentContract } from "./reading-content.contract.ts";
 

@@ -1,2 +1,6 @@
-// Stub contract of MediaReferenceSpecimen.svelte: its props and events are declared when the piece is migrated (slices 2-4).
-export const MediaReferenceSpecimenContract = {} as const;
+// The props of MediaReferenceSpecimen: none. It is a self-contained bank witness of the media reference selector.
+import { Type } from "@sinclair/typebox";
+
+export const MediaReferenceSpecimenContract = {
+  props: Type.Object({}, { additionalProperties: false }),
+} as const;

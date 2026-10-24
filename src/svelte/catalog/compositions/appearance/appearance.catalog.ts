@@ -1,11 +1,11 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// Appearance: the person's appearance preferences bound to the shared appearance state, with a notice when they
+// could not be saved.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { AppearanceContract } from "./appearance.contract.ts";
 
 export const Appearance = defineComposition({
   id: "appearance",
-  purpose: "Declared as found at the start of the migration: Appearance.svelte.",
+  purpose: "Choose the interface appearance and see whether the choice could be kept.",
   owner: { entry: "Appearance.svelte" },
   uses: ["appearance-preferences", "feedback"], approval: "none", contract: AppearanceContract,
 } as const);

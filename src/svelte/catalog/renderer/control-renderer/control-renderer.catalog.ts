@@ -5,7 +5,7 @@ import { ControlRendererContract } from "./control-renderer.contract.ts";
 
 export const ControlRenderer = defineComposition({
   id: "control-renderer",
-  purpose: "Declared as found at the start of the migration: ControlRenderer.svelte.",
+  purpose: "Mount the piece for one control node and forward only its control events.",
   owner: { entry: "ControlRenderer.svelte" },
   uses: ["node-renderer"], approval: "none", contract: ControlRendererContract,
 } as const);

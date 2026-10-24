@@ -1,2 +1,10 @@
-// Stub contract of AttentionList.svelte: its props and events are declared when the piece is migrated (slices 2-4).
-export const AttentionListContract = {} as const;
+// The props of AttentionList: the identity's attention snapshot and how to resume one of its items.
+import { Type } from "@sinclair/typebox";
+import type { AttentionSnapshot } from "../../../../web/client/attention-feed.ts";
+
+export const AttentionListContract = {
+  props: Type.Object({
+    state: Type.Unsafe<AttentionSnapshot>(),
+    resume: Type.Function([Type.String()], Type.Void()),
+  }, { additionalProperties: false }),
+} as const;

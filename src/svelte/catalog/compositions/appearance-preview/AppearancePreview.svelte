@@ -1,9 +1,7 @@
 <script lang="ts">
   import { Wallpaper } from "../../index.ts";
-  import type { AppearancePreferences } from "../../../infra/appearance-preferences.ts";
-  let { mode, tint, wallpaper }: {
-    mode: "light" | "dark"; tint: AppearancePreferences["tint"]; wallpaper: AppearancePreferences["wallpaper"];
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { mode, tint, wallpaper }: CatalogProps<"appearance-preview"> = $props();
 </script>
 
 <!-- A finite miniature of the actual renderer palette, not an unrelated illustration. -->

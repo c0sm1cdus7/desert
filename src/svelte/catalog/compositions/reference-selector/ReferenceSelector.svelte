@@ -13,8 +13,8 @@
   import { SelectionField } from '../../index.ts';
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
-  import type { ControlProps } from '../../../renderer-contracts.ts';
-  let {node,onevent}:ControlProps<'labels'>=$props();
+  import type { CatalogProps } from '../../types.d.ts';
+  let {node,onevent}:CatalogProps<'reference-selector'>=$props();
   const id=$props.id();
   let open=$state(false);
   let creating=$state(false), name=$state(''), color=$state(''), submitted=$state(false), observedBusy=$state(false);
@@ -33,15 +33,15 @@
   function create() {
     if(locked || !reference.createLabel || !name.trim() || name.trim().length>reference.maxLength || node.values.length>=node.limits.maxItems)return;
     submitted=true;
-    onevent({kind:'reference.create',control:node.id,name:name.trim(),...(reference.colors.length ? {color:color || reference.colors[0]!} : {})});
+    onevent?.({kind:'reference.create',control:node.id,name:name.trim(),...(reference.colors.length ? {color:color || reference.colors[0]!} : {})});
   }
   function choose(value:string,checked:boolean) {
     if (locked) return;
-    onevent({kind:'labels.change',control:node.id,values:checked ? [...node.values,value] : node.values.filter(item=>item!==value)});
+    onevent?.({kind:'labels.change',control:node.id,values:checked ? [...node.values,value] : node.values.filter(item=>item!==value)});
   }
 </script>
 <Field.Field>
-<Popover.Root bind:open onOpenChange={next=>{if(next)onevent({kind:'reference.refresh',control:node.id});}}>
+<Popover.Root bind:open onOpenChange={next=>{if(next)onevent?.({kind:'reference.refresh',control:node.id});}}>
   <Popover.Trigger disabled={triggerLocked} presentation="reference-well" aria-label={node.label}>
         <FieldWellContent label={node.label}>
           <span data-field-value>
@@ -69,7 +69,7 @@
       {#if reference.error}<Field.FieldError>{reference.error}</Field.FieldError>{/if}
       {#if reference.createLabel}
         {#if reference.uncertain}
-          <Button variant="secondary" disabled={reference.busy} onclick={()=>onevent({kind:'reference.recover',control:node.id})}>Check result</Button>
+          <Button variant="secondary" disabled={reference.busy} onclick={()=>onevent?.({kind:'reference.recover',control:node.id})}>Check result</Button>
         {:else if creating}
           <TextInput primitive="input.text" label="Name" value={name} required maxLength={reference.maxLength} disabled={locked} onchange={value=>name=value}/>
           {#if reference.colors.length}<SelectionField selection={`${node.id}:color`} label="Color" fieldControl value={color || reference.colors[0]!}

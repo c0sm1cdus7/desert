@@ -1,11 +1,10 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// Workspace: the renderer entry of a view program, forwarding its resolved view, panel and events to the view workspace.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { WorkspaceContract } from "./workspace.contract.ts";
 
 export const Workspace = defineComposition({
   id: "workspace",
-  purpose: "Declared as found at the start of the migration: Workspace.svelte.",
+  purpose: "Mount the workspace of a view program with its resolved view, panel, error and events.",
   owner: { entry: "Workspace.svelte" },
   uses: ["view-workspace"], approval: "none", contract: WorkspaceContract,
 } as const);

@@ -1,12 +1,12 @@
 <script lang="ts">
-  import type { NodeRendererInputs } from '../../../renderer-contracts.ts';
+  import type { CatalogProps } from '../../types.d.ts';
   import { PhotoCollection } from '../../index.ts';
   import { PlaybackCanvas } from '../../index.ts';
   import { ToolbarLayout } from '../../index.ts';
   import { mediaPlayback } from '../../../infra/playback.svelte.ts';
   import type { ViewerMedia } from '../../../infra/media-source.ts';
   import type { AssetReference } from '../../../../assets/types.ts';
-  let { facts, presentation }: { facts: NodeRendererInputs['context']['facts']; presentation: NonNullable<NodeRendererInputs['context']['presentation']> } = $props();
+  let { facts, presentation }: CatalogProps<'media-object'> = $props();
   let source = $derived(facts[presentation.media]);
   let description = $derived(presentation.description ? facts[presentation.description] : undefined);
   let alt = $derived(typeof description === 'string' ? description : 'Image');

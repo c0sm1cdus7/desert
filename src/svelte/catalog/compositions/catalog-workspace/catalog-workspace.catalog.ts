@@ -5,7 +5,7 @@ import { CatalogWorkspaceContract } from "./catalog-workspace.contract.ts";
 
 export const CatalogWorkspace = defineComposition({
   id: "catalog-workspace",
-  purpose: "Declared as found at the start of the migration: CatalogWorkspace.svelte.",
+  purpose: "Host a catalog place with its navigation sidebar, toolbars, search overlay, panels and failure dialog.",
   owner: { entry: "CatalogWorkspace.svelte", parts: ["AdaptiveSurfaceLayout.svelte", "CatalogEdgeNavigation.svelte", "CatalogNavigationToggle.svelte", "CatalogToolbar.svelte", "place-heading-motion.ts"] },
   uses: ["catalog-navigation", "catalog-search-results", "catalog-workspace-content", "failure-dialog", "panel", "place", "place-heading", "toolbar", "toolbar-layout", "wallpaper"], approval: "required", contract: CatalogWorkspaceContract,
 } as const);
