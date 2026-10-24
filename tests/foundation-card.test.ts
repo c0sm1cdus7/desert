@@ -2,10 +2,12 @@
 // widget's card. Each presentation keeps the pixels of the piece it absorbs, rendered live beside it (CatalogCard,
 // MediaGrid, MediaCollectionGrid, SummaryWidget), and the card opens, stays closed when disabled and warms its image.
 import assert from "node:assert/strict";
+import { resolve } from "node:path";
 import test from "node:test";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { treeViolations } from "./fixtures/tree-violations.ts";
 import { measureProbes, renderCases, type Probes } from "./fixtures/parity.ts";
+import { compositionsBefore } from "./fixtures/compositions-c-before.ts";
 
 const id = (n: number) => `10000000-0000-4000-8000-00000000000${n}`;
 const collection = { version: "desert.bank-node/1", kind: "collection", object: "item", fields: ["photo", "caption"],
@@ -79,7 +81,10 @@ test("card: its folder imports no foreign vendor, styles only its own classes an
 
 test("card keeps the pixels of the catalog card, the media tile, the collection cover and the summary card", { timeout: 60000 }, async () => {
   const css = await rendererCss();
-  const [was, is] = [await renderCases(before, {}, css), await renderCases(after, {}, css)];
+  // The summary widget is drawn as it was before composition lane C recomposed it on this card.
+  const widget = "src/svelte/catalog/compositions/summary-widget/SummaryWidget.svelte";
+  const frozen = { [resolve(import.meta.dirname, "..", widget)]: compositionsBefore[widget] ?? "" };
+  const [was, is] = [await renderCases(before, frozen, css), await renderCases(after, {}, css)];
   try {
     for (const f of [was, is]) await f.page.locator('[data-case="item-image"] [data-image-state="error"]').waitFor();
     // An item's artwork fills the card through the card's own absolute frame, where a contextual rule positioned it

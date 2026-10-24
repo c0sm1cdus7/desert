@@ -5,7 +5,8 @@ import { AttentionListContract } from "./attention-list.contract.ts";
 
 export const AttentionList = defineComposition({
   id: "attention-list",
-  purpose: "Bring every object or activity needing the identity’s attention into one consistent Home list.",
+  purpose: { key: "attentionList.purpose" },
+  messages: ["attentionList.purpose", "attentionList.title", "attentionList.emptyTitle", "attentionList.emptyDescription"],
   owner: { entry: "AttentionList.svelte" },
-  uses: ["attention-indicator", "collection-state", "feedback", "grouped-panel", "icon", "stack-layout"], approval: "required", contract: AttentionListContract,
+  uses: ["collection-state", "list", "row", "stack-layout", "status", "text"], approval: "required", contract: AttentionListContract,
 } as const);

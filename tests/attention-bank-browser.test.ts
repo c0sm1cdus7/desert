@@ -25,7 +25,7 @@ test('Home, list, detail and media use the same attention indicator, including r
   try{
     await f.page.addStyleTag({content:await rendererCss()});
     const dots=f.page.locator('[data-attention-indicator]');assert.equal(await dots.count(),5);
-    assert.equal(await f.page.locator('.attention-row [data-record-copy]').evaluate(node=>getComputedStyle(node).flexDirection),'column');
+    assert.equal(await f.page.locator('[data-row-leading="attention"] .row-copy').first().evaluate(node=>getComputedStyle(node).flexDirection),'column');
     const paint=await dots.evaluateAll(nodes=>nodes.map(node=>{const style=getComputedStyle(node);return [style.width,style.height,style.backgroundColor,style.animationDuration];}));
     assert.ok(paint.every(value=>JSON.stringify(value)===JSON.stringify(paint[0])));
     assert.equal(paint[0]![0],'8px');assert.equal(paint[0]![1],'8px');assert.equal(paint[0]![3],'1.8s');

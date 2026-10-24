@@ -24,19 +24,21 @@ test('collection loading, empty and offline are distinct and retained records ne
       await f.page.setViewportSize({width,height:900});
       await f.page.emulateMedia({reducedMotion:'reduce',colorScheme:'dark'});
       await f.page.getByRole('button',{name:'loading',exact:true}).click();
-      assert.equal(await f.page.locator('[data-collection-state="loading"][aria-busy="true"]').count(),1);
+      // The collection state is one labelled group whose content says which state it is (composition lane C).
+      const state=(content:string)=>f.page.locator(`[role="group"][aria-label="Collection state"]:has(${content})`);
+      assert.equal(await state('[data-loading="lines"]').and(f.page.locator('[aria-busy="true"]')).count(),1);
       assert.equal(await f.page.getByText('Nothing here yet.',{exact:true}).count(),0);
       assert.equal(await f.page.locator('[data-slot="skeleton"]').count(),2);
       assert.equal(await f.page.locator('[data-slot="skeleton"]').first().evaluate(el=>getComputedStyle(el).animationName),'none');
       await f.page.getByRole('button',{name:'empty',exact:true}).click();
-      assert.equal(await f.page.locator('[data-collection-state="empty"]').count(),1);
+      assert.equal(await state('[data-status="neutral"]').count(),1);
       assert.equal(await f.page.getByRole('heading',{name:'Nothing here yet.',exact:true}).count(),1);
       await f.page.getByRole('button',{name:'offline',exact:true}).click();
-      assert.equal(await f.page.locator('[data-collection-state="offline"]').count(),1);
+      assert.equal(await state('[data-status="offline"]').count(),1);
       assert.equal(await f.page.getByText('Nothing here yet.',{exact:true}).count(),0);
       await f.page.getByRole('button',{name:'cached',exact:true}).click();
       assert.ok(await f.page.getByRole('button',{name:'Saved note',exact:true}).isDisabled());
-      assert.equal(await f.page.locator('[data-collection-state]').count(),0);
+      assert.equal(await f.page.locator('[aria-label="Collection state"]').count(),0);
       const create=f.page.getByRole('button',{name:'Create note',exact:true});
       assert.ok(await create.isDisabled());
       assert.ok(await create.getAttribute('aria-describedby'));

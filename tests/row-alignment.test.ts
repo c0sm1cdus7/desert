@@ -25,7 +25,8 @@ const source = `<script lang="ts">
   </div></GroupedPanel></section>
   <output hidden>{JSON.stringify(events)}</output>
 </main>`;
-const rowSelector = '[data-grouped-action], [data-piece="destination-row"]';
+// Collection records are Rows (composition lane C); the destination rows here are still the destination-row foundation.
+const rowSelector = '[data-row], [data-piece="destination-row"]';
 const settle = (page: Page) => page.evaluate(async () => {
   await document.fonts.ready;
   await Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {})));
@@ -35,9 +36,9 @@ const measure = (row: Locator) => row.evaluate(element => {
     const box = target.getBoundingClientRect();
     return { x:box.x, y:box.y, width:box.width, height:box.height, right:box.right, bottom:box.bottom, cy:box.y+box.height/2 };
   };
-  const title = element.querySelector('strong, .destination-title')!;
-  const heading = element.querySelector('[data-record-heading]') ?? title;
-  const metadata = element.querySelector('[data-record-metadata]');
+  const title = element.querySelector('.row-label, .destination-title')!;
+  const heading = title;
+  const metadata = element.querySelector('.row-metadata');
   const icon = element.querySelector('[data-control-chevron]')!;
   return { kind:element.closest('[data-case]')!.getAttribute('data-case'), title:title.textContent,
     row:rect(element), content:rect(element.querySelector('[data-button-content]')!), titleBox:rect(title), heading:rect(heading),

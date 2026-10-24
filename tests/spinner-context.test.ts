@@ -20,8 +20,9 @@ for (const colorScheme of ['light', 'dark'] as const) test(`passive spinners inh
       context: getComputedStyle(icon.parentElement!).color,
     })));
     assert.equal(observed.length, 1);
-    assert.equal(await fixture.page.locator('[data-collection-state="loading"]').count(), 1);
-    assert.equal(await fixture.page.locator('[data-collection-state="loading"] [data-slot="spinner"]').count(), 0);
+    const loading = fixture.page.locator('[aria-label="Collection state"]:has([data-loading="lines"])');
+    assert.equal(await loading.count(), 1);
+    assert.equal(await loading.locator('[data-slot="spinner"]').count(), 0);
     for (const icon of observed) {
       assert.equal(icon.color, icon.context, 'Spinner must not set its own accent');
       assert.equal(icon.stroke, icon.context, 'Stroke follows currentColor');

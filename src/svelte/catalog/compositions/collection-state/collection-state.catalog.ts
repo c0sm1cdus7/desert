@@ -4,7 +4,8 @@ import { CollectionStateContract } from "./collection-state.contract.ts";
 
 export const CollectionState = defineComposition({
   id: "collection-state",
-  purpose: "Show a collection's loading, empty or offline state inside a grouped panel.",
+  purpose: { key: "collectionState.purpose" },
+  messages: ["collectionState.purpose", "collectionState.label", "collectionState.loading", "collectionState.emptyTitle", "collectionState.emptyDescription", "collectionState.offlineTitle", "collectionState.offlineDescription"],
   owner: { entry: "CollectionState.svelte" },
-  uses: ["grouped-panel"], approval: "none", contract: CollectionStateContract,
+  uses: ["list", "loading", "status"], approval: "none", contract: CollectionStateContract,
 } as const);

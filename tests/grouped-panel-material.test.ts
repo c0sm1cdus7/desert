@@ -4,6 +4,11 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { groupedRowsSource } from "./fixtures/grouped-rows.ts";
 
+/** Collections and context actions are Lists of Rows (composition lane C); choices still draw grouped panels. */
+const listed = (family: string) => family === "collection" || family === "actions";
+const panelOf = (family: string) => listed(family) ? "[data-list]" : "[data-grouped-panel]";
+const rowOf = (family: string) => listed(family) ? "[data-row]" : "[data-grouped-row]";
+
 test("grouped lists retain one visible pane on a card, with an opaque accessibility fallback", async () => {
   const f = await svelteBrowser(groupedRowsSource);
   try {
@@ -12,11 +17,11 @@ test("grouped lists retain one visible pane on a card, with an opaque accessibil
     for (const theme of ["light", "dark"]) {
       await f.page.evaluate(theme => { document.documentElement.dataset.theme = theme; }, theme);
       for (const family of ["collection", "actions", "options", "checks", "selection"]) {
-        const panel = f.page.locator(`[data-test="${family}"] [data-grouped-panel]`);
+        const panel = f.page.locator(`[data-test="${family}"] ${panelOf(family)}`);
         const material = await panel.evaluate(element => {
           const style = getComputedStyle(element);
           return { fill: style.backgroundColor, parent: getComputedStyle(element.closest('section')!).backgroundColor,
-            border: style.borderTopWidth, blur: style.backdropFilter, count: element.querySelectorAll('[data-grouped-panel]').length };
+            border: style.borderTopWidth, blur: style.backdropFilter, count: element.querySelectorAll('[data-grouped-panel], [data-list]').length };
         });
         assert.notEqual(material.fill, material.parent, `${theme}/${family}: pane must not disappear into its containing card`);
         assert.equal(material.border, "1px");

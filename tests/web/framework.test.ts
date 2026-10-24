@@ -51,7 +51,7 @@ test("the kitchen sink covers every installed catalog state and opens the real s
       }
     }
     assert.equal(await f.page.locator('[data-specimen="context:available"]').getAttribute("data-bank-coverage"), "rendered");
-    assert.equal(await f.page.locator('[data-specimen="context:available"] [data-piece="destination-row"]').count(), 0,
+    assert.equal(await f.page.locator('[data-specimen="context:available"] [data-row="open"]').count(), 0,
       "only published product commands can become object actions; a specimen cannot fake availability");
     assert.equal(await f.page.locator('[data-specimen="context:unavailable"]').getAttribute("data-bank-coverage"), "gap");
     assert.deepEqual((await new AxeBuilder({ page: f.page }).analyze()).violations, []);

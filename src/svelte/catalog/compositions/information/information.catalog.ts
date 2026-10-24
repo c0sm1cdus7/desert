@@ -4,7 +4,8 @@ import { InformationContract } from "./information.contract.ts";
 
 export const Information = defineComposition({
   id: "information",
-  purpose: "Group related facts in one pane while leaving reading paragraphs in the content stack.",
+  purpose: { key: "information.purpose" },
+  messages: ["information.purpose"],
   owner: { entry: "Information.svelte" },
-  uses: ["column", "fact-list", "fact-row", "text"], approval: "none", contract: InformationContract,
+  uses: ["column", "fact-row", "list", "text"], approval: "none", contract: InformationContract,
 } as const);

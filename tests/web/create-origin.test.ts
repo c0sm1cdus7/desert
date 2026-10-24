@@ -93,7 +93,7 @@ test("Create started from the collection returns there and retains the draft on 
       } else await retainDraft(dialog);
       await dismiss(f.page, dialog, method);
       await activePanel(f.page).waitFor({ state: "hidden" });
-      assert.equal(await f.page.locator(".record-button").isVisible(), true);
+      assert.equal(await f.page.locator('[data-row-leading="attention"]').isVisible(), true);
       assert.equal(await activePanel(f.page).count(), 0,
         "a previous selected record must not be invented when creation originated in the collection");
     }
@@ -143,7 +143,7 @@ test("closing a no-results overlay returns focus to its toolbar action without r
     const search = f.page.getByRole("searchbox", { name: "Search read notes", exact: true });
     await search.fill("No matching heading");
     await f.page.getByText("No matching results", { exact: true }).waitFor();
-    assert.equal(await f.page.locator(".record-button").count(), 1, "overlay retrieval does not filter its underlying collection");
+    assert.equal(await f.page.locator('[data-row-leading="attention"]').count(), 1, "overlay retrieval does not filter its underlying collection");
     await f.page.getByRole("button", { name: "Close search", exact: true }).click();
     await settleMotion(f.page);
     assert.equal(await trigger.evaluate(node => node === document.activeElement), true,

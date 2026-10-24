@@ -4,7 +4,8 @@ import { ViewAttentionContract } from "./view-attention.contract.ts";
 
 export const ViewAttention = defineComposition({
   id: "view-attention",
-  purpose: "Show the work that needs attention in a view and resume one item from it.",
+  purpose: { key: "viewAttention.purpose" },
+  messages: ["viewAttention.purpose"],
   owner: { entry: "ViewAttention.svelte" },
   uses: ["attention-list"], approval: "none", contract: ViewAttentionContract,
 } as const);

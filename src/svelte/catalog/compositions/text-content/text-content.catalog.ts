@@ -4,7 +4,8 @@ import { TextContentContract } from "./text-content.contract.ts";
 
 export const TextContent = defineComposition({
   id: "text-content",
-  purpose: "Place a view's text item as reading content in the stack.",
+  purpose: { key: "textContent.purpose" },
+  messages: ["textContent.purpose"],
   owner: { entry: "TextContent.svelte" },
-  uses: ["information"], approval: "none", contract: TextContentContract,
+  uses: ["information", "stack-item"], approval: "none", contract: TextContentContract,
 } as const);

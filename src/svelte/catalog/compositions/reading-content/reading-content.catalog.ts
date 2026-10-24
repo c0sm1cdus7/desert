@@ -4,7 +4,8 @@ import { ReadingContentContract } from "./reading-content.contract.ts";
 
 export const ReadingContent = defineComposition({
   id: "reading-content",
-  purpose: "Read paragraphs at a comfortable measure, outside the two-column layout used for properties.",
+  purpose: { key: "readingContent.purpose" },
+  messages: ["readingContent.purpose"],
   owner: { entry: "ReadingContent.svelte" },
-  uses: ["fact-value", "stack-layout"], approval: "none", contract: ReadingContentContract,
+  uses: ["column", "fact-value", "spacer", "stack-layout"], approval: "none", contract: ReadingContentContract,
 } as const);

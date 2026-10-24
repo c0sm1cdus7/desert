@@ -4,7 +4,8 @@ import { ContextPanelContract } from "./context-panel.contract.ts";
 
 export const ContextPanel = defineComposition({
   id: "context-panel",
-  purpose: "Read an object and use its contextual commands without leaving its destination.",
+  purpose: { key: "contextPanel.purpose" },
+  messages: ["contextPanel.purpose", "contextPanel.actions"],
   owner: { entry: "ContextPanel.svelte" },
-  uses: ["attention-status", "context-properties", "destination-row", "grouped-panel", "media-object", "node-renderer", "reading-content"], renders: ["context"], approval: "none", contract: ContextPanelContract,
+  uses: ["attention-status", "column", "context-properties", "list", "media-object", "node-renderer", "reading-content", "row", "spacer", "stack-layout"], renders: ["context"], approval: "none", contract: ContextPanelContract,
 } as const);

@@ -370,30 +370,45 @@
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/attention-list",
       "kind": "composition",
+      "messages": [
+        "attentionList.purpose",
+        "attentionList.title",
+        "attentionList.emptyTitle",
+        "attentionList.emptyDescription"
+      ],
       "owner": {
         "entry": "AttentionList.svelte"
       },
-      "purpose": "Bring every object or activity needing the identity’s attention into one consistent Home list.",
+      "purpose": {
+        "key": "attentionList.purpose"
+      },
       "uses": [
-        "attention-indicator",
         "collection-state",
-        "feedback",
-        "grouped-panel",
-        "icon",
-        "stack-layout"
+        "list",
+        "row",
+        "stack-layout",
+        "status",
+        "text"
       ]
     },
     "attention-status": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/attention-status",
       "kind": "composition",
+      "messages": [
+        "attentionStatus.purpose",
+        "attentionStatus.one",
+        "attentionStatus.many"
+      ],
       "owner": {
         "entry": "AttentionStatus.svelte"
       },
-      "purpose": "Pair the shared attention indicator with readable context for the attention signal.",
+      "purpose": {
+        "key": "attentionStatus.purpose"
+      },
       "uses": [
-        "attention-indicator",
-        "grouped-panel"
+        "list",
+        "row"
       ]
     },
     "availability": {
@@ -845,32 +860,50 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/collection",
       "kind": "composition",
+      "messages": [
+        "collection.purpose",
+        "collection.metadata"
+      ],
       "owner": {
         "entry": "Collection.svelte"
       },
-      "purpose": "Browse objects with shared row geometry, or present media in a gallery.",
+      "purpose": {
+        "key": "collection.purpose"
+      },
       "renders": [
         "collection"
       ],
       "uses": [
-        "attention-indicator",
         "collection-state",
-        "grouped-panel",
-        "icon",
+        "list",
         "media-collection-grid",
-        "media-grid"
+        "media-grid",
+        "row"
       ]
     },
     "collection-state": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/collection-state",
       "kind": "composition",
+      "messages": [
+        "collectionState.purpose",
+        "collectionState.label",
+        "collectionState.loading",
+        "collectionState.emptyTitle",
+        "collectionState.emptyDescription",
+        "collectionState.offlineTitle",
+        "collectionState.offlineDescription"
+      ],
       "owner": {
         "entry": "CollectionState.svelte"
       },
-      "purpose": "Show a collection's loading, empty or offline state inside a grouped panel.",
+      "purpose": {
+        "key": "collectionState.purpose"
+      },
       "uses": [
-        "grouped-panel"
+        "list",
+        "loading",
+        "status"
       ]
     },
     "color-bullet": {
@@ -899,11 +932,19 @@
         "children": {
           "accepts": [
             "action",
+            "attention-status",
             "clock",
+            "context-properties",
             "fact-list",
             "form",
             "heading",
+            "list",
+            "media-object",
+            "node-renderer",
+            "reading-content",
             "seed-avatar",
+            "spacer",
+            "stack-layout",
             "text"
           ]
         }
@@ -970,33 +1011,49 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/context-panel",
       "kind": "composition",
+      "messages": [
+        "contextPanel.purpose",
+        "contextPanel.actions"
+      ],
       "owner": {
         "entry": "ContextPanel.svelte"
       },
-      "purpose": "Read an object and use its contextual commands without leaving its destination.",
+      "purpose": {
+        "key": "contextPanel.purpose"
+      },
       "renders": [
         "context"
       ],
       "uses": [
         "attention-status",
+        "column",
         "context-properties",
-        "destination-row",
-        "grouped-panel",
+        "list",
         "media-object",
         "node-renderer",
-        "reading-content"
+        "reading-content",
+        "row",
+        "spacer",
+        "stack-layout"
       ]
     },
     "context-properties": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/context-properties",
       "kind": "composition",
+      "messages": [
+        "contextProperties.purpose",
+        "contextProperties.title"
+      ],
       "owner": {
         "entry": "ContextProperties.svelte"
       },
-      "purpose": "Read related facts and use state commands in one shared pane, separate from reading paragraphs.",
+      "purpose": {
+        "key": "contextProperties.purpose"
+      },
       "uses": [
         "fact-row",
+        "list",
         "object-state-row",
         "stack-layout"
       ]
@@ -1142,12 +1199,18 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/fact-group",
       "kind": "composition",
+      "messages": [
+        "factGroup.purpose"
+      ],
       "owner": {
         "entry": "FactGroup.svelte"
       },
-      "purpose": "Show the facts of one object: image fields as images and every other field as a labelled row.",
+      "purpose": {
+        "key": "factGroup.purpose"
+      },
       "uses": [
         "fact-row",
+        "list",
         "node-renderer"
       ]
     },
@@ -1712,14 +1775,19 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/information",
       "kind": "composition",
+      "messages": [
+        "information.purpose"
+      ],
       "owner": {
         "entry": "Information.svelte"
       },
-      "purpose": "Group related facts in one pane while leaving reading paragraphs in the content stack.",
+      "purpose": {
+        "key": "information.purpose"
+      },
       "uses": [
         "column",
-        "fact-list",
         "fact-row",
+        "list",
         "text"
       ]
     },
@@ -2543,12 +2611,19 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/reading-content",
       "kind": "composition",
+      "messages": [
+        "readingContent.purpose"
+      ],
       "owner": {
         "entry": "ReadingContent.svelte"
       },
-      "purpose": "Read paragraphs at a comfortable measure, outside the two-column layout used for properties.",
+      "purpose": {
+        "key": "readingContent.purpose"
+      },
       "uses": [
+        "column",
         "fact-value",
+        "spacer",
         "stack-layout"
       ]
     },
@@ -3061,6 +3136,7 @@
       "slots": {
         "children": {
           "accepts": [
+            "information",
             "node-renderer"
           ]
         }
@@ -3100,11 +3176,13 @@
             "field",
             "grouped-panel",
             "information",
+            "list",
             "measured-field",
             "object-state-row",
             "selection-field",
             "shared-owner-specimen",
             "stack-item",
+            "text",
             "view-destination-link",
             "view-item"
           ]
@@ -3153,11 +3231,29 @@
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/summary-widget",
       "kind": "composition",
+      "messages": [
+        "summaryWidget.purpose",
+        "summaryWidget.open",
+        "summaryWidget.loading",
+        "summaryWidget.reconnect",
+        "summaryWidget.reading",
+        "summaryWidget.segment",
+        "summaryWidget.truncated",
+        "summaryWidget.offlineLoaded",
+        "summaryWidget.offlineUnavailable"
+      ],
       "owner": {
         "entry": "SummaryWidget.svelte"
       },
-      "purpose": "Show module status at a glance and open its destination.",
-      "uses": []
+      "purpose": {
+        "key": "summaryWidget.purpose"
+      },
+      "uses": [
+        "card",
+        "loading",
+        "meter",
+        "text"
+      ]
     },
     "surface": {
       "approval": "required",
@@ -3342,12 +3438,18 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/text-content",
       "kind": "composition",
+      "messages": [
+        "textContent.purpose"
+      ],
       "owner": {
         "entry": "TextContent.svelte"
       },
-      "purpose": "Place a view's text item as reading content in the stack.",
+      "purpose": {
+        "key": "textContent.purpose"
+      },
       "uses": [
-        "information"
+        "information",
+        "stack-item"
       ]
     },
     "text-input": {
@@ -3486,10 +3588,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/view-attention",
       "kind": "composition",
+      "messages": [
+        "viewAttention.purpose"
+      ],
       "owner": {
         "entry": "ViewAttention.svelte"
       },
-      "purpose": "Show the work that needs attention in a view and resume one item from it.",
+      "purpose": {
+        "key": "viewAttention.purpose"
+      },
       "uses": [
         "attention-list"
       ]
@@ -3510,13 +3617,18 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/view-destination-link",
       "kind": "composition",
+      "messages": [
+        "viewDestinationLink.purpose"
+      ],
       "owner": {
         "entry": "ViewDestinationLink.svelte"
       },
-      "purpose": "Navigate or invoke an action through a row with a representative icon, distinct from object rows.",
+      "purpose": {
+        "key": "viewDestinationLink.purpose"
+      },
       "uses": [
-        "destination-row",
-        "grouped-panel"
+        "list",
+        "row"
       ]
     },
     "view-item": {
@@ -3635,10 +3747,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/view-related-selection",
       "kind": "composition",
+      "messages": [
+        "viewRelatedSelection.purpose"
+      ],
       "owner": {
         "entry": "ViewRelatedSelection.svelte"
       },
-      "purpose": "Mount the related selection of a view panel and forward its changes as node events.",
+      "purpose": {
+        "key": "viewRelatedSelection.purpose"
+      },
       "uses": [
         "related-selection"
       ]

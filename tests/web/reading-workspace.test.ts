@@ -17,8 +17,8 @@ test("reading docks on wide screens, adapts to a transient and preserves paragra
     const first = f.page.getByRole("button", { name: /A quiet place to think/ });
     const alignment = await first.evaluate(button => {
       const bounds = button.getBoundingClientRect();
-      const title = button.querySelector("strong")!.getBoundingClientRect();
-      const metadata = button.querySelector("[data-record-metadata]")!.getBoundingClientRect();
+      const title = button.querySelector(".row-label")!.getBoundingClientRect();
+      const metadata = button.querySelector(".row-metadata")!.getBoundingClientRect();
       return { titleInset: title.left - bounds.left, metadataInset: metadata.left - bounds.left };
     });
     assert.ok(alignment.titleInset >= 12 && alignment.titleInset <= 24, "collection title aligns to its leading content inset");

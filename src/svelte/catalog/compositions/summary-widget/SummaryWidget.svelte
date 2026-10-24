@@ -1,8 +1,9 @@
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
   import { collectionSummary } from '../../../../interaction/collection-summary.ts';
-  import { Button } from '../../../vendor/components/ui/button/index.js';
-  import { Skeleton } from '../../../vendor/components/ui/skeleton/index.js';
+  import { Card, Loading, Meter, Text } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let {node,activate,available=true}:CatalogProps<"summary-widget">=$props();
   const id=$props.id();
   let specification=$derived(node.presentation?.kind==='summary-widget'?node.presentation:undefined);
@@ -11,46 +12,28 @@
   let offline=$derived(node.connection==='offline');
   let description=$derived([
     ...(pending?[`${id}-loading`]:!node.loaded?[`${id}-reconnect`]:[
-      `${id}-total`,`${id}-legend`,...(specification?.truncated?[`${id}-truncated`]:[]),
+      `${id}-total`,...(specification?.truncated?[`${id}-truncated`]:[]),
     ]),
     ...(offline?[`${id}-offline`]:[]),
   ].join(' '));
+  // The meter is named by its whole reading, so the card is described by the total and the legend it shows.
+  let reading=$derived(specification&&summary?say(m.summaryWidget.reading,{total:String(summary.total),totalLabel:specification.totalLabel,
+    legend:summary.segments.map(segment=>say(m.summaryWidget.segment,{count:String(segment.count),label:segment.label})).join(' ')}):'');
 </script>
 
 {#if specification && summary}
-  <Button variant="outline" presentation="summary-widget" disabled={!available||node.disabled} onclick={activate}
-    aria-label={`Open ${specification.title}`} aria-describedby={description} aria-busy={pending}>
-    <span class="widget-heading"><strong>{specification.title}</strong><span>{specification.description}</span></span>
-    {#if pending}
-      <span class="widget-loading" aria-hidden="true"><Skeleton line="primary" /><Skeleton line="secondary" /></span>
-      <span id={`${id}-loading`} class="sr-only" role="status">Loading summary…</span>
-    {:else if !node.loaded}
-      <span id={`${id}-reconnect`} class="widget-context">Reconnect to load this summary.</span>
+  <Card presentation="summary" label={say(m.summaryWidget.open,{title:specification.title})} title={specification.title}
+    subtitle={specification.description} disabled={!available||node.disabled} describedBy={description} busy={pending}
+    attention={false} current={false} onopen={activate}>
+    {#if pending}<Loading kind="lines" label={say(m.summaryWidget.loading)} id={`${id}-loading`} />
+    {:else if !node.loaded}<Text kind="support" tone="muted" id={`${id}-reconnect`} text={say(m.summaryWidget.reconnect)} />
     {:else}
-      <span id={`${id}-total`} class="widget-total"><strong>{summary.total}</strong><span>{specification.totalLabel}</span></span>
-      <span class="widget-chart" aria-hidden="true">
-        {#each summary.segments as segment,index}<span data-segment={index} style:flex-grow={segment.count}></span>{/each}
-      </span>
-      <span id={`${id}-legend`} class="widget-legend">
-        {#each summary.segments as segment}<span><strong>{segment.count}</strong> {segment.label}</span>{/each}
-      </span>
-      {#if specification.truncated}<span id={`${id}-truncated`} class="widget-context">Showing the first {summary.total} items.</span>{/if}
+      <Meter id={`${id}-total`} total={summary.total} totalLabel={specification.totalLabel} label={reading}
+        segments={summary.segments.map(segment=>({count:segment.count,label:segment.label}))} />
+      {#if specification.truncated}<Text kind="support" tone="muted" id={`${id}-truncated`}
+        text={say(m.summaryWidget.truncated,{total:String(summary.total)})} />{/if}
     {/if}
-    {#if offline}<span id={`${id}-offline`} class="widget-context">Offline · {node.loaded?'Last loaded summary':'Controller unavailable'}</span>{/if}
-  </Button>
+    {#if offline}<Text kind="support" tone="muted" id={`${id}-offline`}
+      text={node.loaded?say(m.summaryWidget.offlineLoaded):say(m.summaryWidget.offlineUnavailable)} />{/if}
+  </Card>
 {/if}
-
-<style>
-  .widget-heading,.widget-loading { display:flex; flex-direction:column; gap:var(--title-subtitle-gap,4px); min-width:0; }
-  .widget-heading,.widget-context,.widget-legend { overflow-wrap:anywhere; }
-  .widget-heading>span,.widget-context,.widget-legend { color:var(--muted-foreground); font-weight:400; }
-  .widget-total { display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--space-2,.5rem); min-width:0; }
-  .widget-total>strong { font-size:2rem; line-height:1; }
-  .widget-total>span { font-weight:400; color:var(--muted-foreground); }
-  .widget-chart { display:flex; gap:2px; overflow:hidden; height:.6rem; border-radius:var(--radius); background:var(--muted); }
-  .widget-chart>span { min-width:0; flex-basis:0; background:var(--primary); }
-  .widget-chart>span:nth-child(even) { background:var(--muted-foreground); }
-  .widget-legend { display:flex; flex-wrap:wrap; gap:var(--space-4,1rem); min-width:0; }
-  .widget-legend>span { min-width:0; max-width:100%; }
-  .widget-legend strong { color:var(--foreground); }
-</style>

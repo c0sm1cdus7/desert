@@ -4,7 +4,8 @@ import { CollectionContract } from "./collection.contract.ts";
 
 export const Collection = defineComposition({
   id: "collection",
-  purpose: "Browse objects with shared row geometry, or present media in a gallery.",
+  purpose: { key: "collection.purpose" },
+  messages: ["collection.purpose", "collection.metadata"],
   owner: { entry: "Collection.svelte" },
-  uses: ["attention-indicator", "collection-state", "grouped-panel", "icon", "media-collection-grid", "media-grid"], renders: ["collection"], approval: "none", contract: CollectionContract,
+  uses: ["collection-state", "list", "media-collection-grid", "media-grid", "row"], renders: ["collection"], approval: "none", contract: CollectionContract,
 } as const);

@@ -4,6 +4,11 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { groupedRowsSource } from "./fixtures/grouped-rows.ts";
 
+/** Collections and context actions are Lists of Rows (composition lane C); choices still draw grouped panels. */
+const listed = (family: string) => family === "collection" || family === "actions";
+const panelOf = (family: string) => listed(family) ? "[data-list]" : "[data-grouped-panel]";
+const rowOf = (family: string) => listed(family) ? "[data-row]" : "[data-grouped-row]";
+
 test("sibling collections, actions and choices have one clipped panel and contiguous separated rows", { timeout: 30000 }, async () => {
   const f = await svelteBrowser(groupedRowsSource);
   try {
@@ -13,10 +18,10 @@ test("sibling collections, actions and choices have one clipped panel and contig
       await f.page.evaluate(profile => { document.documentElement.dataset.rendererProfile = profile; }, profile);
       for (const family of ["collection","actions","options","checks","selection"]) {
         const scope = f.page.locator(`[data-test="${family}"]`);
-        assert.equal(await scope.locator('[data-grouped-panel]').count(), 1, `${family}: one panel, not one card per sibling`);
-        const geometry = await scope.locator('[data-grouped-panel]').evaluate(panel => {
+        assert.equal(await scope.locator(panelOf(family)).count(), 1, `${family}: one panel, not one card per sibling`);
+        const geometry = await scope.locator(panelOf(family)).evaluate((panel, rowSelector) => {
           const style = getComputedStyle(panel);
-          const rows = [...panel.querySelectorAll<HTMLElement>('[data-grouped-row]')];
+          const rows = [...panel.querySelectorAll<HTMLElement>(rowSelector)];
           return { overflow:style.overflow, border:parseFloat(style.borderTopWidth), radius:parseFloat(style.borderTopLeftRadius),
             rows:rows.map(row => {const box=row.getBoundingClientRect(), css=getComputedStyle(row), separator=getComputedStyle(row,'::before');return {
               top:box.top,bottom:box.bottom,height:box.height, borderTop:parseFloat(css.borderTopWidth),
@@ -24,7 +29,7 @@ test("sibling collections, actions and choices have one clipped panel and contig
               separatorInset:parseFloat(separator.left),separatorFill:separator.backgroundColor,
               borderBottom:parseFloat(css.borderBottomWidth),topRadius:parseFloat(css.borderTopLeftRadius),
               bottomRadius:parseFloat(css.borderBottomLeftRadius),blur:css.backdropFilter};}) };
-        });
+        }, rowOf(family));
         assert.equal(geometry.overflow,"hidden"); assert.equal(geometry.border,1); assert.ok(geometry.radius>0);
         assert.equal(geometry.rows.length,3);
         for (const [index,row] of geometry.rows.entries()) {

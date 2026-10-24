@@ -91,6 +91,70 @@ export const Messages = messageCatalog({
         "title": "The result isn’t confirmed",
         "description": "The result of this confirmation is not known yet. Close this message, then check the result when the connection is available. Checking does not create another operation."
       }
+    },
+    "information": {
+      "purpose": "Group related facts in one pane while leaving reading paragraphs in the content stack."
+    },
+    "textContent": {
+      "purpose": "Place a view's text item as reading content in the stack."
+    },
+    "factGroup": {
+      "purpose": "Show the facts of one object: image fields as images and every other field as a labelled row."
+    },
+    "contextPanel": {
+      "purpose": "Read an object and use its contextual commands without leaving its destination.",
+      "actions": "Actions"
+    },
+    "contextProperties": {
+      "purpose": "Read related facts and use state commands in one shared pane, separate from reading paragraphs.",
+      "title": "Properties"
+    },
+    "readingContent": {
+      "purpose": "Read paragraphs at a comfortable measure, outside the two-column layout used for properties."
+    },
+    "viewDestinationLink": {
+      "purpose": "Navigate or invoke an action through a row with a representative icon, distinct from object rows."
+    },
+    "collection": {
+      "purpose": "Browse objects with shared row geometry, or present media in a gallery.",
+      "metadata": "{label} · {value}"
+    },
+    "collectionState": {
+      "purpose": "Show a collection's loading, empty or offline state inside a grouped panel.",
+      "label": "Collection state",
+      "loading": "Loading content…",
+      "emptyTitle": "Nothing here yet.",
+      "emptyDescription": "Use “{command}” to get started.",
+      "offlineTitle": "Controller unavailable.",
+      "offlineDescription": "Reconnect to load this content."
+    },
+    "attentionList": {
+      "purpose": "Bring every object or activity needing the identity’s attention into one consistent Home list.",
+      "title": "Attention",
+      "emptyTitle": "Nothing needs your attention.",
+      "emptyDescription": "Items from every module appear here when they need you."
+    },
+    "attentionStatus": {
+      "purpose": "Pair the shared attention indicator with readable context for the attention signal.",
+      "one": "Requires your attention",
+      "many": "{count} pending activities require your attention"
+    },
+    "viewAttention": {
+      "purpose": "Show the work that needs attention in a view and resume one item from it."
+    },
+    "summaryWidget": {
+      "purpose": "Show module status at a glance and open its destination.",
+      "open": "Open {title}",
+      "loading": "Loading summary…",
+      "reconnect": "Reconnect to load this summary.",
+      "reading": "{total} {totalLabel} {legend}",
+      "segment": "{count} {label}",
+      "truncated": "Showing the first {total} items.",
+      "offlineLoaded": "Offline · Last loaded summary",
+      "offlineUnavailable": "Offline · Controller unavailable"
+    },
+    "viewRelatedSelection": {
+      "purpose": "Mount the related selection of a view panel and forward its changes as node events."
     }
   },
 } as const);
