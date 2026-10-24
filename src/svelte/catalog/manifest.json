@@ -937,11 +937,19 @@
           "heading-content.ts"
         ]
       },
-      "purpose": "Declared as found at the start of the migration: Heading.svelte.",
+      "purpose": "A title whose meaning picks its type role and level: page, document, rail group or field group.",
       "shape": "none",
       "states": [
         "default"
-      ]
+      ],
+      "variants": {
+        "kind": [
+          "page",
+          "document-title",
+          "rail-title",
+          "group-label"
+        ]
+      }
     },
     "identity": {
       "approval": "none",

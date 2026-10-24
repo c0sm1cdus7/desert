@@ -32,3 +32,22 @@ for (const [name, source, pattern] of [
 ] as const) test(`${name} is refused`, () => {
   assert.throws(() => readContract("c.contract.ts", source), pattern);
 });
+
+test("domain data, maps and callbacks have closed forms", () => {
+  const contract = readContract("node.contract.ts", `import { Type } from "@sinclair/typebox";
+import { ResolvedNodeSchema } from "../../../../interaction/resolved-node-schema.ts";
+export const NodeContract = { props: Type.Object({ node: ResolvedNodeSchema, labels: Type.Record(Type.String(), Type.String()),
+  edit: Type.Function([Type.String(), Type.String()], Type.Null()) }, { additionalProperties: false }) } as const;\n`);
+  assert.equal(contract.closed, true);
+  if (!contract.closed) return;
+  assert.deepEqual(contract.props.node?.schema, { kind: "reference", name: "ResolvedNodeSchema", from: "../../../../interaction/resolved-node-schema.ts" });
+  assert.deepEqual(contract.props.labels?.schema, { kind: "record", values: { kind: "string" } });
+  assert.deepEqual(contract.props.edit?.schema, { kind: "function" });
+});
+
+for (const [name, source, pattern] of [
+  ["a reference that is not imported", "export const C = { props: Type.Object({ a: Loose }, { additionalProperties: false }) } as const;", /Loose is not a schema imported/],
+  ["a reference to visual code", 'import { Shape } from "../x/X.svelte";\nexport const C = { props: Type.Object({ a: Shape }, { additionalProperties: false }) } as const;', /comes from visual code/],
+] as const) test(`${name} is refused`, () => {
+  assert.throws(() => readContract("c.contract.ts", source), pattern);
+});

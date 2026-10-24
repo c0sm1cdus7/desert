@@ -3,6 +3,7 @@
 import type { ComponentProps, Snippet } from "svelte";
 import type { Static, TSchema } from "@sinclair/typebox";
 import type * as Catalog from "./index.ts";
+import type { HeadingContract as HeadingContract } from "./foundations/heading/heading.contract.ts";
 
 type ContractProps<C> = C extends { readonly props: infer P extends TSchema } ? Static<P> : {};
 type ContractEvents<C> = C extends { readonly events: infer E extends TSchema }
@@ -210,7 +211,7 @@ export type CatalogPropsTable = {
   readonly "file-control": ComponentProps<typeof Catalog.FileControl>;
   readonly "frame-body": ComponentProps<typeof Catalog.FrameBody>;
   readonly "grouped-panel": ComponentProps<typeof Catalog.GroupedPanel>;
-  readonly "heading": ComponentProps<typeof Catalog.Heading>;
+  readonly "heading": ContractProps<typeof HeadingContract> & ContractEvents<typeof HeadingContract>;
   readonly "identity": ComponentProps<typeof Catalog.Identity>;
   readonly "image": ComponentProps<typeof Catalog.Image>;
   readonly "information": ComponentProps<typeof Catalog.Information>;
@@ -301,7 +302,7 @@ export type CatalogPropsTable = {
   readonly "zoom-controls": ComponentProps<typeof Catalog.ZoomControls>;
 };
 export type CatalogProps<Id extends CatalogId> = CatalogPropsTable[Id];
-/** Pieces whose contract is closed: 0. */
-export type ClosedContractId = never;
+/** Pieces whose contract is closed: 1. */
+export type ClosedContractId = "heading";
 /** One witness of a piece in one state and one value per variant axis (`<id>.specimens.ts`, rule J). */
 export type CatalogSpecimen<Id extends CatalogId> = Readonly<{ state: string; variants?: Readonly<Record<string, string>>; props: CatalogProps<Id> }>;

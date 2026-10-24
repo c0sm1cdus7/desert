@@ -1,9 +1,16 @@
 <script lang="ts">
   import { currentHeadingOffset, type HeadingLevel } from "../../../infra/heading-context.ts";
-  import { assertHeadingContent, type HeadingContent } from "./heading-content.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { assertHeadingContent } from "./heading-content.ts";
 
-  let props: HeadingContent = $props();
-  let content = $derived.by(() => { assertHeadingContent(props); return props; });
+  let { kind, text, focusTarget, id, required }: CatalogProps<"heading"> = $props();
+  // The contract lists every prop; the exact combination per kind is checked here, as before.
+  let content = $derived.by(() => {
+    const value = { kind, text, ...focusTarget === undefined ? {} : { focusTarget }, ...id === undefined ? {} : { id },
+      ...required === undefined ? {} : { required } };
+    assertHeadingContent(value);
+    return value;
+  });
   const offset = currentHeadingOffset();
   let level = $derived(content.kind === "page" || content.kind === "document-title" ? 1 : 2);
   let tag = $derived(`h${Math.min(6, level + offset)}` as `h${HeadingLevel}`);

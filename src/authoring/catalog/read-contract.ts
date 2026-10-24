@@ -1,13 +1,16 @@
 // Reads a piece contract (`<id>.contract.ts`) as data, like a declaration: the gate never evaluates an inspected tree.
 // A contract is `export const <Name>Contract = {} as const` (a stub, before the piece is migrated) or
 //   export const FieldContract = { props: Type.Object({...}), events: Type.Object({...}), marks: ["data-field-state"] } as const;
-// written in a closed TypeBox subset: Object, Literal, Union, Optional, Array, String, Number, Boolean, Integer, Null.
+// written in a closed TypeBox subset: Object (closed), Literal, Union, Optional, Array, Record, Function, String, Number,
+// Boolean, Integer, Null, and a reference to a TypeBox schema imported from a non-visual module (domain data such as a
+// resolved node): the gate records its name, TypeScript types it. Open forms (Any, Unknown, Unsafe) are refused.
 import ts from "typescript";
 
 export type ContractSchema = Readonly<
   | { kind: "object"; properties: Readonly<Record<string, ContractProperty>> }
   | { kind: "literal"; value: string | number | boolean } | { kind: "union"; members: readonly ContractSchema[] }
-  | { kind: "array"; items: ContractSchema } | { kind: "string" | "number" | "boolean" | "integer" | "null" }>;
+  | { kind: "array"; items: ContractSchema } | { kind: "record"; values: ContractSchema } | { kind: "function" }
+  | { kind: "reference"; name: string; from: string } | { kind: "string" | "number" | "boolean" | "integer" | "null" }>;
 export type ContractProperty = Readonly<{ schema: ContractSchema; optional: boolean }>;
 export type ReadContract = Readonly<{ binding: string; closed: false } | { binding: string; closed: true;
   props: Readonly<Record<string, ContractProperty>>; events: Readonly<Record<string, ContractProperty>>; marks: readonly string[] }>;
@@ -22,8 +25,14 @@ export function readContract(path: string, source: string): ReadContract {
   const call = (node: ts.Expression) => ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)
     && ts.isIdentifier(node.expression.expression) && node.expression.expression.text === "Type" ? { name: node.expression.name.text, node } : undefined;
   function schema(node: ts.Expression): ContractSchema {
+    if (ts.isIdentifier(node)) {
+      const from = imported.get(node.text);
+      if (!from) return fail(node, `${node.text} is not a schema imported from a module`);
+      if (/\.svelte$|\/svelte\//.test(from)) return fail(node, `${node.text} comes from visual code (${from}); a contract references domain schemas only`);
+      return { kind: "reference", name: node.text, from };
+    }
     const found = call(node);
-    if (!found) return fail(node, "a contract schema is a Type.* call of the closed subset");
+    if (!found) return fail(node, "a contract schema is a Type.* call of the closed subset or an imported schema");
     const [first] = found.node.arguments;
     if (scalars.has(found.name)) return { kind: found.name.toLowerCase() as "string" };
     if (found.name === "Literal" && first && (ts.isStringLiteral(first) || ts.isNumericLiteral(first) || first.kind === ts.SyntaxKind.TrueKeyword || first.kind === ts.SyntaxKind.FalseKeyword)) {
@@ -31,6 +40,13 @@ export function readContract(path: string, source: string): ReadContract {
     }
     if (found.name === "Union" && first && ts.isArrayLiteralExpression(first)) return { kind: "union", members: first.elements.map(schema) };
     if (found.name === "Array" && first) return { kind: "array", items: schema(first) };
+    const second = found.node.arguments[1];
+    if (found.name === "Record" && first && second) { schema(first); return { kind: "record", values: schema(second) }; }
+    if (found.name === "Function" && first && ts.isArrayLiteralExpression(first) && second) {
+      for (const parameter of first.elements) schema(parameter);
+      schema(second);
+      return { kind: "function" };
+    }
     if (found.name === "Object" && first) return { kind: "object", properties: properties(first, found.node.arguments[1]) };
     return fail(node, `Type.${found.name} is outside the contract subset`);
   }
@@ -50,6 +66,11 @@ export function readContract(path: string, source: string): ReadContract {
       result[item.name.text] = property(item.initializer);
     }
     return result;
+  }
+  const imported = new Map<string, string>();
+  for (const statement of file.statements) if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
+    const clause = statement.importClause, named = clause?.namedBindings;
+    if (named && ts.isNamedImports(named)) for (const element of named.elements) imported.set(element.name.text, statement.moduleSpecifier.text);
   }
   const statements = file.statements.filter(statement => !ts.isImportDeclaration(statement));
   const [statement] = statements;
