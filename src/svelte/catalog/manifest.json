@@ -220,7 +220,8 @@
       },
       "purpose": "Sign a person in to the product through the access experience, with the remembered profile and appearance.",
       "uses": [
-        "access-experience"
+        "access-experience",
+        "appearance-root"
       ]
     },
     "action": {
@@ -288,6 +289,22 @@
       "purpose": "Compare Dark and Light using the same surface, tint and wallpaper tokens as the running interface.",
       "uses": [
         "wallpaper"
+      ]
+    },
+    "appearance-root": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/appearance-root",
+      "kind": "foundation",
+      "owner": {
+        "entry": "AppearanceRoot.svelte",
+        "parts": [
+          "appearance-root.ts"
+        ]
+      },
+      "purpose": "Apply the chosen appearance to the whole page and publish the system colour scheme.",
+      "shape": "none",
+      "states": [
+        "default"
       ]
     },
     "artwork-placeholder": {
@@ -1943,6 +1960,7 @@
       },
       "purpose": "Browse a published catalog, its exercises and its component bank, with search and browser history that return to where the person was.",
       "uses": [
+        "appearance-root",
         "catalog-workspace"
       ]
     },
@@ -2757,6 +2775,7 @@
       },
       "purpose": "Present a view program as a workspace with navigation, search, retained views and its panel.",
       "uses": [
+        "appearance-root",
         "catalog-workspace"
       ]
     },

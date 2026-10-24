@@ -16,13 +16,11 @@ test("remembered identity is bounded presentation data, never session authority"
 
 test("access stays operable at wide, narrow and enlarged text sizes with a real bank composition", { timeout:240000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import { onMount } from 'svelte';
     import AccessExperience from '@desert/svelte/catalog/compositions/access-experience/AccessExperience.svelte';
-    import { mountCatalogAppearance } from '@desert/svelte/infra/catalog-appearance.ts';
+    import AppearanceRoot from '@desert/svelte/catalog/foundations/appearance-root/AppearanceRoot.svelte';
     let current = $state({state:{kind:'onboarding'},busy:false,error:null});
     const profile={login:'sample-user',displayName:'Sample user',avatarSeed:'0011223344556677'};
-    onMount(mountCatalogAppearance);
-  </script><AccessExperience productLabel="VOID" {current} {profile}
+  </script><AppearanceRoot /><AccessExperience productLabel="VOID" {current} {profile}
     authenticate={async () => { current={state:{kind:'locked'},busy:false,error:null}; }} refresh={async () => {}} />`, {}, "http://access-fixture.test/");
   const directory = new URL("../artifacts/access-personalization/current/", import.meta.url);
   try {

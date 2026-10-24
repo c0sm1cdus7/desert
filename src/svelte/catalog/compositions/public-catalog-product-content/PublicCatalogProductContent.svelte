@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, tick, untrack, setContext } from "svelte";
-  import { mountCatalogAppearance } from "../../../infra/catalog-appearance.ts";
+  import { AppearanceRoot } from "../../index.ts";
   import { initialPublicCatalogState, projectPublicCatalog, reducePublicCatalog, publicCatalogSurface,
     type PublicCatalogState } from "../../../../public-catalog/client.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
@@ -104,7 +104,6 @@
     browserNavigation?.push();
   }
   onMount(() => {
-    const restoreAppearance = mountCatalogAppearance();
     const location = new URL(window.location.href);
     const place = location.searchParams.get('place'), record = location.searchParams.get('record');
     if (place === 'bank' || (place === 'travel-kit' && definition.exercises)) active = place;
@@ -134,11 +133,11 @@
     });
     return () => {
       browserNavigation?.dispose();
-      restoreAppearance();
     };
   });
 </script>
 
+<AppearanceRoot />
 <svelte:head><title>{definition.title} · DESERT</title></svelte:head>
 <CatalogWorkspace navigationSurface={{ title:definition.title, settingsPlaceholder:true }} title={scope.title} {identity} {navigation} {active} query={searchQuery} {searching}
   onquery={querySearch} onsearch={() => searching = true} oncancel={cancelSearch} onnavigate={navigate}

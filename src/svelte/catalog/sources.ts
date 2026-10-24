@@ -11,6 +11,7 @@ export const CatalogSources = Object.freeze({
   "appearance": "src/svelte/catalog/compositions/appearance/Appearance.svelte",
   "appearance-preferences": "src/svelte/catalog/compositions/appearance-preferences/AppearancePreferences.svelte",
   "appearance-preview": "src/svelte/catalog/compositions/appearance-preview/AppearancePreview.svelte",
+  "appearance-root": "src/svelte/catalog/foundations/appearance-root/AppearanceRoot.svelte",
   "artwork-placeholder": "src/svelte/catalog/foundations/artwork-placeholder/ArtworkPlaceholder.svelte",
   "attention-indicator": "src/svelte/catalog/foundations/attention-indicator/AttentionIndicator.svelte",
   "attention-list": "src/svelte/catalog/compositions/attention-list/AttentionList.svelte",

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { onMount, tick, untrack } from "svelte";
-  import { mountCatalogAppearance } from "../../../infra/catalog-appearance.ts";
+  import { tick, untrack } from "svelte";
+  import { AppearanceRoot } from "../../index.ts";
   import { CatalogWorkspace } from "../../index.ts";
   import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
   import { bindViewEvents, type OwnedResolvedView, type OwnedViewEvent } from "../../../../web/client/view-events.ts";
@@ -21,7 +21,6 @@
     else props.onevent?.(event);
   }
   let workspace = $derived(resolveProgramWorkspace(props.program));
-  onMount(mountCatalogAppearance);
   let searching = $state(false), query = $state("");
   let viewport: WorkspaceViewportActions | null = null;
   let visited = $state.raw<readonly OwnedResolvedView[]>([]);
@@ -92,6 +91,7 @@
   }
 </script>
 
+<AppearanceRoot />
 <svelte:head><title>{props.resolved.top?.title ?? props.program.label} · {props.program.label}</title></svelte:head>
 
 <CatalogWorkspace navigationSurface={workspace.navigation ?? null} title={identity.title} {identity}

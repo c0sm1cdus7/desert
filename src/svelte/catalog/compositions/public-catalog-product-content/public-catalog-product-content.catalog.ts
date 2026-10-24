@@ -7,5 +7,5 @@ export const PublicCatalogProductContent = defineComposition({
   id: "public-catalog-product-content",
   purpose: "Browse a published catalog, its exercises and its component bank, with search and browser history that return to where the person was.",
   owner: { entry: "PublicCatalogProductContent.svelte", parts: ["catalog-history.ts"] },
-  uses: ["catalog-workspace"], approval: "none", contract: PublicCatalogProductContentContract,
+  uses: ["appearance-root", "catalog-workspace"], approval: "none", contract: PublicCatalogProductContentContract,
 } as const);

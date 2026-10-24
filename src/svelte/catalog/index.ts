@@ -9,6 +9,7 @@ export { default as Action } from "./foundations/action/Action.svelte";
 export { default as Appearance } from "./compositions/appearance/Appearance.svelte";
 export { default as AppearancePreferences } from "./compositions/appearance-preferences/AppearancePreferences.svelte";
 export { default as AppearancePreview } from "./compositions/appearance-preview/AppearancePreview.svelte";
+export { default as AppearanceRoot } from "./foundations/appearance-root/AppearanceRoot.svelte";
 export { default as ArtworkPlaceholder } from "./foundations/artwork-placeholder/ArtworkPlaceholder.svelte";
 export { default as AttentionIndicator } from "./foundations/attention-indicator/AttentionIndicator.svelte";
 export { default as AttentionList } from "./compositions/attention-list/AttentionList.svelte";
