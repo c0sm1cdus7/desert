@@ -113,3 +113,58 @@ test("every bank entry is pixel-identical to the baseline tree", { skip: !baseli
   console.log(`bank parity: ${report.length} captures, ${differing.length} differ`);
   assert.deepEqual(differing, [], "VISUAL_PARITY_FAILED");
 });
+
+/** View content through the real workspace body (ContentFlow, Information, StackLayout, ViewItem, Appearance, Identity). */
+const viewScenes: Readonly<Record<string, readonly unknown[]>> = {
+  "notes-overview": [
+    { kind: "header", id: "header", title: "Notes", subtitle: "Your private notes." },
+    { kind: "stack", id: "details", title: "Details", description: "About this note.", items: [
+      { kind: "fact", label: "Owner", value: "Franco" }, { kind: "fact", label: "Words", value: "128" },
+      { kind: "fact", label: "Folder", value: null }, { kind: "text", text: "A paragraph of plain reading text." },
+      { kind: "destination-link", id: "trash", output: "trash", label: "Trash", icon: "archive" }] },
+    { kind: "stack", id: "more", title: "More", items: [{ kind: "text", text: "Second stack, text only." }] },
+  ],
+  "appearance": [{ kind: "header", id: "header", title: "Appearance" }, { kind: "appearance", id: "appearance" }],
+  "identity": [{ kind: "header", id: "header", title: "Identity" }, { kind: "identity", id: "identity" }],
+};
+async function sceneIn(tree: string, content: readonly unknown[], size: typeof sizes[number], theme: typeof themes[number]): Promise<Browser> {
+  const { svelteBrowser } = await import(pathToFileURL(join(tree, "tests/fixtures/svelte-browser.ts")).href);
+  const { rendererCss } = await import(pathToFileURL(join(tree, "tests/fixtures/renderer-css.ts")).href);
+  const { workspaceBodySource } = await import(pathToFileURL(join(tree, "tests/fixtures/workspace-body.ts")).href);
+  const fixture: Browser = await svelteBrowser(`<script lang="ts">
+  import { CatalogWorkspace } from "@desert/svelte/catalog/index.ts";
+  ${workspaceBodySource(content)}
+  let mounted = $state(false);
+</script><button onclick={() => mounted = true}>Mount fixture</button>
+{#if mounted}<CatalogWorkspace navigationSurface={{ title: "Notebook", settingsPlaceholder: true }} title="Notes" identity={{ title: "Notes", subtitle: "Your writing" }}
+  navigation={[{ id: "notes", label: "Notes", icon: "create" }]} active="notes" query="" searching={false} onsearch={() => {}} oncancel={() => {}}
+  onquery={() => {}} onnavigate={() => {}} content={workspaceBody} />{/if}`);
+  await fixture.page.setViewportSize(size);
+  await fixture.page.emulateMedia({ colorScheme: theme, reducedMotion: "reduce" });
+  await fixture.page.addStyleTag({ content: await rendererCss() });
+  await fixture.page.getByRole("button", { name: "Mount fixture", exact: true }).click();
+  await fixture.page.locator("[data-view-content]").first().waitFor();
+  return fixture;
+}
+
+test("view scenes are pixel-identical to the baseline tree", { skip: !baselineTree && "set DESERT_PARITY_BASELINE_TREE", timeout: 1_800_000 }, async () => {
+  if (!baselineTree) return;
+  const report: { case: string; entry: string; size: string; changed: number }[] = [];
+  for (const [scene, content] of Object.entries(viewScenes)) for (const size of sizes) for (const theme of themes) {
+    const before: Browser = await sceneIn(resolve(baselineTree), content, size, theme), after: Browser = await sceneIn(here, content, size, theme);
+    try {
+      let shots = [await capture(before), await capture(after)], result = await changedPixels(shots[0]!, shots[1]!);
+      for (let retake = 0; retake < 3 && result.changed !== 0; retake++) { shots = [await capture(before), await capture(after)]; result = await changedPixels(shots[0]!, shots[1]!); }
+      const name = `${size.width}x${size.height}-${theme}`;
+      report.push({ case: name, entry: scene, ...result });
+      if (output && result.changed !== 0) for (const [label, png] of [["before", shots[0]!], ["after", shots[1]!]] as const) {
+        await mkdir(resolve(output), { recursive: true });
+        await writeFile(join(resolve(output), `scene-${name}-${scene}-${label}.png`), png);
+      }
+      assert.deepEqual([...before.errors, ...after.errors], []);
+    } finally { await before.close(); await after.close(); }
+  }
+  const differing = report.filter(item => item.changed !== 0);
+  console.log(`view parity: ${report.length} captures, ${differing.length} differ`);
+  assert.deepEqual(differing, [], "VISUAL_PARITY_FAILED");
+});
