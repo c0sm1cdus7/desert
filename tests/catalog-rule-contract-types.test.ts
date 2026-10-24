@@ -42,8 +42,8 @@ for (const [name, shape, what] of [
   ["the object keyword", "export type Shape = { identity: object };", /props\.a\.identity resolves to object/],
   ["a DOM element in a callback", "export type Shape = { attach: (media: HTMLMediaElement) => void };", /props\.a\.attach\(media\) resolves to HTMLMediaElement \(lib\.dom/],
   ["a DOM type inside a generic", "export type Shape = { files: ReadonlyMap<string, File> };", /props\.a\.files<1> resolves to File/],
-  ["the Function type", "export type Shape = { run: Function };", /props\.a\.run resolves to Function/],
-  ["the Object type", "export type Shape = { box: Object };", /props\.a\.box resolves to Object/],
+  ["the Function type", "export type Shape = { run: Function };", /props\.a\.run resolves to the library type Function/],
+  ["the Object type", "export type Shape = { box: Object };", /props\.a\.box resolves to the library type Object/],
   ["an empty object type", "export type Shape = { box: {} };", /props\.a\.box resolves to \{\}/],
   ["an unconstrained generic", "export type Shape = { echo: <T>(value: T) => T };", /props\.a\.echo\(value\) resolves to the unconstrained generic T/],
   ["a conditional over a generic", "export type Shape = { pick: <T>(value: T) => T extends string ? number : boolean };", /unconstrained generic/],
@@ -82,10 +82,34 @@ test("a tree file named like TypeScript's library is a tree file", () => {
     /props\.a\.evil\.loose resolves to any/);
 });
 
-test("a library interface other than the trusted value types is walked member by member", () => {
-  assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { failure: PropertyDescriptor };").join("\n"), /props\.a\.failure\.value resolves to any/);
-  assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { make: ObjectConstructor };").join("\n"), /props\.a\.make\..* resolves to any/);
-  assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { failure: Error };").join("\n"), /props\.a\.failure\.cause resolves to unknown/);
+test("a library type other than the trusted value types is refused as it is", () => {
+  for (const [shape, name] of [["PropertyDescriptor", "PropertyDescriptor"], ["ObjectConstructor", "ObjectConstructor"], ["Error", "Error"],
+    ["Function", "Function"], ["Object", "Object"], ["Promise<Error>", "Error"], ["Map<string, JSON>", "JSON"]] as const) {
+    assert.deepEqual(judge("Type.Unsafe<Shape>()", `export type Shape = { x: ${shape} };`).map(item => item.replace(/;.*/, "")).filter(item => item.includes("library type")),
+      [`c props.a.x${shape.includes("<") ? (shape.startsWith("Map") ? "<1>" : "<0>") : ""} resolves to the library type ${name}`], shape);
+  }
+});
+
+test("the trusted value types are judged by their own type arguments, without the library's any defaults", () => {
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", `export type Shape = { a: Iterable<string>; b: AsyncIterable<number>; c: () => PromiseLike<string>;
+  d: RegExpMatchArray; e: TemplateStringsArray; f: ReadonlyMap<string, readonly Date[]>; g: Uint8Array };`), []);
+  assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { a: Iterable<any> };").join("\n"), /props\.a\.a<0> resolves to any/);
+});
+
+test("a script file in the tree is refused: its declarations would change the library", () => {
+  for (const merge of ["interface Array<T> { leak: any }", "interface ReadonlyArray<T> { leak: any }", "interface String { leak: any }"]) {
+    assert.match(judge("Type.Unsafe<Shape>()", 'import "./aug.ts";\nexport type Shape = { p: readonly string[]; q: string };', { "src/views/aug.ts": `${merge}\n` }).join("\n"),
+      /is a script file/, merge);
+  }
+});
+
+test("a recursive generic domain type terminates", () => {
+  const found = judge("Type.Unsafe<Shape>()", "export interface Tree<T> { value: T; map<U extends string>(f: (value: T) => U): Tree<U>; children: readonly Tree<T>[] }\nexport type Shape = { tree: Tree<string> };");
+  assert.ok(found.every(item => !/any|unknown/.test(item)), found.join("\n"));
+});
+
+test("a quoted \"#name\" key is an ordinary member", () => {
+  assert.match(judge("Type.Unsafe<Shape>()", 'export type Shape = { "#leak": any };').join("\n"), /#leak resolves to any/);
 });
 
 test("a private or #private member is not part of the contract", () => {

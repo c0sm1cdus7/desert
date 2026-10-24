@@ -1,13 +1,14 @@
 // Rule U. Law: a closed contract is closed in what its types ARE, not only in where they come from. The reader admits
 // `Type.Unsafe<T>()` and schema references only from non-visual tree modules; this rule asks the TypeScript checker what
 // every prop, event and instance member of each closed contract resolves to, through every property, union, array,
-// map, call signature and `this` parameter, and refuses `any`, `unknown`, `object`, `{}`, `Function`/`Object`, unresolved
+// map, call signature and `this` parameter, and refuses `any`, `unknown`, `object`, `{}`, every ES library type but a short list of value types, unresolved
 // generics (a type parameter, a conditional, `keyof T`, `T[K]`) and any type declared by the DOM, Svelte or Node.
 // Raises: CONTRACT_OPEN_TYPE.
 //
 // The judged tree is read as data: the checker parses it and evaluates nothing, and the tree cannot change what the
 // checker believes. Packages (TypeBox, Svelte) resolve only in the gate's own checkout; a tree file may not reach other
-// files through `/// <reference>` directives, declare ambient modules or `declare global`, or import outside the tree;
+// files through `/// <reference>` directives, be a script file (its declarations are globals), declare ambient modules or
+// `declare global`, or import outside the tree;
 // TypeScript's library is recognised by the program (its default library files in the checkout), never by a path name.
 import { realpathSync } from "node:fs";
 import { dirname, join, posix, relative, resolve } from "node:path";
@@ -25,13 +26,18 @@ const packages = join(checkout, "node_modules");
 /** Library files whose types never cross a contract: browser globals. Packages whose types never do: Svelte and Node. */
 const foreignLibrary = /^lib\.(dom|webworker|scripthost)[^/]*\.d\.ts$/;
 const foreignPackages = ["svelte", "@types/node"].map(name => join(packages, name) + "/");
-/** ES library types that are open themselves. */
-const openLibrary = new Set(["Function", "Object", "CallableFunction", "NewableFunction"]);
-/** ES library types trusted as values: judged by their type arguments only (Promise<T>, ReadonlyMap<K, V>). Every other
- * library interface (Error, PropertyDescriptor, JSON, a *Constructor) is walked member by member like a domain type. */
-const trustedLibrary = new Set(["Array", "ReadonlyArray", "Promise", "Map", "ReadonlyMap", "Set", "ReadonlySet", "Date", "RegExp",
-  "Int8Array", "Uint8Array", "Uint8ClampedArray", "Int16Array", "Uint16Array", "Int32Array", "Uint32Array", "Float32Array", "Float64Array",
-  "BigInt64Array", "BigUint64Array", "String", "Number", "Boolean", "Symbol", "BigInt"]);
+/** The ES library types a contract may carry, each judged by its first N type arguments only (Promise<T>, Map<K, V>,
+ * Iterable<T> without its `any` defaults). Every other library type (Function, Object, Error, PropertyDescriptor, JSON, a
+ * *Constructor) is refused as it is, never walked: the library is fixed, since no tree file may change a global. */
+const trustedLibrary: ReadonlyMap<string, number> = new Map([
+  ...["Array", "ReadonlyArray", "Promise", "PromiseLike", "Set", "ReadonlySet", "ArrayLike", "Iterable", "IterableIterator", "AsyncIterable",
+    "AsyncIterableIterator"].map(name => [name, 1] as const),
+  ...["Map", "ReadonlyMap"].map(name => [name, 2] as const),
+  ...["Date", "RegExp", "RegExpMatchArray", "RegExpExecArray", "TemplateStringsArray", "Int8Array", "Uint8Array", "Uint8ClampedArray",
+    "Int16Array", "Uint16Array", "Int32Array", "Uint32Array", "Float32Array", "Float64Array", "BigInt64Array", "BigUint64Array",
+    "String", "Number", "Boolean", "Symbol", "BigInt"].map(name => [name, 0] as const)]);
+/** Deeper than this a type is reported rather than walked: generic instantiations can be unbounded. */
+const maxDepth = 64;
 const sections = ["props", "events", "instance"] as const;
 const inside = (file: string, folder: string) => { const path = relative(folder, file); return path !== "" && !path.startsWith("..") && !posix.isAbsolute(path); };
 
@@ -121,6 +127,10 @@ function treeFileViolations(file: ts.SourceFile, path: string): Violation[] {
   const directives = [...file.referencedFiles.map(item => `path="${item.fileName}"`), ...file.typeReferenceDirectives.map(item => `types="${item.fileName}"`),
     ...file.libReferenceDirectives.map(item => `lib="${item.fileName}"`), ...file.hasNoDefaultLib ? ['no-default-lib="true"'] : []];
   for (const directive of directives) found.push(violation(code, path, 0, `holds /// <reference ${directive} />; a tree file reaches other files by import only`));
+  // A script file (no import or export) declares globals with every top-level statement: `interface Array<T> { leak: any }`.
+  if (!ts.isExternalModule(file) && file.statements.length) {
+    found.push(violation(code, path, 0, "is a script file: its top-level declarations are globals; a tree file is a module (import or export)"));
+  }
   const visit = (node: ts.Node): void => {
     if (ts.isModuleDeclaration(node) && (ts.isStringLiteral(node.name) || node.flags & ts.NodeFlags.GlobalAugmentation)) {
       const line = file.getLineAndCharacterOfPosition(node.getStart(file)).line + 1;
@@ -154,8 +164,9 @@ function platform({ library }: Judge, type: ts.Type): string | undefined {
 const emptyObject = (checker: ts.TypeChecker, type: ts.Type) => !!(type.flags & ts.TypeFlags.Object) && !checker.getPropertiesOfType(type).length
   && !type.getCallSignatures().length && !type.getConstructSignatures().length && !checker.getIndexInfosOfType(type).length;
 
-function walk(judge: Judge, type: ts.Type, trail: string, seen: Set<ts.Type>, report: (trail: string, what: string) => void): void {
-  const { checker } = judge;
+function walk(judge: Judge, type: ts.Type, trail: string, seen: Set<ts.Type>, report: (trail: string, what: string) => void, depth = 0): void {
+  const { checker } = judge, next = (inner: ts.Type, at: string) => walk(judge, inner, at, seen, report, depth + 1);
+  if (depth > maxDepth) return report(trail, `a type nested deeper than ${maxDepth} levels`);
   // `any`, `unknown` and `object` are one type each: they are reported wherever they occur, before the seen check.
   if (type.flags & ts.TypeFlags.Any) return report(trail, "any");
   if (type.flags & ts.TypeFlags.Unknown) return report(trail, "unknown");
@@ -168,44 +179,48 @@ function walk(judge: Judge, type: ts.Type, trail: string, seen: Set<ts.Type>, re
     if (!constraint || constraint === type || constraint.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) {
       return report(trail, `the unconstrained generic ${checker.typeToString(type)}`);
     }
-    return walk(judge, constraint, trail, seen, report);
+    return next(constraint, trail);
   }
   if (type.isUnionOrIntersection()) {
     // `string & {}` is a brand: an empty object beside a primitive narrows it and is not a value of its own.
     const branded = type.isIntersection() && type.types.some(member => member.flags & primitive);
-    for (const member of type.types) if (!(branded && emptyObject(checker, member))) walk(judge, member, trail, seen, report);
+    for (const member of type.types) if (!(branded && emptyObject(checker, member))) next(member, trail);
     return;
   }
   if (!(type.flags & ts.TypeFlags.Object)) return;
   const symbol = type.getSymbol(), name = checker.typeToString(type), foreign = platform(judge, type);
   if (foreign) return report(trail, `${name} (${foreign})`);
   const declared = filesOf(symbol), fromLibrary = declared.length > 0 && declared.every(judge.library);
-  if (fromLibrary && symbol && openLibrary.has(symbol.name)) return report(trail, symbol.name);
+  // A library interface or class is trusted or refused; a mapped utility (Readonly, Pick) is walked like an object.
+  if (fromLibrary && symbol && symbol.flags & (ts.SymbolFlags.Interface | ts.SymbolFlags.Class)) {
+    const judged = trustedLibrary.get(symbol.name);
+    if (judged === undefined) return report(trail, `the library type ${symbol.name}`);
+    const object = type as ts.ObjectType;
+    const args = object.objectFlags & ts.ObjectFlags.Reference ? checker.getTypeArguments(type as ts.TypeReference) : [];
+    args.slice(0, judged).forEach((argument, index) => next(argument, `${trail}<${index}>`));
+    return;
+  }
   // A section with no members (`props: Type.Object({})`) is closed; an empty object type as a value is not.
   if (emptyObject(checker, type)) return sections.some(section => section === trail) ? undefined : report(trail, "{}");
-  const object = type as ts.ObjectType;
-  if (object.objectFlags & ts.ObjectFlags.Reference) {
-    checker.getTypeArguments(type as ts.TypeReference).forEach((argument, index) => walk(judge, argument, `${trail}<${index}>`, seen, report));
-    if (checker.isTupleType(type) || checker.isArrayType(type)) return;
+  // A tuple is its elements; a tree type's type arguments are judged beside its members.
+  if ((type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) {
+    checker.getTypeArguments(type as ts.TypeReference).forEach((argument, index) => next(argument, `${trail}<${index}>`));
+    if (checker.isTupleType(type)) return;
   }
-  // A trusted ES library type (Promise, Array, Map, Date) that no tree file augments is judged by its type arguments
-  // only; any other library interface and any mapped utility (Readonly, Pick) is walked like an object, member by member.
-  if (fromLibrary && symbol && trustedLibrary.has(symbol.name) && symbol.flags & (ts.SymbolFlags.Interface | ts.SymbolFlags.Class)) return;
   for (const property of checker.getPropertiesOfType(type)) {
-    // A private or #private member is not part of what a caller can reach.
-    const declared = property.valueDeclaration ?? property.declarations?.[0];
-    if (property.name.startsWith("#") || declared && ts.getCombinedModifierFlags(declared) & (ts.ModifierFlags.Private | ts.ModifierFlags.Protected)) continue;
-    const declaration = property.valueDeclaration ?? property.declarations?.[0];
+    // A private or #private member is not part of what a caller can reach; a quoted "#name" key is an ordinary member.
+    const declaration = property.valueDeclaration ?? property.declarations?.[0], named = declaration && ts.getNameOfDeclaration(declaration);
+    if (named && ts.isPrivateIdentifier(named) || declaration && ts.getCombinedModifierFlags(declaration) & (ts.ModifierFlags.Private | ts.ModifierFlags.Protected)) continue;
     const propertyType = declaration ? checker.getTypeOfSymbolAtLocation(property, declaration) : checker.getTypeOfSymbol(property);
-    walk(judge, propertyType, `${trail}.${property.name}`, seen, report);
+    next(propertyType, `${trail}.${property.name}`);
   }
-  for (const info of checker.getIndexInfosOfType(type)) walk(judge, info.type, `${trail}[]`, seen, report);
+  for (const info of checker.getIndexInfosOfType(type)) next(info.type, `${trail}[]`);
   for (const signature of [...type.getCallSignatures(), ...type.getConstructSignatures()]) {
     for (const parameter of [...signature.thisParameter ? [signature.thisParameter] : [], ...signature.getParameters()]) {
       const at = parameter.valueDeclaration;
-      walk(judge, at ? checker.getTypeOfSymbolAtLocation(parameter, at) : checker.getTypeOfSymbol(parameter), `${trail}(${parameter.name})`, seen, report);
+      next(at ? checker.getTypeOfSymbolAtLocation(parameter, at) : checker.getTypeOfSymbol(parameter), `${trail}(${parameter.name})`);
     }
-    walk(judge, signature.getReturnType(), `${trail}()`, seen, report);
+    next(signature.getReturnType(), `${trail}()`);
   }
 }
 
