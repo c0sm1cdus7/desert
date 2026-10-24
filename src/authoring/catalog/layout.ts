@@ -63,7 +63,7 @@ export const DesertLayout: CatalogLayout = Object.freeze({
         "composition-template.ts", "content-rules.ts", "context.ts", "css-marks.ts", "css-ownership.ts", "declarations.ts", "derivation.ts",
         "dispatch-admission.ts", "dom-access.ts", "emitted-css.ts", "grammar.ts", "inventory.ts", "ledger.ts", "native-controls.ts",
         "nonvisual-sources.ts", "nonvisual.ts", "opaque-source.ts", "owner-imports.ts", "ownership.ts", "parse.ts", "presentation-contract.ts", "presentation.ts",
-        "resolve-imports.ts", "run.ts", "runtime-globals.ts", "sources.ts", "specimens.ts", "stylesheet.ts", "template-artifacts.ts",
+        "resolve-imports.ts", "run.ts", "runtime-globals.ts", "sources.ts", "specimen-combinations.ts", "specimens.ts", "stylesheet.ts", "template-artifacts.ts",
         "template-assets.ts", "violation.ts", "walk.ts"]),
     ],
     required: [theme, rendererTypes],
