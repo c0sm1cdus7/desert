@@ -10,10 +10,10 @@ test("published label arrays use the existing Tag primitive in facts, not a JSON
     object:'task',fields:['projects','status'],facts:{projects:['DESERT','Two words','🪴'],status:'open'},
     labels:{'task.projects':'Projects','task.status':'Status'},tags:['projects']}}} />`);
   try {
-    assert.deepEqual(await f.page.locator('[data-control="tag"]').allTextContents(), ['DESERT', 'Two words', '🪴']);
+    assert.deepEqual(await f.page.locator('[data-tag] > span').allTextContents(), ['DESERT', 'Two words', '🪴']);
     assert.equal(await f.page.getByText('Projects', { exact: true }).count(), 1);
     assert.equal(await f.page.getByText('open', { exact: true }).count(), 1);
-    assert.equal(await f.page.locator('[data-control="tag"][data-tone="neutral"]').count(), 3);
+    assert.equal(await f.page.locator('[data-tag][data-tone="neutral"]').count(), 3);
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

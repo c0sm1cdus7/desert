@@ -104,7 +104,7 @@ test("dropdown faces preserve shared Avatar fill and border in every appearance"
       const material = await f.page.locator('[role="listbox"] [data-piece="face"]').evaluateAll(elements =>
         elements.map(element => {
           const style = getComputedStyle(element), border = getComputedStyle(element, "::after");
-          return { slot: element.getAttribute("data-slot"), fill: style.backgroundColor, border: border.borderTopColor,
+          return { slot: element.getAttribute("data-slot"), piece: element.getAttribute("data-piece"), fill: style.backgroundColor, border: border.borderTopColor,
             width: border.borderTopWidth, kind: border.borderTopStyle, blend: border.mixBlendMode,
             pointer: border.pointerEvents, filter: style.filter, box: element.getBoundingClientRect().toJSON() };
         }));
@@ -112,7 +112,7 @@ test("dropdown faces preserve shared Avatar fill and border in every appearance"
       await f.page.screenshot({ path: new URL(`${colorScheme}-${contrast}.png`, directory).pathname });
       assert.equal(material.length, 4);
       for (const face of material) {
-        assert.equal(face.slot, "avatar");
+        assert.deepEqual([face.piece, face.slot], ["face", null], "the face draws its own mark (slice 3), not the vendor avatar");
         assert.notEqual(face.fill, "rgba(0, 0, 0, 0)");
         assert.notEqual(face.border, "rgba(0, 0, 0, 0)");
         assert.equal(face.kind, "solid"); assert.ok(parseFloat(face.width) >= 1);

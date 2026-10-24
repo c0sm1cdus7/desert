@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { AppearancePreview, ArtworkPlaceholder, ColorBullet, Face, Image, Wallpaper } from "../../index.ts";
+  import { ColorBullet, Face, Image, ThemePreview, Wallpaper } from "../../index.ts";
   import type { ChoiceLeading } from "../../../../interaction/choice.ts";
   // What leads an option. Beside a label (a row, a menu option, a menu trigger) artwork is a 4×3rem preview; above a
   // card's label it fills the card.
@@ -10,14 +10,12 @@
 {:else if leading.kind === "color"}<ColorBullet color={leading.color} />
 {:else if leading.kind === "symbol"}<span class="symbol" data-choice-symbol aria-hidden="true">{leading.text}</span>
 {:else if leading.kind === "theme"}
-  <!-- F1-merge: theme-preview (F1e) replaces the AppearancePreview composition. -->
-  <AppearancePreview mode={leading.mode} tint={leading.tint} wallpaper={leading.wallpaper} />
+  <ThemePreview mode={leading.mode} tint={leading.tint} wallpaper={leading.wallpaper} />
 {:else if frame === "card" && leading.kind === "wallpaper"}<Wallpaper wallpaper={leading.wallpaper} preview />
 {:else}
   <span class={frame === "mark" ? "preview" : "cover"}>
     {#if leading.kind === "image"}<Image source={leading.source} alt={leading.alt} edge={frame === "mark" ? 96 : 320} />
-    <!-- F1-merge: image placeholder (F1e) replaces ArtworkPlaceholder. -->
-    {:else if leading.kind === "artwork"}<ArtworkPlaceholder kind={leading.media} />
+    {:else if leading.kind === "artwork"}<Image placeholder={leading.media} />
     {:else}<Wallpaper wallpaper={leading.wallpaper} preview />{/if}
   </span>
 {/if}

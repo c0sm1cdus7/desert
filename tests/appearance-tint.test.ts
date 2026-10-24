@@ -61,8 +61,8 @@ test("semantic faces retain tint while every pane shares neutral material and ac
         const rgba = (value: string) => { context.clearRect(0, 0, 1, 1); context.fillStyle = value; context.fillRect(0, 0, 1, 1); return [...context.getImageData(0, 0, 1, 1).data]; };
         const style = (selector: string) => getComputedStyle(document.querySelector(selector)!);
         const root = getComputedStyle(document.documentElement);
-        const faces = [...document.querySelectorAll('[data-slot="avatar"]')].map(face => {
-          const css = getComputedStyle(face), border = getComputedStyle(face, "::after"), fallback = face.querySelector('[data-slot="avatar-fallback"]');
+        const faces = [...document.querySelectorAll('[data-slot="avatar"], [data-piece="face"]')].map(face => {
+          const css = getComputedStyle(face), border = getComputedStyle(face, "::after"), fallback = face.querySelector('[data-slot="avatar-fallback"], [data-face-content]');
           const image = face.querySelector("img"), photo = image ? getComputedStyle(image) : null;
           return { tone: face.getAttribute("data-tone") ?? "neutral", fill: rgba(css.backgroundColor), border: rgba(border.borderTopColor),
             text: fallback ? rgba(getComputedStyle(fallback).color) : null, glyph: !!face.querySelector("svg"),
@@ -103,7 +103,7 @@ test("semantic faces retain tint while every pane shares neutral material and ac
       await writeFile(new URL(`${name}.json`, directory), JSON.stringify({ observed, failures: failures.filter(value => value.startsWith(name + ":")) }, null, 2));
       await f.page.screenshot({ path: new URL(`${name}.png`, directory).pathname });
     }
-    assert.equal(await f.page.locator('[data-slot="avatar"]').count(), 7);
+    assert.equal(await f.page.locator('[data-slot="avatar"], [data-piece="face"]').count(), 7);
     assert.deepEqual(f.errors, []);
     assert.deepEqual(failures, []);
   } finally { await f.close(); }

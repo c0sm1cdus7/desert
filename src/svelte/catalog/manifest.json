@@ -63,6 +63,13 @@
       "folder": "src/svelte/catalog/mechanisms/media",
       "owner": "theme"
     },
+    "media-gestures": {
+      "files": [
+        "media-gestures.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/media-gestures",
+      "owner": "gallery"
+    },
     "navigation-selection": {
       "files": [
         "navigation-selection.css"
@@ -412,6 +419,41 @@
         "icon",
         "seed-avatar"
       ]
+    },
+    "card": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/card",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Card.svelte"
+      },
+      "purpose": "Open one item, media, collection or summary from a card composed of artwork and its supporting content.",
+      "shape": "radius",
+      "slots": {
+        "children": {
+          "accepts": [
+            "heading",
+            "text",
+            "meter",
+            "loading",
+            "inline"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "current",
+        "disabled"
+      ],
+      "variants": {
+        "presentation": [
+          "featured",
+          "item",
+          "tile",
+          "collection",
+          "summary"
+        ]
+      }
     },
     "catalog-card": {
       "approval": "required",
@@ -1055,15 +1097,61 @@
       "owner": {
         "entry": "FactRow.svelte"
       },
-      "purpose": "Keep a capitalized label on the left and its value right-aligned, with shared horizontal dividers and balanced wrapping.",
+      "purpose": "Keep a capitalized label on the left and its value or its control right-aligned, with shared horizontal dividers and balanced wrapping.",
       "shape": "none",
+      "slots": {
+        "control": {
+          "accepts": [
+            "choice"
+          ]
+        }
+      },
+      "stateVariants": {
+        "control": {
+          "kind": [
+            "control"
+          ]
+        },
+        "labels": {
+          "kind": [
+            "value"
+          ]
+        },
+        "no-labels": {
+          "kind": [
+            "value"
+          ]
+        },
+        "references": {
+          "kind": [
+            "value"
+          ]
+        },
+        "unknown": {
+          "kind": [
+            "value"
+          ]
+        },
+        "value": {
+          "kind": [
+            "value"
+          ]
+        }
+      },
       "states": [
         "value",
         "unknown",
         "labels",
         "no-labels",
-        "references"
-      ]
+        "references",
+        "control"
+      ],
+      "variants": {
+        "kind": [
+          "value",
+          "control"
+        ]
+      }
     },
     "fact-value": {
       "approval": "required",
@@ -1078,7 +1166,13 @@
         "known",
         "empty",
         "unknown"
-      ]
+      ],
+      "variants": {
+        "presentation": [
+          "inline",
+          "paragraph"
+        ]
+      }
     },
     "facts": {
       "approval": "none",
@@ -1334,6 +1428,36 @@
         "utility-actions"
       ]
     },
+    "gallery": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/gallery",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Gallery.svelte",
+        "mechanisms": [
+          "media-gestures"
+        ]
+      },
+      "purpose": "Page through a set of photos in place, inline, heading a place or as a detail's photograph, and open them in the viewer.",
+      "shape": "none",
+      "states": [
+        "single",
+        "set"
+      ],
+      "variants": {
+        "aspect": [
+          "fill",
+          "square",
+          "landscape",
+          "portrait"
+        ],
+        "presentation": [
+          "inline",
+          "header",
+          "detail"
+        ]
+      }
+    },
     "grid": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/grid",
@@ -1466,12 +1590,32 @@
       "owner": {
         "entry": "Image.svelte"
       },
-      "purpose": "Show a public or private image at the rendition its frame needs, hidden until decoded, with a fallback and optional retry.",
+      "purpose": "Show a public or private image at the rendition its frame needs, hidden until decoded, with a fallback and optional retry, or the placeholder of missing artwork.",
       "shape": "none",
+      "stateVariants": {
+        "audio": {
+          "fit": [
+            "fill"
+          ]
+        },
+        "unavailable": {
+          "fit": [
+            "fill"
+          ]
+        },
+        "video": {
+          "fit": [
+            "fill"
+          ]
+        }
+      },
       "states": [
         "loading",
         "ready",
-        "error"
+        "error",
+        "video",
+        "audio",
+        "unavailable"
       ],
       "variants": {
         "fit": [
@@ -1649,6 +1793,41 @@
         "catalog-home",
         "viewer"
       ]
+    },
+    "list": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/list",
+      "kind": "foundation",
+      "owner": {
+        "entry": "List.svelte"
+      },
+      "purpose": "Hold sibling rows or facts in one shared pane, at the reading measure or the full overview width.",
+      "shape": "radius",
+      "slots": {
+        "children": {
+          "accepts": [
+            "row",
+            "fact-row",
+            "object-state-row",
+            "text",
+            "status",
+            "loading"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "kind": [
+          "rows",
+          "facts"
+        ],
+        "measure": [
+          "reading",
+          "overview"
+        ]
+      }
     },
     "loading": {
       "approval": "required",
@@ -1843,6 +2022,48 @@
         "toolbar-layout"
       ]
     },
+    "media-player": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/media-player",
+      "kind": "foundation",
+      "owner": {
+        "entry": "MediaPlayer.svelte",
+        "parts": [
+          "playback.svelte.ts",
+          "Transport.svelte",
+          "Seek.svelte",
+          "Volume.svelte"
+        ],
+        "vendor": [
+          "slider"
+        ]
+      },
+      "purpose": "Play a video or audio item with its transport, seek and volume controls, showing artwork for audio and a retry when unavailable.",
+      "shape": "none",
+      "slots": {
+        "overlay": {
+          "accepts": [
+            "action"
+          ]
+        },
+        "strip": {
+          "accepts": [
+            "image"
+          ]
+        }
+      },
+      "states": [
+        "video",
+        "audio"
+      ],
+      "variants": {
+        "presentation": [
+          "inline",
+          "viewer",
+          "header"
+        ]
+      }
+    },
     "media-reference-selector": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/media-reference-selector",
@@ -1868,6 +2089,27 @@
       "purpose": "Witness the media reference selector in the bank with one local image and local state.",
       "uses": [
         "media-reference-selector"
+      ]
+    },
+    "media-viewer": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/media-viewer",
+      "kind": "foundation",
+      "owner": {
+        "entry": "MediaViewer.svelte",
+        "mechanisms": [
+          "media-gestures"
+        ],
+        "parts": [
+          "MediaStrip.svelte"
+        ]
+      },
+      "purpose": "Show images, audio and video full screen with paging, zoom and playback, and return focus to what opened them.",
+      "shape": "none",
+      "states": [
+        "image",
+        "playable",
+        "single"
       ]
     },
     "message-body": {
@@ -2097,10 +2339,7 @@
       "folder": "src/svelte/catalog/foundations/playback-canvas",
       "kind": "foundation",
       "owner": {
-        "entry": "PlaybackCanvas.svelte",
-        "vendor": [
-          "slider"
-        ]
+        "entry": "PlaybackCanvas.svelte"
       },
       "purpose": "Play a video or audio item attached to its playback controller, showing artwork for audio and a retry when unavailable.",
       "shape": "none",
@@ -2327,6 +2566,43 @@
       "uses": [
         "node-renderer"
       ]
+    },
+    "row": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/row",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Row.svelte"
+      },
+      "purpose": "Open one object or destination from a list row, or read one, and say why an unavailable one cannot open.",
+      "shape": "none",
+      "stateVariants": {
+        "current": {
+          "interaction": [
+            "open"
+          ]
+        },
+        "unavailable": {
+          "interaction": [
+            "open"
+          ]
+        }
+      },
+      "states": [
+        "available",
+        "unavailable",
+        "current"
+      ],
+      "variants": {
+        "interaction": [
+          "open",
+          "static"
+        ],
+        "trailing": [
+          "chevron",
+          "none"
+        ]
+      }
     },
     "scroll-edges": {
       "approval": "required",
@@ -2876,6 +3152,25 @@
         "primitive": [
           "input.text",
           "input.multiline"
+        ]
+      }
+    },
+    "theme-preview": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/theme-preview",
+      "kind": "foundation",
+      "owner": {
+        "entry": "ThemePreview.svelte"
+      },
+      "purpose": "Compare Dark and Light using the same surface, tint and wallpaper tokens as the running interface.",
+      "shape": "radius",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "mode": [
+          "light",
+          "dark"
         ]
       }
     },

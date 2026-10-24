@@ -1,5 +1,7 @@
 // The props of Icon. `name` is one of the lucide glyphs the product draws; every other prop is one meaning a caller
-// gives the glyph (decorative, placement inside a control, chevron, search lead, tone, size, list lead).
+// gives the glyph (decorative, placement inside a control, chevron, search lead, tone, size, list lead). Size `em` follows
+// the text; `mark` fills 55% of the round mark it sits in (a face) and `artwork` a quarter of the frame of missing artwork
+// (at most 8rem); both yield to any size a control gives its glyphs.
 import { Type } from "@sinclair/typebox";
 
 export const IconContract = {
@@ -55,7 +57,7 @@ export const IconContract = {
     destination: Type.Optional(Type.Boolean()),
     search: Type.Optional(Type.Literal("leading")),
     tone: Type.Optional(Type.Union([Type.Literal("success"), Type.Literal("warning")])),
-    size: Type.Optional(Type.Literal("em")),
+    size: Type.Optional(Type.Union([Type.Literal("em"), Type.Literal("mark"), Type.Literal("artwork")])),
     leading: Type.Optional(Type.Literal("list")),
   }, { additionalProperties: false }),
   marks: ["data-icon"],

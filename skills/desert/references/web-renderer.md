@@ -4596,11 +4596,10 @@ Source SHA-256: fdac3944924fcdb2c720239be2714aaa6d69d3a8602cd4de6e7c595c0b0a778c
 
 ## src/svelte/catalog/foundations/face/Face.svelte
 
-Source SHA-256: 6809f79f3f14c2ee8d046a11625f4a7b2c239a3c78ab53f5713487a8a9a63c3a
+Source SHA-256: 2422851544aa9aa5eb55cbf79c33412f7ecff38d24e330f05cda17b96a3864eb
 
 ```svelte
 <script lang="ts">
-  import * as Avatar from "../../../vendor/components/ui/avatar/index.js";
   import { actionIconNames } from '../../../infra/action-icons.ts';
   import { Icon } from '../../index.ts';
   import type { CatalogProps } from "../../types.d.ts";
@@ -4608,10 +4607,29 @@ Source SHA-256: 6809f79f3f14c2ee8d046a11625f4a7b2c239a3c78ab53f5713487a8a9a63c3a
   let glyph = $derived(face.kind === "symbol" ? face.text : face.kind === "flag"
     ? Array.from(face.region, letter => String.fromCodePoint(0x1f1e6 + letter.charCodeAt(0) - 65)).join("") : "");
 </script>
-<Avatar.Root shape="object" class="bank-face size-[var(--face-size,2rem)]" data-piece="face" data-face-kind={face.kind}
-  data-compact={compact || undefined} data-tone={face.kind === "status" ? face.severity : "neutral"} aria-hidden="true">
-  <Avatar.Fallback>{#if face.kind === 'icon'}<Icon name={actionIconNames[face.icon]} />{:else if face.kind === "status"}<Icon name="circle-alert" />{:else if face.kind === "document"}<Icon name="file-text" />{:else}<span data-face-glyph>{glyph}</span>{/if}</Avatar.Fallback>
-</Avatar.Root>
+<!-- The face draws its own round mark: its fill and border come from the theme's tm-face utility. -->
+<div class="bank-face tm-face relative flex shrink-0 select-none overflow-hidden rounded-[30%] after:pointer-events-none after:absolute after:inset-0 after:rounded-[30%] after:border"
+  class:face-warning={face.kind === "status" && face.severity === "warning"} class:face-error={face.kind === "status" && face.severity === "error"}
+  data-piece="face" data-face-kind={face.kind} data-compact={compact || undefined}
+  data-tone={face.kind === "status" ? face.severity : "neutral"} aria-hidden="true">
+  <span class="face-content type-body flex size-full items-center justify-center rounded-[inherit]" data-face-content>
+    {#if face.kind === 'icon'}<Icon name={actionIconNames[face.icon]} size="mark" />{:else if face.kind === "status"}<Icon name="circle-alert" size="mark" />{:else if face.kind === "document"}<Icon name="file-text" size="mark" />{:else}<span class="face-glyph" data-face-glyph>{glyph}</span>{/if}
+  </span>
+</div>
+
+<style>
+  /* Base geometry sits in the components layer, as in theme.css, so contextual rules keep their precedence. */
+  @layer components {
+    /* A host sizes the face through --face-size (the toolbar's); compact is the smaller mark of a dense list. */
+    .bank-face { width:var(--face-size,2rem); height:var(--face-size,2rem); color:var(--muted-foreground); }
+    .bank-face[data-compact] { width:1.5rem; height:1.5rem; }
+    .face-glyph { font-size:calc(var(--face-size,2rem) * .6); line-height:1; }
+    .bank-face[data-compact] .face-glyph { font-size:calc(1.5rem * .6); }
+    .bank-face[data-face-kind="flag"] .face-glyph { font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif; }
+    .face-warning { --face-tone:var(--warning); color:var(--face-tone); }
+    .face-error { --face-tone:var(--destructive); color:var(--face-tone); }
+  }
+</style>
 ```
 
 ## src/svelte/catalog/foundations/field-well/FieldWell.svelte
@@ -4980,7 +4998,7 @@ Source SHA-256: c901392215b7f9cd968d5a6ba77ba32b6372091dc627c18240f35f39bbeb0f6e
 
 ## src/svelte/infra/action-icons.ts
 
-Source SHA-256: 75005d77015749b488cfb38af6b23ed690069288933b080f82fd167ae6ae25e8
+Source SHA-256: 747c889e41bfaedcc4828c9c448a402756c366a162d3efe10ad3d8d7d67a7d34
 
 ```ts
 import type { ActionIcon } from "../../interaction/toolbar.ts";
@@ -4990,6 +5008,7 @@ export const actionIconNames = {
   back: "arrow-left", close: "x", save: "save", review: "eye", recover: "search", retry: "rotate-cw",
   create: "plus", archive: "archive", catalog: "layout-grid", open: "arrow-right", confirm: "check", search: "search", more: "ellipsis", navigation: "panel-left",
   media: "images", edit: "pencil", settings: "settings", lock: "lock", restore: "undo-2", palette: "palette",
+  play: "play", pause: "pause", volume: "volume-2", muted: "volume-x", previous: "chevron-left", next: "chevron-right",
 } as const satisfies Record<ActionIcon, string>;
 ```
 

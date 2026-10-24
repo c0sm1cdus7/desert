@@ -4,7 +4,6 @@
   import type { CatalogProps } from "../../types.d.ts";
   import { getContext } from 'svelte';
   import { Image } from '../../index.ts';
-  import { ArtworkPlaceholder } from '../../index.ts';
   import { mediaSource, prefetchImage } from '../../../infra/media-source.ts';
   let { node, onevent }: CatalogProps<"catalog-card"> = $props();
   const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');
@@ -16,7 +15,7 @@
 
   <Card.Root data-catalog-card="item" data-record={node.record} data-public-card={node.record}>
     {#if node.image}<Image source={mediaSource(node.image.asset)} alt={node.image.alt} />
-    {:else if 'mediaType' in node}<ArtworkPlaceholder kind={node.mediaType} />{/if}
+    {:else if 'mediaType' in node}<Image placeholder={node.mediaType} />{/if}
     <Card.Header><Card.Title>
       <Button variant="row" data-catalog-image-action aria-label={node.title} onclick={open} onpointerenter={prepare} onfocus={prepare}>
         <span data-catalog-card-overlay data-catalog-item-title data-public-card-title>{node.title}</span>

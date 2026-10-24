@@ -32,7 +32,7 @@ test("all shared faces retain their own fill and unblended border", { timeout: 6
     await f.page.locator("img").first().waitFor();
     for (const colorScheme of ["light", "dark"] as const) for (const contrast of ["no-preference", "more"] as const) {
       await f.page.emulateMedia({ colorScheme, contrast, reducedMotion: "reduce" });
-      const faces = await f.page.locator('[data-slot="avatar"]').evaluateAll(elements => elements.map(element => {
+      const faces = await f.page.locator('[data-slot="avatar"], [data-piece="face"]').evaluateAll(elements => elements.map(element => {
         const style = getComputedStyle(element), border = getComputedStyle(element, "::after");
         const child = element.firstElementChild!;
         return { shape: element.getAttribute("data-shape"), tone: element.getAttribute("data-tone"),
@@ -53,7 +53,7 @@ test("all shared faces retain their own fill and unblended border", { timeout: 6
       await writeFile(new URL(`${colorScheme}-${contrast}.json`, directory), JSON.stringify({ faces, failures }, null, 2));
       await f.page.screenshot({ path: new URL(`${colorScheme}-${contrast}.png`, directory).pathname });
     }
-    assert.equal(await f.page.locator('[data-slot="avatar"]').count(), 7);
+    assert.equal(await f.page.locator('[data-slot="avatar"], [data-piece="face"]').count(), 7);
     assert.deepEqual(f.errors, []);
     assert.deepEqual(failures, []);
   } finally { await f.close(); }

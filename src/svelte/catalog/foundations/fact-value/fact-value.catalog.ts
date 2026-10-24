@@ -1,4 +1,5 @@
-// FactValue: the reading of one scalar fact; an unknown or empty value shows a muted icon and an accessible state.
+// FactValue: the reading of one scalar fact, inline or as a paragraph of reading copy; an unknown or empty value shows a
+// muted icon and an accessible state.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { FactValueContract } from "./fact-value.contract.ts";
 
@@ -7,5 +8,6 @@ export const FactValue = defineFoundation({
   purpose: "Read one scalar fact as text, or show that it is unknown or empty with a muted icon and an accessible state.",
   owner: { entry: "FactValue.svelte" },
   shape: "none", states: ["known", "empty", "unknown"],
+  variants: { presentation: ["inline", "paragraph"] },
   approval: "required", contract: FactValueContract,
 } as const);

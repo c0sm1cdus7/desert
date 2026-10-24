@@ -61,14 +61,5 @@
 @layer components {
   [data-control-chevron] { color:var(--muted-foreground); flex-shrink:0; }
   .required { color:var(--destructive); }
-  .bank-face { width:var(--face-size,2rem); height:var(--face-size,2rem); color:var(--muted-foreground); }
-  .bank-face[data-compact] { --face-size:1.5rem; }
-  .bank-face [data-face-glyph] { font-size:calc(var(--face-size,2rem) * .6); line-height:1; }
-  .bank-face[data-face-kind="flag"] [data-face-glyph] { font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif; }
-  .bank-face svg { width:55%; height:55%; }
-  .bank-face[data-tone="warning"] { --face-tone:var(--warning); color:var(--face-tone); }
-  .bank-face[data-tone="error"] { --face-tone:var(--destructive); color:var(--face-tone); }
-  .bank-status { display:flex; align-items:center; gap:.5rem; font-size:var(--text-body); color:var(--muted-foreground); }
-  .bank-status svg { width:1rem; height:1rem; flex-shrink:0; }
 }
 @media (prefers-contrast:more) { :root { --border:var(--foreground); --separator:var(--foreground); --muted-foreground:var(--foreground); } }
