@@ -8,21 +8,33 @@ import { publicCatalogSurface } from "../../public-catalog/surface.ts";
 import { LogicalIdSchema } from "../../public-catalog/node-schema.ts";
 import { catalogMediaTypes } from "./assets.ts";
 import { stackNodes } from "../../interaction/place.ts";
+import { catalogGateEvidence } from "../../authoring/visual-boundary/source.ts";
 
 export const catalogBuildFile = "PUBLIC-CATALOG-BUILD.json";
+/** /2 adds the evidence of the catalog gate that let the build run (plan 3.5), as distribution builds do. */
+export const publicCatalogBuildFormat = "desert.public-catalog-build/2";
 const sha = Type.String({ pattern: "^[a-f0-9]{64}$" });
 const closed = { additionalProperties: false };
 const schema = Type.Object({
-  format: Type.Literal("desert.public-catalog-build/1"), productId: LogicalIdSchema, contractDigest: sha,
+  format: Type.Literal(publicCatalogBuildFormat), gate: Type.Object({ version: Type.Literal(catalogGateEvidence.version) }, closed),
+  productId: LogicalIdSchema, contractDigest: sha,
   rendererRevision: sha, mode: Type.Literal("public-read-only"), mediaPolicy: Type.Literal("external-local-bindings"),
   assets: Type.Array(Type.Object({ id: LogicalIdSchema, digest: sha, size: Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER }),
     mediaType: Type.Union([...new Set(Object.values(catalogMediaTypes))].map(type => Type.Literal(type))) }, closed), { minItems: 1 }),
   files: Type.Record(Type.String(), sha),
 }, closed);
 export type PublicCatalogBuild = Static<typeof schema>;
+
+/** A catalog build the gate did not qualify is refused before any other check: an older format or an unknown gate. */
+function requireQualifiedCatalogBuild(value: unknown): void {
+  const field = (from: unknown, key: string) => from && typeof from === "object" ? Reflect.get(from, key) : undefined;
+  if (field(value, "format") !== publicCatalogBuildFormat) throw new Error(`UNQUALIFIED_ARTIFACT: catalog build format ${String(field(value, "format"))} is not ${publicCatalogBuildFormat}`);
+  if (field(field(value, "gate"), "version") !== catalogGateEvidence.version) throw new Error(`UNQUALIFIED_ARTIFACT: no evidence of ${catalogGateEvidence.version}`);
+}
 export function loadPublicCatalogBuild(directory: string) {
   const files = fileInventory(directory, [catalogBuildFile]);
   const value: unknown = JSON.parse(readFileSync(join(directory, catalogBuildFile), "utf8"));
+  requireQualifiedCatalogBuild(value);
   if (!Check(schema, value)) throw new Error("INVALID_PUBLIC_CATALOG_BUILD");
   if (digest(value.files) !== digest(files)) throw new Error("BUILD_FILES_MISMATCH");
   if (!Object.hasOwn(files, "surface.json") || !Object.hasOwn(files, "web/handler.js")) throw new Error("INVALID_PUBLIC_CATALOG_BUILD");

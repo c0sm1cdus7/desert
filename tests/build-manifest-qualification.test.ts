@@ -6,6 +6,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildFormat, loadVerifiedBuild, manifestFile } from "../src/build/manifest.ts";
+import { catalogBuildFile, loadPublicCatalogBuild, publicCatalogBuildFormat } from "../src/build/public-catalog/manifest.ts";
 
 async function withManifest(manifest: unknown, check: (directory: string) => void) {
   const directory = await mkdtemp(join(tmpdir(), "desert-manifest-"));
@@ -28,3 +29,14 @@ test("an unknown gate version is an unqualified artifact", () => withManifest({ 
 test("a qualified manifest proceeds to the schema checks", () => withManifest({ format: buildFormat, gate: { version: "desert.catalog-gate/1" } }, directory => {
   assert.throws(() => loadVerifiedBuild(directory), /INVALID_BUILD_MANIFEST/);
 }));
+
+test("a public catalog build without gate evidence is an unqualified artifact", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "desert-catalog-manifest-"));
+  try {
+    for (const [manifest, pattern] of [[{ format: "desert.public-catalog-build/1" }, /UNQUALIFIED_ARTIFACT: catalog build format/],
+      [{ format: publicCatalogBuildFormat }, /UNQUALIFIED_ARTIFACT: no evidence/]] as const) {
+      await writeFile(join(directory, catalogBuildFile), JSON.stringify(manifest));
+      assert.throws(() => loadPublicCatalogBuild(directory), pattern);
+    }
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});

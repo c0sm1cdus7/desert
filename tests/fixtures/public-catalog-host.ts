@@ -3,7 +3,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { compilePublicCatalog } from "../../src/public-catalog/index.ts";
 import { bindCatalogAssets } from "../../src/build/public-catalog/assets.ts";
-import { catalogBuildFile, type PublicCatalogBuild } from "../../src/build/public-catalog/manifest.ts";
+import { catalogBuildFile, publicCatalogBuildFormat, type PublicCatalogBuild } from "../../src/build/public-catalog/manifest.ts";
+import { catalogGateEvidence } from "../../src/authoring/visual-boundary/source.ts";
 import { fileInventory } from "../../src/build/files.ts";
 import { catalogFixture } from "./public-catalog.ts";
 
@@ -29,7 +30,7 @@ export function publicCatalogHostFixture() {
   writeFileSync(join(buildDirectory, "web/client/_app/app.js"), "export const booted = true;\n");
   writeFileSync(join(buildDirectory, "surface.json"), JSON.stringify(application.surface));
   const manifest: PublicCatalogBuild = {
-    format: "desert.public-catalog-build/1", productId: application.id, contractDigest: application.digest,
+    format: publicCatalogBuildFormat, gate: { version: catalogGateEvidence.version }, productId: application.id, contractDigest: application.digest,
     rendererRevision: "f".repeat(64), mode: "public-read-only", mediaPolicy: "external-local-bindings",
     assets: bindCatalogAssets(sourceRoot, application.assets).map(({ file: _file, ...metadata }) => metadata),
     files: fileInventory(buildDirectory),
