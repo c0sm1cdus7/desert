@@ -1,4 +1,5 @@
-// Law: a piece part and a vendor family are imported only by their owner, vendor code imports only vendor code, a
+// Law: a piece part and a vendor family are imported only by their owner, a foundation-owned mechanism only by the
+// foundations that list it in owner.mechanisms, vendor code imports only vendor code, a
 // composition or infra module imports only nonvisual packages (visual packages belong to foundations and their vendor
 // families), and a foundation entry takes exactly CatalogProps<"<id>">.
 // Raises FOUNDATION_OUTSIDE_OWNER, VENDOR_OUTSIDE_OWNER, FOUNDATION_PROPS.
@@ -53,6 +54,18 @@ function vendorEscape(context: GateContext, importer: string, file: string): str
   return `imports vendor family ${family}, owned by foundation ${owner.foundation}`;
 }
 
+/** A file of a foundation-owned mechanism is imported only by a foundation that lists the mechanism in owner.mechanisms
+ * (its owner included) and by the mechanism's own files; vendor importers are reported by vendorEscape already. */
+function mechanismEscape(context: GateContext, importer: string, file: string): string | undefined {
+  const target = context.owners.of(file), from = context.owners.of(importer);
+  if (target?.kind !== "mechanism" || context.owners.declaration(target.owner)?.declaration.kind !== "foundation") return undefined;
+  if (from?.kind === "vendor" || from?.kind === "mechanism" && from.id === target.id) return undefined;
+  const what = `imports ${posix.basename(file)} of mechanism ${target.id} (owned by foundation ${target.owner})`;
+  const user = from?.kind === "piece" && from.pieceKind === "foundation" ? context.owners.declaration(from.id)?.declaration : undefined;
+  if (user?.kind !== "foundation") return `${what}; only a foundation that lists it in owner.mechanisms may`;
+  return user.owner.mechanisms?.includes(target.id) ? undefined : `${what} without listing ${target.id} in owner.mechanisms`;
+}
+
 /** What a composition or infra module may take beyond nonvisual code: it runs inside the component tree, so Svelte's
  * context functions and its store package draw nothing there. */
 const componentPackages: ReadonlySet<string> = new Set([...nonvisualPackages, "svelte/store"]);
@@ -76,7 +89,8 @@ function importEscapes(context: GateContext, path: string): Violation[] {
     if (packaged !== undefined) found.push(violation("VENDOR_OUTSIDE_OWNER", path, item.line, packaged));
     const seen = new Set<string>();
     for (const file of reached(context, item)) {
-      const escapes = [["FOUNDATION_OUTSIDE_OWNER", partEscape(context, path, file)], ["VENDOR_OUTSIDE_OWNER", vendorEscape(context, path, file)]] as const;
+      const escapes = [["FOUNDATION_OUTSIDE_OWNER", partEscape(context, path, file)], ["VENDOR_OUTSIDE_OWNER", vendorEscape(context, path, file)],
+        ["FOUNDATION_OUTSIDE_OWNER", item.typeOnly ? undefined : mechanismEscape(context, path, file)]] as const;
       for (const [code, what] of escapes) {
         if (what === undefined || seen.has(what)) continue;
         seen.add(what);
