@@ -3,7 +3,7 @@ import { freezeDeep } from "../json.ts";
 import type { LocalProgram } from "./program.ts";
 import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
 import { canonical, confirmationDigest, materialize } from "./effects.ts";
-import { requireUUID, type Intent, type Receipt } from "./types.ts";
+import { requireUUID, type Intent, type Receipt, type ReceiptRow } from "./types.ts";
 import { requireCurrentActivityIntent, completeActivityIntent } from "../activities/acceptance.ts";
 import type { ActivityIndex } from "../activities/activity-index.ts";
 import { bindImageEffect, attachImageEffect } from "../assets/acceptance.ts";
@@ -20,7 +20,7 @@ export async function loadIntent(client: PoolClient, program: LocalProgram, acto
 }
 
 async function receipt(client: PoolClient, id: string) {
-  const { rows: [row] } = await client.query<{ result: Receipt }>("SELECT result FROM desert_receipts WHERE intent_id = $1", [id]);
+  const { rows: [row] } = await client.query<Pick<ReceiptRow, "result">>("SELECT result FROM desert_receipts WHERE intent_id = $1", [id]);
   return row ? freezeDeep(row.result) : null;
 }
 
