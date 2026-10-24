@@ -225,3 +225,14 @@ test("extending a library mapped utility is not library heritage: its members ar
   assert.deepEqual(judge("Type.Unsafe<Shape>()", "type Base = { a: string; b: number };\nexport interface X extends Omit<Base, 'b'> { c: string }\nexport type Shape = { x: X };"), []);
   assert.match(judge("Type.Unsafe<Shape>()", "type Base = { a: string; b: any };\nexport interface X extends Pick<Base, 'b'> {}\nexport type Shape = { x: X };").join("\n"), /props\.a\.x\.b resolves to any/);
 });
+
+test("a mapped type whose keys or renames still mention a generic is pending, whatever the union around it", () => {
+  for (const f of ["<U extends string>(x: U) => { [K in 'a' | U]: K extends 'a' ? string : any }",
+    "<T extends { a: string }>(x: T) => { [K in 'a' | keyof T]: K extends 'a' ? string : any }",
+    "<U extends string>(x: U) => { [K in 'a' | (U & 'b')]: K extends 'a' ? string : any }",
+    "<U extends string>(x: U) => { [K in 'a' | 'b' as K extends 'a' ? K : `${K}${U}`]: K extends 'a' ? string : any }",
+    "<T extends readonly string[]>(x: T) => Readonly<T>"]) {
+    assert.match(judge("Type.Unsafe<Shape>()", `export type Shape = { f: ${f} };`).join("\n"), /unresolved mapped type/, f);
+  }
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", "type Rename<T> = { [K in keyof T as `x${string & K}`]: T[K] };\nexport type Shape = { r: Rename<{ a: string }>; o: Omit<{ a: string; b: number }, 'b'> };"), []);
+});
