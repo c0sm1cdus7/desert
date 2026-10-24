@@ -374,6 +374,37 @@
         "unknown"
       ]
     },
+    "avatar": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/avatar",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Avatar.svelte",
+        "parts": [
+          "SeedPortrait.svelte",
+          "ShuffleButton.svelte"
+        ],
+        "vendor": [
+          "avatar"
+        ]
+      },
+      "purpose": "Show a person or identity as a seeded drawing, a picture or initials, optionally as the button that shuffles its seed.",
+      "shape": "none",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "interaction": [
+          "none",
+          "shuffle"
+        ],
+        "size": [
+          "portrait",
+          "compact",
+          "row"
+        ]
+      }
+    },
     "avatar-shuffle": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/avatar-shuffle",
@@ -1368,10 +1399,7 @@
       "folder": "src/svelte/catalog/foundations/label-rail",
       "kind": "foundation",
       "owner": {
-        "entry": "LabelRail.svelte",
-        "vendor": [
-          "badge"
-        ]
+        "entry": "LabelRail.svelte"
       },
       "purpose": "Present selected labels in a wrapping rail using the same value representation as the field.",
       "shape": "none",
@@ -2097,10 +2125,7 @@
       "folder": "src/svelte/catalog/foundations/seed-avatar",
       "kind": "foundation",
       "owner": {
-        "entry": "SeedAvatar.svelte",
-        "vendor": [
-          "avatar"
-        ]
+        "entry": "SeedAvatar.svelte"
       },
       "purpose": "Generate a deterministic visual identity from a seed without displaying letters or initials.",
       "shape": "none",
@@ -2412,6 +2437,60 @@
         "stack-layout",
         "surface-frame"
       ]
+    },
+    "tag": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/tag",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Tag.svelte",
+        "parts": [
+          "TagRemove.svelte"
+        ],
+        "vendor": [
+          "badge"
+        ]
+      },
+      "purpose": "Show one label as a toned chip, removable when its owner allows, or a reference as its name beside its color.",
+      "shape": "none",
+      "stateVariants": {
+        "disabled": {
+          "presentation": [
+            "chip"
+          ]
+        },
+        "removable": {
+          "presentation": [
+            "chip"
+          ]
+        }
+      },
+      "states": [
+        "known",
+        "unavailable",
+        "removable",
+        "disabled"
+      ],
+      "variantLimits": {
+        "presentation": {
+          "text": {
+            "tone": []
+          }
+        }
+      },
+      "variants": {
+        "presentation": [
+          "chip",
+          "text"
+        ],
+        "tone": [
+          "neutral",
+          "accent",
+          "success",
+          "warning",
+          "destructive"
+        ]
+      }
     },
     "text": {
       "approval": "required",

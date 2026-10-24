@@ -1,8 +1,10 @@
+import type { AppearanceMode, Tint, Wallpaper } from "../../interaction/appearance.ts";
+
 export type AppearancePreferences = Readonly<{
-  theme: "system" | "light" | "dark";
+  theme: "system" | AppearanceMode;
   textSize: "standard" | "large" | "larger";
-  tint: "blue" | "violet" | "rose" | "green" | "slate";
-  wallpaper: "silk" | "mist" | "plain";
+  tint: Tint;
+  wallpaper: Wallpaper;
 }>;
 
 export const defaultAppearance: AppearancePreferences = Object.freeze({ theme: "system", textSize: "standard", tint: "blue", wallpaper: "silk" });

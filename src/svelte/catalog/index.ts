@@ -14,6 +14,7 @@ export { default as AttentionIndicator } from "./foundations/attention-indicator
 export { default as AttentionList } from "./compositions/attention-list/AttentionList.svelte";
 export { default as AttentionStatus } from "./compositions/attention-status/AttentionStatus.svelte";
 export { default as Availability } from "./foundations/availability/Availability.svelte";
+export { default as Avatar } from "./foundations/avatar/Avatar.svelte";
 export { default as AvatarShuffle } from "./compositions/avatar-shuffle/AvatarShuffle.svelte";
 export { default as CatalogCard } from "./foundations/catalog-card/CatalogCard.svelte";
 export { default as CatalogDetail } from "./compositions/catalog-detail/CatalogDetail.svelte";
@@ -128,6 +129,7 @@ export { default as StackLayout } from "./foundations/stack-layout/StackLayout.s
 export { default as SummaryWidget } from "./compositions/summary-widget/SummaryWidget.svelte";
 export { default as SurfaceFrame } from "./compositions/surface-frame/SurfaceFrame.svelte";
 export { default as SurfaceSpecimen } from "./compositions/surface-specimen/SurfaceSpecimen.svelte";
+export { default as Tag } from "./foundations/tag/Tag.svelte";
 export { default as Text } from "./foundations/text/Text.svelte";
 export { default as TextContent } from "./compositions/text-content/TextContent.svelte";
 export { default as TextInput } from "./foundations/text-input/TextInput.svelte";

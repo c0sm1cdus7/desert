@@ -3,7 +3,7 @@ import type { CatalogSpecimen } from "../../types.d.ts";
 
 export const ReferenceValuesSpecimens = [
   { state: "default", props: { values: ["work", "home"],
-    options: [{ value: "work", label: "Work", color: "#3b82f6" }, { value: "home", label: "Home" }] } },
+    options: [{ value: "work", label: "Work", color: "blue" }, { value: "home", label: "Home" }] } },
   { state: "unavailable", props: { values: ["work", "archived"],
-    options: [{ value: "work", label: "Work", color: "#3b82f6" }, { value: "home", label: "Home" }] } },
+    options: [{ value: "work", label: "Work", color: "blue" }, { value: "home", label: "Home" }] } },
 ] as const satisfies readonly CatalogSpecimen<"reference-values">[];
