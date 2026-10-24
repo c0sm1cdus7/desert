@@ -14,7 +14,7 @@
   import { adaptiveModality } from "./adaptive-modality.svelte.ts";
   let { label, open, locked, presentation, continuity, density, dismiss, onclosed, children }: {
     label: string; open: boolean; locked: boolean; presentation: "adaptive" | "transient" | "navigation";
-    continuity: FrameIdentity | undefined; density: "comfortable" | "compact" | undefined;
+    continuity: FrameIdentity | undefined; density: string | undefined;
     dismiss: () => void; onclosed: (() => void) | undefined; children: Snippet | undefined;
   } = $props();
   let content = $state<HTMLElement | null>(null);
@@ -57,7 +57,7 @@
 </script>
 <Dialog.Root {open} onOpenChange={next => { if (!next) dismiss(); }}
   onOpenChangeComplete={next => { if (!next) { motion.reset(); onclosed?.(); } }}>
-  <Dialog.Content bind:ref={content} presentation="panel" {density} data-modal={presentation} data-composition="transient"
+  <Dialog.Content bind:ref={content} presentation="panel" class={density} data-modal={presentation} data-composition="transient"
     adaptiveModal={lateral ? undefined : !docked} trapFocus={lateral ? undefined : false} preventScroll={lateral ? undefined : modal}
     data-adaptive-surface={lateral ? undefined : ""} data-presentation={lateral ? "overlay" : docked ? "docked" : "transient"}
     data-locked={locked || undefined} data-reduced-motion={prefersReducedMotion.current} data-edge={edge}

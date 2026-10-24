@@ -14,7 +14,7 @@ for(const width of [320,1280]) for(const direction of ['ltr','rtl']) test(`canon
     await f.page.route('**/sample.svg*',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg"/>'}));
     await f.page.addStyleTag({content:await rendererCss()});
     await f.page.evaluate(direction=>{document.documentElement.dir=direction;document.documentElement.style.setProperty('--text-scale','2');},direction);
-    await f.page.waitForFunction(()=>document.querySelector('[data-slot="sidebar-wrapper"]')?.getAttribute('data-type-density')==='comfortable');
+    await f.page.waitForFunction(()=>document.querySelector('[data-slot="sidebar-wrapper"]')?.classList.contains('density-comfortable')===true);
     const expectedTarget=(await f.page.getByRole('button',{name:'Search',exact:true}).boundingBox())!.height;
     assert.equal(expectedTarget,60,'the measured workspace keeps enlarged reading targets');
     const standaloneTarget=(await f.page.locator('[data-standalone-toolbar] button').boundingBox())!.height;

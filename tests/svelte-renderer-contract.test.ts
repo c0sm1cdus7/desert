@@ -39,9 +39,9 @@ test("Svelte bank rejects wrong components, nodes, events and inventory; compati
     'const incompleteInventory: NodeRendererTable = { "control.date": DateControl };',
     'const inventedEntry: NodeRendererTable = { ...nodeRenderers, rainbow: DateControl };',
     'const wrongInput: NodeRendererInputs["input.text"]["primitive"] = "input.multiline";',
-    'const numericHelper: NodeRendererInputs["input.text"] = { primitive: "input.text", label: "Name", helper: 12, onchange: () => {} };',
-    'const callableHelper: NodeRendererInputs["input.multiline"] = { primitive: "input.multiline", label: "Description", helper: () => "Not plain text", onchange: () => {} };',
-    'const foreignInputProp: NodeRendererInputs["input.text"] = { primitive: "input.text", label: "Name", style: "color:red", onchange: () => {} };',
+    'const numericHelper: NodeRendererInputs["input.text"] = { primitive: "input.text", label: "Name", labelVisibility: "visible", required: false, invalid: false, disabled: false, measure: "writing", purpose: "text", value: "", clear: true, helper: 12, onchange: () => {} };',
+    'const callableHelper: NodeRendererInputs["input.multiline"] = { primitive: "input.multiline", label: "Description", labelVisibility: "visible", required: false, invalid: false, disabled: false, measure: "writing", value: "", helper: () => "Not plain text", onchange: () => {} };',
+    'const foreignInputProp: NodeRendererInputs["input.text"] = { primitive: "input.text", label: "Name", labelVisibility: "visible", required: false, invalid: false, disabled: false, measure: "writing", purpose: "text", value: "", clear: true, style: "color:red", onchange: () => {} };',
     'const wrongEmittedEvent: ControlEventFor<"date"> = { kind: "select.change", control: "date", value: null };',
   ];
   try {
@@ -61,8 +61,8 @@ test("Svelte bank rejects wrong components, nodes, events and inventory; compati
       const dateBinding: Component<NodeRendererInputs["control.date"]> = DateControl;
       const selectionBinding: Component<NodeRendererInputs["control.select"]> = SelectControl;
       const dateEvent: ControlEventFor<"date"> = { kind: "date.change", control: date.id, value: null };
-      const textInput: NodeRendererInputs["input.text"] = { primitive: "input.text", label: "Name", helper: "Use a recognizable name.", onchange: () => {} };
-      const multilineInput: NodeRendererInputs["input.multiline"] = { primitive: "input.multiline", label: "Description", helper: "Describe the image.", onchange: () => {} };
+      const textInput: NodeRendererInputs["input.text"] = { primitive: "input.text", label: "Name", labelVisibility: "visible", required: false, invalid: false, disabled: false, measure: "writing", purpose: "text", value: "", clear: true, helper: "Use a recognizable name.", onchange: () => {} };
+      const multilineInput: NodeRendererInputs["input.multiline"] = { primitive: "input.multiline", label: "Description", labelVisibility: "visible", required: false, invalid: false, disabled: false, measure: "writing", value: "", helper: "Describe the image.", onchange: () => {} };
     </script>
     <Date node={date} onevent={acceptAll} /><Select node={choice} onevent={acceptAll} />
     <Text {...textInput}/><Multiline {...multilineInput}/>`);

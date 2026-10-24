@@ -10,7 +10,7 @@ import { catalogGateEvidence, runWithCatalogGate } from "../../authoring/catalog
 
 /** The generated SvelteKit project and its worker, without any gate: private to this module. Only `createBuildProject`
  * (gated) and `createEvidenceProject` (test-only, no manifest) reach it. */
-function stageBuildProject(module: string, family: "human" | "public-catalog" = "human") {
+function stageBuildProject(module: string, family: "human" | "public-catalog", workerTimeout: number) {
   const directory = mkdtempSync(join(sdkRoot, ".desert-build-"));
   try {
     cpSync(join(sdkRoot, "src/build/svelte/template"), directory, { recursive: true });
@@ -28,7 +28,7 @@ function stageBuildProject(module: string, family: "human" | "public-catalog" = 
   } catch (error) { rmSync(directory, { recursive: true }); throw error; }
   return { directory,
     worker: (mode: "build" | "check") => promisify(execFile)(process.execPath, [join(sdkRoot, "src/build/svelte/worker.mjs"), mode], {
-      cwd: directory, env: { PATH: process.env.PATH ?? "" }, timeout: 120000, maxBuffer: 8 * 1024 * 1024,
+      cwd: directory, env: { PATH: process.env.PATH ?? "" }, timeout: workerTimeout, maxBuffer: 8 * 1024 * 1024,
     }),
     close() { rmSync(directory, { recursive: true }); },
   };
@@ -36,7 +36,7 @@ function stageBuildProject(module: string, family: "human" | "public-catalog" = 
 
 /** The qualified build path: no worker runs before the catalog gate and the migrated boundaries pass. */
 export function createBuildProject(module: string, family: "human" | "public-catalog" = "human") {
-  const project = stageBuildProject(module, family);
+  const project = stageBuildProject(module, family, 120000);
   return { directory: project.directory,
     async run(mode: "build" | "check") {
       try {
@@ -60,10 +60,11 @@ async function emittedStylesheets(directory: string) {
 
 /** Test-only renderer path (plan 3.5, L5): the project and its worker WITHOUT the catalog gate, so tests can type-check and
  * screenshot pieces while the strict build is red. It writes no manifest, copies nothing out, and refuses to run outside
- * node:test. Reached through src/testing/evidence-project.ts; nothing outside tests may import that module. */
-export function createEvidenceProject(module: string, family: "human" | "public-catalog" = "human") {
+ * node:test. Reached through src/testing/evidence-project.ts; nothing outside tests may import that module. A test that
+ * adds fixture routes (the approval evidence, plan section 8) may give the worker longer than the release build's two minutes. */
+export function createEvidenceProject(module: string, family: "human" | "public-catalog" = "human", workerTimeout = 120000) {
   requireTestRun();
-  const project = stageBuildProject(module, family);
+  const project = stageBuildProject(module, family, workerTimeout);
   return { directory: project.directory,
     async run(mode: "build" | "check") {
       requireTestRun();

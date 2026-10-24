@@ -27,7 +27,7 @@
   <StackLayout title="Appearance">
     <RadioGroup.Root aria-label="Appearance" value={selectedTheme} {disabled} onValueChange={selected => choose("theme", selected)}><div class="appearance-mode-grid">
       {#each appearanceChoices.theme as choice}
-        <label class="appearance-wallpaper-choice" data-material="pane" data-personalization-choice data-selected={selectedTheme === choice.value} for={`${id}-theme-${choice.value}`}>
+        <label class="appearance-wallpaper-choice material-pane" class:material-pane-selected={selectedTheme === choice.value} data-personalization-choice data-selected={selectedTheme === choice.value} for={`${id}-theme-${choice.value}`}>
           <AppearancePreview mode={choice.value} tint={value.tint} wallpaper={value.wallpaper} />
           <span class="appearance-wallpaper-label"><RadioGroup.Item id={`${id}-theme-${choice.value}`} value={choice.value} aria-label={choice.label}
             onclick={() => { if (value.theme === "system" && selectedTheme === choice.value) choose("theme", choice.value); }} /><span>{choice.label}</span></span>
@@ -52,7 +52,7 @@
   <StackLayout title="Wallpaper">
     <RadioGroup.Root aria-label="Wallpaper" value={value.wallpaper} {disabled} onValueChange={selected => choose("wallpaper", selected)}><div class="appearance-wallpaper-grid">
       {#each appearanceChoices.wallpaper as choice}
-        <label class="appearance-wallpaper-choice" data-material="pane" data-personalization-choice data-selected={value.wallpaper === choice.value} for={`${id}-wallpaper-${choice.value}`}>
+        <label class="appearance-wallpaper-choice material-pane" class:material-pane-selected={value.wallpaper === choice.value} data-personalization-choice data-selected={value.wallpaper === choice.value} for={`${id}-wallpaper-${choice.value}`}>
           <Wallpaper wallpaper={choice.value} preview /><span class="appearance-wallpaper-label"><RadioGroup.Item id={`${id}-wallpaper-${choice.value}`} value={choice.value} aria-label={choice.label} /><span>{choice.label}</span></span>
         </label>
       {/each}

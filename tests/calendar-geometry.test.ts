@@ -6,7 +6,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 const source = `<script lang="ts">
   import { Calendar } from "@desert/svelte/vendor/components/ui/calendar/index.js";
   import { parseDate } from '@internationalized/date';
-  import TextInput from "@desert/svelte/catalog/foundations/text-input/TextInput.svelte";
+  import WritingField from "@desert/svelte/catalog/foundations/field/Field.svelte";
   import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
   import { Badge } from "@desert/svelte/vendor/components/ui/badge/index.js";
   const node={version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival',required:false,disabled:false,value:'2026-10-15'};
@@ -17,7 +17,7 @@ const source = `<script lang="ts">
       <Calendar type="single" value={parseDate(node.value)} calendarLabel={node.label}
         style="width:calc(7*var(--cell-size) + 1rem);--cell-size:max(2rem,min(2.75rem,calc((100cqi - 1.25rem)/7)))" />
     </Field.Field>
-    <TextInput primitive="input.text" label="Name" value="A value" required={false} disabled={false} onchange={()=>{}} />
+    <WritingField primitive="input.text" labelVisibility="visible" measure="writing" invalid={false} purpose="text" clear label="Name" value="A value" required={false} disabled={false} onchange={()=>{}} />
     <Field.Field data-test-intrinsic><Field.FieldLabel>Classification</Field.FieldLabel><Badge>Local draft</Badge></Field.Field>
   </Field.FieldGroup>
 </main>`;

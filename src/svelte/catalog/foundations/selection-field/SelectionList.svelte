@@ -50,7 +50,7 @@
             <Button {...itemProps} role="option" aria-checked={undefined} aria-pressed={undefined} aria-selected={pressed}
               tabindex={!option.disabled && focusValue === option.value ? 0 : -1}
               aria-disabled={option.disabled} variant="row" size="well" data-slot="select-item"
-              data-grouped-row data-choice-row data-material="interior"
+              data-grouped-row data-choice-row
               data-highlighted={activeValue === option.value ? '' : undefined}>
               <ChoiceItem label={option.label} description={option.description}>
                 <RadioMark checked={pressed} />

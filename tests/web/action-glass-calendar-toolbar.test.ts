@@ -13,7 +13,7 @@ for (const width of [390, 1280]) test(`compiled glass actions and calendar toolb
     await settle(f.page);
     await f.page.screenshot({ path: `artifacts/action-glass-calendar-toolbar/compiled-hero-${width}.png` });
     await (await navigationAction(f.page, 'Travel kit')).click();
-    const trigger = f.page.locator('[data-date-trigger]');
+    const trigger = f.page.locator('[data-field-trigger]');
     await trigger.click();
     const dialog = f.page.getByRole('dialog', { name: 'Arrival date', exact: true });
     const toolbar = dialog.locator('[data-piece="toolbar"]');

@@ -14,7 +14,7 @@
   </div></section>
   {/if}
   <div data-catalog-prose>
-    {#if !bodyOnly}<Heading kind="document-title" text={node.title} />{/if}
+    {#if !bodyOnly}<Heading kind="page" text={node.title} focusTarget />{/if}
     <section data-place-stack="about">
       <StackLayout title="About"><div data-stack-item><p>{node.description}</p></div></StackLayout>
     </section>

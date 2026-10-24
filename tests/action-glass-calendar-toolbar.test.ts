@@ -57,7 +57,7 @@ for (const width of [320, 390, 1024]) test(`date picker has one month header wit
     await f.page.addStyleTag({ content: await rendererCss() });
     await f.page.setViewportSize({ width, height: 900 });
     await f.page.emulateMedia({ reducedMotion: 'reduce', colorScheme: width === 390 ? 'dark' : 'light' });
-    const trigger = f.page.locator('[data-date-trigger]');
+    const trigger = f.page.locator('[data-field-trigger]');
     await trigger.click();
     const dialog = f.page.getByRole('dialog', { name: 'Arrival date', exact: true });
     const header = dialog.locator('[data-date-calendar-header]');

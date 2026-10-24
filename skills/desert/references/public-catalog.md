@@ -1302,12 +1302,12 @@ Source SHA-256: 68263e4303278aabe6c18000e890b2a8c3fd5225f4d177422eca0608057da270
 
 ## src/svelte/catalog/compositions/viewer/Viewer.svelte
 
-Source SHA-256: c3844f8c2346cb4a5b30ebb498d572c1eb2b93ea06327016d745cf1c84a1ff0d
+Source SHA-256: 2d2b62ddd0e25139934e2457b0a282b74e5893cd962ca88e499e4907d1619104
 
 ```svelte
 <script lang="ts">
   import * as Dialog from '../../../vendor/components/ui/dialog/index.js';
-  import { useSurfaceTypography } from '../../../infra/surface-typography.svelte.ts';
+  import { useSurfaceDensityClass } from '../../../infra/surface-typography.svelte.ts';
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import { Icon } from '../../index.ts';
   import { ToolbarLayout } from '../../index.ts';
@@ -1323,7 +1323,7 @@ Source SHA-256: c3844f8c2346cb4a5b30ebb498d572c1eb2b93ea06327016d745cf1c84a1ff0d
   let gesture: ReturnType<typeof mediaGestures> | undefined;
   const selected = $derived(items[index]!);
   const playback = mediaPlayback();
-  const density = useSurfaceTypography();
+  const density = useSurfaceDensityClass();
   function select(next: number) { playback.stop(); onindex?.(Math.max(0,Math.min(items.length-1,next))); gesture?.reset(); }
   function changeOpen(value: boolean) { if (!value) playback.stop(); onopen?.(value); }
   function manipulate(element: HTMLDivElement) {
@@ -1343,7 +1343,7 @@ Source SHA-256: c3844f8c2346cb4a5b30ebb498d572c1eb2b93ea06327016d745cf1c84a1ff0d
 </script>
 
 <Dialog.Root {open} onOpenChange={changeOpen}>
-  <Dialog.Content presentation="media" density={density()} data-media-viewer
+  <Dialog.Content presentation="media" class={density()} data-media-viewer
     onOpenAutoFocus={event=>{ event.preventDefault(); closeButton?.focus({preventScroll:true}); }}
     onCloseAutoFocus={event=>{ event.preventDefault(); onreturn?.(); }} onkeydown={key}>
     <ToolbarLayout identity={{title,subtitle:`${index+1} / ${items.length}`}} identityRole="dialog"

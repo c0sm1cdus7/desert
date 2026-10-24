@@ -6,12 +6,13 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 const source = `<script lang="ts">
   import Popover from '@desert/svelte/catalog/foundations/popover/Popover.svelte';
   import FrameBody from '@desert/svelte/catalog/renderer/frame-body/FrameBody.svelte';
-  import SelectionField from '@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte';
+  import Choice from '@desert/svelte/catalog/foundations/choice/Choice.svelte';
   import { toolbarAction } from '@desert/interaction/toolbar.ts';
   let open=$state(false), value=$state('one');
 </script>
 <main style="padding:100px 24px">
-  <SelectionField selection="example" label="Choose" {value} onchange={next=>value=next}
+  <Choice presentation="menu" cardinality="one" menuTrigger="contextual" label="Choose" labelVisibility="visible" selected={[value]}
+    disabled={false} required={false} onchange={next=>value=next[0]}
     options={[{value:'one',label:'One',disabled:false},{value:'two',label:'Two',disabled:false}]} />
   <Popover label="Actions" {open} disabled={false} locked={false} content="information" placement="anchored" align="start"
     trigger={{kind:'action',label:'Open actions',icon:'open',face:'fit',emphasis:'secondary',state:'ready'}} onopenchange={next=>open=next}>

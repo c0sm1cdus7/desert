@@ -5,13 +5,14 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import SelectionField from '@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte';
+  import Choice from '@desert/svelte/catalog/foundations/choice/Choice.svelte';
   import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
   let value=$state('first');
 </script>
 <main style="padding:24px">
-  <SelectionField selection="choice" label="Single choice" {value} onchange={next=>value=next}
-    options={[{value:'first',label:'First option'},{value:'second',label:'Second option'},
+  <Choice presentation="menu" cardinality="one" menuTrigger="inline" label="Single choice" labelVisibility="visible" selected={[value]}
+    disabled={false} required={false} onchange={next=>value=next[0]}
+    options={[{value:'first',label:'First option',disabled:false},{value:'second',label:'Second option',disabled:false},
       {value:'disabled',label:'Unavailable option',disabled:true}]} />
   <DateControl node={{version:'desert.control/1',kind:'date',id:'date',label:'Arrival date',required:false,
     disabled:false,value:'2026-10-16'}} onevent={()=>{}} />

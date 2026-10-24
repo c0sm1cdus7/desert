@@ -6,11 +6,11 @@
     Popover.TriggerProps & { presentation?: "standard" | "selection" | "reference-well" } = $props();
 </script>
 {#if presentation === "reference-well"}
-  <Popover.Trigger {...props} data-slot="button" data-material="pane" data-variant="well" data-floating-field data-filled data-reference-well
-    class={cn(buttonVariants({variant:"well",size:"well"}), "field-well overflow-hidden max-w-full", className)} />
+  <Popover.Trigger {...props} data-slot="button" data-variant="well" data-floating-field data-filled data-reference-well
+    class={cn(buttonVariants({variant:"well",size:"well"}), "material-pane control-feedback", "field-well overflow-hidden max-w-full", className)} />
 {:else if presentation === "selection"}
-  <Popover.Trigger {...props} data-slot="button" data-material="pane" data-variant="well"
-    class={cn(buttonVariants({ variant: "well" }),
+  <Popover.Trigger {...props} data-slot="button" data-variant="well"
+    class={cn(buttonVariants({ variant: "well" }), "material-pane control-feedback",
       "w-full h-auto min-h-[var(--control-size)] justify-between gap-4 whitespace-normal", className)} />
 {:else}
   <Popover.Trigger {...props} class={className} />

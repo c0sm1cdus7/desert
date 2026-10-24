@@ -1,13 +1,13 @@
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
   import { dismissWhenInactive } from "../../../infra/surface-activity.svelte.ts";
-  import { useSurfaceTypography } from "../../../infra/surface-typography.svelte.ts";
+  import { useSurfaceDensityClass } from "../../../infra/surface-typography.svelte.ts";
   import type { FrameInvocation } from "./frame-continuity.svelte.ts";
   import ModalPane from "./ModalPane.svelte";
   import ModalSheet from "./ModalSheet.svelte";
   import ModalDialog from "./ModalDialog.svelte";
   let { label, open, locked, presentation, continuity, ondismiss, onclosed, children }: CatalogProps<"modal"> = $props();
-  const density = useSurfaceTypography();
+  const density = useSurfaceDensityClass();
   /** Escape, the scrim and the grip ask to dismiss; a locked modal refuses, and the caller decides what dismissal means. */
   const dismiss = () => { if (!locked) ondismiss?.(); };
   // A task pane stays open while its surface is hidden (a retained place); a sheet, message or media stage does not.

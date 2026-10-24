@@ -17,15 +17,15 @@ async function descriptions(control: Locator) {
 
 test("input helpers belong to each field and join errors/counters in every input branch", { timeout: 90000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import TextInput from '@desert/svelte/catalog/foundations/text-input/TextInput.svelte';
+    import Field from '@desert/svelte/catalog/foundations/field/Field.svelte';
     let helper = $state('Use a recognizable name.');
   </script>
-  <TextInput primitive="input.text" label="Name" {helper} error="Name is unavailable." onchange={()=>{}}/>
-  <TextInput primitive="input.text" label="Decimal" value="2" mask={{kind:'decimal',locale:'en-US',scale:2}}
+  <Field primitive="input.text" labelVisibility="visible" measure="writing" value="" required={false} invalid={false} disabled={false} purpose="text" clear label="Name" {helper} error="Name is unavailable." onchange={()=>{}}/>
+  <Field primitive="input.text" labelVisibility="visible" measure="writing" required={false} invalid={false} disabled={false} purpose="text" clear label="Decimal" value="2" mask={{kind:'decimal',locale:'en-US',scale:2}}
     helper="Use up to two decimal places." error="Amount is unavailable." onchange={()=>{}}/>
-  <TextInput primitive="input.multiline" label="Description" value="Hello" maxLength={20}
+  <Field primitive="input.multiline" labelVisibility="visible" measure="writing" required={false} invalid={false} disabled={false} label="Description" value="Hello" maxLength={20}
     helper="Describe the image." error="Description needs attention." onchange={()=>{}}/>
-  <TextInput primitive="input.text" label="Without helper" onchange={()=>{}}/>
+  <Field primitive="input.text" labelVisibility="visible" measure="writing" value="" required={false} invalid={false} disabled={false} purpose="text" clear label="Without helper" onchange={()=>{}}/>
   <button onclick={()=>helper=''}>Remove helper</button>`);
   try {
     await f.page.addStyleTag({ content: await rendererCss() });

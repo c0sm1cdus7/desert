@@ -6,6 +6,6 @@ import { SearchFieldContract } from "./search-field.contract.ts";
 export const SearchField = defineFoundation({
   id: "search-field",
   purpose: "Type a query in a search well with a search icon and a clear button.",
-  owner: { entry: "SearchField.svelte", parts: ["search-field.css"] },
+  owner: { entry: "SearchField.svelte" },
   shape: "radius", states: ["empty", "value", "disabled"], approval: "required", contract: SearchFieldContract,
 } as const);

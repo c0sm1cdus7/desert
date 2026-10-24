@@ -15,7 +15,6 @@ export const Modal = defineFoundation({
   },
   shape: "radius", states: ["open", "locked"],
   variants: { presentation: ["adaptive", "transient", "sheet", "message", "media", "navigation"] },
-  // F1-merge: accepts gains "inline" (lane F1a) for the dialog composition's actions.
-  slots: { children: { accepts: ["surface-frame", "instance-frame", "face", "heading", "text"] } },
+  slots: { children: { accepts: ["surface-frame", "instance-frame", "face", "heading", "text", "inline"] } },
   approval: "required", contract: ModalContract,
 } as const);

@@ -1,11 +1,12 @@
-// FieldWell: the rounded well of a single field: floating label, editor, optional prefix, accessory and footer.
+// FieldWell: the rounded well of a single field: floating label, editor, optional prefix, accessory and footer. Merged
+// into Field (design §1.7); its callers keep it until their lanes mount Field, styled by field.css.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { FieldWellContract } from "./field-well.contract.ts";
 
 export const FieldWell = defineFoundation({
   id: "field-well",
   purpose: "Frame one editor in a rounded well whose label floats when empty and settles above the value when filled or focused.",
-  owner: { entry: "FieldWell.svelte", parts: ["field-well.css"] },
+  owner: { entry: "FieldWell.svelte" },
   shape: "radius", states: ["empty", "filled"],
   variants: { presentation: ["standard", "access"] },
   slots: { children: { accepts: ["masked-input", "text-input"] }, prefix: { accepts: ["selection-field"] },

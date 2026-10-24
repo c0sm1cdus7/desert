@@ -201,7 +201,7 @@ test("toolbar-boundary, toolbar-indirect-ownership, toolbar-title-ownership: no 
     rejects(css, append(shared, css), ["CROSS_OWNER_CSS"]);
   }
   for (const [path, css] of [[`${mechanisms}/pane-material/pane-material.css`, "h2 { opacity: 0 }"], [`${mechanisms}/control-feedback/control-feedback.css`,
-    "@utility tm-control { h2 { transform: scale(2) } }"], [`${mechanisms}/typography/typography.css`, "h2 { padding: 99px }"], ["src/svelte/theme.css", ":where(*) { padding: 99px }"]] as const) {
+    "@utility control-feedback { h2 { transform: scale(2) } }"], [`${mechanisms}/typography/typography.css`, "h2 { padding: 99px }"], ["src/svelte/theme.css", ":where(*) { padding: 99px }"]] as const) {
     rejects(`${path}: ${css}`, append(path, css), ["CROSS_OWNER_CSS"]);
   }
   rejects("consumer heading override", mutated(`${compositions}/catalog-workspace/CatalogWorkspace.svelte`, "</style>", ":global([data-catalog-workspace] h2) { padding-inline-start: 99px; }\n</style>"),
@@ -249,7 +249,7 @@ test("visual-active-adapters, workspace-catalog-boundary: a renderer passes its 
   for (const markup of ['<ViewPanel {...props} />', '<ViewPanel class="override" />', "<ViewPanel children={draw} />", "<ViewPanel><div>Override</div></ViewPanel>"]) {
     rejects(markup, append(path, markup), ["PRESENTATION_ESCAPE", "COMPOSITION_NATIVE_ELEMENT"]);
   }
-  for (const markup of ["<NodeRenderer node={node} host={host} />", "<NodeRenderer node={node} actionElementProps={extra} />", '<NodeRenderer node={node} class="p-0" />']) {
+  for (const markup of ["<NodeRenderer node={node} host={host} />", "<NodeRenderer node={node} actionDisclosure={extra} />", '<NodeRenderer node={node} class="p-0" />']) {
     rejects(markup, append(`${renderer}/failure-dialog/FailureDialog.svelte`, markup), ["PRESENTATION_ESCAPE"]);
   }
   rejects("direct import of the dispatcher", whole(`${renderer}/failure-dialog/FailureDialog.svelte`,

@@ -59,7 +59,7 @@ test("calendar, tags and media remain accessible and contained at narrow widths"
   const f = await browserFixture();
   try {
     await openCatalog(f.page);
-    const date = f.page.locator('[data-specimen="control.date:calendar"] [data-date-trigger]');
+    const date = f.page.locator('[data-specimen="control.date:calendar"] [data-field-trigger]');
     await date.click();
     const calendar = f.page.getByRole("dialog", { name: "Date", exact: true });
     assert.equal(await calendar.getByRole("application", { name: "Date October 2026", exact: true }).count(), 1,

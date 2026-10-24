@@ -37,12 +37,12 @@ test("D2: the dispatcher cannot substitute a component, a table or skip the admi
 
 test("D2: a private host capability reaches only its own kind, as received", () => {
   for (const source of [
-    original.replace("elementProps={actionElementProps}", 'elementProps={{ style: "color:red" }}'),
+    original.replace("disclosure={actionDisclosure}", 'disclosure={{ id: "x", controls: "y", expanded: true, haspopup: "menu" }}'),
     original.replace("host={fileHost()}", "host={node}"),
     original.replace("{frameIdentity} onclose=", "frameIdentity={node} onclose="),
     original.replace("state={checked.action.state}", "state={checked.action.state} host={fileHost()}"),
     original.replace("</script>", "const alias = nodeRenderers.action;\n</script>"),
-    original.replace("label={checked.label} value={checked.value}", "label={node.label} value={checked.value}"),
+    original.replace("label={checked.label} labelVisibility=\"visible\" measure=\"writing\" purpose", "label={node.label} labelVisibility=\"visible\" measure=\"writing\" purpose"),
   ]) assert.notDeepEqual(grammar(source), [], source.slice(0, 120));
 });
 
@@ -54,7 +54,7 @@ test("D2: every resolved node kind has exactly one branch", () => {
 });
 
 test("D2: a capability is received, never manufactured through a destructuring default", () => {
-  for (const [name, value] of [["actionElementProps", "{}"], ["host", "{ read: () => undefined }"], ["frameIdentity", "{}"]] as const) {
+  for (const [name, value] of [["actionDisclosure", "{}"], ["host", "{ read: () => undefined }"], ["frameIdentity", "{}"]] as const) {
     const source = original.replace(` ${name},`, ` ${name} = ${value},`).replace(` ${name} }:`, ` ${name} = ${value} }:`);
     assert.ok(grammar(source).some(line => line.includes(`manufactured dispatcher capability: ${name}`)), name);
   }

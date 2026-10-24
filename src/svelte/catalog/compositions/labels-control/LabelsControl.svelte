@@ -3,18 +3,18 @@
   import * as Popover from '../../../vendor/components/ui/popover/index.js';
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import { NodeRenderer } from '../../index.ts';
-  import { TextInput } from '../../index.ts';
+  import { Field as WritingField } from '../../index.ts';
   import { CharacterCounter } from '../../index.ts';
   import { StackLayout } from '../../index.ts';
   import { LabelRail } from '../../index.ts';
   import { ReferenceSelector } from '../../index.ts';
   import { MediaReferenceSelector } from '../../index.ts';
   import type { CatalogProps } from '../../types.d.ts';
-  import { useSurfaceTypography } from '../../../infra/surface-typography.svelte.ts';
+  import { useSurfaceDensityClass } from '../../../infra/surface-typography.svelte.ts';
   import { addWrittenLabel } from '../../../../interaction/label-writing.ts';
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   let {node,onevent}:CatalogProps<'labels-control'>=$props();
-  const density = useSurfaceTypography();
+  const density = useSurfaceDensityClass();
   const id=$props.id();
   let writing=$state(''),feedback=$state(''),open=$state(false);
   dismissWhenInactive(()=>open=false);
@@ -28,10 +28,12 @@
 <Field.FieldSet><Field.FieldLegend variant="label">{node.label}</Field.FieldLegend>
   {#if node.values.length}<LabelRail values={node.values} disabled={node.disabled}
     onremove={index=>onevent?.({kind:'labels.change',control:node.id,values:node.values.filter((_,position)=>position!==index)})}/>{/if}
-  <Popover.Root bind:open><Popover.Trigger disabled={node.disabled || node.values.length>=node.limits.maxItems}>
-    {#snippet child({props})}<NodeRenderer node={{version:'desert.bank-node/1',kind:'action',role:'secondary',action:{label:'Add label',icon:'create',state:node.disabled || node.values.length>=node.limits.maxItems ? 'unavailable' : 'ready',intent:{kind:'transient.open'}}}} actionElementProps={props}/>{/snippet}
-  </Popover.Trigger><Popover.Content presentation="reference" density={density()}><form onsubmit={event=>{event.preventDefault();add();}}><StackLayout title="New label">
-    <TextInput primitive="input.text" label="Label" value={writing} maxLength={node.limits.maxLength} onchange={value=>writing=value}/>
+  <Popover.Root bind:open><NodeRenderer node={{version:'desert.bank-node/1',kind:'action',role:'secondary',action:{label:'Add label',icon:'create',state:node.disabled || node.values.length>=node.limits.maxItems ? 'unavailable' : 'ready',intent:{kind:'transient.open'}}}}
+    actionDisclosure={{id:`${id}-add`,controls:`${id}-new-label`,expanded:open,haspopup:'dialog'}}
+    onevent={event=>{if(event.kind==='local.invoke'&&event.intent.kind==='transient.open')open=!open;}}/>
+  <Popover.Content id={`${id}-new-label`} class={density()} customAnchor={`#${id}-add`} presentation="reference"><form onsubmit={event=>{event.preventDefault();add();}}><StackLayout title="New label">
+    <WritingField primitive="input.text" label="Label" labelVisibility="visible" measure="writing" purpose="text" value={writing} required={false}
+      invalid={false} disabled={false} maxLength={node.limits.maxLength} clear onchange={value=>writing=value}/>
     <CharacterCounter id={`${id}-counter`} value={writing} maxLength={node.limits.maxLength}/>
     {#if feedback}<Field.FieldError>{feedback}</Field.FieldError>{/if}
     <Button type="submit" disabled={!writing.trim() || node.disabled}>Add label</Button>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Calendar as CalendarPrimitive } from "bits-ui";
 	import { cn } from "@desert/svelte/vendor/utils.js";
-	// F1-merge: utility control-feedback (lane F1a) replaces the button family's press attachment.
+	// F1-merge: press feedback — the button family's pressFeedback attachment until its owner is settled (as Tag, Avatar).
 	import { pressFeedbackProps } from "@desert/svelte/vendor/components/ui/button/press-feedback.js";
 	import { calendarControl, dayFaces } from "./calendar-control.js";
 
@@ -37,9 +37,9 @@
 		{:else}
 		{@const kind = selected ? "selected" : props['data-today'] !== undefined ? "today" : "day"}
 		{@const face = dayFaces[kind]}
-		<button {...pressFeedbackProps} {...props} type="button" {disabled} data-slot="calendar-day" data-day-face={kind} data-material={face.material}
-			class={cn(calendarControl, face.ink, dayClasses)}>
-			<span data-button-content>{#if children}{@render children({ day, selected, disabled, unavailable })}{:else}{day}{/if}</span>
+		<button {...pressFeedbackProps} {...props} type="button" {disabled} data-slot="calendar-day" data-day-face={kind}
+			class={cn(calendarControl, face.material, face.ink, dayClasses)}>
+			<span class="control-feedback-content" data-button-content>{#if children}{@render children({ day, selected, disabled, unavailable })}{:else}{day}{/if}</span>
 		</button>
 		{/if}
 	{/snippet}

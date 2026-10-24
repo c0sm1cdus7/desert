@@ -5,7 +5,7 @@
 
 	/** The public buttonVariants contract. */
 	export const buttonVariants = tv({
-        base: "tm-control inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-full type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+        base: "inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
         variants: {
             spin: { true: "[&_svg[data-icon]]:animate-spin" },
             variant: {
@@ -15,14 +15,13 @@
                 ghost: "bg-transparent text-foreground",
                 grip: "bg-transparent text-muted-foreground rounded-lg",
                 destructive: "text-destructive",
-                link: "bg-transparent text-primary-text underline-offset-4 hover:underline",
                 row: "bg-transparent text-foreground border-0 rounded-none justify-start whitespace-normal h-auto text-left font-normal w-full",
                 field: "bg-transparent text-foreground border-0 rounded-none justify-start w-full font-normal",
                 well: "text-foreground rounded-[var(--radius)] justify-start text-left whitespace-normal w-full font-normal",
             },
             size: {
                 default: "min-h-11 px-4 py-2", xs: "min-h-6 px-2", sm: "min-h-9 px-3",
-                lg: "min-h-11 px-5", icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
+                icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
                 row: "px-4 py-3", field: "min-h-10 px-3", well: "p-0",
                 avatar: "size-[5.625rem] p-0 relative overflow-hidden rounded-full",
                 "label-remove": "size-[28px] min-h-[28px] p-0 [@media(pointer:coarse)]:size-[44px] [@media(pointer:coarse)]:min-h-[44px]",
@@ -74,6 +73,10 @@
 		children,
 		...restProps
 	}: ButtonProps = $props();
+	// The material is the variant's unless the caller names one (a sidebar row); prominence tints the pane.
+	const interiors: readonly ButtonVariant[] = ["ghost", "grip", "row", "field"];
+	let material = $derived(/\bmaterial-(?:pane|interior)\b/.test(cn(className)) ? undefined
+		: interiors.includes(variant) ? "material-interior" : variant === "default" ? "material-pane material-pane-primary" : "material-pane");
 	$effect(() => { onready?.(ref instanceof HTMLButtonElement || ref instanceof HTMLAnchorElement ? ref : null); return () => onready?.(null); });
 </script>
 
@@ -87,8 +90,7 @@
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
-		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		href={disabled ? undefined : href}
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
@@ -96,7 +98,7 @@
 		{...restProps}
 		data-variant={variant}
 	>
-		<span data-button-content>{@render children?.()}</span>
+		<span class="control-feedback-content" data-button-content>{@render children?.()}</span>
 	</a>
 {:else}
 	<button
@@ -108,8 +110,7 @@
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
-		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		data-toolbar-scroll-top={presentation === "toolbar-return" || undefined}
 		data-catalog-search-toggle={presentation === "search-toggle" || undefined}
 		data-catalog-search-cancel={presentation === "search-toggle" && searching || undefined}
@@ -118,7 +119,7 @@
 		{...restProps}
 		data-variant={variant}
 	>
-		<span data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
+		<span class="control-feedback-content" data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
 	</button>
 {/if}
 

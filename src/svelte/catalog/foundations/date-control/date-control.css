@@ -22,7 +22,3 @@
 [data-date-calendar-navigation] :is([data-slot="calendar-prev-button"],[data-slot="calendar-next-button"]) {
   width:var(--catalog-toolbar-height); height:var(--catalog-toolbar-height); padding:var(--catalog-toolbar-inset);
 }
-/* The selected day carries the primary pane; it supersedes the neutral pane fill. */
-[data-slot="calendar-day"][data-material="pane"][data-day-face="selected"] {
-  background-color:color-mix(in oklab,var(--primary) var(--pane-opacity),transparent);
-}

@@ -30,7 +30,7 @@ for(const direction of ['ltr','rtl']) test(`hosted calendar, transient, problem 
       '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#69757a"/></svg>'}));
     await f.page.addStyleTag({content:await rendererCss()});
     await f.page.evaluate(direction=>{document.documentElement.dir=direction;document.documentElement.style.setProperty('--text-scale','2');},direction);
-    await f.page.locator('[data-slot="sidebar-wrapper"][data-type-density="comfortable"]').waitFor();
+    await f.page.locator('[data-slot="sidebar-wrapper"].density-comfortable').waitFor();
     const target=(await f.page.getByRole('button',{name:'Search',exact:true}).boundingBox())!.height;
     assert.equal(target,60);
     await mkdir('artifacts/toolbar-canonical-geometry/hosted-accessibility',{recursive:true});
@@ -49,7 +49,7 @@ for(const direction of ['ltr','rtl']) test(`hosted calendar, transient, problem 
       const bars=f.page.locator(selector!);await bars.first().waitFor();
       const measurements=await bars.evaluateAll(nodes=>nodes.map(node=>{
         const box=node.getBoundingClientRect(),row=node.querySelector('.toolbar-row,[data-date-calendar-row]')!;
-        return{density:node.closest('[data-type-density]')?.getAttribute('data-type-density'),
+        return{density:node.closest('.density-comfortable,.density-compact')?.classList.contains('density-comfortable')?'comfortable':node.closest('.density-compact')?'compact':undefined,
           width:node.clientWidth,scroll:node.scrollWidth,left:box.left,right:box.right,
           buttons:[...row.querySelectorAll<HTMLElement>('button:not([data-media-thumbs] button)')].map(button=>button.getBoundingClientRect().toJSON())};
       }));
@@ -70,15 +70,15 @@ for(const direction of ['ltr','rtl']) test(`hosted calendar, transient, problem 
 });
 
 test('hosted target witness detects a portal that loses its launch typography',async()=>{
-  const path=resolve('src/svelte/vendor/components/ui/dialog/dialog-content.svelte');
-  const broken=(await readFile(path,'utf8')).replace('data-type-density={density}','');
+  const path=resolve('src/svelte/catalog/compositions/problem/Problem.svelte');
+  const broken=(await readFile(path,'utf8')).replace('class={density()}','');
   const f=await svelteBrowser(source,{[path]:broken},'http://toolbar.test/');
   try{
     await f.page.setViewportSize({width:1280,height:900});
     await f.page.emulateMedia({reducedMotion:'reduce'});
     await f.page.addStyleTag({content:await rendererCss()});
     await f.page.evaluate(()=>document.documentElement.style.setProperty('--text-scale','2'));
-    await f.page.locator('[data-slot="sidebar-wrapper"][data-type-density="comfortable"]').waitFor();
+    await f.page.locator('[data-slot="sidebar-wrapper"].density-comfortable').waitFor();
     const workspace=(await f.page.getByRole('button',{name:'Search',exact:true}).boundingBox())!.height;
     await f.page.locator('[data-catalog-index] [data-destination="problem"]').click();
     await f.page.locator('[data-catalog-entry="problem"]').getByRole('button',{name:/^State ·/}).click();

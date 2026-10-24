@@ -1,7 +1,7 @@
 <script lang="ts">
   import { tick, untrack, type Snippet } from "svelte";
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
-  import { useSurfaceTypography } from "../../../infra/surface-typography.svelte.ts";
+  import { useSurfaceDensityClass } from "../../../infra/surface-typography.svelte.ts";
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import { Icon } from "../../index.ts";
@@ -37,7 +37,7 @@
   const surface = surfaceFocus(() => selectionSurface, event => {
     if (!(event.target instanceof HTMLElement) || event.target.id !== triggerId) open = false;
   });
-  const density = useSurfaceTypography();
+  const density = useSurfaceDensityClass();
   function focus(event: Event) {
     void tick().then(() => { focusBoundary = boundary() ?? focusBoundary; });
     const retained = activeValue;
@@ -113,7 +113,7 @@
       {@render choices()}
     </PickerSheet>
   {:else}
-    <Popover.Content bind:ref={selectionSurface} role="presentation" density={density()} presentation="selection"
+    <Popover.Content bind:ref={selectionSurface} role="presentation" class={density()} presentation="selection"
       onOpenAutoFocus={event => surface.open(event, focus)} onCloseAutoFocus={event => surface.close(event, restore)}>
       {@render choices()}
     </Popover.Content>

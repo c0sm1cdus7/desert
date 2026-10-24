@@ -10,6 +10,7 @@ import ContextPanel from "./catalog/compositions/context-panel/ContextPanel.svel
 import DateControl from "./catalog/foundations/date-control/DateControl.svelte";
 import Drawer from "./catalog/foundations/drawer/Drawer.svelte";
 import Facts from "./catalog/renderer/facts/Facts.svelte";
+import Field from "./catalog/foundations/field/Field.svelte";
 import Fields from "./catalog/compositions/fields/Fields.svelte";
 import Files from "./catalog/foundations/files/Files.svelte";
 import LabelsControl from "./catalog/compositions/labels-control/LabelsControl.svelte";
@@ -20,7 +21,6 @@ import PopoverControl from "./catalog/compositions/popover-control/PopoverContro
 import Problem from "./catalog/compositions/problem/Problem.svelte";
 import Review from "./catalog/compositions/review/Review.svelte";
 import SelectControl from "./catalog/compositions/select-control/SelectControl.svelte";
-import TextInput from "./catalog/foundations/text-input/TextInput.svelte";
 
 export const nodeRenderers: NodeRendererTable = Object.freeze({
   action: Action,
@@ -33,6 +33,8 @@ export const nodeRenderers: NodeRendererTable = Object.freeze({
   "control.date": DateControl,
   transient: Drawer,
   fact: Facts,
+  "input.text": Field,
+  "input.multiline": Field,
   form: Fields,
   "control.files": Files,
   "control.labels": LabelsControl,
@@ -45,6 +47,4 @@ export const nodeRenderers: NodeRendererTable = Object.freeze({
   problem: Problem,
   review: Review,
   "control.select": SelectControl,
-  "input.text": TextInput,
-  "input.multiline": TextInput,
 } satisfies NodeRendererTable);

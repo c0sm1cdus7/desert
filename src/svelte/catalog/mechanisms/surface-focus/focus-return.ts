@@ -17,3 +17,14 @@ export function takeSheetFocus(): SheetFocus | undefined {
   setContext<SheetFocus | undefined>(focusKey, undefined);
   return focus;
 }
+
+const openKey = Symbol("desert.surface-focus-open");
+type OpenFocus = (event: Event) => void;
+/** Provides how the surface a child overlay opens places focus (a choice keeps the option the person was exploring). */
+export function provideOpenFocus(focus: OpenFocus): void { setContext<OpenFocus | undefined>(openKey, focus); }
+/** The open focus provided above, if any; the overlay's own content no longer sees it. */
+export function takeOpenFocus(): OpenFocus | undefined {
+  const focus = getContext<OpenFocus | undefined>(openKey);
+  setContext<OpenFocus | undefined>(openKey, undefined);
+  return focus;
+}

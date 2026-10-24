@@ -9,13 +9,13 @@ export const Popover = defineFoundation({
   purpose: "Open contextual content, a form, options or commands in a surface anchored to its trigger.",
   owner: {
     entry: "Popover.svelte",
-    parts: ["PopoverSurface.svelte", "FieldTrigger.svelte", "anchored-tab-exit.ts", "picker-presentation.svelte.ts", "popover.css"],
+    parts: ["PopoverSurface.svelte", "anchored-tab-exit.ts", "picker-presentation.svelte.ts", "popover.css"],
     vendor: ["popover"], mechanisms: ["surface-focus", "surface-host"],
   },
   shape: "radius", states: ["closed", "open", "disabled", "locked"],
   variants: { content: ["information", "form", "list", "menu"] },
-  // F1-merge: accepts gains "choice", "status", "loading", "list", "inline" and "tag" (lanes F1a, F1c, F1e). "action"
-  // is the command beside each label of a menu (design §1.3 menu).
-  slots: { children: { accepts: ["frame-body", "column", "form", "stack-layout", "text", "action"] } },
+  // F1-merge: accepts gains "list" (lane F1e). "action" is the command beside each label of a menu (design §1.3 menu).
+  slots: { children: { accepts: ["frame-body", "column", "choice", "form", "stack-layout", "text", "status", "loading", "inline", "tag",
+    "action"] } },
   approval: "required", contract: PopoverContract,
 } as const);

@@ -11,7 +11,7 @@
   import DrawerGrip from "./DrawerGrip.svelte";
   import { drawerMotion } from "./drawer-motion.svelte.ts";
   let { label, open, locked, density, dismiss, onclosed, children }: {
-    label: string; open: boolean; locked: boolean; density: "comfortable" | "compact" | undefined;
+    label: string; open: boolean; locked: boolean; density: string | undefined;
     dismiss: () => void; onclosed: (() => void) | undefined; children: Snippet | undefined;
   } = $props();
   let content = $state<HTMLElement | null>(null);
@@ -27,7 +27,7 @@
 </script>
 <Dialog.Root {open} onOpenChange={next => { if (!next) dismiss(); }}
   onOpenChangeComplete={next => { if (!next) { motion.reset(); onclosed?.(); } }}>
-  <Dialog.Content bind:ref={content} presentation="panel" {density} data-modal="sheet" data-picker-sheet data-edge="bottom"
+  <Dialog.Content bind:ref={content} presentation="panel" class={density} data-modal="sheet" data-picker-sheet data-edge="bottom"
     data-size="content" data-locked={locked || undefined} data-dragging={motion.dragging || undefined} overlayStyle={motion.overlayStyle}
     style={`--panel-width:${PICKER_PANEL_REM}rem;transform:${motion.transform}`}
     onOpenAutoFocus={event => focus.open(event, policy?.open)} onCloseAutoFocus={event => focus.close(event, policy ? restore : undefined)}

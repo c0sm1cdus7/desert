@@ -28,10 +28,9 @@
 
 {#if collapsible === "none"}
 	<div
-		data-material="pane"
 		data-sidebar="sidebar"
 		class={cn(
-			"flex h-full w-(--sidebar-width) flex-col text-sidebar-foreground",
+			"material-pane flex h-full w-(--sidebar-width) flex-col text-sidebar-foreground",
 			className
 		)}
 		bind:this={ref}
@@ -45,7 +44,6 @@
 		<Dialog.Content
 			bind:ref
 			presentation="panel"
-			density="comfortable"
 			forceMount={sidebar.revealing}
 			preventScroll={!sidebar.revealing}
 			data-revealing={sidebar.revealing || undefined}
@@ -58,7 +56,7 @@
 			inert={!sidebar.overlayOpen}
 			onCloseAutoFocus={sidebar.handleCloseAutoFocus}
 			class={cn(
-				"p-0 text-sidebar-foreground",
+				"p-0 text-sidebar-foreground density-comfortable",
 				className
 			)}
 			style="--panel-width: {SIDEBAR_OVERLAY_WIDTH}; transform:{sidebar.revealing ? `translateX(calc(-100% - var(--surface-inset) + ${sidebar.revealOffset}px))` : `translateX(${-sidebar.dismissOffset}px)`};"
@@ -115,8 +113,7 @@
 			<div
 				data-sidebar="sidebar"
 				data-slot="sidebar-inner"
-				data-material="pane"
-				class="group-data-[variant=floating]:rounded-lg flex size-full flex-col"
+				class="material-pane group-data-[variant=floating]:rounded-lg flex size-full flex-col"
 			>
 				{@render children?.()}
 			</div>

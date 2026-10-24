@@ -49,7 +49,7 @@ export const PopoverSpecimens = [
     content: "list", placement: "adaptive", align: "start",
     children: createRawSnippet(() => ({ render: () => "<p>Overview</p>" })) } },
   { state: "locked", variants: { content: "list" }, props: { label: "Labels", open: true, disabled: false, locked: true,
-    trigger: { kind: "field", label: "Labels", required: false, invalid: false, display: { kind: "tags", tags: [{ label: "Travel" }, { label: "Family", color: "rose" }] }, measure: "choice" },
+    trigger: { kind: "field", label: "Labels", required: false, invalid: false, display: { kind: "tags", tags: [{ label: "Travel", state: "known" }, { label: "Family", state: "unavailable" }] }, measure: "choice" },
     content: "list", placement: "anchored", align: "start",
     children: createRawSnippet(() => ({ render: () => "<p>Saving the labels.</p>" })) } },
   { state: "closed", variants: { content: "menu" }, props: { label: "More actions", open: false, disabled: false, locked: false,

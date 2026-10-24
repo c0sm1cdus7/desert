@@ -27,10 +27,9 @@
   {disabled} onValueChange={onchange} presentation="picker" class="p-0" data-date-calendar={presentation} revealFocus={revealSurfaceFocus}>
   {#snippet header(visibleMonth)}
     <CalendarPrimitive.Heading class="sr-only" />
-    <!-- F1-merge: utility type-section (lane F1a) replaces type-title. -->
     <div data-date-calendar-header>
       <div data-date-calendar-row>
-        <h2 class="type-title" data-date-calendar-month>{month.format(visibleMonth.toDate(getLocalTimeZone()))}</h2>
+        <h2 class="type-section" data-date-calendar-month>{month.format(visibleMonth.toDate(getLocalTimeZone()))}</h2>
         <span data-date-calendar-navigation>
           <Calendar.PrevButton aria-label="Previous month" />
           <Calendar.NextButton aria-label="Next month" />
@@ -40,5 +39,5 @@
   {/snippet}
 </Calendar.Calendar>
 {#if value && onclear}
-  <Action label="Clear date" icon="close" emphasis="secondary" state={disabled ? "unavailable" : "ready"} onclick={onclear} />
+  <Action label="Clear date" icon="close" face="fit" emphasis="secondary" type="button" state={disabled ? "unavailable" : "ready"} onclick={onclear} />
 {/if}

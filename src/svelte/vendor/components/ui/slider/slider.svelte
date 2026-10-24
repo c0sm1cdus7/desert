@@ -45,9 +45,8 @@ Bits UI narrows value through its discriminated root props at runtime.
 				aria-label={restProps['aria-label']}
 				aria-labelledby={restProps['aria-labelledby']}
 				data-slot="slider-thumb"
-				data-material="pane"
 				index={thumb.index}
-				class="ring-ring/50 relative size-3 rounded-full transition-[color,box-shadow] after:absolute after:-inset-4 hover:ring-3 focus-visible:ring-3 focus-visible:outline-hidden active:ring-3 block shrink-0 select-none disabled:pointer-events-none disabled:opacity-50"
+				class="material-pane ring-ring/50 relative size-3 rounded-full transition-[color,box-shadow] after:absolute after:-inset-4 hover:ring-3 focus-visible:ring-3 focus-visible:outline-hidden active:ring-3 block shrink-0 select-none disabled:pointer-events-none disabled:opacity-50"
 			/>
 		{/each}
 	{/snippet}

@@ -1,16 +1,16 @@
 <script lang="ts">
   import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
-  import { useSurfaceTypography } from "../../../infra/surface-typography.svelte.ts";
+  import { useSurfaceDensityClass } from "../../../infra/surface-typography.svelte.ts";
   import { SurfaceFrame } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { frame, open, locked, invoke, onclosed }: CatalogProps<"confirmation-dialog"> = $props();
-  const density = useSurfaceTypography();
+  const density = useSurfaceDensityClass();
   function cancel() {
     if(!locked && frame.bottom.secondary?.state === "ready") invoke(frame.bottom.secondary.intent);
   }
 </script>
 <Dialog.Root {open} onOpenChange={next=>{if(!next) cancel();}} onOpenChangeComplete={next=>{if(!next) onclosed?.();}}>
-  <Dialog.Content presentation="message" density={density()}
+  <Dialog.Content presentation="message" class={density()}
     onInteractOutside={event=>{event.preventDefault();cancel();}} onEscapeKeydown={event=>{event.preventDefault();cancel();}}>
     <SurfaceFrame {frame} presentation="message" {invoke} />
   </Dialog.Content>

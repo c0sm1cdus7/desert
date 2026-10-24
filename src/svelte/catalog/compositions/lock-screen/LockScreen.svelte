@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Check } from "@sinclair/typebox/value";
   import { AccessRequests } from "../../../../identity/contract.ts";
-  import { Action, Clock, Column, Form, Heading, SeedAvatar, StackLayout, TextInput } from "../../index.ts";
+  import { Action, Clock, Column, Field, Form, Heading, SeedAvatar, StackLayout } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { profile = null, busy = false, onsubmit }: CatalogProps<"lock-screen"> = $props();
   let another = $state(false), login = $state(""), password = $state("");
@@ -17,13 +17,16 @@
   <Clock />
   {#if known}<SeedAvatar seed={known.avatarSeed} label={`${known.displayName}'s avatar`} />{/if}
   <Heading kind="page" text={known ? known.displayName : "Unlock"} />
-  <Form label="Unlock" {submit}>
+  <Form label="Unlock" fill={false} {submit}>
     <StackLayout title="Your identity" headingVisibility="accessible">
-      {#if !known}<TextInput primitive="input.text" label="Identity name" purpose="username" value={login} disabled={busy} onchange={value => login = value} />{/if}
-      <TextInput primitive="input.text" label="Password" purpose="current-password" value={password} disabled={busy} onchange={value => password = value}>
-        {#snippet accessory()}<Action label="Unlock" icon="open" face="icon" type="submit" state={busy ? "pending" : valid ? "ready" : "unavailable"} />{/snippet}
-      </TextInput>
+      {#if !known}<Field primitive="input.text" label="Identity name" labelVisibility="visible" required={false} invalid={false} disabled={busy}
+        measure="writing" purpose="username" value={login} clear onchange={value => login = value} />{/if}
+      <Field primitive="input.text" label="Password" labelVisibility="visible" required={false} invalid={false} disabled={busy}
+        measure="writing" purpose="current-password" value={password} clear onchange={value => password = value}>
+        {#snippet accessory()}<Action label="Unlock" icon="open" emphasis="secondary" face="icon" type="submit" state={busy ? "pending" : valid ? "ready" : "unavailable"} />{/snippet}
+      </Field>
     </StackLayout>
   </Form>
-  {#if known}<Action label="Use another identity" icon="back" state={busy ? "unavailable" : "ready"} onclick={() => { another = true; password = ""; }} />{/if}
+  {#if known}<Action label="Use another identity" icon="back" emphasis="secondary" face="text" type="button" state={busy ? "unavailable" : "ready"}
+    onclick={() => { another = true; password = ""; }} />{/if}
 </Column>

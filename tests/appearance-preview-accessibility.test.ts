@@ -23,7 +23,7 @@ test("appearance previews preserve their own material border and accessibility p
           return [...context.getImageData(0, 0, 1, 1).data];
         };
         return items.map(item => {
-          const root = getComputedStyle(item), pane = getComputedStyle(item.querySelector('[data-material="pane"]')!);
+          const root = getComputedStyle(item), pane = getComputedStyle(item.querySelector('.material-pane')!);
           return { mode: item.getAttribute("data-appearance-preview"), border: rgba(pane.borderTopColor),
             expected: rgba(highContrast ? root.color : root.getPropertyValue("--border")),
             alpha: rgba(pane.backgroundColor)[3], filter: pane.backdropFilter };

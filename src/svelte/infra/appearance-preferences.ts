@@ -1,8 +1,10 @@
+import type { AppearanceMode, Tint, Wallpaper } from "../../interaction/appearance.ts";
+
 export type AppearancePreferences = Readonly<{
-  theme: "system" | "light" | "dark";
+  theme: "system" | AppearanceMode;
   textSize: "standard" | "large" | "larger";
-  tint: "blue" | "violet" | "rose" | "green" | "slate";
-  wallpaper: "silk" | "mist" | "plain";
+  tint: Tint;
+  wallpaper: Wallpaper;
 }>;
 
 export const defaultAppearance: AppearancePreferences = Object.freeze({ theme: "system", textSize: "standard", tint: "blue", wallpaper: "silk" });
@@ -16,6 +18,9 @@ export const appearanceChoices = Object.freeze({
     { value: "green", label: "Green" }, { value: "slate", label: "Slate" }],
   wallpaper: [{ value: "silk", label: "Silk" }, { value: "mist", label: "Mist" }, { value: "plain", label: "Plain" }],
 } as const);
+
+/** The theme's tint utility of each tint (personalization), written literally so the theme's Tailwind scan sees each. */
+export const tintClass = Object.freeze({ blue: "tint-blue", violet: "tint-violet", rose: "tint-rose", green: "tint-green", slate: "tint-slate" } as const) satisfies Readonly<Record<AppearancePreferences["tint"], string>>;
 
 export function appearancePreferences(value: unknown): AppearancePreferences | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;

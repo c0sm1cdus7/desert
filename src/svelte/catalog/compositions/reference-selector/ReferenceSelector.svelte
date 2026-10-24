@@ -9,14 +9,14 @@
   import { FieldWellContent } from '../../index.ts';
   import { ReferenceValues } from '../../index.ts';
   import { ColorBullet } from '../../index.ts';
-  import { TextInput } from '../../index.ts';
+  import { Field as WritingField } from '../../index.ts';
   import { SelectionField } from '../../index.ts';
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   import type { CatalogProps } from '../../types.d.ts';
-  import { useSurfaceTypography } from '../../../infra/surface-typography.svelte.ts';
+  import { useSurfaceDensityClass } from '../../../infra/surface-typography.svelte.ts';
   let {node,onevent}:CatalogProps<'reference-selector'>=$props();
-  const density = useSurfaceTypography();
+  const density = useSurfaceDensityClass();
   const id=$props.id();
   let open=$state(false);
   let creating=$state(false), name=$state(''), color=$state(''), submitted=$state(false), observedBusy=$state(false);
@@ -52,7 +52,7 @@
           </span>
         </FieldWellContent>
   </Popover.Trigger>
-  <Popover.Content presentation="reference" density={density()}>
+  <Popover.Content presentation="reference" class={density()}>
     <StackLayout title={node.label}>
       {#if reference.loading}<Field.FieldDescription>Loading…</Field.FieldDescription>{/if}
       {#if reference.options.length}<ChoiceList><div data-grouped-rows>
@@ -73,7 +73,8 @@
         {#if reference.uncertain}
           <Button variant="secondary" disabled={reference.busy} onclick={()=>onevent?.({kind:'reference.recover',control:node.id})}>Check result</Button>
         {:else if creating}
-          <TextInput primitive="input.text" label="Name" value={name} required maxLength={reference.maxLength} disabled={locked} onchange={value=>name=value}/>
+          <WritingField primitive="input.text" label="Name" labelVisibility="visible" measure="writing" purpose="text" value={name} required invalid={false}
+            maxLength={reference.maxLength} disabled={locked} clear onchange={value=>name=value}/>
           {#if reference.colors.length}<SelectionField selection={`${node.id}:color`} label="Color" fieldControl value={color || reference.colors[0]!}
             options={reference.colors.map(value=>({value,label:value[0]!.toUpperCase()+value.slice(1),disabled:false}))} disabled={locked} onchange={value=>color=value}/>{/if}
           <Button variant="secondary" disabled={locked} onclick={()=>{creating=false;name='';}}>Cancel</Button>

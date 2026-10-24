@@ -23,7 +23,7 @@ for (const width of [1280, 390, 320]) test(`all toolbar consumers share approved
       const metrics=await f.page.locator(selector).evaluateAll(elements=>elements.map(element=>{
         const style=getComputedStyle(element),row=element.querySelector<HTMLElement>('.toolbar-row,[data-date-calendar-row]')!;
         const box=element.getBoundingClientRect(),rail=row.getBoundingClientRect(),css=getComputedStyle(row);
-        const pane=element.closest<HTMLElement>('[data-material="pane"]');
+        const pane=element.closest<HTMLElement>('.material-pane');
         const perimeter=pane?.getBoundingClientRect();
         return {messageHeading:element.closest('[data-frame-presentation="message"]') !== null && element.getAttribute('data-toolbar') === 'top',
           padding:[style.paddingTop,style.paddingRight,style.paddingBottom,style.paddingLeft],gap:css.columnGap,

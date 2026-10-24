@@ -5,16 +5,16 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import TextInput from "@desert/svelte/catalog/foundations/text-input/TextInput.svelte";
+  import WritingField from "@desert/svelte/catalog/foundations/field/Field.svelte";
   import MoneyControl from "@desert/svelte/catalog/compositions/money-control/MoneyControl.svelte";
   import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
   import { Input } from "@desert/svelte/vendor/components/ui/input/index.js";
   let invalid = $state(false), single = $state('A clear value'), multiline = $state('More than one line');
 </script>
 <main style="max-width:640px;padding:24px;display:grid;gap:24px">
-  <TextInput primitive="input.text" label="Title" value={single} required
+  <WritingField primitive="input.text" labelVisibility="visible" measure="writing" invalid={false} disabled={false} purpose="text" clear label="Title" value={single} required
     error={invalid ? 'Enter a valid title.' : undefined} onchange={value => single = value} />
-  <TextInput primitive="input.multiline" label="Content" value={multiline} {invalid}
+  <WritingField primitive="input.multiline" labelVisibility="visible" measure="writing" required={false} disabled={false} label="Content" value={multiline} {invalid}
     onchange={value => multiline = value} />
   <Field.Field data-invalid={invalid}>
     <Field.FieldLabel for="plain">Plain field</Field.FieldLabel>

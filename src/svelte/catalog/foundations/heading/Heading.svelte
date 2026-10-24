@@ -3,30 +3,25 @@
   import type { CatalogProps } from "../../types.d.ts";
   import { assertHeadingContent } from "./heading-content.ts";
 
-  let { kind, text, focusTarget, id, required }: CatalogProps<"heading"> = $props();
-  // The contract lists every prop; the exact combination per kind is checked here, as before.
+  let { kind, text, align, focusTarget, id, required }: CatalogProps<"heading"> = $props();
+  // The contract lists every prop of every kind; the exact combination per kind is checked here against it.
   let content = $derived.by(() => {
-    const value = { kind, text, ...focusTarget === undefined ? {} : { focusTarget }, ...id === undefined ? {} : { id },
-      ...required === undefined ? {} : { required } };
+    const value = { kind, text, ...align === undefined ? {} : { align }, ...focusTarget === undefined ? {} : { focusTarget },
+      ...id === undefined ? {} : { id }, ...required === undefined ? {} : { required } };
     assertHeadingContent(value);
     return value;
   });
+  // Literal class names, so the theme's Tailwind scan sees every role; spacing around a heading is its column's gap.
+  const roles = { display: "type-display", page: "type-page", section: "type-section", group: "type-caption" } as const;
+  const aligns = { start: "text-start", center: "text-center" } as const;
   const offset = currentHeadingOffset();
-  let level = $derived(content.kind === "page" || content.kind === "document-title" ? 1 : 2);
-  let tag = $derived(`h${Math.min(6, level + offset)}` as `h${HeadingLevel}`);
+  let title = $derived(content.kind === "display" || content.kind === "page");
+  let tag = $derived(`h${Math.min(6, (title ? 1 : 2) + offset)}` as `h${HeadingLevel}`);
 </script>
 
-<svelte:element this={tag} class="min-w-0 break-words" class:type-page={content.kind === "page"}
-  class:type-caption={content.kind === "group-label"}
-  id={content.kind === "rail-title" ? content.id : undefined}
-  tabindex={content.kind === "document-title" || content.kind === "page" && content.focusTarget ? -1 : undefined}
-  data-place-title={content.kind === "page" || content.kind === "document-title" ? "" : undefined}
-  data-catalog-detail-title={content.kind === "document-title" ? "" : undefined}
-  data-catalog-group-title={content.kind === "rail-title" ? "" : undefined}>
-  {content.text}{#if content.kind === "group-label" && content.required}<span class="required" aria-hidden="true">*</span>{/if}
+<svelte:element this={tag} class="min-w-0 break-words {roles[content.kind]} {content.align ? aligns[content.align] : ''}"
+  id={content.kind === "section" ? content.id : undefined}
+  tabindex={title && content.focusTarget ? -1 : undefined}
+  data-place-title={content.kind === "page" ? "" : undefined}>
+  {content.text}{#if content.kind === "group" && content.required}<span class="required" aria-hidden="true">*</span>{/if}
 </svelte:element>
-
-<style>
-  [data-catalog-group-title] { margin:0 var(--place-content-inset,42px) 10px; font:var(--text-title--font-weight) var(--text-title)/var(--text-title--line-height) var(--font-sans); }
-  [data-catalog-detail-title] { margin:0 0 8px; font:var(--text-title--font-weight) var(--text-page)/var(--text-page--line-height) var(--font-sans); outline:none; }
-</style>
