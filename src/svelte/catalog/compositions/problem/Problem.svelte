@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
-  import SurfaceFrame from "../surface-frame/SurfaceFrame.svelte";
+  import { SurfaceFrame } from "../../index.ts";
   import { surfaceFrame, SurfaceFrameVersion } from "../../../../interaction/surface-frame.ts";
   import { transientFrame } from "../../../../interaction/transient-frame.ts";
 let { open, title, description, close, severity = "error", locked = false }: {

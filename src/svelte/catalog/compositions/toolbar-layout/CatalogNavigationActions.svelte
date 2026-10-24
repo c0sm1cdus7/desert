@@ -1,5 +1,5 @@
 <script lang="ts">
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { NodeRenderer } from "../../index.ts";
   let { detail = false, onback, backAvailable=true }: {
     detail?: boolean; onback?: () => void; backAvailable?:boolean;
   } = $props();

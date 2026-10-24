@@ -1,12 +1,12 @@
 <script lang="ts">
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import DestinationRow from "../../foundations/destination-row/DestinationRow.svelte";
-  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
-  import ReadingContent from "../reading-content/ReadingContent.svelte";
-  import ContextProperties from "../context-properties/ContextProperties.svelte";
-  import MediaObject from "../media-object/MediaObject.svelte";
-  import AttentionStatus from '../attention-status/AttentionStatus.svelte';
+  import { DestinationRow } from "../../index.ts";
+  import { GroupedPanel } from "../../index.ts";
+  import { ReadingContent } from "../../index.ts";
+  import { ContextProperties } from "../../index.ts";
+  import { MediaObject } from "../../index.ts";
+  import { AttentionStatus } from '../../index.ts';
   import type { NodeRendererInputs } from "../../../renderer-contracts.ts";
   let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {}, actions, selectors = [], attention=[],presentation, onselect }: NodeRendererInputs["context"] = $props();
   let remaining = $derived(fields.filter(field => field !== presentation?.media && field !== presentation?.description));

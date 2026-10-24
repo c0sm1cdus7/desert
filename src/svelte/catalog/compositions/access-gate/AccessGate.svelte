@@ -2,10 +2,10 @@
   import { onMount, untrack } from "svelte";
   import type { HumanSurface, ValidateInput } from "../../../../web/types.ts";
   import type { ViewProgram } from "../../../../views/program-schema.ts";
-  import ViewProduct from "../../renderer/view-product/ViewProduct.svelte";
+  import { ViewProduct } from "../../index.ts";
   import { accessClient } from "../../../../web/client/access.ts";
   import { provideAccess } from "../../../infra/access-context.ts";
-  import AccessScreen from "../access-screen/AccessScreen.svelte";
+  import { AccessScreen } from "../../index.ts";
   import { browserAccessLock } from "./browser-access-lock.ts";
   import { rememberAccessProfile } from "../../../infra/access-profile.ts";
   let { surface, validateInput, viewProgram }: {

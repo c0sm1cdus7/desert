@@ -4,8 +4,8 @@
   import { cn } from "../../../vendor/utils.js";
   import ImageOff from "@lucide/svelte/icons/image-off";
   import type { AvatarNode, ImageNode, TagNode } from "../../../../interaction/extended-nodes.ts";
-  import PhotoCollection from '../photo-collection/PhotoCollection.svelte';
-  import Image from '../../foundations/image/Image.svelte';
+  import { PhotoCollection } from '../../index.ts';
+  import { Image } from '../../index.ts';
   import { imageIdentity } from '../../../infra/media-source.ts';
   let { node }: { node: AvatarNode | ImageNode | TagNode } = $props();
   let source = $derived(node.kind === "tag" ? null : typeof node.source === "object" && node.source !== null

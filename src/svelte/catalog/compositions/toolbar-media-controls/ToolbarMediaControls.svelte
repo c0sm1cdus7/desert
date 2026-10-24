@@ -1,8 +1,8 @@
 <script lang="ts">
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import Image from "../../foundations/image/Image.svelte";
-  import ArtworkPlaceholder from "../../foundations/artwork-placeholder/ArtworkPlaceholder.svelte";
-  import PlaybackControls from "../playback-controls/PlaybackControls.svelte";
+  import { Image } from "../../index.ts";
+  import { ArtworkPlaceholder } from "../../index.ts";
+  import { PlaybackControls } from "../../index.ts";
   import type { ToolbarContent } from "../../../infra/toolbar-content.ts";
   import { imageIdentity } from "../../../infra/media-source.ts";
   let { content }: { content: Extract<ToolbarContent, { kind: "media-controls" }> } = $props();

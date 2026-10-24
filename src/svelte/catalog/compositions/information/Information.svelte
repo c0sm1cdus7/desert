@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
-  import FactRow from "../../foundations/fact-row/FactRow.svelte";
+  import { FactRow } from "../../index.ts";
   import { groupRelatedItems } from "../../../../interaction/content-groups.ts";
   let { items }: Pick<Extract<FrameContent, { kind: "information" }>, "items"> = $props();
 </script>

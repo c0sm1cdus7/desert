@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import Shuffle from "@lucide/svelte/icons/shuffle";
-  import SeedAvatar from "../../foundations/seed-avatar/SeedAvatar.svelte";
+  import { SeedAvatar } from "../../index.ts";
   import { newAvatarSeed } from "../../../infra/avatar-seed.ts";
   let { seed, onchange, disabled = false }: { seed: string; onchange: (value: string) => void; disabled?: boolean } = $props();
 </script>

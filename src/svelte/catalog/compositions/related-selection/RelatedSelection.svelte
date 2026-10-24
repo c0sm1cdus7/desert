@@ -1,13 +1,13 @@
 <script lang="ts">
   import type { RelatedSelectionSnapshot, RelatedSelectionEvent } from '../../../../interaction/related-selection.ts';
-  import StackLayout from '../../foundations/stack-layout/StackLayout.svelte';
-  import GroupedPanel from '../../foundations/grouped-panel/GroupedPanel.svelte';
-  import ChoiceList from '../../foundations/choice-list/ChoiceList.svelte';
-  import ChoiceRow from '../../foundations/choice-row/ChoiceRow.svelte';
-  import Feedback from '../../foundations/feedback/Feedback.svelte';
-  import Information from '../information/Information.svelte';
-  import Image from '../../foundations/image/Image.svelte';
-  import ArtworkPlaceholder from '../../foundations/artwork-placeholder/ArtworkPlaceholder.svelte';
+  import { StackLayout } from '../../index.ts';
+  import { GroupedPanel } from '../../index.ts';
+  import { ChoiceList } from '../../index.ts';
+  import { ChoiceRow } from '../../index.ts';
+  import { Feedback } from '../../index.ts';
+  import { Information } from '../../index.ts';
+  import { Image } from '../../index.ts';
+  import { ArtworkPlaceholder } from '../../index.ts';
   import { Checkbox } from '../../../vendor/components/ui/checkbox/index.js';
   import { Button } from '../../../vendor/components/ui/button/index.js';
   let {state,onevent}:{state:RelatedSelectionSnapshot;onevent:(event:RelatedSelectionEvent)=>void}=$props();

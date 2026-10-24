@@ -5,10 +5,10 @@
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
   import { InspectionCatalog } from "../../../adapter-catalog.ts";
-  import RetainedPlace from "../retained-place/RetainedPlace.svelte";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
-  import CatalogDetail from "../catalog-detail/CatalogDetail.svelte";
-  import Toolbar from "../toolbar/Toolbar.svelte";
+  import { RetainedPlace } from "../../index.ts";
+  import { NodeRenderer } from "../../index.ts";
+  import { CatalogDetail } from "../../index.ts";
+  import { Toolbar } from "../../index.ts";
   import { inspectionCatalog } from "./inspection-fixture.ts";
   import { destinationNavigation } from "../../../infra/destination-navigation.svelte.ts";
 

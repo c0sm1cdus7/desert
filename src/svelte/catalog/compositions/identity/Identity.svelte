@@ -1,8 +1,8 @@
 <script lang="ts">
   import { useAccess } from "../../../infra/access-context.ts";
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
-  import Information from "../information/Information.svelte";
-  import Feedback from "../../foundations/feedback/Feedback.svelte";
+  import { StackLayout } from "../../index.ts";
+  import { Information } from "../../index.ts";
+  import { Feedback } from "../../index.ts";
   const access = useAccess();
   let state = $derived(access?.snapshot().state);
 </script>

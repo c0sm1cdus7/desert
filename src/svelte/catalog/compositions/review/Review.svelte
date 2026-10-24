@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   let { details, recovery }: Extract<FrameContent, { kind: "review" }> = $props();
 </script>

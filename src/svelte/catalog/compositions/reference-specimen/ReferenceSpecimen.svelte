@@ -1,9 +1,9 @@
 <script lang="ts">
-  import LabelRail from '../../foundations/label-rail/LabelRail.svelte';
-  import ColorBullet from '../../foundations/color-bullet/ColorBullet.svelte';
-  import ReferenceValues from '../../foundations/reference-values/ReferenceValues.svelte';
-  import ReferenceSelector from '../reference-selector/ReferenceSelector.svelte';
-  import LabelsControl from '../labels-control/LabelsControl.svelte';
+  import { LabelRail } from '../../index.ts';
+  import { ColorBullet } from '../../index.ts';
+  import { ReferenceValues } from '../../index.ts';
+  import { ReferenceSelector } from '../../index.ts';
+  import { LabelsControl } from '../../index.ts';
   import type { LabelsNode, ReferenceEvent } from '../../../../interaction/labels-control.ts';
   let {owner}:{owner:'LabelRail'|'ColorBullet'|'ReferenceValues'|'ReferenceSelector'|'LabelsControl'}=$props();
   let labels=$state(['Design','Research']);

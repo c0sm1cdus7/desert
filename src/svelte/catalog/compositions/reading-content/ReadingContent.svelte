@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { FactsContent } from "../../../../interaction/surface-frame.ts";
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
-  import FactValue from "../../foundations/fact-value/FactValue.svelte";
+  import { StackLayout } from "../../index.ts";
+  import { FactValue } from "../../index.ts";
   import { displayLabel } from '../../../../interaction/display-label.ts';
   import { readingFields } from '../../../../interaction/fact-presentation.ts';
   let { fields, facts, object, labels }: Pick<FactsContent, "fields" | "facts" | "object" | "labels"> = $props();

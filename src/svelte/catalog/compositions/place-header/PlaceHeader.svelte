@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Heading from "../../foundations/heading/Heading.svelte";
+  import { Heading } from "../../index.ts";
   let { title, subtitle, background }: {
     title: string; subtitle: string;
     background?: { asset: string; alt: string };

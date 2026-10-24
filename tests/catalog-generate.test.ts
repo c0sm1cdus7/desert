@@ -36,7 +36,7 @@ async function withTree(files: Readonly<Record<string, string>>, check: (root: s
 
 async function generatedFor(files: Readonly<Record<string, string>>) {
   let outputs: readonly { path: string; source: string }[] = [];
-  await withTree(files, async root => { outputs = generateCatalog((await readCatalogTree(root, layout)).declarations, layout); });
+  await withTree(files, async root => { outputs = generateCatalog(await readCatalogTree(root, layout), layout); });
   return Object.fromEntries(outputs.map(output => [output.path, output.source]));
 }
 
@@ -59,7 +59,8 @@ test("the types name every piece id and type props from its entry", async () => 
   const types = (await generatedFor(declarations))[layout.generated.types] ?? "";
   assert.match(types, /export type CatalogId = "field" \| "sign-in-form";/);
   assert.match(types, /"sign-in-form": typeof Catalog\.SignInForm;/);
-  assert.match(types, /export type CatalogProps<Id extends CatalogId> = ComponentProps<CatalogExports\[Id\]>;/);
+  assert.match(types, /export type CatalogProps<Id extends CatalogId> = CatalogPropsTable\[Id\];/);
+  assert.match(types, /readonly "field": ComponentProps<typeof Catalog\.Field>;/, "a stub contract keeps the entry's props");
   assert.match(types, /export type CatalogSpecimen<Id extends CatalogId> = Readonly<\{ state: string; variants\?: Readonly<Record<string, string>>; props: CatalogProps<Id> \}>;/);
 });
 
@@ -87,4 +88,17 @@ for (const [name, edit] of [
   await withTree(await generatedTree(edit), async root => {
     await assert.rejects(runCatalogGate(root, { layout, rules: ["C"] }), /CATALOG_DERIVATION: src\/svelte\/catalog\/(index\.ts|manifest\.json)/);
   });
+});
+
+test("a closed contract types its piece from the contract, its events and its declared slots; a stub keeps the entry's props", async () => {
+  const files = { ...declarations,
+    "src/svelte/catalog/foundations/field/field.catalog.ts": field.replace('approval: "required"', 'slots: { accessory: { accepts: ["field"] } }, approval: "required"'),
+    "src/svelte/catalog/foundations/field/field.contract.ts": `import { Type } from "@sinclair/typebox";
+export const FieldContract = { props: Type.Object({ label: Type.String() }, { additionalProperties: false }),
+  events: Type.Object({ change: Type.String() }, { additionalProperties: false }) } as const;\n` };
+  const types = (await generatedFor(files))[layout.generated.types] ?? "";
+  assert.match(types, /import type \{ FieldContract as FieldContract \} from "\.\/foundations\/field\/field\.contract\.ts";/);
+  assert.match(types, /readonly "field": ContractProps<typeof FieldContract> & ContractEvents<typeof FieldContract> & \{ readonly "accessory"\?: Snippet \};/);
+  assert.match(types, /readonly "sign-in-form": ComponentProps<typeof Catalog\.SignInForm>;/);
+  assert.match(types, /export type ClosedContractId = "field";/);
 });

@@ -2,8 +2,8 @@
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   import { anchoredTabExit } from '../../../infra/anchored-tab-exit.ts';
-  import FrameBody from "../../renderer/frame-body/FrameBody.svelte";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { FrameBody } from "../../index.ts";
+  import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";

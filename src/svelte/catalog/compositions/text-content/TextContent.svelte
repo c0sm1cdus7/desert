@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Information from "../information/Information.svelte";
+  import { Information } from "../../index.ts";
   let { text }: { text: string } = $props();
 </script>
 

@@ -5,8 +5,8 @@
   import Backpack from "@lucide/svelte/icons/backpack";
   import PanelsTopLeft from "@lucide/svelte/icons/panels-top-left";
   import { swipeMotion } from "../../../infra/swipe-motion.svelte.js";
-  import Place from "../../foundations/place/Place.svelte";
-  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
+  import { Place } from "../../index.ts";
+  import { ToolbarLayout } from "../../index.ts";
   import { actionIcons } from "../../../infra/action-icons.ts";
   import { workspaceNavigation, type WorkspaceDestination } from "../../../infra/workspace-navigation.ts";
   let { identity, navigation, active, onnavigate, searching = false, settingsPlaceholder = false }: {

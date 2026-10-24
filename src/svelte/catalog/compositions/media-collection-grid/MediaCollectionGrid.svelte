@@ -2,9 +2,9 @@
   import type { ResolvedNodeFor } from '../../../../interaction/resolved-node.ts';
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import { presentTitle } from '../../../../interaction/fact-presentation.ts';
-  import Image from '../../foundations/image/Image.svelte';
-  import CollectionState from '../collection-state/CollectionState.svelte';
-  import AttentionIndicator from '../../foundations/attention-indicator/AttentionIndicator.svelte';
+  import { Image } from '../../index.ts';
+  import { CollectionState } from '../../index.ts';
+  import { AttentionIndicator } from '../../index.ts';
   let { node, select }: { node: ResolvedNodeFor<'collection'>; select: (id: string) => void } = $props();
   let presentation = $derived(node.presentation?.kind === 'collection-grid' ? node.presentation : undefined);
 </script>

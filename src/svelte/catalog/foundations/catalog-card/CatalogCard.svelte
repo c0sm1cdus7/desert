@@ -4,8 +4,8 @@
   import type { ResolvedNodeFor } from "../../../../interaction/resolved-node.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { getContext } from 'svelte';
-  import Image from '../image/Image.svelte';
-  import ArtworkPlaceholder from '../artwork-placeholder/ArtworkPlaceholder.svelte';
+  import { Image } from '../../index.ts';
+  import { ArtworkPlaceholder } from '../../index.ts';
   import { mediaSource, prefetchImage } from '../../../infra/media-source.ts';
   let { node, onevent }: { node: ResolvedNodeFor<"catalog.card">; onevent: (event: NodeEvent) => void } = $props();
   const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');

@@ -2,17 +2,17 @@
   import type { ResolvedView } from "../../../../views/resolved.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
-  import PlaceHeading from "../place-heading/PlaceHeading.svelte";
-  import InspectionContent from "../../renderer/inspection-content/InspectionContent.svelte";
-  import ViewItem from "../../renderer/view-item/ViewItem.svelte";
-  import MediaContent from "../../renderer/media-content/MediaContent.svelte";
-  import Appearance from "../appearance/Appearance.svelte";
-  import Identity from "../identity/Identity.svelte";
-  import ViewAttention from "../view-attention/ViewAttention.svelte";
-  import ViewRelatedSelection from "../view-related-selection/ViewRelatedSelection.svelte";
-  import Information from "../information/Information.svelte";
-  import Feedback from '../../foundations/feedback/Feedback.svelte';
+  import { StackLayout } from "../../index.ts";
+  import { PlaceHeading } from "../../index.ts";
+  import { InspectionContent } from "../../index.ts";
+  import { ViewItem } from "../../index.ts";
+  import { MediaContent } from "../../index.ts";
+  import { Appearance } from "../../index.ts";
+  import { Identity } from "../../index.ts";
+  import { ViewAttention } from "../../index.ts";
+  import { ViewRelatedSelection } from "../../index.ts";
+  import { Information } from "../../index.ts";
+  import { Feedback } from '../../index.ts';
   import { groupRelatedItems } from "../../../../interaction/content-groups.ts";
   import { revealSearchTarget } from "../../../infra/catalog-search-focus.ts";
   let { resolved, onevent, album = null, onalbum = () => {}, host = "page" }: {

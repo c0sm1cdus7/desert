@@ -1,6 +1,6 @@
 <script lang="ts">
-  import DestinationRow from "../../foundations/destination-row/DestinationRow.svelte";
-  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
+  import { DestinationRow } from "../../index.ts";
+  import { GroupedPanel } from "../../index.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ActionIcon } from '../../../../interaction/action-icon.ts';
   let { view, output, label, available, onevent, icon, reason }: {

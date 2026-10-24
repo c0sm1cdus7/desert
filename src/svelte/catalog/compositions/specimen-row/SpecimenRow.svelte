@@ -2,7 +2,7 @@
   import { untrack, type Snippet } from "svelte";
   import { ResolvedNodes, type ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import { scopeHeadings } from "../../../infra/heading-context.ts";
-  import StackItem from "../../foundations/stack-item/StackItem.svelte";
+  import { StackItem } from "../../index.ts";
   import { useSpecimenState } from "../../../infra/specimen-state.ts";
   let { id, state, coverage, headingLevel = 3, children }: {
     id: ResolvedNodeId;

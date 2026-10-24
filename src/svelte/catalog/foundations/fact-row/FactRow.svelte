@@ -1,9 +1,9 @@
 <script lang="ts">
   import type { FactValue as Value } from "../../../../fact-values.ts";
-  import FactValue from "../fact-value/FactValue.svelte";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { FactValue } from "../../index.ts";
+  import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import ReferenceValues from '../reference-values/ReferenceValues.svelte';
+  import { ReferenceValues } from '../../index.ts';
   import type { ReferenceState } from '../../../../interaction/labels-control.ts';
   import { displayLabel } from '../../../../interaction/display-label.ts';
   let { label, value, references }: { label: string; value: Value | null | undefined; references?:ReferenceState['options']|undefined } = $props();

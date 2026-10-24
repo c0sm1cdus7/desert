@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as Field from "../../../vendor/components/ui/field/index.js";
-  import Action from "../../foundations/action/Action.svelte";
+  import { Action } from "../../index.ts";
   import { Input } from "../../../vendor/components/ui/input/index.js";
   import { fileNode, type FileRejection } from "../../../../interaction/control-nodes.ts";
   import type { ControlProps } from "../../../renderer-contracts.ts";

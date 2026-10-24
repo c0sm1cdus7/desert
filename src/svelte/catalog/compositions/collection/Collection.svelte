@@ -1,14 +1,14 @@
 <script lang="ts">
   import type { ResolvedNodeFor } from "../../../../interaction/resolved-node.ts";
   import { presentFact, presentTitle, readingFields } from "../../../../interaction/fact-presentation.ts";
-  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
+  import { GroupedPanel } from "../../index.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import CollectionState from "../collection-state/CollectionState.svelte";
+  import { CollectionState } from "../../index.ts";
   import { retrieveCollection } from "../../../collection-retrieval.ts";
-  import MediaGrid from "../media-grid/MediaGrid.svelte";
-  import MediaCollectionGrid from "../media-collection-grid/MediaCollectionGrid.svelte";
-  import AttentionIndicator from '../../foundations/attention-indicator/AttentionIndicator.svelte';
+  import { MediaGrid } from "../../index.ts";
+  import { MediaCollectionGrid } from "../../index.ts";
+  import { AttentionIndicator } from '../../index.ts';
   let { node, select }: { node: ResolvedNodeFor<"collection">; select: (id: string) => void } = $props();
   let { records, disabled, loaded, selectedId } = $derived(node);
   // Collections present records. Search belongs exclusively to the toolbar overlay.

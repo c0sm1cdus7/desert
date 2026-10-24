@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { ResolvedNodeFor } from "../../../../interaction/resolved-node.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
-  import Heading from "../../foundations/heading/Heading.svelte";
+  import { NodeRenderer } from "../../index.ts";
+  import { Heading } from "../../index.ts";
   import { currentHeadingOffset, scopeHeadings } from "../../../infra/heading-context.ts";
   let { node, onevent, bodyOnly = false }: { node: ResolvedNodeFor<"catalog.home">; onevent: (event: NodeEvent) => void; bodyOnly?: boolean } = $props();
   const id = $props.id();

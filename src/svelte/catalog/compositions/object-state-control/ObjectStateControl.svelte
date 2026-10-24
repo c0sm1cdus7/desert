@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
-  import ObjectStateRow from "../object-state-row/ObjectStateRow.svelte";
+  import { ObjectStateRow } from "../../index.ts";
   let { selectors, onselect }: {
     selectors: NonNullable<Extract<FrameContent, { kind: "context" }>["selectors"]>;
     onselect: (journey: string) => void;

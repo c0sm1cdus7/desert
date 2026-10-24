@@ -3,14 +3,13 @@
 import { generateCatalog } from "../generate.ts";
 import type { CatalogLayout } from "../layout.ts";
 import { normalizedJson, normalizedTypeScript } from "../normalize-source.ts";
-import type { LocatedDeclaration } from "./inventory.ts";
+import type { CatalogSource } from "../generate.ts";
 
 const write = "run `node scripts/catalog.ts --write`";
 
-export function assertCatalogDerivations(declarations: readonly LocatedDeclaration[], generated: ReadonlyMap<string, string>,
-  layout: CatalogLayout): void {
-  for (const expected of generateCatalog(declarations, layout)) {
-    const actual = generated.get(expected.path);
+export function assertCatalogDerivations(tree: CatalogSource, layout: CatalogLayout): void {
+  for (const expected of generateCatalog(tree, layout)) {
+    const actual = tree.generated.get(expected.path);
     if (actual === undefined) throw new Error(`CATALOG_DERIVATION: ${expected.path} is missing; ${write}`);
     const same = expected.path.endsWith(".json")
       ? normalizedJson(actual) === normalizedJson(expected.source)

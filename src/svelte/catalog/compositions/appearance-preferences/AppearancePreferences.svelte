@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import * as RadioGroup from "../../../vendor/components/ui/radio-group/index.js";
-  import SelectionField from "../../foundations/selection-field/SelectionField.svelte";
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
-  import Wallpaper from "../../foundations/wallpaper/Wallpaper.svelte";
-  import AppearancePreview from "../appearance-preview/AppearancePreview.svelte";
+  import { SelectionField } from "../../index.ts";
+  import { StackLayout } from "../../index.ts";
+  import { Wallpaper } from "../../index.ts";
+  import { AppearancePreview } from "../../index.ts";
   import { appearanceChoices, appearancePreferences, effectiveAppearanceTheme, type AppearancePreferences } from "../../../infra/appearance-preferences.ts";
   let { value, onchange, disabled = false }: {
     value: AppearancePreferences; onchange: (value: AppearancePreferences) => void; disabled?: boolean;

@@ -3,11 +3,11 @@
   import * as Field from "../../../vendor/components/ui/field/index.js";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import type { InputMask } from "../../../../interaction/input-mask.ts";
-  import FieldWell from "../field-well/FieldWell.svelte";
-  import MeasuredField from "../measured-field/MeasuredField.svelte";
-  import MaskedInput from "../masked-input/MaskedInput.svelte";
-  import CharacterCounter from "../character-counter/CharacterCounter.svelte";
-  import ClearInput from "../clear-input/ClearInput.svelte";
+  import { FieldWell } from "../../index.ts";
+  import { MeasuredField } from "../../index.ts";
+  import { MaskedInput } from "../../index.ts";
+  import { CharacterCounter } from "../../index.ts";
+  import { ClearInput } from "../../index.ts";
   import { observeEditorCapacity } from "./editor-capacity.ts";
   let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
     identity = "", mask, maxLength, purpose = "text", onchange }: {

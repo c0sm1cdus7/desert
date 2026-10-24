@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import AccessExperience from "../access-experience/AccessExperience.svelte";
+  import { AccessExperience } from "../../index.ts";
   import { mountCatalogAppearance } from "../../../infra/catalog-appearance.ts";
   import type { AccessClient } from "../../../../web/client/access.ts";
   import { readAccessProfile, type AccessProfile } from "../../../infra/access-profile.ts";

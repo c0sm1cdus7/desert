@@ -1,15 +1,15 @@
 <script lang="ts">
   import { onDestroy, untrack } from "svelte";
   import * as Field from "../../../vendor/components/ui/field/index.js";
-  import ControlRenderer from "../../renderer/control-renderer/ControlRenderer.svelte";
+  import { ControlRenderer } from "../../index.ts";
   import { LocalFileHost } from "../../../infra/file-host.ts";
   import { ControlSpecimens } from "../../../../interaction/control-specimens.ts";
   import { applyControlEvent, controlNode, type ControlEvent } from "../../../../interaction/control-nodes.ts";
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
-  import SpecimenGroup from "../specimen-group/SpecimenGroup.svelte";
-  import SpecimenRow from "../specimen-row/SpecimenRow.svelte";
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
-  import Information from "../information/Information.svelte";
+  import { SpecimenGroup } from "../../index.ts";
+  import { SpecimenRow } from "../../index.ts";
+  import { StackLayout } from "../../index.ts";
+  import { Information } from "../../index.ts";
   let { visibleIds = ControlSpecimens.map(entry => entry.id), entryIds = ControlSpecimens.map(entry => entry.id) }: {
     visibleIds?: readonly ResolvedNodeId[]; entryIds?: readonly ResolvedNodeId[];
   } = $props();

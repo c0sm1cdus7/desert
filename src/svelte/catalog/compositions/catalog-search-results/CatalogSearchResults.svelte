@@ -3,8 +3,8 @@
   import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
   import Search from "@lucide/svelte/icons/search";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
-  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
+  import { NodeRenderer } from "../../index.ts";
+  import { GroupedPanel } from "../../index.ts";
   import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
   let { title, description, query, results, onselect }: {
     title: string; description: string; query: string; results: readonly Result[];

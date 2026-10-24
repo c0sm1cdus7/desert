@@ -3,9 +3,9 @@
   import { ToggleGroup } from "bits-ui";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import RadioMark from "../../../vendor/components/ui/radio-group/radio-mark.svelte";
-  import Face from "../face/Face.svelte";
-  import ChoiceItem from "../choice-item/ChoiceItem.svelte";
-  import ChoiceList from "../choice-list/ChoiceList.svelte";
+  import { Face } from "../../index.ts";
+  import { ChoiceItem } from "../../index.ts";
+  import { ChoiceList } from "../../index.ts";
   import type { SelectionOption } from "../../../../interaction/selection-option.ts";
   let { label, value, options, optionLeading, onchange, onclose, required = false, activeValue = $bindable(null), ref = $bindable(null) }: {
     label: string; value: string | null;

@@ -2,8 +2,8 @@
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import type { HumanSurface, ValidateInput } from "../../../../web/types.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
-  import SurfaceFrame from "../surface-frame/SurfaceFrame.svelte";
+  import { NodeRenderer } from "../../index.ts";
+  import { SurfaceFrame } from "../../index.ts";
   import { presentSpecimen } from "./specimen-presentation.ts";
   import type { ReadModelScope } from "../../../../web/client/model-scope.ts";
   import { onDestroy } from "svelte";

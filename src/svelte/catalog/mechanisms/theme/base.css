@@ -1,0 +1,11 @@
+/* Element defaults of the whole renderer: the only element selectors in the catalog (rule G). Owned by the theme. */
+@layer base {
+  * { box-sizing:border-box; border-color:var(--border); }
+  [hidden] { display:none!important; }
+  html { background:var(--background); color:var(--foreground); font-family:var(--font-sans); font-size:calc(100% * var(--text-scale, 1)); }
+  body { margin:0; min-width:320px; font-size:var(--text-body); line-height:var(--text-body--line-height); }
+  button { cursor:pointer; } button:disabled { cursor:default; }
+  input,textarea { min-width:0; } a { color:inherit; }
+  :focus-visible { outline:2px solid var(--ring); outline-offset:var(--focus-ring-offset,3px); }
+  @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+}

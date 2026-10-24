@@ -1,6 +1,6 @@
 <script lang="ts">
-  import AppearancePreferences from "../appearance-preferences/AppearancePreferences.svelte";
-  import Feedback from "../../foundations/feedback/Feedback.svelte";
+  import { AppearancePreferences } from "../../index.ts";
+  import { Feedback } from "../../index.ts";
   import { appearance, appearancePersistence, chooseAppearance } from "../../../infra/appearance-state.ts";
 </script>
 

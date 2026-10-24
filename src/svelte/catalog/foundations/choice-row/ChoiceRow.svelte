@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import * as Field from "../../../vendor/components/ui/field/index.js";
-  import ChoiceItem from "../choice-item/ChoiceItem.svelte";
+  import { ChoiceItem } from "../../index.ts";
   import { pressFeedback } from "../../../vendor/components/ui/button/press-feedback.js";
   let { id, labelId, descriptionId, label, description, disabled, children }: {
     id: string; labelId: string; descriptionId?: string; label: string;

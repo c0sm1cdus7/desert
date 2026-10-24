@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
-  import SurfaceFrame from "../surface-frame/SurfaceFrame.svelte";
+  import { SurfaceFrame } from "../../index.ts";
   import type { SurfaceFrame as Frame } from "../../../../interaction/surface-frame.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
   let { frame, open, locked, invoke, onclosed }: {

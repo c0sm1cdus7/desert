@@ -1,12 +1,12 @@
 <script lang="ts">
   import type { ResolvedNodeFor } from '../../../../interaction/resolved-node.ts';
   import { Button } from '../../../vendor/components/ui/button/index.js';
-  import Image from '../../foundations/image/Image.svelte';
-  import ArtworkPlaceholder from '../../foundations/artwork-placeholder/ArtworkPlaceholder.svelte';
+  import { Image } from '../../index.ts';
+  import { ArtworkPlaceholder } from '../../index.ts';
   import type { AssetReference } from '../../../../assets/types.ts';
-  import CollectionState from '../collection-state/CollectionState.svelte';
-  import GroupedPanel from '../../foundations/grouped-panel/GroupedPanel.svelte';
-  import AttentionIndicator from '../../foundations/attention-indicator/AttentionIndicator.svelte';
+  import { CollectionState } from '../../index.ts';
+  import { GroupedPanel } from '../../index.ts';
+  import { AttentionIndicator } from '../../index.ts';
   let { node, select }: { node: ResolvedNodeFor<'collection'>; select: (id: string) => void } = $props();
   let presentation = $derived(node.presentation?.kind === 'media-grid' ? node.presentation : undefined);
 </script>

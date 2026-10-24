@@ -3,7 +3,7 @@
   import { parseDate, DateFormatter, getLocalTimeZone, type DateValue } from "@internationalized/date";
   import { Calendar as CalendarPrimitive } from "bits-ui";
   import * as Calendar from "../../../vendor/components/ui/calendar/index.js";
-  import Toolbar from "../../compositions/toolbar/Toolbar.svelte";
+  import { Toolbar } from "../../index.ts";
   import { toolbarAction } from "../../../../interaction/toolbar.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   let { value, visibleDate = $bindable(), label, minimum, maximum, disabled, onchange, onclose, onclear, presentation = "anchored" }: {

@@ -116,7 +116,7 @@ async function status(): Promise<void> {
 
 if (command === "--write") {
   const tree = await readCatalogTree(root, DesertLayout);
-  for (const file of generateCatalog(tree.declarations, DesertLayout)) {
+  for (const file of generateCatalog(tree, DesertLayout)) {
     await mkdir(dirname(resolve(root, file.path)), { recursive: true });
     await writeFile(resolve(root, file.path), file.source);
   }

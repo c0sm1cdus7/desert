@@ -1,8 +1,8 @@
 <script lang="ts">
-  import SurfaceFrame from '../surface-frame/SurfaceFrame.svelte';
-  import Drawer from '../../foundations/drawer/Drawer.svelte';
-  import StackLayout from '../../foundations/stack-layout/StackLayout.svelte';
-  import Information from '../information/Information.svelte';
+  import { SurfaceFrame } from '../../index.ts';
+  import { Drawer } from '../../index.ts';
+  import { StackLayout } from '../../index.ts';
+  import { Information } from '../../index.ts';
   import { surfaceFrame, SurfaceFrameVersion } from '../../../../interaction/surface-frame.ts';
   import type { ResolvedView } from '../../../../views/resolved.ts';
   let open=$state(false);

@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Heading from '../../foundations/heading/Heading.svelte';
+  import { Heading } from '../../index.ts';
   import type { PlaceIdentity } from '../../../infra/place-identity.ts';
-  import PhotoCollection from '../photo-collection/PhotoCollection.svelte';
+  import { PhotoCollection } from '../../index.ts';
   import { catalogPhotos } from '../../../infra/media-source.ts';
   let { identity, element = $bindable(null) }: { identity: PlaceIdentity; element?: HTMLElement | null } = $props();
   let failed = $state(false);

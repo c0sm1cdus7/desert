@@ -3,9 +3,9 @@
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import ChevronLeft from '@lucide/svelte/icons/chevron-left';
   import ChevronRight from '@lucide/svelte/icons/chevron-right';
-  import ToolbarLayout from '../toolbar-layout/ToolbarLayout.svelte';
-  import Image from '../../foundations/image/Image.svelte';
-  import PlaybackCanvas from '../../foundations/playback-canvas/PlaybackCanvas.svelte';
+  import { ToolbarLayout } from '../../index.ts';
+  import { Image } from '../../index.ts';
+  import { PlaybackCanvas } from '../../index.ts';
   import { mediaPlayback } from '../../../infra/playback.svelte.ts';
   import { mediaGestures } from '../../../infra/gestures.ts';
   import { imageIdentity, type ViewerMedia } from '../../../infra/media-source.ts';

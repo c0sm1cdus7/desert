@@ -62,7 +62,7 @@ export class SourceTree {
   }
   /** What `node scripts/catalog.ts --write` does, on the copy: so a case can change a declaration without a derivation error. */
   async regenerateCatalog() {
-    for (const file of generateCatalog((await readCatalogTree(this.root, DesertLayout)).declarations, DesertLayout)) {
+    for (const file of generateCatalog(await readCatalogTree(this.root, DesertLayout), DesertLayout)) {
       await writeFile(this.path(file.path), file.source);
     }
   }

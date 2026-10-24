@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
   import { displayLabel } from "../../../../interaction/display-label.ts";
-  import SelectionField from "../../foundations/selection-field/SelectionField.svelte";
+  import { SelectionField } from "../../index.ts";
   let { selector, onselect }: {
     selector: NonNullable<Extract<FrameContent, { kind: "context" }>["selectors"]>[number];
     onselect: (journey: string) => void;

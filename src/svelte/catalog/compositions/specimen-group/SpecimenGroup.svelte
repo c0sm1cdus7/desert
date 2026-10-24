@@ -2,11 +2,11 @@
   import type { Snippet } from "svelte";
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import { catalogTitle } from "../../../infra/catalog-navigation.ts";
-  import ContractInspection from "../contract-inspection/ContractInspection.svelte";
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
-  import SelectionField from "../../foundations/selection-field/SelectionField.svelte";
-  import MeasuredField from "../../foundations/measured-field/MeasuredField.svelte";
-  import Feedback from "../../foundations/feedback/Feedback.svelte";
+  import { ContractInspection } from "../../index.ts";
+  import { StackLayout } from "../../index.ts";
+  import { SelectionField } from "../../index.ts";
+  import { MeasuredField } from "../../index.ts";
+  import { Feedback } from "../../index.ts";
   import { ResolvedNodes } from "../../../../interaction/catalog.ts";
   import { provideSpecimenState } from "../../../infra/specimen-state.ts";
   let { id, hidden = false, headingLevel = 3, children }: {

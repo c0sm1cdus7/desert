@@ -1,8 +1,8 @@
 <script lang="ts">
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import SelectionField from "../../foundations/selection-field/SelectionField.svelte";
-  import MeasuredField from "../../foundations/measured-field/MeasuredField.svelte";
+  import { SelectionField } from "../../index.ts";
+  import { MeasuredField } from "../../index.ts";
   import { selectNode, selectInputRequired, applyControlEvent } from "../../../../interaction/control-nodes.ts";
   import type { ControlProps, ControlEventFor } from "../../../renderer-contracts.ts";
   let { node, onevent }: ControlProps<"select"> = $props();

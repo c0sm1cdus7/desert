@@ -1,11 +1,11 @@
 <script lang="ts">
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
-  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
-  import DestinationRow from "../../foundations/destination-row/DestinationRow.svelte";
-  import Information from "../information/Information.svelte";
-  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
-  import PlaceHeader from "../place-header/PlaceHeader.svelte";
-  import SharedOwnerSpecimen from "../shared-owner-specimen/SharedOwnerSpecimen.svelte";
+  import { StackLayout } from "../../index.ts";
+  import { GroupedPanel } from "../../index.ts";
+  import { DestinationRow } from "../../index.ts";
+  import { Information } from "../../index.ts";
+  import { ToolbarLayout } from "../../index.ts";
+  import { PlaceHeader } from "../../index.ts";
+  import { SharedOwnerSpecimen } from "../../index.ts";
   import { WebCatalogManifest } from "../../../catalog-manifest.ts";
   import type { SharedOwner } from '../../../infra/shared-owners.ts';
   import { sharedPurpose, sharedParts } from '../../../infra/shared-purpose.ts';

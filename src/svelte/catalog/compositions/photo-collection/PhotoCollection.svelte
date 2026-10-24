@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Image from '../../foundations/image/Image.svelte';
-  import Viewer from '../viewer/Viewer.svelte';
+  import { Image } from '../../index.ts';
+  import { Viewer } from '../../index.ts';
   import { mediaGestures } from '../../../infra/gestures.ts';
   import { prefetchImage, imageIdentity, type Photo } from '../../../infra/media-source.ts';
   let { photos, title, header = false, fit = 'fill' }: { photos: readonly Photo[]; title: string; header?: boolean; fit?: 'fit'|'fill' } = $props();

@@ -1,9 +1,9 @@
 <script lang="ts">
   import type { FactsContent, FrameContent } from "../../../../interaction/surface-frame.ts";
   import { readingFields } from "../../../../interaction/fact-presentation.ts";
-  import FactRow from "../../foundations/fact-row/FactRow.svelte";
-  import ObjectStateRow from "../object-state-row/ObjectStateRow.svelte";
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
+  import { FactRow } from "../../index.ts";
+  import { ObjectStateRow } from "../../index.ts";
+  import { StackLayout } from "../../index.ts";
   let { fields, facts, object, labels, references = {}, selectors = [], onselect }: {
     fields: FactsContent['fields']; facts: FactsContent['facts']; object: string; labels: FactsContent['labels'];
     references?: FactsContent['references'];

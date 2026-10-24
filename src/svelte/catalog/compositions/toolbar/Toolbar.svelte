@@ -2,7 +2,7 @@
   import type { Toolbar } from "../../../../interaction/toolbar.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
   import type { ToolbarControls } from "../../../infra/toolbar-controls.ts";
-  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
+  import { ToolbarLayout } from "../../index.ts";
   let { toolbar, invoke, submit, presentation = "standard", controls }: {
     toolbar: Toolbar; invoke: (intent: SurfaceIntent) => void; submit?: string;
     presentation?: "standard" | "message" | "transient"; controls?: ToolbarControls;

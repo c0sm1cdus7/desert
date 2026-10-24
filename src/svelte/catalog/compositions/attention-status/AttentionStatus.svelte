@@ -1,7 +1,7 @@
 <script lang="ts">
   import type {AttentionSignal} from '../../../../attention.ts';
-  import AttentionIndicator from '../../foundations/attention-indicator/AttentionIndicator.svelte';
-  import GroupedPanel from '../../foundations/grouped-panel/GroupedPanel.svelte';
+  import { AttentionIndicator } from '../../index.ts';
+  import { GroupedPanel } from '../../index.ts';
   let {signals}:{signals:readonly AttentionSignal[]}=$props();
 </script>
 {#if signals.length}

@@ -1,12 +1,12 @@
 <script lang="ts">
   import type { WorkspaceContent } from "../../../infra/workspace-content.ts";
   import { bindViewEvents } from "../../../../web/client/view-events.ts";
-  import RetainedPlace from "../retained-place/RetainedPlace.svelte";
-  import ViewContent from "../../renderer/view-content/ViewContent.svelte";
-  import CatalogHome from "../catalog-home/CatalogHome.svelte";
-  import CatalogDetail from "../catalog-detail/CatalogDetail.svelte";
-  import LocalExercises from "../../renderer/local-exercises/LocalExercises.svelte";
-  import PublicCatalogBank from "../../renderer/public-catalog-bank/PublicCatalogBank.svelte";
+  import { RetainedPlace } from "../../index.ts";
+  import { ViewContent } from "../../index.ts";
+  import { CatalogHome } from "../../index.ts";
+  import { CatalogDetail } from "../../index.ts";
+  import { LocalExercises } from "../../index.ts";
+  import { PublicCatalogBank } from "../../index.ts";
   let { content, searching }: { content: WorkspaceContent; searching: boolean } = $props();
 </script>
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as InputGroup from "../../../vendor/components/ui/input-group/index.js";
   import Search from "@lucide/svelte/icons/search";
-  import ClearInput from "../clear-input/ClearInput.svelte";
+  import { ClearInput } from "../../index.ts";
 
   const generatedId = $props.id();
   let { id = generatedId, value = $bindable(""), ref = $bindable(null), onvalue, disabled = false, readonly = false,

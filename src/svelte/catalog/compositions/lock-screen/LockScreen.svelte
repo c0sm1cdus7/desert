@@ -6,11 +6,11 @@
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import ArrowRight from "@lucide/svelte/icons/arrow-right";
   import Loader from "@lucide/svelte/icons/loader-circle";
-  import FieldWell from "../../foundations/field-well/FieldWell.svelte";
-  import MeasuredField from "../../foundations/measured-field/MeasuredField.svelte";
-  import SeedAvatar from "../../foundations/seed-avatar/SeedAvatar.svelte";
-  import TextInput from "../../foundations/text-input/TextInput.svelte";
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
+  import { FieldWell } from "../../index.ts";
+  import { MeasuredField } from "../../index.ts";
+  import { SeedAvatar } from "../../index.ts";
+  import { TextInput } from "../../index.ts";
+  import { StackLayout } from "../../index.ts";
   import type { AccessProfile } from "../../../infra/access-profile.ts";
   let { profile = null, busy = false, onsubmit }: {
     profile?: AccessProfile | null; busy?: boolean; onsubmit: (input: AccessInput<"signIn">) => Promise<void>;

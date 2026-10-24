@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as Empty from "../../../vendor/components/ui/empty/index.js";
   import { Skeleton } from "../../../vendor/components/ui/skeleton/index.js";
-  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
+  import { GroupedPanel } from "../../index.ts";
   let { loaded, createLabel, connection }: { loaded: boolean; createLabel?: string; connection?: 'loading' | 'ready' | 'offline' | undefined } = $props();
   let offline = $derived(connection === 'offline');
   let pending = $derived(!loaded && !offline);

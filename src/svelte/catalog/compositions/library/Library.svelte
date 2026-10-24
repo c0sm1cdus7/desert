@@ -2,8 +2,8 @@
   // Closed library interaction: cards, local album intent, viewer queue and focus return.
   import { setContext } from "svelte";
   import { mediaArtwork, type MediaLibrary } from "../../../../views/media-library.ts";
-  import CatalogHome from "../catalog-home/CatalogHome.svelte";
-  import Viewer from "../viewer/Viewer.svelte";
+  import { CatalogHome } from "../../index.ts";
+  import { Viewer } from "../../index.ts";
   import { viewerMedia, type ViewerMedia } from "../../../infra/media-source.ts";
   import { mediaContent, mediaItems, mediaTarget, mediaAlbum } from "../../../infra/media-data.ts";
   let { library, album, onalbum }: {

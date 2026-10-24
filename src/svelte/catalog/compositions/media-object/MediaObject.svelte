@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { NodeRendererInputs } from '../../../renderer-contracts.ts';
-  import PhotoCollection from '../photo-collection/PhotoCollection.svelte';
-  import PlaybackCanvas from '../../foundations/playback-canvas/PlaybackCanvas.svelte';
-  import ToolbarLayout from '../toolbar-layout/ToolbarLayout.svelte';
+  import { PhotoCollection } from '../../index.ts';
+  import { PlaybackCanvas } from '../../index.ts';
+  import { ToolbarLayout } from '../../index.ts';
   import { mediaPlayback } from '../../../infra/playback.svelte.ts';
   import type { ViewerMedia } from '../../../infra/media-source.ts';
   import type { AssetReference } from '../../../../assets/types.ts';

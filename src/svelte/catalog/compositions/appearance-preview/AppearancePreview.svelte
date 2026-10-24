@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Wallpaper from "../../foundations/wallpaper/Wallpaper.svelte";
+  import { Wallpaper } from "../../index.ts";
   import type { AppearancePreferences } from "../../../infra/appearance-preferences.ts";
   let { mode, tint, wallpaper }: {
     mode: "light" | "dark"; tint: AppearancePreferences["tint"]; wallpaper: AppearancePreferences["wallpaper"];

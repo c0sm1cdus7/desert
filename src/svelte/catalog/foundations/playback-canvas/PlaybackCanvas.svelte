@@ -1,7 +1,7 @@
 <script lang="ts">
   import {onDestroy} from 'svelte';
-  import Image from '../image/Image.svelte';
-  import ArtworkPlaceholder from '../artwork-placeholder/ArtworkPlaceholder.svelte';
+  import { Image } from '../../index.ts';
+  import { ArtworkPlaceholder } from '../../index.ts';
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import { imageSource } from '../../../infra/media-source.ts';
   import type { ViewerMedia } from '../../../infra/media-source.ts';

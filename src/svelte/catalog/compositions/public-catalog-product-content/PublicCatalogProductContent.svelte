@@ -4,7 +4,7 @@
   import { initialPublicCatalogState, projectPublicCatalog, reducePublicCatalog, publicCatalogSurface,
     type PublicCatalogSurface, type PublicCatalogState } from "../../../../public-catalog/client.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
-  import CatalogWorkspace from "../catalog-workspace/CatalogWorkspace.svelte";
+  import { CatalogWorkspace } from "../../index.ts";
   import type { PlaceIdentity } from "../../../infra/place-identity.ts";
   import { catalogSearchResults, catalogSearchScope, type CatalogDestination, type CatalogSearchResult } from "../../../infra/catalog-search.ts";
   import { revealSearchTarget } from "../../../infra/catalog-search-focus.ts";

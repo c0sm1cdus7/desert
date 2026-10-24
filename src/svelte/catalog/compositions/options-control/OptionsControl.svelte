@@ -2,9 +2,9 @@
   import * as Field from "../../../vendor/components/ui/field/index.js";
   import * as RadioGroup from "../../../vendor/components/ui/radio-group/index.js";
   import { Checkbox } from "../../../vendor/components/ui/checkbox/index.js";
-  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
-  import ChoiceRow from "../../foundations/choice-row/ChoiceRow.svelte";
-  import ChoiceList from "../../foundations/choice-list/ChoiceList.svelte";
+  import { GroupedPanel } from "../../index.ts";
+  import { ChoiceRow } from "../../index.ts";
+  import { ChoiceList } from "../../index.ts";
   import type { ControlProps } from "../../../renderer-contracts.ts";
   import { permitsOptionsSelection, optionsInputRequired } from "../../../../interaction/extended-controls.ts";
   import { currentStackTitle } from "../../../infra/stack-context.ts";

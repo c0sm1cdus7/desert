@@ -4,9 +4,9 @@
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
-  import FieldWellContent from "../field-well-content/FieldWellContent.svelte";
-  import Face from "../face/Face.svelte";
-  import PickerSheet from "../picker-sheet/PickerSheet.svelte";
+  import { FieldWellContent } from "../../index.ts";
+  import { Face } from "../../index.ts";
+  import { PickerSheet } from "../../index.ts";
   import SelectionList from "./SelectionList.svelte";
   import { surfaceFocus, revealSurfaceFocus } from "../../../infra/surface-focus.svelte.ts";
   import { PickerPresentation } from "../../../infra/picker-presentation.svelte.ts";

@@ -2,9 +2,9 @@
   import type { Stack } from "../../../../interaction/place.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import type { LocalFileHost } from "../../../infra/file-host.ts";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
-  import StackItem from "../../foundations/stack-item/StackItem.svelte";
+  import { NodeRenderer } from "../../index.ts";
+  import { StackLayout } from "../../index.ts";
+  import { StackItem } from "../../index.ts";
   import { provideStackTitle } from "../../../infra/stack-context.ts";
   import { optionsInputRequired } from "../../../../interaction/extended-controls.ts";
   let { definition, onevent, host }: {

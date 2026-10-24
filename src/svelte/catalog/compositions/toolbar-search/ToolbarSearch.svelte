@@ -2,7 +2,7 @@
   import { tick, untrack } from "svelte";
   import * as Field from "../../../vendor/components/ui/field/index.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import SearchField from "../../foundations/search-field/SearchField.svelte";
+  import { SearchField } from "../../index.ts";
   import type { ToolbarContent } from "../../../infra/toolbar-content.ts";
   let { content }: { content: Extract<ToolbarContent, { kind: "search" }> } = $props();
   const id = $props.id();

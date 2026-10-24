@@ -121,7 +121,8 @@
     },
     "theme": {
       "files": [
-        "tokens.css"
+        "tokens.css",
+        "base.css"
       ],
       "folder": "src/svelte/catalog/mechanisms/theme",
       "owner": "theme"

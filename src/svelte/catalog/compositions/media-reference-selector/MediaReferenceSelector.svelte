@@ -4,9 +4,9 @@
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import ChevronDown from '@lucide/svelte/icons/chevron-down';
   import Check from '@lucide/svelte/icons/check';
-  import Image from '../../foundations/image/Image.svelte';
-  import StackLayout from '../../foundations/stack-layout/StackLayout.svelte';
-  import CollectionState from '../collection-state/CollectionState.svelte';
+  import { Image } from '../../index.ts';
+  import { StackLayout } from '../../index.ts';
+  import { CollectionState } from '../../index.ts';
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   import type { ControlProps } from '../../../renderer-contracts.ts';
   let { node, onevent }: ControlProps<'labels'> = $props();

@@ -2,7 +2,7 @@
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { NodeRenderer } from "../../index.ts";
   let { actions, invoke }: {
     actions: Extract<FrameContent, { kind: "utilities" }>["actions"];
     invoke: (intent: SurfaceIntent) => void;

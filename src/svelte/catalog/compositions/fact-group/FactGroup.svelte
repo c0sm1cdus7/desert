@@ -1,6 +1,6 @@
 <script lang="ts">
-  import FactRow from "../../foundations/fact-row/FactRow.svelte";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { FactRow } from "../../index.ts";
+  import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import type { FactsContent } from "../../../../interaction/surface-frame.ts";
   let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {} }: Omit<FactsContent, "kind"> = $props();

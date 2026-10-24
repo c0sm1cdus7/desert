@@ -3,10 +3,10 @@
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ResolvedView } from "../../../../views/resolved.ts";
-  import ContentFlow from "../content-flow/ContentFlow.svelte";
-  import FrameBody from "../../renderer/frame-body/FrameBody.svelte";
-  import Toolbar from "../toolbar/Toolbar.svelte";
-  import ScrollEdges from "../../foundations/scroll-edges/ScrollEdges.svelte";
+  import { ContentFlow } from "../../index.ts";
+  import { FrameBody } from "../../index.ts";
+  import { Toolbar } from "../../index.ts";
+  import { ScrollEdges } from "../../index.ts";
   import { provideSurfaceHost } from "../../../infra/surface-host.svelte.ts";
   import { provideToolbarScroll } from "../../../infra/toolbar-scroll.svelte.ts";
   import { isFormControlEvent, type FormControlEvent } from "../../../../interaction/form-control-event.ts";

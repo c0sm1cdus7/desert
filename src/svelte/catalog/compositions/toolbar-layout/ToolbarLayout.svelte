@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Face from "../../foundations/face/Face.svelte";
+  import { Face } from "../../index.ts";
   import { cn } from "../../../vendor/utils.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import { useToolbarScroll } from "../../../infra/toolbar-scroll.svelte.ts";
@@ -11,13 +11,13 @@
   import { assertToolbarControls } from "../../../infra/toolbar-controls.ts";
   import { intentKey, submitsJourney } from "../../../../interaction/intent.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
-  import SpeedDial from "../speed-dial/SpeedDial.svelte";
+  import { NodeRenderer } from "../../index.ts";
+  import { SpeedDial } from "../../index.ts";
   import CalendarNavigation from "./CalendarNavigation.svelte";
-  import ToolbarSearch from "../toolbar-search/ToolbarSearch.svelte";
-  import ToolbarMediaControls from "../toolbar-media-controls/ToolbarMediaControls.svelte";
-  import ZoomControls from "../zoom-controls/ZoomControls.svelte";
-  import PlaybackControls from "../playback-controls/PlaybackControls.svelte";
+  import { ToolbarSearch } from "../../index.ts";
+  import { ToolbarMediaControls } from "../../index.ts";
+  import { ZoomControls } from "../../index.ts";
+  import { PlaybackControls } from "../../index.ts";
   import CatalogNavigationActions from "./CatalogNavigationActions.svelte";
   import * as Sidebar from "../../../vendor/components/ui/sidebar/index.js";
   import X from "@lucide/svelte/icons/x";

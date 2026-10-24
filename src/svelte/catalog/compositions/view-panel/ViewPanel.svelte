@@ -2,8 +2,8 @@
   import type { ResolvedPanel } from "../../../../views/resolved.ts";
   import { nodeEvent, type NodeEvent } from "../../../../interaction/node-events.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import Drawer from "../../foundations/drawer/Drawer.svelte";
-  import ConfirmationDialog from "../confirmation-dialog/ConfirmationDialog.svelte";
+  import { Drawer } from "../../index.ts";
+  import { ConfirmationDialog } from "../../index.ts";
   import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
   let { panel, open, frameIdentity, onevent }: { panel: ResolvedPanel; open: boolean;
     frameIdentity: object; onevent: (event: NodeEvent) => void } = $props();

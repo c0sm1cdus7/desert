@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
+  import { ToolbarLayout } from "../../index.ts";
   let { title, query, onquery, searching, resultsId, onsearch, oncancel, searchAvailable = true }: {
     title: string; query: string; onquery: (query: string) => void; searching: boolean;
     resultsId: string; onsearch: () => void; oncancel: () => void; searchAvailable?: boolean;

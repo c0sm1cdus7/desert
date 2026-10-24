@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ResolvedNodes, type ResolvedNodeId } from "../../../../interaction/catalog.ts";
-  import Information from "../information/Information.svelte";
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
+  import { Information } from "../../index.ts";
+  import { StackLayout } from "../../index.ts";
   let { id }: { id: ResolvedNodeId } = $props();
   let inspection = $derived(ResolvedNodes.entries.find(entry => entry.id === id)!.inspection);
   let owners = $derived(inspection.owners.map(owner => ResolvedNodes.foundations.find(item => item.id === owner)!.title));

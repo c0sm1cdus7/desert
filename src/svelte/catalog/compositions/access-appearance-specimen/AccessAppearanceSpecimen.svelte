@@ -1,12 +1,12 @@
 <script lang="ts">
-  import AppearancePreferences from "../appearance-preferences/AppearancePreferences.svelte";
-  import AppearancePreview from "../appearance-preview/AppearancePreview.svelte";
-  import SeedAvatar from "../../foundations/seed-avatar/SeedAvatar.svelte";
-  import AvatarShuffle from "../avatar-shuffle/AvatarShuffle.svelte";
-  import Wallpaper from "../../foundations/wallpaper/Wallpaper.svelte";
-  import AccessExperience from "../access-experience/AccessExperience.svelte";
-  import LockScreen from "../lock-screen/LockScreen.svelte";
-  import Feedback from "../../foundations/feedback/Feedback.svelte";
+  import { AppearancePreferences } from "../../index.ts";
+  import { AppearancePreview } from "../../index.ts";
+  import { SeedAvatar } from "../../index.ts";
+  import { AvatarShuffle } from "../../index.ts";
+  import { Wallpaper } from "../../index.ts";
+  import { AccessExperience } from "../../index.ts";
+  import { LockScreen } from "../../index.ts";
+  import { Feedback } from "../../index.ts";
   import { defaultAppearance, type AppearancePreferences as Preferences } from "../../../infra/appearance-preferences.ts";
   let { owner }: { owner: "AppearancePreferences" | "AppearancePreview" | "SeedAvatar" | "AvatarShuffle" | "Wallpaper" | "AccessExperience" | "LockScreen" } = $props();
   let preferences = $state<Preferences>({ ...defaultAppearance, theme:"dark" });

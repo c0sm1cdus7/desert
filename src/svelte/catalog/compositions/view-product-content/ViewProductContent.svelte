@@ -4,7 +4,7 @@
   import type { HumanSurface, ValidateInput } from "../../../../web/types.ts";
   import { viewProgramModel } from "../../../../web/client/view-program.ts";
   import { requireCatalog } from "../../../../interaction/catalog.ts";
-  import ViewWorkspace from "../view-workspace/ViewWorkspace.svelte";
+  import { ViewWorkspace } from "../../index.ts";
   import { mountBrowserSession } from "../../../../web/client/browser-session.ts";
   import type { AccessClient } from "../../../../web/client/access.ts";
   import { provideFormFiles } from "../../../infra/form-files.ts";

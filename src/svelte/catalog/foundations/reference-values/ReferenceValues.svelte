@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ColorBullet from '../color-bullet/ColorBullet.svelte';
+  import { ColorBullet } from '../../index.ts';
   import type { ReferenceState } from '../../../../interaction/labels-control.ts';
   let {values,options}:{values:readonly string[];options:ReferenceState['options']}=$props();
 </script>

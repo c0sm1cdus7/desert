@@ -13,7 +13,7 @@ const tree: Readonly<Record<string, string>> = {
 import { FieldContract } from "./field.contract.ts";
 export const Field = defineFoundation({ id: "field", purpose: "A field.", owner: { entry: "Field.svelte" }, shape: "radius",
   states: ["empty"], approval: "required", contract: FieldContract } as const);\n`,
-  "src/svelte/catalog/foundations/field/field.contract.ts": "export const FieldContract = {};\n",
+  "src/svelte/catalog/foundations/field/field.contract.ts": "export const FieldContract = {} as const;\n",
   "src/svelte/catalog/foundations/field/Field.svelte": "<input />\n",
   "src/svelte/catalog/mechanisms/theme/theme.mechanism.ts": `import { defineMechanism } from "x";
 export const Theme = defineMechanism({ id: "theme", owner: "theme", files: ["tokens.css"] } as const);\n`,

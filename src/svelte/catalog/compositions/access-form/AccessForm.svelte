@@ -2,16 +2,16 @@
   import { Check } from "@sinclair/typebox/value";
   import { onMount, tick } from "svelte";
   import { AccessRequests, type AccessInput } from "../../../../identity/contract.ts";
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
-  import TextInput from "../../foundations/text-input/TextInput.svelte";
+  import { StackLayout } from "../../index.ts";
+  import { TextInput } from "../../index.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import ArrowLeft from "@lucide/svelte/icons/arrow-left";
-  import AvatarShuffle from "../avatar-shuffle/AvatarShuffle.svelte";
-  import AppearancePreferences from "../appearance-preferences/AppearancePreferences.svelte";
+  import { AvatarShuffle } from "../../index.ts";
+  import { AppearancePreferences } from "../../index.ts";
   import { appearance, appearancePersistence, chooseAppearance } from "../../../infra/appearance-state.ts";
   import type { AppearancePreferences as Preferences } from "../../../infra/appearance-preferences.ts";
   import { newAvatarSeed } from "../../../infra/avatar-seed.ts";
-  import Feedback from "../../foundations/feedback/Feedback.svelte";
+  import { Feedback } from "../../index.ts";
   let { mode, busy = false, onsubmit, productLabel = "VOID", preferences, onappearancechange }: {
     mode: "initialize" | "signIn"; busy?: boolean; productLabel?: string;
     preferences?: Preferences | undefined; onappearancechange?: ((value: Preferences) => void) | undefined;

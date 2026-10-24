@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
-  import MediaReferenceSelector from '../media-reference-selector/MediaReferenceSelector.svelte';
+  import { MediaReferenceSelector } from '../../index.ts';
   import { providePrivateImages } from '../../../infra/private-image-context.ts';
   import { privateImageAccess } from '../../../../web/client/private-images.ts';
   import type { LabelsNode } from '../../../../interaction/labels-control.ts';

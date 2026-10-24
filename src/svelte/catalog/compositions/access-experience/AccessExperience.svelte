@@ -1,10 +1,10 @@
 <script lang="ts">
   import type { AccessClient } from "../../../../web/client/access.ts";
-  import AccessForm from "../access-form/AccessForm.svelte";
-  import LockScreen from "../lock-screen/LockScreen.svelte";
-  import Wallpaper from "../../foundations/wallpaper/Wallpaper.svelte";
-  import Feedback from "../../foundations/feedback/Feedback.svelte";
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
+  import { AccessForm } from "../../index.ts";
+  import { LockScreen } from "../../index.ts";
+  import { Wallpaper } from "../../index.ts";
+  import { Feedback } from "../../index.ts";
+  import { StackLayout } from "../../index.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import { appearance } from "../../../infra/appearance-state.ts";
   import type { AccessProfile } from "../../../infra/access-profile.ts";

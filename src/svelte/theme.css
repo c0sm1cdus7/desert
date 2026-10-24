@@ -25,6 +25,7 @@
 @import "./catalog/mechanisms/catalog-media/catalog-media.css";
 @import "./catalog/mechanisms/lateral-surface-motion/lateral-surface-motion.css";
 @import "./catalog/mechanisms/personalization/personalization.css";
+@import "./catalog/mechanisms/theme/base.css";
 @source "./";
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 @theme inline {
@@ -58,16 +59,6 @@
 :root { --warning:oklch(.52 .12 85); --choice-outline:var(--muted-foreground); }
 @media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) { --warning:oklch(.85 .16 90); } }
 :root[data-theme="dark"] { --warning:oklch(.85 .16 90); }
-@layer base {
-  * { box-sizing:border-box; border-color:var(--border); }
-  [hidden] { display:none!important; }
-  html { background:var(--background); color:var(--foreground); font-family:var(--font-sans); font-size:calc(100% * var(--text-scale, 1)); }
-  body { margin:0; min-width:320px; font-size:var(--text-body); line-height:var(--text-body--line-height); }
-  button { cursor:pointer; } button:disabled { cursor:default; }
-  input,textarea { min-width:0; } a { color:inherit; }
-  :focus-visible { outline:2px solid var(--ring); outline-offset:var(--focus-ring-offset,3px); }
-  @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
-}
 @layer components {
   [data-control-chevron] { color:var(--muted-foreground); flex-shrink:0; }
   [data-slot="input-group-control"] { min-height:2.75rem; }

@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as Field from "../../../vendor/components/ui/field/index.js";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
   import { imageInputControl } from "../../../../interaction/image-input.ts";

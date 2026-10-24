@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import Face from '../face/Face.svelte';
+  import { Face } from '../../index.ts';
   import type { ActionIcon } from '../../../../interaction/action-icon.ts';
 let { destination, label, available, open, icon = 'open', reason }: {
     destination: string; label: string; available: boolean; open: () => void; icon?: ActionIcon | undefined; reason?: string | undefined;

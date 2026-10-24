@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as Sidebar from "../../../vendor/components/ui/sidebar/index.js";
-  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
+  import { ToolbarLayout } from "../../index.ts";
   let { searching = false }: { searching?: boolean } = $props();
   const sidebar = Sidebar.useSidebar();
 </script>

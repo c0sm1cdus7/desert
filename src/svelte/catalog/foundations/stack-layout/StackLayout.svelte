@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import * as Field from "../../../vendor/components/ui/field/index.js";
-  import Heading from "../heading/Heading.svelte";
+  import { Heading } from "../../index.ts";
   let { title, description, required = false, children, headingVisibility = "visible" }: {
     title: string; description?: string; required?: boolean; children: Snippet;
     headingVisibility?: "visible" | "accessible";

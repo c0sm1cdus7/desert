@@ -2,12 +2,12 @@
   import type { AttentionSnapshot } from "../../../../web/client/attention-feed.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
-  import StackLayout from "../../foundations/stack-layout/StackLayout.svelte";
-  import AttentionIndicator from "../../foundations/attention-indicator/AttentionIndicator.svelte";
-  import Feedback from "../../foundations/feedback/Feedback.svelte";
+  import { GroupedPanel } from "../../index.ts";
+  import { StackLayout } from "../../index.ts";
+  import { AttentionIndicator } from "../../index.ts";
+  import { Feedback } from "../../index.ts";
   import * as Empty from '../../../vendor/components/ui/empty/index.js';
-  import CollectionState from '../collection-state/CollectionState.svelte';
+  import { CollectionState } from '../../index.ts';
   let { state, resume }: { state: AttentionSnapshot; resume: (id: string) => void } = $props();
 </script>
 

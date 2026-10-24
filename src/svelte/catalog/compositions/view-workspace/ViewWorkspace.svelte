@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, tick, untrack } from "svelte";
   import { mountCatalogAppearance } from "../../../infra/catalog-appearance.ts";
-  import CatalogWorkspace from "../catalog-workspace/CatalogWorkspace.svelte";
+  import { CatalogWorkspace } from "../../index.ts";
   import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
   import { bindViewEvents, type OwnedResolvedView, type OwnedViewEvent } from "../../../../web/client/view-events.ts";
   import { provideFrameActivation } from "../../../infra/frame-continuity.svelte.ts";

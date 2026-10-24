@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { NodeRenderer } from "../../index.ts";
   import { actionIcons } from "../../../infra/action-icons.ts";
   import { dismissWhenInactive } from "../../../infra/surface-activity.svelte.ts";
   import { anchoredTabExit } from "../../../infra/anchored-tab-exit.ts";

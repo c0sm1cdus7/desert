@@ -1,12 +1,12 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
-  import DrawerGrip from "../drawer-grip/DrawerGrip.svelte";
+  import { DrawerGrip } from "../../index.ts";
   import { prefersReducedMotion } from "svelte/motion";
   import { drawerMotion } from "../../../infra/drawer-motion.svelte.ts";
   import { useSurfaceHost } from "../../../infra/surface-host.svelte.ts";
-  import SurfaceFrame from "../../compositions/surface-frame/SurfaceFrame.svelte";
-  import InstanceFrame from "../../renderer/instance-frame/InstanceFrame.svelte";
+  import { SurfaceFrame } from "../../index.ts";
+  import { InstanceFrame } from "../../index.ts";
   import type { SurfaceFrame as Frame } from "../../../../interaction/surface-frame.ts";
   import type { ResolvedView } from "../../../../views/resolved.ts";
   import { transientFrame } from "../../../../interaction/transient-frame.ts";

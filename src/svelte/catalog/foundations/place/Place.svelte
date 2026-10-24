@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import ScrollEdges from "../scroll-edges/ScrollEdges.svelte";
+  import { ScrollEdges } from "../../index.ts";
   import { observePlaceFocus } from "./place-focus.ts";
   import { provideToolbarScroll } from "../../../infra/toolbar-scroll.svelte.ts";
 

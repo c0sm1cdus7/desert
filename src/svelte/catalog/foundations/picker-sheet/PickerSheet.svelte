@@ -1,9 +1,9 @@
 <script lang="ts">
   import { type Snippet } from "svelte";
   import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
-  import Toolbar from "../../compositions/toolbar/Toolbar.svelte";
+  import { Toolbar } from "../../index.ts";
   import { toolbarAction } from "../../../../interaction/toolbar.ts";
-  import DrawerGrip from "../drawer-grip/DrawerGrip.svelte";
+  import { DrawerGrip } from "../../index.ts";
   import { drawerMotion } from "../../../infra/drawer-motion.svelte.ts";
   import { PICKER_PANEL_REM } from "../../../infra/picker-presentation.svelte.ts";
   let { open = $bindable(false), label, triggerId, children, contentToolbar = false, onOpenAutoFocus }: {

@@ -6,6 +6,12 @@ import { assertGateSources } from "../src/authoring/catalog/gate/sources.ts";
 import { DesertLayout } from "../src/authoring/catalog/layout.ts";
 
 const root = resolve(import.meta.dirname, "..");
+if (process.argv.includes("--check-project")) {
+  // svelte-check through the test-only evidence project, which runs only under node:test.
+  const { spawnSync } = await import("node:child_process");
+  const run = spawnSync(process.execPath, ["--test", resolve(root, "tests/tools/check-project.test.ts")], { stdio: "inherit" });
+  process.exit(run.status ?? 1);
+}
 if (!process.argv.includes("--rules")) {
   const { runWithVisualBoundaries } = await import("../src/authoring/visual-boundary/source.ts");
   await runWithVisualBoundaries(root, async () => undefined);

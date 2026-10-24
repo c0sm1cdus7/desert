@@ -3,6 +3,7 @@
 import { posix } from "node:path";
 import type { CatalogLayout } from "./layout.ts";
 import type { LocatedDeclaration } from "./gate/inventory.ts";
+import type { ReadContract } from "./read-contract.ts";
 import { canonicalJson } from "./normalize-source.ts";
 
 export type GeneratedFile = Readonly<{ path: string; source: string }>;
@@ -12,7 +13,12 @@ const header = "// Generated from the catalog declarations by `node scripts/cata
 const exportName = (id: string) => id.split("-").map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
 const byId = (left: LocatedDeclaration, right: LocatedDeclaration) => left.declaration.id < right.declaration.id ? -1 : 1;
 
-export function generateCatalog(declarations: readonly LocatedDeclaration[], layout: CatalogLayout): readonly GeneratedFile[] {
+/** What the generator reads: the declarations and each piece's contract, both as data. */
+export type CatalogSource = Readonly<{ declarations: readonly LocatedDeclaration[]; contracts: ReadonlyMap<string, ReadContract>;
+  generated: ReadonlyMap<string, string> }>;
+
+export function generateCatalog(source: Pick<CatalogSource, "declarations" | "contracts">, layout: CatalogLayout): readonly GeneratedFile[] {
+  const { declarations, contracts } = source;
   const sorted = [...declarations].sort(byId);
   const pieces = sorted.flatMap(({ path, declaration }) => declaration.kind === "mechanism" ? [] : [{ path, declaration }]);
   const mechanisms = sorted.flatMap(({ path, declaration }) => declaration.kind === "mechanism" ? [{ path, declaration }] : []);
@@ -33,13 +39,37 @@ export function generateCatalog(declarations: readonly LocatedDeclaration[], lay
   });
 
   const ids = pieces.map(({ declaration }) => JSON.stringify(declaration.id));
-  const types = [header, 'import type { ComponentProps } from "svelte";',
-    `import type * as Catalog from ${JSON.stringify(`./${posix.relative(from, layout.generated.index)}`)};`, "",
+  // A closed contract types its piece: props from the contract, on<event> per event, a Snippet per declared slot.
+  // A stub contract leaves the props to the entry's own declaration until the piece is migrated.
+  const closed = pieces.flatMap(({ path, declaration }) => {
+    const contract = contracts.get(declaration.id);
+    return contract?.closed ? [{ id: declaration.id, binding: contract.binding, alias: `${exportName(declaration.id)}Contract`,
+      request: request(path, `${declaration.id}.contract.ts`), slots: Object.keys(declaration.slots ?? {}) }] : [];
+  });
+  const closedIds = new Set(closed.map(item => item.id));
+  const propsOf = (id: string) => {
+    const item = closed.find(candidate => candidate.id === id);
+    if (!item) return `ComponentProps<typeof Catalog.${exportName(id)}>`;
+    const slots = item.slots.map(slot => `readonly ${JSON.stringify(slot)}?: Snippet`).join("; ");
+    return `ContractProps<typeof ${item.alias}> & ContractEvents<typeof ${item.alias}>${slots ? ` & { ${slots} }` : ""}`;
+  };
+  const types = [header, 'import type { ComponentProps, Snippet } from "svelte";', 'import type { Static, TSchema } from "@sinclair/typebox";',
+    `import type * as Catalog from ${JSON.stringify(`./${posix.relative(from, layout.generated.index)}`)};`,
+    ...closed.map(item => `import type { ${item.binding} as ${item.alias} } from ${JSON.stringify(item.request)};`), "",
+    "type ContractProps<C> = C extends { readonly props: infer P extends TSchema } ? Static<P> : {};",
+    "type ContractEvents<C> = C extends { readonly events: infer E extends TSchema }",
+    "  ? { [K in keyof Static<E> & string as `on${K}`]?: (value: Static<E>[K]) => void } : {};", "",
     `export type CatalogId = ${ids.length ? ids.join(" | ") : "never"};`,
     "export type CatalogExports = {",
     ...pieces.map(({ declaration }) => `  readonly ${JSON.stringify(declaration.id)}: typeof Catalog.${exportName(declaration.id)};`),
     "};",
-    "export type CatalogProps<Id extends CatalogId> = ComponentProps<CatalogExports[Id]>;",
+    "/** The props of a piece: from its closed contract, else (stub contract, not yet migrated) from its entry. */",
+    "export type CatalogPropsTable = {",
+    ...pieces.map(({ declaration }) => `  readonly ${JSON.stringify(declaration.id)}: ${propsOf(declaration.id)};`),
+    "};",
+    "export type CatalogProps<Id extends CatalogId> = CatalogPropsTable[Id];",
+    `/** Pieces whose contract is closed: ${closedIds.size}. */`,
+    `export type ClosedContractId = ${closedIds.size ? [...closedIds].map(id => JSON.stringify(id)).join(" | ") : "never"};`,
     "/** One witness of a piece in one state and one value per variant axis (`<id>.specimens.ts`, rule J). */",
     "export type CatalogSpecimen<Id extends CatalogId> = Readonly<{ state: string; variants?: Readonly<Record<string, string>>; props: CatalogProps<Id> }>;",
     ""].join("\n");

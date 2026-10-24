@@ -2,7 +2,7 @@
   import { onDestroy, untrack } from "svelte";
   import type { PublicCatalogExercises } from "../../../../public-catalog/client.ts";
   import { reduceCatalogDraft } from "../../../../public-catalog/draft.ts";
-  import PlaceContent from "../place-content/PlaceContent.svelte";
+  import { PlaceContent } from "../../index.ts";
   import { LocalFileHost } from "../../../infra/file-host.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { stackNodes } from "../../../../interaction/place.ts";

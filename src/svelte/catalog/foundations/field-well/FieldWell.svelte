@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import FieldWellContent from "../field-well-content/FieldWellContent.svelte";
+  import { FieldWellContent } from "../../index.ts";
   import { cn } from "../../../vendor/utils.js";
   let { id, label, filled, required = false, prefix, accessory, footer, children, presentation = "standard" }: {
     id: string; label: string; filled: boolean; required?: boolean;
