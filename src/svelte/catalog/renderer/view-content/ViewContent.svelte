@@ -11,12 +11,13 @@
     onalbum: (id: string) => void;
     onactions?: RegisterContentActions;
   } = $props();
+  // lane-merge: view-content (lane F). The bank answers whether it revealed an entry (Promise<boolean>).
   let flow = $state<{
-    revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null>;
-    revealAndFocusEntry: (id: ResolvedNodeId) => Promise<void>;
+    revealEntry: (id: ResolvedNodeId) => Promise<boolean>;
+    revealAndFocusEntry: (id: ResolvedNodeId) => Promise<boolean>;
     selectMedia: (record: string) => boolean;
   } | null>(null);
-  export async function revealEntry(id: ResolvedNodeId) { return await flow?.revealEntry(id) ?? null; }
+  export async function revealEntry(id: ResolvedNodeId) { return await flow?.revealEntry(id) ?? false; }
   export function selectMedia(record: string) { return flow?.selectMedia(record) ?? false; }
   $effect(() => {
     const register = onactions;
