@@ -13,9 +13,9 @@ const source = `<script lang="ts">
 </script>
 <section data-surface-frame>
   <Toolbar toolbar={{edge:'top',title:'Edit trip',leading:close}} invoke={()=>{}} />
-  <div class="flex gap-3"><Action label="Save" icon="save" emphasis="primary" />
-    <Action label="Saving" icon="save" state="pending" />
-    <Action label="Unavailable" icon="save" state="unavailable" /></div>
+  <div class="flex gap-3"><Action label="Save" icon="save" emphasis="primary" state="ready" face="fit" type="button" />
+    <Action label="Saving" icon="save" state="pending" emphasis="secondary" face="fit" type="button" />
+    <Action label="Unavailable" icon="save" state="unavailable" emphasis="secondary" face="fit" type="button" /></div>
   <Button variant="row" size="row" data-test-row>List row</Button>
   <InputGroup.Root><InputGroup.Input aria-label="Search" />
     <InputGroup.Addon><InputGroup.Button aria-label="Clear">Clear</InputGroup.Button></InputGroup.Addon>
@@ -23,24 +23,27 @@ const source = `<script lang="ts">
   <Toolbar toolbar={{edge:'bottom',secondary:close,primary:save}} invoke={()=>{}} />
 </section>`;
 
-test("standalone actions share capsule/circle geometry while toolbar edges have no divider", async () => {
+// One radius family (owner law; DESIGN §1.0, §7.1): every action takes the theme's --radius, never a capsule or a circle.
+test("standalone actions share the one radius while toolbar edges have no divider", async () => {
   const f = await svelteBrowser(source);
   try {
     await f.page.addStyleTag({content:await rendererCss()});
     for (const profile of ["default", "apple-reference"]) for (const width of [900,390]) {
       await f.page.setViewportSize({width,height:740});
       await f.page.evaluate(profile => { document.documentElement.dataset.rendererProfile=profile; },profile);
-      const buttons = f.page.locator('[data-primitive="action"], [data-slot="input-group"] [data-slot="button"]');
+      const radius = await f.page.evaluate(() => {
+        const probe = document.createElement("i"); probe.style.borderRadius = "var(--radius)"; document.body.append(probe);
+        const value = getComputedStyle(probe).borderTopLeftRadius; probe.remove(); return value;
+      });
+      assert.equal(radius, "14px");
+      const buttons = f.page.locator('[data-action], [data-slot="input-group"] [data-slot="button"]');
       for (const button of await buttons.all()) {
-        const shape = await button.evaluate(element => {
-          const style = getComputedStyle(element), box = element.getBoundingClientRect();
-          return {radius:parseFloat(style.borderTopLeftRadius),height:box.height,width:box.width};
-        });
-        assert.ok(shape.radius >= Math.min(shape.width,shape.height)/2, `${profile}/${width}: ${await button.getAttribute('aria-label')} is round`);
+        assert.equal(await button.evaluate(element => getComputedStyle(element).borderTopLeftRadius), radius,
+          `${profile}/${width}: ${await button.getAttribute('aria-label')} takes the one radius`);
       }
-      const close = f.page.locator('[data-toolbar="top"] [data-primitive="action"]');
+      const close = f.page.locator('[data-toolbar="top"] [data-action]');
       const box = (await close.boundingBox())!;
-      assert.equal(box.width,box.height,"icon action is a circle, not a rounded square");
+      assert.equal(box.width,box.height,"an icon action is a rounded square");
       for (const bar of await f.page.locator('[data-toolbar]').all()) {
         assert.deepEqual(await bar.evaluate(element => {
           const style=getComputedStyle(element);

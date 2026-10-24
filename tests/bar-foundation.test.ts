@@ -126,7 +126,9 @@ test("the navigation bar raises its toggle and shows the unavailable settings pl
   try {
     const bar = f.page.locator('[data-behaviour] [data-toolbar="bottom"]');
     const toggle = bar.getByRole("button", { name: "Show navigation", exact: true });
-    assert.deepEqual([await toggle.getAttribute("aria-expanded"), await toggle.getAttribute("aria-controls")], ["false", "panel"]);
+    // A disclosure (DESIGN §3.1): it names the pane it controls only while that pane is open.
+    assert.deepEqual([await toggle.getAttribute("aria-expanded"), await toggle.getAttribute("aria-haspopup"), await toggle.getAttribute("aria-controls")],
+      ["false", "dialog", null]);
     await toggle.click();
     assert.deepEqual(await f.page.evaluate(() => Reflect.get(window, "events")()), ["toggle"]);
     assert.equal(await bar.getByRole("button", { name: "Settings", exact: true }).isDisabled(), true);

@@ -21,18 +21,15 @@ const geometry = (rows: Locator) => rows.evaluateAll(elements => elements.map(el
     overflow: element.scrollWidth > element.clientWidth + 1 };
 }));
 
-test('inline and picker hosts consume one choice item and divided-list owner', async () => {
-  for (const filename of ['catalog/foundations/choice-row/ChoiceRow.svelte','catalog/foundations/selection-field/SelectionList.svelte']) {
-    const source = await readFile(new URL(`../src/svelte/${filename}`, import.meta.url), 'utf8');
-    assert.match(source, /import \{ ChoiceItem \} from "\.\.\/\.\.\/index\.ts"/);
-    assert.match(source, /<ChoiceItem/);
+test('inline and picker hosts consume one choice anatomy and one divided-row geometry', async () => {
+  for (const filename of ['ChoiceRows.svelte','ChoiceMenuList.svelte']) {
+    const source = await readFile(new URL(`../src/svelte/catalog/foundations/choice/${filename}`, import.meta.url), 'utf8');
+    assert.match(source, /import ChoiceAnatomy from "\.\/ChoiceAnatomy\.svelte"/);
+    assert.match(source, /<ChoiceAnatomy/);
+    assert.match(source, /import \{ rowDivider, rowFrame, rowGroup \} from "\.\/choice-row\.ts"/);
+    assert.match(source, /\{rowFrame\} \{index > 0 \? rowDivider : ''\}/);
   }
-  for (const filename of ['catalog/compositions/options-control/OptionsControl.svelte','catalog/foundations/selection-field/SelectionList.svelte']) {
-    const source = await readFile(new URL(`../src/svelte/${filename}`, import.meta.url), 'utf8');
-    assert.match(source, /import \{ ChoiceList \} from "\.\.\/\.\.\/index\.ts"/);
-    assert.match(source, /<ChoiceList/);
-  }
-  const picker = await readFile(new URL('../src/svelte/catalog/foundations/selection-field/SelectionList.svelte', import.meta.url), 'utf8');
+  const picker = await readFile(new URL('../src/svelte/catalog/foundations/choice/ChoiceMenuList.svelte', import.meta.url), 'utf8');
   assert.doesNotMatch(picker, /class="selection-option|rounded-xl|px-3|type-support/);
 });
 
@@ -53,12 +50,15 @@ test(`single divided-choice anatomy at ${width}px ${colorScheme}`, async () => {
     assert.equal(reference.length,4); assert.equal(picker.length,4);
     assert.deepEqual(await geometry(multiple), reference);
     assert.deepEqual(picker, reference, 'picker and inline must share dimensions and divider insets');
+    for (const absorbed of ['choice-single','choice-multiple']) assert.deepEqual(
+      await geometry(f.page.locator(`[data-case="${absorbed}"] [data-choice-row]`)), reference, `${absorbed} keeps the rows it absorbed`);
     assert.deepEqual(reference[1]!.divider,{content:'""',left:'40px',right:'16px',height:'1px'});
     assert.equal(reference[0]!.padding,'12px 16px'); assert.equal(reference[0]!.gap,'12px');
     assert.equal(reference[0]!.copyGap,'4px');
     assert.ok(reference.every(row=>!row.overflow));
     assert.equal(await list.getAttribute('aria-required'),'true');
-    assert.equal(await f.page.getByRole('radio',{name:'Closed route'}).isDisabled(),true);
+    for (const host of ['single','choice-single'])
+      assert.equal(await f.page.locator(`[data-case="${host}"]`).getByRole('radio',{name:'Closed route'}).isDisabled(),true);
     for (const row of [inline.last(),multiple.last(),list.getByRole('option').last()]) {
       assert.equal(await row.evaluate(element => getComputedStyle(element).opacity),'1','The row material never dims');
       assert.equal(await row.locator('[data-choice-anatomy]').evaluate(element => {

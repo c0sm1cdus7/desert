@@ -2,7 +2,7 @@
 	import { tv, type VariantProps } from "tailwind-variants";
 
 	export const sidebarMenuButtonVariants = tv({
-		base: "tm-control outline-none focus-visible:-outline-offset-3 disabled:pointer-events-none data-active:text-primary-text gap-2 rounded-md p-2 min-h-0 text-left text-sm group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! data-active:font-medium peer/menu-button group/menu-button flex w-full items-center overflow-hidden aria-disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 [&_[data-button-content]>span:last-child]:truncate [&>span:last-child:not([data-button-content])]:truncate",
+		base: "control-feedback [&>*]:control-feedback-content outline-none focus-visible:-outline-offset-3 disabled:pointer-events-none data-active:text-primary-text gap-2 rounded-md p-2 min-h-0 text-left text-sm group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! data-active:font-medium peer/menu-button group/menu-button flex w-full items-center overflow-hidden aria-disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 [&_[data-button-content]>span:last-child]:truncate [&>span:last-child:not([data-button-content])]:truncate",
 		variants: {
 			variant: {
 				default: "",
@@ -57,10 +57,9 @@
 	const sidebar = useSidebar();
 
 	const buttonProps = $derived({
-		class: cn(sidebarMenuButtonVariants({ variant, size }), className),
+		class: cn(sidebarMenuButtonVariants({ variant, size }), variant === "outline" ? "material-pane" : "material-interior", className),
 		"data-slot": "sidebar-menu-button",
 		"data-sidebar": "menu-button",
-		"data-material": variant === "outline" ? "pane" : "interior",
 		"data-size": size,
 		"data-active": isActive ? true : undefined,
 		...restProps,

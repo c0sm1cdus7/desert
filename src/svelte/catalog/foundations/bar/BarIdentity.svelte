@@ -9,12 +9,12 @@
 
 <div class="toolbar-heading" data-toolbar-heading data-toolbar-identity={continuation || undefined} aria-hidden={continuation || undefined}>
   {#if continuation}
-    <span class="toolbar-title type-title truncate" data-toolbar-title data-identity-title>{title}</span>
+    <span class="toolbar-title type-section truncate" data-toolbar-title data-identity-title>{title}</span>
   {:else if role === "dialog" || role === "message"}
     <!-- F1-merge: modal names its dialog by `label` (F1d); the bar title is no longer the bits Dialog.Title. -->
-    <h2 class="type-title toolbar-title" data-toolbar-title>{title}</h2>
+    <h2 class="type-section toolbar-title" data-toolbar-title>{title}</h2>
   {:else}
-    <h2 class="toolbar-title type-title" data-toolbar-title {title}>{title}</h2>
+    <h2 class="toolbar-title type-section" data-toolbar-title {title}>{title}</h2>
   {/if}
   {#if subtitle}
     <p class="toolbar-subtitle type-support" data-toolbar-subtitle data-identity-subtitle={continuation || undefined} title={subtitle}>{subtitle}</p>

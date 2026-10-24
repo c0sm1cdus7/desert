@@ -83,10 +83,10 @@ test('object detail reads prose before one property group, omits known empties, 
 
 test('the existing multiline editor preserves long drafts, native selection and explicitly empty content', {timeout:60000}, async()=>{
   const f=await svelteBrowser(`<script lang="ts">
-    import TextInput from '@desert/svelte/catalog/foundations/text-input/TextInput.svelte';
+    import Field from '@desert/svelte/catalog/foundations/field/Field.svelte';
     let body=$state(${JSON.stringify(body)});
   </script><main style="padding:16px">
-    <TextInput primitive="input.multiline" label="Details" value={body} identity="task:existing-version" onchange={value=>body=value}/>
+    <Field primitive="input.multiline" labelVisibility="visible" measure="writing" required={false} invalid={false} disabled={false} label="Details" value={body} identity="task:existing-version" onchange={value=>body=value}/>
     <output data-draft>{JSON.stringify(body)}</output>
   </main>`,{},undefined,{initialCss:await rendererCss()});
   try {

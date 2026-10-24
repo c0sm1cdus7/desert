@@ -1,18 +1,13 @@
+import type { Static } from "@sinclair/typebox";
 import type { PoolClient } from "pg";
 import { freezeDeep } from "../json.ts";
 import type { LocalProgram } from "../local/program.ts";
 import { requireUUID } from "../local/types.ts";
-import type { PreflightOptions } from "../preflight.ts";
 import { activityDigest, type ActivityIndex } from "./activity-index.ts";
 import { activityProgress } from "./progress.ts";
-import type { ActivityAnswers, ActivityPlan } from "./schema.ts";
+import type { activitiesTable } from "../storage/tables/activities.ts";
 
-export type ActivityRecord = {
-  id: string; actor: string; surface: string; catalog_digest: string; plan_digest: string;
-  occurrence: string; request_digest: string; created_at: Date;
-  plan: ActivityPlan; options: PreflightOptions; revision: number; answers: ActivityAnswers; completed: number[];
-  phase: "draft" | "prepared" | "completed" | "cancelled"; intent_id: string | null; expires_at: Date;
-};
+export type ActivityRecord = Static<typeof activitiesTable.row>;
 
 export async function activityRecord(client: PoolClient, program: LocalProgram, catalog: ActivityIndex,
   actor: string, surface: string, id: string, lock = false) {

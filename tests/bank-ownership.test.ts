@@ -17,7 +17,7 @@ test("product, catalog and nested compositions use the one bank dispatch boundar
   for (const consumer of consumers) {
     const text = source(consumer);
     assert.match(text, /NodeRenderer/, `${consumer} bypasses the bank`);
-    assert.doesNotMatch(text, /import .+ from ["'][^"']*(?:renderer-registry|\/(?:TextInput|Action|Availability|Drawer|Problem)|\/(?:Fields|Facts|ContextPanel|Review|Collection)\.svelte)/,
+    assert.doesNotMatch(text, /import .+ from ["'][^"']*(?:renderer-registry|\/(?:TextInput|Field|Action|Availability|Drawer|Problem)|\/(?:Fields|Facts|ContextPanel|Review|Collection)\.svelte)/,
       `${consumer} resolves a registered owner independently`);
   }
   const dispatch = source("catalog/renderer/node-renderer/NodeRenderer.svelte");
@@ -48,7 +48,7 @@ test("replacing a registered leaf reaches real product frame and catalog specime
   const replacement = `<script lang="ts">let {label, value = '', onchange = () => {}} = $props();</script>
     <input data-bank-mutant aria-label={label} {value} oninput={event => onchange(event.currentTarget.value)} />`;
   for (const mutated of [false, true]) {
-    const registry = source("renderer-registry.ts").replace('"input.text": TextInput,', '"input.text": Availability,');
+    const registry = source("renderer-registry.ts").replace('"input.text": Field,', '"input.text": Availability,');
     const f = await svelteBrowser(page, mutated ? { [path("renderer-registry.ts")]: registry,
       [path("catalog/foundations/availability/Availability.svelte")]: replacement } : {});
     try {

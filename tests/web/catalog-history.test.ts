@@ -21,15 +21,15 @@ test('browser history restores place, draft and detail without leaving the appli
       'returning preserves writing, not an orphaned presentation');
     await (await navigationAction(page,'Landmarks')).click();
     await page.getByRole('button',{name:'Learn More',exact:true}).click();
-    await page.locator('[data-catalog-detail-title]').waitFor();
+    await page.locator('[data-catalog-detail] [data-place-title]').waitFor();
     await page.goBack(); await settle(page);
-    assert.equal(await page.locator('[data-catalog-detail-title]').count(),0);
+    assert.equal(await page.locator('[data-catalog-detail] [data-place-title]').count(),0);
     assert.equal(new URL(page.url()).origin,f.origin);
     await page.goForward();
-    await page.locator('[data-catalog-detail-title]').waitFor();
+    await page.locator('[data-catalog-detail] [data-place-title]').waitFor();
     await page.reload();
-    await page.locator('[data-catalog-detail-title]').waitFor();
+    await page.locator('[data-catalog-detail] [data-place-title]').waitFor();
     await page.getByRole('button',{name:'Back',exact:true}).click();
-    await page.waitForFunction(() => !document.querySelector('[data-catalog-detail-title]'));
+    await page.waitForFunction(() => !document.querySelector('[data-catalog-detail] [data-place-title]'));
   } finally { await f.close(); }
 });

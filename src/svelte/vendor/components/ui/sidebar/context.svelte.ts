@@ -64,8 +64,8 @@ class SidebarState {
 	get expanded() { return this.available && (this.presentation === "overlay" ? this.overlayOpen : this.open); }
 	get revealing() { return this.revealOffset !== null; }
 	private panel() { return document.getElementById(this.panelId); }
-	/** A control that shows or hides this sidebar: the vendor trigger, or any control of its panel (the shell's toggles). */
-	private trigger() { return `[data-sidebar="trigger"], [aria-controls="${CSS.escape(this.panelId)}"]`; }
+	/** A control that shows or hides this sidebar: the vendor trigger, or the shell's navigation toggles (bar parts). */
+	private trigger() { return '[data-sidebar="trigger"], [data-navigation-toggle] button'; }
 	private focusOrigin(): FocusOrigin | undefined {
 		const element = document.activeElement;
 		if (!(element instanceof HTMLElement) || element === document.body) return;

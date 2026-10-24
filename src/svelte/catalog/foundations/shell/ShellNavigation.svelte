@@ -41,7 +41,7 @@
   });
 </script>
 
-<Surface role="navigation" label="Main navigation" searching={false}>
+<Surface kind="navigation" label="Main navigation" searching={false}>
   {#snippet top()}
     <Bar edge="top" purpose="navigation" identity={navigation.identity} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false} />
   {/snippet}

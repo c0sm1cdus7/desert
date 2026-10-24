@@ -33,10 +33,10 @@ const places = `<script lang="ts">
 {#snippet top()}<Bar edge="top" purpose="commands" identity={{title:"Notes"}} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false} />{/snippet}
 {#snippet content()}<div style="height:2400px">Weekly plan</div>{/snippet}
 <section data-case="main" style="height:400px;position:relative"><Place landmark="main" destination="notes" label="Notes" searching={false} {top} {content} /></section>
-<section data-case="main" style="height:400px;position:relative"><Surface bind:this={surface} role="main" destination="notes" label="Notes" searching={false}
+<section data-case="main" style="height:400px;position:relative"><Surface bind:this={surface} kind="main" destination="notes" label="Notes" searching={false}
   oncomposition={active => composing = [...composing, active]} {top} {content} /></section>
 <section data-case="navigation" style="height:400px;position:relative"><Place landmark="navigation" label="Main navigation" {top} {content} /></section>
-<section data-case="navigation" style="height:400px;position:relative"><Surface role="navigation" label="Main navigation" searching={false} {top} {content} /></section>`;
+<section data-case="navigation" style="height:400px;position:relative"><Surface kind="navigation" label="Main navigation" searching={false} {top} {content} /></section>`;
 
 test("main and navigation surfaces draw the place markup and pixels", { timeout: 60000 }, async () => {
   const f = await svelteBrowser(places);
@@ -97,12 +97,12 @@ const frames = `<script lang="ts">
   Reflect.set(window, "submitted", () => submitted);
 </script>
 <section data-case="frame" style="width:420px;height:320px;display:flex"><SurfaceFrame {frame} invoke={() => {}} /></section>
-<section data-case="frame" style="width:420px;height:320px;display:flex"><Surface role="frame" presentation="standard" searching={false}>
+<section data-case="frame" style="width:420px;height:320px;display:flex"><Surface kind="frame" presentation="standard" searching={false}>
   {#snippet top()}<Toolbar toolbar={{ edge: "top", ...frame.top }} invoke={() => {}} />{/snippet}
   {#snippet content()}<FrameBody content={frame.content} invoke={() => {}} edit={() => {}} messageDialog={false} />{/snippet}
   {#snippet bottom()}<Toolbar toolbar={{ edge: "bottom", ...frame.bottom }} invoke={() => {}} />{/snippet}
 </Surface></section>
-<section data-case="form" style="width:420px;height:320px;display:flex"><Surface role="frame" label="Journey" form={{ label: "Edit note" }} searching={false}
+<section data-case="form" style="width:420px;height:320px;display:flex"><Surface kind="frame" label="Journey" form={{ label: "Edit note" }} searching={false}
   onsubmit={() => submitted++}>
   {#snippet top()}<Toolbar toolbar={{ edge: "top", title: "Edit note", primary: { label: "Save", icon: "save", state: "ready", intent: { kind: "journey", journey: "edit" } } }}
     invoke={() => {}} submit="edit" />{/snippet}
@@ -140,7 +140,7 @@ test("a page surface lays the access experience over its backdrop", { timeout: 3
   const f = await svelteBrowser(`<script lang="ts">
   import Surface from "@desert/svelte/catalog/foundations/surface/Surface.svelte";
 </script>
-<Surface role="page" backdrop="mist" searching={false}>
+<Surface kind="page" backdrop="mist" searching={false}>
   {#snippet top()}<h1>VOID</h1>{/snippet}
   {#snippet content()}<p>Unlock</p>{/snippet}
 </Surface>`);

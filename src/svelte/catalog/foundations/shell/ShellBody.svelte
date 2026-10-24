@@ -29,7 +29,7 @@
   // The main place's own viewport (a surface part): found in this shell's subtree, never across the document.
   let viewport = $state<HTMLElement | null>(null);
   $effect(() => { viewport = root()?.querySelector<HTMLElement>("[data-catalog-content] > [data-catalog-scroll]") ?? null; });
-  const focus = searchFocus({ root, viewport: () => viewport, results: () => results, searching: () => searching,
+  const focus = searchFocus({ root: () => root(), viewport: () => viewport, results: () => results, searching: () => searching,
     composing: () => composing, cancel: restoreFocus => oncancelsearch?.(restoreFocus) });
   $effect(() => { destination; focus.reset(); });
   $effect(() => { if (searching) focus.opened(); });
@@ -66,7 +66,7 @@
   </Sidebar.Root>
 {/if}
 <AdaptiveSurfaceLayout fill>
-    <Surface bind:this={place} role="main" {destination} {label} {searching} oncomposition={active => { composing = active; oncomposition?.(active); }}>
+    <Surface bind:this={place} kind="main" {destination} {label} {searching} oncomposition={active => { composing = active; oncomposition?.(active); }}>
       {#snippet top()}{@render top?.()}{/snippet}
       {#snippet content()}{@render content?.()}{/snippet}
       {#snippet bottom()}

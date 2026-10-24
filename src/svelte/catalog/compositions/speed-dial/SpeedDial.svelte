@@ -10,18 +10,18 @@
   import type { CatalogProps } from "../../types.d.ts";
   let { actions, open, onchange, invoke, kind = "overflow" }: CatalogProps<"speed-dial"> = $props();
   const instance = $props.id();
-  const panelId = `${instance}-actions`;
+  const panelId = `${instance}-actions`, triggerId = `${instance}-trigger`;
   dismissWhenInactive(() => onchange?.(false));
 </script>
 <Popover.Root {open} onOpenChange={onchange}>
-  <span data-speed-dial-trigger><Popover.Trigger>
-    {#snippet child({ props })}<NodeRenderer node={{version:"desert.bank-node/1",kind:"action",role:"secondary",action:{label:kind === "create" ? "Create" : "More actions",icon:kind === "create" ? "create" : "more",state:"ready",intent:{kind:"transient.open"}}}} actionElementProps={{...props,"aria-controls":open?panelId:undefined}} />{/snippet}
-  </Popover.Trigger></span>
-  <Popover.Content id={panelId} presentation="speed-dial" align="end" aria-label={kind === "create" ? "Create" : "More actions"}
+  <span data-speed-dial-trigger><NodeRenderer node={{version:"desert.bank-node/1",kind:"action",role:"secondary",action:{label:kind === "create" ? "Create" : "More actions",icon:kind === "create" ? "create" : "more",state:"ready",intent:{kind:"transient.open"}}}}
+    actionDisclosure={{id:triggerId,controls:panelId,expanded:open,haspopup:"dialog"}}
+    onevent={event => { if (event.kind === "local.invoke" && event.intent.kind === "transient.open") onchange?.(!open); }} /></span>
+  <Popover.Content id={panelId} customAnchor={`#${triggerId}`} presentation="speed-dial" align="end" aria-label={kind === "create" ? "Create" : "More actions"}
     onkeydowncapture={event => anchoredTabExit(event,event.currentTarget,()=>onchange?.(false))}>
     {#each actions as action, index (intentKey(action.intent))}
       <div data-speed-dial-action>
-        <span data-material="pane" data-speed-dial-label id={`${instance}-${index}`}>{action.label}</span>
+        <span class="material-pane" data-speed-dial-label id={`${instance}-${index}`}>{action.label}</span>
         <Button variant="secondary" size="icon" aria-labelledby={`${instance}-${index}`} disabled={action.state !== "ready"}
           onclick={() => { onchange?.(false); invoke(action.intent); }}><Icon name={actionIconNames[action.icon]} /></Button>
       </div>

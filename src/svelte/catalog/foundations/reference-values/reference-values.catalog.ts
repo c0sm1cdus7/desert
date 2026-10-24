@@ -1,5 +1,5 @@
 // ReferenceValues: the selected object references of a field, each read by its label (and color, when it has one);
-// a reference no longer known reads as unavailable.
+// a reference no longer known reads as unavailable. Each is a text Tag; Batch 3 prunes this folder.
 import { defineFoundation } from "../../../../authoring/catalog/define.ts";
 import { ReferenceValuesContract } from "./reference-values.contract.ts";
 

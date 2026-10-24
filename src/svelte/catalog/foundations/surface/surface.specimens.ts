@@ -3,17 +3,15 @@
 import { createRawSnippet } from "svelte";
 import type { CatalogSpecimen } from "../../types.d.ts";
 
-const snippet = (html: string) => createRawSnippet(() => ({ render: () => html }));
-
 export const SurfaceSpecimens = [
-  { state: "default", variants: { role: "main" }, props: { role: "main", label: "Notes", destination: "notes", searching: false,
-    top: snippet("<header>Notes</header>"), content: snippet("<p>Weekly plan</p>") } },
-  { state: "searching", variants: { role: "main" }, props: { role: "main", label: "Notes", destination: "notes", searching: true,
-    top: snippet("<header>Notes</header>"), content: snippet("<p>Weekly plan</p>") } },
-  { state: "default", variants: { role: "navigation" }, props: { role: "navigation", label: "Main navigation", searching: false,
-    top: snippet("<header>Notebook</header>"), content: snippet("<p>Notes</p>") } },
-  { state: "default", variants: { role: "frame" }, props: { role: "frame", presentation: "message", searching: false,
-    top: snippet("<header>Move note to Trash?</header>"), content: snippet("<p>You can restore the note from Trash.</p>") } },
-  { state: "default", variants: { role: "page" }, props: { role: "page", backdrop: "mist", searching: false,
-    top: snippet("<p>VOID</p>"), content: snippet("<p>Unlock</p>") } },
+  { state: "default", variants: { kind: "main" }, props: { kind: "main", label: "Notes", destination: "notes", searching: false,
+    top: createRawSnippet(() => ({ render: () => "<header>Notes</header>" })), content: createRawSnippet(() => ({ render: () => "<p>Weekly plan</p>" })) } },
+  { state: "searching", variants: { kind: "main" }, props: { kind: "main", label: "Notes", destination: "notes", searching: true,
+    top: createRawSnippet(() => ({ render: () => "<header>Notes</header>" })), content: createRawSnippet(() => ({ render: () => "<p>Weekly plan</p>" })) } },
+  { state: "default", variants: { kind: "navigation" }, props: { kind: "navigation", label: "Main navigation", searching: false,
+    top: createRawSnippet(() => ({ render: () => "<header>Notebook</header>" })), content: createRawSnippet(() => ({ render: () => "<p>Notes</p>" })) } },
+  { state: "default", variants: { kind: "frame" }, props: { kind: "frame", presentation: "message", searching: false,
+    top: createRawSnippet(() => ({ render: () => "<header>Move note to Trash?</header>" })), content: createRawSnippet(() => ({ render: () => "<p>You can restore the note from Trash.</p>" })) } },
+  { state: "default", variants: { kind: "page" }, props: { kind: "page", backdrop: "mist", searching: false,
+    top: createRawSnippet(() => ({ render: () => "<p>VOID</p>" })), content: createRawSnippet(() => ({ render: () => "<p>Unlock</p>" })) } },
 ] as const satisfies readonly CatalogSpecimen<"surface">[];

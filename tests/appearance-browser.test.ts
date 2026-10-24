@@ -19,7 +19,7 @@ test("appearance uses shared choices, persists locally and applies to the whole 
     await browser.page.getByRole("option", { name: "Larger", exact: true }).click();
     await browser.page.getByRole("option", { name: "Larger", exact: true }).waitFor({ state: "hidden" });
     assert.equal(await browser.page.getByRole("button", { name: "Text size · Larger", exact: true }).getAttribute("data-floating-field"), "true");
-    assert.equal(await browser.page.getByRole("button", { name: "Text size · Larger", exact: true }).getAttribute("data-material"), "pane",
+    assert.equal(await browser.page.getByRole("button", { name: "Text size · Larger", exact: true }).evaluate(element => element.classList.contains("material-pane")), true,
       "A standard popover trigger must preserve its child's canonical field material");
     assert.equal(await browser.page.getByRole("group", { name: "Text size", exact: true }).count(), 1);
     await browser.page.getByRole("radio", { name: "Rose", exact: true }).click();

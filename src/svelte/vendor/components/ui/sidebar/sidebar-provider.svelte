@@ -9,7 +9,7 @@
 	} from "./constants.js";
 	import { setSidebar } from "./context.svelte.js";
 	import type { HTMLAttributes } from "svelte/elements";
-  import { provideSurfaceTypography } from '@desert/svelte/infra/surface-typography.svelte.ts';
+  import { densityClass, provideSurfaceTypography } from '@desert/svelte/infra/surface-typography.svelte.ts';
 
 	let {
 		ref = $bindable(null),
@@ -54,12 +54,12 @@
 <Tooltip.Provider delayDuration={0}>
 	<div
 		data-slot="sidebar-wrapper"
-    data-type-density={sidebar.presentation === 'overlay' ? 'comfortable' : 'compact'}
 		data-presentation={sidebar.presentation}
 		data-state={sidebar.state}
 		style="--sidebar-width: {SIDEBAR_WIDTH}; --sidebar-width-icon: {SIDEBAR_WIDTH_ICON}; --sidebar-content-min-width:{contentMinWidth}; {style}"
 		class={cn(
 			"group/sidebar-wrapper relative flex min-h-svh w-full has-data-[variant=inset]:bg-sidebar",
+			densityClass[sidebar.presentation === "overlay" ? "comfortable" : "compact"],
 			className
 		)}
 		bind:this={ref}

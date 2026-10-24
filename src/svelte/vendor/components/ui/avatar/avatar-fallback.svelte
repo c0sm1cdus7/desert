@@ -16,7 +16,7 @@
 	data-slot="avatar-fallback"
 	class={cn(
 		"text-secondary-foreground rounded-[inherit] flex size-full items-center justify-center group-data-[shape=object]/avatar:text-inherit",
-		initials && Array.from(initials).length > 2 ? "type-initials-compact" : "type-body group-data-[size=sm]/avatar:text-xs",
+		initials && Array.from(initials).length > 2 ? "text-(length:--text-initials-compact) leading-none font-normal" : "type-body group-data-[size=sm]/avatar:text-xs",
 		className
 	)}
 	{...restProps}

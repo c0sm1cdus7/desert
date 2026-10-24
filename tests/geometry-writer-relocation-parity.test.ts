@@ -10,7 +10,8 @@ import { controlWritersBefore } from "./fixtures/control-writers-before.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
-const messageType = `    --text-title:1.0625rem; --text-title--line-height:1.375rem; --text-title--font-weight:600;
+// The title metrics are the section role now (DESIGN §1.0): the moved writer sets --text-section where it set --text-title.
+const messageType = `    --text-section:1.0625rem; --text-section--line-height:1.375rem; --text-section--font-weight:600;
     --text-body:.8125rem; --text-body--line-height:1.1875rem;
 `;
 const catalogHome = `[data-stack-kind="catalog.home"] { --place-surface-inset:0px; --place-content-inset:1rem; }\n`;
@@ -25,8 +26,8 @@ const reversed: readonly (readonly [string, string, string, string?])[] = [
     "catalog/foundations/place/place.css"],
   ["catalog/mechanisms/typography/typography.css", `@layer components {\n  [data-frame-presentation="message"] {\n${messageType}  }\n}\n`, ""],
   ["catalog/mechanisms/surface-chrome/surface-chrome.css", `    --chrome-inset:1.5rem;\n  }`, `    --chrome-inset:1.5rem;\n${messageType}  }`],
-  ["catalog/mechanisms/typography/typography.css", `@layer base {\n  button,input,textarea { font:inherit; }\n  h1,h2,h3,p { margin:0; }\n}\n`, ""],
-  ["catalog/mechanisms/theme/base.css", `  button { cursor:pointer; }`, `  button,input,textarea { font:inherit; } button { cursor:pointer; }`],
+  ["catalog/mechanisms/theme/base.css", `  button,input,textarea { font:inherit; }\n  h1,h2,h3,p { margin:0; }\n  button { cursor:pointer; }`,
+    `  button,input,textarea { font:inherit; } button { cursor:pointer; }`],
   ["catalog/mechanisms/theme/base.css", `  input,textarea { min-width:0; } a {`, `  input,textarea { min-width:0; } h1,h2,h3,p { margin:0; } a {`],
   ["catalog/mechanisms/surface-reading/surface-reading.css", leadingInset, ""],
   ["catalog/foundations/shell/catalog-shell.css", `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { height:100%; min-height:0; }`,
@@ -46,7 +47,7 @@ async function previousCss() {
   for (const [path, today, before, held = path] of reversed) {
     const text = sources.get(path) ?? await readFile(resolve(base, path), "utf8");
     assert.equal(text.split(today).length, 2, `The moved writer is literal and unique in ${path}`);
-    if (before) assert.ok(frozen[held]!.includes(before), `The prior owner held it there: ${held}`);
+    if (before) assert.ok(frozen[held]!.replaceAll("--text-title", "--text-section").includes(before), `The prior owner held it there: ${held}`);
     sources.set(path, text.replace(today, before));
   }
   let theme = await readFile(resolve(base, "theme.css"), "utf8");
@@ -121,8 +122,8 @@ test("moving protected geometry and typography writers preserves catalog.home an
         const style=getComputedStyle(element), body=element.querySelector('.message-description')!, text=getComputedStyle(body);
         const heading=getComputedStyle(element.querySelector('.toolbar-title')!);
         return { variable:style.getPropertyValue('--text-body--line-height'), font:text.fontSize, line:text.lineHeight,
-          title:style.getPropertyValue('--text-title'), titleLine:style.getPropertyValue('--text-title--line-height'),
-          titleWeight:style.getPropertyValue('--text-title--font-weight'), bodySize:style.getPropertyValue('--text-body'),
+          title:style.getPropertyValue('--text-section'), titleLine:style.getPropertyValue('--text-section--line-height'),
+          titleWeight:style.getPropertyValue('--text-section--font-weight'), bodySize:style.getPropertyValue('--text-body'),
           headingFont:heading.font, headingMargin:heading.margin,
           bounds:element.getBoundingClientRect().toJSON(), body:body.getBoundingClientRect().toJSON() };
       });

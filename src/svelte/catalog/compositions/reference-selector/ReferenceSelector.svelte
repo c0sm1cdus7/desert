@@ -9,7 +9,7 @@
   import { FieldWellContent } from '../../index.ts';
   import { ReferenceValues } from '../../index.ts';
   import { ColorBullet } from '../../index.ts';
-  import { TextInput } from '../../index.ts';
+  import { Field as WritingField } from '../../index.ts';
   import { SelectionField } from '../../index.ts';
   import { Button } from '../../../vendor/components/ui/button/index.js';
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
@@ -71,7 +71,8 @@
         {#if reference.uncertain}
           <Button variant="secondary" disabled={reference.busy} onclick={()=>onevent?.({kind:'reference.recover',control:node.id})}>Check result</Button>
         {:else if creating}
-          <TextInput primitive="input.text" label="Name" value={name} required maxLength={reference.maxLength} disabled={locked} onchange={value=>name=value}/>
+          <WritingField primitive="input.text" label="Name" labelVisibility="visible" measure="writing" purpose="text" value={name} required invalid={false}
+            maxLength={reference.maxLength} disabled={locked} clear onchange={value=>name=value}/>
           {#if reference.colors.length}<SelectionField selection={`${node.id}:color`} label="Color" fieldControl value={color || reference.colors[0]!}
             options={reference.colors.map(value=>({value,label:value[0]!.toUpperCase()+value.slice(1),disabled:false}))} disabled={locked} onchange={value=>color=value}/>{/if}
           <Button variant="secondary" disabled={locked} onclick={()=>{creating=false;name='';}}>Cancel</Button>

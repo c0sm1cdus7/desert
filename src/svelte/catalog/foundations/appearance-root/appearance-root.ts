@@ -11,7 +11,8 @@ export function mountAppearanceRoot(): () => void {
   const root = document.documentElement, scheme = matchMedia("(prefers-color-scheme: dark)");
   const previous = new Map(rootKeys.map(key => [key, root.dataset[key]] as const));
   const previousScale = root.style.getPropertyValue("--text-scale");
-  // F1-merge: the renderer profile mark is dropped with the catalog-profile mechanism, and the tint becomes a tint-* class.
+  // The renderer profile mark goes with the catalog-profile mechanism (Batch 3); the root's tint stays data-tint, which
+  // personalization.css maps onto the tint-* utilities.
   root.dataset.rendererProfile = "apple-reference";
   appearance.set(storedAppearance());
   const unsubscribe = appearance.subscribe(value => {

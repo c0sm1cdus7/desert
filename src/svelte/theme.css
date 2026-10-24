@@ -6,15 +6,14 @@
 @import "./catalog/mechanisms/navigation-selection/navigation-selection.css";
 @import "./catalog/mechanisms/typography/typography.css";
 @import "./catalog/mechanisms/layout/layout.css";
-@import "./catalog/foundations/field-well/field-well.css";
-@import "./catalog/foundations/search-field/search-field.css";
+@import "./catalog/foundations/field/field.css";
 @import "./catalog/mechanisms/structured-content/structured-content.css";
 @import "./catalog/foundations/view-region/view-region.css";
 @import "./catalog/foundations/surface/surface.css";
 @import "./catalog/foundations/stack-layout/stack-layout.css";
 @import "./catalog/foundations/stack-item/stack-item.css";
 @import "./catalog/foundations/place/place.css";
-@import "./catalog/mechanisms/control-measure/control-measure.css";
+@import "./catalog/foundations/field/field-measure.css";
 @import "./catalog/foundations/place-heading/place-heading.css";
 @import "./catalog/mechanisms/media/media.css";
 @import "./catalog/mechanisms/surface-chrome/surface-chrome.css";
@@ -66,7 +65,6 @@
 :root[data-theme="dark"] { --warning:oklch(.85 .16 90); }
 @layer components {
   [data-control-chevron] { color:var(--muted-foreground); flex-shrink:0; }
-  [data-slot="input-group-control"] { min-height:2.75rem; }
   .required { color:var(--destructive); }
   .bank-face { width:var(--face-size,2rem); height:var(--face-size,2rem); color:var(--muted-foreground); }
   .bank-face[data-compact] { --face-size:1.5rem; }

@@ -11,6 +11,7 @@
   let { edge, purpose, identity, identityRole, face, leading, trailing, group, primary, secondary, availability, search,
     navigationToggle, settingsPlaceholder, layer, inert, oninvoke, onquery, onsearchopen, onsearchcancel, onnavigationtoggle }:
     CatalogProps<"bar"> = $props();
+  const uid = $props.id();
   let element = $state<HTMLElement | null>(null), row = $state<HTMLDivElement | null>(null);
   let leadingElement = $state<HTMLDivElement | null>(null), utilities = $state<HTMLDivElement | null>(null);
   // A top command rail measures its trailing commands into the room its identity leaves; the rest overflow.
@@ -26,9 +27,8 @@
 </script>
 
 {#snippet command(value: BarCommand, emphasis: "primary" | "secondary", shown: "icon" | "text")}
-  <!-- F1-merge: Action face "text" and `form` (F1b, DESIGN §3.1); today's Action fits the label instead. -->
-  <Action label={value.label} icon={value.icon} state={value.state} reason={value.reason} {emphasis}
-    face={shown === "icon" ? "icon" : "fit"} type={value.submit ? "submit" : "button"} onclick={() => invoke(value)} />
+  <Action label={value.label} icon={value.icon} state={value.state} reason={value.reason} {emphasis} face={shown}
+    type={value.submit ? "submit" : "button"} form={value.submit} onclick={() => invoke(value)} />
 {/snippet}
 
 <div bind:this={element} class={edge === "top" ? "workspace-header" : "bank-footer"} data-piece="toolbar" data-toolbar={edge}
@@ -73,15 +73,16 @@
       {#if primary}{@render command(primary, "primary", "text")}{/if}
     {:else if navigationToggle || settingsPlaceholder}
       {#if navigationToggle}
-        <!-- F1-merge: Action takes `disclosure` {id, controls, expanded, haspopup: "dialog"} (F1b, DESIGN §3.1). -->
         <div class="toolbar-action" data-navigation-toggle>
           <Action label={navigationToggle.expanded ? "Hide navigation" : "Show navigation"} icon="navigation" face="icon" emphasis="secondary"
-            onclick={() => onnavigationtoggle?.()} elementProps={{ "aria-expanded": navigationToggle.expanded, "aria-controls": navigationToggle.controls }} />
+            state="ready" type="button" onclick={() => onnavigationtoggle?.()} disclosure={{ id: `${uid}-navigation`,
+              controls: navigationToggle.controls, expanded: navigationToggle.expanded, haspopup: "dialog" }} />
         </div>
       {/if}
       {#if settingsPlaceholder}
         <div class="toolbar-action" data-settings-placeholder>
-          <Action label="Settings" icon="settings" face="icon" emphasis="secondary" state="unavailable" reason="Settings — not available in this preview" />
+          <Action label="Settings" icon="settings" face="icon" emphasis="secondary" state="unavailable" type="button"
+            reason="Settings — not available in this preview" />
         </div>
       {/if}
     {:else if search && layer !== "content"}

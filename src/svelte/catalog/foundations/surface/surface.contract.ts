@@ -1,5 +1,5 @@
-// The props of Surface. `role` says which surface it is: the `main` content place of a workspace (its scroll viewport,
-// hidden from interaction while `searching`), the `navigation` pane, a `frame` (a panel or dialog: the host its
+// The props of Surface. `kind` (DESIGN §1.6 calls it `role`, a name rule E reserves for ARIA) says which surface it
+// is: the `main` content place of a workspace (its scroll viewport, hidden from interaction while `searching`), the `navigation` pane, a `frame` (a panel or dialog: the host its
 // transients size against, presented as `presentation`, wrapping a `form` when it has one), or the `page` an access
 // experience fills over a `backdrop` wallpaper. `label` names it; `destination` marks a main place's destination.
 // `composition` reports text composition inside a place; `submit` is the form's submission. A caller that binds it
@@ -9,7 +9,7 @@ import { text } from "../../../../views/definition.ts";
 
 export const SurfaceContract = {
   props: Type.Object({
-    role: Type.Union([Type.Literal("main"), Type.Literal("navigation"), Type.Literal("frame"), Type.Literal("page")]),
+    kind: Type.Union([Type.Literal("main"), Type.Literal("navigation"), Type.Literal("frame"), Type.Literal("page")]),
     label: Type.Optional(text),
     destination: Type.Optional(Type.String()),
     searching: Type.Boolean(),

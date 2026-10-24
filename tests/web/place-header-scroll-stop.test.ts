@@ -78,7 +78,7 @@ for (const width of [390, 1280]) test(`header and section text share one content
   try {
     await page.setViewportSize({ width, height: 900 }); await settle(page);
     const copy = (await page.locator('[data-dock-above]').boundingBox())!;
-    const section = (await page.locator('[data-catalog-group-title]').first().boundingBox())!;
+    const section = (await page.locator('[data-catalog-group] > :first-child').first().boundingBox())!;
     const card = (await page.locator('[data-catalog-card]').first().boundingBox())!;
     assert.ok(Math.abs(copy.x - section.x) < 1, 'Header and section title align');
     assert.ok(Math.abs(section.x - card.x - 16) < 1, 'Surface extends one content inset past text');

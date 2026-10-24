@@ -15,6 +15,8 @@
     "authoring:check": "node scripts/authoring-references.ts --check",
     "test": "node --test --test-concurrency=1 --test-timeout=30000 tests/*.test.ts",
     "test:gate": "node --test --test-concurrency=1 --test-timeout=180000 tests/catalog-gate/*.test.ts",
+    "test:storage": "node --test --test-concurrency=1 --test-timeout=60000 tests/storage-*.test.ts",
+    "storage:check": "node scripts/storage.ts --check",
     "test:journeys": "node --test --test-timeout=30000 tests/notebook-journeys.test.ts",
     "verify:notebook": "node scripts/verify-notebook.ts",
     "verify:derived": "node products/notebook/verify.ts",

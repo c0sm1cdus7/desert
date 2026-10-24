@@ -33,7 +33,7 @@ export async function startClaim(context: QueueContext, claim: Claim) {
 }
 export async function renewClaim(context: QueueContext, claim: Claim) {
   return executionTransaction(context, async client => {
-    const { rows: [record] } = await client.query<{ cancel_requested: boolean }>(`UPDATE desert_execution.jobs
+    const { rows: [record] } = await client.query<Pick<JobRow, "cancel_requested">>(`UPDATE desert_execution.jobs
       SET lease_until=clock_timestamp()+($3::integer * interval '1 millisecond')
       WHERE id=$1 AND claim_token=$2 AND state='running' AND lease_until>clock_timestamp() RETURNING cancel_requested`,
     [claim.id, claim.token, context.leaseMs]);

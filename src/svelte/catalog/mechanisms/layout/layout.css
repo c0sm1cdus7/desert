@@ -3,7 +3,7 @@
   .product { max-width:90rem; margin:auto; padding:2rem; }
   .brand { display:flex; align-items:center; gap:.75rem; }
   .brand-mark { display:grid; place-items:center; width:2.75rem; height:2.75rem; border-radius:var(--radius); background:var(--primary); color:var(--primary-foreground); font-weight:700; }
-  .brand h1,.catalog h1 { font-size:var(--text-page); line-height:var(--text-page--line-height); font-weight:var(--text-title--font-weight); }
+  .brand h1,.catalog h1 { font-size:var(--text-page); line-height:var(--text-page--line-height); font-weight:var(--text-section--font-weight); }
   .brand h1 { text-transform:capitalize; }
   .connection { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem; min-height:2.75rem; }
   .saved-feedback { color:var(--positive); font-size:var(--text-body); }

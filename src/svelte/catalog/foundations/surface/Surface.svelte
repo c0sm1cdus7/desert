@@ -7,20 +7,20 @@
   import { provideSurfaceHost } from "../../../infra/surface-host.svelte.ts";
   import ScrollEdges from "./ScrollEdges.svelte";
   import { observePlaceFocus } from "./place-focus.ts";
-  let { role, label, destination, searching, presentation = "standard", backdrop, form, oncomposition, onsubmit,
+  let { kind, label, destination, searching, presentation = "standard", backdrop, form, oncomposition, onsubmit,
     top, content, bottom, overlay }: CatalogProps<"surface"> = $props();
   let owner = $state<HTMLElement | null>(null), viewport = $state<HTMLElement | null>(null);
   // A frame is the host its portalled transients size against; every scroll owner gives its top bar "back to top".
-  if (untrack(() => role) === "frame") provideSurfaceHost(() => owner);
+  if (untrack(() => kind) === "frame") provideSurfaceHost(() => owner);
   provideToolbarScroll({ owner: () => owner, viewport: () => viewport });
   $effect(() => {
-    if (viewport && owner && (role === "main" || role === "navigation")) return observePlaceFocus(viewport, owner);
+    if (viewport && owner && (kind === "main" || kind === "navigation")) return observePlaceFocus(viewport, owner);
   });
   export function scrollToTop(): void { viewport?.scrollTo({ top: 0 }); }
   export function scrollTop(): number { return viewport?.scrollTop ?? 0; }
   export function scrollTo(top: number): void { viewport?.scrollTo({ top }); }
   function submit(event: SubmitEvent) { event.preventDefault(); onsubmit?.(); }
-  let main = $derived(role === "main");
+  let main = $derived(kind === "main");
 </script>
 
 {#snippet frameSlots()}
@@ -30,13 +30,13 @@
   <ScrollEdges {viewport} {owner} />
 {/snippet}
 
-{#if role === "frame"}
+{#if kind === "frame"}
   <section bind:this={owner} class="flex min-h-0 min-w-0 flex-1 flex-col" data-scroll-owner data-surface-host data-surface-frame
     data-frame-presentation={presentation} tabindex="-1" aria-label={label}>
     {#if form}<form class="flex min-h-0 flex-1 flex-col" novalidate aria-label={form.label} onsubmit={submit}>{@render frameSlots()}</form>
     {:else}{@render frameSlots()}{/if}
   </section>
-{:else if role === "page"}
+{:else if kind === "page"}
   <div data-surface="page">
     {#if backdrop}<div data-surface-backdrop><Wallpaper wallpaper={backdrop} /></div>{/if}
     <header data-surface-page-top>{@render top?.()}</header>
@@ -46,10 +46,10 @@
   <!-- Programmatic restoration targets only: this expression is -1 or absent, never a tab stop. -->
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div bind:this={owner} class="place-frame" data-place="true" data-scroll-owner="true"
-    data-renderer-profile={role === "navigation" ? "apple-reference" : undefined}
-    data-catalog-navigation={role === "navigation" ? "true" : undefined}
+    data-renderer-profile={kind === "navigation" ? "apple-reference" : undefined}
+    data-catalog-navigation={kind === "navigation" ? "true" : undefined}
     data-catalog-content={main ? "true" : undefined}
-    data-destination={destination} role={role}
+    data-destination={destination} role={kind}
     tabindex={main ? -1 : undefined} aria-label={label}
     oncompositionstart={() => oncomposition?.(true)} oncompositionend={() => oncomposition?.(false)}>
     {@render top?.()}

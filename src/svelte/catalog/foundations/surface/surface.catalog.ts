@@ -11,8 +11,8 @@ export const Surface = defineFoundation({
   owner: { entry: "Surface.svelte", parts: ["ScrollEdges.svelte", "place-focus.ts", "scroll-edges.css", "scroll-edges.ts", "surface.css"],
     mechanisms: ["toolbar-geometry", "toolbar-scroll"] },
   shape: "none", states: ["default", "searching"],
-  variants: { role: ["main", "navigation", "frame", "page"] },
-  stateVariants: { searching: { role: ["main"] } },
+  variants: { kind: ["main", "navigation", "frame", "page"] },
+  stateVariants: { searching: { kind: ["main"] } },
   slots: {
     top: { accepts: ["bar", "heading", "toolbar"] },
     content: { accepts: ["catalog-workspace-content", "column", "content-flow", "frame-body", "icon", "place-heading"] },

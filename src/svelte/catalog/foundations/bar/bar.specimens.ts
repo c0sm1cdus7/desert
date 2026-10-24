@@ -2,14 +2,11 @@
 // place search while it is open, and a command rail too narrow for its commands, which overflow into one menu.
 import type { CatalogSpecimen } from "../../types.d.ts";
 
-const command = (label: string, icon: "create" | "archive" | "review" | "save" | "open" | "media", output: string) =>
-  ({ label, icon, state: "ready", intent: { kind: "view.output", view: "notes", output } }) as const;
-
 export const BarSpecimens = [
   { state: "default", variants: { purpose: "commands" }, props: { edge: "top", purpose: "commands",
     identity: { title: "Weekly plan", subtitle: "Edited today" }, identityRole: "heading",
     leading: { label: "Back", icon: "back", state: "ready", intent: { kind: "back" } },
-    trailing: [command("Review", "review", "review")], primary: command("Save", "save", "save"),
+    trailing: [{ label: "Review", icon: "review", state: "ready", intent: { kind: "view.output", view: "notes", output: "review" } }], primary: { label: "Save", icon: "save", state: "ready", intent: { kind: "view.output", view: "notes", output: "save" } },
     availability: { state: "ready", label: "Connected" }, settingsPlaceholder: false, inert: false } },
   { state: "default", variants: { purpose: "commit" }, props: { edge: "bottom", purpose: "commit", identityRole: "heading", trailing: [],
     secondary: { label: "Cancel", icon: "close", state: "ready", intent: { kind: "close" } },
@@ -24,7 +21,7 @@ export const BarSpecimens = [
     search: { title: "Notes", query: "plan", open: true, resultsId: "notes-results" }, layer: "search", settingsPlaceholder: false, inert: false } },
   { state: "overflow", variants: { purpose: "commands" }, props: { edge: "top", purpose: "commands",
     identity: { title: "A deliberately descriptive place title", subtitle: "Supporting copy" }, identityRole: "heading",
-    trailing: [command("Create", "create", "create"), command("Archive", "archive", "archive"), command("Review", "review", "review"),
-      command("Save", "save", "save"), command("Open", "open", "open"), command("Media", "media", "media")],
+    trailing: [{ label: "Create", icon: "create", state: "ready", intent: { kind: "view.output", view: "notes", output: "create" } }, { label: "Archive", icon: "archive", state: "ready", intent: { kind: "view.output", view: "notes", output: "archive" } }, { label: "Review", icon: "review", state: "ready", intent: { kind: "view.output", view: "notes", output: "review" } },
+      { label: "Save", icon: "save", state: "ready", intent: { kind: "view.output", view: "notes", output: "save" } }, { label: "Open", icon: "open", state: "ready", intent: { kind: "view.output", view: "notes", output: "open" } }, { label: "Media", icon: "media", state: "ready", intent: { kind: "view.output", view: "notes", output: "media" } }],
     settingsPlaceholder: false, inert: false } },
 ] as const satisfies readonly CatalogSpecimen<"bar">[];

@@ -11,8 +11,7 @@
 </script>
 
 <fieldset class={fieldset} aria-describedby={description ? `${id}-description` : undefined}>
-  <!-- F1-merge: Heading kind "group-label" becomes "group" (F1a). -->
-  <legend class={headingVisibility === "accessible" ? `${legend} sr-only` : legend}><Heading kind="group-label" text={title} {required} /></legend>
+  <legend class={headingVisibility === "accessible" ? `${legend} sr-only` : legend}><Heading kind="group" text={title} {required} /></legend>
   <div class={group}>{@render children?.()}</div>
   {#if description}<p id={`${id}-description`} class="place-stack-description type-caption text-muted-foreground">{description}</p>{/if}
 </fieldset>

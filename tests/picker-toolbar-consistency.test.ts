@@ -29,8 +29,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
           const toolbar = sheet.locator('[data-piece="toolbar"][data-surface-slot="top"]');
           const close = toolbar.getByRole('button', { name: 'Close Amount currency', exact: true });
           const title = toolbar.getByRole('heading', { name: 'Amount currency', exact: true });
-          assert.equal(await close.getAttribute('data-primitive'), 'action');
-          assert.equal(await close.getAttribute('data-button-face'), 'icon');
+          assert.equal(await close.getAttribute('data-action'), '');
+          assert.equal(await close.getAttribute('data-action-face'), 'icon');
           const buttonBox = (await close.boundingBox())!, titleBox = (await title.boundingBox())!;
           assert.ok(buttonBox.x + buttonBox.width <= titleBox.x, 'close precedes the title');
           assert.equal(await toolbar.evaluate(el => getComputedStyle(el).borderBottomWidth), '0px');
