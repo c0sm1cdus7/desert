@@ -28,7 +28,7 @@
   {type} {form} id={disclosure?.id} aria-haspopup={disclosure?.haspopup} aria-expanded={disclosure?.expanded}
   aria-controls={disclosure?.expanded ? disclosure.controls : undefined}
   data-state={disclosure ? disclosure.expanded ? "open" : "closed" : undefined} aria-current={current || undefined}
-  onclick={() => { if (status === "ready") onclick?.(); }} class="relative w-fit min-w-0 max-w-[min(100%,22rem)] overflow-hidden"
+  onclick={() => { if (status === "ready") onclick?.(); }} class="relative min-w-0 overflow-hidden {shown === 'icon' ? '' : 'w-fit max-w-[min(100%,22rem)]'}"
   disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
   aria-describedby={reason ? descriptionId : undefined}
   data-action="" data-action-face={face} data-emphasis={emphasis}>

@@ -4950,7 +4950,7 @@ Source SHA-256: 4e347ef602728408441bac6eb8e62e6c0cd7d9c2c5202aed237f1f59cd54d262
 
 ## src/svelte/catalog/foundations/action/Action.svelte
 
-Source SHA-256: c901392215b7f9cd968d5a6ba77ba32b6372091dc627c18240f35f39bbeb0f6e
+Source SHA-256: 0f3413874945210d81ff9f660178d8672ff55a0f0e1c07142e0562f22b07a702
 
 ```svelte
 <script lang="ts">
@@ -4983,7 +4983,7 @@ Source SHA-256: c901392215b7f9cd968d5a6ba77ba32b6372091dc627c18240f35f39bbeb0f6e
   {type} {form} id={disclosure?.id} aria-haspopup={disclosure?.haspopup} aria-expanded={disclosure?.expanded}
   aria-controls={disclosure?.expanded ? disclosure.controls : undefined}
   data-state={disclosure ? disclosure.expanded ? "open" : "closed" : undefined} aria-current={current || undefined}
-  onclick={() => { if (status === "ready") onclick?.(); }} class="relative w-fit min-w-0 max-w-[min(100%,22rem)] overflow-hidden"
+  onclick={() => { if (status === "ready") onclick?.(); }} class="relative min-w-0 overflow-hidden {shown === 'icon' ? '' : 'w-fit max-w-[min(100%,22rem)]'}"
   disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
   aria-describedby={reason ? descriptionId : undefined}
   data-action="" data-action-face={face} data-emphasis={emphasis}>
