@@ -282,14 +282,14 @@ function pendingMapped(checker: ts.TypeChecker, type: ts.Type): boolean {
   if (!isType(constraint)) throw new Error("CATALOG_GATE_CONTRACT_TYPES: this TypeScript's mapped types carry no constraintType");
   // Pending when the keys, or the `as` clause that renames them, still mention a type parameter (TypeScript's own
   // isGenericMappedType): `'a' | U` is a union, not instantiable, and still waits for U.
-  return generic(constraint, undefined) || isType(name) && generic(name, isType(own) ? own : undefined);
+  return generic(checker, constraint, undefined) || isType(name) && generic(checker, name, isType(own) ? own : undefined);
 }
 
 const isType = (value: unknown): value is ts.Type => value instanceof Object && typeof Reflect.get(value, "flags") === "number";
 
 /** Whether a type still mentions a type parameter other than `own` (a mapped type's own key, compared by symbol because an
  * instantiated mapped type clones it). */
-function generic(type: ts.Type, own: ts.Type | undefined, seen = new Set<ts.Type>()): boolean {
+function generic(checker: ts.TypeChecker, type: ts.Type, own: ts.Type | undefined, seen = new Set<ts.Type>()): boolean {
   if (seen.has(type)) return false;
   seen.add(type);
   if (type.flags & ts.TypeFlags.TypeParameter) return !own || type.getSymbol() !== own.getSymbol();
@@ -301,14 +301,22 @@ function generic(type: ts.Type, own: ts.Type | undefined, seen = new Set<ts.Type
   else if (type.flags & ts.TypeFlags.StringMapping) inner.push((type as ts.StringMappingType).type);
   else if (type.flags & ts.TypeFlags.Substitution) inner.push((type as ts.SubstitutionType).baseType);
   else if (type.flags & ts.TypeFlags.Conditional) {
-    // Any part of a conditional: a branch still generic is as pending as its check type.
+    // Any part of a conditional: a branch still generic is as pending as its check type. TypeScript fills the branches
+    // lazily; printing the conditional fills them, and a branch still missing after that counts as pending.
+    checker.typeToString(type, undefined, ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.InTypeAlias);
     const conditional = type as ts.ConditionalType;
     inner.push(conditional.checkType, conditional.extendsType);
     for (const branch of [conditional.resolvedTrueType, conditional.resolvedFalseType]) if (branch) inner.push(branch);
     if (!conditional.resolvedTrueType || !conditional.resolvedFalseType) return true;
   }
   else if (type.flags & ts.TypeFlags.Instantiable) return true;
-  return inner.some(item => generic(item, own, seen));
+  // An object a key is read from (`Tab<U>[K]`, `{ a: 'a'; b: U }[K]`) is generic when its arguments or members are.
+  else if (type.flags & ts.TypeFlags.Object) {
+    inner.push(...type.aliasTypeArguments ?? []);
+    if ((type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) inner.push(...checker.getTypeArguments(type as ts.TypeReference));
+    for (const property of checker.getPropertiesOfType(type)) inner.push(checker.getTypeOfSymbol(property));
+  }
+  return inner.some(item => generic(checker, item, own, seen));
 }
 
 /** The first library type in a class or interface's heritage, through tree bases, intersections and mixins. */

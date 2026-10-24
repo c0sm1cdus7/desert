@@ -236,3 +236,13 @@ test("a mapped type whose keys or renames still mention a generic is pending, wh
   }
   assert.deepEqual(judge("Type.Unsafe<Shape>()", "type Rename<T> = { [K in keyof T as `x${string & K}`]: T[K] };\nexport type Shape = { r: Rename<{ a: string }>; o: Omit<{ a: string; b: number }, 'b'> };"), []);
 });
+
+test("an as clause reading its rename from a generic object is pending; a concrete filtering as clause is closed", () => {
+  for (const shape of ["type Tab<U extends string> = { a: 'a'; b: `b${U}` };\ntype Mp<U extends string> = { [K in 'a' | 'b' as Tab<U>[K]]: K extends 'a' ? string : any };\nexport type Shape = { f: <U extends string>(x: U) => Mp<U> };",
+    "type Mp<U extends string> = { [K in 'a' | 'b' as { a: 'a'; b: U }[K]]: K extends 'a' ? string : any };\nexport type Shape = { f: <U extends string>(x: U) => Mp<U> };",
+    "interface Tab<U extends string> { a: 'a'; b: U }\nexport type Shape = { f: <U extends string>(x: U) => { [K in 'a' | 'b' as Tab<U>[K]]: K extends 'a' ? string : any } };"]) {
+    assert.match(judge("Type.Unsafe<Shape>()", shape).join("\n"), /unresolved mapped type/, shape);
+  }
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", "type F<T> = { [K in keyof T as T[K] extends string ? K : never]: T[K] };\nexport type Shape = { r: F<{ a: string; b: number }> };"), []);
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", "type M<T> = { [K in keyof T as K extends 'a' ? never : K]: T[K] };\nexport type Shape = { m: M<{ a: string; b: number }> };"), []);
+});
