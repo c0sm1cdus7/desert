@@ -2,13 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Check} from '@sinclair/typebox/value';
-import {ViewSchema} from '../src/views/schema.ts';
+import {DeclaredViewSchema as ViewSchema} from '../src/views/schema.ts';
 import {Components,defineView} from '../src/views/components.ts';
 import {svelteBrowser} from './fixtures/svelte-browser.ts';
 import {rendererCss} from './fixtures/renderer-css.ts';
+import { fixtureText } from "./fixtures/messages.ts";
 
 test('gallery is an admitted finite View layout, not a caller-provided width or CSS escape',()=>{
-  const view=defineView({name:'gallery-witness',layout:'gallery',content:[Components.Header({title:'Media'})]});
+  const view=defineView({name:'gallery-witness',layout:'gallery',content:[Components.Header({title:fixtureText.media})]});
   assert.equal(view.layout,'gallery');
   assert.equal(Check(ViewSchema,view),true);
   for(const layout of ['full-width','72rem',{width:'100%'},{style:'display:grid'}]){

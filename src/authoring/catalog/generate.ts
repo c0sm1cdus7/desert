@@ -5,6 +5,7 @@ import type { CatalogLayout } from "./layout.ts";
 import type { LocatedDeclaration } from "./gate/inventory.ts";
 import type { ReadContract } from "./read-contract.ts";
 import { canonicalJson } from "./normalize-source.ts";
+import { generateMessageKeys } from "../../messages/generate.ts";
 
 export type GeneratedFile = Readonly<{ path: string; source: string }>;
 export const manifestVersion = "desert.catalog-manifest/1";
@@ -13,11 +14,13 @@ const header = "// Generated from the catalog declarations by `node scripts/cata
 const exportName = (id: string) => id.split("-").map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
 const byId = (left: LocatedDeclaration, right: LocatedDeclaration) => left.declaration.id < right.declaration.id ? -1 : 1;
 
-/** What the generator reads: the declarations and each piece's contract, both as data. */
+/** What the generator reads: the declarations, each piece's contract and the message bundles, all as data. */
 export type CatalogSource = Readonly<{ declarations: readonly LocatedDeclaration[]; contracts: ReadonlyMap<string, ReadContract>;
-  generated: ReadonlyMap<string, string> }>;
+  generated: ReadonlyMap<string, string>; messages: ReadonlyMap<string, string> }>;
+/** The SDK module every message catalog is built with; the generated keys module imports it. */
+export const messageCatalogModule = "src/messages/catalog.ts";
 
-export function generateCatalog(source: Pick<CatalogSource, "declarations" | "contracts">, layout: CatalogLayout): readonly GeneratedFile[] {
+export function generateCatalog(source: Pick<CatalogSource, "declarations" | "contracts" | "messages">, layout: CatalogLayout): readonly GeneratedFile[] {
   const { declarations, contracts } = source;
   const sorted = [...declarations].sort(byId);
   const pieces = sorted.flatMap(({ path, declaration }) => declaration.kind === "mechanism" ? [] : [{ path, declaration }]);
@@ -87,6 +90,8 @@ export function generateCatalog(source: Pick<CatalogSource, "declarations" | "co
       "export const CatalogSources = Object.freeze({",
       ...pieces.map(({ path, declaration }) => `  ${JSON.stringify(declaration.id)}: ${JSON.stringify(posix.join(posix.dirname(path), declaration.owner.entry))},`),
       "} as const);", ""].join("\n") },
+    ...source.messages.size ? [{ path: layout.messages.keys, source: generateMessageKeys(source.messages, {
+      catalogModule: `./${posix.relative(posix.dirname(layout.messages.keys), messageCatalogModule)}`, command: "node scripts/catalog.ts --write" }) }] : [],
   ]);
 }
 

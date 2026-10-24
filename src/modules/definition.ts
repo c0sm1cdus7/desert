@@ -1,6 +1,7 @@
 import { freezeDeep, jsonSnapshot } from "../json.ts";
 import { Check } from "@sinclair/typebox/value";
-import { ModuleDefinitionSchema } from "./schema.ts";
+import { DeclaredModuleDefinitionSchema, ModuleDefinitionSchema } from "./schema.ts";
+import { keysAsText } from "../views/declared.ts";
 import { ownershipRegistry, validateOwnedDomain } from "./ownership.ts";
 import { resolvePresentation } from "./presentation.ts";
 import type { Closed, ModuleDefinition, RegisteredModule, ResolvedModuleDefinition } from "./types.ts";
@@ -19,13 +20,18 @@ export function defineModule<const M extends ModuleDefinition>(definition: Close
   const source = declarationRecord(definition);
   const admission = referenceAdmission(source, false);
   const aliases = admission.aliases();
-  const snapshot = jsonSnapshot(lowerOwnedReferences(source, admission)) as unknown as ResolvedModuleDefinition;
-  if (!Check(ModuleDefinitionSchema, snapshot)) throw new Error("INVALID_MODULE_DEFINITION");
+  const declared = jsonSnapshot(lowerOwnedReferences(source, admission));
+  if (!Check(DeclaredModuleDefinitionSchema, declared)) throw new Error("INVALID_MODULE_DEFINITION");
+  // No locale is chosen yet: the structural checks read the shape, each message's key standing in for its sentence.
+  const shape = keysAsText(declared);
+  if (!Check(ModuleDefinitionSchema, shape)) throw new Error("INVALID_MODULE_DEFINITION");
+  const snapshot: ResolvedModuleDefinition = shape;
   const ownership = ownershipRegistry([{ id: snapshot.id, definition: snapshot, exports: snapshot.exports }]);
   validateOwnedDomain(snapshot);
   validateObjectPublications(snapshot);
   resolvePresentation(snapshot, snapshot.id, ownership);
-  const handle = issueModule(freezeDeep(snapshot), admission.identities, aliases);
+  // The module keeps its messages; the product's catalog resolves them when the product is composed.
+  const handle = issueModule(freezeDeep(declared), admission.identities, aliases);
   rememberModuleSource(definition, handle);
   return handle as RegisteredModule<M>;
 }

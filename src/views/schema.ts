@@ -7,6 +7,7 @@ import { FeaturedMediaSchema } from "../public-catalog/schema.ts";
 import { closed, immutable, name, text } from "./definition.ts";
 import { MediaLibrarySchema } from "./media-library.ts";
 import { FactReferenceSchema } from "./object-presentation.ts";
+import { declaredSchema, type Declared } from "./declared.ts";
 
 export const ViewVersion = "desert.view/1" as const;
 export const ViewLimits = Object.freeze({
@@ -79,7 +80,16 @@ export const ViewSchema = closed({
   content: Type.Array(ViewContentSchema),
 });
 
+/** What a product declares (plan §14): the same view with a message in each message field (src/views/declared.ts). */
+export const DeclaredViewSchema = declaredSchema(ViewSchema);
+
 export type View = Frozen<Static<typeof ViewSchema>>;
+export type DeclaredView = Declared<View>;
+export type DeclaredViewContent = Declared<ViewContent>;
+export type DeclaredViewToolbar = Declared<ViewToolbar>;
+export type DeclaredViewStack = Declared<ViewStack>;
+export type DeclaredViewItem = Declared<ViewItem>;
+export type DeclaredViewBoundContent = Declared<ViewBoundContent>;
 export type ViewLeaf = Frozen<Static<typeof ViewLeafSchema>>;
 export type ViewHeader = Frozen<Static<typeof ViewHeaderSchema>>;
 export type ViewHeaderTitle = Frozen<Static<typeof ViewHeaderTitleSchema>>;

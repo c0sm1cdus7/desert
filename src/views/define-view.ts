@@ -1,7 +1,7 @@
 import type { AuthoredView, AuthoredViewRef, ViewTarget } from "../modules/authored-types.ts";
 import { declarationArray, declarationRecord } from "../modules/declaration-data.ts";
 import { authoredView, viewTargetDefinition } from "./authored-view.ts";
-import { ViewVersion, type ViewContent, type ViewToolbar } from "./schema.ts";
+import { ViewVersion, type DeclaredViewContent, type DeclaredViewToolbar } from "./schema.ts";
 import { placeComponent, requireComponent, type ComponentNode, type Exact, type ViewComponent } from "./component-values.ts";
 import { registerDefinedView } from "./defined-view-registry.ts";
 
@@ -22,13 +22,13 @@ export type ViewDeclaration = {
   readonly name: string;
   readonly layout?: "overview" | "gallery";
   readonly outputs?: readonly string[];
-  readonly topDock?: ViewComponent<ViewToolbar>;
-  readonly bottomDock?: ViewComponent<ViewToolbar>;
+  readonly topDock?: ViewComponent<DeclaredViewToolbar>;
+  readonly bottomDock?: ViewComponent<DeclaredViewToolbar>;
   readonly leftDock?: ViewDock;
   readonly rightDock?: ViewDock;
-  readonly content: readonly ViewComponent<ViewContent>[];
+  readonly content: readonly ViewComponent<DeclaredViewContent>[];
 };
-type DefinedContent<Content extends readonly ViewComponent<ViewContent>[]> = {
+type DefinedContent<Content extends readonly ViewComponent<DeclaredViewContent>[]> = {
   readonly [Index in keyof Content]: ComponentNode<Content[Index]>;
 };
 type DefinedView<Definition extends ViewDeclaration> = Omit<Definition, "name" | "content"> & {
@@ -63,7 +63,7 @@ export function defineView<const Definition extends ViewDeclaration>(
   }
   const { name, content, ...rest } = source;
   const canonical = { ...rest, version: ViewVersion, id: name,
-    content: declarationArray(content).map((item, index) => placeComponent(item as ViewComponent<ViewContent>, `content.${index}`)) };
+    content: declarationArray(content).map((item, index) => placeComponent(item as ViewComponent<DeclaredViewContent>, `content.${index}`)) };
   const result = authoredView(canonical as AuthoredView);
   registerDefinedView(result);
   return result as unknown as DefinedView<Definition>;

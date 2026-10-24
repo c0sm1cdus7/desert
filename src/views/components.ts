@@ -1,14 +1,14 @@
-import type { ViewBoundContent, ViewItem, ViewStack, ViewToolbar } from "./schema.ts";
+import type { DeclaredViewBoundContent, DeclaredViewItem, DeclaredViewStack, DeclaredViewToolbar } from "./schema.ts";
 import { declarationArray, declarationRecord } from "../modules/declaration-data.ts";
 import { viewDock } from "./define-view.ts";
 import { contentBuilder, createComponent, emptyComponent, requireComponent,
   type Exact, type ViewComponent } from "./component-values.ts";
 
-type InputKind = ViewBoundContent["kind"];
+type InputKind = DeclaredViewBoundContent["kind"];
 type InputReference<Kind extends InputKind> = { readonly kind: Kind; readonly input: string };
 type BoundProperties<Kind extends InputKind> = { readonly input: InputReference<Kind> }
-  & (Kind extends "collection" ? Pick<Extract<ViewBoundContent, { kind: "collection" }>, "output" | "presentation" | "fields">
-    : Kind extends "context" ? Pick<Extract<ViewBoundContent, { kind: "context" }>, "fields" | "presentation"> : object);
+  & (Kind extends "collection" ? Pick<Extract<DeclaredViewBoundContent, { kind: "collection" }>, "output" | "presentation" | "fields">
+    : Kind extends "context" ? Pick<Extract<DeclaredViewBoundContent, { kind: "context" }>, "fields" | "presentation"> : object);
 
 function boundComponent<Kind extends InputKind>(kind: Kind) {
   return <const Props extends BoundProperties<Kind>>(properties: Exact<Props, BoundProperties<Kind>>) => {
@@ -17,19 +17,19 @@ function boundComponent<Kind extends InputKind>(kind: Kind) {
     if (Object.keys(port).some(key => key !== "kind" && key !== "input") || port.kind !== kind) {
       throw new Error("INVALID_COMPONENT_INPUT");
     }
-    return createComponent<Extract<ViewBoundContent, { kind: Kind }>>(kind, { ...source, input: port.input }) as unknown as
+    return createComponent<Extract<DeclaredViewBoundContent, { kind: Kind }>>(kind, { ...source, input: port.input }) as unknown as
       ViewComponent<{ readonly kind: Kind; readonly id: string; readonly input: Props["input"]["input"] } & Omit<Props, "input">>;
   };
 }
 
-type StackProperties = Omit<ViewStack, "kind" | "id" | "items"> & { readonly items: readonly ViewComponent<ViewItem>[] };
+type StackProperties = Omit<DeclaredViewStack, "kind" | "id" | "items"> & { readonly items: readonly ViewComponent<DeclaredViewItem>[] };
 function stack<const Props extends StackProperties>(properties: Exact<Props, StackProperties>) {
   const source = declarationRecord(properties);
   declarationArray(source.items).forEach(requireComponent);
-  return createComponent<ViewStack>("stack", source) as ViewComponent<{ readonly kind: "stack"; readonly id: string } & Props>;
+  return createComponent<DeclaredViewStack>("stack", source) as ViewComponent<{ readonly kind: "stack"; readonly id: string } & Props>;
 }
-type ToolbarProperties = Omit<ViewToolbar, "kind">;
-type ToolbarAction = ViewToolbar["actions"][number];
+type ToolbarProperties = Omit<DeclaredViewToolbar, "kind">;
+type ToolbarAction = DeclaredViewToolbar["actions"][number];
 type ActionKeys<Action> = Action extends unknown ? keyof Action : never;
 type ClosedActions<Actions extends readonly ToolbarAction[]> = {
   readonly [Index in keyof Actions]: Actions[Index] &
@@ -38,7 +38,7 @@ type ClosedActions<Actions extends readonly ToolbarAction[]> = {
 function toolbar<const Props extends ToolbarProperties>(properties: Exact<Props, ToolbarProperties> & {
   readonly actions: ClosedActions<Props["actions"]>;
 }) {
-  return createComponent<ViewToolbar>("toolbar", properties) as ViewComponent<{ readonly kind: "toolbar" } & Props>;
+  return createComponent<DeclaredViewToolbar>("toolbar", properties) as ViewComponent<{ readonly kind: "toolbar" } & Props>;
 }
 
 export const ViewTitles = Object.freeze({

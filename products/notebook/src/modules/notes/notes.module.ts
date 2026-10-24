@@ -9,15 +9,16 @@ import { ArchiveNote, ArchiveNoteJourney } from "./journeys/archiveNote.journey.
 import { NotesView } from "./views/notes.view.ts";
 import { NoteView } from "./views/note.view.ts";
 import { CreateNoteView } from "./views/createNote.view.ts";
+import { m } from "../../messages/keys.ts";
 
-const NotesDestination = { id: "notes", label: "Notes", icon: "open", entryJourney: ReadNote } as const;
+const NotesDestination = { id: "notes", label: m.notes.destination, icon: "open", entryJourney: ReadNote } as const;
 
 export const NotesModule = defineModule({
   id: "notes", objects: [PublishedNote], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   journeys: [
-    { execution: CreateNote, presentation: CreateNoteJourney, label: "Create note", humanReview: "not-required" },
-    { execution: ReadNote, presentation: ReadNotesJourney, label: "Read notes" },
-    { execution: ArchiveNote, presentation: ArchiveNoteJourney, label: "Archive note", humanReview: "required" },
+    { execution: CreateNote, presentation: CreateNoteJourney, label: m.notes.createNote, humanReview: "not-required" },
+    { execution: ReadNote, presentation: ReadNotesJourney, label: m.notes.readNotes },
+    { execution: ArchiveNote, presentation: ArchiveNoteJourney, label: m.notes.archiveNote, humanReview: "required" },
   ],
   views: [NotesView, NoteView, CreateNoteView], destinations: [NotesDestination],
   exports: {

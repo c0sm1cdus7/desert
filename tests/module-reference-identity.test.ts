@@ -2,11 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Components, defineView, defineModule, moduleIndex, viewOutput } from "../src/index.ts";
 import { requireModuleHandle } from "../src/modules/references.ts";
+import { fixtureText } from "./fixtures/messages.ts";
 
 function sourceView() {
   return defineView({ name: "owned-view", outputs: ["close"],
-    topDock: Components.Toolbar({ actions: [{ output: "close", label: "Close", icon: "close" }] }),
-    content: [Components.Header({ title: "Original title", subtitle: "Original subtitle" })] });
+    topDock: Components.Toolbar({ actions: [{ output: "close", label: fixtureText.close, icon: "close" }] }),
+    content: [Components.Header({ title: fixtureText.originalTitle, subtitle: fixtureText.originalSubtitle })] });
 }
 
 test("A private original cannot be re-registered and published by another module owner", () => {

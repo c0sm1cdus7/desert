@@ -9,13 +9,14 @@ import { viewPorts } from "../../src/views/authoring-ports.ts";
 import { Notebook } from "../../products/notebook/product.ts";
 import { CreateNote } from "../../products/notebook/journeys.ts";
 import type { postgresCluster } from "./postgres.ts";
+import { FixtureMessages } from "./messages.ts";
 
 export async function activityFixture(cluster: ReturnType<typeof postgresCluster>) {
   const application = compile(Notebook), database = await cluster.database();
   const ports = viewPorts({ inputs: { draft: "form", prepared: "context" }, outputs: [] });
   const Form = defineView({ name: "activity-form", content: [Components.Form({ input: ports.inputs.draft })] });
   const Review = defineView({ name: "activity-review", content: [Components.Context({ input: ports.inputs.prepared })] });
-  const activities = activityIndex(application, { journeys: [CreateNote], views: [Form, Review] });
+  const activities = activityIndex(application, { messages: FixtureMessages, journeys: [CreateNote], views: [Form, Review] });
   const inputs = activityInputs(CreateNote);
   const plan = activities.define({ journey: CreateNote, steps: [
     { view: Form, inputs: [inputs.title] },

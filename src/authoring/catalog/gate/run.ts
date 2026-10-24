@@ -8,6 +8,7 @@ import { readDeclarations } from "../read-declaration.ts";
 import { contractPath, readContract, type ReadContract } from "../read-contract.ts";
 import { assertDeclaredSources, type LocatedDeclaration } from "./inventory.ts";
 import { assertDeclarationsConsistent } from "./declarations.ts";
+import { assertMessageOwnership } from "./message-keys.ts";
 import { assertCatalogDerivations } from "./derivation.ts";
 import { assertLedgerStructure } from "./ledger.ts";
 import { contentRules, type ContentRuleId } from "./content-rules.ts";
@@ -15,12 +16,15 @@ import { contractTypeViolations } from "./contract-types.ts";
 import { createContext, withContractTypes, withNonvisual } from "./context.ts";
 import { readNonvisualSources } from "./nonvisual-sources.ts";
 import { CatalogGateViolations, type Violation } from "./violation.ts";
+import { bundleLocale } from "../../../messages/generate.ts";
 
 export type CatalogRule = "A" | "B" | "C" | "L";
 export type CatalogTree = Readonly<{ paths: readonly string[]; declarations: readonly LocatedDeclaration[];
   /** Each piece's contract, read as data (absent when the piece has no contract file). */
   contracts: ReadonlyMap<string, ReadContract>;
-  generated: ReadonlyMap<string, string>; ledger: unknown }>;
+  generated: ReadonlyMap<string, string>; ledger: unknown;
+  /** The SDK's message bundles, locale → JSON text, read from the layout's messages folder (plan §14). */
+  messages: ReadonlyMap<string, string> }>;
 
 async function walk(root: string, folder: string, paths: string[]): Promise<void> {
   let entries: string[];
@@ -54,14 +58,39 @@ export async function readCatalogTree(root: string, layout: CatalogLayout): Prom
   const generated = new Map<string, string>();
   for (const path of Object.values(layout.generated)) if (paths.includes(path)) generated.set(path, await readFile(join(root, path), "utf8"));
   const ledger: unknown = paths.includes(layout.ledger) ? parseLedger(layout.ledger, await readFile(join(root, layout.ledger), "utf8")) : undefined;
-  return Object.freeze({ paths: Object.freeze(paths), declarations: Object.freeze(declarations), contracts, generated, ledger });
+  const messages = await readMessageBundles(root, layout.messages.folder);
+  const keys = await readOptional(join(root, layout.messages.keys));
+  if (keys !== undefined) generated.set(layout.messages.keys, keys);
+  return Object.freeze({ paths: Object.freeze(paths), declarations: Object.freeze(declarations), contracts, generated, ledger, messages });
+}
+
+async function readOptional(path: string): Promise<string | undefined> {
+  try { return await readFile(path, "utf8"); }
+  catch (error) { if (error instanceof Error && "code" in error && error.code === "ENOENT") return undefined; throw error; }
+}
+
+/** The `<locale>.json` files of the messages folder, by locale (the folder's modules are code, not bundles). */
+async function readMessageBundles(root: string, folder: string): Promise<ReadonlyMap<string, string>> {
+  let entries: string[];
+  try { entries = (await readdir(join(root, folder))).sort(); }
+  catch (error) { if (error instanceof Error && "code" in error && error.code === "ENOENT") return new Map(); throw error; }
+  const bundles = new Map<string, string>();
+  for (const entry of entries) {
+    const locale = bundleLocale(entry), path = `${folder}/${entry}`;
+    if ((await lstat(join(root, path))).isSymbolicLink()) throw new Error(`VISUAL_SOURCE_SYMLINK: ${path}`);
+    if (locale) bundles.set(locale, await readFile(join(root, path), "utf8"));
+  }
+  return bundles;
 }
 
 export async function runCatalogGate(root: string, options: Readonly<{ layout: CatalogLayout; rules: readonly CatalogRule[] }>) {
   const tree = await readCatalogTree(root, options.layout);
   const rules: Record<CatalogRule, () => void> = {
     A: () => assertDeclaredSources(tree.paths, tree.declarations, options.layout),
-    B: () => assertDeclarationsConsistent(tree.declarations, new Set(tree.paths), options.layout),
+    B: () => {
+      assertDeclarationsConsistent(tree.declarations, new Set(tree.paths), options.layout);
+      assertMessageOwnership(tree.declarations, tree.messages, options.layout);
+    },
     C: () => assertCatalogDerivations(tree, options.layout),
     L: () => assertLedgerStructure(tree.ledger, tree.declarations),
   };
@@ -71,7 +100,7 @@ export async function runCatalogGate(root: string, options: Readonly<{ layout: C
 
 const textual = /\.(svelte|ts|js|mjs|cjs|css|html|json|md|txt)$/;
 
-/** Content rules D–U over a tree that passed the structural rules: every violation, then one failure listing them all. */
+/** Content rules D–V over a tree that passed the structural rules: every violation, then one failure listing them all. */
 export async function runContentRules(root: string, tree: CatalogTree, options: Readonly<{ layout: CatalogLayout; rules: readonly ContentRuleId[] }>) {
   const { context, violations } = await contentViolations(root, tree, options);
   if (violations.length) throw new CatalogGateViolations(violations);

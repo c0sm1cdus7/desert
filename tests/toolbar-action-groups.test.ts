@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {view} from '../src/views/view.ts';
+// The compiled View contract; declared views delegate to it.
+import {compiledView as view} from '../src/views/view.ts';
 import {surfaceFrame} from '../src/interaction/surface-frame.ts';
 
 test('creation groups are a finite top-toolbar policy with distinct choices, never a footer style',()=>{

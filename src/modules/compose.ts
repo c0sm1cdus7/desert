@@ -1,11 +1,13 @@
 import { Check } from "@sinclair/typebox/value";
-import type { Static } from "@sinclair/typebox";
 import { compile } from "../compile.ts";
 import { freezeDeep, jsonSnapshot } from "../json.ts";
 import { ViewProgramVersion, type ViewProgram } from "../views/program-schema.ts";
 import { compileViewProgram } from "../views/program.ts";
 import { deriveModuleIndex } from "./product-index.ts";
-import { ProductCompositionSchema } from "./schema.ts";
+import { DeclaredProductCompositionSchema, ProductCompositionSchema } from "./schema.ts";
+import { requireMessageCatalog } from "../messages/catalog.ts";
+import { buildLocale } from "../messages/locale.ts";
+import { resolveMessages } from "../views/declared.ts";
 import { resolvePresentation } from "./presentation.ts";
 import { ownershipRegistry, productOwner, validateOwnedDomain, type Owner } from "./ownership.ts";
 import type { Closed, ProductComposition } from "./types.ts";
@@ -23,15 +25,19 @@ import type { ComposedDefinition } from "./composed-definition.ts";
 
 /** Compile one root into the existing domain/runtime and presentation protocols. */
 export function composeProduct<const P extends ProductComposition>(definition: Closed<P, ProductComposition> & ProductLinks<NoInfer<P>>) {
-  const authored = declarationRecord(definition);
+  const { messages, ...authored } = declarationRecord(definition);
   const mounted = requireModuleIndex(authored.modules);
+  const catalog = requireMessageCatalog(messages);
   for (const value of declarationArray(authored.exposures)) {
     const surface = declarationRecord(value);
     if (surface.kind === "human") requireJourneyOwnedSurfaceSemantics(surface);
   }
   const admission = referenceAdmission(authored, true, mounted);
-  const source = jsonSnapshot({ ...lowerProductReferences(authored, admission), modules: mounted.map(module => module.definition) }) as
-    unknown as Static<typeof ProductCompositionSchema>;
+  const declared = jsonSnapshot({ ...lowerProductReferences(authored, admission), modules: mounted.map(module => module.definition) });
+  if (!Check(DeclaredProductCompositionSchema, declared)) throw new Error("INVALID_PRODUCT_COMPOSITION");
+  // One bundle per build: the human exposures' locale resolves every message the product and its modules declare.
+  const locale = buildLocale(declared.exposures.flatMap(exposure => exposure.kind === "human" ? [exposure.locale] : []));
+  const source = resolveMessages(declared, catalog.bundle(locale));
   if (!Check(ProductCompositionSchema, source) || !source.exposures) throw new Error("INVALID_PRODUCT_COMPOSITION");
   const modules = source.modules;
   if (new Set(modules.map(module => module.id)).size !== modules.length) throw new Error("DUPLICATE_MODULE_ID");

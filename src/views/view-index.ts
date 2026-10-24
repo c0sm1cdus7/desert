@@ -1,7 +1,7 @@
 import { freezeDeep } from "../json.ts";
 import { ViewLimits, type View } from "./schema.ts";
 import { viewSnapshot } from "./snapshot.ts";
-import { view } from "./view.ts";
+import { compiledView } from "./view.ts";
 
 /** Resolve composition references only; navigation and journey bindings are not installed here. */
 export function viewIndex(definitions: unknown): readonly View[] {
@@ -9,7 +9,7 @@ export function viewIndex(definitions: unknown): readonly View[] {
   if (!Array.isArray(input) || input.length === 0 || input.length > ViewLimits.catalogSize) {
     throw new Error("INVALID_VIEW_CATALOG");
   }
-  const views = input.map(view);
+  const views = input.map(compiledView);
   const registry = new Map<string, View>();
   for (const definition of views) {
     if (registry.has(definition.id)) throw new Error("DUPLICATE_VIEW_ID");

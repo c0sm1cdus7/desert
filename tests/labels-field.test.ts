@@ -11,6 +11,7 @@ import { presentFacts, factState, presentFact } from "../src/interaction/fact-pr
 import { surfaceFrame } from "../src/interaction/surface-frame.ts";
 import { Components, defineView, viewPorts, activityInputs } from "../src/index.ts";
 import { activityIndex } from "../src/activities/activity-index.ts";
+import { FixtureMessages } from "./fixtures/messages.ts";
 
 test("labels are a bounded unique array, preserve casing/order and accept explicit empty", () => {
   assert.deepEqual(labels(), { kind: "labels", maxItems: 12, maxLength: 64 });
@@ -94,7 +95,7 @@ test("scalar Activity answers cannot carry labels until their typed step contrac
   const ports = viewPorts({ inputs: { draft: "form", prepared: "context" }, outputs: [] });
   const Draft = defineView({ name: "labels-draft", content: [Components.Form({ input: ports.inputs.draft })] });
   const Review = defineView({ name: "labels-review", content: [Components.Context({ input: ports.inputs.prepared })] });
-  const catalog = activityIndex(application, { journeys: [CreateItem], views: [Draft, Review] });
+  const catalog = activityIndex(application, { messages: FixtureMessages, journeys: [CreateItem], views: [Draft, Review] });
   const inputs = activityInputs(CreateItem);
   assert.throws(() => catalog.define({ journey: CreateItem, steps: [
     { view: Draft, inputs: [inputs.title, inputs.projects] },

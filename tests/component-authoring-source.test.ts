@@ -9,8 +9,8 @@ test("the source gate admits component constructors from the actual SDK catalog,
   for (const catalog of ["Components", "Components as Pieces"]) {
     const local = catalog.endsWith("Pieces") ? "Pieces" : "Components";
     await sourceFixture({ "root.product.ts": root, "views/home.view.ts":
-      `import { ${catalog}, defineView } from "desert-sdk/src/index.ts";
-       export const Home = defineView({ name: "home", content: [${local}.Header({ title: "Home" })] });`,
+      `import { ${catalog}, ViewTitles, defineView } from "desert-sdk/src/index.ts";
+       export const Home = defineView({ name: "home", content: [${local}.Header({ title: ViewTitles.product })] });`,
     }, async path => assert.equal((await assertProductSource(path)).files.length, 2));
   }
 });

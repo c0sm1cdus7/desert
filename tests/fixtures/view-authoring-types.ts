@@ -2,11 +2,12 @@ import { ViewVersion, type View, type MediaLibrary } from "../../src/index.ts";
 import { factReference, initializeInput, publishObject, viewOutput, viewPorts, objectType, text as textField } from "../../src/index.ts";
 import { Note } from "../../products/notebook/note.ts";
 import { ArchiveNote, CreateNote } from "../../products/notebook/journeys.ts";
+import { fixtureText } from "./messages.ts";
 
-const header = { kind: "header", id: "identity", title: "Notes", subtitle: "Your writing." } as const;
+const header = { kind: "header", id: "identity", title: fixtureText.notes, subtitle: fixtureText.yourWriting } as const;
 const text = { kind: "text", text: "Introduction." } as const;
-const stack = { kind: "stack", id: "recent", title: "Recent", items: [text] } as const;
-const toolbar = { kind: "toolbar", actions: [{ output: "create", label: "New", icon: "create" }] } as const;
+const stack = { kind: "stack", id: "recent", title: fixtureText.recent, items: [text] } as const;
+const toolbar = { kind: "toolbar", actions: [{ output: "create", label: fixtureText.new, icon: "create" }] } as const;
 const detail = { version: ViewVersion, id: "detail", content: [] } as const satisfies View;
 const base = { version: ViewVersion, id: "notes", outputs: ["create"],
   topDock: toolbar, content: [header, text, stack], rightDock: { kind: "view", view: detail },
@@ -36,17 +37,17 @@ const field = { ...base, content: [{ kind: "input.text", name: "title", value: "
 valid.content.push(text);
 void [valid, forcedStack, nestedHeader, untitledStack, wrongTop, wrongSide, styled, styledChild, journeyAction, bound, field];
 
-const library = { id: "photos", items: [{ id: "photo", kind: "image", title: "Coast", image: { asset: "coast", alt: "A coast" } }],
-  albums: [{ id: "travel", title: "Travel", cover: "photo", items: ["photo"] }], featured: ["travel"],
+const library = { id: "photos", items: [{ id: "photo", kind: "image", title: fixtureText.coast, image: { asset: "coast", alt: fixtureText.aCoast } }],
+  albums: [{ id: "travel", title: fixtureText.travel, cover: "photo", items: ["photo"] }], featured: ["travel"],
 } as const satisfies MediaLibrary;
 const media = { kind: "media-library", id: "library", library } as const;
 const mediaView = { version: ViewVersion, id: "media", content: [header, media] } as const satisfies View;
 // @ts-expect-error A media library is a root composition, never an inner stack leaf.
 const stackedMedia = { ...mediaView, content: [{ ...stack, items: [media] }] } satisfies View;
 // @ts-expect-error Album definitions require an explicit cover reference.
-const uncoveredAlbum = { ...library, albums: [{ id: "travel", title: "Travel", items: ["photo"] }] } satisfies MediaLibrary;
+const uncoveredAlbum = { ...library, albums: [{ id: "travel", title: fixtureText.travel, items: ["photo"] }] } satisfies MediaLibrary;
 // @ts-expect-error Library assets use logical references rather than a URL-shaped resource.
-const remoteImage = { ...library, items: [{ id: "photo", kind: "image", title: "Coast", image: { url: "https://example.com/photo.jpg", alt: "A coast" } }] } satisfies MediaLibrary;
+const remoteImage = { ...library, items: [{ id: "photo", kind: "image", title: fixtureText.coast, image: { url: "https://example.com/photo.jpg", alt: fixtureText.aCoast } }] } satisfies MediaLibrary;
 // @ts-expect-error The shared composition owns its geometry.
 const styledMedia = { ...mediaView, content: [{ ...media, style: "padding:0" }] } satisfies View;
 const frozenLibrary: MediaLibrary = library;

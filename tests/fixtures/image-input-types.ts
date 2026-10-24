@@ -1,5 +1,6 @@
 import { objectType, imageAsset, text, principal, createCommand, fromInput, literal, actorId,
   readJourney, controllerRole, updateCommand, Components, defineView, viewPorts, publishObject, factReference } from "../../src/index.ts";
+import { fixtureText } from "./messages.ts";
 
 const Photo = objectType({ id: "photo", facts: { image: imageAsset(), title: text(), owner: principal() } });
 const Controller = controllerRole({ id: "images", objects: [Photo], requires: [] });
@@ -21,10 +22,10 @@ updateCommand("invalid-condition", Photo, { input: [], when: { image: "path" }, 
 const ports = viewPorts({ inputs: { subject: "context" }, outputs: [] });
 const view = defineView({ name: "photo", content: [Components.Context({ input: ports.inputs.subject })] });
 publishObject(Photo, { view, title: factReference(Photo, "title"), actions: [], fields: [
-  { fact: factReference(Photo, "title"), label: "Title", representation: "text" },
-  { fact: factReference(Photo, "image"), label: "Image", representation: "image" },
+  { fact: factReference(Photo, "title"), label: fixtureText.title, representation: "text" },
+  { fact: factReference(Photo, "image"), label: fixtureText.image, representation: "image" },
 ] });
 // @ts-expect-error An object title must be scalar, never an asset reference.
 publishObject(Photo, { view, title: factReference(Photo, "image"), actions: [] });
 // @ts-expect-error Assets have image representation, never paragraphs/text.
-publishObject(Photo, { view, title: factReference(Photo, "title"), actions: [], fields: [{ fact: factReference(Photo, "image"), label: "Image", representation: "text" }] });
+publishObject(Photo, { view, title: factReference(Photo, "title"), actions: [], fields: [{ fact: factReference(Photo, "image"), label: fixtureText.image, representation: "text" }] });

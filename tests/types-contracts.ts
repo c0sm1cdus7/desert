@@ -53,6 +53,7 @@ import { Note as PublishedNote } from "./fixtures/notebook-domain.ts";
 import { notePublication } from "./fixtures/authored-notebook.ts";
 import { HumanNotebook } from "../products/notebook/exposures.ts";
 import { CreateNote, ReadNote, ArchiveNote } from "../products/notebook/journeys.ts";
+import { fixtureText } from "./fixtures/messages.ts";
 
 const multiline: ResolvedInputId = "input.multiline";
 void multiline;
@@ -67,9 +68,9 @@ void [unknownPrimitive, incompleteBank, inventedBank];
 const human = { id: HumanNotebook.id, journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" };
 humanExposure(human);
 // @ts-expect-error A product cannot present an unknown fact.
-publishObject(PublishedNote, { ...notePublication, fields: [{ fact: factReference(PublishedNote, "imagined"), label: "Imagined", representation: "text" }] });
+publishObject(PublishedNote, { ...notePublication, fields: [{ fact: factReference(PublishedNote, "imagined"), label: fixtureText.imagined, representation: "text" }] });
 // @ts-expect-error A renderer primitive is not a semantic field representation.
-publishObject(PublishedNote, { ...notePublication, fields: [{ fact: factReference(PublishedNote, "body"), label: "Content", representation: "input.multiline" }] });
+publishObject(PublishedNote, { ...notePublication, fields: [{ fact: factReference(PublishedNote, "body"), label: fixtureText.content, representation: "input.multiline" }] });
 // @ts-expect-error Composed exposure cannot redefine an object's field representation.
 humanExposure({ ...human, inputs: { "note.body": "input.multiline" } });
 // @ts-expect-error Composed exposure cannot override a published representation.

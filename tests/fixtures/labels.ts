@@ -5,6 +5,7 @@ import { compile } from "../../src/compile.ts";
 import type { HumanSurface } from "../../src/web/types.ts";
 import { readScopes } from "../../src/web/client/view-scopes.ts";
 import { WorkspaceView, NavigationView } from "./workspace-view.ts";
+import { FixtureMessages, fixtureText } from "./messages.ts";
 
 export const Item = objectType({ id: "labeled-item", facts: {
   title: text(), projects: labels(), owner: principal(),
@@ -24,33 +25,33 @@ const listPorts = viewPorts({ inputs: { records: "collection" }, outputs: ["sele
 const detailPorts = viewPorts({ inputs: { record: "context" }, outputs: ["close"] });
 const editorPorts = viewPorts({ inputs: { draft: "form" }, outputs: ["save", "close"] });
 const ListView = defineView({ name: "items", outputs: listPorts.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: listPorts.output.create, label: "Create", icon: "create" }] }),
-  content: [Components.Header({ title: "Items" }), Components.Collection({ input: listPorts.inputs.records, output: listPorts.output.select })] });
+  topDock: Components.Toolbar({ actions: [{ output: listPorts.output.create, label: fixtureText.create, icon: "create" }] }),
+  content: [Components.Header({ title: fixtureText.items }), Components.Collection({ input: listPorts.inputs.records, output: listPorts.output.select })] });
 const DetailView = defineView({ name: "item", outputs: detailPorts.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: detailPorts.output.close, label: "Close", icon: "close" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: detailPorts.output.close, label: fixtureText.close, icon: "close" }] }),
   content: [Components.Header({ title: ViewTitles.subject }), Components.Context({ input: detailPorts.inputs.record })] });
 const EditorView = defineView({ name: "item-editor", outputs: editorPorts.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: editorPorts.output.close, label: "Close", icon: "close" }] }),
-  bottomDock: Components.Toolbar({ actions: [{ output: editorPorts.output.save, label: "Save", icon: "save" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: editorPorts.output.close, label: fixtureText.close, icon: "close" }] }),
+  bottomDock: Components.Toolbar({ actions: [{ output: editorPorts.output.save, label: fixtureText.save, icon: "save" }] }),
   content: [Components.Header({ title: ViewTitles.operation }), Components.Form({ input: editorPorts.inputs.draft })] });
 const editorOutputs = [
   { ...viewOutput(EditorView, "save"), action: { kind: "submit" } },
   { ...viewOutput(EditorView, "close"), action: { kind: "close" } },
 ] as const;
-const Home = { id: "items", label: "Items", icon: "open", entryJourney: ReadItems } as const;
-export const LabeledItemsProduct = composeProduct({ id: "labels-test", label: "Items", modules: moduleIndex([]),
+const Home = { id: "items", label: fixtureText.items, icon: "open", entryJourney: ReadItems } as const;
+export const LabeledItemsProduct = composeProduct({ messages: FixtureMessages, id: "labels-test", label: fixtureText.items, modules: moduleIndex([]),
   objects: [publishObject(Item, { view: DetailView, title: factReference(Item, "title"),
-    fields: [{ fact: factReference(Item, "title"), label: "Title", representation: "text" },
-      { fact: factReference(Item, "projects"), label: "Projects", representation: "tags" }], actions: [{ journey: EditItem, icon: "edit" }] })],
+    fields: [{ fact: factReference(Item, "title"), label: fixtureText.title, representation: "text" },
+      { fact: factReference(Item, "projects"), label: fixtureText.projects, representation: "tags" }], actions: [{ journey: EditItem, icon: "edit" }] })],
   dependencies: [Controller], policies: [ownershipPolicy(Item, "owner")],
   journeys: [
-    { execution: CreateItem, label: "Create", humanReview: "not-required", presentation: {
+    { execution: CreateItem, label: fixtureText.create, humanReview: "not-required", presentation: {
       id: CreateItem.id, kind: "create", source: ReadItems, view: EditorView, preferredDock: "right", outputs: editorOutputs } },
-    { execution: EditItem, label: "Edit", humanReview: "not-required", presentation: {
+    { execution: EditItem, label: fixtureText.edit, humanReview: "not-required", presentation: {
       id: EditItem.id, kind: "update", source: ReadItems, view: EditorView, preferredDock: "right", outputs: editorOutputs,
       initialize: [initializeInput(EditItem.command, "title", factReference(Item, "title")),
         initializeInput(EditItem.command, "projects", factReference(Item, "projects"))] } },
-    { execution: ReadItems, label: "Items", presentation: { id: ReadItems.id, kind: "read", view: ListView, detailView: DetailView,
+    { execution: ReadItems, label: fixtureText.items, presentation: { id: ReadItems.id, kind: "read", view: ListView, detailView: DetailView,
       outputs: [
         { ...viewOutput(ListView, "create"), action: { kind: "journey", journey: CreateItem } },
         { ...viewOutput(ListView, "select"), action: { kind: "select" } },
@@ -58,7 +59,7 @@ export const LabeledItemsProduct = composeProduct({ id: "labels-test", label: "I
       ] } },
   ],
   views: [ListView, DetailView, EditorView, WorkspaceView, NavigationView], workspace: WorkspaceView,
-  destinations: [Home], entry: Home, navigation: [{ destination: Home, group: "Explore", purpose: "content" }],
+  destinations: [Home], entry: Home, navigation: [{ destination: Home, group: fixtureText.explore, purpose: "content" }],
   exposures: [agentExposure("agent", [CreateItem, EditItem, ReadItems]), humanExposure({ id: "human", journeys: [CreateItem, EditItem, ReadItems], locale: "en" })],
 });
 export const LabeledItems = LabeledItemsProduct.definition;

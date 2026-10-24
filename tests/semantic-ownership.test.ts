@@ -6,6 +6,7 @@ import { Note } from "../products/notebook/note.ts";
 import { ArchiveNote, CreateNote, ReadNote } from "../products/notebook/journeys.ts";
 import { ViewNotebook } from "./fixtures/view-exposure.ts";
 import { authoredNotebookSource, notePublication } from "./fixtures/authored-notebook.ts";
+import { FixtureMessages } from "./fixtures/messages.ts";
 
 test("A composed human exposure names journeys and locale without duplicating their semantics", () => {
   const exposure = humanExposure({ id: "human", journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" });

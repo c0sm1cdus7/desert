@@ -20,12 +20,15 @@ verbatim modules, not standalone snippets or a published package API.
 - src/views/index.ts
 - src/views/authored-view.ts
 - src/modules/authored-types.ts
+- src/views/media-library.ts
 - src/modules/definition.ts
 - src/modules/publish-object.ts
 - src/views/authoring-ports.ts
 - src/views/reference-helpers.ts
 - src/views/object-presentation.ts
 - src/modules/compose.ts
+- src/messages/catalog.ts
+- src/views/definition.ts
 - src/modules/module-index.ts
 - src/modules/types.ts
 - src/views/components.ts
@@ -41,7 +44,6 @@ verbatim modules, not standalone snippets or a published package API.
 - src/local/identity.ts
 - src/web/build.ts
 - src/views/schema.ts
-- src/views/media-library.ts
 - src/views/ports.ts
 - src/views/program-schema.ts
 - src/views/program.ts
@@ -76,7 +78,7 @@ verbatim modules, not standalone snippets or a published package API.
 
 ## src/index.ts
 
-Source SHA-256: 23b543c9227b854836bd5979fed4cfc0510b78a38e4c718bce60b26e467d0dac
+Source SHA-256: 4ae435a064253c5fb63249b76b57d6e1aa1d940f41d4d34b99e443ecb773a0b5
 
 ```ts
 export { objectType, text, integer, enumeration, principal, imageAsset, mediaAsset, labels, references, namedReferences, mediaReferences } from "./contracts.ts";
@@ -102,7 +104,8 @@ export type { ViewContent, ViewHeader, ViewHeaderTitle, ViewStack, ViewLeaf, Vie
 export { ViewHeaderTitleSchema } from "./views/index.ts";
 export { ViewProgramVersion, ViewProgramSchema, ViewNavigationEntrySchema, viewInputs, compileViewProgram } from "./views/index.ts";
 export type { ViewProgram,
-  ViewBoundContent, ViewItem, ViewMediaContent, MediaLibrary } from "./views/index.ts";
+  ViewBoundContent, ViewItem, ViewMediaContent } from "./views/index.ts";
+export type { DeclaredMediaLibrary as MediaLibrary } from "./views/media-library.ts";
 export { defineModule } from "./modules/definition.ts";
 export { publishObject } from "./modules/publish-object.ts";
 export { viewPorts } from "./views/authoring-ports.ts";
@@ -111,6 +114,9 @@ export type { FactReference } from "./views/reference-helpers.ts";
 export { ObjectPresentationSchema } from "./views/object-presentation.ts";
 export type { ObjectPresentation } from "./views/object-presentation.ts";
 export { composeProduct } from "./modules/compose.ts";
+export { messageCatalog } from "./messages/catalog.ts";
+export type { MessageCatalog } from "./messages/catalog.ts";
+export type { Message } from "./views/definition.ts";
 export { moduleIndex } from "./modules/module-index.ts";
 export type { ModuleDefinition, RegisteredModule, ModuleIndex, ModuleJourney, ModuleReference, ProductComposition,
   AuthoredViewJourney, AuthoredViewDestination, AuthoredViewNavigationEntry } from "./modules/types.ts";
@@ -652,12 +658,14 @@ export function authoredView<const V extends AuthoredView>(value: V): V {
 
 ## src/modules/authored-types.ts
 
-Source SHA-256: 2f792e2e35f29beb703a2bf9ee819da89d3dd4a882a928ac369165e90a8dd72c
+Source SHA-256: fd9c186197ae4130006a0e725f6e4ab3467c79e8c3ac05b33a94b5f2669e07e5
 
 ```ts
 import type { Frozen } from "../json.ts";
 import type { JourneyDefinition } from "../program-grammar.ts";
-import type { View as WireView, ViewRef as WireViewRef } from "../views/schema.ts";
+import type { DeclaredView as WireView, ViewRef as WireViewRef } from "../views/schema.ts";
+import type { Declared } from "../views/declared.ts";
+import type { Message } from "../views/definition.ts";
 import type { ViewJourney, ViewDestination, ViewNavigationEntry } from "../views/program-schema.ts";
 import type { ModuleReference } from "./reference-types.ts";
 import type { ActivityDefinition } from "../activities/authoring.ts";
@@ -686,7 +694,7 @@ type Journey<J> = J extends ViewJourney ? {
     : K extends "activity" ? ActivityDefinition
     : K extends "collections" ? readonly { readonly input: string; readonly read: ReadJourneyTarget; readonly limit: number;
         readonly summary?: { readonly field: {readonly object:string;readonly field:string};
-          readonly segments: readonly {readonly value:string;readonly label:string}[] };
+          readonly segments: readonly {readonly value:string;readonly label:Message}[] };
         readonly preview?: { readonly read: ReadJourneyTarget; readonly where: { readonly object: string; readonly field: string };
           readonly media: { readonly object: string; readonly field: string }; readonly cover?: { readonly object: string; readonly field: string } };
         readonly where?: { readonly field: string; readonly value: string } }[]
@@ -695,21 +703,81 @@ type Journey<J> = J extends ViewJourney ? {
 export type AuthoredViewJourney = Journey<ViewJourney>;
 export type AuthoredViewOutputBinding = AuthoredViewJourney["outputs"][number];
 export type AuthoredViewOutputAction = AuthoredViewOutputBinding["action"];
-export type AuthoredViewDestination = Omit<ViewDestination, "entryJourney"> & { readonly entryJourney: JourneyTarget };
+export type AuthoredViewDestination = Omit<Declared<ViewDestination>, "entryJourney"> & { readonly entryJourney: JourneyTarget };
 export type DestinationTarget = AuthoredViewDestination | ModuleReference<"destination">;
-export type AuthoredViewNavigationEntry = Omit<ViewNavigationEntry, "destination"> & { readonly destination: DestinationTarget };
+export type AuthoredViewNavigationEntry = Omit<Declared<ViewNavigationEntry>, "destination"> & { readonly destination: DestinationTarget };
 export type ExecutableJourneyReference = ModuleReference<"journey", string, string, { readonly execution: Frozen<JourneyDefinition> }>;
 export type ExposedJourney = Frozen<JourneyDefinition> | ExecutableJourneyReference;
 ```
 
+## src/views/media-library.ts
+
+Source SHA-256: b000ad5a8d5219fc843ee3e621691984d178e8f387a483d0d9bf358055c6bda7
+
+```ts
+import { Type, type Static } from "@sinclair/typebox";
+import type { Frozen } from "../json.ts";
+import { closed, name, text } from "./definition.ts";
+import type { Declared } from "./declared.ts";
+
+const artwork = closed({ asset: name, alt: text });
+const timed = {
+  id: name, title: text, source: closed({ asset: name }), artwork: Type.Optional(artwork),
+  captions: Type.Optional(Type.Array(closed({ asset: name, language: text, label: text }), { maxItems: 16 })),
+};
+export const MediaItemSchema = Type.Union([
+  closed({ id: name, kind: Type.Literal("image"), title: text, image: artwork }),
+  closed({ ...timed, kind: Type.Literal("video") }),
+  closed({ ...timed, kind: Type.Literal("audio") }),
+]);
+export type MediaItem = Frozen<Static<typeof MediaItemSchema>>;
+
+/** Logical asset references only; serving and verification belong to the host. */
+export const MediaLibrarySchema = closed({
+  id: name,
+  items: Type.Array(MediaItemSchema, { minItems: 1, maxItems: 512 }),
+  albums: Type.Array(closed({
+    id: name, title: text, cover: name,
+    items: Type.Array(name, { minItems: 1, maxItems: 512, uniqueItems: true }),
+  }), { minItems: 1, maxItems: 64 }),
+  featured: Type.Array(name, { minItems: 1, maxItems: 10, uniqueItems: true }),
+});
+
+export type MediaLibrary = Frozen<Static<typeof MediaLibrarySchema>>;
+/** A media library as a product declares it: titles, alternative texts and caption labels are messages (plan §14). */
+export type DeclaredMediaLibrary = Declared<MediaLibrary>;
+
+/** Album membership may overlap; identities and references never resolve globally. */
+export function checkMediaLibrary(library: MediaLibrary): void {
+  const items = new Set(library.items.map(item => item.id));
+  const albums = new Set(library.albums.map(album => album.id));
+  if (items.size !== library.items.length) throw new Error("DUPLICATE_MEDIA_ITEM_ID");
+  if (albums.size !== library.albums.length) throw new Error("DUPLICATE_MEDIA_ALBUM_ID");
+  for (const album of library.albums) {
+    if (album.items.some(id => !items.has(id))) throw new Error("UNKNOWN_ALBUM_MEDIA_ITEM");
+    if (!album.items.includes(album.cover)) throw new Error("INVALID_MEDIA_ALBUM_COVER");
+  }
+  if (library.featured.some(id => !albums.has(id))) throw new Error("UNKNOWN_FEATURED_MEDIA_ALBUM");
+}
+
+export const mediaArtwork = (item: MediaItem) => item.kind === "image" ? item.image : item.artwork;
+
+export function mediaLibraryAssets(library: MediaLibrary): readonly string[] {
+  return [...new Set(library.items.flatMap(item => item.kind === "image" ? [item.image.asset] : [
+    item.source.asset, ...(item.artwork ? [item.artwork.asset] : []), ...(item.captions ?? []).map(track => track.asset),
+  ]))];
+}
+```
+
 ## src/modules/definition.ts
 
-Source SHA-256: 462934d07f9be91dd0906f83122972a746804de09884cfd1545647893a32a317
+Source SHA-256: c958fbf5db596d997598e22e2fd68e48e1653be282688bd697939694668a275c
 
 ```ts
 import { freezeDeep, jsonSnapshot } from "../json.ts";
 import { Check } from "@sinclair/typebox/value";
-import { ModuleDefinitionSchema } from "./schema.ts";
+import { DeclaredModuleDefinitionSchema, ModuleDefinitionSchema } from "./schema.ts";
+import { keysAsText } from "../views/declared.ts";
 import { ownershipRegistry, validateOwnedDomain } from "./ownership.ts";
 import { resolvePresentation } from "./presentation.ts";
 import type { Closed, ModuleDefinition, RegisteredModule, ResolvedModuleDefinition } from "./types.ts";
@@ -728,13 +796,18 @@ export function defineModule<const M extends ModuleDefinition>(definition: Close
   const source = declarationRecord(definition);
   const admission = referenceAdmission(source, false);
   const aliases = admission.aliases();
-  const snapshot = jsonSnapshot(lowerOwnedReferences(source, admission)) as unknown as ResolvedModuleDefinition;
-  if (!Check(ModuleDefinitionSchema, snapshot)) throw new Error("INVALID_MODULE_DEFINITION");
+  const declared = jsonSnapshot(lowerOwnedReferences(source, admission));
+  if (!Check(DeclaredModuleDefinitionSchema, declared)) throw new Error("INVALID_MODULE_DEFINITION");
+  // No locale is chosen yet: the structural checks read the shape, each message's key standing in for its sentence.
+  const shape = keysAsText(declared);
+  if (!Check(ModuleDefinitionSchema, shape)) throw new Error("INVALID_MODULE_DEFINITION");
+  const snapshot: ResolvedModuleDefinition = shape;
   const ownership = ownershipRegistry([{ id: snapshot.id, definition: snapshot, exports: snapshot.exports }]);
   validateOwnedDomain(snapshot);
   validateObjectPublications(snapshot);
   resolvePresentation(snapshot, snapshot.id, ownership);
-  const handle = issueModule(freezeDeep(snapshot), admission.identities, aliases);
+  // The module keeps its messages; the product's catalog resolves them when the product is composed.
+  const handle = issueModule(freezeDeep(declared), admission.identities, aliases);
   rememberModuleSource(definition, handle);
   return handle as RegisteredModule<M>;
 }
@@ -742,7 +815,7 @@ export function defineModule<const M extends ModuleDefinition>(definition: Close
 
 ## src/modules/publish-object.ts
 
-Source SHA-256: 7940c4514e65656d1d6ab94d52be9909538118bbfb5bacd9a754e869b7521233
+Source SHA-256: f811ced359cca3b76852a3885154a9ec0c1e1de83f466a7b7e62aa84f852402a
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -759,18 +832,20 @@ import { ViewSchema } from "../views/schema.ts";
 import type { AuthoredView } from "./authored-types.ts";
 import { authoredViewData } from "../views/authored-view.ts";
 import { closed } from "../views/definition.ts";
+import { declaredSchema, type Declared } from "../views/declared.ts";
 import { declarationArray, declarationRecord } from "./declaration-data.ts";
 import type { FieldRepresentation } from "../field-representation.ts";
 
-const PublicationSchema = closed({ ...AuthoredPublishedPresentationSchema.properties, view: ViewSchema,
-  actions: Type.Array(closed({ ...PublishedPresentationSchema.properties.actions.items.properties, journey: JourneySchema })) });
+// Declared (plan §14): field labels and selection labels are messages, resolved when the product is composed.
+const PublicationSchema = declaredSchema(closed({ ...AuthoredPublishedPresentationSchema.properties, view: ViewSchema,
+  actions: Type.Array(closed({ ...PublishedPresentationSchema.properties.actions.items.properties, journey: JourneySchema })) }));
 type Publication = Omit<Frozen<Static<typeof PublicationSchema>>, "view"> & { readonly view: AuthoredView };
 type SubjectJourney<Id extends string> = Frozen<Extract<JourneyDefinition, { kind: "mutation" }>> & {
   readonly command: { readonly kind: "update"; readonly object: Id };
 };
 type SubjectAction<Id extends string> = Publication["actions"][number] & { readonly journey: SubjectJourney<Id> };
 type PresentedField<O extends ObjectDefinition> = {
-  [K in WritableKey<O>]: Omit<PublishedField, "fact" | "representation"> & {
+  [K in WritableKey<O>]: Omit<Declared<PublishedField>, "fact" | "representation"> & {
     readonly fact: FactReference<O["id"], K>;
     readonly representation: O["facts"][K] extends { readonly kind: "asset" } ? "image"
       : O["facts"][K] extends { readonly kind: "labels" } ? "tags"
@@ -936,17 +1011,19 @@ export type ObjectPresentation = Frozen<Static<typeof ObjectPresentationSchema>>
 
 ## src/modules/compose.ts
 
-Source SHA-256: fd1663cebe8ad6ffef485a482475d6edeb4b0a1ba4cfc321f5cb415aa51088e6
+Source SHA-256: a711b8908f7b124027c718dd2741bedd4dced8365022c344f0717a67ba916b60
 
 ```ts
 import { Check } from "@sinclair/typebox/value";
-import type { Static } from "@sinclair/typebox";
 import { compile } from "../compile.ts";
 import { freezeDeep, jsonSnapshot } from "../json.ts";
 import { ViewProgramVersion, type ViewProgram } from "../views/program-schema.ts";
 import { compileViewProgram } from "../views/program.ts";
 import { deriveModuleIndex } from "./product-index.ts";
-import { ProductCompositionSchema } from "./schema.ts";
+import { DeclaredProductCompositionSchema, ProductCompositionSchema } from "./schema.ts";
+import { requireMessageCatalog } from "../messages/catalog.ts";
+import { buildLocale } from "../messages/locale.ts";
+import { resolveMessages } from "../views/declared.ts";
 import { resolvePresentation } from "./presentation.ts";
 import { ownershipRegistry, productOwner, validateOwnedDomain, type Owner } from "./ownership.ts";
 import type { Closed, ProductComposition } from "./types.ts";
@@ -964,15 +1041,19 @@ import type { ComposedDefinition } from "./composed-definition.ts";
 
 /** Compile one root into the existing domain/runtime and presentation protocols. */
 export function composeProduct<const P extends ProductComposition>(definition: Closed<P, ProductComposition> & ProductLinks<NoInfer<P>>) {
-  const authored = declarationRecord(definition);
+  const { messages, ...authored } = declarationRecord(definition);
   const mounted = requireModuleIndex(authored.modules);
+  const catalog = requireMessageCatalog(messages);
   for (const value of declarationArray(authored.exposures)) {
     const surface = declarationRecord(value);
     if (surface.kind === "human") requireJourneyOwnedSurfaceSemantics(surface);
   }
   const admission = referenceAdmission(authored, true, mounted);
-  const source = jsonSnapshot({ ...lowerProductReferences(authored, admission), modules: mounted.map(module => module.definition) }) as
-    unknown as Static<typeof ProductCompositionSchema>;
+  const declared = jsonSnapshot({ ...lowerProductReferences(authored, admission), modules: mounted.map(module => module.definition) });
+  if (!Check(DeclaredProductCompositionSchema, declared)) throw new Error("INVALID_PRODUCT_COMPOSITION");
+  // One bundle per build: the human exposures' locale resolves every message the product and its modules declare.
+  const locale = buildLocale(declared.exposures.flatMap(exposure => exposure.kind === "human" ? [exposure.locale] : []));
+  const source = resolveMessages(declared, catalog.bundle(locale));
   if (!Check(ProductCompositionSchema, source) || !source.exposures) throw new Error("INVALID_PRODUCT_COMPOSITION");
   const modules = source.modules;
   if (new Set(modules.map(module => module.id)).size !== modules.length) throw new Error("DUPLICATE_MODULE_ID");
@@ -1029,6 +1110,144 @@ export function composeProduct<const P extends ProductComposition>(definition: C
 }
 ```
 
+## src/messages/catalog.ts
+
+Source SHA-256: eaab29ddc6f58684e36251a2b9f5ab64fb4ae12e21f5a9353ad8be98098af91f
+
+```ts
+// Law (plan §14): a human-visible sentence is written once, in its owner's message catalog; declarations name it by key.
+// Raises MESSAGE_CATALOG (a malformed bundle), MESSAGE_MISSING (a key absent from the selected locale) and MESSAGE_PARAMETERS.
+import { Type, type TLiteral, type TUnion } from "@sinclair/typebox";
+import { MessageKeyPattern, type Message } from "../views/definition.ts";
+
+/** One locale's bundle as written in `<locale>.json`: nested segments whose leaves are sentences. */
+export type MessageTree = { readonly [segment: string]: string | MessageTree };
+type Keys<Tree, Prefix extends string = ""> = { [Segment in keyof Tree & string]:
+  Tree[Segment] extends string ? `${Prefix}${Segment}` : Keys<Tree[Segment], `${Prefix}${Segment}.`> }[keyof Tree & string];
+export type MessageAccessor<Tree, Prefix extends string = ""> = { readonly [Segment in keyof Tree & string]:
+  Tree[Segment] extends string ? Message<`${Prefix}${Segment}`> : MessageAccessor<Tree[Segment], `${Prefix}${Segment}.`> };
+export type MessageParameters = Readonly<Record<string, string>>;
+/** What a build reads from a catalog: the sentence of each key in one locale. */
+export type MessageBundle = Readonly<{ locale: string; text: (message: Message, parameters?: MessageParameters) => string }>;
+
+const localePattern = /^[a-z]{2,3}(?:-[A-Z]{2})?$/;
+const segmentPattern = /^[A-Za-z][A-Za-z0-9_]*$/;
+const keyPattern = new RegExp(MessageKeyPattern);
+const placeholder = /\{([A-Za-z][A-Za-z0-9]*)\}/g;
+const catalogs = new WeakSet<object>();
+const fail = (code: string, what: string): never => { throw new Error(`${code}: ${what}`); };
+
+/** Every `key → sentence` of one locale's tree, in the tree's order; a malformed tree is MESSAGE_CATALOG. */
+export function flattenMessages(locale: string, tree: unknown, prefix = ""): ReadonlyMap<string, string> {
+  if (typeof tree !== "object" || tree === null || Array.isArray(tree)) return fail("MESSAGE_CATALOG", `${locale}: ${prefix || "the bundle"} is not an object of segments`);
+  const flat = new Map<string, string>();
+  for (const [segment, value] of Object.entries(tree)) {
+    const key = `${prefix}${segment}`;
+    if (!segmentPattern.test(segment)) fail("MESSAGE_CATALOG", `${locale}: ${key} is not a message segment`);
+    if (typeof value !== "string") { for (const [child, sentence] of flattenMessages(locale, value, `${key}.`)) flat.set(child, sentence); continue; }
+    if (!keyPattern.test(key)) fail("MESSAGE_CATALOG", `${locale}: ${key} needs an owner segment and a meaning segment`);
+    if (!/\S/.test(value)) fail("MESSAGE_CATALOG", `${locale}: ${key} is an empty sentence`);
+    flat.set(key, value);
+  }
+  return flat;
+}
+
+function substitute(locale: string, key: string, sentence: string, parameters: MessageParameters): string {
+  const named = new Set([...sentence.matchAll(placeholder)].map(match => match[1] ?? ""));
+  const given = Object.keys(parameters);
+  if (given.length !== named.size || given.some(name => !named.has(name))) {
+    fail("MESSAGE_PARAMETERS", `${key} in ${locale} takes {${[...named].join("}, {")}}; given ${given.join(", ") || "none"}`);
+  }
+  return sentence.replace(placeholder, (_, name: string) => parameters[name] ?? "");
+}
+
+type AccessorNode = { [segment: string]: AccessorNode | Message };
+const isMessage = (node: AccessorNode | Message): node is Message => typeof node.key === "string" && Object.keys(node).length === 1;
+
+/** The frozen tree of messages, one leaf per key; a key that is also another key's segment (two locales disagree) is refused. */
+function accessorOf(keys: readonly string[]): AccessorNode {
+  const root: AccessorNode = {};
+  for (const key of keys) {
+    const segments = key.split("."), leaf = segments.pop() ?? "";
+    let node = root;
+    for (const segment of segments) {
+      const next = node[segment] ??= {};
+      if (isMessage(next)) return fail("MESSAGE_CATALOG", `${key} extends the key ${next.key}`);
+      node = next;
+    }
+    if (node[leaf]) fail("MESSAGE_CATALOG", `${key} is a key and a segment of another key`);
+    node[leaf] = Object.freeze({ key });
+  }
+  const freeze = (node: AccessorNode): AccessorNode => {
+    for (const child of Object.values(node)) if (!isMessage(child)) freeze(child);
+    return Object.freeze(node);
+  };
+  return freeze(root);
+}
+
+/** A product's or the SDK's catalog from its bundles (the generated `keys.ts` is the only caller in source). */
+export function messageCatalog<const Bundles extends Readonly<Record<string, MessageTree>>>(bundles: Bundles) {
+  const locales = new Map<string, ReadonlyMap<string, string>>();
+  for (const [locale, tree] of Object.entries(bundles)) {
+    if (!localePattern.test(locale)) fail("MESSAGE_CATALOG", `${locale} is not a locale`);
+    locales.set(locale, flattenMessages(locale, tree));
+  }
+  const keys = [...new Set([...locales.values()].flatMap(flat => [...flat.keys()]))].sort();
+  const accessor = accessorOf(keys);
+  type Key = Keys<Bundles[keyof Bundles]>;
+  const keySchema = Type.Union(keys.map(key => Type.Literal(key))) as unknown as TUnion<TLiteral<Key>[]>;
+  const bundle = (locale: string): MessageBundle => {
+    const flat = locales.get(locale) ?? fail("MESSAGE_MISSING", `no ${locale} bundle; the catalog has ${[...locales.keys()].join(", ") || "none"}`);
+    return Object.freeze({ locale, text: (message: Message, parameters: MessageParameters = {}) => {
+      const sentence = flat.get(message.key) ?? fail("MESSAGE_MISSING", `${message.key} is not in the ${locale} bundle`);
+      return substitute(locale, message.key, sentence, parameters);
+    } });
+  };
+  // `bundles`: the trees as given, so a test witness can extend a product's catalog without restating its sentences.
+  const catalog = Object.freeze({ m: accessor as MessageAccessor<Bundles[keyof Bundles]>, keys: Object.freeze(keys) as readonly Key[],
+    keySchema, locales: Object.freeze([...locales.keys()]), bundle, bundles });
+  catalogs.add(catalog);
+  return catalog;
+}
+/** What a consumer of any catalog reads: its locales and the bundle of one (the composition root resolves through it). */
+export type MessageCatalog = Readonly<{ locales: readonly string[]; bundle: (locale: string) => MessageBundle }>;
+
+/** A catalog made by messageCatalog, never a look-alike object (the composition root receives only real catalogs). */
+export function requireMessageCatalog(value: unknown): MessageCatalog {
+  if (typeof value !== "object" || value === null || !catalogs.has(value)) return fail("MESSAGE_CATALOG", "messages is not a catalog from a generated keys.ts");
+  return value as MessageCatalog;
+}
+```
+
+## src/views/definition.ts
+
+Source SHA-256: 4772636a424add2492a12847bb61f752c4c2f9f5e0871a75a546259123d90bdc
+
+```ts
+import { Clone, Type, type TProperties, type TSchema } from "@sinclair/typebox";
+import { freezeDeep } from "../json.ts";
+
+// Clone before freezing: canonical schemas remain owned by their modules.
+export function immutable<T extends TSchema>(schema: T): T {
+  const copy = Clone(schema);
+  freezeDeep(copy);
+  return copy;
+}
+export const closed = <P extends TProperties>(properties: P) =>
+  immutable(Type.Object(properties, { additionalProperties: false }));
+export const name = immutable(Type.String({ pattern: "^[A-Za-z0-9][A-Za-z0-9._-]*$" }));
+/** A string a person typed or a product resolved: user data, and the compiled form of a message. */
+export const text = immutable(Type.String({ minLength: 1, pattern: "\\S" }));
+
+/** A message key: an owner segment and at least one meaning segment (`notes.title`, `errors.CONTRACT_MISMATCH`). */
+export const MessageKeyPattern = "^[a-z][A-Za-z0-9]*(?:\\.[A-Za-z][A-Za-z0-9_]*)+$";
+/** A human-visible sentence named by its key in the owner's message catalog (plan §14). Declarations carry only the key;
+ * the catalog of the exposure's locale resolves it at build time, and a key absent from that bundle is MESSAGE_MISSING. */
+export const message = closed({ key: Type.String({ pattern: MessageKeyPattern }) });
+/** The authored value of a `message` field: produced by a generated `m` accessor, never written by hand. */
+export type Message<Key extends string = string> = { readonly key: Key };
+```
+
 ## src/modules/module-index.ts
 
 Source SHA-256: b131d477ae7ed2919960d2b262fce3f9cd55388cc4c0a5f01e5a0833644a21ca
@@ -1078,31 +1297,38 @@ export function requireLocalProductDependency(product: object, target: object): 
 
 ## src/modules/types.ts
 
-Source SHA-256: c2362df82dc12f2b70d7166c713b98d476915116b78f19d4ee998081907d93fa
+Source SHA-256: 8dbc9e8f6f836ad1c85f50d75b53f0143eaedd67e7152d11c6670ba0f3de7dbb
 
 ```ts
 import type { Static } from "@sinclair/typebox";
 import type { Frozen } from "../json.ts";
 import type { WithoutSurfaceSemantics } from "../human-exposure.ts";
-import type { ModuleDefinitionSchema, ModuleExportsSchema, ModuleJourneySchema, OwnedDefinitionsSchema } from "./schema.ts";
+import type { DeclaredModuleDefinitionSchema, ModuleDefinitionSchema, ModuleExportsSchema, ModuleJourneySchema, OwnedDefinitionsSchema } from "./schema.ts";
 import type { AuthoredView, AuthoredViewDestination, AuthoredViewJourney, AuthoredViewNavigationEntry, DestinationTarget, ExposedJourney, ViewTarget } from "./authored-types.ts";
 import type { ModuleReference, ModuleReferenceKind } from "./reference-types.ts";
 import type { JourneyDefinition } from "../program-grammar.ts";
+import type { Declared } from "../views/declared.ts";
+import type { Message } from "../views/definition.ts";
+import type { MessageCatalog } from "../messages/catalog.ts";
 
 export type { AuthoredView, AuthoredViewDestination, AuthoredViewJourney, AuthoredViewNavigationEntry } from "./authored-types.ts";
 export type { ModuleReference, ModuleReferenceKind } from "./reference-types.ts";
 export type OwnedDefinitions = Frozen<Static<typeof OwnedDefinitionsSchema>>;
 export type ResolvedModuleDefinition = Frozen<Static<typeof ModuleDefinitionSchema>>;
+/** A registered module as declared: its human text is still messages (plan §14). */
+export type DeclaredModuleDefinition = Frozen<Static<typeof DeclaredModuleDefinitionSchema>>;
 export type ModuleExports = Frozen<Static<typeof ModuleExportsSchema>>;
 export type ModuleEntryKind = keyof ModuleExports;
 type ResolvedJourney = Frozen<Static<typeof ModuleJourneySchema>>;
+type DeclaredLabel<V> = V extends string ? Message : V;
 type AuthoredJourney<J> = J extends ResolvedJourney ? {
-  readonly [K in keyof J]: K extends "presentation" ? AuthoredViewJourney | Extract<J[K], undefined> : J[K];
+  readonly [K in keyof J]: K extends "presentation" ? AuthoredViewJourney | Extract<J[K], undefined> : K extends "label" ? DeclaredLabel<J[K]> : J[K];
 } : never;
 export type ModuleJourney = AuthoredJourney<ResolvedJourney>;
 type ResolvedObject = NonNullable<OwnedDefinitions["objects"]>[number];
 type Presentation = NonNullable<ResolvedObject["presentation"]>;
-export type PublishedObject = Omit<ResolvedObject, "presentation"> & { readonly presentation?: Omit<Presentation, "view" | "actions"> & {
+export type PublishedObject = Omit<ResolvedObject, "presentation"> & { readonly presentation?: Omit<Presentation, "view" | "actions" | "fields"> & {
+  readonly fields?: Declared<Presentation["fields"]>;
   readonly view: AuthoredView; readonly actions: readonly { readonly journey: Frozen<JourneyDefinition>; readonly icon: Presentation["actions"][number]["icon"] }[];
 } };
 export type AuthoredOwnedDefinitions = Omit<OwnedDefinitions, "objects" | "journeys" | "views" | "destinations"> & {
@@ -1145,7 +1371,7 @@ export type CatalogSource<C extends AnyModuleIndex> = ModuleSource<C[typeof regi
 export type AuthoredExposure = ({ readonly id: string; readonly kind: "human"; readonly locale: string; readonly journeys: readonly ExposedJourney[] } & WithoutSurfaceSemantics)
   | { readonly id: string; readonly kind: "agent"; readonly journeys: readonly ExposedJourney[] };
 export type ProductComposition = AuthoredOwnedDefinitions & {
-  readonly id: string; readonly label: string; readonly modules: AnyModuleIndex; readonly exposures: readonly AuthoredExposure[];
+  readonly id: string; readonly label: Message; readonly messages: MessageCatalog; readonly modules: AnyModuleIndex; readonly exposures: readonly AuthoredExposure[];
   readonly workspace: ViewTarget;
   readonly entry: DestinationTarget; readonly navigation: readonly AuthoredViewNavigationEntry[];
 };
@@ -1154,20 +1380,20 @@ export type Closed<T, Shape> = T & Record<Exclude<keyof T, keyof Shape>, never>;
 
 ## src/views/components.ts
 
-Source SHA-256: a6ca8ed4dc4084ea76e544c6a0ca6a49e44859399726f7188a092d6b7865fec1
+Source SHA-256: 990021e37efeb22709f16f2cb6e60ac2afcc6358aaf2f2498ab526fa66bf8534
 
 ```ts
-import type { ViewBoundContent, ViewItem, ViewStack, ViewToolbar } from "./schema.ts";
+import type { DeclaredViewBoundContent, DeclaredViewItem, DeclaredViewStack, DeclaredViewToolbar } from "./schema.ts";
 import { declarationArray, declarationRecord } from "../modules/declaration-data.ts";
 import { viewDock } from "./define-view.ts";
 import { contentBuilder, createComponent, emptyComponent, requireComponent,
   type Exact, type ViewComponent } from "./component-values.ts";
 
-type InputKind = ViewBoundContent["kind"];
+type InputKind = DeclaredViewBoundContent["kind"];
 type InputReference<Kind extends InputKind> = { readonly kind: Kind; readonly input: string };
 type BoundProperties<Kind extends InputKind> = { readonly input: InputReference<Kind> }
-  & (Kind extends "collection" ? Pick<Extract<ViewBoundContent, { kind: "collection" }>, "output" | "presentation" | "fields">
-    : Kind extends "context" ? Pick<Extract<ViewBoundContent, { kind: "context" }>, "fields" | "presentation"> : object);
+  & (Kind extends "collection" ? Pick<Extract<DeclaredViewBoundContent, { kind: "collection" }>, "output" | "presentation" | "fields">
+    : Kind extends "context" ? Pick<Extract<DeclaredViewBoundContent, { kind: "context" }>, "fields" | "presentation"> : object);
 
 function boundComponent<Kind extends InputKind>(kind: Kind) {
   return <const Props extends BoundProperties<Kind>>(properties: Exact<Props, BoundProperties<Kind>>) => {
@@ -1176,19 +1402,19 @@ function boundComponent<Kind extends InputKind>(kind: Kind) {
     if (Object.keys(port).some(key => key !== "kind" && key !== "input") || port.kind !== kind) {
       throw new Error("INVALID_COMPONENT_INPUT");
     }
-    return createComponent<Extract<ViewBoundContent, { kind: Kind }>>(kind, { ...source, input: port.input }) as unknown as
+    return createComponent<Extract<DeclaredViewBoundContent, { kind: Kind }>>(kind, { ...source, input: port.input }) as unknown as
       ViewComponent<{ readonly kind: Kind; readonly id: string; readonly input: Props["input"]["input"] } & Omit<Props, "input">>;
   };
 }
 
-type StackProperties = Omit<ViewStack, "kind" | "id" | "items"> & { readonly items: readonly ViewComponent<ViewItem>[] };
+type StackProperties = Omit<DeclaredViewStack, "kind" | "id" | "items"> & { readonly items: readonly ViewComponent<DeclaredViewItem>[] };
 function stack<const Props extends StackProperties>(properties: Exact<Props, StackProperties>) {
   const source = declarationRecord(properties);
   declarationArray(source.items).forEach(requireComponent);
-  return createComponent<ViewStack>("stack", source) as ViewComponent<{ readonly kind: "stack"; readonly id: string } & Props>;
+  return createComponent<DeclaredViewStack>("stack", source) as ViewComponent<{ readonly kind: "stack"; readonly id: string } & Props>;
 }
-type ToolbarProperties = Omit<ViewToolbar, "kind">;
-type ToolbarAction = ViewToolbar["actions"][number];
+type ToolbarProperties = Omit<DeclaredViewToolbar, "kind">;
+type ToolbarAction = DeclaredViewToolbar["actions"][number];
 type ActionKeys<Action> = Action extends unknown ? keyof Action : never;
 type ClosedActions<Actions extends readonly ToolbarAction[]> = {
   readonly [Index in keyof Actions]: Actions[Index] &
@@ -1197,7 +1423,7 @@ type ClosedActions<Actions extends readonly ToolbarAction[]> = {
 function toolbar<const Props extends ToolbarProperties>(properties: Exact<Props, ToolbarProperties> & {
   readonly actions: ClosedActions<Props["actions"]>;
 }) {
-  return createComponent<ViewToolbar>("toolbar", properties) as ViewComponent<{ readonly kind: "toolbar" } & Props>;
+  return createComponent<DeclaredViewToolbar>("toolbar", properties) as ViewComponent<{ readonly kind: "toolbar" } & Props>;
 }
 
 export const ViewTitles = Object.freeze({
@@ -1225,13 +1451,13 @@ export { defineView } from "./define-view.ts";
 
 ## src/views/define-view.ts
 
-Source SHA-256: 59c5bcb6daf6291f7960d2dc5a0cb345acabc442b85a4eb85dc412a044909ad6
+Source SHA-256: 643478f7399fc731f537beaa2b6e1cf57bcf524b73fa8dff660d45f852ae52c6
 
 ```ts
 import type { AuthoredView, AuthoredViewRef, ViewTarget } from "../modules/authored-types.ts";
 import { declarationArray, declarationRecord } from "../modules/declaration-data.ts";
 import { authoredView, viewTargetDefinition } from "./authored-view.ts";
-import { ViewVersion, type ViewContent, type ViewToolbar } from "./schema.ts";
+import { ViewVersion, type DeclaredViewContent, type DeclaredViewToolbar } from "./schema.ts";
 import { placeComponent, requireComponent, type ComponentNode, type Exact, type ViewComponent } from "./component-values.ts";
 import { registerDefinedView } from "./defined-view-registry.ts";
 
@@ -1252,13 +1478,13 @@ export type ViewDeclaration = {
   readonly name: string;
   readonly layout?: "overview" | "gallery";
   readonly outputs?: readonly string[];
-  readonly topDock?: ViewComponent<ViewToolbar>;
-  readonly bottomDock?: ViewComponent<ViewToolbar>;
+  readonly topDock?: ViewComponent<DeclaredViewToolbar>;
+  readonly bottomDock?: ViewComponent<DeclaredViewToolbar>;
   readonly leftDock?: ViewDock;
   readonly rightDock?: ViewDock;
-  readonly content: readonly ViewComponent<ViewContent>[];
+  readonly content: readonly ViewComponent<DeclaredViewContent>[];
 };
-type DefinedContent<Content extends readonly ViewComponent<ViewContent>[]> = {
+type DefinedContent<Content extends readonly ViewComponent<DeclaredViewContent>[]> = {
   readonly [Index in keyof Content]: ComponentNode<Content[Index]>;
 };
 type DefinedView<Definition extends ViewDeclaration> = Omit<Definition, "name" | "content"> & {
@@ -1293,7 +1519,7 @@ export function defineView<const Definition extends ViewDeclaration>(
   }
   const { name, content, ...rest } = source;
   const canonical = { ...rest, version: ViewVersion, id: name,
-    content: declarationArray(content).map((item, index) => placeComponent(item as ViewComponent<ViewContent>, `content.${index}`)) };
+    content: declarationArray(content).map((item, index) => placeComponent(item as ViewComponent<DeclaredViewContent>, `content.${index}`)) };
   const result = authoredView(canonical as AuthoredView);
   registerDefinedView(result);
   return result as unknown as DefinedView<Definition>;
@@ -1691,7 +1917,7 @@ export function identityAdministration(database: Database) {
 
 ## src/web/build.ts
 
-Source SHA-256: 07122649d0f000116a0bbb2d80f47d52910ea7875c7e84dab434df5706a4e392
+Source SHA-256: 6bbfaf639341e4757f26e4257e5925927c26718e407fdebbb7385c6bc7999742
 
 ```ts
 import { Ajv } from "ajv";
@@ -1705,13 +1931,14 @@ import { compileViewProgram } from "../views/program.ts";
 import { productViewProgram } from "../modules/compiled-product.ts";
 import { requireFieldPresentation } from "../field-representation.ts";
 import { viewProgramActivities } from "../activities/presentation.ts";
+import { rendererLocale } from "../messages/renderer-locale.ts";
 
 export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string) {
   if (arguments.length > 2) throw new Error("VIEW_PROGRAM_OVERRIDE_FORBIDDEN");
   const surface = application.surface(surfaceId);
   if (surface.kind !== "human") throw new Error("HUMAN_SURFACE_REQUIRED");
   requireCatalog(surface.catalog);
-  if (surface.language?.locale !== "en") throw new Error("UNSUPPORTED_RENDERER_LANGUAGE");
+  if (surface.language?.locale !== rendererLocale) throw new Error("UNSUPPORTED_RENDERER_LANGUAGE");
   const fieldPresentation = requireFieldPresentation(surface.fieldRepresentations, surface.fieldKinds, Object.keys(surface.language.fields));
   const viewProgram = compileViewProgram(productViewProgram(application), surface);
   viewProgramActivities(application, viewProgram, surfaceId);
@@ -1748,7 +1975,7 @@ export async function buildHumanModule(application: ReturnType<typeof compile>, 
 
 ## src/views/schema.ts
 
-Source SHA-256: eb365526ee1986de246310e484ce21aa08c2417bc12d0e0aa848f179698af789
+Source SHA-256: 611a90455d0e91ca1930f28d68be006e60fc2e842e1d874f135d9479c4c19b32
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -1760,6 +1987,7 @@ import { FeaturedMediaSchema } from "../public-catalog/schema.ts";
 import { closed, immutable, name, text } from "./definition.ts";
 import { MediaLibrarySchema } from "./media-library.ts";
 import { FactReferenceSchema } from "./object-presentation.ts";
+import { declaredSchema, type Declared } from "./declared.ts";
 
 export const ViewVersion = "desert.view/1" as const;
 export const ViewLimits = Object.freeze({
@@ -1832,7 +2060,16 @@ export const ViewSchema = closed({
   content: Type.Array(ViewContentSchema),
 });
 
+/** What a product declares (plan §14): the same view with a message in each message field (src/views/declared.ts). */
+export const DeclaredViewSchema = declaredSchema(ViewSchema);
+
 export type View = Frozen<Static<typeof ViewSchema>>;
+export type DeclaredView = Declared<View>;
+export type DeclaredViewContent = Declared<ViewContent>;
+export type DeclaredViewToolbar = Declared<ViewToolbar>;
+export type DeclaredViewStack = Declared<ViewStack>;
+export type DeclaredViewItem = Declared<ViewItem>;
+export type DeclaredViewBoundContent = Declared<ViewBoundContent>;
 export type ViewLeaf = Frozen<Static<typeof ViewLeafSchema>>;
 export type ViewHeader = Frozen<Static<typeof ViewHeaderSchema>>;
 export type ViewHeaderTitle = Frozen<Static<typeof ViewHeaderTitleSchema>>;
@@ -1843,62 +2080,6 @@ export type ViewRef = Frozen<Static<typeof ViewRefSchema>>;
 export type ViewItem = Frozen<Static<typeof ViewItemSchema>>;
 export type ViewBoundContent = Frozen<Static<typeof ViewBoundContentSchema>>;
 export type ViewMediaContent = Frozen<Static<typeof ViewMediaContentSchema>>;
-```
-
-## src/views/media-library.ts
-
-Source SHA-256: c02b3b8239e8e6c6a9dfe6d8587327342d0202b2427b0f9c999dc8d6f3151104
-
-```ts
-import { Type, type Static } from "@sinclair/typebox";
-import type { Frozen } from "../json.ts";
-import { closed, name, text } from "./definition.ts";
-
-const artwork = closed({ asset: name, alt: text });
-const timed = {
-  id: name, title: text, source: closed({ asset: name }), artwork: Type.Optional(artwork),
-  captions: Type.Optional(Type.Array(closed({ asset: name, language: text, label: text }), { maxItems: 16 })),
-};
-export const MediaItemSchema = Type.Union([
-  closed({ id: name, kind: Type.Literal("image"), title: text, image: artwork }),
-  closed({ ...timed, kind: Type.Literal("video") }),
-  closed({ ...timed, kind: Type.Literal("audio") }),
-]);
-export type MediaItem = Frozen<Static<typeof MediaItemSchema>>;
-
-/** Logical asset references only; serving and verification belong to the host. */
-export const MediaLibrarySchema = closed({
-  id: name,
-  items: Type.Array(MediaItemSchema, { minItems: 1, maxItems: 512 }),
-  albums: Type.Array(closed({
-    id: name, title: text, cover: name,
-    items: Type.Array(name, { minItems: 1, maxItems: 512, uniqueItems: true }),
-  }), { minItems: 1, maxItems: 64 }),
-  featured: Type.Array(name, { minItems: 1, maxItems: 10, uniqueItems: true }),
-});
-
-export type MediaLibrary = Frozen<Static<typeof MediaLibrarySchema>>;
-
-/** Album membership may overlap; identities and references never resolve globally. */
-export function checkMediaLibrary(library: MediaLibrary): void {
-  const items = new Set(library.items.map(item => item.id));
-  const albums = new Set(library.albums.map(album => album.id));
-  if (items.size !== library.items.length) throw new Error("DUPLICATE_MEDIA_ITEM_ID");
-  if (albums.size !== library.albums.length) throw new Error("DUPLICATE_MEDIA_ALBUM_ID");
-  for (const album of library.albums) {
-    if (album.items.some(id => !items.has(id))) throw new Error("UNKNOWN_ALBUM_MEDIA_ITEM");
-    if (!album.items.includes(album.cover)) throw new Error("INVALID_MEDIA_ALBUM_COVER");
-  }
-  if (library.featured.some(id => !albums.has(id))) throw new Error("UNKNOWN_FEATURED_MEDIA_ALBUM");
-}
-
-export const mediaArtwork = (item: MediaItem) => item.kind === "image" ? item.image : item.artwork;
-
-export function mediaLibraryAssets(library: MediaLibrary): readonly string[] {
-  return [...new Set(library.items.flatMap(item => item.kind === "image" ? [item.image.asset] : [
-    item.source.asset, ...(item.artwork ? [item.artwork.asset] : []), ...(item.captions ?? []).map(track => track.asset),
-  ]))];
-}
 ```
 
 ## src/views/ports.ts
@@ -2310,7 +2491,7 @@ export function validateJourneyOutputs(journey: ViewJourney, owned: readonly Vie
 
 ## src/modules/schema.ts
 
-Source SHA-256: 145c8d6145dbd5fd9636ed9038f000b066047c9c745a87be85c6937e8d167c82
+Source SHA-256: c87c4729a6b2d02598c2569a5b534474f91cf3de0cb161c565b1580965c16a89
 
 ```ts
 import { Type } from "@sinclair/typebox";
@@ -2321,6 +2502,7 @@ import { ViewJourneyVariants, ViewDestinationSchema, ViewNavigationEntrySchema, 
 import { closed, name, text } from "../views/definition.ts";
 import { AuthoredPublishedPresentationSchema, HumanReviewSchema } from "./human-presentation.ts";
 import { AuthoredExposureSchema } from "../human-exposure.ts";
+import { declaredSchema } from "../views/declared.ts";
 
 const reference = <K extends "view" | "journey" | "destination">(kind: K) => Type.Union([
   name, closed({ kind: Type.Literal(kind), owner: name, id: name }),
@@ -2363,11 +2545,15 @@ export const ModuleExportsSchema = closed({
   objects: names, dependencies: names, journeys: names, views: names, destinations: names,
 });
 export const ModuleDefinitionSchema = closed({ id: name, ...OwnedProperties, exports: Type.Optional(ModuleExportsSchema) });
+/** What a module and a product declare (plan §14): the same shapes with a message in each message field. The product's
+ * catalog resolves them into the compiled shapes above when the product is composed. */
+export const DeclaredModuleDefinitionSchema = declaredSchema(ModuleDefinitionSchema);
 export const ProductCompositionSchema = closed({
   id: name, label: text, workspace: reference("view"), ...OwnedProperties,
   modules: Type.Array(ModuleDefinitionSchema), exposures: Type.Array(AuthoredExposureSchema, { minItems: 1 }),
   entry: reference("destination"), navigation: Type.Array(AuthoredViewNavigationEntrySchema, { minItems: 1 }),
 });
+export const DeclaredProductCompositionSchema = declaredSchema(ProductCompositionSchema);
 ```
 
 ## src/modules/ownership.ts
@@ -2549,7 +2735,7 @@ export function deriveModuleIndex(owners: readonly Owner[], program: ViewProgram
 
 ## src/modules/human-presentation.ts
 
-Source SHA-256: c7b4f4f7a3c66f9cdc830222d76e2c50116aaee6d94c8642d2b9689c1e854970
+Source SHA-256: c4d85ece2fd24d1b95387ee55b481df06a60f0ffbd85fa045cc45e871fddc343
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -2569,7 +2755,7 @@ export const AuthoredPublishedPresentationSchema = closed({
 export const HumanReviewSchema = Type.Union([Type.Literal("required"), Type.Literal("confirmation"), Type.Literal("not-required")]);
 export type PublishedField = Frozen<Static<typeof PublishedFieldSchema>>;
 
-export function validatePublishedFields(object: Frozen<ObjectDefinition>, fields: readonly PublishedField[]): void {
+export function validatePublishedFields(object: Frozen<ObjectDefinition>, fields: readonly Pick<PublishedField, "fact" | "representation">[]): void {
   const seen = new Set<string>();
   for (const field of fields) {
     if (field.fact.object !== object.id) throw new Error("FOREIGN_PRESENTED_FACT");
@@ -2729,18 +2915,18 @@ export type ReferenceAdmission = ReturnType<typeof referenceAdmission>;
 
 ## src/modules/references.ts
 
-Source SHA-256: 346150cb4323345a1fedaeb2ab1e027d8c31d74d8b8297a0f0d58d5a1dbd84b1
+Source SHA-256: ba08a7d382837557d0e6eb3e67539b44f201dea541ed79dd7ae78a3b841759bb
 
 ```ts
 import { freezeDeep } from "../json.ts";
 import type { ModuleReferenceKind } from "./reference-types.ts";
-import type { ModuleEntryKind, ResolvedModuleDefinition } from "./types.ts";
+import type { DeclaredModuleDefinition, ModuleEntryKind } from "./types.ts";
 import { declarationRecord } from "./declaration-data.ts";
 
 export type LocalEntry = { kind: ModuleReferenceKind; id: string; value: object; execution?: object; presentation?: object };
 export type PublicEntry = LocalEntry & { module: ModuleRecord };
 export type ModuleRecord = {
-  handle: object; definition: ResolvedModuleDefinition;
+  handle: object; definition: DeclaredModuleDefinition;
   exports: Readonly<Record<ModuleEntryKind | "commands", Readonly<Record<string, object>>>>;
 };
 const modules = new WeakMap<object, ModuleRecord>();
@@ -2769,7 +2955,7 @@ export function publicReference(value: unknown, kind?: ModuleReferenceKind): Pub
 }
 export function isModuleOwned(value: object): boolean { return ownedIdentities.has(value); }
 
-export function issueModule(definition: ResolvedModuleDefinition, identities: ReadonlyMap<object, LocalEntry>,
+export function issueModule(definition: DeclaredModuleDefinition, identities: ReadonlyMap<object, LocalEntry>,
   aliases: Readonly<Record<ModuleEntryKind, Readonly<Record<string, LocalEntry>>>>): object {
   const handle = Object.freeze({ id: definition.id });
   const exports = Object.fromEntries([...moduleKinds, "commands"].map(kind => [kind, Object.create(null)])) as
@@ -2967,12 +3153,13 @@ export function declarationArray(value: unknown): readonly unknown[] {
 
 ## src/modules/links.ts
 
-Source SHA-256: df8ec57a9ea899d358e8a25946add2197f00e92541c4d13fe0b9169e6f2d3796
+Source SHA-256: 541f001bd19c97314ed1714bb6e04aeed87010ac07bc9df412186d66f74e3947
 
 ```ts
 import type { AuthoredView, AuthoredViewJourney, ReadJourneyTarget } from "./authored-types.ts";
 import type { ModuleDefinition, ModuleEntryKind, ModuleJourney, ProductComposition } from "./types.ts";
 import type { ModuleReference, ReferenceContract } from "./reference-types.ts";
+import type { Message } from "../views/definition.ts";
 
 type Elements<O, K extends PropertyKey> = K extends keyof O
   ? NonNullable<O[K]> extends readonly (infer E)[] ? E : never : never;
@@ -3022,7 +3209,7 @@ export type ProductLinks<P extends ProductComposition> = OwnerLinks<P, P["module
   readonly workspace: ViewTargets<P, P["modules"]>;
   readonly entry: DestinationTargets<P, P["modules"]>;
   readonly navigation: readonly { readonly destination: DestinationTargets<P, P["modules"]>;
-    readonly group: string; readonly purpose: "content" | "utility" }[];
+    readonly group: Message; readonly purpose: "content" | "utility" }[];
 };
 ```
 
@@ -3408,7 +3595,7 @@ export const InteractionProtocolVersion = "desert.interaction/7" as const;
 
 ## src/authoring/index.ts
 
-Source SHA-256: 319d2caaefb618901651e5c0a80245d399c006c03b8a9298a15271849f256208
+Source SHA-256: 56f9562cd3297009b7c0aff6d3cd7cc38649da4ccdd37e997034fd6653f0fa6d
 
 ```ts
 import { lstat, readdir, readFile, realpath } from "node:fs/promises";
@@ -3416,18 +3603,22 @@ import { join, relative, resolve } from "node:path";
 import ts from "typescript";
 import { checkDeclarations } from "./syntax.ts";
 import { checkImport, viewImportProvenance } from "./imports.ts";
+import { assertNoLiteralText, assertProductMessageKeys, isProductBundle, productKeysModule } from "./messages.ts";
+import { bundleLocale } from "../messages/generate.ts";
 
 /** Build-time declaration boundary, not an isolation sandbox for malicious TypeScript. */
 export async function assertProductSource(directory: string): Promise<{ files: readonly string[] }> {
   if ((await lstat(directory)).isSymbolicLink()) throw new Error("PRODUCT_SYMLINK_NOT_ALLOWED");
   const root = await realpath(directory);
   const sources = new Map<string, string>();
+  const bundles = new Map<string, string>();
   async function collect(folder: string): Promise<void> {
     for (const item of await readdir(folder, { withFileTypes: true })) {
       const path = join(folder, item.name);
       if (item.isSymbolicLink()) throw new Error(`PRODUCT_SYMLINK_NOT_ALLOWED: ${relative(root, path)}`);
       if (item.isDirectory()) await collect(path);
       else {
+        if (item.isFile() && isProductBundle(root, path)) { bundles.set(bundleLocale(item.name) ?? "", await readFile(path, "utf8")); continue; }
         if (!item.isFile() || !item.name.endsWith(".ts")) {
           throw new Error(`PRODUCT_FILE_NOT_ALLOWED: ${relative(root, path)}`);
         }
@@ -3437,6 +3628,7 @@ export async function assertProductSource(directory: string): Promise<{ files: r
   }
   await collect(root);
   if (sources.size === 0) throw new Error("EMPTY_PRODUCT_SOURCE");
+  assertProductMessageKeys(bundles, sources.get(join(root, productKeysModule)));
   const edges = new Map<string, { target: string; declaration: ts.ImportDeclaration | ts.ExportDeclaration }[]>();
   const files = new Map<string, ts.SourceFile>();
   let roots = 0;
@@ -3453,6 +3645,8 @@ export async function assertProductSource(directory: string): Promise<{ files: r
     });
     edges.set(path, targets);
   }
+  // A declaration that is otherwise legal still writes no sentence (plan §14).
+  for (const file of files.values()) assertNoLiteralText(root, file);
   const active = new Set<string>();
   const checked = new Set<string>();
   function visit(path: string) {
@@ -3483,13 +3677,16 @@ export async function assertProductSource(directory: string): Promise<{ files: r
 
 ## src/authoring/imports.ts
 
-Source SHA-256: a5323de4b85adb0f0b89dac560052e2462a7a1b655d7baa45b000ce291eaf4e4
+Source SHA-256: 47266cdd9f5bcde34b812b33c7e6d93c0b4fe80bed6017eac439c0b248db349e
 
 ```ts
 import { dirname, relative, resolve, sep } from "node:path";
 import ts from "typescript";
+import { messageKeysFile, messagesFolder } from "../messages/generate.ts";
 
 export const authoringEntrypoint = "desert-sdk/src/index.ts";
+/** The generated message keys of the product (plan §14): the one product file any module, view or root may import. */
+export const productKeysModule = `${messagesFolder}/${messageKeysFile}`;
 const owner = (file: string) => /^modules\/([^/]+)\//.exec(file)?.[1];
 
 export function checkImport(root: string, file: string, specifier: string): string | undefined {
@@ -3500,6 +3697,7 @@ export function checkImport(root: string, file: string, specifier: string): stri
   const targetName = relative(root, target).split(sep).join("/");
   if (targetName === ".." || targetName.startsWith("../")) throw new Error("PRODUCT_IMPORT_OUTSIDE_SOURCE");
   if (!target.endsWith(".ts")) throw new Error(`PRODUCT_IMPORT_NOT_ALLOWED: ${specifier}`);
+  if (targetName === productKeysModule) return target;
   const from = owner(sourceName), to = owner(targetName);
   if (to && targetName.endsWith(".module.ts") && targetName !== `modules/${to}/${to}.module.ts`) {
     throw new Error(`MODULE_ENTRYPOINT_REQUIRED: ${targetName}`);
@@ -3694,7 +3892,7 @@ export function checkDeclarations(file: ts.SourceFile, imported: (specifier: str
 
 ## src/authoring/expressions.ts
 
-Source SHA-256: 0ab75c0aa0eca8631193a9434773d404875257e4fd0ac79d36e6f4b900860ed0
+Source SHA-256: 0b16539e6ef6e5f34bf95a387ee920ea9b72ec7d0c3e6dad2a915631d772a163
 
 ```ts
 import ts from "typescript";
@@ -3708,7 +3906,7 @@ export const authoringCalls = new Set([
   "controllerRole", "capability", "view", "inputMask",
   "defineModule", "composeProduct", "moduleIndex",
   "publishObject", "viewPorts", "factReference", "viewOutput", "initializeInput", "chooseFile", "defineView",
-  "activityInputs", "activityExperience",
+  "activityInputs", "activityExperience", "messageCatalog",
 ]);
 export type Scope = { bindings: Set<string>; calls: Map<string, string>; modules: Set<string>; roots: Set<ts.Node> };
 const moduleCalls = new Set(["moduleIndex"]);

@@ -13,6 +13,7 @@ import {AttentionSignalSchema} from '../src/attention.ts';
 import {EditingNotebook,EditNote} from './fixtures/editing-notebook.ts';
 import {CreateNote,ReadNote} from '../products/notebook/journeys.ts';
 import {postgresCluster} from './fixtures/postgres.ts';
+import { FixtureMessages } from "./fixtures/messages.ts";
 
 test('Activity produces identity-scoped attention; update targets require a currently authorized read and resolve only through their producer',{timeout:180000},async()=>{
   const cluster=postgresCluster();
@@ -20,7 +21,7 @@ test('Activity produces identity-scoped attention; update targets require a curr
   const ports=viewPorts({inputs:{draft:'form',prepared:'context'},outputs:[]});
   const Form=defineView({name:'attention-form',content:[Components.Form({input:ports.inputs.draft})]});
   const Review=defineView({name:'attention-review',content:[Components.Context({input:ports.inputs.prepared})]});
-  const catalog=activityIndex(application,{journeys:[CreateNote,EditNote],views:[Form,Review]});
+  const catalog=activityIndex(application, { messages: FixtureMessages, journeys: [CreateNote,EditNote],views:[Form,Review]});
   const ci=activityInputs(CreateNote),ei=activityInputs(EditNote);
   const create=catalog.define({journey:CreateNote,steps:[{view:Form,inputs:[ci.title,ci.body]}],review:Review});
   const edit=catalog.define({journey:EditNote,steps:[{view:Form,inputs:[ei.title,ei.body]}],review:Review});

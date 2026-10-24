@@ -1,5 +1,6 @@
 import { labels, text, objectType, createCommand, fromInput, literal, updateCommand,
   readJourney, controllerRole, Components, defineView, viewPorts, publishObject, factReference, type InputOf } from "../../src/index.ts";
+import { fixtureText } from "./messages.ts";
 
 const Item = objectType({ id: "labeled-item", facts: { title: text(), projects: labels() } });
 const Controller = controllerRole({ id: "items", objects: [Item], requires: [] });
@@ -25,9 +26,9 @@ readJourney("collection", Item, { fields: ["title", "projects"], collection: ["p
 const ports = viewPorts({ inputs: { subject: "context" }, outputs: [] });
 const view = defineView({ name: "item", content: [Components.Context({ input: ports.inputs.subject })] });
 publishObject(Item, { view, title: factReference(Item, "title"), actions: [], fields: [
-  { fact: factReference(Item, "projects"), label: "Projects", representation: "tags" },
+  { fact: factReference(Item, "projects"), label: fixtureText.projects, representation: "tags" },
 ] });
 // @ts-expect-error A title must be scalar, never labels.
 publishObject(Item, { view, title: factReference(Item, "projects"), actions: [] });
 // @ts-expect-error Labels always publish tags, never paragraphs or text.
-publishObject(Item, { view, title: factReference(Item, "title"), actions: [], fields: [{ fact: factReference(Item, "projects"), label: "Projects", representation: "text" }] });
+publishObject(Item, { view, title: factReference(Item, "title"), actions: [], fields: [{ fact: factReference(Item, "projects"), label: fixtureText.projects, representation: "text" }] });

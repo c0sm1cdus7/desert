@@ -1,25 +1,32 @@
 import type { Static } from "@sinclair/typebox";
 import type { Frozen } from "../json.ts";
 import type { WithoutSurfaceSemantics } from "../human-exposure.ts";
-import type { ModuleDefinitionSchema, ModuleExportsSchema, ModuleJourneySchema, OwnedDefinitionsSchema } from "./schema.ts";
+import type { DeclaredModuleDefinitionSchema, ModuleDefinitionSchema, ModuleExportsSchema, ModuleJourneySchema, OwnedDefinitionsSchema } from "./schema.ts";
 import type { AuthoredView, AuthoredViewDestination, AuthoredViewJourney, AuthoredViewNavigationEntry, DestinationTarget, ExposedJourney, ViewTarget } from "./authored-types.ts";
 import type { ModuleReference, ModuleReferenceKind } from "./reference-types.ts";
 import type { JourneyDefinition } from "../program-grammar.ts";
+import type { Declared } from "../views/declared.ts";
+import type { Message } from "../views/definition.ts";
+import type { MessageCatalog } from "../messages/catalog.ts";
 
 export type { AuthoredView, AuthoredViewDestination, AuthoredViewJourney, AuthoredViewNavigationEntry } from "./authored-types.ts";
 export type { ModuleReference, ModuleReferenceKind } from "./reference-types.ts";
 export type OwnedDefinitions = Frozen<Static<typeof OwnedDefinitionsSchema>>;
 export type ResolvedModuleDefinition = Frozen<Static<typeof ModuleDefinitionSchema>>;
+/** A registered module as declared: its human text is still messages (plan §14). */
+export type DeclaredModuleDefinition = Frozen<Static<typeof DeclaredModuleDefinitionSchema>>;
 export type ModuleExports = Frozen<Static<typeof ModuleExportsSchema>>;
 export type ModuleEntryKind = keyof ModuleExports;
 type ResolvedJourney = Frozen<Static<typeof ModuleJourneySchema>>;
+type DeclaredLabel<V> = V extends string ? Message : V;
 type AuthoredJourney<J> = J extends ResolvedJourney ? {
-  readonly [K in keyof J]: K extends "presentation" ? AuthoredViewJourney | Extract<J[K], undefined> : J[K];
+  readonly [K in keyof J]: K extends "presentation" ? AuthoredViewJourney | Extract<J[K], undefined> : K extends "label" ? DeclaredLabel<J[K]> : J[K];
 } : never;
 export type ModuleJourney = AuthoredJourney<ResolvedJourney>;
 type ResolvedObject = NonNullable<OwnedDefinitions["objects"]>[number];
 type Presentation = NonNullable<ResolvedObject["presentation"]>;
-export type PublishedObject = Omit<ResolvedObject, "presentation"> & { readonly presentation?: Omit<Presentation, "view" | "actions"> & {
+export type PublishedObject = Omit<ResolvedObject, "presentation"> & { readonly presentation?: Omit<Presentation, "view" | "actions" | "fields"> & {
+  readonly fields?: Declared<Presentation["fields"]>;
   readonly view: AuthoredView; readonly actions: readonly { readonly journey: Frozen<JourneyDefinition>; readonly icon: Presentation["actions"][number]["icon"] }[];
 } };
 export type AuthoredOwnedDefinitions = Omit<OwnedDefinitions, "objects" | "journeys" | "views" | "destinations"> & {
@@ -62,7 +69,7 @@ export type CatalogSource<C extends AnyModuleIndex> = ModuleSource<C[typeof regi
 export type AuthoredExposure = ({ readonly id: string; readonly kind: "human"; readonly locale: string; readonly journeys: readonly ExposedJourney[] } & WithoutSurfaceSemantics)
   | { readonly id: string; readonly kind: "agent"; readonly journeys: readonly ExposedJourney[] };
 export type ProductComposition = AuthoredOwnedDefinitions & {
-  readonly id: string; readonly label: string; readonly modules: AnyModuleIndex; readonly exposures: readonly AuthoredExposure[];
+  readonly id: string; readonly label: Message; readonly messages: MessageCatalog; readonly modules: AnyModuleIndex; readonly exposures: readonly AuthoredExposure[];
   readonly workspace: ViewTarget;
   readonly entry: DestinationTarget; readonly navigation: readonly AuthoredViewNavigationEntry[];
 };

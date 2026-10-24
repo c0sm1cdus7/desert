@@ -3,19 +3,21 @@ import type { TSchema } from "@sinclair/typebox";
 import { freezeDeep } from "../json.ts";
 import { declarationRecord } from "../modules/declaration-data.ts";
 import { viewSnapshot } from "./snapshot.ts";
-import { ViewContentSchema, ViewToolbarSchema, type ViewContent, type ViewToolbar } from "./schema.ts";
+import { ViewContentSchema, ViewToolbarSchema, type DeclaredViewContent, type DeclaredViewToolbar } from "./schema.ts";
+import { declaredSchema } from "./declared.ts";
 
 declare const component: unique symbol;
 export type ViewComponent<Node> = Readonly<Node> & { readonly [component]: true };
 export type ComponentNode<C> = C extends ViewComponent<infer Node> ? Node : never;
 export type Exact<Props, Allowed> = Props & Record<Exclude<keyof Props, keyof Allowed>, never>;
-export type ContentKind = ViewContent["kind"];
-export type ContentNode<Kind extends ContentKind> = Extract<ViewContent, { readonly kind: Kind }>;
+export type ContentKind = DeclaredViewContent["kind"];
+export type ContentNode<Kind extends ContentKind> = Extract<DeclaredViewContent, { readonly kind: Kind }>;
 export type ContentProperties<Kind extends ContentKind> = Omit<ContentNode<Kind>, "kind" | "id" | "version">;
 
 const components = new WeakSet<object>();
-const schemas = new Map<string, TSchema>(ViewContentSchema.anyOf.map(schema => [schema.properties.kind.const, schema]));
-schemas.set("toolbar", ViewToolbarSchema);
+// A component is declared: its human text is a message (plan §14).
+const schemas = new Map<string, TSchema>(ViewContentSchema.anyOf.map(schema => [schema.properties.kind.const, declaredSchema(schema)]));
+schemas.set("toolbar", declaredSchema(ViewToolbarSchema));
 
 export function componentProperties(value: unknown) {
   try {
@@ -25,7 +27,7 @@ export function componentProperties(value: unknown) {
   } catch (cause) { throw new Error("INVALID_COMPONENT_PROPERTIES", { cause }); }
 }
 
-export function createComponent<Node extends ViewContent | ViewToolbar>(kind: ViewContent["kind"] | "toolbar", properties: unknown): ViewComponent<Node> {
+export function createComponent<Node extends DeclaredViewContent | DeclaredViewToolbar>(kind: DeclaredViewContent["kind"] | "toolbar", properties: unknown): ViewComponent<Node> {
   const schema = schemas.get(kind);
   if (!schema) throw new Error("UNINSTALLED_VIEW_COMPONENT");
   const props = componentProperties(properties);
@@ -56,7 +58,7 @@ export function requireComponent(value: unknown) {
   }
 }
 
-export function placeComponent(value: ViewComponent<ViewContent>, path: string): ViewContent {
+export function placeComponent(value: ViewComponent<DeclaredViewContent>, path: string): DeclaredViewContent {
   requireComponent(value);
   if (value.kind === "stack") return { ...value, id: path,
     items: value.items.map((item, index) => "id" in item ? { ...item, id: `${path}.items.${index}` } : item) };

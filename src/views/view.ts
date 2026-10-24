@@ -1,15 +1,25 @@
 import { Check } from "@sinclair/typebox/value";
 import { freezeDeep, type Frozen } from "../json.ts";
 import { controlNode } from "../interaction/control-nodes.ts";
-import { ViewSchema, type View, type ViewItem } from "./schema.ts";
+import { DeclaredViewSchema, ViewSchema, type DeclaredView, type View, type ViewItem } from "./schema.ts";
+import { keysAsText } from "./declared.ts";
 import { viewSnapshot } from "./snapshot.ts";
 import { viewInputs } from "./ports.ts";
 import { checkMediaLibrary } from "./media-library.ts";
 
-/** Validated authoring data, not a mounted view or authority to execute an output. */
-export function view<const V extends View>(value: V): Frozen<V>;
-export function view(value: unknown): View;
-export function view(value: unknown): View {
+/** Validated authoring data, not a mounted view or authority to execute an output. Human text is declared as messages
+ * (plan §14); the shape is checked with each key standing in for its sentence, and the product catalog resolves it later. */
+export function view<const V extends DeclaredView>(value: V): Frozen<V>;
+export function view(value: unknown): DeclaredView;
+export function view(value: unknown): DeclaredView {
+  const snapshot = viewSnapshot(value);
+  if (!Check(DeclaredViewSchema, snapshot)) throw new Error("INVALID_VIEW");
+  compiledView(keysAsText(snapshot));
+  return freezeDeep(snapshot);
+}
+
+/** A compiled view: the same checks over resolved text. */
+export function compiledView(value: unknown): View {
   const snapshot = viewSnapshot(value);
   if (!Check(ViewSchema, snapshot)) throw new Error("INVALID_VIEW");
   const identities = new Set<string>();

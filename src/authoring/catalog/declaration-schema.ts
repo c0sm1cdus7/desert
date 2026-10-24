@@ -1,7 +1,7 @@
 // The one schema of a catalog declaration. defineFoundation/defineComposition/defineMechanism validate
 // authored values with it, and the gate validates the data it reads from source with the same schema.
 import { Type, type Static } from "@sinclair/typebox";
-import { closed, immutable, text } from "../../views/definition.ts";
+import { closed, immutable, MessageKeyPattern, text } from "../../views/definition.ts";
 
 export const PieceId = immutable(Type.String({ pattern: "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" }));
 const FileName = immutable(Type.String({ pattern: "^[A-Za-z0-9][A-Za-z0-9._-]*\\.(?:svelte|css|ts)$" }));
@@ -24,9 +24,14 @@ const Contract = immutable(Type.Object({}, { additionalProperties: true }));
 /** Resolved node kinds a piece renders for the node dispatcher (`input.text`, `control.select`); rule B checks them against
  * the resolved-node grammar: every kind rendered by exactly one piece. */
 const Renders = unique(immutable(Type.String({ pattern: "^[a-z]+(?:\\.[a-z]+)?$" })), 1);
+/** Plan §14: the SDK message keys a piece uses, each owned by exactly this piece (rule B checks every bundle has it). */
+const MessageKey = immutable(Type.String({ pattern: MessageKeyPattern }));
+const Messages = unique(MessageKey, 1);
+/** What a piece is for, shown by the visible catalog: a sentence, or (plan §14) the key of one of its own messages. */
+const Purpose = immutable(Type.Union([text, closed({ key: MessageKey })]));
 
 export const FoundationDataSchema = closed({
-  id: PieceId, purpose: text,
+  id: PieceId, purpose: Purpose, messages: Type.Optional(Messages),
   owner: closed({ entry: FileName, parts: Type.Optional(unique(FileName)),
     vendor: Type.Optional(unique(PieceId)), mechanisms: Type.Optional(unique(PieceId)) }),
   shape: Shape,
@@ -48,7 +53,7 @@ export const FoundationDataSchema = closed({
   contract: Contract,
 });
 export const CompositionDataSchema = closed({
-  id: PieceId, purpose: text,
+  id: PieceId, purpose: Purpose, messages: Type.Optional(Messages),
   owner: closed({ entry: FileName, parts: Type.Optional(unique(FileName)) }),
   uses: unique(PieceId),
   slots: Type.Optional(Slots),

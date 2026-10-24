@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { view } from "../src/views/view.ts";
+// The compiled View contract (resolved text); the declared form delegates to it after a message-shape check.
+import { compiledView as view } from "../src/views/view.ts";
 import { compileViewProgram } from "../src/views/program.ts";
 import { program, surface } from "./fixtures/view-program.ts";
 import { multiProgram, multiSurface } from "./fixtures/multi-view-program.ts";

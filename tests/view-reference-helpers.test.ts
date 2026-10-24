@@ -4,6 +4,10 @@ import * as sdk from "../src/index.ts";
 import { Note } from "../products/notebook/note.ts";
 import { ArchiveNote, CreateNote } from "../products/notebook/journeys.ts";
 import { program } from "./fixtures/view-program.ts";
+import { declaredFixture } from "./fixtures/messages.ts";
+
+// The wire fixture as a product declares it: its sentences are fixture messages.
+const views = declaredFixture(program.views);
 
 test("Typed ports declare names once and outputs retain their exact View reference", () => {
   const ports = sdk.viewPorts({ inputs: { notes: "collection", note: "context" }, outputs: ["create", "select", "close"] });
@@ -12,10 +16,10 @@ test("Typed ports declare names once and outputs retain their exact View referen
     outputs: ["create", "select", "close"], output: { create: "create", select: "select", close: "close" },
   });
   assert.ok(Object.isFrozen(ports.inputs.notes));
-  const output = sdk.viewOutput(program.views[1], "create");
-  assert.deepEqual(output, { view: program.views[1], output: "create" });
-  assert.equal(output.view, program.views[1]);
-  assert.throws(() => sdk.viewOutput(program.views[1], "missing" as never), { message: "UNKNOWN_VIEW_OUTPUT_REFERENCE" });
+  const output = sdk.viewOutput(views[1], "create");
+  assert.deepEqual(output, { view: views[1], output: "create" });
+  assert.equal(output.view, views[1]);
+  assert.throws(() => sdk.viewOutput(views[1], "missing" as never), { message: "UNKNOWN_VIEW_OUTPUT_REFERENCE" });
   assert.throws(() => sdk.viewPorts({ inputs: {}, outputs: ["create", "create"] }), { message: "INVALID_VIEW_PORTS" });
   assert.throws(() => sdk.viewPorts({ inputs: {}, outputs: [], style: "custom" } as never), { message: "INVALID_VIEW_PORTS" });
   assert.deepEqual(sdk.viewPorts({ inputs: { draft: "form" }, outputs: ["save"] }).inputs.draft,
@@ -34,21 +38,21 @@ test("Fact and initializer helpers resolve real object and command references", 
 });
 
 test("An object publication retains definitions until composition admits and lowers their references", () => {
-  const published = sdk.publishObject(Note, { view: program.views[2], title: sdk.factReference(Note, "title"), actions: [{ journey: ArchiveNote, icon: "close" }] });
-  assert.deepEqual(published, { ...Note, presentation: { view: program.views[2], title: { object: "note", field: "title" }, actions: [{ journey: ArchiveNote, icon: "close" }] } });
-  assert.equal(published.presentation.view, program.views[2]);
+  const published = sdk.publishObject(Note, { view: views[2], title: sdk.factReference(Note, "title"), actions: [{ journey: ArchiveNote, icon: "close" }] });
+  assert.deepEqual(published, { ...Note, presentation: { view: views[2], title: { object: "note", field: "title" }, actions: [{ journey: ArchiveNote, icon: "close" }] } });
+  assert.equal(published.presentation.view, views[2]);
   assert.equal(published.presentation.actions[0].journey, ArchiveNote);
   assert.ok(Object.isFrozen(published));
   assert.equal(Object.hasOwn(Note, "presentation"), false);
   const mutable = structuredClone(Note);
-  const snapshot = sdk.publishObject(mutable, { view: program.views[2], title: sdk.factReference(mutable, "title"), actions: [] });
+  const snapshot = sdk.publishObject(mutable, { view: views[2], title: sdk.factReference(mutable, "title"), actions: [] });
   assert.notEqual(snapshot.facts, mutable.facts);
   assert.equal(Object.isFrozen(mutable.facts), false, "Publication cannot freeze a caller's domain object");
-  assert.throws(() => sdk.publishObject(Note, { view: program.views[2], title: sdk.factReference(Note, "title"), actions: [{ journey: CreateNote, icon: "create" }] } as never),
+  assert.throws(() => sdk.publishObject(Note, { view: views[2], title: sdk.factReference(Note, "title"), actions: [{ journey: CreateNote, icon: "create" }] } as never),
     { message: "INVALID_OBJECT_SUBJECT_JOURNEY" });
-  assert.throws(() => sdk.publishObject(Note, { view: program.views[2], title: sdk.factReference(Note, "title"), actions: [], style: "custom" } as never),
+  assert.throws(() => sdk.publishObject(Note, { view: views[2], title: sdk.factReference(Note, "title"), actions: [], style: "custom" } as never),
     { message: "INVALID_OBJECT_PUBLICATION" });
-  assert.throws(() => sdk.publishObject(Note, { view: program.views[2], title: sdk.factReference(Note, "title"),
+  assert.throws(() => sdk.publishObject(Note, { view: views[2], title: sdk.factReference(Note, "title"),
     actions: [{ journey: ArchiveNote, icon: "archive" }, { journey: ArchiveNote, icon: "close" }] }),
   { message: "DUPLICATE_OBJECT_JOURNEY" });
 });

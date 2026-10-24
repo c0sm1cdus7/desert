@@ -13,6 +13,8 @@
   "scripts": {
     "authoring:generate": "node scripts/authoring-references.ts --write",
     "authoring:check": "node scripts/authoring-references.ts --check",
+    "messages:write": "node scripts/messages.ts --write products/notebook/src",
+    "messages:check": "node scripts/messages.ts --check products/notebook/src",
     "test": "node --test --test-concurrency=1 --test-timeout=30000 tests/*.test.ts",
     "test:gate": "node --test --test-concurrency=1 --test-timeout=180000 tests/catalog-gate/*.test.ts",
     "test:storage": "node --test --test-concurrency=1 --test-timeout=60000 tests/storage-*.test.ts",

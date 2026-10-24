@@ -10,6 +10,7 @@ import type { AvailabilitySnapshot } from "../src/availability-types.ts";
 import { humanState } from "../src/web/client/state.ts";
 import { projectView } from "../src/web/client/view-projection.ts";
 import { program } from "./fixtures/view-program.ts";
+import { fixtureText, compiledFixture } from "./fixtures/messages.ts";
 
 const surface = compile(Notebook).surface("human") as HumanSurface;
 const state = (ready: boolean): AvailabilitySnapshot => ({ contractDigest: surface.contractDigest,
@@ -17,7 +18,7 @@ const state = (ready: boolean): AvailabilitySnapshot => ({ contractDigest: surfa
     blockers: ready ? [] : journey.dependencies.map(dependency => ({ dependency, reason: "unknown" as const })) }])) });
 
 test("System status is a closed SDK composition that cannot author a connection or custom state", () => {
-  const definition = defineView({ name: "system", content: [Components.Header({ title: "System" }), Components.SystemStatus()] });
+  const definition = compiledFixture(defineView({ name: "system", content: [Components.Header({ title: fixtureText.system }), Components.SystemStatus()] }));
   assert.equal(definition.content[1].kind, "system-status");
   assert.equal(definition.content[1].id, "content.1");
   assert.throws(() => Reflect.apply(Components.SystemStatus, undefined, [{ connected: true }]), /INVALID_COMPONENT_PROPERTIES/);
@@ -64,7 +65,7 @@ test("expired, mismatched, missing and blocked evidence cannot claim connected s
 });
 
 test("the actual View projection expands live status into existing catalog pieces only", () => {
-  const definition = defineView({ name: "system", content: [Components.Header({ title: "System" }), Components.SystemStatus()] });
+  const definition = compiledFixture(defineView({ name: "system", content: [Components.Header({ title: fixtureText.system }), Components.SystemStatus()] }));
   const journey = { id: "inspect-system", kind: "presentation", view: definition.id, outputs: [] } as const;
   const store = humanState(surface, { kind: "presentation" });
   const project = () => projectView(program, journey, definition, surface, store.get(), () => true, { kind: "presentation" });

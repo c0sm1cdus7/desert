@@ -84,6 +84,19 @@ export const stageB: readonly GateCase[] = [
     mutate: tree => tree.create("src/svelte/infra/pulse.svelte.ts", "export const pulse = (node: HTMLElement) => node.animate([{ opacity: 0 }], 200);\n") },
   { id: "N53", title: "a Svelte file in a piece folder that its declaration does not list", kind: "escape", expect: ["UNDECLARED_VISUAL_SOURCE"],
     mutate: tree => tree.create(`${heading}/HeadingExtra.svelte`, "<h2>x</h2>\n") },
+  // Plan §14 (language). N56, a literal in a product view, is the product source gate's: tests/catalog-gate/n56-product-literal.test.ts.
+  { id: "N55", title: "a foundation writes a literal text node", kind: "escape", expect: ["LITERAL_TEXT"], at: `${heading}/Heading.svelte`,
+    mutate: tree => tree.append(`${heading}/Heading.svelte`, "\n<p>Unread</p>\n") },
+  { id: "N57", title: "a piece declares a message key its locale bundle lacks", kind: "escape", expect: ["MESSAGE_MISSING"],
+    mutate: async tree => {
+      await tree.replace(`${heading}/heading.catalog.ts`, 'shape: "none",', 'messages: ["heading.missing"], shape: "none",');
+      await tree.regenerateCatalog();
+    } },
+  { id: "N58", title: "a key in en.json that no piece owns", kind: "escape", expect: ["CATALOG_DECLARATION"],
+    mutate: async tree => {
+      await tree.replace("src/messages/en.json", '  "feedback": {', '  "orphan": { "unowned": "Nobody declares this sentence" },\n  "feedback": {');
+      await tree.regenerateCatalog();
+    } },
   { id: "N54", title: "the build path imports the test-only evidence project", kind: "escape", expect: ["VISUAL_RUNTIME_GLOBAL"],
     mutate: tree => tree.replace("src/build/svelte/project.ts", 'import { join } from "node:path";\n',
       'import { join } from "node:path";\nimport type { createEvidenceProject } from "../../testing/evidence-project.ts";\n') },
