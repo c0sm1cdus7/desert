@@ -28,15 +28,24 @@ const scalars: ReadonlyMap<string, "string" | "number" | "boolean" | "integer" |
 /** TypeScript's own utility types, which a typed reference may combine with imported types. */
 const utilityTypes = new Set(["Pick", "Omit", "Partial", "Required", "Readonly", "ReadonlyArray", "Record", "ReturnType", "Parameters",
   "Awaited", "Extract", "Exclude", "NonNullable", "Promise", "Array"]);
+const typebox = "@sinclair/typebox";
 const scalarTypes = new Set([ts.SyntaxKind.StringKeyword, ts.SyntaxKind.NumberKeyword, ts.SyntaxKind.BooleanKeyword, ts.SyntaxKind.BigIntKeyword,
   ts.SyntaxKind.UndefinedKeyword, ts.SyntaxKind.NullKeyword, ts.SyntaxKind.VoidKeyword]);
 
 /** Where an import of a contract lands: a tree module (visual or not) or a package. */
 export type ContractPlaces = Readonly<Pick<CatalogLayout, "aliases" | "roots" | "infra">>;
-function resolveImport(contract: string, specifier: string, places: ContractPlaces): string | undefined {
+/** The tree path an import names, "package" for a bare package, or undefined when it is not a plain path: an alias with a
+ * `.` or `..` segment (`@desert/svelte/infra/../catalog`), a relative path leaving the tree, or a query or fragment. */
+function resolveImport(contract: string, specifier: string, places: ContractPlaces): string | "package" | undefined {
+  if (/[?#]/.test(specifier)) return undefined;
   const alias = places.aliases.find(([prefix]) => specifier.startsWith(prefix));
-  if (alias) return `${alias[1]}${specifier.slice(alias[0].length)}`;
-  return specifier.startsWith(".") ? posix.normalize(posix.join(posix.dirname(contract), specifier)) : undefined;
+  if (alias) {
+    const rest = specifier.slice(alias[0].length);
+    return rest.split("/").some(segment => segment === "." || segment === ".." || segment === "") ? undefined : `${alias[1]}${rest}`;
+  }
+  if (!specifier.startsWith(".")) return "package";
+  const module = posix.normalize(posix.join(posix.dirname(contract), specifier));
+  return module.startsWith("../") || module === ".." ? undefined : module;
 }
 /** Visual code is a Svelte component or any module under the visual roots except infra (nonvisual TypeScript, rule I). */
 const visualModule = (module: string, places: ContractPlaces) => module.endsWith(".svelte")
@@ -52,13 +61,15 @@ export function readContract(path: string, source: string, places: ContractPlace
     const specifier = imported.get(name);
     if (specifier === undefined) return fail(node, `${name} is not imported (a contract references imported ${what} only)`);
     const module = resolveImport(path, specifier, places);
-    if (module === undefined) return fail(node, `${name} comes from the package ${specifier}; a contract references domain or infra ${what} of the tree only`);
+    if (module === "package") return fail(node, `${name} comes from the package ${specifier}; a contract references domain or infra ${what} of the tree only`);
+    if (module === undefined) return fail(node, `${name} comes from ${specifier}, which is not a plain tree path (no ./.. segments in an alias, no query)`);
     if (visualModule(module, places)) return fail(node, `${name} comes from visual code (${specifier}); a contract references domain or infra ${what} only`);
     return specifier;
   }
   /** A typed reference names types; it never spells one: no keyword escape, no inline object, function, typeof or mapped type. */
   function closedType(node: ts.TypeNode, modules: string[]): void {
-    if (scalarTypes.has(node.kind) || ts.isLiteralTypeNode(node) || ts.isTemplateLiteralTypeNode(node)) return;
+    if (scalarTypes.has(node.kind) || ts.isLiteralTypeNode(node)) return;
+    if (ts.isTemplateLiteralTypeNode(node)) return templatePattern(node);
     if (ts.isTypeReferenceNode(node)) {
       const name = ts.isIdentifier(node.typeName) ? node.typeName.text : node.typeName.getText(file);
       if (imported.has(name)) modules.push(treeModule(node, name, "types"));
@@ -82,20 +93,31 @@ export function readContract(path: string, source: string, places: ContractPlace
     fail(node, open ? `Type.Unsafe holds the open type ${open}; name a domain or infra type`
       : `Type.Unsafe holds ${ts.SyntaxKind[node.kind]} (${node.getText(file)}); name a domain or infra type instead of spelling one`);
   }
+  /** A template literal type is a pattern with a literal prefix and string or number holes: `files.${string}`. */
+  const literalPrefix = (node: ts.TemplateLiteralTypeNode) => node.head.text.length > 0
+    && node.templateSpans.every(span => span.type.kind === ts.SyntaxKind.StringKeyword || span.type.kind === ts.SyntaxKind.NumberKeyword);
+  function templatePattern(node: ts.TemplateLiteralTypeNode): void {
+    if (!literalPrefix(node)) fail(node, `a template literal type has a literal prefix and string or number holes only (${node.getText(file)})`);
+  }
   /** `Extract<Union, { kind: "form" }>` narrows a union by literal discriminants; that filter is the one inline object allowed. */
   function discriminant(filter: ts.TypeLiteralNode): void {
     for (const member of filter.members) {
       if (!ts.isPropertySignature(member) || member.questionToken || !member.type
-        || !(ts.isLiteralTypeNode(member.type) || ts.isTemplateLiteralTypeNode(member.type))) {
+        || !(ts.isLiteralTypeNode(member.type) || ts.isTemplateLiteralTypeNode(member.type) && literalPrefix(member.type))) {
         fail(member, `an Extract or Exclude filter holds literal discriminants only (${member.getText(file)})`);
       }
     }
   }
   const call = (node: ts.Expression) => ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression)
     && ts.isIdentifier(node.expression.expression) && node.expression.expression.text === "Type" ? { name: node.expression.name.text, node } : undefined;
+  const typeboxCall = (node: ts.Expression) => {
+    const found = call(node);
+    if (found && imported.get("Type") !== typebox) return fail(node, `Type.${found.name} needs Type imported from ${typebox}`);
+    return found;
+  };
   function schema(node: ts.Expression): ContractSchema {
     if (ts.isIdentifier(node)) return { kind: "reference", name: node.text, from: treeModule(node, node.text, "schemas") };
-    const found = call(node);
+    const found = typeboxCall(node);
     if (!found) return fail(node, "a contract schema is a Type.* call of the closed subset or an imported schema");
     const [first] = found.node.arguments;
     const scalar = scalars.get(found.name);
@@ -103,11 +125,14 @@ export function readContract(path: string, source: string, places: ContractPlace
     if (found.name === "Literal" && first && (ts.isStringLiteral(first) || ts.isNumericLiteral(first) || first.kind === ts.SyntaxKind.TrueKeyword || first.kind === ts.SyntaxKind.FalseKeyword)) {
       return { kind: "literal", value: ts.isStringLiteral(first) ? first.text : ts.isNumericLiteral(first) ? Number(first.text) : first.kind === ts.SyntaxKind.TrueKeyword };
     }
-    if (found.name === "Union" && first && ts.isArrayLiteralExpression(first)) return { kind: "union", members: first.elements.map(schema) };
+    if (found.name === "Union" && first && ts.isArrayLiteralExpression(first)) {
+      if (first.elements.length < 2) return fail(node, "a Type.Union holds at least two members");
+      return { kind: "union", members: first.elements.map(schema) };
+    }
     if (found.name === "Array" && first) return { kind: "array", items: schema(first) };
     if (found.name === "Unsafe") {
-      const [argument] = found.node.typeArguments ?? [];
-      if (!argument || found.node.arguments.length) return fail(node, "Type.Unsafe takes one type argument and no schema: Type.Unsafe<DomainType>()");
+      const [argument, ...extra] = found.node.typeArguments ?? [];
+      if (!argument || extra.length || found.node.arguments.length) return fail(node, "Type.Unsafe takes one type argument and no schema: Type.Unsafe<DomainType>()");
       const modules: string[] = [];
       closedType(argument, modules);
       return { kind: "typed", name: argument.getText(file), from: modules[0] ?? "" };
@@ -124,7 +149,7 @@ export function readContract(path: string, source: string, places: ContractPlace
     return fail(node, `Type.${found.name} is outside the contract subset`);
   }
   function property(node: ts.Expression): ContractProperty {
-    const found = call(node);
+    const found = typeboxCall(node);
     if (found?.name === "Optional" && found.node.arguments[0]) return { schema: schema(found.node.arguments[0]), optional: true };
     return { schema: schema(node), optional: false };
   }
@@ -143,7 +168,7 @@ export function readContract(path: string, source: string, places: ContractPlace
   /** Props are one closed object, or exclusive variants: `Type.Union` of closed objects, optionally `Type.Intersect`ed with
    * the closed object every variant shares. The read view lists every prop once; a prop missing from a variant is optional. */
   function pieceProps(node: ts.Expression): Record<string, ContractProperty> {
-    const found = call(node), [first] = found?.node.arguments ?? [];
+    const found = typeboxCall(node), [first] = found?.node.arguments ?? [];
     if (found?.name === "Intersect" && first && ts.isArrayLiteralExpression(first)) {
       const result: Record<string, ContractProperty> = {};
       for (const part of first.elements) for (const [key, item] of Object.entries(pieceProps(part))) {
@@ -168,14 +193,26 @@ export function readContract(path: string, source: string, places: ContractPlace
     if (object.kind !== "object") return fail(node, "props is a Type.Object, a Type.Union of them, or a Type.Intersect of those");
     return { ...object.properties };
   }
+  // Imports are named only (no side effect, default or namespace), and `Type` is TypeBox's own, unrenamed.
   const imported = new Map<string, string>();
-  for (const statement of file.statements) if (ts.isImportDeclaration(statement) && ts.isStringLiteral(statement.moduleSpecifier)) {
+  for (const statement of file.statements) if (ts.isImportDeclaration(statement)) {
     const clause = statement.importClause, named = clause?.namedBindings;
-    if (named && ts.isNamedImports(named)) for (const element of named.elements) imported.set(element.name.text, statement.moduleSpecifier.text);
+    if (!ts.isStringLiteral(statement.moduleSpecifier) || !clause || clause.name || !named || !ts.isNamedImports(named)) {
+      return fail(statement, "a contract imports named bindings only: import { X } from \"...\"");
+    }
+    for (const element of named.elements) {
+      const local = element.name.text, original = element.propertyName?.text ?? local;
+      if ((local === "Type" || original === "Type" && statement.moduleSpecifier.text === typebox)
+        && (local !== original || statement.moduleSpecifier.text !== typebox)) return fail(element, `Type is imported unrenamed from ${typebox}`);
+      imported.set(local, statement.moduleSpecifier.text);
+    }
   }
   const statements = file.statements.filter(statement => !ts.isImportDeclaration(statement));
   const [statement] = statements;
-  const declaration = statement && ts.isVariableStatement(statement) && statements.length === 1 ? statement.declarationList.declarations[0] : undefined;
+  const exported = statement && ts.isVariableStatement(statement) && statements.length === 1
+    && statement.declarationList.flags & ts.NodeFlags.Const && statement.declarationList.declarations.length === 1
+    && statement.modifiers?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword);
+  const declaration = exported ? statement.declarationList.declarations[0] : undefined;
   const value = declaration?.initializer;
   if (!declaration || !ts.isIdentifier(declaration.name) || !value || !ts.isAsExpression(value) || value.type.getText(file) !== "const"
     || !ts.isObjectLiteralExpression(value.expression)) return fail(statement ?? file, "a contract file exports one `{ ... } as const`");

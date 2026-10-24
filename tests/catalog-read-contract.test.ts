@@ -6,7 +6,8 @@ import { readContract } from "../src/authoring/catalog/read-contract.ts";
 
 /** Contracts sit beside their piece, so relative imports resolve from a real composition folder. */
 const read = (source: string) => readContract("src/svelte/catalog/compositions/c/c.contract.ts", source, DesertLayout);
-const props = (field: string, imports = "") => `${imports}${imports ? "\n" : ""}export const C = { props: Type.Object({ a: ${field} }, { additionalProperties: false }) } as const;`;
+const typebox = 'import { Type } from "@sinclair/typebox";\n';
+const props = (field: string, imports = "") => `${typebox}${imports}${imports ? "\n" : ""}export const C = { props: Type.Object({ a: ${field} }, { additionalProperties: false }) } as const;`;
 
 test("a stub contract reads as not closed", () => {
   assert.deepEqual(read("// stub\nexport const XContract = {} as const;\n"), { binding: "XContract", closed: false });
@@ -35,7 +36,7 @@ for (const [name, source, pattern] of [
   ["a computed contract", "export const C = build();", /exports one/],
   ["an unknown field", "export const C = { styles: [] } as const;", /unknown contract field styles/],
 ] as const) test(`${name} is refused`, () => {
-  assert.throws(() => read(source), pattern);
+  assert.throws(() => read(source.includes("@sinclair/typebox") || !source.includes("Type.") ? source : typebox + source), pattern);
 });
 
 test("domain data, maps and callbacks have closed forms", () => {
@@ -90,7 +91,7 @@ for (const [name, source, pattern] of [
   ["an optional instance method", "export const C = { instance: Type.Object({ go: Type.Optional(Type.Function([], Type.Void())) }, { additionalProperties: false }) } as const;", /instance member go/],
   ["an instance method with an open type", 'export const C = { instance: Type.Object({ go: Type.Function([Type.Unsafe<any>()], Type.Void()) }, { additionalProperties: false }) } as const;', /open type any/],
 ] as const) test(`${name} is refused`, () => {
-  assert.throws(() => read(source), pattern);
+  assert.throws(() => read(source.includes("@sinclair/typebox") || !source.includes("Type.") ? source : typebox + source), pattern);
 });
 
 test("infra types, utility combinations, indexed access and promises are typed references", () => {
@@ -126,6 +127,29 @@ for (const [name, source, pattern] of [
   ["an open variant", "export const C = { props: Type.Union([Type.Object({ a: Type.String() }, { additionalProperties: false }), Type.Object({ b: Type.String() })]) } as const;", /closed with/],
   ["a prop declared twice in an intersection", "export const C = { props: Type.Intersect([Type.Object({ a: Type.String() }, { additionalProperties: false }), Type.Object({ a: Type.Number() }, { additionalProperties: false })]) } as const;", /prop a is declared by two parts/],
   ["props that are not objects", "export const C = { props: Type.String() } as const;", /props is a Type\.Object/],
+] as const) test(`${name} is refused`, () => {
+  assert.throws(() => read(source.includes("@sinclair/typebox") || !source.includes("Type.") ? source : typebox + source), pattern);
+});
+
+for (const [name, source, pattern] of [
+  ["Type from a wrapper", props("Type.String()").replace(typebox, 'import { Type } from "../../../../views/typebox.ts";\n'), /Type is imported unrenamed from @sinclair\/typebox/],
+  ["Type renamed", props("Type.String()").replace(typebox, 'import { Type as T } from "@sinclair/typebox";\nimport { Type } from "../../../../views/t.ts";\n'), /Type is imported unrenamed/],
+  ["Type calls without importing Type", "export const C = { props: Type.Object({ a: Type.String() }, { additionalProperties: false }) } as const;", /needs Type imported from @sinclair\/typebox/],
+  ["a side-effect import", props("Type.String()", 'import "../../index.ts";'), /named bindings only/],
+  ["a default import", props("Type.String()", 'import Shape from "../../../../views/shape.ts";'), /named bindings only/],
+  ["a namespace import", props("Type.String()", 'import * as Views from "../../../../views/shape.ts";'), /named bindings only/],
+  ["an alias climbing into visual code", props("Type.Unsafe<Shape>()", 'import type { Shape } from "@desert/svelte/infra/../catalog/foundations/heading/content.ts";'), /not a plain tree path/],
+  ["an alias with a dot segment", props("Type.Unsafe<Shape>()", 'import type { Shape } from "@desert/./svelte/catalog/index.ts";'), /not a plain tree path/],
+  ["a relative path leaving the tree", props("Type.Unsafe<Shape>()", 'import type { Shape } from "../../../../../../outside.ts";'), /not a plain tree path/],
+  ["an import with a query", props("Type.Unsafe<Shape>()", 'import type { Shape } from "../../../../views/shape.ts?raw";'), /not a plain tree path/],
+  ["an Extract filter of any string", props('Type.Unsafe<Extract<Shape, { kind: `${string}` }>>()', shape), /literal discriminants only/],
+  ["an Extract filter with an any hole", props('Type.Unsafe<Extract<Shape, { kind: `x.${any}` }>>()', shape), /literal discriminants only/],
+  ["a template literal type without a prefix", props('Type.Unsafe<`${string}`>()'), /literal prefix/],
+  ["an empty union", props("Type.Union([])"), /at least two members/],
+  ["a one-member union", props('Type.Union([Type.Literal("a")])'), /at least two members/],
+  ["a second Unsafe type argument", props("Type.Unsafe<Shape, Shape>()", shape), /one type argument/],
+  ["a non-exported binding", `${typebox}const C = {} as const;`, /exports one/],
+  ["a let binding", `${typebox}export let C = {} as const;`, /exports one/],
 ] as const) test(`${name} is refused`, () => {
   assert.throws(() => read(source), pattern);
 });
