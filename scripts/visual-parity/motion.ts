@@ -54,11 +54,11 @@ async function read(page: Page) {
       for (const entry of capture.entries) {
         const timing = entry.animation.effect!.getTiming();
         if (typeof timing.duration !== 'number') throw new Error('NON_FINITE_MOTION_DURATION');
-        entry.animation.currentTime = timing.delay + timing.duration * progress;
+        entry.animation.currentTime = (timing.delay ?? 0) + timing.duration * progress;
       }
       await new Promise(requestAnimationFrame);
       capture.entries.forEach((entry, index) => records[index]!.samples.push({ progress,
-        actualProgress: entry.animation.effect!.getComputedTiming().progress,
+        actualProgress: entry.animation.effect!.getComputedTiming().progress ?? null,
         paint: getComputedStyle(entry.element).getPropertyValue(entry.property) }));
     }
     return records.sort((a, b) => a.key.localeCompare(b.key));

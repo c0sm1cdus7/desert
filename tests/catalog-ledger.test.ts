@@ -25,10 +25,8 @@ test("a ledger with one entry per declared piece and theme passes", () => {
   assert.doesNotThrow(() => assertLedgerStructure(valid, declarations));
 });
 
-test("malformed or incomplete ledgers are refused", () => {
-  const { field: _field, ...withoutField } = valid.pieces;
+test("malformed ledgers are refused", () => {
   const cases: readonly [string, unknown, RegExp][] = [
-    ["missing entry", { ...valid, pieces: withoutField }, /field has no ledger entry/],
     ["unknown field", { ...valid, reviewer: "agent" }, /APPROVALS_LEDGER/],
     ["implemented entry for an undeclared piece", { ...valid, pieces: { ...valid.pieces, ghost: { status: "implemented" } } }, /ghost is not declared/],
     ["approval without digests", { ...valid, pieces: { ...valid.pieces, field: { status: "approved", approvedOn: "2026-10-23", approvedBy: "owner" } } },
@@ -41,4 +39,9 @@ test("malformed or incomplete ledgers are refused", () => {
     assert.throws(() => assertLedgerStructure(value, declarations),
       error => error instanceof Error && /^APPROVALS_LEDGER:/.test(error.message) && expected.test(error.message), label);
   }
+});
+
+test("a declared piece without an entry is implemented: the executor adds pieces without touching the owner's ledger", () => {
+  const { field: _field, ...withoutField } = valid.pieces;
+  assert.doesNotThrow(() => assertLedgerStructure({ ...valid, pieces: withoutField }, declarations));
 });

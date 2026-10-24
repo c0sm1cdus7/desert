@@ -52,12 +52,11 @@ function parseApproval(args: readonly string[]): Request {
   return { ids: [...new Set(ids)], specimens };
 }
 
-/** A declared piece, or the theme, with a ledger entry; never an unknown id or a proposed piece not declared yet. */
+/** A declared piece, or the theme (with or without a ledger entry); never an unknown id or a proposed piece not declared yet. */
 function assertApprovable(tree: CatalogTree, ledger: Approvals, id: string): void {
   const declared = tree.declarations.find(item => item.declaration.id === id);
-  const entry = ledger.pieces[id];
-  if (!declared && entry?.status === "proposed") refuse(`${id} is proposed and not declared yet; declare it before approving it`);
-  if (!declared || !entry || declared.declaration.kind === "mechanism" && id !== themeMechanism) refuse(`${id} is not a piece of the catalog`);
+  if (!declared && ledger.pieces[id]?.status === "proposed") refuse(`${id} is proposed and not declared yet; declare it before approving it`);
+  if (!declared || declared.declaration.kind === "mechanism" && id !== themeMechanism) refuse(`${id} is not a piece of the catalog`);
 }
 
 /** `<state>|<axis>=<value>,...` with axes sorted, naming a declared state and declared variant values. */
@@ -90,7 +89,9 @@ async function approve(args: readonly string[]): Promise<void> {
     const digests = { source: sourceDigest(digestTree(tree), id, read), contract: contractDigest(digestTree(tree), id, read) };
     entries.set(id, stamped(ledger.pieces[id], digests, request.specimens.get(id) ?? [], on));
   }
-  const next = { ...ledger, pieces: Object.fromEntries(Object.entries(ledger.pieces).map(([id, entry]) => [id, entries.get(id) ?? entry])) };
+  // Existing entries keep their order; a piece approved for the first time is added after them.
+  const next = { ...ledger, pieces: { ...Object.fromEntries(Object.entries(ledger.pieces).map(([id, entry]) => [id, entries.get(id) ?? entry])),
+    ...Object.fromEntries([...entries].filter(([id]) => !Object.hasOwn(ledger.pieces, id))) } };
   assertLedgerStructure(next, tree.declarations);
   await writeFile(join(root, DesertLayout.ledger), `${JSON.stringify(next, null, 2)}\n`);
   for (const [id, entry] of entries) if (entry.status === "approved") {
@@ -103,7 +104,11 @@ async function status(): Promise<void> {
   const tree = await readCatalogTree(root, DesertLayout), ledger = assertLedgerStructure(tree.ledger, tree.declarations);
   const approvedIds = Object.entries(ledger.pieces).filter(([, entry]) => entry.status === "approved").map(([id]) => id);
   const read = await bytesFor(tree, approvedIds);
-  for (const [id, entry] of Object.entries(ledger.pieces).sort(([left], [right]) => left < right ? -1 : 1)) {
+  // Every declared piece and the theme; a piece with no entry is implemented and not approved.
+  const listed = new Set([...Object.keys(ledger.pieces), ...tree.declarations
+    .filter(({ declaration }) => declaration.kind !== "mechanism" || declaration.id === themeMechanism).map(({ declaration }) => declaration.id)]);
+  for (const id of [...listed].sort()) {
+    const entry: PieceApproval = ledger.pieces[id] ?? { status: "implemented" };
     const changed = entry.status !== "approved" ? [] : [
       ...sourceDigest(digestTree(tree), id, read) === entry.sourceDigest ? [] : ["source"],
       ...contractDigest(digestTree(tree), id, read) === entry.contractDigest ? [] : ["contract"]];

@@ -1,4 +1,6 @@
-// Rule L, structural half. Law: approval is data the owner writes; the ledger names every declared piece once.
+// Rule L, structural half. Law: approval is data only the owner writes. The ledger holds the owner's decisions (proposed and
+// approved pieces); a declared piece without an entry is implemented and not approved, so the executor can add pieces
+// without touching the owner's file.
 // Raises APPROVALS_LEDGER. Digest verification against the tree is the second half (slice 1).
 import { Value } from "@sinclair/typebox/value";
 import { ApprovalsSchema, type Approvals } from "../approvals-schema.ts";
@@ -13,7 +15,6 @@ export function assertLedgerStructure(value: unknown, declarations: readonly Loc
   }
   const declared = new Set(declarations.filter(item => item.declaration.kind !== "mechanism" || item.declaration.id === themeMechanism)
     .map(item => item.declaration.id));
-  for (const id of declared) if (!Object.hasOwn(value.pieces, id)) fail(`${id} has no ledger entry`);
   for (const [id, entry] of Object.entries(value.pieces)) {
     if (entry.status !== "proposed" && !declared.has(id)) fail(`${id} is not declared; only a proposed piece may precede its declaration`);
   }
