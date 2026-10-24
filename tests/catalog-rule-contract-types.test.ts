@@ -151,3 +151,24 @@ test("every member with an open type is its own finding", () => {
 test("an open type in a callback of the contract itself is judged too", () => {
   assert.match(judge("Type.Function([Type.Unsafe<Shape>()], Type.Void())", "export type Shape = { raw: unknown };").join("\n"), /props\.a\(param\)<0>\.raw resolves to unknown/);
 });
+
+test("generic tree types are judged through their declaration: bases, members and setters", () => {
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", "export interface L<T> extends Array<T> { label: string }\nexport type Shape = { l: L<string> };"), []);
+  assert.match(judge("Type.Unsafe<Shape>()", "export interface L<T> extends Intl.NumberFormatOptions { v: T }\nexport type Shape = { l: L<string> };").join("\n"),
+    /props\.a\.l:.*resolves to the library type NumberFormatOptions/);
+  assert.match(judge("Type.Unsafe<Shape>()", "export interface L<T> extends Array<T> { label: string }\nexport type Shape = { l: L<any> };").join("\n"), /props\.a\.l<0> resolves to any/);
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", "export interface Box<T> { get v(): T; set v(value: T) }\nexport type Shape = { x: Box<string> };"), []);
+  assert.match(judge("Type.Unsafe<Shape>()", "export type Shape = { x: Readonly<{ a: any }> };").join("\n"), /props\.a\.x\.a resolves to any/);
+});
+
+test("large literal unions are closed, and a branching type with open leaves is one finding", () => {
+  assert.deepEqual(judge("Type.Unsafe<Shape>()", "type H = '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'a'|'b'|'c'|'d'|'e'|'f';\nexport type Shape = { c: `${H}${H}${H}${H}` };"), []);
+  const flood = judge("Type.Unsafe<Shape>()", "type B<T extends unknown[]> = T['length'] extends 12 ? any : { l: B<[...T, 0]>; r: B<[...T, 1]> };\nexport type Shape = { b: B<[]> };");
+  assert.equal(flood.length, 1, flood.slice(0, 3).join("\n"));
+  assert.match(flood[0] ?? "", /props holds more than \d+ open types/);
+});
+
+test("an inherited member is judged once, where it is declared", () => {
+  const found = judge("Type.Unsafe<Shape>()", "export class Domain extends Array<string> { leak: any = 1 }\nexport class Tree extends Domain {}\nexport type Shape = { t: Tree };");
+  assert.equal(found.length, 1, found.join("\n"));
+});
