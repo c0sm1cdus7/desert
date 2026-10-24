@@ -54,3 +54,5 @@
 :root { @apply scheme-light; }
 :root[data-theme="dark"] { @apply scheme-dark; }
 @media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) { @apply scheme-dark; } }
+/* The spacing scale layout pieces separate their children by (GapSchema in src/interaction/spacing.ts names the steps). */
+@theme { --spacing-snug:.5rem; --spacing-close:.75rem; --spacing-regular:1rem; --spacing-relaxed:1.5rem; --spacing-section:2rem; }

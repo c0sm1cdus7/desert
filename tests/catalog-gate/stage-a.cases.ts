@@ -48,7 +48,7 @@ export const stageA: readonly GateCase[] = [
   { id: "N13", title: "a catalog piece is mounted through svelte:component", kind: "escape", expect: ["COMPOSITION_UNKNOWN_PIECE"], at: contentFlow,
     mutate: addToFlow(headingImport, '<svelte:component this={Heading} kind="page" text="x" />') },
   { id: "N15", title: "a foundation styles everything with a global selector", kind: "escape", expect: ["CROSS_OWNER_CSS"], at: heading,
-    mutate: tree => tree.replace(heading, "<style>\n", "<style>\n  :global(h1) { color: red; }\n") },
+    mutate: tree => tree.append(heading, "\n<style>\n  :global(h1) { color: red; }\n</style>\n") },
   { id: "N16", title: "a stylesheet targets another owner's slot", kind: "escape", expect: ["CROSS_OWNER_CSS"], at: `${catalog}/foundations/field-well/field-well.css`,
     mutate: tree => tree.append(`${catalog}/foundations/field-well/field-well.css`, '\n[data-slot="button"] { color: red; }\n') },
   { id: "N17", title: "a new stylesheet restyles every button without geometry", kind: "escape", expect: ["CROSS_OWNER_CSS"],

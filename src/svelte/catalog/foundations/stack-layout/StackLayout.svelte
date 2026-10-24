@@ -8,7 +8,7 @@
 
 <Field.FieldSet class="place-stack" aria-describedby={description ? `${id}-description` : undefined}>
   <Field.FieldLegend class="place-stack-title" visibility={headingVisibility}>
-    <Heading kind="group-label" text={title} {required} />
+    <Heading kind="group" text={title} {required} />
   </Field.FieldLegend>
   <Field.FieldGroup class="place-stack-content">{@render children?.()}</Field.FieldGroup>
   {#if description}<p id={`${id}-description`} class="place-stack-description type-caption text-muted-foreground">{description}</p>{/if}

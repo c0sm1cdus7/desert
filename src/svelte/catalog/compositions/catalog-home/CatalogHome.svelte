@@ -13,7 +13,7 @@
   {#if !bodyOnly}<section data-place-stack="featured" aria-label={node.featured.eyebrow}><NodeRenderer node={node.featured} {onevent} /></section>{/if}
   {#each node.groups as group, index (group.id)}
     <section data-catalog-group data-place-stack={group.id} aria-labelledby={`${id}-group-${index}`}>
-      <Heading kind="rail-title" id={`${id}-group-${index}`} text={group.title} />
+      <Heading kind="section" id={`${id}-group-${index}`} text={group.title} />
       <div data-catalog-rail data-public-rail={group.title}>
         {#each group.items as item (item.record)}<NodeRenderer node={item} {onevent} />{/each}
       </div>
