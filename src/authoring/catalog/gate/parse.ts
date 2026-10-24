@@ -2,7 +2,7 @@
 // TypeScript trees with the offset of each script in the file, so every rule reports the same line numbers.
 import { parse } from "svelte/compiler";
 import ts from "typescript";
-import type { SyntaxNode } from "./walk.ts";
+import { isNode, type SyntaxNode } from "./walk.ts";
 
 /** `module`: the `<script module>` block of a component; `lang`: its lang attribute ("ts" for TypeScript). */
 export type Script = Readonly<{ file: ts.SourceFile; offset: number; module: boolean; lang: string | undefined }>;
@@ -11,8 +11,8 @@ export type ParsedSvelte = Readonly<{ kind: "svelte"; source: string; fragment: 
 export type ParsedScript = Readonly<{ kind: "script"; source: string; scripts: readonly Script[]; line: (position: number) => number }>;
 export type Parsed = ParsedSvelte | ParsedScript;
 
-const isNode = (value: unknown): value is SyntaxNode => typeof value === "object" && value !== null && !Array.isArray(value);
-const lineOf = (source: string) => (position: number) => source.slice(0, Math.max(0, position)).split("\n").length;
+/** The 1-based line of a position in a source. */
+export const lineOf = (source: string) => (position: number) => source.slice(0, Math.max(0, position)).split("\n").length;
 const tsFile = (path: string, text: string) => ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
 
 function range(node: unknown): { start: number; end: number } | undefined {

@@ -25,7 +25,8 @@ Every build and check (`createBuildProject`, `scripts/catalog-gate.ts`) runs `ru
    browser global), J (specimens cover every state and variant), K (the view grammar maps to authorable compositions),
    L2 (approved pieces are unchanged; approved and dispatching pieces mount approved pieces), N (the interpreter and every
    module outside the visual roots the page reaches stay nonvisual), O (no `{@html}` outside compositions, no evaluator,
-   `require` or computed `import()` in page code), T (the host files keep their fixed grammar).
+   `require` or computed `import()` in page code, and no `import()` at all in a template expression or a renderer), T (the
+   host files keep their fixed grammar).
 4. The worker; then, for a build, G2 on the emitted CSS.
 
 The previous visual-boundary gate (`src/authoring/visual-boundary`, `src/authoring/web-catalog`, `catalog-manifest.ts`

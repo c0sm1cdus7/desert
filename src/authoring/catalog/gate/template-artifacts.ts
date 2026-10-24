@@ -9,7 +9,7 @@ import type { ContentRule, GateContext } from "./context.ts";
 import { scriptLine, type ParsedSvelte, type Script } from "./parse.ts";
 import type { Import } from "./resolve-imports.ts";
 import { violation, type Violation } from "./violation.ts";
-import type { SyntaxNode } from "./walk.ts";
+import { isNode, nodes, type SyntaxNode } from "./walk.ts";
 
 const code = "UNQUALIFIED_ARTIFACT", surfaceModule = "virtual:desert/surface", surfaceId = "\0desert-surface";
 const shell = '<!doctype html> <html lang="en"> <head> <meta charset="utf-8" /> <meta name="viewport" content="width=device-width, initial-scale=1" /> '
@@ -19,9 +19,7 @@ type Fail = (what: string, line?: number) => void;
 type Check = (context: GateContext, path: string, fail: Fail) => void;
 
 // ---- Svelte template files -------------------------------------------------------------------------------------------
-const isNode = (value: unknown): value is SyntaxNode => typeof value === "object" && value !== null && !Array.isArray(value);
-const nodeList = (value: unknown): SyntaxNode[] => Array.isArray(value) ? value.filter(isNode) : [];
-const meaningful = (fragment: SyntaxNode) => nodeList(fragment.nodes).filter(item => !(item.type === "Text" && !String(item.data ?? "").trim()) && item.type !== "Comment");
+const meaningful = (fragment: SyntaxNode) => nodes(fragment.nodes).filter(item => !(item.type === "Text" && !String(item.data ?? "").trim()) && item.type !== "Comment");
 const flat = (node: ts.Node) => node.getText().replace(/\s+/g, " ").trim();
 const line = (parsed: ParsedSvelte, node: SyntaxNode | undefined) => typeof node?.start === "number" ? parsed.line(node.start) : 1;
 /** An import as a message names it: `type svelte`, `x.css`, or `import(x)` / `require(x)` / `reexport(x)` for the other forms. */
@@ -103,7 +101,7 @@ function page(composition: string): Check {
     if (mounted > 1 || surfaces > 1) fail(`${shape}; found more than one of them`);
     const body = meaningful(parsed.fragment), tag = body[0];
     if (body.length !== 1 || tag?.type !== "Component" || tag.name !== composition) return fail(`a page renders exactly one <${composition}>`, line(parsed, tag));
-    for (const attribute of nodeList(tag.attributes)) {
+    for (const attribute of nodes(tag.attributes)) {
       const value = isNode(attribute.value) ? attribute.value : undefined, expression = isNode(value?.expression) ? value.expression : value;
       const shorthand = attribute.type === "Attribute" && expression?.type === "Identifier";
       if (!shorthand || !surfaceNames.has(String(attribute.name))) fail(`<${composition}> receives only {name} props of the surface module; found ${String(attribute.name ?? attribute.type)}`, line(parsed, attribute));

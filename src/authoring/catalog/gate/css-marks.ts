@@ -1,10 +1,15 @@
-// Rule G, the half that reads what owners draw: a global stylesheet (a `.css` file) names only classes and `data-*`
-// marks its own owner writes in markup, and a custom property has one writer (the theme, when the theme writes it; each
-// mechanism is its own writer). A Svelte `<style>` block is scoped to its own markup, and `:global` there is reported by css-ownership.ts.
+// Rule G, the half that reads what owners draw: a global stylesheet (a `.css` file) names only classes (as `.x` or as any
+// `[class<op>=…]` pattern) and `data-*` marks its own owner writes in markup, and a custom property has one writer (the
+// theme, when the theme writes it; each mechanism is its own writer), wherever it is written: CSS, a style attribute or
+// directive, or `setProperty` in a script or template expression. A Svelte `<style>` block is scoped to its own markup,
+// and `:global` there is reported by css-ownership.ts.
 // Raises CROSS_OWNER_CSS.
 import ts from "typescript";
 import type { GateContext } from "./context.ts";
+import { componentRuntime } from "./component-runtime.ts";
 import type { Owner } from "./ownership.ts";
+import type { Parsed } from "./parse.ts";
+import { constantText } from "./runtime-globals.ts";
 import { decodeCss, rulesOf, type Stylesheet } from "./stylesheet.ts";
 import { violation, type Violation } from "./violation.ts";
 import { walk, type SyntaxNode } from "./walk.ts";
@@ -50,6 +55,42 @@ function markupMarks(context: GateContext): ReadonlyMap<string, ReadonlySet<stri
   return marks;
 }
 
+/** Whether an element whose class attribute holds the class `token` can match `[class<matcher>"value"]`: the value is
+ * matched against the whole attribute, so a value spanning several classes names each class it can be a piece of. */
+export function classPatternMatches(matcher: string, value: string, insensitive: boolean, token: string): boolean {
+  const fold = (text: string) => insensitive ? text.toLowerCase() : text;
+  const wanted = fold(value), name = fold(token);
+  if (wanted === "" || name === "") return false;
+  const pieces = wanted.split(/\s+/);
+  if (pieces.length === 1) {
+    if (matcher === "=" || matcher === "~=") return name === wanted;
+    if (matcher === "|=") return name === wanted || name.startsWith(`${wanted}-`);
+    if (matcher === "^=") return name.startsWith(wanted);
+    if (matcher === "$=") return name.endsWith(wanted);
+    return matcher === "*=" && name.includes(wanted);
+  }
+  // A value with whitespace: `~=` never matches; elsewhere the inner pieces are whole classes and the outer ones may be cut.
+  if (matcher === "~=") return false;
+  const first = pieces[0] ?? "", last = pieces.at(-1) ?? "";
+  if (pieces.slice(1, -1).includes(name)) return true;
+  const firstMatches = first !== "" && (matcher === "$=" || matcher === "*=" ? name.endsWith(first) : name === first);
+  const lastMatches = last !== "" && (matcher === "=" || matcher === "$=" ? name === last
+    : matcher === "|=" ? name === last || name.startsWith(`${last}-`) : name.startsWith(last));
+  return firstMatches || lastMatches;
+}
+
+/** The marks a selector part names: `.x`, `[data-x]`, and for `[class<op>=…]` every class written in markup that it matches. */
+function partMarks(part: SyntaxNode, marks: ReadonlyMap<string, ReadonlySet<string>>): string[] {
+  const name = decodeCss(String(part.name ?? ""));
+  if (part.type === "ClassSelector") return [`.${name}`];
+  if (part.type !== "AttributeSelector") return [];
+  const attribute = name.toLowerCase();
+  if (attribute.startsWith("data-")) return [`[${attribute}]`];
+  if (attribute !== "class" || typeof part.matcher !== "string" || typeof part.value !== "string") return [];
+  const matcher = part.matcher, value = decodeCss(part.value), insensitive = String(part.flags ?? "").toLowerCase() === "i";
+  return [...marks.keys()].filter(mark => mark.startsWith(".") && classPatternMatches(matcher, value, insensitive, mark.slice(1)));
+}
+
 /** Classes and `data-*` marks of a `.css` file that only other owners write. `declared`: contract marks, judged by their contract. */
 export function foreignMarkViolations(context: GateContext, sheets: readonly Stylesheet[], declared: ReadonlySet<string>): Violation[] {
   const marks = markupMarks(context), found: Violation[] = [];
@@ -59,12 +100,12 @@ export function foreignMarkViolations(context: GateContext, sheets: readonly Sty
     for (const rule of rulesOf(sheet.tree)) {
       const selector = sheet.text(rule.prelude).replace(/\s+/g, " ").trim(), reported = new Set<string>();
       walk(rule.prelude, part => {
-        const name = decodeCss(String(part.name ?? ""));
-        const mark = part.type === "ClassSelector" ? `.${name}` : part.type === "AttributeSelector" && name.toLowerCase().startsWith("data-") ? `[${name.toLowerCase()}]` : undefined;
-        const writers = mark === undefined ? undefined : marks.get(mark);
-        if (mark === undefined || writers === undefined || writers.has(owner) || declared.has(mark) || reported.has(mark)) return;
-        reported.add(mark);
-        found.push(violation(code, sheet.path, sheet.line(rule.prelude), `selector ${selector} names ${mark}, which only ${[...writers].sort().join(", ")} draws`));
+        for (const mark of partMarks(part, marks)) {
+          const writers = marks.get(mark);
+          if (writers === undefined || writers.has(owner) || declared.has(mark) || reported.has(mark)) continue;
+          reported.add(mark);
+          found.push(violation(code, sheet.path, sheet.line(rule.prelude), `selector ${selector} names ${mark}, which only ${[...writers].sort().join(", ")} draws`));
+        }
       });
     }
   }
@@ -78,7 +119,32 @@ function propertyWriter(context: GateContext, path: string): string {
 }
 const themeWriters = new Set([themeMechanism, `mechanism ${themeMechanism}`]);
 
-/** Every write of a custom property: CSS declarations, style attributes and directives, and `setProperty("--x")`. */
+type ScriptedWrite = Readonly<{ property: string; at: number }>;
+/** Writes by file text: the same text always reads the same, so a file read again is not re-checked. */
+const scriptedByText = new Map<string, readonly ScriptedWrite[]>();
+/** Each `setProperty("--x")` of a file's runtime code: its scripts and every template expression, read in one scope, so
+ * a constant name (`const name = "--x"`) resolves as it does when the file runs. */
+function scriptedWrites(parsed: Parsed, path: string): readonly ScriptedWrite[] {
+  const key = `${path}\u0000${parsed.source}`, known = scriptedByText.get(key);
+  if (known) return known;
+  const runtime = componentRuntime(parsed, path), found: ScriptedWrite[] = [];
+  const visit = (node: ts.Node): void => {
+    if (ts.isCallExpression(node)) {
+      const callee = node.expression;
+      const member = ts.isPropertyAccessExpression(callee) ? callee.name.text
+        : ts.isElementAccessExpression(callee) ? constantText(runtime.checker, callee.argumentExpression) : undefined;
+      const property = member === "setProperty" ? constantText(runtime.checker, node.arguments[0]) : undefined;
+      if (property?.startsWith("--")) found.push({ property, at: runtime.position(node) });
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(runtime.file);
+  scriptedByText.set(key, found);
+  return found;
+}
+
+/** Every write of a custom property: CSS declarations, style attributes and directives, and `setProperty("--x")` in
+ * scripts and template expressions. */
 function customPropertyWrites(context: GateContext, sheets: readonly Stylesheet[]): Map<string, Write[]> {
   const writes = new Map<string, Write[]>();
   const add = (property: string, path: string, line: number) => writes.set(property, [...writes.get(property) ?? [], { path, line, owner: propertyWriter(context, path) }]);
@@ -95,15 +161,7 @@ function customPropertyWrites(context: GateContext, sheets: readonly Stylesheet[
         for (const match of decodeCss(text).matchAll(/(--[\w-]+)\s*:/g)) add(match[1] ?? "", path, parsed.line(node.start ?? 0));
       }
     });
-    for (const script of parsed.scripts) {
-      const visit = (node: ts.Node): void => {
-        const [first] = ts.isCallExpression(node) ? node.arguments : [];
-        if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && node.expression.name.text === "setProperty"
-          && first && ts.isStringLiteralLike(first) && first.text.startsWith("--")) add(first.text, path, parsed.line(script.offset + node.getStart(script.file)));
-        ts.forEachChild(node, visit);
-      };
-      visit(script.file);
-    }
+    for (const write of scriptedWrites(parsed, path)) add(write.property, path, parsed.line(write.at));
   }
   return writes;
 }

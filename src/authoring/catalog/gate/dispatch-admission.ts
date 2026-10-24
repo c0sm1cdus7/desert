@@ -10,12 +10,9 @@ import type { GateContext } from "./context.ts";
 import { scriptLine } from "./parse.ts";
 import { resolveSpecifier } from "./resolve-imports.ts";
 import { violation, type Violation } from "./violation.ts";
-import { walk, type SyntaxNode } from "./walk.ts";
+import { field, list, text, walk, type SyntaxNode } from "./walk.ts";
 
 const grammar = "DISPATCHER_GRAMMAR";
-export const field = (node: unknown, key: string): unknown => node && typeof node === "object" ? Reflect.get(node, key) : undefined;
-const text = (node: unknown, key: string) => { const value = field(node, key); return typeof value === "string" ? value : ""; };
-const list = (value: unknown): unknown[] => Array.isArray(value) ? value : [];
 
 /** `a.b.c` of a plain member path, or undefined for anything computed. */
 export function pathOf(node: unknown): string | undefined {

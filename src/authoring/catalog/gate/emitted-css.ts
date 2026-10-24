@@ -10,6 +10,7 @@ import { posix } from "node:path";
 import { Scanner } from "@tailwindcss/oxide";
 import { walk, type SyntaxNode } from "./walk.ts";
 import type { GateContext } from "./context.ts";
+import { lineOf } from "./parse.ts";
 import { decodeCss, readStylesheet, rulesOf } from "./stylesheet.ts";
 import type { Owner } from "./ownership.ts";
 import { violation, type Violation } from "./violation.ts";
@@ -23,7 +24,6 @@ const traceable = (owner: Owner | undefined) => owner?.kind === "vendor" || owne
   || owner?.kind === "piece" && owner.pieceKind === "foundation" || owner?.kind === "fixed" && owner.category === "vendor-shared";
 const describe = (path: string, owner: Owner | undefined) => owner?.kind === "piece" ? `${owner.pieceKind} ${owner.id}`
   : owner?.kind === "infra" || owner?.kind === "generated" ? owner.kind : owner?.kind === "fixed" ? owner.category : path;
-const lineOf = (source: string, at: number) => source.slice(0, Math.max(0, at)).split("\n").length;
 
 /** Tailwind's candidates of one source, scanned alone: one scanner per file, because a scanner reports each candidate once. */
 const candidatesOf = (path: string, content: string) =>
@@ -47,7 +47,7 @@ function namedClasses(rule: SyntaxNode): string[] {
 
 type ClassAt = Readonly<{ name: string; line: number }>;
 function stylesheetClasses(path: string, css: string, read: (rule: SyntaxNode) => string[]): { classes: ClassAt[]; unreadable?: Violation } {
-  const result = readStylesheet(path, css, 0, at => lineOf(css, at));
+  const result = readStylesheet(path, css, 0, lineOf(css));
   if (result.kind === "unreadable") return { classes: [], unreadable: violation(code, path, result.line, `the emitted CSS does not parse: ${result.reason}`) };
   const { sheet } = result;
   return { classes: [...rulesOf(sheet.tree)].flatMap(rule => read(rule).map(name => ({ name, line: sheet.line(rule) }))) };
@@ -92,7 +92,7 @@ export function emittedCssViolations(input: Readonly<{ cssFiles: readonly Emitte
       if (!writers.length) found.push(violation(code, file.path, line, `utility class "${name}" is in the emitted CSS but no owner writes it: no source and no source stylesheet holds it`));
       for (const path of writers) {
         const text = context.text(path) ?? "";
-        found.push(violation(code, path, lineOf(text, text.indexOf(name)), `utility class "${name}" reaches the emitted CSS only from `
+        found.push(violation(code, path, lineOf(text)(text.indexOf(name)), `utility class "${name}" reaches the emitted CSS only from `
           + `${describe(path, context.owners.of(path))}: no foundation, mechanism or vendor source uses it`));
       }
     }

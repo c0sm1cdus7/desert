@@ -1,16 +1,13 @@
 // Reads stylesheets for the CSS rules (G, G2): every `.css` file and every Svelte `<style>`, with Svelte's own CSS parser,
 // placed at the lines of the file that holds them. Shared so both rules read CSS one way.
 import { parse } from "svelte/compiler";
-import type { SyntaxNode } from "./walk.ts";
+import { isNode, nodes, type SyntaxNode } from "./walk.ts";
 
 const wrapper = "<style>";
 export type Stylesheet = Readonly<{ path: string; tree: SyntaxNode; text: (node: unknown) => string; line: (node: unknown) => number;
   atRules: readonly Readonly<{ name: string; prelude: string; line: number }>[] }>;
 
-export const isNode = (value: unknown): value is SyntaxNode => typeof value === "object" && value !== null && !Array.isArray(value);
-export const nodes = (value: unknown): SyntaxNode[] => Array.isArray(value) ? value.filter(isNode) : [];
 export const position = (node: unknown, key: "start" | "end") => isNode(node) && typeof node[key] === "number" ? node[key] : 0;
-export const lineOf = (source: string) => (at: number) => source.slice(0, Math.max(0, at)).split("\n").length;
 
 /** CSS text with its escapes resolved: `\\73` is `s`, `\\:` is `:`. */
 export const decodeCss = (text: string) => text.replace(/\\([0-9a-fA-F]{1,6})\s?|\\(.)/g,

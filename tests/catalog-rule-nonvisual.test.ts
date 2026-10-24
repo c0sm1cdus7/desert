@@ -8,16 +8,20 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
+import { ruleN as nonvisualRule } from "../src/authoring/catalog/gate/nonvisual.ts";
 import { contentViolations, readCatalogTree } from "../src/authoring/catalog/gate/run.ts";
 import { formatViolation } from "../src/authoring/catalog/gate/violation.ts";
 import { DesertLayout } from "../src/authoring/catalog/layout.ts";
+import { contextOf } from "./support/catalog-context.ts";
 import { desertRoot } from "./support/real-tree.ts";
 
 const adapter = "src/svelte/catalog/renderer/view-item/ViewItem.svelte", fixture = "src/web/client/graph-fixture.ts";
 
 async function ruleN(root: string) {
   const { violations, context } = await contentViolations(root, await readCatalogTree(root, DesertLayout), { layout: DesertLayout, rules: ["N"] });
-  return { found: violations.map(formatViolation), checked: context.nonvisual.files.map(file => file.path) };
+  const nonvisual = context.nonvisual;
+  if (nonvisual === "unread") throw new Error("rule N ran without its sources");
+  return { found: violations.map(formatViolation), checked: nonvisual.files.map(file => file.path) };
 }
 const baseline = await ruleN(desertRoot);
 
@@ -61,6 +65,22 @@ test("N: visual authority hidden behind a renderer's TypeScript dependency", asy
     'export const observe = () => setTimeout("document.write(1)", 0);',
     'export const observe = (target: Element) => target.insertAdjacentText("beforeend", "Injected");',
   ]) assert.ok((await addedBy(throughAdapter(source))).some(line => line.startsWith("NONVISUAL_DEPENDENCY: src/web/client/graph-fixture.ts")), source);
+});
+
+test("N: a context whose nonvisual code was never read fails loudly, never passes as empty", () => {
+  assert.throws(() => nonvisualRule(contextOf({})), /NONVISUAL_UNREAD/);
+});
+
+test("N: nonvisual code takes from Svelte only its lifecycle, and no store package", async () => {
+  for (const [source, what] of [
+    ['import { writable } from "svelte/store"; export const observe = () => writable(0);', 'unregistered package "svelte/store"'],
+    ['import { setContext } from "svelte"; export const observe = () => setContext("key", 1);', "visual framework capability setContext"],
+    ['import { getContext } from "svelte"; export const observe = () => getContext("key");', "visual framework capability getContext"],
+    ['import { hasContext } from "svelte"; export const observe = () => hasContext("key");', "visual framework capability hasContext"],
+  ] as const) {
+    assert.ok((await addedBy(throughAdapter(source))).some(line => line.startsWith(`NONVISUAL_DEPENDENCY: ${fixture}`) && line.includes(what)), source);
+  }
+  assert.deepEqual(await addedBy(throughAdapter('import { onMount, onDestroy, untrack, tick } from "svelte"; export const observe = () => [onMount, onDestroy, untrack, tick];')), []);
 });
 
 const constructions = { property: "(() => {}).constructor", element: '(() => {})["constructor"]', alias: "(() => {})[key]", reflect: 'Reflect.get(() => {}, "constructor")' };

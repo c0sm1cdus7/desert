@@ -1,5 +1,6 @@
 // The browser vocabulary of the pinned TypeScript compiler, and the runtime uses of it in a module. Used by rule N
-// (nonvisual code reaches no browser global and no evaluator) and rule O (no piece runs code the gate cannot read).
+// (nonvisual code reaches no browser global and no evaluator), rule O (no piece runs code the gate cannot read), rule I
+// (what is a type position, what names the global object) and rule G (the constant name a `setProperty` writes).
 // Types are not runtime: a name in a type position, or bound only by `declare`, grants nothing and hides nothing; a real
 // lexical binding with the name of a global is that binding, not the global.
 import { readFileSync } from "node:fs";
@@ -25,9 +26,10 @@ export const nonvisualGlobals: ReadonlySet<string> = new Set([
   "structuredClone", "setTimeout", "clearTimeout", "performance", "fetch", "AbortSignal", "AbortController", "URLSearchParams",
 ]);
 
-/** Packages nonvisual code may import, and the Svelte functions among them that draw nothing (lifecycle and context). */
-export const nonvisualPackages: ReadonlySet<string> = new Set(["svelte", "svelte/store", "@sinclair/typebox", "@sinclair/typebox/value"]);
-export const nonvisualFramework: ReadonlySet<string> = new Set(["onMount", "onDestroy", "untrack", "tick", "setContext", "getContext", "hasContext"]);
+/** Packages nonvisual code may import, and the Svelte functions it may take from them: the lifecycle, nothing that
+ * mounts, renders or reaches the component tree (no context, no store). Rule F widens these for code inside the visual roots. */
+export const nonvisualPackages: ReadonlySet<string> = new Set(["svelte", "@sinclair/typebox", "@sinclair/typebox/value"]);
+export const nonvisualFramework: ReadonlySet<string> = new Set(["onMount", "onDestroy", "untrack", "tick"]);
 
 export type RuntimeUse = Readonly<{ name: string; node: ts.Node }>;
 export type RuntimeCode = Readonly<{ file: ts.SourceFile; checker: ts.TypeChecker }>;
@@ -41,7 +43,7 @@ export function runtimeCode(code: string): RuntimeCode {
 }
 
 /** The constant string an expression evaluates to (literals, `+`, const aliases), when it has one. */
-function constantText(checker: ts.TypeChecker, node: ts.Node | undefined, seen = new Set<ts.Node>()): string | undefined {
+export function constantText(checker: ts.TypeChecker, node: ts.Node | undefined, seen = new Set<ts.Node>()): string | undefined {
   if (!node || seen.has(node)) return undefined;
   seen.add(node);
   if (ts.isStringLiteralLike(node)) return node.text;
@@ -82,7 +84,7 @@ function isBound(checker: ts.TypeChecker, file: ts.SourceFile, node: ts.Identifi
   return symbol?.declarations?.some(declaration => declaration.getSourceFile() === file && isRuntimeDeclaration(declaration)) === true;
 }
 /** Inside a type: a type annotation, a type query, `implements` or an interface's `extends` (a class's `extends` runs). */
-function inTypePosition(node: ts.Node): boolean {
+export function inTypePosition(node: ts.Node): boolean {
   for (let current = node.parent; current; current = current.parent) {
     if (ts.isHeritageClause(current)) return current.token === ts.SyntaxKind.ImplementsKeyword || ts.isInterfaceDeclaration(current.parent);
     if (ts.isTypeNode(current) && !ts.isExpressionWithTypeArguments(current)) return true;
@@ -99,7 +101,8 @@ function isNotAReference(node: ts.Identifier): boolean {
   return (ts.isLabeledStatement(parent) || ts.isBreakStatement(parent) || ts.isContinueStatement(parent)) && parent.label === node;
 }
 const timers = new Set(["setTimeout", "setInterval"]);
-const globalObjects = new Set(["window", "globalThis", "self", "global"]);
+/** The names of the global object itself, in a browser and in Node. */
+export const globalObjects: ReadonlySet<string> = new Set(["window", "globalThis", "self", "global"]);
 
 /** Ways to obtain an evaluator the gate cannot read: a function's constructor, prototype reflection, `Reflect` (except
  * `Reflect.ownKeys`), `eval`, `Function`, and a timer given a string of code. Not a sandbox: a reviewed source boundary. */

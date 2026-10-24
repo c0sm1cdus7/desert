@@ -4,7 +4,7 @@
 // Raises FOUNDATION_OUTSIDE_OWNER, VENDOR_OUTSIDE_OWNER, FOUNDATION_PROPS.
 import { posix } from "node:path";
 import ts from "typescript";
-import { walk, type SyntaxNode } from "./walk.ts";
+import { field, walk, type SyntaxNode } from "./walk.ts";
 import type { ContentRule, GateContext } from "./context.ts";
 import { scriptLine, type Parsed } from "./parse.ts";
 import { componentDefinition } from "./presentation.ts";
@@ -53,14 +53,19 @@ function vendorEscape(context: GateContext, importer: string, file: string): str
   return `imports vendor family ${family}, owned by foundation ${owner.foundation}`;
 }
 
+/** What a composition or infra module may take beyond nonvisual code: it runs inside the component tree, so Svelte's
+ * context functions and its store package draw nothing there. */
+const componentPackages: ReadonlySet<string> = new Set([...nonvisualPackages, "svelte/store"]);
+const componentFramework: ReadonlySet<string> = new Set([...nonvisualFramework, "setContext", "getContext", "hasContext"]);
+
 /** A package a composition or infra module may not import: not a nonvisual package, or Svelte beyond lifecycle and context. */
 function packageEscape(context: GateContext, importer: string, item: Import): string | undefined {
   const owner = context.owners.of(importer);
   const bound = owner?.kind === "infra" || owner?.kind === "piece" && owner.pieceKind === "composition" && owner.role !== "companion";
   if (!bound || item.target.kind !== "package" || item.typeOnly) return undefined;
   const name = item.target.name, who = owner.kind === "infra" ? "an infra module" : `composition ${owner.id}`;
-  if (!nonvisualPackages.has(name)) return `${who} imports the package ${name}: visual packages belong to a foundation`;
-  const visual = name === "svelte" ? item.bindings.filter(binding => !nonvisualFramework.has(binding.imported)).map(binding => binding.imported) : [];
+  if (!componentPackages.has(name)) return `${who} imports the package ${name}: visual packages belong to a foundation`;
+  const visual = name === "svelte" ? item.bindings.filter(binding => !componentFramework.has(binding.imported)).map(binding => binding.imported) : [];
   return visual.length ? `${who} imports ${visual.join(", ")} from svelte: only its lifecycle and context functions` : undefined;
 }
 
@@ -112,7 +117,6 @@ function propsEscapes(context: GateContext, path: string, id: string): Violation
 }
 
 /** Spreads of a script-level binding (a props bag); a snippet parameter or an inline object is not forwarding. */
-const field = (value: unknown, key: string): unknown => value && typeof value === "object" ? Reflect.get(value, key) : undefined;
 const forwarded = (node: SyntaxNode, names: ReadonlySet<string>): SyntaxNode[] => {
   const attributes: unknown = node.attributes;
   if (!Array.isArray(attributes)) return [];

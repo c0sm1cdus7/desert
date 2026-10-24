@@ -23,15 +23,17 @@ export type GateContext = Readonly<{
   definition: (item: Import, imported: string) => string | undefined;
   /** The contract of a declared piece, read as data; undefined when the piece or its contract file is absent. */
   contract: (id: string) => ReadContract | undefined;
-  /** The code outside the visual roots that rule N judges, read by nonvisual-sources.ts (empty until it is read). */
-  nonvisual: NonvisualSources;
+  /** The code outside the visual roots that rule N judges, read by nonvisual-sources.ts; "unread" until it is read, and
+   * rule N refuses to run on it then, so a caller that never read it cannot pass rule N as if there were nothing to judge. */
+  nonvisual: NonvisualInput;
 }>;
+export type NonvisualInput = NonvisualSources | "unread";
 export type ContentRule = (context: GateContext) => readonly Violation[];
 
 export const parseable = (path: string) => /\.(svelte|ts|js|mjs)$/.test(path) && !path.endsWith(".d.ts");
 
 export function createContext(input: Readonly<{ layout: CatalogLayout; paths: readonly string[]; declarations: readonly LocatedDeclaration[];
-  ledger: unknown; sources: ReadonlyMap<string, string>; nonvisual?: NonvisualSources;
+  ledger: unknown; sources: ReadonlyMap<string, string>; nonvisual: NonvisualInput;
   /** How a source is parsed; a caller that builds many contexts over mostly the same files may share one parse per text. */
   parse?: (path: string, source: string) => Parsed }>): GateContext {
   const present = new Set(input.paths), parsedCache = new Map<string, Parsed>(), importCache = new Map<string, readonly Import[]>();
@@ -72,7 +74,7 @@ export function createContext(input: Readonly<{ layout: CatalogLayout; paths: re
   };
   return Object.freeze({
     layout: input.layout, paths: input.paths, declarations: input.declarations, ledger: input.ledger,
-    owners, text, parsed, imports, contract, nonvisual: input.nonvisual ?? Object.freeze({ files: [], problems: [] }),
+    owners, text, parsed, imports, contract, nonvisual: input.nonvisual,
     definition: (item: Import, imported: string) => item.target.kind === "file"
       ? imported === "*" ? item.target.path : definingFile(item.target.path, imported, imports, exported) : undefined,
   });

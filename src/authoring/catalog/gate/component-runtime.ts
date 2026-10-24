@@ -4,27 +4,11 @@
 import ts from "typescript";
 import type { Parsed } from "./parse.ts";
 import { runtimeCode, type RuntimeCode } from "./runtime-globals.ts";
-import { walk, type SyntaxNode } from "./walk.ts";
+import { field, list, patternNames, walk, type SyntaxNode } from "./walk.ts";
 import { templateScripts } from "./dom-access.ts";
 
 type Segment = Readonly<{ at: number; offset: number; length: number }>;
 export type ComponentRuntime = RuntimeCode & Readonly<{ position: (node: ts.Node) => number }>;
-
-const field = (node: unknown, key: string): unknown => node && typeof node === "object" ? Reflect.get(node, key) : undefined;
-const list = (value: unknown): unknown[] => Array.isArray(value) ? value : [];
-
-/** Every name a Svelte binding pattern declares. */
-function patternNames(pattern: unknown): string[] {
-  switch (field(pattern, "type")) {
-    case "Identifier": { const name = field(pattern, "name"); return typeof name === "string" ? [name] : []; }
-    case "ObjectPattern": return list(field(pattern, "properties")).flatMap(property =>
-      patternNames(field(property, "type") === "RestElement" ? property : field(property, "value")));
-    case "ArrayPattern": return list(field(pattern, "elements")).flatMap(patternNames);
-    case "AssignmentPattern": return patternNames(field(pattern, "left"));
-    case "RestElement": return patternNames(field(pattern, "argument"));
-    default: return [];
-  }
-}
 
 /** The names a template binds anywhere in the file. */
 function templateBindings(fragment: SyntaxNode): Set<string> {

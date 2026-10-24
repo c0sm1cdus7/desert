@@ -9,7 +9,7 @@
 // Child content fills the piece's declared `children` slot and a snippet its named slot; each slot takes only the pieces it
 // accepts (raw text and native elements inside it are rule D's).
 import ts from "typescript";
-import type { SyntaxNode } from "./walk.ts";
+import { field, isNode, nodes, patternNames, text, type SyntaxNode } from "./walk.ts";
 import type { ReadContract } from "../read-contract.ts";
 import { parseable, type ContentRule, type GateContext } from "./context.ts";
 import type { ParsedSvelte } from "./parse.ts";
@@ -19,10 +19,7 @@ import { violation, type Violation } from "./violation.ts";
 
 const skippedKeys = new Set(["loc", "name_loc", "comments", "leadingComments", "trailingComments", "metadata"]);
 
-const field = (node: unknown, key: string): unknown => node && typeof node === "object" ? Reflect.get(node, key) : undefined;
-const text = (node: unknown, key: string) => { const value = field(node, key); return typeof value === "string" ? value : ""; };
-const isNode = (value: unknown): value is SyntaxNode => typeof value === "object" && value !== null && !Array.isArray(value);
-const nodes = (node: unknown, key: string): SyntaxNode[] => { const value = field(node, key); return Array.isArray(value) ? value.filter(isNode) : []; };
+const nodesAt = (node: unknown, key: string): SyntaxNode[] => nodes(field(node, key));
 const source = (parsed: ParsedSvelte, node: SyntaxNode) => parsed.source.slice(node.start ?? 0, node.end ?? 0);
 
 /** The value import that binds `local` in `path`, with its binding. */
@@ -94,17 +91,6 @@ function isComponentTable(context: GateContext, path: string, local: string): bo
   return found !== undefined && (found.binding.imported === "*" || !(context.definition(found.item, found.binding.imported) ?? "").endsWith(".svelte"));
 }
 
-/** Every name a binding pattern declares (`H`, `{ a, b: [c] }`, `...rest`, `x = 1`), in the Svelte AST or in TypeScript. */
-function patternNames(pattern: unknown): string[] {
-  switch (field(pattern, "type")) {
-    case "Identifier": return [text(pattern, "name")];
-    case "ObjectPattern": return nodes(pattern, "properties").flatMap(property => patternNames(property.type === "RestElement" ? property : field(property, "value")));
-    case "ArrayPattern": return nodes(pattern, "elements").flatMap(patternNames);
-    case "AssignmentPattern": return patternNames(field(pattern, "left"));
-    case "RestElement": return patternNames(field(pattern, "argument"));
-    default: return [];
-  }
-}
 function bindingNames(name: ts.BindingName): string[] {
   if (ts.isIdentifier(name)) return [name.text];
   return name.elements.flatMap(element => ts.isOmittedExpression(element) ? [] : bindingNames(element.name));
@@ -173,20 +159,20 @@ function blockBindings(node: SyntaxNode): readonly (readonly [string, string])[]
   const named = (form: string, ...patterns: unknown[]) => patterns.flatMap(patternNames).map(name => [name, form] as const);
   switch (node.type) {
     case "EachBlock": return [...named("an each binding", field(node, "context")), ...text(node, "index") ? [[text(node, "index"), "an each binding"] as const] : []];
-    case "SnippetBlock": return named("a snippet parameter", ...nodes(node, "parameters"));
+    case "SnippetBlock": return named("a snippet parameter", ...nodesAt(node, "parameters"));
     case "AwaitBlock": return named("an await binding", field(node, "value"), field(node, "error"));
-    default: return nodes(node, "attributes").filter(attribute => attribute.type === "LetDirective")
+    default: return nodesAt(node, "attributes").filter(attribute => attribute.type === "LetDirective")
       .flatMap(attribute => field(attribute, "expression") ? named("a let: binding", field(attribute, "expression")) : [[text(attribute, "name"), "a let: binding"] as const]);
   }
 }
 
 /** The scope inside a node: its block bindings, then the `{@const}` tags among its children, in order. */
 function innerScope(facts: FileFacts, value: SyntaxNode, scope: Scope): Scope {
-  const bindings = blockBindings(value), consts = nodes(value, "nodes").filter(child => child.type === "ConstTag");
+  const bindings = blockBindings(value), consts = nodesAt(value, "nodes").filter(child => child.type === "ConstTag");
   if (!bindings.length && !consts.length) return scope;
   const next = new Map(scope);
   for (const [name, form] of bindings) next.set(name, through(form));
-  for (const constant of consts) for (const declarator of nodes(field(constant, "declaration"), "declarations")) {
+  for (const constant of consts) for (const declarator of nodesAt(field(constant, "declaration"), "declarations")) {
     const id = field(declarator, "id");
     if (field(id, "type") === "Identifier") next.set(text(id, "name"), constMount(facts, field(declarator, "init"), next));
     else for (const name of patternNames(id)) next.set(name, through("a {@const} destructure"));
@@ -243,7 +229,7 @@ function checkTag(path: string, parsed: ParsedSvelte, tag: SyntaxNode, target: T
   const escape = (what: string) => found.push(violation("PRESENTATION_ESCAPE", path, line, `<${name}> ${what}`));
   const forbid = (attribute: string) => escape(`passes ${attribute}: a piece takes only the plain props its contract declares; contract: ${id}`);
   const undeclared: string[] = [];
-  for (const attribute of nodes(tag, "attributes")) {
+  for (const attribute of nodesAt(tag, "attributes")) {
     if (attribute.type === "SpreadAttribute" && skipSpreads) continue;
     // A caller may bind a piece's instance only when the contract declares the instance API it exposes.
     if (attribute.type === "BindDirective" && text(attribute, "name") === "this" && contract?.closed && Object.keys(contract.instance).length) continue;
@@ -276,7 +262,7 @@ function checkChildren(tag: SyntaxNode, { label: id, slots }: Target, escape: (w
     for (const child of slotPieces(content, pieceOf)) if (!accepted.includes(child)) escape(`slot ${slot} of ${id} accepts ${accepted.join(", ")}; got ${child}`);
   };
   const content: SyntaxNode[] = [];
-  for (const child of nodes(field(tag, "fragment"), "nodes")) {
+  for (const child of nodesAt(field(tag, "fragment"), "nodes")) {
     if (child.type === "Comment" || child.type === "Text" && text(child, "data").trim() === "") continue;
     if (child.type !== "SnippetBlock") { content.push(child); continue; }
     const snippet = text(field(child, "expression"), "name");

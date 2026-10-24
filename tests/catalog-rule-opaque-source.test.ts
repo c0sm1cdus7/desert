@@ -34,6 +34,15 @@ test("O: require, a computed import() and any import() in a template expression 
     `OPAQUE_SOURCE ${card} import() in a template expression`]);
 });
 
+test("O: a renderer script runs no import() at all, a literal module included", () => {
+  const frameBody = "src/svelte/catalog/renderer/frame-body/FrameBody.svelte";
+  for (const script of ['const load = () => import("./Anything.ts");', 'const module = await import("../../index.ts");']) {
+    assert.deepEqual(added(ruleO, mutated(frameBody, '<script lang="ts">\n', `<script lang="ts">\n  ${script}\n`)),
+      [`OPAQUE_SOURCE: ${frameBody}:2: import() in a renderer: a renderer imports its pieces statically`], script);
+  }
+  assert.deepEqual(added(ruleO, mutated(frameBody, '<script lang="ts">\n', '<script lang="ts">\n  type Loaded = typeof import("./Anything.ts");\n')), []);
+});
+
 test("O: {@html} in a foundation, a vendor family or a renderer part; a composition's is rule D's", () => {
   assert.deepEqual(inCard("{@html markup}\n"), [`OPAQUE_SOURCE ${card} {@html} renders markup the gate cannot read`]);
   assert.deepEqual(runO(composition("page", "Page.svelte", [], "{@html markup}\n")), []);

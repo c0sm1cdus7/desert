@@ -1,6 +1,6 @@
 // Rule N. Law: the interpreter and every module outside the visual roots that the page reaches stay nonvisual. They name
 // no browser global but timers, timing and network (the session module alone also guards leaving the page); obtain no
-// evaluator; perform no DOM operation; import only nonvisual packages, Svelte's lifecycle and context functions, and nonvisual tree
+// evaluator; perform no DOM operation; import only nonvisual packages, Svelte's lifecycle functions, and nonvisual tree
 // modules (infra and renderer infrastructure inside the visual roots); and every import is a plain, resolvable request.
 // Raises NONVISUAL_DEPENDENCY. The files are read by nonvisual-sources.ts.
 import { isCSSRequest } from "vite";
@@ -58,7 +58,9 @@ function fileViolations(context: GateContext, file: NonvisualFile): Violation[] 
   return found;
 }
 
-export const ruleN: ContentRule = context => [
-  ...context.nonvisual.problems.map(problem => violation(code, problem.path, 0, problem.what)),
-  ...context.nonvisual.files.flatMap(file => fileViolations(context, file)),
-];
+export const ruleN: ContentRule = context => {
+  const nonvisual = context.nonvisual;
+  if (nonvisual === "unread") throw new Error("NONVISUAL_UNREAD: rule N needs the nonvisual sources (readNonvisualSources, then withNonvisual)");
+  return [...nonvisual.problems.map(problem => violation(code, problem.path, 0, problem.what)),
+    ...nonvisual.files.flatMap(file => fileViolations(context, file))];
+};

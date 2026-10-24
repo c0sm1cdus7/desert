@@ -2,7 +2,7 @@
 // catalog index and listed in `uses`, and renders only declared slots. Rule D2 (dispatchers) is composition-dispatch.ts.
 // Raises COMPOSITION_NATIVE_ELEMENT, COMPOSITION_UNKNOWN_PIECE, SLOT_NOT_TYPED.
 import { posix } from "node:path";
-import type { SyntaxNode } from "./walk.ts";
+import { field, isNode, nodes, text, type SyntaxNode } from "./walk.ts";
 import type { ContentRule, GateContext } from "./context.ts";
 import type { ParsedSvelte } from "./parse.ts";
 import { violation, type Violation } from "./violation.ts";
@@ -20,14 +20,8 @@ export type CompositionFile = Readonly<{ path: string; id: string; parsed: Parse
 export type Resolution = Readonly<{ kind: "piece"; id: string; entry: string; fromIndex: boolean; namespace: boolean }
   | { kind: "part" } | { kind: "unknown"; reason: string }>;
 
-export const field = (node: unknown, key: string): unknown => node && typeof node === "object" ? Reflect.get(node, key) : undefined;
-export const text = (node: unknown, key: string) => { const value = field(node, key); return typeof value === "string" ? value : ""; };
-const isNode = (value: unknown): value is SyntaxNode => typeof value === "object" && value !== null && !Array.isArray(value);
 /** The child nodes of a template fragment. */
-export function nodesOf(fragment: unknown): SyntaxNode[] {
-  const value = field(fragment, "nodes");
-  return Array.isArray(value) ? value.filter(isNode) : [];
-}
+export const nodesOf = (fragment: unknown): SyntaxNode[] => nodes(field(fragment, "nodes"));
 const childFragments = (node: SyntaxNode) => Object.values(node).filter(value => isNode(value) && value.type === "Fragment");
 /** A comment, or text made only of spaces, tabs and line breaks (an entity such as `&nbsp;` is visible text). */
 export const isBlank = (node: SyntaxNode) => node.type === "Comment" || node.type === "Text" && /^[ \t\r\n]*$/.test(text(node, "raw"));

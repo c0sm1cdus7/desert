@@ -34,6 +34,13 @@ test("a foundation, its .svelte.ts part, its vendor family and a mechanism it ow
   assert.deepEqual(found(files), []);
 });
 
+test("a class heritage expression is a value: document passed through it, and a node global's document, are DOM", () => {
+  assert.deepEqual(found(flow("  let leaked: unknown;\n  class Leak extends ((d: unknown) => (leaked = d, Object))(document) {}")),
+    [runtime(flowEntry, `document: ${composed}`)]);
+  assert.deepEqual(found(flow('  const title = global.document.title;')), [runtime(flowEntry, `global.document: ${composed}`)]);
+  assert.deepEqual(found(flow("  interface Leak extends Pick<Document, \"title\"> {}\n  class Typed implements Partial<typeof document> {}")), []);
+});
+
 test("N22 document.getElementById in a composition script", () => {
   assert.deepEqual(found(flow('  const stray = () => document.getElementById("x");')), [runtime(flowEntry, `document.getElementById: ${composed}`)]);
 });

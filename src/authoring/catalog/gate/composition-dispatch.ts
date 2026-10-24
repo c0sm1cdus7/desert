@@ -2,10 +2,10 @@
 // the catalog index (or the entry a generated, typed table names), and only the node's own record may be spread onto it.
 // Raises DISPATCHER_GRAMMAR. Every other attribute and the child content of a mounted tag, a table entry included, are
 // rule E's (presentation.ts); a <style> block is rule G's.
-import type { SyntaxNode } from "./walk.ts";
-import { compositionFiles, describe, importViolations, isBlank, nodesOf, resolveTag, sourceOf, tagProblems, text,
+import { field, text, type SyntaxNode } from "./walk.ts";
+import { compositionFiles, describe, importViolations, isBlank, nodesOf, resolveTag, sourceOf, tagProblems,
   type CompositionFile } from "./composition-template.ts";
-import { admissionViolations, field, pathOf, type Branch } from "./dispatch-admission.ts";
+import { admissionViolations, pathOf, type Branch } from "./dispatch-admission.ts";
 import type { ContentRule, GateContext } from "./context.ts";
 import { violation, type Violation } from "./violation.ts";
 

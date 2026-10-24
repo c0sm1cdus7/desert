@@ -11,7 +11,7 @@ export function contextOf(files: Readonly<Record<string, string>>, layout: Catal
   for (const path of paths) if (declarationSuffixes.some(suffix => path.endsWith(suffix))) {
     for (const declaration of readDeclarations(path, files[path] ?? "")) declarations.push({ path, declaration });
   }
-  return createContext({ layout, paths, declarations, ledger, sources: new Map(Object.entries(files)) });
+  return createContext({ layout, paths, declarations, ledger, sources: new Map(Object.entries(files)), nonvisual: "unread" });
 }
 
 /** `code path what` of each violation, without line numbers: what a test usually asserts. */

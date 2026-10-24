@@ -208,6 +208,24 @@ test("toolbar-boundary, toolbar-indirect-ownership, toolbar-title-ownership: no 
   accepts("a stylesheet naming marks nobody else draws", append(shared, "[data-owned-toolbar-host-example] { position: absolute; inset: 0; }"));
 });
 
+test("toolbar-boundary, toolbar-indirect-ownership: a class attribute selector names every class it matches, whatever its operator", () => {
+  const reading = `${mechanisms}/reading/reading.css`;
+  for (const selector of ['[class~="toolbar-row"]', '[class*="toolbar-r"]', '[class="toolbar-row"]', '[class|="toolbar"]', '[class^="toolbar-ro"]',
+    '[class$="ar-row"]', '[class*="TOOLBAR-R" i]', '[CLASS~="toolbar-row" s]', "[class~=toolbar-row]", '[class^="toolbar-row fl"]']) {
+    rejects(selector, append(reading, `${selector} { gap: 0 }`), ["CROSS_OWNER_CSS"], ".toolbar-row");
+  }
+  accepts("a class pattern no other owner draws", append(reading, '[class*="no-owner-draws-this-pattern"] { gap: 0 }'));
+  accepts("an operator a class cannot satisfy", append(reading, '[class~="toolbar-row flex-wrap"] { gap: 0 }'));
+});
+
+test("toolbar-boundary, toolbar-indirect-ownership: a custom property written from a template expression, directive or style attribute has one writer", () => {
+  const markup = ['<span onmouseenter={(e) => e.currentTarget.style.setProperty("--toolbar-gap", "0px")}></span>',
+    "{#if ready}{(target.style.setProperty('--toolbar-gap', '0px'), '')}{/if}", '<span style:--toolbar-gap="0px"></span>', '<span style="--toolbar-gap:0px"></span>'];
+  for (const item of markup) rejects(item, inFlow("", item), ["CROSS_OWNER_CSS"], "--toolbar-gap");
+  rejects("a script constant written from the template", inFlow('  const gap = "--toolbar-" + "gap";',
+    '<span onmouseenter={(e) => e.currentTarget.style["setProperty"](gap, "0px")}></span>'), ["CROSS_OWNER_CSS"], "--toolbar-gap");
+});
+
 test("toolbar-boundary, toolbar-indirect-ownership: a custom property the toolbar or the reading guide writes has no second writer", () => {
   for (const property of ["--toolbar-inset", "--catalog-toolbar-height", "--place-content-inset", "--place-surface-inset", "--sidebar-width", "--face-size"]) {
     rejects(property, append(shared, `[data-structured] { ${property}: 99px; }`), ["CROSS_OWNER_CSS"], property);

@@ -6,12 +6,13 @@
 // G reports, it never fixes: the stylesheets keep the pixels the owner approved.
 import ts from "typescript";
 import { isCSSRequest } from "vite";
-import { walk, type SyntaxNode } from "./walk.ts";
+import { isNode, nodes, walk, type SyntaxNode } from "./walk.ts";
 import { parseable, type ContentRule, type GateContext } from "./context.ts";
 import type { Owner } from "./ownership.ts";
 import { resolveSpecifier, type Target } from "./resolve-imports.ts";
 import { violation, type Violation } from "./violation.ts";
-import { isNode, lineOf, nodes, position, readStylesheet, rulesOf, decodeCss, type Stylesheet } from "./stylesheet.ts";
+import { lineOf } from "./parse.ts";
+import { position, readStylesheet, rulesOf, decodeCss, type Stylesheet } from "./stylesheet.ts";
 import { themeMechanism } from "../layout.ts";
 import { customPropertyViolations, foreignMarkViolations, ownerId } from "./css-marks.ts";
 

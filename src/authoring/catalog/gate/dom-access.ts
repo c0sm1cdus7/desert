@@ -10,10 +10,9 @@ import { resolveSpecifier } from "./resolve-imports.ts";
 import { violation, type Violation } from "./violation.ts";
 import { themeMechanism } from "../layout.ts";
 import { componentRuntime } from "./component-runtime.ts";
-import { browserGlobalUses, nonvisualGlobals } from "./runtime-globals.ts";
+import { browserGlobalUses, globalObjects, inTypePosition, nonvisualGlobals } from "./runtime-globals.ts";
 
 const code = "VISUAL_RUNTIME_GLOBAL";
-const globalObjects = new Set(["window", "globalThis", "self"]);
 const windowMembers = new Set(["document", "getComputedStyle", "matchMedia", "requestAnimationFrame", "getSelection", "innerWidth",
   "innerHeight", "outerWidth", "outerHeight", "visualViewport", "scrollTo", "scrollBy", "scrollX", "scrollY", "devicePixelRatio"]);
 const globalFunctions = new Set(["getComputedStyle", "matchMedia", "requestAnimationFrame", "getSelection"]);
@@ -60,11 +59,6 @@ function memberName(node: ts.Node): string | undefined {
 const isIdentifierNamed = (node: ts.Node, names: ReadonlySet<string>) => ts.isIdentifier(node) && names.has(node.text);
 const callOf = (node: ts.Node) => ts.isCallExpression(node.parent) && node.parent.expression === node ? node.parent : undefined;
 const receiverLabel = (receiver: ts.Expression) => /^[\w$.]+$/.test(receiver.getText()) ? receiver.getText() : "";
-
-function inTypePosition(node: ts.Node): boolean {
-  for (let current: ts.Node | undefined = node.parent; current; current = current.parent) if (ts.isTypeNode(current)) return true;
-  return false;
-}
 
 /** `document` as a value: aliased, passed, destructured; not a member name, a declared name or a type query. */
 function isBareDocument(node: ts.Node): boolean {

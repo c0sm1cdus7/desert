@@ -2115,7 +2115,7 @@
       "owner": {
         "entry": "SharedOwnerCatalog.svelte"
       },
-      "purpose": "Show one shared owner's live example, the parts it is composed of and where its source and boundary live.",
+      "purpose": "Show one shared owner's live example, the parts it is composed of, and its contract: who owns it and where its source lives.",
       "uses": [
         "destination-row",
         "grouped-panel",

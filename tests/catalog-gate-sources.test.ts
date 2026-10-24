@@ -2,7 +2,7 @@
 // and a gate folder holds only the modules the layout lists, so the list cannot fall behind the code.
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -33,4 +33,17 @@ test("a gate module the layout does not list is refused", () => withFiles([...pr
 
 test("the DESERT tree has every gate source and lists every gate module", async () => {
   await assertGateSources(fileURLToPath(new URL("..", import.meta.url)), DesertLayout);
+});
+
+// One fact, one place: the readers every rule shares are defined once and imported, so two copies cannot drift apart.
+const sharedReaders = ["isNode", "field", "text", "list", "nodes", "patternNames", "lineOf", "inTypePosition", "globalObjects", "constantText"];
+test("each shared syntax reader of the gate is defined in exactly one module", async () => {
+  const folder = fileURLToPath(new URL("../src/authoring/catalog/gate/", import.meta.url)), definitions = new Map<string, string[]>();
+  for (const file of (await readdir(folder)).filter(name => name.endsWith(".ts")).sort()) {
+    for (const match of (await readFile(join(folder, file), "utf8")).matchAll(/^(?:export )?(?:const|function) ([A-Za-z_$][\w$]*)\b/gm)) {
+      const name = match[1] ?? "";
+      if (sharedReaders.includes(name)) definitions.set(name, [...definitions.get(name) ?? [], file]);
+    }
+  }
+  assert.deepEqual(sharedReaders.filter(name => (definitions.get(name) ?? []).length !== 1).map(name => `${name}: ${(definitions.get(name) ?? []).join(", ")}`), []);
 });
