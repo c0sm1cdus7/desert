@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { directSearchFixture, searchFixture, searchLabel } from "./fixtures/search-field-anatomy.ts";
 import { ResolvedNodes } from "../src/interaction/catalog.ts";
-import { sharedIndexOwners } from "../src/svelte/infra/shared-purpose.ts";
+import { sharedCatalogOwners } from "../src/svelte/infra/shared-owners.ts";
+import { sharedPurpose } from "../src/svelte/infra/shared-purpose.ts";
 
 for (const consumer of ["collection", "catalog"] as const) {
   test(`${consumer}: toolbar overlay search has a persistent leading icon and one embedded clear accessory`, async () => {
@@ -78,10 +79,12 @@ for (const consumer of ["collection", "catalog"] as const) {
         const index = f.page.locator('[data-catalog-index]');
         assert.ok(await index.isVisible(), 'clearing discovery returns the complete component index');
         assert.ok(await index.locator('[data-destination]').count() > 0);
-        // Coverage lives in each detail (catalog-inspector); the index is every group with every destination.
+        // Coverage lives in each detail (catalog-inspector); the index is every group with every destination: each semantic
+        // entry of the group and each shared owner of the group that is not part of another, counted here from the data.
         for (const group of ResolvedNodes.groups) assert.equal(
           await index.getByRole('group', { name:group.title, exact:true }).locator('[data-destination]').count(),
-          ResolvedNodes.entries.filter(entry => entry.inspection.group === group.id).length + sharedIndexOwners(group.id).length, group.title);
+          ResolvedNodes.entries.filter(entry => entry.inspection.group === group.id).length
+            + sharedCatalogOwners.filter(owner => sharedPurpose[owner].group === group.id && !sharedPurpose[owner].partOf).length, group.title);
       }
       assert.deepEqual(f.errors, []);
     } finally { await f.close(); }

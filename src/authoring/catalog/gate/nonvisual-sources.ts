@@ -65,7 +65,13 @@ export async function readNonvisualSources(root: string, context: GateContext): 
   const exists = (path: string) => existsSync(join(root, path));
   const visual = (path: string) => layout.roots.some(folder => inside(path, folder));
   const queued = new Set<string>(), queue: string[] = [];
-  const enqueue = (path: string) => { if (!queued.has(path)) { queued.add(path); queue.push(path); } };
+  // A module outside the judged tree is never read: under `--tree` it would be the judging checkout's file, not the tree's.
+  const enqueue = (path: string) => {
+    if (queued.has(path)) return;
+    queued.add(path);
+    if (path === ".." || path.startsWith("../") || posix.isAbsolute(path)) problems.push({ path, what: "a dependency outside the judged tree" });
+    else queue.push(path);
+  };
 
   /** A symlinked ancestor could launder an outside implementation, so each ancestor of a read path is checked. */
   async function symlinked(path: string): Promise<boolean> {

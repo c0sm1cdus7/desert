@@ -22,11 +22,15 @@ async function filesUnder(root: string, folder: string): Promise<string[]> {
   return files;
 }
 
-export async function assertGateSources(root: string, layout: CatalogLayout): Promise<void> {
-  const required = [...layout.gate.modules, ...layout.gate.required, ...layout.gate.reads, layout.ledger, layout.generated.index];
+/** `of: "data"` is for a tree judged by another checkout's gate (`--tree`): its gate modules never run, so only the data
+ * the judging gate reads must be present; the tree's own gate list is that tree's own gate job's business. */
+export async function assertGateSources(root: string, layout: CatalogLayout, of: "gate" | "data"): Promise<void> {
+  const data = [...layout.gate.required, ...layout.gate.reads, layout.ledger, layout.generated.index];
+  const required = of === "gate" ? [...layout.gate.modules, ...data] : data;
   const missing: string[] = [];
   for (const path of required) if (!await exists(join(root, path))) missing.push(path);
   if (missing.length) throw new Error(`CATALOG_GATE_SOURCES: missing ${missing.sort().join(", ")}`);
+  if (of === "data") return;
   const listed = new Set(layout.gate.modules), unlisted: string[] = [];
   for (const folder of layout.gate.roots) for (const path of await filesUnder(root, folder)) if (!listed.has(path)) unlisted.push(path);
   if (unlisted.length) throw new Error(`CATALOG_GATE_SOURCES: ${unlisted.sort().join(", ")} is not listed in the layout's gate modules`);

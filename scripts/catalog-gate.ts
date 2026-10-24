@@ -23,7 +23,7 @@ if (!process.argv.includes("--rules")) {
   console.log("Catalog gate passed: the same gate the build runs.");
   process.exit(0);
 }
-await assertGateSources(root, DesertLayout);
+await assertGateSources(root, DesertLayout, judged ? "data" : "gate");
 const { runCatalogGate, runContentRules } = await import("../src/authoring/catalog/gate/run.ts");
 const { contentRuleIds } = await import("../src/authoring/catalog/gate/content-rules.ts");
 type StructuralRule = Parameters<typeof runCatalogGate>[1]["rules"][number];

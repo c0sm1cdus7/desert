@@ -21,18 +21,18 @@ async function withFiles(paths: readonly string[], check: (root: string) => Prom
   } finally { await rm(root, { recursive: true, force: true }); }
 }
 
-test("a complete gate passes", () => withFiles(present, root => assertGateSources(root, layout)));
+test("a complete gate passes", () => withFiles(present, root => assertGateSources(root, layout, "gate")));
 
 for (const missing of present) test(`a missing ${missing} is named`, () => withFiles(present.filter(path => path !== missing), async root => {
-  await assert.rejects(assertGateSources(root, layout), new RegExp(`CATALOG_GATE_SOURCES: .*${missing.replaceAll(".", "\\.")}`));
+  await assert.rejects(assertGateSources(root, layout, "gate"), new RegExp(`CATALOG_GATE_SOURCES: .*${missing.replaceAll(".", "\\.")}`));
 }));
 
 test("a gate module the layout does not list is refused", () => withFiles([...present, "src/authoring/catalog/gate/extra.ts"], async root => {
-  await assert.rejects(assertGateSources(root, layout), /CATALOG_GATE_SOURCES: .*gate\/extra\.ts is not listed/);
+  await assert.rejects(assertGateSources(root, layout, "gate"), /CATALOG_GATE_SOURCES: .*gate\/extra\.ts is not listed/);
 }));
 
 test("the DESERT tree has every gate source and lists every gate module", async () => {
-  await assertGateSources(fileURLToPath(new URL("..", import.meta.url)), DesertLayout);
+  await assertGateSources(fileURLToPath(new URL("..", import.meta.url)), DesertLayout, "gate");
 });
 
 // One fact, one place: the readers every rule shares are defined once and imported, so two copies cannot drift apart.

@@ -71,7 +71,7 @@ export async function runCatalogGate(root: string, options: Readonly<{ layout: C
 
 const textual = /\.(svelte|ts|js|mjs|cjs|css|html|json|md|txt)$/;
 
-/** Content rules D–T over a tree that passed the structural rules: every violation, then one failure listing them all. */
+/** Content rules D–U over a tree that passed the structural rules: every violation, then one failure listing them all. */
 export async function runContentRules(root: string, tree: CatalogTree, options: Readonly<{ layout: CatalogLayout; rules: readonly ContentRuleId[] }>) {
   const { context, violations } = await contentViolations(root, tree, options);
   if (violations.length) throw new CatalogGateViolations(violations);

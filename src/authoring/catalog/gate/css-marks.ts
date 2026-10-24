@@ -57,7 +57,7 @@ function markupMarks(context: GateContext): ReadonlyMap<string, ReadonlySet<stri
 
 /** Whether an element whose class attribute holds the class `token` can match `[class<matcher>"value"]`: the value is
  * matched against the whole attribute, so a value spanning several classes names each class it can be a piece of. */
-export function classPatternMatches(matcher: string, value: string, insensitive: boolean, token: string): boolean {
+function classPatternMatches(matcher: string, value: string, insensitive: boolean, token: string): boolean {
   const fold = (text: string) => insensitive ? text.toLowerCase() : text;
   const wanted = fold(value), name = fold(token);
   if (wanted === "" || name === "") return false;

@@ -12,7 +12,7 @@ export const catalogGateEvidence = Object.freeze({ version: "desert.catalog-gate
  * `emitted`, for a build: the CSS the worker wrote, checked by rule G2 before anything is copied out. */
 export async function runWithCatalogGate<T>(root: string, operation: () => Promise<T>,
   emitted?: () => Promise<readonly Readonly<{ path: string; source: string }>[]>): Promise<T> {
-  await assertGateSources(root, DesertLayout);
+  await assertGateSources(root, DesertLayout, "gate");
   const [{ runCatalogGate, contentViolations }, { contentRuleIds }, { CatalogGateViolations }] = await Promise.all([
     import("./run.ts"), import("./content-rules.ts"), import("./violation.ts")]);
   const tree = await runCatalogGate(root, { layout: DesertLayout, rules: ["A", "B", "C", "L"] });

@@ -145,3 +145,12 @@ test("N: unrecognized interpreter source formats and symlinked files or director
   for (const directory of [false, true]) assert.ok((await addedBy(root => symlinkSync(join(desertRoot, directory ? "src/web/client" : "src/web/client/model.ts"),
     join(root, "src/web/client", directory ? "linked" : "linked.ts")))).some(line => line.includes("symlinked interpreter source")), String(directory));
 });
+
+test("N: a dependency outside the judged tree is refused, never read from wherever it lands", async () => {
+  // The escape lands on a real file beside the judged tree, as `--tree .pr` would land in the judging checkout.
+  const name = `outside-${process.pid}.ts`;
+  const added = await addedBy(throughAdapter(`export { observe } from "../../../../${name}";`,
+    root => writeFileSync(join(root, "..", name), "export const observe = () => {};\n")));
+  rmSync(join(tmpdir(), name), { force: true });
+  assert.ok(added.some(line => /NONVISUAL_DEPENDENCY: \.\.\/outside-\d+\.ts: a dependency outside the judged tree/.test(line)), added.join("\n"));
+});

@@ -27,7 +27,10 @@ Every build and check (`createBuildProject`, `scripts/catalog-gate.ts`) runs `ru
    module outside the visual roots the page reaches stay nonvisual), O (no `{@html}` outside compositions, no evaluator,
    `require` or computed `import()` in page code, and no `import()` at all in a template expression or a renderer), T (the
    host files keep their fixed grammar), U (the TypeScript checker resolves every prop, event and instance member of each
-   closed contract and finds no `any`, `unknown`, `object`, or DOM, Svelte or Node type anywhere inside it).
+   closed contract, through properties, unions, arrays, maps, call signatures and `this`, and refuses `any`,
+   `unknown`, `object`, `{}`, `Function`/`Object`, generics without a closed constraint, and DOM, Svelte or Node types;
+   a tree file may not change what the checker believes through `/// <reference>` directives, ambient modules or
+   `declare global`, and packages resolve only in the judging checkout).
 4. The worker; then, for a build, G2 on the emitted CSS.
 
 The gate-from-base CI job runs these rules from the base checkout with `scripts/catalog-gate.ts --tree .pr`: the PR tree

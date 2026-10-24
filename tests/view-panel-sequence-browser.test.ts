@@ -63,7 +63,7 @@ async function surfaceFrameWithoutViewBody() {
 
 for (const width of [390, 1280]) for (const kind of ["form", "context"] as const) {
   test(`default ${kind} panel retains exact DOM and pixels at ${width}px`, async () => {
-    const captures: Buffer[] = [], structures: string[] = [];
+    const captures: Buffer[] = [], contents: Buffer[] = [], structures: string[] = [];
     // The frozen pre-view-body source proves the content DOM; today's frame without the branch proves the pixels.
     for (const before of ["frozen", "without-body", "current"] as const) {
       const overrides = before === "frozen" ? { [surfaceFramePath]: surfaceFrameBeforeViewBody }
@@ -78,6 +78,7 @@ for (const width of [390, 1280]) for (const kind of ["form", "context"] as const
         await page.locator(".drawer").waitFor(); await settleMotion(page);
         await page.evaluate(async () => { await document.fonts.ready; });
         captures.push(await page.screenshot());
+        contents.push(await page.locator('[data-surface-slot="content"] > *').first().screenshot());
         structures.push(await page.locator('[data-surface-slot="content"]').evaluate(node => {
           const ids = new Map<string,string>();
           return node.innerHTML.replace(/<!--[^]*?-->/g, "").replace(/>\s+</g, '><').trim()
@@ -92,5 +93,8 @@ for (const width of [390, 1280]) for (const kind of ["form", "context"] as const
     assert.deepEqual(structures[1], structures[0]);
     assert.deepEqual(structures[2], structures[0]);
     assert.ok(captures[2]!.equals(captures[1]!), 'default panel preserves exact viewport pixels');
+    // The content itself is pixel-identical to the frame before the view-body branch existed: chrome that moved since
+    // (the top-rail commit, which lets the region grow) is outside it, and anything that restyles the content is not.
+    assert.ok(contents[2]!.equals(contents[0]!), 'default panel content keeps its pre-view-body pixels');
   });
 }

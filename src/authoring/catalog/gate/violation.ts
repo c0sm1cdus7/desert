@@ -1,4 +1,4 @@
-// A content rule's finding. Content rules (D–T) report every violation; the gate then fails once with the full list,
+// A content rule's finding. Content rules (D–U) report every violation; the gate then fails once with the full list,
 // so the owner sees the whole debt in one build (Q1). Structural rules (P, A, B, C, L) still stop at the first error.
 export type Violation = Readonly<{ code: string; path: string; line: number; what: string }>;
 

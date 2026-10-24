@@ -58,7 +58,7 @@ async function previousCss() {
   return `${await rendererCss()}\n@layer components {${rules.slice(0,2).join('\n')}}\n${rules.slice(2).join('\n')}`;
 }
 
-test("moving control writers preserves exact markup, declarations and computed geometry in one unchanged DOM", { timeout: 60000 }, async () => {
+test("moving control writers preserves the relocated declarations, their layering and the computed geometry in one DOM", { timeout: 60000 }, async () => {
   const current=await readFile(buttonPath,"utf8");
   const style=current.match(/<style>([\s\S]*?)<\/style>/)![1]!;
   const originalRules=buttonWritersBefore["src/svelte/theme.css"]+controlWritersBefore["src/svelte/catalog/mechanisms/catalog-search/catalog-search.css"];
