@@ -4,7 +4,8 @@ import { SpecimenContract } from "./specimen.contract.ts";
 
 export const Specimen = defineComposition({
   id: "specimen",
-  purpose: "Witness one resolved node in one scenario, with local interaction, through the product node and frame grammar.",
+  purpose: { key: "specimen.purpose" },
+  messages: ["specimen.purpose"],
   owner: { entry: "Specimen.svelte", parts: ["specimen-presentation.ts"] },
   uses: ["node-renderer", "surface-frame"], approval: "none", contract: SpecimenContract,
 } as const);

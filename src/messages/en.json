@@ -87,5 +87,118 @@
       "title": "The result isn’t confirmed",
       "description": "The result of this confirmation is not known yet. Close this message, then check the result when the connection is available. Checking does not create another operation."
     }
+  },
+  "inspection": {
+    "purpose": "Browse the local inspection catalog and open one of its records as a detail, without product commands.",
+    "example": "Local renderer example",
+    "back": "Back to visual catalog"
+  },
+  "inspectionCatalog": {
+    "purpose": "Discover foundations and compositions through the same action rows and destination navigation used by the product.",
+    "title": "Component bank",
+    "subtitle": "Interactive examples. Changes stay here; no product commands are executed.",
+    "parts": "Composition parts",
+    "back": "Back"
+  },
+  "sharedOwnerCatalog": {
+    "purpose": "Show one shared owner's live example, the parts it is composed of, and its contract: who owns it and where its source lives.",
+    "example": "Example",
+    "parts": "Composition parts",
+    "contract": "Contract",
+    "owner": "Owner",
+    "source": "Source",
+    "back": "Back"
+  },
+  "sharedOwnerSpecimen": {
+    "purpose": "Exercise one shared catalog owner with local example data, without running product commands.",
+    "initial": "Local example. No product changes.",
+    "interaction": "Interaction",
+    "layout": "Layout",
+    "overview": "Overview",
+    "gallery": "Gallery",
+    "state": "State",
+    "ready": "Ready",
+    "loading": "Loading",
+    "offline": "Offline",
+    "openMedia": "Open media locally",
+    "resume": "Resume locally",
+    "resumeActivity": "Resume {id} locally",
+    "openTasks": "Open the Tasks destination locally.",
+    "openObject": "Open the selected object locally.",
+    "openTrash": "Open Trash from content, not the toolbar.",
+    "connecting": "Connecting to the controller…",
+    "reconnect": "Offline. Reconnect to use this action.",
+    "objects": "Objects",
+    "actions": "Actions",
+    "moveToTrash": "Move note to Trash",
+    "confirmed": "Confirmed locally",
+    "cancelled": "Cancelled",
+    "back": "Back",
+    "commandActivated": "Command activated",
+    "shuffle": "Shuffle avatar",
+    "foundations": "Foundations",
+    "fact": "Fact",
+    "button": "Button",
+    "openFact": "Open the Fact component from the index to inspect every declared state.",
+    "openButton": "Open the Button component from the index.",
+    "attention": "Requires attention. The same amber indicator appears in Home and every presentation of the object. Reduced motion keeps it steady."
+  },
+  "specimen": {
+    "purpose": "Witness one resolved node in one scenario, with local interaction, through the product node and frame grammar."
+  },
+  "specimenGroup": {
+    "purpose": "Group the bank examples of one resolved node kind under a state chooser and its contract inspection.",
+    "state": "State",
+    "examples": "{title} · Examples",
+    "loading": "Connecting to the controller. Dependent commands wait until their availability is known.",
+    "offline": "Offline. Existing reading and local drafts are retained; controller-dependent choices and commits are unavailable until reconnection."
+  },
+  "specimenRow": {
+    "purpose": "Witness one fixture state of a bank entry inside its own heading scope, shown only while the state chooser names it."
+  },
+  "specimenUnavailable": {
+    "purpose": "Explain in place of a bank specimen why it cannot be executed here.",
+    "label": "Specimen unavailable",
+    "title": "Execution adapter required"
+  },
+  "contractInspection": {
+    "purpose": "Read the declared contract, coverage gaps and evidence of one resolved node kind.",
+    "contract": "Contract",
+    "coverageGaps": "Coverage gaps",
+    "evidence": "Evidence references",
+    "component": "Component",
+    "sharedOwners": "Shared owners",
+    "qualification": "Qualification",
+    "fixtures": "{count} declared fixtures · partial"
+  },
+  "controlBench": {
+    "purpose": "Exercise every control specimen locally in the bank, reporting each interaction without any product command.",
+    "interaction": "Interaction",
+    "idle": "No interaction yet.",
+    "event": "{kind} · {control}. Local interaction only.",
+    "released": "Demonstration lock released. Close returns to the bank."
+  },
+  "mediaReferenceSpecimen": {
+    "purpose": "Witness the media reference selector in the bank with one local image and local state."
+  },
+  "referenceSpecimen": {
+    "purpose": "Exercise one labels or reference owner in the bank with local example values and no product command.",
+    "remove": "Remove {label}",
+    "unavailable": "Unavailable"
+  },
+  "inspectionContent": {
+    "purpose": "Mount the visual catalog inspection and reveal one of its entries for a caller that binds it."
+  },
+  "publicCatalogBank": {
+    "purpose": "Show the component bank in the workspace and let the workspace reveal and focus one of its entries."
+  },
+  "publicCatalogBankSpecimen": {
+    "purpose": "Render one bank node with local diagnostic interaction, an opener for dialogs, and a notice instead of product effects.",
+    "writing": "Local writing changed. No product command was invoked.",
+    "pressed": "Diagnostic action pressed. No domain effect or acceptance.",
+    "open": "Open {kind} example"
+  },
+  "facts": {
+    "purpose": "Read a labeled value, including the difference between an empty value and an unknown value."
   }
 }

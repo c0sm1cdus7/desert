@@ -4,7 +4,8 @@ import { SpecimenUnavailableContract } from "./specimen-unavailable.contract.ts"
 
 export const SpecimenUnavailable = defineComposition({
   id: "specimen-unavailable",
-  purpose: "Explain in place of a bank specimen why it cannot be executed here.",
+  purpose: { key: "specimenUnavailable.purpose" },
+  messages: ["specimenUnavailable.purpose", "specimenUnavailable.label", "specimenUnavailable.title"],
   owner: { entry: "SpecimenUnavailable.svelte" },
-  uses: ["icon"], approval: "none", contract: SpecimenUnavailableContract,
+  uses: ["status"], approval: "none", contract: SpecimenUnavailableContract,
 } as const);

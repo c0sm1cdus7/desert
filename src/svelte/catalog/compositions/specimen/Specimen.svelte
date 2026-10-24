@@ -37,6 +37,7 @@
     }
   }
 </script>
+<!-- lane-merge: node-renderer (its closed contract) -->
 {#each presentation.nodes as node, index (index)}
   <NodeRenderer {node} onevent={interact} />
 {/each}

@@ -4,7 +4,8 @@ import { PublicCatalogBankContract } from "./public-catalog-bank.contract.ts";
 
 export const PublicCatalogBank = defineComposition({
   id: "public-catalog-bank",
-  purpose: "Show the component bank in the workspace and let the workspace reveal and focus one of its entries.",
+  purpose: { key: "publicCatalogBank.purpose" },
+  messages: ["publicCatalogBank.purpose"],
   owner: { entry: "PublicCatalogBank.svelte" },
   uses: ["inspection-catalog"], approval: "none", contract: PublicCatalogBankContract,
 } as const);
