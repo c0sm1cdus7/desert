@@ -7,5 +7,5 @@ export const LocalExercises = defineComposition({
   id: "local-exercises",
   purpose: "Declared as found at the start of the migration: LocalExercises.svelte.",
   owner: { entry: "LocalExercises.svelte" },
-  uses: [], approval: "none", contract: LocalExercisesContract,
+  uses: ["local-exercise-content"], approval: "none", contract: LocalExercisesContract,
 } as const);

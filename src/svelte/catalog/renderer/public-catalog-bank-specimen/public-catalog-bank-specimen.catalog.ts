@@ -7,5 +7,5 @@ export const PublicCatalogBankSpecimen = defineComposition({
   id: "public-catalog-bank-specimen",
   purpose: "Declared as found at the start of the migration: PublicCatalogBankSpecimen.svelte.",
   owner: { entry: "PublicCatalogBankSpecimen.svelte", parts: ["catalog-specimen.svelte.ts"] },
-  uses: [], approval: "none", contract: PublicCatalogBankSpecimenContract,
+  uses: ["feedback", "node-renderer"], approval: "none", contract: PublicCatalogBankSpecimenContract,
 } as const);

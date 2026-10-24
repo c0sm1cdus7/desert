@@ -7,5 +7,5 @@ export const CatalogSearchResults = defineComposition({
   id: "catalog-search-results",
   purpose: "Declared as found at the start of the migration: CatalogSearchResults.svelte.",
   owner: { entry: "CatalogSearchResults.svelte" },
-  uses: ["node-renderer", "grouped-panel"], approval: "none", contract: CatalogSearchResultsContract,
+  uses: ["grouped-panel", "node-renderer"], approval: "none", contract: CatalogSearchResultsContract,
 } as const);

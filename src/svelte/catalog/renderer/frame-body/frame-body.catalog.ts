@@ -7,5 +7,5 @@ export const FrameBody = defineComposition({
   id: "frame-body",
   purpose: "Declared as found at the start of the migration: FrameBody.svelte.",
   owner: { entry: "FrameBody.svelte" },
-  uses: [], approval: "none", contract: FrameBodyContract,
+  uses: ["information", "message-body", "node-renderer", "utility-actions"], approval: "none", contract: FrameBodyContract,
 } as const);

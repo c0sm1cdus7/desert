@@ -7,5 +7,5 @@ export const ViewContent = defineComposition({
   id: "view-content",
   purpose: "Declared as found at the start of the migration: ViewContent.svelte.",
   owner: { entry: "ViewContent.svelte" },
-  uses: [], approval: "none", contract: ViewContentContract,
+  uses: ["content-flow"], approval: "none", contract: ViewContentContract,
 } as const);

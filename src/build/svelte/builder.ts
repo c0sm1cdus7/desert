@@ -15,10 +15,11 @@ export const svelteWebBuilder = Object.freeze({
       async build(destination: string) {
         const project = createBuildProject(module);
         try {
-          await project.run("build");
+          const { gate } = await project.run("build");
           mkdirSync(join(destination, "web"));
           cpSync(join(project.directory, "build"), join(destination, "web"), { recursive: true });
           writeFileSync(join(destination, "package.json"), JSON.stringify({ private: true, type: "module" }) + "\n");
+          return { gate };
         } finally { project.close(); }
       },
     };

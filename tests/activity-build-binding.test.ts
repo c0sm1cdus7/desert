@@ -1,3 +1,4 @@
+import { buildFormat, gateVersion } from "../src/build/manifest.ts";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { activityExperience, activityInputs, compile, composeProduct, Components, defineView, viewPorts } from "../src/index.ts";
@@ -35,7 +36,7 @@ test("a generated activity catalog must exactly match both controller and sessio
   const distributions = [NotebookService, NotebookWeb];
   const { plan, builder } = installedBuilder(resolveBuild(application, distributions, NotebookWeb.id).plan);
   const manifest: BuildManifest & { activitiesDigest: string } = {
-    format: "desert.distribution-build/3", status: "built", productId: application.id, contractDigest: application.digest,
+    format: buildFormat, gate: { version: gateVersion }, status: "built", productId: application.id, contractDigest: application.digest,
     distributionId: plan.id, distributionDigest: digest({ target: plan.id, distributions }), distributions,
     surfaceId: plan.surface, surfaceDigest: digest(plan.interaction), viewProgramDigest: digest(program),
     renderer: { id: builder.id, revision: builder.revision() },

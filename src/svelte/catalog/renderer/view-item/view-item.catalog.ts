@@ -7,5 +7,5 @@ export const ViewItem = defineComposition({
   id: "view-item",
   purpose: "Declared as found at the start of the migration: ViewItem.svelte.",
   owner: { entry: "ViewItem.svelte" },
-  uses: [], approval: "none", contract: ViewItemContract,
+  uses: ["information", "message-body", "node-renderer", "stack-item", "summary-widget", "text-content", "view-destination-link"], dispatch: "view-content", approval: "none", contract: ViewItemContract,
 } as const);

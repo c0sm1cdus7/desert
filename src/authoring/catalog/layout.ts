@@ -4,13 +4,16 @@ export type CatalogLayout = Readonly<{
   roots: readonly string[];
   vendorFamilies: string;
   infra: string;
+  /** Test-only modules (the evidence project); no visual-root file may import them (rule I, N54). */
+  testing: string;
   /** The approvals ledger, written only by the owner's approve command. */
   ledger: string;
   fixed: Readonly<Record<string, readonly string[]>>;
   /** Files written only by `node scripts/catalog.ts --write` from the declarations (rule C). */
   generated: Readonly<{ index: string; manifest: string; types: string }>;
-  /** Rule P: every module of the gate, the folders that hold only those modules, and other files the gate needs. */
-  gate: Readonly<{ roots: readonly string[]; modules: readonly string[]; required: readonly string[] }>;
+  /** Rule P: every module of the gate, the folders that hold only those modules, and other files the gate needs.
+   * `reads`: sources outside the visual roots that content rules read as data (rule K reads the view grammar). */
+  gate: Readonly<{ roots: readonly string[]; modules: readonly string[]; required: readonly string[]; reads: readonly string[] }>;
   /** Folders under which each declaration kind must live, as `<folder>/<id>/<id>.<kind file>`. */
   pieces: Readonly<Record<"foundation" | "composition" | "mechanism", readonly string[]>>;
 }>;
@@ -26,6 +29,7 @@ export const DesertLayout: CatalogLayout = Object.freeze({
   roots: ["src/svelte", build],
   vendorFamilies: "src/svelte/vendor/components/ui",
   infra: "src/svelte/infra",
+  testing: "src/testing",
   ledger: "src/svelte/catalog/approvals.json",
   generated: { index: "src/svelte/catalog/index.ts", manifest: "src/svelte/catalog/manifest.json", types: "src/svelte/catalog/types.d.ts" },
   gate: {
@@ -33,10 +37,10 @@ export const DesertLayout: CatalogLayout = Object.freeze({
     modules: [
       ...modules("src/authoring/catalog", ["approvals-schema.ts", "declaration-schema.ts", "define.ts", "digest.ts", "generate.ts", "layout.ts",
         "normalize-source.ts", "read-contract.ts", "read-declaration.ts"]),
-      ...modules("src/authoring/catalog/gate", ["approvals.ts", "composition-template.ts", "content-rules.ts", "context.ts",
+      ...modules("src/authoring/catalog/gate", ["approvals.ts", "composition-dispatch.ts", "composition-template.ts", "content-rules.ts", "context.ts",
         "css-ownership.ts", "declarations.ts", "derivation.ts", "dom-access.ts", "emitted-css.ts", "grammar.ts", "inventory.ts", "ledger.ts",
         "native-controls.ts", "owner-imports.ts", "ownership.ts", "parse.ts", "presentation.ts", "resolve-imports.ts", "run.ts",
-        "sources.ts", "specimens.ts", "template-artifacts.ts", "violation.ts"]),
+        "sources.ts", "specimens.ts", "stylesheet.ts", "template-artifacts.ts", "violation.ts"]),
       // The previous gate stays on the build path until slice 1 ports its assertions into the rules above.
       ...modules("src/authoring/visual-boundary", ["adapter-globals.ts", "adapter.ts", "bootstrap.ts", "closed.ts", "composition.ts",
         "dependency-graph.ts", "dispatch-contract.ts", "dispatch-script.ts", "dispatch.ts", "dom-ownership.ts", "finite-inputs.ts",
@@ -46,6 +50,8 @@ export const DesertLayout: CatalogLayout = Object.freeze({
       ...modules("src/authoring/web-catalog", ["check.ts", "derive.ts", "manifest.ts"]),
     ],
     required: [theme],
+    reads: ["src/views/components.ts", "src/views/schema.ts", "src/views/grammar-map.ts",
+      "src/interaction/information-content.ts", "src/interaction/extended-nodes.ts"],
   },
   pieces: { foundation: ["src/svelte/catalog/foundations"], composition: ["src/svelte/catalog/compositions", "src/svelte/catalog/renderer"],
     mechanism: ["src/svelte/catalog/mechanisms"] },

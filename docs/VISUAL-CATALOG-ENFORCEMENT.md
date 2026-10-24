@@ -4,22 +4,36 @@ Implementation specification for the
 [visual catalog ownership contract](VISUAL-CATALOG-CONTRACT.md), dated 2026-10-20.
 The gates and tests below are required work, not currently passing capabilities.
 
-## What runs today (slice 0, 2026-10-23)
+## What runs today (slice 1, 2026-10-23)
 
-Every build and check (`createBuildProject`, `scripts/check-visual-boundary.ts`) runs, in
-order: rule P (every gate module, the theme, the ledger and the catalog index are present),
-then rules A (every file under `src/svelte` and `src/build/svelte` belongs to one declaration
-or one fixed category), B (declarations agree with each other and with their files), C (the
-generated catalog files equal their regeneration) and L (the ledger names every piece), then
-the previous visual-boundary gate until slice 1 ports it. Paths live only in
+Every build and check (`createBuildProject`, `scripts/check-visual-boundary.ts`) runs, in order:
+
+1. Rule P: every gate module, the theme, the ledger, the catalog index and the sources the gate reads are present.
+2. Structural rules, which stop at the first error: A (every file under `src/svelte` and `src/build/svelte` belongs to
+   one declaration or one fixed category), B (declarations agree), C (generated catalog files equal their regeneration),
+   L (the ledger names every piece).
+3. The previous visual-boundary gate, until its assertions are ported.
+4. Content rules, which report every violation in one failure: D/D2 (compositions and dispatchers compose catalog pieces
+   only), E (pieces receive only their contract's props), F (parts, vendor families and foundation props stay with their
+   owner), G (CSS styles only what its owner draws), H (native controls only in foundations), I (DOM only in foundations
+   and foundation-owned mechanisms), J (specimens cover every state and variant), K (the view grammar maps to authorable
+   compositions), L2 (approved pieces are unchanged; approved and dispatching pieces mount approved pieces), T (the host
+   files keep their fixed grammar).
+5. The worker; then, for a build, G2 on the emitted CSS.
+
+The build is strict (owner decision Q1): today the content rules report the migration worklist, so every build fails
+until slice 6 closes it. A qualified build records `gate: { version: "desert.catalog-gate/1" }` in a
+`desert.distribution-build/4` manifest, and serving refuses anything else. Paths live only in
 `src/authoring/catalog/layout.ts`.
 
 ```bash
-node scripts/catalog.ts --write     # regenerate catalog/index.ts, manifest.json, types.d.ts
-node scripts/catalog.ts --check     # rule C alone
-node scripts/catalog.ts status      # ledger status per piece and specimen
-node scripts/catalog-gate.ts        # rules P, A, B, C, L on this tree
-npm run test:gate                   # negative suite: red cases wait for slice-1 rules
+node scripts/catalog.ts --write          # regenerate catalog/index.ts, manifest.json, types.d.ts
+node scripts/catalog.ts --check          # rule C alone
+node scripts/catalog.ts status           # ledger status per piece and specimen, digests of approved pieces
+node scripts/catalog.ts approve <id>...  # owner only: stamp digests in approvals.json
+node scripts/catalog-gate.ts             # the full gate on this tree (same rules as the build)
+node scripts/catalog-violations.ts [D E ...]  # the violation list grouped by code, with examples
+npm run test:gate                        # negative suite: each mutation must add its violation
 ```
 
 ## Build gate

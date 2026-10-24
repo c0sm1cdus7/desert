@@ -3,7 +3,7 @@ import test from "node:test";
 import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { runWithVisualBoundaries } from "../src/authoring/visual-boundary/source.ts";
+import { previousGateViolations, runWithVisualBoundaries } from "../src/authoring/visual-boundary/source.ts";
 
 test("the real Svelte worker boundary rejects substituted, unregistered and drifted catalog derivations", async () => {
   const root = await mkdtemp(join(tmpdir(), "desert-web-catalog-build-"));
@@ -11,7 +11,8 @@ test("the real Svelte worker boundary rejects substituted, unregistered and drif
   const worker = async () => { calls++; return "verified worker result"; };
   try {
     await cp(new URL("../src", import.meta.url), join(root, "src"), { recursive: true });
-    assert.equal(await runWithVisualBoundaries(root, worker), "verified worker result");
+    // Strict build (Q1): the real tree still carries catalog violations, so the worker never runs; the previous gate alone passes.
+    assert.deepEqual(await previousGateViolations(root), []);
     for (const [path, mutate] of [
       ["adapter-catalog.ts", (source: string) => source.replace('from "./catalog/compositions/text-content/TextContent.svelte"', 'from "./catalog/foundations/feedback/Feedback.svelte"')],
       ["adapter-catalog.ts", (source: string) => source + "\nexport const Unregistered = TextOwner;"],
@@ -23,7 +24,7 @@ test("the real Svelte worker boundary rejects substituted, unregistered and drif
       assert.notEqual(candidate, original);
       await writeFile(target, candidate);
       await assert.rejects(runWithVisualBoundaries(root, worker), /WEB_CATALOG_(MANIFEST|DERIVATION)/);
-      assert.equal(calls, 1, "an invalid registration must stop before the worker");
+      assert.equal(calls, 0, "an invalid registration must stop before the worker");
       await writeFile(target, original);
     }
   } finally { await rm(root, { recursive: true }); }

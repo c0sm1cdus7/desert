@@ -150,3 +150,5 @@ export type CatalogExports = {
   readonly "zoom-controls": typeof Catalog.ZoomControls;
 };
 export type CatalogProps<Id extends CatalogId> = ComponentProps<CatalogExports[Id]>;
+/** One witness of a piece in one state and one value per variant axis (`<id>.specimens.ts`, rule J). */
+export type CatalogSpecimen<Id extends CatalogId> = Readonly<{ state: string; variants?: Readonly<Record<string, string>>; props: CatalogProps<Id> }>;

@@ -7,5 +7,5 @@ export const Facts = defineComposition({
   id: "facts",
   purpose: "Read a labeled value, including the difference between an empty value and an unknown value.",
   owner: { entry: "Facts.svelte" },
-  uses: [], approval: "none", contract: FactsContract,
+  uses: ["fact-group"], approval: "none", contract: FactsContract,
 } as const);

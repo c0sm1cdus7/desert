@@ -23,7 +23,7 @@ async function filesUnder(root: string, folder: string): Promise<string[]> {
 }
 
 export async function assertGateSources(root: string, layout: CatalogLayout): Promise<void> {
-  const required = [...layout.gate.modules, ...layout.gate.required, layout.ledger, layout.generated.index];
+  const required = [...layout.gate.modules, ...layout.gate.required, ...layout.gate.reads, layout.ledger, layout.generated.index];
   const missing: string[] = [];
   for (const path of required) if (!await exists(join(root, path))) missing.push(path);
   if (missing.length) throw new Error(`CATALOG_GATE_SOURCES: missing ${missing.sort().join(", ")}`);

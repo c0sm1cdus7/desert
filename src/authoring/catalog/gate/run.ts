@@ -63,11 +63,17 @@ const textual = /\.(svelte|ts|js|mjs|cjs|css|html|json|md|txt)$/;
 
 /** Content rules D–T over a tree that passed the structural rules: every violation, then one failure listing them all. */
 export async function runContentRules(root: string, tree: CatalogTree, options: Readonly<{ layout: CatalogLayout; rules: readonly ContentRuleId[] }>) {
+  const { context, violations } = await contentViolations(root, tree, options);
+  if (violations.length) throw new CatalogGateViolations(violations);
+  return context;
+}
+
+/** The violations of the content rules without failing, for an entry that joins them with other findings. */
+export async function contentViolations(root: string, tree: CatalogTree, options: Readonly<{ layout: CatalogLayout; rules: readonly ContentRuleId[] }>) {
   const sources = new Map<string, string>();
-  for (const path of tree.paths) if (textual.test(path)) sources.set(path, await readFile(join(root, path), "utf8"));
+  for (const path of [...tree.paths, ...options.layout.gate.reads]) if (textual.test(path)) sources.set(path, await readFile(join(root, path), "utf8"));
   const context = createContext({ layout: options.layout, paths: tree.paths, declarations: tree.declarations, ledger: tree.ledger, sources });
   const violations: Violation[] = [];
   for (const rule of options.rules) violations.push(...contentRules[rule](context));
-  if (violations.length) throw new CatalogGateViolations(violations);
-  return context;
+  return { context, violations: Object.freeze(violations) };
 }

@@ -7,5 +7,5 @@ export const ViewProduct = defineComposition({
   id: "view-product",
   purpose: "Declared as found at the start of the migration: ViewProduct.svelte.",
   owner: { entry: "ViewProduct.svelte" },
-  uses: [], approval: "none", contract: ViewProductContract,
+  uses: ["view-product-content"], approval: "none", contract: ViewProductContract,
 } as const);

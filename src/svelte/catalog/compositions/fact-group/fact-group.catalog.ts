@@ -7,5 +7,5 @@ export const FactGroup = defineComposition({
   id: "fact-group",
   purpose: "Declared as found at the start of the migration: FactGroup.svelte.",
   owner: { entry: "FactGroup.svelte" },
-  uses: ["node-renderer", "fact-row"], approval: "none", contract: FactGroupContract,
+  uses: ["fact-row", "node-renderer"], approval: "none", contract: FactGroupContract,
 } as const);

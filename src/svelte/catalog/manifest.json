@@ -390,8 +390,8 @@
       },
       "purpose": "Arrange a catalog overview from the same content, media and navigation compositions.",
       "uses": [
-        "node-renderer",
-        "heading"
+        "heading",
+        "node-renderer"
       ]
     },
     "catalog-navigation": {
@@ -416,8 +416,8 @@
       },
       "purpose": "Declared as found at the start of the migration: CatalogSearchResults.svelte.",
       "uses": [
-        "node-renderer",
-        "grouped-panel"
+        "grouped-panel",
+        "node-renderer"
       ]
     },
     "catalog-workspace": {
@@ -619,11 +619,11 @@
       "purpose": "Read an object and use its contextual commands without leaving its destination.",
       "uses": [
         "attention-status",
-        "node-renderer",
         "context-properties",
         "destination-row",
         "grouped-panel",
         "media-object",
+        "node-renderer",
         "reading-content"
       ]
     },
@@ -678,7 +678,9 @@
         "entry": "ControlRenderer.svelte"
       },
       "purpose": "Declared as found at the start of the migration: ControlRenderer.svelte.",
-      "uses": []
+      "uses": [
+        "node-renderer"
+      ]
     },
     "date-control": {
       "approval": "required",
@@ -767,8 +769,8 @@
       },
       "purpose": "Declared as found at the start of the migration: FactGroup.svelte.",
       "uses": [
-        "node-renderer",
-        "fact-row"
+        "fact-row",
+        "node-renderer"
       ]
     },
     "fact-row": {
@@ -805,7 +807,9 @@
         "entry": "Facts.svelte"
       },
       "purpose": "Read a labeled value, including the difference between an empty value and an unknown value.",
-      "uses": []
+      "uses": [
+        "fact-group"
+      ]
     },
     "failure-dialog": {
       "approval": "none",
@@ -815,7 +819,9 @@
         "entry": "FailureDialog.svelte"
       },
       "purpose": "Declared as found at the start of the migration: FailureDialog.svelte.",
-      "uses": []
+      "uses": [
+        "node-renderer"
+      ]
     },
     "feedback": {
       "approval": "required",
@@ -897,7 +903,12 @@
         "entry": "FrameBody.svelte"
       },
       "purpose": "Declared as found at the start of the migration: FrameBody.svelte.",
-      "uses": []
+      "uses": [
+        "information",
+        "message-body",
+        "node-renderer",
+        "utility-actions"
+      ]
     },
     "grouped-panel": {
       "approval": "required",
@@ -982,8 +993,9 @@
       },
       "purpose": "Declared as found at the start of the migration: Inspection.svelte.",
       "uses": [
-        "node-renderer",
         "catalog-detail",
+        "inspection-catalog",
+        "node-renderer",
         "retained-place",
         "toolbar"
       ]
@@ -1021,7 +1033,9 @@
         "entry": "InspectionContent.svelte"
       },
       "purpose": "Declared as found at the start of the migration: InspectionContent.svelte.",
-      "uses": []
+      "uses": [
+        "inspection"
+      ]
     },
     "instance-frame": {
       "approval": "none",
@@ -1031,7 +1045,9 @@
         "entry": "InstanceFrame.svelte"
       },
       "purpose": "Declared as found at the start of the migration: InstanceFrame.svelte.",
-      "uses": []
+      "uses": [
+        "surface-frame"
+      ]
     },
     "label-rail": {
       "approval": "required",
@@ -1058,10 +1074,10 @@
       },
       "purpose": "Compose the field well, value rail and options from the same shared owners as every labels control.",
       "uses": [
-        "node-renderer",
         "character-counter",
         "label-rail",
         "media-reference-selector",
+        "node-renderer",
         "reference-selector",
         "stack-layout",
         "text-input"
@@ -1100,7 +1116,9 @@
         "entry": "LocalExercises.svelte"
       },
       "purpose": "Declared as found at the start of the migration: LocalExercises.svelte.",
-      "uses": []
+      "uses": [
+        "local-exercise-content"
+      ]
     },
     "lock-screen": {
       "approval": "required",
@@ -1169,7 +1187,9 @@
         "entry": "MediaContent.svelte"
       },
       "purpose": "Declared as found at the start of the migration: MediaContent.svelte.",
-      "uses": []
+      "uses": [
+        "library"
+      ]
     },
     "media-control": {
       "approval": "none",
@@ -1271,13 +1291,36 @@
     },
     "node-renderer": {
       "approval": "none",
+      "dispatch": "resolved-node",
       "folder": "src/svelte/catalog/renderer/node-renderer",
       "kind": "composition",
       "owner": {
         "entry": "NodeRenderer.svelte"
       },
       "purpose": "Declared as found at the start of the migration: NodeRenderer.svelte.",
-      "uses": []
+      "uses": [
+        "action",
+        "availability",
+        "catalog-card",
+        "catalog-detail",
+        "catalog-home",
+        "collection",
+        "context-panel",
+        "date-control",
+        "drawer",
+        "facts",
+        "fields",
+        "file-control",
+        "labels-control",
+        "media-control",
+        "money-control",
+        "options-control",
+        "popover-control",
+        "problem",
+        "review",
+        "select-control",
+        "text-input"
+      ]
     },
     "object-state-control": {
       "approval": "none",
@@ -1325,7 +1368,9 @@
         "entry": "Panel.svelte"
       },
       "purpose": "Declared as found at the start of the migration: Panel.svelte.",
-      "uses": []
+      "uses": [
+        "view-panel"
+      ]
     },
     "photo-collection": {
       "approval": "none",
@@ -1453,8 +1498,8 @@
       },
       "purpose": "Read contextual information in a temporary surface anchored to its trigger.",
       "uses": [
-        "node-renderer",
-        "frame-body"
+        "frame-body",
+        "node-renderer"
       ]
     },
     "problem": {
@@ -1477,7 +1522,9 @@
         "entry": "PublicCatalogBank.svelte"
       },
       "purpose": "Declared as found at the start of the migration: PublicCatalogBank.svelte.",
-      "uses": []
+      "uses": [
+        "inspection-catalog"
+      ]
     },
     "public-catalog-bank-specimen": {
       "approval": "none",
@@ -1490,7 +1537,10 @@
         ]
       },
       "purpose": "Declared as found at the start of the migration: PublicCatalogBankSpecimen.svelte.",
-      "uses": []
+      "uses": [
+        "feedback",
+        "node-renderer"
+      ]
     },
     "public-catalog-product": {
       "approval": "none",
@@ -1500,7 +1550,9 @@
         "entry": "PublicCatalogProduct.svelte"
       },
       "purpose": "Declared as found at the start of the migration: PublicCatalogProduct.svelte.",
-      "uses": []
+      "uses": [
+        "public-catalog-product-content"
+      ]
     },
     "public-catalog-product-content": {
       "approval": "none",
@@ -1677,8 +1729,8 @@
       },
       "purpose": "Choose one value from a labeled field and a shared options popover.",
       "uses": [
-        "node-renderer",
         "measured-field",
+        "node-renderer",
         "selection-field"
       ]
     },
@@ -1967,8 +2019,8 @@
       },
       "purpose": "Keep navigation and contextual commands in the surface toolbar; reveal its title and subtitle only after the content header scrolls away.",
       "uses": [
-        "node-renderer",
         "face",
+        "node-renderer",
         "playback-controls",
         "speed-dial",
         "toolbar-media-controls",
@@ -2034,7 +2086,9 @@
         "entry": "ViewContent.svelte"
       },
       "purpose": "Declared as found at the start of the migration: ViewContent.svelte.",
-      "uses": []
+      "uses": [
+        "content-flow"
+      ]
     },
     "view-destination-link": {
       "approval": "none",
@@ -2051,13 +2105,22 @@
     },
     "view-item": {
       "approval": "none",
+      "dispatch": "view-content",
       "folder": "src/svelte/catalog/renderer/view-item",
       "kind": "composition",
       "owner": {
         "entry": "ViewItem.svelte"
       },
       "purpose": "Declared as found at the start of the migration: ViewItem.svelte.",
-      "uses": []
+      "uses": [
+        "information",
+        "message-body",
+        "node-renderer",
+        "stack-item",
+        "summary-widget",
+        "text-content",
+        "view-destination-link"
+      ]
     },
     "view-panel": {
       "approval": "none",
@@ -2080,7 +2143,9 @@
         "entry": "ViewProduct.svelte"
       },
       "purpose": "Declared as found at the start of the migration: ViewProduct.svelte.",
-      "uses": []
+      "uses": [
+        "view-product-content"
+      ]
     },
     "view-product-content": {
       "approval": "none",
@@ -2159,7 +2224,9 @@
         "entry": "Workspace.svelte"
       },
       "purpose": "Declared as found at the start of the migration: Workspace.svelte.",
-      "uses": []
+      "uses": [
+        "view-workspace"
+      ]
     },
     "zoom-controls": {
       "approval": "none",

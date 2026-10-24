@@ -4,7 +4,7 @@ import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { assertCanonicalToolbarOwnership } from "../src/authoring/visual-boundary/toolbar.ts";
-import { readVisualBoundarySources, runWithVisualBoundaries } from "../src/authoring/visual-boundary/source.ts";
+import { previousGateViolations, readVisualBoundarySources, runWithVisualBoundaries } from "../src/authoring/visual-boundary/source.ts";
 
 const consumer = "src/svelte/explorer/Consumer.svelte";
 const sources = await readVisualBoundarySources(new URL("..", import.meta.url).pathname);
@@ -103,7 +103,8 @@ test("the real worker boundary rejects a catalog consumer's generic heading over
   const worker = async () => { calls++; };
   try {
     await cp(new URL("../src", import.meta.url), join(root, "src"), { recursive: true });
-    await runWithVisualBoundaries(root, worker);
+    // Strict build (Q1): the real tree still carries catalog violations, so the worker never runs; the previous gate alone passes.
+    assert.deepEqual(await previousGateViolations(root), []);
     const path = join(root, "src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte");
     const original = await readFile(path, "utf8");
     const candidate = original.replace("</style>",
@@ -111,6 +112,6 @@ test("the real worker boundary rejects a catalog consumer's generic heading over
     assert.notEqual(candidate, original);
     await writeFile(path, candidate);
     await assert.rejects(runWithVisualBoundaries(root, worker), /TOOLBAR_OWNERSHIP/);
-    assert.equal(calls, 1, "the changed consumer must fail before the build worker");
+    assert.equal(calls, 0, "the changed consumer must fail before the build worker");
   } finally { await rm(root, { recursive: true }); }
 });

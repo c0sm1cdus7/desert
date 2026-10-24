@@ -1,6 +1,7 @@
 // The content rules (D–T) in the order the gate runs them. Each reads the shared context and returns every violation.
 import type { ContentRule } from "./context.ts";
-import { ruleD, ruleD2 } from "./composition-template.ts";
+import { ruleD } from "./composition-template.ts";
+import { ruleD2 } from "./composition-dispatch.ts";
 import { ruleE } from "./presentation.ts";
 import { ruleF } from "./owner-imports.ts";
 import { ruleG } from "./css-ownership.ts";

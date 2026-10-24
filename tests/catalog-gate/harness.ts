@@ -2,19 +2,26 @@
 // Each observation copies src/, applies one mutation, and runs the copy's own gate in a child process.
 import { execFile } from "node:child_process";
 import { cp, mkdtemp, readFile, rm, symlink, unlink, writeFile, mkdir } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { Type, type Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { generateCatalog } from "../../src/authoring/catalog/generate.ts";
+import { contractDigest, sourceDigest } from "../../src/authoring/catalog/digest.ts";
+import { readCatalogTree } from "../../src/authoring/catalog/gate/run.ts";
+import { DesertLayout } from "../../src/authoring/catalog/layout.ts";
 
 const sdkRoot = fileURLToPath(new URL("../../", import.meta.url));
 const runner = fileURLToPath(new URL("./gate-runner.ts", import.meta.url));
 
 export const GateOutcomeSchema = Type.Union([
   Type.Object({ outcome: Type.Literal("built") }, { additionalProperties: false }),
-  Type.Object({ outcome: Type.Literal("rejected"), message: Type.String() }, { additionalProperties: false }),
+  Type.Object({ outcome: Type.Literal("rejected"), message: Type.String(),
+    violations: Type.Optional(Type.Array(Type.Object({ code: Type.String(), path: Type.String(), what: Type.String() }, { additionalProperties: false }))) },
+  { additionalProperties: false }),
   Type.Object({ outcome: Type.Literal("crashed"), message: Type.String() }, { additionalProperties: false }),
 ]);
 export type GateOutcome = Static<typeof GateOutcomeSchema>;
@@ -41,6 +48,24 @@ export class SourceTree {
   }
   async remove(relative: string) { await unlink(this.path(relative)); }
   async link(target: string, relative: string) { await symlink(this.path(target), this.path(relative)); }
+  /** What the owner's `approve` stamps, on the copy's ledger only (never the real one): the digests the gate recomputes.
+   * `digests` overrides a value, for the case of a hand-set digest. */
+  async approveInCopy(id: string, digests: Readonly<{ source?: string; contract?: string }> = {}) {
+    const tree = await readCatalogTree(this.root, DesertLayout), read = (path: string) => {
+      try { return new Uint8Array(readFileSync(this.path(path))); } catch { return undefined; }
+    };
+    const digestTree = { layout: DesertLayout, paths: tree.paths, declarations: tree.declarations };
+    const ledger = JSON.parse(await readFile(this.path(DesertLayout.ledger), "utf8"));
+    ledger.pieces[id] = { status: "approved", sourceDigest: digests.source ?? sourceDigest(digestTree, id, read),
+      contractDigest: digests.contract ?? contractDigest(digestTree, id, read), approvedOn: "2026-10-23", approvedBy: "owner" };
+    await writeFile(this.path(DesertLayout.ledger), `${JSON.stringify(ledger, null, 2)}\n`);
+  }
+  /** What `node scripts/catalog.ts --write` does, on the copy: so a case can change a declaration without a derivation error. */
+  async regenerateCatalog() {
+    for (const file of generateCatalog((await readCatalogTree(this.root, DesertLayout)).declarations, DesertLayout)) {
+      await writeFile(this.path(file.path), file.source);
+    }
+  }
 }
 
 async function copyOfSdk(): Promise<SourceTree> {
@@ -64,7 +89,30 @@ export async function observeGate(mutate: Mutation, mode: GateMode = "boundaries
   try {
     await mutate(tree);
     const { stdout } = await promisify(execFile)(process.execPath, [runner, tree.root, mode],
-      { cwd: tree.root, timeout: 120000, maxBuffer: 8 * 1024 * 1024 });
+      { cwd: tree.root, timeout: 120000, maxBuffer: 64 * 1024 * 1024 });
     return parseOutcome(stdout);
   } finally { await rm(tree.root, { recursive: true, force: true }); }
+}
+
+const baselines = new Map<GateMode, Promise<GateOutcome>>();
+/** The unmutated tree, observed once per mode: under the strict build (Q1) it carries today's violations. */
+export const baselineOf = (mode: GateMode = "boundaries") => {
+  const known = baselines.get(mode);
+  if (known) return known;
+  const observed = observeGate(async () => {}, mode);
+  baselines.set(mode, observed);
+  return observed;
+};
+
+const key = (item: Readonly<{ code: string; path: string; what: string }>) => `${item.code}\u0000${item.path}\u0000${item.what}`;
+/** Violations of `result` that the baseline does not have, as a multiset (a second identical violation is new). */
+export function addedViolations(result: GateOutcome, baseline: GateOutcome) {
+  if (result.outcome !== "rejected" || !result.violations) return undefined;
+  const remaining = new Map<string, number>();
+  for (const item of baseline.outcome === "rejected" ? baseline.violations ?? [] : []) remaining.set(key(item), (remaining.get(key(item)) ?? 0) + 1);
+  return result.violations.filter(item => {
+    const left = remaining.get(key(item)) ?? 0;
+    if (left > 0) { remaining.set(key(item), left - 1); return false; }
+    return true;
+  });
 }

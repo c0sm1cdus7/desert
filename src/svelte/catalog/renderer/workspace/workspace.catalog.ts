@@ -7,5 +7,5 @@ export const Workspace = defineComposition({
   id: "workspace",
   purpose: "Declared as found at the start of the migration: Workspace.svelte.",
   owner: { entry: "Workspace.svelte" },
-  uses: [], approval: "none", contract: WorkspaceContract,
+  uses: ["view-workspace"], approval: "none", contract: WorkspaceContract,
 } as const);

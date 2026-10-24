@@ -1,0 +1,86 @@
+# The Visual Catalog gate in CI (plan 3.7, owner decision Q4). Required checks on the protected branch: gate,
+# gate-from-base, ledger-integrity (see docs/REPOSITORY-PROTECTION.md). Under the strict build (Q1) `gate` stays red
+# until slice 6 closes the violation list; that is expected and reported, never patched around.
+name: gate
+on:
+  pull_request:
+  push:
+    branches: [codex/module-architecture, main]
+permissions:
+  contents: read
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    env:
+      DESERT_PG_BIN: /usr/lib/postgresql/18/bin
+      LANG: C.UTF-8
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24.16.0 }
+      - name: PostgreSQL 18 (tests start their own clusters with initdb/pg_ctl)
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-18
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: npm run typecheck
+      - run: node scripts/catalog.ts --check
+      - name: Catalog gate (full; strict build)
+        run: node scripts/catalog-gate.ts
+      - run: npm test
+        if: always()
+      - run: npm run test:gate
+        if: always()
+
+  gate-from-base:
+    # The base branch's gate judges the PR tree, so a PR cannot weaken the gate that checks it.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24.16.0 }
+      - run: npm ci --ignore-scripts
+      - name: Run the base gate on the PR tree
+        env: { BASE: "${{ github.base_ref }}" }
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/base" "origin/$BASE"
+          if [ ! -d "$RUNNER_TEMP/base/src/authoring/catalog" ]; then
+            echo "::notice::The base branch has no catalog gate yet (first PR); nothing to compare."
+            exit 0
+          fi
+          rm -rf src/authoring scripts/catalog-gate.ts
+          cp -R "$RUNNER_TEMP/base/src/authoring" src/authoring
+          cp "$RUNNER_TEMP/base/scripts/catalog-gate.ts" scripts/catalog-gate.ts
+          node scripts/catalog-gate.ts
+
+  ledger-integrity:
+    # Only the owner stamps approvals: every commit of the PR that touches the ledger must carry a signature GitHub
+    # verifies for the owner's account.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OWNER: c0sm1cdus7
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Ledger commits are signed by the owner
+        env: { BASE_SHA: "${{ github.event.pull_request.base.sha }}", HEAD_SHA: "${{ github.event.pull_request.head.sha }}" }
+        run: |
+          status=0
+          for sha in $(git rev-list "$BASE_SHA..$HEAD_SHA" -- src/svelte/catalog/approvals.json); do
+            verified=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha" --jq '.commit.verification.verified')
+            login=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha" --jq '.committer.login // ""')
+            if [ "$verified" != "true" ] || [ "$login" != "$OWNER" ]; then
+              echo "::error::$sha changes the approvals ledger without a verified signature of $OWNER"
+              status=1
+            fi
+          done
+          exit $status

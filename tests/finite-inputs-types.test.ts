@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createBuildProject } from "../src/build/svelte/project.ts";
+// svelte-check of the generated project, not the gate: the test-only evidence project (plan 3.5) while the strict build is red.
+import { createEvidenceProject } from "../src/testing/evidence-project.ts";
 
 test("actual Svelte APIs reject arbitrary native attributes without duplicating prop schemas", {timeout:60000}, async () => {
-  const project=createBuildProject("export const surface = {}; export const validateInput = () => false;");
+  const project=createEvidenceProject("export const surface = {}; export const validateInput = () => false;");
   const path=join(project.directory,"src/routes/+page.svelte");
   const header=`<script lang="ts">
     import Place from '@desert/svelte/catalog/foundations/place/Place.svelte';

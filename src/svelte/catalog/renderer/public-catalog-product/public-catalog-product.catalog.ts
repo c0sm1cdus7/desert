@@ -7,5 +7,5 @@ export const PublicCatalogProduct = defineComposition({
   id: "public-catalog-product",
   purpose: "Declared as found at the start of the migration: PublicCatalogProduct.svelte.",
   owner: { entry: "PublicCatalogProduct.svelte" },
-  uses: [], approval: "none", contract: PublicCatalogProductContract,
+  uses: ["public-catalog-product-content"], approval: "none", contract: PublicCatalogProductContract,
 } as const);

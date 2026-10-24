@@ -96,8 +96,11 @@ export function exportedNames(parsed: Parsed): ReadonlyMap<string, string> {
     }
     const exported = ts.canHaveModifiers(statement) && ts.getModifiers(statement)?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword);
     if (!exported) continue;
+    // `export const X: T = Owner;` re-exports the binding Owner under the name X (adapter-catalog.ts is written this way).
     if (ts.isVariableStatement(statement)) for (const declaration of statement.declarationList.declarations) {
-      if (ts.isIdentifier(declaration.name)) names.set(declaration.name.text, declaration.name.text);
+      if (!ts.isIdentifier(declaration.name)) continue;
+      const initializer = declaration.initializer;
+      names.set(declaration.name.text, initializer && ts.isIdentifier(initializer) ? initializer.text : declaration.name.text);
     }
     if ((ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement)) && statement.name) names.set(statement.name.text, statement.name.text);
     if (ts.isExportAssignment(statement)) names.set("default", "default");

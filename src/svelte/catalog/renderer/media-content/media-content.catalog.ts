@@ -7,5 +7,5 @@ export const MediaContent = defineComposition({
   id: "media-content",
   purpose: "Declared as found at the start of the migration: MediaContent.svelte.",
   owner: { entry: "MediaContent.svelte" },
-  uses: [], approval: "none", contract: MediaContentContract,
+  uses: ["library"], approval: "none", contract: MediaContentContract,
 } as const);

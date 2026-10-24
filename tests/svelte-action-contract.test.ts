@@ -2,10 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createBuildProject } from "../src/build/svelte/project.ts";
+// svelte-check of the generated project, not the gate: the test-only evidence project (plan 3.5) while the strict build is red.
+import { createEvidenceProject } from "../src/testing/evidence-project.ts";
 
 test("Svelte consumers cannot omit or invent Action icons", { timeout: 60000 }, async () => {
-  const project = createBuildProject("export const surface = {}; export const validateInput = () => false;");
+  const project = createEvidenceProject("export const surface = {}; export const validateInput = () => false;");
   const page = join(project.directory, "src/routes/+page.svelte");
   const header = '<script lang="ts">import Action from "@desert/svelte/catalog/foundations/action/Action.svelte";</script>\n';
   try {

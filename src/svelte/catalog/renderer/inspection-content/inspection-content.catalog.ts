@@ -7,5 +7,5 @@ export const InspectionContent = defineComposition({
   id: "inspection-content",
   purpose: "Declared as found at the start of the migration: InspectionContent.svelte.",
   owner: { entry: "InspectionContent.svelte" },
-  uses: [], approval: "none", contract: InspectionContentContract,
+  uses: ["inspection"], approval: "none", contract: InspectionContentContract,
 } as const);

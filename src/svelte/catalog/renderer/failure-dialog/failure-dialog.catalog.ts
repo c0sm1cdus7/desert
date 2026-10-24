@@ -7,5 +7,5 @@ export const FailureDialog = defineComposition({
   id: "failure-dialog",
   purpose: "Declared as found at the start of the migration: FailureDialog.svelte.",
   owner: { entry: "FailureDialog.svelte" },
-  uses: [], approval: "none", contract: FailureDialogContract,
+  uses: ["node-renderer"], approval: "none", contract: FailureDialogContract,
 } as const);

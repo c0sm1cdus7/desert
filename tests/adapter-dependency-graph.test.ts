@@ -3,7 +3,7 @@ import test from "node:test";
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
-import { runWithVisualBoundaries } from "../src/authoring/visual-boundary/source.ts";
+import { previousGateViolations, runWithVisualBoundaries } from "../src/authoring/visual-boundary/source.ts";
 
 const root = resolve(import.meta.dirname, "..");
 const adapterPath = "src/svelte/catalog/renderer/view-item/ViewItem.svelte";
@@ -76,8 +76,7 @@ test("ordinary nonvisual helper chains and type-only visual references remain le
     writeFileSync(join(directory, "src/web/client/graph-second.ts"),
       'import type Action from "../../svelte/catalog/foundations/action/Action.svelte";\n'
       + 'export const observe = () => ({ title: "Notes", value: 1 });');
-    let invoked = false;
-    await runWithVisualBoundaries(directory, async () => { invoked = true; });
-    assert.equal(invoked, true);
+    // Strict build (Q1): the real tree still carries catalog violations, so the worker never runs; the previous gate alone passes.
+    assert.deepEqual(await previousGateViolations(directory), []);
   });
 });

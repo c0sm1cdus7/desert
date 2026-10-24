@@ -7,5 +7,5 @@ export const InstanceFrame = defineComposition({
   id: "instance-frame",
   purpose: "Declared as found at the start of the migration: InstanceFrame.svelte.",
   owner: { entry: "InstanceFrame.svelte" },
-  uses: [], approval: "none", contract: InstanceFrameContract,
+  uses: ["surface-frame"], approval: "none", contract: InstanceFrameContract,
 } as const);

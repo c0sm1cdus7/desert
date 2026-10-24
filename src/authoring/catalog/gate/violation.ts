@@ -4,8 +4,8 @@ export type Violation = Readonly<{ code: string; path: string; line: number; wha
 
 export const violation = (code: string, path: string, line: number, what: string): Violation => Object.freeze({ code, path, line, what });
 
-/** `CODE: path:line: what`, the one format every gate message uses. */
-export const formatViolation = (item: Violation) => `${item.code}: ${item.path}:${item.line}: ${item.what}`;
+/** `CODE: path:line: what`, the one format every gate message uses; line 0 means the finding has no line (`CODE: path: what`). */
+export const formatViolation = (item: Violation) => `${item.code}: ${item.path}${item.line > 0 ? `:${item.line}` : ""}: ${item.what}`;
 
 const order = (left: Violation, right: Violation) =>
   left.path < right.path ? -1 : left.path > right.path ? 1 : left.line - right.line || (left.code < right.code ? -1 : left.code > right.code ? 1 : 0);

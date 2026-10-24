@@ -7,5 +7,5 @@ export const Panel = defineComposition({
   id: "panel",
   purpose: "Declared as found at the start of the migration: Panel.svelte.",
   owner: { entry: "Panel.svelte" },
-  uses: [], approval: "none", contract: PanelContract,
+  uses: ["view-panel"], approval: "none", contract: PanelContract,
 } as const);

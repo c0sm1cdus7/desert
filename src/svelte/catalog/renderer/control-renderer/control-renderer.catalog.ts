@@ -7,5 +7,5 @@ export const ControlRenderer = defineComposition({
   id: "control-renderer",
   purpose: "Declared as found at the start of the migration: ControlRenderer.svelte.",
   owner: { entry: "ControlRenderer.svelte" },
-  uses: [], approval: "none", contract: ControlRendererContract,
+  uses: ["node-renderer"], approval: "none", contract: ControlRendererContract,
 } as const);

@@ -7,5 +7,5 @@ export const SelectControl = defineComposition({
   id: "select-control",
   purpose: "Choose one value from a labeled field and a shared options popover.",
   owner: { entry: "SelectControl.svelte" },
-  uses: ["node-renderer", "measured-field", "selection-field"], approval: "none", contract: SelectControlContract,
+  uses: ["measured-field", "node-renderer", "selection-field"], approval: "none", contract: SelectControlContract,
 } as const);

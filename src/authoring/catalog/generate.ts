@@ -39,7 +39,10 @@ export function generateCatalog(declarations: readonly LocatedDeclaration[], lay
     "export type CatalogExports = {",
     ...pieces.map(({ declaration }) => `  readonly ${JSON.stringify(declaration.id)}: typeof Catalog.${exportName(declaration.id)};`),
     "};",
-    "export type CatalogProps<Id extends CatalogId> = ComponentProps<CatalogExports[Id]>;", ""].join("\n");
+    "export type CatalogProps<Id extends CatalogId> = ComponentProps<CatalogExports[Id]>;",
+    "/** One witness of a piece in one state and one value per variant axis (`<id>.specimens.ts`, rule J). */",
+    "export type CatalogSpecimen<Id extends CatalogId> = Readonly<{ state: string; variants?: Readonly<Record<string, string>>; props: CatalogProps<Id> }>;",
+    ""].join("\n");
 
   return Object.freeze([
     { path: layout.generated.index, source: index },

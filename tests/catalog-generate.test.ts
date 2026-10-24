@@ -60,6 +60,7 @@ test("the types name every piece id and type props from its entry", async () => 
   assert.match(types, /export type CatalogId = "field" \| "sign-in-form";/);
   assert.match(types, /"sign-in-form": typeof Catalog\.SignInForm;/);
   assert.match(types, /export type CatalogProps<Id extends CatalogId> = ComponentProps<CatalogExports\[Id\]>;/);
+  assert.match(types, /export type CatalogSpecimen<Id extends CatalogId> = Readonly<\{ state: string; variants\?: Readonly<Record<string, string>>; props: CatalogProps<Id> \}>;/);
 });
 
 async function generatedTree(edit: (files: Record<string, string>) => void = () => {}) {
