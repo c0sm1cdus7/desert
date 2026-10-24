@@ -60,6 +60,11 @@ for (const [name, source, pattern] of [
   ["a reference that is not imported", "export const C = { props: Type.Object({ a: Loose }, { additionalProperties: false }) } as const;", /Loose is not a schema imported/],
   ["a typed reference to an unimported type", "export const C = { props: Type.Object({ a: Type.Unsafe<Loose>() }, { additionalProperties: false }) } as const;", /Loose is neither imported/],
   ["a typed reference to a component", 'import type { Shape } from "../catalog/compositions/x/x.ts";\nexport const C = { props: Type.Object({ a: Type.Unsafe<Shape>() }, { additionalProperties: false }) } as const;', /comes from visual code/],
+  ["Type.Unsafe<any>", "export const C = { props: Type.Object({ a: Type.Unsafe<any>() }, { additionalProperties: false }) } as const;", /open type any/],
+  ["Type.Unsafe<unknown>", "export const C = { props: Type.Object({ a: Type.Unsafe<unknown>() }, { additionalProperties: false }) } as const;", /open type unknown/],
+  ["Type.Unsafe<object>", "export const C = { props: Type.Object({ a: Type.Unsafe<object>() }, { additionalProperties: false }) } as const;", /open type object/],
+  ["an open record", "export const C = { props: Type.Object({ a: Type.Unsafe<Record<string, unknown>>() }, { additionalProperties: false }) } as const;", /open type unknown/],
+  ["a DOM element", "export const C = { props: Type.Object({ a: Type.Unsafe<HTMLElement>() }, { additionalProperties: false }) } as const;", /HTMLElement is neither imported/],
   ["a bare Type.Unsafe", "export const C = { props: Type.Object({ a: Type.Unsafe({}) }, { additionalProperties: false }) } as const;", /one type argument and no schema/],
   ["a reference to visual code", 'import { Shape } from "../x/X.svelte";\nexport const C = { props: Type.Object({ a: Shape }, { additionalProperties: false }) } as const;', /comes from visual code/],
 ] as const) test(`${name} is refused`, () => {

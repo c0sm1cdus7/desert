@@ -26,6 +26,13 @@ const utilityTypes = new Set(["Pick", "Omit", "Partial", "Required", "Readonly",
 /** Visual code: a Svelte file, or any module of src/svelte that is not infra/ (infra is nonvisual TypeScript, rule I). */
 const visualModule = (from: string) => /\.svelte$/.test(from) || /\/svelte\//.test(from) && !/\/infra\//.test(from)
   || /\/catalog\/(foundations|compositions|renderer|mechanisms)\//.test(from);
+/** `any`, `unknown` or `object` anywhere in a type expression: an open type that would let any data through. */
+function openKeyword(node: ts.Node): string | undefined {
+  if (node.kind === ts.SyntaxKind.AnyKeyword) return "any";
+  if (node.kind === ts.SyntaxKind.UnknownKeyword) return "unknown";
+  if (node.kind === ts.SyntaxKind.ObjectKeyword) return "object";
+  return ts.forEachChild(node, openKeyword);
+}
 /** Every type name a type expression refers to (`Pick<AccessClient, "lock">` → Pick, AccessClient). */
 function typeNames(node: ts.Node, found: Set<string> = new Set()): Set<string> {
   if (ts.isTypeReferenceNode(node)) found.add(ts.isIdentifier(node.typeName) ? node.typeName.text : node.typeName.getText());
@@ -60,6 +67,8 @@ export function readContract(path: string, source: string): ReadContract {
     if (found.name === "Unsafe") {
       const [argument] = found.node.typeArguments ?? [];
       if (!argument || found.node.arguments.length) return fail(node, "Type.Unsafe takes one type argument and no schema: Type.Unsafe<DomainType>()");
+      const open = openKeyword(argument);
+      if (open) return fail(node, `Type.Unsafe<${argument.getText(file)}> holds the open type ${open}; name a domain or infra type`);
       const names = typeNames(argument);
       for (const name of names) {
         const from = imported.get(name);
