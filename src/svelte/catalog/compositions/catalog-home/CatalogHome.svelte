@@ -1,22 +1,27 @@
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
-  import { NodeRenderer } from "../../index.ts";
-  import { Heading } from "../../index.ts";
+  import { Column, Heading, Inline, NodeRenderer, StackItem, ViewRegion } from "../../index.ts";
   import { currentHeadingOffset, scopeHeadings } from "../../../infra/heading-context.ts";
-  let { node, onevent, bodyOnly = false }: CatalogProps<"catalog-home"> = $props();
-  const id = $props.id();
+  let { node, onevent, bodyOnly = false, placement = "nested" }: CatalogProps<"catalog-home"> = $props();
   // This composition has rails but no page heading of its own.
   if (currentHeadingOffset() > 0) scopeHeadings(-1);
 </script>
 
-<div data-catalog-home>
-  {#if !bodyOnly}<section data-place-stack="featured" aria-label={node.featured.eyebrow}><NodeRenderer node={node.featured} {onevent} /></section>{/if}
-  {#each node.groups as group, index (group.id)}
-    <section data-catalog-group data-place-stack={group.id} aria-labelledby={`${id}-group-${index}`}>
-      <Heading kind="section" id={`${id}-group-${index}`} text={group.title} />
-      <div data-catalog-rail data-public-rail={group.title}>
-        {#each group.items as item (item.record)}<NodeRenderer node={item} {onevent} />{/each}
-      </div>
-    </section>
+{#if !bodyOnly}
+  <ViewRegion kind="item" id="featured" label={node.featured.eyebrow}>
+    <StackItem placement={placement === "nested" ? "content" : "surface"}><NodeRenderer node={node.featured} {onevent} /></StackItem>
+  </ViewRegion>
+{/if}
+<!-- The rails sit in a section under the featured entry (or the place heading); each rail is its group's labelled region. -->
+<Column gap="relaxed" inset="section">
+  {#each node.groups as group (group.id)}
+    <ViewRegion kind="item" id={group.id}>
+      <Column gap="close" leading={placement === "page"}>
+        <Column gap="snug" inset="content"><Heading kind="section" text={group.title} /></Column>
+        <Inline gap="close" overflow="scroll" label={group.title}>
+          {#each group.items as item (item.record)}<NodeRenderer node={item} {onevent} />{/each}
+        </Inline>
+      </Column>
+    </ViewRegion>
   {/each}
-</div>
+</Column>

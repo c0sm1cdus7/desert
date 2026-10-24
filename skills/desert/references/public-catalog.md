@@ -1500,7 +1500,7 @@ Source SHA-256: 1e20f01d45949b10db016b064f59258fbc18e24af4ddb974a44c7cb6812ec77b
 
 ## src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
 
-Source SHA-256: 463ac910f67109c98bcb97cb8795feb334b27cdbf2e1b9e20a4067e701296e3d
+Source SHA-256: 8c6c7ac95370af17c79fa0a2e481e19d3a55fd261a212d22f0ac0015f043425b
 
 ```svelte
 <script lang="ts">
@@ -1510,19 +1510,28 @@ Source SHA-256: 463ac910f67109c98bcb97cb8795feb334b27cdbf2e1b9e20a4067e701296e3d
   import { getContext } from 'svelte';
   import { Image } from '../../index.ts';
   import { mediaSource, prefetchImage } from '../../../infra/media-source.ts';
+  import { useFocusScope } from '../../../infra/focus-scope.ts';
   let { node, onevent }: CatalogProps<"catalog-card"> = $props();
   const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');
   function prepare() {
     const asset = cover?.(node.record); if (asset) prefetchImage(mediaSource(asset), window.innerWidth*window.devicePixelRatio);
   }
   const open = () => onevent?.({ kind: "catalog.open", record: node.record });
+  // The card answers to `catalog-return:<record>` in the nearest focus scope, so what it opened can return focus to it.
+  const scope = useFocusScope();
+  let action = $state<HTMLElement | null>(null);
+  $effect(() => {
+    const target = action, key = `catalog-return:${node.record}`;
+    if (!scope || !target) return;
+    return scope.register(key, () => { target.focus({ preventScroll: true }); return document.activeElement === target; });
+  });
 </script>
 
   <Card.Root data-catalog-card="item" data-record={node.record} data-public-card={node.record}>
     {#if node.image}<Image source={mediaSource(node.image.asset)} alt={node.image.alt} />
     {:else if 'mediaType' in node}<Image placeholder={node.mediaType} />{/if}
     <Card.Header><Card.Title>
-      <Button variant="row" data-catalog-image-action aria-label={node.title} onclick={open} onpointerenter={prepare} onfocus={prepare}>
+      <Button bind:ref={action} variant="row" data-catalog-image-action aria-label={node.title} onclick={open} onpointerenter={prepare} onfocus={prepare}>
         <span data-catalog-card-overlay data-catalog-item-title data-public-card-title>{node.title}</span>
       </Button>
     </Card.Title></Card.Header>

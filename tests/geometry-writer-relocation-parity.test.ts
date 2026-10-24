@@ -15,6 +15,9 @@ const messageType = `    --text-section:1.0625rem; --text-section--line-height:1
     --text-body:.8125rem; --text-body--line-height:1.1875rem;
 `;
 const catalogHome = `[data-stack-kind="catalog.home"] { --place-surface-inset:0px; --place-content-inset:1rem; }\n`;
+const nestedAfter = `[data-stack-placement="content"] { padding-inline:1rem; }\n`;
+const nestedComment = `/* A nested catalog starts at its host's surface guide. Its own group titles
+   share the host's reading inset; only horizontal rails retain the outer lane. */\n`;
 const leadingInset = `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { --place-leading-inset:0px; }
 [data-catalog-workspace] [data-slot="sidebar-wrapper"][data-presentation="docked"][data-state="expanded"] { --place-leading-inset:var(--sidebar-width); }
 `;
@@ -22,8 +25,9 @@ const leadingInset = `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { -
  * held it when that file has moved since (slice 3: place.css's stack rules are stack-item's, catalog-shell.css is shell's)]. */
 const reversed: readonly (readonly [string, string, string, string?])[] = [
   ["catalog/mechanisms/surface-reading/surface-reading.css", catalogHome, ""],
-  ["catalog/foundations/stack-item/stack-item.css", `[data-stack-kind="catalog.home"] [data-catalog-home]`, `${catalogHome}[data-stack-kind="catalog.home"] [data-catalog-home]`,
-    "catalog/foundations/place/place.css"],
+  // The nested catalog's featured inset left stack-item.css for catalog-home's `placement` (lane D): the variables return
+  // after the content placement, where place.css held them.
+  ["catalog/foundations/stack-item/stack-item.css", nestedAfter, `${nestedAfter}${nestedComment}${catalogHome}`, "catalog/foundations/place/place.css"],
   ["catalog/mechanisms/typography/typography.css", `@layer components {\n  [data-frame-presentation="message"] {\n${messageType}  }\n}\n`, ""],
   ["catalog/mechanisms/surface-chrome/surface-chrome.css", `    --chrome-inset:1.5rem;\n  }`, `    --chrome-inset:1.5rem;\n${messageType}  }`],
   ["catalog/mechanisms/theme/base.css", `  button,input,textarea { font:inherit; }\n  h1,h2,h3,p { margin:0; }\n  button { cursor:pointer; }`,
@@ -103,7 +107,8 @@ test("moving protected geometry and typography writers preserves catalog.home an
       }
       const gallery = async (fixture: typeof baseline) => fixture.page.locator('[data-stack-kind="catalog.home"]').evaluate(element => {
         const style=getComputedStyle(element);
-        const rail=element.querySelector('[data-catalog-rail]')!, title=element.querySelector('[data-catalog-group] h1,[data-catalog-group] h2,[data-catalog-group] h3,[data-catalog-group] h4,[data-catalog-group] h5')!;
+        // The group's rail is its labelled scroll region (Inline) and its title the heading over it (CatalogHome draws no marks).
+        const rail=element.querySelector('[role="region"]')!, title=rail.closest('[data-view-item]')!.querySelector('h1,h2,h3,h4,h5')!;
         return { surface:style.getPropertyValue('--place-surface-inset'), content:style.getPropertyValue('--place-content-inset'),
           rail:rail.getBoundingClientRect().toJSON(), title:title.getBoundingClientRect().toJSON(), titlePadding:getComputedStyle(title).paddingInlineStart };
       });

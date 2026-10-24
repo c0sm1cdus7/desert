@@ -7,6 +7,9 @@ import type { Page } from "playwright";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { measureProbes, renderCases, settle, type Probes } from "./fixtures/parity.ts";
+// MediaObject, MediaControl and CatalogDetail are composed of these foundations now (lane D): their frozen sources draw the
+// "before" side.
+import { mediaCompositionsBefore, mediaCompositionsBeforeOverrides } from "./fixtures/media-compositions-before.ts";
 
 const photo = (fill: string) => `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect width='800' height='600' fill='%23${fill}'/%3E%3C/svg%3E`;
 const images = `[{ kind: "image", source: "${photo("468")}", alt: "Lake" }, { kind: "image", source: "${photo("864")}", alt: "Dunes" }]`;
@@ -68,7 +71,7 @@ const hosts = (foundation: boolean) => `<script lang="ts">
   import CatalogDetail from "@desert/svelte/catalog/compositions/catalog-detail/CatalogDetail.svelte";
   import Gallery from "@desert/svelte/catalog/foundations/gallery/Gallery.svelte";
   import MediaPlayer from "@desert/svelte/catalog/foundations/media-player/MediaPlayer.svelte";
-  import PlaceHeading from "@desert/svelte/catalog/compositions/place-heading/PlaceHeading.svelte";
+  import PlaceHeading from "@desert/svelte/catalog/foundations/place-heading/PlaceHeading.svelte";
   import Heading from "@desert/svelte/catalog/foundations/heading/Heading.svelte";
 </script>
 <main data-renderer-profile="apple-reference" style="display:grid;gap:24px;width:640px;padding:16px">
@@ -88,7 +91,7 @@ ${foundation ? `
   <div data-case="control-image"><MediaControl node={{ kind: "image", label: "Cover", alt: "Lake", aspect: "landscape", source: "/media/lake.jpg" }} /></div>
   <div data-case="detail"><CatalogDetail node={{ version: "desert.bank-node/1", kind: "catalog.detail", record: "lake", title: "Lake", description: "A lake.",
     image: { asset: "lake", alt: "Lake" }, gallery: [{ asset: "lake", alt: "Lake" }, { asset: "lake", alt: "Lake again" }] }} /></div>
-  <div data-case="header"><PlaceHeading identity={{ title: "Trip", subtitle: "Two days", media: { kind: "gallery", images: [{ asset: "lake", alt: "Lake" }, { asset: "dunes", alt: "Dunes" }] } }} /></div>`}
+  <div data-case="header"><PlaceHeading title="Trip" subtitle="Two days" context="place" media={{ kind: "gallery", images: [{ asset: "lake", alt: "Lake" }, { asset: "dunes", alt: "Dunes" }] }} /></div>`}
 </main>`;
 const galleryProbes: Probes = {
   "object-image": { gallery: "[data-photo-collection]", image: "[data-media-image]", open: "[data-media-open]" },
@@ -101,8 +104,9 @@ const playerBoxes: Probes = { "object-video": { video: "video", play: 'button[ar
   seek: '[role="slider"][aria-label="Playback position"]', volume: '[role="slider"][aria-label="Volume"]' } };
 
 test("gallery and media-player keep the photo collection's and the media object's pixels in their hosts", { timeout: 60000 }, async () => {
-  const css = await rendererCss();
-  const [was, is] = [await renderCases(hosts(false), {}, css), await renderCases(hosts(true), {}, css)];
+  // The frozen hosts bring their own utilities (their frames' aspect and radius), which today's tree no longer writes.
+  const css = await rendererCss(Object.values(mediaCompositionsBefore));
+  const [was, is] = [await renderCases(hosts(false), mediaCompositionsBeforeOverrides, css), await renderCases(hosts(true), {}, css)];
   try {
     await squareIcons(is.page);
     for (const f of [was, is]) {

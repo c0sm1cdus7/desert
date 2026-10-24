@@ -12,13 +12,13 @@ for (const width of [390, 1280]) test(`detail identity is brief and full prose s
     await f.page.goto(`${f.origin}/?record=1016`); await settle(f.page);
     const header = f.page.locator('[data-place-header]');
     assert.equal((await header.innerText()).trim().replace(/\s+/g, ' '), 'Mount Fuji Asia');
-    const about = f.page.locator('[data-catalog-detail] [data-place-stack="about"]');
+    const about = f.page.locator('[data-view-item="about"]');
     assert.equal(await about.getByRole('heading', { name: 'About', exact: true }).count(), 1);
     const expected = loadLandmarks().application.surface.details.find(item => item.record === '1016')!.description;
     assert.equal(await about.locator('p').textContent(), expected, 'No truncation, synopsis or omitted paragraphs');
     const metrics = await f.page.evaluate(() => {
       const copy = document.querySelector('[data-dock-above]')!.getBoundingClientRect();
-      const prose = document.querySelector('[data-catalog-prose] p')!;
+      const prose = document.querySelector('[data-view-item="about"] p')!;
       return { x: prose.getBoundingClientRect().x, identity: copy.x,
         width: prose.getBoundingClientRect().width, font: parseFloat(getComputedStyle(prose).fontSize),
         overflow: document.documentElement.scrollWidth > innerWidth };
@@ -45,7 +45,7 @@ test('brief detail identity and full prose remain reachable at 320px and 200% te
       await f.page.goto(`${f.origin}/?record=1016`);
       await f.page.evaluate(scale=>document.documentElement.style.setProperty('--text-scale',String(scale)),scale);
       await settle(f.page);
-      assert.equal(await f.page.locator('[data-catalog-detail] [data-place-stack="about"] p').textContent(),
+      assert.equal(await f.page.locator('[data-view-item="about"] p').textContent(),
         loadLandmarks().application.surface.details.find(item=>item.record==='1016')!.description);
       assert.ok(await f.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${colorScheme}/${width}/${scale}: viewport overflow`);
       await f.page.screenshot({path:`${directory}/${colorScheme}-${width}-${scale}.png`});

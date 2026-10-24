@@ -59,7 +59,7 @@ test("local catalog previews reuse the installed detail and retain bank drafts t
     await fixture.page.locator('[data-catalog-entry="catalog.card"]').getByRole('button',{name:/^State ·/}).click();
     await fixture.page.getByRole('option',{name:'item',exact:true}).click();
     await fixture.page.locator('[data-specimen="catalog.card:item"] button').click();
-    assert.ok(await fixture.page.locator('[data-catalog-detail]:visible').isVisible());
+    assert.ok(await fixture.page.locator('[data-view-item="about"]:visible').isVisible(), 'the catalog detail reads its item');
     assert.equal(await fixture.page.locator('[data-public-catalog-bank]:visible').count(), 0);
     await fixture.page.locator('[data-catalog-content] > [data-toolbar="top"]')
       .getByRole("button", { name: "Back", exact: true }).click();

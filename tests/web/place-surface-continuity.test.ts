@@ -18,7 +18,7 @@ test('floating sidebar reserves readable space, never a second image or cut pare
       assert.equal(rect.x, 0); assert.equal(rect.width, 1280);
     }
     const pane = (await page.locator('[data-slot="sidebar-container"]').boundingBox())!;
-    const content = (await page.locator('[data-catalog-group]').first().boundingBox())!;
+    const content = (await page.locator('[data-view-item] > div:has(> [role="region"])').first().boundingBox())!;
     assert.ok(content.x >= pane.x + pane.width, 'readable content avoids the floating pane');
     await scrollTo(viewport, 'middle');
     for (const edge of await place.locator(':scope > [data-scroll-edges] > [data-scroll-edge]').all()) {

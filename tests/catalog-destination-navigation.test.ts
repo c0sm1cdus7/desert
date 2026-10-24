@@ -87,7 +87,7 @@ test("each destination retains its catalog path and nested samples return throug
     await page.getByRole("option", {name:"item",exact:true}).click();
     const opener=page.locator('[data-specimen="catalog.card:item"] button');
     await opener.click();
-    assert.equal(await page.locator('[data-catalog-detail]:visible').count(), 1);
+    assert.equal(await page.locator('[data-view-item="about"]:visible').count(), 1, 'one catalog detail reads its item');
     assert.equal(await page.locator('[data-place-header] [data-place-title]').innerText(), "Notebook cover");
     assert.equal(await page.getByRole("heading", {name:"Notebook cover",exact:true}).count(), 1);
     const back=page.locator('[data-catalog-content] > [data-toolbar="top"]').getByRole("button", {name:"Back",exact:true});

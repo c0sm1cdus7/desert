@@ -4,7 +4,8 @@ import { LibraryContract } from "./library.contract.ts";
 
 export const Library = defineComposition({
   id: "library",
-  purpose: "Browse a media library by album and open its items in the viewer, returning focus to the opener.",
+  purpose: { key: "library.purpose" },
+  messages: ["library.purpose", "library.media"],
   owner: { entry: "Library.svelte" },
-  uses: ["catalog-home", "viewer"], approval: "none", contract: LibraryContract,
+  uses: ["catalog-home", "media-viewer"], approval: "none", contract: LibraryContract,
 } as const);

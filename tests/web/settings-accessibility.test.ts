@@ -34,14 +34,14 @@ test("shared explorer headings retain page hierarchy when embedded as bank speci
   try {
     await f.page.setViewportSize({ width: 1280, height: 900 });
     const home = await f.page.locator("[data-public-hero-title]").evaluate(node => node.tagName);
-    const groups = await f.page.locator("[data-catalog-group] > :is(h1,h2,h3,h4,h5,h6)").evaluateAll(nodes => nodes.map(node => node.tagName));
+    const groups = await f.page.locator('[data-view-item] > div:has(> [role="region"]) > div > :is(h1,h2,h3,h4,h5,h6)').evaluateAll(nodes => nodes.map(node => node.tagName));
     await f.page.getByRole("button", { name: "Learn More", exact: true }).click(); await settle(f.page);
-    const detail = await f.page.locator("[data-catalog-detail] [data-place-title]").evaluate(node => node.tagName);
+    const detail = await f.page.locator('div:has(> [data-view-item="about"]) [data-place-title]').evaluate(node => node.tagName);
     await (await navigationAction(f.page, "Component bank")).click(); await settle(f.page);
     const nested = await f.page.locator("[data-public-catalog-bank]").evaluate(root => ({
       heroes: [...root.querySelectorAll("[data-public-hero-title]")].map(node => node.tagName),
-      groups: [...root.querySelectorAll("[data-catalog-group] > :is(h1,h2,h3,h4,h5,h6)")].map(node => node.tagName),
-      details: [...root.querySelectorAll("[data-catalog-detail] [data-place-title]")].map(node => node.tagName),
+      groups: [...root.querySelectorAll('[data-view-item] > div:has(> [role="region"]) > div > :is(h1,h2,h3,h4,h5,h6)')].map(node => node.tagName),
+      details: [...root.querySelectorAll('div:has(> [data-view-item="about"]) [data-place-title]')].map(node => node.tagName),
     }));
     await settingsEvidence(f.page, "heading-hierarchy", { home, groups, detail, nested });
     assert.equal(home, "H1"); assert.equal(detail, "H1");
