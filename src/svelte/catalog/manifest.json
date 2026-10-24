@@ -556,6 +556,74 @@
         "exceeded"
       ]
     },
+    "choice": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/choice",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Choice.svelte",
+        "parts": [
+          "ChoiceRows.svelte",
+          "ChoiceCards.svelte",
+          "ChoiceSwatches.svelte",
+          "ChoiceMenu.svelte",
+          "ChoiceMenuList.svelte",
+          "ChoiceAnatomy.svelte",
+          "ChoiceLeading.svelte",
+          "choice-row.ts"
+        ],
+        "vendor": [
+          "checkbox",
+          "radio-group"
+        ]
+      },
+      "purpose": "Choose one or several options given as data, as rows, cards, swatches or a menu, with a persistent label.",
+      "shape": "radius",
+      "states": [
+        "default",
+        "described",
+        "disabled",
+        "required"
+      ],
+      "variantLimits": {
+        "presentation": {
+          "cards": {
+            "menuTrigger": []
+          },
+          "menu": {
+            "cardinality": [
+              "one"
+            ]
+          },
+          "rows": {
+            "menuTrigger": []
+          },
+          "swatches": {
+            "cardinality": [
+              "one"
+            ],
+            "menuTrigger": []
+          }
+        }
+      },
+      "variants": {
+        "cardinality": [
+          "one",
+          "many"
+        ],
+        "menuTrigger": [
+          "well",
+          "inline",
+          "contextual"
+        ],
+        "presentation": [
+          "rows",
+          "cards",
+          "swatches",
+          "menu"
+        ]
+      }
+    },
     "choice-item": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/choice-item",
@@ -586,11 +654,7 @@
       "folder": "src/svelte/catalog/foundations/choice-list",
       "kind": "foundation",
       "owner": {
-        "entry": "ChoiceList.svelte",
-        "vendor": [
-          "checkbox",
-          "radio-group"
-        ]
+        "entry": "ChoiceList.svelte"
       },
       "purpose": "Hold the rows of a single or multiple choice in one transparent geometry inside its host.",
       "shape": "none",

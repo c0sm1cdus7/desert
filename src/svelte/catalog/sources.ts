@@ -26,6 +26,7 @@ export const CatalogSources = Object.freeze({
   "catalog-workspace": "src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte",
   "catalog-workspace-content": "src/svelte/catalog/compositions/catalog-workspace-content/CatalogWorkspaceContent.svelte",
   "character-counter": "src/svelte/catalog/foundations/character-counter/CharacterCounter.svelte",
+  "choice": "src/svelte/catalog/foundations/choice/Choice.svelte",
   "choice-item": "src/svelte/catalog/foundations/choice-item/ChoiceItem.svelte",
   "choice-list": "src/svelte/catalog/foundations/choice-list/ChoiceList.svelte",
   "choice-row": "src/svelte/catalog/foundations/choice-row/ChoiceRow.svelte",

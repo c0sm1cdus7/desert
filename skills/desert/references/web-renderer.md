@@ -4297,7 +4297,7 @@ export const ControlSpecimens = freezeDeep(([
 
 ## src/interaction/extended-nodes.ts
 
-Source SHA-256: f5059f98d3bc7da0f6f1dea8b251e2fb635295b86d0325a73a4da60ce5a66d99
+Source SHA-256: d638407385e3d4727298fca3ea0a1e927b28b149bc907af4fedeca90b6bc82c0
 
 ```ts
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
@@ -4328,8 +4328,10 @@ export const MoneyNodeSchema = object({ ...base, kind: Type.Literal("money"), re
   currency: text(), minorUnits: Type.Union([Type.Null(), minor]) });
 export const DateNodeSchema = object({ ...base, kind: Type.Literal("date"), required: Type.Boolean(),
   value: Type.Union([Type.Null(), day]), minimum: Type.Optional(day), maximum: Type.Optional(day) });
-export const TagNodeSchema = object({ ...base, kind: Type.Literal("tag"),
-  tone: Type.Union([Type.Literal("neutral"), Type.Literal("accent"), Type.Literal("success"), Type.Literal("warning"), Type.Literal("destructive")]) });
+/** The tones a tag carries: neutral, or a semantic accent the tag pairs with its text. */
+export const TagToneSchema = Type.Union([Type.Literal("neutral"), Type.Literal("accent"), Type.Literal("success"), Type.Literal("warning"),
+  Type.Literal("destructive")]);
+export const TagNodeSchema = object({ ...base, kind: Type.Literal("tag"), tone: TagToneSchema });
 export const ImageNodeSchema = object({ ...base, kind: Type.Literal("image"), source, alt: text(),
   aspect: Type.Union([Type.Literal("square"), Type.Literal("landscape"), Type.Literal("portrait")]) });
 export const AvatarNodeSchema = object({ ...base, kind: Type.Literal("avatar"), source,

@@ -5,12 +5,13 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
   import AnchoredSurface from '@desert/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte';
-  import SelectionField from '@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte';
+  import Choice from '@desert/svelte/catalog/foundations/choice/Choice.svelte';
   import { toolbarAction } from '@desert/interaction/toolbar.ts';
   let open=$state(false), value=$state('one');
 </script>
 <main style="padding:100px 24px">
-  <SelectionField selection="example" label="Choose" {value} onchange={next=>value=next}
+  <Choice presentation="menu" cardinality="one" menuTrigger="contextual" label="Choose" labelVisibility="visible" selected={[value]}
+    disabled={false} required={false} onchange={next=>value=next[0]}
     options={[{value:'one',label:'One',disabled:false},{value:'two',label:'Two',disabled:false}]} />
   <AnchoredSurface label="Open actions" title="Actions" {open} onchange={next=>open=next}
     content={{kind:'utilities',actions:[toolbarAction({kind:'journey',journey:'first'},'First','open'),toolbarAction({kind:'journey',journey:'last'},'Last','open')]}} />

@@ -24,6 +24,7 @@ export { default as CatalogSearchResults } from "./compositions/catalog-search-r
 export { default as CatalogWorkspace } from "./compositions/catalog-workspace/CatalogWorkspace.svelte";
 export { default as CatalogWorkspaceContent } from "./compositions/catalog-workspace-content/CatalogWorkspaceContent.svelte";
 export { default as CharacterCounter } from "./foundations/character-counter/CharacterCounter.svelte";
+export { default as Choice } from "./foundations/choice/Choice.svelte";
 export { default as ChoiceItem } from "./foundations/choice-item/ChoiceItem.svelte";
 export { default as ChoiceList } from "./foundations/choice-list/ChoiceList.svelte";
 export { default as ChoiceRow } from "./foundations/choice-row/ChoiceRow.svelte";

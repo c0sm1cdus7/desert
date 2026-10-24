@@ -117,11 +117,11 @@ test("selection dismisses when focus moves to another field without stealing its
 
 test('dismissal never restores selection focus over another popover', async () => {
   const f=await svelteBrowser(`<script>
-    import SelectionField from '@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte';
+    import Choice from '@desert/svelte/catalog/foundations/choice/Choice.svelte';
     import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
     let unavailable=$state(false), details=$state(false);
-  </script><SelectionField selection="choice" label="Choice" value="first" disabled={unavailable}
-    options={[{value:'first',label:'First'}]} onchange={()=>{}}/>
+  </script><Choice presentation="menu" cardinality="one" menuTrigger="contextual" label="Choice" labelVisibility="visible" selected={["first"]}
+    disabled={unavailable} required={false} options={[{value:'first',label:'First',disabled:false}]} onchange={()=>{}}/>
     <Popover.Root bind:open={details}><Popover.Trigger onclick={()=>unavailable=true}>Other details</Popover.Trigger>
       <Popover.Content role="dialog" aria-label="Other details"><button>Other action</button></Popover.Content>
     </Popover.Root>`);
