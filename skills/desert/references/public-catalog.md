@@ -34,7 +34,7 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/foundations/image/Image.svelte
 - src/svelte/catalog/compositions/photo-collection/PhotoCollection.svelte
 - src/svelte/catalog/compositions/viewer/Viewer.svelte
-- src/svelte/infra/gestures.ts
+- src/svelte/catalog/mechanisms/media-gestures/media-gestures.ts
 - src/svelte/catalog/renderer/public-catalog-product/PublicCatalogProduct.svelte
 - src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte
 - src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
@@ -1118,19 +1118,18 @@ export async function prepareRenditions(assets: readonly BoundCatalogAsset[]) {
 
 ## src/svelte/infra/media-source.ts
 
-Source SHA-256: cd924a1d8ef6699b1fb02cf674e3820e3ec3da3882bdeace698355811da42dc8
+Source SHA-256: 3047cd0fd96364afd660b329653439ee42f9f72e3525165c3ca3ce96aaea2cfb
 
 ```ts
 import type { MediaItem } from '../../views/media-library.ts';
 import type { AssetReference } from '../../assets/types.ts';
+import type { Static } from '@sinclair/typebox';
+import type { Frozen } from '../../json.ts';
+import type { ViewerMediaSchema } from './viewer-media.ts';
 export type ImageSource = string | AssetReference;
 export type Photo = Readonly<{ source: ImageSource; alt: string }>;
-type PublicPhoto = Readonly<{ source: string; alt: string }>;
-export type ViewerMedia = Readonly<
-  { kind: 'image'; source: ImageSource; alt: string } |
-  { kind: 'video' | 'audio'; source: ImageSource; alt: string; artwork?: PublicPhoto;
-    captions: readonly { source: string; language: string; label: string }[] }
->;
+/** One image, video or audio item of a viewer: the static type of the closed ViewerMediaSchema. */
+export type ViewerMedia = Frozen<Static<typeof ViewerMediaSchema>>;
 export const mediaSource = (asset: string) => `/media/${encodeURIComponent(asset)}`;
 export const imageIdentity = (source: ImageSource) => typeof source === 'string' ? source : `private:${source.reference}`;
 export const catalogPhotos = (images: readonly { asset: string; alt: string }[]): Photo[] =>
@@ -1173,7 +1172,7 @@ function drain() {
 
 ## src/svelte/catalog/foundations/image/Image.svelte
 
-Source SHA-256: 77f1dfc7d064234d2391ed2fdf82fee6a3e3213ff9406123ae77cea8e9a6f24d
+Source SHA-256: e0c1f59103bf959880712cf17492d5a219a6f5a98231a4b978ea2a73387e64d7
 
 ```svelte
 <script lang="ts">
@@ -1184,7 +1183,7 @@ Source SHA-256: 77f1dfc7d064234d2391ed2fdf82fee6a3e3213ff9406123ae77cea8e9a6f24d
   import { privateImageResource } from '../../../infra/private-image-resource.ts';
   import { renditionWidths } from '../../../../media/rendition-policy.ts';
   import type { CatalogProps } from "../../types.d.ts";
-  let { source, alt = "", edge = 640, zoom = 1, retry = false, fit = 'fill', backdrop = 'muted', placeholder, onready,
+  let { source, alt = "", edge = 640, zoom = 1, retry = false, fit = 'fill', backdrop = 'muted', placeholder, onready, onunavailable,
     fallback = 'Image unavailable' }: CatalogProps<"image"> = $props();
   let host!: HTMLDivElement;
   let measured = $state(0), attempt = $state(0), ready = $state(''), failed = $state('');
@@ -1209,6 +1208,7 @@ Source SHA-256: 77f1dfc7d064234d2391ed2fdf82fee6a3e3213ff9406123ae77cea8e9a6f24d
   // asset keeps its decoded pixels while loading, so pinch/resize never flashes.
   const identity = $derived(`${sourceIdentity}|${typeof source === 'object' ? privateRevision : 0}|${attempt}`);
   const status = $derived(placeholder ? 'placeholder' : failed === identity || privateError ? 'error' : url && ready === identity ? 'ready' : 'loading');
+  $effect(() => { if (status === 'error') onunavailable?.(); });
   onMount(() => {
     const resize = () => { measured = Math.ceil(Math.max(host.clientWidth,host.clientHeight)*window.devicePixelRatio); };
     const observer = new ResizeObserver(([entry]) => {
@@ -1396,16 +1396,20 @@ Source SHA-256: b960a75e7b8d51d4af1ac9238d0278e9e2e5f02250b3d390617fcd87fb7df9bc
 </Dialog.Root>
 ```
 
-## src/svelte/infra/gestures.ts
+## src/svelte/catalog/mechanisms/media-gestures/media-gestures.ts
 
-Source SHA-256: 4fb9b943478ae780a241fb87fe0272da4903f7b87551b1f13d724fae63f74cce
+Source SHA-256: 9879f6ab1953e091ff4fe000fab4842cc61005e7403f8c593c5e25e24cc23b21
 
 ```ts
+// Mechanism media-gestures: the pointer gestures of one media surface. A horizontal swipe pages, a pinch, a double-click
+// or ctrl-wheel zooms the image, a drag pans it while zoomed; vertical drags stay native scrolling.
 export const maximumMediaZoom = 4;
 
 type Options = {
   image: () => HTMLImageElement | null; page: (direction: number) => void;
   canPage: () => boolean; zoomable?: boolean; onzoom?: (scale: number) => void;
+  /** Pointer downs on these targets stay theirs (a player's controls inside the surface). */
+  ignore?: (target: Element) => boolean;
 };
 /** Pointer ownership is local to the canvas. Vertical header gestures remain native scrolling. */
 export function mediaGestures(element: HTMLElement, options: Options) {
@@ -1426,7 +1430,8 @@ export function mediaGestures(element: HTMLElement, options: Options) {
   function zoom(value: number) { scale = clamp(value, 1, maximumMediaZoom); if (scale === 1) x = y = 0; paint(); }
   function distance() { const [a,b] = [...points.values()]; return a && b ? Math.hypot(a.x-b.x, a.y-b.y) : 1; }
   function down(e: PointerEvent) {
-    if (e.button !== 0 || ((e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[data-media-open]'))) return;
+    const target = e.target instanceof Element ? e.target : null;
+    if (e.button !== 0 || target && (target.closest('button') && !target.closest('[data-media-open]') || options.ignore?.(target))) return;
     points.set(e.pointerId, { x:e.clientX, y:e.clientY });
     element.setPointerCapture(e.pointerId); dragged = false; suppress = false;
     start = { x:e.clientX, y:e.clientY, px:x, py:y };

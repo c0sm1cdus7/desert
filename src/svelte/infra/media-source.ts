@@ -1,13 +1,12 @@
 import type { MediaItem } from '../../views/media-library.ts';
 import type { AssetReference } from '../../assets/types.ts';
+import type { Static } from '@sinclair/typebox';
+import type { Frozen } from '../../json.ts';
+import type { ViewerMediaSchema } from './viewer-media.ts';
 export type ImageSource = string | AssetReference;
 export type Photo = Readonly<{ source: ImageSource; alt: string }>;
-type PublicPhoto = Readonly<{ source: string; alt: string }>;
-export type ViewerMedia = Readonly<
-  { kind: 'image'; source: ImageSource; alt: string } |
-  { kind: 'video' | 'audio'; source: ImageSource; alt: string; artwork?: PublicPhoto;
-    captions: readonly { source: string; language: string; label: string }[] }
->;
+/** One image, video or audio item of a viewer: the static type of the closed ViewerMediaSchema. */
+export type ViewerMedia = Frozen<Static<typeof ViewerMediaSchema>>;
 export const mediaSource = (asset: string) => `/media/${encodeURIComponent(asset)}`;
 export const imageIdentity = (source: ImageSource) => typeof source === 'string' ? source : `private:${source.reference}`;
 export const catalogPhotos = (images: readonly { asset: string; alt: string }[]): Photo[] =>

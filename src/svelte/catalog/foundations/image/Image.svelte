@@ -6,7 +6,7 @@
   import { privateImageResource } from '../../../infra/private-image-resource.ts';
   import { renditionWidths } from '../../../../media/rendition-policy.ts';
   import type { CatalogProps } from "../../types.d.ts";
-  let { source, alt = "", edge = 640, zoom = 1, retry = false, fit = 'fill', backdrop = 'muted', placeholder, onready,
+  let { source, alt = "", edge = 640, zoom = 1, retry = false, fit = 'fill', backdrop = 'muted', placeholder, onready, onunavailable,
     fallback = 'Image unavailable' }: CatalogProps<"image"> = $props();
   let host!: HTMLDivElement;
   let measured = $state(0), attempt = $state(0), ready = $state(''), failed = $state('');
@@ -31,6 +31,7 @@
   // asset keeps its decoded pixels while loading, so pinch/resize never flashes.
   const identity = $derived(`${sourceIdentity}|${typeof source === 'object' ? privateRevision : 0}|${attempt}`);
   const status = $derived(placeholder ? 'placeholder' : failed === identity || privateError ? 'error' : url && ready === identity ? 'ready' : 'loading');
+  $effect(() => { if (status === 'error') onunavailable?.(); });
   onMount(() => {
     const resize = () => { measured = Math.ceil(Math.max(host.clientWidth,host.clientHeight)*window.devicePixelRatio); };
     const observer = new ResizeObserver(([entry]) => {

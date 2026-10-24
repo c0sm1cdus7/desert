@@ -58,6 +58,7 @@ export { default as Fields } from "./compositions/fields/Fields.svelte";
 export { default as FileControl } from "./compositions/file-control/FileControl.svelte";
 export { default as Form } from "./foundations/form/Form.svelte";
 export { default as FrameBody } from "./renderer/frame-body/FrameBody.svelte";
+export { default as Gallery } from "./foundations/gallery/Gallery.svelte";
 export { default as GroupedPanel } from "./foundations/grouped-panel/GroupedPanel.svelte";
 export { default as Heading } from "./foundations/heading/Heading.svelte";
 export { default as Icon } from "./foundations/icon/Icon.svelte";
@@ -82,8 +83,10 @@ export { default as MediaContent } from "./renderer/media-content/MediaContent.s
 export { default as MediaControl } from "./compositions/media-control/MediaControl.svelte";
 export { default as MediaGrid } from "./compositions/media-grid/MediaGrid.svelte";
 export { default as MediaObject } from "./compositions/media-object/MediaObject.svelte";
+export { default as MediaPlayer } from "./foundations/media-player/MediaPlayer.svelte";
 export { default as MediaReferenceSelector } from "./compositions/media-reference-selector/MediaReferenceSelector.svelte";
 export { default as MediaReferenceSpecimen } from "./compositions/media-reference-specimen/MediaReferenceSpecimen.svelte";
+export { default as MediaViewer } from "./foundations/media-viewer/MediaViewer.svelte";
 export { default as MessageBody } from "./foundations/message-body/MessageBody.svelte";
 export { default as MoneyControl } from "./compositions/money-control/MoneyControl.svelte";
 export { default as NodeRenderer } from "./renderer/node-renderer/NodeRenderer.svelte";
@@ -134,6 +137,7 @@ export { default as SurfaceSpecimen } from "./compositions/surface-specimen/Surf
 export { default as Text } from "./foundations/text/Text.svelte";
 export { default as TextContent } from "./compositions/text-content/TextContent.svelte";
 export { default as TextInput } from "./foundations/text-input/TextInput.svelte";
+export { default as ThemePreview } from "./foundations/theme-preview/ThemePreview.svelte";
 export { default as Toolbar } from "./compositions/toolbar/Toolbar.svelte";
 export { default as ToolbarLayout } from "./compositions/toolbar-layout/ToolbarLayout.svelte";
 export { default as ToolbarMediaControls } from "./compositions/toolbar-media-controls/ToolbarMediaControls.svelte";

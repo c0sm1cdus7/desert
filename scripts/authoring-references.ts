@@ -64,7 +64,7 @@ export function generatedReferences(root = sourceRoot) {
       "src/build/public-catalog/assets.ts", "src/build/public-catalog/serve.ts", "src/build/public-catalog/renditions.ts",
       "src/svelte/infra/media-source.ts", "src/svelte/catalog/foundations/image/Image.svelte",
       "src/svelte/catalog/compositions/photo-collection/PhotoCollection.svelte", "src/svelte/catalog/compositions/viewer/Viewer.svelte",
-      "src/svelte/infra/gestures.ts",
+      "src/svelte/catalog/mechanisms/media-gestures/media-gestures.ts",
       "src/svelte/catalog/renderer/public-catalog-product/PublicCatalogProduct.svelte", "src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte",
       "src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte", "src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte",
       "src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte", "src/svelte/infra/PublicCatalogBank-model.ts",

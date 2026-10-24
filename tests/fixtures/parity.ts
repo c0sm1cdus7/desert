@@ -23,6 +23,12 @@ export async function renderCases(source: string, overrides: Readonly<Record<str
   return f;
 }
 
+/** Waits until every running animation has finished and two frames have been drawn. */
+export const settle = (page: Page) => page.evaluate(async () => {
+  await Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => undefined)));
+  await new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)));
+});
+
 /** The styles that shape text, compared for a `text:` probe. */
 export const textStyles = ["color", "font-size", "line-height", "font-weight", "letter-spacing", "text-align", "white-space", "overflow-wrap"];
 

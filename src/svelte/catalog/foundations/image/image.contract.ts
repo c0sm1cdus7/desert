@@ -1,6 +1,6 @@
 // The props of Image: a public URL or a private asset, its text alternative, the edge it is requested at, how it fits
 // its frame, whether its frame shows the muted backdrop, and what it says when it cannot load. `ready` fires once the
-// image is decoded and shown. Without an image, `placeholder` stands in for it: the glyph of missing video or audio
+// image is decoded and shown, `unavailable` once it shows its fallback instead. Without an image, `placeholder` stands in for it: the glyph of missing video or audio
 // artwork, or the `fallback` sentence of unavailable media (which ArtworkPlaceholder drew before slice 3); a placeholder
 // always fills its frame.
 import { Type } from "@sinclair/typebox";
@@ -31,6 +31,6 @@ export const ImageContract = {
       backdrop: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),
   ])]),
-  events: Type.Object({ ready: Type.Void() }, { additionalProperties: false }),
+  events: Type.Object({ ready: Type.Void(), unavailable: Type.Void() }, { additionalProperties: false }),
   marks: ["data-media-image", "data-image-fit", "data-image-state", "data-image-placeholder"],
 } as const;

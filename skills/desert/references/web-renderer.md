@@ -5015,7 +5015,7 @@ Source SHA-256: e9b056bbc1ec24fe2eb5c7ad17c56153d1b7e86466414a5b371a9eac76ade0b9
 
 ## src/svelte/infra/action-icons.ts
 
-Source SHA-256: 75005d77015749b488cfb38af6b23ed690069288933b080f82fd167ae6ae25e8
+Source SHA-256: 747c889e41bfaedcc4828c9c448a402756c366a162d3efe10ad3d8d7d67a7d34
 
 ```ts
 import type { ActionIcon } from "../../interaction/toolbar.ts";
@@ -5025,6 +5025,7 @@ export const actionIconNames = {
   back: "arrow-left", close: "x", save: "save", review: "eye", recover: "search", retry: "rotate-cw",
   create: "plus", archive: "archive", catalog: "layout-grid", open: "arrow-right", confirm: "check", search: "search", more: "ellipsis", navigation: "panel-left",
   media: "images", edit: "pencil", settings: "settings", lock: "lock", restore: "undo-2", palette: "palette",
+  play: "play", pause: "pause", volume: "volume-2", muted: "volume-x", previous: "chevron-left", next: "chevron-right",
 } as const satisfies Record<ActionIcon, string>;
 ```
 

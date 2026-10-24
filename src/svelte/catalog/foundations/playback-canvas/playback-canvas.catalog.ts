@@ -6,6 +6,6 @@ import { PlaybackCanvasContract } from "./playback-canvas.contract.ts";
 export const PlaybackCanvas = defineFoundation({
   id: "playback-canvas",
   purpose: "Play a video or audio item attached to its playback controller, showing artwork for audio and a retry when unavailable.",
-  owner: { entry: "PlaybackCanvas.svelte", vendor: ["slider"] },
+  owner: { entry: "PlaybackCanvas.svelte" },
   shape: "none", states: ["video", "audio"], approval: "required", contract: PlaybackCanvasContract,
 } as const);
