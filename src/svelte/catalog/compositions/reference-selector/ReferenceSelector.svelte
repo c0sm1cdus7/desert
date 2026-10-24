@@ -2,7 +2,7 @@
   import * as Popover from '../../../vendor/components/ui/popover/index.js';
   import * as Field from '../../../vendor/components/ui/field/index.js';
   import { Checkbox } from '../../../vendor/components/ui/checkbox/index.js';
-  import ChevronDown from '@lucide/svelte/icons/chevron-down';
+  import { Icon } from '../../index.ts';
   import { ChoiceList } from '../../index.ts';
   import { ChoiceRow } from '../../index.ts';
   import { StackLayout } from '../../index.ts';
@@ -46,7 +46,7 @@
         <FieldWellContent label={node.label}>
           <span data-field-value>
             {#if node.values.length}<ReferenceValues values={node.values} options={reference.options}/>{:else}<span>Choose…</span>{/if}
-            <span data-control-chevron><ChevronDown aria-hidden="true"/></span>
+            <span data-control-chevron><Icon name="chevron-down" decorative /></span>
           </span>
         </FieldWellContent>
   </Popover.Trigger>

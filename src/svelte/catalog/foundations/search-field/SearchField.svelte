@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as InputGroup from "../../../vendor/components/ui/input-group/index.js";
-  import Search from "@lucide/svelte/icons/search";
+  import { Icon } from "../../index.ts";
   import { ClearInput } from "../../index.ts";
 
   const generatedId = $props.id();
@@ -24,6 +24,6 @@
   <InputGroup.Input id={fieldId} bind:ref type="search" {value} {disabled} {readonly}
     {placeholder} aria-label={label} aria-controls={controls} {tabindex}
     autocomplete="off" oninput={event => update(event.currentTarget.value)} />
-  <InputGroup.Addon align="inline-start"><Search data-search-icon="leading" aria-hidden="true" /></InputGroup.Addon>
+  <InputGroup.Addon align="inline-start"><Icon name="search" search="leading" decorative /></InputGroup.Addon>
   <ClearInput control={fieldId} {value} label="Clear search" disabled={!!(disabled || readonly)} />
 </InputGroup.Root>

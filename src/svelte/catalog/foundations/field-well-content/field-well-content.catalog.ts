@@ -7,6 +7,6 @@ export const FieldWellContent = defineFoundation({
   purpose: "Keep a field's label persistently above its editor or value, as a label for the editor or as text inside a button.",
   owner: { entry: "FieldWellContent.svelte" },
   shape: "none", states: ["for-editor", "in-button"],
-  slots: { children: { accepts: ["masked-input", "text-input", "reference-values"] } },
+  slots: { children: { accepts: ["masked-input", "text-input", "reference-values", "icon"] } },
   approval: "required", contract: FieldWellContentContract,
 } as const);

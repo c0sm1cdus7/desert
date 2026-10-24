@@ -1,6 +1,5 @@
 <script lang="ts">
-  import Minus from "@lucide/svelte/icons/minus";
-  import CircleQuestionMark from "@lucide/svelte/icons/circle-question-mark";
+  import { Icon } from "../../index.ts";
   import { factState, presentFact } from "../../../../interaction/fact-presentation.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { value }: CatalogProps<"fact-value"> = $props();
@@ -9,8 +8,7 @@
 
 <span data-fact-state={state} class:fact-placeholder={state !== "known"}>
   {#if state !== "known"}
-    {@const Icon = state === "empty" ? Minus : CircleQuestionMark}
-    <Icon size="1em" aria-hidden="true" />
+    <Icon name={state === "empty" ? "minus" : "circle-question-mark"} size="em" decorative />
     {#if state === "empty"}<span class="sr-only">Value state: {presentFact(value)}</span>
     {:else}<span><span class="sr-only">Value state: </span>{presentFact(value)}</span>{/if}
   {:else}{presentFact(value)}{/if}

@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import CircleX from "@lucide/svelte/icons/circle-x";
+  import { Icon } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { control, value, label, disabled = false }: CatalogProps<"clear-input"> = $props();
 
@@ -38,6 +38,6 @@
 {#if value.length > 0}
   <Group.Addon align="inline-end" class="field-clear shrink-0">
     <Group.Button size="icon-sm" class="min-h-0" type="button" data-input-clear aria-label={label} title={label}
-      aria-controls={control} {disabled} onclick={clear}><CircleX aria-hidden="true" /></Group.Button>
+      aria-controls={control} {disabled} onclick={clear}><Icon name="circle-x" decorative /></Group.Button>
   </Group.Addon>
 {/if}

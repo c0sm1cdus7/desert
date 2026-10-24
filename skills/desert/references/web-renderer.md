@@ -878,9 +878,10 @@ export const NotebookLocal = clientDistribution({
 
 ## src/interaction/catalog.ts
 
-Source SHA-256: 089ad202afeafe03969458925aa320ed3c3acd1049ab06717af224b67d13f8eb
+Source SHA-256: 1ac4198d9de5c0efb6191a29ce36d540669b31e1a58c2616a4a6c9cdfb77549a
 
 ```ts
+import { Type } from "@sinclair/typebox";
 import { freezeDeep, jsonSnapshot } from "../json.ts";
 import { ControlSpecimens } from "./control-specimens.ts";
 import { CatalogGroups, CatalogFoundations, catalogInspection, type DiscoveryGroup, type FoundationId } from "./catalog-ownership.ts";
@@ -914,6 +915,8 @@ export const ResolvedNodes = freezeDeep({
 });
 
 export type ResolvedNodeId = typeof ResolvedNodes.entries[number]["id"];
+/** The id of a resolved node kind, as a TypeBox schema derived from the entries above (not a second list). */
+export const ResolvedNodeIdSchema = Type.Union(ResolvedNodes.entries.map(entry => Type.Literal(entry.id)));
 export type ResolvedInputId = Extract<ResolvedNodeId, `input.${string}`>;
 export type RendererTable<T> = { readonly [K in ResolvedNodeId]: T };
 
@@ -1454,11 +1457,11 @@ export async function buildHumanModule(application: ReturnType<typeof compile>, 
 
 ## src/build/svelte/template/src/routes/+page.svelte
 
-Source SHA-256: 8ceac8265236657fe8b46a343218e7f6cd05918e119120c35d1571a8dc7bb8ba
+Source SHA-256: 1b30b59ee4461594a05acd87260fb1cbcf3bfc001cbb7c680ebfe21c70790679
 
 ```svelte
 <script lang="ts">
-  import AccessGate from "@desert/svelte/catalog/compositions/access-gate/AccessGate.svelte";
+  import { AccessGate } from "@desert/svelte/catalog/index.ts";
   import { surface, validateInput, viewProgram } from "virtual:desert/surface";
 </script>
 
@@ -2505,18 +2508,14 @@ export function projectViewPanel(program: ViewProgram, journey: ViewJourney, def
 
 ## src/svelte/catalog/renderer/view-product/ViewProduct.svelte
 
-Source SHA-256: 5e9360164ac3fcfc1297b010774190831d7c22ccdf9526dfdb8ec47baa7cc9d7
+Source SHA-256: bababa42ddaa1fc91bdba16e7cce1055fb9c705a4635af1fcb225c5396f252b5
 
 ```svelte
 <script lang="ts">
-  import type { ViewProgram } from "../../../../views/program-schema.ts";
-  import type { HumanSurface, ValidateInput } from "../../../../web/types.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { ViewProductContent } from "../../../adapter-catalog.ts";
-  import type { AccessClient } from "../../../../web/client/access.ts";
 
-  let { program, surface, validateInput, access }: {
-    program: ViewProgram; surface: HumanSurface; validateInput: ValidateInput; access?: Pick<AccessClient, "lock">;
-  } = $props();
+  let { program, surface, validateInput, access }: CatalogProps<"view-product"> = $props();
 </script>
 
 <ViewProductContent {program} {surface} {validateInput} {access} />
@@ -2524,13 +2523,13 @@ Source SHA-256: 5e9360164ac3fcfc1297b010774190831d7c22ccdf9526dfdb8ec47baa7cc9d7
 
 ## src/svelte/catalog/renderer/workspace/Workspace.svelte
 
-Source SHA-256: 1c14ff7942938504c6931a5e623c6e6aaa18f31dd31c324d2e4700f788d7f15e
+Source SHA-256: 539d24c46a49711d905fbc63a611404a572404333445650de98cfb303794d937
 
 ```svelte
 <script lang="ts">
   import { ViewWorkspace } from "../../../adapter-catalog.ts";
-  import type { WorkspaceProps } from "../../../infra/view-types.ts";
-  let props: WorkspaceProps = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let props: CatalogProps<"workspace"> = $props();
 </script>
 
 <ViewWorkspace program={props.program} activeDestination={props.activeDestination}
@@ -2700,15 +2699,13 @@ export function mediaResults(library: MediaLibrary, query: string): readonly Wor
 
 ## src/svelte/catalog/renderer/media-content/MediaContent.svelte
 
-Source SHA-256: e620fbae2d2481df2cdc3df46a5a45edc402dcad19f2baf731af638268079450
+Source SHA-256: 821f0c83a086ab1ab302e4f2a66d68dc833d80a642fb14897ad33027d5f22a35
 
 ```svelte
 <script lang="ts">
-  import type { MediaLibrary as LibraryData } from "../../../../views/media-library.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { MediaLibrary } from "../../../adapter-catalog.ts";
-  let { library, album, onalbum }: {
-    library: LibraryData; album: string | null; onalbum: (id: string) => void;
-  } = $props();
+  let { library, album, onalbum }: CatalogProps<"media-content"> = $props();
   let content = $state<{ select: (record: string) => boolean }>();
   export function select(record: string) { return content?.select(record) ?? false; }
 </script>
@@ -2718,31 +2715,31 @@ Source SHA-256: e620fbae2d2481df2cdc3df46a5a45edc402dcad19f2baf731af638268079450
 
 ## src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte
 
-Source SHA-256: 41e9649e379e0cf00a62b1b58fa410bccd818a2b2fd6080b28e7ff370639f84c
+Source SHA-256: 91f372ded2efb00e1b3518fbfcde2bbbfc02cf188da47230813bc6e2d2ba1de2
 
 ```svelte
 <script lang="ts" generics="Destination extends string">
   import { tick } from "svelte";
   import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
-  import CatalogNavigation from "../catalog-navigation/CatalogNavigation.svelte";
+  import { CatalogNavigation } from "../../index.ts";
   import CatalogNavigationToggle from "./CatalogNavigationToggle.svelte";
   import CatalogToolbar from "./CatalogToolbar.svelte";
-  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
-  import PlaceHeading from "../place-heading/PlaceHeading.svelte";
+  import { ToolbarLayout } from "../../index.ts";
+  import { PlaceHeading } from "../../index.ts";
   import { observePlaceHeading } from "./place-heading-motion.ts";
   import type { PlaceIdentity } from "../../../infra/place-identity.ts";
   import CatalogEdgeNavigation from "./CatalogEdgeNavigation.svelte";
-  import Place from "../../foundations/place/Place.svelte";
+  import { Place } from "../../index.ts";
   import AdaptiveSurfaceLayout from "./AdaptiveSurfaceLayout.svelte";
   import type { WorkspaceDestination } from "../../../infra/workspace-navigation.ts";
   import type { ToolbarAction, BottomToolbar } from "../../../../interaction/toolbar.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import CatalogWorkspaceContent from "../catalog-workspace-content/CatalogWorkspaceContent.svelte";
-  import CatalogSearchResults from "../catalog-search-results/CatalogSearchResults.svelte";
-  import Toolbar from "../toolbar/Toolbar.svelte";
-  import Panel from "../../renderer/panel/Panel.svelte";
-  import FailureDialog from "../../renderer/failure-dialog/FailureDialog.svelte";
-  import Wallpaper from "../../foundations/wallpaper/Wallpaper.svelte";
+  import { CatalogWorkspaceContent } from "../../index.ts";
+  import { CatalogSearchResults } from "../../index.ts";
+  import { Toolbar } from "../../index.ts";
+  import { Panel } from "../../index.ts";
+  import { FailureDialog } from "../../index.ts";
+  import { Wallpaper } from "../../index.ts";
   import { appearance } from "../../../infra/appearance-state.ts";
   import type { WorkspaceContent, WorkspaceSearch, WorkspacePanels, WorkspaceViewportActions } from "../../../infra/workspace-content.ts";
   import { revealSearchTarget } from "../../../infra/catalog-search-focus.ts";
@@ -2938,19 +2935,17 @@ Source SHA-256: 41e9649e379e0cf00a62b1b58fa410bccd818a2b2fd6080b28e7ff370639f84c
 
 ## src/svelte/catalog/compositions/catalog-navigation/CatalogNavigation.svelte
 
-Source SHA-256: 9d8dfb809cc6f29990b0dd3ab7d4838763c4653e2572137edf7559af42dab7c3
+Source SHA-256: 31868e7f4ad26cbbf0eea2de0416803066209044e234a8da7f0ad71d60acbe59
 
 ```svelte
 <script lang="ts" generics="Destination extends string">
   import { untrack } from "svelte";
   import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
-  import Landmark from "@lucide/svelte/icons/landmark";
-  import Backpack from "@lucide/svelte/icons/backpack";
-  import PanelsTopLeft from "@lucide/svelte/icons/panels-top-left";
   import { swipeMotion } from "../../../infra/swipe-motion.svelte.js";
-  import Place from "../../foundations/place/Place.svelte";
-  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
-  import { actionIcons } from "../../../infra/action-icons.ts";
+  import { Place } from "../../index.ts";
+  import { ToolbarLayout } from "../../index.ts";
+  import { Icon } from "../../index.ts";
+  import { actionIconNames } from "../../../infra/action-icons.ts";
   import { workspaceNavigation, type WorkspaceDestination } from "../../../infra/workspace-navigation.ts";
   let { identity, navigation, active, onnavigate, searching = false, settingsPlaceholder = false }: {
     identity: { title: string; subtitle?: string }; settingsPlaceholder?: boolean;
@@ -2962,7 +2957,7 @@ Source SHA-256: 9d8dfb809cc6f29990b0dd3ab7d4838763c4653e2572137edf7559af42dab7c3
     commit: () => sidebar.presentation === "overlay" ? sidebar.setOverlayOpen(false) : sidebar.setOpen(false) });
   $effect(() => { sidebar.dismissOffset = motion.offset; });
   $effect(() => { if (sidebar.expanded) untrack(() => motion.reset()); });
-  const icons = { ...actionIcons, landmark: Landmark, backpack: Backpack, panels: PanelsTopLeft };
+  const iconNames = { ...actionIconNames, landmark: "landmark", backpack: "backpack", panels: "panels-top-left" } as const;
   let groups = $derived(workspaceNavigation(navigation));
   function navigate(id: Destination) { onnavigate(id); if (sidebar.presentation === "overlay") sidebar.setOverlayOpen(false); }
   function startHeaderDrag(event: PointerEvent) {
@@ -2982,11 +2977,10 @@ Source SHA-256: 9d8dfb809cc6f29990b0dd3ab7d4838763c4653e2572137edf7559af42dab7c3
         <Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
         <Sidebar.GroupContent><Sidebar.Menu>
         {#each group.items as destination (destination.id)}
-          {@const Icon = icons[destination.icon]}
           <Sidebar.MenuItem>
             <Sidebar.MenuButton isActive={destination.id === active} aria-current={destination.id === active ? "page" : undefined}
               aria-label={destination.label} onclick={() => navigate(destination.id)}>
-              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon /></span>
+              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon name={iconNames[destination.icon]} /></span>
               <span>{destination.label}</span>
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>
@@ -3006,11 +3000,11 @@ Source SHA-256: 9d8dfb809cc6f29990b0dd3ab7d4838763c4653e2572137edf7559af42dab7c3
 
 ## src/svelte/catalog/compositions/toolbar-layout/CatalogNavigationActions.svelte
 
-Source SHA-256: 7df7181af179da7bccc2dbef3e8ef68f3e32c0c436f922cda2be51e0c1d7bdc6
+Source SHA-256: 9133e928abdd94f7936ecdd758af52c44b9bf06320d5e15030f794d3a80309f1
 
 ```svelte
 <script lang="ts">
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { NodeRenderer } from "../../index.ts";
   let { detail = false, onback, backAvailable=true }: {
     detail?: boolean; onback?: () => void; backAvailable?:boolean;
   } = $props();
@@ -3027,11 +3021,11 @@ Source SHA-256: 7df7181af179da7bccc2dbef3e8ef68f3e32c0c436f922cda2be51e0c1d7bdc6
 
 ## src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte
 
-Source SHA-256: c89561457dad3fe54f01ec15f8d282eea2fea5cc4bbb09ca86af609a116e183a
+Source SHA-256: d9f7a7276785de44f6cd1eda8451b1a1cce4f82c0f61e49bc956a339ab561c04
 
 ```svelte
 <script lang="ts">
-  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
+  import { ToolbarLayout } from "../../index.ts";
   let { title, query, onquery, searching, resultsId, onsearch, oncancel, searchAvailable = true }: {
     title: string; query: string; onquery: (query: string) => void; searching: boolean;
     resultsId: string; onsearch: () => void; oncancel: () => void; searchAvailable?: boolean;
@@ -3150,24 +3144,21 @@ Source SHA-256: c48c115cd7b252c8c088621cb6085b9f4b12842fb7cb9a79a125483a45b79637
 
 ## src/svelte/catalog/renderer/view-item/ViewItem.svelte
 
-Source SHA-256: 328ab190d5ae5a0ad3536c81b416c11ad8c227808bcfa1d988c6a5b14f91a3fb
+Source SHA-256: a7a43623cc40afaf9979a2ea3988662e54c7006839646e4dd197b9cab98632f1
 
 ```svelte
 <script lang="ts">
-  import type { ViewItem } from "../../../../views/schema.ts";
-  import type { ResolvedView } from "../../../../views/resolved.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
   import { NodeRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../../adapter-catalog.ts";
-  let { item, resolved, onevent, host = "flow" }: {
-    item: ViewItem; resolved: ResolvedView; onevent: (event: NodeEvent) => void; host?: "flow" | "frame";
-  } = $props();
+  let { item, resolved, onevent, host = "flow" }: CatalogProps<"view-item"> = $props();
   function dispatch(event: NodeEvent) {
     if (item.kind === "collection" && event.kind === "collection.select") {
-      if (!resolved.disabledOutputs.includes(item.output)) onevent({ kind: "surface.invoke", intent: {
+      if (!resolved.disabledOutputs.includes(item.output)) onevent?.({ kind: "surface.invoke", intent: {
         kind: "view.output", view: resolved.view.id, output: item.output, recordId: event.id,
       } });
-    } else onevent(event);
+    } else onevent?.(event);
   }
   function binding() {
     if (!("input" in item)) throw new Error("VIEW_INPUT_REQUIRED");
@@ -3191,7 +3182,7 @@ Source SHA-256: 328ab190d5ae5a0ad3536c81b416c11ad8c227808bcfa1d988c6a5b14f91a3fb
 {:else if item.kind==='collection' && item.presentation?.kind==='summary-widget'}
   {@const node=binding()}
   {#if node?.kind==='collection'}<SummaryWidget {node} available={!resolved.disabledOutputs.includes(item.output)}
-    activate={()=>onevent({kind:'surface.invoke',intent:{kind:'view.output',view:resolved.view.id,output:item.output}})} />{/if}
+    activate={()=>onevent?.({kind:'surface.invoke',intent:{kind:'view.output',view:resolved.view.id,output:item.output}})} />{/if}
 {:else}
   {@const node = binding()}
   {#if !node && "input" in item && resolved.pending?.[item.input]}
@@ -3205,15 +3196,16 @@ Source SHA-256: 328ab190d5ae5a0ad3536c81b416c11ad8c227808bcfa1d988c6a5b14f91a3fb
 
 ## src/svelte/catalog/renderer/panel/Panel.svelte
 
-Source SHA-256: 224516e7185a549221fd8ff6f558728314819cd3790dfa7d7b18fe1a8446bea0
+Source SHA-256: 2253b750bd4a0da071791c2f727e129a5c4a664d59c1ebc3eb7a07e98df4efeb
 
 ```svelte
 <script lang="ts">
   import { tick, untrack } from "svelte";
-  import { bindViewEvents, type OwnedResolvedPanel, type OwnedViewEvent, type ViewEventOwner } from "../../../../web/client/view-events.ts";
+  import { bindViewEvents, type OwnedResolvedPanel, type ViewEventOwner } from "../../../../web/client/view-events.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { ViewPanel } from "../../../adapter-catalog.ts";
-  let { panel, onevent }: { panel?: OwnedResolvedPanel | null; onevent: (event: OwnedViewEvent) => void } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { panel, onevent }: CatalogProps<"panel"> = $props();
   let mounted = $state.raw<OwnedResolvedPanel | null>(null);
   let open = $state(false);
   let revision = 0;
@@ -3233,7 +3225,7 @@ Source SHA-256: 224516e7185a549221fd8ff6f558728314819cd3790dfa7d7b18fe1a8446bea0
     });
   });
   function dispatch(owner: ViewEventOwner) {
-    const send = bindViewEvents(owner, onevent);
+    const send = bindViewEvents(owner, value => onevent?.(value));
     return (event: NodeEvent) => {
       if (event.kind === "transient.closed" && !panel && mounted?.owner === owner) mounted = null;
       send(event);
@@ -3302,22 +3294,19 @@ export const inspectionMedia = Object.freeze({
 
 ## src/svelte/catalog/compositions/access-gate/AccessGate.svelte
 
-Source SHA-256: c5702e47b08658b231be388a063f05ea2160431cbca50b24ed4d8d03926d56fc
+Source SHA-256: 0675612650325900a2d0c7dcb61b359163ebc92a966a8309cce44c62e114a09f
 
 ```svelte
 <script lang="ts">
   import { onMount, untrack } from "svelte";
-  import type { HumanSurface, ValidateInput } from "../../../../web/types.ts";
-  import type { ViewProgram } from "../../../../views/program-schema.ts";
-  import ViewProduct from "../../renderer/view-product/ViewProduct.svelte";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { ViewProduct } from "../../index.ts";
   import { accessClient } from "../../../../web/client/access.ts";
   import { provideAccess } from "../../../infra/access-context.ts";
-  import AccessScreen from "../access-screen/AccessScreen.svelte";
+  import { AccessScreen } from "../../index.ts";
   import { browserAccessLock } from "./browser-access-lock.ts";
   import { rememberAccessProfile } from "../../../infra/access-profile.ts";
-  let { surface, validateInput, viewProgram }: {
-    surface: HumanSurface; validateInput: ValidateInput; viewProgram: ViewProgram;
-  } = $props();
+  let { surface, validateInput, viewProgram }: CatalogProps<"access-gate"> = $props();
   let productLabel = $derived(viewProgram.label);
   const client = untrack(() => accessClient(surface.contractDigest, browserAccessLock()));
   let current = $state.raw(client.snapshot());
@@ -3347,21 +3336,21 @@ Source SHA-256: c5702e47b08658b231be388a063f05ea2160431cbca50b24ed4d8d03926d56fc
 
 ## src/svelte/catalog/compositions/collection/Collection.svelte
 
-Source SHA-256: 37375ed13f7027c904a307580f7dab15b41e0d5bd4f93bb3e12000036ef14883
+Source SHA-256: ce86d2f9f45c500534a357463c52deb1ce84cb09cb2f19c37d00e518db846b9e
 
 ```svelte
 <script lang="ts">
-  import type { ResolvedNodeFor } from "../../../../interaction/resolved-node.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { presentFact, presentTitle, readingFields } from "../../../../interaction/fact-presentation.ts";
-  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
+  import { GroupedPanel } from "../../index.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import CollectionState from "../collection-state/CollectionState.svelte";
+  import { Icon } from "../../index.ts";
+  import { CollectionState } from "../../index.ts";
   import { retrieveCollection } from "../../../collection-retrieval.ts";
-  import MediaGrid from "../media-grid/MediaGrid.svelte";
-  import MediaCollectionGrid from "../media-collection-grid/MediaCollectionGrid.svelte";
-  import AttentionIndicator from '../../foundations/attention-indicator/AttentionIndicator.svelte';
-  let { node, select }: { node: ResolvedNodeFor<"collection">; select: (id: string) => void } = $props();
+  import { MediaGrid } from "../../index.ts";
+  import { MediaCollectionGrid } from "../../index.ts";
+  import { AttentionIndicator } from '../../index.ts';
+  let { node, select }: CatalogProps<"collection"> = $props();
   let { records, disabled, loaded, selectedId } = $derived(node);
   // Collections present records. Search belongs exclusively to the toolbar overlay.
   let visibleRecords = $derived(node.presentation ? records : retrieveCollection(records, node.fields, ""));
@@ -3381,7 +3370,7 @@ Source SHA-256: 37375ed13f7027c904a307580f7dab15b41e0d5bd4f93bb3e12000036ef14883
             <span data-record-metadata>{#each secondary as field}<span data-record-value>{node.valueLabels?.[field]?.[String(record.facts[field])] ?? `${node.labels[`${node.object}.${field}`]} · ${presentFact(record.facts[field])}`}</span>{/each}</span>
           {/if}
         </span>
-        <ChevronRight data-icon="inline-end" data-control-chevron aria-hidden="true" />
+        <Icon name="chevron-right" placement="inline-end" chevron decorative />
       </Button>
     </li>
   {/each}
@@ -3432,26 +3421,21 @@ export function retrieveCollection(records: readonly RecordView[], fields: reado
 
 ## src/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte
 
-Source SHA-256: 8932a9dc6841f7b3f4ee23c02fb20c13732fbb7943bb9546d7a513ebcf299707
+Source SHA-256: 753835a8c83da9c8ce28ee18c971988fdad23a3175cf42b55c118ec3e9d3eed5
 
 ```svelte
 <script lang="ts">
-  import { surfaceFrame, type SurfaceFrame } from "../../../../interaction/surface-frame.ts";
-  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import { surfaceFrame } from "../../../../interaction/surface-frame.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
-  import type { ResolvedView } from "../../../../views/resolved.ts";
-  import ContentFlow from "../content-flow/ContentFlow.svelte";
-  import FrameBody from "../../renderer/frame-body/FrameBody.svelte";
-  import Toolbar from "../toolbar/Toolbar.svelte";
-  import ScrollEdges from "../../foundations/scroll-edges/ScrollEdges.svelte";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { ContentFlow } from "../../index.ts";
+  import { FrameBody } from "../../index.ts";
+  import { Toolbar } from "../../index.ts";
+  import { ScrollEdges } from "../../index.ts";
   import { provideSurfaceHost } from "../../../infra/surface-host.svelte.ts";
   import { provideToolbarScroll } from "../../../infra/toolbar-scroll.svelte.ts";
-  import { isFormControlEvent, type FormControlEvent } from "../../../../interaction/form-control-event.ts";
-let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEvent }: { frame: SurfaceFrame;
-    body?: ResolvedView | undefined;
-    presentation?: "standard" | "message" | "transient";
-    invoke: (intent: SurfaceIntent) => void; edit?: ((name: string, value: string) => void) | undefined;
-    controlEvent?: ((event: FormControlEvent) => void) | undefined } = $props();
+  import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
+  let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEvent }: CatalogProps<"surface-frame"> = $props();
   let host = $state<HTMLElement | null>(null);
   let viewport = $state<HTMLDivElement | null>(null);
   provideSurfaceHost(() => host);
@@ -3852,20 +3836,16 @@ export function presentFrame(surface: HumanSurface, state: HumanState, validate:
 
 ## src/svelte/catalog/renderer/frame-body/FrameBody.svelte
 
-Source SHA-256: 89da3cc1350b25770980bd15fe442237360e6a7b067c37ed44137c6c27c6977e
+Source SHA-256: 46420b3463ee31d2585c8ed44f5786a1cf85713af53bbbef6ed9f544f2fd6cf3
 
 ```svelte
 <script lang="ts">
-  import type { FrameContent } from "../../../../interaction/surface-frame.ts";
-  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import { NodeRenderer, Information, MessageBody, UtilityActions } from "../../../adapter-catalog.ts";
-  import { isFormControlEvent, type FormControlEvent } from "../../../../interaction/form-control-event.ts";
-  let { content, invoke, edit, messageDialog = false, controlEvent }: { content: FrameContent; messageDialog?: boolean;
-    invoke: (intent: SurfaceIntent) => void; edit: (name: string, value: string) => void;
-    controlEvent?: ((event: FormControlEvent) => void) | undefined;
-  } = $props();
+  import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { content, invoke, edit, messageDialog = false, controlEvent }: CatalogProps<"frame-body"> = $props();
   function dispatch(event: NodeEvent) {
     if (event.kind === "input.change") edit(event.name, event.value);
     else if (isFormControlEvent(event)) controlEvent?.(event);
@@ -4600,18 +4580,13 @@ export const InformationSchema = Type.Object({ kind: Type.Literal("information")
 
 ## src/svelte/catalog/compositions/toolbar/Toolbar.svelte
 
-Source SHA-256: 054893bd905d2be87b6512d90f1f67640760ca0bdc5a162a6fc2d90b01d0b463
+Source SHA-256: fdac3944924fcdb2c720239be2714aaa6d69d3a8602cd4de6e7c595c0b0a778c
 
 ```svelte
 <script lang="ts">
-  import type { Toolbar } from "../../../../interaction/toolbar.ts";
-  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import type { ToolbarControls } from "../../../infra/toolbar-controls.ts";
-  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
-  let { toolbar, invoke, submit, presentation = "standard", controls }: {
-    toolbar: Toolbar; invoke: (intent: SurfaceIntent) => void; submit?: string;
-    presentation?: "standard" | "message" | "transient"; controls?: ToolbarControls;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  import { ToolbarLayout } from "../../index.ts";
+  let { toolbar, invoke, submit, presentation = "standard", controls }: CatalogProps<"toolbar"> = $props();
 </script>
 
 <ToolbarLayout content={{kind:"commands",toolbar,invoke,submit,presentation,controls}} />
@@ -4619,41 +4594,35 @@ Source SHA-256: 054893bd905d2be87b6512d90f1f67640760ca0bdc5a162a6fc2d90b01d0b463
 
 ## src/svelte/catalog/foundations/face/Face.svelte
 
-Source SHA-256: 2bc1066c29a39b00ad7a0da1533d7e010d97e3a6a73e633e1277e00e21801d59
+Source SHA-256: 6809f79f3f14c2ee8d046a11625f4a7b2c239a3c78ab53f5713487a8a9a63c3a
 
 ```svelte
 <script lang="ts">
-  import CircleAlert from "@lucide/svelte/icons/circle-alert";
-  import FileText from "@lucide/svelte/icons/file-text";
-  import type { Face } from "../../../../interaction/face.ts";
   import * as Avatar from "../../../vendor/components/ui/avatar/index.js";
-  import { actionIcons } from '../../../infra/action-icons.ts';
-  let { face, compact = false }: { face: Face; compact?: boolean } = $props();
+  import { actionIconNames } from '../../../infra/action-icons.ts';
+  import { Icon } from '../../index.ts';
+  import type { CatalogProps } from "../../types.d.ts";
+  let { face, compact = false }: CatalogProps<"face"> = $props();
   let glyph = $derived(face.kind === "symbol" ? face.text : face.kind === "flag"
     ? Array.from(face.region, letter => String.fromCodePoint(0x1f1e6 + letter.charCodeAt(0) - 65)).join("") : "");
-  let Icon = $derived(face.kind === 'icon' ? actionIcons[face.icon] : FileText);
 </script>
 <Avatar.Root shape="object" class="bank-face size-[var(--face-size,2rem)]" data-piece="face" data-face-kind={face.kind}
   data-compact={compact || undefined} data-tone={face.kind === "status" ? face.severity : "neutral"} aria-hidden="true">
-  <Avatar.Fallback>{#if face.kind === 'icon'}<Icon />{:else if face.kind === "status"}<CircleAlert />{:else if face.kind === "document"}<FileText />{:else}<span data-face-glyph>{glyph}</span>{/if}</Avatar.Fallback>
+  <Avatar.Fallback>{#if face.kind === 'icon'}<Icon name={actionIconNames[face.icon]} />{:else if face.kind === "status"}<Icon name="circle-alert" />{:else if face.kind === "document"}<Icon name="file-text" />{:else}<span data-face-glyph>{glyph}</span>{/if}</Avatar.Fallback>
 </Avatar.Root>
 ```
 
 ## src/svelte/catalog/foundations/field-well/FieldWell.svelte
 
-Source SHA-256: 54be8258fca2f926bc094928071c6e3da8b1f337e0e32652d3ab68a17fed66d3
+Source SHA-256: 293deeb114a8647416308a82158727e86e8d43f0cae40be21e04240105d10e86
 
 ```svelte
 <script lang="ts">
-  import type { Snippet } from "svelte";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import FieldWellContent from "../field-well-content/FieldWellContent.svelte";
+  import { FieldWellContent } from "../../index.ts";
   import { cn } from "../../../vendor/utils.js";
-  let { id, label, filled, required = false, prefix, accessory, footer, children, presentation = "standard" }: {
-    id: string; label: string; filled: boolean; required?: boolean;
-    prefix?: Snippet; accessory?: Snippet; footer?: Snippet | undefined; children: Snippet;
-    presentation?: "standard" | "access";
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { id, label, filled, required = false, prefix, accessory, footer, children, presentation = "standard" }: CatalogProps<"field-well"> = $props();
   function focusEditor(event: MouseEvent) {
     if (event.defaultPrevented || !(event.target instanceof Element)) return;
     if (event.target.closest('input, textarea, button, select, a, label, [contenteditable]')) return;
@@ -4665,7 +4634,7 @@ Source SHA-256: 54be8258fca2f926bc094928071c6e3da8b1f337e0e32652d3ab68a17fed66d3
 </script>
 <Group.Root {presentation} onclick={focusEditor} class={cn("field-well overflow-hidden p-0", footer && "flex-col items-stretch")} data-floating-field data-field-focus="within" data-compound-field={!!prefix} data-filled={filled}>
   <div data-field-row class="flex w-full min-w-0 items-center">
-    <FieldWellContent {id} {label} {required} {children} />
+    <FieldWellContent {id} {label} {required}>{@render children?.()}</FieldWellContent>
     {#if prefix}<Group.Addon align="inline-start" class="field-prefix">{@render prefix()}</Group.Addon>{/if}
     {@render accessory?.()}
   </div>
@@ -4675,13 +4644,13 @@ Source SHA-256: 54be8258fca2f926bc094928071c6e3da8b1f337e0e32652d3ab68a17fed66d3
 
 ## src/svelte/catalog/foundations/search-field/SearchField.svelte
 
-Source SHA-256: e51cbde7031c190246feea0c86e3685e1ce730aa35952d92c6ea36be7a9e60d0
+Source SHA-256: abb3bec18b55386ea34a1cfb13dd568b4a80dcceca6d12c9a32e91eac366bd75
 
 ```svelte
 <script lang="ts">
   import * as InputGroup from "../../../vendor/components/ui/input-group/index.js";
-  import Search from "@lucide/svelte/icons/search";
-  import ClearInput from "../clear-input/ClearInput.svelte";
+  import { Icon } from "../../index.ts";
+  import { ClearInput } from "../../index.ts";
 
   const generatedId = $props.id();
   let { id = generatedId, value = $bindable(""), ref = $bindable(null), onvalue, disabled = false, readonly = false,
@@ -4704,27 +4673,24 @@ Source SHA-256: e51cbde7031c190246feea0c86e3685e1ce730aa35952d92c6ea36be7a9e60d0
   <InputGroup.Input id={fieldId} bind:ref type="search" {value} {disabled} {readonly}
     {placeholder} aria-label={label} aria-controls={controls} {tabindex}
     autocomplete="off" oninput={event => update(event.currentTarget.value)} />
-  <InputGroup.Addon align="inline-start"><Search data-search-icon="leading" aria-hidden="true" /></InputGroup.Addon>
+  <InputGroup.Addon align="inline-start"><Icon name="search" search="leading" decorative /></InputGroup.Addon>
   <ClearInput control={fieldId} {value} label="Clear search" disabled={!!(disabled || readonly)} />
 </InputGroup.Root>
 ```
 
 ## src/svelte/catalog/foundations/measured-field/MeasuredField.svelte
 
-Source SHA-256: 99f623fe6d0b1833b081b0b5458a875e4db1f92e10ee30ea103a22388bb591f3
+Source SHA-256: 589c0db710de5eccd4cc0c20d8c15d8c54b863111e562dc6039ec44b770f09e5
 
 ```svelte
 <script lang="ts">
-  import type { Snippet } from 'svelte';
-  import type { ResolvedNodeId } from '../../../../interaction/catalog.ts';
+  import type { CatalogProps } from '../../types.d.ts';
   import * as Field from '../../../vendor/components/ui/field/index.js';
   // The outer box measures available space; the complete accessible field
   // (including validation/support) owns its preferred measure inside it.
   const measures = { 'input.text': 'writing', 'input.multiline': 'writing',
-    'control.select': 'choice', 'control.date': 'date', 'control.money': 'amount' } as const satisfies Partial<Record<ResolvedNodeId,string>>;
-  let { kind, children, invalid, disabled }: {
-    kind: keyof typeof measures; children?: Snippet; invalid?: boolean; disabled?: boolean;
-  } = $props();
+    'control.select': 'choice', 'control.date': 'date', 'control.money': 'amount' } as const satisfies Record<CatalogProps<'measured-field'>['kind'],string>;
+  let { kind, children, invalid, disabled }: CatalogProps<'measured-field'> = $props();
 </script>
 
 <div data-control-measure={measures[kind]}>
@@ -4765,49 +4731,46 @@ Source SHA-256: d84a698ed4e2a0ac55dfff442cb0f905666a565dc0e83086605c5d7ef727e91a
 
 ## src/svelte/catalog/foundations/grouped-panel/GroupedPanel.svelte
 
-Source SHA-256: 1e8accddc84e7a3455be356919ad0d75b6023a5bec3f228f1b9ff908510e2f20
+Source SHA-256: 2b58281a3deb333667d4586c6377154dca80eb53518481853a663287ac455962
 
 ```svelte
 <script lang="ts">
-  import type { Snippet } from "svelte";
   import * as Card from "../../../vendor/components/ui/card/index.js";
-  let { children, measure = 'reading' }: { children: Snippet; measure?: 'reading' | 'overview' } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { children, measure = 'reading' }: CatalogProps<"grouped-panel"> = $props();
 </script>
 
 <!-- One shared pane for sibling rows; Stack only supplies hierarchy. -->
 <div data-reading-measure={measure === 'reading' || undefined}>
-  <Card.Root class="grouped-panel" data-grouped-panel>{@render children()}</Card.Root>
+  <Card.Root class="grouped-panel" data-grouped-panel>{@render children?.()}</Card.Root>
 </div>
 ```
 
 ## src/svelte/catalog/foundations/choice-row/ChoiceRow.svelte
 
-Source SHA-256: fe6285c228b1a1d1af98c27a2b5bee82c0d4aed33a2f0806d7ee3fb4a2979dc0
+Source SHA-256: 20d5309ef63ca189aad5ca9c625aff69302f58ae5266228b61504e12f6ba0d1c
 
 ```svelte
 <script lang="ts">
-  import type { Snippet } from "svelte";
   import * as Field from "../../../vendor/components/ui/field/index.js";
-  import ChoiceItem from "../choice-item/ChoiceItem.svelte";
+  import { ChoiceItem } from "../../index.ts";
   import { pressFeedback } from "../../../vendor/components/ui/button/press-feedback.js";
-  let { id, labelId, descriptionId, label, description, disabled, children }: {
-    id: string; labelId: string; descriptionId?: string; label: string;
-    description?: string | undefined; disabled: boolean; children: Snippet;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { id, labelId, descriptionId, label, description, disabled, children }: CatalogProps<"choice-row"> = $props();
   let row = $state<HTMLLabelElement | null>(null);
   $effect(() => { if (row) return pressFeedback(row); });
 </script>
 
 <Field.FieldLabel bind:ref={row} for={id} class="tm-control" aria-disabled={disabled} data-grouped-row data-choice-row data-material="interior">
   <ChoiceItem {label} {labelId} {description} {descriptionId}>
-    {@render children()}
+    {@render children?.()}
   </ChoiceItem>
 </Field.FieldLabel>
 ```
 
 ## src/svelte/catalog/foundations/selection-field/SelectionField.svelte
 
-Source SHA-256: 6eb24e7159b270f34801633384cf7cf2721505c8bef1dc6798c2e265f6ad198e
+Source SHA-256: 4b6c6f71dd925183b6449ae47b9f5127f679e6502f95471135ca916e7475211e
 
 ```svelte
 <script lang="ts">
@@ -4815,10 +4778,10 @@ Source SHA-256: 6eb24e7159b270f34801633384cf7cf2721505c8bef1dc6798c2e265f6ad198e
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import ChevronDown from "@lucide/svelte/icons/chevron-down";
-  import FieldWellContent from "../field-well-content/FieldWellContent.svelte";
-  import Face from "../face/Face.svelte";
-  import PickerSheet from "../picker-sheet/PickerSheet.svelte";
+  import { Icon } from "../../index.ts";
+  import { FieldWellContent } from "../../index.ts";
+  import { Face } from "../../index.ts";
+  import { PickerSheet } from "../../index.ts";
   import SelectionList from "./SelectionList.svelte";
   import { surfaceFocus, revealSurfaceFocus } from "../../../infra/surface-focus.svelte.ts";
   import { PickerPresentation } from "../../../infra/picker-presentation.svelte.ts";
@@ -4902,12 +4865,12 @@ Source SHA-256: 6eb24e7159b270f34801633384cf7cf2721505c8bef1dc6798c2e265f6ad198e
       <FieldWellContent {label} {required}>
         <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
           {@render selectedValue()}
-          <ChevronDown data-icon="inline-end" data-control-chevron aria-hidden="true" />
+          <Icon name="chevron-down" placement="inline-end" chevron decorative />
         </span>
       </FieldWellContent>
     {:else}
       {@render selectedValue()}
-      <ChevronDown data-icon="inline-end" data-control-chevron aria-hidden="true" />
+      <Icon name="chevron-down" placement="inline-end" chevron decorative />
     {/if}
     </Button>
     {/snippet}
@@ -4934,14 +4897,15 @@ Source SHA-256: 6eb24e7159b270f34801633384cf7cf2721505c8bef1dc6798c2e265f6ad198e
 
 ## src/svelte/catalog/compositions/collection-state/CollectionState.svelte
 
-Source SHA-256: f6bf204987783774f138fa5b864ec196a7775e0467c1ed15417453c65c5e808f
+Source SHA-256: 4e347ef602728408441bac6eb8e62e6c0cd7d9c2c5202aed237f1f59cd54d262
 
 ```svelte
 <script lang="ts">
   import * as Empty from "../../../vendor/components/ui/empty/index.js";
   import { Skeleton } from "../../../vendor/components/ui/skeleton/index.js";
-  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
-  let { loaded, createLabel, connection }: { loaded: boolean; createLabel?: string; connection?: 'loading' | 'ready' | 'offline' | undefined } = $props();
+  import { GroupedPanel } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { loaded, createLabel, connection }: CatalogProps<"collection-state"> = $props();
   let offline = $derived(connection === 'offline');
   let pending = $derived(!loaded && !offline);
 </script>
@@ -4964,18 +4928,18 @@ Source SHA-256: f6bf204987783774f138fa5b864ec196a7775e0467c1ed15417453c65c5e808f
 
 ## src/svelte/catalog/foundations/action/Action.svelte
 
-Source SHA-256: d034009a90de8a0e1f0561d42da59587f6a3200367a521d6ae4a15da608c7785
+Source SHA-256: 67d4814e03d17cc8f2c19ef6c1b2d6edcbf447a4bef02202fd53530001a4bfab
 
 ```svelte
 <script lang="ts">
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import Loader2 from "@lucide/svelte/icons/loader-2";
   import { cn } from "../../../vendor/utils.js";
   import type { ToolbarAction } from "../../../../interaction/toolbar.ts";
-  import { actionIcons } from "../../../infra/action-icons.ts";
+  import { actionIconNames } from "../../../infra/action-icons.ts";
+  import { Icon } from "../../index.ts";
   import type { ActionElementProps } from "../../../action-adapter.ts";
   let { label, icon, state: status = "ready", emphasis = "secondary", onclick, type = "button", elementProps, reason }: {
-    label: string; icon: keyof typeof actionIcons; state?: ToolbarAction["state"];
+    label: string; icon: keyof typeof actionIconNames; state?: ToolbarAction["state"];
     emphasis?: "primary" | "secondary"; onclick?: () => void; type?: "button" | "submit";
     elementProps?: ActionElementProps | undefined; reason?: string | undefined;
   } = $props();
@@ -4999,7 +4963,6 @@ Source SHA-256: d034009a90de8a0e1f0561d42da59587f6a3200367a521d6ae4a15da608c7785
   let button = $state<HTMLButtonElement | null>(null);
   let caption = $state<HTMLSpanElement | null>(null);
   let compact = $state(false);
-  let Icon = $derived(status === "pending" ? Loader2 : actionIcons[icon]);
   let face = $derived(status === "pending" ? "pending" : compact ? "icon" : "label");
   $effect(() => {
     label;
@@ -5021,7 +4984,7 @@ Source SHA-256: d034009a90de8a0e1f0561d42da59587f6a3200367a521d6ae4a15da608c7785
   <span bind:this={caption} data-button-label aria-hidden="true" class={cn("min-w-0 truncate", face !== "label" && "invisible")}>{label}</span>
     <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
       aria-hidden="true" data-button-glyph data-button-face={face}>
-      <Icon data-icon="inline-start" aria-hidden="true" />
+      <Icon name={status === "pending" ? "loader-circle" : actionIconNames[icon]} placement="inline-start" decorative />
     </span>
 </Button>
 {#if reason}<span id={descriptionId} class="sr-only">{reason}</span>{/if}
@@ -5029,35 +4992,17 @@ Source SHA-256: d034009a90de8a0e1f0561d42da59587f6a3200367a521d6ae4a15da608c7785
 
 ## src/svelte/infra/action-icons.ts
 
-Source SHA-256: d8adbfe7e273f688a7e3a7f4b5dd3df1e068e8865069e6c5b4a8c4ba603f6f41
+Source SHA-256: 75005d77015749b488cfb38af6b23ed690069288933b080f82fd167ae6ae25e8
 
 ```ts
-import ArrowLeft from "@lucide/svelte/icons/arrow-left";
-import X from "@lucide/svelte/icons/x";
-import Save from "@lucide/svelte/icons/save";
-import Eye from "@lucide/svelte/icons/eye";
-import Search from "@lucide/svelte/icons/search";
-import RotateCw from "@lucide/svelte/icons/rotate-cw";
-import Plus from "@lucide/svelte/icons/plus";
-import Archive from "@lucide/svelte/icons/archive";
-import LayoutGrid from "@lucide/svelte/icons/layout-grid";
-import ArrowRight from "@lucide/svelte/icons/arrow-right";
-import Check from "@lucide/svelte/icons/check";
-import Ellipsis from "@lucide/svelte/icons/ellipsis";
-import PanelLeft from "@lucide/svelte/icons/panel-left";
-import Images from "@lucide/svelte/icons/images";
-import Pencil from "@lucide/svelte/icons/pencil";
-import Settings from "@lucide/svelte/icons/settings";
-import Palette from "@lucide/svelte/icons/palette";
-import Lock from "@lucide/svelte/icons/lock";
-import Undo2 from "@lucide/svelte/icons/undo-2";
 import type { ActionIcon } from "../../interaction/toolbar.ts";
 
-export const actionIcons = {
-  back: ArrowLeft, close: X, save: Save, review: Eye, recover: Search, retry: RotateCw,
-  create: Plus, archive: Archive, catalog: LayoutGrid, open: ArrowRight, confirm: Check, search: Search, more: Ellipsis, navigation: PanelLeft,
-  media: Images, edit: Pencil, settings: Settings, lock: Lock, restore: Undo2, palette: Palette,
-} satisfies Record<ActionIcon, typeof X>;
+/** The icon (a name of the catalog's `icon` foundation) that draws each action icon. */
+export const actionIconNames = {
+  back: "arrow-left", close: "x", save: "save", review: "eye", recover: "search", retry: "rotate-cw",
+  create: "plus", archive: "archive", catalog: "layout-grid", open: "arrow-right", confirm: "check", search: "search", more: "ellipsis", navigation: "panel-left",
+  media: "images", edit: "pencil", settings: "settings", lock: "lock", restore: "undo-2", palette: "palette",
+} as const satisfies Record<ActionIcon, string>;
 ```
 
 ## src/svelte/vendor/components/ui/button/button.svelte
@@ -5276,23 +5221,24 @@ export function pressFeedback(element: HTMLElement) {
 
 ## src/svelte/catalog/compositions/select-control/SelectControl.svelte
 
-Source SHA-256: f099a015ec96c5e19cea3ae43b66d876894400b4432f29358424be317b0669e9
+Source SHA-256: d931d1c9820d65d295f082238a6b35a420ffee96aa5c07d96372fe9c0fb8f50e
 
 ```svelte
 <script lang="ts">
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import SelectionField from "../../foundations/selection-field/SelectionField.svelte";
-  import MeasuredField from "../../foundations/measured-field/MeasuredField.svelte";
+  import { SelectionField } from "../../index.ts";
+  import { MeasuredField } from "../../index.ts";
   import { selectNode, selectInputRequired, applyControlEvent } from "../../../../interaction/control-nodes.ts";
-  import type { ControlProps, ControlEventFor } from "../../../renderer-contracts.ts";
-  let { node, onevent }: ControlProps<"select"> = $props();
+  import type { ControlEventFor } from "../../../renderer-contracts.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { node, onevent }: CatalogProps<"select-control"> = $props();
   let checked = $derived(selectNode(node));
   const id = $props.id();
   function change(value: string | null) {
     const event: ControlEventFor<"select"> = { kind: "select.change", control: checked.id, value };
     applyControlEvent(checked, event);
-    onevent(event);
+    onevent?.(event);
   }
 </script>
 <MeasuredField kind="control.select" disabled={checked.disabled}>
@@ -5307,19 +5253,20 @@ Source SHA-256: f099a015ec96c5e19cea3ae43b66d876894400b4432f29358424be317b0669e9
 
 ## src/svelte/catalog/compositions/popover-control/PopoverControl.svelte
 
-Source SHA-256: eee21215e9873d6d0ac25526591ef5f767f1f7d09bd8e9e41350e34fb2ea8bdf
+Source SHA-256: 0fadcd9705154b5c09e6bc135a31d3f4a581cb5f1cd4dc5541bc2aa52c61128b
 
 ```svelte
 <script lang="ts">
   import AnchoredSurface from "./AnchoredSurface.svelte";
   import { popoverNode, applyControlEvent } from "../../../../interaction/control-nodes.ts";
-  import type { ControlProps, ControlEventFor } from "../../../renderer-contracts.ts";
-  let { node, onevent }: ControlProps<"popover"> = $props();
+  import type { ControlEventFor } from "../../../renderer-contracts.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { node, onevent }: CatalogProps<"popover-control"> = $props();
   let checked = $derived(popoverNode(node));
   function change(open: boolean) {
     const event: ControlEventFor<"popover"> = { kind: "popover.open", control: checked.id, open };
     applyControlEvent(checked, event);
-    onevent(event);
+    onevent?.(event);
   }
 </script>
 <AnchoredSurface label={checked.label} open={checked.open} disabled={checked.disabled} locked={checked.locked}
@@ -5328,18 +5275,18 @@ Source SHA-256: eee21215e9873d6d0ac25526591ef5f767f1f7d09bd8e9e41350e34fb2ea8bdf
 
 ## src/svelte/catalog/compositions/file-control/FileControl.svelte
 
-Source SHA-256: f9a319e9fc0964b4ddca86749d500d7f28f76a2d8436c4dd5b966a3dc1db07f0
+Source SHA-256: fd6913cb64a993a2ab1298f95b138e367c5bf4a8ba89797c9417bc67adf32e6a
 
 ```svelte
 <script lang="ts">
   import * as Field from "../../../vendor/components/ui/field/index.js";
-  import Action from "../../foundations/action/Action.svelte";
+  import { Action } from "../../index.ts";
   import { Input } from "../../../vendor/components/ui/input/index.js";
   import { fileNode, type FileRejection } from "../../../../interaction/control-nodes.ts";
-  import type { ControlProps } from "../../../renderer-contracts.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { fileSize } from "./file-size.ts";
   import { currentStackTitle } from "../../../infra/stack-context.ts";
-  let { node, host, onevent }: ControlProps<"files"> = $props();
+  let { node, host, onevent }: CatalogProps<"file-control"> = $props();
   let checked = $derived(fileNode(node));
   let rejected = $state<readonly FileRejection[]>([]);
   const id = $props.id();
@@ -5351,7 +5298,7 @@ Source SHA-256: f9a319e9fc0964b4ddca86749d500d7f28f76a2d8436c4dd5b966a3dc1db07f0
     const input = event.currentTarget as HTMLInputElement;
     const selection = host.choose(checked, Array.from(input.files ?? []));
     rejected = selection.result.rejected;
-    onevent(selection.event);
+    onevent?.(selection.event);
     input.value = "";
   }
 </script>
@@ -5370,7 +5317,7 @@ Source SHA-256: f9a319e9fc0964b4ddca86749d500d7f28f76a2d8436c4dd5b966a3dc1db07f0
         <li class="flex flex-wrap items-center justify-between gap-2">
           <span class="min-w-0 break-all">{file.name} · {fileSize(file.size)}</span>
           <Action icon="close" label={`Remove ${file.name}`} state={checked.disabled ? "unavailable" : "ready"}
-            onclick={() => onevent(host.remove(checked, file.id))} />
+            onclick={() => onevent?.(host.remove(checked, file.id))} />
         </li>
       {/each}
     </ul>
@@ -5398,25 +5345,25 @@ Source SHA-256: aca60088f0dacd841f89008c6371259a2eb7139f81a11334f840e64821bf42b4
 
 ## src/svelte/catalog/compositions/options-control/OptionsControl.svelte
 
-Source SHA-256: c6455191a51253a60e68a0362d8f63d80eef0f5593fdfce85d7eb4d3bf23f64f
+Source SHA-256: 381cf2ebee013192d95a9ba3e428c0edab30a853929cb349a6e41c65b08e33a6
 
 ```svelte
 <script lang="ts">
   import * as Field from "../../../vendor/components/ui/field/index.js";
   import * as RadioGroup from "../../../vendor/components/ui/radio-group/index.js";
   import { Checkbox } from "../../../vendor/components/ui/checkbox/index.js";
-  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
-  import ChoiceRow from "../../foundations/choice-row/ChoiceRow.svelte";
-  import ChoiceList from "../../foundations/choice-list/ChoiceList.svelte";
-  import type { ControlProps } from "../../../renderer-contracts.ts";
+  import { GroupedPanel } from "../../index.ts";
+  import { ChoiceRow } from "../../index.ts";
+  import { ChoiceList } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { permitsOptionsSelection, optionsInputRequired } from "../../../../interaction/extended-controls.ts";
   import { currentStackTitle } from "../../../infra/stack-context.ts";
-  let { node, onevent }: ControlProps<"options"> = $props();
+  let { node, onevent }: CatalogProps<"options-control"> = $props();
   const prefix = $props.id();
   const stackTitle = currentStackTitle();
   let inputRequired = $derived(optionsInputRequired(node));
   const change = (selected: readonly string[]) => {
-    if (permitsOptionsSelection(node, selected)) onevent({ kind: "options.change", control: node.id, selected });
+    if (permitsOptionsSelection(node, selected)) onevent?.({ kind: "options.change", control: node.id, selected });
   };
   const nextSelection = (value: string) => node.maxSelected === 1 ? [value] :
     node.selected.includes(value) ? node.selected.filter(item => item !== value) : [...node.selected, value];
@@ -5450,22 +5397,22 @@ Source SHA-256: c6455191a51253a60e68a0362d8f63d80eef0f5593fdfce85d7eb4d3bf23f64f
 
 ## src/svelte/catalog/compositions/money-control/MoneyControl.svelte
 
-Source SHA-256: b8310d8429dda379969861765c3d8ebe21c8397eb9a4b543bbd8638df464fc07
+Source SHA-256: f36e5aaab86092bfc71d6aaf8d1e406c6dd46db6894e54ef6ad7aebe87d601fa
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
   import * as Field from "../../../vendor/components/ui/field/index.js";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import MaskedInput from "../../foundations/masked-input/MaskedInput.svelte";
-  import SelectionField from "../../foundations/selection-field/SelectionField.svelte";
-  import type { ControlProps } from "../../../renderer-contracts.ts";
+  import { MaskedInput } from "../../index.ts";
+  import { SelectionField } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { displayAmount, parseAmount } from "../../../../interaction/money.ts";
   import { formatMaskedValue, type InputMask } from "../../../../interaction/input-mask.ts";
-  import FieldWell from "../../foundations/field-well/FieldWell.svelte";
-  import MeasuredField from "../../foundations/measured-field/MeasuredField.svelte";
-  import ClearInput from "../../foundations/clear-input/ClearInput.svelte";
-  let { node, onevent }: ControlProps<"money"> = $props();
+  import { FieldWell } from "../../index.ts";
+  import { MeasuredField } from "../../index.ts";
+  import { ClearInput } from "../../index.ts";
+  let { node, onevent }: CatalogProps<"money-control"> = $props();
   const id = $props.id();
   let scale = $derived(node.currencies.find(currency => currency.code === node.currency)!.scale);
   let mask: InputMask = $derived({ kind: "decimal", locale: node.locale ?? "en-US", scale });
@@ -5496,7 +5443,7 @@ Source SHA-256: b8310d8429dda379969861765c3d8ebe21c8397eb9a4b543bbd8638df464fc07
   });
   function publish(currency: string, minorUnits: string | null) {
     pending.push({ id: node.id, currency, minorUnits, scale: node.currencies.find(item => item.code === currency)!.scale, locale: mask.locale });
-    onevent({ kind: "money.change", control: node.id, currency, minorUnits });
+    onevent?.({ kind: "money.change", control: node.id, currency, minorUnits });
   }
   function edit(value: string, valid: boolean, complete: boolean) {
     draft = value; draftValid = valid && complete;
@@ -5547,7 +5494,7 @@ Source SHA-256: b8310d8429dda379969861765c3d8ebe21c8397eb9a4b543bbd8638df464fc07
 
 ## src/svelte/catalog/foundations/date-control/DateControl.svelte
 
-Source SHA-256: 324edc89a807293a14f14ad59ebe19a4bfac95ea3f69c0d21a550332ead426a0
+Source SHA-256: d82c4631f9c6207a91a33d2766c6af6154c6b435912caa4b2ee04b951c9b78bc
 
 ```svelte
 <script lang="ts">
@@ -5557,13 +5504,13 @@ Source SHA-256: 324edc89a807293a14f14ad59ebe19a4bfac95ea3f69c0d21a550332ead426a0
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import DateCalendar from "./DateCalendar.svelte";
-  import CalendarIcon from "@lucide/svelte/icons/calendar";
-  import FieldWellContent from "../../foundations/field-well-content/FieldWellContent.svelte";
-  import MeasuredField from "../../foundations/measured-field/MeasuredField.svelte";
-  import PickerSheet from "../../foundations/picker-sheet/PickerSheet.svelte";
+  import { Icon } from "../../index.ts";
+  import { FieldWellContent } from "../../index.ts";
+  import { MeasuredField } from "../../index.ts";
+  import { PickerSheet } from "../../index.ts";
   import { PickerPresentation } from "../../../infra/picker-presentation.svelte.ts";
-  import type { ControlProps } from "../../../renderer-contracts.ts";
-  let { node, onevent }: ControlProps<"date"> = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { node, onevent }: CatalogProps<"date-control"> = $props();
   // Six week rows plus month controls, field and collision margins must fit.
   const id = $props.id(), picker = new PickerPresentation({ panelRem: 20, minimumBlockRem: 28 });
   const format = new DateFormatter("en-US", { dateStyle: "medium" });
@@ -5597,12 +5544,12 @@ Source SHA-256: 324edc89a807293a14f14ad59ebe19a4bfac95ea3f69c0d21a550332ead426a0
   });
   function change(value: DateValue | undefined) {
     if (!value || node.disabled) return;
-    if (value.toString() !== node.value) onevent({ kind: "date.change", control: node.id, value: value.toString() });
+    if (value.toString() !== node.value) onevent?.({ kind: "date.change", control: node.id, value: value.toString() });
     open = false;
   }
   function clear() {
     if (node.disabled || node.required) return;
-    onevent({ kind: "date.change", control: node.id, value: null });
+    onevent?.({ kind: "date.change", control: node.id, value: null });
     open = false;
   }
 </script>
@@ -5613,7 +5560,7 @@ Source SHA-256: 324edc89a807293a14f14ad59ebe19a4bfac95ea3f69c0d21a550332ead426a0
     aria-haspopup="dialog" aria-expanded={open}>
     <FieldWellContent label={node.label} required={node.required}>
       <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
-        <span>{label}</span><CalendarIcon data-icon="inline-end" aria-hidden="true" />
+        <span>{label}</span><Icon name="calendar" placement="inline-end" decorative />
       </span>
     </FieldWellContent>
   </Button>
@@ -5644,19 +5591,19 @@ Source SHA-256: 324edc89a807293a14f14ad59ebe19a4bfac95ea3f69c0d21a550332ead426a0
 
 ## src/svelte/catalog/compositions/media-control/MediaControl.svelte
 
-Source SHA-256: e904db21bcc40bc7150e390415162f29913e0285bff05a8b17fafd76522bb4de
+Source SHA-256: f8b318d3aa251f3ee56540af29ddaedf36d8bc3de78be34e56dcf4abf128f9d9
 
 ```svelte
 <script lang="ts">
   import * as Avatar from "../../../vendor/components/ui/avatar/index.js";
   import { Badge } from "../../../vendor/components/ui/badge/index.js";
   import { cn } from "../../../vendor/utils.js";
-  import ImageOff from "@lucide/svelte/icons/image-off";
-  import type { AvatarNode, ImageNode, TagNode } from "../../../../interaction/extended-nodes.ts";
-  import PhotoCollection from '../photo-collection/PhotoCollection.svelte';
-  import Image from '../../foundations/image/Image.svelte';
+  import { Icon } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { PhotoCollection } from '../../index.ts';
+  import { Image } from '../../index.ts';
   import { imageIdentity } from '../../../infra/media-source.ts';
-  let { node }: { node: AvatarNode | ImageNode | TagNode } = $props();
+  let { node }: CatalogProps<"media-control"> = $props();
   let source = $derived(node.kind === "tag" ? null : typeof node.source === "object" && node.source !== null
     ? 'asset' in node.source ? `/media/${encodeURIComponent(node.source.asset)}` : node.source : node.source);
   const aspects = { square: "aspect-square", landscape: "aspect-video", portrait: "aspect-[3/4]" };
@@ -5676,7 +5623,7 @@ Source SHA-256: e904db21bcc40bc7150e390415162f29913e0285bff05a8b17fafd76522bb4de
       {#if source}
         <div class="absolute inset-0">{#key imageIdentity(source)}<PhotoCollection photos={[{source,alt:node.alt}]} title={node.label} />{/key}</div>
       {:else}<div class="absolute inset-0 flex items-center justify-center gap-3 rounded-xl border" role="img" aria-label={node.alt}>
-        <ImageOff aria-hidden="true" /><span>Image unavailable</span></div>{/if}
+        <Icon name="image-off" decorative /><span>Image unavailable</span></div>{/if}
     </div>
     <figcaption>{node.label}</figcaption>
   </figure>
@@ -5685,15 +5632,15 @@ Source SHA-256: e904db21bcc40bc7150e390415162f29913e0285bff05a8b17fafd76522bb4de
 
 ## src/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte
 
-Source SHA-256: 352c2a77a30f36ebfa9c14225de036e001943869e9ca8dde7206460137f5832b
+Source SHA-256: 4c03a07941866471ad4af30c8d300029fce8c62709bef25220435de3ea4706f3
 
 ```svelte
 <script lang="ts">
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   import { anchoredTabExit } from '../../../infra/anchored-tab-exit.ts';
-  import FrameBody from "../../renderer/frame-body/FrameBody.svelte";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { FrameBody } from "../../index.ts";
+  import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import type { FrameContent } from "../../../../interaction/surface-frame.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
@@ -5746,24 +5693,20 @@ Source SHA-256: 352c2a77a30f36ebfa9c14225de036e001943869e9ca8dde7206460137f5832b
 
 ## src/svelte/catalog/compositions/fields/Fields.svelte
 
-Source SHA-256: eb2ac80d182aa3862eddb658c69e984014c5f08972d79b9eaab61ea71c7b156c
+Source SHA-256: 457fc5f593b38a668a5e270a8c0e45d287439db0da01aea269c0a9e4e482d86a
 
 ```svelte
 <script lang="ts">
   import * as Field from "../../../vendor/components/ui/field/index.js";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import type { FrameContent } from "../../../../interaction/surface-frame.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { imageInputControl } from "../../../../interaction/image-input.ts";
   import { labelsInputControl } from "../../../../interaction/labels-control.ts";
-  import { isFormControlEvent, type FormControlEvent } from "../../../../interaction/form-control-event.ts";
+  import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
   import { useFormFiles } from "../../../infra/form-files.ts";
   const fileHost = useFormFiles();
-  let { fields, edit, controlEvent }: {
-    fields: Extract<FrameContent, { kind: "form" }>["fields"];
-    edit: (name: string, value: string) => void;
-    controlEvent: (event: FormControlEvent) => void;
-  } = $props();
+  let { fields, edit, controlEvent }: CatalogProps<"fields"> = $props();
 </script>
 
 <Field.FieldGroup data-composition="form">
@@ -5793,26 +5736,22 @@ Source SHA-256: eb2ac80d182aa3862eddb658c69e984014c5f08972d79b9eaab61ea71c7b156c
 
 ## src/svelte/catalog/foundations/text-input/TextInput.svelte
 
-Source SHA-256: 7250a40f31cea8f7060a1eb56d73d94e7a271662bd2b1a750e8913c5b37deea6
+Source SHA-256: 6e2987692a9ace23e73ed89f04e484d125d88d67b10ab8ddea75f5ca8bbf15b9
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
   import * as Field from "../../../vendor/components/ui/field/index.js";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import type { InputMask } from "../../../../interaction/input-mask.ts";
-  import FieldWell from "../field-well/FieldWell.svelte";
-  import MeasuredField from "../measured-field/MeasuredField.svelte";
-  import MaskedInput from "../masked-input/MaskedInput.svelte";
-  import CharacterCounter from "../character-counter/CharacterCounter.svelte";
-  import ClearInput from "../clear-input/ClearInput.svelte";
+  import { FieldWell } from "../../index.ts";
+  import { MeasuredField } from "../../index.ts";
+  import { MaskedInput } from "../../index.ts";
+  import { CharacterCounter } from "../../index.ts";
+  import { ClearInput } from "../../index.ts";
   import { observeEditorCapacity } from "./editor-capacity.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
-    identity = "", mask, maxLength, purpose = "text", onchange }: {
-    label: string; value?: string; required?: boolean; identity?: string; maxLength?: number | undefined;
-    invalid?: boolean; error?: string | undefined; helper?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
-    purpose?: "text" | "username" | "new-password" | "current-password";
-  } & ({ primitive: "input.text"; mask?: InputMask | undefined } | { primitive: "input.multiline"; mask?: never }) = $props();
+    identity = "", mask, maxLength, purpose = "text", onchange }: CatalogProps<"text-input"> = $props();
   const id = $props.id();
   let writing = $derived(value);
   let editor = $state<HTMLTextAreaElement | null>(null);
@@ -5842,7 +5781,7 @@ Source SHA-256: 7250a40f31cea8f7060a1eb56d73d94e7a271662bd2b1a750e8913c5b37deea6
     if (disabled) return;
     draftError = valid && complete ? "" : valid ? "Enter a complete number." :
       `Enter a number with up to ${mask!.scale} decimal places using this field's format.`;
-    if (valid && complete) { pending.push(next); onchange(next); }
+    if (valid && complete) { pending.push(next); onchange?.(next); }
   }
 </script>
 {#snippet counter()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
@@ -5852,9 +5791,9 @@ Source SHA-256: 7250a40f31cea8f7060a1eb56d73d94e7a271662bd2b1a750e8913c5b37deea6
     {#snippet accessory()}<ClearInput control={id} value={mask ? display : writing} label={`Clear ${label}`} {disabled} />{/snippet}
     {#if primitive === "input.multiline"}
       <Group.Textarea {id} bind:ref={editor} bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} rows={4} placeholder=" "
-        aria-describedby={describedBy} onblur={event => onchange(event.currentTarget.value)}
+        aria-describedby={describedBy} onblur={event => onchange?.(event.currentTarget.value)}
         class="focus-visible:outline-none"
-        oninput={event => onchange(event.currentTarget.value)} />
+        oninput={event => onchange?.(event.currentTarget.value)} />
     {:else if mask}
       <MaskedInput {id} {value} {mask} {identity} bind:display {required} {disabled}
         aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
@@ -5863,9 +5802,9 @@ Source SHA-256: 7250a40f31cea8f7060a1eb56d73d94e7a271662bd2b1a750e8913c5b37deea6
       <Group.Input {id} type={purpose.endsWith("password") ? "password" : "text"} autocomplete={purpose === "text" ? undefined : purpose}
         autocapitalize={purpose === "username" ? "none" : undefined} spellcheck={purpose === "text" ? undefined : false}
         bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
-        aria-describedby={describedBy} onblur={event => onchange(event.currentTarget.value)}
+        aria-describedby={describedBy} onblur={event => onchange?.(event.currentTarget.value)}
         class="focus-visible:outline-none"
-        oninput={event => onchange(event.currentTarget.value)} />
+        oninput={event => onchange?.(event.currentTarget.value)} />
     {/if}
   </FieldWell>
   {#if helper}<Field.FieldDescription id={`${id}-helper`}>{helper}</Field.FieldDescription>{/if}
@@ -5875,21 +5814,17 @@ Source SHA-256: 7250a40f31cea8f7060a1eb56d73d94e7a271662bd2b1a750e8913c5b37deea6
 
 ## src/svelte/catalog/foundations/masked-input/MaskedInput.svelte
 
-Source SHA-256: 666c40cb082cdc306c715a8665f25853fe5ef50bced7a79f5498b50e3ef7925f
+Source SHA-256: 3785a6650a2ad0b8632ce7c602496fac995f041996f65559d04ef165577d8d59
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import { formatMaskedValue, readMaskedValue, maskSeparators, type InputMask } from "../../../../interaction/input-mask.ts";
+  import { formatMaskedValue, readMaskedValue, maskSeparators } from "../../../../interaction/input-mask.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { historyKey, inputEditHistory, inputSnapshot, type InputSnapshot } from "./input-edit-history.ts";
   let { value, mask, identity = "", display = $bindable(""), onvalue, id, placeholder, disabled, required,
-    "aria-required": ariaRequired, "aria-invalid": invalid, "aria-label": label, "aria-describedby": describedBy }: {
-    value: string; mask: InputMask; identity?: string; display?: string;
-    id?: string; placeholder?: string; disabled?: boolean; required?: boolean;
-    "aria-required"?: boolean; "aria-invalid"?: boolean; "aria-label"?: string; "aria-describedby"?: string;
-    onvalue: (value: string, valid: boolean, complete: boolean) => void;
-  } = $props();
+    "aria-required": ariaRequired, "aria-invalid": invalid, "aria-label": label, "aria-describedby": describedBy }: CatalogProps<"masked-input"> = $props();
   let composing = false, compositionInput = false, allowDisplacedGrouping = false;
   let published: string | undefined;
   let incomingValue: string | undefined;
@@ -5999,13 +5934,14 @@ Source SHA-256: 666c40cb082cdc306c715a8665f25853fe5ef50bced7a79f5498b50e3ef7925f
 
 ## src/svelte/catalog/foundations/character-counter/CharacterCounter.svelte
 
-Source SHA-256: 62de2505a6b4009edb2b39673c455a3341fabc336d61eb98f5bed84d53be5c5c
+Source SHA-256: 118d1e9a96c2fe421d6b8f46cca2b9c6442ac267e34d55abefc86d9664739de8
 
 ```svelte
 <script lang="ts">
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import { cn } from "../../../vendor/utils.js";
-  let { id, value, maxLength }: { id: string; value: string; maxLength?: number | undefined } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { id, value, maxLength }: CatalogProps<"character-counter"> = $props();
   // Match JSON Schema's code-point length, not HTML maxlength's UTF-16 units.
   const count = $derived([...value].length);
   const remaining = $derived(maxLength === undefined ? undefined : maxLength - count);
@@ -6024,15 +5960,14 @@ Source SHA-256: 62de2505a6b4009edb2b39673c455a3341fabc336d61eb98f5bed84d53be5c5c
 
 ## src/svelte/catalog/foundations/clear-input/ClearInput.svelte
 
-Source SHA-256: 9c6f9c3de674450ddad2beb1c632a2192efc36db38755b4e1c64181935887789
+Source SHA-256: eb45aa213ea3fb09df084fdc9e5794545fff9c8566ea385bdde8f569d2e0a060
 
 ```svelte
 <script lang="ts">
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import CircleX from "@lucide/svelte/icons/circle-x";
-  let { control, value, label, disabled = false }: {
-    control: string; value: string; label: string; disabled?: boolean;
-  } = $props();
+  import { Icon } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { control, value, label, disabled = false }: CatalogProps<"clear-input"> = $props();
 
   function clear() {
     const input = document.getElementById(control);
@@ -6068,7 +6003,7 @@ Source SHA-256: 9c6f9c3de674450ddad2beb1c632a2192efc36db38755b4e1c64181935887789
 {#if value.length > 0}
   <Group.Addon align="inline-end" class="field-clear shrink-0">
     <Group.Button size="icon-sm" class="min-h-0" type="button" data-input-clear aria-label={label} title={label}
-      aria-controls={control} {disabled} onclick={clear}><CircleX aria-hidden="true" /></Group.Button>
+      aria-controls={control} {disabled} onclick={clear}><Icon name="circle-x" decorative /></Group.Button>
   </Group.Addon>
 {/if}
 ```
@@ -6132,20 +6067,20 @@ export function historyKey(event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaK
 
 ## src/svelte/catalog/compositions/context-panel/ContextPanel.svelte
 
-Source SHA-256: 34d408ec99381d30a0b40ee909a7efb24eaddc988ae4fc7e1773e6bc59569459
+Source SHA-256: 0e21e5c348efb7518a9f97f1a42ef9cf02f78e1e673bec44ef39ef24b939413d
 
 ```svelte
 <script lang="ts">
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import DestinationRow from "../../foundations/destination-row/DestinationRow.svelte";
-  import GroupedPanel from "../../foundations/grouped-panel/GroupedPanel.svelte";
-  import ReadingContent from "../reading-content/ReadingContent.svelte";
-  import ContextProperties from "../context-properties/ContextProperties.svelte";
-  import MediaObject from "../media-object/MediaObject.svelte";
-  import AttentionStatus from '../attention-status/AttentionStatus.svelte';
-  import type { NodeRendererInputs } from "../../../renderer-contracts.ts";
-  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {}, actions, selectors = [], attention=[],presentation, onselect }: NodeRendererInputs["context"] = $props();
+  import { DestinationRow } from "../../index.ts";
+  import { GroupedPanel } from "../../index.ts";
+  import { ReadingContent } from "../../index.ts";
+  import { ContextProperties } from "../../index.ts";
+  import { MediaObject } from "../../index.ts";
+  import { AttentionStatus } from '../../index.ts';
+  import type { CatalogProps } from "../../types.d.ts";
+  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {}, actions, selectors = [], attention=[],presentation, onselect }: CatalogProps<"context-panel"> = $props();
   let remaining = $derived(fields.filter(field => field !== presentation?.media && field !== presentation?.description));
   let prose = $derived(remaining.filter(field => multiline.includes(field)));
   let metadata = $derived(remaining.filter(field => !multiline.includes(field)));
@@ -6173,13 +6108,13 @@ Source SHA-256: 34d408ec99381d30a0b40ee909a7efb24eaddc988ae4fc7e1773e6bc59569459
 
 ## src/svelte/catalog/renderer/facts/Facts.svelte
 
-Source SHA-256: 355a235c0d567a112e2a33dafca2cf0d02af200ec611128f03cf88db53a6fab4
+Source SHA-256: 255a92c394d0b11b74027fdf93eed914ee4bbdcb3319bf5db7d6d51d6af6557b
 
 ```svelte
 <script lang="ts">
   import { FactGroup } from "../../../adapter-catalog.ts";
-  import type { FactsContent } from "../../../../interaction/surface-frame.ts";
-  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {} }: Omit<FactsContent, "kind"> = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {} }: CatalogProps<"facts"> = $props();
 </script>
 
 <FactGroup {fields} {facts} {object} {labels} {multiline} {images} {tags} {references} />
@@ -6187,14 +6122,14 @@ Source SHA-256: 355a235c0d567a112e2a33dafca2cf0d02af200ec611128f03cf88db53a6fab4
 
 ## src/svelte/catalog/compositions/review/Review.svelte
 
-Source SHA-256: 395abbd04337bf4633604cb267a2a0f0c8c4f640c7695d5da88e78159183d7a3
+Source SHA-256: c669c8dff63588a35f50165eb6e61d991863666ef5a7f5c741c867f59f7317ec
 
 ```svelte
 <script lang="ts">
-  import type { FrameContent } from "../../../../interaction/surface-frame.ts";
-  import NodeRenderer from "../../renderer/node-renderer/NodeRenderer.svelte";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  let { details, recovery }: Extract<FrameContent, { kind: "review" }> = $props();
+  let { details, recovery }: CatalogProps<"review"> = $props();
 </script>
 <div data-composition="review"><NodeRenderer node={{ version: ResolvedNodeVersion, kind: "fact", details }} /></div>
 {#if recovery}<p class="mt-4 text-muted-foreground" role="status">{recovery}</p>{/if}
@@ -6202,17 +6137,15 @@ Source SHA-256: 395abbd04337bf4633604cb267a2a0f0c8c4f640c7695d5da88e78159183d7a3
 
 ## src/svelte/catalog/foundations/destination-row/DestinationRow.svelte
 
-Source SHA-256: 71093ac8e892a284e9065c999a93c114e87ee9f78e9874a3fc755f16af9ec25e
+Source SHA-256: b95e986171ce4cd0b70e364c7695427a99d564da4fcde5e2ca9edd4cbe55661a
 
 ```svelte
 <script lang="ts">
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import Face from '../face/Face.svelte';
-  import type { ActionIcon } from '../../../../interaction/action-icon.ts';
-let { destination, label, available, open, icon = 'open', reason }: {
-    destination: string; label: string; available: boolean; open: () => void; icon?: ActionIcon | undefined; reason?: string | undefined;
-  } = $props();
+  import { Icon } from "../../index.ts";
+  import { Face } from '../../index.ts';
+  import type { CatalogProps } from '../../types.d.ts';
+let { destination, label, available, open, icon = 'open', reason }: CatalogProps<'destination-row'> = $props();
   const generatedId = $props.id();
   const descriptionId = `${generatedId}-reason`;
 </script>
@@ -6221,25 +6154,25 @@ let { destination, label, available, open, icon = 'open', reason }: {
   disabled={!available} aria-describedby={!available && reason ? descriptionId : undefined} title={!available ? reason : undefined} onclick={()=>{if(available)open();}}>
   <Face face={{kind:'icon',icon}} />
   <span class="destination-title">{label}</span>
-  <ChevronRight data-icon="inline-end" data-control-chevron data-destination-chevron aria-hidden="true" />
+  <Icon name="chevron-right" placement="inline-end" chevron destination decorative />
 </Button>
 {#if !available && reason}<span id={descriptionId} class="sr-only">{reason}</span>{/if}
 ```
 
 ## src/svelte/catalog/foundations/drawer/Drawer.svelte
 
-Source SHA-256: 921fcff6c176630714e825a8656a2745b615df449f4a6ba2bf7b91e0a081a883
+Source SHA-256: 2e35f1b06824b2a1d7144023f587584fcf4e1c22a0b269f129b8574ed357044a
 
 ```svelte
 <script lang="ts">
   import { tick } from 'svelte';
   import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
-  import DrawerGrip from "../drawer-grip/DrawerGrip.svelte";
+  import { DrawerGrip } from "../../index.ts";
   import { prefersReducedMotion } from "svelte/motion";
   import { drawerMotion } from "../../../infra/drawer-motion.svelte.ts";
   import { useSurfaceHost } from "../../../infra/surface-host.svelte.ts";
-  import SurfaceFrame from "../../compositions/surface-frame/SurfaceFrame.svelte";
-  import InstanceFrame from "../../renderer/instance-frame/InstanceFrame.svelte";
+  import { SurfaceFrame } from "../../index.ts";
+  import { InstanceFrame } from "../../index.ts";
   import type { SurfaceFrame as Frame } from "../../../../interaction/surface-frame.ts";
   import type { ResolvedView } from "../../../../views/resolved.ts";
   import { transientFrame } from "../../../../interaction/transient-frame.ts";

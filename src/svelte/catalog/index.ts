@@ -57,6 +57,7 @@ export { default as FileControl } from "./compositions/file-control/FileControl.
 export { default as FrameBody } from "./renderer/frame-body/FrameBody.svelte";
 export { default as GroupedPanel } from "./foundations/grouped-panel/GroupedPanel.svelte";
 export { default as Heading } from "./foundations/heading/Heading.svelte";
+export { default as Icon } from "./foundations/icon/Icon.svelte";
 export { default as Identity } from "./compositions/identity/Identity.svelte";
 export { default as Image } from "./foundations/image/Image.svelte";
 export { default as Information } from "./compositions/information/Information.svelte";

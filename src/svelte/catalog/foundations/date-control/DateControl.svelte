@@ -5,7 +5,7 @@
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import DateCalendar from "./DateCalendar.svelte";
-  import CalendarIcon from "@lucide/svelte/icons/calendar";
+  import { Icon } from "../../index.ts";
   import { FieldWellContent } from "../../index.ts";
   import { MeasuredField } from "../../index.ts";
   import { PickerSheet } from "../../index.ts";
@@ -61,7 +61,7 @@
     aria-haspopup="dialog" aria-expanded={open}>
     <FieldWellContent label={node.label} required={node.required}>
       <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
-        <span>{label}</span><CalendarIcon data-icon="inline-end" aria-hidden="true" />
+        <span>{label}</span><Icon name="calendar" placement="inline-end" decorative />
       </span>
     </FieldWellContent>
   </Button>

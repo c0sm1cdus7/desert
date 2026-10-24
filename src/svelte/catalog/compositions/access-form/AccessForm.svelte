@@ -5,7 +5,7 @@
   import { StackLayout } from "../../index.ts";
   import { TextInput } from "../../index.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import ArrowLeft from "@lucide/svelte/icons/arrow-left";
+  import { Icon } from "../../index.ts";
   import { AvatarShuffle } from "../../index.ts";
   import { AppearancePreferences } from "../../index.ts";
   import { appearance, appearancePersistence, chooseAppearance } from "../../../infra/appearance-state.ts";
@@ -59,7 +59,7 @@
     {#if !preferences && $appearancePersistence}<Feedback text={$appearancePersistence} />{/if}
   {/if}
   <div class="access-actions">
-    {#if creating && step === 2}<Button variant="secondary" size="icon-lg" aria-label="Back to identity" disabled={busy} onclick={() => move(1)}><ArrowLeft aria-hidden="true" /></Button>{/if}
+    {#if creating && step === 2}<Button variant="secondary" size="icon-lg" aria-label="Back to identity" disabled={busy} onclick={() => move(1)}><Icon name="arrow-left" decorative /></Button>{/if}
     <Button type="submit" disabled={busy || !valid} aria-busy={busy}>{busy ? "Please wait…" : creating ? step === 1 ? "Continue" : "Get started" : "Unlock"}</Button>
   </div>
   {#if creating && step === 2}<p class="access-footnote">You can change all of this in Appearance.</p>{/if}

@@ -3,7 +3,7 @@
   import { presentFact, presentTitle, readingFields } from "../../../../interaction/fact-presentation.ts";
   import { GroupedPanel } from "../../index.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import { Icon } from "../../index.ts";
   import { CollectionState } from "../../index.ts";
   import { retrieveCollection } from "../../../collection-retrieval.ts";
   import { MediaGrid } from "../../index.ts";
@@ -29,7 +29,7 @@
             <span data-record-metadata>{#each secondary as field}<span data-record-value>{node.valueLabels?.[field]?.[String(record.facts[field])] ?? `${node.labels[`${node.object}.${field}`]} · ${presentFact(record.facts[field])}`}</span>{/each}</span>
           {/if}
         </span>
-        <ChevronRight data-icon="inline-end" data-control-chevron aria-hidden="true" />
+        <Icon name="chevron-right" placement="inline-end" chevron decorative />
       </Button>
     </li>
   {/each}

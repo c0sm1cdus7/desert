@@ -6,5 +6,5 @@ export const ZoomControls = defineComposition({
   id: "zoom-controls",
   purpose: "Step a media view's zoom out or in between 100% and its maximum, and reset it from the shown percentage.",
   owner: { entry: "ZoomControls.svelte" },
-  uses: [], approval: "none", contract: ZoomControlsContract,
+  uses: ["icon"], approval: "none", contract: ZoomControlsContract,
 } as const);

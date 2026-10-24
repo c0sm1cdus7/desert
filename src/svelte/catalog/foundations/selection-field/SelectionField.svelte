@@ -3,7 +3,7 @@
   import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import ChevronDown from "@lucide/svelte/icons/chevron-down";
+  import { Icon } from "../../index.ts";
   import { FieldWellContent } from "../../index.ts";
   import { Face } from "../../index.ts";
   import { PickerSheet } from "../../index.ts";
@@ -90,12 +90,12 @@
       <FieldWellContent {label} {required}>
         <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
           {@render selectedValue()}
-          <ChevronDown data-icon="inline-end" data-control-chevron aria-hidden="true" />
+          <Icon name="chevron-down" placement="inline-end" chevron decorative />
         </span>
       </FieldWellContent>
     {:else}
       {@render selectedValue()}
-      <ChevronDown data-icon="inline-end" data-control-chevron aria-hidden="true" />
+      <Icon name="chevron-down" placement="inline-end" chevron decorative />
     {/if}
     </Button>
     {/snippet}

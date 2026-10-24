@@ -1,14 +1,14 @@
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import Shuffle from "@lucide/svelte/icons/shuffle";
+  import { Icon } from "../../index.ts";
   import { SeedAvatar } from "../../index.ts";
   import { newAvatarSeed } from "../../../infra/avatar-seed.ts";
   let { seed, onchange, disabled = false }: CatalogProps<"avatar-shuffle"> = $props();
 </script>
 <span class="avatar-shuffle">
 <Button variant="secondary" size="avatar" aria-label="Shuffle avatar" {disabled} onclick={() => onchange?.(newAvatarSeed())}>
-  <SeedAvatar {seed} /><span class="shuffle-overlay"><Shuffle aria-hidden="true" /></span>
+  <SeedAvatar {seed} /><span class="shuffle-overlay"><Icon name="shuffle" decorative /></span>
 </Button>
 </span>
 <style>

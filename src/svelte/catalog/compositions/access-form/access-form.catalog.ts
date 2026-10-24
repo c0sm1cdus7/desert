@@ -6,5 +6,5 @@ export const AccessForm = defineComposition({
   id: "access-form",
   purpose: "Create an identity in two steps, identity then appearance, or unlock an existing one.",
   owner: { entry: "AccessForm.svelte" },
-  uses: ["appearance-preferences", "avatar-shuffle", "feedback", "stack-layout", "text-input"], approval: "required", contract: AccessFormContract,
+  uses: ["appearance-preferences", "avatar-shuffle", "feedback", "icon", "stack-layout", "text-input"], approval: "required", contract: AccessFormContract,
 } as const);

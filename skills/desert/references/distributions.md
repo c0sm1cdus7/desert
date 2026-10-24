@@ -169,7 +169,7 @@ verbatim modules, not standalone snippets or a published package API.
 
 ## src/build/index.ts
 
-Source SHA-256: a4e5c4cb750999159d307cdd789bdfd2d6cf5e9008fa418918d29b67e7a1cc52
+Source SHA-256: 6b65128c789e3356a6d623f01e66260b45d27c1cd6ce8f53651cffa4cbc0c068
 
 ```ts
 import { mkdirSync, mkdtempSync, cpSync, rmSync, writeFileSync, lstatSync } from "node:fs";
@@ -177,7 +177,7 @@ import { dirname, join, resolve } from "node:path";
 import { resolveBuild, type Application } from "./plan.ts";
 import { installedBuilder } from "./builders.ts";
 import { digest, fileInventory } from "./files.ts";
-import { loadVerifiedBuild, manifestFile, type BuildManifest } from "./manifest.ts";
+import { buildFormat, loadVerifiedBuild, manifestFile, type BuildManifest } from "./manifest.ts";
 import { bindLocalMedia, writeLocalMedia, requireDistinctMedia, type LocalMediaBinding } from "./media.ts";
 import { prepareRenditions } from "./public-catalog/renditions.ts";
 import { compileViewProgram } from "../views/program.ts";
@@ -208,11 +208,11 @@ export async function buildDistribution(application: Application, options: {
   const before = builder.revision();
   let ownsOutput = false;
   try {
-    await prepared.build(stage);
+    const { gate } = await prepared.build(stage);
     if (media) { requireDistinctMedia(media, fileInventory(stage)); writeLocalMedia(stage, media); }
     if (builder.revision() !== before) throw new Error("BUILDER_CHANGED_DURING_BUILD");
     const manifest: BuildManifest = {
-      format: "desert.distribution-build/3", status: "built", productId: application.id,
+      format: buildFormat, status: "built", gate, productId: application.id,
       contractDigest: application.digest, distributionId: plan.id,
       distributionDigest: digest({ target: plan.id, distributions: resolved.definitions }),
       distributions: resolved.definitions, surfaceId: plan.surface, surfaceDigest: digest(plan.interaction),
@@ -282,7 +282,7 @@ async function serveBuiltSurface(options: BuildOptions, verify: (manifest: Retur
 
 ## src/build/manifest.ts
 
-Source SHA-256: d5da0c7ef92f37fcef84ba2fe30dffc6528aa711a193afa2f46c8a5c2370606a
+Source SHA-256: e5b68ee77f6083169d4679aa202fdd8c43868bb1afb87814a03576e4237f52e4
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -293,13 +293,18 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileInventory, digest } from "./files.ts";
 import { loadLocalMedia, localMediaFile, requireDistinctMedia } from "./media.ts";
+import { gateVersion, requireGateEvidence } from "./qualification.ts";
 
 export const manifestFile = "DESERT-BUILD.json";
+/** /4 adds the evidence of the catalog gate that let the build run (plan 3.5). */
+export const buildFormat = "desert.distribution-build/4";
+export { gateVersion };
 const name = Type.String({ minLength: 1 });
 const sha = Type.String({ pattern: "^[a-f0-9]{64}$" });
 const closed = { additionalProperties: false };
 const ManifestSchema = Type.Object({
-  format: Type.Literal("desert.distribution-build/3"), status: Type.Literal("built"),
+  format: Type.Literal(buildFormat), status: Type.Literal("built"),
+  gate: Type.Object({ version: Type.Literal(gateVersion) }, closed),
   productId: name, contractDigest: sha, distributionId: name, distributionDigest: sha,
   distributions: Type.Array(DistributionSchema), surfaceId: name, surfaceDigest: sha, viewProgramDigest: sha,
   activitiesDigest: Type.Optional(sha),
@@ -313,6 +318,7 @@ const validManifest = createSchemaValidator<BuildManifest>(ManifestSchema);
 export function loadVerifiedBuild(directory: string) {
   const files = fileInventory(directory, [manifestFile]);
   const manifest = jsonSnapshot(JSON.parse(readFileSync(join(directory, manifestFile), "utf8")));
+  requireGateEvidence(manifest, buildFormat, "build");
   if (!validManifest(manifest)) throw new Error("INVALID_BUILD_MANIFEST");
   if (digest(files) !== digest(manifest.files)) throw new Error("BUILD_FILES_MISMATCH");
   if (Object.hasOwn(files, localMediaFile)) requireDistinctMedia(loadLocalMedia(directory).assets, files);
@@ -490,11 +496,11 @@ export function requireViewMediaBindings(program: ViewProgram | undefined, asset
 
 ## src/build/svelte/template/src/routes/+page.svelte
 
-Source SHA-256: 8ceac8265236657fe8b46a343218e7f6cd05918e119120c35d1571a8dc7bb8ba
+Source SHA-256: 1b30b59ee4461594a05acd87260fb1cbcf3bfc001cbb7c680ebfe21c70790679
 
 ```svelte
 <script lang="ts">
-  import AccessGate from "@desert/svelte/catalog/compositions/access-gate/AccessGate.svelte";
+  import { AccessGate } from "@desert/svelte/catalog/index.ts";
   import { surface, validateInput, viewProgram } from "virtual:desert/surface";
 </script>
 

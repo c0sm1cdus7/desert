@@ -6,5 +6,5 @@ export const SpecimenUnavailable = defineComposition({
   id: "specimen-unavailable",
   purpose: "Explain in place of a bank specimen why it cannot be executed here.",
   owner: { entry: "SpecimenUnavailable.svelte" },
-  uses: [], approval: "none", contract: SpecimenUnavailableContract,
+  uses: ["icon"], approval: "none", contract: SpecimenUnavailableContract,
 } as const);

@@ -1,13 +1,11 @@
 <script lang="ts" generics="Destination extends string">
   import { untrack } from "svelte";
   import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
-  import Landmark from "@lucide/svelte/icons/landmark";
-  import Backpack from "@lucide/svelte/icons/backpack";
-  import PanelsTopLeft from "@lucide/svelte/icons/panels-top-left";
   import { swipeMotion } from "../../../infra/swipe-motion.svelte.js";
   import { Place } from "../../index.ts";
   import { ToolbarLayout } from "../../index.ts";
-  import { actionIcons } from "../../../infra/action-icons.ts";
+  import { Icon } from "../../index.ts";
+  import { actionIconNames } from "../../../infra/action-icons.ts";
   import { workspaceNavigation, type WorkspaceDestination } from "../../../infra/workspace-navigation.ts";
   let { identity, navigation, active, onnavigate, searching = false, settingsPlaceholder = false }: {
     identity: { title: string; subtitle?: string }; settingsPlaceholder?: boolean;
@@ -19,7 +17,7 @@
     commit: () => sidebar.presentation === "overlay" ? sidebar.setOverlayOpen(false) : sidebar.setOpen(false) });
   $effect(() => { sidebar.dismissOffset = motion.offset; });
   $effect(() => { if (sidebar.expanded) untrack(() => motion.reset()); });
-  const icons = { ...actionIcons, landmark: Landmark, backpack: Backpack, panels: PanelsTopLeft };
+  const iconNames = { ...actionIconNames, landmark: "landmark", backpack: "backpack", panels: "panels-top-left" } as const;
   let groups = $derived(workspaceNavigation(navigation));
   function navigate(id: Destination) { onnavigate(id); if (sidebar.presentation === "overlay") sidebar.setOverlayOpen(false); }
   function startHeaderDrag(event: PointerEvent) {
@@ -39,11 +37,10 @@
         <Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
         <Sidebar.GroupContent><Sidebar.Menu>
         {#each group.items as destination (destination.id)}
-          {@const Icon = icons[destination.icon]}
           <Sidebar.MenuItem>
             <Sidebar.MenuButton isActive={destination.id === active} aria-current={destination.id === active ? "page" : undefined}
               aria-label={destination.label} onclick={() => navigate(destination.id)}>
-              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon /></span>
+              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon name={iconNames[destination.icon]} /></span>
               <span>{destination.label}</span>
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>

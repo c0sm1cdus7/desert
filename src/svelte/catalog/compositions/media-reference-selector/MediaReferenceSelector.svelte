@@ -2,8 +2,7 @@
   import * as Popover from '../../../vendor/components/ui/popover/index.js';
   import * as Field from '../../../vendor/components/ui/field/index.js';
   import { Button } from '../../../vendor/components/ui/button/index.js';
-  import ChevronDown from '@lucide/svelte/icons/chevron-down';
-  import Check from '@lucide/svelte/icons/check';
+  import { Icon } from '../../index.ts';
   import { Image } from '../../index.ts';
   import { StackLayout } from '../../index.ts';
   import { CollectionState } from '../../index.ts';
@@ -25,7 +24,7 @@
   <Popover.Root bind:open onOpenChange={next => { if (next) onevent?.({ kind: 'reference.refresh', control: node.id }); }}>
     <Popover.Trigger disabled={node.disabled} presentation="selection" aria-label={node.label}>
       {#if selected}<span data-media-reference-thumbnail><Image source={selected.source} alt="" /></span><span>Selected image</span>
-      {:else}<span>{node.values.length ? 'Unavailable cover' : 'Automatic'}</span>{/if}<span data-control-chevron><ChevronDown aria-hidden="true" /></span>
+      {:else}<span>{node.values.length ? 'Unavailable cover' : 'Automatic'}</span>{/if}<span data-control-chevron><Icon name="chevron-down" decorative /></span>
     </Popover.Trigger>
     <Popover.Content presentation="reference"><StackLayout title={node.label}>
       {#if reference.loading}<Field.FieldDescription>Loading…</Field.FieldDescription>{/if}
@@ -34,7 +33,7 @@
           <Button variant="well" size="well" presentation="media-cover-choice" disabled={node.disabled} aria-label={`Cover image ${index + 1}`}
             aria-pressed={node.values.includes(option.value)} onclick={() => choose(option.value)}>
             <Image source={option.source} alt="" />
-            {#if node.values.includes(option.value)}<span data-media-reference-selected><Check aria-hidden="true" /></span>{/if}
+            {#if node.values.includes(option.value)}<span data-media-reference-selected><Icon name="check" decorative /></span>{/if}
           </Button>
         {/each}
       </div>{:else if !reference.loading}<CollectionState loaded createLabel={undefined} />{/if}

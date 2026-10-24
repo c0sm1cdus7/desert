@@ -479,9 +479,10 @@ export function remoteBinding<const D extends DependencyTarget>(dependency: D,
 
 ## src/interaction/catalog.ts
 
-Source SHA-256: 089ad202afeafe03969458925aa320ed3c3acd1049ab06717af224b67d13f8eb
+Source SHA-256: 1ac4198d9de5c0efb6191a29ce36d540669b31e1a58c2616a4a6c9cdfb77549a
 
 ```ts
+import { Type } from "@sinclair/typebox";
 import { freezeDeep, jsonSnapshot } from "../json.ts";
 import { ControlSpecimens } from "./control-specimens.ts";
 import { CatalogGroups, CatalogFoundations, catalogInspection, type DiscoveryGroup, type FoundationId } from "./catalog-ownership.ts";
@@ -515,6 +516,8 @@ export const ResolvedNodes = freezeDeep({
 });
 
 export type ResolvedNodeId = typeof ResolvedNodes.entries[number]["id"];
+/** The id of a resolved node kind, as a TypeBox schema derived from the entries above (not a second list). */
+export const ResolvedNodeIdSchema = Type.Union(ResolvedNodes.entries.map(entry => Type.Literal(entry.id)));
 export type ResolvedInputId = Extract<ResolvedNodeId, `input.${string}`>;
 export type RendererTable<T> = { readonly [K in ResolvedNodeId]: T };
 

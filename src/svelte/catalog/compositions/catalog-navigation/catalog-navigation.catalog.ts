@@ -7,5 +7,5 @@ export const CatalogNavigation = defineComposition({
   id: "catalog-navigation",
   purpose: "Declared as found at the start of the migration: CatalogNavigation.svelte.",
   owner: { entry: "CatalogNavigation.svelte" },
-  uses: ["place", "toolbar-layout"], approval: "none", contract: CatalogNavigationContract,
+  uses: ["icon", "place", "toolbar-layout"], approval: "none", contract: CatalogNavigationContract,
 } as const);

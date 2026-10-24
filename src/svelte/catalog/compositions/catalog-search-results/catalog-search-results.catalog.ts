@@ -7,5 +7,5 @@ export const CatalogSearchResults = defineComposition({
   id: "catalog-search-results",
   purpose: "Show what a search in one destination found, as record cards or grouped result rows, and open one result.",
   owner: { entry: "CatalogSearchResults.svelte" },
-  uses: ["grouped-panel", "node-renderer"], approval: "none", contract: CatalogSearchResultsContract,
+  uses: ["grouped-panel", "icon", "node-renderer"], approval: "none", contract: CatalogSearchResultsContract,
 } as const);

@@ -1,8 +1,7 @@
 <script lang="ts" generics="Result extends WorkspaceSearchResult">
   import * as Empty from "@desert/svelte/vendor/components/ui/empty/index.js";
   import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
-  import Search from "@lucide/svelte/icons/search";
-  import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import { Icon } from "../../index.ts";
   import { NodeRenderer } from "../../index.ts";
   import { GroupedPanel } from "../../index.ts";
   import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
@@ -16,7 +15,7 @@
   {#if !query.trim()}
     <Empty.Root data-catalog-search-prompt>
       <Empty.Header>
-        <Empty.Media><Search aria-hidden="true" /></Empty.Media>
+        <Empty.Media><Icon name="search" decorative /></Empty.Media>
         <Empty.Title><h1>Search in {title}</h1></Empty.Title>
         <Empty.Description>{description}</Empty.Description>
       </Empty.Header>
@@ -43,7 +42,7 @@
           {#if result.kind !== "record"}<div data-search-result={result.id} data-grouped-row>
               <Button variant="row" size="row" data-grouped-action onclick={() => onselect(result)}>
                 <span data-search-result-label><span>{result.title}</span><small>{result.description}</small></span>
-                <ChevronRight data-icon="inline-end" aria-hidden="true" />
+                <Icon name="chevron-right" placement="inline-end" decorative />
               </Button>
           </div>{/if}
         {/each}

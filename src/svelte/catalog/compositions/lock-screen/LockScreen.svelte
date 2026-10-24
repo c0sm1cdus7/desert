@@ -4,8 +4,7 @@
   import { AccessRequests } from "../../../../identity/contract.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import ArrowRight from "@lucide/svelte/icons/arrow-right";
-  import Loader from "@lucide/svelte/icons/loader-circle";
+  import { Icon } from "../../index.ts";
   import { FieldWell } from "../../index.ts";
   import { MeasuredField } from "../../index.ts";
   import { SeedAvatar } from "../../index.ts";
@@ -37,7 +36,7 @@
           <Group.Input id={`${id}-password`} type="password" autocomplete="current-password" bind:value={password}
             aria-label="Password" placeholder=" " disabled={busy} />
           {#snippet accessory()}<Button type="submit" variant="secondary" size="icon-lg" aria-label="Unlock"
-            disabled={busy || !valid} aria-busy={busy}>{#if busy}<Loader aria-hidden="true" />{:else}<ArrowRight aria-hidden="true" />{/if}</Button>{/snippet}
+            disabled={busy || !valid} aria-busy={busy}>{#if busy}<Icon name="loader-circle" decorative />{:else}<Icon name="arrow-right" decorative />{/if}</Button>{/snippet}
         </FieldWell>
       </MeasuredField></div>
     </StackLayout>

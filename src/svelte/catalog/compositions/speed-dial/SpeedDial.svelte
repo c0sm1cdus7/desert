@@ -2,7 +2,8 @@
   import * as Popover from "../../../vendor/components/ui/popover/index.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import { NodeRenderer } from "../../index.ts";
-  import { actionIcons } from "../../../infra/action-icons.ts";
+  import { Icon } from "../../index.ts";
+  import { actionIconNames } from "../../../infra/action-icons.ts";
   import { dismissWhenInactive } from "../../../infra/surface-activity.svelte.ts";
   import { anchoredTabExit } from "../../../infra/anchored-tab-exit.ts";
   import { intentKey } from "../../../../interaction/intent.ts";
@@ -19,11 +20,10 @@
   <Popover.Content id={panelId} presentation="speed-dial" align="end" aria-label={kind === "create" ? "Create" : "More actions"}
     onkeydowncapture={event => anchoredTabExit(event,event.currentTarget,()=>onchange?.(false))}>
     {#each actions as action, index (intentKey(action.intent))}
-      {@const Icon = actionIcons[action.icon]}
       <div data-speed-dial-action>
         <span data-material="pane" data-speed-dial-label id={`${instance}-${index}`}>{action.label}</span>
         <Button variant="secondary" size="icon" aria-labelledby={`${instance}-${index}`} disabled={action.state !== "ready"}
-          onclick={() => { onchange?.(false); invoke(action.intent); }}><Icon /></Button>
+          onclick={() => { onchange?.(false); invoke(action.intent); }}><Icon name={actionIconNames[action.icon]} /></Button>
       </div>
     {/each}
   </Popover.Content>

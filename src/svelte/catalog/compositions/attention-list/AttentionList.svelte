@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import ChevronRight from "@lucide/svelte/icons/chevron-right";
+  import { Icon } from "../../index.ts";
   import { GroupedPanel } from "../../index.ts";
   import { StackLayout } from "../../index.ts";
   import { AttentionIndicator } from "../../index.ts";
@@ -22,7 +22,7 @@
             <span class="attention-row">
             <AttentionIndicator required={true} />
             <span data-record-copy><strong>{item.title}</strong><span class="fact-label">{item.description}</span></span>
-            <span data-control-chevron><ChevronRight aria-hidden="true" /></span>
+            <span data-control-chevron><Icon name="chevron-right" decorative /></span>
             </span>
           </Button></div>
         {/each}

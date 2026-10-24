@@ -6,5 +6,5 @@ export const SpeedDial = defineComposition({
   id: "speed-dial",
   purpose: "Reveal overflowing contextual commands beside their readable labels, without putting content navigation in the toolbar.",
   owner: { entry: "SpeedDial.svelte" },
-  uses: ["node-renderer"], approval: "none", contract: SpeedDialContract,
+  uses: ["icon", "node-renderer"], approval: "none", contract: SpeedDialContract,
 } as const);

@@ -20,8 +20,7 @@
   import { PlaybackControls } from "../../index.ts";
   import CatalogNavigationActions from "./CatalogNavigationActions.svelte";
   import * as Sidebar from "../../../vendor/components/ui/sidebar/index.js";
-  import X from "@lucide/svelte/icons/x";
-  import Settings from "@lucide/svelte/icons/settings";
+  import { Icon } from "../../index.ts";
 
   let { content, identity: suppliedIdentity, identityRole: suppliedRole = "heading", onidentityElement, oncloseElement,
     edge: suppliedEdge = "top", layer, inert = false, searching, drag }: {
@@ -89,7 +88,7 @@
       {:else if content.kind === "place-navigation"}
         <CatalogNavigationActions detail={content.detail} onback={content.onback} backAvailable={content.backAvailable} />
       {:else if content.kind === "media-header"}
-        <Button onready={element=>closeButton=element instanceof HTMLButtonElement ? element : null} variant="secondary" size="icon-lg" aria-label="Close media viewer" onclick={content.close}><X /></Button>
+        <Button onready={element=>closeButton=element instanceof HTMLButtonElement ? element : null} variant="secondary" size="icon-lg" aria-label="Close media viewer" onclick={content.close}><Icon name="x" /></Button>
       {/if}
     </div>{/if}
     {#if identity}<ToolbarIdentity {identity} {identityRole} onelement={onidentityElement} />{/if}
@@ -122,7 +121,7 @@
     {:else if content.kind === "navigation-toggle"}
       <Sidebar.Trigger variant="secondary" size="icon" aria-label={content.show ? "Show navigation" : "Hide navigation"} title={content.show ? "Show navigation" : "Hide navigation"} inert={content.searching} aria-hidden={content.searching} />
     {:else if content.kind === "settings-placeholder"}
-      <Button variant="secondary" size="icon" aria-label="Settings" title="Settings — not available in this preview" disabled><Settings aria-hidden="true" /></Button>
+      <Button variant="secondary" size="icon" aria-label="Settings" title="Settings — not available in this preview" disabled><Icon name="settings" decorative /></Button>
     {:else if content.kind === "search"}<ToolbarSearch {content} />
     {:else if content.kind === "media-header" && content.zoom}<ZoomControls scale={content.zoom.scale} onzoom={content.zoom.onzoom} onreset={content.zoom.onreset} />
     {:else if content.kind === "media-controls"}<ToolbarMediaControls {content} />{/if}

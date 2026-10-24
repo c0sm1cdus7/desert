@@ -1,8 +1,7 @@
 <script lang="ts">
   import * as Dialog from '../../../vendor/components/ui/dialog/index.js';
   import { Button } from '../../../vendor/components/ui/button/index.js';
-  import ChevronLeft from '@lucide/svelte/icons/chevron-left';
-  import ChevronRight from '@lucide/svelte/icons/chevron-right';
+  import { Icon } from '../../index.ts';
   import { ToolbarLayout } from '../../index.ts';
   import { Image } from '../../index.ts';
   import { PlaybackCanvas } from '../../index.ts';
@@ -48,8 +47,8 @@
       {#if selected.kind === 'image'}<Image source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry onready={()=>gesture?.refresh()} />
       {:else}<PlaybackCanvas item={selected} {playback} />{/if}
       {#if items.length>1}
-        <Button data-media-prev variant="secondary" size="icon-lg" aria-label="Previous media" disabled={index===0 || scale>1} onclick={()=>select(index-1)}><ChevronLeft /></Button>
-        <Button data-media-next variant="secondary" size="icon-lg" aria-label="Next media" disabled={index===items.length-1 || scale>1} onclick={()=>select(index+1)}><ChevronRight /></Button>
+        <Button data-media-prev variant="secondary" size="icon-lg" aria-label="Previous media" disabled={index===0 || scale>1} onclick={()=>select(index-1)}><Icon name="chevron-left" /></Button>
+        <Button data-media-next variant="secondary" size="icon-lg" aria-label="Next media" disabled={index===items.length-1 || scale>1} onclick={()=>select(index+1)}><Icon name="chevron-right" /></Button>
       {/if}
     </div>
     {/key}

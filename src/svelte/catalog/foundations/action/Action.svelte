@@ -1,12 +1,12 @@
 <script lang="ts">
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import Loader2 from "@lucide/svelte/icons/loader-2";
   import { cn } from "../../../vendor/utils.js";
   import type { ToolbarAction } from "../../../../interaction/toolbar.ts";
-  import { actionIcons } from "../../../infra/action-icons.ts";
+  import { actionIconNames } from "../../../infra/action-icons.ts";
+  import { Icon } from "../../index.ts";
   import type { ActionElementProps } from "../../../action-adapter.ts";
   let { label, icon, state: status = "ready", emphasis = "secondary", onclick, type = "button", elementProps, reason }: {
-    label: string; icon: keyof typeof actionIcons; state?: ToolbarAction["state"];
+    label: string; icon: keyof typeof actionIconNames; state?: ToolbarAction["state"];
     emphasis?: "primary" | "secondary"; onclick?: () => void; type?: "button" | "submit";
     elementProps?: ActionElementProps | undefined; reason?: string | undefined;
   } = $props();
@@ -30,7 +30,6 @@
   let button = $state<HTMLButtonElement | null>(null);
   let caption = $state<HTMLSpanElement | null>(null);
   let compact = $state(false);
-  let Icon = $derived(status === "pending" ? Loader2 : actionIcons[icon]);
   let face = $derived(status === "pending" ? "pending" : compact ? "icon" : "label");
   $effect(() => {
     label;
@@ -52,7 +51,7 @@
   <span bind:this={caption} data-button-label aria-hidden="true" class={cn("min-w-0 truncate", face !== "label" && "invisible")}>{label}</span>
     <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
       aria-hidden="true" data-button-glyph data-button-face={face}>
-      <Icon data-icon="inline-start" aria-hidden="true" />
+      <Icon name={status === "pending" ? "loader-circle" : actionIconNames[icon]} placement="inline-start" decorative />
     </span>
 </Button>
 {#if reason}<span id={descriptionId} class="sr-only">{reason}</span>{/if}

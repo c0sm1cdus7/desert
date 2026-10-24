@@ -2,7 +2,7 @@
   import * as Avatar from "../../../vendor/components/ui/avatar/index.js";
   import { Badge } from "../../../vendor/components/ui/badge/index.js";
   import { cn } from "../../../vendor/utils.js";
-  import ImageOff from "@lucide/svelte/icons/image-off";
+  import { Icon } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import { PhotoCollection } from '../../index.ts';
   import { Image } from '../../index.ts';
@@ -27,7 +27,7 @@
       {#if source}
         <div class="absolute inset-0">{#key imageIdentity(source)}<PhotoCollection photos={[{source,alt:node.alt}]} title={node.label} />{/key}</div>
       {:else}<div class="absolute inset-0 flex items-center justify-center gap-3 rounded-xl border" role="img" aria-label={node.alt}>
-        <ImageOff aria-hidden="true" /><span>Image unavailable</span></div>{/if}
+        <Icon name="image-off" decorative /><span>Image unavailable</span></div>{/if}
     </div>
     <figcaption>{node.label}</figcaption>
   </figure>

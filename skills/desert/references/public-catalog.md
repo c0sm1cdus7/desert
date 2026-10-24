@@ -812,7 +812,7 @@ export type { CatalogEvent } from "./events.ts";
 
 ## src/build/public-catalog/build.ts
 
-Source SHA-256: 39c2ef666cf393dc0df0b8b4cc8cf6c983658b58ccf875b96de615718c7b2e0d
+Source SHA-256: b1f4c74de116b1ff4f1d86a793630cdc09f8739b2806ce0d8e50ede6536eb460
 
 ```ts
 import { mkdirSync, cpSync, writeFileSync, existsSync, rmSync } from "node:fs";
@@ -822,7 +822,7 @@ import { createBuildProject } from "../svelte/project.ts";
 import { rendererRevision } from "../svelte/revision.ts";
 import { fileInventory } from "../files.ts";
 import { bindCatalogAssets } from "./assets.ts";
-import { catalogBuildFile, type PublicCatalogBuild } from "./manifest.ts";
+import { catalogBuildFile, publicCatalogBuildFormat, type PublicCatalogBuild } from "./manifest.ts";
 import { publicCatalogSchemas } from "../../public-catalog/protocol.ts";
 import { prepareRenditions } from './renditions.ts';
 
@@ -839,7 +839,7 @@ export async function buildPublicCatalogWeb(application: CompiledPublicCatalog, 
   const revision = rendererRevision();
   let ownsOutput = false;
   try {
-    await project.run("build");
+    const { gate } = await project.run("build");
     if (rendererRevision() !== revision) throw new Error("BUILDER_CHANGED_DURING_BUILD");
     mkdirSync(dirname(output), { recursive: true });
     mkdirSync(output); ownsOutput = true;
@@ -848,7 +848,7 @@ export async function buildPublicCatalogWeb(application: CompiledPublicCatalog, 
     writeFileSync(join(output, "surface.json"), JSON.stringify(application.surface, null, 2) + "\n");
     writeFileSync(join(output, "schemas.json"), JSON.stringify(publicCatalogSchemas(), null, 2) + "\n");
     const manifest: PublicCatalogBuild = {
-      format: "desert.public-catalog-build/1", productId: application.id, contractDigest: application.digest,
+      format: publicCatalogBuildFormat, gate, productId: application.id, contractDigest: application.digest,
       rendererRevision: revision, mode: "public-read-only", mediaPolicy: "external-local-bindings",
       assets: assets.map(({ file: _file, ...metadata }) => metadata), files: fileInventory(output),
     };
@@ -863,7 +863,7 @@ export async function buildPublicCatalogWeb(application: CompiledPublicCatalog, 
 
 ## src/build/public-catalog/manifest.ts
 
-Source SHA-256: ed356ca1cddbfdf48a49be61f78019b6ea2060f449644cac401e0b44044c559d
+Source SHA-256: 1ce4266405d81ca51df9e6523f7048323482e36e4688744c0f8d963b2f63d055
 
 ```ts
 import { readFileSync } from "node:fs";
@@ -876,21 +876,27 @@ import { publicCatalogSurface } from "../../public-catalog/surface.ts";
 import { LogicalIdSchema } from "../../public-catalog/node-schema.ts";
 import { catalogMediaTypes } from "./assets.ts";
 import { stackNodes } from "../../interaction/place.ts";
+import { gateVersion, requireGateEvidence } from "../qualification.ts";
 
 export const catalogBuildFile = "PUBLIC-CATALOG-BUILD.json";
+/** /2 adds the evidence of the catalog gate that let the build run (plan 3.5), as distribution builds do. */
+export const publicCatalogBuildFormat = "desert.public-catalog-build/2";
 const sha = Type.String({ pattern: "^[a-f0-9]{64}$" });
 const closed = { additionalProperties: false };
 const schema = Type.Object({
-  format: Type.Literal("desert.public-catalog-build/1"), productId: LogicalIdSchema, contractDigest: sha,
+  format: Type.Literal(publicCatalogBuildFormat), gate: Type.Object({ version: Type.Literal(gateVersion) }, closed),
+  productId: LogicalIdSchema, contractDigest: sha,
   rendererRevision: sha, mode: Type.Literal("public-read-only"), mediaPolicy: Type.Literal("external-local-bindings"),
   assets: Type.Array(Type.Object({ id: LogicalIdSchema, digest: sha, size: Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER }),
     mediaType: Type.Union([...new Set(Object.values(catalogMediaTypes))].map(type => Type.Literal(type))) }, closed), { minItems: 1 }),
   files: Type.Record(Type.String(), sha),
 }, closed);
 export type PublicCatalogBuild = Static<typeof schema>;
+
 export function loadPublicCatalogBuild(directory: string) {
   const files = fileInventory(directory, [catalogBuildFile]);
   const value: unknown = JSON.parse(readFileSync(join(directory, catalogBuildFile), "utf8"));
+  requireGateEvidence(value, publicCatalogBuildFormat, "catalog build");
   if (!Check(schema, value)) throw new Error("INVALID_PUBLIC_CATALOG_BUILD");
   if (digest(value.files) !== digest(files)) throw new Error("BUILD_FILES_MISMATCH");
   if (!Object.hasOwn(files, "surface.json") || !Object.hasOwn(files, "web/handler.js")) throw new Error("INVALID_PUBLIC_CATALOG_BUILD");
@@ -1167,21 +1173,18 @@ function drain() {
 
 ## src/svelte/catalog/foundations/image/Image.svelte
 
-Source SHA-256: 11029a2e9099e4d7d61b7bb45eae3b19e358a0e17e533e8a41563995fcc3edd9
+Source SHA-256: ee53db59053fdc319b9084d6e79cfd4eb8f38ebde3e5a1f2df990263620b4e80
 
 ```svelte
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { Button } from '../../../vendor/components/ui/button/index.js';
-  import { imageSource, imageIdentity, type ImageSource } from '../../../infra/media-source.ts';
+  import { imageSource, imageIdentity } from '../../../infra/media-source.ts';
   import { usePrivateImages } from '../../../infra/private-image-context.ts';
   import { privateImageResource } from '../../../infra/private-image-resource.ts';
   import { renditionWidths } from '../../../../media/rendition-policy.ts';
-  let { source, alt, edge = 640, zoom = 1, retry = false, fit = 'fill', onready, fallback = 'Image unavailable' }: {
-    source: ImageSource; alt: string; edge?: number; zoom?: number; retry?: boolean;
-    fit?: 'fill' | 'fit';
-    onready?: () => void; fallback?: string;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { source, alt, edge = 640, zoom = 1, retry = false, fit = 'fill', onready, fallback = 'Image unavailable' }: CatalogProps<"image"> = $props();
   let host!: HTMLDivElement;
   let measured = $state(0), attempt = $state(0), ready = $state(''), failed = $state('');
   let original = $state('');
@@ -1219,7 +1222,7 @@ Source SHA-256: 11029a2e9099e4d7d61b7bb45eae3b19e358a0e17e533e8a41563995fcc3edd9
       return;
     }
     if (key !== identity || !img.isConnected || requested !== img.src) return;
-    ready = key; onready?.();
+    ready = key; onready?.(null);
   }
   function error(key: string) {
     if (key !== identity) return;
@@ -1247,15 +1250,16 @@ Source SHA-256: 11029a2e9099e4d7d61b7bb45eae3b19e358a0e17e533e8a41563995fcc3edd9
 
 ## src/svelte/catalog/compositions/photo-collection/PhotoCollection.svelte
 
-Source SHA-256: d6673b7090dd2cd85274235c2fe0ae361a83305c82eec35794198f00675ad855
+Source SHA-256: 68263e4303278aabe6c18000e890b2a8c3fd5225f4d177422eca0608057da270
 
 ```svelte
 <script lang="ts">
-  import Image from '../../foundations/image/Image.svelte';
-  import Viewer from '../viewer/Viewer.svelte';
+  import { Image } from '../../index.ts';
+  import { Viewer } from '../../index.ts';
   import { mediaGestures } from '../../../infra/gestures.ts';
-  import { prefetchImage, imageIdentity, type Photo } from '../../../infra/media-source.ts';
-  let { photos, title, header = false, fit = 'fill' }: { photos: readonly Photo[]; title: string; header?: boolean; fit?: 'fit'|'fill' } = $props();
+  import { prefetchImage, imageIdentity } from '../../../infra/media-source.ts';
+  import type { CatalogProps } from '../../types.d.ts';
+  let { photos, title, header = false, fit = 'fill' }: CatalogProps<'photo-collection'> = $props();
   let index = $state(0), open = $state(false);
   let host!: HTMLDivElement, opener!: HTMLButtonElement;
   const selected = $derived(photos[index] ?? photos[0]!);
@@ -1298,31 +1302,28 @@ Source SHA-256: d6673b7090dd2cd85274235c2fe0ae361a83305c82eec35794198f00675ad855
 
 ## src/svelte/catalog/compositions/viewer/Viewer.svelte
 
-Source SHA-256: f02c108eacda3b9cfd87dbe819f9c7a0eff0d6f0d8a568ef098a0219690cc5c1
+Source SHA-256: b960a75e7b8d51d4af1ac9238d0278e9e2e5f02250b3d390617fcd87fb7df9bc
 
 ```svelte
 <script lang="ts">
   import * as Dialog from '../../../vendor/components/ui/dialog/index.js';
   import { Button } from '../../../vendor/components/ui/button/index.js';
-  import ChevronLeft from '@lucide/svelte/icons/chevron-left';
-  import ChevronRight from '@lucide/svelte/icons/chevron-right';
-  import ToolbarLayout from '../toolbar-layout/ToolbarLayout.svelte';
-  import Image from '../../foundations/image/Image.svelte';
-  import PlaybackCanvas from '../../foundations/playback-canvas/PlaybackCanvas.svelte';
+  import { Icon } from '../../index.ts';
+  import { ToolbarLayout } from '../../index.ts';
+  import { Image } from '../../index.ts';
+  import { PlaybackCanvas } from '../../index.ts';
   import { mediaPlayback } from '../../../infra/playback.svelte.ts';
   import { mediaGestures } from '../../../infra/gestures.ts';
-  import { imageIdentity, type ViewerMedia } from '../../../infra/media-source.ts';
-  let { items, title, index, open, onindex, onopen, onreturn }: {
-    items: readonly ViewerMedia[]; title: string; index: number; open: boolean;
-    onindex: (index: number) => void; onopen: (open: boolean) => void; onreturn: () => void;
-  } = $props();
+  import { imageIdentity } from '../../../infra/media-source.ts';
+  import type { CatalogProps } from '../../types.d.ts';
+  let { items, title, index, open, onindex, onopen, onreturn }: CatalogProps<"viewer"> = $props();
   let scale = $state(1);
   let closeButton = $state<HTMLButtonElement | null>(null);
   let gesture: ReturnType<typeof mediaGestures> | undefined;
   const selected = $derived(items[index]!);
   const playback = mediaPlayback();
-  function select(next: number) { playback.stop(); onindex(Math.max(0,Math.min(items.length-1,next))); gesture?.reset(); }
-  function changeOpen(value: boolean) { if (!value) playback.stop(); onopen(value); }
+  function select(next: number) { playback.stop(); onindex?.(Math.max(0,Math.min(items.length-1,next))); gesture?.reset(); }
+  function changeOpen(value: boolean) { if (!value) playback.stop(); onopen?.(value); }
   function manipulate(element: HTMLDivElement) {
     gesture=mediaGestures(element,{ image:()=>element.querySelector('img'),
       page:direction=>select(index+direction), canPage:()=>items.length>1, zoomable:selected.kind === 'image', onzoom:value=>scale=value });
@@ -1342,7 +1343,7 @@ Source SHA-256: f02c108eacda3b9cfd87dbe819f9c7a0eff0d6f0d8a568ef098a0219690cc5c1
 <Dialog.Root {open} onOpenChange={changeOpen}>
   <Dialog.Content presentation="media" showCloseButton={false} data-media-viewer
     onOpenAutoFocus={event=>{ event.preventDefault(); closeButton?.focus({preventScroll:true}); }}
-    onCloseAutoFocus={event=>{ event.preventDefault(); onreturn(); }} onkeydown={key}>
+    onCloseAutoFocus={event=>{ event.preventDefault(); onreturn?.(); }} onkeydown={key}>
     <ToolbarLayout identity={{title,subtitle:`${index+1} / ${items.length}`}} identityRole="dialog"
       oncloseElement={element=>closeButton=element}
       content={{kind:"media-header",close:()=>changeOpen(false),zoom:selected.kind === 'image'
@@ -1353,8 +1354,8 @@ Source SHA-256: f02c108eacda3b9cfd87dbe819f9c7a0eff0d6f0d8a568ef098a0219690cc5c1
       {#if selected.kind === 'image'}<Image source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry onready={()=>gesture?.refresh()} />
       {:else}<PlaybackCanvas item={selected} {playback} />{/if}
       {#if items.length>1}
-        <Button data-media-prev variant="secondary" size="icon-lg" aria-label="Previous media" disabled={index===0 || scale>1} onclick={()=>select(index-1)}><ChevronLeft /></Button>
-        <Button data-media-next variant="secondary" size="icon-lg" aria-label="Next media" disabled={index===items.length-1 || scale>1} onclick={()=>select(index+1)}><ChevronRight /></Button>
+        <Button data-media-prev variant="secondary" size="icon-lg" aria-label="Previous media" disabled={index===0 || scale>1} onclick={()=>select(index-1)}><Icon name="chevron-left" /></Button>
+        <Button data-media-next variant="secondary" size="icon-lg" aria-label="Next media" disabled={index===items.length-1 || scale>1} onclick={()=>select(index+1)}><Icon name="chevron-right" /></Button>
       {/if}
     </div>
     {/key}
@@ -1437,13 +1438,13 @@ export function mediaGestures(element: HTMLElement, options: Options) {
 
 ## src/svelte/catalog/renderer/public-catalog-product/PublicCatalogProduct.svelte
 
-Source SHA-256: 4c94b559987050aadc562838de0814d48537204033437fbf6c1c1a9f30d69166
+Source SHA-256: 6a7705093565bddd3972eb6e50194f523820295697ed67bfb153d8fa53f622e8
 
 ```svelte
 <script lang="ts">
-  import type { PublicCatalogSurface } from "../../../../public-catalog/client.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { PublicCatalogProductContent } from "../../../adapter-catalog.ts";
-  let { surface }: { surface: PublicCatalogSurface } = $props();
+  let { surface }: CatalogProps<"public-catalog-product"> = $props();
 </script>
 
 <PublicCatalogProductContent {surface} />
@@ -1451,16 +1452,13 @@ Source SHA-256: 4c94b559987050aadc562838de0814d48537204033437fbf6c1c1a9f30d69166
 
 ## src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte
 
-Source SHA-256: b332755a628938fb07410c6562f53e80d0d8c1d475f43e8a814698860576936b
+Source SHA-256: f56e9b5b99c3d5b40469e962711f4e573111ea427f40322767c1678a42ebb325
 
 ```svelte
 <script lang="ts">
-  import type { PublicCatalogExercises } from "../../../../public-catalog/client.ts";
-  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { LocalExerciseContent } from "../../../adapter-catalog.ts";
-  let { definition, bodyOnly = false, oncatalog }: {
-    definition: PublicCatalogExercises; bodyOnly?: boolean; oncatalog?: (event: NodeEvent) => void;
-  } = $props();
+  let { definition, bodyOnly = false, oncatalog }: CatalogProps<"local-exercises"> = $props();
 </script>
 
 <LocalExerciseContent {definition} {bodyOnly} {oncatalog} />
@@ -1468,24 +1466,23 @@ Source SHA-256: b332755a628938fb07410c6562f53e80d0d8c1d475f43e8a814698860576936b
 
 ## src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
 
-Source SHA-256: d7a0124eac64528c067e7b5b1ce389c48542cc07bfc697947fb9a17dc59f6ec8
+Source SHA-256: 0a9fd8a07f4af68a2b2580094d439ed68eed7acc6abc24206d35ff325f8c2bc8
 
 ```svelte
 <script lang="ts">
   import * as Card from "@desert/svelte/vendor/components/ui/card/index.js";
   import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
-  import type { ResolvedNodeFor } from "../../../../interaction/resolved-node.ts";
-  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { getContext } from 'svelte';
-  import Image from '../image/Image.svelte';
-  import ArtworkPlaceholder from '../artwork-placeholder/ArtworkPlaceholder.svelte';
+  import { Image } from '../../index.ts';
+  import { ArtworkPlaceholder } from '../../index.ts';
   import { mediaSource, prefetchImage } from '../../../infra/media-source.ts';
-  let { node, onevent }: { node: ResolvedNodeFor<"catalog.card">; onevent: (event: NodeEvent) => void } = $props();
+  let { node, onevent }: CatalogProps<"catalog-card"> = $props();
   const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');
   function prepare() {
     const asset = cover?.(node.record); if (asset) prefetchImage(mediaSource(asset), window.innerWidth*window.devicePixelRatio);
   }
-  const open = () => onevent({ kind: "catalog.open", record: node.record });
+  const open = () => onevent?.({ kind: "catalog.open", record: node.record });
 </script>
 
   <Card.Root data-catalog-card="item" data-record={node.record} data-public-card={node.record}>
@@ -1501,11 +1498,11 @@ Source SHA-256: d7a0124eac64528c067e7b5b1ce389c48542cc07bfc697947fb9a17dc59f6ec8
 
 ## src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte
 
-Source SHA-256: c89561457dad3fe54f01ec15f8d282eea2fea5cc4bbb09ca86af609a116e183a
+Source SHA-256: d9f7a7276785de44f6cd1eda8451b1a1cce4f82c0f61e49bc956a339ab561c04
 
 ```svelte
 <script lang="ts">
-  import ToolbarLayout from "../toolbar-layout/ToolbarLayout.svelte";
+  import { ToolbarLayout } from "../../index.ts";
   let { title, query, onquery, searching, resultsId, onsearch, oncancel, searchAvailable = true }: {
     title: string; query: string; onquery: (query: string) => void; searching: boolean;
     resultsId: string; onsearch: () => void; oncancel: () => void; searchAvailable?: boolean;
@@ -1520,19 +1517,14 @@ Source SHA-256: c89561457dad3fe54f01ec15f8d282eea2fea5cc4bbb09ca86af609a116e183a
 
 ## src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte
 
-Source SHA-256: 0aac419c50bfd89b6ec19558ad186372b0f65262587020fe1ba79bb2f2ee3f5a
+Source SHA-256: 5951af2b85856899a274ed3f3295c5fe41c27e59c4e04b0a4713a8272382c5c6
 
 ```svelte
 <script lang="ts">
-  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
-  import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
   import { InspectionCatalog } from "../../../adapter-catalog.ts";
-  import type { RegisterContentActions } from "../../../infra/workspace-content.ts";
-  let { surface, oncatalog, bodyOnly, onactions }: {
-    surface: PublicBankInput; oncatalog: (event: NodeEvent) => void; bodyOnly?: boolean;
-    onactions?: RegisterContentActions;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { surface, oncatalog, bodyOnly, onactions }: CatalogProps<"public-catalog-bank"> = $props();
   let content = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<HTMLElement | null>;
     revealAndFocusEntry: (id: ResolvedNodeId) => Promise<void> }>();
   export async function revealEntry(id: ResolvedNodeId) { return await content?.revealEntry(id) ?? null; }
@@ -1543,7 +1535,7 @@ Source SHA-256: 0aac419c50bfd89b6ec19558ad186372b0f65262587020fe1ba79bb2f2ee3f5a
   });
 </script>
 
-<InspectionCatalog {surface} {oncatalog} {bodyOnly} bind:this={content} />
+<InspectionCatalog {surface} oncatalog={event => oncatalog?.(event)} {bodyOnly} bind:this={content} />
 ```
 
 ## src/svelte/infra/PublicCatalogBank-model.ts

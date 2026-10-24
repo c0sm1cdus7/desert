@@ -6,5 +6,5 @@ export const AvatarShuffle = defineComposition({
   id: "avatar-shuffle",
   purpose: "Generate a new avatar seed on activation and reveal the shuffle overlay on hover or focus.",
   owner: { entry: "AvatarShuffle.svelte" },
-  uses: ["seed-avatar"], approval: "none", contract: AvatarShuffleContract,
+  uses: ["icon", "seed-avatar"], approval: "none", contract: AvatarShuffleContract,
 } as const);

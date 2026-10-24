@@ -7,5 +7,5 @@ export const ToolbarLayout = defineComposition({
   id: "toolbar-layout",
   purpose: "Keep navigation and contextual commands in the surface toolbar; reveal its title and subtitle only after the content header scrolls away.",
   owner: { entry: "ToolbarLayout.svelte", parts: ["CalendarNavigation.svelte", "CatalogNavigationActions.svelte", "ToolbarIdentity.svelte", "toolbar-commands.svelte.ts", "toolbar-identity.ts", "toolbar-layout.css", "toolbar-leading.svelte.ts"] },
-  uses: ["face", "node-renderer", "playback-controls", "speed-dial", "toolbar-media-controls", "toolbar-search", "zoom-controls"], approval: "required", contract: ToolbarLayoutContract,
+  uses: ["face", "icon", "node-renderer", "playback-controls", "speed-dial", "toolbar-media-controls", "toolbar-search", "zoom-controls"], approval: "required", contract: ToolbarLayoutContract,
 } as const);
