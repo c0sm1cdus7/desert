@@ -6,10 +6,10 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 test("message headings keep the shared tight gap and muted description; ordinary actions remain intrinsic", { timeout: 90000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
     import SharedOwnerSpecimen from '@desert/svelte/catalog/compositions/shared-owner-specimen/SharedOwnerSpecimen.svelte';
-    import PlaceHeading from '@desert/svelte/catalog/compositions/place-heading/PlaceHeading.svelte';
+    import PlaceHeading from '@desert/svelte/catalog/foundations/place-heading/PlaceHeading.svelte';
     import Toolbar from '@desert/svelte/catalog/compositions/toolbar/Toolbar.svelte';
   </script><main style="max-width:720px">
-    <PlaceHeading identity={{title:'Collection',subtitle:'A short description.'}}/>
+    <PlaceHeading context="place" title="Collection" subtitle="A short description."/>
     <Toolbar toolbar={{edge:'top',title:'Collection',subtitle:'A short description.'}} invoke={()=>{}}/>
     <SharedOwnerSpecimen owner="ConfirmationDialog"/>
   </main>`, {}, undefined, { initialCss: await rendererCss() });

@@ -2539,7 +2539,7 @@ Source SHA-256: fe42fb417d97e8fc90ad1aad1885739123c35077b692be14e961ca235127df56
 
 ## src/svelte/catalog/compositions/view-workspace/workspace-data.ts
 
-Source SHA-256: 30c238c22281297b96ce34de3e7386502daec791d8e0bc61a3add0af687b83e0
+Source SHA-256: 4c51d301c9816f78f60e90a19b704b2a6ca14b9bd89c95481d5dbbe9120f53dd
 
 ```ts
 import type { ResolvedView } from "../../../../views/resolved.ts";
@@ -2547,7 +2547,7 @@ import type { ViewItem } from "../../../../views/schema.ts";
 import type { NodeEvent } from "../../../../interaction/node-events.ts";
 import type { PlaceIdentity } from "../../../infra/place-identity.ts";
 import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
-import { catalogTitle, matchingEntries } from "../../../infra/catalog-navigation.ts";
+import { catalogTitle, matchingEntries } from "../../../infra/catalog-entries.ts";
 import { retrieveCollection } from "../../../collection-retrieval.ts";
 import { presentFact, presentTitle } from "../../../../interaction/fact-presentation.ts";
 
@@ -2715,7 +2715,7 @@ Source SHA-256: 43ac0c7c5e8a68eb1a7683b8435156f6819fa6c66c4641f6f4fd8975491df663
 
 ## src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte
 
-Source SHA-256: 91f372ded2efb00e1b3518fbfcde2bbbfc02cf188da47230813bc6e2d2ba1de2
+Source SHA-256: ca682d47f3efc8c0af5f45a9e2f01b236a4be49b980200d961f32fa9b2e470e0
 
 ```svelte
 <script lang="ts" generics="Destination extends string">
@@ -2726,11 +2726,12 @@ Source SHA-256: 91f372ded2efb00e1b3518fbfcde2bbbfc02cf188da47230813bc6e2d2ba1de2
   import CatalogToolbar from "./CatalogToolbar.svelte";
   import { ToolbarLayout } from "../../index.ts";
   import { PlaceHeading } from "../../index.ts";
-  import { observePlaceHeading } from "./place-heading-motion.ts";
+  // F1-merge: the shell owns these parts now (DESIGN §3.2); lane F mounts Shell and drops these imports.
+  import { observePlaceHeading } from "../../foundations/shell/place-heading-motion.ts";
   import type { PlaceIdentity } from "../../../infra/place-identity.ts";
-  import CatalogEdgeNavigation from "./CatalogEdgeNavigation.svelte";
+  import CatalogEdgeNavigation from "../../foundations/shell/CatalogEdgeNavigation.svelte";
   import { Place } from "../../index.ts";
-  import AdaptiveSurfaceLayout from "./AdaptiveSurfaceLayout.svelte";
+  import AdaptiveSurfaceLayout from "../../foundations/shell/AdaptiveSurfaceLayout.svelte";
   import type { WorkspaceDestination } from "../../../infra/workspace-navigation.ts";
   import type { ToolbarAction, BottomToolbar } from "../../../../interaction/toolbar.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
@@ -2742,7 +2743,7 @@ Source SHA-256: 91f372ded2efb00e1b3518fbfcde2bbbfc02cf188da47230813bc6e2d2ba1de2
   import { Wallpaper } from "../../index.ts";
   import { appearance } from "../../../infra/appearance-state.ts";
   import type { WorkspaceContent, WorkspaceSearch, WorkspacePanels, WorkspaceViewportActions } from "../../../infra/workspace-content.ts";
-  import { revealSearchTarget } from "../../../infra/catalog-search-focus.ts";
+  import { revealSearchTarget } from "../../mechanisms/reveal/reveal.ts";
   import { provideDestinationNavigation } from "../../../infra/destination-navigation.svelte.ts";
   let { navigationSurface, title, navigation, active, query, onquery, onnavigate, content: body, searchContent, searching,
     onsearch, oncancel, detail = false, onback, backAvailable=true, identity, searchAvailable = true, topActions = [], actionGroup, invoke,
@@ -2760,19 +2761,31 @@ Source SHA-256: 91f372ded2efb00e1b3518fbfcde2bbbfc02cf188da47230813bc6e2d2ba1de2
   } = $props();
   let owner = $state<HTMLDivElement | null>(null);
   let viewport = $state<HTMLDivElement | null>(null);
-  let heading = $state<HTMLElement | null>(null);
+  // F1-merge: the shell owns the heading dock (DESIGN §3.2); until then the heading is found in the viewport.
+  const placeHeader = () => viewport?.querySelector<HTMLElement>("[data-place-header]") ?? null;
   let compact = $state<HTMLDivElement | null>(null);
-  const presentation = provideDestinationNavigation(() => active, change => {
+  // F1-merge: origins are focus keys now (infra/destination-navigation.svelte.ts); until lane F mounts Shell (focus
+  // scope keys and its instance), this workspace keeps the origin elements under the keys it hands out.
+  const origins = new Map<string, HTMLElement>();
+  const capture = () => {
+    const element = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const scroll = element?.closest<HTMLElement>("[data-catalog-scroll]")?.scrollTop ?? 0;
+    if (!element) return { focusKey: null, scroll };
+    const focusKey = `origin:${origins.size}`;
+    origins.set(focusKey, element);
+    return { focusKey, scroll };
+  };
+  const presentation = provideDestinationNavigation(() => active, capture, change => {
     void tick().then(() => {
       if (change.destination !== active) return;
       viewport?.scrollTo({ top: change.kind === "back" ? change.origin.scroll : 0 });
-      const origin = change.origin.element;
+      const origin = change.origin.focusKey === null ? null : origins.get(change.origin.focusKey) ?? null;
       // An index may remount after its detail closes. Restore the same semantic
       // action in this destination, not the detached historical button.
       const replacement = origin?.matches('[data-piece="destination-row"][data-destination]')
         ? viewport?.querySelector<HTMLElement>(`[data-piece="destination-row"][data-destination="${CSS.escape(origin.dataset.destination!)}"]`) : null;
       const target = (change.kind === "back" ? origin?.isConnected ? origin : replacement : null)
-        ?? heading?.querySelector<HTMLElement>("[data-place-title]");
+        ?? placeHeader()?.querySelector<HTMLElement>("[data-place-title]");
       target?.focus({ preventScroll: true });
     });
   });
@@ -2800,6 +2813,7 @@ Source SHA-256: 91f372ded2efb00e1b3518fbfcde2bbbfc02cf188da47230813bc6e2d2ba1de2
   });
   $effect(() => {
     presentedIdentity;
+    const heading = placeHeader();
     if (viewport && heading && compact) return observePlaceHeading(viewport, heading, compact);
   });
   let searchViewport = $state<HTMLDivElement | null>(null);
@@ -2897,7 +2911,7 @@ Source SHA-256: 91f372ded2efb00e1b3518fbfcde2bbbfc02cf188da47230813bc6e2d2ba1de2
         content={{ kind: "place-navigation", detail: presentedDetail, onback: goBack, backAvailable: Boolean(presented) || backAvailable, topActions, actionGroup, invoke, searchAvailable }} />
       <CatalogToolbar {title} {query} {onquery} {searching} {resultsId} {searchAvailable} onsearch={openSearch} oncancel={cancel} />
       {/snippet}
-      {#snippet content()}<PlaceHeading identity={presentedIdentity} bind:element={heading} /><CatalogWorkspaceContent content={body} {searching} />{/snippet}
+      {#snippet content()}<PlaceHeading context="place" title={presentedIdentity.title} subtitle={presentedIdentity.subtitle} media={presentedIdentity.media} /><CatalogWorkspaceContent content={body} {searching} />{/snippet}
       {#snippet bottom()}
         <CatalogNavigationToggle {searching} />
         {#if bottomToolbar && invoke && (bottomToolbar.primary || bottomToolbar.secondary)}
@@ -3040,14 +3054,32 @@ Source SHA-256: d9f7a7276785de44f6cd1eda8451b1a1cce4f82c0f61e49bc956a339ab561c04
 
 ## src/svelte/infra/workspace-navigation.ts
 
-Source SHA-256: 9cb03abc069c3e94c0fabb0f37fed5e321b820068c24623e39deed24203da3e5
+Source SHA-256: b40a436d4061f214b925f5878a86071b31adcf3b5fefcaf6cdc8c7f9a6a185d5
 
 ```ts
-import type { ActionIcon } from "../../interaction/toolbar.ts";
+import { Type, type Static } from "@sinclair/typebox";
+import { ActionIconSchema } from "../../interaction/action-icon.ts";
 import type { ViewNavigationEntry } from "../../views/program-schema.ts";
+import { text } from "../../views/definition.ts";
+import type { Frozen } from "../../json.ts";
 
 /** Renderer-owned navigation data. No component, CSS or layout escape hatches. */
-export type WorkspaceIcon = ActionIcon | "landmark" | "backpack" | "panels";
+export const WorkspaceIconSchema = Type.Union([ActionIconSchema, Type.Literal("landmark"), Type.Literal("backpack"), Type.Literal("panels")]);
+export type WorkspaceIcon = Static<typeof WorkspaceIconSchema>;
+const closed = { additionalProperties: false } as const;
+/** The navigation pane the shell draws (DESIGN §3.2): its identity, the active destination and the grouped destinations
+ * `workspaceNavigation` resolves. */
+export const ShellNavigationSchema = Type.Object({
+  identity: Type.Object({ title: text, subtitle: Type.Optional(text) }, closed),
+  settingsPlaceholder: Type.Boolean(),
+  active: Type.String(),
+  groups: Type.Array(Type.Object({
+    label: text,
+    items: Type.Array(Type.Object({ id: Type.String(), label: text, icon: WorkspaceIconSchema,
+      appearance: Type.Union([Type.Literal("browse"), Type.Literal("travel-kit"), Type.Literal("bank")]) }, closed)),
+  }, closed)),
+}, closed);
+export type ShellNavigation = Frozen<Static<typeof ShellNavigationSchema>>;
 export interface WorkspaceDestination<Id extends string = string> {
   readonly id: Id;
   readonly label: string;
@@ -3144,13 +3176,14 @@ Source SHA-256: 634e9ad95016ffd614166c239e981034c8a936ab4ca845ae4bf9591e5a0e3e0c
 
 ## src/svelte/catalog/renderer/view-item/ViewItem.svelte
 
-Source SHA-256: 503ce4256380523aa841f648ddc2c4d0e4029335b371e830ba8e421a6fd5d06f
+Source SHA-256: 8cc89e2c1b0f35d92d07401455042aa69b4e09bb9302b3d056844ee728ed8f12
 
 ```svelte
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
+  import { stackPlacement } from "../../../infra/stack-placement.ts";
   import { NodeRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../index.ts";
   let { item, resolved, onevent, host = "flow" }: CatalogProps<"view-item"> = $props();
   function dispatch(event: NodeEvent) {
@@ -3178,7 +3211,7 @@ Source SHA-256: 503ce4256380523aa841f648ddc2c4d0e4029335b371e830ba8e421a6fd5d06f
     available={!resolved.disabledOutputs.includes(item.output)} {onevent} />
 {:else if item.kind === "tag" || item.kind === "image" || item.kind === "avatar"}
   {@const node = controlResolvedNode(item)}
-  <StackItem kind={node.kind}><NodeRenderer {node} /></StackItem>
+  <StackItem placement={stackPlacement(node.kind)} kind={node.kind}><NodeRenderer {node} /></StackItem>
 {:else if item.kind==='collection' && item.presentation?.kind==='summary-widget'}
   {@const node=binding()}
   {#if node?.kind==='collection'}<SummaryWidget {node} available={!resolved.disabledOutputs.includes(item.output)}
@@ -3189,7 +3222,7 @@ Source SHA-256: 503ce4256380523aa841f648ddc2c4d0e4029335b371e830ba8e421a6fd5d06f
     <MessageBody content={resolved.pending[item.input]} />
   {:else if node}
     {#if host === "frame"}<NodeRenderer {node} onevent={dispatch} />
-    {:else}<StackItem kind={node.kind}><NodeRenderer {node} onevent={dispatch} /></StackItem>{/if}
+    {:else}<StackItem placement={stackPlacement(node.kind)} kind={node.kind}><NodeRenderer {node} onevent={dispatch} /></StackItem>{/if}
   {/if}
 {/if}
 ```
@@ -3421,7 +3454,7 @@ export function retrieveCollection(records: readonly RecordView[], fields: reado
 
 ## src/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte
 
-Source SHA-256: 753835a8c83da9c8ce28ee18c971988fdad23a3175cf42b55c118ec3e9d3eed5
+Source SHA-256: f659281ed32464721a5da5952335427b50458bdd699e138b28375d5ed620b96d
 
 ```svelte
 <script lang="ts">
@@ -3433,7 +3466,7 @@ Source SHA-256: 753835a8c83da9c8ce28ee18c971988fdad23a3175cf42b55c118ec3e9d3eed5
   import { Toolbar } from "../../index.ts";
   import { ScrollEdges } from "../../index.ts";
   import { provideSurfaceHost } from "../../../infra/surface-host.svelte.ts";
-  import { provideToolbarScroll } from "../../../infra/toolbar-scroll.svelte.ts";
+  import { provideToolbarScroll } from "../../mechanisms/toolbar-scroll/toolbar-scroll.svelte.ts";
   import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
   let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEvent }: CatalogProps<"surface-frame"> = $props();
   let host = $state<HTMLElement | null>(null);

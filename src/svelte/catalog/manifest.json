@@ -28,13 +28,6 @@
       "folder": "src/svelte/catalog/mechanisms/catalog-search",
       "owner": "theme"
     },
-    "catalog-shell": {
-      "files": [
-        "catalog-shell.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/catalog-shell",
-      "owner": "theme"
-    },
     "control-feedback": {
       "files": [
         "control-feedback.css"
@@ -98,6 +91,13 @@
       "folder": "src/svelte/catalog/mechanisms/reading",
       "owner": "theme"
     },
+    "reveal": {
+      "files": [
+        "reveal.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/reveal",
+      "owner": "view-region"
+    },
     "structured-content": {
       "files": [
         "structured-content.css"
@@ -119,6 +119,13 @@
       "folder": "src/svelte/catalog/mechanisms/surface-reading",
       "owner": "theme"
     },
+    "swipe-motion": {
+      "files": [
+        "swipe-motion.svelte.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/swipe-motion",
+      "owner": "shell"
+    },
     "theme": {
       "files": [
         "tokens.css",
@@ -126,6 +133,20 @@
       ],
       "folder": "src/svelte/catalog/mechanisms/theme",
       "owner": "theme"
+    },
+    "toolbar-geometry": {
+      "files": [
+        "toolbar-bounds.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/toolbar-geometry",
+      "owner": "bar"
+    },
+    "toolbar-scroll": {
+      "files": [
+        "toolbar-scroll.svelte.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/toolbar-scroll",
+      "owner": "bar"
     },
     "typography": {
       "files": [
@@ -213,7 +234,8 @@
       },
       "purpose": "Sign a person in to the product through the access experience, with the remembered profile and appearance.",
       "uses": [
-        "access-experience"
+        "access-experience",
+        "appearance-root"
       ]
     },
     "action": {
@@ -287,6 +309,22 @@
       "purpose": "Compare Dark and Light using the same surface, tint and wallpaper tokens as the running interface.",
       "uses": [
         "wallpaper"
+      ]
+    },
+    "appearance-root": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/appearance-root",
+      "kind": "foundation",
+      "owner": {
+        "entry": "AppearanceRoot.svelte",
+        "parts": [
+          "appearance-root.ts"
+        ]
+      },
+      "purpose": "Apply the chosen appearance to the whole page and publish the system colour scheme.",
+      "shape": "none",
+      "states": [
+        "default"
       ]
     },
     "artwork-placeholder": {
@@ -420,6 +458,52 @@
         "seed-avatar"
       ]
     },
+    "bar": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/bar",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Bar.svelte",
+        "mechanisms": [
+          "toolbar-geometry",
+          "toolbar-scroll"
+        ],
+        "parts": [
+          "BarIdentity.svelte",
+          "BarSearch.svelte",
+          "bar.css",
+          "toolbar-commands.svelte.ts",
+          "toolbar-leading.svelte.ts"
+        ]
+      },
+      "purpose": "Keep navigation and contextual commands in the surface toolbar; reveal its title and subtitle only after the content header scrolls away.",
+      "shape": "none",
+      "stateVariants": {
+        "overflow": {
+          "purpose": [
+            "commands"
+          ]
+        },
+        "searching": {
+          "purpose": [
+            "commands"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "searching",
+        "overflow"
+      ],
+      "variants": {
+        "purpose": [
+          "commands",
+          "commit",
+          "steps",
+          "navigation"
+        ]
+      }
+    },
     "card": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/card",
@@ -540,11 +624,8 @@
       "owner": {
         "entry": "CatalogWorkspace.svelte",
         "parts": [
-          "AdaptiveSurfaceLayout.svelte",
-          "CatalogEdgeNavigation.svelte",
           "CatalogNavigationToggle.svelte",
-          "CatalogToolbar.svelte",
-          "place-heading-motion.ts"
+          "CatalogToolbar.svelte"
         ]
       },
       "purpose": "Host a catalog place with its navigation sidebar, toolbars, search overlay, panels and failure dialog.",
@@ -1220,6 +1301,9 @@
       "kind": "foundation",
       "owner": {
         "entry": "Field.svelte",
+        "mechanisms": [
+          "toolbar-geometry"
+        ],
         "parts": [
           "FieldWell.svelte",
           "FieldLabel.svelte",
@@ -2277,13 +2361,11 @@
       "kind": "foundation",
       "owner": {
         "entry": "Place.svelte",
-        "parts": [
-          "place-focus.ts",
-          "place.css"
+        "mechanisms": [
+          "toolbar-scroll"
         ],
-        "vendor": [
-          "sidebar",
-          "tooltip"
+        "parts": [
+          "place.css"
         ]
       },
       "purpose": "Arrange content and top or bottom toolbars, with lateral surfaces only at the root. Mounted surfaces keep their own content and toolbars.",
@@ -2319,20 +2401,27 @@
       ]
     },
     "place-heading": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/place-heading",
-      "kind": "composition",
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/place-heading",
+      "kind": "foundation",
       "owner": {
         "entry": "PlaceHeading.svelte",
         "parts": [
           "place-heading.css"
         ]
       },
-      "purpose": "Head a place with its title, subtitle and optional featured image, gallery or video.",
-      "uses": [
-        "heading",
-        "photo-collection"
-      ]
+      "purpose": "Head a place, or content embedded in one, with its title, subtitle and optional featured media.",
+      "shape": "none",
+      "states": [
+        "default",
+        "media"
+      ],
+      "variants": {
+        "context": [
+          "place",
+          "embedded"
+        ]
+      }
     },
     "playback-canvas": {
       "approval": "required",
@@ -2446,6 +2535,7 @@
       },
       "purpose": "Browse a published catalog, its exercises and its component bank, with search and browser history that return to where the person was.",
       "uses": [
+        "appearance-root",
         "catalog-workspace"
       ]
     },
@@ -2609,11 +2699,7 @@
       "folder": "src/svelte/catalog/foundations/scroll-edges",
       "kind": "foundation",
       "owner": {
-        "entry": "ScrollEdges.svelte",
-        "parts": [
-          "scroll-edges.css",
-          "scroll-edges.ts"
-        ]
+        "entry": "ScrollEdges.svelte"
       },
       "purpose": "Fade the edges of a scroll viewport under its toolbars while there is content left to scroll there.",
       "shape": "none",
@@ -2772,6 +2858,71 @@
         "view-destination-link"
       ]
     },
+    "shell": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/shell",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Shell.svelte",
+        "mechanisms": [
+          "swipe-motion",
+          "toolbar-geometry"
+        ],
+        "parts": [
+          "AdaptiveSurfaceLayout.svelte",
+          "CatalogEdgeNavigation.svelte",
+          "ShellBody.svelte",
+          "ShellNavigation.svelte",
+          "catalog-shell.css",
+          "dock-above.ts",
+          "navigation-icons.ts",
+          "place-heading-motion.ts",
+          "search-focus.svelte.ts",
+          "toolbar-reading-boundary.ts"
+        ],
+        "vendor": [
+          "sidebar",
+          "tooltip"
+        ]
+      },
+      "purpose": "Host a workspace place with its navigation sidebar, toolbars, search overlay, panels and failure dialog.",
+      "shape": "none",
+      "slots": {
+        "bottom": {
+          "accepts": [
+            "bar",
+            "toolbar"
+          ]
+        },
+        "content": {
+          "accepts": [
+            "catalog-workspace-content",
+            "place-heading"
+          ]
+        },
+        "panels": {
+          "accepts": [
+            "failure-dialog",
+            "panel"
+          ]
+        },
+        "search": {
+          "accepts": [
+            "catalog-search-results"
+          ]
+        },
+        "top": {
+          "accepts": [
+            "bar",
+            "toolbar"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "searching"
+      ]
+    },
     "spacer": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/spacer",
@@ -2900,9 +3051,12 @@
       "folder": "src/svelte/catalog/foundations/stack-item",
       "kind": "foundation",
       "owner": {
-        "entry": "StackItem.svelte"
+        "entry": "StackItem.svelte",
+        "parts": [
+          "stack-item.css"
+        ]
       },
-      "purpose": "Place one entry of a stack by the kind of node it holds, at the content or the surface inset.",
+      "purpose": "Place one entry of a stack at the content or the surface inset.",
       "shape": "none",
       "slots": {
         "children": {
@@ -2912,16 +3066,24 @@
         }
       },
       "states": [
-        "content",
-        "surface"
-      ]
+        "default"
+      ],
+      "variants": {
+        "placement": [
+          "content",
+          "surface"
+        ]
+      }
     },
     "stack-layout": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/stack-layout",
       "kind": "foundation",
       "owner": {
-        "entry": "StackLayout.svelte"
+        "entry": "StackLayout.svelte",
+        "parts": [
+          "stack-layout.css"
+        ]
       },
       "purpose": "Group related content under one title, with an optional description and required mark.",
       "shape": "none",
@@ -2996,6 +3158,76 @@
       },
       "purpose": "Show module status at a glance and open its destination.",
       "uses": []
+    },
+    "surface": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/surface",
+      "kind": "foundation",
+      "owner": {
+        "entry": "Surface.svelte",
+        "mechanisms": [
+          "toolbar-geometry",
+          "toolbar-scroll"
+        ],
+        "parts": [
+          "ScrollEdges.svelte",
+          "place-focus.ts",
+          "scroll-edges.css",
+          "scroll-edges.ts",
+          "surface.css"
+        ]
+      },
+      "purpose": "Arrange content and top or bottom toolbars, with lateral surfaces only at the root. Mounted surfaces keep their own content and toolbars.",
+      "shape": "none",
+      "slots": {
+        "bottom": {
+          "accepts": [
+            "bar",
+            "toolbar"
+          ]
+        },
+        "content": {
+          "accepts": [
+            "catalog-workspace-content",
+            "column",
+            "content-flow",
+            "frame-body",
+            "icon",
+            "place-heading"
+          ]
+        },
+        "overlay": {
+          "accepts": [
+            "catalog-search-results"
+          ]
+        },
+        "top": {
+          "accepts": [
+            "bar",
+            "heading",
+            "toolbar"
+          ]
+        }
+      },
+      "stateVariants": {
+        "searching": {
+          "kind": [
+            "main"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "searching"
+      ],
+      "variants": {
+        "kind": [
+          "main",
+          "navigation",
+          "frame",
+          "page"
+        ]
+      }
     },
     "surface-frame": {
       "approval": "required",
@@ -3196,10 +3428,8 @@
           "CalendarNavigation.svelte",
           "CatalogNavigationActions.svelte",
           "ToolbarIdentity.svelte",
-          "toolbar-commands.svelte.ts",
           "toolbar-identity.ts",
-          "toolbar-layout.css",
-          "toolbar-leading.svelte.ts"
+          "toolbar-layout.css"
         ]
       },
       "purpose": "Keep navigation and contextual commands in the surface toolbar; reveal its title and subtitle only after the content header scrolls away.",
@@ -3353,35 +3583,51 @@
       "folder": "src/svelte/catalog/foundations/view-region",
       "kind": "foundation",
       "owner": {
-        "entry": "ViewRegion.svelte"
+        "entry": "ViewRegion.svelte",
+        "mechanisms": [
+          "reveal"
+        ],
+        "parts": [
+          "view-region.css"
+        ]
       },
-      "purpose": "Frame one view's content or one of its items with the identity navigation reveals; bare renders content unframed.",
+      "purpose": "Frame one view's content, one of its items, a place's document or a retained place with the identity navigation reveals; bare renders content unframed.",
       "shape": "none",
       "slots": {
         "children": {
           "accepts": [
             "appearance",
+            "catalog-home",
             "feedback",
             "identity",
             "information",
+            "inspection-catalog",
             "inspection-content",
+            "local-exercises",
             "media-content",
             "place-heading",
+            "public-catalog-bank",
+            "stack",
             "stack-layout",
             "view-attention",
+            "view-content",
             "view-item",
+            "view-region",
             "view-related-selection"
           ]
         }
       },
       "states": [
-        "default"
+        "default",
+        "hidden"
       ],
       "variants": {
         "kind": [
           "view",
           "item",
-          "bare"
+          "bare",
+          "document",
+          "retained"
         ]
       }
     },
@@ -3409,6 +3655,7 @@
       },
       "purpose": "Present a view program as a workspace with navigation, search, retained views and its panel.",
       "uses": [
+        "appearance-root",
         "catalog-workspace"
       ]
     },

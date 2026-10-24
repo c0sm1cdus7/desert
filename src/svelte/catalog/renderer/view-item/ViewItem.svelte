@@ -2,6 +2,7 @@
   import type { CatalogProps } from "../../types.d.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
+  import { stackPlacement } from "../../../infra/stack-placement.ts";
   import { NodeRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../index.ts";
   let { item, resolved, onevent, host = "flow" }: CatalogProps<"view-item"> = $props();
   function dispatch(event: NodeEvent) {
@@ -29,7 +30,7 @@
     available={!resolved.disabledOutputs.includes(item.output)} {onevent} />
 {:else if item.kind === "tag" || item.kind === "image" || item.kind === "avatar"}
   {@const node = controlResolvedNode(item)}
-  <StackItem kind={node.kind}><NodeRenderer {node} /></StackItem>
+  <StackItem placement={stackPlacement(node.kind)} kind={node.kind}><NodeRenderer {node} /></StackItem>
 {:else if item.kind==='collection' && item.presentation?.kind==='summary-widget'}
   {@const node=binding()}
   {#if node?.kind==='collection'}<SummaryWidget {node} available={!resolved.disabledOutputs.includes(item.output)}
@@ -40,6 +41,6 @@
     <MessageBody content={resolved.pending[item.input]} />
   {:else if node}
     {#if host === "frame"}<NodeRenderer {node} onevent={dispatch} />
-    {:else}<StackItem kind={node.kind}><NodeRenderer {node} onevent={dispatch} /></StackItem>{/if}
+    {:else}<StackItem placement={stackPlacement(node.kind)} kind={node.kind}><NodeRenderer {node} onevent={dispatch} /></StackItem>{/if}
   {/if}
 {/if}

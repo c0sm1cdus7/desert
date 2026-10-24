@@ -646,7 +646,7 @@ tokens, typography, geometry and material. The
 renderer; `ViewProduct` does not import CSS or depend on a legacy renderer to
 load it. Rule T ([template-artifacts.ts](../../src/authoring/catalog/gate/template-artifacts.ts))
 admits that theme import and the framework-owned child slot, not another public
-render extension. [Catalog appearance](../../src/svelte/infra/catalog-appearance.ts)
+render extension. [AppearanceRoot](../../src/svelte/catalog/foundations/appearance-root/appearance-root.ts)
 separately mounts/restores the shared root profile; it is not product styling.
 
 Geometry/material/motion belong to shared owners such as

@@ -7,5 +7,5 @@ export const AccessScreen = defineComposition({
   id: "access-screen",
   purpose: "Sign a person in to the product through the access experience, with the remembered profile and appearance.",
   owner: { entry: "AccessScreen.svelte" },
-  uses: ["access-experience"], approval: "none", contract: AccessScreenContract,
+  uses: ["access-experience", "appearance-root"], approval: "none", contract: AccessScreenContract,
 } as const);

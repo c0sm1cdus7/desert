@@ -2,12 +2,12 @@
   import { Face } from "../../index.ts";
   import { cn } from "../../../vendor/utils.js";
   import { Button } from "../../../vendor/components/ui/button/index.js";
-  import { useToolbarScroll } from "../../../infra/toolbar-scroll.svelte.ts";
+  import { useToolbarScroll } from "../../mechanisms/toolbar-scroll/toolbar-scroll.svelte.ts";
   import ToolbarIdentity from "./ToolbarIdentity.svelte";
   import type { ToolbarIdentityContent, ToolbarIdentityRole } from "./toolbar-identity.ts";
-  import { useToolbarLeading } from "./toolbar-leading.svelte.ts";
+  import { useToolbarLeading } from "../../foundations/bar/toolbar-leading.svelte.ts";
   import type { ToolbarContent } from "../../../infra/toolbar-content.ts";
-  import { useToolbarCommands } from "./toolbar-commands.svelte.ts";
+  import { useToolbarCommands } from "../../foundations/bar/toolbar-commands.svelte.ts";
   import { assertToolbarControls } from "../../../infra/toolbar-controls.ts";
   import { intentKey, submitsJourney } from "../../../../interaction/intent.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";

@@ -18,19 +18,22 @@ const catalogHome = `[data-stack-kind="catalog.home"] { --place-surface-inset:0p
 const leadingInset = `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { --place-leading-inset:0px; }
 [data-catalog-workspace] [data-slot="sidebar-wrapper"][data-presentation="docked"][data-state="expanded"] { --place-leading-inset:var(--sidebar-width); }
 `;
-/** Each relocation reversed inside today's sources: [owner, today's text, text before the move]. */
-const reversed: readonly (readonly [string, string, string])[] = [
+/** Each relocation reversed inside today's sources: [owner, today's text, text before the move, and the frozen file that
+ * held it when that file has moved since (slice 3: place.css's stack rules are stack-item's, catalog-shell.css is shell's)]. */
+const reversed: readonly (readonly [string, string, string, string?])[] = [
   ["catalog/mechanisms/surface-reading/surface-reading.css", catalogHome, ""],
-  ["catalog/foundations/place/place.css", `[data-stack-kind="catalog.home"] [data-catalog-home]`, `${catalogHome}[data-stack-kind="catalog.home"] [data-catalog-home]`],
+  ["catalog/foundations/stack-item/stack-item.css", `[data-stack-kind="catalog.home"] [data-catalog-home]`, `${catalogHome}[data-stack-kind="catalog.home"] [data-catalog-home]`,
+    "catalog/foundations/place/place.css"],
   ["catalog/mechanisms/typography/typography.css", `@layer components {\n  [data-frame-presentation="message"] {\n${messageType}  }\n}\n`, ""],
   ["catalog/mechanisms/surface-chrome/surface-chrome.css", `    --chrome-inset:1.5rem;\n  }`, `    --chrome-inset:1.5rem;\n${messageType}  }`],
   ["catalog/mechanisms/theme/base.css", `  button,input,textarea { font:inherit; }\n  h1,h2,h3,p { margin:0; }\n  button { cursor:pointer; }`,
     `  button,input,textarea { font:inherit; } button { cursor:pointer; }`],
   ["catalog/mechanisms/theme/base.css", `  input,textarea { min-width:0; } a {`, `  input,textarea { min-width:0; } h1,h2,h3,p { margin:0; } a {`],
   ["catalog/mechanisms/surface-reading/surface-reading.css", leadingInset, ""],
-  ["catalog/mechanisms/catalog-shell/catalog-shell.css", `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { height:100%; min-height:0; }`,
+  ["catalog/foundations/shell/catalog-shell.css", `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { height:100%; min-height:0; }`,
     `[data-catalog-workspace] [data-slot="sidebar-wrapper"] { --place-leading-inset:0px; height:100%; min-height:0; }\n` +
-    `[data-catalog-workspace] [data-slot="sidebar-wrapper"][data-presentation="docked"][data-state="expanded"] { --place-leading-inset:var(--sidebar-width); }`],
+    `[data-catalog-workspace] [data-slot="sidebar-wrapper"][data-presentation="docked"][data-state="expanded"] { --place-leading-inset:var(--sidebar-width); }`,
+    "catalog/mechanisms/catalog-shell/catalog-shell.css"],
 ];
 
 async function previousCss() {
@@ -41,10 +44,10 @@ async function previousCss() {
   const frozen: Record<string, string> = { ...geometryWritersBefore, "catalog/mechanisms/theme/base.css": typographyThemeBefore,
     ...Object.fromEntries(Object.entries(controlWritersBefore).map(([path, source]) => [path.slice("src/svelte/".length), source])) };
   const sources = new Map<string, string>();
-  for (const [path, today, before] of reversed) {
+  for (const [path, today, before, held = path] of reversed) {
     const text = sources.get(path) ?? await readFile(resolve(base, path), "utf8");
     assert.equal(text.split(today).length, 2, `The moved writer is literal and unique in ${path}`);
-    if (before) assert.ok(frozen[path]!.replaceAll("--text-title", "--text-section").includes(before), `The prior owner held it there: ${path}`);
+    if (before) assert.ok(frozen[held]!.replaceAll("--text-title", "--text-section").includes(before), `The prior owner held it there: ${held}`);
     sources.set(path, text.replace(today, before));
   }
   let theme = await readFile(resolve(base, "theme.css"), "utf8");

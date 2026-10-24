@@ -1,0 +1,8 @@
+/* Surface: the scroll owner of a navigation or content place, and the page an access experience fills. */
+.place-frame { position:relative; display:flex; flex-direction:column; min-width:0; min-height:0; height:100%; }
+.place-viewport { flex:1; min-width:0; min-height:0; overflow:auto; overscroll-behavior:contain; overflow-anchor:none; }
+[data-surface="page"] { position:relative; isolation:isolate; min-height:100dvh; width:100%; min-width:0; }
+[data-surface-backdrop] { position:absolute; inset:0; z-index:-1; }
+[data-surface-page-top] { padding:clamp(1rem,3vw,2rem); }
+[data-surface-page-content] { min-height:calc(100dvh - 5rem); padding:1.5rem max(1rem,env(safe-area-inset-right)) max(2rem,env(safe-area-inset-bottom)) max(1rem,env(safe-area-inset-left)); display:flex; flex-direction:column; justify-content:center; gap:1.5rem; }
+@media (max-width:480px) { [data-surface-page-content] { justify-content:flex-start; padding-top:1rem; } }

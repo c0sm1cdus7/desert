@@ -1,0 +1,5 @@
+/* View region: a view frame and a place document arrange their visible sibling stacks; children own their materials. */
+.place-content { display:flex; flex-direction:column; gap:2rem; min-width:0; width:100%; max-width:34rem; margin-inline:0; }
+.place-content[data-content-layout="overview"] { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,24rem),1fr)); max-width:72rem; align-items:start; }
+.place-content[data-content-layout="overview"] > :not([data-view-item]) { grid-column:1 / -1; }
+.place-content[data-content-layout="gallery"] { max-width:72rem; }

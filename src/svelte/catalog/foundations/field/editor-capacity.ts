@@ -1,4 +1,4 @@
-import { toolbarBounds } from '../../../infra/toolbar-bounds.ts';
+import { toolbarBounds } from '../../mechanisms/toolbar-geometry/toolbar-bounds.ts';
 
 /** Autosizing is bounded by the reading area, not a device category. The
  * editor retains native caret scrolling once its complete well fills it. */

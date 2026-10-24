@@ -1,13 +1,13 @@
 <script lang="ts">
   import { onMount, tick, untrack, setContext } from "svelte";
-  import { mountCatalogAppearance } from "../../../infra/catalog-appearance.ts";
+  import { AppearanceRoot } from "../../index.ts";
   import { initialPublicCatalogState, projectPublicCatalog, reducePublicCatalog, publicCatalogSurface,
     type PublicCatalogState } from "../../../../public-catalog/client.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { CatalogWorkspace } from "../../index.ts";
   import type { PlaceIdentity } from "../../../infra/place-identity.ts";
   import { catalogSearchResults, catalogSearchScope, type CatalogDestination, type CatalogSearchResult } from "../../../infra/catalog-search.ts";
-  import { revealSearchTarget } from "../../../infra/catalog-search-focus.ts";
+  import { revealSearchTarget } from "../../mechanisms/reveal/reveal.ts";
   import type { WorkspaceContentActions } from "../../../infra/workspace-content.ts";
   import { catalogHistory } from "./catalog-history.ts";
   import type { CatalogProps } from "../../types.d.ts";
@@ -104,7 +104,6 @@
     browserNavigation?.push();
   }
   onMount(() => {
-    const restoreAppearance = mountCatalogAppearance();
     const location = new URL(window.location.href);
     const place = location.searchParams.get('place'), record = location.searchParams.get('record');
     if (place === 'bank' || (place === 'travel-kit' && definition.exercises)) active = place;
@@ -134,11 +133,11 @@
     });
     return () => {
       browserNavigation?.dispose();
-      restoreAppearance();
     };
   });
 </script>
 
+<AppearanceRoot />
 <svelte:head><title>{definition.title} · DESERT</title></svelte:head>
 <CatalogWorkspace navigationSurface={{ title:definition.title, settingsPlaceholder:true }} title={scope.title} {identity} {navigation} {active} query={searchQuery} {searching}
   onquery={querySearch} onsearch={() => searching = true} oncancel={cancelSearch} onnavigate={navigate}

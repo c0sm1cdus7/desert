@@ -1,17 +1,8 @@
 <script lang="ts">
-  import { observeScrollEdges, type ScrollEdge } from "./scroll-edges.ts";
+  // F1-merge: scroll-edges is a part of surface now (DESIGN §1.6). This entry stays only for its last callers, the
+  // place foundation and the surface-frame composition (lane E), until Batch 3 deletes the folder.
+  import Edges from "../surface/ScrollEdges.svelte";
   let { viewport, owner }: { viewport: HTMLElement | null; owner: HTMLElement | null } = $props();
-  let edges = $state<ScrollEdge[]>([]);
-  $effect(() => {
-    if (!viewport || !owner) return;
-    return observeScrollEdges(viewport, owner, value => { edges = value; });
-  });
 </script>
 
-<div data-scroll-edges aria-hidden="true">
-  {#each edges as band (band.edge)}
-    <div data-scroll-edge={band.edge} data-active={band.strength > 0} aria-hidden="true"
-      style:top="{band.top}px" style:left="{band.left}px" style:width="{band.width}px" style:height="{band.height}px"
-      style:--edge-core="{band.core}px" style:--edge-strength={band.strength}></div>
-  {/each}
-</div>
+<Edges {viewport} {owner} />

@@ -7,5 +7,5 @@ export const ViewWorkspace = defineComposition({
   id: "view-workspace",
   purpose: "Present a view program as a workspace with navigation, search, retained views and its panel.",
   owner: { entry: "ViewWorkspace.svelte", parts: ["workspace-data.ts"] },
-  uses: ["catalog-workspace"], approval: "required", contract: ViewWorkspaceContract,
+  uses: ["appearance-root", "catalog-workspace"], approval: "required", contract: ViewWorkspaceContract,
 } as const);

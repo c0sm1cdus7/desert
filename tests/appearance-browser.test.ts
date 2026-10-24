@@ -7,12 +7,10 @@ import { appearanceStorageKey } from "../src/svelte/infra/appearance-preferences
 test("appearance uses shared choices, persists locally and applies to the whole catalog", async () => {
   const browser = await svelteBrowser(`
     <script>
-      import { onMount } from 'svelte';
       import Appearance from '@desert/svelte/catalog/compositions/appearance/Appearance.svelte';
-      import { mountCatalogAppearance } from '@desert/svelte/infra/catalog-appearance.ts';
-      onMount(mountCatalogAppearance);
+      import AppearanceRoot from '@desert/svelte/catalog/foundations/appearance-root/AppearanceRoot.svelte';
     </script>
-    <Appearance />`, {}, "http://desert-appearance.test/");
+    <AppearanceRoot /><Appearance />`, {}, "http://desert-appearance.test/");
   try {
     await browser.page.addStyleTag({ content: await workspaceCss() });
     await browser.page.getByRole("radio", { name: "Dark", exact: true }).click();
@@ -43,12 +41,10 @@ test("legacy system follows the effective preview without rewriting storage unti
   const stored = { theme: "system", textSize: "standard", tint: "rose", wallpaper: "silk" };
   const browser = await svelteBrowser(`
     <script>
-      import { onMount } from 'svelte';
       import Appearance from '@desert/svelte/catalog/compositions/appearance/Appearance.svelte';
-      import { mountCatalogAppearance } from '@desert/svelte/infra/catalog-appearance.ts';
+      import AppearanceRoot from '@desert/svelte/catalog/foundations/appearance-root/AppearanceRoot.svelte';
       localStorage.setItem(${JSON.stringify(appearanceStorageKey)}, ${JSON.stringify(JSON.stringify(stored))});
-      onMount(mountCatalogAppearance);
-    </script><Appearance />`, {}, "http://desert-legacy-appearance.test/");
+    </script><AppearanceRoot /><Appearance />`, {}, "http://desert-legacy-appearance.test/");
   try {
     const read = () => browser.page.evaluate(key => JSON.parse(localStorage.getItem(key)!), appearanceStorageKey);
     for (const scheme of ["dark", "light", "dark"] as const) {

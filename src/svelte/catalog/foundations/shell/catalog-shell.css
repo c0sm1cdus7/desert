@@ -1,0 +1,45 @@
+/* Shell (foundation): the application viewport clips content but never owns scroll, even when the
+   browser reveals a focused descendant. Only data-catalog-scroll may move. */
+[data-catalog-workspace] { position:relative; height:100dvh; overflow:clip; background:var(--background); }
+[data-catalog-workspace] [data-slot="sidebar-wrapper"] { height:100%; min-height:0; }
+[data-catalog-workspace] [data-slot="sidebar-container"] { padding:8px 0 8px 8px; transition-timing-function:var(--ease-nav); }
+[data-catalog-workspace] [data-slot="sidebar-gap"] { transition-timing-function:var(--ease-nav); }
+[data-catalog-workspace] [data-slot="sidebar-inner"] { overflow:hidden; border-radius:var(--surface-radius); }
+[data-renderer-profile="apple-reference"][data-catalog-navigation] { display:flex; flex-direction:column; height:100%; min-height:0; background:transparent; }
+[data-catalog-navigation] [data-slot="sidebar-group"] { padding:0 var(--navigation-group-inset); }
+[data-catalog-navigation] [data-slot="sidebar-group"] + [data-slot="sidebar-group"] { margin-top:22px; }
+[data-catalog-navigation] [data-slot="sidebar-group-label"] { height:auto; padding:8px var(--navigation-row-inset); font:600 var(--text-caption)/var(--text-caption--line-height) var(--font-sans); color:var(--muted-foreground); }
+[data-navigation-icon] { display:grid; place-items:center; flex:0 0 auto; width:max(24px,1.75em); height:max(24px,1.75em); border-radius:6px; color:var(--primary-foreground); background:var(--primary); box-shadow:inset 0 0 0 1px rgb(255 255 255 / .16); }
+[data-navigation-icon="travel-kit"] { background:var(--chart-2); }
+[data-navigation-icon="bank"] { background:var(--muted-foreground); color:var(--background); }
+[data-navigation-drag] { touch-action:pan-y; user-select:none; }
+[data-catalog-navigation] [data-slot="sidebar-menu"] { gap:0; }
+[data-catalog-navigation] [data-slot="sidebar-menu-button"] { height:auto; min-height:32px; padding:6px var(--navigation-row-inset); gap:9px; font-size:var(--text-body); line-height:var(--text-body--line-height); font-weight:var(--text-body--font-weight); border-radius:8px; }
+[data-catalog-navigation] [data-slot="sidebar-menu-button"] :is([data-button-content],[data-button-content] > span:last-child) { white-space:normal; overflow:visible; text-overflow:clip; overflow-wrap:anywhere; }
+[data-catalog-navigation] [data-slot="sidebar-menu-button"] svg { width:1.125em; height:1.125em; }
+[data-catalog-edge-navigation] { position:absolute; z-index:1; inset:0 auto 0 0; width:18px; touch-action:pan-y; }
+[data-slot="sidebar-container"][data-gesture-enter] { transition:none; }
+/* The parent surface spans behind floating siblings. Only readable content and
+   controls reserve the docked sibling's space; media and edge shadows do not. */
+[data-catalog-content] { position:absolute; inset:0; min-width:0; height:100%; outline:none; }
+/* Keep positioned card labels inside their page, below focused search and chrome. */
+[data-catalog-scroll] { position:relative; z-index:0; height:100%; overflow-y:auto; overscroll-behavior-y:contain; scrollbar-width:none; scroll-padding-block-start:calc(var(--catalog-toolbar-inset) + var(--catalog-toolbar-height) + var(--scroll-edge-feather,32px)); }
+[data-catalog-scroll]::-webkit-scrollbar { display:none; }
+/* Programmatic return point, not an interactive control or a whole-page focus ring. */
+[data-catalog-scroll]:focus { outline:none; }
+[data-place-toolbar] [data-button-label] { visibility:hidden; }
+[data-place-toolbar] [data-button-glyph] { visibility:visible; }
+[data-catalog-scroll] > [data-retained-place] { padding:24px var(--place-surface-inset) 26px; padding-inline-start:calc(var(--place-leading-inset) + var(--place-surface-inset)); }
+@media (max-width:767px) {
+  [data-catalog-workspace] { --catalog-hero-height:360px; --catalog-media-height:160px; }
+}
+/* Use the provider's single responsive decision, not a second breakpoint. */
+[data-presentation="overlay"] [data-catalog-navigation] [data-slot="sidebar-menu-button"] { min-height:44px; }
+@media (pointer:coarse) {
+  [data-catalog-navigation] [data-slot="sidebar-menu-button"] { min-height:44px; }
+}
+@media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
+}
+/* The navigation return: the bottom toggle that shows a hidden navigation pane. */
+[data-navigation-return] { position:absolute; z-index:2; bottom:0; inset-inline-start:var(--place-leading-inset,0px); inline-size:calc(var(--catalog-toolbar-height) + 2 * var(--catalog-toolbar-inset)); }
+[data-navigation-return] [data-piece="toolbar"] { overflow:visible; }

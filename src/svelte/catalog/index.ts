@@ -9,6 +9,7 @@ export { default as Action } from "./foundations/action/Action.svelte";
 export { default as Appearance } from "./compositions/appearance/Appearance.svelte";
 export { default as AppearancePreferences } from "./compositions/appearance-preferences/AppearancePreferences.svelte";
 export { default as AppearancePreview } from "./compositions/appearance-preview/AppearancePreview.svelte";
+export { default as AppearanceRoot } from "./foundations/appearance-root/AppearanceRoot.svelte";
 export { default as ArtworkPlaceholder } from "./foundations/artwork-placeholder/ArtworkPlaceholder.svelte";
 export { default as AttentionIndicator } from "./foundations/attention-indicator/AttentionIndicator.svelte";
 export { default as AttentionList } from "./compositions/attention-list/AttentionList.svelte";
@@ -16,6 +17,7 @@ export { default as AttentionStatus } from "./compositions/attention-status/Atte
 export { default as Availability } from "./foundations/availability/Availability.svelte";
 export { default as Avatar } from "./foundations/avatar/Avatar.svelte";
 export { default as AvatarShuffle } from "./compositions/avatar-shuffle/AvatarShuffle.svelte";
+export { default as Bar } from "./foundations/bar/Bar.svelte";
 export { default as Card } from "./foundations/card/Card.svelte";
 export { default as CatalogCard } from "./foundations/catalog-card/CatalogCard.svelte";
 export { default as CatalogDetail } from "./compositions/catalog-detail/CatalogDetail.svelte";
@@ -106,7 +108,7 @@ export { default as PickerSheet } from "./foundations/picker-sheet/PickerSheet.s
 export { default as Place } from "./foundations/place/Place.svelte";
 export { default as PlaceContent } from "./compositions/place-content/PlaceContent.svelte";
 export { default as PlaceHeader } from "./compositions/place-header/PlaceHeader.svelte";
-export { default as PlaceHeading } from "./compositions/place-heading/PlaceHeading.svelte";
+export { default as PlaceHeading } from "./foundations/place-heading/PlaceHeading.svelte";
 export { default as PlaybackCanvas } from "./foundations/playback-canvas/PlaybackCanvas.svelte";
 export { default as PlaybackControls } from "./compositions/playback-controls/PlaybackControls.svelte";
 export { default as PopoverControl } from "./compositions/popover-control/PopoverControl.svelte";
@@ -131,6 +133,7 @@ export { default as SelectionField } from "./foundations/selection-field/Selecti
 export { default as Separator } from "./foundations/separator/Separator.svelte";
 export { default as SharedOwnerCatalog } from "./compositions/shared-owner-catalog/SharedOwnerCatalog.svelte";
 export { default as SharedOwnerSpecimen } from "./compositions/shared-owner-specimen/SharedOwnerSpecimen.svelte";
+export { default as Shell } from "./foundations/shell/Shell.svelte";
 export { default as Spacer } from "./foundations/spacer/Spacer.svelte";
 export { default as Specimen } from "./compositions/specimen/Specimen.svelte";
 export { default as SpecimenGroup } from "./compositions/specimen-group/SpecimenGroup.svelte";
@@ -142,6 +145,7 @@ export { default as StackItem } from "./foundations/stack-item/StackItem.svelte"
 export { default as StackLayout } from "./foundations/stack-layout/StackLayout.svelte";
 export { default as Status } from "./foundations/status/Status.svelte";
 export { default as SummaryWidget } from "./compositions/summary-widget/SummaryWidget.svelte";
+export { default as Surface } from "./foundations/surface/Surface.svelte";
 export { default as SurfaceFrame } from "./compositions/surface-frame/SurfaceFrame.svelte";
 export { default as SurfaceSpecimen } from "./compositions/surface-specimen/SurfaceSpecimen.svelte";
 export { default as Tag } from "./foundations/tag/Tag.svelte";

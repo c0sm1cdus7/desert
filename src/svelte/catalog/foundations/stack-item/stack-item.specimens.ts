@@ -3,6 +3,8 @@ import { createRawSnippet } from "svelte";
 import type { CatalogSpecimen } from "../../types.d.ts";
 
 export const StackItemSpecimens = [
-  { state: "content", props: { kind: "control.tag", children: createRawSnippet(() => ({ render: () => "<span>Travel</span>" })) } },
-  { state: "surface", props: { kind: "action", children: createRawSnippet(() => ({ render: () => "<span>Archive</span>" })) } },
+  { state: "default", variants: { placement: "content" }, props: { placement: "content", kind: "control.tag",
+    children: createRawSnippet(() => ({ render: () => "<span>Travel</span>" })) } },
+  { state: "default", variants: { placement: "surface" }, props: { placement: "surface", kind: "action",
+    children: createRawSnippet(() => ({ render: () => "<span>Archive</span>" })) } },
 ] as const satisfies readonly CatalogSpecimen<"stack-item">[];

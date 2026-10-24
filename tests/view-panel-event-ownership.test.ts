@@ -7,7 +7,7 @@ import { settleMotion } from "./web/fixture.ts";
 test("detached editor blur and submit retain their old owner while the outer Drawer stays mounted", async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
     import Panel from '@desert/svelte/catalog/renderer/panel/Panel.svelte';
-    import AdaptiveSurfaceLayout from '@desert/svelte/catalog/compositions/catalog-workspace/AdaptiveSurfaceLayout.svelte';
+    import AdaptiveSurfaceLayout from '@desert/svelte/catalog/foundations/shell/AdaptiveSurfaceLayout.svelte';
     import { surfaceFrame } from '@desert/interaction/surface-frame.ts';
     import { viewEventOwnership } from '@desert/web/client/view-events.ts';
     const ownership = viewEventOwnership();

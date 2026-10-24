@@ -13,7 +13,7 @@ export const Field = defineFoundation({
     entry: "Field.svelte",
     parts: ["FieldWell.svelte", "FieldLabel.svelte", "FieldEditor.svelte", "FieldTrigger.svelte", "SearchWell.svelte", "MaskedInput.svelte",
       "input-edit-history.ts", "ClearInput.svelte", "CharacterCounter.svelte", "editor-capacity.ts", "field.css", "field-measure.css"],
-    vendor: ["field", "input", "input-group", "label", "textarea"],
+    vendor: ["field", "input", "input-group", "label", "textarea"], mechanisms: ["toolbar-geometry"],
   },
   shape: "radius", states: ["empty", "value", "invalid", "disabled", "masked"],
   variants: { primitive: ["input.text", "input.multiline", "trigger"], measure: ["writing", "choice", "date", "amount", "fill"] },

@@ -66,7 +66,7 @@ test('confirmation releases modality when a docked context replaces it or its ow
   const f=await svelteBrowser(`<script>
     import ConfirmationDialog from '@desert/svelte/catalog/compositions/confirmation-dialog/ConfirmationDialog.svelte';
     import Drawer from '@desert/svelte/catalog/foundations/drawer/Drawer.svelte';
-    import AdaptiveSurfaceLayout from '@desert/svelte/catalog/compositions/catalog-workspace/AdaptiveSurfaceLayout.svelte';
+    import AdaptiveSurfaceLayout from '@desert/svelte/catalog/foundations/shell/AdaptiveSurfaceLayout.svelte';
     import {surfaceFrame,SurfaceFrameVersion} from '@desert/interaction/surface-frame.ts';
     let stage=$state('closed'), result=$state('none');
     const frame=surfaceFrame({version:SurfaceFrameVersion,kind:'confirmation',top:{title:'Move to Trash?'},content:{kind:'message',text:'You can restore this note.'},bottom:{secondary:{label:'Cancel',icon:'back',state:'ready',intent:{kind:'back'}},primary:{label:'Move to Trash',icon:'archive',state:'ready',intent:{kind:'accept'}}}});
