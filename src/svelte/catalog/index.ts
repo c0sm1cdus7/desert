@@ -140,6 +140,7 @@ export { default as ViewItem } from "./renderer/view-item/ViewItem.svelte";
 export { default as ViewPanel } from "./compositions/view-panel/ViewPanel.svelte";
 export { default as ViewProduct } from "./renderer/view-product/ViewProduct.svelte";
 export { default as ViewProductContent } from "./compositions/view-product-content/ViewProductContent.svelte";
+export { default as ViewRegion } from "./foundations/view-region/ViewRegion.svelte";
 export { default as ViewRelatedSelection } from "./compositions/view-related-selection/ViewRelatedSelection.svelte";
 export { default as ViewWorkspace } from "./compositions/view-workspace/ViewWorkspace.svelte";
 export { default as Viewer } from "./compositions/viewer/Viewer.svelte";

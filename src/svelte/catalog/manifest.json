@@ -697,7 +697,8 @@
         "stack-layout",
         "view-attention",
         "view-item",
-        "view-related-selection"
+        "view-related-selection",
+        "view-region"
       ]
     },
     "context-panel": {
@@ -2481,6 +2482,43 @@
       "uses": [
         "view-workspace"
       ]
+    },
+    "view-region": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/view-region",
+      "kind": "foundation",
+      "owner": {
+        "entry": "ViewRegion.svelte"
+      },
+      "purpose": "Frame one view's content or one of its items with the identity navigation reveals; bare renders content unframed.",
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "appearance",
+            "feedback",
+            "identity",
+            "information",
+            "inspection-content",
+            "media-content",
+            "place-heading",
+            "stack-layout",
+            "view-attention",
+            "view-item",
+            "view-related-selection"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "kind": [
+          "view",
+          "item",
+          "bare"
+        ]
+      }
     },
     "view-related-selection": {
       "approval": "none",

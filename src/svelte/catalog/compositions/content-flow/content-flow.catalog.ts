@@ -7,5 +7,5 @@ export const ContentFlow = defineComposition({
   id: "content-flow",
   purpose: "Arrange reading, overview or gallery stacks within the shared content measures and responsive layout.",
   owner: { entry: "ContentFlow.svelte" },
-  uses: ["appearance", "feedback", "identity", "information", "inspection-content", "media-content", "place-heading", "stack-layout", "view-attention", "view-item", "view-related-selection"], approval: "none", contract: ContentFlowContract,
+  uses: ["appearance", "feedback", "identity", "information", "inspection-content", "media-content", "place-heading", "stack-layout", "view-attention", "view-item", "view-related-selection", "view-region"], approval: "none", contract: ContentFlowContract,
 } as const);

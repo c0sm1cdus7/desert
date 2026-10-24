@@ -13,6 +13,7 @@
   import { ViewRelatedSelection } from "../../index.ts";
   import { Information } from "../../index.ts";
   import { Feedback } from '../../index.ts';
+  import { ViewRegion } from "../../index.ts";
   import { groupRelatedItems } from "../../../../interaction/content-groups.ts";
   import { revealSearchTarget } from "../../../infra/catalog-search-focus.ts";
   let { resolved, onevent, album = null, onalbum = () => {}, host = "page" }: {
@@ -32,7 +33,7 @@
 
 <!-- Catalog-owned vertical content flow. Callers provide descriptors and events,
      never wrappers, classes, styles, HTML attributes or replacement render slots. -->
-{#snippet sequence()}
+<ViewRegion kind={host === "panel" ? "bare" : "view"} id={resolved.view.id} layout={resolved.view.layout} inset={!hasCatalog}>
   {#if resolved.connection?.state === 'offline'}
     <StackLayout title="Connection"><Feedback text={`${resolved.connection.label} Loaded content remains available; changes are not sent while disconnected.`} /></StackLayout>
   {/if}
@@ -42,14 +43,14 @@
            same content heading; ordinary panel identity stays in its toolbar. -->
       {#if host === "panel" && item.media}<PlaceHeading identity={{...item, subtitle:item.subtitle ?? ""}} />{/if}
     {:else if item.kind === "stack"}
-      <div data-view-item={item.id}>
+      <ViewRegion kind="item" id={item.id}>
       <StackLayout title={item.title} description={item.description}>
         {#each groupRelatedItems(item.items) as group, groupIndex (groupIndex)}
           {#if group[0]?.kind === "fact"}<Information items={group.filter(child => child.kind === "fact")} />
           {:else}{#each group as child}<ViewItem item={child} {resolved} {onevent} />{/each}{/if}
         {/each}
       </StackLayout>
-      </div>
+      </ViewRegion>
     {:else if item.kind === "visual-catalog"}
       <InspectionContent bind:this={bank} />
     {:else if item.kind === "media-library"}
@@ -65,6 +66,4 @@
     {:else}<ViewItem {item} {resolved} {onevent} host={host === "panel" ? "frame" : "flow"} />{/if}
   {/each}
   {#if host === "panel" && resolved.relations?.groups.length}<ViewRelatedSelection state={resolved.relations} {onevent} />{/if}
-{/snippet}
-{#if host === "panel"}{@render sequence()}
-{:else}<div class:place-content={!hasCatalog} data-content-layout={resolved.view.layout} data-view-content={resolved.view.id}>{@render sequence()}</div>{/if}
+</ViewRegion>
