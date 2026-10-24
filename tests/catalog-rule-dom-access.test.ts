@@ -34,6 +34,16 @@ test("a foundation, its .svelte.ts part, its vendor family and a mechanism it ow
   assert.deepEqual(found(files), []);
 });
 
+test("P5: a .ts mechanism owned by one foundation and listed by another foundation runs DOM for both", () => {
+  const trap = 'import { trap } from "../../mechanisms/surface-focus/surface-focus.ts";\n  let element: HTMLElement;\n  $effect(() => trap(element));';
+  const files = {
+    ...foundation("modal", "Modal.svelte", svelte(trap, "<dialog bind:this={element}></dialog>"), ', mechanisms: ["surface-focus"]'),
+    ...foundation("popover", "Popover.svelte", svelte(trap, "<div bind:this={element}></div>"), ', mechanisms: ["surface-focus"]'),
+    ...mechanism("surface-focus", "modal", { "surface-focus.ts": "export const trap = (element: HTMLElement) => { element.focus(); return document.activeElement; };\n" }),
+  };
+  assert.deepEqual(found(files), []);
+});
+
 test("a class heritage expression is a value: document passed through it, and a node global's document, are DOM", () => {
   assert.deepEqual(found(flow("  let leaked: unknown;\n  class Leak extends ((d: unknown) => (leaked = d, Object))(document) {}")),
     [runtime(flowEntry, `document: ${composed}`)]);

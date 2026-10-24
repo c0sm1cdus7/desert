@@ -36,13 +36,13 @@ export function provideFrameActivation() {
 
 /** A replaced frame keeps its focus ownership without reopening its surface. */
 export function frameContinuity(boundary: () => HTMLElement | null,
-  identity: () => object | undefined, frame: () => SurfaceFrame, readingIdentity: () => object | undefined) {
+  identity: () => object | undefined, frame: () => SurfaceFrame, readingIdentity: () => string | undefined) {
   const activations = getContext<FrameActivation | undefined>(activationKey);
   let previous: object | undefined;
   let previousSurface: HTMLElement | null = null;
-  let previousReading: object | undefined;
-  let liveReading: { identity: object; viewport: HTMLElement; top: number } | undefined;
-  let suspended: { identity: object; top: number } | undefined;
+  let previousReading: string | undefined;
+  let liveReading: { identity: string; viewport: HTMLElement; top: number } | undefined;
+  let suspended: { identity: string; top: number } | undefined;
   let revision = 0;
   let origin: string | undefined;
   let returning: string | undefined;

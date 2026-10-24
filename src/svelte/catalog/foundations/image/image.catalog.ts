@@ -8,5 +8,6 @@ export const Image = defineFoundation({
   owner: { entry: "Image.svelte" },
   shape: "none", states: ["loading", "ready", "error"],
   variants: { fit: ["fill", "fit"] },
+  assets: ["bank-image.svg"],
   approval: "required", contract: ImageContract,
 } as const);

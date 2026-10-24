@@ -182,7 +182,7 @@ export function validateProgramBindings(program: ViewProgram, surface: HumanSurf
       throw new Error("INVALID_VIEW_INITIALIZATION");
     }
     const fields = read.detailSchema.properties;
-    const inputFields = mutation.inputSchema.properties as Record<string, { type?: unknown }>;
+    const inputFields = mutation.inputSchema.properties;
     if (journey.initialize.some(item => !canInitializeInput(inputFields[item.input], fields[item.fact]))) throw new Error("INVALID_VIEW_INITIALIZATION");
   }
   const seen = new Set<string>();

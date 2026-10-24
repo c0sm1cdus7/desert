@@ -50,7 +50,7 @@ test("a vendor family owned by two foundations is refused", () => {
   const other = declaration("src/svelte/catalog/foundations/search/search.catalog.ts", `import { defineFoundation } from "x";
 import { C } from "./c.ts";
 export const Search = defineFoundation({ id: "search", purpose: "A search.", owner: { entry: "Search.svelte", vendor: ["input"] },
-  shape: "capsule", states: ["empty"], approval: "required", contract: C } as const);`);
+  shape: "radius", states: ["empty"], approval: "required", contract: C } as const);`);
   assert.throws(() => assertDeclaredSources(owned, [...declared, ...other], layout), /CATALOG_DECLARATION: .*input.*field.*search/);
 });
 

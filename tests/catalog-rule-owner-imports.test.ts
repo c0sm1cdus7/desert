@@ -144,3 +144,26 @@ test("F: a composition or an infra module importing a visual package, or Svelte 
 test("F control: a foundation and its vendor family import visual packages", () => {
   assert.deepEqual(run({ ...legal(), ...action('import { Button } from "../../../vendor/components/ui/button/index.js";\n  import Check from "@lucide/svelte/icons/check";') }), []);
 });
+
+// P5 (slice 3): a .ts mechanism owned by one foundation is shared with another foundation that lists it in owner.mechanisms;
+// nobody else imports it (a composition or infra module reaches it only through a foundation's props, events or methods).
+const focusMechanism = {
+  "src/svelte/catalog/mechanisms/surface-focus/surface-focus.mechanism.ts": 'import { defineMechanism } from "x";\nexport const M = defineMechanism({ id: "surface-focus", owner: "modal", files: ["surface-focus.ts"] } as const);\n',
+  "src/svelte/catalog/mechanisms/surface-focus/surface-focus.ts": "export const trap = (element: HTMLElement) => element.focus();\n",
+};
+const focusImport = (from: string) => `import { trap } from "${from}mechanisms/surface-focus/surface-focus.ts";`;
+const popover = (listed: string) => foundation("popover", "Popover.svelte", svelte(`${focusImport("../../")}\n  ${props("popover")}`, "<div {@attach trap}>{label}</div>"), listed);
+const modal = (listed: string) => foundation("modal", "Modal.svelte", svelte(`${focusImport("../../")}\n  ${props("modal")}`, "<dialog {@attach trap}>{label}</dialog>"), listed);
+
+test("F control: foundations that list a foundation-owned .ts mechanism in owner.mechanisms import it, its owner included", () => {
+  assert.deepEqual(run({ ...legal(), ...focusMechanism, ...modal(', mechanisms: ["surface-focus"]'), ...popover(', mechanisms: ["surface-focus"]') }), []);
+});
+
+test("F: a foundation-owned mechanism imported by a foundation that does not list it, a composition or infra is FOUNDATION_OUTSIDE_OWNER", () => {
+  const infraModule = "src/svelte/infra/focus.ts", mechanism = "surface-focus.ts of mechanism surface-focus (owned by foundation modal)";
+  assert.deepEqual(run({ ...legal(), ...focusMechanism, ...modal(""), ...popover(', mechanisms: ["surface-focus"]'),
+    ...pageImporting(focusImport("../../")), [infraModule]: `${focusImport("../catalog/")}\nexport const focus = trap;\n` }), [
+    `FOUNDATION_OUTSIDE_OWNER ${page} imports ${mechanism}; only a foundation that lists it in owner.mechanisms may`,
+    `FOUNDATION_OUTSIDE_OWNER src/svelte/catalog/foundations/modal/Modal.svelte imports ${mechanism} without listing surface-focus in owner.mechanisms`,
+    `FOUNDATION_OUTSIDE_OWNER ${infraModule} imports ${mechanism}; only a foundation that lists it in owner.mechanisms may`]);
+});

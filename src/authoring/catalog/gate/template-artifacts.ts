@@ -8,6 +8,7 @@ import ts from "typescript";
 import type { ContentRule, GateContext } from "./context.ts";
 import { scriptLine, type ParsedSvelte, type Script } from "./parse.ts";
 import type { Import } from "./resolve-imports.ts";
+import { staticAssetViolations } from "./template-assets.ts";
 import { violation, type Violation } from "./violation.ts";
 import { isNode, nodes, type SyntaxNode } from "./walk.ts";
 
@@ -471,8 +472,6 @@ export const ruleT: ContentRule = context => {
   }
   const template = hostPath(context, templatePackage);
   const staticFolder = "path" in template ? `${posix.dirname(template.path)}/static/` : undefined;
-  if (staticFolder) for (const path of context.paths) if (path.startsWith(staticFolder)) {
-    found.push(violation(code, path, 1, "a static asset of the template is not a declared asset of a foundation"));
-  }
+  if (staticFolder) found.push(...staticAssetViolations(context, staticFolder));
   return found;
 };

@@ -1,7 +1,9 @@
 // Rule B. Law: declarations agree with each other and with the files they name, and the pieces that render resolved
-// nodes cover the resolved-node grammar exactly once. Raises CATALOG_DECLARATION naming the declaration and the broken reference.
+// nodes cover the resolved-node grammar exactly once, and only the switch is a capsule (one radius family). Raises
+// CATALOG_DECLARATION naming the declaration and the broken reference.
 import { posix } from "node:path";
 import { ResolvedNodes } from "../../../interaction/catalog.ts";
+import { capsuleOwner } from "../declaration-schema.ts";
 import { themeMechanism, type CatalogLayout } from "../layout.ts";
 import type { LocatedDeclaration } from "./inventory.ts";
 
@@ -40,6 +42,18 @@ export function assertDeclarationsConsistent(declarations: readonly LocatedDecla
     }
   }
   assertRendersCoverGrammar(declarations, fail);
+  assertOneRadiusFamily(declarations, fail);
+}
+
+/** One radius family: only `capsuleOwner` (the switch) declares the capsule shape, as its shape or for a variant value. */
+function assertOneRadiusFamily(declarations: readonly LocatedDeclaration[], fail: (what: string) => never): void {
+  const refuse = (id: string, where: string) => fail(`${id} declares shape capsule${where}; only ${capsuleOwner} may be a capsule (one radius family)`);
+  for (const { declaration } of declarations) if (declaration.kind === "foundation" && declaration.id !== capsuleOwner) {
+    if (declaration.shape === "capsule") refuse(declaration.id, "");
+    for (const [axis, values] of Object.entries(declaration.variantShapes ?? {})) for (const [value, shape] of Object.entries(values)) {
+      if (shape === "capsule") refuse(declaration.id, ` for ${axis} ${value}`);
+    }
+  }
 }
 
 /** Every resolved node kind is rendered by exactly one declared piece, and nothing else is rendered (once the tree has a

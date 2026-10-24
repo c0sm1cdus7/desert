@@ -1,4 +1,5 @@
-type Json = null | boolean | string | number | Json[] | { [key: string]: Json };
+/** A JSON value: what contracts, validators and diagnostics carry instead of `unknown`. */
+export type Json = null | boolean | string | number | readonly Json[] | { readonly [key: string]: Json };
 
 export function jsonSnapshot(value: unknown, ancestors = new Set<object>()): Json {
   if (value === null || typeof value === "string" || typeof value === "boolean") return value;

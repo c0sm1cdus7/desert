@@ -24,7 +24,8 @@ export type ResolvedView = {
 export type ResolvedPanel = {
   readonly presentation?: "transient";
   readonly frame: SurfaceFrame;
-  readonly readingIdentity?: object;
+  /** One token per reading context (subject in detail), minted by the view program: equal while the reading continues. */
+  readonly readingIdentity?: string;
   readonly body?: ResolvedView;
   readonly label: string;
   readonly locked: boolean;

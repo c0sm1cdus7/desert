@@ -1788,7 +1788,7 @@ export function compileViewProgram(definition: unknown, surface: Surface): ViewP
 
 ## src/views/resolved.ts
 
-Source SHA-256: dcc45b7f57773cafde43bc817e08c9544b993ed68ba8e9ee8f26066a9cd52233
+Source SHA-256: 7fb7733e8238c166b307e9f6ea23942b15e954a260d998570cde2e512f282fc4
 
 ```ts
 import type { View, ViewContent, ViewHeader } from "./schema.ts";
@@ -1817,7 +1817,8 @@ export type ResolvedView = {
 export type ResolvedPanel = {
   readonly presentation?: "transient";
   readonly frame: SurfaceFrame;
-  readonly readingIdentity?: object;
+  /** One token per reading context (subject in detail), minted by the view program: equal while the reading continues. */
+  readonly readingIdentity?: string;
   readonly body?: ResolvedView;
   readonly label: string;
   readonly locked: boolean;
@@ -1826,7 +1827,7 @@ export type ResolvedPanel = {
 
 ## src/web/client/view-program.ts
 
-Source SHA-256: 13ec6a4a622963237f6fd92ec4f389ecf3a8932be9d30a8257aee47370ee931e
+Source SHA-256: d3a99d6f1ba8e290e1ef16d11509ae8060cd2ba39d11aefc726a8daa1c016fc1
 
 ```ts
 import type { HumanSurface, ValidateInput } from "../types.ts";
@@ -1851,6 +1852,7 @@ import {readRefresh} from './read-refresh.ts';
 import type { ViewJourney } from '../../views/program-schema.ts';
 import { relatedMediaDraft, lockRelatedForm } from './view-related-draft.ts';
 import { connectionPresentation } from './connection-presentation.ts';
+import { runtimeToken } from './runtime-token.ts';
 
 /** Nonvisual interpreter; the installed controller remains the only operation executor. */
 export function viewProgramModel(input: unknown, surface: HumanSurface, validate: ValidateInput, transport?: ControllerTransport,
@@ -1895,12 +1897,12 @@ export function viewProgramModel(input: unknown, surface: HumanSurface, validate
   function currentRead() {
     return scope.scope.kind === "read" ? journeyFor(scope.scope.read.id) : undefined;
   }
-  let readingContext: { scope: typeof scope; subject: string; identity: object } | undefined;
+  let readingContext: { scope: typeof scope; subject: string; identity: string } | undefined;
   function readingIdentity() {
     const current = state();
     if (stopped || scope.scope.kind !== "read" || !current.selectedId) { readingContext = undefined; return undefined; }
     if (readingContext?.scope !== scope || readingContext.subject !== current.selectedId) {
-      readingContext = { scope, subject: current.selectedId, identity: Object.freeze({}) };
+      readingContext = { scope, subject: current.selectedId, identity: runtimeToken("reading") };
     }
     return current.view === "detail" && current.detail?.id === current.selectedId ? readingContext.identity : undefined;
   }
@@ -5697,7 +5699,7 @@ Source SHA-256: 4c03a07941866471ad4af30c8d300029fce8c62709bef25220435de3ea4706f3
 
 ## src/svelte/catalog/compositions/fields/Fields.svelte
 
-Source SHA-256: 457fc5f593b38a668a5e270a8c0e45d287439db0da01aea269c0a9e4e482d86a
+Source SHA-256: 0bbd7d98e932df42d7f14a85b29565dd0f6a83478521a7feb3c8d594e0702994
 
 ```svelte
 <script lang="ts">
@@ -5708,8 +5710,8 @@ Source SHA-256: 457fc5f593b38a668a5e270a8c0e45d287439db0da01aea269c0a9e4e482d86a
   import { imageInputControl } from "../../../../interaction/image-input.ts";
   import { labelsInputControl } from "../../../../interaction/labels-control.ts";
   import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
-  import { useFormFiles } from "../../../infra/form-files.ts";
-  const fileHost = useFormFiles();
+  import { useFileHost } from "../../../infra/file-host-context.ts";
+  const fileHost = useFileHost();
   let { fields, edit, controlEvent }: CatalogProps<"fields"> = $props();
 </script>
 
@@ -6165,7 +6167,7 @@ let { destination, label, available, open, icon = 'open', reason }: CatalogProps
 
 ## src/svelte/catalog/foundations/drawer/Drawer.svelte
 
-Source SHA-256: 2e35f1b06824b2a1d7144023f587584fcf4e1c22a0b269f129b8574ed357044a
+Source SHA-256: deaa1466e204b0feb353be84f18e75ddf114c74874443b6892a95b9f2f8825ed
 
 ```svelte
 <script lang="ts">
@@ -6191,7 +6193,7 @@ let { label, open, locked = false, onclose, onclosed, frame, invoke, edit, frame
     onclosed?: () => void; frame: Frame; invoke: (intent: SurfaceIntent) => void;
     edit?: (name: string, value: string) => void;
     frameIdentity?: object | undefined;
-    readingIdentity?: object | undefined;
+    readingIdentity?: string | undefined;
     body?: ResolvedView | undefined;
     controlEvent?: ((event: FormControlEvent) => void) | undefined;
     presentation?: "transient" | undefined;
@@ -6316,20 +6318,30 @@ export function drawerMotion(close: () => void, locked: () => boolean, edge: () 
 
 ## src/validation-result.ts
 
-Source SHA-256: 5d570948b6810035555e97db589d83769b4a39f72a4c804460ef8a170dcfaff5
+Source SHA-256: ebb98be0f6f9ba3190954761907ffe7704d856f4a07f9e9b6b53a1ab7b2d33e5
 
 ```ts
 import type { ErrorObject } from "ajv";
-import { freezeDeep, jsonSnapshot } from "./json.ts";
+import { freezeDeep, jsonSnapshot, type Json } from "./json.ts";
 
 export type ValidationIssue = {
   readonly keyword: string;
   readonly instancePath: string;
   readonly schemaPath?: string;
-  readonly params?: Readonly<Record<string, unknown>>;
+  readonly params?: Readonly<Record<string, Json>>;
 };
 export type ValidationResult = { readonly valid: boolean; readonly issues: readonly ValidationIssue[] };
 type Validator = { (value: unknown): boolean; errors?: readonly ErrorObject[] | null };
+
+const isJsonRecord = (value: Json): value is Readonly<Record<string, Json>> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+/** A validator's keyword parameters as a JSON record; anything else is a validator this module does not understand. */
+function issueParams(params: ErrorObject["params"]): Readonly<Record<string, Json>> {
+  const snapshot = jsonSnapshot(params);
+  if (!isJsonRecord(snapshot)) throw new Error("INVALID_VALIDATION_PARAMS: validator parameters are not a JSON record");
+  return snapshot;
+}
 
 /** Snapshot validator diagnostics before its next call; never derive another set of constraints. */
 export function inspectValidation(validate: Validator, value: unknown): ValidationResult {
@@ -6338,8 +6350,11 @@ export function inspectValidation(validate: Validator, value: unknown): Validati
   catch { return freezeDeep({ valid: false, issues: [{ keyword: "json_value", instancePath: "" }] }); }
   const valid = validate(input);
   const issues = (validate.errors ?? []).map(error => ({ keyword: error.keyword,
-    instancePath: error.instancePath, schemaPath: error.schemaPath, params: structuredClone(error.params) }));
-  return freezeDeep({ valid, issues });
+    instancePath: error.instancePath, schemaPath: error.schemaPath, params: issueParams(error.params) }));
+  // Frozen in place: JSON parameters make Frozen<ValidationResult> unbounded, and the declared type is already readonly.
+  const result: ValidationResult = { valid, issues };
+  freezeDeep(result);
+  return result;
 }
 ```
 

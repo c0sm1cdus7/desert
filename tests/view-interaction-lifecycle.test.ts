@@ -18,7 +18,7 @@ test("the current main output can select another record while a read panel is op
   const oldMain = bindViewEvents(model.snapshot().resolved.owner, model.event);
   emit(select("existing")); await until(() => model.snapshot().state.detail?.id === "existing");
   const firstContext = model.snapshot().panel?.readingIdentity;
-  assert.ok(firstContext);
+  assert.equal(typeof firstContext, "string", "a reading context is a string token a contract can carry");
   oldMain(select("second")); assert.equal(model.snapshot().state.selectedId, "existing");
   const currentMain = bindViewEvents(model.snapshot().resolved.owner, model.event);
   currentMain(close); assert.equal(model.snapshot().state.view, "detail", "main may not dismiss a different owner");

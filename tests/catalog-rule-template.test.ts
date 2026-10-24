@@ -8,6 +8,7 @@ import { ruleT } from "../src/authoring/catalog/gate/template-artifacts.ts";
 import { DesertLayout, type CatalogLayout } from "../src/authoring/catalog/layout.ts";
 import { codes, contextOf } from "./support/catalog-context.ts";
 import { testLayout } from "./support/catalog-layout.ts";
+import { realContext } from "./support/real-tree.ts";
 
 const root = resolve(import.meta.dirname, ".."), listed = DesertLayout.fixed["build-host"] ?? [];
 const at = (name: string) => listed.find(path => posix.basename(path) === name) ?? name;
@@ -35,6 +36,29 @@ test("T control: DESERT's host files pass", () => {
 
 test("T: a static asset of the template is reported", () => {
   assert.deepEqual(run({ ...tree(), [image]: "<svg/>" }), [artifact(image, "a static asset of the template is not a declared asset of a foundation")]);
+});
+
+/** A foundation's declaration with `assets` as given: rule T qualifies a static asset only through such a field. */
+const assetOwner = (id: string, assets: string) => ({
+  [`src/svelte/catalog/foundations/${id}/${id}.catalog.ts`]: `import { defineFoundation } from "x";
+import { C } from "./${id}.contract.ts";
+export const F = defineFoundation({ id: "${id}", purpose: "x", owner: { entry: "Image.svelte" }, shape: "none",
+  states: ["ready"], approval: "required", contract: C, assets: ${assets} } as const);\n`,
+});
+
+test("T: a static asset a foundation declares in its assets is qualified", () => {
+  assert.deepEqual(run({ ...tree(), [image]: "<svg/>", ...assetOwner("image", '["bank-image.svg"]') }), []);
+});
+
+test("T: an asset declared by two foundations, or declared and absent from the static folder, is reported", () => {
+  assert.deepEqual(run({ ...tree(), [image]: "<svg/>", ...assetOwner("image", '["bank-image.svg"]'), ...assetOwner("wallpaper", '["bank-image.svg"]') }),
+    [artifact(image, "the static asset bank-image.svg is declared by more than one foundation: image, wallpaper")]);
+  assert.deepEqual(run({ ...tree(), ...assetOwner("image", '["bank-image.svg"]') }),
+    [artifact("src/svelte/catalog/foundations/image/image.catalog.ts", `image declares the asset bank-image.svg, which is not in ${posix.dirname(image)}/`)]);
+});
+
+test("T on the DESERT tree: every static asset of the template is declared by a foundation", () => {
+  assert.deepEqual(codes(ruleT(realContext())), []);
 });
 
 test("T: host paths come from the layout: a host listed elsewhere is read there, and a missing entry is reported", () => {
