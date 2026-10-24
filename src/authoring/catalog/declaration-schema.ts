@@ -5,6 +5,8 @@ import { closed, immutable, text } from "../../views/definition.ts";
 
 export const PieceId = immutable(Type.String({ pattern: "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$" }));
 const FileName = immutable(Type.String({ pattern: "^[A-Za-z0-9][A-Za-z0-9._-]*\\.(?:svelte|css|ts)$" }));
+/** A static file the build template serves at its root (`bank-image.svg`): a bare file name, never a path. */
+const AssetName = immutable(Type.String({ pattern: "^[A-Za-z0-9][A-Za-z0-9._-]*\\.(?:svg|png|jpg|webp)$" }));
 const unique = <T extends ReturnType<typeof Type.String>>(item: T, minItems = 0) =>
   Type.Array(item, { uniqueItems: true, minItems });
 /** Curvature family of a foundation (owner decision Q3): capsule or radius; "none" for pieces that own no rounded geometry. */
@@ -33,6 +35,8 @@ export const FoundationDataSchema = closed({
   stateVariants: Type.Optional(Type.Record(PieceId, Axis, { additionalProperties: false })),
   slots: Type.Optional(Slots),
   renders: Type.Optional(Renders),
+  /** The template's static files this foundation draws (rule T qualifies each through exactly one foundation). */
+  assets: Type.Optional(unique(AssetName, 1)),
   approval: Type.Literal("required"),
   contract: Contract,
 });

@@ -73,3 +73,13 @@ test("the reader refuses anything that is not a literal declaration", () => {
   ];
   for (const variant of variants) assert.throws(() => readDeclarations("field.catalog.ts", variant), /CATALOG_DECLARATION/);
 });
+
+test("a foundation declares the static assets it serves by file name; a composition declares none", () => {
+  assert.deepEqual(defineFoundation({ ...field, assets: ["bank-image.svg"] }).assets, ["bank-image.svg"]);
+  const invalid: readonly unknown[] = [{ ...field, assets: [] }, { ...field, assets: ["../bank-image.svg"] },
+    { ...field, assets: ["static/bank-image.svg"] }, { ...field, assets: ["Image.svelte"] }, { ...field, assets: ["a.svg", "a.svg"] }];
+  for (const value of invalid) assert.throws(() => validateDeclaration("foundation", value), /CATALOG_DECLARATION/);
+  const composed: unknown = { id: "x", purpose: "x", owner: { entry: "X.svelte" }, uses: [], approval: "none",
+    contract: FieldContract, assets: ["bank-image.svg"] };
+  assert.throws(() => validateDeclaration("composition", composed), /CATALOG_DECLARATION/);
+});
