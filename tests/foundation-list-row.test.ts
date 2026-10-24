@@ -6,9 +6,9 @@ import { resolve } from "node:path";
 import test from "node:test";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { treeViolations } from "./fixtures/tree-violations.ts";
-import { inlineImports, measureProbes, renderCases, type Probes } from "./fixtures/parity.ts";
+import { measureProbes, renderCases, type Probes } from "./fixtures/parity.ts";
 import { contentBefore } from "./fixtures/content-before.ts";
-import { marksBefore } from "./fixtures/marks-before.ts";
+import { themeAtCe6ed6f } from "./fixtures/theme-before.ts";
 import { compositionsBefore } from "./fixtures/compositions-c-before.ts";
 
 const root = resolve(import.meta.dirname, "..");
@@ -112,12 +112,8 @@ test("list, row, fact-row and fact-value: their folders draw only their own mark
 test("list and row keep the pixels of the grouped panel, the destination row, the record row, the fact list and the state row", { timeout: 60000 }, async () => {
   const frozen = { [resolve(root, "src/svelte/catalog/foundations/fact-row/FactRow.svelte")]: contentBefore["src/svelte/catalog/foundations/fact-row/FactRow.svelte"] ?? "",
     ...composedBefore("collection", "Collection.svelte") };
-  // The frozen theme imports the stylesheets F1f moved (the place heading's, the scroll edges' and the shell's) from where they were.
-  const frozenCss = (path: string) => [path, contentBefore[path] ?? ""] as const;
-  const was = await renderCases(before, frozen, await rendererCss([], inlineImports(marksBefore["src/svelte/theme.css"] ?? "", Object.fromEntries([
-    frozenCss("src/svelte/catalog/mechanisms/structured-content/structured-content.css"),
-    ...["src/svelte/catalog/compositions/place-heading/place-heading.css", "src/svelte/catalog/foundations/scroll-edges/scroll-edges.css",
-      "src/svelte/catalog/mechanisms/catalog-shell/catalog-shell.css"].map(frozenCss)]))));
+  const was = await renderCases(before, frozen, await rendererCss([],
+    themeAtCe6ed6f(["src/svelte/catalog/mechanisms/structured-content/structured-content.css"])));
   const is = await renderCases(after, {}, await rendererCss());
   try {
     const [old, now] = [await measureProbes(was.page, probes("before")), await measureProbes(is.page, probes("after"))];
