@@ -5,5 +5,5 @@
   let { playback }: { playback: MediaPlayback } = $props();
 </script>
 
-<!-- F1-merge: Action takes the slice 3 contract (face icon). -->
-<Action label={playback.paused ? "Play" : "Pause"} icon={playback.paused ? "play" : "pause"} face="icon" onclick={playback.toggle} />
+<Action label={playback.paused ? "Play" : "Pause"} icon={playback.paused ? "play" : "pause"} face="icon" state="ready"
+  emphasis="secondary" type="button" onclick={playback.toggle} />

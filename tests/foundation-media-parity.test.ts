@@ -13,9 +13,10 @@ const images = `[{ kind: "image", source: "${photo("468")}", alt: "Lake" }, { ki
 const playables = `[{ kind: "video", source: "/media/film.webm", alt: "Motion study", captions: [{ source: "/media/captions.vtt", language: "en", label: "English" }] },
   { kind: "audio", source: "/media/silence.wav", alt: "Silence", captions: [] }]`;
 const boxes = (page: Page, probes: Probes) => measureProbes(page, probes, []);
-/** F1-merge: today's Action sizes an icon face to its hidden label; the slice 3 Action (F1b) draws it 44px square, as
- * the vendor icon buttons it replaces were. The foundations' pages take that width until F1b lands. */
-const squareIcons = (page: Page) => page.addStyleTag({ content: '[data-primitive="action"][data-button-face="icon"] { width:2.75rem; }' });
+/** Open (F1b): Action's icon face sizes to its hidden label, because the button's w-fit overrides the icon-lg size-11; the
+ * vendor icon buttons it replaces were 44px square, as design §7.1 keeps them. The foundations' pages take that width
+ * until Action draws it, so the rest of each layout is compared exactly. */
+const squareIcons = (page: Page) => page.addStyleTag({ content: '[data-action][data-action-face="icon"] { width:2.75rem; }' });
 /** The viewer portals into the body: the body is the case. */
 const asCase = (page: Page) => page.evaluate(() => document.body.setAttribute("data-case", "viewer"));
 
@@ -129,7 +130,7 @@ test("theme-preview keeps the appearance preview's pixels, its glyph aside (the 
   const css = await rendererCss();
   const [was, is] = [await renderCases(preview(false), {}, css), await renderCases(preview(true), {}, css)];
   try {
-    const parts = (foundation: boolean) => ({ root: "[data-appearance-preview]", panes: '[data-material="pane"]', lines: '[data-material="pane"] > span',
+    const parts = (foundation: boolean) => ({ root: "[data-appearance-preview]", panes: '.material-pane', lines: '.material-pane > span',
       wallpaper: "[data-system-wallpaper]", glyph: foundation ? ".preview-glyph" : "strong" });
     const probes = (foundation: boolean): Probes => ({ dark: parts(foundation), light: parts(foundation) });
     const [old, now] = [await measureProbes(was.page, probes(false)), await measureProbes(is.page, probes(true))];
@@ -172,7 +173,7 @@ test("theme-preview: previews preserve their own material border and accessibili
           return [...context.getImageData(0, 0, 1, 1).data];
         };
         return items.map(item => {
-          const root = getComputedStyle(item), pane = getComputedStyle(item.querySelector('[data-material="pane"]')!);
+          const root = getComputedStyle(item), pane = getComputedStyle(item.querySelector('.material-pane')!);
           return { mode: item.getAttribute("data-appearance-preview"), border: rgba(pane.borderTopColor),
             expected: rgba(highContrast ? root.color : root.getPropertyValue("--border")),
             alpha: rgba(pane.backgroundColor)[3], filter: pane.backdropFilter };

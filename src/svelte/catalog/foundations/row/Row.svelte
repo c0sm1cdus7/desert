@@ -1,6 +1,6 @@
 <script lang="ts">
   import { AttentionIndicator, Face, Icon, Image } from "../../index.ts";
-  // F1-merge: press feedback comes with the control-feedback utility instead of the vendor button's attachment.
+  // F1-merge: press feedback — the vendor button's pressFeedback attachment (action's family) until its owner is settled.
   import { pressFeedback } from "../../../vendor/components/ui/button/press-feedback.js";
   import { useFocusScope } from "../../../infra/focus-scope.ts";
   import type { CatalogProps } from "../../types.d.ts";
@@ -33,13 +33,12 @@
   {#if trailing === "chevron"}<Icon name="chevron-right" placement="inline-end" chevron decorative />{/if}
 {/snippet}
 
-<!-- F1-merge: utilities control-feedback and material-interior replace tm-control and data-material="interior". A row
-     sizes every glyph it holds (a face's, the chevron) to one rem, as the vendor row button did. -->
+<!-- A row sizes every glyph it holds (a face's, the chevron) to one rem, as the vendor row button did. -->
 {#if interaction === "open"}
-  <button bind:this={button} {@attach pressFeedback} type="button" class="row tm-control [&_svg]:size-4 [&_svg]:shrink-0" data-material="interior" data-row="open"
+  <button bind:this={button} {@attach pressFeedback} type="button" class="row material-interior control-feedback [&_svg]:size-4 [&_svg]:shrink-0" data-row="open"
     data-row-leading={leading?.kind} disabled={!available} aria-current={current ? "true" : undefined}
     aria-describedby={!available && reason ? reasonId : undefined} title={!available ? reason : undefined} onclick={open}>
-    <span class="row-content" data-button-content>{@render content()}</span>
+    <span class="row-content control-feedback-content" data-button-content>{@render content()}</span>
   </button>
   {#if !available && reason}<span id={reasonId} class="sr-only">{reason}</span>{/if}
 {:else}

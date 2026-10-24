@@ -1,10 +1,19 @@
-// The props of Text. `inset: "row"` aligns the paragraph with the content of grouped rows.
+// The props of Text: one paragraph in a type role. `kind` is the role (body, support, caption); `weight` raises it to
+// medium; `tone` mutes it or marks it destructive; `align` overrides the inherited alignment; `inset: "row"` aligns it
+// with the content of grouped rows; `live: "polite"` announces it as a status (what Feedback and MessageBody did);
+// `id` lets a dialog or a field point at it (aria-describedby).
 import { Type } from "@sinclair/typebox";
+import { text } from "../../../../views/definition.ts";
 
 export const TextContract = {
   props: Type.Object({
-    text: Type.String(),
-    kind: Type.Literal("body"),
-    inset: Type.Union([Type.Literal("none"), Type.Literal("row")]),
+    text: text,
+    kind: Type.Union([Type.Literal("body"), Type.Literal("support"), Type.Literal("caption")]),
+    weight: Type.Optional(Type.Union([Type.Literal("regular"), Type.Literal("medium")])),
+    tone: Type.Optional(Type.Union([Type.Literal("default"), Type.Literal("muted"), Type.Literal("destructive")])),
+    align: Type.Optional(Type.Union([Type.Literal("start"), Type.Literal("center"), Type.Literal("end")])),
+    inset: Type.Optional(Type.Union([Type.Literal("none"), Type.Literal("row")])),
+    live: Type.Optional(Type.Union([Type.Literal("off"), Type.Literal("polite")])),
+    id: Type.Optional(Type.String({ minLength: 1 })),
   }, { additionalProperties: false }),
 } as const;

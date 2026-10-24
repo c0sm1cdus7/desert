@@ -9,7 +9,7 @@
 </script>
 {#if visible.length || (selectors.length && onselect)}
   <StackLayout title="Properties">
-    <dl class="bank-stack" data-material="pane" data-composition="context-properties">
+    <dl class="bank-stack material-pane" data-composition="context-properties">
       {#each visible as field}
         <FactRow label={labels[`${object}.${field}`]!} value={Object.hasOwn(facts, field) ? facts[field] : undefined} references={references[field]} />
       {/each}

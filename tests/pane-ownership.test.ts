@@ -11,7 +11,7 @@ const panes=['button/button','card/card','badge/badge','input-group/input-group'
 test('S1 role-aware source gate keeps pane recipes out of foundation variants',async()=>{
   for(const path of panes) {
     const source=await readFile(foundation+path+'.svelte','utf8');
-    assert.match(source,/data-material/,path+' declares its role');
+    assert.match(source,/material-(?:pane|interior)/,path+' declares its role');
     assert.doesNotMatch(source,/\bbg-(?!transparent\b|clip-)[\w\[]/,path+' cannot own a filled background');
     assert.doesNotMatch(source,/\bbackdrop-(?:blur|saturate|brightness)/,path+' cannot own a filter');
     assert.doesNotMatch(source,/\bshadow-(?!none\b)[\w\[]/,path+' cannot own elevation or inset perimeter');
@@ -21,13 +21,13 @@ test('S1 role-aware source gate keeps pane recipes out of foundation variants',a
 
 test('S1 role-aware source gate protects neutral geometry owners and permits semantic ink',async()=>{
   const rules:Record<string,readonly string[]>={
-    'catalog/foundations/field-well/field-well.css':['@field-well'],
+    'catalog/foundations/field/field.css':['@field-well'],
     'catalog/mechanisms/structured-content/structured-content.css':['@grouped-panel','.bank-stack'],
     'catalog/mechanisms/anchored-surface/anchored-surface.css':['.floating-pane','.anchored-surface','.selection-surface'],
     'catalog/mechanisms/surface-chrome/surface-chrome.css':['.drawer','.drawer,.problem',':is(.drawer,.problem,.centered-dialog)'],
     'catalog/mechanisms/catalog-shell/catalog-shell.css':['[data-catalog-workspace] [data-slot="sidebar-inner"]'],
     'catalog/mechanisms/catalog-search/catalog-search.css':['[data-catalog-search-actions] [data-slot="input-group"]','[data-catalog-search] [data-slot="input-group"]'],
-    'catalog/mechanisms/control-feedback/control-feedback.css':['@tm-control'],
+    'catalog/mechanisms/control-feedback/control-feedback.css':['@control-focus','@control-feedback','@control-feedback-content'],
     'theme.css':['@tm-tinted'],
   };
   const forbidden=/^(?:background(?:-color|-image)?|(?:-webkit-)?backdrop-filter|border(?:-color|-width|-style)?|box-shadow|opacity)$/;
@@ -38,9 +38,11 @@ test('S1 role-aware source gate protects neutral geometry owners and permits sem
       const owner=parent?.type==='rule'?parent.selector:parent?.type==='atrule'?'@'+parent.params:'';
       // Presence owns opaque resting endpoints; semantic state never dims a pane.
       if(declaration.prop==='opacity'&&(declaration.value==='1'||/data-starting-style|data-state="closed"/.test(owner))) return;
+      // State feedback overlays the pane with an inset tint; it never paints a fill, a perimeter or an elevation.
+      if(file.endsWith('control-feedback.css')&&declaration.prop==='box-shadow'&&/^inset 0 0 0 100vmax var\(--control-(?:hover|press)-tint\)$/.test(declaration.value)) return;
       let ancestor=parent, stateUtility=false;
       while(ancestor&&ancestor.type!=='root') {
-        if(ancestor.type==='atrule'&&['tm-control','tm-tinted'].includes(ancestor.params)) stateUtility=true;
+        if(ancestor.type==='atrule'&&['control-focus','control-feedback','control-feedback-content','tm-tinted'].includes(ancestor.params)) stateUtility=true;
         ancestor=ancestor.parent;
       }
       const targetsOwner=stateUtility||owners.some(target=>owner===target||owner.startsWith(target+':'));

@@ -8,6 +8,7 @@
 </script>
 <!-- The face draws its own round mark: its fill and border come from the theme's tm-face utility. -->
 <div class="bank-face tm-face relative flex shrink-0 select-none overflow-hidden rounded-[30%] after:pointer-events-none after:absolute after:inset-0 after:rounded-[30%] after:border"
+  class:face-warning={face.kind === "status" && face.severity === "warning"} class:face-error={face.kind === "status" && face.severity === "error"}
   data-piece="face" data-face-kind={face.kind} data-compact={compact || undefined}
   data-tone={face.kind === "status" ? face.severity : "neutral"} aria-hidden="true">
   <span class="face-content type-body flex size-full items-center justify-center rounded-[inherit]" data-face-content>
@@ -24,7 +25,7 @@
     .face-glyph { font-size:calc(var(--face-size,2rem) * .6); line-height:1; }
     .bank-face[data-compact] .face-glyph { font-size:calc(1.5rem * .6); }
     .bank-face[data-face-kind="flag"] .face-glyph { font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif; }
-    .bank-face[data-tone="warning"] { --face-tone:var(--warning); color:var(--face-tone); }
-    .bank-face[data-tone="error"] { --face-tone:var(--destructive); color:var(--face-tone); }
+    .face-warning { --face-tone:var(--warning); color:var(--face-tone); }
+    .face-error { --face-tone:var(--destructive); color:var(--face-tone); }
   }
 </style>

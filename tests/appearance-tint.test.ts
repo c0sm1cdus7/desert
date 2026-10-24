@@ -38,9 +38,9 @@ test("semantic faces retain tint while every pane shares neutral material and ac
     </section>
     <div style="--catalog-toolbar-height:36px;padding:16px 0"><Button variant="secondary" data-catalog-search-toggle aria-label="Search"><SearchIcon/></Button></div>
     <InputGroup.Root data-well><InputGroup.Input aria-label="Unchanged reading well" value="Neutral content"/></InputGroup.Root>
-    <div data-material="pane" data-material-probe="surface"></div>
-    <div data-material="pane" data-material-probe="floating" class="floating-pane"></div>
-    <div data-material="pane" data-material-probe="search" style="position:relative;height:24px"></div>
+    <div class="material-pane" data-material-probe="surface"></div>
+    <div class="material-pane floating-pane" data-material-probe="floating"></div>
+    <div class="material-pane" data-material-probe="search" style="position:relative;height:24px"></div>
   </main>`);
   const directory = new URL(`../artifacts/appearance-tint/${process.env.TINT_EVIDENCE ?? "current"}/`, import.meta.url);
   const failures: string[] = [];
@@ -72,7 +72,7 @@ test("semantic faces retain tint while every pane shares neutral material and ac
         return { faces, accent: rgba(root.getPropertyValue("--primary-text")), warning: rgba(root.getPropertyValue("--warning")), error: rgba(root.getPropertyValue("--destructive")),
           card: rgba(style('[data-reading]').backgroundColor), canvas: rgba(root.backgroundColor), well: rgba(style('[data-well]').backgroundColor),
           glass: { fill: rgba(glass.backgroundColor), filter: glass.backdropFilter },
-          materials: [...document.querySelectorAll('[data-material="pane"]')].map(element => ({ name: element.getAttribute("data-material-probe") ?? element.getAttribute('data-slot'),
+          materials: [...document.querySelectorAll('.material-pane')].map(element => ({ name: element.getAttribute("data-material-probe") ?? element.getAttribute('data-slot'),
             fill: rgba(getComputedStyle(element).backgroundColor), filter: getComputedStyle(element).backdropFilter })) };
       });
       const check = (valid: boolean, message: string) => { if (!valid) failures.push(`${name}: ${message}`); };

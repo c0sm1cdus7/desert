@@ -113,7 +113,7 @@ test("real primary labels and compact icons retain AA contrast in light and dark
       await f.page.setViewportSize({ width: 1280, height: 900 });
       const primary = await target(f.page, "primary");
       await settleMotion(f.page);
-      assert.equal(await primary.getAttribute("data-button-face"), "label");
+      assert.equal(await primary.getAttribute("data-action-face"), "label");
       const labelContrast = await contrast(primary, "[data-button-label]");
       await f.page.setViewportSize({ width: 320, height: 844 });
       await f.page.evaluate(() => document.documentElement.style.setProperty("--text-scale", "2"));

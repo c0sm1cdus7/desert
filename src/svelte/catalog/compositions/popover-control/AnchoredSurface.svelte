@@ -13,7 +13,7 @@
     open: boolean; disabled?: boolean; locked?: boolean | undefined; onchange: (open: boolean) => void;
     invoke?: (intent: SurfaceIntent) => void; icon?: ActionIcon;
   } = $props();
-  const panelId = $props.id();
+  const panelId = $props.id(), triggerId = `${panelId}-trigger`;
   const change = (next: boolean) => { if (!disabled && (next || !locked)) onchange(next); };
   dismissWhenInactive(() => onchange(false));
   const guard = (event: Event) => { if (locked) event.preventDefault(); };
@@ -36,14 +36,11 @@
   };
 </script>
 <Popover.Root {open} onOpenChange={change}>
-  <Popover.Trigger {disabled}>
-    {#snippet child({ props })}
-      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "action", role: "secondary", action: {
-        icon, label, state: disabled ? "unavailable" : "ready", intent: { kind: "transient.open" },
-      } }} actionElementProps={{ ...props, "aria-controls": open ? panelId : undefined }} />
-    {/snippet}
-  </Popover.Trigger>
-  <Popover.Content id={panelId} bind:ref={panel} role="dialog" aria-label={title} aria-modal="false" trapFocus={false} preventScroll={false}
+  <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "action", role: "secondary", action: {
+    icon, label, state: disabled ? "unavailable" : "ready", intent: { kind: "transient.open" },
+  } }} actionDisclosure={{ id: triggerId, controls: panelId, expanded: open, haspopup: "dialog" }}
+    onevent={event => { if (event.kind === "local.invoke" && event.intent.kind === "transient.open") change(!open); }} />
+  <Popover.Content id={panelId} customAnchor={`#${triggerId}`} bind:ref={panel} role="dialog" aria-label={title} aria-modal="false" trapFocus={false} preventScroll={false}
     onkeydowncapture={event => {
       if (panel && !locked) anchoredTabExit(event, panel, () => { outside = true; change(false); });
     }}

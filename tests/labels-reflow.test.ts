@@ -23,7 +23,7 @@ test("long labels reflow in editing and published facts at 320px and 200% text",
     const expected = ["🌵".repeat(64), "x".repeat(64), "Two words"];
     const editing = (await f.page.getByRole('list', { name: 'Labels', exact: true })
       .locator('[data-slot="badge"] > span').allTextContents()).map(value => value.trim());
-    const published = await f.page.locator('[data-control="tag"]').allTextContents();
+    const published = await f.page.locator('[data-primitive="fact"] [data-tag] > span').allTextContents();
     assert.deepEqual(editing, expected);
     assert.deepEqual(published, expected);
     for (const label of expected) {

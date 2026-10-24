@@ -77,8 +77,7 @@
     {#if status === 'error'}
       <div class="image-error" data-media-error role="img" aria-label={alt}>
         <span>{fallback}</span>
-        <!-- F1-merge: Action takes the slice 3 contract (emphasis secondary, face text). -->
-        {#if retry}<Action label="Retry" icon="retry" emphasis="secondary" onclick={() => { original = ''; attempt++; }} />{/if}
+        {#if retry}<Action label="Retry" icon="retry" emphasis="secondary" face="text" state="ready" type="button" onclick={() => { original = ''; attempt++; }} />{/if}
       </div>
     {/if}
   {/if}

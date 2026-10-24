@@ -73,7 +73,7 @@ const probes = (side: "before" | "after"): Probes => {
 
 test("card: its folder imports no foreign vendor, styles only its own classes and covers every state and presentation", async () => {
   const found = await treeViolations(["src/svelte/catalog/foundations/card/"], ["E", "F", "G", "H", "I", "J"]);
-  // F1-merge: the card presses through the vendor button's attachment until the control-feedback utility carries it.
+  // F1-merge: the card presses through the vendor button's attachment until its owner is settled.
   assert.deepEqual(found.filter(line => !line.startsWith("VENDOR_OUTSIDE_OWNER: src/svelte/catalog/foundations/card/Card.svelte:4: imports vendor family button")), []);
 });
 

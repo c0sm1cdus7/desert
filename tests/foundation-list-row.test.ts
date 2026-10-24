@@ -1,6 +1,6 @@
 // Slice 3 (F1.8): List absorbs grouped-panel and fact-list, Row is destination-row renamed and absorbs the record row,
 // FactRow gains its control kind and FactValue its paragraph. Each keeps the pixels of the piece it absorbs (rendered
-// live beside it, or from the frozen sources of 53f9c47), and Row opens, explains and registers focus by key.
+// live beside it, or from the frozen sources of the integration base ce6ed6f), and Row opens, explains and registers focus by key.
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -47,7 +47,7 @@ const before = `<script lang="ts">${imports}</script>
     <FactRow label="tags" value={["Design", "Research"]} />
     <FactRow label="projects" value={["${reference}"]} references={[{ value: "${reference}", label: "Personal", color: "blue" }]} />
   </FactList></div>
-  <div data-case="state"><dl class="bank-stack" data-material="pane"><ObjectStateRow selector={${selector}} /></dl></div>
+  <div data-case="state"><dl class="bank-stack material-pane"><ObjectStateRow selector={${selector}} /></dl></div>
   <div data-case="narrow" style="width:180px"><FactList><FactRow label="city" value="Buenos Aires" /></FactList></div>
 </main>`;
 const after = `<script lang="ts">${imports}
@@ -91,17 +91,15 @@ const probes = (side: "before" | "after"): Probes => ({
       chevron: "[data-control-chevron]" }
     : { pane: "[data-list]", row: "[data-row]", dot: "[data-attention-indicator]", label: "text:.row-label", metadata: ".row-metadata",
       chevron: "[data-control-chevron]" },
-  facts: { ...factProbes, tags: ".fact-labels", tag: '[data-control="tag"]' },
+  facts: { ...factProbes, tags: ".fact-labels", tag: '[data-slot="badge"]' },
   state: { ...factProbes, trigger: "button" },
   narrow: factProbes,
 });
 
 test("list, row, fact-row and fact-value: their folders draw only their own marks and cover every state and variant", async () => {
   const found = await treeViolations(folders, ["E", "F", "G", "H", "I", "J"]);
-  // F1-merge: Row presses through the vendor button's attachment until the control-feedback utility carries it, and
-  // FactRow's tags mount NodeRenderer until Tag (F1c) lands.
-  const merging = (line: string) => line.startsWith("VENDOR_OUTSIDE_OWNER: src/svelte/catalog/foundations/row/Row.svelte:4: imports vendor family button")
-    || line.startsWith("PRESENTATION_ESCAPE: src/svelte/catalog/foundations/fact-row/FactRow.svelte") && line.includes("<NodeRenderer>");
+  // F1-merge: Row presses through the vendor button's attachment until its owner is settled.
+  const merging = (line: string) => line.startsWith("VENDOR_OUTSIDE_OWNER: src/svelte/catalog/foundations/row/Row.svelte:4: imports vendor family button");
   assert.deepEqual(found.filter(line => !merging(line)), []);
 });
 

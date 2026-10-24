@@ -1,5 +1,5 @@
 // Slice 3 (F1.8): Image absorbs ArtworkPlaceholder (`placeholder` video, audio or unavailable) and owns its geometry,
-// which leaves media.css; its retry is an Action. Pixels are those of 53f9c47: the placeholder draws exactly what
+// which leaves media.css; its retry is an Action. Pixels are those of the integration base ce6ed6f: the placeholder draws exactly what
 // ArtworkPlaceholder drew, alone and inside the catalog card and the viewer's playback canvas, and an image draws exactly
 // what the frozen Image drew over the frozen media.css.
 import assert from "node:assert/strict";
@@ -57,12 +57,10 @@ async function settled(page: Page) {
 }
 
 test("image: its folder imports no foreign vendor, styles only its own classes and covers every state and fit", async () => {
-  const found = await treeViolations(["src/svelte/catalog/foundations/image/"], ["E", "F", "G", "H", "I", "J"]);
-  // F1-merge: the retry mounts today's Action, whose contract is still a stub; the escape clears when F1b closes it.
-  assert.deepEqual(found.filter(line => !line.startsWith("PRESENTATION_ESCAPE: src/svelte/catalog/foundations/image/Image.svelte") || !line.includes("<Action>")), []);
+  assert.deepEqual(await treeViolations(["src/svelte/catalog/foundations/image/"], ["E", "F", "G", "H", "I", "J"]), []);
 });
 
-test("image: the placeholder and the image keep the pixels of ArtworkPlaceholder and Image at 53f9c47", { timeout: 60000 }, async () => {
+test("image: the placeholder and the image keep the pixels of ArtworkPlaceholder and Image at the integration base ce6ed6f", { timeout: 60000 }, async () => {
   const before = await renderCases(cases(kind => `<ArtworkPlaceholder kind="${kind}" />`), frozen, await frozenCss());
   const after = await renderCases(cases(kind => `<Image placeholder="${kind}" />`), {}, await rendererCss());
   try {
@@ -73,7 +71,7 @@ test("image: the placeholder and the image keep the pixels of ArtworkPlaceholder
     const retry: Probes = { error: { retry: "button" } };
     assert.deepEqual(await measureProbes(after.page, retry, []), await measureProbes(before.page, retry, []));
     assert.equal(await after.page.locator('[data-case="audio"] [data-media-artwork-placeholder]').getAttribute("aria-label"), "No cover artwork");
-    assert.equal(await after.page.locator('[data-case="error"] button').getAttribute("data-primitive"), "action", "the retry is an Action");
+    assert.equal(await after.page.locator('[data-case="error"] button').getAttribute("data-action"), "", "the retry is an Action");
     assert.deepEqual([before.errors, after.errors], [[], []]);
   } finally { await before.close(); await after.close(); }
 });

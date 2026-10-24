@@ -8,5 +8,5 @@ export const ThemePreviewContract = {
     tint: Type.Union([Type.Literal("blue"), Type.Literal("violet"), Type.Literal("rose"), Type.Literal("green"), Type.Literal("slate")]),
     wallpaper: Type.Union([Type.Literal("silk"), Type.Literal("mist"), Type.Literal("plain")]),
   }, { additionalProperties: false }),
-  marks: ["data-appearance-preview", "data-tint"],
+  marks: ["data-appearance-preview"],
 } as const;

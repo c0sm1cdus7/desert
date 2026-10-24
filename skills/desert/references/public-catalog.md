@@ -1172,7 +1172,7 @@ function drain() {
 
 ## src/svelte/catalog/foundations/image/Image.svelte
 
-Source SHA-256: e0c1f59103bf959880712cf17492d5a219a6f5a98231a4b978ea2a73387e64d7
+Source SHA-256: 0506b474c1662902287c5166dfe4eacf5507f40eca7c6cbb8a39b95ca2e9030f
 
 ```svelte
 <script lang="ts">
@@ -1254,8 +1254,7 @@ Source SHA-256: e0c1f59103bf959880712cf17492d5a219a6f5a98231a4b978ea2a73387e64d7
     {#if status === 'error'}
       <div class="image-error" data-media-error role="img" aria-label={alt}>
         <span>{fallback}</span>
-        <!-- F1-merge: Action takes the slice 3 contract (emphasis secondary, face text). -->
-        {#if retry}<Action label="Retry" icon="retry" emphasis="secondary" onclick={() => { original = ''; attempt++; }} />{/if}
+        {#if retry}<Action label="Retry" icon="retry" emphasis="secondary" face="text" state="ready" type="button" onclick={() => { original = ''; attempt++; }} />{/if}
       </div>
     {/if}
   {/if}

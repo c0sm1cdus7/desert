@@ -2,7 +2,7 @@
   // MediaStrip: the thumbnails of a viewer's media, the shown one marked current (a part of MediaViewer). `fill` lets the
   // strip take the band's free width between a player's transport and volume.
   import { Image } from "../../index.ts";
-  // F1-merge: thumbnails press through the control-feedback utility instead of the vendor button's attachment.
+  // F1-merge: press feedback — the vendor button's pressFeedback attachment (action's family) until its owner is settled.
   import { pressFeedback } from "../../../vendor/components/ui/button/press-feedback.js";
   import { imageIdentity, type ViewerMedia } from "../../../infra/media-source.ts";
   let { items, index, fill, onindex }: { items: readonly ViewerMedia[]; index: number; fill: boolean; onindex: (index: number) => void } = $props();
@@ -11,9 +11,9 @@
 <div class="strip" class:strip-fill={fill} data-media-thumbs aria-label="Media">
   {#each items as item, i (`${i}:${imageIdentity(item.source)}`)}
     {@const artwork = item.kind === 'image' ? item : item.artwork}
-    <button {@attach pressFeedback} type="button" class="strip-item tm-control type-control" data-material="pane"
+    <button {@attach pressFeedback} type="button" class="strip-item material-pane control-feedback type-control"
       aria-label={`Media ${i + 1}: ${item.alt}`} aria-current={i === index ? 'true' : undefined} onclick={() => onindex(i)}>
-      <span class="strip-content" data-button-content>
+      <span class="strip-content control-feedback-content" data-button-content>
         {#if artwork}<Image source={artwork.source} alt="" edge={160} />{:else if item.kind !== 'image'}<Image placeholder={item.kind} />{/if}
       </span>
     </button>

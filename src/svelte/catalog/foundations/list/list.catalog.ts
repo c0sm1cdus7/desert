@@ -9,7 +9,6 @@ export const List = defineFoundation({
   owner: { entry: "List.svelte" },
   shape: "radius", states: ["default"],
   variants: { kind: ["rows", "facts"], measure: ["reading", "overview"] },
-  // F1-merge: children also accepts status and loading (F1a).
-  slots: { children: { accepts: ["row", "fact-row", "object-state-row", "text"] } },
+  slots: { children: { accepts: ["row", "fact-row", "object-state-row", "text", "status", "loading"] } },
   approval: "required", contract: ListContract,
 } as const);

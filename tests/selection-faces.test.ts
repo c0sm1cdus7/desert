@@ -35,21 +35,21 @@ test("face descriptors reject unknown kinds, missing regions and empty or oversi
 });
 
 const source = `<script lang="ts">
-  import SelectionField from "@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte";
+  import Choice from "@desert/svelte/catalog/foundations/choice/Choice.svelte";
   let value = $state('ar'), edits = $state(0);
   const options = [
-    {value:'ar',label:'Argentina',disabled:false,face:{kind:'flag',region:'AR'}},
-    {value:'gold',label:'Gold',disabled:false,face:{kind:'symbol',text:'✦'}},
-    {value:'doc',label:'Document',disabled:false,face:{kind:'document'}},
-    {value:'locked',label:'Locked',disabled:true,face:{kind:'status',severity:'warning'}},
+    {value:'ar',label:'Argentina',disabled:false,leading:{kind:'face',face:{kind:'flag',region:'AR'}}},
+    {value:'gold',label:'Gold',disabled:false,leading:{kind:'face',face:{kind:'symbol',text:'✦'}}},
+    {value:'doc',label:'Document',disabled:false,leading:{kind:'face',face:{kind:'document'}}},
+    {value:'locked',label:'Locked',disabled:true,leading:{kind:'face',face:{kind:'status',severity:'warning'}}},
     {value:'plain',label:'Plain',disabled:false},
   ];
 </script>
 <main style="padding:24px;max-width:360px">
-  <SelectionField selection="identity" label="Representation" {value} {options}
-    onchange={next => { value = next; edits += 1; }} />
-  <SelectionField selection="field-identity" label="Field representation" {value} {options} fieldControl
-    onchange={next => { value = next; edits += 1; }} />
+  <Choice presentation="menu" cardinality="one" menuTrigger="contextual" label="Representation" labelVisibility="visible" selected={[value]}
+    disabled={false} required={false} {options} onchange={next => { value = next[0]; edits += 1; }} />
+  <Choice presentation="menu" cardinality="one" menuTrigger="well" label="Field representation" labelVisibility="visible" selected={[value]}
+    disabled={false} required={false} {options} onchange={next => { value = next[0]; edits += 1; }} />
   <output data-value>{value}</output><output data-edits>{edits}</output>
 </main>`;
 

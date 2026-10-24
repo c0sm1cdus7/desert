@@ -1,27 +1,24 @@
 <script lang="ts">
-  import { FactValue } from "../../index.ts";
-  import { NodeRenderer } from "../../index.ts";
-  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import { ReferenceValues } from '../../index.ts';
+  import { FactValue, Tag } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import { displayLabel } from '../../../../interaction/display-label.ts';
   let { kind = "value", label, value, references, control }: CatalogProps<"fact-row"> = $props();
-  const id = $props.id();
 </script>
 <div class="fact-row" class:fact-row-control={kind === "control"} data-primitive="fact" data-fact-kind={kind}>
   <dt class="fact-label type-support">{displayLabel(label)}</dt>
   <dd class="fact-value type-body">
     {#if kind === "control"}{@render control?.()}
-    <!-- F1-merge: tags mount Tag (F1c), named references mount Tag with its color bullet, instead of NodeRenderer and ReferenceValues. -->
-    {:else if Array.isArray(value) && references}<ReferenceValues values={value} options={references}/>
+    <!-- A list value reads as named references (each beside its color bullet) or as neutral tags. -->
+    {:else if Array.isArray(value) && references}<span class="fact-references">
+      {#each value as reference (reference)}
+        {@const option = references.find(item => item.value === reference)}
+        {#if option}<Tag label={option.label} color={option.color} state="known" presentation="text" removable={false} disabled={false} />
+        {:else}<Tag label="Unavailable" state="unavailable" presentation="text" removable={false} disabled={false} />{/if}
+      {/each}
+    </span>
     {:else if Array.isArray(value)}
       {#if value.length}<div class="fact-labels">
-        {#each value as text, index}
-          <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "control.tag", control: {
-            version: "desert.control/1", kind: "tag", id: `${id}:${index}`, label: text,
-            disabled: false, tone: "neutral",
-          } }} />
-        {/each}
+        {#each value as text, index (index)}<Tag label={text} state="known" presentation="chip" tone="neutral" removable={false} disabled={false} />{/each}
       </div>{:else}<FactValue value="" />{/if}
     {:else}<FactValue value={typeof value === "object" ? undefined : value} />{/if}
   </dd>
@@ -36,6 +33,7 @@
     .fact-label { min-width:0; color:var(--muted-foreground); overflow-wrap:anywhere; text-wrap:balance; }
     .fact-value { min-width:0; white-space:pre-wrap; overflow-wrap:anywhere; text-align:end; text-wrap:balance; justify-content:flex-end; }
     .fact-labels { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:.5rem; }
+    .fact-references { display:flex; flex-wrap:wrap; gap:.35em .8em; justify-content:inherit; min-width:0; }
     @container fact-group (max-width:14em) {
       .fact-row { grid-template-columns:minmax(0,1fr); gap:.25rem; }
     }

@@ -1,6 +1,6 @@
 // Slice 3 (F1.8): Face, Availability, Wallpaper, Icon, Clock and AttentionIndicator style only classes they write, Face
 // draws its own round mark instead of the vendor avatar, and theme.css no longer styles `.bank-face` or `.bank-status`.
-// Every pixel is unchanged: each case is measured in today's tree and in the frozen sources of 53f9c47.
+// Every pixel is unchanged: each case is measured in today's tree and in the frozen sources of the integration base ce6ed6f.
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -81,7 +81,7 @@ test("marks: their folders import no foreign vendor and style no element and not
   assert.doesNotMatch(theme, /\.bank-(face|status)\b/, "the face and the availability line own their rules");
 });
 
-test("marks: Face draws its own round mark; every mark keeps the pixels of 53f9c47", { timeout: 60000 }, async () => {
+test("marks: Face draws its own round mark; every mark keeps the pixels of the integration base ce6ed6f", { timeout: 60000 }, async () => {
   const [before, after] = [await render(frozen, await rendererCss([], frozenTheme)), await render({}, await rendererCss())];
   try {
     assert.equal(await after.page.locator('[data-slot="avatar"]').count(), 0, "Face no longer mounts the vendor avatar");

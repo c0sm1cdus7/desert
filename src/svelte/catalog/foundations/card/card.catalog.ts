@@ -9,7 +9,6 @@ export const Card = defineFoundation({
   owner: { entry: "Card.svelte" },
   shape: "radius", states: ["default", "current", "disabled"],
   variants: { presentation: ["featured", "item", "tile", "collection", "summary"] },
-  // F1-merge: the summary's children also accept meter, loading and inline (F1a).
-  slots: { children: { accepts: ["heading", "text"] } },
+  slots: { children: { accepts: ["heading", "text", "meter", "loading", "inline"] } },
   approval: "required", contract: CardContract,
 } as const);

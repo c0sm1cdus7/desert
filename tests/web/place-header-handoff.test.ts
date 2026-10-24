@@ -19,7 +19,7 @@ for (const width of [390, 1280]) test(`place identity and media have separate li
     const compact = page.locator('[data-toolbar-identity]');
     assert.equal(await compact.locator('[data-identity-title]').textContent(), 'Landmarks');
     assert.equal(await compact.evaluate(el => getComputedStyle(el).opacity), '1');
-    assert.equal(await page.locator('[data-place-toolbar] [data-primitive="action"]').count(), 0);
+    assert.equal(await page.locator('[data-place-toolbar] [data-action]').count(), 0);
     assert.equal(await compact.evaluate(el => getComputedStyle(el).textAlign), 'start');
     await scroller.evaluate(el => el.scrollTop = 0); await settle(page);
     assert.equal(await compact.evaluate(el => getComputedStyle(el).opacity), '0');

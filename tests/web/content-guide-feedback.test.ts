@@ -25,7 +25,7 @@ for(const theme of ['light','dark'] as const) for(const width of [390,1280]) {
    assert.ok(offsets.length>=9);
    for(const o of offsets) assert.ok(Math.abs(o.guide-o.edge)<1,JSON.stringify(o));
    const rail=await f.page.locator('[data-stack-kind="catalog.home"] [data-catalog-group]').first().evaluate(e=>{
-    const title=e.querySelector('[data-catalog-group-title]')!,card=e.querySelector('[data-catalog-card]')!;
+    const title=e.querySelector('[data-catalog-group] > :first-child')!,card=e.querySelector('[data-catalog-card]')!;
     return title.getBoundingClientRect().left-card.getBoundingClientRect().left;
    });
    assert.equal(rail,16,'horizontal rail keeps its deliberate outer lane');

@@ -42,10 +42,10 @@ async function serveMedia(page: Page) {
 test("gallery, media-player, media-viewer, theme-preview and media-gestures draw only their own marks and cover every state and variant", async () => {
   const found = await treeViolations(["gallery", "media-player", "media-viewer", "theme-preview"].map(id => `src/svelte/catalog/foundations/${id}/`)
     .concat("src/svelte/catalog/mechanisms/media-gestures/"), ["E", "F", "G", "H", "I", "J"]);
-  // F1-merge: the viewer mounts the vendor dialog until Modal (F1d) and ToolbarLayout until Bar (F1f); Action's contract
-  // is a stub until F1b closes it; toggles and thumbnails press through the vendor button's attachment.
+  // F1-merge: the viewer mounts the vendor dialog until Modal (F1d) and ToolbarLayout until Bar (F1f); toggles and
+  // thumbnails press through the vendor button's attachment until its owner is settled.
   const merging = (line: string) => /^VENDOR_OUTSIDE_OWNER: .*imports vendor family (dialog|button)/.test(line)
-    || /^PRESENTATION_ESCAPE: .*<(Action|ToolbarLayout)> passes/.test(line);
+    || /^PRESENTATION_ESCAPE: .*<ToolbarLayout> passes/.test(line);
   assert.deepEqual(found.filter(line => !merging(line)), []);
 });
 

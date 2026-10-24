@@ -4,4 +4,4 @@
 </script>
 
 <!-- A transparent geometry owner, never a second pane inside the host. -->
-<div class="choice-list" data-choice-list data-material="interior">{@render children?.()}</div>
+<div class="choice-list material-interior" data-choice-list>{@render children?.()}</div>

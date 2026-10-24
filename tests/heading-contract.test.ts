@@ -4,10 +4,11 @@ import { assertHeadingContent } from "../src/svelte/catalog/foundations/heading/
 
 test("heading content uses finite semantic roles, not HTML/typographic customization", () => {
   for (const value of [
-    { kind: "page", text: "Notes", focusTarget: true },
-    { kind: "document-title", text: "A note" },
-    { kind: "rail-title", text: "Albums", id: "albums" },
-    { kind: "group-label", text: "All notes", required: true },
+    { kind: "display", text: "Franco", focusTarget: true },
+    { kind: "page", text: "Notes", focusTarget: true, align: "center" },
+    { kind: "section", text: "Albums", id: "albums" },
+    { kind: "section", text: "Albums" },
+    { kind: "group", text: "All notes", required: true },
   ]) assert.doesNotThrow(() => assertHeadingContent(value));
   for (const value of [
     { kind: "page", text: "Notes", class: "p-4" },
@@ -18,6 +19,11 @@ test("heading content uses finite semantic roles, not HTML/typographic customiza
     { kind: "page", text: "Notes", "data-place-title": false },
     { kind: "page", text: "Notes", [Symbol("style")]: "red" },
     { kind: "page", text: "Notes", required: true },
-    { kind: "rail-title", text: "Albums" },
+    { kind: "group", text: "All notes", focusTarget: true },
+    { kind: "section", text: "Albums", id: "" },
+    { kind: "page", text: " " },
+    { kind: "page", text: "Notes", align: "end" },
+    { kind: "rail-title", text: "Albums", id: "albums" },
+    { kind: "document-title", text: "A note" },
   ]) assert.throws(() => assertHeadingContent(value), /INVALID_HEADING_CONTENT/);
 });

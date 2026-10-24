@@ -97,7 +97,7 @@
     references={{projects:[{value:'design',label:'Design',color:'violet'},{value:'research',label:'Research',color:'green'}]}}
     selectors={[{field:'status',label:'Status',value:status,disabled:false,options:[{value:'open',label:'Open',journey:'open',available:true},{value:'completed',label:'Completed',journey:'completed',available:true}]}]}
     onselect={value=>status=value}/>
-  {:else if owner === "ObjectStateRow"}<dl class="bank-stack" data-material="pane"><ObjectStateRow selector={{field:'status',label:'Status',value:status,disabled:false,options:[{value:'open',label:'Open',journey:'open',available:true},{value:'completed',label:'Completed',journey:'completed',available:true}]}} onselect={value=>status=value}/></dl>
+  {:else if owner === "ObjectStateRow"}<dl class="bank-stack material-pane"><ObjectStateRow selector={{field:'status',label:'Status',value:status,disabled:false,options:[{value:'open',label:'Open',journey:'open',available:true},{value:'completed',label:'Completed',journey:'completed',available:true}]}} onselect={value=>status=value}/></dl>
   {:else if owner === "AttentionIndicator"}<AttentionIndicator required /><Information items={[{kind:"text",text:"Requires attention. The same amber indicator appears in Home and every presentation of the object. Reduced motion keeps it steady."}]} />
   {:else if owner === "AppearancePreferences" || owner === "AppearancePreview" || owner === "SeedAvatar" || owner === "AvatarShuffle" || owner === "Wallpaper" || owner === "AccessExperience" || owner === "LockScreen"}
     <AccessAppearanceSpecimen {owner} />

@@ -11,7 +11,6 @@ export const FactRow = defineFoundation({
   variants: { kind: ["value", "control"] },
   stateVariants: { value: { kind: ["value"] }, unknown: { kind: ["value"] }, labels: { kind: ["value"] }, "no-labels": { kind: ["value"] },
     references: { kind: ["value"] }, control: { kind: ["control"] } },
-  // F1-merge: the control slot accepts choice (F1c) once SelectionField merges into it.
-  slots: { control: { accepts: ["selection-field"] } },
+  slots: { control: { accepts: ["choice"] } },
   approval: "required", contract: FactRowContract,
 } as const);

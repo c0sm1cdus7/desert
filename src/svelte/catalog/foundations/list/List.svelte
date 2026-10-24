@@ -3,14 +3,13 @@
   let { kind, measure, label, children }: CatalogProps<"list"> = $props();
 </script>
 
-<!-- One shared pane for sibling rows or facts; the rows draw their own hairlines. F1-merge: utility material-pane replaces
-     data-material="pane". -->
+<!-- One shared pane for sibling rows or facts; the rows draw their own hairlines. -->
 {#if kind === "facts"}
-  <dl class="list list-facts" class:list-reading={measure === "reading"} data-list="facts" data-material="pane" aria-label={label}>
+  <dl class="list list-facts material-pane" class:list-reading={measure === "reading"} data-list="facts" aria-label={label}>
     {@render children?.()}
   </dl>
 {:else}
-  <div class="list list-rows" class:list-reading={measure === "reading"} data-list="rows" data-material="pane"
+  <div class="list list-rows material-pane" class:list-reading={measure === "reading"} data-list="rows"
     role={label ? "group" : undefined} aria-label={label}>{@render children?.()}</div>
 {/if}
 

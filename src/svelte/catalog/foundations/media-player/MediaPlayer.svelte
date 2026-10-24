@@ -43,8 +43,7 @@
     {/if}
     {#if unavailable}
       <div class="player-error" role="status"><span>Media unavailable</span>
-        <!-- F1-merge: Action takes the slice 3 contract (emphasis secondary, face text). -->
-        <Action label="Retry" icon="retry" emphasis="secondary" onclick={retry} />
+        <Action label="Retry" icon="retry" emphasis="secondary" face="text" state="ready" type="button" onclick={retry} />
       </div>
     {/if}
     {@render overlay?.()}

@@ -10,7 +10,6 @@
 <style>
   .clock { margin:0 0 2rem; max-width:100%; }
   .clock-date { margin:0; text-wrap:balance; }
-  /* F1-merge: token --text-clock holds this metric (font-size, weight, tracking, leading). */
-  .clock-time { display:block; font-size:min(7.6rem,22vw); font-weight:500; letter-spacing:-.085em; line-height:1.15; padding-right:.085em; font-variant-numeric:tabular-nums; }
+  .clock-time { display:block; font-size:var(--text-clock); font-weight:var(--text-clock--font-weight); letter-spacing:var(--text-clock--letter-spacing); line-height:var(--text-clock--line-height); padding-right:.085em; font-variant-numeric:tabular-nums; }
   @media (max-width:480px) { .clock { margin-bottom:1.5rem; } }
 </style>

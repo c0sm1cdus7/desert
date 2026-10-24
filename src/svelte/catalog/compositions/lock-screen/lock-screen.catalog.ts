@@ -7,5 +7,5 @@ export const LockScreen = defineComposition({
   id: "lock-screen",
   purpose: "Unlock the selected identity while its private content stays hidden.",
   owner: { entry: "LockScreen.svelte" },
-  uses: ["action", "clock", "column", "form", "heading", "seed-avatar", "stack-layout", "text-input"], approval: "required", contract: LockScreenContract,
+  uses: ["action", "clock", "column", "field", "form", "heading", "seed-avatar", "stack-layout"], approval: "required", contract: LockScreenContract,
 } as const);

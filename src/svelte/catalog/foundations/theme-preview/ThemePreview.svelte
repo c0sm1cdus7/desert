@@ -1,17 +1,20 @@
 <script lang="ts">
   import { Wallpaper } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
+  import { tintClass } from "../../../infra/appearance-preferences.ts";
   let { mode, tint, wallpaper }: CatalogProps<"theme-preview"> = $props();
+  // The theme's scheme utilities, written literally so the theme's Tailwind scan sees both.
+  const schemes = { light: "scheme-light", dark: "scheme-dark" } as const;
 </script>
 
-<!-- A finite miniature of the actual renderer palette, not an unrelated illustration. F1-merge: the utilities
-     scheme-light/scheme-dark and tint-* replace the data-appearance-preview and data-tint marks the theme reads. -->
-<div class="preview" data-appearance-preview={mode} data-tint={tint} aria-hidden="true">
+<!-- A finite miniature of the actual renderer palette, not an unrelated illustration: the theme's scheme and tint
+     utilities give it the chosen mode's tokens. -->
+<div class="preview {schemes[mode]} {tintClass[tint]}" data-appearance-preview={mode} aria-hidden="true">
   <Wallpaper {wallpaper} />
-  <div class="preview-navigation" data-material="pane"><span class="preview-line preview-accent"></span><span class="preview-line"></span><span class="preview-line"></span></div>
+  <div class="preview-navigation material-pane"><span class="preview-line preview-accent"></span><span class="preview-line"></span><span class="preview-line"></span></div>
   <div class="preview-content">
     <span class="preview-glyph type-page">Aa</span>
-    <div class="preview-card" data-material="pane"><span class="preview-line"></span><span class="preview-line preview-short"></span></div>
+    <div class="preview-card material-pane"><span class="preview-line"></span><span class="preview-line preview-short"></span></div>
   </div>
 </div>
 

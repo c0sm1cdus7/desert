@@ -490,7 +490,7 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/foundations/field-well/FieldWell.svelte
 - src/svelte/catalog/foundations/search-field/SearchField.svelte
 - src/svelte/catalog/foundations/measured-field/MeasuredField.svelte
-- src/svelte/catalog/mechanisms/control-measure/control-measure.css
+- src/svelte/catalog/foundations/field/field-measure.css
 - src/svelte/catalog/foundations/grouped-panel/GroupedPanel.svelte
 - src/svelte/catalog/foundations/choice-row/ChoiceRow.svelte
 - src/svelte/catalog/foundations/selection-field/SelectionField.svelte
@@ -509,6 +509,8 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/compositions/media-control/MediaControl.svelte
 - src/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte
 - src/svelte/catalog/compositions/fields/Fields.svelte
+- src/svelte/catalog/foundations/field/Field.svelte
+- src/svelte/catalog/foundations/field/FieldEditor.svelte
 - src/svelte/catalog/foundations/text-input/TextInput.svelte
 - src/svelte/catalog/foundations/masked-input/MaskedInput.svelte
 - src/svelte/catalog/foundations/character-counter/CharacterCounter.svelte
@@ -1204,7 +1206,7 @@ export function nodeEvent(value: unknown): NodeEvent {
 
 ## src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte
 
-Source SHA-256: b05d01483d5f0bb55aafb95e1c041b5866d267491db50c70a76b0a9730a5b066
+Source SHA-256: d26a87f994d45be0e67703e745640071433ebe046b0ebaff1e9da7e7370d8f30
 
 ```svelte
 <script lang="ts">
@@ -1216,7 +1218,7 @@ Source SHA-256: b05d01483d5f0bb55aafb95e1c041b5866d267491db50c70a76b0a9730a5b066
   import { nodeRenderers } from "../../../renderer-registry.ts";
   import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
 
-  let { node, onevent = () => {}, host, actionElementProps, frameIdentity }: NodeRendererProps = $props();
+  let { node, onevent = () => {}, host, actionDisclosure, frameIdentity }: NodeRendererProps = $props();
   let checked = $derived(resolvedNode(node));
   const emit = (event: NodeEvent) => onevent(nodeEvent(event));
   const control = (event: ControlEvent) => emit(event);
@@ -1244,18 +1246,19 @@ Source SHA-256: b05d01483d5f0bb55aafb95e1c041b5866d267491db50c70a76b0a9730a5b066
 
 {#if checked.kind === "input.text"}
   {@const Renderer = nodeRenderers[checked.kind]}
-  <Renderer primitive={checked.kind} identity={checked.name} label={checked.label} value={checked.value} required={checked.required}
-    disabled={checked.disabled} error={checked.error} helper={checked.helper} mask={checked.mask} maxLength={checked.maxLength}
+  <Renderer primitive={checked.kind} identity={checked.name} label={checked.label} labelVisibility="visible" measure="writing" purpose="text"
+    value={checked.value} required={checked.required} invalid={false} disabled={checked.disabled} error={checked.error} helper={checked.helper}
+    mask={checked.mask} maxLength={checked.maxLength} clear
     onchange={value => checked.kind === "input.text" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "input.multiline"}
   {@const Renderer = nodeRenderers[checked.kind]}
-  <Renderer primitive={checked.kind} label={checked.label} value={checked.value} required={checked.required}
-    disabled={checked.disabled} error={checked.error} helper={checked.helper} maxLength={checked.maxLength}
+  <Renderer primitive={checked.kind} label={checked.label} labelVisibility="visible" measure="writing" value={checked.value}
+    required={checked.required} invalid={false} disabled={checked.disabled} error={checked.error} helper={checked.helper} maxLength={checked.maxLength}
     onchange={value => checked.kind === "input.multiline" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "action"}
   {@const Renderer = nodeRenderers.action}
-  <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role} reason={checked.action.reason}
-    type={checked.form ? "submit" : "button"} onclick={activate} elementProps={actionElementProps} />
+  <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role} face="fit"
+    reason={checked.action.reason} type={checked.form ? "submit" : "button"} onclick={activate} disclosure={actionDisclosure} />
 {:else if checked.kind === "availability"}
   {@const Renderer = nodeRenderers.availability}<Renderer state={checked.state} label={checked.label} />
 {:else if checked.kind === "fact"}
@@ -1472,27 +1475,27 @@ Source SHA-256: 1b30b59ee4461594a05acd87260fb1cbcf3bfc001cbb7c680ebfe21c70790679
 
 ## src/svelte/renderer-contracts.ts
 
-Source SHA-256: f1505f46c216c2459190f5ee5c225ce26679154b07941a1283844c084c2bd5d0
+Source SHA-256: d11e81be1ed514dd018c383f1a491713b0db3303c0b7b15e8e1f4d7d41383778
 
 ```ts
 import type { Component } from "svelte";
-import type { ResolvedNodeId, ResolvedInputId } from "../interaction/catalog.ts";
+import type { ResolvedNodeId } from "../interaction/catalog.ts";
 import type { ControlNode, ControlEvent } from "../interaction/control-nodes.ts";
 import type { SurfaceFrame, FrameContent, FactsContent, Destination } from "../interaction/surface-frame.ts";
-import type { ToolbarAction, TopToolbar } from "../interaction/toolbar.ts";
+import type { TopToolbar } from "../interaction/toolbar.ts";
 import type { SurfaceIntent } from "../interaction/intent.ts";
 import type { ResolvedNode, ResolvedNodeFor } from "../interaction/resolved-node.ts";
 import type { NodeEvent } from "../interaction/node-events.ts";
 import type { LocalFileHost } from "./infra/file-host.ts";
-import type { ActionElementProps } from "./action-adapter.ts";
-import type { InputMask } from "../interaction/input-mask.ts";
+import type { Disclosure } from "./infra/disclosure.ts";
+import type { CatalogProps } from "./catalog/types.d.ts";
 import { freezeDeep } from "../json.ts";
 import type { FormControlEvent } from "../interaction/form-control-event.ts";
 
 /** Private dispatcher inputs; public authoring only supplies serializable ResolvedNode. */
 export type NodeRendererProps = {
   node: ResolvedNode; onevent?: (event: NodeEvent) => void; host?: LocalFileHost;
-  actionElementProps?: ActionElementProps; frameIdentity?: object;
+  actionDisclosure?: Disclosure; frameIdentity?: object;
 };
 
 export type ControlKind = ControlNode["kind"];
@@ -1504,10 +1507,6 @@ export type ControlProps<K extends ControlKind> = { node: Extract<ControlNode, {
 type Invoke = (intent: SurfaceIntent) => void;
 type Edit = (name: string, value: string) => void;
 type FactsProps = Pick<FactsContent, "fields" | "facts" | "object" | "labels" | "multiline" | "images" | "tags" | "references">;
-type InputProps<P extends ResolvedInputId> = {
-  primitive: P; label: string; value?: string; required?: boolean; identity?: string; maxLength?: number | undefined;
-  invalid?: boolean; error?: string | undefined; helper?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
-};
 type ControlRendererProps = { [K in ControlKind as `control.${K}`]: ControlProps<K> };
 
 /** Private web adapter bindings, never accepted as bank descriptors. NodeRenderer alone resolves these. */
@@ -1515,13 +1514,10 @@ export type NodeRendererInputs = ControlRendererProps & {
   "catalog.card": { node: ResolvedNodeFor<"catalog.card">; onevent: (event: NodeEvent) => void };
   "catalog.home": { node: ResolvedNodeFor<"catalog.home">; onevent: (event: NodeEvent) => void };
   "catalog.detail": { node: ResolvedNodeFor<"catalog.detail">; onevent: (event: NodeEvent) => void };
-  "input.text": InputProps<"input.text"> & { mask?: InputMask | undefined };
-  "input.multiline": InputProps<"input.multiline">;
+  "input.text": Extract<CatalogProps<"field">, { primitive: "input.text" }>;
+  "input.multiline": Extract<CatalogProps<"field">, { primitive: "input.multiline" }>;
   fact: FactsProps;
-  action: Pick<ToolbarAction, "label" | "icon"> & {
-    state?: ToolbarAction["state"]; emphasis?: "primary" | "secondary"; reason?: string | undefined;
-    onclick?: () => void; type?: "button" | "submit"; elementProps?: ActionElementProps | undefined;
-  };
+  action: CatalogProps<"action">;
   availability: NonNullable<TopToolbar["availability"]>;
   collection: { node: ResolvedNodeFor<"collection">; select: (id: string) => void };
   form: { fields: Extract<FrameContent, { kind: "form" }>["fields"]; edit: Edit; controlEvent: (event: FormControlEvent) => void };
@@ -1544,7 +1540,7 @@ export type NodeRendererTable = { readonly [K in ResolvedNodeId]: Component<Node
 
 /** Only these private host channels may bypass serializable node data. */
 export const DispatcherCapabilities = freezeDeep({
-  action: { property: "elementProps", input: "actionElementProps", required: false },
+  action: { property: "disclosure", input: "actionDisclosure", required: false },
   transient: { property: "frameIdentity", input: "frameIdentity", required: false },
   "control.files": { property: "host", input: "host", required: true },
 } as const satisfies { [K in ResolvedNodeId]?: {
@@ -1554,7 +1550,7 @@ export const DispatcherCapabilities = freezeDeep({
 
 ## src/svelte/renderer-registry.ts
 
-Source SHA-256: 21c1c9e34e65b3c418360d84666957174da75e56139a8167ee4c589e6167e77f
+Source SHA-256: 0f2a5a2dd9375afaf4048ec8f4ff7496b27d3c57d5662ea5b4722526becaf3ed
 
 ```ts
 // Generated from the catalog declarations by `node scripts/catalog.ts --write`; do not edit.
@@ -1569,6 +1565,7 @@ import ContextPanel from "./catalog/compositions/context-panel/ContextPanel.svel
 import DateControl from "./catalog/foundations/date-control/DateControl.svelte";
 import Drawer from "./catalog/foundations/drawer/Drawer.svelte";
 import Facts from "./catalog/renderer/facts/Facts.svelte";
+import Field from "./catalog/foundations/field/Field.svelte";
 import Fields from "./catalog/compositions/fields/Fields.svelte";
 import FileControl from "./catalog/compositions/file-control/FileControl.svelte";
 import LabelsControl from "./catalog/compositions/labels-control/LabelsControl.svelte";
@@ -1579,7 +1576,6 @@ import PopoverControl from "./catalog/compositions/popover-control/PopoverContro
 import Problem from "./catalog/compositions/problem/Problem.svelte";
 import Review from "./catalog/compositions/review/Review.svelte";
 import SelectControl from "./catalog/compositions/select-control/SelectControl.svelte";
-import TextInput from "./catalog/foundations/text-input/TextInput.svelte";
 
 export const nodeRenderers: NodeRendererTable = Object.freeze({
   action: Action,
@@ -1592,6 +1588,8 @@ export const nodeRenderers: NodeRendererTable = Object.freeze({
   "control.date": DateControl,
   transient: Drawer,
   fact: Facts,
+  "input.text": Field,
+  "input.multiline": Field,
   form: Fields,
   "control.files": FileControl,
   "control.labels": LabelsControl,
@@ -1604,8 +1602,6 @@ export const nodeRenderers: NodeRendererTable = Object.freeze({
   problem: Problem,
   review: Review,
   "control.select": SelectControl,
-  "input.text": TextInput,
-  "input.multiline": TextInput,
 } satisfies NodeRendererTable);
 ```
 
@@ -4297,7 +4293,7 @@ export const ControlSpecimens = freezeDeep(([
 
 ## src/interaction/extended-nodes.ts
 
-Source SHA-256: f5059f98d3bc7da0f6f1dea8b251e2fb635295b86d0325a73a4da60ce5a66d99
+Source SHA-256: d638407385e3d4727298fca3ea0a1e927b28b149bc907af4fedeca90b6bc82c0
 
 ```ts
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
@@ -4328,8 +4324,10 @@ export const MoneyNodeSchema = object({ ...base, kind: Type.Literal("money"), re
   currency: text(), minorUnits: Type.Union([Type.Null(), minor]) });
 export const DateNodeSchema = object({ ...base, kind: Type.Literal("date"), required: Type.Boolean(),
   value: Type.Union([Type.Null(), day]), minimum: Type.Optional(day), maximum: Type.Optional(day) });
-export const TagNodeSchema = object({ ...base, kind: Type.Literal("tag"),
-  tone: Type.Union([Type.Literal("neutral"), Type.Literal("accent"), Type.Literal("success"), Type.Literal("warning"), Type.Literal("destructive")]) });
+/** The tones a tag carries: neutral, or a semantic accent the tag pairs with its text. */
+export const TagToneSchema = Type.Union([Type.Literal("neutral"), Type.Literal("accent"), Type.Literal("success"), Type.Literal("warning"),
+  Type.Literal("destructive")]);
+export const TagNodeSchema = object({ ...base, kind: Type.Literal("tag"), tone: TagToneSchema });
 export const ImageNodeSchema = object({ ...base, kind: Type.Literal("image"), source, alt: text(),
   aspect: Type.Union([Type.Literal("square"), Type.Literal("landscape"), Type.Literal("portrait")]) });
 export const AvatarNodeSchema = object({ ...base, kind: Type.Literal("avatar"), source,
@@ -4598,7 +4596,7 @@ Source SHA-256: fdac3944924fcdb2c720239be2714aaa6d69d3a8602cd4de6e7c595c0b0a778c
 
 ## src/svelte/catalog/foundations/face/Face.svelte
 
-Source SHA-256: 3c5a0880c0593fdc524906914011dcc40bd9f49742c78b563b08b1973345c7c2
+Source SHA-256: 2422851544aa9aa5eb55cbf79c33412f7ecff38d24e330f05cda17b96a3864eb
 
 ```svelte
 <script lang="ts">
@@ -4611,6 +4609,7 @@ Source SHA-256: 3c5a0880c0593fdc524906914011dcc40bd9f49742c78b563b08b1973345c7c2
 </script>
 <!-- The face draws its own round mark: its fill and border come from the theme's tm-face utility. -->
 <div class="bank-face tm-face relative flex shrink-0 select-none overflow-hidden rounded-[30%] after:pointer-events-none after:absolute after:inset-0 after:rounded-[30%] after:border"
+  class:face-warning={face.kind === "status" && face.severity === "warning"} class:face-error={face.kind === "status" && face.severity === "error"}
   data-piece="face" data-face-kind={face.kind} data-compact={compact || undefined}
   data-tone={face.kind === "status" ? face.severity : "neutral"} aria-hidden="true">
   <span class="face-content type-body flex size-full items-center justify-center rounded-[inherit]" data-face-content>
@@ -4627,8 +4626,8 @@ Source SHA-256: 3c5a0880c0593fdc524906914011dcc40bd9f49742c78b563b08b1973345c7c2
     .face-glyph { font-size:calc(var(--face-size,2rem) * .6); line-height:1; }
     .bank-face[data-compact] .face-glyph { font-size:calc(1.5rem * .6); }
     .bank-face[data-face-kind="flag"] .face-glyph { font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif; }
-    .bank-face[data-tone="warning"] { --face-tone:var(--warning); color:var(--face-tone); }
-    .bank-face[data-tone="error"] { --face-tone:var(--destructive); color:var(--face-tone); }
+    .face-warning { --face-tone:var(--warning); color:var(--face-tone); }
+    .face-error { --face-tone:var(--destructive); color:var(--face-tone); }
   }
 </style>
 ```
@@ -4721,32 +4720,34 @@ Source SHA-256: 589c0db710de5eccd4cc0c20d8c15d8c54b863111e562dc6039ec44b770f09e5
 </div>
 ```
 
-## src/svelte/catalog/mechanisms/control-measure/control-measure.css
+## src/svelte/catalog/foundations/field/field-measure.css
 
-Source SHA-256: d84a698ed4e2a0ac55dfff442cb0f905666a565dc0e83086605c5d7ef727e91a
+Source SHA-256: 4852c117ca5bce4898c412555493ca0e5a55dcfa8832d08335bfb94b6313bdd1
 
 ```ts
-/* Family measures stay stable while editing. A 3rem residual strip is absorbed
-   into the field. Queries measure the containing slot, never the device. */
-[data-control-measure] { container:control-measure / inline-size; width:100%; min-width:0; align-self:stretch; }
-[data-control-measure="writing"] { --control-preferred:32rem; }
-[data-control-measure="choice"] { --control-preferred:26rem; }
-[data-control-measure="date"] { --control-preferred:20rem; }
-[data-control-measure="amount"] { --control-preferred:22rem; }
-[data-control-measure] > [data-slot="field"] { width:100%; min-width:0; max-width:var(--control-preferred); margin-inline:0; }
+/* A Field's preferred measure stays stable while editing. A 3rem residual strip is absorbed into the field. Queries
+   measure the containing slot, never the device. `fill` takes the whole slot. `[data-control-measure]` is the box of
+   the measured-field foundation, which its callers keep until they mount Field (Batch 3 deletes it). */
+:is([data-measure], [data-control-measure]) { container:control-measure / inline-size; width:100%; min-width:0; align-self:stretch; }
+:is([data-measure="writing"], [data-control-measure="writing"]) { --control-preferred:32rem; }
+:is([data-measure="choice"], [data-control-measure="choice"]) { --control-preferred:26rem; }
+:is([data-measure="date"], [data-control-measure="date"]) { --control-preferred:20rem; }
+:is([data-measure="amount"], [data-control-measure="amount"]) { --control-preferred:22rem; }
+[data-measure="fill"] { --control-preferred:none; }
+:is([data-measure], [data-control-measure]) > [data-slot="field"] { width:100%; min-width:0; max-width:var(--control-preferred); margin-inline:0; }
 /* Each cutoff is the preferred measure above plus the same 3rem allowance.
    No width transition: resizing must not chase the pointer or reflow text late. */
 @container control-measure (max-width:35rem) {
-  [data-control-measure="writing"] > [data-slot="field"] { max-width:none; }
+  :is([data-measure="writing"], [data-control-measure="writing"]) > [data-slot="field"] { max-width:none; }
 }
 @container control-measure (max-width:29rem) {
-  [data-control-measure="choice"] > [data-slot="field"] { max-width:none; }
+  :is([data-measure="choice"], [data-control-measure="choice"]) > [data-slot="field"] { max-width:none; }
 }
 @container control-measure (max-width:23rem) {
-  [data-control-measure="date"] > [data-slot="field"] { max-width:none; }
+  :is([data-measure="date"], [data-control-measure="date"]) > [data-slot="field"] { max-width:none; }
 }
 @container control-measure (max-width:25rem) {
-  [data-control-measure="amount"] > [data-slot="field"] { max-width:none; }
+  :is([data-measure="amount"], [data-control-measure="amount"]) > [data-slot="field"] { max-width:none; }
 }
 ```
 
@@ -4769,7 +4770,7 @@ Source SHA-256: 2b58281a3deb333667d4586c6377154dca80eb53518481853a663287ac455962
 
 ## src/svelte/catalog/foundations/choice-row/ChoiceRow.svelte
 
-Source SHA-256: 20d5309ef63ca189aad5ca9c625aff69302f58ae5266228b61504e12f6ba0d1c
+Source SHA-256: 65fdcd7e3a17842d2161ae4a151dc05772062efb7901c7cebcda11d73c9fefde
 
 ```svelte
 <script lang="ts">
@@ -4782,7 +4783,7 @@ Source SHA-256: 20d5309ef63ca189aad5ca9c625aff69302f58ae5266228b61504e12f6ba0d1c
   $effect(() => { if (row) return pressFeedback(row); });
 </script>
 
-<Field.FieldLabel bind:ref={row} for={id} class="tm-control" aria-disabled={disabled} data-grouped-row data-choice-row data-material="interior">
+<Field.FieldLabel bind:ref={row} for={id} class="control-feedback material-interior" aria-disabled={disabled} data-grouped-row data-choice-row>
   <ChoiceItem {label} {labelId} {description} {descriptionId}>
     {@render children?.()}
   </ChoiceItem>
@@ -4949,47 +4950,27 @@ Source SHA-256: 4e347ef602728408441bac6eb8e62e6c0cd7d9c2c5202aed237f1f59cd54d262
 
 ## src/svelte/catalog/foundations/action/Action.svelte
 
-Source SHA-256: e9b056bbc1ec24fe2eb5c7ad17c56153d1b7e86466414a5b371a9eac76ade0b9
+Source SHA-256: c901392215b7f9cd968d5a6ba77ba32b6372091dc627c18240f35f39bbeb0f6e
 
 ```svelte
 <script lang="ts">
   import { Button } from "../../../vendor/components/ui/button/index.js";
   import { cn } from "../../../vendor/utils.js";
-  import type { ToolbarAction } from "../../../../interaction/toolbar.ts";
   import { actionIconNames } from "../../../infra/action-icons.ts";
   import { Icon } from "../../index.ts";
-  import type { ActionElementProps } from "../../../action-adapter.ts";
-  let { label, icon, state: status = "ready", emphasis = "secondary", face: shown = "fit", onclick, type = "button", elementProps, reason }: {
-    label: string; icon: keyof typeof actionIconNames; state?: ToolbarAction["state"];
-    /** `fit` shows the label while it fits and the icon otherwise; `icon` always shows the icon (a field's accessory). */
-    face?: "fit" | "icon";
-    emphasis?: "primary" | "secondary"; onclick?: () => void; type?: "button" | "submit";
-    elementProps?: ActionElementProps | undefined; reason?: string | undefined;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { label, icon, state: status, emphasis, face: shown, type, reason, form, disclosure, current, onclick }: CatalogProps<"action"> = $props();
   const id = $props.id();
   const descriptionId = `${id}-reason`;
-  function buttonEvent<E extends Event>(event: E): event is E & { currentTarget: EventTarget & HTMLButtonElement } {
-    return event.currentTarget instanceof HTMLButtonElement;
-  }
-  function forward<E extends Event>(handler: ((event: E & { currentTarget: EventTarget & HTMLButtonElement }) => void) | null | undefined) {
-    return (event: E) => { if (status === "ready" && buttonEvent(event)) handler?.(event); };
-  }
-  // Only overlay semantics/events and Svelte ref attachments cross this internal adapter.
-  let overlay = $derived.by(() => {
-    const props = elementProps ?? {};
-    return { id: props.id, "aria-expanded": props["aria-expanded"], "aria-controls": props["aria-controls"],
-      "aria-haspopup": props["aria-haspopup"], "data-state": props["data-state"], onkeydown: forward<KeyboardEvent>(props.onkeydown),
-      onpointerdown: forward<PointerEvent>(props.onpointerdown), onpointerenter: forward<PointerEvent>(props.onpointerenter),
-      onpointerleave: forward<PointerEvent>(props.onpointerleave),
-      ...Object.fromEntries(Object.getOwnPropertySymbols(props).map(key => [key, props[key]])) };
-  });
+  const variants = { primary: "default", secondary: "secondary", destructive: "destructive" } as const;
   let button = $state<HTMLButtonElement | null>(null);
   let caption = $state<HTMLSpanElement | null>(null);
   let compact = $state(false);
-  let face = $derived(status === "pending" ? "pending" : shown === "icon" || compact ? "icon" : "label");
+  // Only the `fit` face measures: it shows the icon once the label no longer fits. `text` keeps its label, `icon` its glyph.
+  let face = $derived(status === "pending" ? "pending" : shown === "icon" || shown === "fit" && compact ? "icon" : "label");
   $effect(() => {
     label;
-    if (!button || !caption) return;
+    if (shown !== "fit" || !button || !caption) { compact = false; return; }
     const element = button, text = caption;
     const measure = () => { compact = text.scrollWidth > text.clientWidth + 1; };
     const observer = new ResizeObserver(measure);
@@ -4998,17 +4979,19 @@ Source SHA-256: e9b056bbc1ec24fe2eb5c7ad17c56153d1b7e86466414a5b371a9eac76ade0b9
     return () => { observer.disconnect(); document.fonts.removeEventListener("loadingdone", measure); };
   });
 </script>
-<Button {...overlay} bind:ref={button} variant={emphasis === "primary" ? "default" : "secondary"}
-  size={shown === "icon" ? "icon-lg" : "default"} spin={status === "pending"} {type} onclick={event => { if (status !== "ready") return;
-    if (buttonEvent(event)) elementProps?.onclick?.(event); if (!event.defaultPrevented) onclick?.(); }} class="relative w-fit min-w-0 max-w-[min(100%,22rem)] overflow-hidden"
+<Button bind:ref={button} variant={variants[emphasis]} size={shown === "icon" ? "icon-lg" : "default"} spin={status === "pending"}
+  {type} {form} id={disclosure?.id} aria-haspopup={disclosure?.haspopup} aria-expanded={disclosure?.expanded}
+  aria-controls={disclosure?.expanded ? disclosure.controls : undefined}
+  data-state={disclosure ? disclosure.expanded ? "open" : "closed" : undefined} aria-current={current || undefined}
+  onclick={() => { if (status === "ready") onclick?.(); }} class="relative w-fit min-w-0 max-w-[min(100%,22rem)] overflow-hidden"
   disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
   aria-describedby={reason ? descriptionId : undefined}
-  data-primitive="action" data-button-face={face} data-emphasis={emphasis}>
+  data-action="" data-action-face={face} data-emphasis={emphasis}>
   <span bind:this={caption} data-button-label aria-hidden="true" class={cn("min-w-0 truncate", face !== "label" && "invisible")}>{label}</span>
-    <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
-      aria-hidden="true" data-button-glyph data-button-face={face}>
-      <Icon name={status === "pending" ? "loader-circle" : actionIconNames[icon]} placement="inline-start" decorative />
-    </span>
+  <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
+    aria-hidden="true" data-button-glyph data-action-face={face}>
+    <Icon name={status === "pending" ? "loader-circle" : actionIconNames[icon]} placement="inline-start" decorative />
+  </span>
 </Button>
 {#if reason}<span id={descriptionId} class="sr-only">{reason}</span>{/if}
 ```
@@ -5031,7 +5014,7 @@ export const actionIconNames = {
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: 2ce314724cab3205c47c01dce33ef837caab74ae1fe967fe04e7bb7f0d4227f3
+Source SHA-256: adfd219a254e6ceb3e41dbf1c4cd89d397e907d7088e9b92c71908ab1c0ae6ab
 
 ```svelte
 <script lang="ts" module>
@@ -5041,7 +5024,7 @@ Source SHA-256: 2ce314724cab3205c47c01dce33ef837caab74ae1fe967fe04e7bb7f0d4227f3
 
 	/** The public buttonVariants contract. */
 	export const buttonVariants = tv({
-        base: "tm-control inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-full type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+        base: "inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
         variants: {
             spin: { true: "[&_svg[data-icon]]:animate-spin" },
             variant: {
@@ -5051,14 +5034,13 @@ Source SHA-256: 2ce314724cab3205c47c01dce33ef837caab74ae1fe967fe04e7bb7f0d4227f3
                 ghost: "bg-transparent text-foreground",
                 grip: "bg-transparent text-muted-foreground rounded-lg",
                 destructive: "text-destructive",
-                link: "bg-transparent text-primary-text underline-offset-4 hover:underline",
                 row: "bg-transparent text-foreground border-0 rounded-none justify-start whitespace-normal h-auto text-left font-normal w-full",
                 field: "bg-transparent text-foreground border-0 rounded-none justify-start w-full font-normal",
                 well: "text-foreground rounded-[var(--radius)] justify-start text-left whitespace-normal w-full font-normal",
             },
             size: {
                 default: "min-h-11 px-4 py-2", xs: "min-h-6 px-2", sm: "min-h-9 px-3",
-                lg: "min-h-11 px-5", icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
+                icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
                 row: "px-4 py-3", field: "min-h-10 px-3", well: "p-0",
                 avatar: "size-[5.625rem] p-0 relative overflow-hidden rounded-full",
                 "label-remove": "size-[28px] min-h-[28px] p-0 [@media(pointer:coarse)]:size-[44px] [@media(pointer:coarse)]:min-h-[44px]",
@@ -5110,6 +5092,10 @@ Source SHA-256: 2ce314724cab3205c47c01dce33ef837caab74ae1fe967fe04e7bb7f0d4227f3
 		children,
 		...restProps
 	}: ButtonProps = $props();
+	// The material is the variant's unless the caller names one (a sidebar row); prominence tints the pane.
+	const interiors: readonly ButtonVariant[] = ["ghost", "grip", "row", "field"];
+	let material = $derived(/\bmaterial-(?:pane|interior)\b/.test(cn(className)) ? undefined
+		: interiors.includes(variant) ? "material-interior" : variant === "default" ? "material-pane material-pane-primary" : "material-pane");
 	$effect(() => { onready?.(ref instanceof HTMLButtonElement || ref instanceof HTMLAnchorElement ? ref : null); return () => onready?.(null); });
 </script>
 
@@ -5123,8 +5109,7 @@ Source SHA-256: 2ce314724cab3205c47c01dce33ef837caab74ae1fe967fe04e7bb7f0d4227f3
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
-		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		href={disabled ? undefined : href}
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
@@ -5132,7 +5117,7 @@ Source SHA-256: 2ce314724cab3205c47c01dce33ef837caab74ae1fe967fe04e7bb7f0d4227f3
 		{...restProps}
 		data-variant={variant}
 	>
-		<span data-button-content>{@render children?.()}</span>
+		<span class="control-feedback-content" data-button-content>{@render children?.()}</span>
 	</a>
 {:else}
 	<button
@@ -5144,8 +5129,7 @@ Source SHA-256: 2ce314724cab3205c47c01dce33ef837caab74ae1fe967fe04e7bb7f0d4227f3
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
-		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		data-toolbar-scroll-top={presentation === "toolbar-return" || undefined}
 		data-catalog-search-toggle={presentation === "search-toggle" || undefined}
 		data-catalog-search-cancel={presentation === "search-toggle" && searching || undefined}
@@ -5154,7 +5138,7 @@ Source SHA-256: 2ce314724cab3205c47c01dce33ef837caab74ae1fe967fe04e7bb7f0d4227f3
 		{...restProps}
 		data-variant={variant}
 	>
-		<span data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
+		<span class="control-feedback-content" data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
 	</button>
 {/if}
 
@@ -5299,7 +5283,7 @@ Source SHA-256: 0fadcd9705154b5c09e6bc135a31d3f4a581cb5f1cd4dc5541bc2aa52c61128b
 
 ## src/svelte/catalog/compositions/file-control/FileControl.svelte
 
-Source SHA-256: fd6913cb64a993a2ab1298f95b138e367c5bf4a8ba89797c9417bc67adf32e6a
+Source SHA-256: 6ea24b2617e9244e23ec3584cd00891314008a17475eede7a7e42d1fc5a9d3bb
 
 ```svelte
 <script lang="ts">
@@ -5330,7 +5314,8 @@ Source SHA-256: fd6913cb64a993a2ab1298f95b138e367c5bf4a8ba89797c9417bc67adf32e6a
   <Field.FieldLabel for={id} class={stackTitle() === checked.label ? "sr-only" : undefined}>{checked.label}</Field.FieldLabel>
   <Input bind:ref={picker} {id} type="file" hidden tabindex={-1} multiple={checked.limits.maxCount > 1} accept={checked.limits.accept.join(",")}
     disabled={checked.disabled} onchange={choose} aria-describedby={`${id}-limits`} aria-invalid={rejected.length > 0} />
-  <Action icon="open" label="Choose files" state={checked.disabled ? "unavailable" : "ready"} onclick={() => picker?.click()} />
+  <Action icon="open" label="Choose files" emphasis="secondary" face="fit" type="button" state={checked.disabled ? "unavailable" : "ready"}
+    onclick={() => picker?.click()} />
   <Field.FieldDescription id={`${id}-limits`}>
     Up to {checked.limits.maxCount} files · {fileSize(checked.limits.maxFileBytes)} each · {fileSize(checked.limits.maxTotalBytes)} total.
     Choosing files does not upload them.
@@ -5340,7 +5325,7 @@ Source SHA-256: fd6913cb64a993a2ab1298f95b138e367c5bf4a8ba89797c9417bc67adf32e6a
       {#each checked.files as file (file.id)}
         <li class="flex flex-wrap items-center justify-between gap-2">
           <span class="min-w-0 break-all">{file.name} · {fileSize(file.size)}</span>
-          <Action icon="close" label={`Remove ${file.name}`} state={checked.disabled ? "unavailable" : "ready"}
+          <Action icon="close" label={`Remove ${file.name}`} emphasis="secondary" face="fit" type="button" state={checked.disabled ? "unavailable" : "ready"}
             onclick={() => onevent?.(host.remove(checked, file.id))} />
         </li>
       {/each}
@@ -5656,7 +5641,7 @@ Source SHA-256: f8b318d3aa251f3ee56540af29ddaedf36d8bc3de78be34e56dcf4abf128f9d9
 
 ## src/svelte/catalog/compositions/popover-control/AnchoredSurface.svelte
 
-Source SHA-256: 4c03a07941866471ad4af30c8d300029fce8c62709bef25220435de3ea4706f3
+Source SHA-256: 4bad825bc300b309574318d6335049d0dda7c2e26a5d93c9027214c5afb764a3
 
 ```svelte
 <script lang="ts">
@@ -5674,7 +5659,7 @@ Source SHA-256: 4c03a07941866471ad4af30c8d300029fce8c62709bef25220435de3ea4706f3
     open: boolean; disabled?: boolean; locked?: boolean | undefined; onchange: (open: boolean) => void;
     invoke?: (intent: SurfaceIntent) => void; icon?: ActionIcon;
   } = $props();
-  const panelId = $props.id();
+  const panelId = $props.id(), triggerId = `${panelId}-trigger`;
   const change = (next: boolean) => { if (!disabled && (next || !locked)) onchange(next); };
   dismissWhenInactive(() => onchange(false));
   const guard = (event: Event) => { if (locked) event.preventDefault(); };
@@ -5697,14 +5682,11 @@ Source SHA-256: 4c03a07941866471ad4af30c8d300029fce8c62709bef25220435de3ea4706f3
   };
 </script>
 <Popover.Root {open} onOpenChange={change}>
-  <Popover.Trigger {disabled}>
-    {#snippet child({ props })}
-      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "action", role: "secondary", action: {
-        icon, label, state: disabled ? "unavailable" : "ready", intent: { kind: "transient.open" },
-      } }} actionElementProps={{ ...props, "aria-controls": open ? panelId : undefined }} />
-    {/snippet}
-  </Popover.Trigger>
-  <Popover.Content id={panelId} bind:ref={panel} role="dialog" aria-label={title} aria-modal="false" trapFocus={false} preventScroll={false}
+  <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "action", role: "secondary", action: {
+    icon, label, state: disabled ? "unavailable" : "ready", intent: { kind: "transient.open" },
+  } }} actionDisclosure={{ id: triggerId, controls: panelId, expanded: open, haspopup: "dialog" }}
+    onevent={event => { if (event.kind === "local.invoke" && event.intent.kind === "transient.open") change(!open); }} />
+  <Popover.Content id={panelId} customAnchor={`#${triggerId}`} bind:ref={panel} role="dialog" aria-label={title} aria-modal="false" trapFocus={false} preventScroll={false}
     onkeydowncapture={event => {
       if (panel && !locked) anchoredTabExit(event, panel, () => { outside = true; change(false); });
     }}
@@ -5758,82 +5740,149 @@ Source SHA-256: 0bbd7d98e932df42d7f14a85b29565dd0f6a83478521a7feb3c8d594e0702994
 </Field.FieldGroup>
 ```
 
-## src/svelte/catalog/foundations/text-input/TextInput.svelte
+## src/svelte/catalog/foundations/field/Field.svelte
 
-Source SHA-256: ec91582a17b29541c6432a4e280f83ecd906462c371a7063f09fadf4a17d2cf5
+Source SHA-256: b1bc77a17e29ccbff0aa41e4c57068b3f7a6cf322205af4ec4356035940fed40
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
-  import * as Field from "../../../vendor/components/ui/field/index.js";
-  import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import { FieldWell } from "../../index.ts";
-  import { MeasuredField } from "../../index.ts";
-  import { MaskedInput } from "../../index.ts";
-  import { CharacterCounter } from "../../index.ts";
-  import { ClearInput } from "../../index.ts";
-  import { observeEditorCapacity } from "./editor-capacity.ts";
+  import * as Vendor from "../../../vendor/components/ui/field/index.js";
+  import FieldWell from "./FieldWell.svelte";
+  import FieldEditor from "./FieldEditor.svelte";
+  import FieldTrigger from "./FieldTrigger.svelte";
+  import SearchWell from "./SearchWell.svelte";
+  import CharacterCounter from "./CharacterCounter.svelte";
+  import ClearInput from "./ClearInput.svelte";
   import type { CatalogProps } from "../../types.d.ts";
-  let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
-    identity = "", mask, maxLength, purpose = "text", onchange, accessory: trailing }: CatalogProps<"text-input"> = $props();
+  let { primitive, label, labelVisibility, required, invalid, disabled, helper, error, identity, measure, purpose, value, placeholder,
+    mask, maxLength, clear, focus, display, disclosure, onchange, onmasked, onopen, accessory: trailing, prefix }: CatalogProps<"field"> = $props();
   const id = $props.id();
-  let writing = $derived(value);
-  let editor = $state<HTMLTextAreaElement | null>(null);
-  $effect(() => { if (editor) return observeEditorCapacity(editor); });
-  let display = $state(""), draftError = $state("");
-  const context = () => `${identity}/${primitive}/${mask?.kind ?? ""}/${mask?.locale ?? ""}/${mask?.scale ?? ""}`;
-  let observed = untrack(() => ({ value, context: context() }));
+  // Both editors receive their value; the trigger owns none. `writing` is the live text, `shown` a mask's formatted text.
+  let written = $derived(typeof value === "string" ? value : "");
+  let writing = $derived(written);
+  let shown = $state("");
+  let draft = $derived(mask ? shown : writing);
+  let draftError = $state("");
+  // A rejected or incomplete masked edit keeps its message until the owner's value or the field's identity changes.
+  const context = () => `${identity ?? ""}/${primitive}/${mask?.kind ?? ""}/${mask?.locale ?? ""}/${mask?.scale ?? ""}`;
+  let observed = untrack(() => ({ value: written, context: context() }));
   let pending: string[] = [];
   $effect(() => {
-    const next = { value, context: context() };
+    const next = { value: written, context: context() };
     untrack(() => {
       const acknowledgement = pending.indexOf(next.value);
-      if (next.context !== observed.context || next.value !== observed.value && acknowledgement < 0) {
-        draftError = ""; pending = [];
-      } else if (acknowledgement >= 0) pending.splice(0, acknowledgement + 1);
+      if (next.context !== observed.context || next.value !== observed.value && acknowledgement < 0) { draftError = ""; pending = []; }
+      else if (acknowledgement >= 0) pending.splice(0, acknowledgement + 1);
       observed = next;
     });
   });
   let message = $derived(error || draftError);
-  let describedBy = $derived([
-    helper ? `${id}-helper` : undefined,
-    primitive === "input.multiline" ? `${id}-counter` : undefined,
-    message ? `${id}-error` : undefined,
-  ].filter(Boolean).join(" ") || undefined);
-  let invalidField = $derived(invalid || !!message);
-  function editMasked(next: string, valid: boolean, complete: boolean) {
-    if (disabled) return;
+  let marked = $derived(invalid || !!message);
+  let multiline = $derived(primitive === "input.multiline");
+  let describedBy = $derived([helper ? `${id}-helper` : undefined, multiline ? `${id}-counter` : undefined,
+    message ? `${id}-error` : undefined].filter(Boolean).join(" ") || undefined);
+  function edited(next: string, valid: boolean, complete: boolean) {
+    if (disabled || !mask) return;
+    onmasked?.({ value: next, valid, complete });
     draftError = valid && complete ? "" : valid ? "Enter a complete number." :
-      `Enter a number with up to ${mask!.scale} decimal places using this field's format.`;
+      `Enter a number with up to ${mask.scale} decimal places using this field's format.`;
     if (valid && complete) { pending.push(next); onchange?.(next); }
   }
 </script>
 {#snippet counter()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
-<MeasuredField kind={primitive} invalid={invalidField} {disabled}>
-  <FieldWell {id} {label} {required} footer={primitive === "input.multiline" ? counter : undefined}
-    filled={(mask ? display : writing).length > 0}>
-    {#snippet accessory()}{#if trailing}{@render trailing()}{:else}<ClearInput control={id} value={mask ? display : writing} label={`Clear ${label}`} {disabled} />{/if}{/snippet}
-    {#if primitive === "input.multiline"}
-      <Group.Textarea {id} bind:ref={editor} bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} rows={4} placeholder=" "
-        aria-describedby={describedBy} onblur={event => onchange?.(event.currentTarget.value)}
-        class="focus-visible:outline-none"
-        oninput={event => onchange?.(event.currentTarget.value)} />
-    {:else if mask}
-      <MaskedInput {id} {value} {mask} {identity} bind:display {required} {disabled}
-        aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
-        aria-describedby={describedBy} onvalue={editMasked} />
+{#snippet editor()}
+  {#if primitive !== "trigger"}
+    <FieldEditor {id} {primitive} {label} {purpose} value={written} {placeholder} {mask} {identity} {required} {disabled} {focus}
+      invalid={marked} {describedBy} bind:writing bind:shown onchange={next => onchange?.(next)} onmasked={edited} />
+  {/if}
+{/snippet}
+<div data-field data-field-filled={primitive === "trigger" || draft.length > 0} data-measure={measure}>
+  <Vendor.Field data-primitive={primitive} data-invalid={marked} data-disabled={disabled}>
+    {#if primitive === "trigger" && display && disclosure}
+      <FieldTrigger {label} {labelVisibility} {required} {disabled} {describedBy} {display} {disclosure}
+        onopen={() => onopen?.()} />
+    {:else if purpose === "search"}
+      <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} bind:writing onchange={next => onchange?.(next)} />
     {:else}
-      <Group.Input {id} type={purpose.endsWith("password") ? "password" : "text"} autocomplete={purpose === "text" ? undefined : purpose}
-        autocapitalize={purpose === "username" ? "none" : undefined} spellcheck={purpose === "text" ? undefined : false}
-        bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
-        aria-describedby={describedBy} onblur={event => onchange?.(event.currentTarget.value)}
-        class="focus-visible:outline-none"
-        oninput={event => onchange?.(event.currentTarget.value)} />
+      <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} {prefix} footer={multiline ? counter : undefined}>
+        {#snippet accessory()}
+          {#if trailing}{@render trailing()}
+          {:else if multiline || clear}<ClearInput control={id} value={draft} label={`Clear ${label}`} {disabled} />{/if}
+        {/snippet}
+        {@render editor()}
+      </FieldWell>
     {/if}
-  </FieldWell>
-  {#if helper}<Field.FieldDescription id={`${id}-helper`}>{helper}</Field.FieldDescription>{/if}
-  {#if message}<Field.FieldError id={`${id}-error`} role="status">{message}</Field.FieldError>{/if}
-</MeasuredField>
+    {#if helper}<Vendor.FieldDescription id={`${id}-helper`}>{helper}</Vendor.FieldDescription>{/if}
+    {#if message}<Vendor.FieldError id={`${id}-error`} role="status">{message}</Vendor.FieldError>{/if}
+  </Vendor.Field>
+</div>
+```
+
+## src/svelte/catalog/foundations/field/FieldEditor.svelte
+
+Source SHA-256: e142390ce5a9618285a1ea2cceb848b1ae46c1d8dcb99ae6e0d1727fbe2061d5
+
+```svelte
+<script lang="ts">
+  // The editor inside a Field's well: a single line (plain, credential or masked) or a multiline editor that grows to
+  // the reading area. `writing` is the live text of a plain editor, `shown` the formatted text of a masked one.
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
+  import type { InputMask } from "../../../../interaction/input-mask.ts";
+  import MaskedInput from "./MaskedInput.svelte";
+  import { observeEditorCapacity } from "./editor-capacity.ts";
+  let { id, primitive, label, purpose, value, placeholder, mask, identity, required, disabled, invalid, describedBy, focus,
+    writing = $bindable(""), shown = $bindable(""), onchange, onmasked }: {
+    id: string; primitive: "input.text" | "input.multiline"; label: string;
+    purpose: "text" | "username" | "new-password" | "current-password" | "search" | undefined; value: string; placeholder: string | undefined;
+    mask: InputMask | undefined; identity: string | undefined; required: boolean; disabled: boolean; invalid: boolean;
+    describedBy: string | undefined; focus: "on-mount" | undefined; writing?: string; shown?: string;
+    onchange: (value: string) => void; onmasked: (value: string, valid: boolean, complete: boolean) => void;
+  } = $props();
+  let editor = $state<HTMLTextAreaElement | null>(null);
+  let line = $state<HTMLInputElement | null>(null);
+  $effect(() => { if (editor) return observeEditorCapacity(editor); });
+  $effect(() => { if (focus === "on-mount" && line) line.focus({ preventScroll: true }); });
+</script>
+{#if primitive === "input.multiline"}
+  <Group.Textarea {id} bind:ref={editor} bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalid}
+    aria-label={label} rows={4} placeholder=" " aria-describedby={describedBy} class="focus-visible:outline-none"
+    data-field-editor="multiline" onblur={event => onchange(event.currentTarget.value)} oninput={event => onchange(event.currentTarget.value)} />
+{:else if mask}
+  <MaskedInput {id} {value} {mask} {identity} bind:display={shown} {required} {disabled} {invalid} {label} {describedBy}
+    placeholder={placeholder ?? " "} onvalue={onmasked} />
+{:else}
+  <Group.Input {id} bind:ref={line} type={purpose?.endsWith("password") ? "password" : "text"}
+    autocomplete={purpose === "text" || purpose === "search" || purpose === undefined ? undefined : purpose} autocapitalize={purpose === "username" ? "none" : undefined}
+    spellcheck={purpose === "text" ? undefined : false} bind:value={writing} {required} {disabled} aria-required={required}
+    aria-invalid={invalid} aria-label={label} placeholder={placeholder ?? " "} aria-describedby={describedBy}
+    class="focus-visible:outline-none" onblur={event => onchange(event.currentTarget.value)} oninput={event => onchange(event.currentTarget.value)} />
+{/if}
+```
+
+## src/svelte/catalog/foundations/text-input/TextInput.svelte
+
+Source SHA-256: b05990e130ffd2b4dfc3ba19e79ad21f0d96851632200cb61933d37f85c459d0
+
+```svelte
+<script lang="ts">
+  // TextInput was renamed Field (design §1.7). The folder stays until Batch 3 deletes it, and its entry draws through
+  // Field, so the catalog keeps one implementation of the writing well.
+  import { Field } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
+    identity, mask, maxLength, purpose = "text", onchange, accessory: trailing }: CatalogProps<"text-input"> = $props();
+</script>
+{#if primitive === "input.multiline"}
+  <Field primitive="input.multiline" {label} labelVisibility="visible" {required} {invalid} {disabled} {error} {helper} {identity}
+    measure="writing" {value} {maxLength} {onchange} />
+{:else if trailing}
+  <Field primitive="input.text" {label} labelVisibility="visible" {required} {invalid} {disabled} {error} {helper} {identity}
+    measure="writing" {purpose} {value} {mask} clear {onchange}>{#snippet accessory()}{@render trailing()}{/snippet}</Field>
+{:else}
+  <Field primitive="input.text" {label} labelVisibility="visible" {required} {invalid} {disabled} {error} {helper} {identity}
+    measure="writing" {purpose} {value} {mask} clear {onchange} />
+{/if}
 ```
 
 ## src/svelte/catalog/foundations/masked-input/MaskedInput.svelte
@@ -7127,7 +7176,7 @@ export async function prepareMutation(client: PoolClient, program: LocalProgram,
 
 ## src/local/accept.ts
 
-Source SHA-256: 451e47fc7a890b2f9102e4f293801d1938b5d23aad00ff251f702a874f85685b
+Source SHA-256: 985271ad5e36f08f43229323c598ff0867cab7dab7b6fea7e4fdacbbe0567c1a
 
 ```ts
 import type { PoolClient } from "pg";
@@ -7135,7 +7184,7 @@ import { freezeDeep } from "../json.ts";
 import type { LocalProgram } from "./program.ts";
 import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
 import { canonical, confirmationDigest, materialize } from "./effects.ts";
-import { requireUUID, type Intent, type Receipt } from "./types.ts";
+import { requireUUID, type Intent, type Receipt, type ReceiptRow } from "./types.ts";
 import { requireCurrentActivityIntent, completeActivityIntent } from "../activities/acceptance.ts";
 import type { ActivityIndex } from "../activities/activity-index.ts";
 import { bindImageEffect, attachImageEffect } from "../assets/acceptance.ts";
@@ -7152,7 +7201,7 @@ export async function loadIntent(client: PoolClient, program: LocalProgram, acto
 }
 
 async function receipt(client: PoolClient, id: string) {
-  const { rows: [row] } = await client.query<{ result: Receipt }>("SELECT result FROM desert_receipts WHERE intent_id = $1", [id]);
+  const { rows: [row] } = await client.query<Pick<ReceiptRow, "result">>("SELECT result FROM desert_receipts WHERE intent_id = $1", [id]);
   return row ? freezeDeep(row.result) : null;
 }
 

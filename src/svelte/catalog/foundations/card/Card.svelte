@@ -1,6 +1,6 @@
 <script lang="ts">
   import { AttentionIndicator, Image } from "../../index.ts";
-  // F1-merge: press feedback comes with the control-feedback utility instead of the vendor button's attachment.
+  // F1-merge: press feedback — the vendor button's pressFeedback attachment (action's family) until its owner is settled.
   import { pressFeedback } from "../../../vendor/components/ui/button/press-feedback.js";
   import { prefetchImage } from "../../../infra/media-source.ts";
   import { useFocusScope } from "../../../infra/focus-scope.ts";
@@ -28,21 +28,19 @@
   {:else if artwork !== undefined}<Image source={artwork} {alt} {fit} />{/if}
 {/snippet}
 
-<!-- F1-merge: utilities control-feedback, material-pane and material-interior replace tm-control and data-material;
-     the type-section role replaces the title metric of an item's title. -->
 {#if media}
   <div class="card card-media" data-card={presentation}>
     {#if artwork !== undefined}<span class="card-fill">{@render art()}</span>{/if}
-    <button bind:this={button} {@attach pressFeedback} type="button" class="card-press tm-control type-control" data-material="interior" aria-label={label} {disabled}
+    <button bind:this={button} {@attach pressFeedback} type="button" class="card-press material-interior control-feedback type-control" aria-label={label} {disabled}
       onclick={open} onpointerenter={prepare} onfocus={prepare}>
-      <span class="card-press-content" data-button-content>{#if title}<span class="card-overlay">{title}</span>{/if}</span>
+      <span class="card-press-content control-feedback-content" data-button-content>{#if title}<span class="card-overlay type-section">{title}</span>{/if}</span>
     </button>
   </div>
 {:else}
-  <button bind:this={button} {@attach pressFeedback} type="button" class="card card-button card-{presentation} tm-control type-control" data-material="pane"
+  <button bind:this={button} {@attach pressFeedback} type="button" class="card card-button card-{presentation} material-pane control-feedback type-control"
     data-card={presentation} aria-label={label} aria-current={current ? "true" : undefined} aria-describedby={describedBy}
     aria-busy={busy} {disabled} onclick={open} onpointerenter={prepare} onfocus={prepare}>
-    <span class="card-content" data-button-content>
+    <span class="card-content control-feedback-content" data-button-content>
       {#if presentation !== "summary"}<AttentionIndicator required={attention} placement="overlay" />{/if}
       {#if presentation === "tile"}<span class="card-tile-art">{@render art()}</span>
       {:else if presentation === "collection"}
@@ -75,7 +73,7 @@
   .card-press-content { position:relative; display:block; width:100%; height:100%; min-width:0; flex-direction:inherit;
     align-items:inherit; justify-content:inherit; gap:inherit; }
   .card-overlay { position:absolute; inset:auto 0 16px; z-index:1; padding:0 12px; pointer-events:none; text-align:center; white-space:normal;
-    color:var(--catalog-image-foreground); font:var(--text-title--font-weight) var(--text-title)/var(--text-title--line-height) var(--font-sans); }
+    color:var(--catalog-image-foreground); font-family:var(--font-sans); }
   /* Tile and collection: a pane-material well that opens one media item or collection. */
   .card-tile, .card-collection { position:relative; display:block; width:100%; overflow:hidden; justify-content:flex-start; font-weight:400; }
   .card-tile { aspect-ratio:4/3; }

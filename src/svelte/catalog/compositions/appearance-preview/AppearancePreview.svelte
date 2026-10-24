@@ -1,14 +1,17 @@
 <script lang="ts">
   import { Wallpaper } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
+  import { tintClass } from "../../../infra/appearance-preferences.ts";
   let { mode, tint, wallpaper }: CatalogProps<"appearance-preview"> = $props();
+  // The theme's scheme utilities, written literally so the theme's Tailwind scan sees both.
+  const schemes = { light: "scheme-light", dark: "scheme-dark" } as const;
 </script>
 
 <!-- A finite miniature of the actual renderer palette, not an unrelated illustration. -->
-<div class="appearance-preview" data-appearance-preview={mode} data-tint={tint} aria-hidden="true">
+<div class="appearance-preview {schemes[mode]} {tintClass[tint]}" data-appearance-preview={mode} aria-hidden="true">
   <Wallpaper {wallpaper} />
-  <div class="appearance-preview-navigation" data-material="pane"><span></span><span></span><span></span></div>
-  <div class="appearance-preview-content"><strong>Aa</strong><div data-material="pane"><span></span><span></span></div></div>
+  <div class="appearance-preview-navigation material-pane"><span></span><span></span><span></span></div>
+  <div class="appearance-preview-content"><strong>Aa</strong><div class="material-pane"><span></span><span></span></div></div>
 </div>
 
 <style>

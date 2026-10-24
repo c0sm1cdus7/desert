@@ -41,9 +41,9 @@
 
 {#snippet paging()}
   {#if items.length > 1}
-    <span class="viewer-page viewer-previous"><Action label="Previous media" icon="previous" face="icon"
+    <span class="viewer-page viewer-previous"><Action label="Previous media" icon="previous" face="icon" emphasis="secondary" type="button"
       state={index === 0 || scale > 1 ? "unavailable" : "ready"} onclick={() => select(index - 1)} /></span>
-    <span class="viewer-page viewer-next"><Action label="Next media" icon="next" face="icon"
+    <span class="viewer-page viewer-next"><Action label="Next media" icon="next" face="icon" emphasis="secondary" type="button"
       state={index === items.length - 1 || scale > 1 ? "unavailable" : "ready"} onclick={() => select(index + 1)} /></span>
   {/if}
 {/snippet}

@@ -3,4 +3,4 @@
   let { children }: CatalogProps<"fact-list"> = $props();
 </script>
 
-<dl class="bank-stack" data-material="pane">{@render children?.()}</dl>
+<dl class="bank-stack material-pane">{@render children?.()}</dl>
