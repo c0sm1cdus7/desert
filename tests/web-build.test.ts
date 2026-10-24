@@ -4,6 +4,7 @@ import { compile, composeProduct } from "../src/index.ts";
 import { buildHumanModule } from "../src/web/build.ts";
 import { authoredNotebookSource } from "./fixtures/authored-notebook.ts";
 import { localBrowserAccess } from "../src/web/access.ts";
+import { fixtureText } from "./fixtures/messages.ts";
 
 test("standalone browser validation follows the contract without a second schema or runtime compiler", async () => {
   const source = authoredNotebookSource();
@@ -15,9 +16,9 @@ test("standalone browser validation follows the contract without a second schema
   const browser = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
   const command = application.surface("human").journeys.find(journey => journey.id === "create-note")!;
   assert.ok(command.kind === "mutation");
-  for (const input of [{ title: "💡", body: "Idea" }, { title: "ab", body: "OK" },
-    { title: "abc", body: "Too long" }, { title: "", body: "Empty" }, { title: "ok" },
-    { title: "ok", body: "x", owner: "intruder" }, { title: 1, body: "x" }]) {
+  for (const input of [{ title: fixtureText.text, body: "Idea" }, { title: fixtureText.ab, body: "OK" },
+    { title: fixtureText.abc, body: "Too long" }, { title: "", body: "Empty" }, { title: fixtureText.ok },
+    { title: fixtureText.ok, body: "x", owner: "intruder" }, { title: 1, body: "x" }]) {
     assert.equal(browser.validateInput(command.commandId, input), application.validateInput(command.commandId, input).valid);
   }
   assert.equal(browser.surface.contractDigest, application.digest);

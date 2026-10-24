@@ -7,6 +7,7 @@ export const testLayout = (overrides: Partial<CatalogLayout> = {}): CatalogLayou
   ledger: "src/svelte/catalog/approvals.json", fixed: {},
   generated: { index: "src/svelte/catalog/index.ts", manifest: "src/svelte/catalog/manifest.json", types: "src/svelte/catalog/types.d.ts",
     renderers: "src/svelte/renderer-registry.ts", sources: "src/svelte/catalog/sources.ts" }, rendererTypes: "src/svelte/renderer-contracts.ts",
+  messages: { folder: "src/messages", keys: "src/messages/keys.ts", namespaces: {} },
   gate: { roots: ["src/authoring/catalog"], modules: ["src/authoring/catalog/gate/run.ts"], required: ["src/svelte/theme.css"], reads: [] },
   nonvisual: { roots: [], browserSession: "src/web/client/browser-session.ts" },
   rendererFolder: "src/svelte/catalog/renderer", dispatch: {},

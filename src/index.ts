@@ -21,7 +21,8 @@ export type { ViewContent, ViewHeader, ViewHeaderTitle, ViewStack, ViewLeaf, Vie
 export { ViewHeaderTitleSchema } from "./views/index.ts";
 export { ViewProgramVersion, ViewProgramSchema, ViewNavigationEntrySchema, viewInputs, compileViewProgram } from "./views/index.ts";
 export type { ViewProgram,
-  ViewBoundContent, ViewItem, ViewMediaContent, MediaLibrary } from "./views/index.ts";
+  ViewBoundContent, ViewItem, ViewMediaContent } from "./views/index.ts";
+export type { DeclaredMediaLibrary as MediaLibrary } from "./views/media-library.ts";
 export { defineModule } from "./modules/definition.ts";
 export { publishObject } from "./modules/publish-object.ts";
 export { viewPorts } from "./views/authoring-ports.ts";
@@ -30,6 +31,9 @@ export type { FactReference } from "./views/reference-helpers.ts";
 export { ObjectPresentationSchema } from "./views/object-presentation.ts";
 export type { ObjectPresentation } from "./views/object-presentation.ts";
 export { composeProduct } from "./modules/compose.ts";
+export { messageCatalog } from "./messages/catalog.ts";
+export type { MessageCatalog } from "./messages/catalog.ts";
+export type { Message } from "./views/definition.ts";
 export { moduleIndex } from "./modules/module-index.ts";
 export type { ModuleDefinition, RegisteredModule, ModuleIndex, ModuleJourney, ModuleReference, ProductComposition,
   AuthoredViewJourney, AuthoredViewDestination, AuthoredViewNavigationEntry } from "./modules/types.ts";

@@ -13,6 +13,7 @@ import { HomeView, HomeJourney, CreateNoteJourney, ReadNotesJourney, NotesDestin
   NotesView, NoteView, NoteEditorView } from "./fixtures/authored-view-program.ts";
 import { authorFixture } from "./fixtures/author-fixture.ts";
 import type { ModuleIndex, RegisteredModule, ModuleJourney } from "../src/modules/types.ts";
+import { FixtureMessages, fixtureText, declaredFixture } from "./fixtures/messages.ts";
 
 const ViewEditingNotebook = { ...EditingNotebook, surfaces: EditingNotebook.surfaces.map(viewExposure) };
 
@@ -30,10 +31,10 @@ const moduleSource = { id: "notes",
   dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   views: [NotesView, NoteView, NoteEditorView, Editor],
   journeys: [
-    { execution: CreateNote, label: "Create note", humanReview: "not-required", presentation: { ...CreateNoteJourney, source: ReadNote } },
-    { execution: ReadNote, label: "Read notes", presentation: ReadNotesJourney },
-    { execution: ArchiveNote, label: "Archive note", humanReview: "required" },
-    { execution: EditNote, label: "Edit note", humanReview: "not-required", presentation: EditPresentation },
+    { execution: CreateNote, label: fixtureText.createNote, humanReview: "not-required", presentation: { ...CreateNoteJourney, source: ReadNote } },
+    { execution: ReadNote, label: fixtureText.readNotes, presentation: ReadNotesJourney },
+    { execution: ArchiveNote, label: fixtureText.archiveNote, humanReview: "required" },
+    { execution: EditNote, label: fixtureText.editNote, humanReview: "not-required", presentation: EditPresentation },
   ], destinations: [NotesDestination],
   exports: { journeys: { createNote: CreateNote, readNotes: ReadNote, archiveNote: ArchiveNote, editNote: EditNote },
     destinations: { notes: NotesDestination } },
@@ -42,11 +43,11 @@ type PublicNotes = { id: "notes"; exports: typeof moduleSource.exports; journeys
 function composition(modules: ModuleIndex<readonly [RegisteredModule<PublicNotes>]> =
   moduleIndex([defineModule(authorFixture(moduleSource))])) {
   const journeys = [modules.journeys.createNote, modules.journeys.readNotes, modules.journeys.archiveNote, modules.journeys.editNote];
-  return { id: EditingNotebook.id, label: "Notebook", modules,
+  return { messages: FixtureMessages, id: EditingNotebook.id, label: fixtureText.notebook, modules,
     workspace: WorkspaceView, views: [WorkspaceView, NavigationView],
     exposures: [humanExposure({ id: "human", journeys, locale: "en" }), agentExposure("agent", journeys)],
     entry: modules.destinations.notes,
-    navigation: [{ destination: modules.destinations.notes, group: "Explore", purpose: "content" }],
+    navigation: [{ destination: modules.destinations.notes, group: fixtureText.explore, purpose: "content" }],
   } as const;
 }
 const wireEdit = { ...EditPresentation, source: ReadNote.id, view: Editor.id,
@@ -56,10 +57,10 @@ test("one object publication resolves its detail, subject operation and explicit
   const source = composition();
   const home = { ...HomeJourney, outputs: [{ ...viewOutput(HomeView, "notes"),
     action: { kind: "journey", journey: source.modules.journeys.readNotes } }] } as const;
-  const destination = { ...program.destinations[0], entryJourney: home } as const;
+  const destination = { ...declaredFixture(program.destinations[0]), entryJourney: home } as const;
   const result = composeProduct({ ...source, views: [HomeView, ...source.views], journeys: [{ presentation: home }], destinations: [destination], entry: destination,
     navigation: [
-      { destination, group: "Explore", purpose: "content" },
+      { destination, group: fixtureText.explore, purpose: "content" },
       ...source.navigation,
     ],
   });

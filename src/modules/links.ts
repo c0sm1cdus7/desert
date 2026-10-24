@@ -1,6 +1,7 @@
 import type { AuthoredView, AuthoredViewJourney, ReadJourneyTarget } from "./authored-types.ts";
 import type { ModuleDefinition, ModuleEntryKind, ModuleJourney, ProductComposition } from "./types.ts";
 import type { ModuleReference, ReferenceContract } from "./reference-types.ts";
+import type { Message } from "../views/definition.ts";
 
 type Elements<O, K extends PropertyKey> = K extends keyof O
   ? NonNullable<O[K]> extends readonly (infer E)[] ? E : never : never;
@@ -50,5 +51,5 @@ export type ProductLinks<P extends ProductComposition> = OwnerLinks<P, P["module
   readonly workspace: ViewTargets<P, P["modules"]>;
   readonly entry: DestinationTargets<P, P["modules"]>;
   readonly navigation: readonly { readonly destination: DestinationTargets<P, P["modules"]>;
-    readonly group: string; readonly purpose: "content" | "utility" }[];
+    readonly group: Message; readonly purpose: "content" | "utility" }[];
 };

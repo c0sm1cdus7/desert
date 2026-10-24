@@ -1,6 +1,8 @@
 import type { Frozen } from "../json.ts";
 import type { JourneyDefinition } from "../program-grammar.ts";
-import type { View as WireView, ViewRef as WireViewRef } from "../views/schema.ts";
+import type { DeclaredView as WireView, ViewRef as WireViewRef } from "../views/schema.ts";
+import type { Declared } from "../views/declared.ts";
+import type { Message } from "../views/definition.ts";
 import type { ViewJourney, ViewDestination, ViewNavigationEntry } from "../views/program-schema.ts";
 import type { ModuleReference } from "./reference-types.ts";
 import type { ActivityDefinition } from "../activities/authoring.ts";
@@ -29,7 +31,7 @@ type Journey<J> = J extends ViewJourney ? {
     : K extends "activity" ? ActivityDefinition
     : K extends "collections" ? readonly { readonly input: string; readonly read: ReadJourneyTarget; readonly limit: number;
         readonly summary?: { readonly field: {readonly object:string;readonly field:string};
-          readonly segments: readonly {readonly value:string;readonly label:string}[] };
+          readonly segments: readonly {readonly value:string;readonly label:Message}[] };
         readonly preview?: { readonly read: ReadJourneyTarget; readonly where: { readonly object: string; readonly field: string };
           readonly media: { readonly object: string; readonly field: string }; readonly cover?: { readonly object: string; readonly field: string } };
         readonly where?: { readonly field: string; readonly value: string } }[]
@@ -38,8 +40,8 @@ type Journey<J> = J extends ViewJourney ? {
 export type AuthoredViewJourney = Journey<ViewJourney>;
 export type AuthoredViewOutputBinding = AuthoredViewJourney["outputs"][number];
 export type AuthoredViewOutputAction = AuthoredViewOutputBinding["action"];
-export type AuthoredViewDestination = Omit<ViewDestination, "entryJourney"> & { readonly entryJourney: JourneyTarget };
+export type AuthoredViewDestination = Omit<Declared<ViewDestination>, "entryJourney"> & { readonly entryJourney: JourneyTarget };
 export type DestinationTarget = AuthoredViewDestination | ModuleReference<"destination">;
-export type AuthoredViewNavigationEntry = Omit<ViewNavigationEntry, "destination"> & { readonly destination: DestinationTarget };
+export type AuthoredViewNavigationEntry = Omit<Declared<ViewNavigationEntry>, "destination"> & { readonly destination: DestinationTarget };
 export type ExecutableJourneyReference = ModuleReference<"journey", string, string, { readonly execution: Frozen<JourneyDefinition> }>;
 export type ExposedJourney = Frozen<JourneyDefinition> | ExecutableJourneyReference;

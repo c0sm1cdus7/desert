@@ -409,6 +409,7 @@ Paths below are relative to the SDK root. Read imports/types together; these are
 verbatim modules, not standalone snippets or a published package API.
 
 - products/notebook/src/exposures.ts
+- products/notebook/src/messages/keys.ts
 - products/notebook/src/modules.ts
 - products/notebook/src/modules/notes/commands/archiveNote.command.ts
 - products/notebook/src/modules/notes/commands/createNote.command.ts
@@ -544,6 +545,40 @@ import { Journeys } from "./modules.ts";
 const ExposedJourneys = [Journeys.createNote, Journeys.readNotes, Journeys.archiveNote] as const;
 export const HumanNotebook = humanExposure({ id: "human", journeys: ExposedJourneys, locale: "en" });
 export const AgentNotebook = agentExposure("agent", ExposedJourneys);
+```
+
+## products/notebook/src/messages/keys.ts
+
+Source SHA-256: 357bf99cd64ac3155dba97e69e1f59df39e0e6ceb0897207309a9bbd99a16d6f
+
+```ts
+// Generated from en.json by `npm run messages:write`; do not edit.
+import { messageCatalog } from "desert-sdk/src/index.ts";
+
+export const Messages = messageCatalog({
+  "en": {
+    "notebook": {
+      "label": "Notebook",
+      "explore": "Explore"
+    },
+    "notes": {
+      "destination": "Notes",
+      "readNotes": "Read notes",
+      "subtitle": "Your private notebook.",
+      "all": "Notes",
+      "createNote": "Create note",
+      "archiveNote": "Archive note",
+      "close": "Close",
+      "titleField": "Title",
+      "contentField": "Content",
+      "statusField": "Status"
+    }
+  },
+} as const);
+/** The accessor declarations use: `m.notes.title` is the message `{ key: "notes.title" }`. */
+export const m = Messages.m;
+export const MessageKeySchema = Messages.keySchema;
+export type MessageKey = typeof Messages.keys[number];
 ```
 
 ## products/notebook/src/modules.ts
@@ -682,20 +717,21 @@ export const OnlyOwnerCanAccess = ownershipPolicy(Note, "owner");
 
 ## products/notebook/src/modules/notes/note.publication.ts
 
-Source SHA-256: dc57289f22dfb4fb91207c9d865bf342d615f40ccdeb23840ce29c2a08180603
+Source SHA-256: f9279e6bd7f2326303361ef1964c7d1b5843d5a38d85aa0735226dd5f5661572
 
 ```ts
 import { factReference, publishObject } from "desert-sdk/src/index.ts";
 import { Note } from "./note.object.ts";
 import { NoteView } from "./views/note.view.ts";
+import { m } from "../../messages/keys.ts";
 import { ArchiveNote } from "./journeys/archiveNote.journey.ts";
 
 export const PublishedNote = publishObject(Note, {
   view: NoteView, title: factReference(Note, "title"),
   fields: [
-    { fact: factReference(Note, "title"), label: "Title", representation: "text" },
-    { fact: factReference(Note, "body"), label: "Content", representation: "paragraphs" },
-    { fact: factReference(Note, "state"), label: "Status", representation: "text" },
+    { fact: factReference(Note, "title"), label: m.notes.titleField, representation: "text" },
+    { fact: factReference(Note, "body"), label: m.notes.contentField, representation: "paragraphs" },
+    { fact: factReference(Note, "state"), label: m.notes.statusField, representation: "text" },
   ],
   actions: [{ journey: ArchiveNote, icon: "archive" }],
 });
@@ -714,7 +750,7 @@ export const NotesController = controllerRole({ id: "notes", objects: [Note], re
 
 ## products/notebook/src/modules/notes/notes.module.ts
 
-Source SHA-256: e522984693104840c2ad2020a2d3eb04049cf9b82de386e91a43d155dab40ed5
+Source SHA-256: 8fd313cfa94ccab60d94afa11779a7a379af36e7feb60807811ed4b123bdc4b7
 
 ```ts
 import { defineModule } from "desert-sdk/src/index.ts";
@@ -728,15 +764,16 @@ import { ArchiveNote, ArchiveNoteJourney } from "./journeys/archiveNote.journey.
 import { NotesView } from "./views/notes.view.ts";
 import { NoteView } from "./views/note.view.ts";
 import { CreateNoteView } from "./views/createNote.view.ts";
+import { m } from "../../messages/keys.ts";
 
-const NotesDestination = { id: "notes", label: "Notes", icon: "open", entryJourney: ReadNote } as const;
+const NotesDestination = { id: "notes", label: m.notes.destination, icon: "open", entryJourney: ReadNote } as const;
 
 export const NotesModule = defineModule({
   id: "notes", objects: [PublishedNote], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   journeys: [
-    { execution: CreateNote, presentation: CreateNoteJourney, label: "Create note", humanReview: "not-required" },
-    { execution: ReadNote, presentation: ReadNotesJourney, label: "Read notes" },
-    { execution: ArchiveNote, presentation: ArchiveNoteJourney, label: "Archive note", humanReview: "required" },
+    { execution: CreateNote, presentation: CreateNoteJourney, label: m.notes.createNote, humanReview: "not-required" },
+    { execution: ReadNote, presentation: ReadNotesJourney, label: m.notes.readNotes },
+    { execution: ArchiveNote, presentation: ArchiveNoteJourney, label: m.notes.archiveNote, humanReview: "required" },
   ],
   views: [NotesView, NoteView, CreateNoteView], destinations: [NotesDestination],
   exports: {
@@ -749,59 +786,62 @@ export const NotesModule = defineModule({
 
 ## products/notebook/src/modules/notes/views/createNote.view.ts
 
-Source SHA-256: 34ffd636aa6d423afca0f4426f5074133ae36b9b3a4cc855487c542033917fa9
+Source SHA-256: 20b6c3c8c47237f52c6b3ae509fffeb03b138a931ff808d0ffddadf885b05fb2
 
 ```ts
 import { Components, ViewTitles, defineView, viewPorts } from "desert-sdk/src/index.ts";
+import { m } from "../../../messages/keys.ts";
 
 const Ports = viewPorts({ inputs: { draft: "form" }, outputs: ["save", "close"] });
 
 export const CreateNoteView = defineView({
   name: "create-note", outputs: Ports.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: "Close", icon: "close" }] }),
-  bottomDock: Components.Toolbar({ actions: [{ output: Ports.output.save, label: "Create note", icon: "save" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: m.notes.close, icon: "close" }] }),
+  bottomDock: Components.Toolbar({ actions: [{ output: Ports.output.save, label: m.notes.createNote, icon: "save" }] }),
   content: [Components.Header({ title: ViewTitles.operation }), Components.Form({ input: Ports.inputs.draft })],
 });
 ```
 
 ## products/notebook/src/modules/notes/views/note.view.ts
 
-Source SHA-256: 3dfeaf5a978b7bf451b0f01f6aa035a44593ad1627a9b3e2c0fc146c3b5cbd17
+Source SHA-256: af6c1560062dcbf4d508d3fdd60994c554d363b3d6b4907559031252e1465c5a
 
 ```ts
 import { Components, ViewTitles, defineView, viewPorts } from "desert-sdk/src/index.ts";
+import { m } from "../../../messages/keys.ts";
 
 const Ports = viewPorts({ inputs: { note: "context" }, outputs: ["close"] });
 
 export const NoteView = defineView({
   name: "note", outputs: Ports.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: "Close", icon: "close" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: m.notes.close, icon: "close" }] }),
   content: [Components.Header({ title: ViewTitles.subject }), Components.Context({ input: Ports.inputs.note })],
 });
 ```
 
 ## products/notebook/src/modules/notes/views/notes.view.ts
 
-Source SHA-256: 7184dae2291e832919b0b7e6d21a4b1ce232bba27b5d3da11d2228e982df2fda
+Source SHA-256: f2b06d04f6f0058a9c0d6f70a681265595fa197c481bb5c7d5d918d561754a1e
 
 ```ts
 import { Components, defineView, viewPorts } from "desert-sdk/src/index.ts";
+import { m } from "../../../messages/keys.ts";
 
 const Ports = viewPorts({ inputs: { notes: "collection" }, outputs: ["create", "select"] });
 
 export const NotesView = defineView({
   name: "notes", outputs: Ports.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: Ports.output.create, label: "Create note", icon: "create" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: Ports.output.create, label: m.notes.createNote, icon: "create" }] }),
   content: [
-    Components.Header({ title: "Read notes", subtitle: "Your private notebook." }),
-    Components.Stack({ title: "Notes", items: [Components.Collection({ input: Ports.inputs.notes, output: Ports.output.select })] }),
+    Components.Header({ title: m.notes.readNotes, subtitle: m.notes.subtitle }),
+    Components.Stack({ title: m.notes.all, items: [Components.Collection({ input: Ports.inputs.notes, output: Ports.output.select })] }),
   ],
 });
 ```
 
 ## products/notebook/src/notebook.product.ts
 
-Source SHA-256: b998453595eebace1acb28f71917791f66c2abe0b755e16afdea9a4f368a88cf
+Source SHA-256: eac3b9844b840c82058d15b37e72b8450cfe8d34b04927f6df24f206dcf574af
 
 ```ts
 import { composeProduct } from "desert-sdk/src/index.ts";
@@ -809,12 +849,13 @@ import { Modules, Destinations } from "./modules.ts";
 import { WorkspaceView } from "./views/workspace.view.ts";
 import { NavigationView } from "./views/navigation.view.ts";
 import { HumanNotebook, AgentNotebook } from "./exposures.ts";
+import { Messages, m } from "./messages/keys.ts";
 
 export const NotebookProduct = composeProduct({
-  id: "notebook", label: "Notebook", modules: Modules,
+  id: "notebook", label: m.notebook.label, messages: Messages, modules: Modules,
   views: [WorkspaceView, NavigationView], workspace: WorkspaceView,
   exposures: [HumanNotebook, AgentNotebook], entry: Destinations.Notes,
-  navigation: [{ destination: Destinations.Notes, group: "Explore", purpose: "content" }],
+  navigation: [{ destination: Destinations.Notes, group: m.notebook.explore, purpose: "content" }],
 });
 
 export const Notebook = NotebookProduct.definition;
@@ -1402,7 +1443,7 @@ export function projectSurface(product: ProductDefinition, program: ReturnType<t
 
 ## src/web/build.ts
 
-Source SHA-256: 07122649d0f000116a0bbb2d80f47d52910ea7875c7e84dab434df5706a4e392
+Source SHA-256: 6bbfaf639341e4757f26e4257e5925927c26718e407fdebbb7385c6bc7999742
 
 ```ts
 import { Ajv } from "ajv";
@@ -1416,13 +1457,14 @@ import { compileViewProgram } from "../views/program.ts";
 import { productViewProgram } from "../modules/compiled-product.ts";
 import { requireFieldPresentation } from "../field-representation.ts";
 import { viewProgramActivities } from "../activities/presentation.ts";
+import { rendererLocale } from "../messages/renderer-locale.ts";
 
 export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string) {
   if (arguments.length > 2) throw new Error("VIEW_PROGRAM_OVERRIDE_FORBIDDEN");
   const surface = application.surface(surfaceId);
   if (surface.kind !== "human") throw new Error("HUMAN_SURFACE_REQUIRED");
   requireCatalog(surface.catalog);
-  if (surface.language?.locale !== "en") throw new Error("UNSUPPORTED_RENDERER_LANGUAGE");
+  if (surface.language?.locale !== rendererLocale) throw new Error("UNSUPPORTED_RENDERER_LANGUAGE");
   const fieldPresentation = requireFieldPresentation(surface.fieldRepresentations, surface.fieldKinds, Object.keys(surface.language.fields));
   const viewProgram = compileViewProgram(productViewProgram(application), surface);
   viewProgramActivities(application, viewProgram, surfaceId);

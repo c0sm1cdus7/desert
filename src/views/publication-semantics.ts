@@ -2,8 +2,10 @@ import type { ObjectDefinition } from "../contracts.ts";
 import type { Frozen } from "../json.ts";
 import type { JourneyDefinition } from "../program-grammar.ts";
 import type { ObjectPresentation } from "./object-presentation.ts";
+import type { Declared } from "./declared.ts";
 
-type Publication = Pick<ObjectPresentation, "title" | "actions">;
+// Labels never decide an invariant, so a declared publication (messages) and a compiled one (text) are judged alike.
+type Publication = Pick<ObjectPresentation | Declared<ObjectPresentation>, "title" | "actions">;
 
 /** Shared invariants apply equally to authored definitions and serialized references. */
 export function publicationReferenceIssue(objectId: string, publication: Publication) {

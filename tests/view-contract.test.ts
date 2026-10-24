@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { view } from "../src/views/view.ts";
+// The compiled View contract (resolved text); the declared form delegates to it after a message-shape check.
+import { compiledView as view } from "../src/views/view.ts";
 import { viewIndex } from "../src/views/view-index.ts";
 import { ViewVersion, ViewSchema, type View } from "../src/views/schema.ts";
 import * as viewSchemas from "../src/views/schema.ts";

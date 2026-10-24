@@ -6,6 +6,7 @@ import { ViewJourneyVariants, ViewDestinationSchema, ViewNavigationEntrySchema, 
 import { closed, name, text } from "../views/definition.ts";
 import { AuthoredPublishedPresentationSchema, HumanReviewSchema } from "./human-presentation.ts";
 import { AuthoredExposureSchema } from "../human-exposure.ts";
+import { declaredSchema } from "../views/declared.ts";
 
 const reference = <K extends "view" | "journey" | "destination">(kind: K) => Type.Union([
   name, closed({ kind: Type.Literal(kind), owner: name, id: name }),
@@ -48,8 +49,12 @@ export const ModuleExportsSchema = closed({
   objects: names, dependencies: names, journeys: names, views: names, destinations: names,
 });
 export const ModuleDefinitionSchema = closed({ id: name, ...OwnedProperties, exports: Type.Optional(ModuleExportsSchema) });
+/** What a module and a product declare (plan §14): the same shapes with a message in each message field. The product's
+ * catalog resolves them into the compiled shapes above when the product is composed. */
+export const DeclaredModuleDefinitionSchema = declaredSchema(ModuleDefinitionSchema);
 export const ProductCompositionSchema = closed({
   id: name, label: text, workspace: reference("view"), ...OwnedProperties,
   modules: Type.Array(ModuleDefinitionSchema), exposures: Type.Array(AuthoredExposureSchema, { minItems: 1 }),
   entry: reference("destination"), navigation: Type.Array(AuthoredViewNavigationEntrySchema, { minItems: 1 }),
 });
+export const DeclaredProductCompositionSchema = declaredSchema(ProductCompositionSchema);

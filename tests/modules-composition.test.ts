@@ -12,13 +12,14 @@ import { publishedNotebookNote } from "./fixtures/authored-notebook.ts";
 import type { RegisteredModule, ModuleJourney } from "../src/modules/types.ts";
 import { WorkspaceView, NavigationView } from "./fixtures/workspace-view.ts";
 import { authorFixture } from "./fixtures/author-fixture.ts";
+import { FixtureMessages, fixtureText, declaredFixture } from "./fixtures/messages.ts";
 
 const notesSource = {
   id: "notes", objects: [publishedNotebookNote()], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   journeys: [
-    { execution: CreateNote, label: "Create note", humanReview: "not-required", presentation: CreateNoteJourney },
-    { execution: ReadNote, label: "Read notes", presentation: ReadNotesJourney },
-    { execution: ArchiveNote, label: "Archive note", humanReview: "required" },
+    { execution: CreateNote, label: fixtureText.createNote, humanReview: "not-required", presentation: CreateNoteJourney },
+    { execution: ReadNote, label: fixtureText.readNotes, presentation: ReadNotesJourney },
+    { execution: ArchiveNote, label: fixtureText.archiveNote, humanReview: "required" },
   ], views: [NotesView, NoteView, NoteEditorView], destinations: [NotesDestination],
   exports: { journeys: { createNote: CreateNote, readNotes: ReadNote, archiveNote: ArchiveNote },
     destinations: { notes: NotesDestination }, dependencies: { NotesController } },
@@ -32,15 +33,15 @@ function root(notes: RegisteredModule<PublicNotes> = Notes) {
   const journeys = [modules.journeys.createNote, modules.journeys.readNotes, modules.journeys.archiveNote];
   const home = { ...HomeJourney, outputs: [{ ...viewOutput(HomeView, "notes"),
     action: { kind: "journey", journey: modules.journeys.readNotes } }] } as const;
-  const destination = { ...program.destinations[0], entryJourney: home } as const;
-  return { id: Notebook.id, label: "Notebook", modules,
+  const destination = { ...declaredFixture(program.destinations[0]), entryJourney: home } as const;
+  return { messages: FixtureMessages, id: Notebook.id, label: fixtureText.notebook, modules,
     exposures: [humanExposure({ id: "human", journeys, locale: "en" }), agentExposure("agent", journeys)],
     workspace: WorkspaceView, views: [HomeView, WorkspaceView, NavigationView],
     journeys: [{ presentation: home }], destinations: [destination], entry: destination,
     navigation: [
-      { ...program.navigation[0], destination },
-      { ...program.navigation[1], destination: modules.destinations.notes },
-      { ...program.navigation[2], destination: modules.destinations.catalog },
+      { ...declaredFixture(program.navigation[0]), destination },
+      { ...declaredFixture(program.navigation[1]), destination: modules.destinations.notes },
+      { ...declaredFixture(program.navigation[2]), destination: modules.destinations.catalog },
     ],
   } as const;
 }

@@ -6,6 +6,7 @@ import { Notebook } from "../products/notebook/product.ts";
 import { NotesController } from "../products/notebook/dependencies.ts";
 import { Dependencies } from "../products/notebook/src/modules.ts";
 import { catalogFixture, notesSource } from "./fixtures/module-catalog.ts";
+import { FixtureMessages } from "./fixtures/messages.ts";
 
 function composedFixture() {
   const f = catalogFixture();

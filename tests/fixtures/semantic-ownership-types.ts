@@ -2,6 +2,7 @@ import { composeProduct, defineModule, factReference, humanExposure, publishObje
 import { Note } from "../../products/notebook/note.ts";
 import { ArchiveNote, CreateNote, ReadNote } from "../../products/notebook/journeys.ts";
 import { authoredNotebookSource, notePublication } from "./authored-notebook.ts";
+import { fixtureText } from "./messages.ts";
 
 const exposure = { id: "human", journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" };
 const authored = humanExposure(exposure);
@@ -49,16 +50,16 @@ composeProduct(canonicalCommit);
 // @ts-expect-error Composition cannot accept label maps hidden in a surface variable.
 composeProduct(canonicalLanguage);
 // @ts-expect-error Paragraph representation is valid only for text facts.
-publishObject(Note, { ...notePublication, fields: [{ fact: factReference(Note, "state"), label: "State", representation: "paragraphs" }] });
+publishObject(Note, { ...notePublication, fields: [{ fact: factReference(Note, "state"), label: fixtureText.state, representation: "paragraphs" }] });
 // @ts-expect-error Field references must point to this object's actual facts.
-publishObject(Note, { ...notePublication, fields: [{ fact: { object: Note.id, field: "imagined" }, label: "Title", representation: "text" }] });
+publishObject(Note, { ...notePublication, fields: [{ fact: { object: Note.id, field: "imagined" }, label: fixtureText.title, representation: "text" }] });
 // @ts-expect-error A matching field name cannot refer to a different object.
-publishObject(Note, { ...notePublication, fields: [{ fact: { object: "other", field: "title" }, label: "Title", representation: "text" }] });
+publishObject(Note, { ...notePublication, fields: [{ fact: { object: "other", field: "title" }, label: fixtureText.title, representation: "text" }] });
 // @ts-expect-error Ownership identity is not a human-editable presentation field.
-publishObject(Note, { ...notePublication, fields: [{ fact: factReference(Note, "owner"), label: "Owner", representation: "text" }] });
+publishObject(Note, { ...notePublication, fields: [{ fact: factReference(Note, "owner"), label: fixtureText.owner, representation: "text" }] });
 // @ts-expect-error Renderer primitive identifiers are not semantic field representations.
-publishObject(Note, { ...notePublication, fields: [{ fact: factReference(Note, "body"), label: "Content", representation: "input.multiline" }] });
+publishObject(Note, { ...notePublication, fields: [{ fact: factReference(Note, "body"), label: fixtureText.content, representation: "input.multiline" }] });
 // @ts-expect-error Human review requirements are not renderer commit instructions.
-defineModule({ id: "invalid", journeys: [{ execution: CreateNote, label: "Create note", humanReview: "submit" }] });
+defineModule({ id: "invalid", journeys: [{ execution: CreateNote, label: fixtureText.createNote, humanReview: "submit" }] });
 // @ts-expect-error A read is not a mutation that can require human review.
-defineModule({ id: "invalid", journeys: [{ execution: ReadNote, label: "Read notes", humanReview: "required" }] });
+defineModule({ id: "invalid", journeys: [{ execution: ReadNote, label: fixtureText.readNotes, humanReview: "required" }] });

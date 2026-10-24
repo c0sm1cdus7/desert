@@ -9,7 +9,7 @@ export const authoringCalls = new Set([
   "controllerRole", "capability", "view", "inputMask",
   "defineModule", "composeProduct", "moduleIndex",
   "publishObject", "viewPorts", "factReference", "viewOutput", "initializeInput", "chooseFile", "defineView",
-  "activityInputs", "activityExperience",
+  "activityInputs", "activityExperience", "messageCatalog",
 ]);
 export type Scope = { bindings: Set<string>; calls: Map<string, string>; modules: Set<string>; roots: Set<ts.Node> };
 const moduleCalls = new Set(["moduleIndex"]);

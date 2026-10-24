@@ -14,6 +14,7 @@ import { notebookDefinition } from "./fixtures/notebook.ts";
 import { authoredNotebookSource } from "./fixtures/authored-notebook.ts";
 import { NotebookService, NotebookWeb, NotebookCLI, NotebookIOS } from "../products/notebook/distributions.ts";
 import { verifyManifestBoundaries } from "./fixtures/build-manifest.ts";
+import { FixtureMessages } from "./fixtures/messages.ts";
 
 test("a declared web distribution produces a built artifact instead of only a plan", { timeout: 90000 }, async () => {
   const directory = mkdtempSync(join(tmpdir(), "desert-build-test-"));

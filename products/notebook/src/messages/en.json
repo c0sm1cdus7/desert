@@ -1,0 +1,18 @@
+{
+  "notebook": {
+    "label": "Notebook",
+    "explore": "Explore"
+  },
+  "notes": {
+    "destination": "Notes",
+    "readNotes": "Read notes",
+    "subtitle": "Your private notebook.",
+    "all": "Notes",
+    "createNote": "Create note",
+    "archiveNote": "Archive note",
+    "close": "Close",
+    "titleField": "Title",
+    "contentField": "Content",
+    "statusField": "Status"
+  }
+}

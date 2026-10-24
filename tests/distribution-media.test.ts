@@ -11,19 +11,20 @@ import { openLocalController } from "../src/local.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
 import { authoredNotebookSource } from "./fixtures/authored-notebook.ts";
 import { NotebookService, NotebookWeb } from "../products/notebook/distributions.ts";
+import { fixtureText } from "./fixtures/messages.ts";
 const MediaView = defineView({ name: "media", content: [
-    Components.Header({ title: "Media", subtitle: "Reference images." }),
+    Components.Header({ title: fixtureText.media, subtitle: fixtureText.referenceImages }),
     Components.MediaLibrary({ library: { id: "test-images",
-      items: [{ id: "image", kind: "image", title: "Image", image: { asset: "sample-photo", alt: "A test image" } }],
-      albums: [{ id: "album", title: "Album", cover: "image", items: ["image"] }], featured: ["album"] } }),
+      items: [{ id: "image", kind: "image", title: fixtureText.image, image: { asset: "sample-photo", alt: fixtureText.aTestImage } }],
+      albums: [{ id: "album", title: fixtureText.album, cover: "image", items: ["image"] }], featured: ["album"] } }),
   ] });
 const BrowseMedia = { id: "browse-media", kind: "presentation", view: MediaView, outputs: [] } as const;
-const MediaDestination = { id: "media", label: "Media", icon: "open", entryJourney: BrowseMedia } as const;
+const MediaDestination = { id: "media", label: fixtureText.media, icon: "open", entryJourney: BrowseMedia } as const;
 const source = authoredNotebookSource();
 const MediaProduct = composeProduct({ ...source,
   views: [...source.views, MediaView], journeys: [...source.journeys, { presentation: BrowseMedia }],
   destinations: [...source.destinations, MediaDestination],
-  navigation: [...source.navigation, { destination: MediaDestination, group: "Explore", purpose: "content" }] as const,
+  navigation: [...source.navigation, { destination: MediaDestination, group: fixtureText.explore, purpose: "content" }] as const,
 });
 
 test("human distribution binds external images without shipping files and serves verified renditions", { timeout: 120000 }, async () => {

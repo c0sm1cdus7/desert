@@ -16,15 +16,21 @@ import { requireActivityBindings, requireActivityViews } from "./views.ts";
 import { publicReference } from "../modules/references.ts";
 import { requireDefinedView } from "../views/defined-view-registry.ts";
 import type { View } from "../views/schema.ts";
+import { requireMessageCatalog, type MessageCatalog } from "../messages/catalog.ts";
+import { buildLocale } from "../messages/locale.ts";
+import { resolveMessages } from "../views/declared.ts";
 
 const validate = createSchemaValidator<ActivityPlan>(ActivityPlanSchema);
 const canonical = (value: unknown) => JSON.stringify(jsonSnapshot(value));
 export const activityDigest = (value: unknown) => createHash("sha256").update(canonical(value)).digest("hex");
 const registered = new WeakSet<object>();
 
+/** `messages`: the catalog that resolves the declared views' messages, in the locale of the application's human surfaces. */
 export function activityIndex(application: Application, definitions: {
-  readonly journeys: readonly ActivityJourney[]; readonly views: readonly ViewTarget[];
+  readonly journeys: readonly ActivityJourney[]; readonly views: readonly ViewTarget[]; readonly messages: MessageCatalog;
 }) {
+  const locales = (loadDefinition(application).surfaces ?? []).flatMap(surface => surface.kind === "human" ? [surface.language.locale] : []);
+  const bundle = requireMessageCatalog(definitions.messages).bundle(buildLocale(locales));
   const installed = loadDefinition(application).journeys ?? [];
   const journeys = new Map(definitions.journeys.map(reference => {
     const journey = activityJourney(reference);
@@ -36,7 +42,7 @@ export function activityIndex(application: Application, definitions: {
   const views = viewIndex(definitions.views.map(value => {
     // Issued module references have already crossed the same component admission boundary.
     if (!publicReference(value, "view")) requireDefinedView(value);
-    return authoredViewData(viewTargetDefinition(value) as AuthoredView);
+    return resolveMessages(authoredViewData(viewTargetDefinition(value) as AuthoredView), bundle);
   }));
   const journeyReferences = new Map(definitions.journeys.map(value => [value, activityJourney(value).id]));
   const viewReferences = new Map(definitions.views.map(value => [value, String(viewTargetDefinition(value).id)]));

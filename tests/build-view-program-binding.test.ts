@@ -11,11 +11,12 @@ import { openLocalController } from "../src/local.ts";
 import { authoredNotebookSource } from "./fixtures/authored-notebook.ts";
 import { NotebookService, NotebookWeb } from "../products/notebook/distributions.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { fixtureText } from "./fixtures/messages.ts";
 
 test("mounting requires the exact admitted View program, not only the domain contract", { timeout: 90000 }, async () => {
   const source = authoredNotebookSource();
-  const original = composeProduct({ ...source, label: "Original workspace" });
-  const changed = composeProduct({ ...source, label: "Changed workspace", entry: source.destinations[1] });
+  const original = composeProduct({ ...source, label: fixtureText.originalWorkspace });
+  const changed = composeProduct({ ...source, label: fixtureText.changedWorkspace, entry: source.destinations[1] });
   const application = compile(original), newer = compile(changed);
   assert.equal(application.digest, newer.digest);
   assert.deepEqual(application.surface("human"), newer.surface("human"));

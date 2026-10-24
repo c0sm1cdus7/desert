@@ -12,18 +12,20 @@ import { ViewSchema } from "../views/schema.ts";
 import type { AuthoredView } from "./authored-types.ts";
 import { authoredViewData } from "../views/authored-view.ts";
 import { closed } from "../views/definition.ts";
+import { declaredSchema, type Declared } from "../views/declared.ts";
 import { declarationArray, declarationRecord } from "./declaration-data.ts";
 import type { FieldRepresentation } from "../field-representation.ts";
 
-const PublicationSchema = closed({ ...AuthoredPublishedPresentationSchema.properties, view: ViewSchema,
-  actions: Type.Array(closed({ ...PublishedPresentationSchema.properties.actions.items.properties, journey: JourneySchema })) });
+// Declared (plan §14): field labels and selection labels are messages, resolved when the product is composed.
+const PublicationSchema = declaredSchema(closed({ ...AuthoredPublishedPresentationSchema.properties, view: ViewSchema,
+  actions: Type.Array(closed({ ...PublishedPresentationSchema.properties.actions.items.properties, journey: JourneySchema })) }));
 type Publication = Omit<Frozen<Static<typeof PublicationSchema>>, "view"> & { readonly view: AuthoredView };
 type SubjectJourney<Id extends string> = Frozen<Extract<JourneyDefinition, { kind: "mutation" }>> & {
   readonly command: { readonly kind: "update"; readonly object: Id };
 };
 type SubjectAction<Id extends string> = Publication["actions"][number] & { readonly journey: SubjectJourney<Id> };
 type PresentedField<O extends ObjectDefinition> = {
-  [K in WritableKey<O>]: Omit<PublishedField, "fact" | "representation"> & {
+  [K in WritableKey<O>]: Omit<Declared<PublishedField>, "fact" | "representation"> & {
     readonly fact: FactReference<O["id"], K>;
     readonly representation: O["facts"][K] extends { readonly kind: "asset" } ? "image"
       : O["facts"][K] extends { readonly kind: "labels" } ? "tags"

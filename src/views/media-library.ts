@@ -1,6 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { Frozen } from "../json.ts";
 import { closed, name, text } from "./definition.ts";
+import type { Declared } from "./declared.ts";
 
 const artwork = closed({ asset: name, alt: text });
 const timed = {
@@ -26,6 +27,8 @@ export const MediaLibrarySchema = closed({
 });
 
 export type MediaLibrary = Frozen<Static<typeof MediaLibrarySchema>>;
+/** A media library as a product declares it: titles, alternative texts and caption labels are messages (plan §14). */
+export type DeclaredMediaLibrary = Declared<MediaLibrary>;
 
 /** Album membership may overlap; identities and references never resolve globally. */
 export function checkMediaLibrary(library: MediaLibrary): void {

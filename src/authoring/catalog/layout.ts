@@ -19,6 +19,10 @@ export type CatalogLayout = Readonly<{
    * entry file, as data the visible catalog shows. */
   generated: Readonly<{ index: string; manifest: string; types: string; renderers: string; sources: string }>;
   rendererTypes: string;
+  /** The SDK's message catalog (plan §14): `<locale>.json` bundles in `folder` and the generated `keys` module (rule C).
+   * `namespaces`: key namespaces owned by a module instead of a piece; every other key is owned by the piece whose
+   * `messages` lists it (rule B). */
+  messages: Readonly<{ folder: string; keys: string; namespaces: Readonly<Record<string, string>> }>;
   /** Rule P: every module of the gate, the folders that hold only those modules, and other files the gate needs.
    * `reads`: sources outside the visual roots that content rules read as data (rule K reads the view grammar). */
   gate: Readonly<{ roots: readonly string[]; modules: readonly string[]; required: readonly string[]; reads: readonly string[] }>;
@@ -54,6 +58,8 @@ export const DesertLayout: CatalogLayout = Object.freeze({
   generated: { index: "src/svelte/catalog/index.ts", manifest: "src/svelte/catalog/manifest.json", types: "src/svelte/catalog/types.d.ts",
     renderers: "src/svelte/renderer-registry.ts", sources: "src/svelte/catalog/sources.ts" },
   rendererTypes,
+  messages: { folder: "src/messages", keys: "src/messages/keys.ts",
+    namespaces: { errors: "src/messages/error-codes.ts", feedback: "src/web/client/failure-feedback.ts" } },
   gate: {
     roots: ["src/authoring/catalog"],
     modules: [
@@ -61,12 +67,12 @@ export const DesertLayout: CatalogLayout = Object.freeze({
         "normalize-source.ts", "read-contract.ts", "read-declaration.ts"]),
       ...modules("src/authoring/catalog/gate", ["approvals.ts", "browser-host.ts", "build-gate.ts", "component-runtime.ts", "composition-dispatch.ts", "contract-types.ts",
         "composition-template.ts", "content-rules.ts", "context.ts", "css-marks.ts", "css-ownership.ts", "declarations.ts", "derivation.ts",
-        "dispatch-admission.ts", "dom-access.ts", "emitted-css.ts", "grammar.ts", "inventory.ts", "ledger.ts", "native-controls.ts",
+        "dispatch-admission.ts", "dom-access.ts", "emitted-css.ts", "grammar.ts", "inventory.ts", "ledger.ts", "message-keys.ts", "messages.ts", "native-controls.ts",
         "nonvisual-sources.ts", "nonvisual.ts", "opaque-source.ts", "owner-imports.ts", "ownership.ts", "parse.ts", "presentation-contract.ts", "presentation.ts",
         "resolve-imports.ts", "run.ts", "runtime-globals.ts", "sources.ts", "specimens.ts", "stylesheet.ts", "template-artifacts.ts",
         "template-assets.ts", "violation.ts", "walk.ts"]),
     ],
-    required: [theme, rendererTypes],
+    required: [theme, rendererTypes, "src/messages/en.json"],
     reads: ["src/views/components.ts", "src/views/schema.ts", "src/views/grammar-map.ts",
       "src/interaction/information-content.ts", "src/interaction/extended-nodes.ts"],
   },

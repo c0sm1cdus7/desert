@@ -3,6 +3,7 @@ import { WorkspaceView, NavigationView } from "./workspace-view.ts";
 import { Note, OnlyOwnerCanAccess } from "../../products/notebook/note.ts";
 import { NotesController } from "../../products/notebook/dependencies.ts";
 import { CreateNote, ReadNote, ArchiveNote } from "../../products/notebook/journeys.ts";
+import { FixtureMessages, fixtureText } from "./messages.ts";
 
 const NotesView = { version: ViewVersion, id: "notes", outputs: ["create", "select"], content: [] } as const satisfies View;
 const DetailView = { version: ViewVersion, id: "detail", outputs: ["close"], content: [] } as const satisfies View;
@@ -16,12 +17,12 @@ const CreateJourney = { id: CreateNote.id, kind: "create", source: ReadNote, vie
   { ...viewOutput(EditorView, "save"), action: { kind: "submit" } },
 ] } as const;
 const About = { id: "about", kind: "presentation", view: NotesView, outputs: [] } as const;
-const NotesDestination = { id: "notes", label: "Notes", icon: "open", entryJourney: ReadNote } as const;
+const NotesDestination = { id: "notes", label: fixtureText.notes, icon: "open", entryJourney: ReadNote } as const;
 const source = { id: "notes", objects: [Note], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   views: [NotesView, DetailView, EditorView], destinations: [NotesDestination], journeys: [
-    { execution: CreateNote, presentation: CreateJourney, label: "Create note", humanReview: "not-required" },
-    { execution: ReadNote, presentation: ReadJourney, label: "Notes" },
-    { execution: ArchiveNote, label: "Archive note", humanReview: "required" }, { presentation: About },
+    { execution: CreateNote, presentation: CreateJourney, label: fixtureText.createNote, humanReview: "not-required" },
+    { execution: ReadNote, presentation: ReadJourney, label: fixtureText.notes },
+    { execution: ArchiveNote, label: fixtureText.archiveNote, humanReview: "required" }, { presentation: About },
   ], exports: { journeys: { createNote: CreateNote, readNotes: ReadNote, about: About }, views: { Notes: NotesView },
     destinations: { notes: NotesDestination }, dependencies: { NotesController } },
 } as const;
@@ -74,17 +75,17 @@ humanExposure({ id: "human", journeys: [Views.Notes], locale: "en" });
 // @ts-expect-error Module exports must preserve definition kind and exact typed identity.
 defineModule({ ...source, exports: { ...source.exports, views: { Notes: CreateNote } } });
 
-const root = { id: "notebook", label: "Notebook", modules: Modules, exposures: [human],
+const root = { messages: FixtureMessages, id: "notebook", label: fixtureText.notebook, modules: Modules, exposures: [human],
   workspace: WorkspaceView, views: [WorkspaceView, NavigationView], entry: Modules.destinations.notes,
-  navigation: [{ destination: Modules.destinations.notes, group: "Explore", purpose: "content" }],
+  navigation: [{ destination: Modules.destinations.notes, group: fixtureText.explore, purpose: "content" }],
 } as const;
 composeProduct(root);
 // @ts-expect-error A mount array cannot substitute for the issued module catalog.
-composeProduct({ ...root, modules: [NotesModule] });
+composeProduct({ messages: FixtureMessages, ...root, modules: [NotesModule] });
 // @ts-expect-error A journey reference is not a destination reference.
-composeProduct({ ...root, entry: Journeys.readNotes });
+composeProduct({ messages: FixtureMessages, ...root, entry: Journeys.readNotes });
 // @ts-expect-error A command reference cannot navigate to a destination.
-composeProduct({ ...root, entry: Commands.createNote });
+composeProduct({ messages: FixtureMessages, ...root, entry: Commands.createNote });
 // @ts-expect-error Stable serialized identities are not authored object references.
-composeProduct({ ...root, entry: "notes" });
+composeProduct({ messages: FixtureMessages, ...root, entry: "notes" });
 void [createId, commandId, notesId];

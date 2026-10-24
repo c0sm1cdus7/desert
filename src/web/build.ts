@@ -9,13 +9,14 @@ import { compileViewProgram } from "../views/program.ts";
 import { productViewProgram } from "../modules/compiled-product.ts";
 import { requireFieldPresentation } from "../field-representation.ts";
 import { viewProgramActivities } from "../activities/presentation.ts";
+import { rendererLocale } from "../messages/renderer-locale.ts";
 
 export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string) {
   if (arguments.length > 2) throw new Error("VIEW_PROGRAM_OVERRIDE_FORBIDDEN");
   const surface = application.surface(surfaceId);
   if (surface.kind !== "human") throw new Error("HUMAN_SURFACE_REQUIRED");
   requireCatalog(surface.catalog);
-  if (surface.language?.locale !== "en") throw new Error("UNSUPPORTED_RENDERER_LANGUAGE");
+  if (surface.language?.locale !== rendererLocale) throw new Error("UNSUPPORTED_RENDERER_LANGUAGE");
   const fieldPresentation = requireFieldPresentation(surface.fieldRepresentations, surface.fieldKinds, Object.keys(surface.language.fields));
   const viewProgram = compileViewProgram(productViewProgram(application), surface);
   viewProgramActivities(application, viewProgram, surfaceId);

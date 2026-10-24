@@ -25,7 +25,7 @@ test("Raw owned declarations cannot bypass publication field invariants", () => 
     const objects = [{ ...source.objects[0], presentation: { ...source.objects[0].presentation, fields } }];
     const raw = { ...source, objects };
     assert.throws(() => composeProduct(raw as never), { message });
-    const { modules, exposures, entry, navigation, label, workspace, ...module } = raw;
+    const { modules, exposures, entry, navigation, label, workspace, messages, ...module } = raw;
     assert.throws(() => defineModule(module as never), { message });
   }
 });
