@@ -1,11 +1,11 @@
 // The props of Card: one pressable card that opens what it shows. `presentation` is its anatomy: a catalog item (or the
 // featured entry, drawn the same) with its title over the artwork, a media tile, a collection cover with its title and
-// count, or a summary whose content is the `children` slot. `label` is its accessible name ("Open …"); `artwork` is an
-// image (`alt` is its text alternative, empty when decorative) or the placeholder of missing artwork, fitted by `fit`;
-// `prefetch` is the larger image to warm when the person points at or focuses the card. `attention` shows the attention
-// dot, `current` marks the shown object, `disabled` keeps it visible but closed; a summary names its readings with
-// `describedBy` (element ids) and is `busy` while it loads. `focusKey` registers the card in the nearest focus scope,
-// so a caller (a viewer it opened) can return focus to it by key.
+// count, or a summary: its title over its subtitle, then its readings in the `children` slot. `label` is its accessible
+// name ("Open …"); `artwork` is an image (`alt` is its text alternative, empty when decorative) or the placeholder of
+// missing artwork, fitted by `fit`; `prefetch` is the larger image to warm when the person points at or focuses the card.
+// `attention` shows the attention dot, `current` marks the shown object, `disabled` keeps it visible but closed; a
+// summary names its readings with `describedBy` (element ids) and is `busy` while it loads. `focusKey` registers the
+// card in the nearest focus scope, so a caller (a viewer it opened) can return focus to it by key.
 import { Type } from "@sinclair/typebox";
 import { text } from "../../../../views/definition.ts";
 import { AssetReferenceSchema } from "../../../../assets/types.ts";

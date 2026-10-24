@@ -4,8 +4,23 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { contractShape, mounted, specimenFindings } from "./support/foundation.ts";
 
-test("loading: the contract offers a kind and the announced label, nothing else", async () => {
-  assert.deepEqual(await contractShape("loading"), { kind: ["lines", "spinner"], label: "text" });
+test("loading: the contract offers a kind, the announced label, an inset and an id, nothing else", async () => {
+  assert.deepEqual(await contractShape("loading"), { kind: ["lines", "spinner"], label: "text", "inset?": ["none", "block"], "id?": "string" });
+});
+
+test("loading: the block inset pads it like a status block, and the id names it for a card's description", async () => {
+  const f = await mounted(`<div style="width:320px"><Catalog.Loading kind="lines" label="Loading content…" inset="block" id="pending" /></div>
+<div style="width:320px"><Catalog.Loading kind="lines" label="Loading content…" /></div>
+<div style="width:320px"><Catalog.Status title="Nothing here yet." tone="neutral" size="regular" heading={false} /></div>`);
+  try {
+    const [block, bare, status] = await f.page.evaluate(() => [...document.querySelectorAll("[data-loading], [data-status]")].map(node => {
+      const style = getComputedStyle(node);
+      return { id: node.id, padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft] };
+    }));
+    assert.deepEqual(block, { id: "pending", padding: status?.padding }, "the status block's 24px padding");
+    assert.deepEqual(bare, { id: "", padding: ["0px", "0px", "0px", "0px"] });
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
 });
 
 test("loading: every kind has exactly one specimen", async () => {

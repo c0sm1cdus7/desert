@@ -3,8 +3,19 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { contractShape, mounted, specimenFindings } from "./support/foundation.ts";
 
-test("meter: the contract offers a total, its label, the segments and a name, nothing else", async () => {
-  assert.deepEqual(await contractShape("meter"), { total: "integer", totalLabel: "text", segments: "array", label: "text" });
+test("meter: the contract offers a total, its label, the segments, a name and an id, nothing else", async () => {
+  assert.deepEqual(await contractShape("meter"), { total: "integer", totalLabel: "text", segments: "array", label: "text", "id?": "string" });
+});
+
+test("meter: the id names the whole for a card's description, and the readings stay regular inside a medium-weight card", async () => {
+  const f = await mounted(`<div style="font-weight:500"><Catalog.Meter id="total" total={3} totalLabel="Tasks" label="3 Tasks 2 Open 1 Completed"
+  segments={[{ count: 2, label: "Open" }, { count: 1, label: "Completed" }]} /></div>`);
+  try {
+    const meter = await f.page.locator("#total").evaluate(node => ({ name: node.getAttribute("aria-label"),
+      label: getComputedStyle(node.firstElementChild!.lastElementChild!).fontWeight, legend: getComputedStyle(node.lastElementChild!).fontWeight }));
+    assert.deepEqual(meter, { name: "3 Tasks 2 Open 1 Completed", label: "400", legend: "400" });
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
 });
 
 test("meter: its one state has exactly one specimen", async () => {

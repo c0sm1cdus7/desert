@@ -1,16 +1,16 @@
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
-  let { kind, measure, label, children }: CatalogProps<"list"> = $props();
+  let { kind, measure, label, busy, children }: CatalogProps<"list"> = $props();
 </script>
 
 <!-- One shared pane for sibling rows or facts; the rows draw their own hairlines. -->
 {#if kind === "facts"}
-  <dl class="list list-facts material-pane" class:list-reading={measure === "reading"} data-list="facts" aria-label={label}>
+  <dl class="list list-facts material-pane" class:list-reading={measure === "reading"} data-list="facts" aria-label={label} aria-busy={busy}>
     {@render children?.()}
   </dl>
 {:else}
   <div class="list list-rows material-pane" class:list-reading={measure === "reading"} data-list="rows"
-    role={label ? "group" : undefined} aria-label={label}>{@render children?.()}</div>
+    role={label ? "group" : undefined} aria-label={label} aria-busy={busy}>{@render children?.()}</div>
 {/if}
 
 <style>
