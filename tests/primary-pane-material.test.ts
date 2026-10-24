@@ -36,7 +36,7 @@ test('primary buttons share the pane recipe and retain emphasis during pending',
       ] });
       for (const state of ['ready','unavailable','pending']) {
         await f.page.locator('[data-test-controls]').getByRole('button', { name: state, exact: true }).click();
-        const panes = await f.page.locator('[data-material="pane"]').evaluateAll(nodes => {
+        const panes = await f.page.locator('.material-pane').evaluateAll(nodes => {
           const canvas = document.createElement('canvas').getContext('2d')!;
           const rgba = (color: string) => {
             canvas.clearRect(0,0,1,1); canvas.fillStyle = color; canvas.fillRect(0,0,1,1);

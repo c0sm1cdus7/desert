@@ -28,10 +28,9 @@
 
 {#if collapsible === "none"}
 	<div
-		data-material="pane"
 		data-sidebar="sidebar"
 		class={cn(
-			"flex h-full w-(--sidebar-width) flex-col text-sidebar-foreground",
+			"material-pane flex h-full w-(--sidebar-width) flex-col text-sidebar-foreground",
 			className
 		)}
 		bind:this={ref}
@@ -115,8 +114,7 @@
 			<div
 				data-sidebar="sidebar"
 				data-slot="sidebar-inner"
-				data-material="pane"
-				class="group-data-[variant=floating]:rounded-lg flex size-full flex-col"
+				class="material-pane group-data-[variant=floating]:rounded-lg flex size-full flex-col"
 			>
 				{@render children?.()}
 			</div>

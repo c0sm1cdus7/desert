@@ -8,7 +8,7 @@
   $effect(() => { if (row) return pressFeedback(row); });
 </script>
 
-<Field.FieldLabel bind:ref={row} for={id} class="tm-control" aria-disabled={disabled} data-grouped-row data-choice-row data-material="interior">
+<Field.FieldLabel bind:ref={row} for={id} class="control-feedback material-interior" aria-disabled={disabled} data-grouped-row data-choice-row>
   <ChoiceItem {label} {labelId} {description} {descriptionId}>
     {@render children?.()}
   </ChoiceItem>

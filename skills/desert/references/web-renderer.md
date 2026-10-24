@@ -4750,7 +4750,7 @@ Source SHA-256: 2b58281a3deb333667d4586c6377154dca80eb53518481853a663287ac455962
 
 ## src/svelte/catalog/foundations/choice-row/ChoiceRow.svelte
 
-Source SHA-256: 20d5309ef63ca189aad5ca9c625aff69302f58ae5266228b61504e12f6ba0d1c
+Source SHA-256: 65fdcd7e3a17842d2161ae4a151dc05772062efb7901c7cebcda11d73c9fefde
 
 ```svelte
 <script lang="ts">
@@ -4763,7 +4763,7 @@ Source SHA-256: 20d5309ef63ca189aad5ca9c625aff69302f58ae5266228b61504e12f6ba0d1c
   $effect(() => { if (row) return pressFeedback(row); });
 </script>
 
-<Field.FieldLabel bind:ref={row} for={id} class="tm-control" aria-disabled={disabled} data-grouped-row data-choice-row data-material="interior">
+<Field.FieldLabel bind:ref={row} for={id} class="control-feedback material-interior" aria-disabled={disabled} data-grouped-row data-choice-row>
   <ChoiceItem {label} {labelId} {description} {descriptionId}>
     {@render children?.()}
   </ChoiceItem>
@@ -5011,7 +5011,7 @@ export const actionIconNames = {
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: 4880566c820a36430617ceb988e72a8273b85220673c243243713f6359c90a31
+Source SHA-256: aeee9e347422ee3b6204783335cf9159ce6633e4f581605e67854136766bac2e
 
 ```svelte
 <script lang="ts" module>
@@ -5021,7 +5021,7 @@ Source SHA-256: 4880566c820a36430617ceb988e72a8273b85220673c243243713f6359c90a31
 
 	/** The public buttonVariants contract. */
 	export const buttonVariants = tv({
-        base: "tm-control inline-flex shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-full type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+        base: "inline-flex shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
         variants: {
             spin: { true: "[&_svg[data-icon]]:animate-spin" },
             variant: {
@@ -5090,6 +5090,10 @@ Source SHA-256: 4880566c820a36430617ceb988e72a8273b85220673c243243713f6359c90a31
 		children,
 		...restProps
 	}: ButtonProps = $props();
+	// The material is the variant's unless the caller names one (a sidebar row); prominence tints the pane.
+	const interiors: readonly ButtonVariant[] = ["ghost", "grip", "link", "row", "field"];
+	let material = $derived(/\bmaterial-(?:pane|interior)\b/.test(cn(className)) ? undefined
+		: interiors.includes(variant) ? "material-interior" : variant === "default" ? "material-pane material-pane-primary" : "material-pane");
 	$effect(() => { onready?.(ref instanceof HTMLButtonElement || ref instanceof HTMLAnchorElement ? ref : null); return () => onready?.(null); });
 </script>
 
@@ -5103,8 +5107,7 @@ Source SHA-256: 4880566c820a36430617ceb988e72a8273b85220673c243243713f6359c90a31
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
-		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		href={disabled ? undefined : href}
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
@@ -5112,7 +5115,7 @@ Source SHA-256: 4880566c820a36430617ceb988e72a8273b85220673c243243713f6359c90a31
 		{...restProps}
 		data-variant={variant}
 	>
-		<span data-button-content>{@render children?.()}</span>
+		<span class="control-feedback-content" data-button-content>{@render children?.()}</span>
 	</a>
 {:else}
 	<button
@@ -5124,8 +5127,7 @@ Source SHA-256: 4880566c820a36430617ceb988e72a8273b85220673c243243713f6359c90a31
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
-		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		data-toolbar-scroll-top={presentation === "toolbar-return" || undefined}
 		data-catalog-search-toggle={presentation === "search-toggle" || undefined}
 		data-catalog-search-cancel={presentation === "search-toggle" && searching || undefined}
@@ -5134,7 +5136,7 @@ Source SHA-256: 4880566c820a36430617ceb988e72a8273b85220673c243243713f6359c90a31
 		{...restProps}
 		data-variant={variant}
 	>
-		<span data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
+		<span class="control-feedback-content" data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
 	</button>
 {/if}
 

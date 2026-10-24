@@ -17,6 +17,9 @@ export const appearanceChoices = Object.freeze({
   wallpaper: [{ value: "silk", label: "Silk" }, { value: "mist", label: "Mist" }, { value: "plain", label: "Plain" }],
 } as const);
 
+/** The theme's tint utility of each tint (personalization), written literally so the theme's Tailwind scan sees each. */
+export const tintClass = Object.freeze({ blue: "tint-blue", violet: "tint-violet", rose: "tint-rose", green: "tint-green", slate: "tint-slate" } as const) satisfies Readonly<Record<AppearancePreferences["tint"], string>>;
+
 export function appearancePreferences(value: unknown): AppearancePreferences | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const candidate = value as Record<string, unknown>;

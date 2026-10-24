@@ -27,8 +27,8 @@ const source = `<script lang="ts">
 </main>
 <style>
   [data-parity] { margin:24px; padding:24px; background:var(--background); color:var(--foreground); }
-  [data-catalog-group-title] { margin:0 var(--place-content-inset,42px) 10px; font:var(--text-title--font-weight) var(--text-title)/var(--text-title--line-height) var(--font-sans); }
-  [data-catalog-detail-title] { margin:0 0 8px; font:var(--text-title--font-weight) var(--text-page)/var(--text-page--line-height) var(--font-sans); outline:none; }
+  [data-catalog-group-title] { margin:0 var(--place-content-inset,42px) 10px; font:var(--text-section--font-weight) var(--text-section)/var(--text-section--line-height) var(--font-sans); }
+  [data-catalog-detail-title] { margin:0 0 8px; font:var(--text-section--font-weight) var(--text-page)/var(--text-page--line-height) var(--font-sans); outline:none; }
 </style>`;
 
 test("closed semantic headings and text composition preserve exact pixels and geometry", { timeout: 60000 }, async () => {

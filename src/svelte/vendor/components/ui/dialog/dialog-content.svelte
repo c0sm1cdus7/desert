@@ -9,7 +9,7 @@
 	import type { Snippet } from "svelte";
 	import type { ComponentProps } from "svelte";
 	import { surfaceFocus } from "@desert/svelte/infra/surface-focus.svelte.ts";
-  import { useSurfaceTypography } from '@desert/svelte/infra/surface-typography.svelte.ts';
+  import { densityClass, useSurfaceTypography } from '@desert/svelte/infra/surface-typography.svelte.ts';
 
 	let {
 		ref = $bindable(null),
@@ -35,7 +35,7 @@
 		adaptiveModal?: boolean;
 	} = $props();
 	const focus = surfaceFocus(() => ref);
-  const density = useSurfaceTypography();
+  const density = useSurfaceTypography(), densityOf = () => { const value = density(); return value && densityClass[value]; };
 </script>
 
 <DialogPortal {...portalProps}>
@@ -43,11 +43,9 @@
 	<DialogPrimitive.Content
 		bind:ref
 		data-slot="dialog-content"
-    data-material="pane"
-    data-type-density={density()}
 		onOpenAutoFocus={event => focus.open(event, onOpenAutoFocus)}
 		onCloseAutoFocus={event => focus.close(event, onCloseAutoFocus)}
-		class={cn(
+		class={cn("material-pane", densityOf(),
 			presentation === "default"
 				? "centered-dialog text-popover-foreground grid max-w-[calc(100%_-_2rem)] gap-4 rounded-xl p-4 text-sm sm:max-w-sm z-50 w-full overflow-y-auto outline-none"
 				: presentation === "panel" ? "drawer transient-content" : presentation === "media" ? "media-viewer" : "problem",

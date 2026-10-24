@@ -1,23 +1,27 @@
 /* Shared renderer foundation. Pane owns material; tokens own semantic ink.
-   Native system fonts are resolved by the host, never bundled Apple fonts. */
-:root, [data-appearance-preview] {
+   Native system fonts are resolved by the host, never bundled Apple fonts.
+   A scheme is a utility, so a preview applies the same tokens the root applies. A tint (personalization) only supplies
+   --ui-tint-* inputs; the scheme reads them and falls back to its own untinted ink. */
+@utility scheme-light {
   --font-sans:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   --font-brand:var(--font-sans); --weight-title:600;
-  --background:#f5f5f7; --foreground:#1d1d1f;
-  --card:#fff; --card-foreground:var(--foreground);
-  --popover:#fff; --popover-foreground:var(--foreground);
-  --primary:#005fcf; --primary-foreground:#fff; --primary-text:#005bbf;
-  --secondary:#e8e8ed; --secondary-foreground:var(--foreground);
+  --background-base:#f5f5f7; --card-base:#fff; --secondary-base:#e8e8ed;
+  --background:var(--ui-tint-background,var(--background-base)); --foreground:#1d1d1f;
+  --card:var(--ui-tint-card,var(--card-base)); --card-foreground:var(--foreground);
+  --popover:var(--card); --popover-foreground:var(--foreground);
+  --primary:var(--ui-tint,#005fcf); --primary-foreground:#fff; --primary-text:var(--ui-tint-ink,#005bbf);
+  --secondary:var(--ui-tint-secondary,var(--secondary-base)); --secondary-foreground:var(--foreground);
   --muted:#ececef; --muted-foreground:#65656b;
   --accent:#e4e4e9; --accent-foreground:var(--foreground);
   --destructive:#c32230; --positive:#267a3e; --negative:var(--destructive); --tertiary:#916000;
   --border:#c6c6cc; --separator:rgb(60 60 67 / .12);
-  --input:var(--card); --control:var(--card); --ring:#007aff;
+  --input:var(--card); --control:var(--card); --ring:var(--ui-tint-ring,#007aff);
   --sidebar:rgb(245 245 247 / .65); --sidebar-foreground:var(--foreground);
   --sidebar-primary:var(--primary); --sidebar-primary-foreground:var(--primary-foreground);
   --sidebar-accent:var(--primary); --sidebar-accent-foreground:var(--primary-foreground);
   --sidebar-border:rgb(0 0 0 / .08); --sidebar-ring:var(--ring);
-  --radius:.875rem; --radius-group:.75rem; --place-radius:var(--radius); --disabled-opacity:.5;
+  --radius:.875rem; --radius-group:.75rem; --radius-surface:28px; --radius-mark:50%;
+  --place-radius:var(--radius); --disabled-opacity:.5;
   --elev-0:none; --elev-1:0 1px 2px rgb(0 0 0 / .05); --elev-content:none;
   --elev-2:0 2px 8px -2px rgb(0 0 0 / .12),0 1px 2px -1px rgb(0 0 0 / .08);
   --elev-3:0 10px 24px -6px rgb(0 0 0 / .16); --elev-4:0 25px 50px -12px rgb(0 0 0 / .25);
@@ -37,23 +41,16 @@
   --chart-1:#c32230; --chart-2:#267a3e; --chart-3:#916000; --chart-4:#8955a4; --chart-5:#005fcf;
   color-scheme:light;
 }
-:root[data-theme="dark"], [data-appearance-preview="dark"] {
-  --background:#1e1e1e; --foreground:#f5f5f5; --card:#292929; --popover:#292929;
-  --primary-text:#80bbff; --secondary:#3a3a3c; --muted:#333335; --muted-foreground:#b3b3b8;
+@utility scheme-dark {
+  @apply scheme-light;
+  --background-base:#1e1e1e; --foreground:#f5f5f5; --card-base:#292929;
+  --primary-text:var(--ui-tint-ink,#80bbff); --secondary-base:#3a3a3c; --muted:#333335; --muted-foreground:#b3b3b8;
   --accent:#38383a; --destructive:#ff8a85; --positive:#80ce94; --tertiary:#dcb762;
-  --border:rgb(255 255 255 / .2); --separator:rgb(255 255 255 / .08); --ring:#70b1ff;
+  --border:rgb(255 255 255 / .2); --separator:rgb(255 255 255 / .08); --ring:var(--ui-tint-ring,#70b1ff);
   --sidebar:rgb(23 23 23 / .35); --sidebar-border:rgb(255 255 255 / .12);
   --elev-1:0 1px 2px rgb(0 0 0 / .2); --elev-2:0 2px 8px -2px rgb(0 0 0 / .35);
   color-scheme:dark;
 }
-@media (prefers-color-scheme:dark) {
-  :root:not([data-theme="light"]) {
-    --background:#1e1e1e; --foreground:#f5f5f5; --card:#292929; --popover:#292929;
-    --primary-text:#80bbff; --secondary:#3a3a3c; --muted:#333335; --muted-foreground:#b3b3b8;
-    --accent:#38383a; --destructive:#ff8a85; --positive:#80ce94; --tertiary:#dcb762;
-    --border:rgb(255 255 255 / .2); --separator:rgb(255 255 255 / .08); --ring:#70b1ff;
-    --sidebar:rgb(23 23 23 / .35); --sidebar-border:rgb(255 255 255 / .12);
-    --elev-1:0 1px 2px rgb(0 0 0 / .2); --elev-2:0 2px 8px -2px rgb(0 0 0 / .35);
-    color-scheme:dark;
-  }
-}
+:root { @apply scheme-light; }
+:root[data-theme="dark"] { @apply scheme-dark; }
+@media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) { @apply scheme-dark; } }

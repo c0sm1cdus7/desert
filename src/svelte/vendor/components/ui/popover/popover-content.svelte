@@ -3,11 +3,11 @@
   import { Popover } from "bits-ui";
   import { cn } from "../../../utils.js";
   import { surfaceFocus } from "@desert/svelte/infra/surface-focus.svelte.ts";
-  import { useSurfaceTypography } from '@desert/svelte/infra/surface-typography.svelte.ts';
+  import { densityClass, useSurfaceTypography } from '@desert/svelte/infra/surface-typography.svelte.ts';
   let { ref = $bindable(null), class: className, onOpenAutoFocus, onCloseAutoFocus, onFocusOutside, presentation = "pane",
     ...props }: Omit<Popover.ContentProps, "child"> & { presentation?: "pane" | "speed-dial" | "reference" | "selection" } = $props();
   const focus = surfaceFocus(() => ref, event => onFocusOutside?.(event));
-  const density = useSurfaceTypography();
+  const density = useSurfaceTypography(), densityOf = () => { const value = density(); return value && densityClass[value]; };
 </script>
 <Popover.Portal>
   <Popover.Content bind:ref sideOffset={8} align="start" collisionPadding={12} trapFocus={false} preventScroll={false}
@@ -15,7 +15,8 @@
     onCloseAutoFocus={event => focus.close(event, onCloseAutoFocus)}
     {...props} role={presentation === "speed-dial" ? "dialog" : props.role}
     style={presentation === "selection" ? "padding:.25rem;gap:0;width:max-content" : props.style}
-    data-material={presentation !== "speed-dial" ? "pane" : undefined} data-type-density={density()} data-slot="popover-content"
-    data-popover-presentation={presentation} class={cn(presentation !== "speed-dial" ? "floating-pane anchored-surface" : "speed-dial",
+    data-slot="popover-content"
+    data-popover-presentation={presentation} class={cn(presentation !== "speed-dial" ? "material-pane floating-pane anchored-surface" : "speed-dial",
+      densityOf(),
       presentation === "reference" && "w-[min(24rem,calc(100dvw-24px))] max-h-[calc(100dvh-48px)] overflow-y-auto", className)} />
 </Popover.Portal>
