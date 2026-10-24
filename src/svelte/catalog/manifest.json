@@ -2315,7 +2315,7 @@
       "owner": {
         "entry": "StackItem.svelte"
       },
-      "purpose": "Place one entry of a stack by the kind of node it holds, at the content or the surface inset.",
+      "purpose": "Place one entry of a stack at the content or the surface inset.",
       "shape": "none",
       "slots": {
         "children": {
@@ -2325,9 +2325,14 @@
         }
       },
       "states": [
-        "content",
-        "surface"
-      ]
+        "default"
+      ],
+      "variants": {
+        "placement": [
+          "content",
+          "surface"
+        ]
+      }
     },
     "stack-layout": {
       "approval": "required",

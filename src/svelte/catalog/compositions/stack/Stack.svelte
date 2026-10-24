@@ -5,6 +5,7 @@
   import { NodeRenderer } from "../../index.ts";
   import { StackLayout } from "../../index.ts";
   import { StackItem } from "../../index.ts";
+  import { stackPlacement } from "../../../infra/stack-placement.ts";
   import { provideStackTitle } from "../../../infra/stack-context.ts";
   import { optionsInputRequired } from "../../../../interaction/extended-controls.ts";
   let { definition, onevent, host }: {
@@ -19,7 +20,7 @@
 <section data-place-stack={definition.id}>
   <StackLayout title={definition.title} description={definition.description} {required}>
     {#each definition.items as item, index (index)}
-      <StackItem kind={item.kind}>
+      <StackItem placement={stackPlacement(item.kind)} kind={item.kind}>
         <NodeRenderer node={item} {onevent} {host} />
       </StackItem>
     {/each}
