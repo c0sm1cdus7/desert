@@ -8,5 +8,5 @@ export const MediaViewerSpecimens = [
   { state: "playable", props: { title: "Studio", index: 0, open: true, items: [
     { kind: "video", source: "/media/film", alt: "Motion study", captions: [{ source: "/media/captions", language: "en", label: "English" }] },
     { kind: "audio", source: "/media/audio", alt: "Silence", captions: [] }] } },
-  { state: "single", props: { title: "Lake", index: 0, open: true, items: [{ kind: "image", source: "/bank-image.svg", alt: "Mountain lake" }] } },
+  { state: "single", props: { title: "Lake", index: 0, open: true, returnFocus: "catalog-return:lake", items: [{ kind: "image", source: "/bank-image.svg", alt: "Mountain lake" }] } },
 ] as const satisfies readonly CatalogSpecimen<"media-viewer">[];

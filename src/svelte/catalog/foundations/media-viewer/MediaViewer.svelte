@@ -5,19 +5,29 @@
   import { Action, Image, MediaPlayer, ToolbarLayout } from '../../index.ts';
   import { mediaGestures } from '../../mechanisms/media-gestures/media-gestures.ts';
   import { imageIdentity } from '../../../infra/media-source.ts';
+  import { useFocusScope } from '../../../infra/focus-scope.ts';
   import MediaStrip from './MediaStrip.svelte';
   import type { CatalogProps } from '../../types.d.ts';
-  let { items, title, index, open, onindex, onopenchange }: CatalogProps<"media-viewer"> = $props();
+  let { items, title, index, open, returnFocus, onindex, onopenchange }: CatalogProps<"media-viewer"> = $props();
   let scale = $state(1), closeButton = $state<HTMLButtonElement | null>(null);
   let player = $state<{ toggle(): Promise<void>; stop(): void } | null>(null);
   let gesture: ReturnType<typeof mediaGestures> | undefined;
-  let opener: HTMLElement | null = null, shown = false;
+  let opener: HTMLElement | null = null, shown = false, anchor = $state<HTMLElement | null>(null), region: HTMLElement | null = null;
+  const scope = useFocusScope();
   const selected = $derived(items[index] ?? items[0]);
   // The opener is captured before the dialog takes focus, and focus returns to it when the viewer closes.
   $effect.pre(() => {
     if (open && !shown) opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     shown = open;
   });
+  // The scroll region the viewer was opened in, kept while the caller unmounts the viewer as it closes.
+  $effect(() => { if (anchor) region = anchor.closest<HTMLElement>('[data-catalog-scroll]'); });
+  // A caller that names a return key gets focus back on what it registered under it, or on the scroll region the viewer
+  // was opened in when that is gone; otherwise focus returns to the opener.
+  function restoreFocus() {
+    if (returnFocus === undefined) { if (opener?.isConnected) opener.focus({ preventScroll: true }); return; }
+    if (!scope?.focus(returnFocus)) region?.focus({ preventScroll: true });
+  }
   function select(next: number) { player?.stop(); onindex?.(Math.max(0, Math.min(items.length - 1, next))); gesture?.reset(); }
   function changeOpen(value: boolean) { if (!value) player?.stop(); onopenchange?.(value); }
   function manipulate(element: HTMLDivElement) {
@@ -48,10 +58,11 @@
   {/if}
 {/snippet}
 
+<span bind:this={anchor} hidden></span>
 <Dialog.Root {open} onOpenChange={changeOpen}>
   <Dialog.Content presentation="media" showCloseButton={false} data-media-viewer
     onOpenAutoFocus={event => { event.preventDefault(); closeButton?.focus({ preventScroll: true }); }}
-    onCloseAutoFocus={event => { event.preventDefault(); if (opener?.isConnected) opener.focus({ preventScroll: true }); }} onkeydown={key}>
+    onCloseAutoFocus={event => { event.preventDefault(); restoreFocus(); }} onkeydown={key}>
     <ToolbarLayout identity={{ title, subtitle: `${index + 1} / ${items.length}` }} identityRole="dialog" oncloseElement={element => closeButton = element}
       content={{ kind: "media-header", close: () => changeOpen(false), zoom: selected?.kind === 'image'
         ? { scale, onzoom: value => gesture?.zoom(value), onreset: () => gesture?.reset() } : undefined }} />
