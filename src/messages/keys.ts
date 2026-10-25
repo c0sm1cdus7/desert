@@ -209,13 +209,6 @@ export const Messages = messageCatalog({
       "tint": "Tint",
       "wallpaper": "Wallpaper"
     },
-    "appearancePreview": {
-      "purpose": "Compare Dark and Light using the same surface, tint and wallpaper tokens as the running interface."
-    },
-    "avatarShuffle": {
-      "purpose": "Generate a new avatar seed on activation and reveal the shuffle overlay on hover or focus.",
-      "shuffleAvatar": "Shuffle avatar"
-    },
     "identity": {
       "purpose": "Show the signed-in identity's display name, identity name and role, or say that identity access is not installed.",
       "identity": "Your identity",
@@ -398,9 +391,6 @@ export const Messages = messageCatalog({
     "catalogWorkspaceContent": {
       "purpose": "Show the body of the catalog workspace: the visited views of a program, or the public catalog's browse, exercises and bank places."
     },
-    "catalogNavigation": {
-      "purpose": "Retired: the shell draws the navigation pane from the workspace's destinations."
-    },
     "contentFlow": {
       "purpose": "Arrange reading, overview or gallery stacks within the shared content measures and responsive layout.",
       "connection": "Connection",
@@ -476,14 +466,6 @@ export const Messages = messageCatalog({
     },
     "popoverControl": {
       "purpose": "Read contextual information in a temporary surface anchored to its trigger."
-    },
-    "fileControl": {
-      "purpose": "Select supported local files and inspect their limits before an operation uses them."
-    },
-    "speedDial": {
-      "purpose": "Reveal overflowing contextual commands beside their readable labels, without putting content navigation in the toolbar.",
-      "create": "Create",
-      "more": "More actions"
     },
     "moneyControl": {
       "purpose": "Enter an amount and choose its currency without losing the lexical draft.",
@@ -574,9 +556,6 @@ export const Messages = messageCatalog({
     "placeContent": {
       "purpose": "Show a place's checked content: its header and each of its stacks."
     },
-    "placeHeader": {
-      "purpose": "Head a place's content with its title, its subtitle and an optional background image, never a toolbar."
-    },
     "localExerciseContent": {
       "purpose": "Present the local exercises place as a draft its own events reduce, forwarding catalog navigation to the host."
     },
@@ -592,9 +571,6 @@ export const Messages = messageCatalog({
     },
     "panel": {
       "purpose": "Keep an owned view panel mounted across open and close, routing its events with the owner it was mounted for."
-    },
-    "confirmationDialog": {
-      "purpose": "Ask for explicit confirmation in a compact temporary surface with clear primary and secondary actions."
     },
     "bar": {
       "purpose": "Keep navigation and contextual commands in the surface toolbar; reveal its title and subtitle only after the content header scrolls away.",

@@ -4,7 +4,7 @@
   import { cn } from "../../../vendor/utils.js";
   // F1-merge: press feedback — the button family's pressFeedback attachment until its owner is settled (as Tag, Avatar).
   import { pressFeedbackProps } from "../../../vendor/components/ui/button/press-feedback.js";
-  import { FieldWellContent, Icon } from "../../index.ts";
+  import { Icon } from "../../index.ts";
   import { surfaceFocus, revealSurfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
   import { provideOpenFocus } from "../../mechanisms/surface-focus/focus-return.ts";
   import type { ChoiceOption } from "../../../../interaction/choice.ts";
@@ -70,11 +70,13 @@
   onkeydown={event => { if ((event.key === "ArrowDown" || event.key === "ArrowUp") && !disabled) { event.preventDefault(); open = true; } }}>
   <span class="content control-feedback-content" data-button-content>
     {#if trigger === "well"}
-      <FieldWellContent {label} {required}>
+      <!-- lane-merge: the well content FieldWellContent drew (deleted in Batch 3), until Field's trigger draws this well. -->
+      <span class="relative flex min-w-0 flex-1 flex-col" data-field-well>
+        <span data-slot="field-label">{label}{#if required}<span class="required" aria-hidden="true">*</span>{/if}</span>
         <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
           {@render shown()}<Icon name="chevron-down" placement="inline-end" chevron decorative />
         </span>
-      </FieldWellContent>
+      </span>
     {:else}{@render shown()}<Icon name="chevron-down" placement="inline-end" chevron decorative />{/if}
   </span>
 </button>

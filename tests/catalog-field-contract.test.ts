@@ -28,13 +28,14 @@ test("field: the contract is closed: a shared part and exclusive variants by pri
   assert.equal(contract.closed, true);
   if (!contract.closed) return;
   assert.deepEqual(Object.keys(contract.props), ["label", "labelVisibility", "required", "invalid", "disabled", "helper", "error", "identity",
-    "measure", "primitive", "purpose", "value", "placeholder", "mask", "maxLength", "counter", "clear", "focus", "display", "disclosure"]);
+    "measure", "primitive", "purpose", "value", "placeholder", "mask", "maxLength", "counter", "clear", "focus", "controls", "expanded",
+    "display", "disclosure"]);
   const required = Object.entries(contract.props).filter(([, item]) => !item.optional).map(([name]) => name);
   assert.deepEqual(required, ["label", "labelVisibility", "required", "invalid", "disabled", "measure", "primitive"]);
   assert.deepEqual(contract.props.primitive?.schema, { kind: "union", members: [{ kind: "literal", value: "input.text" },
     { kind: "literal", value: "input.multiline" }, { kind: "literal", value: "trigger" }] });
   assert.deepEqual(Object.keys(contract.events), ["change", "masked", "open"]);
-  assert.deepEqual(contract.marks, ["data-field", "data-field-filled", "data-measure"]);
+  assert.deepEqual(contract.marks, ["data-field", "data-field-filled", "data-measure", "data-search-expanded"]);
 });
 
 test("field: it owns the five writing vendor families, renders both input kinds, and text-input owns neither any more", () => {

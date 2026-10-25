@@ -380,23 +380,6 @@
         "stack-layout"
       ]
     },
-    "appearance-preview": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/appearance-preview",
-      "kind": "composition",
-      "messages": [
-        "appearancePreview.purpose"
-      ],
-      "owner": {
-        "entry": "AppearancePreview.svelte"
-      },
-      "purpose": {
-        "key": "appearancePreview.purpose"
-      },
-      "uses": [
-        "theme-preview"
-      ]
-    },
     "appearance-root": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/appearance-root",
@@ -412,25 +395,6 @@
       "states": [
         "default"
       ]
-    },
-    "artwork-placeholder": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/artwork-placeholder",
-      "kind": "foundation",
-      "owner": {
-        "entry": "ArtworkPlaceholder.svelte"
-      },
-      "purpose": "Stand in for the missing cover artwork of audio or poster of video with the glyph of its media kind.",
-      "shape": "none",
-      "states": [
-        "default"
-      ],
-      "variants": {
-        "kind": [
-          "video",
-          "audio"
-        ]
-      }
     },
     "attention-indicator": {
       "approval": "required",
@@ -545,24 +509,6 @@
           "row"
         ]
       }
-    },
-    "avatar-shuffle": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/avatar-shuffle",
-      "kind": "composition",
-      "messages": [
-        "avatarShuffle.purpose",
-        "avatarShuffle.shuffleAvatar"
-      ],
-      "owner": {
-        "entry": "AvatarShuffle.svelte"
-      },
-      "purpose": {
-        "key": "avatarShuffle.purpose"
-      },
-      "uses": [
-        "avatar"
-      ]
     },
     "bar": {
       "approval": "required",
@@ -739,21 +685,6 @@
         "view-region"
       ]
     },
-    "catalog-navigation": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/catalog-navigation",
-      "kind": "composition",
-      "messages": [
-        "catalogNavigation.purpose"
-      ],
-      "owner": {
-        "entry": "CatalogNavigation.svelte"
-      },
-      "purpose": {
-        "key": "catalogNavigation.purpose"
-      },
-      "uses": []
-    },
     "catalog-search-results": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/catalog-search-results",
@@ -832,21 +763,6 @@
         "view-region"
       ]
     },
-    "character-counter": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/character-counter",
-      "kind": "foundation",
-      "owner": {
-        "entry": "CharacterCounter.svelte"
-      },
-      "purpose": "Count the characters of a text value, or how many remain before its limit and by how many it is over.",
-      "shape": "none",
-      "states": [
-        "unlimited",
-        "remaining",
-        "exceeded"
-      ]
-    },
     "choice": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/choice",
@@ -917,92 +833,6 @@
           "menu"
         ]
       }
-    },
-    "choice-item": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/choice-item",
-      "kind": "foundation",
-      "owner": {
-        "entry": "ChoiceItem.svelte"
-      },
-      "purpose": "Lay out one choice as its selection mark beside a title and an optional description.",
-      "shape": "none",
-      "slots": {
-        "children": {
-          "accepts": [
-            "choice-list",
-            "face",
-            "color-bullet",
-            "artwork-placeholder",
-            "image"
-          ]
-        }
-      },
-      "states": [
-        "label",
-        "described"
-      ]
-    },
-    "choice-list": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/choice-list",
-      "kind": "foundation",
-      "owner": {
-        "entry": "ChoiceList.svelte"
-      },
-      "purpose": "Hold the rows of a single or multiple choice in one transparent geometry inside its host.",
-      "shape": "none",
-      "slots": {
-        "children": {
-          "accepts": [
-            "choice-row",
-            "choice-item"
-          ]
-        }
-      },
-      "states": [
-        "default"
-      ]
-    },
-    "choice-row": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/choice-row",
-      "kind": "foundation",
-      "owner": {
-        "entry": "ChoiceRow.svelte"
-      },
-      "purpose": "One pressable row of a choice list whose label activates the checkbox or radio it holds.",
-      "shape": "none",
-      "slots": {
-        "children": {
-          "accepts": [
-            "choice-list",
-            "color-bullet",
-            "image",
-            "artwork-placeholder"
-          ]
-        }
-      },
-      "states": [
-        "default",
-        "described",
-        "disabled"
-      ]
-    },
-    "clear-input": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/clear-input",
-      "kind": "foundation",
-      "owner": {
-        "entry": "ClearInput.svelte"
-      },
-      "purpose": "Empty a text control in one press, keeping its masks and undo history, shown only while it holds a value.",
-      "shape": "none",
-      "states": [
-        "empty",
-        "value",
-        "disabled"
-      ]
     },
     "clock": {
       "approval": "required",
@@ -1110,7 +940,6 @@
             "control-bench",
             "dialog",
             "face",
-            "fact-list",
             "form",
             "gallery",
             "grid",
@@ -1131,7 +960,6 @@
             "reading-content",
             "reference-specimen",
             "related-selection",
-            "seed-avatar",
             "shared-owner-catalog",
             "spacer",
             "specimen-group",
@@ -1170,23 +998,6 @@
           "wide"
         ]
       }
-    },
-    "confirmation-dialog": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/compositions/confirmation-dialog",
-      "kind": "composition",
-      "messages": [
-        "confirmationDialog.purpose"
-      ],
-      "owner": {
-        "entry": "ConfirmationDialog.svelte"
-      },
-      "purpose": {
-        "key": "confirmationDialog.purpose"
-      },
-      "uses": [
-        "dialog"
-      ]
     },
     "content-flow": {
       "approval": "none",
@@ -1369,20 +1180,6 @@
         "disabled"
       ]
     },
-    "destination-row": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/destination-row",
-      "kind": "foundation",
-      "owner": {
-        "entry": "DestinationRow.svelte"
-      },
-      "purpose": "A grouped row that opens one destination, or shows why that destination is unavailable.",
-      "shape": "none",
-      "states": [
-        "available",
-        "unavailable"
-      ]
-    },
     "dialog": {
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/dialog",
@@ -1423,20 +1220,6 @@
         "locked"
       ]
     },
-    "drawer-grip": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/drawer-grip",
-      "kind": "foundation",
-      "owner": {
-        "entry": "DrawerGrip.svelte"
-      },
-      "purpose": "The handle of a bottom-edge drawer that closes it by drag or press, disabled while the drawer is locked.",
-      "shape": "none",
-      "states": [
-        "default",
-        "locked"
-      ]
-    },
     "face": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/face",
@@ -1473,26 +1256,6 @@
         "fact-row",
         "list",
         "node-renderer"
-      ]
-    },
-    "fact-list": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/fact-list",
-      "kind": "foundation",
-      "owner": {
-        "entry": "FactList.svelte"
-      },
-      "purpose": "One pane holding fact rows as a description list.",
-      "shape": "radius",
-      "slots": {
-        "children": {
-          "accepts": [
-            "fact-row"
-          ]
-        }
-      },
-      "states": [
-        "default"
       ]
     },
     "fact-row": {
@@ -1617,19 +1380,6 @@
         "dialog"
       ]
     },
-    "feedback": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/feedback",
-      "kind": "foundation",
-      "owner": {
-        "entry": "Feedback.svelte"
-      },
-      "purpose": "A short status sentence, announced politely, that tells the person what just happened.",
-      "shape": "none",
-      "states": [
-        "default"
-      ]
-    },
     "field": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/field",
@@ -1708,74 +1458,6 @@
         ]
       }
     },
-    "field-well": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/field-well",
-      "kind": "foundation",
-      "owner": {
-        "entry": "FieldWell.svelte"
-      },
-      "purpose": "Frame one editor in a rounded well whose label floats when empty and settles above the value when filled or focused.",
-      "shape": "radius",
-      "slots": {
-        "accessory": {
-          "accepts": [
-            "clear-input",
-            "action"
-          ]
-        },
-        "children": {
-          "accepts": [
-            "masked-input",
-            "text-input"
-          ]
-        },
-        "footer": {
-          "accepts": [
-            "character-counter"
-          ]
-        },
-        "prefix": {
-          "accepts": [
-            "selection-field"
-          ]
-        }
-      },
-      "states": [
-        "empty",
-        "filled"
-      ],
-      "variants": {
-        "presentation": [
-          "standard",
-          "access"
-        ]
-      }
-    },
-    "field-well-content": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/field-well-content",
-      "kind": "foundation",
-      "owner": {
-        "entry": "FieldWellContent.svelte"
-      },
-      "purpose": "Keep a field's label persistently above its editor or value, as a label for the editor or as text inside a button.",
-      "shape": "none",
-      "slots": {
-        "children": {
-          "accepts": [
-            "masked-input",
-            "text-input",
-            "reference-values",
-            "icon"
-          ]
-        }
-      },
-      "states": [
-        "for-editor",
-        "in-button"
-      ]
-    },
     "fields": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/fields",
@@ -1795,23 +1477,6 @@
       "uses": [
         "column",
         "node-renderer"
-      ]
-    },
-    "file-control": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/file-control",
-      "kind": "composition",
-      "messages": [
-        "fileControl.purpose"
-      ],
-      "owner": {
-        "entry": "FileControl.svelte"
-      },
-      "purpose": {
-        "key": "fileControl.purpose"
-      },
-      "uses": [
-        "files"
       ]
     },
     "files": {
@@ -1941,41 +1606,6 @@
           "cards",
           "covers",
           "results"
-        ]
-      }
-    },
-    "grouped-panel": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/grouped-panel",
-      "kind": "foundation",
-      "owner": {
-        "entry": "GroupedPanel.svelte",
-        "vendor": [
-          "card"
-        ]
-      },
-      "purpose": "Hold sibling rows in one shared pane, at the reading measure or the full overview width.",
-      "shape": "none",
-      "slots": {
-        "children": {
-          "accepts": [
-            "destination-row",
-            "choice-list",
-            "choice-row",
-            "information",
-            "attention-indicator",
-            "action",
-            "image"
-          ]
-        }
-      },
-      "states": [
-        "default"
-      ],
-      "variants": {
-        "measure": [
-          "reading",
-          "overview"
         ]
       }
     },
@@ -2129,7 +1759,6 @@
             "face",
             "icon",
             "node-renderer",
-            "seed-avatar",
             "tag",
             "text"
           ]
@@ -2246,21 +1875,6 @@
       },
       "uses": [
         "surface-frame"
-      ]
-    },
-    "label-rail": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/label-rail",
-      "kind": "foundation",
-      "owner": {
-        "entry": "LabelRail.svelte"
-      },
-      "purpose": "Present selected labels in a wrapping rail using the same value representation as the field.",
-      "shape": "none",
-      "states": [
-        "read-only",
-        "removable",
-        "disabled"
       ]
     },
     "labels-control": {
@@ -2437,58 +2051,6 @@
         "heading",
         "stack-layout"
       ]
-    },
-    "masked-input": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/masked-input",
-      "kind": "foundation",
-      "owner": {
-        "entry": "MaskedInput.svelte",
-        "parts": [
-          "input-edit-history.ts"
-        ]
-      },
-      "purpose": "Edit a masked value such as a decimal amount: format while typing, keep the caret and undo, report the canonical value.",
-      "shape": "none",
-      "states": [
-        "default",
-        "invalid",
-        "disabled"
-      ]
-    },
-    "measured-field": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/measured-field",
-      "kind": "foundation",
-      "owner": {
-        "entry": "MeasuredField.svelte"
-      },
-      "purpose": "Give one form control the preferred measure of its family inside the available space, with its invalid and disabled state.",
-      "shape": "none",
-      "slots": {
-        "children": {
-          "accepts": [
-            "field-well",
-            "selection-field",
-            "picker-sheet",
-            "node-renderer"
-          ]
-        }
-      },
-      "states": [
-        "default",
-        "invalid",
-        "disabled"
-      ],
-      "variants": {
-        "kind": [
-          "input.text",
-          "input.multiline",
-          "control.select",
-          "control.date",
-          "control.money"
-        ]
-      }
     },
     "media-collection-grid": {
       "approval": "none",
@@ -2736,20 +2298,6 @@
         "open"
       ]
     },
-    "message-body": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/message-body",
-      "kind": "foundation",
-      "owner": {
-        "entry": "MessageBody.svelte"
-      },
-      "purpose": "Read a surface frame's message as a status paragraph, or as the description of a message dialog.",
-      "shape": "none",
-      "states": [
-        "default",
-        "dialog"
-      ]
-    },
     "meter": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/meter",
@@ -2964,55 +2512,6 @@
         "view-panel"
       ]
     },
-    "photo-collection": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/photo-collection",
-      "kind": "composition",
-      "owner": {
-        "entry": "PhotoCollection.svelte"
-      },
-      "purpose": "Page through a set of photos in place and open them in the full-screen viewer.",
-      "uses": [
-        "image",
-        "viewer"
-      ]
-    },
-    "picker-sheet": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/picker-sheet",
-      "kind": "foundation",
-      "owner": {
-        "entry": "PickerSheet.svelte",
-        "mechanisms": [
-          "surface-focus"
-        ]
-      },
-      "purpose": "Present a picker as a bottom sheet with a grip and a close toolbar, returning focus to its trigger on dismissal.",
-      "shape": "none",
-      "states": [
-        "default"
-      ]
-    },
-    "place": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/place",
-      "kind": "foundation",
-      "owner": {
-        "entry": "Place.svelte",
-        "mechanisms": [
-          "toolbar-scroll"
-        ],
-        "parts": [
-          "place.css"
-        ]
-      },
-      "purpose": "Arrange content and top or bottom toolbars, with lateral surfaces only at the root. Mounted surfaces keep their own content and toolbars.",
-      "shape": "none",
-      "states": [
-        "default",
-        "searching"
-      ]
-    },
     "place-content": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/place-content",
@@ -3030,23 +2529,6 @@
         "place-heading",
         "stack",
         "view-region"
-      ]
-    },
-    "place-header": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/place-header",
-      "kind": "composition",
-      "messages": [
-        "placeHeader.purpose"
-      ],
-      "owner": {
-        "entry": "PlaceHeader.svelte"
-      },
-      "purpose": {
-        "key": "placeHeader.purpose"
-      },
-      "uses": [
-        "place-heading"
       ]
     },
     "place-heading": {
@@ -3071,32 +2553,6 @@
           "embedded"
         ]
       }
-    },
-    "playback-canvas": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/playback-canvas",
-      "kind": "foundation",
-      "owner": {
-        "entry": "PlaybackCanvas.svelte"
-      },
-      "purpose": "Play a video or audio item attached to its playback controller, showing artwork for audio and a retry when unavailable.",
-      "shape": "none",
-      "states": [
-        "video",
-        "audio"
-      ]
-    },
-    "playback-controls": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/playback-controls",
-      "kind": "composition",
-      "owner": {
-        "entry": "PlaybackControls.svelte"
-      },
-      "purpose": "Play, pause, mute, set the volume of and seek a media playback, one part at a time.",
-      "uses": [
-        "icon"
-      ]
     },
     "popover": {
       "approval": "required",
@@ -3350,20 +2806,6 @@
         "tag"
       ]
     },
-    "reference-values": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/reference-values",
-      "kind": "foundation",
-      "owner": {
-        "entry": "ReferenceValues.svelte"
-      },
-      "purpose": "Read selected object references using their labels and shared value layout.",
-      "shape": "none",
-      "states": [
-        "default",
-        "unavailable"
-      ]
-    },
     "related-selection": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/related-selection",
@@ -3389,27 +2831,6 @@
         "stack-layout",
         "text"
       ]
-    },
-    "retained-place": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/retained-place",
-      "kind": "composition",
-      "owner": {
-        "entry": "RetainedPlace.svelte"
-      },
-      "purpose": "Keep a place mounted while hidden and provide whether it is the active surface.",
-      "slots": {
-        "children": {
-          "accepts": [
-            "inspection-catalog",
-            "inspection-content",
-            "local-exercises",
-            "public-catalog-bank",
-            "view-content"
-          ]
-        }
-      },
-      "uses": []
     },
     "review": {
       "approval": "none",
@@ -3470,53 +2891,6 @@
         ]
       }
     },
-    "scroll-edges": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/scroll-edges",
-      "kind": "foundation",
-      "owner": {
-        "entry": "ScrollEdges.svelte"
-      },
-      "purpose": "Fade the edges of a scroll viewport under its toolbars while there is content left to scroll there.",
-      "shape": "none",
-      "states": [
-        "default"
-      ]
-    },
-    "search-field": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/search-field",
-      "kind": "foundation",
-      "owner": {
-        "entry": "SearchField.svelte"
-      },
-      "purpose": "Type a query in a search well with a search icon and a clear button.",
-      "shape": "radius",
-      "states": [
-        "empty",
-        "value",
-        "disabled"
-      ]
-    },
-    "seed-avatar": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/seed-avatar",
-      "kind": "foundation",
-      "owner": {
-        "entry": "SeedAvatar.svelte"
-      },
-      "purpose": "Generate a deterministic visual identity from a seed without displaying letters or initials.",
-      "shape": "none",
-      "states": [
-        "default"
-      ],
-      "variants": {
-        "size": [
-          "portrait",
-          "compact"
-        ]
-      }
-    },
     "select-control": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/select-control",
@@ -3538,28 +2912,6 @@
         "action",
         "choice",
         "column"
-      ]
-    },
-    "selection-field": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/selection-field",
-      "kind": "foundation",
-      "owner": {
-        "entry": "SelectionField.svelte",
-        "mechanisms": [
-          "surface-focus"
-        ],
-        "parts": [
-          "SelectionList.svelte"
-        ]
-      },
-      "purpose": "Choose one value from a list of options, inline, as a field well or as a contextual value.",
-      "shape": "radius",
-      "states": [
-        "inline",
-        "field-control",
-        "contextual",
-        "disabled"
       ]
     },
     "separator": {
@@ -3904,25 +3256,6 @@
         "status"
       ]
     },
-    "speed-dial": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/speed-dial",
-      "kind": "composition",
-      "messages": [
-        "speedDial.purpose",
-        "speedDial.create",
-        "speedDial.more"
-      ],
-      "owner": {
-        "entry": "SpeedDial.svelte"
-      },
-      "purpose": {
-        "key": "speedDial.purpose"
-      },
-      "uses": [
-        "menu"
-      ]
-    },
     "stack": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/stack",
@@ -3991,23 +3324,17 @@
         "children": {
           "accepts": [
             "action",
-            "character-counter",
             "choice",
-            "choice-list",
             "collection",
             "collection-state",
             "column",
             "fact-row",
             "fact-value",
-            "feedback",
             "field",
-            "grouped-panel",
             "information",
             "list",
-            "measured-field",
             "object-state-row",
             "popover",
-            "selection-field",
             "shared-owner-specimen",
             "stack-item",
             "text",
@@ -4311,43 +3638,6 @@
         "stack-item"
       ]
     },
-    "text-input": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/text-input",
-      "kind": "foundation",
-      "owner": {
-        "entry": "TextInput.svelte"
-      },
-      "purpose": "Write a single line or several with a persistent label, field help and validation feedback.",
-      "shape": "radius",
-      "slots": {
-        "accessory": {
-          "accepts": [
-            "action"
-          ]
-        }
-      },
-      "stateVariants": {
-        "masked": {
-          "primitive": [
-            "input.text"
-          ]
-        }
-      },
-      "states": [
-        "empty",
-        "value",
-        "invalid",
-        "disabled",
-        "masked"
-      ],
-      "variants": {
-        "primitive": [
-          "input.text",
-          "input.multiline"
-        ]
-      }
-    },
     "theme-preview": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/theme-preview",
@@ -4382,57 +3672,6 @@
       },
       "uses": [
         "bar"
-      ]
-    },
-    "toolbar-layout": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/compositions/toolbar-layout",
-      "kind": "composition",
-      "owner": {
-        "entry": "ToolbarLayout.svelte",
-        "parts": [
-          "CatalogNavigationActions.svelte",
-          "ToolbarIdentity.svelte",
-          "toolbar-identity.ts",
-          "toolbar-layout.css"
-        ]
-      },
-      "purpose": "Keep navigation and contextual commands in the surface toolbar; reveal its title and subtitle only after the content header scrolls away.",
-      "uses": [
-        "face",
-        "icon",
-        "node-renderer",
-        "playback-controls",
-        "speed-dial",
-        "toolbar-media-controls",
-        "toolbar-search",
-        "zoom-controls"
-      ]
-    },
-    "toolbar-media-controls": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/toolbar-media-controls",
-      "kind": "composition",
-      "owner": {
-        "entry": "ToolbarMediaControls.svelte"
-      },
-      "purpose": "Show transport, media thumbnails and volume for the media selected in a toolbar.",
-      "uses": [
-        "artwork-placeholder",
-        "image",
-        "playback-controls"
-      ]
-    },
-    "toolbar-search": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/toolbar-search",
-      "kind": "composition",
-      "owner": {
-        "entry": "ToolbarSearch.svelte"
-      },
-      "purpose": "Search the items of a toolbar's place: a search field revealed by a toggle that also closes the search.",
-      "uses": [
-        "search-field"
       ]
     },
     "utility-actions": {
@@ -4623,7 +3862,6 @@
             "appearance",
             "catalog-home",
             "column",
-            "feedback",
             "gallery",
             "identity",
             "information",
@@ -4704,21 +3942,6 @@
         "catalog-workspace"
       ]
     },
-    "viewer": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/viewer",
-      "kind": "composition",
-      "owner": {
-        "entry": "Viewer.svelte"
-      },
-      "purpose": "Show images, audio and video full screen with paging, zoom and playback controls.",
-      "uses": [
-        "icon",
-        "image",
-        "playback-canvas",
-        "toolbar-layout"
-      ]
-    },
     "wallpaper": {
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/wallpaper",
@@ -4755,18 +3978,6 @@
       },
       "uses": [
         "view-workspace"
-      ]
-    },
-    "zoom-controls": {
-      "approval": "none",
-      "folder": "src/svelte/catalog/compositions/zoom-controls",
-      "kind": "composition",
-      "owner": {
-        "entry": "ZoomControls.svelte"
-      },
-      "purpose": "Step a media view's zoom out or in between 100% and its maximum, and reset it from the shown percentage.",
-      "uses": [
-        "icon"
       ]
     }
   },

@@ -2,7 +2,8 @@
 // invalid and disabled state, help and error text and a preferred measure. `primitive` picks exclusive variants: a
 // single line (`purpose` tells the browser what it holds; `mask` installs a decimal editing syntax; `counter` shows
 // the character counter of its `maxLength` in the well, as a multiline editor does; `clear` offers the clear control;
-// `focus` takes focus when it appears), a multiline editor with its character counter, or a trigger whose
+// `focus` takes focus when it appears; a search well names the results it `controls` and, in a toolbar, grows from its toggle while
+// `expanded`), a multiline editor with its character counter, or a trigger whose
 // well opens a surface an overlay owns (`display` is what the well shows, `disclosure` the button's pure-data link to
 // that surface). A prop that belongs to another variant is declared `undefined`, so no variant takes another's props.
 // `change` is the written value (on input and on blur; a masked value only once valid and complete), `masked` every
@@ -36,6 +37,8 @@ export const FieldContract = {
       counter: Type.Optional(Type.Boolean()),
       clear: Type.Boolean(),
       focus: Type.Optional(Type.Literal("on-mount")),
+      controls: Type.Optional(Type.String()),
+      expanded: Type.Optional(Type.Boolean()),
       display: Type.Optional(Type.Undefined()),
       disclosure: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),
@@ -49,6 +52,8 @@ export const FieldContract = {
       mask: Type.Optional(Type.Undefined()),
       clear: Type.Optional(Type.Undefined()),
       focus: Type.Optional(Type.Undefined()),
+      controls: Type.Optional(Type.Undefined()),
+      expanded: Type.Optional(Type.Undefined()),
       display: Type.Optional(Type.Undefined()),
       disclosure: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),
@@ -64,6 +69,8 @@ export const FieldContract = {
       counter: Type.Optional(Type.Undefined()),
       clear: Type.Optional(Type.Undefined()),
       focus: Type.Optional(Type.Undefined()),
+      controls: Type.Optional(Type.Undefined()),
+      expanded: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),
   ])]),
   events: Type.Object({
@@ -71,5 +78,5 @@ export const FieldContract = {
     masked: Type.Object({ value: Type.String(), valid: Type.Boolean(), complete: Type.Boolean() }, { additionalProperties: false }),
     open: Type.Void(),
   }, { additionalProperties: false }),
-  marks: ["data-field", "data-field-filled", "data-measure"],
+  marks: ["data-field", "data-field-filled", "data-measure", "data-search-expanded"],
 } as const;
