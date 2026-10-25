@@ -72,6 +72,8 @@ test('the date trigger shows the calendar glyph, not the select chevron', async 
     const trigger=f.page.locator('[data-field-trigger]');
     assert.deepEqual(await trigger.evaluate(element=>[...element.querySelectorAll('svg')].map(svg=>[...svg.classList].find(name=>/^lucide-(?!icon)/.test(name)))),
       ['lucide-calendar']);
+    assert.deepEqual(await trigger.locator('svg').evaluate(svg=>[svg.getBoundingClientRect().width,svg.getBoundingClientRect().height]),[16,16],
+      'the glyph keeps the 16 px of the well it had');
     assert.deepEqual(f.errors,[]);
   } finally {await f.close();}
 });
