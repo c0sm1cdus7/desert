@@ -12,7 +12,7 @@
 <button type="button" {...pressFeedbackProps} class="shuffle material-pane control-feedback inline-flex shrink-0 items-center justify-center whitespace-nowrap gap-2
   rounded-full type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-secondary-foreground p-0 relative
   overflow-hidden {sizes[size]}" aria-label={label} {disabled} onclick={() => onshuffle?.(newAvatarSeed())}>
-  <span class="content control-feedback-content">{@render children()}<span class="overlay" data-avatar-shuffle><Icon name="shuffle" decorative /></span></span>
+  <span class="content control-feedback-content disabled-content">{@render children()}<span class="overlay" data-avatar-shuffle><Icon name="shuffle" decorative /></span></span>
 </button>
 <style>
   .content { position:relative; display:flex; width:100%; min-width:0; }
