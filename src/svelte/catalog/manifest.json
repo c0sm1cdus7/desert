@@ -699,70 +699,93 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/catalog-navigation",
       "kind": "composition",
+      "messages": [
+        "catalogNavigation.purpose"
+      ],
       "owner": {
         "entry": "CatalogNavigation.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: CatalogNavigation.svelte.",
-      "uses": [
-        "icon",
-        "place",
-        "toolbar-layout"
-      ]
+      "purpose": {
+        "key": "catalogNavigation.purpose"
+      },
+      "uses": []
     },
     "catalog-search-results": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/catalog-search-results",
       "kind": "composition",
+      "messages": [
+        "catalogSearchResults.purpose",
+        "catalogSearchResults.prompt",
+        "catalogSearchResults.heading",
+        "catalogSearchResults.one",
+        "catalogSearchResults.many",
+        "catalogSearchResults.empty",
+        "catalogSearchResults.another"
+      ],
       "owner": {
         "entry": "CatalogSearchResults.svelte"
       },
-      "purpose": "Show what a search in one destination found, as record cards or grouped result rows, and open one result.",
+      "purpose": {
+        "key": "catalogSearchResults.purpose"
+      },
       "uses": [
-        "grouped-panel",
-        "icon",
-        "node-renderer"
+        "column",
+        "grid",
+        "heading",
+        "list",
+        "node-renderer",
+        "row",
+        "status",
+        "text"
       ]
     },
     "catalog-workspace": {
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/catalog-workspace",
       "kind": "composition",
+      "messages": [
+        "catalogWorkspace.purpose",
+        "catalogWorkspace.back",
+        "catalogWorkspace.searchRegion"
+      ],
       "owner": {
-        "entry": "CatalogWorkspace.svelte",
-        "parts": [
-          "CatalogNavigationToggle.svelte",
-          "CatalogToolbar.svelte"
-        ]
+        "entry": "CatalogWorkspace.svelte"
       },
-      "purpose": "Host a catalog place with its navigation sidebar, toolbars, search overlay, panels and failure dialog.",
+      "purpose": {
+        "key": "catalogWorkspace.purpose"
+      },
       "uses": [
-        "catalog-navigation",
+        "bar",
         "catalog-search-results",
         "catalog-workspace-content",
         "failure-dialog",
         "panel",
-        "place",
         "place-heading",
-        "toolbar",
-        "toolbar-layout",
-        "wallpaper"
+        "shell",
+        "toolbar"
       ]
     },
     "catalog-workspace-content": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/catalog-workspace-content",
       "kind": "composition",
+      "messages": [
+        "catalogWorkspaceContent.purpose"
+      ],
       "owner": {
         "entry": "CatalogWorkspaceContent.svelte"
       },
-      "purpose": "Show the body of the catalog workspace: the visited views of a program, or the public catalog's browse, exercises and bank places.",
+      "purpose": {
+        "key": "catalogWorkspaceContent.purpose"
+      },
       "uses": [
         "catalog-detail",
         "catalog-home",
         "local-exercises",
         "public-catalog-bank",
-        "retained-place",
-        "view-content"
+        "view-content",
+        "view-region"
       ]
     },
     "character-counter": {
@@ -1044,6 +1067,7 @@
             "control-bench",
             "fact-list",
             "form",
+            "grid",
             "heading",
             "information",
             "inline",
@@ -1063,6 +1087,7 @@
             "specimen-group",
             "speed-dial",
             "stack-layout",
+            "status",
             "summary-widget",
             "surface-specimen",
             "text",
@@ -1110,23 +1135,30 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/content-flow",
       "kind": "composition",
+      "messages": [
+        "contentFlow.purpose",
+        "contentFlow.connection",
+        "contentFlow.offline"
+      ],
       "owner": {
         "entry": "ContentFlow.svelte"
       },
-      "purpose": "Arrange reading, overview or gallery stacks within the shared content measures and responsive layout.",
+      "purpose": {
+        "key": "contentFlow.purpose"
+      },
       "uses": [
         "appearance",
-        "feedback",
         "identity",
         "information",
         "inspection-content",
         "media-content",
         "place-heading",
         "stack-layout",
+        "text",
         "view-attention",
         "view-item",
-        "view-related-selection",
-        "view-region"
+        "view-region",
+        "view-related-selection"
       ]
     },
     "context-panel": {
@@ -1779,13 +1811,14 @@
       "owner": {
         "entry": "Grid.svelte"
       },
-      "purpose": "Lay pieces out in auto-fitted tracks of one recipe (tiles, collections, cards, covers) with a gap from the spacing scale.",
+      "purpose": "Lay pieces out in auto-fitted tracks of one recipe (tiles, collections, cards, covers, results) with a gap from the spacing scale.",
       "shape": "none",
       "slots": {
         "children": {
           "accepts": [
             "catalog-card",
             "image",
+            "node-renderer",
             "text"
           ]
         }
@@ -1798,7 +1831,8 @@
           "tiles",
           "collections",
           "cards",
-          "covers"
+          "covers",
+          "results"
         ]
       }
     },
@@ -2222,10 +2256,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/local-exercises",
       "kind": "composition",
+      "messages": [
+        "localExercises.purpose"
+      ],
       "owner": {
         "entry": "LocalExercises.svelte"
       },
-      "purpose": "Draw the public catalog's local exercises and raise their node events toward the catalog.",
+      "purpose": {
+        "key": "localExercises.purpose"
+      },
       "uses": [
         "local-exercise-content"
       ]
@@ -2942,10 +2981,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/public-catalog-product",
       "kind": "composition",
+      "messages": [
+        "publicCatalogProduct.purpose"
+      ],
       "owner": {
         "entry": "PublicCatalogProduct.svelte"
       },
-      "purpose": "Mount the public catalog product content for the built public catalog page.",
+      "purpose": {
+        "key": "publicCatalogProduct.purpose"
+      },
       "uses": [
         "public-catalog-product-content"
       ]
@@ -2954,13 +2998,21 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/public-catalog-product-content",
       "kind": "composition",
+      "messages": [
+        "publicCatalogProductContent.purpose",
+        "publicCatalogProductContent.documentTitle",
+        "publicCatalogProductContent.bank",
+        "publicCatalogProductContent.bankSubtitle"
+      ],
       "owner": {
         "entry": "PublicCatalogProductContent.svelte",
         "parts": [
           "catalog-history.ts"
         ]
       },
-      "purpose": "Browse a published catalog, its exercises and its component bank, with search and browser history that return to where the person was.",
+      "purpose": {
+        "key": "publicCatalogProductContent.purpose"
+      },
       "uses": [
         "appearance-root",
         "catalog-workspace"
@@ -3688,7 +3740,8 @@
       "variants": {
         "size": [
           "regular",
-          "compact"
+          "compact",
+          "prompt"
         ],
         "tone": [
           "neutral",
@@ -4071,14 +4124,39 @@
         "attention-list"
       ]
     },
+    "view-binding": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/view-binding",
+      "kind": "composition",
+      "messages": [
+        "viewBinding.purpose"
+      ],
+      "owner": {
+        "entry": "ViewBinding.svelte"
+      },
+      "purpose": {
+        "key": "viewBinding.purpose"
+      },
+      "uses": [
+        "node-renderer",
+        "stack-item",
+        "summary-widget",
+        "text"
+      ]
+    },
     "view-content": {
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/view-content",
       "kind": "composition",
+      "messages": [
+        "viewContent.purpose"
+      ],
       "owner": {
         "entry": "ViewContent.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ViewContent.svelte.",
+      "purpose": {
+        "key": "viewContent.purpose"
+      },
       "uses": [
         "content-flow"
       ]
@@ -4106,17 +4184,19 @@
       "dispatch": "view-content",
       "folder": "src/svelte/catalog/renderer/view-item",
       "kind": "composition",
+      "messages": [
+        "viewItem.purpose"
+      ],
       "owner": {
         "entry": "ViewItem.svelte"
       },
-      "purpose": "Mount the piece for one view item's kind (text, fact, destination link, bound node or summary widget).",
+      "purpose": {
+        "key": "viewItem.purpose"
+      },
       "uses": [
         "information",
-        "message-body",
-        "node-renderer",
-        "stack-item",
-        "summary-widget",
         "text-content",
+        "view-binding",
         "view-destination-link"
       ]
     },
@@ -4137,10 +4217,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/view-product",
       "kind": "composition",
+      "messages": [
+        "viewProduct.purpose"
+      ],
       "owner": {
         "entry": "ViewProduct.svelte"
       },
-      "purpose": "Declared as found at the start of the migration: ViewProduct.svelte.",
+      "purpose": {
+        "key": "viewProduct.purpose"
+      },
       "uses": [
         "view-product-content"
       ]
@@ -4149,13 +4234,18 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/view-product-content",
       "kind": "composition",
+      "messages": [
+        "viewProductContent.purpose"
+      ],
       "owner": {
         "entry": "ViewProductContent.svelte",
         "parts": [
           "activity-host.ts"
         ]
       },
-      "purpose": "Run a view program's browser session and render its workspace from the live snapshot.",
+      "purpose": {
+        "key": "viewProductContent.purpose"
+      },
       "uses": [
         "view-workspace"
       ]
@@ -4236,13 +4326,25 @@
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/view-workspace",
       "kind": "composition",
+      "messages": [
+        "viewWorkspace.purpose",
+        "viewWorkspace.documentTitle",
+        "viewWorkspace.searchDescription",
+        "viewWorkspace.entry",
+        "viewWorkspace.video",
+        "viewWorkspace.audio",
+        "viewWorkspace.image",
+        "viewWorkspace.collection"
+      ],
       "owner": {
         "entry": "ViewWorkspace.svelte",
         "parts": [
           "workspace-data.ts"
         ]
       },
-      "purpose": "Present a view program as a workspace with navigation, search, retained views and its panel.",
+      "purpose": {
+        "key": "viewWorkspace.purpose"
+      },
       "uses": [
         "appearance-root",
         "catalog-workspace"
@@ -4288,10 +4390,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/workspace",
       "kind": "composition",
+      "messages": [
+        "workspace.purpose"
+      ],
       "owner": {
         "entry": "Workspace.svelte"
       },
-      "purpose": "Mount the workspace of a view program with its resolved view, panel, error and events.",
+      "purpose": {
+        "key": "workspace.purpose"
+      },
       "uses": [
         "view-workspace"
       ]

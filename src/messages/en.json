@@ -341,5 +341,70 @@
   },
   "facts": {
     "purpose": "Read a labeled value, including the difference between an empty value and an unknown value."
+  },
+  "catalogSearchResults": {
+    "purpose": "Show what a search in one destination found, as record cards or grouped result rows, and open one result.",
+    "prompt": "Search in {title}",
+    "heading": "Results in {title}",
+    "one": "{count} result",
+    "many": "{count} results",
+    "empty": "No matching results",
+    "another": "Try another search in {title}."
+  },
+  "catalogWorkspace": {
+    "purpose": "Host a catalog place with its navigation sidebar, toolbars, search overlay, panels and failure dialog.",
+    "back": "Back",
+    "searchRegion": "Search in {title}"
+  },
+  "catalogWorkspaceContent": {
+    "purpose": "Show the body of the catalog workspace: the visited views of a program, or the public catalog's browse, exercises and bank places."
+  },
+  "catalogNavigation": {
+    "purpose": "Retired: the shell draws the navigation pane from the workspace's destinations."
+  },
+  "contentFlow": {
+    "purpose": "Arrange reading, overview or gallery stacks within the shared content measures and responsive layout.",
+    "connection": "Connection",
+    "offline": "{label} Loaded content remains available; changes are not sent while disconnected."
+  },
+  "viewContent": {
+    "purpose": "Draw one resolved view as a content flow and let the workspace reveal its bank entries and media records."
+  },
+  "viewItem": {
+    "purpose": "Mount the piece for one view item's kind (text, fact, destination link, bound node or summary widget)."
+  },
+  "viewBinding": {
+    "purpose": "Show one view item's node: its own control, its collection's summary, its bound node or the message of a pending input."
+  },
+  "viewWorkspace": {
+    "purpose": "Present a view program as a workspace with navigation, search, retained views and its panel.",
+    "documentTitle": "{title} · {product}",
+    "searchDescription": "Find content in this destination.",
+    "entry": "{id} · {states}",
+    "video": "Video",
+    "audio": "Audio",
+    "image": "Image",
+    "collection": "Collection"
+  },
+  "publicCatalogProductContent": {
+    "purpose": "Browse a published catalog, its exercises and its component bank, with search and browser history that return to where the person was.",
+    "documentTitle": "{title} · DESERT",
+    "bank": "Component bank",
+    "bankSubtitle": "Interactive examples. Changes stay here; no product commands are executed."
+  },
+  "viewProductContent": {
+    "purpose": "Run a view program's browser session and render its workspace from the live snapshot."
+  },
+  "viewProduct": {
+    "purpose": "Mount a view program's product: its browser session and workspace, against the human surface and its input validator."
+  },
+  "workspace": {
+    "purpose": "Mount the workspace of a view program with its resolved view, panel, error and events."
+  },
+  "publicCatalogProduct": {
+    "purpose": "Mount the public catalog product content for the built public catalog page."
+  },
+  "localExercises": {
+    "purpose": "Draw the public catalog's local exercises and raise their node events toward the catalog."
   }
 }

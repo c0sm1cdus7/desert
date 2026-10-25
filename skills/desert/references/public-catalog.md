@@ -38,7 +38,7 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/renderer/public-catalog-product/PublicCatalogProduct.svelte
 - src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte
 - src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
-- src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte
+- src/svelte/catalog/foundations/bar/BarSearch.svelte
 - src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte
 - src/svelte/infra/PublicCatalogBank-model.ts
 
@@ -1542,23 +1542,45 @@ Source SHA-256: 7a5a57bff4b3889275faad33c43849753aaed7b962ffbc2c1db7adb800452340
   </Card.Root>
 ```
 
-## src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte
+## src/svelte/catalog/foundations/bar/BarSearch.svelte
 
-Source SHA-256: d9f7a7276785de44f6cd1eda8451b1a1cce4f82c0f61e49bc956a339ab561c04
+Source SHA-256: 16ee134a234920763ed07f5dfd670b2fdb377568f467d5acae2dbed89fded322
 
 ```svelte
 <script lang="ts">
-  import { ToolbarLayout } from "../../index.ts";
-  let { title, query, onquery, searching, resultsId, onsearch, oncancel, searchAvailable = true }: {
-    title: string; query: string; onquery: (query: string) => void; searching: boolean;
-    resultsId: string; onsearch: () => void; oncancel: () => void; searchAvailable?: boolean;
+  // Bar part (from the toolbar-search composition): the place search field, revealed by a toggle that also closes it.
+  // Opening focuses the field; the displayed query freezes while closed so the field does not change as it hides.
+  import { tick, untrack } from "svelte";
+  import { Action, SearchField } from "../../index.ts";
+  let { title, query, open, resultsId, onquery, onopen, oncancel }: {
+    title: string; query: string; open: boolean; resultsId: string;
+    onquery: (query: string) => void; onopen: () => void; oncancel: () => void;
   } = $props();
+  const id = $props.id();
+  let input = $state<HTMLInputElement | null>(null);
+  let displayedQuery = $state(untrack(() => query));
+  $effect(() => { if (open) displayedQuery = query; });
+  async function toggle() {
+    if (open) { oncancel(); return; }
+    onopen(); await tick(); input?.focus({ preventScroll: true });
+  }
 </script>
 
-{#if searchAvailable}
-  <ToolbarLayout layer="search" {searching} edge="top"
-    content={{kind:"search",title,query,onquery,searching,resultsId,onsearch,oncancel}} />
-{/if}
+<div data-catalog-search-actions data-expanded={open}>
+  <!-- The field wrapper the vendor field family drew for the toolbar search (same classes, no vendor import). -->
+  <div role="group" data-catalog-search class="group/field flex w-full flex-col gap-2 [&>.sr-only]:w-auto" inert={!open} aria-hidden={!open}>
+    <label class="sr-only" for={id}>Search {title.toLowerCase()}</label>
+    <!-- F1-merge: Field (purpose "search") replaces SearchField once it controls its results (aria-controls) and can stay
+         mounted while closed without taking focus: this rail keeps the well mounted so its width animates open. -->
+    <SearchField {id} onready={element => input = element} value={displayedQuery} onvalue={onquery} placeholder={`Search in ${title}`}
+      aria-controls={open ? resultsId : undefined} tabindex={open ? undefined : -1} />
+  </div>
+  <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
+  <div class="toolbar-action" data-search-toggle>
+    <Action label={open ? "Close search" : "Search"} icon={open ? "close" : "search"} face="icon" emphasis="secondary" state="ready"
+      type="button" onclick={toggle} disclosure={{ id: `${id}-toggle`, controls: resultsId, expanded: open, haspopup: "listbox" }} />
+  </div>
+</div>
 ```
 
 ## src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte

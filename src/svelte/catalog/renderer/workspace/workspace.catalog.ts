@@ -4,7 +4,8 @@ import { WorkspaceContract } from "./workspace.contract.ts";
 
 export const Workspace = defineComposition({
   id: "workspace",
-  purpose: "Mount the workspace of a view program with its resolved view, panel, error and events.",
+  purpose: { key: "workspace.purpose" },
+  messages: ["workspace.purpose"],
   owner: { entry: "Workspace.svelte" },
   uses: ["view-workspace"], approval: "none", contract: WorkspaceContract,
 } as const);

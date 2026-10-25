@@ -452,13 +452,14 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/infra/media-data.ts
 - src/svelte/catalog/renderer/media-content/MediaContent.svelte
 - src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte
-- src/svelte/catalog/compositions/catalog-navigation/CatalogNavigation.svelte
-- src/svelte/catalog/compositions/toolbar-layout/CatalogNavigationActions.svelte
-- src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte
+- src/svelte/catalog/foundations/shell/Shell.svelte
+- src/svelte/catalog/foundations/shell/ShellNavigation.svelte
+- src/svelte/catalog/foundations/bar/BarSearch.svelte
 - src/svelte/infra/workspace-navigation.ts
 - src/svelte/infra/workspace-search.ts
 - src/svelte/catalog/renderer/view-content/ViewContent.svelte
 - src/svelte/catalog/renderer/view-item/ViewItem.svelte
+- src/svelte/catalog/compositions/view-binding/ViewBinding.svelte
 - src/svelte/catalog/renderer/panel/Panel.svelte
 - src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte
 - src/svelte/catalog/compositions/inspection/inspection-fixture.ts
@@ -2585,7 +2586,7 @@ Source SHA-256: fe42fb417d97e8fc90ad1aad1885739123c35077b692be14e961ca235127df56
 
 ## src/svelte/catalog/compositions/view-workspace/workspace-data.ts
 
-Source SHA-256: 4c51d301c9816f78f60e90a19b704b2a6ca14b9bd89c95481d5dbbe9120f53dd
+Source SHA-256: 577cc4e9dc4362933b80ac1054ed697d9ea88f63a37147ea61fab82baf092406
 
 ```ts
 import type { ResolvedView } from "../../../../views/resolved.ts";
@@ -2596,8 +2597,10 @@ import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
 import { catalogTitle, matchingEntries } from "../../../infra/catalog-entries.ts";
 import { retrieveCollection } from "../../../collection-retrieval.ts";
 import { presentFact, presentTitle } from "../../../../interaction/fact-presentation.ts";
+import { say } from "../../../infra/messages.ts";
+import { m } from "../../../../messages/keys.ts";
 
-/** Data adapter only. Geometry, material, focus and motion remain in CatalogWorkspace. */
+/** Data adapter only: identity, search results and the selection a result makes. Geometry, focus and motion are the shell's. */
 export function viewIdentity(resolved: ResolvedView, fallback: string): PlaceIdentity {
   const header = resolved.view.content.find(item => item.kind === "header");
   return header ? { ...header, subtitle: header.subtitle ?? "" }
@@ -2613,7 +2616,7 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
   const terms = query.trim().toLowerCase().split(/\s+/u).filter(Boolean);
   if (!terms.length) return [];
   const results: WorkspaceSearchResult[] = resolved.view.content.some(item => item.kind === "visual-catalog") ? matchingEntries(query).map(entry => ({
-    kind: "bank", id: entry.id, title: catalogTitle(entry.id), description: `${entry.id} · ${entry.states.join(", ")}`,
+    kind: "bank", id: entry.id, title: catalogTitle(entry.id), description: say(m.viewWorkspace.entry, { id: entry.id, states: entry.states.join(", ") }),
   })) : [];
   const matches = (values: readonly unknown[]) => terms.every(term => values.join(" ").toLowerCase().includes(term));
   for (const item of resolved.view.content) {
@@ -2629,8 +2632,9 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
       const presentation = node.presentation;
       for (const record of node.records) {
         const asset = record.facts[presentation.image];
-        const title = typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'video' ? 'Video'
-          : typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'audio' ? 'Audio' : 'Image';
+        const title = typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'video' ? say(m.viewWorkspace.video)
+          : typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'audio' ? say(m.viewWorkspace.audio)
+          : say(m.viewWorkspace.image);
         const detail = presentation.description ? record.facts[presentation.description] : undefined;
         const description = typeof detail === 'string' ? detail : '';
         if (matches([title, description])) results.push({kind:'content',id:recordKey(item.id,record.id),title,description});
@@ -2640,7 +2644,7 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
     if (node.presentation?.kind === "collection-grid") {
       for (const record of node.records) {
         const title = presentTitle(record.facts[node.presentation.title]);
-        if (matches([title])) results.push({kind:'content',id:recordKey(item.id,record.id),title,description:'Collection'});
+        if (matches([title])) results.push({kind:'content',id:recordKey(item.id,record.id),title,description:say(m.viewWorkspace.collection)});
       }
       continue;
     }
@@ -2761,286 +2765,214 @@ Source SHA-256: 43ac0c7c5e8a68eb1a7683b8435156f6819fa6c66c4641f6f4fd8975491df663
 
 ## src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte
 
-Source SHA-256: ca682d47f3efc8c0af5f45a9e2f01b236a4be49b980200d961f32fa9b2e470e0
+Source SHA-256: b501aa46c4577efa30d8025633be26afa82bd978c24e8a08b0ee24713289c895
 
 ```svelte
-<script lang="ts" generics="Destination extends string">
+<script lang="ts">
   import { tick } from "svelte";
-  import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
-  import { CatalogNavigation } from "../../index.ts";
-  import CatalogNavigationToggle from "./CatalogNavigationToggle.svelte";
-  import CatalogToolbar from "./CatalogToolbar.svelte";
-  import { ToolbarLayout } from "../../index.ts";
-  import { PlaceHeading } from "../../index.ts";
-  // F1-merge: the shell owns these parts now (DESIGN §3.2); lane F mounts Shell and drops these imports.
-  import { observePlaceHeading } from "../../foundations/shell/place-heading-motion.ts";
-  import type { PlaceIdentity } from "../../../infra/place-identity.ts";
-  import CatalogEdgeNavigation from "../../foundations/shell/CatalogEdgeNavigation.svelte";
-  import { Place } from "../../index.ts";
-  import AdaptiveSurfaceLayout from "../../foundations/shell/AdaptiveSurfaceLayout.svelte";
-  import type { WorkspaceDestination } from "../../../infra/workspace-navigation.ts";
-  import type { ToolbarAction, BottomToolbar } from "../../../../interaction/toolbar.ts";
-  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import { CatalogWorkspaceContent } from "../../index.ts";
-  import { CatalogSearchResults } from "../../index.ts";
-  import { Toolbar } from "../../index.ts";
-  import { Panel } from "../../index.ts";
-  import { FailureDialog } from "../../index.ts";
-  import { Wallpaper } from "../../index.ts";
-  import { appearance } from "../../../infra/appearance-state.ts";
-  import type { WorkspaceContent, WorkspaceSearch, WorkspacePanels, WorkspaceViewportActions } from "../../../infra/workspace-content.ts";
-  import { revealSearchTarget } from "../../mechanisms/reveal/reveal.ts";
+  import { Bar, CatalogSearchResults, CatalogWorkspaceContent, FailureDialog, Panel, PlaceHeading, Shell, Toolbar } from "../../index.ts";
   import { provideDestinationNavigation } from "../../../infra/destination-navigation.svelte.ts";
-  let { navigationSurface, title, navigation, active, query, onquery, onnavigate, content: body, searchContent, searching,
-    onsearch, oncancel, detail = false, onback, backAvailable=true, identity, searchAvailable = true, topActions = [], actionGroup, invoke,
-    panelState, bottomToolbar, onviewport }: {
-    navigationSurface: { title: string; subtitle?: string; settingsPlaceholder?: true } | null;
-    title: string; navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
-    query: string; onquery: (query: string) => void; onnavigate: (id: Destination) => void;
-    content: WorkspaceContent; searchContent?: WorkspaceSearch;
-    searching: boolean; onsearch: () => void; oncancel: () => void;
-    detail?: boolean; onback?: () => void; backAvailable?:boolean;
-    identity: PlaceIdentity;
-    searchAvailable?: boolean; topActions?: readonly ToolbarAction[]; actionGroup?: "create"; invoke?: (intent: SurfaceIntent) => void;
-    panelState?: WorkspacePanels; bottomToolbar?: BottomToolbar;
-    onviewport?: (actions: WorkspaceViewportActions | null) => void;
-  } = $props();
-  let owner = $state<HTMLDivElement | null>(null);
-  let viewport = $state<HTMLDivElement | null>(null);
-  // F1-merge: the shell owns the heading dock (DESIGN §3.2); until then the heading is found in the viewport.
-  const placeHeader = () => viewport?.querySelector<HTMLElement>("[data-place-header]") ?? null;
-  let compact = $state<HTMLDivElement | null>(null);
-  // F1-merge: origins are focus keys now (infra/destination-navigation.svelte.ts); until lane F mounts Shell (focus
-  // scope keys and its instance), this workspace keeps the origin elements under the keys it hands out.
-  const origins = new Map<string, HTMLElement>();
-  const capture = () => {
-    const element = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const scroll = element?.closest<HTMLElement>("[data-catalog-scroll]")?.scrollTop ?? 0;
-    if (!element) return { focusKey: null, scroll };
-    const focusKey = `origin:${origins.size}`;
-    origins.set(focusKey, element);
-    return { focusKey, scroll };
-  };
-  const presentation = provideDestinationNavigation(() => active, capture, change => {
-    void tick().then(() => {
-      if (change.destination !== active) return;
-      viewport?.scrollTo({ top: change.kind === "back" ? change.origin.scroll : 0 });
-      const origin = change.origin.focusKey === null ? null : origins.get(change.origin.focusKey) ?? null;
-      // An index may remount after its detail closes. Restore the same semantic
-      // action in this destination, not the detached historical button.
-      const replacement = origin?.matches('[data-piece="destination-row"][data-destination]')
-        ? viewport?.querySelector<HTMLElement>(`[data-piece="destination-row"][data-destination="${CSS.escape(origin.dataset.destination!)}"]`) : null;
-      const target = (change.kind === "back" ? origin?.isConnected ? origin : replacement : null)
-        ?? placeHeader()?.querySelector<HTMLElement>("[data-place-title]");
-      target?.focus({ preventScroll: true });
-    });
+  import { provideFocusScope, useFocusScope } from "../../../infra/focus-scope.ts";
+  import { workspaceNavigation } from "../../../infra/workspace-navigation.ts";
+  import type { BarCommand } from "../../../infra/bar-command.ts";
+  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  let { documentTitle, navigationSurface, title, navigation, active, query, searching, identity, content: body, searchContent,
+    detail = false, backAvailable = true, searchAvailable = true, topActions = [], actionGroup, invoke, panelState, bottomToolbar,
+    onquery, onnavigate, onsearch, oncancel, onback }: CatalogProps<"catalog-workspace"> = $props();
+  // One focus scope for the whole workspace; a caller that opened one above it (to return focus by key itself) shares it.
+  const { focus: focusKey, lastActivated } = useFocusScope() ?? provideFocusScope();
+  let shell = $state<ReturnType<typeof Shell>>();
+  const resultsId = `${$props.id()}-results`;
+  // A page opened inside a destination (a bank entry) returns where it was opened: the scroll offset and the piece last
+  // activated, else the place title.
+  const pages = provideDestinationNavigation(() => active, () => ({ focusKey: lastActivated(), scroll: shell?.scrollTop() ?? 0 }),
+    change => void tick().then(() => {
+      if (change.destination !== active || !shell) return;
+      if (change.kind === "back") shell.restoreScroll(change.origin.scroll, shell.scrollPositions().search);
+      else shell.scrollToTop();
+      const returned = change.kind === "back" && change.origin.focusKey !== null && focusKey(change.origin.focusKey);
+      if (!returned) shell.focusTitle();
+    }));
+  let presented = $derived(pages.current(active));
+  let shown = $derived(presented?.identity ?? identity);
+  let showsDetail = $derived(Boolean(presented) || detail);
+  let canGoBack = $derived(Boolean(presented) || backAvailable);
+  const goBack = () => presented ? pages.back(active) : onback?.();
+  let back: BarCommand = $derived({ label: say(m.catalogWorkspace.back), icon: "back", state: canGoBack ? "ready" : "unavailable",
+    intent: { kind: "back" } });
+  /** The content bar's leading Back goes back here; every other command is the place's. */
+  function command(intent: SurfaceIntent) {
+    if (intent.kind !== "back") invoke?.(intent);
+    else if (canGoBack) goBack();
+  }
+  let searchField = $derived({ title, query, open: searching, resultsId });
+  let shellNavigation = $derived(navigationSurface === null ? null : {
+    identity: navigationSurface.subtitle ? { title: navigationSurface.title, subtitle: navigationSurface.subtitle } : { title: navigationSurface.title },
+    settingsPlaceholder: navigationSurface.settingsPlaceholder === true, active,
+    groups: workspaceNavigation(navigation).map(group => ({ label: group.label,
+      items: group.items.map(({ id, label, icon, appearance }) => ({ id, label, icon, appearance })) })),
   });
-  let presented = $derived(presentation.current(active));
-  let presentedIdentity = $derived(presented?.identity ?? identity);
-  let presentedDetail = $derived(Boolean(presented) || detail);
-  const goBack = () => presented ? presentation.back(active) : onback?.();
-  $effect(() => {
-    const register = onviewport;
-    register?.({
-      scrollToTop: () => viewport?.scrollTo({ top: 0 }),
-      scrollTop: () => viewport?.scrollTop ?? 0,
-      focusTitle: () => viewport?.querySelector<HTMLElement>("[data-place-title]")?.focus({ preventScroll: true }),
-      restoreRecord: (top, view, record) => {
-        viewport?.scrollTo({ top });
-        viewport?.querySelector<HTMLElement>(`[data-view-content="${CSS.escape(view)}"] [data-record="${CSS.escape(record)}"] button`)
-          ?.focus({ preventScroll: true });
-      },
-      revealItem: id => {
-        const target = viewport?.querySelector<HTMLElement>(`[data-view-item="${CSS.escape(id)}"]`);
-        if (target) revealSearchTarget(target, viewport);
-      },
-    });
-    return () => register?.(null);
-  });
-  $effect(() => {
-    presentedIdentity;
-    const heading = placeHeader();
-    if (viewport && heading && compact) return observePlaceHeading(viewport, heading, compact);
-  });
-  let searchViewport = $state<HTMLDivElement | null>(null);
-  const instanceId = $props.id();
-  const resultsId = `${instanceId}-results`;
-  let composing = false;
-  let contentFocus: HTMLElement | null = null;
-  let searchOpener: HTMLElement | null = null;
-  let searchPointerActivation: Element | null = null;
-  $effect(() => { active; contentFocus = null; });
-  function ownsPointerFocus(target: EventTarget | null) {
-    // WebKit may focus a tabindex ancestor instead of the pressed button.
-    // Keep only that activation alive; unrelated external focus still cancels.
-    return target instanceof Node && searchPointerActivation !== null && target.contains(searchPointerActivation);
-  }
-  function rememberFocus(event: FocusEvent) {
-    if (!searching && event.target instanceof HTMLElement && viewport?.contains(event.target)) {
-      contentFocus = event.target;
-    } else if (searching && !inSearch(event.target) && !ownsPointerFocus(event.target)) {
-      void cancel(false);
-    }
-  }
-  function inSearch(target: EventTarget | null): boolean {
-    return target instanceof Node && Boolean(searchViewport?.contains(target)
-      || owner?.querySelector("[data-catalog-search-actions]")?.contains(target));
-  }
-  async function cancel(restoreFocus = true) {
-    oncancel();
-    if (!restoreFocus) return;
-    await tick();
-    const target = searchOpener?.isConnected && searchOpener.checkVisibility() ? searchOpener
-      : contentFocus && viewport?.contains(contentFocus)
-      && contentFocus.checkVisibility() && !contentFocus.matches(":disabled,[aria-disabled='true']")
-      ? contentFocus : viewport;
-    target?.focus({ preventScroll: true });
-  }
-  function openSearch() {
-    searchOpener = owner?.querySelector<HTMLElement>('[data-catalog-search-toggle]') ?? null;
-    onsearch();
-  }
-  function focusOut(event: FocusEvent) {
-    // Browsers can expose BODY between focusout and focusin. The announced
-    // internal destination is authoritative; otherwise inspect settled focus.
-    if (!searching || inSearch(event.relatedTarget)) return;
-    requestAnimationFrame(() => {
-      if (searching && !inSearch(document.activeElement) && !ownsPointerFocus(document.activeElement)) void cancel(false);
-    });
-  }
-  function pointerDown(event: PointerEvent) {
-    searchPointerActivation = null;
-    if (!searching || !(event.target instanceof Element)) return;
-    // Result activation owns its own close/navigation transaction. Clear and X
-    // also belong to search, so pointer focus changes must not swallow them.
-    const activation = event.target.closest("[data-catalog-search-actions],[data-search-result]");
-    if (activation) { searchPointerActivation = activation; return; }
-    const takesFocus = event.target.closest("button,a[href],input,textarea,select,[tabindex]:not([tabindex='-1'])");
-    void cancel(!takesFocus);
-  }
-  function finishPointerActivation() {
-    const activation = searchPointerActivation;
-    if (!activation) return;
-    // Click follows pointerup. Reconcile after it, including cancelled/dragged
-    // gestures that never activated a result, without retaining stale ownership.
-    requestAnimationFrame(() => {
-      if (searchPointerActivation !== activation) return;
-      searchPointerActivation = null;
-      if (searching && !inSearch(document.activeElement)) void cancel(false);
-    });
-  }
-  function keydown(event: KeyboardEvent) {
-    if (!searching || !inSearch(event.target) || event.defaultPrevented || event.key !== "Escape" || event.isComposing || composing || event.keyCode === 229) return;
-    event.preventDefault(); event.stopPropagation(); void cancel();
-  }
+  export function scrollToTop(): void { shell?.scrollToTop(); }
+  export function scrollTop(): number { return shell?.scrollTop() ?? 0; }
+  export function focusTitle(): void { shell?.focusTitle(); }
+  export function focusContent(): void { shell?.focusContent(); }
+  export function restoreRecord(top: number, view: string, record: string): void { shell?.restoreRecord(top, view, record); }
+  export function revealItem(id: string): Promise<boolean> { return shell?.revealItem(id) ?? Promise.resolve(false); }
+  export function scrollPositions(): { content: number; search: number } { return shell?.scrollPositions() ?? { content: 0, search: 0 }; }
+  export function restoreScroll(contentTop: number, searchTop: number): void { shell?.restoreScroll(contentTop, searchTop); }
+  export function focus(key: string): boolean { return focusKey(key); }
+  export function toggleNavigation(): void { shell?.toggleNavigation(); }
 </script>
 
-<!-- Search owns Escape only while focus is in its own surface. Capture keeps a
-     concurrently docked task's dialog layer from consuming that local action. -->
-<svelte:window onkeydowncapture={keydown} onfocusin={rememberFocus} onfocusout={focusOut} onpointerdown={pointerDown}
-  onpointerup={finishPointerActivation} onpointercancel={finishPointerActivation} />
-
-<div data-renderer-profile="apple-reference" data-catalog-workspace data-search-active={searching}>
-  <Wallpaper wallpaper={$appearance.wallpaper} />
-  <Sidebar.Provider available={navigationSurface !== null} contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
-    {#if navigationSurface}
-    <Sidebar.Root variant="floating" overlayTitle="Navigation" overlayDescription="Choose a destination.">
-      <CatalogNavigation identity={navigationSurface} settingsPlaceholder={navigationSurface.settingsPlaceholder === true}
-        {navigation} {active} {onnavigate} {searching} />
-    </Sidebar.Root>
+<Shell bind:this={shell} {documentTitle} label={shown.title} destination={active} {searching} hasQuery={query.trim() !== ""}
+  detail={showsDetail} backAvailable={canGoBack} {resultsId} navigation={shellNavigation}
+  onnavigate={id => onnavigate?.(id)} onback={goBack} oncancelsearch={() => oncancel?.()}>
+  {#snippet top()}
+    <Bar edge="top" purpose="commands" layer="content" inert={searching} identity={{ title: shown.title, subtitle: shown.subtitle }}
+      identityRole="continuation" leading={showsDetail ? back : undefined} trailing={topActions} group={actionGroup}
+      search={searchAvailable ? searchField : undefined} settingsPlaceholder={false} oninvoke={command} />
+    {#if searchAvailable}
+      <Bar edge="top" purpose="commands" layer="search" identityRole="heading" trailing={[]} search={searchField} settingsPlaceholder={false}
+        inert={false} onquery={value => onquery?.(value)} onsearchopen={() => onsearch?.()} onsearchcancel={() => oncancel?.()} />
     {/if}
-    <AdaptiveSurfaceLayout>
-    <Place bind:owner bind:viewport landmark="main" destination={active} label={presentedIdentity.title} {searching}
-      oncomposition={active => composing = active}>
-      {#snippet top()}
-      <ToolbarLayout layer="content" inert={searching} identity={presentedIdentity} identityRole="continuation" onidentityElement={element => { compact = element; }}
-        content={{ kind: "place-navigation", detail: presentedDetail, onback: goBack, backAvailable: Boolean(presented) || backAvailable, topActions, actionGroup, invoke, searchAvailable }} />
-      <CatalogToolbar {title} {query} {onquery} {searching} {resultsId} {searchAvailable} onsearch={openSearch} oncancel={cancel} />
-      {/snippet}
-      {#snippet content()}<PlaceHeading context="place" title={presentedIdentity.title} subtitle={presentedIdentity.subtitle} media={presentedIdentity.media} /><CatalogWorkspaceContent content={body} {searching} />{/snippet}
-      {#snippet bottom()}
-        <CatalogNavigationToggle {searching} />
-        {#if bottomToolbar && invoke && (bottomToolbar.primary || bottomToolbar.secondary)}
-          <Toolbar toolbar={{ edge: "bottom", ...bottomToolbar }} {invoke} />
-        {/if}
-      {/snippet}
-      {#snippet overlay()}
-      {#if searching}
-        <div bind:this={searchViewport} id={resultsId} data-catalog-search-scroll data-has-query={Boolean(query.trim())}>
-          {#if searchContent?.kind === "catalog"}
-            <CatalogSearchResults title={searchContent.title} description={searchContent.description} {query}
-              results={searchContent.results} onselect={searchContent.onselect} />
-          {:else if searchContent?.kind === "view"}
-            <CatalogSearchResults title={searchContent.title} description={searchContent.description} {query}
-              results={searchContent.results} onselect={searchContent.onselect} />
-          {/if}
-        </div>
-      {/if}
-      {/snippet}
-    </Place>
+  {/snippet}
+  {#snippet content()}
+    <PlaceHeading context="place" title={shown.title} subtitle={shown.subtitle} media={shown.media} />
+    <CatalogWorkspaceContent content={body} {searching} />
+  {/snippet}
+  {#snippet bottom()}
+    {#if bottomToolbar && invoke && (bottomToolbar.primary || bottomToolbar.secondary)}
+      <Toolbar toolbar={{ edge: "bottom", ...bottomToolbar }} {invoke} />
+    {/if}
+  {/snippet}
+  {#snippet search()}
+    {#if searchContent?.kind === "catalog"}
+      {@const found = searchContent}
+      <CatalogSearchResults title={found.title} description={found.description} {query} results={found.results}
+        onselect={result => { if (result.kind !== "content") found.onselect(result); }} />
+    {:else if searchContent?.kind === "view"}
+      <CatalogSearchResults title={searchContent.title} description={searchContent.description} {query} results={searchContent.results}
+        onselect={searchContent.onselect} />
+    {/if}
+  {/snippet}
+  {#snippet panels()}
     {#if panelState}
       <Panel panel={panelState.panel} onevent={panelState.onevent} />
       <FailureDialog code={panelState.error} uncertain={panelState.uncertain} close={panelState.dismissError} />
     {/if}
-    </AdaptiveSurfaceLayout>
-    <div data-catalog-search-material data-active={searching} aria-hidden="true"></div>
-    <CatalogEdgeNavigation {searching} detail={presentedDetail} onback={presented || backAvailable ? goBack : undefined} {viewport} />
-  </Sidebar.Provider>
-</div>
-
-<style>
-  :global([data-catalog-workspace] [data-adaptive-host]) { position:absolute; inset:0; }
-</style>
+  {/snippet}
+</Shell>
 ```
 
-## src/svelte/catalog/compositions/catalog-navigation/CatalogNavigation.svelte
+## src/svelte/catalog/foundations/shell/Shell.svelte
 
-Source SHA-256: 31868e7f4ad26cbbf0eea2de0416803066209044e234a8da7f0ad71d60acbe59
+Source SHA-256: f7c347e55dea828ce9e9641e894c62ae6dd80d4465d6ff0d6bb85dff32ef5edb
 
 ```svelte
-<script lang="ts" generics="Destination extends string">
+<script lang="ts">
+  import * as Sidebar from "../../../vendor/components/ui/sidebar/index.js";
+  import { Wallpaper } from "../../index.ts";
+  import { appearance } from "../../../infra/appearance-state.ts";
+  import { provideFocusScope, useFocusScope } from "../../../infra/focus-scope.ts";
+  import { provideRegionRegistry, useRegionRegistry } from "../../../infra/region-registry.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import ShellBody from "./ShellBody.svelte";
+  let { documentTitle, label, destination, searching, hasQuery, detail, backAvailable, resultsId, navigation,
+    onnavigate, onback, oncancelsearch, oncomposition, top, content, bottom, search, panels }: CatalogProps<"shell"> = $props();
+  // Pieces in the workspace register focus targets and reveals here (a caller may open them above the shell instead).
+  const scope = useFocusScope() ?? provideFocusScope();
+  const regions = useRegionRegistry() ?? provideRegionRegistry();
+  let workspace = $state<HTMLElement | null>(null);
+  let body = $state<ReturnType<typeof ShellBody>>();
+  export function scrollToTop(): void { body?.scrollToTop(); }
+  export function scrollTop(): number { return body?.scrollTop() ?? 0; }
+  export function focusTitle(): void { body?.focusTitle(); }
+  export function focusContent(): void { body?.focusContent(); }
+  export function restoreRecord(top: number, view: string, record: string): void { body?.restoreRecord(top, view, record); }
+  export function revealItem(id: string): Promise<boolean> { return body?.revealItem(id) ?? Promise.resolve(false); }
+  export function scrollPositions(): { content: number; search: number } { return body?.scrollPositions() ?? { content: 0, search: 0 }; }
+  export function restoreScroll(content: number, search: number): void { body?.restoreScroll(content, search); }
+  export function focus(key: string): boolean { return body?.focusKey(key) ?? false; }
+  export function toggleNavigation(): void { body?.toggleNavigation(); }
+</script>
+
+<svelte:head><title>{documentTitle}</title></svelte:head>
+
+<div bind:this={workspace} data-renderer-profile="apple-reference" data-catalog-workspace data-search-active={searching}>
+  <Wallpaper wallpaper={$appearance.wallpaper} />
+  <Sidebar.Provider available={navigation !== null} contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
+    <ShellBody bind:this={body} root={() => workspace} {label} {destination} {searching} {hasQuery} {detail} {backAvailable} {resultsId}
+      {navigation} {scope} {regions} {onnavigate} {onback} {oncancelsearch} {oncomposition} {top} {content} {bottom} {search} {panels} />
+  </Sidebar.Provider>
+</div>
+```
+
+## src/svelte/catalog/foundations/shell/ShellNavigation.svelte
+
+Source SHA-256: 82d2c139745c9943438bfba684ca35f34a2aff2809bb94f64d9fc0dd64efbdc0
+
+```svelte
+<script lang="ts">
+  // Shell part (from the catalog-navigation composition): the navigation pane, its identity bar, the destination groups
+  // drawn from data, the toggle that hides it and the settings placeholder. Dragging the pane's header toward its edge,
+  // or swiping the pane, dismisses it.
   import { untrack } from "svelte";
-  import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
-  import { swipeMotion } from "../../../infra/swipe-motion.svelte.js";
-  import { Place } from "../../index.ts";
-  import { ToolbarLayout } from "../../index.ts";
-  import { Icon } from "../../index.ts";
-  import { actionIconNames } from "../../../infra/action-icons.ts";
-  import { workspaceNavigation, type WorkspaceDestination } from "../../../infra/workspace-navigation.ts";
-  let { identity, navigation, active, onnavigate, searching = false, settingsPlaceholder = false }: {
-    identity: { title: string; subtitle?: string }; settingsPlaceholder?: boolean;
-    navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
-    onnavigate: (id: Destination) => void; searching?: boolean;
-  } = $props();
+  import * as Sidebar from "../../../vendor/components/ui/sidebar/index.js";
+  import { Bar, Icon, Surface } from "../../index.ts";
+  import { swipeMotion } from "../../mechanisms/swipe-motion/swipe-motion.svelte.ts";
+  import type { ShellNavigation } from "../../../infra/workspace-navigation.ts";
+  import { navigationIconNames } from "./navigation-icons.ts";
+  let { navigation, searching, onnavigate }: { navigation: ShellNavigation; searching: boolean; onnavigate: (id: string) => void } = $props();
   const sidebar = Sidebar.useSidebar();
   const motion = swipeMotion({ edge: () => "left", enabled: () => sidebar.expanded,
     commit: () => sidebar.presentation === "overlay" ? sidebar.setOverlayOpen(false) : sidebar.setOpen(false) });
   $effect(() => { sidebar.dismissOffset = motion.offset; });
   $effect(() => { if (sidebar.expanded) untrack(() => motion.reset()); });
-  const iconNames = { ...actionIconNames, landmark: "landmark", backpack: "backpack", panels: "panels-top-left" } as const;
-  let groups = $derived(workspaceNavigation(navigation));
-  function navigate(id: Destination) { onnavigate(id); if (sidebar.presentation === "overlay") sidebar.setOverlayOpen(false); }
-  function startHeaderDrag(event: PointerEvent) {
-    if (event.target instanceof Element && event.target.closest('button,a,input,select,textarea')) return;
+  function navigate(id: string) { onnavigate(id); if (sidebar.presentation === "overlay") sidebar.setOverlayOpen(false); }
+  // The pane's top bar is the drag handle (the bar itself takes no drag; DESIGN §3.2). Presses on its controls stay theirs.
+  const down = (event: PointerEvent) => {
+    if (event.target instanceof Element && event.target.closest("button,a,input,select,textarea")) return;
     motion.down(event);
-  }
+  };
+  const handlers = [["pointerdown", down], ["pointermove", motion.move], ["pointerup", motion.up], ["pointercancel", motion.cancel],
+    ["lostpointercapture", motion.lost]] as const;
+  $effect(() => {
+    sidebar.presentation; sidebar.expanded;
+    let header: HTMLElement | null = null;
+    // The pane mounts in this update (docked, or in its overlay dialog): attach once it is drawn.
+    const frame = requestAnimationFrame(() => {
+      header = document.getElementById(sidebar.panelId)?.querySelector<HTMLElement>('[data-catalog-navigation] > [data-toolbar="top"]') ?? null;
+      if (!header) return;
+      header.dataset.navigationDrag = "true";
+      for (const [type, handler] of handlers) header.addEventListener(type, handler);
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      if (!header) return;
+      delete header.dataset.navigationDrag;
+      for (const [type, handler] of handlers) header.removeEventListener(type, handler);
+    };
+  });
 </script>
 
-<Place landmark="navigation" label="Main navigation">
+<Surface kind="navigation" label="Main navigation" searching={false}>
   {#snippet top()}
-  <ToolbarLayout {identity} content={{kind:"actions",actions:[],onevent:()=>{}}} drag={{down:startHeaderDrag,move:motion.move,up:motion.up,cancel:motion.cancel,lost:motion.lost}} />
+    <Bar edge="top" purpose="navigation" identity={navigation.identity} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false} />
   {/snippet}
   {#snippet content()}
     <div>
-      {#each groups as group (group.label)}
+      {#each navigation.groups as group (group.label)}
       <Sidebar.Group aria-label={group.label}>
         <Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
         <Sidebar.GroupContent><Sidebar.Menu>
         {#each group.items as destination (destination.id)}
           <Sidebar.MenuItem>
-            <Sidebar.MenuButton isActive={destination.id === active} aria-current={destination.id === active ? "page" : undefined}
+            <Sidebar.MenuButton isActive={destination.id === navigation.active} aria-current={destination.id === navigation.active ? "page" : undefined}
               aria-label={destination.label} onclick={() => navigate(destination.id)}>
-              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon name={iconNames[destination.icon]} /></span>
+              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon name={navigationIconNames[destination.icon]} /></span>
               <span>{destination.label}</span>
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>
@@ -3050,52 +2982,56 @@ Source SHA-256: 31868e7f4ad26cbbf0eea2de0416803066209044e234a8da7f0ad71d60acbe59
     </div>
   {/snippet}
   {#snippet bottom()}
-  <ToolbarLayout edge="bottom" content={{kind:"navigation-toggle",searching}} />
-  {#if settingsPlaceholder}
-  <ToolbarLayout content={{kind:"settings-placeholder"}} />
-  {/if}
+    <!-- The pane's toggle is interactive only while the pane is shown (it is inert otherwise), so it always hides it.
+         Feeding the sidebar's own expanded state into the bar here stalls that state's derivation (Svelte 5.57). -->
+    <Bar edge="bottom" purpose="navigation" identityRole="heading" trailing={[]} navigationToggle={{ expanded: true, controls: sidebar.panelId }}
+      settingsPlaceholder={false} inert={searching} onnavigationtoggle={sidebar.toggle} />
+    {#if navigation.settingsPlaceholder}
+      <Bar edge="bottom" purpose="navigation" identityRole="heading" trailing={[]} settingsPlaceholder inert={false} />
+    {/if}
   {/snippet}
-</Place>
+</Surface>
 ```
 
-## src/svelte/catalog/compositions/toolbar-layout/CatalogNavigationActions.svelte
+## src/svelte/catalog/foundations/bar/BarSearch.svelte
 
-Source SHA-256: 9133e928abdd94f7936ecdd758af52c44b9bf06320d5e15030f794d3a80309f1
+Source SHA-256: 16ee134a234920763ed07f5dfd670b2fdb377568f467d5acae2dbed89fded322
 
 ```svelte
 <script lang="ts">
-  import { NodeRenderer } from "../../index.ts";
-  let { detail = false, onback, backAvailable=true }: {
-    detail?: boolean; onback?: () => void; backAvailable?:boolean;
+  // Bar part (from the toolbar-search composition): the place search field, revealed by a toggle that also closes it.
+  // Opening focuses the field; the displayed query freezes while closed so the field does not change as it hides.
+  import { tick, untrack } from "svelte";
+  import { Action, SearchField } from "../../index.ts";
+  let { title, query, open, resultsId, onquery, onopen, oncancel }: {
+    title: string; query: string; open: boolean; resultsId: string;
+    onquery: (query: string) => void; onopen: () => void; oncancel: () => void;
   } = $props();
+  const id = $props.id();
+  let input = $state<HTMLInputElement | null>(null);
+  let displayedQuery = $state(untrack(() => query));
+  $effect(() => { if (open) displayedQuery = query; });
+  async function toggle() {
+    if (open) { oncancel(); return; }
+    onopen(); await tick(); input?.focus({ preventScroll: true });
+  }
 </script>
 
-<div data-catalog-navigation-actions>
-  {#if detail && onback}
-    <NodeRenderer node={{ version: "desert.bank-node/1", kind: "action", role: "secondary", action: {
-      intent: { kind: "catalog.back" }, label: "Back", icon: "back", state: backAvailable?"ready":"unavailable",
-    } }} onevent={event => { if (event.kind === "catalog.back"&&backAvailable) onback?.(); }} />
-  {/if}
+<div data-catalog-search-actions data-expanded={open}>
+  <!-- The field wrapper the vendor field family drew for the toolbar search (same classes, no vendor import). -->
+  <div role="group" data-catalog-search class="group/field flex w-full flex-col gap-2 [&>.sr-only]:w-auto" inert={!open} aria-hidden={!open}>
+    <label class="sr-only" for={id}>Search {title.toLowerCase()}</label>
+    <!-- F1-merge: Field (purpose "search") replaces SearchField once it controls its results (aria-controls) and can stay
+         mounted while closed without taking focus: this rail keeps the well mounted so its width animates open. -->
+    <SearchField {id} onready={element => input = element} value={displayedQuery} onvalue={onquery} placeholder={`Search in ${title}`}
+      aria-controls={open ? resultsId : undefined} tabindex={open ? undefined : -1} />
+  </div>
+  <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
+  <div class="toolbar-action" data-search-toggle>
+    <Action label={open ? "Close search" : "Search"} icon={open ? "close" : "search"} face="icon" emphasis="secondary" state="ready"
+      type="button" onclick={toggle} disclosure={{ id: `${id}-toggle`, controls: resultsId, expanded: open, haspopup: "listbox" }} />
+  </div>
 </div>
-```
-
-## src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte
-
-Source SHA-256: d9f7a7276785de44f6cd1eda8451b1a1cce4f82c0f61e49bc956a339ab561c04
-
-```svelte
-<script lang="ts">
-  import { ToolbarLayout } from "../../index.ts";
-  let { title, query, onquery, searching, resultsId, onsearch, oncancel, searchAvailable = true }: {
-    title: string; query: string; onquery: (query: string) => void; searching: boolean;
-    resultsId: string; onsearch: () => void; oncancel: () => void; searchAvailable?: boolean;
-  } = $props();
-</script>
-
-{#if searchAvailable}
-  <ToolbarLayout layer="search" {searching} edge="top"
-    content={{kind:"search",title,query,onquery,searching,resultsId,onsearch,oncancel}} />
-{/if}
 ```
 
 ## src/svelte/infra/workspace-navigation.ts
@@ -3187,30 +3123,19 @@ export type WorkspaceSearchResult = CatalogSearchResult |
 
 ## src/svelte/catalog/renderer/view-content/ViewContent.svelte
 
-Source SHA-256: 8d0abdc1b038add23a33bd2486b440b518d6c7d0787bfa9021b583a57bfc7af2
+Source SHA-256: 24fff3c7a614e0bff6019b5bdabbd0c7be789bbd8573abd01c91425bd8f3798a
 
 ```svelte
 <script lang="ts">
-  import type { ResolvedView } from "../../../../views/resolved.ts";
-  import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
   import { ContentFlow } from "../../index.ts";
-  import type { RegisterContentActions } from "../../../infra/workspace-content.ts";
-  let { resolved, onevent, album = null, onalbum, onactions }: {
-    resolved: ResolvedView;
-    onevent: (event: NodeEvent) => void;
-    album?: string | null;
-    onalbum: (id: string) => void;
-    onactions?: RegisterContentActions;
-  } = $props();
-  // lane-merge: view-content (lane F). The bank answers whether it revealed an entry (Promise<boolean>).
-  let flow = $state<{
-    revealEntry: (id: ResolvedNodeId) => Promise<boolean>;
-    revealAndFocusEntry: (id: ResolvedNodeId) => Promise<boolean>;
-    selectMedia: (record: string) => boolean;
-  } | null>(null);
-  export async function revealEntry(id: ResolvedNodeId) { return await flow?.revealEntry(id) ?? false; }
-  export function selectMedia(record: string) { return flow?.selectMedia(record) ?? false; }
+  import type { CatalogProps } from "../../types.d.ts";
+  let { resolved, onevent, album = null, onalbum, onactions }: CatalogProps<"view-content"> = $props();
+  let flow = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<boolean>; revealAndFocusEntry: (id: ResolvedNodeId) => Promise<boolean>;
+    selectMedia: (record: string) => boolean }>();
+  export async function revealEntry(id: ResolvedNodeId): Promise<boolean> { return await flow?.revealEntry(id) ?? false; }
+  export function selectMedia(record: string): boolean { return flow?.selectMedia(record) ?? false; }
+  // The workspace reaches a retained view's bank and library through what it registers here (null once it unmounts).
   $effect(() => {
     const register = onactions;
     register?.({ revealEntry: async id => { await flow?.revealAndFocusEntry(id); }, selectMedia });
@@ -3223,29 +3148,13 @@ Source SHA-256: 8d0abdc1b038add23a33bd2486b440b518d6c7d0787bfa9021b583a57bfc7af2
 
 ## src/svelte/catalog/renderer/view-item/ViewItem.svelte
 
-Source SHA-256: 8cc89e2c1b0f35d92d07401455042aa69b4e09bb9302b3d056844ee728ed8f12
+Source SHA-256: dd014833d2651cf7ba2f8db729928bc2c89df258a81f114ec86f448b80f75b17
 
 ```svelte
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
-  import type { NodeEvent } from "../../../../interaction/node-events.ts";
-  import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
-  import { stackPlacement } from "../../../infra/stack-placement.ts";
-  import { NodeRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../../index.ts";
+  import { Information, TextContent, ViewBinding, ViewDestinationLink } from "../../index.ts";
   let { item, resolved, onevent, host = "flow" }: CatalogProps<"view-item"> = $props();
-  function dispatch(event: NodeEvent) {
-    if (item.kind === "collection" && event.kind === "collection.select") {
-      if (!resolved.disabledOutputs.includes(item.output)) onevent?.({ kind: "surface.invoke", intent: {
-        kind: "view.output", view: resolved.view.id, output: item.output, recordId: event.id,
-      } });
-    } else onevent?.(event);
-  }
-  function binding() {
-    if (!("input" in item)) throw new Error("VIEW_INPUT_REQUIRED");
-    const node = resolved.bindings[item.input];
-    if ((!node && !resolved.pending?.[item.input]) || node && node.kind !== item.kind) throw new Error("INVALID_VIEW_INPUT_BINDING");
-    return node;
-  }
 </script>
 
 {#if item.kind === "text"}
@@ -3256,21 +3165,55 @@ Source SHA-256: 8cc89e2c1b0f35d92d07401455042aa69b4e09bb9302b3d056844ee728ed8f12
   <ViewDestinationLink view={resolved.view.id} output={item.output} label={item.label} icon={item.icon}
     reason={resolved.disabledOutputs.includes(item.output) ? resolved.connection?.label : undefined}
     available={!resolved.disabledOutputs.includes(item.output)} {onevent} />
-{:else if item.kind === "tag" || item.kind === "image" || item.kind === "avatar"}
-  {@const node = controlResolvedNode(item)}
-  <StackItem placement={stackPlacement(node.kind)} kind={node.kind}><NodeRenderer {node} /></StackItem>
-{:else if item.kind==='collection' && item.presentation?.kind==='summary-widget'}
-  {@const node=binding()}
-  {#if node?.kind==='collection'}<SummaryWidget {node} available={!resolved.disabledOutputs.includes(item.output)}
-    activate={()=>onevent?.({kind:'surface.invoke',intent:{kind:'view.output',view:resolved.view.id,output:item.output}})} />{/if}
-{:else}
-  {@const node = binding()}
-  {#if !node && "input" in item && resolved.pending?.[item.input]}
-    <MessageBody content={resolved.pending[item.input]} />
-  {:else if node}
-    {#if host === "frame"}<NodeRenderer {node} onevent={dispatch} />
-    {:else}<StackItem placement={stackPlacement(node.kind)} kind={node.kind}><NodeRenderer {node} onevent={dispatch} /></StackItem>{/if}
-  {/if}
+{:else if item.kind === "tag" || item.kind === "image" || item.kind === "avatar" || item.kind === "collection" || item.kind === "form" || item.kind === "context"}
+  <ViewBinding {item} {resolved} {onevent} {host} />
+{/if}
+```
+
+## src/svelte/catalog/compositions/view-binding/ViewBinding.svelte
+
+Source SHA-256: c248643c89bf0dc15b6bf713393e89e40e34e36a8cc0fe50a18557f4f6ff7e93
+
+```svelte
+<script lang="ts">
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
+  import { stackPlacement } from "../../../infra/stack-placement.ts";
+  import { NodeRenderer, StackItem, SummaryWidget, Text } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { item, resolved, onevent, host = "flow" }: CatalogProps<"view-binding"> = $props();
+  /** What the item shows: its own control node (a tag, image or avatar), the summary of its bound collection, its bound node,
+   * the message of an input still pending, or nothing yet. A binding of another kind than the item fails loudly. */
+  let bound = $derived.by(() => {
+    if (item.kind === "tag" || item.kind === "image" || item.kind === "avatar") return { kind: "control", node: controlResolvedNode(item) } as const;
+    const node = resolved.bindings[item.input], pending = resolved.pending?.[item.input];
+    if ((!node && !pending) || node && node.kind !== item.kind) throw new Error("INVALID_VIEW_INPUT_BINDING");
+    if (item.kind === "collection" && item.presentation?.kind === "summary-widget") {
+      return node?.kind === "collection" ? { kind: "summary", node, output: item.output } as const : { kind: "none" } as const;
+    }
+    if (node) return { kind: "node", node } as const;
+    return pending ? { kind: "pending", text: pending.text } as const : { kind: "none" } as const;
+  });
+  /** A record chosen in a bound collection opens the collection's output, unless that output is disabled. */
+  function dispatch(event: NodeEvent) {
+    if (item.kind !== "collection" || event.kind !== "collection.select") { onevent?.(event); return; }
+    if (!resolved.disabledOutputs.includes(item.output)) onevent?.({ kind: "surface.invoke", intent: {
+      kind: "view.output", view: resolved.view.id, output: item.output, recordId: event.id,
+    } });
+  }
+  const open = (output: string) => onevent?.({ kind: "surface.invoke", intent: { kind: "view.output", view: resolved.view.id, output } });
+</script>
+
+{#if bound.kind === "control"}
+  <StackItem placement={stackPlacement(bound.node.kind)} kind={bound.node.kind}><NodeRenderer node={bound.node} /></StackItem>
+{:else if bound.kind === "summary"}
+  <SummaryWidget node={bound.node} available={!resolved.disabledOutputs.includes(bound.output)} activate={() => open(bound.output)} />
+{:else if bound.kind === "pending"}
+  <Text kind="body" align="start" live="polite" text={bound.text} />
+{:else if bound.kind === "node" && host === "frame"}
+  <NodeRenderer node={bound.node} onevent={dispatch} />
+{:else if bound.kind === "node"}
+  <StackItem placement={stackPlacement(bound.node.kind)} kind={bound.node.kind}><NodeRenderer node={bound.node} onevent={dispatch} /></StackItem>
 {/if}
 ```
 

@@ -6,8 +6,10 @@ import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
 import { catalogTitle, matchingEntries } from "../../../infra/catalog-entries.ts";
 import { retrieveCollection } from "../../../collection-retrieval.ts";
 import { presentFact, presentTitle } from "../../../../interaction/fact-presentation.ts";
+import { say } from "../../../infra/messages.ts";
+import { m } from "../../../../messages/keys.ts";
 
-/** Data adapter only. Geometry, material, focus and motion remain in CatalogWorkspace. */
+/** Data adapter only: identity, search results and the selection a result makes. Geometry, focus and motion are the shell's. */
 export function viewIdentity(resolved: ResolvedView, fallback: string): PlaceIdentity {
   const header = resolved.view.content.find(item => item.kind === "header");
   return header ? { ...header, subtitle: header.subtitle ?? "" }
@@ -23,7 +25,7 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
   const terms = query.trim().toLowerCase().split(/\s+/u).filter(Boolean);
   if (!terms.length) return [];
   const results: WorkspaceSearchResult[] = resolved.view.content.some(item => item.kind === "visual-catalog") ? matchingEntries(query).map(entry => ({
-    kind: "bank", id: entry.id, title: catalogTitle(entry.id), description: `${entry.id} · ${entry.states.join(", ")}`,
+    kind: "bank", id: entry.id, title: catalogTitle(entry.id), description: say(m.viewWorkspace.entry, { id: entry.id, states: entry.states.join(", ") }),
   })) : [];
   const matches = (values: readonly unknown[]) => terms.every(term => values.join(" ").toLowerCase().includes(term));
   for (const item of resolved.view.content) {
@@ -39,8 +41,9 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
       const presentation = node.presentation;
       for (const record of node.records) {
         const asset = record.facts[presentation.image];
-        const title = typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'video' ? 'Video'
-          : typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'audio' ? 'Audio' : 'Image';
+        const title = typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'video' ? say(m.viewWorkspace.video)
+          : typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'audio' ? say(m.viewWorkspace.audio)
+          : say(m.viewWorkspace.image);
         const detail = presentation.description ? record.facts[presentation.description] : undefined;
         const description = typeof detail === 'string' ? detail : '';
         if (matches([title, description])) results.push({kind:'content',id:recordKey(item.id,record.id),title,description});
@@ -50,7 +53,7 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
     if (node.presentation?.kind === "collection-grid") {
       for (const record of node.records) {
         const title = presentTitle(record.facts[node.presentation.title]);
-        if (matches([title])) results.push({kind:'content',id:recordKey(item.id,record.id),title,description:'Collection'});
+        if (matches([title])) results.push({kind:'content',id:recordKey(item.id,record.id),title,description:say(m.viewWorkspace.collection)});
       }
       continue;
     }

@@ -1,52 +1,38 @@
-<script lang="ts" generics="Result extends WorkspaceSearchResult">
-  import * as Empty from "@desert/svelte/vendor/components/ui/empty/index.js";
-  import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
-  import { Icon } from "../../index.ts";
-  import { NodeRenderer } from "../../index.ts";
-  import { GroupedPanel } from "../../index.ts";
-  import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
-  let { title, description, query, results, onselect }: {
-    title: string; description: string; query: string; results: readonly Result[];
-    onselect: (result: Result) => void;
-  } = $props();
+<script lang="ts">
+  import { Column, Grid, Heading, List, NodeRenderer, Row, Status, Text } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  let { title, description, query, results, onselect }: CatalogProps<"catalog-search-results"> = $props();
+  let count = $derived(say(results.length === 1 ? m.catalogSearchResults.one : m.catalogSearchResults.many, { count: String(results.length) }));
 </script>
 
-<section data-catalog-search-results data-empty={!query.trim()} aria-label={`Search in ${title}`}>
+<!-- What a search in one destination found: a prompt before a query, then its count and its record cards or result rows.
+     A result row answers to `search:<id>` in the workspace's focus scope, so a return can come back to it. -->
+<Column gap="relaxed" fill>
   {#if !query.trim()}
-    <Empty.Root data-catalog-search-prompt>
-      <Empty.Header>
-        <Empty.Media><Icon name="search" decorative /></Empty.Media>
-        <Empty.Title><h1>Search in {title}</h1></Empty.Title>
-        <Empty.Description>{description}</Empty.Description>
-      </Empty.Header>
-    </Empty.Root>
+    <Status icon="search" title={say(m.catalogSearchResults.prompt, { title })} {description} tone="neutral" size="prompt" heading />
   {:else}
-    <header data-catalog-search-heading>
-      <h1>Results in {title}</h1>
-      <p role="status" aria-live="polite" aria-atomic="true">{results.length} {results.length === 1 ? "result" : "results"}</p>
-    </header>
+    <Column gap="snug">
+      <Heading kind="page" text={say(m.catalogSearchResults.heading, { title })} />
+      <Text kind="support" tone="muted" live="polite" text={count} />
+    </Column>
     {#if !results.length}
-      <Empty.Root><Empty.Header><Empty.Title>No matching results</Empty.Title>
-        <Empty.Description>Try another search in {title}.</Empty.Description></Empty.Header></Empty.Root>
+      <Status title={say(m.catalogSearchResults.empty)} description={say(m.catalogSearchResults.another, { title })} tone="neutral"
+        size="regular" heading={false} />
     {:else if results[0]?.kind === "record"}
-      <div data-catalog-search-items data-result-kind="record">
+      <Grid tracks="results" gap="close">
         {#each results as result (result.id)}
-          {#if result.kind === "record"}<div data-search-result={result.id}>
-              <NodeRenderer node={result.node} onevent={event => { if (event.kind === "catalog.open") onselect(result); }} />
-          </div>{/if}
+          {#if result.kind === "record"}<NodeRenderer node={result.node} onevent={event => { if (event.kind === "catalog.open") onselect?.(result); }} />{/if}
         {/each}
-      </div>
+      </Grid>
     {:else}
-      <GroupedPanel><div data-catalog-search-items data-grouped-rows>
+      <List kind="rows" measure="reading">
         {#each results as result (result.id)}
-          {#if result.kind !== "record"}<div data-search-result={result.id} data-grouped-row>
-              <Button variant="row" size="row" data-grouped-action onclick={() => onselect(result)}>
-                <span data-search-result-label><span>{result.title}</span><small>{result.description}</small></span>
-                <Icon name="chevron-right" placement="inline-end" decorative />
-              </Button>
-          </div>{/if}
+          {#if result.kind !== "record"}<Row label={result.title} description={result.description} trailing="chevron" interaction="open"
+            available current={false} focusKey={`search:${result.id}`} onopen={() => onselect?.(result)} />{/if}
         {/each}
-      </div></GroupedPanel>
+      </List>
     {/if}
   {/if}
-</section>
+</Column>

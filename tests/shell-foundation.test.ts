@@ -8,11 +8,13 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 import { pixelDifference } from "./fixtures/pixel-difference.ts";
+import { catalogWorkspaceBefore } from "./fixtures/catalog-workspace-before.ts";
 
 const content = [{ kind: "header", id: "heading", title: "Notes", subtitle: "Your writing" },
   { kind: "stack", id: "plans", title: "Plans", items: Array.from({ length: 30 }, (_, index) => ({ kind: "text" as const, text: `Plan line ${index}.` })) },
   { kind: "stack", id: "archive", title: "Archive", items: [{ kind: "text", text: "Last year." }] }] as const;
 
+// The pre-shell workspace, frozen (fixtures/catalog-workspace-before.ts): today's CatalogWorkspace is itself mounted on Shell.
 const before = `<script lang="ts">
   import CatalogWorkspace from '@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte';
   ${workspaceBodySource(content)}
@@ -38,7 +40,7 @@ const after = `<script lang="ts">
   Reflect.set(window, 'events', () => events);
 </script>
 <Shell bind:this={shell} documentTitle="Notes · Notebook" label="Notes" destination={active} {searching} hasQuery={query.trim() !== ''}
-  detail={false} backAvailable resultsId="notes-results" {navigation}
+  detail={false} backAvailable resultsId="notes-results" searchLabel="Search in Notes" {navigation}
   onnavigate={id => { active = id; events = [...events, 'navigate:' + id]; }} oncancelsearch={restore => { searching = false; events = [...events, 'cancel:' + restore]; }}>
   {#snippet top()}
     <Bar edge="top" purpose="commands" layer="content" inert={searching} identity={{title:'Notes',subtitle:'Your writing'}} identityRole="continuation"
@@ -66,9 +68,9 @@ const settle = (page: Awaited<ReturnType<typeof svelteBrowser>>["page"]) => page
 });
 
 test("composed with bars and the place heading, the shell draws the catalog workspace's pixels", { timeout: 120000 }, async () => {
-  const [baseline, candidate] = [await svelteBrowser(before), await svelteBrowser(after)];
+  const [baseline, candidate] = [await svelteBrowser(before, catalogWorkspaceBefore), await svelteBrowser(after)];
   try {
-    const css = await rendererCss();
+    const css = await rendererCss(Object.values(catalogWorkspaceBefore));
     for (const f of [baseline, candidate]) { await f.page.addStyleTag({ content: css }); await f.page.emulateMedia({ reducedMotion: "reduce" }); }
     // CatalogWorkspace lays its adaptive host over the whole workspace with a :global rule that ties AdaptiveSurfaceLayout's
     // own scoped rule. A build emits the child's stylesheet first, so the workspace rule wins; this harness injects
@@ -129,6 +131,7 @@ test("search: opening it remembers its toggle; Escape inside cancels and returns
     await f.page.getByRole("button", { name: "Search", exact: true }).click();
     await f.page.waitForFunction(() => document.activeElement?.getAttribute("type") === "search");
     assert.equal(await f.page.locator("#notes-results[data-catalog-search-scroll]").count(), 1);
+    assert.equal(await f.page.getByRole("region", { name: "Search in Notes", exact: true }).getAttribute("id"), "notes-results", "the overlay is the named search region");
     assert.equal(await f.page.locator("[data-catalog-workspace]").getAttribute("data-search-active"), "true");
     await f.page.keyboard.press("Escape");
     await f.page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Search");

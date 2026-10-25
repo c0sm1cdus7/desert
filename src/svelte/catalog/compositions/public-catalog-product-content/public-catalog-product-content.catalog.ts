@@ -5,7 +5,9 @@ import { PublicCatalogProductContentContract } from "./public-catalog-product-co
 
 export const PublicCatalogProductContent = defineComposition({
   id: "public-catalog-product-content",
-  purpose: "Browse a published catalog, its exercises and its component bank, with search and browser history that return to where the person was.",
+  purpose: { key: "publicCatalogProductContent.purpose" },
+  messages: ["publicCatalogProductContent.purpose", "publicCatalogProductContent.documentTitle", "publicCatalogProductContent.bank",
+    "publicCatalogProductContent.bankSubtitle"],
   owner: { entry: "PublicCatalogProductContent.svelte", parts: ["catalog-history.ts"] },
   uses: ["appearance-root", "catalog-workspace"], approval: "none", contract: PublicCatalogProductContentContract,
 } as const);

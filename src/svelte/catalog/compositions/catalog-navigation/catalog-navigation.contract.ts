@@ -1,2 +1,6 @@
-// Stub contract of CatalogNavigation.svelte: its props and events are declared when the piece is migrated (slices 2-4).
-export const CatalogNavigationContract = {} as const;
+// The props of CatalogNavigation: none. It is retired (the shell draws the navigation pane from data) and draws nothing.
+import { Type } from "@sinclair/typebox";
+
+export const CatalogNavigationContract = {
+  props: Type.Object({}, { additionalProperties: false }),
+} as const;

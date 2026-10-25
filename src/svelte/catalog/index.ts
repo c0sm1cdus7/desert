@@ -164,6 +164,7 @@ export { default as ToolbarMediaControls } from "./compositions/toolbar-media-co
 export { default as ToolbarSearch } from "./compositions/toolbar-search/ToolbarSearch.svelte";
 export { default as UtilityActions } from "./compositions/utility-actions/UtilityActions.svelte";
 export { default as ViewAttention } from "./compositions/view-attention/ViewAttention.svelte";
+export { default as ViewBinding } from "./compositions/view-binding/ViewBinding.svelte";
 export { default as ViewContent } from "./renderer/view-content/ViewContent.svelte";
 export { default as ViewDestinationLink } from "./compositions/view-destination-link/ViewDestinationLink.svelte";
 export { default as ViewItem } from "./renderer/view-item/ViewItem.svelte";

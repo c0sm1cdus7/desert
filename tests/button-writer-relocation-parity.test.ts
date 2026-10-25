@@ -7,6 +7,10 @@ import { buttonWritersBefore } from "./fixtures/button-writers-before.ts";
 import { controlWritersBefore } from "./fixtures/control-writers-before.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
+import { catalogWorkspaceBefore } from "./fixtures/catalog-workspace-before.ts";
+
+// The search toolbar this test hosts its buttons in was a catalog-workspace part; it is frozen since the shell replaced it.
+const catalogToolbar = resolve("src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte");
 
 const buttonPath = "src/svelte/vendor/components/ui/button/button.svelte";
 const source = `<script lang="ts">
@@ -80,7 +84,7 @@ test("moving control writers preserves the relocated declarations, their layerin
   const laterCss=compiled(rules.reduce((text,[rule])=>text.replace(rule,""),current));
   // Today's Button markup in one unchanged DOM; only the eight rules' owner differs between captures.
   const markup=current.replace(/<style>[\s\S]*?<\/style>/g,"");
-  const fixture=await svelteBrowser(source,{[resolve(buttonPath)]:markup},undefined,{initialCss:css.before});
+  const fixture=await svelteBrowser(source,{[resolve(buttonPath)]:markup,[catalogToolbar]:catalogWorkspaceBefore[catalogToolbar]!},undefined,{initialCss:css.before});
   try {
     const {page}=fixture;
     assert.equal(await page.locator('main').getAttribute('data-css-before-mount'),'true');

@@ -166,6 +166,7 @@ export const CatalogSources = Object.freeze({
   "toolbar-search": "src/svelte/catalog/compositions/toolbar-search/ToolbarSearch.svelte",
   "utility-actions": "src/svelte/catalog/compositions/utility-actions/UtilityActions.svelte",
   "view-attention": "src/svelte/catalog/compositions/view-attention/ViewAttention.svelte",
+  "view-binding": "src/svelte/catalog/compositions/view-binding/ViewBinding.svelte",
   "view-content": "src/svelte/catalog/renderer/view-content/ViewContent.svelte",
   "view-destination-link": "src/svelte/catalog/compositions/view-destination-link/ViewDestinationLink.svelte",
   "view-item": "src/svelte/catalog/renderer/view-item/ViewItem.svelte",
