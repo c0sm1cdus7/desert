@@ -8,6 +8,6 @@ export const ContentFlow = defineComposition({
   purpose: { key: "contentFlow.purpose" },
   messages: ["contentFlow.purpose", "contentFlow.connection", "contentFlow.offline"],
   owner: { entry: "ContentFlow.svelte" },
-  uses: ["appearance", "identity", "information", "inspection-content", "media-content", "place-heading", "stack-layout", "text",
+  uses: ["appearance", "column", "identity", "information", "inspection-content", "media-content", "place-heading", "stack-layout", "text",
     "view-attention", "view-item", "view-region", "view-related-selection"], approval: "none", contract: ContentFlowContract,
 } as const);

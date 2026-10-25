@@ -29,7 +29,9 @@
 </RadioGroup.Root>
 
 <style>
-  .rail { display:flex; flex-wrap:wrap; gap:.25rem; padding:.25rem; }
+  /* The rail's air (its padding and the 6px of each target around its colour) reaches past its block edges, so the
+     colours, not their targets, stand at the section's gap from what is above and below. */
+  .rail { display:flex; flex-wrap:wrap; gap:.25rem; padding:.25rem; margin-block:-.625rem; }
   /* A swatch is a choice, not a person (laws 9d, 9e): its colour is a rounded square at the control radius, and its 44px
      target (whose ring shows selection and focus) is concentric with it, 6px out. */
   .swatch { position:relative; display:grid; place-items:center; width:2.75rem; height:2.75rem; border-radius:calc(var(--radius-control) + .375rem); cursor:pointer; }

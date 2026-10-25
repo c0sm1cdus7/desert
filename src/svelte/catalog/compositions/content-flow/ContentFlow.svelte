@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
-  import { Appearance, Identity, Information, InspectionContent, MediaContent, PlaceHeading, StackLayout, Text, ViewAttention, ViewItem,
+  import { Appearance, Column, Identity, Information, InspectionContent, MediaContent, PlaceHeading, StackLayout, Text, ViewAttention, ViewItem,
     ViewRegion, ViewRelatedSelection } from "../../index.ts";
   import { groupRelatedItems } from "../../../../interaction/content-groups.ts";
   import type { CatalogProps } from "../../types.d.ts";
@@ -19,7 +19,7 @@
 
 <!-- Catalog-owned vertical content flow. Callers provide descriptors and events,
      never wrappers, classes, styles, HTML attributes or replacement render slots. -->
-<ViewRegion kind={host === "panel" ? "bare" : "view"} id={resolved.view.id} layout={resolved.view.layout} inset={!hasCatalog}>
+{#snippet flow()}
   {#if resolved.connection?.state === 'offline'}
     <StackLayout title={say(m.contentFlow.connection)}>
       <Text kind="support" live="polite" text={say(m.contentFlow.offline, { label: resolved.connection.label })} />
@@ -54,4 +54,8 @@
     {:else}<ViewItem {item} {resolved} {onevent} host={host === "panel" ? "frame" : "flow"} />{/if}
   {/each}
   {#if host === "panel" && resolved.relations?.groups.length}<ViewRelatedSelection state={resolved.relations} {onevent} />{/if}
+{/snippet}
+<ViewRegion kind={host === "panel" ? "bare" : "view"} id={resolved.view.id} layout={resolved.view.layout} inset={!hasCatalog}>
+  <!-- A page's view region spaces its stacks itself; a surface's flow stands them at the gap of any two stacks. -->
+  {#if host === "panel"}<Column gap="regular">{@render flow()}</Column>{:else}{@render flow()}{/if}
 </ViewRegion>
