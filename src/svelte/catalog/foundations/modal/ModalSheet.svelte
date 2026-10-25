@@ -8,6 +8,8 @@
   import { PICKER_PANEL_REM } from "../../../infra/picker-measure.ts";
   import { surfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
   import { takeSheetFocus } from "../../mechanisms/surface-focus/focus-return.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import DrawerGrip from "./DrawerGrip.svelte";
   import { drawerMotion } from "./drawer-motion.svelte.ts";
   let { label, open, locked, density, dismiss, onclosed, children }: {
@@ -36,7 +38,7 @@
     <DrawerGrip {motion} {locked} />
     <Dialog.Title class="sr-only">{label}</Dialog.Title>
     <Bar edge="top" purpose="commands" identity={{ title: label }} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false}
-      leading={toolbarAction({ kind: "close" }, `Close ${label}`, "close", !locked)} oninvoke={dismiss} />
+      leading={toolbarAction({ kind: "close" }, say(m.modal.closeNamed, { label }), "close", !locked)} oninvoke={dismiss} />
     <!-- The picker brings its own insets: a calendar frames its header, a list insets its rows. -->
     <div class="flex min-h-0 flex-col overflow-auto @container" data-picker-content>{@render children?.()}</div>
   </Dialog.Content>

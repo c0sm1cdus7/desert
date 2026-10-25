@@ -1,7 +1,5 @@
 <script lang="ts">
-	import * as Dialog from "@desert/svelte/vendor/components/ui/dialog/index.js";
 	import { cn, type WithElementRef } from "@desert/svelte/vendor/utils.js";
-	import { SIDEBAR_OVERLAY_WIDTH } from "./constants.js";
 	import { useSidebar } from "./context.svelte.js";
 	import type { HTMLAttributes } from "svelte/elements";
 
@@ -10,8 +8,6 @@
 		side = "left",
 		variant = "sidebar",
 		collapsible = "offcanvas",
-		overlayTitle = "Sidebar",
-		overlayDescription = "Displays overlay navigation.",
 		class: className,
 		children,
 		...restProps
@@ -19,8 +15,6 @@
 		side?: "left" | "right";
 		variant?: "sidebar" | "floating" | "inset";
 		collapsible?: "offcanvas" | "icon" | "none";
-		overlayTitle?: string;
-		overlayDescription?: string;
 	} = $props();
 
 	const sidebar = useSidebar();
@@ -40,34 +34,7 @@
 		{@render children?.()}
 	</div>
 {:else if sidebar.presentation === "overlay"}
-	<Dialog.Root bind:open={() => sidebar.overlayOpen, (v) => sidebar.setOverlayOpen(v)} {...restProps}>
-		<Dialog.Content
-			bind:ref
-			presentation="panel"
-			forceMount={sidebar.revealing}
-			preventScroll={!sidebar.revealing}
-			data-revealing={sidebar.revealing || undefined}
-			data-gesture-enter={sidebar.revealedByGesture || undefined}
-			data-edge={side}
-			data-sidebar="sidebar"
-			data-slot="sidebar"
-			data-presentation="overlay"
-			id={sidebar.panelId}
-			inert={!sidebar.overlayOpen}
-			onCloseAutoFocus={sidebar.handleCloseAutoFocus}
-			class={cn(
-				"p-0 text-sidebar-foreground density-comfortable",
-				className
-			)}
-			style="--panel-width: {SIDEBAR_OVERLAY_WIDTH}; transform:{sidebar.revealing ? `translateX(calc(-100% - var(--surface-inset) + ${sidebar.revealOffset}px))` : `translateX(${-sidebar.dismissOffset}px)`};"
-		>
-			<Dialog.Title class="sr-only">{overlayTitle}</Dialog.Title>
-			<Dialog.Description class="sr-only">{overlayDescription}</Dialog.Description>
-			<div class="flex h-full min-h-0 w-full flex-col">
-				{@render children?.()}
-			</div>
-		</Dialog.Content>
-	</Dialog.Root>
+	<!-- Without room to dock, the navigation is its owner's modal (the shell mounts Modal presentation="navigation"). -->
 {:else}
 	<div
 		bind:this={ref}

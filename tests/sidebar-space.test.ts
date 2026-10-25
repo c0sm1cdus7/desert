@@ -5,9 +5,11 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 // Layout policy, not device detection: the same browser must choose different
 // presentations when its actual host or reading-space requirement changes.
+// The overlay presentation is the shell's navigation Modal (Escape dismisses it), so the first case mounts the shell's pane.
 test("sidebar docks only when its host fits navigation plus readable content", async () => {
   const f = await svelteBrowser(`<script>
     import * as Sidebar from '@desert/svelte/vendor/components/ui/sidebar/index.js';
+    import ShellNavigation from '@desert/svelte/catalog/foundations/shell/ShellNavigation.svelte';
     let width = $state(499);
   </script>
   <button onclick={() => width = 500}>Grow host</button>
@@ -15,7 +17,7 @@ test("sidebar docks only when its host fits navigation plus readable content", a
   <div style:width={width + 'px'}>
     <Sidebar.Provider contentMinWidth="300px" style="--sidebar-width:200px">
       <Sidebar.Trigger />
-      <Sidebar.Root><p>Navigation</p></Sidebar.Root>
+      <ShellNavigation navigation={{ identity: { title: 'Product' }, settingsPlaceholder: false, active: 'home', groups: [] }} searching={false} onnavigate={() => {}} />
     </Sidebar.Provider>
   </div>`);
   try {

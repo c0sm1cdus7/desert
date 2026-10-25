@@ -2890,7 +2890,9 @@
       "kind": "foundation",
       "messages": [
         "modal.close",
-        "modal.description"
+        "modal.closeNamed",
+        "modal.description",
+        "modal.navigationDescription"
       ],
       "owner": {
         "entry": "Modal.svelte",
@@ -2904,6 +2906,7 @@
           "ModalPane.svelte",
           "ModalSheet.svelte",
           "ModalDialog.svelte",
+          "ModalNavigation.svelte",
           "DrawerGrip.svelte",
           "drawer-motion.svelte.ts",
           "frame-continuity.svelte.ts",
@@ -3831,13 +3834,15 @@
       "folder": "src/svelte/catalog/foundations/shell",
       "kind": "foundation",
       "messages": [
-        "shell.navigation"
+        "shell.navigation",
+        "shell.navigationTitle"
       ],
       "owner": {
         "entry": "Shell.svelte",
         "mechanisms": [
           "file-picker",
           "press-feedback",
+          "surface-focus",
           "surface-host",
           "swipe-motion",
           "toolbar-geometry"

@@ -707,10 +707,13 @@ export const Messages = messageCatalog({
     },
     "modal": {
       "close": "Close panel",
-      "description": "Close to return. Unsaved writing stays in this session."
+      "description": "Close to return. Unsaved writing stays in this session.",
+      "navigationDescription": "Choose a destination.",
+      "closeNamed": "Close {label}"
     },
     "shell": {
-      "navigation": "Main navigation"
+      "navigation": "Main navigation",
+      "navigationTitle": "Navigation"
     },
     "themePreview": {
       "glyph": "Aa"

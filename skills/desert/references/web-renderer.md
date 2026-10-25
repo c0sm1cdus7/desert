@@ -2902,7 +2902,7 @@ Source SHA-256: e312f376a0455c0f89e1e44919590402a4922daf4df97bfb1bc4b23b05d4668b
 
 ## src/svelte/catalog/foundations/shell/ShellNavigation.svelte
 
-Source SHA-256: 500f41c1ad2295c09bb2940988c6c9a144e8bf5722d0454b678bfa3eaf8e81b5
+Source SHA-256: b9e076b7dd212d8b7ec3fc83ce59fce0986004d8e12377bff380616a23c6c520
 
 ```svelte
 <script lang="ts">
@@ -2910,15 +2910,19 @@ Source SHA-256: 500f41c1ad2295c09bb2940988c6c9a144e8bf5722d0454b678bfa3eaf8e81b5
   import { m } from "../../../../messages/keys.ts";
   // Shell part (from the catalog-navigation composition): the navigation pane, its identity bar, the destination groups
   // drawn from data, the toggle that hides it and the settings placeholder. Dragging the pane's header toward its edge,
-  // or swiping the pane, dismisses it.
+  // or swiping the pane, dismisses it. Docked, it is the sidebar; over a workspace with no room to dock it, it is the
+  // navigation Modal, which an edge swipe (CatalogEdgeNavigation) may reveal under the pointer before it opens.
   import { untrack } from "svelte";
   import * as Sidebar from "../../../vendor/components/ui/sidebar/index.js";
-  import { Bar, Icon, Surface } from "../../index.ts";
+  import { Bar, Icon, Modal, Surface } from "../../index.ts";
+  import { provideCloseFocus } from "../../mechanisms/surface-focus/focus-return.ts";
   import { swipeMotion } from "../../mechanisms/swipe-motion/swipe-motion.svelte.ts";
   import type { ShellNavigation } from "../../../infra/workspace-navigation.ts";
   import { navigationIconNames } from "./navigation-icons.ts";
   let { navigation, searching, onnavigate }: { navigation: ShellNavigation; searching: boolean; onnavigate: (id: string) => void } = $props();
   const sidebar = Sidebar.useSidebar();
+  // Closing the overlay returns focus where the sidebar decides (the control that opened it, or its equivalent).
+  provideCloseFocus(sidebar.handleCloseAutoFocus);
   const motion = swipeMotion({ edge: () => "left", enabled: () => sidebar.expanded,
     commit: () => sidebar.presentation === "overlay" ? sidebar.setOverlayOpen(false) : sidebar.setOpen(false) });
   $effect(() => { sidebar.dismissOffset = motion.offset; });
@@ -2932,9 +2936,9 @@ Source SHA-256: 500f41c1ad2295c09bb2940988c6c9a144e8bf5722d0454b678bfa3eaf8e81b5
   const handlers = [["pointerdown", down], ["pointermove", motion.move], ["pointerup", motion.up], ["pointercancel", motion.cancel],
     ["lostpointercapture", motion.lost]] as const;
   $effect(() => {
-    sidebar.presentation; sidebar.expanded;
+    sidebar.presentation; sidebar.expanded; sidebar.revealing;
     let header: HTMLElement | null = null;
-    // The pane mounts in this update (docked, or in its overlay dialog): attach once it is drawn.
+    // The pane mounts in this update (docked, in its overlay modal, or drawn by an edge swipe): attach once it is drawn.
     const frame = requestAnimationFrame(() => {
       header = document.getElementById(sidebar.panelId)?.querySelector<HTMLElement>('[data-catalog-navigation] > [data-toolbar="top"]') ?? null;
       if (!header) return;
@@ -2950,6 +2954,7 @@ Source SHA-256: 500f41c1ad2295c09bb2940988c6c9a144e8bf5722d0454b678bfa3eaf8e81b5
   });
 </script>
 
+{#snippet pane()}
 <Surface kind="navigation" label={say(m.shell.navigation)} searching={false}>
   {#snippet top()}
     <Bar edge="top" purpose="navigation" identity={navigation.identity} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false} />
@@ -2983,6 +2988,15 @@ Source SHA-256: 500f41c1ad2295c09bb2940988c6c9a144e8bf5722d0454b678bfa3eaf8e81b5
     {/if}
   {/snippet}
 </Surface>
+{/snippet}
+
+{#if sidebar.presentation === "overlay"}
+  <Modal label={say(m.shell.navigationTitle)} open={sidebar.overlayOpen} locked={false} presentation="navigation"
+    navigation={{ panel: sidebar.panelId, reveal: sidebar.revealOffset ?? undefined, dismissOffset: sidebar.dismissOffset, gesture: sidebar.revealedByGesture }}
+    ondismiss={() => sidebar.setOverlayOpen(false)}>{@render pane()}</Modal>
+{:else}
+  <Sidebar.Root variant="floating">{@render pane()}</Sidebar.Root>
+{/if}
 ```
 
 ## src/svelte/catalog/foundations/bar/BarSearch.svelte
@@ -6262,7 +6276,7 @@ Source SHA-256: baf12ed19b7bf57dfc1f31dde1a08a896a4eafd986520ac747d75b876a134627
 
 ## src/svelte/catalog/foundations/modal/Modal.svelte
 
-Source SHA-256: 7744141a901f07b6d9b30f37816a2ebb8bdbc9e6b36b3dd51d44a77d73970c30
+Source SHA-256: 27f25f6da8a7d0dc74843eae4c61329a959a8fc1e359d813b0e0cec6f55561e1
 
 ```svelte
 <script lang="ts">
@@ -6273,7 +6287,8 @@ Source SHA-256: 7744141a901f07b6d9b30f37816a2ebb8bdbc9e6b36b3dd51d44a77d73970c30
   import ModalPane from "./ModalPane.svelte";
   import ModalSheet from "./ModalSheet.svelte";
   import ModalDialog from "./ModalDialog.svelte";
-  let { label, open, locked, presentation, labelledBy, describedBy, continuity, ondismiss, onclosed, children, actions }: CatalogProps<"modal"> = $props();
+  import ModalNavigation from "./ModalNavigation.svelte";
+  let { label, open, locked, presentation, labelledBy, describedBy, navigation, continuity, ondismiss, onclosed, children, actions }: CatalogProps<"modal"> = $props();
   const density = useSurfaceDensityClass();
   /** Escape, the scrim and the grip ask to dismiss; a locked modal refuses, and the caller decides what dismissal means. */
   const dismiss = () => { if (!locked) ondismiss?.(); };
@@ -6283,8 +6298,10 @@ Source SHA-256: 7744141a901f07b6d9b30f37816a2ebb8bdbc9e6b36b3dd51d44a77d73970c30
   /** Called by the caller just before it invokes something: "close" before Back or Close, "other" otherwise. */
   export function noteInvocation(kind: FrameInvocation): void { pane?.noteInvocation(kind); }
 </script>
-{#if presentation === "adaptive" || presentation === "transient" || presentation === "navigation"}
+{#if presentation === "adaptive" || presentation === "transient"}
   <ModalPane bind:this={pane} {label} {open} {locked} {presentation} {continuity} density={density()} {dismiss} {onclosed} {children} />
+{:else if presentation === "navigation"}
+  <ModalNavigation {label} {open} {navigation} {dismiss} {onclosed} {children} />
 {:else if presentation === "sheet"}
   <ModalSheet {label} {open} {locked} density={density()} {dismiss} {onclosed} {children} />
 {:else}
@@ -6294,13 +6311,13 @@ Source SHA-256: 7744141a901f07b6d9b30f37816a2ebb8bdbc9e6b36b3dd51d44a77d73970c30
 
 ## src/svelte/catalog/foundations/modal/ModalPane.svelte
 
-Source SHA-256: db348b04004fe0726370123bf42078a9d62242615d41cb980afe2e5651767b2c
+Source SHA-256: e8f408a441cf3d851611e5bf6803ddd5d4c3a2e492187d35b7f7b8aac5dcb39e
 
 ```svelte
 <script lang="ts">
   import { say } from "../../../infra/messages.ts";
   import { m } from "../../../../messages/keys.ts";
-  // Modal part: the pane of an adaptive, transient or navigation modal. An adaptive pane docks beside its parent when the
+  // Modal part: the pane of an adaptive or transient modal. An adaptive pane docks beside its parent when the
   // launching host has room (it is then not modal); otherwise it is modal at the right edge, or at the bottom edge with
   // its grip. Fit, modality and edge come from the host's available space, never a browser breakpoint.
   import { tick, type Snippet } from "svelte";
@@ -6314,7 +6331,7 @@ Source SHA-256: db348b04004fe0726370123bf42078a9d62242615d41cb980afe2e5651767b2c
   import { adaptiveSurfaceLayout } from "./adaptive-surface-layout.ts";
   import { adaptiveModality } from "./adaptive-modality.svelte.ts";
   let { label, open, locked, presentation, continuity, density, dismiss, onclosed, children }: {
-    label: string; open: boolean; locked: boolean; presentation: "adaptive" | "transient" | "navigation";
+    label: string; open: boolean; locked: boolean; presentation: "adaptive" | "transient";
     continuity: FrameIdentity | undefined; density: string | undefined;
     dismiss: () => void; onclosed: (() => void) | undefined; children: Snippet | undefined;
   } = $props();
@@ -6328,21 +6345,20 @@ Source SHA-256: db348b04004fe0726370123bf42078a9d62242615d41cb980afe2e5651767b2c
   });
   const host = useSurfaceHost();
   const owner = Symbol("adaptive-pane");
-  const lateral = $derived(presentation === "navigation");
   const layout = $derived(adaptiveSurfaceLayout(host.availableInline, host.textSize, presentation === "adaptive" && host.canDock(owner)));
   const docked = $derived(layout.docked);
   // A docked replacement may mount already open. Do not acquire a transient body lock against the pre-measurement zero
   // width: that false modal can be removed before the lock's teardown effect has even registered.
   const modal = $derived(open && host.measured && !docked);
-  $effect(() => { host.reserve(owner, open && docked && !lateral ? layout.reservation : 0); });
+  $effect(() => { host.reserve(owner, open && docked ? layout.reservation : 0); });
   $effect(() => () => host.reserve(owner, 0));
-  adaptiveModality(() => content, () => modal && !lateral);
-  const motion = drawerMotion(() => dismiss(), () => locked || docked || lateral, () => layout.edge);
-  const edge = $derived(lateral ? "left" : motion.edge);
-  const width = $derived(lateral ? "18rem" : `${layout.paneWidth}px`);
+  adaptiveModality(() => content, () => modal);
+  const motion = drawerMotion(() => dismiss(), () => locked || docked, () => layout.edge);
+  const edge = $derived(motion.edge);
+  const width = $derived(`${layout.paneWidth}px`);
   const dragHeader = (event: PointerEvent) => {
     const target = event.target;
-    if (docked || lateral || layout.edge === "bottom" || !(target instanceof Element) || !target.closest(".workspace-header")
+    if (docked || layout.edge === "bottom" || !(target instanceof Element) || !target.closest(".workspace-header")
       || target.closest("button,a,input,textarea,select,[contenteditable],.toolbar-title,.toolbar-subtitle")) return;
     motion.down(event);
   };
@@ -6359,8 +6375,8 @@ Source SHA-256: db348b04004fe0726370123bf42078a9d62242615d41cb980afe2e5651767b2c
 <Dialog.Root {open} onOpenChange={next => { if (!next) dismiss(); }}
   onOpenChangeComplete={next => { if (!next) { motion.reset(); onclosed?.(); } }}>
   <Dialog.Content bind:ref={content} presentation="panel" class={density} data-modal={presentation} data-composition="transient"
-    adaptiveModal={lateral ? undefined : !docked} trapFocus={lateral ? undefined : false} preventScroll={lateral ? undefined : modal}
-    data-adaptive-surface={lateral ? undefined : ""} data-presentation={lateral ? "overlay" : docked ? "docked" : "transient"}
+    adaptiveModal={!docked} trapFocus={false} preventScroll={modal}
+    data-adaptive-surface="" data-presentation={docked ? "docked" : "transient"}
     data-locked={locked || undefined} data-reduced-motion={prefersReducedMotion.current} data-edge={edge}
     overlayStyle={motion.overlayStyle} data-dragging={motion.dragging || undefined}
     style={`--panel-width:${width};--adaptive-left:${host.bounds.left}px;--adaptive-top:${host.bounds.top}px;--adaptive-right:${host.bounds.right}px;--adaptive-bottom:${host.bounds.bottom}px;transform:${motion.transform}`}

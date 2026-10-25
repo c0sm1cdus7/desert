@@ -67,11 +67,7 @@
 <svelte:window onkeydowncapture={focus.keydown} onfocusin={focus.focusin} onfocusout={focus.focusout} onpointerdown={focus.pointerdown}
   onpointerup={focus.pointerfinish} onpointercancel={focus.pointerfinish} />
 
-{#if navigation}
-  <Sidebar.Root variant="floating" overlayTitle="Navigation" overlayDescription="Choose a destination.">
-    <ShellNavigation {navigation} {searching} onnavigate={id => onnavigate?.(id)} />
-  </Sidebar.Root>
-{/if}
+{#if navigation}<ShellNavigation {navigation} {searching} onnavigate={id => onnavigate?.(id)} />{/if}
 <AdaptiveSurfaceLayout fill>
     <Surface bind:this={place} kind="main" {destination} {label} {searching} oncomposition={active => { composing = active; oncomposition?.(active); }}>
       {#snippet top()}{@render top?.()}{/snippet}
