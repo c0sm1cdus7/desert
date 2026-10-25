@@ -23,11 +23,14 @@
 </script>
 
 <!-- One selector-field anatomy (law 9b), the reference selector's: «label · value» inside the well, the well and the
-     control's error 0.5rem apart. -->
+     control's error 0.5rem apart. The covers are a picker, presented as every picker is: anchored where there is room, a
+     sheet over the page on a phone (one surface; its anchored popover, nearly the page's width, let the page's next pane
+     peek out under it). What it holds starts on one line, the cards': the field above it and the sheet's bar name it, so
+     its group title is for assistive technology only (shown, it stood on the group-heading axis, 16px inside the cards). -->
 <Column gap="snug">
-  <Popover label={node.label} {open} disabled={node.disabled} locked={false} content="form" placement="anchored" align="start"
+  <Popover label={node.label} {open} disabled={node.disabled} locked={false} content="form" placement="adaptive" align="start"
     onopenchange={openChange} trigger={{ kind: "field", label: node.label, required: false, invalid: false, display, measure: "fill" }}>
-    <StackLayout title={node.label}>
+    <StackLayout title={node.label} headingVisibility="accessible">
       {#if reference.loading}<Text kind="caption" tone="muted" text={say(m.mediaReferenceSelector.loading)} />{/if}
       {#if reference.options.length}
         <Choice presentation="cards" cardinality="one" label={node.label} labelVisibility="accessible" selected={node.values}
