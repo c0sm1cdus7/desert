@@ -33,9 +33,10 @@
   {#if trailing === "chevron"}<Icon name="chevron-right" placement="inline-end" chevron decorative />{/if}
 {/snippet}
 
-<!-- A row sizes every glyph it holds (a face's, the chevron) to one rem, as the vendor row button did. -->
+<!-- A row sizes every glyph it holds (a face's, the chevron) to one rem, as the vendor row button did. The class is one
+     array, never a class: directive beside a static class: Svelte 5.57 then escapes "&" twice and [&_svg] stops matching. -->
 {#if interaction === "open"}
-  <button bind:this={button} {@attach pressFeedback} type="button" class="row material-interior control-feedback [&_svg]:size-4 [&_svg]:shrink-0" class:row-attended={attention} data-row="open" data-focus-key={focusKey}
+  <button bind:this={button} {@attach pressFeedback} type="button" class={["row material-interior control-feedback [&_svg]:size-4 [&_svg]:shrink-0", attention && "row-attended"]} data-row="open" data-focus-key={focusKey}
     data-row-leading={leading?.kind} disabled={!available} aria-current={current ? "true" : undefined}
     aria-describedby={!available && reason ? reasonId : undefined} title={!available ? reason : undefined} onclick={open}>
     <!-- The attention dot sits over the row's corner, as it sat over the media list item. -->
