@@ -59,3 +59,36 @@ test('date dismissal preserves focus already moved outside its own surface', asy
     assert.deepEqual(f.errors,[]);
   } finally {await f.close();}
 });
+
+// Found by the slice 3 package: when the date control moved onto Field's trigger it lost its calendar glyph and showed
+// the select's disclosure chevron. A date field's accessory is the calendar, as before; other field triggers keep the chevron.
+test('the date trigger shows the calendar glyph, not the select chevron', async () => {
+  const f=await svelteBrowser(`<script>
+    import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
+  </script><DateControl node={{version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival',
+    required:false,disabled:false,value:'2026-10-16'}} onevent={()=>{}}/>`);
+  try {
+    await f.page.addStyleTag({content:await rendererCss()});
+    const trigger=f.page.locator('[data-field-trigger]');
+    assert.deepEqual(await trigger.evaluate(element=>[...element.querySelectorAll('svg')].map(svg=>[...svg.classList].find(name=>/^lucide-(?!icon)/.test(name)))),
+      ['lucide-calendar']);
+    assert.deepEqual(f.errors,[]);
+  } finally {await f.close();}
+});
+
+// The same package: "No date selected" is the control's value line (foreground, as before), not a muted placeholder.
+test('an empty date reads "No date selected" in the value colour', async () => {
+  const f=await svelteBrowser(`<script>
+    import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
+  </script><DateControl node={{version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival',
+    required:false,disabled:false,value:null}} onevent={()=>{}}/>`);
+  try {
+    await f.page.addStyleTag({content:await rendererCss()});
+    const colours=await f.page.locator('[data-field-trigger]').evaluate(element=>{
+      const text=[...element.querySelectorAll('[data-field-value] span')].find(span=>span.textContent==='No date selected')!;
+      return { text:getComputedStyle(text).color, well:getComputedStyle(element).color };
+    });
+    assert.equal(colours.text, colours.well);
+    assert.deepEqual(f.errors,[]);
+  } finally {await f.close();}
+});

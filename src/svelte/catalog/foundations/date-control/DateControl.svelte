@@ -38,7 +38,7 @@
 </script>
 <Popover label={node.label} {open} disabled={node.disabled} locked={false} content="information" placement="adaptive" align="start"
   trigger={{ kind: "field", label: node.label, required: node.required, invalid: false,
-    display: { kind: "text", text: label, placeholder: date === undefined }, measure: "date" }}
+    display: { kind: "text", text: label, placeholder: false }, measure: "date" }}
   onopenchange={next => { open = next; }}>
   <DateCalendar value={date} bind:visibleDate label={node.label} minimum={node.minimum} maximum={node.maximum}
     disabled={node.disabled} onchange={change} onclear={node.required ? undefined : clear} />

@@ -5,16 +5,17 @@
   // value or its placeholder, the chosen tags, an image with its text). Press, ArrowDown and ArrowUp ask to open; the
   // overlay that owns the surface passes the disclosure, so the button carries its id and expanded state as data.
   // A select's well (a choice menu's) fits its value, shows press feedback and shows the value its owner draws (`shown`).
+  // Its accessory is the disclosure chevron, or the calendar for a date field (the glyph the date control always showed).
   import type { Snippet } from "svelte";
   import type { CatalogProps } from "../../types.d.ts";
   import { cn } from "../../../vendor/utils.js";
   import { pressFeedbackProps } from "../../mechanisms/press-feedback/press-feedback.ts";
   import { ColorBullet, Icon, Image } from "../../index.ts";
   import FieldLabel from "./FieldLabel.svelte";
-  let { label, labelVisibility, required, disabled, describedBy, display, disclosure, select, shown, onopen }: {
+  let { label, labelVisibility, required, disabled, describedBy, display, disclosure, select, shown, accessory, onopen }: {
     label: string; labelVisibility: "visible" | "accessible"; required: boolean; disabled: boolean;
     describedBy: string | undefined; display: NonNullable<CatalogProps<"field">["display"]>; disclosure: NonNullable<CatalogProps<"field">["disclosure"]>;
-    select: boolean; shown: Snippet | undefined; onopen: () => void;
+    select: boolean; shown: Snippet | undefined; accessory: "disclosure" | "calendar"; onopen: () => void;
   } = $props();
   let spoken = $derived(display.kind === "tags" ? display.tags.map(tag => tag.label).join(", ") || say(m.field.none) : display.text);
   function keydown(event: KeyboardEvent) {
@@ -46,7 +47,8 @@
         {:else if display.kind === "image"}
           <span class="field-image"><span data-field-thumbnail><Image source={display.source} alt="" fit="fill" edge={88} /></span>{display.text}</span>
         {:else}<span class={display.placeholder ? "field-placeholder" : undefined}>{display.text}</span>{/if}
-        <Icon name="chevron-down" placement="inline-end" chevron decorative />
+        {#if accessory === "calendar"}<Icon name="calendar" placement="inline-end" decorative />
+        {:else}<Icon name="chevron-down" placement="inline-end" chevron decorative />{/if}
       </span>
     </FieldLabel>
   </span>

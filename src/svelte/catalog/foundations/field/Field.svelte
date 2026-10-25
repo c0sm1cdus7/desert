@@ -59,7 +59,7 @@
 {#snippet trigger()}
   {#if display && disclosure}
     <FieldTrigger {label} {labelVisibility} {required} {disabled} {describedBy} {display} {disclosure} select={select === true} shown={selection}
-      onopen={() => onopen?.()} />
+      accessory={measure === "date" ? "calendar" : "disclosure"} onopen={() => onopen?.()} />
   {/if}
   {#if requirement}<span id={`${id}-requirement`} class="sr-only">{say(m.field.required)}</span>{/if}
 {/snippet}
