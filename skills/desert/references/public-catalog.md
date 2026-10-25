@@ -32,8 +32,8 @@ verbatim modules, not standalone snippets or a published package API.
 - src/build/public-catalog/renditions.ts
 - src/svelte/infra/media-source.ts
 - src/svelte/catalog/foundations/image/Image.svelte
-- src/svelte/catalog/compositions/photo-collection/PhotoCollection.svelte
-- src/svelte/catalog/compositions/viewer/Viewer.svelte
+- src/svelte/catalog/foundations/gallery/Gallery.svelte
+- src/svelte/catalog/foundations/media-viewer/MediaViewer.svelte
 - src/svelte/catalog/mechanisms/media-gestures/media-gestures.ts
 - src/svelte/catalog/renderer/public-catalog-product/PublicCatalogProduct.svelte
 - src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte
@@ -1279,124 +1279,219 @@ Source SHA-256: c427dc3e22a838a3caf5acdfd74b8f96df054dffb3676fc205040af404a2e454
 </style>
 ```
 
-## src/svelte/catalog/compositions/photo-collection/PhotoCollection.svelte
+## src/svelte/catalog/foundations/gallery/Gallery.svelte
 
-Source SHA-256: 68263e4303278aabe6c18000e890b2a8c3fd5225f4d177422eca0608057da270
+Source SHA-256: 8f52e2f00bf271026daba730aa8bbdbfb9e7c7e740e4e525296831a0781f062c
 
 ```svelte
 <script lang="ts">
-  import { Image } from '../../index.ts';
-  import { Viewer } from '../../index.ts';
-  import { mediaGestures } from '../../../infra/gestures.ts';
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  import { Image, MediaViewer } from '../../index.ts';
+  import { mediaGestures } from '../../mechanisms/media-gestures/media-gestures.ts';
   import { prefetchImage, imageIdentity } from '../../../infra/media-source.ts';
   import type { CatalogProps } from '../../types.d.ts';
-  let { photos, title, header = false, fit = 'fill' }: CatalogProps<'photo-collection'> = $props();
-  let index = $state(0), open = $state(false);
-  let host!: HTMLDivElement, opener!: HTMLButtonElement;
-  const selected = $derived(photos[index] ?? photos[0]!);
-  function select(next: number) { index = Math.max(0,Math.min(photos.length-1,next)); }
+  let { photos, title, presentation, fit, aspect }: CatalogProps<'gallery'> = $props();
+  let index = $state(0), open = $state(false), failed = $state(false);
+  let host: HTMLDivElement | null = null;
+  const selected = $derived(photos[index] ?? photos[0]);
+  function select(next: number) { index = Math.max(0, Math.min(photos.length - 1, next)); failed = false; }
   function drag(button: HTMLButtonElement) {
-    return mediaGestures(button, { image: () => host.querySelector('img'),
-      page: direction => select(index+direction), canPage:()=>photos.length>1 });
+    return mediaGestures(button, { image: () => host?.querySelector('img') ?? null, page: direction => select(index + direction),
+      canPage: () => photos.length > 1 });
   }
+  // The neighbours of the shown photo are warmed at the gallery's rendition edge.
   $effect(() => {
-    const current = index;
-    if (typeof window === 'undefined') return;
-    for (const neighbor of [photos[current-1],photos[current+1]]) if (neighbor)
-      prefetchImage(neighbor.source, Math.max(host?.clientWidth || 640,host?.clientHeight || 0)*window.devicePixelRatio);
+    const current = index, frame = host;
+    if (!frame) return;
+    for (const neighbor of [photos[current - 1], photos[current + 1]]) if (neighbor)
+      prefetchImage(neighbor.source, Math.max(frame.clientWidth || 640, frame.clientHeight) * window.devicePixelRatio);
   });
   function key(event: KeyboardEvent) {
-    if (event.key==='ArrowRight' || event.key==='ArrowLeft') {
-      event.preventDefault(); select(index+(event.key==='ArrowRight'?1:-1));
-    }
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    event.preventDefault(); select(index + (event.key === 'ArrowRight' ? 1 : -1));
   }
 </script>
 
-<div bind:this={host} data-photo-collection data-header-collection={header || undefined}>
-  <Image source={selected.source} alt={selected.alt} edge={header ? 1280 : 640} {fit} retry />
-  <button type="button" bind:this={opener} use:drag data-media-open aria-label="Open photo viewer"
-    onclick={() => open=true} onkeydown={key}></button>
-  {#if photos.length>1}
-    <div data-media-dots aria-label="Choose photo">
+<!-- The legacy marks (photo collection, opener, dots, header collection) keep the hosts that have not migrated
+     (place-heading.css) placing the gallery as they placed PhotoCollection. -->
+<div bind:this={host} class="gallery gallery-{presentation} gallery-aspect-{aspect}" class:gallery-failed={failed} data-photo-collection
+  data-header-collection={presentation === 'header' || undefined}>
+  {#if selected}<Image source={selected.source} alt={selected.alt} edge={presentation === 'header' ? 1280 : 640} {fit} retry
+    onready={() => failed = false} onunavailable={() => failed = true} />{/if}
+  <button type="button" class="gallery-open" use:drag data-media-open aria-label={say(m.gallery.open)} onclick={() => open = true} onkeydown={key}></button>
+  {#if photos.length > 1}
+    <div class="gallery-dots" data-media-dots aria-label={say(m.gallery.choose)}>
       {#each photos as photo, i (`${i}:${imageIdentity(photo.source)}`)}
-        <button type="button" aria-label={`Photo ${i+1}: ${photo.alt}`} aria-current={i===index ? 'true' : undefined}
+        <button type="button" class="gallery-dot" aria-label={say(m.gallery.photo, { number: String(i + 1), alt: photo.alt })} aria-current={i === index ? 'true' : undefined}
           onclick={() => select(i)}></button>
       {/each}
     </div>
   {/if}
 </div>
 {#if open}
-  <Viewer items={photos.map(photo => ({kind:'image', ...photo}))} {title} {index} {open}
-    onindex={value => index=value} onopen={value => open=value} onreturn={() => opener?.focus({ preventScroll:true })} />
+  <MediaViewer items={photos.map(photo => ({ kind: 'image' as const, ...photo }))} {title} {index} {open}
+    onindex={value => index = value} onopenchange={value => open = value} />
 {/if}
+
+<style>
+  /* The frame and its controls sit in the components layer, so a host that places the gallery (a place heading)
+     still outranks them. */
+  @layer components {
+    .gallery { position:relative; width:100%; height:100%; overflow:hidden; }
+    .gallery-open { position:absolute; inset:0; border:0; padding:0; background:transparent; cursor:zoom-in; touch-action:pan-y; outline:none; box-shadow:none; }
+    .gallery-open:focus-visible::after { content:attr(aria-label); position:absolute; right:16px; bottom:56px; padding:8px 12px; border-radius:var(--radius);
+      background:var(--background); color:var(--foreground); font-size:var(--text-support,14px); }
+    /* A photo that cannot load keeps its retry reachable: the opener stops covering it. */
+    .gallery-failed .gallery-open { pointer-events:none; }
+    .gallery-dots { position:absolute; bottom:8px; left:50%; z-index:3; display:flex; transform:translateX(-50%); }
+    .gallery-dot { display:grid; place-items:center; width:24px; height:44px; padding:0; border:0; background:none; color:var(--catalog-image-foreground); }
+    .gallery-dot::after { content:''; width:6px; height:6px; border-radius:var(--radius-mark,50%); background:currentColor; opacity:.45; box-shadow:0 0 3px var(--catalog-image-shade); }
+    .gallery-dot[aria-current="true"]::after { opacity:1; width:8px; height:8px; }
+  }
+  /* Where the gallery sits fixes its frame: inline in a page, as a detail's photograph, or heading a place. */
+  .gallery-inline { border-radius:var(--radius); }
+  .gallery-inline.gallery-aspect-fill { height:clamp(14rem,50vh,36rem); }
+  .gallery-aspect-square, .gallery-aspect-landscape, .gallery-aspect-portrait { height:auto; }
+  .gallery-aspect-square { aspect-ratio:1; }
+  .gallery-aspect-landscape { aspect-ratio:16/9; }
+  .gallery-aspect-portrait { aspect-ratio:3/4; }
+  .gallery-detail { height:var(--catalog-hero-height); }
+  /* Heading a place: the shade under the copy, the opener above it, the dots centred on the content column. */
+  .gallery-header::before { content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(transparent 35%,var(--catalog-image-shade)); }
+  .gallery-header .gallery-open { z-index:2; }
+  .gallery-header .gallery-dots { left:calc(50% + var(--place-leading-inset,0px)/2); }
+</style>
 ```
 
-## src/svelte/catalog/compositions/viewer/Viewer.svelte
+## src/svelte/catalog/foundations/media-viewer/MediaViewer.svelte
 
-Source SHA-256: 2d2b62ddd0e25139934e2457b0a282b74e5893cd962ca88e499e4907d1619104
+Source SHA-256: 14a4c04b81876752e5ec57d1cf9feda309f6def0d9ad4d7e4f8c0454b5251743
 
 ```svelte
 <script lang="ts">
-  import * as Dialog from '../../../vendor/components/ui/dialog/index.js';
-  import { useSurfaceDensityClass } from '../../../infra/surface-typography.svelte.ts';
-  import { Button } from '../../../vendor/components/ui/button/index.js';
-  import { Icon } from '../../index.ts';
-  import { ToolbarLayout } from '../../index.ts';
-  import { Image } from '../../index.ts';
-  import { PlaybackCanvas } from '../../index.ts';
-  import { mediaPlayback } from '../../../infra/playback.svelte.ts';
-  import { mediaGestures } from '../../../infra/gestures.ts';
+  // The viewer is a media Modal: the modal names it by its title, dismisses it on Escape and returns focus to what opened it.
+  // Its top Bar leads with Close and, for an image, carries the zoom controls (DESIGN §1.5; the reset is an icon, §7.7).
+  import { Action, Bar, Image, MediaPlayer, Modal } from '../../index.ts';
+  import { maximumMediaZoom, mediaGestures } from '../../mechanisms/media-gestures/media-gestures.ts';
+  import type { BarControl } from '../../../infra/bar-command.ts';
+  import { say } from '../../../infra/messages.ts';
+  import { m } from '../../../../messages/keys.ts';
+  import { provideCloseFocus, provideOpenFocus } from '../../mechanisms/surface-focus/focus-return.ts';
   import { imageIdentity } from '../../../infra/media-source.ts';
+  import { useFocusScope } from '../../../infra/focus-scope.ts';
+  import MediaStrip from './MediaStrip.svelte';
   import type { CatalogProps } from '../../types.d.ts';
-  let { items, title, index, open, onindex, onopen, onreturn }: CatalogProps<"viewer"> = $props();
-  let scale = $state(1);
-  let closeButton = $state<HTMLButtonElement | null>(null);
+  let { items, title, index, open, returnFocus, onindex, onopenchange }: CatalogProps<"media-viewer"> = $props();
+  let scale = $state(1), viewer = $state<HTMLDivElement | null>(null), bar = $state<ReturnType<typeof Bar>>();
+  let player = $state<{ toggle(): Promise<void>; stop(): void } | null>(null);
   let gesture: ReturnType<typeof mediaGestures> | undefined;
-  const selected = $derived(items[index]!);
-  const playback = mediaPlayback();
-  const density = useSurfaceDensityClass();
-  function select(next: number) { playback.stop(); onindex?.(Math.max(0,Math.min(items.length-1,next))); gesture?.reset(); }
-  function changeOpen(value: boolean) { if (!value) playback.stop(); onopen?.(value); }
+  let anchor = $state<HTMLElement | null>(null), region: HTMLElement | null = null;
+  const scope = useFocusScope();
+  const selected = $derived(items[index] ?? items[0]);
+  // Opening lands on Close, as the viewer always has.
+  provideOpenFocus(event => { event.preventDefault(); bar?.focusLeading(); });
+  // The scroll region the viewer was opened in, kept while the caller unmounts the viewer as it closes.
+  $effect(() => { if (anchor) region = anchor.closest<HTMLElement>('[data-catalog-scroll]'); });
+  // Closing returns focus to the opener, as the modal does; a caller that names a return key gets focus back on what it
+  // registered under it instead, or on the scroll region the viewer was opened in when that is gone.
+  provideCloseFocus(event => {
+    if (returnFocus === undefined) return;
+    event.preventDefault();
+    if (!scope?.focus(returnFocus)) region?.focus({ preventScroll: true });
+  });
+  // An image zooms out (down to its fitted size), resets and zooms in (up to the gestures' maximum).
+  let zoom = $derived<readonly BarControl[] | undefined>(selected?.kind === 'image' ? [
+    { id: 'zoom-out', label: say(m.mediaViewer.zoomOut), icon: 'zoom-out', state: scale <= 1 ? 'unavailable' : 'ready' },
+    { id: 'zoom-reset', label: say(m.mediaViewer.resetZoom), icon: 'restore', state: 'ready' },
+    { id: 'zoom-in', label: say(m.mediaViewer.zoomIn), icon: 'zoom-in', state: scale >= maximumMediaZoom ? 'unavailable' : 'ready' },
+  ] : undefined);
+  function control(id: string) {
+    if (id === 'zoom-out') gesture?.zoom(scale - 1);
+    else if (id === 'zoom-in') gesture?.zoom(scale + 1);
+    else gesture?.reset();
+  }
+  function select(next: number) { player?.stop(); onindex?.(Math.max(0, Math.min(items.length - 1, next))); gesture?.reset(); }
+  function changeOpen(value: boolean) { if (!value) player?.stop(); onopenchange?.(value); }
   function manipulate(element: HTMLDivElement) {
-    gesture=mediaGestures(element,{ image:()=>element.querySelector('img'),
-      page:direction=>select(index+direction), canPage:()=>items.length>1, zoomable:selected.kind === 'image', onzoom:value=>scale=value });
-    return { destroy:()=>gesture?.destroy() };
+    gesture = mediaGestures(element, { image: () => element.querySelector('img'), page: direction => select(index + direction),
+      canPage: () => items.length > 1, zoomable: selected?.kind === 'image', onzoom: value => scale = value,
+      ignore: target => target.closest('[data-media-band]') !== null });
+    return { destroy: () => gesture?.destroy() };
   }
+  const within = (event: KeyboardEvent, selector: string) => event.target instanceof Element && event.target.closest(selector) !== null;
   function key(event: KeyboardEvent) {
-    if ((event.target as HTMLElement).closest('input,[role="slider"],[data-media-thumbs]')) return;
-    if (event.key==='ArrowRight' || event.key==='ArrowLeft') {
-      event.preventDefault(); if (scale===1) select(index+(event.key==='ArrowRight'?1:-1));
-    } else if (event.code === 'Space' && selected.kind !== 'image' && !(event.target as HTMLElement).closest('button')) { event.preventDefault(); void playback.toggle(); }
-    else if (selected.kind === 'image' && (event.key==='+' || event.key==='=')) { event.preventDefault(); gesture?.zoom(scale+1); }
-    else if (selected.kind === 'image' && event.key==='-') { event.preventDefault(); gesture?.zoom(scale-1); }
-    else if (selected.kind === 'image' && event.key==='0') { event.preventDefault(); gesture?.reset(); }
+    if (within(event, 'input,[role="slider"],[data-media-thumbs]')) return;
+    const image = selected?.kind === 'image';
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault(); if (scale === 1) select(index + (event.key === 'ArrowRight' ? 1 : -1));
+    } else if (event.code === 'Space' && !image && !within(event, 'button')) { event.preventDefault(); void player?.toggle(); }
+    else if (image && (event.key === '+' || event.key === '=')) { event.preventDefault(); gesture?.zoom(scale + 1); }
+    else if (image && event.key === '-') { event.preventDefault(); gesture?.zoom(scale - 1); }
+    else if (image && event.key === '0') { event.preventDefault(); gesture?.reset(); }
   }
+  // Keys page, zoom and play wherever focus is in the viewer, its modal surface included (it takes focus on opening).
+  $effect(() => {
+    const surface = viewer?.closest<HTMLElement>('[data-modal="media"]');
+    if (!surface) return;
+    surface.addEventListener('keydown', key);
+    return () => surface.removeEventListener('keydown', key);
+  });
 </script>
 
-<Dialog.Root {open} onOpenChange={changeOpen}>
-  <Dialog.Content presentation="media" class={density()} data-media-viewer
-    onOpenAutoFocus={event=>{ event.preventDefault(); closeButton?.focus({preventScroll:true}); }}
-    onCloseAutoFocus={event=>{ event.preventDefault(); onreturn?.(); }} onkeydown={key}>
-    <ToolbarLayout identity={{title,subtitle:`${index+1} / ${items.length}`}} identityRole="dialog"
-      oncloseElement={element=>closeButton=element}
-      content={{kind:"media-header",close:()=>changeOpen(false),zoom:selected.kind === 'image'
-        ? {scale,onzoom:value=>gesture?.zoom(value),onreset:()=>gesture?.reset()} : undefined}} />
-    <Dialog.Description class="sr-only">Swipe or use arrows to change media. Pinch, double-click or use plus and minus to zoom images. Space plays or pauses audio and video. Escape closes the viewer.</Dialog.Description>
-    {#key `${index}:${imageIdentity(selected.source)}`}
-    <div use:manipulate data-media-stage>
-      {#if selected.kind === 'image'}<Image source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry onready={()=>gesture?.refresh()} />
-      {:else}<PlaybackCanvas item={selected} {playback} />{/if}
-      {#if items.length>1}
-        <Button data-media-prev variant="secondary" size="icon-lg" aria-label="Previous media" disabled={index===0 || scale>1} onclick={()=>select(index-1)}><Icon name="chevron-left" /></Button>
-        <Button data-media-next variant="secondary" size="icon-lg" aria-label="Next media" disabled={index===items.length-1 || scale>1} onclick={()=>select(index+1)}><Icon name="chevron-right" /></Button>
-      {/if}
-    </div>
-    {/key}
-    {#if items.length>1 || selected.kind !== 'image'}
-      <ToolbarLayout content={{kind:"media-controls",items,index,onindex:select,playback}} />
+{#snippet paging()}
+  {#if items.length > 1}
+    <span class="viewer-page viewer-previous"><Action label={say(m.mediaViewer.previous)} icon="previous" face="icon" emphasis="secondary" type="button"
+      state={index === 0 || scale > 1 ? "unavailable" : "ready"} onclick={() => select(index - 1)} /></span>
+    <span class="viewer-page viewer-next"><Action label={say(m.mediaViewer.next)} icon="next" face="icon" emphasis="secondary" type="button"
+      state={index === items.length - 1 || scale > 1 ? "unavailable" : "ready"} onclick={() => select(index + 1)} /></span>
+  {/if}
+{/snippet}
+
+<span bind:this={anchor} hidden></span>
+<Modal label={title} {open} locked={false} presentation="media" ondismiss={() => changeOpen(false)}>
+  <div bind:this={viewer} class="viewer" data-media-viewer>
+    <Bar bind:this={bar} edge="top" purpose="commands" identity={{ title, subtitle: `${index + 1} / ${items.length}` }} identityRole="heading"
+      leading={{ label: say(m.mediaViewer.close), icon: 'close', state: 'ready', intent: { kind: 'close' } }} trailing={[]} controls={zoom}
+      settingsPlaceholder={false} inert={false} oninvoke={intent => { if (intent.kind === 'close') changeOpen(false); }} oncontrol={control} />
+    <p class="sr-only">{say(m.mediaViewer.instructions)}</p>
+    {#if selected}
+      {#key `${index}:${imageIdentity(selected.source)}`}
+        {#if selected.kind === 'image'}
+          <div class="viewer-stage" use:manipulate data-media-stage>
+            <Image source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry fit="fit" backdrop="none" onready={() => gesture?.refresh()} />
+            {@render paging()}
+          </div>
+          {#if items.length > 1}<div class="viewer-band"><div class="viewer-band-row"><MediaStrip {items} {index} fill={false} onindex={select} /></div></div>{/if}
+        {:else}
+          <div class="viewer-playable" use:manipulate>
+            <MediaPlayer bind:this={player} item={selected} presentation="viewer">
+              {#snippet overlay()}{@render paging()}{/snippet}
+              {#snippet strip()}{#if items.length > 1}<MediaStrip {items} {index} fill onindex={select} />{/if}{/snippet}
+            </MediaPlayer>
+          </div>
+        {/if}
+      {/key}
     {/if}
-  </Dialog.Content>
-</Dialog.Root>
+  </div>
+</Modal>
+
+<style>
+  @layer components {
+    .viewer { display:flex; flex:1; flex-direction:column; min-width:0; min-height:0; }
+    .viewer-stage { position:relative; flex:1; min-height:0; overflow:hidden; touch-action:none; }
+    .viewer-playable { display:flex; flex:1; flex-direction:column; min-height:0; }
+    .viewer-page { position:absolute; top:50%; transform:translateY(-50%); }
+    .viewer-previous { left:12px; }
+    .viewer-next { right:12px; }
+    /* The thumbnails band of an image set keeps the toolbar's media geometry. */
+    .viewer-band { flex-shrink:0; min-width:0; padding:var(--catalog-toolbar-inset,8px); container:toolbar / inline-size;
+      max-height:min(50dvh,calc(100dvh - 10rem)); overflow-y:auto; overscroll-behavior:contain; }
+    .viewer-band-row { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:var(--toolbar-gap,12px); min-width:0;
+      min-height:var(--catalog-toolbar-height,44px); }
+  }
+  @media(max-width:600px) { .viewer-page { top:auto; bottom:8px; transform:none; } }
+</style>
 ```
 
 ## src/svelte/catalog/mechanisms/media-gestures/media-gestures.ts
@@ -1525,12 +1620,14 @@ Source SHA-256: 4564b30ba603de6a50ea2cf5f7016b90cd9565f7b53a1e3fb7c36fd8a4c3875b
 
 ## src/svelte/catalog/foundations/bar/BarSearch.svelte
 
-Source SHA-256: 74f2df652e477bb48a7a150566ac366ef49ca593680e80fe7951a3af2aa2d69d
+Source SHA-256: 2ad76d00e7f5b17f28027dc3f34cffbe5840204a0e8195383f8bab6d37f6ceba
 
 ```svelte
 <script lang="ts">
   // Bar part (from the toolbar-search composition): the place search field, revealed by a toggle that also closes it.
-  // Opening focuses the field; the displayed query freezes while closed so the field does not change as it hides.
+  // Opening it from its toggle focuses the field (a search opened elsewhere keeps focus where it is); the displayed query
+  // freezes while closed so the field does not change as it hides.
+  // The rail keeps the field mounted while closed (inert) so its well grows from the toggle as it opens.
   import { untrack } from "svelte";
   import { Action, Field } from "../../index.ts";
   import { say } from "../../../infra/messages.ts";
@@ -1540,22 +1637,16 @@ Source SHA-256: 74f2df652e477bb48a7a150566ac366ef49ca593680e80fe7951a3af2aa2d69d
     onquery: (query: string) => void; onopen: () => void; oncancel: () => void;
   } = $props();
   const id = $props.id();
-  // The field takes focus when this toggle opened it (not when the bar mounts with the search already open).
-  let opened = $state(false);
-  let displayedQuery = $state(untrack(() => query));
-  $effect(() => { if (open) displayedQuery = query; else opened = false; });
-  function toggle() {
-    if (open) { oncancel(); return; }
-    opened = true; onopen();
-  }
+  let displayedQuery = $state(untrack(() => query)), requested = $state(false);
+  $effect(() => { if (open) displayedQuery = query; else requested = false; });
+  function toggle() { if (open) oncancel(); else { requested = true; onopen(); } }
 </script>
 
 <div data-catalog-search-actions data-expanded={open}>
-  <!-- The well stays mounted while closed (inert, so it takes no focus) so its width animates open. -->
-  <div data-catalog-search inert={!open} aria-hidden={!open}>
+  <div data-catalog-search class="flex w-full flex-col" inert={!open} aria-hidden={!open}>
     <Field primitive="input.text" purpose="search" label={say(m.bar.searchLabel, { title: title.toLowerCase() })} labelVisibility="accessible"
-      required={false} invalid={false} disabled={false} measure="fill" value={displayedQuery} placeholder={say(m.bar.searchPlaceholder, { title })}
-      clear={false} controls={open ? resultsId : undefined} focus={open && opened ? "on-mount" : undefined} onchange={onquery} />
+      measure="fill" value={displayedQuery} placeholder={say(m.bar.searchPlaceholder, { title })} clear required={false} invalid={false}
+      disabled={false} focus={open && requested ? "on-mount" : undefined} controls={open ? resultsId : undefined} expanded={open} onchange={onquery} />
   </div>
   <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
   <div class="toolbar-action" data-search-toggle>

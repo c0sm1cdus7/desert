@@ -8,6 +8,7 @@
   import * as Sidebar from "../../../vendor/components/ui/sidebar/index.js";
   import { Bar, Icon, Surface } from "../../index.ts";
   import { swipeMotion } from "../../mechanisms/swipe-motion/swipe-motion.svelte.ts";
+  import { providePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
   import type { ShellNavigation } from "../../../infra/workspace-navigation.ts";
   import { navigationIconNames } from "./navigation-icons.ts";
   let { navigation, searching, onnavigate }: { navigation: ShellNavigation; searching: boolean; onnavigate: (id: string) => void } = $props();
@@ -16,6 +17,8 @@
     commit: () => sidebar.presentation === "overlay" ? sidebar.setOverlayOpen(false) : sidebar.setOpen(false) });
   $effect(() => { sidebar.dismissOffset = motion.offset; });
   $effect(() => { if (sidebar.expanded) untrack(() => motion.reset()); });
+  // As an overlay the pane is an edge pane its header drags (pane-context); docked, it is part of the workspace.
+  providePane(() => sidebar.presentation === "overlay" ? { drag: true, dragging: false, framed: false } : undefined);
   function navigate(id: string) { onnavigate(id); if (sidebar.presentation === "overlay") sidebar.setOverlayOpen(false); }
   // The pane's top bar is the drag handle (the bar itself takes no drag; DESIGN §3.2). Presses on its controls stay theirs.
   const down = (event: PointerEvent) => {

@@ -23,7 +23,7 @@ test('pane state feedback preserves its material and dims only content once',asy
     await f.page.locator('[data-test-controls]').getByRole('button',{name:'disabled',exact:true}).click();
     assert.deepEqual(await measure(),resting);
     assert.equal(await button.locator('[data-button-content]').evaluate(e=>getComputedStyle(e).opacity),'0.5');
-    const field=f.page.locator('[data-primitive="input.text"]');
+    const field=f.page.locator('[data-primitive="input.text"]').filter({hasText:'Trip name'});
     assert.equal(await field.locator('[data-field-row]').evaluate(e=>getComputedStyle(e).opacity),'0.5');
     assert.equal(await field.getByRole('textbox').evaluate(e=>getComputedStyle(e).opacity),'1');
     assert.equal(await field.locator('[data-slot="field-label"]').evaluate(e=>getComputedStyle(e).opacity),'1');

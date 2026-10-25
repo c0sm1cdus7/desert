@@ -76,8 +76,8 @@ test('hosted target witness detects a portal that loses its launch typography',a
   // The message dialog's portal takes the launch density from the modal that hosts it.
   const path=resolve('src/svelte/catalog/foundations/modal/ModalDialog.svelte');
   const original=await readFile(path,'utf8');
-  assert.equal(original.split('class={density}').length,2,'the modal applies the launch density once');
-  const broken=original.replace('class={density}','');
+  assert.equal(original.split('class={[density, "focus-inset"]}').length,2,'the modal applies the launch density once');
+  const broken=original.replace('class={[density, "focus-inset"]}','class="focus-inset"');
   const f=await svelteBrowser(source,{[path]:broken},'http://toolbar.test/');
   try{
     await f.page.setViewportSize({width:1280,height:900});

@@ -28,4 +28,6 @@
   /* The visible legend is a group label: caption ink at the rows' inset (today's options title). */
   .legend { max-width:100%; overflow-wrap:break-word; padding-inline:1rem; margin:0 0 .375rem; color:var(--muted-foreground);
     font-size:var(--text-caption); line-height:var(--text-caption--line-height); font-weight:400; }
+  /* The required mark (from the theme): destructive ink beside its label. */
+  .required { color:var(--destructive); }
 </style>

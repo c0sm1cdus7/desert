@@ -28,23 +28,28 @@ test("field: the contract is closed: a shared part and exclusive variants by pri
   assert.equal(contract.closed, true);
   if (!contract.closed) return;
   assert.deepEqual(Object.keys(contract.props), ["label", "labelVisibility", "required", "invalid", "disabled", "helper", "error", "identity",
-    "measure", "primitive", "purpose", "value", "placeholder", "mask", "maxLength", "counter", "clear", "focus", "controls", "display", "disclosure"]);
+    "measure", "primitive", "purpose", "value", "placeholder", "mask", "maxLength", "counter", "clear", "focus", "controls", "expanded",
+    "display", "disclosure"]);
   // A single line names what it controls (the bar search its results); the other primitives declare it absent.
   assert.deepEqual(contract.props.controls, { schema: { kind: "union", members: [{ kind: "string" }, { kind: "undefined" }] }, optional: true });
+  // The bar search well grows from its toggle while expanded; the other primitives declare it absent.
+  assert.deepEqual(contract.props.expanded, { schema: { kind: "union", members: [{ kind: "boolean" }, { kind: "undefined" }] }, optional: true });
   const required = Object.entries(contract.props).filter(([, item]) => !item.optional).map(([name]) => name);
   assert.deepEqual(required, ["label", "labelVisibility", "required", "invalid", "disabled", "measure", "primitive"]);
   assert.deepEqual(contract.props.primitive?.schema, { kind: "union", members: [{ kind: "literal", value: "input.text" },
     { kind: "literal", value: "input.multiline" }, { kind: "literal", value: "trigger" }] });
   assert.deepEqual(Object.keys(contract.events), ["change", "masked", "open"]);
-  assert.deepEqual(contract.marks, ["data-field", "data-field-filled", "data-measure"]);
+  assert.deepEqual(contract.marks, ["data-field", "data-field-filled", "data-measure", "data-search-expanded"]);
 });
 
-test("field: it owns the five writing vendor families, renders both input kinds, and text-input owns neither any more", () => {
-  const field = declaration("field"), textInput = declaration("text-input");
+test("field: it owns the five writing vendor families and renders both input kinds; text-input is gone (Batch 3)", () => {
+  const field = declaration("field"), declarations = realContext().declarations.map(item => item.declaration);
   assert.deepEqual(field.owner.vendor, ["field", "input", "input-group", "label", "textarea"]);
   assert.deepEqual(field.renders, ["input.text", "input.multiline"]);
-  assert.equal(textInput.owner.vendor, undefined);
-  assert.equal(textInput.renders, undefined);
+  assert.equal(declarations.some(item => item.id === "text-input"), false);
+  const others = declarations.flatMap(item => item.kind === "foundation" && item.id !== "field" ? [item] : []);
+  assert.deepEqual(others.filter(item => item.owner.vendor?.some(family => field.owner.vendor?.includes(family))).map(item => item.id), []);
+  assert.deepEqual(others.filter(item => item.renders?.some(kind => kind.startsWith("input."))).map(item => item.id), []);
   assert.deepEqual(field.states, ["empty", "value", "invalid", "disabled", "masked"]);
   assert.deepEqual(field.variants, { primitive: ["input.text", "input.multiline", "trigger"], measure: ["writing", "choice", "date", "amount", "fill"] });
   assert.deepEqual(field.stateVariants, { masked: { primitive: ["input.text"] } });

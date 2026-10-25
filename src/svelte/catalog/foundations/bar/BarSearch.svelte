@@ -1,6 +1,8 @@
 <script lang="ts">
   // Bar part (from the toolbar-search composition): the place search field, revealed by a toggle that also closes it.
-  // Opening focuses the field; the displayed query freezes while closed so the field does not change as it hides.
+  // Opening it from its toggle focuses the field (a search opened elsewhere keeps focus where it is); the displayed query
+  // freezes while closed so the field does not change as it hides.
+  // The rail keeps the field mounted while closed (inert) so its well grows from the toggle as it opens.
   import { untrack } from "svelte";
   import { Action, Field } from "../../index.ts";
   import { say } from "../../../infra/messages.ts";
@@ -10,22 +12,16 @@
     onquery: (query: string) => void; onopen: () => void; oncancel: () => void;
   } = $props();
   const id = $props.id();
-  // The field takes focus when this toggle opened it (not when the bar mounts with the search already open).
-  let opened = $state(false);
-  let displayedQuery = $state(untrack(() => query));
-  $effect(() => { if (open) displayedQuery = query; else opened = false; });
-  function toggle() {
-    if (open) { oncancel(); return; }
-    opened = true; onopen();
-  }
+  let displayedQuery = $state(untrack(() => query)), requested = $state(false);
+  $effect(() => { if (open) displayedQuery = query; else requested = false; });
+  function toggle() { if (open) oncancel(); else { requested = true; onopen(); } }
 </script>
 
 <div data-catalog-search-actions data-expanded={open}>
-  <!-- The well stays mounted while closed (inert, so it takes no focus) so its width animates open. -->
-  <div data-catalog-search inert={!open} aria-hidden={!open}>
+  <div data-catalog-search class="flex w-full flex-col" inert={!open} aria-hidden={!open}>
     <Field primitive="input.text" purpose="search" label={say(m.bar.searchLabel, { title: title.toLowerCase() })} labelVisibility="accessible"
-      required={false} invalid={false} disabled={false} measure="fill" value={displayedQuery} placeholder={say(m.bar.searchPlaceholder, { title })}
-      clear={false} controls={open ? resultsId : undefined} focus={open && opened ? "on-mount" : undefined} onchange={onquery} />
+      measure="fill" value={displayedQuery} placeholder={say(m.bar.searchPlaceholder, { title })} clear required={false} invalid={false}
+      disabled={false} focus={open && requested ? "on-mount" : undefined} controls={open ? resultsId : undefined} expanded={open} onchange={onquery} />
   </div>
   <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
   <div class="toolbar-action" data-search-toggle>

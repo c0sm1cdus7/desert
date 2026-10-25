@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -29,15 +30,12 @@ const source = `<script lang="ts">
 
 test("one toolbar owner reaches persistent frames, transient dialogs and the catalog shell", { timeout: 30000 }, async () => {
   // Bar is the toolbar foundation (DESIGN §3.2): the catalog shell (lane F) and every frame (lane E) draw it, so it alone
-  // carries the shared probe; the toolbar-layout composition is probed too, to prove nothing here mounts it any more.
+  // carries the shared probe; the toolbar-layout composition, which drew toolbars before it, is deleted (Batch 3).
   const bar = resolve(import.meta.dirname, "../src/svelte/catalog/foundations/bar/Bar.svelte");
-  const owner = resolve(import.meta.dirname, "../src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte");
-  const [barSource, original] = [await readFile(bar, "utf8"), await readFile(owner, "utf8")];
-  for (const text of [barSource, original]) assert.equal(text.split('data-piece="toolbar"').length, 2);
-  const f = await svelteBrowser(source, {
-    [bar]: barSource.replace('data-piece="toolbar"', 'data-piece="toolbar" data-owner-probe="shared"'),
-    [owner]: original.replace('data-piece="toolbar"', 'data-piece="toolbar" data-owner-probe="layout"'),
-  });
+  assert.equal(existsSync(resolve(import.meta.dirname, "../src/svelte/catalog/compositions/toolbar-layout")), false);
+  const barSource = await readFile(bar, "utf8");
+  assert.equal(barSource.split('data-piece="toolbar"').length, 2);
+  const f = await svelteBrowser(source, { [bar]: barSource.replace('data-piece="toolbar"', 'data-piece="toolbar" data-owner-probe="shared"') });
   try {
     await f.page.addStyleTag({ content: await rendererCss() });
     await f.page.emulateMedia({ reducedMotion: "reduce" });
@@ -50,7 +48,7 @@ test("one toolbar owner reaches persistent frames, transient dialogs and the cat
     assert.deepEqual((await new AxeBuilder({ page: f.page }).withRules(['landmark-banner-is-top-level', 'landmark-unique', 'region']).analyze()).violations, []);
     assert.equal(await f.page.locator('[data-persistent] [data-owner-probe="shared"]').count(), 1);
     assert.equal(await f.page.locator('[data-catalog-toolbar][data-owner-probe="shared"]').count(), 1);
-    assert.equal(await f.page.locator('[data-owner-probe="layout"]').count(), 0, "no toolbar here is toolbar-layout's");
+    assert.equal(await f.page.locator('[data-piece="toolbar"]:not([data-owner-probe="shared"])').count(), 0, "every toolbar here is Bar's");
     assert.equal(await f.page.locator('[data-catalog-toolbar] [data-piece="face"]').count(), 0,
       "catalog navigation does not acquire an ornamental face");
     await f.page.getByRole('button', { name: 'Open message', exact: true }).click();

@@ -13,6 +13,6 @@
     {...props} role={presentation === "speed-dial" ? "dialog" : props.role}
     style={presentation === "selection" ? "padding:.25rem;gap:0;width:max-content" : props.style}
     data-slot="popover-content"
-    data-popover-presentation={presentation} class={cn(presentation !== "speed-dial" ? "material-pane floating-pane anchored-surface" : "speed-dial",
+    data-popover-presentation={presentation} class={cn("focus-inset", presentation !== "speed-dial" ? "material-pane floating-pane anchored-surface" : "speed-dial",
       presentation === "reference" && "w-[min(24rem,calc(100dvw-24px))] max-h-[calc(100dvh-48px)] overflow-y-auto", className)} />
 </Popover.Portal>

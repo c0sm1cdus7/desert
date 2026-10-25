@@ -55,5 +55,54 @@
 :root { @apply scheme-light; }
 :root[data-theme="dark"] { @apply scheme-dark; }
 @media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) { @apply scheme-dark; } }
+/* Catalog geometry (from the catalog profile): image ink over photographs, the search glyph ink, the sidebar width and
+   the hero and rail media heights. */
+:root {
+  --catalog-image-foreground:#fff; --catalog-image-shade:#000c;
+  --catalog-search-foreground:var(--muted-foreground);
+  --catalog-sidebar-width:240px;
+  --catalog-hero-height:max(199px,calc((100dvh - 52px) / 2));
+  --catalog-media-height:max(140px,calc((100dvh - 52px) * .2));
+}
+@media (max-width:767px) { :root { --catalog-hero-height:360px; --catalog-media-height:160px; } }
 /* The spacing scale layout pieces separate their children by (GapSchema in src/interaction/spacing.ts names the steps). */
 @theme { --spacing-tight:var(--heading-copy-gap); --spacing-snug:.5rem; --spacing-close:.75rem; --spacing-regular:1rem; --spacing-loose:1.25rem; --spacing-relaxed:1.5rem; --spacing-section:2rem; }
+/* Surface geometry (from the surface-chrome, surface-reading and lateral-surface-motion mechanisms): the transient
+   surface's radius, edge inset and scrim, the navigation row insets, the lateral motion, and the reading guide content
+   and toolbar identity align to. The theme writes every value; an owner applies the utility of the surface it draws. */
+:root {
+  --surface-radius:var(--radius-surface); --surface-inset:12px; --surface-dimmer:rgb(0 0 0 / .32);
+  --navigation-group-inset:9px; --navigation-row-inset:10px;
+  --motion-lateral:200ms; --ease-lateral:var(--ease-nav);
+  --surface-reading-inset:var(--catalog-toolbar-inset,8px);
+}
+@property --place-leading-inset { syntax:"<length>"; inherits:true; initial-value:0px; }
+/* A workspace's place insets; an overlay navigation tightens them; a home stack's rails run edge to edge. */
+@utility place-insets { --place-surface-inset:26px; --place-content-inset:calc(var(--place-surface-inset) + 1rem); }
+@utility place-insets-compact { --place-surface-inset:18px; --place-content-inset:calc(var(--place-surface-inset) + 1rem); }
+@utility place-insets-flush { --place-surface-inset:0px; --place-content-inset:1rem; }
+/* The reading guide of a place, of the navigation place, and of a frame or picker sheet (its chrome inset, capped in a
+   compact frame and on a short screen); a message frame reads at a wider chrome inset. */
+@utility reading-inset-place { --surface-reading-inset:var(--place-content-inset,42px); }
+@utility reading-inset-navigation { --surface-reading-inset:calc(var(--navigation-group-inset) + var(--navigation-row-inset)); }
+@utility chrome-inset {
+  --chrome-inset:1.25rem; --surface-reading-inset:var(--chrome-inset); container:chrome-frame / inline-size;
+  @media (max-height:640px) { --surface-reading-inset:min(var(--chrome-inset),20px); }
+  @container chrome-frame (max-width:30rem) { & * { --surface-reading-inset:min(var(--chrome-inset,1.25rem),20px); } }
+}
+@utility chrome-inset-message {
+  --chrome-inset:1.5rem; --surface-reading-inset:var(--chrome-inset); container:chrome-frame / inline-size;
+  @media (max-height:640px) { --chrome-inset:min(1.5rem,24px); --surface-reading-inset:min(var(--chrome-inset),20px); }
+  @container chrome-frame (max-width:30rem) { & * { --surface-reading-inset:min(var(--chrome-inset,1.25rem),20px); } }
+}
+@utility picker-content-inset {
+  padding-inline:.75rem;
+  @media (max-width:24rem) { padding-inline:4px; }
+}
+/* The content of a pane or interior control (applied beside control-feedback-content): disabled state belongs to content,
+   the pane and its boundary never fade. */
+@utility disabled-content {
+  :is(button,a):is(:disabled,[aria-disabled="true"]) > & { opacity:var(--disabled-opacity); }
+}
+/* A surface whose focus rings sit inside its clipped edges (a toolbar, a popover, a dialog). */
+@utility focus-inset { --focus-ring-offset:-3px; }

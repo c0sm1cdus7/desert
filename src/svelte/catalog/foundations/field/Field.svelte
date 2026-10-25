@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { say } from "../../../infra/messages.ts";
-  import { m } from "../../../../messages/keys.ts";
   import { untrack } from "svelte";
   import * as Vendor from "../../../vendor/components/ui/field/index.js";
   import FieldWell from "./FieldWell.svelte";
@@ -11,7 +9,8 @@
   import ClearInput from "./ClearInput.svelte";
   import type { CatalogProps } from "../../types.d.ts";
   let { primitive, label, labelVisibility, required, invalid, disabled, helper, error, identity, measure, purpose, value, placeholder,
-    mask, maxLength, counter, clear, focus, controls, display, disclosure, onchange, onmasked, onopen, accessory: trailing, prefix }: CatalogProps<"field"> = $props();
+    mask, maxLength, counter, clear, focus, controls, expanded, display, disclosure, onchange, onmasked, onopen, accessory: trailing,
+    prefix }: CatalogProps<"field"> = $props();
   const id = $props.id();
   // Both editors receive their value; the trigger owns none. `writing` is the live text, `shown` a mask's formatted text.
   let written = $derived(typeof value === "string" ? value : "");
@@ -42,18 +41,19 @@
   function edited(next: string, valid: boolean, complete: boolean) {
     if (disabled || !mask) return;
     onmasked?.({ value: next, valid, complete });
-    draftError = valid && complete ? "" : valid ? say(m.field.incompleteNumber) : say(m.field.invalidNumber, { scale: String(mask.scale) });
+    draftError = valid && complete ? "" : valid ? "Enter a complete number." :
+      `Enter a number with up to ${mask.scale} decimal places using this field's format.`;
     if (valid && complete) { pending.push(next); onchange?.(next); }
   }
 </script>
 {#snippet characters()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
 {#snippet editor()}
   {#if primitive !== "trigger"}
-    <FieldEditor {id} {primitive} {label} {purpose} value={written} {placeholder} {mask} {identity} {required} {disabled} {focus} {controls}
+    <FieldEditor {id} {primitive} {label} {purpose} value={written} {placeholder} {mask} {identity} {required} {disabled} {focus}
       invalid={marked} {describedBy} bind:writing bind:shown onchange={next => onchange?.(next)} onmasked={edited} />
   {/if}
 {/snippet}
-<div data-field data-field-filled={primitive === "trigger" || draft.length > 0} data-measure={measure}>
+<div data-field data-field-filled={primitive === "trigger" || draft.length > 0} data-measure={measure} data-search-expanded={expanded}>
   <Vendor.Field data-primitive={primitive} data-invalid={marked} data-disabled={disabled}>
     {#if primitive === "trigger" && display && disclosure}
       <FieldTrigger {label} {labelVisibility} {required} {disabled} {describedBy} {display} {disclosure}
@@ -64,7 +64,7 @@
       <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} {prefix} footer={counted ? characters : undefined}>
         {#snippet accessory()}
           {#if trailing}{@render trailing()}
-          {:else if multiline || clear}<ClearInput control={id} value={draft} label={say(m.field.clear, { label })} {disabled} />{/if}
+          {:else if multiline || clear}<ClearInput control={id} value={draft} label={`Clear ${label}`} {disabled} />{/if}
         {/snippet}
         {@render editor()}
       </FieldWell>

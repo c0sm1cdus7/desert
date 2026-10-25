@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { readFileSync } from 'node:fs';
 import { svelteBrowser } from './fixtures/svelte-browser.ts';
-import { rendererCss } from './fixtures/renderer-css.ts';
+import { prunedSourcesBefore } from './fixtures/pruned-sources-before.ts';
+import { rendererCss, themeBeforePrune } from './fixtures/renderer-css.ts';
 import { mediaInspectionBefore } from './fixtures/media-inspection-before.ts';
 import { controlsBefore } from './fixtures/controls-before.ts';
 import { pixelDifference } from './fixtures/pixel-difference.ts';
@@ -22,11 +22,13 @@ const frozenCard={[resolve(root,'src/svelte/catalog/compositions/catalog-card/Ca
   controlsBefore['src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte']??''};
 // The viewer's reset is an icon action now (DESIGN §7.7, lane E): the frozen side's zoom controls draw that one approved
 // change, so every other element of the frozen viewer keeps its geometry and pixels.
-const zoomControls=resolve(root,'src/svelte/catalog/compositions/zoom-controls/ZoomControls.svelte');
+// Its folder is gone (Batch 3): the f7247e4 source is the one the frozen viewer mounted.
+const zoomPath='src/svelte/catalog/compositions/zoom-controls/ZoomControls.svelte', zoomControls=resolve(root,zoomPath);
+const zoomBefore=prunedSourcesBefore[zoomPath]??'';
 const frozenReset='<Button variant="secondary" aria-label="Reset zoom" onclick={onreset}><span data-media-zoom>{Math.round(scale*100)}%</span></Button>';
-const frozenZoom={[zoomControls]:readFileSync(zoomControls,'utf8').replace(frozenReset,
+const frozenZoom={[zoomControls]:zoomBefore.replace(frozenReset,
   '<Button variant="secondary" size="icon-lg" aria-label="Reset zoom" onclick={onreset}><Icon name="undo-2" /></Button>')};
-assert.notEqual(frozenZoom[zoomControls],readFileSync(zoomControls,'utf8'),'the frozen zoom controls still draw the text reset');
+assert.notEqual(frozenZoom[zoomControls],zoomBefore,'the frozen zoom controls still draw the text reset');
 const directory=resolve(root,'artifacts/media-inspection-ownership');
 const library={id:'travel',items:[
   {id:'coast',kind:'image',title:'Coast',image:{asset:'coast',alt:'A coast'}},
@@ -41,7 +43,9 @@ async function prepare(source:string,overrides:Readonly<Record<string,string>>={
   await fixture.page.emulateMedia({colorScheme:'dark',reducedMotion:'reduce'});
   await fixture.page.route('**/media/**',route=>route.fulfill({contentType:'image/svg+xml',body:
     '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="#69867a"/></svg>'}));
-  await fixture.page.addStyleTag({content:await rendererCss()});
+  // A frozen side draws with the base f7247e4 theme it was drawn with; today's side with today's (Batch 3 moved the rules).
+  const frozen=Object.values(overrides);
+  await fixture.page.addStyleTag({content:frozen.length?await rendererCss(frozen,themeBeforePrune()):await rendererCss()});
   await fixture.page.getByRole('button',{name:'Mount fixture',exact:true}).click();
   return fixture;
 }

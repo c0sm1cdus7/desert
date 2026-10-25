@@ -489,13 +489,12 @@ verbatim modules, not standalone snippets or a published package API.
 - src/interaction/information-content.ts
 - src/svelte/catalog/compositions/toolbar/Toolbar.svelte
 - src/svelte/catalog/foundations/face/Face.svelte
-- src/svelte/catalog/foundations/field-well/FieldWell.svelte
-- src/svelte/catalog/foundations/search-field/SearchField.svelte
-- src/svelte/catalog/foundations/measured-field/MeasuredField.svelte
+- src/svelte/catalog/foundations/field/FieldWell.svelte
+- src/svelte/catalog/foundations/field/SearchWell.svelte
 - src/svelte/catalog/foundations/field/field-measure.css
-- src/svelte/catalog/foundations/grouped-panel/GroupedPanel.svelte
-- src/svelte/catalog/foundations/choice-row/ChoiceRow.svelte
-- src/svelte/catalog/foundations/selection-field/SelectionField.svelte
+- src/svelte/catalog/foundations/list/List.svelte
+- src/svelte/catalog/foundations/choice/ChoiceRows.svelte
+- src/svelte/catalog/foundations/choice/ChoiceMenu.svelte
 - src/svelte/catalog/compositions/collection-state/CollectionState.svelte
 - src/svelte/catalog/foundations/action/Action.svelte
 - src/svelte/infra/action-icons.ts
@@ -503,7 +502,6 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/mechanisms/press-feedback/press-feedback.ts
 - src/svelte/catalog/compositions/select-control/SelectControl.svelte
 - src/svelte/catalog/compositions/popover-control/PopoverControl.svelte
-- src/svelte/catalog/compositions/file-control/FileControl.svelte
 - src/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte
 - src/svelte/catalog/compositions/options-control/OptionsControl.svelte
 - src/svelte/catalog/compositions/money-control/MoneyControl.svelte
@@ -515,15 +513,14 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/compositions/fields/Fields.svelte
 - src/svelte/catalog/foundations/field/Field.svelte
 - src/svelte/catalog/foundations/field/FieldEditor.svelte
-- src/svelte/catalog/foundations/text-input/TextInput.svelte
-- src/svelte/catalog/foundations/masked-input/MaskedInput.svelte
-- src/svelte/catalog/foundations/character-counter/CharacterCounter.svelte
-- src/svelte/catalog/foundations/clear-input/ClearInput.svelte
-- src/svelte/catalog/foundations/masked-input/input-edit-history.ts
+- src/svelte/catalog/foundations/field/MaskedInput.svelte
+- src/svelte/catalog/foundations/field/CharacterCounter.svelte
+- src/svelte/catalog/foundations/field/ClearInput.svelte
+- src/svelte/catalog/foundations/field/input-edit-history.ts
 - src/svelte/catalog/compositions/context-panel/ContextPanel.svelte
 - src/svelte/catalog/renderer/facts/Facts.svelte
 - src/svelte/catalog/compositions/review/Review.svelte
-- src/svelte/catalog/foundations/destination-row/DestinationRow.svelte
+- src/svelte/catalog/foundations/row/Row.svelte
 - src/svelte/catalog/foundations/drawer/Drawer.svelte
 - src/svelte/catalog/foundations/modal/Modal.svelte
 - src/svelte/catalog/foundations/modal/ModalPane.svelte
@@ -2854,7 +2851,7 @@ Source SHA-256: 824569ee5bfce01155070663369d3c8e9377accb02c77e4456cb6f41ec9a6680
 
 ## src/svelte/catalog/foundations/shell/Shell.svelte
 
-Source SHA-256: e312f376a0455c0f89e1e44919590402a4922daf4df97bfb1bc4b23b05d4668b
+Source SHA-256: af622509d56b81963f8ecc5ead5044809511ce1145d56271a3e2cf97dfe4df19
 
 ```svelte
 <script lang="ts">
@@ -2891,7 +2888,7 @@ Source SHA-256: e312f376a0455c0f89e1e44919590402a4922daf4df97bfb1bc4b23b05d4668b
 
 <svelte:head><title>{documentTitle}</title></svelte:head>
 
-<div bind:this={workspace} data-renderer-profile="apple-reference" data-catalog-workspace data-search-active={searching}>
+<div bind:this={workspace} class="place-insets" data-catalog-workspace data-search-active={searching}>
   <Wallpaper wallpaper={$appearance.wallpaper} />
   <Sidebar.Provider available={navigation !== null} contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
     <ShellBody bind:this={body} root={() => workspace} {label} {destination} {searching} {hasQuery} {detail} {backAvailable} {resultsId} {searchLabel}
@@ -2902,7 +2899,7 @@ Source SHA-256: e312f376a0455c0f89e1e44919590402a4922daf4df97bfb1bc4b23b05d4668b
 
 ## src/svelte/catalog/foundations/shell/ShellNavigation.svelte
 
-Source SHA-256: 500f41c1ad2295c09bb2940988c6c9a144e8bf5722d0454b678bfa3eaf8e81b5
+Source SHA-256: c6a62d5de2ded474a9e69a41c70005755d89a94cbe4a4572fb2607516d873060
 
 ```svelte
 <script lang="ts">
@@ -2915,6 +2912,7 @@ Source SHA-256: 500f41c1ad2295c09bb2940988c6c9a144e8bf5722d0454b678bfa3eaf8e81b5
   import * as Sidebar from "../../../vendor/components/ui/sidebar/index.js";
   import { Bar, Icon, Surface } from "../../index.ts";
   import { swipeMotion } from "../../mechanisms/swipe-motion/swipe-motion.svelte.ts";
+  import { providePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
   import type { ShellNavigation } from "../../../infra/workspace-navigation.ts";
   import { navigationIconNames } from "./navigation-icons.ts";
   let { navigation, searching, onnavigate }: { navigation: ShellNavigation; searching: boolean; onnavigate: (id: string) => void } = $props();
@@ -2923,6 +2921,8 @@ Source SHA-256: 500f41c1ad2295c09bb2940988c6c9a144e8bf5722d0454b678bfa3eaf8e81b5
     commit: () => sidebar.presentation === "overlay" ? sidebar.setOverlayOpen(false) : sidebar.setOpen(false) });
   $effect(() => { sidebar.dismissOffset = motion.offset; });
   $effect(() => { if (sidebar.expanded) untrack(() => motion.reset()); });
+  // As an overlay the pane is an edge pane its header drags (pane-context); docked, it is part of the workspace.
+  providePane(() => sidebar.presentation === "overlay" ? { drag: true, dragging: false, framed: false } : undefined);
   function navigate(id: string) { onnavigate(id); if (sidebar.presentation === "overlay") sidebar.setOverlayOpen(false); }
   // The pane's top bar is the drag handle (the bar itself takes no drag; DESIGN §3.2). Presses on its controls stay theirs.
   const down = (event: PointerEvent) => {
@@ -2987,12 +2987,14 @@ Source SHA-256: 500f41c1ad2295c09bb2940988c6c9a144e8bf5722d0454b678bfa3eaf8e81b5
 
 ## src/svelte/catalog/foundations/bar/BarSearch.svelte
 
-Source SHA-256: 74f2df652e477bb48a7a150566ac366ef49ca593680e80fe7951a3af2aa2d69d
+Source SHA-256: 2ad76d00e7f5b17f28027dc3f34cffbe5840204a0e8195383f8bab6d37f6ceba
 
 ```svelte
 <script lang="ts">
   // Bar part (from the toolbar-search composition): the place search field, revealed by a toggle that also closes it.
-  // Opening focuses the field; the displayed query freezes while closed so the field does not change as it hides.
+  // Opening it from its toggle focuses the field (a search opened elsewhere keeps focus where it is); the displayed query
+  // freezes while closed so the field does not change as it hides.
+  // The rail keeps the field mounted while closed (inert) so its well grows from the toggle as it opens.
   import { untrack } from "svelte";
   import { Action, Field } from "../../index.ts";
   import { say } from "../../../infra/messages.ts";
@@ -3002,22 +3004,16 @@ Source SHA-256: 74f2df652e477bb48a7a150566ac366ef49ca593680e80fe7951a3af2aa2d69d
     onquery: (query: string) => void; onopen: () => void; oncancel: () => void;
   } = $props();
   const id = $props.id();
-  // The field takes focus when this toggle opened it (not when the bar mounts with the search already open).
-  let opened = $state(false);
-  let displayedQuery = $state(untrack(() => query));
-  $effect(() => { if (open) displayedQuery = query; else opened = false; });
-  function toggle() {
-    if (open) { oncancel(); return; }
-    opened = true; onopen();
-  }
+  let displayedQuery = $state(untrack(() => query)), requested = $state(false);
+  $effect(() => { if (open) displayedQuery = query; else requested = false; });
+  function toggle() { if (open) oncancel(); else { requested = true; onopen(); } }
 </script>
 
 <div data-catalog-search-actions data-expanded={open}>
-  <!-- The well stays mounted while closed (inert, so it takes no focus) so its width animates open. -->
-  <div data-catalog-search inert={!open} aria-hidden={!open}>
+  <div data-catalog-search class="flex w-full flex-col" inert={!open} aria-hidden={!open}>
     <Field primitive="input.text" purpose="search" label={say(m.bar.searchLabel, { title: title.toLowerCase() })} labelVisibility="accessible"
-      required={false} invalid={false} disabled={false} measure="fill" value={displayedQuery} placeholder={say(m.bar.searchPlaceholder, { title })}
-      clear={false} controls={open ? resultsId : undefined} focus={open && opened ? "on-mount" : undefined} onchange={onquery} />
+      measure="fill" value={displayedQuery} placeholder={say(m.bar.searchPlaceholder, { title })} clear required={false} invalid={false}
+      disabled={false} focus={open && requested ? "on-mount" : undefined} controls={open ? resultsId : undefined} expanded={open} onchange={onquery} />
   </div>
   <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
   <div class="toolbar-action" data-search-toggle>
@@ -4634,17 +4630,23 @@ Source SHA-256: 2422851544aa9aa5eb55cbf79c33412f7ecff38d24e330f05cda17b96a3864eb
 </style>
 ```
 
-## src/svelte/catalog/foundations/field-well/FieldWell.svelte
+## src/svelte/catalog/foundations/field/FieldWell.svelte
 
-Source SHA-256: 293deeb114a8647416308a82158727e86e8d43f0cae40be21e04240105d10e86
+Source SHA-256: e3cf9e225cc9605e42ac31c860f046f7339e49f58323e1a9447bf1e21774f71d
 
 ```svelte
 <script lang="ts">
+  // The rounded well of a Field: its persistent label above the editor, an optional prefix (a currency choice), the
+  // trailing accessory (the clear control or the caller's action) and a footer (the character counter). A press on the
+  // well's own surface focuses its editor.
+  import type { Snippet } from "svelte";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import { FieldWellContent } from "../../index.ts";
   import { cn } from "../../../vendor/utils.js";
-  import type { CatalogProps } from "../../types.d.ts";
-  let { id, label, filled, required = false, prefix, accessory, footer, children, presentation = "standard" }: CatalogProps<"field-well"> = $props();
+  import FieldLabel from "./FieldLabel.svelte";
+  let { id, label, labelVisibility, required, filled, prefix, accessory, footer, children }: {
+    id: string; label: string; labelVisibility: "visible" | "accessible"; required: boolean; filled: boolean;
+    prefix: Snippet | undefined; accessory: Snippet; footer: Snippet | undefined; children: Snippet;
+  } = $props();
   function focusEditor(event: MouseEvent) {
     if (event.defaultPrevented || !(event.target instanceof Element)) return;
     if (event.target.closest('input, textarea, button, select, a, label, [contenteditable]')) return;
@@ -4654,72 +4656,48 @@ Source SHA-256: 293deeb114a8647416308a82158727e86e8d43f0cae40be21e04240105d10e86
     }
   }
 </script>
-<Group.Root {presentation} onclick={focusEditor} class={cn("field-well overflow-hidden p-0", footer && "flex-col items-stretch")} data-floating-field data-field-focus="within" data-compound-field={!!prefix} data-filled={filled}>
+<Group.Root onclick={focusEditor} class={cn("field-well overflow-hidden p-0", footer && "flex-col items-stretch")} data-floating-field
+  data-field-focus="within" data-compound-field={!!prefix} data-filled={filled}>
   <div data-field-row class="flex w-full min-w-0 items-center">
-    <FieldWellContent {id} {label} {required}>{@render children?.()}</FieldWellContent>
+    <FieldLabel for={id} {label} {labelVisibility} {required}>{@render children()}</FieldLabel>
     {#if prefix}<Group.Addon align="inline-start" class="field-prefix">{@render prefix()}</Group.Addon>{/if}
-    {@render accessory?.()}
+    {@render accessory()}
   </div>
   {@render footer?.()}
 </Group.Root>
 ```
 
-## src/svelte/catalog/foundations/search-field/SearchField.svelte
+## src/svelte/catalog/foundations/field/SearchWell.svelte
 
-Source SHA-256: abb3bec18b55386ea34a1cfb13dd568b4a80dcceca6d12c9a32e91eac366bd75
+Source SHA-256: d27655363162c582cc3d9e15be70d428841b5c16182278e998ac7a9da0b0e4c0
 
 ```svelte
 <script lang="ts">
-  import * as InputGroup from "../../../vendor/components/ui/input-group/index.js";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  // The well of a search Field: a leading search glyph, the query editor and its clear control. A press on the well's
+  // own surface focuses the editor; `focus: "on-mount"` focuses it when the well appears (an expanding toolbar search),
+  // and `controls` names the results the query filters.
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import { Icon } from "../../index.ts";
-  import { ClearInput } from "../../index.ts";
-
-  const generatedId = $props.id();
-  let { id = generatedId, value = $bindable(""), ref = $bindable(null), onvalue, disabled = false, readonly = false,
-    placeholder, "aria-label": label, "aria-controls": controls, tabindex, onready }: {
-    id?: string; placeholder?: string; disabled?: boolean; readonly?: boolean;
-    "aria-label"?: string; "aria-controls"?: string; tabindex?: -1 | 0;
-    value?: string; ref?: HTMLInputElement | null; onvalue?: (value: string) => void;
-    onready?: (element: HTMLInputElement | null) => void;
+  import ClearInput from "./ClearInput.svelte";
+  let { id, label, placeholder, disabled, invalid, describedBy, focus, controls, writing = $bindable(""), onchange }: {
+    id: string; label: string; placeholder: string | undefined; disabled: boolean; invalid: boolean; describedBy: string | undefined;
+    focus: "on-mount" | undefined; controls: string | undefined; writing?: string; onchange: (value: string) => void;
   } = $props();
-  let fieldId = $derived(id ?? generatedId);
-  $effect(() => { onready?.(ref); return () => onready?.(null); });
-
-  function update(next: string) { value = next; onvalue?.(next); }
+  let editor = $state<HTMLInputElement | null>(null);
+  $effect(() => { if (focus === "on-mount" && editor) editor.focus({ preventScroll: true }); });
+  function focusEditor(event: MouseEvent) {
+    if (!(event.target instanceof Element) || event.target.closest("button,input")) return;
+    editor?.focus({ preventScroll: true });
+  }
 </script>
-
-<InputGroup.Root data-search-field data-disabled={disabled} aria-disabled={disabled || undefined}
-  onclick={event => {
-    if (!(event.target as Element).closest("button,input")) ref?.focus({ preventScroll: true });
-  }}>
-  <InputGroup.Input id={fieldId} bind:ref type="search" {value} {disabled} {readonly}
-    {placeholder} aria-label={label} aria-controls={controls} {tabindex}
-    autocomplete="off" oninput={event => update(event.currentTarget.value)} />
-  <InputGroup.Addon align="inline-start"><Icon name="search" search="leading" decorative /></InputGroup.Addon>
-  <ClearInput control={fieldId} {value} label="Clear search" disabled={!!(disabled || readonly)} />
-</InputGroup.Root>
-```
-
-## src/svelte/catalog/foundations/measured-field/MeasuredField.svelte
-
-Source SHA-256: 589c0db710de5eccd4cc0c20d8c15d8c54b863111e562dc6039ec44b770f09e5
-
-```svelte
-<script lang="ts">
-  import type { CatalogProps } from '../../types.d.ts';
-  import * as Field from '../../../vendor/components/ui/field/index.js';
-  // The outer box measures available space; the complete accessible field
-  // (including validation/support) owns its preferred measure inside it.
-  const measures = { 'input.text': 'writing', 'input.multiline': 'writing',
-    'control.select': 'choice', 'control.date': 'date', 'control.money': 'amount' } as const satisfies Record<CatalogProps<'measured-field'>['kind'],string>;
-  let { kind, children, invalid, disabled }: CatalogProps<'measured-field'> = $props();
-</script>
-
-<div data-control-measure={measures[kind]}>
-  <Field.Field data-primitive={kind.startsWith('input.') ? kind : undefined}
-    data-control={kind.startsWith('control.') ? kind.slice(8) : undefined}
-    data-invalid={invalid} data-disabled={disabled}>{@render children?.()}</Field.Field>
-</div>
+<Group.Root data-search-field data-disabled={disabled} aria-disabled={disabled || undefined} onclick={focusEditor}>
+  <Group.Input {id} bind:ref={editor} type="search" bind:value={writing} {disabled} {placeholder} aria-label={label}
+    aria-invalid={invalid} aria-describedby={describedBy} aria-controls={controls} autocomplete="off" oninput={event => onchange(event.currentTarget.value)} />
+  <Group.Addon align="inline-start"><Icon name="search" search="leading" decorative /></Group.Addon>
+  <ClearInput control={id} value={writing} label={say(m.field.clearSearch)} {disabled} />
+</Group.Root>
 ```
 
 ## src/svelte/catalog/foundations/field/field-measure.css
@@ -4753,178 +4731,201 @@ Source SHA-256: 4852c117ca5bce4898c412555493ca0e5a55dcfa8832d08335bfb94b6313bdd1
 }
 ```
 
-## src/svelte/catalog/foundations/grouped-panel/GroupedPanel.svelte
+## src/svelte/catalog/foundations/list/List.svelte
 
-Source SHA-256: 2b58281a3deb333667d4586c6377154dca80eb53518481853a663287ac455962
+Source SHA-256: 603257de3293ccf620366c9f694fab5c66a7c53aa524dc63293f089534d1adb5
 
 ```svelte
 <script lang="ts">
-  import * as Card from "../../../vendor/components/ui/card/index.js";
   import type { CatalogProps } from "../../types.d.ts";
-  let { children, measure = 'reading' }: CatalogProps<"grouped-panel"> = $props();
+  let { kind, measure, label, busy, children }: CatalogProps<"list"> = $props();
 </script>
 
-<!-- One shared pane for sibling rows; Stack only supplies hierarchy. -->
-<div data-reading-measure={measure === 'reading' || undefined}>
-  <Card.Root class="grouped-panel" data-grouped-panel>{@render children?.()}</Card.Root>
+<!-- One shared pane for sibling rows or facts; the rows draw their own hairlines. -->
+{#if kind === "facts"}
+  <dl class="list list-facts material-pane" class:list-reading={measure === "reading"} data-list="facts" aria-label={label} aria-busy={busy}>
+    {@render children?.()}
+  </dl>
+{:else}
+  <div class="list list-rows material-pane" class:list-reading={measure === "reading"} data-list="rows"
+    role={label ? "group" : undefined} aria-label={label} aria-busy={busy}>{@render children?.()}</div>
+{/if}
+
+<style>
+  .list { width:100%; min-width:0; overflow:hidden; border-radius:var(--radius-group); }
+  .list-reading { max-width:34rem; }
+  .list-rows { display:flex; flex-direction:column; color:var(--card-foreground); }
+  /* Fact rows stack their label above the value when the pane is narrow. */
+  .list-facts { container:fact-group / inline-size; }
+</style>
+```
+
+## src/svelte/catalog/foundations/choice/ChoiceRows.svelte
+
+Source SHA-256: 851cbfc709743181a9b632eb904b23acb51efd1a151f83e7b3ed666a2c65d9be
+
+```svelte
+<script lang="ts">
+  import * as RadioGroup from "../../../vendor/components/ui/radio-group/index.js";
+  import { Checkbox } from "../../../vendor/components/ui/checkbox/index.js";
+  import type { ChoiceOption } from "../../../../interaction/choice.ts";
+  import ChoiceAnatomy from "./ChoiceAnatomy.svelte";
+  import { rowDivider, rowFrame, rowGroup } from "./choice-row.ts";
+  // The options as rows of one pane at the reading measure: a radio each for one, a checkbox each for many. A row's label
+  // activates its control; a disabled option's control keeps full ink while its content dims.
+  // The marks are bound to `selected` through a getter and a setter: a press only proposes the next selection, and the
+  // marks show what the owner accepts (an edit the owner refuses never shows).
+  // In their own pane they keep the reading measure; inside a hosting pane (`interior`) they take its width, transparent.
+  let { id, label, frame, cardinality, options, selected, disabled, required, onchange }: { id: string; label: string; frame: "pane" | "interior";
+    cardinality: "one" | "many"; options: readonly ChoiceOption[]; selected: readonly string[]; disabled: boolean; required: boolean;
+    onchange: ((selected: string[]) => void) | undefined } = $props();
+  const control = (value: string) => `${id}-${value}`;
+  const unavailable = (option: ChoiceOption) => disabled || option.disabled;
+  function toggle(value: string, checked: boolean) {
+    onchange?.(checked ? [...selected, value] : selected.filter(item => item !== value));
+  }
+</script>
+
+{#snippet rows()}
+  {#each options as option, index (option.value)}
+    <label for={control(option.value)} class="group/field-label peer/field-label gap-2 leading-snug type-control select-none items-center
+      {rowFrame} {index > 0 ? rowDivider : ''}" aria-disabled={unavailable(option)} data-choice-row data-choice-option={option.value}>
+      <ChoiceAnatomy {option} labelId={`${control(option.value)}-label`} descriptionId={`${control(option.value)}-description`}
+        dimmed={unavailable(option)}>
+        {#snippet mark()}
+          {#if cardinality === "one"}
+            <RadioGroup.Item id={control(option.value)} value={option.value} disabled={unavailable(option)} class="disabled:opacity-100"
+              aria-labelledby={`${control(option.value)}-label`}
+              aria-describedby={option.description ? `${control(option.value)}-description` : undefined} />
+          {:else}
+            <Checkbox id={control(option.value)} bind:checked={() => selected.includes(option.value), checked => toggle(option.value, checked)}
+              disabled={unavailable(option)} class="disabled:opacity-100" aria-labelledby={`${control(option.value)}-label`}
+              aria-describedby={option.description ? `${control(option.value)}-description` : undefined} />
+          {/if}
+        {/snippet}
+      </ChoiceAnatomy>
+    </label>
+  {/each}
+{/snippet}
+
+<div class="w-full min-w-0 {frame === 'pane' ? 'max-w-[34rem]' : ''}">
+  <div class="{frame === 'pane' ? 'material-pane text-card-foreground' : 'material-interior'} overflow-hidden rounded-[var(--radius-group)] flex flex-col">
+    {#if cardinality === "one"}
+      <RadioGroup.Root bind:value={() => selected[0] ?? "", value => onchange?.(value ? [value] : [])} {disabled} {required}
+        aria-label={label} class={rowGroup}>{@render rows()}</RadioGroup.Root>
+    {:else}<div class={rowGroup}>{@render rows()}</div>{/if}
+  </div>
 </div>
 ```
 
-## src/svelte/catalog/foundations/choice-row/ChoiceRow.svelte
+## src/svelte/catalog/foundations/choice/ChoiceMenu.svelte
 
-Source SHA-256: 3c393362e4996817028b17b776838635245c016cec4315798b6f6bb161e5b0f3
-
-```svelte
-<script lang="ts">
-  import * as Field from "../../../vendor/components/ui/field/index.js";
-  import { ChoiceItem } from "../../index.ts";
-  // lane-merge (lane N): press feedback moved to the press-feedback mechanism; Batch 3 deletes this folder.
-  import { pressFeedback } from "../../mechanisms/press-feedback/press-feedback.ts";
-  import type { CatalogProps } from "../../types.d.ts";
-  let { id, labelId, descriptionId, label, description, disabled, children }: CatalogProps<"choice-row"> = $props();
-  let row = $state<HTMLLabelElement | null>(null);
-  $effect(() => { if (row) return pressFeedback(row); });
-</script>
-
-<Field.FieldLabel bind:ref={row} for={id} class="control-feedback material-interior" aria-disabled={disabled} data-grouped-row data-choice-row>
-  <ChoiceItem {label} {labelId} {description} {descriptionId}>
-    {@render children?.()}
-  </ChoiceItem>
-</Field.FieldLabel>
-```
-
-## src/svelte/catalog/foundations/selection-field/SelectionField.svelte
-
-Source SHA-256: b37a5b847c8581cc3471529ae9adbd711d4bdc9c5aecde2702bc187a01d87697
+Source SHA-256: cce25f01ad9edb73fe80e3d37c385f7349cc6bfdc64ff7918b86cbd9fada359f
 
 ```svelte
 <script lang="ts">
-  import { tick, untrack, type Snippet } from "svelte";
-  import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
-  import { useSurfaceDensityClass } from "../../../infra/surface-typography.svelte.ts";
-  import * as Popover from "../../../vendor/components/ui/popover/index.js";
-  import { Button } from "../../../vendor/components/ui/button/index.js";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  import { tick } from "svelte";
+  import { Popover } from "../../index.ts";
+  import { cn } from "../../../vendor/utils.js";
+  import { pressFeedbackProps } from "../../mechanisms/press-feedback/press-feedback.ts";
   import { Icon } from "../../index.ts";
-  import { FieldWellContent } from "../../index.ts";
-  import { Face } from "../../index.ts";
-  import { PickerSheet } from "../../index.ts";
-  import SelectionList from "./SelectionList.svelte";
   import { surfaceFocus, revealSurfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
-  // F1-merge: absorbed by Choice (which opens through Popover); its composition callers move to Choice (lane B) and this
-  // folder, with its import of the popover part, goes in Batch 3.
-  import { PickerPresentation, pickerBudget } from "../popover/picker-presentation.svelte.ts";
-  import type { SelectionOption } from "../../../../interaction/selection-option.ts";
-  let { id, selection, label, triggerLabel = label, value, options, disabled = false, required = false,
-    fieldControl = false, contextual = false, selectedContent, optionLeading, onchange }: {
-    id?: string; selection: string; label: string; triggerLabel?: string; value: string | null;
-    options: readonly (SelectionOption & { readonly description?: string })[];
-    disabled?: boolean; required?: boolean; fieldControl?: boolean; contextual?: boolean; onchange: (value: string) => void;
-    selectedContent?: Snippet<[SelectionOption | undefined]>;
-    optionLeading?: Snippet<[SelectionOption]>;
-  } = $props();
-  const generatedId = $props.id();
-  const picker = new PickerPresentation(() => pickerBudget);
-  let triggerId = $derived(id ?? generatedId);
-  let selectedOption = $derived(options.find(option => option.value === value));
-  let valueLabel = $derived(selectedOption?.label ?? "Not selected");
-  let open = $state(false);
-  let activeValue = $state<string | null>(null);
-  let list = $state<HTMLDivElement | null>(null);
-  let focusBoundary: HTMLElement | null = null;
+  import { provideOpenFocus } from "../../mechanisms/surface-focus/focus-return.ts";
+  import type { ChoiceOption } from "../../../../interaction/choice.ts";
+  import ChoiceLeading from "./ChoiceLeading.svelte";
+  import ChoiceMenuList from "./ChoiceMenuList.svelte";
+  // One value from a list behind a trigger: a field well, an inline value (a currency beside an amount) or a contextual
+  // value at a row's end. The popover anchors the list, or presents it as a sheet when its anchor has no room; the
+  // trigger is this choice's own (an owned trigger of the popover).
+  // A `measure` boxes the trigger at the choice measure of the field family (field-measure.css: 26rem, filling a slot
+  // within 3rem of it), so a select control keeps the width every field of its form keeps.
+  let { id, label, trigger, placeholder, measure, options, selected, disabled, required, onchange }: { id: string; label: string;
+    trigger: "well" | "inline" | "contextual"; placeholder: string | undefined; measure: "choice" | undefined;
+    options: readonly ChoiceOption[]; selected: readonly string[];
+    disabled: boolean; required: boolean; onchange: ((selected: string[]) => void) | undefined } = $props();
+  let value = $derived(selected[0] ?? null);
+  let chosen = $derived(options.find(option => option.value === value));
+  let valueLabel = $derived(chosen?.label ?? placeholder ?? say(m.choice.notSelected));
+  let open = $state(false), activeValue = $state<string | null>(null), list = $state<HTMLDivElement | null>(null);
   const boundary = () => list?.closest<HTMLElement>('[data-picker-sheet],[data-slot="popover-content"]') ?? null;
   const initialFocus = surfaceFocus(boundary);
-  // The anchored surface owns its focus scope; focus moving anywhere but the trigger dismisses it.
-  let selectionSurface = $state<HTMLElement | null>(null);
-  const surface = surfaceFocus(() => selectionSurface, event => {
-    if (!(event.target instanceof HTMLElement) || event.target.id !== triggerId) open = false;
-  });
-  const density = useSurfaceDensityClass();
+  /** Opening, or a presentation replacement while open, returns to the option the person was exploring. */
   function focus(event: Event) {
-    void tick().then(() => { focusBoundary = boundary() ?? focusBoundary; });
     const retained = activeValue;
     if (!retained) { initialFocus(event); return; }
     event.preventDefault();
     void tick().then(() => {
       const target = [...list?.querySelectorAll<HTMLElement>('[role="option"]') ?? []]
-        .find(option => option.dataset.value === retained && option.getAttribute('aria-disabled') !== 'true');
+        .find(option => option.dataset.choiceOption === retained && option.getAttribute("aria-disabled") !== "true");
       const surface = boundary();
       if (!open || !surface) return;
       if (!target) { initialFocus(event); return; }
       target.focus({ preventScroll: true }); revealSurfaceFocus(target, surface);
     });
   }
-  function restore(event: Event) {
-    event.preventDefault();
-    const active = document.activeElement;
-    if (!open && (!active || active === document.body || focusBoundary?.contains(active)))
-      document.getElementById(triggerId)?.focus({ preventScroll: true });
-  }
+  provideOpenFocus(focus);
   $effect(() => { if (!open) activeValue = null; });
-  dismissWhenInactive(() => { open = false; });
-  let observed = untrack(() => selection);
-  $effect(() => {
-    const next = selection, unavailable = disabled;
-    untrack(() => { if (unavailable || next !== observed) open = false; observed = next; });
-  });
   function change(next: string) {
-    if (!disabled && next !== value && options.some(option => option.value === next && !option.disabled)) onchange(next);
+    if (!disabled && next !== value && options.some(option => option.value === next && !option.disabled)) onchange?.([next]);
   }
+  // The triggers keep the look the selection well and values had: a fit-width well (a pane) or an interior value.
+  // F1-merge: Field's trigger primitive draws the well once it offers this fit width and the chosen option's leading.
+  const base = "inline-flex shrink-0 items-center whitespace-nowrap type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0";
+  const faces = {
+    well: "text-foreground text-left whitespace-normal w-full font-normal p-0 material-pane control-feedback field-well overflow-hidden",
+    inline: "bg-transparent text-foreground border-0 w-full font-normal min-h-11 px-4 py-2 material-interior control-feedback",
+    contextual: "bg-transparent text-foreground border-0 w-full font-normal min-h-11 px-4 py-2 material-interior control-feedback justify-self-end",
+  } as const;
+  const fit = "max-w-full min-w-0 whitespace-normal text-balance h-auto w-fit justify-between gap-3 rounded-[var(--radius)]";
+  let name = $derived(trigger === "well" ? `${label} · ${valueLabel}` : trigger === "inline" ? `${valueLabel} · ${label}` : label);
 </script>
-{#snippet selectedValue()}
-  {#if selectedContent}{@render selectedContent(selectedOption)}{:else}
-  <span class="selection-value" data-contextual={contextual || undefined}>
-    {#if selectedOption?.face}<Face face={selectedOption.face} compact />{/if}
-    <span class="selection-label">{valueLabel}</span>
+
+{#snippet shown()}
+  <span class="value" data-contextual={trigger === "contextual" || undefined}>
+    {#if chosen?.leading}<ChoiceLeading leading={chosen.leading} frame="mark" />{/if}<span class="text">{valueLabel}</span>
   </span>
-  {/if}
 {/snippet}
-{#snippet choices()}
-  <SelectionList {label} {value} {options} {optionLeading} {required} bind:activeValue bind:ref={list}
-    onchange={change} onclose={() => { open = false; }} />
-{/snippet}
-<Popover.Root bind:open>
-  <Popover.Trigger id={triggerId} {disabled}>
-    {#snippet child({ props })}
-    <Button {...props} {disabled} wrap variant={fieldControl ? 'well' : 'field'} size={fieldControl ? 'well' : 'default'}
-      data-slot="select-trigger" data-floating-field={fieldControl || undefined} data-filled={fieldControl || undefined}
-      presentation={fieldControl ? 'selection-well' : contextual ? 'selection-context' : 'selection-inline'}
-      aria-haspopup="listbox" aria-controls={open ? list?.id : undefined}
-      aria-label={fieldControl ? `${label} · ${valueLabel}` : triggerLabel}
-      aria-describedby={required ? `${triggerId}-requirement` : undefined} data-selection-trigger
-      onkeydown={event => {
-        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); open = true; }
-        else if (typeof props.onkeydown === 'function') props.onkeydown(event);
-      }}>
-    {#if fieldControl}
-      <FieldWellContent {label} {required}>
+{#snippet menu()}
+<button {...pressFeedbackProps} type="button" {id} {disabled} class={cn(base, faces[trigger], fit)}
+  data-floating-field={trigger === "well" || undefined} data-filled={trigger === "well" || undefined}
+  aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? `${id}-options` : undefined} aria-label={name}
+  aria-describedby={required ? `${id}-requirement` : undefined} data-state={open ? "open" : "closed"} data-selection-trigger data-choice="menu"
+  onclick={() => { if (!disabled) open = !open; }}
+  onkeydown={event => { if ((event.key === "ArrowDown" || event.key === "ArrowUp") && !disabled) { event.preventDefault(); open = true; } }}>
+  <span class="content control-feedback-content disabled-content" data-button-content>
+    {#if trigger === "well"}
+      <!-- lane-merge: the well content FieldWellContent drew (deleted in Batch 3), until Field's trigger draws this well. -->
+      <span class="relative flex min-w-0 flex-1 flex-col" data-field-well>
+        <span data-slot="field-label">{label}{#if required}<span class="required" aria-hidden="true">*</span>{/if}</span>
         <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
-          {@render selectedValue()}
-          <Icon name="chevron-down" placement="inline-end" chevron decorative />
+          {@render shown()}<Icon name="chevron-down" placement="inline-end" chevron decorative />
         </span>
-      </FieldWellContent>
-    {:else}
-      {@render selectedValue()}
-      <Icon name="chevron-down" placement="inline-end" chevron decorative />
-    {/if}
-    </Button>
-    {/snippet}
-  </Popover.Trigger>
-  {#if picker.current === "sheet"}
-    <PickerSheet bind:open {label} {triggerId} onOpenAutoFocus={focus}>
-      {@render choices()}
-    </PickerSheet>
-  {:else}
-    <Popover.Content bind:ref={selectionSurface} role="presentation" class={density()} presentation="selection"
-      onOpenAutoFocus={event => surface.open(event, focus)} onCloseAutoFocus={event => surface.close(event, restore)}>
-      {@render choices()}
-    </Popover.Content>
-  {/if}
-</Popover.Root>
-{#if required}<span id={`${triggerId}-requirement`} class="sr-only">Required</span>{/if}
+      </span>
+    {:else}{@render shown()}<Icon name="chevron-down" placement="inline-end" chevron decorative />{/if}
+  </span>
+</button>
+<Popover {label} {open} {disabled} locked={false} content="list" placement="adaptive" align="start" controls={`${id}-options`} onopenchange={next => { open = next; }}
+  trigger={{ kind: "owned", id }}>
+  <ChoiceMenuList id={`${id}-options`} {label} {value} {options} {required} bind:activeValue bind:ref={list} onchange={change}
+    onclose={() => { open = false; }} />
+</Popover>{#if required}<span id={`${id}-requirement`} class="sr-only">{say(m.choice.required)}</span>{/if}
+{/snippet}
+{#if measure}<div class="measure" data-choice-measure={measure}><div class="measure-box">{@render menu()}</div></div>{:else}{@render menu()}{/if}
+
 <style>
-  .selection-value { display:flex; flex:1; min-width:0; align-items:center; gap:.5rem; }
-  .selection-value[data-contextual] { justify-content:flex-end; text-align:end; }
-  .selection-label { min-width:0; white-space:normal; overflow-wrap:anywhere; text-wrap:balance; }
+  .value { display:flex; flex:1; min-width:0; align-items:center; gap:.5rem; }
+  .value[data-contextual] { justify-content:flex-end; text-align:end; }
+  .text { min-width:0; white-space:normal; overflow-wrap:anywhere; text-wrap:balance; }
+  /* The trigger lays out its own content (it is not the vendor button, whose global rule did this): one row as the button. */
+  .content { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
+  /* The choice measure of the field family (field-measure.css), measured on the containing slot, never the device. */
+  .measure { container:choice-measure / inline-size; width:100%; min-width:0; align-self:stretch; }
+  .measure-box { display:flex; flex-direction:column; width:100%; min-width:0; max-width:26rem; }
+  @container choice-measure (max-width:29rem) { .measure-box { max-width:none; } }
+  /* The required mark (from the theme): destructive ink beside its label. */
+  .required { color:var(--destructive); }
 </style>
 ```
 
@@ -5018,7 +5019,7 @@ export const actionIconNames = {
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: ca78a8615fd28a1b57fb9ef324244f2d3c7fd2607c88b0a83e08f8a42b4ff72b
+Source SHA-256: b05afbf062e4cdac6e69d758b41c4c2211014d8eec4a38da769b00fddaabbedd
 
 ```svelte
 <script lang="ts" module>
@@ -5121,7 +5122,7 @@ Source SHA-256: ca78a8615fd28a1b57fb9ef324244f2d3c7fd2607c88b0a83e08f8a42b4ff72b
 		{...restProps}
 		data-variant={variant}
 	>
-		<span class="control-feedback-content" data-button-content>{@render children?.()}</span>
+		<span class="control-feedback-content disabled-content" data-button-content>{@render children?.()}</span>
 	</a>
 {:else}
 	<button
@@ -5142,7 +5143,7 @@ Source SHA-256: ca78a8615fd28a1b57fb9ef324244f2d3c7fd2607c88b0a83e08f8a42b4ff72b
 		{...restProps}
 		data-variant={variant}
 	>
-		<span class="control-feedback-content" data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
+		<span class="control-feedback-content disabled-content" data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
 	</button>
 {/if}
 
@@ -5289,21 +5290,6 @@ Source SHA-256: 163f9f559f949e1b766e4397ac5408375f35a8f6ffad927638482d1f53fbee21
   trigger={{ kind: "action", label: checked.label, icon: "open", face: "fit", emphasis: "secondary", state: "ready" }}>
   <FrameBody content={{ kind: "information", items: checked.content }} invoke={() => {}} edit={() => {}} />
 </Popover>
-```
-
-## src/svelte/catalog/compositions/file-control/FileControl.svelte
-
-Source SHA-256: cb9183ee0f121f6fe7c21bb83d936c0d9af84af7d4e799c089bf82714b6fdc6d
-
-```svelte
-<script lang="ts">
-  import { Files } from "../../index.ts";
-  import type { CatalogProps } from "../../types.d.ts";
-  // The file control is the Files foundation (design §1.3), which reads the local file host from context; Batch 3 deletes
-  // this folder.
-  let { node, onevent }: CatalogProps<"file-control"> = $props();
-</script>
-<Files {node} {onevent} />
 ```
 
 ## src/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte
@@ -5721,12 +5707,10 @@ Source SHA-256: e95bfc97c5eedfbe17268c0fb5acf81adb8b7eb2f5e12dc7a7558150181ffe4e
 
 ## src/svelte/catalog/foundations/field/Field.svelte
 
-Source SHA-256: 715be902b701226f1f799935ea01972f846f36433eef2ea3d632f2806c25dc22
+Source SHA-256: 4dd903af41dfdd1c3c59aad2c2932c6ade7fdea1fe39d3f1c993377af3852924
 
 ```svelte
 <script lang="ts">
-  import { say } from "../../../infra/messages.ts";
-  import { m } from "../../../../messages/keys.ts";
   import { untrack } from "svelte";
   import * as Vendor from "../../../vendor/components/ui/field/index.js";
   import FieldWell from "./FieldWell.svelte";
@@ -5737,7 +5721,8 @@ Source SHA-256: 715be902b701226f1f799935ea01972f846f36433eef2ea3d632f2806c25dc22
   import ClearInput from "./ClearInput.svelte";
   import type { CatalogProps } from "../../types.d.ts";
   let { primitive, label, labelVisibility, required, invalid, disabled, helper, error, identity, measure, purpose, value, placeholder,
-    mask, maxLength, counter, clear, focus, controls, display, disclosure, onchange, onmasked, onopen, accessory: trailing, prefix }: CatalogProps<"field"> = $props();
+    mask, maxLength, counter, clear, focus, controls, expanded, display, disclosure, onchange, onmasked, onopen, accessory: trailing,
+    prefix }: CatalogProps<"field"> = $props();
   const id = $props.id();
   // Both editors receive their value; the trigger owns none. `writing` is the live text, `shown` a mask's formatted text.
   let written = $derived(typeof value === "string" ? value : "");
@@ -5768,18 +5753,19 @@ Source SHA-256: 715be902b701226f1f799935ea01972f846f36433eef2ea3d632f2806c25dc22
   function edited(next: string, valid: boolean, complete: boolean) {
     if (disabled || !mask) return;
     onmasked?.({ value: next, valid, complete });
-    draftError = valid && complete ? "" : valid ? say(m.field.incompleteNumber) : say(m.field.invalidNumber, { scale: String(mask.scale) });
+    draftError = valid && complete ? "" : valid ? "Enter a complete number." :
+      `Enter a number with up to ${mask.scale} decimal places using this field's format.`;
     if (valid && complete) { pending.push(next); onchange?.(next); }
   }
 </script>
 {#snippet characters()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
 {#snippet editor()}
   {#if primitive !== "trigger"}
-    <FieldEditor {id} {primitive} {label} {purpose} value={written} {placeholder} {mask} {identity} {required} {disabled} {focus} {controls}
+    <FieldEditor {id} {primitive} {label} {purpose} value={written} {placeholder} {mask} {identity} {required} {disabled} {focus}
       invalid={marked} {describedBy} bind:writing bind:shown onchange={next => onchange?.(next)} onmasked={edited} />
   {/if}
 {/snippet}
-<div data-field data-field-filled={primitive === "trigger" || draft.length > 0} data-measure={measure}>
+<div data-field data-field-filled={primitive === "trigger" || draft.length > 0} data-measure={measure} data-search-expanded={expanded}>
   <Vendor.Field data-primitive={primitive} data-invalid={marked} data-disabled={disabled}>
     {#if primitive === "trigger" && display && disclosure}
       <FieldTrigger {label} {labelVisibility} {required} {disabled} {describedBy} {display} {disclosure}
@@ -5790,7 +5776,7 @@ Source SHA-256: 715be902b701226f1f799935ea01972f846f36433eef2ea3d632f2806c25dc22
       <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} {prefix} footer={counted ? characters : undefined}>
         {#snippet accessory()}
           {#if trailing}{@render trailing()}
-          {:else if multiline || clear}<ClearInput control={id} value={draft} label={say(m.field.clear, { label })} {disabled} />{/if}
+          {:else if multiline || clear}<ClearInput control={id} value={draft} label={`Clear ${label}`} {disabled} />{/if}
         {/snippet}
         {@render editor()}
       </FieldWell>
@@ -5842,51 +5828,31 @@ Source SHA-256: d536b97e665acb2d86cea31e34a2a9f618080b085227d3bb66eabc9e0fad6e53
 {/if}
 ```
 
-## src/svelte/catalog/foundations/text-input/TextInput.svelte
+## src/svelte/catalog/foundations/field/MaskedInput.svelte
 
-Source SHA-256: b05990e130ffd2b4dfc3ba19e79ad21f0d96851632200cb61933d37f85c459d0
-
-```svelte
-<script lang="ts">
-  // TextInput was renamed Field (design §1.7). The folder stays until Batch 3 deletes it, and its entry draws through
-  // Field, so the catalog keeps one implementation of the writing well.
-  import { Field } from "../../index.ts";
-  import type { CatalogProps } from "../../types.d.ts";
-  let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
-    identity, mask, maxLength, purpose = "text", onchange, accessory: trailing }: CatalogProps<"text-input"> = $props();
-</script>
-{#if primitive === "input.multiline"}
-  <Field primitive="input.multiline" {label} labelVisibility="visible" {required} {invalid} {disabled} {error} {helper} {identity}
-    measure="writing" {value} {maxLength} {onchange} />
-{:else if trailing}
-  <Field primitive="input.text" {label} labelVisibility="visible" {required} {invalid} {disabled} {error} {helper} {identity}
-    measure="writing" {purpose} {value} {mask} clear {onchange}>{#snippet accessory()}{@render trailing()}{/snippet}</Field>
-{:else}
-  <Field primitive="input.text" {label} labelVisibility="visible" {required} {invalid} {disabled} {error} {helper} {identity}
-    measure="writing" {purpose} {value} {mask} clear {onchange} />
-{/if}
-```
-
-## src/svelte/catalog/foundations/masked-input/MaskedInput.svelte
-
-Source SHA-256: 3785a6650a2ad0b8632ce7c602496fac995f041996f65559d04ef165577d8d59
+Source SHA-256: 67f64d2ea5078369a1d2525824d9b0de8aafc4bd6728f46f1db7ae123942d758
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import { formatMaskedValue, readMaskedValue, maskSeparators } from "../../../../interaction/input-mask.ts";
-  import type { CatalogProps } from "../../types.d.ts";
+  import type { InputMask } from "../../../../interaction/input-mask.ts";
   import { historyKey, inputEditHistory, inputSnapshot, type InputSnapshot } from "./input-edit-history.ts";
-  let { value, mask, identity = "", display = $bindable(""), onvalue, id, placeholder, disabled, required,
-    "aria-required": ariaRequired, "aria-invalid": invalid, "aria-label": label, "aria-describedby": describedBy }: CatalogProps<"masked-input"> = $props();
+  // A Field's masked editor (a decimal amount): it formats as the person types, keeps the caret and its own undo
+  // history, and reports every edit as the canonical value, whether it is valid and whether it is complete.
+  let { value, mask, identity, display = $bindable(""), onvalue, id, placeholder, disabled, required, invalid, label, describedBy }: {
+    value: string; mask: InputMask; identity: string | undefined; display?: string; id: string; placeholder: string;
+    disabled: boolean; required: boolean; invalid: boolean; label: string; describedBy: string | undefined;
+    onvalue: (value: string, valid: boolean, complete: boolean) => void;
+  } = $props();
   let composing = false, compositionInput = false, allowDisplacedGrouping = false;
   let published: string | undefined;
   let incomingValue: string | undefined;
   let echoes: string[] = [];
   const history = inputEditHistory();
   let pending: { state: InputSnapshot; kind: string } | undefined;
-  const context = () => `${identity}/${mask.kind}/${mask.locale}/${mask.scale}`;
+  const context = () => `${identity ?? ""}/${mask.kind}/${mask.locale}/${mask.scale}`;
   let observed = untrack(context);
   $effect(() => {
     const next = context(), incoming = value;
@@ -5971,7 +5937,7 @@ Source SHA-256: 3785a6650a2ad0b8632ce7c602496fac995f041996f65559d04ef165577d8d59
       input.setSelectionRange(start, start + group.length + 1);
   }
 </script>
-<Group.Input {id} {placeholder} {disabled} {required} aria-required={ariaRequired} aria-invalid={invalid}
+<Group.Input {id} {placeholder} {disabled} {required} aria-required={required} aria-invalid={invalid}
   aria-label={label} aria-describedby={describedBy} type="text" inputmode="decimal" value={display} data-input-mask={mask.kind}
   onbeforeinput={before}
   onkeydown={keydown}
@@ -5987,16 +5953,18 @@ Source SHA-256: 3785a6650a2ad0b8632ce7c602496fac995f041996f65559d04ef165577d8d59
   onblur={() => history.boundary()} />
 ```
 
-## src/svelte/catalog/foundations/character-counter/CharacterCounter.svelte
+## src/svelte/catalog/foundations/field/CharacterCounter.svelte
 
-Source SHA-256: 118d1e9a96c2fe421d6b8f46cca2b9c6442ac267e34d55abefc86d9664739de8
+Source SHA-256: 3414e812bb82a6527992b5d227535cfe502b438ba203427a5dca19da0b04a54a
 
 ```svelte
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import { cn } from "../../../vendor/utils.js";
-  import type { CatalogProps } from "../../types.d.ts";
-  let { id, value, maxLength }: CatalogProps<"character-counter"> = $props();
+  // The caption under a multiline Field: its characters, or how many remain before its limit and by how many it is over.
+  let { id, value, maxLength }: { id: string; value: string; maxLength: number | undefined } = $props();
   // Match JSON Schema's code-point length, not HTML maxlength's UTF-16 units.
   const count = $derived([...value].length);
   const remaining = $derived(maxLength === undefined ? undefined : maxLength - count);
@@ -6006,23 +5974,24 @@ Source SHA-256: 118d1e9a96c2fe421d6b8f46cca2b9c6442ac267e34d55abefc86d9664739de8
 <Group.Addon align="block-end" class="px-4 pb-2">
   <Group.Text {id} data-character-counter data-exceeded={exceeded}
     class={cn("ms-auto block min-w-0 text-end type-caption text-(length:--text-caption) tabular-nums", exceeded && "text-destructive-text")}>
-    {#if remaining === undefined}{count} {count === 1 ? "character" : "characters"}
-    {:else if exceeded}{-remaining} over limit
-    {:else}{remaining} remaining{/if}
+    {#if remaining === undefined}{say(count === 1 ? m.field.character : m.field.characters, { count: String(count) })}
+    {:else if exceeded}{say(m.field.overLimit, { count: String(-remaining) })}
+    {:else}{say(m.field.remaining, { count: String(remaining) })}{/if}
   </Group.Text>
 </Group.Addon>
 ```
 
-## src/svelte/catalog/foundations/clear-input/ClearInput.svelte
+## src/svelte/catalog/foundations/field/ClearInput.svelte
 
-Source SHA-256: eb45aa213ea3fb09df084fdc9e5794545fff9c8566ea385bdde8f569d2e0a060
+Source SHA-256: 720cba94bbefc8a1604aeb5402dd0663826948fb264cad6fdb2bdd5e0441fd16
 
 ```svelte
 <script lang="ts">
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import { Icon } from "../../index.ts";
-  import type { CatalogProps } from "../../types.d.ts";
-  let { control, value, label, disabled = false }: CatalogProps<"clear-input"> = $props();
+  // The trailing button of a Field that empties its control through the editor's own edit pipeline (masks and undo
+  // included); it renders nothing while the control is empty.
+  let { control, value, label, disabled }: { control: string; value: string; label: string; disabled: boolean } = $props();
 
   function clear() {
     const input = document.getElementById(control);
@@ -6063,7 +6032,7 @@ Source SHA-256: eb45aa213ea3fb09df084fdc9e5794545fff9c8566ea385bdde8f569d2e0a060
 {/if}
 ```
 
-## src/svelte/catalog/foundations/masked-input/input-edit-history.ts
+## src/svelte/catalog/foundations/field/input-edit-history.ts
 
 Source SHA-256: ec677b92cd776a73189497b282612f08583be120fcf12915225b00d863f0d600
 
@@ -6193,28 +6162,83 @@ Source SHA-256: 7b4bbfe3fc0d52613452f85d06068fc586f06cc42af12c84ef786679523dbc2e
 </Column>
 ```
 
-## src/svelte/catalog/foundations/destination-row/DestinationRow.svelte
+## src/svelte/catalog/foundations/row/Row.svelte
 
-Source SHA-256: b95e986171ce4cd0b70e364c7695427a99d564da4fcde5e2ca9edd4cbe55661a
+Source SHA-256: 9d40929442620bfbfc9b19a280a1c94b1a477e59f4d4fa3397361dabe1f9e2c8
 
 ```svelte
 <script lang="ts">
-  import { Button } from "../../../vendor/components/ui/button/index.js";
-  import { Icon } from "../../index.ts";
-  import { Face } from '../../index.ts';
-  import type { CatalogProps } from '../../types.d.ts';
-let { destination, label, available, open, icon = 'open', reason }: CatalogProps<'destination-row'> = $props();
-  const generatedId = $props.id();
-  const descriptionId = `${generatedId}-reason`;
+  import { AttentionIndicator, Face, Icon, Image } from "../../index.ts";
+  import { pressFeedback } from "../../mechanisms/press-feedback/press-feedback.ts";
+  import { useFocusScope } from "../../../infra/focus-scope.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { label, description, metadata = [], leading, trailing, interaction, available, reason, current, focusKey, attention = false, onopen }: CatalogProps<"row"> = $props();
+  const id = $props.id(), reasonId = `${id}-reason`;
+  const scope = useFocusScope();
+  let button = $state<HTMLButtonElement | null>(null);
+  $effect(() => {
+    const key = focusKey, target = button;
+    if (key === undefined || !target || !scope) return;
+    return scope.register(key, () => { target.focus({ preventScroll: true }); return document.activeElement === target; });
+  });
+  function open() {
+    if (!available) return;
+    if (focusKey !== undefined) scope?.activated(focusKey);
+    onopen?.();
+  }
 </script>
-<Button variant="row" size="row" class="destination-row" type="button"
-  data-piece="destination-row" data-destination={destination} data-grouped-row
-  disabled={!available} aria-describedby={!available && reason ? descriptionId : undefined} title={!available ? reason : undefined} onclick={()=>{if(available)open();}}>
-  <Face face={{kind:'icon',icon}} />
-  <span class="destination-title">{label}</span>
-  <Icon name="chevron-right" placement="inline-end" chevron destination decorative />
-</Button>
-{#if !available && reason}<span id={descriptionId} class="sr-only">{reason}</span>{/if}
+
+{#snippet content()}
+  {#if leading?.kind === "face"}<Face face={leading.face} />
+  {:else if leading?.kind === "attention"}<AttentionIndicator required={leading.required} />
+  {:else if leading?.kind === "image"}<span class="row-artwork"><Image source={leading.source} alt={leading.alt} fit={leading.fit} /></span>
+  {:else if leading?.kind === "artwork"}<span class="row-artwork"><Image placeholder={leading.media} /></span>{/if}
+  <span class="row-copy">
+    <span class="row-label">{label}</span>
+    {#if description}<span class="row-description">{description}</span>{/if}
+    {#if metadata.length}<span class="row-metadata">{#each metadata as item, index (index)}<span>{item}</span>{/each}</span>{/if}
+  </span>
+  {#if trailing === "chevron"}<Icon name="chevron-right" placement="inline-end" chevron decorative />{/if}
+{/snippet}
+
+<!-- A row sizes every glyph it holds (a face's, the chevron) to one rem, as the vendor row button did. The class is one
+     array, never a class: directive beside a static class: Svelte 5.57 then escapes "&" twice and [&_svg] stops matching. -->
+{#if interaction === "open"}
+  <button bind:this={button} {@attach pressFeedback} type="button" class={["row material-interior control-feedback [&_svg]:size-4 [&_svg]:shrink-0", attention && "row-attended"]} data-row="open" data-focus-key={focusKey}
+    data-row-leading={leading?.kind} disabled={!available} aria-current={current ? "true" : undefined}
+    aria-describedby={!available && reason ? reasonId : undefined} title={!available ? reason : undefined} onclick={open}>
+    <!-- The attention dot sits over the row's corner, as it sat over the media list item. -->
+    {#if attention}<AttentionIndicator required placement="overlay" />{/if}
+    <span class="row-content control-feedback-content disabled-content" data-button-content>{@render content()}</span>
+  </button>
+  {#if !available && reason}<span id={reasonId} class="sr-only">{reason}</span>{/if}
+{:else}
+  <div class="row [&_svg]:size-4 [&_svg]:shrink-0" data-row="static" data-row-leading={leading?.kind} data-focus-key={focusKey}><span class="row-content">{@render content()}</span></div>
+{/if}
+
+<style>
+  /* The grouped row's geometry: a full-width, at least 44px interior, one hairline between rows of the same list. It sets
+     no box-shadow: this unlayered rule would win over control-feedback's hover and press tints, which are box-shadows. */
+  .row { display:flex; align-items:center; justify-content:flex-start; gap:.5rem; width:100%; min-width:0; min-height:2.75rem;
+    margin:0; padding:.75rem 1rem; border:0; border-radius:0; background:transparent; color:var(--foreground);
+    font:inherit; font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:400;
+    text-align:left; white-space:normal; outline:none; }
+  .row:not(:first-child) { border-top:1px solid var(--separator); }
+  .row:first-child { border-start-start-radius:var(--radius-group); border-start-end-radius:var(--radius-group); }
+  .row:last-child { border-end-start-radius:var(--radius-group); border-end-end-radius:var(--radius-group); }
+  .row:disabled { pointer-events:none; }
+  .row-attended { position:relative; }
+  .row:focus-visible { outline:2px solid var(--ring); outline-offset:-3px; box-shadow:none; }
+  /* The content keeps the row's justification itself, as the vendor button's global content rule gave it. */
+  .row-content { position:relative; display:flex; width:100%; min-width:0; align-items:center; justify-content:inherit; gap:inherit; }
+  /* An attention dot or an image keeps the record row's and media item's wider gap. */
+  .row[data-row-leading="attention"], .row[data-row-leading="image"], .row[data-row-leading="artwork"] { gap:1rem; }
+  .row-artwork { display:block; flex:none; width:80px; height:60px; overflow:hidden; border-radius:var(--radius); }
+  .row-copy { display:flex; flex:1; min-width:0; flex-direction:column; gap:.25rem; text-align:start; }
+  .row-label { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); overflow-wrap:anywhere; }
+  .row-description { color:var(--muted-foreground); overflow-wrap:anywhere; text-wrap:balance; }
+  .row-metadata { display:flex; flex-wrap:wrap; gap:.375rem 1rem; color:var(--muted-foreground); font-size:var(--text-body); }
+</style>
 ```
 
 ## src/svelte/catalog/foundations/drawer/Drawer.svelte
@@ -6294,7 +6318,7 @@ Source SHA-256: 7744141a901f07b6d9b30f37816a2ebb8bdbc9e6b36b3dd51d44a77d73970c30
 
 ## src/svelte/catalog/foundations/modal/ModalPane.svelte
 
-Source SHA-256: db348b04004fe0726370123bf42078a9d62242615d41cb980afe2e5651767b2c
+Source SHA-256: 14b882c9c221587684183d528d821c14cd151a4ebc532efd3934d51742823da8
 
 ```svelte
 <script lang="ts">
@@ -6308,6 +6332,7 @@ Source SHA-256: db348b04004fe0726370123bf42078a9d62242615d41cb980afe2e5651767b2c
   import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
   import { useSurfaceHost } from "../../mechanisms/surface-host/surface-host.svelte.ts";
   import { surfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
+  import { providePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
   import DrawerGrip from "./DrawerGrip.svelte";
   import { drawerMotion } from "./drawer-motion.svelte.ts";
   import { frameContinuity, type FrameIdentity, type FrameInvocation } from "./frame-continuity.svelte.ts";
@@ -6339,6 +6364,8 @@ Source SHA-256: db348b04004fe0726370123bf42078a9d62242615d41cb980afe2e5651767b2c
   adaptiveModality(() => content, () => modal && !lateral);
   const motion = drawerMotion(() => dismiss(), () => locked || docked || lateral, () => layout.edge);
   const edge = $derived(lateral ? "left" : motion.edge);
+  // A side or lateral pane is dragged by its header; what it holds reads that (pane-context).
+  providePane(() => ({ drag: !docked && edge !== "bottom", dragging: motion.dragging, framed: false }));
   const width = $derived(lateral ? "18rem" : `${layout.paneWidth}px`);
   const dragHeader = (event: PointerEvent) => {
     const target = event.target;
@@ -6358,10 +6385,10 @@ Source SHA-256: db348b04004fe0726370123bf42078a9d62242615d41cb980afe2e5651767b2c
 </script>
 <Dialog.Root {open} onOpenChange={next => { if (!next) dismiss(); }}
   onOpenChangeComplete={next => { if (!next) { motion.reset(); onclosed?.(); } }}>
-  <Dialog.Content bind:ref={content} presentation="panel" class={density} data-modal={presentation} data-composition="transient"
+  <Dialog.Content bind:ref={content} presentation="panel" class={[density, "focus-inset"]} data-modal={presentation} data-composition="transient"
     adaptiveModal={lateral ? undefined : !docked} trapFocus={lateral ? undefined : false} preventScroll={lateral ? undefined : modal}
     data-adaptive-surface={lateral ? undefined : ""} data-presentation={lateral ? "overlay" : docked ? "docked" : "transient"}
-    data-locked={locked || undefined} data-reduced-motion={prefersReducedMotion.current} data-edge={edge}
+    data-locked={locked || undefined} data-closing={!open || undefined} data-reduced-motion={prefersReducedMotion.current} data-edge={edge}
     overlayStyle={motion.overlayStyle} data-dragging={motion.dragging || undefined}
     style={`--panel-width:${width};--adaptive-left:${host.bounds.left}px;--adaptive-top:${host.bounds.top}px;--adaptive-right:${host.bounds.right}px;--adaptive-bottom:${host.bounds.bottom}px;transform:${motion.transform}`}
     onpointerdown={dragHeader} onpointermove={motion.move} onpointerup={motion.up}

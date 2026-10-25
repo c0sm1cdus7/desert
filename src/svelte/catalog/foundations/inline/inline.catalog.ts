@@ -9,6 +9,6 @@ export const Inline = defineFoundation({
   owner: { entry: "Inline.svelte" },
   shape: "none", states: ["default"],
   variants: { overflow: ["wrap", "scroll", "none"], justify: ["start", "center", "end", "between"] },
-  slots: { children: { accepts: ["action", "avatar", "color-bullet", "column", "face", "icon", "node-renderer", "seed-avatar", "tag", "text"] } },
+  slots: { children: { accepts: ["action", "avatar", "color-bullet", "column", "face", "icon", "node-renderer", "tag", "text"] } },
   approval: "required", contract: InlineContract,
 } as const);

@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
@@ -8,7 +7,8 @@ import { geometryWritersBefore } from "./fixtures/geometry-writers-before.ts";
 import { typographyThemeBefore } from "./fixtures/typography-theme-before.ts";
 import { controlWritersBefore } from "./fixtures/control-writers-before.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
-import { rendererCss } from "./fixtures/renderer-css.ts";
+import { inlineBaseStylesheets, rendererCss } from "./fixtures/renderer-css.ts";
+import { pruneBefore } from "./fixtures/prune-before.ts";
 
 // The title metrics are the section role now (DESIGN §1.0): the moved writer sets --text-section where it set --text-title.
 const messageType = `    --text-section:1.0625rem; --text-section--line-height:1.375rem; --text-section--font-weight:600;
@@ -41,7 +41,8 @@ const reversed: readonly (readonly [string, string, string, string?])[] = [
 ];
 
 async function previousCss() {
-  // Compare ownership of the relocated writers inside today's approved shell.
+  // Compare ownership of the relocated writers inside the approved shell of the integration base f7247e4 (its stylesheets,
+  // prune-before.ts): Batch 3 dissolved the mechanisms that held them, so today's side is the dissolution's result too.
   // An obsolete whole-theme snapshot would also undo later message heading
   // spacing and toolbar placement, which are not this relocation's contract.
   const base = resolve("src/svelte");
@@ -49,18 +50,18 @@ async function previousCss() {
     ...Object.fromEntries(Object.entries(controlWritersBefore).map(([path, source]) => [path.slice("src/svelte/".length), source])) };
   const sources = new Map<string, string>();
   for (const [path, today, before, held = path] of reversed) {
-    const text = sources.get(path) ?? await readFile(resolve(base, path), "utf8");
+    const text = sources.get(path) ?? pruneBefore[`src/svelte/${path}`] ?? "";
     assert.equal(text.split(today).length, 2, `The moved writer is literal and unique in ${path}`);
     if (before) assert.ok(frozen[held]!.replaceAll("--text-title", "--text-section").includes(before), `The prior owner held it there: ${held}`);
     sources.set(path, text.replace(today, before));
   }
-  let theme = await readFile(resolve(base, "theme.css"), "utf8");
+  let theme = pruneBefore["src/svelte/theme.css"] ?? "";
   for (const [path, source] of sources) {
     const statement = `@import "./${path}";`;
     assert.equal(theme.split(statement).length, 2, `The theme imports ${path} once`);
     theme = theme.replace(statement, source);
   }
-  const compiler = await compile(theme, { base, onDependency: () => {} });
+  const compiler = await compile(inlineBaseStylesheets(theme), { base, onDependency: () => {} });
   return compiler.build(new Scanner({ sources: compiler.sources }).scan());
 }
 
@@ -75,8 +76,10 @@ const source = `<script lang="ts">
     featured:{version:'desert.bank-node/1',kind:'catalog.card',presentation:'featured',record:'coast',title:'Shared gallery',eyebrow:'Featured',actionLabel:'Open',mediaType:'audio'},
     groups:[{id:'albums',title:'Albums',items:[card('coast','Coast'),card('mountains','Mountains')]}]};
 </script>
-<main data-catalog-workspace aria-label="Geometry ownership fixture" data-css-before-mount={cssBeforeMount}>
-  <div data-place><h1>Visual catalog</h1>
+<!-- The shell and its place, as their marks (the base's selectors) and as the theme utilities they apply today; the
+     catalog profile the product's root carried (its image tokens are the theme's :root tokens today). -->
+<main class="place-insets" data-renderer-profile="apple-reference" data-catalog-workspace aria-label="Geometry ownership fixture" data-css-before-mount={cssBeforeMount}>
+  <div class="reading-inset-place" data-place><h1>Visual catalog</h1>
     <SpecimenRow id="catalog.home" state="populated"><CatalogHome node={home} onevent={()=>{}} /></SpecimenRow>
   </div>
   <button onclick={()=>message=true}>Open message</button>

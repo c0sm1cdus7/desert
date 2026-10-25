@@ -38,7 +38,7 @@
 		{@const face = dayFaces[kind]}
 		<button {...pressFeedbackProps} {...props} type="button" {disabled} data-slot="calendar-day" data-day-face={kind}
 			class={cn(calendarControl, face.material, face.ink, dayClasses)}>
-			<span class="control-feedback-content" data-button-content>{#if children}{@render children({ day, selected, disabled, unavailable })}{:else}{day}{/if}</span>
+			<span class="control-feedback-content disabled-content" data-button-content>{#if children}{@render children({ day, selected, disabled, unavailable })}{:else}{day}{/if}</span>
 		</button>
 		{/if}
 	{/snippet}

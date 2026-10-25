@@ -66,7 +66,7 @@ test('S1 material recipe has one explicit owner; legacy state tint owners are re
   const material=await readFile('src/svelte/catalog/mechanisms/pane-material/pane-material.css','utf8');
   assert.match(material,/88%/);assert.match(material,/blur\(24px\)/);
   assert.match(material,/@utility material-pane \{/);assert.match(material,/@utility material-interior \{/);assert.match(material,/prefers-reduced-transparency/);
-  for(const file of ['theme.css','catalog/mechanisms/theme/tokens.css','catalog/mechanisms/surface-chrome/surface-chrome.css','catalog/foundations/popover/popover.css','catalog/foundations/modal/modal.css','catalog/foundations/field/field.css','catalog/foundations/shell/catalog-shell.css']) {
+  for(const file of ['theme.css','catalog/mechanisms/theme/tokens.css','catalog/foundations/surface/surface.css','catalog/foundations/bar/bar.css','catalog/foundations/popover/popover.css','catalog/foundations/modal/modal.css','catalog/foundations/field/field.css','catalog/foundations/shell/catalog-shell.css']) {
     const source=await readFile('src/svelte/'+file,'utf8');
     assert.doesNotMatch(source,/--(?:surface-pane|floating-pane|glass-primary|glass-action|glass-control-filter):/,file);
     assert.doesNotMatch(source,/background-image:linear-gradient\(color-mix/,file+' state overlay');

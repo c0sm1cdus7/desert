@@ -1,9 +1,0 @@
-/* Catalog geometry only. Product and catalog inherit the same renderer palette,
-   typography and system preferences; this is no longer a second visual skin. */
-[data-renderer-profile="apple-reference"] {
-  --catalog-image-foreground:#fff; --catalog-image-shade:#000c;
-  --catalog-search-foreground:var(--muted-foreground);
-  --catalog-sidebar-width:240px;
-  --catalog-hero-height:max(199px,calc((100dvh - 52px) / 2));
-  --catalog-media-height:max(140px,calc((100dvh - 52px) * .2));
-}

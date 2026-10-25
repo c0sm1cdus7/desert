@@ -16,7 +16,7 @@ type Changes = Readonly<Record<string, string>>;
 const catalog = "src/svelte/catalog", compositions = `${catalog}/compositions`, renderer = `${catalog}/renderer`, foundations = `${catalog}/foundations`;
 const mechanisms = `${catalog}/mechanisms`;
 const flow = `${compositions}/content-flow/ContentFlow.svelte`, frameBody = `${renderer}/frame-body/FrameBody.svelte`;
-const shared = `${mechanisms}/structured-content/structured-content.css`;
+const shared = `${catalog}/foundations/view-region/view-region.css`;
 
 /** A whole file replaced: compared with the real tree where that file is empty (see `added`). */
 type Scenario = Readonly<{ changes: Changes; base?: Changes }>;
@@ -57,26 +57,26 @@ test("closed-visual-boundaries, composition-owner-boundary, media-*, toolbar-lay
 });
 
 test("closed-visual-boundaries, stylesheet-request-boundary: an alias, a query or a renamed import does not change the piece", () => {
-  rejects("alias", inFlow('  import { Feedback as Renamed } from "../../index.ts";', '<Renamed text="x" class="p-0" />'), ["PRESENTATION_ESCAPE"]);
+  rejects("alias", inFlow('  import { Text as Renamed } from "../../index.ts";', '<Renamed text="x" kind="body" class="p-0" />'), ["PRESENTATION_ESCAPE"]);
   for (const suffix of ["?audit", "#component", "?svelte&type=script"]) {
-    rejects(suffix, inFlow(`  import Foreign from "../../foundations/feedback/Feedback.svelte${suffix}";`, '<Foreign text="x" class="foreign" />'),
+    rejects(suffix, inFlow(`  import Foreign from "../../foundations/text/Text.svelte${suffix}";`, '<Foreign text="x" class="foreign" />'),
       ["PRESENTATION_ESCAPE"], "class");
-    rejects(suffix, inFlow(`  import Foreign from "../../foundations/feedback/Feedback.svelte${suffix}";`, ""), ["COMPOSITION_UNKNOWN_PIECE"], "catalog index");
+    rejects(suffix, inFlow(`  import Foreign from "../../foundations/text/Text.svelte${suffix}";`, ""), ["COMPOSITION_UNKNOWN_PIECE"], "catalog index");
   }
 });
 
 test("closed-visual-boundaries, finite-catalog-inputs: names that hide a piece are unchecked mounts", () => {
-  const script = '  import { Feedback as Bank } from "../../index.ts";';
+  const script = '  import { Text as Bank } from "../../index.ts";';
   for (const markup of ["{#each components as Bank}<Bank />{/each}", "{#each components as { component: Bank }}<Bank />{/each}",
     "{@const Bank = arbitrary}<Bank />", "{#await value then Bank}<Bank />{/await}", "{#snippet nested(Bank)}<Bank />{/snippet}"]) {
     rejects(markup, inFlow(script, markup), ["PRESENTATION_ESCAPE", "COMPOSITION_UNKNOWN_PIECE", "SLOT_NOT_TYPED"]);
   }
   rejects("script alias", inFlow(`${script}\n  const Other = Bank;`, '<Other text="x" />'), ["PRESENTATION_ESCAPE", "COMPOSITION_UNKNOWN_PIECE"]);
-  rejects("dynamic", inFlow('  const Component = (await import("../../foundations/feedback/Feedback.svelte")).default;', "<Component />"),
+  rejects("dynamic", inFlow('  const Component = (await import("../../foundations/text/Text.svelte")).default;', "<Component />"),
     ["COMPOSITION_UNKNOWN_PIECE", "PRESENTATION_ESCAPE"]);
   rejects("missing export", inFlow('  import { Missing } from "../../index.ts";', "<Missing />"), ["COMPOSITION_UNKNOWN_PIECE"]);
   // Svelte refuses a second declaration in one script; across the module and instance scripts the declaration wins.
-  const shadowed = mutated(flow, '<script lang="ts">\n', '<script module lang="ts">\n  import { Feedback as Note } from "../../index.ts";\n</script>\n<script lang="ts">\n  function Note() { return {}; }\n')[flow] ?? "";
+  const shadowed = mutated(flow, '<script lang="ts">\n', '<script module lang="ts">\n  import { Text as Note } from "../../index.ts";\n</script>\n<script lang="ts">\n  function Note() { return {}; }\n')[flow] ?? "";
   rejects("shadowing declaration", { [flow]: `${shadowed}\n<Note text="x" />\n` }, ["PRESENTATION_ESCAPE"], "shadows");
 });
 
@@ -126,8 +126,8 @@ test("closed-visual-boundaries: a revealed entry cannot become a native mutation
 });
 
 test("composition-owner-boundary, visual-private-composition, workspace-*, view-panel-body: a composition renders no public slot or forwarded attributes", () => {
-  for (const path of [`${compositions}/view-workspace/ViewWorkspace.svelte`, flow, `${compositions}/viewer/Viewer.svelte`, `${compositions}/catalog-workspace/CatalogWorkspace.svelte`,
-    `${compositions}/catalog-navigation/CatalogNavigation.svelte`, `${compositions}/fact-group/FactGroup.svelte`, `${compositions}/library/Library.svelte`]) {
+  for (const path of [`${compositions}/view-workspace/ViewWorkspace.svelte`, flow, `${compositions}/media-object/MediaObject.svelte`, `${compositions}/catalog-workspace/CatalogWorkspace.svelte`,
+    `${compositions}/catalog-search-results/CatalogSearchResults.svelte`, `${compositions}/fact-group/FactGroup.svelte`, `${compositions}/library/Library.svelte`]) {
     for (const source of ['<script lang="ts">import type { Snippet } from "svelte"; let { children }: { children: Snippet } = $props();</script>{@render children()}',
       "<script>let { content } = $props();</script>{@render content()}", "<script>let { parts } = $props();</script>{@render parts.content()}",
       "{#snippet content()}<p>Local</p>{/snippet}{#snippet outer(content)}{@render content()}{/snippet}",
@@ -142,8 +142,8 @@ test("composition-owner-boundary, visual-private-composition, workspace-*, view-
 });
 
 test("finite-catalog-inputs, media-inspection, toolbar-boundary: a foundation's props are its contract, never a native API", () => {
-  for (const path of [`${foundations}/search-field/SearchField.svelte`, `${foundations}/masked-input/MaskedInput.svelte`, `${foundations}/place/Place.svelte`,
-    `${foundations}/measured-field/MeasuredField.svelte`, `${foundations}/heading/Heading.svelte`]) {
+  for (const path of [`${foundations}/field/Field.svelte`, `${foundations}/choice/Choice.svelte`, `${foundations}/surface/Surface.svelte`,
+    `${foundations}/media-player/MediaPlayer.svelte`, `${foundations}/heading/Heading.svelte`]) {
     for (const source of ['<script lang="ts">import type { HTMLInputAttributes } from "svelte/elements"; let { value }: HTMLInputAttributes = $props();</script><input />',
       '<script lang="ts">let { value, ...rest }: { value: string } = $props();</script><input {...rest} />',
       '<script lang="ts">let { class: css }: { class?: string } = $props();</script><input class={css} />',
@@ -155,10 +155,10 @@ test("finite-catalog-inputs, media-inspection, toolbar-boundary: a foundation's 
 });
 
 test("media-visual-boundary, workspace-owner-boundary: raw HTML in a foundation is opaque; in a composition it is drawing", () => {
-  for (const path of [`${foundations}/artwork-placeholder/ArtworkPlaceholder.svelte`, `${foundations}/playback-canvas/PlaybackCanvas.svelte`, `${foundations}/heading/Heading.svelte`]) {
+  for (const path of [`${foundations}/image/Image.svelte`, `${foundations}/media-player/MediaPlayer.svelte`, `${foundations}/heading/Heading.svelte`]) {
     rejects(path, append(path, "{@html foreign}"), ["OPAQUE_SOURCE"]);
   }
-  for (const path of [`${compositions}/playback-controls/PlaybackControls.svelte`, `${compositions}/access-gate/AccessGate.svelte`, `${compositions}/lock-screen/LockScreen.svelte`]) {
+  for (const path of [`${compositions}/media-object/MediaObject.svelte`, `${compositions}/access-gate/AccessGate.svelte`, `${compositions}/lock-screen/LockScreen.svelte`]) {
     rejects(path, append(path, "{@html foreign}"), ["COMPOSITION_NATIVE_ELEMENT"]);
   }
 });
@@ -211,7 +211,7 @@ test("toolbar-boundary, toolbar-indirect-ownership, toolbar-title-ownership: no 
 });
 
 test("toolbar-boundary, toolbar-indirect-ownership: a class attribute selector names every class it matches, whatever its operator", () => {
-  const reading = `${mechanisms}/reading/reading.css`;
+  const reading = `${mechanisms}/typography/typography.css`;
   for (const selector of ['[class~="toolbar-row"]', '[class*="toolbar-r"]', '[class="toolbar-row"]', '[class|="toolbar"]', '[class^="toolbar-ro"]',
     '[class$="ar-row"]', '[class*="TOOLBAR-R" i]', '[CLASS~="toolbar-row" s]', "[class~=toolbar-row]", '[class^="toolbar-row fl"]']) {
     rejects(selector, append(reading, `${selector} { gap: 0 }`), ["CROSS_OWNER_CSS"], ".toolbar-row");
@@ -235,10 +235,10 @@ test("toolbar-boundary, toolbar-indirect-ownership: a custom property the toolba
 });
 
 test("toolbar-boundary, toolbar-title-ownership: toolbar callers pass data, never markup, text or visual attributes", () => {
-  const toolbar = '  import { ToolbarLayout } from "../../index.ts";';
-  for (const markup of ['<ToolbarLayout class="p-0" />', '<ToolbarLayout style="padding:0" />', '<ToolbarLayout style:padding="0" />', "<ToolbarLayout {...attributes} />",
-    '<ToolbarLayout --toolbar-inset="0" />', '<ToolbarLayout data-toolbar-title="foreign" />', "<ToolbarLayout bind:identityElement={element} />",
-    "<ToolbarLayout><span data-product-name>VOID</span></ToolbarLayout>", "<ToolbarLayout><h2>Title</h2></ToolbarLayout>", "<ToolbarLayout>Raw title</ToolbarLayout>"]) {
+  const toolbar = '  import { Bar } from "../../index.ts";';
+  for (const markup of ['<Bar class="p-0" />', '<Bar style="padding:0" />', '<Bar style:padding="0" />', "<Bar {...attributes} />",
+    '<Bar --toolbar-inset="0" />', '<Bar data-toolbar-title="foreign" />', "<Bar bind:this={element} />",
+    "<Bar><span data-product-name>VOID</span></Bar>", "<Bar><h2>Title</h2></Bar>", "<Bar>Raw title</Bar>"]) {
     rejects(markup, inFlow(toolbar, markup), ["PRESENTATION_ESCAPE", "COMPOSITION_UNKNOWN_PIECE"]);
   }
   rejects("inline variable", inFlow("", '<div style="--catalog-toolbar-height:20px"></div>'), ["COMPOSITION_NATIVE_ELEMENT"]);

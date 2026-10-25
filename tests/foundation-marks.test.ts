@@ -11,6 +11,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 import { treeViolations } from "./fixtures/tree-violations.ts";
 import { marksBefore } from "./fixtures/marks-before.ts";
 import { themeAtCe6ed6f } from "./fixtures/theme-before.ts";
+import { prunedSourcesBefore } from "./fixtures/pruned-sources-before.ts";
 
 const root = resolve(import.meta.dirname, "..");
 const folders = ["face", "availability", "wallpaper", "icon", "clock", "attention-indicator"]
@@ -83,7 +84,9 @@ test("marks: their folders import no foreign vendor and style no element and not
 });
 
 test("marks: Face draws its own round mark; every mark keeps the pixels of the integration base ce6ed6f", { timeout: 60000 }, async () => {
-  const [before, after] = [await render(frozen, await rendererCss([], frozenTheme)), await render({}, await rendererCss())];
+  const [before, after] = [await render(frozen, await rendererCss([], frozenTheme)), await render({},
+    // DestinationRow, the row host of a face, is deleted (Batch 3): it is served at f7247e4 with its stylesheets.
+    await rendererCss([prunedSourcesBefore["src/svelte/catalog/foundations/destination-row/DestinationRow.svelte"] ?? ""]))];
   try {
     assert.equal(await after.page.locator('[data-slot="avatar"]').count(), 0, "Face no longer mounts the vendor avatar");
     assert.equal(await after.page.locator('[data-piece="face"]').count(), 10);

@@ -9,7 +9,7 @@ export const ViewRegion = defineFoundation({
   owner: { entry: "ViewRegion.svelte", parts: ["view-region.css"], mechanisms: ["reveal"] },
   shape: "none", states: ["default", "hidden"],
   variants: { kind: ["view", "item", "bare", "document", "retained"] },
-  slots: { children: { accepts: ["appearance", "catalog-home", "column", "feedback", "gallery", "identity", "information", "inspection-catalog",
+  slots: { children: { accepts: ["appearance", "catalog-home", "column", "gallery", "identity", "information", "inspection-catalog",
     "inspection-content", "local-exercises", "media-content", "node-renderer", "place-heading", "public-catalog-bank", "stack", "stack-item",
     "stack-layout", "view-attention", "view-content", "view-item", "view-region", "view-related-selection"] } },
   approval: "required", contract: ViewRegionContract,

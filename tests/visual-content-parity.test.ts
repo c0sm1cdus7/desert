@@ -28,6 +28,8 @@ const source = `<script lang="ts">
 </main>
 <style>
   [data-parity] { margin:24px; padding:24px; background:var(--background); color:var(--foreground); }
+  /* The hand-written heading's required mark: theme.css styled .required globally until Batch 3 gave the rule to its owners. */
+  .required { color:var(--destructive); }
 </style>`;
 
 test("closed semantic headings and text composition preserve exact pixels and geometry", { timeout: 60000 }, async () => {

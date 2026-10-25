@@ -6,7 +6,7 @@ import postcss from 'postcss';
 // Explicitly qualified independent owners; content imagery, faces, choice marks,
 // scrims, separators and focus/error outlines are deliberately different roles.
 const foundation='src/svelte/vendor/components/ui/';
-const panes=['button/button','card/card','badge/badge','input-group/input-group','input/input','textarea/textarea',
+const panes=['button/button','badge/badge','input-group/input-group','input/input','textarea/textarea',
   'popover/popover-content','dialog/dialog-content','sidebar/sidebar'];
 test('S1 role-aware source gate keeps pane recipes out of foundation variants',async()=>{
   for(const path of panes) {
@@ -21,13 +21,11 @@ test('S1 role-aware source gate keeps pane recipes out of foundation variants',a
 
 test('S1 role-aware source gate protects neutral geometry owners and permits semantic ink',async()=>{
   const rules:Record<string,readonly string[]>={
-    'catalog/foundations/field/field.css':['@field-well'],
-    'catalog/mechanisms/structured-content/structured-content.css':['@grouped-panel','.bank-stack'],
+    // The toolbar search well (from catalog-search, Batch 3) is a field state, never a second pane.
+    'catalog/foundations/field/field.css':['@field-well','[data-search-expanded] [data-slot="input-group"]'],
     'catalog/foundations/popover/popover.css':['.floating-pane','.anchored-surface'],
     'catalog/foundations/modal/modal.css':['.drawer','.drawer,.problem',':is(.drawer,.problem,.centered-dialog)'],
-    'catalog/mechanisms/surface-chrome/surface-chrome.css':['.drawer','.drawer,.problem',':is(.drawer,.problem,.centered-dialog)'],
     'catalog/foundations/shell/catalog-shell.css':['[data-catalog-workspace] [data-slot="sidebar-inner"]'],
-    'catalog/mechanisms/catalog-search/catalog-search.css':['[data-catalog-search-actions] [data-slot="input-group"]','[data-catalog-search] [data-slot="input-group"]'],
     'catalog/mechanisms/control-feedback/control-feedback.css':['@control-focus','@control-feedback','@control-feedback-content'],
     'theme.css':['@tm-tinted'],
   };

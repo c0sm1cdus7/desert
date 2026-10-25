@@ -59,6 +59,7 @@
 			"group/sidebar-wrapper relative flex min-h-svh w-full has-data-[variant=inset]:bg-sidebar",
 			// The theme density utility of the presentation; the owner (shell) gives the same density to the layout it hosts.
 			sidebar.presentation === "overlay" ? "density-comfortable" : "density-compact",
+			sidebar.presentation === "overlay" && "place-insets-compact",
 			className
 		)}
 		bind:this={ref}

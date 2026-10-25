@@ -7,6 +7,7 @@
   import { toolbarAction } from "../../../../interaction/toolbar.ts";
   import { PICKER_PANEL_REM } from "../../../infra/picker-measure.ts";
   import { surfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
+  import { providePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
   import { takeSheetFocus } from "../../mechanisms/surface-focus/focus-return.ts";
   import DrawerGrip from "./DrawerGrip.svelte";
   import { drawerMotion } from "./drawer-motion.svelte.ts";
@@ -17,6 +18,8 @@
   let content = $state<HTMLElement | null>(null);
   const motion = drawerMotion(() => dismiss(), () => locked, () => "bottom");
   const focus = surfaceFocus(() => content);
+  // A bottom sheet is dragged by its grip, not its header; while it drags, its header shows the drag (pane-context).
+  providePane(() => ({ drag: false, dragging: motion.dragging, framed: false }));
   const policy = takeSheetFocus();
   function restore(event: Event) {
     event.preventDefault();
@@ -27,7 +30,7 @@
 </script>
 <Dialog.Root {open} onOpenChange={next => { if (!next) dismiss(); }}
   onOpenChangeComplete={next => { if (!next) { motion.reset(); onclosed?.(); } }}>
-  <Dialog.Content bind:ref={content} presentation="panel" class={density} data-modal="sheet" data-picker-sheet data-edge="bottom"
+  <Dialog.Content bind:ref={content} presentation="panel" class={[density, "chrome-inset", "focus-inset"]} data-modal="sheet" data-picker-sheet data-edge="bottom"
     data-size="content" data-locked={locked || undefined} data-dragging={motion.dragging || undefined} overlayStyle={motion.overlayStyle}
     style={`--panel-width:${PICKER_PANEL_REM}rem;transform:${motion.transform}`}
     onOpenAutoFocus={event => focus.open(event, policy?.open)} onCloseAutoFocus={event => focus.close(event, policy ? restore : undefined)}

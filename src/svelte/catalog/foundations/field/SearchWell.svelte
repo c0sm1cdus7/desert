@@ -2,7 +2,8 @@
   import { say } from "../../../infra/messages.ts";
   import { m } from "../../../../messages/keys.ts";
   // The well of a search Field: a leading search glyph, the query editor and its clear control. A press on the well's
-  // own surface focuses the editor; `focus: "on-mount"` focuses it when the well appears (an expanding toolbar search).
+  // own surface focuses the editor; `focus: "on-mount"` focuses it when the well appears (an expanding toolbar search),
+  // and `controls` names the results the query filters.
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import { Icon } from "../../index.ts";
   import ClearInput from "./ClearInput.svelte";

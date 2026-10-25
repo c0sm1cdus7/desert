@@ -5,7 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
-import { rendererCss } from "./fixtures/renderer-css.ts";
+import { rendererCss, themeBeforePrune } from "./fixtures/renderer-css.ts";
 import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 import { pixelDifference } from "./fixtures/pixel-difference.ts";
 import { catalogWorkspaceBefore } from "./fixtures/catalog-workspace-before.ts";
@@ -42,8 +42,12 @@ test("the workspace on the shell draws the pre-shell workspace's pixels at its p
   const [baseline, candidate] = [await svelteBrowser(source, catalogWorkspaceBefore), await svelteBrowser(source)];
   const shots = process.env.WORKSPACE_SHOTS;
   try {
-    const css = await rendererCss(Object.values(catalogWorkspaceBefore));
-    for (const f of [baseline, candidate]) { await f.page.addStyleTag({ content: css }); await f.page.emulateMedia({ reducedMotion: "reduce" }); }
+    // Each side draws with its own stylesheets: the frozen workspace with the base f7247e4 theme, today's with today's.
+    const frozen = Object.values(catalogWorkspaceBefore);
+    const sheets = [await rendererCss(frozen, themeBeforePrune()), await rendererCss(frozen)];
+    for (const [index, f] of [baseline, candidate].entries()) {
+      await f.page.addStyleTag({ content: sheets[index] ?? "" }); await f.page.emulateMedia({ reducedMotion: "reduce" });
+    }
     // The frozen workspace laid its adaptive host over the whole workspace with a :global rule this harness injects before
     // the host's own scoped rule; re-adding it last restores the built cascade (see shell-foundation.test.ts).
     await baseline.page.addStyleTag({ content: "[data-catalog-workspace] [data-adaptive-host] { position:absolute; inset:0; }" });

@@ -37,5 +37,5 @@
   id={content.kind === "section" ? content.id : undefined}
   tabindex={focusable ? -1 : undefined}
   data-place-title={content.kind === "page" ? "" : undefined}>
-  {content.text}{#if content.kind === "group" && content.required}<span class="required" aria-hidden="true">{say(m.heading.requiredMark)}</span>{/if}
+  {content.text}{#if content.kind === "group" && content.required}<span class="required text-destructive" aria-hidden="true">{say(m.heading.requiredMark)}</span>{/if}
 </svelte:element>

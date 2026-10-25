@@ -22,3 +22,7 @@
 [data-date-calendar-navigation] :is([data-slot="calendar-prev-button"],[data-slot="calendar-next-button"]) {
   width:var(--catalog-toolbar-height); height:var(--catalog-toolbar-height); padding:var(--catalog-toolbar-inset);
 }
+/* The calendar navigation chevrons (from theme.css): muted, never shrinking beside the month. */
+@layer components {
+  [data-control-chevron] { color:var(--muted-foreground); flex-shrink:0; }
+}

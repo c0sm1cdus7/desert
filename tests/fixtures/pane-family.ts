@@ -1,7 +1,7 @@
 /** Independent S1 specimen: real owners, not the approved artifact's adapter CSS. */
 export const paneFamilySource = `<script lang="ts">
   import Action from '@desert/svelte/catalog/foundations/action/Action.svelte';
-  import TextInput from '@desert/svelte/catalog/foundations/text-input/TextInput.svelte';
+  import Field from '@desert/svelte/catalog/foundations/field/Field.svelte';
   import MoneyControl from '@desert/svelte/catalog/compositions/money-control/MoneyControl.svelte';
   import OptionsControl from '@desert/svelte/catalog/compositions/options-control/OptionsControl.svelte';
   import * as Sidebar from '@desert/svelte/vendor/components/ui/sidebar/index.js';
@@ -22,8 +22,8 @@ export const paneFamilySource = `<script lang="ts">
       <Sidebar.MenuButton isActive>Travel kit</Sidebar.MenuButton>
     </Sidebar.Root>
   </Sidebar.Provider>
-  <TextInput primitive="input.text" label="Trip name" value={text} {disabled} {invalid}
-    error={invalid?'Give this trip a name.':undefined} onchange={next=>text=next}/>
+  <Field primitive="input.text" label="Trip name" labelVisibility="visible" measure="writing" purpose="text" value={text} clear required={false}
+    {disabled} {invalid} error={invalid?'Give this trip a name.':undefined} onchange={next=>text=next}/>
   <MoneyControl node={{...amount,disabled}} onevent={()=>{}}/>
   <OptionsControl node={{...pace,disabled}} onevent={()=>{}}/>
   <Action label="Continue" icon="open" emphasis="primary" state={state==='pending'?'pending':disabled?'unavailable':'ready'} face="fit" type="button"/>

@@ -9,6 +9,7 @@
   import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
   import { useSurfaceHost } from "../../mechanisms/surface-host/surface-host.svelte.ts";
   import { surfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
+  import { providePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
   import DrawerGrip from "./DrawerGrip.svelte";
   import { drawerMotion } from "./drawer-motion.svelte.ts";
   import { frameContinuity, type FrameIdentity, type FrameInvocation } from "./frame-continuity.svelte.ts";
@@ -40,6 +41,8 @@
   adaptiveModality(() => content, () => modal && !lateral);
   const motion = drawerMotion(() => dismiss(), () => locked || docked || lateral, () => layout.edge);
   const edge = $derived(lateral ? "left" : motion.edge);
+  // A side or lateral pane is dragged by its header; what it holds reads that (pane-context).
+  providePane(() => ({ drag: !docked && edge !== "bottom", dragging: motion.dragging, framed: false }));
   const width = $derived(lateral ? "18rem" : `${layout.paneWidth}px`);
   const dragHeader = (event: PointerEvent) => {
     const target = event.target;
@@ -59,10 +62,10 @@
 </script>
 <Dialog.Root {open} onOpenChange={next => { if (!next) dismiss(); }}
   onOpenChangeComplete={next => { if (!next) { motion.reset(); onclosed?.(); } }}>
-  <Dialog.Content bind:ref={content} presentation="panel" class={density} data-modal={presentation} data-composition="transient"
+  <Dialog.Content bind:ref={content} presentation="panel" class={[density, "focus-inset"]} data-modal={presentation} data-composition="transient"
     adaptiveModal={lateral ? undefined : !docked} trapFocus={lateral ? undefined : false} preventScroll={lateral ? undefined : modal}
     data-adaptive-surface={lateral ? undefined : ""} data-presentation={lateral ? "overlay" : docked ? "docked" : "transient"}
-    data-locked={locked || undefined} data-reduced-motion={prefersReducedMotion.current} data-edge={edge}
+    data-locked={locked || undefined} data-closing={!open || undefined} data-reduced-motion={prefersReducedMotion.current} data-edge={edge}
     overlayStyle={motion.overlayStyle} data-dragging={motion.dragging || undefined}
     style={`--panel-width:${width};--adaptive-left:${host.bounds.left}px;--adaptive-top:${host.bounds.top}px;--adaptive-right:${host.bounds.right}px;--adaptive-bottom:${host.bounds.bottom}px;transform:${motion.transform}`}
     onpointerdown={dragHeader} onpointermove={motion.move} onpointerup={motion.up}

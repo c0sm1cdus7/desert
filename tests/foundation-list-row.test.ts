@@ -177,7 +177,9 @@ test("fact-value: a paragraph reads a long text fact at the body role, inset lik
   </script>
   <div data-case="reading" style="width:640px"><ReadingContent fields={["body"]} facts={{ body: "First line.\\nSecond line." }} object="note" labels={{ "note.body": "Body" }} /></div>
   <div data-case="paragraph" style="width:640px"><FactValue value={"First line.\\nSecond line."} presentation="paragraph" /></div>`,
-    composedBefore("reading-content", "ReadingContent.svelte"), await rendererCss());
+    composedBefore("reading-content", "ReadingContent.svelte"),
+    // The frozen reading copy brings the stylesheet Batch 3 deleted with it (reading.css); the paragraph draws with today's.
+    await rendererCss(Object.values(composedBefore("reading-content", "ReadingContent.svelte"))));
   try {
     const [reading, paragraph] = await f.page.evaluate(() => ["reading", "paragraph"].map(name => {
       const element = document.querySelector(`[data-case="${name}"] p`)!, style = getComputedStyle(element);

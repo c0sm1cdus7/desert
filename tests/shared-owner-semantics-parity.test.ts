@@ -3,7 +3,8 @@ import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
-import { rendererCss } from "./fixtures/renderer-css.ts";
+import { rendererCss, themeBeforePrune } from "./fixtures/renderer-css.ts";
+import { prunedSourcesBefore } from "./fixtures/pruned-sources-before.ts";
 import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 import { pixelDifference } from "./fixtures/pixel-difference.ts";
 import { catalogWorkspaceBefore } from "./fixtures/catalog-workspace-before.ts";
@@ -23,7 +24,8 @@ test("correcting pane landmark semantics leaves navigation, headings and toolbar
   // is today's workspace on the shell, whose navigation pane and bars carry the corrected landmarks.
   const before: Record<string,string> = { ...catalogWorkspaceBefore };
   for (const path of paths) {
-    const current = catalogWorkspaceBefore[resolve(path)] ?? await readFile(path, 'utf8');
+    // Batch 3 deleted toolbar-layout, place and catalog-navigation: their f7247e4 sources.
+    const current = catalogWorkspaceBefore[resolve(path)] ?? prunedSourcesBefore[path] ?? await readFile(path, 'utf8');
     let previous = current;
     if (path.endsWith('ToolbarLayout.svelte')) previous = current.replace('<div bind:this={element} class={edge', '<header bind:this={element} class={edge').replace(/<\/div>\s*$/, '</header>');
     else if (path.endsWith('PlaceHeading.svelte')) previous = current.replace('<div class="place-heading-content"', '<header class="place-heading-content"').replace('</div>\n{:else}', '</header>\n{:else}');
@@ -35,9 +37,11 @@ test("correcting pane landmark semantics leaves navigation, headings and toolbar
   }
   const baseline = await svelteBrowser(source, before), candidate = await svelteBrowser(source);
   try {
-    const css = await rendererCss(Object.values(catalogWorkspaceBefore));
-    for (const f of [baseline,candidate]) {
-      await f.page.addStyleTag({content:css});
+    // Each side draws with its own stylesheets: the frozen workspace with the base f7247e4 theme, today's with today's.
+    const frozen = Object.values(before);
+    const sheets = [await rendererCss(frozen, themeBeforePrune()), await rendererCss(frozen)];
+    for (const [index, f] of [baseline,candidate].entries()) {
+      await f.page.addStyleTag({content:sheets[index] ?? ""});
       await f.page.emulateMedia({reducedMotion:'reduce'});
     }
     // The frozen workspace's :global host rule, re-added last as a build orders it (see shell-foundation.test.ts).

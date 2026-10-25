@@ -3,7 +3,8 @@
    neutral face response remains visible with reduced motion, including icons.
    Owners apply the utilities to the elements they draw: `control-feedback` on a
    pressable control, `control-feedback-content` on the content it compresses,
-   `control-focus` on a control that shows focus and a forced-colors press but no tint (fields, the grip). */
+   `control-focus` on a control that shows focus and a forced-colors press but no tint (fields, the grip); the content
+   of a pane or interior control also takes the theme's `disabled-content`. */
 @utility control-focus {
   transition:color var(--dur-feedback) var(--ease-tm);
   &:focus-visible { outline:2px solid var(--ring); outline-offset:var(--focus-ring-offset,3px); }
