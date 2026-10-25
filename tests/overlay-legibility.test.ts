@@ -2,7 +2,7 @@
 // through it (second review of the slice 3 package: the calendar, the cover picker, the dialogs and the large date sheet
 // showed the page's words through their pane). Measured on the result: the page under each surface is half ink (a block
 // of the foreground colour) and half page; a point of the pane's empty padding over the ink and one over the page must
-// look the same (WCAG contrast at most 1.1:1), in both themes and with reduced transparency. And an anchored surface is
+// look the same (WCAG contrast at most 1.1:1, and the same colour: the surface is opaque), in both themes and with reduced transparency. And an anchored surface is
 // at least as wide as the field it opens from (the calendar stopped 34px short of its field; the cover picker was
 // narrower than its field at 1280).
 import test from "node:test";
@@ -83,7 +83,11 @@ for (const [name, { source, open, pane, width }] of Object.entries(surfaces)) fo
           return [read(0), read(image.width - 1)];
         }, shot.toString("base64"));
         const ratio = contrast(pixels[0]!, pixels[1]!);
+        // Third review: at 97% a faint blob of the page still showed through the problem dialog and the sheet's toolbar; a
+        // surface over the page is opaque, so over ink and over page it is one colour (a channel's rounding aside).
         assert.ok(ratio <= 1.1, `over ink ${pixels[0]} vs over page ${pixels[1]}: ${ratio.toFixed(3)}:1 shows the page through the ${name}`);
+        assert.ok(pixels[0]!.every((value, channel) => Math.abs(value - (pixels[1]![channel] ?? 0)) <= 1),
+          `over ink ${pixels[0]} vs over page ${pixels[1]}: the ${name} lets a shape of the page show through`);
         assert.deepEqual(f.errors, []);
       } finally { await f.close(); }
     });

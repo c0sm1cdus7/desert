@@ -86,9 +86,9 @@ async function previousCss() {
   // relocation is compared.
   inlined += "\n:root { --catalog-cover-aspect:1.4; }\n";
   // Slice 3 review 2 (a deliberate change, not a relocation): a pane presented over the page (the message dialog) wears the
-  // floating backing, 97% where the frozen pane was 88% (tests/overlay-legibility.test.ts measures it); the frozen side
+  // floating backing, opaque (100%, third review) where the frozen pane was 88% (tests/overlay-legibility.test.ts measures it); the frozen side
   // gets that utility as today's pane material defines it, the panes nested in it keeping the ordinary backing.
-  inlined += `\n:root { --pane-base-opacity:var(--pane-opacity); --pane-floating-opacity:97%; }\n` +
+  inlined += `\n:root { --pane-base-opacity:var(--pane-opacity); --pane-floating-opacity:100%; }\n` +
     `@utility material-floating { --pane-opacity:var(--pane-floating-opacity); & :where(*) { --pane-opacity:var(--pane-base-opacity); } }\n`;
   const compiler = await compile(inlined, { base, onDependency: () => {} });
   return compiler.build(new Scanner({ sources: compiler.sources }).scan());

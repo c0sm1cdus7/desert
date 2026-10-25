@@ -8,8 +8,9 @@
   --pane-opacity:88%;
   --pane-filter:blur(24px);
   /* A pane presented over the page (a popover, a dialog, a sheet, a menu) holds the page's text under it: its backing is
-     opaque enough that no word reads through (contrast of ink through it ≤ 1.1:1, tests/overlay-legibility.test.ts). */
-  --pane-floating-opacity:97%;
+     opaque, so neither a word nor a faint shape of the page shows through (at 97% a blob of the page still did;
+     tests/overlay-legibility.test.ts). */
+  --pane-floating-opacity:100%;
 }
 @media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
   :root { --pane-opacity:100%; --pane-filter:none; --pane-floating-opacity:100%; }
