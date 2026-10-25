@@ -10,11 +10,12 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { treeViolations } from "./fixtures/tree-violations.ts";
 import { marksBefore } from "./fixtures/marks-before.ts";
+import { themeAtCe6ed6f } from "./fixtures/theme-before.ts";
 
 const root = resolve(import.meta.dirname, "..");
 const folders = ["face", "availability", "wallpaper", "icon", "clock", "attention-indicator"]
   .map(id => `src/svelte/catalog/foundations/${id}/`);
-const frozenTheme = marksBefore["src/svelte/theme.css"] ?? "";
+const frozenTheme = themeAtCe6ed6f();
 const frozen = Object.fromEntries(Object.entries(marksBefore).filter(([path]) => path.endsWith(".svelte"))
   .map(([path, source]) => [resolve(root, path), source]));
 

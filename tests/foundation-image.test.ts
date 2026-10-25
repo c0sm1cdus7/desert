@@ -8,16 +8,15 @@ import test from "node:test";
 import type { Page } from "playwright";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { treeViolations } from "./fixtures/tree-violations.ts";
-import { inlineImports, measureProbes, renderCases, type Probes } from "./fixtures/parity.ts";
+import { measureProbes, renderCases, type Probes } from "./fixtures/parity.ts";
 import { contentBefore } from "./fixtures/content-before.ts";
-import { marksBefore } from "./fixtures/marks-before.ts";
+import { themeAtCe6ed6f } from "./fixtures/theme-before.ts";
 
 const root = resolve(import.meta.dirname, "..");
 const frozenFiles = ["src/svelte/catalog/foundations/image/Image.svelte", "src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte",
   "src/svelte/catalog/foundations/playback-canvas/PlaybackCanvas.svelte"];
 const frozen = Object.fromEntries(frozenFiles.map(path => [resolve(root, path), contentBefore[path] ?? ""]));
-const frozenCss = () => rendererCss([], inlineImports(marksBefore["src/svelte/theme.css"] ?? "",
-  { "src/svelte/catalog/mechanisms/media/media.css": contentBefore["src/svelte/catalog/mechanisms/media/media.css"] ?? "" }));
+const frozenCss = () => rendererCss([], themeAtCe6ed6f(["src/svelte/catalog/mechanisms/media/media.css"]));
 
 const photo = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23468'/%3E%3C/svg%3E";
 const cases = (placeholder: (kind: string) => string) => `<script lang="ts">

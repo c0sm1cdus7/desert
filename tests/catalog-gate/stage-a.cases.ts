@@ -23,7 +23,7 @@ const addToFlow = (imports: string, markup: string): Mutation => async tree => {
 const headingImport = '  import Heading from "../../foundations/heading/Heading.svelte";';
 const headingFromFlow = (attributes: string) => addToFlow(headingImport, `<Heading kind="page" text="x" ${attributes} />`);
 const vendorButton = "../../../vendor/components/ui/button/index.js";
-const accessScript = '  import { AccessScreen } from "../../index.ts";';
+const accessScript = '  import { AccessScreen, ViewProduct } from "../../index.ts";';
 const importIntoAccessGate = (line: string) => (tree: SourceTree) => tree.replace(accessGate, accessScript, `${accessScript}\n${line}`);
 /** Appends to a declared mechanism, so the only violation is the rule itself. */
 const stylesheet = (css: string): Mutation => tree => tree.append(sharedStylesheet, `\n${css}`);
