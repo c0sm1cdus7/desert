@@ -5,9 +5,10 @@
   const gaps = { tight: "gap-tight", snug: "gap-snug", close: "gap-close", regular: "gap-regular", loose: "gap-loose", relaxed: "gap-relaxed", section: "gap-section" } as const;
   const aligns = { start: "items-start", center: "items-center", baseline: "items-baseline", end: "items-end" } as const;
   const justifies = { start: "justify-start", center: "justify-center", end: "justify-end", between: "justify-between" } as const;
-  // A scroll rail bleeds to the surface inset and hides its scrollbar; its pieces keep their own width.
+  // A scroll rail runs to the surface's edge (over the margin of a page it is shown in, --place-bleed), its first piece at
+  // the surface inset, and hides its scrollbar; its pieces keep their own width.
   const overflows = { wrap: "flex-wrap", none: "flex-nowrap",
-    scroll: "flex-nowrap overflow-x-auto px-[var(--place-surface-inset,26px)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" } as const;
+    scroll: "flex-nowrap overflow-x-auto mx-[calc(-1*var(--place-bleed,0px))] px-[calc(var(--place-surface-inset,26px)+var(--place-bleed,0px))] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" } as const;
 </script>
 
 <div class="flex min-w-0 {gaps[gap]} {aligns[align]} {justifies[justify]} {overflows[overflow]}"
