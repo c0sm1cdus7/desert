@@ -30,7 +30,7 @@
     font-size:var(--text-field-caption); line-height:var(--text-field-caption--line-height); font-weight:400;
     color:var(--muted-foreground);
     transition:transform var(--dur-snap) var(--ease-tm), font-size var(--dur-snap) var(--ease-tm);
-    & .required { margin-inline-start:.375em; }
+    &.required-mark::after { margin-inline-start:.375em; }
   }
   &:not(:focus-within):not([data-filled="true"]) [data-slot="field-label"] {
     font-size:var(--text-body);
@@ -131,7 +131,3 @@
 }
 [data-slot="field"][data-invalid="true"] > .field-well:has(:focus-visible),
 [data-slot="input-group"]:has([aria-invalid="true"]):has(:focus-visible) { outline-color:var(--ring); }
-/* The required mark of a field label (from theme.css): destructive ink beside the label. */
-@layer components {
-  [data-slot="field-label"] .required { color:var(--destructive); }
-}

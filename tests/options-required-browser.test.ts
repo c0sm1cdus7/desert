@@ -29,16 +29,16 @@ test('Stack and standalone options share explicit input requirements, never cont
     await f.page.addStyleTag({content:await rendererCss()});
     for(const id of ['context-empty','context-selected','context-many','input-selected']) {
       const example=f.page.locator(`[data-case="${id}"]`);
-      assert.equal(await example.locator('.required').count(),0,`${id} has no required marker anywhere`);
+      assert.equal(await example.locator('.required-mark').count(),0,`${id} has no required marker anywhere`);
       assert.equal(await example.locator('[aria-required="true"]').count(),0,`${id} is not announced as required`);
     }
     for(const id of ['input-empty','input-many']) {
       const example=f.page.locator(`[data-case="${id}"]`);
-      assert.equal(await example.locator('[data-presentation="stack"] .place-stack-title .required').count(),1);
-      assert.equal(await example.locator('[data-presentation="standalone"] [data-choice="rows"] > legend .required').count(),1);
+      assert.equal(await example.locator('[data-presentation="stack"] .place-stack-title .required-mark').count(),1);
+      assert.equal(await example.locator('[data-presentation="standalone"] [data-choice="rows"] > legend.required-mark').count(),1);
     }
     await f.page.locator('[data-case="input-empty"] [data-presentation="stack"]').getByRole('radio',{name:'One',exact:true}).click();
-    assert.equal(await f.page.locator('[data-case="input-empty"] .required').count(),0,
+    assert.equal(await f.page.locator('[data-case="input-empty"] .required-mark').count(),0,
       'Once a single option is retained, both presentations remove the redundant marker');
     assert.deepEqual(f.errors,[]);
   } finally {await f.close();}
@@ -64,19 +64,19 @@ test('select labels and open listbox semantics distinguish contextual, retained 
     await f.page.addStyleTag({content:await rendererCss()});
     for(const id of ['context','unavailable','retained']) {
       const example=f.page.locator(`[data-case="${id}"]`);
-      assert.equal(await example.locator('.required').count(),0);
+      assert.equal(await example.locator('.required-mark').count(),0);
       assert.equal(await example.locator('[aria-describedby]').count(),0);
       assert.equal(await example.getByRole('button',{name:'Clear selection',exact:true}).count(),0);
     }
     for(const [id,label,required] of [['context','Context',false],['retained','Retained',false],['incomplete','Incomplete',true],['clearable','Clearable',true]] as const) {
       const example=f.page.locator(`[data-case="${id}"]`);
-      assert.equal(await example.locator('.required').count(),required?1:0);
+      assert.equal(await example.locator('.required-mark').count(),required?1:0);
       await example.getByRole('button',{name:new RegExp(`^${label} ·`)}).click();
       assert.equal(await f.page.getByRole('listbox',{name:label,exact:true}).getAttribute('aria-required'),required?'true':null);
       await f.page.keyboard.press('Escape');
     }
     await f.page.locator('[data-case="clearable"]').getByRole('button',{name:'Clear selection',exact:true}).click();
-    assert.equal(await f.page.locator('[data-case="clearable"] .required').count(),1);
+    assert.equal(await f.page.locator('[data-case="clearable"] .required-mark').count(),1);
     assert.deepEqual(f.errors,[]);
   } finally {await f.close();}
 });

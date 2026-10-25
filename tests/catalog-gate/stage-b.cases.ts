@@ -97,7 +97,8 @@ export const stageB: readonly GateCase[] = [
     mutate: tree => tree.append(`${heading}/Heading.svelte`, "\n<p>Unread</p>\n") },
   { id: "N57", title: "a piece declares a message key its locale bundle lacks", kind: "escape", expect: ["MESSAGE_MISSING"],
     mutate: async tree => {
-      await tree.replace(`${heading}/heading.catalog.ts`, 'messages: ["heading.requiredMark"]', 'messages: ["heading.requiredMark", "heading.missing"]');
+      await tree.replace(`${foundations}/choice/choice.catalog.ts`, 'messages: ["choice.required", "choice.notSelected"]',
+        'messages: ["choice.required", "choice.notSelected", "choice.missing"]');
       await tree.regenerateCatalog();
     } },
   { id: "N58", title: "a key in en.json that no piece owns", kind: "escape", expect: ["CATALOG_DECLARATION"],

@@ -610,7 +610,6 @@ export const Messages = messageCatalog({
       "label": "Requires attention"
     },
     "choice": {
-      "requiredMark": "*",
       "required": "Required",
       "notSelected": "Not selected"
     },
@@ -627,7 +626,6 @@ export const Messages = messageCatalog({
       "unavailable": "Unavailable"
     },
     "field": {
-      "requiredMark": "*",
       "none": "None",
       "character": "{count} character",
       "characters": "{count} characters",
@@ -655,9 +653,6 @@ export const Messages = messageCatalog({
       "open": "Open photo viewer",
       "choose": "Choose photo",
       "photo": "Photo {number}: {alt}"
-    },
-    "heading": {
-      "requiredMark": "*"
     },
     "image": {
       "unavailable": "Image unavailable",

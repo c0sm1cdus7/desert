@@ -738,7 +738,6 @@
       "folder": "src/svelte/catalog/foundations/choice",
       "kind": "foundation",
       "messages": [
-        "choice.requiredMark",
         "choice.required",
         "choice.notSelected"
       ],
@@ -1361,7 +1360,6 @@
       "folder": "src/svelte/catalog/foundations/field",
       "kind": "foundation",
       "messages": [
-        "field.requiredMark",
         "field.none",
         "field.character",
         "field.characters",
@@ -1622,9 +1620,6 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/heading",
       "kind": "foundation",
-      "messages": [
-        "heading.requiredMark"
-      ],
       "owner": {
         "entry": "Heading.svelte",
         "parts": [

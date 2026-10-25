@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { say } from "../../../infra/messages.ts";
-  import { m } from "../../../../messages/keys.ts";
   import { useFocusScope } from "../../../infra/focus-scope.ts";
   import { currentHeadingOffset, type HeadingLevel } from "../../../infra/heading-context.ts";
   import type { CatalogProps } from "../../types.d.ts";
@@ -33,9 +31,9 @@
   });
 </script>
 
-<svelte:element this={tag} bind:this={element} class="min-w-0 break-words {roles[content.kind]} {content.align ? aligns[content.align] : ''} {keyed ? 'outline-none' : ''}"
+<svelte:element this={tag} bind:this={element} class="min-w-0 break-words {roles[content.kind]} {content.align ? aligns[content.align] : ''} {keyed ? 'outline-none' : ''} {content.kind === 'group' && content.required ? 'required-mark' : ''}"
   id={content.kind === "section" ? content.id : undefined}
   tabindex={focusable ? -1 : undefined}
   data-place-title={content.kind === "page" ? "" : undefined}>
-  {content.text}{#if content.kind === "group" && content.required}<span class="required text-destructive" aria-hidden="true">{say(m.heading.requiredMark)}</span>{/if}
+  {content.text}
 </svelte:element>

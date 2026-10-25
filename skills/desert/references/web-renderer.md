@@ -4807,7 +4807,7 @@ Source SHA-256: 1dc6fbf923857bb34abb1922c87feb697bdef906ddd22d20ada027d4d055af21
 
 ## src/svelte/catalog/foundations/choice/ChoiceMenu.svelte
 
-Source SHA-256: cce25f01ad9edb73fe80e3d37c385f7349cc6bfdc64ff7918b86cbd9fada359f
+Source SHA-256: ad2861c11b7beca5f714a978bf85f2bc60ec70ecb2e2fd1d41f7505a878f6bb0
 
 ```svelte
 <script lang="ts">
@@ -4885,7 +4885,7 @@ Source SHA-256: cce25f01ad9edb73fe80e3d37c385f7349cc6bfdc64ff7918b86cbd9fada359f
     {#if trigger === "well"}
       <!-- lane-merge: the well content FieldWellContent drew (deleted in Batch 3), until Field's trigger draws this well. -->
       <span class="relative flex min-w-0 flex-1 flex-col" data-field-well>
-        <span data-slot="field-label">{label}{#if required}<span class="required" aria-hidden="true">*</span>{/if}</span>
+        <span data-slot="field-label" class={required ? "required-mark" : undefined}>{label}</span>
         <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
           {@render shown()}<Icon name="chevron-down" placement="inline-end" chevron decorative />
         </span>
@@ -4911,8 +4911,6 @@ Source SHA-256: cce25f01ad9edb73fe80e3d37c385f7349cc6bfdc64ff7918b86cbd9fada359f
   .measure { container:choice-measure / inline-size; width:100%; min-width:0; align-self:stretch; }
   .measure-box { display:flex; flex-direction:column; width:100%; min-width:0; max-width:26rem; }
   @container choice-measure (max-width:29rem) { .measure-box { max-width:none; } }
-  /* The required mark (from the theme): destructive ink beside its label. */
-  .required { color:var(--destructive); }
 </style>
 ```
 

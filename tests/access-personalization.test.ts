@@ -42,7 +42,7 @@ test("onboarding is two steps with one password, seeded avatar and a text-only f
     await f.page.getByRole("radio", { name: "Light", exact: true }).click();
     await f.page.getByRole("radio", { name: "Rose", exact: true }).click();
     assert.equal(await f.page.locator('input[type="file"]').count(), 0);
-    assert.equal(await f.page.locator(".required").count(), 0, "already-valued appearance controls are not required inputs");
+    assert.equal(await f.page.locator(".required-mark").count(), 0, "already-valued appearance controls are not required inputs");
     const finish = f.page.getByRole("button", { name: "Get started", exact: true });
     assert.equal(await finish.locator('svg:visible').count(), 0);
     await finish.click();

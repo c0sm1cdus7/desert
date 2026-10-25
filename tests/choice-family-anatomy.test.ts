@@ -85,8 +85,10 @@ test('choice descriptions reflow at 320px and 200% text without marking an alway
     await f.page.evaluate(()=>document.documentElement.style.fontSize='32px');
     const legend=f.page.locator('[data-case="single"] legend');
     assert.equal(await legend.innerText(),'Inline route');
-    assert.equal(await legend.locator('.required').count(),0);
-    assert.match(await f.page.locator('[data-case="multiple"] legend').innerText(),/Interests\*/,
+    // What a legend shows: its text, then the mark the theme draws after a required label.
+    const shown=(selector:string)=>f.page.locator(selector).evaluate(node=>`${(node as HTMLElement).innerText}${/^"([^"]*)"/.exec(getComputedStyle(node,'::after').content)?.[1]??''}`);
+    assert.equal(await shown('[data-case="single"] legend'),'Inline route');
+    assert.match(await shown('[data-case="multiple"] legend'),/Interests\*/,
       'A genuinely incomplete-capable multi-selection keeps its requirement');
     assert.ok(await legend.evaluate(el=>el.getBoundingClientRect().height>1));
     await f.page.getByRole('button',{name:'Picker route',exact:true}).click();

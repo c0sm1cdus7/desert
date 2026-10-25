@@ -7,7 +7,7 @@ import { ChoiceContract } from "./choice.contract.ts";
 export const Choice = defineFoundation({
   id: "choice",
   purpose: "Choose one or several options given as data, as rows, cards, swatches or a menu, with a persistent label.",
-  messages: ["choice.requiredMark", "choice.required", "choice.notSelected"],
+  messages: ["choice.required", "choice.notSelected"],
   owner: { entry: "Choice.svelte", parts: ["ChoiceRows.svelte", "ChoiceCards.svelte", "ChoiceSwatches.svelte", "ChoiceMenu.svelte",
     "ChoiceMenuList.svelte", "ChoiceAnatomy.svelte", "ChoiceLeading.svelte", "choice-row.ts"], vendor: ["checkbox", "radio-group"], mechanisms: ["press-feedback", "surface-focus"] },
   shape: "radius", states: ["default", "described", "disabled", "required"],

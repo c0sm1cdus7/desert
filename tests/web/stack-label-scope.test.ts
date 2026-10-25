@@ -35,12 +35,12 @@ test('always-visible sibling Stacks retain independent labels, requirements and 
     const choicesLegend = details.locator('[data-choice="rows"] > legend');
     assert.equal(await choicesLegend.evaluate(element => element.classList.contains('sr-only')), false,
       'A sibling Stack owns its label scope independently of the previous heading');
-    assert.equal(await choicesLegend.locator('.required').count(), 0,
+    assert.equal(await choicesLegend.locator('.required-mark').count(), 0,
       'A retained contextual choice has no required marker');
     assert.equal(await details.getByRole('radio', { name: 'First', exact: true }).isVisible(), true,
       'Choice content is immediately available without expansion');
     assert.equal(await details.locator('[data-files] [data-files-label]').evaluate(element => element.classList.contains('sr-only')), false);
-    assert.equal(await f.page.locator('.place-stack-title .required').count(), 0,
+    assert.equal(await f.page.locator('.place-stack-title .required-mark').count(), 0,
       'A differently labeled choice does not attach its requirement to either Stack heading');
     for (const scale of [1, 2]) {
       await f.page.evaluate(value => document.documentElement.style.setProperty('--text-scale', String(value)), scale);

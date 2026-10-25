@@ -33,7 +33,7 @@ test('standalone catalog selectors use the Appearance well at wide and narrow wi
         await control.waitFor();
         assert.equal(await control.locator('[data-field-well]').count(),1);
         assert.equal(await control.getAttribute('data-floating-field'),'true');
-        assert.equal(await control.locator('.required').count(),0);
+        assert.equal(await control.locator('.required-mark').count(),0);
       }
       const geometry=async (control:typeof trigger)=>control.evaluate(element=>{
         const style=getComputedStyle(element);

@@ -55,3 +55,7 @@
 @utility type-caption { font-size:var(--text-caption); line-height:var(--text-caption--line-height); font-weight:var(--text-caption--font-weight); }
 /* The control metric of action and choice; it leaves when those foundations own their stylesheets (F1.3, F1.5). */
 @utility type-control { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); }
+/* The required mark after a label, drawn here once: the label of a piece whose typed `required` prop is set applies it. It
+   is decorative (an empty alternative text), so a label's accessible name never includes it; the control states the
+   requirement itself. */
+@utility required-mark { &::after { content:"*" / ""; color:var(--destructive); } }

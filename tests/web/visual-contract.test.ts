@@ -25,7 +25,7 @@ test("floating labels, required indicators and text scaling preserve the draft",
     await body.focus();
     assert.equal((await label.boundingBox())!.y, floating!.y, "filled label remains floated");
     const colors = await field.evaluate(node => ({
-      star: getComputedStyle(node.querySelector(".required")!).color,
+      star: getComputedStyle(node.querySelector(".required-mark")!, "::after").color,
       label: getComputedStyle(node.querySelector("label")!).color,
     }));
     assert.notEqual(colors.star, colors.label);

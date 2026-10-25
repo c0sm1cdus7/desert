@@ -41,7 +41,9 @@ test("heading: each kind is its role and level, spaced only by its column", asyn
     const headings = await f.page.locator(":is(h1,h2)").evaluateAll(nodes => nodes.map(node => {
       const style = getComputedStyle(node);
       return { tag: node.tagName, size: style.fontSize, weight: style.fontWeight, margin: style.margin, tabindex: node.getAttribute("tabindex"),
-        id: node.id, place: node.hasAttribute("data-place-title"), align: style.textAlign, text: node.textContent?.trim() };
+        id: node.id, place: node.hasAttribute("data-place-title"), align: style.textAlign,
+        // What it shows: its text and the mark the theme draws after a required group label.
+        text: `${node.textContent?.trim()}${/^"([^"]*)"/.exec(getComputedStyle(node, "::after").content)?.[1] ?? ""}` };
     }));
     assert.deepEqual(headings, [
       { tag: "H1", size: "32px", weight: "600", margin: "0px", tabindex: "-1", id: "", place: false, align: "start", text: "Franco" },

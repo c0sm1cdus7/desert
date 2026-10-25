@@ -23,12 +23,13 @@ for (const colorScheme of ['light', 'dark'] as const) test(`v1 stack details and
       const moneyStyle = getComputedStyle(money);
       const ordinary = document.querySelector('[data-view-item="visit"] [data-primitive="input.text"] [data-floating-field]')!;
       const description = document.querySelector('[data-view-item="visit"] .place-stack-description')!;
-      const stars = [...stack.querySelectorAll('.required')].filter(element => element.getBoundingClientRect().width > 1
-        && !element.closest('.sr-only')).length;
+      // A star is the theme's ::after of a visible required label.
+      const stars = [...stack.querySelectorAll('.required-mark')].filter(element => getComputedStyle(element, '::after').content.startsWith('"*"')
+        && element.getBoundingClientRect().width > 1 && !element.closest('.sr-only')).length;
       return {
         title: { size: parseFloat(titleStyle.fontSize), line: parseFloat(titleStyle.lineHeight), weight: titleStyle.fontWeight,
           inset: titleBox.left - paneBox.left, paneOffset: paneBox.top - titleBox.top, stars },
-        optionalStars: document.querySelector('[data-view-item="interests"] .place-stack-title .required') !== null,
+        optionalStars: document.querySelector('[data-view-item="interests"] .place-stack-title .required-mark') !== null,
         separator: { left: separator.left, right: separator.right, height: separator.height },
         descriptionInset: getComputedStyle(description).paddingInlineStart,
         money: { background: moneyStyle.backgroundColor, border: moneyStyle.borderTopWidth, radius: moneyStyle.borderRadius,
