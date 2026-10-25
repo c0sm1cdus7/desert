@@ -9,7 +9,7 @@ const steps = ["tight", "snug", "close", "regular", "loose", "relaxed", "section
 
 test("column: the contract offers a gap step, a measure, an alignment, the place insets and fill, nothing else", async () => {
   assert.deepEqual(await contractShape("column"), { gap: steps, "measure?": ["reading", "narrow", "wide"], "align?": ["start", "center", "stretch"],
-    "inset?": ["content", "reading", "section", "row"], "leading?": "boolean", "fill?": "boolean" });
+    "inset?": ["content", "reading", "block", "section", "row"], "leading?": "boolean", "fill?": "boolean" });
 });
 
 test("column: its gap axis, GapSchema and the theme's spacing tokens name the same steps", async () => {
@@ -55,6 +55,7 @@ test("column: the content inset, the reading block, the section and the leading 
   <Catalog.Column gap="snug" inset="section"><span>rails</span></Catalog.Column>
   <Catalog.Column gap="snug"><span>plain</span></Catalog.Column>
   <Catalog.Column gap="snug" inset="row"><span>example</span></Catalog.Column>
+  <Catalog.Column gap="snug" inset="block"><span>nested document</span></Catalog.Column>
 </div>
 <div style="width:900px" data-probe-fallback>
   <Catalog.Column gap="snug" inset="content"><span>title</span></Catalog.Column>
@@ -75,6 +76,8 @@ test("column: the content inset, the reading block, the section and the leading 
       { padding: "0px 0px 0px 0px", margin: "0px", text: 0 },
       // Slice 3 package: an unframed example (an avatar, a tag rail) reads on its stack's 1rem row inset, whatever the place.
       { padding: "0px 16px 0px 16px", margin: "0px", text: 16 },
+      // Second review: a document shown inside another page keeps the reading block's padding and its host's axis.
+      { padding: "24px 0px 48px 0px", margin: "0px", text: 0 },
     ]);
     // Outside a place the insets keep catalog-media.css's fallbacks: 42px for a rail title, 26px for prose at its row inset.
     assert.deepEqual((await insets("[data-probe-fallback]")).map(item => item.text), [42, 10]);

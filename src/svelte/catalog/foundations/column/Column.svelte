@@ -7,7 +7,7 @@
   const measures = { reading: "w-full max-w-[34rem]", narrow: "mx-auto w-[min(100%,30rem)]", wide: "w-full max-w-[52rem]" } as const;
   // The place's insets (surface geometry): the content inset, a reading block's padding around pieces at the row inset, a
   // section's block padding, or the row inset itself (the 1rem a stack's titles, rows and text read at).
-  const insets = { content: "px-[var(--place-content-inset,42px)]", reading: "pt-6 pb-12 px-[calc(var(--place-content-inset,26px)-1rem)]", section: "py-6",
+  const insets = { content: "px-[var(--place-content-inset,42px)]", reading: "pt-6 pb-12 px-[calc(var(--place-content-inset,26px)-1rem)]", block: "pt-6 pb-12", section: "py-6",
     row: "px-4" } as const;
   // A filling column is a flex column at least as tall as its container, so a block that grows (a status) takes the rest.
   let layout = $derived(fill ? "flex min-h-full flex-col" : "grid");

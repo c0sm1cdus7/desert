@@ -3,7 +3,8 @@
 // the wide width of an inspection page; `align` places the pieces on the inline axis (stretch when omitted), and
 // "center" also centres their text. `inset` places the column inside a place: "content" at the place's content inset (a
 // rail title over a rail that bleeds to the surface), "reading" as a document's reading block (its block padding, and the
-// content inset less the 1rem row inset its stack layouts and items already carry), "section" with a place section's block
+// content inset less the 1rem row inset its stack layouts and items already carry), "block" with only that reading block's
+// padding (a document shown inside another page, whose stacks already read at their host's row inset), "section" with a place section's block
 // padding (a catalog's rails under its featured entry or its place heading), "row" at the 1rem row inset its stack's
 // titles, rows and text read at (an unframed example, such as an avatar or a tag rail, on their axis); `leading` adds the
 // place's leading inset (the docked navigation's width) at the start, for a column that is the place's own content. `fill`
@@ -16,7 +17,7 @@ export const ColumnContract = {
     gap: Type.Union([Type.Literal("tight"), Type.Literal("snug"), Type.Literal("close"), Type.Literal("regular"), Type.Literal("loose"), Type.Literal("relaxed"), Type.Literal("section")]),
     measure: Type.Optional(Type.Union([Type.Literal("reading"), Type.Literal("narrow"), Type.Literal("wide")])),
     align: Type.Optional(Type.Union([Type.Literal("start"), Type.Literal("center"), Type.Literal("stretch")])),
-    inset: Type.Optional(Type.Union([Type.Literal("content"), Type.Literal("reading"), Type.Literal("section"), Type.Literal("row")])),
+    inset: Type.Optional(Type.Union([Type.Literal("content"), Type.Literal("reading"), Type.Literal("block"), Type.Literal("section"), Type.Literal("row")])),
     leading: Type.Optional(Type.Boolean()),
     fill: Type.Optional(Type.Boolean()),
   }, { additionalProperties: false }),

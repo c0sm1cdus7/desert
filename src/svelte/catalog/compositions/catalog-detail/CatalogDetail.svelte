@@ -12,7 +12,9 @@
     {#key node.record}<Gallery photos={catalogPhotos(node.gallery ?? [node.image])} title={node.title} presentation="detail" fit="fill" aspect="fill" />{/key}
   </ViewRegion>
 {/if}
-<Column gap="snug" inset="reading" leading={placement === "page"}>
+<!-- On its own page the detail reads at the place's content inset; inside another page, on that page's axis (its block
+     padding only, the stacks at the host's row inset). -->
+<Column gap="snug" inset={placement === "page" ? "reading" : "block"} leading={placement === "page"}>
   {#if !bodyOnly}<StackItem placement="content"><Heading kind="page" text={node.title} focusTarget /></StackItem>{/if}
   <ViewRegion kind="item" id="about">
     <Column gap="snug" measure="reading">
