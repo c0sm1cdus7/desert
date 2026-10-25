@@ -33,11 +33,13 @@ function themeWithPruned(theme: string): string {
  * `theme` is a frozen copy of theme.css, compiled in place of today's: an import it names that no longer exists fails the
  * compile, so a moved or deleted stylesheet is inlined at its frozen text (tests/fixtures/theme-before.ts), never read at its
  * new place; the stylesheets the base f7247e4 had are read at their f7247e4 text (inlineBaseStylesheets). Without a frozen theme,
- * frozen sources bring the stylesheets Batch 3 deleted (themeWithPruned). */
-export async function rendererCss(frozen: readonly string[] = [], theme?: string): Promise<string> {
+ * frozen sources bring the stylesheets Batch 3 deleted (themeWithPruned). `frozenRules` are rules a frozen page needs that
+ * today's theme gives its owners' marks instead, compiled with today's theme (so they may apply today's utilities). */
+export async function rendererCss(frozen: readonly string[] = [], theme?: string, frozenRules = ""): Promise<string> {
   const base = resolve(import.meta.dirname, "../../src/svelte");
   const today = theme === undefined ? await readFile(resolve(base, "theme.css"), "utf8") : undefined;
-  const source = today === undefined ? inlineBaseStylesheets(theme ?? "") : frozen.length ? themeWithPruned(today) : today;
+  const current = today === undefined ? undefined : `${today}\n${frozenRules}`;
+  const source = current === undefined ? inlineBaseStylesheets(theme ?? "") : frozen.length ? themeWithPruned(current) : current;
   const compiler = await compile(source, { base, onDependency: () => {} });
   const scanner = new Scanner({ sources: compiler.sources });
   // A frozen theme or frozen sources may draw pieces Batch 3 deleted (svelte-browser.ts serves them from

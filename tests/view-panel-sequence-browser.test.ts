@@ -61,6 +61,8 @@ async function surfaceFrameWithoutViewBody() {
   return current.replace(viewBody, frameBody);
 }
 
+const frozenFrameInset = "[data-surface-frame]:not(.chrome-inset) { @apply chrome-inset; }";
+
 for (const width of [390, 1280]) for (const kind of ["form", "context"] as const) {
   test(`default ${kind} panel retains exact DOM and pixels at ${width}px`, async () => {
     const captures: Buffer[] = [], contents: Buffer[] = [], structures: string[] = [];
@@ -73,7 +75,9 @@ for (const width of [390, 1280]) for (const kind of ["form", "context"] as const
         const { page } = fixture;
         await page.setViewportSize({ width, height: 900 });
         await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
-        await page.addStyleTag({ content: await rendererCss() });
+        // The frozen frame predates Surface: its section read at the frame's chrome inset through the base theme's
+        // [data-surface-frame] rule, which Surface now gives its own section as the chrome-inset utility.
+        await page.addStyleTag({ content: await rendererCss([], undefined, before === "frozen" ? frozenFrameInset : "") });
         await page.getByRole("button", { name: "Open fixture" }).click();
         await page.locator(".drawer").waitFor(); await settleMotion(page);
         await page.evaluate(async () => { await document.fonts.ready; });

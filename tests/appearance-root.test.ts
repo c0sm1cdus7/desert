@@ -30,7 +30,8 @@ test("the stored appearance is applied to the document root and the previous roo
   const f = await svelteBrowser(host, {}, "http://desert-appearance-root.test/");
   try {
     await f.page.waitForFunction(() => document.documentElement.dataset.tint === "rose");
-    assert.deepEqual(await root(f.page), { theme: "dark", tint: "rose", wallpaper: "mist", profile: "apple-reference", scale: "1.3" });
+    // No renderer profile mark: the catalog-profile mechanism that read it was dissolved into the theme (Batch 3).
+    assert.deepEqual(await root(f.page), { theme: "dark", tint: "rose", wallpaper: "mist", profile: undefined, scale: "1.3" });
     await f.page.evaluate(() => Reflect.get(window, "unmount")());
     await f.page.waitForFunction(() => document.documentElement.dataset.tint === undefined);
     assert.deepEqual(await root(f.page), { theme: "light", tint: undefined, wallpaper: undefined, profile: undefined, scale: "" });
