@@ -60,7 +60,10 @@ for (const width of [1280, 390, 320]) test(`all toolbar consumers share approved
     await writeFile(resolve(directory,`${width}.json`),JSON.stringify({width,stage,page,samples},null,2)+'\n');
     // Commands and Search share the top edge at every width. The navigation
     // return remains at the lower leading corner; it is not the search rail.
-    const x=width===1280?488:8, searchY=8;
+    // At 1280 the rail starts past the docked pane (8px inset + its 232px + 8px gap). The pre-shell workspace measured 488 in
+    // this harness only: its :global host rule lost to the host's own rule in mount-order injection, which a build reverses
+    // (see shell-foundation.test.ts); the shell's host fills the workspace itself, as the built page always laid it out.
+    const x=width===1280?248:8, searchY=8;
     assert.deepEqual(page[0]!.row,{x,y:8,width:width-x-8,height:44});
     assert.deepEqual(page[1]!.row,{x,y:searchY,width:width-x-8,height:44});
     assert.deepEqual(search[0]!.row,{x:8,y:searchY,width:width-16,height:44});

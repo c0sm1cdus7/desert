@@ -1,19 +1,24 @@
 <script lang="ts">
   import { onMount, tick, untrack, setContext } from "svelte";
-  import { AppearanceRoot } from "../../index.ts";
+  import { AppearanceRoot, CatalogWorkspace } from "../../index.ts";
   import { initialPublicCatalogState, projectPublicCatalog, reducePublicCatalog, publicCatalogSurface,
     type PublicCatalogState } from "../../../../public-catalog/client.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
-  import { CatalogWorkspace } from "../../index.ts";
   import type { PlaceIdentity } from "../../../infra/place-identity.ts";
   import { catalogSearchResults, catalogSearchScope, type CatalogDestination, type CatalogSearchResult } from "../../../infra/catalog-search.ts";
-  import { revealSearchTarget } from "../../mechanisms/reveal/reveal.ts";
   import type { WorkspaceContentActions } from "../../../infra/workspace-content.ts";
+  import { provideFocusScope } from "../../../infra/focus-scope.ts";
   import { catalogHistory } from "./catalog-history.ts";
   import type { CatalogProps } from "../../types.d.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let { surface }: CatalogProps<"public-catalog-product-content"> = $props();
   const definition = untrack(() => publicCatalogSurface(surface));
   setContext('catalog-photo-intent', (record: string) => definition.details.find(detail=>detail.record===record)?.image.asset);
+  // The workspace's focus scope, opened here: what opened a detail is returned to by its key (`catalog-return:<record>`,
+  // `search:<id>`), never by an element.
+  const { focus: focusKey, lastActivated } = provideFocusScope();
+  let workspace = $state<ReturnType<typeof CatalogWorkspace>>();
   let viewState = $state.raw(initialPublicCatalogState());
   let active = $state<CatalogDestination>("browse");
   let bankVisited = $state(false);
@@ -24,7 +29,7 @@
   let scope = $derived(catalogSearchScope(definition, active));
   let results = $derived(catalogSearchResults(definition, active, searchQuery));
   let identity: PlaceIdentity = $derived(active === "bank"
-    ? { title: "Component bank", subtitle: "Interactive examples. Changes stay here; no product commands are executed." }
+    ? { title: say(m.publicCatalogProductContent.bank), subtitle: say(m.publicCatalogProductContent.bankSubtitle) }
     : active === "travel-kit" && definition.exercises
       ? { title: definition.exercises.title, subtitle: definition.exercises.subtitle }
       : view.content.kind === "catalog.detail"
@@ -33,38 +38,42 @@
           media: view.content.gallery ? { kind: 'gallery', images:view.content.gallery } : { kind: 'image', ...view.content.image } }
         : { title: definition.title, subtitle: definition.description, media: definition.featuredMedia
           ?? (definition.home.featured.image ? { kind: 'image', ...definition.home.featured.image } : undefined) });
-  type Origin = { selector: string; scroll: number; destination: CatalogDestination; state: PublicCatalogState;
+  type Origin = { focus: string | null; scroll: number; destination: CatalogDestination; state: PublicCatalogState;
     search?: { query: string; scroll: number }; previous?: Origin };
   let opener: Origin | undefined;
+  // The key of the piece focus returns to (the opener of the shown detail, once focus is back on it); a navigation clears it.
+  let returnTo: string | null = null;
   type Snapshot = { active: CatalogDestination; state: PublicCatalogState; opener?: Origin;
     searching: boolean; query: string; scroll: number; searchScroll: number; focus?: string };
   let browserNavigation: ReturnType<typeof catalogHistory<Snapshot>> | undefined;
   const navigation = [{ id: "browse", label: definition.title },
     ...(definition.exercises ? [{ id: "travel-kit", label: definition.exercises.title } as const] : []),
-    { id: "bank", label: "Component bank" }] as const;
-  const scroll = () => document.querySelector<HTMLElement>("[data-catalog-scroll]");
-  const searchScroll = () => document.querySelector<HTMLElement>("[data-catalog-search-scroll]");
+    { id: "bank", label: say(m.publicCatalogProductContent.bank) }] as const;
+  const destinationOf = (id: string): CatalogDestination => {
+    if (id === "browse" || id === "bank" || id === "travel-kit" && definition.exercises) return id;
+    throw new Error("UNKNOWN_CATALOG_DESTINATION");
+  };
+  const positions = () => workspace?.scrollPositions() ?? { content: 0, search: 0 };
   function cancelSearch() { searching = false; searchQuery = ""; }
   async function querySearch(query: string) {
     searchQuery = query; searching = true;
-    await tick(); searchScroll()?.scrollTo(0, 0);
+    await tick(); workspace?.restoreScroll(positions().content, 0);
   }
   async function event(input: NodeEvent) {
     if (input.kind !== "catalog.open" && input.kind !== "catalog.back" && input.kind !== "catalog.search") return;
     if (input.kind === "catalog.search") { await querySearch(input.query); return; }
     if (input.kind === "catalog.open") {
-      const focused = document.activeElement as HTMLElement | null;
-      const marker = `catalog-return-${crypto.randomUUID()}`;
-      if (focused) focused.dataset.catalogReturn = marker;
+      // The activated card (or search result) is the opener even when pointer activation focuses no button (WebKit).
+      returnTo = lastActivated();
       browserNavigation?.capture();
-      opener = { selector: searching ? `[data-search-result="${input.record}"] button` : `[data-catalog-return="${marker}"]`,
-        scroll: scroll()?.scrollTop ?? 0, destination: active, state: viewState, previous: opener,
-        ...(searching ? { search: { query: searchQuery, scroll: searchScroll()?.scrollTop ?? 0 } } : {}) };
+      const { content, search } = positions();
+      opener = { focus: returnTo, scroll: content, destination: active, state: viewState, previous: opener,
+        ...(searching ? { search: { query: searchQuery, scroll: search } } : {}) };
       viewState = reducePublicCatalog(definition, viewState, input);
       active = "browse"; cancelSearch();
       await tick();
-      scroll()?.scrollTo(0, 0);
-      document.querySelector<HTMLElement>("[data-place-header] [data-place-title]")?.focus({ preventScroll: true });
+      workspace?.scrollToTop();
+      workspace?.focusTitle();
       browserNavigation?.push();
       return;
     }
@@ -75,32 +84,28 @@
     active = origin?.destination ?? "browse";
     searching = Boolean(origin?.search); searchQuery = origin?.search?.query ?? "";
     await tick();
-    scroll()?.scrollTo(0, origin?.scroll ?? 0);
-    if (origin?.search) searchScroll()?.scrollTo(0, origin.search.scroll);
-    if (origin) document.querySelector<HTMLElement>(origin.selector)?.focus({ preventScroll: true });
+    workspace?.restoreScroll(origin?.scroll ?? 0, origin?.search?.scroll ?? 0);
+    returnTo = origin?.focus ?? null;
+    if (returnTo !== null) focusKey(returnTo);
     browserNavigation?.capture();
   }
   async function selectSearchResult(result: CatalogSearchResult) {
-    if (result.kind === "record") {
-      // The activated result owns the return target even when pointer activation
-      // does not focus buttons (WebKit). Capture it before changing the place.
-      document.querySelector<HTMLElement>(`[data-search-result="${result.id}"] button`)?.focus({ preventScroll: true });
-      await event({ kind: "catalog.open", record: result.id }); return;
-    }
+    if (result.kind === "record") { await event({ kind: "catalog.open", record: result.id }); return; }
     cancelSearch(); await tick();
     if (result.kind === "bank") { await bank?.revealEntry(result.id); return; }
-    const target = document.querySelector<HTMLElement>(`[data-place-stack="${result.id}"]`);
-    if (target) revealSearchTarget(target, scroll());
+    await workspace?.revealItem(result.id);
   }
-  async function navigate(destination: typeof active) {
+  async function navigate(id: string) {
+    const destination = destinationOf(id);
     if (destination === active && viewState.selectedId === null) return;
+    returnTo = null;
     browserNavigation?.capture();
     if (destination === "bank") bankVisited = true;
     active = destination;
     cancelSearch(); opener = undefined;
     if (destination === "browse") viewState = reducePublicCatalog(definition, viewState, { kind: "catalog.back" });
-    await tick(); scroll()?.scrollTo(0, 0);
-    document.querySelector<HTMLElement>("[data-catalog-content]")?.focus({ preventScroll: true });
+    await tick(); workspace?.scrollToTop();
+    workspace?.focusContent();
     browserNavigation?.push();
   }
   onMount(() => {
@@ -112,18 +117,13 @@
       try { viewState = reducePublicCatalog(definition, viewState, { kind: 'catalog.open', record }); }
       catch { /* Unknown public record: retain the safe catalog home. */ }
     }
-    browserNavigation = catalogHistory<Snapshot>(() => ({ active, state: viewState, opener, searching,
-      query: searchQuery, scroll: scroll()?.scrollTop ?? 0, searchScroll: searchScroll()?.scrollTop ?? 0,
-      focus: document.activeElement?.closest<HTMLElement>('[data-search-result]')
-        ? `[data-search-result="${document.activeElement.closest<HTMLElement>('[data-search-result]')!.dataset.searchResult}"] button`
-        : (document.activeElement as HTMLElement | null)?.dataset.catalogReturn
-          ? `[data-catalog-return="${(document.activeElement as HTMLElement).dataset.catalogReturn}"]` : undefined }), async snapshot => {
+    browserNavigation = catalogHistory<Snapshot>(() => ({ active, state: viewState, opener, searching, query: searchQuery,
+      scroll: positions().content, searchScroll: positions().search, ...(returnTo === null ? {} : { focus: returnTo }) }), async snapshot => {
       active = snapshot.active; viewState = snapshot.state; opener = snapshot.opener;
       bankVisited ||= active === 'bank'; searching = snapshot.searching; searchQuery = snapshot.query;
-      await tick(); scroll()?.scrollTo(0, snapshot.scroll); searchScroll()?.scrollTo(0, snapshot.searchScroll);
-      const target = snapshot.focus ? document.querySelector<HTMLElement>(snapshot.focus)
-        : document.querySelector<HTMLElement>('[data-place-header] [data-place-title]');
-      (target ?? scroll())?.focus({ preventScroll: true });
+      await tick(); workspace?.restoreScroll(snapshot.scroll, snapshot.searchScroll);
+      returnTo = snapshot.focus ?? null;
+      if (returnTo === null || !focusKey(returnTo)) workspace?.focusTitle();
     }, snapshot => {
       const url = new URL(window.location.href);
       if (snapshot.active === 'browse') url.searchParams.delete('place'); else url.searchParams.set('place', snapshot.active);
@@ -138,8 +138,8 @@
 </script>
 
 <AppearanceRoot />
-<svelte:head><title>{definition.title} · DESERT</title></svelte:head>
-<CatalogWorkspace navigationSurface={{ title:definition.title, settingsPlaceholder:true }} title={scope.title} {identity} {navigation} {active} query={searchQuery} {searching}
+<CatalogWorkspace bind:this={workspace} documentTitle={say(m.publicCatalogProductContent.documentTitle, { title: definition.title })}
+  navigationSurface={{ title:definition.title, settingsPlaceholder:true }} title={scope.title} {identity} {navigation} {active} query={searchQuery} {searching}
   onquery={querySearch} onsearch={() => searching = true} oncancel={cancelSearch} onnavigate={navigate}
   detail={active === "browse" && viewState.selectedId !== null} onback={() => void event({ kind: "catalog.back" })}
   searchContent={{ kind: "catalog", title: scope.title, description: scope.description, results, onselect: selectSearchResult }}

@@ -62,7 +62,7 @@ for (const width of [390, 1280]) for (const scale of [1, 2]) {
       await trigger.click();
       const input = page.getByRole('searchbox', { name: 'Search component bank', exact: true });
       await input.fill('money'); await settle(page);
-      const results = page.locator('[data-search-result]');
+      const results = page.locator('[data-focus-key^="search:"]');
       assert.equal(await results.count(), 1, 'Search actually filters the component inventory');
       assert.match(await results.innerText(), /Money/);
       await page.keyboard.press('Escape'); await settle(page);

@@ -31,8 +31,14 @@ test("one toolbar owner reaches persistent frames, transient dialogs and the cat
   const owner = resolve(import.meta.dirname, "../src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte");
   const original = await readFile(owner, "utf8");
   assert.ok(original.includes('data-piece="toolbar"'));
+  // The workspace's bars are the Bar foundation's (lane F, on the shell); frames and dialogs keep ToolbarLayout until they
+  // move to Bar too (lane E). Each owner is probed: one draws the catalog shell's rails, the other every frame's.
+  const bar = resolve(import.meta.dirname, "../src/svelte/catalog/foundations/bar/Bar.svelte");
+  const barSource = await readFile(bar, "utf8");
+  assert.ok(barSource.includes('data-piece="toolbar"'));
   const f = await svelteBrowser(source, {
     [owner]: original.replace('data-piece="toolbar"', 'data-piece="toolbar" data-owner-probe="shared"'),
+    [bar]: barSource.replace('data-piece="toolbar"', 'data-piece="toolbar" data-owner-probe="bar"'),
   });
   try {
     await f.page.addStyleTag({ content: await rendererCss() });
@@ -45,7 +51,7 @@ test("one toolbar owner reaches persistent frames, transient dialogs and the cat
       "the navigation return and this fixture's optional settings toolbar belong to the same landmark");
     assert.deepEqual((await new AxeBuilder({ page: f.page }).withRules(['landmark-banner-is-top-level', 'landmark-unique', 'region']).analyze()).violations, []);
     assert.equal(await f.page.locator('[data-persistent] [data-owner-probe="shared"]').count(), 1);
-    assert.equal(await f.page.locator('[data-catalog-toolbar][data-owner-probe="shared"]').count(), 1);
+    assert.equal(await f.page.locator('[data-catalog-toolbar][data-owner-probe="bar"]').count(), 1);
     assert.equal(await f.page.locator('[data-catalog-toolbar] [data-piece="face"]').count(), 0,
       "catalog navigation does not acquire an ornamental face");
     await f.page.getByRole('button', { name: 'Open message', exact: true }).click();

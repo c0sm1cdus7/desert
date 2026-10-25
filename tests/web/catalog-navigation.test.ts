@@ -40,15 +40,15 @@ test("catalog toolbar searches names, identifiers and states only in an overlay,
     const find = f.page.getByRole("searchbox", { name: "Search component bank", exact: true });
     const results = f.page.locator("[data-catalog-search-scroll]");
     await find.fill("  MONEY  ");
-    assert.equal(await results.locator("[data-search-result]").count(), 1);
-    assert.equal(await results.locator('[data-search-result="control.money"]').isVisible(), true);
+    assert.equal(await results.locator("[data-focus-key^='search:']").count(), 1);
+    assert.equal(await results.locator('[data-focus-key="search:control.money"]').isVisible(), true);
     await find.fill("input.multiline");
-    assert.equal(await results.locator("[data-search-result]").count(), 1);
-    assert.equal(await results.locator('[data-search-result="input.multiline"]').isVisible(), true);
+    assert.equal(await results.locator("[data-focus-key^='search:']").count(), 1);
+    assert.equal(await results.locator('[data-focus-key="search:input.multiline"]').isVisible(), true);
     await find.fill("uncertain");
-    assert.equal(await results.locator('[data-search-result="review"]').isVisible(), true);
+    assert.equal(await results.locator('[data-focus-key="search:review"]').isVisible(), true);
     await find.fill("not-a-catalog-component");
-    assert.equal(await results.locator("[data-search-result]").count(), 0);
+    assert.equal(await results.locator("[data-focus-key^='search:']").count(), 0);
     await results.getByText("No matching results", { exact: true }).waitFor();
     assert.equal(await f.page.locator("[data-view-item^='entry:'][hidden]").count(), 0,
       "search never filters retained surface content");

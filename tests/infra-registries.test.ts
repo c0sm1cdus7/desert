@@ -36,6 +36,26 @@ test("focus scope: releasing the current registration gives the key back to the 
   assert.deepEqual(calls, ["featured", "listed"]);
 });
 
+test("focus scope: a newer registration of a key shadows the older one until it is released", () => {
+  // A search result and the home card that show the same record answer to one return key: the one mounted last (the
+  // open search) takes focus, and the home card answers again once the search is gone.
+  const scope = focusScope(), calls: string[] = [];
+  scope.register("catalog-return:fuji", () => { calls.push("home"); return true; });
+  const releaseSearch = scope.register("catalog-return:fuji", () => { calls.push("search"); return true; });
+  assert.equal(scope.focus("catalog-return:fuji"), true);
+  releaseSearch();
+  assert.equal(scope.focus("catalog-return:fuji"), true);
+  assert.deepEqual(calls, ["search", "home"]);
+});
+
+test("focus scope: when the newest registration of a key cannot take focus (it is hidden), the one it covers is focused", () => {
+  const scope = focusScope(), calls: string[] = [];
+  scope.register("catalog-return:cover", () => { calls.push("shown"); return true; });
+  scope.register("catalog-return:cover", () => { calls.push("hidden"); return false; });
+  assert.equal(scope.focus("catalog-return:cover"), true);
+  assert.deepEqual(calls, ["hidden", "shown"]);
+});
+
 test("focus scope: the last activated key is remembered for a return", () => {
   const scope = focusScope();
   assert.equal(scope.lastActivated(), null);

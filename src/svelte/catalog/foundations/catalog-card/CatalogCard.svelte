@@ -13,7 +13,8 @@
   }
   // The card answers to `catalog-return:<record>` in the nearest focus scope and reports its activation under that key, so
   // what it opened can return focus to it: Inspection's Back by the last activated key, the library viewer by its record.
-  // Opening registers the card again, so of several cards of one record (featured and listed) the opened one answers.
+  // The newest registration of a record answers: a search result mounted over the home card shadows it while shown, and
+  // opening registers the card again, so of several cards of one record (featured and listed) the opened one answers.
   const scope = useFocusScope();
   const key = $derived(`catalog-return:${node.record}`);
   let action = $state<HTMLElement | null>(null), activations = $state(0);

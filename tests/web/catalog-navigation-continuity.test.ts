@@ -43,7 +43,7 @@ for (const width of [390, 1280]) test(`search detail history restores query, res
     await page.locator('[data-catalog-scroll]').evaluate(element => element.scrollTop = 400); await settle(page);
     const origin = await lifecycleEvidence(page, `search-history-${width}-origin`);
     await (await search(page)).fill('Fuji');
-    const result = page.locator('[data-search-result]').getByRole('button', { name: 'Mount Fuji', exact: true });
+    const result = page.locator('[data-catalog-search-scroll]').getByRole('button', { name: 'Mount Fuji', exact: true });
     await result.click(); await settle(page);
     await lifecycleEvidence(page, `search-history-${width}-activated`);
     assert.ok(new URL(page.url()).searchParams.has('record'));

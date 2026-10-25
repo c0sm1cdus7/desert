@@ -4,14 +4,18 @@
   import type { CatalogProps } from "../../types.d.ts";
   let { title, description, icon, tone, size, heading, label }: CatalogProps<"status"> = $props();
   const roles = { neutral: undefined, offline: "status", note: "note" } as const;
+  // A prompt (a search before its query) sets its title in the page role over a 32px muted glyph, at a wider measure.
+  let prompt = $derived(size === "prompt");
 </script>
 
-{#if size === "regular"}
-  <Empty.Root role={roles[tone]} aria-label={label} data-status={tone}>
-    <Empty.Header>
-      {#if icon}<Empty.Media><Icon name={icon} decorative /></Empty.Media>{/if}
-      <Empty.Title role={heading ? "heading" : undefined} aria-level={heading ? 2 : undefined}>{title}</Empty.Title>
-      {#if description}<Empty.Description>{description}</Empty.Description>{/if}
+{#if size === "regular" || size === "prompt"}
+  <Empty.Root role={roles[tone]} aria-label={label} data-status={tone} class={prompt ? "px-0 py-6" : undefined}>
+    <Empty.Header class={prompt ? "max-w-[32rem] gap-3" : undefined}>
+      {#if icon}<Empty.Media class={prompt ? "text-muted-foreground [&_svg]:size-8" : undefined}><Icon name={icon} decorative /></Empty.Media>{/if}
+      <Empty.Title role={heading ? "heading" : undefined} aria-level={heading ? 2 : undefined}>
+        {#if prompt}<span class="type-page block">{title}</span>{:else}{title}{/if}
+      </Empty.Title>
+      {#if description}<Empty.Description class={prompt ? "max-w-[28rem] leading-normal" : undefined}>{description}</Empty.Description>{/if}
     </Empty.Header>
   </Empty.Root>
 {:else}
