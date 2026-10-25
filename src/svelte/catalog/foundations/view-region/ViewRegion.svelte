@@ -32,7 +32,8 @@
     hidden={visible === false || undefined}>{@render children?.()}</article>
 {:else if kind === "retained"}
   <!-- Only a page of the workspace's main scroll takes the place inset (`inset`); a retained region inside it adds none. -->
-  <div bind:this={element} class:place-retained={inset} data-retained-place hidden={visible === false || undefined}>{@render children?.()}</div>
+  <!-- A padded retained place resolves its content's width for the rails inside (--place-frame-width, view-region.css). -->
+  <div bind:this={element} class:place-retained={inset} data-retained-place hidden={visible === false || undefined}>{#if inset}<div class="place-retained-content">{@render children?.()}</div>{:else}{@render children?.()}{/if}</div>
 {:else if stacked}
   <!-- A stacked bare region (a surface's content flow) stands its pieces at the gap of any two stacks of a page. -->
   <div class="grid min-w-0 gap-regular" hidden={visible === false || undefined}>{@render children?.()}</div>

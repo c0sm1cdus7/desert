@@ -6,5 +6,8 @@
 /* A retained place that is a page of the workspace's main scroll (`inset`) keeps the place inset beside the docked
    navigation; a retained region nested in such a page (the Visual Catalog's inspection) adds none. */
 .place-retained[data-retained-place] { padding:24px var(--place-surface-inset) 26px; padding-inline-start:calc(var(--place-leading-inset) + var(--place-surface-inset));
-  /* The padding a flush rail inside may bleed over (the theme's place-insets-flush). */
-  --place-frame-inset:var(--place-surface-inset); }
+  /* The padding a flush rail inside may bleed over (the theme's place-insets-flush), and the width of its content, which
+     such a rail reaches to past a narrower column (--place-frame-width, resolved on its children against this frame). */
+  --place-frame-inset:var(--place-surface-inset); container:place-frame / inline-size; }
+@property --place-frame-width { syntax:"<length>"; inherits:true; initial-value:0px; }
+.place-retained-content { --place-frame-width:100cqw; }

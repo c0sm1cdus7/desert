@@ -36,3 +36,27 @@ test("a nested home rail bleeds to the surface's edge inside a padded place, and
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
+
+// Fourth review of the slice 3 package, read on a four-card photo at 1280: inside a padded place whose content stands in a
+// narrower reading column (the Visual Catalog's examples, 52rem), the rail stopped at that column's end and cut its fourth
+// card mid-word, 156px short of the surface's edge. A rail runs to the place's edge on both sides, whatever column holds it.
+test("a nested home rail in a narrower column still runs to the place's edge", async () => {
+  const f = await mounted(`<div class="place-insets" style="width:1000px" data-surface="wide">
+      <Catalog.ViewRegion kind="retained" id="nested" inset><div style="max-width:520px">${home}</div></Catalog.ViewRegion></div>`,
+  `  import CatalogHome from "@desert/svelte/catalog/compositions/catalog-home/CatalogHome.svelte";
+  const items = ${JSON.stringify(items)};`);
+  try {
+    await f.page.setViewportSize({ width: 1000, height: 1600 });
+    const seen = await f.page.evaluate(() => { const scope = document.querySelector("[data-surface]")!, surface = scope.getBoundingClientRect();
+      const rail = scope.querySelector('[role="region"][aria-label="Illustrations"]')!, box = rail.getBoundingClientRect();
+      const stack = scope.querySelector("[data-stack-item]")!.getBoundingClientRect();
+      return { surface: [surface.left, surface.right], rail: [box.left, box.right], stack: [stack.left, stack.right],
+        first: rail.firstElementChild!.getBoundingClientRect().left, scrolls: rail.scrollWidth > rail.clientWidth }; });
+    const shown = JSON.stringify(seen);
+    assert.ok(seen.stack[1]! < seen.surface[1]! - 100, `the column is narrower than the place: ${shown}`);
+    assert.ok(seen.scrolls, `the four cards overflow the rail: ${shown}`);
+    assert.deepEqual(seen.rail, seen.surface, `the rail runs from the place's edge to its edge: ${shown}`);
+    assert.ok(Math.abs(seen.first - seen.stack[0]! - 16) <= .5, `its first card stays on the stack's row inset: ${shown}`);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
