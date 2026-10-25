@@ -13,12 +13,14 @@
   </ViewRegion>
 {/if}
 <!-- The rails sit in a section under the featured entry (or the place heading); each rail is its group's labelled region. -->
-<Column gap="relaxed" inset="section">
+<!-- At 79d8322's rhythm (third review): each rail 22px under what precedes it, its title 10px over its cards, its cards
+     14px apart. -->
+<Column gap="airy" inset="section">
   {#each node.groups as group (group.id)}
     <ViewRegion kind="item" id={group.id}>
-      <Column gap="close" leading={placement === "page"}>
+      <Column gap="cozy" leading={placement === "page"}>
         <Column gap="snug" inset="content"><Heading kind="section" text={group.title} /></Column>
-        <Inline gap="close" overflow="scroll" label={group.title}>
+        <Inline gap="near" overflow="scroll" label={group.title}>
           {#each group.items as item (item.record)}<NodeRenderer node={item} {onevent} />{/each}
         </Inline>
       </Column>

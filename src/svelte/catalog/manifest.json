@@ -1015,16 +1015,21 @@
         "gap": [
           "tight",
           "snug",
+          "cozy",
           "close",
+          "near",
           "regular",
           "loose",
+          "airy",
           "relaxed",
+          "ample",
           "section"
         ],
         "measure": [
           "reading",
           "narrow",
-          "wide"
+          "wide",
+          "prose"
         ]
       }
     },

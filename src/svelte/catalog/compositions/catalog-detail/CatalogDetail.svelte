@@ -17,7 +17,8 @@
 <Column gap="snug" inset={placement === "page" ? "reading" : "block"} leading={placement === "page"}>
   {#if !bodyOnly}<StackItem placement="content"><Heading kind="page" text={node.title} focusTarget /></StackItem>{/if}
   <ViewRegion kind="item" id="about">
-    <Column gap="snug" measure="reading">
+    <!-- The prose reads at the width it read at 79d8322 (third review), not the forms' reading measure. -->
+    <Column gap="snug" measure="prose">
       <StackLayout title={say(m.catalogDetail.about)}>
         {#if node.description}<StackItem placement="content"><Text kind="body" text={node.description} wrap="lines" /></StackItem>{/if}
       </StackLayout>

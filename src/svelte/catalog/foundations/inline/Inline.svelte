@@ -2,7 +2,7 @@
   import type { CatalogProps } from "../../types.d.ts";
   let { gap, align = "center", justify = "start", overflow, label, children }: CatalogProps<"inline"> = $props();
   // Literal class names, so the theme's Tailwind scan sees every step; each gap length is the theme's spacing token.
-  const gaps = { tight: "gap-tight", snug: "gap-snug", close: "gap-close", regular: "gap-regular", loose: "gap-loose", relaxed: "gap-relaxed", section: "gap-section" } as const;
+  const gaps = { tight: "gap-tight", snug: "gap-snug", cozy: "gap-cozy", close: "gap-close", near: "gap-near", regular: "gap-regular", loose: "gap-loose", airy: "gap-airy", relaxed: "gap-relaxed", ample: "gap-ample", section: "gap-section" } as const;
   const aligns = { start: "items-start", center: "items-center", baseline: "items-baseline", end: "items-end" } as const;
   const justifies = { start: "justify-start", center: "justify-center", end: "justify-end", between: "justify-between" } as const;
   // A scroll rail runs to the surface's edge (over the margin of a page it is shown in, --place-bleed), its first piece at

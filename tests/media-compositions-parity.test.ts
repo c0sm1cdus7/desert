@@ -1,8 +1,8 @@
 // Slice 3 (lane D): the media and catalog compositions are composed of foundations only, and they keep the pixels of the
 // trees they replace, rendered live beside their frozen sources (tests/fixtures/media-compositions-before.ts) at a catalog
 // workspace's insets. The differences are DESIGN's: the media list item's label takes the row's medium weight (§1.4); the
-// catalog rails' title margins become Column gaps (§7.3: 24px above a rail's title, 12px under it, 12px between cards
-// where the rail drew 14px); and the rail and detail titles return to the content axis the theme's heading margins gave
+// catalog rails' title margins become Column gaps (§7.3) at the frozen lengths (third review: 22px above a rail's title,
+// 10px under it, 14px between cards, as the frozen tree drew them; the scale's 24/12/12 was a stretch); and the rail and detail titles return to the content axis the theme's heading margins gave
 // them before F1a removed those margins.
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
@@ -77,15 +77,17 @@ test("media and catalog compositions keep the frozen trees' pixels, but for DESI
       assert.deepEqual(titles.map(box => box[0]), titles.map(() => axis), `${name}: titles on the content axis`);
       assert.deepEqual(cards.map(box => box[2]), before.map(box => box[2]), `${name}: card sizes`);
       assert.equal(cards[0]?.[0], before[0]?.[0], `${name}: the rail starts where it did`);
-      assert.equal((cards[1]?.[0] ?? 0) - ((cards[0]?.[0] ?? 0) + (cards[0]?.[2] ?? 0)), 12, `${name}: 12px between cards`);
-      // §7.3: a rail's title sits 12px over its cards, and each rail 24px under what precedes it.
+      const gap = (row: typeof cards) => (row[1]?.[0] ?? 0) - ((row[0]?.[0] ?? 0) + (row[0]?.[2] ?? 0));
+      assert.equal(gap(cards), gap(before), `${name}: the frozen space between cards`);
+      assert.equal(gap(cards), 14, `${name}: 14px between cards`);
+      // §7.3 at the frozen lengths: a rail's title sits 10px over its cards, and each rail 22px under what precedes it.
       for (const [index, [, top = 0, , height = 0] = []] of titles.entries()) {
         const rail = cards.find(box => (box[1] ?? 0) > top);
-        assert.equal(Math.round((rail?.[1] ?? 0) - (top + height)), 12, `${name}: title ${index} to its rail`);
+        assert.equal(Math.round((rail?.[1] ?? 0) - (top + height)), 10, `${name}: title ${index} to its rail`);
       }
-      assert.equal(Math.round((titles[1]?.[1] ?? 0) - ((cards[1]?.[1] ?? 0) + (cards[1]?.[3] ?? 0))), 24, `${name}: 24px between rails`);
+      assert.equal(Math.round((titles[1]?.[1] ?? 0) - ((cards[1]?.[1] ?? 0) + (cards[1]?.[3] ?? 0))), 22, `${name}: 22px between rails`);
     }
-    assert.equal(Math.round((boxes(now, "home-page", "title")[0]?.[1] ?? 0)), 24, "the rails' section starts 24px under the place heading");
+    assert.equal(Math.round((boxes(now, "home-page", "title")[0]?.[1] ?? 0)), 22, "the rails' section starts 22px under the place heading");
     // A detail: the photograph is unchanged; its reading keeps its axis, 8px lower under the title (its margin as a gap).
     assert.deepEqual(now.detail?.gallery, old.detail?.gallery, "detail photograph");
     // Second review of the slice 3 package: a detail nested in another page reads on that page's row inset (16px), not at

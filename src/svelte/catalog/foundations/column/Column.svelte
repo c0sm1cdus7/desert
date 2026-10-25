@@ -2,12 +2,13 @@
   import type { CatalogProps } from "../../types.d.ts";
   let { gap, measure, align = "stretch", inset, leading = false, fill = false, children }: CatalogProps<"column"> = $props();
   // Literal class names, so the theme's Tailwind scan sees every step; each length is the theme's spacing token.
-  const gaps = { tight: "gap-tight", snug: "gap-snug", close: "gap-close", regular: "gap-regular", loose: "gap-loose", relaxed: "gap-relaxed", section: "gap-section" } as const;
+  const gaps = { tight: "gap-tight", snug: "gap-snug", cozy: "gap-cozy", close: "gap-close", near: "gap-near", regular: "gap-regular", loose: "gap-loose", airy: "gap-airy", relaxed: "gap-relaxed", ample: "gap-ample", section: "gap-section" } as const;
   const aligns = { start: "justify-items-start", center: "justify-items-center text-center", stretch: "" } as const;
-  const measures = { reading: "w-full max-w-[34rem]", narrow: "mx-auto w-[min(100%,30rem)]", wide: "w-full max-w-[52rem]" } as const;
+  // prose: 65ch of the 16px prose a document read at (655.078px), plus its stacks' 1rem row insets.
+  const measures = { reading: "w-full max-w-[34rem]", narrow: "mx-auto w-[min(100%,30rem)]", wide: "w-full max-w-[52rem]", prose: "w-full max-w-[calc(655.078px+2rem)]" } as const;
   // The place's insets (surface geometry): the content inset, a reading block's padding around pieces at the row inset, a
   // section's block padding, or the row inset itself (the 1rem a stack's titles, rows and text read at).
-  const insets = { content: "px-[var(--place-content-inset,42px)]", reading: "pt-6 pb-12 px-[calc(var(--place-content-inset,26px)-1rem)]", block: "pt-6 pb-12", section: "py-6",
+  const insets = { content: "px-[var(--place-content-inset,42px)]", reading: "pt-6 pb-12 px-[calc(var(--place-content-inset,26px)-1rem)]", block: "pt-6 pb-12", section: "pt-[var(--spacing-airy)] pb-6",
     row: "px-4" } as const;
   // A filling column is a flex column at least as tall as its container, so a block that grows (a status) takes the rest.
   let layout = $derived(fill ? "flex min-h-full flex-col" : "grid");

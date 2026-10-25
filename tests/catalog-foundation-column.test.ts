@@ -5,10 +5,10 @@ import { readFile } from "node:fs/promises";
 import { GapSchema } from "../src/interaction/spacing.ts";
 import { contractShape, mounted, specimenFindings } from "./support/foundation.ts";
 
-const steps = ["tight", "snug", "close", "regular", "loose", "relaxed", "section"];
+const steps = ["tight", "snug", "cozy", "close", "near", "regular", "loose", "airy", "relaxed", "ample", "section"];
 
 test("column: the contract offers a gap step, a measure, an alignment, the place insets and fill, nothing else", async () => {
-  assert.deepEqual(await contractShape("column"), { gap: steps, "measure?": ["reading", "narrow", "wide"], "align?": ["start", "center", "stretch"],
+  assert.deepEqual(await contractShape("column"), { gap: steps, "measure?": ["reading", "narrow", "wide", "prose"], "align?": ["start", "center", "stretch"],
     "inset?": ["content", "reading", "block", "section", "row"], "leading?": "boolean", "fill?": "boolean" });
 });
 
@@ -28,17 +28,20 @@ test("column: gaps are the spacing steps; measures cap the width; alignment plac
   <Catalog.Column gap="regular" measure="reading"><span>reading</span></Catalog.Column>
   <Catalog.Column gap="regular" measure="narrow" align="center"><span>narrow</span></Catalog.Column>
   <Catalog.Column gap="regular" measure="wide" align="start"><span>wide</span></Catalog.Column>
-</div>`, `  const gaps = ["tight", "snug", "close", "regular", "loose", "relaxed", "section"] as const;`);
+  <Catalog.Column gap="regular" measure="prose"><span>prose</span></Catalog.Column>
+</div>`, `  const gaps = ["tight", "snug", "cozy", "close", "near", "regular", "loose", "airy", "relaxed", "ample", "section"] as const;`);
   try {
     const columns = await f.page.locator("[data-probe-host] > div").evaluateAll(nodes => nodes.map(node => {
       const style = getComputedStyle(node), box = node.getBoundingClientRect(), host = node.parentElement!.getBoundingClientRect();
       return { gap: style.rowGap, width: Math.round(box.width), left: Math.round(box.left - host.left), justify: style.justifyItems,
         text: style.textAlign, reading: node.hasAttribute("data-reading-measure") };
     }));
-    assert.deepEqual(columns.slice(0, 7).map(column => column.gap), ["4px", "8px", "12px", "16px", "20px", "24px", "32px"]);
-    assert.deepEqual(columns.slice(7).map(({ width, left, reading }) => ({ width, left, reading })),
-      [{ width: 544, left: 0, reading: true }, { width: 480, left: 210, reading: false }, { width: 832, left: 0, reading: false }]);
-    assert.deepEqual(columns.slice(8).map(({ justify, text }) => ({ justify, text })), [{ justify: "center", text: "center" }, { justify: "start", text: "start" }]);
+    // Third review: the steps 10, 14, 22 and 28 are the lengths the home rails and the access form drew at 79d8322.
+    assert.deepEqual(columns.slice(0, 11).map(column => column.gap), ["4px", "8px", "10px", "12px", "14px", "16px", "20px", "22px", "24px", "28px", "32px"]);
+    // The prose measure is the 65ch of the 16px prose a catalog detail read at (79d8322), plus its 1rem row insets.
+    assert.deepEqual(columns.slice(11).map(({ width, left, reading }) => ({ width, left, reading })),
+      [{ width: 544, left: 0, reading: true }, { width: 480, left: 210, reading: false }, { width: 832, left: 0, reading: false }, { width: 687, left: 0, reading: false }]);
+    assert.deepEqual(columns.slice(12, 14).map(({ justify, text }) => ({ justify, text })), [{ justify: "center", text: "center" }, { justify: "start", text: "start" }]);
     assert.equal(columns[0]?.justify, "normal", "without an alignment a column stretches its pieces, as a grid does");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
@@ -72,7 +75,8 @@ test("column: the content inset, the reading block, the section and the leading 
       { padding: "0px 42px 0px 42px", margin: "0px", text: 42 },
       { padding: "24px 26px 48px 26px", margin: "0px", text: 26 },
       { padding: "24px 26px 48px 26px", margin: "100px", text: 126 },
-      { padding: "24px 0px 24px 0px", margin: "0px", text: 0 },
+      // Third review: a catalog's rails start 22px under what precedes them (79d8322's group padding), and end 24px above.
+      { padding: "22px 0px 24px 0px", margin: "0px", text: 0 },
       { padding: "0px 0px 0px 0px", margin: "0px", text: 0 },
       // Slice 3 package: an unframed example (an avatar, a tag rail) reads on its stack's 1rem row inset, whatever the place.
       { padding: "0px 16px 0px 16px", margin: "0px", text: 16 },

@@ -13,10 +13,7 @@
     results: "grid-cols-3 @max-[37.75rem]:grid-cols-1",
   } as const;
   // Each step also names the gap the covers recipe counts its columns with.
-  const gaps = { tight: "gap-tight [--grid-gap:var(--spacing-tight)]", snug: "gap-snug [--grid-gap:var(--spacing-snug)]",
-    close: "gap-close [--grid-gap:var(--spacing-close)]", regular: "gap-regular [--grid-gap:var(--spacing-regular)]",
-    loose: "gap-loose [--grid-gap:var(--spacing-loose)]", relaxed: "gap-relaxed [--grid-gap:var(--spacing-relaxed)]",
-    section: "gap-section [--grid-gap:var(--spacing-section)]" } as const;
+  const gaps = { tight: "gap-tight [--grid-gap:var(--spacing-tight)]", snug: "gap-snug [--grid-gap:var(--spacing-snug)]", cozy: "gap-cozy [--grid-gap:var(--spacing-cozy)]", close: "gap-close [--grid-gap:var(--spacing-close)]", near: "gap-near [--grid-gap:var(--spacing-near)]", regular: "gap-regular [--grid-gap:var(--spacing-regular)]", loose: "gap-loose [--grid-gap:var(--spacing-loose)]", airy: "gap-airy [--grid-gap:var(--spacing-airy)]", relaxed: "gap-relaxed [--grid-gap:var(--spacing-relaxed)]", ample: "gap-ample [--grid-gap:var(--spacing-ample)]", section: "gap-section [--grid-gap:var(--spacing-section)]" } as const;
   // A piece is laid out in its own track: never wider than it, so it never draws over its neighbour or past the grid.
   const cells = "*:min-w-0 *:max-w-full";
 </script>

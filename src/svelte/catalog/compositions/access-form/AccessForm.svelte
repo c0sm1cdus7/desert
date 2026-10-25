@@ -42,7 +42,8 @@
 <!-- Centred at the reading measure, as the form was (margin-inline:auto); the form starts its fields' text again. -->
 <Column gap="relaxed" align="center"><Column gap="relaxed" measure="reading">
   <Form label={creating ? say(m.accessForm.createIdentity) : say(m.accessForm.unlock)} fill={false} submit={() => void submit()}>
-    <Column gap="relaxed">
+    <!-- Its blocks stand 1.75rem apart, as at 79d8322 (third review: the 1.5rem step read 4px tighter). -->
+    <Column gap="ample">
       <!-- The header's rhythm (79d8322): caption and avatar .5rem apart, the headline 1.25rem below them (its old .75rem
            margin over the .5rem gap), its intro .5rem below it. -->
       <Column gap="loose" align="center">

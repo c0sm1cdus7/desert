@@ -80,7 +80,7 @@
 }
 @media (max-width:767px) { :root { --catalog-hero-height:360px; --catalog-media-height:160px; } }
 /* The spacing scale layout pieces separate their children by (GapSchema in src/interaction/spacing.ts names the steps). */
-@theme { --spacing-tight:var(--heading-copy-gap); --spacing-snug:.5rem; --spacing-close:.75rem; --spacing-regular:1rem; --spacing-loose:1.25rem; --spacing-relaxed:1.5rem; --spacing-section:2rem; }
+@theme { --spacing-tight:var(--heading-copy-gap); --spacing-snug:.5rem; --spacing-cozy:.625rem; --spacing-close:.75rem; --spacing-near:.875rem; --spacing-regular:1rem; --spacing-loose:1.25rem; --spacing-airy:1.375rem; --spacing-relaxed:1.5rem; --spacing-ample:1.75rem; --spacing-section:2rem; }
 /* Surface geometry (from the surface-chrome, surface-reading and lateral-surface-motion mechanisms): the transient
    surface's radius, edge inset and scrim, the navigation row insets, the lateral motion, and the reading guide content
    and toolbar identity align to. The theme writes every value; an owner applies the utility of the surface it draws. */

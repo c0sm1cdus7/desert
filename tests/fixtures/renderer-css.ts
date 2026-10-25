@@ -17,7 +17,10 @@ export function inlineBaseStylesheets(theme: string): string {
 export function themeBeforePrune(): string {
   const theme = pruneBefore["src/svelte/theme.css"];
   if (theme === undefined) throw new Error("PARITY: no frozen f7247e4 theme.css");
-  return inlineBaseStylesheets(theme);
+  // The spacing steps the third review added to the scale (79d8322's 10, 14, 22 and 28px, which today's compositions use
+  // on both sides of a parity page) did not exist at f7247e4: the frozen theme carries them, nothing else changes.
+  return inlineBaseStylesheets(theme)
+    + "\n@theme { --spacing-cozy:.625rem; --spacing-near:.875rem; --spacing-airy:1.375rem; --spacing-ample:1.75rem; }\n";
 }
 
 /** Today's theme with the stylesheets Batch 3 deleted appended at their f7247e4 text: a page that renders frozen sources
