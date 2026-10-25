@@ -15,10 +15,10 @@
   const remove = (index: number) => onevent?.({ kind: "labels.change", control: node.id, values: node.values.filter((_, position) => position !== index) });
 </script>
 {#if node.mediaReference}<MediaReferenceSelector {node} {onevent} />{:else if node.reference}<ReferenceSelector {node} {onevent} />{:else}
-<!-- Its chips and its action stand on the group's edge, and so does its title. -->
-<StackLayout title={node.label} titleAxis="edge">
-  <!-- The chosen labels, the action that writes a new one and the control's error stand 1rem apart. -->
-  <Column gap="regular">
+<StackLayout title={node.label}>
+  <!-- The chosen labels, the action that writes a new one and the control's error stand 1rem apart, unframed, on the row
+       inset where the group's heading starts (law 9b: one group-heading axis; a tag rail shown alone stands there too). -->
+  <Column gap="regular" inset="row">
     {#if node.values.length}
       <Inline gap="snug" overflow="wrap">
         {#each node.values as value, index (index)}

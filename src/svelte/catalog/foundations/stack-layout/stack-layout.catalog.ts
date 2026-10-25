@@ -8,7 +8,7 @@ export const StackLayout = defineFoundation({
   purpose: { key: "stackLayout.purpose" }, messages: ["stackLayout.purpose"],
   owner: { entry: "StackLayout.svelte", parts: ["stack-layout.css"] },
   shape: "none", states: ["default", "described", "required"],
-  variants: { headingVisibility: ["visible", "accessible"], titleAxis: ["row", "edge"] },
+  variants: { headingVisibility: ["visible", "accessible"] },
   slots: { children: { accepts: ["action", "choice", "collection", "collection-state", "column", "fact-row", "fact-value", "field", "information", "list", "object-state-row", "popover", "shared-owner-specimen", "stack-item", "text", "view-destination-link", "view-item"] } },
   approval: "required", contract: StackLayoutContract,
 } as const);

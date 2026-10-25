@@ -3574,10 +3574,6 @@
         "headingVisibility": [
           "visible",
           "accessible"
-        ],
-        "titleAxis": [
-          "row",
-          "edge"
         ]
       }
     },
