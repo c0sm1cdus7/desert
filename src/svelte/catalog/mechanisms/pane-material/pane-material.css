@@ -32,22 +32,3 @@
   box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none;
   :where(&) { border:0; }
 }
-/* Disabled state belongs to content. The pane and its boundary never fade.
-   FieldWell's row is one content unit, including the compound currency part. F1.3 and F1.4 move these rules into
-   action and field. */
-[data-slot="field"][data-disabled="true"] .field-well > *,
-[data-search-field][data-disabled="true"] > *,
-:is(button,a):is(.material-pane,.material-interior):not([data-choice-row]):is(:disabled,[aria-disabled="true"]) > [data-button-content] {
-  opacity:var(--disabled-opacity);
-}
-[data-slot="field"][data-disabled="true"] .field-well :is([data-slot="field-label"],[data-slot="input-group-control"],[data-slot="input-group-addon"]),
-[data-slot="field"][data-disabled="true"] .field-well [data-button-content],
-[data-search-field][data-disabled="true"] :is(button,a):is(.material-pane,.material-interior) > [data-button-content] { opacity:1; }
-:is(input,textarea).material-pane:disabled { color:var(--muted-foreground); }
-/* Invalidity is additional semantic ink, never a different material perimeter. */
-[data-slot="field"][data-invalid="true"] > .field-well,
-[data-slot="input-group"]:has([aria-invalid="true"]) {
-  outline:2px solid var(--destructive); outline-offset:2px;
-}
-[data-slot="field"][data-invalid="true"] > .field-well:has(:focus-visible),
-[data-slot="input-group"]:has([aria-invalid="true"]):has(:focus-visible) { outline-color:var(--ring); }

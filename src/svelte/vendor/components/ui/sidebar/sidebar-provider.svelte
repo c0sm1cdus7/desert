@@ -60,6 +60,7 @@
 		class={cn(
 			"group/sidebar-wrapper relative flex min-h-svh w-full has-data-[variant=inset]:bg-sidebar",
 			densityClass[sidebar.presentation === "overlay" ? "comfortable" : "compact"],
+			sidebar.presentation === "overlay" && "place-insets-compact",
 			className
 		)}
 		bind:this={ref}

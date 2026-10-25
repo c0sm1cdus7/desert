@@ -12,7 +12,7 @@
        with the secondary icon action's geometry. -->
   {#if captions}<button {@attach pressFeedback} type="button" class="captions material-pane control-feedback type-control [&_svg]:size-4 [&_svg]:shrink-0"
     aria-label="Captions" aria-pressed={playback.captions} onclick={playback.toggleCaptions}>
-    <span class="captions-content control-feedback-content" data-button-content><Icon name="captions" /></span>
+    <span class="captions-content control-feedback-content disabled-content" data-button-content><Icon name="captions" /></span>
   </button>{/if}
   <Action label={playback.muted ? "Unmute" : "Mute"} icon={playback.muted ? "muted" : "volume"} face="icon" state="ready"
     emphasis="secondary" type="button" onclick={playback.mute} />

@@ -48,7 +48,7 @@ test("the shared bootstrap styles a View-only build without either legacy produc
       for (const colorScheme of ["light", "dark"] as const) {
         await browserPage.emulateMedia({ colorScheme });
         await browserPage.goto(`http://127.0.0.1:${address.port}/`);
-        await browserPage.locator('html[data-renderer-profile="apple-reference"]').waitFor();
+        await browserPage.locator("html[data-tint]").waitFor();
         await browserPage.locator('[data-catalog-toolbar] button').first().waitFor();
         const metrics = await browserPage.evaluate(() => {
           const body = getComputedStyle(document.body), root = getComputedStyle(document.documentElement);

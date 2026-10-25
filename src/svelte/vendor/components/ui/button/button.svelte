@@ -98,7 +98,7 @@
 		{...restProps}
 		data-variant={variant}
 	>
-		<span class="control-feedback-content" data-button-content>{@render children?.()}</span>
+		<span class="control-feedback-content disabled-content" data-button-content>{@render children?.()}</span>
 	</a>
 {:else}
 	<button
@@ -119,7 +119,7 @@
 		{...restProps}
 		data-variant={variant}
 	>
-		<span class="control-feedback-content" data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
+		<span class="control-feedback-content disabled-content" data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
 	</button>
 {/if}
 

@@ -4,6 +4,7 @@
   import type { CatalogProps } from "../../types.d.ts";
   import { provideToolbarScroll } from "../../mechanisms/toolbar-scroll/toolbar-scroll.svelte.ts";
   import { provideSurfaceHost } from "../../mechanisms/surface-host/surface-host.svelte.ts";
+  import { providePane, usePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
   import ScrollEdges from "./ScrollEdges.svelte";
   import { observePlaceFocus } from "./place-focus.ts";
   let { kind, label, destination, searching, presentation = "standard", backdrop, form, oncomposition, onsubmit,
@@ -12,6 +13,10 @@
   // A frame is the host its portalled transients size against; every scroll owner gives its top bar "back to top".
   if (untrack(() => kind) === "frame") provideSurfaceHost(() => owner);
   provideToolbarScroll({ owner: () => owner, viewport: () => viewport });
+  // A frame (not a message) inside an edge pane reads at the pane's bounds, and so does the toolbar it holds.
+  const pane = usePane();
+  let framed = $derived(kind === "frame" && presentation !== "message" && pane() !== undefined);
+  if (untrack(() => kind) === "frame") providePane(() => { const outer = pane(); return outer && { ...outer, framed }; });
   $effect(() => {
     if (viewport && owner && (kind === "main" || kind === "navigation")) return observePlaceFocus(viewport, owner);
   });
@@ -30,8 +35,9 @@
 {/snippet}
 
 {#if kind === "frame"}
-  <section bind:this={owner} class="flex min-h-0 min-w-0 flex-1 flex-col" data-scroll-owner data-surface-host data-surface-frame
-    data-frame-presentation={presentation} tabindex="-1" aria-label={label}>
+  <section bind:this={owner} class={["flex min-h-0 min-w-0 flex-1 flex-col", presentation === "message" ? "chrome-inset-message" : "chrome-inset"]}
+    data-scroll-owner data-surface-host data-surface-frame data-frame-presentation={presentation} data-pane-framed={framed || undefined}
+    tabindex="-1" aria-label={label}>
     {#if form}<form id={form.id} class="flex min-h-0 flex-1 flex-col" novalidate aria-label={form.label} onsubmit={submit}>{@render frameSlots()}</form>
     {:else}{@render frameSlots()}{/if}
   </section>
@@ -44,8 +50,7 @@
 {:else}
   <!-- Programmatic restoration targets only: this expression is -1 or absent, never a tab stop. -->
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-  <div bind:this={owner} class="place-frame" data-place="true" data-scroll-owner="true"
-    data-renderer-profile={kind === "navigation" ? "apple-reference" : undefined}
+  <div bind:this={owner} class={["place-frame", kind === "navigation" ? "reading-inset-navigation" : "reading-inset-place"]} data-place="true" data-scroll-owner="true"
     data-catalog-navigation={kind === "navigation" ? "true" : undefined}
     data-catalog-content={main ? "true" : undefined}
     data-destination={destination} role={kind}

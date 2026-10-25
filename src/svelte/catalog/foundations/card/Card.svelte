@@ -36,14 +36,14 @@
     {#if artwork !== undefined}<span class="card-fill">{@render art()}</span>{/if}
     <button bind:this={button} {@attach pressFeedback} type="button" class="card-press material-interior control-feedback type-control" aria-label={label} {disabled}
       onclick={open} onpointerenter={prepare} onfocus={prepare}>
-      <span class="card-press-content control-feedback-content" data-button-content>{#if title}<span class="card-overlay type-section">{title}</span>{/if}</span>
+      <span class="card-press-content control-feedback-content disabled-content" data-button-content>{#if title}<span class="card-overlay type-section">{title}</span>{/if}</span>
     </button>
   </div>
 {:else}
   <button bind:this={button} {@attach pressFeedback} type="button" class="card card-button card-{presentation} material-pane control-feedback type-control"
     data-card={presentation} aria-label={label} aria-current={current ? "true" : undefined} aria-describedby={describedBy}
     aria-busy={busy} {disabled} onclick={open} onpointerenter={prepare} onfocus={prepare}>
-    <span class="card-content control-feedback-content" data-button-content>
+    <span class="card-content control-feedback-content disabled-content" data-button-content>
       {#if presentation !== "summary"}<AttentionIndicator required={attention} placement="overlay" />{/if}
       {#if presentation === "tile"}<span class="card-tile-art">{@render art()}</span>
       {:else if presentation === "collection"}

@@ -27,7 +27,7 @@
 
 <svelte:head><title>{documentTitle}</title></svelte:head>
 
-<div bind:this={workspace} data-renderer-profile="apple-reference" data-catalog-workspace data-search-active={searching}>
+<div bind:this={workspace} class="place-insets" data-catalog-workspace data-search-active={searching}>
   <Wallpaper wallpaper={$appearance.wallpaper} />
   <Sidebar.Provider available={navigation !== null} contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
     <ShellBody bind:this={body} root={() => workspace} {label} {destination} {searching} {hasQuery} {detail} {backAvailable} {resultsId} {searchLabel}

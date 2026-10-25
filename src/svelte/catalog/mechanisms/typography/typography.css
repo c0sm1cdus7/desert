@@ -55,10 +55,3 @@
 @utility type-caption { font-size:var(--text-caption); line-height:var(--text-caption--line-height); font-weight:var(--text-caption--font-weight); }
 /* The control metric of action and choice; it leaves when those foundations own their stylesheets (F1.3, F1.5). */
 @utility type-control { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); }
-/* Message frames tighten section and body; Batch 2 replaces this with the dialog and bar props. */
-@layer components {
-  [data-frame-presentation="message"] {
-    --text-section:1.0625rem; --text-section--line-height:1.375rem; --text-section--font-weight:600;
-    --text-body:.8125rem; --text-body--line-height:1.1875rem;
-  }
-}

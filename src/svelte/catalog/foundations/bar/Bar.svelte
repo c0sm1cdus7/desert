@@ -6,6 +6,7 @@
   import type { BarCommand } from "../../../infra/bar-command.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import { useToolbarScroll } from "../../mechanisms/toolbar-scroll/toolbar-scroll.svelte.ts";
+  import { usePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
   import BarIdentity from "./BarIdentity.svelte";
   import BarSearch from "./BarSearch.svelte";
   import { useToolbarCommands } from "./toolbar-commands.svelte.ts";
@@ -24,6 +25,9 @@
     () => ({ row, leading: leadingElement, utilities, controls: null }), () => Boolean(primary) || reservesSearch);
   const leadingControls = useToolbarLeading(() => leadingElement);
   const scroll = useToolbarScroll(() => element, () => edge);
+  // In an edge pane, a top bar is the header that drags the pane, and in a frame there its identity keeps two lines.
+  const pane = usePane();
+  let header = $derived(edge === "top" ? pane() : undefined);
   let stacked = $derived(rail && commands.stacked);
   const invoke = (command: BarCommand) => { if (!command.submit) oninvoke?.(command.intent); };
   /** Focuses the leading command (without scrolling) and says whether it holds focus. */
@@ -39,7 +43,8 @@
     type={value.submit ? "submit" : "button"} form={value.submit} onclick={() => invoke(value)} />
 {/snippet}
 
-<div bind:this={element} class={edge === "top" ? "workspace-header" : "bank-footer"} data-piece="toolbar" data-toolbar={edge}
+<div bind:this={element} class={[edge === "top" ? "workspace-header" : "bank-footer", "focus-inset"]} data-piece="toolbar" data-toolbar={edge}
+  data-pane-drag={header?.drag || undefined} data-pane-dragging={header?.dragging || undefined} data-pane-framed={pane()?.framed || undefined}
   data-surface-slot={edge} data-toolbar-purpose={purpose} data-toolbar-overlay={layer} data-identity-role={identityRole}
   data-place-toolbar={layer === "content" || undefined} data-catalog-toolbar={layer === "search" || undefined}
   data-searching={search?.open} {inert} aria-hidden={inert || undefined} data-toolbar-return={scroll.available || undefined}>

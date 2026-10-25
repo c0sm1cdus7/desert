@@ -92,3 +92,46 @@
   [data-search-field] { padding-block:0; }
   [data-search-field] [data-slot="button"] { width:44px; height:44px; min-height:44px; }
 }
+/* The toolbar search well (a Field `expanded` in Bar's search, from the catalog-search mechanism): the well keeps the
+   toggle's size until expanded, then grows to the rail; its content (the editor and its addons) follows the well in and
+   leaves before it contracts.
+   The focused editor stays mounted and editable throughout; the focus ring follows the whole well. */
+[data-search-expanded] [data-slot="input-group"] {
+  border-radius:var(--radius); width:var(--catalog-toolbar-height); max-width:100%; margin-inline-start:auto;
+  height:var(--catalog-toolbar-height); min-height:var(--catalog-toolbar-height); padding:0 12px;
+  transition:width calc(var(--motion-overlay-exit) - 60ms) var(--ease-exit) 60ms;
+}
+[data-search-expanded="true"] [data-slot="input-group"] { width:100%; transition:width var(--motion-overlay-enter) var(--ease-enter); }
+[data-search-expanded] [data-slot="input-group"] > :is([data-slot="input-group-control"],[data-slot="input-group-addon"]) { opacity:0; transition:opacity 60ms var(--ease-exit); }
+/* Ink fades in within the unchanged well expansion. */
+[data-search-expanded="true"] [data-slot="input-group"] > :is([data-slot="input-group-control"],[data-slot="input-group-addon"]) {
+  opacity:1; transition:opacity var(--dur-unfold) var(--ease-out) calc(var(--motion-overlay-enter) - var(--dur-unfold));
+}
+[data-search-expanded] [data-slot="input-group"]:has(:focus-visible) { outline:2px solid var(--ring); outline-offset:-3px; }
+[data-search-expanded] [data-slot="input-group-control"] {
+  height:var(--catalog-toolbar-height); min-height:0; padding:0; outline:none; color:var(--foreground);
+  font:var(--text-body--font-weight) var(--text-body)/var(--text-body--line-height) var(--font-sans);
+}
+[data-search-expanded] [data-slot="input-group-control"]::placeholder { color:var(--catalog-search-foreground); opacity:1; }
+[data-search-expanded] [data-slot="input-group-addon"] { padding:0; color:var(--catalog-search-foreground); }
+/* Disabled state belongs to content (from the pane-material mechanism): the pane and its boundary never fade. The well's
+   row is one content unit, the compound currency part and the counter included; the label, editor and addons are not
+   dimmed a second time. */
+[data-slot="field"][data-disabled="true"] .field-well > :is([data-field-row],[data-slot="input-group-addon"],[data-button-content]),
+[data-search-field][data-disabled="true"] > :is([data-slot="input-group-control"],[data-slot="input-group-addon"]) {
+  opacity:var(--disabled-opacity);
+}
+[data-slot="field"][data-disabled="true"] .field-well :is([data-slot="field-label"],[data-slot="input-group-control"],[data-slot="input-group-addon"]),
+[data-slot="field"][data-disabled="true"] .field-well [data-button-content],
+[data-search-field][data-disabled="true"] [data-button-content] { opacity:1; }
+/* Invalidity is additional semantic ink, never a different material perimeter. */
+[data-slot="field"][data-invalid="true"] > .field-well,
+[data-slot="input-group"]:has([aria-invalid="true"]) {
+  outline:2px solid var(--destructive); outline-offset:2px;
+}
+[data-slot="field"][data-invalid="true"] > .field-well:has(:focus-visible),
+[data-slot="input-group"]:has([aria-invalid="true"]):has(:focus-visible) { outline-color:var(--ring); }
+/* The required mark of a field label (from theme.css): destructive ink beside the label. */
+@layer components {
+  [data-slot="field-label"] .required { color:var(--destructive); }
+}

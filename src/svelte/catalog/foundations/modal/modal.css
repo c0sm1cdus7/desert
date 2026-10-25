@@ -59,3 +59,20 @@
     left:calc(var(--adaptive-left) + max(var(--surface-inset),env(safe-area-inset-left,0px)));
   }
 }
+/* The full-screen media stage and its scrim (from the media mechanism). Unlayered, as they were: they outrank the vendor
+   dialog's own utilities. */
+.media-viewer { position:fixed; inset:0; z-index:60; width:100%; height:100dvh; display:flex; flex-direction:column; overflow:hidden; outline:none; border-radius:var(--place-radius); color:var(--foreground); animation:media-viewer-in var(--dur-dialog) var(--ease-tm) both; }
+.media-viewer-scrim { background:var(--background); }
+@keyframes media-viewer-in { from { opacity:0; transform:scale(.98); } to { opacity:1; transform:scale(1); } }
+@media(prefers-reduced-motion:reduce) { .media-viewer { animation:none; } }
+/* An adaptive side pane moves on the navigation's lateral motion, mirrored by edge (from the lateral-surface-motion
+   mechanism; unlayered, as it was, over the pane's own entrance). */
+.drawer[data-adaptive-surface]:not([data-edge="bottom"]) {
+  --surface-x:calc(100% + var(--surface-inset)); opacity:1; transition:translate var(--motion-lateral) var(--ease-lateral);
+}
+.drawer[data-adaptive-surface][data-edge="left"] { --surface-x:calc(-100% - var(--surface-inset)); }
+.drawer[data-adaptive-surface]:not([data-edge="bottom"]):is([data-starting-style],[data-closing]) {
+  translate:var(--surface-x) 0; opacity:1;
+  transition-duration:var(--motion-lateral); transition-timing-function:var(--ease-lateral);
+}
+@media (prefers-reduced-motion:reduce) { .drawer[data-adaptive-surface] { transition:none; } }

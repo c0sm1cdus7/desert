@@ -1,52 +1,10 @@
 {
   "mechanisms": {
-    "catalog-media": {
-      "files": [
-        "catalog-media.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/catalog-media",
-      "owner": "theme"
-    },
-    "catalog-profile": {
-      "files": [
-        "catalog-profile.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/catalog-profile",
-      "owner": "theme"
-    },
-    "catalog-search": {
-      "files": [
-        "catalog-search.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/catalog-search",
-      "owner": "theme"
-    },
     "control-feedback": {
       "files": [
         "control-feedback.css"
       ],
       "folder": "src/svelte/catalog/mechanisms/control-feedback",
-      "owner": "theme"
-    },
-    "lateral-surface-motion": {
-      "files": [
-        "lateral-surface-motion.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/lateral-surface-motion",
-      "owner": "theme"
-    },
-    "layout": {
-      "files": [
-        "layout.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/layout",
-      "owner": "theme"
-    },
-    "media": {
-      "files": [
-        "media.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/media",
       "owner": "theme"
     },
     "media-gestures": {
@@ -56,12 +14,12 @@
       "folder": "src/svelte/catalog/mechanisms/media-gestures",
       "owner": "gallery"
     },
-    "navigation-selection": {
+    "pane-context": {
       "files": [
-        "navigation-selection.css"
+        "pane-context.svelte.ts"
       ],
-      "folder": "src/svelte/catalog/mechanisms/navigation-selection",
-      "owner": "theme"
+      "folder": "src/svelte/catalog/mechanisms/pane-context",
+      "owner": "modal"
     },
     "pane-material": {
       "files": [
@@ -77,33 +35,12 @@
       "folder": "src/svelte/catalog/mechanisms/personalization",
       "owner": "theme"
     },
-    "reading": {
-      "files": [
-        "reading.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/reading",
-      "owner": "theme"
-    },
     "reveal": {
       "files": [
         "reveal.ts"
       ],
       "folder": "src/svelte/catalog/mechanisms/reveal",
       "owner": "view-region"
-    },
-    "structured-content": {
-      "files": [
-        "structured-content.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/structured-content",
-      "owner": "theme"
-    },
-    "surface-chrome": {
-      "files": [
-        "surface-chrome.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/surface-chrome",
-      "owner": "theme"
     },
     "surface-focus": {
       "files": [
@@ -119,13 +56,6 @@
       ],
       "folder": "src/svelte/catalog/mechanisms/surface-host",
       "owner": "modal"
-    },
-    "surface-reading": {
-      "files": [
-        "surface-reading.css"
-      ],
-      "folder": "src/svelte/catalog/mechanisms/surface-reading",
-      "owner": "theme"
     },
     "swipe-motion": {
       "files": [
@@ -531,6 +461,7 @@
       "owner": {
         "entry": "Bar.svelte",
         "mechanisms": [
+          "pane-context",
           "toolbar-geometry",
           "toolbar-scroll"
         ],
@@ -2318,6 +2249,7 @@
       "owner": {
         "entry": "Modal.svelte",
         "mechanisms": [
+          "pane-context",
           "surface-focus",
           "surface-host",
           "swipe-motion"
@@ -3056,6 +2988,7 @@
       "owner": {
         "entry": "Shell.svelte",
         "mechanisms": [
+          "pane-context",
           "surface-host",
           "swipe-motion",
           "toolbar-geometry"
@@ -3418,6 +3351,7 @@
       "owner": {
         "entry": "Surface.svelte",
         "mechanisms": [
+          "pane-context",
           "surface-host",
           "toolbar-geometry",
           "toolbar-scroll"

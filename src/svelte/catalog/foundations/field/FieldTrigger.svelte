@@ -21,7 +21,7 @@
   data-floating-field data-filled data-field-trigger aria-label={`${label} · ${spoken}`}
   aria-haspopup={disclosure.haspopup} aria-expanded={disclosure.expanded} aria-controls={disclosure.expanded ? disclosure.controls : undefined}
   data-state={disclosure.expanded ? "open" : "closed"} aria-describedby={describedBy}>
-  <span data-button-content class="flex w-full min-w-0 items-center">
+  <span data-button-content class="disabled-content flex w-full min-w-0 items-center">
     <FieldLabel for={undefined} {label} {labelVisibility} {required}>
       <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
         {#if display.kind === "tags"}

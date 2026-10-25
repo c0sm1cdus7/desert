@@ -37,3 +37,8 @@
   data-place-title={content.kind === "page" ? "" : undefined}>
   {content.text}{#if content.kind === "group" && content.required}<span class="required" aria-hidden="true">*</span>{/if}
 </svelte:element>
+
+<style>
+  /* The required mark (from the theme): destructive ink beside its label. */
+  .required { color:var(--destructive); }
+</style>

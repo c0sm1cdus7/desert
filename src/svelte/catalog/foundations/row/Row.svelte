@@ -41,7 +41,7 @@
     aria-describedby={!available && reason ? reasonId : undefined} title={!available ? reason : undefined} onclick={open}>
     <!-- The attention dot sits over the row's corner, as it sat over the media list item. -->
     {#if attention}<AttentionIndicator required placement="overlay" />{/if}
-    <span class="row-content control-feedback-content" data-button-content>{@render content()}</span>
+    <span class="row-content control-feedback-content disabled-content" data-button-content>{@render content()}</span>
   </button>
   {#if !available && reason}<span id={reasonId} class="sr-only">{reason}</span>{/if}
 {:else}

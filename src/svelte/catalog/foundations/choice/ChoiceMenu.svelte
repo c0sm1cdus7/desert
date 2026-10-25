@@ -68,7 +68,7 @@
   aria-describedby={required ? `${id}-requirement` : undefined} data-state={open ? "open" : "closed"} data-selection-trigger data-choice="menu"
   onclick={() => { if (!disabled) open = !open; }}
   onkeydown={event => { if ((event.key === "ArrowDown" || event.key === "ArrowUp") && !disabled) { event.preventDefault(); open = true; } }}>
-  <span class="content control-feedback-content" data-button-content>
+  <span class="content control-feedback-content disabled-content" data-button-content>
     {#if trigger === "well"}
       <!-- lane-merge: the well content FieldWellContent drew (deleted in Batch 3), until Field's trigger draws this well. -->
       <span class="relative flex min-w-0 flex-1 flex-col" data-field-well>
@@ -98,4 +98,6 @@
   .measure { container:choice-measure / inline-size; width:100%; min-width:0; align-self:stretch; }
   .measure-box { display:flex; flex-direction:column; width:100%; min-width:0; max-width:26rem; }
   @container choice-measure (max-width:29rem) { .measure-box { max-width:none; } }
+  /* The required mark (from the theme): destructive ink beside its label. */
+  .required { color:var(--destructive); }
 </style>

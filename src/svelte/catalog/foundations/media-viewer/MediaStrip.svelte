@@ -13,7 +13,7 @@
     {@const artwork = item.kind === 'image' ? item : item.artwork}
     <button {@attach pressFeedback} type="button" class="strip-item material-pane control-feedback type-control"
       aria-label={`Media ${i + 1}: ${item.alt}`} aria-current={i === index ? 'true' : undefined} onclick={() => onindex(i)}>
-      <span class="strip-content control-feedback-content" data-button-content>
+      <span class="strip-content control-feedback-content disabled-content" data-button-content>
         {#if artwork}<Image source={artwork.source} alt="" edge={160} />{:else if item.kind !== 'image'}<Image placeholder={item.kind} />{/if}
       </span>
     </button>
