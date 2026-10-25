@@ -8,7 +8,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
-import sharp from "sharp";
+import sharp, { type Stats } from "sharp";
 import { readEvidencePieces } from "./catalog-evidence/pieces.ts";
 import { runEvidence } from "./catalog-evidence/run.ts";
 import { readStatuses } from "./catalog-evidence/status.ts";
@@ -68,11 +68,12 @@ test("each capture starts from a fresh appearance: the onboarding form's dark ca
       const { results } = await captureSpecimens(browser, server.origin, piece);
       const captured = results.get(0);
       assert.ok(captured && "captures" in captured, "the access form specimen rendered");
+      const captures: ReadonlyMap<string, Buffer> = captured.captures;
       for (const [name, theme] of [["light-390", "light"], ["dark-390", "dark"], ["dark-1280", "dark"]] as const) {
-        const png = captured.captures.get(name);
+        const png: Buffer | undefined = captures.get(name);
         assert.ok(png, `${name} captured`);
-        const { dominant } = await sharp(png).stats();
-        const luminance = 0.3 * dominant.r + 0.59 * dominant.g + 0.11 * dominant.b;
+        const stats: Stats = await sharp(png).stats();
+        const luminance: number = 0.3 * stats.dominant.r + 0.59 * stats.dominant.g + 0.11 * stats.dominant.b;
         assert.equal(luminance < 128 ? "dark" : "light", theme, `${name} renders ${theme} (dominant luminance ${Math.round(luminance)})`);
       }
     } finally { await browser.close(); }
