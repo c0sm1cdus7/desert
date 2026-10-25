@@ -27,7 +27,9 @@
     return () => { observer.disconnect(); document.fonts.removeEventListener("loadingdone", measure); };
   });
 </script>
-<Button bind:ref={button} variant={variants[emphasis]} size={shown === "icon" ? "icon-lg" : "default"} spin={status === "pending"}
+<!-- One disabled look: an unavailable action of any emphasis draws the neutral pane with its faded label, plainly not a
+     ready primary (a pale label on the primary's tint read neither as disabled nor legibly). -->
+<Button bind:ref={button} variant={status === "unavailable" ? "secondary" : variants[emphasis]} size={shown === "icon" ? "icon-lg" : "default"} spin={status === "pending"}
   {type} {form} id={disclosure?.id} aria-haspopup={disclosure?.haspopup} aria-expanded={disclosure?.expanded}
   aria-controls={disclosure?.expanded ? disclosure.controls : undefined}
   data-state={disclosure ? disclosure.expanded ? "open" : "closed" : undefined} aria-current={current || undefined}

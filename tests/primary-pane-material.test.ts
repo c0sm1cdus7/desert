@@ -51,10 +51,17 @@ test('primary buttons share the pane recipe and retain emphasis during pending',
         });
         const primary = panes.find(p => p.name === 'Save note')!, secondary = panes.find(p => p.name === 'Close')!;
         const link = panes.find(p => p.name === 'Primary link')!;
-        assert.deepEqual(primary.fill, link.fill, `${theme}/${access}/${state}: button and link share primary tint`);
-        assert.deepEqual(primary.ink, [255,255,255,255]);
-        assert.ok(primary.fill[2]! - primary.fill[0]! > 100, 'primary tint must be perceptible');
-        assert.notDeepEqual(primary.fill, secondary.fill, 'primary cannot be neutral');
+        assert.ok(link.fill[2]! - link.fill[0]! > 100, 'primary tint must be perceptible');
+        if (state === 'unavailable') {
+          // Second review of the slice 3 package: one disabled look for Action. An unavailable primary draws the neutral
+          // pane (its faded label is the theme's disabled content), not a pale label on the primary tint.
+          assert.deepEqual(primary.fill, secondary.fill, `${theme}/${access}: an unavailable primary takes the one disabled look`);
+          assert.deepEqual(primary.ink, secondary.ink);
+        } else {
+          assert.deepEqual(primary.fill, link.fill, `${theme}/${access}/${state}: button and link share primary tint`);
+          assert.deepEqual(primary.ink, [255,255,255,255]);
+          assert.notDeepEqual(primary.fill, secondary.fill, 'primary cannot be neutral');
+        }
         for (const pane of panes) {
           assert.ok(Math.abs(pane.fill[3]! / 255 - (access === 'glass' ? .88 : 1)) < .005);
           assert.equal(pane.blur, access === 'glass' ? 'blur(24px)' : 'none');
