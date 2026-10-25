@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { squareCorners } from "./fixtures/curvature-family.ts";
+import { withTodaysFacePrimitive } from "./fixtures/face-primitive.ts";
 import { resolve } from "node:path";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
@@ -66,12 +67,18 @@ async function previousCss() {
   // first entry on the axis of its title and featured entry (tests/shared-owner-example-axis.test.ts).
   assert.equal(theme.split(catalogHome).length, 2, "The prior home stack insets are held once");
   theme = theme.replace(catalogHome, catalogHome.replace("--place-surface-inset:0px", "--place-surface-inset:1rem"));
+  // Law 9e (a deliberate change, not a relocation): every face, avatar and artwork placeholder wears the one face
+  // primitive, so the frozen side draws today's tm-face ground and hairline (face-material.test.ts measures them), and
+  // its artwork placeholder (media.css, unlayered then) no longer paints the muted ground over that primitive.
+  theme = withTodaysFacePrimitive(theme);
   // Law 9c changed the message's own measure after this relocation (its 50/50 pair needs a 22rem dialog and the bar
   // brings its own inset): both sides carry that change, so only the relocation is compared.
   let inlined = inlineBaseStylesheets(theme);
   for (const [before, after] of [[".problem { z-index:21; width:min(20rem,calc(100% - 24px)); }", ".problem { z-index:21; width:min(22rem,calc(100% - 24px)); }"],
-    [".modal-message-actions { flex-shrink:0; padding:1rem .75rem .75rem; }", ".modal-message-actions { flex-shrink:0; padding:.5rem .25rem .25rem; }"]] as const) {
-    assert.equal(inlined.split(before).length, 2, `The frozen modal holds ${before}`);
+    [".modal-message-actions { flex-shrink:0; padding:1rem .75rem .75rem; }", ".modal-message-actions { flex-shrink:0; padding:.5rem .25rem .25rem; }"],
+    ["[data-media-artwork-placeholder] { display:grid; place-items:center; width:100%; height:100%; background:var(--muted); color:var(--muted-foreground); }",
+      "[data-media-artwork-placeholder] { display:grid; place-items:center; width:100%; height:100%; color:var(--muted-foreground); }"]] as const) {
+    assert.equal(inlined.split(before).length, 2, `The frozen side holds ${before} once`);
     inlined = inlined.replace(before, after);
   }
   const compiler = await compile(inlined, { base, onDependency: () => {} });
