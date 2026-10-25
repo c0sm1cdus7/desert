@@ -8,8 +8,9 @@
 /* Its title is Heading's place title (it wraps anywhere and draws no focus ring); its subtitle wraps the same way. */
 .place-heading-copy [data-place-subtitle] { margin:0; overflow-wrap:anywhere; color:var(--muted-foreground); max-width:65ch; }
 .place-heading-content[data-featured-media] { display:flex; align-items:flex-end; min-height:min(65dvh,36rem); padding-bottom:32px; }
-/* The video and its controls sit under the shade, as the native video did; the copy leaves room for the controls. */
-.place-heading-media { position:absolute; inset:0; z-index:-2; }
+/* The video lies under the shade and its controls stand over it (the player layers its header presentation in this
+   heading's stacking context: the media box opens none); the copy leaves room for the controls. */
+.place-heading-media { position:absolute; inset:0; }
 .place-heading-content[data-featured-media]:not([data-media-unavailable="true"])::before { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background:linear-gradient(transparent 35%,var(--catalog-image-shade)); }
 .place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) .place-heading-copy,
 .place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) [data-place-subtitle] { color:var(--catalog-image-foreground); text-shadow:0 1px 4px var(--catalog-image-shade); }

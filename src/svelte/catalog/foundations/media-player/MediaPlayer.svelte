@@ -74,7 +74,11 @@
     .player-viewer { flex:1; min-height:0; }
     .player-viewer .player-stage { flex:1; min-height:0; touch-action:none; }
     .player-header { width:100%; height:100%; }
+    /* Heading a place, the stage lies beneath its host's shade (which darkens the video for the title) and the controls
+       stand above it, fully legible: neither the player nor its stage opens a stacking context of its own above them.
+       Unavailable, the stage holds its error alone (no controls, no shade) and keeps its place in the flow. */
     .player-header .player-stage { flex:1; }
+    .player-header .player-stage:not(.player-stage-unavailable) { z-index:-2; }
     .player-video { display:block; width:100%; height:100%; min-height:0; object-fit:contain; }
     /* Unavailable, the stage stacks its parts in one cell: it is as tall as its media or its error, whichever is taller, and
        the error, on the muted ground an image's error has, covers the media's box (an overlay, the viewer's paging, stays above). */
