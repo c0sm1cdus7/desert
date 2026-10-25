@@ -53,6 +53,12 @@ const relocated = [
   ['[data-catalog-search-actions][data-expanded="true"] [data-search-icon="open"]', '[data-catalog-search-cancel] [data-search-icon="open"]'],
   ['[data-catalog-search-actions][data-expanded="true"] [data-search-icon="close"]', '[data-catalog-search-cancel] [data-search-icon="close"]'],
 ] as const;
+const barTargetBefore = `
+[data-piece="toolbar"] .toolbar-row :is([data-slot="button"],[data-slot="sidebar-trigger"]):not([data-media-thumbs] button) { height:var(--toolbar-target); min-height:var(--toolbar-target); }
+[data-piece="toolbar"] .toolbar-row :is(.toolbar-action > button,[data-toolbar-controls] button,[data-catalog-navigation-actions] > button,[data-slot="sidebar-trigger"],[data-catalog-search-toggle],button:has(> [data-button-content] > svg):not([data-action])) { width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset); }
+[data-piece="toolbar"][data-toolbar-purpose="commit"] > .toolbar-row > * { flex:0 1 auto; min-width:0; }
+[data-piece="toolbar"][data-toolbar-purpose="commit"] button { white-space:nowrap; }
+[data-piece="toolbar"][data-toolbar-purpose="steps"] > .toolbar-row > button { width:100%; max-width:none; min-width:0; }`;
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const declarations = (css: string, selector: string) => css.match(new RegExp(`(?:^|[{}]|\\*\\/)\\s*${escape(selector)}\\s*\\{([^{}]*)\\}`))?.[1]?.replace(/\s+/g, "");
 const styleOf = (svelte: string) => svelte.match(/<style>([\s\S]*?)<\/style>/)![1]!;
@@ -80,7 +86,9 @@ test("moving the button's rules into its own scope keeps the computed geometry a
   const capture = async (version: "before" | "after") => {
     const overrides: Record<string, string> = { [catalogToolbar]: catalogWorkspaceBefore[catalogToolbar]! };
     if (version === "before") overrides[resolve(buttonPath)] = buttonGlobalsBefore;
-    const fixture = await svelteBrowser(source, overrides, undefined, { initialCss: css });
+    // The a2d02f5 button took a bar's target from bar.css, which named the button; today a bar's Action carries its typed
+    // placement, which the frozen button cannot read, so its side brings the bar rules it was drawn with.
+    const fixture = await svelteBrowser(source, overrides, undefined, { initialCss: version === "before" ? `${css}\n${barTargetBefore}` : css });
     const states: Record<string, unknown> = {};
     try {
       const { page } = fixture;

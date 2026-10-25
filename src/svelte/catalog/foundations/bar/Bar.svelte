@@ -11,7 +11,7 @@
   import { useToolbarCommands } from "./toolbar-commands.svelte.ts";
   import { useToolbarLeading } from "./toolbar-leading.svelte.ts";
   let { edge, purpose, identity, identityRole, face, leading, trailing, controls, group, primary, secondary, availability, search,
-    navigationToggle, settingsPlaceholder, layer, inert, oninvoke, onquery, onsearchopen, onsearchcancel, onnavigationtoggle,
+    navigationToggle, settingsPlaceholder, layer, inert, float, oninvoke, onquery, onsearchopen, onsearchcancel, onnavigationtoggle,
     oncontrol }: CatalogProps<"bar"> = $props();
   const uid = $props.id();
   let element = $state<HTMLElement | null>(null), row = $state<HTMLDivElement | null>(null);
@@ -39,13 +39,14 @@
 
 {#snippet command(value: BarCommand, emphasis: "primary" | "secondary", shown: "icon" | "text")}
   <Action label={value.label} icon={value.icon} state={value.state} reason={value.reason} {emphasis} face={shown}
-    type={value.submit ? "submit" : "button"} form={value.submit} onclick={() => invoke(value)} />
+    type={value.submit ? "submit" : "button"} form={value.submit} bar={shown === "icon" ? "command" : purpose === "steps" ? "step" : "commit"}
+    onclick={() => invoke(value)} />
 {/snippet}
 
 <div bind:this={element} class={edge === "top" ? "workspace-header" : "bank-footer"} data-piece="toolbar" data-toolbar={edge}
   data-surface-slot={edge} data-toolbar-purpose={purpose} data-toolbar-overlay={layer} data-identity-role={identityRole}
   data-place-toolbar={layer === "content" || undefined} data-catalog-toolbar={layer === "search" || undefined}
-  data-searching={search?.open} data-frame-edge={frameEdge || undefined} {inert} aria-hidden={inert || undefined} data-toolbar-return={scroll.available || undefined}>
+  data-searching={search?.open} data-frame-edge={frameEdge || undefined} data-bar-float={float || undefined} {inert} aria-hidden={inert || undefined} data-toolbar-return={scroll.available || undefined}>
   {#if scroll.available || returnFocused}
     <!-- A transparent return target: the whole top rail scrolls its surface back to the top. -->
     <button type="button" class="sr-only" data-toolbar-scroll-top onclick={scroll.returnToTop}
@@ -54,7 +55,7 @@
   {#if face}
     <div class="toolbar-face flex justify-center" data-toolbar-face><Face {face} /></div>
   {/if}
-  <div bind:this={row} class={stacked ? "toolbar-row flex-wrap" : "toolbar-row"} data-reserve-search={reservesSearch || undefined}
+  <div bind:this={row} class={stacked ? "toolbar-row flex-wrap" : "toolbar-row"} data-bar-row data-reserve-search={reservesSearch || undefined}
     data-toolbar-layout={stacked ? "stacked" : "inline"} data-toolbar-has-leading={leadingControls.occupied || undefined}>
     {#if rail}<div bind:this={leadingElement} data-toolbar-leading data-occupied={leadingControls.occupied || undefined}>
       {#if leading && identityRole !== "message"}
@@ -67,21 +68,21 @@
       <div class="flex min-w-0 shrink-0" data-toolbar-controls>
         {#each controls as control (control.id)}
           <div class="toolbar-action"><Action label={control.label} icon={control.icon} state={control.state} emphasis="secondary" face="icon"
-            type="button" onclick={() => oncontrol?.(control.id)} /></div>
+            type="button" bar="command" onclick={() => oncontrol?.(control.id)} /></div>
         {/each}
       </div>
     {/if}
     {#if rail && (trailing.length || primary)}
       <div bind:this={utilities} class="ml-auto flex min-w-0 shrink-0" data-toolbar-utilities>
         {#if group && trailing.length}<div class="toolbar-action" data-toolbar-create>
-          <Menu label={say(m.bar.create)} icon="create" actions={trailing} open={groupedOpen} align="end"
+          <Menu label={say(m.bar.create)} icon="create" actions={trailing} open={groupedOpen} align="end" bar="command"
             onopenchange={open => groupedOpen = open} oninvoke={intent => oninvoke?.(intent)} />
         </div>{:else}
           {#each trailing.slice(0, commands.visibleCount) as value (intentKey(value.intent))}
             <div class="toolbar-action" data-toolbar-command={intentKey(value.intent)}>{@render command(value, "secondary", "icon")}</div>
           {/each}
           {#if commands.overflow.length}<div class="toolbar-action" data-toolbar-overflow>
-            <Menu label={say(m.bar.moreActions)} icon="more" actions={commands.overflow} open={commands.open} align="end"
+            <Menu label={say(m.bar.moreActions)} icon="more" actions={commands.overflow} open={commands.open} align="end" bar="command"
               onopenchange={commands.change} oninvoke={intent => oninvoke?.(intent)} />
           </div>{/if}
         {/if}
@@ -96,13 +97,13 @@
       {#if navigationToggle}
         <div class="toolbar-action" data-navigation-toggle>
           <Action label={navigationToggle.expanded ? say(m.bar.hideNavigation) : say(m.bar.showNavigation)} icon="navigation" face="icon" emphasis="secondary"
-            state="ready" type="button" onclick={() => onnavigationtoggle?.()} disclosure={{ id: `${uid}-navigation`,
+            state="ready" type="button" bar="command" onclick={() => onnavigationtoggle?.()} disclosure={{ id: `${uid}-navigation`,
               controls: navigationToggle.controls, expanded: navigationToggle.expanded, haspopup: "dialog" }} />
         </div>
       {/if}
       {#if settingsPlaceholder}
         <div class="toolbar-action" data-settings-placeholder>
-          <Action label={say(m.bar.settings)} icon="settings" face="icon" emphasis="secondary" state="unavailable" type="button"
+          <Action label={say(m.bar.settings)} icon="settings" face="icon" emphasis="secondary" state="unavailable" type="button" bar="command"
             reason={say(m.bar.settingsUnavailable)} />
         </div>
       {/if}
@@ -112,6 +113,6 @@
     {/if}
   </div>
   {#if edge === "top" && availability}<div class="toolbar-availability" title={availability.label}>
-    <Availability state={availability.state} label={availability.label} />
+    <Availability state={availability.state} label={availability.label} compact />
   </div>{/if}
 </div>

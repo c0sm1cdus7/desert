@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
+import { workspaceOwnerRulesBefore } from "./fixtures/workspace-owner-rules-before.ts";
 import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 import { pixelDifference } from "./fixtures/pixel-difference.ts";
 import { catalogWorkspaceBefore } from "./fixtures/catalog-workspace-before.ts";
@@ -46,6 +47,8 @@ test("the workspace on the shell draws the pre-shell workspace's pixels at its p
     for (const f of [baseline, candidate]) { await f.page.addStyleTag({ content: css }); await f.page.emulateMedia({ reducedMotion: "reduce" }); }
     // The frozen workspace laid its adaptive host over the whole workspace with a :global rule this harness injects before
     // the host's own scoped rule; re-adding it last restores the built cascade (see shell-foundation.test.ts).
+    // The frozen workspace still draws the old marks the shell, field, bar and icon no longer style: it brings their rules.
+    await baseline.page.addStyleTag({ content: workspaceOwnerRulesBefore });
     await baseline.page.addStyleTag({ content: "[data-catalog-workspace] [data-adaptive-host] { position:absolute; inset:0; }" });
     const differences: Record<string, number> = {};
     const compare = async (name: string) => {

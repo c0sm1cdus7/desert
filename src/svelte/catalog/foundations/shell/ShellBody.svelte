@@ -75,7 +75,7 @@
       {#snippet bottom()}
         {#if sidebar.available && !sidebar.expanded}
           <div data-navigation-return><Bar edge="bottom" purpose="navigation" identityRole="heading" trailing={[]}
-            navigationToggle={{ expanded: false, controls: sidebar.panelId }} settingsPlaceholder={false} inert={searching}
+            navigationToggle={{ expanded: false, controls: sidebar.panelId }} settingsPlaceholder={false} inert={searching} float
             onnavigationtoggle={sidebar.toggle} /></div>
         {/if}
         {@render bottom?.()}

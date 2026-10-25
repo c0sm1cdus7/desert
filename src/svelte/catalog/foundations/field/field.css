@@ -82,14 +82,15 @@
 [data-search-field] { min-height:44px; border-radius:var(--radius); padding:4px 8px; gap:8px; }
 [data-search-field] [data-slot="input-group-control"] { height:auto; min-height:32px; padding:0; font:inherit; outline:none; }
 [data-search-field] [data-slot="input-group-addon"] { padding:0; margin:0; }
-[data-search-field] [data-slot="input-group-addon"] svg { width:1.125em; height:1.125em; }
 [data-search-field] [data-slot="input-group-button"] { height:28px; min-height:28px; width:28px; padding:0; border:0; border-radius:50%; }
 [data-search-field] [data-slot="input-group-control"]::-webkit-search-cancel-button,
 [data-search-field] [data-slot="input-group-control"]::-webkit-search-decoration { appearance:none; }
-/* An overlay sidebar can be required even inside a wide browser window. */
-[data-slot="sidebar-wrapper"][data-presentation="overlay"] [data-search-field] { padding-block:0; }
-[data-slot="sidebar-wrapper"][data-presentation="overlay"] [data-search-field] [data-slot="input-group-button"] { width:44px; height:44px; min-height:44px; }
+/* A comfortable layout (a workspace whose navigation is an overlay) can be required even inside a wide browser window. */
+[data-search-field][data-comfortable] { padding-block:0; }
+[data-search-field][data-comfortable] [data-slot="input-group-button"] { width:44px; height:44px; min-height:44px; }
 @media (pointer:coarse), (max-width:767px) {
   [data-search-field] { padding-block:0; }
   [data-search-field] [data-slot="input-group-button"] { width:44px; height:44px; min-height:44px; }
 }
+/* A bar's search: its clear control takes the bar's target width and inset, whatever the well's own geometry. */
+[data-search-field][data-bar-search] [data-slot="input-group-button"][data-input-clear] { width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset); }

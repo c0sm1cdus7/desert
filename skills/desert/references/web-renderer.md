@@ -2902,7 +2902,7 @@ Source SHA-256: e312f376a0455c0f89e1e44919590402a4922daf4df97bfb1bc4b23b05d4668b
 
 ## src/svelte/catalog/foundations/shell/ShellNavigation.svelte
 
-Source SHA-256: b9e076b7dd212d8b7ec3fc83ce59fce0986004d8e12377bff380616a23c6c520
+Source SHA-256: 455a632e5e1184eea19f479011d147a7ad9dee26da5ad3cf8fc1b7b23924c0e2
 
 ```svelte
 <script lang="ts">
@@ -2960,7 +2960,7 @@ Source SHA-256: b9e076b7dd212d8b7ec3fc83ce59fce0986004d8e12377bff380616a23c6c520
     <Bar edge="top" purpose="navigation" identity={navigation.identity} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false} />
   {/snippet}
   {#snippet content()}
-    <div>
+    <div data-navigation-destinations>
       {#each navigation.groups as group (group.label)}
       <Sidebar.Group aria-label={group.label}>
         <Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
@@ -2969,8 +2969,8 @@ Source SHA-256: b9e076b7dd212d8b7ec3fc83ce59fce0986004d8e12377bff380616a23c6c520
           <Sidebar.MenuItem>
             <Sidebar.MenuButton isActive={destination.id === navigation.active} aria-current={destination.id === navigation.active ? "page" : undefined}
               aria-label={destination.label} onclick={() => navigate(destination.id)}>
-              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon name={navigationIconNames[destination.icon]} /></span>
-              <span>{destination.label}</span>
+              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon name={navigationIconNames[destination.icon]} size="lead" /></span>
+              <span data-navigation-label>{destination.label}</span>
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>
         {/each}
@@ -3001,7 +3001,7 @@ Source SHA-256: b9e076b7dd212d8b7ec3fc83ce59fce0986004d8e12377bff380616a23c6c520
 
 ## src/svelte/catalog/foundations/bar/BarSearch.svelte
 
-Source SHA-256: 74f2df652e477bb48a7a150566ac366ef49ca593680e80fe7951a3af2aa2d69d
+Source SHA-256: 380564ea07b8f1fbc334ac742ab060baf91840e642c50621072b820094056cf1
 
 ```svelte
 <script lang="ts">
@@ -3031,12 +3031,12 @@ Source SHA-256: 74f2df652e477bb48a7a150566ac366ef49ca593680e80fe7951a3af2aa2d69d
   <div data-catalog-search inert={!open} aria-hidden={!open}>
     <Field primitive="input.text" purpose="search" label={say(m.bar.searchLabel, { title: title.toLowerCase() })} labelVisibility="accessible"
       required={false} invalid={false} disabled={false} measure="fill" value={displayedQuery} placeholder={say(m.bar.searchPlaceholder, { title })}
-      clear={false} controls={open ? resultsId : undefined} focus={open && opened ? "on-mount" : undefined} onchange={onquery} />
+      clear={false} controls={open ? resultsId : undefined} bar="search" focus={open && opened ? "on-mount" : undefined} onchange={onquery} />
   </div>
   <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
   <div class="toolbar-action" data-search-toggle>
     <Action label={open ? say(m.bar.closeSearch) : say(m.bar.search)} icon={open ? "close" : "search"} face="icon" emphasis="secondary" state="ready"
-      type="button" onclick={toggle} disclosure={{ id: `${id}-toggle`, controls: resultsId, expanded: open, haspopup: "listbox" }} />
+      type="button" bar="command" onclick={toggle} disclosure={{ id: `${id}-toggle`, controls: resultsId, expanded: open, haspopup: "listbox" }} />
   </div>
 </div>
 ```
@@ -4967,7 +4967,7 @@ Source SHA-256: 2dd45bbbf5e91c5b83fecb441ed60e8ae6fede0d34f614039184a18e0722e0de
 
 ## src/svelte/catalog/foundations/action/Action.svelte
 
-Source SHA-256: 0f3413874945210d81ff9f660178d8672ff55a0f0e1c07142e0562f22b07a702
+Source SHA-256: 8ac46bc70d728c1f51925facee2d0a6af96d107306d5fbbd304a2329fd68b2ce
 
 ```svelte
 <script lang="ts">
@@ -4976,7 +4976,7 @@ Source SHA-256: 0f3413874945210d81ff9f660178d8672ff55a0f0e1c07142e0562f22b07a702
   import { actionIconNames } from "../../../infra/action-icons.ts";
   import { Icon } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  let { label, icon, state: status, emphasis, face: shown, type, reason, form, disclosure, current, onclick }: CatalogProps<"action"> = $props();
+  let { label, icon, state: status, emphasis, face: shown, type, reason, form, disclosure, current, bar, onclick }: CatalogProps<"action"> = $props();
   const id = $props.id();
   const descriptionId = `${id}-reason`;
   const variants = { primary: "default", secondary: "secondary", destructive: "destructive" } as const;
@@ -5003,7 +5003,7 @@ Source SHA-256: 0f3413874945210d81ff9f660178d8672ff55a0f0e1c07142e0562f22b07a702
   onclick={() => { if (status === "ready") onclick?.(); }} class="relative min-w-0 overflow-hidden {shown === 'icon' ? '' : 'w-fit max-w-[min(100%,22rem)]'}"
   disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
   aria-describedby={reason ? descriptionId : undefined}
-  data-action="" data-action-face={face} data-emphasis={emphasis}>
+  data-action="" data-action-face={face} data-emphasis={emphasis} data-action-bar={bar}>
   <span bind:this={caption} data-button-label aria-hidden="true" class={cn("min-w-0 truncate", face !== "label" && "invisible")}>{label}</span>
   <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
     aria-hidden="true" data-button-glyph data-action-face={face}>
@@ -5032,7 +5032,7 @@ export const actionIconNames = {
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: b2f69f18b7162935c0ce92c24bbd590b77289a0ccfc33e7e31fc909c025448e0
+Source SHA-256: 88eccafa6cb66e04f838d03853afb10efa4ac7ef2e4ee85de0516417a57fe495
 
 ```svelte
 <script lang="ts" module>
@@ -5185,6 +5185,11 @@ Source SHA-256: b2f69f18b7162935c0ce92c24bbd590b77289a0ccfc33e7e31fc909c025448e0
   [data-media-grid-item][aria-current="true"] { outline:2px solid var(--primary); outline-offset:2px; }
   [data-media-list-item] { aspect-ratio:auto; border-radius:0; }
   [data-media-list-item] > [data-button-content] { display:flex; align-items:center; gap:var(--stack-gap,16px); padding:12px 16px; }
+  /* An Action a bar draws (its `bar` placement) takes the bar's target: the toolbar target and inset come from bar. */
+  [data-action-bar] { height:var(--toolbar-target); min-height:var(--toolbar-target); }
+  [data-action-bar="command"] { width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset); }
+  [data-action-bar="commit"] { flex:0 1 auto; min-width:0; white-space:nowrap; }
+  [data-action-bar="step"] { width:100%; max-width:none; min-width:0; }
 </style>
 ```
 
@@ -5531,7 +5536,7 @@ Source SHA-256: a167ab4721ddbd2036fd61c93f066d62d7076f982846cedcc21624571d5a2376
 
 ## src/svelte/catalog/foundations/popover/Popover.svelte
 
-Source SHA-256: e082cea30287da0ac1a3c3084e6bda213ea6b483d4e3b65d4e47a83c7201ade1
+Source SHA-256: 7cd410be4409017919ae327dba912a10adb340688cbb2f1a851ad3f8008c6ff0
 
 ```svelte
 <script lang="ts">
@@ -5563,7 +5568,7 @@ Source SHA-256: e082cea30287da0ac1a3c3084e6bda213ea6b483d4e3b65d4e47a83c7201ade1
 </script>
 {#if trigger.kind === "action"}
   <Action label={trigger.label} icon={trigger.icon} face={trigger.face} emphasis={trigger.emphasis} type="button"
-    state={disabled ? "unavailable" : trigger.state} {disclosure} onclick={() => change(!open)} />
+    state={disabled ? "unavailable" : trigger.state} bar={trigger.bar} {disclosure} onclick={() => change(!open)} />
 {:else if trigger.kind === "field"}
   <Field primitive="trigger" label={trigger.label} labelVisibility="visible" required={trigger.required} invalid={trigger.invalid}
     {disabled} measure={trigger.measure} display={trigger.display} {disclosure} onopen={() => change(!open)} />
@@ -5738,7 +5743,7 @@ Source SHA-256: e95bfc97c5eedfbe17268c0fb5acf81adb8b7eb2f5e12dc7a7558150181ffe4e
 
 ## src/svelte/catalog/foundations/field/Field.svelte
 
-Source SHA-256: 7edbf1a8ef83061c83c460d8a2d3e16abdffcd2042b663194f130b52f676e0a6
+Source SHA-256: ba9bc5827e8df6133e8caa379328c48a830c80ce92e2ab8c5a90fcb5716119b4
 
 ```svelte
 <script lang="ts">
@@ -5754,7 +5759,7 @@ Source SHA-256: 7edbf1a8ef83061c83c460d8a2d3e16abdffcd2042b663194f130b52f676e0a6
   import ClearInput from "./ClearInput.svelte";
   import type { CatalogProps } from "../../types.d.ts";
   let { primitive, label, labelVisibility, required, invalid, disabled, helper, error, identity, measure, purpose, value, placeholder,
-    mask, maxLength, counter, clear, focus, controls, display, disclosure, select, onchange, onmasked, onopen, accessory: trailing, prefix, selection }: CatalogProps<"field"> = $props();
+    mask, maxLength, counter, clear, focus, controls, bar, display, disclosure, select, onchange, onmasked, onopen, accessory: trailing, prefix, selection }: CatalogProps<"field"> = $props();
   const id = $props.id();
   // Both editors receive their value; the trigger owns none. `writing` is the live text, `shown` a mask's formatted text.
   let written = $derived(typeof value === "string" ? value : "");
@@ -5814,7 +5819,7 @@ Source SHA-256: 7edbf1a8ef83061c83c460d8a2d3e16abdffcd2042b663194f130b52f676e0a6
   <Vendor.Field data-primitive={primitive} data-invalid={marked} data-disabled={select ? undefined : disabled} role={select ? undefined : "group"}>
     {#if primitive === "trigger"}{@render trigger()}
     {:else if purpose === "search"}
-      <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} {controls} bind:writing onchange={next => onchange?.(next)} />
+      <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} {controls} {bar} bind:writing onchange={next => onchange?.(next)} />
     {:else}
       <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} {prefix} footer={counted ? characters : undefined}>
         {#snippet accessory()}

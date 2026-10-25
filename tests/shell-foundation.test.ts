@@ -9,6 +9,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 import { pixelDifference } from "./fixtures/pixel-difference.ts";
 import { catalogWorkspaceBefore } from "./fixtures/catalog-workspace-before.ts";
+import { workspaceOwnerRulesBefore } from "./fixtures/workspace-owner-rules-before.ts";
 
 const content = [{ kind: "header", id: "heading", title: "Notes", subtitle: "Your writing" },
   { kind: "stack", id: "plans", title: "Plans", items: Array.from({ length: 30 }, (_, index) => ({ kind: "text" as const, text: `Plan line ${index}.` })) },
@@ -72,6 +73,8 @@ test("composed with bars and the place heading, the shell draws the catalog work
   try {
     const css = await rendererCss(Object.values(catalogWorkspaceBefore));
     for (const f of [baseline, candidate]) { await f.page.addStyleTag({ content: css }); await f.page.emulateMedia({ reducedMotion: "reduce" }); }
+    // The frozen workspace still draws the old marks the shell, field, bar and icon no longer style: it brings their rules.
+    await baseline.page.addStyleTag({ content: workspaceOwnerRulesBefore });
     // CatalogWorkspace lays its adaptive host over the whole workspace with a :global rule that ties AdaptiveSurfaceLayout's
     // own scoped rule. A build emits the child's stylesheet first, so the workspace rule wins; this harness injects
     // component styles in mount order, which inverts that. Re-adding the workspace's rule last restores the built

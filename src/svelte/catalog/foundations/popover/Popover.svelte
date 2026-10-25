@@ -27,7 +27,7 @@
 </script>
 {#if trigger.kind === "action"}
   <Action label={trigger.label} icon={trigger.icon} face={trigger.face} emphasis={trigger.emphasis} type="button"
-    state={disabled ? "unavailable" : trigger.state} {disclosure} onclick={() => change(!open)} />
+    state={disabled ? "unavailable" : trigger.state} bar={trigger.bar} {disclosure} onclick={() => change(!open)} />
 {:else if trigger.kind === "field"}
   <Field primitive="trigger" label={trigger.label} labelVisibility="visible" required={trigger.required} invalid={trigger.invalid}
     {disabled} measure={trigger.measure} display={trigger.display} {disclosure} onopen={() => change(!open)} />

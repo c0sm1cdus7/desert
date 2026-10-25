@@ -148,4 +148,9 @@
   [data-media-grid-item][aria-current="true"] { outline:2px solid var(--primary); outline-offset:2px; }
   [data-media-list-item] { aspect-ratio:auto; border-radius:0; }
   [data-media-list-item] > [data-button-content] { display:flex; align-items:center; gap:var(--stack-gap,16px); padding:12px 16px; }
+  /* An Action a bar draws (its `bar` placement) takes the bar's target: the toolbar target and inset come from bar. */
+  [data-action-bar] { height:var(--toolbar-target); min-height:var(--toolbar-target); }
+  [data-action-bar="command"] { width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset); }
+  [data-action-bar="commit"] { flex:0 1 auto; min-width:0; white-space:nowrap; }
+  [data-action-bar="step"] { width:100%; max-width:none; min-width:0; }
 </style>

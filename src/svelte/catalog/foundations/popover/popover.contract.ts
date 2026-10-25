@@ -3,7 +3,8 @@
 // of a trigger its owner foundation draws itself (a choice's inline value, which keeps its own disclosure), what its surface
 // holds (`content`: information, a form, a list of options, or a menu of labelled commands), whether it stays anchored
 // or becomes a modal sheet when its anchor has no room (`placement`), which trigger edge it aligns to, and `controls`,
-// the id of what the trigger controls when that is not the surface itself (the listbox of a list). It emits
+// the id of what the trigger controls when that is not the surface itself (the listbox of a list). An action trigger a
+// bar mounts (through Menu) is a bar `command` (Action's bar placement). It emits
 // `openchange` with the state the person asks for; the owner decides.
 import { Type } from "@sinclair/typebox";
 import { text } from "../../../../views/definition.ts";
@@ -22,6 +23,7 @@ export const PopoverContract = {
         face: Type.Union([Type.Literal("fit"), Type.Literal("icon")]),
         emphasis: Type.Union([Type.Literal("primary"), Type.Literal("secondary")]),
         state: Type.Union([Type.Literal("ready"), Type.Literal("unavailable"), Type.Literal("pending")]),
+        bar: Type.Optional(Type.Literal("command")),
       }, { additionalProperties: false }),
       Type.Object({
         kind: Type.Literal("field"), label: text, required: Type.Boolean(), invalid: Type.Boolean(),

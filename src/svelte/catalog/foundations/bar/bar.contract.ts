@@ -4,7 +4,8 @@
 // `identityRole` says what the identity is: the surface `heading`, a `continuation` echoing a heading that scrolled
 // away, or the title of a `dialog` or `message`. `search` is the place search: a `layer: "search"` bar draws the field
 // and its toggle; a `layer: "content"` bar only reserves the toggle's room. `inert` takes the bar out of interaction
-// (its content layer while searching). Commands are invoked by intent; search and the navigation toggle raise events.
+// (its content layer while searching). A `float` bar sits over its place (the navigation return) and lets what it draws
+// overflow it. Commands are invoked by intent; search and the navigation toggle raise events.
 // `controls` are commands local to the surface that are no surface intent (the media viewer's zoom): a top command rail
 // draws them after its identity and raises `control` with the id pressed. A caller that binds the bar moves focus to its
 // leading command (`focusLeading`, the media viewer's Close on opening).
@@ -36,6 +37,7 @@ export const BarContract = {
     settingsPlaceholder: Type.Boolean(),
     layer: Type.Optional(Type.Union([Type.Literal("content"), Type.Literal("search")])),
     inert: Type.Boolean(),
+    float: Type.Optional(Type.Boolean()),
   }, { additionalProperties: false }),
   events: Type.Object({
     invoke: SurfaceIntentSchema,
@@ -46,5 +48,5 @@ export const BarContract = {
     control: Type.String(),
   }, { additionalProperties: false }),
   instance: Type.Object({ focusLeading: Type.Function([], Type.Boolean()) }, { additionalProperties: false }),
-  marks: ["data-toolbar", "data-toolbar-identity", "data-identity-role", "data-search-toggle", "data-toolbar-controls", "data-frame-edge"],
+  marks: ["data-toolbar", "data-toolbar-identity", "data-identity-role", "data-search-toggle", "data-toolbar-controls", "data-frame-edge", "data-bar-row", "data-bar-float"],
 } as const;

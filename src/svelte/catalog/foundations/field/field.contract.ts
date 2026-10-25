@@ -2,7 +2,8 @@
 // invalid and disabled state, help and error text and a preferred measure. `primitive` picks exclusive variants: a
 // single line (`purpose` tells the browser what it holds; `mask` installs a decimal editing syntax; `counter` shows
 // the character counter of its `maxLength` in the well, as a multiline editor does; `clear` offers the clear control;
-// `focus` takes focus when it appears; `controls` is the id of what the editor controls, as a search its results), a multiline editor with its character counter, or a trigger whose
+// `focus` takes focus when it appears; `controls` is the id of what the editor controls, as a search its results; `bar`
+// marks a bar's search, whose clear control takes the bar's target), a multiline editor with its character counter, or a trigger whose
 // well opens a surface an overlay owns (`display` is what the well shows, `disclosure` the button's pure-data link to
 // that surface). A `select` trigger is a select control's well: it fits its value (never wider than its slot), shows
 // press feedback, shows the value its owner draws in the `selection` slot (a choice's option, with its leading) and says
@@ -40,6 +41,7 @@ export const FieldContract = {
       clear: Type.Boolean(),
       focus: Type.Optional(Type.Literal("on-mount")),
       controls: Type.Optional(Type.String({ minLength: 1 })),
+      bar: Type.Optional(Type.Literal("search")),
       display: Type.Optional(Type.Undefined()),
       disclosure: Type.Optional(Type.Undefined()),
       select: Type.Optional(Type.Undefined()),
@@ -56,6 +58,7 @@ export const FieldContract = {
       clear: Type.Optional(Type.Undefined()),
       focus: Type.Optional(Type.Undefined()),
       controls: Type.Optional(Type.Undefined()),
+      bar: Type.Optional(Type.Undefined()),
       display: Type.Optional(Type.Undefined()),
       disclosure: Type.Optional(Type.Undefined()),
       select: Type.Optional(Type.Undefined()),
@@ -75,6 +78,7 @@ export const FieldContract = {
       clear: Type.Optional(Type.Undefined()),
       focus: Type.Optional(Type.Undefined()),
       controls: Type.Optional(Type.Undefined()),
+      bar: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),
   ])]),
   events: Type.Object({

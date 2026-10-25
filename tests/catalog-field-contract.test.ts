@@ -29,7 +29,10 @@ test("field: the contract is closed: a shared part and exclusive variants by pri
   assert.equal(contract.closed, true);
   if (!contract.closed) return;
   assert.deepEqual(Object.keys(contract.props), ["label", "labelVisibility", "required", "invalid", "disabled", "helper", "error", "identity",
-    "primitive", "measure", "purpose", "value", "placeholder", "mask", "maxLength", "counter", "clear", "focus", "controls", "display", "disclosure", "select"]);
+    "primitive", "measure", "purpose", "value", "placeholder", "mask", "maxLength", "counter", "clear", "focus", "controls", "bar", "display", "disclosure", "select"]);
+  // A single line names what it controls (the bar search its results) and whether it is a bar's search (its clear control
+  // takes the bar's target); the other primitives declare both absent.
+  assert.deepEqual(contract.props.bar, { schema: { kind: "union", members: [{ kind: "literal", value: "search" }, { kind: "undefined" }] }, optional: true });
   // A single line names what it controls (the bar search its results); the other primitives declare it absent.
   assert.deepEqual(contract.props.controls, { schema: { kind: "union", members: [{ kind: "string" }, { kind: "undefined" }] }, optional: true });
   const required = Object.entries(contract.props).filter(([, item]) => !item.optional).map(([name]) => name);

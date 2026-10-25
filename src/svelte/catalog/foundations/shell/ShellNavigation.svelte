@@ -53,7 +53,7 @@
     <Bar edge="top" purpose="navigation" identity={navigation.identity} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false} />
   {/snippet}
   {#snippet content()}
-    <div>
+    <div data-navigation-destinations>
       {#each navigation.groups as group (group.label)}
       <Sidebar.Group aria-label={group.label}>
         <Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
@@ -62,8 +62,8 @@
           <Sidebar.MenuItem>
             <Sidebar.MenuButton isActive={destination.id === navigation.active} aria-current={destination.id === navigation.active ? "page" : undefined}
               aria-label={destination.label} onclick={() => navigate(destination.id)}>
-              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon name={navigationIconNames[destination.icon]} /></span>
-              <span>{destination.label}</span>
+              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon name={navigationIconNames[destination.icon]} size="lead" /></span>
+              <span data-navigation-label>{destination.label}</span>
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>
         {/each}

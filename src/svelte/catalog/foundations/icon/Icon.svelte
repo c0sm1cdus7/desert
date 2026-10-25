@@ -47,7 +47,7 @@
   const toneClass = { success: "text-success", warning: "text-warning" } as const;
   // A chevron is muted and never shrinks beside the text it follows (the theme's [data-control-chevron] rule moves here).
   let glyphClass = $derived([tone && toneClass[tone], chevron && "text-muted-foreground shrink-0",
-    size === "mark" && "size-[55%]", size === "artwork" && "size-[25%] max-h-32 max-w-32", leading === "list" && "mt-0.5 size-4 shrink-0"].filter(Boolean).join(" "));
+    size === "mark" && "size-[55%]", size === "artwork" && "size-[25%] max-h-32 max-w-32", size === "lead" && "size-[1.125em]!", leading === "list" && "mt-0.5 size-4 shrink-0"].filter(Boolean).join(" "));
   // The glyph gets exactly the attributes the props ask for, nothing undefined: lucide hides an icon by itself when it
   // receives no aria attribute at all, so an absent `decorative` must stay absent.
   let attributes = $derived({
