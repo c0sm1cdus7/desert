@@ -14,7 +14,7 @@
   <Tag presentation="chip" tone={node.tone} label={node.label} state="known" removable={false} disabled={node.disabled} />
 {:else if node.kind === "avatar"}
   <Inline gap="close" overflow="none">
-    <Avatar size="row" interaction="none" source={source ? { kind: "image", source, initials: node.fallback } : { kind: "initials", initials: node.fallback }} />
+    <Avatar size="row" interaction="none" source={source ? { kind: "image", source, seed: node.seed } : { kind: "seed", seed: node.seed }} />
     <Text kind="body" text={node.label} wrap="anywhere" />
   </Inline>
 {:else}

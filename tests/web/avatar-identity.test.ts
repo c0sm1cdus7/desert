@@ -28,7 +28,7 @@ test("bank avatars retain a visible identity face and readable label at narrow w
   } finally { await f.close(); }
 });
 
-test("failed avatar images preserve the same bounded fallback and recover when the source loads", { timeout: 30000 }, async () => {
+test("failed avatar images show their seed drawing, never letters, and recover when the source loads", { timeout: 30000 }, async () => {
   const f = await publicCatalogFixture();
   try {
     // Successful HTTP with invalid image data exercises the native image failure
@@ -38,7 +38,8 @@ test("failed avatar images preserve the same bounded fallback and recover when t
     await f.page.getByRole("searchbox", { name: "Find component", exact: true }).fill("avatar");
     const specimen = f.page.locator('[data-view-item="specimen:control.avatar:image"]');
     const row = specimen.locator('div:has(> [data-slot="avatar"])');
-    await row.getByText("AR", { exact: true }).waitFor(); await row.scrollIntoViewIfNeeded(); await settle(f.page);
+    await row.locator("[data-avatar-seed]").waitFor(); await row.locator("img").waitFor({ state: "detached" });
+    await row.scrollIntoViewIfNeeded(); await settle(f.page);
     const failedGeometry = await avatarGeometry(row), violations = avatarViolations(failedGeometry, true);
     await avatarEvidence(f.page, "failed-image", { geometry: failedGeometry, violations }, specimen);
     await f.page.unroute("**/bank-image.svg");
@@ -46,7 +47,7 @@ test("failed avatar images preserve the same bounded fallback and recover when t
     await f.page.getByRole("searchbox", { name: "Find component", exact: true }).fill("avatar");
     await row.locator("img").waitFor();
     assert.ok(await row.locator("img").evaluate(image => (image as HTMLImageElement).naturalWidth > 0));
-    assert.equal(await row.getByText("AR", { exact: true }).isVisible(), false, "fallback does not overlay a loaded image");
+    assert.equal(await row.locator('[data-slot="avatar"]').evaluate(face => face.textContent?.trim()), "", "a loaded picture spells nothing");
     assert.deepEqual(violations, []);
   } finally { await f.close(); }
 });

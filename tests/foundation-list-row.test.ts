@@ -9,6 +9,7 @@ import { treeViolations } from "./fixtures/tree-violations.ts";
 import { measureProbes, renderCases, type Probes } from "./fixtures/parity.ts";
 import { contentBefore } from "./fixtures/content-before.ts";
 import { themeAtCe6ed6f } from "./fixtures/theme-before.ts";
+import { withoutFacePrimitive } from "./fixtures/face-primitive.ts";
 import { compositionsBefore } from "./fixtures/compositions-c-before.ts";
 import { controlsBefore } from "./fixtures/controls-before.ts";
 
@@ -125,9 +126,11 @@ test("list and row keep the pixels of the grouped panel, the destination row, th
     const without = (keys: readonly string[]) => (value: unknown) => JSON.parse(JSON.stringify(value), (key, item) => keys.includes(key) ? undefined : item);
     const ignored: Readonly<Record<string, readonly string[]>> = { destinations: ["max-width", "text-align", "overflow-wrap"], overview: ["max-width"],
       records: ["max-width", "text-align", "justify-content", "display"] };
+    // The face's ground and positioning are the face primitive's (law 9e); its box, corner and glyph still compare.
+    const primitive = (value: unknown) => withoutFacePrimitive(value, ["face"]);
     for (const name of Object.keys(old)) {
       const strip = without(ignored[name] ?? []);
-      const [left, right] = [strip(old[name]), strip(now[name])];
+      const [left, right] = [strip(primitive(old[name])), strip(primitive(now[name]))];
       assert.deepEqual(right, left, name);
     }
     assert.deepEqual([was.errors, is.errors], [[], []]);

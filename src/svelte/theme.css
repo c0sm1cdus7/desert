@@ -53,9 +53,12 @@
 @utility tm-tinted {
   color:color-mix(in oklab,var(--tone) 60%,var(--foreground));
 }
+/* The face primitive (law 9e): one plain card-white ground and one neutral hairline, the same on every face, avatar and
+   artwork placeholder. It reads no tone: a status tints only its glyph, inside Face. The owner sets the radius; the
+   hairline follows it. */
 @utility tm-face {
-  background-color:color-mix(in oklab,var(--face-tone,var(--primary-text)) 14%,var(--secondary));
-  &::after { border-color:color-mix(in oklab,var(--face-tone,var(--primary-text)) 30%,var(--border)); }
+  position:relative; background-color:var(--card-base);
+  &::after { content:""; position:absolute; inset:0; border:1px solid var(--border); border-radius:inherit; pointer-events:none; }
   @media (prefers-contrast:more) { &::after { border-color:var(--foreground); } }
 }
 :root { --warning:oklch(.52 .12 85); --choice-outline:var(--muted-foreground); }

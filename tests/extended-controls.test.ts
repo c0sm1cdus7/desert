@@ -58,5 +58,5 @@ test("media and colored labels are closed, accessible descriptors, not product m
   assert.throws(() => controlNode({ ...image, source: "javascript:alert(1)" }));
   assert.throws(() => controlNode({ ...image, alt: "" }));
   assert.equal(controlNode({ version: "desert.control/1", kind: "avatar", id: "person", label: "Alex Rivera",
-    disabled: false, source: null, fallback: "AR" }).kind, "avatar");
+    disabled: false, source: null, seed: "5c2e9b71a0d4f386" }).kind, "avatar");
 });

@@ -791,7 +791,7 @@ export const Messages = messageCatalog({
       "purpose": "Understand whether a capability is ready, unavailable or not yet known."
     },
     "avatar": {
-      "purpose": "Show a person or identity as a seeded drawing, a picture or initials, optionally as the button that shuffles its seed."
+      "purpose": "Show a person or identity as a seeded drawing or a picture over its seed, never initials, optionally as the button that shuffles its seed."
     },
     "card": {
       "purpose": "Open one item, media, collection or summary from a card composed of artwork and its supporting content."

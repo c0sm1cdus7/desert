@@ -4178,7 +4178,7 @@ export function applyControlEvent(value: ControlNode, input: unknown): ControlTr
 
 ## src/interaction/control-specimens.ts
 
-Source SHA-256: 2de61eb983d417f1f52eee0f2444417de5592eab05406a864ae2b33050e63610
+Source SHA-256: 2294b696df8356dc1557ca13e8481e40896fd6b1cefc216c661379081d71765b
 
 ```ts
 import { controlNode, type ControlNode } from "./control-nodes.ts";
@@ -4265,8 +4265,8 @@ export const ControlSpecimens = freezeDeep(([
     sample("unavailable", { ...image, id: "missing-cover", source: null }),
   ] },
   { id: "control.avatar", family: "control", specimens: [
-    sample("image", { ...base, kind: "avatar", id: "author-photo", label: "Alex Rivera", source: "/bank-image.svg", fallback: "AR" }),
-    sample("fallback", { ...base, kind: "avatar", id: "author-initials", label: "Sam Lee", source: null, fallback: "SL" }),
+    sample("image", { ...base, kind: "avatar", id: "author-photo", label: "Alex Rivera", source: "/bank-image.svg", seed: "5c2e9b71a0d4f386" }),
+    sample("fallback", { ...base, kind: "avatar", id: "author-seed", label: "Sam Lee", source: null, seed: "a1b2c3d4e5f60718" }),
   ] },
 ] as const).map(entry => {
   const local = entry.specimens.find(specimen => specimen.state === 'value') ?? entry.specimens[0];
@@ -4281,7 +4281,7 @@ export const ControlSpecimens = freezeDeep(([
 
 ## src/interaction/extended-nodes.ts
 
-Source SHA-256: d638407385e3d4727298fca3ea0a1e927b28b149bc907af4fedeca90b6bc82c0
+Source SHA-256: ff165b3b1cf350fd0411685217970112578a3a9d99420a24aa26c2df3a9ad663
 
 ```ts
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
@@ -4318,8 +4318,8 @@ export const TagToneSchema = Type.Union([Type.Literal("neutral"), Type.Literal("
 export const TagNodeSchema = object({ ...base, kind: Type.Literal("tag"), tone: TagToneSchema });
 export const ImageNodeSchema = object({ ...base, kind: Type.Literal("image"), source, alt: text(),
   aspect: Type.Union([Type.Literal("square"), Type.Literal("landscape"), Type.Literal("portrait")]) });
-export const AvatarNodeSchema = object({ ...base, kind: Type.Literal("avatar"), source,
-  fallback: Type.String({ minLength: 1, maxLength: 4 }) });
+// A person's mark: a picture over its seed drawing, or the seed alone. Never initials.
+export const AvatarNodeSchema = object({ ...base, kind: Type.Literal("avatar"), source, seed: Type.String({ minLength: 1 }) });
 export const ExtendedNodeSchemas = [OptionsNodeSchema, MoneyNodeSchema, DateNodeSchema, TagNodeSchema, ImageNodeSchema, AvatarNodeSchema] as const;
 export const ExtendedNodeSchema = Type.Union([...ExtendedNodeSchemas]);
 export type ExtendedNode = Frozen<Static<typeof ExtendedNodeSchema>>;
@@ -4599,23 +4599,25 @@ Source SHA-256: 95d6500ce603f7e812ae79ce8d0833a8ae5732a509302ab5ded2c8116684a0f5
 
 ## src/svelte/catalog/foundations/face/Face.svelte
 
-Source SHA-256: 2422851544aa9aa5eb55cbf79c33412f7ecff38d24e330f05cda17b96a3864eb
+Source SHA-256: b1583028daeae8af01654d99d391b8903c51c0f714de65be3f2b7e2e5fb9a9b5
 
 ```svelte
 <script lang="ts">
   import { actionIconNames } from '../../../infra/action-icons.ts';
   import { Icon } from '../../index.ts';
   import type { CatalogProps } from "../../types.d.ts";
+  import { glyphTone, type FaceTone } from "./face-tone.ts";
   let { face, compact = false }: CatalogProps<"face"> = $props();
   let glyph = $derived(face.kind === "symbol" ? face.text : face.kind === "flag"
     ? Array.from(face.region, letter => String.fromCodePoint(0x1f1e6 + letter.charCodeAt(0) - 65)).join("") : "");
+  let tone: FaceTone = $derived(face.kind === "status" ? face.severity : "neutral");
 </script>
-<!-- The face draws its own round mark: its fill and border come from the theme's tm-face utility. -->
-<div class="bank-face tm-face relative flex shrink-0 select-none overflow-hidden rounded-[30%] after:pointer-events-none after:absolute after:inset-0 after:rounded-[30%] after:border"
-  class:face-warning={face.kind === "status" && face.severity === "warning"} class:face-error={face.kind === "status" && face.severity === "error"}
-  data-piece="face" data-face-kind={face.kind} data-compact={compact || undefined}
-  data-tone={face.kind === "status" ? face.severity : "neutral"} aria-hidden="true">
-  <span class="face-content type-body flex size-full items-center justify-center rounded-[inherit]" data-face-content>
+<!-- One face primitive (law 9e): the theme's tm-face gives every face the same white ground and hairline; the root takes
+     no tone. The tone reaches only the glyph, through glyphTone, so a coloured ground cannot be written here. -->
+<div class="bank-face tm-face flex shrink-0 select-none overflow-hidden rounded-[30%]"
+  data-piece="face" data-face-kind={face.kind} data-compact={compact || undefined} data-tone={tone} aria-hidden="true">
+  <span class={["face-content type-body flex size-full items-center justify-center rounded-[inherit]", glyphTone[tone]]}
+    data-face-content data-glyph-tone={tone}>
     {#if face.kind === 'icon'}<Icon name={actionIconNames[face.icon]} size="mark" />{:else if face.kind === "status"}<Icon name="circle-alert" size="mark" />{:else if face.kind === "document"}<Icon name="file-text" size="mark" />{:else}<span class="face-glyph" data-face-glyph>{glyph}</span>{/if}
   </span>
 </div>
@@ -4628,9 +4630,11 @@ Source SHA-256: 2422851544aa9aa5eb55cbf79c33412f7ecff38d24e330f05cda17b96a3864eb
     .bank-face[data-compact] { width:1.5rem; height:1.5rem; }
     .face-glyph { font-size:calc(var(--face-size,2rem) * .6); line-height:1; }
     .bank-face[data-compact] .face-glyph { font-size:calc(1.5rem * .6); }
+    /* The only tone rules of a face: glyph inks, on the content span (face-tone.ts names them). */
+    .glyph-neutral { color:var(--muted-foreground); }
+    .glyph-warning { color:var(--warning); }
+    .glyph-error { color:var(--destructive); }
     .bank-face[data-face-kind="flag"] .face-glyph { font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif; }
-    .face-warning { --face-tone:var(--warning); color:var(--face-tone); }
-    .face-error { --face-tone:var(--destructive); color:var(--face-tone); }
   }
 </style>
 ```
@@ -5473,7 +5477,7 @@ Source SHA-256: 8585cf7959eb30fa27e04f03d198af6b4e53746a62026b1c882abfd2974ecdf6
 
 ## src/svelte/catalog/compositions/media-control/MediaControl.svelte
 
-Source SHA-256: a167ab4721ddbd2036fd61c93f066d62d7076f982846cedcc21624571d5a2376
+Source SHA-256: 5fcaae5bf5ec3ee280547b35ff35021d2cfb24971985395ad81effe6dda46d77
 
 ```svelte
 <script lang="ts">
@@ -5492,7 +5496,7 @@ Source SHA-256: a167ab4721ddbd2036fd61c93f066d62d7076f982846cedcc21624571d5a2376
   <Tag presentation="chip" tone={node.tone} label={node.label} state="known" removable={false} disabled={node.disabled} />
 {:else if node.kind === "avatar"}
   <Inline gap="close" overflow="none">
-    <Avatar size="row" interaction="none" source={source ? { kind: "image", source, initials: node.fallback } : { kind: "initials", initials: node.fallback }} />
+    <Avatar size="row" interaction="none" source={source ? { kind: "image", source, seed: node.seed } : { kind: "seed", seed: node.seed }} />
     <Text kind="body" text={node.label} wrap="anywhere" />
   </Inline>
 {:else}

@@ -48,8 +48,15 @@ test("media and catalog compositions keep the frozen trees' pixels, but for DESI
         document.querySelector(`[data-case="${name}"] [data-image-state="error"]`) !== null));
       await settle(f.page);
     }
+    // Law 9e (slice 3): an artwork placeholder is a face, the theme's face primitive (white ground, its own hairline), where
+    // the frozen tree drew a muted ground, and its corner is its frame's (the frame clipped it before); face-material.test.ts
+    // measures it. Both trees set ground, hairline and corner aside here, so
+    // everything else still compares. The avatar is a seed drawing now, never initials (avatar-identity.test.ts): it has no
+    // frozen pixels to keep.
+    for (const f of [was, is]) await f.page.addStyleTag({ content: "[data-media-artwork-placeholder] { background:none !important; position:static !important; border-radius:0 !important; }"
+      + " [data-media-artwork-placeholder]::after { content:none !important; }" });
     // Grids, covers, controls and media objects: the same pixels (a grid's rounded corners antialias a level or two apart).
-    for (const name of ["tiles", "covers", "tag", "avatar", "image", "object-image", "object-missing"]) {
+    for (const name of ["tiles", "covers", "tag", "image", "object-image", "object-missing"]) {
       const [a, b] = [await caseShot(was.page, name), await caseShot(is.page, name)];
       assert.deepEqual(await pixelDifference(is.page, a, b, 2), { count: 0, within: true }, `${name}: the same pixels`);
     }

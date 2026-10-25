@@ -66,7 +66,7 @@ const measure = (page: Page) => page.evaluate(keys => {
       style: Object.fromEntries(keys.map(key => [key, style.getPropertyValue(key)])) };
   };
   return Object.fromEntries([...document.querySelectorAll("[data-case]")].map(element => [element.getAttribute("data-case"),
-    [...element.querySelectorAll("*")].map(node => ({ tag: node.tagName.toLowerCase(), ...read(node),
+    [...element.querySelectorAll("*")].map(node => ({ tag: node.tagName.toLowerCase(), face: node.matches('[data-piece="face"], [data-slot="avatar"]'), ...read(node),
       after: getComputedStyle(node, "::after").content === "none" ? null : read(node, "::after").style }))]));
 }, styleKeys);
 
@@ -90,8 +90,14 @@ test("marks: Face draws its own round mark; every mark keeps the pixels of the i
   try {
     assert.equal(await after.page.locator('[data-slot="avatar"]').count(), 0, "Face no longer mounts the vendor avatar");
     assert.equal(await after.page.locator('[data-piece="face"]').count(), 10);
+    // Law 9e (slice 3) changed exactly the face primitive: a card-white ground instead of the tinted one, and its hairline
+    // is now the primitive's own ::after on a positioned face; its tone inks the glyph (measured below), not the root. Those
+    // are measured by face-material.test.ts; every other pixel of every mark is still the base's.
+    type Node = Readonly<{ face: boolean; style: Readonly<Record<string, string>> }>;
+    const primitive = (nodes: readonly Node[] | undefined) => nodes?.map(node => !node.face ? node : { ...node, after: undefined,
+      style: Object.fromEntries(Object.entries(node.style).filter(([key]) => !["background-color", "color", "position", "top", "right"].includes(key))) });
     const [was, is] = [await measure(before.page), await measure(after.page)];
-    for (const name of Object.keys(was)) assert.deepEqual(is[name], was[name], name);
+    for (const name of Object.keys(was)) assert.deepEqual(primitive(is[name]), primitive(was[name]), name);
     assert.deepEqual([before.errors, after.errors], [[], []]);
   } finally { await before.close(); await after.close(); }
 });

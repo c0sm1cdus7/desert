@@ -20,7 +20,7 @@ function sameHue(paint: number[], tone: number[], minimumChroma = 10) {
 
 // Behavioral color expectations precede the tint implementation. This uses real
 // shared faces/controls, not a reimplementation of their proposed color mixes.
-test("semantic faces retain tint while every pane shares neutral material and accessibility preferences", { timeout: 60000 }, async () => {
+test("faces keep one white ground with tone only on the glyph while every pane shares neutral material and accessibility preferences", { timeout: 60000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
     import * as Avatar from '@desert/svelte/vendor/components/ui/avatar/index.js';
     import { Button } from '@desert/svelte/vendor/components/ui/button/index.js';
@@ -31,8 +31,8 @@ test("semantic faces retain tint while every pane shares neutral material and ac
   </script><main style="padding:24px">
     <section data-reading style="display:flex;gap:20px;padding:24px;background:var(--card)">
       {#each ['person','object'] as shape}
-        <Avatar.Root {shape} size="lg"><Avatar.Fallback initials="SL"/></Avatar.Root>
-        <Avatar.Root {shape} size="lg"><Avatar.Image src={photo} alt="Portrait"/><Avatar.Fallback initials="AR"/></Avatar.Root>
+        <Avatar.Root {shape} size="lg"><Avatar.Fallback/></Avatar.Root>
+        <Avatar.Root {shape} size="lg"><Avatar.Image src={photo} alt="Portrait"/><Avatar.Fallback/></Avatar.Root>
       {/each}
       <Face face={{kind:'document'}}/><Face face={{kind:'status',severity:'warning'}}/><Face face={{kind:'status',severity:'error'}}/>
     </section>
@@ -62,7 +62,7 @@ test("semantic faces retain tint while every pane shares neutral material and ac
         const style = (selector: string) => getComputedStyle(document.querySelector(selector)!);
         const root = getComputedStyle(document.documentElement);
         const faces = [...document.querySelectorAll('[data-slot="avatar"], [data-piece="face"]')].map(face => {
-          const css = getComputedStyle(face), border = getComputedStyle(face, "::after"), fallback = face.querySelector('[data-slot="avatar-fallback"], [data-face-content]');
+          const css = getComputedStyle(face), border = getComputedStyle(face, "::after"), fallback = face.querySelector('[data-face-content]');
           const image = face.querySelector("img"), photo = image ? getComputedStyle(image) : null;
           return { tone: face.getAttribute("data-tone") ?? "neutral", fill: rgba(css.backgroundColor), border: rgba(border.borderTopColor),
             text: fallback ? rgba(getComputedStyle(fallback).color) : null, glyph: !!face.querySelector("svg"),
@@ -82,15 +82,15 @@ test("semantic faces retain tint while every pane shares neutral material and ac
       check(JSON.stringify(observed.canvas) === JSON.stringify(canvas), "reading canvas stays neutral and unchanged");
       check(JSON.stringify(observed.well) === JSON.stringify(observed.glass.fill), "input well and button share the same material");
       for (const [index, face] of observed.faces.entries()) {
-        const tone = face.tone === "warning" ? observed.warning : face.tone === "error" ? observed.error : observed.accent;
-        check(face.fill[3] === 255 && contrast(face.fill, observed.card) >= 1.1, `face ${index}: own opaque, perceptible fill`);
-        check(sameHue(face.fill, tone), `face ${index}: perceptible ${face.tone} hue in fill`);
+        // Law 9e: every face's ground is the reading card's white, its hairline neutral; a tone reaches only the glyph.
+        check(JSON.stringify(face.fill) === JSON.stringify(card), `face ${index}: the card-white ground`);
         check(contrast(composite(face.border, face.fill), face.fill) >= (highContrast ? 3 : 1.2), `face ${index}: perceptible border`);
-        if (!highContrast) check(sameHue(composite(face.border, face.fill), tone), `face ${index}: semantic tint reaches border`);
+        check(!sameHue(composite(face.border, face.fill), observed.accent) && !sameHue(composite(face.border, face.fill), observed.error), `face ${index}: no tint reaches the border`);
+        if (face.tone !== "neutral" && face.text) check(sameHue(face.text, face.tone === "warning" ? observed.warning : observed.error, 0), `face ${index}: the ${face.tone} glyph wears its tone`);
         if (face.text) check(contrast(face.text, face.fill) >= (face.glyph ? 3 : 4.5), `face ${index}: readable ${face.glyph ? "glyph" : "initials"}`);
         if (face.photo) check(face.photo.filter === "none" && face.photo.rootFilter === "none" && face.photo.blend === "normal" && face.photo.opacity === "1", `face ${index}: photograph is not recolored`);
       }
-      check(new Set(observed.faces.slice(-3).map(face => JSON.stringify(face.fill))).size === 3, "document, warning and error fills remain distinct");
+      check(new Set(observed.faces.map(face => JSON.stringify(face.fill) + JSON.stringify(face.border))).size === 1, "every face shares one ground and one hairline, whatever its tone");
       check(Math.abs(observed.glass.fill[3]! - (opaque ? 255 : 224)) <= 1, "small and large panes share the same opacity");
       check(opaque ? observed.glass.filter === "none" : /blur/.test(observed.glass.filter), "small Glass respects accessibility material preferences");
       for (const material of observed.materials) {

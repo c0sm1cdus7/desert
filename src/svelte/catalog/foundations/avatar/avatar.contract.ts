@@ -1,5 +1,5 @@
-// The props of Avatar. `source` is a seed (a deterministic drawing, never letters), a picture with the initials shown
-// while it cannot load, or initials alone (a person without a picture). `size` is the portrait of an identity, its
+// The props of Avatar. `source` is a seed (a deterministic drawing, never letters), or a picture with the seed drawn
+// while it loads or when it cannot load. There is no initials source: a person is never spelled. `size` is the portrait of an identity, its
 // compact form, or the mark of a row. `label` names it for assistive technology; without one it is decorative. With
 // `interaction: "shuffle"` the seed avatar is a button, named by `shuffleLabel`, whose `shuffle` event is a new seed.
 import { Type } from "@sinclair/typebox";
@@ -15,9 +15,8 @@ export const AvatarContract = {
       interaction: Type.Literal("none"),
       source: Type.Union([
         Type.Object({ kind: Type.Literal("seed"), seed: Type.String({ minLength: 1 }) }, { additionalProperties: false }),
-        Type.Object({ kind: Type.Literal("image"), source: ImageSourceSchema, initials: Type.String({ minLength: 1, maxLength: 4 }) },
+        Type.Object({ kind: Type.Literal("image"), source: ImageSourceSchema, seed: Type.String({ minLength: 1 }) },
           { additionalProperties: false }),
-        Type.Object({ kind: Type.Literal("initials"), initials: Type.String({ minLength: 1, maxLength: 4 }) }, { additionalProperties: false }),
       ]),
       shuffleLabel: Type.Optional(Type.Undefined()),
       disabled: Type.Optional(Type.Undefined()),
