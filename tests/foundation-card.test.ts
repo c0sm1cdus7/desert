@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
 import test from "node:test";
-import { rendererCss } from "./fixtures/renderer-css.ts";
+import { rendererCss, themeBeforePrune } from "./fixtures/renderer-css.ts";
 import { treeViolations } from "./fixtures/tree-violations.ts";
 import { measureProbes, renderCases, type Probes } from "./fixtures/parity.ts";
 import { compositionsBefore } from "./fixtures/compositions-c-before.ts";
@@ -93,7 +93,8 @@ test("card keeps the pixels of the catalog card, the media tile, the collection 
   // the imports, so the after page resolves the frozen card too (it never mounts it).
   const card = { [resolve(import.meta.dirname, "..", "src/svelte/catalog/foundations/card/CatalogCardBefore.svelte")]: contentBefore[catalogCard] ?? "" };
   const frozen = { ...mediaCompositionsBeforeOverrides, [resolve(import.meta.dirname, "..", widget)]: compositionsBefore[widget] ?? "", ...card };
-  const [was, is] = [await renderCases(before, frozen, css), await renderCases(after, card, css)];
+  // The frozen side draws with the base f7247e4 theme (Batch 3 deleted catalog-media.css, which styled it); Card with today's.
+  const [was, is] = [await renderCases(before, frozen, await rendererCss(Object.values(frozen), themeBeforePrune())), await renderCases(after, card, css)];
   try {
     for (const f of [was, is]) await f.page.locator('[data-case="item-image"] [data-image-state="error"]').waitFor();
     // An item's artwork fills the card through the card's own absolute frame, where a contextual rule positioned it
