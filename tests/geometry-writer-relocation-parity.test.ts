@@ -90,6 +90,9 @@ async function previousCss() {
   // gets that utility as today's pane material defines it, the panes nested in it keeping the ordinary backing.
   inlined += `\n:root { --pane-base-opacity:var(--pane-opacity); --pane-floating-opacity:100%; }\n` +
     `@utility material-floating { --pane-opacity:var(--pane-floating-opacity); & :where(*) { --pane-opacity:var(--pane-base-opacity); } }\n`;
+  // Slice 3 review 3 (a deliberate change, not a relocation): the spacing scale gains the lengths 79d8322 drew (10, 14, 22
+  // and 28px), which today's catalog home uses on both sides; the frozen side's theme carries them.
+  inlined += "\n@theme { --spacing-cozy:.625rem; --spacing-near:.875rem; --spacing-airy:1.375rem; --spacing-ample:1.75rem; }\n";
   const compiler = await compile(inlined, { base, onDependency: () => {} });
   return compiler.build(new Scanner({ sources: compiler.sources }).scan());
 }
