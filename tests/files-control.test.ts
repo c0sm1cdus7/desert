@@ -46,3 +46,23 @@ test("files without a provided host fails loudly instead of choosing nowhere", a
     assert.ok(f.errors.some(error => error.includes("LOCAL_FILE_HOST_REQUIRED")), f.errors.join("; "));
   } finally { await f.close(); }
 });
+
+// Found by the slice 3 package: the old field description pulled "No local files selected." 4 px up under the limits
+// (the vendor's nth-last-2 margin); Files drew the two captions a full 8 px gap apart. They read as one 4 px block again.
+test("the limits and the empty note read as one caption block, 4 px apart", async () => {
+  const f = await svelteBrowser(`<script>
+    import Files from '@desert/svelte/catalog/foundations/files/Files.svelte';
+    import { provideFileHost } from '@desert/svelte/infra/file-host-context.ts';
+    provideFileHost();
+  </script><Files node={${node}} onevent={() => {}} />`, {}, "https://files.test/");
+  try {
+    await f.page.addStyleTag({ content: await (await import("./fixtures/renderer-css.ts")).rendererCss() });
+    const gap = await f.page.evaluate(() => {
+      const texts = [...document.querySelectorAll("[data-files] *")].filter(node => node.children.length === 0);
+      const limits = texts.find(node => node.textContent?.startsWith("Up to"))!, none = texts.find(node => node.textContent === "No local files selected.")!;
+      return Math.round(none.getBoundingClientRect().top - limits.getBoundingClientRect().bottom);
+    });
+    assert.equal(gap, 4);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});

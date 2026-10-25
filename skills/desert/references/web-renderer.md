@@ -5615,7 +5615,7 @@ Source SHA-256: 7c944131e730080e7d79b96bad35bdf153dff6d827ad86daa629999f5d7c9ef4
 
 ## src/svelte/catalog/foundations/files/Files.svelte
 
-Source SHA-256: 60b613e1919050b859e27751ba53c71ada3625b94c11af105b2df275bb2aedf3
+Source SHA-256: fe2c333485bd86a54f1fdb048bf7788dde5e4d76c147c05d554250539d4704b1
 
 ```svelte
 <script lang="ts">
@@ -5652,8 +5652,12 @@ Source SHA-256: 60b613e1919050b859e27751ba53c71ada3625b94c11af105b2df275bb2aedf3
   <span id={`${id}-label`} data-files-label class={stackTitle() === checked.label ? "sr-only"
     : "flex w-fit items-center gap-2 type-control leading-snug select-none group-data-[invalid=true]/field:text-destructive-text"}>{checked.label}</span>
   <Action icon="open" label={say(m.files.choose)} face="fit" emphasis="secondary" type="button" state={checked.disabled ? "unavailable" : "ready"} onclick={choose} />
-  <Text id={`${id}-limits`} kind="caption" tone="muted" inset="row"
-    text={say(m.files.limits, { count: String(checked.limits.maxCount), file: fileSize(checked.limits.maxFileBytes), total: fileSize(checked.limits.maxTotalBytes) })} />
+  <!-- The limits and, with no file chosen, the empty note are one caption block (4 px apart, as the field description was). -->
+  <div class="flex flex-col gap-1">
+    <Text id={`${id}-limits`} kind="caption" tone="muted" inset="row"
+      text={say(m.files.limits, { count: String(checked.limits.maxCount), file: fileSize(checked.limits.maxFileBytes), total: fileSize(checked.limits.maxTotalBytes) })} />
+    {#if !checked.files.length}<Text kind="caption" tone="muted" inset="row" text={say(m.files.none)} />{/if}
+  </div>
   {#if checked.files.length}
     <ul class="flex flex-col gap-2" aria-label={say(m.files.selected)} data-files-list>
       {#each checked.files as file (file.id)}
@@ -5664,7 +5668,7 @@ Source SHA-256: 60b613e1919050b859e27751ba53c71ada3625b94c11af105b2df275bb2aedf3
         </li>
       {/each}
     </ul>
-  {:else}<Text kind="caption" tone="muted" inset="row" text={say(m.files.none)} />{/if}
+  {/if}
   <div role="status" aria-live="polite" data-files-status>
     {#each rejected as item (item.file.id)}<Text kind="support" tone="destructive" text={say(m.files.rejected, { name: item.file.name, reason: say(reasons[item.reason]) })} />{/each}
   </div>
