@@ -1,7 +1,8 @@
 /* Bar (foundation): one toolbar geometry, measured from the approved page rail. Hosts position
    the rail; no consumer supplies its inset, gap, or target dimensions.
-   The rules naming the vendor button slot, label and glyph remain for the toolbar-layout composition's own buttons
-   (unmounted, until Batch 3) and for the toolbar target size, which Action's icon face (44px) does not follow at larger text. */
+   The bar's Actions take its target through their typed `bar` placement (the vendor button draws it from --toolbar-target
+   and --toolbar-inset). The rules naming the vendor button slot, label and glyph remain only for the toolbar-layout
+   composition's own buttons (unmounted; Batch 3 deletes them with it). */
 :root, .density-comfortable, .density-compact {
   --catalog-toolbar-inset:8px;
   --catalog-toolbar-height:max(44px,calc(var(--text-body--line-height) + 12px));
@@ -14,6 +15,8 @@
   container:toolbar / inline-size;
   max-height:min(50dvh,calc(100dvh - 10rem)); overflow-y:auto; overscroll-behavior:contain;
 }
+/* A bar on a frame's edge never scrolls or sits underneath the frame's scroll edges. */
+@layer components { [data-piece="toolbar"][data-frame-edge] { position:relative; z-index:2; } }
 /* The same owner supplies pointer return and its keyboard focus indication. */
 [data-piece="toolbar"][data-toolbar-return] { cursor:pointer; }
 [data-piece="toolbar"][data-toolbar-return] :is(.toolbar-title,.toolbar-subtitle,[data-toolbar-identity]) { cursor:pointer; }
@@ -39,10 +42,12 @@
 }
 [data-piece="toolbar"] .toolbar-action [data-button-label] { visibility:hidden; }
 [data-piece="toolbar"] .toolbar-action [data-button-glyph] { visibility:visible; }
-[data-piece="toolbar"] .toolbar-row :is([data-slot="button"],[data-slot="sidebar-trigger"]):not([data-media-thumbs] button) {
+/* The toolbar-layout composition's own rows, buttons and Actions (Batch 3 deletes these rules with it). A bar's row
+   (data-bar-row) holds Actions that take its target through their typed placement, so these rules never reach it. */
+[data-piece="toolbar"] .toolbar-row:not([data-bar-row]) :is([data-slot="button"],[data-slot="sidebar-trigger"]):not([data-media-thumbs] button) {
   height:var(--toolbar-target); min-height:var(--toolbar-target);
 }
-[data-piece="toolbar"] .toolbar-row :is(.toolbar-action > button,[data-toolbar-controls] button,
+[data-piece="toolbar"] .toolbar-row:not([data-bar-row]) :is(.toolbar-action > button,[data-toolbar-controls] button,
   [data-catalog-navigation-actions] > button,[data-slot="sidebar-trigger"],[data-catalog-search-toggle],button:has(> [data-button-content] > svg):not([data-action])) {
   width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset);
 }
@@ -56,10 +61,11 @@
 [data-piece="toolbar"] .toolbar-subtitle { color:var(--muted-foreground); margin-top:var(--heading-copy-gap); }
 [data-toolbar-identity] [data-identity-subtitle] { margin-top:0; }
 [data-piece="toolbar"][data-toolbar="bottom"] > .toolbar-row { justify-content:flex-end; }
-[data-piece="toolbar"][data-toolbar-purpose="commit"] > .toolbar-row > * { flex:0 1 auto; min-width:0; }
-[data-piece="toolbar"][data-toolbar-purpose="commit"] button { white-space:nowrap; }
 [data-piece="toolbar"][data-toolbar-purpose="steps"] > .toolbar-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
-[data-piece="toolbar"][data-toolbar-purpose="steps"] > .toolbar-row > button { width:100%; max-width:none; min-width:0; }
+/* The toolbar-layout composition's own commit and step buttons (Batch 3 deletes these rules with it). */
+[data-piece="toolbar"][data-toolbar-purpose="commit"] > .toolbar-row:not([data-bar-row]) > * { flex:0 1 auto; min-width:0; }
+[data-piece="toolbar"][data-toolbar-purpose="commit"] > .toolbar-row:not([data-bar-row]) button { white-space:nowrap; }
+[data-piece="toolbar"][data-toolbar-purpose="steps"] > .toolbar-row:not([data-bar-row]) > button { width:100%; max-width:none; min-width:0; }
 /* Message headings have no action targets to reserve; their description follows
    at the same reading gap as a page or regular toolbar subtitle. */
 [data-piece="toolbar"][data-toolbar="top"][data-identity-role="message"] { padding-bottom:0; }
@@ -68,12 +74,11 @@
 /* Search: its toggle stays pressable in the overlay rail whose search actions ignore the pointer. */
 [data-search-toggle] { position:relative; pointer-events:auto; }
 [data-piece="toolbar"][data-toolbar-overlay] { overflow:visible; pointer-events:none; }
+[data-piece="toolbar"][data-bar-float] { overflow:visible; }
 [data-piece="toolbar"][data-toolbar-return] { pointer-events:auto; }
-[data-piece="toolbar"][data-toolbar-overlay] > .toolbar-row > * { pointer-events:auto; }
+[data-piece="toolbar"][data-toolbar-overlay] > .toolbar-row > :is([data-toolbar-leading],[data-toolbar-heading],[data-toolbar-controls],
+  [data-toolbar-utilities],[data-catalog-search-actions],[data-navigation-toggle],[data-settings-placeholder]) { pointer-events:auto; }
 [data-piece="toolbar"][data-toolbar-overlay="search"] > .toolbar-row > [data-catalog-search-actions] { pointer-events:none; }
-@media (max-height:640px) {
-  [data-piece="toolbar"] .toolbar-availability .bank-status > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-}
 :is([data-catalog-toolbar],[data-place-toolbar]) { position:absolute; inset:max(0px,calc(env(safe-area-inset-top,0px) - var(--catalog-toolbar-inset))) max(0px,calc(env(safe-area-inset-right,0px) - var(--catalog-toolbar-inset))) auto max(0px,calc(env(safe-area-inset-left,0px) - var(--catalog-toolbar-inset))); z-index:2; margin-inline-start:var(--place-leading-inset); }
 /* The search rail (from the catalog-search mechanism): it stays stable while the field's well grows from the toggle. No
    reveal mask or glyph scaling; the empty retained rail cannot intercept navigation. */

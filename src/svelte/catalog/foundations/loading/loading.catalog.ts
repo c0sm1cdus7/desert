@@ -5,7 +5,7 @@ import { LoadingContract } from "./loading.contract.ts";
 
 export const Loading = defineFoundation({
   id: "loading",
-  purpose: "Show that content is on its way, as skeleton lines or a spinner, and announce it by its label.",
+  purpose: { key: "loading.purpose" }, messages: ["loading.purpose"],
   owner: { entry: "Loading.svelte", vendor: ["skeleton", "spinner"] },
   shape: "radius", states: ["default"],
   variants: { kind: ["lines", "spinner"] },

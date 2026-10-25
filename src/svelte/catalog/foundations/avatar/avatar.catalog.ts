@@ -6,7 +6,7 @@ import { AvatarContract } from "./avatar.contract.ts";
 
 export const Avatar = defineFoundation({
   id: "avatar",
-  purpose: "Show a person or identity as a seeded drawing, a picture or initials, optionally as the button that shuffles its seed.",
+  purpose: { key: "avatar.purpose" }, messages: ["avatar.purpose"],
   owner: { entry: "Avatar.svelte", mechanisms: ["press-feedback"], parts: ["SeedPortrait.svelte", "ShuffleButton.svelte"], vendor: ["avatar"] },
   shape: "none", states: ["default"],
   variants: { size: ["portrait", "compact", "row"], interaction: ["none", "shuffle"] },

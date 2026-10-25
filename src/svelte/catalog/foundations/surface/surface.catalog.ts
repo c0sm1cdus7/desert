@@ -7,8 +7,8 @@ import { SurfaceContract } from "./surface.contract.ts";
 
 export const Surface = defineFoundation({
   id: "surface",
-  purpose: "Arrange content and top or bottom toolbars, with lateral surfaces only at the root. Mounted surfaces keep their own content and toolbars.",
-  owner: { entry: "Surface.svelte", parts: ["ScrollEdges.svelte", "place-focus.ts", "scroll-edges.css", "scroll-edges.ts", "surface.css"],
+  purpose: { key: "surface.purpose" }, messages: ["surface.purpose"],
+  owner: { entry: "Surface.svelte", parts: ["FrameEdge.svelte", "ScrollEdges.svelte", "place-focus.ts", "scroll-edges.css", "scroll-edges.ts", "surface.css"],
     mechanisms: ["pane-context", "surface-host", "toolbar-geometry", "toolbar-scroll"] },
   shape: "none", states: ["default", "searching"],
   variants: { kind: ["main", "navigation", "frame", "page"] },

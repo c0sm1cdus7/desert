@@ -5,7 +5,7 @@ import { AppearanceRootContract } from "./appearance-root.contract.ts";
 
 export const AppearanceRoot = defineFoundation({
   id: "appearance-root",
-  purpose: "Apply the chosen appearance to the whole page and publish the system colour scheme.",
+  purpose: { key: "appearanceRoot.purpose" }, messages: ["appearanceRoot.purpose"],
   owner: { entry: "AppearanceRoot.svelte", parts: ["appearance-root.ts"] },
   shape: "none", states: ["default"], approval: "required", contract: AppearanceRootContract,
 } as const);

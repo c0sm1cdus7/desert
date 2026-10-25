@@ -11,8 +11,8 @@
   import ClearInput from "./ClearInput.svelte";
   import type { CatalogProps } from "../../types.d.ts";
   let { primitive, label, labelVisibility, required, invalid, disabled, helper, error, identity, measure, purpose, value, placeholder,
-    mask, maxLength, counter, clear, focus, controls, expanded, display, disclosure, onchange, onmasked, onopen, accessory: trailing,
-    prefix }: CatalogProps<"field"> = $props();
+    mask, maxLength, counter, clear, focus, controls, expanded, bar, display, disclosure, select, onchange, onmasked, onopen, accessory: trailing,
+    prefix, selection }: CatalogProps<"field"> = $props();
   const id = $props.id();
   // Both editors receive their value; the trigger owns none. `writing` is the live text, `shown` a mask's formatted text.
   let written = $derived(typeof value === "string" ? value : "");
@@ -38,8 +38,10 @@
   let multiline = $derived(primitive === "input.multiline");
   // A multiline editor always counts its characters; a single line counts them when its caller asks (a limited label).
   let counted = $derived(multiline || counter === true);
+  // A required select says so to assistive technology (its well marks it visibly).
+  let requirement = $derived(primitive === "trigger" && select === true && required);
   let describedBy = $derived([helper ? `${id}-helper` : undefined, counted ? `${id}-counter` : undefined,
-    message ? `${id}-error` : undefined].filter(Boolean).join(" ") || undefined);
+    message ? `${id}-error` : undefined, requirement ? `${id}-requirement` : undefined].filter(Boolean).join(" ") || undefined);
   function edited(next: string, valid: boolean, complete: boolean) {
     if (disabled || !mask) return;
     onmasked?.({ value: next, valid, complete });
@@ -54,13 +56,23 @@
       invalid={marked} {describedBy} bind:writing bind:shown onchange={next => onchange?.(next)} onmasked={edited} />
   {/if}
 {/snippet}
+{#snippet trigger()}
+  {#if display && disclosure}
+    <FieldTrigger {label} {labelVisibility} {required} {disabled} {describedBy} {display} {disclosure} select={select === true} shown={selection}
+      onopen={() => onopen?.()} />
+  {/if}
+  {#if requirement}<span id={`${id}-requirement`} class="sr-only">{say(m.field.required)}</span>{/if}
+{/snippet}
+<!-- A select without a measure takes no box: its well sits where its parent lays it, as a button does. A measured
+     select keeps the measure box; its content fades as its button's does (the field's disabled rule restores field
+     content), and its well is the only control, so the field is no group. -->
+{#if primitive === "trigger" && select === true && measure === undefined}{@render trigger()}
+{:else}
 <div data-field data-field-filled={primitive === "trigger" || draft.length > 0} data-measure={measure} data-search-expanded={expanded}>
-  <Vendor.Field data-primitive={primitive} data-invalid={marked} data-disabled={disabled}>
-    {#if primitive === "trigger" && display && disclosure}
-      <FieldTrigger {label} {labelVisibility} {required} {disabled} {describedBy} {display} {disclosure}
-        onopen={() => onopen?.()} />
+  <Vendor.Field data-primitive={primitive} data-invalid={marked} data-disabled={select ? undefined : disabled} role={select ? undefined : "group"}>
+    {#if primitive === "trigger"}{@render trigger()}
     {:else if purpose === "search"}
-      <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} {controls} bind:writing onchange={next => onchange?.(next)} />
+      <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} {controls} {bar} bind:writing onchange={next => onchange?.(next)} />
     {:else}
       <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} {prefix} footer={counted ? characters : undefined}>
         {#snippet accessory()}
@@ -74,3 +86,4 @@
     {#if message}<Vendor.FieldError id={`${id}-error`} role="status">{message}</Vendor.FieldError>{/if}
   </Vendor.Field>
 </div>
+{/if}

@@ -6,7 +6,7 @@ import { TagContract } from "./tag.contract.ts";
 
 export const Tag = defineFoundation({
   id: "tag",
-  purpose: "Show one label as a toned chip, removable when its owner allows, or a reference as its name beside its color.",
+  purpose: { key: "tag.purpose" }, messages: ["tag.purpose"],
   owner: { entry: "Tag.svelte", mechanisms: ["press-feedback"], parts: ["TagRemove.svelte"], vendor: ["badge"] },
   shape: "none", states: ["known", "unavailable", "removable", "disabled"],
   variants: { presentation: ["chip", "text"], tone: ["neutral", "accent", "success", "warning", "destructive"] },

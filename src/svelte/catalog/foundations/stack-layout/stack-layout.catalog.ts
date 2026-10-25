@@ -5,7 +5,7 @@ import { StackLayoutContract } from "./stack-layout.contract.ts";
 
 export const StackLayout = defineFoundation({
   id: "stack-layout",
-  purpose: "Group related content under one title, with an optional description and required mark.",
+  purpose: { key: "stackLayout.purpose" }, messages: ["stackLayout.purpose"],
   owner: { entry: "StackLayout.svelte", parts: ["stack-layout.css"] },
   shape: "none", states: ["default", "described", "required"],
   variants: { headingVisibility: ["visible", "accessible"] },

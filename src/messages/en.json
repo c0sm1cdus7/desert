@@ -593,6 +593,7 @@
     "search": "Search"
   },
   "mediaViewer": {
+    "purpose": "Show images, audio and video full screen with paging, zoom and playback, and return focus to what opened them.",
     "close": "Close media viewer",
     "zoomOut": "Zoom out",
     "resetZoom": "Reset zoom",
@@ -603,22 +604,27 @@
     "instructions": "Swipe or use arrows to change media. Pinch, double-click or use plus and minus to zoom images. Space plays or pauses audio and video. Escape closes the viewer."
   },
   "attentionIndicator": {
+    "purpose": "Mark objects needing attention with the same amber indicator everywhere, steady when reduced motion is enabled.",
     "label": "Requires attention"
   },
   "choice": {
     "required": "Required",
-    "notSelected": "Not selected"
+    "notSelected": "Not selected",
+    "purpose": "Choose one or several options given as data, as rows, cards, swatches or a menu, with a persistent label."
   },
   "dateControl": {
+    "purpose": "Choose one day from a month calendar opened from a labelled field well, within optional bounds.",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
     "clearDate": "Clear date",
     "noDate": "No date selected"
   },
   "factValue": {
+    "purpose": "Read one scalar fact as text, or show that it is unknown or empty with a muted icon and an accessible state.",
     "state": "Value state:"
   },
   "factRow": {
+    "purpose": "Keep a capitalized label on the left and its value or its control right-aligned, with shared horizontal dividers and balanced wrapping.",
     "unavailable": "Unavailable"
   },
   "field": {
@@ -630,9 +636,12 @@
     "clearSearch": "Clear search",
     "incompleteNumber": "Enter a complete number.",
     "invalidNumber": "Enter a number with up to {scale} decimal places using this field's format.",
-    "clear": "Clear {label}"
+    "clear": "Clear {label}",
+    "purpose": "Write a single line or several, or open a choice, in one labelled well with field help and validation feedback.",
+    "required": "Required"
   },
   "files": {
+    "purpose": "Select supported local files and inspect their limits before an operation uses them.",
     "choose": "Choose files",
     "limits": "Up to {count} files · {file} each · {total} total. Choosing files does not upload them.",
     "selected": "Selected local files",
@@ -646,17 +655,20 @@
     "count": "File count limit reached"
   },
   "gallery": {
+    "purpose": "Page through a set of photos in place, inline, heading a place or as a detail's photograph, and open them in the viewer.",
     "open": "Open photo viewer",
     "choose": "Choose photo",
     "photo": "Photo {number}: {alt}"
   },
   "image": {
+    "purpose": "Show a public or private image at the rendition its frame needs, hidden until decoded, with a fallback and optional retry, or the placeholder of missing artwork.",
     "unavailable": "Image unavailable",
     "noCover": "No cover artwork",
     "noPoster": "No video poster",
     "retry": "Retry"
   },
   "mediaPlayer": {
+    "purpose": "Play a video or audio item with its transport, seek and volume controls, showing artwork for audio and a retry when unavailable.",
     "unavailable": "Media unavailable",
     "retry": "Retry",
     "elapsed": "Elapsed time",
@@ -670,13 +682,19 @@
     "pause": "Pause"
   },
   "modal": {
+    "purpose": "Present a temporary surface over its parent, dismissed by Escape, its scrim or its grip unless locked.",
     "close": "Close panel",
-    "description": "Close to return. Unsaved writing stays in this session."
+    "description": "Close to return. Unsaved writing stays in this session.",
+    "navigationDescription": "Choose a destination.",
+    "closeNamed": "Close {label}"
   },
   "shell": {
-    "navigation": "Main navigation"
+    "purpose": "Host a workspace place with its navigation sidebar, toolbars, search overlay, panels and failure dialog.",
+    "navigation": "Main navigation",
+    "navigationTitle": "Navigation"
   },
   "themePreview": {
+    "purpose": "Compare Dark and Light using the same surface, tint and wallpaper tokens as the running interface.",
     "glyph": "Aa"
   },
   "access": {
@@ -688,5 +706,168 @@
     "signInFailed": "Could not sign in. Check the controller connection and try again.",
     "lockUnconfirmed": "Locked here. Could not confirm revocation with the controller; other sessions may remain active.",
     "lockUnsaved": "Hidden here, but the browser could not save the lock and the controller did not confirm revocation. Reopening may resume this session; restore the connection and lock again."
+  },
+  "heading": {
+    "purpose": "A title whose meaning picks its type role and level: display, page, section or field group."
+  },
+  "modelReferences": {
+    "loadFailed": "Could not load choices. Try again.",
+    "creationUnavailable": "Creation is unavailable. Try again when the connection is ready.",
+    "createdNotRefreshed": "The item was created, but choices could not be refreshed. Check this same operation.",
+    "createdSelectIt": "The item was created. Select it in the current draft.",
+    "unconfirmed": "The result is not confirmed. Check this same operation.",
+    "createFailed": "Could not create this item. Check the name and try again.",
+    "interruptedCheck": "Creation was interrupted. Check this same operation.",
+    "interruptedRetry": "Creation was interrupted. Try again."
+  },
+  "attentionFeed": {
+    "many": "{count} saved activities need your attention.",
+    "compatibility": "This saved activity needs a compatible version.",
+    "confirm": "Ready for your confirmation.",
+    "resume": "Continue where you left off.",
+    "unavailable": "Attention is unavailable. Last loaded items are read-only until reconnected."
+  },
+  "systemStatus": {
+    "notObserved": "Not yet observed",
+    "expired": "Evidence expired",
+    "incompatible": "Incompatible controller",
+    "unreachable": "Controller unreachable",
+    "sessionRequired": "Identity session required",
+    "unavailable": "Unavailable",
+    "stopped": "Observation stopped",
+    "available": "Available",
+    "dependenciesAvailable": "Dependencies available",
+    "dependencies": "Execution dependencies",
+    "noDependencies": "No execution dependencies are exposed.",
+    "operations": "Exposed operations",
+    "noOperations": "No operations are exposed to this surface.",
+    "contract": "Installed contract",
+    "product": "Product",
+    "surface": "Surface",
+    "protocol": "Interaction protocol",
+    "catalogVersion": "Visual catalog version",
+    "digest": "Contract digest"
+  },
+  "connectionPresentation": {
+    "unlock": "Unlock your identity to reconnect to the controller.",
+    "incompatible": "This controller requires a compatible surface version.",
+    "connecting": "Connecting to the controller…",
+    "unavailable": "Controller unavailable. Reconnect to use this action."
+  },
+  "fieldFeedback": {
+    "required": "Enter a value.",
+    "atLeast": "Enter at least {limit} characters.",
+    "atMostCharacter": "Use no more than {limit} character.",
+    "atMostCharacters": "Use no more than {limit} characters.",
+    "atMostLabels": "Use no more than {limit} labels.",
+    "repeatedLabel": "Remove the repeated label.",
+    "check": "Check this value."
+  },
+  "frame": {
+    "review": "Review",
+    "back": "Back",
+    "media": "Media",
+    "loading": "Loading…",
+    "waiting": "Waiting for the local controller."
+  },
+  "viewIdentity": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening",
+    "greetingNamed": "{greeting}, {name}.",
+    "greeting": "{greeting}."
+  },
+  "action": {
+    "purpose": "Invoke one command with a text button or an icon button, never competing text and icons."
+  },
+  "appearanceRoot": {
+    "purpose": "Apply the chosen appearance to the whole page and publish the system colour scheme."
+  },
+  "availability": {
+    "purpose": "Understand whether a capability is ready, unavailable or not yet known."
+  },
+  "avatar": {
+    "purpose": "Show a person or identity as a seeded drawing, a picture or initials, optionally as the button that shuffles its seed."
+  },
+  "card": {
+    "purpose": "Open one item, media, collection or summary from a card composed of artwork and its supporting content."
+  },
+  "clock": {
+    "purpose": "Show today's date and the current time, kept current while shown."
+  },
+  "colorBullet": {
+    "purpose": "Show a label’s color alongside its text without using color as its only meaning."
+  },
+  "column": {
+    "purpose": "Stack pieces vertically with a gap from the spacing scale, at the reading, narrow or wide measure, aligned or centred."
+  },
+  "face": {
+    "purpose": "A round decorative mark that identifies a title or an option by icon, document, status, symbol or flag."
+  },
+  "form": {
+    "purpose": "Submit a labelled group of fields together, from any of its fields or its submit action."
+  },
+  "grid": {
+    "purpose": "Lay pieces out in auto-fitted tracks of one recipe (tiles, collections, cards, covers, results) with a gap from the spacing scale."
+  },
+  "icon": {
+    "purpose": "Draw one named glyph of the product's icon set, optionally toned, sized to the text or placed inside a control."
+  },
+  "inline": {
+    "purpose": "Lay pieces out in a horizontal sequence with a gap from the spacing scale: wrapping, in a labelled scroll rail, or neither."
+  },
+  "list": {
+    "purpose": "Hold sibling rows or facts in one shared pane, at the reading measure or the full overview width."
+  },
+  "loading": {
+    "purpose": "Show that content is on its way, as skeleton lines or a spinner, and announce it by its label."
+  },
+  "menu": {
+    "purpose": "Reveal overflowing contextual commands beside their readable labels, without putting content navigation in the toolbar."
+  },
+  "meter": {
+    "purpose": "Show a total split into labelled segments: the total, a bar proportional to each segment and the legend."
+  },
+  "placeHeading": {
+    "purpose": "Head a place, or content embedded in one, with its title, subtitle and optional featured media."
+  },
+  "popover": {
+    "purpose": "Open contextual content, a form, options or commands in a surface anchored to its trigger."
+  },
+  "row": {
+    "purpose": "Open one object or destination from a list row, or read one, and say why an unavailable one cannot open."
+  },
+  "separator": {
+    "purpose": "Draw a hairline in the separator ink between the pieces of a column or a row, optionally inset like grouped rows."
+  },
+  "slider": {
+    "purpose": "Set one bounded value along a track, such as a playback position or a volume."
+  },
+  "spacer": {
+    "purpose": "Leave an empty space of one spacing step, or take the space a row or column leaves over."
+  },
+  "stackItem": {
+    "purpose": "Place one entry of a stack at the content or the surface inset."
+  },
+  "stackLayout": {
+    "purpose": "Group related content under one title, with an optional description and required mark."
+  },
+  "status": {
+    "purpose": "Say why there is nothing to show (empty, offline, a note) and what to do next, as a block or a compact caption."
+  },
+  "surface": {
+    "purpose": "Arrange content and top or bottom toolbars, with lateral surfaces only at the root. Mounted surfaces keep their own content and toolbars."
+  },
+  "tag": {
+    "purpose": "Show one label as a toned chip, removable when its owner allows, or a reference as its name beside its color."
+  },
+  "text": {
+    "purpose": "A paragraph of plain text in a type role and tone, optionally announced as a status or inset to align with rows."
+  },
+  "viewRegion": {
+    "purpose": "Frame one view's content, one of its items, a place's document or a retained place with the identity navigation reveals; bare renders content unframed."
+  },
+  "wallpaper": {
+    "purpose": "Provide system-generated Silk, Mist or Plain backgrounds that follow the selected appearance."
   }
 }

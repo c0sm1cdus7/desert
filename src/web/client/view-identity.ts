@@ -6,6 +6,11 @@ import type { HumanState } from "./state.ts";
 import { presentTitle } from "../../interaction/fact-presentation.ts";
 import { freezeDeep } from "../../json.ts";
 import { systemStatusContent } from "./system-status.ts";
+import { rendererLocale } from "../../messages/renderer-locale.ts";
+import { Messages, m } from "../../messages/keys.ts";
+
+// Every sentence this module shows a person is a key of the `viewIdentity` namespace it owns (plan §14).
+const bundle = Messages.bundle(rendererLocale);
 
 /** Resolve semantic identity and observed system data before the renderer receives content. */
 export function resolveViewIdentity(program: ViewProgram, journey: ViewJourney, definition: View,
@@ -16,8 +21,9 @@ export function resolveViewIdentity(program: ViewProgram, journey: ViewJourney, 
     if (typeof item.title === "string") return { ...item, title: item.title };
     if (item.title.kind === "greeting") {
       const now = profile?.now ?? new Date(), hour = now.getHours();
-      const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-      return { ...item, title: `${greeting}${profile?.displayName ? `, ${profile.displayName}` : ""}.`,
+      const greeting = bundle.text(hour < 12 ? m.viewIdentity.morning : hour < 18 ? m.viewIdentity.afternoon : m.viewIdentity.evening);
+      return { ...item, title: profile?.displayName ? bundle.text(m.viewIdentity.greetingNamed, { greeting, name: profile.displayName })
+        : bundle.text(m.viewIdentity.greeting, { greeting }),
         subtitle: new Intl.DateTimeFormat(surface.language.locale ?? "en", { weekday:"long", month:"long", day:"numeric" }).format(now) };
     }
     if (item.title.kind === "operation-label") {

@@ -19,6 +19,7 @@
   .modal-message { display:flex; flex-direction:column; min-height:0; overflow-wrap:anywhere; }
   .modal-message-content { min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:1.25rem .75rem 0; }
   .modal-message-actions { flex-shrink:0; padding:1rem .75rem .75rem; }
+  :where(.drawer-grip) > [data-button-content] { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
   .drawer-grip { align-self:center; min-height:44px; height:44px; width:80px; padding:0; touch-action:none; flex-shrink:0; }
   [data-drawer-grip-mark] { width:36px; height:4px; border-radius:var(--radius); background:var(--muted-foreground); transition:background-color var(--dur-feedback) var(--ease-tm); }
   .drawer-grip:hover:not(:disabled) [data-drawer-grip-mark] { background:var(--foreground); }

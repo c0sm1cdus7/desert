@@ -4,7 +4,7 @@
   import { actionIconNames } from "../../../infra/action-icons.ts";
   import { Icon } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  let { label, icon, state: status, emphasis, face: shown, type, reason, form, disclosure, current, onclick }: CatalogProps<"action"> = $props();
+  let { label, icon, state: status, emphasis, face: shown, type, reason, form, disclosure, current, bar, onclick }: CatalogProps<"action"> = $props();
   const id = $props.id();
   const descriptionId = `${id}-reason`;
   const variants = { primary: "default", secondary: "secondary", destructive: "destructive" } as const;
@@ -31,7 +31,7 @@
   onclick={() => { if (status === "ready") onclick?.(); }} class="relative min-w-0 overflow-hidden {shown === 'icon' ? '' : 'w-fit max-w-[min(100%,22rem)]'}"
   disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
   aria-describedby={reason ? descriptionId : undefined}
-  data-action="" data-action-face={face} data-emphasis={emphasis}>
+  data-action="" data-action-face={face} data-emphasis={emphasis} data-action-bar={bar}>
   <span bind:this={caption} data-button-label aria-hidden="true" class={cn("min-w-0 truncate", face !== "label" && "invisible")}>{label}</span>
   <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
     aria-hidden="true" data-button-glyph data-action-face={face}>

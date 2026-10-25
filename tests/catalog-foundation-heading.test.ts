@@ -3,10 +3,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { contractShape, mounted, specimenFindings } from "./support/foundation.ts";
 
-test("heading: the contract offers four kinds; focus, id and required belong to one kind each", async () => {
+test("heading: the contract offers four kinds; focus, id, required and the place title belong to one kind each", async () => {
   assert.deepEqual(await contractShape("heading"), {
     kind: ["display", "page", "section", "group"], text: "text", "align?": ["start", "center"],
     "focusTarget?": ["boolean", "undefined"], "focusKey?": ["string", "undefined"], "id?": ["undefined", "string"], "required?": ["undefined", "boolean"],
+    "placeTitle?": ["undefined", "boolean"],
   });
 });
 

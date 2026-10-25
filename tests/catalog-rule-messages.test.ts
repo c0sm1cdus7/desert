@@ -1,9 +1,11 @@
 // Rule V (plan §14): a catalog template writes no human text; a sentence is a key of the SDK message catalog. Every
-// non-whitespace text node and every literal aria-label, title, placeholder or alt under the catalog is LITERAL_TEXT.
+// non-whitespace text node and every literal aria-label, title, placeholder or alt under the catalog is LITERAL_TEXT, and
+// so is a literal purpose sentence in a declaration and a literal sentence in a module that owns a message namespace.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { ruleV } from "../src/authoring/catalog/gate/messages.ts";
 import { codes, composition, contextOf, foundation } from "./support/catalog-context.ts";
+import { testLayout } from "./support/catalog-layout.ts";
 
 const field = "src/svelte/catalog/foundations/field/Field.svelte", page = "src/svelte/catalog/compositions/page/Page.svelte";
 const run = (files: Record<string, string>) => codes(ruleV(contextOf(files)));
@@ -60,4 +62,62 @@ test("V: a piece's text prop, a literal its vocabulary does not offer, and an un
     `LITERAL_TEXT ${media} ${attribute}="${value}" is written in the template; use a message key (m.<owner>.<meaning>)`;
   assert.deepEqual(run(withImage('<Image alt="Photo" />\n<Image placeholder="Loading" />\n<Unknown placeholder="video" />\n')), [
     what("alt", "Photo"), what("placeholder", "Loading"), what("placeholder", "video")]);
+});
+
+// The law reaches beyond templates: a piece's purpose is a key of its own namespace, and a module that owns a namespace
+// of the catalog (layout.messages.namespaces: the access client, the field feedback, the frame…) says every sentence it
+// shows a person through its keys. A sentence is two words or one capitalized word; codes, keys and vocabulary are not.
+const feedback = "src/web/client/field-feedback.ts";
+const withNamespace = (files: Record<string, string>) => {
+  const layout = testLayout();
+  return codes(ruleV(contextOf(files, { ...layout, messages: { ...layout.messages, namespaces: { fieldFeedback: feedback } } })));
+};
+const declared = (purpose: string) => ({ "src/svelte/catalog/foundations/note/note.catalog.ts": `import { defineFoundation } from "x";
+export const F = defineFoundation({ id: "note", purpose: ${purpose}, messages: ["note.purpose"], owner: { entry: "Note.svelte" },
+  shape: "radius", states: ["default"], variants: { purpose: ["commands", "commit"] }, approval: "required", contract: C } as const);\n` });
+const purposeAdvice = (text: string) => `LITERAL_TEXT src/svelte/catalog/foundations/note/note.catalog.ts the purpose "${text}" is written in the declaration; ` +
+  "declare it as the key of its owner (purpose: { key: \"<owner>.purpose\" })";
+const moduleAdvice = (text: string) => `LITERAL_TEXT ${feedback} the text "${text}" is written in the module; use a key of the namespace it owns (m.<namespace>.<meaning>)`;
+
+test("V: a literal purpose sentence is LITERAL_TEXT; a purpose key and a purpose variant axis are not", () => {
+  assert.deepEqual(run(declared('"Show one note at a time."')), [purposeAdvice("Show one note at a time.")]);
+  assert.deepEqual(run(declared('{ key: "note.purpose" }')), []);
+});
+
+test("V: a namespace module that writes a sentence, a template sentence or a capitalized label is LITERAL_TEXT", () => {
+  const module = `import { m } from "../../messages/keys.ts";
+export function feedback(limit: number, kind: string) {
+  if (kind === "required") return "Enter a value.";
+  if (kind === "min") return \`Enter at least \${limit} characters.\`;
+  return kind === "back" ? "Back" : "Loading…";
+}\n`;
+  assert.deepEqual(withNamespace({ [feedback]: module }), [moduleAdvice("Enter a value."), moduleAdvice("Enter at least "),
+    moduleAdvice("Back"), moduleAdvice("Loading…")]);
+});
+
+test("V on the real tree: the gate reads every namespace module; none writes a sentence, and one that did would fail", async () => {
+  const { realContext, realSource } = await import("./support/real-tree.ts");
+  const { DesertLayout } = await import("../src/authoring/catalog/layout.ts");
+  const modules = [...new Set(Object.values(DesertLayout.messages.namespaces))];
+  const context = realContext();
+  for (const path of modules) assert.notEqual(context.text(path), undefined, `${path} is read by the gate`);
+  const inModules = <T extends { path: string }>(found: readonly T[]) => found.filter(item => modules.includes(item.path));
+  assert.deepEqual(codes(inModules(ruleV(context))), []);
+  const frame = "src/web/client/frame.ts", mutated = realSource(frame).replace("bundle.text(m.frame.loading)", '"Loading…"');
+  assert.notEqual(mutated, realSource(frame));
+  assert.deepEqual(codes(inModules(ruleV(realContext({ [frame]: mutated })))),
+    [`LITERAL_TEXT ${frame} the text "Loading…" is written in the module; use a key of the namespace it owns (m.<namespace>.<meaning>)`]);
+});
+
+test("V control: a namespace module saying its keys, codes, vocabulary and module paths, and a module that owns no namespace, pass", () => {
+  const module = `import { rendererLocale } from "../../messages/renderer-locale.ts";
+import { Messages, m } from "../../messages/keys.ts";
+const bundle = Messages.bundle(rendererLocale);
+export type State = "loading" | "ready" | "offline";
+export function feedback(kind: string, limit: number): string {
+  if (kind === "reference.create") throw new Error("INVALID_REFERENCE_CAPABILITY");
+  const format = new Intl.DateTimeFormat("en", { weekday: "long" });
+  return kind === "required" ? bundle.text(m.fieldFeedback.required) : bundle.text(m.fieldFeedback.atLeast, { limit: String(limit) }) + format.format(0) + \`\${kind}.items\`;
+}\n`;
+  assert.deepEqual(withNamespace({ [feedback]: module, "src/web/client/transport.ts": 'export const header = "Content type of the request";\n' }), []);
 });

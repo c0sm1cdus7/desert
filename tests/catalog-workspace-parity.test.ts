@@ -4,8 +4,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss, themeBeforePrune } from "./fixtures/renderer-css.ts";
+import { workspaceOwnerRulesBefore } from "./fixtures/workspace-owner-rules-before.ts";
+import { buttonGlobalsBefore } from "./fixtures/button-globals-before.ts";
 import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 import { pixelDifference } from "./fixtures/pixel-difference.ts";
 import { catalogWorkspaceBefore } from "./fixtures/catalog-workspace-before.ts";
@@ -39,17 +42,21 @@ const settle = (page: Awaited<ReturnType<typeof svelteBrowser>>["page"]) => page
 });
 
 test("the workspace on the shell draws the pre-shell workspace's pixels at its place, searching and on a detail", { timeout: 240000 }, async () => {
-  const [baseline, candidate] = [await svelteBrowser(source, catalogWorkspaceBefore), await svelteBrowser(source)];
+  // The frozen side mounts the vendor button as it stood with its :global rules (the base the frozen rows were laid out by).
+  const before = { ...catalogWorkspaceBefore, [resolve("src/svelte/vendor/components/ui/button/button.svelte")]: buttonGlobalsBefore };
+  const [baseline, candidate] = [await svelteBrowser(source, before), await svelteBrowser(source)];
   const shots = process.env.WORKSPACE_SHOTS;
   try {
     // Each side draws with its own stylesheets: the frozen workspace with the base f7247e4 theme, today's with today's.
-    const frozen = Object.values(catalogWorkspaceBefore);
+    const frozen = Object.values(before);
     const sheets = [await rendererCss(frozen, themeBeforePrune()), await rendererCss(frozen)];
     for (const [index, f] of [baseline, candidate].entries()) {
       await f.page.addStyleTag({ content: sheets[index] ?? "" }); await f.page.emulateMedia({ reducedMotion: "reduce" });
     }
     // The frozen workspace laid its adaptive host over the whole workspace with a :global rule this harness injects before
     // the host's own scoped rule; re-adding it last restores the built cascade (see shell-foundation.test.ts).
+    // The frozen workspace still draws the old marks the shell, field, bar and icon no longer style: it brings their rules.
+    await baseline.page.addStyleTag({ content: workspaceOwnerRulesBefore });
     await baseline.page.addStyleTag({ content: "[data-catalog-workspace] [data-adaptive-host] { position:absolute; inset:0; }" });
     const differences: Record<string, number> = {};
     const compare = async (name: string) => {

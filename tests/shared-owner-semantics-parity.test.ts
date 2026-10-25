@@ -5,6 +5,8 @@ import { resolve } from "node:path";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss, themeBeforePrune } from "./fixtures/renderer-css.ts";
 import { prunedSourcesBefore } from "./fixtures/pruned-sources-before.ts";
+import { workspaceOwnerRulesBefore } from "./fixtures/workspace-owner-rules-before.ts";
+import { buttonGlobalsBefore } from "./fixtures/button-globals-before.ts";
 import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 import { pixelDifference } from "./fixtures/pixel-difference.ts";
 import { catalogWorkspaceBefore } from "./fixtures/catalog-workspace-before.ts";
@@ -35,6 +37,8 @@ test("correcting pane landmark semantics leaves navigation, headings and toolbar
     assert.notEqual(previous, current, path);
     before[resolve(path)] = previous;
   }
+  // The frozen side mounts the vendor button as it stood with its :global rules (the base the frozen rows were laid out by).
+  before[resolve("src/svelte/vendor/components/ui/button/button.svelte")] = buttonGlobalsBefore;
   const baseline = await svelteBrowser(source, before), candidate = await svelteBrowser(source);
   try {
     // Each side draws with its own stylesheets: the frozen workspace with the base f7247e4 theme, today's with today's.
@@ -45,6 +49,8 @@ test("correcting pane landmark semantics leaves navigation, headings and toolbar
       await f.page.emulateMedia({reducedMotion:'reduce'});
     }
     // The frozen workspace's :global host rule, re-added last as a build orders it (see shell-foundation.test.ts).
+    // The frozen workspace still draws the old marks the shell, field, bar and icon no longer style: it brings their rules.
+    await baseline.page.addStyleTag({ content: workspaceOwnerRulesBefore });
     await baseline.page.addStyleTag({ content: "[data-catalog-workspace] [data-adaptive-host] { position:absolute; inset:0; }" });
     for (const width of [390,1280]) for (const dark of [false,true]) {
       for (const f of [baseline,candidate]) {

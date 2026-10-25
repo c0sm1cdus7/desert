@@ -4,7 +4,7 @@ import { ColorBulletContract } from "./color-bullet.contract.ts";
 
 export const ColorBullet = defineFoundation({
   id: "color-bullet",
-  purpose: "Show a label’s color alongside its text without using color as its only meaning.",
+  purpose: { key: "colorBullet.purpose" }, messages: ["colorBullet.purpose"],
   owner: { entry: "ColorBullet.svelte" },
   shape: "none", states: ["default"], approval: "required", contract: ColorBulletContract,
 } as const);

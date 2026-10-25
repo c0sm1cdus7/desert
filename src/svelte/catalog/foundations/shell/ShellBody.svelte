@@ -67,11 +67,7 @@
 <svelte:window onkeydowncapture={focus.keydown} onfocusin={focus.focusin} onfocusout={focus.focusout} onpointerdown={focus.pointerdown}
   onpointerup={focus.pointerfinish} onpointercancel={focus.pointerfinish} />
 
-{#if navigation}
-  <Sidebar.Root variant="floating" overlayTitle="Navigation" overlayDescription="Choose a destination.">
-    <ShellNavigation {navigation} {searching} onnavigate={id => onnavigate?.(id)} />
-  </Sidebar.Root>
-{/if}
+{#if navigation}<ShellNavigation {navigation} {searching} onnavigate={id => onnavigate?.(id)} />{/if}
 <AdaptiveSurfaceLayout fill>
     <Surface bind:this={place} kind="main" {destination} {label} {searching} reserve={sidebar.presentation === "overlay" ? "navigation-return" : undefined}
       oncomposition={active => { composing = active; oncomposition?.(active); }}>
@@ -80,7 +76,7 @@
       {#snippet bottom()}
         {#if sidebar.available && !sidebar.expanded}
           <div data-navigation-return><Bar edge="bottom" purpose="navigation" identityRole="heading" trailing={[]}
-            navigationToggle={{ expanded: false, controls: sidebar.panelId }} settingsPlaceholder={false} inert={searching}
+            navigationToggle={{ expanded: false, controls: sidebar.panelId }} settingsPlaceholder={false} inert={searching} float
             onnavigationtoggle={sidebar.toggle} /></div>
         {/if}
         {@render bottom?.()}

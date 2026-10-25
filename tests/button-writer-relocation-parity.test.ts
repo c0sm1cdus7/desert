@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { compile as compileSvelte } from "svelte/compiler";
 import { resolve } from "node:path";
 import { readFile } from "node:fs/promises";
 import { buttonWritersBefore } from "./fixtures/button-writers-before.ts";
 import { controlWritersBefore } from "./fixtures/control-writers-before.ts";
+import { buttonGlobalsBefore } from "./fixtures/button-globals-before.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { catalogWorkspaceBefore } from "./fixtures/catalog-workspace-before.ts";
@@ -40,104 +40,104 @@ const source = `<script lang="ts">
   </Sidebar.Provider>
 </main>`;
 
+// The eight rules the theme and the catalog-search mechanism once wrote for the button (frozen), and where the button
+// keeps each one today: scoped to the elements it draws, never :global. Each search glyph sits in its own box (it was
+// the glyph itself), and the open glyph follows the button's own searching mark (it followed the search actions'
+// expanded state, which is the same fact the toolbar passes as `searching`).
 const relocated = [
-  '[data-slot="button"]', '[data-button-content]', '[data-catalog-search-toggle]',
-  '[data-catalog-search-toggle] [data-button-content]', '[data-catalog-search-toggle] svg',
-  '[data-catalog-search-toggle] [data-search-icon="close"]',
-  '[data-catalog-search-actions][data-expanded="true"] [data-search-icon="open"]',
-  '[data-catalog-search-actions][data-expanded="true"] [data-search-icon="close"]',
-];
+  ['[data-slot="button"]', '[data-slot="button"]'], ['[data-button-content]', '[data-button-content]'],
+  ['[data-catalog-search-toggle]', '[data-catalog-search-toggle]'],
+  ['[data-catalog-search-toggle] [data-button-content]', '[data-catalog-search-toggle] [data-button-content]'],
+  ['[data-catalog-search-toggle] svg', '[data-search-icon]'],
+  ['[data-catalog-search-toggle] [data-search-icon="close"]', '[data-search-icon="close"]'],
+  ['[data-catalog-search-actions][data-expanded="true"] [data-search-icon="open"]', '[data-catalog-search-cancel] [data-search-icon="open"]'],
+  ['[data-catalog-search-actions][data-expanded="true"] [data-search-icon="close"]', '[data-catalog-search-cancel] [data-search-icon="close"]'],
+] as const;
+const barTargetBefore = `
+[data-piece="toolbar"] .toolbar-row :is([data-slot="button"],[data-slot="sidebar-trigger"]):not([data-media-thumbs] button) { height:var(--toolbar-target); min-height:var(--toolbar-target); }
+[data-piece="toolbar"] .toolbar-row :is(.toolbar-action > button,[data-toolbar-controls] button,[data-catalog-navigation-actions] > button,[data-slot="sidebar-trigger"],[data-catalog-search-toggle],button:has(> [data-button-content] > svg):not([data-action])) { width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset); }
+[data-piece="toolbar"][data-toolbar-purpose="commit"] > .toolbar-row > * { flex:0 1 auto; min-width:0; }
+[data-piece="toolbar"][data-toolbar-purpose="commit"] button { white-space:nowrap; }
+[data-piece="toolbar"][data-toolbar-purpose="steps"] > .toolbar-row > button { width:100%; max-width:none; min-width:0; }`;
+const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const declarations = (css: string, selector: string) => css.match(new RegExp(`(?:^|[{}]|\\*\\/)\\s*${escape(selector)}\\s*\\{([^{}]*)\\}`))?.[1]?.replace(/\s+/g, "");
+const styleOf = (svelte: string) => svelte.match(/<style>([\s\S]*?)<\/style>/)![1]!;
 
-async function previousCss() {
-  // Compare ownership of the eight relocated rules inside today's approved
-  // shell. An obsolete whole-theme snapshot would also undo new toolbar
-  // placement and heading spacing, which are not this regression's contract.
-  const original = buttonWritersBefore["src/svelte/theme.css"] + controlWritersBefore["src/svelte/catalog/mechanisms/catalog-search/catalog-search.css"];
-  const rules = relocated.map(selector => {
-    const escaped=selector.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
-    const match=original.match(new RegExp(escaped+"\\s*\\{([^{}]*)\\}"));
-    assert.ok(match, `Frozen rule exists: ${selector}`);
-    return `${selector} {${match[1]}}`;
-  });
-  return `${await rendererCss()}\n@layer components {${rules.slice(0,2).join('\n')}}\n${rules.slice(2).join('\n')}`;
-}
-
-test("moving control writers preserves the relocated declarations, their layering and the computed geometry in one DOM", { timeout: 60000 }, async () => {
-  const current=await readFile(buttonPath,"utf8");
-  const style=current.match(/<style>([\s\S]*?)<\/style>/)![1]!;
-  const originalRules=buttonWritersBefore["src/svelte/theme.css"]+controlWritersBefore["src/svelte/catalog/mechanisms/catalog-search/catalog-search.css"];
-  // Later presentations (media, summary widgets) add their own Button rules; both captures keep them.
-  const rules=[...style.matchAll(/:global\(([^)]+)\)\s*\{([^{}]*)\}/g)].filter(([,selector])=>relocated.includes(selector!));
-  assert.deepEqual(rules.map(([,selector])=>selector),relocated,"The two geometry rules and six search feedback rules moved literally, once each");
-  for(const [,selector,declarations] of rules){
-    const escaped=selector!.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
-    const original=originalRules.match(new RegExp(escaped+"\\s*\\{([^{}]*)\\}"));
-    assert.ok(original,selector+" existed in the frozen ownership snapshot");
-    assert.equal(declarations!.replace(/\s+/g,""),original[1]!.replace(/\s+/g,""),selector+" exact declarations");
+test("the button's rules are its own: scoped to what it draws, with the frozen declarations and their layering", async () => {
+  const style = styleOf(await readFile(buttonPath, "utf8"));
+  assert.doesNotMatch(style, /:global/, "no rule of the button styles outside its component");
+  const frozen = buttonWritersBefore["src/svelte/theme.css"] + controlWritersBefore["src/svelte/catalog/mechanisms/catalog-search/catalog-search.css"];
+  for (const [before, after] of relocated) {
+    const original = declarations(frozen, before), today = declarations(style, after);
+    assert.ok(original, `${before} existed in the frozen ownership snapshot`);
+    // The glyph's box lays its glyph out without a line box of its own, so it sits where the glyph sat.
+    assert.equal(today, before === '[data-catalog-search-toggle] svg' ? `display:flex;${original}` : original, `${after} exact declarations`);
   }
-  assert.match(style,/@layer components\s*\{\s*:global\(\[data-slot="button"\]\)/);
-  assert.match(style,/gap:inherit;\s*\}\s*\}\s*:global\(\[data-catalog-search-toggle\]\)/,
-    "Geometry remains in components; search rules retain their original unlayered cascade");
-  const css={before:await previousCss(),after:await rendererCss()};
-  const compiled=(text:string)=>compileSvelte(text,{filename:resolve(buttonPath),generate:"client",css:"external"}).css!.code;
-  const buttonCss=compiled(current);
-  const laterCss=compiled(rules.reduce((text,[rule])=>text.replace(rule,""),current));
-  // Today's Button markup in one unchanged DOM; only the eight rules' owner differs between captures.
-  const markup=current.replace(/<style>[\s\S]*?<\/style>/g,"");
-  const fixture=await svelteBrowser(source,{[resolve(buttonPath)]:markup,[catalogToolbar]:catalogWorkspaceBefore[catalogToolbar]!},undefined,{initialCss:css.before});
-  try {
-    const {page}=fixture;
-    assert.equal(await page.locator('main').getAttribute('data-css-before-mount'),'true');
-    const ownerStyle=await page.addStyleTag({content:buttonCss}), laterStyle=await page.addStyleTag({content:laterCss});
-    const settle=()=>page.evaluate(async()=>{
-      await document.fonts.ready;
-      await new Promise<void>(done=>requestAnimationFrame(()=>requestAnimationFrame(()=>done())));
-      await Promise.all(document.getAnimations().filter(animation=>{
-        const end=animation.effect?.getComputedTiming().endTime;
-        return typeof end==='number'&&Number.isFinite(end);
-      }).map(animation=>animation.finished.catch(()=>{})));
-      await new Promise<void>(done=>requestAnimationFrame(()=>requestAnimationFrame(()=>done())));
-    });
-    const use=async(version:"before"|"after")=>{
-      await page.locator('[data-fixture-initial-css]').evaluate((element,value)=>element.textContent=value,css[version]);
-      await ownerStyle.evaluate((element,disabled)=>(element as HTMLStyleElement).disabled=disabled,version==="before");
-      await laterStyle.evaluate((element,disabled)=>(element as HTMLStyleElement).disabled=disabled,version==="after");
-      await settle();
-    };
-    const geometry=()=>page.locator('[data-slot="button"],[data-button-content],[data-search-field]').evaluateAll(elements=>elements.map(element=>{
-      const style=getComputedStyle(element),range=document.createRange();range.selectNodeContents(element);
-      return {bounds:element.getBoundingClientRect().toJSON(),textBounds:range.getBoundingClientRect().toJSON(),
-        minHeight:style.minHeight,position:style.position,display:style.display,width:style.width,minWidth:style.minWidth,
-        direction:style.flexDirection,align:style.alignItems,justify:style.justifyContent,gap:style.gap,font:style.font,
-        color:style.color,background:style.background,border:style.border,shadow:style.boxShadow,transform:style.transform,
-        transition:style.transition,outline:style.outline,outlineOffset:style.outlineOffset};
-    }));
-    for(const width of [390,1280])for(const colorScheme of ["light","dark"] as const){
-      await page.setViewportSize({width,height:800});
-      await page.emulateMedia({colorScheme,reducedMotion:"reduce"});
-      const compare=async(state:string)=>{
-        await use("before");const expectedStyles=await geometry();
-        await use("after");const actualStyles=await geometry();
-        const label=width+"/"+colorScheme+"/"+state;
-        assert.deepEqual(actualStyles,expectedStyles,label+" computed geometry and paint");
-      };
-      await compare("closed");
-      await page.getByRole("button",{name:"Search",exact:true}).click();
-      await page.getByRole("searchbox").fill("A shared query");
-      await compare("search-writing");
-      await page.getByRole("button",{name:"Clear search",exact:true}).click();
-      await compare("search-cleared");
-      await page.getByRole("button",{name:"Close search",exact:true}).click();
-    }
-    for(const reducedMotion of ["no-preference","reduce"] as const){
-      await page.emulateMedia({reducedMotion});
-      const motion=()=>page.locator('[data-slot="button"],[data-button-content],[data-search-icon]').evaluateAll(elements=>elements.map(element=>{
-        const style=getComputedStyle(element);
-        return {transition:style.transition,transform:style.transform,opacity:style.opacity,shadow:style.boxShadow};
+  assert.match(style, /@layer components\s*\{\s*\[data-slot="button"\]\s*\{[^{}]*\}\s*\[data-button-content\]\s*\{[^{}]*\}\s*\}/,
+    "geometry remains in components");
+  assert.match(style, /gap:inherit;\s*\}\s*\}\s*\[data-catalog-search-toggle\]/, "search rules retain their original unlayered cascade");
+  // The a2d02f5 button wrote the same rules as :global ones (the base every other owner of a content span relied on).
+  const globals = styleOf(buttonGlobalsBefore);
+  for (const [, after] of relocated.slice(0, 4)) assert.ok(declarations(globals.replace(/:global\(([^)]+)\)/g, "$1"), after), `${after} was a global rule`);
+});
+
+test("moving the button's rules into its own scope keeps the computed geometry and motion in one DOM", { timeout: 90000 }, async () => {
+  const css = await rendererCss();
+  const capture = async (version: "before" | "after") => {
+    const overrides: Record<string, string> = { [catalogToolbar]: catalogWorkspaceBefore[catalogToolbar]! };
+    if (version === "before") overrides[resolve(buttonPath)] = buttonGlobalsBefore;
+    // The a2d02f5 button took a bar's target from bar.css, which named the button; today a bar's Action carries its typed
+    // placement, which the frozen button cannot read, so its side brings the bar rules it was drawn with.
+    const fixture = await svelteBrowser(source, overrides, undefined, { initialCss: version === "before" ? `${css}\n${barTargetBefore}` : css });
+    const states: Record<string, unknown> = {};
+    try {
+      const { page } = fixture;
+      assert.equal(await page.locator('main').getAttribute('data-css-before-mount'), 'true');
+      const settle = () => page.evaluate(async () => {
+        await document.fonts.ready;
+        await new Promise<void>(done => requestAnimationFrame(() => requestAnimationFrame(() => done())));
+        await Promise.all(document.getAnimations().filter(animation => {
+          const end = animation.effect?.getComputedTiming().endTime;
+          return typeof end === 'number' && Number.isFinite(end);
+        }).map(animation => animation.finished.catch(() => {})));
+        await new Promise<void>(done => requestAnimationFrame(() => requestAnimationFrame(() => done())));
+      });
+      const geometry = () => page.locator('[data-slot="button"],[data-button-content],[data-search-field]').evaluateAll(elements => elements.map(element => {
+        const style = getComputedStyle(element), range = document.createRange(); range.selectNodeContents(element);
+        return { bounds: element.getBoundingClientRect().toJSON(), textBounds: range.getBoundingClientRect().toJSON(),
+          minHeight: style.minHeight, position: style.position, display: style.display, width: style.width, minWidth: style.minWidth,
+          direction: style.flexDirection, align: style.alignItems, justify: style.justifyContent, gap: style.gap, font: style.font,
+          color: style.color, background: style.background, border: style.border, shadow: style.boxShadow, transform: style.transform,
+          transition: style.transition, outline: style.outline, outlineOffset: style.outlineOffset };
       }));
-      await use("before");const expected=await motion();await use("after");
-      assert.deepEqual(await motion(),expected,reducedMotion+" shared feedback and search transition declarations");
-    }
-    assert.deepEqual(fixture.errors,[]);
-  }finally{await fixture.close();}
+      // Each search glyph, by its own box (before: the glyph; after: the box around it), and the button around it.
+      const glyphs = () => page.locator('[data-search-icon]').evaluateAll(elements => elements.map(element => {
+        const style = getComputedStyle(element), box = element.getBoundingClientRect().toJSON();
+        return { box, transition: style.transition, transform: style.transform, opacity: style.opacity, grid: style.gridArea };
+      }));
+      for (const width of [390, 1280]) for (const colorScheme of ["light", "dark"] as const) {
+        await page.setViewportSize({ width, height: 800 });
+        await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
+        const label = `${width}/${colorScheme}`;
+        await settle(); states[`${label}/closed`] = [await geometry(), await glyphs()];
+        await page.getByRole("button", { name: "Search", exact: true }).click();
+        await page.getByRole("searchbox").fill("A shared query");
+        await settle(); states[`${label}/search-writing`] = [await geometry(), await glyphs()];
+        await page.getByRole("button", { name: "Clear search", exact: true }).click();
+        await settle(); states[`${label}/search-cleared`] = [await geometry(), await glyphs()];
+        await page.getByRole("button", { name: "Close search", exact: true }).click();
+      }
+      for (const reducedMotion of ["no-preference", "reduce"] as const) {
+        await page.emulateMedia({ reducedMotion }); await settle();
+        states[`motion/${reducedMotion}`] = await page.locator('[data-slot="button"],[data-button-content]').evaluateAll(elements => elements.map(element => {
+          const style = getComputedStyle(element);
+          return { transition: style.transition, transform: style.transform, opacity: style.opacity, shadow: style.boxShadow };
+        }));
+      }
+      assert.deepEqual(fixture.errors, []);
+    } finally { await fixture.close(); }
+    return states;
+  };
+  const before = await capture("before"), after = await capture("after");
+  for (const state of Object.keys(before)) assert.deepEqual(after[state], before[state], `${state}: computed geometry, paint and motion`);
 });

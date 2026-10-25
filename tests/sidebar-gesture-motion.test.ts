@@ -13,7 +13,7 @@ for(const reducedMotion of ['reduce','no-preference'] as const) test(`sidebar di
  </script>
  <div data-catalog-workspace><Sidebar.Provider>
  <Sidebar.Trigger />
- <Sidebar.Root overlayTitle="Navigation"><ShellNavigation navigation={{identity:{title:'Product'},settingsPlaceholder:false,active:'home',groups:[]}} searching={false} onnavigate={()=>{}}/></Sidebar.Root>
+ <ShellNavigation navigation={{identity:{title:'Product'},settingsPlaceholder:false,active:'home',groups:[]}} searching={false} onnavigate={()=>{}}/>
  <div bind:this={viewport} style="position:absolute;inset:0;pointer-events:none"></div><CatalogEdgeNavigation searching={false} detail={false} {viewport}/>
  </Sidebar.Provider></div>`,{},undefined,{initialCss:await rendererCss()});
  try{

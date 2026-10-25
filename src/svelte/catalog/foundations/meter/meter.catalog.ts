@@ -4,7 +4,7 @@ import { MeterContract } from "./meter.contract.ts";
 
 export const Meter = defineFoundation({
   id: "meter",
-  purpose: "Show a total split into labelled segments: the total, a bar proportional to each segment and the legend.",
+  purpose: { key: "meter.purpose" }, messages: ["meter.purpose"],
   owner: { entry: "Meter.svelte" },
   shape: "radius", states: ["default"],
   approval: "required", contract: MeterContract,

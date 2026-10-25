@@ -1,4 +1,9 @@
 import type { JourneyAvailability } from '../../availability-types.ts';
+import { rendererLocale } from '../../messages/renderer-locale.ts';
+import { Messages, m } from '../../messages/keys.ts';
+
+// Every sentence this module shows a person is a key of the `connectionPresentation` namespace it owns (plan §14).
+const bundle = Messages.bundle(rendererLocale);
 
 /** Presentation of current dependency evidence, never an Internet connectivity guess. */
 export function connectionPresentation(value: JourneyAvailability | undefined): 'loading' | 'ready' | 'offline' {
@@ -8,7 +13,7 @@ export function connectionPresentation(value: JourneyAvailability | undefined): 
 
 export function unavailableReason(value: JourneyAvailability | undefined): string | undefined {
   if (value?.dependenciesReady) return undefined;
-  if (value?.blockers.some(item => item.reason === 'session-required')) return 'Unlock your identity to reconnect to the controller.';
-  if (value?.blockers.some(item => item.reason === 'incompatible')) return 'This controller requires a compatible surface version.';
-  return connectionPresentation(value) === 'loading' ? 'Connecting to the controller…' : 'Controller unavailable. Reconnect to use this action.';
+  if (value?.blockers.some(item => item.reason === 'session-required')) return bundle.text(m.connectionPresentation.unlock);
+  if (value?.blockers.some(item => item.reason === 'incompatible')) return bundle.text(m.connectionPresentation.incompatible);
+  return connectionPresentation(value) === 'loading' ? bundle.text(m.connectionPresentation.connecting) : bundle.text(m.connectionPresentation.unavailable);
 }

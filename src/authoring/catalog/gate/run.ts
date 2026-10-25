@@ -102,6 +102,11 @@ export async function runCatalogGate(root: string, options: Readonly<{ layout: C
 
 const textual = /\.(svelte|ts|js|mjs|cjs|css|html|json|md|txt)$/;
 
+/** The files content rules read: the visual roots, the layout's other reads (rule K's grammar) and the modules that own a
+ * message namespace (rule V judges the sentences they show). */
+export const gateSourcePaths = (tree: CatalogTree, layout: CatalogLayout): readonly string[] =>
+  [...new Set([...tree.paths, ...layout.gate.reads, ...Object.values(layout.messages.namespaces)])];
+
 /** Content rules D–V over a tree that passed the structural rules: every violation, then one failure listing them all. */
 export async function runContentRules(root: string, tree: CatalogTree, options: Readonly<{ layout: CatalogLayout; rules: readonly ContentRuleId[] }>) {
   const { context, violations } = await contentViolations(root, tree, options);
@@ -114,7 +119,7 @@ export async function contentViolations(root: string, tree: CatalogTree, options
   const sources = new Map<string, string>();
   // Text files by extension, plus extensionless ones (vendor LICENSE): Tailwind scans their prose too, so G2 must see it.
   const loadable = (path: string) => textual.test(path) || !posix.basename(path).includes(".");
-  for (const path of [...tree.paths, ...options.layout.gate.reads]) if (loadable(path)) sources.set(path, await readFile(join(root, path), "utf8"));
+  for (const path of gateSourcePaths(tree, options.layout)) if (loadable(path)) sources.set(path, await readFile(join(root, path), "utf8"));
   const visual = createContext({ layout: options.layout, paths: tree.paths, declarations: tree.declarations, ledger: tree.ledger, sources,
     nonvisual: "unread", contractTypes: "unread" });
   const read = options.rules.includes("N") ? withNonvisual(visual, await readNonvisualSources(root, visual)) : visual;

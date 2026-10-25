@@ -5,7 +5,7 @@ import { ColumnContract } from "./column.contract.ts";
 
 export const Column = defineFoundation({
   id: "column",
-  purpose: "Stack pieces vertically with a gap from the spacing scale, at the reading, narrow or wide measure, aligned or centred.",
+  purpose: { key: "column.purpose" }, messages: ["column.purpose"],
   owner: { entry: "Column.svelte" },
   shape: "none", states: ["default"],
   variants: { gap: ["tight", "snug", "close", "regular", "loose", "relaxed", "section"], measure: ["reading", "narrow", "wide"], align: ["start", "center", "stretch"] },

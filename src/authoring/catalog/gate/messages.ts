@@ -2,11 +2,16 @@
 // (`{m.field.clear}`), foundations included. Raises LITERAL_TEXT for a non-whitespace text node, a string-literal expression,
 // and a literal aria-label, title, placeholder or alt anywhere under the catalog folder. On a piece tag, a literal that is one of
 // the values the piece contract offers for that prop (`<Image placeholder="unavailable">`) is vocabulary, not a sentence.
+// Beyond templates, also LITERAL_TEXT: a declaration whose `purpose` is a literal sentence (it is the key `<owner>.purpose`),
+// and a literal sentence (a string or a template part) in a module that owns a message namespace (layout.messages.namespaces).
 import { posix } from "node:path";
+import ts from "typescript";
 import type { ContentRule, GateContext } from "./context.ts";
 import type { ContractSchema } from "../read-contract.ts";
 import { field, text, walk, type SyntaxNode } from "./walk.ts";
 import { violation, type Violation } from "./violation.ts";
+import { scriptLine } from "./parse.ts";
+import { declarationSuffixes } from "../layout.ts";
 
 /** The attributes a person reads (or a screen reader speaks). Other attributes are vocabulary (class, src, type). */
 export const textAttributes: ReadonlySet<string> = new Set(["aria-label", "title", "placeholder", "alt"]);
@@ -47,10 +52,54 @@ function vocabularyValue(context: GateContext, path: string, tag: SyntaxNode, na
 
 const isAttribute = (node: SyntaxNode | undefined) => typeof node?.type === "string" && /Attribute$|Directive$/.test(node.type);
 
+/** Text a person reads: two words, or one capitalized word ("Back", "Loading…"). A code, a key, a path or vocabulary is not. */
+export const humanText = (value: string): boolean => /\p{L}{2,}\s+\S*\p{L}/u.test(value) || /^\p{Lu}\p{Ll}+\p{P}?$/u.test(value.trim());
+
+/** Each literal text of a TypeScript file (a string, a template's text parts), except module specifiers and literal types. */
+function scriptLiterals(file: ts.SourceFile, visit: (node: ts.Node, value: string) => void): void {
+  const walkNode = (node: ts.Node): void => {
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node) || ts.isLiteralTypeNode(node) || ts.isImportTypeNode(node)) return;
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) visit(node, node.text);
+    if (ts.isTemplateExpression(node)) {
+      visit(node.head, node.head.text);
+      for (const span of node.templateSpans) visit(span.literal, span.literal.text);
+    }
+    ts.forEachChild(node, walkNode);
+  };
+  walkNode(file);
+}
+
+/** A literal purpose sentence in a declaration under the catalog folder. */
+function purposeLiterals(context: GateContext, path: string, found: Violation[]): void {
+  const parsed = context.parsed(path);
+  for (const script of parsed.scripts) {
+    const visit = (node: ts.Node): void => {
+      if (ts.isPropertyAssignment(node) && ts.isIdentifier(node.name) && node.name.text === "purpose"
+        && (ts.isStringLiteral(node.initializer) || ts.isNoSubstitutionTemplateLiteral(node.initializer)) && humanText(node.initializer.text)) {
+        found.push(violation("LITERAL_TEXT", path, scriptLine(parsed, script, node), `the purpose "${node.initializer.text}" is written in the ` +
+          'declaration; declare it as the key of its owner (purpose: { key: "<owner>.purpose" })'));
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(script.file);
+  }
+}
+
+/** A literal sentence in a module that owns a message namespace: it says every sentence through its keys. */
+function namespaceLiterals(context: GateContext, path: string, found: Violation[]): void {
+  if (context.text(path) === undefined) return;
+  const parsed = context.parsed(path);
+  for (const script of parsed.scripts) scriptLiterals(script.file, (node, value) => {
+    if (humanText(value)) found.push(violation("LITERAL_TEXT", path, scriptLine(parsed, script, node),
+      `the text "${value}" is written in the module; use a key of the namespace it owns (m.<namespace>.<meaning>)`));
+  });
+}
+
 export const ruleV: ContentRule = context => {
   // The catalog folder is the one holding the generated index: the layout writes that path once.
   const found: Violation[] = [], catalogFolder = `${posix.dirname(context.layout.generated.index)}/`;
   for (const path of context.paths) {
+    if (path.startsWith(catalogFolder) && declarationSuffixes.some(suffix => path.endsWith(suffix))) purposeLiterals(context, path, found);
     if (!path.endsWith(".svelte") || !path.startsWith(catalogFolder)) continue;
     const parsed = context.parsed(path);
     if (parsed.kind !== "svelte") continue;
@@ -69,5 +118,6 @@ export const ruleV: ContentRule = context => {
       if (literal !== undefined && /\S/.test(literal)) report(node, `the text "${literal.trim()}"`);
     });
   }
+  for (const path of new Set(Object.values(context.layout.messages.namespaces))) namespaceLiterals(context, path, found);
   return found;
 };

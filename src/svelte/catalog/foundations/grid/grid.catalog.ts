@@ -4,7 +4,7 @@ import { GridContract } from "./grid.contract.ts";
 
 export const Grid = defineFoundation({
   id: "grid",
-  purpose: "Lay pieces out in auto-fitted tracks of one recipe (tiles, collections, cards, covers, results) with a gap from the spacing scale.",
+  purpose: { key: "grid.purpose" }, messages: ["grid.purpose"],
   owner: { entry: "Grid.svelte" },
   shape: "none", states: ["default"],
   variants: { tracks: ["tiles", "collections", "cards", "covers", "results"] },

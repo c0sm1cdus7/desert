@@ -154,3 +154,43 @@ test("a message identity reserves no action targets: the bar draws its own messa
     assert.equal(await bar.getByRole("heading", { name: "Move note to Trash?" }).count(), 1);
   } finally { await f.close(); }
 });
+
+// A bar's Actions take its target through their typed placement (Action's `bar`), never through the bar's stylesheet:
+// at twice the text, a command is a square at the toolbar target, a commit keeps one line, the two steps share their
+// row, and every one is as tall as the toolbar target (more than 44px there).
+test("a bar's Actions take its target at any text size through their typed placement", { timeout: 30000 }, async () => {
+  const f = await svelteBrowser(`<script lang="ts">
+  import Bar from "@desert/svelte/catalog/foundations/bar/Bar.svelte";
+  const command = (label: string) => ({ label, icon: "archive" as const, state: "ready" as const, intent: { kind: "journey" as const, journey: label } });
+</script>
+<div style="width:640px">
+  <Bar edge="top" purpose="commands" identity={{title:"Notes"}} identityRole="heading" leading={{label:"Back",icon:"back",state:"ready",intent:{kind:"back"}}}
+    trailing={[command("Archive")]} settingsPlaceholder={false} inert={false} />
+  <Bar edge="bottom" purpose="commit" identityRole="heading" trailing={[]} secondary={command("Keep")} primary={command("Move to Trash")}
+    settingsPlaceholder={false} inert={false} />
+  <Bar edge="bottom" purpose="steps" identityRole="heading" trailing={[]} secondary={command("Back")} primary={command("Continue")}
+    settingsPlaceholder={false} inert={false} />
+</div>`);
+  try {
+    await f.page.addStyleTag({ content: await rendererCss() });
+    await f.page.evaluate(() => document.documentElement.style.setProperty("--text-scale", "2"));
+    const placements = await f.page.locator("[data-action]").evaluateAll(buttons => buttons.map(button => {
+      const style = getComputedStyle(button), box = button.getBoundingClientRect();
+      const target = getComputedStyle(button.closest('[data-piece="toolbar"]')!).getPropertyValue("--toolbar-target");
+      const probe = document.createElement("div"); probe.style.height = target; button.closest('[data-piece="toolbar"]')!.append(probe);
+      const targetPx = probe.getBoundingClientRect().height; probe.remove();
+      return { placement: button.getAttribute("data-action-bar"), height: Math.round(box.height) === Math.round(targetPx), tall: targetPx > 44,
+        width: Math.round(box.width), square: Math.round(box.width) === Math.round(box.height), wrap: style.whiteSpace };
+    }));
+    assert.deepEqual(placements.map(item => item.placement), ["command", "command", "commit", "commit", "step", "step"]);
+    for (const item of placements) assert.ok(item.height && item.tall, `${item.placement}: as tall as the toolbar target (more than 44px at twice the text)`);
+    assert.deepEqual(placements.slice(0, 2).map(item => item.square), [true, true], "a command is a square");
+    assert.deepEqual(placements.slice(2, 4).map(item => item.wrap), ["nowrap", "nowrap"], "a commit keeps one line");
+    assert.equal(placements[4]!.width, placements[5]!.width, "the two steps share their row");
+    const css = (await (await import("node:fs/promises")).readFile("src/svelte/catalog/foundations/bar/bar.css", "utf8")).replace(/\/\*[\s\S]*?\*\//g, "");
+    for (const rule of css.match(/[^{}]*(?:data-slot="button"|(?<![-\w])button(?![-\w]))[^{}]*\{/g) ?? [])
+      assert.match(rule, /\.toolbar-row:not\(\[data-bar-row\]\)/, `no bar rule on buttons reaches a bar's Actions: ${rule.trim()}`);
+    assert.equal(await f.page.locator('[data-piece="toolbar"] > .toolbar-row:not([data-bar-row])').count(), 0, "every row a bar draws is marked");
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});

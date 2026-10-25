@@ -6,7 +6,8 @@
   import ModalPane from "./ModalPane.svelte";
   import ModalSheet from "./ModalSheet.svelte";
   import ModalDialog from "./ModalDialog.svelte";
-  let { label, open, locked, presentation, labelledBy, describedBy, continuity, ondismiss, onclosed, children, actions }: CatalogProps<"modal"> = $props();
+  import ModalNavigation from "./ModalNavigation.svelte";
+  let { label, open, locked, presentation, labelledBy, describedBy, navigation, continuity, ondismiss, onclosed, children, actions }: CatalogProps<"modal"> = $props();
   const density = useSurfaceDensityClass();
   /** Escape, the scrim and the grip ask to dismiss; a locked modal refuses, and the caller decides what dismissal means. */
   const dismiss = () => { if (!locked) ondismiss?.(); };
@@ -16,8 +17,10 @@
   /** Called by the caller just before it invokes something: "close" before Back or Close, "other" otherwise. */
   export function noteInvocation(kind: FrameInvocation): void { pane?.noteInvocation(kind); }
 </script>
-{#if presentation === "adaptive" || presentation === "transient" || presentation === "navigation"}
+{#if presentation === "adaptive" || presentation === "transient"}
   <ModalPane bind:this={pane} {label} {open} {locked} {presentation} {continuity} density={density()} {dismiss} {onclosed} {children} />
+{:else if presentation === "navigation"}
+  <ModalNavigation {label} {open} {navigation} {dismiss} {onclosed} {children} />
 {:else if presentation === "sheet"}
   <ModalSheet {label} {open} {locked} density={density()} {dismiss} {onclosed} {children} />
 {:else}

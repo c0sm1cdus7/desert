@@ -5,7 +5,7 @@ import { InlineContract } from "./inline.contract.ts";
 
 export const Inline = defineFoundation({
   id: "inline",
-  purpose: "Lay pieces out in a horizontal sequence with a gap from the spacing scale: wrapping, in a labelled scroll rail, or neither.",
+  purpose: { key: "inline.purpose" }, messages: ["inline.purpose"],
   owner: { entry: "Inline.svelte" },
   shape: "none", states: ["default"],
   variants: { overflow: ["wrap", "scroll", "none"], justify: ["start", "center", "end", "between"] },

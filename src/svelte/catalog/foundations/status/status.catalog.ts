@@ -5,7 +5,7 @@ import { StatusContract } from "./status.contract.ts";
 
 export const Status = defineFoundation({
   id: "status",
-  purpose: "Say why there is nothing to show (empty, offline, a note) and what to do next, as a block or a compact caption.",
+  purpose: { key: "status.purpose" }, messages: ["status.purpose"],
   owner: { entry: "Status.svelte", vendor: ["empty"] },
   shape: "radius", states: ["default"],
   variants: { tone: ["neutral", "offline", "note"], size: ["regular", "compact", "prompt"] },

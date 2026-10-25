@@ -147,7 +147,8 @@ test("choice menu: each trigger names the choice and its value; a placeholder st
 });
 
 test("choice menu: the choice measure boxes the trigger at 26rem and fills a slot within 3rem of it", async () => {
-  // Lane B: a select control is a menu at the field family's choice measure (field-measure.css), as MeasuredField drew it.
+  // Lane B: a select control is a menu at the field family's choice measure (field-measure.css), as MeasuredField drew it;
+  // its well is Field's select trigger, so the box is Field's measure box.
   const f = await mounted(`<main style="padding:0">
   {#each [640, 465, 464, 300] as width}
     <div data-slot-width={width} style="width:{width}px"><Catalog.Choice presentation="menu" cardinality="one" menuTrigger="well" measure="choice"
@@ -158,10 +159,10 @@ test("choice menu: the choice measure boxes the trigger at 26rem and fills a slo
     labelVisibility="visible" options={[{ value: "fuji", label: "Mount Fuji", disabled: false }]} selected={[]} disabled={false} required={false} /></div>
 </main>`);
   try {
-    const boxes = await f.page.locator("[data-slot-width] [data-choice-measure] > div").evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
+    const boxes = await f.page.locator('[data-slot-width] [data-measure="choice"] > [data-slot="field"]').evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
     assert.deepEqual(boxes, [416, 416, 464, 300]);
-    assert.equal(await f.page.locator("[data-unmeasured] [data-choice-measure]").count(), 0, "a menu without a measure keeps no box");
-    const trigger = f.page.locator("[data-slot-width=\"640\"] [data-choice=menu]");
+    assert.equal(await f.page.locator("[data-unmeasured] :is([data-measure], [data-field])").count(), 0, "a menu without a measure keeps no box");
+    const trigger = f.page.locator("[data-slot-width=\"640\"] [data-selection-trigger]");
     assert.ok((await trigger.boundingBox())!.width < 416, "the well itself keeps its fit width inside the box");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }

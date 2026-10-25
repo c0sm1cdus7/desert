@@ -254,6 +254,9 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/action",
       "kind": "foundation",
+      "messages": [
+        "action.purpose"
+      ],
       "owner": {
         "entry": "Action.svelte",
         "mechanisms": [
@@ -263,7 +266,9 @@
           "button"
         ]
       },
-      "purpose": "Invoke one command with a text button or an icon button, never competing text and icons.",
+      "purpose": {
+        "key": "action.purpose"
+      },
       "renders": [
         "action"
       ],
@@ -344,13 +349,18 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/appearance-root",
       "kind": "foundation",
+      "messages": [
+        "appearanceRoot.purpose"
+      ],
       "owner": {
         "entry": "AppearanceRoot.svelte",
         "parts": [
           "appearance-root.ts"
         ]
       },
-      "purpose": "Apply the chosen appearance to the whole page and publish the system colour scheme.",
+      "purpose": {
+        "key": "appearanceRoot.purpose"
+      },
       "shape": "none",
       "states": [
         "default"
@@ -361,12 +371,15 @@
       "folder": "src/svelte/catalog/foundations/attention-indicator",
       "kind": "foundation",
       "messages": [
+        "attentionIndicator.purpose",
         "attentionIndicator.label"
       ],
       "owner": {
         "entry": "AttentionIndicator.svelte"
       },
-      "purpose": "Mark objects needing attention with the same amber indicator everywhere, steady when reduced motion is enabled.",
+      "purpose": {
+        "key": "attentionIndicator.purpose"
+      },
       "shape": "none",
       "states": [
         "required",
@@ -428,10 +441,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/availability",
       "kind": "foundation",
+      "messages": [
+        "availability.purpose"
+      ],
       "owner": {
         "entry": "Availability.svelte"
       },
-      "purpose": "Understand whether a capability is ready, unavailable or not yet known.",
+      "purpose": {
+        "key": "availability.purpose"
+      },
       "renders": [
         "availability"
       ],
@@ -446,6 +464,9 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/avatar",
       "kind": "foundation",
+      "messages": [
+        "avatar.purpose"
+      ],
       "owner": {
         "entry": "Avatar.svelte",
         "mechanisms": [
@@ -459,7 +480,9 @@
           "avatar"
         ]
       },
-      "purpose": "Show a person or identity as a seeded drawing, a picture or initials, optionally as the button that shuffles its seed.",
+      "purpose": {
+        "key": "avatar.purpose"
+      },
       "shape": "none",
       "states": [
         "default"
@@ -549,13 +572,18 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/card",
       "kind": "foundation",
+      "messages": [
+        "card.purpose"
+      ],
       "owner": {
         "entry": "Card.svelte",
         "mechanisms": [
           "press-feedback"
         ]
       },
-      "purpose": "Open one item, media, collection or summary from a card composed of artwork and its supporting content.",
+      "purpose": {
+        "key": "card.purpose"
+      },
       "shape": "radius",
       "slots": {
         "children": {
@@ -738,6 +766,7 @@
       "folder": "src/svelte/catalog/foundations/choice",
       "kind": "foundation",
       "messages": [
+        "choice.purpose",
         "choice.required",
         "choice.notSelected"
       ],
@@ -762,7 +791,9 @@
           "radio-group"
         ]
       },
-      "purpose": "Choose one or several options given as data, as rows, cards, swatches or a menu, with a persistent label.",
+      "purpose": {
+        "key": "choice.purpose"
+      },
       "shape": "radius",
       "states": [
         "default",
@@ -813,10 +844,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/clock",
       "kind": "foundation",
+      "messages": [
+        "clock.purpose"
+      ],
       "owner": {
         "entry": "Clock.svelte"
       },
-      "purpose": "Show today's date and the current time, kept current while shown.",
+      "purpose": {
+        "key": "clock.purpose"
+      },
       "shape": "none",
       "states": [
         "default"
@@ -876,10 +912,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/color-bullet",
       "kind": "foundation",
+      "messages": [
+        "colorBullet.purpose"
+      ],
       "owner": {
         "entry": "ColorBullet.svelte"
       },
-      "purpose": "Show a label’s color alongside its text without using color as its only meaning.",
+      "purpose": {
+        "key": "colorBullet.purpose"
+      },
       "shape": "none",
       "states": [
         "default"
@@ -889,10 +930,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/column",
       "kind": "foundation",
+      "messages": [
+        "column.purpose"
+      ],
       "owner": {
         "entry": "Column.svelte"
       },
-      "purpose": "Stack pieces vertically with a gap from the spacing scale, at the reading, narrow or wide measure, aligned or centred.",
+      "purpose": {
+        "key": "column.purpose"
+      },
       "shape": "none",
       "slots": {
         "children": {
@@ -1131,6 +1177,7 @@
       "folder": "src/svelte/catalog/foundations/date-control",
       "kind": "foundation",
       "messages": [
+        "dateControl.purpose",
         "dateControl.previousMonth",
         "dateControl.nextMonth",
         "dateControl.clearDate",
@@ -1150,7 +1197,9 @@
           "calendar"
         ]
       },
-      "purpose": "Choose one day from a month calendar opened from a labelled field well, within optional bounds.",
+      "purpose": {
+        "key": "dateControl.purpose"
+      },
       "renders": [
         "control.date"
       ],
@@ -1193,10 +1242,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/face",
       "kind": "foundation",
+      "messages": [
+        "face.purpose"
+      ],
       "owner": {
         "entry": "Face.svelte"
       },
-      "purpose": "A round decorative mark that identifies a title or an option by icon, document, status, symbol or flag.",
+      "purpose": {
+        "key": "face.purpose"
+      },
       "shape": "none",
       "states": [
         "icon",
@@ -1232,12 +1286,15 @@
       "folder": "src/svelte/catalog/foundations/fact-row",
       "kind": "foundation",
       "messages": [
+        "factRow.purpose",
         "factRow.unavailable"
       ],
       "owner": {
         "entry": "FactRow.svelte"
       },
-      "purpose": "Keep a capitalized label on the left and its value or its control right-aligned, with shared horizontal dividers and balanced wrapping.",
+      "purpose": {
+        "key": "factRow.purpose"
+      },
       "shape": "none",
       "slots": {
         "control": {
@@ -1298,12 +1355,15 @@
       "folder": "src/svelte/catalog/foundations/fact-value",
       "kind": "foundation",
       "messages": [
+        "factValue.purpose",
         "factValue.state"
       ],
       "owner": {
         "entry": "FactValue.svelte"
       },
-      "purpose": "Read one scalar fact as text, or show that it is unknown or empty with a muted icon and an accessible state.",
+      "purpose": {
+        "key": "factValue.purpose"
+      },
       "shape": "none",
       "states": [
         "known",
@@ -1360,6 +1420,7 @@
       "folder": "src/svelte/catalog/foundations/field",
       "kind": "foundation",
       "messages": [
+        "field.purpose",
         "field.none",
         "field.character",
         "field.characters",
@@ -1368,7 +1429,8 @@
         "field.clearSearch",
         "field.clear",
         "field.incompleteNumber",
-        "field.invalidNumber"
+        "field.invalidNumber",
+        "field.required"
       ],
       "owner": {
         "entry": "Field.svelte",
@@ -1398,7 +1460,9 @@
           "textarea"
         ]
       },
-      "purpose": "Write a single line or several, or open a choice, in one labelled well with field help and validation feedback.",
+      "purpose": {
+        "key": "field.purpose"
+      },
       "renders": [
         "input.text",
         "input.multiline"
@@ -1411,6 +1475,11 @@
           ]
         },
         "prefix": {
+          "accepts": [
+            "choice"
+          ]
+        },
+        "selection": {
           "accepts": [
             "choice"
           ]
@@ -1471,6 +1540,7 @@
       "folder": "src/svelte/catalog/foundations/files",
       "kind": "foundation",
       "messages": [
+        "files.purpose",
         "files.choose",
         "files.limits",
         "files.selected",
@@ -1493,7 +1563,9 @@
           "files.css"
         ]
       },
-      "purpose": "Select supported local files and inspect their limits before an operation uses them.",
+      "purpose": {
+        "key": "files.purpose"
+      },
       "renders": [
         "control.files"
       ],
@@ -1508,10 +1580,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/form",
       "kind": "foundation",
+      "messages": [
+        "form.purpose"
+      ],
       "owner": {
         "entry": "Form.svelte"
       },
-      "purpose": "Submit a labelled group of fields together, from any of its fields or its submit action.",
+      "purpose": {
+        "key": "form.purpose"
+      },
       "shape": "none",
       "slots": {
         "children": {
@@ -1553,6 +1630,7 @@
       "folder": "src/svelte/catalog/foundations/gallery",
       "kind": "foundation",
       "messages": [
+        "gallery.purpose",
         "gallery.open",
         "gallery.choose",
         "gallery.photo"
@@ -1563,7 +1641,9 @@
           "media-gestures"
         ]
       },
-      "purpose": "Page through a set of photos in place, inline, heading a place or as a detail's photograph, and open them in the viewer.",
+      "purpose": {
+        "key": "gallery.purpose"
+      },
       "shape": "none",
       "states": [
         "single",
@@ -1587,10 +1667,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/grid",
       "kind": "foundation",
+      "messages": [
+        "grid.purpose"
+      ],
       "owner": {
         "entry": "Grid.svelte"
       },
-      "purpose": "Lay pieces out in auto-fitted tracks of one recipe (tiles, collections, cards, covers, results) with a gap from the spacing scale.",
+      "purpose": {
+        "key": "grid.purpose"
+      },
       "shape": "none",
       "slots": {
         "children": {
@@ -1620,13 +1705,18 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/heading",
       "kind": "foundation",
+      "messages": [
+        "heading.purpose"
+      ],
       "owner": {
         "entry": "Heading.svelte",
         "parts": [
           "heading-content.ts"
         ]
       },
-      "purpose": "A title whose meaning picks its type role and level: display, page, section or field group.",
+      "purpose": {
+        "key": "heading.purpose"
+      },
       "shape": "none",
       "states": [
         "default"
@@ -1644,10 +1734,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/icon",
       "kind": "foundation",
+      "messages": [
+        "icon.purpose"
+      ],
       "owner": {
         "entry": "Icon.svelte"
       },
-      "purpose": "Draw one named glyph of the product's icon set, optionally toned, sized to the text or placed inside a control.",
+      "purpose": {
+        "key": "icon.purpose"
+      },
       "shape": "none",
       "states": [
         "default"
@@ -1691,6 +1786,7 @@
       "folder": "src/svelte/catalog/foundations/image",
       "kind": "foundation",
       "messages": [
+        "image.purpose",
         "image.unavailable",
         "image.noCover",
         "image.noPoster",
@@ -1699,7 +1795,9 @@
       "owner": {
         "entry": "Image.svelte"
       },
-      "purpose": "Show a public or private image at the rendition its frame needs, hidden until decoded, with a fallback and optional retry, or the placeholder of missing artwork.",
+      "purpose": {
+        "key": "image.purpose"
+      },
       "shape": "none",
       "stateVariants": {
         "audio": {
@@ -1757,10 +1855,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/inline",
       "kind": "foundation",
+      "messages": [
+        "inline.purpose"
+      ],
       "owner": {
         "entry": "Inline.svelte"
       },
-      "purpose": "Lay pieces out in a horizontal sequence with a gap from the spacing scale: wrapping, in a labelled scroll rail, or neither.",
+      "purpose": {
+        "key": "inline.purpose"
+      },
       "shape": "none",
       "slots": {
         "children": {
@@ -1947,10 +2050,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/list",
       "kind": "foundation",
+      "messages": [
+        "list.purpose"
+      ],
       "owner": {
         "entry": "List.svelte"
       },
-      "purpose": "Hold sibling rows or facts in one shared pane, at the reading measure or the full overview width.",
+      "purpose": {
+        "key": "list.purpose"
+      },
       "shape": "radius",
       "slots": {
         "children": {
@@ -1982,6 +2090,9 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/loading",
       "kind": "foundation",
+      "messages": [
+        "loading.purpose"
+      ],
       "owner": {
         "entry": "Loading.svelte",
         "vendor": [
@@ -1989,7 +2100,9 @@
           "spinner"
         ]
       },
-      "purpose": "Show that content is on its way, as skeleton lines or a spinner, and announce it by its label.",
+      "purpose": {
+        "key": "loading.purpose"
+      },
       "shape": "radius",
       "states": [
         "default"
@@ -2187,6 +2300,7 @@
       "folder": "src/svelte/catalog/foundations/media-player",
       "kind": "foundation",
       "messages": [
+        "mediaPlayer.purpose",
         "mediaPlayer.unavailable",
         "mediaPlayer.retry",
         "mediaPlayer.elapsed",
@@ -2211,7 +2325,9 @@
           "Volume.svelte"
         ]
       },
-      "purpose": "Play a video or audio item with its transport, seek and volume controls, showing artwork for audio and a retry when unavailable.",
+      "purpose": {
+        "key": "mediaPlayer.purpose"
+      },
       "shape": "none",
       "slots": {
         "overlay": {
@@ -2287,6 +2403,7 @@
       "folder": "src/svelte/catalog/foundations/media-viewer",
       "kind": "foundation",
       "messages": [
+        "mediaViewer.purpose",
         "mediaViewer.close",
         "mediaViewer.zoomOut",
         "mediaViewer.resetZoom",
@@ -2307,7 +2424,9 @@
           "MediaStrip.svelte"
         ]
       },
-      "purpose": "Show images, audio and video full screen with paging, zoom and playback, and return focus to what opened them.",
+      "purpose": {
+        "key": "mediaViewer.purpose"
+      },
       "shape": "none",
       "states": [
         "image",
@@ -2319,13 +2438,18 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/menu",
       "kind": "foundation",
+      "messages": [
+        "menu.purpose"
+      ],
       "owner": {
         "entry": "Menu.svelte",
         "parts": [
           "menu.css"
         ]
       },
-      "purpose": "Reveal overflowing contextual commands beside their readable labels, without putting content navigation in the toolbar.",
+      "purpose": {
+        "key": "menu.purpose"
+      },
       "shape": "radius",
       "states": [
         "closed",
@@ -2336,10 +2460,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/meter",
       "kind": "foundation",
+      "messages": [
+        "meter.purpose"
+      ],
       "owner": {
         "entry": "Meter.svelte"
       },
-      "purpose": "Show a total split into labelled segments: the total, a bar proportional to each segment and the legend.",
+      "purpose": {
+        "key": "meter.purpose"
+      },
       "shape": "radius",
       "states": [
         "default"
@@ -2350,8 +2479,11 @@
       "folder": "src/svelte/catalog/foundations/modal",
       "kind": "foundation",
       "messages": [
+        "modal.purpose",
         "modal.close",
-        "modal.description"
+        "modal.closeNamed",
+        "modal.description",
+        "modal.navigationDescription"
       ],
       "owner": {
         "entry": "Modal.svelte",
@@ -2366,6 +2498,7 @@
           "ModalPane.svelte",
           "ModalSheet.svelte",
           "ModalDialog.svelte",
+          "ModalNavigation.svelte",
           "DrawerGrip.svelte",
           "drawer-motion.svelte.ts",
           "frame-continuity.svelte.ts",
@@ -2377,7 +2510,9 @@
           "dialog"
         ]
       },
-      "purpose": "Present a temporary surface over its parent, dismissed by Escape, its scrim or its grip unless locked.",
+      "purpose": {
+        "key": "modal.purpose"
+      },
       "shape": "radius",
       "slots": {
         "actions": {
@@ -2575,13 +2710,18 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/place-heading",
       "kind": "foundation",
+      "messages": [
+        "placeHeading.purpose"
+      ],
       "owner": {
         "entry": "PlaceHeading.svelte",
         "parts": [
           "place-heading.css"
         ]
       },
-      "purpose": "Head a place, or content embedded in one, with its title, subtitle and optional featured media.",
+      "purpose": {
+        "key": "placeHeading.purpose"
+      },
       "shape": "none",
       "states": [
         "default",
@@ -2598,6 +2738,9 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/popover",
       "kind": "foundation",
+      "messages": [
+        "popover.purpose"
+      ],
       "owner": {
         "entry": "Popover.svelte",
         "mechanisms": [
@@ -2614,7 +2757,9 @@
           "popover"
         ]
       },
-      "purpose": "Open contextual content, a form, options or commands in a surface anchored to its trigger.",
+      "purpose": {
+        "key": "popover.purpose"
+      },
       "shape": "radius",
       "slots": {
         "children": {
@@ -2877,13 +3022,18 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/row",
       "kind": "foundation",
+      "messages": [
+        "row.purpose"
+      ],
       "owner": {
         "entry": "Row.svelte",
         "mechanisms": [
           "press-feedback"
         ]
       },
-      "purpose": "Open one object or destination from a list row, or read one, and say why an unavailable one cannot open.",
+      "purpose": {
+        "key": "row.purpose"
+      },
       "shape": "none",
       "stateVariants": {
         "current": {
@@ -2940,10 +3090,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/separator",
       "kind": "foundation",
+      "messages": [
+        "separator.purpose"
+      ],
       "owner": {
         "entry": "Separator.svelte"
       },
-      "purpose": "Draw a hairline in the separator ink between the pieces of a column or a row, optionally inset like grouped rows.",
+      "purpose": {
+        "key": "separator.purpose"
+      },
       "shape": "none",
       "states": [
         "default"
@@ -3076,7 +3231,9 @@
       "folder": "src/svelte/catalog/foundations/shell",
       "kind": "foundation",
       "messages": [
-        "shell.navigation"
+        "shell.purpose",
+        "shell.navigation",
+        "shell.navigationTitle"
       ],
       "owner": {
         "entry": "Shell.svelte",
@@ -3084,6 +3241,7 @@
           "file-picker",
           "pane-context",
           "press-feedback",
+          "surface-focus",
           "surface-host",
           "swipe-motion",
           "toolbar-geometry"
@@ -3105,7 +3263,9 @@
           "tooltip"
         ]
       },
-      "purpose": "Host a workspace place with its navigation sidebar, toolbars, search overlay, panels and failure dialog.",
+      "purpose": {
+        "key": "shell.purpose"
+      },
       "shape": "none",
       "slots": {
         "bottom": {
@@ -3147,13 +3307,18 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/slider",
       "kind": "foundation",
+      "messages": [
+        "slider.purpose"
+      ],
       "owner": {
         "entry": "Slider.svelte",
         "vendor": [
           "slider"
         ]
       },
-      "purpose": "Set one bounded value along a track, such as a playback position or a volume.",
+      "purpose": {
+        "key": "slider.purpose"
+      },
       "shape": "none",
       "states": [
         "default",
@@ -3164,10 +3329,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/spacer",
       "kind": "foundation",
+      "messages": [
+        "spacer.purpose"
+      ],
       "owner": {
         "entry": "Spacer.svelte"
       },
-      "purpose": "Leave an empty space of one spacing step, or take the space a row or column leaves over.",
+      "purpose": {
+        "key": "spacer.purpose"
+      },
       "shape": "none",
       "states": [
         "default"
@@ -3308,13 +3478,18 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/stack-item",
       "kind": "foundation",
+      "messages": [
+        "stackItem.purpose"
+      ],
       "owner": {
         "entry": "StackItem.svelte",
         "parts": [
           "stack-item.css"
         ]
       },
-      "purpose": "Place one entry of a stack at the content or the surface inset.",
+      "purpose": {
+        "key": "stackItem.purpose"
+      },
       "shape": "none",
       "slots": {
         "children": {
@@ -3340,13 +3515,18 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/stack-layout",
       "kind": "foundation",
+      "messages": [
+        "stackLayout.purpose"
+      ],
       "owner": {
         "entry": "StackLayout.svelte",
         "parts": [
           "stack-layout.css"
         ]
       },
-      "purpose": "Group related content under one title, with an optional description and required mark.",
+      "purpose": {
+        "key": "stackLayout.purpose"
+      },
       "shape": "none",
       "slots": {
         "children": {
@@ -3387,13 +3567,18 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/status",
       "kind": "foundation",
+      "messages": [
+        "status.purpose"
+      ],
       "owner": {
         "entry": "Status.svelte",
         "vendor": [
           "empty"
         ]
       },
-      "purpose": "Say why there is nothing to show (empty, offline, a note) and what to do next, as a block or a compact caption.",
+      "purpose": {
+        "key": "status.purpose"
+      },
       "shape": "radius",
       "states": [
         "default"
@@ -3443,6 +3628,9 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/surface",
       "kind": "foundation",
+      "messages": [
+        "surface.purpose"
+      ],
       "owner": {
         "entry": "Surface.svelte",
         "mechanisms": [
@@ -3452,6 +3640,7 @@
           "toolbar-scroll"
         ],
         "parts": [
+          "FrameEdge.svelte",
           "ScrollEdges.svelte",
           "place-focus.ts",
           "scroll-edges.css",
@@ -3459,7 +3648,9 @@
           "surface.css"
         ]
       },
-      "purpose": "Arrange content and top or bottom toolbars, with lateral surfaces only at the root. Mounted surfaces keep their own content and toolbars.",
+      "purpose": {
+        "key": "surface.purpose"
+      },
       "shape": "none",
       "slots": {
         "bottom": {
@@ -3574,6 +3765,9 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/tag",
       "kind": "foundation",
+      "messages": [
+        "tag.purpose"
+      ],
       "owner": {
         "entry": "Tag.svelte",
         "mechanisms": [
@@ -3586,7 +3780,9 @@
           "badge"
         ]
       },
-      "purpose": "Show one label as a toned chip, removable when its owner allows, or a reference as its name beside its color.",
+      "purpose": {
+        "key": "tag.purpose"
+      },
       "shape": "none",
       "stateVariants": {
         "disabled": {
@@ -3631,10 +3827,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/text",
       "kind": "foundation",
+      "messages": [
+        "text.purpose"
+      ],
       "owner": {
         "entry": "Text.svelte"
       },
-      "purpose": "A paragraph of plain text in a type role and tone, optionally announced as a status or inset to align with rows.",
+      "purpose": {
+        "key": "text.purpose"
+      },
       "shape": "none",
       "states": [
         "default"
@@ -3675,12 +3876,15 @@
       "folder": "src/svelte/catalog/foundations/theme-preview",
       "kind": "foundation",
       "messages": [
+        "themePreview.purpose",
         "themePreview.glyph"
       ],
       "owner": {
         "entry": "ThemePreview.svelte"
       },
-      "purpose": "Compare Dark and Light using the same surface, tint and wallpaper tokens as the running interface.",
+      "purpose": {
+        "key": "themePreview.purpose"
+      },
       "shape": "radius",
       "states": [
         "default"
@@ -3884,6 +4088,9 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/view-region",
       "kind": "foundation",
+      "messages": [
+        "viewRegion.purpose"
+      ],
       "owner": {
         "entry": "ViewRegion.svelte",
         "mechanisms": [
@@ -3893,7 +4100,9 @@
           "view-region.css"
         ]
       },
-      "purpose": "Frame one view's content, one of its items, a place's document or a retained place with the identity navigation reveals; bare renders content unframed.",
+      "purpose": {
+        "key": "viewRegion.purpose"
+      },
       "shape": "none",
       "slots": {
         "children": {
@@ -3985,10 +4194,15 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/wallpaper",
       "kind": "foundation",
+      "messages": [
+        "wallpaper.purpose"
+      ],
       "owner": {
         "entry": "Wallpaper.svelte"
       },
-      "purpose": "Provide system-generated Silk, Mist or Plain backgrounds that follow the selected appearance.",
+      "purpose": {
+        "key": "wallpaper.purpose"
+      },
       "shape": "none",
       "states": [
         "default",

@@ -5,9 +5,8 @@
   padding-inline-start:calc(var(--place-leading-inset,0px) + var(--place-content-inset,42px));
 }
 .place-heading-copy { display:flex; flex-direction:column; align-items:flex-start; gap:var(--heading-copy-gap); min-width:0; overflow-wrap:anywhere; }
-.place-heading-copy > * { margin:0; max-width:100%; overflow-wrap:anywhere; }
-.place-heading-copy [data-place-title] { outline:none; }
-.place-heading-copy [data-place-subtitle] { color:var(--muted-foreground); max-width:65ch; }
+/* Its title is Heading's place title (it wraps anywhere and draws no focus ring); its subtitle wraps the same way. */
+.place-heading-copy [data-place-subtitle] { margin:0; overflow-wrap:anywhere; color:var(--muted-foreground); max-width:65ch; }
 .place-heading-content[data-featured-media] { display:flex; align-items:flex-end; min-height:min(65dvh,36rem); padding-bottom:32px; }
 /* The video and its controls sit under the shade, as the native video did; the copy leaves room for the controls. */
 .place-heading-media { position:absolute; inset:0; z-index:-2; }

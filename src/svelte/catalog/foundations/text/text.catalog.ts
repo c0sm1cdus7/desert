@@ -5,7 +5,7 @@ import { TextContract } from "./text.contract.ts";
 
 export const Text = defineFoundation({
   id: "text",
-  purpose: "A paragraph of plain text in a type role and tone, optionally announced as a status or inset to align with rows.",
+  purpose: { key: "text.purpose" }, messages: ["text.purpose"],
   owner: { entry: "Text.svelte" },
   shape: "none", states: ["default"],
   variants: { kind: ["body", "support", "caption"], tone: ["default", "muted", "destructive"] },

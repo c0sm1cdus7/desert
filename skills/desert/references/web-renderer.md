@@ -2884,7 +2884,7 @@ Source SHA-256: af622509d56b81963f8ecc5ead5044809511ce1145d56271a3e2cf97dfe4df19
 
 ## src/svelte/catalog/foundations/shell/ShellNavigation.svelte
 
-Source SHA-256: c6a62d5de2ded474a9e69a41c70005755d89a94cbe4a4572fb2607516d873060
+Source SHA-256: 6fee8ccc852c739728516375aeb887f1ece850b61d05fd6f90ddea8a3acf2349
 
 ```svelte
 <script lang="ts">
@@ -2892,16 +2892,20 @@ Source SHA-256: c6a62d5de2ded474a9e69a41c70005755d89a94cbe4a4572fb2607516d873060
   import { m } from "../../../../messages/keys.ts";
   // Shell part (from the catalog-navigation composition): the navigation pane, its identity bar, the destination groups
   // drawn from data, the toggle that hides it and the settings placeholder. Dragging the pane's header toward its edge,
-  // or swiping the pane, dismisses it.
+  // or swiping the pane, dismisses it. Docked, it is the sidebar; over a workspace with no room to dock it, it is the
+  // navigation Modal, which an edge swipe (CatalogEdgeNavigation) may reveal under the pointer before it opens.
   import { untrack } from "svelte";
   import * as Sidebar from "../../../vendor/components/ui/sidebar/index.js";
-  import { Bar, Icon, Surface } from "../../index.ts";
+  import { Bar, Icon, Modal, Surface } from "../../index.ts";
+  import { provideCloseFocus } from "../../mechanisms/surface-focus/focus-return.ts";
   import { swipeMotion } from "../../mechanisms/swipe-motion/swipe-motion.svelte.ts";
   import { providePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
   import type { ShellNavigation } from "../../../infra/workspace-navigation.ts";
   import { navigationIconNames } from "./navigation-icons.ts";
   let { navigation, searching, onnavigate }: { navigation: ShellNavigation; searching: boolean; onnavigate: (id: string) => void } = $props();
   const sidebar = Sidebar.useSidebar();
+  // Closing the overlay returns focus where the sidebar decides (the control that opened it, or its equivalent).
+  provideCloseFocus(sidebar.handleCloseAutoFocus);
   const motion = swipeMotion({ edge: () => "left", enabled: () => sidebar.expanded,
     commit: () => sidebar.presentation === "overlay" ? sidebar.setOverlayOpen(false) : sidebar.setOpen(false) });
   $effect(() => { sidebar.dismissOffset = motion.offset; });
@@ -2917,9 +2921,9 @@ Source SHA-256: c6a62d5de2ded474a9e69a41c70005755d89a94cbe4a4572fb2607516d873060
   const handlers = [["pointerdown", down], ["pointermove", motion.move], ["pointerup", motion.up], ["pointercancel", motion.cancel],
     ["lostpointercapture", motion.lost]] as const;
   $effect(() => {
-    sidebar.presentation; sidebar.expanded;
+    sidebar.presentation; sidebar.expanded; sidebar.revealing;
     let header: HTMLElement | null = null;
-    // The pane mounts in this update (docked, or in its overlay dialog): attach once it is drawn.
+    // The pane mounts in this update (docked, in its overlay modal, or drawn by an edge swipe): attach once it is drawn.
     const frame = requestAnimationFrame(() => {
       header = document.getElementById(sidebar.panelId)?.querySelector<HTMLElement>('[data-catalog-navigation] > [data-toolbar="top"]') ?? null;
       if (!header) return;
@@ -2935,12 +2939,13 @@ Source SHA-256: c6a62d5de2ded474a9e69a41c70005755d89a94cbe4a4572fb2607516d873060
   });
 </script>
 
+{#snippet pane()}
 <Surface kind="navigation" label={say(m.shell.navigation)} searching={false}>
   {#snippet top()}
     <Bar edge="top" purpose="navigation" identity={navigation.identity} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false} />
   {/snippet}
   {#snippet content()}
-    <div>
+    <div data-navigation-destinations>
       {#each navigation.groups as group (group.label)}
       <Sidebar.Group aria-label={group.label}>
         <Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
@@ -2949,8 +2954,8 @@ Source SHA-256: c6a62d5de2ded474a9e69a41c70005755d89a94cbe4a4572fb2607516d873060
           <Sidebar.MenuItem>
             <Sidebar.MenuButton isActive={destination.id === navigation.active} aria-current={destination.id === navigation.active ? "page" : undefined}
               aria-label={destination.label} onclick={() => navigate(destination.id)}>
-              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon name={navigationIconNames[destination.icon]} /></span>
-              <span>{destination.label}</span>
+              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon name={navigationIconNames[destination.icon]} size="lead" /></span>
+              <span data-navigation-label>{destination.label}</span>
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>
         {/each}
@@ -2968,11 +2973,20 @@ Source SHA-256: c6a62d5de2ded474a9e69a41c70005755d89a94cbe4a4572fb2607516d873060
     {/if}
   {/snippet}
 </Surface>
+{/snippet}
+
+{#if sidebar.presentation === "overlay"}
+  <Modal label={say(m.shell.navigationTitle)} open={sidebar.overlayOpen} locked={false} presentation="navigation"
+    navigation={{ panel: sidebar.panelId, reveal: sidebar.revealOffset ?? undefined, dismissOffset: sidebar.dismissOffset, gesture: sidebar.revealedByGesture }}
+    ondismiss={() => sidebar.setOverlayOpen(false)}>{@render pane()}</Modal>
+{:else}
+  <Sidebar.Root variant="floating">{@render pane()}</Sidebar.Root>
+{/if}
 ```
 
 ## src/svelte/catalog/foundations/bar/BarSearch.svelte
 
-Source SHA-256: 2ad76d00e7f5b17f28027dc3f34cffbe5840204a0e8195383f8bab6d37f6ceba
+Source SHA-256: 860f15e07a13f800e7885a3f996def331b51a309eea872e0d58a865f052f1ef8
 
 ```svelte
 <script lang="ts">
@@ -2998,12 +3012,13 @@ Source SHA-256: 2ad76d00e7f5b17f28027dc3f34cffbe5840204a0e8195383f8bab6d37f6ceba
   <div data-catalog-search class="flex w-full flex-col" inert={!open} aria-hidden={!open}>
     <Field primitive="input.text" purpose="search" label={say(m.bar.searchLabel, { title: title.toLowerCase() })} labelVisibility="accessible"
       measure="fill" value={displayedQuery} placeholder={say(m.bar.searchPlaceholder, { title })} clear required={false} invalid={false}
-      disabled={false} focus={open && requested ? "on-mount" : undefined} controls={open ? resultsId : undefined} expanded={open} onchange={onquery} />
+      disabled={false} focus={open && requested ? "on-mount" : undefined} controls={open ? resultsId : undefined} expanded={open} bar="search"
+      onchange={onquery} />
   </div>
   <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
   <div class="toolbar-action" data-search-toggle>
     <Action label={open ? say(m.bar.closeSearch) : say(m.bar.search)} icon={open ? "close" : "search"} face="icon" emphasis="secondary" state="ready"
-      type="button" onclick={toggle} disclosure={{ id: `${id}-toggle`, controls: resultsId, expanded: open, haspopup: "listbox" }} />
+      type="button" bar="command" onclick={toggle} disclosure={{ id: `${id}-toggle`, controls: resultsId, expanded: open, haspopup: "listbox" }} />
   </div>
 </div>
 ```
@@ -3745,7 +3760,7 @@ export function reviewChanges(surface: HumanSurface, mutation: Mutation, facts: 
 
 ## src/web/client/frame.ts
 
-Source SHA-256: ef23e42c051b9c01c5f4accdfdbbf2079a0adf5884c5b7de5566f3a23ff90b8a
+Source SHA-256: 392e214456ac0d6e730fa0c9ce96156249941f9d73a1c6a0d7f6d5662e581b98
 
 ```ts
 import type { HumanSurface, ValidateInput } from "../types.ts";
@@ -3757,6 +3772,11 @@ import { surfaceFrame } from "../../interaction/surface-frame.ts";
 import { fieldFeedback } from "./field-feedback.ts";
 import { presentFacts, presentTitle } from "../../interaction/fact-presentation.ts";
 import { inspectMutationDraft } from "./draft-validation.ts";
+import { rendererLocale } from "../../messages/renderer-locale.ts";
+import { Messages, m } from "../../messages/keys.ts";
+
+// Every sentence this module shows a person is a key of the `frame` namespace it owns (plan §14).
+const bundle = Messages.bundle(rendererLocale);
 
 export function presentFrame(surface: HumanSurface, state: HumanState, validate: ValidateInput,
   scope: ModelScope) {
@@ -3767,9 +3787,9 @@ export function presentFrame(surface: HumanSurface, state: HumanState, validate:
     const id = state.editing?.journeyId ?? state.creationJourneyId;
     if (!id) throw new Error("FORM_JOURNEY_REQUIRED");
     const primary = mutationPresentation(surface, id);
-    const label = surface.commit[primary.id] === "review" ? "Review" : surface.language.journeys[primary.id]!;
+    const label = surface.commit[primary.id] === "review" ? bundle.text(m.frame.review) : surface.language.journeys[primary.id]!;
     const validation = inspectMutationDraft(surface, primary, state.draft, validate);
-    return formFrame(surface, primary, state.draft, { secondary: toolbarAction({ kind: "back" }, "Back", "back", !state.busy), primary: {
+    return formFrame(surface, primary, state.draft, { secondary: toolbarAction({ kind: "back" }, bundle.text(m.frame.back), "back", !state.busy), primary: {
       ...toolbarAction({ kind: "journey", journey: primary.id }, label, surface.commit[primary.id] === "review" ? "review" : "save",
         ready(primary.id) && validation.valid && (!state.editing || subjectActionAvailable(surface, state, primary.id, state.editing.subject, undefined, scope))),
       ...(state.busy ? { state: "pending" as const } : {}),
@@ -3788,12 +3808,12 @@ export function presentFrame(surface: HumanSurface, state: HumanState, validate:
   const { read, subjectActions } = requireReadScope(scope);
   const identity = state.detail?.facts[read.collection[0]!];
   return surfaceFrame({ version: "desert.surface-frame/6", kind: "context",
-    top: { title: state.detail ? typeof identity === "object" ? "Media" : presentTitle(identity) : surface.language.journeys[read.id]! },
+    top: { title: state.detail ? typeof identity === "object" ? bundle.text(m.frame.media) : presentTitle(identity) : surface.language.journeys[read.id]! },
     content: state.detail ? { kind: "context", details: presentFacts(surface, read.subject,
       read.fields.filter(field => field !== read.collection[0]), state.detail.facts, state.references),
       actions: subjectActions.map(({ id }) => ({ destination: id, label: surface.language.journeys[id]!,
         available: subjectActionAvailable(surface, state, id, undefined, undefined, scope) })) }
-      : { kind: "message", text: ready(read.id) ? "Loading…" : "Waiting for the local controller." },
+      : { kind: "message", text: ready(read.id) ? bundle.text(m.frame.loading) : bundle.text(m.frame.waiting) },
     bottom: {},
   });
 }
@@ -4654,7 +4674,7 @@ Source SHA-256: e3cf9e225cc9605e42ac31c860f046f7339e49f58323e1a9447bf1e21774f71d
 
 ## src/svelte/catalog/foundations/field/SearchWell.svelte
 
-Source SHA-256: d27655363162c582cc3d9e15be70d428841b5c16182278e998ac7a9da0b0e4c0
+Source SHA-256: 1f2b0fd49efff3ea81d704f893e4ae15a379520216c0d1f8010aa33ffb8a9793
 
 ```svelte
 <script lang="ts">
@@ -4662,14 +4682,18 @@ Source SHA-256: d27655363162c582cc3d9e15be70d428841b5c16182278e998ac7a9da0b0e4c0
   import { m } from "../../../../messages/keys.ts";
   // The well of a search Field: a leading search glyph, the query editor and its clear control. A press on the well's
   // own surface focuses the editor; `focus: "on-mount"` focuses it when the well appears (an expanding toolbar search),
-  // and `controls` names the results the query filters.
+  // and `controls` names the results the query filters. A bar's search gives its clear control the bar's target; in a
+  // comfortable layout (a workspace whose navigation is an overlay) the well keeps the touch geometry it has on a narrow or
+  // coarse screen.
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import { Icon } from "../../index.ts";
+  import { useSurfaceTypography } from "../../../infra/surface-typography.svelte.ts";
   import ClearInput from "./ClearInput.svelte";
-  let { id, label, placeholder, disabled, invalid, describedBy, focus, controls, writing = $bindable(""), onchange }: {
+  let { id, label, placeholder, disabled, invalid, describedBy, focus, controls, bar, writing = $bindable(""), onchange }: {
     id: string; label: string; placeholder: string | undefined; disabled: boolean; invalid: boolean; describedBy: string | undefined;
-    focus: "on-mount" | undefined; controls: string | undefined; writing?: string; onchange: (value: string) => void;
+    focus: "on-mount" | undefined; controls: string | undefined; bar: "search" | undefined; writing?: string; onchange: (value: string) => void;
   } = $props();
+  const density = useSurfaceTypography();
   let editor = $state<HTMLInputElement | null>(null);
   $effect(() => { if (focus === "on-mount" && editor) editor.focus({ preventScroll: true }); });
   function focusEditor(event: MouseEvent) {
@@ -4677,11 +4701,12 @@ Source SHA-256: d27655363162c582cc3d9e15be70d428841b5c16182278e998ac7a9da0b0e4c0
     editor?.focus({ preventScroll: true });
   }
 </script>
-<Group.Root data-search-field data-disabled={disabled} aria-disabled={disabled || undefined} onclick={focusEditor}>
+<Group.Root data-search-field data-disabled={disabled} aria-disabled={disabled || undefined} onclick={focusEditor}
+  data-bar-search={bar === "search" || undefined} data-comfortable={density() === "comfortable" || undefined}>
   <Group.Input {id} bind:ref={editor} type="search" bind:value={writing} {disabled} {placeholder} aria-label={label}
     aria-invalid={invalid} aria-describedby={describedBy} aria-controls={controls} autocomplete="off" oninput={event => onchange(event.currentTarget.value)} />
-  <Group.Addon align="inline-start"><Icon name="search" search="leading" decorative /></Group.Addon>
-  <ClearInput control={id} value={writing} label={say(m.field.clearSearch)} {disabled} />
+  <Group.Addon align="inline-start"><Icon name="search" search="leading" size="lead" decorative /></Group.Addon>
+  <ClearInput control={id} value={writing} label={say(m.field.clearSearch)} {disabled} lead />
 </Group.Root>
 ```
 
@@ -4807,7 +4832,7 @@ Source SHA-256: 1dc6fbf923857bb34abb1922c87feb697bdef906ddd22d20ada027d4d055af21
 
 ## src/svelte/catalog/foundations/choice/ChoiceMenu.svelte
 
-Source SHA-256: ad2861c11b7beca5f714a978bf85f2bc60ec70ecb2e2fd1d41f7505a878f6bb0
+Source SHA-256: 27e52dd464fe221aa1899175311e1e42aea3a348546cad950cf6004edcecf1d6
 
 ```svelte
 <script lang="ts">
@@ -4817,7 +4842,7 @@ Source SHA-256: ad2861c11b7beca5f714a978bf85f2bc60ec70ecb2e2fd1d41f7505a878f6bb0
   import { Popover } from "../../index.ts";
   import { cn } from "../../../vendor/utils.js";
   import { pressFeedbackProps } from "../../mechanisms/press-feedback/press-feedback.ts";
-  import { Icon } from "../../index.ts";
+  import { Field, Icon } from "../../index.ts";
   import { surfaceFocus, revealSurfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
   import { provideOpenFocus } from "../../mechanisms/surface-focus/focus-return.ts";
   import type { ChoiceOption } from "../../../../interaction/choice.ts";
@@ -4825,9 +4850,10 @@ Source SHA-256: ad2861c11b7beca5f714a978bf85f2bc60ec70ecb2e2fd1d41f7505a878f6bb0
   import ChoiceMenuList from "./ChoiceMenuList.svelte";
   // One value from a list behind a trigger: a field well, an inline value (a currency beside an amount) or a contextual
   // value at a row's end. The popover anchors the list, or presents it as a sheet when its anchor has no room; the
-  // trigger is this choice's own (an owned trigger of the popover).
-  // A `measure` boxes the trigger at the choice measure of the field family (field-measure.css: 26rem, filling a slot
-  // within 3rem of it), so a select control keeps the width every field of its form keeps.
+  // trigger is an owned trigger of the popover: the well is Field's select trigger (the chosen option drawn here), the
+  // inline and contextual values are this choice's own buttons.
+  // A `measure` boxes the well at the choice measure of the field family (Field's measure: 26rem, filling a slot within
+  // 3rem of it), so a select control keeps the width every field of its form keeps.
   let { id, label, trigger, placeholder, measure, options, selected, disabled, required, onchange }: { id: string; label: string;
     trigger: "well" | "inline" | "contextual"; placeholder: string | undefined; measure: "choice" | undefined;
     options: readonly ChoiceOption[]; selected: readonly string[];
@@ -4857,16 +4883,15 @@ Source SHA-256: ad2861c11b7beca5f714a978bf85f2bc60ec70ecb2e2fd1d41f7505a878f6bb0
   function change(next: string) {
     if (!disabled && next !== value && options.some(option => option.value === next && !option.disabled)) onchange?.([next]);
   }
-  // The triggers keep the look the selection well and values had: a fit-width well (a pane) or an interior value.
-  // F1-merge: Field's trigger primitive draws the well once it offers this fit width and the chosen option's leading.
+  // The values keep the look the selection values had: an interior value at its fit width. The inline value fills the
+  // height of the field prefix it sits in (a currency beside an amount).
   const base = "inline-flex shrink-0 items-center whitespace-nowrap type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0";
   const faces = {
-    well: "text-foreground text-left whitespace-normal w-full font-normal p-0 material-pane control-feedback field-well overflow-hidden",
     inline: "bg-transparent text-foreground border-0 w-full font-normal min-h-11 px-4 py-2 material-interior control-feedback",
     contextual: "bg-transparent text-foreground border-0 w-full font-normal min-h-11 px-4 py-2 material-interior control-feedback justify-self-end",
   } as const;
   const fit = "max-w-full min-w-0 whitespace-normal text-balance h-auto w-fit justify-between gap-3 rounded-[var(--radius)]";
-  let name = $derived(trigger === "well" ? `${label} · ${valueLabel}` : trigger === "inline" ? `${valueLabel} · ${label}` : label);
+  let name = $derived(trigger === "inline" ? `${valueLabel} · ${label}` : label);
 </script>
 
 {#snippet shown()}
@@ -4874,32 +4899,26 @@ Source SHA-256: ad2861c11b7beca5f714a978bf85f2bc60ec70ecb2e2fd1d41f7505a878f6bb0
     {#if chosen?.leading}<ChoiceLeading leading={chosen.leading} frame="mark" />{/if}<span class="text">{valueLabel}</span>
   </span>
 {/snippet}
-{#snippet menu()}
-<button {...pressFeedbackProps} type="button" {id} {disabled} class={cn(base, faces[trigger], fit)}
-  data-floating-field={trigger === "well" || undefined} data-filled={trigger === "well" || undefined}
+{#if trigger === "well"}
+  <Field primitive="trigger" select label={label} labelVisibility="visible" {required} invalid={false} {disabled} {measure}
+    display={{ kind: "text", text: valueLabel, placeholder: chosen === undefined }}
+    disclosure={{ id, controls: `${id}-options`, expanded: open, haspopup: "listbox" }} onopen={() => { if (!disabled) open = !open; }}>
+    {#snippet selection()}{@render shown()}{/snippet}
+  </Field>
+{:else}
+<button {...pressFeedbackProps} type="button" {id} {disabled} class={cn(base, faces[trigger], fit, trigger === "inline" && "h-full")}
   aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? `${id}-options` : undefined} aria-label={name}
   aria-describedby={required ? `${id}-requirement` : undefined} data-state={open ? "open" : "closed"} data-selection-trigger data-choice="menu"
   onclick={() => { if (!disabled) open = !open; }}
   onkeydown={event => { if ((event.key === "ArrowDown" || event.key === "ArrowUp") && !disabled) { event.preventDefault(); open = true; } }}>
-  <span class="content control-feedback-content disabled-content" data-button-content>
-    {#if trigger === "well"}
-      <!-- lane-merge: the well content FieldWellContent drew (deleted in Batch 3), until Field's trigger draws this well. -->
-      <span class="relative flex min-w-0 flex-1 flex-col" data-field-well>
-        <span data-slot="field-label" class={required ? "required-mark" : undefined}>{label}</span>
-        <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
-          {@render shown()}<Icon name="chevron-down" placement="inline-end" chevron decorative />
-        </span>
-      </span>
-    {:else}{@render shown()}<Icon name="chevron-down" placement="inline-end" chevron decorative />{/if}
-  </span>
+  <span class="content control-feedback-content disabled-content" data-button-content>{@render shown()}<Icon name="chevron-down" placement="inline-end" chevron decorative /></span>
 </button>
+{/if}
 <Popover {label} {open} {disabled} locked={false} content="list" placement="adaptive" align="start" controls={`${id}-options`} onopenchange={next => { open = next; }}
   trigger={{ kind: "owned", id }}>
   <ChoiceMenuList id={`${id}-options`} {label} {value} {options} {required} bind:activeValue bind:ref={list} onchange={change}
     onclose={() => { open = false; }} />
-</Popover>{#if required}<span id={`${id}-requirement`} class="sr-only">{say(m.choice.required)}</span>{/if}
-{/snippet}
-{#if measure}<div class="measure" data-choice-measure={measure}><div class="measure-box">{@render menu()}</div></div>{:else}{@render menu()}{/if}
+</Popover>{#if required && trigger !== "well"}<span id={`${id}-requirement`} class="sr-only">{say(m.choice.required)}</span>{/if}
 
 <style>
   .value { display:flex; flex:1; min-width:0; align-items:center; gap:.5rem; }
@@ -4907,10 +4926,6 @@ Source SHA-256: ad2861c11b7beca5f714a978bf85f2bc60ec70ecb2e2fd1d41f7505a878f6bb0
   .text { min-width:0; white-space:normal; overflow-wrap:anywhere; text-wrap:balance; }
   /* The trigger lays out its own content (it is not the vendor button, whose global rule did this): one row as the button. */
   .content { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
-  /* The choice measure of the field family (field-measure.css), measured on the containing slot, never the device. */
-  .measure { container:choice-measure / inline-size; width:100%; min-width:0; align-self:stretch; }
-  .measure-box { display:flex; flex-direction:column; width:100%; min-width:0; max-width:26rem; }
-  @container choice-measure (max-width:29rem) { .measure-box { max-width:none; } }
 </style>
 ```
 
@@ -4939,7 +4954,7 @@ Source SHA-256: 2dd45bbbf5e91c5b83fecb441ed60e8ae6fede0d34f614039184a18e0722e0de
 
 ## src/svelte/catalog/foundations/action/Action.svelte
 
-Source SHA-256: 0f3413874945210d81ff9f660178d8672ff55a0f0e1c07142e0562f22b07a702
+Source SHA-256: 8ac46bc70d728c1f51925facee2d0a6af96d107306d5fbbd304a2329fd68b2ce
 
 ```svelte
 <script lang="ts">
@@ -4948,7 +4963,7 @@ Source SHA-256: 0f3413874945210d81ff9f660178d8672ff55a0f0e1c07142e0562f22b07a702
   import { actionIconNames } from "../../../infra/action-icons.ts";
   import { Icon } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  let { label, icon, state: status, emphasis, face: shown, type, reason, form, disclosure, current, onclick }: CatalogProps<"action"> = $props();
+  let { label, icon, state: status, emphasis, face: shown, type, reason, form, disclosure, current, bar, onclick }: CatalogProps<"action"> = $props();
   const id = $props.id();
   const descriptionId = `${id}-reason`;
   const variants = { primary: "default", secondary: "secondary", destructive: "destructive" } as const;
@@ -4975,7 +4990,7 @@ Source SHA-256: 0f3413874945210d81ff9f660178d8672ff55a0f0e1c07142e0562f22b07a702
   onclick={() => { if (status === "ready") onclick?.(); }} class="relative min-w-0 overflow-hidden {shown === 'icon' ? '' : 'w-fit max-w-[min(100%,22rem)]'}"
   disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
   aria-describedby={reason ? descriptionId : undefined}
-  data-action="" data-action-face={face} data-emphasis={emphasis}>
+  data-action="" data-action-face={face} data-emphasis={emphasis} data-action-bar={bar}>
   <span bind:this={caption} data-button-label aria-hidden="true" class={cn("min-w-0 truncate", face !== "label" && "invisible")}>{label}</span>
   <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
     aria-hidden="true" data-button-glyph data-action-face={face}>
@@ -5004,7 +5019,7 @@ export const actionIconNames = {
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: b05afbf062e4cdac6e69d758b41c4c2211014d8eec4a38da769b00fddaabbedd
+Source SHA-256: a50df2a03c05d3fb95a534b3d18bf0bf10ad7d79d04d0b3e5e2fde6e59f01041
 
 ```svelte
 <script lang="ts" module>
@@ -5128,32 +5143,40 @@ Source SHA-256: b05afbf062e4cdac6e69d758b41c4c2211014d8eec4a38da769b00fddaabbedd
 		{...restProps}
 		data-variant={variant}
 	>
-		<span class="control-feedback-content disabled-content" data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
+		<span class="control-feedback-content disabled-content" data-button-content>{#if presentation === "search-toggle"}<span data-search-icon="open"><Search aria-hidden="true" /></span><span data-search-icon="close"><X aria-hidden="true" /></span>{:else}{@render children?.()}{/if}</span>
 	</button>
 {/if}
 
 <style>
-  :global([data-summary-widget]) { width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem; padding:var(--space-4,1rem); border-radius:var(--radius-group); text-align:start; white-space:normal; align-items:stretch; }
-  :global([data-summary-widget] > [data-button-content]) { display:flex; flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
+  /* The button's own anatomy, scoped to the elements it draws: every other owner of a [data-button-content] span lays
+     its content out with its own rule. */
+  [data-summary-widget] { width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem; padding:var(--space-4,1rem); border-radius:var(--radius-group); text-align:start; white-space:normal; align-items:stretch; }
+  [data-summary-widget] > [data-button-content] { display:flex; flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
   @layer components {
-    :global([data-slot="button"]) { min-height:2.75rem; }
-    :global([data-button-content]) { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
+    [data-slot="button"] { min-height:2.75rem; }
+    [data-button-content] { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
   }
-  :global([data-catalog-search-toggle]) { position:relative; pointer-events:auto; }
-  :global([data-catalog-search-toggle] [data-button-content]) { display:grid; place-items:center; }
-  :global([data-catalog-search-toggle] svg) { grid-area:1/1; transition:opacity 180ms var(--ease-tm),transform 220ms var(--ease-tm); }
-  :global([data-catalog-search-toggle] [data-search-icon="close"]) { opacity:0; transform:rotate(-90deg) scale(.75); }
-  :global([data-catalog-search-actions][data-expanded="true"] [data-search-icon="open"]) { opacity:0; transform:rotate(90deg) scale(.75); }
-  :global([data-catalog-search-actions][data-expanded="true"] [data-search-icon="close"]) { opacity:1; transform:none; }
-  :global([data-media-reference-choice]) { position:relative; aspect-ratio:4/3; overflow:hidden; width:100%; }
-  :global([data-media-reference-choice] [data-button-content]) { height:100%; }
-  :global([data-media-collection-card]) { position:relative; width:100%; display:block; overflow:hidden; text-align:start; }
-  :global([data-media-collection-card] > [data-button-content]) { display:block; }
-  :global([data-media-grid-item]) { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:var(--radius); }
-  :global([data-media-grid-item] > [data-button-content]) { height:100%; }
-  :global([data-media-grid-item][aria-current="true"]) { outline:2px solid var(--primary); outline-offset:2px; }
-  :global([data-media-list-item]) { aspect-ratio:auto; border-radius:0; }
-  :global([data-media-list-item] > [data-button-content]) { display:flex; align-items:center; gap:var(--stack-gap,16px); padding:12px 16px; }
+  [data-catalog-search-toggle] { position:relative; pointer-events:auto; }
+  [data-catalog-search-toggle] [data-button-content] { display:grid; place-items:center; }
+  /* Each glyph sits in its own box (no line box of its own), so the box moves exactly as the glyph did. */
+  [data-search-icon] { display:flex; grid-area:1/1; transition:opacity 180ms var(--ease-tm),transform 220ms var(--ease-tm); }
+  [data-search-icon="close"] { opacity:0; transform:rotate(-90deg) scale(.75); }
+  [data-catalog-search-cancel] [data-search-icon="open"] { opacity:0; transform:rotate(90deg) scale(.75); }
+  [data-catalog-search-cancel] [data-search-icon="close"] { opacity:1; transform:none; }
+  [data-media-reference-choice] { position:relative; aspect-ratio:4/3; overflow:hidden; width:100%; }
+  [data-media-reference-choice] [data-button-content] { height:100%; }
+  [data-media-collection-card] { position:relative; width:100%; display:block; overflow:hidden; text-align:start; }
+  [data-media-collection-card] > [data-button-content] { display:block; }
+  [data-media-grid-item] { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:var(--radius); }
+  [data-media-grid-item] > [data-button-content] { height:100%; }
+  [data-media-grid-item][aria-current="true"] { outline:2px solid var(--primary); outline-offset:2px; }
+  [data-media-list-item] { aspect-ratio:auto; border-radius:0; }
+  [data-media-list-item] > [data-button-content] { display:flex; align-items:center; gap:var(--stack-gap,16px); padding:12px 16px; }
+  /* An Action a bar draws (its `bar` placement) takes the bar's target: the toolbar target and inset come from bar. */
+  [data-action-bar] { height:var(--toolbar-target); min-height:var(--toolbar-target); }
+  [data-action-bar="command"] { width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset); }
+  [data-action-bar="commit"] { flex:0 1 auto; min-width:0; white-space:nowrap; }
+  [data-action-bar="step"] { width:100%; max-width:none; min-width:0; }
 </style>
 ```
 
@@ -5485,7 +5508,7 @@ Source SHA-256: a167ab4721ddbd2036fd61c93f066d62d7076f982846cedcc21624571d5a2376
 
 ## src/svelte/catalog/foundations/popover/Popover.svelte
 
-Source SHA-256: e082cea30287da0ac1a3c3084e6bda213ea6b483d4e3b65d4e47a83c7201ade1
+Source SHA-256: 7cd410be4409017919ae327dba912a10adb340688cbb2f1a851ad3f8008c6ff0
 
 ```svelte
 <script lang="ts">
@@ -5517,7 +5540,7 @@ Source SHA-256: e082cea30287da0ac1a3c3084e6bda213ea6b483d4e3b65d4e47a83c7201ade1
 </script>
 {#if trigger.kind === "action"}
   <Action label={trigger.label} icon={trigger.icon} face={trigger.face} emphasis={trigger.emphasis} type="button"
-    state={disabled ? "unavailable" : trigger.state} {disclosure} onclick={() => change(!open)} />
+    state={disabled ? "unavailable" : trigger.state} bar={trigger.bar} {disclosure} onclick={() => change(!open)} />
 {:else if trigger.kind === "field"}
   <Field primitive="trigger" label={trigger.label} labelVisibility="visible" required={trigger.required} invalid={trigger.invalid}
     {disabled} measure={trigger.measure} display={trigger.display} {disclosure} onopen={() => change(!open)} />
@@ -5692,7 +5715,7 @@ Source SHA-256: e95bfc97c5eedfbe17268c0fb5acf81adb8b7eb2f5e12dc7a7558150181ffe4e
 
 ## src/svelte/catalog/foundations/field/Field.svelte
 
-Source SHA-256: d867228d5d353dfeb217cfe58f8a6d89c3a073445c630787d990f850fa8761c6
+Source SHA-256: 4189366cb4f74e99b2686c901ae7a7e47a4d35a84c254000a8ea256b2594160b
 
 ```svelte
 <script lang="ts">
@@ -5708,8 +5731,8 @@ Source SHA-256: d867228d5d353dfeb217cfe58f8a6d89c3a073445c630787d990f850fa8761c6
   import ClearInput from "./ClearInput.svelte";
   import type { CatalogProps } from "../../types.d.ts";
   let { primitive, label, labelVisibility, required, invalid, disabled, helper, error, identity, measure, purpose, value, placeholder,
-    mask, maxLength, counter, clear, focus, controls, expanded, display, disclosure, onchange, onmasked, onopen, accessory: trailing,
-    prefix }: CatalogProps<"field"> = $props();
+    mask, maxLength, counter, clear, focus, controls, expanded, bar, display, disclosure, select, onchange, onmasked, onopen, accessory: trailing,
+    prefix, selection }: CatalogProps<"field"> = $props();
   const id = $props.id();
   // Both editors receive their value; the trigger owns none. `writing` is the live text, `shown` a mask's formatted text.
   let written = $derived(typeof value === "string" ? value : "");
@@ -5735,8 +5758,10 @@ Source SHA-256: d867228d5d353dfeb217cfe58f8a6d89c3a073445c630787d990f850fa8761c6
   let multiline = $derived(primitive === "input.multiline");
   // A multiline editor always counts its characters; a single line counts them when its caller asks (a limited label).
   let counted = $derived(multiline || counter === true);
+  // A required select says so to assistive technology (its well marks it visibly).
+  let requirement = $derived(primitive === "trigger" && select === true && required);
   let describedBy = $derived([helper ? `${id}-helper` : undefined, counted ? `${id}-counter` : undefined,
-    message ? `${id}-error` : undefined].filter(Boolean).join(" ") || undefined);
+    message ? `${id}-error` : undefined, requirement ? `${id}-requirement` : undefined].filter(Boolean).join(" ") || undefined);
   function edited(next: string, valid: boolean, complete: boolean) {
     if (disabled || !mask) return;
     onmasked?.({ value: next, valid, complete });
@@ -5751,13 +5776,23 @@ Source SHA-256: d867228d5d353dfeb217cfe58f8a6d89c3a073445c630787d990f850fa8761c6
       invalid={marked} {describedBy} bind:writing bind:shown onchange={next => onchange?.(next)} onmasked={edited} />
   {/if}
 {/snippet}
+{#snippet trigger()}
+  {#if display && disclosure}
+    <FieldTrigger {label} {labelVisibility} {required} {disabled} {describedBy} {display} {disclosure} select={select === true} shown={selection}
+      onopen={() => onopen?.()} />
+  {/if}
+  {#if requirement}<span id={`${id}-requirement`} class="sr-only">{say(m.field.required)}</span>{/if}
+{/snippet}
+<!-- A select without a measure takes no box: its well sits where its parent lays it, as a button does. A measured
+     select keeps the measure box; its content fades as its button's does (the field's disabled rule restores field
+     content), and its well is the only control, so the field is no group. -->
+{#if primitive === "trigger" && select === true && measure === undefined}{@render trigger()}
+{:else}
 <div data-field data-field-filled={primitive === "trigger" || draft.length > 0} data-measure={measure} data-search-expanded={expanded}>
-  <Vendor.Field data-primitive={primitive} data-invalid={marked} data-disabled={disabled}>
-    {#if primitive === "trigger" && display && disclosure}
-      <FieldTrigger {label} {labelVisibility} {required} {disabled} {describedBy} {display} {disclosure}
-        onopen={() => onopen?.()} />
+  <Vendor.Field data-primitive={primitive} data-invalid={marked} data-disabled={select ? undefined : disabled} role={select ? undefined : "group"}>
+    {#if primitive === "trigger"}{@render trigger()}
     {:else if purpose === "search"}
-      <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} {controls} bind:writing onchange={next => onchange?.(next)} />
+      <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} {controls} {bar} bind:writing onchange={next => onchange?.(next)} />
     {:else}
       <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} {prefix} footer={counted ? characters : undefined}>
         {#snippet accessory()}
@@ -5771,6 +5806,7 @@ Source SHA-256: d867228d5d353dfeb217cfe58f8a6d89c3a073445c630787d990f850fa8761c6
     {#if message}<Vendor.FieldError id={`${id}-error`} role="status">{message}</Vendor.FieldError>{/if}
   </Vendor.Field>
 </div>
+{/if}
 ```
 
 ## src/svelte/catalog/foundations/field/FieldEditor.svelte
@@ -5969,7 +6005,7 @@ Source SHA-256: 3414e812bb82a6527992b5d227535cfe502b438ba203427a5dca19da0b04a54a
 
 ## src/svelte/catalog/foundations/field/ClearInput.svelte
 
-Source SHA-256: 720cba94bbefc8a1604aeb5402dd0663826948fb264cad6fdb2bdd5e0441fd16
+Source SHA-256: 38de4e785281c46579f45cfebcabc46f8c2510eec7aa4b15461aec235427fe41
 
 ```svelte
 <script lang="ts">
@@ -5977,7 +6013,8 @@ Source SHA-256: 720cba94bbefc8a1604aeb5402dd0663826948fb264cad6fdb2bdd5e0441fd16
   import { Icon } from "../../index.ts";
   // The trailing button of a Field that empties its control through the editor's own edit pipeline (masks and undo
   // included); it renders nothing while the control is empty.
-  let { control, value, label, disabled }: { control: string; value: string; label: string; disabled: boolean } = $props();
+  // In a search well its glyph leads the line as the well's search glyph does (Icon's `lead` size).
+  let { control, value, label, disabled, lead = false }: { control: string; value: string; label: string; disabled: boolean; lead?: boolean } = $props();
 
   function clear() {
     const input = document.getElementById(control);
@@ -6013,7 +6050,7 @@ Source SHA-256: 720cba94bbefc8a1604aeb5402dd0663826948fb264cad6fdb2bdd5e0441fd16
 {#if value.length > 0}
   <Group.Addon align="inline-end" class="field-clear shrink-0">
     <Group.Button size="icon-sm" class="min-h-0" type="button" data-input-clear aria-label={label} title={label}
-      aria-controls={control} {disabled} onclick={clear}><Icon name="circle-x" decorative /></Group.Button>
+      aria-controls={control} {disabled} onclick={clear}><Icon name="circle-x" size={lead ? "lead" : undefined} decorative /></Group.Button>
   </Group.Addon>
 {/if}
 ```
@@ -6150,7 +6187,7 @@ Source SHA-256: 7b4bbfe3fc0d52613452f85d06068fc586f06cc42af12c84ef786679523dbc2e
 
 ## src/svelte/catalog/foundations/row/Row.svelte
 
-Source SHA-256: 9d40929442620bfbfc9b19a280a1c94b1a477e59f4d4fa3397361dabe1f9e2c8
+Source SHA-256: 70c716863c983b0901c3c4b76488fd0cab424ce1af6878f229e085ed3d1cfe3b
 
 ```svelte
 <script lang="ts">
@@ -6216,7 +6253,7 @@ Source SHA-256: 9d40929442620bfbfc9b19a280a1c94b1a477e59f4d4fa3397361dabe1f9e2c8
   .row-attended { position:relative; }
   .row:focus-visible { outline:2px solid var(--ring); outline-offset:-3px; box-shadow:none; }
   /* The content keeps the row's justification itself, as the vendor button's global content rule gave it. */
-  .row-content { position:relative; display:flex; width:100%; min-width:0; align-items:center; justify-content:inherit; gap:inherit; }
+  .row-content { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:center; justify-content:inherit; gap:inherit; }
   /* An attention dot or an image keeps the record row's and media item's wider gap. */
   .row[data-row-leading="attention"], .row[data-row-leading="image"], .row[data-row-leading="artwork"] { gap:1rem; }
   .row-artwork { display:block; flex:none; width:80px; height:60px; overflow:hidden; border-radius:var(--radius); }
@@ -6298,7 +6335,7 @@ Source SHA-256: 423c99ac57bce78f0eb55abd42439da66ec389f069ab4bc56f704cd2f70cae45
 
 ## src/svelte/catalog/foundations/modal/Modal.svelte
 
-Source SHA-256: 7744141a901f07b6d9b30f37816a2ebb8bdbc9e6b36b3dd51d44a77d73970c30
+Source SHA-256: 27f25f6da8a7d0dc74843eae4c61329a959a8fc1e359d813b0e0cec6f55561e1
 
 ```svelte
 <script lang="ts">
@@ -6309,7 +6346,8 @@ Source SHA-256: 7744141a901f07b6d9b30f37816a2ebb8bdbc9e6b36b3dd51d44a77d73970c30
   import ModalPane from "./ModalPane.svelte";
   import ModalSheet from "./ModalSheet.svelte";
   import ModalDialog from "./ModalDialog.svelte";
-  let { label, open, locked, presentation, labelledBy, describedBy, continuity, ondismiss, onclosed, children, actions }: CatalogProps<"modal"> = $props();
+  import ModalNavigation from "./ModalNavigation.svelte";
+  let { label, open, locked, presentation, labelledBy, describedBy, navigation, continuity, ondismiss, onclosed, children, actions }: CatalogProps<"modal"> = $props();
   const density = useSurfaceDensityClass();
   /** Escape, the scrim and the grip ask to dismiss; a locked modal refuses, and the caller decides what dismissal means. */
   const dismiss = () => { if (!locked) ondismiss?.(); };
@@ -6319,8 +6357,10 @@ Source SHA-256: 7744141a901f07b6d9b30f37816a2ebb8bdbc9e6b36b3dd51d44a77d73970c30
   /** Called by the caller just before it invokes something: "close" before Back or Close, "other" otherwise. */
   export function noteInvocation(kind: FrameInvocation): void { pane?.noteInvocation(kind); }
 </script>
-{#if presentation === "adaptive" || presentation === "transient" || presentation === "navigation"}
+{#if presentation === "adaptive" || presentation === "transient"}
   <ModalPane bind:this={pane} {label} {open} {locked} {presentation} {continuity} density={density()} {dismiss} {onclosed} {children} />
+{:else if presentation === "navigation"}
+  <ModalNavigation {label} {open} {navigation} {dismiss} {onclosed} {children} />
 {:else if presentation === "sheet"}
   <ModalSheet {label} {open} {locked} density={density()} {dismiss} {onclosed} {children} />
 {:else}
@@ -6330,13 +6370,13 @@ Source SHA-256: 7744141a901f07b6d9b30f37816a2ebb8bdbc9e6b36b3dd51d44a77d73970c30
 
 ## src/svelte/catalog/foundations/modal/ModalPane.svelte
 
-Source SHA-256: 14b882c9c221587684183d528d821c14cd151a4ebc532efd3934d51742823da8
+Source SHA-256: 6a61ccfa073a609b234256f8f4cde948a62cb262f399d8a6c046a800682b0bf5
 
 ```svelte
 <script lang="ts">
   import { say } from "../../../infra/messages.ts";
   import { m } from "../../../../messages/keys.ts";
-  // Modal part: the pane of an adaptive, transient or navigation modal. An adaptive pane docks beside its parent when the
+  // Modal part: the pane of an adaptive or transient modal. An adaptive pane docks beside its parent when the
   // launching host has room (it is then not modal); otherwise it is modal at the right edge, or at the bottom edge with
   // its grip. Fit, modality and edge come from the host's available space, never a browser breakpoint.
   import { tick, type Snippet } from "svelte";
@@ -6351,7 +6391,7 @@ Source SHA-256: 14b882c9c221587684183d528d821c14cd151a4ebc532efd3934d51742823da8
   import { adaptiveSurfaceLayout } from "./adaptive-surface-layout.ts";
   import { adaptiveModality } from "./adaptive-modality.svelte.ts";
   let { label, open, locked, presentation, continuity, density, dismiss, onclosed, children }: {
-    label: string; open: boolean; locked: boolean; presentation: "adaptive" | "transient" | "navigation";
+    label: string; open: boolean; locked: boolean; presentation: "adaptive" | "transient";
     continuity: FrameIdentity | undefined; density: string | undefined;
     dismiss: () => void; onclosed: (() => void) | undefined; children: Snippet | undefined;
   } = $props();
@@ -6365,23 +6405,22 @@ Source SHA-256: 14b882c9c221587684183d528d821c14cd151a4ebc532efd3934d51742823da8
   });
   const host = useSurfaceHost();
   const owner = Symbol("adaptive-pane");
-  const lateral = $derived(presentation === "navigation");
   const layout = $derived(adaptiveSurfaceLayout(host.availableInline, host.textSize, presentation === "adaptive" && host.canDock(owner)));
   const docked = $derived(layout.docked);
   // A docked replacement may mount already open. Do not acquire a transient body lock against the pre-measurement zero
   // width: that false modal can be removed before the lock's teardown effect has even registered.
   const modal = $derived(open && host.measured && !docked);
-  $effect(() => { host.reserve(owner, open && docked && !lateral ? layout.reservation : 0); });
+  $effect(() => { host.reserve(owner, open && docked ? layout.reservation : 0); });
   $effect(() => () => host.reserve(owner, 0));
-  adaptiveModality(() => content, () => modal && !lateral);
-  const motion = drawerMotion(() => dismiss(), () => locked || docked || lateral, () => layout.edge);
-  const edge = $derived(lateral ? "left" : motion.edge);
-  // A side or lateral pane is dragged by its header; what it holds reads that (pane-context).
+  adaptiveModality(() => content, () => modal);
+  const motion = drawerMotion(() => dismiss(), () => locked || docked, () => layout.edge);
+  const edge = $derived(motion.edge);
+  // A side pane is dragged by its header; what it holds reads that (pane-context).
   providePane(() => ({ drag: !docked && edge !== "bottom", dragging: motion.dragging, framed: false }));
-  const width = $derived(lateral ? "18rem" : `${layout.paneWidth}px`);
+  const width = $derived(`${layout.paneWidth}px`);
   const dragHeader = (event: PointerEvent) => {
     const target = event.target;
-    if (docked || lateral || layout.edge === "bottom" || !(target instanceof Element) || !target.closest(".workspace-header")
+    if (docked || layout.edge === "bottom" || !(target instanceof Element) || !target.closest(".workspace-header")
       || target.closest("button,a,input,textarea,select,[contenteditable],.toolbar-title,.toolbar-subtitle")) return;
     motion.down(event);
   };
@@ -6398,8 +6437,8 @@ Source SHA-256: 14b882c9c221587684183d528d821c14cd151a4ebc532efd3934d51742823da8
 <Dialog.Root {open} onOpenChange={next => { if (!next) dismiss(); }}
   onOpenChangeComplete={next => { if (!next) { motion.reset(); onclosed?.(); } }}>
   <Dialog.Content bind:ref={content} presentation="panel" class={[density, "focus-inset"]} data-modal={presentation} data-composition="transient"
-    adaptiveModal={lateral ? undefined : !docked} trapFocus={lateral ? undefined : false} preventScroll={lateral ? undefined : modal}
-    data-adaptive-surface={lateral ? undefined : ""} data-presentation={lateral ? "overlay" : docked ? "docked" : "transient"}
+    adaptiveModal={!docked} trapFocus={false} preventScroll={modal}
+    data-adaptive-surface="" data-presentation={docked ? "docked" : "transient"}
     data-locked={locked || undefined} data-closing={!open || undefined} data-reduced-motion={prefersReducedMotion.current} data-edge={edge}
     overlayStyle={motion.overlayStyle} data-dragging={motion.dragging || undefined}
     style={`--panel-width:${width};--adaptive-left:${host.bounds.left}px;--adaptive-top:${host.bounds.top}px;--adaptive-right:${host.bounds.right}px;--adaptive-bottom:${host.bounds.bottom}px;transform:${motion.transform}`}
@@ -6488,19 +6527,24 @@ export function inspectValidation(validate: Validator, value: unknown): Validati
 
 ## src/web/client/field-feedback.ts
 
-Source SHA-256: 7e1810ccc1f46097167ba66179e9140447ab7b145ba34837a927d138b57e2ac5
+Source SHA-256: 524ab3a8c849769948aab41ac3c84237eba98965440eedb5f8becfa35d04ad3d
 
 ```ts
 import type { ValidationIssue, ValidationResult } from "../../validation-result.ts";
+import { rendererLocale } from "../../messages/renderer-locale.ts";
+import { Messages, m } from "../../messages/keys.ts";
+
+// Every sentence this module shows a person is a key of the `fieldFeedback` namespace it owns (plan §14).
+const bundle = Messages.bundle(rendererLocale);
 
 function message(issue: ValidationIssue): string {
   const limit = issue.params?.limit;
-  if (issue.keyword === "required" || (issue.keyword === "minLength" && limit === 1)) return "Enter a value.";
-  if (issue.keyword === "minLength" && typeof limit === "number") return `Enter at least ${limit} characters.`;
-  if (issue.keyword === "maxLength" && typeof limit === "number") return `Use no more than ${limit} ${limit === 1 ? "character" : "characters"}.`;
-  if (issue.keyword === "maxItems" && typeof limit === "number") return `Use no more than ${limit} labels.`;
-  if (issue.keyword === "uniqueItems") return "Remove the repeated label.";
-  return "Check this value.";
+  if (issue.keyword === "required" || (issue.keyword === "minLength" && limit === 1)) return bundle.text(m.fieldFeedback.required);
+  if (issue.keyword === "minLength" && typeof limit === "number") return bundle.text(m.fieldFeedback.atLeast, { limit: String(limit) });
+  if (issue.keyword === "maxLength" && typeof limit === "number") return bundle.text(limit === 1 ? m.fieldFeedback.atMostCharacter : m.fieldFeedback.atMostCharacters, { limit: String(limit) });
+  if (issue.keyword === "maxItems" && typeof limit === "number") return bundle.text(m.fieldFeedback.atMostLabels, { limit: String(limit) });
+  if (issue.keyword === "uniqueItems") return bundle.text(m.fieldFeedback.repeatedLabel);
+  return bundle.text(m.fieldFeedback.check);
 }
 
 /** Presentation only: paths and keyword parameters are supplied by canonical validation. */

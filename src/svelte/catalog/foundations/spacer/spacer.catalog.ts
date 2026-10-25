@@ -4,7 +4,7 @@ import { SpacerContract } from "./spacer.contract.ts";
 
 export const Spacer = defineFoundation({
   id: "spacer",
-  purpose: "Leave an empty space of one spacing step, or take the space a row or column leaves over.",
+  purpose: { key: "spacer.purpose" }, messages: ["spacer.purpose"],
   owner: { entry: "Spacer.svelte" },
   shape: "none", states: ["default"],
   variants: { size: ["snug", "close", "regular", "relaxed", "section", "fill"] },

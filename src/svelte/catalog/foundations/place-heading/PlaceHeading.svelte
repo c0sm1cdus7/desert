@@ -28,7 +28,7 @@
     {/if}
   {/if}
   <div class="place-heading-copy" data-dock-above>
-    <Heading kind="page" text={title} focusTarget />
+    <Heading kind="page" text={title} focusTarget placeTitle />
     <!-- F1-merge: Text (kind "support", F1a). -->
     <p class="type-support" data-place-subtitle>{subtitle}</p>
   </div>

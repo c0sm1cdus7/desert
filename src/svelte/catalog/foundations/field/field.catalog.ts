@@ -8,8 +8,8 @@ import { FieldContract } from "./field.contract.ts";
 
 export const Field = defineFoundation({
   id: "field",
-  purpose: "Write a single line or several, or open a choice, in one labelled well with field help and validation feedback.",
-  messages: ["field.none", "field.character", "field.characters", "field.overLimit", "field.remaining", "field.clearSearch", "field.clear", "field.incompleteNumber", "field.invalidNumber"],
+  purpose: { key: "field.purpose" },
+  messages: ["field.purpose", "field.none", "field.character", "field.characters", "field.overLimit", "field.remaining", "field.clearSearch", "field.clear", "field.incompleteNumber", "field.invalidNumber", "field.required"],
   owner: {
     entry: "Field.svelte",
     parts: ["FieldWell.svelte", "FieldLabel.svelte", "FieldEditor.svelte", "FieldTrigger.svelte", "SearchWell.svelte", "MaskedInput.svelte",
@@ -19,6 +19,6 @@ export const Field = defineFoundation({
   shape: "radius", states: ["empty", "value", "invalid", "disabled", "masked"],
   variants: { primitive: ["input.text", "input.multiline", "trigger"], measure: ["writing", "choice", "date", "amount", "fill"] },
   stateVariants: { masked: { primitive: ["input.text"] } },
-  slots: { accessory: { accepts: ["action"] }, prefix: { accepts: ["choice"] } },
+  slots: { accessory: { accepts: ["action"] }, prefix: { accepts: ["choice"] }, selection: { accepts: ["choice"] } },
   renders: ["input.text", "input.multiline"], approval: "required", contract: FieldContract,
 } as const);

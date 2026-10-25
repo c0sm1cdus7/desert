@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { createContext, type ContentRule, type GateContext } from "../../src/authoring/catalog/gate/context.ts";
 import { parseSource, type Parsed } from "../../src/authoring/catalog/gate/parse.ts";
-import { readCatalogTree } from "../../src/authoring/catalog/gate/run.ts";
+import { gateSourcePaths, readCatalogTree } from "../../src/authoring/catalog/gate/run.ts";
 import { formatViolation, type Violation } from "../../src/authoring/catalog/gate/violation.ts";
 import { DesertLayout } from "../../src/authoring/catalog/layout.ts";
 import { readDeclarations } from "../../src/authoring/catalog/read-declaration.ts";
@@ -12,7 +12,7 @@ import { readDeclarations } from "../../src/authoring/catalog/read-declaration.t
 export const desertRoot = resolve(import.meta.dirname, "../..");
 const tree = await readCatalogTree(desertRoot, DesertLayout);
 const original = new Map<string, string>();
-for (const path of [...tree.paths, ...DesertLayout.gate.reads]) {
+for (const path of gateSourcePaths(tree, DesertLayout)) {
   if (/\.(svelte|ts|js|mjs|css|json|html)$/.test(path)) original.set(path, await readFile(join(desertRoot, path), "utf8"));
 }
 

@@ -2,9 +2,10 @@
   import { untrack } from "svelte";
   import { Wallpaper } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  import { provideToolbarScroll } from "../../mechanisms/toolbar-scroll/toolbar-scroll.svelte.ts";
+  import { provideFrameEdge, provideToolbarScroll } from "../../mechanisms/toolbar-scroll/toolbar-scroll.svelte.ts";
   import { provideSurfaceHost } from "../../mechanisms/surface-host/surface-host.svelte.ts";
   import { providePane, usePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
+  import FrameEdge from "./FrameEdge.svelte";
   import ScrollEdges from "./ScrollEdges.svelte";
   import { observePlaceFocus } from "./place-focus.ts";
   let { kind, label, destination, searching, reserve, presentation = "standard", backdrop, form, oncomposition, onsubmit,
@@ -17,6 +18,8 @@
   const pane = usePane();
   let framed = $derived(kind === "frame" && presentation !== "message" && pane() !== undefined);
   if (untrack(() => kind) === "frame") providePane(() => { const outer = pane(); return outer && { ...outer, framed }; });
+  // Only a frame's top and bottom slots are its edges; nothing else inside a surface inherits an outer frame's edge.
+  provideFrameEdge(false);
   $effect(() => {
     if (viewport && owner && (kind === "main" || kind === "navigation")) return observePlaceFocus(viewport, owner);
   });
@@ -28,9 +31,9 @@
 </script>
 
 {#snippet frameSlots()}
-  {@render top?.()}
+  <FrameEdge children={top} />
   <div bind:this={viewport} class="surface-content min-h-0 flex-1 overflow-auto" data-surface-slot="content">{@render content?.()}</div>
-  {@render bottom?.()}
+  <FrameEdge children={bottom} />
   <ScrollEdges {viewport} {owner} />
 {/snippet}
 

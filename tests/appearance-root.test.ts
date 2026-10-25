@@ -66,3 +66,10 @@ test("infra keeps only the nonvisual appearance stores: no document, root or mat
   const state = await readFile(resolve(import.meta.dirname, "../src/svelte/infra/appearance-state.ts"), "utf8");
   assert.doesNotMatch(state, /document\.|documentElement|matchMedia\(|setProperty\(/);
 });
+
+// One fact, one place: the chosen text scale is written only by AppearanceRoot; the theme reads it, defaulting to 1.
+test("the text scale has one writer: the theme reads it with its default and never declares it", async () => {
+  const theme = (name: string) => readFile(resolve(import.meta.dirname, `../src/svelte/catalog/mechanisms/theme/${name}`), "utf8");
+  assert.doesNotMatch(await theme("tokens.css"), /--text-scale\s*:/, "the theme does not write --text-scale");
+  assert.match(await theme("base.css"), /font-size:calc\(100% \* var\(--text-scale, 1\)\)/, "the root font size reads the scale, 1 when none is chosen");
+});

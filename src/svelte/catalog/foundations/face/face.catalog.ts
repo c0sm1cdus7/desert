@@ -5,7 +5,7 @@ import { FaceContract } from "./face.contract.ts";
 
 export const Face = defineFoundation({
   id: "face",
-  purpose: "A round decorative mark that identifies a title or an option by icon, document, status, symbol or flag.",
+  purpose: { key: "face.purpose" }, messages: ["face.purpose"],
   owner: { entry: "Face.svelte" },
   shape: "none", states: ["icon", "document", "warning", "error", "symbol", "flag", "compact"],
   approval: "required", contract: FaceContract,

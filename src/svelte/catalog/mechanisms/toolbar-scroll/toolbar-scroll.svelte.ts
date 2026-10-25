@@ -6,6 +6,12 @@ const scrollKey = Symbol("desert.scroll-owner");
 /** Only shared surface owners register scrolling; consumers cannot redefine it. */
 export function provideToolbarScroll(owner: ScrollOwner): void { setContext(scrollKey, owner); }
 
+const edgeKey = Symbol("desert.frame-edge");
+/** A frame tells the bars in its top and bottom slots that they sit on its edges (they layer above its scroll edges);
+ * every surface first says no, so content never inherits an outer frame's edge, and a bar says no to what it holds. */
+export function provideFrameEdge(edge: boolean): void { setContext(edgeKey, edge); }
+export function useFrameEdge(): boolean { return getContext<boolean | undefined>(edgeKey) ?? false; }
+
 export function useToolbarScroll(element: () => HTMLElement | null, edge: () => "top" | "bottom") {
   const source = getContext<ScrollOwner | undefined>(scrollKey);
   let available = $state(false);

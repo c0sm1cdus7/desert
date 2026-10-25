@@ -29,7 +29,7 @@ export const stageB: readonly GateCase[] = [
   { id: "P1", title: "a foundation styles its own element with a scoped style", kind: "positive", expect: [],
     mutate: async tree => {
       const availability = `${foundations}/availability/Availability.svelte`;
-      await tree.replace(availability, "<span>{label}</span>", '<span class="availability-note">{label}</span>');
+      await tree.replace(availability, '<span class="label">{label}</span>', '<span class="label availability-note">{label}</span>');
       await tree.replace(availability, "</style>", "  .availability-note { opacity: 1; }\n</style>");
     } },
   { id: "P2", title: "a mechanism owned by a foundation observes size", kind: "positive", expect: [],
@@ -97,8 +97,7 @@ export const stageB: readonly GateCase[] = [
     mutate: tree => tree.append(`${heading}/Heading.svelte`, "\n<p>Unread</p>\n") },
   { id: "N57", title: "a piece declares a message key its locale bundle lacks", kind: "escape", expect: ["MESSAGE_MISSING"],
     mutate: async tree => {
-      await tree.replace(`${foundations}/choice/choice.catalog.ts`, 'messages: ["choice.required", "choice.notSelected"]',
-        'messages: ["choice.required", "choice.notSelected", "choice.missing"]');
+      await tree.replace(`${heading}/heading.catalog.ts`, 'messages: ["heading.purpose"]', 'messages: ["heading.purpose", "heading.missing"]');
       await tree.regenerateCatalog();
     } },
   { id: "N58", title: "a key in en.json that no piece owns", kind: "escape", expect: ["CATALOG_DECLARATION"],

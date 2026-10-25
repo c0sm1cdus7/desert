@@ -1620,7 +1620,7 @@ Source SHA-256: 4564b30ba603de6a50ea2cf5f7016b90cd9565f7b53a1e3fb7c36fd8a4c3875b
 
 ## src/svelte/catalog/foundations/bar/BarSearch.svelte
 
-Source SHA-256: 2ad76d00e7f5b17f28027dc3f34cffbe5840204a0e8195383f8bab6d37f6ceba
+Source SHA-256: 860f15e07a13f800e7885a3f996def331b51a309eea872e0d58a865f052f1ef8
 
 ```svelte
 <script lang="ts">
@@ -1646,12 +1646,13 @@ Source SHA-256: 2ad76d00e7f5b17f28027dc3f34cffbe5840204a0e8195383f8bab6d37f6ceba
   <div data-catalog-search class="flex w-full flex-col" inert={!open} aria-hidden={!open}>
     <Field primitive="input.text" purpose="search" label={say(m.bar.searchLabel, { title: title.toLowerCase() })} labelVisibility="accessible"
       measure="fill" value={displayedQuery} placeholder={say(m.bar.searchPlaceholder, { title })} clear required={false} invalid={false}
-      disabled={false} focus={open && requested ? "on-mount" : undefined} controls={open ? resultsId : undefined} expanded={open} onchange={onquery} />
+      disabled={false} focus={open && requested ? "on-mount" : undefined} controls={open ? resultsId : undefined} expanded={open} bar="search"
+      onchange={onquery} />
   </div>
   <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
   <div class="toolbar-action" data-search-toggle>
     <Action label={open ? say(m.bar.closeSearch) : say(m.bar.search)} icon={open ? "close" : "search"} face="icon" emphasis="secondary" state="ready"
-      type="button" onclick={toggle} disclosure={{ id: `${id}-toggle`, controls: resultsId, expanded: open, haspopup: "listbox" }} />
+      type="button" bar="command" onclick={toggle} disclosure={{ id: `${id}-toggle`, controls: resultsId, expanded: open, haspopup: "listbox" }} />
   </div>
 </div>
 ```

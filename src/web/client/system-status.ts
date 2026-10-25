@@ -2,11 +2,16 @@ import type { HumanSurface } from "../types.ts";
 import type { AvailabilitySnapshot, BlockedReason } from "../../availability-types.ts";
 import type { ViewStack } from "../../views/schema.ts";
 import { freezeDeep } from "../../json.ts";
+import { rendererLocale } from "../../messages/renderer-locale.ts";
+import { Messages, m } from "../../messages/keys.ts";
+
+// Every sentence this module shows a person is a key of the `systemStatus` namespace it owns (plan §14).
+const bundle = Messages.bundle(rendererLocale);
 
 const reasonLabels: Readonly<Record<BlockedReason, string>> = Object.freeze({
-  unknown: "Not yet observed", stale: "Evidence expired", incompatible: "Incompatible controller",
-  unreachable: "Controller unreachable", "session-required": "Identity session required",
-  unavailable: "Unavailable", disposed: "Observation stopped",
+  unknown: bundle.text(m.systemStatus.notObserved), stale: bundle.text(m.systemStatus.expired), incompatible: bundle.text(m.systemStatus.incompatible),
+  unreachable: bundle.text(m.systemStatus.unreachable), "session-required": bundle.text(m.systemStatus.sessionRequired),
+  unavailable: bundle.text(m.systemStatus.unavailable), disposed: bundle.text(m.systemStatus.stopped),
 });
 const fact = (label: string, value: string) => ({ kind: "fact" as const, label, value });
 
@@ -19,23 +24,23 @@ export function systemStatusContent(id: string, surface: HumanSurface, availabil
     const observations = consumers.map(journey => availability.journeys[journey.id]);
     const blocker = observations.flatMap(observation => observation?.blockers ?? []).find(item => item.dependency === dependency);
     const reason = !compatible ? "incompatible" : observations.some(observation => !observation) ? "unknown" : blocker?.reason;
-    return fact(dependency, reason ? reasonLabels[reason] : "Available");
+    return fact(dependency, reason ? reasonLabels[reason] : bundle.text(m.systemStatus.available));
   });
   const operations = surface.journeys.map(journey => {
     const observation = availability.journeys[journey.id];
     const reason = !compatible ? "incompatible" : observation?.blockers[0]?.reason ?? "unknown";
     return fact(surface.language.journeys[journey.id] ?? journey.id,
-      compatible && observation?.dependenciesReady ? "Dependencies available" : reasonLabels[reason]);
+      compatible && observation?.dependenciesReady ? bundle.text(m.systemStatus.dependenciesAvailable) : reasonLabels[reason]);
   });
   return freezeDeep([
-    { kind: "stack", id: `${id}.dependencies`, title: "Execution dependencies",
-      items: dependencies.length ? dependencies : [{ kind: "text", text: "No execution dependencies are exposed." }] },
-    { kind: "stack", id: `${id}.operations`, title: "Exposed operations",
-      items: operations.length ? operations : [{ kind: "text", text: "No operations are exposed to this surface." }] },
-    { kind: "stack", id: `${id}.contract`, title: "Installed contract", items: [
-      fact("Product", surface.productId), fact("Surface", surface.id),
-      fact("Interaction protocol", surface.protocol), fact("Visual catalog version", surface.catalog!.version),
-      fact("Contract digest", surface.contractDigest),
+    { kind: "stack", id: `${id}.dependencies`, title: bundle.text(m.systemStatus.dependencies),
+      items: dependencies.length ? dependencies : [{ kind: "text", text: bundle.text(m.systemStatus.noDependencies) }] },
+    { kind: "stack", id: `${id}.operations`, title: bundle.text(m.systemStatus.operations),
+      items: operations.length ? operations : [{ kind: "text", text: bundle.text(m.systemStatus.noOperations) }] },
+    { kind: "stack", id: `${id}.contract`, title: bundle.text(m.systemStatus.contract), items: [
+      fact(bundle.text(m.systemStatus.product), surface.productId), fact(bundle.text(m.systemStatus.surface), surface.id),
+      fact(bundle.text(m.systemStatus.protocol), surface.protocol), fact(bundle.text(m.systemStatus.catalogVersion), surface.catalog!.version),
+      fact(bundle.text(m.systemStatus.digest), surface.contractDigest),
     ] },
   ]);
 }

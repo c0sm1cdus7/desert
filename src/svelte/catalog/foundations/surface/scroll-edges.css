@@ -14,8 +14,6 @@
     content:""; position:absolute; inset:0; opacity:var(--edge-strength);
     background:linear-gradient(var(--edge-direction),var(--scroll-edge-shade) var(--edge-core),transparent);
   }
-  /* The framed toolbar slots never scroll or sit underneath their own material. */
-  [data-surface-frame] > [data-toolbar], [data-surface-frame] > form > [data-toolbar] { position:relative; z-index:2; }
   @media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
     [data-scroll-edge]::after { background:linear-gradient(var(--edge-direction),var(--background) var(--edge-core),transparent); }
   }

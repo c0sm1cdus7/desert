@@ -7,6 +7,9 @@
 // It emits `dismiss` on Escape, the scrim or the grip (the caller decides what dismissal means) and `closed` once its
 // exit ends. A caller that binds it notes each invocation it is about to make: `noteInvocation("close")` before Back or
 // Close (focus returns to the command that left the frame), `noteInvocation("other")` before anything else.
+// The navigation pane may follow a pointer before it opens (`navigation`): `panel` is the id its controls name, `reveal`
+// the pointer's travel while the edge swipe previews it (the pane is then drawn although closed), `dismissOffset` the
+// travel of a dismissing swipe, and `gesture` whether the swipe opened it (its entrance then adds no motion of its own).
 import { Type } from "@sinclair/typebox";
 import { text } from "../../../../views/definition.ts";
 
@@ -19,6 +22,12 @@ export const ModalContract = {
       Type.Literal("message"), Type.Literal("media"), Type.Literal("navigation")]),
     labelledBy: Type.Optional(Type.String({ minLength: 1 })),
     describedBy: Type.Optional(Type.String({ minLength: 1 })),
+    navigation: Type.Optional(Type.Object({
+      panel: Type.String({ minLength: 1 }),
+      reveal: Type.Optional(Type.Number()),
+      dismissOffset: Type.Number(),
+      gesture: Type.Boolean(),
+    }, { additionalProperties: false })),
     continuity: Type.Optional(Type.Object({
       frame: Type.String(),
       reading: Type.Optional(Type.String()),

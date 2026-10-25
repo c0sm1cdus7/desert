@@ -7,6 +7,10 @@
 [data-date-calendar="sheet"] { --cell-size:max(calc(var(--text-control) * 1.5),calc((100cqi - 4px)/7)); }
 [data-date-calendar="sheet"] [data-slot="calendar-cell"] { height:max(var(--cell-size),44px); }
 [data-date-calendar="sheet"] [data-slot="calendar-day"] { min-width:0; }
+/* The calendar's buttons lay their content out in one box that follows the button's own flex. */
+@layer components {
+  :where([data-slot="calendar-day"], [data-slot="calendar-prev-button"], [data-slot="calendar-next-button"]) > [data-button-content] { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
+}
 [data-date-calendar] [data-calendar-grid-viewport] { padding:2px; }
 /* The header keeps the toolbar row's geometry: one inset, one target size, one gap. */
 [data-date-calendar-header] { flex-shrink:0; min-width:0; padding:var(--catalog-toolbar-inset); }

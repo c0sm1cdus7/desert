@@ -3,6 +3,11 @@ import type { ViewProgram } from "../../views/program-schema.ts";
 import type { ControllerTransport } from "./transport.ts";
 import {Check} from '@sinclair/typebox/value';
 import {AttentionSignalSchema,attentionTargetKey,objectAttentionKey,type AttentionSignal} from '../../attention.ts';
+import { rendererLocale } from '../../messages/renderer-locale.ts';
+import { Messages, m } from '../../messages/keys.ts';
+
+// Every sentence this module shows a person is a key of the `attentionFeed` namespace it owns (plan §14).
+const bundle = Messages.bundle(rendererLocale);
 
 export type AttentionItem = { readonly id: string; readonly journey: string; readonly title: string;
   readonly description: string; readonly available: boolean; readonly signals:readonly AttentionSignal[] };
@@ -44,16 +49,16 @@ export function attentionFeed(program: ViewProgram, surface: HumanSurface, trans
         const retained=previous?.available||item.availability!=='available'?previous:undefined;
         groups.set(key,{id:retained?.id ?? item.id,journey:retained?.journey ?? item.journey,
           title:retained?.title ?? surface.language.journeys[item.journey]!,signals,
-          description:signals.length>1?`${signals.length} saved activities need your attention.`
-            :signal.reason==='activity.compatibility'?'This saved activity needs a compatible version.'
-            :signal.reason==='activity.confirm'?'Ready for your confirmation.':'Continue where you left off.',
+          description:signals.length>1?bundle.text(m.attentionFeed.many,{count:String(signals.length)})
+            :signal.reason==='activity.compatibility'?bundle.text(m.attentionFeed.compatibility)
+            :signal.reason==='activity.confirm'?bundle.text(m.attentionFeed.confirm):bundle.text(m.attentionFeed.resume),
           available:Boolean(previous?.available||item.availability==='available')});
         if(signal.target.kind==='object') (objectSignals[objectAttentionKey(signal.target.object,signal.target.id)] ??=[]).push(signal);
       }
       state = { loaded: true, error: null,items:[...groups.values()],objectSignals };
     } catch {
       if (disposed || suspended||version !== epoch) return;
-      state = suspendedSnapshot("Attention is unavailable. Last loaded items are read-only until reconnected.");
+      state = suspendedSnapshot(bundle.text(m.attentionFeed.unavailable));
     }
     notify();
   }
@@ -62,7 +67,7 @@ export function attentionFeed(program: ViewProgram, surface: HumanSurface, trans
     availability(ready:boolean, pending=false){
       if(disposed||suspended===!ready&&connecting===pending)return;
       suspended=!ready;connecting=pending;epoch++;running=undefined;
-      state=suspendedSnapshot(ready||pending?null:'Attention is unavailable. Last loaded items are read-only until reconnected.');
+      state=suspendedSnapshot(ready||pending?null:bundle.text(m.attentionFeed.unavailable));
     },
     refresh() {
       if (disposed||suspended) return Promise.resolve();

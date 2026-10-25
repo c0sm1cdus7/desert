@@ -37,5 +37,5 @@ export const ChoiceContract = {
       { additionalProperties: false }),
   ])]),
   events: Type.Object({ change: Type.Array(Type.String()) }, { additionalProperties: false }),
-  marks: ["data-choice", "data-choice-option", "data-choice-measure"],
+  marks: ["data-choice", "data-choice-option"],
 } as const;

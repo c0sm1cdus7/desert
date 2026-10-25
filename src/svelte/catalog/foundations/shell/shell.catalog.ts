@@ -6,12 +6,12 @@ import { ShellContract } from "./shell.contract.ts";
 
 export const Shell = defineFoundation({
   id: "shell",
-  purpose: "Host a workspace place with its navigation sidebar, toolbars, search overlay, panels and failure dialog.",
-  messages: ["shell.navigation"],
+  purpose: { key: "shell.purpose" },
+  messages: ["shell.purpose", "shell.navigation", "shell.navigationTitle"],
   owner: { entry: "Shell.svelte",
     parts: ["AdaptiveSurfaceLayout.svelte", "CatalogEdgeNavigation.svelte", "ShellBody.svelte", "ShellNavigation.svelte", "catalog-shell.css",
       "dock-above.ts", "navigation-icons.ts", "place-heading-motion.ts", "search-focus.svelte.ts", "toolbar-reading-boundary.ts"],
-    vendor: ["sidebar", "tooltip"], mechanisms: ["file-picker", "pane-context", "press-feedback", "surface-host", "swipe-motion", "toolbar-geometry"] },
+    vendor: ["sidebar", "tooltip"], mechanisms: ["file-picker", "pane-context", "press-feedback", "surface-focus", "surface-host", "swipe-motion", "toolbar-geometry"] },
   shape: "none", states: ["default", "searching"],
   slots: {
     top: { accepts: ["bar", "toolbar"] },
