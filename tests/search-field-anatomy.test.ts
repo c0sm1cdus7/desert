@@ -64,7 +64,7 @@ for (const consumer of ["collection", "catalog"] as const) {
       assert.equal(await search.count(), 1);
       await search.fill("no-such-component-or-record-713");
       await f.page.getByText("No matching results", { exact: true }).waitFor();
-      assert.equal(await f.page.locator("[data-catalog-search-scroll] [data-search-result]").count(), 0);
+      assert.equal(await f.page.locator("[data-catalog-search-scroll] [data-focus-key^='search:']").count(), 0);
       const clear = f.page.locator("[data-search-field]").getByRole("button", { name: "Clear search", exact: true });
       assert.equal(await clear.count(), 1, "zero results retain the embedded recovery action");
       assert.equal(await f.page.getByRole("button", { name: "Clear search", exact: true }).count(), 1);

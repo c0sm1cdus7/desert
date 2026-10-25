@@ -6,7 +6,8 @@ export type FocusScope = Readonly<{
   /** Registers `focus` under `key` and returns its release; a later registration of the same key shadows it until that
    * later one is released (the piece mounted last answers, then the one it covered answers again). */
   register: (key: string, focus: () => boolean) => () => void;
-  /** Focuses what is registered under `key`; false when nothing is, or when it could not take focus. */
+  /** Focuses what is registered under `key`, the newest registration first and, when it cannot take focus (it is hidden),
+   * the one it covers; false when nothing is registered or nothing could take focus. */
   focus: (key: string) => boolean;
   /** Records that the piece under `key` was activated (opened, chosen), so a return can come back to it. */
   activated: (key: string) => void;
@@ -26,7 +27,7 @@ export function focusScope(): FocusScope {
         if (rest.length) targets.set(key, rest); else targets.delete(key);
       };
     },
-    focus: (key: string) => targets.get(key)?.at(-1)?.() ?? false,
+    focus: (key: string) => (targets.get(key) ?? []).toReversed().some(focus => focus()),
     activated(key: string) { last = key; },
     lastActivated: () => last,
   });

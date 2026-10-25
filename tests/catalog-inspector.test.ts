@@ -87,7 +87,7 @@ test('toolbar discovery opens indexed details without unmounting local writing a
     const original=await writing.elementHandle();
     await f.page.getByRole('button',{name:'Search',exact:true}).click();
     await search.fill('control.options');
-    await f.page.locator('[data-search-result="control.options"] button').click();
+    await f.page.locator('[data-focus-key="search:control.options"]').click();
     entry=f.page.locator('[data-view-item="entry:control.options"]');
     await entry.getByRole('button',{name:/^State ·/}).click();
     await f.page.getByRole('option',{name:'one',exact:true}).click();
@@ -98,7 +98,7 @@ test('toolbar discovery opens indexed details without unmounting local writing a
     for(const query of ['Foundations','Compositions','Product examples','no-such-entry','']) {
       await search.fill(query);
       assert.equal(await f.page.locator('[data-view-item^="entry:"]').count(),ResolvedNodes.entries.length);
-      if(query==='no-such-entry') assert.equal(await f.page.locator('[data-search-result]').count(),0);
+      if(query==='no-such-entry') assert.equal(await f.page.locator('[data-focus-key^="search:"]').count(),0);
     }
     await f.page.getByRole('button',{name:'Close search',exact:true}).click();
     assert.ok(await radio.isChecked());

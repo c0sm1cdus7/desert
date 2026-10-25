@@ -18,7 +18,7 @@ for (const width of [390, 1280]) test(`place heading hands off to the top toolba
     assert.equal(await title.textContent(), 'Travel kit');
     assert.ok((await toolbar.boundingBox())!.y < 40);
     await f.page.getByRole('button', { name: 'Search', exact: true }).click();
-    assert.equal(await toolbar.locator('[data-catalog-navigation-actions]').isVisible(), false, 'search owns its foreground controls');
+    assert.equal(await toolbar.locator('[data-toolbar-leading]').isVisible(), false, 'search owns its foreground controls');
     await f.page.getByRole('button', { name: 'Close search', exact: true }).click();
     assert.equal(await title.getAttribute('data-condensed'), 'true', 'return preserves the scrolled place');
     await viewport.evaluate(element => { element.scrollTop = 0; });

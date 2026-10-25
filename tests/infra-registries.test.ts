@@ -38,6 +38,14 @@ test("focus scope: a newer registration of a key shadows the older one until it 
   assert.deepEqual(calls, ["search", "home"]);
 });
 
+test("focus scope: when the newest registration of a key cannot take focus (it is hidden), the one it covers is focused", () => {
+  const scope = focusScope(), calls: string[] = [];
+  scope.register("catalog-return:cover", () => { calls.push("shown"); return true; });
+  scope.register("catalog-return:cover", () => { calls.push("hidden"); return false; });
+  assert.equal(scope.focus("catalog-return:cover"), true);
+  assert.deepEqual(calls, ["hidden", "shown"]);
+});
+
 test("focus scope: the last activated key is remembered for a return", () => {
   const scope = focusScope();
   assert.equal(scope.lastActivated(), null);

@@ -12,14 +12,15 @@
     const asset = cover?.(node.record); if (asset) prefetchImage(mediaSource(asset), window.innerWidth*window.devicePixelRatio);
   }
   // lane-merge: card focusKey. Until the catalog-card composition mounts Card with a focusKey, this card registers itself
-  // in the nearest focus scope under its own key and reports its activation, so a detail it opens can return focus to it.
-  const uid = $props.id();
-  const key = `catalog-card:${uid}`, scope = useFocusScope();
+  // in the nearest focus scope under `catalog-return:<record>` (lane F) and reports its activation, so a detail it opens
+  // can return focus to it; a search result of the same record, mounted later, shadows the home card while it is shown.
+  const scope = useFocusScope();
+  let key = $derived(`catalog-return:${node.record}`);
   let button = $state<HTMLElement | null>(null);
   $effect(() => {
-    const target = button;
+    const target = button, registered = key;
     if (!target || !scope) return;
-    return scope.register(key, () => { target.focus({ preventScroll: true }); return document.activeElement === target; });
+    return scope.register(registered, () => { target.focus({ preventScroll: true }); return document.activeElement === target; });
   });
   const open = () => { scope?.activated(key); onevent?.({ kind: "catalog.open", record: node.record }); };
 </script>

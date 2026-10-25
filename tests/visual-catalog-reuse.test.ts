@@ -70,12 +70,12 @@ test("local catalog previews reuse the installed detail and retain bank drafts t
     const search = fixture.page.getByRole("searchbox", { name: "Search visual catalog", exact: true });
     await fixture.page.getByRole("button",{ name:"Search", exact:true }).click();
     await search.fill("control.options");
-    await fixture.page.locator('[data-search-result="control.options"] button').click();
+    await fixture.page.locator('[data-focus-key="search:control.options"]').click();
     assert.equal(await search.count(),0,'selecting a result dismisses the accessible overlay search');
     await fixture.page.getByRole("button",{ name:"Search", exact:true }).click();
     assert.equal(await search.inputValue(), "", 'new search starts clear');
     await search.fill("control.money");
-    await fixture.page.locator('[data-search-result="control.money"] button').click();
+    await fixture.page.locator('[data-focus-key="search:control.money"]').click();
     assert.ok(await fixture.page.locator('[data-view-item="entry:control.money"]').isVisible());
     assert.equal(await fixture.page.locator("[data-view-item^='entry:']:visible").count(), 1,
       'search opens only the selected indexed detail; other local drafts remain mounted');

@@ -8,12 +8,12 @@ for(const reducedMotion of ['reduce','no-preference'] as const) test(`sidebar di
  const f=await svelteBrowser(`<script lang="ts">
  import * as Sidebar from '@desert/svelte/vendor/components/ui/sidebar/index.js';
  import CatalogEdgeNavigation from '@desert/svelte/catalog/foundations/shell/CatalogEdgeNavigation.svelte';
- import CatalogNavigation from '@desert/svelte/catalog/compositions/catalog-navigation/CatalogNavigation.svelte';
+ import ShellNavigation from '@desert/svelte/catalog/foundations/shell/ShellNavigation.svelte';
  let viewport=$state<HTMLElement|null>(null);
  </script>
  <div data-catalog-workspace><Sidebar.Provider>
  <Sidebar.Trigger />
- <Sidebar.Root overlayTitle="Navigation"><CatalogNavigation identity={{title:'Product'}} navigation={[]} active="home" onnavigate={()=>{}}/></Sidebar.Root>
+ <Sidebar.Root overlayTitle="Navigation"><ShellNavigation navigation={{identity:{title:'Product'},settingsPlaceholder:false,active:'home',groups:[]}} searching={false} onnavigate={()=>{}}/></Sidebar.Root>
  <div bind:this={viewport} style="position:absolute;inset:0;pointer-events:none"></div><CatalogEdgeNavigation searching={false} detail={false} {viewport}/>
  </Sidebar.Provider></div>`,{},undefined,{initialCss:await rendererCss()});
  try{

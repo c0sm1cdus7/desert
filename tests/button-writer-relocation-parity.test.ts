@@ -16,7 +16,7 @@ const buttonPath = "src/svelte/vendor/components/ui/button/button.svelte";
 const source = `<script lang="ts">
   import { Button } from '@desert/svelte/vendor/components/ui/button/index.js';
   import Toolbar from '@desert/svelte/catalog/compositions/toolbar/Toolbar.svelte';
-  import CatalogToolbar from '@desert/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte';
+  import CatalogToolbar from './src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte';
   import * as Sidebar from '@desert/svelte/vendor/components/ui/sidebar/index.js';
   let query=$state(''),searching=$state(false);
   const cssBeforeMount=!!document.querySelector('[data-fixture-initial-css]');
