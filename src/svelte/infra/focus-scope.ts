@@ -20,11 +20,11 @@ export type FocusScope = Readonly<{
  * last-activated key. */
 export function focusScope(): FocusScope {
   // Each registration is its own entry, so releasing one never removes another that registered the same closure.
-  const targets = new Map<string, { readonly focus: () => boolean }[]>();
+  const targets = new Map<string, { readonly take: () => boolean }[]>();
   let last: string | null = null;
   return Object.freeze({
     register(key: string, focus: () => boolean) {
-      const entry = { focus }, registered = targets.get(key) ?? [];
+      const entry = { take: focus }, registered = targets.get(key) ?? [];
       registered.push(entry); targets.set(key, registered);
       return () => {
         const index = registered.indexOf(entry);
@@ -32,7 +32,7 @@ export function focusScope(): FocusScope {
         if (registered.length === 0 && targets.get(key) === registered) targets.delete(key);
       };
     },
-    focus: (key: string) => (targets.get(key) ?? []).toReversed().some(entry => entry.focus()),
+    focus: (key: string) => (targets.get(key) ?? []).toReversed().some(entry => entry.take()),
     activated(key: string) { last = key; },
     lastActivated: () => last,
   });

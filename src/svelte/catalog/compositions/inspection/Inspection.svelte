@@ -13,8 +13,7 @@
   import { m } from "../../../../messages/keys.ts";
 
   let { catalog = inspectionCatalog }: CatalogProps<"inspection"> = $props();
-  // The scope's members are closures: `focusRegistered(key)` focuses what is registered under a key, never an element.
-  const { focus: focusRegistered, lastActivated } = useFocusScope() ?? provideFocusScope();
+  const scope = useFocusScope() ?? provideFocusScope();
   let bank = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<boolean> }>();
   const navigation = destinationNavigation(), destination = navigation?.destination();
   let localSelected = $state<string | null>(null);
@@ -26,7 +25,7 @@
     if(navigation && destination) { navigation.back(destination); return; }
     localSelected = null;
     await tick();
-    if (opener) focusRegistered(opener);
+    if (opener) scope.focus(opener);
   }
   function interact(event: NodeEvent) {
     if (event.kind === "catalog.open") {
@@ -37,7 +36,7 @@
           media: detail.gallery ? {kind:"gallery",images:detail.gallery} : {kind:"image",...detail.image}}});
         return;
       }
-      opener = lastActivated();
+      opener = scope.lastActivated();
       localSelected = event.record;
     } else if (event.kind === "catalog.back") void back();
   }

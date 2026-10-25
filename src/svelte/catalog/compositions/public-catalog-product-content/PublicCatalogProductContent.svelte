@@ -17,7 +17,7 @@
   setContext('catalog-photo-intent', (record: string) => definition.details.find(detail=>detail.record===record)?.image.asset);
   // The workspace's focus scope, opened here: what opened a detail is returned to by its key (`catalog-return:<record>`,
   // `search:<id>`), never by an element.
-  const { focus: focusKey, lastActivated } = provideFocusScope();
+  const focusScope = provideFocusScope();
   let workspace = $state<ReturnType<typeof CatalogWorkspace>>();
   let viewState = $state.raw(initialPublicCatalogState());
   let active = $state<CatalogDestination>("browse");
@@ -64,7 +64,7 @@
     if (input.kind === "catalog.search") { await querySearch(input.query); return; }
     if (input.kind === "catalog.open") {
       // The activated card (or search result) is the opener even when pointer activation focuses no button (WebKit).
-      returnTo = lastActivated();
+      returnTo = focusScope.lastActivated();
       browserNavigation?.capture();
       const { content, search } = positions();
       opener = { focus: returnTo, scroll: content, destination: active, state: viewState, previous: opener,
@@ -86,7 +86,7 @@
     await tick();
     workspace?.restoreScroll(origin?.scroll ?? 0, origin?.search?.scroll ?? 0);
     returnTo = origin?.focus ?? null;
-    if (returnTo !== null) focusKey(returnTo);
+    if (returnTo !== null) focusScope.focus(returnTo);
     browserNavigation?.capture();
   }
   async function selectSearchResult(result: CatalogSearchResult) {
@@ -123,7 +123,7 @@
       bankVisited ||= active === 'bank'; searching = snapshot.searching; searchQuery = snapshot.query;
       await tick(); workspace?.restoreScroll(snapshot.scroll, snapshot.searchScroll);
       returnTo = snapshot.focus ?? null;
-      if (returnTo === null || !focusKey(returnTo)) workspace?.focusTitle();
+      if (returnTo === null || !focusScope.focus(returnTo)) workspace?.focusTitle();
     }, snapshot => {
       const url = new URL(window.location.href);
       if (snapshot.active === 'browse') url.searchParams.delete('place'); else url.searchParams.set('place', snapshot.active);

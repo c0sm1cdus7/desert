@@ -32,7 +32,7 @@
   let { surface, oncatalog, bodyOnly }: CatalogProps<"inspection-catalog"> = $props();
   // Rows register their keys in the host's focus scope (one is opened when there is none); each bank reveals its own
   // entries, so two banks on one page never answer for each other.
-  const { focus: focusRegistered } = useFocusScope() ?? provideFocusScope();
+  const scope = useFocusScope() ?? provideFocusScope();
   const regions = provideRegionRegistry();
   let inventory = $derived(publicCatalogBankInventory(surface));
   const entries = ResolvedNodes.entries;
@@ -59,7 +59,7 @@
     localSelected = id;
     await tick();
     if (id) await regions.reveal(`entry:${id}`, true);
-    else if (back) focusRegistered(back);
+    else if (back) scope.focus(back);
   }
   async function selectShared(id:SharedOwner|null) {
     if(navigation && destination) {
@@ -74,7 +74,7 @@
     if(!id) sharedHistory=sharedHistory.slice(0,-1);
     await tick();
     // Back returns focus to the row that opened the owner just closed (an index row or a parts row).
-    if(!id && origin) focusRegistered(origin);
+    if(!id && origin) scope.focus(origin);
   }
   export async function revealEntry(id: ResolvedNodeId): Promise<boolean> {
     await select(id);

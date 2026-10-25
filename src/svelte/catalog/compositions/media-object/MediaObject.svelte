@@ -15,8 +15,6 @@
     if (typeof source !== 'object' || !('reference' in source) || (source.media !== 'audio' && source.media !== 'video')) return;
     return { kind: source.media, source, alt, captions: [] };
   });
-  // The placeholder of media that cannot be shown (Image's placeholder kind, not a sentence).
-  const unavailable = 'unavailable' as const;
   let photo = $derived.by((): string | AssetReference | undefined => {
     if (typeof source === 'object' && 'reference' in source) return source;
     return typeof source === 'string' && source.startsWith('/') && !source.startsWith('//') ? source : undefined;
@@ -26,6 +24,6 @@
 <Column gap="regular">
   {#if playable}<MediaPlayer item={playable} presentation="inline" />
   {:else if photo !== undefined}<Gallery photos={[{ source: photo, alt }]} title={say(m.mediaObject.image)} presentation="inline" fit="fit" aspect="fill" />
-  {:else}<Image placeholder={unavailable} fallback={say(m.mediaObject.unavailable)} />{/if}
+  {:else}<Image placeholder="unavailable" fallback={say(m.mediaObject.unavailable)} />{/if}
   {#if caption}<Text kind="body" tone="muted" text={caption} />{/if}
 </Column>

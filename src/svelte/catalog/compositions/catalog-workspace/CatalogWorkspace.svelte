@@ -13,17 +13,17 @@
     detail = false, backAvailable = true, searchAvailable = true, topActions = [], actionGroup, invoke, panelState, bottomToolbar,
     onquery, onnavigate, onsearch, oncancel, onback }: CatalogProps<"catalog-workspace"> = $props();
   // One focus scope for the whole workspace; a caller that opened one above it (to return focus by key itself) shares it.
-  const { focus: focusKey, lastActivated } = useFocusScope() ?? provideFocusScope();
+  const scope = useFocusScope() ?? provideFocusScope();
   let shell = $state<ReturnType<typeof Shell>>();
   const uid = $props.id(), resultsId = `${uid}-results`;
   // A page opened inside a destination (a bank entry) returns where it was opened: the scroll offset and the piece last
   // activated, else the place title.
-  const pages = provideDestinationNavigation(() => active, () => ({ focusKey: lastActivated(), scroll: shell?.scrollTop() ?? 0 }),
+  const pages = provideDestinationNavigation(() => active, () => ({ focusKey: scope.lastActivated(), scroll: shell?.scrollTop() ?? 0 }),
     change => void tick().then(() => {
       if (change.destination !== active || !shell) return;
       if (change.kind === "back") shell.restoreScroll(change.origin.scroll, shell.scrollPositions().search);
       else shell.scrollToTop();
-      const returned = change.kind === "back" && change.origin.focusKey !== null && focusKey(change.origin.focusKey);
+      const returned = change.kind === "back" && change.origin.focusKey !== null && scope.focus(change.origin.focusKey);
       if (!returned) shell.focusTitle();
     }));
   let presented = $derived(pages.current(active));
@@ -53,7 +53,7 @@
   export function revealItem(id: string): Promise<boolean> { return shell?.revealItem(id) ?? Promise.resolve(false); }
   export function scrollPositions(): { content: number; search: number } { return shell?.scrollPositions() ?? { content: 0, search: 0 }; }
   export function restoreScroll(contentTop: number, searchTop: number): void { shell?.restoreScroll(contentTop, searchTop); }
-  export function focus(key: string): boolean { return focusKey(key); }
+  export function focus(key: string): boolean { return scope.focus(key); }
   export function toggleNavigation(): void { shell?.toggleNavigation(); }
 </script>
 

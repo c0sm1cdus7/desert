@@ -130,6 +130,13 @@ export const plain = (host: Host, root?: Root) => ({ style: "x", top: host.scrol
 ` }), []);
 });
 
+test("a focus scope's focus(key) is a domain call: Element.focus takes only FocusOptions, so a key argument is no DOM use", () => {
+  const keyed = "  const scope = useFocusScope();\n  const id = \"a\";\n  const back = () => scope.focus(\"place-title\") || scope.focus(`search:${id}`) || scope.focus(id) || scope.focus(origin.key);";
+  assert.deepEqual(found(flow(keyed, '<Field onfocus={() => scope.focus("access-heading")} />')), []);
+  const element = "  let target: HTMLElement;\n  const move = () => { target.focus(); target.focus({ preventScroll: true }); };";
+  assert.deepEqual(found(flow(element)), [runtime(flowEntry, `target.focus: ${composed}`), runtime(flowEntry, `target.focus: ${composed}`)]);
+});
+
 test("N54 a build-path file that imports src/testing is rejected, however it imports it", () => {
   const layout = testLayout({ roots: ["src/svelte", "src/build/svelte"], fixed: { "build-host": ["src/build/svelte/project.ts"] } });
   const files = { ...field('<script lang="ts">\n  import type { Evidence } from "@desert/testing/evidence-project.ts";\n</script>\n<input />'),

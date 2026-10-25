@@ -16,7 +16,7 @@
   let avatarSeed = $state(newAvatarSeed());
   let step = $state<1 | 2>(1);
   // The step title registers under this scope; moving between steps asks the scope for it by key, never the element.
-  const { focus: focusKey } = provideFocusScope();
+  const scope = provideFocusScope();
   let creating = $derived(mode !== "signIn");
   let personal = $derived(preferences ?? $appearance);
   function personalize(value: Preferences) { if (onappearancechange) onappearancechange(value); else chooseAppearance(value); }
@@ -24,7 +24,7 @@
   let valid = $derived(Check(AccessRequests[mode], input));
   // A new identity starts from an explicit dark or light choice: the system scheme AppearanceRoot published.
   onMount(() => { if (creating && personal.theme === "system") personalize({ ...personal, theme: $systemScheme }); });
-  async function move(next: 1 | 2) { step = next; await tick(); focusKey("access-heading"); }
+  async function move(next: 1 | 2) { step = next; await tick(); scope.focus("access-heading"); }
   async function submit() {
     if (!valid || busy) return;
     if (creating && step === 1) { await move(2); return; }

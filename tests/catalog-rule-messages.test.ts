@@ -40,3 +40,24 @@ test("V judges the catalog only: the build template and the vendor families are 
     "src/svelte/vendor/components/ui/button/button.svelte": "<span>Vendor</span>\n" };
   assert.deepEqual(run(files), []);
 });
+
+const media = "src/svelte/catalog/foundations/media/Media.svelte";
+const imageContract = `import { Type } from "@sinclair/typebox";
+export const C = { props: Type.Union([
+  Type.Object({ alt: Type.String(), placeholder: Type.Optional(Type.Undefined()) }, { additionalProperties: false }),
+  Type.Object({ placeholder: Type.Union([Type.Literal("video"), Type.Literal("unavailable")]) }, { additionalProperties: false }),
+]) } as const;\n`;
+const withImage = (markup: string) => ({ ...foundation("image", "Image.svelte", "<img alt={m.image.alt} />\n"),
+  "src/svelte/catalog/foundations/image/image.contract.ts": imageContract,
+  ...foundation("media", "Media.svelte", `<script lang="ts">\n  import Image from "../image/Image.svelte";\n</script>\n${markup}`) });
+
+test("V: a literal on a piece prop whose contract offers only literal values is vocabulary, not text", () => {
+  assert.deepEqual(run(withImage('<Image placeholder="unavailable" />\n<Image placeholder="video" />\n')), []);
+});
+
+test("V: a piece's text prop, a literal its vocabulary does not offer, and an unresolved tag stay LITERAL_TEXT", () => {
+  const what = (attribute: string, value: string) =>
+    `LITERAL_TEXT ${media} ${attribute}="${value}" is written in the template; use a message key (m.<owner>.<meaning>)`;
+  assert.deepEqual(run(withImage('<Image alt="Photo" />\n<Image placeholder="Loading" />\n<Unknown placeholder="video" />\n')), [
+    what("alt", "Photo"), what("placeholder", "Loading"), what("placeholder", "video")]);
+});

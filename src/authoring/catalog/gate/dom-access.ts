@@ -30,6 +30,11 @@ const elementMethods = new Set(["animate", "insertAdjacentHTML", "insertAdjacent
   "appendData", "deleteData", "insertData", "replaceData"]);
 /** `element.remove()` takes no argument; `host.remove(record, id)` is a domain method of the same name. */
 const argumentless = new Set(["remove"]);
+/** `element.focus(options?)` takes only a FocusOptions object; `scope.focus(key)` (a focus scope's key) is a domain method. */
+const optionsOnly = new Set(["focus"]);
+/** Whether a call of an element method's name can be the element facility, judged by its arguments. */
+const elementCall = (name: string, call: ts.CallExpression) => !(argumentless.has(name) && call.arguments.length)
+  && !(optionsOnly.has(name) && call.arguments.some(argument => !ts.isObjectLiteralExpression(argument)));
 
 /** Why DOM is forbidden in this file, or undefined when its owner may touch the DOM. */
 function forbiddenReason(context: GateContext, path: string, foundationFolders: readonly string[]): string | undefined {
@@ -75,7 +80,7 @@ function memberOperation(node: ts.PropertyAccessExpression | ts.ElementAccessExp
   if (ts.isIdentifier(receiver) && receiver.text === "document") return `document.${name}`;
   if (isIdentifierNamed(receiver, globalObjects) && windowMembers.has(name)) return `${receiver.getText()}.${name}`;
   const call = callOf(node);
-  const facility = call ? elementMethods.has(name) && !(argumentless.has(name) && call.arguments.length) : elementProperties.has(name);
+  const facility = call ? elementMethods.has(name) && elementCall(name, call) : elementProperties.has(name);
   return facility ? `${receiverLabel(receiver)}.${name}` : undefined;
 }
 
