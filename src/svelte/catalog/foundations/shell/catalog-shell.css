@@ -21,11 +21,6 @@
 [data-navigation-destinations] [data-slot="sidebar-menu-button"] :is([data-button-content],[data-navigation-label]) { white-space:normal; overflow:visible; text-overflow:clip; overflow-wrap:anywhere; }
 [data-catalog-edge-navigation] { position:absolute; z-index:1; inset:0 auto 0 0; width:18px; touch-action:pan-y; }
 [data-slot="sidebar-container"][data-gesture-enter] { transition:none; }
-[data-place-toolbar] [data-button-label] { visibility:hidden; }
-[data-place-toolbar] [data-button-glyph] { visibility:visible; }
-@media (max-width:767px) {
-  [data-catalog-workspace] { --catalog-hero-height:360px; --catalog-media-height:160px; }
-}
 /* Use the provider's single responsive decision, not a second breakpoint. */
 [data-presentation="overlay"] [data-navigation-destinations] [data-slot="sidebar-menu-button"] { min-height:44px; }
 @media (pointer:coarse) {
@@ -79,8 +74,7 @@
 }
 /* The navigation's reservation and its lateral motion (from the surface-reading and lateral-surface-motion mechanisms):
    a docked, expanded sidebar reserves its width as the place's leading inset; reservation and pane share one duration
-   and easing on reversal. A pointer already owns the overlay pane's painted position during a reveal: the committed
-   gesture keeps it, without the ordinary entrance. */
+   and easing on reversal. The overlay pane is Modal(navigation)'s; modal.css moves it. */
 [data-catalog-workspace] [data-slot="sidebar-wrapper"] { --place-leading-inset:0px; }
 [data-catalog-workspace] [data-slot="sidebar-wrapper"][data-presentation="docked"][data-state="expanded"] { --place-leading-inset:var(--sidebar-width); }
 [data-slot="sidebar-container"], [data-slot="sidebar-gap"] {
@@ -88,18 +82,6 @@
 }
 [data-slot="sidebar-wrapper"] { transition:--place-leading-inset var(--motion-lateral) var(--ease-lateral); }
 [data-adaptive-host-content] { transition:width var(--motion-lateral) var(--ease-lateral); }
-[data-sidebar="sidebar"][data-presentation="overlay"]:not([data-edge="bottom"]) {
-  --navigation-x:calc(100% + var(--surface-inset)); opacity:1; transition:translate var(--motion-lateral) var(--ease-lateral);
-}
-[data-sidebar="sidebar"][data-presentation="overlay"][data-edge="left"] { --navigation-x:calc(-100% - var(--surface-inset)); }
-[data-sidebar="sidebar"][data-presentation="overlay"]:not([data-edge="bottom"]):is([data-starting-style],[data-state="closed"]) {
-  translate:var(--navigation-x) 0; opacity:1;
-  transition-duration:var(--motion-lateral); transition-timing-function:var(--ease-lateral);
-}
-[data-sidebar="sidebar"][data-presentation="overlay"]:not([data-edge="bottom"]):is([data-revealing],[data-gesture-enter][data-state="open"]) {
-  translate:0 0; opacity:1; transition:none;
-}
 @media (prefers-reduced-motion:reduce) {
-  [data-slot="sidebar-container"], [data-slot="sidebar-gap"], [data-slot="sidebar-wrapper"], [data-adaptive-host-content],
-  [data-sidebar="sidebar"][data-presentation="overlay"] { transition:none; }
+  [data-slot="sidebar-container"], [data-slot="sidebar-gap"], [data-slot="sidebar-wrapper"], [data-adaptive-host-content] { transition:none; }
 }

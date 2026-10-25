@@ -30,7 +30,8 @@ async function frozenCatalog(root: string, page: string, given: Readonly<Record<
     named.add(name);
     pending.push(...Object.entries(sources).filter(([file]) => dirname(file) === dirname(path)).map(([, source]) => source));
   }
-  if (!named.size) return given;
+  // A page that names no deleted piece may still reach a deleted file through a frozen source (an infra shim).
+  if (!named.size) return { ...pruned, ...given };
   const current = given[index] ?? await readFile(index, "utf8");
   // A deleted piece whose name today's index gives another piece (the catalog-card foundation) is reached by its path.
   const exports = [...named].filter(name => !current.includes(` as ${name} }`)).sort().map(name => `export { default as ${name} } from "./${posixRelative(catalog, pieces.get(name) ?? "")}";`);
@@ -77,6 +78,9 @@ export async function svelteBrowser(source: string, given: Readonly<Record<strin
       // A frozen source whose folder the tree no longer has (deleted in Batch 3) imports relative to that folder as it was,
       // and packages from the repository root.
       builder.onResolve({ filter: /.*/ }, async ({ path, resolveDir, kind, namespace }) => {
+        // A frozen file the tree no longer has (a deleted shim), named relative to a folder that still exists.
+        const named = resolveDir && path.startsWith(".") ? resolve(resolveDir, path) : undefined;
+        if (named && overrides[named] !== undefined && !existsSync(named)) return { path: named };
         if (namespace !== "file" || !resolveDir || existsSync(resolveDir)) return undefined;
         const absolute = resolve(resolveDir, path), relative = path.startsWith(".");
         const frozen = [absolute, absolute.replace(/\.js$/, ".ts")].find(path => overrides[path] !== undefined);
@@ -101,7 +105,7 @@ export async function svelteBrowser(source: string, given: Readonly<Record<strin
         loader: "js", resolveDir: dirname(path),
       }));
       builder.onLoad({ filter: /\.svelte\.(js|ts)$/ }, async ({ path }) => {
-        const raw = await readFile(path, "utf8");
+        const raw = overrides[path] ?? await readFile(path, "utf8");
         const code = path.endsWith(".ts") ? (await transform(raw, { loader: "ts" })).code : raw;
         return { contents: compileModule(code, { filename: path, generate: "client" }).js.code, loader: "js", resolveDir: dirname(path) };
       });

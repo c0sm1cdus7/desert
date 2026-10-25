@@ -17,11 +17,11 @@
   const transform = $derived(revealing ? `translateX(calc(-100% - var(--surface-inset) + ${navigation?.reveal ?? 0}px))`
     : `translateX(${-(navigation?.dismissOffset ?? 0)}px)`);
 </script>
-<!-- The pane keeps the marks of the sidebar it presents (`data-sidebar`, `data-slot`): the lateral motion and the
-     workspace's overlay rules read them. -->
+<!-- The pane keeps the marks of the sidebar it presents (`data-sidebar`, `data-slot`): the workspace's overlay rules read
+     them; modal.css moves it (data-closing while it closes). -->
 <Dialog.Root {open} onOpenChange={next => { if (!next) dismiss(); }} onOpenChangeComplete={next => { if (!next) onclosed?.(); }}>
   <Dialog.Content presentation="panel" forceMount={revealing} preventScroll={!revealing} data-modal="navigation"
-    data-revealing={revealing || undefined} data-gesture-enter={navigation?.gesture || undefined} data-edge="left"
+    data-revealing={revealing || undefined} data-gesture-enter={navigation?.gesture || undefined} data-closing={!open || undefined} data-edge="left"
     data-sidebar="sidebar" data-slot="sidebar" data-presentation="overlay" id={navigation?.panel} inert={!open}
     onCloseAutoFocus={closeFocus} onEscapeKeydown={event => { event.preventDefault(); dismiss(); }}
     onInteractOutside={event => { event.preventDefault(); dismiss(); }}

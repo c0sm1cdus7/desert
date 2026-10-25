@@ -5,6 +5,7 @@ import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
 import { pruneBefore } from "./prune-before.ts";
 import { prunedSourcesBefore } from "./pruned-sources-before.ts";
+import { toolbarLayoutRulesBefore } from "./toolbar-layout-rules-before.ts";
 
 /** A frozen theme's imports of stylesheets the base f7247e4 had, inlined at their f7247e4 text (prune-before.ts): lane M
  * deleted the shared mechanisms and moved their rules into their owners, and a frozen side keeps the base's pixels. */
@@ -42,5 +43,7 @@ export async function rendererCss(frozen: readonly string[] = [], theme?: string
   // A frozen theme or frozen sources may draw pieces Batch 3 deleted (svelte-browser.ts serves them from
   // prunedSourcesBefore): their utilities too.
   const sources = frozen.length || theme !== undefined ? [...frozen, ...Object.values(prunedSourcesBefore)] : frozen;
-  return compiler.build([...scanner.scan(), ...scanner.scanFiles(sources.map(content => ({ content, extension: "svelte" })))]);
+  const css = compiler.build([...scanner.scan(), ...scanner.scanFiles(sources.map(content => ({ content, extension: "svelte" })))]);
+  // Today's theme no longer styles the deleted toolbar-layout's rows; frozen pages that mount it bring those rules here.
+  return theme === undefined ? `${css}\n${toolbarLayoutRulesBefore}` : css;
 }

@@ -74,7 +74,9 @@
   --surface-radius:var(--radius-surface); --surface-inset:12px; --surface-dimmer:rgb(0 0 0 / .32);
   --navigation-group-inset:9px; --navigation-row-inset:10px;
   --motion-lateral:200ms; --ease-lateral:var(--ease-nav);
-  --surface-reading-inset:var(--catalog-toolbar-inset,8px);
+  --surface-reading-inset:var(--catalog-toolbar-inset);
+  /* The focus ring sits outside its control; a surface with clipped edges applies focus-inset to draw it inside. */
+  --focus-ring-offset:3px;
 }
 @property --place-leading-inset { syntax:"<length>"; inherits:true; initial-value:0px; }
 /* A workspace's place insets; an overlay navigation tightens them; a home stack's rails run edge to edge. */

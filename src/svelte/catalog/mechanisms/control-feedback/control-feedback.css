@@ -7,7 +7,7 @@
    of a pane or interior control also takes the theme's `disabled-content`. */
 @utility control-focus {
   transition:color var(--dur-feedback) var(--ease-tm);
-  &:focus-visible { outline:2px solid var(--ring); outline-offset:var(--focus-ring-offset,3px); }
+  &:focus-visible { outline:2px solid var(--ring); outline-offset:var(--focus-ring-offset); }
   @media (forced-colors:active) {
     &[data-pressed]:not(:disabled):not([aria-disabled="true"]) { outline:2px solid ButtonText; outline-offset:-4px; }
   }

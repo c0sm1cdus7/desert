@@ -77,3 +77,16 @@
   transition-duration:var(--motion-lateral); transition-timing-function:var(--ease-lateral);
 }
 @media (prefers-reduced-motion:reduce) { .drawer[data-adaptive-surface] { transition:none; } }
+/* The navigation pane (ModalNavigation) moves in from the left on the navigation's lateral motion. A pointer already owns
+   its painted position during a reveal: the committed gesture keeps it, without the ordinary entrance. */
+[data-modal="navigation"][data-presentation="overlay"][data-edge="left"] {
+  --navigation-x:calc(-100% - var(--surface-inset)); opacity:1; transition:translate var(--motion-lateral) var(--ease-lateral);
+}
+[data-modal="navigation"][data-presentation="overlay"][data-edge="left"]:is([data-starting-style],[data-closing]) {
+  translate:var(--navigation-x) 0; opacity:1;
+  transition-duration:var(--motion-lateral); transition-timing-function:var(--ease-lateral);
+}
+[data-modal="navigation"][data-presentation="overlay"][data-edge="left"]:is([data-revealing],[data-gesture-enter]:not([data-closing])) {
+  translate:0 0; opacity:1; transition:none;
+}
+@media (prefers-reduced-motion:reduce) { [data-modal="navigation"][data-presentation="overlay"] { transition:none; } }
