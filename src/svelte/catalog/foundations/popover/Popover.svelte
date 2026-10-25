@@ -35,11 +35,14 @@
     {disabled} measure={trigger.measure} display={trigger.display} {disclosure} onopen={() => change(!open)} />
 {/if}
 {#if sheet}
-  <!-- In a sheet a list keeps the picker inset of its rows; a calendar frames its own header. Its top bar says what the
-       sheet does and, as its subtitle, names the field it edits (laws 9c, 10a). -->
+  <!-- In a sheet a list keeps the picker inset of its rows; a calendar frames its own header; a form (a cover choice) stands
+       on its bar's line, the ✕'s, with the bar's inset below its last control. Its top bar says what the sheet does and, as
+       its subtitle, names the field it edits (laws 9c, 10a). -->
   <Modal label={calendar ? say(m.popover.chooseDate) : say(m.popover.chooseOption)} subtitle={label} {open} {locked} presentation="sheet"
     ondismiss={() => change(false)}>
-    {#if content === "list"}<div class="picker-content-inset pt-2 pb-4">{@render children?.()}</div>{:else}{@render children?.()}{/if}
+    {#if content === "list"}<div class="picker-content-inset pt-2 pb-4">{@render children?.()}</div>
+    {:else if calendar}{@render children?.()}
+    {:else}<div class="px-[var(--catalog-toolbar-inset)] pb-4">{@render children?.()}</div>{/if}
   </Modal>
 {:else}
   <PopoverSurface {label} {open} {locked} {content} {align} {triggerId} {panelId} {calendar} {openFocus}

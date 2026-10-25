@@ -49,6 +49,17 @@ test(`the cover picker at ${width}px is one ${presentation} surface whose conten
     const found = await f.page.evaluate(axis, root);
     assert.ok(found.some(item => item.what.startsWith("LABEL")) && found.some(item => item.what.startsWith("BUTTON")), `the cover card and the automatic cover action: ${JSON.stringify(found)}`);
     assert.equal(new Set(found.map(item => item.left)).size, 1, `everything the picker holds starts on one line: ${JSON.stringify(found)}`);
+    if (presentation === "sheet") {
+      // In the sheet that line is the sheet bar's (its ✕), inside the sheet's edge, and the sheet's foot keeps its inset.
+      const edges = await f.page.evaluate(() => { const sheet = document.querySelector("[data-picker-sheet]")!;
+        const close = sheet.querySelector('[data-piece="toolbar"] button[data-action]')!, content = sheet.querySelector("[data-picker-content]")!;
+        const last = [...content.querySelectorAll("[data-action]")].at(-1)!;
+        return { sheet: sheet.getBoundingClientRect().left, close: close.getBoundingClientRect().left,
+          foot: content.getBoundingClientRect().bottom - last.getBoundingClientRect().bottom - content.scrollTop + (content.scrollHeight - content.clientHeight) }; });
+      assert.ok(Math.abs(found[0]!.left - edges.close) <= 1, `the sheet's content starts on its bar's line: ${JSON.stringify({ found, edges })}`);
+      assert.ok(edges.close - edges.sheet >= 4, `inside the sheet's edge: ${JSON.stringify(edges)}`);
+      assert.ok(edges.foot >= 12, `the last action keeps the sheet's inset below it: ${JSON.stringify(edges)}`);
+    }
     assert.deepEqual(f.errors.filter(error => !/Failed to load resource/.test(error)), []);
   } finally { await f.close(); }
 });
