@@ -93,7 +93,7 @@ const frames = `<script lang="ts">
   import Surface from "@desert/svelte/catalog/foundations/surface/Surface.svelte";
   import Toolbar from "@desert/svelte/catalog/compositions/toolbar/Toolbar.svelte";
   import FrameBody from "@desert/svelte/catalog/renderer/frame-body/FrameBody.svelte";
-  const frame = { version: "desert.surface-frame/6", kind: "confirmation", top: { title: "Move note to Trash?" },
+  const frame = { version: "desert.surface-frame/6", kind: "confirmation", top: { title: "Move note to Trash?", face: { kind: "icon", icon: "archive" } },
     content: { kind: "message", text: "You can restore the note from Trash." },
     bottom: { secondary: { label: "Cancel", icon: "back", state: "ready", intent: { kind: "back" } },
       primary: { label: "Move to Trash", icon: "archive", state: "ready", intent: { kind: "accept" } } } } as const;

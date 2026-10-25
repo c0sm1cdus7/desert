@@ -3,7 +3,7 @@
 import type { CatalogSpecimen } from "../../types.d.ts";
 
 export const DialogSpecimens = [
-  { state: "default", props: { open: true, locked: false, tone: "destructive", face: { kind: "status", severity: "warning" },
+  { state: "default", props: { open: true, locked: false, tone: "destructive", face: { kind: "icon", icon: "archive" },
     title: "Move note to Trash?", subtitle: "You can restore the note from Trash.",
     secondary: { label: "Cancel", icon: "back", state: "ready", intent: { kind: "back" } },
     primary: { label: "Move to Trash", icon: "archive", state: "ready", intent: { kind: "accept" } } } },

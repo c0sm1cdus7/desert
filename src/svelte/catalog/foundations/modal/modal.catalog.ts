@@ -19,6 +19,6 @@ export const Modal = defineFoundation({
   // The media stage holds what media-viewer mounts in it (design §1.5): its image or player, and its top bar; a dialog
   // lays its face, title, subtitle and choices out in a column.
   slots: { children: { accepts: ["surface-frame", "instance-frame", "face", "heading", "text", "inline", "column", "bar", "image", "media-player"] },
-    actions: { accepts: ["inline"] } },
+    actions: { accepts: ["bar"] } },
   approval: "required", contract: ModalContract,
 } as const);

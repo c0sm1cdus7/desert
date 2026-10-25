@@ -1,6 +1,8 @@
-// The props of Dialog (DESIGN §3.2): whether it is `open`, whether it is `locked` while its answer commits (then nothing
-// dismisses it), the status or object `face` it shows, its `title` and `subtitle`, and its `secondary` and `primary`
-// choices; `tone: "destructive"` draws the primary as destructive. A choice raises `invoke` with its intent; Escape or the
+// The props of Dialog (DESIGN §3.2; laws 5b, 6, 9c): whether it is `open`, whether it is `locked` while its answer
+// commits (then nothing dismisses it), the status or action `face` it always shows, its `title` and `subtitle` (both
+// required: a dialog is face + title + subtitle + its choices, nothing else), its `secondary` choice (always: the way out)
+// and its optional `primary`; the choices are Bar's 50/50 commit pair, a single choice takes the full width.
+// `tone: "destructive"` draws the primary as destructive. A choice raises `invoke` with its intent; Escape or the
 // scrim raise `dismiss` (the caller decides what dismissal means) and `closed` fires once the dialog has closed.
 // The problem node's adapter (`renders: ["problem"]`, DESIGN §4 item 62) is the second variant: the node's own `title`,
 // `description` and `severity`; Dialog draws the severity's status face, the description as its subtitle and one Close,
@@ -16,11 +18,11 @@ export const DialogContract = {
     Type.Object({
       open: Type.Boolean(),
       locked: Type.Boolean(),
-      face: Type.Optional(FaceSchema),
+      face: FaceSchema,
       title: text,
-      subtitle: Type.Optional(text),
+      subtitle: text,
       primary: Type.Optional(ToolbarActionSchema),
-      secondary: Type.Optional(ToolbarActionSchema),
+      secondary: ToolbarActionSchema,
       tone: Type.Union([Type.Literal("standard"), Type.Literal("destructive")]),
       description: Type.Optional(Type.Undefined()),
       severity: Type.Optional(Type.Undefined()),

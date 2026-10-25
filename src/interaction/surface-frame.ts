@@ -3,11 +3,12 @@ import { Check } from "@sinclair/typebox/value";
 import { freezeDeep, jsonSnapshot, type Frozen } from "../json.ts";
 import { TopToolbarSchema, BottomToolbarSchema, ToolbarActionSchema, NavigationActionSchema,
   UtilityActionSchema, actionSchema } from "./toolbar.ts";
+import { FaceSchema } from "./face.ts";
 import { InformationSchema } from "./information-content.ts";
 import { FactValueSchema } from "../fact-values.ts";
 import { FileMetadataSchema } from "./control-nodes.ts";
 import { LabelControlLimitsSchema, ReferenceStateSchema, ReferenceChoiceSchema,MediaReferenceStateSchema } from "./labels-control.ts";
-import { CloseIntentSchema, RecoverIntentSchema, JourneyIntentSchema, intentKey, submitsJourney } from "./intent.ts";
+import { CloseIntentSchema, RecoverIntentSchema, JourneyIntentSchema, ProductSurfaceIntentSchema, intentKey, submitsJourney } from "./intent.ts";
 import {AttentionSignalSchema} from '../attention.ts';
 export { ToolbarActionSchema, type ToolbarAction } from "./toolbar.ts";
 
@@ -67,6 +68,12 @@ const ContextTopSchema = object({ ...TopToolbarSchema.properties,
   trailing: Type.Optional(Type.Array(actionSchema(Type.Union([RecoverIntentSchema, JourneyIntentSchema])))),
 });
 const DismissBottomSchema = object({ secondary: Type.Optional(DismissActionSchema), primary: Type.Optional(Type.Never()) });
+// A confirmation is a dialog (laws 5b, 6, 9c): its face (the action's), its title, its message as the subtitle and the
+// 50/50 pair of Cancel and the verb. No other top slot exists, so a confirmation without its face or its pair cannot be built.
+const ConfirmationTopSchema = object({ title: text(), face: FaceSchema, subtitle: Type.Optional(Type.Never()),
+  leading: Type.Optional(Type.Never()), trailing: Type.Optional(Type.Array(Type.Never())), primary: Type.Optional(Type.Never()),
+  actionGroup: Type.Optional(Type.Never()), availability: Type.Optional(Type.Never()) });
+const ConfirmationBottomSchema = object({ secondary: actionSchema(ProductSurfaceIntentSchema), primary: UtilityActionSchema });
 export const SurfaceFrameSchema = Type.Union([
   object({ ...common, kind: Type.Literal("context"), top: ContextTopSchema,
     content: Type.Union([FactsSchema, ContextSchema, MessageSchema]),
@@ -75,7 +82,7 @@ export const SurfaceFrameSchema = Type.Union([
   object({ ...common, kind: Type.Literal("message"), top: MessageTopSchema, content: MessageSchema, bottom: DismissBottomSchema }),
   object({ ...common, kind: Type.Literal("utilities"), top: MessageTopSchema, content: UtilitiesContentSchema, bottom: DismissBottomSchema }),
   object({ ...common, kind: Type.Literal("journey"), navigation: Type.Optional(Type.Literal("steps")), content: GeneralContentSchema, bottom: BottomToolbarSchema }),
-  object({ ...common, kind: Type.Literal("confirmation"), content: MessageSchema, bottom: BottomToolbarSchema }),
+  object({ ...common, kind: Type.Literal("confirmation"), top: ConfirmationTopSchema, content: MessageSchema, bottom: ConfirmationBottomSchema }),
   object({ ...common, kind: Type.Literal("specimen"), content: GeneralContentSchema, bottom: BottomToolbarSchema }),
 ]);
 

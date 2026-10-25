@@ -75,7 +75,9 @@ test("each purpose draws the pixels the toolbar-layout composition drew for the 
     // The stylesheet arrives after mount: the controls' color transitions (not motion, so not reduced) run from the
     // unstyled ink, and a pair shot mid-transition differs. Every transition finishes before the first shot.
     await settle(f.page);
-    for (const pair of ["top", "commit", "steps", "navigation", "overflow", "place", "search"]) {
+    // The commit pair and the narrow overflow rail left parity on purpose: a commit is the 50/50 pair (law 9c) and a narrow
+    // rail keeps its title's reading measure (both asserted below).
+    for (const pair of ["top", "steps", "navigation", "place", "search"]) {
       const [before, after] = [f.page.locator(`[data-pair="${pair}"]`).nth(0), f.page.locator(`[data-pair="${pair}"]`).nth(1)];
       const [a, b] = [await before.boundingBox(), await after.boundingBox()];
       assert.deepEqual([b?.width, b?.height], [a?.width, a?.height], `${pair}: same box`);
@@ -86,9 +88,25 @@ test("each purpose draws the pixels the toolbar-layout composition drew for the 
       if (pair === "search") assert.deepEqual(await pixelDifference(f.page, shots[0]!, shots[1]!, 8), { count: 0, within: true }, pair);
       else assert.ok(shots[0]!.equals(shots[1]!), `${pair}: same pixels`);
     }
-    const overflow = f.page.locator('[data-pair="overflow"]');
-    assert.equal(await overflow.nth(1).locator("[data-toolbar-overflow]").count(), 1, "the narrow rail overflows into one menu");
-    assert.equal(await overflow.nth(1).locator("[data-toolbar-command]").count(), await overflow.nth(0).locator("[data-toolbar-command]").count());
+    const overflow = f.page.locator('[data-pair="overflow"]').nth(1);
+    assert.equal(await overflow.locator("[data-toolbar-overflow]").count(), 1, "the narrow rail overflows into one menu");
+    const rail = await overflow.evaluate(node => {
+      const row = node.querySelector("[data-bar-row]")!.getBoundingClientRect(), heading = node.querySelector("[data-toolbar-heading]")!;
+      const range = document.createRange(); range.selectNodeContents(heading);
+      return { row: row.width, heading: heading.getBoundingClientRect().width, lines: range.getClientRects().length };
+    });
+    assert.ok(rail.heading >= rail.row / 2 - 1, `the title keeps half the rail (${rail.heading} of ${rail.row})`);
+    assert.ok(rail.lines <= 3, `the title is not squeezed to a word per line (${rail.lines} lines)`);
+    for (const pair of await f.page.locator('[data-pair="commit"]').nth(1).locator("[data-bar-row]").all()) {
+      const halves = await pair.evaluate(row => [...row.querySelectorAll("button")].map(button => {
+        const box = button.getBoundingClientRect();
+        return { x: box.x, width: box.width, emphasis: button.getAttribute("data-emphasis") };
+      }));
+      const row = (await pair.boundingBox())!;
+      assert.deepEqual(halves.map(half => half.emphasis), ["secondary", "primary"], "Cancel on the left, the verb on the right");
+      assert.ok(Math.abs(halves[0]!.width - halves[1]!.width) <= 1, "both halves are equal");
+      assert.ok(halves[0]!.width * 2 >= row.width - 12 - 1, "each takes half the row (law 9c)");
+    }
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
@@ -182,10 +200,12 @@ test("a bar's Actions take its target at any text size through their typed place
       return { placement: button.getAttribute("data-action-bar"), height: Math.round(box.height) === Math.round(targetPx), tall: targetPx > 44,
         width: Math.round(box.width), square: Math.round(box.width) === Math.round(box.height), wrap: style.whiteSpace };
     }));
-    assert.deepEqual(placements.map(item => item.placement), ["command", "command", "commit", "commit", "step", "step"]);
+    // A commit and the steps draw the same 50/50 pair (law 9c): each text Action is a `step`, half of its row.
+    assert.deepEqual(placements.map(item => item.placement), ["command", "command", "step", "step", "step", "step"]);
     for (const item of placements) assert.ok(item.height && item.tall, `${item.placement}: as tall as the toolbar target (more than 44px at twice the text)`);
     assert.deepEqual(placements.slice(0, 2).map(item => item.square), [true, true], "a command is a square");
     assert.deepEqual(placements.slice(2, 4).map(item => item.wrap), ["nowrap", "nowrap"], "a commit keeps one line");
+    assert.equal(placements[2]!.width, placements[3]!.width, "the commit pair shares its row");
     assert.equal(placements[4]!.width, placements[5]!.width, "the two steps share their row");
     const css = (await (await import("node:fs/promises")).readFile("src/svelte/catalog/foundations/bar/bar.css", "utf8")).replace(/\/\*[\s\S]*?\*\//g, "");
     for (const rule of css.match(/[^{}]*(?:data-slot="button"|(?<![-\w])button(?![-\w]))[^{}]*\{/g) ?? [])

@@ -51,7 +51,8 @@ export function reviewFrame(surface: HumanSurface, mutation: Mutation, facts: Re
     // An asset-led collection has no text title. Never stringify private asset metadata.
     const title = typeof candidate === "string" || typeof candidate === "number" || typeof candidate === "boolean" ? candidate : undefined;
     return surfaceFrame({ version: "desert.surface-frame/6", kind: "confirmation",
-      top: { title: `${label}?` }, content: { kind: "message", text: title === undefined ?
+      // The confirmation's face is its action's: the verb's own glyph.
+      top: { title: `${label}?`, face: { kind: "icon", icon: "confirm" } }, content: { kind: "message", text: title === undefined ?
         "Confirm this change to the selected item." : `“${presentTitle(title)}”` },
       bottom: { secondary: toolbarAction({ kind: "back" }, "Cancel", "back", !busy),
         primary: { ...toolbarAction({ kind: "accept" }, label, "confirm", ready && !busy),
