@@ -1,7 +1,8 @@
 // The props of Column. `gap` is a named step of the spacing scale (the steps GapSchema names, written here as the variant
 // axis); `measure` is the reading width (marked for the place), the narrow width of a centred task such as unlocking, or
 // the wide width of an inspection page; `align` places the pieces on the inline axis (stretch when omitted), and
-// "center" also centres their text.
+// "center" also centres their text. `fill` makes it at least as tall as its container, a block that grows (a status)
+// taking what its other pieces leave (search results centring their prompt).
 import { Type } from "@sinclair/typebox";
 
 export const ColumnContract = {
@@ -9,6 +10,7 @@ export const ColumnContract = {
     gap: Type.Union([Type.Literal("snug"), Type.Literal("close"), Type.Literal("regular"), Type.Literal("relaxed"), Type.Literal("section")]),
     measure: Type.Optional(Type.Union([Type.Literal("reading"), Type.Literal("narrow"), Type.Literal("wide")])),
     align: Type.Optional(Type.Union([Type.Literal("start"), Type.Literal("center"), Type.Literal("stretch")])),
+    fill: Type.Optional(Type.Boolean()),
   }, { additionalProperties: false }),
   marks: ["data-reading-measure"],
 } as const;

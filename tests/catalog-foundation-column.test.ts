@@ -7,8 +7,9 @@ import { contractShape, mounted, specimenFindings } from "./support/foundation.t
 
 const steps = ["snug", "close", "regular", "relaxed", "section"];
 
-test("column: the contract offers a gap step, a measure and an alignment, nothing else", async () => {
-  assert.deepEqual(await contractShape("column"), { gap: steps, "measure?": ["reading", "narrow", "wide"], "align?": ["start", "center", "stretch"] });
+test("column: the contract offers a gap step, a measure, an alignment and fill, nothing else", async () => {
+  assert.deepEqual(await contractShape("column"), { gap: steps, "measure?": ["reading", "narrow", "wide"], "align?": ["start", "center", "stretch"],
+    "fill?": "boolean" });
 });
 
 test("column: its gap axis, GapSchema and the theme's spacing tokens name the same steps", async () => {
@@ -39,6 +40,21 @@ test("column: gaps are the spacing steps; measures cap the width; alignment plac
       [{ width: 544, left: 0, reading: true }, { width: 480, left: 210, reading: false }, { width: 832, left: 0, reading: false }]);
     assert.deepEqual(columns.slice(6).map(({ justify, text }) => ({ justify, text })), [{ justify: "center", text: "center" }, { justify: "start", text: "start" }]);
     assert.equal(columns[0]?.justify, "normal", "without an alignment a column stretches its pieces, as a grid does");
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("column: fill takes its container's height and gives what its pieces leave to a block that grows (a status)", async () => {
+  const f = await mounted(`<div style="width:600px;height:500px" data-probe-host>
+  <Catalog.Column gap="relaxed" fill><Catalog.Heading kind="page" text="Results in Notes" />
+    <Catalog.Status title="No matching results" tone="neutral" size="regular" heading={false} /></Catalog.Column>
+</div>`);
+  try {
+    const [column, heading, status] = await f.page.evaluate(() => ["[data-probe-host] > div", "h1", "[data-status]"]
+      .map(selector => { const box = document.querySelector(selector)!.getBoundingClientRect(); return { top: Math.round(box.top), height: Math.round(box.height) }; }));
+    assert.equal(column!.height, 500, "the column fills its container");
+    assert.equal(status!.top, heading!.top + heading!.height + 24, "the pieces keep the column's gap");
+    assert.equal(status!.top + status!.height, column!.top + 500, "the growing block takes the rest of the height");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

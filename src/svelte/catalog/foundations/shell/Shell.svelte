@@ -6,7 +6,7 @@
   import { provideRegionRegistry, useRegionRegistry } from "../../../infra/region-registry.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import ShellBody from "./ShellBody.svelte";
-  let { documentTitle, label, destination, searching, hasQuery, detail, backAvailable, resultsId, navigation,
+  let { documentTitle, label, destination, searching, hasQuery, detail, backAvailable, resultsId, searchLabel, navigation,
     onnavigate, onback, oncancelsearch, oncomposition, top, content, bottom, search, panels }: CatalogProps<"shell"> = $props();
   // Pieces in the workspace register focus targets and reveals here (a caller may open them above the shell instead).
   const scope = useFocusScope() ?? provideFocusScope();
@@ -30,7 +30,7 @@
 <div bind:this={workspace} data-renderer-profile="apple-reference" data-catalog-workspace data-search-active={searching}>
   <Wallpaper wallpaper={$appearance.wallpaper} />
   <Sidebar.Provider available={navigation !== null} contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
-    <ShellBody bind:this={body} root={() => workspace} {label} {destination} {searching} {hasQuery} {detail} {backAvailable} {resultsId}
+    <ShellBody bind:this={body} root={() => workspace} {label} {destination} {searching} {hasQuery} {detail} {backAvailable} {resultsId} {searchLabel}
       {navigation} {scope} {regions} {onnavigate} {onback} {oncancelsearch} {oncomposition} {top} {content} {bottom} {search} {panels} />
   </Sidebar.Provider>
 </div>

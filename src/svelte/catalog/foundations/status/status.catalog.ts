@@ -8,6 +8,6 @@ export const Status = defineFoundation({
   purpose: "Say why there is nothing to show (empty, offline, a note) and what to do next, as a block or a compact caption.",
   owner: { entry: "Status.svelte", vendor: ["empty"] },
   shape: "radius", states: ["default"],
-  variants: { tone: ["neutral", "offline", "note"], size: ["regular", "compact"] },
+  variants: { tone: ["neutral", "offline", "note"], size: ["regular", "compact", "prompt"] },
   approval: "required", contract: StatusContract,
 } as const);

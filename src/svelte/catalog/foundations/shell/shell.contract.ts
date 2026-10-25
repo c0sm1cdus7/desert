@@ -1,6 +1,6 @@
 // The props of Shell, the workspace (DESIGN §3.2). `documentTitle` titles the document; `label` and `destination` name
 // the main place; `searching` and `hasQuery` drive the search overlay whose region is `resultsId` (the id its top bar's
-// search controls); `detail` and `backAvailable` enable going back by the edge swipe. `navigation` is the navigation pane
+// search controls), named `searchLabel` for assistive technology; `detail` and `backAvailable` enable going back by the edge swipe. `navigation` is the navigation pane
 // as data, or null when the workspace has none. Events: `navigate` to a destination, `back`, `cancelsearch` (true when
 // focus returns to its opener) and `composition`. A caller that binds it drives its viewport through the instance:
 // scroll positions, the place title, the main place itself (`focusContent`), items by id and keys of its focus scope.
@@ -18,6 +18,7 @@ export const ShellContract = {
     detail: Type.Boolean(),
     backAvailable: Type.Boolean(),
     resultsId: Type.String(),
+    searchLabel: Type.Optional(text),
     navigation: Type.Union([Type.Null(), ShellNavigationSchema]),
   }, { additionalProperties: false }),
   events: Type.Object({
