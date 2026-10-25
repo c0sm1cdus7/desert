@@ -101,7 +101,7 @@ test("V on the real tree: the gate reads every namespace module; none writes a s
   const modules = [...new Set(Object.values(DesertLayout.messages.namespaces))];
   const context = realContext();
   for (const path of modules) assert.notEqual(context.text(path), undefined, `${path} is read by the gate`);
-  const inModules = (found: readonly { path: string }[]) => found.filter(item => modules.includes(item.path));
+  const inModules = <T extends { path: string }>(found: readonly T[]) => found.filter(item => modules.includes(item.path));
   assert.deepEqual(codes(inModules(ruleV(context))), []);
   const frame = "src/web/client/frame.ts", mutated = realSource(frame).replace("bundle.text(m.frame.loading)", '"Loading…"');
   assert.notEqual(mutated, realSource(frame));
