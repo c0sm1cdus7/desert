@@ -8,6 +8,6 @@ export const DateControl = defineFoundation({
   id: "date-control",
   purpose: "Choose one day from a month calendar opened from a labelled field well, within optional bounds.",
   messages: ["dateControl.previousMonth", "dateControl.nextMonth", "dateControl.clearDate", "dateControl.noDate"],
-  owner: { entry: "DateControl.svelte", parts: ["DateCalendar.svelte", "date-control.css"], vendor: ["calendar"], mechanisms: ["surface-focus"] },
+  owner: { entry: "DateControl.svelte", parts: ["DateCalendar.svelte", "date-control.css"], vendor: ["calendar"], mechanisms: ["press-feedback", "surface-focus"] },
   shape: "radius", states: ["empty", "value", "required", "disabled"], renders: ["control.date"], approval: "required", contract: DateControlContract,
 } as const);

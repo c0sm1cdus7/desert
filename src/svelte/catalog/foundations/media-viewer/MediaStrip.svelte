@@ -4,8 +4,7 @@
   // MediaStrip: the thumbnails of a viewer's media, the shown one marked current (a part of MediaViewer). `fill` lets the
   // strip take the band's free width between a player's transport and volume.
   import { Image } from "../../index.ts";
-  // F1-merge: press feedback — the vendor button's pressFeedback attachment (action's family) until its owner is settled.
-  import { pressFeedback } from "../../../vendor/components/ui/button/press-feedback.js";
+  import { pressFeedback } from "../../mechanisms/press-feedback/press-feedback.ts";
   import { imageIdentity, type ViewerMedia } from "../../../infra/media-source.ts";
   let { items, index, fill, onindex }: { items: readonly ViewerMedia[]; index: number; fill: boolean; onindex: (index: number) => void } = $props();
 </script>

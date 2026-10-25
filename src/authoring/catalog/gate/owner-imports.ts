@@ -43,7 +43,11 @@ function vendorEscape(context: GateContext, importer: string, file: string): str
   const family = familyOf(context, file), importerFamily = familyOf(context, importer);
   if (family === undefined) {
     const owner = context.owners.of(file), vendorCode = owner?.kind === "vendor" || owner?.kind === "fixed" && owner.category === "vendor-shared";
-    return importerFamily !== undefined && !vendorCode ? `vendor family ${importerFamily} imports ${file}, which is not vendor code` : undefined;
+    if (importerFamily === undefined || vendorCode) return undefined;
+    if (owner?.kind === "mechanism" && context.owners.declaration(owner.owner)?.declaration.kind === "foundation") {
+      return familyMechanism(context, importer, importerFamily, file, owner.id);
+    }
+    return `vendor family ${importerFamily} imports ${file}, which is not vendor code`;
   }
   if (family === importerFamily) return undefined;
   const owner = context.owners.of(file);
@@ -52,6 +56,14 @@ function vendorEscape(context: GateContext, importer: string, file: string): str
   if (folder !== undefined && inside(importer, folder)) return undefined;
   if (importerOwner?.kind === "vendor" && importerOwner.foundation === owner.foundation) return undefined;
   return `imports vendor family ${family}, owned by foundation ${owner.foundation}`;
+}
+
+/** A vendor family is a part of its owner foundation: it may import a foundation-owned mechanism that foundation lists. */
+function familyMechanism(context: GateContext, importer: string, family: string, file: string, mechanism: string): string | undefined {
+  const owner = context.owners.of(importer), foundation = owner?.kind === "vendor" ? owner.foundation : undefined;
+  const declaration = foundation === undefined ? undefined : context.owners.declaration(foundation)?.declaration;
+  if (declaration?.kind === "foundation" && declaration.owner.mechanisms?.includes(mechanism)) return undefined;
+  return `vendor family ${family} imports ${posix.basename(file)} of mechanism ${mechanism}, which its owner foundation ${foundation ?? "(none)"} does not list in owner.mechanisms`;
 }
 
 /** A file of a foundation-owned mechanism is imported only by a foundation that lists the mechanism in owner.mechanisms

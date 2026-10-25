@@ -12,7 +12,7 @@ export const Modal = defineFoundation({
     entry: "Modal.svelte",
     parts: ["ModalPane.svelte", "ModalSheet.svelte", "ModalDialog.svelte", "DrawerGrip.svelte", "drawer-motion.svelte.ts",
       "frame-continuity.svelte.ts", "adaptive-modality.svelte.ts", "adaptive-surface-layout.ts", "modal.css"],
-    vendor: ["dialog"], mechanisms: ["surface-focus", "surface-host", "swipe-motion"],
+    vendor: ["dialog"], mechanisms: ["press-feedback", "surface-focus", "surface-host", "swipe-motion"],
   },
   shape: "radius", states: ["open", "locked"],
   variants: { presentation: ["adaptive", "transient", "sheet", "message", "media", "navigation"] },

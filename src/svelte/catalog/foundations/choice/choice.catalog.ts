@@ -9,7 +9,7 @@ export const Choice = defineFoundation({
   purpose: "Choose one or several options given as data, as rows, cards, swatches or a menu, with a persistent label.",
   messages: ["choice.requiredMark", "choice.required", "choice.notSelected"],
   owner: { entry: "Choice.svelte", parts: ["ChoiceRows.svelte", "ChoiceCards.svelte", "ChoiceSwatches.svelte", "ChoiceMenu.svelte",
-    "ChoiceMenuList.svelte", "ChoiceAnatomy.svelte", "ChoiceLeading.svelte", "choice-row.ts"], vendor: ["checkbox", "radio-group"], mechanisms: ["surface-focus"] },
+    "ChoiceMenuList.svelte", "ChoiceAnatomy.svelte", "ChoiceLeading.svelte", "choice-row.ts"], vendor: ["checkbox", "radio-group"], mechanisms: ["press-feedback", "surface-focus"] },
   shape: "radius", states: ["default", "described", "disabled", "required"],
   variants: { presentation: ["rows", "cards", "swatches", "menu"], cardinality: ["one", "many"], menuTrigger: ["well", "inline", "contextual"] },
   variantLimits: { presentation: { rows: { menuTrigger: [] }, cards: { menuTrigger: [] }, swatches: { cardinality: ["one"], menuTrigger: [] },

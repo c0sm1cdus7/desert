@@ -1,7 +1,6 @@
 <script lang="ts">
   import { AttentionIndicator, Image } from "../../index.ts";
-  // F1-merge: press feedback — the vendor button's pressFeedback attachment (action's family) until its owner is settled.
-  import { pressFeedback } from "../../../vendor/components/ui/button/press-feedback.js";
+  import { pressFeedback } from "../../mechanisms/press-feedback/press-feedback.ts";
   import { prefetchImage } from "../../../infra/media-source.ts";
   import { useFocusScope } from "../../../infra/focus-scope.ts";
   import type { CatalogProps } from "../../types.d.ts";

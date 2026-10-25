@@ -2,8 +2,7 @@
 	import { Calendar as CalendarPrimitive } from "bits-ui";
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
 	import { cn } from "@desert/svelte/vendor/utils.js";
-	// F1-merge: press feedback — the button family's pressFeedback attachment until its owner is settled (as Tag, Avatar).
-	import { pressFeedbackProps } from "@desert/svelte/vendor/components/ui/button/press-feedback.js";
+	import { pressFeedbackProps } from "@desert/svelte/catalog/mechanisms/press-feedback/press-feedback.ts";
 	import { calendarControl } from "./calendar-control.js";
 
 	let {

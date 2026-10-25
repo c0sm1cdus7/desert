@@ -167,3 +167,20 @@ test("F: a foundation-owned mechanism imported by a foundation that does not lis
     `FOUNDATION_OUTSIDE_OWNER src/svelte/catalog/foundations/modal/Modal.svelte imports ${mechanism} without listing surface-focus in owner.mechanisms`,
     `FOUNDATION_OUTSIDE_OWNER ${infraModule} imports ${mechanism}; only a foundation that lists it in owner.mechanisms may`]);
 });
+
+// A vendor family is a part of the foundation that owns it, so it may import a foundation-owned .ts mechanism exactly when
+// that foundation lists the mechanism in owner.mechanisms (vendor/button applying action's press-feedback mechanism).
+const dialogFamily = (name: string) => family(name, { [`${ui}/${name}/content.svelte`]: svelte(focusImport("../../../../catalog/")) });
+const owning = (id: string, listed: string, vendor: string) => foundation(id, `${id[0]?.toUpperCase()}${id.slice(1)}.svelte`,
+  svelte(props(id), "<div>{label}</div>"), `${listed}, vendor: ["${vendor}"]`);
+
+test("F control: a vendor family imports a mechanism its owner foundation lists in owner.mechanisms", () => {
+  assert.deepEqual(run({ ...legal(), ...focusMechanism, ...dialogFamily("dialog"), ...owning("modal", ', mechanisms: ["surface-focus"]', "dialog") }), []);
+});
+
+test("F: a vendor family importing a mechanism its owner foundation does not list is VENDOR_OUTSIDE_OWNER", () => {
+  const content = `${ui}/popover/content.svelte`;
+  assert.deepEqual(run({ ...legal(), ...focusMechanism, ...dialogFamily("popover"), ...owning("popover", "", "popover"),
+    ...owning("modal", ', mechanisms: ["surface-focus"]', "dialog"), ...family("dialog") }), [
+    vendorEscape(content, "vendor family popover imports surface-focus.ts of mechanism surface-focus, which its owner foundation popover does not list in owner.mechanisms")]);
+});

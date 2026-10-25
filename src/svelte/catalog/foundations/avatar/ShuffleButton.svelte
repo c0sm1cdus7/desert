@@ -2,8 +2,7 @@
   import type { Snippet } from "svelte";
   import { Icon } from "../../index.ts";
   import { newAvatarSeed } from "../../../infra/avatar-seed.ts";
-  // F1-merge: press feedback — the vendor button's pressFeedback attachment (action's family) until its owner is settled.
-  import { pressFeedbackProps } from "../../../vendor/components/ui/button/press-feedback.js";
+  import { pressFeedbackProps } from "../../mechanisms/press-feedback/press-feedback.ts";
   // The avatar as a button that draws a new seed; the overlay shows on hover or focus, and always on touch screens.
   let { size, label, disabled, onshuffle, children }: { size: "portrait" | "compact" | "row"; label: string | undefined; disabled: boolean;
     onshuffle: ((seed: string) => void) | undefined; children: Snippet } = $props();

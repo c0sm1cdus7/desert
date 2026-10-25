@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Icon } from "../../index.ts";
-  // F1-merge: press feedback — the vendor button's pressFeedback attachment (action's family) until its owner is settled.
-  import { pressFeedbackProps } from "../../../vendor/components/ui/button/press-feedback.js";
+  import { pressFeedbackProps } from "../../mechanisms/press-feedback/press-feedback.ts";
   // The chip's own remove button: a 28px target (44px on coarse pointers) at the chip's trailing edge.
   let { label, disabled, onremove }: { label: string | undefined; disabled: boolean; onremove: (() => void) | undefined } = $props();
 </script>

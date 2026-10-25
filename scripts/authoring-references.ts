@@ -106,7 +106,7 @@ export function generatedReferences(root = sourceRoot) {
         "src/svelte/catalog/foundations/search-field/SearchField.svelte", "src/svelte/catalog/foundations/measured-field/MeasuredField.svelte", "src/svelte/catalog/foundations/field/field-measure.css",
         "src/svelte/catalog/foundations/grouped-panel/GroupedPanel.svelte", "src/svelte/catalog/foundations/choice-row/ChoiceRow.svelte", "src/svelte/catalog/foundations/selection-field/SelectionField.svelte",
         "src/svelte/catalog/compositions/collection-state/CollectionState.svelte", "src/svelte/catalog/foundations/action/Action.svelte", "src/svelte/infra/action-icons.ts",
-        "src/svelte/vendor/components/ui/button/button.svelte", "src/svelte/vendor/components/ui/button/press-feedback.ts",
+        "src/svelte/vendor/components/ui/button/button.svelte", "src/svelte/catalog/mechanisms/press-feedback/press-feedback.ts",
         "src/svelte/catalog/compositions/select-control/SelectControl.svelte", "src/svelte/catalog/compositions/popover-control/PopoverControl.svelte", "src/svelte/catalog/compositions/file-control/FileControl.svelte",
         "src/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte", "src/svelte/catalog/compositions/options-control/OptionsControl.svelte", "src/svelte/catalog/compositions/money-control/MoneyControl.svelte",
         "src/svelte/catalog/foundations/date-control/DateControl.svelte", "src/svelte/catalog/compositions/media-control/MediaControl.svelte", "src/svelte/catalog/foundations/popover/Popover.svelte",

@@ -27,7 +27,7 @@
 <script lang="ts">
 	import { mergeProps } from "bits-ui";
 	import { Button as SharedButton, type ButtonProps } from "@desert/svelte/vendor/components/ui/button/index.js";
-	import { pressFeedbackProps } from "@desert/svelte/vendor/components/ui/button/press-feedback.js";
+	import { pressFeedbackProps } from "@desert/svelte/catalog/mechanisms/press-feedback/press-feedback.ts";
 	import * as Tooltip from "@desert/svelte/vendor/components/ui/tooltip/index.js";
 	import { cn, type WithElementRef, type WithoutChildrenOrChild } from "@desert/svelte/vendor/utils.js";
 	import { useSidebar } from "./context.svelte.js";

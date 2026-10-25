@@ -54,7 +54,7 @@
 </script>
 
 <script lang="ts">
-	import { pressFeedbackProps } from "./press-feedback.js";
+	import { pressFeedbackProps } from "@desert/svelte/catalog/mechanisms/press-feedback/press-feedback.ts";
 	import Search from "@lucide/svelte/icons/search";
 	import X from "@lucide/svelte/icons/x";
 	let {

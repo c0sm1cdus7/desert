@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { Calendar as CalendarPrimitive } from "bits-ui";
 	import { cn } from "@desert/svelte/vendor/utils.js";
-	// F1-merge: press feedback — the button family's pressFeedback attachment until its owner is settled (as Tag, Avatar).
-	import { pressFeedbackProps } from "@desert/svelte/vendor/components/ui/button/press-feedback.js";
+	import { pressFeedbackProps } from "@desert/svelte/catalog/mechanisms/press-feedback/press-feedback.ts";
 	import { calendarControl, dayFaces } from "./calendar-control.js";
 
 	let {

@@ -7,7 +7,7 @@ import { RowContract } from "./row.contract.ts";
 export const Row = defineFoundation({
   id: "row",
   purpose: "Open one object or destination from a list row, or read one, and say why an unavailable one cannot open.",
-  owner: { entry: "Row.svelte" },
+  owner: { entry: "Row.svelte", mechanisms: ["press-feedback"] },
   shape: "none", states: ["available", "unavailable", "current"],
   variants: { interaction: ["open", "static"], trailing: ["chevron", "none"] },
   // Only a row that opens can be unavailable or be the current one.

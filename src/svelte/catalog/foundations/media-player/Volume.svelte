@@ -3,8 +3,7 @@
   import { m } from "../../../../messages/keys.ts";
   // Volume: the captions toggle (when the media has captions), mute and the volume slider (a part of MediaPlayer).
   import { Action, Icon, Slider } from "../../index.ts";
-  // F1-merge: press feedback — the vendor button's pressFeedback attachment (action's family) until its owner is settled.
-  import { pressFeedback } from "../../../vendor/components/ui/button/press-feedback.js";
+  import { pressFeedback } from "../../mechanisms/press-feedback/press-feedback.ts";
   import type { MediaPlayback } from "./playback.svelte.ts";
   let { playback, captions }: { playback: MediaPlayback; captions: boolean } = $props();
 </script>

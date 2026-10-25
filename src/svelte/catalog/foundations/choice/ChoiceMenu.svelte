@@ -4,8 +4,7 @@
   import { tick } from "svelte";
   import { Popover } from "../../index.ts";
   import { cn } from "../../../vendor/utils.js";
-  // F1-merge: press feedback — the button family's pressFeedback attachment until its owner is settled (as Tag, Avatar).
-  import { pressFeedbackProps } from "../../../vendor/components/ui/button/press-feedback.js";
+  import { pressFeedbackProps } from "../../mechanisms/press-feedback/press-feedback.ts";
   import { FieldWellContent, Icon } from "../../index.ts";
   import { surfaceFocus, revealSurfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
   import { provideOpenFocus } from "../../mechanisms/surface-focus/focus-return.ts";

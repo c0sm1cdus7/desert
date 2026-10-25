@@ -6,7 +6,7 @@ import { CardContract } from "./card.contract.ts";
 export const Card = defineFoundation({
   id: "card",
   purpose: "Open one item, media, collection or summary from a card composed of artwork and its supporting content.",
-  owner: { entry: "Card.svelte" },
+  owner: { entry: "Card.svelte", mechanisms: ["press-feedback"] },
   shape: "radius", states: ["default", "current", "disabled"],
   variants: { presentation: ["featured", "item", "tile", "collection", "summary"] },
   slots: { children: { accepts: ["heading", "text", "meter", "loading", "inline"] } },

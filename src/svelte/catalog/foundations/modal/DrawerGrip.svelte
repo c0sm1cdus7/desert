@@ -4,8 +4,7 @@
   // The grip of a bottom-edge modal: pressing it, or dragging it past the threshold, dismisses the modal. A native
   // button the modal draws (design §1.3: the vendor `grip` variant's pixels move here).
   import type { drawerMotion } from "./drawer-motion.svelte.ts";
-  // F1-merge: press feedback — the button family's pressFeedback attachment until its owner is settled (as Tag, Avatar).
-  import { pressFeedbackProps } from "../../../vendor/components/ui/button/press-feedback.js";
+  import { pressFeedbackProps } from "../../mechanisms/press-feedback/press-feedback.ts";
   let { motion, locked }: { motion: ReturnType<typeof drawerMotion>; locked: boolean } = $props();
 </script>
 

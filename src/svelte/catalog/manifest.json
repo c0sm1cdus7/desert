@@ -84,6 +84,13 @@
       "folder": "src/svelte/catalog/mechanisms/personalization",
       "owner": "theme"
     },
+    "press-feedback": {
+      "files": [
+        "press-feedback.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/press-feedback",
+      "owner": "action"
+    },
     "reading": {
       "files": [
         "reading.css"
@@ -319,6 +326,9 @@
       "kind": "foundation",
       "owner": {
         "entry": "Action.svelte",
+        "mechanisms": [
+          "press-feedback"
+        ],
         "vendor": [
           "button"
         ]
@@ -544,6 +554,9 @@
       "kind": "foundation",
       "owner": {
         "entry": "Avatar.svelte",
+        "mechanisms": [
+          "press-feedback"
+        ],
         "parts": [
           "SeedPortrait.svelte",
           "ShuffleButton.svelte"
@@ -660,7 +673,10 @@
       "folder": "src/svelte/catalog/foundations/card",
       "kind": "foundation",
       "owner": {
-        "entry": "Card.svelte"
+        "entry": "Card.svelte",
+        "mechanisms": [
+          "press-feedback"
+        ]
       },
       "purpose": "Open one item, media, collection or summary from a card composed of artwork and its supporting content.",
       "shape": "radius",
@@ -882,6 +898,7 @@
       "owner": {
         "entry": "Choice.svelte",
         "mechanisms": [
+          "press-feedback",
           "surface-focus"
         ],
         "parts": [
@@ -1381,6 +1398,7 @@
       "owner": {
         "entry": "DateControl.svelte",
         "mechanisms": [
+          "press-feedback",
           "surface-focus"
         ],
         "parts": [
@@ -2706,6 +2724,9 @@
       ],
       "owner": {
         "entry": "MediaPlayer.svelte",
+        "mechanisms": [
+          "press-feedback"
+        ],
         "parts": [
           "playback.svelte.ts",
           "Transport.svelte",
@@ -2802,6 +2823,7 @@
         "entry": "MediaViewer.svelte",
         "mechanisms": [
           "media-gestures",
+          "press-feedback",
           "surface-focus"
         ],
         "parts": [
@@ -2871,6 +2893,7 @@
       "owner": {
         "entry": "Modal.svelte",
         "mechanisms": [
+          "press-feedback",
           "surface-focus",
           "surface-host",
           "swipe-motion"
@@ -3539,7 +3562,10 @@
       "folder": "src/svelte/catalog/foundations/row",
       "kind": "foundation",
       "owner": {
-        "entry": "Row.svelte"
+        "entry": "Row.svelte",
+        "mechanisms": [
+          "press-feedback"
+        ]
       },
       "purpose": "Open one object or destination from a list row, or read one, and say why an unavailable one cannot open.",
       "shape": "none",
@@ -3809,6 +3835,7 @@
         "entry": "Shell.svelte",
         "mechanisms": [
           "file-picker",
+          "press-feedback",
           "surface-host",
           "swipe-motion",
           "toolbar-geometry"
@@ -4325,6 +4352,9 @@
       "kind": "foundation",
       "owner": {
         "entry": "Tag.svelte",
+        "mechanisms": [
+          "press-feedback"
+        ],
         "parts": [
           "TagRemove.svelte"
         ],
