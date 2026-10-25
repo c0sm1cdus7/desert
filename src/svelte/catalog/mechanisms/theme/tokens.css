@@ -126,14 +126,15 @@
   @media (max-width:24rem) { padding-inline:4px; }
 }
 /* The content of a pane or interior control (applied beside control-feedback-content): disabled state belongs to content,
-   the pane and its boundary never fade. */
+   the pane and its boundary never fade. An owner with a disabled fade of its own sets --disabled-fade on its subtree
+   (Field's one disabled fade); everything else fades by the theme's. */
 @utility disabled-content {
-  :is(button,a):is(:disabled,[aria-disabled="true"]) > & { opacity:var(--disabled-content-opacity,var(--disabled-opacity)); }
+  :is(button,a):is(:disabled,[aria-disabled="true"]) > & { opacity:var(--disabled-content-opacity,var(--disabled-fade,var(--disabled-opacity))); }
 }
 /* A content unit its owner fades as one while disabled (a field's row, its currency part and accessory included): it
    fades once, and the content of a disabled control drawn inside it does not fade a second time. */
 @utility disabled-unit {
-  opacity:var(--disabled-opacity); --disabled-content-opacity:1;
+  opacity:var(--disabled-fade,var(--disabled-opacity)); --disabled-content-opacity:1;
 }
 /* The one notice of unavailable media (law 9b): an image that cannot load (with its retry), unavailable media standing by
    itself, a player's error. It fills the frame that holds it (or takes its sentence's height and inset when the frame gives

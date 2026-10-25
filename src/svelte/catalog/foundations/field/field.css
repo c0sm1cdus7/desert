@@ -135,11 +135,11 @@
    trigger's content, its addons and the controls inside it alike. An enabled field's own disabled control keeps every
    control's disabled look. */
 :is([data-slot="field"][data-disabled="true"] .field-well,[data-field-trigger]:disabled,[data-search-field][data-disabled="true"]) {
-  --disabled-opacity:var(--field-disabled-opacity);
+  --disabled-fade:var(--field-disabled-opacity);
 }
 [data-slot="field"][data-disabled="true"] .field-well > [data-slot="input-group-addon"],
 [data-search-field][data-disabled="true"] > :is([data-slot="input-group-control"],[data-slot="input-group-addon"]) {
-  opacity:var(--disabled-opacity);
+  opacity:var(--field-disabled-opacity);
 }
 /* Invalidity is additional semantic ink, never a different material perimeter. */
 [data-slot="field"][data-invalid="true"] > .field-well,
