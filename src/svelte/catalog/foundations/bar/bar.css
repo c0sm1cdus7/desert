@@ -1,7 +1,7 @@
 /* Bar (foundation): one toolbar geometry, measured from the approved page rail. Hosts position
    the rail; no consumer supplies its inset, gap, or target dimensions.
    The rules naming the vendor button slot, label and glyph remain for the toolbar-layout composition's own buttons
-   (lane E) and for the toolbar target size, which Action's icon face (44px) does not follow at larger text. */
+   (unmounted, until Batch 3) and for the toolbar target size, which Action's icon face (44px) does not follow at larger text. */
 :root, .density-comfortable, .density-compact {
   --catalog-toolbar-inset:8px;
   --catalog-toolbar-height:max(44px,calc(var(--text-body--line-height) + 12px));
@@ -49,6 +49,8 @@
 }
 [data-piece="toolbar"] :is([data-toolbar-controls],[data-toolbar-utilities],[data-catalog-navigation-actions],[data-toolbar-auxiliary]) { gap:var(--toolbar-gap); }
 [data-piece="toolbar"] [data-toolbar-utilities] { align-self:flex-start; }
+/* A surface's own controls (the media viewer's zoom) follow the identity; a narrow rail centres them on their own line. */
+@container toolbar (max-width:600px) { [data-piece="toolbar"] [data-toolbar-controls] { flex-basis:100%; justify-content:center; } }
 [data-piece="toolbar"] .toolbar-face { --face-size:clamp(32px,2rem,40px); margin-bottom:var(--toolbar-gap); }
 [data-piece="toolbar"] .toolbar-availability { margin-top:var(--toolbar-gap); }
 [data-piece="toolbar"] :is(.toolbar-title,.toolbar-subtitle) { overflow-wrap:anywhere; }

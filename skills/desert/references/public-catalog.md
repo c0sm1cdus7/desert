@@ -1523,7 +1523,7 @@ Source SHA-256: 4564b30ba603de6a50ea2cf5f7016b90cd9565f7b53a1e3fb7c36fd8a4c3875b
 
 ## src/svelte/catalog/foundations/bar/BarSearch.svelte
 
-Source SHA-256: 16ee134a234920763ed07f5dfd670b2fdb377568f467d5acae2dbed89fded322
+Source SHA-256: 2aa492c99923e7f2c9d69a0c48fa6dcc6e168faba68565d349725e48d9847a6c
 
 ```svelte
 <script lang="ts">
@@ -1531,6 +1531,8 @@ Source SHA-256: 16ee134a234920763ed07f5dfd670b2fdb377568f467d5acae2dbed89fded322
   // Opening focuses the field; the displayed query freezes while closed so the field does not change as it hides.
   import { tick, untrack } from "svelte";
   import { Action, SearchField } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let { title, query, open, resultsId, onquery, onopen, oncancel }: {
     title: string; query: string; open: boolean; resultsId: string;
     onquery: (query: string) => void; onopen: () => void; oncancel: () => void;
@@ -1548,15 +1550,15 @@ Source SHA-256: 16ee134a234920763ed07f5dfd670b2fdb377568f467d5acae2dbed89fded322
 <div data-catalog-search-actions data-expanded={open}>
   <!-- The field wrapper the vendor field family drew for the toolbar search (same classes, no vendor import). -->
   <div role="group" data-catalog-search class="group/field flex w-full flex-col gap-2 [&>.sr-only]:w-auto" inert={!open} aria-hidden={!open}>
-    <label class="sr-only" for={id}>Search {title.toLowerCase()}</label>
+    <label class="sr-only" for={id}>{say(m.bar.searchLabel, { title: title.toLowerCase() })}</label>
     <!-- F1-merge: Field (purpose "search") replaces SearchField once it controls its results (aria-controls) and can stay
          mounted while closed without taking focus: this rail keeps the well mounted so its width animates open. -->
-    <SearchField {id} onready={element => input = element} value={displayedQuery} onvalue={onquery} placeholder={`Search in ${title}`}
+    <SearchField {id} onready={element => input = element} value={displayedQuery} onvalue={onquery} placeholder={say(m.bar.searchPlaceholder, { title })}
       aria-controls={open ? resultsId : undefined} tabindex={open ? undefined : -1} />
   </div>
   <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
   <div class="toolbar-action" data-search-toggle>
-    <Action label={open ? "Close search" : "Search"} icon={open ? "close" : "search"} face="icon" emphasis="secondary" state="ready"
+    <Action label={open ? say(m.bar.closeSearch) : say(m.bar.search)} icon={open ? "close" : "search"} face="icon" emphasis="secondary" state="ready"
       type="button" onclick={toggle} disclosure={{ id: `${id}-toggle`, controls: resultsId, expanded: open, haspopup: "listbox" }} />
   </div>
 </div>

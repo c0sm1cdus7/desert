@@ -48,6 +48,7 @@ export const CatalogSources = Object.freeze({
   "control-renderer": "src/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte",
   "date-control": "src/svelte/catalog/foundations/date-control/DateControl.svelte",
   "destination-row": "src/svelte/catalog/foundations/destination-row/DestinationRow.svelte",
+  "dialog": "src/svelte/catalog/compositions/dialog/Dialog.svelte",
   "drawer": "src/svelte/catalog/foundations/drawer/Drawer.svelte",
   "drawer-grip": "src/svelte/catalog/foundations/drawer-grip/DrawerGrip.svelte",
   "face": "src/svelte/catalog/foundations/face/Face.svelte",

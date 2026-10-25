@@ -28,17 +28,15 @@ const source = `<script lang="ts">
 </section>`;
 
 test("one toolbar owner reaches persistent frames, transient dialogs and the catalog shell", { timeout: 30000 }, async () => {
-  const owner = resolve(import.meta.dirname, "../src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte");
-  const original = await readFile(owner, "utf8");
-  assert.ok(original.includes('data-piece="toolbar"'));
-  // The workspace's bars are the Bar foundation's (lane F, on the shell); frames and dialogs keep ToolbarLayout until they
-  // move to Bar too (lane E). Each owner is probed: one draws the catalog shell's rails, the other every frame's.
+  // Bar is the toolbar foundation (DESIGN §3.2): the catalog shell (lane F) and every frame (lane E) draw it, so it alone
+  // carries the shared probe; the toolbar-layout composition is probed too, to prove nothing here mounts it any more.
   const bar = resolve(import.meta.dirname, "../src/svelte/catalog/foundations/bar/Bar.svelte");
-  const barSource = await readFile(bar, "utf8");
-  assert.ok(barSource.includes('data-piece="toolbar"'));
+  const owner = resolve(import.meta.dirname, "../src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte");
+  const [barSource, original] = [await readFile(bar, "utf8"), await readFile(owner, "utf8")];
+  for (const text of [barSource, original]) assert.equal(text.split('data-piece="toolbar"').length, 2);
   const f = await svelteBrowser(source, {
-    [owner]: original.replace('data-piece="toolbar"', 'data-piece="toolbar" data-owner-probe="shared"'),
-    [bar]: barSource.replace('data-piece="toolbar"', 'data-piece="toolbar" data-owner-probe="bar"'),
+    [bar]: barSource.replace('data-piece="toolbar"', 'data-piece="toolbar" data-owner-probe="shared"'),
+    [owner]: original.replace('data-piece="toolbar"', 'data-piece="toolbar" data-owner-probe="layout"'),
   });
   try {
     await f.page.addStyleTag({ content: await rendererCss() });
@@ -51,19 +49,19 @@ test("one toolbar owner reaches persistent frames, transient dialogs and the cat
       "the navigation return and this fixture's optional settings toolbar belong to the same landmark");
     assert.deepEqual((await new AxeBuilder({ page: f.page }).withRules(['landmark-banner-is-top-level', 'landmark-unique', 'region']).analyze()).violations, []);
     assert.equal(await f.page.locator('[data-persistent] [data-owner-probe="shared"]').count(), 1);
-    assert.equal(await f.page.locator('[data-catalog-toolbar][data-owner-probe="bar"]').count(), 1);
+    assert.equal(await f.page.locator('[data-catalog-toolbar][data-owner-probe="shared"]').count(), 1);
+    assert.equal(await f.page.locator('[data-owner-probe="layout"]').count(), 0, "no toolbar here is toolbar-layout's");
     assert.equal(await f.page.locator('[data-catalog-toolbar] [data-piece="face"]').count(), 0,
       "catalog navigation does not acquire an ornamental face");
     await f.page.getByRole('button', { name: 'Open message', exact: true }).click();
     const dialog = f.page.getByRole('dialog', { name: 'Transient message', exact: true });
-    assert.equal(await dialog.locator('[data-toolbar="top"][data-owner-probe="shared"]').count(), 1);
-    assert.equal(await dialog.locator('[data-toolbar="bottom"][data-owner-probe="shared"]').count(), 1);
-    assert.equal(await dialog.locator('[data-piece="toolbar"]:not([data-owner-probe="shared"])').count(), 0);
-    const headers = [f.page.locator('[data-persistent] [data-toolbar="top"]'), dialog.locator('[data-toolbar="top"]')];
-    for (const header of headers) {
-      assert.equal(await header.locator('[data-toolbar-face] > [data-piece="face"]').count(), 1);
-      assert.equal(await header.locator('.toolbar-row [data-piece="face"]').count(), 0);
-    }
+    // A transient message is a dialog now (DESIGN §7.5): its face heads its content, and it draws no toolbar at all.
+    await dialog.waitFor();
+    assert.equal(await dialog.locator('[data-piece="toolbar"]').count(), 0);
+    assert.equal(await dialog.locator('[data-modal-message-content] [data-piece="face"]').count(), 1);
+    const header = f.page.locator('[data-persistent] [data-toolbar="top"]');
+    assert.equal(await header.locator('[data-toolbar-face] > [data-piece="face"]').count(), 1);
+    assert.equal(await header.locator('.toolbar-row [data-piece="face"]').count(), 0);
     await f.page.keyboard.press('Escape');
     await dialog.waitFor({ state: 'hidden' });
     assert.deepEqual(f.errors, []);

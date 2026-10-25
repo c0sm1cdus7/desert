@@ -77,7 +77,7 @@ test("About this draft remains inline through Escape, editing and navigation", a
   try {
     await page.reload();
     await (await navigationAction(page, "Travel kit")).click();
-    const draft = page.locator('[data-local-exercises] [data-place-stack="draft"]');
+    const draft = page.locator('[data-place-content] [data-view-item="draft"]');
     const copy = draft.getByText("Nothing is booked, uploaded or saved to an account. Closing or reloading this tab discards the draft and local file references.", { exact: true });
     const assertReadingContent = async () => {
       assert.equal(await draft.getByRole("heading", { name: "About this draft", exact: true }).isVisible(), true);

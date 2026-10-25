@@ -1252,7 +1252,7 @@ export function nodeEvent(value: unknown): NodeEvent {
 
 ## src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte
 
-Source SHA-256: ce2e83aa573a314c4f6460007e3dc0daaf35f12487484f628105296e5f68cef3
+Source SHA-256: bf9d54d064dc3614c7951fae0d8fa57a50a6b17195084dd8d9e9b3240f88db70
 
 ```svelte
 <script lang="ts">
@@ -1324,7 +1324,7 @@ Source SHA-256: ce2e83aa573a314c4f6460007e3dc0daaf35f12487484f628105296e5f68cef3
   {@const Renderer = nodeRenderers.transient}<Renderer label={checked.label} open={checked.open} locked={checked.locked} frame={checked.frame}
     continuity={continuity} onclose={frameEvents.close} onclosed={frameEvents.closed} invoke={frameEvents.invoke} edit={frameEvents.edit} controlEvent={frameEvents.controls} />
 {:else if checked.kind === "problem"}
-  <!-- lane-merge: dialog (lane E). The problem node is drawn by Dialog once that composition lands. -->
+  <!-- The problem node is drawn by Problem, the adapter of its props onto Dialog. -->
   {@const Renderer = nodeRenderers.problem}<Renderer open={checked.open} title={checked.title} description={checked.description}
     locked={checked.locked} severity={checked.severity} close={() => emit({ kind: "problem.close" })} />
 {:else if checked.kind === "control.select"}
@@ -2980,7 +2980,7 @@ Source SHA-256: 82d2c139745c9943438bfba684ca35f34a2aff2809bb94f64d9fc0dd64efbdc0
 
 ## src/svelte/catalog/foundations/bar/BarSearch.svelte
 
-Source SHA-256: 16ee134a234920763ed07f5dfd670b2fdb377568f467d5acae2dbed89fded322
+Source SHA-256: 2aa492c99923e7f2c9d69a0c48fa6dcc6e168faba68565d349725e48d9847a6c
 
 ```svelte
 <script lang="ts">
@@ -2988,6 +2988,8 @@ Source SHA-256: 16ee134a234920763ed07f5dfd670b2fdb377568f467d5acae2dbed89fded322
   // Opening focuses the field; the displayed query freezes while closed so the field does not change as it hides.
   import { tick, untrack } from "svelte";
   import { Action, SearchField } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let { title, query, open, resultsId, onquery, onopen, oncancel }: {
     title: string; query: string; open: boolean; resultsId: string;
     onquery: (query: string) => void; onopen: () => void; oncancel: () => void;
@@ -3005,15 +3007,15 @@ Source SHA-256: 16ee134a234920763ed07f5dfd670b2fdb377568f467d5acae2dbed89fded322
 <div data-catalog-search-actions data-expanded={open}>
   <!-- The field wrapper the vendor field family drew for the toolbar search (same classes, no vendor import). -->
   <div role="group" data-catalog-search class="group/field flex w-full flex-col gap-2 [&>.sr-only]:w-auto" inert={!open} aria-hidden={!open}>
-    <label class="sr-only" for={id}>Search {title.toLowerCase()}</label>
+    <label class="sr-only" for={id}>{say(m.bar.searchLabel, { title: title.toLowerCase() })}</label>
     <!-- F1-merge: Field (purpose "search") replaces SearchField once it controls its results (aria-controls) and can stay
          mounted while closed without taking focus: this rail keeps the well mounted so its width animates open. -->
-    <SearchField {id} onready={element => input = element} value={displayedQuery} onvalue={onquery} placeholder={`Search in ${title}`}
+    <SearchField {id} onready={element => input = element} value={displayedQuery} onvalue={onquery} placeholder={say(m.bar.searchPlaceholder, { title })}
       aria-controls={open ? resultsId : undefined} tabindex={open ? undefined : -1} />
   </div>
   <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
   <div class="toolbar-action" data-search-toggle>
-    <Action label={open ? "Close search" : "Search"} icon={open ? "close" : "search"} face="icon" emphasis="secondary" state="ready"
+    <Action label={open ? say(m.bar.closeSearch) : say(m.bar.search)} icon={open ? "close" : "search"} face="icon" emphasis="secondary" state="ready"
       type="button" onclick={toggle} disclosure={{ id: `${id}-toggle`, controls: resultsId, expanded: open, haspopup: "listbox" }} />
   </div>
 </div>
@@ -3204,7 +3206,7 @@ Source SHA-256: c248643c89bf0dc15b6bf713393e89e40e34e36a8cc0fe50a18557f4f6ff7e93
 
 ## src/svelte/catalog/renderer/panel/Panel.svelte
 
-Source SHA-256: 1b3d69041cf4cb2a6778e012a4f72e0df8c284d38707212b4b728b75f4ff3486
+Source SHA-256: ab5aad4476c2a4f8bc99b858f29c87f0cec22b4ec840071dceb95bcc100fd1d5
 
 ```svelte
 <script lang="ts">
@@ -3224,7 +3226,7 @@ Source SHA-256: 1b3d69041cf4cb2a6778e012a4f72e0df8c284d38707212b4b728b75f4ff3486
       if (next) {
         const firstMount = mounted === null;
         mounted = next;
-        // The shared Drawer must observe closed → open, just like the stable
+        // The shared modal must observe closed → open, just like the stable
         // retained bank specimen. Do not mount it already at its final state.
         if (firstMount) void tick().then(() => { if (revision === current) open = true; });
         else open = true;
@@ -3242,7 +3244,7 @@ Source SHA-256: 1b3d69041cf4cb2a6778e012a4f72e0df8c284d38707212b4b728b75f4ff3486
 </script>
 
 {#each mounted ? [mounted] : [] as current}
-  <ViewPanel panel={current} {open} frameIdentity={current.owner} onevent={dispatch(current.owner)} />
+  <ViewPanel panel={current} {open} continuity={current.owner.key} onevent={dispatch(current.owner)} />
 {/each}
 ```
 
@@ -3402,25 +3404,20 @@ export function retrieveCollection(records: readonly RecordView[], fields: reado
 
 ## src/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte
 
-Source SHA-256: 5f01194c7c39744c9c53c5211643642aa933db489d26dafdf508f04a2f06cb11
+Source SHA-256: 0916b3ced85e7d92fafe4ad145a5e81c5fdd9cf957510a6520fea082ea4a3f96
 
 ```svelte
 <script lang="ts">
   import { surfaceFrame } from "../../../../interaction/surface-frame.ts";
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
-  import type { CatalogProps } from "../../types.d.ts";
-  import { ContentFlow } from "../../index.ts";
-  import { FrameBody } from "../../index.ts";
-  import { Toolbar } from "../../index.ts";
-  import { ScrollEdges } from "../../index.ts";
-  import { provideSurfaceHost } from "../../mechanisms/surface-host/surface-host.svelte.ts";
-  import { provideToolbarScroll } from "../../mechanisms/toolbar-scroll/toolbar-scroll.svelte.ts";
   import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
+  import { ContentFlow, FrameBody, Surface, Toolbar } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEvent }: CatalogProps<"surface-frame"> = $props();
-  let host = $state<HTMLElement | null>(null);
-  let viewport = $state<HTMLDivElement | null>(null);
-  provideSurfaceHost(() => host);
-  provideToolbarScroll({ owner: () => host, viewport: () => viewport });
+  const uid = $props.id();
+  const formId = `${uid}-form`;
   let checked = $derived.by(() => {
     const value = surfaceFrame(frame);
     // A modal message may consolidate dismissal, never suppress task navigation.
@@ -3431,11 +3428,15 @@ Source SHA-256: 5f01194c7c39744c9c53c5211643642aa933db489d26dafdf508f04a2f06cb11
   // owns a bottom navigation rail; confirmations retain their compact choices.
   let steps = $derived(checked.kind === "journey" && checked.navigation === "steps");
   let topCommit = $derived(!steps && (checked.kind === "journey" || checked.kind === "specimen") ? checked.bottom.primary : undefined);
-  let top = $derived(topCommit ? {...checked.top, primary:{...topCommit,
+  let topToolbar = $derived(topCommit ? {...checked.top, primary:{...topCommit,
     icon:checked.content.kind === "form" || checked.content.kind === "review" ? "confirm" as const : topCommit.icon}} : checked.top);
-  let bottom = $derived(steps || checked.kind === "confirmation" || checked.kind === "message");
-  function submit(event: SubmitEvent) {
-    event.preventDefault();
+  let closing = $derived(steps || checked.kind === "confirmation" || checked.kind === "message");
+  let choices = $derived(closing && (checked.bottom.primary !== undefined || (checked.bottom.secondary !== undefined && presentation !== "transient")));
+  let label = $derived(checked.kind === "context" ? say(m.surfaceFrame.context) : checked.kind === "journey" ? say(m.surfaceFrame.journey) : undefined);
+  // A form frame wraps its bars and content in one form, named by its title; its submit command names that form.
+  let form = $derived(checked.content.kind === "form" ? { label: checked.top.title, id: formId } : undefined);
+  let submit = $derived(checked.content.kind === "form" ? { journey: checked.content.submit, form: formId } : undefined);
+  function submitted() {
     if (checked.content.kind !== "form") return;
     const action = checked.bottom.primary;
     if (action?.state === "ready") invoke(action.intent);
@@ -3446,23 +3447,19 @@ Source SHA-256: 5f01194c7c39744c9c53c5211643642aa933db489d26dafdf508f04a2f06cb11
     else if (event.kind === "surface.invoke") invoke(event.intent);
   }
 </script>
-{#snippet slots()}
-  <Toolbar toolbar={{ edge: "top", ...top }} {invoke} {presentation} submit={checked.content.kind === "form" ? checked.content.submit : undefined} />
-  <div bind:this={viewport} class="surface-content min-h-0 flex-1 overflow-auto" data-surface-slot="content">
+
+<Surface kind="frame" {presentation} {label} {form} searching={false} onsubmit={submitted}>
+  {#snippet top()}<Toolbar toolbar={{ edge: "top", ...topToolbar }} {invoke} {presentation} {submit} />{/snippet}
+  {#snippet content()}
     {#if body}<ContentFlow resolved={body} onevent={dispatch} host="panel" />
     {:else}<FrameBody content={checked.content} {invoke} {edit} {controlEvent} messageDialog={presentation === "message"} />{/if}
-  </div>
-  {#if bottom && (checked.bottom.primary || (checked.bottom.secondary && presentation !== "transient"))}
-    <Toolbar toolbar={{ edge: "bottom", ...checked.bottom, ...(steps ? {navigation:"steps" as const} : {}) }} {invoke} {presentation} submit={checked.content.kind === "form" ? checked.content.submit : undefined} />
-  {/if}
-  <ScrollEdges {viewport} owner={host} />
-{/snippet}
-<section bind:this={host} class="flex min-h-0 min-w-0 flex-1 flex-col" data-scroll-owner data-surface-host data-surface-frame={checked.version} data-frame-presentation={presentation} tabindex="-1"
-  aria-label={checked.kind === "context" ? "Object context" : checked.kind === "journey" ? "Journey" : undefined}>
-  {#if checked.content.kind === "form"}
-    <form class="flex min-h-0 flex-1 flex-col" novalidate onsubmit={submit}>{@render slots()}</form>
-  {:else}{@render slots()}{/if}
-</section>
+  {/snippet}
+  {#snippet bottom()}
+    {#if choices}
+      <Toolbar toolbar={{ edge: "bottom", ...checked.bottom, ...(steps ? { navigation: "steps" as const } : {}) }} {invoke} {presentation} {submit} />
+    {/if}
+  {/snippet}
+</Surface>
 ```
 
 ## src/interaction/surface-frame.ts
@@ -3817,13 +3814,13 @@ export function presentFrame(surface: HumanSurface, state: HumanState, validate:
 
 ## src/svelte/catalog/renderer/frame-body/FrameBody.svelte
 
-Source SHA-256: 1d2e805f4dd9c133611704d2b9af8615b5474e42da654c54ff9d13e0785f92d6
+Source SHA-256: 0ec0f43aa562960efbc0d6b100c0d246f157bf267a2727cd87b3a84485c4daac
 
 ```svelte
 <script lang="ts">
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import { NodeRenderer, Information, MessageBody, UtilityActions } from "../../index.ts";
+  import { NodeRenderer, Information, Text, UtilityActions } from "../../index.ts";
   import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { content, invoke, edit, messageDialog = false, controlEvent }: CatalogProps<"frame-body"> = $props();
@@ -3845,8 +3842,11 @@ Source SHA-256: 1d2e805f4dd9c133611704d2b9af8615b5474e42da654c54ff9d13e0785f92d6
   <Information items={content.items} />
 {:else if content.kind === "utilities"}
   <UtilityActions actions={content.actions} {invoke} />
+{:else if messageDialog}
+  <!-- A message dialog's sentence centres under its title; a frame's message is a polite live status. -->
+  <Text kind="support" align="center" text={content.text} />
 {:else}
-  <MessageBody {content} {messageDialog} />
+  <Text kind="body" live="polite" text={content.text} />
 {/if}
 ```
 
@@ -4563,16 +4563,31 @@ export const InformationSchema = Type.Object({ kind: Type.Literal("information")
 
 ## src/svelte/catalog/compositions/toolbar/Toolbar.svelte
 
-Source SHA-256: fdac3944924fcdb2c720239be2714aaa6d69d3a8602cd4de6e7c595c0b0a778c
+Source SHA-256: 95d6500ce603f7e812ae79ce8d0833a8ae5732a509302ab5ded2c8116684a0f5
 
 ```svelte
 <script lang="ts">
+  import { submitsJourney } from "../../../../interaction/intent.ts";
+  import type { ToolbarAction } from "../../../../interaction/toolbar.ts";
+  import type { BarCommand } from "../../../infra/bar-command.ts";
+  import { Bar } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  import { ToolbarLayout } from "../../index.ts";
-  let { toolbar, invoke, submit, presentation = "standard", controls }: CatalogProps<"toolbar"> = $props();
+  let { toolbar, invoke, submit, presentation = "standard" }: CatalogProps<"toolbar"> = $props();
+  // The command that runs the frame's form journey submits that form; every other command invokes its intent.
+  const command = (action: ToolbarAction): BarCommand =>
+    submit && submitsJourney(action.intent, submit.journey) ? { ...action, submit: submit.form } : action;
 </script>
 
-<ToolbarLayout content={{kind:"commands",toolbar,invoke,submit,presentation,controls}} />
+{#if toolbar.edge === "top"}
+  <Bar edge="top" purpose="commands" identity={{ title: toolbar.title, subtitle: toolbar.subtitle }}
+    identityRole={presentation === "message" ? "message" : "heading"} face={toolbar.face} leading={toolbar.leading}
+    trailing={toolbar.trailing ?? []} group={toolbar.actionGroup} primary={toolbar.primary && command(toolbar.primary)}
+    availability={toolbar.availability} settingsPlaceholder={false} inert={false} oninvoke={invoke} />
+{:else}
+  <Bar edge="bottom" purpose={toolbar.navigation === "steps" ? "steps" : "commit"} identityRole="heading" trailing={[]}
+    secondary={toolbar.secondary} primary={toolbar.primary && command(toolbar.primary)} settingsPlaceholder={false} inert={false}
+    oninvoke={invoke} />
+{/if}
 ```
 
 ## src/svelte/catalog/foundations/face/Face.svelte
@@ -4979,7 +4994,7 @@ Source SHA-256: 0f3413874945210d81ff9f660178d8672ff55a0f0e1c07142e0562f22b07a702
 
 ## src/svelte/infra/action-icons.ts
 
-Source SHA-256: 747c889e41bfaedcc4828c9c448a402756c366a162d3efe10ad3d8d7d67a7d34
+Source SHA-256: fdc440c606348edfbc9837731b37dbe668b90956f47eac5726e23548a8cf69b2
 
 ```ts
 import type { ActionIcon } from "../../interaction/toolbar.ts";
@@ -4990,6 +5005,7 @@ export const actionIconNames = {
   create: "plus", archive: "archive", catalog: "layout-grid", open: "arrow-right", confirm: "check", search: "search", more: "ellipsis", navigation: "panel-left",
   media: "images", edit: "pencil", settings: "settings", lock: "lock", restore: "undo-2", palette: "palette",
   play: "play", pause: "pause", volume: "volume-2", muted: "volume-x", previous: "chevron-left", next: "chevron-right",
+  "zoom-in": "plus", "zoom-out": "minus",
 } as const satisfies Record<ActionIcon, string>;
 ```
 
@@ -6192,12 +6208,12 @@ let { destination, label, available, open, icon = 'open', reason }: CatalogProps
 
 ## src/svelte/catalog/foundations/drawer/Drawer.svelte
 
-Source SHA-256: cf195b6258eadc6213da3acfe129e88eb41c41825490821b7b89659ece111fea
+Source SHA-256: baf12ed19b7bf57dfc1f31dde1a08a896a4eafd986520ac747d75b876a134627
 
 ```svelte
 <script lang="ts">
-  // F1-merge: transitional adapter of the renamed piece. View-panel (lane E) mounts Modal(adaptive|transient, continuity)
-  // over SurfaceFrame itself and maps dismissal to the frame's secondary intent; this folder is deleted in Batch 3.
+  // F1-merge: transitional adapter of the renamed piece. View-panel mounts Modal(adaptive|transient, continuity)
+  // over the frame itself and maps dismissal to the frame's secondary intent; this folder is deleted in Batch 3.
   import { Modal } from "../../index.ts";
   import { SurfaceFrame } from "../../index.ts";
   import { InstanceFrame } from "../../index.ts";
@@ -6235,7 +6251,7 @@ Source SHA-256: cf195b6258eadc6213da3acfe129e88eb41c41825490821b7b89659ece111fea
 
 ## src/svelte/catalog/foundations/modal/Modal.svelte
 
-Source SHA-256: 0b41eda3ac799a61ea238720671240c81218ed9e8a5530fa78d31a5d89e0ec90
+Source SHA-256: 7744141a901f07b6d9b30f37816a2ebb8bdbc9e6b36b3dd51d44a77d73970c30
 
 ```svelte
 <script lang="ts">
@@ -6246,7 +6262,7 @@ Source SHA-256: 0b41eda3ac799a61ea238720671240c81218ed9e8a5530fa78d31a5d89e0ec90
   import ModalPane from "./ModalPane.svelte";
   import ModalSheet from "./ModalSheet.svelte";
   import ModalDialog from "./ModalDialog.svelte";
-  let { label, open, locked, presentation, continuity, ondismiss, onclosed, children }: CatalogProps<"modal"> = $props();
+  let { label, open, locked, presentation, labelledBy, describedBy, continuity, ondismiss, onclosed, children, actions }: CatalogProps<"modal"> = $props();
   const density = useSurfaceDensityClass();
   /** Escape, the scrim and the grip ask to dismiss; a locked modal refuses, and the caller decides what dismissal means. */
   const dismiss = () => { if (!locked) ondismiss?.(); };
@@ -6261,7 +6277,7 @@ Source SHA-256: 0b41eda3ac799a61ea238720671240c81218ed9e8a5530fa78d31a5d89e0ec90
 {:else if presentation === "sheet"}
   <ModalSheet {label} {open} {locked} density={density()} {dismiss} {onclosed} {children} />
 {:else}
-  <ModalDialog {label} {open} {presentation} density={density()} {dismiss} {onclosed} {children} />
+  <ModalDialog {label} {labelledBy} {describedBy} {open} {presentation} density={density()} {dismiss} {onclosed} {children} {actions} />
 {/if}
 ```
 

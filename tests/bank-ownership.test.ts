@@ -13,13 +13,17 @@ const source = (path: string) => readFileSync(new URL(`../src/svelte/${path}`, i
 
 test("product, catalog and nested compositions use the one bank dispatch boundary", () => {
   const consumers = ["catalog/renderer/frame-body/FrameBody.svelte", "catalog/compositions/fields/Fields.svelte", "catalog/compositions/context-panel/ContextPanel.svelte", "catalog/compositions/review/Review.svelte",
-    "catalog/renderer/failure-dialog/FailureDialog.svelte", "catalog/compositions/specimen/Specimen.svelte", "catalog/compositions/inspection/Inspection.svelte", "catalog/compositions/fact-group/FactGroup.svelte", "catalog/renderer/control-renderer/ControlRenderer.svelte"];
+    "catalog/compositions/specimen/Specimen.svelte", "catalog/compositions/inspection/Inspection.svelte", "catalog/compositions/fact-group/FactGroup.svelte", "catalog/renderer/control-renderer/ControlRenderer.svelte"];
   for (const consumer of consumers) {
     const text = source(consumer);
     assert.match(text, /NodeRenderer/, `${consumer} bypasses the bank`);
     assert.doesNotMatch(text, /import .+ from ["'][^"']*(?:renderer-registry|\/(?:TextInput|Field|Action|Availability|Drawer|Problem)|\/(?:Fields|Facts|ContextPanel|Review|Collection)\.svelte)/,
       `${consumer} resolves a registered owner independently`);
   }
+  // A failure explains itself through the dialog composition (DESIGN §4, item 72), never a registered owner directly.
+  const failure = source("catalog/renderer/failure-dialog/FailureDialog.svelte");
+  assert.match(failure, /import \{ Dialog \} from "\.\.\/\.\.\/index\.ts"/);
+  assert.doesNotMatch(failure, /renderer-registry|\/(?:Problem|Drawer|Modal)\.svelte/);
   const dispatch = source("catalog/renderer/node-renderer/NodeRenderer.svelte");
   assert.match(dispatch, /resolvedNode\(node\)/);
   assert.match(dispatch, /nodeRenderers/);

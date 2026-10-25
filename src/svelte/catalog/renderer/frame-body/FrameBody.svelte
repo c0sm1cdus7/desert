@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { NodeEvent } from "../../../../interaction/node-events.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import { NodeRenderer, Information, MessageBody, UtilityActions } from "../../index.ts";
+  import { NodeRenderer, Information, Text, UtilityActions } from "../../index.ts";
   import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { content, invoke, edit, messageDialog = false, controlEvent }: CatalogProps<"frame-body"> = $props();
@@ -23,6 +23,9 @@
   <Information items={content.items} />
 {:else if content.kind === "utilities"}
   <UtilityActions actions={content.actions} {invoke} />
+{:else if messageDialog}
+  <!-- A message dialog's sentence centres under its title; a frame's message is a polite live status. -->
+  <Text kind="support" align="center" text={content.text} />
 {:else}
-  <MessageBody {content} {messageDialog} />
+  <Text kind="body" live="polite" text={content.text} />
 {/if}

@@ -1,6 +1,6 @@
 /* The rest of the toolbar-layout composition's geometry: rules for marks only it (or a piece it mounts)
-   draws. Bar owns the shared toolbar rules in foundations/bar/bar.css; lane E deletes this file with the
-   composition. The speed-dial container rule moved to popover (F1d); menu replaces the rest when bar mounts it. */
+   draws. Bar owns the shared toolbar rules in foundations/bar/bar.css; Batch 3 deletes this file with the
+   composition, which nothing mounts any more. The speed-dial container rule moved to popover (F1d); menu replaces the rest when bar mounts it. */
 [data-piece="toolbar"] :is([data-catalog-navigation-actions],[data-toolbar-auxiliary]) { display:flex; min-width:0; align-items:center; }
 /* An empty action group must not allocate a rail gap before the identity. */
 [data-piece="toolbar"] [data-catalog-navigation-actions]:not(:has(button)) { display:none; }

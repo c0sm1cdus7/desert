@@ -5,7 +5,8 @@ import { PanelContract } from "./panel.contract.ts";
 
 export const Panel = defineComposition({
   id: "panel",
-  purpose: "Keep an owned view panel mounted across open and close, routing its events with the owner it was mounted for.",
+  purpose: { key: "panel.purpose" },
+  messages: ["panel.purpose"],
   owner: { entry: "Panel.svelte" },
   uses: ["view-panel"], approval: "none", contract: PanelContract,
 } as const);

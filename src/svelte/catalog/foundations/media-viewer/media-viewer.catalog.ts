@@ -7,6 +7,7 @@ import { MediaViewerContract } from "./media-viewer.contract.ts";
 export const MediaViewer = defineFoundation({
   id: "media-viewer",
   purpose: "Show images, audio and video full screen with paging, zoom and playback, and return focus to what opened them.",
+  messages: ["mediaViewer.close", "mediaViewer.zoomOut", "mediaViewer.resetZoom", "mediaViewer.zoomIn"],
   owner: { entry: "MediaViewer.svelte", parts: ["MediaStrip.svelte"], mechanisms: ["media-gestures", "surface-focus"] },
   shape: "none", states: ["image", "playable", "single"],
   approval: "required", contract: MediaViewerContract,

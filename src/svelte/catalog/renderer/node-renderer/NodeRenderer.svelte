@@ -67,7 +67,7 @@
   {@const Renderer = nodeRenderers.transient}<Renderer label={checked.label} open={checked.open} locked={checked.locked} frame={checked.frame}
     continuity={continuity} onclose={frameEvents.close} onclosed={frameEvents.closed} invoke={frameEvents.invoke} edit={frameEvents.edit} controlEvent={frameEvents.controls} />
 {:else if checked.kind === "problem"}
-  <!-- lane-merge: dialog (lane E). The problem node is drawn by Dialog once that composition lands. -->
+  <!-- The problem node is drawn by Problem, the adapter of its props onto Dialog. -->
   {@const Renderer = nodeRenderers.problem}<Renderer open={checked.open} title={checked.title} description={checked.description}
     locked={checked.locked} severity={checked.severity} close={() => emit({ kind: "problem.close" })} />
 {:else if checked.kind === "control.select"}

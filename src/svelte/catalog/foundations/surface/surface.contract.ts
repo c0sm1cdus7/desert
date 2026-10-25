@@ -1,6 +1,7 @@
 // The props of Surface. `kind` (DESIGN §1.6 calls it `role`, a name rule E reserves for ARIA) says which surface it
 // is: the `main` content place of a workspace (its scroll viewport, hidden from interaction while `searching`), the `navigation` pane, a `frame` (a panel or dialog: the host its
-// transients size against, presented as `presentation`, wrapping a `form` when it has one), or the `page` an access
+// transients size against, presented as `presentation`, wrapping a `form` when it has one: its accessible `label` and the
+// `id` a bar's submit command names), or the `page` an access
 // experience fills over a `backdrop` wallpaper. `label` names it; `destination` marks a main place's destination.
 // `composition` reports text composition inside a place; `submit` is the form's submission. A caller that binds it
 // scrolls its viewport through the instance (scrollToTop, scrollTop, scrollTo) instead of holding its elements.
@@ -15,7 +16,7 @@ export const SurfaceContract = {
     searching: Type.Boolean(),
     presentation: Type.Optional(Type.Union([Type.Literal("standard"), Type.Literal("message"), Type.Literal("transient")])),
     backdrop: Type.Optional(Type.Union([Type.Literal("silk"), Type.Literal("mist"), Type.Literal("plain")])),
-    form: Type.Optional(Type.Object({ label: text }, { additionalProperties: false })),
+    form: Type.Optional(Type.Object({ label: text, id: Type.String({ minLength: 1 }) }, { additionalProperties: false })),
   }, { additionalProperties: false }),
   events: Type.Object({
     composition: Type.Boolean(),

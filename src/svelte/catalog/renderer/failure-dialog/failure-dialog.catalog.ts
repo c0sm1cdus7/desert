@@ -1,10 +1,11 @@
-// FailureDialog: the problem dialog that explains a failed command by its code, and closes on any of its events.
+// FailureDialog: the dialog that explains a failed command by its code, and closes on its one choice or on dismissal.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { FailureDialogContract } from "./failure-dialog.contract.ts";
 
 export const FailureDialog = defineComposition({
   id: "failure-dialog",
-  purpose: "Explain a failed command in a problem dialog derived from its failure code, saying when the outcome is uncertain.",
+  purpose: { key: "failureDialog.purpose" },
+  messages: ["failureDialog.purpose", "failureDialog.close"],
   owner: { entry: "FailureDialog.svelte" },
-  uses: ["node-renderer"], approval: "none", contract: FailureDialogContract,
+  uses: ["dialog"], approval: "none", contract: FailureDialogContract,
 } as const);

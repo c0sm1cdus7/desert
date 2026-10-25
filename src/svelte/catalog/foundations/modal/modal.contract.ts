@@ -2,6 +2,8 @@
 // its `presentation` (an adaptive pane docked beside its parent when the host has room; a transient pane; a picker sheet;
 // a centred message; the full-screen media stage; the navigation pane), and `continuity`, the string identity of the
 // frame it shows and of that frame's reading, which keeps focus and the reading position when the frame is replaced.
+// A message may name the visible heading and sentence it holds (`labelledBy`, `describedBy`: their ids), which then name
+// and describe the dialog instead of a hidden title; its `actions` stay in view below its content, which scrolls.
 // It emits `dismiss` on Escape, the scrim or the grip (the caller decides what dismissal means) and `closed` once its
 // exit ends. A caller that binds it notes each invocation it is about to make: `noteInvocation("close")` before Back or
 // Close (focus returns to the command that left the frame), `noteInvocation("other")` before anything else.
@@ -15,6 +17,8 @@ export const ModalContract = {
     locked: Type.Boolean(),
     presentation: Type.Union([Type.Literal("adaptive"), Type.Literal("transient"), Type.Literal("sheet"),
       Type.Literal("message"), Type.Literal("media"), Type.Literal("navigation")]),
+    labelledBy: Type.Optional(Type.String({ minLength: 1 })),
+    describedBy: Type.Optional(Type.String({ minLength: 1 })),
     continuity: Type.Optional(Type.Object({
       frame: Type.String(),
       reading: Type.Optional(Type.String()),

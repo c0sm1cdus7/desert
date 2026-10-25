@@ -1,29 +1,24 @@
 <script lang="ts">
-  import type { Stack } from "../../../../interaction/place.ts";
-  import type { NodeEvent } from "../../../../interaction/node-events.ts";
-  import type { LocalFileHost } from "../../../infra/file-host.ts";
-  import { NodeRenderer } from "../../index.ts";
-  import { StackLayout } from "../../index.ts";
-  import { StackItem } from "../../index.ts";
+  import { NodeRenderer, StackItem, StackLayout, ViewRegion } from "../../index.ts";
   import { stackPlacement } from "../../../infra/stack-placement.ts";
   import { provideStackTitle } from "../../../infra/stack-context.ts";
   import { optionsInputRequired } from "../../../../interaction/extended-controls.ts";
-  let { definition, onevent, host }: {
-    definition: Stack; onevent: (event: NodeEvent) => void; host?: LocalFileHost;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { definition, onevent }: CatalogProps<"stack"> = $props();
   provideStackTitle(() => definition.title);
   // A deduplicated legend retains the same semantic law as its standalone owner.
   let required = $derived(definition.items.some(item => item.kind === "control.options"
     && item.control.label === definition.title && optionsInputRequired(item.control)));
 </script>
 
-<section data-place-stack={definition.id}>
+<!-- The stack's region, `definition.id`: navigation reveals it by that identity. -->
+<ViewRegion kind="item" id={definition.id}>
   <StackLayout title={definition.title} description={definition.description} {required}>
     {#each definition.items as item, index (index)}
       <StackItem placement={stackPlacement(item.kind)} kind={item.kind}>
-        <!-- lane-merge: stack (lane E). The node renderer takes no host: files reads it from context (provideFileHost). -->
+        <!-- The node renderer takes no host: files reads it from context (provideFileHost). -->
         <NodeRenderer node={item} {onevent} />
       </StackItem>
     {/each}
   </StackLayout>
-</section>
+</ViewRegion>

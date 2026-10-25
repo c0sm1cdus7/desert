@@ -4,7 +4,8 @@ import { LocalExerciseContentContract } from "./local-exercise-content.contract.
 
 export const LocalExerciseContent = defineComposition({
   id: "local-exercise-content",
-  purpose: "Present the local exercises place as a draft its own events reduce, forwarding catalog navigation to the host.",
+  purpose: { key: "localExerciseContent.purpose" },
+  messages: ["localExerciseContent.purpose"],
   owner: { entry: "LocalExerciseContent.svelte" },
   uses: ["place-content"], approval: "none", contract: LocalExerciseContentContract,
 } as const);

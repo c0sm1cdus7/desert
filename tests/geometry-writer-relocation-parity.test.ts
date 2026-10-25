@@ -123,9 +123,11 @@ test("moving protected geometry and typography writers preserves catalog.home an
         await f.page.getByRole('button',{name:'Open message',exact:true}).click();
         await f.page.getByRole('dialog').waitFor(); await settle(f);
       }
-      const message = async (fixture: typeof baseline) => fixture.page.locator('[data-frame-presentation="message"]').evaluate(element => {
-        const style=getComputedStyle(element), body=element.querySelector('.message-description')!, text=getComputedStyle(body);
-        const heading=getComputedStyle(element.querySelector('.toolbar-title')!);
+      // The message dialog (DESIGN §7.5): its visible title and sentence name and describe it.
+      const message = async (fixture: typeof baseline) => fixture.page.locator('[data-modal-message]').evaluate(element => {
+        const dialog=element.closest('[role="dialog"]')!;
+        const style=getComputedStyle(element), body=document.getElementById(dialog.getAttribute('aria-describedby')!)!, text=getComputedStyle(body);
+        const heading=getComputedStyle(document.getElementById(dialog.getAttribute('aria-labelledby')!)!);
         return { variable:style.getPropertyValue('--text-body--line-height'), font:text.fontSize, line:text.lineHeight,
           title:style.getPropertyValue('--text-section'), titleLine:style.getPropertyValue('--text-section--line-height'),
           titleWeight:style.getPropertyValue('--text-section--font-weight'), bodySize:style.getPropertyValue('--text-body'),

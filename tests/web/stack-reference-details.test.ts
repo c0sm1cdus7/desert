@@ -13,22 +13,22 @@ for (const colorScheme of ['light', 'dark'] as const) test(`v1 stack details and
     await f.page.goto(`${f.origin}/?place=travel-kit`);
     await settle(f.page);
     const observed = await f.page.evaluate(() => {
-      const stack = document.querySelector('[data-place-stack="pace"]')!;
+      const stack = document.querySelector('[data-view-item="pace"]')!;
       const title = stack.querySelector('.place-stack-title h2')!;
       const panel = stack.querySelector('[data-grouped-panel]')!;
       const titleStyle = getComputedStyle(title), titleBox = title.getBoundingClientRect(), paneBox = panel.getBoundingClientRect();
       const row = panel.querySelectorAll('[data-choice-row]')[1]!;
       const separator = getComputedStyle(row, '::before');
-      const money = document.querySelector('[data-place-stack="budget"] [data-floating-field]')!;
+      const money = document.querySelector('[data-view-item="budget"] [data-floating-field]')!;
       const moneyStyle = getComputedStyle(money);
-      const ordinary = document.querySelector('[data-place-stack="visit"] [data-primitive="input.text"] [data-floating-field]')!;
-      const description = document.querySelector('[data-place-stack="visit"] .place-stack-description')!;
+      const ordinary = document.querySelector('[data-view-item="visit"] [data-primitive="input.text"] [data-floating-field]')!;
+      const description = document.querySelector('[data-view-item="visit"] .place-stack-description')!;
       const stars = [...stack.querySelectorAll('.required')].filter(element => element.getBoundingClientRect().width > 1
         && !element.closest('.sr-only')).length;
       return {
         title: { size: parseFloat(titleStyle.fontSize), line: parseFloat(titleStyle.lineHeight), weight: titleStyle.fontWeight,
           inset: titleBox.left - paneBox.left, paneOffset: paneBox.top - titleBox.top, stars },
-        optionalStars: document.querySelector('[data-place-stack="interests"] .place-stack-title .required') !== null,
+        optionalStars: document.querySelector('[data-view-item="interests"] .place-stack-title .required') !== null,
         separator: { left: separator.left, right: separator.right, height: separator.height },
         descriptionInset: getComputedStyle(description).paddingInlineStart,
         money: { background: moneyStyle.backgroundColor, border: moneyStyle.borderTopWidth, radius: moneyStyle.borderRadius,

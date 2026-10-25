@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 import { mediaInspectionBefore } from './fixtures/media-inspection-before.ts';
@@ -19,6 +20,13 @@ const previous=Object.fromEntries(Object.entries(mediaInspectionBefore).map(([pa
 // it over Card (its folder is gone): the frozen side mounts that card at the composition's path (the same depth).
 const frozenCard={[resolve(root,'src/svelte/catalog/compositions/catalog-card/CatalogCard.svelte')]:
   controlsBefore['src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte']??''};
+// The viewer's reset is an icon action now (DESIGN §7.7, lane E): the frozen side's zoom controls draw that one approved
+// change, so every other element of the frozen viewer keeps its geometry and pixels.
+const zoomControls=resolve(root,'src/svelte/catalog/compositions/zoom-controls/ZoomControls.svelte');
+const frozenReset='<Button variant="secondary" aria-label="Reset zoom" onclick={onreset}><span data-media-zoom>{Math.round(scale*100)}%</span></Button>';
+const frozenZoom={[zoomControls]:readFileSync(zoomControls,'utf8').replace(frozenReset,
+  '<Button variant="secondary" size="icon-lg" aria-label="Reset zoom" onclick={onreset}><Icon name="undo-2" /></Button>')};
+assert.notEqual(frozenZoom[zoomControls],readFileSync(zoomControls,'utf8'),'the frozen zoom controls still draw the text reset');
 const directory=resolve(root,'artifacts/media-inspection-ownership');
 const library={id:'travel',items:[
   {id:'coast',kind:'image',title:'Coast',image:{asset:'coast',alt:'A coast'}},
@@ -99,7 +107,7 @@ test('closed Media library preserves card/gallery pixels, queue, zoom controls a
   <main data-renderer-profile="apple-reference" data-catalog-scroll tabindex="-1" style="padding:16px">
   <div data-test-library>{#if mounted}<Media bind:this={media} {library} {album} onalbum={value=>album=value}/>{/if}</div></main>
   <output data-album>{album}</output>`;
-  const fixtures=[await prepare(source,{...previous,...frozenCard}),await prepare(source)];
+  const fixtures=[await prepare(source,{...previous,...frozenCard,...frozenZoom}),await prepare(source)];
   try{
     // The library draws no wrapper of its own any more (lane D): the frozen side's wrapper is skipped, both compare the catalog.
     // Its cards are Card now (lane B), so their anatomy is the new owner's: named and roled elements and pixels are compared.
@@ -112,17 +120,22 @@ test('closed Media library preserves card/gallery pixels, queue, zoom controls a
       assert.equal(await f.page.locator('[data-media-viewer] [data-toolbar-subtitle]').textContent(),'1 / 2');
     }
     // The viewer is a media Modal now (F1d): the dialog that holds it is the modal's surface, and its mark is inside.
-    await compare('media-viewer',fixtures,['[data-media-viewer]','[data-modal="media"]'],true);
+    // Its zoom commands are Bar's icon Actions now (lane E): their glyphs antialias a few levels (at most 14, measured)
+    // apart from the frozen buttons' at the same place; a moved or resized glyph differs far more than that.
+    await compare('media-viewer',fixtures,['[data-media-viewer]','[data-modal="media"]'],true,16);
     for(const f of fixtures){
+      // The reset is an icon action now (DESIGN §7.7): the zoom is read from the image itself.
       const zoom=f.page.getByRole('button',{name:'Zoom in',exact:true});
+      const scale=()=>f.page.locator('[data-media-stage] img').evaluate(item=>item instanceof HTMLElement ? item.style.transform : '');
       await zoom.click();
-      assert.equal(await f.page.locator('[data-media-zoom]').textContent(),'200%');
+      assert.match(await scale(),/scale\(2\)/);
       assert.ok(await f.page.getByRole('button',{name:'Next media',exact:true}).isDisabled());
       await zoom.click();await zoom.click();
-      assert.equal(await f.page.locator('[data-media-zoom]').textContent(),'400%');
+      assert.match(await scale(),/scale\(4\)/);
       assert.ok(await zoom.isDisabled());
       await f.page.getByRole('button',{name:'Reset zoom',exact:true}).click();
-      assert.equal(await f.page.locator('[data-media-zoom]').textContent(),'100%');
+      assert.equal(await scale(),'');
+      assert.ok(await f.page.getByRole('button',{name:'Zoom out',exact:true}).isDisabled(),'the fitted image cannot zoom out');
       await f.page.getByRole('button',{name:'Media 2: A peak',exact:true}).click();
       assert.equal(await f.page.locator('[data-media-viewer] [data-toolbar-subtitle]').textContent(),'2 / 2');
       await f.page.getByRole('button',{name:'Close media viewer',exact:true}).click();

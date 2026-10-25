@@ -1,5 +1,6 @@
 // One witness per purpose (a frame's top commands, a commit pair, a steps pair, the navigation pane's identity), the
-// place search while it is open, and a command rail too narrow for its commands, which overflow into one menu.
+// place search while it is open, a command rail too narrow for its commands, which overflow into one menu, and the media
+// viewer's rail: Close leading, the position as subtitle and the zoom controls after it.
 import type { CatalogSpecimen } from "../../types.d.ts";
 
 export const BarSpecimens = [
@@ -23,5 +24,11 @@ export const BarSpecimens = [
     identity: { title: "A deliberately descriptive place title", subtitle: "Supporting copy" }, identityRole: "heading",
     trailing: [{ label: "Create", icon: "create", state: "ready", intent: { kind: "view.output", view: "notes", output: "create" } }, { label: "Archive", icon: "archive", state: "ready", intent: { kind: "view.output", view: "notes", output: "archive" } }, { label: "Review", icon: "review", state: "ready", intent: { kind: "view.output", view: "notes", output: "review" } },
       { label: "Save", icon: "save", state: "ready", intent: { kind: "view.output", view: "notes", output: "save" } }, { label: "Open", icon: "open", state: "ready", intent: { kind: "view.output", view: "notes", output: "open" } }, { label: "Media", icon: "media", state: "ready", intent: { kind: "view.output", view: "notes", output: "media" } }],
+    settingsPlaceholder: false, inert: false } },
+  { state: "controls", variants: { purpose: "commands" }, props: { edge: "top", purpose: "commands",
+    identity: { title: "Harbour", subtitle: "1 / 3" }, identityRole: "heading",
+    leading: { label: "Close media viewer", icon: "close", state: "ready", intent: { kind: "close" } }, trailing: [],
+    controls: [{ id: "zoom-out", label: "Zoom out", icon: "zoom-out", state: "unavailable" },
+      { id: "zoom-reset", label: "Reset zoom", icon: "restore", state: "ready" }, { id: "zoom-in", label: "Zoom in", icon: "zoom-in", state: "ready" }],
     settingsPlaceholder: false, inert: false } },
 ] as const satisfies readonly CatalogSpecimen<"bar">[];

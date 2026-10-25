@@ -1,10 +1,11 @@
-// Toolbar: the command toolbar of a surface, drawn by the toolbar layout.
+// Toolbar: the command toolbar of a surface, drawn by the bar foundation from the surface's top or bottom toolbar.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ToolbarContract } from "./toolbar.contract.ts";
 
 export const Toolbar = defineComposition({
   id: "toolbar",
-  purpose: "Show a surface's toolbar commands (title, navigation, actions) and invoke the intent of the one pressed.",
+  purpose: { key: "toolbar.purpose" },
+  messages: ["toolbar.purpose"],
   owner: { entry: "Toolbar.svelte" },
-  uses: ["toolbar-layout"], approval: "none", contract: ToolbarContract,
+  uses: ["bar"], approval: "none", contract: ToolbarContract,
 } as const);

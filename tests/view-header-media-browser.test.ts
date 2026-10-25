@@ -64,7 +64,8 @@ for (const width of [390, 1280]) test(`authored header shares gallery, silent lo
     await viewer.getByRole("button", { name: "Previous media", exact: true }).click();
     await viewer.locator('[data-image-state="ready"]').first().waitFor();
     await viewer.getByRole("button", { name: "Zoom in", exact: true }).click();
-    assert.equal(await viewer.locator("[data-media-zoom]").textContent(), "200%");
+    // The reset is an icon action now (DESIGN §7.7): the zoom is read from the image itself.
+    assert.match(await viewer.locator("[data-media-stage] img").evaluate(item => item instanceof HTMLElement ? item.style.transform : ""), /scale\(2\)/);
     await viewer.getByRole("button", { name: "Close media viewer", exact: true }).click();
     await viewer.waitFor({ state: "detached" });
     assert.ok(await header.locator("[data-media-open]").evaluate(button => button === document.activeElement));

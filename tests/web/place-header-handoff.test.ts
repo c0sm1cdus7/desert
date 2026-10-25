@@ -50,12 +50,12 @@ test('approved draft copy and inspiration are ordinary content', async () => {
   try {
     const { page } = fixture;
     await page.goto(`${fixture.origin}/?place=travel-kit`); await settle(page);
-    const draft = page.locator('[data-place-stack="draft"]');
+    const draft = page.locator('[data-view-item="draft"]');
     assert.equal(await draft.locator('button').count(), 0);
     assert.ok((await draft.textContent())!.includes('Only in this tab'));
     assert.ok((await draft.textContent())!.includes('Closing or reloading this tab discards'));
     assert.equal(await draft.getByText('Storage', { exact: true }).count(), 0);
-    const hero = page.locator('[data-place-stack="inspiration"]');
+    const hero = page.locator('[data-view-item="inspiration"]');
     await hero.getByRole('button', { name: 'Mount Fuji', exact: true }).click(); await settle(page);
     assert.equal(await page.locator('[data-place-header] h1').textContent(), 'Mount Fuji');
   } finally { await fixture.close(); }

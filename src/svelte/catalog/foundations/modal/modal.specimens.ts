@@ -1,5 +1,6 @@
 // One witness of Modal per state and presentation: an open surface the person can dismiss, and the same surface locked
-// while it commits. Each holds one short paragraph.
+// while it commits. Each holds one short paragraph; the open message names itself by its visible heading and sentence and
+// keeps its actions below them.
 import { createRawSnippet } from "svelte";
 import type { CatalogSpecimen } from "../../types.d.ts";
 
@@ -16,8 +17,10 @@ export const ModalSpecimens = [
     children: createRawSnippet(() => ({ render: () => "<p>October 2026</p>" })) } },
   { state: "locked", variants: { presentation: "sheet" }, props: { label: "Due date", open: true, locked: true, presentation: "sheet",
     children: createRawSnippet(() => ({ render: () => "<p>Saving the date.</p>" })) } },
-  { state: "open", variants: { presentation: "message" }, props: { label: "Discard the draft?", open: true, locked: false, presentation: "message",
-    children: createRawSnippet(() => ({ render: () => "<p>Unsaved writing is lost.</p>" })) } },
+  { state: "open", variants: { presentation: "message" }, props: { label: "Discard the draft?", labelledBy: "discard-title", describedBy: "discard-text", open: true,
+    locked: false, presentation: "message", children: createRawSnippet(() => ({
+      render: () => '<div><h2 id="discard-title">Discard the draft?</h2><p id="discard-text">Unsaved writing is lost.</p></div>' })),
+    actions: createRawSnippet(() => ({ render: () => "<p>Keep writing · Discard</p>" })) } },
   { state: "locked", variants: { presentation: "message" }, props: { label: "Discarding the draft", open: true, locked: true, presentation: "message",
     children: createRawSnippet(() => ({ render: () => "<p>Discarding the draft.</p>" })) } },
   { state: "open", variants: { presentation: "media" }, props: { label: "Harbour at dawn", open: true, locked: false, presentation: "media",

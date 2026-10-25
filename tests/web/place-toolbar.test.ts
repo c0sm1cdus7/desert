@@ -63,7 +63,7 @@ test('title handoff follows a resized heading and detail navigation, including r
     await f.page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'light' });
     await (await navigationAction(f.page, 'Travel kit')).click();
     const viewport = f.page.locator('[data-catalog-scroll]');
-    const heading = f.page.locator('[data-local-exercises] [data-place-title]');
+    const heading = f.page.locator('[data-place-content] [data-place-title]');
     await heading.evaluate(element => { element.style.minHeight = '250px'; });
     await viewport.evaluate(element => { element.scrollTop = 150; });
     await settle(f.page);

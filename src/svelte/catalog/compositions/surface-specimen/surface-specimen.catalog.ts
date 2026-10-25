@@ -4,7 +4,12 @@ import { SurfaceSpecimenContract } from "./surface-specimen.contract.ts";
 
 export const SurfaceSpecimen = defineComposition({
   id: "surface-specimen",
-  purpose: "Demonstrate a mounted surface, the transient it launches, and the rules of surface composition.",
+  purpose: { key: "surfaceSpecimen.purpose" },
+  messages: ["surfaceSpecimen.purpose", "surfaceSpecimen.edges", "surfaceSpecimen.toolbars", "surfaceSpecimen.sides",
+    "surfaceSpecimen.rootSurfaces", "surfaceSpecimen.content", "surfaceSpecimen.contentOrder", "surfaceSpecimen.mountedTitle",
+    "surfaceSpecimen.mountedSubtitle", "surfaceSpecimen.mountedText", "surfaceSpecimen.exampleTitle", "surfaceSpecimen.exampleSubtitle",
+    "surfaceSpecimen.anatomy", "surfaceSpecimen.actions", "surfaceSpecimen.openTransient", "surfaceSpecimen.rules",
+    "surfaceSpecimen.rulesMounted", "surfaceSpecimen.rulesAuthoring"],
   owner: { entry: "SurfaceSpecimen.svelte" },
-  uses: ["drawer", "information", "stack-layout", "surface-frame"], approval: "none", contract: SurfaceSpecimenContract,
+  uses: ["information", "modal", "stack-layout", "surface-frame"], approval: "none", contract: SurfaceSpecimenContract,
 } as const);

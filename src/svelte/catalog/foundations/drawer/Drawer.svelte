@@ -1,6 +1,6 @@
 <script lang="ts">
-  // F1-merge: transitional adapter of the renamed piece. View-panel (lane E) mounts Modal(adaptive|transient, continuity)
-  // over SurfaceFrame itself and maps dismissal to the frame's secondary intent; this folder is deleted in Batch 3.
+  // F1-merge: transitional adapter of the renamed piece. View-panel mounts Modal(adaptive|transient, continuity)
+  // over the frame itself and maps dismissal to the frame's secondary intent; this folder is deleted in Batch 3.
   import { Modal } from "../../index.ts";
   import { SurfaceFrame } from "../../index.ts";
   import { InstanceFrame } from "../../index.ts";

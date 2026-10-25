@@ -17,6 +17,8 @@
 		adaptiveModal,
 		preventScroll = true,
 		restoreScrollDelay = null,
+		labelledby,
+		describedby,
 		...restProps
 	}: WithoutChildrenOrChild<DialogPrimitive.ContentProps> & {
 		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof DialogPortal>>;
@@ -25,6 +27,10 @@
 		overlayStyle?: string;
 		/** Renderer-owned adaptive panels preserve this content node across modality. */
 		adaptiveModal?: boolean;
+		/** The ids of a visible heading and sentence the owner draws, which name and describe the dialog instead of a Title
+		 *  and Description of this family. */
+		labelledby?: string;
+		describedby?: string;
 	} = $props();
 </script>
 
@@ -48,7 +54,8 @@
 		     lifetime; the dialog, draft, selection and focus node stay mounted. -->
 		{#if adaptiveModal && open && preventScroll}<ScrollLock {restoreScrollDelay} />{/if}
 		<div {...props} role={adaptiveModal === false ? 'region' : 'dialog'}
-			aria-modal={adaptiveModal === false ? undefined : 'true'}>
+			aria-modal={adaptiveModal === false ? undefined : 'true'}
+			{...labelledby ? { "aria-labelledby": labelledby } : {}} {...describedby ? { "aria-describedby": describedby } : {}}>
 		{@render children?.()}
 		</div>
 		{/snippet}

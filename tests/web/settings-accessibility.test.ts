@@ -16,7 +16,7 @@ test("Settings-like content retains accessible labels and contrast in both syste
       await f.page.emulateMedia({ colorScheme });
       for (const destination of ["Travel kit", "Component bank"]) {
         await (await navigationAction(f.page, destination)).click(); await settle(f.page);
-        const selector = destination === "Travel kit" ? "[data-local-exercises]" : "[data-view-item='public-catalog-bank']";
+        const selector = destination === "Travel kit" ? "[data-place-content]" : "[data-view-item='public-catalog-bank']";
         const result = await new AxeBuilder({ page: f.page }).include(selector).analyze();
         const values = { colorScheme, destination, violations: result.violations,
           incomplete: result.incomplete.map(rule => ({ id: rule.id, nodes: rule.nodes.map(node => node.target) })) };

@@ -282,7 +282,8 @@
     "button": "Button",
     "openFact": "Open the Fact component from the index to inspect every declared state.",
     "openButton": "Open the Button component from the index.",
-    "attention": "Requires attention. The same amber indicator appears in Home and every presentation of the object. Reduced motion keeps it steady."
+    "attention": "Requires attention. The same amber indicator appears in Home and every presentation of the object. Reduced motion keeps it steady.",
+    "moreActions": "More actions"
   },
   "specimen": {
     "purpose": "Witness one resolved node in one scenario, with local interaction, through the product node and frame grammar."
@@ -521,5 +522,94 @@
     "empty": "No media available yet.",
     "check": "Check result",
     "retry": "Try again"
+  },
+  "surfaceFrame": {
+    "purpose": "Frame one surface with its top toolbar, scrolling content and, when it has choices to make, its bottom toolbar.",
+    "context": "Object context",
+    "journey": "Journey"
+  },
+  "toolbar": {
+    "purpose": "Show a surface's toolbar commands (title, navigation, actions) and invoke the intent of the one pressed."
+  },
+  "utilityActions": {
+    "purpose": "Stack a frame's utility actions as secondary actions and pass the pressed one's intent to the host."
+  },
+  "dialog": {
+    "purpose": "Ask for an explicit answer, or explain a warning or error, in a compact centred message with clear primary and secondary actions."
+  },
+  "problem": {
+    "purpose": "Explain a warning or error in a modal message the person dismisses unless it is locked.",
+    "close": "Close"
+  },
+  "viewPanel": {
+    "purpose": "Present a view's resolved panel as a confirmation dialog or a drawer, reporting its events as node events."
+  },
+  "surfaceSpecimen": {
+    "purpose": "Demonstrate a mounted surface, the transient it launches, and the rules of surface composition.",
+    "edges": "Top and bottom",
+    "toolbars": "Toolbars",
+    "sides": "Left and right",
+    "rootSurfaces": "Surfaces at the root only",
+    "content": "Content",
+    "contentOrder": "Header → Stack → Title + Stack content",
+    "mountedTitle": "Mounted surface",
+    "mountedSubtitle": "Content and toolbars; no lateral child surfaces.",
+    "mountedText": "This transient belongs to the launching surface. Close returns focus to its command.",
+    "exampleTitle": "Surface content",
+    "exampleSubtitle": "The same toolbar and content owners used by every mounted surface.",
+    "anatomy": "Anatomy",
+    "actions": "Actions",
+    "openTransient": "Open transient",
+    "rules": "Composition rules",
+    "rulesMounted": "The main surface owns content and its docking areas. Top and bottom accept only toolbars; left and right accept surfaces. A mounted surface owns content and toolbars, never another left or right surface.",
+    "rulesAuthoring": "Current authoring admits a left navigation surface; the runtime may dock an object context on the right when space allows. Arbitrary right-dock View composition is not installed."
+  },
+  "stack": {
+    "purpose": "Draw one titled stack of a place's items, each through the node renderer."
+  },
+  "placeContent": {
+    "purpose": "Show a place's checked content: its header and each of its stacks."
+  },
+  "placeHeader": {
+    "purpose": "Head a place's content with its title, its subtitle and an optional background image, never a toolbar."
+  },
+  "localExerciseContent": {
+    "purpose": "Present the local exercises place as a draft its own events reduce, forwarding catalog navigation to the host."
+  },
+  "failureDialog": {
+    "purpose": "Explain a failed command in a problem dialog derived from its failure code, saying when the outcome is uncertain.",
+    "close": "Close"
+  },
+  "frameBody": {
+    "purpose": "Render the body of a surface frame by its content kind and route its events to the frame."
+  },
+  "instanceFrame": {
+    "purpose": "Draw the transient frame of one mounted instance, keeping its callbacks through teardown."
+  },
+  "panel": {
+    "purpose": "Keep an owned view panel mounted across open and close, routing its events with the owner it was mounted for."
+  },
+  "confirmationDialog": {
+    "purpose": "Ask for explicit confirmation in a compact temporary surface with clear primary and secondary actions."
+  },
+  "bar": {
+    "purpose": "Keep navigation and contextual commands in the surface toolbar; reveal its title and subtitle only after the content header scrolls away.",
+    "backToTop": "Back to top",
+    "create": "Create",
+    "moreActions": "More actions",
+    "hideNavigation": "Hide navigation",
+    "showNavigation": "Show navigation",
+    "settings": "Settings",
+    "settingsUnavailable": "Settings — not available in this preview",
+    "searchLabel": "Search {title}",
+    "searchPlaceholder": "Search in {title}",
+    "closeSearch": "Close search",
+    "search": "Search"
+  },
+  "mediaViewer": {
+    "close": "Close media viewer",
+    "zoomOut": "Zoom out",
+    "resetZoom": "Reset zoom",
+    "zoomIn": "Zoom in"
   }
 }
