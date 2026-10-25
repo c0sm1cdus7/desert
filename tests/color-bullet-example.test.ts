@@ -11,6 +11,9 @@ test("the Color bullet page's example is one color bullet, without a label besid
     const shown = await f.page.locator("[data-host]").evaluate(host => ({ text: (host as HTMLElement).innerText.trim(),
       bullets: host.querySelectorAll(".color-bullet").length, tags: host.querySelectorAll('[data-slot="badge"], [data-tag]').length }));
     assert.deepEqual(shown, { text: "", bullets: 1, tags: 0 });
+    // and its contract names the piece it shows: the color bullet, not the tag.
+    const { sharedOwnerPieces } = await import("../src/svelte/infra/shared-owners.ts");
+    assert.equal(sharedOwnerPieces.ColorBullet, "color-bullet");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

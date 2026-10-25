@@ -13,7 +13,7 @@ export const sharedOwnerPieces = {
   AvatarShuffle: "avatar", Wallpaper: "wallpaper", AccessExperience: "access-experience", LockScreen: "lock-screen",
   ObjectStateControl: "object-state-control", ContextProperties: "context-properties", ObjectStateRow: "object-state-row",
   AttentionIndicator: "attention-indicator", AttentionList: "attention-list", AttentionStatus: "attention-status",
-  LabelRail: "tag", ColorBullet: "tag", ReferenceValues: "tag",
+  LabelRail: "tag", ColorBullet: "color-bullet", ReferenceValues: "tag",
   ReferenceSelector: "reference-selector", LabelsControl: "labels-control", MediaReferenceSelector: "media-reference-selector",
   Flow: "content-flow", RelatedSelection: "related-selection", SummaryWidget: "summary-widget",
 } as const satisfies Readonly<Record<string, CatalogId>>;
