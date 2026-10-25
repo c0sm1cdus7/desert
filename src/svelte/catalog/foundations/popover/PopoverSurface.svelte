@@ -12,8 +12,9 @@
     change: (open: boolean) => void; children: Snippet | undefined;
   } = $props();
   const presentations = { information: "pane", form: "reference", list: "selection", menu: "speed-dial" } as const;
-  /** A month calendar frames itself (its header is the surface's top row) at the calendar budget's width. */
-  const calendarFrame = `width:${calendarBudget.panelRem}rem;overflow:hidden;padding:0;gap:0`;
+  /** A month calendar frames itself (its header is the surface's top row) at the calendar budget's width; the surface stays
+   * concentric with the calendar's own controls, .5rem inside it (law 9d). */
+  const calendarFrame = `width:${calendarBudget.panelRem}rem;overflow:hidden;padding:0;gap:0;--floating-inset:.5rem`;
   let panel = $state<HTMLElement | null>(null);
   let boundary: HTMLElement | null = null;
   $effect(() => { if (panel) boundary = panel; });

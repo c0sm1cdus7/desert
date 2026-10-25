@@ -6,6 +6,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import test from "node:test";
 import type { Page } from "playwright";
+import { withoutRadius } from "./fixtures/curvature-family.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { treeViolations } from "./fixtures/tree-violations.ts";
@@ -97,7 +98,8 @@ test("marks: Face draws its own round mark; every mark keeps the pixels of the i
     const primitive = (nodes: readonly Node[] | undefined) => nodes?.map(node => !node.face ? node : { ...node, after: undefined,
       style: Object.fromEntries(Object.entries(node.style).filter(([key]) => !["background-color", "color", "position", "top", "right"].includes(key))) });
     const [was, is] = [await measure(before.page), await measure(after.page)];
-    for (const name of Object.keys(was)) assert.deepEqual(primitive(is[name]), primitive(was[name]), name);
+    // Design §7.1 radius exception (law 9d): a wallpaper preview's corner follows the control radius; the curvature guard owns it.
+    for (const name of Object.keys(was)) assert.deepEqual(withoutRadius(primitive(is[name])), withoutRadius(primitive(was[name])), name);
     assert.deepEqual([before.errors, after.errors], [[], []]);
   } finally { await before.close(); await after.close(); }
 });

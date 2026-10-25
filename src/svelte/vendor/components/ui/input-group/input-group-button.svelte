@@ -27,7 +27,7 @@
 
 	// A native button this family draws itself: the button family's ghost recipe at its default size, resolved, under
 	// the group's own sizes (so the field family owns no cross-family import).
-	const ghost = "inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-transparent text-foreground min-h-11 px-4 py-2";
+	const ghost = "inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius-control)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-transparent text-foreground min-h-11 px-4 py-2";
 
 	let {
 		ref = $bindable(null),

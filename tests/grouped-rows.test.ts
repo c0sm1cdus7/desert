@@ -42,8 +42,9 @@ test("sibling collections, actions and choices have one clipped panel and contig
             assert.ok(row.separatorInset>0,'choice dividers are inset past the selection accessory');
             assert.notEqual(row.separatorFill,'rgba(0, 0, 0, 0)');
           }
-          assert.equal(row.topRadius,index===0?geometry.radius:0);
-          assert.equal(row.bottomRadius,index===2?geometry.radius:0);
+          // Law 9d: the end rows are concentric inside the panel, the panel's radius less its border.
+          assert.equal(row.topRadius,index===0?geometry.radius-geometry.border:0);
+          assert.equal(row.bottomRadius,index===2?geometry.radius-geometry.border:0);
           if(index) assert.ok(Math.abs(row.top-geometry.rows[index-1]!.bottom)<.5,"no gap between siblings");
         }
       }

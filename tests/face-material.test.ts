@@ -1,7 +1,8 @@
 // Laws 9e and 9d, measured on the bank's own specimens. FACE = ONE primitive: every face (Face, a row's face, an avatar,
 // an artwork placeholder) has the same card-white ground and the same hairline, a rounded square at every size (a circle
 // only for a person), and its tone paints only the glyph. One curvature family: a tag chip is never a capsule, and its
-// remove button's corner is concentric with it (the chip's radius less the inset between them), never a circle.
+// remove button's corner is concentric with it (the chip's radius less the inset between their outer edges, as a field's
+// accessory is inside its well), never a circle.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -70,7 +71,7 @@ test("face and tag: every specimen face shares one ground, one hairline and its 
           const removeBox = remove?.getBoundingClientRect();
           return { radius: parseFloat(getComputedStyle(chip).borderRadius), height: box.height, right: box.right,
             remove: remove && removeBox ? { radius: parseFloat(getComputedStyle(remove).borderRadius), height: removeBox.height,
-              inset: box.right - removeBox.right - parseFloat(getComputedStyle(chip).borderRightWidth) } : null };
+              inset: box.right - removeBox.right } : null };
         });
         return { faces, chips, ground: token("var(--card-base)", "backgroundColor"),
           border: token("var(--border)", "backgroundColor"), foreground: token("var(--foreground)", "color"),

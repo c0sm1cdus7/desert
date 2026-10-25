@@ -17,7 +17,7 @@
 <CalendarPrimitive.NextButton bind:ref {...restProps}>
 	{#snippet child({ props })}
 		<button {...pressFeedbackProps} {...props} {...(label ? { 'aria-label': label } : {})} type="button" data-slot="calendar-next-button"
-			class={cn(calendarControl, "material-pane size-(--cell-size) rounded-[var(--radius)] p-0 text-secondary-foreground select-none rtl:rotate-180", className)}>
+			class={cn(calendarControl, "material-pane size-(--cell-size) rounded-[var(--radius-control)] p-0 text-secondary-foreground select-none rtl:rotate-180", className)}>
 			<span class="control-feedback-content disabled-content" data-button-content>{#if children}{@render children()}{:else}<ChevronRightIcon data-icon="inline-end" data-control-chevron />{/if}</span>
 		</button>
 	{/snippet}

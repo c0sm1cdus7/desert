@@ -42,7 +42,10 @@ test("select and contextual popover share one floating material with opaque acce
         assert.equal(await f.page.locator('.scrim,[aria-modal="true"]').count(),0);
         await f.page.keyboard.press('Escape'); await panel.waitFor({state:'hidden'});
       }
-      assert.deepEqual(materials[0],materials[1]);
+      // Design §7.1 radius exception (law 9d): one material, but each pane is concentric with what it holds: the selection
+      // its option rows (12 + its .25rem inset + its border), the actions their controls (12 + 1rem + its border).
+      assert.deepEqual(materials.map(material=>material.radius),['17px','29px']);
+      assert.deepEqual({...materials[0],radius:undefined},{...materials[1],radius:undefined});
       const material=materials[0]!;
       assert.equal(material.animation,'none');
       if(preference==='reduce') {assert.equal(material.alpha,255);assert.equal(material.blur,'none');}

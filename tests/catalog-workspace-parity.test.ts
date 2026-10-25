@@ -5,6 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { squareCorners } from "./fixtures/curvature-family.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss, themeBeforePrune } from "./fixtures/renderer-css.ts";
 import { workspaceOwnerRulesBefore } from "./fixtures/workspace-owner-rules-before.ts";
@@ -58,6 +59,8 @@ test("the workspace on the shell draws the pre-shell workspace's pixels at its p
     // The frozen workspace still draws the old marks the shell, field, bar and icon no longer style: it brings their rules.
     await baseline.page.addStyleTag({ content: workspaceOwnerRulesBefore });
     await baseline.page.addStyleTag({ content: "[data-catalog-workspace] [data-adaptive-host] { position:absolute; inset:0; }" });
+    // Design §7.1 radius exception (law 9d): both sides square their corners; tests/curvature-family.test.ts owns them.
+    for (const f of [baseline, candidate]) await f.page.addStyleTag({ content: squareCorners });
     const differences: Record<string, number> = {};
     const compare = async (name: string) => {
       for (const f of [baseline, candidate]) await settle(f.page);

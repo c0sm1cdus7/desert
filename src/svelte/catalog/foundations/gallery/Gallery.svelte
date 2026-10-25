@@ -54,17 +54,17 @@
   @layer components {
     .gallery { position:relative; width:100%; height:100%; overflow:hidden; }
     .gallery-open { position:absolute; inset:0; border:0; padding:0; background:transparent; cursor:zoom-in; touch-action:pan-y; outline:none; box-shadow:none; }
-    .gallery-open:focus-visible::after { content:attr(aria-label); position:absolute; right:16px; bottom:56px; padding:8px 12px; border-radius:var(--radius);
+    .gallery-open:focus-visible::after { content:attr(aria-label); position:absolute; right:16px; bottom:56px; padding:8px 12px; border-radius:var(--radius-chip);
       background:var(--background); color:var(--foreground); font-size:var(--text-support,14px); }
     /* A photo that cannot load keeps its retry reachable: the opener stops covering it. */
     .gallery-failed .gallery-open { pointer-events:none; }
     .gallery-dots { position:absolute; bottom:8px; left:50%; z-index:3; display:flex; transform:translateX(-50%); }
     .gallery-dot { display:grid; place-items:center; width:24px; height:44px; padding:0; border:0; background:none; color:var(--catalog-image-foreground); }
-    .gallery-dot::after { content:''; width:6px; height:6px; border-radius:var(--radius-mark,50%); background:currentColor; opacity:.45; box-shadow:0 0 3px var(--catalog-image-shade); }
+    .gallery-dot::after { content:''; width:6px; height:6px; border-radius:var(--radius-mark); background:currentColor; opacity:.45; box-shadow:0 0 3px var(--catalog-image-shade); }
     .gallery-dot[aria-current="true"]::after { opacity:1; width:8px; height:8px; }
   }
   /* Where the gallery sits fixes its frame: inline in a page, as a detail's photograph, or heading a place. */
-  .gallery-inline { border-radius:var(--radius); }
+  .gallery-inline { border-radius:var(--radius-control); }
   .gallery-inline.gallery-aspect-fill { height:clamp(14rem,50vh,36rem); }
   .gallery-aspect-square, .gallery-aspect-landscape, .gallery-aspect-portrait { height:auto; }
   .gallery-aspect-square { aspect-ratio:1; }

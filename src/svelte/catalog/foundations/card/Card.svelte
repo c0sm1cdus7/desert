@@ -58,7 +58,7 @@
 
 <style>
   /* The frames copy the vendor button they replace: an inline flex row, centred, 8px apart, at least 44px tall. */
-  .card { border-radius:var(--radius); }
+  .card { border-radius:var(--radius-control); }
   .card-button, .card-press { align-items:center; gap:.5rem; min-height:2.75rem; margin:0; padding:0; color:var(--foreground);
     text-align:left; white-space:normal; outline:none; }
   .card-button { display:inline-flex; justify-content:center; }
@@ -93,7 +93,7 @@
   .card-subtitle { color:var(--muted-foreground); }
   /* Summary: a pane at most 22rem wide, its readings stacked 1rem apart. */
   .card-summary { align-items:stretch; width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem;
-    padding:var(--space-4,1rem); border-radius:var(--radius-group); text-align:start; }
+    padding:var(--space-4,1rem); border-radius:var(--radius-control); text-align:start; }
   .card-summary > .card-content { flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
   /* Its title over its description, 4px apart, wrapping anywhere; the description reads at the regular weight. */
   .card-summary-heading { display:flex; flex-direction:column; gap:var(--title-subtitle-gap,4px); min-width:0; overflow-wrap:anywhere; }

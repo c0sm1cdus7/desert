@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
 import test from "node:test";
+import { withoutRadius } from "./fixtures/curvature-family.ts";
 import type { Page } from "playwright";
 import { appearancePreviewBefore } from "./fixtures/appearance-before.ts";
 import { rendererCss, themeBeforePrune } from "./fixtures/renderer-css.ts";
@@ -58,7 +59,8 @@ for (const width of [1000, 390]) for (const playable of [false, true]) test(`med
       await settle(f.page);
     }
     const styled = (foundation: boolean) => viewerProbes(foundation, playable);
-    const [old, now] = [await measureProbes(was.page, styled(false)), await measureProbes(is.page, styled(true))];
+    // Design §7.1 radius exception (law 9d): the viewer's corners follow the curvature family; the curvature guard owns them.
+    const [old, now] = [withoutRadius(await measureProbes(was.page, styled(false))), withoutRadius(await measureProbes(is.page, styled(true)))];
     for (const probe of Object.keys(old.viewer ?? {})) {
       // The band was a toolbar: its box and the boxes inside it are compared; its frame styles were the toolbar's.
       const box = ["band", "seek", "volume"].includes(probe);
@@ -149,7 +151,8 @@ test("theme-preview keeps the appearance preview's pixels, its glyph aside (the 
     const parts = (foundation: boolean) => ({ root: "[data-appearance-preview]", panes: '.material-pane', lines: '.material-pane > span',
       wallpaper: "[data-system-wallpaper]", glyph: foundation ? ".preview-glyph" : "strong" });
     const probes = (foundation: boolean): Probes => ({ dark: parts(foundation), light: parts(foundation) });
-    const [old, now] = [await measureProbes(was.page, probes(false)), await measureProbes(is.page, probes(true))];
+    // Design §7.1 radius exception (law 9d): the miniature's panes are marks (the chip radius), its lines square.
+    const [old, now] = [withoutRadius(await measureProbes(was.page, probes(false))), withoutRadius(await measureProbes(is.page, probes(true)))];
     // The smaller glyph moves the centred content column a fraction of a pixel and the grid's tracks with it: panes and
     // lines keep their heights and paint; the frame and the wallpaper are compared whole.
     const rows = (value: typeof old, mode: string, part: string) => value[mode]?.[part]?.map(item => ({ ...item, box: [item.box[3]] }));

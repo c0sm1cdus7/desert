@@ -10,7 +10,7 @@
 
 <svelte:window onblur={motion.cancel} />
 <button {...pressFeedbackProps} type="button" data-drawer-grip aria-label={say(m.modal.close)} disabled={locked}
-  class="control-focus material-interior drawer-grip inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-transparent px-4 py-2 type-control text-muted-foreground outline-none disabled:pointer-events-none"
+  class="control-focus material-interior drawer-grip inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] bg-transparent px-4 py-2 type-control text-muted-foreground outline-none disabled:pointer-events-none"
   onclick={motion.click} onpointerdown={motion.down} onpointermove={motion.move}
   onpointerup={motion.up} onpointercancel={motion.cancel} onlostpointercapture={motion.lost}>
   <span class="control-feedback-content disabled-content" data-button-content><span data-drawer-grip-mark aria-hidden="true"></span></span>

@@ -46,7 +46,7 @@ test("catalog CTA and Back use the shared Action owner, preserving adaptive face
     for (const button of [cta, back]) assert.equal(await button.getAttribute("data-action"), "");
     await f.page.waitForFunction(() => document.querySelector('[aria-label="Back"]')?.getAttribute('data-action-face') === 'icon');
     assert.equal(await cta.getAttribute("data-action-face"), "label");
-    assert.equal(await cta.evaluate(element => getComputedStyle(element).borderRadius), "14px",
+    assert.equal(await cta.evaluate(element => getComputedStyle(element).borderRadius), "12px",
       "the catalog cannot override the shared radius (one radius family)");
     assert.ok((await cta.boundingBox())!.height >= 44, 'catalog actions retain the shared accessible target');
     await cta.click(); await back.click();

@@ -13,6 +13,6 @@
 <div
 	bind:this={ref}
 	data-slot="skeleton"
-	class={cn("bg-muted rounded-md animate-pulse motion-reduce:animate-none", line === "primary" && "h-4 w-2/3 max-w-64", line === "secondary" && "h-4 w-1/3 max-w-40", className)}
+	class={cn("bg-muted rounded-[var(--radius-chip)] animate-pulse motion-reduce:animate-none", line === "primary" && "h-4 w-2/3 max-w-64", line === "secondary" && "h-4 w-1/3 max-w-40", className)}
 	{...restProps}
 ></div>

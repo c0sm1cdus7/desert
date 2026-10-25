@@ -30,7 +30,7 @@ Bits UI narrows value through its discriminated root props at runtime.
 			data-slot="slider-track"
 			data-orientation={orientation}
 			class={cn(
-				"bg-muted rounded-full relative grow overflow-hidden data-[orientation=horizontal]:h-1 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1"
+				"bg-muted relative grow overflow-hidden data-[orientation=horizontal]:h-1 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1"
 			)}
 		>
 			<SliderPrimitive.Range

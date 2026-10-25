@@ -4,7 +4,7 @@
 @utility field-well {
   --field-label-inset:.375rem;
   --field-editing-row:calc(var(--text-input--line-height) + .875rem);
-  position:relative; border-radius:var(--radius);
+  position:relative; border-radius:var(--radius-well);
   &:has(:focus-visible) { outline:2px solid var(--ring); outline-offset:3px; }
   & [data-field-well] { padding-block-start:var(--field-label-inset); }
   & [data-field-well] :focus-visible, & .field-prefix :focus-visible { outline:none; box-shadow:none; }
@@ -60,7 +60,7 @@
 .field-tag { display:inline-flex; align-items:baseline; gap:.4em; min-width:0; overflow-wrap:anywhere; text-wrap:balance; }
 .field-tag[data-tag-state="unavailable"] { color:var(--muted-foreground); }
 .field-image { display:flex; align-items:center; gap:.75rem; min-width:0; }
-[data-field-thumbnail] { flex:none; width:2.75rem; height:2rem; border-radius:6px; overflow:hidden; }
+[data-field-thumbnail] { flex:none; width:2.75rem; height:2rem; border-radius:var(--radius-chip); overflow:hidden; }
 /* The label describes the whole well; only the editing row shares width with
    its clear target. Capacity follows actual type size, not a device category. */
 @container field-well (max-width:18em) {
@@ -89,11 +89,12 @@
 @media (pointer:coarse), (max-width:767px) {
   .field-well [data-input-clear] { min-width:44px; min-height:44px; }
 }
-/* The search well: the same radius family as every field; hosts supply only placement and material. */
-[data-search-field] { min-height:44px; border-radius:var(--radius); padding:4px 8px; gap:8px; }
+/* The search well: the well radius of every field, its clear and toggle the control radius (law 9d); hosts supply only
+   placement and material. */
+[data-search-field] { min-height:44px; border-radius:var(--radius-well); padding:4px 8px; gap:8px; }
 [data-search-field] [data-slot="input-group-control"] { height:auto; min-height:32px; padding:0; font:inherit; outline:none; }
 [data-search-field] [data-slot="input-group-addon"] { padding:0; margin:0; }
-[data-search-field] [data-slot="input-group-button"] { height:28px; min-height:28px; width:28px; padding:0; border:0; border-radius:50%; }
+[data-search-field] [data-slot="input-group-button"] { height:28px; min-height:28px; width:28px; padding:0; border:0; border-radius:var(--radius-control); }
 [data-search-field] [data-slot="input-group-control"]::-webkit-search-cancel-button,
 [data-search-field] [data-slot="input-group-control"]::-webkit-search-decoration { appearance:none; }
 /* A comfortable layout (a workspace whose navigation is an overlay) can be required even inside a wide browser window. */
@@ -108,7 +109,7 @@
    leaves before it contracts.
    The focused editor stays mounted and editable throughout; the focus ring follows the whole well. */
 [data-search-expanded] [data-slot="input-group"] {
-  border-radius:var(--radius); width:var(--catalog-toolbar-height); max-width:100%; margin-inline-start:auto;
+  border-radius:var(--radius-well); width:var(--catalog-toolbar-height); max-width:100%; margin-inline-start:auto;
   height:var(--catalog-toolbar-height); min-height:var(--catalog-toolbar-height); padding:0 12px;
   transition:width calc(var(--motion-overlay-exit) - 60ms) var(--ease-exit) 60ms;
 }

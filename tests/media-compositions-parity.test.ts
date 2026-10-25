@@ -7,6 +7,7 @@
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
 import test from "node:test";
+import { squareCorners, withoutRadius } from "./fixtures/curvature-family.ts";
 import type { Page } from "playwright";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { measureProbes, renderCases, settle, type Probes } from "./fixtures/parity.ts";
@@ -55,12 +56,14 @@ test("media and catalog compositions keep the frozen trees' pixels, but for DESI
     // frozen pixels to keep.
     for (const f of [was, is]) await f.page.addStyleTag({ content: "[data-media-artwork-placeholder] { background:none !important; position:static !important; border-radius:0 !important; }"
       + " [data-media-artwork-placeholder]::after { content:none !important; }" });
+    // Design §7.1 radius exception (law 9d): both sides square their corners; tests/curvature-family.test.ts owns them.
+    for (const f of [was, is]) await f.page.addStyleTag({ content: squareCorners });
     // Grids, covers, controls and media objects: the same pixels (a grid's rounded corners antialias a level or two apart).
     for (const name of ["tiles", "covers", "tag", "image", "object-image", "object-missing"]) {
       const [a, b] = [await caseShot(was.page, name), await caseShot(is.page, name)];
       assert.deepEqual(await pixelDifference(is.page, a, b, 2), { count: 0, within: true }, `${name}: the same pixels`);
     }
-    const [old, now] = [await measureProbes(was.page, probes("before")), await measureProbes(is.page, probes("after"))];
+    const [old, now] = [withoutRadius(await measureProbes(was.page, probes("before"))), withoutRadius(await measureProbes(is.page, probes("after")))];
     // The media list: the same artwork, attention dot and label boxes; the label is the row's medium weight (§1.4).
     for (const probe of ["artwork", "dot"]) assert.deepEqual(now.list?.[probe], old.list?.[probe], `list/${probe}`);
     assert.deepEqual(boxes(now, "list", "label").map(box => box.slice(0, 2)), boxes(old, "list", "label").map(box => box.slice(0, 2)));
