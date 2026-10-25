@@ -37,8 +37,10 @@ const bottom = (box: Box) => box[Y] + box[HEIGHT];
 
 test("lane C reads the same as the compositions it replaces, but for the design's changes", { timeout: 90000 }, async () => {
   const frozen = Object.fromEntries(Object.entries(compositionsBefore).map(([path, source]) => [resolve(root, path), source]));
-  const css = await rendererCss();
-  const was = await renderCases(compositionCases, frozen, css), is = await renderCases(compositionCases, {}, css);
+  // The frozen side draws with the stylesheets its markup was drawn with: lane M deleted structured-content.css, whose
+  // `.bank-stack` rule gave the frozen fact list its group radius (List draws it itself today); frozen sources bring it back.
+  const was = await renderCases(compositionCases, frozen, await rendererCss(Object.values(compositionsBefore)));
+  const is = await renderCases(compositionCases, {}, await rendererCss());
   try {
     const [old, now] = [await readCases(was.page, compositionCaseNames), await readCases(is.page, compositionCaseNames)];
     const pair = (name: string): readonly [Reading, Reading] => {
