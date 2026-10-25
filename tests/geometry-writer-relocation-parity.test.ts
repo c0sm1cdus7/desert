@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { squareCorners } from "./fixtures/curvature-family.ts";
 import { resolve } from "node:path";
 import { compile } from "@tailwindcss/node";
 import { Scanner } from "@tailwindcss/oxide";
@@ -103,6 +104,8 @@ test("moving protected geometry and typography writers preserves catalog.home an
   const candidate = await svelteBrowser(source,{},undefined,{initialCss:await rendererCss()});
   try {
     for (const fixture of [baseline,candidate]) assert.equal(await fixture.page.locator('main').getAttribute('data-css-before-mount'),'true');
+    // Design §7.1 radius exception (law 9d): both sides square their corners; tests/curvature-family.test.ts owns them.
+    for (const fixture of [baseline,candidate]) await fixture.page.addStyleTag({ content: squareCorners });
     assert.deepEqual(baseline.errors,[]); assert.deepEqual(candidate.errors,[]);
     const settle = async (fixture: typeof baseline) => {
       await fixture.page.evaluate(async () => {
