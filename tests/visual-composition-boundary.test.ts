@@ -18,7 +18,7 @@ test("frame and leaf view adapters do not construct visual wrappers", async () =
 });
 
 test("text and utility compositions retain closed content/event contracts, not HTML forwarding", async () => {
-  for (const name of ["text-content/TextContent", "utility-actions/UtilityActions", "content-flow/ContentFlow", "place-header/PlaceHeader"]) {
+  for (const name of ["text-content/TextContent", "utility-actions/UtilityActions", "content-flow/ContentFlow", "place-content/PlaceContent"]) {
     const source = await readFile(new URL(`../src/svelte/catalog/compositions/${name}.svelte`, import.meta.url), "utf8");
     assert.doesNotMatch(source, /HTMLAttributes|Snippet|className|\.\.\.attributes|\.\.\.props/);
   }

@@ -66,7 +66,9 @@ test("image: the placeholder and the image keep the pixels of ArtworkPlaceholder
   // Lane B removed the catalog-card foundation: both sides draw it as it was, over the frozen and today's Image (the card
   // composition that replaces it keeps that card's pixels, foundation-card.test.ts).
   const before = await renderCases(cases(kind => `<ArtworkPlaceholder kind="${kind}" />`), frozen, await frozenCss());
-  const after = await renderCases(cases(kind => `<Image placeholder="${kind}" />`), { [frozenCardPath]: frozen[frozenCardPath] ?? "" }, await rendererCss());
+  const after = await renderCases(cases(kind => `<Image placeholder="${kind}" />`), { [frozenCardPath]: frozen[frozenCardPath] ?? "" },
+    // The frozen card host brings the stylesheets Batch 3 deleted (catalog-media.css); the placeholder draws with today's.
+    await rendererCss([frozen[frozenCardPath] ?? ""]));
   try {
     await Promise.all([settled(before.page), settled(after.page)]);
     const [was, is] = [await measureProbes(before.page, probes), await measureProbes(after.page, probes)];

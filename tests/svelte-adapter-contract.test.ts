@@ -12,7 +12,7 @@ test("catalog index pieces retain contract prop types and refuse native passthro
   const project = createEvidenceProject("export const surface = {}; export const validateInput = () => false;");
   const page = join(project.directory, "src/routes/+page.svelte");
   const header = `<script lang="ts">
-    import { TextContent, NodeRenderer, Feedback } from "@desert/svelte/catalog/index.ts";
+    import { TextContent, NodeRenderer, Text } from "@desert/svelte/catalog/index.ts";
     import type { ResolvedNode, ResolvedNodeFor } from "@desert/interaction/resolved-node.ts";
     import type { ControlNode } from "@desert/interaction/control-nodes.ts";
     import type { LocalFileHost } from "@desert/svelte/infra/file-host.ts";
@@ -25,7 +25,8 @@ test("catalog index pieces retain contract prop types and refuse native passthro
   const invalid = ['<TextContent text={42}/>', '<TextContent text="Notes" class="padding-0"/>',
     '<NodeRenderer {node} actionDisclosure={{ style: "color:red" }}/>', '<NodeRenderer node={control} {host}/>',
     '<NodeRenderer node={transient} frameIdentity={owner}/>', '<NodeRenderer node={transient} continuity={owner}/>',
-    '<Feedback text={42}/>', '<Feedback text="Changed" class="large"/>', '<Feedback text="Changed" role="alert"/>'];
+    '<Text kind="support" live="polite" text={42}/>', '<Text kind="support" live="polite" text="Changed" class="large"/>',
+    '<Text kind="support" live="polite" text="Changed" role="alert"/>'];
   try {
     const source = header + invalid.join("\n");
     writeFileSync(page, source);
@@ -35,7 +36,7 @@ test("catalog index pieces retain contract prop types and refuse native passthro
       assert.deepEqual([...new Set(lines)], invalid.map(line => source.split("\n").indexOf(line) + 1), String(error));
       return true;
     });
-    writeFileSync(page, header + '<TextContent text="Notes"/><Feedback text="Changed"/>'
+    writeFileSync(page, header + '<TextContent text="Notes"/><Text kind="support" live="polite" text="Changed"/>'
       + '<NodeRenderer node={transient} continuity="reading-1"/><NodeRenderer node={control}/>');
     assert.match((await project.run("check")).stdout, /0 errors and 0 warnings/);
   } finally { project.close(); }

@@ -27,14 +27,13 @@ test("production search controls have exactly one toolbar owner and no inline al
     const source = await sourceText(path);
     if (/(?:\btype|\brole)\s*=\s*(?:["'](?:search|searchbox)["']|\{\s*["'](?:search|searchbox)["']\s*\})/.test(source))
       rawControls.push(path);
+    // The search well is Field's search purpose (SearchField was deleted in Batch 3): who asks for it owns a search.
+    if (/\bpurpose="search"/.test(source)) consumers.push(path);
   }
-  // Who mounts SearchField is the `uses` of each declaration (rule D holds every mount to it), read from the generated manifest.
-  const manifest: { pieces: Record<string, { uses?: string[] }> } = JSON.parse(await sourceText("src/svelte/catalog/manifest.json"));
-  for (const [id, piece] of Object.entries(manifest.pieces)) if (piece.uses?.includes("search-field")) consumers.push(id);
-  assert.deepEqual(consumers.sort(), ["toolbar-search"],
-    "SearchField belongs only to the expanding toolbar; no collection, catalog or product may create another owner");
-  assert.deepEqual(rawControls.sort(), ["src/svelte/catalog/foundations/field/SearchWell.svelte", "src/svelte/catalog/foundations/search-field/SearchField.svelte"],
-    "raw search controls belong only to the shared search primitives: Field's search well and SearchField until Batch 3");
+  assert.deepEqual(consumers.sort(), ["src/svelte/catalog/foundations/bar/BarSearch.svelte"],
+    "the search field belongs only to the expanding toolbar; no collection, catalog or product may create another owner");
+  assert.deepEqual(rawControls.sort(), ["src/svelte/catalog/foundations/field/SearchWell.svelte"],
+    "raw search controls belong only to the shared search primitive: Field's search well");
 });
 
 test("catalog content cannot receive a query or filter its retained inventory", async () => {

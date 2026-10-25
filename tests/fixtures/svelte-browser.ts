@@ -4,7 +4,7 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { dirname, relative as posixRelative, resolve } from "node:path";
 import { chromium } from "playwright";
-import { prunedSourcesBefore } from "./pruned-sources-before.ts";
+import { messageKeysBefore, prunedSourcesBefore } from "./pruned-sources-before.ts";
 import { resolveBitsScrollLock } from "../../src/build/svelte/bits-scroll-lock.ts";
 
 /** A piece's entry: `<folder>/<Folder>.svelte` under the catalog's compositions or foundations. */
@@ -30,8 +30,12 @@ async function frozenCatalog(root: string, page: string, given: Readonly<Record<
     pending.push(...Object.entries(sources).filter(([file]) => dirname(file) === dirname(path)).map(([, source]) => source));
   }
   if (!named.size) return given;
-  const exports = [...named].sort().map(name => `export { default as ${name} } from "./${posixRelative(catalog, pieces.get(name) ?? "")}";`);
-  return { ...pruned, ...given, [index]: `${given[index] ?? await readFile(index, "utf8")}\n${exports.join("\n")}\n` };
+  const current = given[index] ?? await readFile(index, "utf8");
+  // A deleted piece whose name today's index gives another piece (the catalog-card foundation) is reached by its path.
+  const exports = [...named].filter(name => !current.includes(` as ${name} }`)).sort().map(name => `export { default as ${name} } from "./${posixRelative(catalog, pieces.get(name) ?? "")}";`);
+  // The deleted pieces read their message namespaces, which the base's keys still carry.
+  const keys = resolve(root, "src/messages/keys.ts");
+  return { ...pruned, [keys]: messageKeysBefore, ...given, [index]: `${current}\n${exports.join("\n")}\n` };
 }
 
 /** Actual browser components, compiled in memory; no product server or database. */
@@ -63,9 +67,16 @@ export async function svelteBrowser(source: string, given: Readonly<Record<strin
         const found = await builder.resolve(relative ? `./${posixRelative(root, absolute)}` : path, { resolveDir: root, kind });
         return found.errors.length ? undefined : { path: found.path, external: found.external };
       });
+      // A frozen script the tree no longer has, named through the alias (a deleted vendor family's `index.js`).
+      builder.onResolve({ filter: /^@desert\/.*\.(js|ts)$/ }, ({ path }) => {
+        const absolute = resolve(root, "src", path.slice("@desert/".length));
+        const frozen = [absolute, absolute.replace(/\.js$/, ".ts")].find(file => overrides[file] !== undefined && !existsSync(file));
+        return frozen === undefined ? undefined : { path: frozen };
+      });
       // A frozen "before" source may name a file the tree no longer has: resolve it to its override.
       builder.onResolve({ filter: /\.svelte$/ }, ({ path, resolveDir }) => {
-        const absolute = resolve(resolveDir, path);
+        // Plugins see a specifier before the alias applies: `@desert/…` names the repository's src folder.
+        const absolute = path.startsWith("@desert/") ? resolve(root, "src", path.slice("@desert/".length)) : resolve(resolveDir, path);
         return overrides[absolute] === undefined ? undefined : { path: absolute };
       });
       builder.onLoad({ filter: /\.svelte$/ }, async ({ path }) => ({

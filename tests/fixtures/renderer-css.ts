@@ -39,7 +39,8 @@ export async function rendererCss(frozen: readonly string[] = [], theme?: string
   const source = today === undefined ? inlineBaseStylesheets(theme ?? "") : frozen.length ? themeWithPruned(today) : today;
   const compiler = await compile(source, { base, onDependency: () => {} });
   const scanner = new Scanner({ sources: compiler.sources });
-  // Frozen pages may mount pieces Batch 3 deleted (svelte-browser.ts reads them from prunedSourcesBefore): their utilities too.
-  const sources = frozen.length ? [...frozen, ...Object.values(prunedSourcesBefore)] : frozen;
+  // A frozen theme or frozen sources may draw pieces Batch 3 deleted (svelte-browser.ts serves them from
+  // prunedSourcesBefore): their utilities too.
+  const sources = frozen.length || theme !== undefined ? [...frozen, ...Object.values(prunedSourcesBefore)] : frozen;
   return compiler.build([...scanner.scan(), ...scanner.scanFiles(sources.map(content => ({ content, extension: "svelte" })))]);
 }

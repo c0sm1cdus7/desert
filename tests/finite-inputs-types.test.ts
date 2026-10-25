@@ -8,24 +8,24 @@ import { createEvidenceProject } from "../src/testing/evidence-project.ts";
 test("actual Svelte APIs reject arbitrary native attributes without duplicating prop schemas", {timeout:60000}, async () => {
   const project=createEvidenceProject("export const surface = {}; export const validateInput = () => false;");
   const path=join(project.directory,"src/routes/+page.svelte");
+  // Place, SearchField, MaskedInput and MeasuredField were absorbed by Surface and Field (deleted in Batch 3): the same
+  // native passthroughs are refused on the foundations that draw them now.
   const header=`<script lang="ts">
-    import Place from '@desert/svelte/catalog/foundations/place/Place.svelte';
-    import Search from '@desert/svelte/catalog/foundations/search-field/SearchField.svelte';
-    import Masked from '@desert/svelte/catalog/foundations/masked-input/MaskedInput.svelte';
-    import Measured from '@desert/svelte/catalog/foundations/measured-field/MeasuredField.svelte';
+    import { Surface, Field } from '@desert/svelte/catalog/index.ts';
     import type {InputMask} from '@desert/interaction/input-mask.ts';
     const mask:InputMask={kind:'decimal',locale:'en-US',scale:2};
   </script>
   {#snippet top()}top{/snippet}{#snippet content()}content{/snippet}
 `;
+  const field='label="Find" labelVisibility="accessible" required={false} invalid={false} disabled={false} measure="fill" value="" clear';
+  const search=`<Field primitive="input.text" purpose="search" ${field}`, masked=`<Field primitive="input.text" purpose="text" {mask} ${field}`;
   const invalid=[
-    '<Place {top} {content} class="foreign"/>','<Place {top} {content} style="padding:0"/>',
-    '<Place {top} {content} viewportAttributes={{style:"padding:0"}}/>',
-    '<Search class="foreign"/>','<Search style="padding:0"/>','<Search onclick={()=>{}}/>','<Search type="text"/>',
-    '<Masked {mask} value="1" onvalue={()=>{}} class="foreign"/>','<Masked {mask} value="1" onvalue={()=>{}} style="padding:0"/>',
-    '<Masked {mask} value="1" onvalue={()=>{}} onkeydown={()=>{}}/>',
-    '<Measured kind="input.text" class="foreign"/>','<Measured kind="input.text" style="padding:0"/>','<Measured kind="input.text" orientation="horizontal"/>',
-    '<Measured kind="input.text" measure="date"/>',
+    '<Surface kind="main" label="Notes" searching={false} {top} {content} class="foreign"/>',
+    '<Surface kind="main" label="Notes" searching={false} {top} {content} style="padding:0"/>',
+    '<Surface kind="main" label="Notes" searching={false} {top} {content} viewportAttributes={{style:"padding:0"}}/>',
+    `${search} class="foreign"/>`,`${search} style="padding:0"/>`,`${search} onclick={()=>{}}/>`,`${search} type="text"/>`,
+    `${masked} class="foreign"/>`,`${masked} style="padding:0"/>`,`${masked} onkeydown={()=>{}}/>`,
+    `${search} orientation="horizontal"/>`,`<Field primitive="input.text" purpose="text" label="Find" labelVisibility="accessible" required={false} invalid={false} disabled={false} measure="wide" value="" clear/>`,
   ];
   try {
     const source=header+invalid.join('\n');writeFileSync(path,source);
@@ -34,9 +34,8 @@ test("actual Svelte APIs reject arbitrary native attributes without duplicating 
       assert.deepEqual([...new Set(lines)],invalid.map(line=>source.split('\n').indexOf(line)+1),String(error));
       return true;
     });
-    writeFileSync(path,header+'<Place {top} {content} landmark="main" label="Notes"/>'
-      +'<Search aria-label="Find" onvalue={()=>{}}/><Masked {mask} value="1" onvalue={()=>{}}/>'
-      +'<Measured kind="input.text">content</Measured>');
+    writeFileSync(path,header+'<Surface kind="main" label="Notes" searching={false} {top} {content}/>'
+      +`${search} onchange={()=>{}}/>${masked} onchange={()=>{}}/>`);
     assert.match((await project.run('check')).stdout,/0 errors and 0 warnings/);
   } finally {project.close();}
 });

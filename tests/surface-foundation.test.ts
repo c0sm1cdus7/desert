@@ -5,17 +5,20 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
+import { prunedSourcesBefore } from "./fixtures/pruned-sources-before.ts";
 
 /** The markup of each matched case in a canonical form: attributes sorted (their order is the template's, not a
  * difference), generated ids dropped, and the vendor sidebar slot the navigation viewport no longer writes (no
- * stylesheet or test selects it) left out. */
+ * stylesheet or test selects it) left out; so are the catalog profile mark and the theme's reading-inset utilities, which
+ * Batch 3 put where the profile and the place marks were selected. */
 const canonicalMarkup = (cases: import("playwright").Locator) => cases.evaluateAll(items => {
   const walk = (node: Node): string => {
     if (node.nodeType === Node.TEXT_NODE) return node.textContent ?? "";
     if (!(node instanceof Element)) return "";
     const attributes = [...node.attributes].filter(attribute => !["id", "for", "aria-describedby"].includes(attribute.name)
-      && !(attribute.name === "data-slot" && attribute.value === "sidebar-content"))
-      .map(attribute => `${attribute.name}="${attribute.value}"`).sort().join(" ");
+      && !(attribute.name === "data-slot" && attribute.value === "sidebar-content") && attribute.name !== "data-renderer-profile")
+      .map(attribute => `${attribute.name}="${attribute.name === "class" ? attribute.value.replace(/\s*\breading-inset-(?:place|navigation)\b/, "") : attribute.value}"`)
+      .sort().join(" ");
     return `<${node.localName} ${attributes}>${[...node.childNodes].map(walk).join("")}</${node.localName}>`;
   };
   return items.map(item => [...item.childNodes].map(walk).join(""));
@@ -41,7 +44,8 @@ const places = `<script lang="ts">
 test("main and navigation surfaces draw the place markup and pixels", { timeout: 60000 }, async () => {
   const f = await svelteBrowser(places);
   try {
-    await f.page.addStyleTag({ content: await rendererCss() });
+    // Place is deleted (Batch 3): it is served at f7247e4 and brings the stylesheets that styled its marks.
+    await f.page.addStyleTag({ content: await rendererCss([prunedSourcesBefore["src/svelte/catalog/foundations/place/Place.svelte"] ?? ""]) });
     await f.page.setViewportSize({ width: 800, height: 1800 });
     await f.page.evaluate(async () => { await document.fonts.ready; await new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done))); });
     for (const name of ["main", "navigation"]) {

@@ -2,12 +2,12 @@
 // viewer (its stage, paging, thumbnails and media controls band), MediaPlayer the media object's player and controls,
 // Gallery the photo collection in each host, ThemePreview the appearance preview (but for the "Aa" glyph, design §7.3).
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import test from "node:test";
 import type { Page } from "playwright";
 import { appearancePreviewBefore } from "./fixtures/appearance-before.ts";
-import { rendererCss } from "./fixtures/renderer-css.ts";
+import { rendererCss, themeBeforePrune } from "./fixtures/renderer-css.ts";
+import { pruneBefore } from "./fixtures/prune-before.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { inlineImports, measureProbes, renderCases, settle, type Probes } from "./fixtures/parity.ts";
 import { placeHeadingBefore, placeHeadingCssBefore } from "./fixtures/place-heading-before.ts";
@@ -45,9 +45,10 @@ const viewerButtons: Probes = { viewer: { previous: 'button[aria-label="Previous
 const playerButtons: Probes = { viewer: { play: 'button[aria-label="Play"]', mute: 'button[aria-label="Mute"]', captions: 'button[aria-label="Captions"]' } };
 
 for (const width of [1000, 390]) for (const playable of [false, true]) test(`media-viewer keeps the viewer's pixels for ${playable ? "video and audio" : "images"} at ${width}px`, { timeout: 60000 }, async () => {
-  const css = await rendererCss(), viewport = { width, height: 844 };
-  const [was, is] = [await renderCases(viewer(playable ? playables : images, false), {}, css, viewport),
-    await renderCases(viewer(playable ? playables : images, true), {}, css, viewport)];
+  // The viewer Batch 3 deleted draws with the base f7247e4 theme it was drawn with; MediaViewer with today's.
+  const viewport = { width, height: 844 };
+  const [was, is] = [await renderCases(viewer(playable ? playables : images, false), {}, await rendererCss([], themeBeforePrune()), viewport),
+    await renderCases(viewer(playable ? playables : images, true), {}, await rendererCss(), viewport)];
   try {
     await squareIcons(is.page);
     for (const f of [was, is]) {
@@ -110,7 +111,7 @@ test("gallery and media-player keep the photo collection's and the media object'
   // The place heading before it mounted Gallery: its frozen copy, at the depth of its old folder (both pages import it),
   // over its frozen stylesheet.
   const before = { [resolve(import.meta.dirname, "../src/svelte/catalog/compositions/place-header/PlaceHeadingBefore.svelte")]: placeHeadingBefore };
-  const theme = await readFile(resolve(import.meta.dirname, "../src/svelte/theme.css"), "utf8");
+  const theme = pruneBefore["src/svelte/theme.css"] ?? "";
   // The frozen hosts bring their own utilities (their frames' aspect and radius), which today's tree no longer writes.
   const frozenCss = await rendererCss(Object.values(mediaCompositionsBefore),
     inlineImports(theme, { "src/svelte/catalog/foundations/place-heading/place-heading.css": placeHeadingCssBefore }));
