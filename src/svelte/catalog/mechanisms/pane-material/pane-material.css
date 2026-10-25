@@ -5,14 +5,14 @@
    (`material-pane-selected`) tint the same pane through an accent that is never inherited, so nested neutral
    wells and buttons cannot take the parent's tint. */
 :root {
-  --pane-opacity:88%;
+  --pane-opacity:88%; --pane-base-opacity:var(--pane-opacity);
   --pane-filter:blur(24px);
   /* A pane presented over the page (a popover, a dialog, a sheet, a menu) holds the page's text under it: its backing is
      opaque enough that no word reads through (contrast of ink through it ≤ 1.1:1, tests/overlay-legibility.test.ts). */
   --pane-floating-opacity:97%;
 }
 @media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
-  :root { --pane-opacity:100%; --pane-filter:none; --pane-floating-opacity:100%; }
+  :root { --pane-opacity:100%; --pane-base-opacity:100%; --pane-filter:none; --pane-floating-opacity:100%; }
 }
 @property --pane-accent { syntax:"*"; inherits:false; }
 @property --pane-accent-ink { syntax:"*"; inherits:false; }
@@ -26,8 +26,12 @@
   -webkit-backdrop-filter:var(--pane-filter); backdrop-filter:var(--pane-filter);
   @media (prefers-contrast:more) { --pane-border:var(--foreground); }
 }
-/* The floating backing: what the overlay owners (popover, modal, menu) add beside `material-pane`. */
-@utility material-floating { --pane-opacity:var(--pane-floating-opacity); }
+/* The floating backing: what the overlay owners (popover, modal, menu) add beside `material-pane`. It is the surface's
+   own; the panes nested in it (its buttons, wells, rows) keep the ordinary backing. */
+@utility material-floating {
+  --pane-opacity:var(--pane-floating-opacity);
+  & :where(*) { --pane-opacity:var(--pane-base-opacity); }
+}
 /* Darken the tinted face in both appearances so its white label stays legible. */
 @utility material-pane-primary { --pane-accent:var(--primary); --pane-accent-ink:#000; }
 @utility material-pane-selected { --pane-accent:color-mix(in srgb,var(--primary) 14%,var(--background)); }

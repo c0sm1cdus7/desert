@@ -61,6 +61,11 @@ for (const width of [1000, 390]) for (const playable of [false, true]) test(`med
     const styled = (foundation: boolean) => viewerProbes(foundation, playable);
     // Design §7.1 radius exception (law 9d): the viewer's corners follow the curvature family; the curvature guard owns them.
     const [old, now] = [withoutRadius(await measureProbes(was.page, styled(false))), withoutRadius(await measureProbes(is.page, styled(true)))];
+    // Second review of the slice 3 package: a surface presented over the page takes the floating backing (97%), so no word
+    // of the page reads through it; the viewer's pane was the 88% of every pane. Only that alpha differs.
+    const fill = (value: typeof now) => value.viewer?.dialog?.map(item => item.style["background-color"]);
+    assert.ok(fill(now)?.length && fill(now)?.every(color => color?.endsWith("/ 0.97)")), `the floating backing: ${fill(now)}`);
+    for (const item of now.viewer?.dialog ?? []) item.style["background-color"] = item.style["background-color"]?.replace("/ 0.97)", "/ 0.88)") ?? "";
     for (const probe of Object.keys(old.viewer ?? {})) {
       // The band was a toolbar: its box and the boxes inside it are compared; its frame styles were the toolbar's.
       const box = ["band", "seek", "volume"].includes(probe);
