@@ -49,6 +49,8 @@
 }
 [data-piece="toolbar"] :is([data-toolbar-controls],[data-toolbar-utilities],[data-catalog-navigation-actions],[data-toolbar-auxiliary]) { gap:var(--toolbar-gap); }
 [data-piece="toolbar"] [data-toolbar-utilities] { align-self:flex-start; }
+/* A surface's own controls (the media viewer's zoom) follow the identity; a narrow rail centres them on their own line. */
+@container toolbar (max-width:600px) { [data-piece="toolbar"] [data-toolbar-controls] { flex-basis:100%; justify-content:center; } }
 [data-piece="toolbar"] .toolbar-face { --face-size:clamp(32px,2rem,40px); margin-bottom:var(--toolbar-gap); }
 [data-piece="toolbar"] .toolbar-availability { margin-top:var(--toolbar-gap); }
 [data-piece="toolbar"] :is(.toolbar-title,.toolbar-subtitle) { overflow-wrap:anywhere; }

@@ -82,15 +82,18 @@ test('closed Media library preserves card/gallery pixels, queue, zoom controls a
     }
     await compare('media-viewer',fixtures,'[data-media-viewer]');
     for(const f of fixtures){
+      // The reset is an icon action now (DESIGN §7.7): the zoom is read from the image itself.
       const zoom=f.page.getByRole('button',{name:'Zoom in',exact:true});
+      const scale=()=>f.page.locator('[data-media-stage] img').evaluate(item=>item instanceof HTMLElement ? item.style.transform : '');
       await zoom.click();
-      assert.equal(await f.page.locator('[data-media-zoom]').textContent(),'200%');
+      assert.match(await scale(),/scale\(2\)/);
       assert.ok(await f.page.getByRole('button',{name:'Next media',exact:true}).isDisabled());
       await zoom.click();await zoom.click();
-      assert.equal(await f.page.locator('[data-media-zoom]').textContent(),'400%');
+      assert.match(await scale(),/scale\(4\)/);
       assert.ok(await zoom.isDisabled());
       await f.page.getByRole('button',{name:'Reset zoom',exact:true}).click();
-      assert.equal(await f.page.locator('[data-media-zoom]').textContent(),'100%');
+      assert.equal(await scale(),'');
+      assert.ok(await f.page.getByRole('button',{name:'Zoom out',exact:true}).isDisabled(),'the fitted image cannot zoom out');
       await f.page.getByRole('button',{name:'Media 2: A peak',exact:true}).click();
       assert.equal(await f.page.locator('[data-media-viewer] [data-toolbar-subtitle]').textContent(),'2 / 2');
       await f.page.getByRole('button',{name:'Close media viewer',exact:true}).click();

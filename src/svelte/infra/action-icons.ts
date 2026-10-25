@@ -6,4 +6,5 @@ export const actionIconNames = {
   create: "plus", archive: "archive", catalog: "layout-grid", open: "arrow-right", confirm: "check", search: "search", more: "ellipsis", navigation: "panel-left",
   media: "images", edit: "pencil", settings: "settings", lock: "lock", restore: "undo-2", palette: "palette",
   play: "play", pause: "pause", volume: "volume-2", muted: "volume-x", previous: "chevron-left", next: "chevron-right",
+  "zoom-in": "plus", "zoom-out": "minus",
 } as const satisfies Record<ActionIcon, string>;

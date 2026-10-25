@@ -2,6 +2,15 @@
 import type { CatalogSpecimen } from "../../types.d.ts";
 
 export const ColumnSpecimens = [
+  { state: "default", variants: { gap: "tight", measure: "reading", align: "start" }, props: { gap: "tight", measure: "reading", align: "start" } },
+  { state: "default", variants: { gap: "tight", measure: "reading", align: "center" }, props: { gap: "tight", measure: "reading", align: "center" } },
+  { state: "default", variants: { gap: "tight", measure: "reading", align: "stretch" }, props: { gap: "tight", measure: "reading", align: "stretch" } },
+  { state: "default", variants: { gap: "tight", measure: "narrow", align: "start" }, props: { gap: "tight", measure: "narrow", align: "start" } },
+  { state: "default", variants: { gap: "tight", measure: "narrow", align: "center" }, props: { gap: "tight", measure: "narrow", align: "center" } },
+  { state: "default", variants: { gap: "tight", measure: "narrow", align: "stretch" }, props: { gap: "tight", measure: "narrow", align: "stretch" } },
+  { state: "default", variants: { gap: "tight", measure: "wide", align: "start" }, props: { gap: "tight", measure: "wide", align: "start" } },
+  { state: "default", variants: { gap: "tight", measure: "wide", align: "center" }, props: { gap: "tight", measure: "wide", align: "center" } },
+  { state: "default", variants: { gap: "tight", measure: "wide", align: "stretch" }, props: { gap: "tight", measure: "wide", align: "stretch" } },
   { state: "default", variants: { gap: "snug", measure: "reading", align: "start" }, props: { gap: "snug", measure: "reading", align: "start" } },
   { state: "default", variants: { gap: "snug", measure: "reading", align: "center" }, props: { gap: "snug", measure: "reading", align: "center" } },
   { state: "default", variants: { gap: "snug", measure: "reading", align: "stretch" }, props: { gap: "snug", measure: "reading", align: "stretch" } },

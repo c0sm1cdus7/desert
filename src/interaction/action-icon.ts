@@ -9,5 +9,7 @@ export const ActionIconSchema = Type.Union([
   Type.Literal('lock'), Type.Literal('restore'), Type.Literal('palette'),
   // Media transport and paging (slice 3: the media player and viewer draw their controls as Actions).
   Type.Literal('play'), Type.Literal('pause'), Type.Literal('volume'), Type.Literal('muted'), Type.Literal('previous'), Type.Literal('next'),
+  // The media viewer's zoom (its bar's controls).
+  Type.Literal('zoom-in'), Type.Literal('zoom-out'),
 ]);
 export type ActionIcon = Static<typeof ActionIconSchema>;

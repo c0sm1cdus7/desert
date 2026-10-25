@@ -4,9 +4,9 @@
   import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
   import { surfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
   import { takeOpenFocus } from "../../mechanisms/surface-focus/focus-return.ts";
-  let { label, open, presentation, density, dismiss, onclosed, children }: {
-    label: string; open: boolean; presentation: "message" | "media"; density: string | undefined;
-    dismiss: () => void; onclosed: (() => void) | undefined; children: Snippet | undefined;
+  let { label, labelledBy, describedBy, open, presentation, density, dismiss, onclosed, children, actions }: {
+    label: string; labelledBy: string | undefined; describedBy: string | undefined; open: boolean; presentation: "message" | "media"; density: string | undefined;
+    dismiss: () => void; onclosed: (() => void) | undefined; children: Snippet | undefined; actions: Snippet | undefined;
   } = $props();
   let content = $state<HTMLElement | null>(null);
   const focus = surfaceFocus(() => content);
@@ -14,11 +14,19 @@
   const openFocus = takeOpenFocus();
 </script>
 <Dialog.Root {open} onOpenChange={next => { if (!next) dismiss(); }} onOpenChangeComplete={next => { if (!next) onclosed?.(); }}>
-  <Dialog.Content bind:ref={content} {presentation} class={density} data-modal={presentation}
+  <Dialog.Content bind:ref={content} {presentation} class={density} data-modal={presentation} labelledby={labelledBy} describedby={describedBy}
     onOpenAutoFocus={event => focus.open(event, openFocus)} onCloseAutoFocus={event => focus.close(event)}
     onEscapeKeydown={event => { event.preventDefault(); dismiss(); }}
     onInteractOutside={event => { event.preventDefault(); dismiss(); }}>
-    <Dialog.Title class="sr-only">{label}</Dialog.Title>
-    {@render children?.()}
+    <!-- A message that names its own visible heading needs no hidden title. -->
+    {#if !labelledBy}<Dialog.Title class="sr-only">{label}</Dialog.Title>{/if}
+    <!-- A message's content scrolls inside the pane's inset while its actions stay in view below it; the media stage
+         fills the screen edge to edge. -->
+    {#if presentation === "message"}
+      <div class="modal-message" data-modal-message>
+        <div class="modal-message-content" data-modal-message-content>{@render children?.()}</div>
+        {#if actions}<div class="modal-message-actions" data-modal-message-actions>{@render actions()}</div>{/if}
+      </div>
+    {:else}{@render children?.()}{/if}
   </Dialog.Content>
 </Dialog.Root>

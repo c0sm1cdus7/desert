@@ -32,7 +32,7 @@
 {#if kind === "frame"}
   <section bind:this={owner} class="flex min-h-0 min-w-0 flex-1 flex-col" data-scroll-owner data-surface-host data-surface-frame
     data-frame-presentation={presentation} tabindex="-1" aria-label={label}>
-    {#if form}<form class="flex min-h-0 flex-1 flex-col" novalidate aria-label={form.label} onsubmit={submit}>{@render frameSlots()}</form>
+    {#if form}<form id={form.id} class="flex min-h-0 flex-1 flex-col" novalidate aria-label={form.label} onsubmit={submit}>{@render frameSlots()}</form>
     {:else}{@render frameSlots()}{/if}
   </section>
 {:else if kind === "page"}

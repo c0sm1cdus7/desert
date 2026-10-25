@@ -1,5 +1,7 @@
 <script lang="ts">
   import { Action, Availability, Face, Menu } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { intentKey } from "../../../../interaction/intent.ts";
   import type { BarCommand } from "../../../infra/bar-command.ts";
   import type { CatalogProps } from "../../types.d.ts";
@@ -8,9 +10,9 @@
   import BarSearch from "./BarSearch.svelte";
   import { useToolbarCommands } from "./toolbar-commands.svelte.ts";
   import { useToolbarLeading } from "./toolbar-leading.svelte.ts";
-  let { edge, purpose, identity, identityRole, face, leading, trailing, group, primary, secondary, availability, search,
-    navigationToggle, settingsPlaceholder, layer, inert, oninvoke, onquery, onsearchopen, onsearchcancel, onnavigationtoggle }:
-    CatalogProps<"bar"> = $props();
+  let { edge, purpose, identity, identityRole, face, leading, trailing, controls, group, primary, secondary, availability, search,
+    navigationToggle, settingsPlaceholder, layer, inert, oninvoke, onquery, onsearchopen, onsearchcancel, onnavigationtoggle,
+    oncontrol }: CatalogProps<"bar"> = $props();
   const uid = $props.id();
   let element = $state<HTMLElement | null>(null), row = $state<HTMLDivElement | null>(null);
   let leadingElement = $state<HTMLDivElement | null>(null), utilities = $state<HTMLDivElement | null>(null);
@@ -24,6 +26,12 @@
   const scroll = useToolbarScroll(() => element, () => edge);
   let stacked = $derived(rail && commands.stacked);
   const invoke = (command: BarCommand) => { if (!command.submit) oninvoke?.(command.intent); };
+  /** Focuses the leading command (without scrolling) and says whether it holds focus. */
+  export function focusLeading(): boolean {
+    const target = leadingElement?.querySelector<HTMLButtonElement>("button") ?? null;
+    target?.focus({ preventScroll: true });
+    return target !== null && document.activeElement === target;
+  }
 </script>
 
 {#snippet command(value: BarCommand, emphasis: "primary" | "secondary", shown: "icon" | "text")}
@@ -38,7 +46,7 @@
   {#if scroll.available || returnFocused}
     <!-- A transparent return target: the whole top rail scrolls its surface back to the top. -->
     <button type="button" class="sr-only" data-toolbar-scroll-top onclick={scroll.returnToTop}
-      onfocus={() => { returnFocused = true; }} onblur={() => { returnFocused = false; }}>Back to top</button>
+      onfocus={() => { returnFocused = true; }} onblur={() => { returnFocused = false; }}>{say(m.bar.backToTop)}</button>
   {/if}
   {#if face}
     <div class="toolbar-face flex justify-center" data-toolbar-face><Face {face} /></div>
@@ -51,17 +59,26 @@
       {/if}
     </div>{/if}
     {#if identity}<BarIdentity title={identity.title} subtitle={identity.subtitle} role={identityRole} />{/if}
+    {#if rail && controls?.length}
+      <!-- The surface's own controls follow the identity; a narrow rail gives them a centred line of their own. -->
+      <div class="flex min-w-0 shrink-0" data-toolbar-controls>
+        {#each controls as control (control.id)}
+          <div class="toolbar-action"><Action label={control.label} icon={control.icon} state={control.state} emphasis="secondary" face="icon"
+            type="button" onclick={() => oncontrol?.(control.id)} /></div>
+        {/each}
+      </div>
+    {/if}
     {#if rail && (trailing.length || primary)}
       <div bind:this={utilities} class="ml-auto flex min-w-0 shrink-0" data-toolbar-utilities>
         {#if group && trailing.length}<div class="toolbar-action" data-toolbar-create>
-          <Menu label="Create" icon="create" actions={trailing} open={groupedOpen} align="end"
+          <Menu label={say(m.bar.create)} icon="create" actions={trailing} open={groupedOpen} align="end"
             onopenchange={open => groupedOpen = open} oninvoke={intent => oninvoke?.(intent)} />
         </div>{:else}
           {#each trailing.slice(0, commands.visibleCount) as value (intentKey(value.intent))}
             <div class="toolbar-action" data-toolbar-command={intentKey(value.intent)}>{@render command(value, "secondary", "icon")}</div>
           {/each}
           {#if commands.overflow.length}<div class="toolbar-action" data-toolbar-overflow>
-            <Menu label="More actions" icon="more" actions={commands.overflow} open={commands.open} align="end"
+            <Menu label={say(m.bar.moreActions)} icon="more" actions={commands.overflow} open={commands.open} align="end"
               onopenchange={commands.change} oninvoke={intent => oninvoke?.(intent)} />
           </div>{/if}
         {/if}
@@ -75,15 +92,15 @@
     {:else if navigationToggle || settingsPlaceholder}
       {#if navigationToggle}
         <div class="toolbar-action" data-navigation-toggle>
-          <Action label={navigationToggle.expanded ? "Hide navigation" : "Show navigation"} icon="navigation" face="icon" emphasis="secondary"
+          <Action label={navigationToggle.expanded ? say(m.bar.hideNavigation) : say(m.bar.showNavigation)} icon="navigation" face="icon" emphasis="secondary"
             state="ready" type="button" onclick={() => onnavigationtoggle?.()} disclosure={{ id: `${uid}-navigation`,
               controls: navigationToggle.controls, expanded: navigationToggle.expanded, haspopup: "dialog" }} />
         </div>
       {/if}
       {#if settingsPlaceholder}
         <div class="toolbar-action" data-settings-placeholder>
-          <Action label="Settings" icon="settings" face="icon" emphasis="secondary" state="unavailable" type="button"
-            reason="Settings — not available in this preview" />
+          <Action label={say(m.bar.settings)} icon="settings" face="icon" emphasis="secondary" state="unavailable" type="button"
+            reason={say(m.bar.settingsUnavailable)} />
         </div>
       {/if}
     {:else if search && layer !== "content"}

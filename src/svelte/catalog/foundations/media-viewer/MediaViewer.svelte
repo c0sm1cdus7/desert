@@ -1,20 +1,33 @@
 <script lang="ts">
   // The viewer is a media Modal: the modal names it by its title, dismisses it on Escape and returns focus to what opened it.
-  // F1-merge: Bar (top, dialog identity, close as leading, zoom out/in/reset as trailing icon Actions) replaces
-  // ToolbarLayout's media header once Bar's commands can carry zoom: they are surface intents today, and zoom is not one.
-  import { Action, Image, MediaPlayer, Modal, ToolbarLayout } from '../../index.ts';
-  import { mediaGestures } from '../../mechanisms/media-gestures/media-gestures.ts';
+  // Its top Bar leads with Close and, for an image, carries the zoom controls (DESIGN §1.5; the reset is an icon, §7.7).
+  import { Action, Bar, Image, MediaPlayer, Modal } from '../../index.ts';
+  import { maximumMediaZoom, mediaGestures } from '../../mechanisms/media-gestures/media-gestures.ts';
+  import type { BarControl } from '../../../infra/bar-command.ts';
+  import { say } from '../../../infra/messages.ts';
+  import { m } from '../../../../messages/keys.ts';
   import { provideOpenFocus } from '../../mechanisms/surface-focus/focus-return.ts';
   import { imageIdentity } from '../../../infra/media-source.ts';
   import MediaStrip from './MediaStrip.svelte';
   import type { CatalogProps } from '../../types.d.ts';
   let { items, title, index, open, onindex, onopenchange }: CatalogProps<"media-viewer"> = $props();
-  let scale = $state(1), viewer = $state<HTMLDivElement | null>(null), closeButton = $state<HTMLButtonElement | null>(null);
+  let scale = $state(1), viewer = $state<HTMLDivElement | null>(null), bar = $state<ReturnType<typeof Bar>>();
   let player = $state<{ toggle(): Promise<void>; stop(): void } | null>(null);
   let gesture: ReturnType<typeof mediaGestures> | undefined;
   const selected = $derived(items[index] ?? items[0]);
   // Opening lands on Close, as the viewer always has; the modal returns focus to the opener when it closes.
-  provideOpenFocus(event => { event.preventDefault(); closeButton?.focus({ preventScroll: true }); });
+  provideOpenFocus(event => { event.preventDefault(); bar?.focusLeading(); });
+  // An image zooms out (down to its fitted size), resets and zooms in (up to the gestures' maximum).
+  let zoom = $derived<readonly BarControl[] | undefined>(selected?.kind === 'image' ? [
+    { id: 'zoom-out', label: say(m.mediaViewer.zoomOut), icon: 'zoom-out', state: scale <= 1 ? 'unavailable' : 'ready' },
+    { id: 'zoom-reset', label: say(m.mediaViewer.resetZoom), icon: 'restore', state: 'ready' },
+    { id: 'zoom-in', label: say(m.mediaViewer.zoomIn), icon: 'zoom-in', state: scale >= maximumMediaZoom ? 'unavailable' : 'ready' },
+  ] : undefined);
+  function control(id: string) {
+    if (id === 'zoom-out') gesture?.zoom(scale - 1);
+    else if (id === 'zoom-in') gesture?.zoom(scale + 1);
+    else gesture?.reset();
+  }
   function select(next: number) { player?.stop(); onindex?.(Math.max(0, Math.min(items.length - 1, next))); gesture?.reset(); }
   function changeOpen(value: boolean) { if (!value) player?.stop(); onopenchange?.(value); }
   function manipulate(element: HTMLDivElement) {
@@ -54,9 +67,9 @@
 
 <Modal label={title} {open} locked={false} presentation="media" ondismiss={() => changeOpen(false)}>
   <div bind:this={viewer} class="viewer" data-media-viewer>
-    <ToolbarLayout identity={{ title, subtitle: `${index + 1} / ${items.length}` }} identityRole="heading" oncloseElement={element => closeButton = element}
-      content={selected?.kind === 'image' ? { kind: "media-header", close: () => changeOpen(false),
-        zoom: { scale, onzoom: value => gesture?.zoom(value), onreset: () => gesture?.reset() } } : { kind: "media-header", close: () => changeOpen(false) }} />
+    <Bar bind:this={bar} edge="top" purpose="commands" identity={{ title, subtitle: `${index + 1} / ${items.length}` }} identityRole="heading"
+      leading={{ label: say(m.mediaViewer.close), icon: 'close', state: 'ready', intent: { kind: 'close' } }} trailing={[]} controls={zoom}
+      settingsPlaceholder={false} inert={false} oninvoke={intent => { if (intent.kind === 'close') changeOpen(false); }} oncontrol={control} />
     <p class="sr-only">Swipe or use arrows to change media. Pinch, double-click or use plus and minus to zoom images. Space plays or pauses audio and video. Escape closes the viewer.</p>
     {#if selected}
       {#key `${index}:${imageIdentity(selected.source)}`}

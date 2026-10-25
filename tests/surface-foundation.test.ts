@@ -102,10 +102,10 @@ const frames = `<script lang="ts">
   {#snippet content()}<FrameBody content={frame.content} invoke={() => {}} edit={() => {}} messageDialog={false} />{/snippet}
   {#snippet bottom()}<Toolbar toolbar={{ edge: "bottom", ...frame.bottom }} invoke={() => {}} />{/snippet}
 </Surface></section>
-<section data-case="form" style="width:420px;height:320px;display:flex"><Surface kind="frame" label="Journey" form={{ label: "Edit note" }} searching={false}
+<section data-case="form" style="width:420px;height:320px;display:flex"><Surface kind="frame" label="Journey" form={{ label: "Edit note", id: "edit-form" }} searching={false}
   onsubmit={() => submitted++}>
   {#snippet top()}<Toolbar toolbar={{ edge: "top", title: "Edit note", primary: { label: "Save", icon: "save", state: "ready", intent: { kind: "journey", journey: "edit" } } }}
-    invoke={() => {}} submit="edit" />{/snippet}
+    invoke={() => {}} submit={{ journey: "edit", form: "edit-form" }} />{/snippet}
   {#snippet content()}<p>Body</p>{/snippet}
 </Surface></section>`;
 
@@ -117,8 +117,8 @@ test("a frame surface draws the surface-frame section, viewport and toolbars, pi
     assert.deepEqual(f.errors, []);
     const cases = f.page.locator('[data-case="frame"]');
     const [before, after] = await canonicalMarkup(cases);
-    // Surface marks the frame by presence; the composition wrote the frame schema version there (selected by presence only).
-    assert.equal(after, before?.replace('data-surface-frame="desert.surface-frame/6"', 'data-surface-frame=""'));
+    // SurfaceFrame is Surface with its toolbars and body (DESIGN §4, item 56): the same markup, marked by presence.
+    assert.equal(after, before);
     assert.ok((await cases.nth(0).screenshot()).equals(await cases.nth(1).screenshot()), "pixels");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
@@ -130,6 +130,9 @@ test("a frame with a form submits it once through the submit event, never by nav
     const form = f.page.getByRole("form", { name: "Edit note" });
     assert.equal(await form.count(), 1);
     assert.equal(await f.page.getByRole("region", { name: "Journey" }).count(), 1);
+    // The bar's submit command names the surface's form, so it submits that form even though the bar draws it.
+    assert.equal(await form.getAttribute("id"), "edit-form");
+    assert.equal(await form.getByRole("button", { name: "Save" }).getAttribute("form"), "edit-form");
     await form.getByRole("button", { name: "Save" }).click();
     assert.equal(await f.page.evaluate(() => Reflect.get(window, "submitted")()), 1);
     assert.deepEqual(f.errors, []);

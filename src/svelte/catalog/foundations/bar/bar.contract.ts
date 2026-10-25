@@ -5,11 +5,14 @@
 // away, or the title of a `dialog` or `message`. `search` is the place search: a `layer: "search"` bar draws the field
 // and its toggle; a `layer: "content"` bar only reserves the toggle's room. `inert` takes the bar out of interaction
 // (its content layer while searching). Commands are invoked by intent; search and the navigation toggle raise events.
+// `controls` are commands local to the surface that are no surface intent (the media viewer's zoom): a top command rail
+// draws them after its identity and raises `control` with the id pressed. A caller that binds the bar moves focus to its
+// leading command (`focusLeading`, the media viewer's Close on opening).
 import { Type } from "@sinclair/typebox";
 import { text } from "../../../../views/definition.ts";
 import { FaceSchema } from "../../../../interaction/face.ts";
 import { SurfaceIntentSchema } from "../../../../interaction/intent.ts";
-import { BarCommandSchema } from "../../../infra/bar-command.ts";
+import { BarCommandSchema, BarControlSchema } from "../../../infra/bar-command.ts";
 
 export const BarContract = {
   props: Type.Object({
@@ -20,6 +23,7 @@ export const BarContract = {
     face: Type.Optional(FaceSchema),
     leading: Type.Optional(BarCommandSchema),
     trailing: Type.Array(BarCommandSchema),
+    controls: Type.Optional(Type.Array(BarControlSchema)),
     group: Type.Optional(Type.Literal("create")),
     primary: Type.Optional(BarCommandSchema),
     secondary: Type.Optional(BarCommandSchema),
@@ -39,6 +43,8 @@ export const BarContract = {
     searchopen: Type.Void(),
     searchcancel: Type.Void(),
     navigationtoggle: Type.Void(),
+    control: Type.String(),
   }, { additionalProperties: false }),
-  marks: ["data-toolbar", "data-toolbar-identity", "data-identity-role", "data-search-toggle"],
+  instance: Type.Object({ focusLeading: Type.Function([], Type.Boolean()) }, { additionalProperties: false }),
+  marks: ["data-toolbar", "data-toolbar-identity", "data-identity-role", "data-search-toggle", "data-toolbar-controls"],
 } as const;
