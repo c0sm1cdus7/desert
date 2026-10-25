@@ -82,8 +82,9 @@
       {/if}
       <!-- The bottom of an action (law 9c): Bar's steps pair, text only, each half of the row. Cancel (step 1, it discards
            what was typed) or Back (step 2, it keeps it) on the left; Continue (until the step holds what it declares,
-           unavailable) or the verb on the right, which submits the form. -->
-      <Bar edge="bottom" purpose="steps" identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false} oninvoke={invoke}
+           unavailable) or the verb on the right, which submits the form. It stands in the form's column: its targets span
+           the column, on its fields' edges. -->
+      <Bar edge="bottom" purpose="steps" identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false} column oninvoke={invoke}
         secondary={creating && step === 2
           ? { label: say(m.accessForm.back), icon: "back", state: busy ? "unavailable" : "ready", intent: { kind: "back" } }
           : { label: say(m.accessForm.cancel), icon: "close", state: busy ? "unavailable" : "ready", intent: { kind: "close" } }}

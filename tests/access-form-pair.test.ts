@@ -43,6 +43,10 @@ test("the access form closes each step with the one bottom pair: Cancel or Back,
       assert.ok(a!.left < b!.left && Math.abs(a!.width - b!.width) <= 1 && a!.width * 2 >= found.row - 16, `${step}: each half of the row: ${seen}`);
       assert.equal(a!.glyphs + b!.glyphs, 0, `${step}: text only, no glyphs: ${seen}`);
       assert.equal(b!.type, "submit", `${step}: the right one submits the form: ${seen}`);
+      // On the form's axis: the pair's outer edges are the column's (its fields' or its choices'), not inset from them.
+      const column = await f.page.evaluate(() => { const box = document.querySelector("form fieldset, form [data-choice-anatomy], form .field-well")!
+        .closest("fieldset, [data-choice-anatomy]")!.getBoundingClientRect(); return [Math.round(box.left), Math.round(box.right)]; });
+      assert.ok(Math.abs(a!.left - column[0]!) <= 1 && Math.abs(b!.left + b!.width - column[1]!) <= 1, `${step}: the pair spans the form's column ${column}: ${seen}`);
       return found;
     };
     const first = await pair("Cancel", "Continue", "step 1");

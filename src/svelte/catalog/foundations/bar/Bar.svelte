@@ -12,7 +12,7 @@
   import { useToolbarCommands } from "./toolbar-commands.svelte.ts";
   import { useToolbarLeading } from "./toolbar-leading.svelte.ts";
   let { edge, purpose, identity, identityRole, face, leading, trailing, controls, group, primary, secondary, availability, search,
-    navigationToggle, settingsPlaceholder, layer, inert, float, tone = "standard", oninvoke, onquery, onsearchopen, onsearchcancel, onnavigationtoggle,
+    navigationToggle, settingsPlaceholder, layer, inert, float, column, tone = "standard", oninvoke, onquery, onsearchopen, onsearchcancel, onnavigationtoggle,
     oncontrol }: CatalogProps<"bar"> = $props();
   const uid = $props.id();
   let element = $state<HTMLElement | null>(null), row = $state<HTMLDivElement | null>(null);
@@ -52,7 +52,7 @@
   data-pane-drag={header?.drag || undefined} data-pane-dragging={header?.dragging || undefined} data-pane-framed={pane()?.framed || undefined}
   data-surface-slot={edge} data-toolbar-purpose={purpose} data-toolbar-overlay={layer} data-identity-role={identityRole}
   data-place-toolbar={layer === "content" || undefined} data-catalog-toolbar={layer === "search" || undefined}
-  data-searching={search?.open} data-frame-edge={frameEdge || undefined} data-bar-float={float || undefined} {inert} aria-hidden={inert || undefined} data-toolbar-return={scroll.available || undefined}>
+  data-searching={search?.open} data-frame-edge={frameEdge || undefined} data-bar-float={float || undefined} data-bar-column={column || undefined} {inert} aria-hidden={inert || undefined} data-toolbar-return={scroll.available || undefined}>
   {#if scroll.available || returnFocused}
     <!-- A transparent return target: the whole top rail scrolls its surface back to the top. -->
     <button type="button" class="sr-only" data-toolbar-scroll-top onclick={scroll.returnToTop}
