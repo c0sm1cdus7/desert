@@ -99,10 +99,11 @@
           ondismiss={() => { feedback = say(m.sharedOwnerSpecimen.cancelled); open = false; }} />
       {/if}
     {:else if owner === "ToolbarLayout"}
-      <Bar edge="top" purpose="commands" identity={{ title: "Notes", subtitle: "Your private notes." }} identityRole="heading"
+      <!-- The example bar stays in the page's reading measure, its commands ending where the page's lists end. -->
+      <Column gap="regular" measure="reading"><Bar edge="top" purpose="commands" identity={{ title: "Notes", subtitle: "Your private notes." }} identityRole="heading"
         leading={{ label: say(m.sharedOwnerSpecimen.back), icon: "back", state: "ready", intent: { kind: "back" } }} trailing={fixture.actions}
         settingsPlaceholder={false} inert={false} oninvoke={intent => feedback = intent.kind === "back"
-          ? say(m.sharedOwnerSpecimen.back) : say(m.sharedOwnerSpecimen.commandActivated)} />
+          ? say(m.sharedOwnerSpecimen.back) : say(m.sharedOwnerSpecimen.commandActivated)} /></Column>
     {:else if owner === "SpeedDial"}
       <Menu label={say(m.sharedOwnerSpecimen.moreActions)} icon="more" actions={fixture.actions} {open} align="end"
         onopenchange={value => open = value} oninvoke={() => feedback = say(m.sharedOwnerSpecimen.commandActivated)} />
