@@ -2,7 +2,7 @@
 // wells the well radius (16px), and every surface or container is concentric with what it holds at its corner: its radius
 // is that piece's radius plus the inset between their outer edges (within 1px). Nothing is a capsule except the switch;
 // a circle is a person, a dot or the mark of a choice (radio, slider thumb), never a button or a colour swatch. A tag is a mark, not
-// a control: its chip takes half the control radius and its remove button is concentric inside it. A thin line (a track,
+// a control: its chip takes half the control radius and its remove button is concentric inside it, a corner you can see. A thin line (a track,
 // a meter, a grip) has square ends. Writes what it saw to artifacts/curvature-family/<CURVATURE_EVIDENCE|current>/.
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -125,9 +125,15 @@ function measure() {
     else if (element.matches(well)) expect(family.well, "a well's");
     else if (element.matches(chip)) expect(family.chip, "a tag chip's");
     else if (element.parentElement?.matches(chip) && element.matches("button")) {
+      // The remove ✕ is concentric with its chip (third review: at a 4px inset its 2px corner read as a square that does
+      // not follow the tag's curve): it stands at one inset from the chip's top, bottom and end, its corner is the chip's
+      // radius less that inset, and that corner is one a person sees, at least half the chip's.
       const owner = element.parentElement.getBoundingClientRect(), ownerRadius = px(getComputedStyle(element.parentElement).borderTopRightRadius);
-      const inset = owner.bottom - box.bottom;
+      const insets = [box.top - owner.top, owner.bottom - box.bottom, owner.right - box.right], inset = owner.bottom - box.bottom;
+      if (Math.max(...insets) - Math.min(...insets) > .5)
+        fail(`the remove button stands at unequal insets (top, bottom, end) ${insets.map(value => Math.round(value * 10) / 10).join(", ")} inside its chip`);
       if (Math.abs(radius - (ownerRadius - inset)) > .5) fail(`the remove corner is the chip's ${ownerRadius} less the inset ${inset}`);
+      if (radius < ownerRadius / 2 - .5) fail(`the remove corner ${radius}px is not a corner a person sees (at least half the chip's ${ownerRadius}px)`);
     }
     else if (element.matches(control)) expect(family.control, "a control's");
   }
