@@ -78,19 +78,33 @@ test('the date trigger shows the calendar glyph, not the select chevron', async 
   } finally {await f.close();}
 });
 
-// The same package: "No date selected" is the control's value line (foreground, as before), not a muted placeholder.
-test('an empty date reads "No date selected" in the value colour', async () => {
+// Second review of the slice 3 package (one concept, one look): «No date selected» in full ink read as a value. An empty
+// date shows the placeholder look of every field: the colour of a text field's placeholder and of a reference selector's
+// «Choose…», never the value colour.
+test('an empty date reads "No date selected" as every field placeholder reads', async () => {
   const f=await svelteBrowser(`<script>
     import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
+    import Field from '@desert/svelte/catalog/foundations/field/Field.svelte';
   </script><DateControl node={{version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival',
-    required:false,disabled:false,value:null}} onevent={()=>{}}/>`);
+    required:false,disabled:false,value:null}} onevent={()=>{}}/>
+  <div data-text><Field primitive="input.text" label="Title" labelVisibility="visible" measure="writing" purpose="text" value=""
+    placeholder="Untitled" required={false} invalid={false} disabled={false} clear={false} onchange={()=>{}}/></div>
+  <div data-dated><DateControl node={{version:'desert.control/1',kind:'date',id:'leave',label:'Leave',
+    required:false,disabled:false,value:'2026-10-16'}} onevent={()=>{}}/></div>`);
   try {
     await f.page.addStyleTag({content:await rendererCss()});
-    const colours=await f.page.locator('[data-field-trigger]').evaluate(element=>{
-      const text=[...element.querySelectorAll('[data-field-value] span')].find(span=>span.textContent==='No date selected')!;
-      return { text:getComputedStyle(text).color, well:getComputedStyle(element).color };
-    });
-    assert.equal(colours.text, colours.well);
+    for (const scheme of ['light','dark'] as const) {
+      await f.page.emulateMedia({colorScheme:scheme});
+      const colours=await f.page.evaluate(()=>{
+        const span=(root:Element|Document, words:string)=>[...root.querySelectorAll('[data-field-value] span')].find(item=>item.textContent===words)!;
+        const empty=span(document,'No date selected');
+        const input=document.querySelector('[data-text] input')!;
+        const dated=document.querySelector('[data-dated] [data-field-value] > span')!;
+        return { empty:getComputedStyle(empty).color, placeholder:getComputedStyle(input,'::placeholder').color, value:getComputedStyle(dated).color };
+      });
+      assert.equal(colours.empty, colours.placeholder, `${scheme}: the empty date takes the placeholder colour`);
+      assert.notEqual(colours.empty, colours.value, `${scheme}: and not the value colour`);
+    }
     assert.deepEqual(f.errors,[]);
   } finally {await f.close();}
 });
