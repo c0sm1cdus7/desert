@@ -19,7 +19,10 @@ export const BarSpecimens = [
   { state: "default", variants: { purpose: "navigation" }, props: { edge: "top", purpose: "navigation",
     identity: { title: "Notebook", subtitle: "Your writing" }, identityRole: "heading", trailing: [], settingsPlaceholder: false, inert: false } },
   { state: "searching", variants: { purpose: "commands" }, props: { edge: "top", purpose: "commands", identityRole: "heading", trailing: [],
-    search: { title: "Notes", query: "plan", open: true, resultsId: "notes-results" }, layer: "search", settingsPlaceholder: false, inert: false } },
+    // In its own row: the open search is the whole rail. (Its `layer: "search"` placement overlays a place's content rail
+    // inside a shell, positioned against that shell; a witness alone has no rail to overlay, and would float over the
+    // witness above it.)
+    search: { title: "Notes", query: "plan", open: true, resultsId: "notes-results" }, settingsPlaceholder: false, inert: false } },
   { state: "overflow", variants: { purpose: "commands" }, props: { edge: "top", purpose: "commands",
     identity: { title: "A deliberately descriptive place title", subtitle: "Supporting copy" }, identityRole: "heading",
     trailing: [{ label: "Create", icon: "create", state: "ready", intent: { kind: "view.output", view: "notes", output: "create" } }, { label: "Archive", icon: "archive", state: "ready", intent: { kind: "view.output", view: "notes", output: "archive" } }, { label: "Review", icon: "review", state: "ready", intent: { kind: "view.output", view: "notes", output: "review" } },

@@ -7,6 +7,13 @@
       "folder": "src/svelte/catalog/mechanisms/control-feedback",
       "owner": "theme"
     },
+    "field-accessory": {
+      "files": [
+        "field-accessory.svelte.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/field-accessory",
+      "owner": "field"
+    },
     "file-picker": {
       "files": [
         "file-picker.ts"
@@ -260,6 +267,7 @@
       "owner": {
         "entry": "Action.svelte",
         "mechanisms": [
+          "field-accessory",
           "press-feedback"
         ],
         "vendor": [
@@ -1229,11 +1237,10 @@
         "problem"
       ],
       "uses": [
-        "action",
+        "bar",
         "column",
         "face",
         "heading",
-        "inline",
         "modal",
         "text"
       ]
@@ -1435,11 +1442,13 @@
       "owner": {
         "entry": "Field.svelte",
         "mechanisms": [
+          "field-accessory",
           "press-feedback",
           "toolbar-geometry"
         ],
         "parts": [
           "FieldWell.svelte",
+          "FieldAccessory.svelte",
           "FieldLabel.svelte",
           "FieldEditor.svelte",
           "FieldTrigger.svelte",
@@ -2517,7 +2526,7 @@
       "slots": {
         "actions": {
           "accepts": [
-            "inline"
+            "bar"
           ]
         },
         "children": {

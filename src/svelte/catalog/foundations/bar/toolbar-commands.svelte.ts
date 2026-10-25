@@ -24,7 +24,9 @@ export function useToolbarCommands<T extends ToolbarAction>(trailing: () => read
       const reserved = reservedSearch() ? slot + gap : 0;
       const remaining = container.clientWidth - navigation - controls - reserved - gap * (navigation ? 2 : 1);
       stacked = Boolean(heading && remaining < slot + titleSize * 4);
-      const identityBudget = heading && !stacked ? Math.min(titleSize * 8, Math.max(titleSize * 4, remaining / 3)) : 0;
+      // The identity keeps a reading measure (half the rail, at least eight title ems); the commands take the rest and
+      // whatever does not fit goes into the overflow menu, never squeezing the title to one word per line.
+      const identityBudget = heading && !stacked ? Math.min(remaining - slot, Math.max(titleSize * 8, remaining / 2)) : 0;
       visibleCount = toolbarVisibleCount(trailing().length, slot, railGap, Math.max(slot, remaining - identityBudget));
     };
     const observer = new ResizeObserver(measure);

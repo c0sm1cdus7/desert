@@ -24,7 +24,7 @@
 
 <StackLayout title={node.label}>
   <Popover label={node.label} {open} disabled={node.disabled} locked={false} content="form" placement="anchored" align="start"
-    onopenchange={openChange} trigger={{ kind: "field", label: node.label, required: false, invalid: false, display, measure: "choice" }}>
+    onopenchange={openChange} trigger={{ kind: "field", label: node.label, labelVisibility: "accessible", required: false, invalid: false, display, measure: "choice" }}>
     <StackLayout title={node.label}>
       {#if reference.loading}<Text kind="caption" tone="muted" text={say(m.mediaReferenceSelector.loading)} />{/if}
       {#if reference.options.length}
