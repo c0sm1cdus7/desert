@@ -6,6 +6,7 @@ import { ImageContract } from "./image.contract.ts";
 export const Image = defineFoundation({
   id: "image",
   purpose: "Show a public or private image at the rendition its frame needs, hidden until decoded, with a fallback and optional retry, or the placeholder of missing artwork.",
+  messages: ["image.unavailable", "image.noCover", "image.noPoster", "image.retry"],
   owner: { entry: "Image.svelte" },
   shape: "none", states: ["loading", "ready", "error", "video", "audio", "unavailable"],
   variants: { fit: ["fill", "fit"] },

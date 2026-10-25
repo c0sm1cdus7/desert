@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { Action } from "../../index.ts";
   import { Text } from "../../index.ts";
   import { fileNode, type FileRejection } from "../../../../interaction/control-nodes.ts";
@@ -15,8 +17,7 @@
   let rejected = $state<readonly FileRejection[]>([]);
   const id = $props.id();
   const stackTitle = currentStackTitle();
-  const reasons = { "media-type": "File type is not accepted", "file-size": "File is too large",
-    "total-size": "Total size limit exceeded", count: "File count limit reached" };
+  const reasons = { "media-type": m.files.mediaType, "file-size": m.files.fileSize, "total-size": m.files.totalSize, count: m.files.count };
   /** The browser's chooser supplies the files; the host checks them against the limits and keeps the accepted handles. */
   async function choose() {
     const files = await nativeFilePicker(checked);
@@ -30,21 +31,21 @@
   data-invalid={rejected.length > 0} aria-labelledby={`${id}-label`} aria-describedby={`${id}-limits`}>
   <span id={`${id}-label`} data-files-label class={stackTitle() === checked.label ? "sr-only"
     : "flex w-fit items-center gap-2 type-control leading-snug select-none group-data-[invalid=true]/field:text-destructive-text"}>{checked.label}</span>
-  <Action icon="open" label="Choose files" face="fit" emphasis="secondary" type="button" state={checked.disabled ? "unavailable" : "ready"} onclick={choose} />
+  <Action icon="open" label={say(m.files.choose)} face="fit" emphasis="secondary" type="button" state={checked.disabled ? "unavailable" : "ready"} onclick={choose} />
   <Text id={`${id}-limits`} kind="caption" tone="muted" inset="row"
-    text={`Up to ${checked.limits.maxCount} files · ${fileSize(checked.limits.maxFileBytes)} each · ${fileSize(checked.limits.maxTotalBytes)} total. Choosing files does not upload them.`} />
+    text={say(m.files.limits, { count: String(checked.limits.maxCount), file: fileSize(checked.limits.maxFileBytes), total: fileSize(checked.limits.maxTotalBytes) })} />
   {#if checked.files.length}
-    <ul class="flex flex-col gap-2" aria-label="Selected local files" data-files-list>
+    <ul class="flex flex-col gap-2" aria-label={say(m.files.selected)} data-files-list>
       {#each checked.files as file (file.id)}
         <li class="flex flex-wrap items-center justify-between gap-2">
-          <span class="min-w-0 break-all">{file.name} · {fileSize(file.size)}</span>
-          <Action icon="close" label={`Remove ${file.name}`} face="fit" emphasis="secondary" type="button" state={checked.disabled ? "unavailable" : "ready"}
+          <span class="min-w-0 break-all">{say(m.files.file, { name: file.name, size: fileSize(file.size) })}</span>
+          <Action icon="close" label={say(m.files.remove, { name: file.name })} face="fit" emphasis="secondary" type="button" state={checked.disabled ? "unavailable" : "ready"}
             onclick={() => onevent?.(host.remove(checked, file.id))} />
         </li>
       {/each}
     </ul>
-  {:else}<Text kind="caption" tone="muted" inset="row" text="No local files selected." />{/if}
+  {:else}<Text kind="caption" tone="muted" inset="row" text={say(m.files.none)} />{/if}
   <div role="status" aria-live="polite" data-files-status>
-    {#each rejected as item (item.file.id)}<Text kind="support" tone="destructive" text={`${item.file.name}: ${reasons[item.reason]}.`} />{/each}
+    {#each rejected as item (item.file.id)}<Text kind="support" tone="destructive" text={say(m.files.rejected, { name: item.file.name, reason: say(reasons[item.reason]) })} />{/each}
   </div>
 </div>

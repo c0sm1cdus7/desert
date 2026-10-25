@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   // Shell part (from the catalog-navigation composition): the navigation pane, its identity bar, the destination groups
   // drawn from data, the toggle that hides it and the settings placeholder. Dragging the pane's header toward its edge,
   // or swiping the pane, dismisses it.
@@ -41,7 +43,7 @@
   });
 </script>
 
-<Surface kind="navigation" label="Main navigation" searching={false}>
+<Surface kind="navigation" label={say(m.shell.navigation)} searching={false}>
   {#snippet top()}
     <Bar edge="top" purpose="navigation" identity={navigation.identity} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false} />
   {/snippet}

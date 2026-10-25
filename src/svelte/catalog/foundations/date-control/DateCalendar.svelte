@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   // DateControl part: the month calendar. Its header holds the month and the previous/next controls in both
   // presentations, anchored or in the popover's sheet (design §1.3); the cell measure follows the presentation it sits in.
   import { onMount, untrack } from "svelte";
@@ -31,13 +33,13 @@
       <div data-date-calendar-row>
         <h2 class="type-section" data-date-calendar-month>{month.format(visibleMonth.toDate(getLocalTimeZone()))}</h2>
         <span data-date-calendar-navigation>
-          <Calendar.PrevButton aria-label="Previous month" />
-          <Calendar.NextButton aria-label="Next month" />
+          <Calendar.PrevButton aria-label={say(m.dateControl.previousMonth)} />
+          <Calendar.NextButton aria-label={say(m.dateControl.nextMonth)} />
         </span>
       </div>
     </div>
   {/snippet}
 </Calendar.Calendar>
 {#if value && onclear}
-  <Action label="Clear date" icon="close" face="fit" emphasis="secondary" type="button" state={disabled ? "unavailable" : "ready"} onclick={onclear} />
+  <Action label={say(m.dateControl.clearDate)} icon="close" face="fit" emphasis="secondary" type="button" state={disabled ? "unavailable" : "ready"} onclick={onclear} />
 {/if}

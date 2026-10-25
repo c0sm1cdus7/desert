@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { Icon } from "../../index.ts";
   import { factState, presentFact } from "../../../../interaction/fact-presentation.ts";
   import type { CatalogProps } from "../../types.d.ts";
@@ -10,8 +12,8 @@
   <span data-fact-state={state} class:fact-placeholder={state !== "known"} class={state !== "known" ? "[&_svg]:shrink-0" : undefined}>
     {#if state !== "known"}
       <Icon name={state === "empty" ? "minus" : "circle-question-mark"} size="em" decorative />
-      {#if state === "empty"}<span class="sr-only">Value state: {presentFact(value)}</span>
-      {:else}<span><span class="sr-only">Value state: </span>{presentFact(value)}</span>{/if}
+      {#if state === "empty"}<span class="sr-only">{say(m.factValue.state)} {presentFact(value)}</span>
+      {:else}<span><span class="sr-only">{say(m.factValue.state)} </span>{presentFact(value)}</span>{/if}
     {:else}{presentFact(value)}{/if}
   </span>
 {/snippet}

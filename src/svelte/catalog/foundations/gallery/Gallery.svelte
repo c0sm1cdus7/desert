@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { Image, MediaViewer } from '../../index.ts';
   import { mediaGestures } from '../../mechanisms/media-gestures/media-gestures.ts';
   import { prefetchImage, imageIdentity } from '../../../infra/media-source.ts';
@@ -31,11 +33,11 @@
   data-header-collection={presentation === 'header' || undefined}>
   {#if selected}<Image source={selected.source} alt={selected.alt} edge={presentation === 'header' ? 1280 : 640} {fit} retry
     onready={() => failed = false} onunavailable={() => failed = true} />{/if}
-  <button type="button" class="gallery-open" use:drag data-media-open aria-label="Open photo viewer" onclick={() => open = true} onkeydown={key}></button>
+  <button type="button" class="gallery-open" use:drag data-media-open aria-label={say(m.gallery.open)} onclick={() => open = true} onkeydown={key}></button>
   {#if photos.length > 1}
-    <div class="gallery-dots" data-media-dots aria-label="Choose photo">
+    <div class="gallery-dots" data-media-dots aria-label={say(m.gallery.choose)}>
       {#each photos as photo, i (`${i}:${imageIdentity(photo.source)}`)}
-        <button type="button" class="gallery-dot" aria-label={`Photo ${i + 1}: ${photo.alt}`} aria-current={i === index ? 'true' : undefined}
+        <button type="button" class="gallery-dot" aria-label={say(m.gallery.photo, { number: String(i + 1), alt: photo.alt })} aria-current={i === index ? 'true' : undefined}
           onclick={() => select(i)}></button>
       {/each}
     </div>

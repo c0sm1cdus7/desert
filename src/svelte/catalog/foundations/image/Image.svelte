@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { onMount, onDestroy } from 'svelte';
   import { Action, Icon } from '../../index.ts';
   import { imageSource, imageIdentity } from '../../../infra/media-source.ts';
@@ -7,7 +9,7 @@
   import { renditionWidths } from '../../../../media/rendition-policy.ts';
   import type { CatalogProps } from "../../types.d.ts";
   let { source, alt = "", edge = 640, zoom = 1, retry = false, fit = 'fill', backdrop = 'muted', placeholder, onready, onunavailable,
-    fallback = 'Image unavailable' }: CatalogProps<"image"> = $props();
+    fallback = say(m.image.unavailable) }: CatalogProps<"image"> = $props();
   let host!: HTMLDivElement;
   let measured = $state(0), attempt = $state(0), ready = $state(''), failed = $state('');
   let original = $state('');
@@ -62,7 +64,7 @@
 <div bind:this={host} class={placeholder === undefined ? "image" : "image-placeholder"} class:image-clear={backdrop === 'none'}
   data-media-image={placeholder === undefined ? "" : undefined} data-media-artwork-placeholder={placeholder === undefined ? undefined : ""}
   data-image-fit={placeholder === undefined ? fit : undefined} data-image-state={status} data-image-placeholder={placeholder}
-  aria-label={placeholder === 'audio' ? 'No cover artwork' : placeholder === 'video' ? 'No video poster' : undefined}>
+  aria-label={placeholder === 'audio' ? say(m.image.noCover) : placeholder === 'video' ? say(m.image.noPoster) : undefined}>
   {#if placeholder === 'audio'}<Icon name="music-2" size="artwork" decorative />
   {:else if placeholder === 'video'}<Icon name="film" size="artwork" decorative />
   {:else if placeholder === 'unavailable'}{fallback}
@@ -77,7 +79,7 @@
     {#if status === 'error'}
       <div class="image-error" data-media-error role="img" aria-label={alt}>
         <span>{fallback}</span>
-        {#if retry}<Action label="Retry" icon="retry" emphasis="secondary" face="text" state="ready" type="button" onclick={() => { original = ''; attempt++; }} />{/if}
+        {#if retry}<Action label={say(m.image.retry)} icon="retry" emphasis="secondary" face="text" state="ready" type="button" onclick={() => { original = ''; attempt++; }} />{/if}
       </div>
     {/if}
   {/if}

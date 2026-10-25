@@ -59,7 +59,8 @@ export const DesertLayout: CatalogLayout = Object.freeze({
     renderers: "src/svelte/renderer-registry.ts", sources: "src/svelte/catalog/sources.ts" },
   rendererTypes,
   messages: { folder: "src/messages", keys: "src/messages/keys.ts",
-    namespaces: { errors: "src/messages/error-codes.ts", feedback: "src/web/client/failure-feedback.ts" } },
+    namespaces: { errors: "src/messages/error-codes.ts", feedback: "src/web/client/failure-feedback.ts",
+      access: "src/web/client/access.ts" } },
   gate: {
     roots: ["src/authoring/catalog"],
     modules: [

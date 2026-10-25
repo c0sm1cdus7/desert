@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { tick } from "svelte";
   import { Popover } from "../../index.ts";
   import { cn } from "../../../vendor/utils.js";
@@ -21,7 +23,7 @@
     disabled: boolean; required: boolean; onchange: ((selected: string[]) => void) | undefined } = $props();
   let value = $derived(selected[0] ?? null);
   let chosen = $derived(options.find(option => option.value === value));
-  let valueLabel = $derived(chosen?.label ?? placeholder ?? "Not selected");
+  let valueLabel = $derived(chosen?.label ?? placeholder ?? say(m.choice.notSelected));
   let open = $state(false), activeValue = $state<string | null>(null), list = $state<HTMLDivElement | null>(null);
   const boundary = () => list?.closest<HTMLElement>('[data-picker-sheet],[data-slot="popover-content"]') ?? null;
   const initialFocus = surfaceFocus(boundary);
@@ -82,7 +84,7 @@
   trigger={{ kind: "owned", id }}>
   <ChoiceMenuList id={`${id}-options`} {label} {value} {options} {required} bind:activeValue bind:ref={list} onchange={change}
     onclose={() => { open = false; }} />
-</Popover>{#if required}<span id={`${id}-requirement`} class="sr-only">Required</span>{/if}
+</Popover>{#if required}<span id={`${id}-requirement`} class="sr-only">{say(m.choice.required)}</span>{/if}
 {/snippet}
 {#if measure}<div class="measure" data-choice-measure={measure}><div class="measure-box">{@render menu()}</div></div>{:else}{@render menu()}{/if}
 

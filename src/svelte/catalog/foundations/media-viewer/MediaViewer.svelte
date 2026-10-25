@@ -70,9 +70,9 @@
 
 {#snippet paging()}
   {#if items.length > 1}
-    <span class="viewer-page viewer-previous"><Action label="Previous media" icon="previous" face="icon" emphasis="secondary" type="button"
+    <span class="viewer-page viewer-previous"><Action label={say(m.mediaViewer.previous)} icon="previous" face="icon" emphasis="secondary" type="button"
       state={index === 0 || scale > 1 ? "unavailable" : "ready"} onclick={() => select(index - 1)} /></span>
-    <span class="viewer-page viewer-next"><Action label="Next media" icon="next" face="icon" emphasis="secondary" type="button"
+    <span class="viewer-page viewer-next"><Action label={say(m.mediaViewer.next)} icon="next" face="icon" emphasis="secondary" type="button"
       state={index === items.length - 1 || scale > 1 ? "unavailable" : "ready"} onclick={() => select(index + 1)} /></span>
   {/if}
 {/snippet}
@@ -83,7 +83,7 @@
     <Bar bind:this={bar} edge="top" purpose="commands" identity={{ title, subtitle: `${index + 1} / ${items.length}` }} identityRole="heading"
       leading={{ label: say(m.mediaViewer.close), icon: 'close', state: 'ready', intent: { kind: 'close' } }} trailing={[]} controls={zoom}
       settingsPlaceholder={false} inert={false} oninvoke={intent => { if (intent.kind === 'close') changeOpen(false); }} oncontrol={control} />
-    <p class="sr-only">Swipe or use arrows to change media. Pinch, double-click or use plus and minus to zoom images. Space plays or pauses audio and video. Escape closes the viewer.</p>
+    <p class="sr-only">{say(m.mediaViewer.instructions)}</p>
     {#if selected}
       {#key `${index}:${imageIdentity(selected.source)}`}
         {#if selected.kind === 'image'}

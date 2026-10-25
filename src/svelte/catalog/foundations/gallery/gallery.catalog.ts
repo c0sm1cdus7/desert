@@ -6,6 +6,7 @@ import { GalleryContract } from "./gallery.contract.ts";
 export const Gallery = defineFoundation({
   id: "gallery",
   purpose: "Page through a set of photos in place, inline, heading a place or as a detail's photograph, and open them in the viewer.",
+  messages: ["gallery.open", "gallery.choose", "gallery.photo"],
   owner: { entry: "Gallery.svelte", mechanisms: ["media-gestures"] },
   shape: "none", states: ["single", "set"],
   variants: { presentation: ["inline", "header", "detail"], aspect: ["fill", "square", "landscape", "portrait"] },

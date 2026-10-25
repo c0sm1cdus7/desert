@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   // MediaStrip: the thumbnails of a viewer's media, the shown one marked current (a part of MediaViewer). `fill` lets the
   // strip take the band's free width between a player's transport and volume.
   import { Image } from "../../index.ts";
@@ -8,7 +10,7 @@
   let { items, index, fill, onindex }: { items: readonly ViewerMedia[]; index: number; fill: boolean; onindex: (index: number) => void } = $props();
 </script>
 
-<div class="strip" class:strip-fill={fill} data-media-thumbs aria-label="Media">
+<div class="strip" class:strip-fill={fill} data-media-thumbs aria-label={say(m.mediaViewer.media)}>
   {#each items as item, i (`${i}:${imageIdentity(item.source)}`)}
     {@const artwork = item.kind === 'image' ? item : item.artwork}
     <button {@attach pressFeedback} type="button" class="strip-item material-pane control-feedback type-control"

@@ -366,6 +366,19 @@
         "appearancePreferences.appearance",
         "appearancePreferences.textSize",
         "appearancePreferences.tint",
+        "appearancePreferences.dark",
+        "appearancePreferences.light",
+        "appearancePreferences.standard",
+        "appearancePreferences.large",
+        "appearancePreferences.larger",
+        "appearancePreferences.blue",
+        "appearancePreferences.violet",
+        "appearancePreferences.rose",
+        "appearancePreferences.green",
+        "appearancePreferences.slate",
+        "appearancePreferences.silk",
+        "appearancePreferences.mist",
+        "appearancePreferences.plain",
         "appearancePreferences.wallpaper"
       ],
       "owner": {
@@ -436,6 +449,9 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/attention-indicator",
       "kind": "foundation",
+      "messages": [
+        "attentionIndicator.label"
+      ],
       "owner": {
         "entry": "AttentionIndicator.svelte"
       },
@@ -851,6 +867,11 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/choice",
       "kind": "foundation",
+      "messages": [
+        "choice.requiredMark",
+        "choice.required",
+        "choice.notSelected"
+      ],
       "owner": {
         "entry": "Choice.svelte",
         "mechanisms": [
@@ -1344,6 +1365,12 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/date-control",
       "kind": "foundation",
+      "messages": [
+        "dateControl.previousMonth",
+        "dateControl.nextMonth",
+        "dateControl.clearDate",
+        "dateControl.noDate"
+      ],
       "owner": {
         "entry": "DateControl.svelte",
         "mechanisms": [
@@ -1499,6 +1526,9 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/fact-row",
       "kind": "foundation",
+      "messages": [
+        "factRow.unavailable"
+      ],
       "owner": {
         "entry": "FactRow.svelte"
       },
@@ -1562,6 +1592,9 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/fact-value",
       "kind": "foundation",
+      "messages": [
+        "factValue.state"
+      ],
       "owner": {
         "entry": "FactValue.svelte"
       },
@@ -1634,6 +1667,17 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/field",
       "kind": "foundation",
+      "messages": [
+        "field.requiredMark",
+        "field.none",
+        "field.character",
+        "field.characters",
+        "field.overLimit",
+        "field.remaining",
+        "field.clearSearch",
+        "field.incompleteNumber",
+        "field.invalidNumber"
+      ],
       "owner": {
         "entry": "Field.svelte",
         "mechanisms": [
@@ -1818,6 +1862,19 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/files",
       "kind": "foundation",
+      "messages": [
+        "files.choose",
+        "files.limits",
+        "files.selected",
+        "files.file",
+        "files.remove",
+        "files.none",
+        "files.rejected",
+        "files.mediaType",
+        "files.fileSize",
+        "files.totalSize",
+        "files.count"
+      ],
       "owner": {
         "entry": "Files.svelte",
         "parts": [
@@ -1885,6 +1942,11 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/gallery",
       "kind": "foundation",
+      "messages": [
+        "gallery.open",
+        "gallery.choose",
+        "gallery.photo"
+      ],
       "owner": {
         "entry": "Gallery.svelte",
         "mechanisms": [
@@ -1983,6 +2045,9 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/heading",
       "kind": "foundation",
+      "messages": [
+        "heading.requiredMark"
+      ],
       "owner": {
         "entry": "Heading.svelte",
         "parts": [
@@ -2053,6 +2118,12 @@
       ],
       "folder": "src/svelte/catalog/foundations/image",
       "kind": "foundation",
+      "messages": [
+        "image.unavailable",
+        "image.noCover",
+        "image.noPoster",
+        "image.retry"
+      ],
       "owner": {
         "entry": "Image.svelte"
       },
@@ -2611,6 +2682,19 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/media-player",
       "kind": "foundation",
+      "messages": [
+        "mediaPlayer.unavailable",
+        "mediaPlayer.retry",
+        "mediaPlayer.elapsed",
+        "mediaPlayer.position",
+        "mediaPlayer.duration",
+        "mediaPlayer.captions",
+        "mediaPlayer.mute",
+        "mediaPlayer.unmute",
+        "mediaPlayer.volume",
+        "mediaPlayer.play",
+        "mediaPlayer.pause"
+      ],
       "owner": {
         "entry": "MediaPlayer.svelte",
         "parts": [
@@ -2699,7 +2783,11 @@
         "mediaViewer.close",
         "mediaViewer.zoomOut",
         "mediaViewer.resetZoom",
-        "mediaViewer.zoomIn"
+        "mediaViewer.zoomIn",
+        "mediaViewer.media",
+        "mediaViewer.previous",
+        "mediaViewer.next",
+        "mediaViewer.instructions"
       ],
       "owner": {
         "entry": "MediaViewer.svelte",
@@ -2767,6 +2855,10 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/modal",
       "kind": "foundation",
+      "messages": [
+        "modal.close",
+        "modal.description"
+      ],
       "owner": {
         "entry": "Modal.svelte",
         "mechanisms": [
@@ -3701,6 +3793,9 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/shell",
       "kind": "foundation",
+      "messages": [
+        "shell.navigation"
+      ],
       "owner": {
         "entry": "Shell.svelte",
         "mechanisms": [
@@ -4352,6 +4447,9 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/theme-preview",
       "kind": "foundation",
+      "messages": [
+        "themePreview.glyph"
+      ],
       "owner": {
         "entry": "ThemePreview.svelte"
       },

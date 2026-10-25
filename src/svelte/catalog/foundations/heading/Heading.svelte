@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { useFocusScope } from "../../../infra/focus-scope.ts";
   import { currentHeadingOffset, type HeadingLevel } from "../../../infra/heading-context.ts";
   import type { CatalogProps } from "../../types.d.ts";
@@ -35,5 +37,5 @@
   id={content.kind === "section" ? content.id : undefined}
   tabindex={focusable ? -1 : undefined}
   data-place-title={content.kind === "page" ? "" : undefined}>
-  {content.text}{#if content.kind === "group" && content.required}<span class="required" aria-hidden="true">*</span>{/if}
+  {content.text}{#if content.kind === "group" && content.required}<span class="required" aria-hidden="true">{say(m.heading.requiredMark)}</span>{/if}
 </svelte:element>

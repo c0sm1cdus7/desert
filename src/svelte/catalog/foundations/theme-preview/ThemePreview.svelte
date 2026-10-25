@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { Wallpaper } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import { tintClass } from "../../../infra/appearance-preferences.ts";
@@ -13,7 +15,7 @@
   <Wallpaper {wallpaper} />
   <div class="preview-navigation material-pane"><span class="preview-line preview-accent"></span><span class="preview-line"></span><span class="preview-line"></span></div>
   <div class="preview-content">
-    <span class="preview-glyph type-page">Aa</span>
+    <span class="preview-glyph type-page">{say(m.themePreview.glyph)}</span>
     <div class="preview-card material-pane"><span class="preview-line"></span><span class="preview-line preview-short"></span></div>
   </div>
 </div>

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { FactValue, Tag } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import { displayLabel } from '../../../../interaction/display-label.ts';
@@ -13,7 +15,7 @@
       {#each value as reference (reference)}
         {@const option = references.find(item => item.value === reference)}
         {#if option}<Tag label={option.label} color={option.color} state="known" presentation="text" removable={false} disabled={false} />
-        {:else}<Tag label="Unavailable" state="unavailable" presentation="text" removable={false} disabled={false} />{/if}
+        {:else}<Tag label={say(m.factRow.unavailable)} state="unavailable" presentation="text" removable={false} disabled={false} />{/if}
       {/each}
     </span>
     {:else if Array.isArray(value)}

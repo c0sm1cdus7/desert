@@ -6,6 +6,7 @@ import { FilesContract } from "./files.contract.ts";
 export const Files = defineFoundation({
   id: "files",
   purpose: "Select supported local files and inspect their limits before an operation uses them.",
+  messages: ["files.choose", "files.limits", "files.selected", "files.file", "files.remove", "files.none", "files.rejected", "files.mediaType", "files.fileSize", "files.totalSize", "files.count"],
   owner: { entry: "Files.svelte", parts: ["native-file-picker.ts", "file-size.ts", "files.css"] },
   shape: "none", states: ["empty", "chosen", "disabled"], renders: ["control.files"], approval: "required", contract: FilesContract,
 } as const);

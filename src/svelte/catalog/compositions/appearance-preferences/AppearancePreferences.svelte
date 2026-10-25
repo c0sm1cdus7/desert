@@ -8,11 +8,11 @@
   let { value, onchange, disabled = false }: CatalogProps<"appearance-preferences"> = $props();
   // A stored "system" theme shows as the scheme AppearanceRoot published; choosing that card again keeps it explicitly.
   let selectedTheme = $derived(effectiveAppearanceTheme(value.theme, $systemScheme === "dark"));
-  let themes = $derived(appearanceChoices.theme.map(choice => ({ ...choice, disabled: false,
+  let themes = $derived(appearanceChoices.theme.map(choice => ({ value: choice.value, label: say(choice.label), disabled: false,
     leading: { kind: "theme" as const, mode: choice.value, tint: value.tint, wallpaper: value.wallpaper } })));
-  const sizes = appearanceChoices.textSize.map(choice => ({ ...choice, disabled: false }));
-  const tints = appearanceChoices.tint.map(choice => ({ ...choice, disabled: false, leading: { kind: "color" as const, color: choice.value } }));
-  const wallpapers = appearanceChoices.wallpaper.map(choice => ({ ...choice, disabled: false,
+  const sizes = appearanceChoices.textSize.map(choice => ({ value: choice.value, label: say(choice.label), disabled: false }));
+  const tints = appearanceChoices.tint.map(choice => ({ value: choice.value, label: say(choice.label), disabled: false, leading: { kind: "color" as const, color: choice.value } }));
+  const wallpapers = appearanceChoices.wallpaper.map(choice => ({ value: choice.value, label: say(choice.label), disabled: false,
     leading: { kind: "wallpaper" as const, wallpaper: choice.value } }));
   function choose(field: keyof AppearancePreferences, selected: readonly string[]) {
     const next = appearancePreferences({ ...value, [field]: selected[0] });

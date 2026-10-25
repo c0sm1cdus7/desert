@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { untrack } from "svelte";
   import { parseDate, today, DateFormatter, getLocalTimeZone, type DateValue } from "@internationalized/date";
   import DateCalendar from "./DateCalendar.svelte";
@@ -11,7 +13,7 @@
   let observedValue = untrack(() => node.value);
   let visibleDate = $state<DateValue>(untrack(() => node.value ? parseDate(node.value) : today(getLocalTimeZone())));
   let date = $derived(node.value ? parseDate(node.value) : undefined);
-  let label = $derived(date ? format.format(date.toDate(getLocalTimeZone())) : "No date selected");
+  let label = $derived(date ? format.format(date.toDate(getLocalTimeZone())) : say(m.dateControl.noDate));
   $effect(() => {
     const next = node.id, value = node.value, isOpen = open;
     untrack(() => {

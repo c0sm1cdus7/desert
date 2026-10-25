@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { untrack } from "svelte";
   import * as Vendor from "../../../vendor/components/ui/field/index.js";
   import FieldWell from "./FieldWell.svelte";
@@ -40,8 +42,7 @@
   function edited(next: string, valid: boolean, complete: boolean) {
     if (disabled || !mask) return;
     onmasked?.({ value: next, valid, complete });
-    draftError = valid && complete ? "" : valid ? "Enter a complete number." :
-      `Enter a number with up to ${mask.scale} decimal places using this field's format.`;
+    draftError = valid && complete ? "" : valid ? say(m.field.incompleteNumber) : say(m.field.invalidNumber, { scale: String(mask.scale) });
     if (valid && complete) { pending.push(next); onchange?.(next); }
   }
 </script>

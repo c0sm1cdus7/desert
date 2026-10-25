@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   // Volume: the captions toggle (when the media has captions), mute and the volume slider (a part of MediaPlayer).
   import { Action, Icon, Slider } from "../../index.ts";
   // F1-merge: press feedback — the vendor button's pressFeedback attachment (action's family) until its owner is settled.
@@ -11,12 +13,12 @@
   <!-- A toggle states its pressed state, which Action's contract cannot (design question for F1b): it is drawn here,
        with the secondary icon action's geometry. -->
   {#if captions}<button {@attach pressFeedback} type="button" class="captions material-pane control-feedback type-control [&_svg]:size-4 [&_svg]:shrink-0"
-    aria-label="Captions" aria-pressed={playback.captions} onclick={playback.toggleCaptions}>
+    aria-label={say(m.mediaPlayer.captions)} aria-pressed={playback.captions} onclick={playback.toggleCaptions}>
     <span class="captions-content control-feedback-content" data-button-content><Icon name="captions" /></span>
   </button>{/if}
-  <Action label={playback.muted ? "Unmute" : "Mute"} icon={playback.muted ? "muted" : "volume"} face="icon" state="ready"
+  <Action label={playback.muted ? say(m.mediaPlayer.unmute) : say(m.mediaPlayer.mute)} icon={playback.muted ? "muted" : "volume"} face="icon" state="ready"
     emphasis="secondary" type="button" onclick={playback.mute} />
-  <span class="volume-level"><Slider label="Volume" value={playback.muted ? 0 : playback.volume} min={0} max={1} step={0.05}
+  <span class="volume-level"><Slider label={say(m.mediaPlayer.volume)} value={playback.muted ? 0 : playback.volume} min={0} max={1} step={0.05}
     disabled={false} onchange={playback.setVolume} /></span>
 </div>
 

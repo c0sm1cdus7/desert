@@ -6,6 +6,7 @@ import { FactValueContract } from "./fact-value.contract.ts";
 export const FactValue = defineFoundation({
   id: "fact-value",
   purpose: "Read one scalar fact as text, or show that it is unknown or empty with a muted icon and an accessible state.",
+  messages: ["factValue.state"],
   owner: { entry: "FactValue.svelte" },
   shape: "none", states: ["known", "empty", "unknown"],
   variants: { presentation: ["inline", "paragraph"] },

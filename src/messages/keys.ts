@@ -207,7 +207,20 @@ export const Messages = messageCatalog({
       "appearance": "Appearance",
       "textSize": "Text size",
       "tint": "Tint",
-      "wallpaper": "Wallpaper"
+      "wallpaper": "Wallpaper",
+      "dark": "Dark",
+      "light": "Light",
+      "standard": "Default",
+      "large": "Large",
+      "larger": "Larger",
+      "blue": "Blue",
+      "violet": "Violet",
+      "rose": "Rose",
+      "green": "Green",
+      "slate": "Slate",
+      "silk": "Silk",
+      "mist": "Mist",
+      "plain": "Plain"
     },
     "appearancePreview": {
       "purpose": "Compare Dark and Light using the same surface, tint and wallpaper tokens as the running interface."
@@ -614,7 +627,102 @@ export const Messages = messageCatalog({
       "close": "Close media viewer",
       "zoomOut": "Zoom out",
       "resetZoom": "Reset zoom",
-      "zoomIn": "Zoom in"
+      "zoomIn": "Zoom in",
+      "media": "Media",
+      "previous": "Previous media",
+      "next": "Next media",
+      "instructions": "Swipe or use arrows to change media. Pinch, double-click or use plus and minus to zoom images. Space plays or pauses audio and video. Escape closes the viewer."
+    },
+    "attentionIndicator": {
+      "label": "Requires attention"
+    },
+    "choice": {
+      "requiredMark": "*",
+      "required": "Required",
+      "notSelected": "Not selected"
+    },
+    "dateControl": {
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "clearDate": "Clear date",
+      "noDate": "No date selected"
+    },
+    "factValue": {
+      "state": "Value state:"
+    },
+    "factRow": {
+      "unavailable": "Unavailable"
+    },
+    "field": {
+      "requiredMark": "*",
+      "none": "None",
+      "character": "{count} character",
+      "characters": "{count} characters",
+      "overLimit": "{count} over limit",
+      "remaining": "{count} remaining",
+      "clearSearch": "Clear search",
+      "incompleteNumber": "Enter a complete number.",
+      "invalidNumber": "Enter a number with up to {scale} decimal places using this field's format."
+    },
+    "files": {
+      "choose": "Choose files",
+      "limits": "Up to {count} files · {file} each · {total} total. Choosing files does not upload them.",
+      "selected": "Selected local files",
+      "file": "{name} · {size}",
+      "remove": "Remove {name}",
+      "none": "No local files selected.",
+      "rejected": "{name}: {reason}.",
+      "mediaType": "File type is not accepted",
+      "fileSize": "File is too large",
+      "totalSize": "Total size limit exceeded",
+      "count": "File count limit reached"
+    },
+    "gallery": {
+      "open": "Open photo viewer",
+      "choose": "Choose photo",
+      "photo": "Photo {number}: {alt}"
+    },
+    "heading": {
+      "requiredMark": "*"
+    },
+    "image": {
+      "unavailable": "Image unavailable",
+      "noCover": "No cover artwork",
+      "noPoster": "No video poster",
+      "retry": "Retry"
+    },
+    "mediaPlayer": {
+      "unavailable": "Media unavailable",
+      "retry": "Retry",
+      "elapsed": "Elapsed time",
+      "position": "Playback position",
+      "duration": "Duration",
+      "captions": "Captions",
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "volume": "Volume",
+      "play": "Play",
+      "pause": "Pause"
+    },
+    "modal": {
+      "close": "Close panel",
+      "description": "Close to return. Unsaved writing stays in this session."
+    },
+    "shell": {
+      "navigation": "Main navigation"
+    },
+    "themePreview": {
+      "glyph": "Aa"
+    },
+    "access": {
+      "storageUnavailable": "Private workspace access needs available local browser storage. Restore it and try again.",
+      "controllerUnreachable": "Cannot reach the controller. Try again when it is available.",
+      "invitationUnavailable": "This launch invitation is unavailable. Open the host's current launch link.",
+      "bootstrapRequired": "Open the host's private launch link to create the first administrator.",
+      "invalidCredentials": "Check your identity name and password. After repeated attempts, wait five minutes before trying again.",
+      "signInFailed": "Could not sign in. Check the controller connection and try again.",
+      "lockUnconfirmed": "Locked here. Could not confirm revocation with the controller; other sessions may remain active.",
+      "lockUnsaved": "Hidden here, but the browser could not save the lock and the controller did not confirm revocation. Reopening may resume this session; restore the connection and lock again."
     }
   },
 } as const);

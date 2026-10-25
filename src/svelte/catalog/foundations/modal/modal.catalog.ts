@@ -7,6 +7,7 @@ import { ModalContract } from "./modal.contract.ts";
 export const Modal = defineFoundation({
   id: "modal",
   purpose: "Present a temporary surface over its parent, dismissed by Escape, its scrim or its grip unless locked.",
+  messages: ["modal.close", "modal.description"],
   owner: {
     entry: "Modal.svelte",
     parts: ["ModalPane.svelte", "ModalSheet.svelte", "ModalDialog.svelte", "DrawerGrip.svelte", "drawer-motion.svelte.ts",

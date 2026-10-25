@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   // A Field that opens a surface instead of taking text: its well is one button showing the label and the display (a
   // value or its placeholder, the chosen tags, an image with its text). Press, ArrowDown and ArrowUp ask to open; the
   // overlay that owns the surface passes the disclosure, so the button carries its id and expanded state as data.
@@ -9,7 +11,7 @@
     label: string; labelVisibility: "visible" | "accessible"; required: boolean; disabled: boolean;
     describedBy: string | undefined; display: NonNullable<CatalogProps<"field">["display"]>; disclosure: NonNullable<CatalogProps<"field">["disclosure"]>; onopen: () => void;
   } = $props();
-  let spoken = $derived(display.kind === "tags" ? display.tags.map(tag => tag.label).join(", ") || "None" : display.text);
+  let spoken = $derived(display.kind === "tags" ? display.tags.map(tag => tag.label).join(", ") || say(m.field.none) : display.text);
   function keydown(event: KeyboardEvent) {
     if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
     event.preventDefault();
@@ -28,7 +30,7 @@
           <span class="field-tags">
             {#each display.tags as tag, index (index)}
               <span class="field-tag" data-tag-state={tag.state}>{#if tag.color}<ColorBullet color={tag.color} />{/if}{tag.label}</span>
-            {:else}<span class="field-placeholder">None</span>{/each}
+            {:else}<span class="field-placeholder">{say(m.field.none)}</span>{/each}
           </span>
         {:else if display.kind === "image"}
           <span class="field-image"><span data-field-thumbnail><Image source={display.source} alt="" fit="fill" edge={88} /></span>{display.text}</span>

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { onDestroy } from 'svelte';
   import { Action, Image } from '../../index.ts';
   import { imageSource } from '../../../infra/media-source.ts';
@@ -42,8 +44,8 @@
       </audio>
     {/if}
     {#if unavailable}
-      <div class="player-error" role="status"><span>Media unavailable</span>
-        <Action label="Retry" icon="retry" emphasis="secondary" face="text" state="ready" type="button" onclick={retry} />
+      <div class="player-error" role="status"><span>{say(m.mediaPlayer.unavailable)}</span>
+        <Action label={say(m.mediaPlayer.retry)} icon="retry" emphasis="secondary" face="text" state="ready" type="button" onclick={retry} />
       </div>
     {/if}
     {@render overlay?.()}

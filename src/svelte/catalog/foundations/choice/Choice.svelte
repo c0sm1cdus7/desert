@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import ChoiceCards from "./ChoiceCards.svelte";
   import ChoiceMenu from "./ChoiceMenu.svelte";
@@ -15,7 +17,7 @@
 {:else}
   <fieldset class="min-w-0 gap-4 flex flex-col" data-choice={presentation} data-cardinality={cardinality}>
     <legend class="legend" class:sr-only={labelVisibility === "accessible"}>
-      {label}{#if required}<span class="required" aria-hidden="true">*</span>{/if}</legend>
+      {label}{#if required}<span class="required" aria-hidden="true">{say(m.choice.requiredMark)}</span>{/if}</legend>
     {#if presentation === "rows"}<ChoiceRows {id} {label} {frame} {cardinality} {options} {selected} {disabled} {required} {onchange} />
     {:else if presentation === "cards"}<ChoiceCards {id} {label} {cardinality} {options} {selected} {disabled} {required} {onchange} />
     {:else}<ChoiceSwatches {id} {label} options={swatchesOf(options)} {selected} {disabled} {required} {onchange} />{/if}

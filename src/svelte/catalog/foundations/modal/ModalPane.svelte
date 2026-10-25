@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   // Modal part: the pane of an adaptive, transient or navigation modal. An adaptive pane docks beside its parent when the
   // launching host has room (it is then not modal); otherwise it is modal at the right edge, or at the bottom edge with
   // its grip. Fit, modality and edge come from the host's available space, never a browser breakpoint.
@@ -69,7 +71,7 @@
     onEscapeKeydown={event => { event.preventDefault(); if (!docked || content?.contains(document.activeElement)) dismiss(); }}
     onInteractOutside={event => { event.preventDefault(); if (!docked) dismiss(); }}>
     <Dialog.Title class="sr-only">{label}</Dialog.Title>
-    <Dialog.Description class="sr-only">Close to return. Unsaved writing stays in this session.</Dialog.Description>
+    <Dialog.Description class="sr-only">{say(m.modal.description)}</Dialog.Description>
     {#if edge === "bottom" && !docked}<DrawerGrip {motion} {locked} />{/if}
     {@render children?.()}
   </Dialog.Content>
