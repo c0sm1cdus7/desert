@@ -15,7 +15,7 @@
       if (next) {
         const firstMount = mounted === null;
         mounted = next;
-        // The shared Drawer must observe closed → open, just like the stable
+        // The shared modal must observe closed → open, just like the stable
         // retained bank specimen. Do not mount it already at its final state.
         if (firstMount) void tick().then(() => { if (revision === current) open = true; });
         else open = true;
@@ -33,5 +33,5 @@
 </script>
 
 {#each mounted ? [mounted] : [] as current}
-  <ViewPanel panel={current} {open} frameIdentity={current.owner} onevent={dispatch(current.owner)} />
+  <ViewPanel panel={current} {open} continuity={current.owner.key} onevent={dispatch(current.owner)} />
 {/each}

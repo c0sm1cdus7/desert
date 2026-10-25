@@ -46,6 +46,7 @@ export { default as ControlBench } from "./compositions/control-bench/ControlBen
 export { default as ControlRenderer } from "./renderer/control-renderer/ControlRenderer.svelte";
 export { default as DateControl } from "./foundations/date-control/DateControl.svelte";
 export { default as DestinationRow } from "./foundations/destination-row/DestinationRow.svelte";
+export { default as Dialog } from "./compositions/dialog/Dialog.svelte";
 export { default as Drawer } from "./foundations/drawer/Drawer.svelte";
 export { default as DrawerGrip } from "./foundations/drawer-grip/DrawerGrip.svelte";
 export { default as Face } from "./foundations/face/Face.svelte";

@@ -1,11 +1,11 @@
-// Stack: one titled stack of a place, each item drawn by the node renderer. Its contract stays a stub: `host` is a
-// LocalFileHost, a class with a private field that the deep-readonly CatalogProps cannot carry (see the contract).
+// Stack: one titled stack of a place, revealed by its id, each item drawn by the node renderer.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { StackContract } from "./stack.contract.ts";
 
 export const Stack = defineComposition({
   id: "stack",
-  purpose: "Draw one titled stack of a place's items, each through the node renderer.",
+  purpose: { key: "stack.purpose" },
+  messages: ["stack.purpose"],
   owner: { entry: "Stack.svelte" },
-  uses: ["node-renderer", "stack-item", "stack-layout"], approval: "none", contract: StackContract,
+  uses: ["node-renderer", "stack-item", "stack-layout", "view-region"], approval: "none", contract: StackContract,
 } as const);

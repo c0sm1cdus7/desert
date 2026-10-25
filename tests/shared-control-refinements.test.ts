@@ -21,8 +21,10 @@ test("message headings keep the shared tight gap and muted description; ordinary
     const dialog = f.page.getByRole("dialog");
     await dialog.waitFor();
     const geometry = await f.page.evaluate(() => {
-      const title = document.querySelector('[role="dialog"] [data-slot="dialog-title"]')!;
-      const description = document.querySelector('[role="dialog"] [data-slot="dialog-description"]')!;
+      // The dialog's name and description are its visible title and subtitle.
+      const dialog = document.querySelector('[role="dialog"]')!;
+      const title = document.getElementById(dialog.getAttribute("aria-labelledby")!)!;
+      const description = document.getElementById(dialog.getAttribute("aria-describedby")!)!;
       const pageTitle = document.querySelector('[data-place-title]')!, pageSubtitle = document.querySelector('[data-place-subtitle]')!;
       const toolbarTitle = document.querySelector('main [data-toolbar-title]')!, toolbarSubtitle = document.querySelector('main [data-toolbar-subtitle]')!;
       return { messageGap: description.getBoundingClientRect().top - title.getBoundingClientRect().bottom,
@@ -38,8 +40,8 @@ test("message headings keep the shared tight gap and muted description; ordinary
     assert.equal(geometry.color, geometry.subtitleColor);
     assert.notEqual(geometry.color, geometry.titleColor);
     assert.ok(Math.abs(geometry.messageCenter - geometry.descriptionCenter) <= 1, "message title and subtitle share their reading axis");
-    const footer = dialog.locator('[data-toolbar="bottom"]');
-    assert.ok(await footer.locator("button").evaluateAll(buttons => buttons.every(button => getComputedStyle(button).flexGrow === "0")), "footer actions must not stretch");
+    assert.ok(await dialog.locator("button").evaluateAll(buttons => buttons.length === 2
+      && buttons.every(button => getComputedStyle(button).flexGrow === "0")), "the dialog's choices must not stretch");
     await f.page.keyboard.press("Escape");
     await dialog.waitFor({ state: "hidden" });
     await f.page.setViewportSize({ width: 320, height: 900 });

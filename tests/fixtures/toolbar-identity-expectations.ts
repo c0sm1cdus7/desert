@@ -76,6 +76,27 @@ export async function assertVisibleChrome(dialog: Locator) {
   return bounds;
 }
 
+/** A message dialog (DESIGN §7.5): its content (face, title, sentence) scrolls inside the dialog while its actions stay in
+ * view below it, and at least two enlarged lines of content remain usable. */
+export async function assertVisibleMessage(dialog: Locator) {
+  const bounds = await dialog.evaluate(node => {
+    const content = node.querySelector<HTMLElement>('[data-modal-message-content]')!;
+    const style = getComputedStyle(content);
+    const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    const sentence = content.querySelector("p") ?? content;
+    return { dialog: node.getBoundingClientRect().toJSON(), content: content.getBoundingClientRect().toJSON(),
+      actions: node.querySelector('[data-modal-message-actions]')!.getBoundingClientRect().toJSON(),
+      usefulContent: content.clientHeight - padding, requestedContent: content.scrollHeight - padding,
+      lineHeight: parseFloat(getComputedStyle(sentence).lineHeight) };
+  });
+  assert.ok(bounds.content.top >= bounds.dialog.top - 1 && bounds.actions.bottom <= bounds.dialog.bottom + 1,
+    `content and dismissal remain within the visible surface: ${JSON.stringify(bounds)}`);
+  assert.ok(bounds.content.bottom <= bounds.actions.top + 1, "content never overlays dismissal");
+  assert.ok(bounds.usefulContent >= Math.min(bounds.requestedContent, bounds.lineHeight * 2),
+    `at least two enlarged lines of usable content remain: ${JSON.stringify(bounds)}`);
+  return bounds;
+}
+
 export async function assertTextReachable(text: Locator, last: boolean) {
   const visible = await text.evaluate((node, last) => {
     const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);

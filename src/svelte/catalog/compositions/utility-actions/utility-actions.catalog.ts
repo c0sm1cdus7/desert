@@ -4,7 +4,8 @@ import { UtilityActionsContract } from "./utility-actions.contract.ts";
 
 export const UtilityActions = defineComposition({
   id: "utility-actions",
-  purpose: "Stack a frame's utility actions as secondary actions and pass the pressed one's intent to the host.",
+  purpose: { key: "utilityActions.purpose" },
+  messages: ["utilityActions.purpose"],
   owner: { entry: "UtilityActions.svelte" },
-  uses: ["node-renderer"], approval: "none", contract: UtilityActionsContract,
+  uses: ["column", "node-renderer"], approval: "none", contract: UtilityActionsContract,
 } as const);

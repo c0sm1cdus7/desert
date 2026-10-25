@@ -7,7 +7,8 @@
   import { stackNodes } from "../../../../interaction/place.ts";
   let { definition, bodyOnly = false, oncatalog }: CatalogProps<"local-exercise-content"> = $props();
   let draft = $state.raw(untrack(() => definition));
-  const host = provideFileHost();
+  // The exercises' file controls read this host by context; it is disposed with the exercises.
+  provideFileHost();
   $effect(() => {
     if (!oncatalog && definition.stacks.some(stack => stackNodes(stack.items).some(node => node.kind === 'catalog.card'))) {
       throw new Error('CATALOG_NAVIGATION_HOST_REQUIRED');
@@ -15,9 +16,7 @@
   });
 </script>
 
-<div data-local-exercises>
-  <PlaceContent definition={draft} {host} {bodyOnly} onevent={event => {
-    if (event.kind === 'catalog.open') oncatalog?.(event);
-    else draft = reduceCatalogDraft(draft, event);
-  }} />
-</div>
+<PlaceContent definition={draft} {bodyOnly} onevent={event => {
+  if (event.kind === 'catalog.open') oncatalog?.(event);
+  else draft = reduceCatalogDraft(draft, event);
+}} />

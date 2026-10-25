@@ -1,17 +1,16 @@
 <script lang="ts">
-  import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
-  import { useSurfaceDensityClass } from "../../../infra/surface-typography.svelte.ts";
-  import { SurfaceFrame } from "../../index.ts";
+  // The transitional adapter of the piece replaced by dialog (DESIGN §4, item 61): view-panel and the shared-owner bank
+  // mount Dialog themselves, so nothing mounts this any more; Batch 3 deletes this folder.
+  import { Dialog } from "../../index.ts";
+  import { confirmationDialog, confirmationDismissal } from "../../../infra/confirmation-dialog.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { frame, open, locked, invoke, onclosed }: CatalogProps<"confirmation-dialog"> = $props();
-  const density = useSurfaceDensityClass();
+  let ask = $derived(confirmationDialog(frame));
   function cancel() {
-    if(!locked && frame.bottom.secondary?.state === "ready") invoke(frame.bottom.secondary.intent);
+    const intent = confirmationDismissal(frame);
+    if (!locked && intent) invoke(intent);
   }
 </script>
-<Dialog.Root {open} onOpenChange={next=>{if(!next) cancel();}} onOpenChangeComplete={next=>{if(!next) onclosed?.();}}>
-  <Dialog.Content presentation="message" class={density()}
-    onInteractOutside={event=>{event.preventDefault();cancel();}} onEscapeKeydown={event=>{event.preventDefault();cancel();}}>
-    <SurfaceFrame {frame} presentation="message" {invoke} />
-  </Dialog.Content>
-</Dialog.Root>
+
+<Dialog {open} {locked} tone="standard" title={ask.title} subtitle={ask.subtitle} face={ask.face} primary={ask.primary}
+  secondary={ask.secondary} oninvoke={invoke} ondismiss={cancel} {onclosed} />

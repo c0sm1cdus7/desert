@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
-import { identityEvidence, identityGeometry, assertIdentityGeometry, assertVisibleChrome, assertTextReachable } from "./fixtures/toolbar-identity-expectations.ts";
+import { identityEvidence, identityGeometry, assertIdentityGeometry, assertVisibleMessage, assertTextReachable } from "./fixtures/toolbar-identity-expectations.ts";
 
 const longTitle = "Independent warning about a connection that stopped responding while your current writing remains safely available";
 const source = `<script lang="ts">
@@ -102,12 +102,13 @@ test("long dialog title at narrow width and 200% text preserves body space and s
       assert.deepEqual(f.errors, [], "opening the message must not throw while composing its native dialog slots");
       const dialog = f.page.getByRole("dialog", { name: longTitle, exact: true });
       await dialog.waitFor();
-      const header = dialog.locator('[data-surface-slot="top"]');
+      // The message's content (face, title, sentence) is its identity region; its single dismissal stays below it.
+      const header = dialog.locator('[data-modal-message-content]');
       const geometry = await identityGeometry(header);
       await evidence.save(`${theme}-scale-${scale}`, geometry, dialog);
       t.diagnostic(JSON.stringify({ theme, scale, titleSize: geometry.titleSize, headerHeight: geometry.header.height }));
       assert.ok(geometry.titleSize >= 17 * scale, "the 200% case really enlarges title text, not only its spacing");
-      const close = dialog.locator('[data-surface-slot="bottom"]').getByRole("button", { name: "Close", exact: true });
+      const close = dialog.locator('[data-modal-message-actions]').getByRole("button", { name: "Close", exact: true });
       assert.equal(await dialog.getByRole("button", { name: "Close", exact: true }).count(), 1,
         "compact messages have one explicit dismissal, not duplicated navigation chrome");
       assert.equal(await header.getByRole("button").count(), 0);
@@ -117,11 +118,12 @@ test("long dialog title at narrow width and 200% text preserves body space and s
         return hit === node || node.contains(hit);
       }), true, "the single Close is initially reachable, without scrolling away from the new message");
       assertIdentityGeometry(geometry);
-      await assertVisibleChrome(dialog);
+      await assertVisibleMessage(dialog);
       assert.ok(geometry.titleText.bottom <= geometry.title.bottom + 1, "message cause is not truncated");
       const heading = header.getByRole("heading", { name: longTitle, exact: true });
       await assertTextReachable(heading, false); await assertTextReachable(heading, true);
-      const content = dialog.locator('[data-surface-slot="content"] [data-slot="dialog-description"]');
+      const describedBy = await dialog.getAttribute("aria-describedby");
+      const content = dialog.locator(`[id="${describedBy}"]`);
       await assertTextReachable(content, false); await assertTextReachable(content, true);
       await close.click();
       await dialog.waitFor({ state: "hidden" });
@@ -143,7 +145,7 @@ test("locked dialog retains one named disabled Close control and focus containme
     const buttons = dialog.getByRole("button", { name: "Close", exact: true });
     assert.equal(await buttons.count(), 1);
     assert.equal(await buttons.isDisabled(), true);
-    assert.equal(await dialog.locator('[data-surface-slot="top"]').getByRole("button").count(), 0);
+    assert.equal(await dialog.locator('[data-modal-message-content]').getByRole("button").count(), 0);
     await f.page.keyboard.press("Escape");
     assert.equal(await dialog.isVisible(), true);
     await f.page.keyboard.press("Tab");

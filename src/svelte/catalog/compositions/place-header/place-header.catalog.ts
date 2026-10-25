@@ -4,7 +4,8 @@ import { PlaceHeaderContract } from "./place-header.contract.ts";
 
 export const PlaceHeader = defineComposition({
   id: "place-header",
-  purpose: "Head a place's content with its title, its subtitle and an optional background image, never a toolbar.",
+  purpose: { key: "placeHeader.purpose" },
+  messages: ["placeHeader.purpose"],
   owner: { entry: "PlaceHeader.svelte" },
-  uses: ["heading"], approval: "none", contract: PlaceHeaderContract,
+  uses: ["place-heading"], approval: "none", contract: PlaceHeaderContract,
 } as const);

@@ -568,6 +568,20 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/bar",
       "kind": "foundation",
+      "messages": [
+        "bar.purpose",
+        "bar.backToTop",
+        "bar.create",
+        "bar.moreActions",
+        "bar.hideNavigation",
+        "bar.showNavigation",
+        "bar.settings",
+        "bar.settingsUnavailable",
+        "bar.searchLabel",
+        "bar.searchPlaceholder",
+        "bar.closeSearch",
+        "bar.search"
+      ],
       "owner": {
         "entry": "Bar.svelte",
         "mechanisms": [
@@ -582,9 +596,16 @@
           "toolbar-leading.svelte.ts"
         ]
       },
-      "purpose": "Keep navigation and contextual commands in the surface toolbar; reveal its title and subtitle only after the content header scrolls away.",
+      "purpose": {
+        "key": "bar.purpose"
+      },
       "shape": "none",
       "stateVariants": {
+        "controls": {
+          "purpose": [
+            "commands"
+          ]
+        },
         "overflow": {
           "purpose": [
             "commands"
@@ -599,7 +620,8 @@
       "states": [
         "default",
         "searching",
-        "overflow"
+        "overflow",
+        "controls"
       ],
       "variants": {
         "purpose": [
@@ -1037,11 +1059,12 @@
             "choice",
             "clock",
             "column",
-            "confirmation-dialog",
             "content-flow",
             "context-properties",
             "contract-inspection",
             "control-bench",
+            "dialog",
+            "face",
             "fact-list",
             "form",
             "heading",
@@ -1051,6 +1074,7 @@
             "lock-screen",
             "media-object",
             "media-reference-specimen",
+            "menu",
             "node-renderer",
             "object-state-control",
             "place-heading",
@@ -1061,7 +1085,6 @@
             "shared-owner-catalog",
             "spacer",
             "specimen-group",
-            "speed-dial",
             "stack-layout",
             "summary-widget",
             "surface-specimen",
@@ -1081,6 +1104,7 @@
           "stretch"
         ],
         "gap": [
+          "tight",
           "snug",
           "close",
           "regular",
@@ -1098,12 +1122,17 @@
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/confirmation-dialog",
       "kind": "composition",
+      "messages": [
+        "confirmationDialog.purpose"
+      ],
       "owner": {
         "entry": "ConfirmationDialog.svelte"
       },
-      "purpose": "Ask for explicit confirmation in a compact temporary surface with clear primary and secondary actions.",
+      "purpose": {
+        "key": "confirmationDialog.purpose"
+      },
       "uses": [
-        "surface-frame"
+        "dialog"
       ]
     },
     "content-flow": {
@@ -1287,6 +1316,29 @@
       "states": [
         "available",
         "unavailable"
+      ]
+    },
+    "dialog": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/dialog",
+      "kind": "composition",
+      "messages": [
+        "dialog.purpose"
+      ],
+      "owner": {
+        "entry": "Dialog.svelte"
+      },
+      "purpose": {
+        "key": "dialog.purpose"
+      },
+      "uses": [
+        "action",
+        "column",
+        "face",
+        "heading",
+        "inline",
+        "modal",
+        "text"
       ]
     },
     "drawer": {
@@ -1486,12 +1538,18 @@
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/failure-dialog",
       "kind": "composition",
+      "messages": [
+        "failureDialog.purpose",
+        "failureDialog.close"
+      ],
       "owner": {
         "entry": "FailureDialog.svelte"
       },
-      "purpose": "Explain a failed command in a problem dialog derived from its failure code, saying when the outcome is uncertain.",
+      "purpose": {
+        "key": "failureDialog.purpose"
+      },
       "uses": [
-        "node-renderer"
+        "dialog"
       ]
     },
     "feedback": {
@@ -1731,14 +1789,19 @@
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/frame-body",
       "kind": "composition",
+      "messages": [
+        "frameBody.purpose"
+      ],
       "owner": {
         "entry": "FrameBody.svelte"
       },
-      "purpose": "Render the body of a surface frame by its content kind and route its events to the frame.",
+      "purpose": {
+        "key": "frameBody.purpose"
+      },
       "uses": [
         "information",
-        "message-body",
         "node-renderer",
+        "text",
         "utility-actions"
       ]
     },
@@ -2091,10 +2154,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/instance-frame",
       "kind": "composition",
+      "messages": [
+        "instanceFrame.purpose"
+      ],
       "owner": {
         "entry": "InstanceFrame.svelte"
       },
-      "purpose": "Draw the transient frame of one mounted instance, keeping its callbacks through teardown.",
+      "purpose": {
+        "key": "instanceFrame.purpose"
+      },
       "uses": [
         "surface-frame"
       ]
@@ -2210,10 +2278,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/local-exercise-content",
       "kind": "composition",
+      "messages": [
+        "localExerciseContent.purpose"
+      ],
       "owner": {
         "entry": "LocalExerciseContent.svelte"
       },
-      "purpose": "Present the local exercises place as a draft its own events reduce, forwarding catalog navigation to the host.",
+      "purpose": {
+        "key": "localExerciseContent.purpose"
+      },
       "uses": [
         "place-content"
       ]
@@ -2462,6 +2535,12 @@
       "approval": "required",
       "folder": "src/svelte/catalog/foundations/media-viewer",
       "kind": "foundation",
+      "messages": [
+        "mediaViewer.close",
+        "mediaViewer.zoomOut",
+        "mediaViewer.resetZoom",
+        "mediaViewer.zoomIn"
+      ],
       "owner": {
         "entry": "MediaViewer.svelte",
         "mechanisms": [
@@ -2553,6 +2632,11 @@
       "purpose": "Present a temporary surface over its parent, dismissed by Escape, its scrim or its grip unless locked.",
       "shape": "radius",
       "slots": {
+        "actions": {
+          "accepts": [
+            "inline"
+          ]
+        },
         "children": {
           "accepts": [
             "surface-frame",
@@ -2561,10 +2645,10 @@
             "heading",
             "text",
             "inline",
+            "column",
             "bar",
             "image",
-            "media-player",
-            "toolbar-layout"
+            "media-player"
           ]
         }
       },
@@ -2680,10 +2764,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/panel",
       "kind": "composition",
+      "messages": [
+        "panel.purpose"
+      ],
       "owner": {
         "entry": "Panel.svelte"
       },
-      "purpose": "Keep an owned view panel mounted across open and close, routing its events with the owner it was mounted for.",
+      "purpose": {
+        "key": "panel.purpose"
+      },
       "uses": [
         "view-panel"
       ]
@@ -2741,25 +2830,36 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/place-content",
       "kind": "composition",
+      "messages": [
+        "placeContent.purpose"
+      ],
       "owner": {
         "entry": "PlaceContent.svelte"
       },
-      "purpose": "Show a place's checked content: its header and each of its stacks.",
+      "purpose": {
+        "key": "placeContent.purpose"
+      },
       "uses": [
-        "place-header",
-        "stack"
+        "place-heading",
+        "stack",
+        "view-region"
       ]
     },
     "place-header": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/place-header",
       "kind": "composition",
+      "messages": [
+        "placeHeader.purpose"
+      ],
       "owner": {
         "entry": "PlaceHeader.svelte"
       },
-      "purpose": "Head a place's content with its title, its subtitle and an optional background image, never a toolbar.",
+      "purpose": {
+        "key": "placeHeader.purpose"
+      },
       "uses": [
-        "heading"
+        "place-heading"
       ]
     },
     "place-heading": {
@@ -2886,15 +2986,21 @@
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/problem",
       "kind": "composition",
+      "messages": [
+        "problem.purpose",
+        "problem.close"
+      ],
       "owner": {
         "entry": "Problem.svelte"
       },
-      "purpose": "Explain a warning or error in a modal message the person dismisses unless it is locked.",
+      "purpose": {
+        "key": "problem.purpose"
+      },
       "renders": [
         "problem"
       ],
       "uses": [
-        "surface-frame"
+        "dialog"
       ]
     },
     "public-catalog-bank": {
@@ -3310,7 +3416,8 @@
         "sharedOwnerSpecimen.button",
         "sharedOwnerSpecimen.openFact",
         "sharedOwnerSpecimen.openButton",
-        "sharedOwnerSpecimen.attention"
+        "sharedOwnerSpecimen.attention",
+        "sharedOwnerSpecimen.moreActions"
       ],
       "owner": {
         "entry": "SharedOwnerSpecimen.svelte",
@@ -3332,19 +3439,19 @@
         "choice",
         "collection",
         "column",
-        "confirmation-dialog",
         "content-flow",
         "context-properties",
+        "dialog",
         "information",
         "list",
         "media-reference-specimen",
+        "menu",
         "object-state-control",
         "object-state-row",
         "reading-content",
         "reference-specimen",
         "related-selection",
         "row",
-        "speed-dial",
         "stack-layout",
         "summary-widget",
         "surface-specimen",
@@ -3578,14 +3685,20 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/stack",
       "kind": "composition",
+      "messages": [
+        "stack.purpose"
+      ],
       "owner": {
         "entry": "Stack.svelte"
       },
-      "purpose": "Draw one titled stack of a place's items, each through the node renderer.",
+      "purpose": {
+        "key": "stack.purpose"
+      },
       "uses": [
         "node-renderer",
         "stack-item",
-        "stack-layout"
+        "stack-layout",
+        "view-region"
       ]
     },
     "stack-item": {
@@ -3800,14 +3913,21 @@
       "approval": "required",
       "folder": "src/svelte/catalog/compositions/surface-frame",
       "kind": "composition",
+      "messages": [
+        "surfaceFrame.purpose",
+        "surfaceFrame.context",
+        "surfaceFrame.journey"
+      ],
       "owner": {
         "entry": "SurfaceFrame.svelte"
       },
-      "purpose": "Frame one surface with its top toolbar, scrolling content and, when it has choices to make, its bottom toolbar.",
+      "purpose": {
+        "key": "surfaceFrame.purpose"
+      },
       "uses": [
         "content-flow",
         "frame-body",
-        "scroll-edges",
+        "surface",
         "toolbar"
       ]
     },
@@ -3815,13 +3935,35 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/surface-specimen",
       "kind": "composition",
+      "messages": [
+        "surfaceSpecimen.purpose",
+        "surfaceSpecimen.edges",
+        "surfaceSpecimen.toolbars",
+        "surfaceSpecimen.sides",
+        "surfaceSpecimen.rootSurfaces",
+        "surfaceSpecimen.content",
+        "surfaceSpecimen.contentOrder",
+        "surfaceSpecimen.mountedTitle",
+        "surfaceSpecimen.mountedSubtitle",
+        "surfaceSpecimen.mountedText",
+        "surfaceSpecimen.exampleTitle",
+        "surfaceSpecimen.exampleSubtitle",
+        "surfaceSpecimen.anatomy",
+        "surfaceSpecimen.actions",
+        "surfaceSpecimen.openTransient",
+        "surfaceSpecimen.rules",
+        "surfaceSpecimen.rulesMounted",
+        "surfaceSpecimen.rulesAuthoring"
+      ],
       "owner": {
         "entry": "SurfaceSpecimen.svelte"
       },
-      "purpose": "Demonstrate a mounted surface, the transient it launches, and the rules of surface composition.",
+      "purpose": {
+        "key": "surfaceSpecimen.purpose"
+      },
       "uses": [
-        "drawer",
         "information",
+        "modal",
         "stack-layout",
         "surface-frame"
       ]
@@ -3983,12 +4125,17 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/toolbar",
       "kind": "composition",
+      "messages": [
+        "toolbar.purpose"
+      ],
       "owner": {
         "entry": "Toolbar.svelte"
       },
-      "purpose": "Show a surface's toolbar commands (title, navigation, actions) and invoke the intent of the one pressed.",
+      "purpose": {
+        "key": "toolbar.purpose"
+      },
       "uses": [
-        "toolbar-layout"
+        "bar"
       ]
     },
     "toolbar-layout": {
@@ -4046,11 +4193,17 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/utility-actions",
       "kind": "composition",
+      "messages": [
+        "utilityActions.purpose"
+      ],
       "owner": {
         "entry": "UtilityActions.svelte"
       },
-      "purpose": "Stack a frame's utility actions as secondary actions and pass the pressed one's intent to the host.",
+      "purpose": {
+        "key": "utilityActions.purpose"
+      },
       "uses": [
+        "column",
         "node-renderer"
       ]
     },
@@ -4124,13 +4277,19 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/view-panel",
       "kind": "composition",
+      "messages": [
+        "viewPanel.purpose"
+      ],
       "owner": {
         "entry": "ViewPanel.svelte"
       },
-      "purpose": "Present a view's resolved panel as a confirmation dialog or a drawer, reporting its events as node events.",
+      "purpose": {
+        "key": "viewPanel.purpose"
+      },
       "uses": [
-        "confirmation-dialog",
-        "drawer"
+        "dialog",
+        "instance-frame",
+        "modal"
       ]
     },
     "view-product": {

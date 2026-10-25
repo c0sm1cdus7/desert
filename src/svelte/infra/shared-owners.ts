@@ -1,14 +1,14 @@
 import type { CatalogId } from "../catalog/types.d.ts";
 
 /** The published shared-owner index and its coverage use one finite inventory: each owner's name and the piece it shows.
- * An owner keeps its name (its page and its destination) when its piece merges into a foundation, and then shows that
- * foundation; the speed dial and the confirmation dialog still show today's pieces until menu and dialog land. */
+ * An owner keeps its name (its page and its destination) when its piece merges into a foundation or a new composition,
+ * and then shows that piece: the speed dial shows the menu, the confirmation dialog the dialog. */
 export const sharedOwnerPieces = {
   Place: "surface", ToolbarLayout: "bar",
-  SpeedDial: "speed-dial", // lane-merge: menu
+  SpeedDial: "menu",
   FactRow: "fact-row", ReadingContent: "reading-content", Information: "information", InspectionCatalog: "inspection-catalog",
   ViewDestinationLink: "view-destination-link",
-  ConfirmationDialog: "confirmation-dialog", // lane-merge: dialog
+  ConfirmationDialog: "dialog",
   AppearancePreferences: "appearance-preferences", AppearancePreview: "theme-preview", SeedAvatar: "avatar",
   AvatarShuffle: "avatar", Wallpaper: "wallpaper", AccessExperience: "access-experience", LockScreen: "lock-screen",
   ObjectStateControl: "object-state-control", ContextProperties: "context-properties", ObjectStateRow: "object-state-row",
