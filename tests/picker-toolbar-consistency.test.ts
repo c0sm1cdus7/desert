@@ -28,7 +28,9 @@ for (const colorScheme of ['light', 'dark'] as const) {
           const sheet = f.page.getByRole('dialog', { name: 'Amount currency', exact: true });
           const toolbar = sheet.locator('[data-piece="toolbar"][data-surface-slot="top"]');
           const close = toolbar.getByRole('button', { name: 'Close Amount currency', exact: true });
-          const title = toolbar.getByRole('heading', { name: 'Amount currency', exact: true });
+          // The sheet's top bar says what it does and names the field it edits as its subtitle (laws 9c, 10a; third review).
+          const title = toolbar.getByRole('heading', { name: 'Choose an option', exact: true });
+          assert.equal(await toolbar.getByText('Amount currency', { exact: true }).isVisible(), true, 'the subtitle names the field');
           assert.equal(await close.getAttribute('data-action'), '');
           assert.equal(await close.getAttribute('data-action-face'), 'icon');
           const buttonBox = (await close.boundingBox())!, titleBox = (await title.boundingBox())!;

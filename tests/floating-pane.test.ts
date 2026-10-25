@@ -48,8 +48,11 @@ test("select and contextual popover share one floating material with opaque acce
       assert.deepEqual({...materials[0],radius:undefined},{...materials[1],radius:undefined});
       const material=materials[0]!;
       assert.equal(material.animation,'none');
-      if(preference==='reduce') {assert.equal(material.alpha,255);assert.equal(material.blur,'none');}
-      else {assert.ok(material.alpha!>180 && material.alpha!<255);assert.match(material.blur,/blur\(24px\)/);}
+      // A surface over the page is opaque (third review: at 97% a blob of the page still showed through,
+      // tests/overlay-legibility.test.ts): the one floating backing is opaque in both; reduced transparency also drops the blur.
+      assert.equal(material.alpha,255,'the floating backing is opaque');
+      if(preference==='reduce') assert.equal(material.blur,'none');
+      else assert.match(material.blur,/blur\(24px\)/);
     }
     assert.deepEqual(f.errors,[]);
   } finally {await f.close();}

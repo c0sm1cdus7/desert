@@ -94,25 +94,20 @@ test("lane C reads the same as the compositions it replaces, but for the design'
       assert.deepEqual(rows(after), rows(before), `${name}: the action rows`);
       assert.equal(above(after), above(before), `${name}: the space above the actions`);
     }
-    // One piece: Meter draws the total in the display role (32px/38px/600, where the widget drew it 32px/32px/bold), so
-    // the total and its label sit a little narrower on their line. Every other reading keeps its place on its line, its
-    // width and its style; the card grows by the 6px of the taller line, and the 13rem card, which centres its readings,
-    // does not grow.
-    const placed = (reading: Reading) => {
-      const total = reading.texts.findIndex(item => item.text === "3");
-      return reading.texts.map((item, index) => item.box === "sr-only" ? item : { text: item.text, height: item.box[HEIGHT],
-        ...index === total || index === total + 1 ? {} : { x: item.box[0], width: item.box[WIDTH] },
-        style: index === total ? item.style.filter((_, at) => at !== LINE_HEIGHT && at !== WEIGHT) : item.style });
-    };
+    // One piece: Meter draws the total. The third review of the slice 3 package took back the display role there (no law
+    // asked for it, design §7.12): the total reads exactly as the widget drew it, 32px/32px/bold, so every reading keeps
+    // its place on its line, its width and its style, and the card keeps its height.
+    const placed = (reading: Reading) => reading.texts.map(item => item.box === "sr-only" ? item : { text: item.text, height: item.box[HEIGHT],
+      x: item.box[0], width: item.box[WIDTH], style: item.style });
     for (const name of ["summary", "summary-truncated"]) {
       const [before, after] = pair(name);
-      assert.deepEqual([line(before, "3").style.slice(0, 3), line(after, "3").style.slice(0, 3)], [["32px", "32px", "700"], ["32px", "38px", "600"]], name);
+      assert.deepEqual([line(before, "3").style.slice(0, 3), line(after, "3").style.slice(0, 3)], [["32px", "32px", "700"], ["32px", "32px", "700"]], name);
       assert.deepEqual(placed(after), placed(before), name);
       assert.deepEqual(after.marks.map(mark => [mark.box[0], mark.box[WIDTH], mark.box[HEIGHT], mark.ink]),
         before.marks.map(mark => [mark.box[0], mark.box[WIDTH], mark.box[HEIGHT], mark.ink]), `${name}: the meter`);
     }
     const height = (reading: Reading) => reading.size[1] ?? Number.NaN;
-    assert.equal(height(pair("summary-truncated")[1]) - height(pair("summary-truncated")[0]), 6, "the 6px taller total line");
+    assert.equal(height(pair("summary-truncated")[1]) - height(pair("summary-truncated")[0]), 0, "the total's line keeps its height");
     assert.equal(height(pair("summary")[1]), height(pair("summary")[0]), "the 13rem summary card");
     // One piece: Loading draws its lines 8px apart, where the widget drew them 4px apart; the card keeps its size.
     {
