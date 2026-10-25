@@ -43,6 +43,8 @@
   export function scrollToTop(): void { place?.scrollToTop(); }
   export function scrollTop(): number { return place?.scrollTop() ?? 0; }
   export function focusTitle(): void { viewport?.querySelector<HTMLElement>("[data-place-title]")?.focus({ preventScroll: true }); }
+  /** The main place itself (a programmatic return target, never a tab stop) takes focus, as a navigation lands there. */
+  export function focusContent(): void { viewport?.closest<HTMLElement>("[data-catalog-content]")?.focus({ preventScroll: true }); }
   export function restoreRecord(top: number, view: string, record: string): void {
     place?.scrollTo(top);
     viewport?.querySelector<HTMLElement>(`[data-view-content="${CSS.escape(view)}"] [data-record="${CSS.escape(record)}"] button`)

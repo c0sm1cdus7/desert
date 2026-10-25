@@ -16,6 +16,7 @@
   export function scrollToTop(): void { body?.scrollToTop(); }
   export function scrollTop(): number { return body?.scrollTop() ?? 0; }
   export function focusTitle(): void { body?.focusTitle(); }
+  export function focusContent(): void { body?.focusContent(); }
   export function restoreRecord(top: number, view: string, record: string): void { body?.restoreRecord(top, view, record); }
   export function revealItem(id: string): Promise<boolean> { return body?.revealItem(id) ?? Promise.resolve(false); }
   export function scrollPositions(): { content: number; search: number } { return body?.scrollPositions() ?? { content: 0, search: 0 }; }

@@ -33,7 +33,7 @@ const after = `<script lang="ts">
   const navigation = $derived({ identity: { title: 'Notebook' }, settingsPlaceholder: true, active, groups });
   let shell = $state<{ scrollTop(): number; scrollToTop(): void; focusTitle(): void; revealItem(id: string): Promise<boolean>;
     scrollPositions(): { content: number; search: number }; restoreScroll(content: number, search: number): void;
-    focus(key: string): boolean; toggleNavigation(): void } | undefined>();
+    focus(key: string): boolean; toggleNavigation(): void; focusContent(): void } | undefined>();
   Reflect.set(window, 'shell', () => shell);
   Reflect.set(window, 'events', () => events);
 </script>
@@ -49,7 +49,7 @@ const after = `<script lang="ts">
   {#snippet content()}
     <PlaceHeading context="place" title="Notes" subtitle="Your writing" /><CatalogWorkspaceContent content={workspaceBody} {searching} />
   {/snippet}
-  {#snippet search()}<p data-search-result="first">Plan line 1.</p>{/snippet}
+  {#snippet search()}<button type="button" onclick={() => { events = [...events, 'select:first']; }}>Plan line 1.</button>{/snippet}
 </Shell>`;
 
 /** Pixel equality of the two pages; SHELL_SHOTS keeps both screenshots for inspection. */
@@ -104,6 +104,8 @@ test("the instance drives the viewport: scroll positions, the place title, items
     assert.ok(await f.page.evaluate(() => Reflect.get(window, "shell")().scrollTop()) > 0, "the item was scrolled into view");
     assert.equal(await f.page.evaluate(() => Reflect.get(window, "shell")().revealItem("missing")), false);
     assert.equal(await f.page.evaluate(() => Reflect.get(window, "shell")().focus("nothing-registered")), false);
+    await f.page.evaluate(() => Reflect.get(window, "shell")().focusContent());
+    assert.equal(await f.page.evaluate(() => document.activeElement?.hasAttribute("data-catalog-content")), true, "the main place takes focus");
     const pane = f.page.getByRole("navigation", { name: "Main navigation", exact: true });
     assert.equal(await pane.count(), 1);
     await f.page.evaluate(() => Reflect.get(window, "shell")().toggleNavigation());
@@ -136,6 +138,25 @@ test("search: opening it remembers its toggle; Escape inside cancels and returns
     await f.page.mouse.click(5, 790);
     await f.page.waitForFunction(() => document.querySelector("[data-catalog-workspace]")?.getAttribute("data-search-active") === "false");
     assert.deepEqual(await f.page.evaluate(() => Reflect.get(window, "events")()), ["cancel:true", "cancel:true"]);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("search: a press on a control inside its results belongs to the search; a press on their background cancels it", { timeout: 60000 }, async () => {
+  const f = await svelteBrowser(after);
+  try {
+    await f.page.addStyleTag({ content: await rendererCss() });
+    await f.page.setViewportSize({ width: 1280, height: 800 });
+    await f.page.getByRole("button", { name: "Search", exact: true }).click();
+    await f.page.waitForFunction(() => document.activeElement?.getAttribute("type") === "search");
+    await f.page.getByRole("button", { name: "Plan line 1.", exact: true }).click();
+    assert.deepEqual(await f.page.evaluate(() => Reflect.get(window, "events")()), ["select:first"], "the result is activated, the search stays");
+    assert.equal(await f.page.locator("[data-catalog-workspace]").getAttribute("data-search-active"), "true");
+    const box = await f.page.locator("#notes-results").boundingBox();
+    assert.ok(box);
+    await f.page.mouse.click(box.x + box.width / 2, box.y + box.height - 20);
+    await f.page.waitForFunction(() => document.querySelector("[data-catalog-workspace]")?.getAttribute("data-search-active") === "false");
+    assert.deepEqual(await f.page.evaluate(() => Reflect.get(window, "events")()), ["select:first", "cancel:true"]);
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

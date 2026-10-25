@@ -26,6 +26,18 @@ test("focus scope: a later registration replaces an earlier one, and only the cu
   assert.equal(scope.focus("row:1"), false);
 });
 
+test("focus scope: a newer registration of a key shadows the older one until it is released", () => {
+  // A search result and the home card that show the same record answer to one return key: the one mounted last (the
+  // open search) takes focus, and the home card answers again once the search is gone.
+  const scope = focusScope(), calls: string[] = [];
+  scope.register("catalog-return:fuji", () => { calls.push("home"); return true; });
+  const releaseSearch = scope.register("catalog-return:fuji", () => { calls.push("search"); return true; });
+  assert.equal(scope.focus("catalog-return:fuji"), true);
+  releaseSearch();
+  assert.equal(scope.focus("catalog-return:fuji"), true);
+  assert.deepEqual(calls, ["search", "home"]);
+});
+
 test("focus scope: the last activated key is remembered for a return", () => {
   const scope = focusScope();
   assert.equal(scope.lastActivated(), null);
