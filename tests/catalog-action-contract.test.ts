@@ -25,7 +25,7 @@ test("action: the contract is closed with exactly the props, event and marks of 
   assert.deepEqual(Object.keys(contract.props), ["label", "icon", "state", "emphasis", "face", "type", "reason", "form", "disclosure", "current", "bar"]);
   assert.deepEqual(Object.entries(contract.props).filter(([, item]) => item.optional).map(([name]) => name), ["reason", "form", "disclosure", "current", "bar"]);
   // A bar's Action takes the bar's target through this typed placement, never through the bar's stylesheet.
-  assert.deepEqual(contract.props.bar?.schema, { kind: "union", members: [{ kind: "literal", value: "command" }, { kind: "literal", value: "commit" },
+  assert.deepEqual(contract.props.bar?.schema, { kind: "union", members: [{ kind: "literal", value: "command" }, 
     { kind: "literal", value: "step" }] });
   assert.deepEqual(contract.props.disclosure?.schema, { kind: "reference", name: "DisclosureSchema", from: "../../../infra/disclosure.ts" });
   assert.deepEqual(contract.props.icon?.schema, { kind: "reference", name: "ActionIconSchema", from: "../../../../interaction/action-icon.ts" });

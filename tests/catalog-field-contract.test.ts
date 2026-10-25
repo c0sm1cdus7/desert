@@ -65,7 +65,7 @@ test("field: it owns the five writing vendor families and renders both input kin
   assert.deepEqual(field.variants, { primitive: ["input.text", "input.multiline", "trigger"], measure: ["writing", "choice", "date", "amount", "fill"] });
   assert.deepEqual(field.stateVariants, { masked: { primitive: ["input.text"] } });
   assert.deepEqual(field.slots, { accessory: { accepts: ["action"] }, prefix: { accepts: ["choice"] }, selection: { accepts: ["choice"] } });
-  assert.deepEqual(field.owner.parts, ["FieldWell.svelte", "FieldLabel.svelte", "FieldEditor.svelte", "FieldTrigger.svelte", "SearchWell.svelte",
+  assert.deepEqual(field.owner.parts, ["FieldWell.svelte", "FieldAccessory.svelte", "FieldLabel.svelte", "FieldEditor.svelte", "FieldTrigger.svelte", "SearchWell.svelte",
     "MaskedInput.svelte", "input-edit-history.ts", "ClearInput.svelte", "CharacterCounter.svelte", "editor-capacity.ts", "field.css", "field-measure.css"]);
 });
 

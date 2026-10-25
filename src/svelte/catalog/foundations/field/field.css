@@ -39,7 +39,7 @@
     transition:transform var(--dur-snap) var(--ease-tm), font-size var(--dur-snap) var(--ease-tm);
     &.required-mark::after { margin-inline-start:.375em; }
   }
-  &:not(:focus-within):not([data-label-raised="true"]) [data-slot="field-label"] {
+  &:not(:focus-within)[data-label-raised="false"] [data-slot="field-label"] {
     font-size:var(--text-body);
     transform:translateY(calc((var(--field-editing-row) - var(--field-label-inset)) / 2));
   }

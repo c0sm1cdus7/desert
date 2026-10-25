@@ -54,8 +54,12 @@ for(const width of [390,1280])test(`approved toolbar geometry and canonical cons
       assert.ok(geometry.gap>=0 && geometry.gap<=4,'title and subtitle remain tightly grouped');
       assert.ok(geometry.visible<32,'only capacity-fitting commands remain visible');
       if(width===1280)assert.ok(geometry.visible>0,'wide toolbars do not collapse every command');
-      const facadePixels=await facade.screenshot({animations:'disabled'}),ownerPixels=await owner.screenshot({animations:'disabled'});
-      assert.equal(facadePixels.equals(ownerPixels),true,'Toolbar facade renders the exact current ToolbarLayout geometry');
+      // The top rail keeps ToolbarLayout's pixels; the bottom commit left them on purpose: it is the 50/50 pair now (law 9c).
+      const facadePixels=await facade.locator('[data-toolbar="top"]').screenshot({animations:'disabled'});
+      const ownerPixels=await owner.locator('[data-piece="toolbar"]').first().screenshot({animations:'disabled'});
+      assert.equal(facadePixels.equals(ownerPixels),true,'Toolbar facade renders the exact current ToolbarLayout top geometry');
+      const pair=await facade.locator('[data-toolbar="bottom"] [data-bar-row]').evaluate(row=>[...row.querySelectorAll('button')].map(button=>button.getBoundingClientRect().width));
+      assert.equal(pair.length,2);assert.ok(Math.abs(pair[0]!-pair[1]!)<=0.5,'the bottom commit is the 50/50 pair');
       for(const label of ['Cancel','Save']) {
         const button=facade.getByRole('button',{name:label,exact:true});
         assert.equal(await button.innerText(),label);assert.equal(await button.locator('svg:visible').count(),0,'text actions never compete with a visible icon');

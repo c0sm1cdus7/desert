@@ -53,9 +53,11 @@ test("one toolbar owner reaches persistent frames, transient dialogs and the cat
       "catalog navigation does not acquire an ornamental face");
     await f.page.getByRole('button', { name: 'Open message', exact: true }).click();
     const dialog = f.page.getByRole('dialog', { name: 'Transient message', exact: true });
-    // A transient message is a dialog now (DESIGN §7.5): its face heads its content, and it draws no toolbar at all.
+    // A transient message is a dialog (DESIGN §7.5): its face heads its content, it draws no top toolbar, and its choices
+    // are Bar's bottom commit pair (law 9c: the one 50/50 pair of every action).
     await dialog.waitFor();
-    assert.equal(await dialog.locator('[data-piece="toolbar"]').count(), 0);
+    assert.equal(await dialog.locator('[data-piece="toolbar"]:not([data-toolbar="bottom"][data-toolbar-purpose="commit"])').count(), 0);
+    assert.equal(await dialog.locator('[data-piece="toolbar"][data-toolbar="bottom"][data-toolbar-purpose="commit"]').count(), 1);
     assert.equal(await dialog.locator('[data-modal-message-content] [data-piece="face"]').count(), 1);
     const header = f.page.locator('[data-persistent] [data-toolbar="top"]');
     assert.equal(await header.locator('[data-toolbar-face] > [data-piece="face"]').count(), 1);

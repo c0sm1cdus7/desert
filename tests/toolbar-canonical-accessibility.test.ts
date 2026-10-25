@@ -51,12 +51,13 @@ for(const width of [320,1280]) for(const direction of ['ltr','rtl']) test(`canon
       await f.page.screenshot({path:`artifacts/toolbar-canonical-geometry/accessibility/${width}-${direction}-${name}.png`});
       await f.page.keyboard.press('Escape');await f.page.locator(selector!).first().waitFor({state:'hidden'});
     }
-    // The message is a dialog now (DESIGN §7.5): no toolbar; its choices keep the page target and never overlap.
+    // The message is a dialog (DESIGN §7.5): no top toolbar; its choices are the one bottom pair of every action (law 9c,
+    // Bar's commit row), keep the page target and never overlap.
     await f.page.getByRole('button',{name:'Open message',exact:true}).click();
     const message=f.page.getByRole('dialog',{name:'Message',exact:true});await message.waitFor();
-    const choices=await message.evaluate(node=>({toolbars:node.querySelectorAll('[data-piece="toolbar"]').length,
+    const choices=await message.evaluate(node=>({toolbars:[...node.querySelectorAll('[data-piece="toolbar"]')].map(bar=>`${bar.getAttribute('data-toolbar')}:${bar.getAttribute('data-toolbar-purpose')}`),
       box:node.getBoundingClientRect().toJSON(),buttons:[...node.querySelectorAll('button')].map(button=>button.getBoundingClientRect().toJSON())}));
-    assert.equal(choices.toolbars,0,'a message dialog draws no toolbar');
+    assert.deepEqual(choices.toolbars,['bottom:commit'],'a message dialog draws no top toolbar, only its bottom pair');
     for(const button of choices.buttons){assert.ok(button.height>=standaloneTarget,'message choices keep the page target');
       assert.ok(button.left>=choices.box.left&&button.right<=choices.box.right,'message choices stay inside the dialog');}
     for(let i=0;i<choices.buttons.length;i++)for(let j=i+1;j<choices.buttons.length;j++){
