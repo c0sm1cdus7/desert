@@ -76,7 +76,7 @@
       <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} {controls} {bar} bind:writing onchange={next => onchange?.(next)} />
     {:else}
       <!-- A shown placeholder (the money amount's «0,00») is the editor's text line: the label keeps its place above it. -->
-      <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} raised={draft.length > 0 || placeholder !== undefined}
+      <FieldWell {id} {label} {labelVisibility} {required} {disabled} filled={draft.length > 0} raised={draft.length > 0 || placeholder !== undefined}
         {prefix} footer={counted ? characters : undefined}>
         {#snippet accessory()}
           {#if trailing}<FieldAccessory>{@render trailing()}</FieldAccessory>

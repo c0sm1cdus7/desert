@@ -118,7 +118,12 @@
 /* The content of a pane or interior control (applied beside control-feedback-content): disabled state belongs to content,
    the pane and its boundary never fade. */
 @utility disabled-content {
-  :is(button,a):is(:disabled,[aria-disabled="true"]) > & { opacity:var(--disabled-opacity); }
+  :is(button,a):is(:disabled,[aria-disabled="true"]) > & { opacity:var(--disabled-content-opacity,var(--disabled-opacity)); }
+}
+/* A content unit its owner fades as one while disabled (a field's row, its currency part and accessory included): it
+   fades once, and the content of a disabled control drawn inside it does not fade a second time. */
+@utility disabled-unit {
+  opacity:var(--disabled-opacity); --disabled-content-opacity:1;
 }
 /* A surface whose focus rings sit inside its clipped edges (a toolbar, a popover, a dialog). */
 @utility focus-inset { --focus-ring-offset:-3px; }

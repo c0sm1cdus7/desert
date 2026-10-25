@@ -7,9 +7,10 @@
   import { cn } from "../../../vendor/utils.js";
   import FieldLabel from "./FieldLabel.svelte";
   // `filled` says the editor holds text; `raised` that its line shows text (the value or a placeholder), so the label
-  // keeps its place above it instead of resting on the empty line.
-  let { id, label, labelVisibility, required, filled, raised, prefix, accessory, footer, children }: {
-    id: string; label: string; labelVisibility: "visible" | "accessible"; required: boolean; filled: boolean; raised: boolean;
+  // keeps its place above it instead of resting on the empty line. A disabled well's row is one content unit that fades
+  // once (the theme's disabled-unit), whoever draws the controls in it.
+  let { id, label, labelVisibility, required, disabled, filled, raised, prefix, accessory, footer, children }: {
+    id: string; label: string; labelVisibility: "visible" | "accessible"; required: boolean; disabled: boolean; filled: boolean; raised: boolean;
     prefix: Snippet | undefined; accessory: Snippet; footer: Snippet | undefined; children: Snippet;
   } = $props();
   function focusEditor(event: MouseEvent) {
@@ -23,7 +24,7 @@
 </script>
 <Group.Root onclick={focusEditor} class={cn("field-well overflow-hidden p-0", footer && "flex-col items-stretch")} data-floating-field
   data-field-focus="within" data-compound-field={!!prefix} data-filled={filled} data-label-raised={raised}>
-  <div data-field-row class="flex w-full min-w-0 items-center">
+  <div data-field-row class={cn("flex w-full min-w-0 items-center", disabled && "disabled-unit")}>
     <FieldLabel for={id} {label} {labelVisibility} {required}>{@render children()}</FieldLabel>
     {#if prefix}<Group.Addon align="inline-start" class="field-prefix">{@render prefix()}</Group.Addon>{/if}
     {@render accessory()}

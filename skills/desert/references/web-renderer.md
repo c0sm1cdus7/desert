@@ -4649,7 +4649,7 @@ Source SHA-256: b1583028daeae8af01654d99d391b8903c51c0f714de65be3f2b7e2e5fb9a9b5
 
 ## src/svelte/catalog/foundations/field/FieldWell.svelte
 
-Source SHA-256: f78c89bc89fc4ec087835e026f66aa18b192b4a9d75943a4d243a6a2332ca016
+Source SHA-256: 15817ed6a76f4af4d9c971ea5eee498840abbc0d4481d4ebdbe4fdc42e847604
 
 ```svelte
 <script lang="ts">
@@ -4661,9 +4661,10 @@ Source SHA-256: f78c89bc89fc4ec087835e026f66aa18b192b4a9d75943a4d243a6a2332ca016
   import { cn } from "../../../vendor/utils.js";
   import FieldLabel from "./FieldLabel.svelte";
   // `filled` says the editor holds text; `raised` that its line shows text (the value or a placeholder), so the label
-  // keeps its place above it instead of resting on the empty line.
-  let { id, label, labelVisibility, required, filled, raised, prefix, accessory, footer, children }: {
-    id: string; label: string; labelVisibility: "visible" | "accessible"; required: boolean; filled: boolean; raised: boolean;
+  // keeps its place above it instead of resting on the empty line. A disabled well's row is one content unit that fades
+  // once (the theme's disabled-unit), whoever draws the controls in it.
+  let { id, label, labelVisibility, required, disabled, filled, raised, prefix, accessory, footer, children }: {
+    id: string; label: string; labelVisibility: "visible" | "accessible"; required: boolean; disabled: boolean; filled: boolean; raised: boolean;
     prefix: Snippet | undefined; accessory: Snippet; footer: Snippet | undefined; children: Snippet;
   } = $props();
   function focusEditor(event: MouseEvent) {
@@ -4677,7 +4678,7 @@ Source SHA-256: f78c89bc89fc4ec087835e026f66aa18b192b4a9d75943a4d243a6a2332ca016
 </script>
 <Group.Root onclick={focusEditor} class={cn("field-well overflow-hidden p-0", footer && "flex-col items-stretch")} data-floating-field
   data-field-focus="within" data-compound-field={!!prefix} data-filled={filled} data-label-raised={raised}>
-  <div data-field-row class="flex w-full min-w-0 items-center">
+  <div data-field-row class={cn("flex w-full min-w-0 items-center", disabled && "disabled-unit")}>
     <FieldLabel for={id} {label} {labelVisibility} {required}>{@render children()}</FieldLabel>
     {#if prefix}<Group.Addon align="inline-start" class="field-prefix">{@render prefix()}</Group.Addon>{/if}
     {@render accessory()}
@@ -5739,7 +5740,7 @@ Source SHA-256: e95bfc97c5eedfbe17268c0fb5acf81adb8b7eb2f5e12dc7a7558150181ffe4e
 
 ## src/svelte/catalog/foundations/field/Field.svelte
 
-Source SHA-256: d4dba90f25ef41c0c04b4fa07583c6478d716fb2d85f98a05e5ac86dddaeaa07
+Source SHA-256: 8a3ba7c3cac52663c12536c16cf2f5762a792b970997ff6170b3b01f2ece6d2f
 
 ```svelte
 <script lang="ts">
@@ -5820,7 +5821,7 @@ Source SHA-256: d4dba90f25ef41c0c04b4fa07583c6478d716fb2d85f98a05e5ac86dddaeaa07
       <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} {controls} {bar} bind:writing onchange={next => onchange?.(next)} />
     {:else}
       <!-- A shown placeholder (the money amount's «0,00») is the editor's text line: the label keeps its place above it. -->
-      <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} raised={draft.length > 0 || placeholder !== undefined}
+      <FieldWell {id} {label} {labelVisibility} {required} {disabled} filled={draft.length > 0} raised={draft.length > 0 || placeholder !== undefined}
         {prefix} footer={counted ? characters : undefined}>
         {#snippet accessory()}
           {#if trailing}<FieldAccessory>{@render trailing()}</FieldAccessory>
