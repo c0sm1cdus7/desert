@@ -4,6 +4,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { renderFoundation } from "./fixtures/foundation-server.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
+import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const region = "@desert/svelte/catalog/foundations/view-region/ViewRegion.svelte";
 const markup = async (body: string) => (await renderFoundation(`<script lang="ts">\n  import ViewRegion from "${region}";\n</script>\n${body}`))
@@ -64,6 +65,29 @@ test("a retained region provides its activity: content dismisses itself when the
     assert.equal(await f.page.evaluate(() => Reflect.get(window, "dismissed")), undefined);
     await f.page.evaluate(() => Reflect.get(window, "deactivate")());
     await f.page.waitForFunction(() => Reflect.get(window, "dismissed") === true);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+// Found by the slice 3 package: the place inset moved from `[data-catalog-scroll] > [data-retained-place]` to every
+// retained region, so the Visual Catalog (a retained place inside the workspace's retained place) was inset twice:
+// 532 px from the edge at 1280 px instead of 266, and 36 px at 390 (fact labels broke mid-word).
+test("only the workspace's retained place takes the place inset; a retained region nested in it adds none", { timeout: 30000 }, async () => {
+  const f = await svelteBrowser(`<script lang="ts">
+    import ViewRegion from "${region}";
+  </script>
+  <div data-catalog-scroll>
+    <ViewRegion kind="retained" id="place:catalog" inset active>
+      <ViewRegion kind="retained" id="inspection" active><p data-probe>Entry</p></ViewRegion>
+    </ViewRegion>
+  </div>`);
+  try {
+    await f.page.addStyleTag({ content: await rendererCss() });
+    await f.page.evaluate(() => document.documentElement.style.setProperty("--place-surface-inset", "26px"));
+    await f.page.evaluate(() => document.documentElement.style.setProperty("--place-leading-inset", "0px"));
+    const geometry = await f.page.evaluate(() => ({ outer: getComputedStyle(document.querySelector("[data-retained-place]")!).paddingInlineStart,
+      x: Math.round(document.querySelector("[data-probe]")!.getBoundingClientRect().x), y: Math.round(document.querySelector("[data-probe]")!.getBoundingClientRect().y) }));
+    assert.deepEqual(geometry, { outer: "26px", x: 26, y: 24 });
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

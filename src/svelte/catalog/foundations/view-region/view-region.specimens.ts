@@ -11,6 +11,6 @@ export const ViewRegionSpecimens = [
   { state: "hidden", variants: { kind: "bare" }, props: { kind: "bare", id: "notes", visible: false } },
   { state: "default", variants: { kind: "document" }, props: { kind: "document", id: "travel-kit", label: "Travel kit" } },
   { state: "hidden", variants: { kind: "document" }, props: { kind: "document", id: "travel-kit", label: "Travel kit", visible: false } },
-  { state: "default", variants: { kind: "retained" }, props: { kind: "retained", id: "notes", active: true } },
+  { state: "default", variants: { kind: "retained" }, props: { kind: "retained", id: "notes", inset: true, active: true } },
   { state: "hidden", variants: { kind: "retained" }, props: { kind: "retained", id: "notes", visible: false, active: false } },
 ] as const satisfies readonly CatalogSpecimen<"view-region">[];

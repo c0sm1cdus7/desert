@@ -31,7 +31,8 @@
   <article bind:this={element} class="place-content" data-place-content aria-label={label}
     hidden={visible === false || undefined}>{@render children?.()}</article>
 {:else if kind === "retained"}
-  <div bind:this={element} data-retained-place hidden={visible === false || undefined}>{@render children?.()}</div>
+  <!-- Only a page of the workspace's main scroll takes the place inset (`inset`); a retained region inside it adds none. -->
+  <div bind:this={element} class:place-retained={inset} data-retained-place hidden={visible === false || undefined}>{@render children?.()}</div>
 {:else if visible === undefined}
   {@render children?.()}
 {:else}
