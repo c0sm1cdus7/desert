@@ -8,9 +8,9 @@ export const AccessForm = defineComposition({
   messages: ["accessForm.purpose", "accessForm.createIdentity", "accessForm.unlock", "accessForm.stepIdentity", "accessForm.stepAppearance",
     "accessForm.shuffleAvatar", "accessForm.headlineIdentity", "accessForm.headlineAppearance", "accessForm.introIdentity",
     "accessForm.introAppearance", "accessForm.identity", "accessForm.displayName", "accessForm.identityName", "accessForm.identityNameHelper",
-    "accessForm.password", "accessForm.passwordHelper", "accessForm.backToIdentity", "accessForm.pleaseWait", "accessForm.continue",
+    "accessForm.password", "accessForm.passwordHelper", "accessForm.cancel", "accessForm.back", "accessForm.pleaseWait", "accessForm.continue",
     "accessForm.getStarted", "accessForm.footnote"],
   owner: { entry: "AccessForm.svelte" },
-  uses: ["action", "appearance-preferences", "avatar", "column", "field", "form", "heading", "inline", "stack-layout", "text"],
+  uses: ["appearance-preferences", "avatar", "bar", "column", "field", "form", "heading", "stack-layout", "text"],
   approval: "required", contract: AccessFormContract,
 } as const);

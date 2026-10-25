@@ -193,7 +193,8 @@
         "accessForm.identityNameHelper",
         "accessForm.password",
         "accessForm.passwordHelper",
-        "accessForm.backToIdentity",
+        "accessForm.cancel",
+        "accessForm.back",
         "accessForm.pleaseWait",
         "accessForm.continue",
         "accessForm.getStarted",
@@ -206,14 +207,13 @@
         "key": "accessForm.purpose"
       },
       "uses": [
-        "action",
         "appearance-preferences",
         "avatar",
+        "bar",
         "column",
         "field",
         "form",
         "heading",
-        "inline",
         "stack-layout",
         "text"
       ]
