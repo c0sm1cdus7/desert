@@ -5,6 +5,11 @@
 [data-place][data-catalog-navigation] { display:flex; flex-direction:column; height:100%; min-height:0; background:transparent; }
 /* While the place searches, its retained content owns no input until dismissal; its scroll and edges do not change. */
 [data-catalog-scroll][inert] { pointer-events:none; }
+/* Under an overlay navigation the main place keeps the navigation return's room below its reading and reveals near its top. */
+[data-catalog-scroll][data-scroll-reserve="navigation-return"] {
+  padding-block-end:calc(var(--catalog-toolbar-height) + var(--catalog-toolbar-inset) + env(safe-area-inset-bottom,0px) + 32px);
+  scroll-padding-block:16px calc(var(--catalog-toolbar-height) + var(--catalog-toolbar-inset) + env(safe-area-inset-bottom,0px) + 32px);
+}
 [data-surface="page"] { position:relative; isolation:isolate; min-height:100dvh; width:100%; min-width:0; }
 [data-surface-backdrop] { position:absolute; inset:0; z-index:-1; }
 [data-surface-page-top] { padding:clamp(1rem,3vw,2rem); }

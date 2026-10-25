@@ -5,6 +5,8 @@
 // experience fills over a `backdrop` wallpaper. `label` names it; `destination` marks a main place's destination.
 // `composition` reports text composition inside a place; `submit` is the form's submission. A caller that binds it
 // scrolls its viewport through the instance (scrollToTop, scrollTop, scrollTo) instead of holding its elements.
+// `reserve: "navigation-return"`: a main place under an overlay navigation keeps the navigation return's room below its
+// reading, and reveals what it scrolls to near its top.
 import { Type } from "@sinclair/typebox";
 import { text } from "../../../../views/definition.ts";
 
@@ -14,6 +16,7 @@ export const SurfaceContract = {
     label: Type.Optional(text),
     destination: Type.Optional(Type.String()),
     searching: Type.Boolean(),
+    reserve: Type.Optional(Type.Literal("navigation-return")),
     presentation: Type.Optional(Type.Union([Type.Literal("standard"), Type.Literal("message"), Type.Literal("transient")])),
     backdrop: Type.Optional(Type.Union([Type.Literal("silk"), Type.Literal("mist"), Type.Literal("plain")])),
     form: Type.Optional(Type.Object({ label: text, id: Type.String({ minLength: 1 }) }, { additionalProperties: false })),
@@ -28,5 +31,5 @@ export const SurfaceContract = {
     scrollTo: Type.Function([Type.Number()], Type.Void()),
   }, { additionalProperties: false }),
   marks: ["data-scroll-owner", "data-surface-frame", "data-frame-presentation", "data-surface-slot", "data-catalog-scroll",
-    "data-catalog-content", "data-surface", "data-surface-backdrop", "data-surface-page-top", "data-surface-page-content"],
+    "data-catalog-content", "data-surface", "data-surface-backdrop", "data-surface-page-top", "data-surface-page-content", "data-scroll-reserve"],
 } as const;

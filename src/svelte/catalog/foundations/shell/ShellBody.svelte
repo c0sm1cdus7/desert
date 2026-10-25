@@ -73,7 +73,8 @@
   </Sidebar.Root>
 {/if}
 <AdaptiveSurfaceLayout fill>
-    <Surface bind:this={place} kind="main" {destination} {label} {searching} oncomposition={active => { composing = active; oncomposition?.(active); }}>
+    <Surface bind:this={place} kind="main" {destination} {label} {searching} reserve={sidebar.presentation === "overlay" ? "navigation-return" : undefined}
+      oncomposition={active => { composing = active; oncomposition?.(active); }}>
       {#snippet top()}{@render top?.()}{/snippet}
       {#snippet content()}{@render content?.()}{/snippet}
       {#snippet bottom()}

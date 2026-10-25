@@ -7,7 +7,7 @@
   import { providePane, usePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
   import ScrollEdges from "./ScrollEdges.svelte";
   import { observePlaceFocus } from "./place-focus.ts";
-  let { kind, label, destination, searching, presentation = "standard", backdrop, form, oncomposition, onsubmit,
+  let { kind, label, destination, searching, reserve, presentation = "standard", backdrop, form, oncomposition, onsubmit,
     top, content, bottom, overlay }: CatalogProps<"surface"> = $props();
   let owner = $state<HTMLElement | null>(null), viewport = $state<HTMLElement | null>(null);
   // A frame is the host its portalled transients size against; every scroll owner gives its top bar "back to top".
@@ -58,7 +58,7 @@
     oncompositionstart={() => oncomposition?.(true)} oncompositionend={() => oncomposition?.(false)}>
     {@render top?.()}
     <!-- svelte-ignore a11y_no_noninteractive_tabindex (Only -1 or absent; no keyboard tab stop.) -->
-    <div bind:this={viewport} class="place-viewport" data-catalog-scroll={main ? "" : undefined} tabindex={main ? -1 : undefined}
+    <div bind:this={viewport} class="place-viewport" data-catalog-scroll={main ? "" : undefined} data-scroll-reserve={main ? reserve : undefined} tabindex={main ? -1 : undefined}
       inert={main ? searching : undefined} aria-hidden={main && searching ? "true" : undefined}>
       {@render content?.()}
     </div>
