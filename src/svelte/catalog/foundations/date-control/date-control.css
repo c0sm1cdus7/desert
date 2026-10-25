@@ -22,6 +22,8 @@
   flex:1 1 max-content; min-width:0; overflow-wrap:anywhere;
   padding-inline-start:max(0px,calc(var(--surface-reading-inset,8px) - var(--catalog-toolbar-inset)));
 }
+/* In a sheet the month starts on its top bar's ✕ axis (one inset axis): the header's own toolbar inset, nothing more. */
+[data-date-calendar="sheet"] [data-date-calendar-month] { padding-inline-start:0; }
 [data-date-calendar-navigation] { display:flex; flex-shrink:0; align-items:center; gap:var(--toolbar-gap); margin-inline-start:auto; }
 [data-date-calendar-navigation] :is([data-slot="calendar-prev-button"],[data-slot="calendar-next-button"]) {
   width:var(--catalog-toolbar-height); height:var(--catalog-toolbar-height); padding:var(--catalog-toolbar-inset);

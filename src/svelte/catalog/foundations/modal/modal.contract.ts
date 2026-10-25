@@ -1,4 +1,5 @@
-// The props of Modal: its accessible `label`, whether it is `open`, whether it is `locked` (then nothing dismisses it),
+// The props of Modal: its accessible `label` (a sheet's top bar shows it as its title, with `subtitle` under it naming the
+// subject the sheet edits), whether it is `open`, whether it is `locked` (then nothing dismisses it),
 // its `presentation` (an adaptive pane docked beside its parent when the host has room; a transient pane; a picker sheet;
 // a centred message; the full-screen media stage; the navigation pane), and `continuity`, the string identity of the
 // frame it shows and of that frame's reading, which keeps focus and the reading position when the frame is replaced.
@@ -16,6 +17,7 @@ import { text } from "../../../../views/definition.ts";
 export const ModalContract = {
   props: Type.Object({
     label: text,
+    subtitle: Type.Optional(text),
     open: Type.Boolean(),
     locked: Type.Boolean(),
     presentation: Type.Union([Type.Literal("adaptive"), Type.Literal("transient"), Type.Literal("sheet"),

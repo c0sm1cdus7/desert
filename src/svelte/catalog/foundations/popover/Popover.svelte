@@ -9,6 +9,8 @@
   import { provideSheetFocus, takeOpenFocus } from "../../mechanisms/surface-focus/focus-return.ts";
   import { PickerPresentation, pickerBudget, calendarBudget } from "./picker-presentation.svelte.ts";
   import PopoverSurface from "./PopoverSurface.svelte";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let { label, open, disabled, locked, trigger, content, placement, align, controls, onopenchange, children }: CatalogProps<"popover"> = $props();
   const id = $props.id(), panelId = `${id}-surface`;
   const triggerId = $derived(trigger.kind === "owned" ? trigger.id : `${id}-trigger`);
@@ -33,8 +35,10 @@
     {disabled} measure={trigger.measure} display={trigger.display} {disclosure} onopen={() => change(!open)} />
 {/if}
 {#if sheet}
-  <!-- In a sheet a list keeps the picker inset of its rows; a calendar frames its own header. -->
-  <Modal {label} {open} {locked} presentation="sheet" ondismiss={() => change(false)}>
+  <!-- In a sheet a list keeps the picker inset of its rows; a calendar frames its own header. Its top bar says what the
+       sheet does and, as its subtitle, names the field it edits (laws 9c, 10a). -->
+  <Modal label={calendar ? say(m.popover.chooseDate) : say(m.popover.chooseOption)} subtitle={label} {open} {locked} presentation="sheet"
+    ondismiss={() => change(false)}>
     {#if content === "list"}<div class="picker-content-inset pt-2 pb-4">{@render children?.()}</div>{:else}{@render children?.()}{/if}
   </Modal>
 {:else}

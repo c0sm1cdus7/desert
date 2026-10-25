@@ -7,7 +7,7 @@
   import ModalSheet from "./ModalSheet.svelte";
   import ModalDialog from "./ModalDialog.svelte";
   import ModalNavigation from "./ModalNavigation.svelte";
-  let { label, open, locked, presentation, labelledBy, describedBy, navigation, continuity, ondismiss, onclosed, children, actions }: CatalogProps<"modal"> = $props();
+  let { label, subtitle, open, locked, presentation, labelledBy, describedBy, navigation, continuity, ondismiss, onclosed, children, actions }: CatalogProps<"modal"> = $props();
   const density = useSurfaceDensityClass();
   /** Escape, the scrim and the grip ask to dismiss; a locked modal refuses, and the caller decides what dismissal means. */
   const dismiss = () => { if (!locked) ondismiss?.(); };
@@ -22,7 +22,7 @@
 {:else if presentation === "navigation"}
   <ModalNavigation {label} {open} {navigation} {dismiss} {onclosed} {children} />
 {:else if presentation === "sheet"}
-  <ModalSheet {label} {open} {locked} density={density()} {dismiss} {onclosed} {children} />
+  <ModalSheet {label} {subtitle} {open} {locked} density={density()} {dismiss} {onclosed} {children} />
 {:else}
   <ModalDialog {label} {labelledBy} {describedBy} {open} {presentation} density={density()} {dismiss} {onclosed} {children} {actions} />
 {/if}

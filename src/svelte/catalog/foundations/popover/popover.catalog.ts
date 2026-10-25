@@ -6,7 +6,7 @@ import { PopoverContract } from "./popover.contract.ts";
 
 export const Popover = defineFoundation({
   id: "popover",
-  purpose: { key: "popover.purpose" }, messages: ["popover.purpose"],
+  purpose: { key: "popover.purpose" }, messages: ["popover.purpose", "popover.chooseDate", "popover.chooseOption"],
   owner: {
     entry: "Popover.svelte",
     parts: ["PopoverSurface.svelte", "anchored-tab-exit.ts", "picker-presentation.svelte.ts", "popover.css"],

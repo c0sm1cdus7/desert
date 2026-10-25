@@ -11,6 +11,10 @@
   .drawer[data-edge="bottom"] { left:max(var(--surface-inset),env(safe-area-inset-left,0px)); width:auto; max-width:none; }
   .drawer[data-edge="bottom"][data-size="content"] { top:auto; max-height:calc(100dvh - 2 * var(--surface-inset)); }
   .drawer[data-picker-sheet] { width:min(var(--panel-width),calc(100% - 2 * var(--surface-inset))); margin-inline:auto; }
+  /* A picker sheet rises from the screen's bottom edge and reaches it (no strip of the page under it): its bottom corners
+     are the edge's, and the safe area is inside it. */
+  .drawer[data-picker-sheet][data-size="content"] { bottom:0; border-bottom-left-radius:0; border-bottom-right-radius:0;
+    padding-bottom:env(safe-area-inset-bottom,0px); max-height:calc(100dvh - var(--surface-inset)); }
   /* Layout owns centering; motion only translates on the vertical axis. */
   .problem,.centered-dialog { position:fixed; inset:0; margin:auto; height:fit-content; max-height:calc(100dvh - 24px); }
   /* Wide enough that each half of the 50/50 pair holds a verb such as «Move to Trash» on one line. */
@@ -47,8 +51,8 @@
      Rows retain their own insets; typography is never shrunk to force a fit. */
   @media (max-width:24rem) {
     .drawer[data-picker-sheet][data-size="content"] {
-      right:max(4px,env(safe-area-inset-right,0px)); bottom:max(4px,env(safe-area-inset-bottom,0px));
-      left:max(4px,env(safe-area-inset-left,0px)); width:min(var(--panel-width),calc(100% - 8px)); max-height:calc(100dvh - 8px);
+      right:max(4px,env(safe-area-inset-right,0px)); bottom:0;
+      left:max(4px,env(safe-area-inset-left,0px)); width:min(var(--panel-width),calc(100% - 8px)); max-height:calc(100dvh - 4px);
     }
   }
   /* An adaptive pane sits inside the launching host's bounds, beside the reserved navigation. */

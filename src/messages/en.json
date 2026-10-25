@@ -832,7 +832,9 @@
     "purpose": "Head a place, or content embedded in one, with its title, subtitle and optional featured media."
   },
   "popover": {
-    "purpose": "Open contextual content, a form, options or commands in a surface anchored to its trigger."
+    "purpose": "Open contextual content, a form, options or commands in a surface anchored to its trigger.",
+    "chooseDate": "Choose a date",
+    "chooseOption": "Choose an option"
   },
   "row": {
     "purpose": "Open one object or destination from a list row, or read one, and say why an unavailable one cannot open."

@@ -13,8 +13,8 @@
   import { m } from "../../../../messages/keys.ts";
   import DrawerGrip from "./DrawerGrip.svelte";
   import { drawerMotion } from "./drawer-motion.svelte.ts";
-  let { label, open, locked, density, dismiss, onclosed, children }: {
-    label: string; open: boolean; locked: boolean; density: string | undefined;
+  let { label, subtitle, open, locked, density, dismiss, onclosed, children }: {
+    label: string; subtitle: string | undefined; open: boolean; locked: boolean; density: string | undefined;
     dismiss: () => void; onclosed: (() => void) | undefined; children: Snippet | undefined;
   } = $props();
   let content = $state<HTMLElement | null>(null);
@@ -39,9 +39,10 @@
     onEscapeKeydown={event => { event.preventDefault(); dismiss(); }}
     onInteractOutside={event => { event.preventDefault(); dismiss(); }}>
     <DrawerGrip {motion} {locked} />
-    <Dialog.Title class="sr-only">{label}</Dialog.Title>
-    <Bar edge="top" purpose="commands" identity={{ title: label }} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false}
-      leading={toolbarAction({ kind: "close" }, say(m.modal.closeNamed, { label }), "close", !locked)} oninvoke={dismiss} />
+    <!-- Its accessible name is the subject it edits (the field), its top bar showing what it does above it. -->
+    <Dialog.Title class="sr-only">{subtitle ?? label}</Dialog.Title>
+    <Bar edge="top" purpose="commands" identity={subtitle ? { title: label, subtitle } : { title: label }} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false}
+      leading={toolbarAction({ kind: "close" }, say(m.modal.closeNamed, { label: subtitle ?? label }), "close", !locked)} oninvoke={dismiss} />
     <!-- The picker brings its own insets: a calendar frames its header, a list insets its rows. -->
     <div class="flex min-h-0 flex-col overflow-auto @container" data-picker-content>{@render children?.()}</div>
   </Dialog.Content>
