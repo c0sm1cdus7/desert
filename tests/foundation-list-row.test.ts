@@ -10,6 +10,7 @@ import { inlineImports, measureProbes, renderCases, type Probes } from "./fixtur
 import { contentBefore } from "./fixtures/content-before.ts";
 import { marksBefore } from "./fixtures/marks-before.ts";
 import { compositionsBefore } from "./fixtures/compositions-c-before.ts";
+import { controlsBefore } from "./fixtures/controls-before.ts";
 
 const root = resolve(import.meta.dirname, "..");
 /** A composition as it was before composition lane C recomposed it on these foundations. */
@@ -17,6 +18,10 @@ const composedBefore = (id: string, entry: string) => {
   const path = `src/svelte/catalog/compositions/${id}/${entry}`;
   return { [resolve(root, path)]: compositionsBefore[path] ?? "" };
 };
+/** The anchored-surface stylesheet the frozen theme imports, moved into the popover by F1.6. */
+const anchoredSurfacePath = "src/svelte/catalog/mechanisms/anchored-surface/anchored-surface.css";
+const anchoredSurface = [anchoredSurfacePath, controlsBefore[anchoredSurfacePath] ?? ""] as const;
+const objectStateRow = "src/svelte/catalog/compositions/object-state-row/ObjectStateRow.svelte";
 const folders = ["list", "row", "fact-row", "fact-value"].map(id => `src/svelte/catalog/foundations/${id}/`);
 const imports = `
   import GroupedPanel from "@desert/svelte/catalog/foundations/grouped-panel/GroupedPanel.svelte";
@@ -28,7 +33,6 @@ const imports = `
   import Row from "@desert/svelte/catalog/foundations/row/Row.svelte";
   import Collection from "@desert/svelte/catalog/compositions/collection/Collection.svelte";
   import ObjectStateRow from "@desert/svelte/catalog/compositions/object-state-row/ObjectStateRow.svelte";
-  import SelectionField from "@desert/svelte/catalog/foundations/selection-field/SelectionField.svelte";
   import ReadingContent from "@desert/svelte/catalog/compositions/reading-content/ReadingContent.svelte";`;
 const reference = "10000000-0000-4000-8000-000000000001";
 const selector = `{ field: "status", label: "Status", value: "draft", disabled: false, options: [
@@ -78,10 +82,7 @@ const after = `<script lang="ts">${imports}
     <FactRow kind="value" label="tags" value={["Design", "Research"]} />
     <FactRow kind="value" label="projects" value={["${reference}"]} references={[{ value: "${reference}", label: "Personal", color: "blue" }]} />
   </List></div>
-  <div data-case="state"><List kind="facts" measure="reading"><FactRow kind="control" label="Status">
-    {#snippet control()}<SelectionField selection={selector.field} label={selector.label} value={selector.value} contextual disabled={false}
-      options={selector.options.map(option => ({ value: option.value, label: option.label, disabled: false }))} onchange={() => {}} />{/snippet}
-  </FactRow></List></div>
+  <div data-case="state"><List kind="facts" measure="reading"><ObjectStateRow {selector} /></List></div>
   <div data-case="narrow" style="width:180px"><List kind="facts" measure="reading"><FactRow kind="value" label="city" value="Buenos Aires" /></List></div>
 </main>`;
 
@@ -111,13 +112,15 @@ test("list, row, fact-row and fact-value: their folders draw only their own mark
 
 test("list and row keep the pixels of the grouped panel, the destination row, the record row, the fact list and the state row", { timeout: 60000 }, async () => {
   const frozen = { [resolve(root, "src/svelte/catalog/foundations/fact-row/FactRow.svelte")]: contentBefore["src/svelte/catalog/foundations/fact-row/FactRow.svelte"] ?? "",
-    ...composedBefore("collection", "Collection.svelte") };
+    ...composedBefore("collection", "Collection.svelte"),
+    // The state row as it was before composition lane B recomposed it as FactRow(control) over a contextual Choice menu.
+    [resolve(root, objectStateRow)]: controlsBefore[objectStateRow] ?? "" };
   // The frozen theme imports the stylesheets F1f moved (the place heading's, the scroll edges' and the shell's) from where they were.
   const frozenCss = (path: string) => [path, contentBefore[path] ?? ""] as const;
   const was = await renderCases(before, frozen, await rendererCss([], inlineImports(marksBefore["src/svelte/theme.css"] ?? "", Object.fromEntries([
     frozenCss("src/svelte/catalog/mechanisms/structured-content/structured-content.css"),
     ...["src/svelte/catalog/compositions/place-heading/place-heading.css", "src/svelte/catalog/foundations/scroll-edges/scroll-edges.css",
-      "src/svelte/catalog/mechanisms/catalog-shell/catalog-shell.css"].map(frozenCss)]))));
+      "src/svelte/catalog/mechanisms/catalog-shell/catalog-shell.css"].map(frozenCss), anchoredSurface]))));
   const is = await renderCases(after, {}, await rendererCss());
   try {
     const [old, now] = [await measureProbes(was.page, probes("before")), await measureProbes(is.page, probes("after"))];

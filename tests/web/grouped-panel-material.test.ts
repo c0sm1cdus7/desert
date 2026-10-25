@@ -9,7 +9,7 @@ for (const width of [390, 1280]) test(`Travel kit option panes retain shape and 
   try {
     await f.page.setViewportSize({ width, height: 1000 });
     await (await navigationAction(f.page, "Travel kit")).click();
-    const groups = f.page.locator('[data-control="options"]');
+    const groups = f.page.locator('[data-choice="rows"]');
     assert.equal(await groups.count(), 2);
     const directory = `artifacts/grouped-panel-material/${process.env.DESERT_CATALOG_BUILD?.split('/').pop()}`;
     await mkdir(directory, { recursive: true });
@@ -17,7 +17,7 @@ for (const width of [390, 1280]) test(`Travel kit option panes retain shape and 
     for (const theme of ["light", "dark"] as const) {
       await f.page.emulateMedia({ colorScheme: theme });
       for (const group of await groups.all()) {
-        const pane = group.locator('[data-grouped-panel]');
+        const pane = group.locator('.material-pane');
         await pane.scrollIntoViewIfNeeded();
         assert.equal(await pane.count(), 1);
         assert.equal(await pane.locator('legend').count(), 0, "heading stays outside the options pane");

@@ -68,7 +68,7 @@
   aria-describedby={required ? `${id}-requirement` : undefined} data-state={open ? "open" : "closed"} data-selection-trigger data-choice="menu"
   onclick={() => { if (!disabled) open = !open; }}
   onkeydown={event => { if ((event.key === "ArrowDown" || event.key === "ArrowUp") && !disabled) { event.preventDefault(); open = true; } }}>
-  <span class="control-feedback-content" data-button-content>
+  <span class="content control-feedback-content" data-button-content>
     {#if trigger === "well"}
       <FieldWellContent {label} {required}>
         <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
@@ -82,8 +82,7 @@
   trigger={{ kind: "owned", id }}>
   <ChoiceMenuList id={`${id}-options`} {label} {value} {options} {required} bind:activeValue bind:ref={list} onchange={change}
     onclose={() => { open = false; }} />
-</Popover>
-{#if required}<span id={`${id}-requirement`} class="sr-only">Required</span>{/if}
+</Popover>{#if required}<span id={`${id}-requirement`} class="sr-only">Required</span>{/if}
 {/snippet}
 {#if measure}<div class="measure" data-choice-measure={measure}><div class="measure-box">{@render menu()}</div></div>{:else}{@render menu()}{/if}
 
@@ -91,6 +90,8 @@
   .value { display:flex; flex:1; min-width:0; align-items:center; gap:.5rem; }
   .value[data-contextual] { justify-content:flex-end; text-align:end; }
   .text { min-width:0; white-space:normal; overflow-wrap:anywhere; text-wrap:balance; }
+  /* The trigger lays out its own content (it is not the vendor button, whose global rule did this): one row as the button. */
+  .content { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
   /* The choice measure of the field family (field-measure.css), measured on the containing slot, never the device. */
   .measure { container:choice-measure / inline-size; width:100%; min-width:0; align-self:stretch; }
   .measure-box { display:flex; flex-direction:column; width:100%; min-width:0; max-width:26rem; }

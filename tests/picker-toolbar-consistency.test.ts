@@ -17,7 +17,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
         for (const [code, expected] of [['USD', '$'], ['ARS', '$'], ['EUR', '€'], ['JPY', '¥']] as const) {
           const option = options.getByRole('option', { name: code, exact: true });
           assert.equal(await option.locator('[data-piece="face"]').count(), 0);
-          const symbol = option.locator('[data-currency-symbol]');
+          const symbol = option.locator('[data-choice-symbol]');
           assert.equal(await symbol.innerText(), expected);
           assert.deepEqual(await symbol.evaluate(el => {
             const css = getComputedStyle(el);

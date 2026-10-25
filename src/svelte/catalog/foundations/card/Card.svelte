@@ -9,16 +9,19 @@
     describedBy, busy, focusKey, onopen, children }: CatalogProps<"card"> = $props();
   const media = $derived(presentation === "item" || presentation === "featured");
   const scope = useFocusScope();
-  let button = $state<HTMLButtonElement | null>(null);
+  // Opening registers the card again, so of several cards answering to one key (a record featured and listed) the opened
+  // one answers.
+  let button = $state<HTMLButtonElement | null>(null), activations = $state(0);
   $effect(() => {
     const key = focusKey, target = button;
+    void activations;
     if (key === undefined || !target || !scope) return;
     return scope.register(key, () => { target.focus({ preventScroll: true }); return document.activeElement === target; });
   });
   function prepare() { if (prefetch) prefetchImage(prefetch, window.innerWidth * window.devicePixelRatio); }
   function open() {
     if (disabled) return;
-    if (focusKey !== undefined) scope?.activated(focusKey);
+    if (focusKey !== undefined) { activations += 1; scope?.activated(focusKey); }
     onopen?.();
   }
 </script>

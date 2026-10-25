@@ -15,7 +15,9 @@ const surface = compilePublicCatalog(catalogFixture()).surface;
 const source = `<script>
   import PublicCatalogBank from './src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte';
   const surface = ${JSON.stringify(surface)};
-</script><main style="padding:16px"><PublicCatalogBank {surface} oncatalog={() => {}} /></main>`;
+</script><main data-renderer-profile="apple-reference" style="padding:16px"><PublicCatalogBank {surface} oncatalog={() => {}} /></main>`;
+// The bank is mounted inside the renderer profile, as in the catalog it belongs to: its catalog cards (Card, lane B) take
+// their rail height from the profile's catalog geometry.
 
 test('the bank index groups the whole inventory and each detail exposes real states and honest coverage', {timeout:60000}, async () => {
   const f = await svelteBrowser(source,{},undefined,{initialCss:await rendererCss()});

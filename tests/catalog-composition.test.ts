@@ -36,7 +36,8 @@ test("catalog composes real shadcn owners and emits one typed destination event"
     await f.page.setViewportSize({ width: 900, height: 450 });
     await f.page.addStyleTag({ content: await rendererCss() });
     assert.equal(await f.page.locator('[data-slot="sidebar-wrapper"]').count(), 1);
-    assert.equal(await f.page.locator('[data-slot="card"]').count(), 2);
+    // Lane B: a catalog card is the catalog-card composition over the Card foundation (its own mark, no vendor card).
+    assert.equal(await f.page.locator('[data-card]').count(), 2);
     assert.equal(await f.page.locator('button button, a button, button a').count(), 0);
     assert.equal(await f.page.getByRole('heading', {name:'Mountain',exact:true}).count(), 0, 'cards do not introduce a second place title');
     assert.equal(await f.page.getByRole('button', {name:'Mountain',exact:true}).count(), 2);

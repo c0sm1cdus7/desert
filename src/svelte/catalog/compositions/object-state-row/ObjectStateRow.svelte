@@ -9,11 +9,9 @@
   }
 </script>
 <FactRow kind="control" label={selector.label}>
-  {#snippet control()}
-    <Choice presentation="menu" cardinality="one" menuTrigger="contextual" label={selector.label} labelVisibility="visible"
+  {#snippet control()}<Choice presentation="menu" cardinality="one" menuTrigger="contextual" label={selector.label} labelVisibility="visible"
       selected={selector.value === null ? [] : [selector.value]} disabled={selector.disabled} required={false}
       options={selector.options.map(option => ({ value: option.value, label: option.label,
         disabled: option.value !== selector.value && !option.available }))}
-      onchange={selected => choose(selected[0])} />
-  {/snippet}
+      onchange={selected => choose(selected[0])} />{/snippet}
 </FactRow>

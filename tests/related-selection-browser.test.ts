@@ -16,8 +16,9 @@ test('membership choices share a grouped pane and stop accepting toggles while a
     await f.page.addStyleTag({content:await rendererCss()});
     const image=f.page.getByRole('checkbox',{name:'Image 1',exact:true});
     await image.click();assert.equal(await image.isChecked(),true);
-    assert.equal(await f.page.locator('[data-grouped-rows] [data-grouped-row]').count(),2);
-    const grouped=f.page.locator('[data-grouped-rows]');
+    // Lane B: the rows are Choice rows of one pane (the choice's own marks).
+    assert.equal(await f.page.locator('[data-choice="rows"] [data-choice-row]').count(),2);
+    const grouped=f.page.locator('[data-choice="rows"]');
     assert.equal(await grouped.evaluate(node=>node.scrollWidth<=node.clientWidth),true);
     await f.page.getByRole('button',{name:'Lose response'}).click();
     assert.equal(await image.isDisabled(),true);

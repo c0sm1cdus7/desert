@@ -10,7 +10,7 @@ test("text, amount and selection share one field well while choices retain shadc
     await openCatalog(f.page);
     const text = f.page.locator('[data-view-item="specimen:input.text:value"]');
     const money = f.page.locator('[data-view-item="specimen:control.money:value"]');
-    const select = f.page.locator('[data-control="select"]').filter({
+    const select = f.page.locator('[data-choice-measure="choice"]').filter({
       has: f.page.getByRole("button", { name: /^Single choice ·/ }),
     });
     for (const width of [1280, 390, 320]) {

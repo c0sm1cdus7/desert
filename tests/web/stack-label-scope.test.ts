@@ -30,7 +30,7 @@ test('always-visible sibling Stacks retain independent labels, requirements and 
     const directLabel = direct.locator('[data-control="files"] [data-slot="field-label"]');
     assert.equal(await directLabel.evaluate(element => element.classList.contains('sr-only')), true,
       'Direct file label remains accessible without duplicating its visible Stack heading');
-    const choicesLegend = details.locator('[data-control="options"] > legend');
+    const choicesLegend = details.locator('[data-choice="rows"] > legend');
     assert.equal(await choicesLegend.evaluate(element => element.classList.contains('sr-only')), false,
       'A sibling Stack owns its label scope independently of the previous heading');
     assert.equal(await choicesLegend.locator('.required').count(), 0,
@@ -49,7 +49,7 @@ test('always-visible sibling Stacks retain independent labels, requirements and 
           return range.getBoundingClientRect().left; };
         return { title: x('[data-place-stack="direct"] .place-stack-title h2'),
           detailsTitle: x('[data-place-stack="details"] .place-stack-title h2'),
-          choicesLabel: textX('[data-control="options"] > legend'),
+          choicesLabel: textX('[data-choice="rows"] > legend'),
           detailsFile: textX('[data-place-stack="details"] [data-control="files"] [data-slot="field-label"]'),
           support: textX('[data-control="files"] [data-slot="field-description"]') };
       });

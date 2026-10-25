@@ -58,7 +58,7 @@ for (const colorScheme of ['light', 'dark'] as const) test(`v1 stack details and
     assert.equal(observed.ordinaryBorder, '1px', 'Unrelated input wells retain their boundary');
     await f.page.goto(`${f.origin}/?place=bank`);
     await settle(f.page);
-    const standalone = await f.page.locator('[data-control="options"] > .options-title').evaluateAll(legends => legends.map(legend => {
+    const standalone = await f.page.locator('[data-choice="rows"] > legend').evaluateAll(legends => legends.map(legend => {
       const style = getComputedStyle(legend);
       const pane = legend.parentElement!.querySelector('[data-grouped-panel]')!;
       const box = legend.getBoundingClientRect(), paneBox = pane.getBoundingClientRect();

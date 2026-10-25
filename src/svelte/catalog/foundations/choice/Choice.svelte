@@ -5,8 +5,8 @@
   import ChoiceRows from "./ChoiceRows.svelte";
   import ChoiceSwatches from "./ChoiceSwatches.svelte";
   import { menuTriggerOf, swatchesOf } from "./choice-row.ts";
-  let { label, labelVisibility, selected, disabled, required, presentation, cardinality, options, menuTrigger, placeholder, measure, frame = "pane", onchange }:
-    CatalogProps<"choice"> = $props();
+  let { label, labelVisibility, selected, disabled, required, presentation, cardinality, options, menuTrigger, placeholder, measure,
+    frame = "pane", onchange }: CatalogProps<"choice"> = $props();
   const id = $props.id();
 </script>
 

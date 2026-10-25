@@ -68,8 +68,8 @@ for (const { width, scale } of [{ width: 1280, scale: 1 }, { width: 320, scale: 
       await settle(page);
       const families = [
         { selector: '[data-action]', maximum: 352 },
-        { selector: '[data-primitive="input.text"], [data-primitive="input.multiline"], [data-control="money"], [data-control="date"], [data-control="select"], [data-control="files"]', maximum: 512 },
-        { selector: '[data-control="options"]', maximum: 576 },
+        { selector: '[data-primitive="input.text"], [data-primitive="input.multiline"], [data-measure="amount"] > [data-slot="field"], [data-control="date"], [data-choice-measure="choice"] > div, [data-control="files"]', maximum: 512 },
+        { selector: '[data-choice="rows"]', maximum: 576 },
       ];
       const measurements: unknown[] = [];
       for (const family of families) {

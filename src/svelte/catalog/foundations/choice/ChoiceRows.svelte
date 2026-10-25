@@ -6,6 +6,8 @@
   import { rowDivider, rowFrame, rowGroup } from "./choice-row.ts";
   // The options as rows of one pane at the reading measure: a radio each for one, a checkbox each for many. A row's label
   // activates its control; a disabled option's control keeps full ink while its content dims.
+  // The marks are bound to `selected` through a getter and a setter: a press only proposes the next selection, and the
+  // marks show what the owner accepts (an edit the owner refuses never shows).
   // In their own pane they keep the reading measure; inside a hosting pane (`interior`) they take its width, transparent.
   let { id, label, frame, cardinality, options, selected, disabled, required, onchange }: { id: string; label: string; frame: "pane" | "interior";
     cardinality: "one" | "many"; options: readonly ChoiceOption[]; selected: readonly string[]; disabled: boolean; required: boolean;
@@ -29,8 +31,8 @@
               aria-labelledby={`${control(option.value)}-label`}
               aria-describedby={option.description ? `${control(option.value)}-description` : undefined} />
           {:else}
-            <Checkbox id={control(option.value)} checked={selected.includes(option.value)} disabled={unavailable(option)} class="disabled:opacity-100"
-              onCheckedChange={checked => toggle(option.value, checked)} aria-labelledby={`${control(option.value)}-label`}
+            <Checkbox id={control(option.value)} bind:checked={() => selected.includes(option.value), checked => toggle(option.value, checked)}
+              disabled={unavailable(option)} class="disabled:opacity-100" aria-labelledby={`${control(option.value)}-label`}
               aria-describedby={option.description ? `${control(option.value)}-description` : undefined} />
           {/if}
         {/snippet}
@@ -42,7 +44,7 @@
 <div class="w-full min-w-0 {frame === 'pane' ? 'max-w-[34rem]' : ''}">
   <div class="{frame === 'pane' ? 'material-pane text-card-foreground' : 'material-interior'} overflow-hidden rounded-[var(--radius-group)] flex flex-col">
     {#if cardinality === "one"}
-      <RadioGroup.Root value={selected[0] ?? ""} onValueChange={value => onchange?.(value ? [value] : [])} {disabled} {required}
+      <RadioGroup.Root bind:value={() => selected[0] ?? "", value => onchange?.(value ? [value] : [])} {disabled} {required}
         aria-label={label} class={rowGroup}>{@render rows()}</RadioGroup.Root>
     {:else}<div class={rowGroup}>{@render rows()}</div>{/if}
   </div>
