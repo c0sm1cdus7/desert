@@ -67,7 +67,7 @@
     justify-content:inherit; gap:inherit; }
   /* Item (and featured): the catalog rail card, its title over the artwork's shade. */
   .card-media { position:relative; display:flex; flex-direction:column; flex-shrink:0; min-height:0; overflow:hidden; border:0;
-    box-shadow:none; background:var(--card); color:var(--card-foreground); width:calc(var(--catalog-media-height) * 1.4);
+    box-shadow:none; background:var(--card); color:var(--card-foreground); width:calc(var(--catalog-media-height) * var(--catalog-cover-aspect));
     height:var(--catalog-media-height); }
   .card-fill { position:absolute; inset:0; display:block; }
   /* The press target spans the card; it took its square corners from the title it sat in, and the card clips it. */

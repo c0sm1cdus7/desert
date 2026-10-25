@@ -1172,7 +1172,7 @@ function drain() {
 
 ## src/svelte/catalog/foundations/image/Image.svelte
 
-Source SHA-256: b2b8e50f7572c797369a2bfab2e0a46302ebc0ee50bca9ca5c01b8464b9f2a35
+Source SHA-256: 18d1740fe6d4171b07e36c1acd381b1f71d3d89952e0efd83822da93b9d2e2d4
 
 ```svelte
 <script lang="ts">
@@ -1273,7 +1273,11 @@ Source SHA-256: b2b8e50f7572c797369a2bfab2e0a46302ebc0ee50bca9ca5c01b8464b9f2a35
     .image-element { display:block; width:100%; height:100%; object-fit:cover; user-select:none; }
     .image-contain { object-fit:contain; }
     .image[data-image-state="ready"] > .image-element { animation:image-in var(--dur-unfold) var(--ease-tm) both; }
-    .image-error { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--foreground); }
+    /* Failed, the image is its error alone, laid out in flow: as tall as its frame when the host gives one, as tall as its
+       sentence and retry (and its inset) when it gives none, never clipped to the broken image's line. */
+    .image[data-image-state="error"] > .image-element { display:none; }
+    .image-error { position:relative; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+      padding:var(--spacing-regular,1rem); color:var(--foreground); }
   }
   @keyframes image-in { from { opacity:0; } to { opacity:1; } }
   @media(prefers-reduced-motion:reduce) { .image[data-image-state="ready"] > .image-element { animation:none; } }

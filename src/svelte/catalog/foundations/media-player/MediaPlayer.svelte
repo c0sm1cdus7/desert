@@ -28,7 +28,9 @@
 </script>
 
 <div class="player player-{presentation}" data-media-player-presentation={presentation}>
-  <div class="player-stage">
+  <!-- Unavailable, the stage shows one state: the sentence and its retry on their own ground, laid out over the media's
+       box (kept, so retrying reloads the same element), the artwork and the header controls withdrawn. -->
+  <div class="player-stage" class:player-stage-unavailable={unavailable}>
     {#if item.kind === 'video'}
       <!-- svelte-ignore a11y_media_has_caption (Tracks come from the typed media item; the compiler only detects direct static children. Browser tests verify the resulting caption track.) -->
       <video class="player-video" data-media-player="video" use:playback.attach src={source} preload="metadata" playsinline
@@ -36,7 +38,8 @@
         {#each item.captions as track (track.source)}<track kind="captions" src={track.source} srclang={track.language} label={track.label} />{/each}
       </video>
     {:else}
-      {#if item.artwork}<Image source={item.artwork.source} alt={item.artwork.alt} edge={1280}
+      {#if unavailable}<!-- The error stands alone. -->
+      {:else if item.artwork}<Image source={item.artwork.source} alt={item.artwork.alt} edge={1280}
         fit={presentation === 'viewer' ? 'fit' : 'fill'} backdrop={presentation === 'viewer' ? 'none' : 'muted'} />
       {:else}<Image placeholder="audio" />{/if}
       <audio data-media-player="audio" use:playback.attach src={source} preload="metadata" aria-label={item.alt}>
@@ -51,7 +54,7 @@
     {@render overlay?.()}
   </div>
   {#if presentation === 'header'}
-    <div class="player-header-controls"><Transport {playback} /><Volume {playback} captions={false} /></div>
+    {#if !unavailable}<div class="player-header-controls"><Transport {playback} /><Volume {playback} captions={false} /></div>{/if}
   {:else}
     <!-- The media controls band: transport, the viewer's thumbnails (strip), volume, then the seek row. -->
     <div class="player-band" data-media-band>
@@ -72,8 +75,13 @@
     .player-viewer .player-stage { flex:1; min-height:0; touch-action:none; }
     .player-header { width:100%; height:100%; }
     .player-header .player-stage { flex:1; }
-    .player-video { display:block; width:100%; height:100%; object-fit:contain; }
-    .player-error { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--foreground); }
+    .player-video { display:block; width:100%; height:100%; min-height:0; object-fit:contain; }
+    /* Unavailable, the stage stacks its parts in one cell: it is as tall as its media or its error, whichever is taller, and
+       the error, on the muted ground an image's error has, covers the media's box (an overlay, the viewer's paging, stays above). */
+    .player-stage-unavailable { display:grid; }
+    .player-stage-unavailable > .player-video, .player-stage-unavailable > .player-error { grid-area:1 / 1; }
+    .player-error { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+      padding:var(--spacing-regular,1rem); background:var(--muted); color:var(--foreground); }
     /* The band keeps the toolbar's media geometry: its inset, target height and gap. */
     .player-band { flex-shrink:0; min-width:0; padding:var(--catalog-toolbar-inset,8px); container:toolbar / inline-size;
       max-height:min(50dvh,calc(100dvh - 10rem)); overflow-y:auto; overscroll-behavior:contain; }
