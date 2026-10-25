@@ -59,3 +59,37 @@ test("a keyboard-focused choice card or swatch draws its ring; a pointer press d
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
+
+// One disabled look for a card, chosen or not (fourth review): a disabled chosen card kept its full blue ring and tint
+// while its artwork and label faded, so it read as chosen and available. Disabled, a card's selection marks (its ring and
+// its tint) fade as its label does; enabled, they are full.
+test("a disabled chosen card fades its ring and its tint as its label", { timeout: 60000 }, async () => {
+  const f = await svelteBrowser(source);
+  try {
+    await f.page.addStyleTag({ content: await rendererCss() });
+    await f.page.emulateMedia({ reducedMotion: "reduce" });
+    const read = () => f.page.evaluate(() => {
+      const rgba = (color: string) => { const c = new OffscreenCanvas(1, 1).getContext("2d")!; c.fillStyle = color; c.fillRect(0, 0, 1, 1); return [...c.getImageData(0, 0, 1, 1).data]; };
+      const card = (value: string) => document.querySelector(`[data-case="one"] [data-choice-option="${value}"]`)!;
+      const chosen = getComputedStyle(card("mist")), other = getComputedStyle(card("silk"));
+      let label = 1;
+      for (let node: Element | null = card("mist").querySelector(".caption > span:last-child"); node; node = node.parentElement) label *= Number(getComputedStyle(node).opacity);
+      const [cr, cg, cb] = rgba(chosen.backgroundColor), [or, og, ob] = rgba(other.backgroundColor);
+      // The tint: how far the chosen card's fill stands from an unchosen card's.
+      return { label: Math.round(label * 100) / 100, ring: Math.round(rgba(chosen.outlineColor)[3]! / 2.55) / 100, ringStyle: chosen.outlineStyle,
+        tint: Math.hypot(cr! - or!, cg! - og!, cb! - ob!) };
+    });
+    const off = await read();
+    await f.page.evaluate(() => (window as unknown as { enable: () => void }).enable());
+    await f.page.evaluate(() => new Promise(requestAnimationFrame));
+    const on = await read();
+    assert.equal(on.label, 1, "enabled, the label is full");
+    assert.equal(on.ring, 1, "enabled, the chosen card's ring is full");
+    assert.ok(on.tint > 4, `enabled, the chosen card is tinted: ${JSON.stringify(on)}`);
+    assert.equal(off.label, .5, "disabled, the label fades");
+    assert.equal(off.ringStyle, "solid", "disabled, the chosen card keeps its ring, faded");
+    assert.ok(Math.abs(off.ring - off.label) < .02, `disabled, the ring fades as the label does: ${JSON.stringify({ off, on })}`);
+    assert.ok(Math.abs(off.tint / on.tint - off.label) < .1, `disabled, the tint fades as the label does: ${JSON.stringify({ off, on })}`);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});

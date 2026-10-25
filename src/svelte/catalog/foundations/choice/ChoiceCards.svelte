@@ -62,8 +62,10 @@
     min-width:0; display:grid; gap:.625rem; padding:var(--card-inset); border-radius:calc(var(--cover-radius) + var(--card-inset) + 1px); cursor:pointer; }
   .card[data-selected="true"] { outline:2px solid var(--ring); outline-offset:1px; }
   .card[data-focus-visible="true"] { outline:3px solid var(--ring); outline-offset:3px; }
-  /* A disabled card's content fades once (its control fades itself); the pane never fades. */
-  .card[data-disabled="true"] { cursor:default; }
+  /* A disabled card's content fades once (its control fades itself); the pane never fades. One disabled look, chosen or
+     not: a chosen card's selection marks, its ring and its tint, fade as its label does. */
+  .card[data-disabled="true"] { cursor:default; --pane-selection-fade:var(--disabled-opacity); }
+  .card[data-disabled="true"][data-selected="true"] { outline-color:color-mix(in srgb,var(--ring) calc(var(--disabled-opacity) * 100%),transparent); }
   .card[data-disabled="true"] :is(.artwork, .name) { opacity:var(--disabled-opacity); }
   .artwork { display:grid; min-width:0; }
   .caption { display:flex; justify-content:center; align-items:center; gap:.5rem; padding:.125rem; }
