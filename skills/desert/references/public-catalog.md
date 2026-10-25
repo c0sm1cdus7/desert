@@ -1502,7 +1502,7 @@ Source SHA-256: 1e20f01d45949b10db016b064f59258fbc18e24af4ddb974a44c7cb6812ec77b
 
 ## src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
 
-Source SHA-256: 7a5a57bff4b3889275faad33c43849753aaed7b962ffbc2c1db7adb800452340
+Source SHA-256: 7f98ac0cdf394348e2839ec2f3e20e49a153569ed7bd43eaee6b71c11a822b79
 
 ```svelte
 <script lang="ts">
@@ -1519,14 +1519,15 @@ Source SHA-256: 7a5a57bff4b3889275faad33c43849753aaed7b962ffbc2c1db7adb800452340
     const asset = cover?.(node.record); if (asset) prefetchImage(mediaSource(asset), window.innerWidth*window.devicePixelRatio);
   }
   // lane-merge: card focusKey. Until the catalog-card composition mounts Card with a focusKey, this card registers itself
-  // in the nearest focus scope under its own key and reports its activation, so a detail it opens can return focus to it.
-  const uid = $props.id();
-  const key = `catalog-card:${uid}`, scope = useFocusScope();
+  // in the nearest focus scope under `catalog-return:<record>` (lane F) and reports its activation, so a detail it opens
+  // can return focus to it; a search result of the same record, mounted later, shadows the home card while it is shown.
+  const scope = useFocusScope();
+  let key = $derived(`catalog-return:${node.record}`);
   let button = $state<HTMLElement | null>(null);
   $effect(() => {
-    const target = button;
+    const target = button, registered = key;
     if (!target || !scope) return;
-    return scope.register(key, () => { target.focus({ preventScroll: true }); return document.activeElement === target; });
+    return scope.register(registered, () => { target.focus({ preventScroll: true }); return document.activeElement === target; });
   });
   const open = () => { scope?.activated(key); onevent?.({ kind: "catalog.open", record: node.record }); };
 </script>

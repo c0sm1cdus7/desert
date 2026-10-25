@@ -2765,7 +2765,7 @@ Source SHA-256: 43ac0c7c5e8a68eb1a7683b8435156f6819fa6c66c4641f6f4fd8975491df663
 
 ## src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte
 
-Source SHA-256: b501aa46c4577efa30d8025633be26afa82bd978c24e8a08b0ee24713289c895
+Source SHA-256: 363cdd3003aedbdf4372f22f9010177cf077dd9063d45beee533ecc0946960a4
 
 ```svelte
 <script lang="ts">
@@ -2785,7 +2785,7 @@ Source SHA-256: b501aa46c4577efa30d8025633be26afa82bd978c24e8a08b0ee24713289c895
   // One focus scope for the whole workspace; a caller that opened one above it (to return focus by key itself) shares it.
   const { focus: focusKey, lastActivated } = useFocusScope() ?? provideFocusScope();
   let shell = $state<ReturnType<typeof Shell>>();
-  const resultsId = `${$props.id()}-results`;
+  const uid = $props.id(), resultsId = `${uid}-results`;
   // A page opened inside a destination (a bank entry) returns where it was opened: the scroll offset and the piece last
   // activated, else the place title.
   const pages = provideDestinationNavigation(() => active, () => ({ focusKey: lastActivated(), scroll: shell?.scrollTop() ?? 0 }),
@@ -2828,7 +2828,7 @@ Source SHA-256: b501aa46c4577efa30d8025633be26afa82bd978c24e8a08b0ee24713289c895
 </script>
 
 <Shell bind:this={shell} {documentTitle} label={shown.title} destination={active} {searching} hasQuery={query.trim() !== ""}
-  detail={showsDetail} backAvailable={canGoBack} {resultsId} navigation={shellNavigation}
+  detail={showsDetail} backAvailable={canGoBack} {resultsId} searchLabel={say(m.catalogWorkspace.searchRegion, { title })} navigation={shellNavigation}
   onnavigate={id => onnavigate?.(id)} onback={goBack} oncancelsearch={() => oncancel?.()}>
   {#snippet top()}
     <Bar edge="top" purpose="commands" layer="content" inert={searching} identity={{ title: shown.title, subtitle: shown.subtitle }}
@@ -2869,7 +2869,7 @@ Source SHA-256: b501aa46c4577efa30d8025633be26afa82bd978c24e8a08b0ee24713289c895
 
 ## src/svelte/catalog/foundations/shell/Shell.svelte
 
-Source SHA-256: f7c347e55dea828ce9e9641e894c62ae6dd80d4465d6ff0d6bb85dff32ef5edb
+Source SHA-256: ea1410ac96202b25209fb8dc0bc64ac4d8f046a2043a2f79359c173dc3cc7272
 
 ```svelte
 <script lang="ts">
@@ -2880,7 +2880,7 @@ Source SHA-256: f7c347e55dea828ce9e9641e894c62ae6dd80d4465d6ff0d6bb85dff32ef5edb
   import { provideRegionRegistry, useRegionRegistry } from "../../../infra/region-registry.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import ShellBody from "./ShellBody.svelte";
-  let { documentTitle, label, destination, searching, hasQuery, detail, backAvailable, resultsId, navigation,
+  let { documentTitle, label, destination, searching, hasQuery, detail, backAvailable, resultsId, searchLabel, navigation,
     onnavigate, onback, oncancelsearch, oncomposition, top, content, bottom, search, panels }: CatalogProps<"shell"> = $props();
   // Pieces in the workspace register focus targets and reveals here (a caller may open them above the shell instead).
   const scope = useFocusScope() ?? provideFocusScope();
@@ -2904,7 +2904,7 @@ Source SHA-256: f7c347e55dea828ce9e9641e894c62ae6dd80d4465d6ff0d6bb85dff32ef5edb
 <div bind:this={workspace} data-renderer-profile="apple-reference" data-catalog-workspace data-search-active={searching}>
   <Wallpaper wallpaper={$appearance.wallpaper} />
   <Sidebar.Provider available={navigation !== null} contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
-    <ShellBody bind:this={body} root={() => workspace} {label} {destination} {searching} {hasQuery} {detail} {backAvailable} {resultsId}
+    <ShellBody bind:this={body} root={() => workspace} {label} {destination} {searching} {hasQuery} {detail} {backAvailable} {resultsId} {searchLabel}
       {navigation} {scope} {regions} {onnavigate} {onback} {oncancelsearch} {oncomposition} {top} {content} {bottom} {search} {panels} />
   </Sidebar.Provider>
 </div>
