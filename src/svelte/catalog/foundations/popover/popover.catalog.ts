@@ -6,7 +6,7 @@ import { PopoverContract } from "./popover.contract.ts";
 
 export const Popover = defineFoundation({
   id: "popover",
-  purpose: "Open contextual content, a form, options or commands in a surface anchored to its trigger.",
+  purpose: { key: "popover.purpose" }, messages: ["popover.purpose"],
   owner: {
     entry: "Popover.svelte",
     parts: ["PopoverSurface.svelte", "anchored-tab-exit.ts", "picker-presentation.svelte.ts", "popover.css"],

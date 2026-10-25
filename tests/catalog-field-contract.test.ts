@@ -42,7 +42,7 @@ test("field: the contract is closed: a shared part and exclusive variants by pri
   const [, variants] = FieldContract.props.allOf;
   const byPrimitive = Object.fromEntries(variants.anyOf.map(variant => [variant.properties.primitive.const, variant]));
   assert.deepEqual(Object.fromEntries(Object.entries(byPrimitive).map(([primitive, variant]) => [primitive,
-    { measure: (variant.required ?? []).includes("measure"), select: variant.properties.select.anyOf?.map((member: { type?: string }) => member.type) ?? variant.properties.select.type }])),
+    { measure: ((variant.required ?? []) as readonly string[]).includes("measure"), select: variant.properties.select.anyOf?.map((member: { type?: string }) => member.type) ?? variant.properties.select.type }])),
     { "input.text": { measure: true, select: "undefined" }, "input.multiline": { measure: true, select: "undefined" }, trigger: { measure: false, select: "boolean" } });
   assert.deepEqual(contract.props.primitive?.schema, { kind: "union", members: [{ kind: "literal", value: "input.text" },
     { kind: "literal", value: "input.multiline" }, { kind: "literal", value: "trigger" }] });

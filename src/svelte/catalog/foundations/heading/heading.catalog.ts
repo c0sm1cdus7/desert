@@ -5,8 +5,8 @@ import { HeadingContract } from "./heading.contract.ts";
 
 export const Heading = defineFoundation({
   id: "heading",
-  purpose: "A title whose meaning picks its type role and level: display, page, section or field group.",
-  messages: ["heading.requiredMark"],
+  purpose: { key: "heading.purpose" },
+  messages: ["heading.purpose", "heading.requiredMark"],
   owner: { entry: "Heading.svelte", parts: ["heading-content.ts"] },
   shape: "none", states: ["default"],
   variants: { kind: ["display", "page", "section", "group"] },

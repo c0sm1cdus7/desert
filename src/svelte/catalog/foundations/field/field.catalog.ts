@@ -8,8 +8,8 @@ import { FieldContract } from "./field.contract.ts";
 
 export const Field = defineFoundation({
   id: "field",
-  purpose: "Write a single line or several, or open a choice, in one labelled well with field help and validation feedback.",
-  messages: ["field.requiredMark", "field.none", "field.character", "field.characters", "field.overLimit", "field.remaining", "field.clearSearch", "field.clear", "field.incompleteNumber", "field.invalidNumber", "field.required"],
+  purpose: { key: "field.purpose" },
+  messages: ["field.purpose", "field.requiredMark", "field.none", "field.character", "field.characters", "field.overLimit", "field.remaining", "field.clearSearch", "field.clear", "field.incompleteNumber", "field.invalidNumber", "field.required"],
   owner: {
     entry: "Field.svelte",
     parts: ["FieldWell.svelte", "FieldLabel.svelte", "FieldEditor.svelte", "FieldTrigger.svelte", "SearchWell.svelte", "MaskedInput.svelte",

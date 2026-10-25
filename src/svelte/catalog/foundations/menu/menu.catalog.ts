@@ -5,7 +5,7 @@ import { MenuContract } from "./menu.contract.ts";
 
 export const Menu = defineFoundation({
   id: "menu",
-  purpose: "Reveal overflowing contextual commands beside their readable labels, without putting content navigation in the toolbar.",
+  purpose: { key: "menu.purpose" }, messages: ["menu.purpose"],
   owner: { entry: "Menu.svelte", parts: ["menu.css"] },
   shape: "radius", states: ["closed", "open"], approval: "required", contract: MenuContract,
 } as const);

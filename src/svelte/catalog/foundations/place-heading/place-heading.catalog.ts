@@ -6,7 +6,7 @@ import { PlaceHeadingContract } from "./place-heading.contract.ts";
 
 export const PlaceHeading = defineFoundation({
   id: "place-heading",
-  purpose: "Head a place, or content embedded in one, with its title, subtitle and optional featured media.",
+  purpose: { key: "placeHeading.purpose" }, messages: ["placeHeading.purpose"],
   owner: { entry: "PlaceHeading.svelte", parts: ["place-heading.css"] },
   shape: "none", states: ["default", "media"],
   variants: { context: ["place", "embedded"] },

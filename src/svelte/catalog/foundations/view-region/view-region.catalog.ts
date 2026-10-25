@@ -5,7 +5,7 @@ import { ViewRegionContract } from "./view-region.contract.ts";
 
 export const ViewRegion = defineFoundation({
   id: "view-region",
-  purpose: "Frame one view's content, one of its items, a place's document or a retained place with the identity navigation reveals; bare renders content unframed.",
+  purpose: { key: "viewRegion.purpose" }, messages: ["viewRegion.purpose"],
   owner: { entry: "ViewRegion.svelte", parts: ["view-region.css"], mechanisms: ["reveal"] },
   shape: "none", states: ["default", "hidden"],
   variants: { kind: ["view", "item", "bare", "document", "retained"] },

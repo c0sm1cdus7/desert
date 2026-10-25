@@ -5,7 +5,7 @@ import { WallpaperContract } from "./wallpaper.contract.ts";
 
 export const Wallpaper = defineFoundation({
   id: "wallpaper",
-  purpose: "Provide system-generated Silk, Mist or Plain backgrounds that follow the selected appearance.",
+  purpose: { key: "wallpaper.purpose" }, messages: ["wallpaper.purpose"],
   owner: { entry: "Wallpaper.svelte" },
   shape: "none", states: ["default", "preview"],
   variants: { wallpaper: ["silk", "mist", "plain"] },

@@ -5,8 +5,8 @@ import { ThemePreviewContract } from "./theme-preview.contract.ts";
 
 export const ThemePreview = defineFoundation({
   id: "theme-preview",
-  purpose: "Compare Dark and Light using the same surface, tint and wallpaper tokens as the running interface.",
-  messages: ["themePreview.glyph"],
+  purpose: { key: "themePreview.purpose" },
+  messages: ["themePreview.purpose", "themePreview.glyph"],
   owner: { entry: "ThemePreview.svelte" },
   shape: "radius", states: ["default"],
   variants: { mode: ["light", "dark"] },

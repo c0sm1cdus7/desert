@@ -3778,7 +3778,7 @@ export function reviewChanges(surface: HumanSurface, mutation: Mutation, facts: 
 
 ## src/web/client/frame.ts
 
-Source SHA-256: ef23e42c051b9c01c5f4accdfdbbf2079a0adf5884c5b7de5566f3a23ff90b8a
+Source SHA-256: 392e214456ac0d6e730fa0c9ce96156249941f9d73a1c6a0d7f6d5662e581b98
 
 ```ts
 import type { HumanSurface, ValidateInput } from "../types.ts";
@@ -3790,6 +3790,11 @@ import { surfaceFrame } from "../../interaction/surface-frame.ts";
 import { fieldFeedback } from "./field-feedback.ts";
 import { presentFacts, presentTitle } from "../../interaction/fact-presentation.ts";
 import { inspectMutationDraft } from "./draft-validation.ts";
+import { rendererLocale } from "../../messages/renderer-locale.ts";
+import { Messages, m } from "../../messages/keys.ts";
+
+// Every sentence this module shows a person is a key of the `frame` namespace it owns (plan §14).
+const bundle = Messages.bundle(rendererLocale);
 
 export function presentFrame(surface: HumanSurface, state: HumanState, validate: ValidateInput,
   scope: ModelScope) {
@@ -3800,9 +3805,9 @@ export function presentFrame(surface: HumanSurface, state: HumanState, validate:
     const id = state.editing?.journeyId ?? state.creationJourneyId;
     if (!id) throw new Error("FORM_JOURNEY_REQUIRED");
     const primary = mutationPresentation(surface, id);
-    const label = surface.commit[primary.id] === "review" ? "Review" : surface.language.journeys[primary.id]!;
+    const label = surface.commit[primary.id] === "review" ? bundle.text(m.frame.review) : surface.language.journeys[primary.id]!;
     const validation = inspectMutationDraft(surface, primary, state.draft, validate);
-    return formFrame(surface, primary, state.draft, { secondary: toolbarAction({ kind: "back" }, "Back", "back", !state.busy), primary: {
+    return formFrame(surface, primary, state.draft, { secondary: toolbarAction({ kind: "back" }, bundle.text(m.frame.back), "back", !state.busy), primary: {
       ...toolbarAction({ kind: "journey", journey: primary.id }, label, surface.commit[primary.id] === "review" ? "review" : "save",
         ready(primary.id) && validation.valid && (!state.editing || subjectActionAvailable(surface, state, primary.id, state.editing.subject, undefined, scope))),
       ...(state.busy ? { state: "pending" as const } : {}),
@@ -3821,12 +3826,12 @@ export function presentFrame(surface: HumanSurface, state: HumanState, validate:
   const { read, subjectActions } = requireReadScope(scope);
   const identity = state.detail?.facts[read.collection[0]!];
   return surfaceFrame({ version: "desert.surface-frame/6", kind: "context",
-    top: { title: state.detail ? typeof identity === "object" ? "Media" : presentTitle(identity) : surface.language.journeys[read.id]! },
+    top: { title: state.detail ? typeof identity === "object" ? bundle.text(m.frame.media) : presentTitle(identity) : surface.language.journeys[read.id]! },
     content: state.detail ? { kind: "context", details: presentFacts(surface, read.subject,
       read.fields.filter(field => field !== read.collection[0]), state.detail.facts, state.references),
       actions: subjectActions.map(({ id }) => ({ destination: id, label: surface.language.journeys[id]!,
         available: subjectActionAvailable(surface, state, id, undefined, undefined, scope) })) }
-      : { kind: "message", text: ready(read.id) ? "Loading…" : "Waiting for the local controller." },
+      : { kind: "message", text: ready(read.id) ? bundle.text(m.frame.loading) : bundle.text(m.frame.waiting) },
     bottom: {},
   });
 }
@@ -6486,19 +6491,24 @@ export function inspectValidation(validate: Validator, value: unknown): Validati
 
 ## src/web/client/field-feedback.ts
 
-Source SHA-256: 7e1810ccc1f46097167ba66179e9140447ab7b145ba34837a927d138b57e2ac5
+Source SHA-256: 524ab3a8c849769948aab41ac3c84237eba98965440eedb5f8becfa35d04ad3d
 
 ```ts
 import type { ValidationIssue, ValidationResult } from "../../validation-result.ts";
+import { rendererLocale } from "../../messages/renderer-locale.ts";
+import { Messages, m } from "../../messages/keys.ts";
+
+// Every sentence this module shows a person is a key of the `fieldFeedback` namespace it owns (plan §14).
+const bundle = Messages.bundle(rendererLocale);
 
 function message(issue: ValidationIssue): string {
   const limit = issue.params?.limit;
-  if (issue.keyword === "required" || (issue.keyword === "minLength" && limit === 1)) return "Enter a value.";
-  if (issue.keyword === "minLength" && typeof limit === "number") return `Enter at least ${limit} characters.`;
-  if (issue.keyword === "maxLength" && typeof limit === "number") return `Use no more than ${limit} ${limit === 1 ? "character" : "characters"}.`;
-  if (issue.keyword === "maxItems" && typeof limit === "number") return `Use no more than ${limit} labels.`;
-  if (issue.keyword === "uniqueItems") return "Remove the repeated label.";
-  return "Check this value.";
+  if (issue.keyword === "required" || (issue.keyword === "minLength" && limit === 1)) return bundle.text(m.fieldFeedback.required);
+  if (issue.keyword === "minLength" && typeof limit === "number") return bundle.text(m.fieldFeedback.atLeast, { limit: String(limit) });
+  if (issue.keyword === "maxLength" && typeof limit === "number") return bundle.text(limit === 1 ? m.fieldFeedback.atMostCharacter : m.fieldFeedback.atMostCharacters, { limit: String(limit) });
+  if (issue.keyword === "maxItems" && typeof limit === "number") return bundle.text(m.fieldFeedback.atMostLabels, { limit: String(limit) });
+  if (issue.keyword === "uniqueItems") return bundle.text(m.fieldFeedback.repeatedLabel);
+  return bundle.text(m.fieldFeedback.check);
 }
 
 /** Presentation only: paths and keyword parameters are supplied by canonical validation. */

@@ -5,7 +5,7 @@ import { IconContract } from "./icon.contract.ts";
 
 export const Icon = defineFoundation({
   id: "icon",
-  purpose: "Draw one named glyph of the product's icon set, optionally toned, sized to the text or placed inside a control.",
+  purpose: { key: "icon.purpose" }, messages: ["icon.purpose"],
   owner: { entry: "Icon.svelte" },
   shape: "none", states: ["default"],
   variants: { tone: ["success", "warning"] },

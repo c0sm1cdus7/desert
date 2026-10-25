@@ -5,7 +5,7 @@ import { ListContract } from "./list.contract.ts";
 
 export const List = defineFoundation({
   id: "list",
-  purpose: "Hold sibling rows or facts in one shared pane, at the reading measure or the full overview width.",
+  purpose: { key: "list.purpose" }, messages: ["list.purpose"],
   owner: { entry: "List.svelte" },
   shape: "radius", states: ["default"],
   variants: { kind: ["rows", "facts"], measure: ["reading", "overview"] },

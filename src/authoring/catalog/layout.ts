@@ -60,7 +60,10 @@ export const DesertLayout: CatalogLayout = Object.freeze({
   rendererTypes,
   messages: { folder: "src/messages", keys: "src/messages/keys.ts",
     namespaces: { errors: "src/messages/error-codes.ts", feedback: "src/web/client/failure-feedback.ts",
-      access: "src/web/client/access.ts" } },
+      access: "src/web/client/access.ts", modelReferences: "src/web/client/model-references.ts",
+      attentionFeed: "src/web/client/attention-feed.ts", systemStatus: "src/web/client/system-status.ts",
+      connectionPresentation: "src/web/client/connection-presentation.ts", fieldFeedback: "src/web/client/field-feedback.ts",
+      frame: "src/web/client/frame.ts", viewIdentity: "src/web/client/view-identity.ts" } },
   gate: {
     roots: ["src/authoring/catalog"],
     modules: [

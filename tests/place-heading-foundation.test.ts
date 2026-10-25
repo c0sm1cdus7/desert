@@ -40,7 +40,7 @@ test("each context draws the markup of the composition it replaces", { timeout: 
     for (const name of ["place", "media", "embedded", "background"]) {
       const [before, after] = await f.page.locator(`[data-case="${name}"]`).evaluateAll(cases => cases.map(item => item.innerHTML.replace(/<!--[^>]*-->/g, "")));
       assert.ok(before && before.length > 40, `${name}: the old composition rendered`);
-      if (name !== "media") assert.equal(after.replace(titleClass, ""), before.replace(titleClass, ""), name);
+      if (name !== "media") assert.equal(after?.replace(titleClass, ""), before.replace(titleClass, ""), name);
     }
     const title = f.page.locator('[data-case="place"]').nth(1).locator("[data-place-title]");
     assert.match(await title.getAttribute("class") ?? "", /\bwrap-anywhere\b/);

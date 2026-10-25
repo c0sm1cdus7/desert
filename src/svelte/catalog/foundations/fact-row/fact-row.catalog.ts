@@ -5,8 +5,8 @@ import { FactRowContract } from "./fact-row.contract.ts";
 
 export const FactRow = defineFoundation({
   id: "fact-row",
-  purpose: "Keep a capitalized label on the left and its value or its control right-aligned, with shared horizontal dividers and balanced wrapping.",
-  messages: ["factRow.unavailable"],
+  purpose: { key: "factRow.purpose" },
+  messages: ["factRow.purpose", "factRow.unavailable"],
   owner: { entry: "FactRow.svelte" },
   shape: "none", states: ["value", "unknown", "labels", "no-labels", "references", "control"],
   variants: { kind: ["value", "control"] },

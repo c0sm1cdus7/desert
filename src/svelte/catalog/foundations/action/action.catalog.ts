@@ -7,7 +7,7 @@ import { ActionContract } from "./action.contract.ts";
 
 export const Action = defineFoundation({
   id: "action",
-  purpose: "Invoke one command with a text button or an icon button, never competing text and icons.",
+  purpose: { key: "action.purpose" }, messages: ["action.purpose"],
   owner: { entry: "Action.svelte", mechanisms: ["press-feedback"], vendor: ["button"] },
   shape: "radius", states: ["ready", "unavailable", "pending"],
   variants: { emphasis: ["primary", "secondary", "destructive"], face: ["fit", "icon", "text"] },

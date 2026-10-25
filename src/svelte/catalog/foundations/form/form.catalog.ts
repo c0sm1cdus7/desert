@@ -5,7 +5,7 @@ import { FormContract } from "./form.contract.ts";
 
 export const Form = defineFoundation({
   id: "form",
-  purpose: "Submit a labelled group of fields together, from any of its fields or its submit action.",
+  purpose: { key: "form.purpose" }, messages: ["form.purpose"],
   owner: { entry: "Form.svelte" },
   shape: "none", states: ["default", "filling"],
   slots: { children: { accepts: ["stack-layout", "field", "action", "column"] } },
