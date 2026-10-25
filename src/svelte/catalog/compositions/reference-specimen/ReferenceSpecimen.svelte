@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Inline, LabelsControl, ReferenceSelector, Tag } from '../../index.ts';
+  import { ColorBullet, Inline, LabelsControl, ReferenceSelector, Tag } from '../../index.ts';
   import type { LabelsNode, ReferenceEvent } from '../../../../interaction/labels-control.ts';
   import type { CatalogProps } from '../../types.d.ts';
   import { say } from '../../../infra/messages.ts';
@@ -22,8 +22,7 @@
     {#each labels as value,index (index)}<Tag presentation="chip" tone="neutral" label={value} state="known" removable
       removeLabel={say(m.referenceSpecimen.remove, { label: value })} disabled={false} onremove={()=>labels=labels.filter((_,position)=>position!==index)} />{/each}
   </Inline>
-{:else if owner==='ColorBullet'}
-  <Tag presentation="text" label={options[1].label} color={options[1].color} state="known" removable={false} disabled={false} />
+{:else if owner==='ColorBullet'}<ColorBullet color={options[1].color} />
 {:else if owner==='ReferenceValues'}
   <Inline gap="snug" overflow="wrap">
     {#each references as {value,option} (value)}

@@ -8,5 +8,5 @@ export const ReferenceSpecimen = defineComposition({
   purpose: { key: "referenceSpecimen.purpose" },
   messages: ["referenceSpecimen.purpose", "referenceSpecimen.remove", "referenceSpecimen.unavailable"],
   owner: { entry: "ReferenceSpecimen.svelte" },
-  uses: ["inline", "labels-control", "reference-selector", "tag"], approval: "none", contract: ReferenceSpecimenContract,
+  uses: ["color-bullet", "inline", "labels-control", "reference-selector", "tag"], approval: "none", contract: ReferenceSpecimenContract,
 } as const);

@@ -43,13 +43,21 @@
 <Column gap="relaxed" align="center"><Column gap="relaxed" measure="reading">
   <Form label={creating ? say(m.accessForm.createIdentity) : say(m.accessForm.unlock)} fill={false} submit={() => void submit()}>
     <Column gap="relaxed">
-      <Column gap="snug" align="center">
-        {#if creating}<Text kind="caption" tone="muted" text={step === 1 ? say(m.accessForm.stepIdentity) : say(m.accessForm.stepAppearance)} />{/if}
-        {#if creating && step === 1}<Avatar size="portrait" interaction="shuffle" source={{ kind: "seed", seed: avatarSeed }}
-          shuffleLabel={say(m.accessForm.shuffleAvatar)} disabled={busy} onshuffle={value => avatarSeed = value} />{/if}
-        <Heading kind="display" text={headline} focusKey="access-heading" />
-        {#if creating}<Text kind="body" tone="muted" align="center" text={step === 1 ? say(m.accessForm.introIdentity, { product: productLabel })
-          : say(m.accessForm.introAppearance, { product: productLabel })} />{/if}
+      <!-- The header's rhythm (79d8322): caption and avatar .5rem apart, the headline 1.25rem below them (its old .75rem
+           margin over the .5rem gap), its intro .5rem below it. -->
+      <Column gap="loose" align="center">
+        {#if creating}
+          <Column gap="snug" align="center">
+            <Text kind="caption" tone="muted" text={step === 1 ? say(m.accessForm.stepIdentity) : say(m.accessForm.stepAppearance)} />
+            {#if step === 1}<Avatar size="portrait" interaction="shuffle" source={{ kind: "seed", seed: avatarSeed }}
+              shuffleLabel={say(m.accessForm.shuffleAvatar)} disabled={busy} onshuffle={value => avatarSeed = value} />{/if}
+          </Column>
+        {/if}
+        <Column gap="snug" align="center">
+          <Heading kind="display" text={headline} focusKey="access-heading" />
+          {#if creating}<Text kind="body" tone="muted" align="center" text={step === 1 ? say(m.accessForm.introIdentity, { product: productLabel })
+            : say(m.accessForm.introAppearance, { product: productLabel })} />{/if}
+        </Column>
       </Column>
       {#if step === 1}
         <StackLayout title={say(m.accessForm.identity)}>

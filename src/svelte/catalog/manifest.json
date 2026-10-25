@@ -2978,6 +2978,7 @@
         "key": "referenceSpecimen.purpose"
       },
       "uses": [
+        "color-bullet",
         "inline",
         "labels-control",
         "reference-selector",
