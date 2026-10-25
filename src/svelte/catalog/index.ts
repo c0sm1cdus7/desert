@@ -36,7 +36,6 @@ export { default as ControlBench } from "./compositions/control-bench/ControlBen
 export { default as ControlRenderer } from "./renderer/control-renderer/ControlRenderer.svelte";
 export { default as DateControl } from "./foundations/date-control/DateControl.svelte";
 export { default as Dialog } from "./compositions/dialog/Dialog.svelte";
-export { default as Drawer } from "./foundations/drawer/Drawer.svelte";
 export { default as Face } from "./foundations/face/Face.svelte";
 export { default as FactGroup } from "./compositions/fact-group/FactGroup.svelte";
 export { default as FactRow } from "./foundations/fact-row/FactRow.svelte";
@@ -89,7 +88,6 @@ export { default as PlaceContent } from "./compositions/place-content/PlaceConte
 export { default as PlaceHeading } from "./foundations/place-heading/PlaceHeading.svelte";
 export { default as Popover } from "./foundations/popover/Popover.svelte";
 export { default as PopoverControl } from "./compositions/popover-control/PopoverControl.svelte";
-export { default as Problem } from "./compositions/problem/Problem.svelte";
 export { default as PublicCatalogBank } from "./renderer/public-catalog-bank/PublicCatalogBank.svelte";
 export { default as PublicCatalogBankSpecimen } from "./renderer/public-catalog-bank-specimen/PublicCatalogBankSpecimen.svelte";
 export { default as PublicCatalogProduct } from "./renderer/public-catalog-product/PublicCatalogProduct.svelte";

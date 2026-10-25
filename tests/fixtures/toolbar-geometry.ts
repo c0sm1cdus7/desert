@@ -1,7 +1,7 @@
 export const toolbarGeometrySource = `<script lang="ts">
   import CatalogWorkspace from '@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte';
-  import Drawer from '@desert/svelte/catalog/foundations/drawer/Drawer.svelte';
-  import Problem from '@desert/svelte/catalog/compositions/problem/Problem.svelte';
+  import TransientNode from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
+  import ProblemNode from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
   import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
   import Viewer from '@desert/svelte/catalog/compositions/viewer/Viewer.svelte';
   import Toolbar from '@desert/svelte/catalog/compositions/toolbar/Toolbar.svelte';
@@ -28,8 +28,8 @@ export const toolbarGeometrySource = `<script lang="ts">
     <button onclick={()=>viewer=true}>Open viewer</button>
     <DateControl node={date} onevent={()=>{}} />
   </div>
-  <Drawer label="Task" {frame} open={task} onclose={()=>task=false} invoke={()=>{}} />
-  <Problem open={message} title="Message" description="A shared surface." close={()=>message=false} />
+  <TransientNode node={{version:'desert.bank-node/1',kind:'transient',label:'Task',open:task,locked:false,frame}} onevent={event=>{if(event.kind==='transient.close')task=false;}} />
+  <ProblemNode node={{version:'desert.bank-node/1',kind:'problem',open:message,title:'Message',description:'A shared surface.',locked:false,severity:'error'}} onevent={event=>{if(event.kind==='problem.close')message=false;}} />
   <Viewer items={photos.map(photo=>({kind:'image',...photo}))} title="Media" open={viewer} index={viewerIndex}
     onopen={value=>viewer=value} onindex={value=>viewerIndex=value} onreturn={()=>{}} />
 `;

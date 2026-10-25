@@ -4,7 +4,7 @@ import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 
 const ordinary = `<script lang="ts">
-  import Drawer from '@desert/svelte/catalog/foundations/drawer/Drawer.svelte';
+  import TransientNode from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
   import { surfaceFrame } from '@desert/interaction/surface-frame.ts';
   import { toolbarAction } from '@desert/interaction/toolbar.ts';
   let open=$state(false),observed=$state('');
@@ -13,7 +13,8 @@ const ordinary = `<script lang="ts">
     content:{kind:'form',submit:'save-task',fields:[{name:'title',label:'Title',value:'Research',required:true,primitive:'input.text'}]},
     bottom:{primary:toolbarAction({kind:'journey',journey:'save-task'},'Save task','save')}});
 </script><button onclick={()=>open=true}>Open editor</button><output>{observed}</output>
-<Drawer label="Edit task" {open} {frame} onclose={()=>open=false} invoke={intent=>observed=JSON.stringify(intent)}/>`;
+<TransientNode node={{version:'desert.bank-node/1',kind:'transient',label:'Edit task',open,locked:false,frame}}
+  onevent={event=>{if(event.kind==='transient.close')open=false;else if(event.kind==='surface.invoke')observed=JSON.stringify(event.intent);}}/>`;
 
 test('ordinary transient saves through a primary top check, has no footer and no rectangular boundary ring', {timeout:180000}, async()=>{
   const f=await svelteBrowser(ordinary);

@@ -1168,7 +1168,8 @@
       "folder": "src/svelte/catalog/compositions/dialog",
       "kind": "composition",
       "messages": [
-        "dialog.purpose"
+        "dialog.purpose",
+        "dialog.close"
       ],
       "owner": {
         "entry": "Dialog.svelte"
@@ -1176,6 +1177,9 @@
       "purpose": {
         "key": "dialog.purpose"
       },
+      "renders": [
+        "problem"
+      ],
       "uses": [
         "action",
         "column",
@@ -1184,23 +1188,6 @@
         "inline",
         "modal",
         "text"
-      ]
-    },
-    "drawer": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/drawer",
-      "kind": "foundation",
-      "owner": {
-        "entry": "Drawer.svelte"
-      },
-      "purpose": "Open a temporary surface over its parent with content and top or bottom toolbars, never lateral child surfaces.",
-      "renders": [
-        "transient"
-      ],
-      "shape": "none",
-      "states": [
-        "open",
-        "locked"
       ]
     },
     "face": {
@@ -2482,7 +2469,7 @@
         "collection",
         "context-panel",
         "date-control",
-        "drawer",
+        "dialog",
         "facts",
         "field",
         "fields",
@@ -2492,9 +2479,9 @@
         "money-control",
         "options-control",
         "popover-control",
-        "problem",
         "review",
-        "select-control"
+        "select-control",
+        "view-panel"
       ]
     },
     "object-state-control": {
@@ -2686,27 +2673,6 @@
       "uses": [
         "frame-body",
         "popover"
-      ]
-    },
-    "problem": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/compositions/problem",
-      "kind": "composition",
-      "messages": [
-        "problem.purpose",
-        "problem.close"
-      ],
-      "owner": {
-        "entry": "Problem.svelte"
-      },
-      "purpose": {
-        "key": "problem.purpose"
-      },
-      "renders": [
-        "problem"
-      ],
-      "uses": [
-        "dialog"
       ]
     },
     "public-catalog-bank": {
@@ -3872,10 +3838,14 @@
       "purpose": {
         "key": "viewPanel.purpose"
       },
+      "renders": [
+        "transient"
+      ],
       "uses": [
         "dialog",
         "instance-frame",
-        "modal"
+        "modal",
+        "surface-frame"
       ]
     },
     "view-product": {

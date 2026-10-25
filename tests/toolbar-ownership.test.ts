@@ -10,7 +10,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 const source = `<script lang="ts">
   import SurfaceFrame from '@desert/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte';
-  import Problem from '@desert/svelte/catalog/compositions/problem/Problem.svelte';
+  import ProblemNode from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
   import CatalogWorkspace from '@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte';
   ${workspaceBodySource()}
   let open = $state(false);
@@ -18,7 +18,7 @@ const source = `<script lang="ts">
     top:{title:'Persistent message',face:{kind:'status',severity:'warning'}},
     content:{kind:'message',text:'This is a renderer fixture, not a product failure.'},bottom:{}};
 </script>
-<Problem {open} title="Transient message" description="This is the same header composition." close={()=>open=false} />
+<ProblemNode node={{version:'desert.bank-node/1',kind:'problem',open,title:'Transient message',description:'This is the same header composition.',locked:false,severity:'error'}} onevent={event=>{if(event.kind==='problem.close')open=false;}} />
 <CatalogWorkspace navigationSurface={{title:'Places',settingsPlaceholder:true}} title="Places" identity={{title:'Places',subtitle:'Explore places.'}}
   navigation={[{id:'browse',label:'Places'}]} active="browse" query="" searching={false} onsearch={()=>{}} oncancel={()=>{}}
   onquery={()=>{}} onnavigate={()=>{}} content={workspaceBody}

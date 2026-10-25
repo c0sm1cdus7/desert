@@ -34,11 +34,8 @@ export type NodeRendererInputs = ControlRendererProps & {
     id: Destination["destination"]; invoke: () => void;
   })[] };
   review: Extract<FrameContent, { kind: "review" }>;
-  transient: CatalogProps<"drawer">;
-  problem: {
-    open: boolean; title: TopToolbar["title"]; description: Extract<FrameContent, { kind: "message" }>["text"];
-    close: () => void; severity?: "error" | "warning"; locked?: boolean;
-  };
+  transient: CatalogProps<"view-panel">;
+  problem: CatalogProps<"dialog">;
 };
 
 /** Inventory and props are both checked; a component for another entry is not interchangeable. */

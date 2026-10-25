@@ -4,7 +4,7 @@
   import { transientFrame } from "../../../../interaction/transient-frame.ts";
   import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
   import { confirmationDialog, confirmationDismissal } from "../../../infra/confirmation-dialog.ts";
-  import { Dialog, InstanceFrame, Modal } from "../../index.ts";
+  import { Dialog, InstanceFrame, Modal, SurfaceFrame } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { panel, open, continuity, onevent }: CatalogProps<"view-panel"> = $props();
   let modal = $state<ReturnType<typeof Modal>>();
@@ -49,7 +49,14 @@
     primary={ask.primary} secondary={ask.secondary} oninvoke={events.invoke} ondismiss={answer} onclosed={events.closed} />
 {:else}
   <Modal bind:this={modal} label={panel.label} {open} locked={panel.locked} presentation={panel.presentation === "transient" ? "transient" : "adaptive"}
-    continuity={{ frame: continuity, ...panel.readingIdentity ? { reading: panel.readingIdentity } : {} }} ondismiss={dismiss} onclosed={events.closed}>
-    {#key continuity}<InstanceFrame {frame} body={panel.body} edit={events.edit} invoke={dispatch} controlEvent={events.controls} />{/key}
+    continuity={continuity ? { frame: continuity, ...panel.readingIdentity ? { reading: panel.readingIdentity } : {} } : undefined}
+    ondismiss={dismiss} onclosed={events.closed}>
+    {#if continuity}
+      {#key continuity}<InstanceFrame {frame} body={panel.body} edit={events.edit} invoke={dispatch} controlEvent={events.controls} />{/key}
+    {:else}
+      <!-- A transient node's single frame (no owner to keep across frames): its Close closes the panel. -->
+      <SurfaceFrame {frame} edit={events.edit} controlEvent={events.controls} presentation="transient"
+        invoke={intent => intent.kind === "close" ? dismiss() : dispatch(intent)} />
+    {/if}
   </Modal>
 {/if}

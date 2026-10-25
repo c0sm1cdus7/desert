@@ -521,7 +521,7 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/renderer/facts/Facts.svelte
 - src/svelte/catalog/compositions/review/Review.svelte
 - src/svelte/catalog/foundations/row/Row.svelte
-- src/svelte/catalog/foundations/drawer/Drawer.svelte
+- src/svelte/catalog/compositions/view-panel/ViewPanel.svelte
 - src/svelte/catalog/foundations/modal/Modal.svelte
 - src/svelte/catalog/foundations/modal/ModalPane.svelte
 - src/svelte/catalog/foundations/modal/drawer-motion.svelte.ts
@@ -1249,7 +1249,7 @@ export function nodeEvent(value: unknown): NodeEvent {
 
 ## src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte
 
-Source SHA-256: bf9d54d064dc3614c7951fae0d8fa57a50a6b17195084dd8d9e9b3240f88db70
+Source SHA-256: 18fa3289a22708d80df74bf9b27e3a197af0bb64ddf021374d165de7d476aeb1
 
 ```svelte
 <script lang="ts">
@@ -1257,25 +1257,12 @@ Source SHA-256: bf9d54d064dc3614c7951fae0d8fa57a50a6b17195084dd8d9e9b3240f88db70
   import { resolvedNode } from "../../../../interaction/resolved-node.ts";
   import { nodeEvent, type NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ControlEvent } from "../../../../interaction/control-nodes.ts";
-  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
   import { nodeRenderers } from "../../../renderer-registry.ts";
-  import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
 
   let { node, onevent = () => {}, continuity }: CatalogProps<"node-renderer"> = $props();
   let checked = $derived(resolvedNode(node));
   const emit = (event: NodeEvent) => onevent(nodeEvent(event));
   const control = (event: ControlEvent) => emit(event);
-  let frameEvents = $derived.by(() => {
-    const sink = onevent;
-    const send = (event: NodeEvent) => sink(nodeEvent(event));
-    return {
-      close: () => send({ kind: "transient.close" }),
-      closed: () => send({ kind: "transient.closed" }),
-      invoke: (intent: SurfaceIntent) => send({ kind: "surface.invoke", intent }),
-      edit: (name: string, value: string) => send({ kind: "input.change", name, value }),
-      controls: (event: FormControlEvent) => send(event),
-    };
-  });
   function activate() {
     if (checked.kind !== "action" || checked.form || checked.action.state !== "ready") return;
     const intent = checked.action.intent;
@@ -1318,12 +1305,13 @@ Source SHA-256: bf9d54d064dc3614c7951fae0d8fa57a50a6b17195084dd8d9e9b3240f88db70
 {:else if checked.kind === "collection"}
   {@const Renderer = nodeRenderers.collection}<Renderer node={checked} select={id => emit({ kind: "collection.select", id })} />
 {:else if checked.kind === "transient"}
-  {@const Renderer = nodeRenderers.transient}<Renderer label={checked.label} open={checked.open} locked={checked.locked} frame={checked.frame}
-    continuity={continuity} onclose={frameEvents.close} onclosed={frameEvents.closed} invoke={frameEvents.invoke} edit={frameEvents.edit} controlEvent={frameEvents.controls} />
+  <!-- The transient node is drawn by ViewPanel: Modal over its frame, reporting the frame's events as node events. -->
+  {@const Renderer = nodeRenderers.transient}<Renderer panel={{ label: checked.label, locked: checked.locked, frame: checked.frame }}
+    open={checked.open} continuity={continuity} {onevent} />
 {:else if checked.kind === "problem"}
-  <!-- The problem node is drawn by Problem, the adapter of its props onto Dialog. -->
-  {@const Renderer = nodeRenderers.problem}<Renderer open={checked.open} title={checked.title} description={checked.description}
-    locked={checked.locked} severity={checked.severity} close={() => emit({ kind: "problem.close" })} />
+  <!-- The problem node is drawn by Dialog, whose contract adapts the node's own props (its problem variant). -->
+  {@const Renderer = nodeRenderers.problem}<Renderer open={checked.open} locked={checked.locked} title={checked.title}
+    description={checked.description} severity={checked.severity} ondismiss={() => emit({ kind: "problem.close" })} />
 {:else if checked.kind === "control.select"}
   {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.popover"}
@@ -1519,7 +1507,7 @@ Source SHA-256: 1b30b59ee4461594a05acd87260fb1cbcf3bfc001cbb7c680ebfe21c70790679
 
 ## src/svelte/renderer-contracts.ts
 
-Source SHA-256: 52868fcd16e1b11a8b32a32bcfe7c0a18ffc0864bf5af3dbb02c6f37d389ba1c
+Source SHA-256: f30e5f820e8ff3f73bd6f99563f0d5f26cd2b06f35cd3cee33f08f3114417b4e
 
 ```ts
 import type { Component } from "svelte";
@@ -1558,11 +1546,8 @@ export type NodeRendererInputs = ControlRendererProps & {
     id: Destination["destination"]; invoke: () => void;
   })[] };
   review: Extract<FrameContent, { kind: "review" }>;
-  transient: CatalogProps<"drawer">;
-  problem: {
-    open: boolean; title: TopToolbar["title"]; description: Extract<FrameContent, { kind: "message" }>["text"];
-    close: () => void; severity?: "error" | "warning"; locked?: boolean;
-  };
+  transient: CatalogProps<"view-panel">;
+  problem: CatalogProps<"dialog">;
 };
 
 /** Inventory and props are both checked; a component for another entry is not interchangeable. */
@@ -1579,7 +1564,7 @@ export const DispatcherCapabilities = freezeDeep({
 
 ## src/svelte/renderer-registry.ts
 
-Source SHA-256: dbd7883db4a411c7b751c3390911f94d7ba93c95c31c9f4f199ef1f5db5ca5e4
+Source SHA-256: 21691d253429fd0f5b818bb6592cb871ac72220dc119eff1aad936586caff1b1
 
 ```ts
 // Generated from the catalog declarations by `node scripts/catalog.ts --write`; do not edit.
@@ -1592,7 +1577,7 @@ import CatalogHome from "./catalog/compositions/catalog-home/CatalogHome.svelte"
 import Collection from "./catalog/compositions/collection/Collection.svelte";
 import ContextPanel from "./catalog/compositions/context-panel/ContextPanel.svelte";
 import DateControl from "./catalog/foundations/date-control/DateControl.svelte";
-import Drawer from "./catalog/foundations/drawer/Drawer.svelte";
+import Dialog from "./catalog/compositions/dialog/Dialog.svelte";
 import Facts from "./catalog/renderer/facts/Facts.svelte";
 import Field from "./catalog/foundations/field/Field.svelte";
 import Fields from "./catalog/compositions/fields/Fields.svelte";
@@ -1602,9 +1587,9 @@ import MediaControl from "./catalog/compositions/media-control/MediaControl.svel
 import MoneyControl from "./catalog/compositions/money-control/MoneyControl.svelte";
 import OptionsControl from "./catalog/compositions/options-control/OptionsControl.svelte";
 import PopoverControl from "./catalog/compositions/popover-control/PopoverControl.svelte";
-import Problem from "./catalog/compositions/problem/Problem.svelte";
 import Review from "./catalog/compositions/review/Review.svelte";
 import SelectControl from "./catalog/compositions/select-control/SelectControl.svelte";
+import ViewPanel from "./catalog/compositions/view-panel/ViewPanel.svelte";
 
 export const nodeRenderers: NodeRendererTable = Object.freeze({
   action: Action,
@@ -1615,7 +1600,7 @@ export const nodeRenderers: NodeRendererTable = Object.freeze({
   collection: Collection,
   context: ContextPanel,
   "control.date": DateControl,
-  transient: Drawer,
+  problem: Dialog,
   fact: Facts,
   "input.text": Field,
   "input.multiline": Field,
@@ -1628,9 +1613,9 @@ export const nodeRenderers: NodeRendererTable = Object.freeze({
   "control.money": MoneyControl,
   "control.options": OptionsControl,
   "control.popover": PopoverControl,
-  problem: Problem,
   review: Review,
   "control.select": SelectControl,
+  transient: ViewPanel,
 } satisfies NodeRendererTable);
 ```
 
@@ -6241,47 +6226,73 @@ Source SHA-256: 9d40929442620bfbfc9b19a280a1c94b1a477e59f4d4fa3397361dabe1f9e2c8
 </style>
 ```
 
-## src/svelte/catalog/foundations/drawer/Drawer.svelte
+## src/svelte/catalog/compositions/view-panel/ViewPanel.svelte
 
-Source SHA-256: baf12ed19b7bf57dfc1f31dde1a08a896a4eafd986520ac747d75b876a134627
+Source SHA-256: 423c99ac57bce78f0eb55abd42439da66ec389f069ab4bc56f704cd2f70cae45
 
 ```svelte
 <script lang="ts">
-  // F1-merge: transitional adapter of the renamed piece. View-panel mounts Modal(adaptive|transient, continuity)
-  // over the frame itself and maps dismissal to the frame's secondary intent; this folder is deleted in Batch 3.
-  import { Modal } from "../../index.ts";
-  import { SurfaceFrame } from "../../index.ts";
-  import { InstanceFrame } from "../../index.ts";
-  import { transientFrame } from "../../../../interaction/transient-frame.ts";
+  import { nodeEvent, type NodeEvent } from "../../../../interaction/node-events.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import { transientFrame } from "../../../../interaction/transient-frame.ts";
+  import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
+  import { confirmationDialog, confirmationDismissal } from "../../../infra/confirmation-dialog.ts";
+  import { Dialog, InstanceFrame, Modal, SurfaceFrame } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  let { label, open, locked = false, onclose, onclosed, frame, invoke, edit, continuity, readingIdentity, body, controlEvent, presentation }:
-    CatalogProps<"drawer"> = $props();
-  let composition = $derived(transientFrame(frame, locked));
-  let frames = $derived(continuity ? { frame: continuity, ...readingIdentity ? { reading: readingIdentity } : {} } : undefined);
+  let { panel, open, continuity, onevent }: CatalogProps<"view-panel"> = $props();
   let modal = $state<ReturnType<typeof Modal>>();
+  let events = $derived.by(() => {
+    // Each keyed frame captures its own receiver, including delayed teardown.
+    const sink = onevent;
+    const send = (event: NodeEvent) => sink?.(nodeEvent(event));
+    return {
+      close: () => send({ kind: "transient.close" }),
+      closed: () => send({ kind: "transient.closed" }),
+      invoke: (intent: SurfaceIntent) => send({ kind: "surface.invoke", intent }),
+      edit: (name: string, value: string) => send({ kind: "input.change", name, value }),
+      controls: (event: FormControlEvent) => send(event),
+    };
+  });
+  let frame = $derived(panel.frame.kind === "confirmation" ? panel.frame : transientFrame(panel.frame, panel.locked));
+  // Before the frame invokes, the modal notes whether it is leaving (Back, Close): focus returns to that command.
   let dispatch = $derived.by(() => {
-    const receiver = invoke, owner = continuity;
+    const receiver = events.invoke, owner = continuity;
     return (intent: SurfaceIntent) => {
       if (owner === continuity) modal?.noteInvocation(intent.kind === "back" || intent.kind === "close" ? "close" : "other");
       receiver(intent);
     };
   });
-  const close = () => {
-    const navigation = composition.bottom.secondary;
-    if (locked || navigation?.state !== "ready") return;
-    if (navigation.intent.kind === "close") { modal?.noteInvocation("close"); onclose?.(); }
+  /** Escape, the scrim or the grip choose the frame's dismissal: Close closes the panel, Back goes back. */
+  function dismiss() {
+    const navigation = frame.bottom.secondary;
+    if (panel.locked || navigation?.state !== "ready") return;
+    if (navigation.intent.kind === "close") { modal?.noteInvocation("close"); events.close(); }
     else dispatch(navigation.intent);
-  };
+  }
+  function answer() {
+    if (panel.frame.kind !== "confirmation" || panel.locked) return;
+    const intent = confirmationDismissal(panel.frame);
+    if (intent) events.invoke(intent);
+  }
 </script>
-<Modal bind:this={modal} {label} {open} {locked} presentation={presentation === "transient" ? "transient" : "adaptive"} continuity={frames}
-  ondismiss={close} {onclosed}>
-  {#if continuity}
-    {#key continuity}<InstanceFrame frame={composition} {body} {edit} invoke={dispatch} {controlEvent} />{/key}
-  {:else}
-    <SurfaceFrame frame={composition} {edit} {controlEvent} presentation="transient" invoke={intent => intent.kind === "close" ? close() : dispatch(intent)} />
-  {/if}
-</Modal>
+
+{#if panel.frame.kind === "confirmation"}
+  {@const ask = confirmationDialog(panel.frame)}
+  <Dialog {open} locked={panel.locked} tone="standard" title={ask.title} subtitle={ask.subtitle} face={ask.face}
+    primary={ask.primary} secondary={ask.secondary} oninvoke={events.invoke} ondismiss={answer} onclosed={events.closed} />
+{:else}
+  <Modal bind:this={modal} label={panel.label} {open} locked={panel.locked} presentation={panel.presentation === "transient" ? "transient" : "adaptive"}
+    continuity={continuity ? { frame: continuity, ...panel.readingIdentity ? { reading: panel.readingIdentity } : {} } : undefined}
+    ondismiss={dismiss} onclosed={events.closed}>
+    {#if continuity}
+      {#key continuity}<InstanceFrame {frame} body={panel.body} edit={events.edit} invoke={dispatch} controlEvent={events.controls} />{/key}
+    {:else}
+      <!-- A transient node's single frame (no owner to keep across frames): its Close closes the panel. -->
+      <SurfaceFrame {frame} edit={events.edit} controlEvent={events.controls} presentation="transient"
+        invoke={intent => intent.kind === "close" ? dismiss() : dispatch(intent)} />
+    {/if}
+  </Modal>
+{/if}
 ```
 
 ## src/svelte/catalog/foundations/modal/Modal.svelte

@@ -116,7 +116,7 @@ export function generatedReferences(root = sourceRoot) {
         "src/svelte/catalog/foundations/field/input-edit-history.ts",
         "src/svelte/catalog/compositions/context-panel/ContextPanel.svelte", "src/svelte/catalog/renderer/facts/Facts.svelte", "src/svelte/catalog/compositions/review/Review.svelte",
         "src/svelte/catalog/foundations/row/Row.svelte",
-        "src/svelte/catalog/foundations/drawer/Drawer.svelte", "src/svelte/catalog/foundations/modal/Modal.svelte",
+        "src/svelte/catalog/compositions/view-panel/ViewPanel.svelte", "src/svelte/catalog/foundations/modal/Modal.svelte",
         "src/svelte/catalog/foundations/modal/ModalPane.svelte", "src/svelte/catalog/foundations/modal/drawer-motion.svelte.ts",
         "src/validation-result.ts", "src/web/client/field-feedback.ts", "src/web/client/model.ts", "src/web/client/mutations.ts", "src/web/client/transport.ts",
         "src/web/gateway.ts", "src/web/dispatch.ts", "src/local/session.ts",

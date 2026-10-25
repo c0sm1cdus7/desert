@@ -90,7 +90,7 @@ test("closed-visual-boundaries, visual-boundary, view-panel-body, workspace-*, m
     rejects(`${path} style`, whole(path, "<style>div { padding: 3px }</style>"), ["CROSS_OWNER_CSS"]);
     rejects(`${path} html`, whole(path, "{@html markup}"), ["COMPOSITION_NATIVE_ELEMENT", "DISPATCHER_GRAMMAR"]);
     rejects(`${path} button`, append(path, "<button>Foreign</button>"), ["NATIVE_CONTROL_OUTSIDE_FOUNDATION"]);
-    rejects(`${path} private import`, whole(path, '<script>import Private from "../../foundations/drawer/Drawer.svelte";</script><Private />'),
+    rejects(`${path} private import`, whole(path, '<script>import Private from "../../foundations/modal/Modal.svelte";</script><Private />'),
       ["COMPOSITION_UNKNOWN_PIECE", "DISPATCHER_GRAMMAR"], "catalog index");
     rejects(`${path} DOM`, whole(path, '<script>document.querySelector("main").style.padding = "0";</script>'), ["VISUAL_RUNTIME_GLOBAL"]);
   }

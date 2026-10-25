@@ -3,25 +3,12 @@
   import { resolvedNode } from "../../../../interaction/resolved-node.ts";
   import { nodeEvent, type NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ControlEvent } from "../../../../interaction/control-nodes.ts";
-  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
   import { nodeRenderers } from "../../../renderer-registry.ts";
-  import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
 
   let { node, onevent = () => {}, continuity }: CatalogProps<"node-renderer"> = $props();
   let checked = $derived(resolvedNode(node));
   const emit = (event: NodeEvent) => onevent(nodeEvent(event));
   const control = (event: ControlEvent) => emit(event);
-  let frameEvents = $derived.by(() => {
-    const sink = onevent;
-    const send = (event: NodeEvent) => sink(nodeEvent(event));
-    return {
-      close: () => send({ kind: "transient.close" }),
-      closed: () => send({ kind: "transient.closed" }),
-      invoke: (intent: SurfaceIntent) => send({ kind: "surface.invoke", intent }),
-      edit: (name: string, value: string) => send({ kind: "input.change", name, value }),
-      controls: (event: FormControlEvent) => send(event),
-    };
-  });
   function activate() {
     if (checked.kind !== "action" || checked.form || checked.action.state !== "ready") return;
     const intent = checked.action.intent;
@@ -64,12 +51,13 @@
 {:else if checked.kind === "collection"}
   {@const Renderer = nodeRenderers.collection}<Renderer node={checked} select={id => emit({ kind: "collection.select", id })} />
 {:else if checked.kind === "transient"}
-  {@const Renderer = nodeRenderers.transient}<Renderer label={checked.label} open={checked.open} locked={checked.locked} frame={checked.frame}
-    continuity={continuity} onclose={frameEvents.close} onclosed={frameEvents.closed} invoke={frameEvents.invoke} edit={frameEvents.edit} controlEvent={frameEvents.controls} />
+  <!-- The transient node is drawn by ViewPanel: Modal over its frame, reporting the frame's events as node events. -->
+  {@const Renderer = nodeRenderers.transient}<Renderer panel={{ label: checked.label, locked: checked.locked, frame: checked.frame }}
+    open={checked.open} continuity={continuity} {onevent} />
 {:else if checked.kind === "problem"}
-  <!-- The problem node is drawn by Problem, the adapter of its props onto Dialog. -->
-  {@const Renderer = nodeRenderers.problem}<Renderer open={checked.open} title={checked.title} description={checked.description}
-    locked={checked.locked} severity={checked.severity} close={() => emit({ kind: "problem.close" })} />
+  <!-- The problem node is drawn by Dialog, whose contract adapts the node's own props (its problem variant). -->
+  {@const Renderer = nodeRenderers.problem}<Renderer open={checked.open} locked={checked.locked} title={checked.title}
+    description={checked.description} severity={checked.severity} ondismiss={() => emit({ kind: "problem.close" })} />
 {:else if checked.kind === "control.select"}
   {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.popover"}

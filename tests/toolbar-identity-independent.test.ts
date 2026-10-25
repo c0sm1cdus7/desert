@@ -7,7 +7,7 @@ import { identityEvidence, identityGeometry, assertIdentityGeometry, assertVisib
 const longTitle = "Independent warning about a connection that stopped responding while your current writing remains safely available";
 const source = `<script lang="ts">
   import SurfaceFrame from "@desert/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte";
-  import Problem from "@desert/svelte/catalog/compositions/problem/Problem.svelte";
+  import ProblemNode from "@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte";
   import { surfaceFrame, SurfaceFrameVersion } from "@desert/interaction/surface-frame.ts";
   import { transientFrame } from "@desert/interaction/transient-frame.ts";
   import { toolbarAction } from "@desert/interaction/toolbar.ts";
@@ -32,8 +32,8 @@ const source = `<script lang="ts">
 <div data-fixture-transient style="width:360px;display:flex;flex-direction:column;min-width:0">
   <SurfaceFrame frame={transient} invoke={intent => observed = JSON.stringify(intent)} />
 </div>
-<Problem {open} {title} {locked} severity="warning"
-  description={"Current writing remains available. ".repeat(30)} close={() => { calls++; open = false; }} />`;
+<ProblemNode node={{ version: "desert.bank-node/1", kind: "problem", open, title, locked, severity: "warning",
+  description: "Current writing remains available. ".repeat(30) }} onevent={event => { if (event.kind === "problem.close") { calls++; open = false; } }} />`;
 
 async function fixture() {
   const f = await svelteBrowser(source);

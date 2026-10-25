@@ -23,13 +23,13 @@ async function snapshot(grip: Locator, name: string) {
 
 async function drawerFixture(locked = false) {
   return svelteBrowser(`<script lang="ts">
-    import Drawer from '@desert/svelte/catalog/foundations/drawer/Drawer.svelte';
+    import TransientNode from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
     import { SurfaceFrameVersion } from '@desert/interaction/surface-frame.ts';
     let open = $state(false);
     const frame = {version:SurfaceFrameVersion,kind:'specimen',top:{title:'Context'},
       content:{kind:'information',items:[{kind:'text',text:'A compact source-only feedback specimen.'}]},bottom:{}};
   </script><main data-surface-host><button onclick={()=>open=true}>Open context</button>
-    <Drawer label="Context" {frame} {open} locked={${locked}} onclose={()=>open=false} invoke={()=>{}} /></main>`);
+    <TransientNode node={{version:'desert.bank-node/1',kind:'transient',label:'Context',open,locked:${locked},frame}} onevent={event=>{if(event.kind==='transient.close')open=false;}} /></main>`);
 }
 
 for (const theme of ["light", "dark"] as const) test(`${theme}: compact drawer grip has visible hover and held feedback`, async () => {

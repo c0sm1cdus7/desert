@@ -8,7 +8,7 @@ import CatalogHome from "./catalog/compositions/catalog-home/CatalogHome.svelte"
 import Collection from "./catalog/compositions/collection/Collection.svelte";
 import ContextPanel from "./catalog/compositions/context-panel/ContextPanel.svelte";
 import DateControl from "./catalog/foundations/date-control/DateControl.svelte";
-import Drawer from "./catalog/foundations/drawer/Drawer.svelte";
+import Dialog from "./catalog/compositions/dialog/Dialog.svelte";
 import Facts from "./catalog/renderer/facts/Facts.svelte";
 import Field from "./catalog/foundations/field/Field.svelte";
 import Fields from "./catalog/compositions/fields/Fields.svelte";
@@ -18,9 +18,9 @@ import MediaControl from "./catalog/compositions/media-control/MediaControl.svel
 import MoneyControl from "./catalog/compositions/money-control/MoneyControl.svelte";
 import OptionsControl from "./catalog/compositions/options-control/OptionsControl.svelte";
 import PopoverControl from "./catalog/compositions/popover-control/PopoverControl.svelte";
-import Problem from "./catalog/compositions/problem/Problem.svelte";
 import Review from "./catalog/compositions/review/Review.svelte";
 import SelectControl from "./catalog/compositions/select-control/SelectControl.svelte";
+import ViewPanel from "./catalog/compositions/view-panel/ViewPanel.svelte";
 
 export const nodeRenderers: NodeRendererTable = Object.freeze({
   action: Action,
@@ -31,7 +31,7 @@ export const nodeRenderers: NodeRendererTable = Object.freeze({
   collection: Collection,
   context: ContextPanel,
   "control.date": DateControl,
-  transient: Drawer,
+  problem: Dialog,
   fact: Facts,
   "input.text": Field,
   "input.multiline": Field,
@@ -44,7 +44,7 @@ export const nodeRenderers: NodeRendererTable = Object.freeze({
   "control.money": MoneyControl,
   "control.options": OptionsControl,
   "control.popover": PopoverControl,
-  problem: Problem,
   review: Review,
   "control.select": SelectControl,
+  transient: ViewPanel,
 } satisfies NodeRendererTable);

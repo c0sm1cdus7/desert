@@ -8,5 +8,5 @@ export const NodeRenderer = defineComposition({
   purpose: { key: "nodeRenderer.purpose" },
   messages: ["nodeRenderer.purpose"],
   owner: { entry: "NodeRenderer.svelte" },
-  uses: ["action", "availability", "catalog-card", "catalog-detail", "catalog-home", "collection", "context-panel", "date-control", "drawer", "facts", "field", "fields", "files", "labels-control", "media-control", "money-control", "options-control", "popover-control", "problem", "review", "select-control"], dispatch: "resolved-node", approval: "none", contract: NodeRendererContract,
+  uses: ["action", "availability", "catalog-card", "catalog-detail", "catalog-home", "collection", "context-panel", "date-control", "dialog", "facts", "field", "fields", "files", "labels-control", "media-control", "money-control", "options-control", "popover-control", "review", "select-control", "view-panel"], dispatch: "resolved-node", approval: "none", contract: NodeRendererContract,
 } as const);

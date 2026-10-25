@@ -534,10 +534,7 @@ export const Messages = messageCatalog({
       "purpose": "Stack a frame's utility actions as secondary actions and pass the pressed one's intent to the host."
     },
     "dialog": {
-      "purpose": "Ask for an explicit answer, or explain a warning or error, in a compact centred message with clear primary and secondary actions."
-    },
-    "problem": {
-      "purpose": "Explain a warning or error in a modal message the person dismisses unless it is locked.",
+      "purpose": "Ask for an explicit answer, or explain a warning or error, in a compact centred message with clear primary and secondary actions.",
       "close": "Close"
     },
     "viewPanel": {

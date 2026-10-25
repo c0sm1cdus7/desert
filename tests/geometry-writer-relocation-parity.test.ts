@@ -68,7 +68,7 @@ async function previousCss() {
 const source = `<script lang="ts">
   import CatalogHome from '@desert/svelte/catalog/compositions/catalog-home/CatalogHome.svelte';
   import SpecimenRow from '@desert/svelte/catalog/compositions/specimen-row/SpecimenRow.svelte';
-  import Problem from '@desert/svelte/catalog/compositions/problem/Problem.svelte';
+  import ProblemNode from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
   let message=$state(false);
   const cssBeforeMount=!!document.querySelector('[data-fixture-initial-css]');
   const card=(record,title)=>({version:'desert.bank-node/1',kind:'catalog.card',presentation:'item',record,title,mediaType:'audio'});
@@ -87,7 +87,7 @@ const source = `<script lang="ts">
     <label for="title">Title</label><input id="title" value="A title" />
     <label for="body">Body</label><textarea id="body">A paragraph.</textarea>
   </section>
-  <Problem open={message} title="Controller unavailable" description="Your writing remains here. Try again when the controller is available." close={()=>message=false}/>
+  <ProblemNode node={{version:'desert.bank-node/1',kind:'problem',open:message,title:'Controller unavailable',description:'Your writing remains here. Try again when the controller is available.',locked:false,severity:'error'}} onevent={event=>{if(event.kind==='problem.close')message=false;}}/>
 </main>`;
 
 test("moving protected geometry and typography writers preserves catalog.home and message styles and pixels", { timeout: 60000 }, async () => {

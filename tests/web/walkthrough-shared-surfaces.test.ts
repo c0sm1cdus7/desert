@@ -65,7 +65,7 @@ test("confirmation is a compact dialog and dispatches only an explicit accepted 
 test('confirmation releases modality when a docked context replaces it or its owner closes', async () => {
   const f=await svelteBrowser(`<script>
     import ConfirmationDialog from '@desert/svelte/catalog/compositions/confirmation-dialog/ConfirmationDialog.svelte';
-    import Drawer from '@desert/svelte/catalog/foundations/drawer/Drawer.svelte';
+    import TransientNode from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
     import AdaptiveSurfaceLayout from '@desert/svelte/catalog/foundations/shell/AdaptiveSurfaceLayout.svelte';
     import {surfaceFrame,SurfaceFrameVersion} from '@desert/interaction/surface-frame.ts';
     let stage=$state('closed'), result=$state('none');
@@ -73,7 +73,7 @@ test('confirmation releases modality when a docked context replaces it or its ow
     const context=surfaceFrame({version:SurfaceFrameVersion,kind:'context',top:{title:'Note',trailing:[{label:'Archive',icon:'archive',state:'ready',intent:{kind:'journey',journey:'trash'}}]},content:{kind:'message',text:'A note'},bottom:{secondary:{label:'Close',icon:'close',state:'ready',intent:{kind:'close'}}}});
   </script><AdaptiveSurfaceLayout><button onclick={()=>stage='context'}>Open note</button><button onclick={()=>result='opened'}>Trash</button><p role="status" aria-label="Result">{result}</p>
   {#if stage==='confirm'}<ConfirmationDialog {frame} open={true} locked={false} invoke={intent=>{stage=intent.kind==='back'?'context':'closed';result=intent.kind;}} onclosed={()=>{}} />
-  {:else if stage==='context'}<Drawer label="Note" frame={context} open={true} invoke={()=>stage='confirm'} onclose={()=>stage='closed'}/>{/if}</AdaptiveSurfaceLayout>`);
+  {:else if stage==='context'}<TransientNode node={{version:'desert.bank-node/1',kind:'transient',label:'Note',open:true,locked:false,frame:context}} onevent={event=>{if(event.kind==='transient.close')stage='closed';else if(event.kind==='surface.invoke')stage='confirm';}}/>{/if}</AdaptiveSurfaceLayout>`);
   try {
     await f.page.addStyleTag({content:await rendererCss()});
     await f.page.setViewportSize({width:1600,height:1000});

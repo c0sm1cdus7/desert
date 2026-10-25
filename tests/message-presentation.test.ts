@@ -19,11 +19,12 @@ test("compact message presentation cannot hide navigation on a task frame", asyn
 
 test("visible shadcn message identity labels its dialog in both actual theme palettes", async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import Problem from "@desert/svelte/catalog/compositions/problem/Problem.svelte";
+    import ProblemNode from "@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte";
     let open = $state(false);
   </script><button onclick={()=>open=true}>Open warning</button>
-    <Problem {open} title="Connection interrupted" description="Your writing remains available. Try again when the connection returns."
-      severity="warning" close={()=>open=false} />`);
+    <ProblemNode node={{ version: "desert.bank-node/1", kind: "problem", open, title: "Connection interrupted", locked: false,
+      description: "Your writing remains available. Try again when the connection returns.", severity: "warning" }}
+      onevent={event => { if (event.kind === "problem.close") open = false; }} />`);
   try {
     await f.page.addStyleTag({ content: await rendererCss() });
     const palettes: string[] = [];
