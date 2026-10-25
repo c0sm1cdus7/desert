@@ -11,6 +11,9 @@
     cardinality: "one" | "many"; options: readonly ChoiceOption[]; selected: readonly string[]; disabled: boolean; required: boolean;
     onchange: ((selected: string[]) => void) | undefined } = $props();
   const control = (value: string) => `${id}-${value}`;
+  // The control inside a card is another component's element, so the card states its disabled and keyboard-focus states
+  // as its own marks (a scoped `:has()` never reaches that element).
+  let focused = $state<string | undefined>(undefined);
   const tracks = (option: ChoiceOption | undefined) => option?.leading?.kind === "theme" ? "previews"
     : option?.leading?.kind === "image" || option?.leading?.kind === "artwork" ? "pictures" : "cards";
   let layout = $derived(tracks(options[0]));
@@ -24,8 +27,10 @@
     {#each options as option (option.value)}
       {@const chosen = selected.includes(option.value)}
       <label class="card material-pane" class:material-pane-selected={chosen} data-selected={chosen} for={control(option.value)}
-        data-choice-option={option.value}>
-        {#if option.leading}<ChoiceLeading leading={option.leading} frame="card" />{/if}
+        data-choice-option={option.value} data-disabled={disabled || option.disabled} data-focus-visible={focused === option.value}
+        onfocusin={event => { focused = event.target instanceof Element && event.target.matches(":focus-visible") ? option.value : undefined; }}
+        onfocusout={() => { if (focused === option.value) focused = undefined; }}>
+        {#if option.leading}<span class="artwork"><ChoiceLeading leading={option.leading} frame="card" /></span>{/if}
         <span class="caption">
           {#if cardinality === "one"}
             <RadioGroup.Item id={control(option.value)} value={option.value} aria-label={option.label} disabled={disabled || option.disabled}
@@ -34,7 +39,7 @@
             <Checkbox id={control(option.value)} checked={chosen} aria-label={option.label} disabled={disabled || option.disabled}
               onCheckedChange={checked => toggle(option.value, checked)} />
           {/if}
-          <span>{option.label}</span>
+          <span class="name">{option.label}</span>
         </span>
       </label>
     {/each}
@@ -56,7 +61,10 @@
   .card { --card-inset:.625rem; --cover-radius:calc(var(--radius-control) - var(--card-inset) - 1px);
     min-width:0; display:grid; gap:.625rem; padding:var(--card-inset); border-radius:var(--radius-control); cursor:pointer; }
   .card[data-selected="true"] { outline:2px solid var(--ring); outline-offset:1px; }
-  .card:has(:focus-visible) { outline:3px solid var(--ring); outline-offset:3px; }
-  .card:has(:disabled) { cursor:default; opacity:.5; }
+  .card[data-focus-visible="true"] { outline:3px solid var(--ring); outline-offset:3px; }
+  /* A disabled card's content fades once (its control fades itself); the pane never fades. */
+  .card[data-disabled="true"] { cursor:default; }
+  .card[data-disabled="true"] :is(.artwork, .name) { opacity:var(--disabled-opacity); }
+  .artwork { display:grid; min-width:0; }
   .caption { display:flex; justify-content:center; align-items:center; gap:.5rem; padding:.125rem; }
 </style>
