@@ -25,12 +25,6 @@
     "appearance-preferences": {
       "status": "implemented"
     },
-    "appearance-preview": {
-      "status": "implemented"
-    },
-    "artwork-placeholder": {
-      "status": "implemented"
-    },
     "attention-indicator": {
       "status": "implemented"
     },
@@ -41,9 +35,6 @@
       "status": "implemented"
     },
     "availability": {
-      "status": "implemented"
-    },
-    "avatar-shuffle": {
       "status": "implemented"
     },
     "node-renderer": {
@@ -58,9 +49,6 @@
     "catalog-home": {
       "status": "implemented"
     },
-    "catalog-navigation": {
-      "status": "implemented"
-    },
     "catalog-search-results": {
       "status": "implemented"
     },
@@ -68,25 +56,6 @@
       "status": "implemented"
     },
     "catalog-workspace-content": {
-      "status": "implemented"
-    },
-    "character-counter": {
-      "status": "implemented"
-    },
-    "choice-item": {
-      "status": "implemented"
-    },
-    "choice-list": {
-      "status": "implemented",
-      "specimens": {
-        "default|shape=card": "proposed",
-        "default|shape=swatch": "proposed"
-      }
-    },
-    "choice-row": {
-      "status": "implemented"
-    },
-    "clear-input": {
       "status": "implemented"
     },
     "clock": {
@@ -101,9 +70,6 @@
       "status": "implemented"
     },
     "color-bullet": {
-      "status": "implemented"
-    },
-    "confirmation-dialog": {
       "status": "implemented"
     },
     "content-flow": {
@@ -127,15 +93,6 @@
     "date-control": {
       "status": "implemented"
     },
-    "destination-row": {
-      "status": "implemented"
-    },
-    "drawer": {
-      "status": "implemented"
-    },
-    "drawer-grip": {
-      "status": "implemented"
-    },
     "face": {
       "status": "implemented"
     },
@@ -154,25 +111,10 @@
     "failure-dialog": {
       "status": "implemented"
     },
-    "feedback": {
-      "status": "implemented"
-    },
-    "field-well": {
-      "status": "implemented"
-    },
-    "field-well-content": {
-      "status": "implemented"
-    },
     "fields": {
       "status": "implemented"
     },
-    "file-control": {
-      "status": "implemented"
-    },
     "frame-body": {
-      "status": "implemented"
-    },
-    "grouped-panel": {
       "status": "implemented"
     },
     "heading": {
@@ -204,9 +146,6 @@
     "instance-frame": {
       "status": "implemented"
     },
-    "label-rail": {
-      "status": "implemented"
-    },
     "labels-control": {
       "status": "implemented"
     },
@@ -225,12 +164,6 @@
       "status": "implemented"
     },
     "lock-screen": {
-      "status": "implemented"
-    },
-    "masked-input": {
-      "status": "implemented"
-    },
-    "measured-field": {
       "status": "implemented"
     },
     "media-collection-grid": {
@@ -254,9 +187,6 @@
     "media-reference-specimen": {
       "status": "implemented"
     },
-    "message-body": {
-      "status": "implemented"
-    },
     "meter": {
       "status": "proposed",
       "proposedOn": "2026-10-23",
@@ -277,34 +207,13 @@
     "panel": {
       "status": "implemented"
     },
-    "photo-collection": {
-      "status": "implemented"
-    },
-    "picker-sheet": {
-      "status": "implemented"
-    },
-    "place": {
-      "status": "implemented"
-    },
     "place-content": {
-      "status": "implemented"
-    },
-    "place-header": {
       "status": "implemented"
     },
     "place-heading": {
       "status": "implemented"
     },
-    "playback-canvas": {
-      "status": "implemented"
-    },
-    "playback-controls": {
-      "status": "implemented"
-    },
     "popover-control": {
-      "status": "implemented"
-    },
-    "problem": {
       "status": "implemented"
     },
     "public-catalog-bank": {
@@ -328,31 +237,13 @@
     "reference-specimen": {
       "status": "implemented"
     },
-    "reference-values": {
-      "status": "implemented"
-    },
     "related-selection": {
-      "status": "implemented"
-    },
-    "retained-place": {
       "status": "implemented"
     },
     "review": {
       "status": "implemented"
     },
-    "scroll-edges": {
-      "status": "implemented"
-    },
-    "search-field": {
-      "status": "implemented"
-    },
-    "seed-avatar": {
-      "status": "implemented"
-    },
     "select-control": {
-      "status": "implemented"
-    },
-    "selection-field": {
       "status": "implemented"
     },
     "shared-owner-catalog": {
@@ -378,9 +269,6 @@
     "specimen-unavailable": {
       "status": "implemented"
     },
-    "speed-dial": {
-      "status": "implemented"
-    },
     "stack": {
       "status": "implemented"
     },
@@ -402,9 +290,6 @@
     "text-content": {
       "status": "implemented"
     },
-    "text-input": {
-      "status": "implemented"
-    },
     "theme": {
       "status": "implemented"
     },
@@ -414,15 +299,6 @@
       "reason": "Appearance theme miniature (owner decision Q2)."
     },
     "toolbar": {
-      "status": "implemented"
-    },
-    "toolbar-layout": {
-      "status": "implemented"
-    },
-    "toolbar-media-controls": {
-      "status": "implemented"
-    },
-    "toolbar-search": {
       "status": "implemented"
     },
     "utility-actions": {
@@ -455,16 +331,10 @@
     "view-workspace": {
       "status": "implemented"
     },
-    "viewer": {
-      "status": "implemented"
-    },
     "wallpaper": {
       "status": "implemented"
     },
     "workspace": {
-      "status": "implemented"
-    },
-    "zoom-controls": {
       "status": "implemented"
     }
   }
