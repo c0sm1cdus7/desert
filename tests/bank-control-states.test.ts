@@ -73,3 +73,20 @@ test('constrained choices enforce selection capacity and disabled specimens pres
     assert.deepEqual(f.errors,[]);
   } finally { await f.close(); }
 });
+
+// Found by the slice 3 package: the bench stopped wrapping each control in a field group (a flex column), so an
+// inline-level control (the tag badge, 20 px) sat on the stack item's text line and dropped 4 px below the row's top.
+test('a tag specimen starts at the top of its stack item: the bench lays each control out as a block, not on a text line', async () => {
+  const f = await svelteBrowser(`<script>
+    import ControlBench from '@desert/svelte/catalog/compositions/control-bench/ControlBench.svelte';
+  </script><main style="padding:24px;font-size:17px;line-height:24px"><ControlBench entryIds={['control.tag']} /></main>`);
+  try {
+    await f.page.addStyleTag({content:await rendererCss()});
+    const offset = await f.page.locator('[data-view-item^="specimen:control.tag:"]:visible [data-stack-item]').evaluate(item => {
+      const badge = item.querySelector('[data-slot="badge"]')!.getBoundingClientRect(), box = item.getBoundingClientRect();
+      return { top: badge.top - box.top, extra: box.height - badge.height };
+    });
+    assert.deepEqual(offset, { top: 0, extra: 0 });
+    assert.deepEqual(f.errors,[]);
+  } finally { await f.close(); }
+});
