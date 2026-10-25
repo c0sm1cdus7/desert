@@ -424,7 +424,7 @@ export type CatalogPropsTable = {
   readonly "facts": ContractProps<typeof FactsContract> & ContractEvents<typeof FactsContract>;
   readonly "failure-dialog": ContractProps<typeof FailureDialogContract> & ContractEvents<typeof FailureDialogContract>;
   readonly "feedback": ContractProps<typeof FeedbackContract> & ContractEvents<typeof FeedbackContract>;
-  readonly "field": ContractProps<typeof FieldContract> & ContractEvents<typeof FieldContract> & { readonly "accessory"?: Snippet; readonly "prefix"?: Snippet };
+  readonly "field": ContractProps<typeof FieldContract> & ContractEvents<typeof FieldContract> & { readonly "accessory"?: Snippet; readonly "prefix"?: Snippet; readonly "selection"?: Snippet };
   readonly "field-well": ContractProps<typeof FieldWellContract> & ContractEvents<typeof FieldWellContract> & { readonly "children"?: Snippet; readonly "prefix"?: Snippet; readonly "accessory"?: Snippet; readonly "footer"?: Snippet };
   readonly "field-well-content": ContractProps<typeof FieldWellContentContract> & ContractEvents<typeof FieldWellContentContract> & { readonly "children"?: Snippet };
   readonly "fields": ContractProps<typeof FieldsContract> & ContractEvents<typeof FieldsContract>;

@@ -13,6 +13,7 @@ import { ruleI } from "../src/authoring/catalog/gate/dom-access.ts";
 import { ruleJ } from "../src/authoring/catalog/gate/specimens.ts";
 import { formatViolation } from "../src/authoring/catalog/gate/violation.ts";
 import { realContext } from "./support/real-tree.ts";
+import { FieldContract } from "../src/svelte/catalog/foundations/field/field.contract.ts";
 
 const root = resolve(import.meta.dirname, "..");
 const folder = "src/svelte/catalog/foundations/field";
@@ -28,11 +29,18 @@ test("field: the contract is closed: a shared part and exclusive variants by pri
   assert.equal(contract.closed, true);
   if (!contract.closed) return;
   assert.deepEqual(Object.keys(contract.props), ["label", "labelVisibility", "required", "invalid", "disabled", "helper", "error", "identity",
-    "measure", "primitive", "purpose", "value", "placeholder", "mask", "maxLength", "counter", "clear", "focus", "controls", "display", "disclosure"]);
+    "primitive", "measure", "purpose", "value", "placeholder", "mask", "maxLength", "counter", "clear", "focus", "controls", "display", "disclosure", "select"]);
   // A single line names what it controls (the bar search its results); the other primitives declare it absent.
   assert.deepEqual(contract.props.controls, { schema: { kind: "union", members: [{ kind: "string" }, { kind: "undefined" }] }, optional: true });
   const required = Object.entries(contract.props).filter(([, item]) => !item.optional).map(([name]) => name);
-  assert.deepEqual(required, ["label", "labelVisibility", "required", "invalid", "disabled", "measure", "primitive"]);
+  assert.deepEqual(required, ["label", "labelVisibility", "required", "invalid", "disabled", "primitive"]);
+  // Every editor keeps its preferred measure; only a trigger may take none (a select without a measure box). Only a
+  // trigger is a select.
+  const [, variants] = FieldContract.props.allOf;
+  const byPrimitive = Object.fromEntries(variants.anyOf.map(variant => [variant.properties.primitive.const, variant]));
+  assert.deepEqual(Object.fromEntries(Object.entries(byPrimitive).map(([primitive, variant]) => [primitive,
+    { measure: (variant.required ?? []).includes("measure"), select: variant.properties.select.anyOf?.map((member: { type?: string }) => member.type) ?? variant.properties.select.type }])),
+    { "input.text": { measure: true, select: "undefined" }, "input.multiline": { measure: true, select: "undefined" }, trigger: { measure: false, select: "boolean" } });
   assert.deepEqual(contract.props.primitive?.schema, { kind: "union", members: [{ kind: "literal", value: "input.text" },
     { kind: "literal", value: "input.multiline" }, { kind: "literal", value: "trigger" }] });
   assert.deepEqual(Object.keys(contract.events), ["change", "masked", "open"]);
@@ -48,7 +56,7 @@ test("field: it owns the five writing vendor families, renders both input kinds,
   assert.deepEqual(field.states, ["empty", "value", "invalid", "disabled", "masked"]);
   assert.deepEqual(field.variants, { primitive: ["input.text", "input.multiline", "trigger"], measure: ["writing", "choice", "date", "amount", "fill"] });
   assert.deepEqual(field.stateVariants, { masked: { primitive: ["input.text"] } });
-  assert.deepEqual(field.slots, { accessory: { accepts: ["action"] }, prefix: { accepts: ["choice"] } });
+  assert.deepEqual(field.slots, { accessory: { accepts: ["action"] }, prefix: { accepts: ["choice"] }, selection: { accepts: ["choice"] } });
   assert.deepEqual(field.owner.parts, ["FieldWell.svelte", "FieldLabel.svelte", "FieldEditor.svelte", "FieldTrigger.svelte", "SearchWell.svelte",
     "MaskedInput.svelte", "input-edit-history.ts", "ClearInput.svelte", "CharacterCounter.svelte", "editor-capacity.ts", "field.css", "field-measure.css"]);
 });

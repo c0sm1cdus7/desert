@@ -1702,7 +1702,8 @@
         "field.clearSearch",
         "field.clear",
         "field.incompleteNumber",
-        "field.invalidNumber"
+        "field.invalidNumber",
+        "field.required"
       ],
       "owner": {
         "entry": "Field.svelte",
@@ -1745,6 +1746,11 @@
           ]
         },
         "prefix": {
+          "accepts": [
+            "choice"
+          ]
+        },
+        "selection": {
           "accepts": [
             "choice"
           ]

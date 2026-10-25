@@ -9,7 +9,6 @@
   & [data-field-well] { padding-block-start:var(--field-label-inset); }
   & [data-field-well] :focus-visible, & .field-prefix :focus-visible { outline:none; box-shadow:none; }
   & .field-prefix { padding:0; margin:0; border-inline-end:1px solid var(--border); align-self:stretch; }
-  & .field-prefix [data-selection-trigger] { height:100%; }
   [data-invalid="true"] > & [data-field-well] > [data-slot="field-label"] { color:var(--color-destructive-text); }
   & .field-clear { margin:0; }
   &:has([data-field-editor="multiline"]) .field-clear { align-self:flex-start; padding-block-start:var(--field-label-inset); }
@@ -17,7 +16,7 @@
     height:auto; min-height:var(--field-editing-row); padding:.25rem 1rem .625rem; flex:none;
     font-size:var(--text-input); line-height:var(--text-input--line-height); font-weight:400;
   }
-  &[data-selection-trigger] [data-slot="field-label"], &[data-field-trigger] [data-slot="field-label"] { cursor:inherit; }
+  &[data-field-trigger] [data-slot="field-label"] { cursor:inherit; }
   & [data-field-editor="multiline"] {
     min-height:min(calc(8rem - var(--field-label-inset) - var(--text-field-caption--line-height)), var(--field-editor-capacity, 100vh));
     max-height:var(--field-editor-capacity, none); overflow-y:auto;

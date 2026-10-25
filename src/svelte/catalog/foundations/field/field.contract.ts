@@ -4,7 +4,10 @@
 // the character counter of its `maxLength` in the well, as a multiline editor does; `clear` offers the clear control;
 // `focus` takes focus when it appears; `controls` is the id of what the editor controls, as a search its results), a multiline editor with its character counter, or a trigger whose
 // well opens a surface an overlay owns (`display` is what the well shows, `disclosure` the button's pure-data link to
-// that surface). A prop that belongs to another variant is declared `undefined`, so no variant takes another's props.
+// that surface). A `select` trigger is a select control's well: it fits its value (never wider than its slot), shows
+// press feedback, shows the value its owner draws in the `selection` slot (a choice's option, with its leading) and says
+// that a required choice is required; without a `measure` it takes no measure box and sits where its parent lays it.
+// A prop that belongs to another variant is declared `undefined`, so no variant takes another's props.
 // `change` is the written value (on input and on blur; a masked value only once valid and complete), `masked` every
 // masked edit with its validity, and `open` a trigger's press, ArrowDown or ArrowUp.
 import { Type } from "@sinclair/typebox";
@@ -23,10 +26,10 @@ export const FieldContract = {
     helper: Type.Optional(text),
     error: Type.Optional(text),
     identity: Type.Optional(Type.String()),
-    measure: Type.Union([Type.Literal("writing"), Type.Literal("choice"), Type.Literal("date"), Type.Literal("amount"), Type.Literal("fill")]),
   }, { additionalProperties: false }), Type.Union([
     Type.Object({
       primitive: Type.Literal("input.text"),
+      measure: Type.Union([Type.Literal("writing"), Type.Literal("choice"), Type.Literal("date"), Type.Literal("amount"), Type.Literal("fill")]),
       purpose: Type.Union([Type.Literal("text"), Type.Literal("username"), Type.Literal("new-password"), Type.Literal("current-password"),
         Type.Literal("search")]),
       value: Type.String(),
@@ -39,9 +42,11 @@ export const FieldContract = {
       controls: Type.Optional(Type.String({ minLength: 1 })),
       display: Type.Optional(Type.Undefined()),
       disclosure: Type.Optional(Type.Undefined()),
+      select: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),
     Type.Object({
       primitive: Type.Literal("input.multiline"),
+      measure: Type.Union([Type.Literal("writing"), Type.Literal("choice"), Type.Literal("date"), Type.Literal("amount"), Type.Literal("fill")]),
       value: Type.String(),
       maxLength: Type.Optional(Type.Integer()),
       counter: Type.Optional(Type.Undefined()),
@@ -53,9 +58,12 @@ export const FieldContract = {
       controls: Type.Optional(Type.Undefined()),
       display: Type.Optional(Type.Undefined()),
       disclosure: Type.Optional(Type.Undefined()),
+      select: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),
     Type.Object({
       primitive: Type.Literal("trigger"),
+      measure: Type.Optional(Type.Union([Type.Literal("writing"), Type.Literal("choice"), Type.Literal("date"), Type.Literal("amount"), Type.Literal("fill")])),
+      select: Type.Optional(Type.Boolean()),
       display: FieldDisplaySchema,
       disclosure: DisclosureSchema,
       value: Type.Optional(Type.Undefined()),
