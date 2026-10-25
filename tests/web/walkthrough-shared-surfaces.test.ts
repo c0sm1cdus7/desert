@@ -91,24 +91,42 @@ test('confirmation releases modality when a docked context replaces it or its ow
   }finally{await f.close();}
 });
 
+// Since lane G the index rows and the return of focus belong to InspectionCatalog; SharedOwnerCatalog only shows the
+// owner it is given. The catalog is mounted on its own (no destination navigation), with a minimal bank surface.
 test("visual bank index opens actual owners inside titled stacks and returns keyboard focus", async () => {
   const f=await svelteBrowser(`<script>
-    import SharedOwnerCatalog from '@desert/svelte/catalog/compositions/shared-owner-catalog/SharedOwnerCatalog.svelte';
-  </script><SharedOwnerCatalog onchange={()=>{}} />`);
+    import InspectionCatalog from '@desert/svelte/catalog/compositions/inspection-catalog/InspectionCatalog.svelte';
+    const card={version:'desert.bank-node/1',kind:'catalog.card',presentation:'item',record:'coast',title:'Coast',mediaType:'audio'};
+    const home={version:'desert.bank-node/1',kind:'catalog.home',featured:{...card,presentation:'featured',eyebrow:'Featured',actionLabel:'Open'},
+      groups:[{id:'albums',title:'Albums',items:[card]}]};
+    const detail={version:'desert.bank-node/1',kind:'catalog.detail',record:'coast',title:'Coast',description:'A coast.',image:{asset:'coast',alt:'Coast'}};
+  </script><InspectionCatalog surface={{productId:'item',home,details:[detail]}} bodyOnly={false} />`);
   try {
     await f.page.addStyleTag({content:await rendererCss()});
     await f.page.setViewportSize({width:390,height:844}); await settle(f.page);
-    const row=f.page.getByRole('button',{name:'Information',exact:true});
-    await row.click();
-    assert.equal(await f.page.locator('[data-view-item="owner:Information"]').count(),1);
-    assert.equal(await f.page.locator('[data-view-item="owner:Information"] .bank-stack').count(),1);
-    assert.equal(await f.page.locator('[data-view-item="owner:Information"]').evaluate(node=>node.scrollWidth<=node.clientWidth),true);
-    await f.page.getByRole('button',{name:'Back',exact:true}).click();
-    assert.equal(await row.evaluate(node=>node===document.activeElement),true);
-    await f.page.getByRole('button',{name:'Attention Indicator',exact:true}).click();
-    const indicator=f.page.locator('[data-attention-indicator]');
+    const back=f.page.getByRole('button',{name:'Back',exact:true});
+    // An index owner: its live example sits inside the titled "Example" stack, without horizontal overflow at 390 px.
+    const indicatorRow=f.page.getByRole('button',{name:'Attention indicator',exact:true});
+    await indicatorRow.click(); await settle(f.page);
+    const owner=f.page.locator('[data-view-item="owner:AttentionIndicator"]');
+    assert.equal(await owner.count(),1);
+    assert.equal(await f.page.getByRole('group',{name:'Example',exact:true}).locator('[data-view-item="owner:AttentionIndicator"]').count(),1);
+    assert.equal(await owner.evaluate(node=>node.scrollWidth<=node.clientWidth),true);
+    const indicator=owner.locator('[data-attention-indicator]').first();
     await f.page.emulateMedia({reducedMotion:'reduce'});
     assert.equal(await indicator.evaluate(node=>getComputedStyle(node).animationName),'none');
+    await f.page.emulateMedia({reducedMotion:'no-preference'});
+    await back.click(); await settle(f.page);
+    assert.equal(await f.page.locator('[data-view-item="owner:AttentionIndicator"]').count(),0);
+    assert.equal(await indicatorRow.evaluate(node=>node===document.activeElement),true,'Back returns focus to the index row');
+    // A part: Fact lists Information among its parts; Back from the part returns focus to that parts row.
+    await f.page.getByRole('button',{name:'Fact',exact:true}).click(); await settle(f.page);
+    const informationRow=f.page.getByRole('button',{name:'Information',exact:true});
+    await informationRow.click(); await settle(f.page);
+    assert.equal(await f.page.getByRole('group',{name:'Example',exact:true}).locator('[data-view-item="owner:Information"]').count(),1);
+    assert.equal(await f.page.locator('[data-view-item="owner:Information"]').evaluate(node=>node.scrollWidth<=node.clientWidth),true);
+    await back.click(); await settle(f.page);
+    assert.equal(await informationRow.evaluate(node=>node===document.activeElement),true,'Back returns focus to the parts row');
     assert.deepEqual(f.errors,[]);
   } finally { await f.close(); }
 });
