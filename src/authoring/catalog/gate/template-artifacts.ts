@@ -253,10 +253,14 @@ function treeRootAlias(context: GateContext, path: string): string | undefined {
  * by hash, so no style attribute of ours (or any other) applies. tests/catalog-rule-template.test.ts derives it from the
  * installed kit, so an upgrade that changes it fails there. */
 export const kitAnnouncerStyle = "sha256-S8qMpvofolR8Mpjy4kQvEm7m1q8clzU4dfDH0AmvZjo=";
+/** The empty style attribute, by hash. Bits locks the body under a modal through the CSSOM and releases it by writing back
+ * the body's original `style` attribute, which is empty; refused, the lock (overflow hidden, pointer-events none) stays and
+ * the page cannot be pressed. An empty attribute applies no declaration. */
+export const emptyStyle = "sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=";
 /** The host's CSP: each directive and the sources it may allow; a directive may allow fewer, never more. */
 const directives: Readonly<Record<string, readonly string[]>> = {
   "default-src": ["self"], "script-src": ["self"], "style-src": ["self"], "connect-src": ["self"], "img-src": ["self", "data:", "blob:"],
-  "media-src": ["self", "blob:"], "style-src-attr": ["unsafe-hashes", kitAnnouncerStyle], "object-src": ["none"], "base-uri": ["none"], "frame-ancestors": ["none"],
+  "media-src": ["self", "blob:"], "style-src-attr": ["unsafe-hashes", kitAnnouncerStyle, emptyStyle], "object-src": ["none"], "base-uri": ["none"], "frame-ancestors": ["none"],
 };
 
 function exactKeys(object: ts.ObjectLiteralExpression, expected: readonly string[], label: string, fail: Fail) {

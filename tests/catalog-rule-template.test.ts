@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { posix, resolve } from "node:path";
 import test from "node:test";
 import { createHash } from "node:crypto";
-import { kitAnnouncerStyle, ruleT } from "../src/authoring/catalog/gate/template-artifacts.ts";
+import { emptyStyle, kitAnnouncerStyle, ruleT } from "../src/authoring/catalog/gate/template-artifacts.ts";
 import { DesertLayout, type CatalogLayout } from "../src/authoring/catalog/layout.ts";
 import { codes, contextOf } from "./support/catalog-context.ts";
 import { testLayout } from "./support/catalog-layout.ts";
@@ -126,10 +126,17 @@ test("T config: CSP directives are a closed set, and a directive allows only its
   assert.deepEqual(run(edit(config, '"default-src": ["self"], ', "")), [artifact(config, "CSP directive default-src is missing")]);
 });
 
-test("T config N36: inline style attributes are refused; style-src-attr allows only SvelteKit's route announcer, by hash", () => {
-  assert.deepEqual(run(edit(config, `"style-src-attr": ["unsafe-hashes", "${kitAnnouncerStyle}"]`, '"style-src-attr": ["unsafe-inline"]')),
-    [artifact(config, `CSP directive style-src-attr allows only unsafe-hashes, ${kitAnnouncerStyle}; found unsafe-inline`)]);
-  assert.deepEqual(run(edit(config, `"style-src-attr": ["unsafe-hashes", "${kitAnnouncerStyle}"],\n`, "")), [artifact(config, "CSP directive style-src-attr is missing")]);
+test("T config N36: inline style attributes are refused; style-src-attr allows only the route announcer and the empty attribute, by hash", () => {
+  const allowed = `"style-src-attr": ["unsafe-hashes", "${kitAnnouncerStyle}", "${emptyStyle}"]`;
+  assert.deepEqual(run(edit(config, allowed, '"style-src-attr": ["unsafe-inline"]')),
+    [artifact(config, `CSP directive style-src-attr allows only unsafe-hashes, ${kitAnnouncerStyle}, ${emptyStyle}; found unsafe-inline`)]);
+  assert.deepEqual(run(edit(config, allowed, `"style-src-attr": ["unsafe-hashes", "${kitAnnouncerStyle}", "${emptyStyle}", "sha256-AAAA"]`)),
+    [artifact(config, `CSP directive style-src-attr allows only unsafe-hashes, ${kitAnnouncerStyle}, ${emptyStyle}; found unsafe-hashes, ${kitAnnouncerStyle}, ${emptyStyle}, sha256-AAAA`)]);
+  assert.deepEqual(run(edit(config, `${allowed},\n`, "")), [artifact(config, "CSP directive style-src-attr is missing")]);
+});
+
+test("T config: the empty-attribute hash is the hash of an empty style (it applies no declaration)", () => {
+  assert.equal(emptyStyle, `sha256-${createHash("sha256").update("").digest("base64")}`);
 });
 
 test("T config: the allowed inline style is exactly the announcer style the installed SvelteKit writes into its root", () => {
