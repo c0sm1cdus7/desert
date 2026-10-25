@@ -8,6 +8,7 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 import { pixelDifference } from "./fixtures/pixel-difference.ts";
+import { squareCorners } from "./fixtures/curvature-family.ts";
 import { catalogWorkspaceBefore } from "./fixtures/catalog-workspace-before.ts";
 import { workspaceOwnerRulesBefore } from "./fixtures/workspace-owner-rules-before.ts";
 
@@ -80,6 +81,8 @@ test("composed with bars and the place heading, the shell draws the catalog work
     // component styles in mount order, which inverts that. Re-adding the workspace's rule last restores the built
     // cascade the shell reproduces (its host takes `fill` instead of a cross-component rule).
     await baseline.page.addStyleTag({ content: "[data-catalog-workspace] [data-adaptive-host] { position:absolute; inset:0; }" });
+    // Design §7.1 radius exception (law 9d): both sides square their corners; tests/curvature-family.test.ts owns them.
+    for (const f of [baseline, candidate]) await f.page.addStyleTag({ content: squareCorners });
     for (const width of [1280, 390]) {
       for (const f of [baseline, candidate]) { await f.page.setViewportSize({ width, height: 800 }); await settle(f.page); }
       await compare(candidate, baseline, `${width}-top`);

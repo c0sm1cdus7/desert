@@ -11,6 +11,7 @@ import { treeViolations } from "./fixtures/tree-violations.ts";
 import { measureProbes, renderCases, type Probes } from "./fixtures/parity.ts";
 import { contentBefore } from "./fixtures/content-before.ts";
 import { withoutFacePrimitive } from "./fixtures/face-primitive.ts";
+import { withoutRadius } from "./fixtures/curvature-family.ts";
 import { themeAtCe6ed6f } from "./fixtures/theme-before.ts";
 
 const root = resolve(import.meta.dirname, "..");
@@ -75,7 +76,8 @@ test("image: the placeholder and the image keep the pixels of ArtworkPlaceholder
     const [was, is] = [await measureProbes(before.page, probes), await measureProbes(after.page, probes)];
     // A placeholder is a face (law 9e): its ground and positioning are the face primitive's; its box and glyph still compare.
     const faces = (name: string) => Object.values(probes[name] ?? {}).includes(placeholder.root) ? ["root"] : [];
-    for (const name of Object.keys(probes)) assert.deepEqual(withoutFacePrimitive(is[name], faces(name)), withoutFacePrimitive(was[name], faces(name)), name);
+    // Design §7.1 radius exception (law 9d): its host card's corner is curvature-family.test.ts's.
+    for (const name of Object.keys(probes)) assert.deepEqual(withoutRadius(withoutFacePrimitive(is[name], faces(name))), withoutRadius(withoutFacePrimitive(was[name], faces(name))), name);
     // The retry keeps its box; its own styling is Action's (the vendor button's secondary face before).
     const retry: Probes = { error: { retry: "button" } };
     assert.deepEqual(await measureProbes(after.page, retry, []), await measureProbes(before.page, retry, []));

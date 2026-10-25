@@ -10,6 +10,7 @@ import { measureProbes, renderCases, type Probes } from "./fixtures/parity.ts";
 import { contentBefore } from "./fixtures/content-before.ts";
 import { themeAtCe6ed6f } from "./fixtures/theme-before.ts";
 import { withoutFacePrimitive } from "./fixtures/face-primitive.ts";
+import { withoutRadius } from "./fixtures/curvature-family.ts";
 import { compositionsBefore } from "./fixtures/compositions-c-before.ts";
 import { controlsBefore } from "./fixtures/controls-before.ts";
 
@@ -130,7 +131,8 @@ test("list and row keep the pixels of the grouped panel, the destination row, th
     const primitive = (value: unknown) => withoutFacePrimitive(value, ["face"]);
     for (const name of Object.keys(old)) {
       const strip = without(ignored[name] ?? []);
-      const [left, right] = [strip(primitive(old[name])), strip(primitive(now[name]))];
+      // Design §7.1 radius exception (law 9d): the corners are curvature-family.test.ts's; everything else compares.
+      const [left, right] = [withoutRadius(strip(primitive(old[name]))), withoutRadius(strip(primitive(now[name])))];
       assert.deepEqual(right, left, name);
     }
     assert.deepEqual([was.errors, is.errors], [[], []]);
