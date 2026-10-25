@@ -9,7 +9,9 @@
 </div>
 <style>
   .system-wallpaper { position:absolute; inset:0; pointer-events:none; overflow:hidden; background:var(--wallpaper-base, light-dark(#e8ecf1,#171b22)); }
-  .wallpaper-preview { position:relative; width:100%; aspect-ratio:1.5; border-radius:calc(var(--radius) * .7); }
+  /* A preview stands where a choice frames its artwork: it takes the frame's corner (--cover-radius, concentric with a
+     choice card) and, on its own, the corner it always had. */
+  .wallpaper-preview { position:relative; width:100%; aspect-ratio:1.5; border-radius:var(--cover-radius,calc(var(--radius-control) * .7)); }
   [data-system-wallpaper="mist"] { background:radial-gradient(ellipse at 8% 75%,light-dark(#b8ced7,#254451),transparent 75%),radial-gradient(ellipse at 95% 15%,light-dark(#cec2d8,#444151),transparent 75%),var(--wallpaper-base,light-dark(#e8ecf1,#171b22)); }
   [data-system-wallpaper="silk"] { background:linear-gradient(135deg,light-dark(#d8e1ee,#242b38),var(--wallpaper-base,light-dark(#e8ecf1,#171b22)) 46%,light-dark(#ccd4df,#343843)); }
   .wallpaper-lines { width:100%; height:100%; stroke:light-dark(#ffffff5c,#a0bce419); fill:none; stroke-width:1; }

@@ -63,6 +63,15 @@ const scenes: Record<string, { source: string; open?: string }> = {
     `<Catalog.Modal label="Move note" open={true} locked={false} presentation="transient">
       <div style="display:flex;flex-direction:column;flex:1;min-height:0"><Catalog.Bar {...top.props} />
         <p style="flex:1;padding:0 20px">Choose where the note goes.</p><Catalog.Bar {...pair.props} /></div></Catalog.Modal>`) },
+  // Choice cards holding each artwork a card frames at its top corners (a picture cover, a wallpaper, a theme preview):
+  // each is concentric with its card (the card's control radius less the card's inset).
+  cards: { source: page(`const cards = (label: string, options: readonly Record<string, unknown>[]) => ({ presentation: "cards" as const, cardinality: "one" as const,
+    label, labelVisibility: "accessible" as const, selected: [String(options[0]!.value)], disabled: false, required: false, onchange: () => {},
+    options: options.map(option => ({ disabled: false, ...option })) });
+  const sets = [cards("Cover", [{ value: "audio", label: "Audio", leading: { kind: "artwork", media: "audio" } }, { value: "video", label: "Video", leading: { kind: "artwork", media: "video" } }]),
+    cards("Wallpaper", [{ value: "silk", label: "Silk", leading: { kind: "wallpaper", wallpaper: "silk" } }, { value: "mist", label: "Mist", leading: { kind: "wallpaper", wallpaper: "mist" } }]),
+    cards("Theme", [{ value: "light", label: "Light", leading: { kind: "theme", mode: "light", tint: "blue", wallpaper: "mist" } }, { value: "dark", label: "Dark", leading: { kind: "theme", mode: "dark", tint: "blue", wallpaper: "mist" } }])];`,
+    `{#each sets as set}<section class="part" data-scene-part="cards" style="display:block;max-width:420px"><Catalog.Choice {...set} /></section>{/each}`) },
   popover: { source: page("", `<section class="part" data-scene-part="select" style="max-width:420px;display:block">${select}</section>`),
     open: "[data-selection-trigger]" },
   calendar: { source: page("", `<section class="part" data-scene-part="date" style="max-width:420px;display:block"><Catalog.DateControl node={{ version: "desert.control/1",
@@ -123,7 +132,7 @@ function measure() {
   }
   // Concentric containers: at each corner, the rounded piece it holds there sits at the same inset across and down, and the
   // container's radius is that piece's radius plus the inset.
-  const containers = [...document.querySelectorAll('.problem, .drawer, .floating-pane, .list, .field-well:has([data-action-accessory]), [data-slot="sidebar-inner"]')].filter(visible);
+  const containers = [...document.querySelectorAll('.problem, .drawer, .floating-pane, .list, .field-well:has([data-action-accessory]), [data-slot="sidebar-inner"], label.card[data-choice-option]')].filter(visible);
   const pairs: string[] = [];
   for (const container of containers) {
     const outer = container.getBoundingClientRect(), style = getComputedStyle(container);
@@ -176,7 +185,7 @@ for (const [scene, { source, open }] of Object.entries(scenes)) {
         const observed = await f.page.evaluate(measure);
         report.push({ width, ...observed });
         failures.push(...observed.failures.map(failure => `${width}px · ${failure}`));
-        if (["dialog", "sheet", "field", "calendar"].includes(scene) || (scene === "popover" && width === 1280)) {
+        if (["dialog", "sheet", "field", "calendar", "cards"].includes(scene) || (scene === "popover" && width === 1280)) {
           if (!observed.pairs.length) failures.push(`${width}px · ${scene}: no concentric pair was measured`);
         }
       }

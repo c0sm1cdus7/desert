@@ -51,7 +51,10 @@
   .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr)); gap:.75rem; }
   .grid[data-tracks="previews"] { max-width:24rem; }
   .grid[data-tracks="pictures"] { grid-template-columns:repeat(auto-fill,minmax(min(100%,max(9rem,(100% - 1.5rem) / 3)),1fr)); }
-  .card { min-width:0; display:grid; gap:.625rem; padding:.625rem; border-radius:var(--radius); cursor:pointer; }
+  /* A card is a control (the control radius); the artwork at its top corners is concentric with it (law 9d): the card's
+     radius less its inset, the padding and the pane's 1px border. */
+  .card { --card-inset:.625rem; --cover-radius:calc(var(--radius-control) - var(--card-inset) - 1px);
+    min-width:0; display:grid; gap:.625rem; padding:var(--card-inset); border-radius:var(--radius-control); cursor:pointer; }
   .card[data-selected="true"] { outline:2px solid var(--ring); outline-offset:1px; }
   .card:has(:focus-visible) { outline:3px solid var(--ring); outline-offset:3px; }
   .card:has(:disabled) { cursor:default; opacity:.5; }
