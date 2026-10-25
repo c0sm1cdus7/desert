@@ -151,6 +151,9 @@
   /* An Action a bar draws (its `bar` placement) takes the bar's target: the toolbar target and inset come from bar. */
   [data-action-bar] { height:var(--toolbar-target); min-height:var(--toolbar-target); }
   [data-action-bar="command"] { width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset); }
-  [data-action-bar="commit"] { flex:0 1 auto; min-width:0; white-space:nowrap; }
   [data-action-bar="step"] { width:100%; max-width:none; min-width:0; }
+  /* An icon Action in a field's trailing accessory (field-accessory mechanism, law 9d): the square the slot measures, its
+     radius the well's less the accessory inset, so its corners stay concentric with the well's. */
+  [data-action-accessory] { width:var(--field-accessory-size); height:var(--field-accessory-size); min-height:0;
+    border-radius:calc(var(--radius) - var(--field-accessory-inset)); }
 </style>

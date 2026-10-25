@@ -11,6 +11,14 @@
   & .field-prefix { padding:0; margin:0; border-inline-end:1px solid var(--border); align-self:stretch; }
   [data-invalid="true"] > & [data-field-well] > [data-slot="field-label"] { color:var(--color-destructive-text); }
   & .field-clear { margin:0; }
+  /* The caller's accessory (law 9d): a square as tall as the well's row (its label line and editing row) less the inset
+     from the well's outer top and bottom edges (its 1px border included), the same inset from its end edge; the action in
+     it takes that size and the concentric radius. */
+  & .field-accessory {
+    --field-accessory-size:calc(var(--field-label-inset) + var(--text-field-caption--line-height) + var(--field-editing-row)
+      - 2 * (var(--field-accessory-inset) - 1px));
+    display:flex; flex-shrink:0; align-self:center; align-items:center; padding-inline-end:calc(var(--field-accessory-inset) - 1px);
+  }
   &:has([data-field-editor="multiline"]) .field-clear { align-self:flex-start; padding-block-start:var(--field-label-inset); }
   & :is([data-slot="input-group-control"], [data-field-value]) {
     height:auto; min-height:var(--field-editing-row); padding:.25rem 1rem .625rem; flex:none;
@@ -31,7 +39,7 @@
     transition:transform var(--dur-snap) var(--ease-tm), font-size var(--dur-snap) var(--ease-tm);
     &.required-mark::after { margin-inline-start:.375em; }
   }
-  &:not(:focus-within):not([data-filled="true"]) [data-slot="field-label"] {
+  &:not(:focus-within):not([data-label-raised="true"]) [data-slot="field-label"] {
     font-size:var(--text-body);
     transform:translateY(calc((var(--field-editing-row) - var(--field-label-inset)) / 2));
   }
@@ -64,6 +72,9 @@
   }
   .field-well [data-field-row] > [data-field-well] > [data-slot="input-group-control"] { grid-column:1; grid-row:2; }
   .field-well .field-clear { grid-column:2; grid-row:2; }
+  /* The caller's accessory keeps the well's whole height at its end (its insets stay equal): the label yields it that column. */
+  .field-well:has(.field-accessory) [data-field-row] > [data-field-well] > [data-slot="field-label"] { grid-column:1; }
+  .field-well .field-accessory { grid-column:2; grid-row:1 / span 2; }
   /* A multiline editor needs its full reading measure. Its clear action moves
      below it instead of narrowing every line for a single accessory. */
   .field-well [data-field-row] > [data-field-well] > [data-field-editor="multiline"] { grid-column:1 / -1; }

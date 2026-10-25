@@ -3,11 +3,14 @@
   import { cn } from "../../../vendor/utils.js";
   import { actionIconNames } from "../../../infra/action-icons.ts";
   import { Icon } from "../../index.ts";
+  import { inFieldAccessory } from "../../mechanisms/field-accessory/field-accessory.svelte.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { label, icon, state: status, emphasis, face: shown, type, reason, form, disclosure, current, bar, onclick }: CatalogProps<"action"> = $props();
   const id = $props.id();
   const descriptionId = `${id}-reason`;
   const variants = { primary: "default", secondary: "secondary", destructive: "destructive" } as const;
+  // In a field's trailing accessory (law 9d) the icon action fills the slot's inset box with the concentric radius.
+  const accessory = inFieldAccessory();
   let button = $state<HTMLButtonElement | null>(null);
   let caption = $state<HTMLSpanElement | null>(null);
   let compact = $state(false);
@@ -31,7 +34,7 @@
   onclick={() => { if (status === "ready") onclick?.(); }} class="relative min-w-0 overflow-hidden {shown === 'icon' ? '' : 'w-fit max-w-[min(100%,22rem)]'}"
   disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
   aria-describedby={reason ? descriptionId : undefined}
-  data-action="" data-action-face={face} data-emphasis={emphasis} data-action-bar={bar}>
+  data-action="" data-action-face={face} data-emphasis={emphasis} data-action-bar={bar} data-action-accessory={accessory && shown === "icon" || undefined}>
   <span bind:this={caption} data-button-label aria-hidden="true" class={cn("min-w-0 truncate", face !== "label" && "invisible")}>{label}</span>
   <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
     aria-hidden="true" data-button-glyph data-action-face={face}>
