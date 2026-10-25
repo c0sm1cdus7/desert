@@ -19,4 +19,5 @@ export const workspaceOwnerRulesBefore = `
 [data-slot="sidebar-wrapper"][data-presentation="overlay"] [data-search-field] [data-slot="input-group-button"] { width:44px; height:44px; min-height:44px; }
 [data-piece="toolbar"][data-toolbar-overlay] > .toolbar-row > * { pointer-events:auto; }
 @media (max-height:640px) { [data-piece="toolbar"] .toolbar-availability .bank-status > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } }
+[data-catalog-scroll] > [data-retained-place] { padding:24px var(--place-surface-inset) 26px; padding-inline-start:calc(var(--place-leading-inset) + var(--place-surface-inset)); }
 `;
