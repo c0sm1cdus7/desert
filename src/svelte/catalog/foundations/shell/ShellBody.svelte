@@ -8,6 +8,7 @@
   import type { ShellNavigation as Navigation } from "../../../infra/workspace-navigation.ts";
   import type { FocusScope } from "../../../infra/focus-scope.ts";
   import type { RegionRegistry } from "../../../infra/region-registry.ts";
+  import { provideSurfaceTypography } from "../../../infra/surface-typography.svelte.ts";
   import AdaptiveSurfaceLayout from "./AdaptiveSurfaceLayout.svelte";
   import CatalogEdgeNavigation from "./CatalogEdgeNavigation.svelte";
   import ShellNavigation from "./ShellNavigation.svelte";
@@ -23,6 +24,8 @@
     panels?: Snippet | undefined;
   } = $props();
   const sidebar = Sidebar.useSidebar();
+  // Portals launched from the workspace keep its density: comfortable over the overlay navigation, compact beside the docked one.
+  provideSurfaceTypography(() => sidebar.presentation === "overlay" ? "comfortable" : "compact");
   let results = $state<HTMLElement | null>(null);
   let place = $state<{ scrollToTop(): void; scrollTop(): number; scrollTo(top: number): void } | undefined>();
   let composing = false;

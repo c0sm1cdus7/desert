@@ -4,7 +4,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { posix, resolve } from "node:path";
 import test from "node:test";
-import { ruleT } from "../src/authoring/catalog/gate/template-artifacts.ts";
+import { createHash } from "node:crypto";
+import { kitAnnouncerStyle, ruleT } from "../src/authoring/catalog/gate/template-artifacts.ts";
 import { DesertLayout, type CatalogLayout } from "../src/authoring/catalog/layout.ts";
 import { codes, contextOf } from "./support/catalog-context.ts";
 import { testLayout } from "./support/catalog-layout.ts";
@@ -125,8 +126,17 @@ test("T config: CSP directives are a closed set, and a directive allows only its
   assert.deepEqual(run(edit(config, '"default-src": ["self"], ', "")), [artifact(config, "CSP directive default-src is missing")]);
 });
 
-test("T config: style-src-attr 'unsafe-inline' is the documented N36 exception until slice 4; dropping it is legal", () => {
-  assert.deepEqual(run(edit(config, '      "style-src-attr": ["unsafe-inline"],\n', "")), []);
+test("T config N36: inline style attributes are refused; style-src-attr allows only SvelteKit's route announcer, by hash", () => {
+  assert.deepEqual(run(edit(config, `"style-src-attr": ["unsafe-hashes", "${kitAnnouncerStyle}"]`, '"style-src-attr": ["unsafe-inline"]')),
+    [artifact(config, `CSP directive style-src-attr allows only unsafe-hashes, ${kitAnnouncerStyle}; found unsafe-inline`)]);
+  assert.deepEqual(run(edit(config, `"style-src-attr": ["unsafe-hashes", "${kitAnnouncerStyle}"],\n`, "")), [artifact(config, "CSP directive style-src-attr is missing")]);
+});
+
+test("T config: the allowed inline style is exactly the announcer style the installed SvelteKit writes into its root", () => {
+  const root = readFileSync(resolve(import.meta.dirname, "../node_modules/@sveltejs/kit/src/core/sync/write_root.js"), "utf8");
+  const style = /<div id="svelte-announcer"[^>]* style="([^"]+)"/.exec(root)?.[1];
+  assert.ok(style, "the installed SvelteKit root still draws the route announcer with a style attribute");
+  assert.equal(kitAnnouncerStyle, `sha256-${createHash("sha256").update(style).digest("base64")}`);
 });
 
 // worker.mjs

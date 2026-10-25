@@ -15,7 +15,8 @@ export default {
       "default-src": ["self"], "script-src": ["self"], "style-src": ["self"],
       "connect-src": ["self"], "img-src": ["self", "data:", "blob:"],
       "media-src": ["self", "blob:"],
-      "style-src-attr": ["unsafe-inline"],
+      // Only SvelteKit's route announcer, by hash (rule T, N36): no other inline style attribute applies.
+      "style-src-attr": ["unsafe-hashes", "sha256-S8qMpvofolR8Mpjy4kQvEm7m1q8clzU4dfDH0AmvZjo="],
       "object-src": ["none"], "base-uri": ["none"], "frame-ancestors": ["none"],
     } },
   },

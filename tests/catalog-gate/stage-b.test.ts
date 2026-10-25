@@ -9,7 +9,6 @@ defineGateTests(stageB);
 
 const pending: readonly [string, string][] = [
   ["N20", "a utility class from a composition survives into emitted CSS: CROSS_OWNER_CSS (G2)"],
-  ["N36", "style-src-attr 'unsafe-inline' in the CSP: UNQUALIFIED_ARTIFACT"],
 ];
 
 for (const [id, description] of pending) test.todo(`${id} ${description}`);

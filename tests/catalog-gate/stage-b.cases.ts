@@ -61,6 +61,8 @@ export const stageB: readonly GateCase[] = [
     mutate: tree => tree.append(accessGate, "\n{@render extra()}\n") },
   { id: "N27", title: "a composition defines a snippet that is not a declared slot", kind: "escape", expect: ["SLOT_NOT_TYPED"],
     mutate: tree => tree.append(accessGate, "\n{#snippet rogue()}{/snippet}\n") },
+  { id: "N36", title: "the CSP allows inline style attributes again", kind: "escape", expect: ["UNQUALIFIED_ARTIFACT"],
+    mutate: tree => tree.replace("src/build/svelte/config.mjs", '"style-src-attr": ["unsafe-hashes",', '"style-src-attr": ["unsafe-inline", "unsafe-hashes",') },
   { id: "N37", title: "a byte of an approved foundation's stylesheet changes", kind: "escape", expect: ["FOUNDATION_UNAPPROVED_CHANGE"],
     mutate: async tree => { await tree.approveInCopy("field"); await tree.append(`${foundations}/field/field.css`, "\n/* x */\n"); } },
   { id: "N38", title: "a vendor file owned by an approved foundation changes", kind: "escape", expect: ["FOUNDATION_UNAPPROVED_CHANGE"],

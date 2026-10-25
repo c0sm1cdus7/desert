@@ -15,8 +15,7 @@ function pageSource(piece: EvidencePiece): string {
   if (!specimens) throw new Error(`EVIDENCE_NO_SPECIMENS: ${piece.id}`);
   const filler = piece.filler?.specimens;
   const imports = [
-    `import { onMount } from "svelte";`,
-    `import { mountCatalogAppearance } from "@desert/svelte/infra/catalog-appearance.ts";`,
+    `import { AppearanceRoot } from "@desert/svelte/catalog/index.ts";`,
     `import Piece from ${JSON.stringify(piece.entry)};`,
     `import { ${specimens.binding} as specimens } from ${JSON.stringify(specimens.request)};`,
     ...piece.filler && filler ? [`import Filler from ${JSON.stringify(piece.filler.entry)};`,
@@ -26,12 +25,12 @@ function pageSource(piece: EvidencePiece): string {
     ? `{#snippet children()}{#each fillers.slice(0, ${fillerCount}) as filler, at (at)}<Filler {...filler.props} />{/each}{/snippet}` : "";
   return `<script lang="ts">
   ${imports.join("\n  ")}
-  onMount(() => mountCatalogAppearance());
 </script>
 
+<AppearanceRoot />
 <main data-evidence-piece=${JSON.stringify(piece.id)}>
   {#each specimens as specimen, index (index)}
-    <section data-evidence-specimen={index} style="display:flow-root;padding:16px">
+    <section data-evidence-specimen={index}>
       <svelte:boundary>
         <Piece {...specimen.props}>${children}</Piece>
         {#snippet failed(error)}<p data-evidence-failed>{error instanceof Error ? error.message : String(error)}</p>{/snippet}
@@ -39,6 +38,11 @@ function pageSource(piece: EvidencePiece): string {
     </section>
   {/each}
 </main>
+
+<!-- A stylesheet, not a style attribute: the renderer CSP refuses inline style attributes. -->
+<style>
+  section { display:flow-root; padding:16px; }
+</style>
 `;
 }
 

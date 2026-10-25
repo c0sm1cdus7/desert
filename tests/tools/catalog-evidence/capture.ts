@@ -88,13 +88,15 @@ async function revealWhole(page: Page, combination: Combination) {
   await page.setViewportSize({ width: combination.width, height: Math.min(heights[combination.width] + overflow, 8000) });
   await settle(page);
 }
-async function open(page: Page, destination: CatalogDestination) {
+/** Opens one Visual Catalog destination from the open catalog, through its parents. */
+export async function openDestination(page: Page, destination: CatalogDestination) {
   for (const step of [...destination.path, destination.id]) {
     await page.locator(`[data-view-item="public-catalog-bank"] [data-focus-key="${step}"]`).filter({ visible: true }).first().click();
     await settle(page);
   }
 }
-async function home(page: Page, launched: boolean, launchUrl: string, origin: string) {
+/** The Notebook home (through the launch link the first time), then its Visual catalog destination. */
+export async function openHome(page: Page, launched: boolean, launchUrl: string, origin: string) {
   await page.goto(launched ? origin : launchUrl);
   await page.getByRole("button", { name: "Create note", exact: true }).first().waitFor();
   await openCatalog(page);
@@ -112,9 +114,9 @@ export async function captureCatalog(browser: Browser, launchUrl: string, origin
       if (failed.has(destination.id)) continue;
       try {
         await apply(page, combination);
-        await home(page, launched, launchUrl, origin);
+        await openHome(page, launched, launchUrl, origin);
         launched = true;
-        await open(page, destination);
+        await openDestination(page, destination);
         await revealWhole(page, combination);
         const captures = found.get(destination.id) ?? new Map<string, Buffer>();
         captures.set(combinationName(combination), await page.screenshot({ animations: "disabled", caret: "hide" }));

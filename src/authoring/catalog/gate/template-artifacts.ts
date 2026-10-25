@@ -249,14 +249,15 @@ function treeRootAlias(context: GateContext, path: string): string | undefined {
   const alias = context.layout.aliases.find(([, target]) => target === folder);
   return alias ? alias[0].replace(/\/$/, "") : undefined;
 }
+/** The one inline style attribute the host allows (N36): the route announcer SvelteKit 2 writes into its generated root,
+ * by hash, so no style attribute of ours (or any other) applies. tests/catalog-rule-template.test.ts derives it from the
+ * installed kit, so an upgrade that changes it fails there. */
+export const kitAnnouncerStyle = "sha256-S8qMpvofolR8Mpjy4kQvEm7m1q8clzU4dfDH0AmvZjo=";
 /** The host's CSP: each directive and the sources it may allow; a directive may allow fewer, never more. */
 const directives: Readonly<Record<string, readonly string[]>> = {
   "default-src": ["self"], "script-src": ["self"], "style-src": ["self"], "connect-src": ["self"], "img-src": ["self", "data:", "blob:"],
-  "media-src": ["self", "blob:"], "object-src": ["none"], "base-uri": ["none"], "frame-ancestors": ["none"],
+  "media-src": ["self", "blob:"], "style-src-attr": ["unsafe-hashes", kitAnnouncerStyle], "object-src": ["none"], "base-uri": ["none"], "frame-ancestors": ["none"],
 };
-/** N36, the documented exception: inline style attributes stay allowed until slice 4 removes them, so this directive is
- * optional. Slice 4 deletes this entry and the directive with it. */
-const optionalDirectives: Readonly<Record<string, readonly string[]>> = { "style-src-attr": ["unsafe-inline"] };
 
 function exactKeys(object: ts.ObjectLiteralExpression, expected: readonly string[], label: string, fail: Fail) {
   const keys = keysOf(object);
@@ -292,7 +293,7 @@ function csp(kit: ts.ObjectLiteralExpression, fail: Fail) {
   }
   const found = keysOf(list);
   for (const name of found) {
-    const allowed = directives[name] ?? optionalDirectives[name];
+    const allowed = directives[name];
     if (!allowed) { fail(`CSP directive ${name} is not one of the host's directives`); continue; }
     const sources = stringsOf(propertyOf(list, name));
     if (!sources?.length || sources.some(source => !allowed.includes(source))) fail(`CSP directive ${name} allows only ${allowed.join(", ")}; found ${sources?.join(", ") ?? "no list"}`);
