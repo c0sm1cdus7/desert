@@ -38,6 +38,8 @@
 }
 @layer components {
   [data-slot="input-group-control"] { min-height:2.75rem; }
+  /* The trigger well and the input-group buttons lay their content out in one box that follows the button's flex. */
+  :where([data-slot="input-group-button"], [data-field-trigger]) > [data-button-content] { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
 }
 .field-well:has(> [data-field-row]) { container:field-well / inline-size; }
 /* Supporting copy follows the well's text guide, not its outer surface edge. */

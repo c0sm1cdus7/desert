@@ -1,6 +1,10 @@
 /* Shell (foundation): the application viewport clips content but never owns scroll, even when the
    browser reveals a focused descendant. Only data-catalog-scroll may move. */
 [data-catalog-workspace] { position:relative; height:100dvh; overflow:clip; background:var(--background); }
+/* The sidebar's trigger and rows lay their content out in one box that follows the button's own flex. */
+@layer components {
+  :where([data-slot="sidebar-trigger"], [data-slot="sidebar-menu-button"]) > [data-button-content] { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
+}
 [data-catalog-workspace] [data-slot="sidebar-wrapper"] { height:100%; min-height:0; }
 [data-catalog-workspace] [data-slot="sidebar-container"] { padding:8px 0 8px 8px; transition-timing-function:var(--ease-nav); }
 [data-catalog-workspace] [data-slot="sidebar-gap"] { transition-timing-function:var(--ease-nav); }

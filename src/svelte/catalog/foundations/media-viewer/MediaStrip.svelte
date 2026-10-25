@@ -28,6 +28,6 @@
   .strip-item { display:inline-flex; flex:none; align-items:center; justify-content:center; gap:.5rem; width:64px; height:48px; min-height:48px;
     overflow:hidden; padding:0; border:2px solid transparent; border-radius:8px; opacity:.6; color:var(--secondary-foreground); white-space:nowrap; }
   .strip-item[aria-current="true"] { border-color:var(--foreground); opacity:1; }
-  .strip-content { position:relative; display:flex; width:100%; height:100%; min-width:0; }
+  .strip-content { position:relative; display:flex; width:100%; height:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
   @media(max-width:600px) { .strip-fill { flex-basis:100%; order:3; } }
 </style>

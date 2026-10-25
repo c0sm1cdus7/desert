@@ -5032,7 +5032,7 @@ export const actionIconNames = {
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: ca78a8615fd28a1b57fb9ef324244f2d3c7fd2607c88b0a83e08f8a42b4ff72b
+Source SHA-256: b2f69f18b7162935c0ce92c24bbd590b77289a0ccfc33e7e31fc909c025448e0
 
 ```svelte
 <script lang="ts" module>
@@ -5156,32 +5156,35 @@ Source SHA-256: ca78a8615fd28a1b57fb9ef324244f2d3c7fd2607c88b0a83e08f8a42b4ff72b
 		{...restProps}
 		data-variant={variant}
 	>
-		<span class="control-feedback-content" data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
+		<span class="control-feedback-content" data-button-content>{#if presentation === "search-toggle"}<span data-search-icon="open"><Search aria-hidden="true" /></span><span data-search-icon="close"><X aria-hidden="true" /></span>{:else}{@render children?.()}{/if}</span>
 	</button>
 {/if}
 
 <style>
-  :global([data-summary-widget]) { width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem; padding:var(--space-4,1rem); border-radius:var(--radius-group); text-align:start; white-space:normal; align-items:stretch; }
-  :global([data-summary-widget] > [data-button-content]) { display:flex; flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
+  /* The button's own anatomy, scoped to the elements it draws: every other owner of a [data-button-content] span lays
+     its content out with its own rule. */
+  [data-summary-widget] { width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem; padding:var(--space-4,1rem); border-radius:var(--radius-group); text-align:start; white-space:normal; align-items:stretch; }
+  [data-summary-widget] > [data-button-content] { display:flex; flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
   @layer components {
-    :global([data-slot="button"]) { min-height:2.75rem; }
-    :global([data-button-content]) { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
+    [data-slot="button"] { min-height:2.75rem; }
+    [data-button-content] { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
   }
-  :global([data-catalog-search-toggle]) { position:relative; pointer-events:auto; }
-  :global([data-catalog-search-toggle] [data-button-content]) { display:grid; place-items:center; }
-  :global([data-catalog-search-toggle] svg) { grid-area:1/1; transition:opacity 180ms var(--ease-tm),transform 220ms var(--ease-tm); }
-  :global([data-catalog-search-toggle] [data-search-icon="close"]) { opacity:0; transform:rotate(-90deg) scale(.75); }
-  :global([data-catalog-search-actions][data-expanded="true"] [data-search-icon="open"]) { opacity:0; transform:rotate(90deg) scale(.75); }
-  :global([data-catalog-search-actions][data-expanded="true"] [data-search-icon="close"]) { opacity:1; transform:none; }
-  :global([data-media-reference-choice]) { position:relative; aspect-ratio:4/3; overflow:hidden; width:100%; }
-  :global([data-media-reference-choice] [data-button-content]) { height:100%; }
-  :global([data-media-collection-card]) { position:relative; width:100%; display:block; overflow:hidden; text-align:start; }
-  :global([data-media-collection-card] > [data-button-content]) { display:block; }
-  :global([data-media-grid-item]) { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:var(--radius); }
-  :global([data-media-grid-item] > [data-button-content]) { height:100%; }
-  :global([data-media-grid-item][aria-current="true"]) { outline:2px solid var(--primary); outline-offset:2px; }
-  :global([data-media-list-item]) { aspect-ratio:auto; border-radius:0; }
-  :global([data-media-list-item] > [data-button-content]) { display:flex; align-items:center; gap:var(--stack-gap,16px); padding:12px 16px; }
+  [data-catalog-search-toggle] { position:relative; pointer-events:auto; }
+  [data-catalog-search-toggle] [data-button-content] { display:grid; place-items:center; }
+  /* Each glyph sits in its own box (no line box of its own), so the box moves exactly as the glyph did. */
+  [data-search-icon] { display:flex; grid-area:1/1; transition:opacity 180ms var(--ease-tm),transform 220ms var(--ease-tm); }
+  [data-search-icon="close"] { opacity:0; transform:rotate(-90deg) scale(.75); }
+  [data-catalog-search-cancel] [data-search-icon="open"] { opacity:0; transform:rotate(90deg) scale(.75); }
+  [data-catalog-search-cancel] [data-search-icon="close"] { opacity:1; transform:none; }
+  [data-media-reference-choice] { position:relative; aspect-ratio:4/3; overflow:hidden; width:100%; }
+  [data-media-reference-choice] [data-button-content] { height:100%; }
+  [data-media-collection-card] { position:relative; width:100%; display:block; overflow:hidden; text-align:start; }
+  [data-media-collection-card] > [data-button-content] { display:block; }
+  [data-media-grid-item] { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:var(--radius); }
+  [data-media-grid-item] > [data-button-content] { height:100%; }
+  [data-media-grid-item][aria-current="true"] { outline:2px solid var(--primary); outline-offset:2px; }
+  [data-media-list-item] { aspect-ratio:auto; border-radius:0; }
+  [data-media-list-item] > [data-button-content] { display:flex; align-items:center; gap:var(--stack-gap,16px); padding:12px 16px; }
 </style>
 ```
 

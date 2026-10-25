@@ -61,7 +61,7 @@
   .row-attended { position:relative; }
   .row:focus-visible { outline:2px solid var(--ring); outline-offset:-3px; box-shadow:none; }
   /* The content keeps the row's justification itself, as the vendor button's global content rule gave it. */
-  .row-content { position:relative; display:flex; width:100%; min-width:0; align-items:center; justify-content:inherit; gap:inherit; }
+  .row-content { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:center; justify-content:inherit; gap:inherit; }
   /* An attention dot or an image keeps the record row's and media item's wider gap. */
   .row[data-row-leading="attention"], .row[data-row-leading="image"], .row[data-row-leading="artwork"] { gap:1rem; }
   .row-artwork { display:block; flex:none; width:80px; height:60px; overflow:hidden; border-radius:var(--radius); }
