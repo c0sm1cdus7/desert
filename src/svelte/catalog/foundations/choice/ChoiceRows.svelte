@@ -4,8 +4,10 @@
   import type { ChoiceOption } from "../../../../interaction/choice.ts";
   import ChoiceAnatomy from "./ChoiceAnatomy.svelte";
   import { rowDivider, rowFrame, rowGroup } from "./choice-row.ts";
+  import { pressFeedback } from "../../mechanisms/press-feedback/press-feedback.ts";
   // The options as rows of one pane at the reading measure: a radio each for one, a checkbox each for many. A row's label
-  // activates its control; a disabled option's control keeps full ink while its content dims.
+  // activates its control; a disabled option's control keeps full ink while its content dims. A held row compresses its
+  // content (the press-feedback mechanism marks it pressed; the theme's control-feedback draws it), as an action row does.
   // The marks are bound to `selected` through a getter and a setter: a press only proposes the next selection, and the
   // marks show what the owner accepts (an edit the owner refuses never shows).
   // In their own pane they keep the reading measure; inside a hosting pane (`interior`) they take its width, transparent.
@@ -21,7 +23,7 @@
 
 {#snippet rows()}
   {#each options as option, index (option.value)}
-    <label for={control(option.value)} class="group/field-label peer/field-label gap-2 leading-snug type-control select-none items-center
+    <label {@attach pressFeedback} for={control(option.value)} class="group/field-label peer/field-label gap-2 leading-snug type-control select-none items-center
       {rowFrame} {index > 0 ? rowDivider : ''}" aria-disabled={unavailable(option)} data-choice-row data-choice-option={option.value}>
       <ChoiceAnatomy {option} labelId={`${control(option.value)}-label`} descriptionId={`${control(option.value)}-description`}
         dimmed={unavailable(option)}>

@@ -4,8 +4,10 @@
   import type { ChoiceOption } from "../../../../interaction/choice.ts";
   import ChoiceAnatomy from "./ChoiceAnatomy.svelte";
   import { rowDivider, rowFrame, rowGroup } from "./choice-row.ts";
+  import { pressFeedback } from "../../mechanisms/press-feedback/press-feedback.ts";
   // The menu's options as one roving-focus listbox, in the popover and in the sheet alike. Moving through it only
-  // explores; activation commits (and closes), typing a prefix moves to the next option it starts.
+  // explores; activation commits (and closes), typing a prefix moves to the next option it starts. A held option compresses
+  // its content as a choice row does (press-feedback).
   let { id, label, value, options, required, activeValue = $bindable(null), ref = $bindable(null), onchange, onclose }: { id: string;
     label: string; value: string | null; options: readonly ChoiceOption[]; required: boolean; activeValue?: string | null;
     ref?: HTMLDivElement | null; onchange: (value: string) => void; onclose: () => void } = $props();
@@ -40,7 +42,7 @@
           {#snippet child({ props: itemProps, pressed })}
             <!-- A listbox option is selected, never pressed or checked: the toggle item's own states are dropped. -->
             {@const { "aria-pressed": _pressed, "aria-checked": _checked, ...optionProps } = itemProps}
-            <button {...optionProps} type="button" role="option" aria-selected={pressed}
+            <button {...optionProps} {@attach pressFeedback} type="button" role="option" aria-selected={pressed}
               tabindex={!option.disabled && focusValue === option.value ? 0 : -1} aria-disabled={option.disabled}
               class="shrink-0 items-center justify-start gap-2 type-control outline-none disabled:pointer-events-none [&_svg]:size-4
                 [&_svg]:shrink-0 whitespace-normal h-auto text-foreground {rowFrame} {index > 0 ? rowDivider : ''}" data-choice-row

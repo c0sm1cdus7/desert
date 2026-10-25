@@ -1,6 +1,7 @@
 // The one row geometry of a choice, shared by the rows of a pane (a label around a radio or checkbox) and the options
 // of a menu (a listbox option): full width, 44px tall, the group's radius at the ends, a divider inset past the mark.
-// Literal class names, so the theme's Tailwind scan sees them; the press feedback is the theme's (today `tm-control`).
+// Literal class names, so the theme's Tailwind scan sees them; the theme's control-feedback draws the press the
+// press-feedback mechanism marks on each row.
 import { Value } from "@sinclair/typebox/value";
 import { SwatchOptionSchema, type ChoiceOption, type SwatchOption } from "../../../../interaction/choice.ts";
 
