@@ -1,6 +1,8 @@
 /* StackLayout: a titled group; it never removes or supplies a child's material. */
 .place-stack { min-width:0; gap:.5rem; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; }
 .place-stack-title { padding-inline:1rem; margin:0 0 .375rem; color:var(--muted-foreground); }
+/* A title over unframed controls (chips, an action) starts on the group's edge, where they stand. */
+.place-stack-title[data-title-axis="edge"] { padding-inline:0; }
 .place-stack-title .type-caption { font-weight:400; }
 .place-stack-description { padding-inline:1rem; }
 .place-stack-content { min-width:0; gap:1.5rem; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; }

@@ -15,7 +15,8 @@
   const remove = (index: number) => onevent?.({ kind: "labels.change", control: node.id, values: node.values.filter((_, position) => position !== index) });
 </script>
 {#if node.mediaReference}<MediaReferenceSelector {node} {onevent} />{:else if node.reference}<ReferenceSelector {node} {onevent} />{:else}
-<StackLayout title={node.label}>
+<!-- Its chips and its action stand on the group's edge, and so does its title. -->
+<StackLayout title={node.label} titleAxis="edge">
   <!-- The chosen labels, the action that writes a new one and the control's error stand 1rem apart. -->
   <Column gap="regular">
     {#if node.values.length}
