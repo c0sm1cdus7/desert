@@ -28,7 +28,7 @@ test("field: the contract is closed: a shared part and exclusive variants by pri
   assert.equal(contract.closed, true);
   if (!contract.closed) return;
   assert.deepEqual(Object.keys(contract.props), ["label", "labelVisibility", "required", "invalid", "disabled", "helper", "error", "identity",
-    "measure", "primitive", "purpose", "value", "placeholder", "mask", "maxLength", "clear", "focus", "display", "disclosure"]);
+    "measure", "primitive", "purpose", "value", "placeholder", "mask", "maxLength", "counter", "clear", "focus", "display", "disclosure"]);
   const required = Object.entries(contract.props).filter(([, item]) => !item.optional).map(([name]) => name);
   assert.deepEqual(required, ["label", "labelVisibility", "required", "invalid", "disabled", "measure", "primitive"]);
   assert.deepEqual(contract.props.primitive?.schema, { kind: "union", members: [{ kind: "literal", value: "input.text" },
@@ -46,7 +46,7 @@ test("field: it owns the five writing vendor families, renders both input kinds,
   assert.deepEqual(field.states, ["empty", "value", "invalid", "disabled", "masked"]);
   assert.deepEqual(field.variants, { primitive: ["input.text", "input.multiline", "trigger"], measure: ["writing", "choice", "date", "amount", "fill"] });
   assert.deepEqual(field.stateVariants, { masked: { primitive: ["input.text"] } });
-  assert.deepEqual(field.slots, { accessory: { accepts: ["action"] }, prefix: { accepts: ["selection-field"] } });
+  assert.deepEqual(field.slots, { accessory: { accepts: ["action"] }, prefix: { accepts: ["choice"] } });
   assert.deepEqual(field.owner.parts, ["FieldWell.svelte", "FieldLabel.svelte", "FieldEditor.svelte", "FieldTrigger.svelte", "SearchWell.svelte",
     "MaskedInput.svelte", "input-edit-history.ts", "ClearInput.svelte", "CharacterCounter.svelte", "editor-capacity.ts", "field.css", "field-measure.css"]);
 });

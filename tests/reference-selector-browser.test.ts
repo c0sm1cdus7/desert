@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {svelteBrowser} from './fixtures/svelte-browser.ts';
 import {rendererCss} from './fixtures/renderer-css.ts';
 
+// Lane B: the selector opens from a Field trigger, whose name is its label and what it shows (`Projects · Choose…`).
+
 const fixture=`<script lang="ts">
   import {onMount} from 'svelte';
   import ReferenceSelector from '@desert/svelte/catalog/compositions/reference-selector/ReferenceSelector.svelte';
@@ -25,7 +27,7 @@ test('reference selection refreshes existing choices but offers no nested creati
   const f=await svelteBrowser(fixture);
   try{
     await f.page.addStyleTag({content:await rendererCss()});
-    const trigger=f.page.getByRole('button',{name:'Projects',exact:true});
+    const trigger=f.page.getByRole('button',{name:/^Projects · /});
     await trigger.click();
     await f.page.getByText('No options available.',{exact:true}).waitFor();
     assert.equal(await f.page.getByRole('button',{name:'Create project',exact:true}).count(),0);
@@ -43,7 +45,7 @@ test('reference selection becomes unavailable without discarding selected labels
   const f=await svelteBrowser(fixture);
   try{
     await f.page.evaluate(()=>{(window as any).setReference({options:[{value:'project-1',label:'Research',color:'green'}]});});
-    const trigger=f.page.getByRole('button',{name:'Projects',exact:true});
+    const trigger=f.page.getByRole('button',{name:/^Projects · /});
     await trigger.click();await f.page.getByRole('checkbox',{name:'Research',exact:true}).check();
     await f.page.evaluate(()=>{(window as any).setDisabled(true);});
     assert.equal(await trigger.isDisabled(),true);
@@ -62,7 +64,7 @@ test('only an installed reference creation capability exposes a companion form a
   const f=await svelteBrowser(fixture.replace("colors:[],maxLength:64", "createLabel:'Create collection',colors:[],maxLength:64"));
   try{
     await f.page.addStyleTag({content:await rendererCss()});
-    await f.page.getByRole('button',{name:'Projects',exact:true}).click();
+    await f.page.getByRole('button',{name:/^Projects · /}).click();
     const create=f.page.getByRole('button',{name:'Create collection',exact:true});
     await create.click();
     await f.page.getByRole('textbox',{name:'Name',exact:true}).fill('Japan');
@@ -84,7 +86,7 @@ test('reference dropdown keeps a full labeled well and readable choices at narro
     await f.page.emulateMedia({colorScheme:'dark',reducedMotion:'reduce'});
     for(const width of [1440,390,320]){
       await f.page.setViewportSize({width,height:900});
-      const trigger=f.page.getByRole('button',{name:'Projects',exact:true});
+      const trigger=f.page.getByRole('button',{name:/^Projects · /});
       assert.equal(await trigger.locator('[data-slot="field-label"]').innerText(),'Projects');
       assert.ok((await trigger.boundingBox())!.height>=56);
       await trigger.click();

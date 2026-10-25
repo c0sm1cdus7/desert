@@ -5,6 +5,8 @@ import { resolve } from 'node:path';
 import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 import { mediaInspectionBefore } from './fixtures/media-inspection-before.ts';
+import { controlsBefore } from './fixtures/controls-before.ts';
+import { pixelDifference } from './fixtures/pixel-difference.ts';
 
 const root=resolve(import.meta.dirname,'..');
 const previous=Object.fromEntries(Object.entries(mediaInspectionBefore).map(([path,source])=>[resolve(root,path),
@@ -13,6 +15,10 @@ const previous=Object.fromEntries(Object.entries(mediaInspectionBefore).map(([pa
     .replaceAll('<Viewer {photos}', '<Viewer items={photos.map(photo => ({kind:"image",...photo}))}')
     .replaceAll('bind:index bind:open', '{index} {open} onindex={value=>index=value} onopen={value=>open=value}')
 ]));
+// The frozen library returns focus through the card's record mark, which the catalog card drew before lane B recomposed
+// it over Card (its folder is gone): the frozen side mounts that card at the composition's path (the same depth).
+const frozenCard={[resolve(root,'src/svelte/catalog/compositions/catalog-card/CatalogCard.svelte')]:
+  controlsBefore['src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte']??''};
 const directory=resolve(root,'artifacts/media-inspection-ownership');
 const library={id:'travel',items:[
   {id:'coast',kind:'image',title:'Coast',image:{asset:'coast',alt:'A coast'}},
@@ -45,7 +51,9 @@ async function settled(fixture:Awaited<ReturnType<typeof prepare>>){
  * role, and the dialog keeps its accessible name: the modal that holds the viewer now (F1d) names it with a visually
  * hidden title of its own, where the frozen viewer named it by its visible title, so that hidden name element is the
  * owner's and is not compared, while the name it gives is. */
-async function compare(name:string,fixtures:Awaited<ReturnType<typeof prepare>>[],selector:string|readonly [string,string],owned=false){
+/** `tolerance` lets a channel differ by that many levels: a card drawn by another owner (Card for the catalog card, lane B)
+ * antialiases its rounded corners and its shade a level or two apart at the same place; a layout change cannot hide. */
+async function compare(name:string,fixtures:Awaited<ReturnType<typeof prepare>>[],selector:string|readonly [string,string],owned=false,tolerance=0){
   await mkdir(directory,{recursive:true});
   const screenshots=[];
   const anatomy=[];
@@ -76,7 +84,8 @@ async function compare(name:string,fixtures:Awaited<ReturnType<typeof prepare>>[
     screenshots.push(bytes);
   }
   assert.deepEqual(anatomy[1],anatomy[0],name+' identical DOM anatomy and geometry');
-  assert.ok(screenshots[1]!.equals(screenshots[0]!),name+' exact viewport pixels');
+  if(tolerance===0)assert.ok(screenshots[1]!.equals(screenshots[0]!),name+' exact viewport pixels');
+  else assert.deepEqual(await pixelDifference(fixtures[0]!.page,screenshots[0]!,screenshots[1]!,tolerance),{count:0,within:true},name+' viewport pixels within '+tolerance);
 }
 
 test('closed Media library preserves card/gallery pixels, queue, zoom controls and focus',async()=>{
@@ -90,14 +99,15 @@ test('closed Media library preserves card/gallery pixels, queue, zoom controls a
   <main data-renderer-profile="apple-reference" data-catalog-scroll tabindex="-1" style="padding:16px">
   <div data-test-library>{#if mounted}<Media bind:this={media} {library} {album} onalbum={value=>album=value}/>{/if}</div></main>
   <output data-album>{album}</output>`;
-  const fixtures=[await prepare(source,previous),await prepare(source)];
+  const fixtures=[await prepare(source,{...previous,...frozenCard}),await prepare(source)];
   try{
     // The library draws no wrapper of its own any more (lane D): the frozen side's wrapper is skipped, both compare the catalog.
-    await compare('media-library',fixtures,['[data-media-library] > :first-child','[data-test-library] > :first-child']);
+    // Its cards are Card now (lane B), so their anatomy is the new owner's: named and roled elements and pixels are compared.
+    await compare('media-library',fixtures,['[data-media-library] > :first-child','[data-test-library] > :first-child'],true,2);
     for(const f of fixtures){
-      await f.page.locator('[data-record="album.trip"] button').click();
+      await f.page.getByRole('button',{name:'Trip',exact:true}).click();
       assert.equal(await f.page.locator('[data-album]').textContent(),'trip','the album card opens its album');
-      await f.page.locator('[data-record="image.coast"] button').click();
+      await f.page.getByRole('button',{name:'Coast',exact:true}).click();
       await f.page.locator('[data-media-viewer]').waitFor();
       assert.equal(await f.page.locator('[data-media-viewer] [data-toolbar-subtitle]').textContent(),'1 / 2');
     }
@@ -117,7 +127,7 @@ test('closed Media library preserves card/gallery pixels, queue, zoom controls a
       assert.equal(await f.page.locator('[data-media-viewer] [data-toolbar-subtitle]').textContent(),'2 / 2');
       await f.page.getByRole('button',{name:'Close media viewer',exact:true}).click();
       await f.page.locator('[data-media-viewer]').waitFor({state:'detached'});
-      assert.ok(await f.page.locator('[data-record="image.coast"] button').evaluate(button=>button===document.activeElement));
+      assert.ok(await f.page.getByRole('button',{name:'Coast',exact:true}).evaluate(button=>button===document.activeElement));
       await f.page.getByRole('button',{name:'Search Forest',exact:true}).click();
       await f.page.locator('[data-media-viewer]').waitFor();
       assert.equal(await f.page.locator('[data-media-viewer] [data-toolbar-subtitle]').textContent(),'3 / 3','Outside-album result uses library queue');

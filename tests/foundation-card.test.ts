@@ -10,6 +10,7 @@ import { measureProbes, renderCases, type Probes } from "./fixtures/parity.ts";
 import { compositionsBefore } from "./fixtures/compositions-c-before.ts";
 // MediaGrid and MediaCollectionGrid are composed of Card now (lane D): their frozen sources draw the "before" side.
 import { mediaCompositionsBeforeOverrides } from "./fixtures/media-compositions-before.ts";
+import { contentBefore } from "./fixtures/content-before.ts";
 
 const id = (n: number) => `10000000-0000-4000-8000-00000000000${n}`;
 const collection = { version: "desert.bank-node/1", kind: "collection", object: "item", fields: ["photo", "caption"],
@@ -29,7 +30,7 @@ const node = (record: string, extra: object) => ({ version: "desert.bank-node/1"
   title: "Night ferry", ...extra });
 
 const page = (body: string) => `<script lang="ts">
-  import CatalogCard from "@desert/svelte/catalog/foundations/catalog-card/CatalogCard.svelte";
+  import CatalogCard from "./src/svelte/catalog/foundations/card/CatalogCardBefore.svelte"; // frozen (lane B removed its folder)
   import MediaGrid from "@desert/svelte/catalog/compositions/media-grid/MediaGrid.svelte";
   import MediaCollectionGrid from "@desert/svelte/catalog/compositions/media-collection-grid/MediaCollectionGrid.svelte";
   import SummaryWidget from "@desert/svelte/catalog/compositions/summary-widget/SummaryWidget.svelte";
@@ -84,10 +85,15 @@ test("card: its folder imports no foreign vendor, styles only its own classes an
 test("card keeps the pixels of the catalog card, the media tile, the collection cover and the summary card", { timeout: 60000 }, async () => {
   const css = await rendererCss();
   // The summary widget is drawn as it was before composition lane C recomposed it on this card; MediaGrid and
-  // MediaCollectionGrid as they were before lane D composed them of it.
+  // MediaCollectionGrid as they were before lane D composed them of it; and the catalog card as the foundation it was
+  // before lane B made it a composition over this card (its folder is gone).
   const widget = "src/svelte/catalog/compositions/summary-widget/SummaryWidget.svelte";
-  const frozen = { ...mediaCompositionsBeforeOverrides, [resolve(import.meta.dirname, "..", widget)]: compositionsBefore[widget] ?? "" };
-  const [was, is] = [await renderCases(before, frozen, css), await renderCases(after, {}, css)];
+  const catalogCard = "src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte";
+  // Served beside Card (a sibling folder of the one it had), so its relative imports resolve as they did. Both pages share
+  // the imports, so the after page resolves the frozen card too (it never mounts it).
+  const card = { [resolve(import.meta.dirname, "..", "src/svelte/catalog/foundations/card/CatalogCardBefore.svelte")]: contentBefore[catalogCard] ?? "" };
+  const frozen = { ...mediaCompositionsBeforeOverrides, [resolve(import.meta.dirname, "..", widget)]: compositionsBefore[widget] ?? "", ...card };
+  const [was, is] = [await renderCases(before, frozen, css), await renderCases(after, card, css)];
   try {
     for (const f of [was, is]) await f.page.locator('[data-case="item-image"] [data-image-state="error"]').waitFor();
     // An item's artwork fills the card through the card's own absolute frame, where a contextual rule positioned it
@@ -138,6 +144,46 @@ test("card: opens when pressed, stays closed when disabled, names its summary re
     assert.deepEqual([await summary.getAttribute("aria-describedby"), await summary.getAttribute("aria-busy")], ["total", "true"]);
     await summary.click();
     assert.equal(await page.locator("[data-opened]").textContent(), JSON.stringify(["tile", "summary"]));
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("catalog-card composition: a resolved card node is a Card that opens its record and answers to catalog-return:<record>", async () => {
+  // Lane B: catalog.card is drawn by the catalog-card composition over Card, so Inspection's Back and the library's viewer
+  // return focus to the card that opened them by the same key.
+  const f = await renderCases(`<script lang="ts">
+    import { CatalogCard } from "@desert/svelte/catalog/index.ts";
+    import { provideFocusScope } from "@desert/svelte/infra/focus-scope.ts";
+    Object.assign(window, { scope: provideFocusScope() });
+    let events = $state([]);
+  </script>
+  <main data-renderer-profile="apple-reference">
+    <CatalogCard node={${JSON.stringify(node("harbor", { title: "Harbor at dawn", image: { asset: "harbor-cover", alt: "Boats at sunrise" } }))}}
+      onevent={event => events.push(event)} />
+    <CatalogCard node={${JSON.stringify(node("night-ferry", { mediaType: "video" }))}} onevent={event => events.push(event)} />
+    <div data-listed><CatalogCard node={${JSON.stringify(node("harbor", { title: "Harbor at dawn", image: { asset: "harbor-cover", alt: "Boats at sunrise" } }))}}
+      onevent={() => {}} /></div>
+    <output data-events>{JSON.stringify(events)}</output>
+  </main>`, {}, await rendererCss());
+  try {
+    const { page } = f;
+    assert.deepEqual(await page.locator("[data-card]").evaluateAll(cards => cards.map(card => card.getAttribute("data-card"))), ["item", "item", "item"]);
+    assert.equal(await page.locator("[data-card]").first().locator("[data-media-image]").count(), 1, "an item with an image shows it");
+    assert.equal(await page.locator("[data-card]").nth(1).locator("[data-media-artwork-placeholder]").count(), 1, "a video item its placeholder");
+    await page.getByRole("button", { name: "Harbor at dawn" }).first().click();
+    assert.equal(await page.locator("[data-events]").textContent(), JSON.stringify([{ kind: "catalog.open", record: "harbor" }]));
+    assert.equal(await page.evaluate(() => Reflect.get(window, "scope").lastActivated()), "catalog-return:harbor");
+    await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    assert.equal(await page.evaluate(() => Reflect.get(window, "scope").focus("catalog-return:night-ferry")), true);
+    assert.equal(await page.getByRole("button", { name: "Night ferry" }).evaluate(element => element === document.activeElement), true);
+    // Of two cards of one record, the one opened last answers its key.
+    const listed = page.locator("[data-listed]").getByRole("button", { name: "Harbor at dawn" });
+    await listed.click(); await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    assert.equal(await page.evaluate(() => Reflect.get(window, "scope").focus("catalog-return:harbor")), true);
+    assert.equal(await listed.evaluate(element => element === document.activeElement), true);
+    await page.getByRole("button", { name: "Harbor at dawn" }).first().click(); await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    assert.equal(await page.evaluate(() => Reflect.get(window, "scope").focus("catalog-return:harbor")), true);
+    assert.equal(await page.getByRole("button", { name: "Harbor at dawn" }).first().evaluate(element => element === document.activeElement), true);
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

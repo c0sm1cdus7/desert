@@ -17,12 +17,12 @@ test('labels use a creation popover and compact removable rail without an expose
     assert.equal(await input.count(),0);
     await add.click();await input.fill('  Desert SDK  ');await input.press('Enter');await input.waitFor({state:'detached'});
     assert.equal(await input.count(),0);
-    assert.deepEqual((await f.page.locator('.label-rail li').allTextContents()).map(value=>value.trim()),['Desert SDK']);
+    assert.deepEqual((await f.page.locator('[data-tag]').allTextContents()).map(value=>value.trim()),['Desert SDK']);
     await add.click();await input.fill('Desert SDK');await input.press('Enter');
     assert.equal(await input.inputValue(),'Desert SDK');
     assert.equal(await f.page.getByRole('alert').textContent(),'This label is already added.');
     await input.fill('A,B');await input.press('Enter');await input.waitFor({state:'detached'});
-    assert.deepEqual((await f.page.locator('.label-rail li').allTextContents()).map(value=>value.trim()),['Desert SDK','A,B']);
+    assert.deepEqual((await f.page.locator('[data-tag]').allTextContents()).map(value=>value.trim()),['Desert SDK','A,B']);
     assert.equal(await add.isDisabled(),true);
     for(const width of [320,1440]){
       await f.page.setViewportSize({width,height:800});
@@ -36,7 +36,7 @@ test('labels use a creation popover and compact removable rail without an expose
     assert.equal(await f.page.locator('[data-character-counter]').textContent(),'1 over limit');
     assert.equal(await input.inputValue(),'🌵'.repeat(65),'over-limit writing is preserved for canonical validation');
     await input.press('Enter');await input.waitFor({state:'detached'});
-    assert.deepEqual((await f.page.locator('.label-rail li').allTextContents()).map(value=>value.trim()),['A,B','🌵'.repeat(65)]);
+    assert.deepEqual((await f.page.locator('[data-tag]').allTextContents()).map(value=>value.trim()),['A,B','🌵'.repeat(65)]);
     await f.page.setViewportSize({width:320,height:800});
     assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     assert.deepEqual(f.errors,[]);

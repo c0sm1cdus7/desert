@@ -21,7 +21,7 @@ export const CatalogSources = Object.freeze({
   "avatar-shuffle": "src/svelte/catalog/compositions/avatar-shuffle/AvatarShuffle.svelte",
   "bar": "src/svelte/catalog/foundations/bar/Bar.svelte",
   "card": "src/svelte/catalog/foundations/card/Card.svelte",
-  "catalog-card": "src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte",
+  "catalog-card": "src/svelte/catalog/compositions/catalog-card/CatalogCard.svelte",
   "catalog-detail": "src/svelte/catalog/compositions/catalog-detail/CatalogDetail.svelte",
   "catalog-home": "src/svelte/catalog/compositions/catalog-home/CatalogHome.svelte",
   "catalog-navigation": "src/svelte/catalog/compositions/catalog-navigation/CatalogNavigation.svelte",

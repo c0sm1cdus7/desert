@@ -62,7 +62,7 @@ for(const width of [390,1280])test(`approved toolbar geometry and canonical cons
       }
       const more=facade.getByRole('button',{name:'More actions',exact:true});await more.click();await settled();
       const dial=page.getByRole('dialog',{name:'More actions',exact:true});
-      assert.equal(await dial.locator('[data-speed-dial-label]').count(),32-geometry.visible,'the dial includes precisely overflowing commands');
+      assert.equal(await dial.locator('[data-menu-label]').count(),32-geometry.visible,'the dial includes precisely overflowing commands');
       await page.keyboard.press('Escape');
       assert.equal(await more.evaluate(element=>element===document.activeElement),true,'Escape restores the overflow trigger');
       await page.getByRole('button',{name:'Open viewer',exact:true}).click();

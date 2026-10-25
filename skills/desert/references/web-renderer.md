@@ -1252,11 +1252,11 @@ export function nodeEvent(value: unknown): NodeEvent {
 
 ## src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte
 
-Source SHA-256: d26a87f994d45be0e67703e745640071433ebe046b0ebaff1e9da7e7370d8f30
+Source SHA-256: ce2e83aa573a314c4f6460007e3dc0daaf35f12487484f628105296e5f68cef3
 
 ```svelte
 <script lang="ts">
-  import type { NodeRendererProps } from "../../../renderer-contracts.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { resolvedNode } from "../../../../interaction/resolved-node.ts";
   import { nodeEvent, type NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ControlEvent } from "../../../../interaction/control-nodes.ts";
@@ -1264,7 +1264,7 @@ Source SHA-256: d26a87f994d45be0e67703e745640071433ebe046b0ebaff1e9da7e7370d8f30
   import { nodeRenderers } from "../../../renderer-registry.ts";
   import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
 
-  let { node, onevent = () => {}, host, actionDisclosure, frameIdentity }: NodeRendererProps = $props();
+  let { node, onevent = () => {}, continuity }: CatalogProps<"node-renderer"> = $props();
   let checked = $derived(resolvedNode(node));
   const emit = (event: NodeEvent) => onevent(nodeEvent(event));
   const control = (event: ControlEvent) => emit(event);
@@ -1287,7 +1287,6 @@ Source SHA-256: d26a87f994d45be0e67703e745640071433ebe046b0ebaff1e9da7e7370d8f30
       intent.kind === "transient.open" || intent.kind === "selection.clear") emit({ kind: "local.invoke", intent });
     else emit({ kind: "surface.invoke", intent });
   }
-  function fileHost() { if (!host) throw new Error("LOCAL_FILE_HOST_REQUIRED"); return host; }
 </script>
 
 {#if checked.kind === "input.text"}
@@ -1304,7 +1303,7 @@ Source SHA-256: d26a87f994d45be0e67703e745640071433ebe046b0ebaff1e9da7e7370d8f30
 {:else if checked.kind === "action"}
   {@const Renderer = nodeRenderers.action}
   <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role} face="fit"
-    reason={checked.action.reason} type={checked.form ? "submit" : "button"} onclick={activate} disclosure={actionDisclosure} />
+    reason={checked.action.reason} type={checked.form ? "submit" : "button"} onclick={activate} />
 {:else if checked.kind === "availability"}
   {@const Renderer = nodeRenderers.availability}<Renderer state={checked.state} label={checked.label} />
 {:else if checked.kind === "fact"}
@@ -1323,8 +1322,9 @@ Source SHA-256: d26a87f994d45be0e67703e745640071433ebe046b0ebaff1e9da7e7370d8f30
   {@const Renderer = nodeRenderers.collection}<Renderer node={checked} select={id => emit({ kind: "collection.select", id })} />
 {:else if checked.kind === "transient"}
   {@const Renderer = nodeRenderers.transient}<Renderer label={checked.label} open={checked.open} locked={checked.locked} frame={checked.frame}
-    {frameIdentity} onclose={frameEvents.close} onclosed={frameEvents.closed} invoke={frameEvents.invoke} edit={frameEvents.edit} controlEvent={frameEvents.controls} />
+    continuity={continuity} onclose={frameEvents.close} onclosed={frameEvents.closed} invoke={frameEvents.invoke} edit={frameEvents.edit} controlEvent={frameEvents.controls} />
 {:else if checked.kind === "problem"}
+  <!-- lane-merge: dialog (lane E). The problem node is drawn by Dialog once that composition lands. -->
   {@const Renderer = nodeRenderers.problem}<Renderer open={checked.open} title={checked.title} description={checked.description}
     locked={checked.locked} severity={checked.severity} close={() => emit({ kind: "problem.close" })} />
 {:else if checked.kind === "control.select"}
@@ -1332,7 +1332,7 @@ Source SHA-256: d26a87f994d45be0e67703e745640071433ebe046b0ebaff1e9da7e7370d8f30
 {:else if checked.kind === "control.popover"}
   {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.files"}
-  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} host={fileHost()} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.labels"}
   {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.options"}
@@ -1522,36 +1522,25 @@ Source SHA-256: 1b30b59ee4461594a05acd87260fb1cbcf3bfc001cbb7c680ebfe21c70790679
 
 ## src/svelte/renderer-contracts.ts
 
-Source SHA-256: d11e81be1ed514dd018c383f1a491713b0db3303c0b7b15e8e1f4d7d41383778
+Source SHA-256: 52868fcd16e1b11a8b32a32bcfe7c0a18ffc0864bf5af3dbb02c6f37d389ba1c
 
 ```ts
 import type { Component } from "svelte";
 import type { ResolvedNodeId } from "../interaction/catalog.ts";
 import type { ControlNode, ControlEvent } from "../interaction/control-nodes.ts";
-import type { SurfaceFrame, FrameContent, FactsContent, Destination } from "../interaction/surface-frame.ts";
+import type { FrameContent, FactsContent, Destination } from "../interaction/surface-frame.ts";
 import type { TopToolbar } from "../interaction/toolbar.ts";
-import type { SurfaceIntent } from "../interaction/intent.ts";
-import type { ResolvedNode, ResolvedNodeFor } from "../interaction/resolved-node.ts";
+import type { ResolvedNodeFor } from "../interaction/resolved-node.ts";
 import type { NodeEvent } from "../interaction/node-events.ts";
-import type { LocalFileHost } from "./infra/file-host.ts";
-import type { Disclosure } from "./infra/disclosure.ts";
 import type { CatalogProps } from "./catalog/types.d.ts";
 import { freezeDeep } from "../json.ts";
 import type { FormControlEvent } from "../interaction/form-control-event.ts";
 
-/** Private dispatcher inputs; public authoring only supplies serializable ResolvedNode. */
-export type NodeRendererProps = {
-  node: ResolvedNode; onevent?: (event: NodeEvent) => void; host?: LocalFileHost;
-  actionDisclosure?: Disclosure; frameIdentity?: object;
-};
-
 export type ControlKind = ControlNode["kind"];
 export type ControlEventFor<K extends ControlKind> = Extract<ControlEvent, { kind: `${K}.${string}` | (K extends 'labels' ? `reference.${string}` : never) }>;
 export type ControlProps<K extends ControlKind> = { node: Extract<ControlNode, { kind: K }> } &
-  ([ControlEventFor<K>] extends [never] ? {} : { onevent: (event: ControlEventFor<K>) => void }) &
-  (K extends "files" ? { host: LocalFileHost } : {});
+  ([ControlEventFor<K>] extends [never] ? {} : { onevent: (event: ControlEventFor<K>) => void });
 
-type Invoke = (intent: SurfaceIntent) => void;
 type Edit = (name: string, value: string) => void;
 type FactsProps = Pick<FactsContent, "fields" | "facts" | "object" | "labels" | "multiline" | "images" | "tags" | "references">;
 type ControlRendererProps = { [K in ControlKind as `control.${K}`]: ControlProps<K> };
@@ -1572,10 +1561,7 @@ export type NodeRendererInputs = ControlRendererProps & {
     id: Destination["destination"]; invoke: () => void;
   })[] };
   review: Extract<FrameContent, { kind: "review" }>;
-  transient: {
-    label: string; open: boolean; locked?: boolean; onclose: () => void; onclosed?: () => void;
-    frame: SurfaceFrame; invoke: Invoke; edit?: Edit; frameIdentity?: object | undefined; controlEvent?: ((event: FormControlEvent) => void) | undefined;
-  };
+  transient: CatalogProps<"drawer">;
   problem: {
     open: boolean; title: TopToolbar["title"]; description: Extract<FrameContent, { kind: "message" }>["text"];
     close: () => void; severity?: "error" | "warning"; locked?: boolean;
@@ -1585,26 +1571,25 @@ export type NodeRendererInputs = ControlRendererProps & {
 /** Inventory and props are both checked; a component for another entry is not interchangeable. */
 export type NodeRendererTable = { readonly [K in ResolvedNodeId]: Component<NodeRendererInputs[K]> };
 
-/** Only these private host channels may bypass serializable node data. */
+/** Only these private host channels may bypass serializable node data: a transient frame's reading continuity, a string
+ * token (design §3.0). The file host travels by context and an overlay draws its own trigger, so neither is a channel. */
 export const DispatcherCapabilities = freezeDeep({
-  action: { property: "disclosure", input: "actionDisclosure", required: false },
-  transient: { property: "frameIdentity", input: "frameIdentity", required: false },
-  "control.files": { property: "host", input: "host", required: true },
+  transient: { property: "continuity", input: "continuity", required: false },
 } as const satisfies { [K in ResolvedNodeId]?: {
-  property: keyof NodeRendererInputs[K]; input: keyof NodeRendererProps; required: boolean;
+  property: keyof NodeRendererInputs[K]; input: keyof CatalogProps<"node-renderer">; required: boolean;
 } });
 ```
 
 ## src/svelte/renderer-registry.ts
 
-Source SHA-256: fcdec336f981a967a74595682faafc6facdc9111e81986fdce16fe2210261ce9
+Source SHA-256: dbd7883db4a411c7b751c3390911f94d7ba93c95c31c9f4f199ef1f5db5ca5e4
 
 ```ts
 // Generated from the catalog declarations by `node scripts/catalog.ts --write`; do not edit.
 import type { NodeRendererTable } from "./renderer-contracts.ts";
 import Action from "./catalog/foundations/action/Action.svelte";
 import Availability from "./catalog/foundations/availability/Availability.svelte";
-import CatalogCard from "./catalog/foundations/catalog-card/CatalogCard.svelte";
+import CatalogCard from "./catalog/compositions/catalog-card/CatalogCard.svelte";
 import CatalogDetail from "./catalog/compositions/catalog-detail/CatalogDetail.svelte";
 import CatalogHome from "./catalog/compositions/catalog-home/CatalogHome.svelte";
 import Collection from "./catalog/compositions/collection/Collection.svelte";
@@ -5225,34 +5210,36 @@ export function pressFeedback(element: HTMLElement) {
 
 ## src/svelte/catalog/compositions/select-control/SelectControl.svelte
 
-Source SHA-256: d931d1c9820d65d295f082238a6b35a420ffee96aa5c07d96372fe9c0fb8f50e
+Source SHA-256: 1b15c9c44eaa486e3aff0b7077cdfbea7d6930acefb7d133b84705036737db53
 
 ```svelte
 <script lang="ts">
-  import { NodeRenderer } from "../../index.ts";
-  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import { SelectionField } from "../../index.ts";
-  import { MeasuredField } from "../../index.ts";
+  import { Action, Choice, Column } from "../../index.ts";
   import { selectNode, selectInputRequired, applyControlEvent } from "../../../../interaction/control-nodes.ts";
   import type { ControlEventFor } from "../../../renderer-contracts.ts";
   import type { CatalogProps } from "../../types.d.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let { node, onevent }: CatalogProps<"select-control"> = $props();
   let checked = $derived(selectNode(node));
-  const id = $props.id();
   function change(value: string | null) {
     const event: ControlEventFor<"select"> = { kind: "select.change", control: checked.id, value };
     applyControlEvent(checked, event);
     onevent?.(event);
   }
 </script>
-<MeasuredField kind="control.select" disabled={checked.disabled}>
-  <SelectionField {id} selection={checked.id} label={checked.label} value={checked.value} options={checked.options}
-    disabled={checked.disabled} required={selectInputRequired(checked)} fieldControl onchange={change} />
-  {#if !checked.required}<NodeRenderer node={{ version: ResolvedNodeVersion, kind: "action", role: "secondary", action: {
-    icon: "close", label: "Clear selection", state: checked.disabled || checked.value === null ? "unavailable" : "ready",
-    intent: { kind: "selection.clear" },
-  } }} onevent={event => { if (event.kind === "local.invoke" && event.intent.kind === "selection.clear") change(null); }} />{/if}
-</MeasuredField>
+<!-- The field well at the choice measure; an optional choice offers to clear it 0.5rem below. -->
+<Column gap="snug">
+  <Choice presentation="menu" cardinality="one" menuTrigger="well" measure="choice" label={checked.label} labelVisibility="visible"
+    selected={checked.value === null ? [] : [checked.value]} disabled={checked.disabled}
+    required={selectInputRequired(checked)} options={checked.options.map(option => ({ value: option.value, label: option.label,
+      disabled: option.disabled, ...option.face ? { leading: { kind: "face" as const, face: option.face } } : {} }))}
+    onchange={selected => { if (selected[0] !== undefined) change(selected[0]); }} />
+  {#if !checked.required}
+    <Action icon="close" label={say(m.selectControl.clear)} emphasis="secondary" face="fit" type="button"
+      state={checked.disabled || checked.value === null ? "unavailable" : "ready"} onclick={() => change(null)} />
+  {/if}
+</Column>
 ```
 
 ## src/svelte/catalog/compositions/popover-control/PopoverControl.svelte
@@ -5283,154 +5270,84 @@ Source SHA-256: 163f9f559f949e1b766e4397ac5408375f35a8f6ffad927638482d1f53fbee21
 
 ## src/svelte/catalog/compositions/file-control/FileControl.svelte
 
-Source SHA-256: be0802e3bea005e58314fe19d7745d34cacb2cf73d177efce9304dd8f84159df
+Source SHA-256: cb9183ee0f121f6fe7c21bb83d936c0d9af84af7d4e799c089bf82714b6fdc6d
 
 ```svelte
 <script lang="ts">
-  import * as Field from "../../../vendor/components/ui/field/index.js";
-  import { Action } from "../../index.ts";
-  import { Input } from "../../../vendor/components/ui/input/index.js";
-  import { fileNode, type FileRejection } from "../../../../interaction/control-nodes.ts";
+  import { Files } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  import { fileSize } from "../../foundations/files/file-size.ts";
-  import { currentStackTitle } from "../../../infra/stack-context.ts";
-  let { node, host, onevent }: CatalogProps<"file-control"> = $props();
-  let checked = $derived(fileNode(node));
-  let rejected = $state<readonly FileRejection[]>([]);
-  const id = $props.id();
-  const stackTitle = currentStackTitle();
-  let picker = $state<HTMLInputElement | null>(null);
-  const reasons = { "media-type": "File type is not accepted", "file-size": "File is too large",
-    "total-size": "Total size limit exceeded", count: "File count limit reached" };
-  function choose(event: Event) {
-    const input = event.currentTarget as HTMLInputElement;
-    const selection = host.choose(checked, Array.from(input.files ?? []));
-    rejected = selection.result.rejected;
-    onevent?.(selection.event);
-    input.value = "";
-  }
+  // The file control is the Files foundation (design §1.3), which reads the local file host from context; Batch 3 deletes
+  // this folder.
+  let { node, onevent }: CatalogProps<"file-control"> = $props();
 </script>
-<Field.Field data-control="files" data-disabled={checked.disabled} data-invalid={rejected.length > 0}>
-  <Field.FieldLabel for={id} class={stackTitle() === checked.label ? "sr-only" : undefined}>{checked.label}</Field.FieldLabel>
-  <Input bind:ref={picker} {id} type="file" hidden tabindex={-1} multiple={checked.limits.maxCount > 1} accept={checked.limits.accept.join(",")}
-    disabled={checked.disabled} onchange={choose} aria-describedby={`${id}-limits`} aria-invalid={rejected.length > 0} />
-  <Action icon="open" label="Choose files" emphasis="secondary" face="fit" type="button" state={checked.disabled ? "unavailable" : "ready"}
-    onclick={() => picker?.click()} />
-  <Field.FieldDescription id={`${id}-limits`}>
-    Up to {checked.limits.maxCount} files · {fileSize(checked.limits.maxFileBytes)} each · {fileSize(checked.limits.maxTotalBytes)} total.
-    Choosing files does not upload them.
-  </Field.FieldDescription>
-  {#if checked.files.length}
-    <ul class="flex flex-col gap-2" aria-label="Selected local files">
-      {#each checked.files as file (file.id)}
-        <li class="flex flex-wrap items-center justify-between gap-2">
-          <span class="min-w-0 break-all">{file.name} · {fileSize(file.size)}</span>
-          <Action icon="close" label={`Remove ${file.name}`} emphasis="secondary" face="fit" type="button" state={checked.disabled ? "unavailable" : "ready"}
-            onclick={() => onevent?.(host.remove(checked, file.id))} />
-        </li>
-      {/each}
-    </ul>
-  {:else}<Field.FieldDescription>No local files selected.</Field.FieldDescription>{/if}
-  <div role="status" aria-live="polite">
-    {#each rejected as item (item.file.id)}<p class="text-destructive">{item.file.name}: {reasons[item.reason]}.</p>{/each}
-  </div>
-</Field.Field>
+<Files {node} {onevent} />
 ```
 
 ## src/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte
 
-Source SHA-256: 0525e5f788dc750122f9877170ed01781860127ecb05a97db7a0838c0b3e9819
+Source SHA-256: 5aed4ec264773742d45fb4eba33ad7bdc26ce1a717ccbf944c706e34e87ce099
 
 ```svelte
 <script lang="ts">
-  import type { ControlNode, ControlEvent } from "../../../../interaction/control-nodes.ts";
   import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
   import { NodeRenderer } from "../../index.ts";
-  import type { LocalFileHost } from "../../../infra/file-host.ts";
-  let { node, onevent, host }: { node: ControlNode; onevent: (event: ControlEvent) => void; host: LocalFileHost } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { node, onevent }: CatalogProps<"control-renderer"> = $props();
 </script>
-<NodeRenderer node={controlResolvedNode(node)} {host} onevent={event => { if ("control" in event) onevent(event); }} />
+<NodeRenderer node={controlResolvedNode(node)} onevent={event => { if ("control" in event) onevent?.(event); }} />
 ```
 
 ## src/svelte/catalog/compositions/options-control/OptionsControl.svelte
 
-Source SHA-256: 381cf2ebee013192d95a9ba3e428c0edab30a853929cb349a6e41c65b08e33a6
+Source SHA-256: 8428be31602338563fa2db6bd3b7af02836752341b00df8f85a13a10db1ceee8
 
 ```svelte
 <script lang="ts">
-  import * as Field from "../../../vendor/components/ui/field/index.js";
-  import * as RadioGroup from "../../../vendor/components/ui/radio-group/index.js";
-  import { Checkbox } from "../../../vendor/components/ui/checkbox/index.js";
-  import { GroupedPanel } from "../../index.ts";
-  import { ChoiceRow } from "../../index.ts";
-  import { ChoiceList } from "../../index.ts";
+  import { Choice } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import { permitsOptionsSelection, optionsInputRequired } from "../../../../interaction/extended-controls.ts";
   import { currentStackTitle } from "../../../infra/stack-context.ts";
   let { node, onevent }: CatalogProps<"options-control"> = $props();
-  const prefix = $props.id();
+  // A stack titled like this control already shows its label; the legend then stays for assistive technology only.
   const stackTitle = currentStackTitle();
-  let inputRequired = $derived(optionsInputRequired(node));
   const change = (selected: readonly string[]) => {
     if (permitsOptionsSelection(node, selected)) onevent?.({ kind: "options.change", control: node.id, selected });
   };
   const nextSelection = (value: string) => node.maxSelected === 1 ? [value] :
     node.selected.includes(value) ? node.selected.filter(item => item !== value) : [...node.selected, value];
+  /** An option is unavailable when the node says so or when choosing it would break the selection's bounds. */
   const disabled = (value: string, unavailable: boolean) => unavailable || !permitsOptionsSelection(node, nextSelection(value));
 </script>
-{#snippet choices()}
-    {#each node.options as option (option.value)}
-      <ChoiceRow id={`${prefix}-${option.value}`} labelId={`${prefix}-${option.value}-label`}
-        descriptionId={`${prefix}-${option.value}-description`} label={option.label} description={option.description}
-        disabled={disabled(option.value, option.disabled)}>
-          {#if node.maxSelected === 1}
-            <RadioGroup.Item id={`${prefix}-${option.value}`} value={option.value} disabled={disabled(option.value, option.disabled)}
-              aria-labelledby={`${prefix}-${option.value}-label`} aria-describedby={option.description ? `${prefix}-${option.value}-description` : undefined} />
-          {:else}
-            <Checkbox id={`${prefix}-${option.value}`} bind:checked={() => node.selected.includes(option.value),
-              checked => change(checked ? [...node.selected, option.value] : node.selected.filter(value => value !== option.value))}
-              disabled={disabled(option.value, option.disabled)} aria-labelledby={`${prefix}-${option.value}-label`}
-              aria-describedby={option.description ? `${prefix}-${option.value}-description` : undefined} />
-          {/if}
-      </ChoiceRow>
-    {/each}
-{/snippet}
-<Field.FieldSet data-control="options" data-cardinality={node.maxSelected === 1 ? "one" : "many"}>
-  <Field.FieldLegend variant="label" class={stackTitle() === node.label ? "sr-only" : "options-title"}>{node.label}{#if inputRequired}<span class="required" aria-hidden="true">*</span>{/if}</Field.FieldLegend>
-  <GroupedPanel><ChoiceList>{#if node.maxSelected === 1}
-    <RadioGroup.Root bind:value={() => node.selected[0] ?? "", value => change(value ? [value] : [])}
-      disabled={node.disabled} required={inputRequired} aria-label={node.label} data-grouped-rows>{@render choices()}</RadioGroup.Root>
-  {:else}<Field.FieldGroup data-grouped-rows>{@render choices()}</Field.FieldGroup>{/if}</ChoiceList></GroupedPanel>
-</Field.FieldSet>
+<Choice presentation="rows" cardinality={node.maxSelected === 1 ? "one" : "many"} label={node.label}
+  labelVisibility={stackTitle() === node.label ? "accessible" : "visible"} selected={node.selected} disabled={node.disabled}
+  required={optionsInputRequired(node)} onchange={change}
+  options={node.options.map(option => ({ value: option.value, label: option.label, disabled: disabled(option.value, option.disabled),
+    ...option.description ? { description: option.description } : {} }))} />
 ```
 
 ## src/svelte/catalog/compositions/money-control/MoneyControl.svelte
 
-Source SHA-256: f36e5aaab86092bfc71d6aaf8d1e406c6dd46db6894e54ef6ad7aebe87d601fa
+Source SHA-256: 12d44eda3f243e5292c11d43f7da85c70eb510846e355109cba33d93e0c61ef8
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
-  import * as Field from "../../../vendor/components/ui/field/index.js";
-  import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import { MaskedInput } from "../../index.ts";
-  import { SelectionField } from "../../index.ts";
+  import { Choice, Field } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import { displayAmount, parseAmount } from "../../../../interaction/money.ts";
   import { formatMaskedValue, type InputMask } from "../../../../interaction/input-mask.ts";
-  import { FieldWell } from "../../index.ts";
-  import { MeasuredField } from "../../index.ts";
-  import { ClearInput } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let { node, onevent }: CatalogProps<"money-control"> = $props();
-  const id = $props.id();
   let scale = $derived(node.currencies.find(currency => currency.code === node.currency)!.scale);
   let mask: InputMask = $derived({ kind: "decimal", locale: node.locale ?? "en-US", scale });
   const symbol = (currency: string) => new Intl.NumberFormat(mask.locale, {
     style: "currency", currency, currencyDisplay: "narrowSymbol",
   }).formatToParts(0).find(part => part.type === "currency")!.value;
-  let options = $derived(node.currencies.map(item => ({ value: item.code, label: item.code, disabled: false })));
+  // Each currency leads with its narrow symbol, in the list and in the inline value beside the amount.
+  let options = $derived(node.currencies.map(item => ({ value: item.code, label: item.code, disabled: false,
+    leading: { kind: "symbol" as const, text: symbol(item.code) } })));
   let draft = $state(untrack(() => displayAmount(node.minorUnits, scale)));
-  let display = $state("");
   let draftValid = true;
   let error = $state("");
   const ownerValue = () => ({ id: node.id, currency: node.currency, minorUnits: node.minorUnits, scale, locale: mask.locale });
@@ -5456,14 +5373,14 @@ Source SHA-256: f36e5aaab86092bfc71d6aaf8d1e406c6dd46db6894e54ef6ad7aebe87d601fa
   }
   function edit(value: string, valid: boolean, complete: boolean) {
     draft = value; draftValid = valid && complete;
-    if (!draftValid) { error = `Enter an amount with up to ${scale} decimal places using ${mask.locale} formatting.`; return; }
+    if (!draftValid) { error = say(m.moneyControl.format, { scale: String(scale), locale: mask.locale }); return; }
     try { const minorUnits = parseAmount(value, scale); error = "";
       publish(node.currency, minorUnits);
     } catch (cause) { error = cause instanceof Error && cause.message === "MONEY_AMOUNT_TOO_LARGE"
-      ? "This amount exceeds the supported size." : `Enter an amount with up to ${scale} decimal places.`; }
+      ? say(m.moneyControl.tooLarge) : say(m.moneyControl.scale, { scale: String(scale) }); }
   }
-  function currency(value: string) {
-    if (value === node.currency) return;
+  function currency(value: string | undefined) {
+    if (value === undefined || value === node.currency) return;
     const nextScale = node.currencies.find(item => item.code === value)!.scale;
     try {
       if (!draftValid || draft && !/^-?\d+(\.\d+)?$/.test(draft)) throw new Error("INVALID_MONEY_AMOUNT");
@@ -5471,34 +5388,19 @@ Source SHA-256: f36e5aaab86092bfc71d6aaf8d1e406c6dd46db6894e54ef6ad7aebe87d601fa
       const exact = draft.includes(".") ? draft.replace(/0+$/, "").replace(/\.$/, "") : draft;
       const minorUnits = parseAmount(exact, nextScale);
       error = ""; publish(value, minorUnits);
-    } catch { error = `Enter an amount representable in ${value} with up to ${nextScale} decimal places before changing currency.`; }
+    } catch { error = say(m.moneyControl.currencyScale, { currency: value, scale: String(nextScale) }); }
   }
 </script>
-{#snippet currencySymbol(currency: string)}
-  <Group.Text data-currency-symbol aria-hidden="true">{symbol(currency)}</Group.Text>
-{/snippet}
-<MeasuredField kind="control.money" invalid={!!error} disabled={node.disabled}>
-  <FieldWell {id} label={node.label} required={node.required} filled={true}>
-    {#snippet accessory()}<ClearInput control={id} value={display} label={`Clear ${node.label}`} disabled={node.disabled} />{/snippet}
-    {#snippet prefix()}
-      <SelectionField selection={`${node.id}-currency`} label={`${node.label} currency`} triggerLabel={`${node.currency} · ${node.label} currency`}
-        value={node.currency} {options}
-        onchange={currency} disabled={node.disabled || node.currencies.length === 1}>
-        {#snippet optionLeading(option)}{@render currencySymbol(option.value)}{/snippet}
-        {#snippet selectedContent(selected)}
-          <span class="flex items-center gap-2">
-            {@render currencySymbol(selected?.value ?? node.currency)}
-            <span>{selected?.label ?? node.currency}</span>
-          </span>
-        {/snippet}
-      </SelectionField>
-    {/snippet}
-    <MaskedInput {id} {mask} bind:display identity={`${node.id}/${node.currency}`} value={draft} placeholder={formatMaskedValue(displayAmount("0", scale), mask)}
-      disabled={node.disabled} required={node.required} aria-invalid={!!error} aria-describedby={error ? `${id}-error` : undefined}
-      onvalue={edit} />
-  </FieldWell>
-  {#if error}<Field.FieldDescription id={`${id}-error`} role="status">{error}</Field.FieldDescription>{/if}
-</MeasuredField>
+<Field primitive="input.text" purpose="text" label={node.label} labelVisibility="visible" measure="amount" {mask}
+  identity={`${node.id}/${node.currency}`} value={draft} placeholder={formatMaskedValue(displayAmount("0", scale), mask)}
+  required={node.required} invalid={!!error} disabled={node.disabled} error={error || undefined} clear
+  onmasked={({ value, valid, complete }) => edit(value, valid, complete)}>
+  {#snippet prefix()}
+    <Choice presentation="menu" cardinality="one" menuTrigger="inline" label={say(m.moneyControl.currency, { label: node.label })}
+      labelVisibility="visible" selected={[node.currency]} {options} disabled={node.disabled || node.currencies.length === 1} required={false}
+      onchange={selected => currency(selected[0])} />
+  {/snippet}
+</Field>
 ```
 
 ## src/svelte/catalog/foundations/date-control/DateControl.svelte
@@ -5752,27 +5654,25 @@ Source SHA-256: 131a583815f988f2695c086f19bd164feb78fe73012ff897afc571ba67d6aaef
 
 ## src/svelte/catalog/compositions/fields/Fields.svelte
 
-Source SHA-256: 0bbd7d98e932df42d7f14a85b29565dd0f6a83478521a7feb3c8d594e0702994
+Source SHA-256: e95bfc97c5eedfbe17268c0fb5acf81adb8b7eb2f5e12dc7a7558150181ffe4e
 
 ```svelte
 <script lang="ts">
-  import * as Field from "../../../vendor/components/ui/field/index.js";
-  import { NodeRenderer } from "../../index.ts";
+  import { Column, NodeRenderer } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import { imageInputControl } from "../../../../interaction/image-input.ts";
   import { labelsInputControl } from "../../../../interaction/labels-control.ts";
   import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
-  import { useFileHost } from "../../../infra/file-host-context.ts";
-  const fileHost = useFileHost();
   let { fields, edit, controlEvent }: CatalogProps<"fields"> = $props();
 </script>
 
-<Field.FieldGroup data-composition="form">
+<!-- The form's fields stand 1.25rem apart, the gap of the field group they were drawn in. -->
+<Column gap="loose">
   {#each fields as field (field.name)}
     {#if field.primitive === "control.files"}
       <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "control.files",
-        control: imageInputControl(field.name, field.label, field.files,field.disabled ?? false,field.media) }} host={fileHost}
+        control: imageInputControl(field.name, field.label, field.files,field.disabled ?? false,field.media) }}
         onevent={event => { if (isFormControlEvent(event)) controlEvent(event); }} />
     {:else if field.primitive === "control.labels"}
       <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "control.labels",
@@ -5790,12 +5690,12 @@ Source SHA-256: 0bbd7d98e932df42d7f14a85b29565dd0f6a83478521a7feb3c8d594e0702994
       onevent={event => { if (event.kind === "input.change") edit(event.name, event.value); }} />
     {/if}
   {/each}
-</Field.FieldGroup>
+</Column>
 ```
 
 ## src/svelte/catalog/foundations/field/Field.svelte
 
-Source SHA-256: b1bc77a17e29ccbff0aa41e4c57068b3f7a6cf322205af4ec4356035940fed40
+Source SHA-256: fa3f11b081e20b98bd66c42dbeac2d4a3e55a55010cbc51b61b1470f092186b0
 
 ```svelte
 <script lang="ts">
@@ -5809,7 +5709,7 @@ Source SHA-256: b1bc77a17e29ccbff0aa41e4c57068b3f7a6cf322205af4ec4356035940fed40
   import ClearInput from "./ClearInput.svelte";
   import type { CatalogProps } from "../../types.d.ts";
   let { primitive, label, labelVisibility, required, invalid, disabled, helper, error, identity, measure, purpose, value, placeholder,
-    mask, maxLength, clear, focus, display, disclosure, onchange, onmasked, onopen, accessory: trailing, prefix }: CatalogProps<"field"> = $props();
+    mask, maxLength, counter, clear, focus, display, disclosure, onchange, onmasked, onopen, accessory: trailing, prefix }: CatalogProps<"field"> = $props();
   const id = $props.id();
   // Both editors receive their value; the trigger owns none. `writing` is the live text, `shown` a mask's formatted text.
   let written = $derived(typeof value === "string" ? value : "");
@@ -5833,7 +5733,9 @@ Source SHA-256: b1bc77a17e29ccbff0aa41e4c57068b3f7a6cf322205af4ec4356035940fed40
   let message = $derived(error || draftError);
   let marked = $derived(invalid || !!message);
   let multiline = $derived(primitive === "input.multiline");
-  let describedBy = $derived([helper ? `${id}-helper` : undefined, multiline ? `${id}-counter` : undefined,
+  // A multiline editor always counts its characters; a single line counts them when its caller asks (a limited label).
+  let counted = $derived(multiline || counter === true);
+  let describedBy = $derived([helper ? `${id}-helper` : undefined, counted ? `${id}-counter` : undefined,
     message ? `${id}-error` : undefined].filter(Boolean).join(" ") || undefined);
   function edited(next: string, valid: boolean, complete: boolean) {
     if (disabled || !mask) return;
@@ -5843,7 +5745,7 @@ Source SHA-256: b1bc77a17e29ccbff0aa41e4c57068b3f7a6cf322205af4ec4356035940fed40
     if (valid && complete) { pending.push(next); onchange?.(next); }
   }
 </script>
-{#snippet counter()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
+{#snippet characters()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
 {#snippet editor()}
   {#if primitive !== "trigger"}
     <FieldEditor {id} {primitive} {label} {purpose} value={written} {placeholder} {mask} {identity} {required} {disabled} {focus}
@@ -5858,7 +5760,7 @@ Source SHA-256: b1bc77a17e29ccbff0aa41e4c57068b3f7a6cf322205af4ec4356035940fed40
     {:else if purpose === "search"}
       <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} bind:writing onchange={next => onchange?.(next)} />
     {:else}
-      <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} {prefix} footer={multiline ? counter : undefined}>
+      <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} {prefix} footer={counted ? characters : undefined}>
         {#snippet accessory()}
           {#if trailing}{@render trailing()}
           {:else if multiline || clear}<ClearInput control={id} value={draft} label={`Clear ${label}`} {disabled} />{/if}
@@ -6248,17 +6150,20 @@ Source SHA-256: d023c99c1fe3e33a48481991be62fcf1f3976d54ad50c07f5370a3790a4b6667
 
 ## src/svelte/catalog/compositions/review/Review.svelte
 
-Source SHA-256: c669c8dff63588a35f50165eb6e61d991863666ef5a7f5c741c867f59f7317ec
+Source SHA-256: 7b4bbfe3fc0d52613452f85d06068fc586f06cc42af12c84ef786679523dbc2e
 
 ```svelte
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
-  import { NodeRenderer } from "../../index.ts";
+  import { Column, NodeRenderer, Text } from "../../index.ts";
   import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
   let { details, recovery }: CatalogProps<"review"> = $props();
 </script>
-<div data-composition="review"><NodeRenderer node={{ version: ResolvedNodeVersion, kind: "fact", details }} /></div>
-{#if recovery}<p class="mt-4 text-muted-foreground" role="status">{recovery}</p>{/if}
+<!-- The recovery note stands 1rem under the prepared facts, in the muted body ink, announced when it appears. -->
+<Column gap="regular">
+  <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "fact", details }} />
+  {#if recovery}<Text kind="body" tone="muted" live="polite" text={recovery} />{/if}
+</Column>
 ```
 
 ## src/svelte/catalog/foundations/destination-row/DestinationRow.svelte
@@ -6287,7 +6192,7 @@ let { destination, label, available, open, icon = 'open', reason }: CatalogProps
 
 ## src/svelte/catalog/foundations/drawer/Drawer.svelte
 
-Source SHA-256: 7a17ae8a412f2ec06d9950ccbe3cbc79007b0e465d52e9d0e7ed4f47fe07b1de
+Source SHA-256: cf195b6258eadc6213da3acfe129e88eb41c41825490821b7b89659ece111fea
 
 ```svelte
 <script lang="ts">
@@ -6296,53 +6201,32 @@ Source SHA-256: 7a17ae8a412f2ec06d9950ccbe3cbc79007b0e465d52e9d0e7ed4f47fe07b1de
   import { Modal } from "../../index.ts";
   import { SurfaceFrame } from "../../index.ts";
   import { InstanceFrame } from "../../index.ts";
-  import type { SurfaceFrame as Frame } from "../../../../interaction/surface-frame.ts";
-  import type { ResolvedView } from "../../../../views/resolved.ts";
   import { transientFrame } from "../../../../interaction/transient-frame.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
-  let { label, open, locked = false, onclose, onclosed, frame, invoke, edit, frameIdentity, readingIdentity, body, controlEvent, presentation }: {
-    label: string; open: boolean; locked?: boolean; onclose: () => void;
-    onclosed?: () => void; frame: Frame; invoke: (intent: SurfaceIntent) => void;
-    edit?: (name: string, value: string) => void;
-    frameIdentity?: object | undefined;
-    readingIdentity?: string | undefined;
-    body?: ResolvedView | undefined;
-    controlEvent?: ((event: FormControlEvent) => void) | undefined;
-    presentation?: "transient" | undefined;
-  } = $props();
-  const minted = new WeakMap<object, string>();
-  let issued = 0;
-  /** The string continuity of a frame identity: a view owner's own key, else a token minted for that object. */
-  function frameKey(identity: object): string {
-    if ("key" in identity && typeof identity.key === "string") return identity.key;
-    const known = minted.get(identity);
-    if (known !== undefined) return known;
-    const token = `frame-${++issued}`;
-    minted.set(identity, token);
-    return token;
-  }
+  import type { CatalogProps } from "../../types.d.ts";
+  let { label, open, locked = false, onclose, onclosed, frame, invoke, edit, continuity, readingIdentity, body, controlEvent, presentation }:
+    CatalogProps<"drawer"> = $props();
   let composition = $derived(transientFrame(frame, locked));
-  let continuity = $derived(frameIdentity ? { frame: frameKey(frameIdentity), ...readingIdentity ? { reading: readingIdentity } : {} } : undefined);
+  let frames = $derived(continuity ? { frame: continuity, ...readingIdentity ? { reading: readingIdentity } : {} } : undefined);
   let modal = $state<ReturnType<typeof Modal>>();
   let dispatch = $derived.by(() => {
-    const receiver = invoke, owner = frameIdentity;
+    const receiver = invoke, owner = continuity;
     return (intent: SurfaceIntent) => {
-      if (owner === frameIdentity) modal?.noteInvocation(intent.kind === "back" || intent.kind === "close" ? "close" : "other");
+      if (owner === continuity) modal?.noteInvocation(intent.kind === "back" || intent.kind === "close" ? "close" : "other");
       receiver(intent);
     };
   });
   const close = () => {
     const navigation = composition.bottom.secondary;
     if (locked || navigation?.state !== "ready") return;
-    if (navigation.intent.kind === "close") { modal?.noteInvocation("close"); onclose(); }
+    if (navigation.intent.kind === "close") { modal?.noteInvocation("close"); onclose?.(); }
     else dispatch(navigation.intent);
   };
 </script>
-<Modal bind:this={modal} {label} {open} {locked} presentation={presentation === "transient" ? "transient" : "adaptive"} {continuity}
+<Modal bind:this={modal} {label} {open} {locked} presentation={presentation === "transient" ? "transient" : "adaptive"} continuity={frames}
   ondismiss={close} {onclosed}>
-  {#if frameIdentity}
-    {#key frameIdentity}<InstanceFrame frame={composition} {body} {edit} invoke={dispatch} {controlEvent} />{/key}
+  {#if continuity}
+    {#key continuity}<InstanceFrame frame={composition} {body} {edit} invoke={dispatch} {controlEvent} />{/key}
   {:else}
     <SurfaceFrame frame={composition} {edit} {controlEvent} presentation="transient" invoke={intent => intent.kind === "close" ? close() : dispatch(intent)} />
   {/if}

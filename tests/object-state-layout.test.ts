@@ -4,6 +4,7 @@ import { mkdir } from 'node:fs/promises';
 import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 
+// Lane B: a state row is a FactRow of kind control holding a contextual Choice menu (its own marks and parts).
 test('contextual status values stay complete and end aligned at narrow widths and 200% text', async () => {
   const f = await svelteBrowser(`<script>
     import ObjectStateControl from '@desert/svelte/catalog/compositions/object-state-control/ObjectStateControl.svelte';
@@ -23,9 +24,9 @@ test('contextual status values stay complete and end aligned at narrow widths an
     for (const width of [320,390]) for (const scale of [1,2]) {
       await f.page.setViewportSize({width,height:900});
       await f.page.evaluate(scale=>document.documentElement.style.fontSize=`${scale*16}px`,scale);
-      const metrics=await f.page.locator('[data-primitive="object-state-row"]').evaluateAll(rows=>rows.map(row=>{
-        const button=row.querySelector('button')!, text=row.querySelector('.selection-label')!,
-          value=row.querySelector('.selection-value')!, chevron=row.querySelector('[data-control-chevron]')!;
+      const metrics=await f.page.locator('[data-fact-kind="control"]').evaluateAll(rows=>rows.map(row=>{
+        const button=row.querySelector('button')!, text=row.querySelector('[data-choice="menu"] .text')!,
+          value=row.querySelector('[data-choice="menu"] .value')!, chevron=row.querySelector('[data-control-chevron]')!;
         const r=row.getBoundingClientRect(),b=button.getBoundingClientRect(),t=text.getBoundingClientRect(),c=chevron.getBoundingClientRect();
         const style=getComputedStyle(text), range=document.createRange(); range.selectNodeContents(text);
         return {row:r.toJSON(),button:b.toJSON(),text:t.toJSON(),glyphs:range.getBoundingClientRect().toJSON(),chevron:c.toJSON(),

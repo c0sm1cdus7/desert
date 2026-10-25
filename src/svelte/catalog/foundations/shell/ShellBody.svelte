@@ -45,10 +45,12 @@
   export function focusTitle(): void { viewport?.querySelector<HTMLElement>("[data-place-title]")?.focus({ preventScroll: true }); }
   /** The main place itself (a programmatic return target, never a tab stop) takes focus, as a navigation lands there. */
   export function focusContent(): void { viewport?.closest<HTMLElement>("[data-catalog-content]")?.focus({ preventScroll: true }); }
-  export function restoreRecord(top: number, view: string, record: string): void {
+  /** Scrolls back to `top` and focuses the record's card, which answers to `catalog-return:<record>` in this scope (lane B:
+   * the catalog card is a Card with that focus key and draws no record mark). The view's own card is the newest
+   * registration of its record or, when that one is hidden, the one it covers takes focus, so `view` needs no lookup. */
+  export function restoreRecord(top: number, _view: string, record: string): void {
     place?.scrollTo(top);
-    viewport?.querySelector<HTMLElement>(`[data-view-content="${CSS.escape(view)}"] [data-record="${CSS.escape(record)}"] button`)
-      ?.focus({ preventScroll: true });
+    scope.focus(`catalog-return:${record}`);
   }
   export function revealItem(id: string): Promise<boolean> { return regions.reveal(id, true); }
   export function scrollPositions() { return { content: place?.scrollTop() ?? 0, search: results?.scrollTop ?? 0 }; }

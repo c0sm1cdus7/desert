@@ -17,10 +17,8 @@ const lane = ["information", "text-content", "fact-group", "context-panel", "con
 
 test("lane C: its compositions draw no element, style, vendor, global or sentence, and mount only declared pieces", async () => {
   const found = await treeViolations(lane.map(id => `src/svelte/catalog/compositions/${id}/`), ["D", "D2", "E", "F", "G", "H", "I", "U", "V"]);
-  // F1-merge: node-renderer's contract is lane B's to close; until then every caller passing `node` is an escape.
-  const nodeRenderer = (line: string) => /^PRESENTATION_ESCAPE: .*<NodeRenderer> passes node: the contract of node-renderer declares no props yet$/.test(line);
-  assert.deepEqual(found.filter(line => !nodeRenderer(line)), []);
-  assert.equal(found.length, 2, "the image NodeRenderers of fact-group and context-panel");
+  // Lane B closed node-renderer's contract: the image NodeRenderers of fact-group and context-panel pass only its `node`.
+  assert.deepEqual(found, []);
 });
 
 type Seen = TextReading & { box: Box };

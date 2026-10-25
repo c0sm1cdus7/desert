@@ -3,7 +3,7 @@ import test from 'node:test';
 import { publicCatalogFixture } from './public-catalog-fixture.ts';
 import { selectionTrigger, settle } from './public-catalog-expectations.ts';
 
-const fields = ['[data-primitive="input.text"]', '[data-control="select"]', '[data-control="date"]', '[data-control="money"]', '[data-primitive="input.multiline"]'];
+const fields = ['[data-primitive="input.text"]', '[data-choice-measure="choice"] > div', '[data-control="date"]', '[data-measure="amount"] > [data-slot="field"]', '[data-primitive="input.multiline"]'];
 test('control families snap to their own container without narrow leftover strips', async () => {
   const f = await publicCatalogFixture(); const { page } = f;
   try {

@@ -73,7 +73,8 @@ test('reference choices have a persistent full-well label and never create a pro
   const f=await svelteBrowser(`<script lang="ts">import ReferenceSpecimen from '@desert/svelte/catalog/compositions/reference-specimen/ReferenceSpecimen.svelte';</script><ReferenceSpecimen owner="ReferenceSelector"/>`);
   try {
     await f.page.addStyleTag({content:await rendererCss()});
-    const trigger=f.page.getByRole('button',{name:'Projects',exact:true});
+    // Lane B: a Field trigger is named by its label and what it shows.
+    const trigger=f.page.getByRole('button',{name:/^Projects · /});
     assert.equal(await trigger.locator('[data-field-well] [data-slot="field-label"]').innerText(),'Projects');
     assert.ok((await trigger.boundingBox())!.height>=56);
     await trigger.click();

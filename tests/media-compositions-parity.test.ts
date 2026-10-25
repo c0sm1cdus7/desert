@@ -5,13 +5,20 @@
 // where the rail drew 14px); and the rail and detail titles return to the content axis the theme's heading margins gave
 // them before F1a removed those margins.
 import assert from "node:assert/strict";
+import { resolve } from "node:path";
 import test from "node:test";
 import type { Page } from "playwright";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { measureProbes, renderCases, settle, type Probes } from "./fixtures/parity.ts";
 import { mediaCompositionsBefore, mediaCompositionsBeforeOverrides, nestedCatalogFeaturedInsetBefore } from "./fixtures/media-compositions-before.ts";
 import { mediaPage } from "./fixtures/media-compositions-cases.ts";
+import { controlsBefore } from "./fixtures/controls-before.ts";
 import { pixelDifference } from "./fixtures/pixel-difference.ts";
+
+// The catalog card as the foundation it was before lane B recomposed it over Card (its folder is gone): the frozen trees
+// mount it through the dispatcher, at the composition's path (the same depth, so its relative imports resolve).
+const catalogCard = "src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte";
+const frozenCard = { [resolve(import.meta.dirname, "..", "src/svelte/catalog/compositions/catalog-card/CatalogCard.svelte")]: controlsBefore[catalogCard] ?? "" };
 
 /** Probe selectors per side: the frozen tree's marks, and today's foundation marks. */
 const probes = (side: "before" | "after"): Probes => {
@@ -19,9 +26,9 @@ const probes = (side: "before" | "after"): Probes => {
   return {
     list: { artwork: "[data-media-image], [data-media-artwork-placeholder]", dot: "[data-attention-indicator]",
       label: was ? "text:[data-media-row-description]" : "text:.row-label" },
-    "home-nested": { featured: "[data-catalog-card]", card: was ? "[data-catalog-rail] [data-catalog-card]" : '[role="region"] [data-catalog-card]',
+    "home-nested": { featured: was ? "[data-catalog-card]" : "[data-card]", card: was ? "[data-catalog-rail] [data-catalog-card]" : '[role="region"] [data-card]',
       title: "h2" },
-    "home-page": { card: "[data-catalog-card]", title: "h2" },
+    "home-page": { card: was ? "[data-catalog-card]" : "[data-card]", title: "h2" },
     detail: { gallery: "[data-photo-collection]", legend: "text:legend", prose: was ? "text:[data-catalog-prose] p" : 'text:[data-view-item="about"] p' },
   };
 };
@@ -30,8 +37,8 @@ const boxes = (value: Measured, name: string, probe: string) => (value[name]?.[p
 const caseShot = (page: Page, name: string) => page.locator(`[data-case="${name}"]`).screenshot({ animations: "disabled" });
 
 test("media and catalog compositions keep the frozen trees' pixels, but for DESIGN's rail rhythm and row weight", { timeout: 120000 }, async () => {
-  const css = await rendererCss(Object.values(mediaCompositionsBefore));
-  const [was, is] = [await renderCases(mediaPage, mediaCompositionsBeforeOverrides, css + nestedCatalogFeaturedInsetBefore),
+  const css = await rendererCss([...Object.values(mediaCompositionsBefore), ...Object.values(frozenCard)]);
+  const [was, is] = [await renderCases(mediaPage, { ...mediaCompositionsBeforeOverrides, ...frozenCard }, css + nestedCatalogFeaturedInsetBefore),
     await renderCases(mediaPage, {}, css)];
   try {
     for (const f of [was, is]) {

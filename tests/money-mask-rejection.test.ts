@@ -72,14 +72,14 @@ for (const colorScheme of ["light", "dark"] as const) test(`money prefix and opt
     const directory = `artifacts/money-input-guard/${process.env.DESERT_EVIDENCE_PHASE ?? "final"}`;
     await mkdir(directory, { recursive: true }); await f.page.screenshot({ path: `${directory}/prefix-${colorScheme}.png` });
     assert.equal(await trigger.locator('[data-piece="face"]').count(), 0);
-    const symbol = trigger.locator('[data-currency-symbol]');
+    const symbol = trigger.locator('[data-choice-symbol]');
     assert.equal(await symbol.innerText(), "$");
     assert.deepEqual(await symbol.evaluate(element => {
       const style = getComputedStyle(element); return [style.borderTopWidth, style.backgroundColor];
     }), ["0px", "rgba(0, 0, 0, 0)"]);
     assert.notEqual(await symbol.evaluate(e => getComputedStyle(e).color), await trigger.evaluate(e => getComputedStyle(e).color));
     await trigger.click();
-    assert.equal(await f.page.getByRole("option", { name: "ARS", exact: true }).locator('[data-currency-symbol]').innerText(), "$" );
+    assert.equal(await f.page.getByRole("option", { name: "ARS", exact: true }).locator('[data-choice-symbol]').innerText(), "$" );
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

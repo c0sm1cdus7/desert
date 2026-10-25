@@ -91,7 +91,7 @@ test("currency activation preserves writing and exact numeric amount across scal
     assert.equal(owner.currency,'ARS'); assert.equal(owner.minorUnits,'123');
     assert.equal(await amount.inputValue(),'1.23');
     assert.equal(await f.page.getByRole('button',{name:'ARS · Amount currency',exact:true}).count(),1);
-    assert.match(await f.page.locator('[data-control="money"] [role="status"]').innerText(),/JPY/);
+    assert.match(await f.page.locator('[data-measure="amount"] [role="status"]').innerText(),/JPY/);
     await amount.fill('-');
     await f.page.getByRole('button',{name:'ARS · Amount currency',exact:true}).click();
     await f.page.getByRole('option',{name:'USD',exact:true}).click();

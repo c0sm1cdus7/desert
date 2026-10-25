@@ -35,7 +35,7 @@ test('Stack and standalone options share explicit input requirements, never cont
     for(const id of ['input-empty','input-many']) {
       const example=f.page.locator(`[data-case="${id}"]`);
       assert.equal(await example.locator('[data-presentation="stack"] .place-stack-title .required').count(),1);
-      assert.equal(await example.locator('[data-presentation="standalone"] .options-title .required').count(),1);
+      assert.equal(await example.locator('[data-presentation="standalone"] [data-choice="rows"] > legend .required').count(),1);
     }
     await f.page.locator('[data-case="input-empty"] [data-presentation="stack"]').getByRole('radio',{name:'One',exact:true}).click();
     assert.equal(await f.page.locator('[data-case="input-empty"] .required').count(),0,

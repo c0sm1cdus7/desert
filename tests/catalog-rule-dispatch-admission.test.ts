@@ -37,10 +37,12 @@ test("D2: the dispatcher cannot substitute a component, a table or skip the admi
 
 test("D2: a private host capability reaches only its own kind, as received", () => {
   for (const source of [
-    original.replace("disclosure={actionDisclosure}", 'disclosure={{ id: "x", controls: "y", expanded: true, haspopup: "menu" }}'),
-    original.replace("host={fileHost()}", "host={node}"),
-    original.replace("{frameIdentity} onclose=", "frameIdentity={node} onclose="),
-    original.replace("state={checked.action.state}", "state={checked.action.state} host={fileHost()}"),
+    // The one private channel left (design §3.0) is a transient frame's continuity: made up, or read from the node, it is
+    // not the input as received; passed to another kind, it is not that kind's.
+    original.replace("continuity={continuity} onclose=", 'continuity={"frame"} onclose='),
+    original.replace("continuity={continuity} onclose=", "continuity={node.kind} onclose="),
+    original.replace("continuity={continuity} onclose=", "continuity={checked.kind} onclose="),
+    original.replace("onclick={activate} />", "onclick={activate} continuity={continuity} />"),
     original.replace("</script>", "const alias = nodeRenderers.action;\n</script>"),
     original.replace("label={checked.label} labelVisibility=\"visible\" measure=\"writing\" purpose", "label={node.label} labelVisibility=\"visible\" measure=\"writing\" purpose"),
   ]) assert.notDeepEqual(grammar(source), [], source.slice(0, 120));
@@ -54,7 +56,7 @@ test("D2: every resolved node kind has exactly one branch", () => {
 });
 
 test("D2: a capability is received, never manufactured through a destructuring default", () => {
-  for (const [name, value] of [["actionDisclosure", "{}"], ["host", "{ read: () => undefined }"], ["frameIdentity", "{}"]] as const) {
+  for (const [name, value] of [["continuity", '"frame"']] as const) {
     const source = original.replace(` ${name},`, ` ${name} = ${value},`).replace(` ${name} }:`, ` ${name} = ${value} }:`);
     assert.ok(grammar(source).some(line => line.includes(`manufactured dispatcher capability: ${name}`)), name);
   }
@@ -62,10 +64,10 @@ test("D2: a capability is received, never manufactured through a destructuring d
 
 test("D2: the script neither shadows, mutates nor asserts over the dispatcher's authority", () => {
   for (const [source, what] of [
-    [original.replace("function fileHost()", "function shadow(checked: unknown) { return checked; }\n  function fileHost()"), "checked is shadowed"],
-    [original.replace("function fileHost()", "function poke() { checked = node; }\n  function fileHost()"), "checked is mutated"],
-    [original.replace("function fileHost()", "const forced = checked as never;\n  function fileHost()"), "a type assertion"],
-    [original.replace("function fileHost()", "const table = nodeRenderers;\n  function fileHost()"), "nodeRenderers is read in the script"],
+    [original.replace("function activate()", "function shadow(checked: unknown) { return checked; }\n  function activate()"), "checked is shadowed"],
+    [original.replace("function activate()", "function poke() { checked = node; }\n  function activate()"), "checked is mutated"],
+    [original.replace("function activate()", "const forced = checked as never;\n  function activate()"), "a type assertion"],
+    [original.replace("function activate()", "const table = nodeRenderers;\n  function activate()"), "nodeRenderers is read in the script"],
   ] as const) assert.ok(grammar(source).some(line => line.includes(what)), what);
 });
 

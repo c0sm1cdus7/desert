@@ -1,25 +1,27 @@
 <script lang="ts">
-  import { NodeRenderer } from "../../index.ts";
-  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
-  import { SelectionField } from "../../index.ts";
-  import { MeasuredField } from "../../index.ts";
+  import { Action, Choice, Column } from "../../index.ts";
   import { selectNode, selectInputRequired, applyControlEvent } from "../../../../interaction/control-nodes.ts";
   import type { ControlEventFor } from "../../../renderer-contracts.ts";
   import type { CatalogProps } from "../../types.d.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let { node, onevent }: CatalogProps<"select-control"> = $props();
   let checked = $derived(selectNode(node));
-  const id = $props.id();
   function change(value: string | null) {
     const event: ControlEventFor<"select"> = { kind: "select.change", control: checked.id, value };
     applyControlEvent(checked, event);
     onevent?.(event);
   }
 </script>
-<MeasuredField kind="control.select" disabled={checked.disabled}>
-  <SelectionField {id} selection={checked.id} label={checked.label} value={checked.value} options={checked.options}
-    disabled={checked.disabled} required={selectInputRequired(checked)} fieldControl onchange={change} />
-  {#if !checked.required}<NodeRenderer node={{ version: ResolvedNodeVersion, kind: "action", role: "secondary", action: {
-    icon: "close", label: "Clear selection", state: checked.disabled || checked.value === null ? "unavailable" : "ready",
-    intent: { kind: "selection.clear" },
-  } }} onevent={event => { if (event.kind === "local.invoke" && event.intent.kind === "selection.clear") change(null); }} />{/if}
-</MeasuredField>
+<!-- The field well at the choice measure; an optional choice offers to clear it 0.5rem below. -->
+<Column gap="snug">
+  <Choice presentation="menu" cardinality="one" menuTrigger="well" measure="choice" label={checked.label} labelVisibility="visible"
+    selected={checked.value === null ? [] : [checked.value]} disabled={checked.disabled}
+    required={selectInputRequired(checked)} options={checked.options.map(option => ({ value: option.value, label: option.label,
+      disabled: option.disabled, ...option.face ? { leading: { kind: "face" as const, face: option.face } } : {} }))}
+    onchange={selected => { if (selected[0] !== undefined) change(selected[0]); }} />
+  {#if !checked.required}
+    <Action icon="close" label={say(m.selectControl.clear)} emphasis="secondary" face="fit" type="button"
+      state={checked.disabled || checked.value === null ? "unavailable" : "ready"} onclick={() => change(null)} />
+  {/if}
+</Column>

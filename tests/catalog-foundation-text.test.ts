@@ -6,7 +6,8 @@ import { contractShape, mounted, specimenFindings } from "./support/foundation.t
 test("text: the contract offers a role, weight, tone, alignment, inset, announcement, id and word wrapping, nothing else", async () => {
   assert.deepEqual(await contractShape("text"), {
     text: "text", kind: ["body", "support", "caption"], "weight?": ["regular", "medium"], "tone?": ["default", "muted", "destructive"],
-    "align?": ["start", "center", "end"], "inset?": ["none", "row"], "live?": ["off", "polite"], "id?": "string", "wrap?": ["anywhere", "lines"],
+    "align?": ["start", "center", "end"], "inset?": ["none", "row"], "live?": ["off", "polite", "assertive"], "id?": "string",
+    "wrap?": ["anywhere", "lines"],
   });
 });
 
@@ -62,6 +63,21 @@ test("text: roles, weight and tones are the theme's; a polite paragraph is a sta
     const feedback = { ...paragraphs[1], id: "" }, message = { ...paragraphs[0], padding: "0px", role: "status" };
     assert.deepEqual(paragraphs[4], feedback, "Feedback is Text(support, live polite)");
     assert.deepEqual(paragraphs[5], message, "MessageBody is Text(body, align start, live polite)");
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("text: an assertive paragraph is an alert; a polite one a status; an unannounced one neither", async () => {
+  // Lane B: a control's rejection of what was just written (a duplicate label) is announced at once, as its field error was.
+  const f = await mounted(`<div data-probe-host>
+  <Catalog.Text text="Rejected" kind="support" tone="destructive" live="assertive" />
+  <Catalog.Text text="Saved" kind="support" live="polite" />
+  <Catalog.Text text="Plain" kind="support" />
+</div>`);
+  try {
+    assert.deepEqual(await f.page.locator("[data-probe-host] > p").evaluateAll(nodes => nodes.map(node => node.getAttribute("role"))),
+      ["alert", "status", null]);
+    assert.equal(await f.page.getByRole("alert").textContent(), "Rejected");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

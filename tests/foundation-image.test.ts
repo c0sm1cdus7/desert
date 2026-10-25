@@ -15,14 +15,17 @@ import { themeAtCe6ed6f } from "./fixtures/theme-before.ts";
 const root = resolve(import.meta.dirname, "..");
 const frozenFiles = ["src/svelte/catalog/foundations/image/Image.svelte", "src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte",
   "src/svelte/catalog/foundations/playback-canvas/PlaybackCanvas.svelte"];
-const frozen = Object.fromEntries(frozenFiles.map(path => [resolve(root, path), contentBefore[path] ?? ""]));
+const frozenCardPath = resolve(root, "src/svelte/catalog/foundations/card/CatalogCardBefore.svelte");
+const frozen = { ...Object.fromEntries(frozenFiles.map(path => [resolve(root, path), contentBefore[path] ?? ""])),
+  // Lane B removed the catalog-card foundation folder: its frozen source is served beside Card, so its relative imports resolve.
+  [frozenCardPath]: contentBefore["src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte"] ?? "" };
 const frozenCss = () => rendererCss([], themeAtCe6ed6f(["src/svelte/catalog/mechanisms/media/media.css"]));
 
 const photo = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23468'/%3E%3C/svg%3E";
 const cases = (placeholder: (kind: string) => string) => `<script lang="ts">
   import Image from "@desert/svelte/catalog/foundations/image/Image.svelte";
   import ArtworkPlaceholder from "@desert/svelte/catalog/foundations/artwork-placeholder/ArtworkPlaceholder.svelte";
-  import CatalogCard from "@desert/svelte/catalog/foundations/catalog-card/CatalogCard.svelte";
+  import CatalogCard from "./src/svelte/catalog/foundations/card/CatalogCardBefore.svelte";
   import PlaybackCanvas from "@desert/svelte/catalog/foundations/playback-canvas/PlaybackCanvas.svelte";
   import { mediaPlayback } from "@desert/svelte/infra/playback.svelte.ts";
   const photo = "${photo}";
@@ -60,8 +63,10 @@ test("image: its folder imports no foreign vendor, styles only its own classes a
 });
 
 test("image: the placeholder and the image keep the pixels of ArtworkPlaceholder and Image at the integration base ce6ed6f", { timeout: 60000 }, async () => {
+  // Lane B removed the catalog-card foundation: both sides draw it as it was, over the frozen and today's Image (the card
+  // composition that replaces it keeps that card's pixels, foundation-card.test.ts).
   const before = await renderCases(cases(kind => `<ArtworkPlaceholder kind="${kind}" />`), frozen, await frozenCss());
-  const after = await renderCases(cases(kind => `<Image placeholder="${kind}" />`), {}, await rendererCss());
+  const after = await renderCases(cases(kind => `<Image placeholder="${kind}" />`), { [frozenCardPath]: frozen[frozenCardPath] ?? "" }, await rendererCss());
   try {
     await Promise.all([settled(before.page), settled(after.page)]);
     const [was, is] = [await measureProbes(before.page, probes), await measureProbes(after.page, probes)];

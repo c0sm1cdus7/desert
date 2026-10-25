@@ -646,20 +646,23 @@
       }
     },
     "catalog-card": {
-      "approval": "required",
-      "folder": "src/svelte/catalog/foundations/catalog-card",
-      "kind": "foundation",
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/catalog-card",
+      "kind": "composition",
+      "messages": [
+        "catalogCard.purpose"
+      ],
       "owner": {
         "entry": "CatalogCard.svelte"
       },
-      "purpose": "Open a media item from a card composed of artwork and its supporting content.",
+      "purpose": {
+        "key": "catalogCard.purpose"
+      },
       "renders": [
         "catalog.card"
       ],
-      "shape": "none",
-      "states": [
-        "image",
-        "placeholder"
+      "uses": [
+        "card"
       ]
     },
     "catalog-detail": {
@@ -1100,6 +1103,7 @@
             "node-renderer",
             "object-state-control",
             "place-heading",
+            "popover",
             "reading-content",
             "reference-specimen",
             "related-selection",
@@ -1132,6 +1136,7 @@
           "snug",
           "close",
           "regular",
+          "loose",
           "relaxed",
           "section"
         ],
@@ -1293,10 +1298,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/control-renderer",
       "kind": "composition",
+      "messages": [
+        "controlRenderer.purpose"
+      ],
       "owner": {
         "entry": "ControlRenderer.svelte"
       },
-      "purpose": "Mount the piece for one control node and forward only its control events.",
+      "purpose": {
+        "key": "controlRenderer.purpose"
+      },
       "uses": [
         "node-renderer"
       ]
@@ -1607,7 +1617,7 @@
         },
         "prefix": {
           "accepts": [
-            "selection-field"
+            "choice"
           ]
         }
       },
@@ -1712,14 +1722,20 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/fields",
       "kind": "composition",
+      "messages": [
+        "fields.purpose"
+      ],
       "owner": {
         "entry": "Fields.svelte"
       },
-      "purpose": "Mount each field of a form frame through the node renderer and report its edits and control events.",
+      "purpose": {
+        "key": "fields.purpose"
+      },
       "renders": [
         "form"
       ],
       "uses": [
+        "column",
         "node-renderer"
       ]
     },
@@ -1727,12 +1743,17 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/file-control",
       "kind": "composition",
+      "messages": [
+        "fileControl.purpose"
+      ],
       "owner": {
         "entry": "FileControl.svelte"
       },
-      "purpose": "Select supported local files and inspect their limits before an operation uses them.",
+      "purpose": {
+        "key": "fileControl.purpose"
+      },
       "uses": [
-        "action"
+        "files"
       ]
     },
     "files": {
@@ -2178,21 +2199,34 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/labels-control",
       "kind": "composition",
+      "messages": [
+        "labelsControl.purpose",
+        "labelsControl.add",
+        "labelsControl.newLabel",
+        "labelsControl.label",
+        "labelsControl.remove"
+      ],
       "owner": {
         "entry": "LabelsControl.svelte"
       },
-      "purpose": "Compose the field well, value rail and options from the same shared owners as every labels control.",
+      "purpose": {
+        "key": "labelsControl.purpose"
+      },
       "renders": [
         "control.labels"
       ],
       "uses": [
-        "character-counter",
+        "action",
+        "column",
         "field",
-        "label-rail",
+        "form",
+        "inline",
         "media-reference-selector",
-        "node-renderer",
+        "popover",
         "reference-selector",
-        "stack-layout"
+        "stack-layout",
+        "tag",
+        "text"
       ]
     },
     "library": {
@@ -2543,15 +2577,28 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/media-reference-selector",
       "kind": "composition",
+      "messages": [
+        "mediaReferenceSelector.purpose",
+        "mediaReferenceSelector.selected",
+        "mediaReferenceSelector.unavailable",
+        "mediaReferenceSelector.automatic",
+        "mediaReferenceSelector.loading",
+        "mediaReferenceSelector.cover",
+        "mediaReferenceSelector.automaticCover"
+      ],
       "owner": {
         "entry": "MediaReferenceSelector.svelte"
       },
-      "purpose": "Select media references from a shared field without introducing another media library or creation path.",
+      "purpose": {
+        "key": "mediaReferenceSelector.purpose"
+      },
       "uses": [
+        "action",
+        "choice",
         "collection-state",
-        "icon",
-        "image",
-        "stack-layout"
+        "popover",
+        "stack-layout",
+        "text"
       ]
     },
     "media-reference-specimen": {
@@ -2700,19 +2747,26 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/money-control",
       "kind": "composition",
+      "messages": [
+        "moneyControl.purpose",
+        "moneyControl.currency",
+        "moneyControl.format",
+        "moneyControl.tooLarge",
+        "moneyControl.scale",
+        "moneyControl.currencyScale"
+      ],
       "owner": {
         "entry": "MoneyControl.svelte"
       },
-      "purpose": "Enter an amount and choose its currency without losing the lexical draft.",
+      "purpose": {
+        "key": "moneyControl.purpose"
+      },
       "renders": [
         "control.money"
       ],
       "uses": [
-        "clear-input",
-        "field-well",
-        "masked-input",
-        "measured-field",
-        "selection-field"
+        "choice",
+        "field"
       ]
     },
     "node-renderer": {
@@ -2720,10 +2774,15 @@
       "dispatch": "resolved-node",
       "folder": "src/svelte/catalog/renderer/node-renderer",
       "kind": "composition",
+      "messages": [
+        "nodeRenderer.purpose"
+      ],
       "owner": {
         "entry": "NodeRenderer.svelte"
       },
-      "purpose": "Mount the piece for a resolved node kind and translate its callbacks into node events.",
+      "purpose": {
+        "key": "nodeRenderer.purpose"
+      },
       "uses": [
         "action",
         "availability",
@@ -2737,7 +2796,7 @@
         "facts",
         "field",
         "fields",
-        "file-control",
+        "files",
         "labels-control",
         "media-control",
         "money-control",
@@ -2752,11 +2811,17 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/object-state-control",
       "kind": "composition",
+      "messages": [
+        "objectStateControl.purpose"
+      ],
       "owner": {
         "entry": "ObjectStateControl.svelte"
       },
-      "purpose": "Choose an object state through a contextual command; a retained selection is not a required form input.",
+      "purpose": {
+        "key": "objectStateControl.purpose"
+      },
       "uses": [
+        "list",
         "object-state-row"
       ]
     },
@@ -2764,29 +2829,38 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/object-state-row",
       "kind": "composition",
+      "messages": [
+        "objectStateRow.purpose"
+      ],
       "owner": {
         "entry": "ObjectStateRow.svelte"
       },
-      "purpose": "Use a named state selector that dispatches canonical commands without adding toolbar shortcuts.",
+      "purpose": {
+        "key": "objectStateRow.purpose"
+      },
       "uses": [
-        "selection-field"
+        "choice",
+        "fact-row"
       ]
     },
     "options-control": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/options-control",
       "kind": "composition",
+      "messages": [
+        "optionsControl.purpose"
+      ],
       "owner": {
         "entry": "OptionsControl.svelte"
       },
-      "purpose": "Choose one or several values from a divided group of options.",
+      "purpose": {
+        "key": "optionsControl.purpose"
+      },
       "renders": [
         "control.options"
       ],
       "uses": [
-        "choice-list",
-        "choice-row",
-        "grouped-panel"
+        "choice"
       ]
     },
     "panel": {
@@ -2983,10 +3057,15 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/popover-control",
       "kind": "composition",
+      "messages": [
+        "popoverControl.purpose"
+      ],
       "owner": {
         "entry": "PopoverControl.svelte"
       },
-      "purpose": "Read contextual information in a temporary surface anchored to its trigger.",
+      "purpose": {
+        "key": "popoverControl.purpose"
+      },
       "renders": [
         "control.popover"
       ],
@@ -3116,20 +3195,31 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/reference-selector",
       "kind": "composition",
+      "messages": [
+        "referenceSelector.purpose",
+        "referenceSelector.unavailable",
+        "referenceSelector.choose",
+        "referenceSelector.loading",
+        "referenceSelector.empty",
+        "referenceSelector.check",
+        "referenceSelector.name",
+        "referenceSelector.color",
+        "referenceSelector.cancel"
+      ],
       "owner": {
         "entry": "ReferenceSelector.svelte"
       },
-      "purpose": "Choose referenced objects through a labeled field and the shared selection popover.",
+      "purpose": {
+        "key": "referenceSelector.purpose"
+      },
       "uses": [
-        "choice-list",
-        "choice-row",
-        "color-bullet",
+        "action",
+        "choice",
+        "column",
         "field",
-        "field-well-content",
-        "icon",
-        "reference-values",
-        "selection-field",
-        "stack-layout"
+        "popover",
+        "stack-layout",
+        "text"
       ]
     },
     "reference-specimen": {
@@ -3172,19 +3262,26 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/related-selection",
       "kind": "composition",
+      "messages": [
+        "relatedSelection.purpose",
+        "relatedSelection.loading",
+        "relatedSelection.empty",
+        "relatedSelection.check",
+        "relatedSelection.retry"
+      ],
       "owner": {
         "entry": "RelatedSelection.svelte"
       },
-      "purpose": "Edit related objects within the current context using shared choices and explicit local feedback.",
+      "purpose": {
+        "key": "relatedSelection.purpose"
+      },
       "uses": [
-        "artwork-placeholder",
-        "choice-list",
-        "choice-row",
-        "feedback",
-        "grouped-panel",
-        "image",
+        "action",
+        "choice",
         "information",
-        "stack-layout"
+        "list",
+        "stack-layout",
+        "text"
       ]
     },
     "retained-place": {
@@ -3212,15 +3309,22 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/review",
       "kind": "composition",
+      "messages": [
+        "review.purpose"
+      ],
       "owner": {
         "entry": "Review.svelte"
       },
-      "purpose": "Inspect the prepared result before accepting a change or recovering an uncertain result.",
+      "purpose": {
+        "key": "review.purpose"
+      },
       "renders": [
         "review"
       ],
       "uses": [
-        "node-renderer"
+        "column",
+        "node-renderer",
+        "text"
       ]
     },
     "row": {
@@ -3311,17 +3415,23 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/select-control",
       "kind": "composition",
+      "messages": [
+        "selectControl.purpose",
+        "selectControl.clear"
+      ],
       "owner": {
         "entry": "SelectControl.svelte"
       },
-      "purpose": "Choose one value from a labeled field and a shared options popover.",
+      "purpose": {
+        "key": "selectControl.purpose"
+      },
       "renders": [
         "control.select"
       ],
       "uses": [
-        "measured-field",
-        "node-renderer",
-        "selection-field"
+        "action",
+        "choice",
+        "column"
       ]
     },
     "selection-field": {
@@ -3691,13 +3801,19 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/speed-dial",
       "kind": "composition",
+      "messages": [
+        "speedDial.purpose",
+        "speedDial.create",
+        "speedDial.more"
+      ],
       "owner": {
         "entry": "SpeedDial.svelte"
       },
-      "purpose": "Reveal overflowing contextual commands beside their readable labels, without putting content navigation in the toolbar.",
+      "purpose": {
+        "key": "speedDial.purpose"
+      },
       "uses": [
-        "icon",
-        "node-renderer"
+        "menu"
       ]
     },
     "stack": {
@@ -3777,6 +3893,7 @@
             "list",
             "measured-field",
             "object-state-row",
+            "popover",
             "selection-field",
             "shared-owner-specimen",
             "stack-item",

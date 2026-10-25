@@ -24,7 +24,7 @@ test("contextual commands stay right and progressively overflow into the labeled
     await more.click();
     const dial=f.page.getByRole('dialog',{name:'More actions'});
     await dial.waitFor();
-    assert.ok(await dial.locator('[data-speed-dial-label]').count()>0);
+    assert.ok(await dial.locator('[data-menu-label]').count()>0);
     await f.page.keyboard.press('Escape');
     assert.ok(await more.evaluate(node=>node===document.activeElement));
     await more.click();

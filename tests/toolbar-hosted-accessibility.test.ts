@@ -38,7 +38,7 @@ for(const direction of ['ltr','rtl']) test(`hosted calendar, transient, problem 
       ['calendar','control.date','calendar','[data-view-item="specimen:control.date:calendar"] button','[data-date-calendar-header]'],
       ['transient','transient','open','[data-view-item="specimen:transient:open"] button','[data-surface-frame] [data-piece="toolbar"]'],
       ['problem','problem','error','[data-view-item="specimen:problem:error"] button','[data-frame-presentation="message"] [data-piece="toolbar"]'],
-      ['viewer',null,null,'[data-record="image.coast"] button','[data-media-viewer] [data-piece="toolbar"]'],
+      ['viewer',null,null,'internal:role=button[name="Coast"s]','[data-media-viewer] [data-piece="toolbar"]'],
     ]){
       if(entry) {
         await f.page.locator(`[data-view-item="catalog-index"] [data-focus-key="${entry}"]`).click();

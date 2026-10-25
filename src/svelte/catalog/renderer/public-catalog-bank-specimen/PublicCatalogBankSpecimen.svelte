@@ -8,7 +8,6 @@
   onDestroy(specimen.dispose);
 </script>
 
-<!-- lane-merge: node-renderer (its closed contract) -->
 {#if specimen.node.kind === "transient" || specimen.node.kind === "problem"}
   <NodeRenderer node={specimen.opener} onevent={specimen.interact} />
 {/if}

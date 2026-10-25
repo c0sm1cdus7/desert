@@ -37,7 +37,7 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/mechanisms/media-gestures/media-gestures.ts
 - src/svelte/catalog/renderer/public-catalog-product/PublicCatalogProduct.svelte
 - src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte
-- src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
+- src/svelte/catalog/compositions/catalog-card/CatalogCard.svelte
 - src/svelte/catalog/foundations/bar/BarSearch.svelte
 - src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte
 - src/svelte/infra/PublicCatalogBank-model.ts
@@ -1500,49 +1500,25 @@ Source SHA-256: 1e20f01d45949b10db016b064f59258fbc18e24af4ddb974a44c7cb6812ec77b
 <LocalExerciseContent {definition} {bodyOnly} {oncatalog} />
 ```
 
-## src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
+## src/svelte/catalog/compositions/catalog-card/CatalogCard.svelte
 
-Source SHA-256: 437edbacf5e7f92d973167aa221ed8bb583af2ba052c40ebc6ee03bc809aefe0
+Source SHA-256: 4564b30ba603de6a50ea2cf5f7016b90cd9565f7b53a1e3fb7c36fd8a4c3875b
 
 ```svelte
 <script lang="ts">
-  import * as Card from "@desert/svelte/vendor/components/ui/card/index.js";
-  import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
+  import { getContext } from "svelte";
+  import { Card } from "../../index.ts";
+  import { mediaSource } from "../../../infra/media-source.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  import { getContext } from 'svelte';
-  import { Image } from '../../index.ts';
-  import { mediaSource, prefetchImage } from '../../../infra/media-source.ts';
-  import { useFocusScope } from '../../../infra/focus-scope.ts';
   let { node, onevent }: CatalogProps<"catalog-card"> = $props();
-  const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');
-  function prepare() {
-    const asset = cover?.(node.record); if (asset) prefetchImage(mediaSource(asset), window.innerWidth*window.devicePixelRatio);
-  }
-  // The card answers to `catalog-return:<record>` in the nearest focus scope and reports its activation under that key, so
-  // what it opened can return focus to it: Inspection's Back by the last activated key, the library viewer by its record.
-  // The newest registration of a record answers: a search result mounted over the home card shadows it while shown, and
-  // opening registers the card again, so of several cards of one record (featured and listed) the opened one answers.
-  const scope = useFocusScope();
-  const key = $derived(`catalog-return:${node.record}`);
-  let action = $state<HTMLElement | null>(null), activations = $state(0);
-  $effect(() => {
-    const target = action, registered = key;
-    void activations;
-    if (!scope || !target) return;
-    return scope.register(registered, () => { target.focus({ preventScroll: true }); return document.activeElement === target; });
-  });
-  const open = () => { activations += 1; scope?.activated(key); onevent?.({ kind: "catalog.open", record: node.record }); };
+  // The larger photograph the detail opens with, warmed when the person points at or focuses the card.
+  const cover = getContext<((record: string) => string | undefined) | undefined>("catalog-photo-intent");
+  let photo = $derived(cover?.(node.record));
 </script>
-
-  <Card.Root data-catalog-card="item" data-record={node.record} data-public-card={node.record}>
-    {#if node.image}<Image source={mediaSource(node.image.asset)} alt={node.image.alt} />
-    {:else if 'mediaType' in node}<Image placeholder={node.mediaType} />{/if}
-    <Card.Header><Card.Title>
-      <Button bind:ref={action} variant="row" data-catalog-image-action aria-label={node.title} onclick={open} onpointerenter={prepare} onfocus={prepare}>
-        <span data-catalog-card-overlay data-catalog-item-title data-public-card-title>{node.title}</span>
-      </Button>
-    </Card.Title></Card.Header>
-  </Card.Root>
+<Card presentation={node.presentation} label={node.title} title={node.title}
+  artwork={node.image ? mediaSource(node.image.asset) : "mediaType" in node ? { kind: "placeholder", media: node.mediaType } : undefined}
+  alt={node.image?.alt} prefetch={photo ? mediaSource(photo) : undefined} attention={false} current={false} disabled={false}
+  focusKey={`catalog-return:${node.record}`} onopen={() => onevent?.({ kind: "catalog.open", record: node.record })} />
 ```
 
 ## src/svelte/catalog/foundations/bar/BarSearch.svelte

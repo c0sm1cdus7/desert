@@ -18,6 +18,6 @@ export const Field = defineFoundation({
   shape: "radius", states: ["empty", "value", "invalid", "disabled", "masked"],
   variants: { primitive: ["input.text", "input.multiline", "trigger"], measure: ["writing", "choice", "date", "amount", "fill"] },
   stateVariants: { masked: { primitive: ["input.text"] } },
-  slots: { accessory: { accepts: ["action"] }, prefix: { accepts: ["selection-field"] } },
+  slots: { accessory: { accepts: ["action"] }, prefix: { accepts: ["choice"] } },
   renders: ["input.text", "input.multiline"], approval: "required", contract: FieldContract,
 } as const);

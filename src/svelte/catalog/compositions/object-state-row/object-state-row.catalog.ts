@@ -1,10 +1,12 @@
-// ObjectStateRow: one labelled state selector of an object; picking an available option raises its journey.
+// ObjectStateRow: one labelled state selector of an object, a fact row whose value is a contextual menu; picking an
+// available option raises its journey.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ObjectStateRowContract } from "./object-state-row.contract.ts";
 
 export const ObjectStateRow = defineComposition({
   id: "object-state-row",
-  purpose: "Use a named state selector that dispatches canonical commands without adding toolbar shortcuts.",
+  purpose: { key: "objectStateRow.purpose" },
+  messages: ["objectStateRow.purpose"],
   owner: { entry: "ObjectStateRow.svelte" },
-  uses: ["selection-field"], approval: "none", contract: ObjectStateRowContract,
+  uses: ["choice", "fact-row"], approval: "none", contract: ObjectStateRowContract,
 } as const);

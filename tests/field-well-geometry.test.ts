@@ -61,7 +61,7 @@ test("the shared field well keeps text, selection and money labels separate on o
         assert.ok(Math.abs(value.valueOffset - values[0]!.valueOffset) < .5, "all value line boxes share a baseline");
         assert.ok(Math.abs(value.labelOffset - values[0]!.labelOffset) < .5, "all labels share a baseline");
       }
-      const money = fixture.page.locator('[data-control="money"] [data-floating-field]');
+      const money = fixture.page.locator('[data-measure="amount"] [data-floating-field]');
       for (const part of [money.getByRole("textbox"), money.getByRole("button", { name: "USD · Budget currency", exact: true })]) {
         await part.focus();
         assert.equal(await money.evaluate(node => getComputedStyle(node).outlineWidth), "2px", "compound root owns keyboard focus");

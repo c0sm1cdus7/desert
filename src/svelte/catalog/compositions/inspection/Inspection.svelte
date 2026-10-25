@@ -55,7 +55,6 @@
   {#if !navigation}<Toolbar toolbar={{ edge: "top", title: detail.title, subtitle: say(m.inspection.example), leading: {
     intent: { kind: "back" }, icon: "back", label: say(m.inspection.back), state: "ready",
   } }} invoke={() => void back()} />{/if}
-  <!-- lane-merge: node-renderer (its closed contract) -->
   {#if navigation}<CatalogDetail node={detail} onevent={interact} bodyOnly />
   {:else}<NodeRenderer node={detail} onevent={interact} />{/if}
 {/if}

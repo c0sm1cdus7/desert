@@ -10,7 +10,7 @@
     // Search results: three equal columns, one when the space the grid's container gives it is narrower than 37.75rem.
     results: "grid-cols-3 @max-[37.75rem]:grid-cols-1",
   } as const;
-  const gaps = { snug: "gap-snug", close: "gap-close", regular: "gap-regular", relaxed: "gap-relaxed", section: "gap-section" } as const;
+  const gaps = { snug: "gap-snug", close: "gap-close", regular: "gap-regular", loose: "gap-loose", relaxed: "gap-relaxed", section: "gap-section" } as const;
 </script>
 
 {#if tracks === "results"}

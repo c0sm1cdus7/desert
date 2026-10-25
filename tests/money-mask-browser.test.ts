@@ -163,7 +163,7 @@ for (const colorScheme of ["light", "dark"] as const) test(`currency symbols dec
     assert.equal(await trigger.locator('[data-piece="face"]').count(), 0);
     await trigger.click();
     const panel = f.page.getByRole("listbox");
-    assert.equal(await panel.getByRole("option", { name: "ARS", exact: true }).locator('[data-currency-symbol]').innerText(), "$" );
+    assert.equal(await panel.getByRole("option", { name: "ARS", exact: true }).locator('[data-choice-symbol]').innerText(), "$" );
     assert.match(await panel.getByRole("option", { name: "EUR", exact: true }).innerText(), /€/);
     assert.equal(await panel.getByRole("option", { name: "JPY", exact: true }).count(), 1);
     assert.equal(await f.page.locator('[aria-modal="true"],.scrim').count(), 0);

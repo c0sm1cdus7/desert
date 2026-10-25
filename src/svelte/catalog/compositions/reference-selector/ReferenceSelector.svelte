@@ -1,90 +1,80 @@
 <script lang="ts">
-  import * as Popover from '../../../vendor/components/ui/popover/index.js';
-  import * as Field from '../../../vendor/components/ui/field/index.js';
-  import { Checkbox } from '../../../vendor/components/ui/checkbox/index.js';
-  import { Icon } from '../../index.ts';
-  import { ChoiceList } from '../../index.ts';
-  import { ChoiceRow } from '../../index.ts';
-  import { StackLayout } from '../../index.ts';
-  import { FieldWellContent } from '../../index.ts';
-  import { ReferenceValues } from '../../index.ts';
-  import { ColorBullet } from '../../index.ts';
-  import { Field as WritingField } from '../../index.ts';
-  import { SelectionField } from '../../index.ts';
-  import { Button } from '../../../vendor/components/ui/button/index.js';
-  import { dismissWhenInactive } from '../../../infra/surface-activity.svelte.ts';
-  import type { CatalogProps } from '../../types.d.ts';
-  import { useSurfaceDensityClass } from '../../../infra/surface-typography.svelte.ts';
-  let {node,onevent}:CatalogProps<'reference-selector'>=$props();
-  const density = useSurfaceDensityClass();
-  const id=$props.id();
-  let open=$state(false);
-  let creating=$state(false), name=$state(''), color=$state(''), submitted=$state(false), observedBusy=$state(false);
-  let reference=$derived(node.reference!);
-  let locked=$derived(Boolean(node.disabled || reference.busy || reference.uncertain));
-  let triggerLocked=$derived(reference.busy || (node.disabled && !reference.uncertain));
-  dismissWhenInactive(()=>{open=false;});
-  $effect(()=>{if(node.disabled && !reference.busy && !reference.uncertain)open=false;});
-  $effect(()=>{
-    if(submitted && reference.busy)observedBusy=true;
-    if(submitted && observedBusy && !reference.busy){
-      submitted=false;observedBusy=false;
-      if(!reference.error && !reference.uncertain){creating=false;name='';}
+  import { Action, Choice, Column, Field, Popover, StackLayout, Text } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import type { FieldDisplay } from "../../../infra/field-display.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  let { node, onevent }: CatalogProps<"reference-selector"> = $props();
+  let open = $state(false);
+  let creating = $state(false), name = $state(""), color = $state(""), submitted = $state(false), observedBusy = $state(false);
+  let reference = $derived(node.reference!);
+  let locked = $derived(Boolean(node.disabled || reference.busy || reference.uncertain));
+  let triggerLocked = $derived(reference.busy || (node.disabled && !reference.uncertain));
+  let full = $derived(node.values.length >= node.limits.maxItems);
+  /** The well shows the chosen references (each with its color), or a placeholder while nothing is chosen. */
+  let display: FieldDisplay = $derived(node.values.length ? { kind: "tags", tags: node.values.map(value => {
+    const option = reference.options.find(item => item.value === value);
+    return option ? { label: option.label, state: "known" as const, ...option.color ? { color: option.color } : {} }
+      : { label: say(m.referenceSelector.unavailable), state: "unavailable" as const };
+  }) } : { kind: "text", text: say(m.referenceSelector.choose), placeholder: true });
+  $effect(() => {
+    if (submitted && reference.busy) observedBusy = true;
+    if (submitted && observedBusy && !reference.busy) {
+      submitted = false; observedBusy = false;
+      if (!reference.error && !reference.uncertain) { creating = false; name = ""; }
     }
   });
-  function create() {
-    if(locked || !reference.createLabel || !name.trim() || name.trim().length>reference.maxLength || node.values.length>=node.limits.maxItems)return;
-    submitted=true;
-    onevent?.({kind:'reference.create',control:node.id,name:name.trim(),...(reference.colors.length ? {color:color || reference.colors[0]!} : {})});
+  /** Opening refreshes the choices. While a write is busy the surface stays open, whatever asks it to close. */
+  function openChange(next: boolean) {
+    if (!next && reference.busy) return;
+    if (next && !open) onevent?.({ kind: "reference.refresh", control: node.id });
+    open = next;
   }
-  function choose(value:string,checked:boolean) {
-    if (locked) return;
-    onevent?.({kind:'labels.change',control:node.id,values:checked ? [...node.values,value] : node.values.filter(item=>item!==value)});
+  function create() {
+    if (locked || !reference.createLabel || !name.trim() || name.trim().length > reference.maxLength || full) return;
+    submitted = true;
+    onevent?.({ kind: "reference.create", control: node.id, name: name.trim(), ...(reference.colors.length ? { color: color || reference.colors[0]! } : {}) });
+  }
+  function choose(selected: readonly string[]) {
+    if (!locked) onevent?.({ kind: "labels.change", control: node.id, values: selected });
   }
 </script>
-<Field.Field>
-<Popover.Root bind:open onOpenChange={next=>{if(next)onevent?.({kind:'reference.refresh',control:node.id});}}>
-  <Popover.Trigger disabled={triggerLocked} presentation="reference-well" aria-label={node.label}>
-        <FieldWellContent label={node.label}>
-          <span data-field-value>
-            {#if node.values.length}<ReferenceValues values={node.values} options={reference.options}/>{:else}<span>Choose…</span>{/if}
-            <span data-control-chevron><Icon name="chevron-down" decorative /></span>
-          </span>
-        </FieldWellContent>
-  </Popover.Trigger>
-  <Popover.Content presentation="reference" class={density()}>
+<!-- The well and the control's error stand 0.5rem apart, as in a field. -->
+<Column gap="snug">
+  <Popover label={node.label} {open} disabled={triggerLocked} locked={reference.busy} content="form" placement="anchored" align="start"
+    onopenchange={openChange} trigger={{ kind: "field", label: node.label, required: false, invalid: false, display, measure: "fill" }}>
     <StackLayout title={node.label}>
-      {#if reference.loading}<Field.FieldDescription>Loading…</Field.FieldDescription>{/if}
-      {#if reference.options.length}<ChoiceList><div data-grouped-rows>
-        {#each reference.options as option (option.value)}
-          <ChoiceRow id={`${id}:${option.value}`} labelId={`${id}:${option.value}:label`} label={option.label}
-            disabled={locked || (!node.values.includes(option.value) && node.values.length>=node.limits.maxItems)}>
-            <Checkbox id={`${id}:${option.value}`} checked={node.values.includes(option.value)}
-              disabled={locked || (!node.values.includes(option.value) && node.values.length>=node.limits.maxItems)}
-              onCheckedChange={checked=>choose(option.value,checked)} aria-labelledby={`${id}:${option.value}:label`}/>
-            {#if option.color}<ColorBullet color={option.color}/>{/if}
-          </ChoiceRow>
-        {/each}
-      </div></ChoiceList>{:else if !reference.loading && !reference.error}
-        <Field.FieldDescription>No options available.</Field.FieldDescription>
+      {#if reference.loading}<Text kind="caption" tone="muted" text={say(m.referenceSelector.loading)} />{/if}
+      {#if reference.options.length}
+        <Choice presentation="rows" cardinality="many" frame="interior" label={node.label} labelVisibility="accessible" selected={node.values}
+          disabled={locked} required={false} onchange={choose} options={reference.options.map(option => ({ value: option.value, label: option.label,
+            disabled: !node.values.includes(option.value) && full, ...option.color ? { leading: { kind: "color" as const, color: option.color } } : {} }))} />
+      {:else if !reference.loading && !reference.error}
+        <Text kind="caption" tone="muted" text={say(m.referenceSelector.empty)} />
       {/if}
-      {#if reference.error}<Field.FieldError>{reference.error}</Field.FieldError>{/if}
+      {#if reference.error}<Text kind="support" tone="destructive" live="assertive" text={reference.error} />{/if}
       {#if reference.createLabel}
         {#if reference.uncertain}
-          <Button variant="secondary" disabled={reference.busy} onclick={()=>onevent?.({kind:'reference.recover',control:node.id})}>Check result</Button>
+          <Action label={say(m.referenceSelector.check)} icon="recover" emphasis="secondary" face="text" type="button"
+            state={reference.busy ? "unavailable" : "ready"} onclick={() => onevent?.({ kind: "reference.recover", control: node.id })} />
         {:else if creating}
-          <WritingField primitive="input.text" label="Name" labelVisibility="visible" measure="writing" purpose="text" value={name} required invalid={false}
-            maxLength={reference.maxLength} disabled={locked} clear onchange={value=>name=value}/>
-          {#if reference.colors.length}<SelectionField selection={`${node.id}:color`} label="Color" fieldControl value={color || reference.colors[0]!}
-            options={reference.colors.map(value=>({value,label:value[0]!.toUpperCase()+value.slice(1),disabled:false}))} disabled={locked} onchange={value=>color=value}/>{/if}
-          <Button variant="secondary" disabled={locked} onclick={()=>{creating=false;name='';}}>Cancel</Button>
-          <Button variant="default" disabled={locked || !name.trim() || name.trim().length>reference.maxLength} onclick={create}>{reference.createLabel}</Button>
+          <Field primitive="input.text" label={say(m.referenceSelector.name)} labelVisibility="visible" measure="writing" purpose="text" value={name}
+            required invalid={false} maxLength={reference.maxLength} disabled={locked} clear onchange={value => name = value} />
+          {#if reference.colors.length}
+            <Choice presentation="menu" cardinality="one" menuTrigger="well" label={say(m.referenceSelector.color)} labelVisibility="visible"
+              selected={[color || reference.colors[0]!]} disabled={locked} required={false} onchange={selected => { if (selected[0]) color = selected[0]; }}
+              options={reference.colors.map(value => ({ value, label: value[0]!.toUpperCase() + value.slice(1), disabled: false }))} />
+          {/if}
+          <Action label={say(m.referenceSelector.cancel)} icon="close" emphasis="secondary" face="text" type="button"
+            state={locked ? "unavailable" : "ready"} onclick={() => { creating = false; name = ""; }} />
+          <Action label={reference.createLabel} icon="create" emphasis="primary" face="text" type="button"
+            state={locked || !name.trim() || name.trim().length > reference.maxLength ? "unavailable" : "ready"} onclick={create} />
         {:else}
-          <Button variant="secondary" disabled={locked || node.values.length>=node.limits.maxItems} onclick={()=>creating=true}>{reference.createLabel}</Button>
+          <Action label={reference.createLabel} icon="create" emphasis="secondary" face="text" type="button"
+            state={locked || full ? "unavailable" : "ready"} onclick={() => creating = true} />
         {/if}
       {/if}
     </StackLayout>
-  </Popover.Content>
-</Popover.Root>
-{#if node.error}<Field.FieldError>{node.error}</Field.FieldError>{/if}
-</Field.Field>
+  </Popover>
+  {#if node.error}<Text kind="support" tone="destructive" live="assertive" text={node.error} />{/if}
+</Column>

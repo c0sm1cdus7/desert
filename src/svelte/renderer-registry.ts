@@ -2,7 +2,7 @@
 import type { NodeRendererTable } from "./renderer-contracts.ts";
 import Action from "./catalog/foundations/action/Action.svelte";
 import Availability from "./catalog/foundations/availability/Availability.svelte";
-import CatalogCard from "./catalog/foundations/catalog-card/CatalogCard.svelte";
+import CatalogCard from "./catalog/compositions/catalog-card/CatalogCard.svelte";
 import CatalogDetail from "./catalog/compositions/catalog-detail/CatalogDetail.svelte";
 import CatalogHome from "./catalog/compositions/catalog-home/CatalogHome.svelte";
 import Collection from "./catalog/compositions/collection/Collection.svelte";

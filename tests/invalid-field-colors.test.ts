@@ -51,8 +51,9 @@ for (const colorScheme of ["light", "dark"] as const) {
       const directory = `artifacts/invalid-field-label/${process.env.DESERT_EVIDENCE_PHASE ?? 'final'}`;
       await mkdir(directory, { recursive: true });
       await f.page.locator('main').screenshot({ path: `${directory}/${colorScheme}.png` });
+      // Lane B: the amount's own error is now the field's error too (money is a Field); the title's comes first.
       const invalid = await colors();
-      const errorColor = await f.page.locator('[data-slot="field-error"]').evaluate(el => getComputedStyle(el).color);
+      const errorColor = await f.page.locator('[data-slot="field-error"]').first().evaluate(el => getComputedStyle(el).color);
       for (let index = 0; index < normal.length; index++) {
         assert.equal(invalid[index]!.value, normal[index]!.value, `field ${index}: content keeps its normal color`);
         assert.equal(invalid[index]!.label, errorColor, `field ${index}: label uses the accessible error-text color`);
@@ -60,7 +61,7 @@ for (const colorScheme of ["light", "dark"] as const) {
       }
       const title = f.page.getByRole('textbox', { name: 'Title', exact: true });
       assert.equal(await title.getAttribute('aria-invalid'), 'true');
-      assert.equal(await title.getAttribute('aria-describedby'), await f.page.locator('[data-slot="field-error"]').getAttribute('id'));
+      assert.equal(await title.getAttribute('aria-describedby'), await f.page.locator('[data-slot="field-error"]').first().getAttribute('id'));
       assert.equal(await fields.first().locator('[data-floating-field]').evaluate(el => getComputedStyle(el).outlineWidth), '2px');
       assert.equal(await title.inputValue(), 'Still readable');
       await f.page.getByRole('button', { name: 'Toggle validation' }).click();

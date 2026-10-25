@@ -15,7 +15,7 @@ const accessGateFolder = `${compositions}/access-gate`, accessGate = `${accessGa
 const contentFlow = `${compositions}/content-flow/ContentFlow.svelte`, heading = `${foundations}/heading/Heading.svelte`;
 const frameBody = `${catalog}/renderer/frame-body/FrameBody.svelte`;
 const sharedStylesheet = `${catalog}/mechanisms/structured-content/structured-content.css`;
-const flowScript = "  import { Feedback } from '../../index.ts';";
+const flowScript = '  import { say } from "../../../infra/messages.ts";';
 const addToFlow = (imports: string, markup: string): Mutation => async tree => {
   await tree.replace(contentFlow, flowScript, `${flowScript}\n${imports}`);
   await tree.append(contentFlow, `\n${markup}\n`);
@@ -105,9 +105,9 @@ export const stageA: readonly GateCase[] = [
   // C1–C4 were the previous gate's controls; they now expect the catalog rule that took each assertion over.
   { id: "C1", title: "a renderer composition draws a native element", kind: "control", expect: ["COMPOSITION_NATIVE_ELEMENT"], at: frameBody,
     mutate: tree => tree.append(frameBody, "\n<div>x</div>\n") },
-  { id: "C2", title: "a finite-input owner receives a class", kind: "control", expect: ["PRESENTATION_ESCAPE"], at: `${compositions}/catalog-workspace/CatalogWorkspace.svelte`,
-    mutate: tree => tree.replace(`${compositions}/catalog-workspace/CatalogWorkspace.svelte`, '<Place bind:owner bind:viewport landmark="main"',
-      '<Place bind:owner bind:viewport class="x" landmark="main"') },
+  { id: "C2", title: "a workspace shell receives a class", kind: "control", expect: ["PRESENTATION_ESCAPE"], at: `${compositions}/catalog-workspace/CatalogWorkspace.svelte`,
+    mutate: tree => tree.replace(`${compositions}/catalog-workspace/CatalogWorkspace.svelte`, '<Shell bind:this={shell} {documentTitle}',
+      '<Shell bind:this={shell} class="x" {documentTitle}') },
   { id: "C3", title: "a renderer composition imports a visual helper from outside the visual roots", kind: "control", expect: ["NONVISUAL_DEPENDENCY"],
     at: "src/web/client/rogue-dock.ts", mutate: async tree => {
       await tree.create("src/web/client/rogue-dock.ts", 'export const observeDock = () => document.body.insertAdjacentHTML("beforeend", "x");\n');

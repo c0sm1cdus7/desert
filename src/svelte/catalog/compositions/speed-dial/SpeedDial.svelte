@@ -1,32 +1,10 @@
 <script lang="ts">
-  import * as Popover from "../../../vendor/components/ui/popover/index.js";
-  import { Button } from "../../../vendor/components/ui/button/index.js";
-  import { NodeRenderer } from "../../index.ts";
-  import { Icon } from "../../index.ts";
-  import { actionIconNames } from "../../../infra/action-icons.ts";
-  import { dismissWhenInactive } from "../../../infra/surface-activity.svelte.ts";
-  import { anchoredTabExit } from "../../foundations/popover/anchored-tab-exit.ts";
-  import { intentKey } from "../../../../interaction/intent.ts";
-  import { useSurfaceDensityClass } from "../../../infra/surface-typography.svelte.ts";
+  import { Menu } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  // The speed dial is the Menu foundation (design §1.3); its callers move to Menu and Batch 3 deletes this folder.
   let { actions, open, onchange, invoke, kind = "overflow" }: CatalogProps<"speed-dial"> = $props();
-  const instance = $props.id();
-  const panelId = `${instance}-actions`, triggerId = `${instance}-trigger`;
-  const density = useSurfaceDensityClass();
-  dismissWhenInactive(() => onchange?.(false));
 </script>
-<Popover.Root {open} onOpenChange={onchange}>
-  <span data-speed-dial-trigger><NodeRenderer node={{version:"desert.bank-node/1",kind:"action",role:"secondary",action:{label:kind === "create" ? "Create" : "More actions",icon:kind === "create" ? "create" : "more",state:"ready",intent:{kind:"transient.open"}}}}
-    actionDisclosure={{id:triggerId,controls:panelId,expanded:open,haspopup:"dialog"}}
-    onevent={event => { if (event.kind === "local.invoke" && event.intent.kind === "transient.open") onchange?.(!open); }} /></span>
-  <Popover.Content id={panelId} class={density()} customAnchor={`#${triggerId}`} presentation="speed-dial" align="end" aria-label={kind === "create" ? "Create" : "More actions"}
-    onkeydowncapture={event => anchoredTabExit(event,event.currentTarget,()=>onchange?.(false))}>
-    {#each actions as action, index (intentKey(action.intent))}
-      <div data-speed-dial-action>
-        <span class="material-pane" data-speed-dial-label id={`${instance}-${index}`}>{action.label}</span>
-        <Button variant="secondary" size="icon" aria-labelledby={`${instance}-${index}`} disabled={action.state !== "ready"}
-          onclick={() => { onchange?.(false); invoke(action.intent); }}><Icon name={actionIconNames[action.icon]} /></Button>
-      </div>
-    {/each}
-  </Popover.Content>
-</Popover.Root>
+<Menu label={kind === "create" ? say(m.speedDial.create) : say(m.speedDial.more)} icon={kind === "create" ? "create" : "more"}
+  {actions} {open} align="end" onopenchange={onchange} oninvoke={invoke} />

@@ -6,7 +6,7 @@ import type { Mutation } from "./harness.ts";
 const catalog = "src/svelte/catalog", compositions = `${catalog}/compositions`, foundations = `${catalog}/foundations`;
 const heading = `${foundations}/heading`, accessGate = `${compositions}/access-gate/AccessGate.svelte`;
 const contentFlow = `${compositions}/content-flow/ContentFlow.svelte`, lockScreen = `${compositions}/lock-screen/LockScreen.svelte`;
-const flowScript = "  import { Feedback } from '../../index.ts';";
+const flowScript = '  import { say } from "../../../infra/messages.ts";';
 const headingImport = '  import Heading from "../../foundations/heading/Heading.svelte";';
 const script = '<script lang="ts">\n';
 const intoFlow = (imports: string, markup = ""): Mutation => async tree => {
