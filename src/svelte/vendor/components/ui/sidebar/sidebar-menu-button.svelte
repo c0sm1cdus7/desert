@@ -26,7 +26,6 @@
 
 <script lang="ts">
 	import { mergeProps } from "bits-ui";
-	import { Button as SharedButton, type ButtonProps } from "@desert/svelte/vendor/components/ui/button/index.js";
 	import { pressFeedbackProps } from "@desert/svelte/catalog/mechanisms/press-feedback/press-feedback.ts";
 	import * as Tooltip from "@desert/svelte/vendor/components/ui/tooltip/index.js";
 	import { cn, type WithElementRef, type WithoutChildrenOrChild } from "@desert/svelte/vendor/utils.js";
@@ -55,6 +54,8 @@
 	} = $props();
 
 	const sidebar = useSidebar();
+	// The row recipe of the button family at its default size, resolved: this family draws its own native button.
+	const row = "inline-flex shrink-0 items-center gap-2 type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-transparent text-foreground border-0 rounded-none justify-start whitespace-normal h-auto text-left font-normal w-full min-h-11 px-4 py-2";
 
 	const buttonProps = $derived({
 		class: cn(sidebarMenuButtonVariants({ variant, size }), variant === "outline" ? "material-pane" : "material-interior", className),
@@ -71,9 +72,10 @@
 	{#if child}
 		{@render child({ props: { ...mergedProps, ...pressFeedbackProps } })}
 	{:else}
-		<SharedButton bind:ref variant="row" {...mergedProps as ButtonProps}>
-			{@render children?.()}
-		</SharedButton>
+		<button {...pressFeedbackProps} bind:this={ref} data-slot="button" type="button" {...mergedProps}
+			class={cn(row, "control-feedback", typeof mergedProps.class === "string" ? mergedProps.class : undefined)} data-variant="row">
+			<span class="control-feedback-content" data-button-content>{@render children?.()}</span>
+		</button>
 	{/if}
 {/snippet}
 

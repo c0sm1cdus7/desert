@@ -1706,6 +1706,7 @@
       "owner": {
         "entry": "Field.svelte",
         "mechanisms": [
+          "press-feedback",
           "toolbar-geometry"
         ],
         "parts": [
