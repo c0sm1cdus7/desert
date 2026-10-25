@@ -88,9 +88,11 @@ test("media and catalog compositions keep the frozen trees' pixels, but for DESI
     assert.equal(Math.round((boxes(now, "home-page", "title")[0]?.[1] ?? 0)), 24, "the rails' section starts 24px under the place heading");
     // A detail: the photograph is unchanged; its reading keeps its axis, 8px lower under the title (its margin as a gap).
     assert.deepEqual(now.detail?.gallery, old.detail?.gallery, "detail photograph");
+    // Second review of the slice 3 package: a detail nested in another page reads on that page's row inset (16px), not at
+    // the place's content inset (42px) the frozen tree gave it; its widths, heights and the 8px are unchanged.
     for (const probe of ["legend", "prose"]) {
       const [then, today] = [boxes(old, "detail", probe)[0] ?? [], boxes(now, "detail", probe)[0] ?? []];
-      assert.deepEqual([today[0], today[2], today[3], (today[1] ?? 0) - (then[1] ?? 0)], [then[0], then[2], then[3], 8], `detail ${probe}`);
+      assert.deepEqual([today[0], today[2], today[3], (today[1] ?? 0) - (then[1] ?? 0)], [(then[0] ?? 0) - 26, then[2], then[3], 8], `detail ${probe}`);
     }
     assert.deepEqual([was.errors, is.errors], [[], []]);
   } finally { await was.close(); await is.close(); }

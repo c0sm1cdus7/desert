@@ -95,7 +95,11 @@ for (const width of [390, 1280]) for (const kind of ["form", "context"] as const
       } finally { await fixture.close(); }
     }
     assert.deepEqual(structures[1], structures[0]);
-    assert.deepEqual(structures[2], structures[0]);
+    // Second review of the slice 3 package: a panel's view body stands its pieces at the gap of two stacks, in one
+    // grid around them; inside it, the content is the frozen frame's, element for element.
+    const stacked = '<div class="grid min-w-0 gap-regular">';
+    assert.ok(structures[2]!.startsWith(stacked) && structures[2]!.endsWith("</div>"), "the view body stands its pieces in one stacked grid");
+    assert.deepEqual(structures[2]!.slice(stacked.length, -"</div>".length), structures[0]);
     assert.ok(captures[2]!.equals(captures[1]!), 'default panel preserves exact viewport pixels');
     // The content itself is pixel-identical to the frame before the view-body branch existed: chrome that moved since
     // (the top-rail commit, which lets the region grow) is outside it, and anything that restyles the content is not.

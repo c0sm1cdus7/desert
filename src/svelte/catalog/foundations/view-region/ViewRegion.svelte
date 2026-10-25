@@ -4,7 +4,7 @@
   import { useRegionRegistry } from "../../../infra/region-registry.ts";
   import { provideSurfaceActivity } from "../../../infra/surface-activity.svelte.ts";
   import { revealSearchTarget } from "../../mechanisms/reveal/reveal.ts";
-  let { kind, id, layout, inset = false, label, visible, active = true, children }: CatalogProps<"view-region"> = $props();
+  let { kind, id, layout, inset = false, label, visible, active = true, stacked = false, children }: CatalogProps<"view-region"> = $props();
   // A retained place tells its content whether it is the active surface (it absorbs the retained-place composition).
   if (untrack(() => kind) === "retained") provideSurfaceActivity(() => active);
   const registry = useRegionRegistry();
@@ -33,6 +33,9 @@
 {:else if kind === "retained"}
   <!-- Only a page of the workspace's main scroll takes the place inset (`inset`); a retained region inside it adds none. -->
   <div bind:this={element} class:place-retained={inset} data-retained-place hidden={visible === false || undefined}>{@render children?.()}</div>
+{:else if stacked}
+  <!-- A stacked bare region (a surface's content flow) stands its pieces at the gap of any two stacks of a page. -->
+  <div class="grid min-w-0 gap-regular" hidden={visible === false || undefined}>{@render children?.()}</div>
 {:else if visible === undefined}
   {@render children?.()}
 {:else}

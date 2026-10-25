@@ -1045,7 +1045,6 @@
       },
       "uses": [
         "appearance",
-        "column",
         "identity",
         "information",
         "inspection-content",

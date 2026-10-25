@@ -106,11 +106,16 @@ test("choice cards, swatches and the well menu: AppearancePreferences' pixels; t
     // Second review of the slice 3 package (laws 9d, 9e): a card's artwork takes the chip radius and the card is concentric
     // with it (6 + its 10px inset + 1px border = 17px), and a swatch is a rounded square, its target concentric 6px out
     // (12 + 6 = 18px). Those corners differ from AppearancePreferences'; every other measure is its.
+    // And the tint rail's air (its padding and each target's 6px around its colour) reaches past its block edges (-10px),
+    // so the colours stand at the section gap: only that margin differs on the rail.
     const cornered = new Set(["[data-after-theme] label", "[data-after-wallpaper] label", "[data-after-tint] label"]);
+    const rail = "[data-after-tint] [role=radiogroup] > div";
     for (const [after, before] of pairs) {
       const [now, then] = [await measure(after), await measure(before)];
-      assert.deepEqual(cornered.has(after) ? withoutRadius(now) : now, cornered.has(after) ? withoutRadius(then) : then, after);
+      const aside = (value: typeof now) => after === rail ? JSON.parse(JSON.stringify(value), (key, item) => key === "margin" ? undefined : item) : value;
+      assert.deepEqual(aside(cornered.has(after) ? withoutRadius(now) : now), aside(cornered.has(after) ? withoutRadius(then) : then), after);
     }
+    assert.deepEqual(await f.page.locator(rail).evaluate(node => getComputedStyle(node).margin), "-10px 0px");
     const corners = (selector: string) => f.page.locator(selector).evaluateAll(nodes => [...new Set(nodes.map(node => getComputedStyle(node).borderTopLeftRadius))]);
     assert.deepEqual(await corners("[data-after-theme] label"), ["17px"]);
     assert.deepEqual(await corners("[data-after-wallpaper] label"), ["17px"]);

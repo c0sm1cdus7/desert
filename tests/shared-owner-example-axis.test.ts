@@ -8,7 +8,7 @@ import { mounted } from "./support/foundation.ts";
 // Each owner's example, by the mark of the piece it shows, and where its box starts in a 354px stack.
 const examples = [
   ["AvatarShuffle", "button", 16], ["SeedAvatar", "[data-avatar-seed]", 16], ["LabelRail", "[data-tag]", 16],
-  ["ColorBullet", "[data-tag]", 16], ["ReferenceValues", "[data-tag]", 16], ["AttentionIndicator", "[data-attention-indicator]", 16],
+  ["ColorBullet", ".color-bullet", 16], ["ReferenceValues", "[data-tag]", 16], ["AttentionIndicator", "[data-attention-indicator]", 16],
   ["ReferenceSelector", "[data-slot]", 0],
 ] as const;
 
