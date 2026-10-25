@@ -6,6 +6,8 @@
   import type { CatalogProps } from "../../types.d.ts";
   let { value, presentation = "inline" }: CatalogProps<"fact-value"> = $props();
   const state = $derived(factState(value));
+  // A known value may break after each path separator before it breaks inside a word (a source path in a narrow row).
+  const segments = $derived(presentFact(value).split(/(?<=\/)(?=.)/));
 </script>
 
 {#snippet reading()}
@@ -14,7 +16,7 @@
       <Icon name={state === "empty" ? "minus" : "circle-question-mark"} size="em" decorative />
       {#if state === "empty"}<span class="sr-only">{say(m.factValue.state)} {presentFact(value)}</span>
       {:else}<span><span class="sr-only">{say(m.factValue.state)} </span>{presentFact(value)}</span>{/if}
-    {:else}{presentFact(value)}{/if}
+    {:else}{#each segments as segment, index (index)}{#if index}<wbr />{/if}{segment}{/each}{/if}
   </span>
 {/snippet}
 
