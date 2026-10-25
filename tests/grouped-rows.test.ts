@@ -4,10 +4,12 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { groupedRowsSource } from "./fixtures/grouped-rows.ts";
 
-/** Collections and context actions are Lists of Rows (composition lane C); choices still draw grouped panels. */
+/** Collections and context actions are Lists of Rows (composition lane C); choices are Choice's rows (lane B; the grouped
+ * panel and choice row foundations they drew before were deleted in Batch 3). A choice's pane is the clipped material that
+ * holds its group of rows (Choice marks its fieldset and rows, not the pane between them). */
 const listed = (family: string) => family === "collection" || family === "actions";
-const panelOf = (family: string) => listed(family) ? "[data-list]" : "[data-grouped-panel]";
-const rowOf = (family: string) => listed(family) ? "[data-row]" : "[data-grouped-row]";
+const panelOf = (family: string) => listed(family) ? "[data-list]" : "[data-choice] :has(> * > [data-choice-row])";
+const rowOf = (family: string) => listed(family) ? "[data-row]" : "[data-choice-row]";
 
 test("sibling collections, actions and choices have one clipped panel and contiguous separated rows", { timeout: 30000 }, async () => {
   const f = await svelteBrowser(groupedRowsSource);
@@ -47,9 +49,9 @@ test("sibling collections, actions and choices have one clipped panel and contig
       }
     }
     // A label click must activate its associated native choice exactly once.
-    await f.page.locator('[data-test="options"] [data-grouped-row]').nth(1).click();
-    await f.page.locator('[data-test="checks"] [data-grouped-row]').nth(1).click();
-    await f.page.locator('[data-test="selection"] [data-grouped-row]').nth(1).click();
+    await f.page.locator('[data-test="options"] [data-choice-row]').nth(1).click();
+    await f.page.locator('[data-test="checks"] [data-choice-row]').nth(1).click();
+    await f.page.locator('[data-test="selection"] [data-choice-row]').nth(1).click();
     assert.deepEqual(JSON.parse(await f.page.locator('[data-events]').textContent() ?? ''),['option','check','selection']);
     assert.equal(await f.page.locator('[data-test="options"]').getByRole('radio',{name:'Middle',exact:true}).isChecked(),true);
     await f.page.locator('[data-test="selection"]').getByRole('radio',{name:'Middle',exact:true}).focus();

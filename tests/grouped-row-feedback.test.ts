@@ -5,16 +5,18 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { groupedRowsSource } from "./fixtures/grouped-rows.ts";
 
-/** Collections and context actions are Lists of Rows (composition lane C); choices still draw grouped panels. */
+/** Collections and context actions are Lists of Rows (composition lane C); choices are Choice's rows (lane B; the grouped
+ * panel and choice row foundations they drew before were deleted in Batch 3). A choice's pane is the clipped material that
+ * holds its group of rows (Choice marks its fieldset and rows, not the pane between them). */
 const listed = (family: string) => family === "collection" || family === "actions";
-const panelOf = (family: string) => listed(family) ? "[data-list]" : "[data-grouped-panel]";
-const rowOf = (family: string) => listed(family) ? "[data-row]" : "[data-grouped-row]";
+const panelOf = (family: string) => listed(family) ? "[data-list]" : "[data-choice] :has(> * > [data-choice-row])";
+const rowOf = (family: string) => listed(family) ? "[data-row]" : "[data-choice-row]";
 
 const settle = (page: Page) => page.evaluate(async () => {
   await Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {})));
 });
 const appearance = (target: Locator) => target.evaluate(element => {
-  const style=getComputedStyle(element), content=element.querySelector('[data-button-content],[data-grouped-content]')!;
+  const style=getComputedStyle(element), content=element.querySelector('[data-button-content],[data-choice-anatomy]')!;
   const transform=getComputedStyle(content).transform;
   return { transform:style.transform, contentScale:transform==='none'?1:new DOMMatrixReadOnly(transform).a,
     background:style.backgroundImage, outline:style.outlineWidth, offset:style.outlineOffset,
@@ -66,7 +68,7 @@ test("reduced motion removes only content scale without moving grouped boundarie
   try {
     await f.page.addStyleTag({content:await rendererCss()});
     await f.page.emulateMedia({reducedMotion:'reduce'});
-    const row=f.page.locator('[data-test="options"] [data-grouped-row]').nth(1);
+    const row=f.page.locator('[data-test="options"] [data-choice-row]').nth(1);
     await row.scrollIntoViewIfNeeded(); const before=await row.boundingBox();
     await row.hover(); await f.page.mouse.down();
     try { assert.equal((await appearance(row)).contentScale,1); assert.deepEqual(await row.boundingBox(),before); }
