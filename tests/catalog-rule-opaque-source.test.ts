@@ -46,7 +46,7 @@ test("O: a renderer script runs no import() at all, a literal module included", 
 test("O: {@html} in a foundation, a vendor family or a renderer part; a composition's is rule D's", () => {
   assert.deepEqual(inCard("{@html markup}\n"), [`OPAQUE_SOURCE ${card} {@html} renders markup the gate cannot read`]);
   assert.deepEqual(runO(composition("page", "Page.svelte", [], "{@html markup}\n")), []);
-  for (const path of ["src/svelte/catalog/foundations/artwork-placeholder/ArtworkPlaceholder.svelte", "src/svelte/catalog/foundations/playback-canvas/PlaybackCanvas.svelte",
+  for (const path of ["src/svelte/catalog/foundations/image/Image.svelte", "src/svelte/catalog/foundations/media-player/MediaPlayer.svelte",
     "src/svelte/vendor/components/ui/slider/slider.svelte"]) {
     assert.ok(added(ruleO, mutated(path, "</script>", "</script>\n{@html foreign}")).some(line => line.includes("{@html}")), path);
   }

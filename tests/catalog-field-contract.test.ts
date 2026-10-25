@@ -38,12 +38,14 @@ test("field: the contract is closed: a shared part and exclusive variants by pri
   assert.deepEqual(contract.marks, ["data-field", "data-field-filled", "data-measure", "data-search-expanded"]);
 });
 
-test("field: it owns the five writing vendor families, renders both input kinds, and text-input owns neither any more", () => {
-  const field = declaration("field"), textInput = declaration("text-input");
+test("field: it owns the five writing vendor families and renders both input kinds; text-input is gone (Batch 3)", () => {
+  const field = declaration("field"), declarations = realContext().declarations.map(item => item.declaration);
   assert.deepEqual(field.owner.vendor, ["field", "input", "input-group", "label", "textarea"]);
   assert.deepEqual(field.renders, ["input.text", "input.multiline"]);
-  assert.equal(textInput.owner.vendor, undefined);
-  assert.equal(textInput.renders, undefined);
+  assert.equal(declarations.some(item => item.id === "text-input"), false);
+  const others = declarations.flatMap(item => item.kind === "foundation" && item.id !== "field" ? [item] : []);
+  assert.deepEqual(others.filter(item => item.owner.vendor?.some(family => field.owner.vendor?.includes(family))).map(item => item.id), []);
+  assert.deepEqual(others.filter(item => item.renders?.some(kind => kind.startsWith("input."))).map(item => item.id), []);
   assert.deepEqual(field.states, ["empty", "value", "invalid", "disabled", "masked"]);
   assert.deepEqual(field.variants, { primitive: ["input.text", "input.multiline", "trigger"], measure: ["writing", "choice", "date", "amount", "fill"] });
   assert.deepEqual(field.stateVariants, { masked: { primitive: ["input.text"] } });
