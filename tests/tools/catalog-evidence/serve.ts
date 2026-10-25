@@ -1,6 +1,7 @@
 // Builds the inspection family (the Notebook product with its Visual catalog destination) through the test-only evidence
 // project, with the fixture pages beside its routes, and serves the build on an ephemeral port inside this process, bound
-// to a local controller over a temporary PostgreSQL cluster. Nothing leaves the temp directory and no manifest is written.
+// to a local controller over a temporary PostgreSQL cluster. The media its player and viewer specimens name is served from
+// the repository's fixtures (media.ts). Nothing leaves the temp directory and no manifest is written.
 // A piece whose specimens cannot load in a browser (they import node-only modules), or whose fixture page fails
 // svelte-check, is excluded with the reason; EVIDENCE_FIXTURE_TYPES if exclusion does not converge; other failures as is.
 import type { RequestListener } from "node:http";
@@ -16,6 +17,7 @@ import { sdkRoot } from "../../../src/build/svelte/revision.ts";
 import { NotebookWeb } from "../../../products/notebook/distributions.ts";
 import { InspectionApplication } from "../../fixtures/inspection-product.ts";
 import { writeFixturePages } from "./fixture-pages.ts";
+import { writeEvidenceMedia } from "./media.ts";
 import type { EvidencePiece } from "./pieces.ts";
 
 export type EvidenceServer = Readonly<{ origin: string; launchUrl: string; pages: readonly string[];
@@ -57,6 +59,7 @@ async function buildWithPages(module: string, pieces: readonly EvidencePiece[]) 
   for (let attempt = 0; attempt < 3; attempt++) {
     const project = createEvidenceProject(module, "human", evidenceBuildTimeout);
     const pages = writeFixturePages(project.directory, pieces.filter(piece => !excluded.has(piece.id)));
+    writeEvidenceMedia(project.directory, pieces.filter(piece => !excluded.has(piece.id)));
     try {
       await project.run("build");
       return { project, pages, excluded };

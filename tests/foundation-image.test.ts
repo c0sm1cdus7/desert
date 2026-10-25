@@ -77,7 +77,12 @@ test("image: the placeholder and the image keep the pixels of ArtworkPlaceholder
     // A placeholder is a face (law 9e): its ground and positioning are the face primitive's; its box and glyph still compare.
     const faces = (name: string) => Object.values(probes[name] ?? {}).includes(placeholder.root) ? ["root"] : [];
     // Design §7.1 radius exception (law 9d): its host card's corner is curvature-family.test.ts's.
-    for (const name of Object.keys(probes)) assert.deepEqual(withoutRadius(withoutFacePrimitive(is[name], faces(name))), withoutRadius(withoutFacePrimitive(was[name], faces(name))), name);
+    // The error lays out in flow with its own inset (it takes its own height when its host gives none, tests/media-error-layout.test.ts):
+    // in a frame its box, its sentence's and its retry's are the frozen ones; its inset is the new layout's (here the frozen
+    // card host's unlayered media stylesheet still positions it, so its position compares as is).
+    const inFlow = { "padding-top": "16px", "padding-right": "16px", "padding-bottom": "16px", "padding-left": "16px" };
+    const laidOut = (found: typeof was): typeof was => ({ ...found, error: { ...found.error, error: found.error?.error?.map(item => ({ ...item, style: { ...item.style, ...inFlow } })) ?? [] } });
+    for (const name of Object.keys(probes)) assert.deepEqual(withoutRadius(withoutFacePrimitive(is[name], faces(name))), withoutRadius(withoutFacePrimitive(laidOut(was)[name], faces(name))), name);
     // The retry keeps its box; its own styling is Action's (the vendor button's secondary face before).
     const retry: Probes = { error: { retry: "button" } };
     assert.deepEqual(await measureProbes(after.page, retry, []), await measureProbes(before.page, retry, []));

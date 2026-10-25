@@ -68,14 +68,15 @@
 :root { @apply scheme-light; }
 :root[data-theme="dark"] { @apply scheme-dark; }
 @media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) { @apply scheme-dark; } }
-/* Catalog geometry (from the catalog profile): image ink over photographs, the search glyph ink, the sidebar width and
-   the hero and rail media heights. */
+/* Catalog geometry (from the catalog profile): image ink over photographs, the search glyph ink, the sidebar width,
+   the hero and rail media heights, and a cover's width to its height (a rail card, and the column a covers grid gives it). */
 :root {
   --catalog-image-foreground:#fff; --catalog-image-shade:#000c;
   --catalog-search-foreground:var(--muted-foreground);
   --catalog-sidebar-width:240px;
   --catalog-hero-height:max(199px,calc((100dvh - 52px) / 2));
   --catalog-media-height:max(140px,calc((100dvh - 52px) * .2));
+  --catalog-cover-aspect:1.4;
 }
 @media (max-width:767px) { :root { --catalog-hero-height:360px; --catalog-media-height:160px; } }
 /* The spacing scale layout pieces separate their children by (GapSchema in src/interaction/spacing.ts names the steps). */

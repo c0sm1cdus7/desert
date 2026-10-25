@@ -96,7 +96,11 @@
     .image-element { display:block; width:100%; height:100%; object-fit:cover; user-select:none; }
     .image-contain { object-fit:contain; }
     .image[data-image-state="ready"] > .image-element { animation:image-in var(--dur-unfold) var(--ease-tm) both; }
-    .image-error { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--foreground); }
+    /* Failed, the image is its error alone, laid out in flow: as tall as its frame when the host gives one, as tall as its
+       sentence and retry (and its inset) when it gives none, never clipped to the broken image's line. */
+    .image[data-image-state="error"] > .image-element { display:none; }
+    .image-error { position:relative; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+      padding:var(--spacing-regular,1rem); color:var(--foreground); }
   }
   @keyframes image-in { from { opacity:0; } to { opacity:1; } }
   @media(prefers-reduced-motion:reduce) { .image[data-image-state="ready"] > .image-element { animation:none; } }

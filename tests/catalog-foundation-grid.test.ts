@@ -37,3 +37,39 @@ test("grid: results are three equal columns that become one when the grid's cont
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
+
+test("grid: no recipe lets its pieces overlap or leave the grid at any width; covers keep a cover's width per column", { timeout: 60000 }, async () => {
+  // The evidence filler (the first three card specimens: two featured covers and a placeholder) in every recipe, from a
+  // narrow column to a wide pane. A piece is laid out in its own track: never over its neighbour, never past the grid's edge.
+  const widths = [280, 320, 358, 600, 900, 1248];
+  const f = await mounted(`{#each recipes as tracks}{#each widths as width}<div style="width:{width}px" data-probe-host data-tracks={tracks}>
+  <Catalog.Grid {tracks} gap="close">{#each cards as card, at (at)}<Catalog.Card {...card.props} />{/each}</Catalog.Grid></div>{/each}{/each}`,
+  `  import { CardSpecimens } from "@desert/svelte/catalog/foundations/card/card.specimens.ts";
+  const recipes = ["tiles", "collections", "cards", "covers", "results"] as const, widths = ${JSON.stringify(widths)};
+  const cards = CardSpecimens.slice(0, 3);`);
+  try {
+    const found = await f.page.locator("[data-probe-host]").evaluateAll(hosts => hosts.map(host => {
+      const grid = host.querySelector(".grid")!, box = grid.getBoundingClientRect();
+      const items = [...grid.children].map(item => item.getBoundingClientRect());
+      const outside = items.filter(item => item.left < box.left - .5 || item.right > box.right + .5).length;
+      let overlaps = 0;
+      for (let a = 0; a < items.length; a++) for (let b = a + 1; b < items.length; b++) {
+        const [p, q] = [items[a]!, items[b]!];
+        if (Math.min(p.right, q.right) - Math.max(p.left, q.left) > .5 && Math.min(p.bottom, q.bottom) - Math.max(p.top, q.top) > .5) overlaps++;
+      }
+      return { tracks: host.getAttribute("data-tracks"), width: host.getBoundingClientRect().width, outside, overlaps,
+        columns: new Set(items.map(item => Math.round(item.left))).size, narrowest: Math.min(...items.map(item => item.width)) };
+    }));
+    assert.deepEqual(found.filter(item => item.outside || item.overlaps), [], "every piece stays in its own track");
+    const cover = await f.page.evaluate(() => {
+      const probe = document.body.appendChild(document.createElement("div"));
+      probe.style.width = "calc(var(--catalog-media-height) * 1.4)";
+      const width = probe.getBoundingClientRect().width; probe.remove(); return width;
+    });
+    const covers = found.filter(item => item.tracks === "covers");
+    // At most three columns, each at least a cover wide (a single column narrower than a cover fills the grid).
+    assert.deepEqual(covers.map(item => item.columns), covers.map(item => Math.max(1, Math.min(3, Math.floor((item.width + 12) / (cover + 12))))));
+    for (const item of covers) assert.ok(item.narrowest >= Math.min(cover, item.width) - .5, `covers at ${item.width}px keep a cover's width`);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
