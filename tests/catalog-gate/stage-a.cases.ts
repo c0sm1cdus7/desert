@@ -14,7 +14,7 @@ const catalog = "src/svelte/catalog", compositions = `${catalog}/compositions`, 
 const accessGateFolder = `${compositions}/access-gate`, accessGate = `${accessGateFolder}/AccessGate.svelte`;
 const contentFlow = `${compositions}/content-flow/ContentFlow.svelte`, heading = `${foundations}/heading/Heading.svelte`;
 const frameBody = `${catalog}/renderer/frame-body/FrameBody.svelte`;
-const sharedStylesheet = `${catalog}/mechanisms/structured-content/structured-content.css`;
+const sharedStylesheet = `${catalog}/mechanisms/typography/typography.css`;
 const flowScript = '  import { say } from "../../../infra/messages.ts";';
 const addToFlow = (imports: string, markup: string): Mutation => async tree => {
   await tree.replace(contentFlow, flowScript, `${flowScript}\n${imports}`);

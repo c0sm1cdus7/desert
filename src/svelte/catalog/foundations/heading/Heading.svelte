@@ -35,10 +35,5 @@
   id={content.kind === "section" ? content.id : undefined}
   tabindex={focusable ? -1 : undefined}
   data-place-title={content.kind === "page" ? "" : undefined}>
-  {content.text}{#if content.kind === "group" && content.required}<span class="required" aria-hidden="true">*</span>{/if}
+  {content.text}{#if content.kind === "group" && content.required}<span class="required text-destructive" aria-hidden="true">*</span>{/if}
 </svelte:element>
-
-<style>
-  /* The required mark (from the theme): destructive ink beside its label. */
-  .required { color:var(--destructive); }
-</style>

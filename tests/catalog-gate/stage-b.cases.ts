@@ -56,7 +56,7 @@ export const stageB: readonly GateCase[] = [
   { id: "N14", title: "a composition gains a style block", kind: "escape", expect: ["CROSS_OWNER_CSS"],
     mutate: tree => tree.append(accessGate, "\n<style>.rogue { color: red; }</style>\n") },
   { id: "N19", title: "a composition imports a stylesheet", kind: "escape", expect: ["CROSS_OWNER_CSS"],
-    mutate: intoFlow('  import "../../mechanisms/structured-content/structured-content.css";') },
+    mutate: intoFlow('  import "../../mechanisms/typography/typography.css";') },
   { id: "N26", title: "a composition renders an undeclared snippet", kind: "escape", expect: ["SLOT_NOT_TYPED"],
     mutate: tree => tree.append(accessGate, "\n{@render extra()}\n") },
   { id: "N27", title: "a composition defines a snippet that is not a declared slot", kind: "escape", expect: ["SLOT_NOT_TYPED"],
