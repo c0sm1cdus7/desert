@@ -81,6 +81,15 @@ async function previousCss() {
     assert.equal(inlined.split(before).length, 2, `The frozen side holds ${before} once`);
     inlined = inlined.replace(before, after);
   }
+  // Slice 3 package 3 (a deliberate change, not a relocation): a cover's width to its height is one token, which Card's
+  // width reads (the frozen rule said 1.4 literally); the frozen side carries the token at that same 1.4, so only the
+  // relocation is compared.
+  inlined += "\n:root { --catalog-cover-aspect:1.4; }\n";
+  // Slice 3 review 2 (a deliberate change, not a relocation): a pane presented over the page (the message dialog) wears the
+  // floating backing, 97% where the frozen pane was 88% (tests/overlay-legibility.test.ts measures it); the frozen side
+  // gets that utility as today's pane material defines it, the panes nested in it keeping the ordinary backing.
+  inlined += `\n:root { --pane-base-opacity:var(--pane-opacity); --pane-floating-opacity:97%; }\n` +
+    `@utility material-floating { --pane-opacity:var(--pane-floating-opacity); & :where(*) { --pane-opacity:var(--pane-base-opacity); } }\n`;
   const compiler = await compile(inlined, { base, onDependency: () => {} });
   return compiler.build(new Scanner({ sources: compiler.sources }).scan());
 }
