@@ -10,6 +10,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 import { treeViolations } from "./fixtures/tree-violations.ts";
 import { measureProbes, renderCases, type Probes } from "./fixtures/parity.ts";
 import { contentBefore } from "./fixtures/content-before.ts";
+import { withoutFacePrimitive } from "./fixtures/face-primitive.ts";
 import { themeAtCe6ed6f } from "./fixtures/theme-before.ts";
 
 const root = resolve(import.meta.dirname, "..");
@@ -72,7 +73,9 @@ test("image: the placeholder and the image keep the pixels of ArtworkPlaceholder
   try {
     await Promise.all([settled(before.page), settled(after.page)]);
     const [was, is] = [await measureProbes(before.page, probes), await measureProbes(after.page, probes)];
-    for (const name of Object.keys(probes)) assert.deepEqual(is[name], was[name], name);
+    // A placeholder is a face (law 9e): its ground and positioning are the face primitive's; its box and glyph still compare.
+    const faces = (name: string) => Object.values(probes[name] ?? {}).includes(placeholder.root) ? ["root"] : [];
+    for (const name of Object.keys(probes)) assert.deepEqual(withoutFacePrimitive(is[name], faces(name)), withoutFacePrimitive(was[name], faces(name)), name);
     // The retry keeps its box; its own styling is Action's (the vendor button's secondary face before).
     const retry: Probes = { error: { retry: "button" } };
     assert.deepEqual(await measureProbes(after.page, retry, []), await measureProbes(before.page, retry, []));

@@ -15,7 +15,7 @@ const covers = { ...collection, fields: ["title"], labels: { "item.title": "Titl
   records: [{ id: id(1), version: 1, facts: { title: "Travel" } }, { id: id(2), version: 1, facts: { title: "Family" } }] };
 const control = { version: "desert.control/1", disabled: false };
 const tag = { ...control, kind: "tag", id: "tag", label: "Travel", tone: "accent" };
-const avatar = { ...control, kind: "avatar", id: "avatar", label: "AlexandraVeryLongUnbrokenFamilyName Rivera", source: null, fallback: "AR" };
+const avatar = { ...control, kind: "avatar", id: "avatar", label: "AlexandraVeryLongUnbrokenFamilyName Rivera", source: null, seed: "5c2e9b71a0d4f386" };
 const image = { ...control, kind: "image", id: "image", label: "Cover", alt: "Lake", aspect: "landscape", source: "/media/lake.jpg" };
 const card = (record: string, title: string) => ({ version: "desert.bank-node/1", kind: "catalog.card", presentation: "item", record, title, mediaType: "audio" });
 const home = { version: "desert.bank-node/1", kind: "catalog.home",

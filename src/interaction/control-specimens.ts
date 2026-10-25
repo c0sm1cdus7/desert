@@ -82,8 +82,8 @@ export const ControlSpecimens = freezeDeep(([
     sample("unavailable", { ...image, id: "missing-cover", source: null }),
   ] },
   { id: "control.avatar", family: "control", specimens: [
-    sample("image", { ...base, kind: "avatar", id: "author-photo", label: "Alex Rivera", source: "/bank-image.svg", fallback: "AR" }),
-    sample("fallback", { ...base, kind: "avatar", id: "author-initials", label: "Sam Lee", source: null, fallback: "SL" }),
+    sample("image", { ...base, kind: "avatar", id: "author-photo", label: "Alex Rivera", source: "/bank-image.svg", seed: "5c2e9b71a0d4f386" }),
+    sample("fallback", { ...base, kind: "avatar", id: "author-seed", label: "Sam Lee", source: null, seed: "a1b2c3d4e5f60718" }),
   ] },
 ] as const).map(entry => {
   const local = entry.specimens.find(specimen => specimen.state === 'value') ?? entry.specimens[0];

@@ -11,6 +11,7 @@ import { compositionsBefore } from "./fixtures/compositions-c-before.ts";
 // MediaGrid and MediaCollectionGrid are composed of Card now (lane D): their frozen sources draw the "before" side.
 import { mediaCompositionsBeforeOverrides } from "./fixtures/media-compositions-before.ts";
 import { contentBefore } from "./fixtures/content-before.ts";
+import { withoutFacePrimitive } from "./fixtures/face-primitive.ts";
 
 const id = (n: number) => `10000000-0000-4000-8000-00000000000${n}`;
 const collection = { version: "desert.bank-node/1", kind: "collection", object: "item", fields: ["photo", "caption"],
@@ -100,7 +101,10 @@ test("card keeps the pixels of the catalog card, the media tile, the collection 
     // An item's artwork fills the card through the card's own absolute frame, where a contextual rule positioned it
     // before: its box is compared, its position is the frame's.
     const unplaced = (value: unknown) => JSON.parse(JSON.stringify(value), (key, item) => key === "position" ? undefined : item);
-    const [old, now] = [await measureProbes(was.page, probes("before")), await measureProbes(is.page, probes("after"))];
+    // An artwork placeholder is a face (law 9e): its ground and positioning are the face primitive's (face-primitive.ts).
+    const placeholders = (value: Awaited<ReturnType<typeof measureProbes>>) => Object.fromEntries(Object.entries(value)
+      .map(([name, probe]) => [name, ["item-placeholder", "tiles"].includes(name) ? withoutFacePrimitive(probe, ["artwork"]) : probe]));
+    const [old, now] = [placeholders(await measureProbes(was.page, probes("before"))), placeholders(await measureProbes(is.page, probes("after")))];
     for (const name of Object.keys(old)) {
       const artwork = (value: typeof old) => ({ ...value[name], artwork: unplaced(value[name]?.artwork) });
       assert.deepEqual(name.startsWith("item") ? artwork(now) : now[name], name.startsWith("item") ? artwork(old) : old[name], name);

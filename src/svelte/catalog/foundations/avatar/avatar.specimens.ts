@@ -1,14 +1,14 @@
-// One witness of Avatar per size, decorative and as the shuffle button: a seeded portrait, a picture with its initials,
-// initials alone, and the seed that shuffles.
+// One witness of Avatar per size, decorative and as the shuffle button: a seeded portrait, a picture over its seed, a
+// row's seed mark, and the seed that shuffles.
 import type { CatalogSpecimen } from "../../types.d.ts";
 
 export const AvatarSpecimens = [
   { state: "default", variants: { size: "portrait", interaction: "none" },
     props: { size: "portrait", interaction: "none", source: { kind: "seed", seed: "3f9a1c07d2e85b46" }, label: "Ada's avatar" } },
   { state: "default", variants: { size: "compact", interaction: "none" },
-    props: { size: "compact", interaction: "none", source: { kind: "image", source: "/bank-image.svg", initials: "AR" }, label: "Alex Rivera" } },
+    props: { size: "compact", interaction: "none", source: { kind: "image", source: "/bank-image.svg", seed: "5c2e9b71a0d4f386" }, label: "Alex Rivera" } },
   { state: "default", variants: { size: "row", interaction: "none" },
-    props: { size: "row", interaction: "none", source: { kind: "initials", initials: "AR" } } },
+    props: { size: "row", interaction: "none", source: { kind: "seed", seed: "5c2e9b71a0d4f386" }, label: "Alex Rivera" } },
   { state: "default", variants: { size: "portrait", interaction: "shuffle" },
     props: { size: "portrait", interaction: "shuffle", source: { kind: "seed", seed: "3f9a1c07d2e85b46" }, shuffleLabel: "Shuffle avatar",
       onshuffle: (seed: string) => void seed } },

@@ -1246,7 +1246,10 @@
         "face.purpose"
       ],
       "owner": {
-        "entry": "Face.svelte"
+        "entry": "Face.svelte",
+        "parts": [
+          "face-tone.ts"
+        ]
       },
       "purpose": {
         "key": "face.purpose"

@@ -35,10 +35,12 @@ const page = `<div data-probe-host style="width:480px">
     <Catalog.Tag presentation="text" label="Unavailable" state="unavailable" removable={false} disabled={false} /></div>
 </div><output data-removed>{removed}</output>`;
 const script = `  const tones = ${JSON.stringify(tones)};\n  let removed = $state(0);`;
+// The corner is not inherited from the absorbed pieces: their capsule chips and round remove buttons broke law 9d. The
+// chip's corner and its concentric remove button are measured by face-material.test.ts; everything else keeps their pixels.
 const look = (selector: string) => `[...document.querySelectorAll(${JSON.stringify(selector)})].map(node => {
   const style = getComputedStyle(node), box = node.getBoundingClientRect();
   return { tag: node.tagName, text: node.textContent.trim(), width: Math.round(box.width), height: Math.round(box.height), display: style.display,
-    gap: style.columnGap, padding: style.padding, radius: style.borderRadius, font: style.font, color: style.color, background: style.backgroundColor,
+    gap: style.columnGap, padding: style.padding, font: style.font, color: style.color, background: style.backgroundColor,
     border: style.borderTopWidth + " " + style.borderTopColor };
 })`;
 

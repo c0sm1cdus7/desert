@@ -1172,7 +1172,7 @@ function drain() {
 
 ## src/svelte/catalog/foundations/image/Image.svelte
 
-Source SHA-256: c427dc3e22a838a3caf5acdfd74b8f96df054dffb3676fc205040af404a2e454
+Source SHA-256: b2b8e50f7572c797369a2bfab2e0a46302ebc0ee50bca9ca5c01b8464b9f2a35
 
 ```svelte
 <script lang="ts">
@@ -1237,8 +1237,9 @@ Source SHA-256: c427dc3e22a838a3caf5acdfd74b8f96df054dffb3676fc205040af404a2e454
 </script>
 
 <!-- A placeholder keeps the artwork placeholder mark, so hosts that have not migrated still place it as they placed
-     ArtworkPlaceholder. -->
-<div bind:this={host} class={placeholder === undefined ? "image" : "image-placeholder"} class:image-clear={backdrop === 'none'}
+     ArtworkPlaceholder. It stands where a face would: the theme's one face primitive (tm-face) gives it the white ground
+     and the hairline every face has (law 9e), in its host's shape. -->
+<div bind:this={host} class={placeholder === undefined ? "image" : "image-placeholder tm-face"} class:image-clear={backdrop === 'none'}
   data-media-image={placeholder === undefined ? "" : undefined} data-media-artwork-placeholder={placeholder === undefined ? undefined : ""}
   data-image-fit={placeholder === undefined ? fit : undefined} data-image-state={status} data-image-placeholder={placeholder}
   aria-label={placeholder === 'audio' ? say(m.image.noCover) : placeholder === 'video' ? say(m.image.noPoster) : undefined}>
@@ -1268,7 +1269,7 @@ Source SHA-256: c427dc3e22a838a3caf5acdfd74b8f96df054dffb3676fc205040af404a2e454
   @layer components {
     .image { position:relative; width:100%; height:100%; overflow:hidden; background:var(--muted); }
     .image-clear { background:transparent; }
-    .image-placeholder { display:grid; place-items:center; width:100%; height:100%; background:var(--muted); color:var(--muted-foreground); }
+    .image-placeholder { display:grid; place-items:center; width:100%; height:100%; border-radius:inherit; color:var(--muted-foreground); }
     .image-element { display:block; width:100%; height:100%; object-fit:cover; user-select:none; }
     .image-contain { object-fit:contain; }
     .image[data-image-state="ready"] > .image-element { animation:image-in var(--dur-unfold) var(--ease-tm) both; }

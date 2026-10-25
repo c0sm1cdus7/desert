@@ -3,7 +3,7 @@
 
 	/** The public badgeVariants contract. */
 	export const badgeVariants = tv({
-		base: "min-h-5 gap-1 rounded-4xl px-2 py-px text-xs font-medium transition-colors has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! group/badge inline-flex w-fit max-w-full min-w-0 shrink items-center justify-center overflow-hidden whitespace-normal [overflow-wrap:anywhere] [&>svg]:pointer-events-none",
+		base: "[--tag-radius:.375rem] [--tag-inset:3px] min-h-5 gap-1 rounded-[var(--tag-radius)] px-2 py-px text-xs font-medium transition-colors has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! group/badge inline-flex w-fit max-w-full min-w-0 shrink items-center justify-center overflow-hidden whitespace-normal [overflow-wrap:anywhere] [&>svg]:pointer-events-none",
 		variants: {
 			variant: {
 				default: "text-primary-text",
@@ -49,7 +49,7 @@
 	bind:this={ref}
 	data-slot="badge"
 	{href}
-	class={cn("material-pane", badgeVariants({ variant }), removable && "py-[.2rem] pr-1 pl-[.65rem] gap-[.3rem]", className)}
+	class={cn("material-pane", badgeVariants({ variant }), removable && "py-[var(--tag-inset)] pr-[var(--tag-inset)] pl-[.65rem] gap-[.3rem]", className)}
 	{...restProps}
 >
 	{@render children?.()}

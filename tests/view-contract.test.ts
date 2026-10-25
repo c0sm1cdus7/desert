@@ -15,7 +15,7 @@ const tag = { version: "desert.control/1", kind: "tag", id: "status", label: "Dr
 const image = { version: "desert.control/1", kind: "image", id: "cover-image", label: "Cover",
   disabled: false, source: { asset: "cover" }, alt: "Notebook cover", aspect: "landscape" } as const;
 const avatar = { version: "desert.control/1", kind: "avatar", id: "author", label: "Writer",
-  disabled: false, source: null, fallback: "WR" } as const;
+  disabled: false, source: null, seed: "5c2e9b71a0d4f386" } as const;
 const action = { output: "create", label: "New note", icon: "create" } as const;
 const toolbar = { kind: "toolbar", actions: [action] } as const;
 const stack = { kind: "stack", id: "recent", title: "Recent notes", items: [tag] } as const;

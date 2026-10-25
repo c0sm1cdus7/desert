@@ -40,7 +40,9 @@ test("long labels reflow in editing and published facts at 320px and 200% text",
 test("the shared badge keeps short neutral and status labels pixel-identical at normal and enlarged text", async () => {
   const badgePath = resolve(import.meta.dirname, "../src/svelte/vendor/components/ui/badge/badge.svelte");
   const current = await readFile(badgePath, "utf8");
-  const previous = current.replace(/base: "[^"]*"/, 'base: "h-5 gap-1 rounded-4xl px-2 py-0.5 text-xs font-medium transition-colors has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! group/badge inline-flex w-fit shrink-0 items-center justify-center overflow-hidden whitespace-nowrap [&>svg]:pointer-events-none"');
+  // The base before the reflow change, with today's corner (law 9d: a chip is a rounded rectangle, not the old capsule),
+  // so only the reflow is compared.
+  const previous = current.replace(/base: "[^"]*"/, 'base: "[--tag-radius:.375rem] [--tag-inset:3px] h-5 gap-1 rounded-[var(--tag-radius)] px-2 py-0.5 text-xs font-medium transition-colors has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! group/badge inline-flex w-fit shrink-0 items-center justify-center overflow-hidden whitespace-nowrap [&>svg]:pointer-events-none"');
   const source = `<script>import NodeRenderer from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';</script>
     {#each ['neutral','accent','success','warning','destructive'] as tone}
       <NodeRenderer node={{version:'desert.bank-node/1',kind:'control.tag',control:{version:'desert.control/1',
