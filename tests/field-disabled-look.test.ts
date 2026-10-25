@@ -1,7 +1,7 @@
 // One disabled look for every field, plainly off (third review of the slice 3 package): a disabled date field read almost
 // as an empty one, its faded value as grey as an empty field's placeholder, its calendar still offered. Every disabled
 // field (a date, a one-line and a multiline input, a trigger) offers nothing to press: no calendar, no chevron, no clear;
-// its content fades once; and its pane stays every pane's (law S1: disabled state belongs to content).
+// its content fades once, by Field's one disabled fade; and its pane stays every pane's (law S1: disabled state belongs to content).
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mounted } from "./support/foundation.ts";
@@ -27,12 +27,15 @@ test("every disabled field offers nothing to press and fades its content, on the
         return { case: scope.getAttribute("data-case")!, disabled: field.getAttribute("data-disabled") === "true", offered, fade: Math.round(fade * 100) / 100,
           ground: getComputedStyle(well).backgroundColor };
       }));
+      const fieldFade = Number(await f.page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--field-disabled-opacity")));
+      assert.ok(fieldFade > 0 && fieldFade < 1, `the field's disabled fade is a fade: ${fieldFade}`);
       const disabled = wells.filter(well => well.disabled), enabled = wells.filter(well => !well.disabled);
       const seen = JSON.stringify(wells);
       assert.ok(disabled.some(well => well.case.startsWith("date-")) && disabled.length >= 4, `${colorScheme}: the disabled witnesses: ${seen}`);
       for (const well of disabled) {
         assert.equal(well.offered, 0, `${colorScheme}: ${well.case} offers nothing to press while disabled: ${seen}`);
-        assert.equal(well.fade, .5, `${colorScheme}: ${well.case} fades its content once: ${seen}`);
+        // Once, by Field's one disabled fade (the theme's; tests/field-disabled-value.test.ts measures what it keeps legible).
+        assert.equal(well.fade, fieldFade, `${colorScheme}: ${well.case} fades its content once, by the field's fade: ${seen}`);
         assert.equal(well.ground, enabled[0]!.ground, `${colorScheme}: ${well.case} keeps every pane's ground`);
       }
       assert.ok(enabled.find(well => well.case === "date-empty")!.offered > 0, `${colorScheme}: an empty date still offers its calendar: ${seen}`);

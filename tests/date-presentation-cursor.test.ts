@@ -124,7 +124,9 @@ test('a disabled date field fades its content once, like every disabled control'
         opacity*=Number(getComputedStyle(node).opacity);
       return Math.round(opacity*100)/100;
     });
-    assert.equal(faded,0.5);
+    // Once, by Field's one disabled fade (the theme's).
+    assert.equal(faded,Number(await f.page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--field-disabled-opacity'))));
+    assert.ok(faded<1);
     assert.deepEqual(f.errors,[]);
   } finally {await f.close();}
 });

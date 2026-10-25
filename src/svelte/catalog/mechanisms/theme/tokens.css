@@ -32,6 +32,12 @@
   --radius-group:calc(var(--radius-control) + 1px);
   --radius-surface:calc(var(--radius-control) + var(--catalog-toolbar-inset) + 1px);
   --place-radius:var(--radius-surface); --disabled-opacity:.5;
+  /* Field's one disabled fade, for every kind (a date, an input, a trigger, a select, a search well): its label, value and
+     placeholder fade alike, and at this fade a value keeps its ink relationship, darker (in dark, lighter) than any
+     placeholder and lighter than an enabled value, so a disabled value reads as a value that is off, never as an empty
+     field (fourth review; at the half fade of a button's content it was as grey as a placeholder;
+     tests/field-disabled-value.test.ts). */
+  --field-disabled-opacity:.8;
   /* A field's trailing accessory sits this far inside the well's outer edge on every side; its radius is the well's less
      this inset, the control radius (law 9d, concentric: 16 − 4 = 12). */
   --field-accessory-inset:4px;

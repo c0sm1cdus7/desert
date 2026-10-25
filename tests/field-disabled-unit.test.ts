@@ -39,12 +39,15 @@ test("a disabled field fades each content unit once, whoever draws it", { timeou
       amount: '[data-case="money"] input', currency: '[data-case="money"] [data-field-row] [data-button-content]',
       note: '[data-case="counter"] textarea', counter: '[data-case="counter"] [data-character-counter]',
     }).map(async ([name, selector]) => [name, await f.page.evaluate(drawn(selector))] as const)));
-    assert.deepEqual(await measure(), { editor: 0.5, accessory: 0.5, amount: 0.5, currency: 0.5, note: 0.5, counter: 0.5 },
-      "disabled: every unit at the disabled opacity, none twice");
+    // Field's one disabled fade (the theme's; tests/field-disabled-value.test.ts measures what it keeps legible).
+    const fade = Number(await f.page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--field-disabled-opacity")));
+    assert.ok(fade > 0 && fade < 1, `the field's fade: ${fade}`);
+    assert.deepEqual(await measure(), { editor: fade, accessory: fade, amount: fade, currency: fade, note: fade, counter: fade },
+      "disabled: every unit at the field's disabled fade, none twice");
     await f.page.evaluate(() => (window as unknown as { enable: () => void }).enable());
     await f.page.evaluate(() => new Promise(requestAnimationFrame));
     assert.deepEqual(await measure(), { editor: 1, accessory: 0.5, amount: 1, currency: 1, note: 1, counter: 1 },
-      "enabled: only the pending accessory fades, by its own disabled content");
+      "enabled: only the pending accessory fades, by every control's own disabled content");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

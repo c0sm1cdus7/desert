@@ -131,6 +131,12 @@
    theme's disabled-unit, which fades it once and keeps a control nested in it from fading again. The counter under the
    row and a search well's parts are the field's own content units. A trigger well's content is its button's and fades
    as every disabled button's does (the theme's disabled-content). */
+/* Field's one disabled treatment: everything a disabled field draws fades by the field's fade (the theme's), its row, its
+   trigger's content, its addons and the controls inside it alike. An enabled field's own disabled control keeps every
+   control's disabled look. */
+:is([data-slot="field"][data-disabled="true"] .field-well,[data-field-trigger]:disabled,[data-search-field][data-disabled="true"]) {
+  --disabled-opacity:var(--field-disabled-opacity);
+}
 [data-slot="field"][data-disabled="true"] .field-well > [data-slot="input-group-addon"],
 [data-search-field][data-disabled="true"] > :is([data-slot="input-group-control"],[data-slot="input-group-addon"]) {
   opacity:var(--disabled-opacity);
