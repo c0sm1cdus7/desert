@@ -18,7 +18,9 @@
   /* Layout owns centering; motion only translates on the vertical axis. */
   .problem,.centered-dialog { position:fixed; inset:0; margin:auto; height:fit-content; max-height:calc(100dvh - 24px); }
   /* Wide enough that each half of the 50/50 pair holds a verb such as «Move to Trash» on one line. */
-  .problem { z-index:21; width:min(22rem,calc(100% - 24px)); }
+  /* Its corner is concentric with its 50/50 pair, which stands .25rem + the toolbar inset + its 1px border inside it, on
+     its content's edge (third review: at the surface radius it was 4px short). */
+  .problem { z-index:21; width:min(22rem,calc(100% - 24px)); border-radius:calc(var(--radius-control) + .25rem + var(--catalog-toolbar-inset) + 1px); }
   /* A message reads on one axis inside its pane's inset; its content scrolls when it outgrows the screen, its actions
      (a bottom Bar, which brings its own toolbar inset) stay in view below it, their edges on the content's. */
   .modal-message { display:flex; flex-direction:column; min-height:0; overflow-wrap:anywhere; }

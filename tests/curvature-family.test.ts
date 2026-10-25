@@ -80,7 +80,10 @@ const scenes: Record<string, { source: string; open?: string }> = {
   const photo = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Crect width='640' height='360' rx='24' fill='%23468'/%3E%3C/svg%3E";
   const galleries = GallerySpecimens.filter(specimen => specimen.props.presentation !== "header");`,
     `<section class="part" data-scene-part="image" style="display:grid;max-width:420px">{#each ImageSpecimens as specimen}<div class="cell" style="height:180px"><Catalog.Image {...specimen.props} /></div>{/each}
-      <div class="cell" style="height:180px" data-ready-photo><Catalog.Image source={photo} alt="Harbour" fit="fill" /></div></section>
+      <div class="cell" style="height:180px" data-ready-photo><Catalog.Image source={photo} alt="Harbour" fit="fill" /></div>
+      <!-- A notice in a host that gives it no height (a media object's «Media unavailable»): as tall as its sentence and
+           inset, never a capsule. -->
+      <div class="cell"><Catalog.Image placeholder="unavailable" fallback="Media unavailable" /></div></section>
     <section class="part" data-scene-part="gallery" style="display:grid;max-width:420px">{#each galleries as specimen}<div class="cell"><Catalog.Gallery {...specimen.props} /></div>{/each}</section>`) },
   popover: { source: page("",`<section class="part" data-scene-part="select" style="max-width:420px;display:block">${select}</section>`),
     open: "[data-selection-trigger]" },
@@ -213,12 +216,13 @@ function measure() {
 const label = process.env.CURVATURE_EVIDENCE ?? "current";
 for (const [scene, { source, open }] of Object.entries(scenes)) {
   test(`law 9d · ${scene}: controls 12, wells 16, concentric containers, no capsule`, { timeout: 120000 }, async () => {
-    const f = await svelteBrowser(source);
+    // The theme loads before the pieces, as in the product (third review: loaded after them, its base reset a dialog's
+    // action padding and hid that its corner was not concentric with its buttons).
+    const f = await svelteBrowser(source, {}, undefined, { initialCss: await rendererCss() });
     const directory = new URL(`../artifacts/curvature-family/${label}/`, import.meta.url);
     const failures: string[] = [], report: unknown[] = [];
     try {
       await mkdir(directory, { recursive: true });
-      await f.page.addStyleTag({ content: await rendererCss() });
       for (const width of [390, 1280]) for (const colorScheme of ["light", "dark"] as const) {
         await f.page.setViewportSize({ width, height: 900 });
         await f.page.emulateMedia({ colorScheme, reducedMotion: "reduce" });

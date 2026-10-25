@@ -99,6 +99,9 @@
     .image-clear { background:transparent; }
     .image-placeholder { display:grid; place-items:center; width:100%; height:100%; border-radius:var(--radius-control); color:var(--muted-foreground); }
     .image-host { border-radius:inherit; }
+    /* Unavailable media standing by itself says so with the inset of an image's notice, so a frame that gives it no height holds a
+       rounded box around its sentence, never a capsule. */
+    .image-placeholder[data-image-placeholder="unavailable"]:not(.image-host) { padding:var(--spacing-regular,1rem); text-align:center; }
     .image-element { display:block; width:100%; height:100%; object-fit:cover; user-select:none; }
     .image-contain { object-fit:contain; }
     .image[data-image-state="ready"] > .image-element { animation:image-in var(--dur-unfold) var(--ease-tm) both; }

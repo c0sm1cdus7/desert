@@ -59,10 +59,19 @@ test("media and catalog compositions keep the frozen trees' pixels, but for DESI
     // Design §7.1 radius exception (law 9d): both sides square their corners; tests/curvature-family.test.ts owns them.
     for (const f of [was, is]) await f.page.addStyleTag({ content: squareCorners });
     // Grids, covers, controls and media objects: the same pixels (a grid's rounded corners antialias a level or two apart).
-    for (const name of ["tiles", "covers", "tag", "image", "object-image", "object-missing"]) {
+    for (const name of ["tiles", "covers", "tag", "image", "object-image"]) {
       const [a, b] = [await caseShot(was.page, name), await caseShot(is.page, name)];
       assert.deepEqual(await pixelDifference(is.page, a, b, 2), { count: 0, within: true }, `${name}: the same pixels`);
     }
+    // Third review: «Media unavailable» is an image's notice now, its sentence inside the notice's 1rem inset (a rounded
+    // box, never a capsule around one line); its sentence and its width are the frozen ones.
+    const notice = (page: Page) => page.locator('[data-case="object-missing"] [data-media-artwork-placeholder]').evaluate(element => {
+      const box = element.getBoundingClientRect(), range = document.createRange(); range.selectNodeContents(element);
+      return { width: Math.round(box.width), text: element.textContent, height: Math.round(box.height), line: Math.round(range.getBoundingClientRect().height) };
+    });
+    const [missingWas, missingNow] = [await notice(was.page), await notice(is.page)];
+    assert.deepEqual([missingNow.width, missingNow.text], [missingWas.width, missingWas.text], "object-missing: the same sentence at the same width");
+    assert.equal(missingNow.height, missingWas.height + 32, "object-missing: the frozen line inside the notice's 1rem inset");
     const [old, now] = [withoutRadius(await measureProbes(was.page, probes("before"))), withoutRadius(await measureProbes(is.page, probes("after")))];
     // The media list: the same artwork, attention dot and label boxes; the label is the row's medium weight (§1.4).
     for (const probe of ["artwork", "dot"]) assert.deepEqual(now.list?.[probe], old.list?.[probe], `list/${probe}`);
