@@ -10,9 +10,13 @@ import type { CatalogDestination, EvidencePiece } from "./pieces.ts";
 const heights = { 390: 844, 1280: 900 } as const;
 export type Captured = Readonly<{ captures: ReadonlyMap<string, Buffer> }> | Readonly<{ error: string }>;
 
+/** Every document starts from an empty local storage: a page that saves the appearance (the onboarding form stores the
+ * platform scheme it found) must not carry one combination's choice into the next. */
 async function context(browser: Browser, deviceScaleFactor: number): Promise<BrowserContext> {
-  return browser.newContext({ viewport: { width: 1280, height: heights[1280] }, deviceScaleFactor, colorScheme: "light",
+  const scope = await browser.newContext({ viewport: { width: 1280, height: heights[1280] }, deviceScaleFactor, colorScheme: "light",
     reducedMotion: "reduce", locale: "en-US", timezoneId: "America/Argentina/Buenos_Aires" });
+  await scope.addInitScript(() => { localStorage.clear(); sessionStorage.clear(); });
+  return scope;
 }
 function watch(page: Page): string[] {
   const errors: string[] = [];

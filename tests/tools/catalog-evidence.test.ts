@@ -12,6 +12,9 @@ import sharp from "sharp";
 import { readEvidencePieces } from "./catalog-evidence/pieces.ts";
 import { runEvidence } from "./catalog-evidence/run.ts";
 import { readStatuses } from "./catalog-evidence/status.ts";
+import { captureSpecimens } from "./catalog-evidence/capture.ts";
+import { serveEvidence } from "./catalog-evidence/serve.ts";
+import { chromium } from "playwright";
 
 const root = resolve(import.meta.dirname, "../.."), sample = ["action", "column", "heading"] as const;
 
@@ -51,4 +54,27 @@ test("the printed digests are the ones the approve command stamps (run in a temp
     const { stdout } = await promisify(execFile)(process.execPath, [join(copy, "scripts/catalog.ts"), "approve", "heading"], { cwd: copy });
     assert.match(stdout, new RegExp(`source   ${before?.sourceDigest}\\n  contract ${before?.contractDigest}`));
   } finally { await rm(copy, { recursive: true }); }
+});
+
+// Found by the slice 3 package: the four captures of a piece shared one browser context, so a specimen that saves the
+// appearance (the onboarding form picks the platform scheme and stores it) carried its light choice into the dark captures.
+test("each capture starts from a fresh appearance: the onboarding form's dark captures are dark after its light ones", { timeout: 900_000 }, async () => {
+  const { pieces } = await readEvidencePieces(root, ["access-form"]);
+  const piece = pieces[0]!;
+  const server = await serveEvidence(pieces);
+  try {
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const { results } = await captureSpecimens(browser, server.origin, piece);
+      const captured = results.get(0);
+      assert.ok(captured && "captures" in captured, "the access form specimen rendered");
+      for (const [name, theme] of [["light-390", "light"], ["dark-390", "dark"], ["dark-1280", "dark"]] as const) {
+        const png = captured.captures.get(name);
+        assert.ok(png, `${name} captured`);
+        const { dominant } = await sharp(png).stats();
+        const luminance = 0.3 * dominant.r + 0.59 * dominant.g + 0.11 * dominant.b;
+        assert.equal(luminance < 128 ? "dark" : "light", theme, `${name} renders ${theme} (dominant luminance ${Math.round(luminance)})`);
+      }
+    } finally { await browser.close(); }
+  } finally { await server.close(); }
 });
