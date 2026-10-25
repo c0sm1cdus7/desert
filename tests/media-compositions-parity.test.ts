@@ -56,6 +56,13 @@ test("media and catalog compositions keep the frozen trees' pixels, but for DESI
     // frozen pixels to keep.
     for (const f of [was, is]) await f.page.addStyleTag({ content: "[data-media-artwork-placeholder] { background:none !important; position:static !important; border-radius:0 !important; }"
       + " [data-media-artwork-placeholder]::after { content:none !important; }" });
+    // Fourth review: an image's error is the one notice of unavailable media (its hairline and its centred sentence;
+    // tests/media-notice-anatomy.test.ts measures it): both trees set that edge and alignment aside here.
+    for (const f of [was, is]) await f.page.addStyleTag({ content: "[data-media-error] { border-color:transparent !important; text-align:center !important; }" });
+    // Unavailable media (a record without a picture) was a placeholder face, set aside above; it is that notice now, whose
+    // ground, ink and edge the same test measures: today's tree sets them aside the same way.
+    await is.page.addStyleTag({ content: "[data-image-state='unavailable'], [data-image-state='unavailable'] > [data-media-notice] { background:none !important;"
+      + " border-color:transparent !important; color:var(--muted-foreground) !important; }" });
     // Design §7.1 radius exception (law 9d): both sides square their corners; tests/curvature-family.test.ts owns them.
     for (const f of [was, is]) await f.page.addStyleTag({ content: squareCorners });
     // Grids, covers, controls and media objects: the same pixels (a grid's rounded corners antialias a level or two apart).
@@ -64,17 +71,28 @@ test("media and catalog compositions keep the frozen trees' pixels, but for DESI
       assert.deepEqual(await pixelDifference(is.page, a, b, 2), { count: 0, within: true }, `${name}: the same pixels`);
     }
     // Third review: «Media unavailable» is an image's notice now, its sentence inside the notice's 1rem inset (a rounded
-    // box, never a capsule around one line); its sentence and its width are the frozen ones.
-    const notice = (page: Page) => page.locator('[data-case="object-missing"] [data-media-artwork-placeholder]').evaluate(element => {
+    // box, never a capsule around one line); its sentence and its width are the frozen ones. Fourth review: it is the one
+    // notice of unavailable media (no longer a placeholder face), its 1px edge inside its box.
+    const notice = (page: Page, selector: string) => page.locator(`[data-case="object-missing"] ${selector}`).evaluate(element => {
       const box = element.getBoundingClientRect(), range = document.createRange(); range.selectNodeContents(element);
       return { width: Math.round(box.width), text: element.textContent, height: Math.round(box.height), line: Math.round(range.getBoundingClientRect().height) };
     });
-    const [missingWas, missingNow] = [await notice(was.page), await notice(is.page)];
+    const [missingWas, missingNow] = [await notice(was.page, "[data-media-artwork-placeholder]"), await notice(is.page, "[data-media-notice]")];
     assert.deepEqual([missingNow.width, missingNow.text], [missingWas.width, missingWas.text], "object-missing: the same sentence at the same width");
-    assert.equal(missingNow.height, missingWas.height + 32, "object-missing: the frozen line inside the notice's 1rem inset");
+    assert.equal(missingNow.height, missingWas.height + 32 + 2, "object-missing: the frozen line inside the notice's 1rem inset and its 1px edge");
     const [old, now] = [withoutRadius(await measureProbes(was.page, probes("before"))), withoutRadius(await measureProbes(is.page, probes("after")))];
     // The media list: the same artwork, attention dot and label boxes; the label is the row's medium weight (§1.4).
-    for (const probe of ["artwork", "dot"]) assert.deepEqual(now.list?.[probe], old.list?.[probe], `list/${probe}`);
+    // Fourth review: the record without a picture shows the one notice of unavailable media in an image's frame (block,
+    // clipped to its corner, the notice inside it centred) where the frozen tree drew a placeholder face (a centred grid with
+    // its hairline); its box is the frozen one, and only those frame properties differ.
+    const frame = { "align-items": "normal", "border-top-color": "rgba(0, 0, 0, 0)", display: "block", overflow: "hidden", position: "relative" };
+    const unavailable = old.list?.artwork?.map((item, index) => item.style.display === "grid" && now.list?.artwork?.[index]?.style.display === "block") ?? [];
+    assert.equal(unavailable.filter(Boolean).length, 1, "list: one record without a picture");
+    assert.deepEqual(now.list?.artwork?.filter((_, index) => unavailable[index]).map(item => Object.fromEntries(Object.keys(frame).map(key => [key, item.style[key]]))), [frame]);
+    const asFrozen = (items: Measured[string][string] | undefined) => items?.map((item, index) => unavailable[index]
+      ? { ...item, style: { ...item.style, ...Object.fromEntries(Object.keys(frame).map(key => [key, old.list!.artwork![index]!.style[key]])) } } : item);
+    assert.deepEqual(asFrozen(now.list?.artwork), old.list?.artwork, "list/artwork");
+    assert.deepEqual(now.list?.dot, old.list?.dot, "list/dot");
     assert.deepEqual(boxes(now, "list", "label").map(box => box.slice(0, 2)), boxes(old, "list", "label").map(box => box.slice(0, 2)));
     assert.deepEqual(now.list?.label?.map(item => item.style["font-weight"]), ["500", "500", "500"]);
     // A nested catalog: its featured entry keeps the stack item's content inset.
