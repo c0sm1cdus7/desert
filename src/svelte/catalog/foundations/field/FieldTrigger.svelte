@@ -48,7 +48,9 @@
         {:else if display.kind === "image"}
           <span class="field-image"><span data-field-thumbnail><Image frame="host" source={display.source} alt="" fit="fill" edge={88} /></span>{display.text}</span>
         {:else}<span class={display.placeholder ? "field-placeholder" : undefined}>{display.text}</span>{/if}
-        {#if accessory === "calendar"}<Icon name="calendar" placement="inline-end" decorative />
+        <!-- Disabled, a field offers nothing to press (as a disabled input offers no clear): its calendar or chevron goes,
+             so it reads plainly off beside an empty field, whose placeholder is grey too. -->
+        {#if disabled}{:else if accessory === "calendar"}<Icon name="calendar" placement="inline-end" decorative />
         {:else}<Icon name="chevron-down" placement="inline-end" chevron decorative />{/if}
       </span>
     </FieldLabel>
