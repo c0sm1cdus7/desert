@@ -28,6 +28,13 @@
       "folder": "src/svelte/catalog/mechanisms/control-feedback",
       "owner": "theme"
     },
+    "file-picker": {
+      "files": [
+        "file-picker.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/file-picker",
+      "owner": "files"
+    },
     "lateral-surface-motion": {
       "files": [
         "lateral-surface-motion.css"
@@ -1877,8 +1884,10 @@
       ],
       "owner": {
         "entry": "Files.svelte",
+        "mechanisms": [
+          "file-picker"
+        ],
         "parts": [
-          "native-file-picker.ts",
           "file-size.ts",
           "files.css"
         ]
@@ -3799,6 +3808,7 @@
       "owner": {
         "entry": "Shell.svelte",
         "mechanisms": [
+          "file-picker",
           "surface-host",
           "swipe-motion",
           "toolbar-geometry"

@@ -1,14 +1,24 @@
 import { applyControlEvent, type ControlEvent, type FileNode, type FileMetadata } from "../../interaction/control-nodes.ts";
-// F1-merge: the create-from-file journey (web/client/file-entry.ts) still opens the chooser through this host.
-import { nativeFilePicker } from "../catalog/foundations/files/native-file-picker.ts";
 
 type FileEvent = Extract<ControlEvent, { kind: "files.choose" | "files.remove" }>;
+/** Opens a chooser for a files node and resolves the chosen files, or null when the person cancels. */
+export type FileChooser = (node: FileNode) => Promise<readonly File[] | null>;
 
 /** Ephemeral host-owned browser handles, never part of the interaction contract. */
 export class LocalFileHost {
   #handles = new Map<string, File>();
+  #chooser: FileChooser | undefined;
+  /** The browser chooser a foundation offers (shell offers the file-picker mechanism of files); this host owns no DOM.
+   * The latest offer is used until it is released. */
+  offerChooser(chooser: FileChooser): () => void {
+    this.#chooser = chooser;
+    return () => { if (this.#chooser === chooser) this.#chooser = undefined; };
+  }
+  /** Opens the offered chooser for the create-from-file journey (web/client/file-entry.ts). */
   async pick(node: FileNode) {
-    const files = await nativeFilePicker(node);
+    const chooser = this.#chooser;
+    if (!chooser) throw new Error("FILE_PICKER_UNAVAILABLE: no foundation offered a file chooser to this host");
+    const files = await chooser(node);
     if (!files) return null;
     const chosen = this.choose(node, files);
     if (chosen.result.rejected.length) {

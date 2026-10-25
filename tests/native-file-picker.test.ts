@@ -4,7 +4,7 @@ import { svelteBrowser } from './fixtures/svelte-browser.ts';
 
 test('the native chooser uses installed format filters and removes its hidden host on cancel or selection', async () => {
   const fixture=await svelteBrowser(`<script>
-    import {nativeFilePicker} from '@desert/svelte/catalog/foundations/files/native-file-picker.ts';
+    import {nativeFilePicker} from '@desert/svelte/catalog/mechanisms/file-picker/file-picker.ts';
     let result=$state('untouched');
     const node={version:'desert.control/1',kind:'files',id:'media',label:'Media',disabled:false,files:[],
       limits:{maxCount:1,maxFileBytes:20971520,maxTotalBytes:20971520,accept:['image/jpeg','image/png','image/webp','video/mp4','audio/mpeg','audio/wav']}};

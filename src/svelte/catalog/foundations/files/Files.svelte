@@ -8,7 +8,7 @@
   import { currentStackTitle } from "../../../infra/stack-context.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import { fileSize } from "./file-size.ts";
-  import { nativeFilePicker } from "./native-file-picker.ts";
+  import { nativeFilePicker } from "../../mechanisms/file-picker/file-picker.ts";
   let { node, onevent }: CatalogProps<"files"> = $props();
   const provided = useFileHost();
   if (!provided) throw new Error("LOCAL_FILE_HOST_REQUIRED: files renders inside a subtree that provides a file host (provideFileHost)");

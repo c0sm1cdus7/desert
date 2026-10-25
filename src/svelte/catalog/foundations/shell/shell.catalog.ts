@@ -11,7 +11,7 @@ export const Shell = defineFoundation({
   owner: { entry: "Shell.svelte",
     parts: ["AdaptiveSurfaceLayout.svelte", "CatalogEdgeNavigation.svelte", "ShellBody.svelte", "ShellNavigation.svelte", "catalog-shell.css",
       "dock-above.ts", "navigation-icons.ts", "place-heading-motion.ts", "search-focus.svelte.ts", "toolbar-reading-boundary.ts"],
-    vendor: ["sidebar", "tooltip"], mechanisms: ["surface-host", "swipe-motion", "toolbar-geometry"] },
+    vendor: ["sidebar", "tooltip"], mechanisms: ["file-picker", "surface-host", "swipe-motion", "toolbar-geometry"] },
   shape: "none", states: ["default", "searching"],
   slots: {
     top: { accepts: ["bar", "toolbar"] },

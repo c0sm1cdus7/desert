@@ -4,6 +4,8 @@
   import { appearance } from "../../../infra/appearance-state.ts";
   import { provideFocusScope, useFocusScope } from "../../../infra/focus-scope.ts";
   import { provideRegionRegistry, useRegionRegistry } from "../../../infra/region-registry.ts";
+  import { useFileHost } from "../../../infra/file-host-context.ts";
+  import { nativeFilePicker } from "../../mechanisms/file-picker/file-picker.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import ShellBody from "./ShellBody.svelte";
   let { documentTitle, label, destination, searching, hasQuery, detail, backAvailable, resultsId, searchLabel, navigation,
@@ -11,6 +13,9 @@
   // Pieces in the workspace register focus targets and reveals here (a caller may open them above the shell instead).
   const scope = useFocusScope() ?? provideFocusScope();
   const regions = useRegionRegistry() ?? provideRegionRegistry();
+  // The workspace file host (when the product provides one) opens the browser chooser through the file-picker mechanism.
+  const files = useFileHost();
+  $effect(() => files?.offerChooser(nativeFilePicker));
   let workspace = $state<HTMLElement | null>(null);
   let body = $state<ReturnType<typeof ShellBody>>();
   export function scrollToTop(): void { body?.scrollToTop(); }
