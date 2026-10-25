@@ -8,6 +8,7 @@ import { dirname, join } from "node:path";
 import { generateCatalog } from "../src/authoring/catalog/generate.ts";
 import { readCatalogTree, runCatalogGate } from "../src/authoring/catalog/gate/run.ts";
 import { testLayout } from "./support/catalog-layout.ts";
+import { themeBlockBegin, themeBlockEnd } from "../src/authoring/catalog/theme-stylesheets.ts";
 
 const layout = testLayout();
 const field = `import { defineFoundation } from "x";
@@ -117,5 +118,28 @@ test("the renderer table imports each rendering piece's entry and maps every kin
 test("a renderer table edited by hand fails rule C", async () => {
   await withTree(await generatedTree(files => { files[layout.generated.renderers] += "export const extra = 1;\n"; }), async root => {
     await assert.rejects(runCatalogGate(root, { layout, rules: ["C"] }), /CATALOG_DERIVATION: src\/svelte\/renderer-registry\.ts differs/);
+  });
+});
+
+test("theme.css's stylesheet block is generated from the declarations; a hand edit to it fails rule C", async () => {
+  const themed = testLayout({ fixed: { theme: ["src/svelte/theme.css"] } }), path = "src/svelte/theme.css";
+  const files: Record<string, string> = { ...declarations,
+    "src/svelte/catalog/foundations/field/field.catalog.ts": field.replace('owner: { entry: "Field.svelte" }', 'owner: { entry: "Field.svelte", parts: ["field.css"] }'),
+    "src/svelte/catalog/foundations/field/field.css": "[data-field] { margin: 0; }\n",
+    "src/svelte/catalog/mechanisms/motion/motion.mechanism.ts":
+      'import { defineMechanism } from "x";\nexport const Motion = defineMechanism({ id: "motion", owner: "theme", files: ["motion.ts", "motion.css"] } as const);\n',
+    "src/svelte/catalog/mechanisms/motion/motion.css": ".motion { opacity: 1; }\n",
+    [path]: '@import "tailwindcss";\n@import "./catalog/mechanisms/theme/tokens.css";\n@source "./catalog";\n' };
+  let generated: Record<string, string> = {};
+  await withTree(files, async root => {
+    generated = Object.fromEntries(generateCatalog(await readCatalogTree(root, themed), themed).map(output => [output.path, output.source]));
+  });
+  // Mechanisms first, then pieces; the theme mechanism's own stylesheets stay the entry's; a script file is not a stylesheet.
+  assert.equal(generated[path], ['@import "tailwindcss";', '@import "./catalog/mechanisms/theme/tokens.css";', themeBlockBegin,
+    '@import "./catalog/mechanisms/motion/motion.css";', '@import "./catalog/foundations/field/field.css";', themeBlockEnd, '@source "./catalog";', ""].join("\n"));
+  await withTree({ ...files, ...generated }, root => runCatalogGate(root, { layout: themed, rules: ["C"] }).then(() => undefined));
+  const edited = { ...files, ...generated, [path]: generated[path]!.replace('@import "./catalog/foundations/field/field.css";\n', "") };
+  await withTree(edited, async root => {
+    await assert.rejects(runCatalogGate(root, { layout: themed, rules: ["C"] }), /CATALOG_DERIVATION: src\/svelte\/theme\.css differs from the declarations/);
   });
 });

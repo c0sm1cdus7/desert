@@ -57,6 +57,8 @@ export async function readCatalogTree(root: string, layout: CatalogLayout): Prom
   }
   const generated = new Map<string, string>();
   for (const path of Object.values(layout.generated)) if (paths.includes(path)) generated.set(path, await readFile(join(root, path), "utf8"));
+  // The theme entry is written by hand around one generated block: its stylesheet imports (theme-stylesheets.ts).
+  for (const path of layout.fixed.theme ?? []) if (paths.includes(path)) generated.set(path, await readFile(join(root, path), "utf8"));
   const ledger: unknown = paths.includes(layout.ledger) ? parseLedger(layout.ledger, await readFile(join(root, layout.ledger), "utf8")) : undefined;
   const messages = await readMessageBundles(root, layout.messages.folder);
   const keys = await readOptional(join(root, layout.messages.keys));

@@ -11,8 +11,8 @@ export function assertCatalogDerivations(tree: CatalogSource, layout: CatalogLay
   for (const expected of generateCatalog(tree, layout)) {
     const actual = tree.generated.get(expected.path);
     if (actual === undefined) throw new Error(`CATALOG_DERIVATION: ${expected.path} is missing; ${write}`);
-    const same = expected.path.endsWith(".json")
-      ? normalizedJson(actual) === normalizedJson(expected.source)
+    const same = expected.path.endsWith(".json") ? normalizedJson(actual) === normalizedJson(expected.source)
+      : expected.path.endsWith(".css") ? actual === expected.source
       : normalizedTypeScript(actual) === normalizedTypeScript(expected.source);
     if (!same) throw new Error(`CATALOG_DERIVATION: ${expected.path} differs from the declarations; ${write}`);
   }

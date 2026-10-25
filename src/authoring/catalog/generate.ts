@@ -1,4 +1,5 @@
-// The catalog generator: index, manifest, types and the renderer table are projections of the declarations, read as data.
+// The catalog generator: index, manifest, types, the renderer table and the theme entry's stylesheet block are projections of
+// the declarations, read as data.
 // A pure function of its input; `node scripts/catalog.ts --write` writes it and rule C compares with it.
 import { posix } from "node:path";
 import type { CatalogLayout } from "./layout.ts";
@@ -6,6 +7,7 @@ import type { LocatedDeclaration } from "./gate/inventory.ts";
 import type { ReadContract } from "./read-contract.ts";
 import { canonicalJson } from "./normalize-source.ts";
 import { generateMessageKeys } from "../../messages/generate.ts";
+import { themeStylesheetImports, withThemeStylesheets } from "./theme-stylesheets.ts";
 
 export type GeneratedFile = Readonly<{ path: string; source: string }>;
 export const manifestVersion = "desert.catalog-manifest/1";
@@ -20,7 +22,7 @@ export type CatalogSource = Readonly<{ declarations: readonly LocatedDeclaration
 /** The SDK module every message catalog is built with; the generated keys module imports it. */
 export const messageCatalogModule = "src/messages/catalog.ts";
 
-export function generateCatalog(source: Pick<CatalogSource, "declarations" | "contracts" | "messages">, layout: CatalogLayout): readonly GeneratedFile[] {
+export function generateCatalog(source: Pick<CatalogSource, "declarations" | "contracts" | "messages" | "generated">, layout: CatalogLayout): readonly GeneratedFile[] {
   const { declarations, contracts } = source;
   const sorted = [...declarations].sort(byId);
   const pieces = sorted.flatMap(({ path, declaration }) => declaration.kind === "mechanism" ? [] : [{ path, declaration }]);
@@ -92,7 +94,16 @@ export function generateCatalog(source: Pick<CatalogSource, "declarations" | "co
       "} as const);", ""].join("\n") },
     ...source.messages.size ? [{ path: layout.messages.keys, source: generateMessageKeys(source.messages, {
       catalogModule: `./${posix.relative(posix.dirname(layout.messages.keys), messageCatalogModule)}`, command: "node scripts/catalog.ts --write" }) }] : [],
+    ...themeEntries(source, layout),
   ]);
+}
+
+/** The theme entry (the theme category's file) with its stylesheet block regenerated, when the tree has one. */
+function themeEntries(source: Pick<CatalogSource, "declarations" | "generated">, layout: CatalogLayout): GeneratedFile[] {
+  return (layout.fixed.theme ?? []).flatMap(path => {
+    const text = source.generated.get(path);
+    return text === undefined ? [] : [{ path, source: withThemeStylesheets(text, themeStylesheetImports(source.declarations, path)) }];
+  });
 }
 
 /** The piece each resolved node kind renders through (each declaration's `renders`), typed by NodeRendererTable. Entries

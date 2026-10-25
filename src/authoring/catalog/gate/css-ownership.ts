@@ -1,8 +1,9 @@
 // Rule G. Law: a stylesheet styles only what its owner draws, and only its owner loads it. Raises CROSS_OWNER_CSS.
 // Every `.css` file and every Svelte `<style>` is read with Svelte's own CSS parser. Only the theme mechanism styles
 // elements or styles globally; a selector may name a vendor slot (`data-slot`) or a contract mark only inside the
-// piece that owns it; compositions own no CSS; theme.css loads only the theme's mechanism stylesheets. What owners draw
-// (marks written in markup, custom properties) is css-marks.ts.
+// piece that owns it; compositions own no CSS; theme.css loads the theme's mechanism stylesheets and, in its generated block,
+// exactly the stylesheets the declarations list (theme-stylesheets.ts), each a declared owner's. What owners draw (marks
+// written in markup, custom properties) is css-marks.ts.
 // G reports, it never fixes: the stylesheets keep the pixels the owner approved.
 import ts from "typescript";
 import { isCSSRequest } from "vite";
@@ -15,6 +16,7 @@ import { lineOf } from "./parse.ts";
 import { position, readStylesheet, rulesOf, decodeCss, type Stylesheet } from "./stylesheet.ts";
 import { themeMechanism } from "../layout.ts";
 import { customPropertyViolations, foreignMarkViolations, ownerId } from "./css-marks.ts";
+import { themeBlock, themeStylesheetImports } from "../theme-stylesheets.ts";
 
 const code = "CROSS_OWNER_CSS", theme = themeMechanism;
 type StylesheetImport = Readonly<{ from: string; line: number; specifier: string; target: Target }>;
@@ -158,11 +160,28 @@ function importViolation(context: GateContext, item: StylesheetImport): string |
   if (item.target.kind !== "file") return undefined;
   const path = item.target.path, owner = context.owners.of(path);
   if (isThemeEntry(owner) && isTemplateHost(importer)) return undefined;
-  if (isThemeEntry(importer)) return owner?.kind === "mechanism" && owner.owner === theme ? undefined
-    : `theme.css imports ${path}, which is not a theme mechanism stylesheet`;
+  if (isThemeEntry(importer)) {
+    const block = themeBlock(context.text(item.from) ?? "");
+    if (block && item.line > block.begin + 1 && item.line <= block.end) return isDeclaredStylesheet(owner) ? undefined
+      : `theme.css's generated block imports ${path}, which no declaration lists as its stylesheet`;
+    return owner?.kind === "mechanism" && owner.owner === theme ? undefined : `theme.css imports ${path}, which is not a theme mechanism stylesheet`;
+  }
   const mine = ownerId(importer), theirs = ownerId(owner);
   return mine !== undefined && mine === theirs ? undefined
     : `${name} imports ${path}, owned by ${theirs ?? "no declared owner"}: a stylesheet is imported only by its owner`;
+}
+
+/** A mechanism's file or a piece's part: a stylesheet some declaration lists. */
+const isDeclaredStylesheet = (owner: Owner | undefined) => owner?.kind === "mechanism" || owner?.kind === "piece" && owner.role === "part";
+
+/** The theme entry's generated block is the one the declarations generate (the compile loads every declared stylesheet). */
+function themeBlockViolations(context: GateContext): Violation[] {
+  return (context.layout.fixed[theme] ?? []).flatMap(path => {
+    const text = context.text(path), block = themeBlock(text ?? ""), expected = themeStylesheetImports(context.declarations, path);
+    if (text === undefined || block && block.lines.join("\n") === expected.join("\n") || !block && !expected.length) return [];
+    return [violation(code, path, block ? block.begin + 1 : 1, block ? "theme.css's generated stylesheet block is not the declarations' stylesheets; run `node scripts/catalog.ts --write`"
+      : "theme.css has no generated stylesheet block, so the declarations' stylesheets are not loaded; run `node scripts/catalog.ts --write`")];
+  });
 }
 
 export const ruleG: ContentRule = context => {
@@ -173,5 +192,5 @@ export const ruleG: ContentRule = context => {
     const what = importViolation(context, item);
     if (what !== undefined) found.push(violation(code, item.from, item.line, what));
   }
-  return found;
+  return [...found, ...themeBlockViolations(context)];
 };

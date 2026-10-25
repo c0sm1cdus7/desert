@@ -6,6 +6,7 @@ import { ruleG } from "../src/authoring/catalog/gate/css-ownership.ts";
 import { emittedCssViolations } from "../src/authoring/catalog/gate/emitted-css.ts";
 import { codes, composition, contextOf as contextOfFiles, foundation } from "./support/catalog-context.ts";
 import { testLayout } from "./support/catalog-layout.ts";
+import { themeBlockBegin, themeBlockEnd } from "../src/authoring/catalog/theme-stylesheets.ts";
 
 const catalog = "src/svelte/catalog", mechanisms = `${catalog}/mechanisms`, foundations = `${catalog}/foundations`;
 const vendor = "src/svelte/vendor/components/ui", theme = "src/svelte/theme.css";
@@ -15,6 +16,10 @@ const heading = `${foundations}/heading/Heading.svelte`, page = `${catalog}/comp
 const mechanism = (id: string, owner: string, files: readonly string[]) => ({
   [`${mechanisms}/${id}/${id}.mechanism.ts`]: `import { defineMechanism } from "x";
 export const M = defineMechanism({ id: "${id}", owner: "${owner}", files: ${JSON.stringify(files)} } as const);\n` });
+/** theme.css's generated block: one import per stylesheet the declarations list (mechanisms, then pieces, each by id). */
+const block = (...paths: readonly string[]) => [themeBlockBegin, ...paths.map(path => `@import "./${path.slice("src/svelte/".length)}";`), themeBlockEnd].join("\n");
+const declaredSheets = [`${mechanisms}/structured-content/structured-content.css`, `${mechanisms}/well-motion/well-motion.css`,
+  `${foundations}/field-well/field-well.css`];
 const markedContract = `import { Type } from "@sinclair/typebox";
 export const C = { props: Type.Object({}, { additionalProperties: false }), events: Type.Object({}, { additionalProperties: false }),
   marks: ["data-heading-level"] } as const;\n`;
@@ -22,7 +27,7 @@ export const C = { props: Type.Object({}, { additionalProperties: false }), even
 /** A legal tree: theme entry and mechanisms, two foundations with vendor families, one composition. */
 const tree = (): Record<string, string> => ({
   [theme]: `@import "tailwindcss";\n@import "./catalog/mechanisms/theme/tokens.css";\n@import "./catalog/mechanisms/structured-content/structured-content.css";
-:global(.root) { margin: 0; }\n.bank-face { width: 2rem; }\n`,
+${block(...declaredSheets)}\n:global(.root) { margin: 0; }\n.bank-face { width: 2rem; }\n`,
   ...mechanism("theme", "theme", ["tokens.css"]),
   [tokens]: "@layer base { *, button:disabled { cursor: default; } :global(html) { color: black; } }\n@keyframes spin { from { a: b } to { a: c } }\n",
   ...mechanism("structured-content", "theme", ["structured-content.css"]),
@@ -146,6 +151,26 @@ test("G: theme.css importing anything but a theme mechanism stylesheet is reject
     cross(theme, `theme.css imports ${rogue}, which is not a theme mechanism stylesheet`),
     cross(theme, `theme.css imports ${wellCss}, which is not a theme mechanism stylesheet`),
   ]);
+});
+
+test("G (P4e): theme.css's generated block is exactly the declarations' stylesheets, each a declared owner's", () => {
+  const withBlock = (lines: string) => ({ ...tree(), [theme]: tree()[theme]!.replace(block(...declaredSheets), lines) });
+  // Positive: the block the declarations generate passes (the control tree).
+  assert.deepEqual(run(tree()), []);
+  // Negative: a missing, a reordered or an undeclared stylesheet; no block at all.
+  const differs = cross(theme, "theme.css's generated stylesheet block is not the declarations' stylesheets; run `node scripts/catalog.ts --write`");
+  assert.deepEqual(run(withBlock(block(...declaredSheets.slice(0, 2)))), [differs]);
+  assert.deepEqual(run(withBlock(block(...declaredSheets.slice().reverse()))), [differs]);
+  const rogue = "src/svelte/rogue.css";
+  assert.deepEqual(run({ ...withBlock(block(...declaredSheets, rogue)), [rogue]: "[data-r] { color: red; }\n" }), [
+    cross(theme, `theme.css's generated block imports ${rogue}, which no declaration lists as its stylesheet`), differs]);
+  assert.deepEqual(run(withBlock("")), [cross(theme,
+    "theme.css has no generated stylesheet block, so the declarations' stylesheets are not loaded; run `node scripts/catalog.ts --write`")]);
+});
+
+test("G (P4e): outside its generated block theme.css still loads only theme mechanism stylesheets", () => {
+  assert.deepEqual(run(append(tree(), theme, '@import "./catalog/foundations/field-well/field-well.css";\n')),
+    [cross(theme, `theme.css imports ${wellCss}, which is not a theme mechanism stylesheet`)]);
 });
 
 test("G: the template host loads theme.css; any other file loading it, or a stylesheet referenced from infra, is rejected", () => {
