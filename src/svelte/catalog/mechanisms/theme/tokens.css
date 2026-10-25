@@ -36,7 +36,7 @@
   --dur-feedback:100ms; --dur-popover:120ms; --dur-menu:140ms; --dur-dialog:240ms; --dur-dialog-out:170ms; --dur-lateral:180ms;
   --motion-overlay-enter:var(--dur-surface); --motion-overlay-exit:var(--dur-lateral);
   --dur-push:260ms; --dur-drawer-in:320ms; --dur-drawer-out:220ms; --dur-fab:200ms; --dur-nav:200ms; --dur-rail:280ms;
-  --dur-transient:260ms; --dur-transient-out:200ms; --scale:1; --text-scale:var(--scale);
+  --dur-transient:260ms; --dur-transient-out:200ms;
   --primary-faded:color-mix(in oklab,var(--primary) 16%,transparent); --primary-faded-foreground:var(--primary-text);
   --chart-1:#c32230; --chart-2:#267a3e; --chart-3:#916000; --chart-4:#8955a4; --chart-5:#005fcf;
   --avatar-shuffle-overlay:#10162199;
