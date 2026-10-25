@@ -55,7 +55,7 @@
 		{#if adaptiveModal && open && preventScroll}<ScrollLock {restoreScrollDelay} />{/if}
 		<div {...props} role={adaptiveModal === false ? 'region' : 'dialog'}
 			aria-modal={adaptiveModal === false ? undefined : 'true'}
-			aria-labelledby={labelledby ?? props["aria-labelledby"]} aria-describedby={describedby ?? props["aria-describedby"]}>
+			{...labelledby ? { "aria-labelledby": labelledby } : {}} {...describedby ? { "aria-describedby": describedby } : {}}>
 		{@render children?.()}
 		</div>
 		{/snippet}

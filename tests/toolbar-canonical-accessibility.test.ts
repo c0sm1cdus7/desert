@@ -44,7 +44,6 @@ for(const width of [320,1280]) for(const direction of ['ltr','rtl']) test(`canon
     for(const[name,button,selector]of[
       ['calendar','Arrival · Oct 20, 2026','[data-date-calendar-header]'],
       ['task','Open task','[data-surface-frame] [data-piece="toolbar"]'],
-      ['message','Open message','[data-frame-presentation="message"] [data-piece="toolbar"]'],
       ['viewer','Open viewer','[data-media-viewer] [data-piece="toolbar"]'],
     ]){
       await f.page.getByRole('button',{name:button!,exact:true}).click();await f.page.locator(selector!).first().waitFor();
@@ -52,6 +51,19 @@ for(const width of [320,1280]) for(const direction of ['ltr','rtl']) test(`canon
       await f.page.screenshot({path:`artifacts/toolbar-canonical-geometry/accessibility/${width}-${direction}-${name}.png`});
       await f.page.keyboard.press('Escape');await f.page.locator(selector!).first().waitFor({state:'hidden'});
     }
+    // The message is a dialog now (DESIGN §7.5): no toolbar; its choices keep the page target and never overlap.
+    await f.page.getByRole('button',{name:'Open message',exact:true}).click();
+    const message=f.page.getByRole('dialog',{name:'Message',exact:true});await message.waitFor();
+    const choices=await message.evaluate(node=>({toolbars:node.querySelectorAll('[data-piece="toolbar"]').length,
+      box:node.getBoundingClientRect().toJSON(),buttons:[...node.querySelectorAll('button')].map(button=>button.getBoundingClientRect().toJSON())}));
+    assert.equal(choices.toolbars,0,'a message dialog draws no toolbar');
+    for(const button of choices.buttons){assert.ok(button.height>=standaloneTarget,'message choices keep the page target');
+      assert.ok(button.left>=choices.box.left&&button.right<=choices.box.right,'message choices stay inside the dialog');}
+    for(let i=0;i<choices.buttons.length;i++)for(let j=i+1;j<choices.buttons.length;j++){
+      const a=choices.buttons[i]!,b=choices.buttons[j]!;
+      assert.ok(a.right<=b.left||b.right<=a.left||a.bottom<=b.top||b.bottom<=a.top,'action hitboxes never overlap');
+    }
+    await f.page.keyboard.press('Escape');await message.waitFor({state:'hidden'});
     assert.deepEqual(f.errors,[]);
   }finally{await f.close();}
 });

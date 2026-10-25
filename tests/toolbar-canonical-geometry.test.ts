@@ -48,7 +48,6 @@ for (const width of [1280, 390, 320]) test(`all toolbar consumers share approved
     for(const [name,button,selector] of [
       ['calendar','Arrival · Oct 20, 2026','[data-date-calendar-header]'],
       ['task','Open task','[data-surface-frame] [data-piece="toolbar"]'],
-      ['message','Open message','[data-frame-presentation="message"] [data-piece="toolbar"]'],
       ['viewer','Open viewer','[data-media-viewer] [data-piece="toolbar"]'],
     ]) {
       await f.page.getByRole('button',{name:button!,exact:true}).click();
@@ -57,6 +56,17 @@ for (const width of [1280, 390, 320]) test(`all toolbar consumers share approved
       await f.page.keyboard.press('Escape');
       await f.page.locator(selector!).first().waitFor({state:'hidden'});
     }
+    // The message is a dialog now (DESIGN §7.5): no toolbar; its choices keep the shared target and stay inside it.
+    await f.page.getByRole('button',{name:'Open message',exact:true}).click();
+    const message=f.page.getByRole('dialog',{name:'Message',exact:true});await message.waitFor();
+    const choices=await message.evaluate(node=>({toolbars:node.querySelectorAll('[data-piece="toolbar"]').length,
+      box:node.getBoundingClientRect().toJSON(),buttons:[...node.querySelectorAll('button')].map(button=>button.getBoundingClientRect().toJSON())}));
+    assert.equal(choices.toolbars,0,'a message dialog draws no toolbar');
+    assert.ok(choices.buttons.length>0);
+    for(const button of choices.buttons){assert.ok(button.height>=44,'message choices keep the shared target');
+      assert.ok(button.left>=choices.box.left&&button.right<=choices.box.right,'message choices stay inside the dialog');}
+    await f.page.screenshot({path:resolve(directory,`${width}-message.png`)});
+    await f.page.keyboard.press('Escape');await message.waitFor({state:'hidden'});
     await writeFile(resolve(directory,`${width}.json`),JSON.stringify({width,stage,page,samples},null,2)+'\n');
     // Commands and Search share the top edge at every width. The navigation
     // return remains at the lower leading corner; it is not the search rail.
