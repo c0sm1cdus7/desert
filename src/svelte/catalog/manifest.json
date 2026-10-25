@@ -1700,6 +1700,7 @@
         "field.overLimit",
         "field.remaining",
         "field.clearSearch",
+        "field.clear",
         "field.incompleteNumber",
         "field.invalidNumber"
       ],

@@ -11,7 +11,7 @@
   import ClearInput from "./ClearInput.svelte";
   import type { CatalogProps } from "../../types.d.ts";
   let { primitive, label, labelVisibility, required, invalid, disabled, helper, error, identity, measure, purpose, value, placeholder,
-    mask, maxLength, counter, clear, focus, display, disclosure, onchange, onmasked, onopen, accessory: trailing, prefix }: CatalogProps<"field"> = $props();
+    mask, maxLength, counter, clear, focus, controls, display, disclosure, onchange, onmasked, onopen, accessory: trailing, prefix }: CatalogProps<"field"> = $props();
   const id = $props.id();
   // Both editors receive their value; the trigger owns none. `writing` is the live text, `shown` a mask's formatted text.
   let written = $derived(typeof value === "string" ? value : "");
@@ -49,7 +49,7 @@
 {#snippet characters()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
 {#snippet editor()}
   {#if primitive !== "trigger"}
-    <FieldEditor {id} {primitive} {label} {purpose} value={written} {placeholder} {mask} {identity} {required} {disabled} {focus}
+    <FieldEditor {id} {primitive} {label} {purpose} value={written} {placeholder} {mask} {identity} {required} {disabled} {focus} {controls}
       invalid={marked} {describedBy} bind:writing bind:shown onchange={next => onchange?.(next)} onmasked={edited} />
   {/if}
 {/snippet}
@@ -59,12 +59,12 @@
       <FieldTrigger {label} {labelVisibility} {required} {disabled} {describedBy} {display} {disclosure}
         onopen={() => onopen?.()} />
     {:else if purpose === "search"}
-      <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} bind:writing onchange={next => onchange?.(next)} />
+      <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} {controls} bind:writing onchange={next => onchange?.(next)} />
     {:else}
       <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} {prefix} footer={counted ? characters : undefined}>
         {#snippet accessory()}
           {#if trailing}{@render trailing()}
-          {:else if multiline || clear}<ClearInput control={id} value={draft} label={`Clear ${label}`} {disabled} />{/if}
+          {:else if multiline || clear}<ClearInput control={id} value={draft} label={say(m.field.clear, { label })} {disabled} />{/if}
         {/snippet}
         {@render editor()}
       </FieldWell>

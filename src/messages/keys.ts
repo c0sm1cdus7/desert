@@ -662,7 +662,8 @@ export const Messages = messageCatalog({
       "remaining": "{count} remaining",
       "clearSearch": "Clear search",
       "incompleteNumber": "Enter a complete number.",
-      "invalidNumber": "Enter a number with up to {scale} decimal places using this field's format."
+      "invalidNumber": "Enter a number with up to {scale} decimal places using this field's format.",
+      "clear": "Clear {label}"
     },
     "files": {
       "choose": "Choose files",

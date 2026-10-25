@@ -2,7 +2,7 @@
 // invalid and disabled state, help and error text and a preferred measure. `primitive` picks exclusive variants: a
 // single line (`purpose` tells the browser what it holds; `mask` installs a decimal editing syntax; `counter` shows
 // the character counter of its `maxLength` in the well, as a multiline editor does; `clear` offers the clear control;
-// `focus` takes focus when it appears), a multiline editor with its character counter, or a trigger whose
+// `focus` takes focus when it appears; `controls` is the id of what the editor controls, as a search its results), a multiline editor with its character counter, or a trigger whose
 // well opens a surface an overlay owns (`display` is what the well shows, `disclosure` the button's pure-data link to
 // that surface). A prop that belongs to another variant is declared `undefined`, so no variant takes another's props.
 // `change` is the written value (on input and on blur; a masked value only once valid and complete), `masked` every
@@ -36,6 +36,7 @@ export const FieldContract = {
       counter: Type.Optional(Type.Boolean()),
       clear: Type.Boolean(),
       focus: Type.Optional(Type.Literal("on-mount")),
+      controls: Type.Optional(Type.String({ minLength: 1 })),
       display: Type.Optional(Type.Undefined()),
       disclosure: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),
@@ -49,6 +50,7 @@ export const FieldContract = {
       mask: Type.Optional(Type.Undefined()),
       clear: Type.Optional(Type.Undefined()),
       focus: Type.Optional(Type.Undefined()),
+      controls: Type.Optional(Type.Undefined()),
       display: Type.Optional(Type.Undefined()),
       disclosure: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),
@@ -64,6 +66,7 @@ export const FieldContract = {
       counter: Type.Optional(Type.Undefined()),
       clear: Type.Optional(Type.Undefined()),
       focus: Type.Optional(Type.Undefined()),
+      controls: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),
   ])]),
   events: Type.Object({

@@ -5,12 +5,12 @@
   import type { InputMask } from "../../../../interaction/input-mask.ts";
   import MaskedInput from "./MaskedInput.svelte";
   import { observeEditorCapacity } from "./editor-capacity.ts";
-  let { id, primitive, label, purpose, value, placeholder, mask, identity, required, disabled, invalid, describedBy, focus,
+  let { id, primitive, label, purpose, value, placeholder, mask, identity, required, disabled, invalid, describedBy, focus, controls,
     writing = $bindable(""), shown = $bindable(""), onchange, onmasked }: {
     id: string; primitive: "input.text" | "input.multiline"; label: string;
     purpose: "text" | "username" | "new-password" | "current-password" | "search" | undefined; value: string; placeholder: string | undefined;
     mask: InputMask | undefined; identity: string | undefined; required: boolean; disabled: boolean; invalid: boolean;
-    describedBy: string | undefined; focus: "on-mount" | undefined; writing?: string; shown?: string;
+    describedBy: string | undefined; focus: "on-mount" | undefined; controls: string | undefined; writing?: string; shown?: string;
     onchange: (value: string) => void; onmasked: (value: string, valid: boolean, complete: boolean) => void;
   } = $props();
   let editor = $state<HTMLTextAreaElement | null>(null);
@@ -29,6 +29,6 @@
   <Group.Input {id} bind:ref={line} type={purpose?.endsWith("password") ? "password" : "text"}
     autocomplete={purpose === "text" || purpose === "search" || purpose === undefined ? undefined : purpose} autocapitalize={purpose === "username" ? "none" : undefined}
     spellcheck={purpose === "text" ? undefined : false} bind:value={writing} {required} {disabled} aria-required={required}
-    aria-invalid={invalid} aria-label={label} placeholder={placeholder ?? " "} aria-describedby={describedBy}
+    aria-invalid={invalid} aria-label={label} placeholder={placeholder ?? " "} aria-describedby={describedBy} aria-controls={controls}
     class="focus-visible:outline-none" onblur={event => onchange(event.currentTarget.value)} oninput={event => onchange(event.currentTarget.value)} />
 {/if}
