@@ -1,7 +1,7 @@
 // Law 9d, measured on the bank's own specimens: ONE curvature family. Buttons and controls take the control radius (12px),
 // wells the well radius (16px), and every surface or container is concentric with what it holds at its corner: its radius
 // is that piece's radius plus the inset between their outer edges (within 1px). Nothing is a capsule except the switch;
-// a circle is a person, a dot or the mark of a choice (radio, slider thumb, swatch), never a button. A tag is a mark, not
+// a circle is a person, a dot or the mark of a choice (radio, slider thumb), never a button or a colour swatch. A tag is a mark, not
 // a control: its chip takes half the control radius and its remove button is concentric inside it. A thin line (a track,
 // a meter, a grip) has square ends. Writes what it saw to artifacts/curvature-family/<CURVATURE_EVIDENCE|current>/.
 import test from "node:test";
@@ -64,7 +64,8 @@ const scenes: Record<string, { source: string; open?: string }> = {
       <div style="display:flex;flex-direction:column;flex:1;min-height:0"><Catalog.Bar {...top.props} />
         <p style="flex:1;padding:0 20px">Choose where the note goes.</p><Catalog.Bar {...pair.props} /></div></Catalog.Modal>`) },
   // Choice cards holding each artwork a card frames at its top corners (a picture cover, a wallpaper, a theme preview):
-  // each is concentric with its card (the card's control radius less the card's inset).
+  // the artwork is visibly rounded, at the chip radius (second review: a 1px corner read square in every photo), and the
+  // card is the container concentric with it (the artwork's radius plus the card's inset).
   cards: { source: page(`const cards = (label: string, options: readonly Record<string, unknown>[]) => ({ presentation: "cards" as const, cardinality: "one" as const,
     label, labelVisibility: "accessible" as const, selected: [String(options[0]!.value)], disabled: false, required: false, onchange: () => {},
     options: options.map(option => ({ disabled: false, ...option })) });
@@ -97,9 +98,9 @@ function measure() {
   const visible = (element: Element) => { const box = element.getBoundingClientRect(); return box.width > 0 && box.height > 0
     && element.checkVisibility({ opacityProperty: true, visibilityProperty: true }) && element.closest(".sr-only") === null; };
   // A circle is a person (law 9e), a dot, or the mark of a choice; anything else that is round is a capsule.
-  const circle = '[data-slot="avatar"][data-shape="person"], [data-slot="avatar"][data-shape="person"] *, .shuffle, .attention-indicator, .color-bullet, .gallery-dot, [data-slot="radio-group-item"], [data-slot="radio-group-item"] *, [data-slot="slider-thumb"], .swatch, [data-selection-mark="single"], [data-selection-mark="single"] *, [data-slot="switch"], [data-slot="switch"] *';
+  const circle = '[data-slot="avatar"][data-shape="person"], [data-slot="avatar"][data-shape="person"] *, .shuffle, .attention-indicator, .color-bullet, .gallery-dot, [data-slot="radio-group-item"], [data-slot="radio-group-item"] *, [data-slot="slider-thumb"], [data-selection-mark="single"], [data-selection-mark="single"] *, [data-slot="switch"], [data-slot="switch"] *';
   const well = '.field-well, [data-search-field], [data-slot="input-group"]';
-  const control = '[data-slot="button"]:not([data-variant="row"]):not([data-variant="field"]):not(.field-well), [data-slot="input-group-button"], button.card, .card, [data-menu-label], [data-drawer-grip]';
+  const control = '[data-slot="button"]:not([data-variant="row"]):not([data-variant="field"]):not(.field-well), [data-slot="input-group-button"], button.card, .card:not([data-choice-option]), [data-menu-label], [data-drawer-grip]';
   const chip = '[data-slot="badge"]';
   const line = '[data-slot="slider-track"], [data-meter] > span[aria-hidden], [data-drawer-grip-mark], [data-slot="skeleton"]';
   const elements = [...document.querySelectorAll("body *")].filter(visible);
@@ -129,6 +130,25 @@ function measure() {
       if (Math.abs(radius - (ownerRadius - inset)) > .5) fail(`the remove corner is the chip's ${ownerRadius} less the inset ${inset}`);
     }
     else if (element.matches(control)) expect(family.control, "a control's");
+  }
+  // A colour swatch is a choice, not a person (laws 9d, 9e): its colour is a rounded square at the control radius, and its
+  // 44px target, whose ring shows selection and focus, is concentric with it (second review: the swatches were circles).
+  for (const swatch of document.querySelectorAll(".swatch")) {
+    if (!visible(swatch)) continue;
+    const dot = getComputedStyle(swatch, "::before"), target = swatch.getBoundingClientRect();
+    const length = (value: string, side: number) => value.endsWith("%") ? parseFloat(value) / 100 * side : parseFloat(value);
+    const dotRadius = length(dot.borderTopLeftRadius, parseFloat(dot.width)), inset = (target.width - parseFloat(dot.width)) / 2;
+    if (Math.abs(dotRadius - family.control) > .5) failures.push(`${name(swatch)}: its colour's corner is ${dot.borderTopLeftRadius}, not the control radius ${family.control}px`);
+    const targetRadius = length(getComputedStyle(swatch).borderTopLeftRadius, target.width);
+    if (Math.abs(targetRadius - (dotRadius + inset)) > .5) failures.push(`${name(swatch)}: its target's corner ${getComputedStyle(swatch).borderTopLeftRadius} is not concentric (${dotRadius} + ${inset})`);
+  }
+  // The artwork a choice card frames (its first rounded piece at the top-left corner) takes the chip radius: a corner
+  // a person sees, never the 1px a control-radius card less its inset leaves.
+  for (const card of document.querySelectorAll('label.card[data-choice-option]')) {
+    if (!visible(card)) continue;
+    const art = [...card.querySelectorAll(".artwork *")].find(element => visible(element) && px(getComputedStyle(element).borderTopLeftRadius) > 0);
+    const radius = art ? px(getComputedStyle(art).borderTopLeftRadius) : 0;
+    if (Math.abs(radius - family.chip) > .5) failures.push(`${name(card)} ${card.getAttribute("data-choice-option")}: its artwork's corner is ${radius}px, not the chip radius ${family.chip}px`);
   }
   // Concentric containers: at each corner, the rounded piece it holds there sits at the same inset across and down, and the
   // container's radius is that piece's radius plus the inset.

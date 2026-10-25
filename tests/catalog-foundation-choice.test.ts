@@ -103,7 +103,18 @@ test("choice cards, swatches and the well menu: AppearancePreferences' pixels; t
       ["[data-after-tint] [role=radiogroup] > div", "[data-before] .appearance-tint-rail"],
       ["[data-after-size] [data-selection-trigger]", "[data-before] [data-selection-trigger]"],
     ];
-    for (const [after, before] of pairs) assert.deepEqual(await measure(after), await measure(before), after);
+    // Second review of the slice 3 package (laws 9d, 9e): a card's artwork takes the chip radius and the card is concentric
+    // with it (6 + its 10px inset + 1px border = 17px), and a swatch is a rounded square, its target concentric 6px out
+    // (12 + 6 = 18px). Those corners differ from AppearancePreferences'; every other measure is its.
+    const cornered = new Set(["[data-after-theme] label", "[data-after-wallpaper] label", "[data-after-tint] label"]);
+    for (const [after, before] of pairs) {
+      const [now, then] = [await measure(after), await measure(before)];
+      assert.deepEqual(cornered.has(after) ? withoutRadius(now) : now, cornered.has(after) ? withoutRadius(then) : then, after);
+    }
+    const corners = (selector: string) => f.page.locator(selector).evaluateAll(nodes => [...new Set(nodes.map(node => getComputedStyle(node).borderTopLeftRadius))]);
+    assert.deepEqual(await corners("[data-after-theme] label"), ["17px"]);
+    assert.deepEqual(await corners("[data-after-wallpaper] label"), ["17px"]);
+    assert.deepEqual(await corners("[data-after-tint] label"), ["18px"]);
     const listbox = async (section: string) => {
       await f.page.locator(`${section} [data-selection-trigger]`).click();
       await f.page.getByRole("listbox").waitFor();

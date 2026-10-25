@@ -1,8 +1,8 @@
 <script lang="ts">
   import * as RadioGroup from "../../../vendor/components/ui/radio-group/index.js";
   import type { SwatchOption } from "../../../../interaction/choice.ts";
-  // One tint swatch per option: a 44px target around a 32px dot of the tint, its name for assistive technology and as
-  // the pointer's title; the chosen dot is ringed.
+  // One tint swatch per option: a 44px target around a 32px rounded square of the tint, its name for assistive technology and as
+  // the pointer's title; the chosen colour is ringed.
   let { id, label, options, selected, disabled, required, onchange }: { id: string; label: string; options: readonly SwatchOption[];
     selected: readonly string[]; disabled: boolean; required: boolean; onchange: ((selected: string[]) => void) | undefined } = $props();
   const control = (value: string) => `${id}-${value}`;
@@ -30,8 +30,10 @@
 
 <style>
   .rail { display:flex; flex-wrap:wrap; gap:.25rem; padding:.25rem; }
-  .swatch { position:relative; display:grid; place-items:center; width:2.75rem; height:2.75rem; border-radius:50%; cursor:pointer; }
-  .swatch::before { content:""; position:absolute; width:2rem; height:2rem; border-radius:50%; border:1px solid var(--border);
+  /* A swatch is a choice, not a person (laws 9d, 9e): its colour is a rounded square at the control radius, and its 44px
+     target (whose ring shows selection and focus) is concentric with it, 6px out. */
+  .swatch { position:relative; display:grid; place-items:center; width:2.75rem; height:2.75rem; border-radius:calc(var(--radius-control) + .375rem); cursor:pointer; }
+  .swatch::before { content:""; position:absolute; width:2rem; height:2rem; border-radius:var(--radius-control); border:1px solid var(--border);
     background:var(--choice-swatch); pointer-events:none; }
   /* F1-merge: the tint tokens (var(--tint-color-<tint>), DESIGN §7.4) replace these paints of the old appearance swatches. */
   .swatch[data-swatch-tint="blue"] { --choice-swatch:#2967be; } .swatch[data-swatch-tint="violet"] { --choice-swatch:#7452ac; }
