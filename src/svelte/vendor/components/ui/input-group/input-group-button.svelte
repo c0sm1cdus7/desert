@@ -46,7 +46,7 @@
 <button
 	{...pressFeedbackProps}
 	bind:this={ref}
-	data-slot="button"
+	data-slot="input-group-button"
 	class={cn(ghost, material, "control-feedback", groupClass)}
 	{type}
 	data-size={size}
