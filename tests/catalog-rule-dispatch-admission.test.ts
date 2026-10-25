@@ -39,9 +39,9 @@ test("D2: a private host capability reaches only its own kind, as received", () 
   for (const source of [
     // The one private channel left (design §3.0) is a transient frame's continuity: made up, or read from the node, it is
     // not the input as received; passed to another kind, it is not that kind's.
-    original.replace("continuity={continuity} onclose=", 'continuity={"frame"} onclose='),
-    original.replace("continuity={continuity} onclose=", "continuity={node.kind} onclose="),
-    original.replace("continuity={continuity} onclose=", "continuity={checked.kind} onclose="),
+    original.replace("continuity={continuity} {onevent} />", 'continuity={"frame"} {onevent} />'),
+    original.replace("continuity={continuity} {onevent} />", "continuity={node.kind} {onevent} />"),
+    original.replace("continuity={continuity} {onevent} />", "continuity={checked.kind} {onevent} />"),
     original.replace("onclick={activate} />", "onclick={activate} continuity={continuity} />"),
     original.replace("</script>", "const alias = nodeRenderers.action;\n</script>"),
     original.replace("label={checked.label} labelVisibility=\"visible\" measure=\"writing\" purpose", "label={node.label} labelVisibility=\"visible\" measure=\"writing\" purpose"),
