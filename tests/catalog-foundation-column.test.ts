@@ -9,7 +9,7 @@ const steps = ["tight", "snug", "close", "regular", "loose", "relaxed", "section
 
 test("column: the contract offers a gap step, a measure, an alignment, the place insets and fill, nothing else", async () => {
   assert.deepEqual(await contractShape("column"), { gap: steps, "measure?": ["reading", "narrow", "wide"], "align?": ["start", "center", "stretch"],
-    "inset?": ["content", "reading", "section"], "leading?": "boolean", "fill?": "boolean" });
+    "inset?": ["content", "reading", "section", "row"], "leading?": "boolean", "fill?": "boolean" });
 });
 
 test("column: its gap axis, GapSchema and the theme's spacing tokens name the same steps", async () => {
@@ -47,13 +47,14 @@ test("column: gaps are the spacing steps; measures cap the width; alignment plac
 // Lane D (slice 3): the place insets the catalog compositions took from catalog-media.css (`[data-catalog-group-title]`'s
 // content inset, `[data-catalog-prose]`'s reading block, the rails' section padding and the page-level leading inset), as
 // Column props.
-test("column: the content inset, the reading block, the section and the leading inset are the place's", async () => {
+test("column: the content inset, the reading block, the section and the leading inset are the place's; the row inset is 1rem", async () => {
   const f = await mounted(`<div style="width:900px;--place-content-inset:42px;--place-leading-inset:100px" data-probe-host>
   <Catalog.Column gap="snug" inset="content"><span>title</span></Catalog.Column>
   <Catalog.Column gap="snug" inset="reading"><span>prose</span></Catalog.Column>
   <Catalog.Column gap="snug" inset="reading" leading><span>page prose</span></Catalog.Column>
   <Catalog.Column gap="snug" inset="section"><span>rails</span></Catalog.Column>
   <Catalog.Column gap="snug"><span>plain</span></Catalog.Column>
+  <Catalog.Column gap="snug" inset="row"><span>example</span></Catalog.Column>
 </div>
 <div style="width:900px" data-probe-fallback>
   <Catalog.Column gap="snug" inset="content"><span>title</span></Catalog.Column>
@@ -72,6 +73,8 @@ test("column: the content inset, the reading block, the section and the leading 
       { padding: "24px 26px 48px 26px", margin: "100px", text: 126 },
       { padding: "24px 0px 24px 0px", margin: "0px", text: 0 },
       { padding: "0px 0px 0px 0px", margin: "0px", text: 0 },
+      // Slice 3 package: an unframed example (an avatar, a tag rail) reads on its stack's 1rem row inset, whatever the place.
+      { padding: "0px 16px 0px 16px", margin: "0px", text: 16 },
     ]);
     // Outside a place the insets keep catalog-media.css's fallbacks: 42px for a rail title, 26px for prose at its row inset.
     assert.deepEqual((await insets("[data-probe-fallback]")).map(item => item.text), [42, 10]);

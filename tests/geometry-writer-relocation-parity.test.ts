@@ -61,6 +61,10 @@ async function previousCss() {
     assert.equal(theme.split(statement).length, 2, `The theme imports ${path} once`);
     theme = theme.replace(statement, source);
   }
+  // Slice 3 package (a deliberate change, not a relocation): a nested home's rails scroll from the stack's row inset, their
+  // first entry on the axis of its title and featured entry (tests/shared-owner-example-axis.test.ts).
+  assert.equal(theme.split(catalogHome).length, 2, "The prior home stack insets are held once");
+  theme = theme.replace(catalogHome, catalogHome.replace("--place-surface-inset:0px", "--place-surface-inset:1rem"));
   // Law 9c changed the message's own measure after this relocation (its 50/50 pair needs a 22rem dialog and the bar
   // brings its own inset): both sides carry that change, so only the relocation is compared.
   let inlined = inlineBaseStylesheets(theme);

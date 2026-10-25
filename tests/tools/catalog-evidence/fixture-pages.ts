@@ -9,6 +9,8 @@ import type { EvidencePiece } from "./pieces.ts";
 export const evidenceRoute = (id: string) => `/evidence/${id}`;
 /** How many specimens of the filler piece fill a `children` slot. */
 export const fillerCount = 3;
+/** The padding around every specimen, and the block size of the stage a filling specimen fills (both in px). */
+export const specimenPadding = 16, fillStage = 240;
 
 function pageSource(piece: EvidencePiece): string {
   const specimens = piece.specimens;
@@ -24,13 +26,24 @@ function pageSource(piece: EvidencePiece): string {
   const children = piece.filler && filler
     ? `{#snippet children()}{#each fillers.slice(0, ${fillerCount}) as filler, at (at)}<Filler {...filler.props} />{/each}{/snippet}` : "";
   return `<script lang="ts">
+  import { onMount } from "svelte";
   ${imports.join("\n  ")}
+  // A piece drawn wholly out of flow (a wallpaper or a main surface filling its container, an overlay mark) has its
+  // section as its container, and gets a stage to fill instead of collapsing to its padding or spilling over the
+  // specimens around it.
+  let staged = $state<readonly number[]>([]);
+  onMount(() => {
+    staged = [...document.querySelectorAll<HTMLElement>("[data-evidence-specimen]")].flatMap(section => {
+      const pieces = [...section.children], outOfFlow = (node: Element) => getComputedStyle(node).position === "absolute";
+      return pieces.length && pieces.every(outOfFlow) ? [Number(section.dataset.evidenceSpecimen)] : [];
+    });
+  });
 </script>
 
 <AppearanceRoot />
 <main data-evidence-piece=${JSON.stringify(piece.id)}>
   {#each specimens as specimen, index (index)}
-    <section data-evidence-specimen={index}>
+    <section data-evidence-specimen={index} data-evidence-stage={staged.includes(index) ? "fill" : undefined}>
       <svelte:boundary>
         <Piece {...specimen.props}>${children}</Piece>
         {#snippet failed(error)}<p data-evidence-failed>{error instanceof Error ? error.message : String(error)}</p>{/snippet}
@@ -41,7 +54,8 @@ function pageSource(piece: EvidencePiece): string {
 
 <!-- A stylesheet, not a style attribute: the renderer CSP refuses inline style attributes. -->
 <style>
-  section { display:flow-root; padding:16px; }
+  section { position:relative; isolation:isolate; display:flow-root; padding:${specimenPadding}px; }
+  section[data-evidence-stage="fill"] { block-size:${fillStage}px; }
 </style>
 `;
 }

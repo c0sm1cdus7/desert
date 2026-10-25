@@ -5,7 +5,8 @@
   import ChoiceLeading from "./ChoiceLeading.svelte";
   // The options as cards: each card shows its artwork above its control and label, and the chosen card is ringed and
   // tinted. Activating the chosen card again reports it again (an appearance following the system becomes explicit).
-  // Theme previews are miniatures, so their cards stay within 24rem; pictures sit three to a row.
+  // Theme previews are miniatures, so their cards stay within 24rem; pictures sit at most three to a row, and never so
+  // narrow (9rem) that a card's caption breaks a word per line beside its control.
   let { id, label, cardinality, options, selected, disabled, required, onchange }: { id: string; label: string;
     cardinality: "one" | "many"; options: readonly ChoiceOption[]; selected: readonly string[]; disabled: boolean; required: boolean;
     onchange: ((selected: string[]) => void) | undefined } = $props();
@@ -49,7 +50,7 @@
 <style>
   .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr)); gap:.75rem; }
   .grid[data-tracks="previews"] { max-width:24rem; }
-  .grid[data-tracks="pictures"] { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .grid[data-tracks="pictures"] { grid-template-columns:repeat(auto-fill,minmax(min(100%,max(9rem,(100% - 1.5rem) / 3)),1fr)); }
   .card { min-width:0; display:grid; gap:.625rem; padding:.625rem; border-radius:var(--radius); cursor:pointer; }
   .card[data-selected="true"] { outline:2px solid var(--ring); outline-offset:1px; }
   .card:has(:focus-visible) { outline:3px solid var(--ring); outline-offset:3px; }
