@@ -1172,10 +1172,12 @@ function drain() {
 
 ## src/svelte/catalog/foundations/image/Image.svelte
 
-Source SHA-256: 0506b474c1662902287c5166dfe4eacf5507f40eca7c6cbb8a39b95ca2e9030f
+Source SHA-256: c427dc3e22a838a3caf5acdfd74b8f96df054dffb3676fc205040af404a2e454
 
 ```svelte
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { onMount, onDestroy } from 'svelte';
   import { Action, Icon } from '../../index.ts';
   import { imageSource, imageIdentity } from '../../../infra/media-source.ts';
@@ -1184,7 +1186,7 @@ Source SHA-256: 0506b474c1662902287c5166dfe4eacf5507f40eca7c6cbb8a39b95ca2e9030f
   import { renditionWidths } from '../../../../media/rendition-policy.ts';
   import type { CatalogProps } from "../../types.d.ts";
   let { source, alt = "", edge = 640, zoom = 1, retry = false, fit = 'fill', backdrop = 'muted', placeholder, onready, onunavailable,
-    fallback = 'Image unavailable' }: CatalogProps<"image"> = $props();
+    fallback = say(m.image.unavailable) }: CatalogProps<"image"> = $props();
   let host!: HTMLDivElement;
   let measured = $state(0), attempt = $state(0), ready = $state(''), failed = $state('');
   let original = $state('');
@@ -1239,7 +1241,7 @@ Source SHA-256: 0506b474c1662902287c5166dfe4eacf5507f40eca7c6cbb8a39b95ca2e9030f
 <div bind:this={host} class={placeholder === undefined ? "image" : "image-placeholder"} class:image-clear={backdrop === 'none'}
   data-media-image={placeholder === undefined ? "" : undefined} data-media-artwork-placeholder={placeholder === undefined ? undefined : ""}
   data-image-fit={placeholder === undefined ? fit : undefined} data-image-state={status} data-image-placeholder={placeholder}
-  aria-label={placeholder === 'audio' ? 'No cover artwork' : placeholder === 'video' ? 'No video poster' : undefined}>
+  aria-label={placeholder === 'audio' ? say(m.image.noCover) : placeholder === 'video' ? say(m.image.noPoster) : undefined}>
   {#if placeholder === 'audio'}<Icon name="music-2" size="artwork" decorative />
   {:else if placeholder === 'video'}<Icon name="film" size="artwork" decorative />
   {:else if placeholder === 'unavailable'}{fallback}
@@ -1254,7 +1256,7 @@ Source SHA-256: 0506b474c1662902287c5166dfe4eacf5507f40eca7c6cbb8a39b95ca2e9030f
     {#if status === 'error'}
       <div class="image-error" data-media-error role="img" aria-label={alt}>
         <span>{fallback}</span>
-        {#if retry}<Action label="Retry" icon="retry" emphasis="secondary" face="text" state="ready" type="button" onclick={() => { original = ''; attempt++; }} />{/if}
+        {#if retry}<Action label={say(m.image.retry)} icon="retry" emphasis="secondary" face="text" state="ready" type="button" onclick={() => { original = ''; attempt++; }} />{/if}
       </div>
     {/if}
   {/if}
@@ -1523,14 +1525,14 @@ Source SHA-256: 4564b30ba603de6a50ea2cf5f7016b90cd9565f7b53a1e3fb7c36fd8a4c3875b
 
 ## src/svelte/catalog/foundations/bar/BarSearch.svelte
 
-Source SHA-256: 2aa492c99923e7f2c9d69a0c48fa6dcc6e168faba68565d349725e48d9847a6c
+Source SHA-256: 74f2df652e477bb48a7a150566ac366ef49ca593680e80fe7951a3af2aa2d69d
 
 ```svelte
 <script lang="ts">
   // Bar part (from the toolbar-search composition): the place search field, revealed by a toggle that also closes it.
   // Opening focuses the field; the displayed query freezes while closed so the field does not change as it hides.
-  import { tick, untrack } from "svelte";
-  import { Action, SearchField } from "../../index.ts";
+  import { untrack } from "svelte";
+  import { Action, Field } from "../../index.ts";
   import { say } from "../../../infra/messages.ts";
   import { m } from "../../../../messages/keys.ts";
   let { title, query, open, resultsId, onquery, onopen, oncancel }: {
@@ -1538,23 +1540,22 @@ Source SHA-256: 2aa492c99923e7f2c9d69a0c48fa6dcc6e168faba68565d349725e48d9847a6c
     onquery: (query: string) => void; onopen: () => void; oncancel: () => void;
   } = $props();
   const id = $props.id();
-  let input = $state<HTMLInputElement | null>(null);
+  // The field takes focus when this toggle opened it (not when the bar mounts with the search already open).
+  let opened = $state(false);
   let displayedQuery = $state(untrack(() => query));
-  $effect(() => { if (open) displayedQuery = query; });
-  async function toggle() {
+  $effect(() => { if (open) displayedQuery = query; else opened = false; });
+  function toggle() {
     if (open) { oncancel(); return; }
-    onopen(); await tick(); input?.focus({ preventScroll: true });
+    opened = true; onopen();
   }
 </script>
 
 <div data-catalog-search-actions data-expanded={open}>
-  <!-- The field wrapper the vendor field family drew for the toolbar search (same classes, no vendor import). -->
-  <div role="group" data-catalog-search class="group/field flex w-full flex-col gap-2 [&>.sr-only]:w-auto" inert={!open} aria-hidden={!open}>
-    <label class="sr-only" for={id}>{say(m.bar.searchLabel, { title: title.toLowerCase() })}</label>
-    <!-- F1-merge: Field (purpose "search") replaces SearchField once it controls its results (aria-controls) and can stay
-         mounted while closed without taking focus: this rail keeps the well mounted so its width animates open. -->
-    <SearchField {id} onready={element => input = element} value={displayedQuery} onvalue={onquery} placeholder={say(m.bar.searchPlaceholder, { title })}
-      aria-controls={open ? resultsId : undefined} tabindex={open ? undefined : -1} />
+  <!-- The well stays mounted while closed (inert, so it takes no focus) so its width animates open. -->
+  <div data-catalog-search inert={!open} aria-hidden={!open}>
+    <Field primitive="input.text" purpose="search" label={say(m.bar.searchLabel, { title: title.toLowerCase() })} labelVisibility="accessible"
+      required={false} invalid={false} disabled={false} measure="fill" value={displayedQuery} placeholder={say(m.bar.searchPlaceholder, { title })}
+      clear={false} controls={open ? resultsId : undefined} focus={open && opened ? "on-mount" : undefined} onchange={onquery} />
   </div>
   <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
   <div class="toolbar-action" data-search-toggle>

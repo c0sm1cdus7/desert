@@ -500,7 +500,7 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/foundations/action/Action.svelte
 - src/svelte/infra/action-icons.ts
 - src/svelte/vendor/components/ui/button/button.svelte
-- src/svelte/vendor/components/ui/button/press-feedback.ts
+- src/svelte/catalog/mechanisms/press-feedback/press-feedback.ts
 - src/svelte/catalog/compositions/select-control/SelectControl.svelte
 - src/svelte/catalog/compositions/popover-control/PopoverControl.svelte
 - src/svelte/catalog/compositions/file-control/FileControl.svelte
@@ -2750,7 +2750,7 @@ Source SHA-256: 43ac0c7c5e8a68eb1a7683b8435156f6819fa6c66c4641f6f4fd8975491df663
 
 ## src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte
 
-Source SHA-256: 363cdd3003aedbdf4372f22f9010177cf077dd9063d45beee533ecc0946960a4
+Source SHA-256: 824569ee5bfce01155070663369d3c8e9377accb02c77e4456cb6f41ec9a6680
 
 ```svelte
 <script lang="ts">
@@ -2768,17 +2768,17 @@ Source SHA-256: 363cdd3003aedbdf4372f22f9010177cf077dd9063d45beee533ecc0946960a4
     detail = false, backAvailable = true, searchAvailable = true, topActions = [], actionGroup, invoke, panelState, bottomToolbar,
     onquery, onnavigate, onsearch, oncancel, onback }: CatalogProps<"catalog-workspace"> = $props();
   // One focus scope for the whole workspace; a caller that opened one above it (to return focus by key itself) shares it.
-  const { focus: focusKey, lastActivated } = useFocusScope() ?? provideFocusScope();
+  const scope = useFocusScope() ?? provideFocusScope();
   let shell = $state<ReturnType<typeof Shell>>();
   const uid = $props.id(), resultsId = `${uid}-results`;
   // A page opened inside a destination (a bank entry) returns where it was opened: the scroll offset and the piece last
   // activated, else the place title.
-  const pages = provideDestinationNavigation(() => active, () => ({ focusKey: lastActivated(), scroll: shell?.scrollTop() ?? 0 }),
+  const pages = provideDestinationNavigation(() => active, () => ({ focusKey: scope.lastActivated(), scroll: shell?.scrollTop() ?? 0 }),
     change => void tick().then(() => {
       if (change.destination !== active || !shell) return;
       if (change.kind === "back") shell.restoreScroll(change.origin.scroll, shell.scrollPositions().search);
       else shell.scrollToTop();
-      const returned = change.kind === "back" && change.origin.focusKey !== null && focusKey(change.origin.focusKey);
+      const returned = change.kind === "back" && change.origin.focusKey !== null && scope.focus(change.origin.focusKey);
       if (!returned) shell.focusTitle();
     }));
   let presented = $derived(pages.current(active));
@@ -2808,7 +2808,7 @@ Source SHA-256: 363cdd3003aedbdf4372f22f9010177cf077dd9063d45beee533ecc0946960a4
   export function revealItem(id: string): Promise<boolean> { return shell?.revealItem(id) ?? Promise.resolve(false); }
   export function scrollPositions(): { content: number; search: number } { return shell?.scrollPositions() ?? { content: 0, search: 0 }; }
   export function restoreScroll(contentTop: number, searchTop: number): void { shell?.restoreScroll(contentTop, searchTop); }
-  export function focus(key: string): boolean { return focusKey(key); }
+  export function focus(key: string): boolean { return scope.focus(key); }
   export function toggleNavigation(): void { shell?.toggleNavigation(); }
 </script>
 
@@ -2854,7 +2854,7 @@ Source SHA-256: 363cdd3003aedbdf4372f22f9010177cf077dd9063d45beee533ecc0946960a4
 
 ## src/svelte/catalog/foundations/shell/Shell.svelte
 
-Source SHA-256: ea1410ac96202b25209fb8dc0bc64ac4d8f046a2043a2f79359c173dc3cc7272
+Source SHA-256: e312f376a0455c0f89e1e44919590402a4922daf4df97bfb1bc4b23b05d4668b
 
 ```svelte
 <script lang="ts">
@@ -2863,6 +2863,8 @@ Source SHA-256: ea1410ac96202b25209fb8dc0bc64ac4d8f046a2043a2f79359c173dc3cc7272
   import { appearance } from "../../../infra/appearance-state.ts";
   import { provideFocusScope, useFocusScope } from "../../../infra/focus-scope.ts";
   import { provideRegionRegistry, useRegionRegistry } from "../../../infra/region-registry.ts";
+  import { useFileHost } from "../../../infra/file-host-context.ts";
+  import { nativeFilePicker } from "../../mechanisms/file-picker/file-picker.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import ShellBody from "./ShellBody.svelte";
   let { documentTitle, label, destination, searching, hasQuery, detail, backAvailable, resultsId, searchLabel, navigation,
@@ -2870,6 +2872,9 @@ Source SHA-256: ea1410ac96202b25209fb8dc0bc64ac4d8f046a2043a2f79359c173dc3cc7272
   // Pieces in the workspace register focus targets and reveals here (a caller may open them above the shell instead).
   const scope = useFocusScope() ?? provideFocusScope();
   const regions = useRegionRegistry() ?? provideRegionRegistry();
+  // The workspace file host (when the product provides one) opens the browser chooser through the file-picker mechanism.
+  const files = useFileHost();
+  $effect(() => files?.offerChooser(nativeFilePicker));
   let workspace = $state<HTMLElement | null>(null);
   let body = $state<ReturnType<typeof ShellBody>>();
   export function scrollToTop(): void { body?.scrollToTop(); }
@@ -2897,10 +2902,12 @@ Source SHA-256: ea1410ac96202b25209fb8dc0bc64ac4d8f046a2043a2f79359c173dc3cc7272
 
 ## src/svelte/catalog/foundations/shell/ShellNavigation.svelte
 
-Source SHA-256: 82d2c139745c9943438bfba684ca35f34a2aff2809bb94f64d9fc0dd64efbdc0
+Source SHA-256: 500f41c1ad2295c09bb2940988c6c9a144e8bf5722d0454b678bfa3eaf8e81b5
 
 ```svelte
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   // Shell part (from the catalog-navigation composition): the navigation pane, its identity bar, the destination groups
   // drawn from data, the toggle that hides it and the settings placeholder. Dragging the pane's header toward its edge,
   // or swiping the pane, dismisses it.
@@ -2943,7 +2950,7 @@ Source SHA-256: 82d2c139745c9943438bfba684ca35f34a2aff2809bb94f64d9fc0dd64efbdc0
   });
 </script>
 
-<Surface kind="navigation" label="Main navigation" searching={false}>
+<Surface kind="navigation" label={say(m.shell.navigation)} searching={false}>
   {#snippet top()}
     <Bar edge="top" purpose="navigation" identity={navigation.identity} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false} />
   {/snippet}
@@ -2980,14 +2987,14 @@ Source SHA-256: 82d2c139745c9943438bfba684ca35f34a2aff2809bb94f64d9fc0dd64efbdc0
 
 ## src/svelte/catalog/foundations/bar/BarSearch.svelte
 
-Source SHA-256: 2aa492c99923e7f2c9d69a0c48fa6dcc6e168faba68565d349725e48d9847a6c
+Source SHA-256: 74f2df652e477bb48a7a150566ac366ef49ca593680e80fe7951a3af2aa2d69d
 
 ```svelte
 <script lang="ts">
   // Bar part (from the toolbar-search composition): the place search field, revealed by a toggle that also closes it.
   // Opening focuses the field; the displayed query freezes while closed so the field does not change as it hides.
-  import { tick, untrack } from "svelte";
-  import { Action, SearchField } from "../../index.ts";
+  import { untrack } from "svelte";
+  import { Action, Field } from "../../index.ts";
   import { say } from "../../../infra/messages.ts";
   import { m } from "../../../../messages/keys.ts";
   let { title, query, open, resultsId, onquery, onopen, oncancel }: {
@@ -2995,23 +3002,22 @@ Source SHA-256: 2aa492c99923e7f2c9d69a0c48fa6dcc6e168faba68565d349725e48d9847a6c
     onquery: (query: string) => void; onopen: () => void; oncancel: () => void;
   } = $props();
   const id = $props.id();
-  let input = $state<HTMLInputElement | null>(null);
+  // The field takes focus when this toggle opened it (not when the bar mounts with the search already open).
+  let opened = $state(false);
   let displayedQuery = $state(untrack(() => query));
-  $effect(() => { if (open) displayedQuery = query; });
-  async function toggle() {
+  $effect(() => { if (open) displayedQuery = query; else opened = false; });
+  function toggle() {
     if (open) { oncancel(); return; }
-    onopen(); await tick(); input?.focus({ preventScroll: true });
+    opened = true; onopen();
   }
 </script>
 
 <div data-catalog-search-actions data-expanded={open}>
-  <!-- The field wrapper the vendor field family drew for the toolbar search (same classes, no vendor import). -->
-  <div role="group" data-catalog-search class="group/field flex w-full flex-col gap-2 [&>.sr-only]:w-auto" inert={!open} aria-hidden={!open}>
-    <label class="sr-only" for={id}>{say(m.bar.searchLabel, { title: title.toLowerCase() })}</label>
-    <!-- F1-merge: Field (purpose "search") replaces SearchField once it controls its results (aria-controls) and can stay
-         mounted while closed without taking focus: this rail keeps the well mounted so its width animates open. -->
-    <SearchField {id} onready={element => input = element} value={displayedQuery} onvalue={onquery} placeholder={say(m.bar.searchPlaceholder, { title })}
-      aria-controls={open ? resultsId : undefined} tabindex={open ? undefined : -1} />
+  <!-- The well stays mounted while closed (inert, so it takes no focus) so its width animates open. -->
+  <div data-catalog-search inert={!open} aria-hidden={!open}>
+    <Field primitive="input.text" purpose="search" label={say(m.bar.searchLabel, { title: title.toLowerCase() })} labelVisibility="accessible"
+      required={false} invalid={false} disabled={false} measure="fill" value={displayedQuery} placeholder={say(m.bar.searchPlaceholder, { title })}
+      clear={false} controls={open ? resultsId : undefined} focus={open && opened ? "on-mount" : undefined} onchange={onquery} />
   </div>
   <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
   <div class="toolbar-action" data-search-toggle>
@@ -4766,13 +4772,14 @@ Source SHA-256: 2b58281a3deb333667d4586c6377154dca80eb53518481853a663287ac455962
 
 ## src/svelte/catalog/foundations/choice-row/ChoiceRow.svelte
 
-Source SHA-256: 65fdcd7e3a17842d2161ae4a151dc05772062efb7901c7cebcda11d73c9fefde
+Source SHA-256: 3c393362e4996817028b17b776838635245c016cec4315798b6f6bb161e5b0f3
 
 ```svelte
 <script lang="ts">
   import * as Field from "../../../vendor/components/ui/field/index.js";
   import { ChoiceItem } from "../../index.ts";
-  import { pressFeedback } from "../../../vendor/components/ui/button/press-feedback.js";
+  // lane-merge (lane N): press feedback moved to the press-feedback mechanism; Batch 3 deletes this folder.
+  import { pressFeedback } from "../../mechanisms/press-feedback/press-feedback.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { id, labelId, descriptionId, label, description, disabled, children }: CatalogProps<"choice-row"> = $props();
   let row = $state<HTMLLabelElement | null>(null);
@@ -5011,7 +5018,7 @@ export const actionIconNames = {
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: adfd219a254e6ceb3e41dbf1c4cd89d397e907d7088e9b92c71908ab1c0ae6ab
+Source SHA-256: ca78a8615fd28a1b57fb9ef324244f2d3c7fd2607c88b0a83e08f8a42b4ff72b
 
 ```svelte
 <script lang="ts" module>
@@ -5070,7 +5077,7 @@ Source SHA-256: adfd219a254e6ceb3e41dbf1c4cd89d397e907d7088e9b92c71908ab1c0ae6ab
 </script>
 
 <script lang="ts">
-	import { pressFeedbackProps } from "./press-feedback.js";
+	import { pressFeedbackProps } from "@desert/svelte/catalog/mechanisms/press-feedback/press-feedback.ts";
 	import Search from "@lucide/svelte/icons/search";
 	import X from "@lucide/svelte/icons/x";
 	let {
@@ -5164,7 +5171,7 @@ Source SHA-256: adfd219a254e6ceb3e41dbf1c4cd89d397e907d7088e9b92c71908ab1c0ae6ab
 </style>
 ```
 
-## src/svelte/vendor/components/ui/button/press-feedback.ts
+## src/svelte/catalog/mechanisms/press-feedback/press-feedback.ts
 
 Source SHA-256: 84ac4fd5285a46188c7a72f1373012fe2c19157dfa71e49695bfa3c42aaa5eeb
 
@@ -5421,10 +5428,12 @@ Source SHA-256: 12d44eda3f243e5292c11d43f7da85c70eb510846e355109cba33d93e0c61ef8
 
 ## src/svelte/catalog/foundations/date-control/DateControl.svelte
 
-Source SHA-256: d0d309245c0cb986bd5674d1c92b2ce08eb6373ba63c494231a269a273bb2cd1
+Source SHA-256: 654cc22790516fd6bbc198935cb9be9eea78af008e1cb59faa2243c1a48e45ee
 
 ```svelte
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { untrack } from "svelte";
   import { parseDate, today, DateFormatter, getLocalTimeZone, type DateValue } from "@internationalized/date";
   import DateCalendar from "./DateCalendar.svelte";
@@ -5437,7 +5446,7 @@ Source SHA-256: d0d309245c0cb986bd5674d1c92b2ce08eb6373ba63c494231a269a273bb2cd1
   let observedValue = untrack(() => node.value);
   let visibleDate = $state<DateValue>(untrack(() => node.value ? parseDate(node.value) : today(getLocalTimeZone())));
   let date = $derived(node.value ? parseDate(node.value) : undefined);
-  let label = $derived(date ? format.format(date.toDate(getLocalTimeZone())) : "No date selected");
+  let label = $derived(date ? format.format(date.toDate(getLocalTimeZone())) : say(m.dateControl.noDate));
   $effect(() => {
     const next = node.id, value = node.value, isOpen = open;
     untrack(() => {
@@ -5613,10 +5622,12 @@ Source SHA-256: 7c944131e730080e7d79b96bad35bdf153dff6d827ad86daa629999f5d7c9ef4
 
 ## src/svelte/catalog/foundations/files/Files.svelte
 
-Source SHA-256: 131a583815f988f2695c086f19bd164feb78fe73012ff897afc571ba67d6aaef
+Source SHA-256: 60b613e1919050b859e27751ba53c71ada3625b94c11af105b2df275bb2aedf3
 
 ```svelte
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { Action } from "../../index.ts";
   import { Text } from "../../index.ts";
   import { fileNode, type FileRejection } from "../../../../interaction/control-nodes.ts";
@@ -5624,7 +5635,7 @@ Source SHA-256: 131a583815f988f2695c086f19bd164feb78fe73012ff897afc571ba67d6aaef
   import { currentStackTitle } from "../../../infra/stack-context.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import { fileSize } from "./file-size.ts";
-  import { nativeFilePicker } from "./native-file-picker.ts";
+  import { nativeFilePicker } from "../../mechanisms/file-picker/file-picker.ts";
   let { node, onevent }: CatalogProps<"files"> = $props();
   const provided = useFileHost();
   if (!provided) throw new Error("LOCAL_FILE_HOST_REQUIRED: files renders inside a subtree that provides a file host (provideFileHost)");
@@ -5633,8 +5644,7 @@ Source SHA-256: 131a583815f988f2695c086f19bd164feb78fe73012ff897afc571ba67d6aaef
   let rejected = $state<readonly FileRejection[]>([]);
   const id = $props.id();
   const stackTitle = currentStackTitle();
-  const reasons = { "media-type": "File type is not accepted", "file-size": "File is too large",
-    "total-size": "Total size limit exceeded", count: "File count limit reached" };
+  const reasons = { "media-type": m.files.mediaType, "file-size": m.files.fileSize, "total-size": m.files.totalSize, count: m.files.count };
   /** The browser's chooser supplies the files; the host checks them against the limits and keeps the accepted handles. */
   async function choose() {
     const files = await nativeFilePicker(checked);
@@ -5648,22 +5658,22 @@ Source SHA-256: 131a583815f988f2695c086f19bd164feb78fe73012ff897afc571ba67d6aaef
   data-invalid={rejected.length > 0} aria-labelledby={`${id}-label`} aria-describedby={`${id}-limits`}>
   <span id={`${id}-label`} data-files-label class={stackTitle() === checked.label ? "sr-only"
     : "flex w-fit items-center gap-2 type-control leading-snug select-none group-data-[invalid=true]/field:text-destructive-text"}>{checked.label}</span>
-  <Action icon="open" label="Choose files" face="fit" emphasis="secondary" type="button" state={checked.disabled ? "unavailable" : "ready"} onclick={choose} />
+  <Action icon="open" label={say(m.files.choose)} face="fit" emphasis="secondary" type="button" state={checked.disabled ? "unavailable" : "ready"} onclick={choose} />
   <Text id={`${id}-limits`} kind="caption" tone="muted" inset="row"
-    text={`Up to ${checked.limits.maxCount} files · ${fileSize(checked.limits.maxFileBytes)} each · ${fileSize(checked.limits.maxTotalBytes)} total. Choosing files does not upload them.`} />
+    text={say(m.files.limits, { count: String(checked.limits.maxCount), file: fileSize(checked.limits.maxFileBytes), total: fileSize(checked.limits.maxTotalBytes) })} />
   {#if checked.files.length}
-    <ul class="flex flex-col gap-2" aria-label="Selected local files" data-files-list>
+    <ul class="flex flex-col gap-2" aria-label={say(m.files.selected)} data-files-list>
       {#each checked.files as file (file.id)}
         <li class="flex flex-wrap items-center justify-between gap-2">
-          <span class="min-w-0 break-all">{file.name} · {fileSize(file.size)}</span>
-          <Action icon="close" label={`Remove ${file.name}`} face="fit" emphasis="secondary" type="button" state={checked.disabled ? "unavailable" : "ready"}
+          <span class="min-w-0 break-all">{say(m.files.file, { name: file.name, size: fileSize(file.size) })}</span>
+          <Action icon="close" label={say(m.files.remove, { name: file.name })} face="fit" emphasis="secondary" type="button" state={checked.disabled ? "unavailable" : "ready"}
             onclick={() => onevent?.(host.remove(checked, file.id))} />
         </li>
       {/each}
     </ul>
-  {:else}<Text kind="caption" tone="muted" inset="row" text="No local files selected." />{/if}
+  {:else}<Text kind="caption" tone="muted" inset="row" text={say(m.files.none)} />{/if}
   <div role="status" aria-live="polite" data-files-status>
-    {#each rejected as item (item.file.id)}<Text kind="support" tone="destructive" text={`${item.file.name}: ${reasons[item.reason]}.`} />{/each}
+    {#each rejected as item (item.file.id)}<Text kind="support" tone="destructive" text={say(m.files.rejected, { name: item.file.name, reason: say(reasons[item.reason]) })} />{/each}
   </div>
 </div>
 ```
@@ -5711,10 +5721,12 @@ Source SHA-256: e95bfc97c5eedfbe17268c0fb5acf81adb8b7eb2f5e12dc7a7558150181ffe4e
 
 ## src/svelte/catalog/foundations/field/Field.svelte
 
-Source SHA-256: fa3f11b081e20b98bd66c42dbeac2d4a3e55a55010cbc51b61b1470f092186b0
+Source SHA-256: 715be902b701226f1f799935ea01972f846f36433eef2ea3d632f2806c25dc22
 
 ```svelte
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { untrack } from "svelte";
   import * as Vendor from "../../../vendor/components/ui/field/index.js";
   import FieldWell from "./FieldWell.svelte";
@@ -5725,7 +5737,7 @@ Source SHA-256: fa3f11b081e20b98bd66c42dbeac2d4a3e55a55010cbc51b61b1470f092186b0
   import ClearInput from "./ClearInput.svelte";
   import type { CatalogProps } from "../../types.d.ts";
   let { primitive, label, labelVisibility, required, invalid, disabled, helper, error, identity, measure, purpose, value, placeholder,
-    mask, maxLength, counter, clear, focus, display, disclosure, onchange, onmasked, onopen, accessory: trailing, prefix }: CatalogProps<"field"> = $props();
+    mask, maxLength, counter, clear, focus, controls, display, disclosure, onchange, onmasked, onopen, accessory: trailing, prefix }: CatalogProps<"field"> = $props();
   const id = $props.id();
   // Both editors receive their value; the trigger owns none. `writing` is the live text, `shown` a mask's formatted text.
   let written = $derived(typeof value === "string" ? value : "");
@@ -5756,15 +5768,14 @@ Source SHA-256: fa3f11b081e20b98bd66c42dbeac2d4a3e55a55010cbc51b61b1470f092186b0
   function edited(next: string, valid: boolean, complete: boolean) {
     if (disabled || !mask) return;
     onmasked?.({ value: next, valid, complete });
-    draftError = valid && complete ? "" : valid ? "Enter a complete number." :
-      `Enter a number with up to ${mask.scale} decimal places using this field's format.`;
+    draftError = valid && complete ? "" : valid ? say(m.field.incompleteNumber) : say(m.field.invalidNumber, { scale: String(mask.scale) });
     if (valid && complete) { pending.push(next); onchange?.(next); }
   }
 </script>
 {#snippet characters()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
 {#snippet editor()}
   {#if primitive !== "trigger"}
-    <FieldEditor {id} {primitive} {label} {purpose} value={written} {placeholder} {mask} {identity} {required} {disabled} {focus}
+    <FieldEditor {id} {primitive} {label} {purpose} value={written} {placeholder} {mask} {identity} {required} {disabled} {focus} {controls}
       invalid={marked} {describedBy} bind:writing bind:shown onchange={next => onchange?.(next)} onmasked={edited} />
   {/if}
 {/snippet}
@@ -5774,12 +5785,12 @@ Source SHA-256: fa3f11b081e20b98bd66c42dbeac2d4a3e55a55010cbc51b61b1470f092186b0
       <FieldTrigger {label} {labelVisibility} {required} {disabled} {describedBy} {display} {disclosure}
         onopen={() => onopen?.()} />
     {:else if purpose === "search"}
-      <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} bind:writing onchange={next => onchange?.(next)} />
+      <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} {controls} bind:writing onchange={next => onchange?.(next)} />
     {:else}
       <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} {prefix} footer={counted ? characters : undefined}>
         {#snippet accessory()}
           {#if trailing}{@render trailing()}
-          {:else if multiline || clear}<ClearInput control={id} value={draft} label={`Clear ${label}`} {disabled} />{/if}
+          {:else if multiline || clear}<ClearInput control={id} value={draft} label={say(m.field.clear, { label })} {disabled} />{/if}
         {/snippet}
         {@render editor()}
       </FieldWell>
@@ -5792,7 +5803,7 @@ Source SHA-256: fa3f11b081e20b98bd66c42dbeac2d4a3e55a55010cbc51b61b1470f092186b0
 
 ## src/svelte/catalog/foundations/field/FieldEditor.svelte
 
-Source SHA-256: e142390ce5a9618285a1ea2cceb848b1ae46c1d8dcb99ae6e0d1727fbe2061d5
+Source SHA-256: d536b97e665acb2d86cea31e34a2a9f618080b085227d3bb66eabc9e0fad6e53
 
 ```svelte
 <script lang="ts">
@@ -5802,12 +5813,12 @@ Source SHA-256: e142390ce5a9618285a1ea2cceb848b1ae46c1d8dcb99ae6e0d1727fbe2061d5
   import type { InputMask } from "../../../../interaction/input-mask.ts";
   import MaskedInput from "./MaskedInput.svelte";
   import { observeEditorCapacity } from "./editor-capacity.ts";
-  let { id, primitive, label, purpose, value, placeholder, mask, identity, required, disabled, invalid, describedBy, focus,
+  let { id, primitive, label, purpose, value, placeholder, mask, identity, required, disabled, invalid, describedBy, focus, controls,
     writing = $bindable(""), shown = $bindable(""), onchange, onmasked }: {
     id: string; primitive: "input.text" | "input.multiline"; label: string;
     purpose: "text" | "username" | "new-password" | "current-password" | "search" | undefined; value: string; placeholder: string | undefined;
     mask: InputMask | undefined; identity: string | undefined; required: boolean; disabled: boolean; invalid: boolean;
-    describedBy: string | undefined; focus: "on-mount" | undefined; writing?: string; shown?: string;
+    describedBy: string | undefined; focus: "on-mount" | undefined; controls: string | undefined; writing?: string; shown?: string;
     onchange: (value: string) => void; onmasked: (value: string, valid: boolean, complete: boolean) => void;
   } = $props();
   let editor = $state<HTMLTextAreaElement | null>(null);
@@ -5826,7 +5837,7 @@ Source SHA-256: e142390ce5a9618285a1ea2cceb848b1ae46c1d8dcb99ae6e0d1727fbe2061d5
   <Group.Input {id} bind:ref={line} type={purpose?.endsWith("password") ? "password" : "text"}
     autocomplete={purpose === "text" || purpose === "search" || purpose === undefined ? undefined : purpose} autocapitalize={purpose === "username" ? "none" : undefined}
     spellcheck={purpose === "text" ? undefined : false} bind:value={writing} {required} {disabled} aria-required={required}
-    aria-invalid={invalid} aria-label={label} placeholder={placeholder ?? " "} aria-describedby={describedBy}
+    aria-invalid={invalid} aria-label={label} placeholder={placeholder ?? " "} aria-describedby={describedBy} aria-controls={controls}
     class="focus-visible:outline-none" onblur={event => onchange(event.currentTarget.value)} oninput={event => onchange(event.currentTarget.value)} />
 {/if}
 ```
@@ -6283,10 +6294,12 @@ Source SHA-256: 7744141a901f07b6d9b30f37816a2ebb8bdbc9e6b36b3dd51d44a77d73970c30
 
 ## src/svelte/catalog/foundations/modal/ModalPane.svelte
 
-Source SHA-256: 3cf6727d8151d4e3edcd57fb731431a203bdcf91828f711f43a2e315aed36599
+Source SHA-256: db348b04004fe0726370123bf42078a9d62242615d41cb980afe2e5651767b2c
 
 ```svelte
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   // Modal part: the pane of an adaptive, transient or navigation modal. An adaptive pane docks beside its parent when the
   // launching host has room (it is then not modal); otherwise it is modal at the right edge, or at the bottom edge with
   // its grip. Fit, modality and edge come from the host's available space, never a browser breakpoint.
@@ -6357,7 +6370,7 @@ Source SHA-256: 3cf6727d8151d4e3edcd57fb731431a203bdcf91828f711f43a2e315aed36599
     onEscapeKeydown={event => { event.preventDefault(); if (!docked || content?.contains(document.activeElement)) dismiss(); }}
     onInteractOutside={event => { event.preventDefault(); if (!docked) dismiss(); }}>
     <Dialog.Title class="sr-only">{label}</Dialog.Title>
-    <Dialog.Description class="sr-only">Close to return. Unsaved writing stays in this session.</Dialog.Description>
+    <Dialog.Description class="sr-only">{say(m.modal.description)}</Dialog.Description>
     {#if edge === "bottom" && !docked}<DrawerGrip {motion} {locked} />{/if}
     {@render children?.()}
   </Dialog.Content>
