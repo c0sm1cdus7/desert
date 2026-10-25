@@ -22,8 +22,8 @@
 {#snippet content()}
   {#if leading?.kind === "face"}<Face face={leading.face} />
   {:else if leading?.kind === "attention"}<AttentionIndicator required={leading.required} />
-  {:else if leading?.kind === "image"}<span class="row-artwork"><Image source={leading.source} alt={leading.alt} fit={leading.fit} /></span>
-  {:else if leading?.kind === "artwork"}<span class="row-artwork"><Image placeholder={leading.media} /></span>{/if}
+  {:else if leading?.kind === "image"}<span class="row-artwork"><Image frame="host" source={leading.source} alt={leading.alt} fit={leading.fit} /></span>
+  {:else if leading?.kind === "artwork"}<span class="row-artwork"><Image frame="host" placeholder={leading.media} /></span>{/if}
   <span class="row-copy">
     <span class="row-label">{label}</span>
     {#if description}<span class="row-description">{description}</span>{/if}

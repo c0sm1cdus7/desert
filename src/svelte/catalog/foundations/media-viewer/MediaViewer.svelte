@@ -88,7 +88,7 @@
       {#key `${index}:${imageIdentity(selected.source)}`}
         {#if selected.kind === 'image'}
           <div class="viewer-stage" use:manipulate data-media-stage>
-            <Image source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry fit="fit" backdrop="none" onready={() => gesture?.refresh()} />
+            <Image frame="host" source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry fit="fit" backdrop="none" onready={() => gesture?.refresh()} />
             {@render paging()}
           </div>
           {#if items.length > 1}<div class="viewer-band"><div class="viewer-band-row"><MediaStrip {items} {index} fill={false} onindex={select} /></div></div>{/if}

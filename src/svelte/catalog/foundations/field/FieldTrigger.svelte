@@ -46,7 +46,7 @@
             {:else}<span class="field-placeholder">{say(m.field.none)}</span>{/each}
           </span>
         {:else if display.kind === "image"}
-          <span class="field-image"><span data-field-thumbnail><Image source={display.source} alt="" fit="fill" edge={88} /></span>{display.text}</span>
+          <span class="field-image"><span data-field-thumbnail><Image frame="host" source={display.source} alt="" fit="fill" edge={88} /></span>{display.text}</span>
         {:else}<span class={display.placeholder ? "field-placeholder" : undefined}>{display.text}</span>{/if}
         {#if accessory === "calendar"}<Icon name="calendar" placement="inline-end" decorative />
         {:else}<Icon name="chevron-down" placement="inline-end" chevron decorative />{/if}

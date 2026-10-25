@@ -82,6 +82,11 @@ test("image: the placeholder and the image keep the pixels of ArtworkPlaceholder
     // card host's unlayered media stylesheet still positions it, so its position compares as is).
     const inFlow = { "padding-top": "16px", "padding-right": "16px", "padding-bottom": "16px", "padding-left": "16px" };
     const laidOut = (found: typeof was): typeof was => ({ ...found, error: { ...found.error, error: found.error?.error?.map(item => ({ ...item, style: { ...item.style, ...inFlow } })) ?? [] } });
+    // Third review of the slice 3 package: a ready picture that fills its frame paints no backdrop of its own (the picture
+    // covers it), so nothing lighter shows past the picture's own corners; only that fill differs.
+    const fill = is["ready-fill"]?.root?.[0]?.style;
+    assert.equal(fill?.["background-color"], "rgba(0, 0, 0, 0)", "a ready filling picture's frame paints no backdrop");
+    if (fill) fill["background-color"] = was["ready-fill"]?.root?.[0]?.style["background-color"] ?? "";
     for (const name of Object.keys(probes)) assert.deepEqual(withoutRadius(withoutFacePrimitive(is[name], faces(name))), withoutRadius(withoutFacePrimitive(laidOut(was)[name], faces(name))), name);
     // The retry keeps its box; its own styling is Action's (the vendor button's secondary face before).
     const retry: Probes = { error: { retry: "button" } };

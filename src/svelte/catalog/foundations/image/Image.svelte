@@ -8,7 +8,7 @@
   import { privateImageResource } from '../../../infra/private-image-resource.ts';
   import { renditionWidths } from '../../../../media/rendition-policy.ts';
   import type { CatalogProps } from "../../types.d.ts";
-  let { source, alt = "", edge = 640, zoom = 1, retry = false, fit = 'fill', backdrop = 'muted', placeholder, onready, onunavailable,
+  let { source, alt = "", edge = 640, zoom = 1, retry = false, fit = 'fill', backdrop = 'muted', frame = 'own', placeholder, onready, onunavailable,
     fallback = say(m.image.unavailable) }: CatalogProps<"image"> = $props();
   let host!: HTMLDivElement;
   let measured = $state(0), attempt = $state(0), ready = $state(''), failed = $state('');
@@ -62,7 +62,7 @@
 <!-- A placeholder keeps the artwork placeholder mark, so hosts that have not migrated still place it as they placed
      ArtworkPlaceholder. It stands where a face would: the theme's one face primitive (tm-face) gives it the white ground
      and the hairline every face has (law 9e), in its host's shape. -->
-<div bind:this={host} class={placeholder === undefined ? "image" : "image-placeholder tm-face"} class:image-clear={backdrop === 'none'}
+<div bind:this={host} class={placeholder === undefined ? "image" : "image-placeholder tm-face"} class:image-clear={backdrop === 'none'} class:image-host={frame === 'host'}
   data-media-image={placeholder === undefined ? "" : undefined} data-media-artwork-placeholder={placeholder === undefined ? undefined : ""}
   data-image-fit={placeholder === undefined ? fit : undefined} data-image-state={status} data-image-placeholder={placeholder}
   aria-label={placeholder === 'audio' ? say(m.image.noCover) : placeholder === 'video' ? say(m.image.noPoster) : undefined}>
@@ -90,9 +90,15 @@
   /* The components layer, as media.css was unlayered: a contextual rule of a host that has not migrated (a viewer
      stage, a catalog card) still outranks this base geometry. */
   @layer components {
-    .image { position:relative; width:100%; height:100%; overflow:hidden; background:var(--muted); }
+    /* An image frame takes the image radius of the family, the control's, and clips what it holds to it (the picture, its
+       unavailable notice): nothing paints past the rounded shape. Set in a host's frame (a card, a thumbnail, a cover, a
+       gallery, a full-bleed stage), it takes that frame's corner. Ready and filling its frame, it paints no backdrop of its own
+       (the picture covers it), so nothing lighter shows past the picture's own corners; fitted, the backdrop is its letterbox. */
+    .image { position:relative; width:100%; height:100%; overflow:hidden; border-radius:var(--radius-control); background:var(--muted); }
+    .image[data-image-state="ready"][data-image-fit="fill"] { background:transparent; }
     .image-clear { background:transparent; }
-    .image-placeholder { display:grid; place-items:center; width:100%; height:100%; border-radius:inherit; color:var(--muted-foreground); }
+    .image-placeholder { display:grid; place-items:center; width:100%; height:100%; border-radius:var(--radius-control); color:var(--muted-foreground); }
+    .image-host { border-radius:inherit; }
     .image-element { display:block; width:100%; height:100%; object-fit:cover; user-select:none; }
     .image-contain { object-fit:contain; }
     .image[data-image-state="ready"] > .image-element { animation:image-in var(--dur-unfold) var(--ease-tm) both; }

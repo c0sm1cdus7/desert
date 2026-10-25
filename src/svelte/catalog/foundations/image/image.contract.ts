@@ -2,13 +2,15 @@
 // its frame, whether its frame shows the muted backdrop, and what it says when it cannot load. `ready` fires once the
 // image is decoded and shown, `unavailable` once it shows its fallback instead. Without an image, `placeholder` stands in for it: the glyph of missing video or audio
 // artwork, or the `fallback` sentence of unavailable media (which ArtworkPlaceholder drew before slice 3); a placeholder
-// always fills its frame.
+// always fills its frame. `frame` says whose corner it has: its own, the image radius of the family ("own", by default, an
+// image standing by itself), or its host's ("host": a card, a thumbnail, a cover, a gallery or a stage that frames it).
 import { Type } from "@sinclair/typebox";
 import { AssetReferenceSchema } from "../../../../assets/types.ts";
 
 export const ImageContract = {
   props: Type.Intersect([Type.Object({
     fallback: Type.Optional(Type.String()),
+    frame: Type.Optional(Type.Union([Type.Literal("own"), Type.Literal("host")])),
   }, { additionalProperties: false }), Type.Union([
     Type.Object({
       source: Type.Union([Type.String(), AssetReferenceSchema]),

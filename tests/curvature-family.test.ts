@@ -73,7 +73,16 @@ const scenes: Record<string, { source: string; open?: string }> = {
     cards("Wallpaper", [{ value: "silk", label: "Silk", leading: { kind: "wallpaper", wallpaper: "silk" } }, { value: "mist", label: "Mist", leading: { kind: "wallpaper", wallpaper: "mist" } }]),
     cards("Theme", [{ value: "light", label: "Light", leading: { kind: "theme", mode: "light", tint: "blue", wallpaper: "mist" } }, { value: "dark", label: "Dark", leading: { kind: "theme", mode: "dark", tint: "blue", wallpaper: "mist" } }])];`,
     `{#each sets as set}<section class="part" data-scene-part="cards" style="display:block;max-width:420px"><Catalog.Choice {...set} /></section>{/each}`) },
-  popover: { source: page("", `<section class="part" data-scene-part="select" style="max-width:420px;display:block">${select}</section>`),
+  // Every image frame (third review): a picture, the notice of one that cannot load and a placeholder, alone and in the
+  // galleries that hold them (a detail's photograph included), take the image radius of the family, the control's.
+  image: { source: page(`import { ImageSpecimens } from "@desert/svelte/catalog/foundations/image/image.specimens.ts";
+  import { GallerySpecimens } from "@desert/svelte/catalog/foundations/gallery/gallery.specimens.ts";
+  const photo = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360'%3E%3Crect width='640' height='360' rx='24' fill='%23468'/%3E%3C/svg%3E";
+  const galleries = GallerySpecimens.filter(specimen => specimen.props.presentation !== "header");`,
+    `<section class="part" data-scene-part="image" style="display:grid;max-width:420px">{#each ImageSpecimens as specimen}<div class="cell" style="height:180px"><Catalog.Image {...specimen.props} /></div>{/each}
+      <div class="cell" style="height:180px" data-ready-photo><Catalog.Image source={photo} alt="Harbour" fit="fill" /></div></section>
+    <section class="part" data-scene-part="gallery" style="display:grid;max-width:420px">{#each galleries as specimen}<div class="cell"><Catalog.Gallery {...specimen.props} /></div>{/each}</section>`) },
+  popover: { source: page("",`<section class="part" data-scene-part="select" style="max-width:420px;display:block">${select}</section>`),
     open: "[data-selection-trigger]" },
   calendar: { source: page("", `<section class="part" data-scene-part="date" style="max-width:420px;display:block"><Catalog.DateControl node={{ version: "desert.control/1",
     kind: "date", id: "arrival", label: "Arrival date", required: true, disabled: false, value: "2026-10-16", minimum: "2026-10-10", maximum: "2026-10-24" }}
@@ -156,6 +165,20 @@ function measure() {
     const radius = art ? px(getComputedStyle(art).borderTopLeftRadius) : 0;
     if (Math.abs(radius - family.chip) > .5) failures.push(`${name(card)} ${card.getAttribute("data-choice-option")}: its artwork's corner is ${radius}px, not the chip radius ${family.chip}px`);
   }
+  // An image frame (a picture, its unavailable notice, a placeholder) standing by itself or as a gallery's inline or detail
+  // photograph has the control radius and clips what it holds to it; a ready picture's frame paints no backdrop of its own,
+  // so nothing lighter shows past the picture's own corners (third review).
+  for (const frame of document.querySelectorAll('[data-scene-part="image"] .image, [data-scene-part="image"] .image-placeholder, [data-scene-part="gallery"] .gallery:not(.gallery-header)')) {
+    if (!visible(frame)) continue;
+    const style = getComputedStyle(frame), at = `${name(frame)} ${frame.getAttribute("data-image-state") ?? ""}`;
+    if (Math.abs(px(style.borderTopLeftRadius) - family.control) > .5 || Math.abs(px(style.borderBottomRightRadius) - family.control) > .5)
+      failures.push(`${at}: an image frame's corner is ${style.borderTopLeftRadius}, not the control radius ${family.control}px`);
+    if (frame.matches(".image, .gallery") && style.overflow !== "hidden") failures.push(`${at}: an image frame paints past its rounded shape (overflow ${style.overflow})`);
+  }
+  for (const frame of document.querySelectorAll('[data-ready-photo] .image[data-image-state="ready"]'))
+    if (getComputedStyle(frame).backgroundColor !== "rgba(0, 0, 0, 0)") failures.push(`${name(frame)}: a ready picture's frame paints a backdrop past the picture's own corners`);
+  if (document.querySelector("[data-ready-photo]") && !document.querySelector('[data-ready-photo] .image[data-image-state="ready"]'))
+    failures.push("the ready picture never became ready");
   // Concentric containers: at each corner, the rounded piece it holds there sits at the same inset across and down, and the
   // container's radius is that piece's radius plus the inset.
   const containers = [...document.querySelectorAll('.problem, .drawer, .floating-pane, .list, .field-well:has([data-action-accessory]), [data-slot="sidebar-inner"], label.card[data-choice-option]')].filter(visible);

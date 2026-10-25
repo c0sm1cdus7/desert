@@ -137,6 +137,12 @@ test("gallery and media-player keep the photo collection's and the media object'
     const frames = (value: Awaited<ReturnType<typeof measureProbes>>) => Object.fromEntries(Object.entries(value).map(([name, probes]) =>
       [name, { ...probes, gallery: probes.gallery?.map(item => item.box) }]));
     const [old, now] = [await measureProbes(was.page, galleryProbes), await measureProbes(is.page, galleryProbes)];
+    // Third review of the slice 3 package: the image takes its gallery's corner (it was square inside the gallery's clip,
+    // so its pixels are the same); its radius is its frame's, and the rest of it compares whole.
+    for (const [name, found] of Object.entries(now)) for (const item of found.image ?? []) {
+      assert.equal(item.style["border-radius"], found.gallery?.[0]?.style["border-radius"], `${name}: the image takes its gallery's corner`);
+      item.style["border-radius"] = old[name]?.image?.[0]?.style["border-radius"] ?? "";
+    }
     assert.deepEqual(frames(now), frames(old));
     assert.deepEqual(await boxes(is.page, playerBoxes), await boxes(was.page, playerBoxes));
     assert.deepEqual([was.errors, is.errors], [[], []]);

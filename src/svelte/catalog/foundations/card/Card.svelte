@@ -26,8 +26,8 @@
 </script>
 
 {#snippet art()}
-  {#if typeof artwork === "object" && artwork.kind === "placeholder"}<Image placeholder={artwork.media} />
-  {:else if artwork !== undefined}<Image source={artwork} {alt} {fit} />{/if}
+  {#if typeof artwork === "object" && artwork.kind === "placeholder"}<Image frame="host" placeholder={artwork.media} />
+  {:else if artwork !== undefined}<Image frame="host" source={artwork} {alt} {fit} />{/if}
 {/snippet}
 
 {#if media}
@@ -69,7 +69,8 @@
   .card-media { position:relative; display:flex; flex-direction:column; flex-shrink:0; min-height:0; overflow:hidden; border:0;
     box-shadow:none; background:var(--card); color:var(--card-foreground); width:calc(var(--catalog-media-height) * var(--catalog-cover-aspect));
     height:var(--catalog-media-height); }
-  .card-fill { position:absolute; inset:0; display:block; }
+  /* The artwork takes the card's corner, so a placeholder's hairline follows the card's curve. */
+  .card-fill { position:absolute; inset:0; display:block; border-radius:inherit; }
   /* The press target spans the card; it took its square corners from the title it sat in, and the card clips it. */
   .card-press { display:block; position:absolute; inset:0; width:100%; height:100%; justify-content:flex-start; border:0; border-radius:0;
     overflow:hidden; background:transparent; font-weight:400; }

@@ -31,7 +31,7 @@
      (place-heading.css) placing the gallery as they placed PhotoCollection. -->
 <div bind:this={host} class="gallery gallery-{presentation} gallery-aspect-{aspect}" class:gallery-failed={failed} data-photo-collection
   data-header-collection={presentation === 'header' || undefined}>
-  {#if selected}<Image source={selected.source} alt={selected.alt} edge={presentation === 'header' ? 1280 : 640} {fit} retry
+  {#if selected}<Image frame="host" source={selected.source} alt={selected.alt} edge={presentation === 'header' ? 1280 : 640} {fit} retry
     onready={() => failed = false} onunavailable={() => failed = true} />{/if}
   <button type="button" class="gallery-open" use:drag data-media-open aria-label={say(m.gallery.open)} onclick={() => open = true} onkeydown={key}></button>
   {#if photos.length > 1}
@@ -70,7 +70,7 @@
   .gallery-aspect-square { aspect-ratio:1; }
   .gallery-aspect-landscape { aspect-ratio:16/9; }
   .gallery-aspect-portrait { aspect-ratio:3/4; }
-  .gallery-detail { height:var(--catalog-hero-height); }
+  .gallery-detail { height:var(--catalog-hero-height); border-radius:var(--radius-control); }
   /* Heading a place: the shade under the copy, the opener above it, the dots centred on the content column. */
   .gallery-header::before { content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(transparent 35%,var(--catalog-image-shade)); }
   .gallery-header .gallery-open { z-index:2; }

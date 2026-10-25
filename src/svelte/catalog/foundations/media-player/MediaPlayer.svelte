@@ -39,9 +39,9 @@
       </video>
     {:else}
       {#if unavailable}<!-- The error stands alone. -->
-      {:else if item.artwork}<Image source={item.artwork.source} alt={item.artwork.alt} edge={1280}
+      {:else if item.artwork}<Image frame="host" source={item.artwork.source} alt={item.artwork.alt} edge={1280}
         fit={presentation === 'viewer' ? 'fit' : 'fill'} backdrop={presentation === 'viewer' ? 'none' : 'muted'} />
-      {:else}<Image placeholder="audio" />{/if}
+      {:else}<Image frame="host" placeholder="audio" />{/if}
       <audio data-media-player="audio" use:playback.attach src={source} preload="metadata" aria-label={item.alt}>
         {#each item.captions as track (track.source)}<track kind="captions" src={track.source} srclang={track.language} label={track.label} />{/each}
       </audio>

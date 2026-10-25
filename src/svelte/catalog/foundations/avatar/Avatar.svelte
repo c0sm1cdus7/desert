@@ -19,7 +19,7 @@
     aria-hidden={label === undefined ? "true" : undefined}>
     <Mark.Fallback><SeedPortrait seed={source.seed} label={source.kind === "seed" ? label : undefined} /></Mark.Fallback>
     {#if source.kind === "image" && failed !== pictureKey}
-      <span class="avatar-picture"><Image source={source.source} alt="" edge={160} backdrop="none" fallback=""
+      <span class="avatar-picture"><Image frame="host" source={source.source} alt="" edge={160} backdrop="none" fallback=""
         onunavailable={() => { failed = pictureKey; }} /></span>
     {/if}
   </Mark.Root>

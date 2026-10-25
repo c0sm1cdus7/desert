@@ -14,8 +14,8 @@
 {:else if frame === "card" && leading.kind === "wallpaper"}<Wallpaper wallpaper={leading.wallpaper} preview />
 {:else}
   <span class={frame === "mark" ? "preview" : "cover"}>
-    {#if leading.kind === "image"}<Image source={leading.source} alt={leading.alt} edge={frame === "mark" ? 96 : 320} />
-    {:else if leading.kind === "artwork"}<Image placeholder={leading.media} />
+    {#if leading.kind === "image"}<Image frame="host" source={leading.source} alt={leading.alt} edge={frame === "mark" ? 96 : 320} />
+    {:else if leading.kind === "artwork"}<Image frame="host" placeholder={leading.media} />
     {:else}<Wallpaper wallpaper={leading.wallpaper} preview />{/if}
   </span>
 {/if}

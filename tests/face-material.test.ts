@@ -33,7 +33,7 @@ const page = `<script lang="ts">
   <section data-faces style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
     {#each FaceSpecimens as specimen}<Catalog.Face {...specimen.props} />{/each}
     {#each avatars as specimen}<Catalog.Avatar {...specimen.props} />{/each}
-    {#each placeholders as specimen}<div style="width:80px;height:60px;border-radius:14px;overflow:hidden"><Catalog.Image {...specimen.props} /></div>{/each}
+    {#each placeholders as specimen}<div style="width:80px;height:60px;border-radius:14px;overflow:hidden"><Catalog.Image {...specimen.props} frame="host" /></div>{/each}
   </section>
   <section style="width:360px">{#each rows as specimen}<Catalog.Row {...specimen.props} />{/each}</section>
   <section data-tags style="display:flex;gap:8px;flex-wrap:wrap">{#each chips as specimen}<Catalog.Tag {...specimen.props} />{/each}</section>
