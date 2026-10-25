@@ -6,8 +6,11 @@
   import type { CatalogProps } from "../../types.d.ts";
   let { value, presentation = "inline" }: CatalogProps<"fact-value"> = $props();
   const state = $derived(factState(value));
-  // A known value may break after each path separator before it breaks inside a word (a source path in a narrow row).
-  const segments = $derived(presentFact(value).split(/(?<=\/)(?=.)/));
+  // A known path breaks only after a separator or before its file's extension, never inside a word or at a hyphen (a
+  // source path in a narrow row): each piece holds together, a break opportunity between them. A value without a
+  // separator is one piece and wraps as text does.
+  const shown = $derived(presentFact(value));
+  const segments = $derived(shown.includes("/") ? shown.split(/(?<=\/)(?=.)|(?=\.[^./\s]+$)/) : [shown]);
 </script>
 
 {#snippet reading()}
@@ -16,7 +19,8 @@
       <Icon name={state === "empty" ? "minus" : "circle-question-mark"} size="em" decorative />
       {#if state === "empty"}<span class="sr-only">{say(m.factValue.state)} {presentFact(value)}</span>
       {:else}<span><span class="sr-only">{say(m.factValue.state)} </span>{presentFact(value)}</span>{/if}
-    {:else}{#each segments as segment, index (index)}{#if index}<wbr />{/if}{segment}{/each}{/if}
+    {:else if segments.length > 1}{#each segments as segment, index (index)}{#if index}<wbr />{/if}<span class="fact-piece">{segment}</span>{/each}
+    {:else}{shown}{/if}
   </span>
 {/snippet}
 
@@ -26,5 +30,6 @@
 
 <style>
   .fact-placeholder { display:inline-flex; max-width:100%; align-items:center; gap:.375em; color:var(--muted-foreground); white-space:normal; }
+  .fact-piece { white-space:nowrap; }
   .fact-paragraph { padding-inline:1rem; max-width:68ch; white-space:pre-wrap; overflow-wrap:anywhere; }
 </style>
