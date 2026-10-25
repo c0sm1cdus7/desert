@@ -9,7 +9,7 @@
   trigger={{ kind: "action", label, icon, face: "icon", emphasis: "secondary", state: "ready", ...bar ? { bar } : {} }} {onopenchange}>
   {#each actions as action (intentKey(action.intent))}
     <div data-menu-action>
-      <span class="material-pane" data-menu-label aria-hidden="true">{action.label}</span>
+      <span class="material-pane material-floating" data-menu-label aria-hidden="true">{action.label}</span>
       <Action label={action.label} icon={action.icon} face="icon" emphasis="secondary" type="button" state={action.state} reason={action.reason}
         onclick={() => { onopenchange?.(false); oninvoke?.(action.intent); }} />
     </div>

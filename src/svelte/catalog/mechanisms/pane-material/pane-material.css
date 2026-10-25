@@ -7,9 +7,12 @@
 :root {
   --pane-opacity:88%;
   --pane-filter:blur(24px);
+  /* A pane presented over the page (a popover, a dialog, a sheet, a menu) holds the page's text under it: its backing is
+     opaque enough that no word reads through (contrast of ink through it ≤ 1.1:1, tests/overlay-legibility.test.ts). */
+  --pane-floating-opacity:97%;
 }
 @media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
-  :root { --pane-opacity:100%; --pane-filter:none; }
+  :root { --pane-opacity:100%; --pane-filter:none; --pane-floating-opacity:100%; }
 }
 @property --pane-accent { syntax:"*"; inherits:false; }
 @property --pane-accent-ink { syntax:"*"; inherits:false; }
@@ -23,6 +26,8 @@
   -webkit-backdrop-filter:var(--pane-filter); backdrop-filter:var(--pane-filter);
   @media (prefers-contrast:more) { --pane-border:var(--foreground); }
 }
+/* The floating backing: what the overlay owners (popover, modal, menu) add beside `material-pane`. */
+@utility material-floating { --pane-opacity:var(--pane-floating-opacity); }
 /* Darken the tinted face in both appearances so its white label stays legible. */
 @utility material-pane-primary { --pane-accent:var(--primary); --pane-accent-ink:#000; }
 @utility material-pane-selected { --pane-accent:color-mix(in srgb,var(--primary) 14%,var(--background)); }

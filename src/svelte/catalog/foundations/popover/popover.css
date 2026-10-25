@@ -17,6 +17,8 @@
   .floating-pane[data-popover-presentation="selection"] { --floating-inset:.25rem; }
   .anchored-surface {
     display:flex; flex-direction:column; gap:.75rem; padding:var(--floating-inset); width:24rem;
+    /* Never narrower than the field or control it opens from (a calendar under its date field, a picker under its well). */
+    min-width:min(var(--bits-popover-anchor-width,0px),calc(100dvw - 24px));
     max-width:min(calc(100dvw - 24px),var(--bits-popover-content-available-width));
     max-height:var(--bits-popover-content-available-height);
   }

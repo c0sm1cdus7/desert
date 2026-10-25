@@ -39,7 +39,7 @@
 	<DialogPrimitive.Content
 		bind:ref
 		data-slot="dialog-content"
-		class={cn("material-pane",
+		class={cn("material-pane material-floating",
 			presentation === "default"
 				? "centered-dialog text-popover-foreground grid max-w-[calc(100%_-_2rem)] gap-4 rounded-[calc(var(--radius-control)+1rem+1px)] p-4 text-sm sm:max-w-sm z-50 w-full overflow-y-auto outline-none"
 				: presentation === "panel" ? "drawer transient-content" : presentation === "media" ? "media-viewer" : "problem",
