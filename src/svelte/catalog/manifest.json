@@ -2388,6 +2388,7 @@
         "action",
         "choice",
         "collection-state",
+        "column",
         "popover",
         "stack-layout",
         "text"

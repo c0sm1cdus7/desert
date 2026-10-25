@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Action, Choice, CollectionState, Popover, StackLayout, Text } from "../../index.ts";
+  import { Action, Choice, CollectionState, Column, Popover, StackLayout, Text } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import type { FieldDisplay } from "../../../infra/field-display.ts";
   import { say } from "../../../infra/messages.ts";
@@ -22,9 +22,11 @@
   }
 </script>
 
-<StackLayout title={node.label}>
+<!-- One selector-field anatomy (law 9b), the reference selector's: «label · value» inside the well, the well and the
+     control's error 0.5rem apart. -->
+<Column gap="snug">
   <Popover label={node.label} {open} disabled={node.disabled} locked={false} content="form" placement="anchored" align="start"
-    onopenchange={openChange} trigger={{ kind: "field", label: node.label, labelVisibility: "accessible", required: false, invalid: false, display, measure: "choice" }}>
+    onopenchange={openChange} trigger={{ kind: "field", label: node.label, required: false, invalid: false, display, measure: "fill" }}>
     <StackLayout title={node.label}>
       {#if reference.loading}<Text kind="caption" tone="muted" text={say(m.mediaReferenceSelector.loading)} />{/if}
       {#if reference.options.length}
@@ -39,4 +41,4 @@
     </StackLayout>
   </Popover>
   {#if node.error}<Text kind="support" tone="destructive" live="assertive" text={node.error} />{/if}
-</StackLayout>
+</Column>

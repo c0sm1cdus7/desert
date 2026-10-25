@@ -9,5 +9,5 @@ export const MediaReferenceSelector = defineComposition({
   messages: ["mediaReferenceSelector.purpose", "mediaReferenceSelector.selected", "mediaReferenceSelector.unavailable",
     "mediaReferenceSelector.automatic", "mediaReferenceSelector.loading", "mediaReferenceSelector.cover", "mediaReferenceSelector.automaticCover"],
   owner: { entry: "MediaReferenceSelector.svelte" },
-  uses: ["action", "choice", "collection-state", "popover", "stack-layout", "text"], approval: "none", contract: MediaReferenceSelectorContract,
+  uses: ["action", "choice", "collection-state", "column", "popover", "stack-layout", "text"], approval: "none", contract: MediaReferenceSelectorContract,
 } as const);
