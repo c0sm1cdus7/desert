@@ -17,7 +17,7 @@ async function measure(page: Page) {
     };
     const toolbar = owner.querySelector<HTMLElement>("[data-place-toolbar]")!;
     const rail = toolbar.querySelector<HTMLElement>(".toolbar-row")!;
-    const navigation = rail.querySelector<HTMLElement>("[data-toolbar-leading]");
+    const navigation = rail.querySelector<HTMLElement>("[data-toolbar-navigation]");
     const buttons = [...(navigation?.querySelectorAll("button") ?? [])].map(button => {
       const box = button.getBoundingClientRect();
       return { left: box.left, right: box.right, width: box.width, height: box.height };

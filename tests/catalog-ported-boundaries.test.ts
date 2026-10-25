@@ -22,12 +22,12 @@ const shared = `${mechanisms}/structured-content/structured-content.css`;
 type Scenario = Readonly<{ changes: Changes; base?: Changes }>;
 const whole = (path: string, source: string): Scenario => ({ changes: { [path]: source }, base: { [path]: "" } });
 const append = (path: string, text: string): Changes => ({ [path]: `${realSource(path)}\n${text}\n` });
-/** ContentFlow (a composition that uses Feedback, whose contract is closed) with more imports and markup. */
+/** ContentFlow (a composition that uses Text, whose contract is closed) with more imports and markup. */
 const inFlow = (imports: string, markup: string): Changes => {
   const source = mutated(flow, '<script lang="ts">\n', `<script lang="ts">\n${imports}\n`)[flow] ?? "";
   return { [flow]: `${source}\n${markup}\n` };
 };
-const feedback = (attributes: string, content = "") => inFlow("", content ? `<Feedback text="x" ${attributes}>${content}</Feedback>` : `<Feedback text="x" ${attributes} />`);
+const feedback = (attributes: string, content = "") => inFlow("", content ? `<Text text="x" kind="support" ${attributes}>${content}</Text>` : `<Text text="x" kind="support" ${attributes} />`);
 
 /** Each scenario must add a violation with one of `codes` (and `fragment`, when given, in its message). */
 function rejects(label: string, scenario: Changes | Scenario, codes: readonly string[], fragment?: string) {
@@ -44,7 +44,7 @@ const accepts = (label: string, scenario: Changes | Scenario) => {
 
 test("control: the real tree adds nothing, and neither does a closed piece passed its contract props", () => {
   accepts("unchanged", {});
-  accepts("Feedback with text", feedback(""));
+  accepts("Text with its contract props", feedback(""));
 });
 
 test("closed-visual-boundaries, composition-owner-boundary, media-*, toolbar-layout-closed: callers pass no presentation to a piece", () => {
@@ -205,7 +205,7 @@ test("toolbar-boundary, toolbar-indirect-ownership, toolbar-title-ownership: no 
     "@utility control-feedback { h2 { transform: scale(2) } }"], [`${mechanisms}/typography/typography.css`, "h2 { padding: 99px }"], ["src/svelte/theme.css", ":where(*) { padding: 99px }"]] as const) {
     rejects(`${path}: ${css}`, append(path, css), ["CROSS_OWNER_CSS"]);
   }
-  rejects("consumer heading override", mutated(`${compositions}/catalog-workspace/CatalogWorkspace.svelte`, "</style>", ":global([data-catalog-workspace] h2) { padding-inline-start: 99px; }\n</style>"),
+  rejects("consumer heading override", append(`${compositions}/catalog-workspace/CatalogWorkspace.svelte`, "<style>:global([data-catalog-workspace] h2) { padding-inline-start: 99px; }</style>"),
     ["CROSS_OWNER_CSS"]);
   accepts("a stylesheet naming marks nobody else draws", append(shared, "[data-owned-toolbar-host-example] { position: absolute; inset: 0; }"));
 });
