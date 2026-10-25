@@ -116,13 +116,13 @@
 [data-search-expanded] [data-slot="input-group-addon"] { padding:0; color:var(--catalog-search-foreground); }
 /* Disabled state belongs to content (from the pane-material mechanism): the pane and its boundary never fade. The well's
    row is one content unit, the compound currency part and the counter included; the label, editor and addons are not
-   dimmed a second time. */
+   dimmed a second time, nor a button nested in the row. A trigger well's own content is its row and fades once. */
 [data-slot="field"][data-disabled="true"] .field-well > :is([data-field-row],[data-slot="input-group-addon"],[data-button-content]),
 [data-search-field][data-disabled="true"] > :is([data-slot="input-group-control"],[data-slot="input-group-addon"]) {
   opacity:var(--disabled-opacity);
 }
 [data-slot="field"][data-disabled="true"] .field-well :is([data-slot="field-label"],[data-slot="input-group-control"],[data-slot="input-group-addon"]),
-[data-slot="field"][data-disabled="true"] .field-well [data-button-content],
+[data-slot="field"][data-disabled="true"] .field-well > * [data-button-content],
 [data-search-field][data-disabled="true"] [data-button-content] { opacity:1; }
 /* Invalidity is additional semantic ink, never a different material perimeter. */
 [data-slot="field"][data-invalid="true"] > .field-well,

@@ -94,3 +94,23 @@ test('an empty date reads "No date selected" in the value colour', async () => {
     assert.deepEqual(f.errors,[]);
   } finally {await f.close();}
 });
+
+// The same package: a disabled date field showed its value at full ink (the field's reset for nested buttons also undid
+// the trigger's own content dimming). Disabled content fades once, the well's boundary does not.
+test('a disabled date field fades its content once, like every disabled control', async () => {
+  const f=await svelteBrowser(`<script>
+    import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
+  </script><DateControl node={{version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival',
+    required:false,disabled:true,value:'2026-10-16'}} onevent={()=>{}}/>`);
+  try {
+    await f.page.addStyleTag({content:await rendererCss()});
+    const faded=await f.page.locator('[data-field-trigger]').evaluate(element=>{
+      let opacity=1;
+      for (let node:Element|null=element.querySelector('[data-field-value]'); node && node!==element.parentElement; node=node.parentElement)
+        opacity*=Number(getComputedStyle(node).opacity);
+      return Math.round(opacity*100)/100;
+    });
+    assert.equal(faded,0.5);
+    assert.deepEqual(f.errors,[]);
+  } finally {await f.close();}
+});
