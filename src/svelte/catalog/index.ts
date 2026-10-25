@@ -19,7 +19,7 @@ export { default as Avatar } from "./foundations/avatar/Avatar.svelte";
 export { default as AvatarShuffle } from "./compositions/avatar-shuffle/AvatarShuffle.svelte";
 export { default as Bar } from "./foundations/bar/Bar.svelte";
 export { default as Card } from "./foundations/card/Card.svelte";
-export { default as CatalogCard } from "./foundations/catalog-card/CatalogCard.svelte";
+export { default as CatalogCard } from "./compositions/catalog-card/CatalogCard.svelte";
 export { default as CatalogDetail } from "./compositions/catalog-detail/CatalogDetail.svelte";
 export { default as CatalogHome } from "./compositions/catalog-home/CatalogHome.svelte";
 export { default as CatalogNavigation } from "./compositions/catalog-navigation/CatalogNavigation.svelte";

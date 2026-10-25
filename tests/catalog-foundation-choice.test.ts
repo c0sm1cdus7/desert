@@ -12,6 +12,7 @@ test("choice: the contract offers exactly DESIGN §1.3: label, presentation, car
     label: "text", labelVisibility: ["visible", "accessible"], selected: "array", disabled: "boolean", required: "boolean",
     presentation: ["rows", "cards", "swatches", "menu"], cardinality: ["one", "many"], options: ["array", "array"],
     "menuTrigger?": ["undefined", "well", "inline", "contextual"], "placeholder?": ["undefined", "text"],
+    "measure?": ["undefined", "choice"], "frame?": ["pane", "interior", "undefined"],
   });
 });
 
@@ -141,6 +142,27 @@ test("choice menu: each trigger names the choice and its value; a placeholder st
       ["Currency · ARS", "listbox", "$"], ["ARS · Currency", "listbox", "$"], ["Currency", "listbox", "$"], ["Delivery · Choose…", "listbox", null],
     ]);
     assert.equal(await f.page.getByRole("button", { name: "Delivery · Choose…" }).getAttribute("aria-describedby") !== null, true);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("choice menu: the choice measure boxes the trigger at 26rem and fills a slot within 3rem of it", async () => {
+  // Lane B: a select control is a menu at the field family's choice measure (field-measure.css), as MeasuredField drew it.
+  const f = await mounted(`<main style="padding:0">
+  {#each [640, 465, 464, 300] as width}
+    <div data-slot-width={width} style="width:{width}px"><Catalog.Choice presentation="menu" cardinality="one" menuTrigger="well" measure="choice"
+      label="Destination" labelVisibility="visible" options={[{ value: "fuji", label: "Mount Fuji", disabled: false }]} selected={[]}
+      disabled={false} required={false} /></div>
+  {/each}
+  <div data-unmeasured style="width:640px"><Catalog.Choice presentation="menu" cardinality="one" menuTrigger="well" label="Destination"
+    labelVisibility="visible" options={[{ value: "fuji", label: "Mount Fuji", disabled: false }]} selected={[]} disabled={false} required={false} /></div>
+</main>`);
+  try {
+    const boxes = await f.page.locator("[data-slot-width] [data-choice-measure] > div").evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().width));
+    assert.deepEqual(boxes, [416, 416, 464, 300]);
+    assert.equal(await f.page.locator("[data-unmeasured] [data-choice-measure]").count(), 0, "a menu without a measure keeps no box");
+    const trigger = f.page.locator("[data-slot-width=\"640\"] [data-choice=menu]");
+    assert.ok((await trigger.boundingBox())!.width < 416, "the well itself keeps its fit width inside the box");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

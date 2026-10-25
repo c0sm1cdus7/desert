@@ -1,7 +1,8 @@
 // The props of Field (design §1.3). Every field has a label (visible, or for assistive technology only), its required,
 // invalid and disabled state, help and error text and a preferred measure. `primitive` picks exclusive variants: a
-// single line (`purpose` tells the browser what it holds; `mask` installs a decimal editing syntax; `clear` offers the
-// clear control; `focus` takes focus when it appears), a multiline editor with its character counter, or a trigger whose
+// single line (`purpose` tells the browser what it holds; `mask` installs a decimal editing syntax; `counter` shows
+// the character counter of its `maxLength` in the well, as a multiline editor does; `clear` offers the clear control;
+// `focus` takes focus when it appears), a multiline editor with its character counter, or a trigger whose
 // well opens a surface an overlay owns (`display` is what the well shows, `disclosure` the button's pure-data link to
 // that surface). A prop that belongs to another variant is declared `undefined`, so no variant takes another's props.
 // `change` is the written value (on input and on blur; a masked value only once valid and complete), `masked` every
@@ -32,6 +33,7 @@ export const FieldContract = {
       placeholder: Type.Optional(text),
       mask: Type.Optional(InputMaskSchema),
       maxLength: Type.Optional(Type.Integer()),
+      counter: Type.Optional(Type.Boolean()),
       clear: Type.Boolean(),
       focus: Type.Optional(Type.Literal("on-mount")),
       display: Type.Optional(Type.Undefined()),
@@ -41,6 +43,7 @@ export const FieldContract = {
       primitive: Type.Literal("input.multiline"),
       value: Type.String(),
       maxLength: Type.Optional(Type.Integer()),
+      counter: Type.Optional(Type.Undefined()),
       purpose: Type.Optional(Type.Undefined()),
       placeholder: Type.Optional(Type.Undefined()),
       mask: Type.Optional(Type.Undefined()),
@@ -58,6 +61,7 @@ export const FieldContract = {
       placeholder: Type.Optional(Type.Undefined()),
       mask: Type.Optional(Type.Undefined()),
       maxLength: Type.Optional(Type.Undefined()),
+      counter: Type.Optional(Type.Undefined()),
       clear: Type.Optional(Type.Undefined()),
       focus: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),

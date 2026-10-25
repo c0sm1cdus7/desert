@@ -15,7 +15,7 @@
   let nodes = $state.raw(Object.fromEntries(specimens.map(({ node }) => [node.id, node])));
   let notice = $state(say(m.controlBench.idle));
   // The bench's file references live in the host it provides to its subtree, disposed with it.
-  const host = provideFileHost();
+  provideFileHost();
   const releases = new Map<string, ReturnType<typeof setTimeout>>();
   onDestroy(() => { for (const timer of releases.values()) clearTimeout(timer); });
   function interact(event: ControlEvent) {
@@ -41,8 +41,7 @@
       <SpecimenGroup id={entry.id} hidden={!visibleIds.includes(entry.id)}>
         {#each entry.specimens as specimen (specimen.node.id)}
           <SpecimenRow id={entry.id} state={specimen.state}>
-            <!-- lane-merge: control-renderer reads the host from context (useFileHost) and leaves its contract. -->
-            <ControlRenderer node={nodes[specimen.node.id]!} {host} onevent={interact} />
+            <ControlRenderer node={nodes[specimen.node.id]!} onevent={interact} />
           </SpecimenRow>
         {/each}
       </SpecimenGroup>

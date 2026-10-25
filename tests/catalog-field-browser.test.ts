@@ -91,3 +91,27 @@ test("field: masked edits report every validity and change only once complete; a
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
+
+test("field: a single line asked to count shows its counter in the well, described by it; one not asked shows none", { timeout: 30000 }, async () => {
+  // Lane B: the labels popover's limited Label field counts its characters, as the multiline editor does.
+  const f = await svelteBrowser(`<script lang="ts">
+  import { Field } from "@desert/svelte/catalog/index.ts";
+  let label = $state("");
+</script>
+<main style="padding:24px;width:640px">
+  <Field primitive="input.text" label="Label" ${shared} measure="writing" purpose="text" value={label} maxLength={3} counter clear onchange={value => label = value} />
+  <Field primitive="input.text" label="Plain" ${shared} measure="writing" purpose="text" value="" maxLength={3} clear />
+</main>`);
+  try {
+    await f.page.addStyleTag({ content: await rendererCss() });
+    const counter = f.page.locator("[data-character-counter]");
+    assert.equal(await counter.count(), 1, "only the field asked to count shows a counter");
+    assert.equal((await counter.textContent())?.trim(), "3 remaining");
+    const label = f.page.getByRole("textbox", { name: "Label", exact: true });
+    await label.fill("🌵🌵🌵🌵");
+    assert.equal((await counter.textContent())?.trim(), "1 over limit");
+    assert.ok((await label.getAttribute("aria-describedby"))?.split(" ").includes(await counter.getAttribute("id") ?? "-"), "the counter describes the editor");
+    assert.equal(await f.page.locator(".field-well [data-character-counter]").count(), 1, "the counter sits in the well");
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});

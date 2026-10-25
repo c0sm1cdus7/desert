@@ -6,7 +6,8 @@
   import { rowDivider, rowFrame, rowGroup } from "./choice-row.ts";
   // The options as rows of one pane at the reading measure: a radio each for one, a checkbox each for many. A row's label
   // activates its control; a disabled option's control keeps full ink while its content dims.
-  let { id, label, cardinality, options, selected, disabled, required, onchange }: { id: string; label: string;
+  // In their own pane they keep the reading measure; inside a hosting pane (`interior`) they take its width, transparent.
+  let { id, label, frame, cardinality, options, selected, disabled, required, onchange }: { id: string; label: string; frame: "pane" | "interior";
     cardinality: "one" | "many"; options: readonly ChoiceOption[]; selected: readonly string[]; disabled: boolean; required: boolean;
     onchange: ((selected: string[]) => void) | undefined } = $props();
   const control = (value: string) => `${id}-${value}`;
@@ -38,8 +39,8 @@
   {/each}
 {/snippet}
 
-<div class="w-full max-w-[34rem] min-w-0">
-  <div class="material-pane text-card-foreground overflow-hidden rounded-[var(--radius-group)] flex flex-col">
+<div class="w-full min-w-0 {frame === 'pane' ? 'max-w-[34rem]' : ''}">
+  <div class="{frame === 'pane' ? 'material-pane text-card-foreground' : 'material-interior'} overflow-hidden rounded-[var(--radius-group)] flex flex-col">
     {#if cardinality === "one"}
       <RadioGroup.Root value={selected[0] ?? ""} onValueChange={value => onchange?.(value ? [value] : [])} {disabled} {required}
         aria-label={label} class={rowGroup}>{@render rows()}</RadioGroup.Root>

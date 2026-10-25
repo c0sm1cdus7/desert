@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { NodeRendererProps } from "../../../renderer-contracts.ts";
+  import type { CatalogProps } from "../../types.d.ts";
   import { resolvedNode } from "../../../../interaction/resolved-node.ts";
   import { nodeEvent, type NodeEvent } from "../../../../interaction/node-events.ts";
   import type { ControlEvent } from "../../../../interaction/control-nodes.ts";
@@ -7,7 +7,7 @@
   import { nodeRenderers } from "../../../renderer-registry.ts";
   import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
 
-  let { node, onevent = () => {}, host, actionDisclosure, frameIdentity }: NodeRendererProps = $props();
+  let { node, onevent = () => {}, continuity }: CatalogProps<"node-renderer"> = $props();
   let checked = $derived(resolvedNode(node));
   const emit = (event: NodeEvent) => onevent(nodeEvent(event));
   const control = (event: ControlEvent) => emit(event);
@@ -30,7 +30,6 @@
       intent.kind === "transient.open" || intent.kind === "selection.clear") emit({ kind: "local.invoke", intent });
     else emit({ kind: "surface.invoke", intent });
   }
-  function fileHost() { if (!host) throw new Error("LOCAL_FILE_HOST_REQUIRED"); return host; }
 </script>
 
 {#if checked.kind === "input.text"}
@@ -47,7 +46,7 @@
 {:else if checked.kind === "action"}
   {@const Renderer = nodeRenderers.action}
   <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role} face="fit"
-    reason={checked.action.reason} type={checked.form ? "submit" : "button"} onclick={activate} disclosure={actionDisclosure} />
+    reason={checked.action.reason} type={checked.form ? "submit" : "button"} onclick={activate} />
 {:else if checked.kind === "availability"}
   {@const Renderer = nodeRenderers.availability}<Renderer state={checked.state} label={checked.label} />
 {:else if checked.kind === "fact"}
@@ -66,8 +65,9 @@
   {@const Renderer = nodeRenderers.collection}<Renderer node={checked} select={id => emit({ kind: "collection.select", id })} />
 {:else if checked.kind === "transient"}
   {@const Renderer = nodeRenderers.transient}<Renderer label={checked.label} open={checked.open} locked={checked.locked} frame={checked.frame}
-    {frameIdentity} onclose={frameEvents.close} onclosed={frameEvents.closed} invoke={frameEvents.invoke} edit={frameEvents.edit} controlEvent={frameEvents.controls} />
+    continuity={continuity} onclose={frameEvents.close} onclosed={frameEvents.closed} invoke={frameEvents.invoke} edit={frameEvents.edit} controlEvent={frameEvents.controls} />
 {:else if checked.kind === "problem"}
+  <!-- lane-merge: dialog (lane E). The problem node is drawn by Dialog once that composition lands. -->
   {@const Renderer = nodeRenderers.problem}<Renderer open={checked.open} title={checked.title} description={checked.description}
     locked={checked.locked} severity={checked.severity} close={() => emit({ kind: "problem.close" })} />
 {:else if checked.kind === "control.select"}
@@ -75,7 +75,7 @@
 {:else if checked.kind === "control.popover"}
   {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.files"}
-  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} host={fileHost()} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.labels"}
   {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.options"}

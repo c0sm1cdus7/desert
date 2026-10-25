@@ -4,7 +4,8 @@ import { ReviewContract } from "./review.contract.ts";
 
 export const Review = defineComposition({
   id: "review",
-  purpose: "Inspect the prepared result before accepting a change or recovering an uncertain result.",
+  purpose: { key: "review.purpose" },
+  messages: ["review.purpose"],
   owner: { entry: "Review.svelte" },
-  uses: ["node-renderer"], renders: ["review"], approval: "none", contract: ReviewContract,
+  uses: ["column", "node-renderer", "text"], renders: ["review"], approval: "none", contract: ReviewContract,
 } as const);

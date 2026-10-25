@@ -1,25 +1,21 @@
 <script lang="ts">
   import { untrack } from "svelte";
-  import * as Field from "../../../vendor/components/ui/field/index.js";
-  import * as Group from "../../../vendor/components/ui/input-group/index.js";
-  import { MaskedInput } from "../../index.ts";
-  import { SelectionField } from "../../index.ts";
+  import { Choice, Field } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
   import { displayAmount, parseAmount } from "../../../../interaction/money.ts";
   import { formatMaskedValue, type InputMask } from "../../../../interaction/input-mask.ts";
-  import { FieldWell } from "../../index.ts";
-  import { MeasuredField } from "../../index.ts";
-  import { ClearInput } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let { node, onevent }: CatalogProps<"money-control"> = $props();
-  const id = $props.id();
   let scale = $derived(node.currencies.find(currency => currency.code === node.currency)!.scale);
   let mask: InputMask = $derived({ kind: "decimal", locale: node.locale ?? "en-US", scale });
   const symbol = (currency: string) => new Intl.NumberFormat(mask.locale, {
     style: "currency", currency, currencyDisplay: "narrowSymbol",
   }).formatToParts(0).find(part => part.type === "currency")!.value;
-  let options = $derived(node.currencies.map(item => ({ value: item.code, label: item.code, disabled: false })));
+  // Each currency leads with its narrow symbol, in the list and in the inline value beside the amount.
+  let options = $derived(node.currencies.map(item => ({ value: item.code, label: item.code, disabled: false,
+    leading: { kind: "symbol" as const, text: symbol(item.code) } })));
   let draft = $state(untrack(() => displayAmount(node.minorUnits, scale)));
-  let display = $state("");
   let draftValid = true;
   let error = $state("");
   const ownerValue = () => ({ id: node.id, currency: node.currency, minorUnits: node.minorUnits, scale, locale: mask.locale });
@@ -45,14 +41,14 @@
   }
   function edit(value: string, valid: boolean, complete: boolean) {
     draft = value; draftValid = valid && complete;
-    if (!draftValid) { error = `Enter an amount with up to ${scale} decimal places using ${mask.locale} formatting.`; return; }
+    if (!draftValid) { error = say(m.moneyControl.format, { scale: String(scale), locale: mask.locale }); return; }
     try { const minorUnits = parseAmount(value, scale); error = "";
       publish(node.currency, minorUnits);
     } catch (cause) { error = cause instanceof Error && cause.message === "MONEY_AMOUNT_TOO_LARGE"
-      ? "This amount exceeds the supported size." : `Enter an amount with up to ${scale} decimal places.`; }
+      ? say(m.moneyControl.tooLarge) : say(m.moneyControl.scale, { scale: String(scale) }); }
   }
-  function currency(value: string) {
-    if (value === node.currency) return;
+  function currency(value: string | undefined) {
+    if (value === undefined || value === node.currency) return;
     const nextScale = node.currencies.find(item => item.code === value)!.scale;
     try {
       if (!draftValid || draft && !/^-?\d+(\.\d+)?$/.test(draft)) throw new Error("INVALID_MONEY_AMOUNT");
@@ -60,31 +56,16 @@
       const exact = draft.includes(".") ? draft.replace(/0+$/, "").replace(/\.$/, "") : draft;
       const minorUnits = parseAmount(exact, nextScale);
       error = ""; publish(value, minorUnits);
-    } catch { error = `Enter an amount representable in ${value} with up to ${nextScale} decimal places before changing currency.`; }
+    } catch { error = say(m.moneyControl.currencyScale, { currency: value, scale: String(nextScale) }); }
   }
 </script>
-{#snippet currencySymbol(currency: string)}
-  <Group.Text data-currency-symbol aria-hidden="true">{symbol(currency)}</Group.Text>
-{/snippet}
-<MeasuredField kind="control.money" invalid={!!error} disabled={node.disabled}>
-  <FieldWell {id} label={node.label} required={node.required} filled={true}>
-    {#snippet accessory()}<ClearInput control={id} value={display} label={`Clear ${node.label}`} disabled={node.disabled} />{/snippet}
-    {#snippet prefix()}
-      <SelectionField selection={`${node.id}-currency`} label={`${node.label} currency`} triggerLabel={`${node.currency} · ${node.label} currency`}
-        value={node.currency} {options}
-        onchange={currency} disabled={node.disabled || node.currencies.length === 1}>
-        {#snippet optionLeading(option)}{@render currencySymbol(option.value)}{/snippet}
-        {#snippet selectedContent(selected)}
-          <span class="flex items-center gap-2">
-            {@render currencySymbol(selected?.value ?? node.currency)}
-            <span>{selected?.label ?? node.currency}</span>
-          </span>
-        {/snippet}
-      </SelectionField>
-    {/snippet}
-    <MaskedInput {id} {mask} bind:display identity={`${node.id}/${node.currency}`} value={draft} placeholder={formatMaskedValue(displayAmount("0", scale), mask)}
-      disabled={node.disabled} required={node.required} aria-invalid={!!error} aria-describedby={error ? `${id}-error` : undefined}
-      onvalue={edit} />
-  </FieldWell>
-  {#if error}<Field.FieldDescription id={`${id}-error`} role="status">{error}</Field.FieldDescription>{/if}
-</MeasuredField>
+<Field primitive="input.text" purpose="text" label={node.label} labelVisibility="visible" measure="amount" {mask}
+  identity={`${node.id}/${node.currency}`} value={draft} placeholder={formatMaskedValue(displayAmount("0", scale), mask)}
+  required={node.required} invalid={!!error} disabled={node.disabled} error={error || undefined} clear
+  onmasked={({ value, valid, complete }) => edit(value, valid, complete)}>
+  {#snippet prefix()}
+    <Choice presentation="menu" cardinality="one" menuTrigger="inline" label={say(m.moneyControl.currency, { label: node.label })}
+      labelVisibility="visible" selected={[node.currency]} {options} disabled={node.disabled || node.currencies.length === 1} required={false}
+      onchange={selected => currency(selected[0])} />
+  {/snippet}
+</Field>

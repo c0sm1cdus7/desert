@@ -1,10 +1,12 @@
-// OptionsControl: a labelled group of options, radio rows for one choice and checkbox rows for several.
+// OptionsControl: a labelled group of options drawn as Choice rows, a radio each for one choice and a checkbox each for
+// several; an option that would break the selection's bounds is unavailable.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { OptionsControlContract } from "./options-control.contract.ts";
 
 export const OptionsControl = defineComposition({
   id: "options-control",
-  purpose: "Choose one or several values from a divided group of options.",
+  purpose: { key: "optionsControl.purpose" },
+  messages: ["optionsControl.purpose"],
   owner: { entry: "OptionsControl.svelte" },
-  uses: ["choice-list", "choice-row", "grouped-panel"], renders: ["control.options"], approval: "none", contract: OptionsControlContract,
+  uses: ["choice"], renders: ["control.options"], approval: "none", contract: OptionsControlContract,
 } as const);

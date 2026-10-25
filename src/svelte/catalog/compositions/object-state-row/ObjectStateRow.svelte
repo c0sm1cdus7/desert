@@ -1,21 +1,19 @@
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
-  import { displayLabel } from "../../../../interaction/display-label.ts";
-  import { SelectionField } from "../../index.ts";
+  import { Choice, FactRow } from "../../index.ts";
   let { selector, onselect }: CatalogProps<"object-state-row"> = $props();
+  /** Picking an available state other than the current one raises its journey; the owner decides what changes. */
+  function choose(value: string | undefined) {
+    const option = selector.options.find(option => option.value === value);
+    if (!selector.disabled && value !== selector.value && option?.available) onselect?.(option.journey);
+  }
 </script>
-<div class="fact-row object-state-row" data-primitive="object-state-row">
-  <dt class="fact-label type-support">{displayLabel(selector.label)}</dt>
-  <dd class="fact-value type-body">
-    <SelectionField selection={selector.field} label={selector.label} value={selector.value} contextual
-      disabled={selector.disabled} options={selector.options.map(option => ({ value: option.value, label: option.label,
+<FactRow kind="control" label={selector.label}>
+  {#snippet control()}
+    <Choice presentation="menu" cardinality="one" menuTrigger="contextual" label={selector.label} labelVisibility="visible"
+      selected={selector.value === null ? [] : [selector.value]} disabled={selector.disabled} required={false}
+      options={selector.options.map(option => ({ value: option.value, label: option.label,
         disabled: option.value !== selector.value && !option.available }))}
-      onchange={value => {
-        const option = selector.options.find(option => option.value === value);
-        if (!selector.disabled && value !== selector.value && option?.available) onselect?.(option.journey);
-      }} />
-  </dd>
-</div>
-<style>
-  .object-state-row { align-items:center; }
-</style>
+      onchange={selected => choose(selected[0])} />
+  {/snippet}
+</FactRow>

@@ -6,7 +6,7 @@ import { Type } from "@sinclair/typebox";
 
 export const ColumnContract = {
   props: Type.Object({
-    gap: Type.Union([Type.Literal("snug"), Type.Literal("close"), Type.Literal("regular"), Type.Literal("relaxed"), Type.Literal("section")]),
+    gap: Type.Union([Type.Literal("snug"), Type.Literal("close"), Type.Literal("regular"), Type.Literal("loose"), Type.Literal("relaxed"), Type.Literal("section")]),
     measure: Type.Optional(Type.Union([Type.Literal("reading"), Type.Literal("narrow"), Type.Literal("wide")])),
     align: Type.Optional(Type.Union([Type.Literal("start"), Type.Literal("center"), Type.Literal("stretch")])),
   }, { additionalProperties: false }),

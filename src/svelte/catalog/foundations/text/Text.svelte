@@ -10,4 +10,4 @@
 </script>
 
 <p class="{kinds[kind]} min-w-0 {weights[weight]} {tones[tone]} {align ? aligns[align] : ''} {insets[inset]}" {id}
-  role={live === "polite" ? "status" : undefined}>{text}</p>
+  role={live === "polite" ? "status" : live === "assertive" ? "alert" : undefined}>{text}</p>

@@ -21,7 +21,8 @@
   <StackLayout title={definition.title} description={definition.description} {required}>
     {#each definition.items as item, index (index)}
       <StackItem placement={stackPlacement(item.kind)} kind={item.kind}>
-        <NodeRenderer node={item} {onevent} {host} />
+        <!-- lane-merge: stack (lane E). The node renderer takes no host: files reads it from context (provideFileHost). -->
+        <NodeRenderer node={item} {onevent} />
       </StackItem>
     {/each}
   </StackLayout>

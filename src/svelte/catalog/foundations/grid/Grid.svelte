@@ -8,7 +8,7 @@
     cards: "grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))]",
     covers: "grid-cols-3",
   } as const;
-  const gaps = { snug: "gap-snug", close: "gap-close", regular: "gap-regular", relaxed: "gap-relaxed", section: "gap-section" } as const;
+  const gaps = { snug: "gap-snug", close: "gap-close", regular: "gap-regular", loose: "gap-loose", relaxed: "gap-relaxed", section: "gap-section" } as const;
 </script>
 
 <div class="grid min-w-0 {recipes[tracks]} {gaps[gap]}">{@render children?.()}</div>

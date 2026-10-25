@@ -345,6 +345,87 @@ export const Messages = messageCatalog({
     },
     "facts": {
       "purpose": "Read a labeled value, including the difference between an empty value and an unknown value."
+    },
+    "nodeRenderer": {
+      "purpose": "Mount the piece for a resolved node kind and translate its callbacks into node events."
+    },
+    "controlRenderer": {
+      "purpose": "Mount the piece for one control node and forward only its control events."
+    },
+    "catalogCard": {
+      "purpose": "Open a media item from a card composed of artwork and its supporting content."
+    },
+    "fields": {
+      "purpose": "Mount each field of a form frame through the node renderer and report its edits and control events."
+    },
+    "review": {
+      "purpose": "Inspect the prepared result before accepting a change or recovering an uncertain result."
+    },
+    "objectStateRow": {
+      "purpose": "Use a named state selector that dispatches canonical commands without adding toolbar shortcuts."
+    },
+    "objectStateControl": {
+      "purpose": "Choose an object state through a contextual command; a retained selection is not a required form input."
+    },
+    "optionsControl": {
+      "purpose": "Choose one or several values from a divided group of options."
+    },
+    "selectControl": {
+      "purpose": "Choose one value from a labeled field and a shared options popover.",
+      "clear": "Clear selection"
+    },
+    "popoverControl": {
+      "purpose": "Read contextual information in a temporary surface anchored to its trigger."
+    },
+    "fileControl": {
+      "purpose": "Select supported local files and inspect their limits before an operation uses them."
+    },
+    "speedDial": {
+      "purpose": "Reveal overflowing contextual commands beside their readable labels, without putting content navigation in the toolbar.",
+      "create": "Create",
+      "more": "More actions"
+    },
+    "moneyControl": {
+      "purpose": "Enter an amount and choose its currency without losing the lexical draft.",
+      "currency": "{label} currency",
+      "format": "Enter an amount with up to {scale} decimal places using {locale} formatting.",
+      "tooLarge": "This amount exceeds the supported size.",
+      "scale": "Enter an amount with up to {scale} decimal places.",
+      "currencyScale": "Enter an amount representable in {currency} with up to {scale} decimal places before changing currency."
+    },
+    "labelsControl": {
+      "purpose": "Compose the field well, value rail and options from the same shared owners as every labels control.",
+      "add": "Add label",
+      "newLabel": "New label",
+      "label": "Label",
+      "remove": "Remove {value}"
+    },
+    "referenceSelector": {
+      "purpose": "Choose referenced objects through a labeled field and the shared selection popover.",
+      "unavailable": "Unavailable",
+      "choose": "Choose…",
+      "loading": "Loading…",
+      "empty": "No options available.",
+      "check": "Check result",
+      "name": "Name",
+      "color": "Color",
+      "cancel": "Cancel"
+    },
+    "mediaReferenceSelector": {
+      "purpose": "Select media references from a shared field without introducing another media library or creation path.",
+      "selected": "Selected image",
+      "unavailable": "Unavailable cover",
+      "automatic": "Automatic",
+      "loading": "Loading…",
+      "cover": "Cover image {number}",
+      "automaticCover": "Automatic cover"
+    },
+    "relatedSelection": {
+      "purpose": "Edit related objects within the current context using shared choices and explicit local feedback.",
+      "loading": "Loading items…",
+      "empty": "No media available yet.",
+      "check": "Check result",
+      "retry": "Try again"
     }
   },
 } as const);

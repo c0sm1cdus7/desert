@@ -37,7 +37,7 @@ verbatim modules, not standalone snippets or a published package API.
 - src/svelte/catalog/mechanisms/media-gestures/media-gestures.ts
 - src/svelte/catalog/renderer/public-catalog-product/PublicCatalogProduct.svelte
 - src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte
-- src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
+- src/svelte/catalog/compositions/catalog-card/CatalogCard.svelte
 - src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte
 - src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte
 - src/svelte/infra/PublicCatalogBank-model.ts
@@ -1500,46 +1500,25 @@ Source SHA-256: 1e20f01d45949b10db016b064f59258fbc18e24af4ddb974a44c7cb6812ec77b
 <LocalExerciseContent {definition} {bodyOnly} {oncatalog} />
 ```
 
-## src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte
+## src/svelte/catalog/compositions/catalog-card/CatalogCard.svelte
 
-Source SHA-256: 7a5a57bff4b3889275faad33c43849753aaed7b962ffbc2c1db7adb800452340
+Source SHA-256: 4564b30ba603de6a50ea2cf5f7016b90cd9565f7b53a1e3fb7c36fd8a4c3875b
 
 ```svelte
 <script lang="ts">
-  import * as Card from "@desert/svelte/vendor/components/ui/card/index.js";
-  import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
+  import { getContext } from "svelte";
+  import { Card } from "../../index.ts";
+  import { mediaSource } from "../../../infra/media-source.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  import { getContext } from 'svelte';
-  import { Image } from '../../index.ts';
-  import { mediaSource, prefetchImage } from '../../../infra/media-source.ts';
-  import { useFocusScope } from '../../../infra/focus-scope.ts';
   let { node, onevent }: CatalogProps<"catalog-card"> = $props();
-  const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');
-  function prepare() {
-    const asset = cover?.(node.record); if (asset) prefetchImage(mediaSource(asset), window.innerWidth*window.devicePixelRatio);
-  }
-  // lane-merge: card focusKey. Until the catalog-card composition mounts Card with a focusKey, this card registers itself
-  // in the nearest focus scope under its own key and reports its activation, so a detail it opens can return focus to it.
-  const uid = $props.id();
-  const key = `catalog-card:${uid}`, scope = useFocusScope();
-  let button = $state<HTMLElement | null>(null);
-  $effect(() => {
-    const target = button;
-    if (!target || !scope) return;
-    return scope.register(key, () => { target.focus({ preventScroll: true }); return document.activeElement === target; });
-  });
-  const open = () => { scope?.activated(key); onevent?.({ kind: "catalog.open", record: node.record }); };
+  // The larger photograph the detail opens with, warmed when the person points at or focuses the card.
+  const cover = getContext<((record: string) => string | undefined) | undefined>("catalog-photo-intent");
+  let photo = $derived(cover?.(node.record));
 </script>
-
-  <Card.Root data-catalog-card="item" data-record={node.record} data-public-card={node.record}>
-    {#if node.image}<Image source={mediaSource(node.image.asset)} alt={node.image.alt} />
-    {:else if 'mediaType' in node}<Image placeholder={node.mediaType} />{/if}
-    <Card.Header><Card.Title>
-      <Button bind:ref={button} variant="row" data-catalog-image-action aria-label={node.title} onclick={open} onpointerenter={prepare} onfocus={prepare}>
-        <span data-catalog-card-overlay data-catalog-item-title data-public-card-title>{node.title}</span>
-      </Button>
-    </Card.Title></Card.Header>
-  </Card.Root>
+<Card presentation={node.presentation} label={node.title} title={node.title}
+  artwork={node.image ? mediaSource(node.image.asset) : "mediaType" in node ? { kind: "placeholder", media: node.mediaType } : undefined}
+  alt={node.image?.alt} prefetch={photo ? mediaSource(photo) : undefined} attention={false} current={false} disabled={false}
+  focusKey={`catalog-return:${node.record}`} onopen={() => onevent?.({ kind: "catalog.open", record: node.record })} />
 ```
 
 ## src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte

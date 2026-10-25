@@ -1,41 +1,38 @@
 <script lang="ts">
   import type { CatalogProps } from "../../types.d.ts";
-  import { StackLayout } from '../../index.ts';
-  import { GroupedPanel } from '../../index.ts';
-  import { ChoiceList } from '../../index.ts';
-  import { ChoiceRow } from '../../index.ts';
-  import { Feedback } from '../../index.ts';
-  import { Information } from '../../index.ts';
-  import { Image } from '../../index.ts';
-  import { ArtworkPlaceholder } from '../../index.ts';
-  import { Checkbox } from '../../../vendor/components/ui/checkbox/index.js';
-  import { Button } from '../../../vendor/components/ui/button/index.js';
+  import { Action, Choice, Information, List, StackLayout, Text } from "../../index.ts";
+  import type { RelatedSelectionGroup, RelatedSelectionItem } from "../../../../interaction/related-selection.ts";
+  import type { ChoiceLeading } from "../../../../interaction/choice.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let { state, onevent }: CatalogProps<"related-selection"> = $props();
-  const id=$props.id();
+  const unavailable = (group: RelatedSelectionGroup) => Boolean(group.disabled || state.busy || state.uncertain || state.committing || group.loading);
+  /** A related item leads with its picture, or with the artwork of its media kind. */
+  function leading(item: RelatedSelectionItem): ChoiceLeading | undefined {
+    if (!item.asset) return undefined;
+    if (item.asset.media === "video" || item.asset.media === "audio") return { kind: "artwork", media: item.asset.media };
+    return { kind: "image", source: item.asset, alt: item.label };
+  }
+  /** The rows report the whole next selection; the owner hears the one item that changed. */
+  function change(group: RelatedSelectionGroup, selected: readonly string[]) {
+    const item = group.items.find(candidate => candidate.checked !== selected.includes(candidate.id));
+    if (item) onevent?.({ kind: "related.change", input: group.input, id: item.id, checked: !item.checked });
+  }
 </script>
 {#each state.groups as group (group.input)}
   <StackLayout title={group.label}>
-    {#if group.items.length}<GroupedPanel><ChoiceList><div data-grouped-rows>
-      {#each group.items as item (item.id)}
-        <ChoiceRow id={`${id}:${item.id}`} labelId={`${id}:${item.id}:label`} label={item.label}
-          disabled={group.disabled || state.busy || state.uncertain || state.committing || group.loading}>
-          <Checkbox id={`${id}:${item.id}`} checked={item.checked} aria-labelledby={`${id}:${item.id}:label`}
-            disabled={group.disabled || state.busy || state.uncertain || state.committing || group.loading}
-            onCheckedChange={checked=>onevent?.({kind:'related.change',input:group.input,id:item.id,checked:checked===true})}/>
-          {#if item.asset}<span class="related-preview">
-            {#if item.asset.media==='video' || item.asset.media==='audio'}<ArtworkPlaceholder kind={item.asset.media}/>
-            {:else}<Image source={item.asset} alt={item.label} edge={96}/>{/if}
-          </span>{/if}
-        </ChoiceRow>
-      {/each}
-    </div></ChoiceList></GroupedPanel>
-    {:else if group.loading}<Information items={[{kind:'text',text:'Loading items…'}]}/>
-    {:else if !group.error}<GroupedPanel><Information items={[{kind:'text',text:'No media available yet.'}]}/></GroupedPanel>{/if}
-    {#if group.error}<Feedback text={group.error}/>
-      <Button variant="secondary" disabled={group.disabled || state.busy} onclick={()=>onevent?.({kind:'related.recover',input:group.input})}>{group.uncertain?'Check result':'Try again'}</Button>
+    {#if group.items.length}
+      <Choice presentation="rows" cardinality="many" label={group.label} labelVisibility="accessible"
+        selected={group.items.filter(item => item.checked).map(item => item.id)} disabled={unavailable(group)} required={false}
+        onchange={selected => change(group, selected)} options={group.items.map(item => {
+          const lead = leading(item);
+          return { value: item.id, label: item.label, disabled: false, ...lead ? { leading: lead } : {} };
+        })} />
+    {:else if group.loading}<Information items={[{ kind: "text", text: say(m.relatedSelection.loading) }]} />
+    {:else if !group.error}<List kind="rows" measure="reading"><Text kind="body" inset="row" text={say(m.relatedSelection.empty)} /></List>{/if}
+    {#if group.error}<Text kind="support" live="polite" text={group.error} />
+      <Action label={group.uncertain ? say(m.relatedSelection.check) : say(m.relatedSelection.retry)} icon="retry" emphasis="secondary" face="text"
+        type="button" state={group.disabled || state.busy ? "unavailable" : "ready"} onclick={() => onevent?.({ kind: "related.recover", input: group.input })} />
     {/if}
   </StackLayout>
 {/each}
-<style>
-  .related-preview{display:block;width:4rem;height:3rem;border-radius:.5rem;overflow:hidden;flex-shrink:0;}
-</style>

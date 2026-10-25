@@ -1,10 +1,13 @@
-// MediaReferenceSelector: the cover chooser of a labels control that references media: one selected image or automatic.
+// MediaReferenceSelector: the cover chooser of a labels control that references media: a field well showing the chosen
+// cover, and a popover of cover cards plus the automatic cover.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { MediaReferenceSelectorContract } from "./media-reference-selector.contract.ts";
 
 export const MediaReferenceSelector = defineComposition({
   id: "media-reference-selector",
-  purpose: "Select media references from a shared field without introducing another media library or creation path.",
+  purpose: { key: "mediaReferenceSelector.purpose" },
+  messages: ["mediaReferenceSelector.purpose", "mediaReferenceSelector.selected", "mediaReferenceSelector.unavailable",
+    "mediaReferenceSelector.automatic", "mediaReferenceSelector.loading", "mediaReferenceSelector.cover", "mediaReferenceSelector.automaticCover"],
   owner: { entry: "MediaReferenceSelector.svelte" },
-  uses: ["collection-state", "icon", "image", "stack-layout"], approval: "none", contract: MediaReferenceSelectorContract,
+  uses: ["action", "choice", "collection-state", "popover", "stack-layout", "text"], approval: "none", contract: MediaReferenceSelectorContract,
 } as const);
