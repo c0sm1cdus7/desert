@@ -1,5 +1,5 @@
 // Laws 9e and 9d, measured on the bank's own specimens. FACE = ONE primitive: every face (Face, a row's face, an avatar,
-// an artwork placeholder) has the same card-white ground and the same hairline, a rounded square at every size (a circle
+// an audio or video artwork placeholder) has the same card-white ground and the same hairline, a rounded square at every size (a circle
 // only for a person), and its tone paints only the glyph. One curvature family: a tag chip is never a capsule, and its
 // remove button's corner is concentric with it (the chip's radius less the inset between their outer edges, as a field's
 // accessory is inside its well), never a circle.
@@ -79,7 +79,9 @@ test("face and tag: every specimen face shares one ground, one hairline and its 
       });
       const check = (valid: boolean, message: string) => { if (!valid) failures.push(`${colorScheme}/${contrast}: ${message}`); };
       const hairline = contrast === "more" ? observed.foreground : observed.border;
-      check(observed.faces.length >= 7 + 6 + 3 + 4, `every face specimen is measured (${observed.faces.length})`);
+      // The faces, avatars, the audio and video placeholders (unavailable media is no face but the one notice of unavailable
+      // media, fourth review: tests/media-notice-anatomy.test.ts) and the rows' faces.
+      check(observed.faces.length >= 7 + 6 + 2 + 4, `every face specimen is measured (${observed.faces.length})`);
       for (const [index, face] of observed.faces.entries()) {
         const name = `${index} ${face.kind}${face.tone ? `/${face.tone}` : ""}`;
         check(face.ground === observed.ground, `${name}: ground ${face.ground} is the card white ${observed.ground}`);

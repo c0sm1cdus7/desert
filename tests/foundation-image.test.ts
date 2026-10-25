@@ -80,8 +80,13 @@ test("image: the placeholder and the image keep the pixels of ArtworkPlaceholder
     // The error lays out in flow with its own inset (it takes its own height when its host gives none, tests/media-error-layout.test.ts):
     // in a frame its box, its sentence's and its retry's are the frozen ones; its inset is the new layout's (here the frozen
     // card host's unlayered media stylesheet still positions it, so its position compares as is).
-    const inFlow = { "padding-top": "16px", "padding-right": "16px", "padding-bottom": "16px", "padding-left": "16px" };
-    const laidOut = (found: typeof was): typeof was => ({ ...found, error: { ...found.error, error: found.error?.error?.map(item => ({ ...item, style: { ...item.style, ...inFlow } })) ?? [] } });
+    // Fourth review: the error is the one notice of unavailable media (the theme's media-notice, tests/media-notice-anatomy.test.ts),
+    // on the muted ground with the pane hairline, its sentence centred.
+    const inFlow = { "padding-top": "16px", "padding-right": "16px", "padding-bottom": "16px", "padding-left": "16px",
+      "background-color": "rgb(236, 236, 239)", "border-top-width": "1px", "border-bottom-width": "1px", "border-left-width": "1px",
+      "text-align": "center" };
+    const laidOut = (found: typeof was): typeof was => ({ ...found, error: { ...found.error, error: found.error?.error?.map(item => ({ ...item, style: { ...item.style, ...inFlow } })) ?? [],
+      message: found.error?.message?.map(item => ({ ...item, style: { ...item.style, "text-align": "center" } })) ?? [] } });
     // Third review of the slice 3 package: a ready picture that fills its frame paints no backdrop of its own (the picture
     // covers it), so nothing lighter shows past the picture's own corners; only that fill differs.
     const fill = is["ready-fill"]?.root?.[0]?.style;
@@ -97,14 +102,18 @@ test("image: the placeholder and the image keep the pixels of ArtworkPlaceholder
   } finally { await before.close(); await after.close(); }
 });
 
-test("image: an unavailable placeholder says its fallback in the muted frame", async () => {
+// Unavailable media is the one notice of unavailable media (fourth review, tests/media-notice-anatomy.test.ts), in an
+// image's frame: the frame fills its host and the notice fills the frame, its sentence centred.
+test("image: unavailable media says its fallback in a notice that fills the image's frame", async () => {
   const f = await renderCases(`<script lang="ts">import Image from "@desert/svelte/catalog/foundations/image/Image.svelte";</script>
     <div data-case="unavailable" style="width:200px;height:100px"><Image placeholder="unavailable" fallback="Media unavailable" /></div>`, {}, await rendererCss());
   try {
-    const frame = f.page.locator('[data-image-placeholder="unavailable"]');
+    const frame = f.page.locator('[data-image-state="unavailable"]');
     assert.equal(await frame.textContent(), "Media unavailable");
-    assert.deepEqual(await frame.evaluate(element => { const style = getComputedStyle(element), box = element.getBoundingClientRect();
-      return [style.display, style.placeItems, box.width, box.height]; }), ["grid", "center", 200, 100]);
+    assert.deepEqual(await frame.evaluate(element => { const box = element.getBoundingClientRect(), notice = element.querySelector("[data-media-notice]")!;
+      const style = getComputedStyle(notice), inner = notice.getBoundingClientRect();
+      return [box.width, box.height, style.display, style.alignItems, style.justifyContent, inner.width, inner.height]; }),
+      [200, 100, "flex", "center", "center", 200, 100]);
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

@@ -32,6 +32,8 @@
   // A new asset gets a new DOM image immediately. A larger rendition of the SAME
   // asset keeps its decoded pixels while loading, so pinch/resize never flashes.
   const identity = $derived(`${sourceIdentity}|${typeof source === 'object' ? privateRevision : 0}|${attempt}`);
+  // A placeholder is a face (law 9e) for audio and video; unavailable media is a notice.
+  const face = $derived(placeholder === 'audio' || placeholder === 'video');
   const status = $derived(placeholder ? 'placeholder' : failed === identity || privateError ? 'error' : url && ready === identity ? 'ready' : 'loading');
   $effect(() => { if (status === 'error') onunavailable?.(); });
   onMount(() => {
@@ -62,13 +64,16 @@
 <!-- A placeholder keeps the artwork placeholder mark, so hosts that have not migrated still place it as they placed
      ArtworkPlaceholder. It stands where a face would: the theme's one face primitive (tm-face) gives it the white ground
      and the hairline every face has (law 9e), in its host's shape. -->
-<div bind:this={host} class={placeholder === undefined ? "image" : "image-placeholder tm-face"} class:image-clear={backdrop === 'none'} class:image-host={frame === 'host'}
-  data-media-image={placeholder === undefined ? "" : undefined} data-media-artwork-placeholder={placeholder === undefined ? undefined : ""}
-  data-image-fit={placeholder === undefined ? fit : undefined} data-image-state={status} data-image-placeholder={placeholder}
+<!-- Unavailable media is no placeholder face: it is the one notice of unavailable media (the media-notice utility), in an
+     image's frame, as an image's error is. -->
+<div bind:this={host} class={face ? "image-placeholder tm-face" : "image"} class:image-clear={backdrop === 'none'} class:image-host={frame === 'host'}
+  data-media-image={face ? undefined : ""} data-media-artwork-placeholder={face ? "" : undefined}
+  data-image-fit={placeholder === undefined ? fit : undefined} data-image-state={placeholder === 'unavailable' ? 'unavailable' : status}
+  data-image-placeholder={face ? placeholder : undefined}
   aria-label={placeholder === 'audio' ? say(m.image.noCover) : placeholder === 'video' ? say(m.image.noPoster) : undefined}>
   {#if placeholder === 'audio'}<Icon name="music-2" size="artwork" decorative />
   {:else if placeholder === 'video'}<Icon name="film" size="artwork" decorative />
-  {:else if placeholder === 'unavailable'}{fallback}
+  {:else if placeholder === 'unavailable'}<div class="image-error media-notice" data-media-notice role="status"><span>{fallback}</span></div>
   {:else}
     {#key identity}
       {@const key = identity}
@@ -78,7 +83,7 @@
       {/if}
     {/key}
     {#if status === 'error'}
-      <div class="image-error" data-media-error role="img" aria-label={alt}>
+      <div class="image-error media-notice" data-media-error data-media-notice role="img" aria-label={alt}>
         <span>{fallback}</span>
         {#if retry}<Action label={say(m.image.retry)} icon="retry" emphasis="secondary" face="text" state="ready" type="button" onclick={() => { original = ''; attempt++; }} />{/if}
       </div>
@@ -98,18 +103,15 @@
     .image[data-image-state="ready"][data-image-fit="fill"] { background:transparent; }
     .image-clear { background:transparent; }
     .image-placeholder { display:grid; place-items:center; width:100%; height:100%; border-radius:var(--radius-control); color:var(--muted-foreground); }
-    .image-host { border-radius:inherit; }
-    /* Unavailable media standing by itself says so with the inset of an image's notice, so a frame that gives it no height holds a
-       rounded box around its sentence, never a capsule. */
-    .image-placeholder[data-image-placeholder="unavailable"]:not(.image-host) { padding:var(--spacing-regular,1rem); text-align:center; }
+    /* In a host's frame (a card, a thumbnail) the host draws the edge: the notice's own stays clear (the theme's media-notice). */
+    .image-host { border-radius:inherit; --media-notice-edge:transparent; }
     .image-element { display:block; width:100%; height:100%; object-fit:cover; user-select:none; }
     .image-contain { object-fit:contain; }
     .image[data-image-state="ready"] > .image-element { animation:image-in var(--dur-unfold) var(--ease-tm) both; }
     /* Failed, the image is its error alone, laid out in flow: as tall as its frame when the host gives one, as tall as its
        sentence and retry (and its inset) when it gives none, never clipped to the broken image's line. */
     .image[data-image-state="error"] > .image-element { display:none; }
-    .image-error { position:relative; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
-      padding:var(--spacing-regular,1rem); color:var(--foreground); }
+    /* The notice itself (its ground, edge, inset and ink) is the theme's media-notice. */
   }
   @keyframes image-in { from { opacity:0; } to { opacity:1; } }
   @media(prefers-reduced-motion:reduce) { .image[data-image-state="ready"] > .image-element { animation:none; } }

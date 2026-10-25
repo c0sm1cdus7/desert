@@ -47,7 +47,7 @@
       </audio>
     {/if}
     {#if unavailable}
-      <div class="player-error" role="status"><span>{say(m.mediaPlayer.unavailable)}</span>
+      <div class="player-error media-notice" data-media-notice role="status"><span>{say(m.mediaPlayer.unavailable)}</span>
         <Action label={say(m.mediaPlayer.retry)} icon="retry" emphasis="secondary" face="text" state="ready" type="button" onclick={retry} />
       </div>
     {/if}
@@ -81,11 +81,10 @@
     .player-header .player-stage:not(.player-stage-unavailable) { z-index:-2; }
     .player-video { display:block; width:100%; height:100%; min-height:0; object-fit:contain; }
     /* Unavailable, the stage stacks its parts in one cell: it is as tall as its media or its error, whichever is taller, and
-       the error, on the muted ground an image's error has, covers the media's box (an overlay, the viewer's paging, stays above). */
+       the error, the one notice of unavailable media an image's error is, covers the media's box (an overlay, the viewer's paging, stays above). */
     .player-stage-unavailable { display:grid; }
     .player-stage-unavailable > .player-video, .player-stage-unavailable > .player-error { grid-area:1 / 1; }
-    .player-error { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
-      padding:var(--spacing-regular,1rem); background:var(--muted); color:var(--foreground); }
+    /* The error itself (its ground, edge, inset and ink) is the theme's media-notice, an image's error's. */
     /* The band keeps the toolbar's media geometry: its inset, target height and gap. */
     .player-band { flex-shrink:0; min-width:0; padding:var(--catalog-toolbar-inset,8px); container:toolbar / inline-size;
       max-height:min(50dvh,calc(100dvh - 10rem)); overflow-y:auto; overscroll-behavior:contain; }

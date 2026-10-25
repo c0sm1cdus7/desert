@@ -135,5 +135,15 @@
 @utility disabled-unit {
   opacity:var(--disabled-opacity); --disabled-content-opacity:1;
 }
+/* The one notice of unavailable media (law 9b): an image that cannot load (with its retry), unavailable media standing by
+   itself, a player's error. It fills the frame that holds it (or takes its sentence's height and inset when the frame gives
+   none), on the muted ground with the pane hairline, so its edge shows on the page, light and dark; never a face's or a
+   well's white. A frame that draws its own edge (a host's: a card, a thumbnail) clears the notice's (--media-notice-edge).
+   tests/media-notice-anatomy.test.ts */
+@utility media-notice {
+  position:relative; box-sizing:border-box; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px; padding:var(--spacing-regular,1rem); text-align:center; border-radius:inherit;
+  background:var(--muted); color:var(--foreground); border:1px solid var(--media-notice-edge,var(--border));
+}
 /* A surface whose focus rings sit inside its clipped edges (a toolbar, a popover, a dialog). */
 @utility focus-inset { --focus-ring-offset:-3px; }
