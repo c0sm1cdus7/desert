@@ -61,6 +61,10 @@ async function previousCss() {
     assert.equal(theme.split(statement).length, 2, `The theme imports ${path} once`);
     theme = theme.replace(statement, source);
   }
+  // Slice 3 package (a deliberate change, not a relocation): a nested home's rails scroll from the stack's row inset, their
+  // first entry on the axis of its title and featured entry (tests/shared-owner-example-axis.test.ts).
+  assert.equal(theme.split(catalogHome).length, 2, "The prior home stack insets are held once");
+  theme = theme.replace(catalogHome, catalogHome.replace("--place-surface-inset:0px", "--place-surface-inset:1rem"));
   const compiler = await compile(inlineBaseStylesheets(theme), { base, onDependency: () => {} });
   return compiler.build(new Scanner({ sources: compiler.sources }).scan());
 }

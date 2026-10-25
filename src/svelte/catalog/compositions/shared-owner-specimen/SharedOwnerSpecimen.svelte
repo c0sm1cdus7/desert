@@ -33,7 +33,9 @@
   };
 </script>
 
-<!-- The owner's region, `owner:<name>`: one shared owner's live example and the notice of what it did. -->
+<!-- The owner's region, `owner:<name>`: one shared owner's live example and the notice of what it did. An unframed example
+     (an avatar, a tag rail, a color bullet, an indicator) reads on the row inset its stack's titles and text read at; a
+     framed one (a field, a list, a card) keeps its frame on the stack's edge. -->
 <ViewRegion kind="item" id={`owner:${owner}`}>
   <Column gap="regular">
     {#if owner === "Place"}<SurfaceSpecimen />
@@ -51,8 +53,9 @@
     {:else if owner === "RelatedSelection"}
       <RelatedSelection state={relation} onevent={event => { if (event.kind === "related.change") check(event.id, event.checked); }} />
     {:else if owner === "MediaReferenceSelector"}<MediaReferenceSpecimen />
-    {:else if owner === "LabelRail" || owner === "ColorBullet" || owner === "ReferenceValues" || owner === "ReferenceSelector" || owner === "LabelsControl"}
-      <ReferenceSpecimen {owner} />
+    {:else if owner === "LabelRail" || owner === "ColorBullet" || owner === "ReferenceValues"}
+      <Column gap="regular" align="start" inset="row"><ReferenceSpecimen {owner} /></Column>
+    {:else if owner === "ReferenceSelector" || owner === "LabelsControl"}<ReferenceSpecimen {owner} />
     {:else if owner === "AttentionList"}
       <AttentionList state={fixture.attention} resume={id => feedback = say(m.sharedOwnerSpecimen.resumeActivity, { id })} />
     {:else if owner === "AttentionStatus"}<AttentionStatus signals={[fixture.attentionSignal]} />
@@ -65,13 +68,14 @@
     {:else if owner === "ObjectStateRow"}
       <List kind="facts" measure="reading"><ObjectStateRow selector={fixture.statusSelector(status)} onselect={value => status = value} /></List>
     {:else if owner === "AttentionIndicator"}
-      <AttentionIndicator required />
+      <Column gap="regular" align="start" inset="row"><AttentionIndicator required /></Column>
       <Information items={[{ kind: "text", text: say(m.sharedOwnerSpecimen.attention) }]} />
     {:else if owner === "AppearancePreview"}<ThemePreview mode="dark" tint={defaultAppearance.tint} wallpaper={defaultAppearance.wallpaper} />
     {:else if owner === "AvatarShuffle"}
-      <Avatar size="portrait" interaction="shuffle" source={{ kind: "seed", seed }} shuffleLabel={say(m.sharedOwnerSpecimen.shuffle)}
-        onshuffle={next => seed = next} />
-    {:else if owner === "AppearancePreferences" || owner === "SeedAvatar" || owner === "Wallpaper" || owner === "AccessExperience" || owner === "LockScreen"}
+      <Column gap="regular" align="start" inset="row"><Avatar size="portrait" interaction="shuffle" source={{ kind: "seed", seed }}
+        shuffleLabel={say(m.sharedOwnerSpecimen.shuffle)} onshuffle={next => seed = next} /></Column>
+    {:else if owner === "SeedAvatar"}<Column gap="regular" align="start" inset="row"><AccessAppearanceSpecimen {owner} /></Column>
+    {:else if owner === "AppearancePreferences" || owner === "Wallpaper" || owner === "AccessExperience" || owner === "LockScreen"}
       <AccessAppearanceSpecimen {owner} />
     {:else if owner === "ViewDestinationLink"}
       <Choice presentation="menu" cardinality="one" menuTrigger="well" label={say(m.sharedOwnerSpecimen.state)} labelVisibility="visible"
