@@ -2,7 +2,8 @@
 // headline), page (a place or document title), section (a rail, toolbar, dialog or card title) and group (a field
 // group's legend, in the caption role). Only a display or page title is a focus target (`focusKey` also registers it in
 // the nearest focus scope, so a caller moves focus to it by key), only a section carries an `id` (what labels its
-// region), only a group marks `required`. `align` overrides the inherited alignment. The entry
+// region), only a group marks `required`. `align` overrides the inherited alignment. A `placeTitle` is the title a place
+// heading holds: it wraps anywhere within its column and, as focus lands on it on arrival, draws no focus ring. The entry
 // checks the exact combination at runtime against this same schema (heading-content.ts).
 import { Type } from "@sinclair/typebox";
 import { text } from "../../../../views/definition.ts";
@@ -12,18 +13,22 @@ export const HeadingContract = {
     Type.Object({
       kind: Type.Literal("display"), text: text, align: Type.Optional(Type.Union([Type.Literal("start"), Type.Literal("center")])),
       focusTarget: Type.Optional(Type.Boolean()), focusKey: Type.Optional(Type.String({ minLength: 1 })), id: Type.Optional(Type.Undefined()), required: Type.Optional(Type.Undefined()),
+      placeTitle: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),
     Type.Object({
       kind: Type.Literal("page"), text: text, align: Type.Optional(Type.Union([Type.Literal("start"), Type.Literal("center")])),
       focusTarget: Type.Optional(Type.Boolean()), focusKey: Type.Optional(Type.String({ minLength: 1 })), id: Type.Optional(Type.Undefined()), required: Type.Optional(Type.Undefined()),
+      placeTitle: Type.Optional(Type.Boolean()),
     }, { additionalProperties: false }),
     Type.Object({
       kind: Type.Literal("section"), text: text, align: Type.Optional(Type.Union([Type.Literal("start"), Type.Literal("center")])),
       focusTarget: Type.Optional(Type.Undefined()), focusKey: Type.Optional(Type.Undefined()), id: Type.Optional(Type.String({ minLength: 1 })), required: Type.Optional(Type.Undefined()),
+      placeTitle: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),
     Type.Object({
       kind: Type.Literal("group"), text: text, align: Type.Optional(Type.Union([Type.Literal("start"), Type.Literal("center")])),
       focusTarget: Type.Optional(Type.Undefined()), focusKey: Type.Optional(Type.Undefined()), id: Type.Optional(Type.Undefined()), required: Type.Optional(Type.Boolean()),
+      placeTitle: Type.Optional(Type.Undefined()),
     }, { additionalProperties: false }),
   ]),
   marks: ["data-place-title"],

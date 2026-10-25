@@ -5,7 +5,7 @@
   import { intentKey } from "../../../../interaction/intent.ts";
   import type { BarCommand } from "../../../infra/bar-command.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  import { useToolbarScroll } from "../../mechanisms/toolbar-scroll/toolbar-scroll.svelte.ts";
+  import { provideFrameEdge, useFrameEdge, useToolbarScroll } from "../../mechanisms/toolbar-scroll/toolbar-scroll.svelte.ts";
   import BarIdentity from "./BarIdentity.svelte";
   import BarSearch from "./BarSearch.svelte";
   import { useToolbarCommands } from "./toolbar-commands.svelte.ts";
@@ -24,6 +24,9 @@
     () => ({ row, leading: leadingElement, utilities, controls: null }), () => Boolean(primary) || reservesSearch);
   const leadingControls = useToolbarLeading(() => leadingElement);
   const scroll = useToolbarScroll(() => element, () => edge);
+  // A bar on a frame's edge layers above the frame's scroll edges; what the bar holds (a menu's sheet) is on no edge.
+  const frameEdge = useFrameEdge();
+  provideFrameEdge(false);
   let stacked = $derived(rail && commands.stacked);
   const invoke = (command: BarCommand) => { if (!command.submit) oninvoke?.(command.intent); };
   /** Focuses the leading command (without scrolling) and says whether it holds focus. */
@@ -42,7 +45,7 @@
 <div bind:this={element} class={edge === "top" ? "workspace-header" : "bank-footer"} data-piece="toolbar" data-toolbar={edge}
   data-surface-slot={edge} data-toolbar-purpose={purpose} data-toolbar-overlay={layer} data-identity-role={identityRole}
   data-place-toolbar={layer === "content" || undefined} data-catalog-toolbar={layer === "search" || undefined}
-  data-searching={search?.open} {inert} aria-hidden={inert || undefined} data-toolbar-return={scroll.available || undefined}>
+  data-searching={search?.open} data-frame-edge={frameEdge || undefined} {inert} aria-hidden={inert || undefined} data-toolbar-return={scroll.available || undefined}>
   {#if scroll.available || returnFocused}
     <!-- A transparent return target: the whole top rail scrolls its surface back to the top. -->
     <button type="button" class="sr-only" data-toolbar-scroll-top onclick={scroll.returnToTop}

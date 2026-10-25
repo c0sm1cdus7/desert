@@ -46,5 +46,5 @@ export const BarContract = {
     control: Type.String(),
   }, { additionalProperties: false }),
   instance: Type.Object({ focusLeading: Type.Function([], Type.Boolean()) }, { additionalProperties: false }),
-  marks: ["data-toolbar", "data-toolbar-identity", "data-identity-role", "data-search-toggle", "data-toolbar-controls"],
+  marks: ["data-toolbar", "data-toolbar-identity", "data-identity-role", "data-search-toggle", "data-toolbar-controls", "data-frame-edge"],
 } as const;

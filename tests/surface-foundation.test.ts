@@ -124,6 +124,45 @@ test("a frame surface draws the surface-frame section, viewport and toolbars, pi
   } finally { await f.close(); }
 });
 
+// A bar on a frame's edge layers above the frame's scroll edges (the frame tells the bars of its top and bottom slots,
+// with or without a form); a bar in the frame's content, or in another surface, is on no edge. No stylesheet of the
+// surface names the bar: the layering is the bar's own rule.
+test("the bars on a frame's edges, and only those, layer above its scroll edges", { timeout: 30000 }, async () => {
+  const f = await svelteBrowser(`<script lang="ts">
+  import Surface from "@desert/svelte/catalog/foundations/surface/Surface.svelte";
+  import Bar from "@desert/svelte/catalog/foundations/bar/Bar.svelte";
+</script>
+{#snippet bar(title: string, edge: "top" | "bottom")}<Bar {edge} purpose="commands" identity={{ title }} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false} />{/snippet}
+{#each [undefined, { label: "Edit note", id: "edit-form" }] as form}
+  <section data-case={form ? "form" : "plain"} style="width:420px;height:320px;display:flex"><Surface kind="frame" label="Note" {form} searching={false}>
+    {#snippet top()}{@render bar("Top", "top")}{/snippet}
+    {#snippet content()}<div style="height:900px">{@render bar("Inside", "top")}</div>{/snippet}
+    {#snippet bottom()}{@render bar("Bottom", "bottom")}{/snippet}
+  </Surface></section>
+{/each}
+<section data-case="main" style="height:300px;position:relative"><Surface kind="main" destination="notes" label="Notes" searching={false}>
+  {#snippet top()}{@render bar("Main", "top")}{/snippet}{#snippet content()}<p>Weekly plan</p>{/snippet}
+</Surface></section>`);
+  try {
+    await f.page.addStyleTag({ content: await rendererCss() });
+    const layer = (name: string) => f.page.getByRole("heading", { name, exact: true }).first().evaluate(element => {
+      const style = getComputedStyle(element.closest("[data-toolbar]")!);
+      return `${style.position} ${style.zIndex}`;
+    });
+    for (const name of ["plain", "form"]) {
+      const bars = await f.page.locator(`[data-case="${name}"] [data-toolbar]`).evaluateAll(elements => elements.map(element => {
+        const style = getComputedStyle(element);
+        return [element.textContent?.trim(), style.position, style.zIndex].join(" ");
+      }));
+      assert.deepEqual(bars, ["Top relative 2", "Inside static auto", "Bottom relative 2"], name);
+    }
+    assert.equal(await layer("Main"), "static auto", "a bar of another surface is on no frame edge");
+    const edges = await (await import("node:fs/promises")).readFile("src/svelte/catalog/foundations/surface/scroll-edges.css", "utf8");
+    assert.doesNotMatch(edges, /data-toolbar|\bform\b/, "the surface's stylesheet names no bar and no element");
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
 test("a frame with a form submits it once through the submit event, never by navigation", { timeout: 30000 }, async () => {
   const f = await svelteBrowser(frames);
   try {
