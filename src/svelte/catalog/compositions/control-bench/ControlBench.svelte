@@ -41,8 +41,7 @@
       <SpecimenGroup id={entry.id} hidden={!visibleIds.includes(entry.id)}>
         {#each entry.specimens as specimen (specimen.node.id)}
           <SpecimenRow id={entry.id} state={specimen.state}>
-            <!-- A column, as the field group it replaces: an inline control (a tag) is a block here, never on a text line. -->
-            <Column gap="regular"><ControlRenderer node={nodes[specimen.node.id]!} onevent={interact} /></Column>
+            <ControlRenderer node={nodes[specimen.node.id]!} onevent={interact} />
           </SpecimenRow>
         {/each}
       </SpecimenGroup>

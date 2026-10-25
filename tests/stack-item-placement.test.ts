@@ -19,7 +19,8 @@ test("StackItem draws the placement it is given", async () => {
 <StackItem placement="surface" kind="catalog.home"><span>Home</span></StackItem>
 <StackItem placement="content"><span>Reading text</span></StackItem>`);
   assert.match(body, /<div data-stack-item="" data-stack-kind="control.tag" data-stack-placement="content"><span>Travel<\/span>/);
-  assert.match(body, /<div data-stack-item="" data-stack-kind="catalog.home" data-stack-placement="surface"><span>Home<\/span>/);
+  // A home stack's rails run edge to edge (lane M moved that contextual rule onto StackItem as the flush insets class).
+  assert.match(body, /<div class="place-insets-flush" data-stack-item="" data-stack-kind="catalog.home" data-stack-placement="surface"><span>Home<\/span>/);
   // A view's text item holds no resolved node, so its entry has no kind.
   assert.match(body, /<div data-stack-item="" data-stack-placement="content"><span>Reading text<\/span>/);
 });
