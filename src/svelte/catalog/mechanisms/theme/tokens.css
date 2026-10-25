@@ -20,11 +20,21 @@
   --sidebar-primary:var(--primary); --sidebar-primary-foreground:var(--primary-foreground);
   --sidebar-accent:var(--primary); --sidebar-accent-foreground:var(--primary-foreground);
   --sidebar-border:rgb(0 0 0 / .08); --sidebar-ring:var(--ring);
-  --radius:.875rem; --radius-group:.75rem; --radius-surface:28px; --radius-mark:50%;
-  --place-radius:var(--radius); --disabled-opacity:.5;
-  /* A field's trailing accessory sits this far inside the well's outer edge on top, end and bottom; its radius is the
-     well's less this inset (law 9d, concentric). */
-  --field-accessory-inset:9px;
+  /* One curvature family (law 9d). A button or control takes the control radius and a well the well radius; a container
+     is concentric with what it holds at its corner: that piece's radius plus the inset between their outer edges (a
+     pane's 1px border included). A tag is a mark, not a control: its chip takes half the control radius. A dot is a
+     circle (--radius-mark); a line (a track, a meter, a grip) has square ends; only the switch is a capsule.
+     --radius is the vendor primitives' name for the control radius. */
+  --radius-control:12px; --radius-well:16px; --radius-chip:calc(var(--radius-control) / 2); --radius-mark:50%;
+  --radius:var(--radius-control);
+  /* A grouped pane holds its rows flush inside its border; a transient surface holds its toolbar's actions at the toolbar
+     inset inside its border. */
+  --radius-group:calc(var(--radius-control) + 1px);
+  --radius-surface:calc(var(--radius-control) + var(--catalog-toolbar-inset) + 1px);
+  --place-radius:var(--radius-surface); --disabled-opacity:.5;
+  /* A field's trailing accessory sits this far inside the well's outer edge on every side; its radius is the well's less
+     this inset, the control radius (law 9d, concentric: 16 − 4 = 12). */
+  --field-accessory-inset:4px;
   --elev-0:none; --elev-1:0 1px 2px rgb(0 0 0 / .05); --elev-content:none;
   --elev-2:0 2px 8px -2px rgb(0 0 0 / .12),0 1px 2px -1px rgb(0 0 0 / .08);
   --elev-3:0 10px 24px -6px rgb(0 0 0 / .16); --elev-4:0 25px 50px -12px rgb(0 0 0 / .25);

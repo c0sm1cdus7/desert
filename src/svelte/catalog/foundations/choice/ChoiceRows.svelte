@@ -44,7 +44,7 @@
 {/snippet}
 
 <div class="w-full min-w-0 {frame === 'pane' ? 'max-w-[34rem]' : ''}">
-  <div class="{frame === 'pane' ? 'material-pane text-card-foreground' : 'material-interior'} overflow-hidden rounded-[var(--radius-group)] flex flex-col">
+  <div class="{frame === 'pane' ? 'material-pane text-card-foreground rounded-[var(--radius-group)]' : 'material-interior rounded-[var(--radius-control)]'} overflow-hidden flex flex-col">
     {#if cardinality === "one"}
       <RadioGroup.Root bind:value={() => selected[0] ?? "", value => onchange?.(value ? [value] : [])} {disabled} {required}
         aria-label={label} class={rowGroup}>{@render rows()}</RadioGroup.Root>

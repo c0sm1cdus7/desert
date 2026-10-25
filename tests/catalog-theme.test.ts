@@ -34,7 +34,10 @@ const theme = async () => (await read(`${mechanisms}/typography/typography.css`)
 
 test("theme: one radius family; circles only for marks, never a capsule control", async () => {
   const tokens = await read(`${mechanisms}/theme/tokens.css`);
-  for (const token of ["--radius:.875rem", "--radius-group:.75rem", "--radius-surface:28px", "--radius-mark:50%"]) assert.match(tokens, new RegExp(token));
+  // Law 9d: controls 12, wells 16; a tag's chip half the control; containers derived (concentric), never a literal.
+  for (const token of ["--radius-control:12px", "--radius-well:16px", "--radius-chip:calc(var(--radius-control) / 2)", "--radius-mark:50%",
+    "--radius:var(--radius-control)", "--radius-group:calc(var(--radius-control) + 1px)",
+    "--radius-surface:calc(var(--radius-control) + var(--catalog-toolbar-inset) + 1px)"]) assert.ok(tokens.includes(token), token);
   const button = await read(`${vendor}/button/button.svelte`), group = await read(`${vendor}/input-group/input-group.svelte`);
   assert.doesNotMatch(button.split("\n").find(line => line.includes("base:")) ?? "", /rounded-full/, "the action base is a radius, not a capsule");
   assert.doesNotMatch(group, /rounded-full/, "the access well is a radius");

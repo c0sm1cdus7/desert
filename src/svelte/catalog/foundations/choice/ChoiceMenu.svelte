@@ -53,7 +53,7 @@
     inline: "bg-transparent text-foreground border-0 w-full font-normal min-h-11 px-4 py-2 material-interior control-feedback",
     contextual: "bg-transparent text-foreground border-0 w-full font-normal min-h-11 px-4 py-2 material-interior control-feedback justify-self-end",
   } as const;
-  const fit = "max-w-full min-w-0 whitespace-normal text-balance h-auto w-fit justify-between gap-3 rounded-[var(--radius)]";
+  const fit = "max-w-full min-w-0 whitespace-normal text-balance h-auto w-fit justify-between gap-3 rounded-[var(--radius-control)]";
   let name = $derived(trigger === "inline" ? `${valueLabel} · ${label}` : label);
 </script>
 

@@ -26,7 +26,7 @@
     .volume { display:flex; align-items:center; gap:8px; }
     .volume-level { display:flex; width:6rem; }
     .captions { display:inline-flex; flex-shrink:0; align-items:center; justify-content:center; width:2.75rem; height:2.75rem; padding:0;
-      border-radius:9999px; color:var(--secondary-foreground); white-space:nowrap; outline:none; }
+      border-radius:var(--radius-control); color:var(--secondary-foreground); white-space:nowrap; outline:none; }
     .captions-content { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:center; justify-content:center; gap:inherit; }
   }
   @media(max-width:600px) { .volume { margin-left:auto; } }

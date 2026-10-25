@@ -5,7 +5,7 @@
 
 	/** The public buttonVariants contract. */
 	export const buttonVariants = tv({
-        base: "inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+        base: "inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius-control)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
         variants: {
             spin: { true: "[&_svg[data-icon]]:animate-spin" },
             variant: {
@@ -13,11 +13,11 @@
                 outline: "text-foreground",
                 secondary: "text-secondary-foreground",
                 ghost: "bg-transparent text-foreground",
-                grip: "bg-transparent text-muted-foreground rounded-lg",
+                grip: "bg-transparent text-muted-foreground",
                 destructive: "text-destructive",
                 row: "bg-transparent text-foreground border-0 rounded-none justify-start whitespace-normal h-auto text-left font-normal w-full",
                 field: "bg-transparent text-foreground border-0 rounded-none justify-start w-full font-normal",
-                well: "text-foreground rounded-[var(--radius)] justify-start text-left whitespace-normal w-full font-normal",
+                well: "text-foreground rounded-[var(--radius-well)] justify-start text-left whitespace-normal w-full font-normal",
             },
             size: {
                 default: "min-h-11 px-4 py-2", xs: "min-h-6 px-2", sm: "min-h-9 px-3",
@@ -90,7 +90,7 @@
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3", presentation === "selection-well" && "field-well overflow-hidden rounded-[var(--radius-well)]", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		href={disabled ? undefined : href}
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
@@ -110,7 +110,7 @@
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3", presentation === "selection-well" && "field-well overflow-hidden rounded-[var(--radius-well)]", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		data-toolbar-scroll-top={presentation === "toolbar-return" || undefined}
 		data-catalog-search-toggle={presentation === "search-toggle" || undefined}
 		data-catalog-search-cancel={presentation === "search-toggle" && searching || undefined}
@@ -126,7 +126,7 @@
 <style>
   /* The button's own anatomy, scoped to the elements it draws: every other owner of a [data-button-content] span lays
      its content out with its own rule. */
-  [data-summary-widget] { width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem; padding:var(--space-4,1rem); border-radius:var(--radius-group); text-align:start; white-space:normal; align-items:stretch; }
+  [data-summary-widget] { width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem; padding:var(--space-4,1rem); border-radius:var(--radius-control); text-align:start; white-space:normal; align-items:stretch; }
   [data-summary-widget] > [data-button-content] { display:flex; flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
   @layer components {
     [data-slot="button"] { min-height:2.75rem; }
@@ -143,7 +143,7 @@
   [data-media-reference-choice] [data-button-content] { height:100%; }
   [data-media-collection-card] { position:relative; width:100%; display:block; overflow:hidden; text-align:start; }
   [data-media-collection-card] > [data-button-content] { display:block; }
-  [data-media-grid-item] { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:var(--radius); }
+  [data-media-grid-item] { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:var(--radius-control); }
   [data-media-grid-item] > [data-button-content] { height:100%; }
   [data-media-grid-item][aria-current="true"] { outline:2px solid var(--primary); outline-offset:2px; }
   [data-media-list-item] { aspect-ratio:auto; border-radius:0; }
@@ -155,5 +155,5 @@
   /* An icon Action in a field's trailing accessory (field-accessory mechanism, law 9d): the square the slot measures, its
      radius the well's less the accessory inset, so its corners stay concentric with the well's. */
   [data-action-accessory] { width:var(--field-accessory-size); height:var(--field-accessory-size); min-height:0;
-    border-radius:calc(var(--radius) - var(--field-accessory-inset)); }
+    border-radius:calc(var(--radius-well) - var(--field-accessory-inset)); }
 </style>

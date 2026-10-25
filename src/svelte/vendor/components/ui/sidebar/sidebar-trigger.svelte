@@ -20,7 +20,7 @@
 
 	const sidebar = useSidebar();
 	// The icon button this family draws itself: the button family's ghost and secondary icon recipes, resolved.
-	const base = "inline-flex shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0";
+	const base = "inline-flex shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius-control)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0";
 	const inks = { ghost: "bg-transparent text-foreground", secondary: "text-secondary-foreground" } as const;
 	const sizes = { "icon-sm": "size-9", icon: "size-10" } as const;
 	let material = $derived(/\bmaterial-(?:pane|interior)\b/.test(cn(className)) ? undefined : variant === "ghost" ? "material-interior" : "material-pane");

@@ -22,7 +22,7 @@
   .modal-message-actions { flex-shrink:0; padding:.5rem .25rem .25rem; }
   :where(.drawer-grip) > [data-button-content] { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
   .drawer-grip { align-self:center; min-height:44px; height:44px; width:80px; padding:0; touch-action:none; flex-shrink:0; }
-  [data-drawer-grip-mark] { width:36px; height:4px; border-radius:var(--radius); background:var(--muted-foreground); transition:background-color var(--dur-feedback) var(--ease-tm); }
+  [data-drawer-grip-mark] { width:36px; height:4px; background:var(--muted-foreground); transition:background-color var(--dur-feedback) var(--ease-tm); }
   .drawer-grip:hover:not(:disabled) [data-drawer-grip-mark] { background:var(--foreground); }
   .drawer-grip[data-pressed]:not(:disabled) [data-drawer-grip-mark] { background:var(--primary-text); }
   .drawer { --modal-x:4rem; --modal-y:0px; }

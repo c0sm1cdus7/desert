@@ -2,6 +2,7 @@
 // SelectionField, and AppearancePreferences' cards and swatches, at their pixels; its behaviour is theirs.
 import assert from "node:assert/strict";
 import test from "node:test";
+import { withoutRadius } from "./fixtures/curvature-family.ts";
 import { choiceOptions } from "./fixtures/choice-family.ts";
 import { appearancePreferencesBefore } from "./fixtures/appearance-before.ts";
 import { mountedBefore } from "./support/before.ts";
@@ -115,7 +116,13 @@ test("choice cards, swatches and the well menu: AppearancePreferences' pixels; t
       await f.page.getByRole("listbox").waitFor({ state: "hidden" });
       return shape;
     };
-    assert.deepEqual(await listbox("[data-after-size]"), await listbox("[data-before]"), "the menu's popover and options are SelectionField's");
+    // Design §7.1 radius exception (law 9d): the option rows' ends and their group take the control radius, concentric
+    // inside the selection pane, where the frozen SelectionField inherited the pane's. Only those corners differ.
+    const [afterMenu, beforeMenu] = [await listbox("[data-after-size]"), await listbox("[data-before]")];
+    const rowCorners = [...JSON.stringify(afterMenu.slice(0, 3)).matchAll(/"radius":"([^"]*)"/g)].map(match => match[1]);
+    assert.ok(rowCorners.length && rowCorners.every(radius => /^(0px|12px)( (0px|12px)){0,3}$/.test(radius ?? "")), `control-radius rows: ${rowCorners}`);
+    assert.deepEqual(afterMenu[3], beforeMenu[3], "the selection pane itself");
+    assert.deepEqual(withoutRadius(afterMenu.slice(0, 3)), withoutRadius(beforeMenu.slice(0, 3)), "the menu's popover and options are SelectionField's");
     const swatch = (selector: string) => f.page.locator(selector).evaluateAll(nodes => nodes.map(node => getComputedStyle(node, "::before").backgroundColor));
     assert.deepEqual(await swatch("[data-after-tint] label"), await swatch("[data-before] .appearance-tint-rail > label"));
     await f.page.locator("[data-after-theme]").getByText("Light", { exact: true }).click();

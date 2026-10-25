@@ -3,15 +3,20 @@
   .floating-pane {
     position:relative; z-index:30;
     min-height:0; overflow-x:hidden; overflow-y:auto; outline:none;
-    border-radius:var(--radius);
+    /* Concentric with what it holds at its corner (law 9d): that piece's radius plus the inset inside its 1px border.
+       Information holds controls, a form holds wells, a selection its option rows, a month calendar its own frame. */
+    --floating-inset:1rem; --floating-held-radius:var(--radius-control);
+    border-radius:calc(var(--floating-held-radius) + var(--floating-inset) + 1px);
     color:var(--popover-foreground); overscroll-behavior:contain;
     translate:0 0; opacity:1;
     transition:translate var(--motion-overlay-enter) var(--ease-enter),opacity var(--motion-overlay-enter) var(--ease-enter);
   }
   .floating-pane:is([data-starting-style],[data-ending-style]) { translate:0 12px; opacity:0; }
   .floating-pane[data-ending-style] { transition-duration:var(--motion-overlay-exit); transition-timing-function:var(--ease-exit); }
+  .floating-pane[data-popover-presentation="reference"] { --floating-held-radius:var(--radius-well); }
+  .floating-pane[data-popover-presentation="selection"] { --floating-inset:.25rem; }
   .anchored-surface {
-    display:flex; flex-direction:column; gap:.75rem; padding:1rem; width:24rem;
+    display:flex; flex-direction:column; gap:.75rem; padding:var(--floating-inset); width:24rem;
     max-width:min(calc(100dvw - 24px),var(--bits-popover-content-available-width));
     max-height:var(--bits-popover-content-available-height);
   }

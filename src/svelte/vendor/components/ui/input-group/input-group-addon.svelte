@@ -2,7 +2,7 @@
 	import { tv, type VariantProps } from "tailwind-variants";
 	/** The public inputGroupAddonVariants contract. */
 	export const inputGroupAddonVariants = tv({
-		base: "text-muted-foreground h-auto gap-2 py-0 text-sm font-medium group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[calc(var(--radius)_-_5px)] [&>svg:not([class*='size-'])]:size-4 flex cursor-text items-center justify-center select-none",
+		base: "text-muted-foreground h-auto gap-2 py-0 text-sm font-medium group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[var(--radius-chip)] [&>svg:not([class*='size-'])]:size-4 flex cursor-text items-center justify-center select-none",
 		variants: {
 			align: {
 				"inline-start": "pl-2 has-[>button]:ml-[-0.3rem] has-[>kbd]:ml-[-0.15rem] order-first",

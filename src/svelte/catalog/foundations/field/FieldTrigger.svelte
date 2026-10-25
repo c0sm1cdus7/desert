@@ -24,11 +24,11 @@
     onopen();
   }
   // Its accessory glyph (`data-icon`) keeps the 16 px the well button gave every glyph.
-  const well = "material-pane control-feedback field-well inline-flex w-full min-h-11 min-w-0 items-center justify-start overflow-hidden rounded-[var(--radius)] p-0 text-left whitespace-normal type-control font-normal text-foreground outline-none disabled:pointer-events-none [&_[data-icon]]:size-4 [&_[data-icon]]:shrink-0";
+  const well = "material-pane control-feedback field-well inline-flex w-full min-h-11 min-w-0 items-center justify-start overflow-hidden rounded-[var(--radius-well)] p-0 text-left whitespace-normal type-control font-normal text-foreground outline-none disabled:pointer-events-none [&_[data-icon]]:size-4 [&_[data-icon]]:shrink-0";
   // The select well keeps the selection well's look: a fit-width pane, at most its slot's width, its content in one row.
   const selectWell = cn("inline-flex shrink-0 items-center whitespace-nowrap type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
     "text-foreground text-left whitespace-normal w-full font-normal p-0 material-pane control-feedback field-well overflow-hidden",
-    "max-w-full min-w-0 whitespace-normal text-balance h-auto w-fit justify-between gap-3 rounded-[var(--radius)]");
+    "max-w-full min-w-0 whitespace-normal text-balance h-auto w-fit justify-between gap-3 rounded-[var(--radius-well)]");
 </script>
 <button {...select ? pressFeedbackProps : {}} type="button" id={disclosure.id} {disabled} onclick={onopen} onkeydown={keydown}
   class={select ? selectWell : well}

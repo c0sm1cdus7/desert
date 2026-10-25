@@ -67,7 +67,7 @@
     .player-stage { position:relative; overflow:hidden; }
     /* Inline, the controls band follows the media at the stack gap, as the media object laid them out. */
     .player-inline { gap:var(--stack-gap,16px); }
-    .player-inline .player-stage { height:clamp(14rem,50vh,36rem); border-radius:var(--radius); }
+    .player-inline .player-stage { height:clamp(14rem,50vh,36rem); border-radius:var(--radius-control); }
     .player-viewer { flex:1; min-height:0; }
     .player-viewer .player-stage { flex:1; min-height:0; touch-action:none; }
     .player-header { width:100%; height:100%; }

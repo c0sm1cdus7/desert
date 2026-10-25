@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { squareCorners } from "./fixtures/curvature-family.ts";
 import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { prunedSourcesBefore } from './fixtures/pruned-sources-before.ts';
 import { rendererCss, themeBeforePrune } from './fixtures/renderer-css.ts';
@@ -46,6 +47,8 @@ async function prepare(source:string,overrides:Readonly<Record<string,string>>={
   // A frozen side draws with the base f7247e4 theme it was drawn with; today's side with today's (Batch 3 moved the rules).
   const frozen=Object.values(overrides);
   await fixture.page.addStyleTag({content:frozen.length?await rendererCss(frozen,themeBeforePrune()):await rendererCss()});
+  // Design §7.1 radius exception (law 9d): both sides square their corners; tests/curvature-family.test.ts owns them.
+  await fixture.page.addStyleTag({content:squareCorners});
   await fixture.page.getByRole('button',{name:'Mount fixture',exact:true}).click();
   return fixture;
 }

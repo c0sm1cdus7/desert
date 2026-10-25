@@ -48,15 +48,16 @@
 {/if}
 
 <style>
-  /* The grouped row's geometry: a full-width, at least 44px interior, one hairline between rows of the same list. It sets
+  /* The grouped row's geometry: a full-width, at least 44px interior, one hairline between rows of the same list, its ends
+     at the control radius (concentric inside the list's border, law 9d). It sets
      no box-shadow: this unlayered rule would win over control-feedback's hover and press tints, which are box-shadows. */
   .row { display:flex; align-items:center; justify-content:flex-start; gap:.5rem; width:100%; min-width:0; min-height:2.75rem;
     margin:0; padding:.75rem 1rem; border:0; border-radius:0; background:transparent; color:var(--foreground);
     font:inherit; font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:400;
     text-align:left; white-space:normal; outline:none; }
   .row:not(:first-child) { border-top:1px solid var(--separator); }
-  .row:first-child { border-start-start-radius:var(--radius-group); border-start-end-radius:var(--radius-group); }
-  .row:last-child { border-end-start-radius:var(--radius-group); border-end-end-radius:var(--radius-group); }
+  .row:first-child { border-start-start-radius:var(--radius-control); border-start-end-radius:var(--radius-control); }
+  .row:last-child { border-end-start-radius:var(--radius-control); border-end-end-radius:var(--radius-control); }
   .row:disabled { pointer-events:none; }
   .row-attended { position:relative; }
   .row:focus-visible { outline:2px solid var(--ring); outline-offset:-3px; box-shadow:none; }
@@ -64,7 +65,7 @@
   .row-content { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:center; justify-content:inherit; gap:inherit; }
   /* An attention dot or an image keeps the record row's and media item's wider gap. */
   .row[data-row-leading="attention"], .row[data-row-leading="image"], .row[data-row-leading="artwork"] { gap:1rem; }
-  .row-artwork { display:block; flex:none; width:80px; height:60px; overflow:hidden; border-radius:var(--radius); }
+  .row-artwork { display:block; flex:none; width:80px; height:60px; overflow:hidden; border-radius:var(--radius-control); }
   .row-copy { display:flex; flex:1; min-width:0; flex-direction:column; gap:.25rem; text-align:start; }
   .row-label { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); overflow-wrap:anywhere; }
   .row-description { color:var(--muted-foreground); overflow-wrap:anywhere; text-wrap:balance; }

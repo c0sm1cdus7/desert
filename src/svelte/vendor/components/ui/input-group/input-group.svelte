@@ -16,7 +16,7 @@
 	data-slot="input-group"
 	role="group"
 	class={cn(
-		"material-pane control-focus group/input-group relative flex w-full min-w-0 items-center rounded-lg p-1 has-[textarea]:h-auto has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-offset-3",
+		"material-pane control-focus group/input-group relative flex w-full min-w-0 items-center rounded-[var(--radius-well)] p-1 has-[textarea]:h-auto has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-offset-3",
 		className,
 		presentation === "access" && "pr-1.5"
 	)}

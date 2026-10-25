@@ -1,20 +1,21 @@
 // The one row geometry of a choice, shared by the rows of a pane (a label around a radio or checkbox) and the options
-// of a menu (a listbox option): full width, 44px tall, the group's radius at the ends, a divider inset past the mark.
+// of a menu (a listbox option): full width, 44px tall, the control radius at the ends (concentric inside its group), a
+// divider inset past the mark.
 // Literal class names, so the theme's Tailwind scan sees them; the theme's control-feedback draws the press the
 // press-feedback mechanism marks on each row.
 import { Value } from "@sinclair/typebox/value";
 import { SwatchOptionSchema, type ChoiceOption, type SwatchOption } from "../../../../interaction/choice.ts";
 
 export const rowFrame = "control-feedback material-interior relative flex w-full min-w-0 min-h-11 p-0 m-0 border-none rounded-none bg-transparent shadow-none "
-  + "cursor-pointer font-normal text-start first:rounded-ss-[var(--radius-group)] first:rounded-se-[var(--radius-group)] "
-  + "last:rounded-es-[var(--radius-group)] last:rounded-ee-[var(--radius-group)] aria-disabled:cursor-default "
+  + "cursor-pointer font-normal text-start first:rounded-ss-[var(--radius-control)] first:rounded-se-[var(--radius-control)] "
+  + "last:rounded-es-[var(--radius-control)] last:rounded-ee-[var(--radius-control)] aria-disabled:cursor-default "
   + "focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-3 focus-visible:shadow-none "
   + "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring has-[:focus-visible]:-outline-offset-3 has-[:focus-visible]:shadow-none";
 /** Every row after the first draws the divider above it, from past the selection mark to the trailing inset. */
 export const rowDivider = "before:absolute before:content-[''] before:top-0 before:start-10 before:end-4 before:h-px before:bg-separator "
   + "before:pointer-events-none";
-/** The rows inside one group: a column without gaps that keeps its pane's radius. */
-export const rowGroup = "flex w-full min-w-0 flex-col gap-0 rounded-[inherit]";
+/** The rows inside one group: a column without gaps whose ends are its rows' (the control radius), concentric inside its pane. */
+export const rowGroup = "flex w-full min-w-0 flex-col gap-0 rounded-[var(--radius-control)]";
 
 /** The menu's trigger presentation: the contract gives it exactly when the presentation is a menu. */
 export function menuTriggerOf<T extends string>(trigger: T | undefined): T {

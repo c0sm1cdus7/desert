@@ -22,6 +22,6 @@
 
 <style>
   .symbol { display:flex; align-items:center; gap:.5rem; color:var(--muted-foreground); font-size:.875rem; line-height:1.25rem; }
-  .preview { display:block; width:4rem; height:3rem; border-radius:.5rem; overflow:hidden; flex-shrink:0; }
+  .preview { display:block; width:4rem; height:3rem; border-radius:var(--radius-chip); overflow:hidden; flex-shrink:0; }
   .cover { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:calc(var(--radius) * .7); }
 </style>

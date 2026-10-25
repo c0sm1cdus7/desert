@@ -4785,7 +4785,7 @@ Source SHA-256: 603257de3293ccf620366c9f694fab5c66a7c53aa524dc63293f089534d1adb5
 
 ## src/svelte/catalog/foundations/choice/ChoiceRows.svelte
 
-Source SHA-256: 1dc6fbf923857bb34abb1922c87feb697bdef906ddd22d20ada027d4d055af21
+Source SHA-256: 8e19a3ec9c433f3e51806e7702183c7bff9589506071642ee47aa0224c661bab
 
 ```svelte
 <script lang="ts">
@@ -4834,7 +4834,7 @@ Source SHA-256: 1dc6fbf923857bb34abb1922c87feb697bdef906ddd22d20ada027d4d055af21
 {/snippet}
 
 <div class="w-full min-w-0 {frame === 'pane' ? 'max-w-[34rem]' : ''}">
-  <div class="{frame === 'pane' ? 'material-pane text-card-foreground' : 'material-interior'} overflow-hidden rounded-[var(--radius-group)] flex flex-col">
+  <div class="{frame === 'pane' ? 'material-pane text-card-foreground rounded-[var(--radius-group)]' : 'material-interior rounded-[var(--radius-control)]'} overflow-hidden flex flex-col">
     {#if cardinality === "one"}
       <RadioGroup.Root bind:value={() => selected[0] ?? "", value => onchange?.(value ? [value] : [])} {disabled} {required}
         aria-label={label} class={rowGroup}>{@render rows()}</RadioGroup.Root>
@@ -4845,7 +4845,7 @@ Source SHA-256: 1dc6fbf923857bb34abb1922c87feb697bdef906ddd22d20ada027d4d055af21
 
 ## src/svelte/catalog/foundations/choice/ChoiceMenu.svelte
 
-Source SHA-256: 27e52dd464fe221aa1899175311e1e42aea3a348546cad950cf6004edcecf1d6
+Source SHA-256: b4c63b27eadc125a1293a4452c5f04db4d77c7d34b5ee96eb370959b954e77b2
 
 ```svelte
 <script lang="ts">
@@ -4903,7 +4903,7 @@ Source SHA-256: 27e52dd464fe221aa1899175311e1e42aea3a348546cad950cf6004edcecf1d6
     inline: "bg-transparent text-foreground border-0 w-full font-normal min-h-11 px-4 py-2 material-interior control-feedback",
     contextual: "bg-transparent text-foreground border-0 w-full font-normal min-h-11 px-4 py-2 material-interior control-feedback justify-self-end",
   } as const;
-  const fit = "max-w-full min-w-0 whitespace-normal text-balance h-auto w-fit justify-between gap-3 rounded-[var(--radius)]";
+  const fit = "max-w-full min-w-0 whitespace-normal text-balance h-auto w-fit justify-between gap-3 rounded-[var(--radius-control)]";
   let name = $derived(trigger === "inline" ? `${valueLabel} · ${label}` : label);
 </script>
 
@@ -5035,7 +5035,7 @@ export const actionIconNames = {
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: 3c472afb66fca0086763bc39544db0bcd239f6271fbf55db6537f2bbf52d4c42
+Source SHA-256: bf91ff9aa0019f4083d29131a2143ffbed777426366f56fbc92b62beac9740aa
 
 ```svelte
 <script lang="ts" module>
@@ -5045,7 +5045,7 @@ Source SHA-256: 3c472afb66fca0086763bc39544db0bcd239f6271fbf55db6537f2bbf52d4c42
 
 	/** The public buttonVariants contract. */
 	export const buttonVariants = tv({
-        base: "inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+        base: "inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius-control)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
         variants: {
             spin: { true: "[&_svg[data-icon]]:animate-spin" },
             variant: {
@@ -5053,11 +5053,11 @@ Source SHA-256: 3c472afb66fca0086763bc39544db0bcd239f6271fbf55db6537f2bbf52d4c42
                 outline: "text-foreground",
                 secondary: "text-secondary-foreground",
                 ghost: "bg-transparent text-foreground",
-                grip: "bg-transparent text-muted-foreground rounded-lg",
+                grip: "bg-transparent text-muted-foreground",
                 destructive: "text-destructive",
                 row: "bg-transparent text-foreground border-0 rounded-none justify-start whitespace-normal h-auto text-left font-normal w-full",
                 field: "bg-transparent text-foreground border-0 rounded-none justify-start w-full font-normal",
-                well: "text-foreground rounded-[var(--radius)] justify-start text-left whitespace-normal w-full font-normal",
+                well: "text-foreground rounded-[var(--radius-well)] justify-start text-left whitespace-normal w-full font-normal",
             },
             size: {
                 default: "min-h-11 px-4 py-2", xs: "min-h-6 px-2", sm: "min-h-9 px-3",
@@ -5130,7 +5130,7 @@ Source SHA-256: 3c472afb66fca0086763bc39544db0bcd239f6271fbf55db6537f2bbf52d4c42
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3", presentation === "selection-well" && "field-well overflow-hidden rounded-[var(--radius-well)]", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		href={disabled ? undefined : href}
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
@@ -5150,7 +5150,7 @@ Source SHA-256: 3c472afb66fca0086763bc39544db0bcd239f6271fbf55db6537f2bbf52d4c42
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3", presentation === "selection-well" && "field-well overflow-hidden rounded-[var(--radius-well)]", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		data-toolbar-scroll-top={presentation === "toolbar-return" || undefined}
 		data-catalog-search-toggle={presentation === "search-toggle" || undefined}
 		data-catalog-search-cancel={presentation === "search-toggle" && searching || undefined}
@@ -5166,7 +5166,7 @@ Source SHA-256: 3c472afb66fca0086763bc39544db0bcd239f6271fbf55db6537f2bbf52d4c42
 <style>
   /* The button's own anatomy, scoped to the elements it draws: every other owner of a [data-button-content] span lays
      its content out with its own rule. */
-  [data-summary-widget] { width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem; padding:var(--space-4,1rem); border-radius:var(--radius-group); text-align:start; white-space:normal; align-items:stretch; }
+  [data-summary-widget] { width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem; padding:var(--space-4,1rem); border-radius:var(--radius-control); text-align:start; white-space:normal; align-items:stretch; }
   [data-summary-widget] > [data-button-content] { display:flex; flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
   @layer components {
     [data-slot="button"] { min-height:2.75rem; }
@@ -5183,7 +5183,7 @@ Source SHA-256: 3c472afb66fca0086763bc39544db0bcd239f6271fbf55db6537f2bbf52d4c42
   [data-media-reference-choice] [data-button-content] { height:100%; }
   [data-media-collection-card] { position:relative; width:100%; display:block; overflow:hidden; text-align:start; }
   [data-media-collection-card] > [data-button-content] { display:block; }
-  [data-media-grid-item] { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:var(--radius); }
+  [data-media-grid-item] { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:var(--radius-control); }
   [data-media-grid-item] > [data-button-content] { height:100%; }
   [data-media-grid-item][aria-current="true"] { outline:2px solid var(--primary); outline-offset:2px; }
   [data-media-list-item] { aspect-ratio:auto; border-radius:0; }
@@ -5195,7 +5195,7 @@ Source SHA-256: 3c472afb66fca0086763bc39544db0bcd239f6271fbf55db6537f2bbf52d4c42
   /* An icon Action in a field's trailing accessory (field-accessory mechanism, law 9d): the square the slot measures, its
      radius the well's less the accessory inset, so its corners stay concentric with the well's. */
   [data-action-accessory] { width:var(--field-accessory-size); height:var(--field-accessory-size); min-height:0;
-    border-radius:calc(var(--radius) - var(--field-accessory-inset)); }
+    border-radius:calc(var(--radius-well) - var(--field-accessory-inset)); }
 </style>
 ```
 
@@ -5577,7 +5577,7 @@ Source SHA-256: 60d878284c158abc4e25a40cdcca3b04b5567235b19aca1939d1162afc8378f6
 
 ## src/svelte/catalog/foundations/popover/PopoverSurface.svelte
 
-Source SHA-256: 7c944131e730080e7d79b96bad35bdf153dff6d827ad86daa629999f5d7c9ef4
+Source SHA-256: 84ea2ae6f34e0e4dcaea087e597b04d7a213f2f45c9c7e35a2b163d532326b5e
 
 ```svelte
 <script lang="ts">
@@ -5594,8 +5594,9 @@ Source SHA-256: 7c944131e730080e7d79b96bad35bdf153dff6d827ad86daa629999f5d7c9ef4
     change: (open: boolean) => void; children: Snippet | undefined;
   } = $props();
   const presentations = { information: "pane", form: "reference", list: "selection", menu: "speed-dial" } as const;
-  /** A month calendar frames itself (its header is the surface's top row) at the calendar budget's width. */
-  const calendarFrame = `width:${calendarBudget.panelRem}rem;overflow:hidden;padding:0;gap:0`;
+  /** A month calendar frames itself (its header is the surface's top row) at the calendar budget's width; the surface stays
+   * concentric with the calendar's own controls, .5rem inside it (law 9d). */
+  const calendarFrame = `width:${calendarBudget.panelRem}rem;overflow:hidden;padding:0;gap:0;--floating-inset:.5rem`;
   let panel = $state<HTMLElement | null>(null);
   let boundary: HTMLElement | null = null;
   $effect(() => { if (panel) boundary = panel; });
@@ -6213,7 +6214,7 @@ Source SHA-256: 7b4bbfe3fc0d52613452f85d06068fc586f06cc42af12c84ef786679523dbc2e
 
 ## src/svelte/catalog/foundations/row/Row.svelte
 
-Source SHA-256: 70c716863c983b0901c3c4b76488fd0cab424ce1af6878f229e085ed3d1cfe3b
+Source SHA-256: 120527963c9e041eb9e5be92d6afc33fc2d32cb766643eaac25307844a51fbab
 
 ```svelte
 <script lang="ts">
@@ -6266,15 +6267,16 @@ Source SHA-256: 70c716863c983b0901c3c4b76488fd0cab424ce1af6878f229e085ed3d1cfe3b
 {/if}
 
 <style>
-  /* The grouped row's geometry: a full-width, at least 44px interior, one hairline between rows of the same list. It sets
+  /* The grouped row's geometry: a full-width, at least 44px interior, one hairline between rows of the same list, its ends
+     at the control radius (concentric inside the list's border, law 9d). It sets
      no box-shadow: this unlayered rule would win over control-feedback's hover and press tints, which are box-shadows. */
   .row { display:flex; align-items:center; justify-content:flex-start; gap:.5rem; width:100%; min-width:0; min-height:2.75rem;
     margin:0; padding:.75rem 1rem; border:0; border-radius:0; background:transparent; color:var(--foreground);
     font:inherit; font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:400;
     text-align:left; white-space:normal; outline:none; }
   .row:not(:first-child) { border-top:1px solid var(--separator); }
-  .row:first-child { border-start-start-radius:var(--radius-group); border-start-end-radius:var(--radius-group); }
-  .row:last-child { border-end-start-radius:var(--radius-group); border-end-end-radius:var(--radius-group); }
+  .row:first-child { border-start-start-radius:var(--radius-control); border-start-end-radius:var(--radius-control); }
+  .row:last-child { border-end-start-radius:var(--radius-control); border-end-end-radius:var(--radius-control); }
   .row:disabled { pointer-events:none; }
   .row-attended { position:relative; }
   .row:focus-visible { outline:2px solid var(--ring); outline-offset:-3px; box-shadow:none; }
@@ -6282,7 +6284,7 @@ Source SHA-256: 70c716863c983b0901c3c4b76488fd0cab424ce1af6878f229e085ed3d1cfe3b
   .row-content { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:center; justify-content:inherit; gap:inherit; }
   /* An attention dot or an image keeps the record row's and media item's wider gap. */
   .row[data-row-leading="attention"], .row[data-row-leading="image"], .row[data-row-leading="artwork"] { gap:1rem; }
-  .row-artwork { display:block; flex:none; width:80px; height:60px; overflow:hidden; border-radius:var(--radius); }
+  .row-artwork { display:block; flex:none; width:80px; height:60px; overflow:hidden; border-radius:var(--radius-control); }
   .row-copy { display:flex; flex:1; min-width:0; flex-direction:column; gap:.25rem; text-align:start; }
   .row-label { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); overflow-wrap:anywhere; }
   .row-description { color:var(--muted-foreground); overflow-wrap:anywhere; text-wrap:balance; }

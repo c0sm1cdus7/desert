@@ -4,7 +4,7 @@
   let { presentation = "standard", class: className, ...props }:
     Popover.TriggerProps & { presentation?: "standard" | "selection" | "reference-well" } = $props();
   // The well recipes this family draws itself (the button family's well variant, resolved), not another family's import.
-  const well = "inline-flex shrink-0 items-center gap-2 type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-foreground rounded-[var(--radius)] justify-start text-left whitespace-normal w-full font-normal";
+  const well = "inline-flex shrink-0 items-center gap-2 type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-foreground rounded-[var(--radius-well)] justify-start text-left whitespace-normal w-full font-normal";
   // The reference well lays out its own value row (once a global rule of this file).
   const referenceValue = "[&_[data-field-value]]:flex [&_[data-field-value]]:items-center [&_[data-field-value]]:justify-between [&_[data-field-value]]:gap-[var(--space-3,.75rem)] [&_[data-field-value]]:min-w-0";
 </script>

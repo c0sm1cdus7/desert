@@ -3,11 +3,12 @@
   let { total, totalLabel, segments, label, id }: CatalogProps<"meter"> = $props();
 </script>
 
-<!-- The total's label and the legend read at the regular weight, also inside a pressable card (the summary widget's). -->
+<!-- The total's label and the legend read at the regular weight, also inside a pressable card (the summary widget's). The
+     bar is a line: square ends, never a capsule (law 9d). -->
 <div role="group" aria-label={label} {id} class="flex min-w-0 flex-col gap-4" data-meter>
   <span class="flex min-w-0 flex-wrap items-baseline gap-2"><strong class="type-display">{total}</strong><span
     class="font-normal text-muted-foreground">{totalLabel}</span></span>
-  <span class="flex h-[.6rem] gap-[2px] overflow-hidden rounded-[var(--radius)] bg-muted" aria-hidden="true">
+  <span class="flex h-[.6rem] gap-[2px] overflow-hidden bg-muted" aria-hidden="true">
     {#each segments as segment, index (index)}<span class="min-w-0 basis-0 bg-primary even:bg-muted-foreground" style:flex-grow={segment.count}></span>{/each}
   </span>
   <span class="flex min-w-0 flex-wrap gap-4 font-normal text-muted-foreground [overflow-wrap:anywhere]">

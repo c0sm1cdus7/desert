@@ -11,6 +11,7 @@ import { compositionsBefore } from "./fixtures/compositions-c-before.ts";
 // MediaGrid and MediaCollectionGrid are composed of Card now (lane D): their frozen sources draw the "before" side.
 import { mediaCompositionsBeforeOverrides } from "./fixtures/media-compositions-before.ts";
 import { contentBefore } from "./fixtures/content-before.ts";
+import { withoutRadius } from "./fixtures/curvature-family.ts";
 import { withoutFacePrimitive } from "./fixtures/face-primitive.ts";
 
 const id = (n: number) => `10000000-0000-4000-8000-00000000000${n}`;
@@ -104,7 +105,8 @@ test("card keeps the pixels of the catalog card, the media tile, the collection 
     // An artwork placeholder is a face (law 9e): its ground and positioning are the face primitive's (face-primitive.ts).
     const placeholders = (value: Awaited<ReturnType<typeof measureProbes>>) => Object.fromEntries(Object.entries(value)
       .map(([name, probe]) => [name, ["item-placeholder", "tiles"].includes(name) ? withoutFacePrimitive(probe, ["artwork"]) : probe]));
-    const [old, now] = [placeholders(await measureProbes(was.page, probes("before"))), placeholders(await measureProbes(is.page, probes("after")))];
+    // Design §7.1 radius exception (law 9d): the card's corners are the control radius now; tests/curvature-family.test.ts owns them.
+    const [old, now] = [withoutRadius(placeholders(await measureProbes(was.page, probes("before")))), withoutRadius(placeholders(await measureProbes(is.page, probes("after"))))];
     for (const name of Object.keys(old)) {
       const artwork = (value: typeof old) => ({ ...value[name], artwork: unplaced(value[name]?.artwork) });
       assert.deepEqual(name.startsWith("item") ? artwork(now) : now[name], name.startsWith("item") ? artwork(old) : old[name], name);
@@ -113,7 +115,7 @@ test("card keeps the pixels of the catalog card, the media tile, the collection 
     const frame = (side: "before" | "after"): Probes => ({ summary: { frame: side === "before" ? "[data-summary-widget]" : '[data-card="summary"]' } });
     const styles = ["width", "min-height", "padding-top", "padding-left", "border-radius", "border-top-width", "background-color", "display",
       "align-items", "justify-content", "text-align", "white-space", "font-size", "font-weight", "line-height", "color"];
-    assert.deepEqual(await measureProbes(is.page, frame("after"), styles).then(value => strip(value)), await measureProbes(was.page, frame("before"), styles).then(value => strip(value)));
+    assert.deepEqual(await measureProbes(is.page, frame("after"), styles).then(value => withoutRadius(strip(value))), await measureProbes(was.page, frame("before"), styles).then(value => withoutRadius(strip(value))));
     assert.deepEqual([was.errors, is.errors], [[], []]);
   } finally { await was.close(); await is.close(); }
 });

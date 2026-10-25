@@ -85,7 +85,7 @@ test("field: the stylesheets moved into the field folder, and the control-measur
   assert.doesNotMatch(theme, /field-well\.css|search-field\.css|control-measure\.css/);
   assert.equal(realContext().declarations.some(item => item.declaration.id === "control-measure"), false);
   const css = await read(`${folder}/field.css`);
-  assert.match(css, /\[data-search-field\] \{ min-height:44px; border-radius:var\(--radius\);/, "search shares the radius family");
+  assert.match(css, /\[data-search-field\] \{ min-height:44px; border-radius:var\(--radius-well\);/, "search is a well (law 9d)");
   assert.doesNotMatch(css, /999px/);
 });
 
