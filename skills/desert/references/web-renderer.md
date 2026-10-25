@@ -5421,7 +5421,7 @@ Source SHA-256: 12d44eda3f243e5292c11d43f7da85c70eb510846e355109cba33d93e0c61ef8
 
 ## src/svelte/catalog/foundations/date-control/DateControl.svelte
 
-Source SHA-256: 654cc22790516fd6bbc198935cb9be9eea78af008e1cb59faa2243c1a48e45ee
+Source SHA-256: 8585cf7959eb30fa27e04f03d198af6b4e53746a62026b1c882abfd2974ecdf6
 
 ```svelte
 <script lang="ts">
@@ -5464,7 +5464,7 @@ Source SHA-256: 654cc22790516fd6bbc198935cb9be9eea78af008e1cb59faa2243c1a48e45ee
 </script>
 <Popover label={node.label} {open} disabled={node.disabled} locked={false} content="information" placement="adaptive" align="start"
   trigger={{ kind: "field", label: node.label, required: node.required, invalid: false,
-    display: { kind: "text", text: label, placeholder: date === undefined }, measure: "date" }}
+    display: { kind: "text", text: label, placeholder: false }, measure: "date" }}
   onopenchange={next => { open = next; }}>
   <DateCalendar value={date} bind:visibleDate label={node.label} minimum={node.minimum} maximum={node.maximum}
     disabled={node.disabled} onchange={change} onclear={node.required ? undefined : clear} />
@@ -5714,7 +5714,7 @@ Source SHA-256: e95bfc97c5eedfbe17268c0fb5acf81adb8b7eb2f5e12dc7a7558150181ffe4e
 
 ## src/svelte/catalog/foundations/field/Field.svelte
 
-Source SHA-256: 4189366cb4f74e99b2686c901ae7a7e47a4d35a84c254000a8ea256b2594160b
+Source SHA-256: fdff3fc958ca68d0604f38a852ebf012328c29bb4c75ce3f7b6b38c5979622fc
 
 ```svelte
 <script lang="ts">
@@ -5778,7 +5778,7 @@ Source SHA-256: 4189366cb4f74e99b2686c901ae7a7e47a4d35a84c254000a8ea256b2594160b
 {#snippet trigger()}
   {#if display && disclosure}
     <FieldTrigger {label} {labelVisibility} {required} {disabled} {describedBy} {display} {disclosure} select={select === true} shown={selection}
-      onopen={() => onopen?.()} />
+      accessory={measure === "date" ? "calendar" : "disclosure"} onopen={() => onopen?.()} />
   {/if}
   {#if requirement}<span id={`${id}-requirement`} class="sr-only">{say(m.field.required)}</span>{/if}
 {/snippet}
