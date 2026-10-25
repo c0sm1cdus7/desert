@@ -8,6 +8,6 @@ export const Grid = defineFoundation({
   owner: { entry: "Grid.svelte" },
   shape: "none", states: ["default"],
   variants: { tracks: ["tiles", "collections", "cards", "covers"] },
-  slots: { children: { accepts: ["catalog-card", "image", "text"] } },
+  slots: { children: { accepts: ["card", "catalog-card", "image", "text"] } },
   approval: "required", contract: GridContract,
 } as const);

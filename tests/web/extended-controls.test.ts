@@ -67,7 +67,7 @@ test("calendar, tags and media remain accessible and contained at narrow widths"
     await calendar.getByRole("button", { name: /Friday, October 16, 2026/ }).click();
     await calendar.waitFor({ state: "hidden" });
     assert.match(await date.innerText(), /Oct 16, 2026/);
-    assert.equal(await f.page.locator('[data-view-item="entry:control.tag"] [data-control="tag"]').count(), 5);
+    assert.equal(await f.page.locator('[data-view-item="entry:control.tag"] [data-tag]').count(), 5);
     const image = f.page.locator('[data-view-item="specimen:control.image:available"] img');
     assert.equal(await image.evaluate(node => (node as HTMLImageElement).naturalWidth > 0), true);
     assert.equal(await f.page.locator('[data-view-item="specimen:control.image:unavailable"]').getByRole("img").isVisible(), true);

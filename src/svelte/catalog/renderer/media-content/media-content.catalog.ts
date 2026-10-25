@@ -4,7 +4,8 @@ import { MediaContentContract } from "./media-content.contract.ts";
 
 export const MediaContent = defineComposition({
   id: "media-content",
-  purpose: "Mount a view's media library at its open album and reveal a record in it on request.",
+  purpose: { key: "mediaContent.purpose" },
+  messages: ["mediaContent.purpose"],
   owner: { entry: "MediaContent.svelte" },
   uses: ["library"], approval: "none", contract: MediaContentContract,
 } as const);

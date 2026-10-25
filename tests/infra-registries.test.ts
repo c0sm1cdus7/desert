@@ -26,6 +26,16 @@ test("focus scope: a later registration replaces an earlier one, and only the cu
   assert.equal(scope.focus("row:1"), false);
 });
 
+test("focus scope: releasing the current registration gives the key back to the earlier one still registered", () => {
+  const scope = focusScope(), calls: string[] = [];
+  scope.register("catalog-return:lake", () => { calls.push("listed"); return true; });
+  const releaseFeatured = scope.register("catalog-return:lake", () => { calls.push("featured"); return true; });
+  assert.equal(scope.focus("catalog-return:lake"), true);
+  releaseFeatured();
+  assert.equal(scope.focus("catalog-return:lake"), true, "the listed card still answers to its record");
+  assert.deepEqual(calls, ["featured", "listed"]);
+});
+
 test("focus scope: the last activated key is remembered for a return", () => {
   const scope = focusScope();
   assert.equal(scope.lastActivated(), null);

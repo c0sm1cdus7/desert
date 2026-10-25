@@ -11,6 +11,9 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { inlineImports, measureProbes, renderCases, settle, type Probes } from "./fixtures/parity.ts";
 import { placeHeadingBefore, placeHeadingCssBefore } from "./fixtures/place-heading-before.ts";
+// MediaObject, MediaControl and CatalogDetail are composed of these foundations now (lane D): their frozen sources draw the
+// "before" side.
+import { mediaCompositionsBefore, mediaCompositionsBeforeOverrides } from "./fixtures/media-compositions-before.ts";
 
 const photo = (fill: string) => `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect width='800' height='600' fill='%23${fill}'/%3E%3C/svg%3E`;
 const images = `[{ kind: "image", source: "${photo("468")}", alt: "Lake" }, { kind: "image", source: "${photo("864")}", alt: "Dunes" }]`;
@@ -108,8 +111,11 @@ test("gallery and media-player keep the photo collection's and the media object'
   // over its frozen stylesheet.
   const before = { [resolve(import.meta.dirname, "../src/svelte/catalog/compositions/place-header/PlaceHeadingBefore.svelte")]: placeHeadingBefore };
   const theme = await readFile(resolve(import.meta.dirname, "../src/svelte/theme.css"), "utf8");
-  const frozenCss = await rendererCss([], inlineImports(theme, { "src/svelte/catalog/foundations/place-heading/place-heading.css": placeHeadingCssBefore }));
-  const [was, is] = [await renderCases(hosts(false), before, frozenCss), await renderCases(hosts(true), before, css)];
+  // The frozen hosts bring their own utilities (their frames' aspect and radius), which today's tree no longer writes.
+  const frozenCss = await rendererCss(Object.values(mediaCompositionsBefore),
+    inlineImports(theme, { "src/svelte/catalog/foundations/place-heading/place-heading.css": placeHeadingCssBefore }));
+  const [was, is] = [await renderCases(hosts(false), { ...mediaCompositionsBeforeOverrides, ...before }, frozenCss),
+    await renderCases(hosts(true), before, css)];
   try {
     await squareIcons(is.page);
     for (const f of [was, is]) {

@@ -4,7 +4,9 @@ import { CatalogDetailContract } from "./catalog-detail.contract.ts";
 
 export const CatalogDetail = defineComposition({
   id: "catalog-detail",
-  purpose: "Read one catalog item with its media and details in the current destination.",
+  purpose: { key: "catalogDetail.purpose" },
+  messages: ["catalogDetail.purpose", "catalogDetail.about"],
   owner: { entry: "CatalogDetail.svelte" },
-  uses: ["heading", "photo-collection", "stack-layout"], renders: ["catalog.detail"], approval: "none", contract: CatalogDetailContract,
+  uses: ["column", "gallery", "heading", "stack-item", "stack-layout", "text", "view-region"], renders: ["catalog.detail"],
+  approval: "none", contract: CatalogDetailContract,
 } as const);

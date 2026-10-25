@@ -157,19 +157,18 @@ test('media bank states mount the real owners with isolated installed artwork an
     for(const state of ['media-grid','media-list','collection-grid']) {
       await selectState('collection',state);
       const specimen=f.page.locator(`[data-view-item="specimen:collection:${state}"]`);
-      if(state==='collection-grid') {
-        assert.equal(await specimen.locator('[data-media-collection-grid]').count(),1);
-        assert.equal(await specimen.locator('[data-media-collection-card]').count(),2);
-      } else {
-        assert.equal(await specimen.locator(`[data-media-layout="${state==='media-list'?'list':'grid'}"]`).count(),1);
-        assert.equal(await specimen.locator('[data-media-grid-item]').count(),3);
-      }
+      // One grid of covers, one grid of tiles, or one list of rows (the foundations' marks; the compositions draw none).
+      const items=specimen.locator(state==='collection-grid'?'[data-card="collection"]':state==='media-list'?'[data-list="rows"] > [data-row="open"]':'[data-card="tile"]');
+      assert.equal(await items.count(),state==='collection-grid'?2:3);
+      assert.equal(await items.evaluateAll(nodes=>new Set(nodes.map(node=>node.parentElement)).size),1,`${state}: one grid or list holds them`);
+      if(state==='media-list') assert.equal(await specimen.locator('[data-list="rows"]').count(),1);
       await specimen.locator('img').first().evaluate(async image=>{await (image as HTMLImageElement).decode();});
     }
     await f.page.getByRole('button',{name:'Back',exact:true}).click();
     await f.page.locator('[data-view-item="catalog-index"] [data-focus-key="context"]').click();
     await selectState('context','media-object');
-    const media=f.page.locator('[data-view-item="specimen:context:media-object"] [data-media-object]');
+    // The media object's photo is its gallery (the composition draws no mark of its own).
+    const media=f.page.locator('[data-view-item="specimen:context:media-object"] [data-photo-collection]');
     assert.equal(await media.count(),1);
     await media.locator('img').first().evaluate(async image=>{await (image as HTMLImageElement).decode();});
     assert.deepEqual(mutations,[]);

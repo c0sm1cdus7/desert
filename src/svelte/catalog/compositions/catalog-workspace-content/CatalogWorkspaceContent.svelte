@@ -23,9 +23,9 @@
 {:else if content.kind === "public-catalog"}
   {@const model = content}
   <div hidden={model.active !== "browse" || model.selected !== null}>
-    <CatalogHome node={model.surface.home} onevent={model.onevent} bodyOnly />
+    <CatalogHome node={model.surface.home} onevent={model.onevent} bodyOnly placement="page" />
   </div>
-  {#if model.active === "browse" && model.projected.kind === "catalog.detail"}<CatalogDetail node={model.projected} onevent={model.onevent} bodyOnly />{/if}
+  {#if model.active === "browse" && model.projected.kind === "catalog.detail"}<CatalogDetail node={model.projected} onevent={model.onevent} bodyOnly placement="page" />{/if}
   {#if model.surface.exercises}<RetainedPlace visible={model.active === "travel-kit"} active={model.active === "travel-kit" && !searching}><LocalExercises definition={model.surface.exercises} oncatalog={model.onevent} bodyOnly /></RetainedPlace>{/if}
   {#if model.bankVisited}<RetainedPlace visible={model.active === "bank"} active={model.active === "bank" && !searching}><PublicCatalogBank onactions={model.onactions} surface={model.surface} oncatalog={model.onevent} bodyOnly /></RetainedPlace>{/if}
 {/if}

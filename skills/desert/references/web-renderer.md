@@ -5610,42 +5610,35 @@ Source SHA-256: d0d309245c0cb986bd5674d1c92b2ce08eb6373ba63c494231a269a273bb2cd1
 
 ## src/svelte/catalog/compositions/media-control/MediaControl.svelte
 
-Source SHA-256: f8b318d3aa251f3ee56540af29ddaedf36d8bc3de78be34e56dcf4abf128f9d9
+Source SHA-256: a167ab4721ddbd2036fd61c93f066d62d7076f982846cedcc21624571d5a2376
 
 ```svelte
 <script lang="ts">
-  import * as Avatar from "../../../vendor/components/ui/avatar/index.js";
-  import { Badge } from "../../../vendor/components/ui/badge/index.js";
-  import { cn } from "../../../vendor/utils.js";
-  import { Icon } from "../../index.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  import { PhotoCollection } from '../../index.ts';
-  import { Image } from '../../index.ts';
-  import { imageIdentity } from '../../../infra/media-source.ts';
+  import { Avatar, Column, Gallery, Inline, Status, Tag, Text } from "../../index.ts";
+  import { imageIdentity } from "../../../infra/media-source.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let { node }: CatalogProps<"media-control"> = $props();
-  let source = $derived(node.kind === "tag" ? null : typeof node.source === "object" && node.source !== null
-    ? 'asset' in node.source ? `/media/${encodeURIComponent(node.source.asset)}` : node.source : node.source);
-  const aspects = { square: "aspect-square", landscape: "aspect-video", portrait: "aspect-[3/4]" };
+  // A named library asset is served from its media path; a public path or a private asset is shown as it is.
+  let source = $derived(node.kind === "tag" || node.source === null ? null
+    : typeof node.source === "object" && "asset" in node.source ? `/media/${encodeURIComponent(node.source.asset)}` : node.source);
 </script>
+
 {#if node.kind === "tag"}
-  <Badge variant={node.tone === "neutral" ? "secondary" : node.tone} data-control="tag" data-tone={node.tone}>{node.label}</Badge>
+  <Tag presentation="chip" tone={node.tone} label={node.label} state="known" removable={false} disabled={node.disabled} />
 {:else if node.kind === "avatar"}
-  <div class="flex min-w-0 items-center gap-3" data-control="avatar">
-    <Avatar.Root size="lg" aria-hidden="true">
-      {#if source}<Image {source} alt="" edge={160} fallback={node.fallback} />
-      {:else}<Avatar.Fallback initials={node.fallback} />{/if}
-    </Avatar.Root><span class="min-w-0 [overflow-wrap:anywhere]">{node.label}</span>
-  </div>
+  <Inline gap="close" overflow="none">
+    <Avatar size="row" interaction="none" source={source ? { kind: "image", source, initials: node.fallback } : { kind: "initials", initials: node.fallback }} />
+    <Text kind="body" text={node.label} wrap="anywhere" />
+  </Inline>
 {:else}
-  <figure data-control="image" class="flex min-w-0 flex-col gap-2">
-    <div class={cn("relative w-full overflow-hidden rounded-xl", aspects[node.aspect])} data-aspect={node.aspect}>
-      {#if source}
-        <div class="absolute inset-0">{#key imageIdentity(source)}<PhotoCollection photos={[{source,alt:node.alt}]} title={node.label} />{/key}</div>
-      {:else}<div class="absolute inset-0 flex items-center justify-center gap-3 rounded-xl border" role="img" aria-label={node.alt}>
-        <Icon name="image-off" decorative /><span>Image unavailable</span></div>{/if}
-    </div>
-    <figcaption>{node.label}</figcaption>
-  </figure>
+  <Column gap="snug">
+    {#if source}
+      {#key imageIdentity(source)}<Gallery photos={[{ source, alt: node.alt }]} title={node.label} presentation="inline" fit="fill" aspect={node.aspect} />{/key}
+    {:else}<Status icon="image-off" title={say(m.mediaControl.unavailable)} tone="neutral" size="regular" heading={false} />{/if}
+    <Text kind="body" text={node.label} />
+  </Column>
 {/if}
 ```
 

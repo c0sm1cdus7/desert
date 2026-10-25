@@ -6,7 +6,7 @@ export const RowSpecimens = [
   { state: "available", variants: { interaction: "open", trailing: "chevron" }, props: { label: "Notes", leading: { kind: "face", face: { kind: "icon", icon: "catalog" } },
     trailing: "chevron", interaction: "open", available: true, current: false, focusKey: "destination:notes" } },
   { state: "available", variants: { interaction: "open", trailing: "none" }, props: { label: "Harbour at dawn",
-    leading: { kind: "image", source: "/bank-image.svg", alt: "Harbour at dawn", fit: "fill" }, trailing: "none", interaction: "open", available: true, current: false } },
+    leading: { kind: "image", source: "/bank-image.svg", alt: "Harbour at dawn", fit: "fill" }, trailing: "none", interaction: "open", available: true, current: false, attention: true } },
   { state: "available", variants: { interaction: "static", trailing: "chevron" }, props: { label: "Requires your attention",
     leading: { kind: "attention", required: true }, trailing: "chevron", interaction: "static", available: true, current: false } },
   { state: "available", variants: { interaction: "static", trailing: "none" }, props: { label: "Interview", description: "No cover artwork yet",

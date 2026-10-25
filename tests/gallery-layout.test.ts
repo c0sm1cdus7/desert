@@ -33,8 +33,8 @@ for(const [width,scale] of [[1600,1],[390,1],[320,2]] as const){
       const flow=f.page.locator('[data-view-content="gallery-fixture"]');
       await flow.waitFor();
       assert.equal(await flow.getAttribute('data-content-layout'),'gallery');
-      assert.equal(await flow.locator('[data-media-collection-card]').count(),2);
-      assert.equal(await flow.locator('[data-media-grid-item]').count(),3);
+      assert.equal(await flow.locator('[data-card="collection"]').count(),2);
+      assert.equal(await flow.locator('[data-card="tile"]').count(),3);
       const layout=await flow.evaluate(element=>{
         const a=element.querySelector('[data-view-item="collections"]')!.getBoundingClientRect();
         const b=element.querySelector('[data-view-item="media"]')!.getBoundingClientRect();

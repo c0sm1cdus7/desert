@@ -3,7 +3,8 @@
 import { getContext, setContext } from "svelte";
 
 export type FocusScope = Readonly<{
-  /** Registers `focus` under `key` and returns its release; a later registration of the same key replaces it. */
+  /** Registers `focus` under `key` and returns its release; a later registration of the same key takes precedence, and
+   * releasing it gives the key back to the earlier one still registered (two cards of one record, one of them retained). */
   register: (key: string, focus: () => boolean) => () => void;
   /** Focuses what is registered under `key`; false when nothing is, or when it could not take focus. */
   focus: (key: string) => boolean;
@@ -15,14 +16,20 @@ export type FocusScope = Readonly<{
 
 /** A fresh scope: one registry of focus closures and one last-activated key. */
 export function focusScope(): FocusScope {
-  const targets = new Map<string, () => boolean>();
+  // Each key holds its registrations in order; the latest one answers.
+  const targets = new Map<string, (() => boolean)[]>();
   let last: string | null = null;
   return Object.freeze({
     register(key: string, focus: () => boolean) {
-      targets.set(key, focus);
-      return () => { if (targets.get(key) === focus) targets.delete(key); };
+      const registered = targets.get(key) ?? [];
+      registered.push(focus); targets.set(key, registered);
+      return () => {
+        const index = registered.lastIndexOf(focus);
+        if (index !== -1) registered.splice(index, 1);
+        if (registered.length === 0 && targets.get(key) === registered) targets.delete(key);
+      };
     },
-    focus: (key: string) => targets.get(key)?.() ?? false,
+    focus: (key: string) => targets.get(key)?.at(-1)?.() ?? false,
     activated(key: string) { last = key; },
     lastActivated: () => last,
   });

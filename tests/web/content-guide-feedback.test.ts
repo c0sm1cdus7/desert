@@ -18,14 +18,14 @@ for(const theme of ['light','dark'] as const) for(const width of [390,1280]) {
    }
    const offsets=await f.page.locator('[data-view-item^="specimen:"]').evaluateAll(rows=>rows.flatMap(row=>{
     const item=row.querySelector('[data-stack-placement="content"]');if(!item)return [];
-    const content=item.querySelector('[data-control], [data-catalog-card]');if(!content)return [];
+    const content=item.querySelector('[data-tag], [data-slot="avatar"], [data-photo-collection], [data-status], [data-catalog-card]');if(!content)return [];
     const p=row.querySelector('p')!;
     return [{kind:item.getAttribute('data-stack-kind'),guide:p.getBoundingClientRect().left+parseFloat(getComputedStyle(p).paddingLeft),edge:content.getBoundingClientRect().left}];
    }));
    assert.ok(offsets.length>=9);
    for(const o of offsets) assert.ok(Math.abs(o.guide-o.edge)<1,JSON.stringify(o));
-   const rail=await f.page.locator('[data-stack-kind="catalog.home"] [data-catalog-group]').first().evaluate(e=>{
-    const title=e.querySelector('[data-catalog-group] > :first-child')!,card=e.querySelector('[data-catalog-card]')!;
+   const rail=await f.page.locator('[data-stack-kind="catalog.home"] [data-view-item] > div:has(> [role="region"])').first().evaluate(e=>{
+    const title=e.querySelector(':scope > div > :is(h1,h2,h3,h4,h5,h6)')!,card=e.querySelector('[data-catalog-card]')!;
     return title.getBoundingClientRect().left-card.getBoundingClientRect().left;
    });
    assert.equal(rail,16,'horizontal rail keeps its deliberate outer lane');

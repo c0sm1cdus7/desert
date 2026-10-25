@@ -38,20 +38,39 @@ async function settled(fixture:Awaited<ReturnType<typeof prepare>>){
     await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
   });
 }
-async function compare(name:string,fixtures:Awaited<ReturnType<typeof prepare>>[],selector:string){
+/** `selector` names the compared element; a pair names it per side (before, after) where a wrapper of the frozen side is gone.
+ * `owned` compares an anatomy whose owner changed (the viewer composition became the media-viewer foundation, lane D):
+ * its wrappers and class names are the new owner's, so the named and roled elements (every control, the dialog, the slider)
+ * keep their geometry, names and type, and the viewport pixels stay identical. A heading is a heading by its element or its
+ * role, and the dialog keeps its accessible name: the modal that holds the viewer now (F1d) names it with a visually
+ * hidden title of its own, where the frozen viewer named it by its visible title, so that hidden name element is the
+ * owner's and is not compared, while the name it gives is. */
+async function compare(name:string,fixtures:Awaited<ReturnType<typeof prepare>>[],selector:string|readonly [string,string],owned=false){
   await mkdir(directory,{recursive:true});
   const screenshots=[];
   const anatomy=[];
   for(const[index,fixture]of fixtures.entries()){
     await settled(fixture);
-    const scope=fixture.page.locator(selector);
-    anatomy.push(await scope.evaluate(element=>[element,...element.querySelectorAll('*')].map(child=>{
-      const box=child.getBoundingClientRect(),style=getComputedStyle(child);
-      return {tag:child.tagName,text:child.children.length?'':child.textContent,
-        class:child.getAttribute('class'),role:child.getAttribute('role'),label:child.getAttribute('aria-label'),
-        width:box.width,height:box.height,padding:style.padding,gap:style.gap,font:style.font,
-        display:style.display,visibility:style.visibility};
-    })));
+    const scope=fixture.page.locator(typeof selector==='string'?selector:selector[index?1:0]);
+    anatomy.push(await scope.evaluate((element,owned)=>{
+      const names=new Set<Element>();
+      for(const dialog of [element,...element.querySelectorAll('[role="dialog"]')])
+        for(const id of (dialog.getAttribute('aria-labelledby')??'').split(/\s+/).filter(Boolean)){const name=document.getElementById(id);if(name)names.add(name);}
+      return [element,...element.querySelectorAll('*')].filter(child=>{
+        if(!owned||!names.has(child))return true;
+        const box=child.getBoundingClientRect();return box.width>1||box.height>1;
+      }).map(child=>{
+        const box=child.getBoundingClientRect(),style=getComputedStyle(child);
+        const role=child.getAttribute('role')??(owned&&/^H[1-6]$/.test(child.tagName)?'heading':null);
+        const labelledby=owned&&role==='dialog'?(child.getAttribute('aria-labelledby')??'').split(/\s+/).filter(Boolean)
+          .map(id=>document.getElementById(id)?.textContent??'').join(' '):undefined;
+        return {tag:child.tagName,text:child.children.length?'':child.textContent,
+          class:owned?undefined:child.getAttribute('class'),role,label:child.getAttribute('aria-label'),
+          ...(labelledby===undefined?{}:{name:labelledby}),
+          width:box.width,height:box.height,padding:style.padding,gap:style.gap,font:style.font,
+          display:style.display,visibility:style.visibility};
+      }).filter(item=>!owned||item.role!==null||item.label!==null).map(item=>owned?{...item,display:undefined,tag:undefined}:item);
+    },owned));
     const bytes=await fixture.page.screenshot({animations:'disabled'});
     await writeFile(resolve(directory,`${name}-${index?'after':'before'}.png`),bytes);
     screenshots.push(bytes);
@@ -69,18 +88,21 @@ test('closed Media library preserves card/gallery pixels, queue, zoom controls a
   <button onclick={()=>album=null}>All media</button>
   <button onclick={()=>media.select('image.forest')}>Search Forest</button>
   <main data-renderer-profile="apple-reference" data-catalog-scroll tabindex="-1" style="padding:16px">
-  {#if mounted}<Media bind:this={media} {library} {album} onalbum={value=>album=value}/>{/if}</main>`;
+  <div data-test-library>{#if mounted}<Media bind:this={media} {library} {album} onalbum={value=>album=value}/>{/if}</div></main>
+  <output data-album>{album}</output>`;
   const fixtures=[await prepare(source,previous),await prepare(source)];
   try{
-    await compare('media-library',fixtures,'[data-media-library]');
+    // The library draws no wrapper of its own any more (lane D): the frozen side's wrapper is skipped, both compare the catalog.
+    await compare('media-library',fixtures,['[data-media-library] > :first-child','[data-test-library] > :first-child']);
     for(const f of fixtures){
       await f.page.locator('[data-record="album.trip"] button').click();
-      assert.equal(await f.page.locator('[data-media-library]').getAttribute('data-media-album'),'trip');
+      assert.equal(await f.page.locator('[data-album]').textContent(),'trip','the album card opens its album');
       await f.page.locator('[data-record="image.coast"] button').click();
       await f.page.locator('[data-media-viewer]').waitFor();
       assert.equal(await f.page.locator('[data-media-viewer] [data-toolbar-subtitle]').textContent(),'1 / 2');
     }
-    await compare('media-viewer',fixtures,'[data-media-viewer]');
+    // The viewer is a media Modal now (F1d): the dialog that holds it is the modal's surface, and its mark is inside.
+    await compare('media-viewer',fixtures,['[data-media-viewer]','[data-modal="media"]'],true);
     for(const f of fixtures){
       const zoom=f.page.getByRole('button',{name:'Zoom in',exact:true});
       await zoom.click();
@@ -132,10 +154,11 @@ test('closed inspection preserves indexed inventory pixels, detail, drafts and r
       await f.page.locator('[data-view-item="entry:catalog.card"]').getByRole('button',{name:/^State ·/}).click();
       await f.page.getByRole('option',{name:'item',exact:true}).click();
       await f.page.locator('[data-view-item="specimen:catalog.card:item"] button').click();
-      await f.page.locator('[data-catalog-detail]:visible').waitFor();
+      await f.page.locator('[data-view-item="about"]:visible').waitFor();
       assert.equal(await f.page.locator('[data-view-item="public-catalog-bank"]:visible').count(),0);
     }
-    await compare('inspection-detail',fixtures,'[data-catalog-detail]:visible');
+    // The detail is its photograph region and its reading column (CatalogDetail draws no wrapper, lane D).
+    await compare('inspection-detail',fixtures,'div:has(> [data-view-item="about"]):visible');
     for(const[index,f]of fixtures.entries()){
       await f.page.getByRole('button',{name:'Back to visual catalog',exact:true}).click();
       assert.ok(await f.page.locator('[data-view-item="specimen:catalog.card:item"] button').evaluate(button=>button===document.activeElement));

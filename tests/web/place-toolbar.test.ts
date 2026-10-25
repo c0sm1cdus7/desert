@@ -74,7 +74,7 @@ test('title handoff follows a resized heading and detail navigation, including r
     assert.equal(await title.evaluate(element => getComputedStyle(element).transitionDuration), '0s');
     await (await navigationAction(f.page, 'Landmarks')).click();
     await f.page.getByRole('button', { name: 'Learn More', exact: true }).click();
-    await f.page.locator('[data-catalog-detail] [data-place-title]').waitFor();
+    await f.page.locator('div:has(> [data-view-item="about"]) [data-place-title]').waitFor();
     assert.equal(await title.getAttribute('data-condensed'), 'false', 'detail starts with a large title below the image');
     await viewport.evaluate(element => { element.scrollTop = 900; });
     await f.page.waitForFunction(() => document.querySelector('[data-catalog-toolbar-title]')?.textContent === 'Mount Fuji'
@@ -87,12 +87,12 @@ test('title handoff follows a resized heading and detail navigation, including r
     await f.page.setViewportSize({ width: 1280, height: 840 });
     await settle(f.page);
     await f.page.waitForFunction(() => {
-      const heading = document.querySelector('[data-catalog-detail] [data-place-title]')!.getBoundingClientRect();
+      const heading = document.querySelector('div:has(> [data-view-item="about"]) [data-place-title]')!.getBoundingClientRect();
       const toolbar = document.querySelector('[data-catalog-place-toolbar] .toolbar-row')!.getBoundingClientRect();
       return document.querySelector('[data-catalog-toolbar-title]')?.getAttribute('data-condensed') === String(heading.bottom <= toolbar.bottom);
     });
     await back.click();
-    await f.page.locator('[data-catalog-detail] [data-place-title]').waitFor({ state: 'detached' });
+    await f.page.locator('div:has(> [data-view-item="about"]) [data-place-title]').waitFor({ state: 'detached' });
     await f.page.waitForFunction(() => document.querySelector('[data-catalog-toolbar-title]')?.textContent === ''
       && document.querySelector('[data-catalog-toolbar-title]')?.getAttribute('data-condensed') === 'false');
     assert.equal(await title.textContent(), '', 'home does not inherit the previous detail title');

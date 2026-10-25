@@ -5,7 +5,8 @@ import { MediaObjectContract } from "./media-object.contract.ts";
 
 export const MediaObject = defineComposition({
   id: "media-object",
-  purpose: "Show the media fact of an object's context: playable audio or video, an image, or a placeholder when unavailable.",
+  purpose: { key: "mediaObject.purpose" },
+  messages: ["mediaObject.purpose", "mediaObject.image", "mediaObject.unavailable"],
   owner: { entry: "MediaObject.svelte" },
-  uses: ["photo-collection", "playback-canvas", "toolbar-layout"], approval: "none", contract: MediaObjectContract,
+  uses: ["column", "gallery", "image", "media-player", "text"], approval: "none", contract: MediaObjectContract,
 } as const);

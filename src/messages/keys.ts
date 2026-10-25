@@ -345,6 +345,40 @@ export const Messages = messageCatalog({
     },
     "facts": {
       "purpose": "Read a labeled value, including the difference between an empty value and an unknown value."
+    },
+    "mediaGrid": {
+      "purpose": "Browse a media collection as artwork tiles or list rows and open one item.",
+      "open": "Open {name}",
+      "position": "Media {position}"
+    },
+    "mediaCollectionGrid": {
+      "purpose": "Show media collections as a grid of covers with title and item count, and open the one the person picks.",
+      "open": "Open collection {title}",
+      "countOne": "{count} item",
+      "countMany": "{count} items"
+    },
+    "mediaControl": {
+      "purpose": "Show a tag, an avatar or a captioned image read-only, without turning it into an action.",
+      "unavailable": "Image unavailable"
+    },
+    "mediaObject": {
+      "purpose": "Show the media fact of an object's context: playable audio or video, an image, or a placeholder when unavailable.",
+      "image": "Image",
+      "unavailable": "Media unavailable"
+    },
+    "library": {
+      "purpose": "Browse a media library by album and open its items in the viewer, returning focus to the opener.",
+      "media": "Media"
+    },
+    "catalogHome": {
+      "purpose": "Arrange a catalog overview from the same content, media and navigation compositions."
+    },
+    "catalogDetail": {
+      "purpose": "Read one catalog item with its media and details in the current destination.",
+      "about": "About"
+    },
+    "mediaContent": {
+      "purpose": "Mount a view's media library at its open album and reveal a record in it on request."
     }
   },
 } as const);

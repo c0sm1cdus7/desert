@@ -9,6 +9,6 @@ export const StackItem = defineFoundation({
   owner: { entry: "StackItem.svelte", parts: ["stack-item.css"] },
   shape: "none", states: ["default"],
   variants: { placement: ["content", "surface"] },
-  slots: { children: { accepts: ["information", "node-renderer"] } },
+  slots: { children: { accepts: ["heading", "information", "node-renderer", "text"] } },
   approval: "required", contract: StackItemContract,
 } as const);

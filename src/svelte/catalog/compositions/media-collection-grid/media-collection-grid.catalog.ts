@@ -4,7 +4,8 @@ import { MediaCollectionGridContract } from "./media-collection-grid.contract.ts
 
 export const MediaCollectionGrid = defineComposition({
   id: "media-collection-grid",
-  purpose: "Show media collections as a grid of covers with title and item count, and open the one the person picks.",
+  purpose: { key: "mediaCollectionGrid.purpose" },
+  messages: ["mediaCollectionGrid.purpose", "mediaCollectionGrid.open", "mediaCollectionGrid.countOne", "mediaCollectionGrid.countMany"],
   owner: { entry: "MediaCollectionGrid.svelte" },
-  uses: ["attention-indicator", "collection-state", "image"], approval: "none", contract: MediaCollectionGridContract,
+  uses: ["card", "collection-state", "grid"], approval: "none", contract: MediaCollectionGridContract,
 } as const);

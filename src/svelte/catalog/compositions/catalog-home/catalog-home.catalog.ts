@@ -4,7 +4,9 @@ import { CatalogHomeContract } from "./catalog-home.contract.ts";
 
 export const CatalogHome = defineComposition({
   id: "catalog-home",
-  purpose: "Arrange a catalog overview from the same content, media and navigation compositions.",
+  purpose: { key: "catalogHome.purpose" },
+  messages: ["catalogHome.purpose"],
   owner: { entry: "CatalogHome.svelte" },
-  uses: ["heading", "node-renderer"], renders: ["catalog.home"], approval: "none", contract: CatalogHomeContract,
+  uses: ["column", "heading", "inline", "node-renderer", "stack-item", "view-region"], renders: ["catalog.home"],
+  approval: "none", contract: CatalogHomeContract,
 } as const);

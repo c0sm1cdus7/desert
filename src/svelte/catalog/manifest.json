@@ -666,33 +666,52 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/catalog-detail",
       "kind": "composition",
+      "messages": [
+        "catalogDetail.purpose",
+        "catalogDetail.about"
+      ],
       "owner": {
         "entry": "CatalogDetail.svelte"
       },
-      "purpose": "Read one catalog item with its media and details in the current destination.",
+      "purpose": {
+        "key": "catalogDetail.purpose"
+      },
       "renders": [
         "catalog.detail"
       ],
       "uses": [
+        "column",
+        "gallery",
         "heading",
-        "photo-collection",
-        "stack-layout"
+        "stack-item",
+        "stack-layout",
+        "text",
+        "view-region"
       ]
     },
     "catalog-home": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/catalog-home",
       "kind": "composition",
+      "messages": [
+        "catalogHome.purpose"
+      ],
       "owner": {
         "entry": "CatalogHome.svelte"
       },
-      "purpose": "Arrange a catalog overview from the same content, media and navigation compositions.",
+      "purpose": {
+        "key": "catalogHome.purpose"
+      },
       "renders": [
         "catalog.home"
       ],
       "uses": [
+        "column",
         "heading",
-        "node-renderer"
+        "inline",
+        "node-renderer",
+        "stack-item",
+        "view-region"
       ]
     },
     "catalog-navigation": {
@@ -1044,12 +1063,15 @@
             "control-bench",
             "fact-list",
             "form",
+            "gallery",
             "heading",
+            "image",
             "information",
             "inline",
             "list",
             "lock-screen",
             "media-object",
+            "media-player",
             "media-reference-specimen",
             "node-renderer",
             "object-state-control",
@@ -1062,7 +1084,9 @@
             "spacer",
             "specimen-group",
             "speed-dial",
+            "stack-item",
             "stack-layout",
+            "status",
             "summary-widget",
             "surface-specimen",
             "text",
@@ -1784,6 +1808,7 @@
       "slots": {
         "children": {
           "accepts": [
+            "card",
             "catalog-card",
             "image",
             "text"
@@ -1981,10 +2006,12 @@
         "children": {
           "accepts": [
             "action",
+            "avatar",
             "color-bullet",
             "column",
             "face",
             "icon",
+            "node-renderer",
             "seed-avatar",
             "tag",
             "text"
@@ -2139,13 +2166,19 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/library",
       "kind": "composition",
+      "messages": [
+        "library.purpose",
+        "library.media"
+      ],
       "owner": {
         "entry": "Library.svelte"
       },
-      "purpose": "Browse a media library by album and open its items in the viewer, returning focus to the opener.",
+      "purpose": {
+        "key": "library.purpose"
+      },
       "uses": [
         "catalog-home",
-        "viewer"
+        "media-viewer"
       ]
     },
     "list": {
@@ -2316,24 +2349,37 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/media-collection-grid",
       "kind": "composition",
+      "messages": [
+        "mediaCollectionGrid.purpose",
+        "mediaCollectionGrid.open",
+        "mediaCollectionGrid.countOne",
+        "mediaCollectionGrid.countMany"
+      ],
       "owner": {
         "entry": "MediaCollectionGrid.svelte"
       },
-      "purpose": "Show media collections as a grid of covers with title and item count, and open the one the person picks.",
+      "purpose": {
+        "key": "mediaCollectionGrid.purpose"
+      },
       "uses": [
-        "attention-indicator",
+        "card",
         "collection-state",
-        "image"
+        "grid"
       ]
     },
     "media-content": {
       "approval": "none",
       "folder": "src/svelte/catalog/renderer/media-content",
       "kind": "composition",
+      "messages": [
+        "mediaContent.purpose"
+      ],
       "owner": {
         "entry": "MediaContent.svelte"
       },
-      "purpose": "Mount a view's media library at its open album and reveal a record in it on request.",
+      "purpose": {
+        "key": "mediaContent.purpose"
+      },
       "uses": [
         "library"
       ]
@@ -2342,49 +2388,78 @@
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/media-control",
       "kind": "composition",
+      "messages": [
+        "mediaControl.purpose",
+        "mediaControl.unavailable"
+      ],
       "owner": {
         "entry": "MediaControl.svelte"
       },
-      "purpose": "Show a tag, an avatar or a captioned image read-only, without turning it into an action.",
+      "purpose": {
+        "key": "mediaControl.purpose"
+      },
       "renders": [
         "control.tag",
         "control.image",
         "control.avatar"
       ],
       "uses": [
-        "icon",
-        "image",
-        "photo-collection"
+        "avatar",
+        "column",
+        "gallery",
+        "inline",
+        "status",
+        "tag",
+        "text"
       ]
     },
     "media-grid": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/media-grid",
       "kind": "composition",
+      "messages": [
+        "mediaGrid.purpose",
+        "mediaGrid.open",
+        "mediaGrid.position"
+      ],
       "owner": {
-        "entry": "MediaGrid.svelte"
+        "entry": "MediaGrid.svelte",
+        "parts": [
+          "media-grid-items.ts"
+        ]
       },
-      "purpose": "Browse a media collection as artwork tiles or list rows and open one item.",
+      "purpose": {
+        "key": "mediaGrid.purpose"
+      },
       "uses": [
-        "artwork-placeholder",
-        "attention-indicator",
+        "card",
         "collection-state",
-        "grouped-panel",
-        "image"
+        "grid",
+        "list",
+        "row"
       ]
     },
     "media-object": {
       "approval": "none",
       "folder": "src/svelte/catalog/compositions/media-object",
       "kind": "composition",
+      "messages": [
+        "mediaObject.purpose",
+        "mediaObject.image",
+        "mediaObject.unavailable"
+      ],
       "owner": {
         "entry": "MediaObject.svelte"
       },
-      "purpose": "Show the media fact of an object's context: playable audio or video, an image, or a placeholder when unavailable.",
+      "purpose": {
+        "key": "mediaObject.purpose"
+      },
       "uses": [
-        "photo-collection",
-        "playback-canvas",
-        "toolbar-layout"
+        "column",
+        "gallery",
+        "image",
+        "media-player",
+        "text"
       ]
     },
     "media-player": {
@@ -3603,8 +3678,10 @@
       "slots": {
         "children": {
           "accepts": [
+            "heading",
             "information",
-            "node-renderer"
+            "node-renderer",
+            "text"
           ]
         }
       },
@@ -4182,17 +4259,19 @@
             "catalog-home",
             "column",
             "feedback",
+            "gallery",
             "identity",
             "information",
             "inspection-catalog",
             "inspection-content",
             "local-exercises",
             "media-content",
+            "node-renderer",
             "place-heading",
             "public-catalog-bank",
             "stack",
-            "stack-layout",
             "stack-item",
+            "stack-layout",
             "view-attention",
             "view-content",
             "view-item",

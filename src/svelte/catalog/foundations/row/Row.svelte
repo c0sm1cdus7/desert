@@ -4,7 +4,7 @@
   import { pressFeedback } from "../../../vendor/components/ui/button/press-feedback.js";
   import { useFocusScope } from "../../../infra/focus-scope.ts";
   import type { CatalogProps } from "../../types.d.ts";
-  let { label, description, metadata = [], leading, trailing, interaction, available, reason, current, focusKey, onopen }: CatalogProps<"row"> = $props();
+  let { label, description, metadata = [], leading, trailing, interaction, available, reason, current, focusKey, attention = false, onopen }: CatalogProps<"row"> = $props();
   const id = $props.id(), reasonId = `${id}-reason`;
   const scope = useFocusScope();
   let button = $state<HTMLButtonElement | null>(null);
@@ -35,9 +35,11 @@
 
 <!-- A row sizes every glyph it holds (a face's, the chevron) to one rem, as the vendor row button did. -->
 {#if interaction === "open"}
-  <button bind:this={button} {@attach pressFeedback} type="button" class="row material-interior control-feedback [&_svg]:size-4 [&_svg]:shrink-0" data-row="open" data-focus-key={focusKey}
+  <button bind:this={button} {@attach pressFeedback} type="button" class="row material-interior control-feedback [&_svg]:size-4 [&_svg]:shrink-0" class:row-attended={attention} data-row="open" data-focus-key={focusKey}
     data-row-leading={leading?.kind} disabled={!available} aria-current={current ? "true" : undefined}
     aria-describedby={!available && reason ? reasonId : undefined} title={!available ? reason : undefined} onclick={open}>
+    <!-- The attention dot sits over the row's corner, as it sat over the media list item. -->
+    {#if attention}<AttentionIndicator required placement="overlay" />{/if}
     <span class="row-content control-feedback-content" data-button-content>{@render content()}</span>
   </button>
   {#if !available && reason}<span id={reasonId} class="sr-only">{reason}</span>{/if}
@@ -56,6 +58,7 @@
   .row:first-child { border-start-start-radius:var(--radius-group); border-start-end-radius:var(--radius-group); }
   .row:last-child { border-end-start-radius:var(--radius-group); border-end-end-radius:var(--radius-group); }
   .row:disabled { pointer-events:none; }
+  .row-attended { position:relative; }
   .row:focus-visible { outline:2px solid var(--ring); outline-offset:-3px; box-shadow:none; }
   .row-content { position:relative; display:flex; width:100%; min-width:0; align-items:center; gap:inherit; }
   /* An attention dot or an image keeps the record row's and media item's wider gap. */

@@ -1,7 +1,4 @@
 /* StackItem: one entry of a stack at the content or the surface inset. */
 [data-stack-item] { min-width:0; }
 [data-stack-placement="content"] { padding-inline:1rem; }
-/* A nested catalog starts at its host's surface guide. Its own group titles
-   share the host's reading inset; only horizontal rails retain the outer lane. */
-[data-stack-kind="catalog.home"] [data-catalog-home] > [data-place-stack="featured"] { padding-inline:1rem; }
 [data-stack-placement="content"] > [data-catalog-card] { max-width:100%; }

@@ -3,11 +3,32 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { contractShape, mounted, specimenFindings } from "./support/foundation.ts";
 
-test("text: the contract offers a role, weight, tone, alignment, inset, announcement and id, nothing else", async () => {
+test("text: the contract offers a role, weight, tone, alignment, inset, announcement, id and word wrapping, nothing else", async () => {
   assert.deepEqual(await contractShape("text"), {
     text: "text", kind: ["body", "support", "caption"], "weight?": ["regular", "medium"], "tone?": ["default", "muted", "destructive"],
-    "align?": ["start", "center", "end"], "inset?": ["none", "row"], "live?": ["off", "polite"], "id?": "string",
+    "align?": ["start", "center", "end"], "inset?": ["none", "row"], "live?": ["off", "polite"], "id?": "string", "wrap?": ["anywhere", "lines"],
   });
+});
+
+// Lane D (slice 3): a name breaks anywhere (MediaControl's avatar label) and reading copy keeps its paragraphs (what
+// `[data-catalog-prose] p` did for a catalog description).
+test("text: wrapping breaks a long word instead of overflowing, and kept lines keep the copy's line breaks", async () => {
+  const f = await mounted(`<div data-probe-host style="width:600px">
+  <Catalog.Text text={"First paragraph.\\nSecond paragraph."} kind="body" wrap="lines" />
+  <Catalog.Text text={"First paragraph.\\nSecond paragraph."} kind="body" />
+</div>
+<div data-probe-host style="width:60px"><Catalog.Text text="Supercalifragilisticexpialidocious" kind="body" wrap="anywhere" /></div>`);
+  try {
+    const [kept, collapsed, long] = await f.page.locator("[data-probe-host] > p").evaluateAll(nodes => nodes.map(node => {
+      const style = getComputedStyle(node);
+      return { whiteSpace: style.whiteSpace, wrap: style.overflowWrap, select: style.userSelect, overflow: node.scrollWidth > node.clientWidth,
+        lines: Math.round(node.getBoundingClientRect().height / Number.parseFloat(style.lineHeight)) };
+    }));
+    assert.deepEqual([kept?.whiteSpace, kept?.wrap, kept?.select], ["pre-line", "anywhere", "text"]);
+    assert.deepEqual([kept?.lines, collapsed?.lines], [2, 1], "the line break starts a new line");
+    assert.deepEqual([long?.whiteSpace, long?.wrap, long?.overflow], ["normal", "anywhere", false]);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
 });
 
 test("text: every kind × tone has exactly one specimen", async () => {

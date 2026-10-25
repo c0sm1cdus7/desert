@@ -1,17 +1,19 @@
 <script lang="ts">
-  // Closed library interaction: cards, local album intent, viewer queue and focus return.
+  // Closed library interaction: cards, local album intent, viewer queue and focus return by the opened record's key.
   import { setContext } from "svelte";
   import { mediaArtwork } from "../../../../views/media-library.ts";
-  import { CatalogHome } from "../../index.ts";
-  import { Viewer } from "../../index.ts";
+  import { CatalogHome, MediaViewer } from "../../index.ts";
   import { viewerMedia, type ViewerMedia } from "../../../infra/media-source.ts";
   import { mediaContent, mediaItems, mediaTarget, mediaAlbum } from "../../../infra/media-data.ts";
+  import { provideFocusScope, useFocusScope } from "../../../infra/focus-scope.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { library, album, onalbum }: CatalogProps<"library"> = $props();
-  let owner: HTMLDivElement;
-  let open = $state(false), index = $state(0), title = $state("");
+  let open = $state(false), index = $state(0), title = $state(""), opened = $state("");
   let items = $state.raw<readonly ViewerMedia[]>([]);
-  let opener: HTMLElement | null = null;
+  // The library's cards register under `catalog-return:<record>`, so the viewer returns focus to the opened record's card.
+  useFocusScope() ?? provideFocusScope();
   setContext("catalog-photo-intent", (record: string) => {
     const target = mediaTarget(library, record);
     const item = target?.kind === "item" ? target.item
@@ -28,20 +30,14 @@
     const queue = inAlbum ? current : library.items;
     index = queue.findIndex(item => item.id === target.item.id);
     items = viewerMedia(queue);
-    title = inAlbum ? mediaAlbum(library, album)?.title ?? "Media" : "Media";
-    opener = owner.querySelector<HTMLElement>(`[data-record="${CSS.escape(record)}"] button`);
+    title = inAlbum ? mediaAlbum(library, album)?.title ?? say(m.library.media) : say(m.library.media);
+    opened = record;
     open = true;
     return true;
   }
-  function returnFocus() {
-    const target = opener?.isConnected && opener.checkVisibility() ? opener
-      : owner.closest<HTMLElement>("[data-catalog-scroll]");
-    target?.focus({ preventScroll: true });
-  }
 </script>
 
-<div bind:this={owner} data-media-library={library.id} data-media-album={album ?? undefined}>
-  <CatalogHome node={mediaContent(library, album)} bodyOnly
-    onevent={event => { if (event.kind === "catalog.open") select(event.record); }} />
-  {#if open}<Viewer {items} {title} {index} {open} onindex={value => index=value} onopen={value => open=value} onreturn={returnFocus} />{/if}
-</div>
+<CatalogHome node={mediaContent(library, album)} bodyOnly
+  onevent={event => { if (event.kind === "catalog.open") select(event.record); }} />
+{#if open}<MediaViewer {items} {title} {index} {open} returnFocus={`catalog-return:${opened}`}
+  onindex={value => index = value} onopenchange={value => open = value} />{/if}

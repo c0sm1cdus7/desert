@@ -4,17 +4,29 @@
   // ToolbarLayout's media header once Bar's commands can carry zoom: they are surface intents today, and zoom is not one.
   import { Action, Image, MediaPlayer, Modal, ToolbarLayout } from '../../index.ts';
   import { mediaGestures } from '../../mechanisms/media-gestures/media-gestures.ts';
-  import { provideOpenFocus } from '../../mechanisms/surface-focus/focus-return.ts';
+  import { provideCloseFocus, provideOpenFocus } from '../../mechanisms/surface-focus/focus-return.ts';
   import { imageIdentity } from '../../../infra/media-source.ts';
+  import { useFocusScope } from '../../../infra/focus-scope.ts';
   import MediaStrip from './MediaStrip.svelte';
   import type { CatalogProps } from '../../types.d.ts';
-  let { items, title, index, open, onindex, onopenchange }: CatalogProps<"media-viewer"> = $props();
+  let { items, title, index, open, returnFocus, onindex, onopenchange }: CatalogProps<"media-viewer"> = $props();
   let scale = $state(1), viewer = $state<HTMLDivElement | null>(null), closeButton = $state<HTMLButtonElement | null>(null);
   let player = $state<{ toggle(): Promise<void>; stop(): void } | null>(null);
   let gesture: ReturnType<typeof mediaGestures> | undefined;
+  let anchor = $state<HTMLElement | null>(null), region: HTMLElement | null = null;
+  const scope = useFocusScope();
   const selected = $derived(items[index] ?? items[0]);
-  // Opening lands on Close, as the viewer always has; the modal returns focus to the opener when it closes.
+  // Opening lands on Close, as the viewer always has.
   provideOpenFocus(event => { event.preventDefault(); closeButton?.focus({ preventScroll: true }); });
+  // The scroll region the viewer was opened in, kept while the caller unmounts the viewer as it closes.
+  $effect(() => { if (anchor) region = anchor.closest<HTMLElement>('[data-catalog-scroll]'); });
+  // Closing returns focus to the opener, as the modal does; a caller that names a return key gets focus back on what it
+  // registered under it instead, or on the scroll region the viewer was opened in when that is gone.
+  provideCloseFocus(event => {
+    if (returnFocus === undefined) return;
+    event.preventDefault();
+    if (!scope?.focus(returnFocus)) region?.focus({ preventScroll: true });
+  });
   function select(next: number) { player?.stop(); onindex?.(Math.max(0, Math.min(items.length - 1, next))); gesture?.reset(); }
   function changeOpen(value: boolean) { if (!value) player?.stop(); onopenchange?.(value); }
   function manipulate(element: HTMLDivElement) {
@@ -52,6 +64,7 @@
   {/if}
 {/snippet}
 
+<span bind:this={anchor} hidden></span>
 <Modal label={title} {open} locked={false} presentation="media" ondismiss={() => changeOpen(false)}>
   <div bind:this={viewer} class="viewer" data-media-viewer>
     <ToolbarLayout identity={{ title, subtitle: `${index + 1} / ${items.length}` }} identityRole="heading" oncloseElement={element => closeButton = element}

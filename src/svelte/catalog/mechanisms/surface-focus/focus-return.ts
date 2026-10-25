@@ -28,3 +28,15 @@ export function takeOpenFocus(): OpenFocus | undefined {
   setContext<OpenFocus | undefined>(openKey, undefined);
   return focus;
 }
+
+const closeKey = Symbol("desert.surface-focus-close");
+type CloseFocus = (event: Event) => void;
+/** Provides where focus returns when the surface a child overlay opens closes; preventing the event replaces the return
+ * to the opener (the media viewer returns to what its caller registered under a key). */
+export function provideCloseFocus(focus: CloseFocus): void { setContext<CloseFocus | undefined>(closeKey, focus); }
+/** The close focus provided above, if any; the overlay's own content no longer sees it. */
+export function takeCloseFocus(): CloseFocus | undefined {
+  const focus = getContext<CloseFocus | undefined>(closeKey);
+  setContext<CloseFocus | undefined>(closeKey, undefined);
+  return focus;
+}

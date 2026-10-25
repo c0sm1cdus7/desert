@@ -56,7 +56,7 @@ test("the shared badge keeps short neutral and status labels pixel-identical at 
     for (const scale of [1, 2]) {
       for (const f of [old, next]) await f.page.evaluate(scale => document.documentElement.style.setProperty("--text-scale", String(scale)), scale);
       for (let index = 0; index < 5; index++) {
-        const before = old.page.locator('[data-control="tag"]').nth(index), after = next.page.locator('[data-control="tag"]').nth(index);
+        const before = old.page.locator('[data-tag]').nth(index), after = next.page.locator('[data-tag]').nth(index);
         assert.deepEqual(await after.boundingBox(), await before.boundingBox());
         assert.ok((await after.screenshot()).equals(await before.screenshot()), `short badge ${index} at ${scale * 100}% text must remain pixel-identical`);
       }
