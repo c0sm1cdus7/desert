@@ -4968,7 +4968,7 @@ Source SHA-256: 2dd45bbbf5e91c5b83fecb441ed60e8ae6fede0d34f614039184a18e0722e0de
 
 ## src/svelte/catalog/foundations/action/Action.svelte
 
-Source SHA-256: a57e6000ea18a684f4d1fb096b22b63ab143107636de7d0880d5d291fdec07c9
+Source SHA-256: a32c203f578b947b92a89fc20daa0d8dcc333f5826e8207b5f02dd903b40fef7
 
 ```svelte
 <script lang="ts">
@@ -5000,7 +5000,9 @@ Source SHA-256: a57e6000ea18a684f4d1fb096b22b63ab143107636de7d0880d5d291fdec07c9
     return () => { observer.disconnect(); document.fonts.removeEventListener("loadingdone", measure); };
   });
 </script>
-<Button bind:ref={button} variant={variants[emphasis]} size={shown === "icon" ? "icon-lg" : "default"} spin={status === "pending"}
+<!-- One disabled look: an unavailable action of any emphasis draws the neutral pane with its faded label, plainly not a
+     ready primary (a pale label on the primary's tint read neither as disabled nor legibly). -->
+<Button bind:ref={button} variant={status === "unavailable" ? "secondary" : variants[emphasis]} size={shown === "icon" ? "icon-lg" : "default"} spin={status === "pending"}
   {type} {form} id={disclosure?.id} aria-haspopup={disclosure?.haspopup} aria-expanded={disclosure?.expanded}
   aria-controls={disclosure?.expanded ? disclosure.controls : undefined}
   data-state={disclosure ? disclosure.expanded ? "open" : "closed" : undefined} aria-current={current || undefined}
@@ -5442,7 +5444,7 @@ Source SHA-256: 12d44eda3f243e5292c11d43f7da85c70eb510846e355109cba33d93e0c61ef8
 
 ## src/svelte/catalog/foundations/date-control/DateControl.svelte
 
-Source SHA-256: 8585cf7959eb30fa27e04f03d198af6b4e53746a62026b1c882abfd2974ecdf6
+Source SHA-256: 654cc22790516fd6bbc198935cb9be9eea78af008e1cb59faa2243c1a48e45ee
 
 ```svelte
 <script lang="ts">
@@ -5485,7 +5487,7 @@ Source SHA-256: 8585cf7959eb30fa27e04f03d198af6b4e53746a62026b1c882abfd2974ecdf6
 </script>
 <Popover label={node.label} {open} disabled={node.disabled} locked={false} content="information" placement="adaptive" align="start"
   trigger={{ kind: "field", label: node.label, required: node.required, invalid: false,
-    display: { kind: "text", text: label, placeholder: false }, measure: "date" }}
+    display: { kind: "text", text: label, placeholder: date === undefined }, measure: "date" }}
   onopenchange={next => { open = next; }}>
   <DateCalendar value={date} bind:visibleDate label={node.label} minimum={node.minimum} maximum={node.maximum}
     disabled={node.disabled} onchange={change} onclear={node.required ? undefined : clear} />
@@ -6033,14 +6035,14 @@ Source SHA-256: 3414e812bb82a6527992b5d227535cfe502b438ba203427a5dca19da0b04a54a
 
 ## src/svelte/catalog/foundations/field/ClearInput.svelte
 
-Source SHA-256: 38de4e785281c46579f45cfebcabc46f8c2510eec7aa4b15461aec235427fe41
+Source SHA-256: 2c1a354e3265b8e658344338ebffb39070e1280019ac96826992fdf31b673664
 
 ```svelte
 <script lang="ts">
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import { Icon } from "../../index.ts";
   // The trailing button of a Field that empties its control through the editor's own edit pipeline (masks and undo
-  // included); it renders nothing while the control is empty.
+  // included); it renders nothing while the control is empty or disabled (a disabled field offers no edit).
   // In a search well its glyph leads the line as the well's search glyph does (Icon's `lead` size).
   let { control, value, label, disabled, lead = false }: { control: string; value: string; label: string; disabled: boolean; lead?: boolean } = $props();
 
@@ -6075,7 +6077,7 @@ Source SHA-256: 38de4e785281c46579f45cfebcabc46f8c2510eec7aa4b15461aec235427fe41
   }
 </script>
 
-{#if value.length > 0}
+{#if value.length > 0 && !disabled}
   <Group.Addon align="inline-end" class="field-clear shrink-0">
     <Group.Button size="icon-sm" class="min-h-0" type="button" data-input-clear aria-label={label} title={label}
       aria-controls={control} {disabled} onclick={clear}><Icon name="circle-x" size={lead ? "lead" : undefined} decorative /></Group.Button>
