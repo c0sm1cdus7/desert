@@ -1172,7 +1172,7 @@ function drain() {
 
 ## src/svelte/catalog/foundations/image/Image.svelte
 
-Source SHA-256: 18d1740fe6d4171b07e36c1acd381b1f71d3d89952e0efd83822da93b9d2e2d4
+Source SHA-256: 5508c732488e5b0097a990bf6ba0d84e9763e26b1e6923c8f564aab8f0f73908
 
 ```svelte
 <script lang="ts">
@@ -1185,7 +1185,7 @@ Source SHA-256: 18d1740fe6d4171b07e36c1acd381b1f71d3d89952e0efd83822da93b9d2e2d4
   import { privateImageResource } from '../../../infra/private-image-resource.ts';
   import { renditionWidths } from '../../../../media/rendition-policy.ts';
   import type { CatalogProps } from "../../types.d.ts";
-  let { source, alt = "", edge = 640, zoom = 1, retry = false, fit = 'fill', backdrop = 'muted', placeholder, onready, onunavailable,
+  let { source, alt = "", edge = 640, zoom = 1, retry = false, fit = 'fill', backdrop = 'muted', frame = 'own', placeholder, onready, onunavailable,
     fallback = say(m.image.unavailable) }: CatalogProps<"image"> = $props();
   let host!: HTMLDivElement;
   let measured = $state(0), attempt = $state(0), ready = $state(''), failed = $state('');
@@ -1239,7 +1239,7 @@ Source SHA-256: 18d1740fe6d4171b07e36c1acd381b1f71d3d89952e0efd83822da93b9d2e2d4
 <!-- A placeholder keeps the artwork placeholder mark, so hosts that have not migrated still place it as they placed
      ArtworkPlaceholder. It stands where a face would: the theme's one face primitive (tm-face) gives it the white ground
      and the hairline every face has (law 9e), in its host's shape. -->
-<div bind:this={host} class={placeholder === undefined ? "image" : "image-placeholder tm-face"} class:image-clear={backdrop === 'none'}
+<div bind:this={host} class={placeholder === undefined ? "image" : "image-placeholder tm-face"} class:image-clear={backdrop === 'none'} class:image-host={frame === 'host'}
   data-media-image={placeholder === undefined ? "" : undefined} data-media-artwork-placeholder={placeholder === undefined ? undefined : ""}
   data-image-fit={placeholder === undefined ? fit : undefined} data-image-state={status} data-image-placeholder={placeholder}
   aria-label={placeholder === 'audio' ? say(m.image.noCover) : placeholder === 'video' ? say(m.image.noPoster) : undefined}>
@@ -1267,9 +1267,18 @@ Source SHA-256: 18d1740fe6d4171b07e36c1acd381b1f71d3d89952e0efd83822da93b9d2e2d4
   /* The components layer, as media.css was unlayered: a contextual rule of a host that has not migrated (a viewer
      stage, a catalog card) still outranks this base geometry. */
   @layer components {
-    .image { position:relative; width:100%; height:100%; overflow:hidden; background:var(--muted); }
+    /* An image frame takes the image radius of the family, the control's, and clips what it holds to it (the picture, its
+       unavailable notice): nothing paints past the rounded shape. Set in a host's frame (a card, a thumbnail, a cover, a
+       gallery, a full-bleed stage), it takes that frame's corner. Ready and filling its frame, it paints no backdrop of its own
+       (the picture covers it), so nothing lighter shows past the picture's own corners; fitted, the backdrop is its letterbox. */
+    .image { position:relative; width:100%; height:100%; overflow:hidden; border-radius:var(--radius-control); background:var(--muted); }
+    .image[data-image-state="ready"][data-image-fit="fill"] { background:transparent; }
     .image-clear { background:transparent; }
-    .image-placeholder { display:grid; place-items:center; width:100%; height:100%; border-radius:inherit; color:var(--muted-foreground); }
+    .image-placeholder { display:grid; place-items:center; width:100%; height:100%; border-radius:var(--radius-control); color:var(--muted-foreground); }
+    .image-host { border-radius:inherit; }
+    /* Unavailable media standing by itself says so with the inset of an image's notice, so a frame that gives it no height holds a
+       rounded box around its sentence, never a capsule. */
+    .image-placeholder[data-image-placeholder="unavailable"]:not(.image-host) { padding:var(--spacing-regular,1rem); text-align:center; }
     .image-element { display:block; width:100%; height:100%; object-fit:cover; user-select:none; }
     .image-contain { object-fit:contain; }
     .image[data-image-state="ready"] > .image-element { animation:image-in var(--dur-unfold) var(--ease-tm) both; }
@@ -1286,7 +1295,7 @@ Source SHA-256: 18d1740fe6d4171b07e36c1acd381b1f71d3d89952e0efd83822da93b9d2e2d4
 
 ## src/svelte/catalog/foundations/gallery/Gallery.svelte
 
-Source SHA-256: b480c6d26cb9fe27eaba58a655607a3da8dea8f551207ec982fb37dc348e6c89
+Source SHA-256: b504ba59b7222c6d6298700f5407bf3275973661b3d33d4506f4e7f1dcb883cb
 
 ```svelte
 <script lang="ts">
@@ -1322,7 +1331,7 @@ Source SHA-256: b480c6d26cb9fe27eaba58a655607a3da8dea8f551207ec982fb37dc348e6c89
      (place-heading.css) placing the gallery as they placed PhotoCollection. -->
 <div bind:this={host} class="gallery gallery-{presentation} gallery-aspect-{aspect}" class:gallery-failed={failed} data-photo-collection
   data-header-collection={presentation === 'header' || undefined}>
-  {#if selected}<Image source={selected.source} alt={selected.alt} edge={presentation === 'header' ? 1280 : 640} {fit} retry
+  {#if selected}<Image frame="host" source={selected.source} alt={selected.alt} edge={presentation === 'header' ? 1280 : 640} {fit} retry
     onready={() => failed = false} onunavailable={() => failed = true} />{/if}
   <button type="button" class="gallery-open" use:drag data-media-open aria-label={say(m.gallery.open)} onclick={() => open = true} onkeydown={key}></button>
   {#if photos.length > 1}
@@ -1361,7 +1370,7 @@ Source SHA-256: b480c6d26cb9fe27eaba58a655607a3da8dea8f551207ec982fb37dc348e6c89
   .gallery-aspect-square { aspect-ratio:1; }
   .gallery-aspect-landscape { aspect-ratio:16/9; }
   .gallery-aspect-portrait { aspect-ratio:3/4; }
-  .gallery-detail { height:var(--catalog-hero-height); }
+  .gallery-detail { height:var(--catalog-hero-height); border-radius:var(--radius-control); }
   /* Heading a place: the shade under the copy, the opener above it, the dots centred on the content column. */
   .gallery-header::before { content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(transparent 35%,var(--catalog-image-shade)); }
   .gallery-header .gallery-open { z-index:2; }
@@ -1371,7 +1380,7 @@ Source SHA-256: b480c6d26cb9fe27eaba58a655607a3da8dea8f551207ec982fb37dc348e6c89
 
 ## src/svelte/catalog/foundations/media-viewer/MediaViewer.svelte
 
-Source SHA-256: 14a4c04b81876752e5ec57d1cf9feda309f6def0d9ad4d7e4f8c0454b5251743
+Source SHA-256: 7178afef70cc88083fbdc0ea73ff1f816025b8428121e4550c2026e9791fc9cf
 
 ```svelte
 <script lang="ts">
@@ -1464,7 +1473,7 @@ Source SHA-256: 14a4c04b81876752e5ec57d1cf9feda309f6def0d9ad4d7e4f8c0454b5251743
       {#key `${index}:${imageIdentity(selected.source)}`}
         {#if selected.kind === 'image'}
           <div class="viewer-stage" use:manipulate data-media-stage>
-            <Image source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry fit="fit" backdrop="none" onready={() => gesture?.refresh()} />
+            <Image frame="host" source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry fit="fit" backdrop="none" onready={() => gesture?.refresh()} />
             {@render paging()}
           </div>
           {#if items.length > 1}<div class="viewer-band"><div class="viewer-band-row"><MediaStrip {items} {index} fill={false} onindex={select} /></div></div>{/if}

@@ -5530,7 +5530,7 @@ Source SHA-256: 5fcaae5bf5ec3ee280547b35ff35021d2cfb24971985395ad81effe6dda46d77
 
 ## src/svelte/catalog/foundations/popover/Popover.svelte
 
-Source SHA-256: 60d878284c158abc4e25a40cdcca3b04b5567235b19aca1939d1162afc8378f6
+Source SHA-256: 42f02d3bab87fb0b29b247e82e1fc9a42108c4999814ebb624d82dbff59f66cd
 
 ```svelte
 <script lang="ts">
@@ -5544,6 +5544,8 @@ Source SHA-256: 60d878284c158abc4e25a40cdcca3b04b5567235b19aca1939d1162afc8378f6
   import { provideSheetFocus, takeOpenFocus } from "../../mechanisms/surface-focus/focus-return.ts";
   import { PickerPresentation, pickerBudget, calendarBudget } from "./picker-presentation.svelte.ts";
   import PopoverSurface from "./PopoverSurface.svelte";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let { label, open, disabled, locked, trigger, content, placement, align, controls, onopenchange, children }: CatalogProps<"popover"> = $props();
   const id = $props.id(), panelId = `${id}-surface`;
   const triggerId = $derived(trigger.kind === "owned" ? trigger.id : `${id}-trigger`);
@@ -5568,8 +5570,10 @@ Source SHA-256: 60d878284c158abc4e25a40cdcca3b04b5567235b19aca1939d1162afc8378f6
     {disabled} measure={trigger.measure} display={trigger.display} {disclosure} onopen={() => change(!open)} />
 {/if}
 {#if sheet}
-  <!-- In a sheet a list keeps the picker inset of its rows; a calendar frames its own header. -->
-  <Modal {label} {open} {locked} presentation="sheet" ondismiss={() => change(false)}>
+  <!-- In a sheet a list keeps the picker inset of its rows; a calendar frames its own header. Its top bar says what the
+       sheet does and, as its subtitle, names the field it edits (laws 9c, 10a). -->
+  <Modal label={calendar ? say(m.popover.chooseDate) : say(m.popover.chooseOption)} subtitle={label} {open} {locked} presentation="sheet"
+    ondismiss={() => change(false)}>
     {#if content === "list"}<div class="picker-content-inset pt-2 pb-4">{@render children?.()}</div>{:else}{@render children?.()}{/if}
   </Modal>
 {:else}
@@ -6217,7 +6221,7 @@ Source SHA-256: 7b4bbfe3fc0d52613452f85d06068fc586f06cc42af12c84ef786679523dbc2e
 
 ## src/svelte/catalog/foundations/row/Row.svelte
 
-Source SHA-256: 120527963c9e041eb9e5be92d6afc33fc2d32cb766643eaac25307844a51fbab
+Source SHA-256: 9d31c8d462ae12c8362ee12eb535e5fcea1003fd724f1c08ba5c25339ff288fe
 
 ```svelte
 <script lang="ts">
@@ -6244,8 +6248,8 @@ Source SHA-256: 120527963c9e041eb9e5be92d6afc33fc2d32cb766643eaac25307844a51fbab
 {#snippet content()}
   {#if leading?.kind === "face"}<Face face={leading.face} />
   {:else if leading?.kind === "attention"}<AttentionIndicator required={leading.required} />
-  {:else if leading?.kind === "image"}<span class="row-artwork"><Image source={leading.source} alt={leading.alt} fit={leading.fit} /></span>
-  {:else if leading?.kind === "artwork"}<span class="row-artwork"><Image placeholder={leading.media} /></span>{/if}
+  {:else if leading?.kind === "image"}<span class="row-artwork"><Image frame="host" source={leading.source} alt={leading.alt} fit={leading.fit} /></span>
+  {:else if leading?.kind === "artwork"}<span class="row-artwork"><Image frame="host" placeholder={leading.media} /></span>{/if}
   <span class="row-copy">
     <span class="row-label">{label}</span>
     {#if description}<span class="row-description">{description}</span>{/if}
@@ -6366,7 +6370,7 @@ Source SHA-256: 423c99ac57bce78f0eb55abd42439da66ec389f069ab4bc56f704cd2f70cae45
 
 ## src/svelte/catalog/foundations/modal/Modal.svelte
 
-Source SHA-256: 27f25f6da8a7d0dc74843eae4c61329a959a8fc1e359d813b0e0cec6f55561e1
+Source SHA-256: 9b42e6ca117cd57bfd16d14445a35c71c9f00ed47c609e5c6cecd394ca2d3bf5
 
 ```svelte
 <script lang="ts">
@@ -6378,7 +6382,7 @@ Source SHA-256: 27f25f6da8a7d0dc74843eae4c61329a959a8fc1e359d813b0e0cec6f55561e1
   import ModalSheet from "./ModalSheet.svelte";
   import ModalDialog from "./ModalDialog.svelte";
   import ModalNavigation from "./ModalNavigation.svelte";
-  let { label, open, locked, presentation, labelledBy, describedBy, navigation, continuity, ondismiss, onclosed, children, actions }: CatalogProps<"modal"> = $props();
+  let { label, subtitle, open, locked, presentation, labelledBy, describedBy, navigation, continuity, ondismiss, onclosed, children, actions }: CatalogProps<"modal"> = $props();
   const density = useSurfaceDensityClass();
   /** Escape, the scrim and the grip ask to dismiss; a locked modal refuses, and the caller decides what dismissal means. */
   const dismiss = () => { if (!locked) ondismiss?.(); };
@@ -6393,7 +6397,7 @@ Source SHA-256: 27f25f6da8a7d0dc74843eae4c61329a959a8fc1e359d813b0e0cec6f55561e1
 {:else if presentation === "navigation"}
   <ModalNavigation {label} {open} {navigation} {dismiss} {onclosed} {children} />
 {:else if presentation === "sheet"}
-  <ModalSheet {label} {open} {locked} density={density()} {dismiss} {onclosed} {children} />
+  <ModalSheet {label} {subtitle} {open} {locked} density={density()} {dismiss} {onclosed} {children} />
 {:else}
   <ModalDialog {label} {labelledBy} {describedBy} {open} {presentation} density={density()} {dismiss} {onclosed} {children} {actions} />
 {/if}
