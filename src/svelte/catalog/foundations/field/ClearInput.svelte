@@ -2,7 +2,7 @@
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import { Icon } from "../../index.ts";
   // The trailing button of a Field that empties its control through the editor's own edit pipeline (masks and undo
-  // included); it renders nothing while the control is empty.
+  // included); it renders nothing while the control is empty or disabled (a disabled field offers no edit).
   // In a search well its glyph leads the line as the well's search glyph does (Icon's `lead` size).
   let { control, value, label, disabled, lead = false }: { control: string; value: string; label: string; disabled: boolean; lead?: boolean } = $props();
 
@@ -37,7 +37,7 @@
   }
 </script>
 
-{#if value.length > 0}
+{#if value.length > 0 && !disabled}
   <Group.Addon align="inline-end" class="field-clear shrink-0">
     <Group.Button size="icon-sm" class="min-h-0" type="button" data-input-clear aria-label={label} title={label}
       aria-controls={control} {disabled} onclick={clear}><Icon name="circle-x" size={lead ? "lead" : undefined} decorative /></Group.Button>
