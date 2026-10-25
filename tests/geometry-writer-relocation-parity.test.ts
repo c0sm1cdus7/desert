@@ -61,7 +61,15 @@ async function previousCss() {
     assert.equal(theme.split(statement).length, 2, `The theme imports ${path} once`);
     theme = theme.replace(statement, source);
   }
-  const compiler = await compile(inlineBaseStylesheets(theme), { base, onDependency: () => {} });
+  // Law 9c changed the message's own measure after this relocation (its 50/50 pair needs a 22rem dialog and the bar
+  // brings its own inset): both sides carry that change, so only the relocation is compared.
+  let inlined = inlineBaseStylesheets(theme);
+  for (const [before, after] of [[".problem { z-index:21; width:min(20rem,calc(100% - 24px)); }", ".problem { z-index:21; width:min(22rem,calc(100% - 24px)); }"],
+    [".modal-message-actions { flex-shrink:0; padding:1rem .75rem .75rem; }", ".modal-message-actions { flex-shrink:0; padding:.5rem .25rem .25rem; }"]] as const) {
+    assert.equal(inlined.split(before).length, 2, `The frozen modal holds ${before}`);
+    inlined = inlined.replace(before, after);
+  }
+  const compiler = await compile(inlined, { base, onDependency: () => {} });
   return compiler.build(new Scanner({ sources: compiler.sources }).scan());
 }
 

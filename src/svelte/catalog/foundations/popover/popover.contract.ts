@@ -28,6 +28,8 @@ export const PopoverContract = {
       Type.Object({
         kind: Type.Literal("field"), label: text, required: Type.Boolean(), invalid: Type.Boolean(),
         display: FieldDisplaySchema, measure: FieldMeasureSchema,
+        // `accessible` when a visible heading over the well already names it (one label only): the well shows its value.
+        labelVisibility: Type.Optional(Type.Union([Type.Literal("visible"), Type.Literal("accessible")])),
       }, { additionalProperties: false }),
       Type.Object({ kind: Type.Literal("owned"), id: Type.String() }, { additionalProperties: false }),
     ]),

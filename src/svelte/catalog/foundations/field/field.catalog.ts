@@ -12,9 +12,9 @@ export const Field = defineFoundation({
   messages: ["field.purpose", "field.none", "field.character", "field.characters", "field.overLimit", "field.remaining", "field.clearSearch", "field.clear", "field.incompleteNumber", "field.invalidNumber", "field.required"],
   owner: {
     entry: "Field.svelte",
-    parts: ["FieldWell.svelte", "FieldLabel.svelte", "FieldEditor.svelte", "FieldTrigger.svelte", "SearchWell.svelte", "MaskedInput.svelte",
+    parts: ["FieldWell.svelte", "FieldAccessory.svelte", "FieldLabel.svelte", "FieldEditor.svelte", "FieldTrigger.svelte", "SearchWell.svelte", "MaskedInput.svelte",
       "input-edit-history.ts", "ClearInput.svelte", "CharacterCounter.svelte", "editor-capacity.ts", "field.css", "field-measure.css"],
-    vendor: ["field", "input", "input-group", "label", "textarea"], mechanisms: ["press-feedback", "toolbar-geometry"],
+    vendor: ["field", "input", "input-group", "label", "textarea"], mechanisms: ["field-accessory", "press-feedback", "toolbar-geometry"],
   },
   shape: "radius", states: ["empty", "value", "invalid", "disabled", "masked"],
   variants: { primitive: ["input.text", "input.multiline", "trigger"], measure: ["writing", "choice", "date", "amount", "fill"] },

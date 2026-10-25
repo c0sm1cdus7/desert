@@ -44,7 +44,11 @@
 [data-piece="toolbar"] .toolbar-subtitle { color:var(--muted-foreground); margin-top:var(--heading-copy-gap); }
 [data-toolbar-identity] [data-identity-subtitle] { margin-top:0; }
 [data-piece="toolbar"][data-toolbar="bottom"] > .toolbar-row { justify-content:flex-end; }
-[data-piece="toolbar"][data-toolbar-purpose="steps"] > .toolbar-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+/* The bottom pair (law 9c), one row for a commit (an action's last step, a dialog's answer) and for steps: equal tracks,
+   Cancel or Back on the left and the verb on the right, each exactly half; a lone choice takes the whole row. */
+[data-piece="toolbar"]:is([data-toolbar-purpose="steps"],[data-toolbar-purpose="commit"]) > .toolbar-row {
+  display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr);
+}
 /* Message headings have no action targets to reserve; their description follows
    at the same reading gap as a page or regular toolbar subtitle. */
 [data-piece="toolbar"][data-toolbar="top"][data-identity-role="message"] { padding-bottom:0; }

@@ -1,6 +1,7 @@
 // The props of Bar, the toolbar of a surface (DESIGN §3.2). `edge` and `purpose` place it: top `commands` (identity,
 // leading navigation, trailing commands with overflow, the top primary), bottom `commit` or `steps` (secondary and
-// primary as text actions), or `navigation` (the navigation pane's identity, toggle and settings placeholder).
+// primary as the one 50/50 text pair of every action and dialog: each half of the row, a lone choice the whole row;
+// `tone: "destructive"` draws the primary as destructive), or `navigation` (the navigation pane's identity, toggle and settings placeholder).
 // `identityRole` says what the identity is: the surface `heading`, a `continuation` echoing a heading that scrolled
 // away, or the title of a `dialog` or `message`. `search` is the place search: a `layer: "search"` bar draws the field
 // and its toggle; a `layer: "content"` bar only reserves the toggle's room. `inert` takes the bar out of interaction
@@ -38,6 +39,7 @@ export const BarContract = {
     layer: Type.Optional(Type.Union([Type.Literal("content"), Type.Literal("search")])),
     inert: Type.Boolean(),
     float: Type.Optional(Type.Boolean()),
+    tone: Type.Optional(Type.Union([Type.Literal("standard"), Type.Literal("destructive")])),
   }, { additionalProperties: false }),
   events: Type.Object({
     invoke: SurfaceIntentSchema,

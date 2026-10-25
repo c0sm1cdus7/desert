@@ -9,5 +9,5 @@ export const Dialog = defineComposition({
   purpose: { key: "dialog.purpose" },
   messages: ["dialog.purpose", "dialog.close"],
   owner: { entry: "Dialog.svelte" },
-  uses: ["action", "column", "face", "heading", "inline", "modal", "text"], renders: ["problem"], approval: "required", contract: DialogContract,
+  uses: ["bar", "column", "face", "heading", "modal", "text"], renders: ["problem"], approval: "required", contract: DialogContract,
 } as const);

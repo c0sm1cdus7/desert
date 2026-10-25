@@ -12,7 +12,7 @@
   import { useToolbarCommands } from "./toolbar-commands.svelte.ts";
   import { useToolbarLeading } from "./toolbar-leading.svelte.ts";
   let { edge, purpose, identity, identityRole, face, leading, trailing, controls, group, primary, secondary, availability, search,
-    navigationToggle, settingsPlaceholder, layer, inert, float, oninvoke, onquery, onsearchopen, onsearchcancel, onnavigationtoggle,
+    navigationToggle, settingsPlaceholder, layer, inert, float, tone = "standard", oninvoke, onquery, onsearchopen, onsearchcancel, onnavigationtoggle,
     oncontrol }: CatalogProps<"bar"> = $props();
   const uid = $props.id();
   let element = $state<HTMLElement | null>(null), row = $state<HTMLDivElement | null>(null);
@@ -41,9 +41,10 @@
   }
 </script>
 
-{#snippet command(value: BarCommand, emphasis: "primary" | "secondary", shown: "icon" | "text")}
+<!-- A text command is one half of the bottom pair (commit or steps, the one 50/50 pair of every action and dialog). -->
+{#snippet command(value: BarCommand, emphasis: "primary" | "secondary" | "destructive", shown: "icon" | "text")}
   <Action label={value.label} icon={value.icon} state={value.state} reason={value.reason} {emphasis} face={shown}
-    type={value.submit ? "submit" : "button"} form={value.submit} bar={shown === "icon" ? "command" : purpose === "steps" ? "step" : "commit"}
+    type={value.submit ? "submit" : "button"} form={value.submit} bar={shown === "icon" ? "command" : "step"}
     onclick={() => invoke(value)} />
 {/snippet}
 
@@ -97,7 +98,7 @@
       </div>
     {:else if edge === "bottom" && (purpose === "commit" || purpose === "steps")}
       {#if secondary}{@render command(secondary, "secondary", "text")}{/if}
-      {#if primary}{@render command(primary, "primary", "text")}{/if}
+      {#if primary}{@render command(primary, tone === "destructive" ? "destructive" : "primary", "text")}{/if}
     {:else if navigationToggle || settingsPlaceholder}
       {#if navigationToggle}
         <div class="toolbar-action" data-navigation-toggle>

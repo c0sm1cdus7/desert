@@ -4,6 +4,7 @@
   import { untrack } from "svelte";
   import * as Vendor from "../../../vendor/components/ui/field/index.js";
   import FieldWell from "./FieldWell.svelte";
+  import FieldAccessory from "./FieldAccessory.svelte";
   import FieldEditor from "./FieldEditor.svelte";
   import FieldTrigger from "./FieldTrigger.svelte";
   import SearchWell from "./SearchWell.svelte";
@@ -74,9 +75,11 @@
     {:else if purpose === "search"}
       <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} {controls} {bar} bind:writing onchange={next => onchange?.(next)} />
     {:else}
-      <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} {prefix} footer={counted ? characters : undefined}>
+      <!-- A shown placeholder (the money amount's «0,00») is the editor's text line: the label keeps its place above it. -->
+      <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} raised={draft.length > 0 || placeholder !== undefined}
+        {prefix} footer={counted ? characters : undefined}>
         {#snippet accessory()}
-          {#if trailing}{@render trailing()}
+          {#if trailing}<FieldAccessory>{@render trailing()}</FieldAccessory>
           {:else if multiline || clear}<ClearInput control={id} value={draft} label={say(m.field.clear, { label })} {disabled} />{/if}
         {/snippet}
         {@render editor()}

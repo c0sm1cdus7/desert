@@ -69,7 +69,7 @@ export const actions: readonly ToolbarAction[] = [
   { label: "View options", icon: "review", state: "ready", intent: { kind: "journey", journey: "specimen.options" } },
 ];
 
-export const confirmation = surfaceFrame({ version: SurfaceFrameVersion, kind: "confirmation", top: { title: "Move note to Trash?" },
+export const confirmation = surfaceFrame({ version: SurfaceFrameVersion, kind: "confirmation", top: { title: "Move note to Trash?", face: { kind: "icon", icon: "archive" } },
   content: { kind: "message", text: "You can restore the note from Trash." },
   bottom: { secondary: { label: "Cancel", icon: "back", state: "ready", intent: { kind: "back" } },
     primary: { label: "Move to Trash", icon: "archive", state: "ready", intent: { kind: "accept" } } } });

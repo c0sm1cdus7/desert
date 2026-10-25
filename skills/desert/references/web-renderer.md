@@ -3466,7 +3466,7 @@ Source SHA-256: 0916b3ced85e7d92fafe4ad145a5e81c5fdd9cf957510a6520fea082ea4a3f96
 
 ## src/interaction/surface-frame.ts
 
-Source SHA-256: 3ab09f6bf41ac859d4894dd9832518e532f606b295f9dd1dfaca38307a88f9d9
+Source SHA-256: d1b28946960fd337da3f38e38c1efd6a56c1969518c9ef86843400bf77b2ead4
 
 ```ts
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
@@ -3474,11 +3474,12 @@ import { Check } from "@sinclair/typebox/value";
 import { freezeDeep, jsonSnapshot, type Frozen } from "../json.ts";
 import { TopToolbarSchema, BottomToolbarSchema, ToolbarActionSchema, NavigationActionSchema,
   UtilityActionSchema, actionSchema } from "./toolbar.ts";
+import { FaceSchema } from "./face.ts";
 import { InformationSchema } from "./information-content.ts";
 import { FactValueSchema } from "../fact-values.ts";
 import { FileMetadataSchema } from "./control-nodes.ts";
 import { LabelControlLimitsSchema, ReferenceStateSchema, ReferenceChoiceSchema,MediaReferenceStateSchema } from "./labels-control.ts";
-import { CloseIntentSchema, RecoverIntentSchema, JourneyIntentSchema, intentKey, submitsJourney } from "./intent.ts";
+import { CloseIntentSchema, RecoverIntentSchema, JourneyIntentSchema, ProductSurfaceIntentSchema, intentKey, submitsJourney } from "./intent.ts";
 import {AttentionSignalSchema} from '../attention.ts';
 export { ToolbarActionSchema, type ToolbarAction } from "./toolbar.ts";
 
@@ -3538,6 +3539,12 @@ const ContextTopSchema = object({ ...TopToolbarSchema.properties,
   trailing: Type.Optional(Type.Array(actionSchema(Type.Union([RecoverIntentSchema, JourneyIntentSchema])))),
 });
 const DismissBottomSchema = object({ secondary: Type.Optional(DismissActionSchema), primary: Type.Optional(Type.Never()) });
+// A confirmation is a dialog (laws 5b, 6, 9c): its face (the action's), its title, its message as the subtitle and the
+// 50/50 pair of Cancel and the verb. No other top slot exists, so a confirmation without its face or its pair cannot be built.
+const ConfirmationTopSchema = object({ title: text(), face: FaceSchema, subtitle: Type.Optional(Type.Never()),
+  leading: Type.Optional(Type.Never()), trailing: Type.Optional(Type.Array(Type.Never())), primary: Type.Optional(Type.Never()),
+  actionGroup: Type.Optional(Type.Never()), availability: Type.Optional(Type.Never()) });
+const ConfirmationBottomSchema = object({ secondary: actionSchema(ProductSurfaceIntentSchema), primary: UtilityActionSchema });
 export const SurfaceFrameSchema = Type.Union([
   object({ ...common, kind: Type.Literal("context"), top: ContextTopSchema,
     content: Type.Union([FactsSchema, ContextSchema, MessageSchema]),
@@ -3546,7 +3553,7 @@ export const SurfaceFrameSchema = Type.Union([
   object({ ...common, kind: Type.Literal("message"), top: MessageTopSchema, content: MessageSchema, bottom: DismissBottomSchema }),
   object({ ...common, kind: Type.Literal("utilities"), top: MessageTopSchema, content: UtilitiesContentSchema, bottom: DismissBottomSchema }),
   object({ ...common, kind: Type.Literal("journey"), navigation: Type.Optional(Type.Literal("steps")), content: GeneralContentSchema, bottom: BottomToolbarSchema }),
-  object({ ...common, kind: Type.Literal("confirmation"), content: MessageSchema, bottom: BottomToolbarSchema }),
+  object({ ...common, kind: Type.Literal("confirmation"), top: ConfirmationTopSchema, content: MessageSchema, bottom: ConfirmationBottomSchema }),
   object({ ...common, kind: Type.Literal("specimen"), content: GeneralContentSchema, bottom: BottomToolbarSchema }),
 ]);
 
@@ -3606,7 +3613,7 @@ export function surfaceFrame(value: unknown): SurfaceFrame {
 
 ## src/interaction/frame-presenters.ts
 
-Source SHA-256: 6e3eadd899e75ddb5292bc8c44247d4ac60e4a98b39544877a61cc0f76512cb1
+Source SHA-256: c8be013014f10e4e6e8b72da5a23e0882d8218d26eabd61366400a0f8d09974c
 
 ```ts
 import type { HumanSurface, Mutation } from "../web/types.ts";
@@ -3662,7 +3669,8 @@ export function reviewFrame(surface: HumanSurface, mutation: Mutation, facts: Re
     // An asset-led collection has no text title. Never stringify private asset metadata.
     const title = typeof candidate === "string" || typeof candidate === "number" || typeof candidate === "boolean" ? candidate : undefined;
     return surfaceFrame({ version: "desert.surface-frame/6", kind: "confirmation",
-      top: { title: `${label}?` }, content: { kind: "message", text: title === undefined ?
+      // The confirmation's face is its action's: the verb's own glyph.
+      top: { title: `${label}?`, face: { kind: "icon", icon: "confirm" } }, content: { kind: "message", text: title === undefined ?
         "Confirm this change to the selected item." : `“${presentTitle(title)}”` },
       bottom: { secondary: toolbarAction({ kind: "back" }, "Cancel", "back", !busy),
         primary: { ...toolbarAction({ kind: "accept" }, label, "confirm", ready && !busy),
@@ -4641,7 +4649,7 @@ Source SHA-256: b1583028daeae8af01654d99d391b8903c51c0f714de65be3f2b7e2e5fb9a9b5
 
 ## src/svelte/catalog/foundations/field/FieldWell.svelte
 
-Source SHA-256: e3cf9e225cc9605e42ac31c860f046f7339e49f58323e1a9447bf1e21774f71d
+Source SHA-256: f78c89bc89fc4ec087835e026f66aa18b192b4a9d75943a4d243a6a2332ca016
 
 ```svelte
 <script lang="ts">
@@ -4652,8 +4660,10 @@ Source SHA-256: e3cf9e225cc9605e42ac31c860f046f7339e49f58323e1a9447bf1e21774f71d
   import * as Group from "../../../vendor/components/ui/input-group/index.js";
   import { cn } from "../../../vendor/utils.js";
   import FieldLabel from "./FieldLabel.svelte";
-  let { id, label, labelVisibility, required, filled, prefix, accessory, footer, children }: {
-    id: string; label: string; labelVisibility: "visible" | "accessible"; required: boolean; filled: boolean;
+  // `filled` says the editor holds text; `raised` that its line shows text (the value or a placeholder), so the label
+  // keeps its place above it instead of resting on the empty line.
+  let { id, label, labelVisibility, required, filled, raised, prefix, accessory, footer, children }: {
+    id: string; label: string; labelVisibility: "visible" | "accessible"; required: boolean; filled: boolean; raised: boolean;
     prefix: Snippet | undefined; accessory: Snippet; footer: Snippet | undefined; children: Snippet;
   } = $props();
   function focusEditor(event: MouseEvent) {
@@ -4666,7 +4676,7 @@ Source SHA-256: e3cf9e225cc9605e42ac31c860f046f7339e49f58323e1a9447bf1e21774f71d
   }
 </script>
 <Group.Root onclick={focusEditor} class={cn("field-well overflow-hidden p-0", footer && "flex-col items-stretch")} data-floating-field
-  data-field-focus="within" data-compound-field={!!prefix} data-filled={filled}>
+  data-field-focus="within" data-compound-field={!!prefix} data-filled={filled} data-label-raised={raised}>
   <div data-field-row class="flex w-full min-w-0 items-center">
     <FieldLabel for={id} {label} {labelVisibility} {required}>{@render children()}</FieldLabel>
     {#if prefix}<Group.Addon align="inline-start" class="field-prefix">{@render prefix()}</Group.Addon>{/if}
@@ -4957,7 +4967,7 @@ Source SHA-256: 2dd45bbbf5e91c5b83fecb441ed60e8ae6fede0d34f614039184a18e0722e0de
 
 ## src/svelte/catalog/foundations/action/Action.svelte
 
-Source SHA-256: 8ac46bc70d728c1f51925facee2d0a6af96d107306d5fbbd304a2329fd68b2ce
+Source SHA-256: a57e6000ea18a684f4d1fb096b22b63ab143107636de7d0880d5d291fdec07c9
 
 ```svelte
 <script lang="ts">
@@ -4965,11 +4975,14 @@ Source SHA-256: 8ac46bc70d728c1f51925facee2d0a6af96d107306d5fbbd304a2329fd68b2ce
   import { cn } from "../../../vendor/utils.js";
   import { actionIconNames } from "../../../infra/action-icons.ts";
   import { Icon } from "../../index.ts";
+  import { inFieldAccessory } from "../../mechanisms/field-accessory/field-accessory.svelte.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { label, icon, state: status, emphasis, face: shown, type, reason, form, disclosure, current, bar, onclick }: CatalogProps<"action"> = $props();
   const id = $props.id();
   const descriptionId = `${id}-reason`;
   const variants = { primary: "default", secondary: "secondary", destructive: "destructive" } as const;
+  // In a field's trailing accessory (law 9d) the icon action fills the slot's inset box with the concentric radius.
+  const accessory = inFieldAccessory();
   let button = $state<HTMLButtonElement | null>(null);
   let caption = $state<HTMLSpanElement | null>(null);
   let compact = $state(false);
@@ -4993,7 +5006,7 @@ Source SHA-256: 8ac46bc70d728c1f51925facee2d0a6af96d107306d5fbbd304a2329fd68b2ce
   onclick={() => { if (status === "ready") onclick?.(); }} class="relative min-w-0 overflow-hidden {shown === 'icon' ? '' : 'w-fit max-w-[min(100%,22rem)]'}"
   disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
   aria-describedby={reason ? descriptionId : undefined}
-  data-action="" data-action-face={face} data-emphasis={emphasis} data-action-bar={bar}>
+  data-action="" data-action-face={face} data-emphasis={emphasis} data-action-bar={bar} data-action-accessory={accessory && shown === "icon" || undefined}>
   <span bind:this={caption} data-button-label aria-hidden="true" class={cn("min-w-0 truncate", face !== "label" && "invisible")}>{label}</span>
   <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
     aria-hidden="true" data-button-glyph data-action-face={face}>
@@ -5022,7 +5035,7 @@ export const actionIconNames = {
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: a50df2a03c05d3fb95a534b3d18bf0bf10ad7d79d04d0b3e5e2fde6e59f01041
+Source SHA-256: 3c472afb66fca0086763bc39544db0bcd239f6271fbf55db6537f2bbf52d4c42
 
 ```svelte
 <script lang="ts" module>
@@ -5178,8 +5191,11 @@ Source SHA-256: a50df2a03c05d3fb95a534b3d18bf0bf10ad7d79d04d0b3e5e2fde6e59f01041
   /* An Action a bar draws (its `bar` placement) takes the bar's target: the toolbar target and inset come from bar. */
   [data-action-bar] { height:var(--toolbar-target); min-height:var(--toolbar-target); }
   [data-action-bar="command"] { width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset); }
-  [data-action-bar="commit"] { flex:0 1 auto; min-width:0; white-space:nowrap; }
   [data-action-bar="step"] { width:100%; max-width:none; min-width:0; }
+  /* An icon Action in a field's trailing accessory (field-accessory mechanism, law 9d): the square the slot measures, its
+     radius the well's less the accessory inset, so its corners stay concentric with the well's. */
+  [data-action-accessory] { width:var(--field-accessory-size); height:var(--field-accessory-size); min-height:0;
+    border-radius:calc(var(--radius) - var(--field-accessory-inset)); }
 </style>
 ```
 
@@ -5511,7 +5527,7 @@ Source SHA-256: 5fcaae5bf5ec3ee280547b35ff35021d2cfb24971985395ad81effe6dda46d77
 
 ## src/svelte/catalog/foundations/popover/Popover.svelte
 
-Source SHA-256: 7cd410be4409017919ae327dba912a10adb340688cbb2f1a851ad3f8008c6ff0
+Source SHA-256: 60d878284c158abc4e25a40cdcca3b04b5567235b19aca1939d1162afc8378f6
 
 ```svelte
 <script lang="ts">
@@ -5545,7 +5561,7 @@ Source SHA-256: 7cd410be4409017919ae327dba912a10adb340688cbb2f1a851ad3f8008c6ff0
   <Action label={trigger.label} icon={trigger.icon} face={trigger.face} emphasis={trigger.emphasis} type="button"
     state={disabled ? "unavailable" : trigger.state} bar={trigger.bar} {disclosure} onclick={() => change(!open)} />
 {:else if trigger.kind === "field"}
-  <Field primitive="trigger" label={trigger.label} labelVisibility="visible" required={trigger.required} invalid={trigger.invalid}
+  <Field primitive="trigger" label={trigger.label} labelVisibility={trigger.labelVisibility ?? "visible"} required={trigger.required} invalid={trigger.invalid}
     {disabled} measure={trigger.measure} display={trigger.display} {disclosure} onopen={() => change(!open)} />
 {/if}
 {#if sheet}
@@ -5722,7 +5738,7 @@ Source SHA-256: e95bfc97c5eedfbe17268c0fb5acf81adb8b7eb2f5e12dc7a7558150181ffe4e
 
 ## src/svelte/catalog/foundations/field/Field.svelte
 
-Source SHA-256: fdff3fc958ca68d0604f38a852ebf012328c29bb4c75ce3f7b6b38c5979622fc
+Source SHA-256: d4dba90f25ef41c0c04b4fa07583c6478d716fb2d85f98a05e5ac86dddaeaa07
 
 ```svelte
 <script lang="ts">
@@ -5731,6 +5747,7 @@ Source SHA-256: fdff3fc958ca68d0604f38a852ebf012328c29bb4c75ce3f7b6b38c5979622fc
   import { untrack } from "svelte";
   import * as Vendor from "../../../vendor/components/ui/field/index.js";
   import FieldWell from "./FieldWell.svelte";
+  import FieldAccessory from "./FieldAccessory.svelte";
   import FieldEditor from "./FieldEditor.svelte";
   import FieldTrigger from "./FieldTrigger.svelte";
   import SearchWell from "./SearchWell.svelte";
@@ -5801,9 +5818,11 @@ Source SHA-256: fdff3fc958ca68d0604f38a852ebf012328c29bb4c75ce3f7b6b38c5979622fc
     {:else if purpose === "search"}
       <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} {controls} {bar} bind:writing onchange={next => onchange?.(next)} />
     {:else}
-      <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} {prefix} footer={counted ? characters : undefined}>
+      <!-- A shown placeholder (the money amount's «0,00») is the editor's text line: the label keeps its place above it. -->
+      <FieldWell {id} {label} {labelVisibility} {required} filled={draft.length > 0} raised={draft.length > 0 || placeholder !== undefined}
+        {prefix} footer={counted ? characters : undefined}>
         {#snippet accessory()}
-          {#if trailing}{@render trailing()}
+          {#if trailing}<FieldAccessory>{@render trailing()}</FieldAccessory>
           {:else if multiline || clear}<ClearInput control={id} value={draft} label={say(m.field.clear, { label })} {disabled} />{/if}
         {/snippet}
         {@render editor()}

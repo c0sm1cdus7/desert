@@ -22,6 +22,9 @@
   --sidebar-border:rgb(0 0 0 / .08); --sidebar-ring:var(--ring);
   --radius:.875rem; --radius-group:.75rem; --radius-surface:28px; --radius-mark:50%;
   --place-radius:var(--radius); --disabled-opacity:.5;
+  /* A field's trailing accessory sits this far inside the well's outer edge on top, end and bottom; its radius is the
+     well's less this inset (law 9d, concentric). */
+  --field-accessory-inset:9px;
   --elev-0:none; --elev-1:0 1px 2px rgb(0 0 0 / .05); --elev-content:none;
   --elev-2:0 2px 8px -2px rgb(0 0 0 / .12),0 1px 2px -1px rgb(0 0 0 / .08);
   --elev-3:0 10px 24px -6px rgb(0 0 0 / .16); --elev-4:0 25px 50px -12px rgb(0 0 0 / .25);
