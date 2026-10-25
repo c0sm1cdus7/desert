@@ -13,10 +13,10 @@
   import ShellNavigation from "./ShellNavigation.svelte";
   import { observePlaceHeading } from "./place-heading-motion.ts";
   import { searchFocus } from "./search-focus.svelte.ts";
-  let { root, label, destination, searching, hasQuery, detail, backAvailable, resultsId, navigation, scope, regions,
+  let { root, label, destination, searching, hasQuery, detail, backAvailable, resultsId, searchLabel, navigation, scope, regions,
     onnavigate, onback, oncancelsearch, oncomposition, top, content, bottom, search, panels }: {
     root: () => HTMLElement | null; label: string; destination: string; searching: boolean; hasQuery: boolean; detail: boolean; backAvailable: boolean;
-    resultsId: string; navigation: Navigation | null; scope: FocusScope; regions: RegionRegistry;
+    resultsId: string; searchLabel: string | undefined; navigation: Navigation | null; scope: FocusScope; regions: RegionRegistry;
     onnavigate?: ((id: string) => void) | undefined; onback?: (() => void) | undefined;
     oncancelsearch?: ((restoreFocus: boolean) => void) | undefined; oncomposition?: ((active: boolean) => void) | undefined;
     top?: Snippet | undefined; content?: Snippet | undefined; bottom?: Snippet | undefined; search?: Snippet | undefined;
@@ -43,6 +43,8 @@
   export function scrollToTop(): void { place?.scrollToTop(); }
   export function scrollTop(): number { return place?.scrollTop() ?? 0; }
   export function focusTitle(): void { viewport?.querySelector<HTMLElement>("[data-place-title]")?.focus({ preventScroll: true }); }
+  /** The main place itself (a programmatic return target, never a tab stop) takes focus, as a navigation lands there. */
+  export function focusContent(): void { viewport?.closest<HTMLElement>("[data-catalog-content]")?.focus({ preventScroll: true }); }
   export function restoreRecord(top: number, view: string, record: string): void {
     place?.scrollTo(top);
     viewport?.querySelector<HTMLElement>(`[data-view-content="${CSS.escape(view)}"] [data-record="${CSS.escape(record)}"] button`)
@@ -78,7 +80,7 @@
         {@render bottom?.()}
       {/snippet}
       {#snippet overlay()}
-        {#if searching}<div bind:this={results} id={resultsId} data-catalog-search-scroll data-has-query={hasQuery}>{@render search?.()}</div>{/if}
+        {#if searching}<div bind:this={results} id={resultsId} role={searchLabel ? "region" : undefined} aria-label={searchLabel} data-catalog-search-scroll data-has-query={hasQuery}>{@render search?.()}</div>{/if}
       {/snippet}
     </Surface>
     {@render panels?.()}

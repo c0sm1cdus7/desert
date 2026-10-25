@@ -6,11 +6,13 @@
   import { bindViewEvents, type OwnedResolvedView, type OwnedViewEvent } from "../../../../web/client/view-events.ts";
   import { provideFrameActivation } from "../../../infra/frame-activation.ts";
   import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import type { WorkspaceContentActions, WorkspaceViewportActions } from "../../../infra/workspace-content.ts";
+  import type { WorkspaceContentActions } from "../../../infra/workspace-content.ts";
   import { viewIdentity, viewSearchResults, viewSearchSelection } from "./workspace-data.ts";
   import { viewMedia, mediaIdentity, mediaResults } from "../../../infra/media-data.ts";
   import { resolveProgramWorkspace } from "../../../../views/program-workspace.ts";
   import type { CatalogProps } from "../../types.d.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   let props: CatalogProps<"view-workspace"> = $props();
   const frameActivation = provideFrameActivation();
   function send(event: OwnedViewEvent) {
@@ -22,7 +24,8 @@
   }
   let workspace = $derived(resolveProgramWorkspace(props.program));
   let searching = $state(false), query = $state("");
-  let viewport: WorkspaceViewportActions | null = null;
+  // The workspace's viewport (the shell's instance, forwarded): scroll, the place title, records and items by id.
+  let viewport = $state<ReturnType<typeof CatalogWorkspace>>();
   let visited = $state.raw<readonly OwnedResolvedView[]>([]);
   const contentOwners: Record<string, WorkspaceContentActions> = {};
   let mediaPositions = $state<Record<string, { album: string | null; top: number; record: string }>>({});
@@ -87,20 +90,19 @@
     const selection = viewSearchSelection(resolved, result.id);
     if (selection) { receive(selection); return; }
     if (result.kind === "bank") { await owner?.revealEntry(result.id); return; }
-    viewport?.revealItem(result.id);
+    await viewport?.revealItem(result.id);
   }
 </script>
 
 <AppearanceRoot />
-<svelte:head><title>{props.resolved.top?.title ?? props.program.label} · {props.program.label}</title></svelte:head>
-
-<CatalogWorkspace navigationSurface={workspace.navigation ?? null} title={identity.title} {identity}
-  navigation={destinations} active={props.activeDestination} {query} {searching} onviewport={actions => { viewport = actions; }}
+<CatalogWorkspace bind:this={viewport} documentTitle={say(m.viewWorkspace.documentTitle, { title: props.resolved.top?.title ?? props.program.label,
+  product: props.program.label })} navigationSurface={workspace.navigation ?? null} title={identity.title} {identity}
+  navigation={destinations} active={props.activeDestination} {query} {searching}
   detail={Boolean(media && album || mainBack)} backAvailable={Boolean(media&&album)||mainBack?.state==="ready"}
   onback={()=>{if(media&&album) void closeAlbum();else if(mainBack?.state==="ready") invoke(mainBack.intent);}}
   onquery={value => { query = value; searching = true; }} onsearch={() => searching = true}
   oncancel={cancelSearch} onnavigate={destination => props.onnavigate?.(destination)} topActions={props.resolved.top?.trailing} actionGroup={props.resolved.top?.actionGroup} {invoke}
-  searchContent={{ kind: "view", title: identity.title, description: "Find content in this destination.", results, onselect: selectSearchResult }}
+  searchContent={{ kind: "view", title: identity.title, description: say(m.viewWorkspace.searchDescription), results, onselect: selectSearchResult }}
   bottomToolbar={props.resolved.bottom}
   panelState={{ panel: props.panel, onevent: value => props.onevent?.(value), error: props.error, uncertain: props.uncertain, dismissError }}
   content={{ kind: "view-program", visited, activeView: props.resolved.view.id, albums: mediaPositions,

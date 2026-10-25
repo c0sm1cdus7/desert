@@ -8,11 +8,13 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 import { pixelDifference } from "./fixtures/pixel-difference.ts";
+import { catalogWorkspaceBefore } from "./fixtures/catalog-workspace-before.ts";
 
 const content = [{ kind: "header", id: "heading", title: "Notes", subtitle: "Your writing" },
   { kind: "stack", id: "plans", title: "Plans", items: Array.from({ length: 30 }, (_, index) => ({ kind: "text" as const, text: `Plan line ${index}.` })) },
   { kind: "stack", id: "archive", title: "Archive", items: [{ kind: "text", text: "Last year." }] }] as const;
 
+// The pre-shell workspace, frozen (fixtures/catalog-workspace-before.ts): today's CatalogWorkspace is itself mounted on Shell.
 const before = `<script lang="ts">
   import CatalogWorkspace from '@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte';
   ${workspaceBodySource(content)}
@@ -33,12 +35,12 @@ const after = `<script lang="ts">
   const navigation = $derived({ identity: { title: 'Notebook' }, settingsPlaceholder: true, active, groups });
   let shell = $state<{ scrollTop(): number; scrollToTop(): void; focusTitle(): void; revealItem(id: string): Promise<boolean>;
     scrollPositions(): { content: number; search: number }; restoreScroll(content: number, search: number): void;
-    focus(key: string): boolean; toggleNavigation(): void } | undefined>();
+    focus(key: string): boolean; toggleNavigation(): void; focusContent(): void } | undefined>();
   Reflect.set(window, 'shell', () => shell);
   Reflect.set(window, 'events', () => events);
 </script>
 <Shell bind:this={shell} documentTitle="Notes · Notebook" label="Notes" destination={active} {searching} hasQuery={query.trim() !== ''}
-  detail={false} backAvailable resultsId="notes-results" {navigation}
+  detail={false} backAvailable resultsId="notes-results" searchLabel="Search in Notes" {navigation}
   onnavigate={id => { active = id; events = [...events, 'navigate:' + id]; }} oncancelsearch={restore => { searching = false; events = [...events, 'cancel:' + restore]; }}>
   {#snippet top()}
     <Bar edge="top" purpose="commands" layer="content" inert={searching} identity={{title:'Notes',subtitle:'Your writing'}} identityRole="continuation"
@@ -49,7 +51,7 @@ const after = `<script lang="ts">
   {#snippet content()}
     <PlaceHeading context="place" title="Notes" subtitle="Your writing" /><CatalogWorkspaceContent content={workspaceBody} {searching} />
   {/snippet}
-  {#snippet search()}<p data-search-result="first">Plan line 1.</p>{/snippet}
+  {#snippet search()}<button type="button" onclick={() => { events = [...events, 'select:first']; }}>Plan line 1.</button>{/snippet}
 </Shell>`;
 
 /** Pixel equality of the two pages; SHELL_SHOTS keeps both screenshots for inspection. */
@@ -66,9 +68,9 @@ const settle = (page: Awaited<ReturnType<typeof svelteBrowser>>["page"]) => page
 });
 
 test("composed with bars and the place heading, the shell draws the catalog workspace's pixels", { timeout: 120000 }, async () => {
-  const [baseline, candidate] = [await svelteBrowser(before), await svelteBrowser(after)];
+  const [baseline, candidate] = [await svelteBrowser(before, catalogWorkspaceBefore), await svelteBrowser(after)];
   try {
-    const css = await rendererCss();
+    const css = await rendererCss(Object.values(catalogWorkspaceBefore));
     for (const f of [baseline, candidate]) { await f.page.addStyleTag({ content: css }); await f.page.emulateMedia({ reducedMotion: "reduce" }); }
     // CatalogWorkspace lays its adaptive host over the whole workspace with a :global rule that ties AdaptiveSurfaceLayout's
     // own scoped rule. A build emits the child's stylesheet first, so the workspace rule wins; this harness injects
@@ -104,6 +106,8 @@ test("the instance drives the viewport: scroll positions, the place title, items
     assert.ok(await f.page.evaluate(() => Reflect.get(window, "shell")().scrollTop()) > 0, "the item was scrolled into view");
     assert.equal(await f.page.evaluate(() => Reflect.get(window, "shell")().revealItem("missing")), false);
     assert.equal(await f.page.evaluate(() => Reflect.get(window, "shell")().focus("nothing-registered")), false);
+    await f.page.evaluate(() => Reflect.get(window, "shell")().focusContent());
+    assert.equal(await f.page.evaluate(() => document.activeElement?.hasAttribute("data-catalog-content")), true, "the main place takes focus");
     const pane = f.page.getByRole("navigation", { name: "Main navigation", exact: true });
     assert.equal(await pane.count(), 1);
     await f.page.evaluate(() => Reflect.get(window, "shell")().toggleNavigation());
@@ -127,6 +131,7 @@ test("search: opening it remembers its toggle; Escape inside cancels and returns
     await f.page.getByRole("button", { name: "Search", exact: true }).click();
     await f.page.waitForFunction(() => document.activeElement?.getAttribute("type") === "search");
     assert.equal(await f.page.locator("#notes-results[data-catalog-search-scroll]").count(), 1);
+    assert.equal(await f.page.getByRole("region", { name: "Search in Notes", exact: true }).getAttribute("id"), "notes-results", "the overlay is the named search region");
     assert.equal(await f.page.locator("[data-catalog-workspace]").getAttribute("data-search-active"), "true");
     await f.page.keyboard.press("Escape");
     await f.page.waitForFunction(() => document.activeElement?.getAttribute("aria-label") === "Search");
@@ -136,6 +141,25 @@ test("search: opening it remembers its toggle; Escape inside cancels and returns
     await f.page.mouse.click(5, 790);
     await f.page.waitForFunction(() => document.querySelector("[data-catalog-workspace]")?.getAttribute("data-search-active") === "false");
     assert.deepEqual(await f.page.evaluate(() => Reflect.get(window, "events")()), ["cancel:true", "cancel:true"]);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("search: a press on a control inside its results belongs to the search; a press on their background cancels it", { timeout: 60000 }, async () => {
+  const f = await svelteBrowser(after);
+  try {
+    await f.page.addStyleTag({ content: await rendererCss() });
+    await f.page.setViewportSize({ width: 1280, height: 800 });
+    await f.page.getByRole("button", { name: "Search", exact: true }).click();
+    await f.page.waitForFunction(() => document.activeElement?.getAttribute("type") === "search");
+    await f.page.getByRole("button", { name: "Plan line 1.", exact: true }).click();
+    assert.deepEqual(await f.page.evaluate(() => Reflect.get(window, "events")()), ["select:first"], "the result is activated, the search stays");
+    assert.equal(await f.page.locator("[data-catalog-workspace]").getAttribute("data-search-active"), "true");
+    const box = await f.page.locator("#notes-results").boundingBox();
+    assert.ok(box);
+    await f.page.mouse.click(box.x + box.width / 2, box.y + box.height - 20);
+    await f.page.waitForFunction(() => document.querySelector("[data-catalog-workspace]")?.getAttribute("data-search-active") === "false");
+    assert.deepEqual(await f.page.evaluate(() => Reflect.get(window, "events")()), ["select:first", "cancel:true"]);
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

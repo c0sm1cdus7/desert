@@ -1,10 +1,13 @@
-// ViewItem: the dispatcher of one view item; it mounts the piece for the item's kind with its bound node.
+// ViewItem: the dispatcher of one view item, one if-chain over its kind: text, a fact, a destination link, or an item
+// bound to a node (a control of its own, or a view input), which the view binding draws.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ViewItemContract } from "./view-item.contract.ts";
 
 export const ViewItem = defineComposition({
   id: "view-item",
-  purpose: "Mount the piece for one view item's kind (text, fact, destination link, bound node or summary widget).",
+  purpose: { key: "viewItem.purpose" },
+  messages: ["viewItem.purpose"],
   owner: { entry: "ViewItem.svelte" },
-  uses: ["information", "message-body", "node-renderer", "stack-item", "summary-widget", "text-content", "view-destination-link"], dispatch: "view-content", approval: "none", contract: ViewItemContract,
+  uses: ["information", "text-content", "view-binding", "view-destination-link"], dispatch: "view-content", approval: "none",
+  contract: ViewItemContract,
 } as const);

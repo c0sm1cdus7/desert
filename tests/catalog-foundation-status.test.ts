@@ -6,7 +6,7 @@ import { contractShape, mounted, specimenFindings } from "./support/foundation.t
 test("status: the contract offers a title, description, status glyph, tone, size and heading role, nothing else", async () => {
   assert.deepEqual(await contractShape("status"), {
     title: "text", "description?": "text", "icon?": ["info", "search", "image-off"], tone: ["neutral", "offline", "note"],
-    size: ["regular", "compact"], heading: "boolean", "label?": "text",
+    size: ["regular", "compact", "prompt"], heading: "boolean", "label?": "text",
   });
 });
 
@@ -41,6 +41,23 @@ test("status: a block titles itself as a level-2 heading; offline announces itse
       { tone: "offline", role: "status", empty: true, heading: "2", glyph: false, size: "16px" },
       { tone: "note", role: "note", empty: false, heading: null, glyph: true, size: "11px" },
     ]);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
+test("status: a prompt (a search before its query) sets its title in the page role over a large glyph", async () => {
+  const f = await mounted(`<Catalog.Status title="Search in Notes" description="Find content in this destination." tone="neutral" size="prompt" heading icon="search" />
+<Catalog.Status title="Nothing here yet." description="Use “New note” to get started." tone="neutral" size="regular" heading icon="search" />`);
+  try {
+    const [prompt, regular] = await f.page.locator("[data-status]").evaluateAll(nodes => nodes.map(node => {
+      const title = node.querySelector("[role=heading]")!, text = title.querySelector("span") ?? title;
+      const header = node.querySelector("[data-slot=empty-header]")!, description = node.querySelector("[data-slot=empty-description]")!;
+      return { size: getComputedStyle(text).fontSize, weight: getComputedStyle(text).fontWeight, level: title.getAttribute("aria-level"),
+        glyph: Math.round(node.querySelector("svg")!.getBoundingClientRect().width), gap: getComputedStyle(header).rowGap,
+        measure: getComputedStyle(header).maxWidth, copy: getComputedStyle(description).maxWidth };
+    }));
+    assert.deepEqual(prompt, { size: "22px", weight: "600", level: "2", glyph: 32, gap: "12px", measure: "512px", copy: "448px" });
+    assert.equal(regular!.size, "16px", "a regular block keeps the section role");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

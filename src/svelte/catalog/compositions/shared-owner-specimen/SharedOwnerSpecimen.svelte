@@ -40,7 +40,6 @@
       <Choice presentation="menu" cardinality="one" menuTrigger="well" label={say(m.sharedOwnerSpecimen.layout)} labelVisibility="visible"
         options={layouts} selected={[flowLayout]} disabled={false} required={false}
         onchange={next => { if (next[0] === "overview" || next[0] === "gallery") flowLayout = next[0]; }} />
-      <!-- lane-merge: content-flow (its closed contract) -->
       {#if flowLayout === "gallery"}<ContentFlow resolved={fixture.gallery} onevent={() => feedback = say(m.sharedOwnerSpecimen.openMedia)} />
       {:else}<ContentFlow resolved={fixture.overview} onevent={event => feedback = event.kind === "attention.resume"
         ? say(m.sharedOwnerSpecimen.resume) : say(m.sharedOwnerSpecimen.openTasks)} />{/if}

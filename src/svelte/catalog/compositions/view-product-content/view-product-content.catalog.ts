@@ -4,7 +4,8 @@ import { ViewProductContentContract } from "./view-product-content.contract.ts";
 
 export const ViewProductContent = defineComposition({
   id: "view-product-content",
-  purpose: "Run a view program's browser session and render its workspace from the live snapshot.",
+  purpose: { key: "viewProductContent.purpose" },
+  messages: ["viewProductContent.purpose"],
   owner: { entry: "ViewProductContent.svelte", parts: ["activity-host.ts"] },
   uses: ["view-workspace"], approval: "none", contract: ViewProductContentContract,
 } as const);

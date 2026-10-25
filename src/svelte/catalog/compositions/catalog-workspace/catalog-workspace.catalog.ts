@@ -1,11 +1,14 @@
-// Declares this piece as it is at the start of the Visual Catalog migration (slice 0).
-// Placeholder states and stub contract are replaced when the piece is migrated (slices 2-4).
+// CatalogWorkspace: a workspace mapped onto the shell (DESIGN §3.2): its navigation pane from data, the content bar with
+// Back and the place's commands, the search bar and its results, the place heading over the body, the bottom commands,
+// and the panel with the failure dialog. Pages opened inside a destination return focus by key.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { CatalogWorkspaceContract } from "./catalog-workspace.contract.ts";
 
 export const CatalogWorkspace = defineComposition({
   id: "catalog-workspace",
-  purpose: "Host a catalog place with its navigation sidebar, toolbars, search overlay, panels and failure dialog.",
-  owner: { entry: "CatalogWorkspace.svelte", parts: ["CatalogNavigationToggle.svelte", "CatalogToolbar.svelte"] },
-  uses: ["catalog-navigation", "catalog-search-results", "catalog-workspace-content", "failure-dialog", "panel", "place", "place-heading", "toolbar", "toolbar-layout", "wallpaper"], approval: "required", contract: CatalogWorkspaceContract,
+  purpose: { key: "catalogWorkspace.purpose" },
+  messages: ["catalogWorkspace.purpose", "catalogWorkspace.back", "catalogWorkspace.searchRegion"],
+  owner: { entry: "CatalogWorkspace.svelte" },
+  uses: ["bar", "catalog-search-results", "catalog-workspace-content", "failure-dialog", "panel", "place-heading", "shell", "toolbar"],
+  approval: "required", contract: CatalogWorkspaceContract,
 } as const);

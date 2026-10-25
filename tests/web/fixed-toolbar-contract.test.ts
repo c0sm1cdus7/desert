@@ -56,8 +56,8 @@ for (const width of [390, 1280]) for (const scale of [1, 2]) {
       await trigger.click();
       const input = page.getByRole('searchbox', { name: 'Search component bank', exact: true });
       await input.fill('money'); await settle(page);
-      assert.equal(await page.locator('[data-search-result]').count(), 1);
-      assert.match(await page.locator('[data-search-result]').innerText(), /Money/);
+      assert.equal(await page.locator('[data-focus-key^="search:"]').count(), 1);
+      assert.match(await page.locator('[data-focus-key^="search:"]').innerText(), /Money/);
       await page.keyboard.press('Escape'); await settle(page);
       assert.ok(await trigger.evaluate(element => element === document.activeElement));
       assert.equal(await page.locator('[data-catalog-workspace]').getAttribute('data-search-active'), 'false');

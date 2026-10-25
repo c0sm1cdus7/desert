@@ -4,7 +4,8 @@ import { PublicCatalogProductContract } from "./public-catalog-product.contract.
 
 export const PublicCatalogProduct = defineComposition({
   id: "public-catalog-product",
-  purpose: "Mount the public catalog product content for the built public catalog page.",
+  purpose: { key: "publicCatalogProduct.purpose" },
+  messages: ["publicCatalogProduct.purpose"],
   owner: { entry: "PublicCatalogProduct.svelte" },
   uses: ["public-catalog-product-content"], approval: "none", contract: PublicCatalogProductContract,
 } as const);

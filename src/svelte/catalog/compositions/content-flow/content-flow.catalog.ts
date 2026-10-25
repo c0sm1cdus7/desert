@@ -1,11 +1,13 @@
-// ContentFlow: the vertical flow of a resolved view's content. Its contract stays a stub: the instance methods it exposes
-// (revealEntry, revealAndFocusEntry) return a Promise of an HTMLElement, which the contract subset cannot express.
+// ContentFlow: the vertical flow of a resolved view's content in its view region: the offline notice, stacks of items,
+// the bank, the media library, appearance, identity, attention and, in a panel, its heading media and related selections.
 import { defineComposition } from "../../../../authoring/catalog/define.ts";
 import { ContentFlowContract } from "./content-flow.contract.ts";
 
 export const ContentFlow = defineComposition({
   id: "content-flow",
-  purpose: "Arrange reading, overview or gallery stacks within the shared content measures and responsive layout.",
+  purpose: { key: "contentFlow.purpose" },
+  messages: ["contentFlow.purpose", "contentFlow.connection", "contentFlow.offline"],
   owner: { entry: "ContentFlow.svelte" },
-  uses: ["appearance", "feedback", "identity", "information", "inspection-content", "media-content", "place-heading", "stack-layout", "view-attention", "view-item", "view-related-selection", "view-region"], approval: "none", contract: ContentFlowContract,
+  uses: ["appearance", "identity", "information", "inspection-content", "media-content", "place-heading", "stack-layout", "text",
+    "view-attention", "view-item", "view-region", "view-related-selection"], approval: "none", contract: ContentFlowContract,
 } as const);

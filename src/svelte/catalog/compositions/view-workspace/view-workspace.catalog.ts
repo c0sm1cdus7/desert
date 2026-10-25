@@ -5,7 +5,9 @@ import { ViewWorkspaceContract } from "./view-workspace.contract.ts";
 
 export const ViewWorkspace = defineComposition({
   id: "view-workspace",
-  purpose: "Present a view program as a workspace with navigation, search, retained views and its panel.",
+  purpose: { key: "viewWorkspace.purpose" },
+  messages: ["viewWorkspace.purpose", "viewWorkspace.documentTitle", "viewWorkspace.searchDescription", "viewWorkspace.entry",
+    "viewWorkspace.video", "viewWorkspace.audio", "viewWorkspace.image", "viewWorkspace.collection"],
   owner: { entry: "ViewWorkspace.svelte", parts: ["workspace-data.ts"] },
   uses: ["appearance-root", "catalog-workspace"], approval: "required", contract: ViewWorkspaceContract,
 } as const);

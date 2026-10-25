@@ -3,10 +3,12 @@
 import { getContext, setContext } from "svelte";
 
 export type FocusScope = Readonly<{
-  /** Registers `focus` under `key` and returns its release; a later registration of the same key takes precedence, and
-   * releasing it gives the key back to the earlier one still registered (two cards of one record, one of them retained). */
+  /** Registers `focus` under `key` and returns its release; a later registration of the same key shadows the earlier ones
+   * until it is released, and releasing it gives the key back to the earlier one still registered (two cards of one
+   * record, one of them retained; an open search over the home card). A release removes only its own registration. */
   register: (key: string, focus: () => boolean) => () => void;
-  /** Focuses what is registered under `key`; false when nothing is, or when it could not take focus. */
+  /** Focuses what is registered under `key`, the newest registration first and, when it cannot take focus (it is hidden),
+   * the one it covers; false when nothing is registered or nothing could take focus. */
   focus: (key: string) => boolean;
   /** Records that the piece under `key` was activated (opened, chosen), so a return can come back to it. */
   activated: (key: string) => void;
@@ -14,22 +16,23 @@ export type FocusScope = Readonly<{
   lastActivated: () => string | null;
 }>;
 
-/** A fresh scope: one registry of focus closures and one last-activated key. */
+/** A fresh scope: one registry of focus closures (the registrations of each key, in order, newest last) and one
+ * last-activated key. */
 export function focusScope(): FocusScope {
-  // Each key holds its registrations in order; the latest one answers.
-  const targets = new Map<string, (() => boolean)[]>();
+  // Each registration is its own entry, so releasing one never removes another that registered the same closure.
+  const targets = new Map<string, { readonly focus: () => boolean }[]>();
   let last: string | null = null;
   return Object.freeze({
     register(key: string, focus: () => boolean) {
-      const registered = targets.get(key) ?? [];
-      registered.push(focus); targets.set(key, registered);
+      const entry = { focus }, registered = targets.get(key) ?? [];
+      registered.push(entry); targets.set(key, registered);
       return () => {
-        const index = registered.lastIndexOf(focus);
+        const index = registered.indexOf(entry);
         if (index !== -1) registered.splice(index, 1);
         if (registered.length === 0 && targets.get(key) === registered) targets.delete(key);
       };
     },
-    focus: (key: string) => targets.get(key)?.at(-1)?.() ?? false,
+    focus: (key: string) => (targets.get(key) ?? []).toReversed().some(entry => entry.focus()),
     activated(key: string) { last = key; },
     lastActivated: () => last,
   });

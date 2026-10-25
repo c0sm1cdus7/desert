@@ -1,227 +1,97 @@
-<script lang="ts" generics="Destination extends string">
+<script lang="ts">
   import { tick } from "svelte";
-  import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
-  import { CatalogNavigation } from "../../index.ts";
-  import CatalogNavigationToggle from "./CatalogNavigationToggle.svelte";
-  import CatalogToolbar from "./CatalogToolbar.svelte";
-  import { ToolbarLayout } from "../../index.ts";
-  import { PlaceHeading } from "../../index.ts";
-  // F1-merge: the shell owns these parts now (DESIGN §3.2); lane F mounts Shell and drops these imports.
-  import { observePlaceHeading } from "../../foundations/shell/place-heading-motion.ts";
-  import type { PlaceIdentity } from "../../../infra/place-identity.ts";
-  import CatalogEdgeNavigation from "../../foundations/shell/CatalogEdgeNavigation.svelte";
-  import { Place } from "../../index.ts";
-  import AdaptiveSurfaceLayout from "../../foundations/shell/AdaptiveSurfaceLayout.svelte";
-  import type { WorkspaceDestination } from "../../../infra/workspace-navigation.ts";
-  import type { ToolbarAction, BottomToolbar } from "../../../../interaction/toolbar.ts";
-  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
-  import { CatalogWorkspaceContent } from "../../index.ts";
-  import { CatalogSearchResults } from "../../index.ts";
-  import { Toolbar } from "../../index.ts";
-  import { Panel } from "../../index.ts";
-  import { FailureDialog } from "../../index.ts";
-  import { Wallpaper } from "../../index.ts";
-  import { appearance } from "../../../infra/appearance-state.ts";
-  import type { WorkspaceContent, WorkspaceSearch, WorkspacePanels, WorkspaceViewportActions } from "../../../infra/workspace-content.ts";
-  import { revealSearchTarget } from "../../mechanisms/reveal/reveal.ts";
+  import { Bar, CatalogSearchResults, CatalogWorkspaceContent, FailureDialog, Panel, PlaceHeading, Shell, Toolbar } from "../../index.ts";
   import { provideDestinationNavigation } from "../../../infra/destination-navigation.svelte.ts";
-  let { navigationSurface, title, navigation, active, query, onquery, onnavigate, content: body, searchContent, searching,
-    onsearch, oncancel, detail = false, onback, backAvailable=true, identity, searchAvailable = true, topActions = [], actionGroup, invoke,
-    panelState, bottomToolbar, onviewport }: {
-    navigationSurface: { title: string; subtitle?: string; settingsPlaceholder?: true } | null;
-    title: string; navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
-    query: string; onquery: (query: string) => void; onnavigate: (id: Destination) => void;
-    content: WorkspaceContent; searchContent?: WorkspaceSearch;
-    searching: boolean; onsearch: () => void; oncancel: () => void;
-    detail?: boolean; onback?: () => void; backAvailable?:boolean;
-    identity: PlaceIdentity;
-    searchAvailable?: boolean; topActions?: readonly ToolbarAction[]; actionGroup?: "create"; invoke?: (intent: SurfaceIntent) => void;
-    panelState?: WorkspacePanels; bottomToolbar?: BottomToolbar;
-    onviewport?: (actions: WorkspaceViewportActions | null) => void;
-  } = $props();
-  let owner = $state<HTMLDivElement | null>(null);
-  let viewport = $state<HTMLDivElement | null>(null);
-  // F1-merge: the shell owns the heading dock (DESIGN §3.2); until then the heading is found in the viewport.
-  const placeHeader = () => viewport?.querySelector<HTMLElement>("[data-place-header]") ?? null;
-  let compact = $state<HTMLDivElement | null>(null);
-  // F1-merge: origins are focus keys now (infra/destination-navigation.svelte.ts); until lane F mounts Shell (focus
-  // scope keys and its instance), this workspace keeps the origin elements under the keys it hands out.
-  const origins = new Map<string, HTMLElement>();
-  const capture = () => {
-    const element = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const scroll = element?.closest<HTMLElement>("[data-catalog-scroll]")?.scrollTop ?? 0;
-    if (!element) return { focusKey: null, scroll };
-    const focusKey = `origin:${origins.size}`;
-    origins.set(focusKey, element);
-    return { focusKey, scroll };
-  };
-  const presentation = provideDestinationNavigation(() => active, capture, change => {
-    void tick().then(() => {
-      if (change.destination !== active) return;
-      viewport?.scrollTo({ top: change.kind === "back" ? change.origin.scroll : 0 });
-      const origin = change.origin.focusKey === null ? null : origins.get(change.origin.focusKey) ?? null;
-      // An index may remount after its detail closes. Restore the same semantic
-      // action in this destination, not the detached historical button.
-      const replacement = origin?.matches('[data-piece="destination-row"][data-destination]')
-        ? viewport?.querySelector<HTMLElement>(`[data-piece="destination-row"][data-destination="${CSS.escape(origin.dataset.destination!)}"]`) : null;
-      const target = (change.kind === "back" ? origin?.isConnected ? origin : replacement : null)
-        ?? placeHeader()?.querySelector<HTMLElement>("[data-place-title]");
-      target?.focus({ preventScroll: true });
-    });
+  import { provideFocusScope, useFocusScope } from "../../../infra/focus-scope.ts";
+  import { workspaceNavigation } from "../../../infra/workspace-navigation.ts";
+  import type { BarCommand } from "../../../infra/bar-command.ts";
+  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  let { documentTitle, navigationSurface, title, navigation, active, query, searching, identity, content: body, searchContent,
+    detail = false, backAvailable = true, searchAvailable = true, topActions = [], actionGroup, invoke, panelState, bottomToolbar,
+    onquery, onnavigate, onsearch, oncancel, onback }: CatalogProps<"catalog-workspace"> = $props();
+  // One focus scope for the whole workspace; a caller that opened one above it (to return focus by key itself) shares it.
+  const { focus: focusKey, lastActivated } = useFocusScope() ?? provideFocusScope();
+  let shell = $state<ReturnType<typeof Shell>>();
+  const uid = $props.id(), resultsId = `${uid}-results`;
+  // A page opened inside a destination (a bank entry) returns where it was opened: the scroll offset and the piece last
+  // activated, else the place title.
+  const pages = provideDestinationNavigation(() => active, () => ({ focusKey: lastActivated(), scroll: shell?.scrollTop() ?? 0 }),
+    change => void tick().then(() => {
+      if (change.destination !== active || !shell) return;
+      if (change.kind === "back") shell.restoreScroll(change.origin.scroll, shell.scrollPositions().search);
+      else shell.scrollToTop();
+      const returned = change.kind === "back" && change.origin.focusKey !== null && focusKey(change.origin.focusKey);
+      if (!returned) shell.focusTitle();
+    }));
+  let presented = $derived(pages.current(active));
+  let shown = $derived(presented?.identity ?? identity);
+  let showsDetail = $derived(Boolean(presented) || detail);
+  let canGoBack = $derived(Boolean(presented) || backAvailable);
+  const goBack = () => presented ? pages.back(active) : onback?.();
+  let back: BarCommand = $derived({ label: say(m.catalogWorkspace.back), icon: "back", state: canGoBack ? "ready" : "unavailable",
+    intent: { kind: "back" } });
+  /** The content bar's leading Back goes back here; every other command is the place's. */
+  function command(intent: SurfaceIntent) {
+    if (intent.kind !== "back") invoke?.(intent);
+    else if (canGoBack) goBack();
+  }
+  let searchField = $derived({ title, query, open: searching, resultsId });
+  let shellNavigation = $derived(navigationSurface === null ? null : {
+    identity: navigationSurface.subtitle ? { title: navigationSurface.title, subtitle: navigationSurface.subtitle } : { title: navigationSurface.title },
+    settingsPlaceholder: navigationSurface.settingsPlaceholder === true, active,
+    groups: workspaceNavigation(navigation).map(group => ({ label: group.label,
+      items: group.items.map(({ id, label, icon, appearance }) => ({ id, label, icon, appearance })) })),
   });
-  let presented = $derived(presentation.current(active));
-  let presentedIdentity = $derived(presented?.identity ?? identity);
-  let presentedDetail = $derived(Boolean(presented) || detail);
-  const goBack = () => presented ? presentation.back(active) : onback?.();
-  $effect(() => {
-    const register = onviewport;
-    register?.({
-      scrollToTop: () => viewport?.scrollTo({ top: 0 }),
-      scrollTop: () => viewport?.scrollTop ?? 0,
-      focusTitle: () => viewport?.querySelector<HTMLElement>("[data-place-title]")?.focus({ preventScroll: true }),
-      restoreRecord: (top, view, record) => {
-        viewport?.scrollTo({ top });
-        viewport?.querySelector<HTMLElement>(`[data-view-content="${CSS.escape(view)}"] [data-record="${CSS.escape(record)}"] button`)
-          ?.focus({ preventScroll: true });
-      },
-      revealItem: id => {
-        const target = viewport?.querySelector<HTMLElement>(`[data-view-item="${CSS.escape(id)}"]`);
-        if (target) revealSearchTarget(target, viewport);
-      },
-    });
-    return () => register?.(null);
-  });
-  $effect(() => {
-    presentedIdentity;
-    const heading = placeHeader();
-    if (viewport && heading && compact) return observePlaceHeading(viewport, heading, compact);
-  });
-  let searchViewport = $state<HTMLDivElement | null>(null);
-  const instanceId = $props.id();
-  const resultsId = `${instanceId}-results`;
-  let composing = false;
-  let contentFocus: HTMLElement | null = null;
-  let searchOpener: HTMLElement | null = null;
-  let searchPointerActivation: Element | null = null;
-  $effect(() => { active; contentFocus = null; });
-  function ownsPointerFocus(target: EventTarget | null) {
-    // WebKit may focus a tabindex ancestor instead of the pressed button.
-    // Keep only that activation alive; unrelated external focus still cancels.
-    return target instanceof Node && searchPointerActivation !== null && target.contains(searchPointerActivation);
-  }
-  function rememberFocus(event: FocusEvent) {
-    if (!searching && event.target instanceof HTMLElement && viewport?.contains(event.target)) {
-      contentFocus = event.target;
-    } else if (searching && !inSearch(event.target) && !ownsPointerFocus(event.target)) {
-      void cancel(false);
-    }
-  }
-  function inSearch(target: EventTarget | null): boolean {
-    return target instanceof Node && Boolean(searchViewport?.contains(target)
-      || owner?.querySelector("[data-catalog-search-actions]")?.contains(target));
-  }
-  async function cancel(restoreFocus = true) {
-    oncancel();
-    if (!restoreFocus) return;
-    await tick();
-    const target = searchOpener?.isConnected && searchOpener.checkVisibility() ? searchOpener
-      : contentFocus && viewport?.contains(contentFocus)
-      && contentFocus.checkVisibility() && !contentFocus.matches(":disabled,[aria-disabled='true']")
-      ? contentFocus : viewport;
-    target?.focus({ preventScroll: true });
-  }
-  function openSearch() {
-    searchOpener = owner?.querySelector<HTMLElement>('[data-catalog-search-toggle]') ?? null;
-    onsearch();
-  }
-  function focusOut(event: FocusEvent) {
-    // Browsers can expose BODY between focusout and focusin. The announced
-    // internal destination is authoritative; otherwise inspect settled focus.
-    if (!searching || inSearch(event.relatedTarget)) return;
-    requestAnimationFrame(() => {
-      if (searching && !inSearch(document.activeElement) && !ownsPointerFocus(document.activeElement)) void cancel(false);
-    });
-  }
-  function pointerDown(event: PointerEvent) {
-    searchPointerActivation = null;
-    if (!searching || !(event.target instanceof Element)) return;
-    // Result activation owns its own close/navigation transaction. Clear and X
-    // also belong to search, so pointer focus changes must not swallow them.
-    const activation = event.target.closest("[data-catalog-search-actions],[data-search-result]");
-    if (activation) { searchPointerActivation = activation; return; }
-    const takesFocus = event.target.closest("button,a[href],input,textarea,select,[tabindex]:not([tabindex='-1'])");
-    void cancel(!takesFocus);
-  }
-  function finishPointerActivation() {
-    const activation = searchPointerActivation;
-    if (!activation) return;
-    // Click follows pointerup. Reconcile after it, including cancelled/dragged
-    // gestures that never activated a result, without retaining stale ownership.
-    requestAnimationFrame(() => {
-      if (searchPointerActivation !== activation) return;
-      searchPointerActivation = null;
-      if (searching && !inSearch(document.activeElement)) void cancel(false);
-    });
-  }
-  function keydown(event: KeyboardEvent) {
-    if (!searching || !inSearch(event.target) || event.defaultPrevented || event.key !== "Escape" || event.isComposing || composing || event.keyCode === 229) return;
-    event.preventDefault(); event.stopPropagation(); void cancel();
-  }
+  export function scrollToTop(): void { shell?.scrollToTop(); }
+  export function scrollTop(): number { return shell?.scrollTop() ?? 0; }
+  export function focusTitle(): void { shell?.focusTitle(); }
+  export function focusContent(): void { shell?.focusContent(); }
+  export function restoreRecord(top: number, view: string, record: string): void { shell?.restoreRecord(top, view, record); }
+  export function revealItem(id: string): Promise<boolean> { return shell?.revealItem(id) ?? Promise.resolve(false); }
+  export function scrollPositions(): { content: number; search: number } { return shell?.scrollPositions() ?? { content: 0, search: 0 }; }
+  export function restoreScroll(contentTop: number, searchTop: number): void { shell?.restoreScroll(contentTop, searchTop); }
+  export function focus(key: string): boolean { return focusKey(key); }
+  export function toggleNavigation(): void { shell?.toggleNavigation(); }
 </script>
 
-<!-- Search owns Escape only while focus is in its own surface. Capture keeps a
-     concurrently docked task's dialog layer from consuming that local action. -->
-<svelte:window onkeydowncapture={keydown} onfocusin={rememberFocus} onfocusout={focusOut} onpointerdown={pointerDown}
-  onpointerup={finishPointerActivation} onpointercancel={finishPointerActivation} />
-
-<div data-renderer-profile="apple-reference" data-catalog-workspace data-search-active={searching}>
-  <Wallpaper wallpaper={$appearance.wallpaper} />
-  <Sidebar.Provider available={navigationSurface !== null} contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
-    {#if navigationSurface}
-    <Sidebar.Root variant="floating" overlayTitle="Navigation" overlayDescription="Choose a destination.">
-      <CatalogNavigation identity={navigationSurface} settingsPlaceholder={navigationSurface.settingsPlaceholder === true}
-        {navigation} {active} {onnavigate} {searching} />
-    </Sidebar.Root>
+<Shell bind:this={shell} {documentTitle} label={shown.title} destination={active} {searching} hasQuery={query.trim() !== ""}
+  detail={showsDetail} backAvailable={canGoBack} {resultsId} searchLabel={say(m.catalogWorkspace.searchRegion, { title })} navigation={shellNavigation}
+  onnavigate={id => onnavigate?.(id)} onback={goBack} oncancelsearch={() => oncancel?.()}>
+  {#snippet top()}
+    <Bar edge="top" purpose="commands" layer="content" inert={searching} identity={{ title: shown.title, subtitle: shown.subtitle }}
+      identityRole="continuation" leading={showsDetail ? back : undefined} trailing={topActions} group={actionGroup}
+      search={searchAvailable ? searchField : undefined} settingsPlaceholder={false} oninvoke={command} />
+    {#if searchAvailable}
+      <Bar edge="top" purpose="commands" layer="search" identityRole="heading" trailing={[]} search={searchField} settingsPlaceholder={false}
+        inert={false} onquery={value => onquery?.(value)} onsearchopen={() => onsearch?.()} onsearchcancel={() => oncancel?.()} />
     {/if}
-    <AdaptiveSurfaceLayout>
-    <Place bind:owner bind:viewport landmark="main" destination={active} label={presentedIdentity.title} {searching}
-      oncomposition={active => composing = active}>
-      {#snippet top()}
-      <ToolbarLayout layer="content" inert={searching} identity={presentedIdentity} identityRole="continuation" onidentityElement={element => { compact = element; }}
-        content={{ kind: "place-navigation", detail: presentedDetail, onback: goBack, backAvailable: Boolean(presented) || backAvailable, topActions, actionGroup, invoke, searchAvailable }} />
-      <CatalogToolbar {title} {query} {onquery} {searching} {resultsId} {searchAvailable} onsearch={openSearch} oncancel={cancel} />
-      {/snippet}
-      {#snippet content()}<PlaceHeading context="place" title={presentedIdentity.title} subtitle={presentedIdentity.subtitle} media={presentedIdentity.media} /><CatalogWorkspaceContent content={body} {searching} />{/snippet}
-      {#snippet bottom()}
-        <CatalogNavigationToggle {searching} />
-        {#if bottomToolbar && invoke && (bottomToolbar.primary || bottomToolbar.secondary)}
-          <Toolbar toolbar={{ edge: "bottom", ...bottomToolbar }} {invoke} />
-        {/if}
-      {/snippet}
-      {#snippet overlay()}
-      {#if searching}
-        <div bind:this={searchViewport} id={resultsId} data-catalog-search-scroll data-has-query={Boolean(query.trim())}>
-          {#if searchContent?.kind === "catalog"}
-            <CatalogSearchResults title={searchContent.title} description={searchContent.description} {query}
-              results={searchContent.results} onselect={searchContent.onselect} />
-          {:else if searchContent?.kind === "view"}
-            <CatalogSearchResults title={searchContent.title} description={searchContent.description} {query}
-              results={searchContent.results} onselect={searchContent.onselect} />
-          {/if}
-        </div>
-      {/if}
-      {/snippet}
-    </Place>
+  {/snippet}
+  {#snippet content()}
+    <PlaceHeading context="place" title={shown.title} subtitle={shown.subtitle} media={shown.media} />
+    <CatalogWorkspaceContent content={body} {searching} />
+  {/snippet}
+  {#snippet bottom()}
+    {#if bottomToolbar && invoke && (bottomToolbar.primary || bottomToolbar.secondary)}
+      <Toolbar toolbar={{ edge: "bottom", ...bottomToolbar }} {invoke} />
+    {/if}
+  {/snippet}
+  {#snippet search()}
+    {#if searchContent?.kind === "catalog"}
+      {@const found = searchContent}
+      <CatalogSearchResults title={found.title} description={found.description} {query} results={found.results}
+        onselect={result => { if (result.kind !== "content") found.onselect(result); }} />
+    {:else if searchContent?.kind === "view"}
+      <CatalogSearchResults title={searchContent.title} description={searchContent.description} {query} results={searchContent.results}
+        onselect={searchContent.onselect} />
+    {/if}
+  {/snippet}
+  {#snippet panels()}
     {#if panelState}
       <Panel panel={panelState.panel} onevent={panelState.onevent} />
       <FailureDialog code={panelState.error} uncertain={panelState.uncertain} close={panelState.dismissError} />
     {/if}
-    </AdaptiveSurfaceLayout>
-    <div data-catalog-search-material data-active={searching} aria-hidden="true"></div>
-    <CatalogEdgeNavigation {searching} detail={presentedDetail} onback={presented || backAvailable ? goBack : undefined} {viewport} />
-  </Sidebar.Provider>
-</div>
-
-<style>
-  :global([data-catalog-workspace] [data-adaptive-host]) { position:absolute; inset:0; }
-</style>
+  {/snippet}
+</Shell>

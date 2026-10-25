@@ -1,6 +1,7 @@
 // Shell part (from CatalogWorkspace.svelte:85-155): search is a foreground mode of the place. Focus or a press leaving
-// the search (its field, toggle and results) cancels it; Escape inside it cancels and returns focus to the toggle that
-// opened it, else to the last focused content, else to the content viewport. Content focus is remembered meanwhile.
+// the search (its field, toggle and the controls of its results) cancels it; Escape inside it cancels and returns focus
+// to the toggle that opened it, else to the last focused content, else to the content viewport. Content focus is
+// remembered meanwhile.
 import { tick } from "svelte";
 
 type Elements = { root: () => HTMLElement | null; viewport: () => HTMLElement | null; results: () => HTMLElement | null };
@@ -41,10 +42,12 @@ export function searchFocus({ root, viewport, results, searching, composing, can
     pointerdown(event: PointerEvent) {
       activation = null;
       if (!searching() || !(event.target instanceof Element)) return;
-      // A result, the field and its toggle own their own transaction; a press elsewhere cancels.
-      const own = event.target.closest("[data-catalog-search-actions],[data-search-result]");
+      // The field, its toggle and a control among the results own their own transaction; a press elsewhere (the results'
+      // background included) cancels, returning focus unless the press itself lands on something focusable.
+      const focusable = event.target.closest("button,a[href],input,textarea,select,[tabindex]:not([tabindex='-1'])");
+      const own = event.target.closest("[data-catalog-search-actions]") ?? (focusable && results()?.contains(focusable) ? focusable : null);
       if (own) { activation = own; return; }
-      void close(!event.target.closest("button,a[href],input,textarea,select,[tabindex]:not([tabindex='-1'])"));
+      void close(!focusable);
     },
     pointerfinish() {
       const pressed = activation;

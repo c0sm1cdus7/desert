@@ -5,7 +5,8 @@
 // rail title over a rail that bleeds to the surface), "reading" as a document's reading block (its block padding, and the
 // content inset less the 1rem row inset its stack layouts and items already carry), "section" with a place section's block
 // padding (a catalog's rails under its featured entry or its place heading); `leading` adds the place's leading inset (the
-// docked navigation's width) at the start, for a column that is the place's own content.
+// docked navigation's width) at the start, for a column that is the place's own content. `fill` makes it at least as tall
+// as its container, a block that grows (a status) taking what its other pieces leave (search results centring their prompt).
 import { Type } from "@sinclair/typebox";
 
 export const ColumnContract = {
@@ -15,6 +16,7 @@ export const ColumnContract = {
     align: Type.Optional(Type.Union([Type.Literal("start"), Type.Literal("center"), Type.Literal("stretch")])),
     inset: Type.Optional(Type.Union([Type.Literal("content"), Type.Literal("reading"), Type.Literal("section")])),
     leading: Type.Optional(Type.Boolean()),
+    fill: Type.Optional(Type.Boolean()),
   }, { additionalProperties: false }),
   marks: ["data-reading-measure"],
 } as const;
