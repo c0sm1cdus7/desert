@@ -72,7 +72,7 @@ export const DesertLayout: CatalogLayout = Object.freeze({
       ...modules("src/authoring/catalog/gate", ["approvals.ts", "browser-host.ts", "build-gate.ts", "component-runtime.ts", "composition-dispatch.ts", "contract-types.ts",
         "composition-template.ts", "content-rules.ts", "context.ts", "css-marks.ts", "css-ownership.ts", "declarations.ts", "derivation.ts",
         "dispatch-admission.ts", "dom-access.ts", "emitted-css.ts", "grammar.ts", "inventory.ts", "ledger.ts", "message-keys.ts", "messages.ts", "native-controls.ts",
-        "nonvisual-sources.ts", "nonvisual.ts", "opaque-source.ts", "owner-imports.ts", "ownership.ts", "parse.ts", "presentation-contract.ts", "presentation.ts",
+        "nonvisual-sources.ts", "nonvisual.ts", "opaque-source.ts", "owner-imports.ts", "ownership.ts", "package-identity.ts", "parse.ts", "presentation-contract.ts", "presentation.ts",
         "resolve-imports.ts", "run.ts", "runtime-globals.ts", "sources.ts", "specimen-combinations.ts", "specimens.ts", "stylesheet.ts", "template-artifacts.ts",
         "template-assets.ts", "violation.ts", "walk.ts"]),
     ],

@@ -13,6 +13,8 @@
 // files through `/// <reference>` directives, be a script file (its declarations are globals), declare ambient modules or
 // `declare global`, or import outside the tree;
 // TypeScript's library is recognised by the program (its default library files in the checkout), never by a path name.
+// A package is trusted by identity (package-identity.ts), never by where the gate runs: the checkout's own packages, or a
+// file outside the judged tree that is byte for byte the checkout's copy of the same package at the same version.
 import { realpathSync } from "node:fs";
 import { dirname, join, posix, relative, resolve } from "node:path";
 import ts from "typescript";
@@ -21,15 +23,12 @@ import type { ContentRule } from "./context.ts";
 import type { LocatedDeclaration } from "./inventory.ts";
 import { contractPath, type ReadContract } from "../read-contract.ts";
 import { violation, type Violation } from "./violation.ts";
+import { checkout, inside, installedPackage, packages, type PackageFile } from "./package-identity.ts";
 
 const code = "CONTRACT_OPEN_TYPE";
-// Real paths: TypeScript hands over resolved files, so a symlinked node_modules or checkout must compare the same.
-const checkout = realpathSync(resolve(import.meta.dirname, "../../../.."));
-// A symlinked node_modules is followed too: TypeScript hands over real paths.
-const packages = realpathSync(join(checkout, "node_modules"));
 /** Library files whose types never cross a contract: browser globals. Packages whose types never do: Svelte and Node. */
 const foreignLibrary = /^lib\.(dom|webworker|scripthost)[^/]*\.d\.ts$/;
-const foreignPackages = ["svelte", "@types/node"].map(name => join(packages, name) + "/");
+const foreignPackages: ReadonlySet<string> = new Set(["svelte", "@types/node"]);
 /** The ES library interfaces and classes a contract may carry, each judged by its first N type arguments only (Promise<T>,
  * Map<K, V>, Iterable<T> without its `any` defaults). Every other library interface or class (Function, Object, Error,
  * PropertyDescriptor, JSON, a *Constructor) is refused as it is: the library is fixed, since no tree file may change a global. */
@@ -51,7 +50,6 @@ const keptFindings = 10;
 /** Stops a section's walk: an unbounded type is one finding, not thousands. */
 class WalkLimit extends Error {}
 const sections = ["props", "events", "instance"] as const;
-const inside = (file: string, folder: string) => { const path = relative(folder, file); return path !== "" && !path.startsWith("..") && !posix.isAbsolute(path); };
 
 export type ClosedContract = Readonly<{ declaration: LocatedDeclaration; contract: Extract<ReadContract, { closed: true }> }>;
 
@@ -67,7 +65,7 @@ function compilerHost(options: ts.CompilerOptions, entry: string, entryText: str
   // supply its own TypeBox or Svelte types to the judgement.
   // A tree module that does not resolve, or resolves outside the judged tree, is reported, never silently `any`.
   const resolution = (name: string, containing: string) => {
-    if (inside(resolve(containing), packages)) return ts.resolveModuleName(name, containing, options, ts.sys).resolvedModule;
+    if (installedPackage(resolve(containing), root)) return ts.resolveModuleName(name, containing, options, ts.sys).resolvedModule;
     const alias = aliases.find(([prefix]) => name.startsWith(prefix));
     if (!alias && !name.startsWith(".")) return ts.resolveModuleName(name, join(checkout, "package.json"), options, ts.sys).resolvedModule;
     const request = alias ? join(root, alias[1], name.slice(alias[0].length)) : name;
@@ -92,7 +90,10 @@ export function contractTypeViolations(judged: string, layout: Pick<CatalogLayou
     for (const section of sections) lines.push(`export type T${index}_${section} = typeof C${index} extends { readonly ${section}: infer S extends import("@sinclair/typebox").TSchema } ? Static<S> : never;`);
   });
   const options: ts.CompilerOptions = { strict: true, noEmit: true, target: ts.ScriptTarget.ES2023, module: ts.ModuleKind.ESNext,
-    moduleResolution: ts.ModuleResolutionKind.Bundler, allowImportingTsExtensions: true, skipLibCheck: true, types: [], lib: ["lib.es2023.d.ts", "lib.dom.d.ts"] };
+    moduleResolution: ts.ModuleResolutionKind.Bundler, allowImportingTsExtensions: true, skipLibCheck: true, types: [], lib: ["lib.es2023.d.ts", "lib.dom.d.ts"],
+    // A package's `/// <reference types="node" />` (@types/pg, undici-types) resolves in the checkout, never in the folder the
+    // gate runs from: a product building with DESERT (cwd: the product) must not swap in its own @types/node.
+    typeRoots: [join(packages, "@types")] };
   const text = `${lines.join("\n")}\n`;
   const found: Violation[] = [];
   const at = (file: string) => relative(root, file).split("\\").join("/");
@@ -107,7 +108,12 @@ export function contractTypeViolations(judged: string, layout: Pick<CatalogLayou
   // `/// <reference no-default-lib="true" />` would otherwise pass as a library).
   const libraryFolder = realpathSync(dirname(ts.getDefaultLibFilePath(options)));
   const library = (file: ts.SourceFile) => inside(resolve(file.fileName), libraryFolder) && program.isSourceFileDefaultLibrary(file);
-  const packaged = (file: ts.SourceFile) => inside(resolve(file.fileName), packages);
+  const owners = new Map<ts.SourceFile, PackageFile | undefined>();
+  const owner = (file: ts.SourceFile) => {
+    if (!owners.has(file)) owners.set(file, installedPackage(resolve(file.fileName), root));
+    return owners.get(file);
+  };
+  const packaged = (file: ts.SourceFile) => owner(file) !== undefined;
   for (const file of program.getSourceFiles()) {
     if (file.fileName === entry || library(file) || packaged(file)) continue;
     found.push(...treeFileViolations(file, at(file.fileName)));
@@ -115,7 +121,7 @@ export function contractTypeViolations(judged: string, layout: Pick<CatalogLayou
   const checker = program.getTypeChecker(), source = program.getSourceFile(entry);
   if (!source) throw new Error("CATALOG_GATE_CONTRACT_TYPES: the contract type program has no entry");
   const exportsOf = new Map(checker.getExportsOfModule(checker.getSymbolAtLocation(source) ?? notModule()).map(symbol => [symbol.name, symbol]));
-  const judge: Judge = { checker, library, packaged };
+  const judge: Judge = { checker, library, owner };
   closed.forEach(({ declaration }, index) => {
     const id = declaration.declaration.id, path = contractPath(declaration.path, id);
     for (const section of sections) {
@@ -162,7 +168,7 @@ function treeFileViolations(file: ts.SourceFile, path: string): Violation[] {
   return found;
 }
 
-type Judge = Readonly<{ checker: ts.TypeChecker; library: (file: ts.SourceFile) => boolean; packaged: (file: ts.SourceFile) => boolean }>;
+type Judge = Readonly<{ checker: ts.TypeChecker; library: (file: ts.SourceFile) => boolean; owner: (file: ts.SourceFile) => PackageFile | undefined }>;
 const filesOf = (symbol: ts.Symbol | undefined) => symbol?.declarations?.map(item => item.getSourceFile()) ?? [];
 const primitive = ts.TypeFlags.StringLike | ts.TypeFlags.NumberLike | ts.TypeFlags.BigIntLike | ts.TypeFlags.BooleanLike | ts.TypeFlags.ESSymbolLike;
 const unresolvedGeneric = ts.TypeFlags.TypeParameter | ts.TypeFlags.Index | ts.TypeFlags.IndexedAccess | ts.TypeFlags.Substitution;
@@ -170,13 +176,13 @@ const unresolvedGeneric = ts.TypeFlags.TypeParameter | ts.TypeFlags.Index | ts.T
 function notModule(): never { throw new Error("CATALOG_GATE_CONTRACT_TYPES: the contract type entry is not a module"); }
 
 /** The platform a type is declared by, or undefined: a browser library file, or the Svelte or Node packages. */
-function platform({ library }: Judge, type: ts.Type): string | undefined {
+function platform({ library, owner }: Judge, type: ts.Type): string | undefined {
   for (const file of [...filesOf(type.aliasSymbol), ...filesOf(type.getSymbol())]) {
     const name = posix.basename(file.fileName.split("\\").join("/"));
     if (library(file) && foreignLibrary.test(name)) return name;
-    const at = resolve(file.fileName);
-    const owner = foreignPackages.find(folder => at.startsWith(folder));
-    if (owner) return relative(packages, at).split("\\").join("/");
+    // Judged by the outermost package, as the package folder always was: Svelte's nested dependencies are Svelte's.
+    const installed = owner(file), outer = installed?.at.split("/").slice(0, installed.at.startsWith("@") ? 2 : 1).join("/");
+    if (installed && outer && foreignPackages.has(outer)) return installed.at;
   }
   return undefined;
 }
