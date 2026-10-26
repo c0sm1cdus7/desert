@@ -2,13 +2,25 @@
   "version": "desert.catalog-approvals/1",
   "pieces": {
     "access-appearance-specimen": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "f20d1195b786cd4c527aebdf3e2f77dc5094ac93ac4e65d2c0184a82dc7edebe",
+      "contractDigest": "28762ddcd9117cfee7be4c075c3d88a0e3fcc8ae30359236c30ca3d061e657e1",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "access-experience": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "c0322997084b8ec3f9399ee40bcdb216f267b73a41dbf25846cdc50567985650",
+      "contractDigest": "f29284344ad7b076e2796bc18035b975ab6dda8c30d544fa003079389bdd4d2c",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "access-form": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "32d8c5d924b91d5c8d2fd23ec98b7c7ed81b4df82521e0d5d327ea32bb49c083",
+      "contractDigest": "2edaf126159f5f9e3cd30678a79df898a2c11a70d0f0c2ba9cbb626dcb7b0f64",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "access-gate": {
       "status": "implemented"
@@ -17,37 +29,81 @@
       "status": "implemented"
     },
     "action": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "61d469f6bf166b1c880942501053edbc21abd3d25d7947a686bccc3c4240ac5f",
+      "contractDigest": "b26ffb440f0d75d2b333d8ace55e7ef7548f780f8b8296bd6c42acdf767f09ce",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "appearance": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "a9da6c1121063352186f7960939db2f68f6e9fc25913528050efcd8758d0be57",
+      "contractDigest": "281d0c5e5b7fd267f3efd2c5054b07fa3fda0d45403403bc9a659d0a6ae06bba",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "appearance-preferences": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "9c9e023b2c78d018b43dc69f44a6e4581d8a9e70903614f7eb7ef7638e660813",
+      "contractDigest": "9d12b018f2a4869089abe3af0e198879531191a943ddf680b9903b1845c7a3d9",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "attention-indicator": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "f82415278fae5a1383e39d7a3d5648966c3da882895f0fd38d5c587f89beaf90",
+      "contractDigest": "fb5a730c05248501744a7e4c4e36701d2e594e8ba5bc9bc0a26f904e3dfa4fa9",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "attention-list": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "7afde3e3e9dd24ad6f7793c7e7e12c710ad013654af6a6b9fcedb8e1be76d79e",
+      "contractDigest": "985e2ae3ed532ed113e39c5b799239742e72b34b490abca463fdc89bd6c9fc73",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "attention-status": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "0247542583c7a78e80e3645f7e393213b457bdd95ac7b8c705e4946a7cab2dcf",
+      "contractDigest": "6a18016adf24de9ae24515f9cad658939f66696f5b12e0c8cc795165815f6f5c",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "availability": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "4483bb69d7ffa568172d476907b1e5901ef6b55aab7f8dba5b8a2bbe2891bbbe",
+      "contractDigest": "c8a4e9c9ea7cf7c8fa312226758b7a93855eec81f66ed8f0a37cc0014b6c307f",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "node-renderer": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "eae548a35deef86670a2877fc2eaaa9078267b8bf3ceb89c2809744dc464bda8",
+      "contractDigest": "80142746e14e5eca068c5cdae384495e50e3d4de6df215f386c4f74b81b26631",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "catalog-card": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "bf3d25ae30c2449e75924bfb7f6a68261cef8f51145870c3c573806e05d1d361",
+      "contractDigest": "3ed9414c4443585a09cff2311d1a8d605bea3b40a185c99928572214dc65e981",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "catalog-detail": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "99fd6db06e594d1acee4c7bdd5cf4168c068ee972d168d41a9836f874b24607f",
+      "contractDigest": "bea068dfe40abeb1bfab093a28818cf4a01ed0b9029051322cfefe2092367e19",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "catalog-home": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "c22266abc88e99e65656ed088f1f5994aa6f822ed3caab25c60541cdd012afeb",
+      "contractDigest": "5cd0f23f6dc49391e82b44dcb2d758db3f5be5c458e16c7d75b07249a3ffc3bd",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "catalog-search-results": {
       "status": "implemented"
@@ -59,103 +115,217 @@
       "status": "implemented"
     },
     "clock": {
-      "status": "proposed",
-      "proposedOn": "2026-10-23",
-      "reason": "Lock screen date and time (owner decision Q2)."
+      "status": "approved",
+      "sourceDigest": "0a0b60f01720347f9b0c66b57d6e40c33c777b08e42a40dd9f754122763b3126",
+      "contractDigest": "e82899260295459cf78ac9e91cc2252a972973c853476332e9b19d14d457ec5d",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "collection": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "402d0a9634f812a5e04c47b59aab504ae17f0886b2d641ef06e3b541aea5e0bd",
+      "contractDigest": "beb770608e5d639307e813928d2a944ab0c3406c33d5e2cb13c6d2fbc81829dc",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "collection-state": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "73860368e382a7fb0bef8f2bbafb3bf0eb3b566a78dbb69e398f3987822d5a80",
+      "contractDigest": "d261151185773c16da2102915a01017eca9b714e502236e27739ac4a22167869",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "color-bullet": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "f9d1d68590593829628eb6e9df9dcb2e0b8e378d01b2e13c13fa5399d1f40820",
+      "contractDigest": "dc2a3c417181981dc36608a81ba46947b8a9b19d71c191cedb602ec13240d3a2",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "content-flow": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "1467e0df8ecfc8efa8afa568b5201095297079863ae3e1a883dc9acdfafa33ef",
+      "contractDigest": "85c449951d92effddb082ddb7abb1cb13e639b72446bb548cba73e2ffe63c84b",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "context-panel": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "f9bed1c665b0428020d2558abff66c323c78b5511a52783a83257500f70a46cc",
+      "contractDigest": "5817d4c37696aa4f264afe4dc563071a908248dc213f4d41f63667a9ce875459",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "context-properties": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "cad95706eb17eb53e34c602c1136de984e872a0dcf713053fe6154ca4adaa42b",
+      "contractDigest": "b9cbc5acafda5d5c1d29e3771f3325b62006d1744734fbe0aeaebc4e0d57e21b",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "contract-inspection": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "4a472a4fa84dc860b766699c4d37fce6f18548292385cd98b4ee865f9ddc9b0d",
+      "contractDigest": "09fce2b6894341b95aec8869c43a1488722ac3d91b2d0e285ef0fc3b8c8bf08a",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "control-bench": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "7a68492bc086cbd1ff258c941350f36e974c5466e17f19e85b9cd568ea2a60c1",
+      "contractDigest": "0eb793903d8168abe227c7ed74fdaa64483d48e2d79da4b3777b44365ea30e51",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "control-renderer": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "579f35ceb666bf65d389d0925a396dd55f245f4fe68a8be6b430c2bd373071ec",
+      "contractDigest": "f147a8b0ae9311b89e7b7e64f722908ccd5d83b9b39582eae433a349eaaf91f4",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "date-control": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "5373c919119a3d5922516a1d44ef0182709e331301db4b8063572f4d94a0b497",
+      "contractDigest": "795c0ccb0c2234baca3ac5c8577cac86c8eb877da499325c8614aa79c540ff50",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "face": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "61e7d21e043c46850efabaa5ec7d0e660b0bc7070b3451a193fbe5e8c88f4dc5",
+      "contractDigest": "75af8c27274c448074a5d3567214f99bf774ac077f15a831a416f666e8874964",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "fact-group": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "e3a6c7c7b655113dee2c0a74e09bd626a5bd767a6a24374fc1f794546366385f",
+      "contractDigest": "83b58f0aaad367b861a4232f4b6265d730a8ca35a8ae9fe454514be4f2f8c7c0",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "fact-row": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "e65f380b9310d51a028d98bb554f37751073d55d77a58bb349de316a38297a71",
+      "contractDigest": "0fb996f3da8bbcdc2a0c8f45880617a3ade6f1be9a472ce3f63c09ccabafb446",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "fact-value": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "bff88aa59180d310a844987a5309a82fc345b65970322e9c842191f090fd9947",
+      "contractDigest": "af3546855723636081da2b3d65b7759eec2f4fb2276a8b69607e431d0d8ea36b",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "facts": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "237b44c7e759e0b2d6dfb7f0c87956655c3c09c09627dfd6d7f6d09ecf1974d3",
+      "contractDigest": "3083781dc8956e55d47a0243e66bba6df6a1e619c4849f113a05990d75e3e97e",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "failure-dialog": {
       "status": "implemented"
     },
     "fields": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "ec6aaba5ebfe5b7b0b28f7dfa99ab2634735ee4cfd82b724b6a91859e54a16e4",
+      "contractDigest": "b24112e151daa2c4535ac1a3da1bc1e368f4e5f17ccecca083b8ac58aafe2b11",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "frame-body": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "bc1e7871b8f67d360903884c9b2056578b78470d185f6766df77a3a1700f43ba",
+      "contractDigest": "79b0309e42a0f22f2757a6b2fa57bee8c247118ca7cef25c3476e23b6a751a4b",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "heading": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "9aa0e40acf37c049ed42f54e30116a48c74f8443f20f08c8c721bcb393a7336e",
+      "contractDigest": "76449f31f989058802694000db3e11ef39c7fe1f147f439e004832016368302c",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "icon": {
-      "status": "proposed",
-      "proposedOn": "2026-10-23",
-      "reason": "Closed Lucide icon subset (owner decision Q2)."
+      "status": "approved",
+      "sourceDigest": "b44864b58d3d16e385286c63d45398cd244b095e34aba683b3491cfb1db9e2d2",
+      "contractDigest": "d6bfe7cb981be26d5400ee0faa7eec42b5006f7ac41027b7798741d0c35074ba",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "identity": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "39e81304a88fde2964f6978b9520083712f96664782d5e14ff8da9e46a9a3990",
+      "contractDigest": "f825b36a2b21ea32de3fbcfd5150885876145bfcb0ed91821e52c4bee9353dce",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "image": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "1d8260f1d2dc2bfd527a59de5efca86f76d61020757c4cba776372516f21259b",
+      "contractDigest": "713ba49127bda81e4c083126489c15a0413457cba8135d01d961292392cc9347",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "information": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "f95ebef824e5899f9d6181ade05dde0b0b7b3b14c5d08ff658c30226335998ba",
+      "contractDigest": "5d45060a829c6fa9fd95ef6200efcd31e5dc226a75c342204be5e4cf68579ac0",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "inspection": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "23087a5a666e4be8e9a093ba6db1aefafa3a54f085f5bacd405a72c5a1b0c5e2",
+      "contractDigest": "116a3f1ab9bd91ca9f0651b8e4671acd8a153fbc5bc14972881945154a472585",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "inspection-catalog": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "f7c68f89f663d72bd93b29c3e613f5e6a95affc3025d90004c6549324ddebbb9",
+      "contractDigest": "f76a624ac6dbe588b4ece3a3e5c57db22cf7abd351afab1cf920e744aa4454a8",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "inspection-content": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "0a0f2a18bf7845928d5bf066d63cee7e17971ecfdcd5bc108dab5dae09636861",
+      "contractDigest": "658e9ac9c2f4f28b80a28fa8f3dd4665166c79562d77cce4455edfce79bb6d0d",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "instance-frame": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "7bce95596b0ac7af4c931168cab012c78b8e870bad52a66b478bdfe4ac2d9e32",
+      "contractDigest": "61ecccb71dd43c99ffc5471fbc1928115e4840d033de8508eee8f17da0d29708",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "labels-control": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "1ebbe42449ba12b30047cd4fe8f52e3738a48f3f98aadf0b22d57759d181c943",
+      "contractDigest": "156c99f6eb198b1ddbdd88b99a64f2db49c72ad140c106c326e61dc922514bfd",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "library": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "64feb23691455b213bde0ac8c04fea29eb361d159ceb2a0fe58838858ffe2d7b",
+      "contractDigest": "84bed67c205ef6e3bb9883e0f7024b4de4d70f3bf5afbda5a552e5352dafe123",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "loading": {
-      "status": "proposed",
-      "proposedOn": "2026-10-23",
-      "reason": "Skeleton loading placeholder (owner decision Q2)."
+      "status": "approved",
+      "sourceDigest": "deeb9c3c6120556095ed974944e7fd1ba2b24bc5e699edadbc855162c6fc33c7",
+      "contractDigest": "3c5eb6b5e2e61f41e0d6cac55d18810051b3e23606c54e1b7a53163f803bc9f4",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "local-exercise-content": {
       "status": "implemented"
@@ -164,45 +334,95 @@
       "status": "implemented"
     },
     "lock-screen": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "d84c190cc900c4b4dbcc3dd7bf12a371c22363cc10d475dc79d031175a06d654",
+      "contractDigest": "7b107c89bdfdc8dd607c25a685f7b23ea8707679cd4fbd29443a7bf47c686101",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "media-collection-grid": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "7d472e9a2f5a541f10ee5c27e9a4990e4b950cb8c9dec599d87ecd51eafe8dfc",
+      "contractDigest": "41baf1ecaaf89c16bfa61cd6b5dc08598256c30b9f2d8eb6df9c5337cf16094b",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "media-content": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "4b1ad73950c369b066d012cd647b12fe618f420ee5ae8d1fa1dff4c04856e7fc",
+      "contractDigest": "239c0ae8d0ddc4c5960f5b2310a8ae37cf0396d80a95f68c59b4e6a5b740bc90",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "media-control": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "39dc2b5625831d3a93e9299e3233c6fd7047e55eb6b2eabc2fbaac23580dbbd2",
+      "contractDigest": "33fda114b29a1acc8fabd84130fe3bf19558ee66ad46aef040cd3405d94a85bd",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "media-grid": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "e2d909df34e58d6b9603b67cbb647c97fabcd13f01897c14bc8393033d7b47e7",
+      "contractDigest": "4515d8f46bbc97788566af709afd404765f11b8f6c606b4c10b3aa32bea2f64f",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "media-object": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "51808b530edbf331d1fbc333eceb192500071056a7cf6dd172aaa4c479642060",
+      "contractDigest": "8db8841e5bdf4f9efff715322efb1e05a226bca96e80b1273891bab3436a4132",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "media-reference-selector": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "f3de9ce5c7467629e154d79e03309a8059bc6579a2d6c80a97717bf85df0da14",
+      "contractDigest": "e61770849dae2e109f41e6bb9e8b8ccd05cd68c86e71be0b1605a3d7e4d9b781",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "media-reference-specimen": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "bad61d8c1c96fb4815afb6142458a44db50ae3242a3e53b49d31d6051db90da2",
+      "contractDigest": "163d0d4336dd556a1b96d0d2f176fb30c6fb90cb43385af6569867ddcbf4fcfc",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "meter": {
-      "status": "proposed",
-      "proposedOn": "2026-10-23",
-      "reason": "Home summary widget chart (owner decision Q2)."
+      "status": "approved",
+      "sourceDigest": "f2be45a07bdb1a57a302735c83ee2b48d53adf3906ada82c2c69cf22983f4e32",
+      "contractDigest": "f8ab754eb257de0d6ac12d95d06ae1c7b51e7429a6b3d21e5e448ebb0f254ed1",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "money-control": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "aeaec3eafa010dbe68bcd882f1a9e252871e50401ccbaf2733f75dcd586777e7",
+      "contractDigest": "3e29aeddacf78dbc8d75d1feaf5aa9041013d848f46c245b50f7958d3dffc98d",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "object-state-control": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "f8612e881cd842d34781a19f47a17706ab947a219f6038ff40f0ee47d8055fa1",
+      "contractDigest": "219f47d0410c275fed3b5ad1897a7a6955cbbe9ecf03638c2d4b2dbfff6533ec",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "object-state-row": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "08c1633f3df7be9f76f738e1092401fd0c102701140f4982c5aa3480f53d7767",
+      "contractDigest": "5e3e5886651bc843c2a8087c20fb84dabe3e5e91895206191853f3b83f58533b",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "options-control": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "f6416a6ac8118e588cbe1ed076e794228d183ee9222a49a904f976f3f79e8657",
+      "contractDigest": "3750b75a0f1705eeb15dee719b512ff7c94e2b84b04b01bf4fcecd05ae4f2d8d",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "panel": {
       "status": "implemented"
@@ -211,16 +431,28 @@
       "status": "implemented"
     },
     "place-heading": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "3b708995cb677e42224c7c885731440b961b1883d7250e624e474c3a8fab40e8",
+      "contractDigest": "3c2daa3dbb6aa5d1c6704bbf30f0fef560ab16ea1793eaebf2316de7c803413f",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "popover-control": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "f50a6358946a985d02ab81098a672d18d7c040062a9844bb5c61c0450d1b523f",
+      "contractDigest": "07cd0c647a665d5c8b18a6837eeaf258991a5bfa3a8e31ff7699390e42914fa6",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "public-catalog-bank": {
       "status": "implemented"
     },
     "public-catalog-bank-specimen": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "6c5b0b3e515162971f207b32fdb6bf10baa864fde045674e028e5e62906ba29a",
+      "contractDigest": "2bf8c9d12549a683e54c13a9cd22eb91485038869c5766097420795d4d59b871",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "public-catalog-product": {
       "status": "implemented"
@@ -229,95 +461,191 @@
       "status": "implemented"
     },
     "reading-content": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "984762cce64407fbc6a2f58a55865f4522a2943f66806fb58bf7c29677e70ec1",
+      "contractDigest": "116960c7b216a417b819cea05e1f324a2eee56a976879bd249516082be2b640a",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "reference-selector": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "886ec0df249c6c571eaee059e978a12416e52afc884fe8245f14955fb2319eaf",
+      "contractDigest": "c840f457828f962389fc4d62620e045c914fb4989cf19a504d713c21d60c5cb2",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "reference-specimen": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "ac3c6693761c1fbba422dc09b309a74dc9178912ec9d33c08b750f6b7fff88f0",
+      "contractDigest": "cf4321bd46e0b051feb69a02da36c220a6dfd294d30e0d49c5d5e74051e208ca",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "related-selection": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "bd6aa9303f0cdba72c7851c80667988d2d1572ef46ea0d925c2449cc93c6d4df",
+      "contractDigest": "a7b657b4bdabfc19bccf0d708e37024fe21bdd67e8f9c07b4eed95d7925477fd",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "review": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "8d24a449a27e88cf3c36967395f4e4384a7dbd00e68b16f01519839c307b9b17",
+      "contractDigest": "2fe0683e0411b67e8d3431c2c28bb8cff76a6e1d02913118368a0c0348a36978",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "select-control": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "13cfed8ff600dfd0b283962c249fda29296b19c03c7a4e2dc321467257e244c5",
+      "contractDigest": "f94b47d917eb7fc12acb1c808c890137e841065aabb06e830893f6b420bf8d75",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "shared-owner-catalog": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "5b26d4b6b4ef3865d4f1a60b2deb0df72e9b215d680d9ef9f57f459b156b6837",
+      "contractDigest": "f65c9a7cfa1e8e4d17130bfabb68b6a73cba95a075261a5aaec688507491babe",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "shared-owner-specimen": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "185487ccc5e871f16b042397738b071f5d9c4e68b853b93b1063215d1e065658",
+      "contractDigest": "0c0f0d22bff876f86aab87012170119a66cc6cdb06142837225cba145532bd35",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "slider": {
-      "status": "proposed",
-      "proposedOn": "2026-10-23",
-      "reason": "Media seek and volume (owner decision Q2)."
+      "status": "approved",
+      "sourceDigest": "829d4e5d01c0817ea564c026b2873988bdcfd0220beceba60f2396abeeefe55b",
+      "contractDigest": "fc3e9322d93f1bf85e6e64fa5ae21ebb59a43f8a2194f271f70230c44dcff913",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "specimen": {
       "status": "implemented"
     },
     "specimen-group": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "679091743a184af553591b731440c0a6c334f42ae9961abcbf83d55a022cfd6f",
+      "contractDigest": "ba31ad7b2cdd1d5ac30cd17dd0148f051d53de8929d2b044dde35a7826ac77cd",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "specimen-row": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "6934b1fb3fcdb2938f711bc540692d3e4cab0152760ca21c34497bfb624dbafb",
+      "contractDigest": "af942419a34a3862793cad1c0f35d0645f967395f80f8a99a37e8cd03abffa57",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "specimen-unavailable": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "0870bf99822a9bbd2b3b81e636d1dad9dcd75a60c2c63c43e47f9b2f8060228f",
+      "contractDigest": "a3328bd25e4646e12700cc2976d1fccf5cdee0adcf7e71b425728154c925dd13",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "stack": {
       "status": "implemented"
     },
     "stack-item": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "30979adc655e3c42d690dca8d61889eb333169253bdab5acb6e055d282cd1ed6",
+      "contractDigest": "8ffe1a1c988944585bd6eb13cd98af5fa02af9bad40937871824d3d7caafd9b7",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "stack-layout": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "53cf674d2ab9d1b277ee5350dd342f9e257ecd3876e8040e92c72f901a16101a",
+      "contractDigest": "2fba82859f0d902f6da0f233c35c35e0d5681aeee2c549a299cf1bd8af325660",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "summary-widget": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "6b90829de6999227cbc2ab4551a67dbc0db1d91e7c02880ca7e333a0abbaad5e",
+      "contractDigest": "73bda38364c90e353f8f8c85e751cd3c685b9717924bf5ca531a379f0efca280",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "surface-frame": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "aa406c6bfaa7ce80fc82e2b55592811a08623e3d1342a53cd62d4610add6158e",
+      "contractDigest": "b8680d8b3f7d2c67c5c944b5710f5573f6e04c20fd83064cc82d493d6ab627c6",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "surface-specimen": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "075030f1c97e392e56aa5641d5e3afbe70abc5829731f21d5a06d2661bfc6487",
+      "contractDigest": "153febf6427107f6b6ed8ca2255c7a85be8571d363d02d974321e141d3f21772",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "text-content": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "8515ba017e56b48d44cba4537ddfc311dec90f26c805f9536245a33dd1039690",
+      "contractDigest": "f5e5db955961e6c6fbf7fae2848401137eed0442c2e90dc6e91eb3828c3b126b",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "theme": {
       "status": "implemented"
     },
     "theme-preview": {
-      "status": "proposed",
-      "proposedOn": "2026-10-23",
-      "reason": "Appearance theme miniature (owner decision Q2)."
+      "status": "approved",
+      "sourceDigest": "29f91b5840d3515dddf82a4a22a28d815b49d7e40c952b4bcbf0273bac8f6d0a",
+      "contractDigest": "f36aefd3aa40bb121529e6aea030ba411e6d2baa33d597021ba07b015b0cad3d",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "toolbar": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "0a5c07dfb7260bbd251f9cd52e8b1a00b9f66b1bf9b98c679abf8753d8e7dece",
+      "contractDigest": "a5fe18cb176528aef9d6054a3eecbf3afc22987a4ef0278e9f1b4bf3429848dd",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "utility-actions": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "e593de377830ed6004eaee3282d20841afe8e82c607381106c91b735de7d15ec",
+      "contractDigest": "2a67b3aa046bd9fd1d3d25d556ae955df03c44ac88f789cdc214329caff23317",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "view-attention": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "4ee338063302794fe9174d1624b2aee95de6f052b79535f06de60df5669fc568",
+      "contractDigest": "06f4d3ed81beeff77ef7b25ba95422ecae6e6e91372927a2ef7727d362af728f",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "view-content": {
       "status": "implemented"
     },
     "view-destination-link": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "9689c2d8bd66cafc61c74459b8b5de685a044a614881e39a10b932dd53bdde02",
+      "contractDigest": "d7de3cadf8ee234dec4d23245da6b2c5fae0d2b38e2bfc1df254bbd99484877e",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "view-item": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "04b4aa0dc84472070e14ca6126a7cbf3124200e278ee567829d75d9e32defb55",
+      "contractDigest": "36c98fb7db16bcbc26dd813b2ddd85073056d80d69b5ea508c8f567f39bc343b",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "view-panel": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "9c4a3a946bc736258c27cdca21d8ac02e758da0d5903414bf6cd7a20d6e52994",
+      "contractDigest": "9f8d067625eb711b20dda0e7606733db03a050ea5111b6b89866437a01890a67",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "view-product": {
       "status": "implemented"
@@ -326,16 +654,206 @@
       "status": "implemented"
     },
     "view-related-selection": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "1d92a4e3559bcbfc81fbe5ac34a2df401b803e65870c9f89a8101c98f488cd38",
+      "contractDigest": "9d41d503cf330ce5e5f85339f52aa334ed521c2dadcd03bd1fe44a6ca4baad8c",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "view-workspace": {
       "status": "implemented"
     },
     "wallpaper": {
-      "status": "implemented"
+      "status": "approved",
+      "sourceDigest": "e7cb9fda90cd7c950084fc7a2bd6e5b65dbd147a00d94a19550448c25b631668",
+      "contractDigest": "3f3ac1d0b03596659a31e96d2b4d34b7d2202ec3853cdbdedc69d8bc1e88ab13",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     },
     "workspace": {
       "status": "implemented"
+    },
+    "dialog": {
+      "status": "approved",
+      "sourceDigest": "ca714b9f2e11ed143ae184e42f6b786f82330d3b4f1eae6b9ae89ffc817250af",
+      "contractDigest": "96345e6644f8a6ced7920db2d361228e70d1d516bd61fd4a9b85a6353cfcb700",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "field": {
+      "status": "approved",
+      "sourceDigest": "15ebc0a5c9414cc8b87f8dc5013255aff9966ae34fec57bba48b55634e3c498c",
+      "contractDigest": "dfe09ea8e42ff9f4b057ba055b836555ae6b8e23684b17a51ca7c54530414fc4",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "files": {
+      "status": "approved",
+      "sourceDigest": "1a60e5d05f6b130536a0c43be28ffef4184505455e715e934a64e8027c807e24",
+      "contractDigest": "ca8f3c7e7de60932607d5d994cb71bfd83ef5e01cd679749647e631b24942e86",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "view-binding": {
+      "status": "approved",
+      "sourceDigest": "39c46430bcc1082773374228a5507a74cb58fba27876e6546d5ba1056e2576d8",
+      "contractDigest": "b59360f4378240f6ddc5e828d843334dad83e220fe23d46b129f5afb2d8c9e28",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "avatar": {
+      "status": "approved",
+      "sourceDigest": "2b946271636e4b1a37ed47b580b171d727ffc1b962d183c691a5ffb26506dfa6",
+      "contractDigest": "b937149eff8fe72cb83e955b5082cee76f37eea62552948968867f7a01d692d7",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "bar": {
+      "status": "approved",
+      "sourceDigest": "b2f8e944529b4421b813b1e372b3a56e7d8dca0ce9905154c27025ced83542b5",
+      "contractDigest": "6c977cd20c8c27c5a75ee4fb7eb375121fc961e52e3b3d8acdeed393d80699d4",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "card": {
+      "status": "approved",
+      "sourceDigest": "c885fc83054e8de743e048ffdb996f8064ef9631aca05436333ab371ef2acaff",
+      "contractDigest": "a22353f5db45b7f4aa2fbc1e173c6f84238bf8bcd765425be6374ed2e486d5e3",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "choice": {
+      "status": "approved",
+      "sourceDigest": "e1ced26fd72c108955317b2fa7a3eb61788eb96a0ee37a8cfe8e379e37ba5373",
+      "contractDigest": "0941bda7366b3c3ed15cbf3f7bb8568bdd0628a9cadb6616146b488eb9888ba8",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "column": {
+      "status": "approved",
+      "sourceDigest": "afc5c2238296878e1c6c9f96270fcbef4abd387a289ac635dee764167fc30430",
+      "contractDigest": "c4dd6743acaf5c9fd52a6aa70dd5f36cb1ac288e4cb502bd946f9604bd4e4ce8",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "form": {
+      "status": "approved",
+      "sourceDigest": "b23affcead2326762d877fa4cb24ddfe2a78f00605817cab525d34fc474491c0",
+      "contractDigest": "266009cfc96ea4ce4c4783ac508352f3bbd25450c4d6c165826f0a1d3b9075ad",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "gallery": {
+      "status": "approved",
+      "sourceDigest": "5be0789b5092ac52e0f7b52f29258f36974f8ffd84ba99450103ae47404ef744",
+      "contractDigest": "35a1415349d54d28e8036fe28c1e133f8f68febbe0f4bc92dd16538bef189da8",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "inline": {
+      "status": "approved",
+      "sourceDigest": "bdd9e68bf01efa3176863cf416f894a916c978eaa907dcc7a52e7c327c11777c",
+      "contractDigest": "e3e2f593080987b8cf7109ac2a42da59a2a14971d63a4e4fd98c67dc178757cc",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "list": {
+      "status": "approved",
+      "sourceDigest": "642833d699758353044e8c812e6633ed3d5093ab5e5a987551537b719b0bf19c",
+      "contractDigest": "ed044c4392748378583be626bbf5a18173ddb205a999930704846a0d918b7526",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "modal": {
+      "status": "approved",
+      "sourceDigest": "388165fd14e9ffba324de4d6899c33cdb139e924eeb512584f9cb4b80f60bfd7",
+      "contractDigest": "7afc2ab4e0a0e5dc49980e20cb6502744595de3a8dac45f0f2d888d0bc6c869a",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "popover": {
+      "status": "approved",
+      "sourceDigest": "5dd21140d82f36d6b4611d76c241497a4ca877fb749c448b0e9ded93b1f78e44",
+      "contractDigest": "5759088fd0b4c07c42fd1564fe83c26cc1591b922d21bb654d946fac70dafca5",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "row": {
+      "status": "approved",
+      "sourceDigest": "e6b0815f69cd1bd1246a79774e620caa22a51e5d9ca787ed3869f63f79738fd5",
+      "contractDigest": "53c997461d1029d30e9f490eb56fa36e079aad265f9e1fafd3f4d1962a3e468f",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "spacer": {
+      "status": "approved",
+      "sourceDigest": "baeccf6c119b0406b1d7a3a64520746f5ccd808f7a959487bfca633a7910608c",
+      "contractDigest": "3385484aeb926ad3aba657b1f985f7aa71d5063df97f29368f11104f165fc0da",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "status": {
+      "status": "approved",
+      "sourceDigest": "4b57389ee674ed865cfc8a56660c9bf6ea8b58a20074c6eb0a09cd121717b936",
+      "contractDigest": "ebe41c52013fcc07276f9412ceb775a1c491adfb31bd060e714a228441ca31f1",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "tag": {
+      "status": "approved",
+      "sourceDigest": "a4d28ab4c4da877d16cb22a0fd347f27e3346249e00972eb61b819f02aa9ac63",
+      "contractDigest": "01297874188688150f32623f0fc8ea86c8a4c06044f6da5e9320f362d66c3240",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "text": {
+      "status": "approved",
+      "sourceDigest": "b53d34e416f7f8b1af0d8d96024ac36a31a78f91a08590dd19146e94bd1b2e58",
+      "contractDigest": "355ed0b10dc0e3625567148eabe3ba3eb4a2fc7163dec2ae5ac9ec8f8dbbbc95",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "view-region": {
+      "status": "approved",
+      "sourceDigest": "875fdd0f0dd0455aa7bdcd16cf29293927a4c5d7df71a31d40ac7d9a233faaa9",
+      "contractDigest": "da19ecb77ef4979db13662fb30f7c4005c28665fe9cce355c26863f6d1dd00da",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "grid": {
+      "status": "approved",
+      "sourceDigest": "c7163ec8e4a4ad56dc6e318c220ca181868882524bbdf2fa5afa29374b6d996f",
+      "contractDigest": "bd886d03da53e534a3ac223adeb0bb6a2094f4b37e84d0bf1f492beeff3269f0",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "media-player": {
+      "status": "approved",
+      "sourceDigest": "71d7aad5ffa96fe0af83f1c1a39a68de0b2d9057874c346c1c1d7216a117cb66",
+      "contractDigest": "890d5d74f3a49d4dae2bf81d056f8db9fb8a37e576658b6d8aca0b0d9ac39f59",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "media-viewer": {
+      "status": "approved",
+      "sourceDigest": "c3cfb5398155fde0a05b55fc5f9c9c130ccae94353ac620a55cc8a402b7260ea",
+      "contractDigest": "ad78da378d19669edb41a75f84803390adabb4b17712906b290ee50a1a3d82cc",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "menu": {
+      "status": "approved",
+      "sourceDigest": "3630a4c7c944f6a29ace96e7da43ae75cd6e6188c053bb87d1169929dfa83604",
+      "contractDigest": "b0411943db5f7308c7241a98a3ccdb3bfa4a053ec767f8fbd213b8bdfd8cd889",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
+    },
+    "surface": {
+      "status": "approved",
+      "sourceDigest": "1b2254f829a5c7ebe23fddc795ff88b4e1c5767dc233652e25d7066b9d522ec5",
+      "contractDigest": "f0b3a28fed2ca96e51013d2fa2f4ac3c753d7d9f7fc3ca0524a2a4adb141e035",
+      "approvedOn": "2026-10-26",
+      "approvedBy": "owner"
     }
   }
 }
