@@ -58,6 +58,9 @@ for (const key of ["Enter", "Space"]) {
       assert.deepEqual(await f.scrollCalls(), [[{ top: 0, behavior: "smooth" }]]);
       assert.equal(await action.evaluate((element, initial) => element === initial && document.activeElement === element, original), true,
         "the same keyboard target retains focus after reaching the top");
+      // The toolbar learns it is at the top from the viewport's scroll event, which a smooth scroll may deliver a frame
+      // after scrollTop lands on 0: the second activation is pressed once the toolbar no longer offers the return.
+      await f.page.waitForFunction(() => !document.querySelector('[data-test-pane="0"] [data-toolbar="top"]')!.hasAttribute("data-toolbar-return"));
       await action.press(key);
       assert.deepEqual(await f.scrollCalls(), [[{ top: 0, behavior: "smooth" }]], "activation at the top is a no-op");
       await f.page.keyboard.press("Tab");
