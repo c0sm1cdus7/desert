@@ -2884,7 +2884,7 @@ Source SHA-256: af622509d56b81963f8ecc5ead5044809511ce1145d56271a3e2cf97dfe4df19
 
 ## src/svelte/catalog/foundations/shell/ShellNavigation.svelte
 
-Source SHA-256: 6fee8ccc852c739728516375aeb887f1ece850b61d05fd6f90ddea8a3acf2349
+Source SHA-256: 620630f328734a31d6c65a3bc974299b9e627b73065b2082dbce880f1ec102c8
 
 ```svelte
 <script lang="ts">
@@ -2896,13 +2896,16 @@ Source SHA-256: 6fee8ccc852c739728516375aeb887f1ece850b61d05fd6f90ddea8a3acf2349
   // navigation Modal, which an edge swipe (CatalogEdgeNavigation) may reveal under the pointer before it opens.
   import { untrack } from "svelte";
   import * as Sidebar from "../../../vendor/components/ui/sidebar/index.js";
-  import { Bar, Icon, Modal, Surface } from "../../index.ts";
+  import { Bar, Face, Modal, Surface } from "../../index.ts";
   import { provideCloseFocus } from "../../mechanisms/surface-focus/focus-return.ts";
   import { swipeMotion } from "../../mechanisms/swipe-motion/swipe-motion.svelte.ts";
   import { providePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
   import type { ShellNavigation } from "../../../infra/workspace-navigation.ts";
-  import { navigationIconNames } from "./navigation-icons.ts";
   let { navigation, searching, onnavigate }: { navigation: ShellNavigation; searching: boolean; onnavigate: (id: string) => void } = $props();
+  // A destination's icon is the one Face (law 9e; owner decision V1, 2026-10-25): the face's white ground and hairline,
+  // its colour on the glyph alone (the accent for a place to browse, positive for the travel kit, neutral for the bank).
+  // The coloured group squares the owner asked for on 2026-10-16 are withdrawn; the shell paints no icon of its own.
+  const inks = { browse: "accent", "travel-kit": "positive", bank: undefined } as const;
   const sidebar = Sidebar.useSidebar();
   // Closing the overlay returns focus where the sidebar decides (the control that opened it, or its equivalent).
   provideCloseFocus(sidebar.handleCloseAutoFocus);
@@ -2954,7 +2957,7 @@ Source SHA-256: 6fee8ccc852c739728516375aeb887f1ece850b61d05fd6f90ddea8a3acf2349
           <Sidebar.MenuItem>
             <Sidebar.MenuButton isActive={destination.id === navigation.active} aria-current={destination.id === navigation.active ? "page" : undefined}
               aria-label={destination.label} onclick={() => navigate(destination.id)}>
-              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon name={navigationIconNames[destination.icon]} size="lead" /></span>
+              <span data-navigation-icon={destination.appearance}><Face face={{ kind: "icon", icon: destination.icon }} ink={inks[destination.appearance]} compact /></span>
               <span data-navigation-label>{destination.label}</span>
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>
@@ -3025,18 +3028,19 @@ Source SHA-256: 860f15e07a13f800e7885a3f996def331b51a309eea872e0d58a865f052f1ef8
 
 ## src/svelte/infra/workspace-navigation.ts
 
-Source SHA-256: b40a436d4061f214b925f5878a86071b31adcf3b5fefcaf6cdc8c7f9a6a185d5
+Source SHA-256: c9afe36f93053a395b7581af5ac7c40b49a1bb0ce215950f7bd342ea411b98cb
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
-import { ActionIconSchema } from "../../interaction/action-icon.ts";
+import { FaceIconSchema, type FaceIcon } from "../../interaction/face.ts";
 import type { ViewNavigationEntry } from "../../views/program-schema.ts";
 import { text } from "../../views/definition.ts";
 import type { Frozen } from "../../json.ts";
 
-/** Renderer-owned navigation data. No component, CSS or layout escape hatches. */
-export const WorkspaceIconSchema = Type.Union([ActionIconSchema, Type.Literal("landmark"), Type.Literal("backpack"), Type.Literal("panels")]);
-export type WorkspaceIcon = Static<typeof WorkspaceIconSchema>;
+/** Renderer-owned navigation data. No component, CSS or layout escape hatches. A destination's icon is a face's icon:
+ * the shell draws it as the one Face (law 9e; owner decision V1, 2026-10-25: no coloured squares, the face as always). */
+export const WorkspaceIconSchema = FaceIconSchema;
+export type WorkspaceIcon = FaceIcon;
 const closed = { additionalProperties: false } as const;
 /** The navigation pane the shell draws (DESIGN §3.2): its identity, the active destination and the grouped destinations
  * `workspaceNavigation` resolves. */
@@ -3977,15 +3981,20 @@ export function dispatchSurfaceIntent(value: SurfaceIntent, handlers: IntentHand
 
 ## src/interaction/face.ts
 
-Source SHA-256: 1b34816a97afaea89a13751b4369c931938168d31672ebeaf7e5b6bf86a06b75
+Source SHA-256: 8b9b3e35412b4c1ebe0b9500341df2a243f8130da09e3b62da09870df423263f
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
 import type { Frozen } from "../json.ts";
 import { ActionIconSchema } from './action-icon.ts';
 
+/** The glyphs a face may draw: every action icon and the glyphs of a workspace's navigation destinations (a place to
+ * browse, the travel kit, the developer bank). A navigation destination's face is this one Face (law 9e). */
+export const FaceIconSchema = Type.Union([ActionIconSchema, Type.Literal("landmark"), Type.Literal("backpack"), Type.Literal("panels")]);
+export type FaceIcon = Static<typeof FaceIconSchema>;
+
 export const FaceSchema = Type.Union([
-  Type.Object({ kind: Type.Literal('icon'), icon: ActionIconSchema }, { additionalProperties: false }),
+  Type.Object({ kind: Type.Literal('icon'), icon: FaceIconSchema }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal("document") }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal("status"), severity: Type.Union([
     Type.Literal("warning"), Type.Literal("error"),
@@ -4607,26 +4616,30 @@ Source SHA-256: 95d6500ce603f7e812ae79ce8d0833a8ae5732a509302ab5ded2c8116684a0f5
 
 ## src/svelte/catalog/foundations/face/Face.svelte
 
-Source SHA-256: b1583028daeae8af01654d99d391b8903c51c0f714de65be3f2b7e2e5fb9a9b5
+Source SHA-256: 4849dd65d88b5540a2fd3ee5a073a172a659e49c35d411251820ed72a84bb72c
 
 ```svelte
 <script lang="ts">
-  import { actionIconNames } from '../../../infra/action-icons.ts';
+  import { faceIconNames } from '../../../infra/action-icons.ts';
   import { Icon } from '../../index.ts';
   import type { CatalogProps } from "../../types.d.ts";
   import { glyphTone, type FaceTone } from "./face-tone.ts";
-  let { face, compact = false }: CatalogProps<"face"> = $props();
+  let { face, compact = false, ink }: CatalogProps<"face"> = $props();
   let glyph = $derived(face.kind === "symbol" ? face.text : face.kind === "flag"
     ? Array.from(face.region, letter => String.fromCodePoint(0x1f1e6 + letter.charCodeAt(0) - 65)).join("") : "");
-  let tone: FaceTone = $derived(face.kind === "status" ? face.severity : "neutral");
+  // A status face wears its severity's ink; a host cannot ask it to wear another (fail loud, never a silent override).
+  let tone: FaceTone = $derived.by(() => {
+    if (face.kind === "status" && ink) throw new Error("FACE_STATUS_INK");
+    return face.kind === "status" ? face.severity : ink ?? "neutral";
+  });
 </script>
 <!-- One face primitive (law 9e): the theme's tm-face gives every face the same white ground and hairline; the root takes
      no tone. The tone reaches only the glyph, through glyphTone, so a coloured ground cannot be written here. -->
-<div class="bank-face tm-face flex shrink-0 select-none overflow-hidden rounded-[30%]"
+<div class="bank-face tm-face flex shrink-0 select-none overflow-hidden rounded-[var(--radius-face)]"
   data-piece="face" data-face-kind={face.kind} data-compact={compact || undefined} data-tone={tone} aria-hidden="true">
   <span class={["face-content type-body flex size-full items-center justify-center rounded-[inherit]", glyphTone[tone]]}
     data-face-content data-glyph-tone={tone}>
-    {#if face.kind === 'icon'}<Icon name={actionIconNames[face.icon]} size="mark" />{:else if face.kind === "status"}<Icon name="circle-alert" size="mark" />{:else if face.kind === "document"}<Icon name="file-text" size="mark" />{:else}<span class="face-glyph" data-face-glyph>{glyph}</span>{/if}
+    {#if face.kind === 'icon'}<Icon name={faceIconNames[face.icon]} size="mark" />{:else if face.kind === "status"}<Icon name="circle-alert" size="mark" />{:else if face.kind === "document"}<Icon name="file-text" size="mark" />{:else}<span class="face-glyph" data-face-glyph>{glyph}</span>{/if}
   </span>
 </div>
 
@@ -4642,6 +4655,8 @@ Source SHA-256: b1583028daeae8af01654d99d391b8903c51c0f714de65be3f2b7e2e5fb9a9b5
     .glyph-neutral { color:var(--muted-foreground); }
     .glyph-warning { color:var(--warning); }
     .glyph-error { color:var(--destructive); }
+    .glyph-accent { color:var(--primary-text); }
+    .glyph-positive { color:var(--positive); }
     .bank-face[data-face-kind="flag"] .face-glyph { font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif; }
   }
 </style>
@@ -5021,10 +5036,11 @@ Source SHA-256: a32c203f578b947b92a89fc20daa0d8dcc333f5826e8207b5f02dd903b40fef7
 
 ## src/svelte/infra/action-icons.ts
 
-Source SHA-256: fdc440c606348edfbc9837731b37dbe668b90956f47eac5726e23548a8cf69b2
+Source SHA-256: aeccd21056ad724468c7be5d09a080bd77cdebaa3fb3aad725b9db3f4c161ea7
 
 ```ts
 import type { ActionIcon } from "../../interaction/toolbar.ts";
+import type { FaceIcon } from "../../interaction/face.ts";
 
 /** The icon (a name of the catalog's `icon` foundation) that draws each action icon. */
 export const actionIconNames = {
@@ -5034,6 +5050,11 @@ export const actionIconNames = {
   play: "play", pause: "pause", volume: "volume-2", muted: "volume-x", previous: "chevron-left", next: "chevron-right",
   "zoom-in": "plus", "zoom-out": "minus",
 } as const satisfies Record<ActionIcon, string>;
+
+/** The icon that draws each face icon: every action icon and the navigation destinations' glyphs. */
+export const faceIconNames = {
+  ...actionIconNames, landmark: "landmark", backpack: "backpack", panels: "panels-top-left",
+} as const satisfies Record<FaceIcon, string>;
 ```
 
 ## src/svelte/vendor/components/ui/button/button.svelte

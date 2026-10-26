@@ -1,7 +1,9 @@
 // A home stack's card rail scrolls edge to edge (third review of the slice 3 package): shown inside another page, the
 // rail stopped at that page's content margin and cut its cards mid-word («Secor»). Inside a retained place, which pads
 // its content by its surface inset, the rail bleeds over that padding to the surface's edge while its first card stays
-// where it was; where nothing pads it, it bleeds over nothing (it never runs past the surface).
+// where it was, on the title's margin (the stack's row inset: the axis of the title and the featured entry); where nothing
+// pads it, it bleeds over nothing (it never runs past the surface). The first card on the title's margin is the approved
+// look (owner decision V3, 2026-10-25), not a provisional one.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mounted } from "./support/foundation.ts";
