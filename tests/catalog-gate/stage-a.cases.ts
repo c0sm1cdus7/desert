@@ -4,10 +4,12 @@
 // controls: today's code or its future name). Both the test and the baseline recorder read this list.
 import type { GateMode, Mutation, SourceTree } from "./harness.ts";
 
-/** `at`: the file the new violation must name, when the case knows it (a code alone could come from anywhere). */
+/** `at`: the file the new violation must name, when the case knows it (a code alone could come from anywhere).
+ * `ledger`: the approval state the case needs, applied to its copy before `mutate` and to the baseline it is compared with,
+ * so the owner's real ledger cannot decide the case. */
 export type GateCase = Readonly<{
   id: string; title: string; kind: "escape" | "control" | "positive";
-  expect: readonly string[]; mode?: GateMode; mutate: Mutation; at?: string;
+  expect: readonly string[]; mode?: GateMode; mutate: Mutation; at?: string; ledger?: Mutation;
 }>;
 
 const catalog = "src/svelte/catalog", compositions = `${catalog}/compositions`, foundations = `${catalog}/foundations`;

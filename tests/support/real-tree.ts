@@ -33,8 +33,12 @@ const parse = (path: string, source: string) => {
   return value;
 };
 
-/** The real tree with some files replaced or added (`changes`): a content-rule context, as the gate builds it. */
-export function realContext(changes: Readonly<Record<string, string>> = {}): GateContext {
+/** The real tree's approvals ledger, as read from disk. */
+export const realLedger: unknown = tree.ledger;
+
+/** The real tree with some files replaced or added (`changes`): a content-rule context, as the gate builds it. `ledger` replaces
+ * the real ledger, for a test that must not depend on what the owner has approved today (tests/support/ledger-fixtures.ts). */
+export function realContext(changes: Readonly<Record<string, string>> = {}, ledger: unknown = tree.ledger): GateContext {
   const sources = new Map([...original, ...Object.entries(changes)]);
   const paths = [...new Set([...tree.paths, ...Object.keys(changes).filter(path => DesertLayout.roots.some(root => path.startsWith(`${root}/`)))])].sort();
   const declarations = tree.declarations.map(located => {
@@ -43,23 +47,26 @@ export function realContext(changes: Readonly<Record<string, string>> = {}): Gat
     const [declaration] = readDeclarations(located.path, changed);
     return declaration ? { path: located.path, declaration } : located;
   });
-  return createContext({ layout: DesertLayout, paths, declarations, ledger: tree.ledger, sources, parse, nonvisual: "unread", contractTypes: "unread" });
+  return createContext({ layout: DesertLayout, paths, declarations, ledger, sources, parse, nonvisual: "unread", contractTypes: "unread" });
 }
 
 const key = (item: Violation) => `${item.code}\u0000${item.path}\u0000${item.what}`;
-const baselines = new Map<ContentRule, Map<string, readonly Violation[]>>();
+const baselines = new Map<ContentRule, Map<unknown, Map<string, readonly Violation[]>>>();
 
 /** `CODE path:line: what` of each violation `rule` reports on the changed tree and not on the base tree (a multiset). The base
  * is the real tree, or the real tree with `base` applied: a test that replaces a whole file compares with that file emptied,
- * so a violation the old text already had is not mistaken for nothing new. */
-export function added(rule: ContentRule, changes: Readonly<Record<string, string>>, base: Readonly<Record<string, string>> = {}): string[] {
-  const known = baselines.get(rule) ?? new Map<string, readonly Violation[]>(), baseKey = JSON.stringify(Object.entries(base));
-  const baseline = known.get(baseKey) ?? rule(realContext(base));
+ * so a violation the old text already had is not mistaken for nothing new. Both trees read `ledger` (the real one by default). */
+export function added(rule: ContentRule, changes: Readonly<Record<string, string>>, base: Readonly<Record<string, string>> = {},
+  ledger: unknown = tree.ledger): string[] {
+  const byLedger = baselines.get(rule) ?? new Map<unknown, Map<string, readonly Violation[]>>();
+  const known = byLedger.get(ledger) ?? new Map<string, readonly Violation[]>(), baseKey = JSON.stringify(Object.entries(base));
+  const baseline = known.get(baseKey) ?? rule(realContext(base, ledger));
   known.set(baseKey, baseline);
-  baselines.set(rule, known);
+  byLedger.set(ledger, known);
+  baselines.set(rule, byLedger);
   const remaining = new Map<string, number>();
   for (const item of baseline) remaining.set(key(item), (remaining.get(key(item)) ?? 0) + 1);
-  return rule(realContext({ ...base, ...changes })).filter(item => {
+  return rule(realContext({ ...base, ...changes }, ledger)).filter(item => {
     const left = remaining.get(key(item)) ?? 0;
     if (left > 0) { remaining.set(key(item), left - 1); return false; }
     return true;
