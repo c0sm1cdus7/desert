@@ -13,6 +13,7 @@ import { generateCatalog } from "../../src/authoring/catalog/generate.ts";
 import { contractDigest, sourceDigest } from "../../src/authoring/catalog/digest.ts";
 import { readCatalogTree } from "../../src/authoring/catalog/gate/run.ts";
 import { DesertLayout } from "../../src/authoring/catalog/layout.ts";
+import { withoutApprovals } from "../support/ledger-fixtures.ts";
 
 const sdkRoot = fileURLToPath(new URL("../../", import.meta.url));
 const runner = fileURLToPath(new URL("./gate-runner.ts", import.meta.url));
@@ -60,6 +61,12 @@ export class SourceTree {
       contractDigest: digests.contract ?? contractDigest(digestTree, id, read), approvedOn: "2026-10-23", approvedBy: "owner" };
     await writeFile(this.path(DesertLayout.ledger), `${JSON.stringify(ledger, null, 2)}\n`);
   }
+  /** The copy's ledger with `id` implemented (`id` undefined: every approved piece), so a case states the approval state it needs. */
+  async implementedInCopy(id?: string) {
+    const current = JSON.parse(await readFile(this.path(DesertLayout.ledger), "utf8")), ledger = withoutApprovals(current);
+    const next = id === undefined ? ledger : { ...current, pieces: { ...current.pieces, [id]: ledger.pieces[id] ?? { status: "implemented" } } };
+    await writeFile(this.path(DesertLayout.ledger), `${JSON.stringify(next, null, 2)}\n`);
+  }
   /** What `node scripts/catalog.ts --write` does, on the copy: so a case can change a declaration without a derivation error. */
   async regenerateCatalog() {
     for (const file of generateCatalog(await readCatalogTree(this.root, DesertLayout), DesertLayout)) {
@@ -94,13 +101,17 @@ export async function observeGate(mutate: Mutation, mode: GateMode = "boundaries
   } finally { await rm(tree.root, { recursive: true, force: true }); }
 }
 
-const baselines = new Map<GateMode, Promise<GateOutcome>>();
-/** The unmutated tree, observed once per mode: under the strict build (Q1) it carries today's violations. */
-export const baselineOf = (mode: GateMode = "boundaries") => {
-  const known = baselines.get(mode);
+/** The unmutated tree with nothing approved: the ledger fixture of a case whose intent is that a legal change passes. */
+export const noApprovals: Mutation = tree => tree.implementedInCopy();
+const baselines = new Map<GateMode, Map<Mutation | undefined, Promise<GateOutcome>>>();
+/** The unmutated tree (under `ledger`, a case's ledger fixture, when given), observed once per mode and fixture: under the strict
+ * build (Q1) it carries today's violations. */
+export const baselineOf = (mode: GateMode = "boundaries", ledger?: Mutation) => {
+  const byLedger = baselines.get(mode) ?? new Map<Mutation | undefined, Promise<GateOutcome>>(), known = byLedger.get(ledger);
   if (known) return known;
-  const observed = observeGate(async () => {}, mode);
-  baselines.set(mode, observed);
+  const observed = observeGate(ledger ?? (async () => {}), mode);
+  byLedger.set(ledger, observed);
+  baselines.set(mode, byLedger);
   return observed;
 };
 

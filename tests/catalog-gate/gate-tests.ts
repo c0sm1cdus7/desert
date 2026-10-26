@@ -7,7 +7,9 @@ import type { GateCase } from "./stage-a.cases.ts";
 export function defineGateTests(cases: readonly GateCase[]): void {
   for (const gateCase of cases) {
     test(`${gateCase.id} ${gateCase.title}`, async () => {
-      const [result, baseline] = await Promise.all([observeGate(gateCase.mutate, gateCase.mode), baselineOf(gateCase.mode)]);
+      const { ledger, mutate } = gateCase;
+      const [result, baseline] = await Promise.all([observeGate(ledger ? async tree => { await ledger(tree); await mutate(tree); } : mutate, gateCase.mode),
+        baselineOf(gateCase.mode, ledger)]);
       if (gateCase.kind === "positive") {
         // A legal tree builds, or (strict build, Q1) is refused only by content rules already refused in the unmutated
         // tree: never a structural rule, a crash, or a violation the mutation added.

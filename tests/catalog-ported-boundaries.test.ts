@@ -7,11 +7,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { contentRuleIds, contentRules } from "../src/authoring/catalog/gate/content-rules.ts";
 import type { ContentRule } from "../src/authoring/catalog/gate/context.ts";
-import { added, mutated, realSource } from "./support/real-tree.ts";
+import { withoutApprovals } from "./support/ledger-fixtures.ts";
+import { added, mutated, realLedger, realSource } from "./support/real-tree.ts";
 
 /** Every content rule that reads only the visual roots (rules N and U read disk; their scenarios have their own files). */
 const onDisk: readonly string[] = ["N", "U"];
 const gate: ContentRule = context => contentRuleIds.filter(id => !onDisk.includes(id)).flatMap(id => contentRules[id](context));
+/** These scenarios are about what a source may say, not about approval: they run under a ledger with nothing approved, so an
+ * owner's stamp cannot turn a legal change red. That an approved piece's change is refused is catalog-desert-tree.test.ts's. */
+const ledger = withoutApprovals(realLedger);
 type Changes = Readonly<Record<string, string>>;
 const catalog = "src/svelte/catalog", compositions = `${catalog}/compositions`, renderer = `${catalog}/renderer`, foundations = `${catalog}/foundations`;
 const mechanisms = `${catalog}/mechanisms`;
@@ -32,14 +36,14 @@ const feedback = (attributes: string, content = "") => inFlow("", content ? `<Te
 /** Each scenario must add a violation with one of `codes` (and `fragment`, when given, in its message). */
 function rejects(label: string, scenario: Changes | Scenario, codes: readonly string[], fragment?: string) {
   const { changes, base } = isScenario(scenario) ? scenario : { changes: scenario, base: undefined };
-  const found = added(gate, changes, base);
+  const found = added(gate, changes, base, ledger);
   assert.ok(found.some(line => codes.some(code => line.startsWith(`${code}:`)) && (fragment === undefined || line.includes(fragment))),
     `${label}: expected ${codes.join(" or ")}${fragment ? ` naming "${fragment}"` : ""}; added ${JSON.stringify(found)}`);
 }
 const isScenario = (value: Changes | Scenario): value is Scenario => typeof Reflect.get(value, "changes") === "object";
 const accepts = (label: string, scenario: Changes | Scenario) => {
   const { changes, base } = isScenario(scenario) ? scenario : { changes: scenario, base: undefined };
-  assert.deepEqual(added(gate, changes, base), [], label);
+  assert.deepEqual(added(gate, changes, base, ledger), [], label);
 };
 
 test("control: the real tree adds nothing, and neither does a closed piece passed its contract props", () => {

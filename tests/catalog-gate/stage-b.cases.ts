@@ -1,7 +1,7 @@
 // Stage B cases whose rule has landed, in the form of stage-a.cases.ts. The rest are test.todo in stage-b.test.ts.
 // Under the strict build (Q1) the unmutated tree has violations; a case passes when its mutation ADDS one with its code.
 import type { GateCase } from "./stage-a.cases.ts";
-import type { Mutation } from "./harness.ts";
+import { noApprovals, type Mutation } from "./harness.ts";
 
 const catalog = "src/svelte/catalog", compositions = `${catalog}/compositions`, foundations = `${catalog}/foundations`;
 const heading = `${foundations}/heading`, accessGate = `${compositions}/access-gate/AccessGate.svelte`;
@@ -12,6 +12,24 @@ const script = '<script lang="ts">\n';
 const intoFlow = (imports: string, markup = ""): Mutation => async tree => {
   await tree.replace(contentFlow, flowScript, `${flowScript}\n${imports}`);
   if (markup) await tree.append(contentFlow, `\n${markup}\n`);
+};
+/** `id` stamped in the copy from the unmutated tree, then `mutate`: the change the owner has not seen. */
+const approvedThen = (id: string, mutate: Mutation): Mutation => async tree => { await tree.approveInCopy(id); await mutate(tree); };
+const availabilityDeclaration = `${foundations}/availability/availability.catalog.ts`;
+// A component has one top-level <style> (Availability has had its own since F1e), so the rule joins that block and
+// styles an element the foundation draws; each anchor fails loudly if it goes away.
+const scopedStyle: Mutation = async tree => {
+  const availability = `${foundations}/availability/Availability.svelte`;
+  await tree.replace(availability, '<span class="label">{label}</span>', '<span class="label availability-note">{label}</span>');
+  await tree.replace(availability, "</style>", "  .availability-note { opacity: 1; }\n</style>");
+};
+const ownedMechanism: Mutation = async tree => {
+  const folder = `${catalog}/mechanisms/availability-measure`;
+  await tree.create(`${folder}/availability-measure.mechanism.ts`, 'import { defineMechanism } from "../../../../authoring/catalog/define.ts";\n'
+    + 'export const AvailabilityMeasure = defineMechanism({ id: "availability-measure", owner: "availability", files: ["availability-measure.ts"] } as const);\n');
+  await tree.create(`${folder}/availability-measure.ts`, "export const observe = (node: HTMLElement, changed: () => void) => {\n"
+    + "  const observer = new ResizeObserver(changed); observer.observe(node); return () => observer.disconnect();\n};\n");
+  await tree.regenerateCatalog();
 };
 
 export const stageB: readonly GateCase[] = [
@@ -24,23 +42,14 @@ export const stageB: readonly GateCase[] = [
     } },
   { id: "N01b", title: "the lock screen passes a presentation prop to its field", kind: "escape", expect: ["PRESENTATION_ESCAPE"], at: lockScreen,
     mutate: tree => tree.replace(lockScreen, '<Field primitive="input.text"', '<Field primitive="input.text" presentation="access"') },
-  // A component has one top-level <style> (Availability has had its own since F1e), so the rule joins that block and
-  // styles an element the foundation draws; each anchor fails loudly if it goes away.
-  { id: "P1", title: "a foundation styles its own element with a scoped style", kind: "positive", expect: [],
-    mutate: async tree => {
-      const availability = `${foundations}/availability/Availability.svelte`;
-      await tree.replace(availability, '<span class="label">{label}</span>', '<span class="label availability-note">{label}</span>');
-      await tree.replace(availability, "</style>", "  .availability-note { opacity: 1; }\n</style>");
-    } },
-  { id: "P2", title: "a mechanism owned by a foundation observes size", kind: "positive", expect: [],
-    mutate: async tree => {
-      const folder = `${catalog}/mechanisms/availability-measure`;
-      await tree.create(`${folder}/availability-measure.mechanism.ts`, 'import { defineMechanism } from "../../../../authoring/catalog/define.ts";\n'
-        + 'export const AvailabilityMeasure = defineMechanism({ id: "availability-measure", owner: "availability", files: ["availability-measure.ts"] } as const);\n');
-      await tree.create(`${folder}/availability-measure.ts`, "export const observe = (node: HTMLElement, changed: () => void) => {\n"
-        + "  const observer = new ResizeObserver(changed); observer.observe(node); return () => observer.disconnect();\n};\n");
-      await tree.regenerateCatalog();
-    } },
+  // P1 and P2 are legal sources: they run under a ledger with nothing approved, so the owner's stamp cannot decide them.
+  // P1a and P2a are the same changes to an approved availability, which the ledger law refuses until the owner stamps again.
+  { id: "P1", title: "a foundation styles its own element with a scoped style", kind: "positive", expect: [], ledger: noApprovals, mutate: scopedStyle },
+  { id: "P1a", title: "the same scoped style in an approved foundation changes its approved bytes", kind: "escape",
+    expect: ["FOUNDATION_UNAPPROVED_CHANGE"], at: availabilityDeclaration, mutate: approvedThen("availability", scopedStyle) },
+  { id: "P2", title: "a mechanism owned by a foundation observes size", kind: "positive", expect: [], ledger: noApprovals, mutate: ownedMechanism },
+  { id: "P2a", title: "a mechanism added to an approved foundation changes its approved bytes", kind: "escape",
+    expect: ["FOUNDATION_UNAPPROVED_CHANGE"], at: availabilityDeclaration, mutate: approvedThen("availability", ownedMechanism) },
   { id: "P3", title: "a composition renders a slot it declares", kind: "positive", expect: [],
     mutate: async tree => {
       await tree.replace(`${compositions}/access-gate/access-gate.catalog.ts`, "uses: [", 'slots: { footer: { accepts: ["action"] } }, uses: [');
@@ -69,8 +78,10 @@ export const stageB: readonly GateCase[] = [
     mutate: async tree => { await tree.approveInCopy("action"); await tree.append("src/svelte/vendor/components/ui/button/button.svelte", "\n<!-- x -->\n"); } },
   { id: "N39", title: "the contract of an approved foundation changes", kind: "escape", expect: ["FOUNDATION_UNAPPROVED_CHANGE"],
     mutate: async tree => { await tree.approveInCopy("heading"); await tree.append(`${heading}/heading.contract.ts`, "// x\n"); } },
+  // The copy states both halves itself: lock-screen approved, and clock, which it mounts, implemented.
   { id: "N40", title: "an approved composition mounts pieces that are not approved", kind: "escape", expect: ["PIECE_NOT_APPROVED"],
-    mutate: tree => tree.approveInCopy("lock-screen") },
+    at: `${compositions}/lock-screen/lock-screen.catalog.ts`,
+    mutate: async tree => { await tree.approveInCopy("lock-screen"); await tree.implementedInCopy("clock"); } },
   { id: "N41", title: "a digest is set by hand", kind: "escape", expect: ["FOUNDATION_UNAPPROVED_CHANGE"],
     mutate: tree => tree.approveInCopy("heading", { source: "0".repeat(64) }) },
   { id: "N42", title: "an unknown ledger field is refused", kind: "escape", expect: ["APPROVALS_LEDGER"],
