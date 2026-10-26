@@ -20,12 +20,18 @@
   --sidebar-primary:var(--primary); --sidebar-primary-foreground:var(--primary-foreground);
   --sidebar-accent:var(--primary); --sidebar-accent-foreground:var(--primary-foreground);
   --sidebar-border:rgb(0 0 0 / .08); --sidebar-ring:var(--ring);
-  /* One curvature family (law 9d). A button or control takes the control radius and a well the well radius; a container
-     is concentric with what it holds at its corner: that piece's radius plus the inset between their outer edges (a
-     pane's 1px border included). A tag is a mark, not a control: its chip takes half the control radius. A dot is a
-     circle (--radius-mark); a line (a track, a meter, a grip) has square ends; only the switch is a capsule.
-     --radius is the vendor primitives' name for the control radius. */
-  --radius-control:12px; --radius-well:16px; --radius-chip:calc(var(--radius-control) / 2); --radius-mark:50%;
+  /* One curvature family (law 9d, refined by the owner on 2026-10-25: ONE rule, not a list of numbers; every corner is
+     derived from the control radius, the one literal). A button or control takes the control radius; a well the control
+     radius plus the field accessory inset (its accessory is concentric inside it); a container is concentric with what it
+     holds at its corner: that piece's radius plus the inset between their outer edges (a pane's 1px border included). A
+     tag is a mark, not a control: its chip takes half the control radius and its ✕ the chip's less the tag inset. A face
+     is a rounded square at every size (law 9e): its corner stands to its side as the control radius stands to the
+     control's height. A dot or a person is a circle (--radius-mark); a line (a track, a meter, a grip) has square ends;
+     only the switch is a capsule. --radius is the vendor primitives' name for the control radius.
+     tests/curvature-family.test.ts derives every expected corner from --radius-control and rejects a loose radius. */
+  --radius-control:12px; --control-height:2.75rem;
+  --radius-well:calc(var(--radius-control) + var(--field-accessory-inset)); --radius-chip:calc(var(--radius-control) / 2);
+  --radius-face:calc(tan(atan2(var(--radius-control), var(--control-height))) * 100%); --radius-mark:50%;
   --radius:var(--radius-control);
   /* A grouped pane holds its rows flush inside its border; a transient surface holds its toolbar's actions at the toolbar
      inset inside its border. */
@@ -39,7 +45,7 @@
      tests/field-disabled-value.test.ts). */
   --field-disabled-opacity:.8;
   /* A field's trailing accessory sits this far inside the well's outer edge on every side; its radius is the well's less
-     this inset, the control radius (law 9d, concentric: 16 − 4 = 12). */
+     this inset, the control radius (law 9d, concentric: the well is the control radius plus this inset). */
   --field-accessory-inset:4px;
   --elev-0:none; --elev-1:0 1px 2px rgb(0 0 0 / .05); --elev-content:none;
   --elev-2:0 2px 8px -2px rgb(0 0 0 / .12),0 1px 2px -1px rgb(0 0 0 / .08);
@@ -100,7 +106,8 @@
 }
 @property --place-leading-inset { syntax:"<length>"; inherits:true; initial-value:0px; }
 /* A workspace's place insets; an overlay navigation tightens them; a home stack's rails scroll edge to edge from the
-   stack's row inset, their first entry on the axis of the stack's title and featured entry. */
+   stack's row inset, their first entry on the axis of the stack's title and featured entry (the title's margin: the
+   approved look, owner decision V3, 2026-10-25). */
 @utility place-insets { --place-surface-inset:26px; --place-content-inset:calc(var(--place-surface-inset) + 1rem); --place-bleed:0px; --place-reach:0; }
 @utility place-insets-compact { --place-surface-inset:18px; --place-content-inset:calc(var(--place-surface-inset) + 1rem); --place-bleed:0px; --place-reach:0; }
 /* Flush inside a retained place, which pads its content by its surface inset (--place-frame-inset, written by the view

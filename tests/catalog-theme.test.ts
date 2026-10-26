@@ -34,10 +34,15 @@ const theme = async () => (await read(`${mechanisms}/typography/typography.css`)
 
 test("theme: one radius family; circles only for marks, never a capsule control", async () => {
   const tokens = await read(`${mechanisms}/theme/tokens.css`);
-  // Law 9d: controls 12, wells 16; a tag's chip half the control; containers derived (concentric), never a literal.
-  for (const token of ["--radius-control:12px", "--radius-well:16px", "--radius-chip:calc(var(--radius-control) / 2)", "--radius-mark:50%",
-    "--radius:var(--radius-control)", "--radius-group:calc(var(--radius-control) + 1px)",
+  // Law 9d (refined 2026-10-25): one rule from the one literal, the control radius. A well is the control plus the field
+  // accessory inset; a tag's chip half the control; a face's corner the control over the control's height; containers
+  // derived (concentric). tests/curvature-family.test.ts derives and measures every corner from it.
+  for (const token of ["--radius-control:12px", "--radius-well:calc(var(--radius-control) + var(--field-accessory-inset))",
+    "--radius-chip:calc(var(--radius-control) / 2)", "--radius-face:calc(tan(atan2(var(--radius-control), var(--control-height))) * 100%)",
+    "--radius-mark:50%", "--radius:var(--radius-control)", "--radius-group:calc(var(--radius-control) + 1px)",
     "--radius-surface:calc(var(--radius-control) + var(--catalog-toolbar-inset) + 1px)"]) assert.ok(tokens.includes(token), token);
+  assert.deepEqual((tokens.match(/--radius-[a-z0-9-]+:\s*\d[^;]*/g) ?? []).filter(token => !token.startsWith("--radius-control:")), ["--radius-mark:50%"],
+    "no radius token but the control is a literal length (the mark is the circle)");
   const button = await read(`${vendor}/button/button.svelte`), group = await read(`${vendor}/input-group/input-group.svelte`);
   assert.doesNotMatch(button.split("\n").find(line => line.includes("base:")) ?? "", /rounded-full/, "the action base is a radius, not a capsule");
   assert.doesNotMatch(group, /rounded-full/, "the access well is a radius");

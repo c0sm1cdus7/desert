@@ -22,7 +22,7 @@
 </div>
 
 <style>
-  .preview { position:relative; display:grid; grid-template-columns:1fr 2fr; gap:.5rem; padding:.625rem; aspect-ratio:1; width:100%; max-width:12rem; min-width:0; overflow:hidden; border-radius:var(--cover-radius,calc(var(--radius-control) * .7)); color:var(--foreground); background:var(--background); }
+  .preview { position:relative; display:grid; grid-template-columns:1fr 2fr; gap:.5rem; padding:.625rem; aspect-ratio:1; width:100%; max-width:12rem; min-width:0; overflow:hidden; border-radius:var(--cover-radius,var(--radius-control)); color:var(--foreground); background:var(--background); }
   .preview-navigation { position:relative; align-self:stretch; border-radius:var(--radius-chip); display:grid; align-content:start; gap:.375rem; padding:.375rem; }
   .preview-line { display:block; height:.375rem; background:var(--muted-foreground); }
   .preview-accent { height:.75rem; background:var(--primary); }

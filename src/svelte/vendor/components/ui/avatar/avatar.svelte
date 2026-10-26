@@ -23,7 +23,7 @@
 	data-shape={shape}
 	class={cn(
 		"size-8 data-[size=lg]:size-10 data-[size=sm]:size-6 data-[size=portrait]:size-[5.625rem] data-[size=compact]:size-11 overflow-hidden group/avatar flex shrink-0 select-none tm-face",
-		shape === "person" ? "rounded-full" : "rounded-[30%]",
+		shape === "person" ? "rounded-full" : "rounded-[var(--radius-face)]",
 		className
 	)}
 	{...restProps}

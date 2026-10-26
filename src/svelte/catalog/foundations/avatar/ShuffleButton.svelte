@@ -18,5 +18,5 @@
   .content { position:relative; display:flex; width:100%; min-width:0; }
   .overlay { position:absolute; inset:0; display:grid; place-items:center; background:var(--avatar-shuffle-overlay); color:white; opacity:0; }
   .shuffle:is(:hover,:focus) .overlay { opacity:1; }
-  @media (hover:none) { .overlay { inset:auto 0 0 auto; width:2rem; height:2rem; border-radius:50%; opacity:1; } }
+  @media (hover:none) { .overlay { inset:auto 0 0 auto; width:2rem; height:2rem; border-radius:var(--radius-mark); opacity:1; } }
 </style>

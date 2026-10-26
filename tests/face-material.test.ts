@@ -1,18 +1,29 @@
-// Laws 9e and 9d, measured on the bank's own specimens. FACE = ONE primitive: every face (Face, a row's face, an avatar,
-// an audio or video artwork placeholder) has the same card-white ground and the same hairline, a rounded square at every size (a circle
-// only for a person), and its tone paints only the glyph. One curvature family: a tag chip is never a capsule, and its
-// remove button's corner is concentric with it (the chip's radius less the inset between their outer edges, as a field's
+// Laws 9e and 9d, measured on the bank's own specimens. FACE = ONE primitive: every face (Face, a row's face, a navigation
+// destination's face, an avatar, an audio or video artwork placeholder) has the same card-white ground and the same
+// hairline, a rounded square at every size (a circle only for a person), and its tone paints only the glyph: a status
+// wears its severity, any other face the ink its host asks for (the accent, positive) or neutral. In dark the face's
+// white is the theme's card white, today's dark grey ground, with its border visible (owner decision V2, 2026-10-25: no
+// change). The corner is derived from the control radius (law 9d refined 2026-10-25): it stands to the face's side as the
+// control radius stands to the control's height. One curvature family: a tag chip is never a capsule, and its remove
+// button's corner is concentric with it (the chip's radius less the inset between their outer edges, as a field's
 // accessory is inside its well), never a circle.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { contractShape } from "./support/foundation.ts";
 
-test("face: the contract carries a face and its size, nothing that could paint it", async () => {
-  assert.deepEqual(Object.keys(await contractShape("face")).sort(), ["compact?", "face"]);
+test("face: the contract carries a face, its size and the ink of its glyph, nothing that could paint its ground", async () => {
+  assert.deepEqual(Object.keys(await contractShape("face")).sort(), ["compact?", "face", "ink?"]);
 });
+
+/** The face's corner, derived from the theme's control radius and control height (law 9d), as a percent of its side. */
+async function faceCornerPercent() {
+  const tokens = await readFile(new URL("../src/svelte/catalog/mechanisms/theme/tokens.css", import.meta.url), "utf8");
+  const control = parseFloat(tokens.match(/--radius-control:(\d*\.?\d+)px;/)![1]!), height = tokens.match(/--control-height:(\d*\.?\d+)(px|rem);/)!;
+  return control / (parseFloat(height[1]!) * (height[2] === "rem" ? 16 : 1)) * 100;
+}
 
 const photo = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40"%3E%3Cpath fill="%238e6352" d="M0 0h40v40H0z"/%3E%3C/svg%3E';
 const page = `<script lang="ts">
@@ -42,7 +53,7 @@ const page = `<script lang="ts">
 test("face and tag: every specimen face shares one ground, one hairline and its radius; tone reaches only the glyph; no capsule chip", { timeout: 90000 }, async () => {
   const f = await svelteBrowser(page);
   const directory = new URL(`../artifacts/face-material/${process.env.FACE_EVIDENCE ?? "current"}/`, import.meta.url);
-  const failures: string[] = [];
+  const failures: string[] = [], corner = await faceCornerPercent();
   try {
     await mkdir(directory, { recursive: true });
     await f.page.addStyleTag({ content: await rendererCss() });
@@ -75,13 +86,14 @@ test("face and tag: every specimen face shares one ground, one hairline and its 
         });
         return { faces, chips, ground: token("var(--card-base)", "backgroundColor"),
           border: token("var(--border)", "backgroundColor"), foreground: token("var(--foreground)", "color"),
-          ink: { neutral: token("var(--muted-foreground)", "color"), warning: token("var(--warning)", "color"), error: token("var(--destructive)", "color") } };
+          ink: { neutral: token("var(--muted-foreground)", "color"), warning: token("var(--warning)", "color"), error: token("var(--destructive)", "color"),
+            accent: token("var(--primary-text)", "color"), positive: token("var(--positive)", "color") } };
       });
       const check = (valid: boolean, message: string) => { if (!valid) failures.push(`${colorScheme}/${contrast}: ${message}`); };
       const hairline = contrast === "more" ? observed.foreground : observed.border;
       // The faces, avatars, the audio and video placeholders (unavailable media is no face but the one notice of unavailable
       // media, fourth review: tests/media-notice-anatomy.test.ts) and the rows' faces.
-      check(observed.faces.length >= 7 + 6 + 2 + 4, `every face specimen is measured (${observed.faces.length})`);
+      check(observed.faces.length >= 9 + 6 + 2 + 4, `every face specimen is measured (${observed.faces.length})`);
       for (const [index, face] of observed.faces.entries()) {
         const name = `${index} ${face.kind}${face.tone ? `/${face.tone}` : ""}`;
         check(face.ground === observed.ground, `${name}: ground ${face.ground} is the card white ${observed.ground}`);
@@ -94,9 +106,10 @@ test("face and tag: every specimen face shares one ground, one hairline and its 
         else if (face.person) check(parseFloat(face.radius) >= face.width / 2, `${name}: a person is a circle`);
         else {
           check(face.width === face.height, `${name}: a square`);
-          check(face.radius === "30%", `${name}: the rounded square's corner (30% at every size), not ${face.radius}`);
+          check(face.radius.endsWith("%") && Math.abs(parseFloat(face.radius) - corner) < .01,
+            `${name}: the rounded square's corner (${corner}% of its side at every size, the control radius over the control height), not ${face.radius}`);
         }
-        if (face.glyph !== null) check(face.glyph === observed.ink[(face.tone ?? "neutral") as "neutral" | "warning" | "error"],
+        if (face.glyph !== null) check(face.glyph === observed.ink[(face.tone ?? "neutral") as keyof typeof observed.ink],
           `${name}: the glyph wears its tone's ink`);
       }
       check(new Set(observed.chips.map(chip => chip.radius)).size === 1, `one chip radius (${[...new Set(observed.chips.map(chip => chip.radius))]})`);

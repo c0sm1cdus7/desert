@@ -1,12 +1,18 @@
-// Law 9d, measured on the bank's own specimens: ONE curvature family. Buttons and controls take the control radius (12px),
-// wells the well radius (16px), and every surface or container is concentric with what it holds at its corner: its radius
-// is that piece's radius plus the inset between their outer edges (within 1px). Nothing is a capsule except the switch;
-// a circle is a person, a dot or the mark of a choice (radio, slider thumb), never a button or a colour swatch. A tag is a mark, not
-// a control: its chip takes half the control radius and its remove button is concentric inside it, a corner you can see. A thin line (a track,
-// a meter, a grip) has square ends. Writes what it saw to artifacts/curvature-family/<CURVATURE_EVIDENCE|current>/.
+// Law 9d, measured on the bank's own specimens: ONE curvature family, ONE rule (refined by the owner on 2026-10-25: «no me
+// importa el valor en px, pero quiero que todas las esquinas hablen la misma lengua»). Every corner is derived from the
+// control radius token, the one literal in the theme: buttons and controls take it; a well takes it plus the field
+// accessory inset; every surface or container is concentric with what it holds at its corner (that piece's radius plus
+// the inset between their outer edges, within 1px); a tag is a mark, not a control: its chip takes half the control
+// radius and its remove button is concentric inside it, a corner you can see; a face is a rounded square whose corner
+// stands to its side as the control radius stands to the control's height. Nothing is a capsule except the switch; a
+// circle is a person, a dot or the mark of a choice (radio, slider thumb), never a button or a colour swatch. A thin line
+// (a track, a meter, a grip) has square ends. This file (a) reads the control token from the theme's source and derives
+// every expected value from it, (b) rejects any radius in src/svelte (foundations, mechanisms, vendor, theme) that is not
+// derived from it, and (c) measures the rendered specimens against the derived family. Writes what it saw to
+// artifacts/curvature-family/<CURVATURE_EVIDENCE|current>/.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
@@ -92,18 +98,81 @@ const scenes: Record<string, { source: string; open?: string }> = {
     onevent={() => {}} /></section>`), open: '[data-scene-part="date"] button' },
 };
 
-/** What the page measures: every rounded box of the scene (portals included), checked against the family. */
-function measure() {
+/** (a) The family, derived from the theme's source: the control token is the one literal; everything else follows the rule. */
+const svelteRoot = new URL("../src/svelte/", import.meta.url);
+async function derivedFamily() {
+  const tokens = await readFile(new URL("catalog/mechanisms/theme/tokens.css", svelteRoot), "utf8");
+  const typography = await readFile(new URL("catalog/mechanisms/typography/typography.css", svelteRoot), "utf8");
+  const length = (source: string, name: string) => {
+    const match = source.match(new RegExp(`${name}:(\\d*\\.?\\d+)(px|rem);`));
+    assert.ok(match, `${name} is a literal length in the theme (the one the family derives from)`);
+    return parseFloat(match[1]!) * (match[2] === "rem" ? 16 : 1);
+  };
+  const control = length(tokens, "--radius-control"), accessoryInset = length(tokens, "--field-accessory-inset");
+  const controlHeight = length(tokens, "--control-height"), toolbarInset = length(typography, "--catalog-toolbar-inset");
+  assert.equal(tokens.match(/--radius-control:/g)?.length, 1, "the control radius is written once");
+  return { control, well: control + accessoryInset, chip: control / 2, group: control + 1, surface: control + toolbarInset + 1,
+    facePercent: control / controlHeight * 100 };
+}
+type Family = Awaited<ReturnType<typeof derivedFamily>>;
+
+/** (b) The source: every radius written in src/svelte is derived from the control token. */
+async function sourceRadii() {
+  const files: string[] = [];
+  const walk = async (directory: URL) => {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const at = new URL(entry.name + (entry.isDirectory() ? "/" : ""), directory);
+      if (entry.isDirectory()) await walk(at); else if (/\.(css|svelte|ts)$/.test(entry.name)) files.push(at.pathname);
+    }
+  };
+  await walk(svelteRoot);
+  const theme = await readFile(new URL("theme.css", svelteRoot), "utf8");
+  const failures: string[] = [], seen: string[] = [];
+  // A length may only be added or subtracted (an inset) around a radius variable; the mark is half the control (/ 2) and a
+  // face's proportion is a number of its side (* 100%). Any other number is a loose radius.
+  const radiusVariable = /var\(--[a-z0-9-]*radius[a-z0-9-]*(,[^)]*\))?\)/g;
+  const derived = (value: string) => {
+    const stripped = value.replace(radiusVariable, "R").replace(/var\(--[a-z-]+\)/g, "I").replace(/[a-z]+\d*\(/g, "(")
+      .replace(/[+-]\s*\d*\.?\d+(px|rem|em)/g, "").replace(/\/\s*2(?![\d.])/g, "").replace(/\*\s*100%/g, "");
+    return /R/.test(value.replace(radiusVariable, "R")) && !/\d/.test(stripped);
+  };
+  const named = (name: string) => theme.includes(`--radius-${name}:var(--radius-control)`);
+  for (const file of files) {
+    const text = (await readFile(file, "utf8")).replace(/\/\*[\s\S]*?\*\//g, "").replace(/<!--[\s\S]*?-->/g, "");
+    const at = file.slice(svelteRoot.pathname.length);
+    const report = (what: string, value: string, ok: boolean) => { seen.push(`${at}: ${what} ${value}`); if (!ok) failures.push(`${at}: ${what} ${value} is not derived from --radius-control`); };
+    for (const match of text.matchAll(/(--[a-z0-9-]*radius[a-z0-9-]*)\s*:\s*([^;\]}]+)/g)) {
+      const [, name, value] = match as unknown as [string, string, string];
+      const ok = name === "--radius-control" ? /^\d+px$/.test(value.trim()) && at === "catalog/mechanisms/theme/tokens.css"
+        : name === "--radius-mark" ? value.trim() === "50%" : derived(value);
+      report(`token ${name}:`, value.trim(), ok);
+    }
+    for (const match of text.matchAll(/border(?:-[a-z]+)*-radius\s*:\s*([^;}]+)/g)) {
+      const value = match[1]!.trim();
+      report("border-radius:", value, value === "0" || value === "inherit" || derived(value));
+    }
+    for (const match of text.matchAll(/(?<![\w-])rounded(?:-(?:t|r|b|l|s|e|tl|tr|br|bl|ss|se|es|ee))?-(none|full|xs|sm|md|lg|xl|2xl|3xl|4xl|\[[^\]]+\]|\([^)]+\))(?![\w-])/g)) {
+      const value = match[0], inner = match[1]!;
+      const ok = inner === "none" || inner === "full" || inner === "[inherit]" ? true
+        : inner.startsWith("[") ? derived(inner.slice(1, -1)) : inner.startsWith("(") ? /radius/.test(inner) : named(inner);
+      report("class", value, ok);
+    }
+  }
+  return { failures, seen };
+}
+
+/** (c) What the page measures: every rounded box of the scene (portals included), checked against the derived family. */
+function measure(family: Family) {
   const px = (value: string) => value.endsWith("%") ? NaN : parseFloat(value);
-  const root = getComputedStyle(document.documentElement);
   const token = (name: string) => { const probe = document.createElement("i"); probe.style.width = `var(${name})`; document.body.append(probe);
     const read = parseFloat(getComputedStyle(probe).width); probe.remove(); return read; };
-  // The owner's numbers (law 9d), not whatever the theme says today.
-  const family = { control: 12, well: 16, chip: 6 };
   const failures: string[] = [], seen: string[] = [];
-  for (const [role, variable] of [["control", "--radius-control"], ["well", "--radius-well"], ["chip", "--radius-chip"]] as const)
-    if (token(variable) !== family[role]) failures.push(`the theme's ${variable} is ${token(variable)}px, not the ${role} radius ${family[role]}px`);
-  void root;
+  // The theme's tokens resolve to the family derived from the control token (nothing in the theme drifts from the rule).
+  for (const [role, variable] of [["control", "--radius-control"], ["well", "--radius-well"], ["chip", "--radius-chip"], ["group", "--radius-group"], ["surface", "--radius-surface"]] as const)
+    if (Math.abs(token(variable) - family[role]) > .01) failures.push(`the theme's ${variable} is ${token(variable)}px, not the ${role} radius ${family[role]}px`);
+  { const probe = document.createElement("i"); probe.style.cssText = "display:block;width:100px;height:100px;border-radius:var(--radius-face)"; document.body.append(probe);
+    const read = getComputedStyle(probe).borderTopLeftRadius; probe.remove();
+    if (!read.endsWith("%") || Math.abs(parseFloat(read) - family.facePercent) > .01) failures.push(`the theme's --radius-face is ${read}, not ${family.facePercent}% of a face's side`); }
   const name = (element: Element) => `${element.tagName.toLowerCase()}${element.getAttribute("data-slot") ? `[${element.getAttribute("data-slot")}]` : ""}`
     + `.${[...element.classList].filter(item => /^[a-z-]+$/.test(item)).slice(0, 3).join(".")}`;
   const corners = (style: CSSStyleDeclaration) => [style.borderTopLeftRadius, style.borderTopRightRadius, style.borderBottomRightRadius, style.borderBottomLeftRadius];
@@ -114,6 +183,7 @@ function measure() {
   const well = '.field-well, [data-search-field], [data-slot="input-group"]';
   const control = '[data-slot="button"]:not([data-variant="row"]):not([data-variant="field"]):not(.field-well), [data-slot="input-group-button"], button.card, .card:not([data-choice-option]), [data-menu-label], [data-drawer-grip]';
   const chip = '[data-slot="badge"]';
+  const face = '[data-piece="face"], [data-slot="avatar"]:not([data-shape="person"])';
   const line = '[data-slot="slider-track"], [data-meter] > span[aria-hidden], [data-drawer-grip-mark], [data-slot="skeleton"]';
   const elements = [...document.querySelectorAll("body *")].filter(visible);
   for (const element of elements) {
@@ -134,6 +204,8 @@ function measure() {
       for (const value of values) if (Math.abs(value - Math.min(want, short / 2)) > .5) fail(`${what} radius ${want}px, not ${value}px`);
     };
     if (element.matches(line)) fail("a line has square ends");
+    else if (element.matches(face)) { const want = short * family.facePercent / 100;
+      for (const value of values) if (Math.abs(value - want) > .5) fail(`a face's corner is ${family.facePercent}% of its side (${want}px), not ${value}px`); }
     else if (element.matches(well)) expect(family.well, "a well's");
     else if (element.matches(chip)) expect(family.chip, "a tag chip's");
     else if (element.parentElement?.matches(chip) && element.matches("button")) {
@@ -214,12 +286,23 @@ function measure() {
 }
 
 const label = process.env.CURVATURE_EVIDENCE ?? "current";
+const directory = new URL(`../artifacts/curvature-family/${label}/`, import.meta.url);
+
+test("law 9d · source: every radius in src/svelte is derived from the control token", async () => {
+  const family = await derivedFamily();
+  const { failures, seen } = await sourceRadii();
+  await mkdir(directory, { recursive: true });
+  await writeFile(new URL("sources.json", directory), JSON.stringify({ family, seen }, null, 2));
+  assert.ok(seen.length > 80, `the scan reads the radii of src/svelte (${seen.length} found)`);
+  assert.deepEqual(failures, []);
+});
+
 for (const [scene, { source, open }] of Object.entries(scenes)) {
-  test(`law 9d · ${scene}: controls 12, wells 16, concentric containers, no capsule`, { timeout: 120000 }, async () => {
+  test(`law 9d · ${scene}: every corner derived from the control radius, concentric containers, no capsule`, { timeout: 120000 }, async () => {
+    const family = await derivedFamily();
     // The theme loads before the pieces, as in the product (third review: loaded after them, its base reset a dialog's
     // action padding and hid that its corner was not concentric with its buttons).
     const f = await svelteBrowser(source, {}, undefined, { initialCss: await rendererCss() });
-    const directory = new URL(`../artifacts/curvature-family/${label}/`, import.meta.url);
     const failures: string[] = [], report: unknown[] = [];
     try {
       await mkdir(directory, { recursive: true });
@@ -235,7 +318,7 @@ for (const [scene, { source, open }] of Object.entries(scenes)) {
         await f.page.waitForTimeout(350);
         await f.page.screenshot({ path: new URL(`${scene}-${colorScheme}-${width}.png`, directory).pathname, fullPage: true });
         if (colorScheme === "dark") continue;
-        const observed = await f.page.evaluate(measure);
+        const observed = await f.page.evaluate(measure, family);
         report.push({ width, ...observed });
         failures.push(...observed.failures.map(failure => `${width}px · ${failure}`));
         if (["dialog", "sheet", "field", "calendar", "cards"].includes(scene) || (scene === "popover" && width === 1280)) {
