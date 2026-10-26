@@ -182,3 +182,8 @@ CREATE TABLE IF NOT EXISTS "desert_execution"."jobs" (
   FOREIGN KEY ("actor_id") REFERENCES "desert_execution"."actors" ("id")
 );
 CREATE INDEX IF NOT EXISTS "jobs_by_actor_state" ON "desert_execution"."jobs" ("actor_id", "state", "sequence");
+CREATE EXTENSION IF NOT EXISTS "unaccent" WITH SCHEMA "public";
+CREATE OR REPLACE FUNCTION "public"."desert_search_key"(value text) RETURNS text
+  LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE AS $$
+  SELECT lower("public"."unaccent"('public.unaccent'::regdictionary, value))
+$$;

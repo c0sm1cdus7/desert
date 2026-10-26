@@ -26,6 +26,8 @@ export const ColumnStorageSchema = Type.Object({
   default: Type.Optional(ColumnDefaultSchema),
   identity: Type.Optional(Type.Literal("always")),
   check: Type.Optional(ColumnCheckSchema),
+  /** Q20: a text fact orders by the installation's language (the namespace's generated ICU collation, render-ddl.ts). */
+  collation: Type.Optional(Type.Literal("installation-language")),
 }, closed);
 export type ColumnStorage = Static<typeof ColumnStorageSchema>;
 export type ColumnCheck = Static<typeof ColumnCheckSchema>;
@@ -79,6 +81,15 @@ export const column = {
   json: <S extends TSchema>(schema: S, shape: Readonly<{ object?: true }> = {}): S =>
     ({ ...schema, storage: { type: "jsonb", nullable: false, ...withCheck(shape.object ? { kind: "json-object" } : undefined) } }),
 } as const;
+
+/** The same text column, ordered by the installation's language (owner answer Q20). */
+export function inInstallationLanguage<S extends TSchema>(schema: S): S {
+  const storage = readColumnStorage(schema, "inInstallationLanguage()");
+  if (storage.type !== "text" && storage.type !== "text[]") {
+    throw new Error(`STORAGE_DECLARATION: inInstallationLanguage(): a ${storage.type} column has no collation; contract: src/storage/columns.ts`);
+  }
+  return { ...schema, storage: { ...storage, collation: "installation-language" } };
+}
 
 /** The same column, also accepting SQL NULL. */
 export function nullable<S extends TSchema>(schema: S): TUnion<[S, TNull]> {

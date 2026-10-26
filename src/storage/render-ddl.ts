@@ -1,8 +1,10 @@
 // Law: DDL is generated from the table declarations, never written by hand.
 // The output is idempotent (IF NOT EXISTS, OR REPLACE) so an installer may apply it on every start.
+import type { InstallationLanguage } from "./client-installation.ts";
 import type { ColumnStorage } from "./columns.ts";
 import type { RowLimit, StoredColumn, Table, TableIndex } from "./declare.ts";
 import { infrastructureTables } from "./infrastructure.ts";
+import { languageCollation, renderLanguageCollation, renderSearchSupport, usesLanguageCollation } from "./render-language.ts";
 import { literal, qualified, quoted, quotedList, renderCheck, renderLabelsFunction, usesLabelsFunction } from "./render-checks.ts";
 
 export const infrastructureDdlPath = "src/storage/generated/infrastructure.sql";
@@ -16,6 +18,7 @@ function renderDefault(value: NonNullable<ColumnStorage["default"]>): string {
 function renderColumn(table: Table, { name, storage }: StoredColumn): string {
   return [
     `  ${quoted(name)} ${storage.type}`,
+    ...(storage.collation ? [`COLLATE ${languageCollation(table)}`] : []),
     ...(storage.identity ? ["GENERATED ALWAYS AS IDENTITY"] : []),
     ...(storage.nullable ? [] : ["NOT NULL"]),
     ...(storage.default === undefined ? [] : [renderDefault(storage.default)]),
@@ -37,7 +40,8 @@ const renderIndex = (table: Table, index: TableIndex) =>
   `CREATE ${index.unique ? "UNIQUE " : ""}INDEX IF NOT EXISTS ${quoted(index.name)} ON ${qualified(table)} (${quotedList(index.columns)})` +
   `${index.where === undefined ? "" : ` WHERE ${quoted(index.where)}`};\n`;
 
-/** Locks the referenced row first, so concurrent inserts for one parent are counted one after the other. */
+/** Locks the referenced row first, so concurrent inserts for one parent are counted one after the other. NOT DEFERRABLE:
+ * an action's changes apply in their declared order, each statement leaving the declaration true (owner answer Q3). */
 function renderLimit(table: Table, limit: RowLimit): string {
   const name = `${table.name}_${limit.column}_limit`;
   const parent = table.foreignKeys.find(key => key.columns.length === 1 && key.columns[0] === limit.column)?.references;
@@ -56,24 +60,22 @@ BEGIN
 END
 $$;
 DROP TRIGGER IF EXISTS ${quoted(name)} ON ${qualified(table)};
-CREATE CONSTRAINT TRIGGER ${quoted(name)} AFTER INSERT OR UPDATE ON ${qualified(table)} ${renderTiming(limit.timing)} FOR EACH ROW EXECUTE FUNCTION ${trigger}();
+CREATE CONSTRAINT TRIGGER ${quoted(name)} AFTER INSERT OR UPDATE ON ${qualified(table)} NOT DEFERRABLE FOR EACH ROW EXECUTE FUNCTION ${trigger}();
 `;
 }
 
-function renderTiming(timing: RowLimit["timing"]): string {
-  switch (timing) {
-    case "immediate": return "NOT DEFERRABLE";
-  }
-}
-
-export function renderDdl(header: string, tables: readonly Table[]): string {
+/** `language` is the installation's (owner answer Q20); tables with a collated column cannot be rendered without it. */
+export function renderDdl(header: string, tables: readonly Table[], language?: InstallationLanguage): string {
   const namespaces = [...new Set(tables.map(table => table.namespace))];
+  const collated = namespaces.filter(namespace => tables.some(table => table.namespace === namespace && usesLanguageCollation(table)));
   return header + [
     ...namespaces.flatMap(namespace => namespace === undefined ? [] : [`CREATE SCHEMA IF NOT EXISTS ${quoted(namespace)};\n`]),
+    ...collated.map(namespace => renderLanguageCollation(namespace, language)),
     ...namespaces.filter(namespace => tables.some(table => table.namespace === namespace && usesLabelsFunction(table))).map(renderLabelsFunction),
     ...tables.map(table => renderTable(table) + table.indexes.map(index => renderIndex(table, index)).join("") +
       table.limits.map(limit => renderLimit(table, limit)).join("")),
   ].join("");
 }
 
-export const renderInfrastructureDdl = () => renderDdl(infrastructureHeader, infrastructureTables);
+/** The infrastructure of every client database, with the accent-insensitive search support (owner answer Q20). */
+export const renderInfrastructureDdl = () => renderDdl(infrastructureHeader, infrastructureTables) + renderSearchSupport();

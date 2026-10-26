@@ -7,8 +7,9 @@ type ColumnName<R extends TObject> = Extract<keyof R["properties"], string>;
 export type StoredColumn = Readonly<{ name: string; storage: ColumnStorage }>;
 export type TableReference = Readonly<{ table: Table; columns: readonly string[] }>;
 export type TableIndex<C extends string = string> = Readonly<{ name: string; columns: readonly C[]; unique?: true; where?: C }>;
-/** At most `maximum` rows share one value of `column`, a single-column foreign key; enforced by a constraint trigger. */
-export type RowLimit<C extends string = string> = Readonly<{ column: C; maximum: number; timing: "immediate" }>;
+/** At most `maximum` rows share one value of `column`, a single-column foreign key; enforced by a constraint trigger that
+ * checks each statement (an action's changes apply in their declared order, owner answer Q3; render-ddl.ts renderLimit). */
+export type RowLimit<C extends string = string> = Readonly<{ column: C; maximum: number }>;
 export type TableDeclaration<R extends TObject> = Readonly<{
   /** Absent means the database's default schema. */
   namespace?: string;
@@ -34,6 +35,8 @@ export type Table<R extends TObject = TObject> = Readonly<{
 }>;
 
 const identifier = /^[a-z_][a-z0-9_]{0,62}$/;
+/** Owner answer Q4: each client is its own installation and database, so no row names its client. */
+export const clientMarks: readonly string[] = ["tenant", "tenant_id"];
 const fail = (where: string, what: string): never => {
   throw new Error(`STORAGE_DECLARATION: ${where}: ${what}; contract: src/storage/declare.ts`);
 };
@@ -60,6 +63,7 @@ export function defineTable<R extends TObject>(declaration: TableDeclaration<R>)
   const columns = Object.entries(declaration.row.properties).map(([name, schema]) => {
     const where = `${qualifiedName}.${name}`;
     if (!identifier.test(name)) fail(where, "column name is not a lower-case SQL identifier");
+    if (clientMarks.includes(name)) fail(where, "a row carries no client mark: each client is its own installation and database");
     if (!required.includes(name)) fail(where, "column is optional; a nullable column is nullable(column.*), never Type.Optional");
     return Object.freeze({ name, storage: readColumnStorage(schema, where) });
   });
