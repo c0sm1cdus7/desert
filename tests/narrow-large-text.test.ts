@@ -1,5 +1,6 @@
 // Every specimen of every piece and every Visual Catalog page, on the narrowest phone at its largest text (320px, 200%):
-// no word breaks across two lines without its hyphen, and nothing scrolls sideways. The pieces are rendered by their own
+// no word breaks across two lines without its hyphen, nothing scrolls sideways, and an Action that shows its label draws all
+// of it (it wraps and grows, never ends in «…»; a bottom pair's halves keep one width, height and top). The pieces are rendered by their own
 // owners in the test-only evidence build (the build the owner's approval photographs come from), and the catalog pages are
 // opened through the product's own navigation.
 import assert from "node:assert/strict";
@@ -10,6 +11,7 @@ import { evidenceRoute } from "./tools/catalog-evidence/fixture-pages.ts";
 import { openDestination, openHome } from "./tools/catalog-evidence/capture.ts";
 import { readEvidencePieces } from "./tools/catalog-evidence/pieces.ts";
 import { serveEvidence } from "./tools/catalog-evidence/serve.ts";
+import { clippedActions } from "./support/action-labels.ts";
 import { brokenWords, largeText, narrowWidth, sidewaysScroll, sizeText } from "./support/word-breaks.ts";
 
 const root = resolve(import.meta.dirname, "..");
@@ -22,10 +24,12 @@ const checkedElsewhere: Readonly<Record<string, string>> = {
 async function defects(page: Page, selector: string, label: string) {
   const words = await page.evaluate(brokenWords, [selector, label] as const);
   const sideways = await page.evaluate(sidewaysScroll, [selector, label] as const);
-  return [...words.map(word => `word broken without its hyphen: ${word}`), ...sideways.map(item => `sideways scroll: ${item}`)];
+  const actions = await page.evaluate(clippedActions, [selector, label] as const);
+  return [...words.map(word => `word broken without its hyphen: ${word}`), ...sideways.map(item => `sideways scroll: ${item}`),
+    ...actions.map(item => `action label not drawn whole: ${item}`)];
 }
 
-test(`every specimen and Visual Catalog page at ${narrowWidth}px and ${largeText} text breaks words only at a hyphen and never scrolls sideways`,
+test(`every specimen and Visual Catalog page at ${narrowWidth}px and ${largeText} text breaks words only at a hyphen, never scrolls sideways and draws every Action label whole`,
   { timeout: 3_600_000 }, async () => {
     const { pieces } = await readEvidencePieces(root, "all");
     const server = await serveEvidence(pieces);

@@ -151,7 +151,11 @@
   /* An Action a bar draws (its `bar` placement) takes the bar's target: the toolbar target and inset come from bar. */
   [data-action-bar] { height:var(--toolbar-target); min-height:var(--toolbar-target); }
   [data-action-bar="command"] { width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset); }
-  [data-action-bar="step"] { width:100%; max-width:none; min-width:0; }
+  /* A step is as tall as the target while its label holds one line (its block inset, never more than the target leaves
+     around that line inside the pane's 1px border, keeps it within the target, where it is centred) and grows a line at
+     a time when the label wraps; the pair's row gives both halves the taller one's height. */
+  [data-action-bar="step"] { width:100%; max-width:none; min-width:0; height:auto;
+    padding-block:max(0px,min(.5rem,calc((var(--toolbar-target) - var(--text-control--line-height)) / 2 - 1px))); }
   /* An icon Action in a field's trailing accessory (field-accessory mechanism, law 9d): the square the slot measures, its
      radius the well's less the accessory inset, so its corners stay concentric with the well's. */
   [data-action-accessory] { width:var(--field-accessory-size); height:var(--field-accessory-size); min-height:0;

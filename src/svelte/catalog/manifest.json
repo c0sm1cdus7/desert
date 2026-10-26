@@ -1,5 +1,12 @@
 {
   "mechanisms": {
+    "action-pair": {
+      "files": [
+        "action-pair.svelte.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/action-pair",
+      "owner": "bar"
+    },
     "control-feedback": {
       "files": [
         "control-feedback.css"
@@ -268,8 +275,10 @@
       "owner": {
         "entry": "Action.svelte",
         "mechanisms": [
+          "action-pair",
           "field-accessory",
-          "press-feedback"
+          "press-feedback",
+          "typography"
         ],
         "vendor": [
           "button"
@@ -529,6 +538,7 @@
       "owner": {
         "entry": "Bar.svelte",
         "mechanisms": [
+          "action-pair",
           "pane-context",
           "toolbar-geometry",
           "toolbar-scroll"

@@ -8,7 +8,7 @@ import { ActionContract } from "./action.contract.ts";
 export const Action = defineFoundation({
   id: "action",
   purpose: { key: "action.purpose" }, messages: ["action.purpose"],
-  owner: { entry: "Action.svelte", mechanisms: ["field-accessory", "press-feedback"], vendor: ["button"] },
+  owner: { entry: "Action.svelte", mechanisms: ["action-pair", "field-accessory", "press-feedback", "typography"], vendor: ["button"] },
   shape: "radius", states: ["ready", "unavailable", "pending"],
   variants: { emphasis: ["primary", "secondary", "destructive"], face: ["fit", "icon", "text"] },
   renders: ["action"], approval: "required", contract: ActionContract,

@@ -7,6 +7,7 @@
   import type { CatalogProps } from "../../types.d.ts";
   import { provideFrameEdge, useFrameEdge, useToolbarScroll } from "../../mechanisms/toolbar-scroll/toolbar-scroll.svelte.ts";
   import { usePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
+  import { provideActionPair } from "../../mechanisms/action-pair/action-pair.svelte.ts";
   import BarIdentity from "./BarIdentity.svelte";
   import BarSearch from "./BarSearch.svelte";
   import { useToolbarCommands } from "./toolbar-commands.svelte.ts";
@@ -31,6 +32,8 @@
   // A bar on a frame's edge layers above the frame's scroll edges; what the bar holds (a menu's sheet) is on no edge.
   const frameEdge = useFrameEdge();
   provideFrameEdge(false);
+  // The bottom pair's halves draw one label size (Action's, the smaller one either needs).
+  provideActionPair();
   let stacked = $derived(rail && commands.stacked);
   const invoke = (command: BarCommand) => { if (!command.submit) oninvoke?.(command.intent); };
   /** Focuses the leading command (without scrolling) and says whether it holds focus. */

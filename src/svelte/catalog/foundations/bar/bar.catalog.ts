@@ -10,7 +10,7 @@ export const Bar = defineFoundation({
   messages: ["bar.purpose", "bar.backToTop", "bar.create", "bar.moreActions", "bar.hideNavigation", "bar.showNavigation", "bar.settings",
     "bar.settingsUnavailable", "bar.searchLabel", "bar.searchPlaceholder", "bar.closeSearch", "bar.search"],
   owner: { entry: "Bar.svelte", parts: ["BarIdentity.svelte", "BarSearch.svelte", "bar.css", "toolbar-commands.svelte.ts", "toolbar-leading.svelte.ts"],
-    mechanisms: ["pane-context", "toolbar-geometry", "toolbar-scroll"] },
+    mechanisms: ["action-pair", "pane-context", "toolbar-geometry", "toolbar-scroll"] },
   shape: "none", states: ["default", "searching", "overflow", "controls"],
   variants: { purpose: ["commands", "commit", "steps", "navigation"] },
   stateVariants: { searching: { purpose: ["commands"] }, overflow: { purpose: ["commands"] }, controls: { purpose: ["commands"] } },
