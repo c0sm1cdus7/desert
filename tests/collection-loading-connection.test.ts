@@ -18,7 +18,7 @@ test('collection loading, empty and offline are distinct and retained records ne
     <nav>{#each ['loading','empty','records','offline','cached'] as state}<button onclick={()=>mode=state}>{state}</button>{/each}</nav>
     <Collection {node} select={()=>{throw new Error('Disconnected read must not invoke')}} />
     <Action label="Create note" icon="create" state="unavailable" reason="Controller unavailable. Reconnect to create a note." emphasis="secondary" face="fit" type="button" />
-  </main>`, {}, undefined, {initialCss:await rendererCss(),headed:true,channel:'chrome'});
+  </main>`, {}, undefined, {initialCss:await rendererCss()});
   try {
     for (const width of [390,1600]) {
       await f.page.setViewportSize({width,height:900});

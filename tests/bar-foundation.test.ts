@@ -92,7 +92,8 @@ test("each purpose draws the pixels the toolbar-layout composition drew for the 
     assert.equal(await overflow.locator("[data-toolbar-overflow]").count(), 1, "the narrow rail overflows into one menu");
     const rail = await overflow.evaluate(node => {
       const row = node.querySelector("[data-bar-row]")!.getBoundingClientRect(), heading = node.querySelector("[data-toolbar-heading]")!;
-      const range = document.createRange(); range.selectNodeContents(heading);
+      // The title's own text, one rect per line box (the heading's contents would add the title element's box as a "line").
+      const range = document.createRange(); range.selectNodeContents(heading.querySelector("[data-toolbar-title]")!);
       return { row: row.width, heading: heading.getBoundingClientRect().width, lines: range.getClientRects().length };
     });
     assert.ok(rail.heading >= rail.row / 2 - 1, `the title keeps half the rail (${rail.heading} of ${rail.row})`);

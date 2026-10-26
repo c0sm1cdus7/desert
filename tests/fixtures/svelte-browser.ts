@@ -58,7 +58,7 @@ function withBaseKeys(today: MessageTree, base: MessageTree): MessageTree {
 
 /** Actual browser components, compiled in memory; no product server or database. */
 export async function svelteBrowser(source: string, given: Readonly<Record<string, string>> = {}, origin?: string,
-  options: { readonly headed?: boolean; readonly channel?: "chrome"; readonly initialCss?: string } = {}) {
+  options: { readonly initialCss?: string } = {}) {
   const root = resolve(import.meta.dirname, "../..");
   const overrides = await frozenCatalog(root, source, given);
   const result = await build({
@@ -113,7 +113,10 @@ export async function svelteBrowser(source: string, given: Readonly<Record<strin
         { contents: overrides[path], loader: "ts", resolveDir: dirname(path) });
     } }],
   });
-  const browser = await chromium.launch({ headless: !options.headed, ...(options.channel ? { channel: options.channel } : {}) });
+  // Text antialiasing is the platform's, not the page's: Chrome on macOS always draws grayscale glyphs, Chrome on Linux
+  // draws subpixel (LCD) glyphs on an opaque layer and grayscale on a composited one. Pixel comparisons pin grayscale, so
+  // two sides that draw the same glyphs at the same place compare equal on every platform.
+  const browser = await chromium.launch({ args: ["--disable-lcd-text"] });
   try {
     const context = await browser.newContext();
     const page = await context.newPage();
