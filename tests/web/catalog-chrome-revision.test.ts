@@ -7,7 +7,10 @@ import { action, box, settle } from "./public-catalog-expectations.ts";
 // rich imagery continues behind the floating sidebar's outer inset; disclosure
 // is top-trailing with settings bottom-trailing; navigation is separate from developer tools;
 // compact Back is top-leading while search stays at the bottom.
-test("hero extends through the sidebar inset; navigation has grouped, colored identities", async () => {
+// Owner decision V1 (2026-10-25) withdraws the coloured destination identities of 2026-10-16: a destination's icon is
+// the one Face (law 9e), white ground and hairline on every destination, its colour on the glyph alone
+// (tests/navigation-face.test.ts measures the primitive on the shell; this checks the built product shows it).
+test("hero extends through the sidebar inset; navigation is grouped, its destinations wear the one face", async () => {
   const f = await publicCatalogFixture();
   try {
     await f.page.setViewportSize({ width: 1200, height: 800 }); await settle(f.page);
@@ -18,9 +21,21 @@ test("hero extends through the sidebar inset; navigation has grouped, colored id
     assert.equal(coverage.top, 0); assert.equal(coverage.left, 0);
     assert.equal(coverage.clip, "none", "Do not clip imagery at the rounded sidebar silhouette");
     assert.equal(await f.page.locator('[data-catalog-navigation] [data-slot="sidebar-group"]').count(), 2);
-    const colors = await f.page.locator("[data-navigation-icon]").evaluateAll(elements =>
-      elements.map(e => getComputedStyle(e).backgroundColor));
-    assert.equal(new Set(colors).size, 3, "Destination identity is not three identical monochrome glyphs");
+    const faces = await f.page.locator("[data-navigation-icon]").evaluateAll(elements => {
+      const probe = document.createElement("i"); probe.style.color = "var(--card-base)"; document.body.append(probe);
+      const ground = getComputedStyle(probe).color; probe.remove();
+      return elements.map(slot => { const face = slot.firstElementChild!; return { slot: getComputedStyle(slot).backgroundColor, children: slot.children.length,
+        piece: face.getAttribute("data-piece"), ground: getComputedStyle(face).backgroundColor, white: ground,
+        hairline: getComputedStyle(face, "::after").borderTopWidth, glyph: getComputedStyle(face.querySelector("[data-face-content]")!).color }; });
+    });
+    assert.ok(faces.length >= 2, "every destination has its icon");
+    for (const face of faces) {
+      assert.equal(face.children, 1); assert.equal(face.piece, "face", "the destination's icon is the Face foundation, not a drawing of the shell's");
+      assert.equal(face.slot, "rgba(0, 0, 0, 0)", "the shell paints no coloured square behind the face");
+      assert.equal(face.ground, face.white, "the face's ground is the card white (law 9e)");
+      assert.equal(face.hairline, "1px", "the face wears the one hairline");
+    }
+    assert.equal(new Set(faces.map(face => face.ground)).size, 1, "every destination face shares the one ground; only the glyph may differ");
   } finally { await f.close(); }
 });
 

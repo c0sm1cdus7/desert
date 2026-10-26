@@ -1,12 +1,13 @@
 import { Type, type Static } from "@sinclair/typebox";
-import { ActionIconSchema } from "../../interaction/action-icon.ts";
+import { FaceIconSchema, type FaceIcon } from "../../interaction/face.ts";
 import type { ViewNavigationEntry } from "../../views/program-schema.ts";
 import { text } from "../../views/definition.ts";
 import type { Frozen } from "../../json.ts";
 
-/** Renderer-owned navigation data. No component, CSS or layout escape hatches. */
-export const WorkspaceIconSchema = Type.Union([ActionIconSchema, Type.Literal("landmark"), Type.Literal("backpack"), Type.Literal("panels")]);
-export type WorkspaceIcon = Static<typeof WorkspaceIconSchema>;
+/** Renderer-owned navigation data. No component, CSS or layout escape hatches. A destination's icon is a face's icon:
+ * the shell draws it as the one Face (law 9e; owner decision V1, 2026-10-25: no coloured squares, the face as always). */
+export const WorkspaceIconSchema = FaceIconSchema;
+export type WorkspaceIcon = FaceIcon;
 const closed = { additionalProperties: false } as const;
 /** The navigation pane the shell draws (DESIGN §3.2): its identity, the active destination and the grouped destinations
  * `workspaceNavigation` resolves. */

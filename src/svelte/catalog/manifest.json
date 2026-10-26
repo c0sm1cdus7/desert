@@ -1274,7 +1274,9 @@
         "error",
         "symbol",
         "flag",
-        "compact"
+        "compact",
+        "accent",
+        "positive"
       ]
     },
     "fact-group": {
@@ -3274,7 +3276,6 @@
           "ShellNavigation.svelte",
           "catalog-shell.css",
           "dock-above.ts",
-          "navigation-icons.ts",
           "place-heading-motion.ts",
           "search-focus.svelte.ts",
           "toolbar-reading-boundary.ts"

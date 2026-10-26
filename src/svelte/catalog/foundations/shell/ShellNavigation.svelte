@@ -7,13 +7,16 @@
   // navigation Modal, which an edge swipe (CatalogEdgeNavigation) may reveal under the pointer before it opens.
   import { untrack } from "svelte";
   import * as Sidebar from "../../../vendor/components/ui/sidebar/index.js";
-  import { Bar, Icon, Modal, Surface } from "../../index.ts";
+  import { Bar, Face, Modal, Surface } from "../../index.ts";
   import { provideCloseFocus } from "../../mechanisms/surface-focus/focus-return.ts";
   import { swipeMotion } from "../../mechanisms/swipe-motion/swipe-motion.svelte.ts";
   import { providePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
   import type { ShellNavigation } from "../../../infra/workspace-navigation.ts";
-  import { navigationIconNames } from "./navigation-icons.ts";
   let { navigation, searching, onnavigate }: { navigation: ShellNavigation; searching: boolean; onnavigate: (id: string) => void } = $props();
+  // A destination's icon is the one Face (law 9e; owner decision V1, 2026-10-25): the face's white ground and hairline,
+  // its colour on the glyph alone (the accent for a place to browse, positive for the travel kit, neutral for the bank).
+  // The coloured group squares the owner asked for on 2026-10-16 are withdrawn; the shell paints no icon of its own.
+  const inks = { browse: "accent", "travel-kit": "positive", bank: undefined } as const;
   const sidebar = Sidebar.useSidebar();
   // Closing the overlay returns focus where the sidebar decides (the control that opened it, or its equivalent).
   provideCloseFocus(sidebar.handleCloseAutoFocus);
@@ -65,7 +68,7 @@
           <Sidebar.MenuItem>
             <Sidebar.MenuButton isActive={destination.id === navigation.active} aria-current={destination.id === navigation.active ? "page" : undefined}
               aria-label={destination.label} onclick={() => navigate(destination.id)}>
-              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon name={navigationIconNames[destination.icon]} size="lead" /></span>
+              <span data-navigation-icon={destination.appearance}><Face face={{ kind: "icon", icon: destination.icon }} ink={inks[destination.appearance]} compact /></span>
               <span data-navigation-label>{destination.label}</span>
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>

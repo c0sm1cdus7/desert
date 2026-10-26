@@ -9,6 +9,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 import { workspaceBodySource } from "./fixtures/workspace-body.ts";
 import { pixelDifference } from "./fixtures/pixel-difference.ts";
 import { squareCorners } from "./fixtures/curvature-family.ts";
+import { navigationFacesAside } from "./fixtures/navigation-face.ts";
 import { catalogWorkspaceBefore } from "./fixtures/catalog-workspace-before.ts";
 import { workspaceOwnerRulesBefore } from "./fixtures/workspace-owner-rules-before.ts";
 
@@ -83,6 +84,8 @@ test("composed with bars and the place heading, the shell draws the catalog work
     await baseline.page.addStyleTag({ content: "[data-catalog-workspace] [data-adaptive-host] { position:absolute; inset:0; }" });
     // Design §7.1 radius exception (law 9d): both sides square their corners; tests/curvature-family.test.ts owns them.
     for (const f of [baseline, candidate]) await f.page.addStyleTag({ content: squareCorners });
+    // Owner decision V1 (law 9e): the destination icons are the one Face now; tests/navigation-face.test.ts owns them.
+    for (const f of [baseline, candidate]) await f.page.addStyleTag({ content: navigationFacesAside });
     for (const width of [1280, 390]) {
       for (const f of [baseline, candidate]) { await f.page.setViewportSize({ width, height: 800 }); await settle(f.page); }
       await compare(candidate, baseline, `${width}-top`);

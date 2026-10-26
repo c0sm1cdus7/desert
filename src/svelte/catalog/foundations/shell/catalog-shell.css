@@ -13,9 +13,9 @@
 [data-navigation-destinations] [data-slot="sidebar-group"] { padding:0 var(--navigation-group-inset); }
 [data-navigation-destinations] [data-slot="sidebar-group"] + [data-slot="sidebar-group"] { margin-top:22px; }
 [data-navigation-destinations] [data-slot="sidebar-group-label"] { height:auto; padding:8px var(--navigation-row-inset); font:600 var(--text-caption)/var(--text-caption--line-height) var(--font-sans); color:var(--muted-foreground); }
-[data-navigation-icon] { display:grid; place-items:center; flex:0 0 auto; width:max(24px,1.75em); height:max(24px,1.75em); border-radius:var(--radius-chip); color:var(--primary-foreground); background:var(--primary); box-shadow:inset 0 0 0 1px rgb(255 255 255 / .16); }
-[data-navigation-icon="travel-kit"] { background:var(--chart-2); }
-[data-navigation-icon="bank"] { background:var(--muted-foreground); color:var(--background); }
+/* A destination's icon is the Face foundation at its compact size (law 9e; owner decision V1, 2026-10-25): this slot only
+   places it. The shell paints no ground, border or colour of its own; the coloured group squares of 2026-10-16 are gone. */
+[data-navigation-icon] { display:flex; flex:0 0 auto; }
 [data-navigation-drag] { touch-action:pan-y; user-select:none; }
 [data-navigation-destinations] [data-slot="sidebar-menu"] { gap:0; }
 [data-navigation-destinations] [data-slot="sidebar-menu-button"] { height:auto; min-height:32px; padding:6px var(--navigation-row-inset); gap:9px; font-size:var(--text-body); line-height:var(--text-body--line-height); font-weight:var(--text-body--font-weight); border-radius:var(--radius-control); }

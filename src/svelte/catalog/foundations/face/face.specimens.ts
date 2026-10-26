@@ -1,4 +1,5 @@
-// One witness of Face per kind of face it draws (a status in each severity), and one at its compact size.
+// One witness of Face per kind of face it draws (a status in each severity), one at its compact size, and one in each
+// ink a host may ask for (a navigation destination's glyph: the accent for a place to browse, positive for the travel kit).
 import type { CatalogSpecimen } from "../../types.d.ts";
 
 export const FaceSpecimens = [
@@ -9,4 +10,6 @@ export const FaceSpecimens = [
   { state: "symbol", props: { face: { kind: "symbol", text: "$" } } },
   { state: "flag", props: { face: { kind: "flag", region: "AR" } } },
   { state: "compact", props: { face: { kind: "flag", region: "BR" }, compact: true } },
+  { state: "accent", props: { face: { kind: "icon", icon: "landmark" }, ink: "accent", compact: true } },
+  { state: "positive", props: { face: { kind: "icon", icon: "backpack" }, ink: "positive", compact: true } },
 ] as const satisfies readonly CatalogSpecimen<"face">[];
