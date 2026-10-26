@@ -107,6 +107,15 @@ test("card keeps the pixels of the catalog card, the media tile, the collection 
       .map(([name, probe]) => [name, ["item-placeholder", "tiles"].includes(name) ? withoutFacePrimitive(probe, ["artwork"]) : probe]));
     // Design §7.1 radius exception (law 9d): the card's corners are the control radius now; tests/curvature-family.test.ts owns them.
     const [old, now] = [withoutRadius(placeholders(await measureProbes(was.page, probes("before")))), withoutRadius(placeholders(await measureProbes(is.page, probes("after"))))];
+    // Fourth review: unavailable media («Open Media 3») is no placeholder face but the one notice of unavailable media in an
+    // image's frame (tests/media-notice-anatomy.test.ts): the frame is a clipped block whose notice centres its sentence in
+    // the notice's ink. Its box is the frozen one; only those frame properties differ.
+    const notice = { "align-items": "normal", color: "rgb(29, 29, 31)", display: "block", overflow: "hidden" };
+    const tiles = now.tiles?.artwork ?? [], index = tiles.findIndex(item => item.style.display === "block" && item.style.overflow === "hidden"
+      && old.tiles?.artwork?.[tiles.indexOf(item)]?.style.display === "grid");
+    assert.ok(index >= 0, "tiles: the unavailable tile's frame");
+    assert.deepEqual(Object.fromEntries(Object.keys(notice).map(key => [key, tiles[index]!.style[key]])), notice, "tiles: the notice's frame");
+    tiles[index] = { ...tiles[index]!, style: { ...tiles[index]!.style, ...Object.fromEntries(Object.keys(notice).map(key => [key, old.tiles!.artwork![index]!.style[key]!])) } };
     for (const name of Object.keys(old)) {
       const artwork = (value: typeof old) => ({ ...value[name], artwork: unplaced(value[name]?.artwork) });
       assert.deepEqual(name.startsWith("item") ? artwork(now) : now[name], name.startsWith("item") ? artwork(old) : old[name], name);
