@@ -7,9 +7,11 @@ import { svelteBrowser } from "./svelte-browser.ts";
 /** case name → probe name → selector inside `[data-case="<case>"]` (every match is measured, in document order). */
 export type Probes = Readonly<Record<string, Readonly<Record<string, string>>>>;
 
+// A text's wrapping (overflow-wrap) is no piece's own any more: every text-bearing piece takes the one text policy
+// (typography's wrap-words), and tests/narrow-large-text.test.ts judges it on every specimen and catalog page.
 export const parityStyles = ["color", "background-color", "background-image", "border-top-width", "border-top-color",
   "border-bottom-width", "border-left-width", "border-radius", "display", "flex-direction", "align-items", "justify-content",
-  "gap", "font-size", "line-height", "font-weight", "letter-spacing", "text-align", "white-space", "overflow-wrap",
+  "gap", "font-size", "line-height", "font-weight", "letter-spacing", "text-align", "white-space",
   "padding-top", "padding-right", "padding-bottom", "padding-left", "position", "overflow", "opacity", "object-fit",
   "visibility", "min-height", "max-width", "z-index", "box-shadow", "outline-style", "outline-offset", "cursor", "transform"];
 
@@ -30,7 +32,7 @@ export const settle = (page: Page) => page.evaluate(async () => {
 });
 
 /** The styles that shape text, compared for a `text:` probe. */
-export const textStyles = ["color", "font-size", "line-height", "font-weight", "letter-spacing", "text-align", "white-space", "overflow-wrap"];
+export const textStyles = ["color", "font-size", "line-height", "font-weight", "letter-spacing", "text-align", "white-space"];
 
 /** Boxes (relative to the case) and the computed `styles` of every element each probe names. A selector written
  * `text:<selector>` measures the box of the element's text (its glyphs) and its text styles, not the element's box, for

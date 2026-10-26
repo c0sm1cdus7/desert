@@ -61,8 +61,9 @@ test("theme: six type roles; section takes the old title metrics; title, prose a
   assert.equal(compiled.get("type-support")?.["font-size"], "var(--text-control)");
   const source = await theme();
   assert.doesNotMatch(source, /--text-(?:title|prose)\b/, "retired metrics are gone");
-  assert.match(source, /--text-section:1rem;/);
-  assert.match(source, /--text-section--line-height:1\.375rem;/);
+  // A title role stops growing at a share of the viewport's width (typography.css), as the clock does.
+  assert.match(source, /--text-section:min\(1rem,10\.625vw\);/);
+  assert.match(source, /--text-section--line-height:min\(1\.375rem,13\.81vw\);/);
   assert.match(source, /--text-display--font-weight:600;/);
   assert.match(source, /--text-clock:min\(7\.6rem,22vw\);/);
   assert.doesNotMatch(await read(`${svelte}/catalog/foundations/clock/Clock.svelte`), /7\.6rem/, "the clock reads its metric from the theme");
@@ -70,8 +71,8 @@ test("theme: six type roles; section takes the old title metrics; title, prose a
 
 test("theme: density is two utilities that restate every role metric", async () => {
   const compiled = await utilities;
-  assert.equal(compiled.get("density-comfortable")?.["--text-section"], "1.25rem");
-  assert.equal(compiled.get("density-compact")?.["--text-section"], "1rem");
+  assert.equal(compiled.get("density-comfortable")?.["--text-section"], "min(1.25rem,10.625vw)");
+  assert.equal(compiled.get("density-compact")?.["--text-section"], "min(1rem,10.625vw)");
   for (const density of ["density-comfortable", "density-compact"]) {
     for (const metric of ["--text-body", "--text-control", "--text-section", "--text-caption", "--text-page"]) {
       assert.ok(compiled.get(density)?.[metric], `${density} sets ${metric}`);

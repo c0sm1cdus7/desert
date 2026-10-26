@@ -45,7 +45,8 @@ export function avatarViolations(g: Awaited<ReturnType<typeof avatarGeometry>>, 
     return (x! + .05) / (y! + .05);
   };
   if (Math.abs(g.face.width - g.face.height) > 1 || g.face.width < 32) errors.push("identity face is not a stable square");
-  if (g.face.right + 6 > g.label.x) errors.push("face and label collide or lose their separation");
+  // The label reads beside the face, or under it on a narrow page at large text (the row wraps there): 6px apart either way.
+  if (g.face.right + 6 > g.label.x && g.face.bottom + 6 > g.label.y) errors.push("face and label collide or lose their separation");
   if (g.labelOverflow || g.label.right > g.viewport + 1 || g.row.right > g.viewport + 1) errors.push("identity label overflows");
   if (!g.hiddenFace) errors.push("decorative face repeats the adjacent identity to assistive technology");
   // Law 9e: the face's own ground is opaque card white; its hairline, not a tinted fill, separates it from the surface.

@@ -11,7 +11,7 @@
   const exceeded = $derived(remaining !== undefined && remaining < 0);
 </script>
 
-<Group.Addon align="block-end" class="px-4 pb-2">
+<Group.Addon align="block-end" class="px-(--row-inset) pb-2">
   <Group.Text {id} data-character-counter data-exceeded={exceeded}
     class={cn("ms-auto block min-w-0 text-end type-caption text-(length:--text-caption) tabular-nums", exceeded && "text-destructive-text")}>
     {#if remaining === undefined}{say(count === 1 ? m.field.character : m.field.characters, { count: String(count) })}

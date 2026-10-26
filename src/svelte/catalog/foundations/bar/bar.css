@@ -40,7 +40,7 @@
 @container toolbar (max-width:600px) { [data-piece="toolbar"] [data-toolbar-controls] { flex-basis:100%; justify-content:center; } }
 [data-piece="toolbar"] .toolbar-face { --face-size:clamp(32px,2rem,40px); margin-bottom:var(--toolbar-gap); }
 [data-piece="toolbar"] .toolbar-availability { margin-top:var(--toolbar-gap); }
-[data-piece="toolbar"] :is(.toolbar-title,.toolbar-subtitle) { overflow-wrap:anywhere; }
+[data-piece="toolbar"] :is(.toolbar-title,.toolbar-subtitle) { @apply wrap-words; }
 [data-piece="toolbar"] .toolbar-subtitle { color:var(--muted-foreground); margin-top:var(--heading-copy-gap); }
 [data-toolbar-identity] [data-identity-subtitle] { margin-top:0; }
 [data-piece="toolbar"][data-toolbar="bottom"] > .toolbar-row { justify-content:flex-end; }

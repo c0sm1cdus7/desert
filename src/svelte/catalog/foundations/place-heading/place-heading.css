@@ -4,9 +4,10 @@
   padding:calc(var(--catalog-toolbar-inset,12px) + var(--catalog-toolbar-height,44px) + 24px) var(--place-content-inset,42px) 24px;
   padding-inline-start:calc(var(--place-leading-inset,0px) + var(--place-content-inset,42px));
 }
-.place-heading-copy { display:flex; flex-direction:column; align-items:flex-start; gap:var(--heading-copy-gap); min-width:0; overflow-wrap:anywhere; }
-/* Its title is Heading's place title (it wraps anywhere and draws no focus ring); its subtitle wraps the same way. */
-.place-heading-copy [data-place-subtitle] { margin:0; overflow-wrap:anywhere; color:var(--muted-foreground); max-width:65ch; }
+.place-heading-copy { display:flex; flex-direction:column; align-items:flex-start; gap:var(--heading-copy-gap); min-width:0; @apply wrap-words; }
+/* Its title is Heading's place title (it wraps by the one text policy and draws no focus ring); its subtitle wraps the
+   same way. */
+.place-heading-copy [data-place-subtitle] { margin:0; color:var(--muted-foreground); max-width:65ch; }
 .place-heading-content[data-featured-media] { display:flex; align-items:flex-end; min-height:min(65dvh,36rem); padding-bottom:32px; }
 /* The video lies under the shade and its controls stand over it (the player layers its header presentation in this
    heading's stacking context: the media box opens none); the copy leaves room for the controls. */

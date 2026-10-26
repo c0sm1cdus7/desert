@@ -13,7 +13,7 @@
     class={cn(well, "p-0", "material-pane control-feedback", "field-well overflow-hidden max-w-full", referenceValue, className)} />
 {:else if presentation === "selection"}
   <Popover.Trigger {...props} data-slot="button" data-variant="well"
-    class={cn(well, "min-h-11 px-4 py-2", "material-pane control-feedback",
+    class={cn(well, "min-h-11 px-(--row-inset) py-2", "material-pane control-feedback",
       "w-full h-auto min-h-[var(--control-size)] justify-between gap-4 whitespace-normal", className)} />
 {:else}
   <Popover.Trigger {...props} class={className} />

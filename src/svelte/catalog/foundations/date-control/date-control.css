@@ -19,7 +19,7 @@
 }
 /* The month keeps its line while it fits beside the navigation; enlarged, it takes the whole row. */
 [data-date-calendar-month] {
-  flex:1 1 max-content; min-width:0; overflow-wrap:anywhere;
+  flex:1 1 max-content; min-width:0; @apply wrap-words;
   padding-inline-start:max(0px,calc(var(--surface-reading-inset,8px) - var(--catalog-toolbar-inset)));
 }
 /* In a sheet the month starts on its top bar's ✕ axis (one inset axis): the header's own toolbar inset, nothing more. */

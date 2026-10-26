@@ -19,8 +19,10 @@ export function themeBeforePrune(): string {
   if (theme === undefined) throw new Error("PARITY: no frozen f7247e4 theme.css");
   // The spacing steps the third review added to the scale (79d8322's 10, 14, 22 and 28px, which today's compositions use
   // on both sides of a parity page) did not exist at f7247e4: the frozen theme carries them, nothing else changes.
+  // Nor did the row inset (tokens.css), which today's pieces read on both sides: at f7247e4 it was their literal 1rem.
   return inlineBaseStylesheets(theme)
-    + "\n@theme { --spacing-cozy:.625rem; --spacing-near:.875rem; --spacing-airy:1.375rem; --spacing-ample:1.75rem; }\n";
+    + "\n@theme { --spacing-cozy:.625rem; --spacing-near:.875rem; --spacing-airy:1.375rem; --spacing-ample:1.75rem; }\n"
+    + ":root { --row-inset:1rem; }\n";
 }
 
 /** Today's theme with the stylesheets Batch 3 deleted appended at their f7247e4 text: a page that renders frozen sources

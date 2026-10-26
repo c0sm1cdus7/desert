@@ -18,6 +18,7 @@ function pageSource(piece: EvidencePiece): string {
   const filler = piece.filler?.specimens;
   const imports = [
     `import { AppearanceRoot } from "@desert/svelte/catalog/index.ts";`,
+    `import { provideFileHost } from "@desert/svelte/infra/file-host-context.ts";`,
     `import Piece from ${JSON.stringify(piece.entry)};`,
     `import { ${specimens.binding} as specimens } from ${JSON.stringify(specimens.request)};`,
     ...piece.filler && filler ? [`import Filler from ${JSON.stringify(piece.filler.entry)};`,
@@ -28,6 +29,8 @@ function pageSource(piece: EvidencePiece): string {
   return `<script lang="ts">
   import { onMount } from "svelte";
   ${imports.join("\n  ")}
+  // A piece that chooses local files (Files) reads the file host its product provides above it; the page provides one.
+  provideFileHost();
   // A piece drawn wholly out of flow (a wallpaper or a main surface filling its container, an overlay mark) has its
   // section as its container, and gets a stage to fill instead of collapsing to its padding or spilling over the
   // specimens around it.

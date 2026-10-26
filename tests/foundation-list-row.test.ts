@@ -122,10 +122,10 @@ test("list and row keep the pixels of the grouped panel, the destination row, th
     // The grouped panel took its reading measure from a wrapper around its pane; the list pane holds it itself.
     // The record row aligned "start", justified "space-between" and was an inline-flex at full width: with one content
     // child spanning the row, in a left-to-right reading, each draws as the destination row's left, flex-start and flex
-    // (the boxes compared below prove it). A destination title now wraps a word longer than the row anywhere, as the
-    // record title did, instead of overflowing it; ordinary titles draw the same (their text boxes are compared).
+    // (the boxes compared below prove it). A destination title now wraps a word longer than the row, as the record title
+    // did, instead of overflowing it; ordinary titles draw the same (their text boxes are compared).
     const without = (keys: readonly string[]) => (value: unknown) => JSON.parse(JSON.stringify(value), (key, item) => keys.includes(key) ? undefined : item);
-    const ignored: Readonly<Record<string, readonly string[]>> = { destinations: ["max-width", "text-align", "overflow-wrap"], overview: ["max-width"],
+    const ignored: Readonly<Record<string, readonly string[]>> = { destinations: ["max-width", "text-align"], overview: ["max-width"],
       records: ["max-width", "text-align", "justify-content", "display"] };
     // The face's ground and positioning are the face primitive's (law 9e); its box, corner and glyph still compare.
     const primitive = (value: unknown) => withoutFacePrimitive(value, ["face"]);
@@ -188,7 +188,8 @@ test("fact-value: a paragraph reads a long text fact at the body role, inset lik
   try {
     const [reading, paragraph] = await f.page.evaluate(() => ["reading", "paragraph"].map(name => {
       const element = document.querySelector(`[data-case="${name}"] p`)!, style = getComputedStyle(element);
-      return { padding: [style.paddingLeft, style.paddingRight], white: style.whiteSpace, wrap: style.overflowWrap, max: style.maxWidth,
+      // Its wrapping is the one text policy (wrap-words), where the frozen reading copy wrapped anywhere: not compared.
+      return { padding: [style.paddingLeft, style.paddingRight], white: style.whiteSpace, max: style.maxWidth,
         size: style.fontSize, height: style.lineHeight, text: element.textContent };
     }));
     const body = await f.page.evaluate(() => [getComputedStyle(document.documentElement).getPropertyValue("--text-body").trim(),

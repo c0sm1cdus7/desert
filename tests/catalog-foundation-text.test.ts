@@ -11,7 +11,7 @@ test("text: the contract offers a role, weight, tone, alignment, inset, announce
   });
 });
 
-// Lane D (slice 3): a name breaks anywhere (MediaControl's avatar label) and reading copy keeps its paragraphs (what
+// Lane D (slice 3): a name breaks rather than overflow (MediaControl's avatar label) and reading copy keeps its paragraphs (what
 // `[data-catalog-prose] p` did for a catalog description).
 test("text: wrapping breaks a long word instead of overflowing, and kept lines keep the copy's line breaks", async () => {
   const f = await mounted(`<div data-probe-host style="width:600px">
@@ -25,9 +25,10 @@ test("text: wrapping breaks a long word instead of overflowing, and kept lines k
       return { whiteSpace: style.whiteSpace, wrap: style.overflowWrap, select: style.userSelect, overflow: node.scrollWidth > node.clientWidth,
         lines: Math.round(node.getBoundingClientRect().height / Number.parseFloat(style.lineHeight)) };
     }));
-    assert.deepEqual([kept?.whiteSpace, kept?.wrap, kept?.select], ["pre-line", "anywhere", "text"]);
+    // Every paragraph takes the one text policy (wrap-words): a word longer than its line breaks rather than overflow.
+    assert.deepEqual([kept?.whiteSpace, kept?.wrap, kept?.select], ["pre-line", "break-word", "text"]);
     assert.deepEqual([kept?.lines, collapsed?.lines], [2, 1], "the line break starts a new line");
-    assert.deepEqual([long?.whiteSpace, long?.wrap, long?.overflow], ["normal", "anywhere", false]);
+    assert.deepEqual([long?.whiteSpace, long?.wrap, long?.overflow], ["normal", "break-word", false]);
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

@@ -19,7 +19,7 @@
 	bind:this={ref}
 	data-slot="field-legend"
 	data-variant={variant}
-	class={cn("mb-1.5 max-w-full break-words type-control", className, visibility === "accessible" && "sr-only")}
+	class={cn("mb-1.5 max-w-full wrap-words type-control", className, visibility === "accessible" && "sr-only")}
 	{...restProps}
 >
 	{@render children?.()}

@@ -1,14 +1,19 @@
 /* Shared renderer roles. Components choose one of six roles, never an independent type scale. Component metrics
-   (control, input, field caption, clock, compact initials) stay here and are read only by the foundation they belong to. */
+   (control, input, field caption, clock, compact initials) stay here and are read only by the foundation they belong to.
+   A title role (display, page, section: size and line) stops growing at a share of the viewport's width, as the clock
+   does: the share bites only on a phone set to large text (a page title below about 530px at 200%; never at 100%), and at
+   320px it still sets a page or section title at 34px, twice 17px, so a title's longest word (a dozen letters,
+   «Confirmation») fits its column whole on the widest platform font: English never hyphenates a capitalised word. Body
+   roles keep their full size; a narrow page gives their words room by stepping the row inset instead (tokens.css). */
 :root { --heading-copy-gap:4px; }
 @theme {
-  --text-display:2rem;
-  --text-display--line-height:2.375rem;
+  --text-display:min(2rem,11vw);
+  --text-display--line-height:min(2.375rem,13.06vw);
   --text-display--font-weight:600;
-  --text-page:1.375rem;
-  --text-page--line-height:1.75rem;
-  --text-section:1rem;
-  --text-section--line-height:1.375rem;
+  --text-page:min(1.375rem,10.625vw);
+  --text-page--line-height:min(1.75rem,12.9vw);
+  --text-section:min(1rem,10.625vw);
+  --text-section--line-height:min(1.375rem,13.81vw);
   --text-section--font-weight:600;
   --text-body:.8125rem;
   --text-body--line-height:1.125rem;
@@ -40,20 +45,25 @@
   @apply toolbar-metrics;
   --text-body:1.0625rem; --text-body--line-height:1.5rem;
   --text-control:1.0625rem; --text-control--line-height:1.5rem;
-  --text-section:1.25rem; --text-section--line-height:1.625rem;
+  --text-section:min(1.25rem,10.625vw); --text-section--line-height:min(1.625rem,13.81vw);
   --text-caption:.8125rem; --text-caption--line-height:1.125rem;
-  --text-page:1.75rem; --text-page--line-height:2.125rem;
+  --text-page:min(1.75rem,10.625vw); --text-page--line-height:min(2.125rem,12.9vw);
 }
 @utility density-compact {
   @apply toolbar-metrics;
   --text-body:.8125rem; --text-body--line-height:1.125rem;
   --text-control:.8125rem; --text-control--line-height:1.125rem;
-  --text-section:1rem; --text-section--line-height:1.375rem;
+  --text-section:min(1rem,10.625vw); --text-section--line-height:min(1.375rem,13.81vw);
   --text-caption:.6875rem; --text-caption--line-height:1rem;
-  --text-page:1.375rem; --text-page--line-height:1.75rem;
+  --text-page:min(1.375rem,10.625vw); --text-page--line-height:min(1.75rem,12.9vw);
 }
 /* Without a measured host the viewport decides, at the navigation fit threshold. Editors retain their 16px floor. */
 @media (max-width:959px) { :root { @apply density-comfortable; } }
+/* The narrow page: narrower than 20rem of text, a phone at large text (320px at 125% and above; never 390px at 100%). The
+   page is the query container (its width is the viewport's, so naming it changes no layout), and `narrow-page:` is the one
+   condition every piece that changes on such a page reads. */
+:root { container:page / inline-size; }
+@custom-variant narrow-page (@container page (width < 20rem));
 @utility type-display { font-size:var(--text-display); line-height:var(--text-display--line-height); font-weight:var(--text-display--font-weight); }
 @utility type-page { font-size:var(--text-page); line-height:var(--text-page--line-height); font-weight:600; letter-spacing:-.025em; }
 @utility type-section { font-size:var(--text-section); line-height:var(--text-section--line-height); font-weight:var(--text-section--font-weight); }
@@ -66,3 +76,15 @@
    is decorative (an empty alternative text), so a label's accessible name never includes it; the control states the
    requirement itself. */
 @utility required-mark { &::after { content:"*" / ""; color:var(--destructive); } }
+/* Words: the one text policy of every piece that sets wrapping text. A line breaks between words; on a narrow page a word
+   that does not fit its line breaks at a syllable with its hyphen, in the language the document or the piece names (lang);
+   a word that still cannot fit breaks where it must, as the last resort. */
+@utility wrap-words {
+  overflow-wrap:break-word;
+  @variant narrow-page { hyphens:auto; }
+}
+/* The probe narrow-page.svelte.ts observes: a pixel of width only on a narrow page, never seen or announced. */
+.narrow-page-probe {
+  position:fixed; inset-block-start:0; inset-inline-start:0; width:0; height:1px; overflow:hidden; pointer-events:none; visibility:hidden;
+  @variant narrow-page { width:1px; }
+}

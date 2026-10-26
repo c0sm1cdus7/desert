@@ -109,7 +109,8 @@
     },
     "typography": {
       "files": [
-        "typography.css"
+        "typography.css",
+        "narrow-page.svelte.ts"
       ],
       "folder": "src/svelte/catalog/mechanisms/typography",
       "owner": "theme"
@@ -1376,7 +1377,10 @@
         "factValue.state"
       ],
       "owner": {
-        "entry": "FactValue.svelte"
+        "entry": "FactValue.svelte",
+        "mechanisms": [
+          "typography"
+        ]
       },
       "purpose": {
         "key": "factValue.purpose"

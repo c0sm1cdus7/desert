@@ -2,5 +2,5 @@
 /* A one-column grid, as the field group that held each bench control was a flex column: an inline-level entry (a tag
    badge) is laid out as a block, never on the item's text line. */
 [data-stack-item] { min-width:0; display:grid; grid-template-columns:minmax(0,1fr); }
-[data-stack-placement="content"] { padding-inline:1rem; }
+[data-stack-placement="content"] { padding-inline:var(--row-inset); }
 [data-stack-placement="content"] > [data-catalog-card] { max-width:100%; }

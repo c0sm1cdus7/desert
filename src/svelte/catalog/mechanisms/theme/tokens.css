@@ -101,6 +101,10 @@
   --navigation-group-inset:9px; --navigation-row-inset:10px;
   --motion-lateral:200ms; --ease-lateral:var(--ease-nav);
   --surface-reading-inset:var(--catalog-toolbar-inset);
+  /* The row inset: how far a stack's titles, its rows, facts, choices, fields and text read from their pane's edge, and a
+     place's content from its surface inset. On a narrow page (typography's narrow-page: narrower than 20rem of text) the
+     whole family steps down from regular to snug together, so a long word gets that room and every guide stays aligned. */
+  --row-inset:clamp(var(--spacing-snug),(100vw + 1px - 20rem) * 1000,var(--spacing-regular));
   /* The focus ring sits outside its control; a surface with clipped edges applies focus-inset to draw it inside. */
   --focus-ring-offset:3px;
 }
@@ -108,14 +112,14 @@
 /* A workspace's place insets; an overlay navigation tightens them; a home stack's rails scroll edge to edge from the
    stack's row inset, their first entry on the axis of the stack's title and featured entry (the title's margin: the
    approved look, owner decision V3, 2026-10-25). */
-@utility place-insets { --place-surface-inset:26px; --place-content-inset:calc(var(--place-surface-inset) + 1rem); --place-bleed:0px; --place-reach:0; }
-@utility place-insets-compact { --place-surface-inset:18px; --place-content-inset:calc(var(--place-surface-inset) + 1rem); --place-bleed:0px; --place-reach:0; }
+@utility place-insets { --place-surface-inset:26px; --place-content-inset:calc(var(--place-surface-inset) + var(--row-inset)); --place-bleed:0px; --place-reach:0; }
+@utility place-insets-compact { --place-surface-inset:18px; --place-content-inset:calc(var(--place-surface-inset) + var(--row-inset)); --place-bleed:0px; --place-reach:0; }
 /* Flush inside a retained place, which pads its content by its surface inset (--place-frame-inset, written by the view
    region that pads), a home stack's rail bleeds over that padding to the surface's edge (--place-bleed): its cards scroll
    edge to edge, never cut at the page's margin. Outside a padded place there is nothing to bleed over. */
 /* It also reaches past the end of a narrower reading column it stands in (--place-reach: 1) to the place's content edge
    (--place-frame-width, the view region's), so a card is never cut at a column's end short of the surface's edge. */
-@utility place-insets-flush { --place-surface-inset:1rem; --place-content-inset:1rem; --place-bleed:var(--place-frame-inset,0px); --place-reach:1; }
+@utility place-insets-flush { --place-surface-inset:1rem; --place-content-inset:var(--row-inset); --place-bleed:var(--place-frame-inset,0px); --place-reach:1; }
 /* The reading guide of a place, of the navigation place, and of a frame or picker sheet (its chrome inset, capped in a
    compact frame and on a short screen); a message frame reads at a wider chrome inset. */
 @utility reading-inset-place { --surface-reading-inset:var(--place-content-inset,42px); }

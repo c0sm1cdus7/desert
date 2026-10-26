@@ -59,7 +59,7 @@
 
 {#snippet shown()}
   <span class="value" data-contextual={trigger === "contextual" || undefined}>
-    {#if chosen?.leading}<ChoiceLeading leading={chosen.leading} frame="mark" />{/if}<span class="text">{valueLabel}</span>
+    {#if chosen?.leading}<ChoiceLeading leading={chosen.leading} frame="mark" />{/if}<span class="text wrap-words">{valueLabel}</span>
   </span>
 {/snippet}
 {#if trigger === "well"}
@@ -86,7 +86,7 @@
 <style>
   .value { display:flex; flex:1; min-width:0; align-items:center; gap:.5rem; }
   .value[data-contextual] { justify-content:flex-end; text-align:end; }
-  .text { min-width:0; white-space:normal; overflow-wrap:anywhere; text-wrap:balance; }
+  .text { min-width:0; white-space:normal; text-wrap:balance; }
   /* The trigger lays out its own content (it is not the vendor button, whose global rule did this): one row as the button. */
   .content { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
 </style>

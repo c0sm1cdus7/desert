@@ -6,7 +6,7 @@
   // Literal class names (the fieldset, legend and group geometry the vendor field family drew), so the theme's
   // Tailwind scan sees every step.
   const fieldset = "flex min-w-0 flex-col gap-4 has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3 place-stack";
-  const legend = "mb-1.5 max-w-full break-words type-control place-stack-title";
+  const legend = "mb-1.5 max-w-full wrap-words type-control place-stack-title";
   const group = "group/field-group @container/field-group flex w-full flex-col gap-5 data-[slot=checkbox-group]:gap-3 *:data-[slot=field-group]:gap-4 place-stack-content";
 </script>
 

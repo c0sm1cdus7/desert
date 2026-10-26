@@ -12,7 +12,7 @@
   <span class="flex h-[.6rem] gap-[2px] overflow-hidden bg-muted" aria-hidden="true">
     {#each segments as segment, index (index)}<span class="min-w-0 basis-0 bg-primary even:bg-muted-foreground" style:flex-grow={segment.count}></span>{/each}
   </span>
-  <span class="flex min-w-0 flex-wrap gap-4 font-normal text-muted-foreground [overflow-wrap:anywhere]">
+  <span class="flex min-w-0 flex-wrap gap-4 font-normal text-muted-foreground wrap-words">
     {#each segments as segment, index (index)}<span class="min-w-0 max-w-full"><strong class="text-foreground">{segment.count}</strong> {segment.label}</span>{/each}
   </span>
 </div>

@@ -8,7 +8,9 @@
   // A scroll rail runs to the surface's edge (over the margin of a page it is shown in, --place-bleed, and past the end of
   // a narrower column it stands in, to that page's content edge: --place-reach × the room --place-frame-width leaves), its
   // first piece at the surface inset, and hides its scrollbar; its pieces keep their own width.
-  const overflows = { wrap: "flex-wrap", none: "flex-nowrap",
+  // Neither wrapping nor scrolling, on a narrow page (typography's narrow-page) it still wraps its pieces rather than push
+  // the page sideways.
+  const overflows = { wrap: "flex-wrap", none: "flex-nowrap narrow-page:flex-wrap",
     scroll: "flex-nowrap overflow-x-auto ms-[calc(-1*var(--place-bleed,0px))] me-[calc(-1*(var(--place-bleed,0px)+var(--place-reach,0)*max(0px,var(--place-frame-width,0px)-100%)))] px-[calc(var(--place-surface-inset,26px)+var(--place-bleed,0px))] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" } as const;
 </script>
 

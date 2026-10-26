@@ -19,7 +19,7 @@
 [data-navigation-drag] { touch-action:pan-y; user-select:none; }
 [data-navigation-destinations] [data-slot="sidebar-menu"] { gap:0; }
 [data-navigation-destinations] [data-slot="sidebar-menu-button"] { height:auto; min-height:32px; padding:6px var(--navigation-row-inset); gap:9px; font-size:var(--text-body); line-height:var(--text-body--line-height); font-weight:var(--text-body--font-weight); border-radius:var(--radius-control); }
-[data-navigation-destinations] [data-slot="sidebar-menu-button"] :is([data-button-content],[data-navigation-label]) { white-space:normal; overflow:visible; text-overflow:clip; overflow-wrap:anywhere; }
+[data-navigation-destinations] [data-slot="sidebar-menu-button"] :is([data-button-content],[data-navigation-label]) { white-space:normal; overflow:visible; text-overflow:clip; @apply wrap-words; }
 [data-catalog-edge-navigation] { position:absolute; z-index:1; inset:0 auto 0 0; width:18px; touch-action:pan-y; }
 [data-slot="sidebar-container"][data-gesture-enter] { transition:none; }
 /* Use the provider's single responsive decision, not a second breakpoint. */

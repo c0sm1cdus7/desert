@@ -14,7 +14,7 @@
   <ChoiceMenu {id} {label} trigger={menuTriggerOf(menuTrigger)} {placeholder} {measure} {options} {selected} {disabled} {required} {onchange} />
 {:else}
   <fieldset class="min-w-0 gap-4 flex flex-col" data-choice={presentation} data-cardinality={cardinality}>
-    <legend class={["legend", labelVisibility === "accessible" && "sr-only", required && "required-mark"]}>{label}</legend>
+    <legend class={["legend wrap-words", labelVisibility === "accessible" && "sr-only", required && "required-mark"]}>{label}</legend>
     {#if presentation === "rows"}<ChoiceRows {id} {label} {frame} {cardinality} {options} {selected} {disabled} {required} {onchange} />
     {:else if presentation === "cards"}<ChoiceCards {id} {label} {cardinality} {options} {selected} {disabled} {required} {onchange} />
     {:else}<ChoiceSwatches {id} {label} options={swatchesOf(options)} {selected} {disabled} {required} {onchange} />{/if}
@@ -23,6 +23,6 @@
 
 <style>
   /* The visible legend is a group label: caption ink at the rows' inset (today's options title). */
-  .legend { max-width:100%; overflow-wrap:break-word; padding-inline:1rem; margin:0 0 .375rem; color:var(--muted-foreground);
+  .legend { max-width:100%; padding-inline:var(--row-inset); margin:0 0 .375rem; color:var(--muted-foreground);
     font-size:var(--text-caption); line-height:var(--text-caption--line-height); font-weight:400; }
 </style>

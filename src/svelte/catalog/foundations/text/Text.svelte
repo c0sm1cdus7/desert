@@ -6,9 +6,12 @@
   const weights = { regular: "", medium: "font-medium" } as const;
   const tones = { default: "", muted: "text-muted-foreground", destructive: "text-destructive-text" } as const;
   const aligns = { start: "text-start", center: "text-center", end: "text-end" } as const;
-  const insets = { none: "", row: "px-4" } as const;
-  const wraps = { anywhere: "[overflow-wrap:anywhere]", lines: "whitespace-pre-line [overflow-wrap:anywhere] select-text" } as const;
+  const insets = { none: "", row: "px-(--row-inset)" } as const;
+  // Every paragraph's words wrap by the one text policy (wrap-words): a long word (a name) breaks at a syllable with its
+  // hyphen on a narrow page, and only where it must as the last resort, never past its column; `lines` also keeps the copy's
+  // line breaks and lets it be selected.
+  const wraps = { anywhere: "", lines: "whitespace-pre-line select-text" } as const;
 </script>
 
-<p class="{kinds[kind]} min-w-0 {weights[weight]} {tones[tone]} {align ? aligns[align] : ''} {insets[inset]} {wrap ? wraps[wrap] : ''}" {id}
+<p class="{kinds[kind]} min-w-0 wrap-words {weights[weight]} {tones[tone]} {align ? aligns[align] : ''} {insets[inset]} {wrap ? wraps[wrap] : ''}" {id}
   role={live === "polite" ? "status" : live === "assertive" ? "alert" : undefined}>{text}</p>

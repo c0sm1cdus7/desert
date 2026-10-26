@@ -6,6 +6,7 @@ import test from "node:test";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { renderCases } from "./fixtures/parity.ts";
 import { compositionCases } from "./fixtures/compositions-c-cases.ts";
+import { brokenWords } from "./support/word-breaks.ts";
 
 const behaviour = `<script lang="ts">
   import Collection from "@desert/svelte/catalog/compositions/collection/Collection.svelte";
@@ -99,29 +100,10 @@ test("lane C reflows at 320px and at 200% text without scrolling sideways or bre
         .map(host => host.getAttribute("data-case")));
       assert.deepEqual(overflowing, [], size);
       assert.equal(await f.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, size);
-      // A notice's word wider than its line is hyphenated: every line that ends inside a word (a letter on both sides of the
-      // break) draws a hyphen after its last letter, the line box the text node gives beyond its glyphs («Controll / er» and
-      // «unavaila / ble.» chopped mid-word were defects of the offline notice at 320px and 200% on Linux).
-      const chopped = await f.page.evaluate(() => [...document.querySelectorAll('[data-case] [data-slot="empty"]')].flatMap(notice => {
-        const host = notice.closest("[data-case]")!, found: string[] = [], walker = document.createTreeWalker(notice, NodeFilter.SHOW_TEXT);
-        for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) {
-          const range = document.createRange(), tops: number[] = [];
-          for (let at = 0; at < node.length; at++) {
-            range.setStart(node, at); range.setEnd(node, at + 1);
-            tops.push(Math.round([...range.getClientRects()].at(-1)?.top ?? Number.NaN));
-          }
-          range.selectNodeContents(node);
-          const boxes = [...range.getClientRects()];
-          for (let at = 1; at < node.length; at++) {
-            if (tops[at] === tops[at - 1] || !/\p{L}/u.test(node.data[at - 1]!) || !/\p{L}/u.test(node.data[at]!)) continue;
-            range.setStart(node, at - 1); range.setEnd(node, at);
-            const last = [...range.getClientRects()][0]!, em = parseFloat(getComputedStyle(node.parentElement!).fontSize);
-            const hyphen = boxes.find(box => Math.abs(box.top - last.top) < 2 && box.left >= last.left + 1 && box.width > 0 && box.width < em * .6);
-            if (!hyphen) found.push(`${host.getAttribute("data-case")}: «${node.data.slice(0, at)} / ${node.data.slice(at)}»`);
-          }
-        }
-        return found;
-      }));
+      // A word wider than its line is hyphenated (tests/support/word-breaks.ts): «Controll / er» and «unavaila / ble.» chopped
+      // mid-word were defects of the offline notice at 320px and 200% on Linux, «Continu / e» and «compat / ible» of the
+      // attention list on macOS.
+      const chopped = await f.page.evaluate(brokenWords, ["[data-case]", "data-case"] as const);
       assert.deepEqual(chopped, [], size);
       // Nor does a notice's word spill past its column into its inset (a header wider than the column the notice gives it).
       const spilled = await f.page.evaluate(() => [...document.querySelectorAll('[data-case] [data-slot="empty"]')].flatMap(notice => {

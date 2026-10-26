@@ -22,7 +22,8 @@
   let title = $derived(content.kind === "display" || content.kind === "page");
   let focusable = $derived(title && (content.focusTarget === true || content.focusKey !== undefined));
   let keyed = $derived((content.kind === "display" || content.kind === "page") && content.focusKey !== undefined);
-  // A place's title wraps anywhere within its column; focus lands on it on arrival, so it draws no ring either.
+  // Every heading's words wrap by the one text policy (wrap-words); a place's title never grows past its column, and focus
+  // lands on it on arrival, so it draws no ring either.
   let place = $derived(content.kind === "page" && content.placeTitle === true);
   let tag = $derived(`h${Math.min(6, (title ? 1 : 2) + offset)}` as `h${HeadingLevel}`);
   // A keyed title answers its scope's focus(key): it takes focus without scrolling and says whether it holds it. Focus
@@ -34,7 +35,7 @@
   });
 </script>
 
-<svelte:element this={tag} bind:this={element} class="min-w-0 {place ? 'max-w-full wrap-anywhere' : 'break-words'} {roles[content.kind]} {content.align ? aligns[content.align] : ''} {keyed || place ? 'outline-none' : ''} {content.kind === 'group' && content.required ? 'required-mark' : ''}"
+<svelte:element this={tag} bind:this={element} class="min-w-0 wrap-words {place ? 'max-w-full' : ''} {roles[content.kind]} {content.align ? aligns[content.align] : ''} {keyed || place ? 'outline-none' : ''} {content.kind === 'group' && content.required ? 'required-mark' : ''}"
   id={content.kind === "section" ? content.id : undefined}
   tabindex={focusable ? -1 : undefined}
   data-place-title={content.kind === "page" ? "" : undefined}>

@@ -4861,7 +4861,7 @@ Source SHA-256: 8e19a3ec9c433f3e51806e7702183c7bff9589506071642ee47aa0224c661bab
 
 ## src/svelte/catalog/foundations/choice/ChoiceMenu.svelte
 
-Source SHA-256: b4c63b27eadc125a1293a4452c5f04db4d77c7d34b5ee96eb370959b954e77b2
+Source SHA-256: c5099fe3e9e5d24ea82b42c0fb695f9747ddedf942fc3472ef11fd9b390a967d
 
 ```svelte
 <script lang="ts">
@@ -4925,7 +4925,7 @@ Source SHA-256: b4c63b27eadc125a1293a4452c5f04db4d77c7d34b5ee96eb370959b954e77b2
 
 {#snippet shown()}
   <span class="value" data-contextual={trigger === "contextual" || undefined}>
-    {#if chosen?.leading}<ChoiceLeading leading={chosen.leading} frame="mark" />{/if}<span class="text">{valueLabel}</span>
+    {#if chosen?.leading}<ChoiceLeading leading={chosen.leading} frame="mark" />{/if}<span class="text wrap-words">{valueLabel}</span>
   </span>
 {/snippet}
 {#if trigger === "well"}
@@ -4952,7 +4952,7 @@ Source SHA-256: b4c63b27eadc125a1293a4452c5f04db4d77c7d34b5ee96eb370959b954e77b2
 <style>
   .value { display:flex; flex:1; min-width:0; align-items:center; gap:.5rem; }
   .value[data-contextual] { justify-content:flex-end; text-align:end; }
-  .text { min-width:0; white-space:normal; overflow-wrap:anywhere; text-wrap:balance; }
+  .text { min-width:0; white-space:normal; text-wrap:balance; }
   /* The trigger lays out its own content (it is not the vendor button, whose global rule did this): one row as the button. */
   .content { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
 </style>
@@ -5667,7 +5667,7 @@ Source SHA-256: 84ea2ae6f34e0e4dcaea087e597b04d7a213f2f45c9c7e35a2b163d532326b5e
 
 ## src/svelte/catalog/foundations/files/Files.svelte
 
-Source SHA-256: fe2c333485bd86a54f1fdb048bf7788dde5e4d76c147c05d554250539d4704b1
+Source SHA-256: 93833ecb36ee16aa9dc48f31e25bce08720f9a4adeec82d9ef780bb24d59152b
 
 ```svelte
 <script lang="ts">
@@ -5714,7 +5714,7 @@ Source SHA-256: fe2c333485bd86a54f1fdb048bf7788dde5e4d76c147c05d554250539d4704b1
     <ul class="flex flex-col gap-2" aria-label={say(m.files.selected)} data-files-list>
       {#each checked.files as file (file.id)}
         <li class="flex flex-wrap items-center justify-between gap-2">
-          <span class="min-w-0 break-all">{say(m.files.file, { name: file.name, size: fileSize(file.size) })}</span>
+          <span class="min-w-0 wrap-words">{say(m.files.file, { name: file.name, size: fileSize(file.size) })}</span>
           <Action icon="close" label={say(m.files.remove, { name: file.name })} face="fit" emphasis="secondary" type="button" state={checked.disabled ? "unavailable" : "ready"}
             onclick={() => onevent?.(host.remove(checked, file.id))} />
         </li>
@@ -6035,7 +6035,7 @@ Source SHA-256: 67f64d2ea5078369a1d2525824d9b0de8aafc4bd6728f46f1db7ae123942d758
 
 ## src/svelte/catalog/foundations/field/CharacterCounter.svelte
 
-Source SHA-256: 3414e812bb82a6527992b5d227535cfe502b438ba203427a5dca19da0b04a54a
+Source SHA-256: b288e9d0b1e7d21d1693f0b8c0e3694cc3517b29707131da5028169e6119d64a
 
 ```svelte
 <script lang="ts">
@@ -6051,7 +6051,7 @@ Source SHA-256: 3414e812bb82a6527992b5d227535cfe502b438ba203427a5dca19da0b04a54a
   const exceeded = $derived(remaining !== undefined && remaining < 0);
 </script>
 
-<Group.Addon align="block-end" class="px-4 pb-2">
+<Group.Addon align="block-end" class="px-(--row-inset) pb-2">
   <Group.Text {id} data-character-counter data-exceeded={exceeded}
     class={cn("ms-auto block min-w-0 text-end type-caption text-(length:--text-caption) tabular-nums", exceeded && "text-destructive-text")}>
     {#if remaining === undefined}{say(count === 1 ? m.field.character : m.field.characters, { count: String(count) })}
@@ -6245,7 +6245,7 @@ Source SHA-256: 7b4bbfe3fc0d52613452f85d06068fc586f06cc42af12c84ef786679523dbc2e
 
 ## src/svelte/catalog/foundations/row/Row.svelte
 
-Source SHA-256: 9d31c8d462ae12c8362ee12eb535e5fcea1003fd724f1c08ba5c25339ff288fe
+Source SHA-256: 2b9e6b3dc001493fed226acf7b9b43d5c036efbe2b9e4d6c12be1ba0d34cd3ac
 
 ```svelte
 <script lang="ts">
@@ -6256,6 +6256,11 @@ Source SHA-256: 9d31c8d462ae12c8362ee12eb535e5fcea1003fd724f1c08ba5c25339ff288fe
   let { label, description, metadata = [], leading, trailing, interaction, available, reason, current, focusKey, attention = false, onopen }: CatalogProps<"row"> = $props();
   const id = $props.id(), reasonId = `${id}-reason`;
   const scope = useFocusScope();
+  // On a narrow page (typography's narrow-page) the row wraps: its copy keeps beside its leading mark while its longest
+  // unbreakable word fits there, and otherwise takes a line of its own below it, the chevron after it at the line's end. A
+  // capitalised English word is never hyphenated (the copy's wrap-words), so beside a face it would break without one.
+  const layout = "flex narrow-page:flex-wrap narrow-page:[&>:last-child:not(.row-copy)]:ms-auto";
+  const copy = "row-copy wrap-words flex-1 narrow-page:basis-[min-content]";
   let button = $state<HTMLButtonElement | null>(null);
   $effect(() => {
     const key = focusKey, target = button;
@@ -6274,7 +6279,7 @@ Source SHA-256: 9d31c8d462ae12c8362ee12eb535e5fcea1003fd724f1c08ba5c25339ff288fe
   {:else if leading?.kind === "attention"}<AttentionIndicator required={leading.required} />
   {:else if leading?.kind === "image"}<span class="row-artwork"><Image frame="host" source={leading.source} alt={leading.alt} fit={leading.fit} /></span>
   {:else if leading?.kind === "artwork"}<span class="row-artwork"><Image frame="host" placeholder={leading.media} /></span>{/if}
-  <span class="row-copy">
+  <span class={copy}>
     <span class="row-label">{label}</span>
     {#if description}<span class="row-description">{description}</span>{/if}
     {#if metadata.length}<span class="row-metadata">{#each metadata as item, index (index)}<span>{item}</span>{/each}</span>{/if}
@@ -6290,11 +6295,11 @@ Source SHA-256: 9d31c8d462ae12c8362ee12eb535e5fcea1003fd724f1c08ba5c25339ff288fe
     aria-describedby={!available && reason ? reasonId : undefined} title={!available ? reason : undefined} onclick={open}>
     <!-- The attention dot sits over the row's corner, as it sat over the media list item. -->
     {#if attention}<AttentionIndicator required placement="overlay" />{/if}
-    <span class="row-content control-feedback-content disabled-content" data-button-content>{@render content()}</span>
+    <span class={["row-content control-feedback-content disabled-content", layout]} data-button-content>{@render content()}</span>
   </button>
   {#if !available && reason}<span id={reasonId} class="sr-only">{reason}</span>{/if}
 {:else}
-  <div class="row [&_svg]:size-4 [&_svg]:shrink-0" data-row="static" data-row-leading={leading?.kind} data-focus-key={focusKey}><span class="row-content">{@render content()}</span></div>
+  <div class="row [&_svg]:size-4 [&_svg]:shrink-0" data-row="static" data-row-leading={leading?.kind} data-focus-key={focusKey}><span class={["row-content", layout]}>{@render content()}</span></div>
 {/if}
 
 <style>
@@ -6302,7 +6307,7 @@ Source SHA-256: 9d31c8d462ae12c8362ee12eb535e5fcea1003fd724f1c08ba5c25339ff288fe
      at the control radius (concentric inside the list's border, law 9d). It sets
      no box-shadow: this unlayered rule would win over control-feedback's hover and press tints, which are box-shadows. */
   .row { display:flex; align-items:center; justify-content:flex-start; gap:.5rem; width:100%; min-width:0; min-height:2.75rem;
-    margin:0; padding:.75rem 1rem; border:0; border-radius:0; background:transparent; color:var(--foreground);
+    margin:0; padding:.75rem var(--row-inset); border:0; border-radius:0; background:transparent; color:var(--foreground);
     font:inherit; font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:400;
     text-align:left; white-space:normal; outline:none; }
   .row:not(:first-child) { border-top:1px solid var(--separator); }
@@ -6311,14 +6316,17 @@ Source SHA-256: 9d31c8d462ae12c8362ee12eb535e5fcea1003fd724f1c08ba5c25339ff288fe
   .row:disabled { pointer-events:none; }
   .row-attended { position:relative; }
   .row:focus-visible { outline:2px solid var(--ring); outline-offset:-3px; box-shadow:none; }
-  /* The content keeps the row's justification itself, as the vendor button's global content rule gave it. */
-  .row-content { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:center; justify-content:inherit; gap:inherit; }
+  /* The content keeps the row's justification itself, as the vendor button's global content rule gave it; its display (a
+     flex row that wraps on a narrow page) is the layout classes'. */
+  .row-content { position:relative; width:100%; min-width:0; flex-direction:inherit; align-items:center; justify-content:inherit; gap:inherit; }
   /* An attention dot or an image keeps the record row's and media item's wider gap. */
   .row[data-row-leading="attention"], .row[data-row-leading="image"], .row[data-row-leading="artwork"] { gap:1rem; }
   .row-artwork { display:block; flex:none; width:80px; height:60px; overflow:hidden; border-radius:var(--radius-control); }
-  .row-copy { display:flex; flex:1; min-width:0; flex-direction:column; gap:.25rem; text-align:start; }
-  .row-label { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); overflow-wrap:anywhere; }
-  .row-description { color:var(--muted-foreground); overflow-wrap:anywhere; text-wrap:balance; }
+  /* Its words wrap by the one text policy (typography's wrap-words), which its copy carries for every line it holds; its
+     flex (it fills the row, and on a narrow page starts from its longest word) is its classes'. */
+  .row-copy { display:flex; min-width:0; flex-direction:column; gap:.25rem; text-align:start; }
+  .row-label { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); }
+  .row-description { color:var(--muted-foreground); text-wrap:balance; }
   .row-metadata { display:flex; flex-wrap:wrap; gap:.375rem 1rem; color:var(--muted-foreground); font-size:var(--text-body); }
 </style>
 ```

@@ -23,7 +23,7 @@
   .problem { z-index:21; width:min(22rem,calc(100% - 24px)); border-radius:calc(var(--radius-control) + .25rem + var(--catalog-toolbar-inset) + 1px); }
   /* A message reads on one axis inside its pane's inset; its content scrolls when it outgrows the screen, its actions
      (a bottom Bar, which brings its own toolbar inset) stay in view below it, their edges on the content's. */
-  .modal-message { display:flex; flex-direction:column; min-height:0; overflow-wrap:anywhere; }
+  .modal-message { display:flex; flex-direction:column; min-height:0; @apply wrap-words; }
   .modal-message-content { min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:1.25rem .75rem 0; }
   .modal-message-actions { flex-shrink:0; padding:.5rem .25rem .25rem; }
   :where(.drawer-grip) > [data-button-content] { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }

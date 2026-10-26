@@ -146,7 +146,10 @@ test("moving protected geometry and typography writers preserves catalog.home an
         const style=getComputedStyle(element);
         // The group's rail is its labelled scroll region (Inline) and its title the heading over it (CatalogHome draws no marks).
         const rail=element.querySelector('[role="region"]')!, title=rail.closest('[data-view-item]')!.querySelector('h1,h2,h3,h4,h5')!;
-        return { surface:style.getPropertyValue('--place-surface-inset'), content:style.getPropertyValue('--place-content-inset'),
+        // The insets as they resolve here (the content inset follows the theme's --row-inset; the length is what draws).
+        const resolved=(name:string)=>{ const probe=document.createElement('span'); probe.style.paddingLeft=`var(${name})`; element.append(probe);
+          const value=getComputedStyle(probe).paddingLeft; probe.remove(); return value; };
+        return { surface:resolved('--place-surface-inset'), content:resolved('--place-content-inset'),
           rail:rail.getBoundingClientRect().toJSON(), title:title.getBoundingClientRect().toJSON(), titlePadding:getComputedStyle(title).paddingInlineStart };
       });
       assert.deepEqual(await gallery(candidate), await gallery(baseline), `${width}/${colorScheme} catalog geometry`);
@@ -165,9 +168,14 @@ test("moving protected geometry and typography writers preserves catalog.home an
         const dialog=element.closest('[role="dialog"]')!;
         const style=getComputedStyle(element), body=document.getElementById(dialog.getAttribute('aria-describedby')!)!, text=getComputedStyle(body);
         const heading=getComputedStyle(document.getElementById(dialog.getAttribute('aria-labelledby')!)!);
-        return { variable:style.getPropertyValue('--text-body--line-height'), font:text.fontSize, line:text.lineHeight,
-          title:style.getPropertyValue('--text-section'), titleLine:style.getPropertyValue('--text-section--line-height'),
-          titleWeight:style.getPropertyValue('--text-section--font-weight'), bodySize:style.getPropertyValue('--text-body'),
+        // Each metric as it resolves here (a title role's token caps it by the viewport's width; the length is what draws).
+        const resolved=(property:'fontSize'|'lineHeight',name:string)=>{
+          const probe=document.createElement('span'); probe.style[property]=`var(${name})`; element.append(probe);
+          const value=getComputedStyle(probe)[property]; probe.remove(); return value;
+        };
+        return { variable:resolved('lineHeight','--text-body--line-height'), font:text.fontSize, line:text.lineHeight,
+          title:resolved('fontSize','--text-section'), titleLine:resolved('lineHeight','--text-section--line-height'),
+          titleWeight:style.getPropertyValue('--text-section--font-weight'), bodySize:resolved('fontSize','--text-body'),
           headingFont:heading.font, headingMargin:heading.margin,
           bounds:element.getBoundingClientRect().toJSON(), body:body.getBoundingClientRect().toJSON() };
       });

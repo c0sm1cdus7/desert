@@ -37,7 +37,7 @@
   data-state={disclosure.expanded ? "open" : "closed"} aria-describedby={describedBy}>
   <span data-button-content class={select ? "select-content control-feedback-content disabled-content" : "disabled-content flex w-full min-w-0 items-center"}>
     <FieldLabel for={undefined} {label} {labelVisibility} {required}>
-      <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
+      <span data-field-value class="flex min-w-0 items-center justify-between gap-3 wrap-words">
         {#if select && shown}{@render shown()}
         {:else if display.kind === "tags"}
           <span class="field-tags">

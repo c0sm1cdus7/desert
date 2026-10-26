@@ -7,12 +7,12 @@
   // prose: 65ch of the 16px prose a document read at (655.078px), plus its stacks' 1rem row insets.
   const measures = { reading: "w-full max-w-[34rem]", narrow: "mx-auto w-[min(100%,30rem)]", wide: "w-full max-w-[52rem]", prose: "w-full max-w-[calc(655.078px+2rem)]" } as const;
   // The place's insets (surface geometry): the content inset, a reading block's padding around pieces at the row inset, a
-  // section's block padding, or the row inset itself (the 1rem a stack's titles, rows and text read at).
-  const insets = { content: "px-[var(--place-content-inset,42px)]", reading: "pt-6 pb-12 px-[calc(var(--place-content-inset,26px)-1rem)]", block: "pt-6 pb-12", section: "pt-[var(--spacing-airy)] pb-6",
-    row: "px-4" } as const;
+  // section's block padding, or the row inset itself (the theme's --row-inset a stack's titles, rows and text read at).
+  const insets = { content: "px-[var(--place-content-inset,42px)]", reading: "pt-6 pb-12 px-[calc(var(--place-content-inset,26px)-var(--row-inset))]", block: "pt-6 pb-12", section: "pt-[var(--spacing-airy)] pb-6",
+    row: "px-(--row-inset)" } as const;
   // A filling column is a flex column at least as tall as its container, so a block that grows (a status) takes the rest.
   let layout = $derived(fill ? "flex min-h-full flex-col" : "grid");
 </script>
 
-<div class="{layout} min-w-0 break-words {gaps[gap]} {aligns[align]} {measure ? measures[measure] : ''} {inset ? insets[inset] : ''} {leading ? 'ms-[var(--place-leading-inset,0px)]' : ''}"
+<div class="{layout} min-w-0 wrap-words {gaps[gap]} {aligns[align]} {measure ? measures[measure] : ''} {inset ? insets[inset] : ''} {leading ? 'ms-[var(--place-leading-inset,0px)]' : ''}"
   data-reading-measure={measure === "reading" ? "" : undefined}>{@render children?.()}</div>

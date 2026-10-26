@@ -34,7 +34,7 @@ test("each context draws the markup of the composition it replaces", { timeout: 
   try {
     await f.page.route("**/media/**", route => route.fulfill({ status: 404, body: "" }));
     await f.page.waitForTimeout(300);
-    // The place title is Heading's placeTitle (it wraps anywhere and draws no focus ring: the rules place-heading.css
+    // The place title is Heading's placeTitle (it wraps by the one text policy and draws no focus ring: the rules place-heading.css
     // wrote over another owner's title moved into Heading), so only that title's class differs; what it computes is below.
     const titleClass = / class="[^"]*"(?= tabindex="-1" data-place-title)/;
     for (const name of ["place", "media", "embedded", "background"]) {
@@ -43,11 +43,11 @@ test("each context draws the markup of the composition it replaces", { timeout: 
       if (name !== "media") assert.equal(after?.replace(titleClass, ""), before.replace(titleClass, ""), name);
     }
     const title = f.page.locator('[data-case="place"]').nth(1).locator("[data-place-title]");
-    assert.match(await title.getAttribute("class") ?? "", /\bwrap-anywhere\b/);
+    assert.match(await title.getAttribute("class") ?? "", /\bwrap-words\b/);
     await f.page.keyboard.press("Tab"); await title.evaluate(element => (element as HTMLElement).focus());
     assert.deepEqual(await title.evaluate(element => { const style = getComputedStyle(element);
       return { wrap: style.overflowWrap, max: style.maxWidth, margin: style.margin, outline: style.outlineStyle, focused: element === document.activeElement }; }),
-      { wrap: "anywhere", max: "100%", margin: "0px", outline: "none", focused: true }, "the place title wraps anywhere and draws no focus ring");
+      { wrap: "break-word", max: "100%", margin: "0px", outline: "none", focused: true }, "the place title wraps its words and draws no focus ring");
     // The featured photo is the Gallery foundation (header presentation), in a frame that places it, where it was the
     // photo-collection composition: the same elements and marks, with the gallery's own classes (its pixels:
     // foundation-media-parity.test.ts); the heading and its copy are unchanged.

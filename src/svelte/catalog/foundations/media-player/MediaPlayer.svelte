@@ -58,7 +58,7 @@
   {:else}
     <!-- The media controls band: transport, the viewer's thumbnails (strip), volume, then the seek row. -->
     <div class="player-band" data-media-band>
-      <div class="player-band-row"><Transport {playback} />{@render strip?.()}<Volume {playback} captions={item.captions.length > 0} /></div>
+      <div class="player-band-row"><Transport {playback} />{@render strip?.()}<Volume {playback} captions={item.captions.length > 0} wrap /></div>
       <Seek {playback} />
     </div>
   {/if}

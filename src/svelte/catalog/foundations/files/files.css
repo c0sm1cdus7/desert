@@ -1,3 +1,3 @@
 /* Files: the measure of a files control, and its text aligned with its rows. */
 [data-files] { width:100%; max-width:32rem; align-self:flex-start; justify-self:start; }
-[data-files] > :is([data-files-label]:not(.sr-only), [data-files-status], [data-files-list]) { padding-inline:1rem; }
+[data-files] > :is([data-files-label]:not(.sr-only), [data-files-status], [data-files-list]) { padding-inline:var(--row-inset); }

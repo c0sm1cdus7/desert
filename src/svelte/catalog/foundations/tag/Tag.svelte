@@ -18,9 +18,10 @@
     {#if removable}<TagRemove label={removeLabel} {disabled} {onremove} />{/if}
   </Badge>
 {:else}
-  <span class="reference-value" data-tag={state}>{#if color}<ColorBullet {color} />{/if}{label}</span>
+  <span class="reference-value wrap-words" data-tag={state}>{#if color}<ColorBullet {color} />{/if}{label}</span>
 {/if}
 
 <style>
-  .reference-value { display:inline-flex; align-items:baseline; gap:.4em; min-width:0; overflow-wrap:anywhere; text-wrap:balance; }
+  /* Its words wrap by the one text policy (wrap-words). */
+  .reference-value { display:inline-flex; align-items:baseline; gap:.4em; min-width:0; text-wrap:balance; }
 </style>

@@ -17,10 +17,13 @@ test('reference facts paint against the same right edge as scalar facts at wide 
         const references=[...row.querySelectorAll('.reference-value')].map(item=>item.getBoundingClientRect());
         return {right:value.getBoundingClientRect().right,lastRight:references.at(-1)!.right,
           labelRight:label.getBoundingClientRect().right,left:Math.min(...references.map(item=>item.left)),
+          labelBottom:label.getBoundingClientRect().bottom,top:Math.min(...references.map(item=>item.top)),
           balance:getComputedStyle(value).textWrap,overflow:document.documentElement.scrollWidth>innerWidth};
       });
       assert.ok(Math.abs(geometry.right-geometry.lastRight)<1,`${width}/${scale}: final reference is right-aligned`);
-      assert.ok(geometry.left>=geometry.labelRight,'the reference remains in the right column');
+      // A narrow page (320px at 200%: typography's narrow-page) stacks the label over its value, as a narrow fact group does.
+      if(width===320&&scale===2)assert.ok(geometry.top>=geometry.labelBottom,'the reference reads under its label');
+      else assert.ok(geometry.left>=geometry.labelRight,'the reference remains in the right column');
       assert.equal(geometry.balance,'balance');assert.equal(geometry.overflow,false);
     }
     assert.deepEqual(f.errors,[]);

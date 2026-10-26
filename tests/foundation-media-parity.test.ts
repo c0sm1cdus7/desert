@@ -175,10 +175,14 @@ test("theme-preview keeps the appearance preview's pixels, its glyph aside (the 
       }
     }
     const glyph = await is.page.locator('[data-case="light"] .preview-glyph').evaluate(element => {
-      const style = getComputedStyle(element), root = getComputedStyle(document.documentElement);
-      return [style.fontSize, style.lineHeight, style.fontWeight, root.getPropertyValue("--text-page").trim()];
+      // The page role as it resolves on this page (a length: its token caps it by the viewport's width).
+      const probe = document.createElement("span");
+      probe.style.fontSize = "var(--text-page)"; document.documentElement.append(probe);
+      const page = getComputedStyle(probe).fontSize; probe.remove();
+      const style = getComputedStyle(element);
+      return [style.fontSize, style.lineHeight, style.fontWeight, page];
     });
-    assert.deepEqual(glyph.slice(0, 3), [`${Number.parseFloat(glyph[3] ?? "0") * 16}px`, "28px", "600"]);
+    assert.deepEqual(glyph.slice(0, 3), [glyph[3], "28px", "600"]);
     assert.deepEqual([was.errors, is.errors], [[], []]);
   } finally { await was.close(); await is.close(); }
 });

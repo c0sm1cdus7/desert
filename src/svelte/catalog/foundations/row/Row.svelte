@@ -6,6 +6,11 @@
   let { label, description, metadata = [], leading, trailing, interaction, available, reason, current, focusKey, attention = false, onopen }: CatalogProps<"row"> = $props();
   const id = $props.id(), reasonId = `${id}-reason`;
   const scope = useFocusScope();
+  // On a narrow page (typography's narrow-page) the row wraps: its copy keeps beside its leading mark while its longest
+  // unbreakable word fits there, and otherwise takes a line of its own below it, the chevron after it at the line's end. A
+  // capitalised English word is never hyphenated (the copy's wrap-words), so beside a face it would break without one.
+  const layout = "flex narrow-page:flex-wrap narrow-page:[&>:last-child:not(.row-copy)]:ms-auto";
+  const copy = "row-copy wrap-words flex-1 narrow-page:basis-[min-content]";
   let button = $state<HTMLButtonElement | null>(null);
   $effect(() => {
     const key = focusKey, target = button;
@@ -24,7 +29,7 @@
   {:else if leading?.kind === "attention"}<AttentionIndicator required={leading.required} />
   {:else if leading?.kind === "image"}<span class="row-artwork"><Image frame="host" source={leading.source} alt={leading.alt} fit={leading.fit} /></span>
   {:else if leading?.kind === "artwork"}<span class="row-artwork"><Image frame="host" placeholder={leading.media} /></span>{/if}
-  <span class="row-copy">
+  <span class={copy}>
     <span class="row-label">{label}</span>
     {#if description}<span class="row-description">{description}</span>{/if}
     {#if metadata.length}<span class="row-metadata">{#each metadata as item, index (index)}<span>{item}</span>{/each}</span>{/if}
@@ -40,11 +45,11 @@
     aria-describedby={!available && reason ? reasonId : undefined} title={!available ? reason : undefined} onclick={open}>
     <!-- The attention dot sits over the row's corner, as it sat over the media list item. -->
     {#if attention}<AttentionIndicator required placement="overlay" />{/if}
-    <span class="row-content control-feedback-content disabled-content" data-button-content>{@render content()}</span>
+    <span class={["row-content control-feedback-content disabled-content", layout]} data-button-content>{@render content()}</span>
   </button>
   {#if !available && reason}<span id={reasonId} class="sr-only">{reason}</span>{/if}
 {:else}
-  <div class="row [&_svg]:size-4 [&_svg]:shrink-0" data-row="static" data-row-leading={leading?.kind} data-focus-key={focusKey}><span class="row-content">{@render content()}</span></div>
+  <div class="row [&_svg]:size-4 [&_svg]:shrink-0" data-row="static" data-row-leading={leading?.kind} data-focus-key={focusKey}><span class={["row-content", layout]}>{@render content()}</span></div>
 {/if}
 
 <style>
@@ -52,7 +57,7 @@
      at the control radius (concentric inside the list's border, law 9d). It sets
      no box-shadow: this unlayered rule would win over control-feedback's hover and press tints, which are box-shadows. */
   .row { display:flex; align-items:center; justify-content:flex-start; gap:.5rem; width:100%; min-width:0; min-height:2.75rem;
-    margin:0; padding:.75rem 1rem; border:0; border-radius:0; background:transparent; color:var(--foreground);
+    margin:0; padding:.75rem var(--row-inset); border:0; border-radius:0; background:transparent; color:var(--foreground);
     font:inherit; font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:400;
     text-align:left; white-space:normal; outline:none; }
   .row:not(:first-child) { border-top:1px solid var(--separator); }
@@ -61,13 +66,16 @@
   .row:disabled { pointer-events:none; }
   .row-attended { position:relative; }
   .row:focus-visible { outline:2px solid var(--ring); outline-offset:-3px; box-shadow:none; }
-  /* The content keeps the row's justification itself, as the vendor button's global content rule gave it. */
-  .row-content { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:center; justify-content:inherit; gap:inherit; }
+  /* The content keeps the row's justification itself, as the vendor button's global content rule gave it; its display (a
+     flex row that wraps on a narrow page) is the layout classes'. */
+  .row-content { position:relative; width:100%; min-width:0; flex-direction:inherit; align-items:center; justify-content:inherit; gap:inherit; }
   /* An attention dot or an image keeps the record row's and media item's wider gap. */
   .row[data-row-leading="attention"], .row[data-row-leading="image"], .row[data-row-leading="artwork"] { gap:1rem; }
   .row-artwork { display:block; flex:none; width:80px; height:60px; overflow:hidden; border-radius:var(--radius-control); }
-  .row-copy { display:flex; flex:1; min-width:0; flex-direction:column; gap:.25rem; text-align:start; }
-  .row-label { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); overflow-wrap:anywhere; }
-  .row-description { color:var(--muted-foreground); overflow-wrap:anywhere; text-wrap:balance; }
+  /* Its words wrap by the one text policy (typography's wrap-words), which its copy carries for every line it holds; its
+     flex (it fills the row, and on a narrow page starts from its longest word) is its classes'. */
+  .row-copy { display:flex; min-width:0; flex-direction:column; gap:.25rem; text-align:start; }
+  .row-label { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); }
+  .row-description { color:var(--muted-foreground); text-wrap:balance; }
   .row-metadata { display:flex; flex-wrap:wrap; gap:.375rem 1rem; color:var(--muted-foreground); font-size:var(--text-body); }
 </style>

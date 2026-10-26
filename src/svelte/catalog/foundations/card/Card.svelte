@@ -35,7 +35,7 @@
     {#if artwork !== undefined}<span class="card-fill">{@render art()}</span>{/if}
     <button bind:this={button} {@attach pressFeedback} type="button" class="card-press material-interior control-feedback type-control" aria-label={label} {disabled}
       onclick={open} onpointerenter={prepare} onfocus={prepare}>
-      <span class="card-press-content control-feedback-content disabled-content" data-button-content>{#if title}<span class="card-overlay type-section">{title}</span>{/if}</span>
+      <span class="card-press-content control-feedback-content disabled-content" data-button-content>{#if title}<span class="card-overlay type-section wrap-words">{title}</span>{/if}</span>
     </button>
   </div>
 {:else}
@@ -47,9 +47,9 @@
       {#if presentation === "tile"}<span class="card-tile-art">{@render art()}</span>
       {:else if presentation === "collection"}
         <span class="card-cover">{#if artwork !== undefined}{@render art()}{:else}<span class="card-cover-empty" aria-hidden="true"></span>{/if}</span>
-        <span class="card-copy">{#if title}<strong>{title}</strong>{/if}{#if subtitle}<span class="card-subtitle">{subtitle}</span>{/if}</span>
+        <span class="card-copy wrap-words">{#if title}<strong>{title}</strong>{/if}{#if subtitle}<span class="card-subtitle">{subtitle}</span>{/if}</span>
       {:else}
-        {#if title}<span class="card-summary-heading"><strong>{title}</strong>{#if subtitle}<span class="card-subtitle">{subtitle}</span>{/if}</span>{/if}
+        {#if title}<span class="card-summary-heading wrap-words"><strong>{title}</strong>{#if subtitle}<span class="card-subtitle">{subtitle}</span>{/if}</span>{/if}
         {@render children?.()}
       {/if}
     </span>
@@ -92,11 +92,13 @@
   .card-cover-empty { display:block; width:100%; height:100%; background:var(--muted); }
   .card-copy { display:grid; gap:var(--title-subtitle-gap,4px); padding:var(--well-padding,16px); }
   .card-subtitle { color:var(--muted-foreground); }
-  /* Summary: a pane at most 22rem wide, its readings stacked 1rem apart. */
+  /* Summary: a pane at most 22rem wide, its readings stacked 1rem apart, read at the row inset from its edges (the
+     theme's --row-inset, snug on a narrow page). */
   .card-summary { align-items:stretch; width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem;
-    padding:var(--space-4,1rem); border-radius:var(--radius-control); text-align:start; }
+    padding:var(--space-4,1rem) var(--row-inset); border-radius:var(--radius-control); text-align:start; }
   .card-summary > .card-content { flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
-  /* Its title over its description, 4px apart, wrapping anywhere; the description reads at the regular weight. */
-  .card-summary-heading { display:flex; flex-direction:column; gap:var(--title-subtitle-gap,4px); min-width:0; overflow-wrap:anywhere; }
+  /* Its title over its description, 4px apart, wrapping by the one text policy (wrap-words, as every card title); the
+     description reads at the regular weight. */
+  .card-summary-heading { display:flex; flex-direction:column; gap:var(--title-subtitle-gap,4px); min-width:0; }
   .card-summary-heading > .card-subtitle { font-weight:400; }
 </style>

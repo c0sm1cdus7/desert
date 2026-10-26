@@ -42,7 +42,7 @@
     <ul class="flex flex-col gap-2" aria-label={say(m.files.selected)} data-files-list>
       {#each checked.files as file (file.id)}
         <li class="flex flex-wrap items-center justify-between gap-2">
-          <span class="min-w-0 break-all">{say(m.files.file, { name: file.name, size: fileSize(file.size) })}</span>
+          <span class="min-w-0 wrap-words">{say(m.files.file, { name: file.name, size: fileSize(file.size) })}</span>
           <Action icon="close" label={say(m.files.remove, { name: file.name })} face="fit" emphasis="secondary" type="button" state={checked.disabled ? "unavailable" : "ready"}
             onclick={() => onevent?.(host.remove(checked, file.id))} />
         </li>
