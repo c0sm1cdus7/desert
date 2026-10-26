@@ -88,7 +88,7 @@ test("lane C keeps its behaviour: rows open, explain and return focus by key; st
   } finally { await f.close(); }
 });
 
-test("lane C reflows at 320px and at 200% text without scrolling sideways", { timeout: 60000 }, async () => {
+test("lane C reflows at 320px and at 200% text without scrolling sideways or breaking a word without its hyphen", { timeout: 60000 }, async () => {
   const fluid = compositionCases.replace('style="display:grid;gap:24px;padding:16px;width:640px"', 'style="display:grid;gap:24px;padding:16px"');
   const f = await renderCases(fluid, {}, await rendererCss(), { width: 320, height: 1400 });
   try {
@@ -99,7 +99,47 @@ test("lane C reflows at 320px and at 200% text without scrolling sideways", { ti
         .map(host => host.getAttribute("data-case")));
       assert.deepEqual(overflowing, [], size);
       assert.equal(await f.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, size);
+      // A notice's word wider than its line is hyphenated: every line that ends inside a word (a letter on both sides of the
+      // break) draws a hyphen after its last letter, the line box the text node gives beyond its glyphs («Controll / er» and
+      // «unavaila / ble.» chopped mid-word were defects of the offline notice at 320px and 200% on Linux).
+      const chopped = await f.page.evaluate(() => [...document.querySelectorAll('[data-case] [data-slot="empty"]')].flatMap(notice => {
+        const host = notice.closest("[data-case]")!, found: string[] = [], walker = document.createTreeWalker(notice, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) {
+          const range = document.createRange(), tops: number[] = [];
+          for (let at = 0; at < node.length; at++) {
+            range.setStart(node, at); range.setEnd(node, at + 1);
+            tops.push(Math.round([...range.getClientRects()].at(-1)?.top ?? Number.NaN));
+          }
+          range.selectNodeContents(node);
+          const boxes = [...range.getClientRects()];
+          for (let at = 1; at < node.length; at++) {
+            if (tops[at] === tops[at - 1] || !/\p{L}/u.test(node.data[at - 1]!) || !/\p{L}/u.test(node.data[at]!)) continue;
+            range.setStart(node, at - 1); range.setEnd(node, at);
+            const last = [...range.getClientRects()][0]!, em = parseFloat(getComputedStyle(node.parentElement!).fontSize);
+            const hyphen = boxes.find(box => Math.abs(box.top - last.top) < 2 && box.left >= last.left + 1 && box.width > 0 && box.width < em * .6);
+            if (!hyphen) found.push(`${host.getAttribute("data-case")}: «${node.data.slice(0, at)} / ${node.data.slice(at)}»`);
+          }
+        }
+        return found;
+      }));
+      assert.deepEqual(chopped, [], size);
+      // Nor does a notice's word spill past its column into its inset (a header wider than the column the notice gives it).
+      const spilled = await f.page.evaluate(() => [...document.querySelectorAll('[data-case] [data-slot="empty"]')].flatMap(notice => {
+        const box = notice.getBoundingClientRect(), style = getComputedStyle(notice);
+        const left = box.left + parseFloat(style.paddingLeft) - 1, right = box.right - parseFloat(style.paddingRight) + 1;
+        return [...notice.querySelectorAll("[data-slot^=empty-]")].filter(part => {
+          const rect = part.getBoundingClientRect();
+          return rect.left < left || rect.right > right || part.scrollWidth > part.clientWidth + 1;
+        }).map(part => `${notice.closest("[data-case]")!.getAttribute("data-case")}: ${part.getAttribute("data-slot")}`);
+      }));
+      assert.deepEqual(spilled, [], size);
     }
+    // The offline notice is as wide as the inset family allows: at 200% text its notice is narrower than 16rem and steps its
+    // inset down from relaxed (1.5rem) to regular (1rem), while a 320px phone at 100% keeps the relaxed inset.
+    const inset = () => f.page.locator('[data-case="state-offline"] [data-slot="empty"]').evaluate(node => getComputedStyle(node).paddingLeft);
+    assert.equal(await inset(), "32px", "200%: the regular inset");
+    await f.page.evaluate(() => document.documentElement.style.setProperty("font-size", "100%"));
+    assert.equal(await inset(), "24px", "100%: the relaxed inset");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });
