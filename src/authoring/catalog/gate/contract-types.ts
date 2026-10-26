@@ -9,12 +9,12 @@
 // Raises: CONTRACT_OPEN_TYPE.
 //
 // The judged tree is read as data: the checker parses it and evaluates nothing, and the tree cannot change what the
-// checker believes. Packages (TypeBox, Svelte) resolve only in the gate's own checkout; a tree file may not reach other
-// files through `/// <reference>` directives, be a script file (its declarations are globals), declare ambient modules or
-// `declare global`, or import outside the tree;
+// checker believes. Packages (TypeBox, Svelte) resolve only in the checkout's own node_modules (contract-host.ts); a tree
+// file may not reach other files through `/// <reference>` directives, be a script file (its declarations are globals),
+// declare ambient modules or `declare global`, or import outside the tree;
 // TypeScript's library is recognised by the program (its default library files in the checkout), never by a path name.
-// A package is trusted by identity (package-identity.ts), never by where the gate runs: the checkout's own packages, or a
-// file outside the judged tree that is byte for byte the checkout's copy of the same package at the same version.
+// A package is trusted by identity (package-identity.ts), never by where the gate runs: a real package root in the
+// checkout's node_modules, or a file outside the judged tree whose parsed text is the checkout's copy at the same version.
 import { realpathSync } from "node:fs";
 import { dirname, join, posix, relative, resolve } from "node:path";
 import ts from "typescript";
@@ -23,12 +23,14 @@ import type { ContentRule } from "./context.ts";
 import type { LocatedDeclaration } from "./inventory.ts";
 import { contractPath, type ReadContract } from "../read-contract.ts";
 import { violation, type Violation } from "./violation.ts";
-import { checkout, inside, installedPackage, packages, type PackageFile } from "./package-identity.ts";
+import { inside, packages, packageTrust, type PackageFile } from "./package-identity.ts";
+import { contractHost } from "./contract-host.ts";
 
 const code = "CONTRACT_OPEN_TYPE";
-/** Library files whose types never cross a contract: browser globals. Packages whose types never do: Svelte and Node. */
+/** Library files whose types never cross a contract: browser globals. Packages whose types never do: Svelte and Node (with
+ * undici-types, Node's fetch: many of its exports are closed by the walk, PoolStats, MIMEType, Cookie, yet are Node's). */
 const foreignLibrary = /^lib\.(dom|webworker|scripthost)[^/]*\.d\.ts$/;
-const foreignPackages: ReadonlySet<string> = new Set(["svelte", "@types/node"]);
+const foreignPackages: ReadonlySet<string> = new Set(["svelte", "@types/node", "undici-types"]);
 /** The ES library interfaces and classes a contract may carry, each judged by its first N type arguments only (Promise<T>,
  * Map<K, V>, Iterable<T> without its `any` defaults). Every other library interface or class (Function, Object, Error,
  * PropertyDescriptor, JSON, a *Constructor) is refused as it is: the library is fixed, since no tree file may change a global. */
@@ -53,32 +55,6 @@ const sections = ["props", "events", "instance"] as const;
 
 export type ClosedContract = Readonly<{ declaration: LocatedDeclaration; contract: Extract<ReadContract, { closed: true }> }>;
 
-function compilerHost(options: ts.CompilerOptions, entry: string, entryText: string, root: string, aliases: CatalogLayout["aliases"],
-  unresolved: (containing: string, name: string) => void) {
-  const host = ts.createCompilerHost(options, true);
-  const readFile = host.readFile.bind(host), fileExists = host.fileExists.bind(host), getSourceFile = host.getSourceFile.bind(host);
-  host.readFile = file => file === entry ? entryText : readFile(file);
-  host.fileExists = file => file === entry || fileExists(file);
-  host.getSourceFile = (file, language, ...rest) => file === entry
-    ? ts.createSourceFile(file, entryText, language, true, ts.ScriptKind.TS) : getSourceFile(file, language, ...rest);
-  // Tree modules resolve in the judged tree; packages always resolve in the gate's own checkout, so a judged tree cannot
-  // supply its own TypeBox or Svelte types to the judgement.
-  // A tree module that does not resolve, or resolves outside the judged tree, is reported, never silently `any`.
-  const resolution = (name: string, containing: string) => {
-    if (installedPackage(resolve(containing), root)) return ts.resolveModuleName(name, containing, options, ts.sys).resolvedModule;
-    const alias = aliases.find(([prefix]) => name.startsWith(prefix));
-    if (!alias && !name.startsWith(".")) return ts.resolveModuleName(name, join(checkout, "package.json"), options, ts.sys).resolvedModule;
-    const request = alias ? join(root, alias[1], name.slice(alias[0].length)) : name;
-    const found = ts.resolveModuleName(request, containing, options, host).resolvedModule;
-    if (found && inside(resolve(found.resolvedFileName), root)) return found;
-    // A Svelte component has no TypeScript module here; a contract type that reaches one is reported as `any` where it is used.
-    if (!name.endsWith(".svelte")) unresolved(containing, name);
-    return undefined;
-  };
-  host.resolveModuleNameLiterals = (literals, containing) => literals.map(literal => ({ resolvedModule: resolution(literal.text, containing) }));
-  return { host, resolution };
-}
-
 /** Every closed contract's props, events and instance as one checker program over the judged tree. */
 export function contractTypeViolations(judged: string, layout: Pick<CatalogLayout, "aliases">, closed: readonly ClosedContract[]): readonly Violation[] {
   if (!closed.length) return [];
@@ -97,11 +73,19 @@ export function contractTypeViolations(judged: string, layout: Pick<CatalogLayou
   const text = `${lines.join("\n")}\n`;
   const found: Violation[] = [];
   const at = (file: string) => relative(root, file).split("\\").join("/");
-  const unresolved = (containing: string, name: string) =>
-    found.push(violation(code, at(containing), 0, `imports ${name}, which does not resolve inside the judged tree; a contract's types are read from the tree only`));
+  // One trust per program: what it read about packages is never reused by a later judgement.
+  const trust = packageTrust(root), outside = new Set<string>();
+  const findings = {
+    unresolved: (containing: string, name: string) =>
+      found.push(violation(code, at(containing), 0, `imports ${name}, which does not resolve inside the judged tree; a contract's types are read from the tree only`)),
+    outside: (path: string, what: string) => {
+      if (!outside.has(`${path}|${what}`)) found.push(violation(code, path, 0, what));
+      outside.add(`${path}|${what}`);
+    },
+  };
   // Svelte's ambient runes ($state, $derived) always join the program, so a `.svelte.ts` module's types never depend on
   // which other contracts happen to pull Svelte in.
-  const { host, resolution } = compilerHost(options, entry, text, root, layout.aliases, unresolved), runes = resolution("svelte", entry);
+  const { host, resolution } = contractHost(options, entry, text, root, layout.aliases, trust, findings), runes = resolution("svelte");
   if (!runes) throw new Error("CATALOG_GATE_CONTRACT_TYPES: svelte's types do not resolve");
   const program = ts.createProgram([entry, runes.resolvedFileName], options, host);
   // The library is TypeScript's own default library files, by place first: a tree file is never asked (a tree file with
@@ -110,7 +94,8 @@ export function contractTypeViolations(judged: string, layout: Pick<CatalogLayou
   const library = (file: ts.SourceFile) => inside(resolve(file.fileName), libraryFolder) && program.isSourceFileDefaultLibrary(file);
   const owners = new Map<ts.SourceFile, PackageFile | undefined>();
   const owner = (file: ts.SourceFile) => {
-    if (!owners.has(file)) owners.set(file, installedPackage(resolve(file.fileName), root));
+    // A copy is compared by the text the checker parsed, never by the file as it lies on disk afterwards.
+    if (!owners.has(file)) owners.set(file, trust(resolve(file.fileName), file.text));
     return owners.get(file);
   };
   const packaged = (file: ts.SourceFile) => owner(file) !== undefined;
@@ -180,9 +165,9 @@ function platform({ library, owner }: Judge, type: ts.Type): string | undefined 
   for (const file of [...filesOf(type.aliasSymbol), ...filesOf(type.getSymbol())]) {
     const name = posix.basename(file.fileName.split("\\").join("/"));
     if (library(file) && foreignLibrary.test(name)) return name;
-    // Judged by the outermost package, as the package folder always was: Svelte's nested dependencies are Svelte's.
-    const installed = owner(file), outer = installed?.at.split("/").slice(0, installed.at.startsWith("@") ? 2 : 1).join("/");
-    if (installed && outer && foreignPackages.has(outer)) return installed.at;
+    // Judged by the outermost package (packageRoots decides it): Svelte's nested dependencies are Svelte's.
+    const installed = owner(file);
+    if (installed && foreignPackages.has(installed.name)) return installed.at;
   }
   return undefined;
 }
