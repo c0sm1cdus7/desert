@@ -22,7 +22,7 @@ const source = `<script>
 </main>`;
 
 test('standalone catalog selectors use the Appearance well at wide and narrow widths', async () => {
-  const f=await svelteBrowser(source,{},undefined,{initialCss:await rendererCss(),headed:true,channel:'chrome'});
+  const f=await svelteBrowser(source,{},undefined,{initialCss:await rendererCss()});
   try {
     for (const width of [1000,390,320]) {
       await f.page.setViewportSize({width,height:1000});
