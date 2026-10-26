@@ -58,8 +58,9 @@
 [data-search-toggle] { position:relative; pointer-events:auto; }
 [data-piece="toolbar"][data-toolbar-overlay] { overflow:visible; pointer-events:none; }
 [data-piece="toolbar"][data-bar-float] { overflow:visible; }
-/* A bottom pair in a page's reading column: the rail stands its inset outside the column, so its targets span the column. */
-[data-piece="toolbar"][data-bar-column] { margin-inline:calc(-1 * var(--toolbar-inset)); }
+/* A bottom pair in a page's reading column: the rail takes no inline inset (it keeps its block inset), so its targets span
+   the column, on its fields' edges, and never run past it. */
+[data-piece="toolbar"][data-bar-column] { padding-inline:0; }
 [data-piece="toolbar"][data-toolbar-return] { pointer-events:auto; }
 [data-piece="toolbar"][data-toolbar-overlay] > .toolbar-row > :is([data-toolbar-leading],[data-toolbar-heading],[data-toolbar-controls],
   [data-toolbar-utilities],[data-catalog-search-actions],[data-navigation-toggle],[data-settings-placeholder]) { pointer-events:auto; }

@@ -7,7 +7,7 @@
 // and its toggle; a `layer: "content"` bar only reserves the toggle's room. `inert` takes the bar out of interaction
 // (its content layer while searching). A `float` bar sits over its place (the navigation return) and lets what it draws
 // overflow it. A `column` bar is a bottom pair standing in a page's reading column (an access form): its targets span
-// the column, on its fields' edges, the rail's inset standing outside it. Commands are invoked by intent; search and the navigation toggle raise events.
+// the column, on its fields' edges (the rail takes no inline inset). Commands are invoked by intent; search and the navigation toggle raise events.
 // `controls` are commands local to the surface that are no surface intent (the media viewer's zoom): a top command rail
 // draws them after its identity and raises `control` with the id pressed. A caller that binds the bar moves focus to its
 // leading command (`focusLeading`, the media viewer's Close on opening).
