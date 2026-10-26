@@ -1,19 +1,25 @@
 // node scripts/storage.ts --write | --check
-// Writes or checks the generated infrastructure DDL. --check fails STORAGE_DERIVATION when the file differs.
+// Writes or checks the generated DDL: the infrastructure, and one object file per stored product, installation language and
+// digest. --check fails STORAGE_DERIVATION when a file differs from what the declarations generate.
 import { readFile, writeFile } from "node:fs/promises";
+import { objectDdlPath, renderObjectDdl } from "../src/storage/ddl.ts";
 import { infrastructureDdlPath, renderInfrastructureDdl } from "../src/storage/render-ddl.ts";
+import { storedInstallations } from "./storage-products.ts";
 
 const mode = process.argv[2];
-const path = new URL(`../${infrastructureDdlPath}`, import.meta.url);
-const expected = renderInfrastructureDdl();
+const expected = new Map([[infrastructureDdlPath, renderInfrastructureDdl()],
+  ...storedInstallations.flatMap(({ installation, products }) => products.map(definition =>
+    [objectDdlPath(definition, installation), renderObjectDdl(definition, installation)] as const))]);
 
 if (mode === "--write") {
-  await writeFile(path, expected);
+  for (const [path, content] of expected) await writeFile(new URL(`../${path}`, import.meta.url), content);
 } else if (mode === "--check") {
-  const actual = await readFile(path, "utf8").catch(() => "");
-  if (actual !== expected) {
-    process.stderr.write(`STORAGE_DERIVATION: ${infrastructureDdlPath}: differs from the declaration; run node scripts/storage.ts --write\n`);
-    process.exitCode = 1;
+  for (const [path, content] of expected) {
+    const actual = await readFile(new URL(`../${path}`, import.meta.url), "utf8").catch(() => "");
+    if (actual !== content) {
+      process.stderr.write(`STORAGE_DERIVATION: ${path}: differs from the declaration; run node scripts/storage.ts --write\n`);
+      process.exitCode = 1;
+    }
   }
 } else {
   process.stderr.write("usage: node scripts/storage.ts --write | --check\n");
