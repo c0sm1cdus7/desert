@@ -70,7 +70,7 @@ export async function acceptMutation(client: PoolClient, program: LocalProgram, 
   await validateReferences(client,program,actor,effect.objectType,effect.facts,effect.objectId);
   await requireLiveRun(client, run);
   const version = await writeEffect(client, program, journey, effect);
-  await attachImageEffect(client, effect);
+  await attachImageEffect(client, program, actor, effect);
   const result: Receipt = { id, runId: run.id, commandId: journey.command.id, status: "completed",
     object: { id: effect.objectId, type: effect.objectType, version } };
   await client.query("INSERT INTO desert_receipts (intent_id, result) VALUES ($1, $2)", [id, JSON.stringify(result)]);

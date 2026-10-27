@@ -1,7 +1,7 @@
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { objectType, text, principal, mediaAsset, ownershipPolicy, createCommand, fromInput, actorId, mutationJourney, readJourney, controllerRole } from "../../src/index.ts";
+import { objectType, text, principal, file, ownershipPolicy, createCommand, fromInput, actorId, mutationJourney, readJourney, controllerRole } from "../../src/index.ts";
 import { compile } from "../../src/compile.ts";
 import { product } from "../../src/contracts.ts";
 import { openLocalController } from "../../src/local/controller.ts";
@@ -9,7 +9,7 @@ import type { postgresCluster } from "./postgres.ts";
 import { imageQuota } from "./private-images.ts";
 import { chromium } from "playwright";
 
-const Clip = objectType({ id: "clip", facts: { description: text(), media: mediaAsset(), owner: principal() } });
+const Clip = objectType({ id: "clip", facts: { description: text(), media: file({ accept: ["image/jpeg", "image/png", "image/webp", "video/mp4", "audio/mp4", "audio/mpeg", "audio/wav"], maxBytes: 20_971_520 }), owner: principal() } });
 const Controller = controllerRole({ id: "clips", objects: [Clip], requires: [] });
 const requires = { controller: Controller, dependencies: [] };
 export const ImportClip = mutationJourney("import-clip", createCommand("import-clip-record", Clip, {

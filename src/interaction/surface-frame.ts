@@ -10,6 +10,7 @@ import { FileMetadataSchema } from "./control-nodes.ts";
 import { LabelControlLimitsSchema, ReferenceStateSchema, ReferenceChoiceSchema,MediaReferenceStateSchema } from "./labels-control.ts";
 import { CloseIntentSchema, RecoverIntentSchema, JourneyIntentSchema, ProductSurfaceIntentSchema, intentKey, submitsJourney } from "./intent.ts";
 import {AttentionSignalSchema} from '../attention.ts';
+import { mediaTypes } from "../media/rendition-policy.ts";
 export { ToolbarActionSchema, type ToolbarAction } from "./toolbar.ts";
 
 const object = <T extends TProperties>(properties: T) => Type.Object(properties, { additionalProperties: false });
@@ -34,7 +35,9 @@ export const FormSchema = object({
   fields: Type.Array(Type.Union([TextFormFieldSchema, object({ name: text(), label: text(), required: Type.Boolean(),
     disabled: Type.Optional(Type.Boolean()),
     primitive: Type.Literal("control.files"), files: Type.Array(FileMetadataSchema, { maxItems: 1 }), error: Type.Optional(text()),
-    media:Type.Optional(Type.Union([Type.Literal("image"),Type.Literal("media")])),
+    // The media types the file chooser offers (src/interaction/image-input.ts assetInputMedia); the controller re-checks
+    // the fact's own accept list on the bytes.
+    media: Type.Optional(Type.Array(Type.Union(mediaTypes.map(type => Type.Literal(type))), { minItems: 1, uniqueItems: true })),
   }), object({ name: text(), label: text(), required: Type.Boolean(), primitive: Type.Literal("control.labels"),
     disabled: Type.Optional(Type.Boolean()),
     values: Type.Array(Type.String()), limits: LabelControlLimitsSchema, error: Type.Optional(text()),

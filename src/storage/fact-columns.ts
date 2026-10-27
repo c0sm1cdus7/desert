@@ -4,14 +4,15 @@
 // `<object>_<fact>` (src/storage/ddl.ts). Raises STORAGE_DECLARATION.
 import type { TSchema } from "@sinclair/typebox";
 import type { FieldDefinition } from "../field-definition.ts";
+import { acceptsOnlyImages } from "../media/rendition-policy.ts";
 import { column, inInstallationLanguage, readColumnStorage } from "./columns.ts";
 import type { Table } from "./declare.ts";
-import { assetsTable } from "./tables/assets.ts";
 import { identitiesTable } from "./tables/local.ts";
 
 /** How a fact value travels to its column and back (src/storage/object-values.ts): as itself, as a bigint (pg reads int8 as
- * text), or as the uuid of an asset (an image asset reads back as its reference; a media asset also names its media kind). */
-export type FactValueKind = "plain" | "integer" | "image-asset" | "media-asset";
+ * text), or as the uuid of the product's `asset` object (src/assets/object.ts): a file fact that accepts only images reads
+ * back as the bare reference ("image-file"); any other also names the file's media kind ("media-file"). */
+export type FactValueKind = "plain" | "integer" | "image-file" | "media-file";
 export type FactStorage =
   | Readonly<{ kind: "column"; schema: TSchema; value: FactValueKind; references?: Table }>
   | Readonly<{ kind: "join"; target: string; maxItems: number }>;
@@ -26,7 +27,8 @@ export function factColumn<S extends TSchema>(where: string, schema: S): S {
   return schema;
 }
 
-export function factStorage(where: string, field: FieldDefinition): FactStorage {
+/** `assets` is the product's asset object table, which every file column references. */
+export function factStorage(where: string, field: FieldDefinition, assets?: Table): FactStorage {
   const stored = (schema: TSchema, value: FactValueKind = "plain", references?: Table): FactStorage =>
     ({ kind: "column", schema: factColumn(where, schema), value, ...(references ? { references } : {}) });
   switch (field.kind) {
@@ -35,13 +37,18 @@ export function factStorage(where: string, field: FieldDefinition): FactStorage 
       minimum: field.minimum ?? Number.MIN_SAFE_INTEGER, maximum: field.maximum ?? Number.MAX_SAFE_INTEGER }), "integer");
     case "enum": return stored(enumColumn(field.values));
     case "principal": return stored(column.uuid(), "plain", identitiesTable);
-    // The asset's media kind lives on its asset row; slice 7.4 turns `asset` into the `file` object kind.
-    case "asset": return stored(column.uuid(), field.media === "media" ? "media-asset" : "image-asset", assetsTable);
+    // The file's media type is a fact of its asset object; the column is the link.
+    case "file": return stored(column.uuid(), acceptsOnlyImages(field.accept) ? "image-file" : "media-file",
+      assets ?? fail(where, "a file fact needs the product's asset object (src/assets/object.ts)"));
     case "labels": return field.reference
       ? { kind: "join", target: field.reference.object, maxItems: field.maxItems }
       : stored(inInstallationLanguage(column.labels(field)));
   }
 }
+
+const fail = (where: string, what: string): never => {
+  throw new Error(`STORAGE_DECLARATION: ${where}: ${what}; contract: src/storage/fact-columns.ts`);
+};
 
 function enumColumn(values: readonly string[]): TSchema {
   const [first, ...rest] = values;

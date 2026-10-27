@@ -5,7 +5,6 @@
 import type { QueryConfig } from "pg";
 import type { StoredObject, StoredReference } from "./ddl.ts";
 import { qualified, quoted, quotedList } from "./render-checks.ts";
-import { assetsTable } from "./tables/assets.ts";
 
 type Statement = QueryConfig<unknown[]>;
 /** Which rows of one object type: by id, by a list of ids, or all of them; then optionally the owner's and equal columns. */
@@ -60,7 +59,3 @@ export const insertReferences = (reference: StoredReference, id: string, targets
   text: `INSERT INTO ${qualified(reference.table)} ("object_id", "target_id", "position")
     SELECT $1, item.target, item.ordinality - 1 FROM unnest($2::uuid[]) WITH ORDINALITY AS item(target, ordinality)`,
   values: [id, targets] });
-
-/** The processed metadata of assets, from which a media asset fact reads its media kind. */
-export const selectAssetMetadata = (ids: readonly string[]): Statement =>
-  ({ text: `SELECT "id", "metadata" FROM ${qualified(assetsTable)} WHERE "id" = ANY($1::uuid[])`, values: [ids] });

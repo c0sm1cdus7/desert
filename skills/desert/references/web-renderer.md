@@ -4,7 +4,7 @@ Generated from the bundled SDK documentation; do not edit this snapshot.
 
 ## Source: docs/WEB-RENDERER.md
 
-Source SHA-256: 695439b4fa9e5eb93f23d555304fa0f5a54b0b8b1c1d1fa73d398501b2b87c9a
+Source SHA-256: 84e0e7585752ff44fca103e668147c5522f4ae64bb4ddf2eaa25be5ef3745a14
 
 # The DESERT human web renderer
 
@@ -340,7 +340,7 @@ URL. Image gestures and thumbnails remain shared; media-specific playback/time/
 volume controls use the same toolbar owners. This does not trust arbitrary
 uploads or external media URLs.
 
-Private images use canonical `imageAsset()` inputs. Browser acquisition stages
+Private files use canonical `file({ accept, maxBytes })` inputs. Browser acquisition stages
 bytes through the authenticated controller, preserves the original and produces
 bounded renditions. Prepare/accept bind issued references to identity, run,
 input and contract. Private bytes never enter the public build media directory.
@@ -976,7 +976,7 @@ export function requireCatalog(candidate: unknown) {
 
 ## src/field-representation.ts
 
-Source SHA-256: 25379afa2a202dfd506491d33251b4f3c132d1a02678908f60986a70bfb1d692
+Source SHA-256: ddd1db9a9a489f36e17b9e459ae599b6a214554a1067e497911a31d040c10c38
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -992,7 +992,7 @@ export const FieldKindsSchema = Type.Record(Type.String({ minLength: 1 }), Field
 export type FieldKind = Static<typeof FieldKindSchema>;
 
 export function supportsFieldRepresentation(fact: Pick<FieldDefinition, "kind">, representation: FieldRepresentation): boolean {
-  if (fact.kind === "asset") return representation === "image";
+  if (fact.kind === "file") return representation === "image";
   if (fact.kind === "labels") return representation === "tags";
   return representation !== "image" && representation !== "tags" && fact.kind !== "principal" && (representation !== "paragraphs" || fact.kind === "text");
 }
@@ -3470,7 +3470,7 @@ Source SHA-256: 0916b3ced85e7d92fafe4ad145a5e81c5fdd9cf957510a6520fea082ea4a3f96
 
 ## src/interaction/surface-frame.ts
 
-Source SHA-256: d1b28946960fd337da3f38e38c1efd6a56c1969518c9ef86843400bf77b2ead4
+Source SHA-256: 273302dd271578d0bbff5cdbf91dbe450133c16ed79dc676cb5b126a8d87d8c3
 
 ```ts
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
@@ -3485,6 +3485,7 @@ import { FileMetadataSchema } from "./control-nodes.ts";
 import { LabelControlLimitsSchema, ReferenceStateSchema, ReferenceChoiceSchema,MediaReferenceStateSchema } from "./labels-control.ts";
 import { CloseIntentSchema, RecoverIntentSchema, JourneyIntentSchema, ProductSurfaceIntentSchema, intentKey, submitsJourney } from "./intent.ts";
 import {AttentionSignalSchema} from '../attention.ts';
+import { mediaTypes } from "../media/rendition-policy.ts";
 export { ToolbarActionSchema, type ToolbarAction } from "./toolbar.ts";
 
 const object = <T extends TProperties>(properties: T) => Type.Object(properties, { additionalProperties: false });
@@ -3509,7 +3510,9 @@ export const FormSchema = object({
   fields: Type.Array(Type.Union([TextFormFieldSchema, object({ name: text(), label: text(), required: Type.Boolean(),
     disabled: Type.Optional(Type.Boolean()),
     primitive: Type.Literal("control.files"), files: Type.Array(FileMetadataSchema, { maxItems: 1 }), error: Type.Optional(text()),
-    media:Type.Optional(Type.Union([Type.Literal("image"),Type.Literal("media")])),
+    // The media types the file chooser offers (src/interaction/image-input.ts assetInputMedia); the controller re-checks
+    // the fact's own accept list on the bytes.
+    media: Type.Optional(Type.Array(Type.Union(mediaTypes.map(type => Type.Literal(type))), { minItems: 1, uniqueItems: true })),
   }), object({ name: text(), label: text(), required: Type.Boolean(), primitive: Type.Literal("control.labels"),
     disabled: Type.Optional(Type.Boolean()),
     values: Type.Array(Type.String()), limits: LabelControlLimitsSchema, error: Type.Optional(text()),
@@ -6991,13 +6994,13 @@ export function mutationFlow(surface: HumanSurface, store: HumanStore, transport
 
 ## src/web/client/transport.ts
 
-Source SHA-256: a84cea81e116914be6a7a018cff29f47aa7ca64d86bcbd22130f72347212c0ef
+Source SHA-256: 5737a25d9982509225a69959dc794964b5f2998115626c7ba0f20bdd73a720c3
 
 ```ts
 import type { ApiMethods, Evidence } from "../types.ts";
 import { Check } from "@sinclair/typebox/value";
 import { AssetReferenceSchema, type AssetReference, type AssetImageVariant } from "../../assets/types.ts";
-import {privateMediaTypes} from "../../assets/policy.ts";
+import { mediaTypes, renditionMediaType } from "../../media/rendition-policy.ts";
 import { schedulePrivateImageRead, waitForPrivateImageCapacity } from './private-image-queue.ts';
 
 export class TransportError extends Error {
@@ -7104,7 +7107,7 @@ export function webTransport(digest: string, binding?: WebSessionBinding) {
             }
             const blob = await response.blob();
             requireCurrentSession();
-            if (!(input.variant==="original"?privateMediaTypes:["image/webp"]).includes(blob.type)) throw new TransportError("INVALID_RESPONSE");
+            if (!(input.variant==="original"?mediaTypes as readonly string[]:[renditionMediaType]).includes(blob.type)) throw new TransportError("INVALID_RESPONSE");
             return blob;
           }
         });
@@ -7393,7 +7396,7 @@ export async function prepareMutation(client: PoolClient, program: LocalProgram,
 
 ## src/local/accept.ts
 
-Source SHA-256: dade17caf2a69a45cc9915abdf9a17054486cdb543a65049b8b352d8c3d39b54
+Source SHA-256: 2cacbf6e24ebf1588f4414c48dbfc78808e0eea47e950944b7622360dcf90dac
 
 ```ts
 import type { PoolClient } from "pg";
@@ -7419,14 +7422,14 @@ export async function loadIntent(client: PoolClient, program: LocalProgram, acto
   return { intent, run };
 }
 
-/** The accepted effect as one change of the journey's module (owner answer Q3), written to the object's generated table;
- * an update sets only the facts its command assigns. Postgres re-checks the declaration: a violation is a named code. */
+/** The accepted effect as one change of the journey's module (owner answer Q3), written to the object's generated table.
+ * The prepared effect is what was confirmed, so an update writes every fact of it, preserved ones included: a corrupted
+ * preservation reaches storage and is caught (tests/verification-mutations.test.ts), never silently masked by the row.
+ * Postgres re-checks the declaration: a violation is a named code. */
 export async function writeEffect(client: PoolClient, program: LocalProgram, journey: Mutation, effect: Effect): Promise<number> {
-  const command = journey.command;
   const change: Change = effect.kind === "create"
     ? { kind: "create", object: effect.objectType, id: effect.objectId, facts: effect.facts }
-    : { kind: "update", object: effect.objectType, id: effect.objectId, expectedVersion: effect.expectedVersion,
-      set: Object.fromEntries(Object.keys(command.kind === "update" ? command.set : {}).map(fact => [fact, effect.facts[fact]])) };
+    : { kind: "update", object: effect.objectType, id: effect.objectId, expectedVersion: effect.expectedVersion, set: effect.facts };
   try {
     const { objects: [written] } = await namingViolations(() => applyChangesIn(client, program.module(journey), [change]));
     if (!written) throw new Error("EFFECT_LIMIT");
@@ -7468,7 +7471,7 @@ export async function acceptMutation(client: PoolClient, program: LocalProgram, 
   await validateReferences(client,program,actor,effect.objectType,effect.facts,effect.objectId);
   await requireLiveRun(client, run);
   const version = await writeEffect(client, program, journey, effect);
-  await attachImageEffect(client, effect);
+  await attachImageEffect(client, program, actor, effect);
   const result: Receipt = { id, runId: run.id, commandId: journey.command.id, status: "completed",
     object: { id: effect.objectId, type: effect.objectType, version } };
   await client.query("INSERT INTO desert_receipts (intent_id, result) VALUES ($1, $2)", [id, JSON.stringify(result)]);

@@ -19,7 +19,7 @@ export function validatePublicCatalogDefinition(value: unknown): PublicCatalogDe
   if (!Check(PublicCatalogDefinitionSchema, definition)) throw new Error("INVALID_PUBLIC_CATALOG_DEFINITION");
   const { object, source, view } = definition;
   if (Object.values(object.facts).some(fact => fact.kind === "principal")) throw new Error("INVALID_PUBLIC_CATALOG_PRINCIPAL");
-  if (Object.values(object.facts).some(fact => fact.kind === "asset")) throw new Error("PRIVATE_ASSET_REQUIRES_CONTROLLER_READ");
+  if (Object.values(object.facts).some(fact => fact.kind === "file")) throw new Error("PRIVATE_ASSET_REQUIRES_CONTROLLER_READ");
   const field = (name: string) => Object.hasOwn(object.facts, name) ? object.facts[name] : undefined;
   if (field(view.title)?.kind !== "text" || field(view.description)?.kind !== "text") throw new Error("INVALID_CATALOG_TEXT_EXPOSURE");
   const group = field(view.home.groups.field);

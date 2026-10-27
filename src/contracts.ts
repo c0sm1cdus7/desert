@@ -2,7 +2,7 @@ import { Type, type Static } from "@sinclair/typebox";
 import { JourneySchema, PolicySchema, ExposureSchema } from "./program-grammar.ts";
 import { DependencySchema } from "./dependencies.ts";
 import { FieldDefinitionSchema } from "./field-definition.ts";
-export { text, integer, principal, enumeration, imageAsset, mediaAsset, labels, references, namedReferences, mediaReferences, type FieldDefinition } from "./field-definition.ts";
+export { text, integer, principal, enumeration, file, labels, references, namedReferences, mediaReferences, type FieldDefinition } from "./field-definition.ts";
 const ObjectDefinition = Type.Object({
   id: Type.String({ minLength: 1 }),
   facts: Type.Record(Type.String({ minLength: 1 }), FieldDefinitionSchema, { minProperties: 1, additionalProperties: false }),

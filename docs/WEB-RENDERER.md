@@ -332,7 +332,7 @@ URL. Image gestures and thumbnails remain shared; media-specific playback/time/
 volume controls use the same toolbar owners. This does not trust arbitrary
 uploads or external media URLs.
 
-Private images use canonical `imageAsset()` inputs. Browser acquisition stages
+Private files use canonical `file({ accept, maxBytes })` inputs. Browser acquisition stages
 bytes through the authenticated controller, preserves the original and produces
 bounded renditions. Prepare/accept bind issued references to identity, run,
 input and contract. Private bytes never enter the public build media directory.

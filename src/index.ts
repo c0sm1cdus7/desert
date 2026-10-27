@@ -1,4 +1,4 @@
-export { objectType, text, integer, enumeration, principal, imageAsset, mediaAsset, labels, references, namedReferences, mediaReferences } from "./contracts.ts";
+export { objectType, text, integer, enumeration, principal, file, labels, references, namedReferences, mediaReferences } from "./contracts.ts";
 export type { FieldDefinition, ObjectDefinition, ProductDefinition } from "./contracts.ts";
 export { compile } from "./modules/compiled-product.ts";
 export { createCommand, updateCommand, fromInput, literal, actorId } from "./commands.ts";

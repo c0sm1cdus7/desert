@@ -1,7 +1,7 @@
 import type { ApiMethods, Evidence } from "../types.ts";
 import { Check } from "@sinclair/typebox/value";
 import { AssetReferenceSchema, type AssetReference, type AssetImageVariant } from "../../assets/types.ts";
-import {privateMediaTypes} from "../../assets/policy.ts";
+import { mediaTypes, renditionMediaType } from "../../media/rendition-policy.ts";
 import { schedulePrivateImageRead, waitForPrivateImageCapacity } from './private-image-queue.ts';
 
 export class TransportError extends Error {
@@ -108,7 +108,7 @@ export function webTransport(digest: string, binding?: WebSessionBinding) {
             }
             const blob = await response.blob();
             requireCurrentSession();
-            if (!(input.variant==="original"?privateMediaTypes:["image/webp"]).includes(blob.type)) throw new TransportError("INVALID_RESPONSE");
+            if (!(input.variant==="original"?mediaTypes as readonly string[]:[renditionMediaType]).includes(blob.type)) throw new TransportError("INVALID_RESPONSE");
             return blob;
           }
         });

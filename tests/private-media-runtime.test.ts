@@ -5,8 +5,9 @@ import { privateMediaFixture, mediaApplication, ImportClip, ReadClips, ReadDescr
 import { privateImagesFixture, ImportPhoto } from "./fixtures/private-images.ts";
 import { openLocalController } from "../src/local/controller.ts";
 import { inspectPlayableBytes } from "../src/assets/media-processing.ts";
-import { assetInputMedia, privateMediaTypes } from "../src/interaction/image-input.ts";
-import { mediaAsset } from "../src/index.ts";
+import { assetInputMedia } from "../src/interaction/image-input.ts";
+import { mediaTypes } from "../src/media/rendition-policy.ts";
+import { file } from "../src/index.ts";
 import { emitField } from "../src/schema.ts";
 
 let cluster: ReturnType<typeof postgresCluster>;
@@ -17,8 +18,10 @@ test("playable admission derives the kind from bounded bytes, never names or cla
   for (const bytes of [Buffer.from("<svg onload='alert(1)'/>"), Buffer.from("<html>renamed.mp4</html>"), pcmWave().subarray(0, 80), Buffer.from("ID3garbage")]) {
     await assert.rejects(inspectPlayableBytes(bytes), /UNSUPPORTED_MEDIA_ASSET/);
   }
-  assert.equal(assetInputMedia(emitField(mediaAsset())), "media");
-  assert.deepEqual(privateMediaTypes, ["image/jpeg", "image/png", "image/webp", "video/mp4", "audio/mp4", "audio/mpeg", "audio/wav"]);
+  const playable = ["image/jpeg", "image/png", "image/webp", "video/mp4", "audio/mp4", "audio/mpeg", "audio/wav"];
+  assert.deepEqual(assetInputMedia(emitField(file({ accept: ["image/jpeg", "image/png", "image/webp", "video/mp4", "audio/mp4", "audio/mpeg", "audio/wav"], maxBytes: 20_971_520 }))), playable);
+  assert.deepEqual(assetInputMedia(emitField(file({ accept: ["image/png"], maxBytes: 1 }))), ["image/jpeg", "image/png", "image/webp"]);
+  assert.deepEqual(mediaTypes.slice(0, 7), playable);
 });
 
 test("private audio is accepted atomically, original-only, identity-scoped, and survives restart", async () => {

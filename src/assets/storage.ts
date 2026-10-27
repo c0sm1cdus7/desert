@@ -3,7 +3,7 @@ import { access, mkdir, open, readdir } from "node:fs/promises";
 import { createHash, randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { createPrivateDirectory, openPrivateFile, requirePrivateDirectory, syncDirectory } from "./private-files.ts";
-import { imageAssetLimits, assetReservationBytes } from "./policy.ts";
+import { fileLimits, assetReservationBytes } from "./policy.ts";
 import { requireAssetReference, type AssetFile, type AssetImageVariant } from "./types.ts";
 import { renditionWidths } from "../media/rendition-policy.ts";
 
@@ -37,7 +37,7 @@ export async function openPrivateAssetStore(directory: string) {
   }
   async function write(reference: string, variant: AssetVariant, chunks: Iterable<Uint8Array> | AsyncIterable<Uint8Array>, size: number) {
     const folder = await assetDirectory(reference), name = fileName(variant), file = join(folder, name);
-    if (!Number.isSafeInteger(size) || size <= 0 || size > (variant === "original" ? imageAssetLimits.originalBytes : imageAssetLimits.renditionBytes)) {
+    if (!Number.isSafeInteger(size) || size <= 0 || size > (variant === "original" ? fileLimits.maxBytes : fileLimits.renditionBytes)) {
       throw new Error("ASSET_SIZE_LIMIT");
     }
     const handle = await open(file, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600)
@@ -73,7 +73,7 @@ export async function openPrivateAssetStore(directory: string) {
       const handle = await openPrivateFile(file);
       try {
         const stat = await handle.stat();
-        if (!Number.isSafeInteger(expected.size) || expected.size <= 0 || expected.size > imageAssetLimits.renditionBytes ||
+        if (!Number.isSafeInteger(expected.size) || expected.size <= 0 || expected.size > fileLimits.renditionBytes ||
           stat.size !== expected.size || !/^[0-9a-f]{64}$/.test(expected.digest)) throw new Error("ASSET_INTEGRITY_FAILED");
         const bytes = await handle.readFile();
         if (createHash("sha256").update(bytes).digest("hex") !== expected.digest) throw new Error("ASSET_INTEGRITY_FAILED");

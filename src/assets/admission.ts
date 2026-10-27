@@ -11,7 +11,7 @@ export async function imageInputScope(client: PoolClient, program: LocalProgram,
   if (journey.kind !== "mutation") throw new Error("NOT_A_MUTATION_JOURNEY");
   const object = loadDefinition(program.application).objects.find(item => item.id === journey.command.object);
   const field=object?.facts[inputField];
-  if (!journey.command.input.includes(inputField) || field?.kind !== "asset") throw new Error("INVALID_ASSET_INPUT");
+  if (!journey.command.input.includes(inputField) || field?.kind !== "file") throw new Error("INVALID_ASSET_INPUT");
   if (!allowExpired && run.state !== "admitted") throw new Error("INVALID_RUN_STATE");
-  return { actor, surface, runId, inputField, storeId, contractDigest: program.application.digest,media:field.media };
+  return { actor, surface, runId, inputField, storeId, contractDigest: program.application.digest, accept: field.accept, maxBytes: field.maxBytes };
 }

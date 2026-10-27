@@ -2,13 +2,16 @@ import type { FieldDefinition, ObjectDefinition } from "./contracts.ts";
 import { AssetReferenceSchema } from "./assets/types.ts";
 import { inputPropertySchema, type InputPropertySchema, type JourneyInputSchema } from "./input-schema.ts";
 import { labelsValueSchema } from "./labels.ts";
+import { acceptedKinds, acceptsOnlyImages } from "./media/rendition-policy.ts";
 
 /** A TypeBox schema as the JSON it serialises to, narrowed to the emitted subset. */
 const asJson = (schema: object) => inputPropertySchema(JSON.parse(JSON.stringify(schema)));
 
 export function emitField(field: FieldDefinition): InputPropertySchema {
-  if (field.kind === "asset") {
-    const media: InputPropertySchema = field.media === "image" ? { type: "string", const: "image" } : { type: "string", enum: ["image", "video", "audio"] };
+  if (field.kind === "file") {
+    // The value names its media kind unless the fact accepts only images (src/assets/types.ts fileValue).
+    const media: InputPropertySchema = acceptsOnlyImages(field.accept) ? { type: "string", const: "image" }
+      : { type: "string", enum: [...acceptedKinds(field.accept)] };
     const { kind, reference } = AssetReferenceSchema.properties;
     return asJson({ ...AssetReferenceSchema, properties: { kind, reference, media } });
   }

@@ -57,19 +57,20 @@ export const tableCount = async (pool: Pool, namespace: string) => Number((await
 export const rowCount = async (pool: Pool, table: string) =>
   Number((await pool.query<{ count: string }>(`SELECT count(*) FROM ${table}`)).rows[0]?.count);
 
-/** One identity, one attached asset, one project, one task with valid facts. */
+/** One identity, one attached asset object (the product's SDK-declared `asset`), one project, one task with valid facts. */
 export async function seed(pool: Pool) {
-  const owner = randomUUID(), asset = randomUUID(), store = randomUUID(), run = randomUUID(), project = randomUUID(), task = randomUUID();
+  const owner = randomUUID(), asset = randomUUID(), run = randomUUID(), project = randomUUID(), task = randomUUID();
   await pool.query("INSERT INTO desert_identities (id, label, credential_hash, expires_at) VALUES ($1, 'owner', $2, now() + interval '1 day')", [owner, randomUUID()]);
-  await pool.query(`INSERT INTO desert_asset_store (singleton, id, installation, quota) VALUES (true, $1, $2, '{}')`, [store, randomUUID()]);
   await pool.query(`INSERT INTO desert_runs (id, actor, surface, journey, subject, contract_digest, expires_at, state)
     VALUES ($1, $2, 'human', 'import', NULL, 'digest', now() + interval '1 day', 'admitted')`, [run, owner]);
-  await pool.query(`INSERT INTO desert_assets (id, store_id, actor, run_id, input_field, contract_digest, state, declared_size, reserved_bytes, metadata)
-    VALUES ($1, $2, $3, $4, 'recording', 'digest', 'attached', 1, 1, NULL)`, [asset, store, owner, run]);
+  await pool.query(insertAsset, [asset, owner]);
   await pool.query(`INSERT INTO ${schema}.project (id, version, name, color, owner) VALUES ($1, 1, 'Home', 'blue', $2)`, [project, owner]);
   await pool.query(insertTask, taskValues({ id: task, owner, recording: asset }));
   return { owner, asset, project, task, run };
 }
+/** An attached WAV file of `$2`, as the asset object row the upload and the accept write (src/assets/asset-objects.ts). */
+export const insertAsset = `INSERT INTO ${schema}.asset (id, version, media_type, size, digest, duration, state, owner)
+  VALUES ($1, 1, 'audio/wav', 1, '${"0".repeat(64)}', 1000, 'attached', $2)`;
 export const insertTask = `INSERT INTO ${schema}.task (id, version, title, priority, estimate, status, owner, tags, recording, due_note, state)
   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`;
 type TaskFacts = { id: string; owner: string; recording: string; version?: number; title?: string; priority?: number;

@@ -1,4 +1,4 @@
-import { objectType, text, imageAsset, principal, createCommand, fromInput, actorId, controllerRole, ownershipPolicy, mutationJourney, readJourney,
+import { objectType, text, file, principal, createCommand, fromInput, actorId, controllerRole, ownershipPolicy, mutationJourney, readJourney,
   humanExposure, composeProduct, moduleIndex, publishObject, factReference, Components, ViewTitles, defineView, viewPorts, viewOutput,
 } from "../../src/index.ts";
 import { compile } from "../../src/compile.ts";
@@ -7,7 +7,7 @@ import { readScopes } from "../../src/web/client/view-scopes.ts";
 import { WorkspaceView, NavigationView } from "./workspace-view.ts";
 import { FixtureMessages, fixtureText } from "./messages.ts";
 
-export const Photo = objectType({ id: "photo", facts: { title: text({ minLength: 1 }), image: imageAsset(), owner: principal() } });
+export const Photo = objectType({ id: "photo", facts: { title: text({ minLength: 1 }), image: file({ accept: ["image/jpeg", "image/png", "image/webp"], maxBytes: 20_971_520 }), owner: principal() } });
 const Controller = controllerRole({ id: "photos", objects: [Photo], requires: [] });
 const requires = { controller: Controller, dependencies: [] };
 export const ImportPhoto = mutationJourney("import-photo", createCommand("import-photo-record", Photo, {
