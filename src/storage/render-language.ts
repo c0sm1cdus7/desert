@@ -3,15 +3,15 @@
 // database. Raises INSTALLATION_LANGUAGE (at generation without a language; in Postgres when a database already holds
 // the product in another language, so a reinstall never silently keeps the old order).
 import type { InstallationLanguage } from "./client-installation.ts";
-import type { Table } from "./declare.ts";
+import type { TableShape } from "./declare.ts";
 import { literal, quoted } from "./render-checks.ts";
 
 const collationName = "desert_language";
 
-export const usesLanguageCollation = (table: Table) => table.columns.some(column => column.storage.collation === "installation-language");
+export const usesLanguageCollation = (table: TableShape) => table.columns.some(column => column.storage.collation === "installation-language");
 
 /** The collation a namespace's text columns use: one per product schema, all in the installation's one language. */
-export function languageCollation(table: Table): string {
+export function languageCollation(table: TableShape): string {
   if (table.namespace === undefined) {
     throw new Error(`STORAGE_DECLARATION: ${table.qualifiedName}: a collated column needs a product namespace; contract: src/storage/render-language.ts`);
   }

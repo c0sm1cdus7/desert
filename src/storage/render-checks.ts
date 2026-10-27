@@ -2,17 +2,17 @@
 // The labels check calls one generated function per namespace, because Postgres forbids subqueries inside CHECK.
 import { canonicalLabel } from "../labels.ts";
 import type { ColumnCheck } from "./columns.ts";
-import type { Table } from "./declare.ts";
+import type { TableName, TableShape } from "./declare.ts";
 
 /** Declared names are lower-case identifiers (declare.ts), so quoting never needs escaping. */
 export const quoted = (name: string) => `"${name}"`;
 export const quotedList = (names: readonly string[]) => names.map(quoted).join(", ");
-export const qualified = (table: Table) => table.namespace ? `${quoted(table.namespace)}.${quoted(table.name)}` : quoted(table.name);
+export const qualified = (table: TableName) => table.namespace ? `${quoted(table.namespace)}.${quoted(table.name)}` : quoted(table.name);
 export const literal = (value: string) => `'${value.replaceAll("'", "''")}'`;
 
 const labelsFunction = (namespace: string | undefined) => `${quoted(namespace ?? "public")}.${quoted("desert_labels_valid")}`;
 
-export function renderCheck(table: Table, name: string, check: ColumnCheck): string {
+export function renderCheck(table: Pick<TableShape, "namespace">, name: string, check: ColumnCheck): string {
   const column = quoted(name);
   switch (check.kind) {
     case "true": return `CHECK (${column})`;
@@ -47,4 +47,4 @@ $$;
 `;
 }
 
-export const usesLabelsFunction = (table: Table) => table.columns.some(column => column.storage.check?.kind === "labels");
+export const usesLabelsFunction = (table: TableShape) => table.columns.some(column => column.storage.check?.kind === "labels");

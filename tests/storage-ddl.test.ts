@@ -58,7 +58,7 @@ test("the generated infrastructure DDL produces the same catalog as the five han
     await mutated.query(ddl);
     const expected = await catalog(byHand), actual = await catalog(byDeclaration);
     assert.equal(expected.tables.length, 17);
-    assert.equal(expected.columns.length, 102);
+    assert.equal(expected.columns.length, 103);
     assert.ok(expected.constraints.length > 17 * 2, "primary keys, foreign keys, checks, uniques and not-null constraints are compared");
     assert.deepEqual(expected.indexes.map(index => String(index.indexname)).filter(name => !/_(pkey|key)$/.test(name)).sort(),
       ["desert_single_administrator", "jobs_by_actor_state"]);

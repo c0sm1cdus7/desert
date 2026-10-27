@@ -1,7 +1,7 @@
 import { readFileSync, statSync } from "node:fs";
 import { isAbsolute } from "node:path";
 import { Pool, type PoolClient } from "pg";
-import { LocalSchemaVersion, requireDurablePrimary, requireInstallation } from "./installation.ts";
+import { recordInstallation, requireDurablePrimary, requireInstallation } from "./installation.ts";
 
 export type LocalDatabase = { socketDirectory: string, database: string, user: string, port?: number };
 
@@ -62,8 +62,7 @@ export function localDatabase(options: LocalDatabase) {
       await client.query(readFileSync(new URL("./schema.sql", import.meta.url), "utf8"));
       await client.query(readFileSync(new URL("../activities/schema.sql", import.meta.url), "utf8"));
       await client.query(readFileSync(new URL("../identity/schema.sql", import.meta.url), "utf8"));
-      await client.query(`INSERT INTO desert_installation VALUES (true, $1, $2, $3, $4)
-        ON CONFLICT DO NOTHING`, [LocalSchemaVersion, product, digest, roles]);
+      await recordInstallation(client, { product, digest, roles });
       await requireInstallation(client, { product, digest, roles });
     });
   }

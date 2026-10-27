@@ -33,6 +33,17 @@ export type Table<R extends TObject = TObject> = Readonly<{
   indexes: readonly TableIndex[];
   limits: readonly RowLimit[];
 }>;
+/** What a table is once declared, without its TypeBox row: what the DDL renders and what a storage model snapshot keeps
+ * (src/storage/model.ts). Every Table is one. */
+export type TableName = Readonly<{ namespace?: string; name: string; qualifiedName: string }>;
+export type TableShape = TableName & Readonly<{
+  columns: readonly StoredColumn[];
+  primaryKey: readonly string[];
+  unique: readonly (readonly string[])[];
+  foreignKeys: readonly Readonly<{ columns: readonly string[]; references: Readonly<{ table: TableName; columns: readonly string[] }> }>[];
+  indexes: readonly TableIndex[];
+  limits: readonly RowLimit[];
+}>;
 
 const identifier = /^[a-z_][a-z0-9_]{0,62}$/;
 /** Owner answer Q4: each client is its own installation and database, so no row names its client. */
