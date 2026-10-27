@@ -1,8 +1,9 @@
 // Law: DDL is generated from the table declarations, never written by hand.
 // The output is idempotent (IF NOT EXISTS, OR REPLACE) so an installer may apply it on every start.
+import { createHash } from "node:crypto";
 import type { InstallationLanguage } from "./client-installation.ts";
 import type { ColumnStorage } from "./columns.ts";
-import type { RowLimit, StoredColumn, Table, TableIndex } from "./declare.ts";
+import type { RowLimit, StoredColumn, TableIndex, TableShape } from "./declare.ts";
 import { infrastructureTables } from "./infrastructure.ts";
 import { languageCollation, renderLanguageCollation, renderSearchSupport, usesLanguageCollation } from "./render-language.ts";
 import { literal, qualified, quoted, quotedList, renderCheck, renderLabelsFunction, usesLabelsFunction } from "./render-checks.ts";
@@ -10,12 +11,12 @@ import { literal, qualified, quoted, quotedList, renderCheck, renderLabelsFuncti
 export const infrastructureDdlPath = "src/storage/generated/infrastructure.sql";
 const infrastructureHeader = "-- GENERATED from src/storage/infrastructure.ts by `node scripts/storage.ts --write`. Do not edit.\n";
 
-function renderDefault(value: NonNullable<ColumnStorage["default"]>): string {
+export function renderDefault(value: NonNullable<ColumnStorage["default"]>): string {
   if (value === "clock_timestamp") return "DEFAULT clock_timestamp()";
   return `DEFAULT ${value}`;
 }
 
-function renderColumn(table: Table, { name, storage }: StoredColumn): string {
+export function renderColumn(table: TableShape, { name, storage }: StoredColumn): string {
   return [
     `  ${quoted(name)} ${storage.type}`,
     ...(storage.collation ? [`COLLATE ${languageCollation(table)}`] : []),
@@ -26,7 +27,7 @@ function renderColumn(table: Table, { name, storage }: StoredColumn): string {
   ].join(" ");
 }
 
-function renderTable(table: Table): string {
+export function renderTable(table: TableShape): string {
   const lines = [
     ...table.columns.map(column => renderColumn(table, column)),
     `  PRIMARY KEY (${quotedList(table.primaryKey)})`,
@@ -36,13 +37,13 @@ function renderTable(table: Table): string {
   return `CREATE TABLE IF NOT EXISTS ${qualified(table)} (\n${lines.join(",\n")}\n);\n`;
 }
 
-const renderIndex = (table: Table, index: TableIndex) =>
+export const renderIndex = (table: TableShape, index: TableIndex) =>
   `CREATE ${index.unique ? "UNIQUE " : ""}INDEX IF NOT EXISTS ${quoted(index.name)} ON ${qualified(table)} (${quotedList(index.columns)})` +
   `${index.where === undefined ? "" : ` WHERE ${quoted(index.where)}`};\n`;
 
 /** Locks the referenced row first, so concurrent inserts for one parent are counted one after the other. NOT DEFERRABLE:
  * an action's changes apply in their declared order, each statement leaving the declaration true (owner answer Q3). */
-function renderLimit(table: Table, limit: RowLimit): string {
+export function renderLimit(table: TableShape, limit: RowLimit): string {
   const name = `${table.name}_${limit.column}_limit`;
   const parent = table.foreignKeys.find(key => key.columns.length === 1 && key.columns[0] === limit.column)?.references;
   if (!parent) throw new Error(`STORAGE_DECLARATION: ${table.qualifiedName}: limit on ${limit.column} has no foreign key; contract: src/storage/declare.ts`);
@@ -65,7 +66,7 @@ CREATE CONSTRAINT TRIGGER ${quoted(name)} AFTER INSERT OR UPDATE ON ${qualified(
 }
 
 /** `language` is the installation's (owner answer Q20); tables with a collated column cannot be rendered without it. */
-export function renderDdl(header: string, tables: readonly Table[], language?: InstallationLanguage): string {
+export function renderDdl(header: string, tables: readonly TableShape[], language?: InstallationLanguage): string {
   const namespaces = [...new Set(tables.map(table => table.namespace))];
   const collated = namespaces.filter(namespace => tables.some(table => table.namespace === namespace && usesLanguageCollation(table)));
   return header + [
@@ -79,3 +80,8 @@ export function renderDdl(header: string, tables: readonly Table[], language?: I
 
 /** The infrastructure of every client database, with the accent-insensitive search support (owner answer Q20). */
 export const renderInfrastructureDdl = () => renderDdl(infrastructureHeader, infrastructureTables) + renderSearchSupport();
+
+let infrastructure: string | undefined;
+/** sha256 of the generated infrastructure DDL: what desert_installation.infrastructure_digest records, so a database built
+ * from other infrastructure tables refuses to serve (INSTALLATION_MISMATCH) instead of a hand-bumped schema version. */
+export const infrastructureDigest = () => infrastructure ??= createHash("sha256").update(renderInfrastructureDdl()).digest("hex");
