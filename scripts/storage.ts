@@ -2,13 +2,16 @@
 // --write writes the generated DDL and storage model: the infrastructure, and one object file and one model per stored
 // product, installation language and digest. plan writes them too, plus the migration from the digest the committed
 // history ends at to the current one (src/storage/migration-history.ts), using the installation's declared decisions.
-// --check fails STORAGE_DERIVATION when a generated file differs from the declarations, and MIGRATION_EDITED,
-// MIGRATION_PLAN_MISSING, MIGRATION_DECISION_REQUIRED or MIGRATION_DECISION_UNUSED when the migration history is not whole.
+// --check fails STORAGE_DERIVATION when a generated file differs from the declarations, MIGRATION_EDITED,
+// MIGRATION_PLAN_MISSING, MIGRATION_DECISION_REQUIRED or MIGRATION_DECISION_UNUSED when the migration history is not whole,
+// and UNDECLARED_SQL when the repository holds hand-written SQL (src/storage/undeclared-sql.ts).
 import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { objectDdlPath, renderObjectDdl } from "../src/storage/ddl.ts";
 import { checkHistory, planNext } from "../src/storage/migration-history.ts";
 import { modelPath, renderModel, storageModel } from "../src/storage/model.ts";
 import { infrastructureDdlPath, renderInfrastructureDdl } from "../src/storage/render-ddl.ts";
+import { formatSqlViolation, readSqlTree, undeclaredSql } from "../src/storage/undeclared-sql.ts";
 import { storedInstallations } from "./storage-products.ts";
 
 const root = new URL("../", import.meta.url);
@@ -48,6 +51,10 @@ if (mode === "--write") {
       process.stderr.write(`${problem}\n`);
       process.exitCode = 1;
     }
+  }
+  for (const violation of undeclaredSql(await readSqlTree(fileURLToPath(root)))) {
+    process.stderr.write(`${formatSqlViolation(violation)}\n`);
+    process.exitCode = 1;
   }
 } else {
   process.stderr.write("usage: node scripts/storage.ts --write | --check | plan\n");

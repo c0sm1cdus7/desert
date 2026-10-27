@@ -9,8 +9,6 @@ import { column, readColumnStorage } from "../src/storage/columns.ts";
 import { factColumn } from "../src/storage/fact-columns.ts";
 import { storedInstallations } from "../scripts/storage-products.ts";
 import { SpanishClient, StorageKinds } from "./fixtures/storage-kinds.ts";
-import { SharedProduct } from "./fixtures/shared-controller.ts";
-import { openLocalController } from "../src/local/controller.ts";
 
 const root = new URL("../", import.meta.url);
 const rejects = (code: string, run: () => unknown) =>
@@ -142,12 +140,5 @@ test("unique: a declared unique set must name scalar facts of the object", () =>
   assert.equal(compile(owned([valid])).id, "case-product");
   assert.equal(ownershipPolicy(valid, "owner").field, "owner");
 });
-
-test("UNIQUE_NOT_YET_ENFORCED: the local controller refuses a product that declares unique facts until objects live in typed tables", async () => {
-  const [memo, ...others] = SharedProduct.objects;
-  const declared = { ...SharedProduct, objects: [{ ...memo, unique: [["title"]] }, ...others] };
-  const options = { socketDirectory: "/nonexistent", database: "none", user: "none", roles: ["workspace"] };
-  await assert.rejects(openLocalController(compile(declared), options), /^Error: UNIQUE_NOT_YET_ENFORCED: memo: /);
-  // Control: without the declaration the guard passes and opening fails later, at the socket.
-  await assert.rejects(openLocalController(compile(SharedProduct), options), /^Error: ENOENT/);
-});
+// The local controller now serves declared unique facts from the typed tables; tests/storage-integrity.test.ts proves a
+// duplicate is refused as UNIQUE_CONFLICT through the session, HTTP and MCP.

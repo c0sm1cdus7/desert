@@ -4,6 +4,7 @@ import { compile } from "../src/compile.ts";
 import type { ProductDefinition } from "../src/contracts.ts";
 import { protocolNotebookDefinition } from "./fixtures/notebook.ts";
 import { localProgram } from "../src/local/program.ts";
+import { testInstallation } from "../src/testing/installation.ts";
 import { preparedView } from "../src/local/effects.ts";
 import type { Intent, Run } from "../src/local/types.ts";
 
@@ -18,7 +19,7 @@ function fixture() {
   if (creation.kind !== "mutation" || creation.command.kind !== "create") throw new Error("Expected create journey");
   creation.command.values.privateFact = { kind: "literal", value: "private" };
   const application = compile(definition);
-  return localProgram(application, ["notes"]);
+  return localProgram(application, ["notes"], testInstallation);
 }
 const run = (journey: string, surface = "human"): Run => ({ id: "run", actor: "identity", surface, journey,
   subject: null, contract_digest: "digest", expires_at: new Date("2030-01-01"), state: "prepared" });

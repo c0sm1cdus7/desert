@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { renderExecutionDdl } from "../storage/render-ddl.ts";
 import { localDatabase, type LocalDatabase } from "../local/database.ts";
 import { requireDurablePrimary } from "../local/installation.ts";
 import { registerActor, registerEnvironment } from "./bindings.ts";
@@ -16,7 +16,7 @@ export async function openExecutionQueue(connection: LocalDatabase, options: { l
     await database.transaction(async client => {
       await requireDurablePrimary(client);
       await client.query("SELECT pg_advisory_xact_lock(842724)");
-      await client.query(readFileSync(new URL("./schema.sql", import.meta.url), "utf8"));
+      await client.query(renderExecutionDdl());
       await client.query("INSERT INTO desert_execution.installation VALUES (true, 1) ON CONFLICT DO NOTHING");
       const { rows: [installed] } = await client.query("SELECT version FROM desert_execution.installation WHERE singleton");
       if (installed?.version !== 1) throw new Error("EXECUTION_INSTALLATION_MISMATCH");

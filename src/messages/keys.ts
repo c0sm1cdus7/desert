@@ -15,6 +15,8 @@ export const Messages = messageCatalog({
       "CONTRACT_MISMATCH": "The surface and controller use different contracts. This session cannot continue safely.",
       "PRECONDITION_FAILED": "This action is no longer available for the current record. No change was accepted.",
       "VERSION_CONFLICT": "The record changed after your review. Go back and review its current version.",
+      "UNIQUE_CONFLICT": "Another record already has these details. No change was accepted. Change them and review again.",
+      "STORAGE_CONSTRAINT": "The stored records refused this change. No change was accepted. Go back and review it again.",
       "NOT_FOUND": "The operation could not be completed. Your draft has been kept. Restore the connection and try again.",
       "RUN_EXPIRED": "This review has expired. Go back to prepare a fresh review. Your draft is still here.",
       "INVALID_INPUT": "The operation could not be completed. Your draft has been kept. Restore the connection and try again.",

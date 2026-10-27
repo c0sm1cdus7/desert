@@ -2,9 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
 import { freezeDeep } from "../json.ts";
 import type { LocalProgram } from "./program.ts";
-import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
-import type { StoredObject } from "./types.ts";
-import { matchesConditions } from "./conditions.ts";
+import { admittedRun, ownedObject, ownedObjects, requireLiveRun } from "./records.ts";
 
 export async function beginJourney(client: PoolClient, program: LocalProgram, actor: string,
   surface: string, journeyId: string, subject: string | undefined, lifetime: number) {
@@ -23,19 +21,18 @@ export async function beginJourney(client: PoolClient, program: LocalProgram, ac
   return Object.freeze({ id, journeyId, expiresAt: row.expires_at.toISOString() as string });
 }
 
+/** The read's subject, or every object the actor owns, filtered by the journey's declared equal facts in the generated
+ * statement (src/storage/object-sql.ts), in id order. */
 export async function readJourney(client: PoolClient, program: LocalProgram, actor: string, surface: string, runId: string) {
   const run = await admittedRun(client, program, actor, surface, runId);
   const journey = program.journey(surface, run.journey);
   if (journey.kind !== "read") throw new Error("NOT_A_READ_JOURNEY");
-  const records = run.subject ? [await ownedObject(client, program, actor, journey.object, run.subject)] :
-    (await client.query<StoredObject>(`SELECT * FROM desert_objects
-      WHERE object_type = $1 AND facts ->> $2 = $3 ORDER BY id`, [journey.object, program.owners.get(journey.object), actor])).rows;
+  // A subject the actor does not own is NOT_FOUND; one that the declared filter excludes reads as nothing.
+  if (run.subject) await ownedObject(client, program, actor, journey.object, run.subject);
+  const records = await ownedObjects(client, program, actor, journey.object,
+    { ...(run.subject ? { id: run.subject, lock: true } : {}), where: journey.where ?? {} });
   const fields = run.subject ? journey.fields : journey.collection;
   await requireLiveRun(client, run);
-  return freezeDeep(records.flatMap(record => {
-    if (!program.application.validate(journey.object, record.facts).valid) throw new Error("CORRUPT_OBJECT");
-    if (!matchesConditions(record.facts, journey.where ?? {})) return [];
-    return [{ id: record.id, version: record.version,
-      facts: Object.fromEntries(fields.map(field => [field, record.facts[field]!])) }];
-  }));
+  return freezeDeep(records.map(record => ({ id: record.id, version: record.version,
+    facts: Object.fromEntries(fields.map(field => [field, record.facts[field]!])) })));
 }

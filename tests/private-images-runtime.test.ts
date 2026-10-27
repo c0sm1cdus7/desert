@@ -4,6 +4,9 @@ import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import sharp from "sharp";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { storedObjects } from "../src/testing/stored-objects.ts";
+import { renderWriteFault, renderWriteFaultRemoval } from "../src/storage/render-faults.ts";
+import { receiptsTable } from "../src/storage/tables/local.ts";
 import { privateImagesFixture, application, ImportPhoto, ReadPhotos, ReadTitles, ArchivePhoto } from "./fixtures/private-images.ts";
 import { openLocalController } from "../src/local/controller.ts";
 
@@ -62,16 +65,17 @@ test("asset linking, object change and receipt share a transaction; failed accep
   try {
     const { run, asset } = await f.stage();
     const intent = await f.session.prepare(run.id, { title: "Atomic image", image: asset });
-    await admin.query(`CREATE FUNCTION reject_image_receipt() RETURNS trigger LANGUAGE plpgsql AS
-      $$ BEGIN RAISE EXCEPTION 'receipt fault'; END $$;
-      CREATE TRIGGER image_receipt_fault BEFORE INSERT ON desert_receipts FOR EACH ROW EXECUTE FUNCTION reject_image_receipt()`);
+    const fault = { name: "image_receipt_fault", event: "INSERT", message: "receipt fault" } as const;
+    await admin.query(renderWriteFault(receiptsTable, fault));
     await assert.rejects(f.session.accept(intent.id, intent.confirmationDigest), /receipt fault/);
-    assert.equal((await admin.query("SELECT count(*) FROM desert_objects")).rows[0].count, "0");
-    assert.equal((await admin.query("SELECT count(*) FROM desert_asset_links")).rows[0].count, "0");
+    assert.equal((await storedObjects(admin, application)).length, 0);
+    assert.equal((await admin.query("SELECT count(*) FROM desert_assets WHERE state = 'attached'")).rows[0].count, "0");
     assert.equal((await f.session.imageStatus(run.id, "image", asset.reference)).state, "ready");
-    await admin.query("DROP TRIGGER image_receipt_fault ON desert_receipts");
+    await admin.query(renderWriteFaultRemoval(receiptsTable, fault));
     await f.session.accept(intent.id, intent.confirmationDigest);
-    assert.equal((await admin.query("SELECT count(*) FROM desert_asset_links")).rows[0].count, "1");
+    // The object's asset column is the link (a foreign key to desert_assets), written with the attachment.
+    assert.deepEqual((await storedObjects(admin, application)).map(object => object.facts.image), [asset]);
+    assert.equal((await admin.query("SELECT count(*) FROM desert_assets WHERE state = 'attached'")).rows[0].count, "1");
   } finally { await admin.end(); await f.host.close(); }
 });
 test("accepted metadata cannot change after preparation, and revocation during upload never publishes ready data", async () => {
@@ -87,6 +91,6 @@ test("accepted metadata cannot change after preparation, and revocation during u
     await assert.rejects(f.session.uploadImage(run.id, "image", asset.reference, revokedBytes()), /UNAUTHENTICATED/);
     const { rows: [record] } = await admin.query("SELECT state, reserved_bytes, metadata FROM desert_assets WHERE id = $1", [asset.reference]);
     assert.notEqual(record.state, "ready"); assert.equal(record.metadata, null); assert.ok(Number(record.reserved_bytes) > f.bytes.length);
-    assert.equal((await admin.query("SELECT count(*) FROM desert_objects")).rows[0].count, "0");
+    assert.equal((await storedObjects(admin, application)).length, 0);
   } finally { await admin.end(); await f.host.close(); }
 });

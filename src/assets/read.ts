@@ -11,12 +11,12 @@ async function authorizedImage(client: PoolClient, program: LocalProgram, actor:
   storeId: string, runId: string, reference: string) {
   requireAssetReference(reference);
   const records = await readJourney(client, program, actor, surface, runId);
-  for (const record of records) for (const [field, value] of Object.entries(record.facts)) {
+  // The read projects only the journey's declared fields, so a reference found here is one the actor may see; the
+  // object's asset column is the link (a foreign key), so the asset row needs no separate link.
+  for (const record of records) for (const value of Object.values(record.facts)) {
     if (typeof value !== "object" || !value || !("kind" in value) || value.kind !== "asset" || value.reference !== reference) continue;
-    const { rows: [asset] } = await client.query<{ metadata: PrivateAssetMetadata }>(`SELECT a.metadata FROM desert_assets a
-      JOIN desert_asset_links l ON l.asset_id = a.id
-      WHERE a.id = $1 AND a.actor = $2 AND a.store_id = $3 AND a.state = 'attached' AND l.object_id = $4 AND l.field = $5`,
-    [reference, actor, storeId, record.id, field]);
+    const { rows: [asset] } = await client.query<{ metadata: PrivateAssetMetadata }>(`SELECT metadata FROM desert_assets
+      WHERE id = $1 AND actor = $2 AND store_id = $3 AND state = 'attached'`, [reference, actor, storeId]);
     if (asset?.metadata) return asset.metadata;
   }
   throw new Error("NOT_FOUND");

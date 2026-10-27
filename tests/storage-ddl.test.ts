@@ -3,10 +3,11 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { Pool } from "pg";
 import { postgresCluster } from "../src/testing/postgres-cluster.ts";
-import { renderInfrastructureDdl } from "../src/storage/render-ddl.ts";
+import { renderControllerDdl, renderExecutionDdl, renderInfrastructureDdl } from "../src/storage/render-ddl.ts";
 
-// The runtime applies the hand-written files in this order (database.ts, assets/installation.ts, execution/queue.ts).
-const handWritten = ["src/local/schema.sql", "src/activities/schema.sql", "src/identity/schema.sql", "src/assets/schema.sql", "src/execution/schema.sql"];
+// Slice 7.6: the five hand-written schema.sql files are gone; each installer applies its group of the generated DDL
+// (src/local/database.ts the controller's, src/execution/queue.ts the execution queue's). Together they must build exactly
+// the catalog of the committed infrastructure file, the one the gate compares with the declaration.
 const generated = "src/storage/generated/infrastructure.sql";
 const root = new URL("../", import.meta.url);
 const source = (path: string) => readFile(new URL(path, root), "utf8");
@@ -26,6 +27,8 @@ const catalogQueries = {
   sequences: `SELECT sequence_schema, sequence_name, data_type, start_value, minimum_value, maximum_value, increment, cycle_option
     FROM information_schema.sequences WHERE sequence_schema IN ('public', 'desert_execution') ORDER BY 1, 2`,
   schemas: `SELECT nspname FROM pg_namespace WHERE nspname IN ('public', 'desert_execution') ORDER BY 1`,
+  functions: `SELECT n.nspname, p.proname, pg_get_function_identity_arguments(p.oid) AS arguments FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace WHERE n.nspname IN ('public', 'desert_execution') ORDER BY 1, 2, 3`,
 } as const;
 
 type Catalog = Record<keyof typeof catalogQueries, readonly Record<string, unknown>[]>;
@@ -33,14 +36,15 @@ async function catalog(pool: Pool): Promise<Catalog> {
   const read = async (query: string) => (await pool.query<Record<string, unknown>>(query)).rows;
   return { tables: await read(catalogQueries.tables), columns: await read(catalogQueries.columns),
     constraints: await read(catalogQueries.constraints), indexes: await read(catalogQueries.indexes),
-    sequences: await read(catalogQueries.sequences), schemas: await read(catalogQueries.schemas) };
+    sequences: await read(catalogQueries.sequences), schemas: await read(catalogQueries.schemas),
+    functions: await read(catalogQueries.functions) };
 }
 
 test("STORAGE_DERIVATION: the committed infrastructure DDL is exactly what the declaration generates", async () => {
   assert.equal(await source(generated), renderInfrastructureDdl());
 });
 
-test("the generated infrastructure DDL produces the same catalog as the five hand-written schema.sql files", async () => {
+test("the installers' generated DDL groups build the same catalog as the committed infrastructure file, idempotently", async () => {
   const cluster = postgresCluster();
   const pools: Pool[] = [];
   const open = async () => {
@@ -50,18 +54,22 @@ test("the generated infrastructure DDL produces the same catalog as the five han
     return pool;
   };
   try {
-    const [byHand, byDeclaration, mutated] = [await open(), await open(), await open()];
-    for (const path of handWritten) await byHand.query(await source(path));
+    const [byInstallers, byFile, mutated] = [await open(), await open(), await open()];
+    for (const ddl of [renderControllerDdl(), renderExecutionDdl()]) {
+      await byInstallers.query(ddl);
+      await byInstallers.query(ddl); // idempotent: the installers apply it on every start
+    }
     const ddl = await source(generated);
-    await byDeclaration.query(ddl);
-    await byDeclaration.query(ddl); // idempotent: the installer may run it on every start
+    await byFile.query(ddl);
     await mutated.query(ddl);
-    const expected = await catalog(byHand), actual = await catalog(byDeclaration);
-    assert.equal(expected.tables.length, 17);
-    assert.equal(expected.columns.length, 103);
-    assert.ok(expected.constraints.length > 17 * 2, "primary keys, foreign keys, checks, uniques and not-null constraints are compared");
+    const expected = await catalog(byFile), actual = await catalog(byInstallers);
+    assert.equal(expected.tables.length, 15);
+    assert.equal(expected.tables.some(table => /objects|asset_links/.test(String(table.table_name))), false);
+    assert.ok(expected.constraints.length > 15 * 2, "primary keys, foreign keys, checks, uniques and not-null constraints are compared");
     assert.deepEqual(expected.indexes.map(index => String(index.indexname)).filter(name => !/_(pkey|key)$/.test(name)).sort(),
       ["desert_single_administrator", "jobs_by_actor_state"]);
+    assert.deepEqual(expected.functions.map(entry => `${String(entry.nspname)}.${String(entry.proname)}`).filter(name => name.includes("desert_")),
+      ["public.desert_search_key"]);
     assert.deepEqual(actual, expected);
     // Control: the comparison sees a single dropped check.
     await mutated.query("ALTER TABLE desert_runs DROP CONSTRAINT desert_runs_state_check");

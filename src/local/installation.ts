@@ -5,6 +5,8 @@ import { infrastructureDigest } from "../storage/render-ddl.ts";
 import type { installationTable } from "../storage/tables/local.ts";
 
 export type Installation = { product: string, digest: string, roles: readonly string[] };
+/** A database built before objects moved to their per-type tables (plan §15, step 7.2) holds other infrastructure
+ * (infrastructure_digest), so it is refused (INSTALLATION_MISMATCH), never served as if it were empty. */
 export type InstalledRow = Static<typeof installationTable.row>;
 
 export async function requireDurablePrimary(client: PoolClient) {

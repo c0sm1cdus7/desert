@@ -4,7 +4,7 @@ import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { column, nullable } from "../src/storage/columns.ts";
 import { declareStorage, defineTable, references } from "../src/storage/declare.ts";
-import { infrastructureTables } from "../src/storage/infrastructure.ts";
+import { controllerTables, executionTables, infrastructureTables } from "../src/storage/infrastructure.ts";
 import type { Intent, Run, StoredObject, Effect, Facts } from "../src/local/types.ts";
 import type { AssetRecord } from "../src/assets/records.ts";
 import type { ActivityRecord } from "../src/activities/records.ts";
@@ -37,14 +37,18 @@ const jobShape: Equal<JobRow, { id: string; sequence: string; actor_id: string; 
   cancel_requested: boolean; claim_token: string | null; lease_until: Date | null; reason: string | null;
   result: ExecutionResult | null; created_at: Date }> = true;
 
-test("STORAGE_DECLARATION control: the infrastructure declares the 17 tables of the five schema.sql files, in order", () => {
+// Slice 7.2 retired the generic desert_objects table and the desert_asset_links table that pointed into it: objects live
+// in their generated per-type tables and an object's asset column is its link (src/storage/tables/assets.ts).
+test("STORAGE_DECLARATION control: the infrastructure declares 15 tables, in order, in two installer groups", () => {
   assert.deepEqual([runShape, objectShape, intentShape, assetShape, activityShape, jobShape], [true, true, true, true, true, true]);
   assert.deepEqual(infrastructureTables.map(table => table.qualifiedName), [
-    "desert_installation", "desert_identities", "desert_objects", "desert_runs", "desert_intents", "desert_receipts",
+    "desert_installation", "desert_identities", "desert_runs", "desert_intents", "desert_receipts",
     "desert_activities", "desert_activity_intents", "desert_identity_accounts", "desert_identity_sessions",
-    "desert_asset_store", "desert_assets", "desert_asset_links", "desert_execution.installation",
+    "desert_asset_store", "desert_assets", "desert_execution.installation",
     "desert_execution.environments", "desert_execution.actors", "desert_execution.jobs",
   ]);
+  assert.deepEqual([...controllerTables, ...executionTables], [...infrastructureTables]);
+  assert.equal(infrastructureTables.some(table => /objects|asset_links/.test(table.name)), false);
 });
 
 test("STORAGE_DECLARATION control: a row is checked by the same schema the table declares", () => {

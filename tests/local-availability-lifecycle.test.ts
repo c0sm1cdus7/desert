@@ -6,6 +6,7 @@ import { compile } from "../src/compile.ts";
 import { openLocalController } from "../src/local.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { storedObjects } from "../src/testing/stored-objects.ts";
 
 let cluster: ReturnType<typeof postgresCluster>;
 before(() => { cluster = postgresCluster(); });
@@ -41,7 +42,8 @@ test("installation drift blocks both observation and execution, then recovers wi
     await assert.rejects(f.session.begin("create-note"), /INSTALLATION_MISMATCH/);
     await f.admin.query("UPDATE desert_installation SET installation_digest = $1", [f.application.digest]);
     await eventually(ready);
-    for (const table of ["desert_runs", "desert_intents", "desert_receipts", "desert_objects"]) {
+    assert.equal((await storedObjects(f.admin, f.application)).length, 0);
+    for (const table of ["desert_runs", "desert_intents", "desert_receipts"]) {
       assert.equal((await f.admin.query(`SELECT count(*) FROM ${table}`)).rows[0].count, "0");
     }
     assert.equal("begin" in availability, false);
@@ -87,7 +89,7 @@ test("a real credential expiry updates human and agent observers without navigat
     await eventually(() => agent.snapshot().journeys["read-note"]!.dependenciesReady);
     assert.deepEqual(Object.keys(agent.snapshot().journeys), Object.keys(availability.snapshot().journeys));
     assert.equal((await f.admin.query("SELECT count(*) FROM desert_runs")).rows[0].count, "0");
-    assert.equal((await f.admin.query("SELECT count(*) FROM desert_objects")).rows[0].count, "0");
+    assert.equal((await storedObjects(f.admin, f.application)).length, 0);
     for (const options of [{ pollIntervalMs: 0 }, { validForMs: Infinity }, { pollIntervalMs: 300, validForMs: 300 }]) {
       assert.throws(() => f.session.watchAvailability(options), /INVALID_AVAILABILITY_TIMING/);
     }

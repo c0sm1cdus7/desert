@@ -8,14 +8,13 @@
 //   notebook: [{ object: "note", drop: { field: "body", approvedBy: "franco" } }]
 // The plan records them in the migration it generates; once committed, they are removed here (--check fails
 // MIGRATION_DECISION_UNUSED while a decision has nothing left to decide).
+import { NotebookInstallation } from "../products/notebook/installation.ts";
 import { Notebook } from "../products/notebook/product.ts";
-import { clientInstallation } from "../src/storage/client-installation.ts";
 import type { MigrationDecision } from "../src/storage/migration-decisions.ts";
 
 type Decisions = Readonly<Record<string, readonly MigrationDecision[]>>;
 const notebookDecisions: Decisions = {};
 
-/** Notebook's human exposure speaks English (products/notebook/src/exposures.ts), so its reference installation does too. */
 export const storedInstallations = [
-  { installation: clientInstallation({ language: "en" }), products: [Notebook], decisions: notebookDecisions },
+  { installation: NotebookInstallation, products: [Notebook], decisions: notebookDecisions },
 ] as const;

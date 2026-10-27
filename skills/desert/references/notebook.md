@@ -457,7 +457,7 @@ console.log(JSON.stringify({
 
 ## products/notebook/local.ts
 
-Source SHA-256: da7af35e3af3ee5a38398f14ade2f2fe1896badab28ecd0e9691a71e7f76898a
+Source SHA-256: cd3298cb7294dbb51845e33bf76eb7d1499e36d46f1974314ae6a86241aca7f8
 
 ```ts
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -467,6 +467,7 @@ import { compile } from "../../src/index.ts";
 import { openLocalController } from "../../src/local.ts";
 import { requirePrivatePath, startLocalPostgres } from "../../src/local/postgres-host.ts";
 import { assertProductSource } from "../../src/authoring/index.ts";
+import { NotebookInstallation } from "./installation.ts";
 
 export async function openNotebookLocal(directory: string) {
   await assertProductSource(fileURLToPath(new URL("./src", import.meta.url)));
@@ -476,7 +477,7 @@ export async function openNotebookLocal(directory: string) {
   const application = compile(NotebookProduct);
   let controller: Awaited<ReturnType<typeof openLocalController>> | undefined;
   try {
-    controller = await openLocalController(application, { ...postgres.database, roles: [NotesController.id] });
+    controller = await openLocalController(application, { ...postgres.database, roles: [NotesController.id], installation: NotebookInstallation });
     const identityPath = join(directory, "identity.json");
     let identity: { id: string, token: string };
     if (existsSync(identityPath)) {

@@ -35,10 +35,10 @@ export async function bindImageEffect(client: PoolClient, program: LocalProgram,
   return { ...effect, assets };
 }
 
+/** The object's asset column (a foreign key to desert_assets, src/storage/fact-columns.ts) is the link; the asset becomes
+ * attached in the same transaction. */
 export async function attachImageEffect(client: PoolClient, effect: Effect) {
   for (const asset of effect.assets ?? []) {
-    await client.query("INSERT INTO desert_asset_links (asset_id, object_id, field) VALUES ($1, $2, $3)",
-      [asset.reference, effect.objectId, asset.objectField]);
     await client.query("UPDATE desert_assets SET state = 'attached' WHERE id = $1", [asset.reference]);
   }
 }

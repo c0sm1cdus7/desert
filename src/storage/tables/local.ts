@@ -1,4 +1,5 @@
-// The controller's own rows: installation, identities, objects and the begin → prepare → accept ledger.
+// The controller's own rows: installation, identities and the begin → prepare → accept ledger. A product's objects live
+// in their own generated tables (src/storage/ddl.ts), never in an infrastructure table.
 import { Type } from "@sinclair/typebox";
 import { FactValueSchema } from "../../fact-values.ts";
 import type { Effect, Facts, Receipt } from "../../local/types.ts";
@@ -18,10 +19,6 @@ export const installationTable = defineTable({ name: "desert_installation", prim
 
 export const identitiesTable = defineTable({ name: "desert_identities", primaryKey: ["id"], unique: [["credential_hash"]], row: Type.Object({
   id: column.uuid(), label: column.text(), credential_hash: column.text(), revoked: column.boolean(false), expires_at: column.timestamp(),
-}, closed) });
-
-export const objectsTable = defineTable({ name: "desert_objects", primaryKey: ["id"], row: Type.Object({
-  id: column.uuid(), object_type: column.text(), version: column.integer({ exclusiveMinimum: 0 }), facts: column.json(facts, { object: true }),
 }, closed) });
 
 export const runsTable = defineTable({ name: "desert_runs", primaryKey: ["id"],

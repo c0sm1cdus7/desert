@@ -1,12 +1,13 @@
 import type { Static } from "@sinclair/typebox";
 import type { JourneyDefinition } from "../program-grammar.ts";
 import type { AssetEvidence } from "../assets/types.ts";
-import type { intentsTable, objectsTable, receiptsTable, runsTable } from "../storage/tables/local.ts";
+import type { intentsTable, receiptsTable, runsTable } from "../storage/tables/local.ts";
 
 export type { Facts } from "../fact-values.ts";
 import type { Facts } from "../fact-values.ts";
 export type Mutation = Extract<JourneyDefinition, { kind: "mutation" }>;
-export type StoredObject = Static<typeof objectsTable.row>;
+/** An object read from its type's generated table (src/storage/object-store.ts). */
+export type StoredObject = import("../storage/object-store.ts").ObjectRecord;
 export type Run = Static<typeof runsTable.row>;
 export type Effect = { kind: "create" | "update", objectType: string, objectId: string,
   expectedVersion: number, facts: Facts, assets?: readonly AssetEvidence[] };

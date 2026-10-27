@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { after, before, test } from "node:test";
 import { activityFixture } from "./fixtures/activity.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { storedObjects } from "../src/testing/stored-objects.ts";
 import { openLocalController } from "../src/local/controller.ts";
 
 let cluster: ReturnType<typeof postgresCluster>;
@@ -65,7 +66,7 @@ test("Back reopens one active step, revokes preparation immediately and restores
     assert.equal(changed.progress.nextStep, 1);
     assert.deepEqual(changed.currentInput, {}, "the inactive alternative's answer cannot fill another branch");
     await assert.rejects(f.session.activityReopen(changed.id, changed.revision, 2), /ACTIVITY_STEP_NOT_ACTIVE/);
-    assert.equal((await f.admin.query("SELECT count(*) FROM desert_objects")).rows[0].count, "0");
+    assert.equal((await storedObjects(f.admin, f.application)).length, 0);
   } finally { await f.close(); }
 });
 
@@ -91,7 +92,7 @@ test("activity discovery, occurrence retries and reopen retain identity, surface
     ]);
     assert.equal(results.filter(result => result.status === "fulfilled").length, 1);
     assert.match(String((results.find(result => result.status === "rejected") as PromiseRejectedResult).reason), /ACTIVITY_REVISION_CONFLICT/);
-    assert.equal((await f.admin.query("SELECT count(*) FROM desert_objects")).rows[0].count, "0");
+    assert.equal((await storedObjects(f.admin, f.application)).length, 0);
   } finally { await f.close(); }
 });
 

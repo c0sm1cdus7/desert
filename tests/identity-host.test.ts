@@ -7,11 +7,12 @@ import { compile } from "../src/index.ts";
 import { openControllerHost } from "../src/local/controller-host.ts";
 import { serveIdentityHost } from "../src/local/identity-host.ts";
 import { NotebookProduct } from "../products/notebook/product.ts";
+import { NotebookInstallation } from "../products/notebook/installation.ts";
 
 test("the protected host never manufactures a developer credential and retains initialized access on restart", async t => {
   const directory = mkdtempSync(join(tmpdir(), "desert-identity-host-"));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
-  const options = { application: compile(NotebookProduct), roles: ["notes"], surfaceId: "human", directory };
+  const options = { application: compile(NotebookProduct), roles: ["notes"], installation: NotebookInstallation, surfaceId: "human", directory };
   const first = await openControllerHost(options);
   try {
     assert.deepEqual(await first.controller.access.state(), { kind: "onboarding" });
@@ -31,7 +32,7 @@ test("the protected host never manufactures a developer credential and retains i
 test("failed protected web mounting releases the host without creating an identity or launch credential", async t => {
   const directory = mkdtempSync(join(tmpdir(), "desert-identity-host-failure-"));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
-  const options = { application: compile(NotebookProduct), roles: ["notes"], surfaceId: "human", directory };
+  const options = { application: compile(NotebookProduct), roles: ["notes"], installation: NotebookInstallation, surfaceId: "human", directory };
   await assert.rejects(serveIdentityHost({ ...options, buildDirectory: join(directory, "missing"), port: -1 }), /INVALID_LOCAL_PORT/);
   assert.equal(existsSync(join(directory, "postgres")), false);
   await assert.rejects(serveIdentityHost({ ...options, buildDirectory: join(directory, "missing"), port: 0 }));

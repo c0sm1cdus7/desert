@@ -129,7 +129,7 @@ export {AttentionSignalSchema,type AttentionSignal} from './attention.ts';
 
 ## src/contracts.ts
 
-Source SHA-256: 4c0c7414c68217f6f9529151e1cade72b65077e579d515c63aa96d68ae3b5c66
+Source SHA-256: 18016c731f939d89bf62e23159e9524808ac2174e2ec211d45dada5dbb4c892a
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -140,8 +140,8 @@ export { text, integer, principal, enumeration, imageAsset, mediaAsset, labels, 
 const ObjectDefinition = Type.Object({
   id: Type.String({ minLength: 1 }),
   facts: Type.Record(Type.String({ minLength: 1 }), FieldDefinitionSchema, { minProperties: 1, additionalProperties: false }),
-  /** Sets of scalar facts no two objects of this type share, enforced by the typed object tables (src/storage/ddl.ts);
-   * the local controller refuses them (UNIQUE_NOT_YET_ENFORCED) until objects are stored there (plan §15, slice 7.2). */
+  /** Sets of scalar facts no two objects of this type share, enforced by the typed object tables (src/storage/ddl.ts):
+   * an acceptance that would repeat one is refused as UNIQUE_CONFLICT (src/storage/violations.ts). */
   unique: Type.Optional(Type.Array(Type.Array(Type.String({ minLength: 1 }), { minItems: 1, uniqueItems: true }), { minItems: 1, uniqueItems: true })),
 }, { additionalProperties: false });
 
@@ -1724,7 +1724,7 @@ export function snapshotPrepareOptions(input: unknown): PrepareOptions {
 
 ## src/local/controller.ts
 
-Source SHA-256: cdc1c09de857cccf70d3f8ea0291f4b6c1f385fd687be57a4bf620441490c03a
+Source SHA-256: 91afb2baf10f8de5c09a8322bbd461aacd9a9283c82329059e7ab071c9c652e8
 
 ```ts
 import { localDatabase, type LocalDatabase } from "./database.ts";
@@ -1736,22 +1736,20 @@ import { humanIdentityAccess } from "../identity/access.ts";
 import { rememberController } from "./controller-binding.ts";
 import { privateImageHost, type PrivateImageStorage } from "../assets/host.ts";
 import { requirePrivateImageMechanism } from "../assets/requirements.ts";
-import { loadDefinition } from "../compiled-definition.ts";
+import type { ClientInstallation } from "../storage/client-installation.ts";
 
+/** `installation` is the client installation this database is (owner answers Q4/Q20): its language orders the product's
+ * text. It is required; there is no default language. */
 export async function openLocalController(application: Application, options: LocalDatabase & {
-  roles: readonly string[], runLifetimeMs?: number, activities?: ActivityIndex, privateImages?: PrivateImageStorage,
+  roles: readonly string[], installation: ClientInstallation, runLifetimeMs?: number, activities?: ActivityIndex, privateImages?: PrivateImageStorage,
 }) {
-  const program = localProgram(application, options.roles);
+  const program = localProgram(application, options.roles, options.installation);
   requirePrivateImageMechanism(program, options.privateImages !== undefined);
   const activities = options.activities === undefined ? undefined : requireActivityCatalog(options.activities, application);
   const lifetime = options.runLifetimeMs ?? 5 * 60 * 1000;
   if (!Number.isSafeInteger(lifetime) || lifetime <= 0 || lifetime > 86400000) throw new Error("INVALID_RUN_LIFETIME");
-  // Declared uniqueness is enforced by the typed object tables (src/storage/ddl.ts). Until the runtime stores objects
-  // there (plan §15, slice 7.2) a product that declares it is refused rather than served without the guarantee.
-  const unique = loadDefinition(application).objects.find(object => object.unique);
-  if (unique) throw new Error(`UNIQUE_NOT_YET_ENFORCED: ${unique.id}: declared unique facts need typed object storage (slice 7.2)`);
   const database = localDatabase(options);
-  try { await database.install(application.id, application.digest, program.roles); }
+  try { await database.install(program.storage, program.roles); }
   catch (error) { await database.close(); throw error; }
   const images = await (options.privateImages ? privateImageHost(database, options.privateImages) : Promise.resolve(undefined))
     .catch(async error => { await database.close(); throw error; });

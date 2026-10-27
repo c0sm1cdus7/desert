@@ -7,22 +7,20 @@ import { humanIdentityAccess } from "../identity/access.ts";
 import { rememberController } from "./controller-binding.ts";
 import { privateImageHost, type PrivateImageStorage } from "../assets/host.ts";
 import { requirePrivateImageMechanism } from "../assets/requirements.ts";
-import { loadDefinition } from "../compiled-definition.ts";
+import type { ClientInstallation } from "../storage/client-installation.ts";
 
+/** `installation` is the client installation this database is (owner answers Q4/Q20): its language orders the product's
+ * text. It is required; there is no default language. */
 export async function openLocalController(application: Application, options: LocalDatabase & {
-  roles: readonly string[], runLifetimeMs?: number, activities?: ActivityIndex, privateImages?: PrivateImageStorage,
+  roles: readonly string[], installation: ClientInstallation, runLifetimeMs?: number, activities?: ActivityIndex, privateImages?: PrivateImageStorage,
 }) {
-  const program = localProgram(application, options.roles);
+  const program = localProgram(application, options.roles, options.installation);
   requirePrivateImageMechanism(program, options.privateImages !== undefined);
   const activities = options.activities === undefined ? undefined : requireActivityCatalog(options.activities, application);
   const lifetime = options.runLifetimeMs ?? 5 * 60 * 1000;
   if (!Number.isSafeInteger(lifetime) || lifetime <= 0 || lifetime > 86400000) throw new Error("INVALID_RUN_LIFETIME");
-  // Declared uniqueness is enforced by the typed object tables (src/storage/ddl.ts). Until the runtime stores objects
-  // there (plan §15, slice 7.2) a product that declares it is refused rather than served without the guarantee.
-  const unique = loadDefinition(application).objects.find(object => object.unique);
-  if (unique) throw new Error(`UNIQUE_NOT_YET_ENFORCED: ${unique.id}: declared unique facts need typed object storage (slice 7.2)`);
   const database = localDatabase(options);
-  try { await database.install(application.id, application.digest, program.roles); }
+  try { await database.install(program.storage, program.roles); }
   catch (error) { await database.close(); throw error; }
   const images = await (options.privateImages ? privateImageHost(database, options.privateImages) : Promise.resolve(undefined))
     .catch(async error => { await database.close(); throw error; });

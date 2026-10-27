@@ -8,6 +8,7 @@ import { compile as compileContract } from "../src/compile.ts";
 import { buildHumanModule } from "../src/web/build.ts";
 import { authoredNotebookSource } from "./fixtures/authored-notebook.ts";
 import { openControllerHost } from "../src/local/controller-host.ts";
+import { testInstallation } from "../src/testing/installation.ts";
 
 test("public compilation consumes the admitted composition, never a detached domain or copy", () => {
   const product = composeProduct(authoredNotebookSource());
@@ -23,7 +24,7 @@ test("controller hosts reject detached or overridden programs before creating st
   const temporary = mkdtempSync(join(tmpdir(), "desert-host-admission-"));
   const directory = join(temporary, "controller");
   try {
-    const options = { application: compile(product), roles: ["notes"], surfaceId: "human", directory };
+    const options = { application: compile(product), roles: ["notes"], installation: testInstallation, surfaceId: "human", directory };
     await assert.rejects(Reflect.apply(openControllerHost, undefined,
       [{ ...options, viewProgram: product.viewProgram }]), /VIEW_PROGRAM_OVERRIDE_FORBIDDEN/);
     await assert.rejects(Reflect.apply(openControllerHost, undefined,
