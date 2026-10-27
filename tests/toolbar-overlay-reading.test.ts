@@ -7,7 +7,7 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 import { toolbarGeometrySource } from './fixtures/toolbar-geometry.ts';
 
 for(const width of [390,1280])test(`overlay reading boundary protects the top rail and navigation return with a 32px fade at ${width}px`,async()=>{
-  const overrides=process.env.TOOLBAR_LEGACY_BOUNDS?{[resolve('src/svelte/pieces/toolbar-bounds.ts')]:
+  const overrides=process.env.TOOLBAR_LEGACY_BOUNDS?{[resolve('src/svelte/infra/toolbar-bounds.ts')]:
     'export function toolbarBounds(toolbar){return toolbar.getBoundingClientRect();}'}:{};
   const f=await svelteBrowser(toolbarGeometrySource.replace('length:30','length:90'),overrides,'http://toolbar.test/');
   try{

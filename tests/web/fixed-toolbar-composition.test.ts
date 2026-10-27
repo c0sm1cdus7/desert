@@ -9,15 +9,15 @@ import { settle } from './public-catalog-expectations.ts';
 // independent scroll content and ordinary top/bottom instances of one toolbar.
 test('fixed toolbar composition preserves content layout and action identity through scroll and resize', async () => {
   const f = await svelteBrowser(`<script>
-    import Place from '@desert/svelte/pieces/Place.svelte';
-    import PlaceHeading from '@desert/svelte/pieces/PlaceHeading.svelte';
-    import ToolbarLayout from '@desert/svelte/pieces/ToolbarLayout.svelte';
+    import Place from '@desert/svelte/catalog/foundations/place/Place.svelte';
+    import PlaceHeading from '@desert/svelte/catalog/foundations/place-heading/PlaceHeading.svelte';
+    import ToolbarLayout from '@desert/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte';
     let identity={title:'A deliberately descriptive place title',subtitle:'Supporting copy belongs to the page.'};
   </script>
   <div style="height:568px;position:relative">
     <Place>
       {#snippet top()}<ToolbarLayout content={{kind:'actions',actions:[{intent:{kind:'back'},icon:'back',label:'Back',state:'ready'}],onevent:()=>{}}}/>{/snippet}
-      {#snippet content()}<PlaceHeading {identity}/><div style="height:2400px">Content</div>{/snippet}
+      {#snippet content()}<PlaceHeading context="place" title={identity.title} subtitle={identity.subtitle}/><div style="height:2400px">Content</div>{/snippet}
       {#snippet bottom()}<ToolbarLayout edge="bottom" content={{kind:'actions',actions:[{intent:{kind:'journey',journey:'search'},icon:'search',label:'Search',state:'ready'}],onevent:()=>{}}}/>{/snippet}
     </Place>
   </div>`);
@@ -61,9 +61,9 @@ test('fixed toolbar composition preserves content layout and action identity thr
 test('source composition has one ordinary ToolbarLayout and no expansion delegation', async () => {
   const load = (path: string) => readFile(new URL(`../../${path}`, import.meta.url), 'utf8');
   const [layout, heading, embeddedHeading, workspace, search, toolbar] = await Promise.all([
-    load('src/svelte/pieces/ToolbarLayout.svelte'), load('src/svelte/pieces/PlaceHeading.svelte'),
-    load('src/svelte/pieces/PlaceHeader.svelte'), load('src/svelte/explorer/CatalogWorkspace.svelte'),
-    load('src/svelte/explorer/CatalogToolbar.svelte'), load('src/svelte/pieces/Toolbar.svelte'),
+    load('src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte'), load('src/svelte/catalog/foundations/place-heading/PlaceHeading.svelte'),
+    load('src/svelte/catalog/compositions/place-header/PlaceHeader.svelte'), load('src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte'),
+    load('src/svelte/catalog/compositions/catalog-workspace/CatalogToolbar.svelte'), load('src/svelte/catalog/compositions/toolbar/Toolbar.svelte'),
   ]);
   assert.doesNotMatch(layout, /ExpandingToolbar|toolbar-geometry|expansion\s*[,?:=]/);
   assert.match(layout, /data-toolbar=\{edge\}/, 'Both directions are instances of the same primitive');

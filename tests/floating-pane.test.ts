@@ -4,16 +4,21 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import AnchoredSurface from '@desert/svelte/pieces/AnchoredSurface.svelte';
-  import SelectionField from '@desert/svelte/pieces/SelectionField.svelte';
+  import Popover from '@desert/svelte/catalog/foundations/popover/Popover.svelte';
+  import FrameBody from '@desert/svelte/catalog/renderer/frame-body/FrameBody.svelte';
+  import Choice from '@desert/svelte/catalog/foundations/choice/Choice.svelte';
   import { toolbarAction } from '@desert/interaction/toolbar.ts';
   let open=$state(false), value=$state('one');
 </script>
 <main style="padding:100px 24px">
-  <SelectionField selection="example" label="Choose" {value} onchange={next=>value=next}
+  <Choice presentation="menu" cardinality="one" menuTrigger="contextual" label="Choose" labelVisibility="visible" selected={[value]}
+    disabled={false} required={false} onchange={next=>value=next[0]}
     options={[{value:'one',label:'One',disabled:false},{value:'two',label:'Two',disabled:false}]} />
-  <AnchoredSurface label="Open actions" title="Actions" {open} onchange={next=>open=next}
-    content={{kind:'utilities',actions:[toolbarAction({kind:'journey',journey:'first'},'First','open'),toolbarAction({kind:'journey',journey:'last'},'Last','open')]}} />
+  <Popover label="Actions" {open} disabled={false} locked={false} content="information" placement="anchored" align="start"
+    trigger={{kind:'action',label:'Open actions',icon:'open',face:'fit',emphasis:'secondary',state:'ready'}} onopenchange={next=>open=next}>
+    <FrameBody content={{kind:'utilities',actions:[toolbarAction({kind:'journey',journey:'first'},'First','open'),toolbarAction({kind:'journey',journey:'last'},'Last','open')]}}
+      invoke={() => {}} edit={() => {}} />
+  </Popover>
   <button>Outside target</button>
 </main>`;
 
@@ -37,11 +42,17 @@ test("select and contextual popover share one floating material with opaque acce
         assert.equal(await f.page.locator('.scrim,[aria-modal="true"]').count(),0);
         await f.page.keyboard.press('Escape'); await panel.waitFor({state:'hidden'});
       }
-      assert.deepEqual(materials[0],materials[1]);
+      // Design §7.1 radius exception (law 9d): one material, but each pane is concentric with what it holds: the selection
+      // its option rows (12 + its .25rem inset + its border), the actions their controls (12 + 1rem + its border).
+      assert.deepEqual(materials.map(material=>material.radius),['17px','29px']);
+      assert.deepEqual({...materials[0],radius:undefined},{...materials[1],radius:undefined});
       const material=materials[0]!;
       assert.equal(material.animation,'none');
-      if(preference==='reduce') {assert.equal(material.alpha,255);assert.equal(material.blur,'none');}
-      else {assert.ok(material.alpha!>180 && material.alpha!<255);assert.match(material.blur,/blur\(24px\)/);}
+      // A surface over the page is opaque (third review: at 97% a blob of the page still showed through,
+      // tests/overlay-legibility.test.ts): the one floating backing is opaque in both; reduced transparency also drops the blur.
+      assert.equal(material.alpha,255,'the floating backing is opaque');
+      if(preference==='reduce') assert.equal(material.blur,'none');
+      else assert.match(material.blur,/blur\(24px\)/);
     }
     assert.deepEqual(f.errors,[]);
   } finally {await f.close();}

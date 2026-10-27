@@ -2,12 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createBuildProject } from "../src/build/svelte/project.ts";
+// svelte-check of the generated project, not the gate: the test-only evidence project (plan 3.5) while the strict build is red.
+import { createEvidenceProject } from "../src/testing/evidence-project.ts";
 
 test("a generated build rejects invalid semantic prop values before producing an artifact", { timeout: 120000 }, async () => {
-  const project = createBuildProject("export const surface = {}; export const validateInput = () => false;");
+  const project = createEvidenceProject("export const surface = {}; export const validateInput = () => false;");
   const page = join(project.directory, "src/routes/+page.svelte");
-  const header = '<script lang="ts">import { TextContent } from "@desert/svelte/adapter-catalog.ts";</script>\n';
+  const header = '<script lang="ts">import { TextContent } from "@desert/svelte/catalog/index.ts";</script>\n';
   try {
     writeFileSync(page, header + '<TextContent text={42}/>');
     await assert.rejects(project.run("build"), error => {

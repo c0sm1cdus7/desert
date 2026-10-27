@@ -106,14 +106,14 @@ test("problem dialogs keep one shared bottom dismissal without losing severity",
   try {
     await openCatalog(f.page);
     for (const severity of ["error", "warning"] as const) {
-      const title = `Example ${severity}`, trigger = f.page.locator(`[data-specimen="problem:${severity}"]`).getByRole("button");
+      const title = `Example ${severity}`, trigger = f.page.locator(`[data-view-item="specimen:problem:${severity}"]`).getByRole("button");
       await trigger.click();
       const dialog = f.page.getByRole("dialog", { name: title, exact: true }); await dialog.waitFor();
       const top = dialog.locator('[data-surface-slot="top"]');
       const close = dialog.locator('[data-surface-slot="bottom"]').getByRole("button", { name: "Close", exact: true });
       assert.equal(await top.getByRole("button").count(), 0);
       assert.equal(await dialog.getByRole("button", { name: "Close", exact: true }).count(), 1);
-      assert.equal(await close.getAttribute("data-primitive"), "action");
+      assert.equal(await close.getAttribute("data-action"), "");
       assert.equal(await dialog.getByRole("heading", { name: title, exact: true }).count(), 1);
       assert.equal(await dialog.getByRole("region", { name: "Object context", exact: true }).count(), 0);
       assert.equal(await top.locator(`[data-piece="face"][data-tone="${severity}"] svg`).count(), 1);

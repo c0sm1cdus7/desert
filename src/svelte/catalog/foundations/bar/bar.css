@@ -1,0 +1,94 @@
+/* Bar (foundation): one toolbar geometry, measured from the approved page rail. Hosts position
+   the rail; no consumer supplies its inset, gap, or target dimensions (the theme's toolbar metrics, per density).
+   The bar's Actions take its target through their typed `bar` placement (the vendor button draws it from --toolbar-target
+   and --toolbar-inset); a command Action shows its glyph itself (its icon face). */
+[data-piece="toolbar"] {
+  --toolbar-inset:var(--catalog-toolbar-inset);
+  --toolbar-target:var(--catalog-toolbar-height);
+  flex-shrink:0; padding:var(--toolbar-inset); min-width:0;
+  container:toolbar / inline-size;
+  max-height:min(50dvh,calc(100dvh - 10rem)); overflow-y:auto; overscroll-behavior:contain;
+}
+/* A bar on a frame's edge never scrolls or sits underneath the frame's scroll edges. */
+@layer components { [data-piece="toolbar"][data-frame-edge] { position:relative; z-index:2; } }
+/* The same owner supplies pointer return and its keyboard focus indication. */
+[data-piece="toolbar"][data-toolbar-return] { cursor:pointer; }
+[data-piece="toolbar"][data-toolbar-return] :is(.toolbar-title,.toolbar-subtitle,[data-toolbar-identity]) { cursor:pointer; }
+[data-piece="toolbar"]:has(> [data-toolbar-scroll-top]:focus-visible) { outline:2px solid var(--ring); outline-offset:-3px; }
+[data-piece="toolbar"] > .toolbar-row {
+  display:flex; flex-wrap:wrap; min-width:0; min-height:var(--toolbar-target); align-items:center; gap:var(--toolbar-gap);
+}
+[data-toolbar-leading] { display:contents; }
+[data-toolbar-leading][data-occupied] { display:flex; flex-shrink:0; align-self:flex-start; gap:var(--toolbar-gap); }
+[data-toolbar-heading] {
+  display:flex; flex:1 1 0; flex-direction:column; min-width:0; text-align:start;
+  padding-inline-start:max(0px,calc(var(--surface-reading-inset,8px) - var(--toolbar-inset)));
+}
+[data-toolbar-layout="inline"][data-toolbar-has-leading] > [data-toolbar-heading] { padding-inline-start:0; }
+[data-toolbar-layout="stacked"] > [data-toolbar-heading] { order:1; flex-basis:100%; }
+[data-toolbar-identity] { opacity:0; pointer-events:none !important; }
+[data-reserve-search] { padding-inline-end:calc(var(--toolbar-target) + var(--toolbar-gap)); }
+/* The continuation fits chrome while its semantic reading heading remains fully scaled. */
+[data-toolbar-identity] [data-identity-title] { font-size:min(var(--text-section),calc(var(--toolbar-target) * .43)); line-height:calc(var(--toolbar-target) * .52); }
+[data-toolbar-identity] [data-identity-subtitle] { font-size:min(var(--text-caption),calc(var(--toolbar-target) * .3)); line-height:calc(var(--toolbar-target) * .4); }
+[data-piece="toolbar"] .toolbar-action {
+  display:flex; width:var(--toolbar-target); flex-shrink:0; align-self:flex-start;
+}
+[data-piece="toolbar"] :is([data-toolbar-controls],[data-toolbar-utilities],[data-catalog-navigation-actions],[data-toolbar-auxiliary]) { gap:var(--toolbar-gap); }
+[data-piece="toolbar"] [data-toolbar-utilities] { align-self:flex-start; }
+/* A surface's own controls (the media viewer's zoom) follow the identity; a narrow rail centres them on their own line. */
+@container toolbar (max-width:600px) { [data-piece="toolbar"] [data-toolbar-controls] { flex-basis:100%; justify-content:center; } }
+[data-piece="toolbar"] .toolbar-face { --face-size:clamp(32px,2rem,40px); margin-bottom:var(--toolbar-gap); }
+[data-piece="toolbar"] .toolbar-availability { margin-top:var(--toolbar-gap); }
+[data-piece="toolbar"] :is(.toolbar-title,.toolbar-subtitle) { @apply wrap-words; }
+[data-piece="toolbar"] .toolbar-subtitle { color:var(--muted-foreground); margin-top:var(--heading-copy-gap); }
+[data-toolbar-identity] [data-identity-subtitle] { margin-top:0; }
+[data-piece="toolbar"][data-toolbar="bottom"] > .toolbar-row { justify-content:flex-end; }
+/* The bottom pair (law 9c), one row for a commit (an action's last step, a dialog's answer) and for steps: equal tracks,
+   Cancel or Back on the left and the verb on the right, each exactly half; a lone choice takes the whole row. A label
+   that wraps makes its half taller, and the other half stretches to it, so the pair keeps one height and one top. */
+[data-piece="toolbar"]:is([data-toolbar-purpose="steps"],[data-toolbar-purpose="commit"]) > .toolbar-row {
+  display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); align-items:stretch;
+}
+/* Message headings have no action targets to reserve; their description follows
+   at the same reading gap as a page or regular toolbar subtitle. */
+[data-piece="toolbar"][data-toolbar="top"][data-identity-role="message"] { padding-bottom:0; }
+[data-piece="toolbar"][data-toolbar="top"][data-identity-role="message"] > .toolbar-row { min-height:0; }
+[data-identity-role="message"] [data-toolbar-heading] { padding-inline-end:max(0px,calc(var(--surface-reading-inset,8px) - var(--toolbar-inset))); }
+/* Search: its toggle stays pressable in the overlay rail whose search actions ignore the pointer. */
+[data-search-toggle] { position:relative; pointer-events:auto; }
+[data-piece="toolbar"][data-toolbar-overlay] { overflow:visible; pointer-events:none; }
+[data-piece="toolbar"][data-bar-float] { overflow:visible; }
+/* A bottom pair in a page's reading column: the rail takes no inline inset (it keeps its block inset), so its targets span
+   the column, on its fields' edges, and never run past it. */
+[data-piece="toolbar"][data-bar-column] { padding-inline:0; }
+[data-piece="toolbar"][data-toolbar-return] { pointer-events:auto; }
+[data-piece="toolbar"][data-toolbar-overlay] > .toolbar-row > :is([data-toolbar-leading],[data-toolbar-heading],[data-toolbar-controls],
+  [data-toolbar-utilities],[data-catalog-search-actions],[data-navigation-toggle],[data-settings-placeholder]) { pointer-events:auto; }
+[data-piece="toolbar"][data-toolbar-overlay="search"] > .toolbar-row > [data-catalog-search-actions] { pointer-events:none; }
+:is([data-catalog-toolbar],[data-place-toolbar]) { position:absolute; inset:max(0px,calc(env(safe-area-inset-top,0px) - var(--catalog-toolbar-inset))) max(0px,calc(env(safe-area-inset-right,0px) - var(--catalog-toolbar-inset))) auto max(0px,calc(env(safe-area-inset-left,0px) - var(--catalog-toolbar-inset))); z-index:2; margin-inline-start:var(--place-leading-inset); }
+/* The search rail (from the catalog-search mechanism): it stays stable while the field's well grows from the toggle. No
+   reveal mask or glyph scaling; the empty retained rail cannot intercept navigation. */
+[data-catalog-search-actions] {
+  display:flex; align-items:center; gap:8px; width:100%; min-width:0; max-width:100%; margin-inline-start:auto;
+}
+[data-catalog-search-actions] [data-catalog-search] {
+  width:auto; min-width:0; flex:1 1 0; gap:0; visibility:hidden; opacity:0; pointer-events:none;
+  transition:opacity var(--motion-overlay-exit) var(--ease-exit),visibility 0s linear var(--motion-overlay-exit);
+}
+[data-catalog-search-actions][data-expanded="true"] [data-catalog-search] {
+  visibility:visible; opacity:1; pointer-events:auto;
+  transition:opacity var(--motion-overlay-enter) var(--ease-enter),visibility 0s;
+}
+/* The searching rail's plane stays above the search material and results, including the outgoing transition. */
+[data-catalog-toolbar] { z-index:5; }
+/* In an edge pane (pane-context, from the surface-chrome mechanism): the header that drags the pane shows it, its copy
+   stays selectable, and a frame's identity yields to two enlarged reading lines (the document title and reviewed values
+   remain complete). A message identity reads centred on one axis. */
+@layer components {
+  [data-pane-drag] { cursor:grab; touch-action:pan-y; }
+  [data-pane-drag] :is(.toolbar-title,.toolbar-subtitle) { cursor:text; }
+  [data-pane-dragging] { cursor:grabbing; }
+  [data-pane-framed] :is(.toolbar-title,.toolbar-subtitle) { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
+  [data-identity-role="message"] .toolbar-title { text-align:center; }
+}

@@ -31,7 +31,7 @@ export async function settingsGroupPaint(group: Locator) {
         border: [s.borderTopWidth, s.borderRightWidth, s.borderBottomWidth, s.borderLeftWidth].map(parseFloat),
         shadow: s.boxShadow, backdrop: s.backdropFilter, width: r.width, height: r.height };
     };
-    const specimens = [...element.querySelectorAll("[data-specimen]")];
+    const specimens = [...element.querySelectorAll("[data-view-item^='specimen:']")];
     const parent = specimens[0]?.parentElement;
     // A Card may wrap its rows in Card.Content. Observe the shared material,
     // not which one of those documented composition elements owns the fill.
@@ -40,7 +40,7 @@ export async function settingsGroupPaint(group: Locator) {
       shared = shared.parentElement;
     return { shared: shared && shared !== element ? paint(shared) : null,
       sameParent: specimens.every(node => node.parentElement === parent),
-      states: specimens.map(node => ({ id: node.getAttribute("data-specimen"), ...paint(node) })),
+      states: specimens.map(node => ({ id: node.getAttribute("data-view-item")?.slice("specimen:".length) ?? null, ...paint(node) })),
       blurredContent: [...element.querySelectorAll("*")].filter(node => {
         const s = getComputedStyle(node), r = node.getBoundingClientRect();
         return r.width > 0 && r.height > 0 && s.backdropFilter !== "none";

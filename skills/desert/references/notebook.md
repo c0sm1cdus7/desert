@@ -5,6 +5,8 @@ Regenerate with npm run authoring:generate; npm run authoring:check detects drif
 Paths below are relative to the SDK root. Read imports/types together; these are
 verbatim modules, not standalone snippets or a published package API.
 
+- products/notebook/src/exposures.ts
+- products/notebook/src/messages/keys.ts
 - products/notebook/src/modules.ts
 - products/notebook/src/modules/notes/commands/archiveNote.command.ts
 - products/notebook/src/modules/notes/commands/createNote.command.ts
@@ -20,7 +22,6 @@ verbatim modules, not standalone snippets or a published package API.
 - products/notebook/src/modules/notes/views/note.view.ts
 - products/notebook/src/modules/notes/views/notes.view.ts
 - products/notebook/src/notebook.product.ts
-- products/notebook/src/surfaces.ts
 - products/notebook/src/views/navigation.view.ts
 - products/notebook/src/views/workspace.view.ts
 - products/notebook/product.ts
@@ -33,15 +34,62 @@ verbatim modules, not standalone snippets or a published package API.
 - products/notebook/run-web.ts
 - products/notebook/verify.ts
 
-## products/notebook/src/modules.ts
+## products/notebook/src/exposures.ts
 
-Source SHA-256: 06849dfe6a0673bd2955040b3a8c1018b1d4e14110ccfb0a980d252daa24b396
+Source SHA-256: 23bb863a893e027f2bd5c0d32e3fa828eb239b13f9ee28d3b8c8cc8890706a29
 
 ```ts
-import { moduleCatalog } from "desert-sdk/src/index.ts";
+import { agentExposure, humanExposure } from "desert-sdk/src/index.ts";
+import { Journeys } from "./modules.ts";
+
+const ExposedJourneys = [Journeys.createNote, Journeys.readNotes, Journeys.archiveNote] as const;
+export const HumanNotebook = humanExposure({ id: "human", journeys: ExposedJourneys, locale: "en" });
+export const AgentNotebook = agentExposure("agent", ExposedJourneys);
+```
+
+## products/notebook/src/messages/keys.ts
+
+Source SHA-256: 357bf99cd64ac3155dba97e69e1f59df39e0e6ceb0897207309a9bbd99a16d6f
+
+```ts
+// Generated from en.json by `npm run messages:write`; do not edit.
+import { messageCatalog } from "desert-sdk/src/index.ts";
+
+export const Messages = messageCatalog({
+  "en": {
+    "notebook": {
+      "label": "Notebook",
+      "explore": "Explore"
+    },
+    "notes": {
+      "destination": "Notes",
+      "readNotes": "Read notes",
+      "subtitle": "Your private notebook.",
+      "all": "Notes",
+      "createNote": "Create note",
+      "archiveNote": "Archive note",
+      "close": "Close",
+      "titleField": "Title",
+      "contentField": "Content",
+      "statusField": "Status"
+    }
+  },
+} as const);
+/** The accessor declarations use: `m.notes.title` is the message `{ key: "notes.title" }`. */
+export const m = Messages.m;
+export const MessageKeySchema = Messages.keySchema;
+export type MessageKey = typeof Messages.keys[number];
+```
+
+## products/notebook/src/modules.ts
+
+Source SHA-256: 2e748cd34f69791c10737084573a261f16e126cad043cd1dade39f5026fb574a
+
+```ts
+import { moduleIndex } from "desert-sdk/src/index.ts";
 import { NotesModule } from "./modules/notes/notes.module.ts";
 
-export const Modules = moduleCatalog([NotesModule]);
+export const Modules = moduleIndex([NotesModule]);
 export const Journeys = Modules.journeys;
 export const Views = Modules.views;
 export const Commands = Modules.commands;
@@ -78,7 +126,7 @@ export const CreateNoteRecord = createCommand("create-note-record", Note, {
 
 ## products/notebook/src/modules/notes/journeys/archiveNote.journey.ts
 
-Source SHA-256: 1589e1eb910b20ac2454fc0a75c0cd75337355b1afd4087a2572a8fc3e411700
+Source SHA-256: ec5d8d3445f640e8da4be4c83d01e6f613f89163725a3e52134d3da829ae033b
 
 ```ts
 import { mutationJourney, type ViewJourney } from "desert-sdk/src/index.ts";
@@ -87,12 +135,12 @@ import { NotesController } from "../notes.dependencies.ts";
 import { ReadNote } from "./readNotes.journey.ts";
 
 export const ArchiveNote = mutationJourney("archive-note", ArchiveNoteRecord, { controller: NotesController, dependencies: [] });
-export const ArchiveNoteExperience = { id: ArchiveNote.id, kind: "action", source: ReadNote, outputs: [] } satisfies ViewJourney;
+export const ArchiveNoteJourney = { id: ArchiveNote.id, kind: "action", source: ReadNote, outputs: [] } satisfies ViewJourney;
 ```
 
 ## products/notebook/src/modules/notes/journeys/browseNotes.journey.ts
 
-Source SHA-256: dc23591089a5f3cc6229d28484bea6db22fe57854dd0da01c7a951d01fc256ad
+Source SHA-256: f10ad5e9c559eac71f02d2a09cd56b4f3183ed78edc0ba8d5b1394892b048d8f
 
 ```ts
 import { viewOutput, type ViewJourney } from "desert-sdk/src/index.ts";
@@ -101,7 +149,7 @@ import { NotesView } from "../views/notes.view.ts";
 import { CreateNote } from "./createNote.journey.ts";
 import { ReadNote } from "./readNotes.journey.ts";
 
-export const ReadNotesExperience = {
+export const ReadNotesJourney = {
   id: ReadNote.id, kind: "read", view: NotesView, detailView: NoteView,
   outputs: [
     { ...viewOutput(NotesView, "create"), action: { kind: "journey", journey: CreateNote } },
@@ -113,7 +161,7 @@ export const ReadNotesExperience = {
 
 ## products/notebook/src/modules/notes/journeys/createNote.journey.ts
 
-Source SHA-256: 3556c69d675ebfbfaf046a0d3a7320be32f40c0b0ccdfff476bb174e098453ad
+Source SHA-256: 512963fbd95a086cdca7b9495f7355a834a209c91748230ba5edec75ce905bb6
 
 ```ts
 import { mutationJourney, viewOutput, type ViewJourney } from "desert-sdk/src/index.ts";
@@ -123,7 +171,7 @@ import { CreateNoteView } from "../views/createNote.view.ts";
 import { ReadNote } from "./readNotes.journey.ts";
 
 export const CreateNote = mutationJourney("create-note", CreateNoteRecord, { controller: NotesController, dependencies: [] });
-export const CreateNoteExperience = {
+export const CreateNoteJourney = {
   id: CreateNote.id, kind: "create", source: ReadNote, view: CreateNoteView, preferredDock: "right",
   outputs: [
     { ...viewOutput(CreateNoteView, "save"), action: { kind: "submit" } },
@@ -169,20 +217,21 @@ export const OnlyOwnerCanAccess = ownershipPolicy(Note, "owner");
 
 ## products/notebook/src/modules/notes/note.publication.ts
 
-Source SHA-256: dc57289f22dfb4fb91207c9d865bf342d615f40ccdeb23840ce29c2a08180603
+Source SHA-256: f9279e6bd7f2326303361ef1964c7d1b5843d5a38d85aa0735226dd5f5661572
 
 ```ts
 import { factReference, publishObject } from "desert-sdk/src/index.ts";
 import { Note } from "./note.object.ts";
 import { NoteView } from "./views/note.view.ts";
+import { m } from "../../messages/keys.ts";
 import { ArchiveNote } from "./journeys/archiveNote.journey.ts";
 
 export const PublishedNote = publishObject(Note, {
   view: NoteView, title: factReference(Note, "title"),
   fields: [
-    { fact: factReference(Note, "title"), label: "Title", representation: "text" },
-    { fact: factReference(Note, "body"), label: "Content", representation: "paragraphs" },
-    { fact: factReference(Note, "state"), label: "Status", representation: "text" },
+    { fact: factReference(Note, "title"), label: m.notes.titleField, representation: "text" },
+    { fact: factReference(Note, "body"), label: m.notes.contentField, representation: "paragraphs" },
+    { fact: factReference(Note, "state"), label: m.notes.statusField, representation: "text" },
   ],
   actions: [{ journey: ArchiveNote, icon: "archive" }],
 });
@@ -201,29 +250,30 @@ export const NotesController = controllerRole({ id: "notes", objects: [Note], re
 
 ## products/notebook/src/modules/notes/notes.module.ts
 
-Source SHA-256: 5bb397296a8113c3a1a0032756a0bafa625b9bb5d94b414c2f140fb7bc7d8223
+Source SHA-256: 8fd313cfa94ccab60d94afa11779a7a379af36e7feb60807811ed4b123bdc4b7
 
 ```ts
 import { defineModule } from "desert-sdk/src/index.ts";
 import { OnlyOwnerCanAccess } from "./note.object.ts";
 import { PublishedNote } from "./note.publication.ts";
 import { NotesController } from "./notes.dependencies.ts";
-import { CreateNote, CreateNoteExperience } from "./journeys/createNote.journey.ts";
+import { CreateNote, CreateNoteJourney } from "./journeys/createNote.journey.ts";
 import { ReadNote } from "./journeys/readNotes.journey.ts";
-import { ReadNotesExperience } from "./journeys/browseNotes.journey.ts";
-import { ArchiveNote, ArchiveNoteExperience } from "./journeys/archiveNote.journey.ts";
+import { ReadNotesJourney } from "./journeys/browseNotes.journey.ts";
+import { ArchiveNote, ArchiveNoteJourney } from "./journeys/archiveNote.journey.ts";
 import { NotesView } from "./views/notes.view.ts";
 import { NoteView } from "./views/note.view.ts";
 import { CreateNoteView } from "./views/createNote.view.ts";
+import { m } from "../../messages/keys.ts";
 
-const NotesDestination = { id: "notes", label: "Notes", icon: "open", entryJourney: ReadNote } as const;
+const NotesDestination = { id: "notes", label: m.notes.destination, icon: "open", entryJourney: ReadNote } as const;
 
 export const NotesModule = defineModule({
   id: "notes", objects: [PublishedNote], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   journeys: [
-    { execution: CreateNote, presentation: CreateNoteExperience, label: "Create note", humanReview: "not-required" },
-    { execution: ReadNote, presentation: ReadNotesExperience, label: "Read notes" },
-    { execution: ArchiveNote, presentation: ArchiveNoteExperience, label: "Archive note", humanReview: "required" },
+    { execution: CreateNote, presentation: CreateNoteJourney, label: m.notes.createNote, humanReview: "not-required" },
+    { execution: ReadNote, presentation: ReadNotesJourney, label: m.notes.readNotes },
+    { execution: ArchiveNote, presentation: ArchiveNoteJourney, label: m.notes.archiveNote, humanReview: "required" },
   ],
   views: [NotesView, NoteView, CreateNoteView], destinations: [NotesDestination],
   exports: {
@@ -236,89 +286,80 @@ export const NotesModule = defineModule({
 
 ## products/notebook/src/modules/notes/views/createNote.view.ts
 
-Source SHA-256: 34ffd636aa6d423afca0f4426f5074133ae36b9b3a4cc855487c542033917fa9
+Source SHA-256: 20b6c3c8c47237f52c6b3ae509fffeb03b138a931ff808d0ffddadf885b05fb2
 
 ```ts
 import { Components, ViewTitles, defineView, viewPorts } from "desert-sdk/src/index.ts";
+import { m } from "../../../messages/keys.ts";
 
 const Ports = viewPorts({ inputs: { draft: "form" }, outputs: ["save", "close"] });
 
 export const CreateNoteView = defineView({
   name: "create-note", outputs: Ports.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: "Close", icon: "close" }] }),
-  bottomDock: Components.Toolbar({ actions: [{ output: Ports.output.save, label: "Create note", icon: "save" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: m.notes.close, icon: "close" }] }),
+  bottomDock: Components.Toolbar({ actions: [{ output: Ports.output.save, label: m.notes.createNote, icon: "save" }] }),
   content: [Components.Header({ title: ViewTitles.operation }), Components.Form({ input: Ports.inputs.draft })],
 });
 ```
 
 ## products/notebook/src/modules/notes/views/note.view.ts
 
-Source SHA-256: 3dfeaf5a978b7bf451b0f01f6aa035a44593ad1627a9b3e2c0fc146c3b5cbd17
+Source SHA-256: af6c1560062dcbf4d508d3fdd60994c554d363b3d6b4907559031252e1465c5a
 
 ```ts
 import { Components, ViewTitles, defineView, viewPorts } from "desert-sdk/src/index.ts";
+import { m } from "../../../messages/keys.ts";
 
 const Ports = viewPorts({ inputs: { note: "context" }, outputs: ["close"] });
 
 export const NoteView = defineView({
   name: "note", outputs: Ports.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: "Close", icon: "close" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: m.notes.close, icon: "close" }] }),
   content: [Components.Header({ title: ViewTitles.subject }), Components.Context({ input: Ports.inputs.note })],
 });
 ```
 
 ## products/notebook/src/modules/notes/views/notes.view.ts
 
-Source SHA-256: 7184dae2291e832919b0b7e6d21a4b1ce232bba27b5d3da11d2228e982df2fda
+Source SHA-256: f2b06d04f6f0058a9c0d6f70a681265595fa197c481bb5c7d5d918d561754a1e
 
 ```ts
 import { Components, defineView, viewPorts } from "desert-sdk/src/index.ts";
+import { m } from "../../../messages/keys.ts";
 
 const Ports = viewPorts({ inputs: { notes: "collection" }, outputs: ["create", "select"] });
 
 export const NotesView = defineView({
   name: "notes", outputs: Ports.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: Ports.output.create, label: "Create note", icon: "create" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: Ports.output.create, label: m.notes.createNote, icon: "create" }] }),
   content: [
-    Components.Header({ title: "Read notes", subtitle: "Your private notebook." }),
-    Components.Stack({ title: "Notes", items: [Components.Collection({ input: Ports.inputs.notes, output: Ports.output.select })] }),
+    Components.Header({ title: m.notes.readNotes, subtitle: m.notes.subtitle }),
+    Components.Stack({ title: m.notes.all, items: [Components.Collection({ input: Ports.inputs.notes, output: Ports.output.select })] }),
   ],
 });
 ```
 
 ## products/notebook/src/notebook.product.ts
 
-Source SHA-256: 5a0e862548d3b71b4a99efa33901b7394ce31aa06d938c27c58c90b882726e53
+Source SHA-256: eac3b9844b840c82058d15b37e72b8450cfe8d34b04927f6df24f206dcf574af
 
 ```ts
 import { composeProduct } from "desert-sdk/src/index.ts";
 import { Modules, Destinations } from "./modules.ts";
 import { WorkspaceView } from "./views/workspace.view.ts";
 import { NavigationView } from "./views/navigation.view.ts";
-import { HumanNotebook, AgentNotebook } from "./surfaces.ts";
+import { HumanNotebook, AgentNotebook } from "./exposures.ts";
+import { Messages, m } from "./messages/keys.ts";
 
 export const NotebookProduct = composeProduct({
-  id: "notebook", label: "Notebook", modules: Modules,
+  id: "notebook", label: m.notebook.label, messages: Messages, modules: Modules,
   views: [WorkspaceView, NavigationView], workspace: WorkspaceView,
-  surfaces: [HumanNotebook, AgentNotebook], entry: Destinations.Notes,
-  navigation: [{ destination: Destinations.Notes, group: "Explore", purpose: "content" }],
+  exposures: [HumanNotebook, AgentNotebook], entry: Destinations.Notes,
+  navigation: [{ destination: Destinations.Notes, group: m.notebook.explore, purpose: "content" }],
 });
 
 export const Notebook = NotebookProduct.definition;
 export const NotebookViewProgram = NotebookProduct.viewProgram;
-```
-
-## products/notebook/src/surfaces.ts
-
-Source SHA-256: c58b68a9f0f426ac934ccbdff0f1ee06bb2bf3b6c00974c3356e70b7083a835a
-
-```ts
-import { agentSurface, humanSurface } from "desert-sdk/src/index.ts";
-import { Journeys } from "./modules.ts";
-
-const ExposedJourneys = [Journeys.createNote, Journeys.readNotes, Journeys.archiveNote] as const;
-export const HumanNotebook = humanSurface({ id: "human", journeys: ExposedJourneys, locale: "en" });
-export const AgentNotebook = agentSurface("agent", ExposedJourneys);
 ```
 
 ## products/notebook/src/views/navigation.view.ts
@@ -352,13 +393,13 @@ export { Notebook, NotebookProduct, NotebookViewProgram } from "./src/notebook.p
 
 ## products/notebook/distributions.ts
 
-Source SHA-256: 43a37ef00600a67da93981211d2d70470fad28b9e3c1b1d8cf007de1c2088d94
+Source SHA-256: a62d110085decad81a9d5c9190b251472bffd72c94f995e100ac99833ed6b463
 
 ```ts
 import { clientDistribution, controllerDistribution, localBinding, remoteBinding } from "../../src/index.ts";
 import { Dependencies } from "./src/modules.ts";
 import { Notebook } from "./product.ts";
-import { AgentNotebook, HumanNotebook } from "./surfaces.ts";
+import { AgentNotebook, HumanNotebook } from "./exposures.ts";
 
 export const NotebookService = controllerDistribution({
   id: "notebook-service", product: Notebook, runtime: "node", storage: "postgresql",
@@ -416,7 +457,7 @@ console.log(JSON.stringify({
 
 ## products/notebook/local.ts
 
-Source SHA-256: da7af35e3af3ee5a38398f14ade2f2fe1896badab28ecd0e9691a71e7f76898a
+Source SHA-256: cd3298cb7294dbb51845e33bf76eb7d1499e36d46f1974314ae6a86241aca7f8
 
 ```ts
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
@@ -426,6 +467,7 @@ import { compile } from "../../src/index.ts";
 import { openLocalController } from "../../src/local.ts";
 import { requirePrivatePath, startLocalPostgres } from "../../src/local/postgres-host.ts";
 import { assertProductSource } from "../../src/authoring/index.ts";
+import { NotebookInstallation } from "./installation.ts";
 
 export async function openNotebookLocal(directory: string) {
   await assertProductSource(fileURLToPath(new URL("./src", import.meta.url)));
@@ -435,7 +477,7 @@ export async function openNotebookLocal(directory: string) {
   const application = compile(NotebookProduct);
   let controller: Awaited<ReturnType<typeof openLocalController>> | undefined;
   try {
-    controller = await openLocalController(application, { ...postgres.database, roles: [NotesController.id] });
+    controller = await openLocalController(application, { ...postgres.database, roles: [NotesController.id], installation: NotebookInstallation });
     const identityPath = join(directory, "identity.json");
     let identity: { id: string, token: string };
     if (existsSync(identityPath)) {

@@ -44,7 +44,8 @@ export async function openBank(browser: Browser, origin: string, size: Size, the
     if (await show.isVisible()) await show.click();
     await page.getByRole("button", { name: "Visual catalog", exact: true }).click();
   }
-  await page.locator('[data-public-catalog-bank]').waitFor();
+  // The baseline build marks the bank with its composition mark; this tree with the view region that replaced it.
+  await page.locator(':is([data-public-catalog-bank], [data-view-item="public-catalog-bank"])').waitFor();
   await settle(page);
   return { page, errors, writes, close: () => context.close() };
 }

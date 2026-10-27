@@ -5,7 +5,7 @@
 
 	/** The public buttonVariants contract. */
 	export const buttonVariants = tv({
-        base: "tm-control inline-flex shrink-0 self-start justify-self-start items-center justify-center whitespace-nowrap gap-2 rounded-full type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+        base: "inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius-control)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
         variants: {
             spin: { true: "[&_svg[data-icon]]:animate-spin" },
             variant: {
@@ -13,16 +13,15 @@
                 outline: "text-foreground",
                 secondary: "text-secondary-foreground",
                 ghost: "bg-transparent text-foreground",
-                grip: "bg-transparent text-muted-foreground rounded-lg",
+                grip: "bg-transparent text-muted-foreground",
                 destructive: "text-destructive",
-                link: "bg-transparent text-primary-text underline-offset-4 hover:underline",
                 row: "bg-transparent text-foreground border-0 rounded-none justify-start whitespace-normal h-auto text-left font-normal w-full",
                 field: "bg-transparent text-foreground border-0 rounded-none justify-start w-full font-normal",
-                well: "text-foreground rounded-[var(--radius)] justify-start text-left whitespace-normal w-full font-normal",
+                well: "text-foreground rounded-[var(--radius-well)] justify-start text-left whitespace-normal w-full font-normal",
             },
             size: {
                 default: "min-h-11 px-4 py-2", xs: "min-h-6 px-2", sm: "min-h-9 px-3",
-                lg: "min-h-11 px-5", icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
+                icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
                 row: "px-4 py-3", field: "min-h-10 px-3", well: "p-0",
                 avatar: "size-[5.625rem] p-0 relative overflow-hidden rounded-full",
                 "label-remove": "size-[28px] min-h-[28px] p-0 [@media(pointer:coarse)]:size-[44px] [@media(pointer:coarse)]:min-h-[44px]",
@@ -55,7 +54,7 @@
 </script>
 
 <script lang="ts">
-	import { pressFeedbackProps } from "./press-feedback.js";
+	import { pressFeedbackProps } from "@desert/svelte/catalog/mechanisms/press-feedback/press-feedback.ts";
 	import Search from "@lucide/svelte/icons/search";
 	import X from "@lucide/svelte/icons/x";
 	let {
@@ -74,6 +73,10 @@
 		children,
 		...restProps
 	}: ButtonProps = $props();
+	// The material is the variant's unless the caller names one (a sidebar row); prominence tints the pane.
+	const interiors: readonly ButtonVariant[] = ["ghost", "grip", "row", "field"];
+	let material = $derived(/\bmaterial-(?:pane|interior)\b/.test(cn(className)) ? undefined
+		: interiors.includes(variant) ? "material-interior" : variant === "default" ? "material-pane material-pane-primary" : "material-pane");
 	$effect(() => { onready?.(ref instanceof HTMLButtonElement || ref instanceof HTMLAnchorElement ? ref : null); return () => onready?.(null); });
 </script>
 
@@ -87,8 +90,7 @@
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
-		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 aria-[current=true]:bg-muted focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3", presentation === "selection-well" && "field-well overflow-hidden rounded-[var(--radius-well)]", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		href={disabled ? undefined : href}
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
@@ -96,7 +98,7 @@
 		{...restProps}
 		data-variant={variant}
 	>
-		<span data-button-content>{@render children?.()}</span>
+		<span class="control-feedback-content disabled-content" data-button-content>{@render children?.()}</span>
 	</a>
 {:else}
 	<button
@@ -108,8 +110,7 @@
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
-		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 aria-[current=true]:bg-muted focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3", presentation === "selection-well" && "field-well overflow-hidden rounded-[var(--radius-well)]", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		data-toolbar-scroll-top={presentation === "toolbar-return" || undefined}
 		data-catalog-search-toggle={presentation === "search-toggle" || undefined}
 		data-catalog-search-cancel={presentation === "search-toggle" && searching || undefined}
@@ -118,30 +119,45 @@
 		{...restProps}
 		data-variant={variant}
 	>
-		<span data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
+		<span class="control-feedback-content disabled-content" data-button-content>{#if presentation === "search-toggle"}<span data-search-icon="open"><Search aria-hidden="true" /></span><span data-search-icon="close"><X aria-hidden="true" /></span>{:else}{@render children?.()}{/if}</span>
 	</button>
 {/if}
 
 <style>
-  :global([data-summary-widget]) { width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem; padding:var(--space-4,1rem); border-radius:var(--radius-group); text-align:start; white-space:normal; align-items:stretch; }
-  :global([data-summary-widget] > [data-button-content]) { display:flex; flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
+  /* The button's own anatomy, scoped to the elements it draws: every other owner of a [data-button-content] span lays
+     its content out with its own rule. */
+  [data-summary-widget] { width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem; padding:var(--space-4,1rem); border-radius:var(--radius-control); text-align:start; white-space:normal; align-items:stretch; }
+  [data-summary-widget] > [data-button-content] { display:flex; flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
   @layer components {
-    :global([data-slot="button"]) { min-height:2.75rem; }
-    :global([data-button-content]) { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
+    [data-slot="button"] { min-height:2.75rem; }
+    [data-button-content] { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
   }
-  :global([data-catalog-search-toggle]) { position:relative; pointer-events:auto; }
-  :global([data-catalog-search-toggle] [data-button-content]) { display:grid; place-items:center; }
-  :global([data-catalog-search-toggle] svg) { grid-area:1/1; transition:opacity 180ms var(--ease-tm),transform 220ms var(--ease-tm); }
-  :global([data-catalog-search-toggle] [data-search-icon="close"]) { opacity:0; transform:rotate(-90deg) scale(.75); }
-  :global([data-catalog-search-actions][data-expanded="true"] [data-search-icon="open"]) { opacity:0; transform:rotate(90deg) scale(.75); }
-  :global([data-catalog-search-actions][data-expanded="true"] [data-search-icon="close"]) { opacity:1; transform:none; }
-  :global([data-media-reference-choice]) { position:relative; aspect-ratio:4/3; overflow:hidden; width:100%; }
-  :global([data-media-reference-choice] [data-button-content]) { height:100%; }
-  :global([data-media-collection-card]) { position:relative; width:100%; display:block; overflow:hidden; text-align:start; }
-  :global([data-media-collection-card] > [data-button-content]) { display:block; }
-  :global([data-media-grid-item]) { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:var(--radius); }
-  :global([data-media-grid-item] > [data-button-content]) { height:100%; }
-  :global([data-media-grid-item][aria-current="true"]) { outline:2px solid var(--primary); outline-offset:2px; }
-  :global([data-media-list-item]) { aspect-ratio:auto; border-radius:0; }
-  :global([data-media-list-item] > [data-button-content]) { display:flex; align-items:center; gap:var(--stack-gap,16px); padding:12px 16px; }
+  [data-catalog-search-toggle] { position:relative; pointer-events:auto; }
+  [data-catalog-search-toggle] [data-button-content] { display:grid; place-items:center; }
+  /* Each glyph sits in its own box (no line box of its own), so the box moves exactly as the glyph did. */
+  [data-search-icon] { display:flex; grid-area:1/1; transition:opacity 180ms var(--ease-tm),transform 220ms var(--ease-tm); }
+  [data-search-icon="close"] { opacity:0; transform:rotate(-90deg) scale(.75); }
+  [data-catalog-search-cancel] [data-search-icon="open"] { opacity:0; transform:rotate(90deg) scale(.75); }
+  [data-catalog-search-cancel] [data-search-icon="close"] { opacity:1; transform:none; }
+  [data-media-reference-choice] { position:relative; aspect-ratio:4/3; overflow:hidden; width:100%; }
+  [data-media-reference-choice] [data-button-content] { height:100%; }
+  [data-media-collection-card] { position:relative; width:100%; display:block; overflow:hidden; text-align:start; }
+  [data-media-collection-card] > [data-button-content] { display:block; }
+  [data-media-grid-item] { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:var(--radius-control); }
+  [data-media-grid-item] > [data-button-content] { height:100%; }
+  [data-media-grid-item][aria-current="true"] { outline:2px solid var(--primary); outline-offset:2px; }
+  [data-media-list-item] { aspect-ratio:auto; border-radius:0; }
+  [data-media-list-item] > [data-button-content] { display:flex; align-items:center; gap:var(--stack-gap,16px); padding:12px 16px; }
+  /* An Action a bar draws (its `bar` placement) takes the bar's target: the toolbar target and inset come from bar. */
+  [data-action-bar] { height:var(--toolbar-target); min-height:var(--toolbar-target); }
+  [data-action-bar="command"] { width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset); }
+  /* A step is as tall as the target while its label holds one line (its block inset, never more than the target leaves
+     around that line inside the pane's 1px border, keeps it within the target, where it is centred) and grows a line at
+     a time when the label wraps; the pair's row gives both halves the taller one's height. */
+  [data-action-bar="step"] { width:100%; max-width:none; min-width:0; height:auto;
+    padding-block:max(0px,min(.5rem,calc((var(--toolbar-target) - var(--text-control--line-height)) / 2 - 1px))); }
+  /* An icon Action in a field's trailing accessory (field-accessory mechanism, law 9d): the square the slot measures, its
+     radius the well's less the accessory inset, so its corners stay concentric with the well's. */
+  [data-action-accessory] { width:var(--field-accessory-size); height:var(--field-accessory-size); min-height:0;
+    border-radius:calc(var(--radius-well) - var(--field-accessory-inset)); }
 </style>

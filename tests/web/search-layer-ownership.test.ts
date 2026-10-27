@@ -20,7 +20,7 @@ for (const width of [390, 1280]) test(`search composes above retained page edges
     const previous = await edgeState(owner);
     assert.ok(previous.some(edge => edge.active === 'true'));
     const handles = await owner.locator(':scope > [data-scroll-edges] > [data-scroll-edge]').elementHandles();
-    const navigation = owner.locator('[data-catalog-navigation-actions]');
+    const navigation = owner.locator('[data-toolbar-leading]');
     const navigationBefore = await navigation.evaluate(node => ({ html: node.innerHTML,
       rect: node.getBoundingClientRect().toJSON(), display: getComputedStyle(node).display }));
     await saveEdgeEvidence(page, `search-${width}-before`, owner);

@@ -6,8 +6,8 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 test("the actual image owner clears revoked pixels and retains only same-lease rendition pixels", async () => {
   const png = await sharp({ create: { width: 8, height: 8, channels: 3, background: "#ab2200" } }).png().toBuffer();
   const source = `<script>
-    import Image from './src/svelte/pieces/media/Image.svelte';
-    import { providePrivateImages } from './src/svelte/pieces/media/private-image-context.ts';
+    import Image from './src/svelte/catalog/foundations/image/Image.svelte';
+    import { providePrivateImages } from './src/svelte/infra/private-image-context.ts';
     import { privateImageAccess } from './src/web/client/private-images.ts';
     let allowed=true, epoch=0, delayed=false, zoom=$state(1);
     const pending=[], revoked=[], signals=[];

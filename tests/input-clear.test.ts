@@ -34,12 +34,13 @@ for (const primitive of ["input.text", "input.multiline"] as const) {
       await updateClear(f.page, { primitive, value: "Owner value", disabled: true });
       const field = f.page.getByRole("textbox", { name: "Writing", exact: true });
       const clear = f.page.getByRole("button", { name: "Clear Writing", exact: true });
-      assert.equal(await clear.count(), 1, "Nonempty disabled editors retain the accessory without allowing edits");
-      assert.equal(await clear.isDisabled(), true);
-      await clear.evaluate(element => (element as HTMLButtonElement).click());
+      // Second review of the slice 3 package: a disabled field offers no clear, single line and multiline alike (the
+      // multiline field still showed its ⊗); its value stays untouched.
+      assert.equal(await clear.count(), 0, "A disabled editor shows no clear accessory");
       assert.equal(await field.inputValue(), "Owner value");
       assert.deepEqual(await clearEvents(f.page), []);
       await updateClear(f.page, { disabled: false });
+      assert.equal(await clear.count(), 1, "Enabled again, the nonempty editor offers its clear");
       await field.focus(); await field.press("Tab");
       assert.equal(await clear.evaluate(element => element === document.activeElement), true);
       await f.page.keyboard.press("Enter");

@@ -30,5 +30,5 @@ export function objectPublications(owners: readonly OwnedDefinitions[]): readonl
 
 /** Presentation never participates in domain persistence or execution digests. */
 export function canonicalObjects(owners: readonly OwnedDefinitions[]) {
-  return owners.flatMap(owner => (owner.objects ?? []).map(({ id, facts }) => ({ id, facts })));
+  return owners.flatMap(owner => (owner.objects ?? []).map(({ id, facts, unique }) => ({ id, facts, ...(unique ? { unique } : {}) })));
 }

@@ -6,7 +6,7 @@ import { settleMotion } from "./web/fixture.ts";
 
 test("specimen feedback retains the exact approved paragraph, pixels and local-only editing", async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import Specimen from '@desert/svelte/explorer/PublicCatalogBankSpecimen.svelte';
+    import Specimen from '@desert/svelte/catalog/renderer/public-catalog-bank-specimen/PublicCatalogBankSpecimen.svelte';
     const initial={version:'desert.bank-node/1',kind:'input.text',name:'writing',label:'Writing',value:'',required:false,disabled:false};
     let calls=$state(0);
   </script>
@@ -21,7 +21,10 @@ test("specimen feedback retains the exact approved paragraph, pixels and local-o
     await field.fill('A local example'); await field.blur();
     const actual = page.locator('main > p[role="status"]'), reference = page.locator('[data-reference] p');
     await actual.waitFor();
-    assert.equal(await actual.evaluate(element => element.outerHTML), await reference.evaluate(element => element.outerHTML));
+    // The notice is now the Text foundation (support, live): the same status paragraph in the support role, at the same pixels.
+    const paragraph = (element: Element) => ({ tag: element.tagName, role: element.getAttribute("role"), text: element.textContent,
+      support: element.classList.contains("type-support") });
+    assert.deepEqual(await actual.evaluate(paragraph), await reference.evaluate(paragraph));
     assert.deepEqual(await actual.screenshot(), await reference.screenshot(), 'Extracted owner preserves all paragraph pixels');
     assert.equal(await field.inputValue(), 'A local example');
     assert.equal(await page.locator('output').textContent(), '0', 'Writing is not a product/catalog operation');
@@ -31,7 +34,7 @@ test("specimen feedback retains the exact approved paragraph, pixels and local-o
 
 test("sealed specimen preserves locked transient release and close without product events", async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import Specimen from '@desert/svelte/explorer/PublicCatalogBankSpecimen.svelte';
+    import Specimen from '@desert/svelte/catalog/renderer/public-catalog-bank-specimen/PublicCatalogBankSpecimen.svelte';
     import {surfaceFrame} from '@desert/interaction/surface-frame.ts';
     const frame=surfaceFrame({version:'desert.surface-frame/6',kind:'message',top:{title:'Isolated transient'},
       content:{kind:'message',text:'A local example.'},bottom:{}});
@@ -59,7 +62,7 @@ test("sealed specimen preserves locked transient release and close without produ
 
 test("sealed failure adapter retains its shared problem presentation and close", async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import FailureDialog from '@desert/svelte/FailureDialog.svelte';
+    import FailureDialog from '@desert/svelte/catalog/renderer/failure-dialog/FailureDialog.svelte';
     let code=$state('READ_REFRESH_FAILED');
   </script><FailureDialog {code} close={()=>code=null}/>`);
   try {
@@ -76,12 +79,12 @@ test("sealed failure adapter retains its shared problem presentation and close",
 
 test("sealed control adapter retains its private file host and typed events", async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import ControlRenderer from '@desert/svelte/controls/ControlRenderer.svelte';
-    import {LocalFileHost} from '@desert/svelte/controls/file-host.ts';
-    import {ControlBank} from '@desert/interaction/control-bank.ts';
+    import ControlRenderer from '@desert/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte';
+    import {provideFileHost} from '@desert/svelte/infra/file-host-context.ts';
+    import {ControlSpecimens} from '@desert/interaction/control-specimens.ts';
     import {applyControlEvent} from '@desert/interaction/control-nodes.ts';
-    const host=new LocalFileHost();
-    let node=$state.raw(ControlBank.find(entry=>entry.id==='control.files').specimens[0].node);
+    const host=provideFileHost();
+    let node=$state.raw(ControlSpecimens.find(entry=>entry.id==='control.files').specimens[0].node);
     let events=$state([]), bytes=$state('');
     async function receive(event) {
       node=applyControlEvent(node,event).node; events=[...events,event.kind];
@@ -90,7 +93,9 @@ test("sealed control adapter retains its private file host and typed events", as
   </script><ControlRenderer {node} {host} onevent={receive}/><output data-events>{events.join(',')}</output><output data-bytes>{bytes}</output>`, {}, 'http://localhost/');
   try {
     const { page } = fixture;
-    await page.locator('input[type="file"]').setInputFiles({ name: 'example.txt', mimeType: 'text/plain', buffer: Buffer.from('Local host bytes') });
+    const chooser = page.waitForEvent('filechooser');
+    await page.getByRole('button', { name: 'Choose files', exact: true }).click();
+    await (await chooser).setFiles({ name: 'example.txt', mimeType: 'text/plain', buffer: Buffer.from('Local host bytes') });
     assert.deepEqual(fixture.errors, []);
     await page.getByRole('button', { name: 'Remove example.txt' }).waitFor();
     await page.waitForFunction(() => document.querySelector('[data-bytes]')?.textContent === 'Local host bytes');

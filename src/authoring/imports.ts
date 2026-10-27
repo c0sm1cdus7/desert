@@ -1,7 +1,10 @@
 import { dirname, relative, resolve, sep } from "node:path";
 import ts from "typescript";
+import { messageKeysFile, messagesFolder } from "../messages/generate.ts";
 
 export const authoringEntrypoint = "desert-sdk/src/index.ts";
+/** The generated message keys of the product (plan §14): the one product file any module, view or root may import. */
+export const productKeysModule = `${messagesFolder}/${messageKeysFile}`;
 const owner = (file: string) => /^modules\/([^/]+)\//.exec(file)?.[1];
 
 export function checkImport(root: string, file: string, specifier: string): string | undefined {
@@ -12,6 +15,7 @@ export function checkImport(root: string, file: string, specifier: string): stri
   const targetName = relative(root, target).split(sep).join("/");
   if (targetName === ".." || targetName.startsWith("../")) throw new Error("PRODUCT_IMPORT_OUTSIDE_SOURCE");
   if (!target.endsWith(".ts")) throw new Error(`PRODUCT_IMPORT_NOT_ALLOWED: ${specifier}`);
+  if (targetName === productKeysModule) return target;
   const from = owner(sourceName), to = owner(targetName);
   if (to && targetName.endsWith(".module.ts") && targetName !== `modules/${to}/${to}.module.ts`) {
     throw new Error(`MODULE_ENTRYPOINT_REQUIRED: ${targetName}`);
@@ -55,7 +59,7 @@ export function viewImportProvenance(files: ReadonlyMap<string, ts.SourceFile>) 
         if (!imported) continue;
         const original = (imported.propertyName ?? imported.name).text;
         if (ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === authoringEntrypoint) {
-          return original === "moduleCatalog" ? "constructor" : undefined;
+          return original === "moduleIndex" ? "constructor" : undefined;
         }
         const target = targetOf(file, statement);
         return target ? binding(target, original, true) : undefined;

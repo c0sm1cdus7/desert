@@ -1,5 +1,5 @@
 import type { View, ViewContent, ViewHeader } from "./schema.ts";
-import type { BankNode } from "../interaction/bank-node.ts";
+import type { ResolvedNode } from "../interaction/resolved-node.ts";
 import type { TopToolbar, BottomToolbar } from "../interaction/toolbar.ts";
 import type { FrameContent, SurfaceFrame } from "../interaction/surface-frame.ts";
 import type { AttentionSnapshot } from "../web/client/attention-feed.ts";
@@ -12,7 +12,7 @@ export type ResolvedViewDefinition = Omit<View, "content"> & {
 };
 export type ResolvedView = {
   readonly view: ResolvedViewDefinition;
-  readonly bindings: Readonly<Record<string, BankNode>>;
+  readonly bindings: Readonly<Record<string, ResolvedNode>>;
   readonly pending?: Readonly<Record<string, Extract<FrameContent, { kind: "message" }>>>;
   readonly disabledOutputs: readonly string[];
   readonly connection?: { readonly state: 'loading' | 'ready' | 'offline'; readonly label: string };
@@ -24,7 +24,8 @@ export type ResolvedView = {
 export type ResolvedPanel = {
   readonly presentation?: "transient";
   readonly frame: SurfaceFrame;
-  readonly readingIdentity?: object;
+  /** One token per reading context (subject in detail), minted by the view program: equal while the reading continues. */
+  readonly readingIdentity?: string;
   readonly body?: ResolvedView;
   readonly label: string;
   readonly locked: boolean;

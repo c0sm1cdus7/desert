@@ -3,9 +3,11 @@ import { freezeDeep } from "../json.ts";
 import type { LocalProgram } from "./program.ts";
 import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
 import { canonical, confirmationDigest, materialize } from "./effects.ts";
-import { requireUUID, type Intent, type Receipt } from "./types.ts";
+import { requireUUID, type Effect, type Intent, type Mutation, type Receipt, type ReceiptRow } from "./types.ts";
+import { applyChangesIn, type Change } from "../storage/change-set.ts";
+import { namingViolations } from "../storage/violations.ts";
 import { requireCurrentActivityIntent, completeActivityIntent } from "../activities/acceptance.ts";
-import type { ActivityCatalog } from "../activities/catalog.ts";
+import type { ActivityIndex } from "../activities/activity-index.ts";
 import { bindImageEffect, attachImageEffect } from "../assets/acceptance.ts";
 import { validateReferences } from './reference-validation.ts';
 
@@ -19,8 +21,27 @@ export async function loadIntent(client: PoolClient, program: LocalProgram, acto
   return { intent, run };
 }
 
+/** The accepted effect as one change of the journey's module (owner answer Q3), written to the object's generated table.
+ * The prepared effect is what was confirmed, so an update writes every fact of it, preserved ones included: a corrupted
+ * preservation reaches storage and is caught (tests/verification-mutations.test.ts), never silently masked by the row.
+ * Postgres re-checks the declaration: a violation is a named code. */
+export async function writeEffect(client: PoolClient, program: LocalProgram, journey: Mutation, effect: Effect): Promise<number> {
+  const change: Change = effect.kind === "create"
+    ? { kind: "create", object: effect.objectType, id: effect.objectId, facts: effect.facts }
+    : { kind: "update", object: effect.objectType, id: effect.objectId, expectedVersion: effect.expectedVersion, set: effect.facts };
+  try {
+    const { objects: [written] } = await namingViolations(() => applyChangesIn(client, program.module(journey), [change]));
+    if (!written) throw new Error("EFFECT_LIMIT");
+    return written.version;
+  } catch (error) {
+    // A stale or missing subject is the same refusal the subject's own read gives; the detail is for the log.
+    const code = error instanceof Error ? /^(VERSION_CONFLICT|NOT_FOUND): /.exec(error.message)?.[1] : undefined;
+    throw code ? new Error(code, { cause: error }) : error;
+  }
+}
+
 async function receipt(client: PoolClient, id: string) {
-  const { rows: [row] } = await client.query<{ result: Receipt }>("SELECT result FROM desert_receipts WHERE intent_id = $1", [id]);
+  const { rows: [row] } = await client.query<Pick<ReceiptRow, "result">>("SELECT result FROM desert_receipts WHERE intent_id = $1", [id]);
   return row ? freezeDeep(row.result) : null;
 }
 
@@ -30,7 +51,7 @@ export async function recoverReceipt(client: PoolClient, program: LocalProgram, 
 }
 
 export async function acceptMutation(client: PoolClient, program: LocalProgram, actor: string,
-  surface: string, id: string, expectedDigest: string, activities?: ActivityCatalog, imageStoreId?: string) {
+  surface: string, id: string, expectedDigest: string, activities?: ActivityIndex, imageStoreId?: string) {
   await requireCurrentActivityIntent(client, id, actor, surface, activities);
   const { intent, run } = await loadIntent(client, program, actor, surface, id);
   if (expectedDigest !== intent.confirmation_digest) throw new Error("CONFIRMATION_MISMATCH");
@@ -48,16 +69,8 @@ export async function acceptMutation(client: PoolClient, program: LocalProgram, 
   if (canonical(effect) !== canonical(intent.effect)) throw new Error("EFFECT_CHANGED");
   await validateReferences(client,program,actor,effect.objectType,effect.facts,effect.objectId);
   await requireLiveRun(client, run);
-  const version = effect.expectedVersion + 1;
-  if (effect.kind === "create") {
-    await client.query("INSERT INTO desert_objects VALUES ($1, $2, $3, $4)",
-      [effect.objectId, effect.objectType, version, JSON.stringify(effect.facts)]);
-  } else {
-    const updated = await client.query("UPDATE desert_objects SET version = $1, facts = $2 WHERE id = $3 AND version = $4",
-      [version, JSON.stringify(effect.facts), effect.objectId, effect.expectedVersion]);
-    if (updated.rowCount !== 1) throw new Error("VERSION_CONFLICT");
-  }
-  await attachImageEffect(client, effect);
+  const version = await writeEffect(client, program, journey, effect);
+  await attachImageEffect(client, program, actor, effect);
   const result: Receipt = { id, runId: run.id, commandId: journey.command.id, status: "completed",
     object: { id: effect.objectId, type: effect.objectType, version } };
   await client.query("INSERT INTO desert_receipts (intent_id, result) VALUES ($1, $2)", [id, JSON.stringify(result)]);

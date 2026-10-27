@@ -1,7 +1,7 @@
-import type { BankEvent } from "../../interaction/bank-events.ts";
+import type { NodeEvent } from "../../interaction/node-events.ts";
 import type { activityModel } from "./activity-model.ts";
 
-export function activityEvent(model: ReturnType<typeof activityModel>, event: BankEvent, ready: boolean) {
+export function activityEvent(model: ReturnType<typeof activityModel>, event: NodeEvent, ready: boolean) {
   const state = model.snapshot();
   if (!state.experience) return false;
   if (event.kind === "input.change") model.edit(event.name, event.value);

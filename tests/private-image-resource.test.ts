@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { assetReference } from "../src/assets/types.ts";
-import { privateImageResource } from "../src/svelte/pieces/media/private-image-resource.ts";
+import { privateImageResource } from "../src/svelte/infra/private-image-resource.ts";
 import { privateImageAccess } from "../src/web/client/private-images.ts";
 import type { AssetReference, AssetImageVariant } from "../src/assets/types.ts";
 

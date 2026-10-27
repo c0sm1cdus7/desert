@@ -1,0 +1,42 @@
+# The Visual Catalog gate in CI (plan 3.7, owner decision Q4). Required checks on the protected branch: gate (this file),
+# gate-from-base and ledger-integrity (gate-base.yml, defined by the base branch); see docs/REPOSITORY-PROTECTION.md. Under the strict build (Q1) `gate` stays red
+# until slice 6 closes the violation list; that is expected and reported, never patched around.
+name: gate
+on:
+  pull_request:
+  push:
+    branches: [codex/module-architecture, main]
+permissions:
+  contents: read
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    env:
+      DESERT_PG_BIN: /usr/lib/postgresql/18/bin
+      LANG: C.UTF-8
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24.16.0 }
+      - name: PostgreSQL 18 (tests start their own clusters with initdb/pg_ctl)
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update
+          sudo apt-get install -y postgresql-18
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: npm run typecheck
+      - run: node scripts/catalog.ts --check
+      - name: Catalog gate (full; strict build)
+        run: node scripts/catalog-gate.ts
+      - name: S3-compatible server image for the bucket adapter contract (one pinned image, named in tests/fixtures/s3-server.ts)
+        run: node tests/fixtures/s3-server.ts --pull
+      - run: npm test
+        if: always()
+        # tests/storage-blob.test.ts starts the server in a container; here a missing server fails instead of skipping.
+        env: { DESERT_TEST_S3_REQUIRED: "1" }
+      - run: npm run test:gate
+        if: always()

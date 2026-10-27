@@ -1,16 +1,16 @@
 import type { ProductDefinition } from "./contracts.ts";
 import type { compileProgram } from "./compile-program.ts";
-import type { SurfaceDefinition } from "./program-grammar.ts";
+import type { ExposureDefinition } from "./program-grammar.ts";
 import { emitObject } from "./schema.ts";
 import { freezeDeep } from "./json.ts";
-import { InteractionCatalog } from "./interaction/catalog.ts";
+import { ResolvedNodes } from "./interaction/catalog.ts";
 import { InteractionProtocolVersion } from "./interaction/protocol.ts";
 import { preparationFields } from "./preparation-projection.ts";
 import { surfaceFieldKinds, surfaceFields } from "./surface-fields.ts";
 import { referenceCapabilities } from './reference-capabilities.ts';
 import { mediaReferenceCapabilities } from './media-reference-capabilities.ts';
 
-export function projectSurface(product: ProductDefinition, program: ReturnType<typeof compileProgram>, surface: SurfaceDefinition, digest: string) {
+export function projectSurface(product: ProductDefinition, program: ReturnType<typeof compileProgram>, surface: ExposureDefinition, digest: string) {
   const exposed = surface.journeys.map(id => program.journeys.get(id)!);
   const journeys = surface.journeys.map(id => {
     const journey = program.journeys.get(id)!;
@@ -39,7 +39,7 @@ export function projectSurface(product: ProductDefinition, program: ReturnType<t
     protocol: InteractionProtocolVersion, id: surface.id, kind: surface.kind,
     productId: product.id, contractDigest: digest, execution: "not-installed" as const, journeys,
     ...(surface.kind === "human" ? {
-      catalog: InteractionCatalog, fieldRepresentations: surface.fieldRepresentations,
+      catalog: ResolvedNodes, fieldRepresentations: surface.fieldRepresentations,
       fieldReferences: referenceCapabilities(product, exposed),
       fieldMediaReferences:mediaReferenceCapabilities(product,exposed),
       fieldKinds: surfaceFieldKinds(surfaceFields(exposed).presented, new Map(product.objects.map(object => [object.id, object]))),

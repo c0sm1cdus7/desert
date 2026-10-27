@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { imageAsset } from "../src/index.ts";
+import { file as fileFact } from "../src/index.ts";
 import { compile } from "../src/compile.ts";
 import { Images, application, surface, mutation, validate, program } from "./fixtures/image-input.ts";
 import { compileViewProgram } from "../src/views/program.ts";
@@ -18,16 +18,21 @@ const asset = { kind: "asset", reference: "e7000000-0000-4000-8000-000000000001"
 const file = { id: "ephemeral-handle", name: "photo.jpg", size: 12, mediaType: "image/jpeg", lastModified: 1 };
 const selection = { kind: "image-file", file } as const;
 
-test("imageAsset has one closed field contract and accepts only canonical asset reference values", () => {
-  assert.deepEqual(imageAsset(), { kind: "asset", media: "image" });
-  assert.ok(Object.isFrozen(imageAsset()));
-  assert.throws(() => Reflect.apply(imageAsset, null, [{ url: "https://example.com/image.jpg" }]), /IMAGE_ASSET_OPTIONS_FORBIDDEN/);
+test("a file fact has one closed field contract and accepts only canonical asset reference values", () => {
+  const images = fileFact({ accept: ["image/webp", "image/jpeg", "image/png"], maxBytes: 20_971_520 });
+  assert.deepEqual(images, { kind: "file", accept: ["image/jpeg", "image/png", "image/webp"], maxBytes: 20_971_520 });
+  assert.ok(Object.isFrozen(images) && Object.isFrozen(images.accept));
+  for (const options of [{ accept: ["image/jpeg"], maxBytes: 1, url: "https://example.com/image.jpg" }, { accept: [], maxBytes: 1 },
+    { accept: ["text/html"], maxBytes: 1 }, { accept: ["image/png", "image/png"], maxBytes: 1 }, { accept: ["image/png"], maxBytes: 0 },
+    { accept: ["image/png"], maxBytes: 20_971_521 }, { accept: ["image/png"] }, undefined]) {
+    assert.throws(() => Reflect.apply(fileFact, null, [options]), /INVALID_FILE_DEFINITION/, JSON.stringify(options));
+  }
   assert.equal(validate(mutation.commandId, { title: "Photo", image: asset }), true);
   for (const image of ["https://example.com/image.jpg", "/private/image.jpg", file, selection,
     { ...asset, url: "https://example.com/image.jpg" }, { ...asset, reference: asset.reference.toUpperCase() }]) {
     assert.equal(validate(mutation.commandId, { title: "Photo", image }), false);
   }
-  assert.throws(() => fieldValues(imageAsset(), 0), /ASSET_INPUT_REQUIRES_STAGED_FIXTURE/);
+  assert.throws(() => fieldValues(images, 0), /ASSET_INPUT_REQUIRES_STAGED_FIXTURE/);
 });
 
 test("pending file metadata is a local draft, never a fabricated accepted asset", () => {
@@ -43,7 +48,7 @@ test("pending file metadata is a local draft, never a fabricated accepted asset"
   assert.equal(frame.content.kind, "form");
   if (frame.content.kind !== "form") throw new Error("FORM_EXPECTED");
   assert.deepEqual(frame.content.fields.find(field => field.name === "image"), {
-    name: "image", required: true, label: "Image", primitive: "control.files", files: [file],
+    name: "image", required: true, label: "Image", primitive: "control.files", files: [file], media: ["image/jpeg", "image/png", "image/webp"],
   });
   assert.doesNotThrow(() => JSON.stringify(frame));
 });
@@ -65,7 +70,7 @@ test("asset assignment and representation are canonical rules; a text view rejec
     const journey = definition.journeys!.find(item => item.id === mutation.id)!;
     if (journey.kind !== "mutation" || journey.command.kind !== "create") throw new Error("CREATE_EXPECTED");
     journey.command.values.image = { kind: "literal", value: "untrusted" };
-  }), /Asset assignment requires input/);
+  }), /File assignment requires input/);
   const withImages = structuredClone(Images) as ProductDefinition;
   const read = withImages.journeys!.find(item => item.kind === "read")!;
   if (read.kind === "read") read.collection.push("image");

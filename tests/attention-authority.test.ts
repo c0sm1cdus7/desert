@@ -5,7 +5,7 @@ import {Pool} from 'pg';
 import {Check} from '@sinclair/typebox/value';
 import {compile} from '../src/compile.ts';
 import {openLocalController} from '../src/local/controller.ts';
-import {activityCatalog} from '../src/activities/catalog.ts';
+import {activityIndex} from '../src/activities/activity-index.ts';
 import {activityInputs} from '../src/activities/authoring.ts';
 import {Components,defineView} from '../src/views/components.ts';
 import {viewPorts} from '../src/views/authoring-ports.ts';
@@ -13,6 +13,8 @@ import {AttentionSignalSchema} from '../src/attention.ts';
 import {EditingNotebook,EditNote} from './fixtures/editing-notebook.ts';
 import {CreateNote,ReadNote} from '../products/notebook/journeys.ts';
 import {postgresCluster} from './fixtures/postgres.ts';
+import {storedTable} from '../src/testing/stored-objects.ts';
+import { FixtureMessages } from "./fixtures/messages.ts";
 
 test('Activity produces identity-scoped attention; update targets require a currently authorized read and resolve only through their producer',{timeout:180000},async()=>{
   const cluster=postgresCluster();
@@ -20,7 +22,7 @@ test('Activity produces identity-scoped attention; update targets require a curr
   const ports=viewPorts({inputs:{draft:'form',prepared:'context'},outputs:[]});
   const Form=defineView({name:'attention-form',content:[Components.Form({input:ports.inputs.draft})]});
   const Review=defineView({name:'attention-review',content:[Components.Context({input:ports.inputs.prepared})]});
-  const catalog=activityCatalog(application,{journeys:[CreateNote,EditNote],views:[Form,Review]});
+  const catalog=activityIndex(application, { messages: FixtureMessages, journeys: [CreateNote,EditNote],views:[Form,Review]});
   const ci=activityInputs(CreateNote),ei=activityInputs(EditNote);
   const create=catalog.define({journey:CreateNote,steps:[{view:Form,inputs:[ci.title,ci.body]}],review:Review});
   const edit=catalog.define({journey:EditNote,steps:[{view:Form,inputs:[ei.title,ei.body]}],review:Review});
@@ -48,13 +50,14 @@ test('Activity produces identity-scoped attention; update targets require a curr
     assert.equal(JSON.stringify(items).includes('Private text'),false,'signals do not disclose object facts or draft answers');
     const read=await session.begin(ReadNote.id,receipt.object.id);await session.read(read.id);
     assert.equal((await session.activityList()).items.length,3,'opening the object does not resolve its reasons');
-    await admin.query("UPDATE desert_objects SET facts=jsonb_set(facts,'{owner}',to_jsonb($2::text)) WHERE id=$1",[receipt.object.id,bob.id]);
+    const notes=storedTable(application,'note');
+    await admin.query(`UPDATE ${notes} SET "owner"=$2 WHERE "id"=$1`,[receipt.object.id,bob.id]);
     assert.deepEqual((await session.activityList()).items.map(item=>item.id),[draft.id],'revoked ownership hides object reasons');
     assert.deepEqual((await foreign.activityList()).items,[],'ownership alone does not grant another recipient the signal');
-    await admin.query("UPDATE desert_objects SET facts=jsonb_set(facts,'{owner}',to_jsonb($2::text)) WHERE id=$1",[receipt.object.id,alice.id]);
-    await admin.query("UPDATE desert_objects SET facts=jsonb_set(facts,'{state}','\"archived\"'::jsonb) WHERE id=$1",[receipt.object.id]);
+    await admin.query(`UPDATE ${notes} SET "owner"=$2 WHERE "id"=$1`,[receipt.object.id,alice.id]);
+    await admin.query(`UPDATE ${notes} SET "state"='archived' WHERE "id"=$1`,[receipt.object.id]);
     assert.deepEqual((await session.activityList()).items.map(item=>item.id),[draft.id],'read predicate is an authority boundary');
-    await admin.query("UPDATE desert_objects SET facts=jsonb_set(facts,'{state}','\"active\"'::jsonb) WHERE id=$1",[receipt.object.id]);
+    await admin.query(`UPDATE ${notes} SET "state"='active' WHERE "id"=$1`,[receipt.object.id]);
     const answer=await session.activityAnswer(updates[0]!.id,updates[0]!.revision,0,{title:'Edited',body:'Ready'});
     const pending=await session.activityPrepare(answer.id,answer.revision);
     assert.equal((await session.activityList()).items.find(item=>item.id===answer.id)!.attention.reason,'activity.confirm');

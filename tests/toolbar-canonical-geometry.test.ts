@@ -21,9 +21,9 @@ for (const width of [1280, 390, 320]) test(`all toolbar consumers share approved
     const sample=async (name:string,selector:string) => {
       await f.page.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
       const metrics=await f.page.locator(selector).evaluateAll(elements=>elements.map(element=>{
-        const style=getComputedStyle(element),row=element.querySelector<HTMLElement>('.toolbar-row')!;
+        const style=getComputedStyle(element),row=element.querySelector<HTMLElement>('.toolbar-row,[data-date-calendar-row]')!;
         const box=element.getBoundingClientRect(),rail=row.getBoundingClientRect(),css=getComputedStyle(row);
-        const pane=element.closest<HTMLElement>('[data-material="pane"]');
+        const pane=element.closest<HTMLElement>('.material-pane');
         const perimeter=pane?.getBoundingClientRect();
         return {messageHeading:element.closest('[data-frame-presentation="message"]') !== null && element.getAttribute('data-toolbar') === 'top',
           padding:[style.paddingTop,style.paddingRight,style.paddingBottom,style.paddingLeft],gap:css.columnGap,
@@ -46,9 +46,8 @@ for (const width of [1280, 390, 320]) test(`all toolbar consumers share approved
     const search=await sample('search','[data-catalog-toolbar]');
     await f.page.getByRole('button',{name:'Close search',exact:true}).click();
     for(const [name,button,selector] of [
-      ['calendar','Arrival · Oct 20, 2026','[data-date-calendar] [data-piece="toolbar"]'],
+      ['calendar','Arrival · Oct 20, 2026','[data-date-calendar-header]'],
       ['task','Open task','[data-surface-frame] [data-piece="toolbar"]'],
-      ['message','Open message','[data-frame-presentation="message"] [data-piece="toolbar"]'],
       ['viewer','Open viewer','[data-media-viewer] [data-piece="toolbar"]'],
     ]) {
       await f.page.getByRole('button',{name:button!,exact:true}).click();
@@ -57,10 +56,25 @@ for (const width of [1280, 390, 320]) test(`all toolbar consumers share approved
       await f.page.keyboard.press('Escape');
       await f.page.locator(selector!).first().waitFor({state:'hidden'});
     }
+    // The message is a dialog (DESIGN §7.5): no top toolbar; its choices are the one bottom pair of every action (law 9c,
+    // Bar's commit row), keep the shared target and stay inside it.
+    await f.page.getByRole('button',{name:'Open message',exact:true}).click();
+    const message=f.page.getByRole('dialog',{name:'Message',exact:true});await message.waitFor();
+    const choices=await message.evaluate(node=>({toolbars:[...node.querySelectorAll('[data-piece="toolbar"]')].map(bar=>`${bar.getAttribute('data-toolbar')}:${bar.getAttribute('data-toolbar-purpose')}`),
+      box:node.getBoundingClientRect().toJSON(),buttons:[...node.querySelectorAll('button')].map(button=>button.getBoundingClientRect().toJSON())}));
+    assert.deepEqual(choices.toolbars,['bottom:commit'],'a message dialog draws no top toolbar, only its bottom pair');
+    assert.ok(choices.buttons.length>0);
+    for(const button of choices.buttons){assert.ok(button.height>=44,'message choices keep the shared target');
+      assert.ok(button.left>=choices.box.left&&button.right<=choices.box.right,'message choices stay inside the dialog');}
+    await f.page.screenshot({path:resolve(directory,`${width}-message.png`)});
+    await f.page.keyboard.press('Escape');await message.waitFor({state:'hidden'});
     await writeFile(resolve(directory,`${width}.json`),JSON.stringify({width,stage,page,samples},null,2)+'\n');
     // Commands and Search share the top edge at every width. The navigation
     // return remains at the lower leading corner; it is not the search rail.
-    const x=width===1280?488:8, searchY=8;
+    // At 1280 the rail starts past the docked pane (8px inset + its 232px + 8px gap). The pre-shell workspace measured 488 in
+    // this harness only: its :global host rule lost to the host's own rule in mount-order injection, which a build reverses
+    // (see shell-foundation.test.ts); the shell's host fills the workspace itself, as the built page always laid it out.
+    const x=width===1280?248:8, searchY=8;
     assert.deepEqual(page[0]!.row,{x,y:8,width:width-x-8,height:44});
     assert.deepEqual(page[1]!.row,{x,y:searchY,width:width-x-8,height:44});
     assert.deepEqual(search[0]!.row,{x:8,y:searchY,width:width-16,height:44});

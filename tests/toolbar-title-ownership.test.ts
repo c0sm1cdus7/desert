@@ -3,7 +3,6 @@ import test from "node:test";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { toolbarReadingGuideSource } from "./fixtures/toolbar-reading-guide.ts";
-import { assertCanonicalToolbarOwnership } from "../src/authoring/visual-boundary/toolbar.ts";
 
 for (const [width, textScale] of [[1280, 1], [390, 1], [1920, 2]] as const) {
   test(`navigation title shares its content guide at ${width}px and ${textScale * 100}% text`, async () => {
@@ -37,20 +36,4 @@ for (const [width, textScale] of [[1280, 1], [390, 1], [1920, 2]] as const) {
     } finally { await f.close(); }
   });
 }
-
-test("toolbar consumers cannot substitute raw identity markup", () => {
-  for (const child of ['<span data-product-name>VOID</span>', '<h2>Title</h2>', '<div><span>Title</span></div>']) {
-    assert.throws(() => assertCanonicalToolbarOwnership([{
-      path: "src/svelte/explorer/Consumer.svelte",
-      source: `<script>import ToolbarLayout from '../pieces/ToolbarLayout.svelte';</script><ToolbarLayout>${child}</ToolbarLayout>`,
-    }]), /TOOLBAR_OWNERSHIP/);
-  }
-});
-
-test("identity geometry cannot escape the shared toolbar owner", () => {
-  for (const selector of ["[data-toolbar-identity]", "[data-toolbar-heading]", "[data-identity-title]", ".toolbar-heading", "[data-product-name]"]) {
-    assert.throws(() => assertCanonicalToolbarOwnership([{
-      path: "src/svelte/explorer/consumer.css", source: `${selector}{padding-inline-start:11px}`,
-    }]), /TOOLBAR_OWNERSHIP/);
-  }
-});
+// The gate halves (raw identity markup, identity geometry) are catalog rules E and G: tests/catalog-ported-boundaries.test.ts.

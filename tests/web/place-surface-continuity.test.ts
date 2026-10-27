@@ -18,7 +18,7 @@ test('floating sidebar reserves readable space, never a second image or cut pare
       assert.equal(rect.x, 0); assert.equal(rect.width, 1280);
     }
     const pane = (await page.locator('[data-slot="sidebar-container"]').boundingBox())!;
-    const content = (await page.locator('[data-catalog-group]').first().boundingBox())!;
+    const content = (await page.locator('[data-view-item] > div:has(> [role="region"])').first().boundingBox())!;
     assert.ok(content.x >= pane.x + pane.width, 'readable content avoids the floating pane');
     await scrollTo(viewport, 'middle');
     for (const edge of await place.locator(':scope > [data-scroll-edges] > [data-scroll-edge]').all()) {
@@ -42,12 +42,12 @@ test('component bank has one expanded search and no category/count rails', async
     // Collection specimens may demonstrate their own search; they are content,
     // not a second search for the containing place.
     assert.equal(await page.getByRole('searchbox').evaluateAll(nodes =>
-      nodes.filter(node => !node.closest('[data-catalog-entry]')).length), 1);
+      nodes.filter(node => !node.closest('[data-view-item^="entry:"]')).length), 1);
     assert.equal(await page.getByRole('button', { name: 'Search', exact: true }).count(), 0);
     assert.equal(await page.locator('#catalog-navigation a, #catalog-navigation [role="status"]').count(), 0);
     const handle = await input.elementHandle();
     await input.fill('Money'); await settle(page);
-    assert.equal(await page.locator('[data-catalog-entry="control.money"]').isVisible(), true);
+    assert.equal(await page.locator('[data-view-item="entry:control.money"]').isVisible(), true);
     await scrollTo(page.locator('[data-catalog-scroll]'), 'middle');
     assert.ok(await input.evaluate((node, previous) => node === previous, handle));
     assert.equal(await input.inputValue(), 'Money');

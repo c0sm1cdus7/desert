@@ -5,7 +5,7 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 
 test('summary widget describes rendered metrics and connection state without replacing its action name', async () => {
   const f = await svelteBrowser(`<script>
-    import SummaryWidget from '@desert/svelte/pieces/SummaryWidget.svelte';
+    import SummaryWidget from '@desert/svelte/catalog/compositions/summary-widget/SummaryWidget.svelte';
     let state = $state(0);
     let visits = $state(0);
     const ready = {

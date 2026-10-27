@@ -14,7 +14,7 @@ for (const place of ['bank', 'travel-kit']) test(`${place}: compact title uses a
     await settle(page);
     const guide = await page.evaluate(place => {
       const title = document.querySelector('[data-catalog-content] > [data-place-header] [data-place-title]')!;
-      const selector = place === 'bank' ? '[data-catalog-entry] > header h2' : '.place-stack-title h2';
+      const selector = place === 'bank' ? '[data-view-item^="entry:"] > header h2' : '.place-stack-title h2';
       const caption = [...document.querySelectorAll(selector)].find(element => element.checkVisibility())!;
       return { titleX: title.getBoundingClientRect().left, captionX: caption.getBoundingClientRect().left,
         caption: caption.textContent, scale: getComputedStyle(document.documentElement).getPropertyValue('--text-scale') };

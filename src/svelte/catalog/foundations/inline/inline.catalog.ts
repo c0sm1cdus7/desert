@@ -1,0 +1,14 @@
+// Inline: pieces in a horizontal sequence with a gap from the spacing scale, wrapping, in a labelled scroll rail, or
+// neither. Compositions lay a row of pieces out with it instead of writing their own flex box.
+import { defineFoundation } from "../../../../authoring/catalog/define.ts";
+import { InlineContract } from "./inline.contract.ts";
+
+export const Inline = defineFoundation({
+  id: "inline",
+  purpose: { key: "inline.purpose" }, messages: ["inline.purpose"],
+  owner: { entry: "Inline.svelte" },
+  shape: "none", states: ["default"],
+  variants: { overflow: ["wrap", "scroll", "none"], justify: ["start", "center", "end", "between"] },
+  slots: { children: { accepts: ["action", "avatar", "color-bullet", "column", "face", "icon", "node-renderer", "tag", "text"] } },
+  approval: "required", contract: InlineContract,
+} as const);

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import PublicCatalogProduct from "@desert/svelte/explorer/PublicCatalogProduct.svelte";
+  import { PublicCatalogProduct } from "@desert/svelte/catalog/index.ts";
   import { surface } from "virtual:desert/surface";
 </script>
 

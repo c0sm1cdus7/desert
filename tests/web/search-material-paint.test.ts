@@ -8,7 +8,7 @@ import { chromium } from 'playwright';
 // a full-area blur. No mutation to the underlying page is allowed to fix it.
 test('search material filters clipped card labels at standard and dense raster scales', async () => {
   const browser = await chromium.launch({ headless: true });
-  const css = await readFile(new URL('../../src/svelte/explorer/catalog-search.css', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../../src/svelte/catalog/mechanisms/catalog-search/catalog-search.css', import.meta.url), 'utf8');
   try {
     for (const density of [1, 1.25, 1.5, 2, 3, 4]) for (const appearance of ['light', 'dark'] as const) {
       const page = await browser.newPage({ viewport: { width: 390, height: 250 }, deviceScaleFactor: density, colorScheme: appearance });

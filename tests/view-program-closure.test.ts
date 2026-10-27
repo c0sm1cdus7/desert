@@ -19,7 +19,9 @@ test("Navigation, destinations and bindings cannot strand authored experience", 
   reject({ ...program, navigation: program.navigation.slice(0, 2) }, "UNREACHABLE_PROGRAM_JOURNEY");
   const unusedView = candidate(); unusedView.views.push({ version: "desert.view/1", id: "unused", content: [] });
   reject(unusedView, "UNUSED_PROGRAM_VIEW");
-  const unreachable = candidate(); unreachable.journeys[1].outputs[0].action.journey = "catalog";
+  // A toolbar may not navigate forward, so the create journey is stranded by removing its only edge.
+  const unreachable = candidate(); unreachable.views[1].outputs = ["select"]; delete unreachable.views[1].topDock;
+  unreachable.journeys[1].outputs.splice(0, 1);
   reject(unreachable, "UNREACHABLE_PROGRAM_JOURNEY");
   const silentOutput = candidate(); silentOutput.views[0].outputs.push("silent");
   silentOutput.journeys[0].outputs.push({ view: "home", output: "silent", action: { kind: "journey", journey: "catalog" } });

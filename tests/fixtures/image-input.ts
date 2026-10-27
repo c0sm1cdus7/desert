@@ -1,12 +1,13 @@
-import { objectType, text, imageAsset, principal, createCommand, fromInput, actorId, controllerRole, ownershipPolicy, mutationJourney, readJourney,
-  humanSurface, composeProduct, moduleCatalog, publishObject, factReference, Components, ViewTitles, defineView, viewPorts, viewOutput,
+import { objectType, text, file, principal, createCommand, fromInput, actorId, controllerRole, ownershipPolicy, mutationJourney, readJourney,
+  humanExposure, composeProduct, moduleIndex, publishObject, factReference, Components, ViewTitles, defineView, viewPorts, viewOutput,
 } from "../../src/index.ts";
 import { compile } from "../../src/compile.ts";
 import type { HumanSurface, Mutation } from "../../src/web/types.ts";
 import { readScopes } from "../../src/web/client/view-scopes.ts";
 import { WorkspaceView, NavigationView } from "./workspace-view.ts";
+import { FixtureMessages, fixtureText } from "./messages.ts";
 
-export const Photo = objectType({ id: "photo", facts: { title: text({ minLength: 1 }), image: imageAsset(), owner: principal() } });
+export const Photo = objectType({ id: "photo", facts: { title: text({ minLength: 1 }), image: file({ accept: ["image/jpeg", "image/png", "image/webp"], maxBytes: 20_971_520 }), owner: principal() } });
 const Controller = controllerRole({ id: "photos", objects: [Photo], requires: [] });
 const requires = { controller: Controller, dependencies: [] };
 export const ImportPhoto = mutationJourney("import-photo", createCommand("import-photo-record", Photo, {
@@ -17,34 +18,34 @@ const listPorts = viewPorts({ inputs: { records: "collection" }, outputs: ["sele
 const detailPorts = viewPorts({ inputs: { photo: "context" }, outputs: ["close"] });
 const editorPorts = viewPorts({ inputs: { draft: "form" }, outputs: ["save", "close"] });
 const ListView = defineView({ name: "images", outputs: listPorts.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: listPorts.output.import, label: "Import image", icon: "create" }] }),
-  content: [Components.Header({ title: "My images" }), Components.Collection({ input: listPorts.inputs.records, output: listPorts.output.select })] });
+  topDock: Components.Toolbar({ actions: [{ output: listPorts.output.import, label: fixtureText.importImage, icon: "create" }] }),
+  content: [Components.Header({ title: fixtureText.myImages }), Components.Collection({ input: listPorts.inputs.records, output: listPorts.output.select })] });
 const PhotoView = defineView({ name: "photo", outputs: detailPorts.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: detailPorts.output.close, label: "Close", icon: "close" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: detailPorts.output.close, label: fixtureText.close, icon: "close" }] }),
   content: [Components.Header({ title: ViewTitles.subject }), Components.Context({ input: detailPorts.inputs.photo })] });
 const ImportView = defineView({ name: "import-image", outputs: editorPorts.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: editorPorts.output.close, label: "Close", icon: "close" }] }),
-  bottomDock: Components.Toolbar({ actions: [{ output: editorPorts.output.save, label: "Import image", icon: "save" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: editorPorts.output.close, label: fixtureText.close, icon: "close" }] }),
+  bottomDock: Components.Toolbar({ actions: [{ output: editorPorts.output.save, label: fixtureText.importImage, icon: "save" }] }),
   content: [Components.Header({ title: ViewTitles.operation }), Components.Form({ input: editorPorts.inputs.draft })] });
-const Home = { id: "images", label: "My images", icon: "media", entryJourney: ReadPhotos } as const;
-export const ImagesProduct = composeProduct({ id: "image-input", label: "Images", modules: moduleCatalog([]),
+const Home = { id: "images", label: fixtureText.myImages, icon: "media", entryJourney: ReadPhotos } as const;
+export const ImagesProduct = composeProduct({ messages: FixtureMessages, id: "image-input", label: fixtureText.images, modules: moduleIndex([]),
   objects: [publishObject(Photo, { view: PhotoView, title: factReference(Photo, "title"),
-    fields: [{ fact: factReference(Photo, "title"), label: "Title", representation: "text" },
-      { fact: factReference(Photo, "image"), label: "Image", representation: "image" }], actions: [] })],
+    fields: [{ fact: factReference(Photo, "title"), label: fixtureText.title, representation: "text" },
+      { fact: factReference(Photo, "image"), label: fixtureText.image, representation: "image" }], actions: [] })],
   dependencies: [Controller], policies: [ownershipPolicy(Photo, "owner")], journeys: [
-    { execution: ImportPhoto, label: "Import image", humanReview: "not-required", presentation: {
+    { execution: ImportPhoto, label: fixtureText.importImage, humanReview: "not-required", presentation: {
       id: ImportPhoto.id, kind: "create", source: ReadPhotos, view: ImportView, preferredDock: "right", outputs: [
         { ...viewOutput(ImportView, "save"), action: { kind: "submit" } }, { ...viewOutput(ImportView, "close"), action: { kind: "close" } },
       ] } },
-    { execution: ReadPhotos, label: "My images", presentation: { id: ReadPhotos.id, kind: "read", view: ListView, detailView: PhotoView, outputs: [
+    { execution: ReadPhotos, label: fixtureText.myImages, presentation: { id: ReadPhotos.id, kind: "read", view: ListView, detailView: PhotoView, outputs: [
       { ...viewOutput(ListView, "select"), action: { kind: "select" } },
       { ...viewOutput(ListView, "import"), action: { kind: "journey", journey: ImportPhoto } },
       { ...viewOutput(PhotoView, "close"), action: { kind: "close" } },
     ] } },
   ],
   views: [ListView, PhotoView, ImportView, WorkspaceView, NavigationView], workspace: WorkspaceView,
-  destinations: [Home], entry: Home, navigation: [{ destination: Home, group: "Explore", purpose: "content" }],
-  surfaces: [humanSurface({ id: "human", journeys: [ImportPhoto, ReadPhotos], locale: "en" })],
+  destinations: [Home], entry: Home, navigation: [{ destination: Home, group: fixtureText.explore, purpose: "content" }],
+  exposures: [humanExposure({ id: "human", journeys: [ImportPhoto, ReadPhotos], locale: "en" })],
 });
 export const Images = ImagesProduct.definition;
 export const program = ImagesProduct.viewProgram;

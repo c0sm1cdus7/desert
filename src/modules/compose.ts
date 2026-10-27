@@ -1,19 +1,21 @@
 import { Check } from "@sinclair/typebox/value";
-import type { Static } from "@sinclair/typebox";
 import { compile } from "../compile.ts";
 import { freezeDeep, jsonSnapshot } from "../json.ts";
 import { ViewProgramVersion, type ViewProgram } from "../views/program-schema.ts";
 import { compileViewProgram } from "../views/program.ts";
-import { deriveModuleCatalog } from "./catalog.ts";
-import { ProductCompositionSchema } from "./schema.ts";
+import { deriveModuleIndex } from "./product-index.ts";
+import { DeclaredProductCompositionSchema, ProductCompositionSchema } from "./schema.ts";
+import { requireMessageCatalog } from "../messages/catalog.ts";
+import { buildLocale } from "../messages/locale.ts";
+import { resolveMessages } from "../views/declared.ts";
 import { resolvePresentation } from "./presentation.ts";
 import { ownershipRegistry, productOwner, validateOwnedDomain, type Owner } from "./ownership.ts";
 import type { Closed, ProductComposition } from "./types.ts";
 import { canonicalObjects, objectPublications, validateObjectPublications } from "./object-publication.ts";
 import type { ProductLinks } from "./links.ts";
 import { requireJourneyOwnedSurfaceSemantics } from "../human-exposure.ts";
-import { compileSurfaceExposures } from "./compile-surfaces.ts";
-import { requireModuleCatalog, recordProductModules } from "./module-catalog.ts";
+import { compileExposures } from "./compile-exposures.ts";
+import { requireModuleIndex, recordProductModules } from "./module-index.ts";
 import { declarationArray, declarationRecord } from "./declaration-data.ts";
 import { referenceAdmission } from "./admission.ts";
 import { lowerProductReferences } from "./lower-references.ts";
@@ -23,16 +25,20 @@ import type { ComposedDefinition } from "./composed-definition.ts";
 
 /** Compile one root into the existing domain/runtime and presentation protocols. */
 export function composeProduct<const P extends ProductComposition>(definition: Closed<P, ProductComposition> & ProductLinks<NoInfer<P>>) {
-  const authored = declarationRecord(definition);
-  const mounted = requireModuleCatalog(authored.modules);
-  for (const value of declarationArray(authored.surfaces)) {
+  const { messages, ...authored } = declarationRecord(definition);
+  const mounted = requireModuleIndex(authored.modules);
+  const catalog = requireMessageCatalog(messages);
+  for (const value of declarationArray(authored.exposures)) {
     const surface = declarationRecord(value);
     if (surface.kind === "human") requireJourneyOwnedSurfaceSemantics(surface);
   }
   const admission = referenceAdmission(authored, true, mounted);
-  const source = jsonSnapshot({ ...lowerProductReferences(authored, admission), modules: mounted.map(module => module.definition) }) as
-    unknown as Static<typeof ProductCompositionSchema>;
-  if (!Check(ProductCompositionSchema, source) || !source.surfaces) throw new Error("INVALID_PRODUCT_COMPOSITION");
+  const declared = jsonSnapshot({ ...lowerProductReferences(authored, admission), modules: mounted.map(module => module.definition) });
+  if (!Check(DeclaredProductCompositionSchema, declared)) throw new Error("INVALID_PRODUCT_COMPOSITION");
+  // One bundle per build: the human exposures' locale resolves every message the product and its modules declare.
+  const locale = buildLocale(declared.exposures.flatMap(exposure => exposure.kind === "human" ? [exposure.locale] : []));
+  const source = resolveMessages(declared, catalog.bundle(locale));
+  if (!Check(ProductCompositionSchema, source) || !source.exposures) throw new Error("INVALID_PRODUCT_COMPOSITION");
   const modules = source.modules;
   if (new Set(modules.map(module => module.id)).size !== modules.length) throw new Error("DUPLICATE_MODULE_ID");
   const owners: Owner[] = [
@@ -43,7 +49,7 @@ export function composeProduct<const P extends ProductComposition>(definition: C
   validateOwnedDomain(source);
   validateObjectPublications(source);
   const definitions = owners.map(owner => owner.definition);
-  for (const surface of source.surfaces) for (const id of surface.journeys) {
+  for (const exposure of source.exposures) for (const id of exposure.journeys) {
     const owner = ownership.registry.get("journeys")!.get(id);
     if (owner && owner.id !== productOwner && !owner.exports?.journeys?.includes(id)) {
       throw new Error("PRIVATE_MODULE_EXPOSURE");
@@ -56,7 +62,7 @@ export function composeProduct<const P extends ProductComposition>(definition: C
     ...(definitions.some(owner => owner.policies !== undefined)
       ? { policies: definitions.flatMap(owner => owner.policies ?? []) } : {}),
     journeys: definitions.flatMap(owner => (owner.journeys ?? []).flatMap(item => item.execution ? [item.execution] : [])),
-    surfaces: compileSurfaceExposures(source.surfaces, definitions),
+    surfaces: compileExposures(source.exposures, definitions),
   };
   const application = compile(domain);
   const presentation = owners.map(owner => resolvePresentation(owner.definition, owner.id, ownership));
@@ -80,7 +86,7 @@ export function composeProduct<const P extends ProductComposition>(definition: C
   const result = freezeDeep({
     definition: domain as ComposedDefinition<P, typeof domain>,
     viewProgram: program,
-    ...deriveModuleCatalog(owners, program, domain.surfaces),
+    ...deriveModuleIndex(owners, program, domain.surfaces),
   });
   recordProductModules(result.definition, mounted, admission.identities);
   registerCompiledProduct(result, application, result.viewProgram);

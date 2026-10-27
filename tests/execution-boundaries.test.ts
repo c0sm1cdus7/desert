@@ -32,7 +32,7 @@ test("unknown schema revisions and substituted bindings fail before any process 
     await assert.rejects(openExecutionQueue(f.connection), /EXECUTION_INSTALLATION_MISMATCH/);
     await f.pool.query("UPDATE desert_execution.installation SET version=1");
     assert.equal((await f.queue.inspect(job)).state, "queued");
-    assert.equal((await f.pool.query("SELECT to_regclass('public.desert_objects') AS product")).rows[0].product, null,
+    assert.equal((await f.pool.query("SELECT to_regclass('public.desert_runs') AS product")).rows[0].product, null,
       "The host-only queue must not install or bypass a product controller");
   } finally { await f.close(); }
 });

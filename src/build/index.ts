@@ -3,7 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { resolveBuild, type Application } from "./plan.ts";
 import { installedBuilder } from "./builders.ts";
 import { digest, fileInventory } from "./files.ts";
-import { loadVerifiedBuild, manifestFile, type BuildManifest } from "./manifest.ts";
+import { buildFormat, loadVerifiedBuild, manifestFile, type BuildManifest } from "./manifest.ts";
 import { bindLocalMedia, writeLocalMedia, requireDistinctMedia, type LocalMediaBinding } from "./media.ts";
 import { prepareRenditions } from "./public-catalog/renditions.ts";
 import { compileViewProgram } from "../views/program.ts";
@@ -34,11 +34,11 @@ export async function buildDistribution(application: Application, options: {
   const before = builder.revision();
   let ownsOutput = false;
   try {
-    await prepared.build(stage);
+    const { gate } = await prepared.build(stage);
     if (media) { requireDistinctMedia(media, fileInventory(stage)); writeLocalMedia(stage, media); }
     if (builder.revision() !== before) throw new Error("BUILDER_CHANGED_DURING_BUILD");
     const manifest: BuildManifest = {
-      format: "desert.distribution-build/3", status: "built", productId: application.id,
+      format: buildFormat, status: "built", gate, productId: application.id,
       contractDigest: application.digest, distributionId: plan.id,
       distributionDigest: digest({ target: plan.id, distributions: resolved.definitions }),
       distributions: resolved.definitions, surfaceId: plan.surface, surfaceDigest: digest(plan.interaction),

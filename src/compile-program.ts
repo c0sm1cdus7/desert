@@ -1,5 +1,7 @@
 import type { ProductDefinition } from "./contracts.ts";
 import { checkCommand } from "./check-command.ts";
+import type { JourneyInputSchema } from "./input-schema.ts";
+import type { CommandDefinition } from "./program-grammar.ts";
 import { checkSurface } from "./check-surface.ts";
 import { requireField, requireReference, uniqueById } from "./references.ts";
 import { compileDependencies } from "./compile-dependencies.ts";
@@ -16,11 +18,14 @@ export function compileProgram(definition: ProductDefinition) {
     if (policies.has(object.id)) throw new Error(`Duplicate ownership policy: ${object.id}`);
     policies.set(object.id, policy.field);
   }
+  for (const object of objects.values()) for (const name of (object.unique ?? []).flat()) {
+    if (!Object.hasOwn(object.facts, name) || object.facts[name]?.kind === "labels") throw new Error(`INVALID_UNIQUE_DECLARATION: ${object.id}.${name}`);
+  }
   const journeys = uniqueById(definition.journeys ?? [], "journey");
   for (const object of objects.values()) for (const field of Object.values(object.facts)) {
     if (field.kind !== 'labels' || !field.reference) continue;
     const target = requireReference(objects,field.reference.object,'reference target');
-    if (!policies.has(target.id) || ('media' in field.reference ? requireField(target,field.reference.media).kind !== 'asset'
+    if (!policies.has(target.id) || ('media' in field.reference ? requireField(target,field.reference.media).kind !== "file"
       : requireField(target,field.reference.label).kind !== 'text' || field.reference.color !== undefined && requireField(target,field.reference.color).kind !== 'enum')) throw new Error('INVALID_REFERENCE_TARGET');
     if ('media' in field.reference && field.reference.memberOf) {
       const membership=requireField(target,field.reference.memberOf);
@@ -28,7 +33,7 @@ export function compileProgram(definition: ProductDefinition) {
     }
     if ('media' in field.reference) for(const [name,value]of Object.entries(field.reference.where ?? {})) checkLiteral(requireField(target,name),value,name);
   }
-  const commands = new Map<string, { definition: object, inputSchema: ReturnType<typeof checkCommand> }>();
+  const commands = new Map<string, { definition: CommandDefinition, inputSchema: JourneyInputSchema }>();
   for (const journey of journeys.values()) {
     const objectId = journey.kind === "read" ? journey.object : journey.command.object;
     const object = requireReference(objects, objectId, "object");

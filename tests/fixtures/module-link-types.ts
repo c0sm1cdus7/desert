@@ -1,9 +1,10 @@
-import { composeProduct, defineModule, moduleCatalog, view, viewOutput, viewPorts, ViewVersion, type View } from "../../src/index.ts";
+import { composeProduct, defineModule, moduleIndex, view, viewOutput, viewPorts, ViewVersion, type View } from "../../src/index.ts";
 import { WorkspaceView, NavigationView } from "./workspace-view.ts";
+import { FixtureMessages, fixtureText } from "./messages.ts";
 
 const ports = viewPorts({ inputs: {}, outputs: ["open"] });
 const Home = { version: ViewVersion, id: "home", outputs: ports.outputs,
-  topDock: { kind: "toolbar", actions: [{ output: ports.output.open, label: "Open", icon: "open" }] },
+  topDock: { kind: "toolbar", actions: [{ output: ports.output.open, label: fixtureText.open, icon: "open" }] },
   content: [],
 } as const satisfies View;
 const Detail = { version: ViewVersion, id: "detail", outputs: ["close"], content: [] } as const satisfies View;
@@ -13,12 +14,12 @@ const Inspect = { id: "inspect", kind: "presentation", view: Detail, outputs: [
 const Browse = { id: "browse", kind: "presentation", view: Home, outputs: [
   { ...viewOutput(Home, "open"), action: { kind: "journey", journey: Inspect } },
 ] } as const;
-const Destination = { id: "home", label: "Home", icon: "open", entryJourney: Browse } as const;
+const Destination = { id: "home", label: fixtureText.home, icon: "open", entryJourney: Browse } as const;
 const source = { id: "example", views: [Home, Detail], journeys: [{ presentation: Browse }, { presentation: Inspect }],
   destinations: [Destination], exports: { views: { Home }, journeys: { browse: Browse }, destinations: { home: Destination } },
 } as const;
 const Module = defineModule(source);
-const Modules = moduleCatalog([Module]);
+const Modules = moduleIndex([Module]);
 const mounted = view(Home);
 const sameId: "home" = mounted.id;
 const sameOutput: "open" = mounted.outputs[0];
@@ -46,11 +47,11 @@ defineModule({ ...source, destinations: [{ ...Destination, entryJourney: { ...Br
 // @ts-expect-error Side-view references cannot use serialized IDs.
 defineModule({ ...source, views: [{ ...Home, rightDock: { kind: "view", view: "detail" } }, Detail] });
 // @ts-expect-error Toolbar consumers can only emit the View's declared outputs.
-defineModule({ ...source, views: [{ ...Home, topDock: { kind: "toolbar", actions: [{ output: "typo", label: "Open", icon: "open" }] } }, Detail] });
+defineModule({ ...source, views: [{ ...Home, topDock: { kind: "toolbar", actions: [{ output: "typo", label: fixtureText.open, icon: "open" }] } }, Detail] });
 // @ts-expect-error A collection cannot invent a selection output.
 defineModule({ ...source, views: [{ ...Home, content: [{ kind: "collection", id: "items", input: "items", output: "typo" }] }, Detail] });
 // @ts-expect-error A nested collection has the same output boundary as a root collection.
-defineModule({ ...source, views: [{ ...Home, content: [{ kind: "stack", id: "items", title: "Items", items: [{ kind: "collection", id: "records", input: "items", output: "typo" }] }] }, Detail] });
+defineModule({ ...source, views: [{ ...Home, content: [{ kind: "stack", id: "items", title: fixtureText.items, items: [{ kind: "collection", id: "records", input: "items", output: "typo" }] }] }, Detail] });
 // @ts-expect-error Exact output identity survives runtime View validation.
 viewOutput(mounted, "typo");
 // @ts-expect-error Private definitions cannot be read through the registered module.
@@ -58,31 +59,31 @@ Module.views;
 // @ts-expect-error Non-exported aliases are not available in the public catalog.
 Modules.views.Detail;
 
-const root = { id: "example", label: "Example", modules: Modules, surfaces: [],
+const root = { messages: FixtureMessages, id: "example", label: fixtureText.example, modules: Modules, exposures: [],
   workspace: WorkspaceView, views: [WorkspaceView, NavigationView], entry: Modules.destinations.home,
-  navigation: [{ destination: Modules.destinations.home, group: "Explore", purpose: "content" }],
+  navigation: [{ destination: Modules.destinations.home, group: fixtureText.explore, purpose: "content" }],
 } as const;
 composeProduct(root);
 // @ts-expect-error Workspace roots use registered View references, not identifiers.
-composeProduct({ ...root, workspace: "workspace" });
+composeProduct({ messages: FixtureMessages, ...root, workspace: "workspace" });
 // @ts-expect-error A destination cannot stand in for a workspace View.
-composeProduct({ ...root, workspace: Modules.destinations.home });
+composeProduct({ messages: FixtureMessages, ...root, workspace: Modules.destinations.home });
 // @ts-expect-error Root entries are object references, not serialized IDs.
-composeProduct({ ...root, entry: "home" });
+composeProduct({ messages: FixtureMessages, ...root, entry: "home" });
 // @ts-expect-error Navigation cannot use serialized destination IDs.
-composeProduct({ ...root, navigation: [{ ...root.navigation[0], destination: "home" }] });
+composeProduct({ messages: FixtureMessages, ...root, navigation: [{ ...root.navigation[0], destination: "home" }] });
 // @ts-expect-error A raw reference-shaped object is not an SDK-issued handle.
-composeProduct({ ...root, entry: { kind: "destination", owner: "example", id: "home" } });
+composeProduct({ messages: FixtureMessages, ...root, entry: { kind: "destination", owner: "example", id: "home" } });
 // @ts-expect-error Root presentation links cannot point at a private raw module View.
-composeProduct({ ...root, journeys: [{ presentation: Inspect }] });
+composeProduct({ messages: FixtureMessages, ...root, journeys: [{ presentation: Inspect }] });
 // @ts-expect-error Bindings preserve the exact public View's output vocabulary.
-composeProduct({ ...root, journeys: [{ presentation: { id: "root", kind: "presentation", view: Modules.views.Home, outputs: [{ view: Modules.views.Home, output: "close", action: { kind: "close" } }] } }] });
+composeProduct({ messages: FixtureMessages, ...root, journeys: [{ presentation: { id: "root", kind: "presentation", view: Modules.views.Home, outputs: [{ view: Modules.views.Home, output: "close", action: { kind: "close" } }] } }] });
 // @ts-expect-error A module's private View cannot be published by forging its handle shape.
-composeProduct({ ...root, journeys: [{ presentation: { ...Inspect, view: { kind: "view", owner: "example", id: "detail" } } }] });
+composeProduct({ messages: FixtureMessages, ...root, journeys: [{ presentation: { ...Inspect, view: { kind: "view", owner: "example", id: "detail" } } }] });
 // @ts-expect-error Root action links cannot use serialized journey IDs.
-composeProduct({ ...root, journeys: [{ presentation: { id: "root", kind: "presentation", view: Modules.views.Home, outputs: [{ view: Modules.views.Home, output: "open", action: { kind: "journey", journey: "browse" } }] } }] });
+composeProduct({ messages: FixtureMessages, ...root, journeys: [{ presentation: { id: "root", kind: "presentation", view: Modules.views.Home, outputs: [{ view: Modules.views.Home, output: "open", action: { kind: "journey", journey: "browse" } }] } }] });
 // @ts-expect-error Raw module arrays cannot substitute for an issued catalog.
-composeProduct({ ...root, modules: [Module] });
+composeProduct({ messages: FixtureMessages, ...root, modules: [Module] });
 // @ts-expect-error A valid public handle still requires its module in this catalog.
-composeProduct({ ...root, modules: moduleCatalog([]) });
+composeProduct({ messages: FixtureMessages, ...root, modules: moduleIndex([]) });
 void [sameId, sameOutput, stillLinked, publicViewId, publicJourneyId, publicOwner];

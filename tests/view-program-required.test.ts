@@ -10,7 +10,6 @@ import { readScopes } from "../src/web/client/view-scopes.ts";
 import { readPresentation } from "../src/web/client/presentation.ts";
 import { humanProduct } from "../src/web/client/model.ts";
 import type { HumanSurface } from "../src/web/types.ts";
-import { WebCatalogManifest } from "../src/svelte/catalog-manifest.ts";
 
 test("the compiled product supplies the only View program and no surface navigation table", async () => {
   const source = await buildHumanModule(compile(NotebookProduct), "human");
@@ -33,12 +32,18 @@ test("read execution scopes derive exclusively from declared View journeys", () 
 });
 
 test("AccessGate has one mandatory ViewProduct route and no standalone renderer remains installed", async () => {
-  const gate = await readFile(new URL("../src/svelte/pieces/AccessGate.svelte", import.meta.url), "utf8");
-  assert.match(gate, /viewProgram: ViewProgram/);
+  const gate = await readFile(new URL("../src/svelte/catalog/compositions/access-gate/AccessGate.svelte", import.meta.url), "utf8");
+  // The program is a required prop of AccessGate's closed contract (CatalogProps<"access-gate"> types the entry from it).
+  const contract = await readFile(new URL("../src/svelte/catalog/compositions/access-gate/access-gate.contract.ts", import.meta.url), "utf8");
+  assert.match(contract, /viewProgram: Type\.Unsafe<ViewProgram>\(\)/);
+  assert.match(gate, /CatalogProps<"access-gate">/);
   assert.match(gate, /<ViewProduct program=\{viewProgram\}/);
   assert.doesNotMatch(gate, /HumanProduct|Standalone|viewProgram\?/);
-  assert.equal(Object.hasOwn(WebCatalogManifest.owners, "StandaloneProduct"), false);
-  assert.equal(Object.hasOwn(WebCatalogManifest.owners, "StandaloneWorkspace"), false);
+  const manifest: unknown = JSON.parse(await readFile(new URL("../src/svelte/catalog/manifest.json", import.meta.url), "utf8"));
+  const pieces = Object(Reflect.get(Object(manifest), "pieces"));
+  assert.ok(Object.hasOwn(pieces, "view-product"), "the catalog manifest lists its pieces by id");
+  assert.equal(Object.hasOwn(pieces, "standalone-product"), false);
+  assert.equal(Object.hasOwn(pieces, "standalone-workspace"), false);
   for (const path of ["HumanProduct.svelte", "ProductWorkspace.svelte", "SurfaceHost.svelte",
     "pieces/StandaloneProduct.svelte", "pieces/StandaloneWorkspace.svelte"]) {
     await assert.rejects(access(new URL(`../src/svelte/${path}`, import.meta.url)), { code: "ENOENT" });

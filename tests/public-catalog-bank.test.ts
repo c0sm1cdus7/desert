@@ -2,15 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { compilePublicCatalog } from "../src/public-catalog/index.ts";
 import { catalogFixture } from "./fixtures/public-catalog.ts";
-import { InteractionCatalog } from "../src/interaction/catalog.ts";
-import { bankNode } from "../src/interaction/bank-node.ts";
-import { publicCatalogBankInventory } from "../src/svelte/explorer/PublicCatalogBank-model.ts";
+import { ResolvedNodes } from "../src/interaction/catalog.ts";
+import { resolvedNode } from "../src/interaction/resolved-node.ts";
+import { publicCatalogBankInventory } from "../src/svelte/infra/PublicCatalogBank-model.ts";
 
 test("public diagnostic bank accounts for every canonical entry/state without fabricating domain execution", () => {
   const surface = compilePublicCatalog(catalogFixture()).surface;
   const inventory = publicCatalogBankInventory(surface);
   assert.deepEqual(inventory.map(item => `${item.id}:${item.state}`),
-    InteractionCatalog.entries.flatMap(entry => entry.states.map(state => `${entry.id}:${state}`)));
+    ResolvedNodes.entries.flatMap(entry => entry.states.map(state => `${entry.id}:${state}`)));
   assert.deepEqual(inventory.filter(item => item.gap).map(item => `${item.id}:${item.state}`),
     ["collection:empty", "form:incomplete", "form:ready", "form:disconnected", "context:unavailable", "review:prepared", "review:uncertain"]);
   const installedAssets = new Set(surface.details.map(detail => detail.image.asset));
@@ -25,7 +25,7 @@ test("public diagnostic bank accounts for every canonical entry/state without fa
   for (const item of inventory) {
     assert.equal(Number(!!item.node) + Number(!!item.gap) + Number(item.owner === "control-bank"), 1);
     if (!item.node) continue;
-    assert.deepEqual(bankNode(item.node), item.node);
+    assert.deepEqual(resolvedNode(item.node), item.node);
     const serialized = JSON.stringify(item.node);
     assert.equal(serialized.includes('"kind":"journey"'), false);
     assert.equal(serialized.includes('"kind":"accept"'), false);

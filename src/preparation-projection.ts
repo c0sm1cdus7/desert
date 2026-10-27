@@ -1,10 +1,10 @@
 import type { ProductDefinition } from "./contracts.ts";
 import type { compileProgram } from "./compile-program.ts";
-import type { JourneyDefinition, SurfaceDefinition } from "./program-grammar.ts";
+import type { JourneyDefinition, ExposureDefinition } from "./program-grammar.ts";
 import { commandInputTargets } from "./command-input-targets.ts";
 
 export function preparationFields(product: ProductDefinition, program: ReturnType<typeof compileProgram>,
-  surface: SurfaceDefinition, journey: Extract<JourneyDefinition, { kind: "mutation" }>) {
+  surface: ExposureDefinition, journey: Extract<JourneyDefinition, { kind: "mutation" }>) {
   const command = journey.command;
   const owner = product.policies?.find(policy => policy.object === command.object)?.field;
   const reads = surface.journeys.map(id => program.journeys.get(id)!)

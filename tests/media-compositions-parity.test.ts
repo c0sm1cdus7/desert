@@ -1,0 +1,128 @@
+// Slice 3 (lane D): the media and catalog compositions are composed of foundations only, and they keep the pixels of the
+// trees they replace, rendered live beside their frozen sources (tests/fixtures/media-compositions-before.ts) at a catalog
+// workspace's insets. The differences are DESIGN's: the media list item's label takes the row's medium weight (§1.4); the
+// catalog rails' title margins become Column gaps (§7.3) at the frozen lengths (third review: 22px above a rail's title,
+// 10px under it, 14px between cards, as the frozen tree drew them; the scale's 24/12/12 was a stretch); and the rail and detail titles return to the content axis the theme's heading margins gave
+// them before F1a removed those margins.
+import assert from "node:assert/strict";
+import { resolve } from "node:path";
+import test from "node:test";
+import { squareCorners, withoutRadius } from "./fixtures/curvature-family.ts";
+import type { Page } from "playwright";
+import { rendererCss } from "./fixtures/renderer-css.ts";
+import { measureProbes, renderCases, settle, type Probes } from "./fixtures/parity.ts";
+import { mediaCompositionsBefore, mediaCompositionsBeforeOverrides, nestedCatalogFeaturedInsetBefore } from "./fixtures/media-compositions-before.ts";
+import { mediaPage } from "./fixtures/media-compositions-cases.ts";
+import { controlsBefore } from "./fixtures/controls-before.ts";
+import { pixelDifference } from "./fixtures/pixel-difference.ts";
+
+// The catalog card as the foundation it was before lane B recomposed it over Card (its folder is gone): the frozen trees
+// mount it through the dispatcher, at the composition's path (the same depth, so its relative imports resolve).
+const catalogCard = "src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte";
+const frozenCard = { [resolve(import.meta.dirname, "..", "src/svelte/catalog/compositions/catalog-card/CatalogCard.svelte")]: controlsBefore[catalogCard] ?? "" };
+
+/** Probe selectors per side: the frozen tree's marks, and today's foundation marks. */
+const probes = (side: "before" | "after"): Probes => {
+  const was = side === "before";
+  return {
+    list: { artwork: "[data-media-image], [data-media-artwork-placeholder]", dot: "[data-attention-indicator]",
+      label: was ? "text:[data-media-row-description]" : "text:.row-label" },
+    "home-nested": { featured: was ? "[data-catalog-card]" : "[data-card]", card: was ? "[data-catalog-rail] [data-catalog-card]" : '[role="region"] [data-card]',
+      title: "h2" },
+    "home-page": { card: was ? "[data-catalog-card]" : "[data-card]", title: "h2" },
+    detail: { gallery: "[data-photo-collection]", legend: "text:legend", prose: was ? "text:[data-catalog-prose] p" : 'text:[data-view-item="about"] p' },
+  };
+};
+type Measured = Awaited<ReturnType<typeof measureProbes>>;
+const boxes = (value: Measured, name: string, probe: string) => (value[name]?.[probe] ?? []).map(item => item.box);
+const caseShot = (page: Page, name: string) => page.locator(`[data-case="${name}"]`).screenshot({ animations: "disabled" });
+
+test("media and catalog compositions keep the frozen trees' pixels, but for DESIGN's rail rhythm and row weight", { timeout: 120000 }, async () => {
+  const css = await rendererCss([...Object.values(mediaCompositionsBefore), ...Object.values(frozenCard)]);
+  const [was, is] = [await renderCases(mediaPage, { ...mediaCompositionsBeforeOverrides, ...frozenCard }, css + nestedCatalogFeaturedInsetBefore),
+    await renderCases(mediaPage, {}, css)];
+  try {
+    for (const f of [was, is]) {
+      // No image is served here: each public image settles on its fallback before anything is measured (a private one
+      // waits for its lease in both trees alike).
+      await f.page.waitForFunction(() => ["tiles", "list", "image", "object-image", "detail"].every(name =>
+        document.querySelector(`[data-case="${name}"] [data-image-state="error"]`) !== null));
+      await settle(f.page);
+    }
+    // Law 9e (slice 3): an artwork placeholder is a face, the theme's face primitive (white ground, its own hairline), where
+    // the frozen tree drew a muted ground, and its corner is its frame's (the frame clipped it before); face-material.test.ts
+    // measures it. Both trees set ground, hairline and corner aside here, so
+    // everything else still compares. The avatar is a seed drawing now, never initials (avatar-identity.test.ts): it has no
+    // frozen pixels to keep.
+    for (const f of [was, is]) await f.page.addStyleTag({ content: "[data-media-artwork-placeholder] { background:none !important; position:static !important; border-radius:0 !important; }"
+      + " [data-media-artwork-placeholder]::after { content:none !important; }" });
+    // Fourth review: an image's error is the one notice of unavailable media (its hairline and its centred sentence;
+    // tests/media-notice-anatomy.test.ts measures it): both trees set that edge and alignment aside here.
+    for (const f of [was, is]) await f.page.addStyleTag({ content: "[data-media-error] { border-color:transparent !important; text-align:center !important; }" });
+    // Unavailable media (a record without a picture) was a placeholder face, set aside above; it is that notice now, whose
+    // ground, ink and edge the same test measures: today's tree sets them aside the same way.
+    await is.page.addStyleTag({ content: "[data-image-state='unavailable'], [data-image-state='unavailable'] > [data-media-notice] { background:none !important;"
+      + " border-color:transparent !important; color:var(--muted-foreground) !important; }" });
+    // Design §7.1 radius exception (law 9d): both sides square their corners; tests/curvature-family.test.ts owns them.
+    for (const f of [was, is]) await f.page.addStyleTag({ content: squareCorners });
+    // Grids, covers, controls and media objects: the same pixels (a grid's rounded corners antialias a level or two apart).
+    for (const name of ["tiles", "covers", "tag", "image", "object-image"]) {
+      const [a, b] = [await caseShot(was.page, name), await caseShot(is.page, name)];
+      assert.deepEqual(await pixelDifference(is.page, a, b, 2), { count: 0, within: true }, `${name}: the same pixels`);
+    }
+    // Third review: «Media unavailable» is an image's notice now, its sentence inside the notice's 1rem inset (a rounded
+    // box, never a capsule around one line); its sentence and its width are the frozen ones. Fourth review: it is the one
+    // notice of unavailable media (no longer a placeholder face), its 1px edge inside its box.
+    const notice = (page: Page, selector: string) => page.locator(`[data-case="object-missing"] ${selector}`).evaluate(element => {
+      const box = element.getBoundingClientRect(), range = document.createRange(); range.selectNodeContents(element);
+      return { width: Math.round(box.width), text: element.textContent, height: Math.round(box.height), line: Math.round(range.getBoundingClientRect().height) };
+    });
+    const [missingWas, missingNow] = [await notice(was.page, "[data-media-artwork-placeholder]"), await notice(is.page, "[data-media-notice]")];
+    assert.deepEqual([missingNow.width, missingNow.text], [missingWas.width, missingWas.text], "object-missing: the same sentence at the same width");
+    assert.equal(missingNow.height, missingWas.height + 32 + 2, "object-missing: the frozen line inside the notice's 1rem inset and its 1px edge");
+    const [old, now] = [withoutRadius(await measureProbes(was.page, probes("before"))), withoutRadius(await measureProbes(is.page, probes("after")))];
+    // The media list: the same artwork, attention dot and label boxes; the label is the row's medium weight (§1.4).
+    // Fourth review: the record without a picture shows the one notice of unavailable media in an image's frame (block,
+    // clipped to its corner, the notice inside it centred) where the frozen tree drew a placeholder face (a centred grid with
+    // its hairline); its box is the frozen one, and only those frame properties differ.
+    const frame = { "align-items": "normal", "border-top-color": "rgba(0, 0, 0, 0)", display: "block", overflow: "hidden", position: "relative" };
+    const unavailable = old.list?.artwork?.map((item, index) => item.style.display === "grid" && now.list?.artwork?.[index]?.style.display === "block") ?? [];
+    assert.equal(unavailable.filter(Boolean).length, 1, "list: one record without a picture");
+    assert.deepEqual(now.list?.artwork?.filter((_, index) => unavailable[index]).map(item => Object.fromEntries(Object.keys(frame).map(key => [key, item.style[key]]))), [frame]);
+    const asFrozen = (items: Measured[string][string] | undefined) => items?.map((item, index) => unavailable[index]
+      ? { ...item, style: { ...item.style, ...Object.fromEntries(Object.keys(frame).map(key => [key, old.list!.artwork![index]!.style[key]])) } } : item);
+    assert.deepEqual(asFrozen(now.list?.artwork), old.list?.artwork, "list/artwork");
+    assert.deepEqual(now.list?.dot, old.list?.dot, "list/dot");
+    assert.deepEqual(boxes(now, "list", "label").map(box => box.slice(0, 2)), boxes(old, "list", "label").map(box => box.slice(0, 2)));
+    assert.deepEqual(now.list?.label?.map(item => item.style["font-weight"]), ["500", "500", "500"]);
+    // A nested catalog: its featured entry keeps the stack item's content inset.
+    // (The stack item now caps the card at its width, max-width 100%, which the featured card's box never reaches.)
+    assert.deepEqual(boxes(now, "home-nested", "featured")[0], boxes(old, "home-nested", "featured")[0], "featured entry (the first card)");
+    for (const [name, axis] of [["home-nested", 16], ["home-page", 40 + 42]] as const) {
+      const cards = boxes(now, name, "card"), titles = boxes(now, name, "title"), before = boxes(old, name, "card");
+      // Titles sit on the content axis (the place's content inset, past the leading inset on a page); cards keep the rail's.
+      assert.deepEqual(titles.map(box => box[0]), titles.map(() => axis), `${name}: titles on the content axis`);
+      assert.deepEqual(cards.map(box => box[2]), before.map(box => box[2]), `${name}: card sizes`);
+      assert.equal(cards[0]?.[0], before[0]?.[0], `${name}: the rail starts where it did`);
+      const gap = (row: typeof cards) => (row[1]?.[0] ?? 0) - ((row[0]?.[0] ?? 0) + (row[0]?.[2] ?? 0));
+      assert.equal(gap(cards), gap(before), `${name}: the frozen space between cards`);
+      assert.equal(gap(cards), 14, `${name}: 14px between cards`);
+      // §7.3 at the frozen lengths: a rail's title sits 10px over its cards, and each rail 22px under what precedes it.
+      for (const [index, [, top = 0, , height = 0] = []] of titles.entries()) {
+        const rail = cards.find(box => (box[1] ?? 0) > top);
+        assert.equal(Math.round((rail?.[1] ?? 0) - (top + height)), 10, `${name}: title ${index} to its rail`);
+      }
+      assert.equal(Math.round((titles[1]?.[1] ?? 0) - ((cards[1]?.[1] ?? 0) + (cards[1]?.[3] ?? 0))), 22, `${name}: 22px between rails`);
+    }
+    assert.equal(Math.round((boxes(now, "home-page", "title")[0]?.[1] ?? 0)), 22, "the rails' section starts 22px under the place heading");
+    // A detail: the photograph is unchanged; its reading keeps its axis, 8px lower under the title (its margin as a gap).
+    assert.deepEqual(now.detail?.gallery, old.detail?.gallery, "detail photograph");
+    // Second review of the slice 3 package: a detail nested in another page reads on that page's row inset (16px), not at
+    // the place's content inset (42px) the frozen tree gave it; its widths, heights and the 8px are unchanged.
+    for (const probe of ["legend", "prose"]) {
+      const [then, today] = [boxes(old, "detail", probe)[0] ?? [], boxes(now, "detail", probe)[0] ?? []];
+      assert.deepEqual([today[0], today[2], today[3], (today[1] ?? 0) - (then[1] ?? 0)], [(then[0] ?? 0) - 26, then[2], then[3], 8], `detail ${probe}`);
+    }
+    assert.deepEqual([was.errors, is.errors], [[], []]);
+  } finally { await was.close(); await is.close(); }
+});

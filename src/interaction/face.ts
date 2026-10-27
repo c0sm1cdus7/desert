@@ -2,8 +2,13 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { Frozen } from "../json.ts";
 import { ActionIconSchema } from './action-icon.ts';
 
+/** The glyphs a face may draw: every action icon and the glyphs of a workspace's navigation destinations (a place to
+ * browse, the travel kit, the developer bank). A navigation destination's face is this one Face (law 9e). */
+export const FaceIconSchema = Type.Union([ActionIconSchema, Type.Literal("landmark"), Type.Literal("backpack"), Type.Literal("panels")]);
+export type FaceIcon = Static<typeof FaceIconSchema>;
+
 export const FaceSchema = Type.Union([
-  Type.Object({ kind: Type.Literal('icon'), icon: ActionIconSchema }, { additionalProperties: false }),
+  Type.Object({ kind: Type.Literal('icon'), icon: FaceIconSchema }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal("document") }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal("status"), severity: Type.Union([
     Type.Literal("warning"), Type.Literal("error"),

@@ -1,5 +1,5 @@
 import type { TestContext } from "node:test";
-import type { BankEvent } from "../../src/interaction/bank-events.ts";
+import type { NodeEvent } from "../../src/interaction/node-events.ts";
 import { compile } from "../../src/compile.ts";
 import { Notebook } from "../../products/notebook/product.ts";
 import { viewProgramModel } from "../../src/web/client/view-program.ts";
@@ -56,7 +56,7 @@ export async function subjectActionRuntime(t: TestContext, options: {
   await model.start();
   model.navigate("notes");
   await until(() => model.snapshot().state.loaded);
-  const emit = (event: BankEvent) => captureViewEvents(model)(event);
+  const emit = (event: NodeEvent) => captureViewEvents(model)(event);
   const select = async () => {
     emit({ kind: "surface.invoke", intent: { kind: "view.output", view: "notes", output: "select", recordId: record.id } });
     await until(() => Boolean(model.snapshot().state.detail) && (options.unavailable || Boolean(model.snapshot().state.offers[ArchiveNote.id])));

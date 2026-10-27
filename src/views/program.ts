@@ -5,7 +5,7 @@ import { freezeDeep } from "../json.ts";
 import type { Surface } from "../web/types.ts";
 import { ViewProgramSchema, type ViewProgram } from "./program-schema.ts";
 import { viewSnapshot } from "./snapshot.ts";
-import { viewCatalog } from "./catalog.ts";
+import { viewIndex } from "./view-index.ts";
 import { journeyViews, validateJourneyExposure, validateJourneyViews } from "./program-views.ts";
 import { validateJourneyOutputs } from "./program-outputs.ts";
 import { validateProgramBindings } from "./program-bindings.ts";
@@ -27,7 +27,7 @@ export function compileViewProgram(definition: unknown, surface: Surface): ViewP
   const human = { ...surface, language: surface.language,
     commit: surface.commit, connection: surface.connection, ...fieldPresentation };
   if (input.productId !== surface.productId) throw new Error("VIEW_PROGRAM_PRODUCT_MISMATCH");
-  const views = new Map(viewCatalog(input.views).map(item => [item.id, item]));
+  const views = new Map(viewIndex(input.views).map(item => [item.id, item]));
   const journeys = new Map(input.journeys.map(item => [item.id, item]));
   if (journeys.size !== input.journeys.length) throw new Error("DUPLICATE_VIEW_JOURNEY");
   const destinations = new Map(input.destinations.map(item => [item.id, item]));

@@ -14,12 +14,11 @@
 <div
 	bind:this={ref}
 	data-slot="input-group"
-	data-material="pane"
 	role="group"
 	class={cn(
-		"tm-control group/input-group relative flex w-full min-w-0 items-center rounded-lg p-1 has-[textarea]:h-auto has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-offset-3",
+		"material-pane control-focus group/input-group relative flex w-full min-w-0 items-center rounded-[var(--radius-well)] p-1 has-[textarea]:h-auto has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-offset-3",
 		className,
-		presentation === "access" && "rounded-full pr-1.5"
+		presentation === "access" && "pr-1.5"
 	)}
 	{...props}
 >

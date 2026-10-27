@@ -1,6 +1,8 @@
 import { execFileSync } from "node:child_process";
 import { closeSync, existsSync, lstatSync, mkdirSync, mkdtempSync, openSync, rmSync, unlinkSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
+// The cluster is created without a locale; macOS aborts a postmaster started without LC_ALL ("became multithreaded").
+const postgresEnvironment = { ...process.env, LC_ALL: "C" };
 
 export function requirePrivatePath(path: string, directory: boolean) {
   const info = lstatSync(path);
@@ -18,7 +20,7 @@ export function startLocalPostgres(directory: string) {
   const data = join(directory, "postgres");
   let running = false;
   let bin: string;
-  const run = (name: string, args: string[]) => execFileSync(join(bin, name), args, { stdio: "pipe" });
+  const run = (name: string, args: string[]) => execFileSync(join(bin, name), args, { stdio: "pipe", env: postgresEnvironment });
   function stop() {
     if (running) run("pg_ctl", ["-D", data, "-m", "fast", "-w", "stop"]);
     running = false;

@@ -7,9 +7,9 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import Collection from '@desert/svelte/Collection.svelte';
-  import DestinationRow from '@desert/svelte/pieces/DestinationRow.svelte';
-  import GroupedPanel from '@desert/svelte/pieces/GroupedPanel.svelte';
+  import Collection from '@desert/svelte/catalog/compositions/collection/Collection.svelte';
+  import DestinationRow from '@desert/svelte/catalog/foundations/destination-row/DestinationRow.svelte';
+  import GroupedPanel from '@desert/svelte/catalog/foundations/grouped-panel/GroupedPanel.svelte';
   const titles = ['Uyuni Salt Flat', 'A destination with a deliberately long name that remains readable when its row wraps'];
   const common = {version:'desert.bank-node/1',kind:'collection',object:'place',loaded:true,disabled:false,selectedId:null,
     labels:{'place.title':'Title','place.description':'Description','place.region':'Region'},createLabel:'Create'};
@@ -25,7 +25,8 @@ const source = `<script lang="ts">
   </div></GroupedPanel></section>
   <output hidden>{JSON.stringify(events)}</output>
 </main>`;
-const rowSelector = '[data-grouped-action], [data-piece="destination-row"]';
+// Collection records are Rows (composition lane C); the destination rows here are still the destination-row foundation.
+const rowSelector = '[data-row], [data-piece="destination-row"]';
 const settle = (page: Page) => page.evaluate(async () => {
   await document.fonts.ready;
   await Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {})));
@@ -35,9 +36,9 @@ const measure = (row: Locator) => row.evaluate(element => {
     const box = target.getBoundingClientRect();
     return { x:box.x, y:box.y, width:box.width, height:box.height, right:box.right, bottom:box.bottom, cy:box.y+box.height/2 };
   };
-  const title = element.querySelector('strong, .destination-title')!;
-  const heading = element.querySelector('[data-record-heading]') ?? title;
-  const metadata = element.querySelector('[data-record-metadata]');
+  const title = element.querySelector('.row-label, .destination-title')!;
+  const heading = title;
+  const metadata = element.querySelector('.row-metadata');
   const icon = element.querySelector('[data-control-chevron]')!;
   return { kind:element.closest('[data-case]')!.getAttribute('data-case'), title:title.textContent,
     row:rect(element), content:rect(element.querySelector('[data-button-content]')!), titleBox:rect(title), heading:rect(heading),
@@ -74,8 +75,8 @@ async function evidence(page: Page, name: string, observations: unknown) {
   assert.ok(['before','final'].includes(phase), 'evidence phase is explicit');
   const directory = `artifacts/row-alignment/${phase}`;
   await mkdir(directory, {recursive:true});
-  const paths = ['src/svelte/Collection.svelte','src/svelte/pieces/DestinationRow.svelte','src/svelte/layout.css',
-    'src/svelte/theme.css','src/svelte/pieces/structured-content.css','src/svelte/pieces/ChoiceRow.svelte',
+  const paths = ['src/svelte/catalog/compositions/collection/Collection.svelte','src/svelte/catalog/foundations/destination-row/DestinationRow.svelte','src/svelte/catalog/mechanisms/layout/layout.css',
+    'src/svelte/theme.css','src/svelte/catalog/mechanisms/structured-content/structured-content.css','src/svelte/catalog/foundations/choice-row/ChoiceRow.svelte',
     'src/svelte/vendor/components/ui/button/button.svelte','src/svelte/vendor/components/ui/field/field.svelte','tests/row-alignment.test.ts'];
   const revision = Object.fromEntries(await Promise.all(paths.map(async path =>
     [path,createHash('sha256').update(await readFile(path)).digest('hex')])));
@@ -134,7 +135,7 @@ test('hover and held feedback preserve row alignment and fixed hit geometry', {t
 });
 
 const choiceSource = `<script lang="ts">
-  import OptionsControl from '@desert/svelte/controls/OptionsControl.svelte';
+  import OptionsControl from '@desert/svelte/catalog/compositions/options-control/OptionsControl.svelte';
   const base = {version:'desert.control/1',kind:'options',disabled:false,minSelected:0,selected:[],options:[
     {value:'short',label:'A short option',disabled:false},
     {value:'details',label:'An option with details',description:'A description that wraps into several readable lines on narrow displays.',disabled:false}]};

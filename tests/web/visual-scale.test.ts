@@ -24,9 +24,9 @@ test("published reading, editing and catalog controls preserve their distinct ac
     for (const scale of [1, 1.3]) {
       await f.page.evaluate(value => document.documentElement.style.setProperty("--text-scale", String(value)), scale);
       await openCatalog(f.page);
-      const select = f.page.locator('[data-specimen="control.select:available"] [data-selection-trigger]');
+      const select = f.page.locator('[data-view-item="specimen:control.select:available"] [data-selection-trigger]');
       const selectIcon = await iconStyle(select.locator("svg").last());
-      const entry = await textStyle(f.page.locator('[data-specimen="input.text:value"] [data-slot="input-group-control"]'));
+      const entry = await textStyle(f.page.locator('[data-view-item="specimen:input.text:value"] [data-slot="input-group-control"]'));
       const selection = await textStyle(select.locator('[data-field-value]'));
       const primary = await target(f.page, "primary");
       const close = panelToolbar(f.page, "bottom").getByRole("button", { name: "Close", exact: true });
@@ -37,7 +37,7 @@ test("published reading, editing and catalog controls preserve their distinct ac
       assert.ok(Math.abs(closeStyle.size - 13 * scale) < .05);
       assert.ok(Math.abs(entry.size - 16 * scale) < .05 && selection.size === entry.size);
       await finishTarget(f.page);
-      const row = f.page.locator('[data-composition="collection"]:visible button').first();
+      const row = f.page.locator('[data-list] [data-row-leading="attention"]:visible').first();
       const rowIcon = await iconStyle(row.locator("svg"));
       for (const icon of [rowIcon, selectIcon]) {
         assert.ok(Math.abs(icon.width - 16 * scale) < .05 && Math.abs(icon.height - 16 * scale) < .05);
@@ -68,7 +68,7 @@ test("collection row focus follows the shared grouped boundary", { timeout: 3000
   const f = await catalog();
   try {
     await openNotes(f.page);
-    const rows = f.page.locator('[data-composition="collection"]:visible button');
+    const rows = f.page.locator('[data-list] [data-row-leading="attention"]:visible');
     assert.equal(await rows.count(), 3);
     for (const edge of ["first", "last"] as const) {
       const row = edge === "first" ? rows.first() : rows.last();
@@ -113,7 +113,7 @@ test("real primary labels and compact icons retain AA contrast in light and dark
       await f.page.setViewportSize({ width: 1280, height: 900 });
       const primary = await target(f.page, "primary");
       await settleMotion(f.page);
-      assert.equal(await primary.getAttribute("data-button-face"), "label");
+      assert.equal(await primary.getAttribute("data-action-face"), "label");
       const labelContrast = await contrast(primary, "[data-button-label]");
       await f.page.setViewportSize({ width: 320, height: 844 });
       await f.page.evaluate(() => document.documentElement.style.setProperty("--text-scale", "2"));

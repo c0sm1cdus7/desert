@@ -1,9 +1,9 @@
 /** Independent S1 specimen: real owners, not the approved artifact's adapter CSS. */
 export const paneFamilySource = `<script lang="ts">
-  import Action from '@desert/svelte/pieces/Action.svelte';
-  import TextInput from '@desert/svelte/pieces/TextInput.svelte';
-  import MoneyControl from '@desert/svelte/controls/MoneyControl.svelte';
-  import OptionsControl from '@desert/svelte/controls/OptionsControl.svelte';
+  import Action from '@desert/svelte/catalog/foundations/action/Action.svelte';
+  import Field from '@desert/svelte/catalog/foundations/field/Field.svelte';
+  import MoneyControl from '@desert/svelte/catalog/compositions/money-control/MoneyControl.svelte';
+  import OptionsControl from '@desert/svelte/catalog/compositions/options-control/OptionsControl.svelte';
   import * as Sidebar from '@desert/svelte/vendor/components/ui/sidebar/index.js';
   import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
   import * as Dialog from '@desert/svelte/vendor/components/ui/dialog/index.js';
@@ -22,12 +22,12 @@ export const paneFamilySource = `<script lang="ts">
       <Sidebar.MenuButton isActive>Travel kit</Sidebar.MenuButton>
     </Sidebar.Root>
   </Sidebar.Provider>
-  <TextInput primitive="input.text" label="Trip name" value={text} {disabled} {invalid}
-    error={invalid?'Give this trip a name.':undefined} onchange={next=>text=next}/>
+  <Field primitive="input.text" label="Trip name" labelVisibility="visible" measure="writing" purpose="text" value={text} clear required={false}
+    {disabled} {invalid} error={invalid?'Give this trip a name.':undefined} onchange={next=>text=next}/>
   <MoneyControl node={{...amount,disabled}} onevent={()=>{}}/>
   <OptionsControl node={{...pace,disabled}} onevent={()=>{}}/>
-  <Action label="Continue" icon="open" emphasis="primary" state={state==='pending'?'pending':disabled?'unavailable':'ready'}/>
-  <Action label="Keep editing" icon="review" state={disabled?'unavailable':'ready'}/>
+  <Action label="Continue" icon="open" emphasis="primary" state={state==='pending'?'pending':disabled?'unavailable':'ready'} face="fit" type="button"/>
+  <Action label="Keep editing" icon="review" state={disabled?'unavailable':'ready'} emphasis="secondary" face="fit" type="button"/>
   <Badge variant="secondary">Draft</Badge><Badge variant="success">Ready</Badge>
   <Badge variant="warning">Attention</Badge><Badge variant="destructive">Failed</Badge>
   <Popover.Root><Popover.Trigger>Open anchored</Popover.Trigger>

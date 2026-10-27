@@ -2,9 +2,10 @@ import {
   objectType, text, principal, enumeration, controllerRole, ownershipPolicy,
   createCommand, updateCommand, mutationJourney, readJourney, fromInput, literal, actorId,
   Components, ViewTitles, defineView, viewPorts, viewOutput, publishObject, factReference,
-  composeProduct, moduleCatalog, humanSurface, clientDistribution, controllerDistribution, remoteBinding,
+  composeProduct, moduleIndex, humanExposure, clientDistribution, controllerDistribution, remoteBinding,
 } from "../../src/index.ts";
 import { NavigationView, WorkspaceView } from "./workspace-view.ts";
+import { FixtureMessages, fixtureText } from "./messages.ts";
 
 export function reviewProduct(options: { renamed?: boolean; emptyTitle?: boolean; createReview?: boolean; hideState?: boolean } = {}) {
   const name = <const Name extends string>(value: Name) => options.renamed ? `renamed_${value}` as const : value;
@@ -34,57 +35,57 @@ export function reviewProduct(options: { renamed?: boolean; emptyTitle?: boolean
   const detail = viewPorts({ inputs: { record: "context" }, outputs: ["close"] });
   const editor = viewPorts({ inputs: { draft: "form" }, outputs: ["save", "close"] });
   const NotesView = defineView({ name: name("notes"), outputs: list.outputs,
-    topDock: Components.Toolbar({ actions: [{ output: list.output.create, label: "Create note", icon: "create" }] }),
-    content: [Components.Header({ title: "Notes" }), Components.Collection({ input: list.inputs.records, output: list.output.select })],
+    topDock: Components.Toolbar({ actions: [{ output: list.output.create, label: fixtureText.createNote, icon: "create" }] }),
+    content: [Components.Header({ title: fixtureText.notes }), Components.Collection({ input: list.inputs.records, output: list.output.select })],
   });
   const NoteView = defineView({ name: name("note"), outputs: detail.outputs,
-    topDock: Components.Toolbar({ actions: [{ output: detail.output.close, label: "Close", icon: "close" }] }),
+    topDock: Components.Toolbar({ actions: [{ output: detail.output.close, label: fixtureText.close, icon: "close" }] }),
     content: [Components.Header({ title: ViewTitles.subject }), Components.Context({ input: detail.inputs.record })],
   });
   const StatusView = defineView({ name: name("note-status"), outputs: status.outputs,
-    content: [Components.Header({ title: "Statuses" }), Components.Collection({ input: status.inputs.records, output: status.output.select })],
+    content: [Components.Header({ title: fixtureText.statuses }), Components.Collection({ input: status.inputs.records, output: status.output.select })],
   });
   const CreateView = defineView({ name: name("create-note"), outputs: editor.outputs,
-    topDock: Components.Toolbar({ actions: [{ output: editor.output.close, label: "Close", icon: "close" }] }),
+    topDock: Components.Toolbar({ actions: [{ output: editor.output.close, label: fixtureText.close, icon: "close" }] }),
     bottomDock: Components.Toolbar({ actions: [{ output: editor.output.save,
-      label: options.createReview ? "Review" : "Create note", icon: options.createReview ? "review" : "save" }] }),
+      label: options.createReview ? fixtureText.review : fixtureText.createNote, icon: options.createReview ? "review" : "save" }] }),
     content: [Components.Header({ title: ViewTitles.operation }), Components.Form({ input: editor.inputs.draft })],
   });
-  const Notes = { id: name("notes-home"), label: "Notes", icon: "open", entryJourney: Read } as const;
-  const Statuses = { id: name("statuses-home"), label: "Statuses", icon: "open", entryJourney: ReadStatus } as const;
-  const Human = humanSurface({ id: "human", journeys: [Create, Read, ReadStatus, Archive], locale: "en" });
-  const Product = composeProduct({ id: name("notebook"), label: "Notebook", modules: moduleCatalog([]),
+  const Notes = { id: name("notes-home"), label: fixtureText.notes, icon: "open", entryJourney: Read } as const;
+  const Statuses = { id: name("statuses-home"), label: fixtureText.statuses, icon: "open", entryJourney: ReadStatus } as const;
+  const Human = humanExposure({ id: "human", journeys: [Create, Read, ReadStatus, Archive], locale: "en" });
+  const Product = composeProduct({ messages: FixtureMessages, id: name("notebook"), label: fixtureText.notebook, modules: moduleIndex([]),
     objects: [publishObject(Note, { view: NoteView, title: factReference(Note, fields.title),
       fields: [
-        { fact: factReference(Note, fields.title), label: "Title", representation: "text" },
-        { fact: factReference(Note, fields.body), label: "Content", representation: "paragraphs" },
-        { fact: factReference(Note, fields.state), label: "Status", representation: "text" },
-        ...(options.createReview ? [{ fact: factReference(Note, "privateFact"), label: "Fixture witness", representation: "text" as const }] : []),
+        { fact: factReference(Note, fields.title), label: fixtureText.title, representation: "text" },
+        { fact: factReference(Note, fields.body), label: fixtureText.content, representation: "paragraphs" },
+        { fact: factReference(Note, fields.state), label: fixtureText.status, representation: "text" },
+        ...(options.createReview ? [{ fact: factReference(Note, "privateFact"), label: fixtureText.fixtureWitness, representation: "text" as const }] : []),
       ], actions: [{ journey: Archive, icon: "archive" }] })],
     dependencies: [Controller], policies: [ownershipPolicy(Note, fields.owner)],
     journeys: [
-      { execution: Create, label: "Create note", humanReview: options.createReview ? "required" : "not-required",
+      { execution: Create, label: fixtureText.createNote, humanReview: options.createReview ? "required" : "not-required",
         presentation: { id: Create.id, kind: "create", source: Read, view: CreateView, preferredDock: "right", outputs: [
           { ...viewOutput(CreateView, "save"), action: { kind: "submit" } },
           { ...viewOutput(CreateView, "close"), action: { kind: "close" } },
         ] } },
-      { execution: Read, label: "Read notes", presentation: { id: Read.id, kind: "read", view: NotesView, detailView: NoteView, outputs: [
+      { execution: Read, label: fixtureText.readNotes, presentation: { id: Read.id, kind: "read", view: NotesView, detailView: NoteView, outputs: [
         { ...viewOutput(NotesView, "create"), action: { kind: "journey", journey: Create } },
         { ...viewOutput(NotesView, "select"), action: { kind: "select" } },
         { ...viewOutput(NoteView, "close"), action: { kind: "close" } },
       ] } },
-      { execution: ReadStatus, label: "Read note status", presentation: { id: ReadStatus.id, kind: "read", view: StatusView, detailView: NoteView, outputs: [
+      { execution: ReadStatus, label: fixtureText.readNoteStatus, presentation: { id: ReadStatus.id, kind: "read", view: StatusView, detailView: NoteView, outputs: [
         { ...viewOutput(StatusView, "select"), action: { kind: "select" } },
         { ...viewOutput(NoteView, "close"), action: { kind: "close" } },
       ] } },
-      { execution: Archive, label: "Archive note", humanReview: "required",
+      { execution: Archive, label: fixtureText.archiveNote, humanReview: "required",
         presentation: { id: Archive.id, kind: "action", source: Read, outputs: [] } },
     ],
     views: [NotesView, NoteView, StatusView, CreateView, WorkspaceView, NavigationView], workspace: WorkspaceView,
     destinations: [Notes, Statuses], entry: Notes, navigation: [
-      { destination: Notes, group: "Explore", purpose: "content" },
-      { destination: Statuses, group: "Explore", purpose: "content" },
-    ], surfaces: [Human],
+      { destination: Notes, group: fixtureText.explore, purpose: "content" },
+      { destination: Statuses, group: fixtureText.explore, purpose: "content" },
+    ], exposures: [Human],
   });
   const Service = controllerDistribution({ id: name("notebook-service"), product: Product.definition,
     runtime: "node", storage: "postgresql", serves: [Human], provides: [Controller] });

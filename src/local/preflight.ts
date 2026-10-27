@@ -25,7 +25,10 @@ export async function preflightMutation(client: PoolClient, program: LocalProgra
   const missing = validation.issues.filter(issue => issue.keyword === "required")
     .map(issue => String(issue.params?.missingProperty)).sort();
   const issues = validation.issues.filter(issue => issue.keyword !== "required");
-  return freezeDeep({ journeyId, contractDigest: program.application.digest,
+  // Frozen in place: JSON issue parameters make Frozen<PreflightResult> unbounded, and the declared type is already readonly.
+  const result: PreflightResult = { journeyId, contractDigest: program.application.digest,
     status: blockers.length ? "blocked" : issues.length ? "invalid" : missing.length ? "incomplete" : "ready",
-    missing, issues, blockers });
+    missing, issues, blockers };
+  freezeDeep(result);
+  return result;
 }

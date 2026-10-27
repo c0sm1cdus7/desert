@@ -95,7 +95,7 @@ admitted View program through its access boundary:
 
 ```svelte
 <script lang="ts">
-  import AccessGate from "@desert/svelte/pieces/AccessGate.svelte";
+  import AccessGate from "@desert/svelte/catalog/compositions/access-gate/AccessGate.svelte";
   import { surface, validateInput, viewProgram } from "virtual:desert/surface";
 </script>
 

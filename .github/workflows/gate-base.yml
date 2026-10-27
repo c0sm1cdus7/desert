@@ -1,0 +1,54 @@
+# Checks whose definition and code come from the base branch (pull_request_target), so a PR cannot rewrite what judges it.
+# Read-only token, no secrets, no caches. The PR tree is never executed: the base gate runs from the base checkout and
+# judges the whole PR checkout as data (`--tree .pr`), so every module the gate imports, its own and the domain modules it
+# reads through, resolves inside the base checkout. A symbolic link in the PR is refused before anything reads it.
+name: gate-base
+on:
+  pull_request_target:
+permissions:
+  contents: read
+jobs:
+  gate-from-base:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: The base branch, with its own gate and lockfile
+        uses: actions/checkout@v4
+        with: { ref: "${{ github.event.pull_request.base.sha }}", persist-credentials: false }
+      - name: The PR tree, as data only
+        uses: actions/checkout@v4
+        with: { ref: "${{ github.event.pull_request.head.sha }}", path: .pr, persist-credentials: false }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24.16.0 }
+      - run: npm ci --ignore-scripts
+      - name: Run the base gate's catalog rules on the PR tree
+        run: |
+          if [ ! -d src/authoring/catalog ]; then echo "::notice::The base branch has no catalog gate yet."; exit 0; fi
+          links=$(find .pr -path .pr/.git -prune -o -type l -print)
+          if [ -n "$links" ]; then echo "::error::the PR holds symbolic links: $links"; exit 1; fi
+          rules=$(node --input-type=module -e 'const { contentRuleIds } = await import("./src/authoring/catalog/gate/content-rules.ts"); console.log(["A","B","C","L",...contentRuleIds].join(","));')
+          node scripts/catalog-gate.ts --tree .pr --rules "$rules"
+
+  ledger-integrity:
+    # Only the owner stamps approvals: every commit of the PR that touches the ledger carries a signature GitHub verifies
+    # for the owner's account. Runs no PR code.
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OWNER: c0sm1cdus7
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event.pull_request.head.sha }}", fetch-depth: 0, persist-credentials: false }
+      - name: Ledger commits are signed by the owner
+        env: { BASE_SHA: "${{ github.event.pull_request.base.sha }}", HEAD_SHA: "${{ github.event.pull_request.head.sha }}" }
+        run: |
+          git fetch --no-tags origin "$BASE_SHA"
+          status=0
+          for sha in $(git rev-list "$BASE_SHA..$HEAD_SHA" -- src/svelte/catalog/approvals.json); do
+            verified=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha" --jq '.commit.verification.verified')
+            login=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha" --jq '.committer.login // ""')
+            if [ "$verified" != "true" ] || [ "$login" != "$OWNER" ]; then
+              echo "::error::$sha changes the approvals ledger without a verified signature of $OWNER"
+              status=1
+            fi
+          done
+          exit $status

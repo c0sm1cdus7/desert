@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { appearancePreferences } from "../src/svelte/pieces/appearance-preferences.ts";
+import { appearancePreferences } from "../src/svelte/infra/appearance-preferences.ts";
 import { accessInput } from "../src/identity/contract.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
@@ -24,7 +24,7 @@ test("identity initialization admits a bounded seed, never avatar markup or URLs
 
 test("onboarding is two steps with one password, seeded avatar and a text-only final action", { timeout: 180000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import AccessForm from '@desert/svelte/pieces/AccessForm.svelte';
+    import AccessForm from '@desert/svelte/catalog/compositions/access-form/AccessForm.svelte';
     let submitted = $state('');
   </script><AccessForm mode="initialize" onsubmit={async input => { submitted = JSON.stringify(input); }}/><output>{submitted}</output>`);
   try {
@@ -42,7 +42,7 @@ test("onboarding is two steps with one password, seeded avatar and a text-only f
     await f.page.getByRole("radio", { name: "Light", exact: true }).click();
     await f.page.getByRole("radio", { name: "Rose", exact: true }).click();
     assert.equal(await f.page.locator('input[type="file"]').count(), 0);
-    assert.equal(await f.page.locator(".required").count(), 0, "already-valued appearance controls are not required inputs");
+    assert.equal(await f.page.locator(".required-mark").count(), 0, "already-valued appearance controls are not required inputs");
     const finish = f.page.getByRole("button", { name: "Get started", exact: true });
     assert.equal(await finish.locator('svg:visible').count(), 0);
     await finish.click();
@@ -54,8 +54,24 @@ test("onboarding is two steps with one password, seeded avatar and a text-only f
   } finally { await f.close(); }
 });
 
+test("a new identity on a dark system starts from the dark appearance, the scheme AppearanceRoot publishes", async () => {
+  const f = await svelteBrowser(`<script lang="ts">
+    import AccessForm from '@desert/svelte/catalog/compositions/access-form/AccessForm.svelte';
+    import AppearanceRoot from '@desert/svelte/catalog/foundations/appearance-root/AppearanceRoot.svelte';
+    let shown = $state(false), chosen = $state('');
+  </script><button onclick={() => shown = true}>Show</button>
+  {#if shown}<AppearanceRoot /><AccessForm mode="initialize" preferences={{ theme: 'system', textSize: 'standard', tint: 'blue', wallpaper: 'silk' }}
+    onappearancechange={value => chosen = value.theme} onsubmit={async () => {}} />{/if}<output>{chosen}</output>`);
+  try {
+    await f.page.emulateMedia({ colorScheme: "dark" });
+    await f.page.getByRole("button", { name: "Show", exact: true }).click();
+    assert.equal(await f.page.locator("output").textContent(), "dark");
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});
+
 test("access copy and choices contain no image upload, ghost action or redundant workspace slogan", async () => {
-  const files = await Promise.all(["AccessScreen.svelte", "AccessForm.svelte", "Appearance.svelte"]
-    .map(file => readFile(new URL(`../src/svelte/pieces/${file}`, import.meta.url), "utf8")));
+  const files = await Promise.all(["access-screen/AccessScreen.svelte", "access-form/AccessForm.svelte", "appearance/Appearance.svelte"]
+    .map(file => readFile(new URL(`../src/svelte/catalog/compositions/${file}`, import.meta.url), "utf8")));
   assert.doesNotMatch(files.join("\n"), /Your private workspace|Unlock your private workspace|Choose image|UI tint|variant="ghost"/);
 });

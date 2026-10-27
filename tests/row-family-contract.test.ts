@@ -5,10 +5,10 @@ import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 
 const source = `<script lang="ts">
-  import Collection from '@desert/svelte/Collection.svelte';
-  import ViewDestinationLink from '@desert/svelte/pieces/ViewDestinationLink.svelte';
-  import Information from '@desert/svelte/pieces/Information.svelte';
-  import ContextPanel from '@desert/svelte/ContextPanel.svelte';
+  import Collection from '@desert/svelte/catalog/compositions/collection/Collection.svelte';
+  import ViewDestinationLink from '@desert/svelte/catalog/compositions/view-destination-link/ViewDestinationLink.svelte';
+  import Information from '@desert/svelte/catalog/compositions/information/Information.svelte';
+  import ContextPanel from '@desert/svelte/catalog/compositions/context-panel/ContextPanel.svelte';
   const common={version:'desert.bank-node/1',kind:'collection',object:'note',loaded:true,disabled:false,selectedId:null,
     labels:{'note.title':'Title','note.details':'Details'},createLabel:'Create'};
   const record=(id,title,details)=>({id,version:1,facts:{title,details}});
@@ -33,21 +33,22 @@ test('row families have real content height, action faces, horizontal separators
     for(const width of [1600,390,320]) {
       await f.page.setViewportSize({width,height:1200});
       await f.page.evaluate(async()=>{await document.fonts.ready;});
-      const actionRows=f.page.locator('[data-piece="destination-row"]');
+      // Destination links and context actions are Rows with a face (composition lane C).
+      const actionRows=f.page.locator('[data-case="navigation"] [data-row], [data-case="actions"] [data-row]');
       assert.equal(await actionRows.count(),3);
       for(const row of await actionRows.all()) assert.equal(await row.locator('[data-piece="face"][data-face-kind="icon"] svg').count(),1,'every action/navigation row has a face icon');
       assert.equal(await f.page.locator('[data-case="one"] [data-piece="face"]').count(),0,'object rows do not masquerade as action rows');
-      assert.equal(await f.page.locator('[data-case="empty-details"] [data-record-metadata]').count(),0,'missing secondary content creates no empty line');
+      assert.equal(await f.page.locator('[data-case="empty-details"] .row-metadata').count(),0,'missing secondary content creates no empty line');
       const geometry=await f.page.evaluate(()=>{
         const box=(selector:string)=>document.querySelector(selector)!.getBoundingClientRect();
-        const one=box('[data-case="one"] [data-grouped-action]');
-        const two=box('[data-case="two"] [data-grouped-action]');
-        const empty=box('[data-case="empty-details"] [data-grouped-action]');
-        const panels=[...document.querySelectorAll('[data-grouped-panel],.bank-stack,[data-case="text"] > div')].map(el=>el.getBoundingClientRect().width);
-        const rows=[...document.querySelectorAll('[data-case="one"] [data-grouped-row], [data-case="actions"] [data-grouped-row],.fact-row')].map(el=>{
+        const one=box('[data-case="one"] [data-row]');
+        const two=box('[data-case="two"] [data-row]');
+        const empty=box('[data-case="empty-details"] [data-row]');
+        const panels=[...document.querySelectorAll('[data-grouped-panel],[data-list],[data-case="text"] > div')].map(el=>el.getBoundingClientRect().width);
+        const rows=[...document.querySelectorAll('[data-case="one"] [data-row], [data-case="actions"] [data-row],.fact-row')].map(el=>{
           const css=getComputedStyle(el);return {left:parseFloat(css.borderLeftWidth),right:parseFloat(css.borderRightWidth)};
         });
-        const second=[...document.querySelectorAll('[data-case="one"] [data-grouped-row] + [data-grouped-row], [data-case="actions"] [data-grouped-row] + [data-grouped-row]')]
+        const second=[...document.querySelectorAll('[data-case="one"] [data-row] + [data-row], [data-case="actions"] [data-row] + [data-row]')]
           .map(el=>parseFloat(getComputedStyle(el).borderTopWidth));
         const facts=[...document.querySelectorAll('.fact-row')].map(el=>{const css=getComputedStyle(el);return {
           padding:parseFloat(css.paddingLeft),height:el.getBoundingClientRect().height,separator:parseFloat(css.borderBottomWidth)};});
@@ -70,7 +71,7 @@ test('row families have real content height, action faces, horizontal separators
     }
     assert.deepEqual(await f.page.locator('.fact-label').allTextContents(),['Notes','Étiquette privée','API version']);
     assert.deepEqual(await f.page.locator('.fact-value').allTextContents(),['iPhone ideas','eBay','vNext']);
-    assert.equal(await f.page.locator('[data-case="one"] strong').first().textContent(),'iPhone ideas','user-authored object titles retain casing');
+    assert.equal(await f.page.locator('[data-case="one"] .row-label').first().textContent(),'iPhone ideas','user-authored object titles retain casing');
     assert.deepEqual(f.errors,[]);
   }finally{await f.close();}
 });

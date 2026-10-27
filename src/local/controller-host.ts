@@ -7,12 +7,15 @@ import { startLocalPostgres } from "./postgres-host.ts";
 import { developerIdentity, writePrivateJson } from "./developer-identity.ts";
 import type { LocalMediaBinding } from "../build/media.ts";
 import type { PrivateImageStorage } from "../assets/host.ts";
+import type { ClientInstallation } from "../storage/client-installation.ts";
 import { viewProgramActivities } from "../activities/presentation.ts";
 import { productViewProgram } from "../modules/compiled-product.ts";
 
 export type ControllerHostOptions = {
   application: ReturnType<typeof compile>;
   roles: readonly string[];
+  /** The client installation the local database is (its language orders text, owner answer Q20). */
+  installation: ClientInstallation;
   surfaceId: string;
   directory: string;
   privateImages?: PrivateImageStorage;
@@ -35,7 +38,7 @@ export async function openControllerHost(options: ControllerHostOptions) {
     })();
   }
   try {
-    controller = await openLocalController(options.application, { ...postgres.database, roles: options.roles,
+    controller = await openLocalController(options.application, { ...postgres.database, roles: options.roles, installation: options.installation,
       ...(activities ? { activities } : {}),
       ...(options.privateImages ? { privateImages: options.privateImages } : {}) });
     return Object.freeze({ application: options.application, controller, initialize, close });

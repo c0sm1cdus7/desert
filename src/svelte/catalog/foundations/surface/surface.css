@@ -1,0 +1,35 @@
+/* Surface: the scroll owner of a navigation or content place, and the page an access experience fills. */
+.place-frame { position:relative; display:flex; flex-direction:column; min-width:0; min-height:0; height:100%; }
+.place-viewport { flex:1; min-width:0; min-height:0; overflow:auto; overscroll-behavior:contain; overflow-anchor:none; }
+/* The navigation place fills the sidebar over its own (transparent) background. */
+[data-place][data-catalog-navigation] { display:flex; flex-direction:column; height:100%; min-height:0; background:transparent; }
+/* While the place searches, its retained content owns no input until dismissal; its scroll and edges do not change. */
+[data-catalog-scroll][inert] { pointer-events:none; }
+/* Under an overlay navigation the main place keeps the navigation return's room below its reading and reveals near its top. */
+[data-catalog-scroll][data-scroll-reserve="navigation-return"] {
+  padding-block-end:calc(var(--catalog-toolbar-height) + var(--catalog-toolbar-inset) + env(safe-area-inset-bottom,0px) + 32px);
+  scroll-padding-block:16px calc(var(--catalog-toolbar-height) + var(--catalog-toolbar-inset) + env(safe-area-inset-bottom,0px) + 32px);
+}
+[data-surface="page"] { position:relative; isolation:isolate; min-height:100dvh; width:100%; min-width:0; }
+[data-surface-backdrop] { position:absolute; inset:0; z-index:-1; }
+[data-surface-page-top] { padding:clamp(1rem,3vw,2rem); }
+[data-surface-page-content] { min-height:calc(100dvh - 5rem); padding:1.5rem max(1rem,env(safe-area-inset-right)) max(2rem,env(safe-area-inset-bottom)) max(1rem,env(safe-area-inset-left)); display:flex; flex-direction:column; justify-content:center; gap:1.5rem; }
+@media (max-width:480px) { [data-surface-page-content] { justify-content:flex-start; padding-top:1rem; } }
+/* A frame's content reads at its reading guide (from the surface-chrome mechanism). Programmatic continuity focus is a
+   boundary, not an interactive control: keyboard focus rings remain on the actual toolbar and field targets. A message
+   is one reading axis: its content follows its heading at the heading's copy gap. */
+@layer components {
+  [data-surface-frame]:focus { outline:none; }
+  .surface-content { padding:var(--surface-reading-inset); overscroll-behavior:contain; }
+  [data-frame-presentation="message"] .surface-content { padding:var(--heading-copy-gap) var(--surface-reading-inset) 0; }
+}
+/* In an edge pane, a frame keeps room for two reading lines (it supersedes the primitives' generic flex utilities). */
+[data-surface-frame][data-pane-framed] .surface-content { min-height:calc(2lh + 2 * var(--surface-reading-inset)); }
+/* The main surface of a workspace spans behind floating siblings. Only readable content and controls reserve the docked
+   sibling's space; media and edge shadows do not. */
+[data-catalog-content] { position:absolute; inset:0; min-width:0; height:100%; outline:none; }
+/* Keep positioned card labels inside their page, below focused search and chrome. */
+[data-catalog-scroll] { position:relative; z-index:0; height:100%; overflow-y:auto; overscroll-behavior-y:contain; scrollbar-width:none; scroll-padding-block-start:calc(var(--catalog-toolbar-inset) + var(--catalog-toolbar-height) + var(--scroll-edge-feather,32px)); }
+[data-catalog-scroll]::-webkit-scrollbar { display:none; }
+/* Programmatic return point, not an interactive control or a whole-page focus ring. */
+[data-catalog-scroll]:focus { outline:none; }

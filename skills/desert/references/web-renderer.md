@@ -4,7 +4,7 @@ Generated from the bundled SDK documentation; do not edit this snapshot.
 
 ## Source: docs/WEB-RENDERER.md
 
-Source SHA-256: e1d87fc3d225e0fa213aeb2da5ff3770a7397b8ba608b25e37dee15513fb4259
+Source SHA-256: 84e0e7585752ff44fca103e668147c5522f4ae64bb4ddf2eaa25be5ef3745a14
 
 # The DESERT human web renderer
 
@@ -59,7 +59,7 @@ or `ViewDeclaration` does not bypass that check. This is a bounded guarantee, no
 a claim that TypeScript proves every nested property of every component. Runtime
 admission still checks untyped inputs.
 
-`ReadNotesExperience` binds this View to the read journey, its object View and
+`ReadNotesJourney` binds this View to the read journey, its object View and
 its outputs. Create emits a journey intent; Select emits a selection intent.
 The View cannot execute either operation. Object publication selects the object
 View, title fact, field labels/representations and toolbar actions. Notebook
@@ -102,14 +102,14 @@ Product modules + Views + journeys + workspace/navigation
 | `src/modules/compiled-product.ts` | Bind the application to its admitted View program. |
 | `src/views/program.ts` | Validate View bindings against the exposed surface. |
 | `src/web/build.ts` | Generate surface/program and standalone command validators. |
-| `src/svelte/pieces/AccessGate.svelte` | Mount content only for an admitted session or explicit developer host. |
+| `src/svelte/catalog/compositions/access-gate/AccessGate.svelte` | Mount content only for an admitted session or explicit developer host. |
 | `src/web/client/view-program.ts` and `view-projection.ts` | Resolve destinations, Views and panels without drawing. |
 | `src/web/client/view-scopes.ts` | Derive read/mutation scopes while sharing one connection observer. |
 | `src/svelte/views/` | Forward typed projections through the registered adapter catalog. |
-| `src/svelte/pieces/ViewWorkspace.svelte` | Adapt the resolved workspace to the existing catalog shell. |
-| `src/svelte/explorer/CatalogWorkspace.svelte` | Compose shared navigation, main surface, search and panels. |
-| `src/svelte/pieces/ViewPanel.svelte` | Adapt the panel to existing Drawer/SurfaceFrame owners. |
-| `src/svelte/BankRenderer.svelte` and `renderer-registry.ts` | Validate and dispatch installed bank descriptors. |
+| `src/svelte/catalog/compositions/view-workspace/ViewWorkspace.svelte` | Adapt the resolved workspace to the existing catalog shell. |
+| `src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte` | Compose shared navigation, main surface, search and panels. |
+| `src/svelte/catalog/compositions/view-panel/ViewPanel.svelte` | Adapt the panel to existing Drawer/SurfaceFrame owners. |
+| `src/svelte/catalog/renderer/bank-renderer/NodeRenderer.svelte` and `renderer-registry.ts` | Validate and dispatch installed bank descriptors. |
 
 `DESERT-BUILD.json` format `desert.distribution-build/3` binds files, renderer
 revision, contract, distribution, surface and `viewProgramDigest`. Activities add
@@ -120,9 +120,10 @@ the entire browser verification window, not only during compilation.
 
 Products cannot provide CSS, classes, HTML, arbitrary callbacks, Svelte snippets,
 motion timings or component overrides. `defineView` admits only issued
-`Components` values. Source admission and visual-boundary checks also constrain
-renderer adapters and their dependency graph. Closed private owners have finite
-props; a private lexical slot is not a consumer-supplied markup extension.
+`Components` values. The Visual Catalog gate (docs/VISUAL-CATALOG-ENFORCEMENT.md)
+also constrains renderer compositions and every nonvisual module the page reaches.
+Pieces with closed contracts have finite props; a composition renders only the
+slots its declaration names.
 This is not a sandbox against a trusted developer editing the SDK itself.
 Historical visual debt is inventoried, not permission for a new bypass.
 
@@ -142,11 +143,12 @@ product-command field. Text, labels and private-image inputs have canonical
 bindings; other controls remain local exercises unless their command grammar
 and execution binding are installed.
 
-`WebRendererBank` associates each entry with its own props/events.
-`renderer-registry.ts` binds entries to actual components. Generated
-`adapter-catalog.ts`, backed by `catalog-manifest.ts`, exposes finite composition
-owners to adapters. Neither registry is another product definition.
-`RendererBank<T>` alone checks inventory, not component compatibility.
+`NodeRendererTable` associates each entry with its own props/events.
+`renderer-registry.ts`, generated from the `renders` field of each catalog
+declaration, binds entries to actual components. Renderer compositions import the
+pieces they mount from the generated catalog index. Neither is another product
+definition.
+`RendererTable<T>` alone checks inventory, not component compatibility.
 
 A registered View requests `Components.VisualCatalog()`. It does not require
 a `?catalog=1` alternate renderer. Specimens reuse production owners. Missing
@@ -218,7 +220,7 @@ owners; they do not add a separate wizard layout.
 
 ## Material, text and interaction
 
-`pieces/pane-material.css` owns Glass: a neutral 88% translucent fill, 24px blur
+`catalog/mechanisms/pane-material/pane-material.css` owns Glass: a neutral 88% translucent fill, 24px blur
 and one perimeter. Independent action faces, wells, grouped lists, navigation
 and transient surfaces use it; interiors stay transparent. Primary actions tint
 the same material with the primary color. This supersedes the earlier neutral-
@@ -338,7 +340,7 @@ URL. Image gestures and thumbnails remain shared; media-specific playback/time/
 volume controls use the same toolbar owners. This does not trust arbitrary
 uploads or external media URLs.
 
-Private images use canonical `imageAsset()` inputs. Browser acquisition stages
+Private files use canonical `file({ accept, maxBytes })` inputs. Browser acquisition stages
 bytes through the authenticated controller, preserves the original and produces
 bounded renditions. Prepare/accept bind issued references to identity, run,
 input and contract. Private bytes never enter the public build media directory.
@@ -406,6 +408,8 @@ Regenerate with npm run authoring:generate; npm run authoring:check detects drif
 Paths below are relative to the SDK root. Read imports/types together; these are
 verbatim modules, not standalone snippets or a published package API.
 
+- products/notebook/src/exposures.ts
+- products/notebook/src/messages/keys.ts
 - products/notebook/src/modules.ts
 - products/notebook/src/modules/notes/commands/archiveNote.command.ts
 - products/notebook/src/modules/notes/commands/createNote.command.ts
@@ -421,17 +425,16 @@ verbatim modules, not standalone snippets or a published package API.
 - products/notebook/src/modules/notes/views/note.view.ts
 - products/notebook/src/modules/notes/views/notes.view.ts
 - products/notebook/src/notebook.product.ts
-- products/notebook/src/surfaces.ts
 - products/notebook/src/views/navigation.view.ts
 - products/notebook/src/views/workspace.view.ts
 - products/notebook/distributions.ts
 - src/interaction/catalog.ts
 - src/field-representation.ts
 - src/interaction/form.ts
-- src/interaction/bank-schema.ts
-- src/interaction/bank-node.ts
-- src/interaction/bank-events.ts
-- src/svelte/BankRenderer.svelte
+- src/interaction/resolved-node-schema.ts
+- src/interaction/resolved-node.ts
+- src/interaction/node-events.ts
+- src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte
 - src/check-surface.ts
 - src/project-surface.ts
 - src/web/build.ts
@@ -443,81 +446,85 @@ verbatim modules, not standalone snippets or a published package API.
 - src/views/resolved.ts
 - src/web/client/view-program.ts
 - src/web/client/view-projection.ts
-- src/svelte/views/ViewProduct.svelte
-- src/svelte/views/Workspace.svelte
-- src/svelte/views/workspace-data.ts
-- src/svelte/views/media-data.ts
-- src/svelte/views/MediaContent.svelte
-- src/svelte/explorer/CatalogWorkspace.svelte
-- src/svelte/explorer/CatalogNavigation.svelte
-- src/svelte/explorer/CatalogNavigationActions.svelte
-- src/svelte/explorer/CatalogToolbar.svelte
-- src/svelte/explorer/workspace-navigation.ts
-- src/svelte/explorer/workspace-search.ts
-- src/svelte/views/ViewContent.svelte
-- src/svelte/views/ViewItem.svelte
-- src/svelte/views/Panel.svelte
-- src/svelte/views/InspectionContent.svelte
-- src/svelte/catalog/inspection-fixture.ts
-- src/svelte/catalog/inspection-media.ts
-- src/svelte/pieces/AccessGate.svelte
-- src/svelte/Collection.svelte
+- src/svelte/catalog/renderer/view-product/ViewProduct.svelte
+- src/svelte/catalog/renderer/workspace/Workspace.svelte
+- src/svelte/catalog/compositions/view-workspace/workspace-data.ts
+- src/svelte/infra/media-data.ts
+- src/svelte/catalog/renderer/media-content/MediaContent.svelte
+- src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte
+- src/svelte/catalog/foundations/shell/Shell.svelte
+- src/svelte/catalog/foundations/shell/ShellNavigation.svelte
+- src/svelte/catalog/foundations/bar/BarSearch.svelte
+- src/svelte/infra/workspace-navigation.ts
+- src/svelte/infra/workspace-search.ts
+- src/svelte/catalog/renderer/view-content/ViewContent.svelte
+- src/svelte/catalog/renderer/view-item/ViewItem.svelte
+- src/svelte/catalog/compositions/view-binding/ViewBinding.svelte
+- src/svelte/catalog/renderer/panel/Panel.svelte
+- src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte
+- src/svelte/catalog/compositions/inspection/inspection-fixture.ts
+- src/svelte/infra/inspection-media.ts
+- src/svelte/catalog/compositions/access-gate/AccessGate.svelte
+- src/svelte/catalog/compositions/collection/Collection.svelte
 - src/svelte/collection-retrieval.ts
-- src/svelte/SurfaceFrame.svelte
+- src/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte
 - src/interaction/surface-frame.ts
 - src/interaction/frame-presenters.ts
 - src/interaction/fact-presentation.ts
 - src/interaction/review-changes.ts
 - src/web/client/frame.ts
-- src/svelte/FrameBody.svelte
+- src/svelte/catalog/renderer/frame-body/FrameBody.svelte
 - src/interaction/toolbar.ts
 - src/interaction/intent.ts
 - src/interaction/face.ts
 - src/interaction/selection-option.ts
 - src/interaction/transient-frame.ts
 - src/interaction/control-nodes.ts
-- src/interaction/control-bank.ts
+- src/interaction/control-specimens.ts
 - src/interaction/extended-nodes.ts
 - src/interaction/extended-controls.ts
 - src/interaction/money.ts
 - src/interaction/input-mask.ts
 - src/interaction/decimal-mask-locale.ts
 - src/interaction/information-content.ts
-- src/svelte/pieces/Toolbar.svelte
-- src/svelte/pieces/Face.svelte
-- src/svelte/pieces/FieldWell.svelte
-- src/svelte/pieces/SearchField.svelte
-- src/svelte/pieces/MeasuredField.svelte
-- src/svelte/pieces/control-measure.css
-- src/svelte/pieces/GroupedPanel.svelte
-- src/svelte/pieces/ChoiceRow.svelte
-- src/svelte/pieces/SelectionField.svelte
-- src/svelte/pieces/CollectionState.svelte
-- src/svelte/pieces/Action.svelte
-- src/svelte/pieces/action-icons.ts
+- src/svelte/catalog/compositions/toolbar/Toolbar.svelte
+- src/svelte/catalog/foundations/face/Face.svelte
+- src/svelte/catalog/foundations/field/FieldWell.svelte
+- src/svelte/catalog/foundations/field/SearchWell.svelte
+- src/svelte/catalog/foundations/field/field-measure.css
+- src/svelte/catalog/foundations/list/List.svelte
+- src/svelte/catalog/foundations/choice/ChoiceRows.svelte
+- src/svelte/catalog/foundations/choice/ChoiceMenu.svelte
+- src/svelte/catalog/compositions/collection-state/CollectionState.svelte
+- src/svelte/catalog/foundations/action/Action.svelte
+- src/svelte/infra/action-icons.ts
 - src/svelte/vendor/components/ui/button/button.svelte
-- src/svelte/vendor/components/ui/button/press-feedback.ts
-- src/svelte/controls/SelectControl.svelte
-- src/svelte/controls/PopoverControl.svelte
-- src/svelte/controls/FileControl.svelte
-- src/svelte/controls/ControlRenderer.svelte
-- src/svelte/controls/OptionsControl.svelte
-- src/svelte/controls/MoneyControl.svelte
-- src/svelte/controls/DateControl.svelte
-- src/svelte/controls/MediaControl.svelte
-- src/svelte/pieces/AnchoredSurface.svelte
-- src/svelte/Fields.svelte
-- src/svelte/pieces/TextInput.svelte
-- src/svelte/pieces/MaskedInput.svelte
-- src/svelte/pieces/CharacterCounter.svelte
-- src/svelte/pieces/ClearInput.svelte
-- src/svelte/pieces/input-edit-history.ts
-- src/svelte/ContextPanel.svelte
-- src/svelte/Facts.svelte
-- src/svelte/Review.svelte
-- src/svelte/pieces/DestinationRow.svelte
-- src/svelte/pieces/Drawer.svelte
-- src/svelte/pieces/drawer-motion.svelte.ts
+- src/svelte/catalog/mechanisms/press-feedback/press-feedback.ts
+- src/svelte/catalog/compositions/select-control/SelectControl.svelte
+- src/svelte/catalog/compositions/popover-control/PopoverControl.svelte
+- src/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte
+- src/svelte/catalog/compositions/options-control/OptionsControl.svelte
+- src/svelte/catalog/compositions/money-control/MoneyControl.svelte
+- src/svelte/catalog/foundations/date-control/DateControl.svelte
+- src/svelte/catalog/compositions/media-control/MediaControl.svelte
+- src/svelte/catalog/foundations/popover/Popover.svelte
+- src/svelte/catalog/foundations/popover/PopoverSurface.svelte
+- src/svelte/catalog/foundations/files/Files.svelte
+- src/svelte/catalog/compositions/fields/Fields.svelte
+- src/svelte/catalog/foundations/field/Field.svelte
+- src/svelte/catalog/foundations/field/FieldEditor.svelte
+- src/svelte/catalog/foundations/field/MaskedInput.svelte
+- src/svelte/catalog/foundations/field/CharacterCounter.svelte
+- src/svelte/catalog/foundations/field/ClearInput.svelte
+- src/svelte/catalog/foundations/field/input-edit-history.ts
+- src/svelte/catalog/compositions/context-panel/ContextPanel.svelte
+- src/svelte/catalog/renderer/facts/Facts.svelte
+- src/svelte/catalog/compositions/review/Review.svelte
+- src/svelte/catalog/foundations/row/Row.svelte
+- src/svelte/catalog/compositions/view-panel/ViewPanel.svelte
+- src/svelte/catalog/foundations/modal/Modal.svelte
+- src/svelte/catalog/foundations/modal/ModalPane.svelte
+- src/svelte/catalog/foundations/modal/drawer-motion.svelte.ts
 - src/validation-result.ts
 - src/web/client/field-feedback.ts
 - src/web/client/model.ts
@@ -531,15 +538,62 @@ verbatim modules, not standalone snippets or a published package API.
 - src/local/accept.ts
 - src/local/database.ts
 
-## products/notebook/src/modules.ts
+## products/notebook/src/exposures.ts
 
-Source SHA-256: 06849dfe6a0673bd2955040b3a8c1018b1d4e14110ccfb0a980d252daa24b396
+Source SHA-256: 23bb863a893e027f2bd5c0d32e3fa828eb239b13f9ee28d3b8c8cc8890706a29
 
 ```ts
-import { moduleCatalog } from "desert-sdk/src/index.ts";
+import { agentExposure, humanExposure } from "desert-sdk/src/index.ts";
+import { Journeys } from "./modules.ts";
+
+const ExposedJourneys = [Journeys.createNote, Journeys.readNotes, Journeys.archiveNote] as const;
+export const HumanNotebook = humanExposure({ id: "human", journeys: ExposedJourneys, locale: "en" });
+export const AgentNotebook = agentExposure("agent", ExposedJourneys);
+```
+
+## products/notebook/src/messages/keys.ts
+
+Source SHA-256: 357bf99cd64ac3155dba97e69e1f59df39e0e6ceb0897207309a9bbd99a16d6f
+
+```ts
+// Generated from en.json by `npm run messages:write`; do not edit.
+import { messageCatalog } from "desert-sdk/src/index.ts";
+
+export const Messages = messageCatalog({
+  "en": {
+    "notebook": {
+      "label": "Notebook",
+      "explore": "Explore"
+    },
+    "notes": {
+      "destination": "Notes",
+      "readNotes": "Read notes",
+      "subtitle": "Your private notebook.",
+      "all": "Notes",
+      "createNote": "Create note",
+      "archiveNote": "Archive note",
+      "close": "Close",
+      "titleField": "Title",
+      "contentField": "Content",
+      "statusField": "Status"
+    }
+  },
+} as const);
+/** The accessor declarations use: `m.notes.title` is the message `{ key: "notes.title" }`. */
+export const m = Messages.m;
+export const MessageKeySchema = Messages.keySchema;
+export type MessageKey = typeof Messages.keys[number];
+```
+
+## products/notebook/src/modules.ts
+
+Source SHA-256: 2e748cd34f69791c10737084573a261f16e126cad043cd1dade39f5026fb574a
+
+```ts
+import { moduleIndex } from "desert-sdk/src/index.ts";
 import { NotesModule } from "./modules/notes/notes.module.ts";
 
-export const Modules = moduleCatalog([NotesModule]);
+export const Modules = moduleIndex([NotesModule]);
 export const Journeys = Modules.journeys;
 export const Views = Modules.views;
 export const Commands = Modules.commands;
@@ -576,7 +630,7 @@ export const CreateNoteRecord = createCommand("create-note-record", Note, {
 
 ## products/notebook/src/modules/notes/journeys/archiveNote.journey.ts
 
-Source SHA-256: 1589e1eb910b20ac2454fc0a75c0cd75337355b1afd4087a2572a8fc3e411700
+Source SHA-256: ec5d8d3445f640e8da4be4c83d01e6f613f89163725a3e52134d3da829ae033b
 
 ```ts
 import { mutationJourney, type ViewJourney } from "desert-sdk/src/index.ts";
@@ -585,12 +639,12 @@ import { NotesController } from "../notes.dependencies.ts";
 import { ReadNote } from "./readNotes.journey.ts";
 
 export const ArchiveNote = mutationJourney("archive-note", ArchiveNoteRecord, { controller: NotesController, dependencies: [] });
-export const ArchiveNoteExperience = { id: ArchiveNote.id, kind: "action", source: ReadNote, outputs: [] } satisfies ViewJourney;
+export const ArchiveNoteJourney = { id: ArchiveNote.id, kind: "action", source: ReadNote, outputs: [] } satisfies ViewJourney;
 ```
 
 ## products/notebook/src/modules/notes/journeys/browseNotes.journey.ts
 
-Source SHA-256: dc23591089a5f3cc6229d28484bea6db22fe57854dd0da01c7a951d01fc256ad
+Source SHA-256: f10ad5e9c559eac71f02d2a09cd56b4f3183ed78edc0ba8d5b1394892b048d8f
 
 ```ts
 import { viewOutput, type ViewJourney } from "desert-sdk/src/index.ts";
@@ -599,7 +653,7 @@ import { NotesView } from "../views/notes.view.ts";
 import { CreateNote } from "./createNote.journey.ts";
 import { ReadNote } from "./readNotes.journey.ts";
 
-export const ReadNotesExperience = {
+export const ReadNotesJourney = {
   id: ReadNote.id, kind: "read", view: NotesView, detailView: NoteView,
   outputs: [
     { ...viewOutput(NotesView, "create"), action: { kind: "journey", journey: CreateNote } },
@@ -611,7 +665,7 @@ export const ReadNotesExperience = {
 
 ## products/notebook/src/modules/notes/journeys/createNote.journey.ts
 
-Source SHA-256: 3556c69d675ebfbfaf046a0d3a7320be32f40c0b0ccdfff476bb174e098453ad
+Source SHA-256: 512963fbd95a086cdca7b9495f7355a834a209c91748230ba5edec75ce905bb6
 
 ```ts
 import { mutationJourney, viewOutput, type ViewJourney } from "desert-sdk/src/index.ts";
@@ -621,7 +675,7 @@ import { CreateNoteView } from "../views/createNote.view.ts";
 import { ReadNote } from "./readNotes.journey.ts";
 
 export const CreateNote = mutationJourney("create-note", CreateNoteRecord, { controller: NotesController, dependencies: [] });
-export const CreateNoteExperience = {
+export const CreateNoteJourney = {
   id: CreateNote.id, kind: "create", source: ReadNote, view: CreateNoteView, preferredDock: "right",
   outputs: [
     { ...viewOutput(CreateNoteView, "save"), action: { kind: "submit" } },
@@ -667,20 +721,21 @@ export const OnlyOwnerCanAccess = ownershipPolicy(Note, "owner");
 
 ## products/notebook/src/modules/notes/note.publication.ts
 
-Source SHA-256: dc57289f22dfb4fb91207c9d865bf342d615f40ccdeb23840ce29c2a08180603
+Source SHA-256: f9279e6bd7f2326303361ef1964c7d1b5843d5a38d85aa0735226dd5f5661572
 
 ```ts
 import { factReference, publishObject } from "desert-sdk/src/index.ts";
 import { Note } from "./note.object.ts";
 import { NoteView } from "./views/note.view.ts";
+import { m } from "../../messages/keys.ts";
 import { ArchiveNote } from "./journeys/archiveNote.journey.ts";
 
 export const PublishedNote = publishObject(Note, {
   view: NoteView, title: factReference(Note, "title"),
   fields: [
-    { fact: factReference(Note, "title"), label: "Title", representation: "text" },
-    { fact: factReference(Note, "body"), label: "Content", representation: "paragraphs" },
-    { fact: factReference(Note, "state"), label: "Status", representation: "text" },
+    { fact: factReference(Note, "title"), label: m.notes.titleField, representation: "text" },
+    { fact: factReference(Note, "body"), label: m.notes.contentField, representation: "paragraphs" },
+    { fact: factReference(Note, "state"), label: m.notes.statusField, representation: "text" },
   ],
   actions: [{ journey: ArchiveNote, icon: "archive" }],
 });
@@ -699,29 +754,30 @@ export const NotesController = controllerRole({ id: "notes", objects: [Note], re
 
 ## products/notebook/src/modules/notes/notes.module.ts
 
-Source SHA-256: 5bb397296a8113c3a1a0032756a0bafa625b9bb5d94b414c2f140fb7bc7d8223
+Source SHA-256: 8fd313cfa94ccab60d94afa11779a7a379af36e7feb60807811ed4b123bdc4b7
 
 ```ts
 import { defineModule } from "desert-sdk/src/index.ts";
 import { OnlyOwnerCanAccess } from "./note.object.ts";
 import { PublishedNote } from "./note.publication.ts";
 import { NotesController } from "./notes.dependencies.ts";
-import { CreateNote, CreateNoteExperience } from "./journeys/createNote.journey.ts";
+import { CreateNote, CreateNoteJourney } from "./journeys/createNote.journey.ts";
 import { ReadNote } from "./journeys/readNotes.journey.ts";
-import { ReadNotesExperience } from "./journeys/browseNotes.journey.ts";
-import { ArchiveNote, ArchiveNoteExperience } from "./journeys/archiveNote.journey.ts";
+import { ReadNotesJourney } from "./journeys/browseNotes.journey.ts";
+import { ArchiveNote, ArchiveNoteJourney } from "./journeys/archiveNote.journey.ts";
 import { NotesView } from "./views/notes.view.ts";
 import { NoteView } from "./views/note.view.ts";
 import { CreateNoteView } from "./views/createNote.view.ts";
+import { m } from "../../messages/keys.ts";
 
-const NotesDestination = { id: "notes", label: "Notes", icon: "open", entryJourney: ReadNote } as const;
+const NotesDestination = { id: "notes", label: m.notes.destination, icon: "open", entryJourney: ReadNote } as const;
 
 export const NotesModule = defineModule({
   id: "notes", objects: [PublishedNote], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   journeys: [
-    { execution: CreateNote, presentation: CreateNoteExperience, label: "Create note", humanReview: "not-required" },
-    { execution: ReadNote, presentation: ReadNotesExperience, label: "Read notes" },
-    { execution: ArchiveNote, presentation: ArchiveNoteExperience, label: "Archive note", humanReview: "required" },
+    { execution: CreateNote, presentation: CreateNoteJourney, label: m.notes.createNote, humanReview: "not-required" },
+    { execution: ReadNote, presentation: ReadNotesJourney, label: m.notes.readNotes },
+    { execution: ArchiveNote, presentation: ArchiveNoteJourney, label: m.notes.archiveNote, humanReview: "required" },
   ],
   views: [NotesView, NoteView, CreateNoteView], destinations: [NotesDestination],
   exports: {
@@ -734,89 +790,80 @@ export const NotesModule = defineModule({
 
 ## products/notebook/src/modules/notes/views/createNote.view.ts
 
-Source SHA-256: 34ffd636aa6d423afca0f4426f5074133ae36b9b3a4cc855487c542033917fa9
+Source SHA-256: 20b6c3c8c47237f52c6b3ae509fffeb03b138a931ff808d0ffddadf885b05fb2
 
 ```ts
 import { Components, ViewTitles, defineView, viewPorts } from "desert-sdk/src/index.ts";
+import { m } from "../../../messages/keys.ts";
 
 const Ports = viewPorts({ inputs: { draft: "form" }, outputs: ["save", "close"] });
 
 export const CreateNoteView = defineView({
   name: "create-note", outputs: Ports.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: "Close", icon: "close" }] }),
-  bottomDock: Components.Toolbar({ actions: [{ output: Ports.output.save, label: "Create note", icon: "save" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: m.notes.close, icon: "close" }] }),
+  bottomDock: Components.Toolbar({ actions: [{ output: Ports.output.save, label: m.notes.createNote, icon: "save" }] }),
   content: [Components.Header({ title: ViewTitles.operation }), Components.Form({ input: Ports.inputs.draft })],
 });
 ```
 
 ## products/notebook/src/modules/notes/views/note.view.ts
 
-Source SHA-256: 3dfeaf5a978b7bf451b0f01f6aa035a44593ad1627a9b3e2c0fc146c3b5cbd17
+Source SHA-256: af6c1560062dcbf4d508d3fdd60994c554d363b3d6b4907559031252e1465c5a
 
 ```ts
 import { Components, ViewTitles, defineView, viewPorts } from "desert-sdk/src/index.ts";
+import { m } from "../../../messages/keys.ts";
 
 const Ports = viewPorts({ inputs: { note: "context" }, outputs: ["close"] });
 
 export const NoteView = defineView({
   name: "note", outputs: Ports.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: "Close", icon: "close" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: Ports.output.close, label: m.notes.close, icon: "close" }] }),
   content: [Components.Header({ title: ViewTitles.subject }), Components.Context({ input: Ports.inputs.note })],
 });
 ```
 
 ## products/notebook/src/modules/notes/views/notes.view.ts
 
-Source SHA-256: 7184dae2291e832919b0b7e6d21a4b1ce232bba27b5d3da11d2228e982df2fda
+Source SHA-256: f2b06d04f6f0058a9c0d6f70a681265595fa197c481bb5c7d5d918d561754a1e
 
 ```ts
 import { Components, defineView, viewPorts } from "desert-sdk/src/index.ts";
+import { m } from "../../../messages/keys.ts";
 
 const Ports = viewPorts({ inputs: { notes: "collection" }, outputs: ["create", "select"] });
 
 export const NotesView = defineView({
   name: "notes", outputs: Ports.outputs,
-  topDock: Components.Toolbar({ actions: [{ output: Ports.output.create, label: "Create note", icon: "create" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: Ports.output.create, label: m.notes.createNote, icon: "create" }] }),
   content: [
-    Components.Header({ title: "Read notes", subtitle: "Your private notebook." }),
-    Components.Stack({ title: "Notes", items: [Components.Collection({ input: Ports.inputs.notes, output: Ports.output.select })] }),
+    Components.Header({ title: m.notes.readNotes, subtitle: m.notes.subtitle }),
+    Components.Stack({ title: m.notes.all, items: [Components.Collection({ input: Ports.inputs.notes, output: Ports.output.select })] }),
   ],
 });
 ```
 
 ## products/notebook/src/notebook.product.ts
 
-Source SHA-256: 5a0e862548d3b71b4a99efa33901b7394ce31aa06d938c27c58c90b882726e53
+Source SHA-256: eac3b9844b840c82058d15b37e72b8450cfe8d34b04927f6df24f206dcf574af
 
 ```ts
 import { composeProduct } from "desert-sdk/src/index.ts";
 import { Modules, Destinations } from "./modules.ts";
 import { WorkspaceView } from "./views/workspace.view.ts";
 import { NavigationView } from "./views/navigation.view.ts";
-import { HumanNotebook, AgentNotebook } from "./surfaces.ts";
+import { HumanNotebook, AgentNotebook } from "./exposures.ts";
+import { Messages, m } from "./messages/keys.ts";
 
 export const NotebookProduct = composeProduct({
-  id: "notebook", label: "Notebook", modules: Modules,
+  id: "notebook", label: m.notebook.label, messages: Messages, modules: Modules,
   views: [WorkspaceView, NavigationView], workspace: WorkspaceView,
-  surfaces: [HumanNotebook, AgentNotebook], entry: Destinations.Notes,
-  navigation: [{ destination: Destinations.Notes, group: "Explore", purpose: "content" }],
+  exposures: [HumanNotebook, AgentNotebook], entry: Destinations.Notes,
+  navigation: [{ destination: Destinations.Notes, group: m.notebook.explore, purpose: "content" }],
 });
 
 export const Notebook = NotebookProduct.definition;
 export const NotebookViewProgram = NotebookProduct.viewProgram;
-```
-
-## products/notebook/src/surfaces.ts
-
-Source SHA-256: c58b68a9f0f426ac934ccbdff0f1ee06bb2bf3b6c00974c3356e70b7083a835a
-
-```ts
-import { agentSurface, humanSurface } from "desert-sdk/src/index.ts";
-import { Journeys } from "./modules.ts";
-
-const ExposedJourneys = [Journeys.createNote, Journeys.readNotes, Journeys.archiveNote] as const;
-export const HumanNotebook = humanSurface({ id: "human", journeys: ExposedJourneys, locale: "en" });
-export const AgentNotebook = agentSurface("agent", ExposedJourneys);
 ```
 
 ## products/notebook/src/views/navigation.view.ts
@@ -842,13 +889,13 @@ export const WorkspaceView = defineView({ name: "workspace", leftDock: Component
 
 ## products/notebook/distributions.ts
 
-Source SHA-256: 43a37ef00600a67da93981211d2d70470fad28b9e3c1b1d8cf007de1c2088d94
+Source SHA-256: a62d110085decad81a9d5c9190b251472bffd72c94f995e100ac99833ed6b463
 
 ```ts
 import { clientDistribution, controllerDistribution, localBinding, remoteBinding } from "../../src/index.ts";
 import { Dependencies } from "./src/modules.ts";
 import { Notebook } from "./product.ts";
-import { AgentNotebook, HumanNotebook } from "./surfaces.ts";
+import { AgentNotebook, HumanNotebook } from "./exposures.ts";
 
 export const NotebookService = controllerDistribution({
   id: "notebook-service", product: Notebook, runtime: "node", storage: "postgresql",
@@ -878,11 +925,12 @@ export const NotebookLocal = clientDistribution({
 
 ## src/interaction/catalog.ts
 
-Source SHA-256: b2ddbe5499b183ceb1fe3d7524e3e6e07639c2502ffa31a86718602cb716e994
+Source SHA-256: 1ac4198d9de5c0efb6191a29ce36d540669b31e1a58c2616a4a6c9cdfb77549a
 
 ```ts
+import { Type } from "@sinclair/typebox";
 import { freezeDeep, jsonSnapshot } from "../json.ts";
-import { ControlBank } from "./control-bank.ts";
+import { ControlSpecimens } from "./control-specimens.ts";
 import { CatalogGroups, CatalogFoundations, catalogInspection, type DiscoveryGroup, type FoundationId } from "./catalog-ownership.ts";
 
 function entry<const Id extends string, const Family extends string, const States extends readonly string[]>(
@@ -891,7 +939,7 @@ function entry<const Id extends string, const Family extends string, const State
     ['tests/bank-node.test.ts', 'tests/public-catalog-bank.test.ts']) };
 }
 
-export const InteractionCatalog = freezeDeep({
+export const ResolvedNodes = freezeDeep({
   id: "desert.human-interaction", version: "0.5.0",
   groups: CatalogGroups, foundations: CatalogFoundations,
   entries: [
@@ -909,16 +957,18 @@ export const InteractionCatalog = freezeDeep({
     entry("catalog.card", "composition", ["featured", "item"], "compositions", ["stack", "action"]),
     entry("catalog.home", "composition", ["populated"], "compositions", ["stack"]),
     entry("catalog.detail", "composition", ["reading"], "compositions", ["stack"]),
-    ...ControlBank.map(({ id, family, specimens, inspection }) => ({ id, family, states: specimens.map(specimen => specimen.state), inspection })),
+    ...ControlSpecimens.map(({ id, family, specimens, inspection }) => ({ id, family, states: specimens.map(specimen => specimen.state), inspection })),
   ] as const,
 });
 
-export type PrimitiveId = typeof InteractionCatalog.entries[number]["id"];
-export type InputPrimitive = Extract<PrimitiveId, `input.${string}`>;
-export type RendererBank<T> = { readonly [K in PrimitiveId]: T };
+export type ResolvedNodeId = typeof ResolvedNodes.entries[number]["id"];
+/** The id of a resolved node kind, as a TypeBox schema derived from the entries above (not a second list). */
+export const ResolvedNodeIdSchema = Type.Union(ResolvedNodes.entries.map(entry => Type.Literal(entry.id)));
+export type ResolvedInputId = Extract<ResolvedNodeId, `input.${string}`>;
+export type RendererTable<T> = { readonly [K in ResolvedNodeId]: T };
 
 export function requireCatalog(candidate: unknown) {
-  if (JSON.stringify(jsonSnapshot(candidate)) !== JSON.stringify(jsonSnapshot(InteractionCatalog))) {
+  if (JSON.stringify(jsonSnapshot(candidate)) !== JSON.stringify(jsonSnapshot(ResolvedNodes))) {
     throw new Error("INTERACTION_CATALOG_MISMATCH");
   }
 }
@@ -926,7 +976,7 @@ export function requireCatalog(candidate: unknown) {
 
 ## src/field-representation.ts
 
-Source SHA-256: 25379afa2a202dfd506491d33251b4f3c132d1a02678908f60986a70bfb1d692
+Source SHA-256: ddd1db9a9a489f36e17b9e459ae599b6a214554a1067e497911a31d040c10c38
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -942,7 +992,7 @@ export const FieldKindsSchema = Type.Record(Type.String({ minLength: 1 }), Field
 export type FieldKind = Static<typeof FieldKindSchema>;
 
 export function supportsFieldRepresentation(fact: Pick<FieldDefinition, "kind">, representation: FieldRepresentation): boolean {
-  if (fact.kind === "asset") return representation === "image";
+  if (fact.kind === "file") return representation === "image";
   if (fact.kind === "labels") return representation === "tags";
   return representation !== "image" && representation !== "tags" && fact.kind !== "principal" && (representation !== "paragraphs" || fact.kind === "text");
 }
@@ -990,15 +1040,15 @@ export function requireFieldRepresentation(representations: Readonly<Record<stri
 
 ## src/interaction/form.ts
 
-Source SHA-256: d26423178d36c10e950f6577e94530ef164c03cc247f6cd8442ba0adbee5b848
+Source SHA-256: 6608babb0c19e4b9f4d2e8d2304edd2de8c7a4a23747d2855a427efbf898cebe
 
 ```ts
 import type { Mutation } from "../web/types.ts";
-import type { InputPrimitive } from "./catalog.ts";
+import type { ResolvedInputId } from "./catalog.ts";
 import { requireFieldRepresentation, type FieldRepresentation } from "../field-representation.ts";
 import { assetInputMedia } from "./image-input.ts";
 
-const inputPrimitives = { text: "input.text", paragraphs: "input.multiline" } as const satisfies Record<Exclude<FieldRepresentation, "image" | "tags">, InputPrimitive>;
+const inputPrimitives = { text: "input.text", paragraphs: "input.multiline" } as const satisfies Record<Exclude<FieldRepresentation, "image" | "tags">, ResolvedInputId>;
 
 export function deriveForm(journey: Mutation, representations: Readonly<Record<string, FieldRepresentation>>) {
   return journey.inputFields.map(name => {
@@ -1026,9 +1076,9 @@ export function deriveForm(journey: Mutation, representations: Readonly<Record<s
 }
 ```
 
-## src/interaction/bank-schema.ts
+## src/interaction/resolved-node-schema.ts
 
-Source SHA-256: fe45cefc4aedbf26e5ef169a4b417dee6c713f5e82f6408dcf05c0e2114f8bae
+Source SHA-256: 46510bba0fe7b9a85dc0094ca629498c842cd4373342fc64b1e6c941a34ccd61
 
 ```ts
 import { Type, type TProperties, type TSchema } from "@sinclair/typebox";
@@ -1081,7 +1131,7 @@ export const CollectionNodeSchema = node("collection", {
 });
 
 /** The complete bank's serializable grammar. Web callbacks and host handles are not values here. */
-export const BankNodeSchema = Type.Union([
+export const ResolvedNodeSchema = Type.Union([
   node("input.text", { ...input, mask: Type.Optional(InputMaskSchema) }), node("input.multiline", input),
   node("fact", { details: FactsSchema }),
   node("action", { action, role: Type.Union([Type.Literal("primary"), Type.Literal("secondary")]), form: Type.Optional(Type.Boolean()) }),
@@ -1101,31 +1151,31 @@ export const BankNodeSchema = Type.Union([
 ]);
 ```
 
-## src/interaction/bank-node.ts
+## src/interaction/resolved-node.ts
 
-Source SHA-256: 98654960419bb7aae7965d0aa0ded85bdb19f2586b7abeb22017b7307e3c0d76
+Source SHA-256: 0b2ed5eca86ae4daf3724fb4d5db08cbebe6bbf0fd4656297ac9dc82c4482715
 
 ```ts
 import { type Static } from "@sinclair/typebox";
 import { Check } from "@sinclair/typebox/value";
 import { freezeDeep, jsonSnapshot, type Frozen } from "../json.ts";
-import { BankNodeSchema } from "./bank-schema.ts";
+import { ResolvedNodeSchema } from "./resolved-node-schema.ts";
 import { controlNode, type ControlNode } from "./control-nodes.ts";
 import { surfaceFrame, checkFrameContent } from "./surface-frame.ts";
 import { transientFrame } from "./transient-frame.ts";
-import type { PrimitiveId } from "./catalog.ts";
+import type { ResolvedNodeId } from "./catalog.ts";
 import { checkCatalogHome } from "../public-catalog/node-schema.ts";
 import { inputMask } from "./input-mask.ts";
 import { collectionSummary } from './collection-summary.ts';
 
-export type BankNode = Frozen<Static<typeof BankNodeSchema>>;
-export type BankNodeFor<K extends PrimitiveId> = Extract<BankNode, { kind: K }>;
-export const BankVersion = "desert.bank-node/1" as const;
+export type ResolvedNode = Frozen<Static<typeof ResolvedNodeSchema>>;
+export type ResolvedNodeFor<K extends ResolvedNodeId> = Extract<ResolvedNode, { kind: K }>;
+export const ResolvedNodeVersion = "desert.bank-node/1" as const;
 
 /** Validate JSON shape and the same semantic owners used by product frames and controls. */
-export function bankNode(value: unknown): BankNode {
+export function resolvedNode(value: unknown): ResolvedNode {
   const node: unknown = jsonSnapshot(value);
-  if (!Check(BankNodeSchema, node)) throw new Error("INVALID_BANK_NODE");
+  if (!Check(ResolvedNodeSchema, node)) throw new Error("INVALID_BANK_NODE");
   if (node.kind === "input.text" && node.mask) inputMask(node.mask);
   if ("control" in node) controlNode(node.control);
   if (node.kind === "catalog.home") checkCatalogHome(node);
@@ -1153,16 +1203,16 @@ export function bankNode(value: unknown): BankNode {
 }
 
 /** Wrap the installed control grammar without widening it into product authoring. */
-export function controlBankNode(control: ControlNode): Extract<BankNode, { control: ControlNode }> {
-  const node = bankNode({ version: BankVersion, kind: `control.${control.kind}`, control });
+export function controlResolvedNode(control: ControlNode): Extract<ResolvedNode, { control: ControlNode }> {
+  const node = resolvedNode({ version: ResolvedNodeVersion, kind: `control.${control.kind}`, control });
   if (!("control" in node)) throw new Error("BANK_CONTROL_REQUIRED");
   return node;
 }
 ```
 
-## src/interaction/bank-events.ts
+## src/interaction/node-events.ts
 
-Source SHA-256: d730365c00d36acd28cc8e34ed72fddc92194258009d667d26adc0dcfe504396
+Source SHA-256: 08d4b38dac31cfda5872263de25efabea149b2d685acc19ac54bb8cb8165cd7e
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -1170,13 +1220,13 @@ import { Check } from "@sinclair/typebox/value";
 import { freezeDeep, jsonSnapshot, type Frozen } from "../json.ts";
 import { ControlEventSchema } from "./control-nodes.ts";
 import { SurfaceIntentSchema } from "./intent.ts";
-import { LocalIntentSchema } from "./bank-schema.ts";
+import { LocalIntentSchema } from "./resolved-node-schema.ts";
 import { CatalogEventSchema } from "../public-catalog/events.ts";
 import { RelatedSelectionEventSchema } from "./related-selection.ts";
 
 const closed = { additionalProperties: false };
 const text = () => Type.String({ minLength: 1 });
-export const BankEventSchema = Type.Union([
+export const NodeEventSchema = Type.Union([
   ...ControlEventSchema.anyOf,
   ...CatalogEventSchema.anyOf,
   ...RelatedSelectionEventSchema.anyOf,
@@ -1189,43 +1239,30 @@ export const BankEventSchema = Type.Union([
   Type.Object({ kind: Type.Literal("transient.closed") }, closed),
   Type.Object({ kind: Type.Literal("problem.close") }, closed),
 ]);
-export type BankEvent = Frozen<Static<typeof BankEventSchema>>;
-export function bankEvent(value: unknown): BankEvent {
+export type NodeEvent = Frozen<Static<typeof NodeEventSchema>>;
+export function nodeEvent(value: unknown): NodeEvent {
   const event = jsonSnapshot(value);
-  if (!Check(BankEventSchema, event)) throw new Error("INVALID_BANK_EVENT");
+  if (!Check(NodeEventSchema, event)) throw new Error("INVALID_BANK_EVENT");
   return freezeDeep(event);
 }
 ```
 
-## src/svelte/BankRenderer.svelte
+## src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte
 
-Source SHA-256: 9d0a342494fa99c8d01ce66ad2a5463adb61051484c9193445d909eaa27a94f6
+Source SHA-256: 18fa3289a22708d80df74bf9b27e3a197af0bb64ddf021374d165de7d476aeb1
 
 ```svelte
 <script lang="ts">
-  import type { BankRendererProps } from "./renderer-contracts.ts";
-  import { bankNode } from "../interaction/bank-node.ts";
-  import { bankEvent, type BankEvent } from "../interaction/bank-events.ts";
-  import type { ControlEvent } from "../interaction/control-nodes.ts";
-  import type { SurfaceIntent } from "../interaction/intent.ts";
-  import { webRenderers } from "./renderer-registry.ts";
-  import type { FormControlEvent } from "../interaction/form-control-event.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { resolvedNode } from "../../../../interaction/resolved-node.ts";
+  import { nodeEvent, type NodeEvent } from "../../../../interaction/node-events.ts";
+  import type { ControlEvent } from "../../../../interaction/control-nodes.ts";
+  import { nodeRenderers } from "../../../renderer-registry.ts";
 
-  let { node, onevent = () => {}, host, actionElementProps, frameIdentity }: BankRendererProps = $props();
-  let checked = $derived(bankNode(node));
-  const emit = (event: BankEvent) => onevent(bankEvent(event));
+  let { node, onevent = () => {}, continuity }: CatalogProps<"node-renderer"> = $props();
+  let checked = $derived(resolvedNode(node));
+  const emit = (event: NodeEvent) => onevent(nodeEvent(event));
   const control = (event: ControlEvent) => emit(event);
-  let frameEvents = $derived.by(() => {
-    const sink = onevent;
-    const send = (event: BankEvent) => sink(bankEvent(event));
-    return {
-      close: () => send({ kind: "transient.close" }),
-      closed: () => send({ kind: "transient.closed" }),
-      invoke: (intent: SurfaceIntent) => send({ kind: "surface.invoke", intent }),
-      edit: (name: string, value: string) => send({ kind: "input.change", name, value }),
-      controls: (event: FormControlEvent) => send(event),
-    };
-  });
   function activate() {
     if (checked.kind !== "action" || checked.form || checked.action.state !== "ready") return;
     const intent = checked.action.intent;
@@ -1234,86 +1271,88 @@ Source SHA-256: 9d0a342494fa99c8d01ce66ad2a5463adb61051484c9193445d909eaa27a94f6
       intent.kind === "transient.open" || intent.kind === "selection.clear") emit({ kind: "local.invoke", intent });
     else emit({ kind: "surface.invoke", intent });
   }
-  function fileHost() { if (!host) throw new Error("LOCAL_FILE_HOST_REQUIRED"); return host; }
 </script>
 
 {#if checked.kind === "input.text"}
-  {@const Renderer = webRenderers[checked.kind]}
-  <Renderer primitive={checked.kind} identity={checked.name} label={checked.label} value={checked.value} required={checked.required}
-    disabled={checked.disabled} error={checked.error} helper={checked.helper} mask={checked.mask} maxLength={checked.maxLength}
+  {@const Renderer = nodeRenderers[checked.kind]}
+  <Renderer primitive={checked.kind} identity={checked.name} label={checked.label} labelVisibility="visible" measure="writing" purpose="text"
+    value={checked.value} required={checked.required} invalid={false} disabled={checked.disabled} error={checked.error} helper={checked.helper}
+    mask={checked.mask} maxLength={checked.maxLength} clear
     onchange={value => checked.kind === "input.text" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "input.multiline"}
-  {@const Renderer = webRenderers[checked.kind]}
-  <Renderer primitive={checked.kind} label={checked.label} value={checked.value} required={checked.required}
-    disabled={checked.disabled} error={checked.error} helper={checked.helper} maxLength={checked.maxLength}
+  {@const Renderer = nodeRenderers[checked.kind]}
+  <Renderer primitive={checked.kind} label={checked.label} labelVisibility="visible" measure="writing" value={checked.value}
+    required={checked.required} invalid={false} disabled={checked.disabled} error={checked.error} helper={checked.helper} maxLength={checked.maxLength}
     onchange={value => checked.kind === "input.multiline" && emit({ kind: "input.change", name: checked.name, value })} />
 {:else if checked.kind === "action"}
-  {@const Renderer = webRenderers.action}
-  <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role} reason={checked.action.reason}
-    type={checked.form ? "submit" : "button"} onclick={activate} elementProps={actionElementProps} />
+  {@const Renderer = nodeRenderers.action}
+  <Renderer label={checked.action.label} icon={checked.action.icon} state={checked.action.state} emphasis={checked.role} face="fit"
+    reason={checked.action.reason} type={checked.form ? "submit" : "button"} onclick={activate} />
 {:else if checked.kind === "availability"}
-  {@const Renderer = webRenderers.availability}<Renderer state={checked.state} label={checked.label} />
+  {@const Renderer = nodeRenderers.availability}<Renderer state={checked.state} label={checked.label} />
 {:else if checked.kind === "fact"}
-  {@const Renderer = webRenderers.fact}<Renderer {...checked.details} />
+  {@const Renderer = nodeRenderers.fact}<Renderer {...checked.details} />
 {:else if checked.kind === "form"}
-  {@const Renderer = webRenderers.form}<Renderer fields={checked.content.fields} edit={(name, value) => emit({ kind: "input.change", name, value })} controlEvent={emit} />
+  {@const Renderer = nodeRenderers.form}<Renderer fields={checked.content.fields} edit={(name, value) => emit({ kind: "input.change", name, value })} controlEvent={emit} />
 {:else if checked.kind === "context"}
-  {@const Renderer = webRenderers.context}<Renderer {...checked.content.details} attention={checked.content.attention} selectors={checked.content.selectors} presentation={checked.content.presentation}
+  {@const Renderer = nodeRenderers.context}<Renderer {...checked.content.details} attention={checked.content.attention} selectors={checked.content.selectors} presentation={checked.content.presentation}
     onselect={journey => emit({ kind: "surface.invoke", intent: { kind: "journey", journey } })} actions={checked.content.actions.map(action => ({
     id: action.destination, label: action.label, available: action.available,
     invoke: () => emit({ kind: "surface.invoke", intent: { kind: "journey", journey: action.destination } }),
   }))} />
 {:else if checked.kind === "review"}
-  {@const Renderer = webRenderers.review}<Renderer {...checked.content} />
+  {@const Renderer = nodeRenderers.review}<Renderer {...checked.content} />
 {:else if checked.kind === "collection"}
-  {@const Renderer = webRenderers.collection}<Renderer node={checked} select={id => emit({ kind: "collection.select", id })} />
+  {@const Renderer = nodeRenderers.collection}<Renderer node={checked} select={id => emit({ kind: "collection.select", id })} />
 {:else if checked.kind === "transient"}
-  {@const Renderer = webRenderers.transient}<Renderer label={checked.label} open={checked.open} locked={checked.locked} frame={checked.frame}
-    {frameIdentity} onclose={frameEvents.close} onclosed={frameEvents.closed} invoke={frameEvents.invoke} edit={frameEvents.edit} controlEvent={frameEvents.controls} />
+  <!-- The transient node is drawn by ViewPanel: Modal over its frame, reporting the frame's events as node events. -->
+  {@const Renderer = nodeRenderers.transient}<Renderer panel={{ label: checked.label, locked: checked.locked, frame: checked.frame }}
+    open={checked.open} continuity={continuity} {onevent} />
 {:else if checked.kind === "problem"}
-  {@const Renderer = webRenderers.problem}<Renderer open={checked.open} title={checked.title} description={checked.description}
-    locked={checked.locked} severity={checked.severity} close={() => emit({ kind: "problem.close" })} />
+  <!-- The problem node is drawn by Dialog, whose contract adapts the node's own props (its problem variant). -->
+  {@const Renderer = nodeRenderers.problem}<Renderer open={checked.open} locked={checked.locked} title={checked.title}
+    description={checked.description} severity={checked.severity} ondismiss={() => emit({ kind: "problem.close" })} />
 {:else if checked.kind === "control.select"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.popover"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.files"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} host={fileHost()} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.labels"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.options"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.money"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.date"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} onevent={control} />
 {:else if checked.kind === "control.tag"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} />
 {:else if checked.kind === "control.image"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} />
 {:else if checked.kind === "control.avatar"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked.control} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked.control} />
 {:else if checked.kind === "catalog.card"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
 {:else if checked.kind === "catalog.home"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
 {:else if checked.kind === "catalog.detail"}
-  {@const Renderer = webRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
+  {@const Renderer = nodeRenderers[checked.kind]}<Renderer node={checked} onevent={emit} />
 {/if}
 ```
 
 ## src/check-surface.ts
 
-Source SHA-256: d339e09937a9decd8686696b3cfd21c23ffa920a250c3cdd14847bf9d50da04e
+Source SHA-256: 9e31bb159955c11f6bf8d439d15bc2e72887336f5c4f2736d9535d5b65fa809d
 
 ```ts
 import type { ObjectDefinition } from "./contracts.ts";
-import type { JourneyDefinition, SurfaceDefinition } from "./program-grammar.ts";
+import type { JourneyDefinition, ExposureDefinition } from "./program-grammar.ts";
 import { requireReference } from "./references.ts";
 import { surfaceFieldKinds, surfaceFields } from "./surface-fields.ts";
 import { requireFieldPresentation } from "./field-representation.ts";
 
-export function checkSurface(surface: SurfaceDefinition, journeys: Map<string, JourneyDefinition>, objects: Map<string, ObjectDefinition>) {
+export function checkSurface(surface: ExposureDefinition, journeys: Map<string, JourneyDefinition>, objects: Map<string, ObjectDefinition>) {
   const exposed = new Map(surface.journeys.map(id => [id, requireReference(journeys, id, "journey")]));
   if (surface.kind === "agent") return;
   const { presented } = surfaceFields([...exposed.values()]);
@@ -1341,22 +1380,22 @@ export function checkSurface(surface: SurfaceDefinition, journeys: Map<string, J
 
 ## src/project-surface.ts
 
-Source SHA-256: f46bcb1e605eadf6541331b16fe78724526ec0c4ccbb8ce98bd65ffd0dafea37
+Source SHA-256: 0165b8e035b370013af5e3dcc8f272e1bc3cd6f499ed19f46a91e82214248bcb
 
 ```ts
 import type { ProductDefinition } from "./contracts.ts";
 import type { compileProgram } from "./compile-program.ts";
-import type { SurfaceDefinition } from "./program-grammar.ts";
+import type { ExposureDefinition } from "./program-grammar.ts";
 import { emitObject } from "./schema.ts";
 import { freezeDeep } from "./json.ts";
-import { InteractionCatalog } from "./interaction/catalog.ts";
+import { ResolvedNodes } from "./interaction/catalog.ts";
 import { InteractionProtocolVersion } from "./interaction/protocol.ts";
 import { preparationFields } from "./preparation-projection.ts";
 import { surfaceFieldKinds, surfaceFields } from "./surface-fields.ts";
 import { referenceCapabilities } from './reference-capabilities.ts';
 import { mediaReferenceCapabilities } from './media-reference-capabilities.ts';
 
-export function projectSurface(product: ProductDefinition, program: ReturnType<typeof compileProgram>, surface: SurfaceDefinition, digest: string) {
+export function projectSurface(product: ProductDefinition, program: ReturnType<typeof compileProgram>, surface: ExposureDefinition, digest: string) {
   const exposed = surface.journeys.map(id => program.journeys.get(id)!);
   const journeys = surface.journeys.map(id => {
     const journey = program.journeys.get(id)!;
@@ -1385,7 +1424,7 @@ export function projectSurface(product: ProductDefinition, program: ReturnType<t
     protocol: InteractionProtocolVersion, id: surface.id, kind: surface.kind,
     productId: product.id, contractDigest: digest, execution: "not-installed" as const, journeys,
     ...(surface.kind === "human" ? {
-      catalog: InteractionCatalog, fieldRepresentations: surface.fieldRepresentations,
+      catalog: ResolvedNodes, fieldRepresentations: surface.fieldRepresentations,
       fieldReferences: referenceCapabilities(product, exposed),
       fieldMediaReferences:mediaReferenceCapabilities(product,exposed),
       fieldKinds: surfaceFieldKinds(surfaceFields(exposed).presented, new Map(product.objects.map(object => [object.id, object]))),
@@ -1397,7 +1436,7 @@ export function projectSurface(product: ProductDefinition, program: ReturnType<t
 
 ## src/web/build.ts
 
-Source SHA-256: 07122649d0f000116a0bbb2d80f47d52910ea7875c7e84dab434df5706a4e392
+Source SHA-256: 6bbfaf639341e4757f26e4257e5925927c26718e407fdebbb7385c6bc7999742
 
 ```ts
 import { Ajv } from "ajv";
@@ -1411,13 +1450,14 @@ import { compileViewProgram } from "../views/program.ts";
 import { productViewProgram } from "../modules/compiled-product.ts";
 import { requireFieldPresentation } from "../field-representation.ts";
 import { viewProgramActivities } from "../activities/presentation.ts";
+import { rendererLocale } from "../messages/renderer-locale.ts";
 
 export async function buildHumanModule(application: ReturnType<typeof compile>, surfaceId: string) {
   if (arguments.length > 2) throw new Error("VIEW_PROGRAM_OVERRIDE_FORBIDDEN");
   const surface = application.surface(surfaceId);
   if (surface.kind !== "human") throw new Error("HUMAN_SURFACE_REQUIRED");
   requireCatalog(surface.catalog);
-  if (surface.language?.locale !== "en") throw new Error("UNSUPPORTED_RENDERER_LANGUAGE");
+  if (surface.language?.locale !== rendererLocale) throw new Error("UNSUPPORTED_RENDERER_LANGUAGE");
   const fieldPresentation = requireFieldPresentation(surface.fieldRepresentations, surface.fieldKinds, Object.keys(surface.language.fields));
   const viewProgram = compileViewProgram(productViewProgram(application), surface);
   viewProgramActivities(application, viewProgram, surfaceId);
@@ -1454,11 +1494,11 @@ export async function buildHumanModule(application: ReturnType<typeof compile>, 
 
 ## src/build/svelte/template/src/routes/+page.svelte
 
-Source SHA-256: 07788affe67fb7b89960bb5ded4a7ec7cda11216547118ecaf6d48aa1fdbbb01
+Source SHA-256: 1b30b59ee4461594a05acd87260fb1cbcf3bfc001cbb7c680ebfe21c70790679
 
 ```svelte
 <script lang="ts">
-  import AccessGate from "@desert/svelte/pieces/AccessGate.svelte";
+  import { AccessGate } from "@desert/svelte/catalog/index.ts";
   import { surface, validateInput, viewProgram } from "virtual:desert/surface";
 </script>
 
@@ -1467,141 +1507,116 @@ Source SHA-256: 07788affe67fb7b89960bb5ded4a7ec7cda11216547118ecaf6d48aa1fdbbb01
 
 ## src/svelte/renderer-contracts.ts
 
-Source SHA-256: c3360038de39c044a42e288884070f7a638112504dd5518786f79f584c59e48c
+Source SHA-256: f30e5f820e8ff3f73bd6f99563f0d5f26cd2b06f35cd3cee33f08f3114417b4e
 
 ```ts
 import type { Component } from "svelte";
-import type { PrimitiveId, InputPrimitive } from "../interaction/catalog.ts";
+import type { ResolvedNodeId } from "../interaction/catalog.ts";
 import type { ControlNode, ControlEvent } from "../interaction/control-nodes.ts";
-import type { SurfaceFrame, FrameContent, FactsContent, Destination } from "../interaction/surface-frame.ts";
-import type { ToolbarAction, TopToolbar } from "../interaction/toolbar.ts";
-import type { SurfaceIntent } from "../interaction/intent.ts";
-import type { BankNode, BankNodeFor } from "../interaction/bank-node.ts";
-import type { BankEvent } from "../interaction/bank-events.ts";
-import type { LocalFileHost } from "./controls/file-host.ts";
-import type { ActionElementProps } from "./action-adapter.ts";
-import type { InputMask } from "../interaction/input-mask.ts";
+import type { FrameContent, FactsContent, Destination } from "../interaction/surface-frame.ts";
+import type { TopToolbar } from "../interaction/toolbar.ts";
+import type { ResolvedNodeFor } from "../interaction/resolved-node.ts";
+import type { NodeEvent } from "../interaction/node-events.ts";
+import type { CatalogProps } from "./catalog/types.d.ts";
 import { freezeDeep } from "../json.ts";
 import type { FormControlEvent } from "../interaction/form-control-event.ts";
-
-/** Private dispatcher inputs; public authoring only supplies serializable BankNode. */
-export type BankRendererProps = {
-  node: BankNode; onevent?: (event: BankEvent) => void; host?: LocalFileHost;
-  actionElementProps?: ActionElementProps; frameIdentity?: object;
-};
 
 export type ControlKind = ControlNode["kind"];
 export type ControlEventFor<K extends ControlKind> = Extract<ControlEvent, { kind: `${K}.${string}` | (K extends 'labels' ? `reference.${string}` : never) }>;
 export type ControlProps<K extends ControlKind> = { node: Extract<ControlNode, { kind: K }> } &
-  ([ControlEventFor<K>] extends [never] ? {} : { onevent: (event: ControlEventFor<K>) => void }) &
-  (K extends "files" ? { host: LocalFileHost } : {});
+  ([ControlEventFor<K>] extends [never] ? {} : { onevent: (event: ControlEventFor<K>) => void });
 
-type Invoke = (intent: SurfaceIntent) => void;
 type Edit = (name: string, value: string) => void;
 type FactsProps = Pick<FactsContent, "fields" | "facts" | "object" | "labels" | "multiline" | "images" | "tags" | "references">;
-type InputProps<P extends InputPrimitive> = {
-  primitive: P; label: string; value?: string; required?: boolean; identity?: string; maxLength?: number | undefined;
-  invalid?: boolean; error?: string | undefined; helper?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
-};
 type ControlRendererProps = { [K in ControlKind as `control.${K}`]: ControlProps<K> };
 
-/** Private web adapter bindings, never accepted as bank descriptors. BankRenderer alone resolves these. */
-export type WebRendererProps = ControlRendererProps & {
-  "catalog.card": { node: BankNodeFor<"catalog.card">; onevent: (event: BankEvent) => void };
-  "catalog.home": { node: BankNodeFor<"catalog.home">; onevent: (event: BankEvent) => void };
-  "catalog.detail": { node: BankNodeFor<"catalog.detail">; onevent: (event: BankEvent) => void };
-  "input.text": InputProps<"input.text"> & { mask?: InputMask | undefined };
-  "input.multiline": InputProps<"input.multiline">;
+/** Private web adapter bindings, never accepted as bank descriptors. NodeRenderer alone resolves these. */
+export type NodeRendererInputs = ControlRendererProps & {
+  "catalog.card": { node: ResolvedNodeFor<"catalog.card">; onevent: (event: NodeEvent) => void };
+  "catalog.home": { node: ResolvedNodeFor<"catalog.home">; onevent: (event: NodeEvent) => void };
+  "catalog.detail": { node: ResolvedNodeFor<"catalog.detail">; onevent: (event: NodeEvent) => void };
+  "input.text": Extract<CatalogProps<"field">, { primitive: "input.text" }>;
+  "input.multiline": Extract<CatalogProps<"field">, { primitive: "input.multiline" }>;
   fact: FactsProps;
-  action: Pick<ToolbarAction, "label" | "icon"> & {
-    state?: ToolbarAction["state"]; emphasis?: "primary" | "secondary"; reason?: string | undefined;
-    onclick?: () => void; type?: "button" | "submit"; elementProps?: ActionElementProps | undefined;
-  };
+  action: CatalogProps<"action">;
   availability: NonNullable<TopToolbar["availability"]>;
-  collection: { node: BankNodeFor<"collection">; select: (id: string) => void };
+  collection: { node: ResolvedNodeFor<"collection">; select: (id: string) => void };
   form: { fields: Extract<FrameContent, { kind: "form" }>["fields"]; edit: Edit; controlEvent: (event: FormControlEvent) => void };
   context: FactsProps & { attention?:Extract<FrameContent,{kind:'context'}>['attention']; presentation?: Extract<FrameContent, { kind: "context" }>["presentation"]; selectors?: Extract<FrameContent, { kind: "context" }>["selectors"]; onselect?: (journey: string) => void; actions: readonly (Pick<Destination, "label" | "available"> & {
     id: Destination["destination"]; invoke: () => void;
   })[] };
   review: Extract<FrameContent, { kind: "review" }>;
-  transient: {
-    label: string; open: boolean; locked?: boolean; onclose: () => void; onclosed?: () => void;
-    frame: SurfaceFrame; invoke: Invoke; edit?: Edit; frameIdentity?: object | undefined; controlEvent?: ((event: FormControlEvent) => void) | undefined;
-  };
-  problem: {
-    open: boolean; title: TopToolbar["title"]; description: Extract<FrameContent, { kind: "message" }>["text"];
-    close: () => void; severity?: "error" | "warning"; locked?: boolean;
-  };
+  transient: CatalogProps<"view-panel">;
+  problem: CatalogProps<"dialog">;
 };
 
 /** Inventory and props are both checked; a component for another entry is not interchangeable. */
-export type WebRendererBank = { readonly [K in PrimitiveId]: Component<WebRendererProps[K]> };
+export type NodeRendererTable = { readonly [K in ResolvedNodeId]: Component<NodeRendererInputs[K]> };
 
-/** Only these private host channels may bypass serializable node data. */
+/** Only these private host channels may bypass serializable node data: a transient frame's reading continuity, a string
+ * token (design §3.0). The file host travels by context and an overlay draws its own trigger, so neither is a channel. */
 export const DispatcherCapabilities = freezeDeep({
-  action: { property: "elementProps", input: "actionElementProps", required: false },
-  transient: { property: "frameIdentity", input: "frameIdentity", required: false },
-  "control.files": { property: "host", input: "host", required: true },
-} as const satisfies { [K in PrimitiveId]?: {
-  property: keyof WebRendererProps[K]; input: keyof BankRendererProps; required: boolean;
+  transient: { property: "continuity", input: "continuity", required: false },
+} as const satisfies { [K in ResolvedNodeId]?: {
+  property: keyof NodeRendererInputs[K]; input: keyof CatalogProps<"node-renderer">; required: boolean;
 } });
 ```
 
 ## src/svelte/renderer-registry.ts
 
-Source SHA-256: 9547dc82da486a4075733b8eb5a8d5940c086aeee6e140ea610bb95f212d56c9
+Source SHA-256: 21691d253429fd0f5b818bb6592cb871ac72220dc119eff1aad936586caff1b1
 
 ```ts
-// Generated from catalog-manifest.ts. Run scripts/web-catalog.ts --write; do not edit.
-import type { WebRendererBank } from "./renderer-contracts.ts";
-import TextInput from "./pieces/TextInput.svelte";
-import Action from "./pieces/Action.svelte";
-import Availability from "./pieces/Availability.svelte";
-import Drawer from "./pieces/Drawer.svelte";
-import Problem from "./pieces/Problem.svelte";
-import Facts from "./Facts.svelte";
-import Fields from "./Fields.svelte";
-import Collection from "./Collection.svelte";
-import ContextPanel from "./ContextPanel.svelte";
-import Review from "./Review.svelte";
-import SelectControl from "./controls/SelectControl.svelte";
-import PopoverControl from "./controls/PopoverControl.svelte";
-import FileControl from "./controls/FileControl.svelte";
-import LabelsControl from "./pieces/LabelsControl.svelte";
-import OptionsControl from "./controls/OptionsControl.svelte";
-import MoneyControl from "./controls/MoneyControl.svelte";
-import DateControl from "./controls/DateControl.svelte";
-import MediaControl from "./controls/MediaControl.svelte";
-import CatalogCard from "./explorer/CatalogCard.svelte";
-import CatalogHome from "./explorer/CatalogHome.svelte";
-import CatalogDetail from "./explorer/CatalogDetail.svelte";
+// Generated from the catalog declarations by `node scripts/catalog.ts --write`; do not edit.
+import type { NodeRendererTable } from "./renderer-contracts.ts";
+import Action from "./catalog/foundations/action/Action.svelte";
+import Availability from "./catalog/foundations/availability/Availability.svelte";
+import CatalogCard from "./catalog/compositions/catalog-card/CatalogCard.svelte";
+import CatalogDetail from "./catalog/compositions/catalog-detail/CatalogDetail.svelte";
+import CatalogHome from "./catalog/compositions/catalog-home/CatalogHome.svelte";
+import Collection from "./catalog/compositions/collection/Collection.svelte";
+import ContextPanel from "./catalog/compositions/context-panel/ContextPanel.svelte";
+import DateControl from "./catalog/foundations/date-control/DateControl.svelte";
+import Dialog from "./catalog/compositions/dialog/Dialog.svelte";
+import Facts from "./catalog/renderer/facts/Facts.svelte";
+import Field from "./catalog/foundations/field/Field.svelte";
+import Fields from "./catalog/compositions/fields/Fields.svelte";
+import Files from "./catalog/foundations/files/Files.svelte";
+import LabelsControl from "./catalog/compositions/labels-control/LabelsControl.svelte";
+import MediaControl from "./catalog/compositions/media-control/MediaControl.svelte";
+import MoneyControl from "./catalog/compositions/money-control/MoneyControl.svelte";
+import OptionsControl from "./catalog/compositions/options-control/OptionsControl.svelte";
+import PopoverControl from "./catalog/compositions/popover-control/PopoverControl.svelte";
+import Review from "./catalog/compositions/review/Review.svelte";
+import SelectControl from "./catalog/compositions/select-control/SelectControl.svelte";
+import ViewPanel from "./catalog/compositions/view-panel/ViewPanel.svelte";
 
-export const webRenderers: WebRendererBank = Object.freeze({
-  "input.text": TextInput,
-  "input.multiline": TextInput,
+export const nodeRenderers: NodeRendererTable = Object.freeze({
   action: Action,
   availability: Availability,
-  transient: Drawer,
-  problem: Problem,
-  fact: Facts,
-  form: Fields,
+  "catalog.card": CatalogCard,
+  "catalog.detail": CatalogDetail,
+  "catalog.home": CatalogHome,
   collection: Collection,
   context: ContextPanel,
-  review: Review,
-  "control.select": SelectControl,
-  "control.popover": PopoverControl,
-  "control.files": FileControl,
-  "control.labels": LabelsControl,
-  "control.options": OptionsControl,
-  "control.money": MoneyControl,
   "control.date": DateControl,
+  problem: Dialog,
+  fact: Facts,
+  "input.text": Field,
+  "input.multiline": Field,
+  form: Fields,
+  "control.files": Files,
+  "control.labels": LabelsControl,
   "control.tag": MediaControl,
   "control.image": MediaControl,
   "control.avatar": MediaControl,
-  "catalog.card": CatalogCard,
-  "catalog.home": CatalogHome,
-  "catalog.detail": CatalogDetail,
-} satisfies WebRendererBank);
+  "control.money": MoneyControl,
+  "control.options": OptionsControl,
+  "control.popover": PopoverControl,
+  review: Review,
+  "control.select": SelectControl,
+  transient: ViewPanel,
+} satisfies NodeRendererTable);
 ```
 
 ## src/views/program-schema.ts
@@ -1681,7 +1696,7 @@ export type ViewOutputAction = Frozen<Static<typeof ViewOutputActionSchema>>;
 
 ## src/views/program.ts
 
-Source SHA-256: 828bdd5917e750aab099a4d663dc69d4d3fe1a99592f3d4d4f31e6cc7cc6f22e
+Source SHA-256: 2ace18ae7230bf027468e80728f5c6d9a7e950530a4d5918d67098a6dc6b996a
 
 ```ts
 import { Check } from "@sinclair/typebox/value";
@@ -1691,7 +1706,7 @@ import { freezeDeep } from "../json.ts";
 import type { Surface } from "../web/types.ts";
 import { ViewProgramSchema, type ViewProgram } from "./program-schema.ts";
 import { viewSnapshot } from "./snapshot.ts";
-import { viewCatalog } from "./catalog.ts";
+import { viewIndex } from "./view-index.ts";
 import { journeyViews, validateJourneyExposure, validateJourneyViews } from "./program-views.ts";
 import { validateJourneyOutputs } from "./program-outputs.ts";
 import { validateProgramBindings } from "./program-bindings.ts";
@@ -1713,7 +1728,7 @@ export function compileViewProgram(definition: unknown, surface: Surface): ViewP
   const human = { ...surface, language: surface.language,
     commit: surface.commit, connection: surface.connection, ...fieldPresentation };
   if (input.productId !== surface.productId) throw new Error("VIEW_PROGRAM_PRODUCT_MISMATCH");
-  const views = new Map(viewCatalog(input.views).map(item => [item.id, item]));
+  const views = new Map(viewIndex(input.views).map(item => [item.id, item]));
   const journeys = new Map(input.journeys.map(item => [item.id, item]));
   if (journeys.size !== input.journeys.length) throw new Error("DUPLICATE_VIEW_JOURNEY");
   const destinations = new Map(input.destinations.map(item => [item.id, item]));
@@ -1783,11 +1798,11 @@ export function compileViewProgram(definition: unknown, surface: Surface): ViewP
 
 ## src/views/resolved.ts
 
-Source SHA-256: 12b6d6c80619efc1e33b9d0c4db5998e49fd56af79ce813eef60cac620bfdd80
+Source SHA-256: 7fb7733e8238c166b307e9f6ea23942b15e954a260d998570cde2e512f282fc4
 
 ```ts
 import type { View, ViewContent, ViewHeader } from "./schema.ts";
-import type { BankNode } from "../interaction/bank-node.ts";
+import type { ResolvedNode } from "../interaction/resolved-node.ts";
 import type { TopToolbar, BottomToolbar } from "../interaction/toolbar.ts";
 import type { FrameContent, SurfaceFrame } from "../interaction/surface-frame.ts";
 import type { AttentionSnapshot } from "../web/client/attention-feed.ts";
@@ -1800,7 +1815,7 @@ export type ResolvedViewDefinition = Omit<View, "content"> & {
 };
 export type ResolvedView = {
   readonly view: ResolvedViewDefinition;
-  readonly bindings: Readonly<Record<string, BankNode>>;
+  readonly bindings: Readonly<Record<string, ResolvedNode>>;
   readonly pending?: Readonly<Record<string, Extract<FrameContent, { kind: "message" }>>>;
   readonly disabledOutputs: readonly string[];
   readonly connection?: { readonly state: 'loading' | 'ready' | 'offline'; readonly label: string };
@@ -1812,7 +1827,8 @@ export type ResolvedView = {
 export type ResolvedPanel = {
   readonly presentation?: "transient";
   readonly frame: SurfaceFrame;
-  readonly readingIdentity?: object;
+  /** One token per reading context (subject in detail), minted by the view program: equal while the reading continues. */
+  readonly readingIdentity?: string;
   readonly body?: ResolvedView;
   readonly label: string;
   readonly locked: boolean;
@@ -1821,7 +1837,7 @@ export type ResolvedPanel = {
 
 ## src/web/client/view-program.ts
 
-Source SHA-256: 13ec6a4a622963237f6fd92ec4f389ecf3a8932be9d30a8257aee47370ee931e
+Source SHA-256: d3a99d6f1ba8e290e1ef16d11509ae8060cd2ba39d11aefc726a8daa1c016fc1
 
 ```ts
 import type { HumanSurface, ValidateInput } from "../types.ts";
@@ -1846,6 +1862,7 @@ import {readRefresh} from './read-refresh.ts';
 import type { ViewJourney } from '../../views/program-schema.ts';
 import { relatedMediaDraft, lockRelatedForm } from './view-related-draft.ts';
 import { connectionPresentation } from './connection-presentation.ts';
+import { runtimeToken } from './runtime-token.ts';
 
 /** Nonvisual interpreter; the installed controller remains the only operation executor. */
 export function viewProgramModel(input: unknown, surface: HumanSurface, validate: ValidateInput, transport?: ControllerTransport,
@@ -1890,12 +1907,12 @@ export function viewProgramModel(input: unknown, surface: HumanSurface, validate
   function currentRead() {
     return scope.scope.kind === "read" ? journeyFor(scope.scope.read.id) : undefined;
   }
-  let readingContext: { scope: typeof scope; subject: string; identity: object } | undefined;
+  let readingContext: { scope: typeof scope; subject: string; identity: string } | undefined;
   function readingIdentity() {
     const current = state();
     if (stopped || scope.scope.kind !== "read" || !current.selectedId) { readingContext = undefined; return undefined; }
     if (readingContext?.scope !== scope || readingContext.subject !== current.selectedId) {
-      readingContext = { scope, subject: current.selectedId, identity: Object.freeze({}) };
+      readingContext = { scope, subject: current.selectedId, identity: runtimeToken("reading") };
     }
     return current.view === "detail" && current.detail?.id === current.selectedId ? readingContext.identity : undefined;
   }
@@ -2301,7 +2318,7 @@ export function viewProgramModel(input: unknown, surface: HumanSurface, validate
 
 ## src/web/client/view-projection.ts
 
-Source SHA-256: aea141683ac7021a570c3ea40a3eb996a56c56e04188954849828cd3c1c19160
+Source SHA-256: 82f2c3898114a6522c1a286230125a8ee3728aa5a67c30d57edff93bc9c0444c
 
 ```ts
 import type { HumanSurface, ValidateInput } from "../types.ts";
@@ -2310,8 +2327,8 @@ import type { ViewProgram, ViewJourney } from "../../views/program-schema.ts";
 import type { View } from "../../views/schema.ts";
 import type { ResolvedView, ResolvedPanel } from "../../views/resolved.ts";
 import { viewInputs } from "../../views/ports.ts";
-import { presentCollection } from "../../interaction/bank-presenters.ts";
-import { bankNode, BankVersion, type BankNode } from "../../interaction/bank-node.ts";
+import { presentCollection } from "../../interaction/node-presenters.ts";
+import { resolvedNode, ResolvedNodeVersion, type ResolvedNode } from "../../interaction/resolved-node.ts";
 import { surfaceFrame } from "../../interaction/surface-frame.ts";
 import { toolbarAction } from "../../interaction/toolbar.ts";
 import { presentFrame } from "./frame.ts";
@@ -2354,7 +2371,7 @@ function contextContent(program: ViewProgram, definition: View, surface: HumanSu
 export function projectView(program: ViewProgram, journey: ViewJourney, definition: View,
   surface: HumanSurface, state: HumanState, validate: ValidateInput, scope: ModelScope, related: RelatedReads = new Map(),
   profile?: { displayName?: string; now?: Date },attention?:AttentionSnapshot): ResolvedView {
-  const bound: Record<string, BankNode> = {};
+  const bound: Record<string, ResolvedNode> = {};
   const pending: Record<string, Extract<FrameContent, { kind: "message" }>> = {};
   for (const port of viewInputs(definition)) {
     if (port.kind === "collection") {
@@ -2407,7 +2424,7 @@ export function projectView(program: ViewProgram, journey: ViewJourney, definiti
     else {
       const frame = presentFrame(surface, { ...state, view: port.kind === "form" ? journey.kind === "update" ? "edit" : "create" : "detail" }, validate, scope);
       if (frame.content.kind === "form" || frame.content.kind === "context") {
-        bound[port.input] = bankNode({ version: BankVersion, kind: frame.content.kind,
+        bound[port.input] = resolvedNode({ version: ResolvedNodeVersion, kind: frame.content.kind,
           content: contextContent(program, definition, surface, state, frame.content, scope,attention) });
       } else if (frame.content.kind === "message") pending[port.input] = frame.content;
     }
@@ -2503,34 +2520,30 @@ export function projectViewPanel(program: ViewProgram, journey: ViewJourney, def
 }
 ```
 
-## src/svelte/views/ViewProduct.svelte
+## src/svelte/catalog/renderer/view-product/ViewProduct.svelte
 
-Source SHA-256: 15f9d62e18fc5101a52c5b9df348235af9c145b47ad21b2cc90ab4dae583785f
+Source SHA-256: e8d6380e217a7765d15acedc3f4ebd1e5d794a7d018314ea5e0cb31a7e393d6f
 
 ```svelte
 <script lang="ts">
-  import type { ViewProgram } from "../../views/program-schema.ts";
-  import type { HumanSurface, ValidateInput } from "../../web/types.ts";
-  import { ViewProductContent } from "../adapter-catalog.ts";
-  import type { AccessClient } from "../../web/client/access.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { ViewProductContent } from "../../index.ts";
 
-  let { program, surface, validateInput, access }: {
-    program: ViewProgram; surface: HumanSurface; validateInput: ValidateInput; access?: Pick<AccessClient, "lock">;
-  } = $props();
+  let { program, surface, validateInput, access }: CatalogProps<"view-product"> = $props();
 </script>
 
 <ViewProductContent {program} {surface} {validateInput} {access} />
 ```
 
-## src/svelte/views/Workspace.svelte
+## src/svelte/catalog/renderer/workspace/Workspace.svelte
 
-Source SHA-256: 77f92fc7d4125bd906c78bc912b3b347c05722111a125d990156f7c8db5dcfde
+Source SHA-256: fe42fb417d97e8fc90ad1aad1885739123c35077b692be14e961ca235127df56
 
 ```svelte
 <script lang="ts">
-  import { ViewWorkspace } from "../adapter-catalog.ts";
-  import type { WorkspaceProps } from "./types.ts";
-  let props: WorkspaceProps = $props();
+  import { ViewWorkspace } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let props: CatalogProps<"workspace"> = $props();
 </script>
 
 <ViewWorkspace program={props.program} activeDestination={props.activeDestination}
@@ -2538,21 +2551,23 @@ Source SHA-256: 77f92fc7d4125bd906c78bc912b3b347c05722111a125d990156f7c8db5dcfde
   onevent={props.onevent} onnavigate={props.onnavigate} />
 ```
 
-## src/svelte/views/workspace-data.ts
+## src/svelte/catalog/compositions/view-workspace/workspace-data.ts
 
-Source SHA-256: dd95185716e64f3c51788c81b1285289815e549346e933d83704c503dd38a59c
+Source SHA-256: 577cc4e9dc4362933b80ac1054ed697d9ea88f63a37147ea61fab82baf092406
 
 ```ts
-import type { ResolvedView } from "../../views/resolved.ts";
-import type { ViewItem } from "../../views/schema.ts";
-import type { BankEvent } from "../../interaction/bank-events.ts";
-import type { PlaceIdentity } from "../pieces/place-identity.ts";
-import type { WorkspaceSearchResult } from "../explorer/workspace-search.ts";
-import { catalogTitle, matchingEntries } from "../catalog/navigation.ts";
-import { retrieveCollection } from "../collection-retrieval.ts";
-import { presentFact, presentTitle } from "../../interaction/fact-presentation.ts";
+import type { ResolvedView } from "../../../../views/resolved.ts";
+import type { ViewItem } from "../../../../views/schema.ts";
+import type { NodeEvent } from "../../../../interaction/node-events.ts";
+import type { PlaceIdentity } from "../../../infra/place-identity.ts";
+import type { WorkspaceSearchResult } from "../../../infra/workspace-search.ts";
+import { catalogTitle, matchingEntries } from "../../../infra/catalog-entries.ts";
+import { retrieveCollection } from "../../../collection-retrieval.ts";
+import { presentFact, presentTitle } from "../../../../interaction/fact-presentation.ts";
+import { say } from "../../../infra/messages.ts";
+import { m } from "../../../../messages/keys.ts";
 
-/** Data adapter only. Geometry, material, focus and motion remain in CatalogWorkspace. */
+/** Data adapter only: identity, search results and the selection a result makes. Geometry, focus and motion are the shell's. */
 export function viewIdentity(resolved: ResolvedView, fallback: string): PlaceIdentity {
   const header = resolved.view.content.find(item => item.kind === "header");
   return header ? { ...header, subtitle: header.subtitle ?? "" }
@@ -2568,7 +2583,7 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
   const terms = query.trim().toLowerCase().split(/\s+/u).filter(Boolean);
   if (!terms.length) return [];
   const results: WorkspaceSearchResult[] = resolved.view.content.some(item => item.kind === "visual-catalog") ? matchingEntries(query).map(entry => ({
-    kind: "bank", id: entry.id, title: catalogTitle(entry.id), description: `${entry.id} · ${entry.states.join(", ")}`,
+    kind: "bank", id: entry.id, title: catalogTitle(entry.id), description: say(m.viewWorkspace.entry, { id: entry.id, states: entry.states.join(", ") }),
   })) : [];
   const matches = (values: readonly unknown[]) => terms.every(term => values.join(" ").toLowerCase().includes(term));
   for (const item of resolved.view.content) {
@@ -2584,8 +2599,9 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
       const presentation = node.presentation;
       for (const record of node.records) {
         const asset = record.facts[presentation.image];
-        const title = typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'video' ? 'Video'
-          : typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'audio' ? 'Audio' : 'Image';
+        const title = typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'video' ? say(m.viewWorkspace.video)
+          : typeof asset === 'object' && asset !== null && 'media' in asset && asset.media === 'audio' ? say(m.viewWorkspace.audio)
+          : say(m.viewWorkspace.image);
         const detail = presentation.description ? record.facts[presentation.description] : undefined;
         const description = typeof detail === 'string' ? detail : '';
         if (matches([title, description])) results.push({kind:'content',id:recordKey(item.id,record.id),title,description});
@@ -2595,7 +2611,7 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
     if (node.presentation?.kind === "collection-grid") {
       for (const record of node.records) {
         const title = presentTitle(record.facts[node.presentation.title]);
-        if (matches([title])) results.push({kind:'content',id:recordKey(item.id,record.id),title,description:'Collection'});
+        if (matches([title])) results.push({kind:'content',id:recordKey(item.id,record.id),title,description:say(m.viewWorkspace.collection)});
       }
       continue;
     }
@@ -2608,7 +2624,7 @@ export function viewSearchResults(resolved: ResolvedView, query: string): readon
   return results;
 }
 
-export function viewSearchSelection(resolved: ResolvedView, id: string): BankEvent | null {
+export function viewSearchSelection(resolved: ResolvedView, id: string): NodeEvent | null {
   for (const item of contentItems(resolved)) {
     if (item.kind !== "collection" || resolved.disabledOutputs.includes(item.output)) continue;
     const node = resolved.bindings[item.input];
@@ -2622,17 +2638,17 @@ export function viewSearchSelection(resolved: ResolvedView, id: string): BankEve
 }
 ```
 
-## src/svelte/views/media-data.ts
+## src/svelte/infra/media-data.ts
 
-Source SHA-256: 1b103432102bd53cc6aa0340bd7555e86576aae2644fd48864ef24d95a693b04
+Source SHA-256: 382c55593be07535e4e1e4225e2f0e791bad1f283348f77520c3192239329582
 
 ```ts
-import { BankVersion } from "../../interaction/bank-node.ts";
+import { ResolvedNodeVersion } from "../../interaction/resolved-node.ts";
 import type { CatalogHomeNode, CatalogItemNode } from "../../public-catalog/node-schema.ts";
 import { mediaArtwork, type MediaItem, type MediaLibrary } from "../../views/media-library.ts";
 import type { ResolvedView } from "../../views/resolved.ts";
-import type { PlaceIdentity } from "../pieces/place-identity.ts";
-import type { WorkspaceSearchResult } from "../explorer/workspace-search.ts";
+import type { PlaceIdentity } from "./place-identity.ts";
+import type { WorkspaceSearchResult } from "./workspace-search.ts";
 
 export const viewMedia = (resolved: ResolvedView) =>
   resolved.view.content.find(item => item.kind === "media-library")?.library;
@@ -2656,7 +2672,7 @@ export function mediaIdentity(library: MediaLibrary, album: string | null, home:
   };
 }
 function mediaCard(item: MediaItem): CatalogItemNode {
-  const base = { version: BankVersion, kind: "catalog.card" as const, presentation: "item" as const,
+  const base = { version: ResolvedNodeVersion, kind: "catalog.card" as const, presentation: "item" as const,
     record: `${item.kind}.${item.id}`, title: item.title };
   return item.kind === "image" ? { ...base, image: item.image } : {
     ...base, mediaType: item.kind, ...(item.artwork ? { image: item.artwork } : {}),
@@ -2675,7 +2691,7 @@ export function mediaContent(library: MediaLibrary, album: string | null): Catal
       return matches.length ? [{ id: kind, title, items: matches }] : [];
     }),
   ];
-  return { version: BankVersion, kind: "catalog.home", groups,
+  return { version: ResolvedNodeVersion, kind: "catalog.home", groups,
     featured: { ...groups[0]!.items[0]!, presentation: "featured", eyebrow: "Media", actionLabel: "Open" } };
 }
 export function mediaTarget(library: MediaLibrary, record: string) {
@@ -2698,296 +2714,251 @@ export function mediaResults(library: MediaLibrary, query: string): readonly Wor
 }
 ```
 
-## src/svelte/views/MediaContent.svelte
+## src/svelte/catalog/renderer/media-content/MediaContent.svelte
 
-Source SHA-256: 4f77ec4fb4a58ee1175828c33beea4bae5e34f06c59a86df79fb982c1dc1079c
+Source SHA-256: 43ac0c7c5e8a68eb1a7683b8435156f6819fa6c66c4641f6f4fd8975491df663
 
 ```svelte
 <script lang="ts">
-  import type { MediaLibrary as LibraryData } from "../../views/media-library.ts";
-  import { MediaLibrary } from "../adapter-catalog.ts";
-  let { library, album, onalbum }: {
-    library: LibraryData; album: string | null; onalbum: (id: string) => void;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  import { Library } from "../../index.ts";
+  let { library, album, onalbum }: CatalogProps<"media-content"> = $props();
   let content = $state<{ select: (record: string) => boolean }>();
   export function select(record: string) { return content?.select(record) ?? false; }
 </script>
 
-<MediaLibrary {library} {album} {onalbum} bind:this={content} />
+<Library {library} {album} {onalbum} bind:this={content} />
 ```
 
-## src/svelte/explorer/CatalogWorkspace.svelte
+## src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte
 
-Source SHA-256: deb36c33b7419fa72a978b19ac9b500b066890851b02ce6e4828b216abfdf2b5
+Source SHA-256: 824569ee5bfce01155070663369d3c8e9377accb02c77e4456cb6f41ec9a6680
 
 ```svelte
-<script lang="ts" generics="Destination extends string">
+<script lang="ts">
   import { tick } from "svelte";
-  import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
-  import CatalogNavigation from "./CatalogNavigation.svelte";
-  import CatalogNavigationToggle from "./CatalogNavigationToggle.svelte";
-  import CatalogToolbar from "./CatalogToolbar.svelte";
-  import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
-  import PlaceHeading from "../pieces/PlaceHeading.svelte";
-  import { observePlaceHeading } from "../pieces/place-heading-motion.ts";
-  import type { PlaceIdentity } from "../pieces/place-identity.ts";
-  import CatalogEdgeNavigation from "./CatalogEdgeNavigation.svelte";
-  import Place from "../pieces/Place.svelte";
-  import AdaptiveSurfaceLayout from "../pieces/AdaptiveSurfaceLayout.svelte";
-  import type { WorkspaceDestination } from "./workspace-navigation.ts";
-  import type { ToolbarAction, BottomToolbar } from "../../interaction/toolbar.ts";
-  import type { SurfaceIntent } from "../../interaction/intent.ts";
-  import CatalogWorkspaceContent from "../pieces/CatalogWorkspaceContent.svelte";
-  import CatalogSearchResults from "./CatalogSearchResults.svelte";
-  import Toolbar from "../pieces/Toolbar.svelte";
-  import Panel from "../views/Panel.svelte";
-  import FailureDialog from "../FailureDialog.svelte";
-  import Wallpaper from "../pieces/Wallpaper.svelte";
-  import { appearance } from "../pieces/appearance-state.ts";
-  import type { WorkspaceContent, WorkspaceSearch, WorkspacePanels, WorkspaceViewportActions } from "../pieces/workspace-content.ts";
-  import { revealSearchTarget } from "./catalog-search-focus.ts";
-  import { provideDestinationNavigation } from "../pieces/destination-navigation.svelte.ts";
-  let { navigationSurface, title, navigation, active, query, onquery, onnavigate, content: body, searchContent, searching,
-    onsearch, oncancel, detail = false, onback, backAvailable=true, identity, searchAvailable = true, topActions = [], actionGroup, invoke,
-    panelState, bottomToolbar, onviewport }: {
-    navigationSurface: { title: string; subtitle?: string; settingsPlaceholder?: true } | null;
-    title: string; navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
-    query: string; onquery: (query: string) => void; onnavigate: (id: Destination) => void;
-    content: WorkspaceContent; searchContent?: WorkspaceSearch;
-    searching: boolean; onsearch: () => void; oncancel: () => void;
-    detail?: boolean; onback?: () => void; backAvailable?:boolean;
-    identity: PlaceIdentity;
-    searchAvailable?: boolean; topActions?: readonly ToolbarAction[]; actionGroup?: "create"; invoke?: (intent: SurfaceIntent) => void;
-    panelState?: WorkspacePanels; bottomToolbar?: BottomToolbar;
-    onviewport?: (actions: WorkspaceViewportActions | null) => void;
-  } = $props();
-  let owner = $state<HTMLDivElement | null>(null);
-  let viewport = $state<HTMLDivElement | null>(null);
-  let heading = $state<HTMLElement | null>(null);
-  let compact = $state<HTMLDivElement | null>(null);
-  const presentation = provideDestinationNavigation(() => active, change => {
-    void tick().then(() => {
-      if (change.destination !== active) return;
-      viewport?.scrollTo({ top: change.kind === "back" ? change.origin.scroll : 0 });
-      const origin = change.origin.element;
-      // An index may remount after its detail closes. Restore the same semantic
-      // action in this destination, not the detached historical button.
-      const replacement = origin?.matches('[data-piece="destination-row"][data-destination]')
-        ? viewport?.querySelector<HTMLElement>(`[data-piece="destination-row"][data-destination="${CSS.escape(origin.dataset.destination!)}"]`) : null;
-      const target = (change.kind === "back" ? origin?.isConnected ? origin : replacement : null)
-        ?? heading?.querySelector<HTMLElement>("[data-place-title]");
-      target?.focus({ preventScroll: true });
-    });
+  import { Bar, CatalogSearchResults, CatalogWorkspaceContent, FailureDialog, Panel, PlaceHeading, Shell, Toolbar } from "../../index.ts";
+  import { provideDestinationNavigation } from "../../../infra/destination-navigation.svelte.ts";
+  import { provideFocusScope, useFocusScope } from "../../../infra/focus-scope.ts";
+  import { workspaceNavigation } from "../../../infra/workspace-navigation.ts";
+  import type { BarCommand } from "../../../infra/bar-command.ts";
+  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  let { documentTitle, navigationSurface, title, navigation, active, query, searching, identity, content: body, searchContent,
+    detail = false, backAvailable = true, searchAvailable = true, topActions = [], actionGroup, invoke, panelState, bottomToolbar,
+    onquery, onnavigate, onsearch, oncancel, onback }: CatalogProps<"catalog-workspace"> = $props();
+  // One focus scope for the whole workspace; a caller that opened one above it (to return focus by key itself) shares it.
+  const scope = useFocusScope() ?? provideFocusScope();
+  let shell = $state<ReturnType<typeof Shell>>();
+  const uid = $props.id(), resultsId = `${uid}-results`;
+  // A page opened inside a destination (a bank entry) returns where it was opened: the scroll offset and the piece last
+  // activated, else the place title.
+  const pages = provideDestinationNavigation(() => active, () => ({ focusKey: scope.lastActivated(), scroll: shell?.scrollTop() ?? 0 }),
+    change => void tick().then(() => {
+      if (change.destination !== active || !shell) return;
+      if (change.kind === "back") shell.restoreScroll(change.origin.scroll, shell.scrollPositions().search);
+      else shell.scrollToTop();
+      const returned = change.kind === "back" && change.origin.focusKey !== null && scope.focus(change.origin.focusKey);
+      if (!returned) shell.focusTitle();
+    }));
+  let presented = $derived(pages.current(active));
+  let shown = $derived(presented?.identity ?? identity);
+  let showsDetail = $derived(Boolean(presented) || detail);
+  let canGoBack = $derived(Boolean(presented) || backAvailable);
+  const goBack = () => presented ? pages.back(active) : onback?.();
+  let back: BarCommand = $derived({ label: say(m.catalogWorkspace.back), icon: "back", state: canGoBack ? "ready" : "unavailable",
+    intent: { kind: "back" } });
+  /** The content bar's leading Back goes back here; every other command is the place's. */
+  function command(intent: SurfaceIntent) {
+    if (intent.kind !== "back") invoke?.(intent);
+    else if (canGoBack) goBack();
+  }
+  let searchField = $derived({ title, query, open: searching, resultsId });
+  let shellNavigation = $derived(navigationSurface === null ? null : {
+    identity: navigationSurface.subtitle ? { title: navigationSurface.title, subtitle: navigationSurface.subtitle } : { title: navigationSurface.title },
+    settingsPlaceholder: navigationSurface.settingsPlaceholder === true, active,
+    groups: workspaceNavigation(navigation).map(group => ({ label: group.label,
+      items: group.items.map(({ id, label, icon, appearance }) => ({ id, label, icon, appearance })) })),
   });
-  let presented = $derived(presentation.current(active));
-  let presentedIdentity = $derived(presented?.identity ?? identity);
-  let presentedDetail = $derived(Boolean(presented) || detail);
-  const goBack = () => presented ? presentation.back(active) : onback?.();
-  $effect(() => {
-    const register = onviewport;
-    register?.({
-      scrollToTop: () => viewport?.scrollTo({ top: 0 }),
-      scrollTop: () => viewport?.scrollTop ?? 0,
-      focusTitle: () => viewport?.querySelector<HTMLElement>("[data-place-title]")?.focus({ preventScroll: true }),
-      restoreRecord: (top, view, record) => {
-        viewport?.scrollTo({ top });
-        viewport?.querySelector<HTMLElement>(`[data-view-content="${CSS.escape(view)}"] [data-record="${CSS.escape(record)}"] button`)
-          ?.focus({ preventScroll: true });
-      },
-      revealItem: id => {
-        const target = viewport?.querySelector<HTMLElement>(`[data-view-item="${CSS.escape(id)}"]`);
-        if (target) revealSearchTarget(target, viewport);
-      },
-    });
-    return () => register?.(null);
-  });
-  $effect(() => {
-    presentedIdentity;
-    if (viewport && heading && compact) return observePlaceHeading(viewport, heading, compact);
-  });
-  let searchViewport = $state<HTMLDivElement | null>(null);
-  const instanceId = $props.id();
-  const resultsId = `${instanceId}-results`;
-  let composing = false;
-  let contentFocus: HTMLElement | null = null;
-  let searchOpener: HTMLElement | null = null;
-  let searchPointerActivation: Element | null = null;
-  $effect(() => { active; contentFocus = null; });
-  function ownsPointerFocus(target: EventTarget | null) {
-    // WebKit may focus a tabindex ancestor instead of the pressed button.
-    // Keep only that activation alive; unrelated external focus still cancels.
-    return target instanceof Node && searchPointerActivation !== null && target.contains(searchPointerActivation);
-  }
-  function rememberFocus(event: FocusEvent) {
-    if (!searching && event.target instanceof HTMLElement && viewport?.contains(event.target)) {
-      contentFocus = event.target;
-    } else if (searching && !inSearch(event.target) && !ownsPointerFocus(event.target)) {
-      void cancel(false);
-    }
-  }
-  function inSearch(target: EventTarget | null): boolean {
-    return target instanceof Node && Boolean(searchViewport?.contains(target)
-      || owner?.querySelector("[data-catalog-search-actions]")?.contains(target));
-  }
-  async function cancel(restoreFocus = true) {
-    oncancel();
-    if (!restoreFocus) return;
-    await tick();
-    const target = searchOpener?.isConnected && searchOpener.checkVisibility() ? searchOpener
-      : contentFocus && viewport?.contains(contentFocus)
-      && contentFocus.checkVisibility() && !contentFocus.matches(":disabled,[aria-disabled='true']")
-      ? contentFocus : viewport;
-    target?.focus({ preventScroll: true });
-  }
-  function openSearch() {
-    searchOpener = owner?.querySelector<HTMLElement>('[data-catalog-search-toggle]') ?? null;
-    onsearch();
-  }
-  function focusOut(event: FocusEvent) {
-    // Browsers can expose BODY between focusout and focusin. The announced
-    // internal destination is authoritative; otherwise inspect settled focus.
-    if (!searching || inSearch(event.relatedTarget)) return;
-    requestAnimationFrame(() => {
-      if (searching && !inSearch(document.activeElement) && !ownsPointerFocus(document.activeElement)) void cancel(false);
-    });
-  }
-  function pointerDown(event: PointerEvent) {
-    searchPointerActivation = null;
-    if (!searching || !(event.target instanceof Element)) return;
-    // Result activation owns its own close/navigation transaction. Clear and X
-    // also belong to search, so pointer focus changes must not swallow them.
-    const activation = event.target.closest("[data-catalog-search-actions],[data-search-result]");
-    if (activation) { searchPointerActivation = activation; return; }
-    const takesFocus = event.target.closest("button,a[href],input,textarea,select,[tabindex]:not([tabindex='-1'])");
-    void cancel(!takesFocus);
-  }
-  function finishPointerActivation() {
-    const activation = searchPointerActivation;
-    if (!activation) return;
-    // Click follows pointerup. Reconcile after it, including cancelled/dragged
-    // gestures that never activated a result, without retaining stale ownership.
-    requestAnimationFrame(() => {
-      if (searchPointerActivation !== activation) return;
-      searchPointerActivation = null;
-      if (searching && !inSearch(document.activeElement)) void cancel(false);
-    });
-  }
-  function keydown(event: KeyboardEvent) {
-    if (!searching || !inSearch(event.target) || event.defaultPrevented || event.key !== "Escape" || event.isComposing || composing || event.keyCode === 229) return;
-    event.preventDefault(); event.stopPropagation(); void cancel();
-  }
+  export function scrollToTop(): void { shell?.scrollToTop(); }
+  export function scrollTop(): number { return shell?.scrollTop() ?? 0; }
+  export function focusTitle(): void { shell?.focusTitle(); }
+  export function focusContent(): void { shell?.focusContent(); }
+  export function restoreRecord(top: number, view: string, record: string): void { shell?.restoreRecord(top, view, record); }
+  export function revealItem(id: string): Promise<boolean> { return shell?.revealItem(id) ?? Promise.resolve(false); }
+  export function scrollPositions(): { content: number; search: number } { return shell?.scrollPositions() ?? { content: 0, search: 0 }; }
+  export function restoreScroll(contentTop: number, searchTop: number): void { shell?.restoreScroll(contentTop, searchTop); }
+  export function focus(key: string): boolean { return scope.focus(key); }
+  export function toggleNavigation(): void { shell?.toggleNavigation(); }
 </script>
 
-<!-- Search owns Escape only while focus is in its own surface. Capture keeps a
-     concurrently docked task's dialog layer from consuming that local action. -->
-<svelte:window onkeydowncapture={keydown} onfocusin={rememberFocus} onfocusout={focusOut} onpointerdown={pointerDown}
-  onpointerup={finishPointerActivation} onpointercancel={finishPointerActivation} />
-
-<div data-renderer-profile="apple-reference" data-catalog-workspace data-search-active={searching}>
-  <Wallpaper wallpaper={$appearance.wallpaper} />
-  <Sidebar.Provider available={navigationSurface !== null} contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
-    {#if navigationSurface}
-    <Sidebar.Root variant="floating" overlayTitle="Navigation" overlayDescription="Choose a destination.">
-      <CatalogNavigation identity={navigationSurface} settingsPlaceholder={navigationSurface.settingsPlaceholder === true}
-        {navigation} {active} {onnavigate} {searching} />
-    </Sidebar.Root>
+<Shell bind:this={shell} {documentTitle} label={shown.title} destination={active} {searching} hasQuery={query.trim() !== ""}
+  detail={showsDetail} backAvailable={canGoBack} {resultsId} searchLabel={say(m.catalogWorkspace.searchRegion, { title })} navigation={shellNavigation}
+  onnavigate={id => onnavigate?.(id)} onback={goBack} oncancelsearch={() => oncancel?.()}>
+  {#snippet top()}
+    <Bar edge="top" purpose="commands" layer="content" inert={searching} identity={{ title: shown.title, subtitle: shown.subtitle }}
+      identityRole="continuation" leading={showsDetail ? back : undefined} trailing={topActions} group={actionGroup}
+      search={searchAvailable ? searchField : undefined} settingsPlaceholder={false} oninvoke={command} />
+    {#if searchAvailable}
+      <Bar edge="top" purpose="commands" layer="search" identityRole="heading" trailing={[]} search={searchField} settingsPlaceholder={false}
+        inert={false} onquery={value => onquery?.(value)} onsearchopen={() => onsearch?.()} onsearchcancel={() => oncancel?.()} />
     {/if}
-    <AdaptiveSurfaceLayout>
-    <Place bind:owner bind:viewport landmark="main" destination={active} label={presentedIdentity.title} {searching}
-      oncomposition={active => composing = active}>
-      {#snippet top()}
-      <ToolbarLayout layer="content" inert={searching} identity={presentedIdentity} identityRole="continuation" onidentityElement={element => { compact = element; }}
-        content={{ kind: "place-navigation", detail: presentedDetail, onback: goBack, backAvailable: Boolean(presented) || backAvailable, topActions, actionGroup, invoke, searchAvailable }} />
-      <CatalogToolbar {title} {query} {onquery} {searching} {resultsId} {searchAvailable} onsearch={openSearch} oncancel={cancel} />
-      {/snippet}
-      {#snippet content()}<PlaceHeading identity={presentedIdentity} bind:element={heading} /><CatalogWorkspaceContent content={body} {searching} />{/snippet}
-      {#snippet bottom()}
-        <CatalogNavigationToggle {searching} />
-        {#if bottomToolbar && invoke && (bottomToolbar.primary || bottomToolbar.secondary)}
-          <Toolbar toolbar={{ edge: "bottom", ...bottomToolbar }} {invoke} />
-        {/if}
-      {/snippet}
-      {#snippet overlay()}
-      {#if searching}
-        <div bind:this={searchViewport} id={resultsId} data-catalog-search-scroll data-has-query={Boolean(query.trim())}>
-          {#if searchContent?.kind === "catalog"}
-            <CatalogSearchResults title={searchContent.title} description={searchContent.description} {query}
-              results={searchContent.results} onselect={searchContent.onselect} />
-          {:else if searchContent?.kind === "view"}
-            <CatalogSearchResults title={searchContent.title} description={searchContent.description} {query}
-              results={searchContent.results} onselect={searchContent.onselect} />
-          {/if}
-        </div>
-      {/if}
-      {/snippet}
-    </Place>
+  {/snippet}
+  {#snippet content()}
+    <PlaceHeading context="place" title={shown.title} subtitle={shown.subtitle} media={shown.media} />
+    <CatalogWorkspaceContent content={body} {searching} />
+  {/snippet}
+  {#snippet bottom()}
+    {#if bottomToolbar && invoke && (bottomToolbar.primary || bottomToolbar.secondary)}
+      <Toolbar toolbar={{ edge: "bottom", ...bottomToolbar }} {invoke} />
+    {/if}
+  {/snippet}
+  {#snippet search()}
+    {#if searchContent?.kind === "catalog"}
+      {@const found = searchContent}
+      <CatalogSearchResults title={found.title} description={found.description} {query} results={found.results}
+        onselect={result => { if (result.kind !== "content") found.onselect(result); }} />
+    {:else if searchContent?.kind === "view"}
+      <CatalogSearchResults title={searchContent.title} description={searchContent.description} {query} results={searchContent.results}
+        onselect={searchContent.onselect} />
+    {/if}
+  {/snippet}
+  {#snippet panels()}
     {#if panelState}
       <Panel panel={panelState.panel} onevent={panelState.onevent} />
       <FailureDialog code={panelState.error} uncertain={panelState.uncertain} close={panelState.dismissError} />
     {/if}
-    </AdaptiveSurfaceLayout>
-    <div data-catalog-search-material data-active={searching} aria-hidden="true"></div>
-    <CatalogEdgeNavigation {searching} detail={presentedDetail} onback={presented || backAvailable ? goBack : undefined} {viewport} />
-  </Sidebar.Provider>
-</div>
-
-<style>
-  :global([data-catalog-workspace] [data-adaptive-host]) { position:absolute; inset:0; }
-</style>
+  {/snippet}
+</Shell>
 ```
 
-## src/svelte/explorer/CatalogNavigation.svelte
+## src/svelte/catalog/foundations/shell/Shell.svelte
 
-Source SHA-256: b47dcfbb56db49a1e423390997b818f0fac02a7822fe834477bccdfb48085664
+Source SHA-256: af622509d56b81963f8ecc5ead5044809511ce1145d56271a3e2cf97dfe4df19
 
 ```svelte
-<script lang="ts" generics="Destination extends string">
+<script lang="ts">
+  import * as Sidebar from "../../../vendor/components/ui/sidebar/index.js";
+  import { Wallpaper } from "../../index.ts";
+  import { appearance } from "../../../infra/appearance-state.ts";
+  import { provideFocusScope, useFocusScope } from "../../../infra/focus-scope.ts";
+  import { provideRegionRegistry, useRegionRegistry } from "../../../infra/region-registry.ts";
+  import { useFileHost } from "../../../infra/file-host-context.ts";
+  import { nativeFilePicker } from "../../mechanisms/file-picker/file-picker.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import ShellBody from "./ShellBody.svelte";
+  let { documentTitle, label, destination, searching, hasQuery, detail, backAvailable, resultsId, searchLabel, navigation,
+    onnavigate, onback, oncancelsearch, oncomposition, top, content, bottom, search, panels }: CatalogProps<"shell"> = $props();
+  // Pieces in the workspace register focus targets and reveals here (a caller may open them above the shell instead).
+  const scope = useFocusScope() ?? provideFocusScope();
+  const regions = useRegionRegistry() ?? provideRegionRegistry();
+  // The workspace file host (when the product provides one) opens the browser chooser through the file-picker mechanism.
+  const files = useFileHost();
+  $effect(() => files?.offerChooser(nativeFilePicker));
+  let workspace = $state<HTMLElement | null>(null);
+  let body = $state<ReturnType<typeof ShellBody>>();
+  export function scrollToTop(): void { body?.scrollToTop(); }
+  export function scrollTop(): number { return body?.scrollTop() ?? 0; }
+  export function focusTitle(): void { body?.focusTitle(); }
+  export function focusContent(): void { body?.focusContent(); }
+  export function restoreRecord(top: number, view: string, record: string): void { body?.restoreRecord(top, view, record); }
+  export function revealItem(id: string): Promise<boolean> { return body?.revealItem(id) ?? Promise.resolve(false); }
+  export function scrollPositions(): { content: number; search: number } { return body?.scrollPositions() ?? { content: 0, search: 0 }; }
+  export function restoreScroll(content: number, search: number): void { body?.restoreScroll(content, search); }
+  export function focus(key: string): boolean { return body?.focusKey(key) ?? false; }
+  export function toggleNavigation(): void { body?.toggleNavigation(); }
+</script>
+
+<svelte:head><title>{documentTitle}</title></svelte:head>
+
+<div bind:this={workspace} class="place-insets" data-catalog-workspace data-search-active={searching}>
+  <Wallpaper wallpaper={$appearance.wallpaper} />
+  <Sidebar.Provider available={navigation !== null} contentMinWidth="45rem" style="--sidebar-width:var(--catalog-sidebar-width)">
+    <ShellBody bind:this={body} root={() => workspace} {label} {destination} {searching} {hasQuery} {detail} {backAvailable} {resultsId} {searchLabel}
+      {navigation} {scope} {regions} {onnavigate} {onback} {oncancelsearch} {oncomposition} {top} {content} {bottom} {search} {panels} />
+  </Sidebar.Provider>
+</div>
+```
+
+## src/svelte/catalog/foundations/shell/ShellNavigation.svelte
+
+Source SHA-256: 620630f328734a31d6c65a3bc974299b9e627b73065b2082dbce880f1ec102c8
+
+```svelte
+<script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  // Shell part (from the catalog-navigation composition): the navigation pane, its identity bar, the destination groups
+  // drawn from data, the toggle that hides it and the settings placeholder. Dragging the pane's header toward its edge,
+  // or swiping the pane, dismisses it. Docked, it is the sidebar; over a workspace with no room to dock it, it is the
+  // navigation Modal, which an edge swipe (CatalogEdgeNavigation) may reveal under the pointer before it opens.
   import { untrack } from "svelte";
-  import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
-  import Landmark from "@lucide/svelte/icons/landmark";
-  import Backpack from "@lucide/svelte/icons/backpack";
-  import PanelsTopLeft from "@lucide/svelte/icons/panels-top-left";
-  import { swipeMotion } from "../pieces/swipe-motion.svelte.js";
-  import Place from "../pieces/Place.svelte";
-  import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
-  import { actionIcons } from "../pieces/action-icons.ts";
-  import { workspaceNavigation, type WorkspaceDestination } from "./workspace-navigation.ts";
-  let { identity, navigation, active, onnavigate, searching = false, settingsPlaceholder = false }: {
-    identity: { title: string; subtitle?: string }; settingsPlaceholder?: boolean;
-    navigation: readonly WorkspaceDestination<Destination>[]; active: Destination;
-    onnavigate: (id: Destination) => void; searching?: boolean;
-  } = $props();
+  import * as Sidebar from "../../../vendor/components/ui/sidebar/index.js";
+  import { Bar, Face, Modal, Surface } from "../../index.ts";
+  import { provideCloseFocus } from "../../mechanisms/surface-focus/focus-return.ts";
+  import { swipeMotion } from "../../mechanisms/swipe-motion/swipe-motion.svelte.ts";
+  import { providePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
+  import type { ShellNavigation } from "../../../infra/workspace-navigation.ts";
+  let { navigation, searching, onnavigate }: { navigation: ShellNavigation; searching: boolean; onnavigate: (id: string) => void } = $props();
+  // A destination's icon is the one Face (law 9e; owner decision V1, 2026-10-25): the face's white ground and hairline,
+  // its colour on the glyph alone (the accent for a place to browse, positive for the travel kit, neutral for the bank).
+  // The coloured group squares the owner asked for on 2026-10-16 are withdrawn; the shell paints no icon of its own.
+  const inks = { browse: "accent", "travel-kit": "positive", bank: undefined } as const;
   const sidebar = Sidebar.useSidebar();
+  // Closing the overlay returns focus where the sidebar decides (the control that opened it, or its equivalent).
+  provideCloseFocus(sidebar.handleCloseAutoFocus);
   const motion = swipeMotion({ edge: () => "left", enabled: () => sidebar.expanded,
     commit: () => sidebar.presentation === "overlay" ? sidebar.setOverlayOpen(false) : sidebar.setOpen(false) });
   $effect(() => { sidebar.dismissOffset = motion.offset; });
   $effect(() => { if (sidebar.expanded) untrack(() => motion.reset()); });
-  const icons = { ...actionIcons, landmark: Landmark, backpack: Backpack, panels: PanelsTopLeft };
-  let groups = $derived(workspaceNavigation(navigation));
-  function navigate(id: Destination) { onnavigate(id); if (sidebar.presentation === "overlay") sidebar.setOverlayOpen(false); }
-  function startHeaderDrag(event: PointerEvent) {
-    if (event.target instanceof Element && event.target.closest('button,a,input,select,textarea')) return;
+  // As an overlay the pane is an edge pane its header drags (pane-context); docked, it is part of the workspace.
+  providePane(() => sidebar.presentation === "overlay" ? { drag: true, dragging: false, framed: false } : undefined);
+  function navigate(id: string) { onnavigate(id); if (sidebar.presentation === "overlay") sidebar.setOverlayOpen(false); }
+  // The pane's top bar is the drag handle (the bar itself takes no drag; DESIGN §3.2). Presses on its controls stay theirs.
+  const down = (event: PointerEvent) => {
+    if (event.target instanceof Element && event.target.closest("button,a,input,select,textarea")) return;
     motion.down(event);
-  }
+  };
+  const handlers = [["pointerdown", down], ["pointermove", motion.move], ["pointerup", motion.up], ["pointercancel", motion.cancel],
+    ["lostpointercapture", motion.lost]] as const;
+  $effect(() => {
+    sidebar.presentation; sidebar.expanded; sidebar.revealing;
+    let header: HTMLElement | null = null;
+    // The pane mounts in this update (docked, in its overlay modal, or drawn by an edge swipe): attach once it is drawn.
+    const frame = requestAnimationFrame(() => {
+      header = document.getElementById(sidebar.panelId)?.querySelector<HTMLElement>('[data-catalog-navigation] > [data-toolbar="top"]') ?? null;
+      if (!header) return;
+      header.dataset.navigationDrag = "true";
+      for (const [type, handler] of handlers) header.addEventListener(type, handler);
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      if (!header) return;
+      delete header.dataset.navigationDrag;
+      for (const [type, handler] of handlers) header.removeEventListener(type, handler);
+    };
+  });
 </script>
 
-<Place landmark="navigation" label="Main navigation">
+{#snippet pane()}
+<Surface kind="navigation" label={say(m.shell.navigation)} searching={false}>
   {#snippet top()}
-  <ToolbarLayout {identity} content={{kind:"actions",actions:[],onevent:()=>{}}} drag={{down:startHeaderDrag,move:motion.move,up:motion.up,cancel:motion.cancel,lost:motion.lost}} />
+    <Bar edge="top" purpose="navigation" identity={navigation.identity} identityRole="heading" trailing={[]} settingsPlaceholder={false} inert={false} />
   {/snippet}
   {#snippet content()}
-    <div>
-      {#each groups as group (group.label)}
+    <div data-navigation-destinations>
+      {#each navigation.groups as group (group.label)}
       <Sidebar.Group aria-label={group.label}>
         <Sidebar.GroupLabel>{group.label}</Sidebar.GroupLabel>
         <Sidebar.GroupContent><Sidebar.Menu>
         {#each group.items as destination (destination.id)}
-          {@const Icon = icons[destination.icon]}
           <Sidebar.MenuItem>
-            <Sidebar.MenuButton isActive={destination.id === active} aria-current={destination.id === active ? "page" : undefined}
+            <Sidebar.MenuButton isActive={destination.id === navigation.active} aria-current={destination.id === navigation.active ? "page" : undefined}
               aria-label={destination.label} onclick={() => navigate(destination.id)}>
-              <span data-navigation-icon={destination.appearance} aria-hidden="true"><Icon /></span>
-              <span>{destination.label}</span>
+              <span data-navigation-icon={destination.appearance}><Face face={{ kind: "icon", icon: destination.icon }} ink={inks[destination.appearance]} compact /></span>
+              <span data-navigation-label>{destination.label}</span>
             </Sidebar.MenuButton>
           </Sidebar.MenuItem>
         {/each}
@@ -2996,64 +2967,94 @@ Source SHA-256: b47dcfbb56db49a1e423390997b818f0fac02a7822fe834477bccdfb48085664
     </div>
   {/snippet}
   {#snippet bottom()}
-  <ToolbarLayout edge="bottom" content={{kind:"navigation-toggle",searching}} />
-  {#if settingsPlaceholder}
-  <ToolbarLayout content={{kind:"settings-placeholder"}} />
-  {/if}
+    <!-- The pane's toggle is interactive only while the pane is shown (it is inert otherwise), so it always hides it.
+         Feeding the sidebar's own expanded state into the bar here stalls that state's derivation (Svelte 5.57). -->
+    <Bar edge="bottom" purpose="navigation" identityRole="heading" trailing={[]} navigationToggle={{ expanded: true, controls: sidebar.panelId }}
+      settingsPlaceholder={false} inert={searching} onnavigationtoggle={sidebar.toggle} />
+    {#if navigation.settingsPlaceholder}
+      <Bar edge="bottom" purpose="navigation" identityRole="heading" trailing={[]} settingsPlaceholder inert={false} />
+    {/if}
   {/snippet}
-</Place>
-```
+</Surface>
+{/snippet}
 
-## src/svelte/explorer/CatalogNavigationActions.svelte
-
-Source SHA-256: 725617e6b3af44b2bc9b35b4ba882394e8ee5d9f216fb4c56b9164e61b45f14a
-
-```svelte
-<script lang="ts">
-  import BankRenderer from "../BankRenderer.svelte";
-  let { detail = false, onback, backAvailable=true }: {
-    detail?: boolean; onback?: () => void; backAvailable?:boolean;
-  } = $props();
-</script>
-
-<div data-catalog-navigation-actions>
-  {#if detail && onback}
-    <BankRenderer node={{ version: "desert.bank-node/1", kind: "action", role: "secondary", action: {
-      intent: { kind: "catalog.back" }, label: "Back", icon: "back", state: backAvailable?"ready":"unavailable",
-    } }} onevent={event => { if (event.kind === "catalog.back"&&backAvailable) onback?.(); }} />
-  {/if}
-</div>
-```
-
-## src/svelte/explorer/CatalogToolbar.svelte
-
-Source SHA-256: 42da9081bc9d9339d09795ceda3806dea0daaf8204987de5088e6f2aca860101
-
-```svelte
-<script lang="ts">
-  import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
-  let { title, query, onquery, searching, resultsId, onsearch, oncancel, searchAvailable = true }: {
-    title: string; query: string; onquery: (query: string) => void; searching: boolean;
-    resultsId: string; onsearch: () => void; oncancel: () => void; searchAvailable?: boolean;
-  } = $props();
-</script>
-
-{#if searchAvailable}
-  <ToolbarLayout layer="search" {searching} edge="top"
-    content={{kind:"search",title,query,onquery,searching,resultsId,onsearch,oncancel}} />
+{#if sidebar.presentation === "overlay"}
+  <Modal label={say(m.shell.navigationTitle)} open={sidebar.overlayOpen} locked={false} presentation="navigation"
+    navigation={{ panel: sidebar.panelId, reveal: sidebar.revealOffset ?? undefined, dismissOffset: sidebar.dismissOffset, gesture: sidebar.revealedByGesture }}
+    ondismiss={() => sidebar.setOverlayOpen(false)}>{@render pane()}</Modal>
+{:else}
+  <Sidebar.Root variant="floating">{@render pane()}</Sidebar.Root>
 {/if}
 ```
 
-## src/svelte/explorer/workspace-navigation.ts
+## src/svelte/catalog/foundations/bar/BarSearch.svelte
 
-Source SHA-256: 9cb03abc069c3e94c0fabb0f37fed5e321b820068c24623e39deed24203da3e5
+Source SHA-256: 860f15e07a13f800e7885a3f996def331b51a309eea872e0d58a865f052f1ef8
+
+```svelte
+<script lang="ts">
+  // Bar part (from the toolbar-search composition): the place search field, revealed by a toggle that also closes it.
+  // Opening it from its toggle focuses the field (a search opened elsewhere keeps focus where it is); the displayed query
+  // freezes while closed so the field does not change as it hides.
+  // The rail keeps the field mounted while closed (inert) so its well grows from the toggle as it opens.
+  import { untrack } from "svelte";
+  import { Action, Field } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  let { title, query, open, resultsId, onquery, onopen, oncancel }: {
+    title: string; query: string; open: boolean; resultsId: string;
+    onquery: (query: string) => void; onopen: () => void; oncancel: () => void;
+  } = $props();
+  const id = $props.id();
+  let displayedQuery = $state(untrack(() => query)), requested = $state(false);
+  $effect(() => { if (open) displayedQuery = query; else requested = false; });
+  function toggle() { if (open) oncancel(); else { requested = true; onopen(); } }
+</script>
+
+<div data-catalog-search-actions data-expanded={open}>
+  <div data-catalog-search class="flex w-full flex-col" inert={!open} aria-hidden={!open}>
+    <Field primitive="input.text" purpose="search" label={say(m.bar.searchLabel, { title: title.toLowerCase() })} labelVisibility="accessible"
+      measure="fill" value={displayedQuery} placeholder={say(m.bar.searchPlaceholder, { title })} clear required={false} invalid={false}
+      disabled={false} focus={open && requested ? "on-mount" : undefined} controls={open ? resultsId : undefined} expanded={open} bar="search"
+      onchange={onquery} />
+  </div>
+  <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
+  <div class="toolbar-action" data-search-toggle>
+    <Action label={open ? say(m.bar.closeSearch) : say(m.bar.search)} icon={open ? "close" : "search"} face="icon" emphasis="secondary" state="ready"
+      type="button" bar="command" onclick={toggle} disclosure={{ id: `${id}-toggle`, controls: resultsId, expanded: open, haspopup: "listbox" }} />
+  </div>
+</div>
+```
+
+## src/svelte/infra/workspace-navigation.ts
+
+Source SHA-256: c9afe36f93053a395b7581af5ac7c40b49a1bb0ce215950f7bd342ea411b98cb
 
 ```ts
-import type { ActionIcon } from "../../interaction/toolbar.ts";
+import { Type, type Static } from "@sinclair/typebox";
+import { FaceIconSchema, type FaceIcon } from "../../interaction/face.ts";
 import type { ViewNavigationEntry } from "../../views/program-schema.ts";
+import { text } from "../../views/definition.ts";
+import type { Frozen } from "../../json.ts";
 
-/** Renderer-owned navigation data. No component, CSS or layout escape hatches. */
-export type WorkspaceIcon = ActionIcon | "landmark" | "backpack" | "panels";
+/** Renderer-owned navigation data. No component, CSS or layout escape hatches. A destination's icon is a face's icon:
+ * the shell draws it as the one Face (law 9e; owner decision V1, 2026-10-25: no coloured squares, the face as always). */
+export const WorkspaceIconSchema = FaceIconSchema;
+export type WorkspaceIcon = FaceIcon;
+const closed = { additionalProperties: false } as const;
+/** The navigation pane the shell draws (DESIGN §3.2): its identity, the active destination and the grouped destinations
+ * `workspaceNavigation` resolves. */
+export const ShellNavigationSchema = Type.Object({
+  identity: Type.Object({ title: text, subtitle: Type.Optional(text) }, closed),
+  settingsPlaceholder: Type.Boolean(),
+  active: Type.String(),
+  groups: Type.Array(Type.Object({
+    label: text,
+    items: Type.Array(Type.Object({ id: Type.String(), label: text, icon: WorkspaceIconSchema,
+      appearance: Type.Union([Type.Literal("browse"), Type.Literal("travel-kit"), Type.Literal("bank")]) }, closed)),
+  }, closed)),
+}, closed);
+export type ShellNavigation = Frozen<Static<typeof ShellNavigationSchema>>;
 export interface WorkspaceDestination<Id extends string = string> {
   readonly id: Id;
   readonly label: string;
@@ -3101,7 +3102,7 @@ export function workspaceNavigation<Id extends string>(navigation: readonly Work
 }
 ```
 
-## src/svelte/explorer/workspace-search.ts
+## src/svelte/infra/workspace-search.ts
 
 Source SHA-256: 5f07832f9e2e5889e1f83e90ae9810d94e73857c419b50041d1a03f0170fdf15
 
@@ -3113,31 +3114,21 @@ export type WorkspaceSearchResult = CatalogSearchResult |
   { readonly kind: "content"; readonly id: string; readonly title: string; readonly description: string };
 ```
 
-## src/svelte/views/ViewContent.svelte
+## src/svelte/catalog/renderer/view-content/ViewContent.svelte
 
-Source SHA-256: 6446fc620453c7f2a4b2044ddc032049ad3c5ae01e44a5222280db62e9b8e381
+Source SHA-256: 24fff3c7a614e0bff6019b5bdabbd0c7be789bbd8573abd01c91425bd8f3798a
 
 ```svelte
 <script lang="ts">
-  import type { ResolvedView } from "../../views/resolved.ts";
-  import type { BankEvent } from "../../interaction/bank-events.ts";
-  import type { PrimitiveId } from "../../interaction/catalog.ts";
-  import { ContentFlow } from "../adapter-catalog.ts";
-  import type { RegisterContentActions } from "../pieces/workspace-content.ts";
-  let { resolved, onevent, album = null, onalbum, onactions }: {
-    resolved: ResolvedView;
-    onevent: (event: BankEvent) => void;
-    album?: string | null;
-    onalbum: (id: string) => void;
-    onactions?: RegisterContentActions;
-  } = $props();
-  let flow = $state<{
-    revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null>;
-    revealAndFocusEntry: (id: PrimitiveId) => Promise<void>;
-    selectMedia: (record: string) => boolean;
-  } | null>(null);
-  export async function revealEntry(id: PrimitiveId) { return await flow?.revealEntry(id) ?? null; }
-  export function selectMedia(record: string) { return flow?.selectMedia(record) ?? false; }
+  import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
+  import { ContentFlow } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { resolved, onevent, album = null, onalbum, onactions }: CatalogProps<"view-content"> = $props();
+  let flow = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<boolean>; revealAndFocusEntry: (id: ResolvedNodeId) => Promise<boolean>;
+    selectMedia: (record: string) => boolean }>();
+  export async function revealEntry(id: ResolvedNodeId): Promise<boolean> { return await flow?.revealEntry(id) ?? false; }
+  export function selectMedia(record: string): boolean { return flow?.selectMedia(record) ?? false; }
+  // The workspace reaches a retained view's bank and library through what it registers here (null once it unmounts).
   $effect(() => {
     const register = onactions;
     register?.({ revealEntry: async id => { await flow?.revealAndFocusEntry(id); }, selectMedia });
@@ -3148,33 +3139,15 @@ Source SHA-256: 6446fc620453c7f2a4b2044ddc032049ad3c5ae01e44a5222280db62e9b8e381
 <ContentFlow {resolved} {onevent} {album} {onalbum} bind:this={flow} />
 ```
 
-## src/svelte/views/ViewItem.svelte
+## src/svelte/catalog/renderer/view-item/ViewItem.svelte
 
-Source SHA-256: 902f433e4d989384034d53dd8b6d36d390b4efa25a688fb0358a1792b033c5e0
+Source SHA-256: dd014833d2651cf7ba2f8db729928bc2c89df258a81f114ec86f448b80f75b17
 
 ```svelte
 <script lang="ts">
-  import type { ViewItem } from "../../views/schema.ts";
-  import type { ResolvedView } from "../../views/resolved.ts";
-  import type { BankEvent } from "../../interaction/bank-events.ts";
-  import { controlBankNode } from "../../interaction/bank-node.ts";
-  import { BankRenderer, Information, StackItem, TextContent, MessageBody, ViewDestinationLink, SummaryWidget } from "../adapter-catalog.ts";
-  let { item, resolved, onevent, host = "flow" }: {
-    item: ViewItem; resolved: ResolvedView; onevent: (event: BankEvent) => void; host?: "flow" | "frame";
-  } = $props();
-  function dispatch(event: BankEvent) {
-    if (item.kind === "collection" && event.kind === "collection.select") {
-      if (!resolved.disabledOutputs.includes(item.output)) onevent({ kind: "surface.invoke", intent: {
-        kind: "view.output", view: resolved.view.id, output: item.output, recordId: event.id,
-      } });
-    } else onevent(event);
-  }
-  function binding() {
-    if (!("input" in item)) throw new Error("VIEW_INPUT_REQUIRED");
-    const node = resolved.bindings[item.input];
-    if ((!node && !resolved.pending?.[item.input]) || node && node.kind !== item.kind) throw new Error("INVALID_VIEW_INPUT_BINDING");
-    return node;
-  }
+  import type { CatalogProps } from "../../types.d.ts";
+  import { Information, TextContent, ViewBinding, ViewDestinationLink } from "../../index.ts";
+  let { item, resolved, onevent, host = "flow" }: CatalogProps<"view-item"> = $props();
 </script>
 
 {#if item.kind === "text"}
@@ -3185,35 +3158,70 @@ Source SHA-256: 902f433e4d989384034d53dd8b6d36d390b4efa25a688fb0358a1792b033c5e0
   <ViewDestinationLink view={resolved.view.id} output={item.output} label={item.label} icon={item.icon}
     reason={resolved.disabledOutputs.includes(item.output) ? resolved.connection?.label : undefined}
     available={!resolved.disabledOutputs.includes(item.output)} {onevent} />
-{:else if item.kind === "tag" || item.kind === "image" || item.kind === "avatar"}
-  {@const node = controlBankNode(item)}
-  <StackItem kind={node.kind}><BankRenderer {node} /></StackItem>
-{:else if item.kind==='collection' && item.presentation?.kind==='summary-widget'}
-  {@const node=binding()}
-  {#if node?.kind==='collection'}<SummaryWidget {node} available={!resolved.disabledOutputs.includes(item.output)}
-    activate={()=>onevent({kind:'surface.invoke',intent:{kind:'view.output',view:resolved.view.id,output:item.output}})} />{/if}
-{:else}
-  {@const node = binding()}
-  {#if !node && "input" in item && resolved.pending?.[item.input]}
-    <MessageBody content={resolved.pending[item.input]} />
-  {:else if node}
-    {#if host === "frame"}<BankRenderer {node} onevent={dispatch} />
-    {:else}<StackItem kind={node.kind}><BankRenderer {node} onevent={dispatch} /></StackItem>{/if}
-  {/if}
+{:else if item.kind === "tag" || item.kind === "image" || item.kind === "avatar" || item.kind === "collection" || item.kind === "form" || item.kind === "context"}
+  <ViewBinding {item} {resolved} {onevent} {host} />
 {/if}
 ```
 
-## src/svelte/views/Panel.svelte
+## src/svelte/catalog/compositions/view-binding/ViewBinding.svelte
 
-Source SHA-256: 26a5b00b1ee976927aaca669336ae38ced84e95d8957eb75d8b8a6dc99ee7c9c
+Source SHA-256: c248643c89bf0dc15b6bf713393e89e40e34e36a8cc0fe50a18557f4f6ff7e93
+
+```svelte
+<script lang="ts">
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
+  import { stackPlacement } from "../../../infra/stack-placement.ts";
+  import { NodeRenderer, StackItem, SummaryWidget, Text } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { item, resolved, onevent, host = "flow" }: CatalogProps<"view-binding"> = $props();
+  /** What the item shows: its own control node (a tag, image or avatar), the summary of its bound collection, its bound node,
+   * the message of an input still pending, or nothing yet. A binding of another kind than the item fails loudly. */
+  let bound = $derived.by(() => {
+    if (item.kind === "tag" || item.kind === "image" || item.kind === "avatar") return { kind: "control", node: controlResolvedNode(item) } as const;
+    const node = resolved.bindings[item.input], pending = resolved.pending?.[item.input];
+    if ((!node && !pending) || node && node.kind !== item.kind) throw new Error("INVALID_VIEW_INPUT_BINDING");
+    if (item.kind === "collection" && item.presentation?.kind === "summary-widget") {
+      return node?.kind === "collection" ? { kind: "summary", node, output: item.output } as const : { kind: "none" } as const;
+    }
+    if (node) return { kind: "node", node } as const;
+    return pending ? { kind: "pending", text: pending.text } as const : { kind: "none" } as const;
+  });
+  /** A record chosen in a bound collection opens the collection's output, unless that output is disabled. */
+  function dispatch(event: NodeEvent) {
+    if (item.kind !== "collection" || event.kind !== "collection.select") { onevent?.(event); return; }
+    if (!resolved.disabledOutputs.includes(item.output)) onevent?.({ kind: "surface.invoke", intent: {
+      kind: "view.output", view: resolved.view.id, output: item.output, recordId: event.id,
+    } });
+  }
+  const open = (output: string) => onevent?.({ kind: "surface.invoke", intent: { kind: "view.output", view: resolved.view.id, output } });
+</script>
+
+{#if bound.kind === "control"}
+  <StackItem placement={stackPlacement(bound.node.kind)} kind={bound.node.kind}><NodeRenderer node={bound.node} /></StackItem>
+{:else if bound.kind === "summary"}
+  <SummaryWidget node={bound.node} available={!resolved.disabledOutputs.includes(bound.output)} activate={() => open(bound.output)} />
+{:else if bound.kind === "pending"}
+  <Text kind="body" align="start" live="polite" text={bound.text} />
+{:else if bound.kind === "node" && host === "frame"}
+  <NodeRenderer node={bound.node} onevent={dispatch} />
+{:else if bound.kind === "node"}
+  <StackItem placement={stackPlacement(bound.node.kind)} kind={bound.node.kind}><NodeRenderer node={bound.node} onevent={dispatch} /></StackItem>
+{/if}
+```
+
+## src/svelte/catalog/renderer/panel/Panel.svelte
+
+Source SHA-256: ab5aad4476c2a4f8bc99b858f29c87f0cec22b4ec840071dceb95bcc100fd1d5
 
 ```svelte
 <script lang="ts">
   import { tick, untrack } from "svelte";
-  import { bindViewEvents, type OwnedResolvedPanel, type OwnedViewEvent, type ViewEventOwner } from "../../web/client/view-events.ts";
-  import type { BankEvent } from "../../interaction/bank-events.ts";
-  import { ViewPanel } from "../adapter-catalog.ts";
-  let { panel, onevent }: { panel?: OwnedResolvedPanel | null; onevent: (event: OwnedViewEvent) => void } = $props();
+  import { bindViewEvents, type OwnedResolvedPanel, type ViewEventOwner } from "../../../../web/client/view-events.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import { ViewPanel } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { panel, onevent }: CatalogProps<"panel"> = $props();
   let mounted = $state.raw<OwnedResolvedPanel | null>(null);
   let open = $state(false);
   let revision = 0;
@@ -3224,7 +3232,7 @@ Source SHA-256: 26a5b00b1ee976927aaca669336ae38ced84e95d8957eb75d8b8a6dc99ee7c9c
       if (next) {
         const firstMount = mounted === null;
         mounted = next;
-        // The shared Drawer must observe closed → open, just like the stable
+        // The shared modal must observe closed → open, just like the stable
         // retained bank specimen. Do not mount it already at its final state.
         if (firstMount) void tick().then(() => { if (revision === current) open = true; });
         else open = true;
@@ -3233,8 +3241,8 @@ Source SHA-256: 26a5b00b1ee976927aaca669336ae38ced84e95d8957eb75d8b8a6dc99ee7c9c
     });
   });
   function dispatch(owner: ViewEventOwner) {
-    const send = bindViewEvents(owner, onevent);
-    return (event: BankEvent) => {
+    const send = bindViewEvents(owner, value => onevent?.(value));
+    return (event: NodeEvent) => {
       if (event.kind === "transient.closed" && !panel && mounted?.owner === owner) mounted = null;
       send(event);
     };
@@ -3242,36 +3250,36 @@ Source SHA-256: 26a5b00b1ee976927aaca669336ae38ced84e95d8957eb75d8b8a6dc99ee7c9c
 </script>
 
 {#each mounted ? [mounted] : [] as current}
-  <ViewPanel panel={current} {open} frameIdentity={current.owner} onevent={dispatch(current.owner)} />
+  <ViewPanel panel={current} {open} continuity={current.owner.key} onevent={dispatch(current.owner)} />
 {/each}
 ```
 
-## src/svelte/views/InspectionContent.svelte
+## src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte
 
-Source SHA-256: 1637dc7fa45a6a79524f7008c1b8a6b3af33d10f3a9b883e72c0f49ba1188011
+Source SHA-256: 2a90aa02e8124fa7702c99cffdc9e2b7c51a0b85b347db3b6807d1cc6aaa89bb
 
 ```svelte
 <script lang="ts">
-  import type { PrimitiveId } from "../../interaction/catalog.ts";
-  import type { PublicBankInput } from "../explorer/PublicCatalogBank-model.ts";
-  import { Inspection } from "../adapter-catalog.ts";
-  let { catalog }: { catalog?: PublicBankInput } = $props();
-  let content = $state<{ revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null> }>();
-  export async function revealEntry(id: PrimitiveId) { return await content?.revealEntry(id) ?? null; }
+  import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
+  import { Inspection } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { catalog }: CatalogProps<"inspection-content"> = $props();
+  let content = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<boolean> }>();
+  export async function revealEntry(id: ResolvedNodeId): Promise<boolean> { return await content?.revealEntry(id) ?? false; }
 </script>
 
 <Inspection {catalog} bind:this={content} />
 ```
 
-## src/svelte/catalog/inspection-fixture.ts
+## src/svelte/catalog/compositions/inspection/inspection-fixture.ts
 
-Source SHA-256: b43e7bd1b23c5bf989edcb7505610804b1607ba87f6a38e9f93b76e7280f1c2f
+Source SHA-256: 13e45e0752b88676ab3faf5b265179538b254e090560cafbcf1ad5c30f9a16e6
 
 ```ts
-import { freezeDeep } from "../../json.ts";
-import { BankVersion as version } from "../../interaction/bank-node.ts";
-import type { PublicBankInput } from "../explorer/PublicCatalogBank-model.ts";
-import { inspectionMedia } from "./inspection-media.ts";
+import { freezeDeep } from "../../../../json.ts";
+import { ResolvedNodeVersion as version } from "../../../../interaction/resolved-node.ts";
+import type { PublicBankInput } from "../../../infra/PublicCatalogBank-model.ts";
+import { inspectionMedia } from "../../../infra/inspection-media.ts";
 
 const image = { asset: inspectionMedia.asset, alt: inspectionMedia.alt };
 const card = { version, kind: "catalog.card", record: "notebook-cover", title: "Notebook cover", image } as const;
@@ -3289,7 +3297,7 @@ export const inspectionCatalog = freezeDeep({
 } as const satisfies PublicBankInput);
 ```
 
-## src/svelte/catalog/inspection-media.ts
+## src/svelte/infra/inspection-media.ts
 
 Source SHA-256: 82b252301725837a1bc4b0d9d392e6fe12fa5496a8cc00d54dbe000cd1840c59
 
@@ -3300,42 +3308,30 @@ export const inspectionMedia = Object.freeze({
 });
 ```
 
-## src/svelte/pieces/AccessGate.svelte
+## src/svelte/catalog/compositions/access-gate/AccessGate.svelte
 
-Source SHA-256: 2cfb65490de14eaff646d0c8f82e608c4ed4c073de125d224f44f535e4b4cb61
+Source SHA-256: f87759d72ba8a9a4ab0863cd867bebb05654c4ae840a8382f87f770eb05f2a8a
 
 ```svelte
 <script lang="ts">
   import { onMount, untrack } from "svelte";
-  import type { HumanSurface, ValidateInput } from "../../web/types.ts";
-  import type { ViewProgram } from "../../views/program-schema.ts";
-  import ViewProduct from "../views/ViewProduct.svelte";
-  import { accessClient } from "../../web/client/access.ts";
-  import { provideAccess } from "./access-context.ts";
-  import AccessScreen from "./AccessScreen.svelte";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { AccessScreen, ViewProduct } from "../../index.ts";
+  import { accessClient } from "../../../../web/client/access.ts";
+  import { mountAccessSession } from "../../../../web/client/browser-session.ts";
+  import { provideAccess } from "../../../infra/access-context.ts";
   import { browserAccessLock } from "./browser-access-lock.ts";
-  import { rememberAccessProfile } from "./access-profile.ts";
-  let { surface, validateInput, viewProgram }: {
-    surface: HumanSurface; validateInput: ValidateInput; viewProgram: ViewProgram;
-  } = $props();
+  import { rememberAccessProfile } from "../../../infra/access-profile.ts";
+  let { surface, validateInput, viewProgram }: CatalogProps<"access-gate"> = $props();
   let productLabel = $derived(viewProgram.label);
   const client = untrack(() => accessClient(surface.contractDigest, browserAccessLock()));
   let current = $state.raw(client.snapshot());
   provideAccess({ client, snapshot: () => current });
-  onMount(() => {
-    const stop = client.subscribe(() => {
-      current = client.snapshot();
-      if (current.state.kind === "ready") rememberAccessProfile(current.state.identity);
-    });
-    const invitation = new URLSearchParams(location.hash.slice(1)).get("access");
-    history.replaceState(null, "", location.pathname + location.search);
-    void client.start(invitation ?? undefined);
-    const refresh = () => { if (document.visibilityState === "visible") void client.refresh(); };
-    const timer = setInterval(refresh, 5000);
-    window.addEventListener("focus", refresh);
-    document.addEventListener("visibilitychange", refresh);
-    return () => { stop(); client.stop(); clearInterval(timer); window.removeEventListener("focus", refresh); document.removeEventListener("visibilitychange", refresh); };
-  });
+  // The session module owns the launch invitation and the refresh while the page is in view (DESIGN §8 Q3).
+  onMount(() => mountAccessSession(client, () => {
+    current = client.snapshot();
+    if (current.state.kind === "ready") rememberAccessProfile(current.state.identity);
+  }));
 </script>
 
 {#if current.state.kind === "ready" || current.state.kind === "developer"}
@@ -3345,58 +3341,40 @@ Source SHA-256: 2cfb65490de14eaff646d0c8f82e608c4ed4c073de125d224f44f535e4b4cb61
 {:else}<AccessScreen {productLabel} {current} {client} />{/if}
 ```
 
-## src/svelte/Collection.svelte
+## src/svelte/catalog/compositions/collection/Collection.svelte
 
-Source SHA-256: 59479303be508af5a7b22a33ccf88549d06fafecf266e0e8b9fd263bf3fb15e7
+Source SHA-256: 30ed28c3a767728bd2368a37a572b8014b0f8661dd9681618519610c0d95c5b5
 
 ```svelte
 <script lang="ts">
-  import type { BankNodeFor } from "../interaction/bank-node.ts";
-  import { presentFact, presentTitle, readingFields } from "../interaction/fact-presentation.ts";
-  import GroupedPanel from "./pieces/GroupedPanel.svelte";
-  import { Button } from "./vendor/components/ui/button/index.js";
-  import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import CollectionState from "./pieces/CollectionState.svelte";
-  import { retrieveCollection } from "./collection-retrieval.ts";
-  import MediaGrid from "./pieces/media/MediaGrid.svelte";
-  import MediaCollectionGrid from "./pieces/media/MediaCollectionGrid.svelte";
-  import AttentionIndicator from './pieces/AttentionIndicator.svelte';
-  let { node, select }: { node: BankNodeFor<"collection">; select: (id: string) => void } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  import { presentFact, presentTitle, readingFields } from "../../../../interaction/fact-presentation.ts";
+  import { retrieveCollection } from "../../../collection-retrieval.ts";
+  import { CollectionState, List, MediaCollectionGrid, MediaGrid, Row } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  let { node, select }: CatalogProps<"collection"> = $props();
   let { records, disabled, loaded, selectedId } = $derived(node);
   // Collections present records. Search belongs exclusively to the toolbar overlay.
   let visibleRecords = $derived(node.presentation ? records : retrieveCollection(records, node.fields, ""));
+  /** The secondary lines of a record row: each further field's value label, or the field's label and its value. */
+  function metadata(record: (typeof records)[number]): string[] {
+    return readingFields(node.fields.slice(1), record.facts).map(field => node.valueLabels?.[field]?.[String(record.facts[field])]
+      ?? say(m.collection.metadata, { label: node.labels[`${node.object}.${field}`]!, value: presentFact(record.facts[field]) }));
+  }
 </script>
 {#if node.presentation?.kind === "media-grid"}<MediaGrid {node} {select} />
 {:else if node.presentation?.kind === "collection-grid"}<MediaCollectionGrid {node} {select} />
-{:else if visibleRecords.length}<GroupedPanel>
-<ul class="records" data-composition="collection" data-grouped-rows>
+{:else if visibleRecords.length}<List kind="rows" measure="reading">
   {#each visibleRecords as record (record.id)}
-    {@const secondary = readingFields(node.fields.slice(1), record.facts)}
-    <li data-grouped-row>
-      <Button variant="row" presentation="record-row" data-grouped-action onclick={() => select(record.id)} {disabled} aria-current={record.id === selectedId ? "true" : undefined}>
-        <AttentionIndicator required={Boolean(node.attention?.[record.id]?.length)} />
-        <span data-record-copy>
-          <span data-record-heading><strong>{presentTitle(record.facts[node.fields[0]!])}</strong></span>
-          {#if secondary.length}
-            <span data-record-metadata>{#each secondary as field}<span data-record-value>{node.valueLabels?.[field]?.[String(record.facts[field])] ?? `${node.labels[`${node.object}.${field}`]} · ${presentFact(record.facts[field])}`}</span>{/each}</span>
-          {/if}
-        </span>
-        <ChevronRight data-icon="inline-end" data-control-chevron aria-hidden="true" />
-      </Button>
-    </li>
+    <Row label={presentTitle(record.facts[node.fields[0]!])} metadata={metadata(record)}
+      leading={{ kind: "attention", required: Boolean(node.attention?.[record.id]?.length) }} trailing="chevron" interaction="open"
+      available={!disabled} current={record.id === selectedId} focusKey={record.id} onopen={() => select(record.id)} />
   {/each}
-</ul>
-</GroupedPanel>{/if}
+</List>{/if}
 {#if !records.length && !node.presentation}
   <CollectionState {loaded} createLabel={node.createLabel} connection={node.connection} />
 {/if}
-<style>
-  strong { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); overflow-wrap:anywhere; text-align:start; }
-  [data-record-heading] { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
-  [data-record-copy] { display:flex; flex:1; min-width:0; flex-direction:column; gap:.25rem; }
-  [data-record-value] { display:block; }
-  [data-record-metadata] { display:flex; flex-wrap:wrap; gap:.375rem 1rem; text-align:start; color:var(--muted-foreground); font-size:var(--text-body); }
-</style>
 ```
 
 ## src/svelte/collection-retrieval.ts
@@ -3430,32 +3408,22 @@ export function retrieveCollection(records: readonly RecordView[], fields: reado
 }
 ```
 
-## src/svelte/SurfaceFrame.svelte
+## src/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte
 
-Source SHA-256: 295e442cb0349d0c38a4cb95a31d18b63871bd653c83f207184719672cf73ed2
+Source SHA-256: 0916b3ced85e7d92fafe4ad145a5e81c5fdd9cf957510a6520fea082ea4a3f96
 
 ```svelte
 <script lang="ts">
-  import { surfaceFrame, type SurfaceFrame } from "../interaction/surface-frame.ts";
-  import type { SurfaceIntent } from "../interaction/intent.ts";
-  import type { BankEvent } from "../interaction/bank-events.ts";
-  import type { ResolvedView } from "../views/resolved.ts";
-  import ContentFlow from "./pieces/ContentFlow.svelte";
-  import FrameBody from "./FrameBody.svelte";
-  import Toolbar from "./pieces/Toolbar.svelte";
-  import ScrollEdges from "./pieces/ScrollEdges.svelte";
-  import { provideSurfaceHost } from "./pieces/surface-host.svelte.ts";
-  import { provideToolbarScroll } from "./pieces/toolbar-scroll.svelte.ts";
-  import { isFormControlEvent, type FormControlEvent } from "../interaction/form-control-event.ts";
-let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEvent }: { frame: SurfaceFrame;
-    body?: ResolvedView | undefined;
-    presentation?: "standard" | "message" | "transient";
-    invoke: (intent: SurfaceIntent) => void; edit?: ((name: string, value: string) => void) | undefined;
-    controlEvent?: ((event: FormControlEvent) => void) | undefined } = $props();
-  let host = $state<HTMLElement | null>(null);
-  let viewport = $state<HTMLDivElement | null>(null);
-  provideSurfaceHost(() => host);
-  provideToolbarScroll({ owner: () => host, viewport: () => viewport });
+  import { surfaceFrame } from "../../../../interaction/surface-frame.ts";
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
+  import { ContentFlow, FrameBody, Surface, Toolbar } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEvent }: CatalogProps<"surface-frame"> = $props();
+  const uid = $props.id();
+  const formId = `${uid}-form`;
   let checked = $derived.by(() => {
     const value = surfaceFrame(frame);
     // A modal message may consolidate dismissal, never suppress task navigation.
@@ -3466,43 +3434,43 @@ let { frame, body, invoke, edit = () => {}, presentation = "standard", controlEv
   // owns a bottom navigation rail; confirmations retain their compact choices.
   let steps = $derived(checked.kind === "journey" && checked.navigation === "steps");
   let topCommit = $derived(!steps && (checked.kind === "journey" || checked.kind === "specimen") ? checked.bottom.primary : undefined);
-  let top = $derived(topCommit ? {...checked.top, primary:{...topCommit,
+  let topToolbar = $derived(topCommit ? {...checked.top, primary:{...topCommit,
     icon:checked.content.kind === "form" || checked.content.kind === "review" ? "confirm" as const : topCommit.icon}} : checked.top);
-  let bottom = $derived(steps || checked.kind === "confirmation" || checked.kind === "message");
-  function submit(event: SubmitEvent) {
-    event.preventDefault();
+  let closing = $derived(steps || checked.kind === "confirmation" || checked.kind === "message");
+  let choices = $derived(closing && (checked.bottom.primary !== undefined || (checked.bottom.secondary !== undefined && presentation !== "transient")));
+  let label = $derived(checked.kind === "context" ? say(m.surfaceFrame.context) : checked.kind === "journey" ? say(m.surfaceFrame.journey) : undefined);
+  // A form frame wraps its bars and content in one form, named by its title; its submit command names that form.
+  let form = $derived(checked.content.kind === "form" ? { label: checked.top.title, id: formId } : undefined);
+  let submit = $derived(checked.content.kind === "form" ? { journey: checked.content.submit, form: formId } : undefined);
+  function submitted() {
     if (checked.content.kind !== "form") return;
     const action = checked.bottom.primary;
     if (action?.state === "ready") invoke(action.intent);
   }
-  function dispatch(event: BankEvent) {
+  function dispatch(event: NodeEvent) {
     if (event.kind === "input.change") edit(event.name, event.value);
     else if (isFormControlEvent(event)) controlEvent?.(event);
     else if (event.kind === "surface.invoke") invoke(event.intent);
   }
 </script>
-{#snippet slots()}
-  <Toolbar toolbar={{ edge: "top", ...top }} {invoke} {presentation} submit={checked.content.kind === "form" ? checked.content.submit : undefined} />
-  <div bind:this={viewport} class="surface-content min-h-0 flex-1 overflow-auto" data-surface-slot="content">
+
+<Surface kind="frame" {presentation} {label} {form} searching={false} onsubmit={submitted}>
+  {#snippet top()}<Toolbar toolbar={{ edge: "top", ...topToolbar }} {invoke} {presentation} {submit} />{/snippet}
+  {#snippet content()}
     {#if body}<ContentFlow resolved={body} onevent={dispatch} host="panel" />
     {:else}<FrameBody content={checked.content} {invoke} {edit} {controlEvent} messageDialog={presentation === "message"} />{/if}
-  </div>
-  {#if bottom && (checked.bottom.primary || (checked.bottom.secondary && presentation !== "transient"))}
-    <Toolbar toolbar={{ edge: "bottom", ...checked.bottom, ...(steps ? {navigation:"steps" as const} : {}) }} {invoke} {presentation} submit={checked.content.kind === "form" ? checked.content.submit : undefined} />
-  {/if}
-  <ScrollEdges {viewport} owner={host} />
-{/snippet}
-<section bind:this={host} class="flex min-h-0 min-w-0 flex-1 flex-col" data-scroll-owner data-surface-host data-surface-frame={checked.version} data-frame-presentation={presentation} tabindex="-1"
-  aria-label={checked.kind === "context" ? "Object context" : checked.kind === "journey" ? "Journey" : undefined}>
-  {#if checked.content.kind === "form"}
-    <form class="flex min-h-0 flex-1 flex-col" novalidate onsubmit={submit}>{@render slots()}</form>
-  {:else}{@render slots()}{/if}
-</section>
+  {/snippet}
+  {#snippet bottom()}
+    {#if choices}
+      <Toolbar toolbar={{ edge: "bottom", ...checked.bottom, ...(steps ? { navigation: "steps" as const } : {}) }} {invoke} {presentation} {submit} />
+    {/if}
+  {/snippet}
+</Surface>
 ```
 
 ## src/interaction/surface-frame.ts
 
-Source SHA-256: 3ab09f6bf41ac859d4894dd9832518e532f606b295f9dd1dfaca38307a88f9d9
+Source SHA-256: 273302dd271578d0bbff5cdbf91dbe450133c16ed79dc676cb5b126a8d87d8c3
 
 ```ts
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
@@ -3510,12 +3478,14 @@ import { Check } from "@sinclair/typebox/value";
 import { freezeDeep, jsonSnapshot, type Frozen } from "../json.ts";
 import { TopToolbarSchema, BottomToolbarSchema, ToolbarActionSchema, NavigationActionSchema,
   UtilityActionSchema, actionSchema } from "./toolbar.ts";
+import { FaceSchema } from "./face.ts";
 import { InformationSchema } from "./information-content.ts";
 import { FactValueSchema } from "../fact-values.ts";
 import { FileMetadataSchema } from "./control-nodes.ts";
 import { LabelControlLimitsSchema, ReferenceStateSchema, ReferenceChoiceSchema,MediaReferenceStateSchema } from "./labels-control.ts";
-import { CloseIntentSchema, RecoverIntentSchema, JourneyIntentSchema, intentKey, submitsJourney } from "./intent.ts";
+import { CloseIntentSchema, RecoverIntentSchema, JourneyIntentSchema, ProductSurfaceIntentSchema, intentKey, submitsJourney } from "./intent.ts";
 import {AttentionSignalSchema} from '../attention.ts';
+import { mediaTypes } from "../media/rendition-policy.ts";
 export { ToolbarActionSchema, type ToolbarAction } from "./toolbar.ts";
 
 const object = <T extends TProperties>(properties: T) => Type.Object(properties, { additionalProperties: false });
@@ -3540,7 +3510,9 @@ export const FormSchema = object({
   fields: Type.Array(Type.Union([TextFormFieldSchema, object({ name: text(), label: text(), required: Type.Boolean(),
     disabled: Type.Optional(Type.Boolean()),
     primitive: Type.Literal("control.files"), files: Type.Array(FileMetadataSchema, { maxItems: 1 }), error: Type.Optional(text()),
-    media:Type.Optional(Type.Union([Type.Literal("image"),Type.Literal("media")])),
+    // The media types the file chooser offers (src/interaction/image-input.ts assetInputMedia); the controller re-checks
+    // the fact's own accept list on the bytes.
+    media: Type.Optional(Type.Array(Type.Union(mediaTypes.map(type => Type.Literal(type))), { minItems: 1, uniqueItems: true })),
   }), object({ name: text(), label: text(), required: Type.Boolean(), primitive: Type.Literal("control.labels"),
     disabled: Type.Optional(Type.Boolean()),
     values: Type.Array(Type.String()), limits: LabelControlLimitsSchema, error: Type.Optional(text()),
@@ -3574,6 +3546,12 @@ const ContextTopSchema = object({ ...TopToolbarSchema.properties,
   trailing: Type.Optional(Type.Array(actionSchema(Type.Union([RecoverIntentSchema, JourneyIntentSchema])))),
 });
 const DismissBottomSchema = object({ secondary: Type.Optional(DismissActionSchema), primary: Type.Optional(Type.Never()) });
+// A confirmation is a dialog (laws 5b, 6, 9c): its face (the action's), its title, its message as the subtitle and the
+// 50/50 pair of Cancel and the verb. No other top slot exists, so a confirmation without its face or its pair cannot be built.
+const ConfirmationTopSchema = object({ title: text(), face: FaceSchema, subtitle: Type.Optional(Type.Never()),
+  leading: Type.Optional(Type.Never()), trailing: Type.Optional(Type.Array(Type.Never())), primary: Type.Optional(Type.Never()),
+  actionGroup: Type.Optional(Type.Never()), availability: Type.Optional(Type.Never()) });
+const ConfirmationBottomSchema = object({ secondary: actionSchema(ProductSurfaceIntentSchema), primary: UtilityActionSchema });
 export const SurfaceFrameSchema = Type.Union([
   object({ ...common, kind: Type.Literal("context"), top: ContextTopSchema,
     content: Type.Union([FactsSchema, ContextSchema, MessageSchema]),
@@ -3582,7 +3560,7 @@ export const SurfaceFrameSchema = Type.Union([
   object({ ...common, kind: Type.Literal("message"), top: MessageTopSchema, content: MessageSchema, bottom: DismissBottomSchema }),
   object({ ...common, kind: Type.Literal("utilities"), top: MessageTopSchema, content: UtilitiesContentSchema, bottom: DismissBottomSchema }),
   object({ ...common, kind: Type.Literal("journey"), navigation: Type.Optional(Type.Literal("steps")), content: GeneralContentSchema, bottom: BottomToolbarSchema }),
-  object({ ...common, kind: Type.Literal("confirmation"), content: MessageSchema, bottom: BottomToolbarSchema }),
+  object({ ...common, kind: Type.Literal("confirmation"), top: ConfirmationTopSchema, content: MessageSchema, bottom: ConfirmationBottomSchema }),
   object({ ...common, kind: Type.Literal("specimen"), content: GeneralContentSchema, bottom: BottomToolbarSchema }),
 ]);
 
@@ -3642,7 +3620,7 @@ export function surfaceFrame(value: unknown): SurfaceFrame {
 
 ## src/interaction/frame-presenters.ts
 
-Source SHA-256: 6e3eadd899e75ddb5292bc8c44247d4ac60e4a98b39544877a61cc0f76512cb1
+Source SHA-256: c8be013014f10e4e6e8b72da5a23e0882d8218d26eabd61366400a0f8d09974c
 
 ```ts
 import type { HumanSurface, Mutation } from "../web/types.ts";
@@ -3698,7 +3676,8 @@ export function reviewFrame(surface: HumanSurface, mutation: Mutation, facts: Re
     // An asset-led collection has no text title. Never stringify private asset metadata.
     const title = typeof candidate === "string" || typeof candidate === "number" || typeof candidate === "boolean" ? candidate : undefined;
     return surfaceFrame({ version: "desert.surface-frame/6", kind: "confirmation",
-      top: { title: `${label}?` }, content: { kind: "message", text: title === undefined ?
+      // The confirmation's face is its action's: the verb's own glyph.
+      top: { title: `${label}?`, face: { kind: "icon", icon: "confirm" } }, content: { kind: "message", text: title === undefined ?
         "Confirm this change to the selected item." : `“${presentTitle(title)}”` },
       bottom: { secondary: toolbarAction({ kind: "back" }, "Cancel", "back", !busy),
         primary: { ...toolbarAction({ kind: "accept" }, label, "confirm", ready && !busy),
@@ -3796,7 +3775,7 @@ export function reviewChanges(surface: HumanSurface, mutation: Mutation, facts: 
 
 ## src/web/client/frame.ts
 
-Source SHA-256: ef23e42c051b9c01c5f4accdfdbbf2079a0adf5884c5b7de5566f3a23ff90b8a
+Source SHA-256: 392e214456ac0d6e730fa0c9ce96156249941f9d73a1c6a0d7f6d5662e581b98
 
 ```ts
 import type { HumanSurface, ValidateInput } from "../types.ts";
@@ -3808,6 +3787,11 @@ import { surfaceFrame } from "../../interaction/surface-frame.ts";
 import { fieldFeedback } from "./field-feedback.ts";
 import { presentFacts, presentTitle } from "../../interaction/fact-presentation.ts";
 import { inspectMutationDraft } from "./draft-validation.ts";
+import { rendererLocale } from "../../messages/renderer-locale.ts";
+import { Messages, m } from "../../messages/keys.ts";
+
+// Every sentence this module shows a person is a key of the `frame` namespace it owns (plan §14).
+const bundle = Messages.bundle(rendererLocale);
 
 export function presentFrame(surface: HumanSurface, state: HumanState, validate: ValidateInput,
   scope: ModelScope) {
@@ -3818,9 +3802,9 @@ export function presentFrame(surface: HumanSurface, state: HumanState, validate:
     const id = state.editing?.journeyId ?? state.creationJourneyId;
     if (!id) throw new Error("FORM_JOURNEY_REQUIRED");
     const primary = mutationPresentation(surface, id);
-    const label = surface.commit[primary.id] === "review" ? "Review" : surface.language.journeys[primary.id]!;
+    const label = surface.commit[primary.id] === "review" ? bundle.text(m.frame.review) : surface.language.journeys[primary.id]!;
     const validation = inspectMutationDraft(surface, primary, state.draft, validate);
-    return formFrame(surface, primary, state.draft, { secondary: toolbarAction({ kind: "back" }, "Back", "back", !state.busy), primary: {
+    return formFrame(surface, primary, state.draft, { secondary: toolbarAction({ kind: "back" }, bundle.text(m.frame.back), "back", !state.busy), primary: {
       ...toolbarAction({ kind: "journey", journey: primary.id }, label, surface.commit[primary.id] === "review" ? "review" : "save",
         ready(primary.id) && validation.valid && (!state.editing || subjectActionAvailable(surface, state, primary.id, state.editing.subject, undefined, scope))),
       ...(state.busy ? { state: "pending" as const } : {}),
@@ -3839,53 +3823,52 @@ export function presentFrame(surface: HumanSurface, state: HumanState, validate:
   const { read, subjectActions } = requireReadScope(scope);
   const identity = state.detail?.facts[read.collection[0]!];
   return surfaceFrame({ version: "desert.surface-frame/6", kind: "context",
-    top: { title: state.detail ? typeof identity === "object" ? "Media" : presentTitle(identity) : surface.language.journeys[read.id]! },
+    top: { title: state.detail ? typeof identity === "object" ? bundle.text(m.frame.media) : presentTitle(identity) : surface.language.journeys[read.id]! },
     content: state.detail ? { kind: "context", details: presentFacts(surface, read.subject,
       read.fields.filter(field => field !== read.collection[0]), state.detail.facts, state.references),
       actions: subjectActions.map(({ id }) => ({ destination: id, label: surface.language.journeys[id]!,
         available: subjectActionAvailable(surface, state, id, undefined, undefined, scope) })) }
-      : { kind: "message", text: ready(read.id) ? "Loading…" : "Waiting for the local controller." },
+      : { kind: "message", text: ready(read.id) ? bundle.text(m.frame.loading) : bundle.text(m.frame.waiting) },
     bottom: {},
   });
 }
 ```
 
-## src/svelte/FrameBody.svelte
+## src/svelte/catalog/renderer/frame-body/FrameBody.svelte
 
-Source SHA-256: 3158fffbad99a404c9c6c2b93b26784ee827d9e78a0e3b3a79b51d4079a9eb0b
+Source SHA-256: 0ec0f43aa562960efbc0d6b100c0d246f157bf267a2727cd87b3a84485c4daac
 
 ```svelte
 <script lang="ts">
-  import type { FrameContent } from "../interaction/surface-frame.ts";
-  import type { SurfaceIntent } from "../interaction/intent.ts";
-  import type { BankEvent } from "../interaction/bank-events.ts";
-  import { BankVersion } from "../interaction/bank-node.ts";
-  import { BankRenderer, Information, MessageBody, UtilityActions } from "./adapter-catalog.ts";
-  import { isFormControlEvent, type FormControlEvent } from "../interaction/form-control-event.ts";
-  let { content, invoke, edit, messageDialog = false, controlEvent }: { content: FrameContent; messageDialog?: boolean;
-    invoke: (intent: SurfaceIntent) => void; edit: (name: string, value: string) => void;
-    controlEvent?: ((event: FormControlEvent) => void) | undefined;
-  } = $props();
-  function dispatch(event: BankEvent) {
+  import type { NodeEvent } from "../../../../interaction/node-events.ts";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
+  import { NodeRenderer, Information, Text, UtilityActions } from "../../index.ts";
+  import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { content, invoke, edit, messageDialog = false, controlEvent }: CatalogProps<"frame-body"> = $props();
+  function dispatch(event: NodeEvent) {
     if (event.kind === "input.change") edit(event.name, event.value);
     else if (isFormControlEvent(event)) controlEvent?.(event);
     else if (event.kind === "surface.invoke") invoke(event.intent);
   }
 </script>
 {#if content.kind === "form"}
-  <BankRenderer node={{ version: BankVersion, kind: "form", content }} onevent={dispatch} />
+  <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "form", content }} onevent={dispatch} />
 {:else if content.kind === "context"}
-  <BankRenderer node={{ version: BankVersion, kind: "context", content }} onevent={dispatch} />
+  <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "context", content }} onevent={dispatch} />
 {:else if content.kind === "facts"}
-  <BankRenderer node={{ version: BankVersion, kind: "fact", details: content }} />
+  <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "fact", details: content }} />
 {:else if content.kind === "review"}
-  <BankRenderer node={{ version: BankVersion, kind: "review", content }} />
+  <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "review", content }} />
 {:else if content.kind === "information"}
   <Information items={content.items} />
 {:else if content.kind === "utilities"}
   <UtilityActions actions={content.actions} {invoke} />
+{:else if messageDialog}
+  <!-- A message dialog's sentence centres under its title; a frame's message is a polite live status. -->
+  <Text kind="support" align="center" text={content.text} />
 {:else}
-  <MessageBody {content} {messageDialog} />
+  <Text kind="body" live="polite" text={content.text} />
 {/if}
 ```
 
@@ -4001,15 +3984,20 @@ export function dispatchSurfaceIntent(value: SurfaceIntent, handlers: IntentHand
 
 ## src/interaction/face.ts
 
-Source SHA-256: 1b34816a97afaea89a13751b4369c931938168d31672ebeaf7e5b6bf86a06b75
+Source SHA-256: 8b9b3e35412b4c1ebe0b9500341df2a243f8130da09e3b62da09870df423263f
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
 import type { Frozen } from "../json.ts";
 import { ActionIconSchema } from './action-icon.ts';
 
+/** The glyphs a face may draw: every action icon and the glyphs of a workspace's navigation destinations (a place to
+ * browse, the travel kit, the developer bank). A navigation destination's face is this one Face (law 9e). */
+export const FaceIconSchema = Type.Union([ActionIconSchema, Type.Literal("landmark"), Type.Literal("backpack"), Type.Literal("panels")]);
+export type FaceIcon = Static<typeof FaceIconSchema>;
+
 export const FaceSchema = Type.Union([
-  Type.Object({ kind: Type.Literal('icon'), icon: ActionIconSchema }, { additionalProperties: false }),
+  Type.Object({ kind: Type.Literal('icon'), icon: FaceIconSchema }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal("document") }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal("status"), severity: Type.Union([
     Type.Literal("warning"), Type.Literal("error"),
@@ -4208,9 +4196,9 @@ export function applyControlEvent(value: ControlNode, input: unknown): ControlTr
 }
 ```
 
-## src/interaction/control-bank.ts
+## src/interaction/control-specimens.ts
 
-Source SHA-256: 059b82799b57531d902a40feba5684b2c43c78eeed81670b1d83a13f7bd40982
+Source SHA-256: 2294b696df8356dc1557ca13e8481e40896fd6b1cefc216c661379081d71765b
 
 ```ts
 import { controlNode, type ControlNode } from "./control-nodes.ts";
@@ -4238,7 +4226,7 @@ const money = { ...base, kind: 'money', label: 'Amount', required: true, locale:
 const image = { ...base, kind: "image", label: "Notebook cover", alt: "An open notebook with blue pages", aspect: "landscape" } as const;
 const lockReleaseMs = 3000;
 
-export const ControlBank = freezeDeep(([
+export const ControlSpecimens = freezeDeep(([
   { id: "control.select", family: "control", specimens: [
     sample("available", { ...base, kind: "select", id: "choice", label: "Single choice", required: false, value: null, options: choices }),
     sample("disabled", { ...base, kind: "select", id: "disabled-choice", label: "Disabled choice", disabled: true,
@@ -4297,8 +4285,8 @@ export const ControlBank = freezeDeep(([
     sample("unavailable", { ...image, id: "missing-cover", source: null }),
   ] },
   { id: "control.avatar", family: "control", specimens: [
-    sample("image", { ...base, kind: "avatar", id: "author-photo", label: "Alex Rivera", source: "/bank-image.svg", fallback: "AR" }),
-    sample("fallback", { ...base, kind: "avatar", id: "author-initials", label: "Sam Lee", source: null, fallback: "SL" }),
+    sample("image", { ...base, kind: "avatar", id: "author-photo", label: "Alex Rivera", source: "/bank-image.svg", seed: "5c2e9b71a0d4f386" }),
+    sample("fallback", { ...base, kind: "avatar", id: "author-seed", label: "Sam Lee", source: null, seed: "a1b2c3d4e5f60718" }),
   ] },
 ] as const).map(entry => {
   const local = entry.specimens.find(specimen => specimen.state === 'value') ?? entry.specimens[0];
@@ -4313,7 +4301,7 @@ export const ControlBank = freezeDeep(([
 
 ## src/interaction/extended-nodes.ts
 
-Source SHA-256: f5059f98d3bc7da0f6f1dea8b251e2fb635295b86d0325a73a4da60ce5a66d99
+Source SHA-256: ff165b3b1cf350fd0411685217970112578a3a9d99420a24aa26c2df3a9ad663
 
 ```ts
 import { Type, type Static, type TProperties } from "@sinclair/typebox";
@@ -4344,12 +4332,14 @@ export const MoneyNodeSchema = object({ ...base, kind: Type.Literal("money"), re
   currency: text(), minorUnits: Type.Union([Type.Null(), minor]) });
 export const DateNodeSchema = object({ ...base, kind: Type.Literal("date"), required: Type.Boolean(),
   value: Type.Union([Type.Null(), day]), minimum: Type.Optional(day), maximum: Type.Optional(day) });
-export const TagNodeSchema = object({ ...base, kind: Type.Literal("tag"),
-  tone: Type.Union([Type.Literal("neutral"), Type.Literal("accent"), Type.Literal("success"), Type.Literal("warning"), Type.Literal("destructive")]) });
+/** The tones a tag carries: neutral, or a semantic accent the tag pairs with its text. */
+export const TagToneSchema = Type.Union([Type.Literal("neutral"), Type.Literal("accent"), Type.Literal("success"), Type.Literal("warning"),
+  Type.Literal("destructive")]);
+export const TagNodeSchema = object({ ...base, kind: Type.Literal("tag"), tone: TagToneSchema });
 export const ImageNodeSchema = object({ ...base, kind: Type.Literal("image"), source, alt: text(),
   aspect: Type.Union([Type.Literal("square"), Type.Literal("landscape"), Type.Literal("portrait")]) });
-export const AvatarNodeSchema = object({ ...base, kind: Type.Literal("avatar"), source,
-  fallback: Type.String({ minLength: 1, maxLength: 4 }) });
+// A person's mark: a picture over its seed drawing, or the seed alone. Never initials.
+export const AvatarNodeSchema = object({ ...base, kind: Type.Literal("avatar"), source, seed: Type.String({ minLength: 1 }) });
 export const ExtendedNodeSchemas = [OptionsNodeSchema, MoneyNodeSchema, DateNodeSchema, TagNodeSchema, ImageNodeSchema, AvatarNodeSchema] as const;
 export const ExtendedNodeSchema = Type.Union([...ExtendedNodeSchemas]);
 export type ExtendedNode = Frozen<Static<typeof ExtendedNodeSchema>>;
@@ -4598,61 +4588,102 @@ export const InformationSchema = Type.Object({ kind: Type.Literal("information")
 }, { additionalProperties: false });
 ```
 
-## src/svelte/pieces/Toolbar.svelte
+## src/svelte/catalog/compositions/toolbar/Toolbar.svelte
 
-Source SHA-256: ae9e2cb9a1146dbf37fdf2186565807073423f4a4ca879153a7b8dc12123a8bb
+Source SHA-256: 95d6500ce603f7e812ae79ce8d0833a8ae5732a509302ab5ded2c8116684a0f5
 
 ```svelte
 <script lang="ts">
-  import type { Toolbar } from "../../interaction/toolbar.ts";
-  import type { SurfaceIntent } from "../../interaction/intent.ts";
-  import type { ToolbarControls } from "./toolbar-controls.ts";
-  import ToolbarLayout from "./ToolbarLayout.svelte";
-  let { toolbar, invoke, submit, presentation = "standard", controls }: {
-    toolbar: Toolbar; invoke: (intent: SurfaceIntent) => void; submit?: string;
-    presentation?: "standard" | "message" | "transient"; controls?: ToolbarControls;
-  } = $props();
+  import { submitsJourney } from "../../../../interaction/intent.ts";
+  import type { ToolbarAction } from "../../../../interaction/toolbar.ts";
+  import type { BarCommand } from "../../../infra/bar-command.ts";
+  import { Bar } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { toolbar, invoke, submit, presentation = "standard" }: CatalogProps<"toolbar"> = $props();
+  // The command that runs the frame's form journey submits that form; every other command invokes its intent.
+  const command = (action: ToolbarAction): BarCommand =>
+    submit && submitsJourney(action.intent, submit.journey) ? { ...action, submit: submit.form } : action;
 </script>
 
-<ToolbarLayout content={{kind:"commands",toolbar,invoke,submit,presentation,controls}} />
+{#if toolbar.edge === "top"}
+  <Bar edge="top" purpose="commands" identity={{ title: toolbar.title, subtitle: toolbar.subtitle }}
+    identityRole={presentation === "message" ? "message" : "heading"} face={toolbar.face} leading={toolbar.leading}
+    trailing={toolbar.trailing ?? []} group={toolbar.actionGroup} primary={toolbar.primary && command(toolbar.primary)}
+    availability={toolbar.availability} settingsPlaceholder={false} inert={false} oninvoke={invoke} />
+{:else}
+  <Bar edge="bottom" purpose={toolbar.navigation === "steps" ? "steps" : "commit"} identityRole="heading" trailing={[]}
+    secondary={toolbar.secondary} primary={toolbar.primary && command(toolbar.primary)} settingsPlaceholder={false} inert={false}
+    oninvoke={invoke} />
+{/if}
 ```
 
-## src/svelte/pieces/Face.svelte
+## src/svelte/catalog/foundations/face/Face.svelte
 
-Source SHA-256: 58d74564178cf17dc11a97fe51e09423bfae4e1968fbb3b0fa547b5af492954b
+Source SHA-256: 4849dd65d88b5540a2fd3ee5a073a172a659e49c35d411251820ed72a84bb72c
 
 ```svelte
 <script lang="ts">
-  import CircleAlert from "@lucide/svelte/icons/circle-alert";
-  import FileText from "@lucide/svelte/icons/file-text";
-  import type { Face } from "../../interaction/face.ts";
-  import * as Avatar from "../vendor/components/ui/avatar/index.js";
-  import { actionIcons } from './action-icons.ts';
-  let { face, compact = false }: { face: Face; compact?: boolean } = $props();
+  import { faceIconNames } from '../../../infra/action-icons.ts';
+  import { Icon } from '../../index.ts';
+  import type { CatalogProps } from "../../types.d.ts";
+  import { glyphTone, type FaceTone } from "./face-tone.ts";
+  let { face, compact = false, ink }: CatalogProps<"face"> = $props();
   let glyph = $derived(face.kind === "symbol" ? face.text : face.kind === "flag"
     ? Array.from(face.region, letter => String.fromCodePoint(0x1f1e6 + letter.charCodeAt(0) - 65)).join("") : "");
-  let Icon = $derived(face.kind === 'icon' ? actionIcons[face.icon] : FileText);
+  // A status face wears its severity's ink; a host cannot ask it to wear another (fail loud, never a silent override).
+  let tone: FaceTone = $derived.by(() => {
+    if (face.kind === "status" && ink) throw new Error("FACE_STATUS_INK");
+    return face.kind === "status" ? face.severity : ink ?? "neutral";
+  });
 </script>
-<Avatar.Root shape="object" class="bank-face size-[var(--face-size,2rem)]" data-piece="face" data-face-kind={face.kind}
-  data-compact={compact || undefined} data-tone={face.kind === "status" ? face.severity : "neutral"} aria-hidden="true">
-  <Avatar.Fallback>{#if face.kind === 'icon'}<Icon />{:else if face.kind === "status"}<CircleAlert />{:else if face.kind === "document"}<FileText />{:else}<span data-face-glyph>{glyph}</span>{/if}</Avatar.Fallback>
-</Avatar.Root>
+<!-- One face primitive (law 9e): the theme's tm-face gives every face the same white ground and hairline; the root takes
+     no tone. The tone reaches only the glyph, through glyphTone, so a coloured ground cannot be written here. -->
+<div class="bank-face tm-face flex shrink-0 select-none overflow-hidden rounded-[var(--radius-face)]"
+  data-piece="face" data-face-kind={face.kind} data-compact={compact || undefined} data-tone={tone} aria-hidden="true">
+  <span class={["face-content type-body flex size-full items-center justify-center rounded-[inherit]", glyphTone[tone]]}
+    data-face-content data-glyph-tone={tone}>
+    {#if face.kind === 'icon'}<Icon name={faceIconNames[face.icon]} size="mark" />{:else if face.kind === "status"}<Icon name="circle-alert" size="mark" />{:else if face.kind === "document"}<Icon name="file-text" size="mark" />{:else}<span class="face-glyph" data-face-glyph>{glyph}</span>{/if}
+  </span>
+</div>
+
+<style>
+  /* Base geometry sits in the components layer, as in theme.css, so contextual rules keep their precedence. */
+  @layer components {
+    /* A host sizes the face through --face-size (the toolbar's); compact is the smaller mark of a dense list. */
+    .bank-face { width:var(--face-size,2rem); height:var(--face-size,2rem); color:var(--muted-foreground); }
+    .bank-face[data-compact] { width:1.5rem; height:1.5rem; }
+    .face-glyph { font-size:calc(var(--face-size,2rem) * .6); line-height:1; }
+    .bank-face[data-compact] .face-glyph { font-size:calc(1.5rem * .6); }
+    /* The only tone rules of a face: glyph inks, on the content span (face-tone.ts names them). */
+    .glyph-neutral { color:var(--muted-foreground); }
+    .glyph-warning { color:var(--warning); }
+    .glyph-error { color:var(--destructive); }
+    .glyph-accent { color:var(--primary-text); }
+    .glyph-positive { color:var(--positive); }
+    .bank-face[data-face-kind="flag"] .face-glyph { font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif; }
+  }
+</style>
 ```
 
-## src/svelte/pieces/FieldWell.svelte
+## src/svelte/catalog/foundations/field/FieldWell.svelte
 
-Source SHA-256: 74223814c131736a82a24887887d77f631e15a8077f4b3fd072d470ad34fa777
+Source SHA-256: 15817ed6a76f4af4d9c971ea5eee498840abbc0d4481d4ebdbe4fdc42e847604
 
 ```svelte
 <script lang="ts">
+  // The rounded well of a Field: its persistent label above the editor, an optional prefix (a currency choice), the
+  // trailing accessory (the clear control or the caller's action) and a footer (the character counter). A press on the
+  // well's own surface focuses its editor.
   import type { Snippet } from "svelte";
-  import * as Group from "../vendor/components/ui/input-group/index.js";
-  import FieldWellContent from "./FieldWellContent.svelte";
-  import { cn } from "../vendor/utils.js";
-  let { id, label, filled, required = false, prefix, accessory, footer, children, presentation = "standard" }: {
-    id: string; label: string; filled: boolean; required?: boolean;
-    prefix?: Snippet; accessory?: Snippet; footer?: Snippet | undefined; children: Snippet;
-    presentation?: "standard" | "access";
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
+  import { cn } from "../../../vendor/utils.js";
+  import FieldLabel from "./FieldLabel.svelte";
+  // `filled` says the editor holds text; `raised` that its line shows text (the value or a placeholder), so the label
+  // keeps its place above it instead of resting on the empty line. A disabled well's row is one content unit that fades
+  // once (the theme's disabled-unit), whoever draws the controls in it.
+  let { id, label, labelVisibility, required, disabled, filled, raised, prefix, accessory, footer, children }: {
+    id: string; label: string; labelVisibility: "visible" | "accessible"; required: boolean; disabled: boolean; filled: boolean; raised: boolean;
+    prefix: Snippet | undefined; accessory: Snippet; footer: Snippet | undefined; children: Snippet;
   } = $props();
   function focusEditor(event: MouseEvent) {
     if (event.defaultPrevented || !(event.target instanceof Element)) return;
@@ -4663,347 +4694,324 @@ Source SHA-256: 74223814c131736a82a24887887d77f631e15a8077f4b3fd072d470ad34fa777
     }
   }
 </script>
-<Group.Root {presentation} onclick={focusEditor} class={cn("field-well overflow-hidden p-0", footer && "flex-col items-stretch")} data-floating-field data-field-focus="within" data-compound-field={!!prefix} data-filled={filled}>
-  <div data-field-row class="flex w-full min-w-0 items-center">
-    <FieldWellContent {id} {label} {required} {children} />
+<Group.Root onclick={focusEditor} class={cn("field-well overflow-hidden p-0", footer && "flex-col items-stretch")} data-floating-field
+  data-field-focus="within" data-compound-field={!!prefix} data-filled={filled} data-label-raised={raised}>
+  <div data-field-row class={cn("flex w-full min-w-0 items-center", disabled && "disabled-unit")}>
+    <FieldLabel for={id} {label} {labelVisibility} {required}>{@render children()}</FieldLabel>
     {#if prefix}<Group.Addon align="inline-start" class="field-prefix">{@render prefix()}</Group.Addon>{/if}
-    {@render accessory?.()}
+    {@render accessory()}
   </div>
   {@render footer?.()}
 </Group.Root>
 ```
 
-## src/svelte/pieces/SearchField.svelte
+## src/svelte/catalog/foundations/field/SearchWell.svelte
 
-Source SHA-256: 82718e929f00a881d0e8522ab4648e668908463c4187a37d209e91880e766dc2
+Source SHA-256: 1f2b0fd49efff3ea81d704f893e4ae15a379520216c0d1f8010aa33ffb8a9793
 
 ```svelte
 <script lang="ts">
-  import * as InputGroup from "../vendor/components/ui/input-group/index.js";
-  import Search from "@lucide/svelte/icons/search";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  // The well of a search Field: a leading search glyph, the query editor and its clear control. A press on the well's
+  // own surface focuses the editor; `focus: "on-mount"` focuses it when the well appears (an expanding toolbar search),
+  // and `controls` names the results the query filters. A bar's search gives its clear control the bar's target; in a
+  // comfortable layout (a workspace whose navigation is an overlay) the well keeps the touch geometry it has on a narrow or
+  // coarse screen.
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
+  import { Icon } from "../../index.ts";
+  import { useSurfaceTypography } from "../../../infra/surface-typography.svelte.ts";
   import ClearInput from "./ClearInput.svelte";
-
-  const generatedId = $props.id();
-  let { id = generatedId, value = $bindable(""), ref = $bindable(null), onvalue, disabled = false, readonly = false,
-    placeholder, "aria-label": label, "aria-controls": controls, tabindex, onready }: {
-    id?: string; placeholder?: string; disabled?: boolean; readonly?: boolean;
-    "aria-label"?: string; "aria-controls"?: string; tabindex?: -1 | 0;
-    value?: string; ref?: HTMLInputElement | null; onvalue?: (value: string) => void;
-    onready?: (element: HTMLInputElement | null) => void;
+  let { id, label, placeholder, disabled, invalid, describedBy, focus, controls, bar, writing = $bindable(""), onchange }: {
+    id: string; label: string; placeholder: string | undefined; disabled: boolean; invalid: boolean; describedBy: string | undefined;
+    focus: "on-mount" | undefined; controls: string | undefined; bar: "search" | undefined; writing?: string; onchange: (value: string) => void;
   } = $props();
-  let fieldId = $derived(id ?? generatedId);
-  $effect(() => { onready?.(ref); return () => onready?.(null); });
-
-  function update(next: string) { value = next; onvalue?.(next); }
+  const density = useSurfaceTypography();
+  let editor = $state<HTMLInputElement | null>(null);
+  $effect(() => { if (focus === "on-mount" && editor) editor.focus({ preventScroll: true }); });
+  function focusEditor(event: MouseEvent) {
+    if (!(event.target instanceof Element) || event.target.closest("button,input")) return;
+    editor?.focus({ preventScroll: true });
+  }
 </script>
-
-<InputGroup.Root data-search-field data-disabled={disabled} aria-disabled={disabled || undefined}
-  onclick={event => {
-    if (!(event.target as Element).closest("button,input")) ref?.focus({ preventScroll: true });
-  }}>
-  <InputGroup.Input id={fieldId} bind:ref type="search" {value} {disabled} {readonly}
-    {placeholder} aria-label={label} aria-controls={controls} {tabindex}
-    autocomplete="off" oninput={event => update(event.currentTarget.value)} />
-  <InputGroup.Addon align="inline-start"><Search data-search-icon="leading" aria-hidden="true" /></InputGroup.Addon>
-  <ClearInput control={fieldId} {value} label="Clear search" disabled={!!(disabled || readonly)} />
-</InputGroup.Root>
+<Group.Root data-search-field data-disabled={disabled} aria-disabled={disabled || undefined} onclick={focusEditor}
+  data-bar-search={bar === "search" || undefined} data-comfortable={density() === "comfortable" || undefined}>
+  <Group.Input {id} bind:ref={editor} type="search" bind:value={writing} {disabled} {placeholder} aria-label={label}
+    aria-invalid={invalid} aria-describedby={describedBy} aria-controls={controls} autocomplete="off" oninput={event => onchange(event.currentTarget.value)} />
+  <Group.Addon align="inline-start"><Icon name="search" search="leading" size="lead" decorative /></Group.Addon>
+  <ClearInput control={id} value={writing} label={say(m.field.clearSearch)} {disabled} lead />
+</Group.Root>
 ```
 
-## src/svelte/pieces/MeasuredField.svelte
+## src/svelte/catalog/foundations/field/field-measure.css
 
-Source SHA-256: 7878ecb445d83b7e2ac823ada6924831b8e24900b3b5fe66eb264f3bed0d3d2e
-
-```svelte
-<script lang="ts">
-  import type { Snippet } from 'svelte';
-  import type { PrimitiveId } from '../../interaction/catalog.ts';
-  import * as Field from '../vendor/components/ui/field/index.js';
-  // The outer box measures available space; the complete accessible field
-  // (including validation/support) owns its preferred measure inside it.
-  const measures = { 'input.text': 'writing', 'input.multiline': 'writing',
-    'control.select': 'choice', 'control.date': 'date', 'control.money': 'amount' } as const satisfies Partial<Record<PrimitiveId,string>>;
-  let { kind, children, invalid, disabled }: {
-    kind: keyof typeof measures; children?: Snippet; invalid?: boolean; disabled?: boolean;
-  } = $props();
-</script>
-
-<div data-control-measure={measures[kind]}>
-  <Field.Field data-primitive={kind.startsWith('input.') ? kind : undefined}
-    data-control={kind.startsWith('control.') ? kind.slice(8) : undefined}
-    data-invalid={invalid} data-disabled={disabled}>{@render children?.()}</Field.Field>
-</div>
-```
-
-## src/svelte/pieces/control-measure.css
-
-Source SHA-256: d84a698ed4e2a0ac55dfff442cb0f905666a565dc0e83086605c5d7ef727e91a
+Source SHA-256: a6d544106db22757fac607a49678b029dbc97f1291d7c114649eddabb0d202ea
 
 ```ts
-/* Family measures stay stable while editing. A 3rem residual strip is absorbed
-   into the field. Queries measure the containing slot, never the device. */
-[data-control-measure] { container:control-measure / inline-size; width:100%; min-width:0; align-self:stretch; }
-[data-control-measure="writing"] { --control-preferred:32rem; }
-[data-control-measure="choice"] { --control-preferred:26rem; }
-[data-control-measure="date"] { --control-preferred:20rem; }
-[data-control-measure="amount"] { --control-preferred:22rem; }
-[data-control-measure] > [data-slot="field"] { width:100%; min-width:0; max-width:var(--control-preferred); margin-inline:0; }
+/* A Field's preferred measure stays stable while editing. A 3rem residual strip is absorbed into the field. Queries
+   measure the containing slot, never the device. `fill` takes the whole slot. */
+[data-measure] { container:control-measure / inline-size; width:100%; min-width:0; align-self:stretch; }
+[data-measure="writing"] { --control-preferred:32rem; }
+[data-measure="choice"] { --control-preferred:26rem; }
+[data-measure="date"] { --control-preferred:20rem; }
+[data-measure="amount"] { --control-preferred:22rem; }
+[data-measure="fill"] { --control-preferred:none; }
+[data-measure] > [data-slot="field"] { width:100%; min-width:0; max-width:var(--control-preferred); margin-inline:0; }
 /* Each cutoff is the preferred measure above plus the same 3rem allowance.
    No width transition: resizing must not chase the pointer or reflow text late. */
 @container control-measure (max-width:35rem) {
-  [data-control-measure="writing"] > [data-slot="field"] { max-width:none; }
+  [data-measure="writing"] > [data-slot="field"] { max-width:none; }
 }
 @container control-measure (max-width:29rem) {
-  [data-control-measure="choice"] > [data-slot="field"] { max-width:none; }
+  [data-measure="choice"] > [data-slot="field"] { max-width:none; }
 }
 @container control-measure (max-width:23rem) {
-  [data-control-measure="date"] > [data-slot="field"] { max-width:none; }
+  [data-measure="date"] > [data-slot="field"] { max-width:none; }
 }
 @container control-measure (max-width:25rem) {
-  [data-control-measure="amount"] > [data-slot="field"] { max-width:none; }
+  [data-measure="amount"] > [data-slot="field"] { max-width:none; }
 }
 ```
 
-## src/svelte/pieces/GroupedPanel.svelte
+## src/svelte/catalog/foundations/list/List.svelte
 
-Source SHA-256: c5a9335a837e50bf5e507d914b14c6e94be8a5e7dac60864f2b722627d288058
+Source SHA-256: 603257de3293ccf620366c9f694fab5c66a7c53aa524dc63293f089534d1adb5
 
 ```svelte
 <script lang="ts">
-  import type { Snippet } from "svelte";
-  import * as Card from "../vendor/components/ui/card/index.js";
-  let { children, measure = 'reading' }: { children: Snippet; measure?: 'reading' | 'overview' } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { kind, measure, label, busy, children }: CatalogProps<"list"> = $props();
 </script>
 
-<!-- One shared pane for sibling rows; Stack only supplies hierarchy. -->
-<div data-reading-measure={measure === 'reading' || undefined}>
-  <Card.Root class="grouped-panel" data-grouped-panel>{@render children()}</Card.Root>
+<!-- One shared pane for sibling rows or facts; the rows draw their own hairlines. -->
+{#if kind === "facts"}
+  <dl class="list list-facts material-pane" class:list-reading={measure === "reading"} data-list="facts" aria-label={label} aria-busy={busy}>
+    {@render children?.()}
+  </dl>
+{:else}
+  <div class="list list-rows material-pane" class:list-reading={measure === "reading"} data-list="rows"
+    role={label ? "group" : undefined} aria-label={label} aria-busy={busy}>{@render children?.()}</div>
+{/if}
+
+<style>
+  .list { width:100%; min-width:0; overflow:hidden; border-radius:var(--radius-group); }
+  .list-reading { max-width:34rem; }
+  .list-rows { display:flex; flex-direction:column; color:var(--card-foreground); }
+  /* Fact rows stack their label above the value when the pane is narrow. */
+  .list-facts { container:fact-group / inline-size; }
+</style>
+```
+
+## src/svelte/catalog/foundations/choice/ChoiceRows.svelte
+
+Source SHA-256: 8e19a3ec9c433f3e51806e7702183c7bff9589506071642ee47aa0224c661bab
+
+```svelte
+<script lang="ts">
+  import * as RadioGroup from "../../../vendor/components/ui/radio-group/index.js";
+  import { Checkbox } from "../../../vendor/components/ui/checkbox/index.js";
+  import type { ChoiceOption } from "../../../../interaction/choice.ts";
+  import ChoiceAnatomy from "./ChoiceAnatomy.svelte";
+  import { rowDivider, rowFrame, rowGroup } from "./choice-row.ts";
+  import { pressFeedback } from "../../mechanisms/press-feedback/press-feedback.ts";
+  // The options as rows of one pane at the reading measure: a radio each for one, a checkbox each for many. A row's label
+  // activates its control; a disabled option's control keeps full ink while its content dims. A held row compresses its
+  // content (the press-feedback mechanism marks it pressed; the theme's control-feedback draws it), as an action row does.
+  // The marks are bound to `selected` through a getter and a setter: a press only proposes the next selection, and the
+  // marks show what the owner accepts (an edit the owner refuses never shows).
+  // In their own pane they keep the reading measure; inside a hosting pane (`interior`) they take its width, transparent.
+  let { id, label, frame, cardinality, options, selected, disabled, required, onchange }: { id: string; label: string; frame: "pane" | "interior";
+    cardinality: "one" | "many"; options: readonly ChoiceOption[]; selected: readonly string[]; disabled: boolean; required: boolean;
+    onchange: ((selected: string[]) => void) | undefined } = $props();
+  const control = (value: string) => `${id}-${value}`;
+  const unavailable = (option: ChoiceOption) => disabled || option.disabled;
+  function toggle(value: string, checked: boolean) {
+    onchange?.(checked ? [...selected, value] : selected.filter(item => item !== value));
+  }
+</script>
+
+{#snippet rows()}
+  {#each options as option, index (option.value)}
+    <label {@attach pressFeedback} for={control(option.value)} class="group/field-label peer/field-label gap-2 leading-snug type-control select-none items-center
+      {rowFrame} {index > 0 ? rowDivider : ''}" aria-disabled={unavailable(option)} data-choice-row data-choice-option={option.value}>
+      <ChoiceAnatomy {option} labelId={`${control(option.value)}-label`} descriptionId={`${control(option.value)}-description`}
+        dimmed={unavailable(option)}>
+        {#snippet mark()}
+          {#if cardinality === "one"}
+            <RadioGroup.Item id={control(option.value)} value={option.value} disabled={unavailable(option)} class="disabled:opacity-100"
+              aria-labelledby={`${control(option.value)}-label`}
+              aria-describedby={option.description ? `${control(option.value)}-description` : undefined} />
+          {:else}
+            <Checkbox id={control(option.value)} bind:checked={() => selected.includes(option.value), checked => toggle(option.value, checked)}
+              disabled={unavailable(option)} class="disabled:opacity-100" aria-labelledby={`${control(option.value)}-label`}
+              aria-describedby={option.description ? `${control(option.value)}-description` : undefined} />
+          {/if}
+        {/snippet}
+      </ChoiceAnatomy>
+    </label>
+  {/each}
+{/snippet}
+
+<div class="w-full min-w-0 {frame === 'pane' ? 'max-w-[34rem]' : ''}">
+  <div class="{frame === 'pane' ? 'material-pane text-card-foreground rounded-[var(--radius-group)]' : 'material-interior rounded-[var(--radius-control)]'} overflow-hidden flex flex-col">
+    {#if cardinality === "one"}
+      <RadioGroup.Root bind:value={() => selected[0] ?? "", value => onchange?.(value ? [value] : [])} {disabled} {required}
+        aria-label={label} class={rowGroup}>{@render rows()}</RadioGroup.Root>
+    {:else}<div class={rowGroup}>{@render rows()}</div>{/if}
+  </div>
 </div>
 ```
 
-## src/svelte/pieces/ChoiceRow.svelte
+## src/svelte/catalog/foundations/choice/ChoiceMenu.svelte
 
-Source SHA-256: a65a3a320e791fdfa02a92d874d5db16d5a5fc0bb7becfd7b918fcf379f106e4
-
-```svelte
-<script lang="ts">
-  import type { Snippet } from "svelte";
-  import * as Field from "../vendor/components/ui/field/index.js";
-  import ChoiceItem from "./ChoiceItem.svelte";
-  import { pressFeedback } from "../vendor/components/ui/button/press-feedback.js";
-  let { id, labelId, descriptionId, label, description, disabled, children }: {
-    id: string; labelId: string; descriptionId?: string; label: string;
-    description?: string | undefined; disabled: boolean; children: Snippet;
-  } = $props();
-  let row = $state<HTMLLabelElement | null>(null);
-  $effect(() => { if (row) return pressFeedback(row); });
-</script>
-
-<Field.FieldLabel bind:ref={row} for={id} class="tm-control" aria-disabled={disabled} data-grouped-row data-choice-row data-material="interior">
-  <ChoiceItem {label} {labelId} {description} {descriptionId}>
-    {@render children()}
-  </ChoiceItem>
-</Field.FieldLabel>
-```
-
-## src/svelte/pieces/SelectionField.svelte
-
-Source SHA-256: 0e23753b18c3a2443ad3d0d355a249ada6c857d44fe30c5dd44ce1b97abaadf4
+Source SHA-256: c5099fe3e9e5d24ea82b42c0fb695f9747ddedf942fc3472ef11fd9b390a967d
 
 ```svelte
 <script lang="ts">
-  import { tick, untrack, type Snippet } from "svelte";
-  import { dismissWhenInactive } from './surface-activity.svelte.ts';
-  import * as Popover from "../vendor/components/ui/popover/index.js";
-  import { Button } from "../vendor/components/ui/button/index.js";
-  import ChevronDown from "@lucide/svelte/icons/chevron-down";
-  import FieldWellContent from "./FieldWellContent.svelte";
-  import Face from "./Face.svelte";
-  import PickerSheet from "./PickerSheet.svelte";
-  import SelectionList from "./SelectionList.svelte";
-  import { surfaceFocus, revealSurfaceFocus } from "./surface-focus.svelte.ts";
-  import { PickerPresentation } from "./picker-presentation.svelte.ts";
-  import type { SelectionOption } from "../../interaction/selection-option.ts";
-  let { id, selection, label, triggerLabel = label, value, options, disabled = false, required = false,
-    fieldControl = false, contextual = false, selectedContent, optionLeading, onchange }: {
-    id?: string; selection: string; label: string; triggerLabel?: string; value: string | null;
-    options: readonly (SelectionOption & { readonly description?: string })[];
-    disabled?: boolean; required?: boolean; fieldControl?: boolean; contextual?: boolean; onchange: (value: string) => void;
-    selectedContent?: Snippet<[SelectionOption | undefined]>;
-    optionLeading?: Snippet<[SelectionOption]>;
-  } = $props();
-  const generatedId = $props.id();
-  const picker = new PickerPresentation();
-  let triggerId = $derived(id ?? generatedId);
-  let selectedOption = $derived(options.find(option => option.value === value));
-  let valueLabel = $derived(selectedOption?.label ?? "Not selected");
-  let open = $state(false);
-  let activeValue = $state<string | null>(null);
-  let list = $state<HTMLDivElement | null>(null);
-  let focusBoundary: HTMLElement | null = null;
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  import { tick } from "svelte";
+  import { Popover } from "../../index.ts";
+  import { cn } from "../../../vendor/utils.js";
+  import { pressFeedbackProps } from "../../mechanisms/press-feedback/press-feedback.ts";
+  import { Field, Icon } from "../../index.ts";
+  import { surfaceFocus, revealSurfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
+  import { provideOpenFocus } from "../../mechanisms/surface-focus/focus-return.ts";
+  import type { ChoiceOption } from "../../../../interaction/choice.ts";
+  import ChoiceLeading from "./ChoiceLeading.svelte";
+  import ChoiceMenuList from "./ChoiceMenuList.svelte";
+  // One value from a list behind a trigger: a field well, an inline value (a currency beside an amount) or a contextual
+  // value at a row's end. The popover anchors the list, or presents it as a sheet when its anchor has no room; the
+  // trigger is an owned trigger of the popover: the well is Field's select trigger (the chosen option drawn here), the
+  // inline and contextual values are this choice's own buttons.
+  // A `measure` boxes the well at the choice measure of the field family (Field's measure: 26rem, filling a slot within
+  // 3rem of it), so a select control keeps the width every field of its form keeps.
+  let { id, label, trigger, placeholder, measure, options, selected, disabled, required, onchange }: { id: string; label: string;
+    trigger: "well" | "inline" | "contextual"; placeholder: string | undefined; measure: "choice" | undefined;
+    options: readonly ChoiceOption[]; selected: readonly string[];
+    disabled: boolean; required: boolean; onchange: ((selected: string[]) => void) | undefined } = $props();
+  let value = $derived(selected[0] ?? null);
+  let chosen = $derived(options.find(option => option.value === value));
+  let valueLabel = $derived(chosen?.label ?? placeholder ?? say(m.choice.notSelected));
+  let open = $state(false), activeValue = $state<string | null>(null), list = $state<HTMLDivElement | null>(null);
   const boundary = () => list?.closest<HTMLElement>('[data-picker-sheet],[data-slot="popover-content"]') ?? null;
   const initialFocus = surfaceFocus(boundary);
+  /** Opening, or a presentation replacement while open, returns to the option the person was exploring. */
   function focus(event: Event) {
-    void tick().then(() => { focusBoundary = boundary() ?? focusBoundary; });
     const retained = activeValue;
     if (!retained) { initialFocus(event); return; }
     event.preventDefault();
     void tick().then(() => {
       const target = [...list?.querySelectorAll<HTMLElement>('[role="option"]') ?? []]
-        .find(option => option.dataset.value === retained && option.getAttribute('aria-disabled') !== 'true');
+        .find(option => option.dataset.choiceOption === retained && option.getAttribute("aria-disabled") !== "true");
       const surface = boundary();
       if (!open || !surface) return;
       if (!target) { initialFocus(event); return; }
       target.focus({ preventScroll: true }); revealSurfaceFocus(target, surface);
     });
   }
-  function restore(event: Event) {
-    event.preventDefault();
-    const active = document.activeElement;
-    if (!open && (!active || active === document.body || focusBoundary?.contains(active)))
-      document.getElementById(triggerId)?.focus({ preventScroll: true });
-  }
+  provideOpenFocus(focus);
   $effect(() => { if (!open) activeValue = null; });
-  dismissWhenInactive(() => { open = false; });
-  let observed = untrack(() => selection);
-  $effect(() => {
-    const next = selection, unavailable = disabled;
-    untrack(() => { if (unavailable || next !== observed) open = false; observed = next; });
-  });
   function change(next: string) {
-    if (!disabled && next !== value && options.some(option => option.value === next && !option.disabled)) onchange(next);
+    if (!disabled && next !== value && options.some(option => option.value === next && !option.disabled)) onchange?.([next]);
   }
+  // The values keep the look the selection values had: an interior value at its fit width. The inline value fills the
+  // height of the field prefix it sits in (a currency beside an amount).
+  const base = "inline-flex shrink-0 items-center whitespace-nowrap type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0";
+  const faces = {
+    inline: "bg-transparent text-foreground border-0 w-full font-normal min-h-11 px-4 py-2 material-interior control-feedback",
+    contextual: "bg-transparent text-foreground border-0 w-full font-normal min-h-11 px-4 py-2 material-interior control-feedback justify-self-end",
+  } as const;
+  const fit = "max-w-full min-w-0 whitespace-normal text-balance h-auto w-fit justify-between gap-3 rounded-[var(--radius-control)]";
+  let name = $derived(trigger === "inline" ? `${valueLabel} · ${label}` : label);
 </script>
-{#snippet selectedValue()}
-  {#if selectedContent}{@render selectedContent(selectedOption)}{:else}
-  <span class="selection-value" data-contextual={contextual || undefined}>
-    {#if selectedOption?.face}<Face face={selectedOption.face} compact />{/if}
-    <span class="selection-label">{valueLabel}</span>
+
+{#snippet shown()}
+  <span class="value" data-contextual={trigger === "contextual" || undefined}>
+    {#if chosen?.leading}<ChoiceLeading leading={chosen.leading} frame="mark" />{/if}<span class="text wrap-words">{valueLabel}</span>
   </span>
-  {/if}
 {/snippet}
-{#snippet choices()}
-  <SelectionList {label} {value} {options} {optionLeading} {required} bind:activeValue bind:ref={list}
-    onchange={change} onclose={() => { open = false; }} />
-{/snippet}
-<Popover.Root bind:open>
-  <Popover.Trigger id={triggerId} {disabled}>
-    {#snippet child({ props })}
-    <Button {...props} {disabled} wrap variant={fieldControl ? 'well' : 'field'} size={fieldControl ? 'well' : 'default'}
-      data-slot="select-trigger" data-floating-field={fieldControl || undefined} data-filled={fieldControl || undefined}
-      presentation={fieldControl ? 'selection-well' : contextual ? 'selection-context' : 'selection-inline'}
-      aria-haspopup="listbox" aria-controls={open ? list?.id : undefined}
-      aria-label={fieldControl ? `${label} · ${valueLabel}` : triggerLabel}
-      aria-describedby={required ? `${triggerId}-requirement` : undefined} data-selection-trigger
-      onkeydown={event => {
-        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); open = true; }
-        else if (typeof props.onkeydown === 'function') props.onkeydown(event);
-      }}>
-    {#if fieldControl}
-      <FieldWellContent {label} {required}>
-        <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
-          {@render selectedValue()}
-          <ChevronDown data-icon="inline-end" data-control-chevron aria-hidden="true" />
-        </span>
-      </FieldWellContent>
-    {:else}
-      {@render selectedValue()}
-      <ChevronDown data-icon="inline-end" data-control-chevron aria-hidden="true" />
-    {/if}
-    </Button>
-    {/snippet}
-  </Popover.Trigger>
-  {#if picker.current === "sheet"}
-    <PickerSheet bind:open {label} {triggerId} onOpenAutoFocus={focus}>
-      {@render choices()}
-    </PickerSheet>
-  {:else}
-    <Popover.Content role="presentation" onOpenAutoFocus={focus} onCloseAutoFocus={restore}
-      presentation="selection"
-      onFocusOutside={event => { if (!(event.target instanceof HTMLElement) || event.target.id !== triggerId) open = false; }}>
-      {@render choices()}
-    </Popover.Content>
-  {/if}
-</Popover.Root>
-{#if required}<span id={`${triggerId}-requirement`} class="sr-only">Required</span>{/if}
+{#if trigger === "well"}
+  <Field primitive="trigger" select label={label} labelVisibility="visible" {required} invalid={false} {disabled} {measure}
+    display={{ kind: "text", text: valueLabel, placeholder: chosen === undefined }}
+    disclosure={{ id, controls: `${id}-options`, expanded: open, haspopup: "listbox" }} onopen={() => { if (!disabled) open = !open; }}>
+    {#snippet selection()}{@render shown()}{/snippet}
+  </Field>
+{:else}
+<button {...pressFeedbackProps} type="button" {id} {disabled} class={cn(base, faces[trigger], fit, trigger === "inline" && "h-full")}
+  aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? `${id}-options` : undefined} aria-label={name}
+  aria-describedby={required ? `${id}-requirement` : undefined} data-state={open ? "open" : "closed"} data-selection-trigger data-choice="menu"
+  onclick={() => { if (!disabled) open = !open; }}
+  onkeydown={event => { if ((event.key === "ArrowDown" || event.key === "ArrowUp") && !disabled) { event.preventDefault(); open = true; } }}>
+  <span class="content control-feedback-content disabled-content" data-button-content>{@render shown()}<Icon name="chevron-down" placement="inline-end" chevron decorative /></span>
+</button>
+{/if}
+<Popover {label} {open} {disabled} locked={false} content="list" placement="adaptive" align="start" controls={`${id}-options`} onopenchange={next => { open = next; }}
+  trigger={{ kind: "owned", id }}>
+  <ChoiceMenuList id={`${id}-options`} {label} {value} {options} {required} bind:activeValue bind:ref={list} onchange={change}
+    onclose={() => { open = false; }} />
+</Popover>{#if required && trigger !== "well"}<span id={`${id}-requirement`} class="sr-only">{say(m.choice.required)}</span>{/if}
+
 <style>
-  .selection-value { display:flex; flex:1; min-width:0; align-items:center; gap:.5rem; }
-  .selection-value[data-contextual] { justify-content:flex-end; text-align:end; }
-  .selection-label { min-width:0; white-space:normal; overflow-wrap:anywhere; text-wrap:balance; }
+  .value { display:flex; flex:1; min-width:0; align-items:center; gap:.5rem; }
+  .value[data-contextual] { justify-content:flex-end; text-align:end; }
+  .text { min-width:0; white-space:normal; text-wrap:balance; }
+  /* The trigger lays out its own content (it is not the vendor button, whose global rule did this): one row as the button. */
+  .content { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
 </style>
 ```
 
-## src/svelte/pieces/CollectionState.svelte
+## src/svelte/catalog/compositions/collection-state/CollectionState.svelte
 
-Source SHA-256: ffd7011f5aa5d2163624e2399c1e404af3a6882ca1c0ee2d51df5840ae512a3d
+Source SHA-256: 2dd45bbbf5e91c5b83fecb441ed60e8ae6fede0d34f614039184a18e0722e0de
 
 ```svelte
 <script lang="ts">
-  import * as Empty from "../vendor/components/ui/empty/index.js";
-  import { Skeleton } from "../vendor/components/ui/skeleton/index.js";
-  import GroupedPanel from "./GroupedPanel.svelte";
-  let { loaded, createLabel, connection }: { loaded: boolean; createLabel?: string; connection?: 'loading' | 'ready' | 'offline' | undefined } = $props();
+  import { List, Loading, Status } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { loaded, createLabel, connection }: CatalogProps<"collection-state"> = $props();
   let offline = $derived(connection === 'offline');
   let pending = $derived(!loaded && !offline);
 </script>
-<GroupedPanel><div role="group" aria-label="Collection state" aria-busy={pending}
-  data-collection-state={offline ? 'offline' : loaded ? 'empty' : 'loading'}><Empty.Root>
-  {#if pending}
-    <div class="flex w-full flex-col gap-2" aria-hidden="true">
-      <Skeleton line="primary" />
-      <Skeleton line="secondary" />
-    </div>
-    <span class="sr-only" role="status">Loading content…</span>
-  {:else}
-  <Empty.Header>
-    <Empty.Title role="heading" aria-level={2}>{offline ? 'Controller unavailable.' : 'Nothing here yet.'}</Empty.Title>
-    {#if offline || createLabel}<Empty.Description>{offline ? 'Reconnect to load this content.' : `Use “${createLabel}” to get started.`}</Empty.Description>{/if}
-  </Empty.Header>
-  {/if}
-</Empty.Root></div></GroupedPanel>
+<List kind="rows" measure="reading" label={say(m.collectionState.label)} busy={pending}>
+  {#if pending}<Loading kind="lines" inset="block" label={say(m.collectionState.loading)} />
+  {:else if offline}<Status tone="offline" size="regular" heading title={say(m.collectionState.offlineTitle)}
+    description={say(m.collectionState.offlineDescription)} />
+  {:else}<Status tone="neutral" size="regular" heading title={say(m.collectionState.emptyTitle)}
+    description={createLabel ? say(m.collectionState.emptyDescription, { command: createLabel }) : undefined} />{/if}
+</List>
 ```
 
-## src/svelte/pieces/Action.svelte
+## src/svelte/catalog/foundations/action/Action.svelte
 
-Source SHA-256: 858b2b5df9c483fd896605d31a372889e8002861056852bc14c62f78a4f8783b
+Source SHA-256: 4647c3a14d7b7c651f13b61c8dc04ea5a5b7cafe00b68c39d81ca34915639126
 
 ```svelte
 <script lang="ts">
-  import { Button } from "../vendor/components/ui/button/index.js";
-  import Loader2 from "@lucide/svelte/icons/loader-2";
-  import { cn } from "../vendor/utils.js";
-  import type { ToolbarAction } from "../../interaction/toolbar.ts";
-  import { actionIcons } from "./action-icons.ts";
-  import type { ActionElementProps } from "../action-adapter.ts";
-  let { label, icon, state: status = "ready", emphasis = "secondary", onclick, type = "button", elementProps, reason }: {
-    label: string; icon: keyof typeof actionIcons; state?: ToolbarAction["state"];
-    emphasis?: "primary" | "secondary"; onclick?: () => void; type?: "button" | "submit";
-    elementProps?: ActionElementProps | undefined; reason?: string | undefined;
-  } = $props();
+  import { untrack } from "svelte";
+  import { Button } from "../../../vendor/components/ui/button/index.js";
+  import { cn } from "../../../vendor/utils.js";
+  import { actionIconNames } from "../../../infra/action-icons.ts";
+  import { Icon } from "../../index.ts";
+  import { inFieldAccessory } from "../../mechanisms/field-accessory/field-accessory.svelte.ts";
+  import { actionPairScale } from "../../mechanisms/action-pair/action-pair.svelte.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { label, icon, state: status, emphasis, face: shown, type, reason, form, disclosure, current, bar, onclick }: CatalogProps<"action"> = $props();
   const id = $props.id();
   const descriptionId = `${id}-reason`;
-  function buttonEvent<E extends Event>(event: E): event is E & { currentTarget: EventTarget & HTMLButtonElement } {
-    return event.currentTarget instanceof HTMLButtonElement;
-  }
-  function forward<E extends Event>(handler: ((event: E & { currentTarget: EventTarget & HTMLButtonElement }) => void) | null | undefined) {
-    return (event: E) => { if (status === "ready" && buttonEvent(event)) handler?.(event); };
-  }
-  // Only overlay semantics/events and Svelte ref attachments cross this internal adapter.
-  let overlay = $derived.by(() => {
-    const props = elementProps ?? {};
-    return { id: props.id, "aria-expanded": props["aria-expanded"], "aria-controls": props["aria-controls"],
-      "aria-haspopup": props["aria-haspopup"], "data-state": props["data-state"], onkeydown: forward<KeyboardEvent>(props.onkeydown),
-      onpointerdown: forward<PointerEvent>(props.onpointerdown), onpointerenter: forward<PointerEvent>(props.onpointerenter),
-      onpointerleave: forward<PointerEvent>(props.onpointerleave),
-      ...Object.fromEntries(Object.getOwnPropertySymbols(props).map(key => [key, props[key]])) };
-  });
+  const variants = { primary: "default", secondary: "secondary", destructive: "destructive" } as const;
+  // In a field's trailing accessory (law 9d) the icon action fills the slot's inset box with the concentric radius.
+  const accessory = inFieldAccessory();
   let button = $state<HTMLButtonElement | null>(null);
   let caption = $state<HTMLSpanElement | null>(null);
   let compact = $state(false);
-  let Icon = $derived(status === "pending" ? Loader2 : actionIcons[icon]);
-  let face = $derived(status === "pending" ? "pending" : compact ? "icon" : "label");
+  // Only the `fit` face measures: it shows the icon once the label no longer fits. `text` keeps its label, `icon` its glyph.
+  let face = $derived(status === "pending" ? "pending" : shown === "icon" || shown === "fit" && compact ? "icon" : "label");
   $effect(() => {
     label;
-    if (!button || !caption) return;
+    if (shown !== "fit" || !button || !caption) { compact = false; return; }
     const element = button, text = caption;
     const measure = () => { compact = text.scrollWidth > text.clientWidth + 1; };
     const observer = new ResizeObserver(measure);
@@ -5011,58 +5019,94 @@ Source SHA-256: 858b2b5df9c483fd896605d31a372889e8002861056852bc14c62f78a4f8783b
     document.fonts.addEventListener("loadingdone", measure);
     return () => { observer.disconnect(); document.fonts.removeEventListener("loadingdone", measure); };
   });
+  // A `text` label wraps between words; a word wider than the whole line (a half of the bottom pair on a narrow phone at
+  // large text: English never hyphenates a capitalised word) sets the label smaller, just enough for that word to fit
+  // whole, as a platform button shrinks its title, never below half its size; past that, typography's last resort breaks it.
+  let scale = $state(1);
+  const drawn = actionPairScale(id, () => scale, () => bar === "step");
+  $effect(() => {
+    label;
+    if (shown !== "text" || !button || !caption?.parentElement) { scale = 1; return; }
+    const element = button, text = caption, line = caption.parentElement, context = document.createElement("canvas").getContext("2d");
+    const measure = () => {
+      const style = getComputedStyle(element), words = label.split(/\s+/).filter(Boolean);
+      if (!context || !words.length) return;
+      // The room is read with the label at its full size (a smaller label narrows a button that fits its label, which
+      // must not shrink it further), then the drawn size is put back in the same task, before any paint. Through the
+      // style object, not the attribute: a page whose content policy forbids inline style attributes still allows it.
+      const drawnStyle = text.style.cssText;
+      text.style.cssText = "";
+      const room = line.getBoundingClientRect().width, base = parseFloat(style.fontSize);
+      if (drawnStyle) text.style.cssText = drawnStyle; else text.removeAttribute("style");
+      // A platform font draws a smaller size with wider letters (its text optical size), so each step measures again.
+      const widest = (factor: number) => {
+        context.font = `${style.fontStyle} ${style.fontWeight} ${base * factor}px ${style.fontFamily}`;
+        return Math.max(...words.map(word => context.measureText(word).width));
+      };
+      // A label that fits its button (a word as wide as the line it sizes) is measured to within a pixel of its line.
+      let next = 1;
+      if (widest(1) > room + 1)
+        for (let step = 0; step < 4 && next > .5 && widest(next) > room - 1; step++) next = Math.max(.5, next * (room - 1) / widest(next) - .005);
+      if (Math.abs(next - untrack(() => scale)) > .005) scale = next;
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(element); measure();
+    document.fonts.addEventListener("loadingdone", measure);
+    return () => { observer.disconnect(); document.fonts.removeEventListener("loadingdone", measure); };
+  });
 </script>
-<Button {...overlay} bind:ref={button} variant={emphasis === "primary" ? "default" : "secondary"}
-  size="default" spin={status === "pending"} {type} onclick={event => { if (status !== "ready") return;
-    if (buttonEvent(event)) elementProps?.onclick?.(event); if (!event.defaultPrevented) onclick?.(); }} class="relative w-fit min-w-0 max-w-[min(100%,22rem)] self-start justify-self-start overflow-hidden"
+<!-- One disabled look: an unavailable action of any emphasis draws the neutral pane with its faded label, plainly not a
+     ready primary (a pale label on the primary's tint read neither as disabled nor legibly). -->
+<Button bind:ref={button} variant={status === "unavailable" ? "secondary" : variants[emphasis]} size={shown === "icon" ? "icon-lg" : "default"} spin={status === "pending"}
+  {type} {form} id={disclosure?.id} aria-haspopup={disclosure?.haspopup} aria-expanded={disclosure?.expanded}
+  aria-controls={disclosure?.expanded ? disclosure.controls : undefined}
+  data-state={disclosure ? disclosure.expanded ? "open" : "closed" : undefined} aria-current={current || undefined}
+  onclick={() => { if (status === "ready") onclick?.(); }} class="relative min-w-0 overflow-hidden {shown === 'icon' ? '' : 'w-fit max-w-[min(100%,22rem)]'} {bar === 'step' ? 'narrow-page:px-[8px]' : ''}"
   disabled={status !== "ready"} aria-busy={status === "pending"} aria-label={label} title={reason ?? (compact ? label : undefined)}
   aria-describedby={reason ? descriptionId : undefined}
-  data-primitive="action" data-button-face={face} data-emphasis={emphasis}>
-  <span bind:this={caption} data-button-label aria-hidden="true" class={cn("min-w-0 truncate", face !== "label" && "invisible")}>{label}</span>
-    <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
-      aria-hidden="true" data-button-glyph data-button-face={face}>
-      <Icon data-icon="inline-start" aria-hidden="true" />
-    </span>
+  data-action="" data-action-face={face} data-emphasis={emphasis} data-action-bar={bar} data-action-accessory={accessory && shown === "icon" || undefined}>
+  <!-- A label is never cut short. A `text` label wraps between words (typography's word policy) and the button grows
+       taller, as a platform button does at large text; a narrow page steps a bottom-pair half's inline inset down to
+       give its words room. A `fit` label keeps one line, which its measure reads, and shows the icon once it no longer
+       fits. -->
+  <span bind:this={caption} data-button-label aria-hidden="true"
+    style={drawn.current < 1 ? `font-size:calc(${drawn.current} * var(--text-control));line-height:calc(${drawn.current} * var(--text-control--line-height))` : undefined}
+    class={cn("min-w-0", shown === "text" ? "overflow-hidden whitespace-normal text-center wrap-words" : shown === "fit" ? "overflow-hidden whitespace-nowrap" : "truncate",
+      face !== "label" && "invisible")}>{label}</span>
+  <span class={cn("absolute inset-0 flex items-center justify-center", face === "label" && "invisible")}
+    aria-hidden="true" data-button-glyph data-action-face={face}>
+    <Icon name={status === "pending" ? "loader-circle" : actionIconNames[icon]} placement="inline-start" decorative />
+  </span>
 </Button>
 {#if reason}<span id={descriptionId} class="sr-only">{reason}</span>{/if}
 ```
 
-## src/svelte/pieces/action-icons.ts
+## src/svelte/infra/action-icons.ts
 
-Source SHA-256: d8adbfe7e273f688a7e3a7f4b5dd3df1e068e8865069e6c5b4a8c4ba603f6f41
+Source SHA-256: aeccd21056ad724468c7be5d09a080bd77cdebaa3fb3aad725b9db3f4c161ea7
 
 ```ts
-import ArrowLeft from "@lucide/svelte/icons/arrow-left";
-import X from "@lucide/svelte/icons/x";
-import Save from "@lucide/svelte/icons/save";
-import Eye from "@lucide/svelte/icons/eye";
-import Search from "@lucide/svelte/icons/search";
-import RotateCw from "@lucide/svelte/icons/rotate-cw";
-import Plus from "@lucide/svelte/icons/plus";
-import Archive from "@lucide/svelte/icons/archive";
-import LayoutGrid from "@lucide/svelte/icons/layout-grid";
-import ArrowRight from "@lucide/svelte/icons/arrow-right";
-import Check from "@lucide/svelte/icons/check";
-import Ellipsis from "@lucide/svelte/icons/ellipsis";
-import PanelLeft from "@lucide/svelte/icons/panel-left";
-import Images from "@lucide/svelte/icons/images";
-import Pencil from "@lucide/svelte/icons/pencil";
-import Settings from "@lucide/svelte/icons/settings";
-import Palette from "@lucide/svelte/icons/palette";
-import Lock from "@lucide/svelte/icons/lock";
-import Undo2 from "@lucide/svelte/icons/undo-2";
 import type { ActionIcon } from "../../interaction/toolbar.ts";
+import type { FaceIcon } from "../../interaction/face.ts";
 
-export const actionIcons = {
-  back: ArrowLeft, close: X, save: Save, review: Eye, recover: Search, retry: RotateCw,
-  create: Plus, archive: Archive, catalog: LayoutGrid, open: ArrowRight, confirm: Check, search: Search, more: Ellipsis, navigation: PanelLeft,
-  media: Images, edit: Pencil, settings: Settings, lock: Lock, restore: Undo2, palette: Palette,
-} satisfies Record<ActionIcon, typeof X>;
+/** The icon (a name of the catalog's `icon` foundation) that draws each action icon. */
+export const actionIconNames = {
+  back: "arrow-left", close: "x", save: "save", review: "eye", recover: "search", retry: "rotate-cw",
+  create: "plus", archive: "archive", catalog: "layout-grid", open: "arrow-right", confirm: "check", search: "search", more: "ellipsis", navigation: "panel-left",
+  media: "images", edit: "pencil", settings: "settings", lock: "lock", restore: "undo-2", palette: "palette",
+  play: "play", pause: "pause", volume: "volume-2", muted: "volume-x", previous: "chevron-left", next: "chevron-right",
+  "zoom-in": "plus", "zoom-out": "minus",
+} as const satisfies Record<ActionIcon, string>;
+
+/** The icon that draws each face icon: every action icon and the navigation destinations' glyphs. */
+export const faceIconNames = {
+  ...actionIconNames, landmark: "landmark", backpack: "backpack", panels: "panels-top-left",
+} as const satisfies Record<FaceIcon, string>;
 ```
 
 ## src/svelte/vendor/components/ui/button/button.svelte
 
-Source SHA-256: 80686ff625fb056caccf4dd0baaf6a5c418bcdb026157ec6d3af7f2a0237b71c
+Source SHA-256: bb044858126b20cd67784c2bdb8c48268b51f1b6cdc0c2ef773a4248e1d4b37f
 
 ```svelte
 <script lang="ts" module>
@@ -5072,7 +5116,7 @@ Source SHA-256: 80686ff625fb056caccf4dd0baaf6a5c418bcdb026157ec6d3af7f2a0237b71c
 
 	/** The public buttonVariants contract. */
 	export const buttonVariants = tv({
-        base: "tm-control inline-flex shrink-0 self-start justify-self-start items-center justify-center whitespace-nowrap gap-2 rounded-full type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+        base: "inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius-control)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
         variants: {
             spin: { true: "[&_svg[data-icon]]:animate-spin" },
             variant: {
@@ -5080,16 +5124,15 @@ Source SHA-256: 80686ff625fb056caccf4dd0baaf6a5c418bcdb026157ec6d3af7f2a0237b71c
                 outline: "text-foreground",
                 secondary: "text-secondary-foreground",
                 ghost: "bg-transparent text-foreground",
-                grip: "bg-transparent text-muted-foreground rounded-lg",
+                grip: "bg-transparent text-muted-foreground",
                 destructive: "text-destructive",
-                link: "bg-transparent text-primary-text underline-offset-4 hover:underline",
                 row: "bg-transparent text-foreground border-0 rounded-none justify-start whitespace-normal h-auto text-left font-normal w-full",
                 field: "bg-transparent text-foreground border-0 rounded-none justify-start w-full font-normal",
-                well: "text-foreground rounded-[var(--radius)] justify-start text-left whitespace-normal w-full font-normal",
+                well: "text-foreground rounded-[var(--radius-well)] justify-start text-left whitespace-normal w-full font-normal",
             },
             size: {
                 default: "min-h-11 px-4 py-2", xs: "min-h-6 px-2", sm: "min-h-9 px-3",
-                lg: "min-h-11 px-5", icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
+                icon: "size-10", "icon-xs": "size-6", "icon-sm": "size-9", "icon-lg": "size-11",
                 row: "px-4 py-3", field: "min-h-10 px-3", well: "p-0",
                 avatar: "size-[5.625rem] p-0 relative overflow-hidden rounded-full",
                 "label-remove": "size-[28px] min-h-[28px] p-0 [@media(pointer:coarse)]:size-[44px] [@media(pointer:coarse)]:min-h-[44px]",
@@ -5122,7 +5165,7 @@ Source SHA-256: 80686ff625fb056caccf4dd0baaf6a5c418bcdb026157ec6d3af7f2a0237b71c
 </script>
 
 <script lang="ts">
-	import { pressFeedbackProps } from "./press-feedback.js";
+	import { pressFeedbackProps } from "@desert/svelte/catalog/mechanisms/press-feedback/press-feedback.ts";
 	import Search from "@lucide/svelte/icons/search";
 	import X from "@lucide/svelte/icons/x";
 	let {
@@ -5141,6 +5184,10 @@ Source SHA-256: 80686ff625fb056caccf4dd0baaf6a5c418bcdb026157ec6d3af7f2a0237b71c
 		children,
 		...restProps
 	}: ButtonProps = $props();
+	// The material is the variant's unless the caller names one (a sidebar row); prominence tints the pane.
+	const interiors: readonly ButtonVariant[] = ["ghost", "grip", "row", "field"];
+	let material = $derived(/\bmaterial-(?:pane|interior)\b/.test(cn(className)) ? undefined
+		: interiors.includes(variant) ? "material-interior" : variant === "default" ? "material-pane material-pane-primary" : "material-pane");
 	$effect(() => { onready?.(ref instanceof HTMLButtonElement || ref instanceof HTMLAnchorElement ? ref : null); return () => onready?.(null); });
 </script>
 
@@ -5154,8 +5201,7 @@ Source SHA-256: 80686ff625fb056caccf4dd0baaf6a5c418bcdb026157ec6d3af7f2a0237b71c
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
-		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 aria-[current=true]:bg-muted focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3", presentation === "selection-well" && "field-well overflow-hidden rounded-[var(--radius-well)]", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		href={disabled ? undefined : href}
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
@@ -5163,7 +5209,7 @@ Source SHA-256: 80686ff625fb056caccf4dd0baaf6a5c418bcdb026157ec6d3af7f2a0237b71c
 		{...restProps}
 		data-variant={variant}
 	>
-		<span data-button-content>{@render children?.()}</span>
+		<span class="control-feedback-content disabled-content" data-button-content>{@render children?.()}</span>
 	</a>
 {:else}
 	<button
@@ -5175,8 +5221,7 @@ Source SHA-256: 80686ff625fb056caccf4dd0baaf6a5c418bcdb026157ec6d3af7f2a0237b71c
 		data-media-list-item={presentation === "media-list-item" || undefined}
 		data-media-collection-card={presentation === "media-collection" || undefined}
 		data-media-reference-choice={presentation === "media-cover-choice" || undefined}
-		data-material={['ghost','grip','link','row','field'].includes(variant) ? 'interior' : 'pane'}
-		class={cn(buttonVariants({ variant, size, spin }), "tm-control", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3 rounded-[var(--radius)]", presentation === "selection-well" && "field-well overflow-hidden", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 aria-[current=true]:bg-muted focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
+		class={cn(buttonVariants({ variant, size, spin }), material, variant === "grip" ? "control-focus" : "control-feedback", wrap && "max-w-full min-w-0 whitespace-normal text-balance h-auto", presentation.startsWith("selection-") && "w-fit max-w-full justify-between gap-3", presentation === "selection-well" && "field-well overflow-hidden rounded-[var(--radius-well)]", presentation === "selection-context" && "justify-self-end", presentation === "record-row" && "record-button w-full min-h-11 text-start items-center justify-between gap-4 px-4 py-3 focus-visible:outline-offset-[-3px]", presentation === "toolbar-return" && "sr-only", className)}
 		data-toolbar-scroll-top={presentation === "toolbar-return" || undefined}
 		data-catalog-search-toggle={presentation === "search-toggle" || undefined}
 		data-catalog-search-cancel={presentation === "search-toggle" && searching || undefined}
@@ -5185,36 +5230,51 @@ Source SHA-256: 80686ff625fb056caccf4dd0baaf6a5c418bcdb026157ec6d3af7f2a0237b71c
 		{...restProps}
 		data-variant={variant}
 	>
-		<span data-button-content>{#if presentation === "search-toggle"}<Search data-search-icon="open" aria-hidden="true" /><X data-search-icon="close" aria-hidden="true" />{:else}{@render children?.()}{/if}</span>
+		<span class="control-feedback-content disabled-content" data-button-content>{#if presentation === "search-toggle"}<span data-search-icon="open"><Search aria-hidden="true" /></span><span data-search-icon="close"><X aria-hidden="true" /></span>{:else}{@render children?.()}{/if}</span>
 	</button>
 {/if}
 
 <style>
-  :global([data-summary-widget]) { width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem; padding:var(--space-4,1rem); border-radius:var(--radius-group); text-align:start; white-space:normal; align-items:stretch; }
-  :global([data-summary-widget] > [data-button-content]) { display:flex; flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
+  /* The button's own anatomy, scoped to the elements it draws: every other owner of a [data-button-content] span lays
+     its content out with its own rule. */
+  [data-summary-widget] { width:min(100%,22rem); max-width:100%; min-width:0; min-height:13rem; padding:var(--space-4,1rem); border-radius:var(--radius-control); text-align:start; white-space:normal; align-items:stretch; }
+  [data-summary-widget] > [data-button-content] { display:flex; flex-direction:column; align-items:stretch; gap:var(--space-4,1rem); }
   @layer components {
-    :global([data-slot="button"]) { min-height:2.75rem; }
-    :global([data-button-content]) { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
+    [data-slot="button"] { min-height:2.75rem; }
+    [data-button-content] { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
   }
-  :global([data-catalog-search-toggle]) { position:relative; pointer-events:auto; }
-  :global([data-catalog-search-toggle] [data-button-content]) { display:grid; place-items:center; }
-  :global([data-catalog-search-toggle] svg) { grid-area:1/1; transition:opacity 180ms var(--ease-tm),transform 220ms var(--ease-tm); }
-  :global([data-catalog-search-toggle] [data-search-icon="close"]) { opacity:0; transform:rotate(-90deg) scale(.75); }
-  :global([data-catalog-search-actions][data-expanded="true"] [data-search-icon="open"]) { opacity:0; transform:rotate(90deg) scale(.75); }
-  :global([data-catalog-search-actions][data-expanded="true"] [data-search-icon="close"]) { opacity:1; transform:none; }
-  :global([data-media-reference-choice]) { position:relative; aspect-ratio:4/3; overflow:hidden; width:100%; }
-  :global([data-media-reference-choice] [data-button-content]) { height:100%; }
-  :global([data-media-collection-card]) { position:relative; width:100%; display:block; overflow:hidden; text-align:start; }
-  :global([data-media-collection-card] > [data-button-content]) { display:block; }
-  :global([data-media-grid-item]) { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:var(--radius); }
-  :global([data-media-grid-item] > [data-button-content]) { height:100%; }
-  :global([data-media-grid-item][aria-current="true"]) { outline:2px solid var(--primary); outline-offset:2px; }
-  :global([data-media-list-item]) { aspect-ratio:auto; border-radius:0; }
-  :global([data-media-list-item] > [data-button-content]) { display:flex; align-items:center; gap:var(--stack-gap,16px); padding:12px 16px; }
+  [data-catalog-search-toggle] { position:relative; pointer-events:auto; }
+  [data-catalog-search-toggle] [data-button-content] { display:grid; place-items:center; }
+  /* Each glyph sits in its own box (no line box of its own), so the box moves exactly as the glyph did. */
+  [data-search-icon] { display:flex; grid-area:1/1; transition:opacity 180ms var(--ease-tm),transform 220ms var(--ease-tm); }
+  [data-search-icon="close"] { opacity:0; transform:rotate(-90deg) scale(.75); }
+  [data-catalog-search-cancel] [data-search-icon="open"] { opacity:0; transform:rotate(90deg) scale(.75); }
+  [data-catalog-search-cancel] [data-search-icon="close"] { opacity:1; transform:none; }
+  [data-media-reference-choice] { position:relative; aspect-ratio:4/3; overflow:hidden; width:100%; }
+  [data-media-reference-choice] [data-button-content] { height:100%; }
+  [data-media-collection-card] { position:relative; width:100%; display:block; overflow:hidden; text-align:start; }
+  [data-media-collection-card] > [data-button-content] { display:block; }
+  [data-media-grid-item] { position:relative; display:block; width:100%; aspect-ratio:4/3; overflow:hidden; border-radius:var(--radius-control); }
+  [data-media-grid-item] > [data-button-content] { height:100%; }
+  [data-media-grid-item][aria-current="true"] { outline:2px solid var(--primary); outline-offset:2px; }
+  [data-media-list-item] { aspect-ratio:auto; border-radius:0; }
+  [data-media-list-item] > [data-button-content] { display:flex; align-items:center; gap:var(--stack-gap,16px); padding:12px 16px; }
+  /* An Action a bar draws (its `bar` placement) takes the bar's target: the toolbar target and inset come from bar. */
+  [data-action-bar] { height:var(--toolbar-target); min-height:var(--toolbar-target); }
+  [data-action-bar="command"] { width:var(--toolbar-target); flex-shrink:0; padding:var(--toolbar-inset); }
+  /* A step is as tall as the target while its label holds one line (its block inset, never more than the target leaves
+     around that line inside the pane's 1px border, keeps it within the target, where it is centred) and grows a line at
+     a time when the label wraps; the pair's row gives both halves the taller one's height. */
+  [data-action-bar="step"] { width:100%; max-width:none; min-width:0; height:auto;
+    padding-block:max(0px,min(.5rem,calc((var(--toolbar-target) - var(--text-control--line-height)) / 2 - 1px))); }
+  /* An icon Action in a field's trailing accessory (field-accessory mechanism, law 9d): the square the slot measures, its
+     radius the well's less the accessory inset, so its corners stay concentric with the well's. */
+  [data-action-accessory] { width:var(--field-accessory-size); height:var(--field-accessory-size); min-height:0;
+    border-radius:calc(var(--radius-well) - var(--field-accessory-inset)); }
 </style>
 ```
 
-## src/svelte/vendor/components/ui/button/press-feedback.ts
+## src/svelte/catalog/mechanisms/press-feedback/press-feedback.ts
 
 Source SHA-256: 84ac4fd5285a46188c7a72f1373012fe2c19157dfa71e49695bfa3c42aaa5eeb
 
@@ -5274,207 +5334,131 @@ export function pressFeedback(element: HTMLElement) {
 }
 ```
 
-## src/svelte/controls/SelectControl.svelte
+## src/svelte/catalog/compositions/select-control/SelectControl.svelte
 
-Source SHA-256: cb266e4a9d65b3501471458b0902b580f79f164c73c3d1b738b7a8f86f741910
+Source SHA-256: 1b15c9c44eaa486e3aff0b7077cdfbea7d6930acefb7d133b84705036737db53
 
 ```svelte
 <script lang="ts">
-  import BankRenderer from "../BankRenderer.svelte";
-  import { BankVersion } from "../../interaction/bank-node.ts";
-  import SelectionField from "../pieces/SelectionField.svelte";
-  import MeasuredField from "../pieces/MeasuredField.svelte";
-  import { selectNode, selectInputRequired, applyControlEvent } from "../../interaction/control-nodes.ts";
-  import type { ControlProps, ControlEventFor } from "../renderer-contracts.ts";
-  let { node, onevent }: ControlProps<"select"> = $props();
+  import { Action, Choice, Column } from "../../index.ts";
+  import { selectNode, selectInputRequired, applyControlEvent } from "../../../../interaction/control-nodes.ts";
+  import type { ControlEventFor } from "../../../renderer-contracts.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  let { node, onevent }: CatalogProps<"select-control"> = $props();
   let checked = $derived(selectNode(node));
-  const id = $props.id();
   function change(value: string | null) {
     const event: ControlEventFor<"select"> = { kind: "select.change", control: checked.id, value };
     applyControlEvent(checked, event);
-    onevent(event);
+    onevent?.(event);
   }
 </script>
-<MeasuredField kind="control.select" disabled={checked.disabled}>
-  <SelectionField {id} selection={checked.id} label={checked.label} value={checked.value} options={checked.options}
-    disabled={checked.disabled} required={selectInputRequired(checked)} fieldControl onchange={change} />
-  {#if !checked.required}<BankRenderer node={{ version: BankVersion, kind: "action", role: "secondary", action: {
-    icon: "close", label: "Clear selection", state: checked.disabled || checked.value === null ? "unavailable" : "ready",
-    intent: { kind: "selection.clear" },
-  } }} onevent={event => { if (event.kind === "local.invoke" && event.intent.kind === "selection.clear") change(null); }} />{/if}
-</MeasuredField>
+<!-- The field well at the choice measure; an optional choice offers to clear it 0.5rem below. -->
+<Column gap="snug">
+  <Choice presentation="menu" cardinality="one" menuTrigger="well" measure="choice" label={checked.label} labelVisibility="visible"
+    selected={checked.value === null ? [] : [checked.value]} disabled={checked.disabled}
+    required={selectInputRequired(checked)} options={checked.options.map(option => ({ value: option.value, label: option.label,
+      disabled: option.disabled, ...option.face ? { leading: { kind: "face" as const, face: option.face } } : {} }))}
+    onchange={selected => { if (selected[0] !== undefined) change(selected[0]); }} />
+  {#if !checked.required}
+    <Action icon="close" label={say(m.selectControl.clear)} emphasis="secondary" face="fit" type="button"
+      state={checked.disabled || checked.value === null ? "unavailable" : "ready"} onclick={() => change(null)} />
+  {/if}
+</Column>
 ```
 
-## src/svelte/controls/PopoverControl.svelte
+## src/svelte/catalog/compositions/popover-control/PopoverControl.svelte
 
-Source SHA-256: 25053edaa3ce2f51e11e2cce907c24beb95e1dd7e4280a6f9704f76aee1dad2e
+Source SHA-256: 163f9f559f949e1b766e4397ac5408375f35a8f6ffad927638482d1f53fbee21
 
 ```svelte
 <script lang="ts">
-  import AnchoredSurface from "../pieces/AnchoredSurface.svelte";
-  import { popoverNode, applyControlEvent } from "../../interaction/control-nodes.ts";
-  import type { ControlProps, ControlEventFor } from "../renderer-contracts.ts";
-  let { node, onevent }: ControlProps<"popover"> = $props();
+  import { Popover } from "../../index.ts";
+  import { FrameBody } from "../../index.ts";
+  import { popoverNode, applyControlEvent } from "../../../../interaction/control-nodes.ts";
+  import type { ControlEventFor } from "../../../renderer-contracts.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { node, onevent }: CatalogProps<"popover-control"> = $props();
   let checked = $derived(popoverNode(node));
   function change(open: boolean) {
     const event: ControlEventFor<"popover"> = { kind: "popover.open", control: checked.id, open };
     applyControlEvent(checked, event);
-    onevent(event);
+    onevent?.(event);
   }
 </script>
-<AnchoredSurface label={checked.label} open={checked.open} disabled={checked.disabled} locked={checked.locked}
-  title={checked.title} content={{ kind: "information", items: checked.content }} onchange={change} />
+<Popover label={checked.title} open={checked.open} disabled={checked.disabled} locked={checked.locked === true} content="information"
+  placement="anchored" align="start" onopenchange={change}
+  trigger={{ kind: "action", label: checked.label, icon: "open", face: "fit", emphasis: "secondary", state: "ready" }}>
+  <FrameBody content={{ kind: "information", items: checked.content }} invoke={() => {}} edit={() => {}} />
+</Popover>
 ```
 
-## src/svelte/controls/FileControl.svelte
+## src/svelte/catalog/renderer/control-renderer/ControlRenderer.svelte
 
-Source SHA-256: a69e108118328d683743f0a46fee9645830201e7b872874da7d8833552378be3
+Source SHA-256: 5aed4ec264773742d45fb4eba33ad7bdc26ce1a717ccbf944c706e34e87ce099
 
 ```svelte
 <script lang="ts">
-  import * as Field from "../vendor/components/ui/field/index.js";
-  import Action from "../pieces/Action.svelte";
-  import { Input } from "../vendor/components/ui/input/index.js";
-  import { fileNode, type FileRejection } from "../../interaction/control-nodes.ts";
-  import type { ControlProps } from "../renderer-contracts.ts";
-  import { fileSize } from "../pieces/file-size.ts";
-  import { currentStackTitle } from "../pieces/stack-context.ts";
-  let { node, host, onevent }: ControlProps<"files"> = $props();
-  let checked = $derived(fileNode(node));
-  let rejected = $state<readonly FileRejection[]>([]);
-  const id = $props.id();
-  const stackTitle = currentStackTitle();
-  let picker = $state<HTMLInputElement | null>(null);
-  const reasons = { "media-type": "File type is not accepted", "file-size": "File is too large",
-    "total-size": "Total size limit exceeded", count: "File count limit reached" };
-  function choose(event: Event) {
-    const input = event.currentTarget as HTMLInputElement;
-    const selection = host.choose(checked, Array.from(input.files ?? []));
-    rejected = selection.result.rejected;
-    onevent(selection.event);
-    input.value = "";
-  }
+  import { controlResolvedNode } from "../../../../interaction/resolved-node.ts";
+  import { NodeRenderer } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { node, onevent }: CatalogProps<"control-renderer"> = $props();
 </script>
-<Field.Field data-control="files" data-disabled={checked.disabled} data-invalid={rejected.length > 0}>
-  <Field.FieldLabel for={id} class={stackTitle() === checked.label ? "sr-only" : undefined}>{checked.label}</Field.FieldLabel>
-  <Input bind:ref={picker} {id} type="file" hidden tabindex={-1} multiple={checked.limits.maxCount > 1} accept={checked.limits.accept.join(",")}
-    disabled={checked.disabled} onchange={choose} aria-describedby={`${id}-limits`} aria-invalid={rejected.length > 0} />
-  <Action icon="open" label="Choose files" state={checked.disabled ? "unavailable" : "ready"} onclick={() => picker?.click()} />
-  <Field.FieldDescription id={`${id}-limits`}>
-    Up to {checked.limits.maxCount} files · {fileSize(checked.limits.maxFileBytes)} each · {fileSize(checked.limits.maxTotalBytes)} total.
-    Choosing files does not upload them.
-  </Field.FieldDescription>
-  {#if checked.files.length}
-    <ul class="flex flex-col gap-2" aria-label="Selected local files">
-      {#each checked.files as file (file.id)}
-        <li class="flex flex-wrap items-center justify-between gap-2">
-          <span class="min-w-0 break-all">{file.name} · {fileSize(file.size)}</span>
-          <Action icon="close" label={`Remove ${file.name}`} state={checked.disabled ? "unavailable" : "ready"}
-            onclick={() => onevent(host.remove(checked, file.id))} />
-        </li>
-      {/each}
-    </ul>
-  {:else}<Field.FieldDescription>No local files selected.</Field.FieldDescription>{/if}
-  <div role="status" aria-live="polite">
-    {#each rejected as item (item.file.id)}<p class="text-destructive">{item.file.name}: {reasons[item.reason]}.</p>{/each}
-  </div>
-</Field.Field>
+<NodeRenderer node={controlResolvedNode(node)} onevent={event => { if ("control" in event) onevent?.(event); }} />
 ```
 
-## src/svelte/controls/ControlRenderer.svelte
+## src/svelte/catalog/compositions/options-control/OptionsControl.svelte
 
-Source SHA-256: eb67524d3afc505c941e3b9b6bf8283720ed958ec4a7edeccdfd7e412f39cb6e
+Source SHA-256: 8428be31602338563fa2db6bd3b7af02836752341b00df8f85a13a10db1ceee8
 
 ```svelte
 <script lang="ts">
-  import type { ControlNode, ControlEvent } from "../../interaction/control-nodes.ts";
-  import { controlBankNode } from "../../interaction/bank-node.ts";
-  import { ControlBankRenderer } from "../adapter-catalog.ts";
-  import type { LocalFileHost } from "./file-host.ts";
-  let { node, onevent, host }: { node: ControlNode; onevent: (event: ControlEvent) => void; host: LocalFileHost } = $props();
-</script>
-<ControlBankRenderer node={controlBankNode(node)} {host} onevent={event => { if ("control" in event) onevent(event); }} />
-```
-
-## src/svelte/controls/OptionsControl.svelte
-
-Source SHA-256: 53f7f87189edf6097da3d6a4517dec48d6ffcb61f461ca0a44b4d36c42857854
-
-```svelte
-<script lang="ts">
-  import * as Field from "../vendor/components/ui/field/index.js";
-  import * as RadioGroup from "../vendor/components/ui/radio-group/index.js";
-  import { Checkbox } from "../vendor/components/ui/checkbox/index.js";
-  import GroupedPanel from "../pieces/GroupedPanel.svelte";
-  import ChoiceRow from "../pieces/ChoiceRow.svelte";
-  import ChoiceList from "../pieces/ChoiceList.svelte";
-  import type { ControlProps } from "../renderer-contracts.ts";
-  import { permitsOptionsSelection, optionsInputRequired } from "../../interaction/extended-controls.ts";
-  import { currentStackTitle } from "../pieces/stack-context.ts";
-  let { node, onevent }: ControlProps<"options"> = $props();
-  const prefix = $props.id();
+  import { Choice } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { permitsOptionsSelection, optionsInputRequired } from "../../../../interaction/extended-controls.ts";
+  import { currentStackTitle } from "../../../infra/stack-context.ts";
+  let { node, onevent }: CatalogProps<"options-control"> = $props();
+  // A stack titled like this control already shows its label; the legend then stays for assistive technology only.
   const stackTitle = currentStackTitle();
-  let inputRequired = $derived(optionsInputRequired(node));
   const change = (selected: readonly string[]) => {
-    if (permitsOptionsSelection(node, selected)) onevent({ kind: "options.change", control: node.id, selected });
+    if (permitsOptionsSelection(node, selected)) onevent?.({ kind: "options.change", control: node.id, selected });
   };
   const nextSelection = (value: string) => node.maxSelected === 1 ? [value] :
     node.selected.includes(value) ? node.selected.filter(item => item !== value) : [...node.selected, value];
+  /** An option is unavailable when the node says so or when choosing it would break the selection's bounds. */
   const disabled = (value: string, unavailable: boolean) => unavailable || !permitsOptionsSelection(node, nextSelection(value));
 </script>
-{#snippet choices()}
-    {#each node.options as option (option.value)}
-      <ChoiceRow id={`${prefix}-${option.value}`} labelId={`${prefix}-${option.value}-label`}
-        descriptionId={`${prefix}-${option.value}-description`} label={option.label} description={option.description}
-        disabled={disabled(option.value, option.disabled)}>
-          {#if node.maxSelected === 1}
-            <RadioGroup.Item id={`${prefix}-${option.value}`} value={option.value} disabled={disabled(option.value, option.disabled)}
-              aria-labelledby={`${prefix}-${option.value}-label`} aria-describedby={option.description ? `${prefix}-${option.value}-description` : undefined} />
-          {:else}
-            <Checkbox id={`${prefix}-${option.value}`} bind:checked={() => node.selected.includes(option.value),
-              checked => change(checked ? [...node.selected, option.value] : node.selected.filter(value => value !== option.value))}
-              disabled={disabled(option.value, option.disabled)} aria-labelledby={`${prefix}-${option.value}-label`}
-              aria-describedby={option.description ? `${prefix}-${option.value}-description` : undefined} />
-          {/if}
-      </ChoiceRow>
-    {/each}
-{/snippet}
-<Field.FieldSet data-control="options" data-cardinality={node.maxSelected === 1 ? "one" : "many"}>
-  <Field.FieldLegend variant="label" class={stackTitle() === node.label ? "sr-only" : "options-title"}>{node.label}{#if inputRequired}<span class="required" aria-hidden="true">*</span>{/if}</Field.FieldLegend>
-  <GroupedPanel><ChoiceList>{#if node.maxSelected === 1}
-    <RadioGroup.Root bind:value={() => node.selected[0] ?? "", value => change(value ? [value] : [])}
-      disabled={node.disabled} required={inputRequired} aria-label={node.label} data-grouped-rows>{@render choices()}</RadioGroup.Root>
-  {:else}<Field.FieldGroup data-grouped-rows>{@render choices()}</Field.FieldGroup>{/if}</ChoiceList></GroupedPanel>
-</Field.FieldSet>
+<Choice presentation="rows" cardinality={node.maxSelected === 1 ? "one" : "many"} label={node.label}
+  labelVisibility={stackTitle() === node.label ? "accessible" : "visible"} selected={node.selected} disabled={node.disabled}
+  required={optionsInputRequired(node)} onchange={change}
+  options={node.options.map(option => ({ value: option.value, label: option.label, disabled: disabled(option.value, option.disabled),
+    ...option.description ? { description: option.description } : {} }))} />
 ```
 
-## src/svelte/controls/MoneyControl.svelte
+## src/svelte/catalog/compositions/money-control/MoneyControl.svelte
 
-Source SHA-256: ff012a8c18eea035da5cde909eaa18caa43e4b7973fce327b667d10c77acaa28
+Source SHA-256: 12d44eda3f243e5292c11d43f7da85c70eb510846e355109cba33d93e0c61ef8
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
-  import * as Field from "../vendor/components/ui/field/index.js";
-  import * as Group from "../vendor/components/ui/input-group/index.js";
-  import MaskedInput from "../pieces/MaskedInput.svelte";
-  import SelectionField from "../pieces/SelectionField.svelte";
-  import type { ControlProps } from "../renderer-contracts.ts";
-  import { displayAmount, parseAmount } from "../../interaction/money.ts";
-  import { formatMaskedValue, type InputMask } from "../../interaction/input-mask.ts";
-  import FieldWell from "../pieces/FieldWell.svelte";
-  import MeasuredField from "../pieces/MeasuredField.svelte";
-  import ClearInput from "../pieces/ClearInput.svelte";
-  let { node, onevent }: ControlProps<"money"> = $props();
-  const id = $props.id();
+  import { Choice, Field } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { displayAmount, parseAmount } from "../../../../interaction/money.ts";
+  import { formatMaskedValue, type InputMask } from "../../../../interaction/input-mask.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  let { node, onevent }: CatalogProps<"money-control"> = $props();
   let scale = $derived(node.currencies.find(currency => currency.code === node.currency)!.scale);
   let mask: InputMask = $derived({ kind: "decimal", locale: node.locale ?? "en-US", scale });
   const symbol = (currency: string) => new Intl.NumberFormat(mask.locale, {
     style: "currency", currency, currencyDisplay: "narrowSymbol",
   }).formatToParts(0).find(part => part.type === "currency")!.value;
-  let options = $derived(node.currencies.map(item => ({ value: item.code, label: item.code, disabled: false })));
+  // Each currency leads with its narrow symbol, in the list and in the inline value beside the amount.
+  let options = $derived(node.currencies.map(item => ({ value: item.code, label: item.code, disabled: false,
+    leading: { kind: "symbol" as const, text: symbol(item.code) } })));
   let draft = $state(untrack(() => displayAmount(node.minorUnits, scale)));
-  let display = $state("");
   let draftValid = true;
   let error = $state("");
   const ownerValue = () => ({ id: node.id, currency: node.currency, minorUnits: node.minorUnits, scale, locale: mask.locale });
@@ -5496,18 +5480,18 @@ Source SHA-256: ff012a8c18eea035da5cde909eaa18caa43e4b7973fce327b667d10c77acaa28
   });
   function publish(currency: string, minorUnits: string | null) {
     pending.push({ id: node.id, currency, minorUnits, scale: node.currencies.find(item => item.code === currency)!.scale, locale: mask.locale });
-    onevent({ kind: "money.change", control: node.id, currency, minorUnits });
+    onevent?.({ kind: "money.change", control: node.id, currency, minorUnits });
   }
   function edit(value: string, valid: boolean, complete: boolean) {
     draft = value; draftValid = valid && complete;
-    if (!draftValid) { error = `Enter an amount with up to ${scale} decimal places using ${mask.locale} formatting.`; return; }
+    if (!draftValid) { error = say(m.moneyControl.format, { scale: String(scale), locale: mask.locale }); return; }
     try { const minorUnits = parseAmount(value, scale); error = "";
       publish(node.currency, minorUnits);
     } catch (cause) { error = cause instanceof Error && cause.message === "MONEY_AMOUNT_TOO_LARGE"
-      ? "This amount exceeds the supported size." : `Enter an amount with up to ${scale} decimal places.`; }
+      ? say(m.moneyControl.tooLarge) : say(m.moneyControl.scale, { scale: String(scale) }); }
   }
-  function currency(value: string) {
-    if (value === node.currency) return;
+  function currency(value: string | undefined) {
+    if (value === undefined || value === node.currency) return;
     const nextScale = node.currencies.find(item => item.code === value)!.scale;
     try {
       if (!draftValid || draft && !/^-?\d+(\.\d+)?$/.test(draft)) throw new Error("INVALID_MONEY_AMOUNT");
@@ -5515,79 +5499,46 @@ Source SHA-256: ff012a8c18eea035da5cde909eaa18caa43e4b7973fce327b667d10c77acaa28
       const exact = draft.includes(".") ? draft.replace(/0+$/, "").replace(/\.$/, "") : draft;
       const minorUnits = parseAmount(exact, nextScale);
       error = ""; publish(value, minorUnits);
-    } catch { error = `Enter an amount representable in ${value} with up to ${nextScale} decimal places before changing currency.`; }
+    } catch { error = say(m.moneyControl.currencyScale, { currency: value, scale: String(nextScale) }); }
   }
 </script>
-{#snippet currencySymbol(currency: string)}
-  <Group.Text data-currency-symbol aria-hidden="true">{symbol(currency)}</Group.Text>
-{/snippet}
-<MeasuredField kind="control.money" invalid={!!error} disabled={node.disabled}>
-  <FieldWell {id} label={node.label} required={node.required} filled={true}>
-    {#snippet accessory()}<ClearInput control={id} value={display} label={`Clear ${node.label}`} disabled={node.disabled} />{/snippet}
-    {#snippet prefix()}
-      <SelectionField selection={`${node.id}-currency`} label={`${node.label} currency`} triggerLabel={`${node.currency} · ${node.label} currency`}
-        value={node.currency} {options}
-        onchange={currency} disabled={node.disabled || node.currencies.length === 1}>
-        {#snippet optionLeading(option)}{@render currencySymbol(option.value)}{/snippet}
-        {#snippet selectedContent(selected)}
-          <span class="flex items-center gap-2">
-            {@render currencySymbol(selected?.value ?? node.currency)}
-            <span>{selected?.label ?? node.currency}</span>
-          </span>
-        {/snippet}
-      </SelectionField>
-    {/snippet}
-    <MaskedInput {id} {mask} bind:display identity={`${node.id}/${node.currency}`} value={draft} placeholder={formatMaskedValue(displayAmount("0", scale), mask)}
-      disabled={node.disabled} required={node.required} aria-invalid={!!error} aria-describedby={error ? `${id}-error` : undefined}
-      onvalue={edit} />
-  </FieldWell>
-  {#if error}<Field.FieldDescription id={`${id}-error`} role="status">{error}</Field.FieldDescription>{/if}
-</MeasuredField>
+<Field primitive="input.text" purpose="text" label={node.label} labelVisibility="visible" measure="amount" {mask}
+  identity={`${node.id}/${node.currency}`} value={draft} placeholder={formatMaskedValue(displayAmount("0", scale), mask)}
+  required={node.required} invalid={!!error} disabled={node.disabled} error={error || undefined} clear
+  onmasked={({ value, valid, complete }) => edit(value, valid, complete)}>
+  {#snippet prefix()}
+    <Choice presentation="menu" cardinality="one" menuTrigger="inline" label={say(m.moneyControl.currency, { label: node.label })}
+      labelVisibility="visible" selected={[node.currency]} {options} disabled={node.disabled || node.currencies.length === 1} required={false}
+      onchange={selected => currency(selected[0])} />
+  {/snippet}
+</Field>
 ```
 
-## src/svelte/controls/DateControl.svelte
+## src/svelte/catalog/foundations/date-control/DateControl.svelte
 
-Source SHA-256: afdc07b429ec3836ae84cfb97003e3d5d11035e4f8e39b5b1ca53f2d5031c7bd
+Source SHA-256: 654cc22790516fd6bbc198935cb9be9eea78af008e1cb59faa2243c1a48e45ee
 
 ```svelte
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { untrack } from "svelte";
-  import { dismissWhenInactive } from '../pieces/surface-activity.svelte.ts';
   import { parseDate, today, DateFormatter, getLocalTimeZone, type DateValue } from "@internationalized/date";
-  import * as Popover from "../vendor/components/ui/popover/index.js";
-  import { Button } from "../vendor/components/ui/button/index.js";
-  import DateCalendar from "../pieces/DateCalendar.svelte";
-  import CalendarIcon from "@lucide/svelte/icons/calendar";
-  import FieldWellContent from "../pieces/FieldWellContent.svelte";
-  import MeasuredField from "../pieces/MeasuredField.svelte";
-  import PickerSheet from "../pieces/PickerSheet.svelte";
-  import { PickerPresentation } from "../pieces/picker-presentation.svelte.ts";
-  import type { ControlProps } from "../renderer-contracts.ts";
-  let { node, onevent }: ControlProps<"date"> = $props();
-  // Six week rows plus month controls, field and collision margins must fit.
-  const id = $props.id(), picker = new PickerPresentation({ panelRem: 20, minimumBlockRem: 28 });
+  import DateCalendar from "./DateCalendar.svelte";
+  import { Popover } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { node, onevent }: CatalogProps<"date-control"> = $props();
   const format = new DateFormatter("en-US", { dateStyle: "medium" });
   let open = $state(false);
-  let anchoredContent = $state<HTMLElement | null>(null);
-  let focusBoundary: HTMLElement | null = null;
-  $effect(() => { if (anchoredContent) focusBoundary = anchoredContent; });
-  function restoreFocus(event: Event) {
-    event.preventDefault();
-    const active = document.activeElement, trigger = document.getElementById(id);
-    if (!open && (!active || active === document.body || focusBoundary?.contains(active))
-      && !node.disabled && trigger?.checkVisibility() && !trigger.closest('[hidden],[inert]'))
-      trigger.focus({ preventScroll: true });
-  }
-  dismissWhenInactive(() => { open = false; });
   let observed = untrack(() => node.id);
   let observedValue = untrack(() => node.value);
   let visibleDate = $state<DateValue>(untrack(() => node.value ? parseDate(node.value) : today(getLocalTimeZone())));
   let date = $derived(node.value ? parseDate(node.value) : undefined);
-  let label = $derived(date ? format.format(date.toDate(getLocalTimeZone())) : "No date selected");
+  let label = $derived(date ? format.format(date.toDate(getLocalTimeZone())) : say(m.dateControl.noDate));
   $effect(() => {
-    const next = node.id, disabled = node.disabled, value = node.value, isOpen = open;
+    const next = node.id, value = node.value, isOpen = open;
     untrack(() => {
-      if (disabled || next !== observed) open = false;
+      if (next !== observed) open = false;
       // Presentation may remount the calendar, but it does not start a new
       // browsing task. Closing or an owner replacement resets its cursor.
       if (!isOpen || next !== observed || value !== observedValue)
@@ -5597,297 +5548,433 @@ Source SHA-256: afdc07b429ec3836ae84cfb97003e3d5d11035e4f8e39b5b1ca53f2d5031c7bd
   });
   function change(value: DateValue | undefined) {
     if (!value || node.disabled) return;
-    if (value.toString() !== node.value) onevent({ kind: "date.change", control: node.id, value: value.toString() });
+    if (value.toString() !== node.value) onevent?.({ kind: "date.change", control: node.id, value: value.toString() });
     open = false;
   }
   function clear() {
     if (node.disabled || node.required) return;
-    onevent({ kind: "date.change", control: node.id, value: null });
+    onevent?.({ kind: "date.change", control: node.id, value: null });
     open = false;
   }
 </script>
-{#snippet trigger(props: Record<string, unknown>)}
-  <Button {...props} {id} variant="well" size="well" class="field-well w-full overflow-hidden"
-    data-floating-field data-filled data-date-trigger disabled={node.disabled}
-    aria-label={`${node.label} · ${label}`} aria-describedby={node.required ? `${id}-requirement` : undefined}
-    aria-haspopup="dialog" aria-expanded={open}>
-    <FieldWellContent label={node.label} required={node.required}>
-      <span data-field-value class="flex min-w-0 items-center justify-between gap-3">
-        <span>{label}</span><CalendarIcon data-icon="inline-end" aria-hidden="true" />
-      </span>
-    </FieldWellContent>
-  </Button>
-{/snippet}
-{#snippet calendar()}
-  <DateCalendar value={date} bind:visibleDate label={node.label} minimum={node.minimum} maximum={node.maximum} presentation={picker.current}
-    disabled={node.disabled} onchange={change} onclear={node.required ? undefined : clear}
-    onclose={picker.current === "sheet" ? () => { open = false; } : undefined} />
-{/snippet}
-<MeasuredField kind="control.date" disabled={node.disabled}>
-  {#if picker.current === "sheet"}
-    {@render trigger({ onclick: () => { open = true; } })}
-    <PickerSheet bind:open label={node.label} triggerId={id} contentToolbar>{@render calendar()}</PickerSheet>
-  {:else}
-    <Popover.Root bind:open>
-      <Popover.Trigger {id} disabled={node.disabled}>
-        {#snippet child({ props })}{@render trigger(props)}{/snippet}
-      </Popover.Trigger>
-      <Popover.Content bind:ref={anchoredContent} onCloseAutoFocus={restoreFocus}
-        role="dialog" aria-label={node.label} aria-modal="false" style="width:20rem;overflow:hidden">
-        {@render calendar()}
-      </Popover.Content>
-    </Popover.Root>
-  {/if}
-  {#if node.required}<span id={`${id}-requirement`} class="sr-only">Required</span>{/if}
-</MeasuredField>
+<Popover label={node.label} {open} disabled={node.disabled} locked={false} content="information" placement="adaptive" align="start"
+  trigger={{ kind: "field", label: node.label, required: node.required, invalid: false,
+    display: { kind: "text", text: label, placeholder: date === undefined }, measure: "date" }}
+  onopenchange={next => { open = next; }}>
+  <DateCalendar value={date} bind:visibleDate label={node.label} minimum={node.minimum} maximum={node.maximum}
+    disabled={node.disabled} onchange={change} onclear={node.required ? undefined : clear} />
+</Popover>
 ```
 
-## src/svelte/controls/MediaControl.svelte
+## src/svelte/catalog/compositions/media-control/MediaControl.svelte
 
-Source SHA-256: 7941501ad2433ddca755f7924f381257a49ac8607f9e13ec3c641406310714c5
+Source SHA-256: 5fcaae5bf5ec3ee280547b35ff35021d2cfb24971985395ad81effe6dda46d77
 
 ```svelte
 <script lang="ts">
-  import * as Avatar from "../vendor/components/ui/avatar/index.js";
-  import { Badge } from "../vendor/components/ui/badge/index.js";
-  import { cn } from "../vendor/utils.js";
-  import ImageOff from "@lucide/svelte/icons/image-off";
-  import type { AvatarNode, ImageNode, TagNode } from "../../interaction/extended-nodes.ts";
-  import PhotoCollection from '../pieces/media/PhotoCollection.svelte';
-  import Image from '../pieces/media/Image.svelte';
-  import { imageIdentity } from '../pieces/media/source.ts';
-  let { node }: { node: AvatarNode | ImageNode | TagNode } = $props();
-  let source = $derived(node.kind === "tag" ? null : typeof node.source === "object" && node.source !== null
-    ? 'asset' in node.source ? `/media/${encodeURIComponent(node.source.asset)}` : node.source : node.source);
-  const aspects = { square: "aspect-square", landscape: "aspect-video", portrait: "aspect-[3/4]" };
+  import type { CatalogProps } from "../../types.d.ts";
+  import { Avatar, Column, Gallery, Inline, Status, Tag, Text } from "../../index.ts";
+  import { imageIdentity } from "../../../infra/media-source.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  let { node }: CatalogProps<"media-control"> = $props();
+  // A named library asset is served from its media path; a public path or a private asset is shown as it is.
+  let source = $derived(node.kind === "tag" || node.source === null ? null
+    : typeof node.source === "object" && "asset" in node.source ? `/media/${encodeURIComponent(node.source.asset)}` : node.source);
 </script>
+
 {#if node.kind === "tag"}
-  <Badge variant={node.tone === "neutral" ? "secondary" : node.tone} data-control="tag" data-tone={node.tone}>{node.label}</Badge>
+  <Tag presentation="chip" tone={node.tone} label={node.label} state="known" removable={false} disabled={node.disabled} />
 {:else if node.kind === "avatar"}
-  <div class="flex min-w-0 items-center gap-3" data-control="avatar">
-    <Avatar.Root size="lg" aria-hidden="true">
-      {#if source}<Image {source} alt="" edge={160} fallback={node.fallback} />
-      {:else}<Avatar.Fallback initials={node.fallback} />{/if}
-    </Avatar.Root><span class="min-w-0 [overflow-wrap:anywhere]">{node.label}</span>
-  </div>
+  <Inline gap="close" overflow="none">
+    <Avatar size="row" interaction="none" source={source ? { kind: "image", source, seed: node.seed } : { kind: "seed", seed: node.seed }} />
+    <Text kind="body" text={node.label} wrap="anywhere" />
+  </Inline>
 {:else}
-  <figure data-control="image" class="flex min-w-0 flex-col gap-2">
-    <div class={cn("relative w-full overflow-hidden rounded-xl", aspects[node.aspect])} data-aspect={node.aspect}>
-      {#if source}
-        <div class="absolute inset-0">{#key imageIdentity(source)}<PhotoCollection photos={[{source,alt:node.alt}]} title={node.label} />{/key}</div>
-      {:else}<div class="absolute inset-0 flex items-center justify-center gap-3 rounded-xl border" role="img" aria-label={node.alt}>
-        <ImageOff aria-hidden="true" /><span>Image unavailable</span></div>{/if}
-    </div>
-    <figcaption>{node.label}</figcaption>
-  </figure>
+  <Column gap="snug">
+    {#if source}
+      {#key imageIdentity(source)}<Gallery photos={[{ source, alt: node.alt }]} title={node.label} presentation="inline" fit="fill" aspect={node.aspect} />{/key}
+    {:else}<Status icon="image-off" title={say(m.mediaControl.unavailable)} tone="neutral" size="regular" heading={false} />{/if}
+    <Text kind="body" text={node.label} />
+  </Column>
 {/if}
 ```
 
-## src/svelte/pieces/AnchoredSurface.svelte
+## src/svelte/catalog/foundations/popover/Popover.svelte
 
-Source SHA-256: ecbfc040041e9e74130a014f72ba73dcb4e23f35c7d055a25dce7b4b76d94f3d
+Source SHA-256: 216dbb90747559a61a7e91b90397359d75108252bee141c22b89773a5aa3212b
 
 ```svelte
 <script lang="ts">
-  import * as Popover from "../vendor/components/ui/popover/index.js";
-  import { dismissWhenInactive } from './surface-activity.svelte.ts';
-  import { anchoredTabExit } from './anchored-tab-exit.ts';
-  import FrameBody from "../FrameBody.svelte";
-  import BankRenderer from "../BankRenderer.svelte";
-  import { BankVersion } from "../../interaction/bank-node.ts";
-  import type { FrameContent } from "../../interaction/surface-frame.ts";
-  import type { SurfaceIntent } from "../../interaction/intent.ts";
-  import type { ActionIcon } from "../../interaction/toolbar.ts";
-  let { label, title, content, open, disabled = false, locked = false, onchange, invoke = () => {}, icon = "open" }: {
-    label: string; title: string; content: Extract<FrameContent, { kind: "information" | "utilities" }>;
-    open: boolean; disabled?: boolean; locked?: boolean | undefined; onchange: (open: boolean) => void;
-    invoke?: (intent: SurfaceIntent) => void; icon?: ActionIcon;
+  import type { CatalogProps } from "../../types.d.ts";
+  import { Action } from "../../index.ts";
+  import { Field } from "../../index.ts";
+  import { Modal } from "../../index.ts";
+  import type { Disclosure } from "../../../infra/disclosure.ts";
+  import { dismissWhenInactive } from "../../../infra/surface-activity.svelte.ts";
+  import { useSurfaceDensityClass } from "../../../infra/surface-typography.svelte.ts";
+  import { provideSheetFocus, takeOpenFocus } from "../../mechanisms/surface-focus/focus-return.ts";
+  import { PickerPresentation, pickerBudget, calendarBudget } from "./picker-presentation.svelte.ts";
+  import PopoverSurface from "./PopoverSurface.svelte";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  let { label, open, disabled, locked, trigger, content, placement, align, controls, onopenchange, children }: CatalogProps<"popover"> = $props();
+  const id = $props.id(), panelId = `${id}-surface`;
+  const triggerId = $derived(trigger.kind === "owned" ? trigger.id : `${id}-trigger`);
+  const density = useSurfaceDensityClass();
+  const calendar = $derived(trigger.kind === "field" && trigger.measure === "date");
+  const picker = new PickerPresentation(() => calendar ? calendarBudget : pickerBudget);
+  const sheet = $derived(placement === "adaptive" && picker.current === "sheet");
+  const disclosure: Disclosure = $derived({ id: triggerId, controls: controls ?? panelId, expanded: open,
+    haspopup: content === "list" ? "listbox" : "dialog" });
+  /** The person asks to open or close; a disabled popover refuses both, a locked one refuses closing. */
+  function change(next: boolean) { if (!disabled && next !== open && (next || !locked)) onopenchange?.(next); }
+  const openFocus = takeOpenFocus();
+  provideSheetFocus({ returnTo: () => document.getElementById(triggerId), open: openFocus });
+  dismissWhenInactive(() => { if (open) onopenchange?.(false); });
+  $effect(() => { if (disabled && open) onopenchange?.(false); });
+</script>
+{#if trigger.kind === "action"}
+  <Action label={trigger.label} icon={trigger.icon} face={trigger.face} emphasis={trigger.emphasis} type="button"
+    state={disabled ? "unavailable" : trigger.state} bar={trigger.bar} {disclosure} onclick={() => change(!open)} />
+{:else if trigger.kind === "field"}
+  <Field primitive="trigger" label={trigger.label} labelVisibility={trigger.labelVisibility ?? "visible"} required={trigger.required} invalid={trigger.invalid}
+    {disabled} measure={trigger.measure} display={trigger.display} {disclosure} onopen={() => change(!open)} />
+{/if}
+{#if sheet}
+  <!-- In a sheet a list keeps the picker inset of its rows; a calendar frames its own header; a form (a cover choice) stands
+       on its bar's line, the ✕'s, with the bar's inset below its last control. Its top bar says what the sheet does and, as
+       its subtitle, names the field it edits (laws 9c, 10a). -->
+  <Modal label={calendar ? say(m.popover.chooseDate) : say(m.popover.chooseOption)} subtitle={label} {open} {locked} presentation="sheet"
+    ondismiss={() => change(false)}>
+    {#if content === "list"}<div class="picker-content-inset pt-2 pb-4">{@render children?.()}</div>
+    {:else if calendar}{@render children?.()}
+    {:else}<div class="px-[var(--catalog-toolbar-inset)] pb-4">{@render children?.()}</div>{/if}
+  </Modal>
+{:else}
+  <PopoverSurface {label} {open} {locked} {content} {align} {triggerId} {panelId} {calendar} {openFocus}
+    density={density()} {change} {children} />
+{/if}
+```
+
+## src/svelte/catalog/foundations/popover/PopoverSurface.svelte
+
+Source SHA-256: 84ea2ae6f34e0e4dcaea087e597b04d7a213f2f45c9c7e35a2b163d532326b5e
+
+```svelte
+<script lang="ts">
+  // Popover part: the anchored surface. Bits draws no trigger: the surface anchors to the trigger by id (customAnchor),
+  // ignores presses on it (the trigger itself toggles once), and returns focus to it unless dismissal came from outside.
+  import type { Snippet } from "svelte";
+  import * as Popover from "../../../vendor/components/ui/popover/index.js";
+  import { surfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
+  import { anchoredTabExit } from "./anchored-tab-exit.ts";
+  import { calendarBudget } from "./picker-presentation.svelte.ts";
+  let { label, open, locked, content, align, triggerId, panelId, calendar, openFocus, density, change, children }: {
+    label: string; open: boolean; locked: boolean; content: "information" | "form" | "list" | "menu"; align: "start" | "end";
+    triggerId: string; panelId: string; calendar: boolean; openFocus: ((event: Event) => void) | undefined; density: string | undefined;
+    change: (open: boolean) => void; children: Snippet | undefined;
   } = $props();
-  const panelId = $props.id();
-  const change = (next: boolean) => { if (!disabled && (next || !locked)) onchange(next); };
-  dismissWhenInactive(() => onchange(false));
-  const guard = (event: Event) => { if (locked) event.preventDefault(); };
-  let outside = false;
+  const presentations = { information: "pane", form: "reference", list: "selection", menu: "speed-dial" } as const;
+  /** A month calendar frames itself (its header is the surface's top row) at the calendar budget's width; the surface stays
+   * concentric with the calendar's own controls, .5rem inside it (law 9d). */
+  const calendarFrame = `width:${calendarBudget.panelRem}rem;overflow:hidden;padding:0;gap:0;--floating-inset:.5rem`;
   let panel = $state<HTMLElement | null>(null);
-  const interactOutside = (event: Event) => { guard(event); outside = !event.defaultPrevented; };
-  const focusOutside = (event?: Event) => {
-    event?.preventDefault();
-    // DismissibleLayer can report the opener's earlier focus event after the
-    // surface has mounted. Judge the settled destination, not that stale event.
-    queueMicrotask(() => {
-      if (panel?.contains(document.activeElement)) return;
-      if (open && !locked) { outside = true; change(false); }
-    });
-  };
-  const closeFocus = (event: Event) => {
-    // A nonmodal outside interaction keeps the target's focus; Escape returns to the trigger.
-    if (outside) event.preventDefault();
+  let boundary: HTMLElement | null = null;
+  $effect(() => { if (panel) boundary = panel; });
+  /** Whether the person dismissed it by interacting elsewhere: focus then stays where they went. */
+  let outside = false;
+  const onTrigger = (target: EventTarget | null) => target instanceof Element && target.closest(`#${CSS.escape(triggerId)}`) !== null;
+  const dismissOutside = () => { if (open && !locked) { outside = true; change(false); } };
+  // Focus can leave for the trigger (a press toggles it) without dismissing; elsewhere it dismisses.
+  const focus = surfaceFocus(() => panel, () => queueMicrotask(() => {
+    const active = document.activeElement;
+    if (!panel?.contains(active) && !onTrigger(active)) dismissOutside();
+  }));
+  function interactOutside(event: Event) {
+    if (onTrigger(event.target) || locked) event.preventDefault();
+    else outside = true;
+  }
+  function returnFocus(event: Event) {
+    event.preventDefault();
+    const leaving = outside, active = document.activeElement, trigger = document.getElementById(triggerId);
     outside = false;
-  };
+    if (leaving || open || active && active !== document.body && !boundary?.contains(active)) return;
+    if (trigger?.checkVisibility() && !trigger.closest("[hidden],[inert]")) trigger.focus({ preventScroll: true });
+  }
 </script>
 <Popover.Root {open} onOpenChange={change}>
-  <Popover.Trigger {disabled}>
-    {#snippet child({ props })}
-      <BankRenderer node={{ version: BankVersion, kind: "action", role: "secondary", action: {
-        icon, label, state: disabled ? "unavailable" : "ready", intent: { kind: "transient.open" },
-      } }} actionElementProps={{ ...props, "aria-controls": open ? panelId : undefined }} />
-    {/snippet}
-  </Popover.Trigger>
-  <Popover.Content id={panelId} bind:ref={panel} role="dialog" aria-label={title} aria-modal="false" trapFocus={false} preventScroll={false}
-    onkeydowncapture={event => {
-      if (panel && !locked) anchoredTabExit(event, panel, () => { outside = true; change(false); });
-    }}
-    onEscapeKeydown={guard} onInteractOutside={interactOutside} onCloseAutoFocus={closeFocus} onFocusOutside={focusOutside}
-    data-presentation="anchored">
-    <FrameBody {content} {invoke} edit={() => {}} />
+  <Popover.Content bind:ref={panel} id={panelId} customAnchor={`#${triggerId}`} presentation={presentations[content]} class={density} {align}
+    role={content === "list" ? "presentation" : content === "menu" ? undefined : "dialog"}
+    aria-label={content === "list" ? undefined : label} aria-modal={content === "list" || content === "menu" ? undefined : "false"}
+    style={calendar ? calendarFrame : undefined} data-popover={content} data-presentation="anchored"
+    onOpenAutoFocus={event => focus.open(event, openFocus)} onCloseAutoFocus={event => focus.close(event, returnFocus)}
+    onkeydowncapture={event => { if (panel && !locked) anchoredTabExit(event, panel, dismissOutside); }}
+    onEscapeKeydown={event => { if (locked) event.preventDefault(); }} onInteractOutside={interactOutside}>
+    {@render children?.()}
   </Popover.Content>
 </Popover.Root>
 ```
 
-## src/svelte/Fields.svelte
+## src/svelte/catalog/foundations/files/Files.svelte
 
-Source SHA-256: da9c9ac7d83931ffcc877ed47898fae0c116978ddd62cb5eabf34a8629641835
+Source SHA-256: 93833ecb36ee16aa9dc48f31e25bce08720f9a4adeec82d9ef780bb24d59152b
 
 ```svelte
 <script lang="ts">
-  import * as Field from "./vendor/components/ui/field/index.js";
-  import BankRenderer from "./BankRenderer.svelte";
-  import { BankVersion } from "../interaction/bank-node.ts";
-  import type { FrameContent } from "../interaction/surface-frame.ts";
-  import { imageInputControl } from "../interaction/image-input.ts";
-  import { labelsInputControl } from "../interaction/labels-control.ts";
-  import { isFormControlEvent, type FormControlEvent } from "../interaction/form-control-event.ts";
-  import { useFormFiles } from "./pieces/form-files.ts";
-  const fileHost = useFormFiles();
-  let { fields, edit, controlEvent }: {
-    fields: Extract<FrameContent, { kind: "form" }>["fields"];
-    edit: (name: string, value: string) => void;
-    controlEvent: (event: FormControlEvent) => void;
-  } = $props();
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  import { Action } from "../../index.ts";
+  import { Text } from "../../index.ts";
+  import { fileNode, type FileRejection } from "../../../../interaction/control-nodes.ts";
+  import { useFileHost } from "../../../infra/file-host-context.ts";
+  import { currentStackTitle } from "../../../infra/stack-context.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { fileSize } from "./file-size.ts";
+  import { nativeFilePicker } from "../../mechanisms/file-picker/file-picker.ts";
+  let { node, onevent }: CatalogProps<"files"> = $props();
+  const provided = useFileHost();
+  if (!provided) throw new Error("LOCAL_FILE_HOST_REQUIRED: files renders inside a subtree that provides a file host (provideFileHost)");
+  const host = provided;
+  let checked = $derived(fileNode(node));
+  let rejected = $state<readonly FileRejection[]>([]);
+  const id = $props.id();
+  const stackTitle = currentStackTitle();
+  const reasons = { "media-type": m.files.mediaType, "file-size": m.files.fileSize, "total-size": m.files.totalSize, count: m.files.count };
+  /** The browser's chooser supplies the files; the host checks them against the limits and keeps the accepted handles. */
+  async function choose() {
+    const files = await nativeFilePicker(checked);
+    if (!files) return;
+    const selection = host.choose(checked, files);
+    rejected = selection.result.rejected;
+    onevent?.(selection.event);
+  }
+</script>
+<div role="group" class="group/field flex w-full flex-col gap-2 [&>.sr-only]:w-auto" data-files data-disabled={checked.disabled}
+  data-invalid={rejected.length > 0} aria-labelledby={`${id}-label`} aria-describedby={`${id}-limits`}>
+  <span id={`${id}-label`} data-files-label class={stackTitle() === checked.label ? "sr-only"
+    : "flex w-fit items-center gap-2 type-control leading-snug select-none group-data-[invalid=true]/field:text-destructive-text"}>{checked.label}</span>
+  <Action icon="open" label={say(m.files.choose)} face="fit" emphasis="secondary" type="button" state={checked.disabled ? "unavailable" : "ready"} onclick={choose} />
+  <!-- The limits and, with no file chosen, the empty note are one caption block (4 px apart, as the field description was). -->
+  <div class="flex flex-col gap-1">
+    <Text id={`${id}-limits`} kind="caption" tone="muted" inset="row"
+      text={say(m.files.limits, { count: String(checked.limits.maxCount), file: fileSize(checked.limits.maxFileBytes), total: fileSize(checked.limits.maxTotalBytes) })} />
+    {#if !checked.files.length}<Text kind="caption" tone="muted" inset="row" text={say(m.files.none)} />{/if}
+  </div>
+  {#if checked.files.length}
+    <ul class="flex flex-col gap-2" aria-label={say(m.files.selected)} data-files-list>
+      {#each checked.files as file (file.id)}
+        <li class="flex flex-wrap items-center justify-between gap-2">
+          <span class="min-w-0 wrap-words">{say(m.files.file, { name: file.name, size: fileSize(file.size) })}</span>
+          <Action icon="close" label={say(m.files.remove, { name: file.name })} face="fit" emphasis="secondary" type="button" state={checked.disabled ? "unavailable" : "ready"}
+            onclick={() => onevent?.(host.remove(checked, file.id))} />
+        </li>
+      {/each}
+    </ul>
+  {/if}
+  <div role="status" aria-live="polite" data-files-status>
+    {#each rejected as item (item.file.id)}<Text kind="support" tone="destructive" text={say(m.files.rejected, { name: item.file.name, reason: say(reasons[item.reason]) })} />{/each}
+  </div>
+</div>
+```
+
+## src/svelte/catalog/compositions/fields/Fields.svelte
+
+Source SHA-256: e95bfc97c5eedfbe17268c0fb5acf81adb8b7eb2f5e12dc7a7558150181ffe4e
+
+```svelte
+<script lang="ts">
+  import { Column, NodeRenderer } from "../../index.ts";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  import { imageInputControl } from "../../../../interaction/image-input.ts";
+  import { labelsInputControl } from "../../../../interaction/labels-control.ts";
+  import { isFormControlEvent } from "../../../../interaction/form-control-event.ts";
+  let { fields, edit, controlEvent }: CatalogProps<"fields"> = $props();
 </script>
 
-<Field.FieldGroup data-composition="form">
+<!-- The form's fields stand 1.25rem apart, the gap of the field group they were drawn in. -->
+<Column gap="loose">
   {#each fields as field (field.name)}
     {#if field.primitive === "control.files"}
-      <BankRenderer node={{ version: BankVersion, kind: "control.files",
-        control: imageInputControl(field.name, field.label, field.files,field.disabled ?? false,field.media) }} host={fileHost}
+      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "control.files",
+        control: imageInputControl(field.name, field.label, field.files,field.disabled ?? false,field.media) }}
         onevent={event => { if (isFormControlEvent(event)) controlEvent(event); }} />
     {:else if field.primitive === "control.labels"}
-      <BankRenderer node={{ version: BankVersion, kind: "control.labels",
+      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "control.labels",
         control: { ...labelsInputControl(field.name, field.label, field.values, field.limits, field.error, field.reference,field.mediaReference), disabled: field.disabled ?? false } }}
         onevent={event => { if (isFormControlEvent(event)) controlEvent(event); }} />
     {:else if field.primitive === "control.select"}
-      <BankRenderer node={{ version: BankVersion, kind: "control.select", control: {
+      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "control.select", control: {
         version: "desert.control/1", kind: "select", id: field.name, label: field.label,
         required: true, disabled: field.disabled ?? false, value: field.value, options: field.options,
       } }} onevent={event => { if (event.kind === "select.change" && event.value !== null) edit(field.name, event.value); }} />
     {:else}
-    <BankRenderer node={{ version: BankVersion, kind: field.primitive, name: field.name, label: field.label,
+    <NodeRenderer node={{ version: ResolvedNodeVersion, kind: field.primitive, name: field.name, label: field.label,
       value: field.value, required: field.required, disabled: field.disabled ?? false, ...(field.error ? { error: field.error } : {}),
       ...(field.maxLength !== undefined ? { maxLength: field.maxLength } : {}) }}
       onevent={event => { if (event.kind === "input.change") edit(event.name, event.value); }} />
     {/if}
   {/each}
-</Field.FieldGroup>
+</Column>
 ```
 
-## src/svelte/pieces/TextInput.svelte
+## src/svelte/catalog/foundations/field/Field.svelte
 
-Source SHA-256: 9896fa4947b64e41610cb4d914c88c6f893711a3da380426443beb9c1f92380c
+Source SHA-256: 8a3ba7c3cac52663c12536c16cf2f5762a792b970997ff6170b3b01f2ece6d2f
 
 ```svelte
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { untrack } from "svelte";
-  import * as Field from "../vendor/components/ui/field/index.js";
-  import * as Group from "../vendor/components/ui/input-group/index.js";
-  import type { InputMask } from "../../interaction/input-mask.ts";
+  import * as Vendor from "../../../vendor/components/ui/field/index.js";
   import FieldWell from "./FieldWell.svelte";
-  import MeasuredField from "./MeasuredField.svelte";
-  import MaskedInput from "./MaskedInput.svelte";
+  import FieldAccessory from "./FieldAccessory.svelte";
+  import FieldEditor from "./FieldEditor.svelte";
+  import FieldTrigger from "./FieldTrigger.svelte";
+  import SearchWell from "./SearchWell.svelte";
   import CharacterCounter from "./CharacterCounter.svelte";
   import ClearInput from "./ClearInput.svelte";
-  import { observeEditorCapacity } from "./editor-capacity.ts";
-  let { primitive, label, value = "", required = false, invalid = false, error, helper, disabled = false,
-    identity = "", mask, maxLength, purpose = "text", onchange }: {
-    label: string; value?: string; required?: boolean; identity?: string; maxLength?: number | undefined;
-    invalid?: boolean; error?: string | undefined; helper?: string | undefined; disabled?: boolean; onchange: (value: string) => void;
-    purpose?: "text" | "username" | "new-password" | "current-password";
-  } & ({ primitive: "input.text"; mask?: InputMask | undefined } | { primitive: "input.multiline"; mask?: never }) = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  let { primitive, label, labelVisibility, required, invalid, disabled, helper, error, identity, measure, purpose, value, placeholder,
+    mask, maxLength, counter, clear, focus, controls, expanded, bar, display, disclosure, select, onchange, onmasked, onopen, accessory: trailing,
+    prefix, selection }: CatalogProps<"field"> = $props();
   const id = $props.id();
-  let writing = $derived(value);
-  let editor = $state<HTMLTextAreaElement | null>(null);
-  $effect(() => { if (editor) return observeEditorCapacity(editor); });
-  let display = $state(""), draftError = $state("");
-  const context = () => `${identity}/${primitive}/${mask?.kind ?? ""}/${mask?.locale ?? ""}/${mask?.scale ?? ""}`;
-  let observed = untrack(() => ({ value, context: context() }));
+  // Both editors receive their value; the trigger owns none. `writing` is the live text, `shown` a mask's formatted text.
+  let written = $derived(typeof value === "string" ? value : "");
+  let writing = $derived(written);
+  let shown = $state("");
+  let draft = $derived(mask ? shown : writing);
+  let draftError = $state("");
+  // A rejected or incomplete masked edit keeps its message until the owner's value or the field's identity changes.
+  const context = () => `${identity ?? ""}/${primitive}/${mask?.kind ?? ""}/${mask?.locale ?? ""}/${mask?.scale ?? ""}`;
+  let observed = untrack(() => ({ value: written, context: context() }));
   let pending: string[] = [];
   $effect(() => {
-    const next = { value, context: context() };
+    const next = { value: written, context: context() };
     untrack(() => {
       const acknowledgement = pending.indexOf(next.value);
-      if (next.context !== observed.context || next.value !== observed.value && acknowledgement < 0) {
-        draftError = ""; pending = [];
-      } else if (acknowledgement >= 0) pending.splice(0, acknowledgement + 1);
+      if (next.context !== observed.context || next.value !== observed.value && acknowledgement < 0) { draftError = ""; pending = []; }
+      else if (acknowledgement >= 0) pending.splice(0, acknowledgement + 1);
       observed = next;
     });
   });
   let message = $derived(error || draftError);
-  let describedBy = $derived([
-    helper ? `${id}-helper` : undefined,
-    primitive === "input.multiline" ? `${id}-counter` : undefined,
-    message ? `${id}-error` : undefined,
-  ].filter(Boolean).join(" ") || undefined);
-  let invalidField = $derived(invalid || !!message);
-  function editMasked(next: string, valid: boolean, complete: boolean) {
-    if (disabled) return;
-    draftError = valid && complete ? "" : valid ? "Enter a complete number." :
-      `Enter a number with up to ${mask!.scale} decimal places using this field's format.`;
-    if (valid && complete) { pending.push(next); onchange(next); }
+  let marked = $derived(invalid || !!message);
+  let multiline = $derived(primitive === "input.multiline");
+  // A multiline editor always counts its characters; a single line counts them when its caller asks (a limited label).
+  let counted = $derived(multiline || counter === true);
+  // A required select says so to assistive technology (its well marks it visibly).
+  let requirement = $derived(primitive === "trigger" && select === true && required);
+  let describedBy = $derived([helper ? `${id}-helper` : undefined, counted ? `${id}-counter` : undefined,
+    message ? `${id}-error` : undefined, requirement ? `${id}-requirement` : undefined].filter(Boolean).join(" ") || undefined);
+  function edited(next: string, valid: boolean, complete: boolean) {
+    if (disabled || !mask) return;
+    onmasked?.({ value: next, valid, complete });
+    draftError = valid && complete ? "" : valid ? say(m.field.incompleteNumber) : say(m.field.invalidNumber, { scale: String(mask.scale) });
+    if (valid && complete) { pending.push(next); onchange?.(next); }
   }
 </script>
-{#snippet counter()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
-<MeasuredField kind={primitive} invalid={invalidField} {disabled}>
-  <FieldWell {id} {label} {required} footer={primitive === "input.multiline" ? counter : undefined}
-    filled={(mask ? display : writing).length > 0}>
-    {#snippet accessory()}<ClearInput control={id} value={mask ? display : writing} label={`Clear ${label}`} {disabled} />{/snippet}
-    {#if primitive === "input.multiline"}
-      <Group.Textarea {id} bind:ref={editor} bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} rows={4} placeholder=" "
-        aria-describedby={describedBy} onblur={event => onchange(event.currentTarget.value)}
-        class="focus-visible:outline-none"
-        oninput={event => onchange(event.currentTarget.value)} />
-    {:else if mask}
-      <MaskedInput {id} {value} {mask} {identity} bind:display {required} {disabled}
-        aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
-        aria-describedby={describedBy} onvalue={editMasked} />
+{#snippet characters()}<CharacterCounter id={`${id}-counter`} value={writing} {maxLength} />{/snippet}
+{#snippet editor()}
+  {#if primitive !== "trigger"}
+    <FieldEditor {id} {primitive} {label} {purpose} value={written} {placeholder} {mask} {identity} {required} {disabled} {focus} {controls}
+      invalid={marked} {describedBy} bind:writing bind:shown onchange={next => onchange?.(next)} onmasked={edited} />
+  {/if}
+{/snippet}
+{#snippet trigger()}
+  {#if display && disclosure}
+    <FieldTrigger {label} {labelVisibility} {required} {disabled} {describedBy} {display} {disclosure} select={select === true} shown={selection}
+      accessory={measure === "date" ? "calendar" : "disclosure"} onopen={() => onopen?.()} />
+  {/if}
+  {#if requirement}<span id={`${id}-requirement`} class="sr-only">{say(m.field.required)}</span>{/if}
+{/snippet}
+<!-- A select without a measure takes no box: its well sits where its parent lays it, as a button does. A measured
+     select keeps the measure box; its content fades as its button's does (the field's disabled rule restores field
+     content), and its well is the only control, so the field is no group. -->
+{#if primitive === "trigger" && select === true && measure === undefined}{@render trigger()}
+{:else}
+<div data-field data-field-filled={primitive === "trigger" || draft.length > 0} data-measure={measure} data-search-expanded={expanded}>
+  <Vendor.Field data-primitive={primitive} data-invalid={marked} data-disabled={select ? undefined : disabled} role={select ? undefined : "group"}>
+    {#if primitive === "trigger"}{@render trigger()}
+    {:else if purpose === "search"}
+      <SearchWell {id} {label} {placeholder} {disabled} invalid={marked} {describedBy} {focus} {controls} {bar} bind:writing onchange={next => onchange?.(next)} />
     {:else}
-      <Group.Input {id} type={purpose.endsWith("password") ? "password" : "text"} autocomplete={purpose === "text" ? undefined : purpose}
-        autocapitalize={purpose === "username" ? "none" : undefined} spellcheck={purpose === "text" ? undefined : false}
-        bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalidField} aria-label={label} placeholder=" "
-        aria-describedby={describedBy} onblur={event => onchange(event.currentTarget.value)}
-        class="focus-visible:outline-none"
-        oninput={event => onchange(event.currentTarget.value)} />
+      <!-- A shown placeholder (the money amount's «0,00») is the editor's text line: the label keeps its place above it. -->
+      <FieldWell {id} {label} {labelVisibility} {required} {disabled} filled={draft.length > 0} raised={draft.length > 0 || placeholder !== undefined}
+        {prefix} footer={counted ? characters : undefined}>
+        {#snippet accessory()}
+          {#if trailing}<FieldAccessory>{@render trailing()}</FieldAccessory>
+          {:else if multiline || clear}<ClearInput control={id} value={draft} label={say(m.field.clear, { label })} {disabled} />{/if}
+        {/snippet}
+        {@render editor()}
+      </FieldWell>
     {/if}
-  </FieldWell>
-  {#if helper}<Field.FieldDescription id={`${id}-helper`}>{helper}</Field.FieldDescription>{/if}
-  {#if message}<Field.FieldError id={`${id}-error`} role="status">{message}</Field.FieldError>{/if}
-</MeasuredField>
+    {#if helper}<Vendor.FieldDescription id={`${id}-helper`}>{helper}</Vendor.FieldDescription>{/if}
+    {#if message}<Vendor.FieldError id={`${id}-error`} role="status">{message}</Vendor.FieldError>{/if}
+  </Vendor.Field>
+</div>
+{/if}
 ```
 
-## src/svelte/pieces/MaskedInput.svelte
+## src/svelte/catalog/foundations/field/FieldEditor.svelte
 
-Source SHA-256: 1594084e6939a7b040a7c190a485ee760e0a9ec073898be92d313fd9d21ae011
+Source SHA-256: d536b97e665acb2d86cea31e34a2a9f618080b085227d3bb66eabc9e0fad6e53
+
+```svelte
+<script lang="ts">
+  // The editor inside a Field's well: a single line (plain, credential or masked) or a multiline editor that grows to
+  // the reading area. `writing` is the live text of a plain editor, `shown` the formatted text of a masked one.
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
+  import type { InputMask } from "../../../../interaction/input-mask.ts";
+  import MaskedInput from "./MaskedInput.svelte";
+  import { observeEditorCapacity } from "./editor-capacity.ts";
+  let { id, primitive, label, purpose, value, placeholder, mask, identity, required, disabled, invalid, describedBy, focus, controls,
+    writing = $bindable(""), shown = $bindable(""), onchange, onmasked }: {
+    id: string; primitive: "input.text" | "input.multiline"; label: string;
+    purpose: "text" | "username" | "new-password" | "current-password" | "search" | undefined; value: string; placeholder: string | undefined;
+    mask: InputMask | undefined; identity: string | undefined; required: boolean; disabled: boolean; invalid: boolean;
+    describedBy: string | undefined; focus: "on-mount" | undefined; controls: string | undefined; writing?: string; shown?: string;
+    onchange: (value: string) => void; onmasked: (value: string, valid: boolean, complete: boolean) => void;
+  } = $props();
+  let editor = $state<HTMLTextAreaElement | null>(null);
+  let line = $state<HTMLInputElement | null>(null);
+  $effect(() => { if (editor) return observeEditorCapacity(editor); });
+  $effect(() => { if (focus === "on-mount" && line) line.focus({ preventScroll: true }); });
+</script>
+{#if primitive === "input.multiline"}
+  <Group.Textarea {id} bind:ref={editor} bind:value={writing} {required} {disabled} aria-required={required} aria-invalid={invalid}
+    aria-label={label} rows={4} placeholder=" " aria-describedby={describedBy} class="focus-visible:outline-none"
+    data-field-editor="multiline" onblur={event => onchange(event.currentTarget.value)} oninput={event => onchange(event.currentTarget.value)} />
+{:else if mask}
+  <MaskedInput {id} {value} {mask} {identity} bind:display={shown} {required} {disabled} {invalid} {label} {describedBy}
+    placeholder={placeholder ?? " "} onvalue={onmasked} />
+{:else}
+  <Group.Input {id} bind:ref={line} type={purpose?.endsWith("password") ? "password" : "text"}
+    autocomplete={purpose === "text" || purpose === "search" || purpose === undefined ? undefined : purpose} autocapitalize={purpose === "username" ? "none" : undefined}
+    spellcheck={purpose === "text" ? undefined : false} bind:value={writing} {required} {disabled} aria-required={required}
+    aria-invalid={invalid} aria-label={label} placeholder={placeholder ?? " "} aria-describedby={describedBy} aria-controls={controls}
+    class="focus-visible:outline-none" onblur={event => onchange(event.currentTarget.value)} oninput={event => onchange(event.currentTarget.value)} />
+{/if}
+```
+
+## src/svelte/catalog/foundations/field/MaskedInput.svelte
+
+Source SHA-256: 67f64d2ea5078369a1d2525824d9b0de8aafc4bd6728f46f1db7ae123942d758
 
 ```svelte
 <script lang="ts">
   import { untrack } from "svelte";
-  import * as Group from "../vendor/components/ui/input-group/index.js";
-  import { formatMaskedValue, readMaskedValue, maskSeparators, type InputMask } from "../../interaction/input-mask.ts";
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
+  import { formatMaskedValue, readMaskedValue, maskSeparators } from "../../../../interaction/input-mask.ts";
+  import type { InputMask } from "../../../../interaction/input-mask.ts";
   import { historyKey, inputEditHistory, inputSnapshot, type InputSnapshot } from "./input-edit-history.ts";
-  let { value, mask, identity = "", display = $bindable(""), onvalue, id, placeholder, disabled, required,
-    "aria-required": ariaRequired, "aria-invalid": invalid, "aria-label": label, "aria-describedby": describedBy }: {
-    value: string; mask: InputMask; identity?: string; display?: string;
-    id?: string; placeholder?: string; disabled?: boolean; required?: boolean;
-    "aria-required"?: boolean; "aria-invalid"?: boolean; "aria-label"?: string; "aria-describedby"?: string;
+  // A Field's masked editor (a decimal amount): it formats as the person types, keeps the caret and its own undo
+  // history, and reports every edit as the canonical value, whether it is valid and whether it is complete.
+  let { value, mask, identity, display = $bindable(""), onvalue, id, placeholder, disabled, required, invalid, label, describedBy }: {
+    value: string; mask: InputMask; identity: string | undefined; display?: string; id: string; placeholder: string;
+    disabled: boolean; required: boolean; invalid: boolean; label: string; describedBy: string | undefined;
     onvalue: (value: string, valid: boolean, complete: boolean) => void;
   } = $props();
   let composing = false, compositionInput = false, allowDisplacedGrouping = false;
@@ -5896,7 +5983,7 @@ Source SHA-256: 1594084e6939a7b040a7c190a485ee760e0a9ec073898be92d313fd9d21ae011
   let echoes: string[] = [];
   const history = inputEditHistory();
   let pending: { state: InputSnapshot; kind: string } | undefined;
-  const context = () => `${identity}/${mask.kind}/${mask.locale}/${mask.scale}`;
+  const context = () => `${identity ?? ""}/${mask.kind}/${mask.locale}/${mask.scale}`;
   let observed = untrack(context);
   $effect(() => {
     const next = context(), incoming = value;
@@ -5981,7 +6068,7 @@ Source SHA-256: 1594084e6939a7b040a7c190a485ee760e0a9ec073898be92d313fd9d21ae011
       input.setSelectionRange(start, start + group.length + 1);
   }
 </script>
-<Group.Input {id} {placeholder} {disabled} {required} aria-required={ariaRequired} aria-invalid={invalid}
+<Group.Input {id} {placeholder} {disabled} {required} aria-required={required} aria-invalid={invalid}
   aria-label={label} aria-describedby={describedBy} type="text" inputmode="decimal" value={display} data-input-mask={mask.kind}
   onbeforeinput={before}
   onkeydown={keydown}
@@ -5997,42 +6084,46 @@ Source SHA-256: 1594084e6939a7b040a7c190a485ee760e0a9ec073898be92d313fd9d21ae011
   onblur={() => history.boundary()} />
 ```
 
-## src/svelte/pieces/CharacterCounter.svelte
+## src/svelte/catalog/foundations/field/CharacterCounter.svelte
 
-Source SHA-256: e8de6debfc5b6ef0a8021b6f7854c1a61e9ca9b486f5cd27ae2d8dde5623c117
+Source SHA-256: b288e9d0b1e7d21d1693f0b8c0e3694cc3517b29707131da5028169e6119d64a
 
 ```svelte
 <script lang="ts">
-  import * as Group from "../vendor/components/ui/input-group/index.js";
-  import { cn } from "../vendor/utils.js";
-  let { id, value, maxLength }: { id: string; value: string; maxLength?: number | undefined } = $props();
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
+  import { cn } from "../../../vendor/utils.js";
+  // The caption under a multiline Field: its characters, or how many remain before its limit and by how many it is over.
+  let { id, value, maxLength }: { id: string; value: string; maxLength: number | undefined } = $props();
   // Match JSON Schema's code-point length, not HTML maxlength's UTF-16 units.
   const count = $derived([...value].length);
   const remaining = $derived(maxLength === undefined ? undefined : maxLength - count);
   const exceeded = $derived(remaining !== undefined && remaining < 0);
 </script>
 
-<Group.Addon align="block-end" class="px-4 pb-2">
+<Group.Addon align="block-end" class="px-(--row-inset) pb-2">
   <Group.Text {id} data-character-counter data-exceeded={exceeded}
     class={cn("ms-auto block min-w-0 text-end type-caption text-(length:--text-caption) tabular-nums", exceeded && "text-destructive-text")}>
-    {#if remaining === undefined}{count} {count === 1 ? "character" : "characters"}
-    {:else if exceeded}{-remaining} over limit
-    {:else}{remaining} remaining{/if}
+    {#if remaining === undefined}{say(count === 1 ? m.field.character : m.field.characters, { count: String(count) })}
+    {:else if exceeded}{say(m.field.overLimit, { count: String(-remaining) })}
+    {:else}{say(m.field.remaining, { count: String(remaining) })}{/if}
   </Group.Text>
 </Group.Addon>
 ```
 
-## src/svelte/pieces/ClearInput.svelte
+## src/svelte/catalog/foundations/field/ClearInput.svelte
 
-Source SHA-256: 68a2c3645b28ff57dbdf29fb9e1f2aa04970dc1d60b47dd856a512c2839528d1
+Source SHA-256: 2c1a354e3265b8e658344338ebffb39070e1280019ac96826992fdf31b673664
 
 ```svelte
 <script lang="ts">
-  import * as Group from "../vendor/components/ui/input-group/index.js";
-  import CircleX from "@lucide/svelte/icons/circle-x";
-  let { control, value, label, disabled = false }: {
-    control: string; value: string; label: string; disabled?: boolean;
-  } = $props();
+  import * as Group from "../../../vendor/components/ui/input-group/index.js";
+  import { Icon } from "../../index.ts";
+  // The trailing button of a Field that empties its control through the editor's own edit pipeline (masks and undo
+  // included); it renders nothing while the control is empty or disabled (a disabled field offers no edit).
+  // In a search well its glyph leads the line as the well's search glyph does (Icon's `lead` size).
+  let { control, value, label, disabled, lead = false }: { control: string; value: string; label: string; disabled: boolean; lead?: boolean } = $props();
 
   function clear() {
     const input = document.getElementById(control);
@@ -6065,15 +6156,15 @@ Source SHA-256: 68a2c3645b28ff57dbdf29fb9e1f2aa04970dc1d60b47dd856a512c2839528d1
   }
 </script>
 
-{#if value.length > 0}
+{#if value.length > 0 && !disabled}
   <Group.Addon align="inline-end" class="field-clear shrink-0">
     <Group.Button size="icon-sm" class="min-h-0" type="button" data-input-clear aria-label={label} title={label}
-      aria-controls={control} {disabled} onclick={clear}><CircleX aria-hidden="true" /></Group.Button>
+      aria-controls={control} {disabled} onclick={clear}><Icon name="circle-x" size={lead ? "lead" : undefined} decorative /></Group.Button>
   </Group.Addon>
 {/if}
 ```
 
-## src/svelte/pieces/input-edit-history.ts
+## src/svelte/catalog/foundations/field/input-edit-history.ts
 
 Source SHA-256: ec677b92cd776a73189497b282612f08583be120fcf12915225b00d863f0d600
 
@@ -6130,232 +6221,366 @@ export function historyKey(event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaK
 }
 ```
 
-## src/svelte/ContextPanel.svelte
+## src/svelte/catalog/compositions/context-panel/ContextPanel.svelte
 
-Source SHA-256: dec9e5e4a711edccc5da6138a4fb467d30dc56f1a6a669b77539e21d76b43ad5
+Source SHA-256: fba3a8e92a72958a4093dcc42c225fc5c14648e353e239c211f394064cbdcd74
 
 ```svelte
 <script lang="ts">
-  import BankRenderer from "./BankRenderer.svelte";
-  import { BankVersion } from "../interaction/bank-node.ts";
-  import DestinationRow from "./pieces/DestinationRow.svelte";
-  import GroupedPanel from "./pieces/GroupedPanel.svelte";
-  import ReadingContent from "./pieces/ReadingContent.svelte";
-  import ContextProperties from "./pieces/ContextProperties.svelte";
-  import MediaObject from "./pieces/media/MediaObject.svelte";
-  import AttentionStatus from './pieces/AttentionStatus.svelte';
-  import type { WebRendererProps } from "./renderer-contracts.ts";
-  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {}, actions, selectors = [], attention=[],presentation, onselect }: WebRendererProps["context"] = $props();
+  import { AttentionStatus, Column, ContextProperties, List, MediaObject, NodeRenderer, ReadingContent, Row, Spacer, StackLayout } from "../../index.ts";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {}, actions, selectors = [], attention=[],presentation, onselect }: CatalogProps<"context-panel"> = $props();
   let remaining = $derived(fields.filter(field => field !== presentation?.media && field !== presentation?.description));
   let prose = $derived(remaining.filter(field => multiline.includes(field)));
   let metadata = $derived(remaining.filter(field => !multiline.includes(field)));
   let imageFields = $derived(metadata.filter(field => images.includes(field)));
   let properties = $derived(metadata.filter(field => !images.includes(field)));
 </script>
-<div data-composition="context">
+<Column gap="relaxed">
     <AttentionStatus signals={attention} />
     {#if presentation}<MediaObject {facts} {presentation} />{/if}
     {#if prose.length}<ReadingContent fields={prose} {facts} {object} {labels} />{/if}
     {#if imageFields.length}
-      <BankRenderer node={{ version: BankVersion, kind: "fact", details: { kind: "facts", fields: imageFields, facts, object, labels, images: imageFields } }} />
+      <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "fact", details: { kind: "facts", fields: imageFields, facts, object, labels, images: imageFields } }} />
     {/if}
     <ContextProperties fields={properties} {facts} {object} {labels} {references} {selectors} {onselect}/>
-    {#if actions.length}<section class="context-actions" aria-label="Actions">
-      <h3>Actions</h3>
-      <GroupedPanel><div data-grouped-rows>
-        {#each actions as action (action.id)}
-          <DestinationRow destination={action.id} label={action.label} open={action.invoke} available={action.available} />
-        {/each}
-      </div></GroupedPanel>
-    </section>{/if}
-</div>
+    {#if actions.length}
+      <!-- The empty track keeps one more gap before the actions, which sets them apart from what the object reads. -->
+      <Spacer size="fill" />
+      <StackLayout title={say(m.contextPanel.actions)}>
+        <List kind="rows" measure="reading">
+          {#each actions as action (action.id)}
+            <Row label={action.label} leading={{ kind: "face", face: { kind: "icon", icon: "open" } }} trailing="chevron" interaction="open"
+              available={action.available} current={false} onopen={action.invoke} />
+          {/each}
+        </List>
+      </StackLayout>
+    {/if}
+</Column>
 ```
 
-## src/svelte/Facts.svelte
+## src/svelte/catalog/renderer/facts/Facts.svelte
 
-Source SHA-256: 0c92122325568de402726afcf826d603b6b25e70db1d2e79fff60e744b78fe2b
+Source SHA-256: d023c99c1fe3e33a48481991be62fcf1f3976d54ad50c07f5370a3790a4b6667
 
 ```svelte
 <script lang="ts">
-  import { FactGroup } from "./adapter-catalog.ts";
-  import type { FactsContent } from "../interaction/surface-frame.ts";
-  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {} }: Omit<FactsContent, "kind"> = $props();
+  import { FactGroup } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { fields, facts, object, labels, multiline = [], images = [], tags = [], references = {} }: CatalogProps<"facts"> = $props();
 </script>
 
 <FactGroup {fields} {facts} {object} {labels} {multiline} {images} {tags} {references} />
 ```
 
-## src/svelte/Review.svelte
+## src/svelte/catalog/compositions/review/Review.svelte
 
-Source SHA-256: 74b7a56c8022381d8b605c07f1afe2b748afbf2bb07694c4d1778b1716575b29
+Source SHA-256: 7b4bbfe3fc0d52613452f85d06068fc586f06cc42af12c84ef786679523dbc2e
 
 ```svelte
 <script lang="ts">
-  import type { FrameContent } from "../interaction/surface-frame.ts";
-  import BankRenderer from "./BankRenderer.svelte";
-  import { BankVersion } from "../interaction/bank-node.ts";
-  let { details, recovery }: Extract<FrameContent, { kind: "review" }> = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  import { Column, NodeRenderer, Text } from "../../index.ts";
+  import { ResolvedNodeVersion } from "../../../../interaction/resolved-node.ts";
+  let { details, recovery }: CatalogProps<"review"> = $props();
 </script>
-<div data-composition="review"><BankRenderer node={{ version: BankVersion, kind: "fact", details }} /></div>
-{#if recovery}<p class="mt-4 text-muted-foreground" role="status">{recovery}</p>{/if}
+<!-- The recovery note stands 1rem under the prepared facts, in the muted body ink, announced when it appears. -->
+<Column gap="regular">
+  <NodeRenderer node={{ version: ResolvedNodeVersion, kind: "fact", details }} />
+  {#if recovery}<Text kind="body" tone="muted" live="polite" text={recovery} />{/if}
+</Column>
 ```
 
-## src/svelte/pieces/DestinationRow.svelte
+## src/svelte/catalog/foundations/row/Row.svelte
 
-Source SHA-256: 867e2904c82482fc5afa6451811e5b82f3ea197f0af39abd9d0e74228d65f990
+Source SHA-256: 2b9e6b3dc001493fed226acf7b9b43d5c036efbe2b9e4d6c12be1ba0d34cd3ac
 
 ```svelte
 <script lang="ts">
-  import { Button } from "../vendor/components/ui/button/index.js";
-  import ChevronRight from "@lucide/svelte/icons/chevron-right";
-  import Face from './Face.svelte';
-  import type { ActionIcon } from '../../interaction/action-icon.ts';
-let { destination, label, available, open, icon = 'open', reason }: {
-    destination: string; label: string; available: boolean; open: () => void; icon?: ActionIcon | undefined; reason?: string | undefined;
-  } = $props();
-  const generatedId = $props.id();
-  const descriptionId = `${generatedId}-reason`;
+  import { AttentionIndicator, Face, Icon, Image } from "../../index.ts";
+  import { pressFeedback } from "../../mechanisms/press-feedback/press-feedback.ts";
+  import { useFocusScope } from "../../../infra/focus-scope.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { label, description, metadata = [], leading, trailing, interaction, available, reason, current, focusKey, attention = false, onopen }: CatalogProps<"row"> = $props();
+  const id = $props.id(), reasonId = `${id}-reason`;
+  const scope = useFocusScope();
+  // On a narrow page (typography's narrow-page) the row wraps: its copy keeps beside its leading mark while its longest
+  // unbreakable word fits there, and otherwise takes a line of its own below it, the chevron after it at the line's end. A
+  // capitalised English word is never hyphenated (the copy's wrap-words), so beside a face it would break without one.
+  const layout = "flex narrow-page:flex-wrap narrow-page:[&>:last-child:not(.row-copy)]:ms-auto";
+  const copy = "row-copy wrap-words flex-1 narrow-page:basis-[min-content]";
+  let button = $state<HTMLButtonElement | null>(null);
+  $effect(() => {
+    const key = focusKey, target = button;
+    if (key === undefined || !target || !scope) return;
+    return scope.register(key, () => { target.focus({ preventScroll: true }); return document.activeElement === target; });
+  });
+  function open() {
+    if (!available) return;
+    if (focusKey !== undefined) scope?.activated(focusKey);
+    onopen?.();
+  }
 </script>
-<Button variant="row" size="row" class="destination-row" type="button"
-  data-piece="destination-row" data-destination={destination} data-grouped-row
-  disabled={!available} aria-describedby={!available && reason ? descriptionId : undefined} title={!available ? reason : undefined} onclick={()=>{if(available)open();}}>
-  <Face face={{kind:'icon',icon}} />
-  <span class="destination-title">{label}</span>
-  <ChevronRight data-icon="inline-end" data-control-chevron data-destination-chevron aria-hidden="true" />
-</Button>
-{#if !available && reason}<span id={descriptionId} class="sr-only">{reason}</span>{/if}
+
+{#snippet content()}
+  {#if leading?.kind === "face"}<Face face={leading.face} />
+  {:else if leading?.kind === "attention"}<AttentionIndicator required={leading.required} />
+  {:else if leading?.kind === "image"}<span class="row-artwork"><Image frame="host" source={leading.source} alt={leading.alt} fit={leading.fit} /></span>
+  {:else if leading?.kind === "artwork"}<span class="row-artwork"><Image frame="host" placeholder={leading.media} /></span>{/if}
+  <span class={copy}>
+    <span class="row-label">{label}</span>
+    {#if description}<span class="row-description">{description}</span>{/if}
+    {#if metadata.length}<span class="row-metadata">{#each metadata as item, index (index)}<span>{item}</span>{/each}</span>{/if}
+  </span>
+  {#if trailing === "chevron"}<Icon name="chevron-right" placement="inline-end" chevron decorative />{/if}
+{/snippet}
+
+<!-- A row sizes every glyph it holds (a face's, the chevron) to one rem, as the vendor row button did. The class is one
+     array, never a class: directive beside a static class: Svelte 5.57 then escapes "&" twice and [&_svg] stops matching. -->
+{#if interaction === "open"}
+  <button bind:this={button} {@attach pressFeedback} type="button" class={["row material-interior control-feedback [&_svg]:size-4 [&_svg]:shrink-0", attention && "row-attended"]} data-row="open" data-focus-key={focusKey}
+    data-row-leading={leading?.kind} disabled={!available} aria-current={current ? "true" : undefined}
+    aria-describedby={!available && reason ? reasonId : undefined} title={!available ? reason : undefined} onclick={open}>
+    <!-- The attention dot sits over the row's corner, as it sat over the media list item. -->
+    {#if attention}<AttentionIndicator required placement="overlay" />{/if}
+    <span class={["row-content control-feedback-content disabled-content", layout]} data-button-content>{@render content()}</span>
+  </button>
+  {#if !available && reason}<span id={reasonId} class="sr-only">{reason}</span>{/if}
+{:else}
+  <div class="row [&_svg]:size-4 [&_svg]:shrink-0" data-row="static" data-row-leading={leading?.kind} data-focus-key={focusKey}><span class={["row-content", layout]}>{@render content()}</span></div>
+{/if}
+
+<style>
+  /* The grouped row's geometry: a full-width, at least 44px interior, one hairline between rows of the same list, its ends
+     at the control radius (concentric inside the list's border, law 9d). It sets
+     no box-shadow: this unlayered rule would win over control-feedback's hover and press tints, which are box-shadows. */
+  .row { display:flex; align-items:center; justify-content:flex-start; gap:.5rem; width:100%; min-width:0; min-height:2.75rem;
+    margin:0; padding:.75rem var(--row-inset); border:0; border-radius:0; background:transparent; color:var(--foreground);
+    font:inherit; font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:400;
+    text-align:left; white-space:normal; outline:none; }
+  .row:not(:first-child) { border-top:1px solid var(--separator); }
+  .row:first-child { border-start-start-radius:var(--radius-control); border-start-end-radius:var(--radius-control); }
+  .row:last-child { border-end-start-radius:var(--radius-control); border-end-end-radius:var(--radius-control); }
+  .row:disabled { pointer-events:none; }
+  .row-attended { position:relative; }
+  .row:focus-visible { outline:2px solid var(--ring); outline-offset:-3px; box-shadow:none; }
+  /* The content keeps the row's justification itself, as the vendor button's global content rule gave it; its display (a
+     flex row that wraps on a narrow page) is the layout classes'. */
+  .row-content { position:relative; width:100%; min-width:0; flex-direction:inherit; align-items:center; justify-content:inherit; gap:inherit; }
+  /* An attention dot or an image keeps the record row's and media item's wider gap. */
+  .row[data-row-leading="attention"], .row[data-row-leading="image"], .row[data-row-leading="artwork"] { gap:1rem; }
+  .row-artwork { display:block; flex:none; width:80px; height:60px; overflow:hidden; border-radius:var(--radius-control); }
+  /* Its words wrap by the one text policy (typography's wrap-words), which its copy carries for every line it holds; its
+     flex (it fills the row, and on a narrow page starts from its longest word) is its classes'. */
+  .row-copy { display:flex; min-width:0; flex-direction:column; gap:.25rem; text-align:start; }
+  .row-label { font-size:var(--text-control); line-height:var(--text-control--line-height); font-weight:var(--text-control--font-weight); }
+  .row-description { color:var(--muted-foreground); text-wrap:balance; }
+  .row-metadata { display:flex; flex-wrap:wrap; gap:.375rem 1rem; color:var(--muted-foreground); font-size:var(--text-body); }
+</style>
 ```
 
-## src/svelte/pieces/Drawer.svelte
+## src/svelte/catalog/compositions/view-panel/ViewPanel.svelte
 
-Source SHA-256: aff757d004de36528b8a29e4aa46466b3bd7846ce454b17b848e120120509630
+Source SHA-256: 423c99ac57bce78f0eb55abd42439da66ec389f069ab4bc56f704cd2f70cae45
 
 ```svelte
 <script lang="ts">
-  import { tick } from 'svelte';
-  import * as Dialog from "../vendor/components/ui/dialog/index.js";
-  import DrawerGrip from "./DrawerGrip.svelte";
-  import { prefersReducedMotion } from "svelte/motion";
-  import { drawerMotion } from "./drawer-motion.svelte.ts";
-  import { useSurfaceHost } from "./surface-host.svelte.ts";
-  import SurfaceFrame from "../SurfaceFrame.svelte";
-  import InstanceFrame from "../InstanceFrame.svelte";
-  import type { SurfaceFrame as Frame } from "../../interaction/surface-frame.ts";
-  import type { ResolvedView } from "../../views/resolved.ts";
-  import { transientFrame } from "../../interaction/transient-frame.ts";
-  import type { SurfaceIntent } from "../../interaction/intent.ts";
-  import { surfaceFocus } from "./surface-focus.svelte.ts";
-  import { adaptiveSurfaceLayout } from './adaptive-surface-layout.ts';
-  import { adaptiveModality } from './adaptive-modality.svelte.ts';
-  import type { FormControlEvent } from "../../interaction/form-control-event.ts";
-  import { frameContinuity } from "./frame-continuity.svelte.ts";
-let { label, open, locked = false, onclose, onclosed, frame, invoke, edit, frameIdentity, readingIdentity, body, controlEvent, presentation }: {
-    label: string; open: boolean; locked?: boolean; onclose: () => void;
-    onclosed?: () => void; frame: Frame; invoke: (intent: SurfaceIntent) => void;
-    edit?: (name: string, value: string) => void;
-    frameIdentity?: object | undefined;
-    readingIdentity?: object | undefined;
-    body?: ResolvedView | undefined;
-    controlEvent?: ((event: FormControlEvent) => void) | undefined;
-    presentation?: "transient" | undefined;
-  } = $props();
-  let composition = $derived(transientFrame(frame, locked));
-  let content = $state<HTMLElement | null>(null);
-  const continuity = frameContinuity(() => content, () => frameIdentity, () => frame, () => readingIdentity);
+  import { nodeEvent, type NodeEvent } from "../../../../interaction/node-events.ts";
+  import type { SurfaceIntent } from "../../../../interaction/intent.ts";
+  import { transientFrame } from "../../../../interaction/transient-frame.ts";
+  import type { FormControlEvent } from "../../../../interaction/form-control-event.ts";
+  import { confirmationDialog, confirmationDismissal } from "../../../infra/confirmation-dialog.ts";
+  import { Dialog, InstanceFrame, Modal, SurfaceFrame } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { panel, open, continuity, onevent }: CatalogProps<"view-panel"> = $props();
+  let modal = $state<ReturnType<typeof Modal>>();
+  let events = $derived.by(() => {
+    // Each keyed frame captures its own receiver, including delayed teardown.
+    const sink = onevent;
+    const send = (event: NodeEvent) => sink?.(nodeEvent(event));
+    return {
+      close: () => send({ kind: "transient.close" }),
+      closed: () => send({ kind: "transient.closed" }),
+      invoke: (intent: SurfaceIntent) => send({ kind: "surface.invoke", intent }),
+      edit: (name: string, value: string) => send({ kind: "input.change", name, value }),
+      controls: (event: FormControlEvent) => send(event),
+    };
+  });
+  let frame = $derived(panel.frame.kind === "confirmation" ? panel.frame : transientFrame(panel.frame, panel.locked));
+  // Before the frame invokes, the modal notes whether it is leaving (Back, Close): focus returns to that command.
   let dispatch = $derived.by(() => {
-    const receiver = invoke, owner = frameIdentity;
+    const receiver = events.invoke, owner = continuity;
     return (intent: SurfaceIntent) => {
-      if (owner === frameIdentity) continuity.invoking(intent);
+      if (owner === continuity) modal?.noteInvocation(intent.kind === "back" || intent.kind === "close" ? "close" : "other");
       receiver(intent);
     };
   });
-  let opener: HTMLElement | null = null;
-  let wasOpen = false;
+  /** Escape, the scrim or the grip choose the frame's dismissal: Close closes the panel, Back goes back. */
+  function dismiss() {
+    const navigation = frame.bottom.secondary;
+    if (panel.locked || navigation?.state !== "ready") return;
+    if (navigation.intent.kind === "close") { modal?.noteInvocation("close"); events.close(); }
+    else dispatch(navigation.intent);
+  }
+  function answer() {
+    if (panel.frame.kind !== "confirmation" || panel.locked) return;
+    const intent = confirmationDismissal(panel.frame);
+    if (intent) events.invoke(intent);
+  }
+</script>
+
+{#if panel.frame.kind === "confirmation"}
+  {@const ask = confirmationDialog(panel.frame)}
+  <Dialog {open} locked={panel.locked} tone="standard" title={ask.title} subtitle={ask.subtitle} face={ask.face}
+    primary={ask.primary} secondary={ask.secondary} oninvoke={events.invoke} ondismiss={answer} onclosed={events.closed} />
+{:else}
+  <Modal bind:this={modal} label={panel.label} {open} locked={panel.locked} presentation={panel.presentation === "transient" ? "transient" : "adaptive"}
+    continuity={continuity ? { frame: continuity, ...panel.readingIdentity ? { reading: panel.readingIdentity } : {} } : undefined}
+    ondismiss={dismiss} onclosed={events.closed}>
+    {#if continuity}
+      {#key continuity}<InstanceFrame {frame} body={panel.body} edit={events.edit} invoke={dispatch} controlEvent={events.controls} />{/key}
+    {:else}
+      <!-- A transient node's single frame (no owner to keep across frames): its Close closes the panel. -->
+      <SurfaceFrame {frame} edit={events.edit} controlEvent={events.controls} presentation="transient"
+        invoke={intent => intent.kind === "close" ? dismiss() : dispatch(intent)} />
+    {/if}
+  </Modal>
+{/if}
+```
+
+## src/svelte/catalog/foundations/modal/Modal.svelte
+
+Source SHA-256: 9b42e6ca117cd57bfd16d14445a35c71c9f00ed47c609e5c6cecd394ca2d3bf5
+
+```svelte
+<script lang="ts">
+  import type { CatalogProps } from "../../types.d.ts";
+  import { dismissWhenInactive } from "../../../infra/surface-activity.svelte.ts";
+  import { useSurfaceDensityClass } from "../../../infra/surface-typography.svelte.ts";
+  import type { FrameInvocation } from "./frame-continuity.svelte.ts";
+  import ModalPane from "./ModalPane.svelte";
+  import ModalSheet from "./ModalSheet.svelte";
+  import ModalDialog from "./ModalDialog.svelte";
+  import ModalNavigation from "./ModalNavigation.svelte";
+  let { label, subtitle, open, locked, presentation, labelledBy, describedBy, navigation, continuity, ondismiss, onclosed, children, actions }: CatalogProps<"modal"> = $props();
+  const density = useSurfaceDensityClass();
+  /** Escape, the scrim and the grip ask to dismiss; a locked modal refuses, and the caller decides what dismissal means. */
+  const dismiss = () => { if (!locked) ondismiss?.(); };
+  // A task pane stays open while its surface is hidden (a retained place); a sheet, message or media stage does not.
+  dismissWhenInactive(() => { if (open && presentation !== "adaptive" && presentation !== "transient") dismiss(); });
+  let pane = $state<ReturnType<typeof ModalPane>>();
+  /** Called by the caller just before it invokes something: "close" before Back or Close, "other" otherwise. */
+  export function noteInvocation(kind: FrameInvocation): void { pane?.noteInvocation(kind); }
+</script>
+{#if presentation === "adaptive" || presentation === "transient"}
+  <ModalPane bind:this={pane} {label} {open} {locked} {presentation} {continuity} density={density()} {dismiss} {onclosed} {children} />
+{:else if presentation === "navigation"}
+  <ModalNavigation {label} {open} {navigation} {dismiss} {onclosed} {children} />
+{:else if presentation === "sheet"}
+  <ModalSheet {label} {subtitle} {open} {locked} density={density()} {dismiss} {onclosed} {children} />
+{:else}
+  <ModalDialog {label} {labelledBy} {describedBy} {open} {presentation} density={density()} {dismiss} {onclosed} {children} {actions} />
+{/if}
+```
+
+## src/svelte/catalog/foundations/modal/ModalPane.svelte
+
+Source SHA-256: 6a61ccfa073a609b234256f8f4cde948a62cb262f399d8a6c046a800682b0bf5
+
+```svelte
+<script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  // Modal part: the pane of an adaptive or transient modal. An adaptive pane docks beside its parent when the
+  // launching host has room (it is then not modal); otherwise it is modal at the right edge, or at the bottom edge with
+  // its grip. Fit, modality and edge come from the host's available space, never a browser breakpoint.
+  import { tick, type Snippet } from "svelte";
+  import { prefersReducedMotion } from "svelte/motion";
+  import * as Dialog from "../../../vendor/components/ui/dialog/index.js";
+  import { useSurfaceHost } from "../../mechanisms/surface-host/surface-host.svelte.ts";
+  import { surfaceFocus } from "../../mechanisms/surface-focus/surface-focus.svelte.ts";
+  import { providePane } from "../../mechanisms/pane-context/pane-context.svelte.ts";
+  import DrawerGrip from "./DrawerGrip.svelte";
+  import { drawerMotion } from "./drawer-motion.svelte.ts";
+  import { frameContinuity, type FrameIdentity, type FrameInvocation } from "./frame-continuity.svelte.ts";
+  import { adaptiveSurfaceLayout } from "./adaptive-surface-layout.ts";
+  import { adaptiveModality } from "./adaptive-modality.svelte.ts";
+  let { label, open, locked, presentation, continuity, density, dismiss, onclosed, children }: {
+    label: string; open: boolean; locked: boolean; presentation: "adaptive" | "transient";
+    continuity: FrameIdentity | undefined; density: string | undefined;
+    dismiss: () => void; onclosed: (() => void) | undefined; children: Snippet | undefined;
+  } = $props();
+  let content = $state<HTMLElement | null>(null);
+  const frames = frameContinuity(() => content, () => continuity);
+  export function noteInvocation(kind: FrameInvocation) { frames.note(kind); }
+  let opener: HTMLElement | null = null, wasOpen = false;
   $effect.pre(() => {
     if (open && !wasOpen) opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     wasOpen = open;
   });
-  const close = () => {
-    const navigation = composition.bottom.secondary;
-    if (locked || navigation?.state !== "ready") return;
-    if (navigation.intent.kind === "close") { continuity.invoking(navigation.intent); onclose(); }
-    else dispatch(navigation.intent);
-  };
   const host = useSurfaceHost();
-  const owner = Symbol('adaptive-pane');
-  const layout = $derived(adaptiveSurfaceLayout(host.availableInline, host.textSize, presentation !== "transient" && host.canDock(owner)));
+  const owner = Symbol("adaptive-pane");
+  const layout = $derived(adaptiveSurfaceLayout(host.availableInline, host.textSize, presentation === "adaptive" && host.canDock(owner)));
   const docked = $derived(layout.docked);
-  // A docked replacement may mount already open. Do not acquire a transient
-  // body lock against the pre-measurement zero width: that false modal can be
-  // removed before the lock's teardown effect has even registered.
+  // A docked replacement may mount already open. Do not acquire a transient body lock against the pre-measurement zero
+  // width: that false modal can be removed before the lock's teardown effect has even registered.
   const modal = $derived(open && host.measured && !docked);
   $effect(() => { host.reserve(owner, open && docked ? layout.reservation : 0); });
   $effect(() => () => host.reserve(owner, 0));
   adaptiveModality(() => content, () => modal);
-  const motion = drawerMotion(close, () => locked || docked, () => layout.edge);
+  const motion = drawerMotion(() => dismiss(), () => locked || docked, () => layout.edge);
+  const edge = $derived(motion.edge);
+  // A side pane is dragged by its header; what it holds reads that (pane-context).
+  providePane(() => ({ drag: !docked && edge !== "bottom", dragging: motion.dragging, framed: false }));
+  const width = $derived(`${layout.paneWidth}px`);
   const dragHeader = (event: PointerEvent) => {
-    const target = event.target as HTMLElement;
-    if (docked || layout.edge === 'bottom' || !target.closest(".workspace-header") || target.closest(
-      "button,a,input,textarea,select,[contenteditable],.toolbar-title,.toolbar-subtitle")) return;
+    const target = event.target;
+    if (docked || layout.edge === "bottom" || !(target instanceof Element) || !target.closest(".workspace-header")
+      || target.closest("button,a,input,textarea,select,[contenteditable],.toolbar-title,.toolbar-subtitle")) return;
     motion.down(event);
   };
-  const enter = surfaceFocus(() => content);
-  const focus = (event: Event) => {
-    enter(event);
-  };
+  const focus = surfaceFocus(() => content);
   const restore = (event: Event) => {
     event.preventDefault();
     const target = opener, active = document.activeElement;
     const ownsFocus = !active || active === document.body || content?.contains(active);
     if (ownsFocus) void tick().then(() => {
-      if (target?.isConnected && !target.closest('[inert],[hidden]')) target.focus({ preventScroll: true });
+      if (target?.isConnected && !target.closest("[inert],[hidden]")) target.focus({ preventScroll: true });
     });
   };
 </script>
-<Dialog.Root {open} dismissOnInactive={false} onOpenChange={next => { if (!next) close(); }}
+<Dialog.Root {open} onOpenChange={next => { if (!next) dismiss(); }}
   onOpenChangeComplete={next => { if (!next) { motion.reset(); onclosed?.(); } }}>
-    <Dialog.Content bind:ref={content} presentation="panel" showCloseButton={false} data-composition="transient"
-      adaptiveModal={!docked} trapFocus={false} preventScroll={modal}
-      data-adaptive-surface data-presentation={docked ? 'docked' : 'transient'} data-locked={locked || undefined}
-      overlayStyle={motion.overlayStyle}
-      data-reduced-motion={prefersReducedMotion.current} data-edge={motion.edge}
-      style={`--panel-width:${layout.paneWidth}px;--adaptive-left:${host.bounds.left}px;--adaptive-top:${host.bounds.top}px;--adaptive-right:${host.bounds.right}px;--adaptive-bottom:${host.bounds.bottom}px;transform:${motion.transform}`} data-dragging={motion.dragging || undefined}
-      onpointerdown={dragHeader} onpointermove={motion.move} onpointerup={motion.up}
-      onpointercancel={motion.cancel} onlostpointercapture={motion.lost}
-      onOpenAutoFocus={focus} onCloseAutoFocus={restore}
-      onEscapeKeydown={event => { event.preventDefault(); if (!locked && (!docked || content?.contains(document.activeElement))) close(); }}
-      onInteractOutside={event => { event.preventDefault(); if (!locked && !docked) close(); }}>
-      <Dialog.Title class="sr-only">{label}</Dialog.Title>
-      <Dialog.Description class="sr-only">Close to return. Unsaved writing stays in this session.</Dialog.Description>
-      {#if motion.edge === "bottom" && !docked}<DrawerGrip {motion} {locked} />{/if}
-      {#if frameIdentity}
-        {#key frameIdentity}<InstanceFrame frame={composition} {body} {edit} invoke={dispatch} {controlEvent} />{/key}
-      {:else}
-        <SurfaceFrame frame={composition} {edit} {controlEvent} presentation="transient" invoke={intent => intent.kind === "close" ? close() : dispatch(intent)} />
-      {/if}
-    </Dialog.Content>
+  <Dialog.Content bind:ref={content} presentation="panel" class={[density, "focus-inset"]} data-modal={presentation} data-composition="transient"
+    adaptiveModal={!docked} trapFocus={false} preventScroll={modal}
+    data-adaptive-surface="" data-presentation={docked ? "docked" : "transient"}
+    data-locked={locked || undefined} data-closing={!open || undefined} data-reduced-motion={prefersReducedMotion.current} data-edge={edge}
+    overlayStyle={motion.overlayStyle} data-dragging={motion.dragging || undefined}
+    style={`--panel-width:${width};--adaptive-left:${host.bounds.left}px;--adaptive-top:${host.bounds.top}px;--adaptive-right:${host.bounds.right}px;--adaptive-bottom:${host.bounds.bottom}px;transform:${motion.transform}`}
+    onpointerdown={dragHeader} onpointermove={motion.move} onpointerup={motion.up}
+    onpointercancel={motion.cancel} onlostpointercapture={motion.lost}
+    onOpenAutoFocus={event => focus.open(event)} onCloseAutoFocus={event => focus.close(event, restore)}
+    onEscapeKeydown={event => { event.preventDefault(); if (!docked || content?.contains(document.activeElement)) dismiss(); }}
+    onInteractOutside={event => { event.preventDefault(); if (!docked) dismiss(); }}>
+    <Dialog.Title class="sr-only">{label}</Dialog.Title>
+    <Dialog.Description class="sr-only">{say(m.modal.description)}</Dialog.Description>
+    {#if edge === "bottom" && !docked}<DrawerGrip {motion} {locked} />{/if}
+    {@render children?.()}
+  </Dialog.Content>
 </Dialog.Root>
-
-<style>
-  :global(.drawer[data-adaptive-surface]) {
-    top:calc(var(--adaptive-top) + max(var(--surface-inset),env(safe-area-inset-top,0px)));
-    right:calc(var(--adaptive-right) + max(var(--surface-inset),env(safe-area-inset-right,0px)));
-    bottom:calc(var(--adaptive-bottom) + max(var(--surface-inset),env(safe-area-inset-bottom,0px)));
-  }
-  :global(.drawer[data-adaptive-surface][data-edge="bottom"]) {
-    left:calc(var(--adaptive-left) + max(var(--surface-inset),env(safe-area-inset-left,0px)));
-  }
-  :global(.drawer[data-adaptive-surface][data-presentation="docked"] .workspace-header) { cursor:auto; }
-</style>
 ```
 
-## src/svelte/pieces/drawer-motion.svelte.ts
+## src/svelte/catalog/foundations/modal/drawer-motion.svelte.ts
 
-Source SHA-256: 9f0106f6693c5479d864ae100c75098c02aa2754849691c236413d43205f7297
+Source SHA-256: 8c68b871f6267f78f8acd60dec7a4decc53ec0d6ebc6ff4834c15dad863e2214
 
 ```ts
+// The drag of a modal's edge: direct manipulation until release, dismissing past the threshold (a modal part).
 import { untrack } from "svelte";
-import { swipeMotion } from "./swipe-motion.svelte.ts";
+import { swipeMotion } from "../../mechanisms/swipe-motion/swipe-motion.svelte.ts";
 
 export function drawerMotion(close: () => void, locked: () => boolean, edge: () => "bottom" | "right") {
   const motion = swipeMotion({ edge, enabled: () => !locked(), commit: close });
@@ -6367,9 +6592,8 @@ export function drawerMotion(close: () => void, locked: () => boolean, edge: () 
     get overlayStyle() { return `--surface-scrim-opacity:${1 - motion.progress * .6}`; },
     get transform() { return motion.transform; },
     down(event: PointerEvent) {
-      if (locked()) return;
-      const target = event.currentTarget as HTMLElement;
-      target.closest(".drawer")?.getAnimations().forEach(animation => animation.finish());
+      if (locked() || !(event.currentTarget instanceof HTMLElement)) return;
+      event.currentTarget.closest("[data-modal]")?.getAnimations().forEach(animation => animation.finish());
       motion.down(event);
     },
     move: motion.move, up: motion.up, click: motion.click, cancel: motion.cancel, lost: motion.lost, reset: motion.reset,
@@ -6379,20 +6603,30 @@ export function drawerMotion(close: () => void, locked: () => boolean, edge: () 
 
 ## src/validation-result.ts
 
-Source SHA-256: 5d570948b6810035555e97db589d83769b4a39f72a4c804460ef8a170dcfaff5
+Source SHA-256: ebb98be0f6f9ba3190954761907ffe7704d856f4a07f9e9b6b53a1ab7b2d33e5
 
 ```ts
 import type { ErrorObject } from "ajv";
-import { freezeDeep, jsonSnapshot } from "./json.ts";
+import { freezeDeep, jsonSnapshot, type Json } from "./json.ts";
 
 export type ValidationIssue = {
   readonly keyword: string;
   readonly instancePath: string;
   readonly schemaPath?: string;
-  readonly params?: Readonly<Record<string, unknown>>;
+  readonly params?: Readonly<Record<string, Json>>;
 };
 export type ValidationResult = { readonly valid: boolean; readonly issues: readonly ValidationIssue[] };
 type Validator = { (value: unknown): boolean; errors?: readonly ErrorObject[] | null };
+
+const isJsonRecord = (value: Json): value is Readonly<Record<string, Json>> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+/** A validator's keyword parameters as a JSON record; anything else is a validator this module does not understand. */
+function issueParams(params: ErrorObject["params"]): Readonly<Record<string, Json>> {
+  const snapshot = jsonSnapshot(params);
+  if (!isJsonRecord(snapshot)) throw new Error("INVALID_VALIDATION_PARAMS: validator parameters are not a JSON record");
+  return snapshot;
+}
 
 /** Snapshot validator diagnostics before its next call; never derive another set of constraints. */
 export function inspectValidation(validate: Validator, value: unknown): ValidationResult {
@@ -6401,26 +6635,34 @@ export function inspectValidation(validate: Validator, value: unknown): Validati
   catch { return freezeDeep({ valid: false, issues: [{ keyword: "json_value", instancePath: "" }] }); }
   const valid = validate(input);
   const issues = (validate.errors ?? []).map(error => ({ keyword: error.keyword,
-    instancePath: error.instancePath, schemaPath: error.schemaPath, params: structuredClone(error.params) }));
-  return freezeDeep({ valid, issues });
+    instancePath: error.instancePath, schemaPath: error.schemaPath, params: issueParams(error.params) }));
+  // Frozen in place: JSON parameters make Frozen<ValidationResult> unbounded, and the declared type is already readonly.
+  const result: ValidationResult = { valid, issues };
+  freezeDeep(result);
+  return result;
 }
 ```
 
 ## src/web/client/field-feedback.ts
 
-Source SHA-256: 7e1810ccc1f46097167ba66179e9140447ab7b145ba34837a927d138b57e2ac5
+Source SHA-256: 524ab3a8c849769948aab41ac3c84237eba98965440eedb5f8becfa35d04ad3d
 
 ```ts
 import type { ValidationIssue, ValidationResult } from "../../validation-result.ts";
+import { rendererLocale } from "../../messages/renderer-locale.ts";
+import { Messages, m } from "../../messages/keys.ts";
+
+// Every sentence this module shows a person is a key of the `fieldFeedback` namespace it owns (plan §14).
+const bundle = Messages.bundle(rendererLocale);
 
 function message(issue: ValidationIssue): string {
   const limit = issue.params?.limit;
-  if (issue.keyword === "required" || (issue.keyword === "minLength" && limit === 1)) return "Enter a value.";
-  if (issue.keyword === "minLength" && typeof limit === "number") return `Enter at least ${limit} characters.`;
-  if (issue.keyword === "maxLength" && typeof limit === "number") return `Use no more than ${limit} ${limit === 1 ? "character" : "characters"}.`;
-  if (issue.keyword === "maxItems" && typeof limit === "number") return `Use no more than ${limit} labels.`;
-  if (issue.keyword === "uniqueItems") return "Remove the repeated label.";
-  return "Check this value.";
+  if (issue.keyword === "required" || (issue.keyword === "minLength" && limit === 1)) return bundle.text(m.fieldFeedback.required);
+  if (issue.keyword === "minLength" && typeof limit === "number") return bundle.text(m.fieldFeedback.atLeast, { limit: String(limit) });
+  if (issue.keyword === "maxLength" && typeof limit === "number") return bundle.text(limit === 1 ? m.fieldFeedback.atMostCharacter : m.fieldFeedback.atMostCharacters, { limit: String(limit) });
+  if (issue.keyword === "maxItems" && typeof limit === "number") return bundle.text(m.fieldFeedback.atMostLabels, { limit: String(limit) });
+  if (issue.keyword === "uniqueItems") return bundle.text(m.fieldFeedback.repeatedLabel);
+  return bundle.text(m.fieldFeedback.check);
 }
 
 /** Presentation only: paths and keyword parameters are supplied by canonical validation. */
@@ -6752,13 +6994,13 @@ export function mutationFlow(surface: HumanSurface, store: HumanStore, transport
 
 ## src/web/client/transport.ts
 
-Source SHA-256: a84cea81e116914be6a7a018cff29f47aa7ca64d86bcbd22130f72347212c0ef
+Source SHA-256: 5737a25d9982509225a69959dc794964b5f2998115626c7ba0f20bdd73a720c3
 
 ```ts
 import type { ApiMethods, Evidence } from "../types.ts";
 import { Check } from "@sinclair/typebox/value";
 import { AssetReferenceSchema, type AssetReference, type AssetImageVariant } from "../../assets/types.ts";
-import {privateMediaTypes} from "../../assets/policy.ts";
+import { mediaTypes, renditionMediaType } from "../../media/rendition-policy.ts";
 import { schedulePrivateImageRead, waitForPrivateImageCapacity } from './private-image-queue.ts';
 
 export class TransportError extends Error {
@@ -6865,7 +7107,7 @@ export function webTransport(digest: string, binding?: WebSessionBinding) {
             }
             const blob = await response.blob();
             requireCurrentSession();
-            if (!(input.variant==="original"?privateMediaTypes:["image/webp"]).includes(blob.type)) throw new TransportError("INVALID_RESPONSE");
+            if (!(input.variant==="original"?mediaTypes as readonly string[]:[renditionMediaType]).includes(blob.type)) throw new TransportError("INVALID_RESPONSE");
             return blob;
           }
         });
@@ -6949,7 +7191,7 @@ export function dispatch(session: LocalSession, method: string, value: unknown) 
 
 ## src/local/session.ts
 
-Source SHA-256: da12f3f61a99669a028e563511455cc4b9634667fdf7e810b91c3f40bb7db762
+Source SHA-256: 84320c32740753faca1a7cc379379eae8680ce0477ce351f17263bf975860252
 
 ```ts
 import type { PoolClient } from "pg";
@@ -6967,7 +7209,7 @@ import { rememberSession } from "./session-binding.ts";
 import { snapshotPrepareOptions, type PrepareOptions } from "../prepare-options.ts";
 import { snapshotPreflightOptions, type PreflightOptions } from "../preflight.ts";
 import { preflightMutation } from "./preflight.ts";
-import { requireActivityCatalog, type ActivityCatalog } from "../activities/catalog.ts";
+import { requireActivityCatalog, type ActivityIndex } from "../activities/activity-index.ts";
 import { activityRecord, activitySnapshot } from "../activities/records.ts";
 import { answerActivity, cancelActivity, reopenActivity } from "../activities/drafts.ts";
 import { createActivity } from "../activities/create.ts";
@@ -6979,7 +7221,7 @@ import { privateImageSession } from "../assets/session.ts";
 import type { PrivateImageHost } from "../assets/host.ts";
 
 export function localSession(database: Database, program: LocalProgram, token: string, surface: string, lifetime: number,
-  activities?: ActivityCatalog, images?: PrivateImageHost) {
+  activities?: ActivityIndex, images?: PrivateImageHost) {
   database.assertOpen();
   program.application.surface(surface);
   const transact = <T>(operation: (client: PoolClient, actor: string) => Promise<T>, readOnly = false) =>
@@ -7059,16 +7301,14 @@ export type LocalSession = ReturnType<typeof localSession>;
 
 ## src/local/admission.ts
 
-Source SHA-256: 071dd51524f18ffb032b070ad3d7a41539f072bb0bb19b481d960f7381d8aba4
+Source SHA-256: b8239c21a33d3feba15fdb43be2418a1ae0fcd1f21228b3e53f5f637296fa9d1
 
 ```ts
 import { randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
 import { freezeDeep } from "../json.ts";
 import type { LocalProgram } from "./program.ts";
-import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
-import type { StoredObject } from "./types.ts";
-import { matchesConditions } from "./conditions.ts";
+import { admittedRun, ownedObject, ownedObjects, requireLiveRun } from "./records.ts";
 
 export async function beginJourney(client: PoolClient, program: LocalProgram, actor: string,
   surface: string, journeyId: string, subject: string | undefined, lifetime: number) {
@@ -7087,21 +7327,20 @@ export async function beginJourney(client: PoolClient, program: LocalProgram, ac
   return Object.freeze({ id, journeyId, expiresAt: row.expires_at.toISOString() as string });
 }
 
+/** The read's subject, or every object the actor owns, filtered by the journey's declared equal facts in the generated
+ * statement (src/storage/object-sql.ts), in id order. */
 export async function readJourney(client: PoolClient, program: LocalProgram, actor: string, surface: string, runId: string) {
   const run = await admittedRun(client, program, actor, surface, runId);
   const journey = program.journey(surface, run.journey);
   if (journey.kind !== "read") throw new Error("NOT_A_READ_JOURNEY");
-  const records = run.subject ? [await ownedObject(client, program, actor, journey.object, run.subject)] :
-    (await client.query<StoredObject>(`SELECT * FROM desert_objects
-      WHERE object_type = $1 AND facts ->> $2 = $3 ORDER BY id`, [journey.object, program.owners.get(journey.object), actor])).rows;
+  // A subject the actor does not own is NOT_FOUND; one that the declared filter excludes reads as nothing.
+  if (run.subject) await ownedObject(client, program, actor, journey.object, run.subject);
+  const records = await ownedObjects(client, program, actor, journey.object,
+    { ...(run.subject ? { id: run.subject, lock: true } : {}), where: journey.where ?? {} });
   const fields = run.subject ? journey.fields : journey.collection;
   await requireLiveRun(client, run);
-  return freezeDeep(records.flatMap(record => {
-    if (!program.application.validate(journey.object, record.facts).valid) throw new Error("CORRUPT_OBJECT");
-    if (!matchesConditions(record.facts, journey.where ?? {})) return [];
-    return [{ id: record.id, version: record.version,
-      facts: Object.fromEntries(fields.map(field => [field, record.facts[field]!])) }];
-  }));
+  return freezeDeep(records.map(record => ({ id: record.id, version: record.version,
+    facts: Object.fromEntries(fields.map(field => [field, record.facts[field]!])) })));
 }
 ```
 
@@ -7157,7 +7396,7 @@ export async function prepareMutation(client: PoolClient, program: LocalProgram,
 
 ## src/local/accept.ts
 
-Source SHA-256: e56bef3942cdfbd59c8a36b677efe517f25b2fa26bc563eebd8a77c7b078debf
+Source SHA-256: 2cacbf6e24ebf1588f4414c48dbfc78808e0eea47e950944b7622360dcf90dac
 
 ```ts
 import type { PoolClient } from "pg";
@@ -7165,9 +7404,11 @@ import { freezeDeep } from "../json.ts";
 import type { LocalProgram } from "./program.ts";
 import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
 import { canonical, confirmationDigest, materialize } from "./effects.ts";
-import { requireUUID, type Intent, type Receipt } from "./types.ts";
+import { requireUUID, type Effect, type Intent, type Mutation, type Receipt, type ReceiptRow } from "./types.ts";
+import { applyChangesIn, type Change } from "../storage/change-set.ts";
+import { namingViolations } from "../storage/violations.ts";
 import { requireCurrentActivityIntent, completeActivityIntent } from "../activities/acceptance.ts";
-import type { ActivityCatalog } from "../activities/catalog.ts";
+import type { ActivityIndex } from "../activities/activity-index.ts";
 import { bindImageEffect, attachImageEffect } from "../assets/acceptance.ts";
 import { validateReferences } from './reference-validation.ts';
 
@@ -7181,8 +7422,27 @@ export async function loadIntent(client: PoolClient, program: LocalProgram, acto
   return { intent, run };
 }
 
+/** The accepted effect as one change of the journey's module (owner answer Q3), written to the object's generated table.
+ * The prepared effect is what was confirmed, so an update writes every fact of it, preserved ones included: a corrupted
+ * preservation reaches storage and is caught (tests/verification-mutations.test.ts), never silently masked by the row.
+ * Postgres re-checks the declaration: a violation is a named code. */
+export async function writeEffect(client: PoolClient, program: LocalProgram, journey: Mutation, effect: Effect): Promise<number> {
+  const change: Change = effect.kind === "create"
+    ? { kind: "create", object: effect.objectType, id: effect.objectId, facts: effect.facts }
+    : { kind: "update", object: effect.objectType, id: effect.objectId, expectedVersion: effect.expectedVersion, set: effect.facts };
+  try {
+    const { objects: [written] } = await namingViolations(() => applyChangesIn(client, program.module(journey), [change]));
+    if (!written) throw new Error("EFFECT_LIMIT");
+    return written.version;
+  } catch (error) {
+    // A stale or missing subject is the same refusal the subject's own read gives; the detail is for the log.
+    const code = error instanceof Error ? /^(VERSION_CONFLICT|NOT_FOUND): /.exec(error.message)?.[1] : undefined;
+    throw code ? new Error(code, { cause: error }) : error;
+  }
+}
+
 async function receipt(client: PoolClient, id: string) {
-  const { rows: [row] } = await client.query<{ result: Receipt }>("SELECT result FROM desert_receipts WHERE intent_id = $1", [id]);
+  const { rows: [row] } = await client.query<Pick<ReceiptRow, "result">>("SELECT result FROM desert_receipts WHERE intent_id = $1", [id]);
   return row ? freezeDeep(row.result) : null;
 }
 
@@ -7192,7 +7452,7 @@ export async function recoverReceipt(client: PoolClient, program: LocalProgram, 
 }
 
 export async function acceptMutation(client: PoolClient, program: LocalProgram, actor: string,
-  surface: string, id: string, expectedDigest: string, activities?: ActivityCatalog, imageStoreId?: string) {
+  surface: string, id: string, expectedDigest: string, activities?: ActivityIndex, imageStoreId?: string) {
   await requireCurrentActivityIntent(client, id, actor, surface, activities);
   const { intent, run } = await loadIntent(client, program, actor, surface, id);
   if (expectedDigest !== intent.confirmation_digest) throw new Error("CONFIRMATION_MISMATCH");
@@ -7210,16 +7470,8 @@ export async function acceptMutation(client: PoolClient, program: LocalProgram, 
   if (canonical(effect) !== canonical(intent.effect)) throw new Error("EFFECT_CHANGED");
   await validateReferences(client,program,actor,effect.objectType,effect.facts,effect.objectId);
   await requireLiveRun(client, run);
-  const version = effect.expectedVersion + 1;
-  if (effect.kind === "create") {
-    await client.query("INSERT INTO desert_objects VALUES ($1, $2, $3, $4)",
-      [effect.objectId, effect.objectType, version, JSON.stringify(effect.facts)]);
-  } else {
-    const updated = await client.query("UPDATE desert_objects SET version = $1, facts = $2 WHERE id = $3 AND version = $4",
-      [version, JSON.stringify(effect.facts), effect.objectId, effect.expectedVersion]);
-    if (updated.rowCount !== 1) throw new Error("VERSION_CONFLICT");
-  }
-  await attachImageEffect(client, effect);
+  const version = await writeEffect(client, program, journey, effect);
+  await attachImageEffect(client, program, actor, effect);
   const result: Receipt = { id, runId: run.id, commandId: journey.command.id, status: "completed",
     object: { id: effect.objectId, type: effect.objectType, version } };
   await client.query("INSERT INTO desert_receipts (intent_id, result) VALUES ($1, $2)", [id, JSON.stringify(result)]);
@@ -7231,13 +7483,16 @@ export async function acceptMutation(client: PoolClient, program: LocalProgram, 
 
 ## src/local/database.ts
 
-Source SHA-256: e08211c56cd59d991bf5cf172e86caa2116f20d2611668ea6cad4d85071c9c61
+Source SHA-256: 5a683329cadc10123027db712016d10c29af654fe9d8c7de8798aaa8d31dd97b
 
 ```ts
-import { readFileSync, statSync } from "node:fs";
+import { statSync } from "node:fs";
 import { isAbsolute } from "node:path";
 import { Pool, type PoolClient } from "pg";
-import { LocalSchemaVersion, requireDurablePrimary, requireInstallation } from "./installation.ts";
+import { renderStorageDdl, type ObjectStorage } from "../storage/ddl.ts";
+import { migrateClient } from "../storage/migrate.ts";
+import { renderControllerDdl } from "../storage/render-ddl.ts";
+import { recordInstallation, requireDurablePrimary, requireInstallation } from "./installation.ts";
 
 export type LocalDatabase = { socketDirectory: string, database: string, user: string, port?: number };
 
@@ -7291,16 +7546,24 @@ export function localDatabase(options: LocalDatabase) {
     } finally { client.release(broken || clientFaults.has(client)); }
   }
 
-  async function install(product: string, digest: string, roles: readonly string[]) {
+  /** Applies the generated DDL (plan §15, step 7.6): the controller's infrastructure (a fresh database records the
+   * current digest); then the client's committed migration chain up to the current digest (step 7.3, one transaction,
+   * INSTALLATION_MISMATCH when no chain leads there); then — once this database is known to hold this product, digest and
+   * roles — the product's object tables in the installation's language. */
+  async function install(storage: ObjectStorage, roles: readonly string[]) {
+    const product = storage.productId, digest = storage.digest;
     await transaction(async client => {
       await requireDurablePrimary(client);
       await client.query("SELECT pg_advisory_xact_lock(842721)");
-      await client.query(readFileSync(new URL("./schema.sql", import.meta.url), "utf8"));
-      await client.query(readFileSync(new URL("../activities/schema.sql", import.meta.url), "utf8"));
-      await client.query(readFileSync(new URL("../identity/schema.sql", import.meta.url), "utf8"));
-      await client.query(`INSERT INTO desert_installation VALUES (true, $1, $2, $3, $4)
-        ON CONFLICT DO NOTHING`, [LocalSchemaVersion, product, digest, roles]);
+      await client.query(renderControllerDdl());
+      await recordInstallation(client, { product, digest, roles });
+    });
+    assertOpen();
+    await migrateClient(pool, { product, installation: storage.installation, digest });
+    await transaction(async client => {
+      await client.query("SELECT pg_advisory_xact_lock(842721)");
       await requireInstallation(client, { product, digest, roles });
+      await client.query(renderStorageDdl(storage));
     });
   }
   return { transaction, install, assertOpen,

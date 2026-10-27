@@ -8,9 +8,9 @@ test("text, amount and selection share one field well while choices retain shadc
   const f = await browserFixture();
   try {
     await openCatalog(f.page);
-    const text = f.page.locator('[data-specimen="input.text:value"]');
-    const money = f.page.locator('[data-specimen="control.money:value"]');
-    const select = f.page.locator('[data-control="select"]').filter({
+    const text = f.page.locator('[data-view-item="specimen:input.text:value"]');
+    const money = f.page.locator('[data-view-item="specimen:control.money:value"]');
+    const select = f.page.locator('[data-measure="choice"]').filter({
       has: f.page.getByRole("button", { name: /^Single choice ·/ }),
     });
     for (const width of [1280, 390, 320]) {
@@ -54,7 +54,7 @@ test("text, amount and selection share one field well while choices retain shadc
       const currency = money.getByRole("button", { name: "ARS · Amount currency", exact: true });
       assert.equal(await currency.evaluate(element => getComputedStyle(element).borderTopWidth), "0px");
       for (const cardinality of ["one", "many"]) {
-        const options = f.page.locator(`[data-specimen="control.options:${cardinality}"]`);
+        const options = f.page.locator(`[data-view-item="specimen:control.options:${cardinality}"]`);
         assert.equal(await options.locator('[data-slot="field-label"][data-choice-row] > [data-choice-anatomy]').count(), 3);
       }
     }
@@ -65,9 +65,9 @@ test("text, amount and selection share one field well while choices retain shadc
       await f.page.setViewportSize({ width: 1280, height: 900 });
       await settleMotion(f.page);
       await money.screenshot({ path: `${directory}/money-${colorScheme}.png` });
-      const options = f.page.locator('[data-specimen="control.options:one"]');
+      const options = f.page.locator('[data-view-item="specimen:control.options:one"]');
       await options.locator("..").screenshot({ path: `${directory}/options-${colorScheme}.png` });
-      await f.page.locator('[data-specimen="control.image:available"]').locator("..").screenshot({
+      await f.page.locator('[data-view-item="specimen:control.image:available"]').locator("..").screenshot({
         path: `${directory}/images-${colorScheme}.png`,
       });
     }

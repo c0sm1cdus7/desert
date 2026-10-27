@@ -8,12 +8,13 @@ import type { Receipt } from "../src/local/types.ts";
 import { openDeveloperHost, serveDeveloperSurface } from "../src/local/developer-host.ts";
 import { NotebookProduct } from "../products/notebook/product.ts";
 import { NotesController } from "../products/notebook/dependencies.ts";
+import { NotebookInstallation } from "../products/notebook/installation.ts";
 import { CreateNote, ReadNote } from "../products/notebook/journeys.ts";
 
 function fixture(t: { after(callback: () => void): void }) {
   const directory = mkdtempSync(join(tmpdir(), "desert-developer-test-"));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
-  return { application: compile(NotebookProduct), roles: [NotesController.id], surfaceId: "human", directory };
+  return { application: compile(NotebookProduct), roles: [NotesController.id], installation: NotebookInstallation, surfaceId: "human", directory };
 }
 
 test("developer host retains its private identity, accepted note and receipt across reopen", async t => {

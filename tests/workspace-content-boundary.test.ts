@@ -3,46 +3,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 import ts from "typescript";
-import { assertClosedVisualBoundaries } from "../src/authoring/visual-boundary/closed.ts";
-import { inspectVisualSource } from "../src/authoring/visual-boundary/inspect.ts";
 
-const workspace = "src/svelte/explorer/CatalogWorkspace.svelte";
-const content = "src/svelte/pieces/CatalogWorkspaceContent.svelte";
-const check = (path: string, source: string) => assertClosedVisualBoundaries([{ path, source }]);
-
-test("the workspace has finite content data, never incoming render slots", () => {
-  for (const source of [
-    '<script>let {children}=$props();</script>{@render children()}',
-    '<script>let {searchResults}=$props();</script>{@render searchResults()}',
-    '<script>let {panels}=$props();</script>{#snippet overlay()}{@render panels()}{/snippet}',
-    '<script>let {bottom}=$props();</script>{@render bottom()}',
-    '<script>let {body}=$props();</script>{@html body}',
-    '<script>let {props}=$props();</script><main {...props}/>',
-  ]) assert.throws(() => check(workspace, source), /CLOSED_VISUAL_BOUNDARY/, source);
-  for (const path of [workspace, content, "src/svelte/pieces/ViewWorkspace.svelte", "src/svelte/pieces/AccessScreen.svelte"]) {
-    const source = readFileSync(path, "utf8");
-    assert.doesNotThrow(() => check(path, source), path);
-  }
-  assert.deepEqual(inspectVisualSource(content, readFileSync(content, "utf8")).findings, []);
-  assert.deepEqual(inspectVisualSource("src/svelte/pieces/workspace-content.ts", readFileSync("src/svelte/pieces/workspace-content.ts", "utf8")).findings, []);
-});
-
-test("aliased workspace consumers cannot supply markup, geometry or a DOM binding", () => {
-  const importOwner = '<script>import Shell from "../explorer/CatalogWorkspace.svelte";</script>';
-  const caller = "src/svelte/pieces/Example.svelte";
-  assert.doesNotThrow(() => check(caller, importOwner + '<Shell content={body} onviewport={registerActions}/>'));
-  for (const markup of [
-    '<Shell><div>Foreign</div></Shell>', '<Shell children={foreign}/>', '<Shell style="padding:0"/>',
-    '<Shell class="override"/>', '<Shell role="main"/>', '<Shell {...props}/>',
-    '<Shell bind:viewport={element}/>', '<Shell bind:this={instance}/>',
-    '<Shell>{#snippet searchResults()}<div>Foreign</div>{/snippet}</Shell>',
-  ]) assert.throws(() => check(caller, importOwner + markup), /CLOSED_VISUAL_BOUNDARY/, markup);
-  const importContent = '<script>import Body from "./CatalogWorkspaceContent.svelte";</script>';
-  for (const markup of ['<Body children={foreign}/>', '<Body>{@render foreign()}</Body>', '<Body {...props}/>']) {
-    assert.throws(() => check(caller, importContent + markup), /CLOSED_VISUAL_BOUNDARY/, markup);
-  }
-});
-
+// The workspace shell's render-slot and caller laws are catalog rules D and E (tests/catalog-ported-boundaries.test.ts).
 test("workspace body contracts reject arbitrary components, cross-kind data and DOM capabilities", () => {
   const fixture = resolve("tests/fixtures/workspace-content-types.ts");
   const expected = readFileSync(fixture, "utf8").split("\n")

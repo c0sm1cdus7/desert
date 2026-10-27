@@ -1,12 +1,12 @@
 import { freezeDeep } from "../json.ts";
 import type { ModuleReferenceKind } from "./reference-types.ts";
-import type { ModuleEntryKind, ResolvedModuleDefinition } from "./types.ts";
+import type { DeclaredModuleDefinition, ModuleEntryKind } from "./types.ts";
 import { declarationRecord } from "./declaration-data.ts";
 
 export type LocalEntry = { kind: ModuleReferenceKind; id: string; value: object; execution?: object; presentation?: object };
 export type PublicEntry = LocalEntry & { module: ModuleRecord };
 export type ModuleRecord = {
-  handle: object; definition: ResolvedModuleDefinition;
+  handle: object; definition: DeclaredModuleDefinition;
   exports: Readonly<Record<ModuleEntryKind | "commands", Readonly<Record<string, object>>>>;
 };
 const modules = new WeakMap<object, ModuleRecord>();
@@ -35,7 +35,7 @@ export function publicReference(value: unknown, kind?: ModuleReferenceKind): Pub
 }
 export function isModuleOwned(value: object): boolean { return ownedIdentities.has(value); }
 
-export function issueModule(definition: ResolvedModuleDefinition, identities: ReadonlyMap<object, LocalEntry>,
+export function issueModule(definition: DeclaredModuleDefinition, identities: ReadonlyMap<object, LocalEntry>,
   aliases: Readonly<Record<ModuleEntryKind, Readonly<Record<string, LocalEntry>>>>): object {
   const handle = Object.freeze({ id: definition.id });
   const exports = Object.fromEntries([...moduleKinds, "commands"].map(kind => [kind, Object.create(null)])) as

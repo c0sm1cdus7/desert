@@ -1,6 +1,11 @@
 import { Check } from "@sinclair/typebox/value";
 import { AccessStateSchema, accessInput, type AccessState, type AccessInput } from "../../identity/contract.ts";
 import { TransportError, type WebSessionBinding } from "./transport.ts";
+import { rendererLocale } from "../../messages/renderer-locale.ts";
+import { Messages, m } from "../../messages/keys.ts";
+
+// Every sentence this client shows a person is a key of the `access` namespace this module owns (plan §14).
+const bundle = Messages.bundle(rendererLocale);
 
 export type BrowserAccessState = AccessState | { kind: "checking" | "unavailable" | "developer" };
 export type AccessLockBarrier = Readonly<{
@@ -16,7 +21,7 @@ export function accessClient(digest: string, barrier: AccessLockBarrier, send: t
   function hide() { ++revision; forcedLock = true; state = { kind: "locked" }; busy = false; notify(); }
   function storageFailure() {
     ++revision; state = { kind: "unavailable" }; busy = false;
-    error = "Private workspace access needs available local browser storage. Restore it and try again."; notify();
+    error = bundle.text(m.access.storageUnavailable); notify();
   }
   const stopBarrier = barrier.subscribe(() => {
     try {
@@ -84,14 +89,14 @@ export function accessClient(digest: string, barrier: AccessLockBarrier, send: t
         state = next; error = null;
       } catch {
         if (current !== revision || sequence !== refreshSequence || forcedLock || state.kind === "ready") return;
-        state = { kind: "unavailable" }; error = "Cannot reach the controller. Try again when it is available.";
+        state = { kind: "unavailable" }; error = bundle.text(m.access.controllerUnreachable);
       }
       notify();
     },
     async start(invitation?: string) {
       if (invitation) {
         try { await request("connect", { invitation }); }
-        catch { state = { kind: "unavailable" }; error = "This launch invitation is unavailable. Open the host's current launch link."; notify(); return; }
+        catch { state = { kind: "unavailable" }; error = bundle.text(m.access.invitationUnavailable); notify(); return; }
       }
       await this.refresh();
     },
@@ -110,10 +115,10 @@ export function accessClient(digest: string, barrier: AccessLockBarrier, send: t
       } catch (cause) {
         if (current !== revision) return;
         error = cause instanceof TransportError && cause.code === "BOOTSTRAP_REQUIRED"
-          ? "Open the host's private launch link to create the first administrator."
+          ? bundle.text(m.access.bootstrapRequired)
           : cause instanceof TransportError && cause.code === "INVALID_CREDENTIALS"
-          ? "Check your identity name and password. After repeated attempts, wait five minutes before trying again."
-          : "Could not sign in. Check the controller connection and try again.";
+          ? bundle.text(m.access.invalidCredentials)
+          : bundle.text(m.access.signInFailed);
       } finally { if (current === revision) { busy = false; notify(); } }
     },
     async lock() {
@@ -125,8 +130,8 @@ export function accessClient(digest: string, barrier: AccessLockBarrier, send: t
       try { await request("lock", {}, sessionBinding); }
       catch {
         if (current !== revision) return;
-        error = persisted ? "Locked here. Could not confirm revocation with the controller; other sessions may remain active."
-          : "Hidden here, but the browser could not save the lock and the controller did not confirm revocation. Reopening may resume this session; restore the connection and lock again.";
+        error = persisted ? bundle.text(m.access.lockUnconfirmed)
+          : bundle.text(m.access.lockUnsaved);
         notify();
       }
     },

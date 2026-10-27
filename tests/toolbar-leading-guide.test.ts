@@ -4,7 +4,7 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import Toolbar from '@desert/svelte/pieces/Toolbar.svelte';
+  import Toolbar from '@desert/svelte/catalog/compositions/toolbar/Toolbar.svelte';
   let present=$state(true);
 </script>
 <section data-surface-frame>

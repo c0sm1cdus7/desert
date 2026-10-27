@@ -2,24 +2,25 @@ import test from "node:test";
 import { WorkspaceView, NavigationView } from "./fixtures/workspace-view.ts";
 import assert from "node:assert/strict";
 import { Check } from "@sinclair/typebox/value";
-import { defineModule, moduleCatalog, humanSurface, agentSurface, composeProduct, publishObject, ObjectPresentationSchema } from "../src/index.ts";
+import { defineModule, moduleIndex, humanExposure, agentExposure, composeProduct, publishObject, ObjectPresentationSchema } from "../src/index.ts";
 import { compile } from "../src/compile.ts";
 import { ActionIconSchema } from "../src/interaction/toolbar.ts";
 import { ViewNotebook as Notebook } from "./fixtures/view-exposure.ts";
 import { Note, OnlyOwnerCanAccess, NotesController, ArchiveNote, CreateNote, ReadNote } from "./fixtures/notebook-domain.ts";
 import { program } from "./fixtures/view-program.ts";
 import { notePublication } from "./fixtures/authored-notebook.ts";
-import { CreateNoteExperience, ReadNotesExperience, NotesDestination, NotesView, NoteView, NoteEditorView } from "./fixtures/authored-view-program.ts";
+import { CreateNoteJourney, ReadNotesJourney, NotesDestination, NotesView, NoteView, NoteEditorView } from "./fixtures/authored-view-program.ts";
 import { authorFixture } from "./fixtures/author-fixture.ts";
+import { FixtureMessages, fixtureText, declaredFixture } from "./fixtures/messages.ts";
 
 const presentation = { view: "detail", title: { object: "note", field: "title" }, actions: [] } as const;
 const authoredPresentation = { ...presentation, view: NoteView, fields: notePublication.fields } as const;
 const definition = {
   id: "notes", objects: [{ ...Note, presentation: authoredPresentation }], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   journeys: [
-    { execution: CreateNote, label: "Create note", humanReview: "not-required", presentation: CreateNoteExperience },
-    { execution: ReadNote, label: "Read notes", presentation: ReadNotesExperience },
-    { execution: ArchiveNote, label: "Archive note", humanReview: "required" },
+    { execution: CreateNote, label: fixtureText.createNote, humanReview: "not-required", presentation: CreateNoteJourney },
+    { execution: ReadNote, label: fixtureText.readNotes, presentation: ReadNotesJourney },
+    { execution: ArchiveNote, label: fixtureText.archiveNote, humanReview: "required" },
   ],
   views: [NotesView, NoteView, NoteEditorView], destinations: [NotesDestination],
   exports: { journeys: { createNote: CreateNote, readNotes: ReadNote, archiveNote: ArchiveNote }, destinations: { notes: NotesDestination } },
@@ -27,13 +28,13 @@ const definition = {
 
 test("An object publishes its view without changing canonical facts or the persistence contract", () => {
   const Notes = defineModule(authorFixture(definition));
-  const modules = moduleCatalog([Notes]);
+  const modules = moduleIndex([Notes]);
   const journeys = [modules.journeys.createNote, modules.journeys.readNotes, modules.journeys.archiveNote];
-  const result = composeProduct({ id: "notebook", label: "Notebook", modules,
+  const result = composeProduct({ messages: FixtureMessages, id: "notebook", label: fixtureText.notebook, modules,
     workspace: WorkspaceView, views: [WorkspaceView, NavigationView],
-    surfaces: [humanSurface({ id: "human", journeys, locale: "en" }), agentSurface("agent", journeys)],
+    exposures: [humanExposure({ id: "human", journeys, locale: "en" }), agentExposure("agent", journeys)],
     entry: modules.destinations.notes,
-    navigation: [{ destination: modules.destinations.notes, group: "Explore", purpose: "content" }],
+    navigation: [{ destination: modules.destinations.notes, group: fixtureText.explore, purpose: "content" }],
   });
   assert.deepEqual(result.definition, Notebook);
   assert.equal(compile(result.definition).digest, compile(Notebook).digest);
@@ -79,18 +80,18 @@ test("Authoring and raw module admission preserve the same precise publication i
     [{ object: "note", field: "missing" }, "UNKNOWN_OBJECT_TITLE_FIELD"],
     [{ object: "note", field: "owner" }, "INVALID_OBJECT_TITLE_FIELD"],
   ] as const) {
-    assert.throws(() => publishObject(Note, { view: program.views[2], title, actions: [] } as never), { message });
+    assert.throws(() => publishObject(Note, { view: declaredFixture(program.views[2]), title, actions: [] } as never), { message });
     assert.throws(() => defineModule({ ...definition,
       objects: [{ ...Note, presentation: { ...authoredPresentation, title } }] } as never), { message });
   }
   for (const journey of [CreateNote, ReadNote]) {
-    assert.throws(() => publishObject(Note, { view: program.views[2], title: presentation.title,
+    assert.throws(() => publishObject(Note, { view: declaredFixture(program.views[2]), title: presentation.title,
       actions: [{ journey, icon: "open" }] } as never), { message: "INVALID_OBJECT_SUBJECT_JOURNEY" });
     assert.throws(() => defineModule({ ...definition, objects: [{ ...Note, presentation: { ...authoredPresentation,
       actions: [{ journey, icon: "open" }] } }] } as never), { message: "INVALID_OBJECT_SUBJECT_JOURNEY" });
   }
   const foreign = { ...ArchiveNote, command: { ...ArchiveNote.command, object: "another" } };
-  assert.throws(() => publishObject(Note, { view: program.views[2], title: presentation.title,
+  assert.throws(() => publishObject(Note, { view: declaredFixture(program.views[2]), title: presentation.title,
     actions: [{ journey: foreign, icon: "archive" }] } as never), { message: "INVALID_OBJECT_SUBJECT_JOURNEY" });
 });
 

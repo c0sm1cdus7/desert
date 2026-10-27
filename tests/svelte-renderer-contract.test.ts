@@ -2,45 +2,46 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { createBuildProject } from "../src/build/svelte/project.ts";
+// svelte-check of the generated project, not the gate: the test-only evidence project (plan 3.5) while the strict build is red.
+import { createEvidenceProject } from "../src/testing/evidence-project.ts";
 
 const header = `<script lang="ts">
   import type { Component } from "svelte";
-  import { webRenderers } from "@desert/svelte/renderer-registry.ts";
-  import type { WebRendererBank, WebRendererProps, ControlEventFor } from "@desert/svelte/renderer-contracts.ts";
+  import { nodeRenderers } from "@desert/svelte/renderer-registry.ts";
+  import type { NodeRendererTable, NodeRendererInputs, ControlEventFor } from "@desert/svelte/renderer-contracts.ts";
   import type { ControlEvent } from "@desert/interaction/control-nodes.ts";
-  import SelectControl from "@desert/svelte/controls/SelectControl.svelte";
-  import DateControl from "@desert/svelte/controls/DateControl.svelte";
-  const date: WebRendererProps["control.date"]["node"] = {
+  import SelectControl from "@desert/svelte/catalog/compositions/select-control/SelectControl.svelte";
+  import DateControl from "@desert/svelte/catalog/foundations/date-control/DateControl.svelte";
+  const date: NodeRendererInputs["control.date"]["node"] = {
     version: "desert.control/1", kind: "date", id: "date", label: "Date", disabled: false, required: false, value: null,
   };
-  const choice: WebRendererProps["control.select"]["node"] = {
+  const choice: NodeRendererInputs["control.select"]["node"] = {
     version: "desert.control/1", kind: "select", id: "select", label: "Choice", disabled: false,
     required: false, value: null, options: [{ value: "one", label: "One", disabled: false }],
   };
   const acceptAll = (_event: ControlEvent) => {};
   const acceptSelection = (_event: ControlEventFor<"select">) => {};
   const unrelated: Component<{ arbitrary: string }> = () => ({});
-  const wrongEmitter: Component<{ node: WebRendererProps["control.date"]["node"]; onevent: (event: ControlEventFor<"select">) => void }> = () => ({});
-  const { "control.date": Date, "control.select": Select, "input.text": Text, "input.multiline": Multiline } = webRenderers;
+  const wrongEmitter: Component<{ node: NodeRendererInputs["control.date"]["node"]; onevent: (event: ControlEventFor<"select">) => void }> = () => ({});
+  const { "control.date": Date, "control.select": Select, "input.text": Text, "input.multiline": Multiline } = nodeRenderers;
 `;
 
 test("Svelte bank rejects wrong components, nodes, events and inventory; compatible bindings pass", { timeout: 60000 }, async () => {
-  const project = createBuildProject("export const surface = {}; export const validateInput = () => false;");
+  const project = createEvidenceProject("export const surface = {}; export const validateInput = () => false;");
   const page = join(project.directory, "src/routes/+page.svelte");
   const negatives = [
-    'const wrongComponent: WebRendererBank = { ...webRenderers, "control.date": SelectControl };',
-    'const wrongLegacyComponent: WebRendererBank = { ...webRenderers, action: DateControl };',
-    'const arbitraryComponent: WebRendererBank = { ...webRenderers, action: unrelated };',
-    'const wrongEventBinding: WebRendererBank = { ...webRenderers, "control.date": wrongEmitter };',
-    'const wrongNode: WebRendererProps["control.date"] = { node: choice, onevent: acceptAll };',
-    'const wrongEvent: WebRendererProps["control.date"] = { node: date, onevent: acceptSelection };',
-    'const incompleteInventory: WebRendererBank = { "control.date": DateControl };',
-    'const inventedEntry: WebRendererBank = { ...webRenderers, rainbow: DateControl };',
-    'const wrongInput: WebRendererProps["input.text"]["primitive"] = "input.multiline";',
-    'const numericHelper: WebRendererProps["input.text"] = { primitive: "input.text", label: "Name", helper: 12, onchange: () => {} };',
-    'const callableHelper: WebRendererProps["input.multiline"] = { primitive: "input.multiline", label: "Description", helper: () => "Not plain text", onchange: () => {} };',
-    'const foreignInputProp: WebRendererProps["input.text"] = { primitive: "input.text", label: "Name", style: "color:red", onchange: () => {} };',
+    'const wrongComponent: NodeRendererTable = { ...nodeRenderers, "control.date": SelectControl };',
+    'const wrongLegacyComponent: NodeRendererTable = { ...nodeRenderers, action: DateControl };',
+    'const arbitraryComponent: NodeRendererTable = { ...nodeRenderers, action: unrelated };',
+    'const wrongEventBinding: NodeRendererTable = { ...nodeRenderers, "control.date": wrongEmitter };',
+    'const wrongNode: NodeRendererInputs["control.date"] = { node: choice, onevent: acceptAll };',
+    'const wrongEvent: NodeRendererInputs["control.date"] = { node: date, onevent: acceptSelection };',
+    'const incompleteInventory: NodeRendererTable = { "control.date": DateControl };',
+    'const inventedEntry: NodeRendererTable = { ...nodeRenderers, rainbow: DateControl };',
+    'const wrongInput: NodeRendererInputs["input.text"]["primitive"] = "input.multiline";',
+    'const numericHelper: NodeRendererInputs["input.text"] = { primitive: "input.text", label: "Name", labelVisibility: "visible", required: false, invalid: false, disabled: false, measure: "writing", purpose: "text", value: "", clear: true, helper: 12, onchange: () => {} };',
+    'const callableHelper: NodeRendererInputs["input.multiline"] = { primitive: "input.multiline", label: "Description", labelVisibility: "visible", required: false, invalid: false, disabled: false, measure: "writing", value: "", helper: () => "Not plain text", onchange: () => {} };',
+    'const foreignInputProp: NodeRendererInputs["input.text"] = { primitive: "input.text", label: "Name", labelVisibility: "visible", required: false, invalid: false, disabled: false, measure: "writing", purpose: "text", value: "", clear: true, style: "color:red", onchange: () => {} };',
     'const wrongEmittedEvent: ControlEventFor<"date"> = { kind: "select.change", control: "date", value: null };',
   ];
   try {
@@ -56,12 +57,12 @@ test("Svelte bank rejects wrong components, nodes, events and inventory; compati
       return true;
     });
     writeFileSync(page, header + `
-      const completeInventory: WebRendererBank = webRenderers;
-      const dateBinding: Component<WebRendererProps["control.date"]> = DateControl;
-      const selectionBinding: Component<WebRendererProps["control.select"]> = SelectControl;
+      const completeInventory: NodeRendererTable = nodeRenderers;
+      const dateBinding: Component<NodeRendererInputs["control.date"]> = DateControl;
+      const selectionBinding: Component<NodeRendererInputs["control.select"]> = SelectControl;
       const dateEvent: ControlEventFor<"date"> = { kind: "date.change", control: date.id, value: null };
-      const textInput: WebRendererProps["input.text"] = { primitive: "input.text", label: "Name", helper: "Use a recognizable name.", onchange: () => {} };
-      const multilineInput: WebRendererProps["input.multiline"] = { primitive: "input.multiline", label: "Description", helper: "Describe the image.", onchange: () => {} };
+      const textInput: NodeRendererInputs["input.text"] = { primitive: "input.text", label: "Name", labelVisibility: "visible", required: false, invalid: false, disabled: false, measure: "writing", purpose: "text", value: "", clear: true, helper: "Use a recognizable name.", onchange: () => {} };
+      const multilineInput: NodeRendererInputs["input.multiline"] = { primitive: "input.multiline", label: "Description", labelVisibility: "visible", required: false, invalid: false, disabled: false, measure: "writing", value: "", helper: "Describe the image.", onchange: () => {} };
     </script>
     <Date node={date} onevent={acceptAll} /><Select node={choice} onevent={acceptAll} />
     <Text {...textInput}/><Multiline {...multilineInput}/>`);

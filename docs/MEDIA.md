@@ -21,7 +21,7 @@ no fabricated additional photographs, uploads, editing or sharing operations.
 
 ## Shared owners
 
-- `pieces/media/Image.svelte`: identity-keyed DOM image, async decode, neutral
+- `catalog/foundations/image/Image.svelte`: identity-keyed DOM image, async decode, neutral
   canvas, error/retry, responsive rendition choice. Header, cards, standalone
   images, avatars and the optional background extension consume this loader.
 - `PhotoCollection.svelte`: local selected index, opening/closing the viewer,

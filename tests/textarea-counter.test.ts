@@ -6,13 +6,14 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
   import { tick } from 'svelte';
-  import TextInput from '@desert/svelte/pieces/TextInput.svelte';
-  let props = $state({ primitive: 'input.multiline', label: 'Notes', value: '', maxLength: undefined, disabled: false, error: undefined });
+  import Field from '@desert/svelte/catalog/foundations/field/Field.svelte';
+  let props = $state({ primitive: 'input.multiline', label: 'Notes', labelVisibility: 'visible', measure: 'writing', required: false, invalid: false,
+    value: '', maxLength: undefined, disabled: false, error: undefined });
   window.echoTextarea = true;
   window.replaceTextarea = async patch => { props = { ...props, ...patch }; await tick(); };
 </script>
 <main style="padding:16px;max-width:640px">
-  <TextInput {...props} onchange={value => { if (window.echoTextarea) props = { ...props, value }; }} />
+  <Field {...props} onchange={value => { if (window.echoTextarea) props = { ...props, value }; }} />
   <button>Outside</button>
 </main>`;
 const update = (page: Page, patch: object) => page.evaluate(value =>

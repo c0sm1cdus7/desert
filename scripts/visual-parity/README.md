@@ -50,7 +50,7 @@ DESERT_PANEL_ENTRY_EVIDENCE=artifacts/my-new-entry-run \
 node --test tests/view-panel-entry.test.ts
 ```
 
-The same valid frame is opened through a retained, initially closed BankRenderer
+The same valid frame is opened through a retained, initially closed NodeRenderer
 and a previously absent View Panel. Both must traverse intermediate opacity and
 animation progress. This isolates composition lifetime from controller/authentication.
 

@@ -18,11 +18,14 @@ function acceptsAll(target: FieldDefinition, source: FieldDefinition) {
   if (target.kind === "labels" && source.kind === "labels") {
     return source.maxItems <= target.maxItems && source.maxLength <= target.maxLength;
   }
+  if (target.kind === "file" && source.kind === "file") {
+    return source.maxBytes <= target.maxBytes && source.accept.every(type => target.accept.includes(type));
+  }
   return true;
 }
 
 export function checkLiteral(field: FieldDefinition, value: unknown, name: string) {
-  if (field.kind === "asset") throw new Error(`Asset assignment requires input: ${name}`);
+  if (field.kind === "file") throw new Error(`File assignment requires input: ${name}`);
   if (field.kind === "labels" && (!Array.isArray(value) || value.length)) throw new Error(`Labels assignment requires input: ${name}`);
   if (!createShapeValidator(emitField(field))(value).valid) throw new Error(`Invalid literal: ${name}`);
 }

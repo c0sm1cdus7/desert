@@ -8,7 +8,7 @@ web hosts; an older implementation is not an exception.
 ## Current View workspace
 
 VOID's Notes and Visual catalog consume the existing `CatalogWorkspace` search
-owner through `src/svelte/views/Workspace.svelte`. `CatalogToolbar` owns the
+owner through `src/svelte/catalog/renderer/workspace/Workspace.svelte`. `CatalogToolbar` owns the
 shared field and expansion; the overlay owns results, focus and dismissal.
 Searching retains the underlying content and its drafts. Result activation
 selects the existing collection output or reveals the existing catalog entry;

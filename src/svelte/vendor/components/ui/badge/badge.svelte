@@ -1,9 +1,11 @@
 <script lang="ts" module>
 	import { type VariantProps, tv } from "tailwind-variants";
 
-	/** The public badgeVariants contract. */
+	/** The public badgeVariants contract. A tag is a mark, not a control (law 9d): its chip takes half the control radius;
+	 * its remove button sits --tag-inset inside the chip's outer edge (its 1px border included), at the chip's radius less it:
+	 * 3px, so that corner is half the chip's, a curve a person sees (at 4px its 2px corner read square). */
 	export const badgeVariants = tv({
-		base: "min-h-5 gap-1 rounded-4xl px-2 py-px text-xs font-medium transition-colors has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! group/badge inline-flex w-fit max-w-full min-w-0 shrink items-center justify-center overflow-hidden whitespace-normal [overflow-wrap:anywhere] [&>svg]:pointer-events-none",
+		base: "[--tag-radius:var(--radius-chip)] [--tag-inset:3px] min-h-5 gap-1 rounded-[var(--tag-radius)] px-2 py-px text-xs font-medium transition-colors has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&>svg]:size-3! group/badge inline-flex w-fit max-w-full min-w-0 shrink items-center justify-center overflow-hidden whitespace-normal wrap-words [&>svg]:pointer-events-none",
 		variants: {
 			variant: {
 				default: "text-primary-text",
@@ -48,9 +50,8 @@
 	this={href ? "a" : "span"}
 	bind:this={ref}
 	data-slot="badge"
-	data-material="pane"
 	{href}
-	class={cn(badgeVariants({ variant }), removable && "py-[.2rem] pr-1 pl-[.65rem] gap-[.3rem]", className)}
+	class={cn("material-pane", badgeVariants({ variant }), removable && "py-[calc(var(--tag-inset)-1px)] pr-[calc(var(--tag-inset)-1px)] pl-[.65rem] gap-[.3rem]", className)}
 	{...restProps}
 >
 	{@render children?.()}

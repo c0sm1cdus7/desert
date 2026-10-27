@@ -4,8 +4,8 @@ import type { ViewProgram, ViewJourney } from "../../views/program-schema.ts";
 import type { View } from "../../views/schema.ts";
 import type { ResolvedView, ResolvedPanel } from "../../views/resolved.ts";
 import { viewInputs } from "../../views/ports.ts";
-import { presentCollection } from "../../interaction/bank-presenters.ts";
-import { bankNode, BankVersion, type BankNode } from "../../interaction/bank-node.ts";
+import { presentCollection } from "../../interaction/node-presenters.ts";
+import { resolvedNode, ResolvedNodeVersion, type ResolvedNode } from "../../interaction/resolved-node.ts";
 import { surfaceFrame } from "../../interaction/surface-frame.ts";
 import { toolbarAction } from "../../interaction/toolbar.ts";
 import { presentFrame } from "./frame.ts";
@@ -48,7 +48,7 @@ function contextContent(program: ViewProgram, definition: View, surface: HumanSu
 export function projectView(program: ViewProgram, journey: ViewJourney, definition: View,
   surface: HumanSurface, state: HumanState, validate: ValidateInput, scope: ModelScope, related: RelatedReads = new Map(),
   profile?: { displayName?: string; now?: Date },attention?:AttentionSnapshot): ResolvedView {
-  const bound: Record<string, BankNode> = {};
+  const bound: Record<string, ResolvedNode> = {};
   const pending: Record<string, Extract<FrameContent, { kind: "message" }>> = {};
   for (const port of viewInputs(definition)) {
     if (port.kind === "collection") {
@@ -101,7 +101,7 @@ export function projectView(program: ViewProgram, journey: ViewJourney, definiti
     else {
       const frame = presentFrame(surface, { ...state, view: port.kind === "form" ? journey.kind === "update" ? "edit" : "create" : "detail" }, validate, scope);
       if (frame.content.kind === "form" || frame.content.kind === "context") {
-        bound[port.input] = bankNode({ version: BankVersion, kind: frame.content.kind,
+        bound[port.input] = resolvedNode({ version: ResolvedNodeVersion, kind: frame.content.kind,
           content: contextContent(program, definition, surface, state, frame.content, scope,attention) });
       } else if (frame.content.kind === "message") pending[port.input] = frame.content;
     }

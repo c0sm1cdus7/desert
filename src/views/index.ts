@@ -8,7 +8,7 @@ export type { ViewBoundContent, ViewItem, ViewMediaContent } from "./schema.ts";
 export { MediaLibrarySchema } from "./media-library.ts";
 export type { MediaLibrary } from "./media-library.ts";
 export { view } from "./view.ts";
-export { viewCatalog } from "./catalog.ts";
+export { viewIndex } from "./view-index.ts";
 export { viewInputs } from "./ports.ts";
 export { ViewProgramVersion, ViewProgramSchema, ViewJourneySchema, ViewDestinationSchema, ViewNavigationEntrySchema,
   ViewOutputBindingSchema, ViewOutputActionSchema } from "./program-schema.ts";

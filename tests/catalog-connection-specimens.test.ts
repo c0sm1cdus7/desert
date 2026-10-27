@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { publicCatalogBankInventory } from '../src/svelte/explorer/PublicCatalogBank-model.ts';
+import { publicCatalogBankInventory } from '../src/svelte/infra/PublicCatalogBank-model.ts';
 import { compilePublicCatalog } from '../src/public-catalog/index.ts';
-import { ControlBank } from '../src/interaction/control-bank.ts';
+import { ControlSpecimens } from '../src/interaction/control-specimens.ts';
 import { catalogFixture } from './fixtures/public-catalog.ts';
 import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
@@ -26,7 +26,7 @@ test('connection examples use real action and collection states and preserve off
   assert.equal(writing?.kind,'input.text');
   if(writing?.kind==='input.text') {assert.equal(writing.disabled,false);assert.ok(writing.value.length>0);}
   for(const id of ['control.select','control.options','control.money','control.date','control.files','control.labels']) {
-    const entry=ControlBank.find(item=>item.id===id)!;
+    const entry=ControlSpecimens.find(item=>item.id===id)!;
     assert.ok(entry.specimens.some(specimen=>specimen.state==='loading'),id);
     assert.ok(entry.specimens.some(specimen=>specimen.state==='offline'),id);
   }
@@ -35,8 +35,8 @@ test('connection examples use real action and collection states and preserve off
 test('action-row connection state explains disabled commands without executing them',async()=>{
   const f=await svelteBrowser(catalogWorkspaceSource,{},undefined,{initialCss:await rendererCss()});
   try {
-    await f.page.locator('[data-catalog-index] [data-destination="ViewDestinationLink"]').click();
-    const specimen=f.page.locator('[data-owner-specimen="ViewDestinationLink"]');
+    await f.page.locator('[data-view-item="catalog-index"] [data-focus-key="ViewDestinationLink"]').click();
+    const specimen=f.page.locator('[data-view-item="owner:ViewDestinationLink"]');
     await specimen.getByRole('button',{name:/^State ·/}).click();
     await f.page.getByRole('option',{name:'Offline',exact:true}).click();
     const row=specimen.getByRole('button',{name:'Trash',exact:true});

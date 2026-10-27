@@ -4,7 +4,7 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import BankRenderer from "@desert/svelte/BankRenderer.svelte";
+  import NodeRenderer from "@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte";
   import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
   const version = 'desert.bank-node/1', controlVersion = 'desert.control/1';
   const nodes = [
@@ -16,7 +16,7 @@ const source = `<script lang="ts">
   ];
 </script>
 <div data-geometry-host style="max-width:600px;padding:16px">
-  <Field.FieldGroup>{#each nodes as node}<BankRenderer {node} />{/each}</Field.FieldGroup>
+  <Field.FieldGroup>{#each nodes as node}<NodeRenderer {node} />{/each}</Field.FieldGroup>
 </div>`;
 
 test("the shared field well keeps text, selection and money labels separate on one baseline in both profiles", { timeout: 30000 }, async t => {
@@ -61,7 +61,7 @@ test("the shared field well keeps text, selection and money labels separate on o
         assert.ok(Math.abs(value.valueOffset - values[0]!.valueOffset) < .5, "all value line boxes share a baseline");
         assert.ok(Math.abs(value.labelOffset - values[0]!.labelOffset) < .5, "all labels share a baseline");
       }
-      const money = fixture.page.locator('[data-control="money"] [data-floating-field]');
+      const money = fixture.page.locator('[data-measure="amount"] [data-floating-field]');
       for (const part of [money.getByRole("textbox"), money.getByRole("button", { name: "USD · Budget currency", exact: true })]) {
         await part.focus();
         assert.equal(await money.evaluate(node => getComputedStyle(node).outlineWidth), "2px", "compound root owns keyboard focus");

@@ -26,12 +26,14 @@ export const MoneyNodeSchema = object({ ...base, kind: Type.Literal("money"), re
   currency: text(), minorUnits: Type.Union([Type.Null(), minor]) });
 export const DateNodeSchema = object({ ...base, kind: Type.Literal("date"), required: Type.Boolean(),
   value: Type.Union([Type.Null(), day]), minimum: Type.Optional(day), maximum: Type.Optional(day) });
-export const TagNodeSchema = object({ ...base, kind: Type.Literal("tag"),
-  tone: Type.Union([Type.Literal("neutral"), Type.Literal("accent"), Type.Literal("success"), Type.Literal("warning"), Type.Literal("destructive")]) });
+/** The tones a tag carries: neutral, or a semantic accent the tag pairs with its text. */
+export const TagToneSchema = Type.Union([Type.Literal("neutral"), Type.Literal("accent"), Type.Literal("success"), Type.Literal("warning"),
+  Type.Literal("destructive")]);
+export const TagNodeSchema = object({ ...base, kind: Type.Literal("tag"), tone: TagToneSchema });
 export const ImageNodeSchema = object({ ...base, kind: Type.Literal("image"), source, alt: text(),
   aspect: Type.Union([Type.Literal("square"), Type.Literal("landscape"), Type.Literal("portrait")]) });
-export const AvatarNodeSchema = object({ ...base, kind: Type.Literal("avatar"), source,
-  fallback: Type.String({ minLength: 1, maxLength: 4 }) });
+// A person's mark: a picture over its seed drawing, or the seed alone. Never initials.
+export const AvatarNodeSchema = object({ ...base, kind: Type.Literal("avatar"), source, seed: Type.String({ minLength: 1 }) });
 export const ExtendedNodeSchemas = [OptionsNodeSchema, MoneyNodeSchema, DateNodeSchema, TagNodeSchema, ImageNodeSchema, AvatarNodeSchema] as const;
 export const ExtendedNodeSchema = Type.Union([...ExtendedNodeSchemas]);
 export type ExtendedNode = Frozen<Static<typeof ExtendedNodeSchema>>;

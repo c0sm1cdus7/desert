@@ -5,7 +5,7 @@ import { navigationAction, settle } from "./public-catalog-expectations.ts";
 export const toolbar = (page: Page) => page.locator("[data-catalog-toolbar]");
 export const searchInput = (page: Page) => toolbar(page).getByRole("searchbox");
 export const cancelSearch = (page: Page) => toolbar(page).getByRole("button", { name: /^(Close|Cancel) search$/ });
-export const results = (page: Page) => page.locator("[data-catalog-search-results]");
+export const results = (page: Page) => page.locator("[data-catalog-search-scroll]");
 export const content = (page: Page) => page.locator("[data-catalog-content]");
 export const background = (page: Page) => page.locator("[data-catalog-scroll]");
 
@@ -104,7 +104,7 @@ export async function searchSoftening(page: Page) {
 }
 
 export async function assertReducedMotion(page: Page) {
-  const durations = await page.locator("[data-catalog-search-material], [data-catalog-search-scroll], [data-catalog-search-prompt], [data-catalog-toolbar]")
+  const durations = await page.locator("[data-catalog-search-material], [data-catalog-search-scroll], [data-catalog-search-scroll] [data-status], [data-catalog-toolbar]")
     .evaluateAll(elements => elements.flatMap(element => [element, ...element.querySelectorAll("*")]).flatMap(element => {
       const style = getComputedStyle(element);
       return [style.animationDuration, style.transitionDuration].flatMap(value => value.split(",").map(parseFloat));

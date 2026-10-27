@@ -68,7 +68,7 @@ test("one full-workspace search material remains glass for empty, matching and z
       const filters = await page.locator("[data-catalog-search-scroll], [data-catalog-scroll]").evaluateAll(elements =>
         elements.map(element => ({ filter: getComputedStyle(element).filter, backdrop: getComputedStyle(element).backdropFilter })));
       assert.ok(filters.every(value => value.filter === "none" && value.backdrop === "none"), "The page is not filtered a second time");
-      const sharp = await page.locator("[data-catalog-navigation], [data-catalog-search-prompt], [data-catalog-toolbar]")
+      const sharp = await page.locator("[data-catalog-navigation], [data-catalog-search-scroll] [data-status], [data-catalog-toolbar]")
         .evaluateAll(elements => elements.every(element => {
           for (let current: Element | null = element; current; current = current.parentElement) {
             if (getComputedStyle(current).filter !== "none") return false;

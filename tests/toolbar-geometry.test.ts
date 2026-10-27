@@ -4,7 +4,7 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import SurfaceFrame from "@desert/svelte/SurfaceFrame.svelte";
+  import SurfaceFrame from "@desert/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte";
   import { surfaceFrame, SurfaceFrameVersion } from "@desert/interaction/surface-frame.ts";
   import { transientFrame } from "@desert/interaction/transient-frame.ts";
   import { toolbarAction } from "@desert/interaction/toolbar.ts";
@@ -46,11 +46,12 @@ test("twenty utilities stay bounded and reachable through the canonical overflow
       assert.ok(result.headingWidth > 20, "navigation and utilities cannot erase the title");
       assert.ok(result.buttons.every(button => button.left >= -1 && button.right <= result.width + 1 && button.width >= 44),
         "every visible action retains a reachable target inside its frame");
-      const footer = host.locator('[data-surface-slot="bottom"]');
-      const widths = await footer.locator("button").evaluateAll(buttons => buttons.map(button => button.getBoundingClientRect().width));
-      assert.equal(widths.length, 2);
-      assert.ok(Math.abs(widths[0]! - widths[1]!) < 1, "return and primary share the bottom rail evenly");
-      assert.equal(await footer.locator('[data-emphasis="primary"]').count(), 1);
+      // An ordinary journey commits from the top rail; only a multi-step journey owns a bottom rail
+      // (its even split is transient-task-footer-contract's law).
+      assert.equal(await host.locator('[data-surface-slot="bottom"]').count(), 0, "no bottom action cluster");
+      const commit = header.locator('[data-emphasis="primary"]');
+      assert.equal(await commit.count(), 1, "the one commit stays in the bounded top rail");
+      assert.equal(await commit.getAttribute("aria-label") ?? await commit.innerText(), "Confirm the independently named operation");
       const more = header.getByRole("button", { name: "More actions", exact: true });
       await more.click();
       const popup = f.page.getByRole("dialog");

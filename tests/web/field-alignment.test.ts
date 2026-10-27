@@ -14,7 +14,7 @@ test("shared fields align labels and writing in every bank state at compact and 
       await f.page.evaluate(value => document.documentElement.style.setProperty("--text-scale", String(value)), scale);
       await settle(f.page);
       for (const kind of ["input.text", "input.multiline"]) for (const state of ["empty", "value", "invalid", "disabled"]) {
-        const field = f.page.locator(`[data-specimen="${kind}:${state}"]`);
+        const field = f.page.locator(`[data-view-item="specimen:${kind}:${state}"]`);
         await field.scrollIntoViewIfNeeded();
         const geometry = await fieldGeometry(field);
         const key = `${kind}:${state}/${width}/${scale}`;
@@ -46,7 +46,7 @@ test("wrapped and unbroken field labels reserve their own space through focus an
         await f.page.setViewportSize({ width, height: 1000 });
         await f.page.evaluate(value => document.documentElement.style.setProperty("--text-scale", String(value)), scale);
         for (const kind of ["input.text", "input.multiline"]) {
-          const field = f.page.locator(`[data-specimen="${kind}:value"]`);
+          const field = f.page.locator(`[data-view-item="specimen:${kind}:value"]`);
           const control = field.locator("input,textarea");
           await stressLabel(field, label);
           for (const focused of [false, true]) {
@@ -73,7 +73,7 @@ test("a scrolling multiline viewport cannot paint beneath its persistent label",
   const samples: unknown[] = [], failures: string[] = [];
   try {
     await (await navigationAction(f.page, "Component bank")).click();
-    const field = f.page.locator('[data-specimen="input.multiline:value"]'), control = field.locator("textarea");
+    const field = f.page.locator('[data-view-item="specimen:input.multiline:value"]'), control = field.locator("textarea");
     await control.fill(Array.from({ length: 40 }, (_, index) => `Line ${index + 1}: writing remains readable while scrolling`).join("\n"));
     // A host-constrained editing viewport is a layout stress, not production CSS.
     await control.evaluate(element => { element.style.maxHeight = "12rem"; element.style.setProperty("field-sizing", "fixed"); });

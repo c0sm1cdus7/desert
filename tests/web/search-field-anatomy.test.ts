@@ -32,7 +32,7 @@ test("toolbar search keeps its anatomy while catalog and collection content have
     const navigation = page.getByRole("navigation", { name: "Catalog navigation", exact: true });
     assert.equal(await navigation.getByRole("searchbox").count(), 0);
     assert.equal(await page.locator("[data-catalog-scroll] [data-search-field]").count(), 0);
-    const collection = page.locator('[data-specimen="collection:records"]');
+    const collection = page.locator('[data-view-item="specimen:collection:records"]');
     assert.equal(await collection.getByRole("searchbox").count(), 0);
     await page.getByRole("button", { name: "Search", exact: true }).click();
     const find = toolbar.getByRole("searchbox", { name: "Search component bank", exact: true });
@@ -40,8 +40,8 @@ test("toolbar search keeps its anatomy while catalog and collection content have
     assert.equal(await toolbar.locator('svg[data-search-icon="leading"]').count(), 1);
     assert.equal(await toolbar.getByRole("button", { name: "Clear search", exact: true }).count(), 1);
     const overlay = page.locator("[data-catalog-search-scroll]");
-    assert.equal(await overlay.locator('[data-search-result="collection"]').count(), 1);
-    const inventory = await page.locator("[data-catalog-entry]").count();
+    assert.equal(await overlay.locator('[data-focus-key="search:collection"]').count(), 1);
+    const inventory = await page.locator("[data-view-item^='entry:']").count();
     assert.ok(inventory > 1, "query changes overlay results, not the underlying inventory");
     for (const scheme of ["dark", "light"] as const) {
       await page.emulateMedia({ colorScheme: scheme });
@@ -60,7 +60,7 @@ test("toolbar search keeps its anatomy while catalog and collection content have
       await accessory.click();
       assert.ok(await find.evaluate(el => el === document.activeElement));
       assert.equal(await find.inputValue(), "");
-      assert.equal(await page.locator("[data-catalog-entry]").count(), inventory);
+      assert.equal(await page.locator("[data-view-item^='entry:']").count(), inventory);
     }
     await page.getByRole("button", { name: "Close search", exact: true }).click();
     assert.equal(await page.getByRole("searchbox").count(), 0);

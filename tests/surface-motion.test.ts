@@ -12,16 +12,16 @@ import { settleMotion } from "./web/fixture.ts";
 const directory = resolve("artifacts/surface-motion", process.env.DESERT_SURFACE_PHASE ?? "source");
 async function fixture(reduced = false, locked = false) {
   const f = await svelteBrowser(`<script lang="ts">
-    import Drawer from '@desert/svelte/pieces/Drawer.svelte';
-    import Problem from '@desert/svelte/pieces/Problem.svelte';
+    import TransientNode from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
+    import ProblemNode from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
     import { SurfaceFrameVersion } from '@desert/interaction/surface-frame.ts';
     let panel = $state(false), message = $state(false);
     const frame = {version:SurfaceFrameVersion,kind:'specimen',top:{title:'Context'},
       content:{kind:'information',items:[{kind:'text',text:'Transient content.'}]},bottom:{}};
   </script><main data-surface-host>
     <button onclick={()=>panel=true}>Open panel</button><button onclick={()=>message=true}>Open message</button>
-    <Drawer label="Context" {frame} open={panel} locked={${locked}} onclose={()=>panel=false} invoke={()=>{}} />
-    <Problem open={message} title="Message" description="A focused message." close={()=>message=false} />
+    <TransientNode node={{version:'desert.bank-node/1',kind:'transient',label:'Context',open:panel,locked:${locked},frame}} onevent={event=>{if(event.kind==='transient.close')panel=false;}} />
+    <ProblemNode node={{version:'desert.bank-node/1',kind:'problem',open:message,title:'Message',description:'A focused message.',locked:false,severity:'error'}} onevent={event=>{if(event.kind==='problem.close')message=false;}} />
   </main>`);
   await f.page.setViewportSize({ width: 390, height: 740 });
   await f.page.emulateMedia({ reducedMotion: reduced ? "reduce" : "no-preference", colorScheme: "dark" });

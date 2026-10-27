@@ -5,12 +5,12 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 import { settleMotion } from "./web/fixture.ts";
 
 const source = `<script>
-  import { frameContinuity } from '@desert/svelte/pieces/frame-continuity.svelte.ts';
+  import { frameContinuity } from '@desert/svelte/catalog/foundations/modal/frame-continuity.svelte.ts';
   import { intentKey } from '@desert/interaction/intent.ts';
-  let panel=$state(null), owner=$state({}), kind=$state('context'), open=$state(true);
+  let panel=$state(null), frame=$state('frame-0'), kind=$state('context'), open=$state(true), issued=0;
   const archive={kind:'journey',journey:'archive-note',recordId:'one'};
-  const continuity=frameContinuity(()=>panel,()=>owner,()=>({kind}),()=>undefined);
-  function replace(next,intent){if(intent)continuity.invoking(intent);kind=next;owner={};}
+  const continuity=frameContinuity(()=>panel,()=>({frame}));
+  function replace(next,invocation){if(invocation)continuity.note(invocation);kind=next;frame='frame-'+(++issued);}
   globalThis.frameContinuityTest={
     replace:()=>replace('context'),
     disable:()=>{document.activeElement.disabled=true;},
@@ -21,12 +21,12 @@ const source = `<script>
 </script>
 <button data-outside>Outside</button>
 <div bind:this={panel} data-state={open?'open':'closed'}>
-{#key owner}<section data-surface-frame tabindex="-1" aria-label={kind}>
+{#key frame}<section data-surface-frame tabindex="-1" aria-label={kind}>
   {#if kind==='context'}
-    <div data-toolbar-command={intentKey(archive)}><button onclick={()=>replace('review',archive)}>Archive</button></div>
+    <div data-toolbar-command={intentKey(archive)}><button onclick={()=>replace('review','other')}>Archive</button></div>
   {:else}
-    <button onclick={()=>replace('context',{kind:'back'})}>Back</button>
-    <button onclick={()=>replace('context',{kind:'accept'})}>Accept</button>
+    <button onclick={()=>replace('context','close')}>Back</button>
+    <button onclick={()=>replace('context','other')}>Accept</button>
   {/if}
 </section>{/key}
 </div>`;
@@ -37,13 +37,13 @@ async function settle(f: Awaited<ReturnType<typeof svelteBrowser>>) {
 
 test("retained Panel post-effects preserve focus and scroll after replacing the real keyed Drawer frame", async () => {
   const f = await svelteBrowser(`<script>
-    import Panel from '@desert/svelte/views/Panel.svelte';
-    import AdaptiveSurfaceLayout from '@desert/svelte/pieces/AdaptiveSurfaceLayout.svelte';
+    import Panel from '@desert/svelte/catalog/renderer/panel/Panel.svelte';
+    import AdaptiveSurfaceLayout from '@desert/svelte/catalog/foundations/shell/AdaptiveSurfaceLayout.svelte';
     import { surfaceFrame } from '@desert/interaction/surface-frame.ts';
     import { viewEventOwnership } from '@desert/web/client/view-events.ts';
-    import { provideFrameActivation } from '@desert/svelte/pieces/frame-continuity.svelte.ts';
-    const activateFrame=provideFrameActivation();
-    const ownership=viewEventOwnership(),readingIdentity=Object.freeze({});
+    import { provideFrameActivation } from '@desert/svelte/infra/frame-activation.ts';
+    const activation=provideFrameActivation();
+    const ownership=viewEventOwnership(),readingIdentity='reading-1';
     const action={intent:{kind:'journey',journey:'archive-note'},label:'Archive note',icon:'archive',state:'ready'};
     const details={kind:'facts',object:'note',fields:['body'],facts:{body:'Reading needs continuity.\\n\\n'.repeat(80)},labels:{'note.body':'Content'},multiline:['body']};
     let phase=$state('context');
@@ -55,8 +55,8 @@ test("retained Panel post-effects preserve focus and scroll after replacing the 
         bottom:{secondary:{intent:{kind:'back'},label:'Back',icon:'back',state:'ready'}}}));
     function receive(envelope){const event=ownership.read(envelope);if(event?.kind==='surface.invoke')phase=event.intent.kind==='back'?'context':'review';}
   </script><AdaptiveSurfaceLayout>
-    <button onclick={()=>activateFrame(owner,()=>phase='review')}>Open from main</button>
-    <button onclick={()=>activateFrame(owner,()=>{})}>Delayed opening</button>
+    <button onclick={()=>activation.activate(owner.key,()=>phase='review')}>Open from main</button>
+    <button onclick={()=>activation.activate(owner.key,()=>{})}>Delayed opening</button>
     <button>Unrelated destination</button>
     <Panel panel={{frame,label:phase,locked:false,owner,
     readingIdentity:phase==='context'?readingIdentity:undefined}} onevent={receive}/></AdaptiveSurfaceLayout>`);
@@ -165,21 +165,19 @@ test("a pending command that disables its focused button retains focus ownership
 
 test("a command in a portaled descendant keeps the parent frame's focus continuity", async () => {
   const f = await svelteBrowser(`<script>
-    import * as Dialog from '@desert/svelte/vendor/components/ui/dialog/index.js';
-    import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
-    import { frameContinuity } from '@desert/svelte/pieces/frame-continuity.svelte.ts';
-    let panel=$state(null),owner=$state({}),kind=$state('context');
-    const continuity=frameContinuity(()=>panel,()=>owner,()=>({kind}),()=>undefined);
-    function review(){continuity.invoking({kind:'journey',journey:'archive-note'});kind='journey';owner={};}
+    import Modal from '@desert/svelte/catalog/foundations/modal/Modal.svelte';
+    import Popover from '@desert/svelte/catalog/foundations/popover/Popover.svelte';
+    let modal=$state(),frame=$state('frame-0'),kind=$state('context'),actions=$state(false);
+    function review(){modal.noteInvocation('other');kind='journey';frame='frame-1';}
   </script>
-  <Dialog.Root open={true}><Dialog.Content bind:ref={panel} showCloseButton={false} trapFocus={false}>
-    <Dialog.Title>Parent</Dialog.Title><Dialog.Description>A retained reading panel.</Dialog.Description>
-    {#key owner}<section data-surface-frame tabindex="-1">
-      {#if kind==='context'}<Popover.Root><Popover.Trigger>More actions</Popover.Trigger>
-        <Popover.Content role="dialog" aria-label="Actions"><button onclick={review}>Archive</button></Popover.Content>
-      </Popover.Root>{:else}<button>Back</button>{/if}
+  <Modal bind:this={modal} label="Parent" open={true} locked={false} presentation="transient" continuity={{frame}}>
+    {#key frame}<section data-surface-frame tabindex="-1">
+      {#if kind==='context'}<Popover label="Actions" open={actions} disabled={false} locked={false} content="menu" placement="anchored" align="start"
+        trigger={{kind:'action',label:'More actions',icon:'more',face:'fit',emphasis:'secondary',state:'ready'}} onopenchange={next=>actions=next}>
+        <button onclick={review}>Archive</button>
+      </Popover>{:else}<button>Back</button>{/if}
     </section>{/key}
-  </Dialog.Content></Dialog.Root>`);
+  </Modal>`);
   try {
     await f.page.getByRole("button", { name: "More actions", exact: true }).click();
     await f.page.getByRole("button", { name: "Archive", exact: true }).click();
@@ -193,16 +191,16 @@ test("a command in a portaled descendant keeps the parent frame's focus continui
 test("one suspended reading position belongs only to its opaque subject identity", async () => {
   const f = await svelteBrowser(`<script>
     import { tick } from 'svelte';
-    import { frameContinuity } from '@desert/svelte/pieces/frame-continuity.svelte.ts';
-    const first=Object.freeze({}),second=Object.freeze({});
-    let panel=$state(null),owner=$state({}),reading=$state.raw(first),kind=$state('context');
-    frameContinuity(()=>panel,()=>owner,()=>({kind}),()=>reading);
+    import { frameContinuity } from '@desert/svelte/catalog/foundations/modal/frame-continuity.svelte.ts';
+    const first='reading-1',second='reading-2';
+    let panel=$state(null),frame=$state('frame-0'),reading=$state.raw(first),kind=$state('context'),issued=0;
+    frameContinuity(()=>panel,()=>({frame,reading}));
     globalThis.readingContinuity={
-      leave:()=>{kind='journey';reading=undefined;owner={};},
-      resume:async(other=false)=>{kind='context';owner={};await tick();reading=other?second:first;},
+      leave:()=>{kind='journey';reading=undefined;frame='frame-'+(++issued);},
+      resume:async(other=false)=>{kind='context';frame='frame-'+(++issued);await tick();reading=other?second:first;},
     };
   </script><button>Outside</button><div bind:this={panel} data-state="open">
-    {#key owner}<section data-surface-frame tabindex="-1">
+    {#key frame}<section data-surface-frame tabindex="-1">
       <div data-surface-slot="content" style="height:80px;overflow:auto"><div style="height:600px">{kind}</div></div>
     </section>{/key}
   </div>`);

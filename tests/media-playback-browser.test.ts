@@ -11,7 +11,7 @@ audio.writeUInt32LE(16, 16); audio.writeUInt16LE(1, 20); audio.writeUInt16LE(1, 
 audio.writeUInt32LE(8000, 24); audio.writeUInt32LE(16000, 28); audio.writeUInt16LE(2, 32);
 audio.writeUInt16LE(16, 34); audio.write("data", 36); audio.writeUInt32LE(audio.length - 44, 40);
 const source = `<script>
- import Viewer from './src/svelte/pieces/media/Viewer.svelte';
+ import Viewer from './src/svelte/catalog/compositions/viewer/Viewer.svelte';
  let open=$state(false), index=$state(0);
  const items=[{kind:'video',source:'/media/film',alt:'Motion study',captions:[{source:'/media/captions',language:'en',label:'English'}]},
  {kind:'audio',source:'/media/audio',alt:'Silence',captions:[]}];

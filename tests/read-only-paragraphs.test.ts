@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { WorkspaceView, NavigationView } from "./fixtures/workspace-view.ts";
-import { composeProduct, factReference, humanSurface, moduleCatalog, ownershipPolicy, publishObject, viewOutput, Components, ViewTitles, defineView, viewPorts, type AuthoredViewJourney } from "../src/index.ts";
+import { composeProduct, factReference, humanExposure, moduleIndex, ownershipPolicy, publishObject, viewOutput, Components, ViewTitles, defineView, viewPorts, type AuthoredViewJourney } from "../src/index.ts";
 import { compile } from "../src/compile.ts";
 import { Note, ReadNote, NotesController } from "./fixtures/notebook-domain.ts";
 import { Notebook } from "../products/notebook/product.ts";
@@ -11,20 +11,21 @@ import { presentFrame } from "../src/web/client/frame.ts";
 import { projectView } from "../src/web/client/view-projection.ts";
 import type { HumanSurface } from "../src/web/types.ts";
 import { viewReadScope } from "./fixtures/view-read-scope.ts";
+import { fixtureText, FixtureMessages } from "./fixtures/messages.ts";
 
 const Ports = viewPorts({ inputs: { notes: "collection", note: "context" }, outputs: ["select", "close"] });
 const NotesView = defineView({
   name: "read-only-notes", outputs: ["select"],
   content: [
-    Components.Header({ title: "Notes", subtitle: "Read your notes." }),
+    Components.Header({ title: fixtureText.notes, subtitle: fixtureText.readYourNotes }),
     Components.Collection({ input: Ports.inputs.notes, output: Ports.output.select }),
   ],
 });
 const NoteView = defineView({
   name: "read-only-note", outputs: ["close"],
-  topDock: Components.Toolbar({ actions: [{ output: "close", label: "Close", icon: "close" }] }),
+  topDock: Components.Toolbar({ actions: [{ output: "close", label: fixtureText.close, icon: "close" }] }),
   content: [
-    Components.Header({ title: ViewTitles.subject, subtitle: "Read your note." }),
+    Components.Header({ title: ViewTitles.subject, subtitle: fixtureText.readYourNote }),
     Components.Context({ input: Ports.inputs.note }),
   ],
 });
@@ -35,25 +36,25 @@ const ReadNotes = {
     { ...viewOutput(NoteView, "close"), action: { kind: "close" } },
   ],
 } as const satisfies AuthoredViewJourney;
-const NotesDestination = { id: "notes", label: "Notes", icon: "open", entryJourney: ReadNote } as const;
+const NotesDestination = { id: "notes", label: fixtureText.notes, icon: "open", entryJourney: ReadNote } as const;
 
 function readOnlyNotebook() {
-  return {
-    id: "read-only-notebook", label: "Read-only Notebook", modules: moduleCatalog([]),
+  return { messages: FixtureMessages,
+    id: "read-only-notebook", label: fixtureText.readOnlyNotebook, modules: moduleIndex([]),
     objects: [publishObject(Note, {
       view: NoteView, title: factReference(Note, "title"), actions: [],
       fields: [
-        { fact: factReference(Note, "title"), label: "Title", representation: "text" },
-        { fact: factReference(Note, "body"), label: "Content", representation: "paragraphs" },
-        { fact: factReference(Note, "state"), label: "Status", representation: "text" },
+        { fact: factReference(Note, "title"), label: fixtureText.title, representation: "text" },
+        { fact: factReference(Note, "body"), label: fixtureText.content, representation: "paragraphs" },
+        { fact: factReference(Note, "state"), label: fixtureText.status, representation: "text" },
       ],
     })],
     dependencies: [NotesController],
     policies: [ownershipPolicy(Note, "owner")],
-    journeys: [{ execution: ReadNote, label: "Read notes", presentation: ReadNotes }],
-    surfaces: [humanSurface({ id: "human", journeys: [ReadNote], locale: "en" })],
+    journeys: [{ execution: ReadNote, label: fixtureText.readNotes, presentation: ReadNotes }],
+    exposures: [humanExposure({ id: "human", journeys: [ReadNote], locale: "en" })],
     workspace: WorkspaceView, views: [NotesView, NoteView, WorkspaceView, NavigationView], destinations: [NotesDestination], entry: NotesDestination,
-    navigation: [{ destination: NotesDestination, group: "Explore", purpose: "content" }],
+    navigation: [{ destination: NotesDestination, group: fixtureText.explore, purpose: "content" }],
   } as const;
 }
 
@@ -97,18 +98,18 @@ test("A read-only publication renders paragraphs without acquiring any mutation 
 
 test("A read-only exposure cannot provide its own field or input presentation maps", () => {
   const source = readOnlyNotebook();
-  const exposure = source.surfaces[0];
+  const exposure = source.exposures[0];
   for (const map of [
     { inputs: { "note.body": "input.multiline" } },
     { fieldRepresentations: { "note.body": "text" } },
     { language: { locale: "en", fields: { "note.body": "Other content" }, journeys: {} } },
     { commit: { "create-note": "submit" } },
   ]) {
-    assert.throws(() => composeProduct({ ...source, surfaces: [{ ...exposure, ...map }] } as never),
+    assert.throws(() => composeProduct({ ...source, exposures: [{ ...exposure, ...map }] } as never),
       /SURFACE_SEMANTICS_FORBIDDEN/);
   }
   for (const key of ["inputs", "fieldRepresentations"]) {
-    assert.throws(() => composeProduct({ ...source, surfaces: [{ ...exposure, [key]: undefined }] } as never),
+    assert.throws(() => composeProduct({ ...source, exposures: [{ ...exposure, [key]: undefined }] } as never),
       /SURFACE_SEMANTICS_FORBIDDEN/);
   }
 });

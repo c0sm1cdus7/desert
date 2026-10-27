@@ -7,7 +7,7 @@ import { workspaceRuntimeSource } from "./fixtures/workspace-runtime.ts";
 
 const css = workspaceCss();
 async function mount(width: number, options: Parameters<typeof workspaceRuntimeSource>[0] = {}) {
-  const fixture = await svelteBrowser(workspaceRuntimeSource(options), {}, "http://workspace-runtime.test/", { headed: true, channel: "chrome" });
+  const fixture = await svelteBrowser(workspaceRuntimeSource(options), {}, "http://workspace-runtime.test/");
   try {
     await fixture.page.setViewportSize({ width, height: 900 });
     await fixture.page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
@@ -103,6 +103,8 @@ for (const width of [390, 1280]) test(`declared navigation preserves scroll and 
     await navigation(page).getByRole("button", { name: "Media", exact: true }).click();
     await page.locator("[data-place-title]").filter({ hasText: "Media" }).waitFor();
     if (width === 390) {
+      // The overlay is a Modal whose presence unmounts it after its exit settles (a frame or more after the place changes).
+      await navigation(page).waitFor({ state: "detached" });
       assert.equal(await navigation(page).count(), 0, "choosing a destination dismisses overlay navigation");
       await action(page, "Show navigation").click();
     }
@@ -118,7 +120,7 @@ for (const width of [390, 1280]) test(`declared navigation preserves scroll and 
     await search.fill("Section 4");
     assert.equal(await viewport.getAttribute("aria-hidden"), "true");
     assert.equal(await viewport.evaluate(node => node instanceof HTMLElement && node.inert), true);
-    await page.locator('[data-catalog-search-scroll] [data-search-result="section-4"] button').waitFor();
+    await page.locator('[data-catalog-search-scroll] [data-focus-key="search:section-4"]').waitFor();
     await page.keyboard.press("Escape");
     await action(page, "Search").waitFor();
     assert.equal(await page.getByRole("searchbox").count(), 0, "search remains an overlay, not inline content");

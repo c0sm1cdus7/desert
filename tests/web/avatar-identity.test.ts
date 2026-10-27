@@ -4,6 +4,7 @@ import { publicCatalogFixture } from "./public-catalog-fixture.ts";
 import { navigationAction, settle } from "./public-catalog-expectations.ts";
 import { avatarEvidence, avatarGeometry, avatarViolations } from "./avatar-identity-expectations.ts";
 
+// The avatar control is MediaControl's row of an Avatar and its label Text (lane D): the row is what holds the avatar.
 test("bank avatars retain a visible identity face and readable label at narrow width and 200 percent text", { timeout: 60000 }, async () => {
   const f = await publicCatalogFixture(), failures: string[] = [];
   try {
@@ -14,8 +15,8 @@ test("bank avatars retain a visible identity face and readable label at narrow w
       await f.page.evaluate(scale => document.documentElement.style.setProperty("--text-scale", String(scale)), scale);
       await settle(f.page);
       for (const state of ["image", "fallback"] as const) {
-        const specimen = f.page.locator(`[data-specimen="control.avatar:${state}"]`);
-        const row = specimen.locator('[data-control="avatar"]');
+        const specimen = f.page.locator(`[data-view-item="specimen:control.avatar:${state}"]`);
+        const row = specimen.locator('div:has(> [data-slot="avatar"])');
         await row.scrollIntoViewIfNeeded();
         if (state === "image") await row.locator("img").waitFor();
         const geometry = await avatarGeometry(row), violations = avatarViolations(geometry, state === "fallback");
@@ -27,7 +28,7 @@ test("bank avatars retain a visible identity face and readable label at narrow w
   } finally { await f.close(); }
 });
 
-test("failed avatar images preserve the same bounded fallback and recover when the source loads", { timeout: 30000 }, async () => {
+test("failed avatar images show their seed drawing, never letters, and recover when the source loads", { timeout: 30000 }, async () => {
   const f = await publicCatalogFixture();
   try {
     // Successful HTTP with invalid image data exercises the native image failure
@@ -35,9 +36,10 @@ test("failed avatar images preserve the same bounded fallback and recover when t
     await f.page.route("**/bank-image.svg", route => route.fulfill({ status: 200, contentType: "image/svg+xml", body: "not an image" }));
     await (await navigationAction(f.page, "Component bank")).click();
     await f.page.getByRole("searchbox", { name: "Find component", exact: true }).fill("avatar");
-    const specimen = f.page.locator('[data-specimen="control.avatar:image"]');
-    const row = specimen.locator('[data-control="avatar"]');
-    await row.getByText("AR", { exact: true }).waitFor(); await row.scrollIntoViewIfNeeded(); await settle(f.page);
+    const specimen = f.page.locator('[data-view-item="specimen:control.avatar:image"]');
+    const row = specimen.locator('div:has(> [data-slot="avatar"])');
+    await row.locator("[data-avatar-seed]").waitFor(); await row.locator("img").waitFor({ state: "detached" });
+    await row.scrollIntoViewIfNeeded(); await settle(f.page);
     const failedGeometry = await avatarGeometry(row), violations = avatarViolations(failedGeometry, true);
     await avatarEvidence(f.page, "failed-image", { geometry: failedGeometry, violations }, specimen);
     await f.page.unroute("**/bank-image.svg");
@@ -45,7 +47,7 @@ test("failed avatar images preserve the same bounded fallback and recover when t
     await f.page.getByRole("searchbox", { name: "Find component", exact: true }).fill("avatar");
     await row.locator("img").waitFor();
     assert.ok(await row.locator("img").evaluate(image => (image as HTMLImageElement).naturalWidth > 0));
-    assert.equal(await row.getByText("AR", { exact: true }).isVisible(), false, "fallback does not overlay a loaded image");
+    assert.equal(await row.locator('[data-slot="avatar"]').evaluate(face => face.textContent?.trim()), "", "a loaded picture spells nothing");
     assert.deepEqual(violations, []);
   } finally { await f.close(); }
 });
@@ -57,7 +59,7 @@ test("Travel kit inspiration does not fabricate a person identity for the trip",
     await (await navigationAction(f.page, "Travel kit")).click();
     const section = f.page.locator('[data-exercise-section="inspiration"]');
     await section.waitFor(); await section.scrollIntoViewIfNeeded(); await settle(f.page);
-    const avatarCount = await section.locator('[data-control="avatar"]').count();
+    const avatarCount = await section.locator('div:has(> [data-slot="avatar"])').count();
     await avatarEvidence(f.page, "travel-inspiration", { avatarCount, text: await section.innerText() }, section);
     assert.equal(avatarCount, 0, "a trip is not a person; Avatar remains demonstrated in its dedicated bank specimens");
     assert.equal(await section.getByText("Your trip", { exact: true }).count(), 0);

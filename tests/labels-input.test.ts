@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { labelsInputControl } from "../src/interaction/labels-control.ts";
 import { addWrittenLabel } from "../src/interaction/label-writing.ts";
 import { applyControlEvent, controlNode } from "../src/interaction/control-nodes.ts";
-import { bankNode } from "../src/interaction/bank-node.ts";
+import { resolvedNode } from "../src/interaction/resolved-node.ts";
 import { labelLimits } from "../src/labels.ts";
 import { application, CreateItem } from "./fixtures/labels.ts";
 
@@ -25,7 +25,7 @@ test("Unicode and invalid writing stay intact; the canonical command owns label 
     assert.deepEqual(result.values, [label]);
     const changed = applyControlEvent(control(), { kind: "labels.change", control: "projects", values: result.values }).node;
     assert.equal(changed.kind, "labels");
-    assert.doesNotThrow(() => bankNode({ version: "desert.bank-node/1", kind: "control.labels", control: changed }));
+    assert.doesNotThrow(() => resolvedNode({ version: "desert.bank-node/1", kind: "control.labels", control: changed }));
     assert.equal(application.validateInput(CreateItem.command.id, { title: "Task", projects: result.values }).valid, length === 64);
   }
   const changed = applyControlEvent(control(), { kind: "labels.change", control: "projects", values: ["Duplicate", "Duplicate"] }).node;

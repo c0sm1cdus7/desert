@@ -9,6 +9,7 @@ import { localWebGateway } from "../src/web/gateway.ts";
 import type { ApiMethods } from "../src/web/types.ts";
 import { agentProjectionDefinition, initialFacts } from "./fixtures/agent-prepared-projection.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { storedObjects } from "../src/testing/stored-objects.ts";
 
 let cluster: ReturnType<typeof postgresCluster>;
 before(() => { cluster = postgresCluster(); });
@@ -83,9 +84,9 @@ for (const scenario of cases) {
       assert.deepEqual(await rpc("accept", { intentId: initial.id, confirmationDigest: initial.confirmationDigest }), receipt);
       assert.deepEqual(await rpc("receipt", { intentId: initial.id }), receipt);
       assert.deepEqual(await rpc("prepare", request), initial, "repeated preparation after acceptance cannot widen response facts");
-      const persisted = (await admin.query("SELECT version,facts FROM desert_objects")).rows;
-      assert.equal(persisted.length, 1); assert.equal(persisted[0].version, scenario.version);
-      assert.deepEqual(persisted[0].facts, expectedFacts);
+      const persisted = await storedObjects(admin, application);
+      assert.equal(persisted.length, 1); assert.equal(persisted[0]!.version, scenario.version);
+      assert.deepEqual(persisted[0]!.facts, expectedFacts);
       assert.equal(receipt.object.version, scenario.version);
       assert.equal((await admin.query("SELECT count(*) FROM desert_receipts")).rows[0].count, String(scenario.version));
     } finally {

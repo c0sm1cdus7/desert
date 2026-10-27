@@ -1,0 +1,96 @@
+import { controlNode, type ControlNode } from "./control-nodes.ts";
+import { freezeDeep } from "../json.ts";
+import { controlInspection } from "./catalog-ownership.ts";
+import { labelLimits } from "../labels.ts";
+
+const sample = (state: string, node: ControlNode, releaseAfterMs?: number) => ({
+  state, node: controlNode(node), ...(releaseAfterMs === undefined ? {} : { releaseAfterMs }),
+});
+const base = { version: "desert.control/1", disabled: false } as const;
+const choices = [
+  { value: "first", label: "First option", disabled: false },
+  { value: "second", label: "Second option", disabled: false },
+  { value: "unavailable", label: "Unavailable option", disabled: true },
+];
+const information = [
+  { kind: "text", text: "Contextual information stays connected to its trigger. Close to return to your work." },
+  { kind: "fact", label: "Product execution", value: "Not installed" },
+] as const;
+const options = { ...base, kind: "options", minSelected: 1, selected: [], options: choices } as const;
+const money = { ...base, kind: 'money', label: 'Amount', required: true, locale: 'es-AR',
+  currencies: [{ code: 'ARS', scale: 2, face: { kind: 'flag', region: 'AR' } },
+    { code: 'USD', scale: 2, face: { kind: 'flag', region: 'US' } }], currency: 'ARS', minorUnits: null } as const;
+const image = { ...base, kind: "image", label: "Notebook cover", alt: "An open notebook with blue pages", aspect: "landscape" } as const;
+const lockReleaseMs = 3000;
+
+export const ControlSpecimens = freezeDeep(([
+  { id: "control.select", family: "control", specimens: [
+    sample("available", { ...base, kind: "select", id: "choice", label: "Single choice", required: false, value: null, options: choices }),
+    sample("disabled", { ...base, kind: "select", id: "disabled-choice", label: "Disabled choice", disabled: true,
+      required: false, value: "retained", options: [{ value: "retained", label: "Retained selection", disabled: false }] }),
+    sample("contextual-selected", { ...base, kind: "select", id: "contextual-select", label: "Display mode", required: true, value: "first", options: choices }),
+    sample("contextual-unavailable", { ...base, kind: "select", id: "unavailable-select", label: "Unavailable display mode", required: true, value: null, disabled: true, options: choices }),
+    sample("input-empty", { ...base, kind: "select", id: "empty-select-input", label: "Required input", required: false, inputRequired: true, value: null, options: choices }),
+    sample("input-clearable", { ...base, kind: "select", id: "clearable-select-input", label: "Required clearable input", required: false, inputRequired: true, value: "first", options: choices }),
+    sample("input-retained", { ...base, kind: "select", id: "retained-select-input", label: "Retained input", required: true, inputRequired: true, value: "first", options: choices }),
+  ] },
+  { id: "control.popover", family: "control", specimens: [
+    sample("available", { ...base, kind: "popover", id: "help", label: "Open contextual information", open: false,
+      title: "Local interaction", content: information }),
+    sample("locked", { ...base, kind: "popover", id: "locked-help", label: "Open locked information", open: false,
+      locked: true, title: "Locked information", content: [{ kind: "text",
+        text: `This isolated lock demonstration releases after ${lockReleaseMs / 1000} seconds. No product operation is running.` }] }, lockReleaseMs),
+  ] },
+  { id: "control.files", family: "control", specimens: [
+    sample("empty", { ...base, kind: "files", id: "local-files", label: "Choose local text files",
+      limits: { maxCount: 2, maxFileBytes: 10240, maxTotalBytes: 15360, accept: ["text/plain"] }, files: [] }),
+  ] },
+  { id: "control.labels", family: "control", specimens: [
+    sample("empty", { ...base, kind: "labels", id: "labels-empty", label: "Labels", values: [], limits: labelLimits }),
+    sample("value", { ...base, kind: "labels", id: "labels-value", label: "Labels", values: ["Work", "Personal"], limits: labelLimits }),
+    sample("disabled", { ...base, kind: "labels", id: "labels-disabled", label: "Labels", values: ["Work"], disabled: true, limits: labelLimits }),
+  ] },
+  { id: "control.options", family: "control", specimens: [
+    sample("one", { ...options, id: "one-choice", label: "Choose one option", maxSelected: 1 }),
+    sample("many", { ...options, id: "many-choices", label: "Choose up to two options", maxSelected: 2 }),
+    sample("disabled", { ...options, id: "disabled-options", label: "Retained choice", maxSelected: 1,
+      disabled: true, selected: ['first'] }),
+    sample("constrained", { ...options, id: "constrained-options", label: "Keep one or two options", maxSelected: 2,
+      selected: ['first', 'second'], options: [...choices, { value: 'third', label: 'Third option', disabled: false }] }),
+    sample("contextual-selected", { ...options, id: "contextual-selected-options", label: "Display mode", maxSelected: 1, selected: ['first'] }),
+    sample("input-empty", { ...options, id: "input-empty-options", label: "Required input", inputRequired: true, maxSelected: 1 }),
+    sample("input-selected", { ...options, id: "input-selected-options", label: "Retained input", inputRequired: true, maxSelected: 1, selected: ['first'] }),
+    sample("input-multiple", { ...options, id: "input-multiple-options", label: "Required choices", inputRequired: true, maxSelected: 2 }),
+  ] },
+  { id: "control.money", family: "control", specimens: [
+    sample("empty", { ...money, id: 'amount' }),
+    sample("value", { ...money, id: 'amount-value', minorUnits: '12550' }),
+    sample("disabled", { ...money, id: 'amount-disabled', disabled: true, minorUnits: '12550' }),
+    sample("constrained", { ...money, id: 'amount-whole-yen', label: 'Whole yen', locale: 'en-US',
+      currencies: [{ code: 'JPY', scale: 0 }], currency: 'JPY', minorUnits: '2500' }),
+  ] },
+  { id: "control.date", family: "control", specimens: [
+    sample("calendar", { ...base, kind: "date", id: "date", label: "Date", required: true, value: "2026-10-15",
+      minimum: "2026-10-01", maximum: "2026-12-31" }),
+  ] },
+  { id: "control.tag", family: "control", specimens: [
+    ...(["neutral", "accent", "success", "warning", "destructive"] as const).map(tone =>
+      sample(tone, { ...base, kind: "tag", id: `tag-${tone}`, label: tone === "success" ? "Ready" : tone === "destructive" ? "Failed" : tone === "warning" ? "Attention" : tone === "accent" ? "In progress" : "Draft", tone })),
+  ] },
+  { id: "control.image", family: "control", specimens: [
+    sample("available", { ...image, id: "cover", source: "/bank-image.svg" }),
+    sample("unavailable", { ...image, id: "missing-cover", source: null }),
+  ] },
+  { id: "control.avatar", family: "control", specimens: [
+    sample("image", { ...base, kind: "avatar", id: "author-photo", label: "Alex Rivera", source: "/bank-image.svg", seed: "5c2e9b71a0d4f386" }),
+    sample("fallback", { ...base, kind: "avatar", id: "author-seed", label: "Sam Lee", source: null, seed: "a1b2c3d4e5f60718" }),
+  ] },
+] as const).map(entry => {
+  const local = entry.specimens.find(specimen => specimen.state === 'value') ?? entry.specimens[0];
+  const specimens = ['control.select','control.files','control.labels','control.options','control.money','control.date'].includes(entry.id)
+    ? [...entry.specimens, ...(['loading','offline'] as const).map(state=>sample(state, {
+      ...local.node, id:`${entry.id}-${state}`,
+      disabled:state==='loading'||local.node.kind==='select'||local.node.kind==='options',
+    }))] : entry.specimens;
+  return {...entry,specimens,inspection:controlInspection(entry.id.slice(8),specimens.map(specimen=>specimen.state))};
+}));

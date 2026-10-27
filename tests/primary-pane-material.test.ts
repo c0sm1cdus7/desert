@@ -4,19 +4,19 @@ import { svelteBrowser } from './fixtures/svelte-browser.ts';
 import { rendererCss } from './fixtures/renderer-css.ts';
 
 const source = `<script lang="ts">
-  import Action from '@desert/svelte/pieces/Action.svelte';
+  import Action from '@desert/svelte/catalog/foundations/action/Action.svelte';
   import { Button } from '@desert/svelte/vendor/components/ui/button/index.js';
-  import TextInput from '@desert/svelte/pieces/TextInput.svelte';
+  import Field from '@desert/svelte/catalog/foundations/field/Field.svelte';
   let state = $state('ready');
 </script>
 <div data-test-controls>{#each ['ready','unavailable','pending'] as value}
   <button onclick={() => state = value}>{value}</button>{/each}</div>
 <main>
-  <Action label="Save note" icon="save" emphasis="primary" {state}/>
-  <Action label="Close" icon="close"/>
+  <Action label="Save note" icon="save" emphasis="primary" {state} face="fit" type="button"/>
+  <Action label="Close" icon="close" state="ready" emphasis="secondary" face="fit" type="button"/>
   <Button href="#preview" data-variant="secondary">Primary link</Button>
   <Button variant="secondary" data-variant="default">Neutral role</Button>
-  <TextInput primitive="input.text" label="Title" value="" onchange={() => {}}/>
+  <Field primitive="input.text" labelVisibility="visible" measure="writing" required={false} invalid={false} disabled={false} purpose="text" clear label="Title" value="" onchange={() => {}}/>
 </main>`;
 
 // Independent owner requirement: primary color is a pane tint, not colored ink.
@@ -36,7 +36,7 @@ test('primary buttons share the pane recipe and retain emphasis during pending',
       ] });
       for (const state of ['ready','unavailable','pending']) {
         await f.page.locator('[data-test-controls]').getByRole('button', { name: state, exact: true }).click();
-        const panes = await f.page.locator('[data-material="pane"]').evaluateAll(nodes => {
+        const panes = await f.page.locator('.material-pane').evaluateAll(nodes => {
           const canvas = document.createElement('canvas').getContext('2d')!;
           const rgba = (color: string) => {
             canvas.clearRect(0,0,1,1); canvas.fillStyle = color; canvas.fillRect(0,0,1,1);
@@ -51,10 +51,17 @@ test('primary buttons share the pane recipe and retain emphasis during pending',
         });
         const primary = panes.find(p => p.name === 'Save note')!, secondary = panes.find(p => p.name === 'Close')!;
         const link = panes.find(p => p.name === 'Primary link')!;
-        assert.deepEqual(primary.fill, link.fill, `${theme}/${access}/${state}: button and link share primary tint`);
-        assert.deepEqual(primary.ink, [255,255,255,255]);
-        assert.ok(primary.fill[2]! - primary.fill[0]! > 100, 'primary tint must be perceptible');
-        assert.notDeepEqual(primary.fill, secondary.fill, 'primary cannot be neutral');
+        assert.ok(link.fill[2]! - link.fill[0]! > 100, 'primary tint must be perceptible');
+        if (state === 'unavailable') {
+          // Second review of the slice 3 package: one disabled look for Action. An unavailable primary draws the neutral
+          // pane (its faded label is the theme's disabled content), not a pale label on the primary tint.
+          assert.deepEqual(primary.fill, secondary.fill, `${theme}/${access}: an unavailable primary takes the one disabled look`);
+          assert.deepEqual(primary.ink, secondary.ink);
+        } else {
+          assert.deepEqual(primary.fill, link.fill, `${theme}/${access}/${state}: button and link share primary tint`);
+          assert.deepEqual(primary.ink, [255,255,255,255]);
+          assert.notDeepEqual(primary.fill, secondary.fill, 'primary cannot be neutral');
+        }
         for (const pane of panes) {
           assert.ok(Math.abs(pane.fill[3]! / 255 - (access === 'glass' ? .88 : 1)) < .005);
           assert.equal(pane.blur, access === 'glass' ? 'blur(24px)' : 'none');

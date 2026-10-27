@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Check } from "@sinclair/typebox/value";
-import { MediaLibrarySchema, type MediaLibrary } from "../src/index.ts";
-import { view } from "../src/views/view.ts";
+import { MediaLibrarySchema } from "../src/index.ts";
+import type { MediaLibrary } from "../src/views/media-library.ts";
+// Compiled data: the library's titles are resolved text here; the declared form is covered by tests/view-authoring.
+import { compiledView as view } from "../src/views/view.ts";
 
 const library = {
   id: "travel", items: [

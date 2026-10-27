@@ -1,0 +1,119 @@
+// Slice 3 (F1.8): Image absorbs ArtworkPlaceholder (`placeholder` video, audio or unavailable) and owns its geometry,
+// which leaves media.css; its retry is an Action. Pixels are those of the integration base ce6ed6f: the placeholder draws exactly what
+// ArtworkPlaceholder drew, alone and inside the catalog card and the viewer's playback canvas, and an image draws exactly
+// what the frozen Image drew over the frozen media.css.
+import assert from "node:assert/strict";
+import { resolve } from "node:path";
+import test from "node:test";
+import type { Page } from "playwright";
+import { rendererCss } from "./fixtures/renderer-css.ts";
+import { treeViolations } from "./fixtures/tree-violations.ts";
+import { measureProbes, renderCases, type Probes } from "./fixtures/parity.ts";
+import { contentBefore } from "./fixtures/content-before.ts";
+import { withoutFacePrimitive } from "./fixtures/face-primitive.ts";
+import { withoutRadius } from "./fixtures/curvature-family.ts";
+import { themeAtCe6ed6f } from "./fixtures/theme-before.ts";
+
+const root = resolve(import.meta.dirname, "..");
+const frozenFiles = ["src/svelte/catalog/foundations/image/Image.svelte", "src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte",
+  "src/svelte/catalog/foundations/playback-canvas/PlaybackCanvas.svelte"];
+const frozenCardPath = resolve(root, "src/svelte/catalog/foundations/card/CatalogCardBefore.svelte");
+const frozen = { ...Object.fromEntries(frozenFiles.map(path => [resolve(root, path), contentBefore[path] ?? ""])),
+  // Lane B removed the catalog-card foundation folder: its frozen source is served beside Card, so its relative imports resolve.
+  [frozenCardPath]: contentBefore["src/svelte/catalog/foundations/catalog-card/CatalogCard.svelte"] ?? "" };
+const frozenCss = () => rendererCss([], themeAtCe6ed6f(["src/svelte/catalog/mechanisms/media/media.css"]));
+
+const photo = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%23468'/%3E%3C/svg%3E";
+const cases = (placeholder: (kind: string) => string) => `<script lang="ts">
+  import Image from "@desert/svelte/catalog/foundations/image/Image.svelte";
+  import ArtworkPlaceholder from "@desert/svelte/catalog/foundations/artwork-placeholder/ArtworkPlaceholder.svelte";
+  import CatalogCard from "./src/svelte/catalog/foundations/card/CatalogCardBefore.svelte";
+  import PlaybackCanvas from "@desert/svelte/catalog/foundations/playback-canvas/PlaybackCanvas.svelte";
+  import { mediaPlayback } from "@desert/svelte/infra/playback.svelte.ts";
+  const photo = "${photo}";
+  const playback = mediaPlayback();
+  const card = (record, extra) => ({ version: "desert.bank-node/1", kind: "catalog.card", presentation: "item", record, title: "Night ferry", ...extra });
+</script>
+<main style="display:grid;gap:16px;padding:16px;--catalog-media-height:180px">
+  <div data-case="ready-fill" style="width:320px;height:200px"><Image source={photo} alt="Lake" /></div>
+  <div data-case="ready-fit" style="width:320px;height:120px"><Image source={photo} alt="Lake" fit="fit" /></div>
+  <div data-case="error" style="width:320px;height:200px"><Image source="/media/missing-photo.jpg" alt="Missing photo" retry /></div>
+  <div data-case="audio" style="width:320px;height:200px">${placeholder("audio")}</div>
+  <div data-case="video" style="width:320px;height:200px">${placeholder("video")}</div>
+  <div data-case="card-placeholder"><CatalogCard node={card("night-ferry", { mediaType: "video" })} /></div>
+  <div data-case="canvas-audio" data-media-stage style="position:relative;width:320px;height:200px">
+    <PlaybackCanvas item={{ kind: "audio", source: "/media/interview.m4a", alt: "Interview", captions: [] }} {playback} />
+  </div>
+</main>`;
+
+const image = { root: "[data-media-image]", img: "img" };
+const placeholder = { root: "[data-media-artwork-placeholder]", glyph: "svg" };
+const probes: Probes = {
+  "ready-fill": image, "ready-fit": image,
+  error: { root: "[data-media-image]", error: "[data-media-error]", message: "[data-media-error] > span" },
+  audio: placeholder, video: placeholder, "card-placeholder": { card: "[data-catalog-card]", ...placeholder },
+  "canvas-audio": placeholder,
+};
+
+async function settled(page: Page) {
+  for (const name of ["ready-fill", "ready-fit"]) await page.locator(`[data-case="${name}"] [data-image-state="ready"]`).waitFor();
+  await page.locator('[data-case="error"] [data-image-state="error"]').waitFor();
+}
+
+test("image: its folder imports no foreign vendor, styles only its own classes and covers every state and fit", async () => {
+  assert.deepEqual(await treeViolations(["src/svelte/catalog/foundations/image/"], ["E", "F", "G", "H", "I", "J"]), []);
+});
+
+test("image: the placeholder and the image keep the pixels of ArtworkPlaceholder and Image at the integration base ce6ed6f", { timeout: 60000 }, async () => {
+  // Lane B removed the catalog-card foundation: both sides draw it as it was, over the frozen and today's Image (the card
+  // composition that replaces it keeps that card's pixels, foundation-card.test.ts).
+  const before = await renderCases(cases(kind => `<ArtworkPlaceholder kind="${kind}" />`), frozen, await frozenCss());
+  const after = await renderCases(cases(kind => `<Image placeholder="${kind}" />`), { [frozenCardPath]: frozen[frozenCardPath] ?? "" },
+    // The frozen card host brings the stylesheets Batch 3 deleted (catalog-media.css); the placeholder draws with today's.
+    await rendererCss([frozen[frozenCardPath] ?? ""]));
+  try {
+    await Promise.all([settled(before.page), settled(after.page)]);
+    const [was, is] = [await measureProbes(before.page, probes), await measureProbes(after.page, probes)];
+    // A placeholder is a face (law 9e): its ground and positioning are the face primitive's; its box and glyph still compare.
+    const faces = (name: string) => Object.values(probes[name] ?? {}).includes(placeholder.root) ? ["root"] : [];
+    // Design §7.1 radius exception (law 9d): its host card's corner is curvature-family.test.ts's.
+    // The error lays out in flow with its own inset (it takes its own height when its host gives none, tests/media-error-layout.test.ts):
+    // in a frame its box, its sentence's and its retry's are the frozen ones; its inset is the new layout's (here the frozen
+    // card host's unlayered media stylesheet still positions it, so its position compares as is).
+    // Fourth review: the error is the one notice of unavailable media (the theme's media-notice, tests/media-notice-anatomy.test.ts),
+    // on the muted ground with the pane hairline, its sentence centred.
+    const inFlow = { "padding-top": "16px", "padding-right": "16px", "padding-bottom": "16px", "padding-left": "16px",
+      "background-color": "rgb(236, 236, 239)", "border-top-width": "1px", "border-bottom-width": "1px", "border-left-width": "1px",
+      "text-align": "center" };
+    const laidOut = (found: typeof was): typeof was => ({ ...found, error: { ...found.error, error: found.error?.error?.map(item => ({ ...item, style: { ...item.style, ...inFlow } })) ?? [],
+      message: found.error?.message?.map(item => ({ ...item, style: { ...item.style, "text-align": "center" } })) ?? [] } });
+    // Third review of the slice 3 package: a ready picture that fills its frame paints no backdrop of its own (the picture
+    // covers it), so nothing lighter shows past the picture's own corners; only that fill differs.
+    const fill = is["ready-fill"]?.root?.[0]?.style;
+    assert.equal(fill?.["background-color"], "rgba(0, 0, 0, 0)", "a ready filling picture's frame paints no backdrop");
+    if (fill) fill["background-color"] = was["ready-fill"]?.root?.[0]?.style["background-color"] ?? "";
+    for (const name of Object.keys(probes)) assert.deepEqual(withoutRadius(withoutFacePrimitive(is[name], faces(name))), withoutRadius(withoutFacePrimitive(laidOut(was)[name], faces(name))), name);
+    // The retry keeps its box; its own styling is Action's (the vendor button's secondary face before).
+    const retry: Probes = { error: { retry: "button" } };
+    assert.deepEqual(await measureProbes(after.page, retry, []), await measureProbes(before.page, retry, []));
+    assert.equal(await after.page.locator('[data-case="audio"] [data-media-artwork-placeholder]').getAttribute("aria-label"), "No cover artwork");
+    assert.equal(await after.page.locator('[data-case="error"] button').getAttribute("data-action"), "", "the retry is an Action");
+    assert.deepEqual([before.errors, after.errors], [[], []]);
+  } finally { await before.close(); await after.close(); }
+});
+
+// Unavailable media is the one notice of unavailable media (fourth review, tests/media-notice-anatomy.test.ts), in an
+// image's frame: the frame fills its host and the notice fills the frame, its sentence centred.
+test("image: unavailable media says its fallback in a notice that fills the image's frame", async () => {
+  const f = await renderCases(`<script lang="ts">import Image from "@desert/svelte/catalog/foundations/image/Image.svelte";</script>
+    <div data-case="unavailable" style="width:200px;height:100px"><Image placeholder="unavailable" fallback="Media unavailable" /></div>`, {}, await rendererCss());
+  try {
+    const frame = f.page.locator('[data-image-state="unavailable"]');
+    assert.equal(await frame.textContent(), "Media unavailable");
+    assert.deepEqual(await frame.evaluate(element => { const box = element.getBoundingClientRect(), notice = element.querySelector("[data-media-notice]")!;
+      const style = getComputedStyle(notice), inner = notice.getBoundingClientRect();
+      return [box.width, box.height, style.display, style.alignItems, style.justifyContent, inner.width, inner.height]; }),
+      [200, 100, "flex", "center", "center", 200, 100]);
+    assert.deepEqual(f.errors, []);
+  } finally { await f.close(); }
+});

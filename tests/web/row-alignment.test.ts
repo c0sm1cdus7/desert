@@ -22,9 +22,9 @@ for (const colorScheme of ["light", "dark"] as const) test(`frozen collection an
       await row.scrollIntoViewIfNeeded();
       const geometry = await row.evaluate(button => {
         const center = (element: Element) => { const r = element.getBoundingClientRect(); return r.y + r.height / 2; };
-        return { row: center(button), title: center(button.querySelector("strong")!),
+        return { row: center(button), title: center(button.querySelector(".row-label")!),
           icon: center(button.querySelector("svg")!), height: button.getBoundingClientRect().height,
-          emptyMetadata: button.querySelector("[data-record-metadata]") !== null };
+          emptyMetadata: button.querySelector(".row-metadata") !== null };
       });
       assert.ok(Math.abs(geometry.title - geometry.row) < .1);
       assert.ok(Math.abs(geometry.icon - geometry.row) < .1);
@@ -32,7 +32,7 @@ for (const colorScheme of ["light", "dark"] as const) test(`frozen collection an
       assert.equal(geometry.emptyMetadata, false);
       await page.screenshot({ path: `${directory}/${colorScheme}-${width}.png` });
       await filter.fill("control.options");
-      const choices = await page.locator('[data-specimen="control.options:one"] [data-choice-row], [data-specimen="control.options:many"] [data-choice-row]').evaluateAll(rows => rows.map(row => {
+      const choices = await page.locator('[data-view-item="specimen:control.options:one"] [data-choice-row], [data-view-item="specimen:control.options:many"] [data-choice-row]').evaluateAll(rows => rows.map(row => {
         const control = row.querySelector('[role="radio"],[role="checkbox"]')!.getBoundingClientRect();
         const text = row.querySelector('[data-slot="field-content"]')!.getBoundingClientRect();
         return control.y + control.height / 2 - text.y - text.height / 2;

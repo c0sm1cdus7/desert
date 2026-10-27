@@ -1,0 +1,24 @@
+/* Finite system tints share one material law. Attention/error ink is unchanged. A tint class (`tint-blue` …) only
+   supplies the --ui-tint-* inputs the scheme reads; a theme preview applies one, and the root takes the one its chosen
+   appearance names (`data-tint`, written by the appearance state). */
+@theme {
+  --tint-color-blue:#005fcf; --tint-ink-blue:light-dark(#005bbf,#80bbff); --tint-ring-blue:light-dark(#007aff,#70b1ff);
+  --tint-color-violet:#6e46a6; --tint-ink-violet:light-dark(#694096,#c5a7f2); --tint-ring-violet:light-dark(#8050ba,#b89cdd);
+  --tint-color-rose:#a13d68; --tint-ink-rose:light-dark(#96365d,#e8a9c4); --tint-ring-rose:light-dark(#ad406f,#e1a5c1);
+  --tint-color-green:#216b58; --tint-ink-green:light-dark(#185e4b,#91cfb9); --tint-ring-green:light-dark(#237c63,#86c3ad);
+  --tint-color-slate:#536171; --tint-ink-slate:light-dark(#455566,#b7c5d5); --tint-ring-slate:light-dark(#63748a,#adbdcf);
+}
+@utility tint-* {
+  --ui-tint:--value(--tint-color-*);
+  --ui-tint-ink:--value(--tint-ink-*);
+  --ui-tint-ring:--value(--tint-ring-*);
+  --ui-tint-background:color-mix(in srgb,var(--ui-tint) 5%,var(--background-base));
+  --ui-tint-card:color-mix(in srgb,var(--ui-tint) 7%,var(--card-base));
+  --ui-tint-secondary:color-mix(in srgb,var(--ui-tint) 7%,var(--secondary-base));
+  --wallpaper-base:color-mix(in srgb,var(--ui-tint) 4%,light-dark(#e8ecf1,#171b22));
+}
+:root[data-tint="blue"] { @apply tint-blue; }
+:root[data-tint="violet"] { @apply tint-violet; }
+:root[data-tint="rose"] { @apply tint-rose; }
+:root[data-tint="green"] { @apply tint-green; }
+:root[data-tint="slate"] { @apply tint-slate; }

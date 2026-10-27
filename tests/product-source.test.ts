@@ -19,7 +19,7 @@ const moduleSource = 'import { defineModule } from "desert-sdk/src/index.ts"; ex
 
 test("source gate accepts declarative composition and reports every checked source", async () => {
   await fixture({
-    "void.product.ts": 'import { composeProduct, moduleCatalog } from "desert-sdk/src/index.ts"; import { NotesModule } from "./modules/notes/notes.module.ts"; const Modules = moduleCatalog([NotesModule]); export const Product = composeProduct({modules:Modules});',
+    "void.product.ts": 'import { composeProduct, moduleIndex } from "desert-sdk/src/index.ts"; import { NotesModule } from "./modules/notes/notes.module.ts"; const Modules = moduleIndex([NotesModule]); export const Product = composeProduct({modules:Modules});',
     "modules/notes/notes.module.ts": moduleSource,
   }, async root => assert.deepEqual((await assertProductSource(root)).files,
     ["modules/notes/notes.module.ts", "void.product.ts"]));
@@ -70,7 +70,7 @@ const prohibited: [string, Record<string, string>, RegExp][] = [
   ["multiple product roots", {"a.product.ts": 'import { composeProduct } from "desert-sdk/src/index.ts"; export const A=composeProduct({});',
     "b.product.ts": 'import { composeProduct } from "desert-sdk/src/index.ts"; export const B=composeProduct({});'}, /SINGLE_PRODUCT_ROOT_REQUIRED/],
   ["legacy parallel product", {"a.product.ts": 'import { product } from "desert-sdk/src/index.ts"; export const A=product({});'}, /PRODUCT_CALL_NOT_ALLOWED/],
-  ["wire catalog constructor", {"root.ts": 'import { viewCatalog } from "desert-sdk/src/index.ts"; export const Views=viewCatalog([]);'}, /PRODUCT_CALL_NOT_ALLOWED/],
+  ["wire catalog constructor", {"root.ts": 'import { viewIndex } from "desert-sdk/src/index.ts"; export const Views=viewIndex([]);'}, /PRODUCT_CALL_NOT_ALLOWED/],
   ["legacy string reference helper", {"root.ts": 'import { journeyReference } from "desert-sdk/src/index.ts"; export const Journey=journeyReference({}, "create-note");'}, /PRODUCT_CALL_NOT_ALLOWED/],
 ];
 for (const [label, files, error] of prohibited) test(`source gate rejects ${label}`, async () => {
@@ -79,7 +79,7 @@ for (const [label, files, error] of prohibited) test(`source gate rejects ${labe
 
 test("source gate permits a catalog projection without exposing module internals", async () => {
   await fixture({
-    "root.product.ts": 'import { composeProduct, moduleCatalog } from "desert-sdk/src/index.ts"; import { NotesModule } from "./modules/notes/notes.module.ts"; const Modules = moduleCatalog([NotesModule]); export const Journeys = Modules.journeys; export const Product=composeProduct({modules:Modules});',
+    "root.product.ts": 'import { composeProduct, moduleIndex } from "desert-sdk/src/index.ts"; import { NotesModule } from "./modules/notes/notes.module.ts"; const Modules = moduleIndex([NotesModule]); export const Journeys = Modules.journeys; export const Product=composeProduct({modules:Modules});',
     "modules/notes/notes.module.ts": moduleSource,
   }, async root => assert.equal((await assertProductSource(root)).files.length, 2));
 });

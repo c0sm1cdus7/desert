@@ -3,16 +3,16 @@ import { Components } from "../views/components.ts";
 
 // Only installed, side-effect-free authoring constructors can run in product source.
 export const authoringCalls = new Set([
-  "objectType", "text", "integer", "enumeration", "principal", "imageAsset", "mediaAsset", "labels", "references", "namedReferences", "mediaReferences",
+  "objectType", "text", "integer", "enumeration", "principal", "file", "labels", "references", "namedReferences", "mediaReferences",
   "createCommand", "updateCommand", "fromInput", "literal", "actorId",
-  "mutationJourney", "readJourney", "ownershipPolicy", "humanSurface", "agentSurface",
+  "mutationJourney", "readJourney", "ownershipPolicy", "humanExposure", "agentExposure",
   "controllerRole", "capability", "view", "inputMask",
-  "defineModule", "composeProduct", "moduleCatalog",
+  "defineModule", "composeProduct", "moduleIndex",
   "publishObject", "viewPorts", "factReference", "viewOutput", "initializeInput", "chooseFile", "defineView",
-  "activityInputs", "activityExperience",
+  "activityInputs", "activityExperience", "messageCatalog",
 ]);
 export type Scope = { bindings: Set<string>; calls: Map<string, string>; modules: Set<string>; roots: Set<ts.Node> };
-const moduleCalls = new Set(["moduleCatalog"]);
+const moduleCalls = new Set(["moduleIndex"]);
 const componentCalls = new Set(Object.keys(Components));
 
 export function declarationExpression(node: ts.Expression, scope: Scope, allowModule = false, composition = false): void {

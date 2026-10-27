@@ -6,11 +6,11 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 import { finiteInputsBefore } from "./fixtures/finite-inputs-before.ts";
 
 const fixture = (before: boolean) => `<script lang="ts">
-  import Place from '@desert/svelte/pieces/Place.svelte';
-  import SearchField from '@desert/svelte/pieces/SearchField.svelte';
-  import MaskedInput from '@desert/svelte/pieces/MaskedInput.svelte';
-  import MeasuredField from '@desert/svelte/pieces/MeasuredField.svelte';
-  import FieldWell from '@desert/svelte/pieces/FieldWell.svelte';
+  import Place from '@desert/svelte/catalog/foundations/place/Place.svelte';
+  import SearchField from '@desert/svelte/catalog/foundations/search-field/SearchField.svelte';
+  import MaskedInput from '@desert/svelte/catalog/foundations/masked-input/MaskedInput.svelte';
+  import MeasuredField from '@desert/svelte/catalog/foundations/measured-field/MeasuredField.svelte';
+  import FieldWell from '@desert/svelte/catalog/foundations/field-well/FieldWell.svelte';
   let query=$state('first'), value=$state('1234.50'), disabled=$state(false), readonly=$state(false), searching=$state(false), composing=$state(false);
   const mask={kind:'decimal',locale:'en-US',scale:2};
 </script>

@@ -5,13 +5,13 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 test("transient materials preserve context and respect reduced transparency, including draggable sheets", async () => {
   const fixture = await svelteBrowser(`<script lang="ts">
-    import Drawer from '@desert/svelte/pieces/Drawer.svelte';
+    import TransientNode from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
     import { SurfaceFrameVersion } from '@desert/interaction/surface-frame.ts';
     let open = $state(false);
     const frame = {version:SurfaceFrameVersion,kind:'specimen',top:{title:'Context'},
       content:{kind:'information',items:[{kind:'text',text:'Keep the source page recognizable.'}]},bottom:{}};
   </script><main data-surface-host><button onclick={()=>open=true}>Open context</button>
-    <Drawer label="Context" {frame} {open} onclose={()=>open=false} invoke={()=>{}} /></main>`);
+    <TransientNode node={{version:'desert.bank-node/1',kind:'transient',label:'Context',open,locked:false,frame}} onevent={event=>{if(event.kind==='transient.close')open=false;}} /></main>`);
   try {
     await fixture.page.addStyleTag({ content: await rendererCss() });
     const media = await fixture.page.context().newCDPSession(fixture.page);

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Components, defineView, factReference, viewPorts } from "../src/index.ts";
-import { bankNode, BankVersion } from "../src/interaction/bank-node.ts";
+import { resolvedNode, ResolvedNodeVersion } from "../src/interaction/resolved-node.ts";
 import { Photo, program as imageProgram, surface as imageSurface } from "./fixtures/image-input.ts";
 import { program as labelsProgram, surface as labelsSurface } from './fixtures/labels.ts';
 import { compileViewProgram } from '../src/views/program.ts';
@@ -16,11 +16,11 @@ test("private image collections explicitly author their media grid and reference
 });
 
 test("a grid cannot expose an image outside its published collection fields", () => {
-  const node = { version: BankVersion, kind: "collection", object: "photo", fields: ["title"],
+  const node = { version: ResolvedNodeVersion, kind: "collection", object: "photo", fields: ["title"],
     labels: { "photo.title": "Title" }, records: [], loaded: true, disabled: false, selectedId: null,
     presentation: { kind: "media-grid", image: "image" } };
-  assert.throws(() => bankNode(node), /INVALID_BANK_COLLECTION/);
-  assert.equal(bankNode({ ...node, fields: ["title", "image"], labels: { ...node.labels, "photo.image": "Image" } }).kind, "collection");
+  assert.throws(() => resolvedNode(node), /INVALID_BANK_COLLECTION/);
+  assert.equal(resolvedNode({ ...node, fields: ["title", "image"], labels: { ...node.labels, "photo.image": "Image" } }).kind, "collection");
 });
 
 test('collection read data never silently becomes asset or reference text in a plain row',()=>{
@@ -40,10 +40,10 @@ test("media reading declares its visible fields and does not promote storage met
 });
 
 test("collection cards use declared titles and bounded authorized previews, never arbitrary facts", () => {
-  const value = { version: BankVersion, kind: "collection", object: "album", fields: ["name"], labels: { "album.name": "Name" },
+  const value = { version: ResolvedNodeVersion, kind: "collection", object: "album", fields: ["name"], labels: { "album.name": "Name" },
     records: [{ id: "a", version: 1, facts: { name: "Travel" } }], loaded: true, disabled: false, selectedId: null,
     presentation: { kind: "collection-grid", title: "name", previews: [{ id: "a", count: 2 }] } };
-  assert.equal(bankNode(value).kind, "collection");
-  assert.throws(() => bankNode({ ...value, presentation: { ...value.presentation, previews: [{ id: "foreign", count: 2 }] } }), /INVALID_BANK_COLLECTION/);
-  assert.throws(() => bankNode({ ...value, presentation: { ...value.presentation, title: "secret" } }), /INVALID_BANK_COLLECTION/);
+  assert.equal(resolvedNode(value).kind, "collection");
+  assert.throws(() => resolvedNode({ ...value, presentation: { ...value.presentation, previews: [{ id: "foreign", count: 2 }] } }), /INVALID_BANK_COLLECTION/);
+  assert.throws(() => resolvedNode({ ...value, presentation: { ...value.presentation, title: "secret" } }), /INVALID_BANK_COLLECTION/);
 });

@@ -6,7 +6,7 @@ import { settle } from "./public-catalog-expectations.ts";
 
 test("contextual commands stay right and progressively overflow into the labeled speed dial", async () => {
   const f = await svelteBrowser(`<script>
-    import ToolbarLayout from '@desert/svelte/pieces/ToolbarLayout.svelte';
+    import ToolbarLayout from '@desert/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte';
     let feedback=$state('');
     const actions=['Create','Edit','View options','Archive','Inspect'].map((label,index)=>({label,icon:['create','edit','review','archive','settings'][index],state:'ready',intent:{kind:'journey',journey:label}}));
   </script>
@@ -24,7 +24,7 @@ test("contextual commands stay right and progressively overflow into the labeled
     await more.click();
     const dial=f.page.getByRole('dialog',{name:'More actions'});
     await dial.waitFor();
-    assert.ok(await dial.locator('[data-speed-dial-label]').count()>0);
+    assert.ok(await dial.locator('[data-menu-label]').count()>0);
     await f.page.keyboard.press('Escape');
     assert.ok(await more.evaluate(node=>node===document.activeElement));
     await more.click();
@@ -40,7 +40,7 @@ test("contextual commands stay right and progressively overflow into the labeled
 
 test("confirmation is a compact dialog and dispatches only an explicit accepted command", async () => {
   const f=await svelteBrowser(`<script>
-    import ConfirmationDialog from '@desert/svelte/pieces/ConfirmationDialog.svelte';
+    import ConfirmationDialog from '@desert/svelte/catalog/compositions/confirmation-dialog/ConfirmationDialog.svelte';
     import {surfaceFrame,SurfaceFrameVersion} from '@desert/interaction/surface-frame.ts';
     let open=$state(false),result=$state('none');
     const frame=surfaceFrame({version:SurfaceFrameVersion,kind:'confirmation',top:{title:'Move to Trash?'},content:{kind:'message',text:'You can restore this note.'},bottom:{secondary:{label:'Cancel',icon:'back',state:'ready',intent:{kind:'back'}},primary:{label:'Move to Trash',icon:'archive',state:'ready',intent:{kind:'accept'}}}});
@@ -64,16 +64,16 @@ test("confirmation is a compact dialog and dispatches only an explicit accepted 
 
 test('confirmation releases modality when a docked context replaces it or its owner closes', async () => {
   const f=await svelteBrowser(`<script>
-    import ConfirmationDialog from '@desert/svelte/pieces/ConfirmationDialog.svelte';
-    import Drawer from '@desert/svelte/pieces/Drawer.svelte';
-    import AdaptiveSurfaceLayout from '@desert/svelte/pieces/AdaptiveSurfaceLayout.svelte';
+    import ConfirmationDialog from '@desert/svelte/catalog/compositions/confirmation-dialog/ConfirmationDialog.svelte';
+    import TransientNode from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
+    import AdaptiveSurfaceLayout from '@desert/svelte/catalog/foundations/shell/AdaptiveSurfaceLayout.svelte';
     import {surfaceFrame,SurfaceFrameVersion} from '@desert/interaction/surface-frame.ts';
     let stage=$state('closed'), result=$state('none');
     const frame=surfaceFrame({version:SurfaceFrameVersion,kind:'confirmation',top:{title:'Move to Trash?'},content:{kind:'message',text:'You can restore this note.'},bottom:{secondary:{label:'Cancel',icon:'back',state:'ready',intent:{kind:'back'}},primary:{label:'Move to Trash',icon:'archive',state:'ready',intent:{kind:'accept'}}}});
     const context=surfaceFrame({version:SurfaceFrameVersion,kind:'context',top:{title:'Note',trailing:[{label:'Archive',icon:'archive',state:'ready',intent:{kind:'journey',journey:'trash'}}]},content:{kind:'message',text:'A note'},bottom:{secondary:{label:'Close',icon:'close',state:'ready',intent:{kind:'close'}}}});
   </script><AdaptiveSurfaceLayout><button onclick={()=>stage='context'}>Open note</button><button onclick={()=>result='opened'}>Trash</button><p role="status" aria-label="Result">{result}</p>
   {#if stage==='confirm'}<ConfirmationDialog {frame} open={true} locked={false} invoke={intent=>{stage=intent.kind==='back'?'context':'closed';result=intent.kind;}} onclosed={()=>{}} />
-  {:else if stage==='context'}<Drawer label="Note" frame={context} open={true} invoke={()=>stage='confirm'} onclose={()=>stage='closed'}/>{/if}</AdaptiveSurfaceLayout>`);
+  {:else if stage==='context'}<TransientNode node={{version:'desert.bank-node/1',kind:'transient',label:'Note',open:true,locked:false,frame:context}} onevent={event=>{if(event.kind==='transient.close')stage='closed';else if(event.kind==='surface.invoke')stage='confirm';}}/>{/if}</AdaptiveSurfaceLayout>`);
   try {
     await f.page.addStyleTag({content:await rendererCss()});
     await f.page.setViewportSize({width:1600,height:1000});
@@ -91,24 +91,42 @@ test('confirmation releases modality when a docked context replaces it or its ow
   }finally{await f.close();}
 });
 
+// Since lane G the index rows and the return of focus belong to InspectionCatalog; SharedOwnerCatalog only shows the
+// owner it is given. The catalog is mounted on its own (no destination navigation), with a minimal bank surface.
 test("visual bank index opens actual owners inside titled stacks and returns keyboard focus", async () => {
   const f=await svelteBrowser(`<script>
-    import SharedOwnerCatalog from '@desert/svelte/catalog/SharedOwnerCatalog.svelte';
-  </script><SharedOwnerCatalog onchange={()=>{}} />`);
+    import InspectionCatalog from '@desert/svelte/catalog/compositions/inspection-catalog/InspectionCatalog.svelte';
+    const card={version:'desert.bank-node/1',kind:'catalog.card',presentation:'item',record:'coast',title:'Coast',mediaType:'audio'};
+    const home={version:'desert.bank-node/1',kind:'catalog.home',featured:{...card,presentation:'featured',eyebrow:'Featured',actionLabel:'Open'},
+      groups:[{id:'albums',title:'Albums',items:[card]}]};
+    const detail={version:'desert.bank-node/1',kind:'catalog.detail',record:'coast',title:'Coast',description:'A coast.',image:{asset:'coast',alt:'Coast'}};
+  </script><InspectionCatalog surface={{productId:'item',home,details:[detail]}} bodyOnly={false} />`);
   try {
     await f.page.addStyleTag({content:await rendererCss()});
     await f.page.setViewportSize({width:390,height:844}); await settle(f.page);
-    const row=f.page.getByRole('button',{name:'Information',exact:true});
-    await row.click();
-    assert.equal(await f.page.locator('[data-owner-specimen="Information"]').count(),1);
-    assert.equal(await f.page.locator('[data-owner-specimen="Information"] .bank-stack').count(),1);
-    assert.equal(await f.page.locator('[data-owner-specimen="Information"]').evaluate(node=>node.scrollWidth<=node.clientWidth),true);
-    await f.page.getByRole('button',{name:'Back',exact:true}).click();
-    assert.equal(await row.evaluate(node=>node===document.activeElement),true);
-    await f.page.getByRole('button',{name:'Attention Indicator',exact:true}).click();
-    const indicator=f.page.locator('[data-attention-indicator]');
+    const back=f.page.getByRole('button',{name:'Back',exact:true});
+    // An index owner: its live example sits inside the titled "Example" stack, without horizontal overflow at 390 px.
+    const indicatorRow=f.page.getByRole('button',{name:'Attention indicator',exact:true});
+    await indicatorRow.click(); await settle(f.page);
+    const owner=f.page.locator('[data-view-item="owner:AttentionIndicator"]');
+    assert.equal(await owner.count(),1);
+    assert.equal(await f.page.getByRole('group',{name:'Example',exact:true}).locator('[data-view-item="owner:AttentionIndicator"]').count(),1);
+    assert.equal(await owner.evaluate(node=>node.scrollWidth<=node.clientWidth),true);
+    const indicator=owner.locator('[data-attention-indicator]').first();
     await f.page.emulateMedia({reducedMotion:'reduce'});
     assert.equal(await indicator.evaluate(node=>getComputedStyle(node).animationName),'none');
+    await f.page.emulateMedia({reducedMotion:'no-preference'});
+    await back.click(); await settle(f.page);
+    assert.equal(await f.page.locator('[data-view-item="owner:AttentionIndicator"]').count(),0);
+    assert.equal(await indicatorRow.evaluate(node=>node===document.activeElement),true,'Back returns focus to the index row');
+    // A part: Fact lists Information among its parts; Back from the part returns focus to that parts row.
+    await f.page.getByRole('button',{name:'Fact',exact:true}).click(); await settle(f.page);
+    const informationRow=f.page.getByRole('button',{name:'Information',exact:true});
+    await informationRow.click(); await settle(f.page);
+    assert.equal(await f.page.getByRole('group',{name:'Example',exact:true}).locator('[data-view-item="owner:Information"]').count(),1);
+    assert.equal(await f.page.locator('[data-view-item="owner:Information"]').evaluate(node=>node.scrollWidth<=node.clientWidth),true);
+    await back.click(); await settle(f.page);
+    assert.equal(await informationRow.evaluate(node=>node===document.activeElement),true,'Back returns focus to the parts row');
     assert.deepEqual(f.errors,[]);
   } finally { await f.close(); }
 });

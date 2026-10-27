@@ -5,11 +5,11 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 test("message headings keep the shared tight gap and muted description; ordinary actions remain intrinsic", { timeout: 90000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import SharedOwnerSpecimen from '@desert/svelte/catalog/SharedOwnerSpecimen.svelte';
-    import PlaceHeading from '@desert/svelte/pieces/PlaceHeading.svelte';
-    import Toolbar from '@desert/svelte/pieces/Toolbar.svelte';
+    import SharedOwnerSpecimen from '@desert/svelte/catalog/compositions/shared-owner-specimen/SharedOwnerSpecimen.svelte';
+    import PlaceHeading from '@desert/svelte/catalog/foundations/place-heading/PlaceHeading.svelte';
+    import Toolbar from '@desert/svelte/catalog/compositions/toolbar/Toolbar.svelte';
   </script><main style="max-width:720px">
-    <PlaceHeading identity={{title:'Collection',subtitle:'A short description.'}}/>
+    <PlaceHeading context="place" title="Collection" subtitle="A short description."/>
     <Toolbar toolbar={{edge:'top',title:'Collection',subtitle:'A short description.'}} invoke={()=>{}}/>
     <SharedOwnerSpecimen owner="ConfirmationDialog"/>
   </main>`, {}, undefined, { initialCss: await rendererCss() });
@@ -21,8 +21,10 @@ test("message headings keep the shared tight gap and muted description; ordinary
     const dialog = f.page.getByRole("dialog");
     await dialog.waitFor();
     const geometry = await f.page.evaluate(() => {
-      const title = document.querySelector('[role="dialog"] [data-slot="dialog-title"]')!;
-      const description = document.querySelector('[role="dialog"] [data-slot="dialog-description"]')!;
+      // The dialog's name and description are its visible title and subtitle.
+      const dialog = document.querySelector('[role="dialog"]')!;
+      const title = document.getElementById(dialog.getAttribute("aria-labelledby")!)!;
+      const description = document.getElementById(dialog.getAttribute("aria-describedby")!)!;
       const pageTitle = document.querySelector('[data-place-title]')!, pageSubtitle = document.querySelector('[data-place-subtitle]')!;
       const toolbarTitle = document.querySelector('main [data-toolbar-title]')!, toolbarSubtitle = document.querySelector('main [data-toolbar-subtitle]')!;
       return { messageGap: description.getBoundingClientRect().top - title.getBoundingClientRect().bottom,
@@ -38,8 +40,8 @@ test("message headings keep the shared tight gap and muted description; ordinary
     assert.equal(geometry.color, geometry.subtitleColor);
     assert.notEqual(geometry.color, geometry.titleColor);
     assert.ok(Math.abs(geometry.messageCenter - geometry.descriptionCenter) <= 1, "message title and subtitle share their reading axis");
-    const footer = dialog.locator('[data-toolbar="bottom"]');
-    assert.ok(await footer.locator("button").evaluateAll(buttons => buttons.every(button => getComputedStyle(button).flexGrow === "0")), "footer actions must not stretch");
+    assert.ok(await dialog.locator("button").evaluateAll(buttons => buttons.length === 2
+      && buttons.every(button => getComputedStyle(button).flexGrow === "0")), "the dialog's choices must not stretch");
     await f.page.keyboard.press("Escape");
     await dialog.waitFor({ state: "hidden" });
     await f.page.setViewportSize({ width: 320, height: 900 });
@@ -50,7 +52,7 @@ test("message headings keep the shared tight gap and muted description; ordinary
 });
 
 test("known-empty fact values use a dash alone without hiding unknown or literal Empty values", { timeout: 90000 }, async () => {
-  const f = await svelteBrowser(`<script lang="ts">import FactValue from '@desert/svelte/pieces/FactValue.svelte';</script>
+  const f = await svelteBrowser(`<script lang="ts">import FactValue from '@desert/svelte/catalog/foundations/fact-value/FactValue.svelte';</script>
     <FactValue value=""/><FactValue value={null}/><FactValue value="Empty"/>`, {}, undefined, { initialCss: await rendererCss() });
   try {
     const empty = f.page.locator('[data-fact-state="empty"]');
@@ -64,8 +66,8 @@ test("known-empty fact values use a dash alone without hiding unknown or literal
 
 test("appearance and embedded selection use compact rounded controls and content-sized option panes", { timeout: 90000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import AppearancePreferences from '@desert/svelte/pieces/AppearancePreferences.svelte';
-    import ObjectStateControl from '@desert/svelte/pieces/ObjectStateControl.svelte';
+    import AppearancePreferences from '@desert/svelte/catalog/compositions/appearance-preferences/AppearancePreferences.svelte';
+    import ObjectStateControl from '@desert/svelte/catalog/compositions/object-state-control/ObjectStateControl.svelte';
     let value = $state({theme:'dark',textSize:'standard',tint:'blue',wallpaper:'plain'});
   </script><main style="width:760px;max-width:100%">
     <AppearancePreferences {value} onchange={next=>value=next}/>
@@ -92,7 +94,7 @@ test("appearance and embedded selection use compact rounded controls and content
       await f.page.keyboard.press("Escape");
       await pane.waitFor({ state: "hidden" });
     }
-    const swatches = await f.page.locator(".appearance-swatch").evaluateAll(labels => labels.map(label => ({
+    const swatches = await f.page.locator("[data-swatch-tint]").evaluateAll(labels => labels.map(label => ({
       hit: label.getBoundingClientRect().width,
       color: parseFloat(getComputedStyle(label, "::before").width),
     })));

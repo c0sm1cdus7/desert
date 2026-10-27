@@ -1,13 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
+import { gapNote, inspectionFixture as browserFixture, openCatalog } from "./inspection-fixture.ts";
 import { waitForEnabled } from "./fixture.ts";
 
 test("real product forms use the compiled validator and controller availability, never a specimen name", async () => {
   const f = await browserFixture();
   try {
     await openCatalog(f.page);
-    assert.equal(await f.page.locator('[data-specimen="form:ready"]').getAttribute("data-bank-coverage"), "gap");
+    assert.equal(await f.page.locator('[data-view-item="specimen:form:ready"]').locator(gapNote).count(), 1, "the form specimen is a coverage gap");
     await f.page.getByRole("button", { name: "Notes", exact: true }).click();
     await f.page.getByRole("button", { name: "Create note", exact: true }).click();
     const form = f.page.getByRole("dialog", { name: "Create note", exact: true });

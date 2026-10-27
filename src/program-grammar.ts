@@ -35,14 +35,14 @@ const HumanSurfaceProperties = {
   language: Type.Object({ locale: Name, fields: Type.Record(Name, Name, closed), journeys: Type.Record(Name, Name, closed) }, closed),
   connection: ConnectionPolicySchema,
 };
-export const ViewSurfaceSchema = Type.Union([
+export const ViewExposureSchema = Type.Union([
   Type.Object({ ...SurfaceBase, kind: Type.Literal("agent") }, closed),
   Type.Object(HumanSurfaceProperties, closed),
 ]);
-export const SurfaceSchema = ViewSurfaceSchema;
+export const ExposureSchema = ViewExposureSchema;
 
 export type CommandDefinition = Static<typeof CommandSchema>;
 export type JourneyDefinition = Static<typeof JourneySchema>;
-export type SurfaceDefinition = Static<typeof SurfaceSchema>;
+export type ExposureDefinition = Static<typeof ExposureSchema>;
 export type PolicyDefinition = Static<typeof PolicySchema>;
 export type ExpressionDefinition = Static<typeof Expression>;

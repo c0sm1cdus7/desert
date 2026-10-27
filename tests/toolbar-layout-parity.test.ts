@@ -5,9 +5,9 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 // The approved toolbar moves commands right and uses a labeled speed dial.
 // Compare current canonical consumers, not pixels from the superseded design.
 const source=`<script lang="ts">
-  import Toolbar from '@desert/svelte/pieces/Toolbar.svelte';
-  import ToolbarLayout from '@desert/svelte/pieces/ToolbarLayout.svelte';
-  import Viewer from '@desert/svelte/pieces/media/Viewer.svelte';
+  import Toolbar from '@desert/svelte/catalog/compositions/toolbar/Toolbar.svelte';
+  import ToolbarLayout from '@desert/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte';
+  import Viewer from '@desert/svelte/catalog/compositions/viewer/Viewer.svelte';
   let open=$state(false),index=$state(0);
   const items=[{kind:'image',source:'/media/coast',alt:'Coast'},{kind:'image',source:'/media/peak',alt:'Peak'}];
   const leading={intent:{kind:'back'},label:'Back',icon:'back',state:'ready'};
@@ -54,15 +54,20 @@ for(const width of [390,1280])test(`approved toolbar geometry and canonical cons
       assert.ok(geometry.gap>=0 && geometry.gap<=4,'title and subtitle remain tightly grouped');
       assert.ok(geometry.visible<32,'only capacity-fitting commands remain visible');
       if(width===1280)assert.ok(geometry.visible>0,'wide toolbars do not collapse every command');
-      const facadePixels=await facade.screenshot({animations:'disabled'}),ownerPixels=await owner.screenshot({animations:'disabled'});
-      assert.equal(facadePixels.equals(ownerPixels),true,'Toolbar facade renders the exact current ToolbarLayout geometry');
+      // The top rail keeps ToolbarLayout's pixels; the bottom commit left them on purpose: it is the 50/50 pair now (law 9c).
+      const facadePixels=await facade.locator('[data-toolbar="top"]').screenshot({animations:'disabled'});
+      const ownerPixels=await owner.locator('[data-piece="toolbar"]').first().screenshot({animations:'disabled'});
+      assert.equal(facadePixels.equals(ownerPixels),true,'Toolbar facade renders the exact current ToolbarLayout top geometry');
+      const pair=await facade.locator('[data-toolbar="bottom"] [data-bar-row]').evaluate(row=>[...row.querySelectorAll('button')].map(button=>button.getBoundingClientRect().width));
+      assert.equal(pair.length,2);assert.ok(Math.abs(pair[0]!-pair[1]!)<=0.5,'the bottom commit is the 50/50 pair');
       for(const label of ['Cancel','Save']) {
         const button=facade.getByRole('button',{name:label,exact:true});
         assert.equal(await button.innerText(),label);assert.equal(await button.locator('svg:visible').count(),0,'text actions never compete with a visible icon');
       }
       const more=facade.getByRole('button',{name:'More actions',exact:true});await more.click();await settled();
       const dial=page.getByRole('dialog',{name:'More actions',exact:true});
-      assert.equal(await dial.locator('[data-speed-dial-label]').count(),32-geometry.visible,'the dial includes precisely overflowing commands');
+      // The Toolbar facade draws Bar, whose overflow is the Menu foundation (one row per command).
+      assert.equal(await dial.locator('[data-menu-action]').count(),32-geometry.visible,'the dial includes precisely overflowing commands');
       await page.keyboard.press('Escape');
       assert.equal(await more.evaluate(element=>element===document.activeElement),true,'Escape restores the overflow trigger');
       await page.getByRole('button',{name:'Open viewer',exact:true}).click();

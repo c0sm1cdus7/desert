@@ -1,0 +1,44 @@
+/* One material law. Shape and behavior belong to components, not this role.
+   Interiors, images, selection marks, separators and focus/error outlines are
+   not independent panes. Nesting is the only source of material compounding.
+   Owners apply `material-pane` or `material-interior`; prominence (`material-pane-primary`) and selection
+   (`material-pane-selected`) tint the same pane through an accent that is never inherited, so nested neutral
+   wells and buttons cannot take the parent's tint. */
+:root {
+  --pane-opacity:88%;
+  --pane-filter:blur(24px);
+  /* A pane presented over the page (a popover, a dialog, a sheet, a menu) holds the page's text under it: its backing is
+     opaque, so neither a word nor a faint shape of the page shows through (at 97% a blob of the page still did;
+     tests/overlay-legibility.test.ts). */
+  --pane-floating-opacity:100%;
+}
+@media (prefers-reduced-transparency:reduce), (prefers-contrast:more) {
+  :root { --pane-opacity:100%; --pane-filter:none; --pane-floating-opacity:100%; }
+}
+@property --pane-accent { syntax:"*"; inherits:false; }
+@property --pane-accent-ink { syntax:"*"; inherits:false; }
+@property --pane-floating { syntax:"*"; inherits:false; }
+@utility material-pane {
+  --pane-border:var(--border);
+  --pane-color:var(--pane-accent,var(--background));
+  --control-feedback-ink:var(--pane-accent-ink,var(--foreground));
+  --pane-fill:color-mix(in oklab,var(--pane-color) var(--pane-floating,var(--pane-opacity)),transparent);
+  background-color:var(--pane-fill); background-image:none;
+  border:1px solid var(--pane-border); box-shadow:none;
+  -webkit-backdrop-filter:var(--pane-filter); backdrop-filter:var(--pane-filter);
+  @media (prefers-contrast:more) { --pane-border:var(--foreground); }
+}
+/* The floating backing: what the overlay owners (popover, modal, menu) add beside `material-pane`. It is the surface's
+   own (never inherited, like the accent): the panes nested in it (its buttons, wells, rows) keep the ordinary backing. */
+@utility material-floating { --pane-floating:var(--pane-floating-opacity); }
+/* Darken the tinted face in both appearances so its white label stays legible. */
+@utility material-pane-primary { --pane-accent:var(--primary); --pane-accent-ink:#000; }
+/* A selection's tint fades with its owner's disabled content (`--pane-selection-fade`, the theme's disabled fade while
+   disabled): a disabled chosen pane reads as chosen and off, never as available. */
+@utility material-pane-selected { --pane-accent:color-mix(in srgb,var(--primary) calc(14% * var(--pane-selection-fade,1)),var(--background)); }
+/* The interior's perimeter reset has no specificity, so semantic row dividers (geometry utilities) survive it. */
+@utility material-interior {
+  background-color:transparent; background-image:none;
+  box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none;
+  :where(&) { border:0; }
+}

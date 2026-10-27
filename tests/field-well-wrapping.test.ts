@@ -5,20 +5,20 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 import { fieldGeometry, geometryProblems } from "./web/field-geometry.ts";
 
 const source = `<script lang="ts">
-  import TextInput from "@desert/svelte/pieces/TextInput.svelte";
+  import WritingField from "@desert/svelte/catalog/foundations/field/Field.svelte";
   import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
   let values = $state({ text: '', multiline: '' });
   const label = 'A long label with enough detail to wrap safely in a compact shared form';
 </script>
 <main style="max-width:600px;padding:16px">
   <Field.FieldGroup>
-    <div data-case="text"><TextInput primitive="input.text" {label} value={values.text}
+    <div data-case="text"><WritingField primitive="input.text" labelVisibility="visible" measure="writing" invalid={false} disabled={false} purpose="text" clear {label} value={values.text}
       required onchange={value => values.text = value} /></div>
-    <div data-case="multiline"><TextInput primitive="input.multiline" {label} value={values.multiline}
+    <div data-case="multiline"><WritingField primitive="input.multiline" labelVisibility="visible" measure="writing" invalid={false} disabled={false} {label} value={values.multiline}
       required onchange={value => values.multiline = value} /></div>
-    <div data-case="invalid"><TextInput primitive="input.text" {label} value="Retained invalid writing"
+    <div data-case="invalid"><WritingField primitive="input.text" labelVisibility="visible" measure="writing" invalid={false} disabled={false} purpose="text" clear {label} value="Retained invalid writing"
       required error="Check this value." onchange={() => {}} /></div>
-    <div data-case="disabled"><TextInput primitive="input.multiline" {label} value="Retained disabled writing"
+    <div data-case="disabled"><WritingField primitive="input.multiline" labelVisibility="visible" measure="writing" required={false} invalid={false} {label} value="Retained disabled writing"
       disabled onchange={() => {}} /></div>
   </Field.FieldGroup>
 </main>`;

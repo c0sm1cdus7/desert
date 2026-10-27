@@ -6,13 +6,18 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileInventory, digest } from "./files.ts";
 import { loadLocalMedia, localMediaFile, requireDistinctMedia } from "./media.ts";
+import { gateVersion, requireGateEvidence } from "./qualification.ts";
 
 export const manifestFile = "DESERT-BUILD.json";
+/** /4 adds the evidence of the catalog gate that let the build run (plan 3.5). */
+export const buildFormat = "desert.distribution-build/4";
+export { gateVersion };
 const name = Type.String({ minLength: 1 });
 const sha = Type.String({ pattern: "^[a-f0-9]{64}$" });
 const closed = { additionalProperties: false };
 const ManifestSchema = Type.Object({
-  format: Type.Literal("desert.distribution-build/3"), status: Type.Literal("built"),
+  format: Type.Literal(buildFormat), status: Type.Literal("built"),
+  gate: Type.Object({ version: Type.Literal(gateVersion) }, closed),
   productId: name, contractDigest: sha, distributionId: name, distributionDigest: sha,
   distributions: Type.Array(DistributionSchema), surfaceId: name, surfaceDigest: sha, viewProgramDigest: sha,
   activitiesDigest: Type.Optional(sha),
@@ -26,6 +31,7 @@ const validManifest = createSchemaValidator<BuildManifest>(ManifestSchema);
 export function loadVerifiedBuild(directory: string) {
   const files = fileInventory(directory, [manifestFile]);
   const manifest = jsonSnapshot(JSON.parse(readFileSync(join(directory, manifestFile), "utf8")));
+  requireGateEvidence(manifest, buildFormat, "build");
   if (!validManifest(manifest)) throw new Error("INVALID_BUILD_MANIFEST");
   if (digest(files) !== digest(manifest.files)) throw new Error("BUILD_FILES_MISMATCH");
   if (Object.hasOwn(files, localMediaFile)) requireDistinctMedia(loadLocalMedia(directory).assets, files);

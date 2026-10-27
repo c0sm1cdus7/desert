@@ -13,7 +13,7 @@
 <div
 	bind:this={ref}
 	data-slot="empty-title"
-	class={cn("type-title tracking-tight", className)}
+	class={cn("type-section tracking-tight max-w-full", className)}
 	{...restProps}
 >
 	{@render children?.()}

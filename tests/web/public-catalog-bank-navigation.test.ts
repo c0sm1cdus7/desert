@@ -9,11 +9,11 @@ test("the public bank reuses inventory search, preserves drafts and returns from
     const { page } = fixture;
     await (await navigationAction(page, "Component bank")).click();
     const find = page.getByRole("searchbox", { name: "Find component", exact: true });
-    const writing = page.locator('[data-specimen="input.text:value"]').getByRole("textbox");
+    const writing = page.locator('[data-view-item="specimen:input.text:value"]').getByRole("textbox");
     await writing.fill("Preserve this specimen");
     await find.fill("money");
-    assert.equal(await page.locator("[data-catalog-entry]:visible").count(), 1);
-    assert.ok(await page.locator('[data-catalog-entry="control.money"]').isVisible());
+    assert.equal(await page.locator("[data-view-item^='entry:']:visible").count(), 1);
+    assert.ok(await page.locator('[data-view-item="entry:control.money"]').isVisible());
     await find.fill("");
     assert.equal(await writing.inputValue(), "Preserve this specimen");
     const navigation = page.getByRole("navigation", { name: "Catalog navigation", exact: true });
@@ -26,7 +26,7 @@ test("the public bank reuses inventory search, preserves drafts and returns from
     await page.keyboard.press("Enter");
     await page.waitForFunction(() => document.querySelector('[data-catalog-content] > .place-viewport')!.scrollTop === 0);
     await find.fill("collection");
-    const opener = page.locator('[data-specimen="collection:records"]').getByRole("button", { name: "Alps", exact: true });
+    const opener = page.locator('[data-view-item="specimen:collection:records"]').getByRole("button", { name: "Alps", exact: true });
     await opener.click();
     await page.getByRole("button", { name: "Back", exact: true }).click();
     assert.ok(await page.getByRole("heading", { name: "Component bank", exact: true }).isVisible());
@@ -36,7 +36,7 @@ test("the public bank reuses inventory search, preserves drafts and returns from
     assert.equal(await writing.inputValue(), "Preserve this specimen");
     await page.setViewportSize({ width: 1280, height: 800 });
     await find.fill("collection");
-    await page.locator('[data-specimen="collection:records"]').getByRole("button", { name: "Alps", exact: true })
+    await page.locator('[data-view-item="specimen:collection:records"]').getByRole("button", { name: "Alps", exact: true })
       .evaluate(element => element.scrollIntoView({ block: "center" }));
     await settle(page);
     await evidence(page, "bank-collection-grouped", { viewport: page.viewportSize(), approval: "pending", diagnostics: fixture.diagnostics.snapshot() });

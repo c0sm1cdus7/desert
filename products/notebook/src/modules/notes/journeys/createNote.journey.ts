@@ -5,7 +5,7 @@ import { CreateNoteView } from "../views/createNote.view.ts";
 import { ReadNote } from "./readNotes.journey.ts";
 
 export const CreateNote = mutationJourney("create-note", CreateNoteRecord, { controller: NotesController, dependencies: [] });
-export const CreateNoteExperience = {
+export const CreateNoteJourney = {
   id: CreateNote.id, kind: "create", source: ReadNote, view: CreateNoteView, preferredDock: "right",
   outputs: [
     { ...viewOutput(CreateNoteView, "save"), action: { kind: "submit" } },

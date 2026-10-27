@@ -9,13 +9,12 @@ const variants = ["default", "secondary", "outline", "ghost", "destructive", "li
 const source = `<script lang="ts">
   import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
   import * as Sidebar from "@desert/svelte/vendor/components/ui/sidebar/index.js";
-  import * as Select from "@desert/svelte/vendor/components/ui/select/index.js";
   import * as Calendar from "@desert/svelte/vendor/components/ui/calendar/index.js";
   import Plus from "@lucide/svelte/icons/plus";
   import { CalendarDate } from "@internationalized/date";
-  import Action from "@desert/svelte/pieces/Action.svelte";
-  import SelectControl from "@desert/svelte/controls/SelectControl.svelte";
-  import PopoverControl from "@desert/svelte/controls/PopoverControl.svelte";
+  import Action from "@desert/svelte/catalog/foundations/action/Action.svelte";
+  import SelectControl from "@desert/svelte/catalog/compositions/select-control/SelectControl.svelte";
+  import PopoverControl from "@desert/svelte/catalog/compositions/popover-control/PopoverControl.svelte";
   import { applyControlEvent } from "@desert/interaction/control-nodes.ts";
   let popover = $state({version:'desert.control/1',kind:'popover',id:'help',label:'Popover action',disabled:false,
     open:false,title:'Help',locked:false,content:[{kind:'text',text:'Contextual information.'}]});
@@ -27,10 +26,10 @@ const source = `<script lang="ts">
     <Button {variant} data-probe={variant+'-text'}>Save changes</Button>
     <Button {variant} size="icon" aria-label={variant+' icon'} data-probe={variant+'-icon'}><Plus /></Button>
   {/each}
-  <div data-case="action-label"><Action label="Action label" icon="save" /></div>
-  <div data-case="action-icon" style="width:44px"><Action label="An intentionally long compact action" icon="save" /></div>
+  <div data-case="action-label"><Action label="Action label" icon="save" state="ready" emphasis="secondary" face="fit" type="button" /></div>
+  <div data-case="action-icon" style="width:44px"><Action label="An intentionally long compact action" icon="save" state="ready" emphasis="secondary" face="fit" type="button" /></div>
   <Button disabled data-probe="disabled">Disabled action</Button>
-  <div data-case="pending"><Action label="Saving" icon="save" state="pending" /></div>
+  <div data-case="pending"><Action label="Saving" icon="save" state="pending" emphasis="secondary" face="fit" type="button" /></div>
   <Sidebar.Provider style="min-height:0;width:320px;display:block">
     <Sidebar.Trigger data-probe="sidebar-trigger" onclick={event=>event.preventDefault()} />
     <Sidebar.Menu><Sidebar.MenuItem><Sidebar.MenuButton data-probe="sidebar-standard"><Plus /><span>Destination</span></Sidebar.MenuButton></Sidebar.MenuItem>
@@ -38,10 +37,6 @@ const source = `<script lang="ts">
       <Sidebar.MenuItem><Sidebar.MenuButton data-probe="sidebar-custom-raw">{#snippet child({props})}<a {...props} href="#target" onclick={event=>event.preventDefault()}><Plus /><span>Custom raw link</span></a>{/snippet}</Sidebar.MenuButton></Sidebar.MenuItem>
     </Sidebar.Menu>
   </Sidebar.Provider>
-  {#each ['outline','within-well','field-control'] as appearance}
-    <div style="width:220px"><Select.Root type="single"><Select.Trigger data-probe={'select-'+appearance}
-      withinWell={appearance==='within-well'} fieldControl={appearance==='field-control'}>A selected value</Select.Trigger></Select.Root></div>
-  {/each}
   <div data-case="select-control" style="width:250px"><SelectControl node={select} onevent={()=>{}} /></div>
   <div data-case="popover-control"><PopoverControl node={popover} onevent={event=>popover=applyControlEvent(popover,event).node} /></div>
   <div data-case="calendar" style="width:320px"><Calendar.Calendar type="single" placeholder={new CalendarDate(2026,10,16)} /></div>
@@ -64,11 +59,11 @@ const appearance = (node: Locator) => node.evaluate(element => {
     ?? (element.matches('[data-slot="sidebar-menu-button"]') ? element.firstElementChild : null);
   const glyph = element.querySelector("svg"), label = element.querySelector("[data-button-label]");
   return { box: element.getBoundingClientRect().toJSON(), transform: style.transform, background: style.backgroundColor,
-    overlay: style.backgroundImage, material:element.getAttribute('data-material'), selected:element.hasAttribute('data-selected'),
+    overlay: style.backgroundImage, material:(element.classList.contains('material-pane') ? 'pane' : element.classList.contains('material-interior') ? 'interior' : null), selected:element.hasAttribute('data-selected'),
     pressed: element.getAttribute("data-pressed"), focused: element === document.activeElement,
     contentScale: content ? new DOMMatrix(getComputedStyle(content).transform).m11 : null,
     contentBox: content?.getBoundingClientRect().toJSON() ?? null, glyphBox: glyph?.getBoundingClientRect().toJSON() ?? null,
-    labelBox: label?.getBoundingClientRect().toJSON() ?? null, face: element.getAttribute("data-button-face") };
+    labelBox: label?.getBoundingClientRect().toJSON() ?? null, face: element.getAttribute("data-action-face") };
 });
 function target(page: Page, name: string) {
   if (name === "calendar-next") return page.locator('[data-case="calendar"] [data-calendar-next-button]');
@@ -78,8 +73,8 @@ function target(page: Page, name: string) {
   return page.locator(`[data-probe="${name}"]`);
 }
 const names = [...variants.flatMap(variant => [`${variant}-text`, `${variant}-icon`]), "action-label", "action-icon",
-  "sidebar-trigger", "sidebar-standard", "sidebar-custom-button", "sidebar-custom-raw", "select-outline", "select-within-well",
-  "select-field-control", "select-control", "popover-control", "calendar-next", "calendar-day", "calendar-day-custom-button", "calendar-day-custom-raw"];
+  "sidebar-trigger", "sidebar-standard", "sidebar-custom-button", "sidebar-custom-raw",
+  "select-control", "popover-control", "calendar-next", "calendar-day", "calendar-day-custom-button", "calendar-day-custom-raw"];
 const customRaw = (name: string) => name.endsWith("custom-raw");
 const opening = (name: string) => name === "select-control" || name === "popover-control";
 async function save(name: string, evidence: unknown) {

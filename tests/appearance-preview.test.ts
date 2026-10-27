@@ -6,10 +6,11 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 test("appearance tiles preview actual modes, keep separate text settings and compact accessible tints", { timeout: 90000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import AppearancePreferences from '@desert/svelte/pieces/AppearancePreferences.svelte';
+    import AppearancePreferences from '@desert/svelte/catalog/compositions/appearance-preferences/AppearancePreferences.svelte';
+    import AppearanceRoot from '@desert/svelte/catalog/foundations/appearance-root/AppearanceRoot.svelte';
     let value = $state({theme:'system',textSize:'standard',tint:'rose',wallpaper:'mist'});
     let changes = $state(0);
-  </script><main style="max-width:540px;padding:24px">
+  </script><AppearanceRoot /><main style="max-width:540px;padding:24px">
     <AppearancePreferences {value} onchange={next=>{value=next;changes+=1}}/>
     <output>{value.theme}:{changes}</output>
   </main>`, {}, undefined, { initialCss: await rendererCss() });
@@ -36,7 +37,7 @@ test("appearance tiles preview actual modes, keep separate text settings and com
     assert.equal(await light.isChecked(), true);
     assert.equal(await f.page.locator("output").textContent(), "light:1");
     assert.equal(await f.page.getByRole("group", {name:"Text size", exact:true}).count(), 1);
-    const tints = await f.page.locator(".appearance-swatch").evaluateAll(items => items.map(item => ({width:item.getBoundingClientRect().width,
+    const tints = await f.page.locator("[data-swatch-tint]").evaluateAll(items => items.map(item => ({width:item.getBoundingClientRect().width,
       height:item.getBoundingClientRect().height,x:item.getBoundingClientRect().x})));
     assert.ok(tints.every(item => item.width >= 44 && item.height >= 44));
     assert.ok(tints[1]!.x-tints[0]!.x-tints[0]!.width <= 4, "Tint hit targets are adjacent with a small gap");

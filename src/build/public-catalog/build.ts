@@ -5,7 +5,7 @@ import { createBuildProject } from "../svelte/project.ts";
 import { rendererRevision } from "../svelte/revision.ts";
 import { fileInventory } from "../files.ts";
 import { bindCatalogAssets } from "./assets.ts";
-import { catalogBuildFile, type PublicCatalogBuild } from "./manifest.ts";
+import { catalogBuildFile, publicCatalogBuildFormat, type PublicCatalogBuild } from "./manifest.ts";
 import { publicCatalogSchemas } from "../../public-catalog/protocol.ts";
 import { prepareRenditions } from './renditions.ts';
 
@@ -22,7 +22,7 @@ export async function buildPublicCatalogWeb(application: CompiledPublicCatalog, 
   const revision = rendererRevision();
   let ownsOutput = false;
   try {
-    await project.run("build");
+    const { gate } = await project.run("build");
     if (rendererRevision() !== revision) throw new Error("BUILDER_CHANGED_DURING_BUILD");
     mkdirSync(dirname(output), { recursive: true });
     mkdirSync(output); ownsOutput = true;
@@ -31,7 +31,7 @@ export async function buildPublicCatalogWeb(application: CompiledPublicCatalog, 
     writeFileSync(join(output, "surface.json"), JSON.stringify(application.surface, null, 2) + "\n");
     writeFileSync(join(output, "schemas.json"), JSON.stringify(publicCatalogSchemas(), null, 2) + "\n");
     const manifest: PublicCatalogBuild = {
-      format: "desert.public-catalog-build/1", productId: application.id, contractDigest: application.digest,
+      format: publicCatalogBuildFormat, gate, productId: application.id, contractDigest: application.digest,
       rendererRevision: revision, mode: "public-read-only", mediaPolicy: "external-local-bindings",
       assets: assets.map(({ file: _file, ...metadata }) => metadata), files: fileInventory(output),
     };

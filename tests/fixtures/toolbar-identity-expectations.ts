@@ -28,6 +28,8 @@ export async function identityGeometry(header: Locator) {
       titleSize: parseFloat(getComputedStyle(title).fontSize),
       titleTextContent: title.textContent,
       faceHidden: face.getAttribute("aria-hidden"),
+      themeRadius: (() => { const probe = document.createElement("i"); probe.style.borderRadius = "var(--radius)"; node.append(probe);
+        const value = parseFloat(getComputedStyle(probe).borderTopLeftRadius); probe.remove(); return value; })(),
       buttons: [...node.querySelectorAll("button")].map(button => ({ ...rect(button),
         label: button.getAttribute("aria-label") ?? button.textContent, disabled: button.disabled,
         icon: button.querySelector("svg") ? rect(button.querySelector("svg")!) : null,
@@ -47,8 +49,8 @@ export function assertIdentityGeometry(geometry: Awaited<ReturnType<typeof ident
   assert.ok(buttons.every(button => button.left >= header.left - 1 && button.right <= header.right + 1),
     "visible toolbar actions stay inside the toolbar");
   assert.ok(buttons.every(button => button.width >= 44 && button.height >= 44), "task actions keep 44px hit targets");
-  assert.ok(buttons.every(button => Math.abs(button.width - button.height) <= 1 && button.radius >= button.width / 2),
-    "width-constrained toolbar actions keep the shared circular face, not an ellipse");
+  assert.ok(buttons.every(button => Math.abs(button.width - button.height) <= 1 && button.radius === geometry.themeRadius),
+    "width-constrained toolbar actions keep the shared square target and the one radius (DESIGN §7.1), not an ellipse");
   assert.ok(buttons.every(button => !button.icon || button.icon.left >= button.left && button.icon.right <= button.right &&
     button.icon.top >= button.top && button.icon.bottom <= button.bottom), "scaled action glyphs fit inside their target");
   assert.ok(buttons.every(button => button.right <= title.left + 1 || button.left >= title.right - 1 ||
@@ -71,6 +73,27 @@ export async function assertVisibleChrome(dialog: Locator) {
   assert.ok(bounds.content.bottom <= bounds.footer.top + 1, "body never overlays dismissal");
   assert.ok(bounds.usefulContent >= Math.min(bounds.requestedContent, bounds.lineHeight * 2),
     `at least two enlarged lines of usable body remain: ${JSON.stringify(bounds)}`);
+  return bounds;
+}
+
+/** A message dialog (DESIGN §7.5): its content (face, title, sentence) scrolls inside the dialog while its actions stay in
+ * view below it, and at least two enlarged lines of content remain usable. */
+export async function assertVisibleMessage(dialog: Locator) {
+  const bounds = await dialog.evaluate(node => {
+    const content = node.querySelector<HTMLElement>('[data-modal-message-content]')!;
+    const style = getComputedStyle(content);
+    const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    const sentence = content.querySelector("p") ?? content;
+    return { dialog: node.getBoundingClientRect().toJSON(), content: content.getBoundingClientRect().toJSON(),
+      actions: node.querySelector('[data-modal-message-actions]')!.getBoundingClientRect().toJSON(),
+      usefulContent: content.clientHeight - padding, requestedContent: content.scrollHeight - padding,
+      lineHeight: parseFloat(getComputedStyle(sentence).lineHeight) };
+  });
+  assert.ok(bounds.content.top >= bounds.dialog.top - 1 && bounds.actions.bottom <= bounds.dialog.bottom + 1,
+    `content and dismissal remain within the visible surface: ${JSON.stringify(bounds)}`);
+  assert.ok(bounds.content.bottom <= bounds.actions.top + 1, "content never overlays dismissal");
+  assert.ok(bounds.usefulContent >= Math.min(bounds.requestedContent, bounds.lineHeight * 2),
+    `at least two enlarged lines of usable content remain: ${JSON.stringify(bounds)}`);
   return bounds;
 }
 

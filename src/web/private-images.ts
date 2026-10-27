@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { LocalSession } from "../local/session.ts";
 import { requireAssetReference, type AssetImageVariant } from "../assets/types.ts";
-import { renditionWidths } from "../media/rendition-policy.ts";
+import { isMediaType, mediaKindOf, renditionWidths } from "../media/rendition-policy.ts";
 import { privateImageTransferLimits } from "../assets/host.ts";
 
 export async function privateImageRequest(session: LocalSession, request: IncomingMessage, response: ServerResponse, url: URL) {
@@ -33,6 +33,10 @@ export async function privateImageRequest(session: LocalSession, request: Incomi
       response.setHeader("Content-Length", image.bytes.length);
       response.setHeader("X-Content-Type-Options", "nosniff");
       response.setHeader("Content-Security-Policy", "default-src 'none'; sandbox");
+      // A document or an archive is saved, never displayed in the page's origin.
+      if (isMediaType(image.mediaType) && ["document", "archive"].includes(mediaKindOf(image.mediaType))) {
+        response.setHeader("Content-Disposition", "attachment");
+      }
       response.writeHead(200); response.end(image.bytes);
     } else throw new Error("METHOD_NOT_ALLOWED");
     return true;

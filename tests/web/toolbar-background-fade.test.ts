@@ -7,8 +7,8 @@ import { rendererCss } from '../fixtures/renderer-css.ts';
 // Exercise the actual shared decoration and reading mask, not a copied gradient.
 const source = `<script>
  import { onMount } from 'svelte';
- import ScrollEdges from './src/svelte/pieces/ScrollEdges.svelte';
- import { toolbarReadingBoundary } from './src/svelte/pieces/toolbar-reading-boundary.ts';
+ import ScrollEdges from './src/svelte/catalog/foundations/scroll-edges/ScrollEdges.svelte';
+ import { toolbarReadingBoundary } from './src/svelte/catalog/foundations/shell/toolbar-reading-boundary.ts';
  let owner, viewport, compact;
  onMount(() => { const boundary = toolbarReadingBoundary(viewport, compact);
    boundary.paint(1); return boundary.dispose; });

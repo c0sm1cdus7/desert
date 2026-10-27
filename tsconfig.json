@@ -12,6 +12,6 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "products/**/*.ts"],
+  "include": ["src/**/*.ts", "tests/**/*.ts", "products/**/*.ts", "scripts/**/*.ts"],
   "exclude": ["src/build/svelte/template", "src/svelte/vendor"]
 }

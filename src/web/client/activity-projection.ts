@@ -5,7 +5,7 @@ import type { ActivityState } from "./activity-state.ts";
 import type { HumanState } from "./state.ts";
 import { surfaceFrame } from "../../interaction/surface-frame.ts";
 import { formFrame, reviewFrame, toolbarAction } from "../../interaction/frame-presenters.ts";
-import { bankNode, BankVersion } from "../../interaction/bank-node.ts";
+import { resolvedNode, ResolvedNodeVersion } from "../../interaction/resolved-node.ts";
 import { resolveViewIdentity } from "./view-identity.ts";
 import { viewInputs } from "../../views/ports.ts";
 import { activityAnswerValidation } from "../../activities/answer-validation.ts";
@@ -42,7 +42,7 @@ export function projectActivityPanel(program: ViewProgram, surface: HumanSurface
     if (frame.content.kind !== "review") throw new Error("INVALID_ACTIVITY_REVIEW");
     const navigationFrame = activity.plan.steps.length > 1 ? surfaceFrame({...frame,navigation:"steps"}) : frame;
     return { frame: navigationFrame, label: frame.top.title, locked: state.busy || state.uncertain,
-      ...(!state.uncertain ? { body: { view, bindings: { [port.input]: bankNode({ version: BankVersion, kind: "context",
+      ...(!state.uncertain ? { body: { view, bindings: { [port.input]: resolvedNode({ version: ResolvedNodeVersion, kind: "context",
         content: { kind: "context", details: frame.content.details, actions: [] } }) }, disabledOutputs: [] } } : {}) };
   }
   const fields = step === null ? [] : activity.plan.steps[step]!.inputs;
@@ -58,5 +58,5 @@ export function projectActivityPanel(program: ViewProgram, surface: HumanSurface
   const frame = surfaceFrame({ ...base, ...(activity.plan.steps.length > 1 ? {navigation:"steps"} : {}), top: { title: header?.title ?? base.top.title,
     ...(header?.subtitle ? { subtitle: header.subtitle } : {}) }, content });
   return { frame, label: frame.top.title, locked: state.busy,
-    ...(step !== null ? { body: { view, bindings: { [port.input]: bankNode({ version: BankVersion, kind: "form", content }) }, disabledOutputs: [] } } : {}) };
+    ...(step !== null ? { body: { view, bindings: { [port.input]: resolvedNode({ version: ResolvedNodeVersion, kind: "form", content }) }, disabledOutputs: [] } } : {}) };
 }

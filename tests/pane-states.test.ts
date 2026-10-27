@@ -21,10 +21,17 @@ test('pane state feedback preserves its material and dims only content once',asy
     assert.equal(await nav.locator('[data-navigation-selected]').count(),0);
     assert.equal(await nav.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(0, 95, 207)');
     await f.page.locator('[data-test-controls]').getByRole('button',{name:'disabled',exact:true}).click();
-    assert.deepEqual(await measure(),resting);
+    // Second review of the slice 3 package: a disabled action takes the one disabled look, the neutral pane (not the
+    // primary tint); its material, perimeter and opacity are unchanged, and only its content dims.
+    const disabled=await measure();
+    assert.deepEqual({...disabled,fill:resting.fill},resting);
+    assert.notEqual(disabled.fill,resting.fill,'a disabled primary leaves the primary tint');
     assert.equal(await button.locator('[data-button-content]').evaluate(e=>getComputedStyle(e).opacity),'0.5');
-    const field=f.page.locator('[data-primitive="input.text"]');
-    assert.equal(await field.locator('[data-field-row]').evaluate(e=>getComputedStyle(e).opacity),'0.5');
+    const field=f.page.locator('[data-primitive="input.text"]').filter({hasText:'Trip name'});
+    // A field fades by Field's one disabled fade (the theme's; fourth review: tests/field-disabled-value.test.ts).
+    const fieldFade=await f.page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--field-disabled-opacity').trim());
+    assert.ok(Number(fieldFade)>0 && Number(fieldFade)<1);
+    assert.equal(await field.locator('[data-field-row]').evaluate(e=>Number(getComputedStyle(e).opacity)),Number(fieldFade));
     assert.equal(await field.getByRole('textbox').evaluate(e=>getComputedStyle(e).opacity),'1');
     assert.equal(await field.locator('[data-slot="field-label"]').evaluate(e=>getComputedStyle(e).opacity),'1');
     const choice=f.page.locator('[data-choice-anatomy]').first();

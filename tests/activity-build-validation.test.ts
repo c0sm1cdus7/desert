@@ -10,6 +10,7 @@ import { authoredNotebookSource } from "./fixtures/authored-notebook.ts";
 import { NoteEditorView } from "./fixtures/authored-view-program.ts";
 import { CreateNote, ReadNote } from "./fixtures/notebook-domain.ts";
 import { NotebookService, NotebookWeb } from "../products/notebook/distributions.ts";
+import { fixtureText } from "./fixtures/messages.ts";
 
 const ports = viewPorts({ inputs: { draft: "form", prepared: "context" }, outputs: [] });
 const Form = defineView({ name: "guided-form", content: [Components.Form({ input: ports.inputs.draft })] });
@@ -22,7 +23,7 @@ function source(duplicate: boolean) {
   ], review: Review };
   return { ...base, views: [...base.views.filter(view => view !== NoteEditorView), Form, Review],
     journeys: base.journeys.map(registration => "execution" in registration && registration.execution === CreateNote
-      ? { execution: CreateNote, label: "Create note", humanReview: "required" as const,
+      ? { execution: CreateNote, label: fixtureText.createNote, humanReview: "required" as const,
         presentation: activityExperience(activity, ReadNote) } : registration),
   };
 }

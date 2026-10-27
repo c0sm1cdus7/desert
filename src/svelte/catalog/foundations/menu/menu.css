@@ -1,0 +1,3 @@
+/* Menu: each command reads as its label on a pane beside its icon action, aligned to the trigger's end. */
+[data-menu-action] { display:flex; align-items:center; justify-content:flex-end; gap:12px; }
+[data-menu-label] { padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-control); max-width:18rem; text-align:end; @apply wrap-words; }

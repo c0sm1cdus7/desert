@@ -6,7 +6,7 @@ import { settle } from './web/public-catalog-expectations.ts';
 
 for (const initialWidth of [600, 320]) test(`date cursor survives presentation replacement from ${initialWidth}`, async () => {
   const f = await svelteBrowser(`<script>
-    import DateControl from '@desert/svelte/controls/DateControl.svelte';
+    import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
     let node=$state({version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival',required:false,
       disabled:false,value:'2026-10-16'}), edits=$state(0);
   </script><main style="padding:20px">
@@ -16,10 +16,10 @@ for (const initialWidth of [600, 320]) test(`date cursor survives presentation r
   try {
     await f.page.setViewportSize({ width: initialWidth, height: 900 });
     await f.page.addStyleTag({ content: await rendererCss() });
-    await f.page.locator('[data-date-trigger]').click();
+    await f.page.locator('[data-field-trigger]').click();
     await f.page.getByRole('button', { name: 'Next month', exact: true }).click();
     await settle(f.page);
-    const title = f.page.locator('[data-date-calendar] .toolbar-title');
+    const title = f.page.locator('[data-date-calendar-month]');
     assert.equal(await title.textContent(), 'November 2026');
     await f.page.setViewportSize({ width: initialWidth === 600 ? 320 : 600, height: 900 });
     await settle(f.page);
@@ -32,9 +32,9 @@ for (const initialWidth of [600, 320]) test(`date cursor survives presentation r
     }), true, 'Presentation replacement retains usable focus');
     assert.equal(await f.page.locator('output').textContent(), '2026-10-16/0', 'Browsing never edits the selected value');
     await f.page.keyboard.press('Escape'); await settle(f.page);
-    assert.equal(await f.page.locator('[data-date-trigger]').evaluate(element=>element===document.activeElement),true,
+    assert.equal(await f.page.locator('[data-field-trigger]').evaluate(element=>element===document.activeElement),true,
       'Dismissal returns focus to the current trigger instance');
-    await f.page.locator('[data-date-trigger]').click(); await settle(f.page);
+    await f.page.locator('[data-field-trigger]').click(); await settle(f.page);
     assert.equal(await title.textContent(), 'October 2026', 'A fresh task still opens the selected date');
     await f.page.getByRole('button', { name: /October 20, 2026/ }).click(); await settle(f.page);
     assert.equal(await f.page.locator('output').textContent(), '2026-10-20/1');
@@ -44,18 +44,89 @@ for (const initialWidth of [600, 320]) test(`date cursor survives presentation r
 
 test('date dismissal preserves focus already moved outside its own surface', async () => {
   const f=await svelteBrowser(`<script>
-    import DateControl from '@desert/svelte/controls/DateControl.svelte';
+    import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
   </script><DateControl node={{version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival',
     required:false,disabled:false,value:'2026-10-16'}} onevent={()=>{}}/>
     <input aria-label="Other field" style="position:fixed;bottom:20px;right:20px"/>`);
   try {
     await f.page.setViewportSize({width:900,height:900});
     await f.page.addStyleTag({content:await rendererCss()});
-    await f.page.locator('[data-date-trigger]').click(); await settle(f.page);
+    await f.page.locator('[data-field-trigger]').click(); await settle(f.page);
     const outside=f.page.getByRole('textbox',{name:'Other field'});
     await outside.click(); await settle(f.page);
     await f.page.getByRole('application').waitFor({state:'hidden'});
     assert.equal(await outside.evaluate(element=>element===document.activeElement),true);
+    assert.deepEqual(f.errors,[]);
+  } finally {await f.close();}
+});
+
+// Found by the slice 3 package: when the date control moved onto Field's trigger it lost its calendar glyph and showed
+// the select's disclosure chevron. A date field's accessory is the calendar, as before; other field triggers keep the chevron.
+test('the date trigger shows the calendar glyph, not the select chevron', async () => {
+  const f=await svelteBrowser(`<script>
+    import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
+  </script><DateControl node={{version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival',
+    required:false,disabled:false,value:'2026-10-16'}} onevent={()=>{}}/>`);
+  try {
+    await f.page.addStyleTag({content:await rendererCss()});
+    const trigger=f.page.locator('[data-field-trigger]');
+    assert.deepEqual(await trigger.evaluate(element=>[...element.querySelectorAll('svg')].map(svg=>[...svg.classList].find(name=>/^lucide-(?!icon)/.test(name)))),
+      ['lucide-calendar']);
+    assert.deepEqual(await trigger.locator('svg').evaluate(svg=>[svg.getBoundingClientRect().width,svg.getBoundingClientRect().height]),[16,16],
+      'the glyph keeps the 16 px of the well it had');
+    assert.deepEqual(f.errors,[]);
+  } finally {await f.close();}
+});
+
+// Second review of the slice 3 package (one concept, one look): «No date selected» in full ink read as a value. An empty
+// date shows the placeholder look of every field: the colour of a text field's placeholder and of a reference selector's
+// «Choose…», never the value colour.
+test('an empty date reads "No date selected" as every field placeholder reads', async () => {
+  const f=await svelteBrowser(`<script>
+    import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
+    import Field from '@desert/svelte/catalog/foundations/field/Field.svelte';
+  </script><DateControl node={{version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival',
+    required:false,disabled:false,value:null}} onevent={()=>{}}/>
+  <div data-text><Field primitive="input.text" label="Title" labelVisibility="visible" measure="writing" purpose="text" value=""
+    placeholder="Untitled" required={false} invalid={false} disabled={false} clear={false} onchange={()=>{}}/></div>
+  <div data-dated><DateControl node={{version:'desert.control/1',kind:'date',id:'leave',label:'Leave',
+    required:false,disabled:false,value:'2026-10-16'}} onevent={()=>{}}/></div>`);
+  try {
+    await f.page.addStyleTag({content:await rendererCss()});
+    for (const scheme of ['light','dark'] as const) {
+      await f.page.emulateMedia({colorScheme:scheme});
+      const colours=await f.page.evaluate(()=>{
+        const span=(root:Element|Document, words:string)=>[...root.querySelectorAll('[data-field-value] span')].find(item=>item.textContent===words)!;
+        const empty=span(document,'No date selected');
+        const input=document.querySelector('[data-text] input')!;
+        const dated=document.querySelector('[data-dated] [data-field-value] > span')!;
+        return { empty:getComputedStyle(empty).color, placeholder:getComputedStyle(input,'::placeholder').color, value:getComputedStyle(dated).color };
+      });
+      assert.equal(colours.empty, colours.placeholder, `${scheme}: the empty date takes the placeholder colour`);
+      assert.notEqual(colours.empty, colours.value, `${scheme}: and not the value colour`);
+    }
+    assert.deepEqual(f.errors,[]);
+  } finally {await f.close();}
+});
+
+// The same package: a disabled date field showed its value at full ink (the field's reset for nested buttons also undid
+// the trigger's own content dimming). Disabled content fades once, the well's boundary does not.
+test('a disabled date field fades its content once, like every disabled control', async () => {
+  const f=await svelteBrowser(`<script>
+    import DateControl from '@desert/svelte/catalog/foundations/date-control/DateControl.svelte';
+  </script><DateControl node={{version:'desert.control/1',kind:'date',id:'arrival',label:'Arrival',
+    required:false,disabled:true,value:'2026-10-16'}} onevent={()=>{}}/>`);
+  try {
+    await f.page.addStyleTag({content:await rendererCss()});
+    const faded=await f.page.locator('[data-field-trigger]').evaluate(element=>{
+      let opacity=1;
+      for (let node:Element|null=element.querySelector('[data-field-value]'); node && node!==element.parentElement; node=node.parentElement)
+        opacity*=Number(getComputedStyle(node).opacity);
+      return Math.round(opacity*100)/100;
+    });
+    // Once, by Field's one disabled fade (the theme's).
+    assert.equal(faded,Number(await f.page.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--field-disabled-opacity'))));
+    assert.ok(faded<1);
     assert.deepEqual(f.errors,[]);
   } finally {await f.close();}
 });

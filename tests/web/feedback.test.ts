@@ -10,11 +10,11 @@ test("feedback uses semantic colors and destination rows never shrink out of the
     await openCatalog(f.page);
     for (const colorScheme of ["light", "dark"] as const) {
       await f.page.emulateMedia({ colorScheme });
-      assert.equal(await f.page.locator('[data-specimen="availability:unknown"] svg').evaluate(node =>
+      assert.equal(await f.page.locator('[data-view-item="specimen:availability:unknown"] svg').evaluate(node =>
         getComputedStyle(node).color === getComputedStyle(node.closest('[data-primitive="availability"]')!).color), true,
         "unknown availability inherits neutral status text; uncertainty does not claim readiness or a primary action");
       for (const [specimen, token] of [["availability:ready", "--positive"], ["availability:unavailable", "--warning"]]) {
-        const icon = f.page.locator(`[data-specimen="${specimen}"] svg`);
+        const icon = f.page.locator(`[data-view-item="specimen:${specimen}"] svg`);
         const matches = await icon.evaluate((node, token) => {
           const probe = document.createElement("span"); probe.style.color = `var(${token})`;
           node.parentElement!.append(probe);
@@ -23,11 +23,11 @@ test("feedback uses semantic colors and destination rows never shrink out of the
         }, token!);
         assert.equal(matches, true, `${specimen} follows ${token}`);
       }
-      assert.equal(await f.page.locator('[data-specimen="action:pending"] button').evaluate(button =>
+      assert.equal(await f.page.locator('[data-view-item="specimen:action:pending"] button').evaluate(button =>
         getComputedStyle(button.querySelector("svg")!).color === getComputedStyle(button).color), true,
         "pending icons inherit the button foreground, not a separate accent");
       for (const [severity, token] of [["error", "--destructive"], ["warning", "--warning"]]) {
-        await f.page.locator(`[data-specimen="problem:${severity}"]`).getByRole("button").click();
+        await f.page.locator(`[data-view-item="specimen:problem:${severity}"]`).getByRole("button").click();
         const dialog = f.page.getByRole("dialog");
         assert.equal(await dialog.locator('[data-surface-slot="top"] [data-piece="face"] svg').evaluate((node, token) => {
           const probe = document.createElement("span"); probe.style.color = `var(${token})`;
@@ -45,7 +45,7 @@ test("feedback uses semantic colors and destination rows never shrink out of the
       await f.session.accept(prepared.id, prepared.confirmationDigest);
     }
     await f.page.getByRole("button", { name: "Notes", exact: true }).click();
-    const rows = f.page.locator('[data-catalog-content] .record-button:visible');
+    const rows = f.page.locator('[data-catalog-content] [data-row-leading="attention"]:visible');
     await rows.nth(2).waitFor();
     await settleMotion(f.page);
     assert.equal(await rows.count(), 3);

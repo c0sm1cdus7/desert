@@ -37,7 +37,7 @@ journey, using registered Views and typed command-input references:
 ```ts
 const Input = activityInputs(GuidedNote);
 
-export const GuidedNoteExperience = activityExperience({
+export const GuidedNoteJourney = activityExperience({
   journey: GuidedNote,
   steps: [
     { view: NoteTitleView, inputs: [Input.title] },
@@ -64,7 +64,7 @@ bindings fail before serving the build. Builds with no activities omit the field
 The lower-level catalog below remains available to a host exposing dynamic plans
 without a product View program. It is not an additional catalog required by VOID.
 
-The Node host creates an `activityCatalog(application, { journeys, views })` with
+The Node host creates an `activityIndex(application, { journeys, views })` with
 canonical mutation definitions or public module references and registered View
 objects constructed with `defineView` and `Components`. Raw, copied and serialized
 Views cannot bypass component authoring; issued module View references retain
@@ -73,7 +73,7 @@ digest binds the contract, operations and Views. The author uses object referenc
 and issued typed input tokens, not step IDs or manually typed command-input names.
 
 ```ts
-const catalog = activityCatalog(application, {
+const catalog = activityIndex(application, {
   journeys: [Journeys.createNote],
   views: [Views.Title, Views.Body, Views.Review],
 });

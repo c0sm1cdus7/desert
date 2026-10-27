@@ -4,31 +4,32 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import Heading from '@desert/svelte/pieces/Heading.svelte';
-  import TextContent from '@desert/svelte/pieces/TextContent.svelte';
-  import Information from '@desert/svelte/pieces/Information.svelte';
+  // Headings are their roles (section, page, caption) and own no margins: spacing is the parent column's gap (DESIGN §7.3).
+  import Heading from '@desert/svelte/catalog/foundations/heading/Heading.svelte';
+  import TextContent from '@desert/svelte/catalog/compositions/text-content/TextContent.svelte';
+  import Information from '@desert/svelte/catalog/compositions/information/Information.svelte';
   let migrated = $state(false);
 </script>
 <button data-toggle onclick={()=>migrated=!migrated}>Toggle implementation</button>
 <main data-parity>
   {#if migrated}
     <Heading kind="page" text="Notes" focusTarget />
-    <Heading kind="rail-title" text="Albums" id="albums" />
-    <Heading kind="document-title" text="A note" />
-    <Heading kind="group-label" text="All notes" required />
+    <Heading kind="section" text="Albums" id="albums" />
+    <Heading kind="page" text="A note" focusTarget />
+    <Heading kind="group" text="All notes" required />
     <TextContent text="Exact existing content composition." />
   {:else}
     <h1 class="min-w-0 break-words type-page" data-place-title tabindex="-1">Notes</h1>
-    <h2 class="min-w-0 break-words" id="albums" data-catalog-group-title>Albums</h2>
-    <h1 class="min-w-0 break-words" data-catalog-detail-title data-place-title tabindex="-1">A note</h1>
+    <h2 class="min-w-0 break-words type-section" id="albums">Albums</h2>
+    <h1 class="min-w-0 break-words type-page" data-place-title tabindex="-1">A note</h1>
     <h2 class="min-w-0 break-words type-caption">All notes<span class="required" aria-hidden="true">*</span></h2>
     <div data-stack-item data-stack-placement="content"><Information items={[{kind:'text',text:'Exact existing content composition.'}]} /></div>
   {/if}
 </main>
 <style>
   [data-parity] { margin:24px; padding:24px; background:var(--background); color:var(--foreground); }
-  [data-catalog-group-title] { margin:0 var(--place-content-inset,42px) 10px; font:var(--text-title--font-weight) var(--text-title)/var(--text-title--line-height) var(--font-sans); }
-  [data-catalog-detail-title] { margin:0 0 8px; font:var(--text-title--font-weight) var(--text-page)/var(--text-page--line-height) var(--font-sans); outline:none; }
+  /* The hand-written heading's required mark: theme.css styled .required globally until Batch 3 gave the rule to its owners. */
+  .required { color:var(--destructive); }
 </style>`;
 
 test("closed semantic headings and text composition preserve exact pixels and geometry", { timeout: 60000 }, async () => {

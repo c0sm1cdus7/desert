@@ -1,22 +1,26 @@
-import { readFileSync } from "node:fs";
 import { randomUUID } from "node:crypto";
+import type { Static } from "@sinclair/typebox";
 import type { PoolClient } from "pg";
+import type { assetStoreTable } from "../storage/tables/assets.ts";
 import { requireAssetQuota, type AssetQuota } from "./policy.ts";
 import { requireAssetReference } from "./types.ts";
+
+type AssetStoreRow = Static<typeof assetStoreTable.row>;
 
 export async function installPrivateAssetStore(client: PoolClient, id: string, limits: AssetQuota) {
   requireAssetReference(id);
   const quota = requireAssetQuota(limits);
   await client.query("SELECT pg_advisory_xact_lock(842722)");
-  await client.query(readFileSync(new URL("./schema.sql", import.meta.url), "utf8"));
+  // The asset tables are part of the controller's generated infrastructure (src/storage/infrastructure.ts), applied by
+  // the controller install before this store is bound.
   await client.query("INSERT INTO desert_asset_store (singleton, id, installation, quota) VALUES (true, $1, $2, $3) ON CONFLICT DO NOTHING",
     [id, randomUUID(), quota]);
   await requirePrivateAssetInstallation(client, id, quota);
-  const { rows: [row] } = await client.query<{ installation: string }>("SELECT installation FROM desert_asset_store WHERE id = $1", [id]);
+  const { rows: [row] } = await client.query<Pick<AssetStoreRow, "installation">>("SELECT installation FROM desert_asset_store WHERE id = $1", [id]);
   return row!.installation;
 }
 export async function requirePrivateAssetInstallation(client: PoolClient, id: string, quota?: AssetQuota, lock = false) {
-  const { rows: [row] } = await client.query<{ id: string; quota: AssetQuota }>(
+  const { rows: [row] } = await client.query<Pick<AssetStoreRow, "id" | "quota">>(
     `SELECT id, quota FROM desert_asset_store${lock ? " FOR UPDATE" : ""}`);
   if (!row || row.id !== id) throw new Error("ASSET_STORE_MISMATCH");
   const installed = requireAssetQuota(row.quota);

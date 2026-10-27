@@ -1,5 +1,5 @@
 import type { ViewProgram } from "../views/program-schema.ts";
-import { inspectionMedia } from "../svelte/catalog/inspection-media.ts";
+import { inspectionMedia } from "../svelte/infra/inspection-media.ts";
 import { viewHeaderImages } from "../views/header-media.ts";
 import { mediaArtwork } from "../views/media-library.ts";
 

@@ -6,7 +6,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 test("appearance previews preserve their own material border and accessibility preferences", async () => {
   const f = await svelteBrowser(`<script>
-    import AppearancePreview from '@desert/svelte/pieces/AppearancePreview.svelte';
+    import AppearancePreview from '@desert/svelte/catalog/compositions/appearance-preview/AppearancePreview.svelte';
   </script><AppearancePreview mode="dark" tint="rose" wallpaper="mist"/>
   <AppearancePreview mode="light" tint="rose" wallpaper="mist"/>`, {}, undefined, { initialCss: await rendererCss() });
   try {
@@ -23,7 +23,7 @@ test("appearance previews preserve their own material border and accessibility p
           return [...context.getImageData(0, 0, 1, 1).data];
         };
         return items.map(item => {
-          const root = getComputedStyle(item), pane = getComputedStyle(item.querySelector('[data-material="pane"]')!);
+          const root = getComputedStyle(item), pane = getComputedStyle(item.querySelector('.material-pane')!);
           return { mode: item.getAttribute("data-appearance-preview"), border: rgba(pane.borderTopColor),
             expected: rgba(highContrast ? root.color : root.getPropertyValue("--border")),
             alpha: rgba(pane.backgroundColor)[3], filter: pane.backdropFilter };

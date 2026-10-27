@@ -62,7 +62,7 @@ for (const width of [390, 1280]) for (const scale of [1, 2]) {
       await trigger.click();
       const input = page.getByRole('searchbox', { name: 'Search component bank', exact: true });
       await input.fill('money'); await settle(page);
-      const results = page.locator('[data-search-result]');
+      const results = page.locator('[data-focus-key^="search:"]');
       assert.equal(await results.count(), 1, 'Search actually filters the component inventory');
       assert.match(await results.innerText(), /Money/);
       await page.keyboard.press('Escape'); await settle(page);
@@ -72,7 +72,7 @@ for (const width of [390, 1280]) for (const scale of [1, 2]) {
       assert.equal(await input.inputValue(), '', 'Closing shared search clears its transient query');
       await input.fill('money'); await settle(page);
       await results.getByRole('button', { name: /Money/ }).click(); await settle(page);
-      const money = page.locator('[data-catalog-entry="control.money"]');
+      const money = page.locator('[data-view-item="entry:control.money"]');
       assert.ok(await money.isVisible(), 'Selecting the result reveals the real component');
       assert.ok(await money.evaluate(element => element === document.activeElement || element.contains(document.activeElement)), 'Reveal gives the component keyboard context');
       await page.screenshot({ path: `${compactEvidenceDirectory}/bank-search-result-${width}-text${scale}.png` });

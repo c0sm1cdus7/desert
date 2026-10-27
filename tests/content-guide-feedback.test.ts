@@ -3,19 +3,20 @@ import assert from 'node:assert/strict';
 import {svelteBrowser} from './fixtures/svelte-browser.ts';
 import {rendererCss} from './fixtures/renderer-css.ts';
 
+// The control's own root: the first piece its specimen row's stack item holds (lane B's controls draw no data-control mark).
 test('standalone media content shares its specimen reading guide',async()=>{
  const f=await svelteBrowser(`<script>
- import ControlBench from '@desert/svelte/catalog/ControlBench.svelte';
+ import ControlBench from '@desert/svelte/catalog/compositions/control-bench/ControlBench.svelte';
  </script><ControlBench entryIds={['control.tag','control.avatar','control.image']} />`);
  try {
   await f.page.addStyleTag({content:await rendererCss()});
-  const offsets=await f.page.locator('[data-specimen]:visible').evaluateAll(rows=>rows.map(row=>{
-   const title=row.closest('[data-catalog-entry]')!.querySelectorAll('.place-stack-title')[1]!,content=row.querySelector('[data-control]')!;
+  const offsets=await f.page.locator('[data-view-item^="specimen:"]:visible').evaluateAll(rows=>rows.map(row=>{
+   const title=row.closest('[data-view-item^="entry:"]')!.querySelectorAll('.place-stack-title')[1]!,content=row.querySelector('[data-stack-item] > *')!;
    return {label:title.getBoundingClientRect().left+parseFloat(getComputedStyle(title).paddingLeft),content:content.getBoundingClientRect().left};
   }));
   assert.equal(offsets.length,3,'each component presents only its selected state');
   for(const value of offsets) assert.equal(value.content,value.label);
-  const notice=await f.page.getByRole('group',{name:'Interaction',exact:true}).getByRole('status').locator('p').evaluate(e=>e.getBoundingClientRect().left+parseFloat(getComputedStyle(e).paddingLeft));
+  const notice=await f.page.getByRole('group',{name:'Interaction',exact:true}).getByRole('status').evaluate(e=>e.getBoundingClientRect().left+parseFloat(getComputedStyle(e).paddingLeft));
   assert.equal(notice,offsets[0]!.label);
  } finally {await f.close();}
 });

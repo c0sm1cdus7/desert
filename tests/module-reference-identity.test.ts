@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Components, defineView, defineModule, moduleCatalog, viewOutput } from "../src/index.ts";
+import { Components, defineView, defineModule, moduleIndex, viewOutput } from "../src/index.ts";
 import { requireModuleHandle } from "../src/modules/references.ts";
+import { fixtureText } from "./fixtures/messages.ts";
 
 function sourceView() {
   return defineView({ name: "owned-view", outputs: ["close"],
-    topDock: Components.Toolbar({ actions: [{ output: "close", label: "Close", icon: "close" }] }),
-    content: [Components.Header({ title: "Original title", subtitle: "Original subtitle" })] });
+    topDock: Components.Toolbar({ actions: [{ output: "close", label: fixtureText.close, icon: "close" }] }),
+    content: [Components.Header({ title: fixtureText.originalTitle, subtitle: fixtureText.originalSubtitle })] });
 }
 
 test("A private original cannot be re-registered and published by another module owner", () => {
@@ -35,7 +36,7 @@ test("Registering the exact unchanged module declaration reuses its handle and p
   const source = { id: "idempotent-owner", views: [original], exports: { views: { item: original } } };
   const first = defineModule(source), second = defineModule(source);
   assert.equal(first, second);
-  assert.equal(moduleCatalog([first]).views.item, moduleCatalog([second]).views.item);
+  assert.equal(moduleIndex([first]).views.item, moduleIndex([second]).views.item);
 });
 
 test("Re-registering an altered module declaration fails instead of silently reusing stale admission", () => {
@@ -49,7 +50,7 @@ test("Re-registering an altered module declaration fails instead of silently reu
 test("An issued view reference remains immutable at every admitted source layer", () => {
   const original = sourceView();
   const module = defineModule({ id: "snapshot-owner", views: [original], exports: { views: { item: original } } });
-  const reference = moduleCatalog([module]).views.item;
+  const reference = moduleIndex([module]).views.item;
   const before = structuredClone(requireModuleHandle(module).definition);
   assert.equal(Reflect.set(original, "id", "changed-id"), false);
   assert.equal(Reflect.set(original.outputs, "0", "injected"), false);
@@ -65,7 +66,7 @@ test("An issued view reference remains immutable at every admitted source layer"
 test("An immutable isolated view keeps one identity across repeated uses of its public alias", () => {
   const original = defineView({ name: "isolated", outputs: ["close"], content: [] });
   const module = defineModule({ id: "isolated-owner", views: [original], exports: { views: { item: original } } });
-  const firstCatalog = moduleCatalog([module]), secondCatalog = moduleCatalog([module]);
+  const firstCatalog = moduleIndex([module]), secondCatalog = moduleIndex([module]);
   const first = viewOutput(firstCatalog.views.item, "close");
   const second = viewOutput(secondCatalog.views.item, "close");
   assert.equal(first.view, second.view);
@@ -78,6 +79,6 @@ test("An immutable isolated view keeps one identity across repeated uses of its 
 test("Copying an issued reference does not preserve its authority", () => {
   const original = sourceView();
   const module = defineModule({ id: "token-owner", views: [original], exports: { views: { item: original } } });
-  const reference = moduleCatalog([module]).views.item;
+  const reference = moduleIndex([module]).views.item;
   assert.throws(() => viewOutput({ ...reference }, "close"), /UNREGISTERED_MODULE_REFERENCE/);
 });

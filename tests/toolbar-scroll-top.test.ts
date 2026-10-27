@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { toolbarScrollFixture, scrollDown, clickFreeToolbarRegion } from "./fixtures/toolbar-scroll-top.ts";
 import { svelteBrowser } from "./fixtures/svelte-browser.ts";
-import { catalogGroups } from "../src/svelte/catalog/navigation.ts";
 
 for (const target of ["title", "free space"] as const) {
   test(`top toolbar ${target} returns only its associated content to the beginning`, async () => {
@@ -59,6 +58,9 @@ for (const key of ["Enter", "Space"]) {
       assert.deepEqual(await f.scrollCalls(), [[{ top: 0, behavior: "smooth" }]]);
       assert.equal(await action.evaluate((element, initial) => element === initial && document.activeElement === element, original), true,
         "the same keyboard target retains focus after reaching the top");
+      // The toolbar learns it is at the top from the viewport's scroll event, which a smooth scroll may deliver a frame
+      // after scrollTop lands on 0: the second activation is pressed once the toolbar no longer offers the return.
+      await f.page.waitForFunction(() => !document.querySelector('[data-test-pane="0"] [data-toolbar="top"]')!.hasAttribute("data-toolbar-return"));
       await action.press(key);
       assert.deepEqual(await f.scrollCalls(), [[{ top: 0, behavior: "smooth" }]], "activation at the top is a no-op");
       await f.page.keyboard.press("Tab");
@@ -120,22 +122,6 @@ test("an inert content viewport cannot be returned to top through its toolbar", 
     assert.deepEqual(await f.scrollCalls(), []);
     assert.equal(await f.viewport.evaluate(element => element.scrollTop), 600);
     assert.equal(await f.toolbar.getByRole("button", { name: "Back to top", exact: true }).count(), 0);
-    assert.deepEqual(f.errors, []);
-  } finally { await f.close(); }
-});
-
-test("visual catalog group headings have no separate return-to-top arrows", async () => {
-  const f = await svelteBrowser(`<script>
-    import CatalogGroupHeader from "@desert/svelte/catalog/CatalogGroupHeader.svelte";
-    const families = ${JSON.stringify(catalogGroups.map(group => group.family))};
-  </script>{#each families as family}<CatalogGroupHeader {family} />{/each}`);
-  try {
-    for (const group of catalogGroups) {
-      assert.equal(await f.page.getByRole("heading", { name: group.title, exact: true }).isVisible(), true);
-      assert.equal(await f.page.getByText(group.description, { exact: true }).isVisible(), true);
-    }
-    assert.equal(await f.page.getByRole("link", { name: "Back to catalog navigation", exact: true }).count(), 0);
-    assert.equal(await f.page.locator("button, a, svg").count(), 0, "group identity has no duplicate navigation control");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

@@ -40,10 +40,10 @@ Product source
 | Module | [modules/definition.ts](../../src/modules/definition.ts) | Owns definitions and explicitly publishes public contracts. |
 | Product root | [modules/compose.ts](../../src/modules/compose.ts) | Mounts modules; derives domain, View program and indexes. No second authored registry. |
 | Public compilation | [modules/compiled-product.ts](../../src/modules/compiled-product.ts) | Accepts only the issued composition and binds its application to its one admitted View program. Detached wire data is not a public product build entrypoint. |
-| Public catalogs | [modules/module-catalog.ts](../../src/modules/module-catalog.ts) | Derives typed `Journeys`, `Views`, `Commands`, `Destinations` and `Dependencies` from mounted manifests. Commands derive from published mutation journeys, not a second command registry. |
+| Public catalogs | [modules/module-index.ts](../../src/modules/module-index.ts) | Derives typed `Journeys`, `Views`, `Commands`, `Destinations` and `Dependencies` from mounted manifests. Commands derive from published mutation journeys, not a second command registry. |
 | Cross-module references | [modules/references.ts](../../src/modules/references.ts) and [modules/admission.ts](../../src/modules/admission.ts) | Issues opaque references and admits exact module ownership before snapshotting and serializing. A copied ID/owner shape is not a valid reference. |
-| Exposure | [surfaces.ts](../../src/surfaces.ts) | Composed human authoring accepts only `id`, execution journey objects and `locale`; agent exposure selects execution journeys. Neither grants authority. |
-| Exposure compilation | [modules/compile-surfaces.ts](../../src/modules/compile-surfaces.ts) | Derives canonical field/operation labels, field representations and human review modes from their owners before domain compilation. |
+| Exposure | [exposures.ts](../../src/exposures.ts) | Composed human authoring accepts only `id`, execution journey objects and `locale`; agent exposure selects execution journeys. Neither grants authority. |
+| Exposure compilation | [modules/compile-exposures.ts](../../src/modules/compile-exposures.ts) | Derives canonical field/operation labels, field representations and human review modes from their owners before domain compilation. |
 | Navigation ownership | [navigation-ownership.ts](../../src/navigation-ownership.ts) | One guard and type exclude competing navigation from composed human exposure. |
 | Connection policy | [connection-policy.ts](../../src/connection-policy.ts) | Fixed SDK availability/draft/reconnect guarantees, injected rather than repeated by products. |
 | Distribution | [distributions.ts](../../src/distributions.ts) | Separates deployable controller/client artifacts from the product definition. |
@@ -126,10 +126,10 @@ activities and output reachability. Unknown semantics fail; they are not ignored
 ## One authoring owner for human semantics
 
 A composed human exposure selects execution journey objects and locale. The
-actual [VOID declaration](../../../void/src/surfaces.ts) is:
+actual [VOID declaration](../../../void/src/exposures.ts) is:
 
 ```ts
-export const VoidHumanSurface = humanSurface({
+export const VoidHumanExposure = humanExposure({
   id: "human",
   journeys: ExposedJourneys,
   locale: "en",
@@ -148,7 +148,7 @@ equal duplicates. The authoring helper accepts no other properties.
 The [object publication](../../../void/src/modules/notes/note.publication.ts)
 owns each field's `label` and `representation`, through a typed fact reference.
 The installed representations are `text`, `paragraphs`, `image` and `tags`. Paragraphs
-require a text fact; image requires an `imageAsset()` fact; tags require `labels()`.
+require a text fact; image requires a `file()` fact; tags require `labels()`.
 Assets and labels cannot be object titles or text collection summaries. Duplicate, foreign, unknown and
 principal field references fail.
 The [execution registration](../../../void/src/modules/notes/notes.module.ts)
@@ -157,7 +157,7 @@ owns its operation `label`. An exposed mutation also explicitly declares
 Required human metadata is checked when the operation is exposed, so a headless
 module does not need to manufacture display metadata.
 
-[compileSurfaceExposures](../../src/modules/compile-surfaces.ts) translates those
+[compileExposures](../../src/modules/compile-exposures.ts) translates those
 declarations into canonical `language`, `fieldRepresentations` and `commit` maps
 before the internal wire compilation. Each presented field has an explicit compatible
 representation. Text/paragraphs derive text/multiline inputs; image facts derive
@@ -193,7 +193,7 @@ execution authority.
 
 ## Public object-reference catalogs
 
-[`moduleCatalog`](../../src/modules/module-catalog.ts) consumes registered module
+[`moduleIndex`](../../src/modules/module-index.ts) consumes registered module
 manifests once. Each manifest selects public definitions by object reference,
 for example `exports: { journeys: { createNote: CreateNote } }`. The integrator
 then exports projections such as `Journeys = Modules.journeys`; consumers write
@@ -215,10 +215,10 @@ avoiding a circular dependency between a journey and its own registry.
 
 ## One navigation owner
 
-[The module catalog](../../src/modules/catalog.ts) derives definitions and the
+[The module catalog](../../src/modules/product-index.ts) derives definitions and the
 storyboard. Destination order is an authored product choice, not file discovery.
 Home is a destination, not a mandatory module or an SDK-wide entry rule.
-`humanSurface()` exposes execution; it cannot declare `entry`, `primaryAction`,
+`humanExposure()` exposes execution; it cannot declare `entry`, `primaryAction`,
 `subjectActions` or `navigation`. The composed View program owns entry and action
 bindings. The former standalone human/agent authoring route is removed. Notebook
 now uses the same `composeProduct`, module publications, `Components` and declared
@@ -251,7 +251,7 @@ The wire compiler additionally checks exposure and the mutation/read object
 match. There is no unique-read inference, even when only one read is installed:
 
 ```ts
-export const CreateNoteExperience = {
+export const CreateNoteJourney = {
   id: CreateNote.id, kind: "create", source: ReadNotes,
   view: NoteEditorView, preferredDock: "right",
   outputs: [
@@ -273,8 +273,8 @@ navigation node consuming the one list above. No leftDock means no navigation
 surface. The renderer cannot fabricate one from exposure metadata. Unsupported
 slots, nested docks and right docks fail; this is not a general side-dock engine.
 
-The shared [ToolbarLayout](../../src/svelte/pieces/ToolbarLayout.svelte) accepts
-identity data and alone mounts [ToolbarIdentity](../../src/svelte/pieces/ToolbarIdentity.svelte).
+The shared [ToolbarLayout](../../src/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte) accepts
+identity data and alone mounts [ToolbarIdentity](../../src/svelte/catalog/compositions/toolbar-layout/ToolbarIdentity.svelte).
 Its title uses the surface reading guide when no leading control is present;
 otherwise it follows the actual control group. Consumer title markup and padding
 overrides are rejected by the toolbar ownership gate. The guide and title formula
@@ -341,7 +341,7 @@ conditional input collection around one installed mutation journey:
 | Owner | Responsibility |
 | --- | --- |
 | [authoring.ts](../../src/activities/authoring.ts) | Typed journey/View references and `activityInputs(journey)` references; steps never contain command handlers. |
-| [catalog.ts](../../src/activities/catalog.ts) | Admits only installed operations and registered component-built Views, binds the contract/catalog digest, and validates dynamic plans. |
+| [catalog.ts](../../src/activities/activity-index.ts) | Admits only installed operations and registered component-built Views, binds the contract/catalog digest, and validates dynamic plans. |
 | [coverage.ts](../../src/activities/coverage.ts) | Checks earlier-input conditions and complete, nonduplicate command input coverage on every admitted branch. |
 | [drafts.ts](../../src/activities/drafts.ts) and [records.ts](../../src/activities/records.ts) | Persist identity/surface-scoped drafts, answers, revisions, expiry and cancellation. |
 | [prepare.ts](../../src/activities/prepare.ts) | Reuses preflight, canonical run admission and preparation once the active steps are complete. |
@@ -376,7 +376,7 @@ admitted branch must still collect all canonical inputs exactly once.
 
 [`serveIdentityHost`](../../src/local/identity-host.ts) mounts a protected local
 product without manufacturing a developer identity. The shared
-[AccessGate](../../src/svelte/pieces/AccessGate.svelte) chooses onboarding when no
+[AccessGate](../../src/svelte/catalog/compositions/access-gate/AccessGate.svelte) chooses onboarding when no
 administrator exists, locked sign-in when there is no valid session, or the
 declared product workspace when access is ready. Home remains the product entry;
 the access gate is not a competing navigation registry.
@@ -423,7 +423,8 @@ discovery or a shared cross-surface Home/sidebar navigator.
 
 ## Private image inputs and reads
 
-[`imageAsset()`](../../src/field-definition.ts) declares an image fact, not a URL,
+[`file({ accept, maxBytes })`](../../src/field-definition.ts) declares a file fact (accepted media types from
+[the media policy](../../src/media/rendition-policy.ts) and a size limit), not a URL,
 filesystem path or a renderer override. Commands assign it only through a
 compatible `fromInput(...)`. The shared [asset reference schema](../../src/assets/types.ts)
 is a closed kernel-issued locator; knowing its value grants no read or write
@@ -432,7 +433,7 @@ for these facts.
 
 The [form projection](../../src/interaction/frame-presenters.ts) selects the
 existing `control.files` catalog owner. The session's
-[file host](../../src/svelte/controls/file-host.ts) retains actual browser `File`
+[file host](../../src/svelte/infra/file-host.ts) retains actual browser `File`
 handles; the draft/frame contain only bounded metadata. Selecting a file does
 not upload it. [Draft validation](../../src/web/client/draft-validation.ts)
 validates all scalar inputs and the selected file policy without manufacturing
@@ -519,7 +520,7 @@ does not make a command available.
 for each mounted activity. A late blur, submit, Close or Accept from a superseded
 instance cannot act on the current one, even when both use the same View and input
 names. This identity is runtime-local, not a product ID, serialized contract field
-or controller credential. [InstanceFrame](../../src/svelte/InstanceFrame.svelte)
+or controller credential. [InstanceFrame](../../src/svelte/catalog/renderer/instance-frame/InstanceFrame.svelte)
 captures that instance's callbacks while the outer Drawer remains mounted; this
 preserves the existing entry/exit motion and responsive host.
 
@@ -554,52 +555,50 @@ These are distinct inventories, not competing sources of truth:
 
 | Catalog | Construction |
 | --- | --- |
-| Product definitions and storyboard | Derived from module/root registrations by [modules/catalog.ts](../../src/modules/catalog.ts). |
+| Product definitions and storyboard | Derived from module/root registrations by [modules/product-index.ts](../../src/modules/product-index.ts). |
 | Public component values | [Components](../../src/views/components.ts) derives closed typed builders from the View grammar, with issuance checks in [component-values.ts](../../src/views/component-values.ts). |
-| Semantic interaction pieces | [InteractionCatalog](../../src/interaction/catalog.ts), with states, groups and [foundation ownership](../../src/interaction/catalog-ownership.ts). |
-| Web implementations | [webRenderers](../../src/svelte/renderer-registry.ts), checked exhaustively for `PrimitiveId` by [WebRendererBank](../../src/svelte/renderer-contracts.ts). |
-| Sealed adapter gateway | [adapter-catalog.ts](../../src/svelte/adapter-catalog.ts) exports actual existing owners; [adapter-contract.ts](../../src/svelte/adapter-contract.ts) restricts the admitted props/slots and derives their types from those owners. No new DOM or alternative controls. |
-| Visual inspection | [InspectionCatalog](../../src/svelte/catalog/InspectionCatalog.svelte) derives entries from the semantic catalog and [public bank inventory](../../src/svelte/explorer/PublicCatalogBank-model.ts); specimens use the same registered owners. |
+| Semantic interaction pieces | [ResolvedNodes](../../src/interaction/catalog.ts), with states, groups and [foundation ownership](../../src/interaction/catalog-ownership.ts). |
+| Web implementations | [nodeRenderers](../../src/svelte/renderer-registry.ts), generated from each declaration's `renders` and checked exhaustively for `ResolvedNodeId` by [NodeRendererTable](../../src/svelte/renderer-contracts.ts). |
+| Catalog index | [catalog/index.ts](../../src/svelte/catalog/index.ts), generated from the declarations, exports every piece; renderer compositions mount pieces from it and pass only what their contracts declare. No new DOM or alternative controls. |
+| Visual inspection | [InspectionCatalog](../../src/svelte/catalog/compositions/inspection-catalog/InspectionCatalog.svelte) derives entries from the semantic catalog and [public bank inventory](../../src/svelte/infra/PublicCatalogBank-model.ts); specimens use the same registered owners. |
 
 Header, Stack, toolbar, media-library, Appearance, System and Identity compositions have View grammar and shared
-owners; they are not all entries of `InteractionCatalog`. Exhaustiveness of that
+owners; they are not all entries of `ResolvedNodes`. Exhaustiveness of that
 registry does not establish global component ownership.
 
 The active authored-View route is concrete:
 
 ```text
 ViewProduct: model snapshot + owned events
-  → adapter-catalog.ViewWorkspace
+  → catalog index: ViewWorkspace
     → CatalogWorkspace: existing shell, left navigation and search overlay
       → CatalogWorkspaceContent: finite body selection
         → ViewContent → ContentFlow: ordered content, not a mandatory Stack
-      ├─ ViewItem → catalog owners / BankRenderer
+      ├─ ViewItem → catalog owners / NodeRenderer
       ├─ InspectionContent → Inspection → InspectionCatalog
-      └─ MediaContent → MediaLibrary → existing CatalogHome + Viewer
-    → Panel → TransientRenderer → existing Drawer
+      └─ MediaContent → Library → existing CatalogHome + Viewer
+    → Panel → NodeRenderer (transient) → existing Drawer
       → InstanceFrame → SurfaceFrame → FrameBody → catalog owners
-    → FailureDialog → BankRenderer
+    → FailureDialog → NodeRenderer
 ```
 
 | Read this implementation | What it owns |
 | --- | --- |
-| [ViewProduct](../../src/svelte/views/ViewProduct.svelte) | Closed catalog adapter. [ViewProductContent](../../src/svelte/pieces/ViewProductContent.svelte) instantiates the shared model with its authenticated browser binding and hands resolved data/events to the workspace. [Browser session lifecycle](../../src/web/client/browser-session.ts) owns invitation consumption, subscriptions, unload protection and disposal, not layout. |
-| [ViewWorkspace](../../src/svelte/pieces/ViewWorkspace.svelte) | Finite workspace composition; retains destination content and coordinates search, album navigation and focus using the approved shell. [Workspace](../../src/svelte/views/Workspace.svelte) is a thin compatibility adapter to that same owner. |
-| [CatalogWorkspace](../../src/svelte/explorer/CatalogWorkspace.svelte) | Owns the existing viewport, heading motion, navigation, search overlay and panels. Accepts typed data, not incoming content, search, panel or bottom render slots. |
-| [CatalogWorkspaceContent](../../src/svelte/pieces/CatalogWorkspaceContent.svelte) | Selects the installed `view-program`, `public-catalog` or `access` body from the private [workspace content contract](../../src/svelte/pieces/workspace-content.ts). Retains the same existing DOM and catalog owners. |
-| [ContentFlow](../../src/svelte/pieces/ContentFlow.svelte) | Renders ordered content; standalone header identity belongs to the workspace, titled Stacks group their own children. |
-| [Inspection](../../src/svelte/pieces/Inspection.svelte) | Retains the local Visual catalog and opens its examples. [InspectionCatalog](../../src/svelte/catalog/InspectionCatalog.svelte) owns bank/group wrappers and instance-scoped entry lookup. |
-| [MediaLibrary](../../src/svelte/pieces/media/Library.svelte) | Owns the media wrapper, selection queue and viewer focus; reuses [Viewer](../../src/svelte/pieces/media/Viewer.svelte), not a second media UI. |
-| [Panel](../../src/svelte/views/Panel.svelte) | Adapts a resolved panel and its event identity to the existing [Drawer](../../src/svelte/pieces/Drawer.svelte); it does not choose sizes or paint. |
+| [ViewProduct](../../src/svelte/catalog/renderer/view-product/ViewProduct.svelte) | Closed catalog adapter. [ViewProductContent](../../src/svelte/catalog/compositions/view-product-content/ViewProductContent.svelte) instantiates the shared model with its authenticated browser binding and hands resolved data/events to the workspace. [Browser session lifecycle](../../src/web/client/browser-session.ts) owns invitation consumption, subscriptions, unload protection and disposal, not layout. |
+| [ViewWorkspace](../../src/svelte/catalog/compositions/view-workspace/ViewWorkspace.svelte) | Finite workspace composition; retains destination content and coordinates search, album navigation and focus using the approved shell. [Workspace](../../src/svelte/catalog/renderer/workspace/Workspace.svelte) is a thin compatibility adapter to that same owner. |
+| [CatalogWorkspace](../../src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte) | Owns the existing viewport, heading motion, navigation, search overlay and panels. Accepts typed data, not incoming content, search, panel or bottom render slots. |
+| [CatalogWorkspaceContent](../../src/svelte/catalog/compositions/catalog-workspace-content/CatalogWorkspaceContent.svelte) | Selects the installed `view-program`, `public-catalog` or `access` body from the private [workspace content contract](../../src/svelte/infra/workspace-content.ts). Retains the same existing DOM and catalog owners. |
+| [ContentFlow](../../src/svelte/catalog/compositions/content-flow/ContentFlow.svelte) | Renders ordered content; standalone header identity belongs to the workspace, titled Stacks group their own children. |
+| [Inspection](../../src/svelte/catalog/compositions/inspection/Inspection.svelte) | Retains the local Visual catalog and opens its examples. [InspectionCatalog](../../src/svelte/catalog/compositions/inspection-catalog/InspectionCatalog.svelte) owns bank/group wrappers and instance-scoped entry lookup. |
+| [Library](../../src/svelte/catalog/compositions/library/Library.svelte) | Owns the media wrapper, selection queue and viewer focus; reuses [Viewer](../../src/svelte/catalog/compositions/viewer/Viewer.svelte), not a second media UI. |
+| [Panel](../../src/svelte/catalog/renderer/panel/Panel.svelte) | Adapts a resolved panel and its event identity to the existing [Drawer](../../src/svelte/catalog/foundations/drawer/Drawer.svelte); it does not choose sizes or paint. |
 
-The migrated adapters import only admitted gateway entries. The
-[adapter gate](../../src/authoring/visual-boundary/adapter.ts) rejects raw HTML,
-native markup, CSS, arbitrary/dynamic components, native-attribute forwarding
-and shadowed catalog names; the [runtime-global gate](../../src/authoring/visual-boundary/adapter-globals.ts)
-also rejects direct DOM/global escape routes. `TransientRenderer` and
-`ControlBankRenderer` alias the same actual BankRenderer but admit only their
-respective private frame identity/file-host capabilities. The generic entry
-does not gain those capabilities or native action attributes.
+Renderer compositions import pieces only from the catalog index. Catalog rules D
+and E reject raw HTML, native markup, arbitrary/dynamic components,
+native-attribute forwarding and shadowed piece names; G rejects their CSS; I
+rejects DOM access and any browser global in a renderer composition; O rejects
+evaluators and computed imports. Only the dispatcher passes a private frame
+identity or file host, and only to the kind that owns it (rule D2).
 
 `Components.SystemStatus()` expands through
 [system-status.ts](../../src/web/client/system-status.ts) into existing Stack,
@@ -611,13 +610,12 @@ or consumer styling override. Media reuses the same hero/cards/viewer for the
 installed image, video and audio types; a typed sample library is not an upload
 service or an authenticated managed media store.
 
-[BankRenderer](../../src/svelte/BankRenderer.svelte) validates its node and selects
-the corresponding registered owner. Its [dispatcher gate](../../src/authoring/visual-boundary/dispatch.ts)
-checks that finite dispatch path separately from ordinary component adapters.
-Catalog owners legitimately implement DOM and motion. Their
-[closed composition boundary](../../src/authoring/visual-boundary/composition.ts)
-distinguishes locally owned internal snippets from caller-supplied rendering;
-moving a wrapper into an owner does not authorize arbitrary public slots.
+[NodeRenderer](../../src/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte) validates its node and selects
+the corresponding registered owner. Rule D2
+([composition-dispatch.ts](../../src/authoring/catalog/gate/composition-dispatch.ts),
+[dispatch-admission.ts](../../src/authoring/catalog/gate/dispatch-admission.ts))
+checks that finite dispatch path. Foundations legitimately implement DOM and
+motion; a composition renders only the slots its declaration names.
 
 Workspace consumers receive semantic focus, scroll and catalog-selection actions,
 not a DOM element or arbitrary component instance. The finite body contract has no
@@ -625,19 +623,18 @@ component/render callback, child markup or native attributes. Its negative sourc
 and type tests reject those escape routes. This closure does not retroactively
 qualify every private owner or eliminate the separately inventoried legacy debt.
 
-The [gateway integrity check](../../src/authoring/visual-boundary/gateway.ts)
-derives implementation identities from the existing owner type map. A gateway
-cannot substitute an owner, wrap it, import styles or execute extra code. The
-[nonvisual dependency graph](../../src/authoring/visual-boundary/dependency-graph.ts)
-follows each sealed adapter's runtime helpers and barrel exports beyond the
-Svelte directory. Private styles/components, opaque imports, unregistered packages
+The catalog index is generated (rule C): it cannot substitute an owner, wrap it,
+import styles or execute extra code. Rule N
+([nonvisual.ts](../../src/authoring/catalog/gate/nonvisual.ts)) reads the whole
+interpreter and follows every runtime helper and barrel export the page reaches
+beyond the visual roots. Private styles/components, opaque imports, unregistered packages
 and browser drawing authority fail the build there too. Type-only references
 remain legal. The browser-session host admits only its registered invitation,
 history and unload capabilities, not arbitrary access to the browser.
 
 The actual [generated-project runner](../../src/build/svelte/project.ts) calls
-the [shared visual boundary](../../src/authoring/visual-boundary/source.ts) before
-its worker. Removing a required sealed source does not disable the check.
+the [catalog gate](../../src/authoring/catalog/gate/build-gate.ts) before
+its worker. Removing a declared source or a gate module does not disable the check.
 The [worker](../../src/build/svelte/worker.mjs) performs Svelte/TypeScript checking
 before Vite can emit a build. An invalid semantic prop value cannot pass merely
 because Vite normally transpiles TypeScript without typechecking it.
@@ -648,16 +645,16 @@ the existing [theme.css](../../src/svelte/theme.css), which assembles shared
 tokens, typography, geometry and material. The
 [page](../../src/build/svelte/template/src/routes/+page.svelte) selects the
 renderer; `ViewProduct` does not import CSS or depend on a legacy renderer to
-load it. The [bootstrap gate](../../src/authoring/visual-boundary/bootstrap.ts)
+load it. Rule T ([template-artifacts.ts](../../src/authoring/catalog/gate/template-artifacts.ts))
 admits that theme import and the framework-owned child slot, not another public
-render extension. [Catalog appearance](../../src/svelte/pieces/catalog-appearance.ts)
+render extension. [AppearanceRoot](../../src/svelte/catalog/foundations/appearance-root/appearance-root.ts)
 separately mounts/restores the shared root profile; it is not product styling.
 
 Geometry/material/motion belong to shared owners such as
-[StackLayout](../../src/svelte/pieces/StackLayout.svelte),
-[Action](../../src/svelte/pieces/Action.svelte),
-[FieldWell](../../src/svelte/pieces/FieldWell.svelte) and
-[pane material](../../src/svelte/pieces/pane-material.css).
+[StackLayout](../../src/svelte/catalog/foundations/stack-layout/StackLayout.svelte),
+[Action](../../src/svelte/catalog/foundations/action/Action.svelte),
+[FieldWell](../../src/svelte/catalog/foundations/field-well/FieldWell.svelte) and
+[pane material](../../src/svelte/catalog/mechanisms/pane-material/pane-material.css).
 The web implementation uses the installed Svelte/shadcn bank. Separate native
 catalogs are not implemented; there is no claim of iOS/Android/Linux native parity.
 

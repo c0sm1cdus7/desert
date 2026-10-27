@@ -59,7 +59,7 @@ export function validateProgramBindings(program: ViewProgram, surface: HumanSurf
           preview.where.object !== mediaRead.subject || !mediaRead.collection.includes(preview.where.field) ||
           surface.fieldReferences?.[`${preview.where.object}.${preview.where.field}`]?.object !== read.subject ||
           preview.media.object !== mediaRead.subject || !mediaRead.collection.includes(preview.media.field) ||
-          surface.fieldKinds?.[`${preview.media.object}.${preview.media.field}`] !== "asset" ||
+          surface.fieldKinds?.[`${preview.media.object}.${preview.media.field}`] !== "file" ||
           (preview.cover && (preview.cover.object !== read.subject || !read.collection.includes(preview.cover.field) ||
             surface.fieldMediaReferences?.[`${preview.cover.object}.${preview.cover.field}`]?.object !== mediaRead.subject))) {
           throw new Error("INVALID_COLLECTION_PREVIEW");
@@ -67,14 +67,14 @@ export function validateProgramBindings(program: ViewProgram, surface: HumanSurf
       } else if (port?.kind === "collection" && port.presentation?.kind === "media-grid") {
         if (binding.preview) throw new Error("INVALID_COLLECTION_PREVIEW");
         const image = port.presentation.image;
-        if (image.object !== read.subject || !visible.includes(image.field) || surface.fieldKinds?.[`${image.object}.${image.field}`] !== "asset") throw new Error("INVALID_MEDIA_GRID_FIELD");
+        if (image.object !== read.subject || !visible.includes(image.field) || surface.fieldKinds?.[`${image.object}.${image.field}`] !== "file") throw new Error("INVALID_MEDIA_GRID_FIELD");
         for (const reference of [port.presentation.fit, port.presentation.description]) {
           if (reference && (reference.object !== read.subject || !visible.includes(reference.field) || read.detailSchema.properties[reference.field]?.type !== "string")) throw new Error("INVALID_MEDIA_GRID_FIELD");
         }
       } else {
         if(binding.summary)throw new Error('INVALID_WIDGET_BINDING');
         if (binding.preview) throw new Error("INVALID_COLLECTION_PREVIEW");
-        if (visible.some(field => surface.fieldKinds?.[`${read.subject}.${field}`] === "asset")) throw new Error("ASSET_CANNOT_BE_COLLECTION_TEXT");
+        if (visible.some(field => surface.fieldKinds?.[`${read.subject}.${field}`] === "file")) throw new Error("ASSET_CANNOT_BE_COLLECTION_TEXT");
         if (visible.some(field => surface.fieldKinds?.[`${read.subject}.${field}`] === "labels")) throw new Error("LABELS_CANNOT_BE_COLLECTION_TEXT");
       }
     }
@@ -115,10 +115,10 @@ export function validateProgramBindings(program: ViewProgram, surface: HumanSurf
       if (port.kind === "collection" && port.presentation?.kind === "media-grid") {
         const { image, fit, description } = port.presentation;
         if (image.object !== related.subject || !visible.includes(image.field) ||
-          surface.fieldKinds?.[`${image.object}.${image.field}`] !== "asset" || [fit, description].some(field =>
+          surface.fieldKinds?.[`${image.object}.${image.field}`] !== "file" || [fit, description].some(field =>
             field && (field.object !== related.subject || !visible.includes(field.field) ||
               related.detailSchema.properties[field.field]?.type !== "string"))) throw new Error("INVALID_MEDIA_GRID_FIELD");
-      } else if (visible.some(field => surface.fieldKinds?.[`${related.subject}.${field}`] === "asset")) {
+      } else if (visible.some(field => surface.fieldKinds?.[`${related.subject}.${field}`] === "file")) {
         throw new Error("ASSET_CANNOT_BE_COLLECTION_TEXT");
       } else if (visible.some(field => surface.fieldKinds?.[`${related.subject}.${field}`] === "labels")) {
         throw new Error("LABELS_CANNOT_BE_COLLECTION_TEXT");
@@ -133,7 +133,7 @@ export function validateProgramBindings(program: ViewProgram, surface: HumanSurf
         const visible = port.fields?.map(field => field.field) ?? read.fields;
         const { media, description } = port.presentation;
         if (media.object !== read.subject || !visible.includes(media.field) ||
-          surface.fieldKinds?.[`${media.object}.${media.field}`] !== "asset" ||
+          surface.fieldKinds?.[`${media.object}.${media.field}`] !== "file" ||
           (description && (description.object !== read.subject || !visible.includes(description.field) ||
             read.detailSchema.properties[description.field]?.type !== "string"))) throw new Error("INVALID_MEDIA_OBJECT_FIELD");
       }
@@ -143,7 +143,7 @@ export function validateProgramBindings(program: ViewProgram, surface: HumanSurf
       if (port.fields?.some(field => read?.kind !== "read" || field.object !== read.subject || !read.collection.includes(field.field))) throw new Error("INVALID_COLLECTION_FIELD");
       const visible = port.fields?.map(field => field.field) ?? (read?.kind === "read" ? read.collection : []);
       if (!port.presentation) {
-        if (read?.kind === "read" && visible.some(field => surface.fieldKinds?.[`${read.subject}.${field}`] === "asset")) {
+        if (read?.kind === "read" && visible.some(field => surface.fieldKinds?.[`${read.subject}.${field}`] === "file")) {
           throw new Error("ASSET_CANNOT_BE_COLLECTION_TEXT");
         }
         if (read?.kind === "read" && visible.some(field => surface.fieldKinds?.[`${read.subject}.${field}`] === "labels")) throw new Error("LABELS_CANNOT_BE_COLLECTION_TEXT");
@@ -153,7 +153,7 @@ export function validateProgramBindings(program: ViewProgram, surface: HumanSurf
       if (port.presentation.kind === "collection-grid") throw new Error("INVALID_COLLECTION_PREVIEW");
       const image = port.presentation.image;
       if (read?.kind !== "read" || image.object !== read.subject || !visible.includes(image.field) ||
-        surface.fieldKinds?.[`${image.object}.${image.field}`] !== "asset") throw new Error("INVALID_MEDIA_GRID_FIELD");
+        surface.fieldKinds?.[`${image.object}.${image.field}`] !== "file") throw new Error("INVALID_MEDIA_GRID_FIELD");
       for (const reference of [port.presentation.fit, port.presentation.description]) {
         if (reference && (reference.object !== read.subject || !visible.includes(reference.field) ||
           read.detailSchema.properties[reference.field]?.type !== "string")) throw new Error("INVALID_MEDIA_GRID_FIELD");
@@ -182,7 +182,7 @@ export function validateProgramBindings(program: ViewProgram, surface: HumanSurf
       throw new Error("INVALID_VIEW_INITIALIZATION");
     }
     const fields = read.detailSchema.properties;
-    const inputFields = mutation.inputSchema.properties as Record<string, { type?: unknown }>;
+    const inputFields = mutation.inputSchema.properties;
     if (journey.initialize.some(item => !canInitializeInput(inputFields[item.input], fields[item.fact]))) throw new Error("INVALID_VIEW_INITIALIZATION");
   }
   const seen = new Set<string>();

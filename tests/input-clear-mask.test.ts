@@ -43,10 +43,11 @@ test("money clear edits only the amount, including incomplete drafts and numeric
       assert.equal(await f.page.locator("[data-currency]").innerText(), "ARS");
       assert.deepEqual((await clearEvents(f.page)).at(-1), { kind: "money.change", control: "budget", currency: "ARS", minorUnits: null });
     }
-    await updateClear(f.page, { minorUnits: "250", disabled: true });
-    assert.equal(await clear.count(), 1); assert.equal(await clear.isDisabled(), true);
+    // A disabled amount offers no clear (second review of the slice 3 package: one rule for every field); its value and
+    // its events stay as they were.
     const count = (await clearEvents(f.page)).length;
-    await clear.evaluate(element => (element as HTMLButtonElement).click());
+    await updateClear(f.page, { minorUnits: "250", disabled: true });
+    assert.equal(await clear.count(), 0);
     assert.equal(await field.inputValue(), "2,50");
     assert.equal((await clearEvents(f.page)).length, count);
     assert.deepEqual(f.errors, []);

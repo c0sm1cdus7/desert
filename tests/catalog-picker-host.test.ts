@@ -12,7 +12,7 @@ const surface = compilePublicCatalog({ ...definition, exercises: travelKit, sour
   records: [...definition.source.records, {id:'1016',image:'thumb-1016',facts:{name:'Mount Fuji',story:'A mountain.',region:'north',privateMemo:''}}],
 } }).surface;
 const source = `<script lang="ts">
-  import CatalogWorkspace from '@desert/svelte/explorer/CatalogWorkspace.svelte';
+  import CatalogWorkspace from '@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte';
   const surface = ${JSON.stringify(surface)};
 </script>
 <div data-embedded-catalog style="width:320px">

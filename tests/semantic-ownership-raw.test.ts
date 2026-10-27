@@ -25,7 +25,7 @@ test("Raw owned declarations cannot bypass publication field invariants", () => 
     const objects = [{ ...source.objects[0], presentation: { ...source.objects[0].presentation, fields } }];
     const raw = { ...source, objects };
     assert.throws(() => composeProduct(raw as never), { message });
-    const { modules, surfaces, entry, navigation, label, workspace, ...module } = raw;
+    const { modules, exposures, entry, navigation, label, workspace, messages, ...module } = raw;
     assert.throws(() => defineModule(module as never), { message });
   }
 });
@@ -33,8 +33,8 @@ test("Raw owned declarations cannot bypass publication field invariants", () => 
 test("Authored root maps are forbidden before a JSON snapshot can erase undefined values", () => {
   const source = authoredNotebookSource();
   for (const key of ["inputs", "fieldRepresentations", "commit", "language"]) {
-    const surfaces = source.surfaces.map(surface => surface.kind === "human" ? { ...surface, [key]: undefined } : surface);
-    assert.throws(() => composeProduct({ ...source, surfaces } as never), /SURFACE_SEMANTICS_FORBIDDEN/);
+    const exposures = source.exposures.map(surface => surface.kind === "human" ? { ...surface, [key]: undefined } : surface);
+    assert.throws(() => composeProduct({ ...source, exposures } as never), /SURFACE_SEMANTICS_FORBIDDEN/);
   }
 });
 

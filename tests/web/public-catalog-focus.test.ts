@@ -20,12 +20,12 @@ for (const width of [390, 900, 1100]) for (const mode of ['pointer', 'keyboard']
       if (mode === 'keyboard') await navigateWithKeyboard(page, 'Component bank');
       else await (await navigationAction(page, 'Component bank')).click();
       await settle(page);
-      const bank = page.locator('[data-public-catalog-bank]');
+      const bank = page.locator('[data-view-item="public-catalog-bank"]');
       const input = page.getByRole('searchbox', { name: 'Find component', exact: true });
       assert.equal(await input.count(), 1, 'Exactly one local bank search is mounted');
       assert.equal(await page.getByRole('button', { name: 'Search', exact: true }).count(), 0,
         'No competing global search affordance belongs to the bank');
-      const writing = page.locator('[data-specimen="input.text:value"]').getByRole('textbox');
+      const writing = page.locator('[data-view-item="specimen:input.text:value"]').getByRole('textbox');
       await writing.fill('Draft survives filtering and return');
       await input.fill('control');
       const route = page.url(), initial = await shellState(page);

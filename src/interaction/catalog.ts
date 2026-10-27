@@ -1,5 +1,6 @@
+import { Type } from "@sinclair/typebox";
 import { freezeDeep, jsonSnapshot } from "../json.ts";
-import { ControlBank } from "./control-bank.ts";
+import { ControlSpecimens } from "./control-specimens.ts";
 import { CatalogGroups, CatalogFoundations, catalogInspection, type DiscoveryGroup, type FoundationId } from "./catalog-ownership.ts";
 
 function entry<const Id extends string, const Family extends string, const States extends readonly string[]>(
@@ -8,7 +9,7 @@ function entry<const Id extends string, const Family extends string, const State
     ['tests/bank-node.test.ts', 'tests/public-catalog-bank.test.ts']) };
 }
 
-export const InteractionCatalog = freezeDeep({
+export const ResolvedNodes = freezeDeep({
   id: "desert.human-interaction", version: "0.5.0",
   groups: CatalogGroups, foundations: CatalogFoundations,
   entries: [
@@ -26,16 +27,18 @@ export const InteractionCatalog = freezeDeep({
     entry("catalog.card", "composition", ["featured", "item"], "compositions", ["stack", "action"]),
     entry("catalog.home", "composition", ["populated"], "compositions", ["stack"]),
     entry("catalog.detail", "composition", ["reading"], "compositions", ["stack"]),
-    ...ControlBank.map(({ id, family, specimens, inspection }) => ({ id, family, states: specimens.map(specimen => specimen.state), inspection })),
+    ...ControlSpecimens.map(({ id, family, specimens, inspection }) => ({ id, family, states: specimens.map(specimen => specimen.state), inspection })),
   ] as const,
 });
 
-export type PrimitiveId = typeof InteractionCatalog.entries[number]["id"];
-export type InputPrimitive = Extract<PrimitiveId, `input.${string}`>;
-export type RendererBank<T> = { readonly [K in PrimitiveId]: T };
+export type ResolvedNodeId = typeof ResolvedNodes.entries[number]["id"];
+/** The id of a resolved node kind, as a TypeBox schema derived from the entries above (not a second list). */
+export const ResolvedNodeIdSchema = Type.Union(ResolvedNodes.entries.map(entry => Type.Literal(entry.id)));
+export type ResolvedInputId = Extract<ResolvedNodeId, `input.${string}`>;
+export type RendererTable<T> = { readonly [K in ResolvedNodeId]: T };
 
 export function requireCatalog(candidate: unknown) {
-  if (JSON.stringify(jsonSnapshot(candidate)) !== JSON.stringify(jsonSnapshot(InteractionCatalog))) {
+  if (JSON.stringify(jsonSnapshot(candidate)) !== JSON.stringify(jsonSnapshot(ResolvedNodes))) {
     throw new Error("INTERACTION_CATALOG_MISMATCH");
   }
 }

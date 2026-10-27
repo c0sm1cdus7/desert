@@ -7,6 +7,7 @@ import { localWebGateway } from "../src/web/gateway.ts";
 import type { ApiMethods } from "../src/web/types.ts";
 import { activityFixture } from "./fixtures/activity.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { storedObjects } from "../src/testing/stored-objects.ts";
 
 test("authenticated HTTP collects, resumes, prepares and accepts the same canonical activity", async () => {
   const cluster = postgresCluster(), f = await activityFixture(cluster);
@@ -51,11 +52,11 @@ test("authenticated HTTP collects, resumes, prepares and accepts the same canoni
     assert.equal((await rejected.json()).error, "ACTIVITY_PREPARATION_INVALIDATED");
     state = await call("activityAnswer", { id: state.id, revision: state.revision, step: 1, input: { body: "Over HTTP" } });
     const prepared = await call("activityPrepare", { id: state.id, revision: state.revision });
-    assert.equal((await f.admin.query("SELECT count(*) FROM desert_objects")).rows[0].count, "0");
+    assert.equal((await storedObjects(f.admin, f.application)).length, 0);
     const receipt = await call("accept", { intentId: prepared.intent.id, confirmationDigest: prepared.intent.confirmationDigest });
     assert.equal(receipt.status, "completed");
     assert.equal((await call("activityRead", { id: state.id })).phase, "completed");
-    assert.equal((await f.admin.query("SELECT facts FROM desert_objects")).rows[0].facts.body, "Over HTTP");
+    assert.equal((await storedObjects(f.admin, f.application))[0]!.facts.body, "Over HTTP");
   } finally {
     server.closeAllConnections();
     await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));

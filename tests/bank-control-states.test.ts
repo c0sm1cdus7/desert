@@ -5,13 +5,13 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 import type { Page } from 'playwright';
 
 const source = `<script>
-  import ControlBench from '@desert/svelte/catalog/ControlBench.svelte';
+  import ControlBench from '@desert/svelte/catalog/compositions/control-bench/ControlBench.svelte';
 </script><main style="padding:24px"><ControlBench entryIds={['control.money','control.options']} /></main>`;
 
 async function state(page: Page, entry: string, value: string) {
-  await page.locator(`[data-catalog-entry="${entry}"]`).getByRole('button', {name:/^State ·/}).click();
+  await page.locator(`[data-view-item="entry:${entry}"]`).getByRole('button', {name:/^State ·/}).click();
   await page.getByRole('option', {name:value,exact:true}).click();
-  assert.equal(await page.locator(`[data-catalog-entry="${entry}"] [data-specimen]:visible`).count(), 1);
+  assert.equal(await page.locator(`[data-view-item="entry:${entry}"] [data-view-item^="specimen:"]:visible`).count(), 1);
 }
 
 // The bank must exercise the real renderer, including invalid lexical drafts;
@@ -20,7 +20,7 @@ test('money specimens retain values, enforce disabled/fixed currency and recover
   const f = await svelteBrowser(source);
   try {
     await f.page.addStyleTag({content:await rendererCss()});
-    const specimen = (state: string) => f.page.locator(`[data-specimen="control.money:${state}"]`);
+    const specimen = (state: string) => f.page.locator(`[data-view-item="specimen:control.money:${state}"]`);
     await state(f.page,'control.money','value');
     const value = specimen('value').getByRole('textbox');
     assert.equal(await value.inputValue(), '125,50');
@@ -54,11 +54,11 @@ test('constrained choices enforce selection capacity and disabled specimens pres
   try {
     await f.page.addStyleTag({content:await rendererCss()});
     await state(f.page,'control.options','disabled');
-    const disabled = f.page.locator('[data-specimen="control.options:disabled"]');
+    const disabled = f.page.locator('[data-view-item="specimen:control.options:disabled"]');
     for (const radio of await disabled.getByRole('radio').all()) assert.ok(await radio.isDisabled());
     assert.ok(await disabled.getByRole('radio',{name:'First option',exact:true}).isChecked());
     await state(f.page,'control.options','constrained');
-    const constrained = f.page.locator('[data-specimen="control.options:constrained"]');
+    const constrained = f.page.locator('[data-view-item="specimen:control.options:constrained"]');
     const first = constrained.getByRole('checkbox',{name:'First option',exact:true});
     const second = constrained.getByRole('checkbox',{name:'Second option',exact:true});
     const third = constrained.getByRole('checkbox',{name:'Third option',exact:true});
@@ -70,6 +70,23 @@ test('constrained choices enforce selection capacity and disabled specimens pres
     await third.check();
     assert.ok(await third.isChecked() && await first.isChecked());
     assert.ok(await second.isDisabled(),'maximum restored');
+    assert.deepEqual(f.errors,[]);
+  } finally { await f.close(); }
+});
+
+// Found by the slice 3 package: the bench stopped wrapping each control in a field group (a flex column), so an
+// inline-level control (the tag badge, 20 px) sat on the stack item's text line and dropped 4 px below the row's top.
+test('a tag specimen starts at the top of its stack item: the bench lays each control out as a block, not on a text line', async () => {
+  const f = await svelteBrowser(`<script>
+    import ControlBench from '@desert/svelte/catalog/compositions/control-bench/ControlBench.svelte';
+  </script><main style="padding:24px;font-size:17px;line-height:24px"><ControlBench entryIds={['control.tag']} /></main>`);
+  try {
+    await f.page.addStyleTag({content:await rendererCss()});
+    const offset = await f.page.locator('[data-view-item^="specimen:control.tag:"]:visible [data-stack-item]').evaluate(item => {
+      const badge = item.querySelector('[data-slot="badge"]')!.getBoundingClientRect(), box = item.getBoundingClientRect();
+      return { top: badge.top - box.top, extra: box.height - badge.height };
+    });
+    assert.deepEqual(offset, { top: 0, extra: 0 });
     assert.deepEqual(f.errors,[]);
   } finally { await f.close(); }
 });

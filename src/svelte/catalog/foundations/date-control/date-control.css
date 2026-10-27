@@ -1,0 +1,34 @@
+/* DateControl: the month calendar in its two presentations, and its header. Legible, nonoverlapping targets come first;
+   extreme text sizes scroll locally. The sheet uses the shared type role's rem length, not ch/em: cell, weekday and
+   button have different fonts and must nevertheless resolve the same column size. These rules supersede the vendor
+   calendar's own utility measures, so they stay outside the cascade layers. */
+[data-date-calendar] { display:flex; flex-direction:column; min-height:0; }
+[data-date-calendar="anchored"] { --cell-size:max(2rem,calc((100cqi - 1rem)/7)); }
+[data-date-calendar="sheet"] { --cell-size:max(calc(var(--text-control) * 1.5),calc((100cqi - 4px)/7)); }
+[data-date-calendar="sheet"] [data-slot="calendar-cell"] { height:max(var(--cell-size),44px); }
+[data-date-calendar="sheet"] [data-slot="calendar-day"] { min-width:0; }
+/* The calendar's buttons lay their content out in one box that follows the button's own flex. */
+@layer components {
+  :where([data-slot="calendar-day"], [data-slot="calendar-prev-button"], [data-slot="calendar-next-button"]) > [data-button-content] { position:relative; display:flex; width:100%; min-width:0; flex-direction:inherit; align-items:inherit; justify-content:inherit; gap:inherit; }
+}
+[data-date-calendar] [data-calendar-grid-viewport] { padding:2px; }
+/* The header keeps the toolbar row's geometry: one inset, one target size, one gap. */
+[data-date-calendar-header] { flex-shrink:0; min-width:0; padding:var(--catalog-toolbar-inset); }
+[data-date-calendar-row] {
+  display:flex; flex-wrap:wrap; align-items:center; gap:var(--toolbar-gap); min-width:0; min-height:var(--catalog-toolbar-height);
+}
+/* The month keeps its line while it fits beside the navigation; enlarged, it takes the whole row. */
+[data-date-calendar-month] {
+  flex:1 1 max-content; min-width:0; @apply wrap-words;
+  padding-inline-start:max(0px,calc(var(--surface-reading-inset,8px) - var(--catalog-toolbar-inset)));
+}
+/* In a sheet the month starts on its top bar's ✕ axis (one inset axis): the header's own toolbar inset, nothing more. */
+[data-date-calendar="sheet"] [data-date-calendar-month] { padding-inline-start:0; }
+[data-date-calendar-navigation] { display:flex; flex-shrink:0; align-items:center; gap:var(--toolbar-gap); margin-inline-start:auto; }
+[data-date-calendar-navigation] :is([data-slot="calendar-prev-button"],[data-slot="calendar-next-button"]) {
+  width:var(--catalog-toolbar-height); height:var(--catalog-toolbar-height); padding:var(--catalog-toolbar-inset);
+}
+/* The calendar navigation chevrons (from theme.css): muted, never shrinking beside the month. */
+@layer components {
+  [data-control-chevron] { color:var(--muted-foreground); flex-shrink:0; }
+}

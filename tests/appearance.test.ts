@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { view, ViewVersion } from "../src/views/index.ts";
-import { appearanceChoices, appearancePreferences, defaultAppearance, effectiveAppearanceTheme, migrateAppearancePreferences } from "../src/svelte/pieces/appearance-preferences.ts";
+import { appearanceChoices, appearancePreferences, defaultAppearance, effectiveAppearanceTheme, migrateAppearancePreferences } from "../src/svelte/infra/appearance-preferences.ts";
 
 test("appearance is a closed catalog composition with no product-owned style knobs", () => {
   const definition = { version: ViewVersion, id: "appearance", content: [{ kind: "appearance", id: "preferences" }] };

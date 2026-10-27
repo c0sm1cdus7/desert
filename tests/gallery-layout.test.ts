@@ -2,13 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Check} from '@sinclair/typebox/value';
-import {ViewSchema} from '../src/views/schema.ts';
+import {DeclaredViewSchema as ViewSchema} from '../src/views/schema.ts';
 import {Components,defineView} from '../src/views/components.ts';
 import {svelteBrowser} from './fixtures/svelte-browser.ts';
 import {rendererCss} from './fixtures/renderer-css.ts';
+import { fixtureText } from "./fixtures/messages.ts";
 
 test('gallery is an admitted finite View layout, not a caller-provided width or CSS escape',()=>{
-  const view=defineView({name:'gallery-witness',layout:'gallery',content:[Components.Header({title:'Media'})]});
+  const view=defineView({name:'gallery-witness',layout:'gallery',content:[Components.Header({title:fixtureText.media})]});
   assert.equal(view.layout,'gallery');
   assert.equal(Check(ViewSchema,view),true);
   for(const layout of ['full-width','72rem',{width:'100%'},{style:'display:grid'}]){
@@ -20,7 +21,7 @@ test('gallery is an admitted finite View layout, not a caller-provided width or 
 
 for(const [width,scale] of [[1600,1],[390,1],[320,2]] as const){
   test(`the actual Flow gallery specimen keeps wide vertical stacks and responsive media at ${width}px / ${scale*100}%`,async()=>{
-    const f=await svelteBrowser(`<script>import SharedOwnerSpecimen from './src/svelte/catalog/SharedOwnerSpecimen.svelte';</script><SharedOwnerSpecimen owner="Flow" />`,{},'http://gallery-fixture.test/');
+    const f=await svelteBrowser(`<script>import SharedOwnerSpecimen from './src/svelte/catalog/compositions/shared-owner-specimen/SharedOwnerSpecimen.svelte';</script><SharedOwnerSpecimen owner="Flow" />`,{},'http://gallery-fixture.test/');
     try{
       await f.page.setViewportSize({width,height:1000});
       await f.page.addStyleTag({content:await rendererCss()});
@@ -32,8 +33,8 @@ for(const [width,scale] of [[1600,1],[390,1],[320,2]] as const){
       const flow=f.page.locator('[data-view-content="gallery-fixture"]');
       await flow.waitFor();
       assert.equal(await flow.getAttribute('data-content-layout'),'gallery');
-      assert.equal(await flow.locator('[data-media-collection-card]').count(),2);
-      assert.equal(await flow.locator('[data-media-grid-item]').count(),3);
+      assert.equal(await flow.locator('[data-card="collection"]').count(),2);
+      assert.equal(await flow.locator('[data-card="tile"]').count(),3);
       const layout=await flow.evaluate(element=>{
         const a=element.querySelector('[data-view-item="collections"]')!.getBoundingClientRect();
         const b=element.querySelector('[data-view-item="media"]')!.getBoundingClientRect();

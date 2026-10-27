@@ -21,30 +21,37 @@
 </script>
 
 <script lang="ts">
-	import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
-	import { cn } from "@desert/svelte/vendor/utils.js";
-	import type { ComponentProps } from "svelte";
+	import { pressFeedbackProps } from "@desert/svelte/catalog/mechanisms/press-feedback/press-feedback.ts";
+	import { cn, type WithElementRef } from "@desert/svelte/vendor/utils.js";
+	import type { HTMLButtonAttributes } from "svelte/elements";
+
+	// A native button this family draws itself: the button family's ghost recipe at its default size, resolved, under
+	// the group's own sizes (so the field family owns no cross-family import).
+	const ghost = "inline-flex w-fit shrink-0 items-center justify-center whitespace-nowrap gap-2 rounded-[var(--radius-control)] type-control outline-none disabled:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-transparent text-foreground min-h-11 px-4 py-2";
 
 	let {
 		ref = $bindable(null),
 		class: className,
 		children,
 		type = "button",
-		variant = "ghost",
 		size = "xs",
 		...restProps
-	}: Omit<ComponentProps<typeof Button>, "href" | "size"> & {
+	}: WithElementRef<HTMLButtonAttributes, HTMLButtonElement> & {
 		size?: InputGroupButtonSize;
 	} = $props();
+	let groupClass = $derived(cn(inputGroupButtonVariants({ size }), className));
+	let material = $derived(/\bmaterial-(?:pane|interior)\b/.test(groupClass) ? undefined : "material-interior");
 </script>
 
-<Button
-	bind:ref
+<button
+	{...pressFeedbackProps}
+	bind:this={ref}
+	data-slot="input-group-button"
+	class={cn(ghost, material, "control-feedback", groupClass)}
 	{type}
 	data-size={size}
-	{variant}
-	class={cn(inputGroupButtonVariants({ size }), "tm-control", className)}
 	{...restProps}
+	data-variant="ghost"
 >
-	{@render children?.()}
-</Button>
+	<span class="control-feedback-content" data-button-content>{@render children?.()}</span>
+</button>

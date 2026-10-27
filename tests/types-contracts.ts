@@ -3,7 +3,7 @@ import { actorId, createCommand, fromInput, literal, updateCommand } from "../sr
 import { mutationJourney, ownershipPolicy, readJourney } from "../src/journeys.ts";
 import type { FactsOf, InputOf } from "../src/authoring-types.ts";
 import { controllerRole } from "../src/dependencies.ts";
-import type { RendererBank, InputPrimitive } from "../src/interaction/catalog.ts";
+import type { RendererTable, ResolvedInputId } from "../src/interaction/catalog.ts";
 import type { SurfaceFrame } from "../src/interaction/surface-frame.ts";
 import type { ToolbarAction } from "../src/interaction/toolbar.ts";
 import type { SurfaceIntent } from "../src/interaction/intent.ts";
@@ -47,35 +47,36 @@ const contextForm: SurfaceFrame = { ...contextFrame, content: { kind: "form", su
 // @ts-expect-error Object context footers cannot contain a primary command.
 const contextCommand: SurfaceFrame = { ...contextFrame, bottom: { primary: { intent: { kind: "journey", journey: "save" }, label: "Save", icon: "save", state: "ready" } } };
 void [contextForm, contextCommand];
-import { humanSurface } from "../src/surfaces.ts";
+import { humanExposure } from "../src/exposures.ts";
 import { factReference, publishObject } from "../src/index.ts";
 import { Note as PublishedNote } from "./fixtures/notebook-domain.ts";
 import { notePublication } from "./fixtures/authored-notebook.ts";
-import { HumanNotebook } from "../products/notebook/surfaces.ts";
+import { HumanNotebook } from "../products/notebook/exposures.ts";
 import { CreateNote, ReadNote, ArchiveNote } from "../products/notebook/journeys.ts";
+import { fixtureText } from "./fixtures/messages.ts";
 
-const multiline: InputPrimitive = "input.multiline";
+const multiline: ResolvedInputId = "input.multiline";
 void multiline;
 // @ts-expect-error Products cannot invent a renderer primitive.
-const unknownPrimitive: InputPrimitive = "input.rainbow";
+const unknownPrimitive: ResolvedInputId = "input.rainbow";
 // @ts-expect-error A renderer must implement the complete installed bank.
-const incompleteBank: RendererBank<string> = { "input.text": "TextInput" };
-declare const completeBank: RendererBank<string>;
+const incompleteBank: RendererTable<string> = { "input.text": "TextInput" };
+declare const completeBank: RendererTable<string>;
 // @ts-expect-error A renderer cannot extend the vocabulary independently.
-const inventedBank: RendererBank<string> = { ...completeBank, rainbow: "Rainbow" };
+const inventedBank: RendererTable<string> = { ...completeBank, rainbow: "Rainbow" };
 void [unknownPrimitive, incompleteBank, inventedBank];
 const human = { id: HumanNotebook.id, journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" };
-humanSurface(human);
+humanExposure(human);
 // @ts-expect-error A product cannot present an unknown fact.
-publishObject(PublishedNote, { ...notePublication, fields: [{ fact: factReference(PublishedNote, "imagined"), label: "Imagined", representation: "text" }] });
+publishObject(PublishedNote, { ...notePublication, fields: [{ fact: factReference(PublishedNote, "imagined"), label: fixtureText.imagined, representation: "text" }] });
 // @ts-expect-error A renderer primitive is not a semantic field representation.
-publishObject(PublishedNote, { ...notePublication, fields: [{ fact: factReference(PublishedNote, "body"), label: "Content", representation: "input.multiline" }] });
+publishObject(PublishedNote, { ...notePublication, fields: [{ fact: factReference(PublishedNote, "body"), label: fixtureText.content, representation: "input.multiline" }] });
 // @ts-expect-error Composed exposure cannot redefine an object's field representation.
-humanSurface({ ...human, inputs: { "note.body": "input.multiline" } });
+humanExposure({ ...human, inputs: { "note.body": "input.multiline" } });
 // @ts-expect-error Composed exposure cannot override a published representation.
-humanSurface({ ...human, fieldRepresentations: { "note.body": "paragraphs" } });
+humanExposure({ ...human, fieldRepresentations: { "note.body": "paragraphs" } });
 // @ts-expect-error Product contracts cannot supply renderer CSS.
-humanSurface({ ...human, class: "custom-layout" });
+humanExposure({ ...human, class: "custom-layout" });
 
 const Note = objectType({ id: "typed-note", facts: {
   title: text({ minLength: 1 }), copies: integer(), owner: principal(), state: enumeration(["active", "archived"]),

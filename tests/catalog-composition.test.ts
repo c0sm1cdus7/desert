@@ -8,7 +8,7 @@ import { compilePublicCatalog } from "../src/public-catalog/compile.ts";
 import { catalogFixture } from "./fixtures/public-catalog.ts";
 
 const source = `<script lang="ts">
-  import CatalogWorkspace from "@desert/svelte/explorer/CatalogWorkspace.svelte";
+  import CatalogWorkspace from "@desert/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte";
   let query = $state(''), events = $state([]), searching = $state(false);
   const image = {asset:'mountain',alt:'Mountain above a forest'};
   const node = {version:'desert.bank-node/1',kind:'catalog.home',featured:{version:'desert.bank-node/1',kind:'catalog.card',
@@ -28,7 +28,7 @@ const source = `<script lang="ts">
 
 test("catalog composes real shadcn owners and emits one typed destination event", { timeout: 20000 }, async () => {
   // This harness checks semantics, not stylesheet fidelity (the built-app gate owns that).
-  const workspace = resolve(import.meta.dirname, "../src/svelte/explorer/CatalogWorkspace.svelte");
+  const workspace = resolve(import.meta.dirname, "../src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte");
   const component = (await readFile(workspace, "utf8")).replace(/^\s*import "\.\/catalog-[^"]+\.css";$/gm, "");
   const f = await svelteBrowser(source, { [workspace]: component });
   try {
@@ -36,7 +36,8 @@ test("catalog composes real shadcn owners and emits one typed destination event"
     await f.page.setViewportSize({ width: 900, height: 450 });
     await f.page.addStyleTag({ content: await rendererCss() });
     assert.equal(await f.page.locator('[data-slot="sidebar-wrapper"]').count(), 1);
-    assert.equal(await f.page.locator('[data-slot="card"]').count(), 2);
+    // Lane B: a catalog card is the catalog-card composition over the Card foundation (its own mark, no vendor card).
+    assert.equal(await f.page.locator('[data-card]').count(), 2);
     assert.equal(await f.page.locator('button button, a button, button a').count(), 0);
     assert.equal(await f.page.getByRole('heading', {name:'Mountain',exact:true}).count(), 0, 'cards do not introduce a second place title');
     assert.equal(await f.page.getByRole('button', {name:'Mountain',exact:true}).count(), 2);
@@ -51,7 +52,7 @@ test("catalog composes real shadcn owners and emits one typed destination event"
 });
 
 test("compact sidebar navigation closes its genuine sheet after choosing a destination", { timeout: 20000 }, async () => {
-  const workspace = resolve(import.meta.dirname, "../src/svelte/explorer/CatalogWorkspace.svelte");
+  const workspace = resolve(import.meta.dirname, "../src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte");
   const component = (await readFile(workspace, "utf8")).replace(/^\s*import "\.\/catalog-[^"]+\.css";$/gm, "");
   const f = await svelteBrowser(source, { [workspace]: component });
   try {

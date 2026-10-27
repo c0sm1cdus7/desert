@@ -1,7 +1,7 @@
 import { clientDistribution, controllerDistribution, localBinding, remoteBinding } from "../../src/index.ts";
 import { Dependencies } from "./src/modules.ts";
 import { Notebook } from "./product.ts";
-import { AgentNotebook, HumanNotebook } from "./surfaces.ts";
+import { AgentNotebook, HumanNotebook } from "./exposures.ts";
 
 export const NotebookService = controllerDistribution({
   id: "notebook-service", product: Notebook, runtime: "node", storage: "postgresql",

@@ -5,7 +5,7 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 
 test('disabled search dims content once without changing its glass pane', async () => {
   const f = await svelteBrowser(`<script>
-    import SearchField from '@desert/svelte/pieces/SearchField.svelte';
+    import SearchField from '@desert/svelte/catalog/foundations/search-field/SearchField.svelte';
     let disabled = $state(false);
   </script><button onclick={() => disabled = !disabled}>Toggle disabled</button>
   <SearchField {disabled} aria-label="Search specimen" value="A query" />`);
@@ -23,7 +23,8 @@ test('disabled search dims content once without changing its glass pane', async 
       await f.page.getByRole('button', { name: 'Toggle disabled', exact: true }).click();
       assert.deepEqual(await material(), ready, theme + ': pane and geometry remain unchanged');
       const contents = await pane.evaluate(e => {
-        const expected = Number(getComputedStyle(e).getPropertyValue('--disabled-opacity'));
+        // A search well is a field: it fades by Field's one disabled fade (fourth review, tests/field-disabled-value.test.ts).
+        const expected = Number(getComputedStyle(e).getPropertyValue('--field-disabled-opacity'));
         return { expected, opacities: [...e.children].map(child => Number(getComputedStyle(child).opacity)),
           clearContent: getComputedStyle(e.querySelector('[data-button-content]')!).opacity };
       });

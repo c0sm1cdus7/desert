@@ -1,24 +1,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { defineModule, composeProduct, moduleCatalog, humanSurface, agentSurface, viewOutput } from "../src/index.ts";
+import { defineModule, composeProduct, moduleIndex, humanExposure, agentExposure, viewOutput } from "../src/index.ts";
 import { compile } from "../src/compile.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import { Note, OnlyOwnerCanAccess, NotesController, ArchiveNote, CreateNote, ReadNote } from "./fixtures/notebook-domain.ts";
 import { program } from "./fixtures/view-program.ts";
 import { HomeView, HomeJourney, NotesView, NoteView, NoteEditorView, CatalogView, CatalogJourney,
-  CreateNoteExperience, ReadNotesExperience, NotesDestination, CatalogDestination } from "./fixtures/authored-view-program.ts";
+  CreateNoteJourney, ReadNotesJourney, NotesDestination, CatalogDestination } from "./fixtures/authored-view-program.ts";
 import { ViewNotebook } from "./fixtures/view-exposure.ts";
 import { publishedNotebookNote } from "./fixtures/authored-notebook.ts";
 import type { RegisteredModule, ModuleJourney } from "../src/modules/types.ts";
 import { WorkspaceView, NavigationView } from "./fixtures/workspace-view.ts";
 import { authorFixture } from "./fixtures/author-fixture.ts";
+import { FixtureMessages, fixtureText, declaredFixture } from "./fixtures/messages.ts";
 
 const notesSource = {
   id: "notes", objects: [publishedNotebookNote()], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   journeys: [
-    { execution: CreateNote, label: "Create note", humanReview: "not-required", presentation: CreateNoteExperience },
-    { execution: ReadNote, label: "Read notes", presentation: ReadNotesExperience },
-    { execution: ArchiveNote, label: "Archive note", humanReview: "required" },
+    { execution: CreateNote, label: fixtureText.createNote, humanReview: "not-required", presentation: CreateNoteJourney },
+    { execution: ReadNote, label: fixtureText.readNotes, presentation: ReadNotesJourney },
+    { execution: ArchiveNote, label: fixtureText.archiveNote, humanReview: "required" },
   ], views: [NotesView, NoteView, NoteEditorView], destinations: [NotesDestination],
   exports: { journeys: { createNote: CreateNote, readNotes: ReadNote, archiveNote: ArchiveNote },
     destinations: { notes: NotesDestination }, dependencies: { NotesController } },
@@ -28,19 +29,19 @@ const Catalog = defineModule({ id: "catalog", views: [CatalogView], journeys: [{
   destinations: [CatalogDestination], exports: { destinations: { catalog: CatalogDestination } } });
 type PublicNotes = { id: "notes"; exports: typeof notesSource.exports; journeys: readonly ModuleJourney[] };
 function root(notes: RegisteredModule<PublicNotes> = Notes) {
-  const modules = moduleCatalog([notes, Catalog]);
+  const modules = moduleIndex([notes, Catalog]);
   const journeys = [modules.journeys.createNote, modules.journeys.readNotes, modules.journeys.archiveNote];
   const home = { ...HomeJourney, outputs: [{ ...viewOutput(HomeView, "notes"),
     action: { kind: "journey", journey: modules.journeys.readNotes } }] } as const;
-  const destination = { ...program.destinations[0], entryJourney: home } as const;
-  return { id: Notebook.id, label: "Notebook", modules,
-    surfaces: [humanSurface({ id: "human", journeys, locale: "en" }), agentSurface("agent", journeys)],
+  const destination = { ...declaredFixture(program.destinations[0]), entryJourney: home } as const;
+  return { messages: FixtureMessages, id: Notebook.id, label: fixtureText.notebook, modules,
+    exposures: [humanExposure({ id: "human", journeys, locale: "en" }), agentExposure("agent", journeys)],
     workspace: WorkspaceView, views: [HomeView, WorkspaceView, NavigationView],
     journeys: [{ presentation: home }], destinations: [destination], entry: destination,
     navigation: [
-      { ...program.navigation[0], destination },
-      { ...program.navigation[1], destination: modules.destinations.notes },
-      { ...program.navigation[2], destination: modules.destinations.catalog },
+      { ...declaredFixture(program.navigation[0]), destination },
+      { ...declaredFixture(program.navigation[1]), destination: modules.destinations.notes },
+      { ...declaredFixture(program.navigation[2]), destination: modules.destinations.catalog },
     ],
   } as const;
 }
@@ -87,9 +88,9 @@ test("Root cross-module links require issued handles, not raw definitions or mat
 
 test("Forged, absent and duplicated module registrations fail before a surface mounts", () => {
   const source = root();
-  assert.throws(() => moduleCatalog([{ ...Notes }, Catalog] as never), /UNREGISTERED_MODULE_HANDLE/);
-  assert.throws(() => moduleCatalog([Notes, Notes, Catalog]), /DUPLICATE_MODULE_ID/);
-  assert.throws(() => composeProduct({ ...source, modules: moduleCatalog([Notes]) } as never), /UNMOUNTED_MODULE_REFERENCE/);
+  assert.throws(() => moduleIndex([{ ...Notes }, Catalog] as never), /UNREGISTERED_MODULE_HANDLE/);
+  assert.throws(() => moduleIndex([Notes, Notes, Catalog]), /DUPLICATE_MODULE_ID/);
+  assert.throws(() => composeProduct({ ...source, modules: moduleIndex([Notes]) } as never), /UNMOUNTED_MODULE_REFERENCE/);
   assert.throws(() => composeProduct({ ...source, entry: { kind: "destination", owner: "catalog", id: "notes" } } as never),
     /UNREGISTERED_MODULE_REFERENCE/);
   assert.throws(() => composeProduct({ ...source, padding: 0 } as never), /INVALID_PRODUCT_COMPOSITION/);
@@ -97,8 +98,8 @@ test("Forged, absent and duplicated module registrations fail before a surface m
 
 test("Module exposure and view semantics are checked before composition returns", () => {
   const source = root();
-  const surfaces = [humanSurface({ id: "human", journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" })];
-  assert.throws(() => composeProduct({ ...source, surfaces }), /PRIVATE_MODULE_REFERENCE/);
+  const surfaces = [humanExposure({ id: "human", journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" })];
+  assert.throws(() => composeProduct({ ...source, exposures: surfaces }), /PRIVATE_MODULE_REFERENCE/);
   const home = { ...source.journeys[0].presentation, outputs: [] } as const;
   const destination = { ...source.destinations[0], entryJourney: home };
   assert.throws(() => composeProduct({ ...source, journeys: [{ presentation: home }], destinations: [destination],
@@ -108,7 +109,7 @@ test("Module exposure and view semantics are checked before composition returns"
 test("A capability publishes execution without requiring a view", () => {
   const headless = defineModule(structuredClone({ id: "headless", objects: [Note], dependencies: [NotesController],
     policies: [OnlyOwnerCanAccess], journeys: [{ execution: CreateNote }], exports: { journeys: { createNote: CreateNote } } }));
-  assert.equal(moduleCatalog([headless]).journeys.createNote.id, CreateNote.id);
+  assert.equal(moduleIndex([headless]).journeys.createNote.id, CreateNote.id);
   assert.equal("views" in headless, false);
 });
 

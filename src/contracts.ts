@@ -1,11 +1,14 @@
 import { Type, type Static } from "@sinclair/typebox";
-import { JourneySchema, PolicySchema, SurfaceSchema } from "./program-grammar.ts";
+import { JourneySchema, PolicySchema, ExposureSchema } from "./program-grammar.ts";
 import { DependencySchema } from "./dependencies.ts";
 import { FieldDefinitionSchema } from "./field-definition.ts";
-export { text, integer, principal, enumeration, imageAsset, mediaAsset, labels, references, namedReferences, mediaReferences, type FieldDefinition } from "./field-definition.ts";
+export { text, integer, principal, enumeration, file, labels, references, namedReferences, mediaReferences, type FieldDefinition } from "./field-definition.ts";
 const ObjectDefinition = Type.Object({
   id: Type.String({ minLength: 1 }),
   facts: Type.Record(Type.String({ minLength: 1 }), FieldDefinitionSchema, { minProperties: 1, additionalProperties: false }),
+  /** Sets of scalar facts no two objects of this type share, enforced by the typed object tables (src/storage/ddl.ts):
+   * an acceptance that would repeat one is refused as UNIQUE_CONFLICT (src/storage/violations.ts). */
+  unique: Type.Optional(Type.Array(Type.Array(Type.String({ minLength: 1 }), { minItems: 1, uniqueItems: true }), { minItems: 1, uniqueItems: true })),
 }, { additionalProperties: false });
 
 export const ProductDefinitionSchema = Type.Object({
@@ -13,7 +16,7 @@ export const ProductDefinitionSchema = Type.Object({
   objects: Type.Array(ObjectDefinition, { minItems: 1 }),
   policies: Type.Optional(Type.Array(PolicySchema)),
   journeys: Type.Optional(Type.Array(JourneySchema)),
-  surfaces: Type.Optional(Type.Array(SurfaceSchema)),
+  surfaces: Type.Optional(Type.Array(ExposureSchema)),
   dependencies: Type.Optional(Type.Array(DependencySchema)),
 }, { additionalProperties: false });
 

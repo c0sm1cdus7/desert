@@ -1,0 +1,35 @@
+/* State tint overlays the canonical material; it never recolors semantic ink.
+   Keep the hit target and perimeter fixed while its content compresses. The
+   neutral face response remains visible with reduced motion, including icons.
+   Owners apply the utilities to the elements they draw: `control-feedback` on a
+   pressable control, `control-feedback-content` on the content it compresses,
+   `control-focus` on a control that shows focus and a forced-colors press but no tint (fields, the grip); the content
+   of a pane or interior control also takes the theme's `disabled-content`. */
+@utility control-focus {
+  transition:color var(--dur-feedback) var(--ease-tm);
+  &:focus-visible { outline:2px solid var(--ring); outline-offset:var(--focus-ring-offset); }
+  @media (forced-colors:active) {
+    &[data-pressed]:not(:disabled):not([aria-disabled="true"]) { outline:2px solid ButtonText; outline-offset:-4px; }
+  }
+}
+@utility control-feedback {
+  @apply control-focus;
+  --control-hover-tint:color-mix(in srgb,var(--control-feedback-ink,var(--foreground)) 5%,transparent);
+  --control-press-tint:color-mix(in srgb,var(--control-feedback-ink,var(--foreground)) 14%,transparent);
+  --control-press-transform:none;
+  transition:box-shadow var(--dur-feedback) var(--ease-tm),color var(--dur-feedback) var(--ease-tm);
+  @media (hover:hover) {
+    &:hover:not(:disabled):not([aria-disabled="true"]) { box-shadow:inset 0 0 0 100vmax var(--control-hover-tint); }
+  }
+  /* Pointer hover must not turn neutral or destructive actions into primary ones.
+     Keep their semantic ink; tooltips, press feedback and keyboard focus remain. */
+  &[data-pressed]:not(:disabled):not([aria-disabled="true"]) {
+    box-shadow:inset 0 0 0 100vmax var(--control-press-tint);
+    --control-press-transform:scale(var(--press-scale));
+  }
+}
+@utility control-feedback-content {
+  transition:transform var(--dur-snap) var(--ease-tm);
+  transform:var(--control-press-transform);
+  @media (prefers-reduced-motion:reduce) { transform:none!important; }
+}

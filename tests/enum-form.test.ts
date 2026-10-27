@@ -7,7 +7,7 @@ import { toolbarAction } from "../src/interaction/toolbar.ts";
 
 test("a mandatory single choice has a real initial value and no required marker", () => {
   const fit = { ...mutation, inputFields: ["fit"], inputSchema: { type: "object" as const,
-    properties: { fit: { type: "string", enum: ["fill", "fit"] } }, required: ["fit"], additionalProperties: false as const } };
+    properties: { fit: { type: "string" as const, enum: ["fill", "fit"] } }, required: ["fit"], additionalProperties: false as const } };
   const themed = { ...surface, fieldRepresentations: { ...surface.fieldRepresentations, "photo.fit": "text" as const },
     language: { ...surface.language, fields: { ...surface.language.fields, "photo.fit": "Thumbnail fit" } } };
   assert.deepEqual(emptyInputDraft(themed, fit), { fit: "fill" });

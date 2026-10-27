@@ -23,7 +23,7 @@ for (const width of [390, 1280]) test(`history restores place scroll and drafts 
     assert.ok(Math.abs(restored.scroll! - travel.scroll!) <= 1, 'Forward restores the retained place scroll');
     await (await navigationAction(page, 'Component bank')).click();
     await page.getByRole('searchbox', { name: 'Find component', exact: true }).fill('input');
-    const writing = page.locator('[data-specimen="input.text:value"] input');
+    const writing = page.locator('[data-view-item="specimen:input.text:value"] input');
     await writing.fill('Bank draft survives too');
     const bank = await lifecycleEvidence(page, `history-${width}-bank`);
     await page.goBack(); await settle(page);
@@ -43,7 +43,7 @@ for (const width of [390, 1280]) test(`search detail history restores query, res
     await page.locator('[data-catalog-scroll]').evaluate(element => element.scrollTop = 400); await settle(page);
     const origin = await lifecycleEvidence(page, `search-history-${width}-origin`);
     await (await search(page)).fill('Fuji');
-    const result = page.locator('[data-search-result]').getByRole('button', { name: 'Mount Fuji', exact: true });
+    const result = page.locator('[data-catalog-search-scroll]').getByRole('button', { name: 'Mount Fuji', exact: true });
     await result.click(); await settle(page);
     await lifecycleEvidence(page, `search-history-${width}-activated`);
     assert.ok(new URL(page.url()).searchParams.has('record'));

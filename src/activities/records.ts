@@ -1,20 +1,15 @@
+import type { Static } from "@sinclair/typebox";
 import type { PoolClient } from "pg";
 import { freezeDeep } from "../json.ts";
 import type { LocalProgram } from "../local/program.ts";
 import { requireUUID } from "../local/types.ts";
-import type { PreflightOptions } from "../preflight.ts";
-import { activityDigest, type ActivityCatalog } from "./catalog.ts";
+import { activityDigest, type ActivityIndex } from "./activity-index.ts";
 import { activityProgress } from "./progress.ts";
-import type { ActivityAnswers, ActivityPlan } from "./schema.ts";
+import type { activitiesTable } from "../storage/tables/activities.ts";
 
-export type ActivityRecord = {
-  id: string; actor: string; surface: string; catalog_digest: string; plan_digest: string;
-  occurrence: string; request_digest: string; created_at: Date;
-  plan: ActivityPlan; options: PreflightOptions; revision: number; answers: ActivityAnswers; completed: number[];
-  phase: "draft" | "prepared" | "completed" | "cancelled"; intent_id: string | null; expires_at: Date;
-};
+export type ActivityRecord = Static<typeof activitiesTable.row>;
 
-export async function activityRecord(client: PoolClient, program: LocalProgram, catalog: ActivityCatalog,
+export async function activityRecord(client: PoolClient, program: LocalProgram, catalog: ActivityIndex,
   actor: string, surface: string, id: string, lock = false) {
   requireUUID(id);
   const { rows: [record] } = await client.query<ActivityRecord>(
@@ -24,7 +19,7 @@ export async function activityRecord(client: PoolClient, program: LocalProgram, 
   return checkedActivityRecord(program, catalog, surface, record);
 }
 
-export function checkedActivityRecord(program: LocalProgram, catalog: ActivityCatalog, surface: string, record: ActivityRecord) {
+export function checkedActivityRecord(program: LocalProgram, catalog: ActivityIndex, surface: string, record: ActivityRecord) {
   if (record.catalog_digest !== catalog.digest) throw new Error("ACTIVITY_CATALOG_CHANGED");
   record.plan = catalog.admit(record.plan);
   if (record.plan_digest !== activityDigest(record.plan)) throw new Error("CORRUPT_ACTIVITY_PLAN");

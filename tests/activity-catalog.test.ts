@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { compile } from "../src/compile.ts";
-import { activityCatalog } from "../src/activities/catalog.ts";
+import { activityIndex } from "../src/activities/activity-index.ts";
 import { activityInputs } from "../src/activities/authoring.ts";
 import { activityProgress } from "../src/activities/progress.ts";
 import { Components, defineView } from "../src/views/components.ts";
@@ -9,6 +9,7 @@ import { viewPorts } from "../src/views/authoring-ports.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import { CreateNote } from "../products/notebook/journeys.ts";
 import { catalogFixture } from "./fixtures/module-catalog.ts";
+import { fixtureText, FixtureMessages } from "./fixtures/messages.ts";
 
 const ports = viewPorts({ inputs: { draft: "form", prepared: "context" }, outputs: ["execute"] });
 export const Title = defineView({ name: "title-step", content: [Components.Form({ input: ports.inputs.draft })] });
@@ -17,7 +18,7 @@ export const Review = defineView({ name: "review-step", content: [Components.Con
 
 function fixture() {
   const app = compile(Notebook), inputs = activityInputs(CreateNote);
-  const catalog = activityCatalog(app, { journeys: [CreateNote], views: [Title, Body, Review] });
+  const catalog = activityIndex(app, { messages: FixtureMessages, journeys: [CreateNote], views: [Title, Body, Review] });
   const plan = catalog.define({ journey: CreateNote, steps: [
     { view: Title, inputs: [inputs.title] },
     { view: Body, inputs: [inputs.body], when: { input: inputs.title, comparison: "equals", value: "Detailed" } },
@@ -54,18 +55,18 @@ test("runtime-created plans cannot add operations, Views, callbacks or skipped r
 test("activity Views cannot smuggle unbound toolbar actions or presentation-only settings", () => {
   const { app } = fixture();
   const withAction = defineView({ name: "action-step", outputs: ports.outputs,
-    topDock: Components.Toolbar({ actions: [{ output: ports.output.execute, label: "Do it", icon: "create" }] }),
+    topDock: Components.Toolbar({ actions: [{ output: ports.output.execute, label: fixtureText.doIt, icon: "create" }] }),
     content: [Components.Form({ input: ports.inputs.draft })] });
   const settings = defineView({ name: "settings-step", content: [Components.Appearance()] });
-  assert.throws(() => activityCatalog(app, { journeys: [CreateNote], views: [withAction, Review] }), /UNSUPPORTED_ACTIVITY_VIEW/);
-  assert.throws(() => activityCatalog(app, { journeys: [CreateNote], views: [settings, Review] }), /UNSUPPORTED_ACTIVITY_VIEW/);
+  assert.throws(() => activityIndex(app, { messages: FixtureMessages, journeys: [CreateNote], views: [withAction, Review] }), /UNSUPPORTED_ACTIVITY_VIEW/);
+  assert.throws(() => activityIndex(app, { messages: FixtureMessages, journeys: [CreateNote], views: [settings, Review] }), /UNSUPPORTED_ACTIVITY_VIEW/);
 });
 
 test("activities cannot bypass component authoring with raw, copied or serialized Views", () => {
   const { app } = fixture();
   for (const value of [{ ...Title }, JSON.parse(JSON.stringify(Title)), {
     version: Title.version, id: "raw-view", content: [{ kind: "form", id: "raw-component", input: "draft" }],
-  }]) assert.throws(() => activityCatalog(app, { journeys: [CreateNote], views: [value, Review] }),
+  }]) assert.throws(() => activityIndex(app, { messages: FixtureMessages, journeys: [CreateNote], views: [value, Review] }),
     /VIEW_COMPONENT_AUTHORING_REQUIRED/);
 });
 
@@ -82,7 +83,7 @@ test("forged object references and copied input tokens fail despite matching ide
 test("public module journey references keep typed inputs and installed execution identity", () => {
   const { modules } = catalogFixture();
   const journey = modules.journeys.createNote, inputs = activityInputs(journey);
-  const catalog = activityCatalog(compile(Notebook), { journeys: [journey], views: [Title, Body, Review] });
+  const catalog = activityIndex(compile(Notebook), { messages: FixtureMessages, journeys: [journey], views: [Title, Body, Review] });
   const plan = catalog.define({ journey, steps: [
     { view: Title, inputs: [inputs.title] }, { view: Body, inputs: [inputs.body] },
   ], review: Review });

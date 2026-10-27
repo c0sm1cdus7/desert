@@ -6,7 +6,7 @@ import { loadDefinition } from "../compiled-definition.ts";
 
 export function requireActivityCoverage(application: Application, journey: Frozen<Mutation>, plan: ActivityPlan) {
   const object = loadDefinition(application).objects.find(object => object.id === journey.command.object)!;
-  if (journey.command.input.some(field => object.facts[field]?.kind === "asset")) {
+  if (journey.command.input.some(field => object.facts[field]?.kind === "file")) {
     throw new Error("ACTIVITY_ASSET_STAGING_NOT_INSTALLED");
   }
   if (journey.command.input.some(field => object.facts[field]?.kind === "labels")) throw new Error("ACTIVITY_LABELS_NOT_INSTALLED");

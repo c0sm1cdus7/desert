@@ -5,10 +5,10 @@ import {rendererCss} from './fixtures/renderer-css.ts';
 
 test('labels use a creation popover and compact removable rail without an exposed input',{timeout:180000},async()=>{
   const f=await svelteBrowser(`<script lang="ts">
-    import BankRenderer from '@desert/svelte/BankRenderer.svelte';
+    import NodeRenderer from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
     import {applyControlEvent} from '@desert/interaction/control-nodes.ts';
     let control=$state({version:'desert.control/1',kind:'labels',id:'labels',label:'Labels',disabled:false,values:[],limits:{maxItems:2,maxLength:64}});
-  </script><BankRenderer node={{version:'desert.bank-node/1',kind:'control.labels',control}} onevent={event=>{if(event.kind==='labels.change')control=applyControlEvent(control,event).node}}/>`);
+  </script><NodeRenderer node={{version:'desert.bank-node/1',kind:'control.labels',control}} onevent={event=>{if(event.kind==='labels.change')control=applyControlEvent(control,event).node}}/>`);
   try{
     f.page.setDefaultTimeout(10000);
     await f.page.addStyleTag({content:await rendererCss()});
@@ -17,12 +17,12 @@ test('labels use a creation popover and compact removable rail without an expose
     assert.equal(await input.count(),0);
     await add.click();await input.fill('  Desert SDK  ');await input.press('Enter');await input.waitFor({state:'detached'});
     assert.equal(await input.count(),0);
-    assert.deepEqual((await f.page.locator('.label-rail li').allTextContents()).map(value=>value.trim()),['Desert SDK']);
+    assert.deepEqual((await f.page.locator('[data-tag]').allTextContents()).map(value=>value.trim()),['Desert SDK']);
     await add.click();await input.fill('Desert SDK');await input.press('Enter');
     assert.equal(await input.inputValue(),'Desert SDK');
     assert.equal(await f.page.getByRole('alert').textContent(),'This label is already added.');
     await input.fill('A,B');await input.press('Enter');await input.waitFor({state:'detached'});
-    assert.deepEqual((await f.page.locator('.label-rail li').allTextContents()).map(value=>value.trim()),['Desert SDK','A,B']);
+    assert.deepEqual((await f.page.locator('[data-tag]').allTextContents()).map(value=>value.trim()),['Desert SDK','A,B']);
     assert.equal(await add.isDisabled(),true);
     for(const width of [320,1440]){
       await f.page.setViewportSize({width,height:800});
@@ -36,7 +36,7 @@ test('labels use a creation popover and compact removable rail without an expose
     assert.equal(await f.page.locator('[data-character-counter]').textContent(),'1 over limit');
     assert.equal(await input.inputValue(),'🌵'.repeat(65),'over-limit writing is preserved for canonical validation');
     await input.press('Enter');await input.waitFor({state:'detached'});
-    assert.deepEqual((await f.page.locator('.label-rail li').allTextContents()).map(value=>value.trim()),['A,B','🌵'.repeat(65)]);
+    assert.deepEqual((await f.page.locator('[data-tag]').allTextContents()).map(value=>value.trim()),['A,B','🌵'.repeat(65)]);
     await f.page.setViewportSize({width:320,height:800});
     assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     assert.deepEqual(f.errors,[]);

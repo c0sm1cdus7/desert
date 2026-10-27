@@ -51,7 +51,7 @@ or `ViewDeclaration` does not bypass that check. This is a bounded guarantee, no
 a claim that TypeScript proves every nested property of every component. Runtime
 admission still checks untyped inputs.
 
-`ReadNotesExperience` binds this View to the read journey, its object View and
+`ReadNotesJourney` binds this View to the read journey, its object View and
 its outputs. Create emits a journey intent; Select emits a selection intent.
 The View cannot execute either operation. Object publication selects the object
 View, title fact, field labels/representations and toolbar actions. Notebook
@@ -94,14 +94,14 @@ Product modules + Views + journeys + workspace/navigation
 | `src/modules/compiled-product.ts` | Bind the application to its admitted View program. |
 | `src/views/program.ts` | Validate View bindings against the exposed surface. |
 | `src/web/build.ts` | Generate surface/program and standalone command validators. |
-| `src/svelte/pieces/AccessGate.svelte` | Mount content only for an admitted session or explicit developer host. |
+| `src/svelte/catalog/compositions/access-gate/AccessGate.svelte` | Mount content only for an admitted session or explicit developer host. |
 | `src/web/client/view-program.ts` and `view-projection.ts` | Resolve destinations, Views and panels without drawing. |
 | `src/web/client/view-scopes.ts` | Derive read/mutation scopes while sharing one connection observer. |
 | `src/svelte/views/` | Forward typed projections through the registered adapter catalog. |
-| `src/svelte/pieces/ViewWorkspace.svelte` | Adapt the resolved workspace to the existing catalog shell. |
-| `src/svelte/explorer/CatalogWorkspace.svelte` | Compose shared navigation, main surface, search and panels. |
-| `src/svelte/pieces/ViewPanel.svelte` | Adapt the panel to existing Drawer/SurfaceFrame owners. |
-| `src/svelte/BankRenderer.svelte` and `renderer-registry.ts` | Validate and dispatch installed bank descriptors. |
+| `src/svelte/catalog/compositions/view-workspace/ViewWorkspace.svelte` | Adapt the resolved workspace to the existing catalog shell. |
+| `src/svelte/catalog/compositions/catalog-workspace/CatalogWorkspace.svelte` | Compose shared navigation, main surface, search and panels. |
+| `src/svelte/catalog/compositions/view-panel/ViewPanel.svelte` | Adapt the panel to existing Drawer/SurfaceFrame owners. |
+| `src/svelte/catalog/renderer/bank-renderer/NodeRenderer.svelte` and `renderer-registry.ts` | Validate and dispatch installed bank descriptors. |
 
 `DESERT-BUILD.json` format `desert.distribution-build/3` binds files, renderer
 revision, contract, distribution, surface and `viewProgramDigest`. Activities add
@@ -112,9 +112,10 @@ the entire browser verification window, not only during compilation.
 
 Products cannot provide CSS, classes, HTML, arbitrary callbacks, Svelte snippets,
 motion timings or component overrides. `defineView` admits only issued
-`Components` values. Source admission and visual-boundary checks also constrain
-renderer adapters and their dependency graph. Closed private owners have finite
-props; a private lexical slot is not a consumer-supplied markup extension.
+`Components` values. The Visual Catalog gate (docs/VISUAL-CATALOG-ENFORCEMENT.md)
+also constrains renderer compositions and every nonvisual module the page reaches.
+Pieces with closed contracts have finite props; a composition renders only the
+slots its declaration names.
 This is not a sandbox against a trusted developer editing the SDK itself.
 Historical visual debt is inventoried, not permission for a new bypass.
 
@@ -134,11 +135,12 @@ product-command field. Text, labels and private-image inputs have canonical
 bindings; other controls remain local exercises unless their command grammar
 and execution binding are installed.
 
-`WebRendererBank` associates each entry with its own props/events.
-`renderer-registry.ts` binds entries to actual components. Generated
-`adapter-catalog.ts`, backed by `catalog-manifest.ts`, exposes finite composition
-owners to adapters. Neither registry is another product definition.
-`RendererBank<T>` alone checks inventory, not component compatibility.
+`NodeRendererTable` associates each entry with its own props/events.
+`renderer-registry.ts`, generated from the `renders` field of each catalog
+declaration, binds entries to actual components. Renderer compositions import the
+pieces they mount from the generated catalog index. Neither is another product
+definition.
+`RendererTable<T>` alone checks inventory, not component compatibility.
 
 A registered View requests `Components.VisualCatalog()`. It does not require
 a `?catalog=1` alternate renderer. Specimens reuse production owners. Missing
@@ -210,7 +212,7 @@ owners; they do not add a separate wizard layout.
 
 ## Material, text and interaction
 
-`pieces/pane-material.css` owns Glass: a neutral 88% translucent fill, 24px blur
+`catalog/mechanisms/pane-material/pane-material.css` owns Glass: a neutral 88% translucent fill, 24px blur
 and one perimeter. Independent action faces, wells, grouped lists, navigation
 and transient surfaces use it; interiors stay transparent. Primary actions tint
 the same material with the primary color. This supersedes the earlier neutral-
@@ -330,7 +332,7 @@ URL. Image gestures and thumbnails remain shared; media-specific playback/time/
 volume controls use the same toolbar owners. This does not trust arbitrary
 uploads or external media URLs.
 
-Private images use canonical `imageAsset()` inputs. Browser acquisition stages
+Private files use canonical `file({ accept, maxBytes })` inputs. Browser acquisition stages
 bytes through the authenticated controller, preserves the original and produces
 bounded renditions. Prepare/accept bind issued references to identity, run,
 input and contract. Private bytes never enter the public build media directory.

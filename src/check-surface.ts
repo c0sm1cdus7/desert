@@ -1,10 +1,10 @@
 import type { ObjectDefinition } from "./contracts.ts";
-import type { JourneyDefinition, SurfaceDefinition } from "./program-grammar.ts";
+import type { JourneyDefinition, ExposureDefinition } from "./program-grammar.ts";
 import { requireReference } from "./references.ts";
 import { surfaceFieldKinds, surfaceFields } from "./surface-fields.ts";
 import { requireFieldPresentation } from "./field-representation.ts";
 
-export function checkSurface(surface: SurfaceDefinition, journeys: Map<string, JourneyDefinition>, objects: Map<string, ObjectDefinition>) {
+export function checkSurface(surface: ExposureDefinition, journeys: Map<string, JourneyDefinition>, objects: Map<string, ObjectDefinition>) {
   const exposed = new Map(surface.journeys.map(id => [id, requireReference(journeys, id, "journey")]));
   if (surface.kind === "agent") return;
   const { presented } = surfaceFields([...exposed.values()]);

@@ -8,7 +8,7 @@ test('a roomy catalog reserves a right pane without modal ownership', async () =
   try {
     await f.page.setViewportSize({ width: 2000, height: 900 });
     await f.page.goto(`${f.origin}/?place=bank`);
-    const opener = f.page.locator('[data-catalog-entry="transient"] button').first();
+    const opener = f.page.locator('[data-view-item="entry:transient"] button').first();
     await opener.click(); await settleMotion(f.page);
     const pane = f.page.locator('[data-composition="transient"]');
     assert.equal(await pane.getAttribute('role'), 'region');
@@ -32,7 +32,7 @@ test('a right transient keeps its readable pane width before docking is possible
   try {
     await f.page.setViewportSize({ width: 700, height: 900 });
     await f.page.goto(`${f.origin}/?place=bank`);
-    await f.page.locator('[data-catalog-entry="transient"] button').first().click();
+    await f.page.locator('[data-view-item="entry:transient"] button').first().click();
     await settleMotion(f.page);
     const pane = f.page.locator('[data-composition="transient"]');
     assert.equal(await pane.getAttribute('data-edge'), 'right');

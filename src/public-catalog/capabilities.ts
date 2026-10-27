@@ -2,7 +2,7 @@ import { Type, type Static } from "@sinclair/typebox";
 import { Check } from "@sinclair/typebox/value";
 import { freezeDeep, jsonSnapshot, type Frozen } from "../json.ts";
 import { closedObject, nonemptyText } from "./node-schema.ts";
-import type { BankNode } from "../interaction/bank-node.ts";
+import type { ResolvedNode } from "../interaction/resolved-node.ts";
 import { ControlEventSchema } from "../interaction/control-nodes.ts";
 import type { Face } from "../interaction/face.ts";
 
@@ -37,7 +37,7 @@ function requireFace(features: Set<string>, face: Face | undefined): void {
 }
 
 /** Derive local workbench needs from the same canonical control event grammar. */
-export function publicCatalogRequirements(nodes: readonly BankNode[] = [], gallery = false): RendererRequirements {
+export function publicCatalogRequirements(nodes: readonly ResolvedNode[] = [], gallery = false): RendererRequirements {
   if (nodes.length === 0 && !gallery) return PublicCatalogRequirements;
   const nodeKinds = new Set<string>(PublicCatalogRequirements.nodes);
   const events = new Set<string>(PublicCatalogRequirements.events);

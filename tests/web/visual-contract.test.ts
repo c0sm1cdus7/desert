@@ -25,7 +25,7 @@ test("floating labels, required indicators and text scaling preserve the draft",
     await body.focus();
     assert.equal((await label.boundingBox())!.y, floating!.y, "filled label remains floated");
     const colors = await field.evaluate(node => ({
-      star: getComputedStyle(node.querySelector(".required")!).color,
+      star: getComputedStyle(node.querySelector(".required-mark")!, "::after").color,
       label: getComputedStyle(node.querySelector("label")!).color,
     }));
     assert.notEqual(colors.star, colors.label);
@@ -77,7 +77,7 @@ test("reading facts remain exposed with aligned prose and published toolbar comm
     const destination = actions.getByRole("button", { name: "Archive note", exact: true });
     assert.equal(await destination.count(), 1, "the published command is an icon action in the object's toolbar");
     assert.equal(await destination.locator('svg').count(), 1);
-    assert.equal(await destination.getAttribute("data-button-face"), "icon");
+    assert.equal(await destination.getAttribute("data-action-face"), "icon");
     assert.equal(await destination.isVisible(), true);
     assert.equal(await context.locator('[data-surface-slot="bottom"]').count(), 0);
     assert.equal(await f.page.getByRole("dialog").count(), 1, "compact reading adapts the same view into a transient");

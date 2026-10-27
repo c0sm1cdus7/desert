@@ -165,12 +165,12 @@ guarantees require mechanisms and real evidence; the declarations do not provide
 `product/interactions.ts`
 
 ```ts
-import { agentSurface, humanSurface } from "@desert/contracts";
+import { agentExposure, humanExposure } from "@desert/contracts";
 import { CanonicalHumanInteraction } from "@desert/human-contracts";
 import { ArchiveNote, CreateNote, ReadNote } from "./journeys.ts";
 import { Note } from "./note.ts";
 
-export const HumanNotebook = humanSurface({
+export const HumanNotebook = humanExposure({
   id: "notebook.human",
   profile: CanonicalHumanInteraction,
   journeys: [CreateNote, ReadNote, ArchiveNote],
@@ -201,7 +201,7 @@ export const HumanNotebook = humanSurface({
   },
 });
 
-export const AgentNotebook = agentSurface({
+export const AgentNotebook = agentExposure({
   id: "notebook.agent",
   journeys: [CreateNote, ReadNote, ArchiveNote],
 });

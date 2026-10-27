@@ -3,18 +3,22 @@ import { join, relative, resolve } from "node:path";
 import ts from "typescript";
 import { checkDeclarations } from "./syntax.ts";
 import { checkImport, viewImportProvenance } from "./imports.ts";
+import { assertNoLiteralText, assertProductMessageKeys, isProductBundle, productKeysModule } from "./messages.ts";
+import { bundleLocale } from "../messages/generate.ts";
 
 /** Build-time declaration boundary, not an isolation sandbox for malicious TypeScript. */
 export async function assertProductSource(directory: string): Promise<{ files: readonly string[] }> {
   if ((await lstat(directory)).isSymbolicLink()) throw new Error("PRODUCT_SYMLINK_NOT_ALLOWED");
   const root = await realpath(directory);
   const sources = new Map<string, string>();
+  const bundles = new Map<string, string>();
   async function collect(folder: string): Promise<void> {
     for (const item of await readdir(folder, { withFileTypes: true })) {
       const path = join(folder, item.name);
       if (item.isSymbolicLink()) throw new Error(`PRODUCT_SYMLINK_NOT_ALLOWED: ${relative(root, path)}`);
       if (item.isDirectory()) await collect(path);
       else {
+        if (item.isFile() && isProductBundle(root, path)) { bundles.set(bundleLocale(item.name) ?? "", await readFile(path, "utf8")); continue; }
         if (!item.isFile() || !item.name.endsWith(".ts")) {
           throw new Error(`PRODUCT_FILE_NOT_ALLOWED: ${relative(root, path)}`);
         }
@@ -24,6 +28,7 @@ export async function assertProductSource(directory: string): Promise<{ files: r
   }
   await collect(root);
   if (sources.size === 0) throw new Error("EMPTY_PRODUCT_SOURCE");
+  assertProductMessageKeys(bundles, sources.get(join(root, productKeysModule)));
   const edges = new Map<string, { target: string; declaration: ts.ImportDeclaration | ts.ExportDeclaration }[]>();
   const files = new Map<string, ts.SourceFile>();
   let roots = 0;
@@ -40,6 +45,8 @@ export async function assertProductSource(directory: string): Promise<{ files: r
     });
     edges.set(path, targets);
   }
+  // A declaration that is otherwise legal still writes no sentence (plan §14).
+  for (const file of files.values()) assertNoLiteralText(root, file);
   const active = new Set<string>();
   const checked = new Set<string>();
   function visit(path: string) {

@@ -1,13 +1,18 @@
 import type { ValidationIssue, ValidationResult } from "../../validation-result.ts";
+import { rendererLocale } from "../../messages/renderer-locale.ts";
+import { Messages, m } from "../../messages/keys.ts";
+
+// Every sentence this module shows a person is a key of the `fieldFeedback` namespace it owns (plan §14).
+const bundle = Messages.bundle(rendererLocale);
 
 function message(issue: ValidationIssue): string {
   const limit = issue.params?.limit;
-  if (issue.keyword === "required" || (issue.keyword === "minLength" && limit === 1)) return "Enter a value.";
-  if (issue.keyword === "minLength" && typeof limit === "number") return `Enter at least ${limit} characters.`;
-  if (issue.keyword === "maxLength" && typeof limit === "number") return `Use no more than ${limit} ${limit === 1 ? "character" : "characters"}.`;
-  if (issue.keyword === "maxItems" && typeof limit === "number") return `Use no more than ${limit} labels.`;
-  if (issue.keyword === "uniqueItems") return "Remove the repeated label.";
-  return "Check this value.";
+  if (issue.keyword === "required" || (issue.keyword === "minLength" && limit === 1)) return bundle.text(m.fieldFeedback.required);
+  if (issue.keyword === "minLength" && typeof limit === "number") return bundle.text(m.fieldFeedback.atLeast, { limit: String(limit) });
+  if (issue.keyword === "maxLength" && typeof limit === "number") return bundle.text(limit === 1 ? m.fieldFeedback.atMostCharacter : m.fieldFeedback.atMostCharacters, { limit: String(limit) });
+  if (issue.keyword === "maxItems" && typeof limit === "number") return bundle.text(m.fieldFeedback.atMostLabels, { limit: String(limit) });
+  if (issue.keyword === "uniqueItems") return bundle.text(m.fieldFeedback.repeatedLabel);
+  return bundle.text(m.fieldFeedback.check);
 }
 
 /** Presentation only: paths and keyword parameters are supplied by canonical validation. */

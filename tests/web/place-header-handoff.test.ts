@@ -19,7 +19,7 @@ for (const width of [390, 1280]) test(`place identity and media have separate li
     const compact = page.locator('[data-toolbar-identity]');
     assert.equal(await compact.locator('[data-identity-title]').textContent(), 'Landmarks');
     assert.equal(await compact.evaluate(el => getComputedStyle(el).opacity), '1');
-    assert.equal(await page.locator('[data-place-toolbar] [data-primitive="action"]').count(), 0);
+    assert.equal(await page.locator('[data-place-toolbar] [data-action]').count(), 0);
     assert.equal(await compact.evaluate(el => getComputedStyle(el).textAlign), 'start');
     await scroller.evaluate(el => el.scrollTop = 0); await settle(page);
     assert.equal(await compact.evaluate(el => getComputedStyle(el).opacity), '0');
@@ -50,12 +50,12 @@ test('approved draft copy and inspiration are ordinary content', async () => {
   try {
     const { page } = fixture;
     await page.goto(`${fixture.origin}/?place=travel-kit`); await settle(page);
-    const draft = page.locator('[data-place-stack="draft"]');
+    const draft = page.locator('[data-view-item="draft"]');
     assert.equal(await draft.locator('button').count(), 0);
     assert.ok((await draft.textContent())!.includes('Only in this tab'));
     assert.ok((await draft.textContent())!.includes('Closing or reloading this tab discards'));
     assert.equal(await draft.getByText('Storage', { exact: true }).count(), 0);
-    const hero = page.locator('[data-place-stack="inspiration"]');
+    const hero = page.locator('[data-view-item="inspiration"]');
     await hero.getByRole('button', { name: 'Mount Fuji', exact: true }).click(); await settle(page);
     assert.equal(await page.locator('[data-place-header] h1').textContent(), 'Mount Fuji');
   } finally { await fixture.close(); }

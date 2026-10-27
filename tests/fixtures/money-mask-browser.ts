@@ -4,7 +4,7 @@ import { rendererCss } from "./renderer-css.ts";
 
 const source = `<script>
   import { tick } from "svelte";
-  import MoneyControl from "@desert/svelte/controls/MoneyControl.svelte";
+  import MoneyControl from "@desert/svelte/catalog/compositions/money-control/MoneyControl.svelte";
   let node = $state({version:'desert.control/1',kind:'money',id:'amount',label:'Amount',disabled:false,
     required:false,currency:'USD',minorUnits:null,currencies:[
       {code:'USD',scale:2,face:{kind:'flag',region:'US'}},

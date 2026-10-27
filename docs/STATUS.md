@@ -61,6 +61,25 @@ identity administration, remote environments/provider execution or native binari
 The [SDK anatomy](architecture/ANATOMY.md) and [VOID anatomy](../../void/docs/ANATOMY.md)
 map actual owners and remaining boundaries.
 
+## Files are objects — storage slice 7.4/7.5, 2026-10-26
+
+A file fact is `file({ accept, maxBytes })`; `imageAsset()`/`mediaAsset()` are gone.
+The accepted media types (images, MP4 video and audio, MP3, WAV, PDF, ZIP) and
+their renditions are declared once in the
+[media policy](../src/media/rendition-policy.ts). A product with a file fact gets
+the SDK-declared `asset` object (its typed table is generated like any object's);
+each file column is a foreign key to it. An upload under the journey's run writes
+the file and its image renditions as ready asset objects of the uploader; the
+accept that writes the owning object attaches them in the same transaction. Bytes
+are admitted by content only and read through the authenticated controller; a
+document or archive is served as an attachment. The reservation and transfer
+states stay in the staging ledger. Not installed: the asset object's detail as a
+rendered View (the runtime read `session.asset` returns its facts), file bytes on
+the content-addressed blob store (they remain on the private disk store), and
+browser choosers narrowed to a fact's exact types and size limit (the controller
+enforces both). The bucket adapter's contract runs against a pinned Garage server
+in a container, locally and in CI. Guard: `tests/storage-files.test.ts`.
+
 ## Historical checkpoints — not current authoring instructions
 
 The entries below retain their evidence and limitations at the time recorded.
@@ -435,10 +454,10 @@ ownership closure remain open. Evidence is recorded in VOID's
 
 The public string-reference helpers described in this historical checkpoint were
 superseded by the object-reference authoring contract at the top of this document.
-`viewCatalog` remains an internal wire validator, not a public authoring alternative.
+`viewIndex` remains an internal wire validator, not a public authoring alternative.
 
 The working branch adds `desert.view/1` and exported `View`, `view` and
-`viewCatalog`. Content is an ordered sequence: a standalone Header, titled
+`viewIndex`. Content is an ordered sequence: a standalone Header, titled
 Stacks and permitted passive catalog leaves. Top/bottom docks accept Toolbar
 output descriptors; side docks reference Views by ID. Outputs cannot name
 journeys/commands, and input bindings, editable controls and collections are

@@ -1,0 +1,27 @@
+/* One semantic header; its stationary toolbar echo never owns media or actions. */
+.place-heading-content {
+  position:relative; min-width:0; isolation:isolate;
+  padding:calc(var(--catalog-toolbar-inset,12px) + var(--catalog-toolbar-height,44px) + 24px) var(--place-content-inset,42px) 24px;
+  padding-inline-start:calc(var(--place-leading-inset,0px) + var(--place-content-inset,42px));
+}
+.place-heading-copy { display:flex; flex-direction:column; align-items:flex-start; gap:var(--heading-copy-gap); min-width:0; @apply wrap-words; }
+/* Its title is Heading's place title (it wraps by the one text policy and draws no focus ring); its subtitle wraps the
+   same way. */
+.place-heading-copy [data-place-subtitle] { margin:0; color:var(--muted-foreground); max-width:65ch; }
+.place-heading-content[data-featured-media] { display:flex; align-items:flex-end; min-height:min(65dvh,36rem); padding-bottom:32px; }
+/* The video lies under the shade and its controls stand over it (the player layers its header presentation in this
+   heading's stacking context: the media box opens none); the copy leaves room for the controls. */
+.place-heading-media { position:absolute; inset:0; }
+.place-heading-content[data-featured-media]:not([data-media-unavailable="true"])::before { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background:linear-gradient(transparent 35%,var(--catalog-image-shade)); }
+.place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) .place-heading-copy,
+.place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) [data-place-subtitle] { color:var(--catalog-image-foreground); text-shadow:0 1px 4px var(--catalog-image-shade); }
+.place-heading-content[data-featured-media="video"] { padding-bottom:64px; }
+/* A featured photo is the gallery, filling the heading under the copy; the gallery draws its own shade. */
+.place-heading-gallery { position:absolute; inset:0; z-index:0; }
+.place-heading-content:is([data-featured-media="image"],[data-featured-media="gallery"])::before { content:none; }
+.place-heading-content:is([data-featured-media="image"],[data-featured-media="gallery"]) .place-heading-copy { position:relative; z-index:2; pointer-events:none; }
+.place-heading-content[data-paged-media] .place-heading-copy { padding-bottom:32px; }
+.place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) [data-place-subtitle] { color:color-mix(in srgb,var(--catalog-image-foreground) 74%,transparent); }
+@media(prefers-contrast:more) { .place-heading-content[data-featured-media]:not([data-media-unavailable="true"]) [data-place-subtitle] { color:var(--catalog-image-foreground); } }
+/* The embedded heading: content inside a place, never a toolbar or scroll owner. */
+.place-heading { display:flex; flex-direction:column; gap:.5rem; }

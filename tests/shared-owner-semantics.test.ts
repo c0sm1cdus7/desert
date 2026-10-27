@@ -6,18 +6,18 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 test("shared pane chrome and catalog specimens preserve the document outline without duplicate landmarks", { timeout: 60000 }, async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import ToolbarLayout from '@desert/svelte/pieces/ToolbarLayout.svelte';
-    import PlaceHeading from '@desert/svelte/pieces/PlaceHeading.svelte';
-    import SpecimenUnavailable from '@desert/svelte/catalog/SpecimenUnavailable.svelte';
-    import SpecimenRow from '@desert/svelte/catalog/SpecimenRow.svelte';
-    import CatalogHome from '@desert/svelte/explorer/CatalogHome.svelte';
+    import ToolbarLayout from '@desert/svelte/catalog/compositions/toolbar-layout/ToolbarLayout.svelte';
+    import PlaceHeading from '@desert/svelte/catalog/foundations/place-heading/PlaceHeading.svelte';
+    import SpecimenUnavailable from '@desert/svelte/catalog/compositions/specimen-unavailable/SpecimenUnavailable.svelte';
+    import SpecimenRow from '@desert/svelte/catalog/compositions/specimen-row/SpecimenRow.svelte';
+    import CatalogHome from '@desert/svelte/catalog/compositions/catalog-home/CatalogHome.svelte';
     const home = {version:'desert.bank-node/1',kind:'catalog.home',
       featured:{version:'desert.bank-node/1',kind:'catalog.card',presentation:'featured',record:'cover',title:'Cover',eyebrow:'Featured',actionLabel:'Open'},
       groups:[{id:'albums',title:'Albums',items:[]}]};
   </script>
   <main aria-label="Notebook">
     <ToolbarLayout content={{kind:'actions',actions:[],onevent:()=>{}}} />
-    <PlaceHeading identity={{title:'Notebook',subtitle:'Your writing'}} />
+    <PlaceHeading context="place" title="Notebook" subtitle="Your writing" />
     <h2>Compositions</h2><h3>Media library</h3>
     <SpecimenRow id="catalog.home" state="populated"><CatalogHome node={home} bodyOnly onevent={()=>{}} /></SpecimenRow>
     <SpecimenUnavailable reason="This specimen has no execution adapter." />

@@ -14,7 +14,7 @@ for (const colorScheme of ["light", "dark"] as const) test(`frozen bank masks ex
     await (await navigationAction(page, "Component bank")).click();
     const find = page.getByRole("searchbox", { name: "Find component", exact: true });
     await find.fill("control.money");
-    const specimen = page.locator('[data-specimen="control.money:empty"]');
+    const specimen = page.locator('[data-view-item="specimen:control.money:empty"]');
     const amount = specimen.getByRole("textbox", { name: "Amount", exact: true });
     await amount.fill("423423423,25");
     assert.equal(await amount.inputValue(), "423.423.423,25");
@@ -22,11 +22,11 @@ for (const colorScheme of ["light", "dark"] as const) test(`frozen bank masks ex
     await find.fill("input.text"); await find.fill("control.money");
     assert.equal(await amount.inputValue(), "423.423.423,25", "filtering keeps the mounted exact draft");
     const currency = () => specimen.getByRole("button", { name: / · Amount currency$/ });
-    assert.equal(await currency().locator('[data-currency-symbol]').innerText(), "$");
+    assert.equal(await currency().locator('[data-choice-symbol]').innerText(), "$");
     await currency().click();
     await page.getByRole("option", { name: "USD", exact: true }).click();
     assert.equal(await amount.inputValue(), "423.423.423,25", "currency selection is not an FX conversion or reset");
-    assert.equal(await currency().locator('[data-currency-symbol]').innerText(), "$");
+    assert.equal(await currency().locator('[data-choice-symbol]').innerText(), "$");
     await mkdir(directory, { recursive: true });
     for (const width of [1280, 390, 320]) {
       await page.setViewportSize({ width, height: 800 });
@@ -35,7 +35,7 @@ for (const colorScheme of ["light", "dark"] as const) test(`frozen bank masks ex
       const geometry = await panel.boundingBox();
       assert.ok(geometry && geometry.x >= -1 && geometry.x + geometry.width <= width + 1);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
-      assert.equal(await panel.getByRole("option", { name: "ARS", exact: true }).locator('[data-currency-symbol]').innerText(), "$" );
+      assert.equal(await panel.getByRole("option", { name: "ARS", exact: true }).locator('[data-choice-symbol]').innerText(), "$" );
       assert.equal(await panel.getByRole("option", { name: "ARS", exact: true })
         .locator('[data-piece="face"]').count(), 0);
       await page.screenshot({ path: `${directory}/catalog-${colorScheme}-${width}.png`, animations: "disabled" });

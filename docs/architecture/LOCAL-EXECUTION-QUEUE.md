@@ -93,7 +93,7 @@ validation. The executable example and its configuration live in
 | `execution/claims.ts` | Transactional permits, leases, fencing, terminal observations |
 | `execution/process.ts` | Direct child launch, bounded stdin/stdout/stderr, termination |
 | `execution/worker.ts` | One explicitly invoked work cycle; no implicit daemon |
-| `execution/queue.ts`, `context.ts`, `schema.sql` | Isolated installation, transaction reuse, issued-reference admission |
+| `execution/queue.ts`, `context.ts`, generated DDL (`src/storage/infrastructure.ts` executionTables) | Isolated installation, transaction reuse, issued-reference admission |
 
 Queued cancellation releases no executing work. An expired lease is recorded as
 uncertain when a worker next attempts a claim; there is no background sweeper.

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { viewIdentity, viewSearchResults, viewSearchSelection } from "../src/svelte/views/workspace-data.ts";
+import { viewIdentity, viewSearchResults, viewSearchSelection } from "../src/svelte/catalog/compositions/view-workspace/workspace-data.ts";
 import type { ResolvedView } from "../src/views/resolved.ts";
 import { program } from "./fixtures/view-program.ts";
 

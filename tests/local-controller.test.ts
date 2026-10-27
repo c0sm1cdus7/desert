@@ -5,6 +5,9 @@ import { compile } from "../src/compile.ts";
 import { openLocalController } from "../src/local/controller.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { storedObjects } from "../src/testing/stored-objects.ts";
+import { renderWriteFault, renderWriteFaultRemoval } from "../src/storage/render-faults.ts";
+import { receiptsTable } from "../src/storage/tables/local.ts";
 import type { LocalSession } from "../src/local.ts";
 
 let cluster: ReturnType<typeof postgresCluster>;
@@ -71,18 +74,17 @@ test("subject offers consume the same guard as acceptance, without granting auth
 });
 
 test("effect and receipt roll back together when PostgreSQL rejects the receipt", async () => {
-  const { database, host, alice } = await setup();
+  const { app, database, host, alice } = await setup();
   const admin = new Pool({ host: database.socketDirectory, user: database.user, database: database.database });
   try {
     const run = await alice.begin("create-note");
     const intent = await alice.prepare(run.id, { title: "Atomic", body: "No partial write" });
-    await admin.query(`CREATE FUNCTION reject_receipt() RETURNS trigger LANGUAGE plpgsql AS
-      $$ BEGIN RAISE EXCEPTION 'receipt fault'; END $$;
-      CREATE TRIGGER receipt_fault BEFORE INSERT ON desert_receipts FOR EACH ROW EXECUTE FUNCTION reject_receipt()`);
+    const fault = { name: "receipt_fault", event: "INSERT", message: "receipt fault" } as const;
+    await admin.query(renderWriteFault(receiptsTable, fault));
     await assert.rejects(alice.accept(intent.id, intent.confirmationDigest), /receipt fault/);
-    assert.equal((await admin.query("SELECT count(*) FROM desert_objects")).rows[0].count, "0");
+    assert.equal((await storedObjects(admin, app)).length, 0);
     assert.equal((await admin.query("SELECT count(*) FROM desert_receipts")).rows[0].count, "0");
-    await admin.query("DROP TRIGGER receipt_fault ON desert_receipts");
+    await admin.query(renderWriteFaultRemoval(receiptsTable, fault));
     const receipt = await alice.accept(intent.id, intent.confirmationDigest);
     assert.equal(receipt.status, "completed");
   } finally { await admin.end(); await host.close(); }

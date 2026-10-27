@@ -2,20 +2,21 @@ import { Pool } from "pg";
 import { randomUUID } from "node:crypto";
 import { compile } from "../../src/compile.ts";
 import { openLocalController } from "../../src/local/controller.ts";
-import { activityCatalog } from "../../src/activities/catalog.ts";
+import { activityIndex } from "../../src/activities/activity-index.ts";
 import { activityInputs } from "../../src/activities/authoring.ts";
 import { Components, defineView } from "../../src/views/components.ts";
 import { viewPorts } from "../../src/views/authoring-ports.ts";
 import { Notebook } from "../../products/notebook/product.ts";
 import { CreateNote } from "../../products/notebook/journeys.ts";
 import type { postgresCluster } from "./postgres.ts";
+import { FixtureMessages } from "./messages.ts";
 
 export async function activityFixture(cluster: ReturnType<typeof postgresCluster>) {
   const application = compile(Notebook), database = await cluster.database();
   const ports = viewPorts({ inputs: { draft: "form", prepared: "context" }, outputs: [] });
   const Form = defineView({ name: "activity-form", content: [Components.Form({ input: ports.inputs.draft })] });
   const Review = defineView({ name: "activity-review", content: [Components.Context({ input: ports.inputs.prepared })] });
-  const activities = activityCatalog(application, { journeys: [CreateNote], views: [Form, Review] });
+  const activities = activityIndex(application, { messages: FixtureMessages, journeys: [CreateNote], views: [Form, Review] });
   const inputs = activityInputs(CreateNote);
   const plan = activities.define({ journey: CreateNote, steps: [
     { view: Form, inputs: [inputs.title] },

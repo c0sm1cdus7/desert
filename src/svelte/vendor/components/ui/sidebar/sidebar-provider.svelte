@@ -9,7 +9,6 @@
 	} from "./constants.js";
 	import { setSidebar } from "./context.svelte.js";
 	import type { HTMLAttributes } from "svelte/elements";
-  import { provideSurfaceTypography } from '@desert/svelte/pieces/surface-typography.svelte.ts';
 
 	let {
 		ref = $bindable(null),
@@ -46,7 +45,6 @@
 			document.cookie = `${SIDEBAR_COOKIE_NAME}=${open}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
 		},
 	});
-  provideSurfaceTypography(() => sidebar.presentation === 'overlay' ? 'comfortable' : 'compact');
 </script>
 
 <svelte:window onkeydown={sidebar.handleShortcutKeydown} />
@@ -54,12 +52,14 @@
 <Tooltip.Provider delayDuration={0}>
 	<div
 		data-slot="sidebar-wrapper"
-    data-type-density={sidebar.presentation === 'overlay' ? 'comfortable' : 'compact'}
 		data-presentation={sidebar.presentation}
 		data-state={sidebar.state}
 		style="--sidebar-width: {SIDEBAR_WIDTH}; --sidebar-width-icon: {SIDEBAR_WIDTH_ICON}; --sidebar-content-min-width:{contentMinWidth}; {style}"
 		class={cn(
 			"group/sidebar-wrapper relative flex min-h-svh w-full has-data-[variant=inset]:bg-sidebar",
+			// The theme density utility of the presentation; the owner (shell) gives the same density to the layout it hosts.
+			sidebar.presentation === "overlay" ? "density-comfortable" : "density-compact",
+			sidebar.presentation === "overlay" && "place-insets-compact",
 			className
 		)}
 		bind:this={ref}
@@ -67,8 +67,8 @@
 	>
 		<!-- CSS resolves rem/calc/custom properties; the clipped probe cannot widen
 		     the page. ResizeObserver reacts to host, sidebar and text-size changes. -->
-		<div aria-hidden="true" style="position:absolute;inline-size:0;block-size:0;overflow:hidden;visibility:hidden;pointer-events:none">
-			<div bind:this={dockedBudget} style="inline-size:calc(var(--sidebar-width) + var(--sidebar-content-min-width));block-size:1px"></div>
+		<div aria-hidden="true" class="pointer-events-none invisible absolute size-0 overflow-hidden">
+			<div bind:this={dockedBudget} class="h-px w-[calc(var(--sidebar-width)_+_var(--sidebar-content-min-width))]"></div>
 		</div>
 		{@render children?.()}
 	</div>

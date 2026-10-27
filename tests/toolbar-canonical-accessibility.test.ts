@@ -14,7 +14,7 @@ for(const width of [320,1280]) for(const direction of ['ltr','rtl']) test(`canon
     await f.page.route('**/sample.svg*',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg"/>'}));
     await f.page.addStyleTag({content:await rendererCss()});
     await f.page.evaluate(direction=>{document.documentElement.dir=direction;document.documentElement.style.setProperty('--text-scale','2');},direction);
-    await f.page.waitForFunction(()=>document.querySelector('[data-slot="sidebar-wrapper"]')?.getAttribute('data-type-density')==='comfortable');
+    await f.page.waitForFunction(()=>document.querySelector('[data-slot="sidebar-wrapper"]')?.classList.contains('density-comfortable')===true);
     const expectedTarget=(await f.page.getByRole('button',{name:'Search',exact:true}).boundingBox())!.height;
     assert.equal(expectedTarget,60,'the measured workspace keeps enlarged reading targets');
     const standaloneTarget=(await f.page.locator('[data-standalone-toolbar] button').boundingBox())!.height;
@@ -22,7 +22,7 @@ for(const width of [320,1280]) for(const direction of ['ltr','rtl']) test(`canon
     const measure=async(selector:string,target=expectedTarget)=>{
       await f.page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       const bars=await f.page.locator(selector).evaluateAll(nodes=>nodes.map(node=>{
-        const rect=node.getBoundingClientRect(),style=getComputedStyle(node),row=node.querySelector('.toolbar-row')!;
+        const rect=node.getBoundingClientRect(),style=getComputedStyle(node),row=node.querySelector('.toolbar-row,[data-date-calendar-row]')!;
         return{left:rect.left,right:rect.right,client:node.clientWidth,scroll:node.scrollWidth,
           padding:style.paddingTop,gap:getComputedStyle(row).columnGap,
           buttons:[...row.querySelectorAll<HTMLElement>('button:not([data-media-thumbs] button)')].map(button=>button.getBoundingClientRect().toJSON())};
@@ -42,9 +42,8 @@ for(const width of [320,1280]) for(const direction of ['ltr','rtl']) test(`canon
     await f.page.getByRole('button',{name:'Hide navigation',exact:true}).click();
     await mkdir('artifacts/toolbar-canonical-geometry/accessibility',{recursive:true});
     for(const[name,button,selector]of[
-      ['calendar','Arrival · Oct 20, 2026','[data-date-calendar] [data-piece="toolbar"]'],
+      ['calendar','Arrival · Oct 20, 2026','[data-date-calendar-header]'],
       ['task','Open task','[data-surface-frame] [data-piece="toolbar"]'],
-      ['message','Open message','[data-frame-presentation="message"] [data-piece="toolbar"]'],
       ['viewer','Open viewer','[data-media-viewer] [data-piece="toolbar"]'],
     ]){
       await f.page.getByRole('button',{name:button!,exact:true}).click();await f.page.locator(selector!).first().waitFor();
@@ -52,6 +51,20 @@ for(const width of [320,1280]) for(const direction of ['ltr','rtl']) test(`canon
       await f.page.screenshot({path:`artifacts/toolbar-canonical-geometry/accessibility/${width}-${direction}-${name}.png`});
       await f.page.keyboard.press('Escape');await f.page.locator(selector!).first().waitFor({state:'hidden'});
     }
+    // The message is a dialog (DESIGN §7.5): no top toolbar; its choices are the one bottom pair of every action (law 9c,
+    // Bar's commit row), keep the page target and never overlap.
+    await f.page.getByRole('button',{name:'Open message',exact:true}).click();
+    const message=f.page.getByRole('dialog',{name:'Message',exact:true});await message.waitFor();
+    const choices=await message.evaluate(node=>({toolbars:[...node.querySelectorAll('[data-piece="toolbar"]')].map(bar=>`${bar.getAttribute('data-toolbar')}:${bar.getAttribute('data-toolbar-purpose')}`),
+      box:node.getBoundingClientRect().toJSON(),buttons:[...node.querySelectorAll('button')].map(button=>button.getBoundingClientRect().toJSON())}));
+    assert.deepEqual(choices.toolbars,['bottom:commit'],'a message dialog draws no top toolbar, only its bottom pair');
+    for(const button of choices.buttons){assert.ok(button.height>=standaloneTarget,'message choices keep the page target');
+      assert.ok(button.left>=choices.box.left&&button.right<=choices.box.right,'message choices stay inside the dialog');}
+    for(let i=0;i<choices.buttons.length;i++)for(let j=i+1;j<choices.buttons.length;j++){
+      const a=choices.buttons[i]!,b=choices.buttons[j]!;
+      assert.ok(a.right<=b.left||b.right<=a.left||a.bottom<=b.top||b.bottom<=a.top,'action hitboxes never overlap');
+    }
+    await f.page.keyboard.press('Escape');await message.waitFor({state:'hidden'});
     assert.deepEqual(f.errors,[]);
   }finally{await f.close();}
 });

@@ -5,16 +5,16 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import TextInput from "@desert/svelte/pieces/TextInput.svelte";
-  import MoneyControl from "@desert/svelte/controls/MoneyControl.svelte";
+  import WritingField from "@desert/svelte/catalog/foundations/field/Field.svelte";
+  import MoneyControl from "@desert/svelte/catalog/compositions/money-control/MoneyControl.svelte";
   import * as Field from "@desert/svelte/vendor/components/ui/field/index.js";
   import { Input } from "@desert/svelte/vendor/components/ui/input/index.js";
   let invalid = $state(false), single = $state('A clear value'), multiline = $state('More than one line');
 </script>
 <main style="max-width:640px;padding:24px;display:grid;gap:24px">
-  <TextInput primitive="input.text" label="Title" value={single} required
+  <WritingField primitive="input.text" labelVisibility="visible" measure="writing" invalid={false} disabled={false} purpose="text" clear label="Title" value={single} required
     error={invalid ? 'Enter a valid title.' : undefined} onchange={value => single = value} />
-  <TextInput primitive="input.multiline" label="Content" value={multiline} {invalid}
+  <WritingField primitive="input.multiline" labelVisibility="visible" measure="writing" required={false} disabled={false} label="Content" value={multiline} {invalid}
     onchange={value => multiline = value} />
   <Field.Field data-invalid={invalid}>
     <Field.FieldLabel for="plain">Plain field</Field.FieldLabel>
@@ -51,8 +51,9 @@ for (const colorScheme of ["light", "dark"] as const) {
       const directory = `artifacts/invalid-field-label/${process.env.DESERT_EVIDENCE_PHASE ?? 'final'}`;
       await mkdir(directory, { recursive: true });
       await f.page.locator('main').screenshot({ path: `${directory}/${colorScheme}.png` });
+      // Lane B: the amount's own error is now the field's error too (money is a Field); the title's comes first.
       const invalid = await colors();
-      const errorColor = await f.page.locator('[data-slot="field-error"]').evaluate(el => getComputedStyle(el).color);
+      const errorColor = await f.page.locator('[data-slot="field-error"]').first().evaluate(el => getComputedStyle(el).color);
       for (let index = 0; index < normal.length; index++) {
         assert.equal(invalid[index]!.value, normal[index]!.value, `field ${index}: content keeps its normal color`);
         assert.equal(invalid[index]!.label, errorColor, `field ${index}: label uses the accessible error-text color`);
@@ -60,7 +61,7 @@ for (const colorScheme of ["light", "dark"] as const) {
       }
       const title = f.page.getByRole('textbox', { name: 'Title', exact: true });
       assert.equal(await title.getAttribute('aria-invalid'), 'true');
-      assert.equal(await title.getAttribute('aria-describedby'), await f.page.locator('[data-slot="field-error"]').getAttribute('id'));
+      assert.equal(await title.getAttribute('aria-describedby'), await f.page.locator('[data-slot="field-error"]').first().getAttribute('id'));
       assert.equal(await fields.first().locator('[data-floating-field]').evaluate(el => getComputedStyle(el).outlineWidth), '2px');
       assert.equal(await title.inputValue(), 'Still readable');
       await f.page.getByRole('button', { name: 'Toggle validation' }).click();

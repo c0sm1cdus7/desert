@@ -30,17 +30,17 @@ verbatim modules, not standalone snippets or a published package API.
 - src/build/public-catalog/assets.ts
 - src/build/public-catalog/serve.ts
 - src/build/public-catalog/renditions.ts
-- src/svelte/pieces/media/source.ts
-- src/svelte/pieces/media/Image.svelte
-- src/svelte/pieces/media/PhotoCollection.svelte
-- src/svelte/pieces/media/Viewer.svelte
-- src/svelte/pieces/media/gestures.ts
-- src/svelte/explorer/PublicCatalogProduct.svelte
-- src/svelte/explorer/LocalExercises.svelte
-- src/svelte/explorer/CatalogCard.svelte
-- src/svelte/explorer/CatalogToolbar.svelte
-- src/svelte/explorer/PublicCatalogBank.svelte
-- src/svelte/explorer/PublicCatalogBank-model.ts
+- src/svelte/infra/media-source.ts
+- src/svelte/catalog/foundations/image/Image.svelte
+- src/svelte/catalog/foundations/gallery/Gallery.svelte
+- src/svelte/catalog/foundations/media-viewer/MediaViewer.svelte
+- src/svelte/catalog/mechanisms/media-gestures/media-gestures.ts
+- src/svelte/catalog/renderer/public-catalog-product/PublicCatalogProduct.svelte
+- src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte
+- src/svelte/catalog/compositions/catalog-card/CatalogCard.svelte
+- src/svelte/catalog/foundations/bar/BarSearch.svelte
+- src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte
+- src/svelte/infra/PublicCatalogBank-model.ts
 
 ## products/landmarks/product.ts
 
@@ -86,10 +86,10 @@ export function loadLandmarks() {
 
 ## products/landmarks/exercises.ts
 
-Source SHA-256: 5ffa933a2adffc1c7cce39d1f977dd5aeeb30cf35bb3c0b3b2fca54215f5f51c
+Source SHA-256: ace03342da5093d1c798ce3112d477529dade34a16913fbfbbc5c2bc5feedc22
 
 ```ts
-import { controlBankNode } from "../../src/interaction/bank-node.ts";
+import { controlResolvedNode } from "../../src/interaction/resolved-node.ts";
 import { stackNode } from "../../src/interaction/place.ts";
 import type { PublicCatalogExercises } from "../../src/public-catalog/exercises.ts";
 
@@ -103,27 +103,27 @@ export const travelKit: PublicCatalogExercises = {
   stacks: [
     { id: "visit", title: "Your next visit", description: "Give your idea a name and choose where to go.", items: [
       stackNode({ version: "desert.bank-node/1", kind: "input.text", name: "trip-name", label: "Trip name", value: "", required: true, disabled: false }),
-      controlBankNode({ ...base, kind: "select", id: "destination", label: "Destination", required: true, value: null,
+      controlResolvedNode({ ...base, kind: "select", id: "destination", label: "Destination", required: true, value: null,
         options: [option("1016", "Mount Fuji"), option("1017", "Wulingyuan"), option("1018", "Mount Everest")] }),
-      controlBankNode({ ...base, kind: "date", id: "arrival", label: "Arrival date", required: false, value: null }),
+      controlResolvedNode({ ...base, kind: "date", id: "arrival", label: "Arrival date", required: false, value: null }),
     ] },
     { id: "notes", title: "Notes", items: [
       stackNode({ version: "desert.bank-node/1", kind: "input.multiline", name: "notes", label: "Things to remember", value: "", required: false, disabled: false }),
     ] },
     { id: "pace", title: "Travel pace", items: [
-      controlBankNode({ ...base, kind: "options", id: "pace", label: "Travel pace", minSelected: 1, maxSelected: 1, selected: ["slow"],
+      controlResolvedNode({ ...base, kind: "options", id: "pace", label: "Travel pace", minSelected: 1, maxSelected: 1, selected: ["slow"],
         options: [option("slow", "Take it slowly"), option("active", "Keep exploring")] }),
     ] },
     { id: "interests", title: "Interests", items: [
-      controlBankNode({ ...base, kind: "options", id: "activities", label: "Interests", minSelected: 0, maxSelected: 3, selected: [],
+      controlResolvedNode({ ...base, kind: "options", id: "activities", label: "Interests", minSelected: 0, maxSelected: 3, selected: [],
         options: [option("walking", "Walking"), option("photography", "Photography"), option("culture", "Culture")] }),
     ] },
     { id: "budget", title: "Budget", items: [
-      controlBankNode({ ...base, kind: "money", id: "budget", label: "Estimated budget", required: false,
+      controlResolvedNode({ ...base, kind: "money", id: "budget", label: "Estimated budget", required: false,
         currencies: [{ code: "USD", scale: 2 }, { code: "ARS", scale: 2 }, { code: "JPY", scale: 0 }], currency: "USD", minorUnits: null }),
     ] },
     { id: "essentials", title: "Travel documents", description: "Files stay on this device. Nothing is uploaded.", items: [
-      controlBankNode({ ...base, kind: "files", id: "documents", label: "Travel documents", files: [],
+      controlResolvedNode({ ...base, kind: "files", id: "documents", label: "Travel documents", files: [],
         limits: { maxCount: 3, maxFileBytes: 5242880, maxTotalBytes: 10485760, accept: ["application/pdf", "image/*", "text/plain"] } }),
     ] },
     { id: "draft", title: "About this draft", items: [
@@ -322,7 +322,7 @@ export type CatalogAsset = Frozen<Static<typeof CatalogAssetSchema>>;
 
 ## src/public-catalog/validate-definition.ts
 
-Source SHA-256: 9aa68115b505c2c15a21c5bf412a39df71ebb8e31b583d8dc3e3b49d604f3c58
+Source SHA-256: a9f4f9dac43d76943e648b8598064e5fa2437fd95cc57852141118700335d30d
 
 ```ts
 import { Check } from "@sinclair/typebox/value";
@@ -346,7 +346,7 @@ export function validatePublicCatalogDefinition(value: unknown): PublicCatalogDe
   if (!Check(PublicCatalogDefinitionSchema, definition)) throw new Error("INVALID_PUBLIC_CATALOG_DEFINITION");
   const { object, source, view } = definition;
   if (Object.values(object.facts).some(fact => fact.kind === "principal")) throw new Error("INVALID_PUBLIC_CATALOG_PRINCIPAL");
-  if (Object.values(object.facts).some(fact => fact.kind === "asset")) throw new Error("PRIVATE_ASSET_REQUIRES_CONTROLLER_READ");
+  if (Object.values(object.facts).some(fact => fact.kind === "file")) throw new Error("PRIVATE_ASSET_REQUIRES_CONTROLLER_READ");
   const field = (name: string) => Object.hasOwn(object.facts, name) ? object.facts[name] : undefined;
   if (field(view.title)?.kind !== "text" || field(view.description)?.kind !== "text") throw new Error("INVALID_CATALOG_TEXT_EXPOSURE");
   const group = field(view.home.groups.field);
@@ -631,10 +631,10 @@ export function projectPublicCatalog(value: PublicCatalogSurface, current: Publi
 
 ## src/public-catalog/exercises.ts
 
-Source SHA-256: a1c2871bb3dd285c7ce7e0b524f7eaf17401ead3e97c3ee4e21830d7b74d4c69
+Source SHA-256: 4285006514f594514e26ac19949052ecf3cc854c641e8fda531483b84fabe881
 
 ```ts
-import { bankNode } from "../interaction/bank-node.ts";
+import { resolvedNode } from "../interaction/resolved-node.ts";
 import { PlaceContentSchema, placeContent, stackNodes, type PlaceContent } from "../interaction/place.ts";
 
 export const PublicCatalogExercisesSchema = PlaceContentSchema;
@@ -645,7 +645,7 @@ export function checkPublicCatalogExercises(exercises: PublicCatalogExercises, a
   placeContent(exercises);
   for (const stack of exercises.stacks) {
     for (const value of stackNodes(stack.items)) {
-      const node = bankNode(value);
+      const node = resolvedNode(value);
       if (node.kind === "catalog.card") {
         if (assets && node.image && !assets.has(node.image.asset)) throw new Error("INVALID_CATALOG_EXERCISE_ASSET_REFERENCE");
         if (records && !records.has(node.record)) throw new Error("INVALID_CATALOG_EXERCISE_RECORD_REFERENCE");
@@ -665,11 +665,11 @@ export function checkPublicCatalogExercises(exercises: PublicCatalogExercises, a
 
 ## src/public-catalog/draft.ts
 
-Source SHA-256: f82788c202d781592d627d1b943918545118db3137df30cb4d7004f81920dfcb
+Source SHA-256: 79bbeef1ef37e42e763e0ff14650507c3c604ff06ea698eabc5496cbd3b98bba
 
 ```ts
-import { bankEvent } from "../interaction/bank-events.ts";
-import { controlBankNode } from "../interaction/bank-node.ts";
+import { nodeEvent } from "../interaction/node-events.ts";
+import { controlResolvedNode } from "../interaction/resolved-node.ts";
 import { applyControlEvent } from "../interaction/control-nodes.ts";
 import { freezeDeep } from "../json.ts";
 import { checkPublicCatalogExercises, type PublicCatalogExercises } from "./exercises.ts";
@@ -678,7 +678,7 @@ import { stackNode, type StackNode } from "../interaction/place.ts";
 /** Local session state only. No admission, persistence, controller command or success receipt. */
 export function reduceCatalogDraft(current: PublicCatalogExercises, input: unknown): PublicCatalogExercises {
   checkPublicCatalogExercises(current);
-  const event = bankEvent(input);
+  const event = nodeEvent(input);
   if (event.kind !== "input.change" && !("control" in event)) throw new Error("LOCAL_DRAFT_EVENT_REQUIRED");
   let matched = false;
   function update(node: StackNode): StackNode {
@@ -689,7 +689,7 @@ export function reduceCatalogDraft(current: PublicCatalogExercises, input: unkno
     }
     if ("control" in event && "control" in node && node.control.id === event.control) {
       matched = true;
-      return stackNode(controlBankNode(applyControlEvent(node.control, event).node));
+      return stackNode(controlResolvedNode(applyControlEvent(node.control, event).node));
     }
     return node;
   }
@@ -701,14 +701,14 @@ export function reduceCatalogDraft(current: PublicCatalogExercises, input: unkno
 
 ## src/public-catalog/capabilities.ts
 
-Source SHA-256: ca16d7387483da09c6dbff9929cf9f5430133beca3b10856ae82c2ba82d59207
+Source SHA-256: 9625057d326725322b7d1712cc6c85bbd1ceec21ddbb8e08e12ebff56bdf24d5
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
 import { Check } from "@sinclair/typebox/value";
 import { freezeDeep, jsonSnapshot, type Frozen } from "../json.ts";
 import { closedObject, nonemptyText } from "./node-schema.ts";
-import type { BankNode } from "../interaction/bank-node.ts";
+import type { ResolvedNode } from "../interaction/resolved-node.ts";
 import { ControlEventSchema } from "../interaction/control-nodes.ts";
 import type { Face } from "../interaction/face.ts";
 
@@ -743,7 +743,7 @@ function requireFace(features: Set<string>, face: Face | undefined): void {
 }
 
 /** Derive local workbench needs from the same canonical control event grammar. */
-export function publicCatalogRequirements(nodes: readonly BankNode[] = [], gallery = false): RendererRequirements {
+export function publicCatalogRequirements(nodes: readonly ResolvedNode[] = [], gallery = false): RendererRequirements {
   if (nodes.length === 0 && !gallery) return PublicCatalogRequirements;
   const nodeKinds = new Set<string>(PublicCatalogRequirements.nodes);
   const events = new Set<string>(PublicCatalogRequirements.events);
@@ -812,7 +812,7 @@ export type { CatalogEvent } from "./events.ts";
 
 ## src/build/public-catalog/build.ts
 
-Source SHA-256: 39c2ef666cf393dc0df0b8b4cc8cf6c983658b58ccf875b96de615718c7b2e0d
+Source SHA-256: b1f4c74de116b1ff4f1d86a793630cdc09f8739b2806ce0d8e50ede6536eb460
 
 ```ts
 import { mkdirSync, cpSync, writeFileSync, existsSync, rmSync } from "node:fs";
@@ -822,7 +822,7 @@ import { createBuildProject } from "../svelte/project.ts";
 import { rendererRevision } from "../svelte/revision.ts";
 import { fileInventory } from "../files.ts";
 import { bindCatalogAssets } from "./assets.ts";
-import { catalogBuildFile, type PublicCatalogBuild } from "./manifest.ts";
+import { catalogBuildFile, publicCatalogBuildFormat, type PublicCatalogBuild } from "./manifest.ts";
 import { publicCatalogSchemas } from "../../public-catalog/protocol.ts";
 import { prepareRenditions } from './renditions.ts';
 
@@ -839,7 +839,7 @@ export async function buildPublicCatalogWeb(application: CompiledPublicCatalog, 
   const revision = rendererRevision();
   let ownsOutput = false;
   try {
-    await project.run("build");
+    const { gate } = await project.run("build");
     if (rendererRevision() !== revision) throw new Error("BUILDER_CHANGED_DURING_BUILD");
     mkdirSync(dirname(output), { recursive: true });
     mkdirSync(output); ownsOutput = true;
@@ -848,7 +848,7 @@ export async function buildPublicCatalogWeb(application: CompiledPublicCatalog, 
     writeFileSync(join(output, "surface.json"), JSON.stringify(application.surface, null, 2) + "\n");
     writeFileSync(join(output, "schemas.json"), JSON.stringify(publicCatalogSchemas(), null, 2) + "\n");
     const manifest: PublicCatalogBuild = {
-      format: "desert.public-catalog-build/1", productId: application.id, contractDigest: application.digest,
+      format: publicCatalogBuildFormat, gate, productId: application.id, contractDigest: application.digest,
       rendererRevision: revision, mode: "public-read-only", mediaPolicy: "external-local-bindings",
       assets: assets.map(({ file: _file, ...metadata }) => metadata), files: fileInventory(output),
     };
@@ -863,7 +863,7 @@ export async function buildPublicCatalogWeb(application: CompiledPublicCatalog, 
 
 ## src/build/public-catalog/manifest.ts
 
-Source SHA-256: ed356ca1cddbfdf48a49be61f78019b6ea2060f449644cac401e0b44044c559d
+Source SHA-256: 1ce4266405d81ca51df9e6523f7048323482e36e4688744c0f8d963b2f63d055
 
 ```ts
 import { readFileSync } from "node:fs";
@@ -876,21 +876,27 @@ import { publicCatalogSurface } from "../../public-catalog/surface.ts";
 import { LogicalIdSchema } from "../../public-catalog/node-schema.ts";
 import { catalogMediaTypes } from "./assets.ts";
 import { stackNodes } from "../../interaction/place.ts";
+import { gateVersion, requireGateEvidence } from "../qualification.ts";
 
 export const catalogBuildFile = "PUBLIC-CATALOG-BUILD.json";
+/** /2 adds the evidence of the catalog gate that let the build run (plan 3.5), as distribution builds do. */
+export const publicCatalogBuildFormat = "desert.public-catalog-build/2";
 const sha = Type.String({ pattern: "^[a-f0-9]{64}$" });
 const closed = { additionalProperties: false };
 const schema = Type.Object({
-  format: Type.Literal("desert.public-catalog-build/1"), productId: LogicalIdSchema, contractDigest: sha,
+  format: Type.Literal(publicCatalogBuildFormat), gate: Type.Object({ version: Type.Literal(gateVersion) }, closed),
+  productId: LogicalIdSchema, contractDigest: sha,
   rendererRevision: sha, mode: Type.Literal("public-read-only"), mediaPolicy: Type.Literal("external-local-bindings"),
   assets: Type.Array(Type.Object({ id: LogicalIdSchema, digest: sha, size: Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER }),
     mediaType: Type.Union([...new Set(Object.values(catalogMediaTypes))].map(type => Type.Literal(type))) }, closed), { minItems: 1 }),
   files: Type.Record(Type.String(), sha),
 }, closed);
 export type PublicCatalogBuild = Static<typeof schema>;
+
 export function loadPublicCatalogBuild(directory: string) {
   const files = fileInventory(directory, [catalogBuildFile]);
   const value: unknown = JSON.parse(readFileSync(join(directory, catalogBuildFile), "utf8"));
+  requireGateEvidence(value, publicCatalogBuildFormat, "catalog build");
   if (!Check(schema, value)) throw new Error("INVALID_PUBLIC_CATALOG_BUILD");
   if (digest(value.files) !== digest(files)) throw new Error("BUILD_FILES_MISMATCH");
   if (!Object.hasOwn(files, "surface.json") || !Object.hasOwn(files, "web/handler.js")) throw new Error("INVALID_PUBLIC_CATALOG_BUILD");
@@ -1110,21 +1116,20 @@ export async function prepareRenditions(assets: readonly BoundCatalogAsset[]) {
 }
 ```
 
-## src/svelte/pieces/media/source.ts
+## src/svelte/infra/media-source.ts
 
-Source SHA-256: 9315402daa1e61fe90aa820bc3f0fc246cfb516b44e8ffc168193977ef6e7934
+Source SHA-256: 3047cd0fd96364afd660b329653439ee42f9f72e3525165c3ca3ce96aaea2cfb
 
 ```ts
-import type { MediaItem } from '../../../views/media-library.ts';
-import type { AssetReference } from '../../../assets/types.ts';
+import type { MediaItem } from '../../views/media-library.ts';
+import type { AssetReference } from '../../assets/types.ts';
+import type { Static } from '@sinclair/typebox';
+import type { Frozen } from '../../json.ts';
+import type { ViewerMediaSchema } from './viewer-media.ts';
 export type ImageSource = string | AssetReference;
 export type Photo = Readonly<{ source: ImageSource; alt: string }>;
-type PublicPhoto = Readonly<{ source: string; alt: string }>;
-export type ViewerMedia = Readonly<
-  { kind: 'image'; source: ImageSource; alt: string } |
-  { kind: 'video' | 'audio'; source: ImageSource; alt: string; artwork?: PublicPhoto;
-    captions: readonly { source: string; language: string; label: string }[] }
->;
+/** One image, video or audio item of a viewer: the static type of the closed ViewerMediaSchema. */
+export type ViewerMedia = Frozen<Static<typeof ViewerMediaSchema>>;
 export const mediaSource = (asset: string) => `/media/${encodeURIComponent(asset)}`;
 export const imageIdentity = (source: ImageSource) => typeof source === 'string' ? source : `private:${source.reference}`;
 export const catalogPhotos = (images: readonly { asset: string; alt: string }[]): Photo[] =>
@@ -1165,23 +1170,23 @@ function drain() {
 }
 ```
 
-## src/svelte/pieces/media/Image.svelte
+## src/svelte/catalog/foundations/image/Image.svelte
 
-Source SHA-256: 914d00001268d4ca552d53914323f79b2cd8551c2bde0d4da28b380fc34ad28e
+Source SHA-256: 6d0a55a124c0bf8500a2d40019462e5e87582fa240981cd789aba85849cc056d
 
 ```svelte
 <script lang="ts">
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
   import { onMount, onDestroy } from 'svelte';
-  import { Button } from '../../vendor/components/ui/button/index.js';
-  import { imageSource, imageIdentity, type ImageSource } from './source.ts';
-  import { usePrivateImages } from './private-image-context.ts';
-  import { privateImageResource } from './private-image-resource.ts';
-  import { renditionWidths } from '../../../media/rendition-policy.ts';
-  let { source, alt, edge = 640, zoom = 1, retry = false, fit = 'fill', onready, fallback = 'Image unavailable' }: {
-    source: ImageSource; alt: string; edge?: number; zoom?: number; retry?: boolean;
-    fit?: 'fill' | 'fit';
-    onready?: () => void; fallback?: string;
-  } = $props();
+  import { Action, Icon } from '../../index.ts';
+  import { imageSource, imageIdentity } from '../../../infra/media-source.ts';
+  import { usePrivateImages } from '../../../infra/private-image-context.ts';
+  import { privateImageResource } from '../../../infra/private-image-resource.ts';
+  import { renditionWidths } from '../../../../media/rendition-policy.ts';
+  import type { CatalogProps } from "../../types.d.ts";
+  let { source, alt = "", edge = 640, zoom = 1, retry = false, fit = 'fill', backdrop = 'muted', frame = 'own', placeholder, onready, onunavailable,
+    fallback = say(m.image.unavailable) }: CatalogProps<"image"> = $props();
   let host!: HTMLDivElement;
   let measured = $state(0), attempt = $state(0), ready = $state(''), failed = $state('');
   let original = $state('');
@@ -1190,20 +1195,24 @@ Source SHA-256: 914d00001268d4ca552d53914323f79b2cd8551c2bde0d4da28b380fc34ad28e
     () => { privateURL = resource.url; privateReference = resource.reference; privateFailed = resource.failed; privateRevision = resource.revision; });
   const requestedEdge = $derived((measured || edge) * zoom);
   const variant = $derived(renditionWidths.find(width => width >= requestedEdge) ?? 2560);
-  const sourceIdentity = $derived(imageIdentity(source));
-  const url = $derived(typeof source === 'string'
+  const sourceIdentity = $derived(source === undefined ? '' : imageIdentity(source));
+  const url = $derived(source === undefined ? undefined : typeof source === 'string'
     ? original === source ? source : imageSource(source, requestedEdge)
     : privateReference === source.reference ? privateURL : undefined);
-  const privateError = $derived(typeof source !== 'string' && privateReference === source.reference && privateFailed);
+  const privateError = $derived(typeof source === 'object' && privateReference === source.reference && privateFailed);
   $effect(() => {
     const asset = source, rendition = variant; attempt;
-    if (typeof asset === 'string') { resource.clear(); return; }
+    if (typeof asset !== 'object') { resource.clear(); return; }
     void resource.load(asset, rendition);
   });
   onDestroy(() => resource.dispose());
   // A new asset gets a new DOM image immediately. A larger rendition of the SAME
   // asset keeps its decoded pixels while loading, so pinch/resize never flashes.
-  const identity = $derived(`${sourceIdentity}|${typeof source === 'string' ? 0 : privateRevision}|${attempt}`);
+  const identity = $derived(`${sourceIdentity}|${typeof source === 'object' ? privateRevision : 0}|${attempt}`);
+  // A placeholder is a face (law 9e) for audio and video; unavailable media is a notice.
+  const face = $derived(placeholder === 'audio' || placeholder === 'video');
+  const status = $derived(placeholder ? 'placeholder' : failed === identity || privateError ? 'error' : url && ready === identity ? 'ready' : 'loading');
+  $effect(() => { if (status === 'error') onunavailable?.(); });
   onMount(() => {
     const resize = () => { measured = Math.ceil(Math.max(host.clientWidth,host.clientHeight)*window.devicePixelRatio); };
     const observer = new ResizeObserver(([entry]) => {
@@ -1229,152 +1238,292 @@ Source SHA-256: 914d00001268d4ca552d53914323f79b2cd8551c2bde0d4da28b380fc34ad28e
   }
 </script>
 
-<div bind:this={host} data-media-image data-image-fit={fit} data-image-state={failed === identity || privateError ? 'error' : url && ready === identity ? 'ready' : 'loading'}>
-  {#key identity}
-    {@const key = identity}
-    {#if url}<img src={url} {alt} decoding="async" draggable="false" style:visibility={ready === key && failed !== key && !privateError ? 'visible' : 'hidden'}
-      onload={event => loaded(event.currentTarget as HTMLImageElement, key)} onerror={() => error(key)} />
+<!-- A placeholder keeps the artwork placeholder mark, so hosts that have not migrated still place it as they placed
+     ArtworkPlaceholder. It stands where a face would: the theme's one face primitive (tm-face) gives it the white ground
+     and the hairline every face has (law 9e), in its host's shape. -->
+<!-- Unavailable media is no placeholder face: it is the one notice of unavailable media (the media-notice utility), in an
+     image's frame, as an image's error is. -->
+<div bind:this={host} class={face ? "image-placeholder tm-face" : "image"} class:image-clear={backdrop === 'none'} class:image-host={frame === 'host'}
+  data-media-image={face ? undefined : ""} data-media-artwork-placeholder={face ? "" : undefined}
+  data-image-fit={placeholder === undefined ? fit : undefined} data-image-state={placeholder === 'unavailable' ? 'unavailable' : status}
+  data-image-placeholder={face ? placeholder : undefined}
+  aria-label={placeholder === 'audio' ? say(m.image.noCover) : placeholder === 'video' ? say(m.image.noPoster) : undefined}>
+  {#if placeholder === 'audio'}<Icon name="music-2" size="artwork" decorative />
+  {:else if placeholder === 'video'}<Icon name="film" size="artwork" decorative />
+  {:else if placeholder === 'unavailable'}<div class="image-error media-notice" data-media-notice role="status"><span>{fallback}</span></div>
+  {:else}
+    {#key identity}
+      {@const key = identity}
+      {#if url}<img class="image-element" class:image-contain={fit === 'fit'} src={url} {alt} decoding="async" draggable="false"
+        style:visibility={ready === key && failed !== key && !privateError ? 'visible' : 'hidden'}
+        onload={event => { if (event.currentTarget instanceof HTMLImageElement) void loaded(event.currentTarget, key); }} onerror={() => error(key)} />
+      {/if}
+    {/key}
+    {#if status === 'error'}
+      <div class="image-error media-notice" data-media-error data-media-notice role="img" aria-label={alt}>
+        <span>{fallback}</span>
+        {#if retry}<Action label={say(m.image.retry)} icon="retry" emphasis="secondary" face="text" state="ready" type="button" onclick={() => { original = ''; attempt++; }} />{/if}
+      </div>
     {/if}
-  {/key}
-  {#if failed === identity || privateError}
-    <div data-media-error role="img" aria-label={alt}>
-      <span>{fallback}</span>
-      {#if retry}<Button variant="secondary" onclick={() => { original = ''; attempt++; }}>Retry</Button>{/if}
-    </div>
   {/if}
 </div>
+
+<style>
+  /* The components layer, as media.css was unlayered: a contextual rule of a host that has not migrated (a viewer
+     stage, a catalog card) still outranks this base geometry. */
+  @layer components {
+    /* An image frame takes the image radius of the family, the control's, and clips what it holds to it (the picture, its
+       unavailable notice): nothing paints past the rounded shape. Set in a host's frame (a card, a thumbnail, a cover, a
+       gallery, a full-bleed stage), it takes that frame's corner. Ready and filling its frame, it paints no backdrop of its own
+       (the picture covers it), so nothing lighter shows past the picture's own corners; fitted, the backdrop is its letterbox. */
+    .image { position:relative; width:100%; height:100%; overflow:hidden; border-radius:var(--radius-control); background:var(--muted); }
+    .image[data-image-state="ready"][data-image-fit="fill"] { background:transparent; }
+    .image-clear { background:transparent; }
+    .image-placeholder { display:grid; place-items:center; width:100%; height:100%; border-radius:var(--radius-control); color:var(--muted-foreground); }
+    /* In a host's frame (a card, a thumbnail) the host draws the edge: the notice's own stays clear (the theme's media-notice). */
+    .image-host { border-radius:inherit; --media-notice-edge:transparent; }
+    .image-element { display:block; width:100%; height:100%; object-fit:cover; user-select:none; }
+    .image-contain { object-fit:contain; }
+    .image[data-image-state="ready"] > .image-element { animation:image-in var(--dur-unfold) var(--ease-tm) both; }
+    /* Failed, the image is its error alone, laid out in flow: as tall as its frame when the host gives one, as tall as its
+       sentence and retry (and its inset) when it gives none, never clipped to the broken image's line. */
+    .image[data-image-state="error"] > .image-element { display:none; }
+    /* The notice itself (its ground, edge, inset and ink) is the theme's media-notice. */
+  }
+  @keyframes image-in { from { opacity:0; } to { opacity:1; } }
+  @media(prefers-reduced-motion:reduce) { .image[data-image-state="ready"] > .image-element { animation:none; } }
+</style>
 ```
 
-## src/svelte/pieces/media/PhotoCollection.svelte
+## src/svelte/catalog/foundations/gallery/Gallery.svelte
 
-Source SHA-256: 5bc2a42ca01aa1e35ebce8b5fc741464715d7a1645f38e7c6a03dfb29743ee85
+Source SHA-256: b504ba59b7222c6d6298700f5407bf3275973661b3d33d4506f4e7f1dcb883cb
 
 ```svelte
 <script lang="ts">
-  import Image from './Image.svelte';
-  import Viewer from './Viewer.svelte';
-  import { mediaGestures } from './gestures.ts';
-  import { prefetchImage, imageIdentity, type Photo } from './source.ts';
-  let { photos, title, header = false, fit = 'fill' }: { photos: readonly Photo[]; title: string; header?: boolean; fit?: 'fit'|'fill' } = $props();
-  let index = $state(0), open = $state(false);
-  let host!: HTMLDivElement, opener!: HTMLButtonElement;
-  const selected = $derived(photos[index] ?? photos[0]!);
-  function select(next: number) { index = Math.max(0,Math.min(photos.length-1,next)); }
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  import { Image, MediaViewer } from '../../index.ts';
+  import { mediaGestures } from '../../mechanisms/media-gestures/media-gestures.ts';
+  import { prefetchImage, imageIdentity } from '../../../infra/media-source.ts';
+  import type { CatalogProps } from '../../types.d.ts';
+  let { photos, title, presentation, fit, aspect }: CatalogProps<'gallery'> = $props();
+  let index = $state(0), open = $state(false), failed = $state(false);
+  let host: HTMLDivElement | null = null;
+  const selected = $derived(photos[index] ?? photos[0]);
+  function select(next: number) { index = Math.max(0, Math.min(photos.length - 1, next)); failed = false; }
   function drag(button: HTMLButtonElement) {
-    return mediaGestures(button, { image: () => host.querySelector('img'),
-      page: direction => select(index+direction), canPage:()=>photos.length>1 });
+    return mediaGestures(button, { image: () => host?.querySelector('img') ?? null, page: direction => select(index + direction),
+      canPage: () => photos.length > 1 });
   }
+  // The neighbours of the shown photo are warmed at the gallery's rendition edge.
   $effect(() => {
-    const current = index;
-    if (typeof window === 'undefined') return;
-    for (const neighbor of [photos[current-1],photos[current+1]]) if (neighbor)
-      prefetchImage(neighbor.source, Math.max(host?.clientWidth || 640,host?.clientHeight || 0)*window.devicePixelRatio);
+    const current = index, frame = host;
+    if (!frame) return;
+    for (const neighbor of [photos[current - 1], photos[current + 1]]) if (neighbor)
+      prefetchImage(neighbor.source, Math.max(frame.clientWidth || 640, frame.clientHeight) * window.devicePixelRatio);
   });
   function key(event: KeyboardEvent) {
-    if (event.key==='ArrowRight' || event.key==='ArrowLeft') {
-      event.preventDefault(); select(index+(event.key==='ArrowRight'?1:-1));
-    }
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    event.preventDefault(); select(index + (event.key === 'ArrowRight' ? 1 : -1));
   }
 </script>
 
-<div bind:this={host} data-photo-collection data-header-collection={header || undefined}>
-  <Image source={selected.source} alt={selected.alt} edge={header ? 1280 : 640} {fit} retry />
-  <button type="button" bind:this={opener} use:drag data-media-open aria-label="Open photo viewer"
-    onclick={() => open=true} onkeydown={key}></button>
-  {#if photos.length>1}
-    <div data-media-dots aria-label="Choose photo">
+<!-- The legacy marks (photo collection, opener, dots, header collection) keep the hosts that have not migrated
+     (place-heading.css) placing the gallery as they placed PhotoCollection. -->
+<div bind:this={host} class="gallery gallery-{presentation} gallery-aspect-{aspect}" class:gallery-failed={failed} data-photo-collection
+  data-header-collection={presentation === 'header' || undefined}>
+  {#if selected}<Image frame="host" source={selected.source} alt={selected.alt} edge={presentation === 'header' ? 1280 : 640} {fit} retry
+    onready={() => failed = false} onunavailable={() => failed = true} />{/if}
+  <button type="button" class="gallery-open" use:drag data-media-open aria-label={say(m.gallery.open)} onclick={() => open = true} onkeydown={key}></button>
+  {#if photos.length > 1}
+    <div class="gallery-dots" data-media-dots aria-label={say(m.gallery.choose)}>
       {#each photos as photo, i (`${i}:${imageIdentity(photo.source)}`)}
-        <button type="button" aria-label={`Photo ${i+1}: ${photo.alt}`} aria-current={i===index ? 'true' : undefined}
+        <button type="button" class="gallery-dot" aria-label={say(m.gallery.photo, { number: String(i + 1), alt: photo.alt })} aria-current={i === index ? 'true' : undefined}
           onclick={() => select(i)}></button>
       {/each}
     </div>
   {/if}
 </div>
 {#if open}
-  <Viewer items={photos.map(photo => ({kind:'image', ...photo}))} {title} {index} {open}
-    onindex={value => index=value} onopen={value => open=value} onreturn={() => opener?.focus({ preventScroll:true })} />
+  <MediaViewer items={photos.map(photo => ({ kind: 'image' as const, ...photo }))} {title} {index} {open}
+    onindex={value => index = value} onopenchange={value => open = value} />
 {/if}
+
+<style>
+  /* The frame and its controls sit in the components layer, so a host that places the gallery (a place heading)
+     still outranks them. */
+  @layer components {
+    .gallery { position:relative; width:100%; height:100%; overflow:hidden; }
+    .gallery-open { position:absolute; inset:0; border:0; padding:0; background:transparent; cursor:zoom-in; touch-action:pan-y; outline:none; box-shadow:none; }
+    .gallery-open:focus-visible::after { content:attr(aria-label); position:absolute; right:16px; bottom:56px; padding:8px 12px; border-radius:var(--radius-chip);
+      background:var(--background); color:var(--foreground); font-size:var(--text-support,14px); }
+    /* A photo that cannot load keeps its retry reachable: the opener stops covering it. */
+    .gallery-failed .gallery-open { pointer-events:none; }
+    .gallery-dots { position:absolute; bottom:8px; left:50%; z-index:3; display:flex; transform:translateX(-50%); }
+    .gallery-dot { display:grid; place-items:center; width:24px; height:44px; padding:0; border:0; background:none; color:var(--catalog-image-foreground); }
+    .gallery-dot::after { content:''; width:6px; height:6px; border-radius:var(--radius-mark); background:currentColor; opacity:.45; box-shadow:0 0 3px var(--catalog-image-shade); }
+    .gallery-dot[aria-current="true"]::after { opacity:1; width:8px; height:8px; }
+  }
+  /* Where the gallery sits fixes its frame: inline in a page, as a detail's photograph, or heading a place. */
+  .gallery-inline { border-radius:var(--radius-control); }
+  .gallery-inline.gallery-aspect-fill { height:clamp(14rem,50vh,36rem); }
+  .gallery-aspect-square, .gallery-aspect-landscape, .gallery-aspect-portrait { height:auto; }
+  .gallery-aspect-square { aspect-ratio:1; }
+  .gallery-aspect-landscape { aspect-ratio:16/9; }
+  .gallery-aspect-portrait { aspect-ratio:3/4; }
+  .gallery-detail { height:var(--catalog-hero-height); border-radius:var(--radius-control); }
+  /* Heading a place: the shade under the copy, the opener above it, the dots centred on the content column. */
+  .gallery-header::before { content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(transparent 35%,var(--catalog-image-shade)); }
+  .gallery-header .gallery-open { z-index:2; }
+  .gallery-header .gallery-dots { left:calc(50% + var(--place-leading-inset,0px)/2); }
+</style>
 ```
 
-## src/svelte/pieces/media/Viewer.svelte
+## src/svelte/catalog/foundations/media-viewer/MediaViewer.svelte
 
-Source SHA-256: 448b021df91563c23357402bf73563b44d5543517f042876dfa87ad397dd20e6
+Source SHA-256: 7178afef70cc88083fbdc0ea73ff1f816025b8428121e4550c2026e9791fc9cf
 
 ```svelte
 <script lang="ts">
-  import * as Dialog from '../../vendor/components/ui/dialog/index.js';
-  import { Button } from '../../vendor/components/ui/button/index.js';
-  import ChevronLeft from '@lucide/svelte/icons/chevron-left';
-  import ChevronRight from '@lucide/svelte/icons/chevron-right';
-  import ToolbarLayout from '../ToolbarLayout.svelte';
-  import Image from './Image.svelte';
-  import PlaybackCanvas from './PlaybackCanvas.svelte';
-  import { mediaPlayback } from './playback.svelte.ts';
-  import { mediaGestures } from './gestures.ts';
-  import { imageIdentity, type ViewerMedia } from './source.ts';
-  let { items, title, index, open, onindex, onopen, onreturn }: {
-    items: readonly ViewerMedia[]; title: string; index: number; open: boolean;
-    onindex: (index: number) => void; onopen: (open: boolean) => void; onreturn: () => void;
-  } = $props();
-  let scale = $state(1);
-  let closeButton = $state<HTMLButtonElement | null>(null);
+  // The viewer is a media Modal: the modal names it by its title, dismisses it on Escape and returns focus to what opened it.
+  // Its top Bar leads with Close and, for an image, carries the zoom controls (DESIGN §1.5; the reset is an icon, §7.7).
+  import { Action, Bar, Image, MediaPlayer, Modal } from '../../index.ts';
+  import { maximumMediaZoom, mediaGestures } from '../../mechanisms/media-gestures/media-gestures.ts';
+  import type { BarControl } from '../../../infra/bar-command.ts';
+  import { say } from '../../../infra/messages.ts';
+  import { m } from '../../../../messages/keys.ts';
+  import { provideCloseFocus, provideOpenFocus } from '../../mechanisms/surface-focus/focus-return.ts';
+  import { imageIdentity } from '../../../infra/media-source.ts';
+  import { useFocusScope } from '../../../infra/focus-scope.ts';
+  import MediaStrip from './MediaStrip.svelte';
+  import type { CatalogProps } from '../../types.d.ts';
+  let { items, title, index, open, returnFocus, onindex, onopenchange }: CatalogProps<"media-viewer"> = $props();
+  let scale = $state(1), viewer = $state<HTMLDivElement | null>(null), bar = $state<ReturnType<typeof Bar>>();
+  let player = $state<{ toggle(): Promise<void>; stop(): void } | null>(null);
   let gesture: ReturnType<typeof mediaGestures> | undefined;
-  const selected = $derived(items[index]!);
-  const playback = mediaPlayback();
-  function select(next: number) { playback.stop(); onindex(Math.max(0,Math.min(items.length-1,next))); gesture?.reset(); }
-  function changeOpen(value: boolean) { if (!value) playback.stop(); onopen(value); }
+  let anchor = $state<HTMLElement | null>(null), region: HTMLElement | null = null;
+  const scope = useFocusScope();
+  const selected = $derived(items[index] ?? items[0]);
+  // Opening lands on Close, as the viewer always has.
+  provideOpenFocus(event => { event.preventDefault(); bar?.focusLeading(); });
+  // The scroll region the viewer was opened in, kept while the caller unmounts the viewer as it closes.
+  $effect(() => { if (anchor) region = anchor.closest<HTMLElement>('[data-catalog-scroll]'); });
+  // Closing returns focus to the opener, as the modal does; a caller that names a return key gets focus back on what it
+  // registered under it instead, or on the scroll region the viewer was opened in when that is gone.
+  provideCloseFocus(event => {
+    if (returnFocus === undefined) return;
+    event.preventDefault();
+    if (!scope?.focus(returnFocus)) region?.focus({ preventScroll: true });
+  });
+  // An image zooms out (down to its fitted size), resets and zooms in (up to the gestures' maximum).
+  let zoom = $derived<readonly BarControl[] | undefined>(selected?.kind === 'image' ? [
+    { id: 'zoom-out', label: say(m.mediaViewer.zoomOut), icon: 'zoom-out', state: scale <= 1 ? 'unavailable' : 'ready' },
+    { id: 'zoom-reset', label: say(m.mediaViewer.resetZoom), icon: 'restore', state: 'ready' },
+    { id: 'zoom-in', label: say(m.mediaViewer.zoomIn), icon: 'zoom-in', state: scale >= maximumMediaZoom ? 'unavailable' : 'ready' },
+  ] : undefined);
+  function control(id: string) {
+    if (id === 'zoom-out') gesture?.zoom(scale - 1);
+    else if (id === 'zoom-in') gesture?.zoom(scale + 1);
+    else gesture?.reset();
+  }
+  function select(next: number) { player?.stop(); onindex?.(Math.max(0, Math.min(items.length - 1, next))); gesture?.reset(); }
+  function changeOpen(value: boolean) { if (!value) player?.stop(); onopenchange?.(value); }
   function manipulate(element: HTMLDivElement) {
-    gesture=mediaGestures(element,{ image:()=>element.querySelector('img'),
-      page:direction=>select(index+direction), canPage:()=>items.length>1, zoomable:selected.kind === 'image', onzoom:value=>scale=value });
-    return { destroy:()=>gesture?.destroy() };
+    gesture = mediaGestures(element, { image: () => element.querySelector('img'), page: direction => select(index + direction),
+      canPage: () => items.length > 1, zoomable: selected?.kind === 'image', onzoom: value => scale = value,
+      ignore: target => target.closest('[data-media-band]') !== null });
+    return { destroy: () => gesture?.destroy() };
   }
+  const within = (event: KeyboardEvent, selector: string) => event.target instanceof Element && event.target.closest(selector) !== null;
   function key(event: KeyboardEvent) {
-    if ((event.target as HTMLElement).closest('input,[role="slider"],[data-media-thumbs]')) return;
-    if (event.key==='ArrowRight' || event.key==='ArrowLeft') {
-      event.preventDefault(); if (scale===1) select(index+(event.key==='ArrowRight'?1:-1));
-    } else if (event.code === 'Space' && selected.kind !== 'image' && !(event.target as HTMLElement).closest('button')) { event.preventDefault(); void playback.toggle(); }
-    else if (selected.kind === 'image' && (event.key==='+' || event.key==='=')) { event.preventDefault(); gesture?.zoom(scale+1); }
-    else if (selected.kind === 'image' && event.key==='-') { event.preventDefault(); gesture?.zoom(scale-1); }
-    else if (selected.kind === 'image' && event.key==='0') { event.preventDefault(); gesture?.reset(); }
+    if (within(event, 'input,[role="slider"],[data-media-thumbs]')) return;
+    const image = selected?.kind === 'image';
+    if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault(); if (scale === 1) select(index + (event.key === 'ArrowRight' ? 1 : -1));
+    } else if (event.code === 'Space' && !image && !within(event, 'button')) { event.preventDefault(); void player?.toggle(); }
+    else if (image && (event.key === '+' || event.key === '=')) { event.preventDefault(); gesture?.zoom(scale + 1); }
+    else if (image && event.key === '-') { event.preventDefault(); gesture?.zoom(scale - 1); }
+    else if (image && event.key === '0') { event.preventDefault(); gesture?.reset(); }
   }
+  // Keys page, zoom and play wherever focus is in the viewer, its modal surface included (it takes focus on opening).
+  $effect(() => {
+    const surface = viewer?.closest<HTMLElement>('[data-modal="media"]');
+    if (!surface) return;
+    surface.addEventListener('keydown', key);
+    return () => surface.removeEventListener('keydown', key);
+  });
 </script>
 
-<Dialog.Root {open} onOpenChange={changeOpen}>
-  <Dialog.Content presentation="media" showCloseButton={false} data-media-viewer
-    onOpenAutoFocus={event=>{ event.preventDefault(); closeButton?.focus({preventScroll:true}); }}
-    onCloseAutoFocus={event=>{ event.preventDefault(); onreturn(); }} onkeydown={key}>
-    <ToolbarLayout identity={{title,subtitle:`${index+1} / ${items.length}`}} identityRole="dialog"
-      oncloseElement={element=>closeButton=element}
-      content={{kind:"media-header",close:()=>changeOpen(false),zoom:selected.kind === 'image'
-        ? {scale,onzoom:value=>gesture?.zoom(value),onreset:()=>gesture?.reset()} : undefined}} />
-    <Dialog.Description class="sr-only">Swipe or use arrows to change media. Pinch, double-click or use plus and minus to zoom images. Space plays or pauses audio and video. Escape closes the viewer.</Dialog.Description>
-    {#key `${index}:${imageIdentity(selected.source)}`}
-    <div use:manipulate data-media-stage>
-      {#if selected.kind === 'image'}<Image source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry onready={()=>gesture?.refresh()} />
-      {:else}<PlaybackCanvas item={selected} {playback} />{/if}
-      {#if items.length>1}
-        <Button data-media-prev variant="secondary" size="icon-lg" aria-label="Previous media" disabled={index===0 || scale>1} onclick={()=>select(index-1)}><ChevronLeft /></Button>
-        <Button data-media-next variant="secondary" size="icon-lg" aria-label="Next media" disabled={index===items.length-1 || scale>1} onclick={()=>select(index+1)}><ChevronRight /></Button>
-      {/if}
-    </div>
-    {/key}
-    {#if items.length>1 || selected.kind !== 'image'}
-      <ToolbarLayout content={{kind:"media-controls",items,index,onindex:select,playback}} />
+{#snippet paging()}
+  {#if items.length > 1}
+    <span class="viewer-page viewer-previous"><Action label={say(m.mediaViewer.previous)} icon="previous" face="icon" emphasis="secondary" type="button"
+      state={index === 0 || scale > 1 ? "unavailable" : "ready"} onclick={() => select(index - 1)} /></span>
+    <span class="viewer-page viewer-next"><Action label={say(m.mediaViewer.next)} icon="next" face="icon" emphasis="secondary" type="button"
+      state={index === items.length - 1 || scale > 1 ? "unavailable" : "ready"} onclick={() => select(index + 1)} /></span>
+  {/if}
+{/snippet}
+
+<span bind:this={anchor} hidden></span>
+<Modal label={title} {open} locked={false} presentation="media" ondismiss={() => changeOpen(false)}>
+  <div bind:this={viewer} class="viewer" data-media-viewer>
+    <Bar bind:this={bar} edge="top" purpose="commands" identity={{ title, subtitle: `${index + 1} / ${items.length}` }} identityRole="heading"
+      leading={{ label: say(m.mediaViewer.close), icon: 'close', state: 'ready', intent: { kind: 'close' } }} trailing={[]} controls={zoom}
+      settingsPlaceholder={false} inert={false} oninvoke={intent => { if (intent.kind === 'close') changeOpen(false); }} oncontrol={control} />
+    <p class="sr-only">{say(m.mediaViewer.instructions)}</p>
+    {#if selected}
+      {#key `${index}:${imageIdentity(selected.source)}`}
+        {#if selected.kind === 'image'}
+          <div class="viewer-stage" use:manipulate data-media-stage>
+            <Image frame="host" source={selected.source} alt={selected.alt} edge={1920} zoom={scale} retry fit="fit" backdrop="none" onready={() => gesture?.refresh()} />
+            {@render paging()}
+          </div>
+          {#if items.length > 1}<div class="viewer-band"><div class="viewer-band-row"><MediaStrip {items} {index} fill={false} onindex={select} /></div></div>{/if}
+        {:else}
+          <div class="viewer-playable" use:manipulate>
+            <MediaPlayer bind:this={player} item={selected} presentation="viewer">
+              {#snippet overlay()}{@render paging()}{/snippet}
+              {#snippet strip()}{#if items.length > 1}<MediaStrip {items} {index} fill onindex={select} />{/if}{/snippet}
+            </MediaPlayer>
+          </div>
+        {/if}
+      {/key}
     {/if}
-  </Dialog.Content>
-</Dialog.Root>
+  </div>
+</Modal>
+
+<style>
+  @layer components {
+    .viewer { display:flex; flex:1; flex-direction:column; min-width:0; min-height:0; }
+    .viewer-stage { position:relative; flex:1; min-height:0; overflow:hidden; touch-action:none; }
+    .viewer-playable { display:flex; flex:1; flex-direction:column; min-height:0; }
+    .viewer-page { position:absolute; top:50%; transform:translateY(-50%); }
+    .viewer-previous { left:12px; }
+    .viewer-next { right:12px; }
+    /* The thumbnails band of an image set keeps the toolbar's media geometry. */
+    .viewer-band { flex-shrink:0; min-width:0; padding:var(--catalog-toolbar-inset,8px); container:toolbar / inline-size;
+      max-height:min(50dvh,calc(100dvh - 10rem)); overflow-y:auto; overscroll-behavior:contain; }
+    .viewer-band-row { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:var(--toolbar-gap,12px); min-width:0;
+      min-height:var(--catalog-toolbar-height,44px); }
+  }
+  @media(max-width:600px) { .viewer-page { top:auto; bottom:8px; transform:none; } }
+</style>
 ```
 
-## src/svelte/pieces/media/gestures.ts
+## src/svelte/catalog/mechanisms/media-gestures/media-gestures.ts
 
-Source SHA-256: 4fb9b943478ae780a241fb87fe0272da4903f7b87551b1f13d724fae63f74cce
+Source SHA-256: 9879f6ab1953e091ff4fe000fab4842cc61005e7403f8c593c5e25e24cc23b21
 
 ```ts
+// Mechanism media-gestures: the pointer gestures of one media surface. A horizontal swipe pages, a pinch, a double-click
+// or ctrl-wheel zooms the image, a drag pans it while zoomed; vertical drags stay native scrolling.
 export const maximumMediaZoom = 4;
 
 type Options = {
   image: () => HTMLImageElement | null; page: (direction: number) => void;
   canPage: () => boolean; zoomable?: boolean; onzoom?: (scale: number) => void;
+  /** Pointer downs on these targets stay theirs (a player's controls inside the surface). */
+  ignore?: (target: Element) => boolean;
 };
 /** Pointer ownership is local to the canvas. Vertical header gestures remain native scrolling. */
 export function mediaGestures(element: HTMLElement, options: Options) {
@@ -1395,7 +1544,8 @@ export function mediaGestures(element: HTMLElement, options: Options) {
   function zoom(value: number) { scale = clamp(value, 1, maximumMediaZoom); if (scale === 1) x = y = 0; paint(); }
   function distance() { const [a,b] = [...points.values()]; return a && b ? Math.hypot(a.x-b.x, a.y-b.y) : 1; }
   function down(e: PointerEvent) {
-    if (e.button !== 0 || ((e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[data-media-open]'))) return;
+    const target = e.target instanceof Element ? e.target : null;
+    if (e.button !== 0 || target && (target.closest('button') && !target.closest('[data-media-open]') || options.ignore?.(target))) return;
     points.set(e.pointerId, { x:e.clientX, y:e.clientY });
     element.setPointerCapture(e.pointerId); dragged = false; suppress = false;
     start = { x:e.clientX, y:e.clientY, px:x, py:y };
@@ -1435,129 +1585,128 @@ export function mediaGestures(element: HTMLElement, options: Options) {
 }
 ```
 
-## src/svelte/explorer/PublicCatalogProduct.svelte
+## src/svelte/catalog/renderer/public-catalog-product/PublicCatalogProduct.svelte
 
-Source SHA-256: 20ce23020bdf90493e34ff75b587c76e59f071396efeb59aa6e9ecd7d13cd2db
+Source SHA-256: 5e9565947fc873e6cfcdecc2d9874afadbf1e423260523aff03c443136d066fd
 
 ```svelte
 <script lang="ts">
-  import type { PublicCatalogSurface } from "../../public-catalog/client.ts";
-  import { PublicCatalogProductContent } from "../adapter-catalog.ts";
-  let { surface }: { surface: PublicCatalogSurface } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  import { PublicCatalogProductContent } from "../../index.ts";
+  let { surface }: CatalogProps<"public-catalog-product"> = $props();
 </script>
 
 <PublicCatalogProductContent {surface} />
 ```
 
-## src/svelte/explorer/LocalExercises.svelte
+## src/svelte/catalog/renderer/local-exercises/LocalExercises.svelte
 
-Source SHA-256: 232bcfaa1d125aaee5920b47f336e0b07ac9501e647659382a381743acf02f80
+Source SHA-256: 1e20f01d45949b10db016b064f59258fbc18e24af4ddb974a44c7cb6812ec77b
 
 ```svelte
 <script lang="ts">
-  import type { PublicCatalogExercises } from "../../public-catalog/client.ts";
-  import type { BankEvent } from "../../interaction/bank-events.ts";
-  import { LocalExerciseContent } from "../adapter-catalog.ts";
-  let { definition, bodyOnly = false, oncatalog }: {
-    definition: PublicCatalogExercises; bodyOnly?: boolean; oncatalog?: (event: BankEvent) => void;
-  } = $props();
+  import type { CatalogProps } from "../../types.d.ts";
+  import { LocalExerciseContent } from "../../index.ts";
+  let { definition, bodyOnly = false, oncatalog }: CatalogProps<"local-exercises"> = $props();
 </script>
 
 <LocalExerciseContent {definition} {bodyOnly} {oncatalog} />
 ```
 
-## src/svelte/explorer/CatalogCard.svelte
+## src/svelte/catalog/compositions/catalog-card/CatalogCard.svelte
 
-Source SHA-256: 99184f8f9b007e56e4672c0eb129d50f1d6288f5d47a1fae8788f5499fce2cd5
+Source SHA-256: 4564b30ba603de6a50ea2cf5f7016b90cd9565f7b53a1e3fb7c36fd8a4c3875b
 
 ```svelte
 <script lang="ts">
-  import * as Card from "@desert/svelte/vendor/components/ui/card/index.js";
-  import { Button } from "@desert/svelte/vendor/components/ui/button/index.js";
-  import type { BankNodeFor } from "../../interaction/bank-node.ts";
-  import type { BankEvent } from "../../interaction/bank-events.ts";
-  import { getContext } from 'svelte';
-  import Image from '../pieces/media/Image.svelte';
-  import ArtworkPlaceholder from '../pieces/media/ArtworkPlaceholder.svelte';
-  import { mediaSource, prefetchImage } from '../pieces/media/source.ts';
-  let { node, onevent }: { node: BankNodeFor<"catalog.card">; onevent: (event: BankEvent) => void } = $props();
-  const cover = getContext<((record:string)=>string | undefined) | undefined>('catalog-photo-intent');
-  function prepare() {
-    const asset = cover?.(node.record); if (asset) prefetchImage(mediaSource(asset), window.innerWidth*window.devicePixelRatio);
-  }
-  const open = () => onevent({ kind: "catalog.open", record: node.record });
+  import { getContext } from "svelte";
+  import { Card } from "../../index.ts";
+  import { mediaSource } from "../../../infra/media-source.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { node, onevent }: CatalogProps<"catalog-card"> = $props();
+  // The larger photograph the detail opens with, warmed when the person points at or focuses the card.
+  const cover = getContext<((record: string) => string | undefined) | undefined>("catalog-photo-intent");
+  let photo = $derived(cover?.(node.record));
 </script>
-
-  <Card.Root data-catalog-card="item" data-record={node.record} data-public-card={node.record}>
-    {#if node.image}<Image source={mediaSource(node.image.asset)} alt={node.image.alt} />
-    {:else if 'mediaType' in node}<ArtworkPlaceholder kind={node.mediaType} />{/if}
-    <Card.Header><Card.Title>
-      <Button variant="row" data-catalog-image-action aria-label={node.title} onclick={open} onpointerenter={prepare} onfocus={prepare}>
-        <span data-catalog-card-overlay data-catalog-item-title data-public-card-title>{node.title}</span>
-      </Button>
-    </Card.Title></Card.Header>
-  </Card.Root>
+<Card presentation={node.presentation} label={node.title} title={node.title}
+  artwork={node.image ? mediaSource(node.image.asset) : "mediaType" in node ? { kind: "placeholder", media: node.mediaType } : undefined}
+  alt={node.image?.alt} prefetch={photo ? mediaSource(photo) : undefined} attention={false} current={false} disabled={false}
+  focusKey={`catalog-return:${node.record}`} onopen={() => onevent?.({ kind: "catalog.open", record: node.record })} />
 ```
 
-## src/svelte/explorer/CatalogToolbar.svelte
+## src/svelte/catalog/foundations/bar/BarSearch.svelte
 
-Source SHA-256: 42da9081bc9d9339d09795ceda3806dea0daaf8204987de5088e6f2aca860101
+Source SHA-256: 860f15e07a13f800e7885a3f996def331b51a309eea872e0d58a865f052f1ef8
 
 ```svelte
 <script lang="ts">
-  import ToolbarLayout from "../pieces/ToolbarLayout.svelte";
-  let { title, query, onquery, searching, resultsId, onsearch, oncancel, searchAvailable = true }: {
-    title: string; query: string; onquery: (query: string) => void; searching: boolean;
-    resultsId: string; onsearch: () => void; oncancel: () => void; searchAvailable?: boolean;
+  // Bar part (from the toolbar-search composition): the place search field, revealed by a toggle that also closes it.
+  // Opening it from its toggle focuses the field (a search opened elsewhere keeps focus where it is); the displayed query
+  // freezes while closed so the field does not change as it hides.
+  // The rail keeps the field mounted while closed (inert) so its well grows from the toggle as it opens.
+  import { untrack } from "svelte";
+  import { Action, Field } from "../../index.ts";
+  import { say } from "../../../infra/messages.ts";
+  import { m } from "../../../../messages/keys.ts";
+  let { title, query, open, resultsId, onquery, onopen, oncancel }: {
+    title: string; query: string; open: boolean; resultsId: string;
+    onquery: (query: string) => void; onopen: () => void; oncancel: () => void;
   } = $props();
+  const id = $props.id();
+  let displayedQuery = $state(untrack(() => query)), requested = $state(false);
+  $effect(() => { if (open) displayedQuery = query; else requested = false; });
+  function toggle() { if (open) oncancel(); else { requested = true; onopen(); } }
 </script>
 
-{#if searchAvailable}
-  <ToolbarLayout layer="search" {searching} edge="top"
-    content={{kind:"search",title,query,onquery,searching,resultsId,onsearch,oncancel}} />
-{/if}
+<div data-catalog-search-actions data-expanded={open}>
+  <div data-catalog-search class="flex w-full flex-col" inert={!open} aria-hidden={!open}>
+    <Field primitive="input.text" purpose="search" label={say(m.bar.searchLabel, { title: title.toLowerCase() })} labelVisibility="accessible"
+      measure="fill" value={displayedQuery} placeholder={say(m.bar.searchPlaceholder, { title })} clear required={false} invalid={false}
+      disabled={false} focus={open && requested ? "on-mount" : undefined} controls={open ? resultsId : undefined} expanded={open} bar="search"
+      onchange={onquery} />
+  </div>
+  <!-- The old toggle cross-faded its search and close glyphs; Action shows one glyph per state (no motion package yet). -->
+  <div class="toolbar-action" data-search-toggle>
+    <Action label={open ? say(m.bar.closeSearch) : say(m.bar.search)} icon={open ? "close" : "search"} face="icon" emphasis="secondary" state="ready"
+      type="button" bar="command" onclick={toggle} disclosure={{ id: `${id}-toggle`, controls: resultsId, expanded: open, haspopup: "listbox" }} />
+  </div>
+</div>
 ```
 
-## src/svelte/explorer/PublicCatalogBank.svelte
+## src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte
 
-Source SHA-256: d8851951b1398c3da00f839c126a6e681baed1bfbb0b782218434d027506c9b2
+Source SHA-256: c8347f8cf60381331d78fcbcc81412f1e406fa62de9e368f2816df05d6d78de8
 
 ```svelte
 <script lang="ts">
-  import type { BankEvent } from "../../interaction/bank-events.ts";
-  import type { PrimitiveId } from "../../interaction/catalog.ts";
-  import type { PublicBankInput } from "./PublicCatalogBank-model.ts";
-  import { InspectionCatalog } from "../adapter-catalog.ts";
-  import type { RegisterContentActions } from "../pieces/workspace-content.ts";
-  let { surface, oncatalog, bodyOnly, onactions }: {
-    surface: PublicBankInput; oncatalog: (event: BankEvent) => void; bodyOnly?: boolean;
-    onactions?: RegisterContentActions;
-  } = $props();
-  let content = $state<{ revealEntry: (id: PrimitiveId) => Promise<HTMLElement | null>;
-    revealAndFocusEntry: (id: PrimitiveId) => Promise<void> }>();
-  export async function revealEntry(id: PrimitiveId) { return await content?.revealEntry(id) ?? null; }
+  import type { ResolvedNodeId } from "../../../../interaction/catalog.ts";
+  import { InspectionCatalog } from "../../index.ts";
+  import type { CatalogProps } from "../../types.d.ts";
+  let { surface, oncatalog, bodyOnly = false, onactions }: CatalogProps<"public-catalog-bank"> = $props();
+  let content = $state<{ revealEntry: (id: ResolvedNodeId) => Promise<boolean> }>();
+  export async function revealEntry(id: ResolvedNodeId): Promise<boolean> { return await content?.revealEntry(id) ?? false; }
   $effect(() => {
     const register = onactions;
-    register?.({ revealEntry: async id => { await content?.revealAndFocusEntry(id); }, selectMedia: () => false });
+    register?.({ revealEntry: async id => { await content?.revealEntry(id); }, selectMedia: () => false });
     return () => register?.(null);
   });
 </script>
 
-<InspectionCatalog {surface} {oncatalog} {bodyOnly} bind:this={content} />
+<InspectionCatalog {surface} oncatalog={event => oncatalog?.(event)} {bodyOnly} bind:this={content} />
 ```
 
-## src/svelte/explorer/PublicCatalogBank-model.ts
+## src/svelte/infra/PublicCatalogBank-model.ts
 
-Source SHA-256: c3b0b178b5f0e55697045ce3cb920704c0d4a66f965e767b4e6a7409fa7318a5
+Source SHA-256: f4cc2350887f3d10b615302c2b751c8502615605ff8e04721842b89b0011f2a6
 
 ```ts
-import { InteractionCatalog, type PrimitiveId } from "../../interaction/catalog.ts";
-import { BankVersion as version, bankNode, type BankNode } from "../../interaction/bank-node.ts";
+import { ResolvedNodes, type ResolvedNodeId } from "../../interaction/catalog.ts";
+import { ResolvedNodeVersion as version, resolvedNode, type ResolvedNode } from "../../interaction/resolved-node.ts";
 import { surfaceFrame, type FactsContent } from "../../interaction/surface-frame.ts";
 import type { PublicCatalogSurface } from "../../public-catalog/index.ts";
 
-export type PublicBankSpecimen = Readonly<{ id: PrimitiveId; state: string;
-  owner: "bank" | "control-bank"; node?: BankNode; gap?: string }>;
+export type PublicBankSpecimen = Readonly<{ id: ResolvedNodeId; state: string;
+  owner: "bank" | "control-bank"; node?: ResolvedNode; gap?: string }>;
 export type PublicBankInput = Pick<PublicCatalogSurface, "productId" | "home" | "details">;
 
 /** Diagnostic coverage is not a capability declaration or an execution adapter. */
@@ -1565,9 +1714,9 @@ export function publicCatalogBankInventory(surface: PublicBankInput): readonly P
   const first = surface.details[0]!;
   const details: FactsContent = { kind: "facts", object: surface.productId, fields: ["title"],
     labels: { [`${surface.productId}.title`]: "Title" }, facts: { title: first.title } };
-  return InteractionCatalog.entries.flatMap(entry => entry.states.map(state => {
+  return ResolvedNodes.entries.flatMap(entry => entry.states.map(state => {
     const specimen = { id: entry.id, state, owner: "bank" as const };
-    const render = (node: BankNode): PublicBankSpecimen => ({ ...specimen, node: bankNode(node) });
+    const render = (node: ResolvedNode): PublicBankSpecimen => ({ ...specimen, node: resolvedNode(node) });
     const gap = (reason: string): PublicBankSpecimen => ({ ...specimen, gap: reason });
     if (entry.family === "control") return { ...specimen, owner: "control-bank" as const };
     if (entry.id === "catalog.home") return { ...specimen, node: surface.home };

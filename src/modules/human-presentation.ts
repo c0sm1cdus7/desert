@@ -15,7 +15,7 @@ export const AuthoredPublishedPresentationSchema = closed({
 export const HumanReviewSchema = Type.Union([Type.Literal("required"), Type.Literal("confirmation"), Type.Literal("not-required")]);
 export type PublishedField = Frozen<Static<typeof PublishedFieldSchema>>;
 
-export function validatePublishedFields(object: Frozen<ObjectDefinition>, fields: readonly PublishedField[]): void {
+export function validatePublishedFields(object: Frozen<ObjectDefinition>, fields: readonly Pick<PublishedField, "fact" | "representation">[]): void {
   const seen = new Set<string>();
   for (const field of fields) {
     if (field.fact.object !== object.id) throw new Error("FOREIGN_PRESENTED_FACT");

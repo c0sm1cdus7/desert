@@ -11,8 +11,8 @@ const contrast = (rgb: number[]) => 1.05 / (.05 + rgb.map(v => v / 255)
 // Test painted pixels over both extreme backdrops, not CSS alpha alone.
 test('primary pane keeps readable white labels and neutral press feedback over bright backdrops', async t => {
   const f = await svelteBrowser(`<script lang="ts">
-    import Action from '@desert/svelte/pieces/Action.svelte';
-  </script><main style="padding:80px"><Action label="Save note" icon="save" emphasis="primary"/></main>`);
+    import Action from '@desert/svelte/catalog/foundations/action/Action.svelte';
+  </script><main style="padding:80px"><Action label="Save note" icon="save" emphasis="primary" state="ready" face="fit" type="button"/></main>`);
   try {
     await f.page.addStyleTag({ content: await rendererCss() });
     await f.page.emulateMedia({ reducedMotion: 'reduce' });

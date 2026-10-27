@@ -27,7 +27,7 @@ export function workspaceRuntimeSource(options: { navigation?: boolean; title?: 
     navigation: [...program.navigation, { destination: "media", group: "Explore", purpose: "content" }],
   };
   return `<script>
-    import Workspace from './src/svelte/views/Workspace.svelte';
+    import Workspace from './src/svelte/catalog/renderer/workspace/Workspace.svelte';
     import { viewProgramModel } from './src/web/client/view-program.ts';
     import { webTransport } from './src/web/client/transport.ts';
     import { onDestroy } from 'svelte';

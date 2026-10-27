@@ -1,0 +1,163 @@
+/* Shared renderer foundation. Pane owns material; tokens own semantic ink.
+   Native system fonts are resolved by the host, never bundled Apple fonts.
+   A scheme is a utility, so a preview applies the same tokens the root applies. A tint (personalization) only supplies
+   --ui-tint-* inputs; the scheme reads them and falls back to its own untinted ink. */
+@utility scheme-light {
+  --font-sans:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-brand:var(--font-sans); --weight-title:600;
+  --background-base:#f5f5f7; --card-base:#fff; --secondary-base:#e8e8ed;
+  --background:var(--ui-tint-background,var(--background-base)); --foreground:#1d1d1f;
+  --card:var(--ui-tint-card,var(--card-base)); --card-foreground:var(--foreground);
+  --popover:var(--card); --popover-foreground:var(--foreground);
+  --primary:var(--ui-tint,#005fcf); --primary-foreground:#fff; --primary-text:var(--ui-tint-ink,#005bbf);
+  --secondary:var(--ui-tint-secondary,var(--secondary-base)); --secondary-foreground:var(--foreground);
+  --muted:#ececef; --muted-foreground:#65656b;
+  --accent:#e4e4e9; --accent-foreground:var(--foreground);
+  --destructive:#c32230; --positive:#267a3e; --negative:var(--destructive); --tertiary:#916000;
+  --border:#c6c6cc; --separator:rgb(60 60 67 / .12);
+  --input:var(--card); --control:var(--card); --ring:var(--ui-tint-ring,#007aff);
+  --sidebar:rgb(245 245 247 / .65); --sidebar-foreground:var(--foreground);
+  --sidebar-primary:var(--primary); --sidebar-primary-foreground:var(--primary-foreground);
+  --sidebar-accent:var(--primary); --sidebar-accent-foreground:var(--primary-foreground);
+  --sidebar-border:rgb(0 0 0 / .08); --sidebar-ring:var(--ring);
+  /* One curvature family (law 9d, refined by the owner on 2026-10-25: ONE rule, not a list of numbers; every corner is
+     derived from the control radius, the one literal). A button or control takes the control radius; a well the control
+     radius plus the field accessory inset (its accessory is concentric inside it); a container is concentric with what it
+     holds at its corner: that piece's radius plus the inset between their outer edges (a pane's 1px border included). A
+     tag is a mark, not a control: its chip takes half the control radius and its ✕ the chip's less the tag inset. A face
+     is a rounded square at every size (law 9e): its corner stands to its side as the control radius stands to the
+     control's height. A dot or a person is a circle (--radius-mark); a line (a track, a meter, a grip) has square ends;
+     only the switch is a capsule. --radius is the vendor primitives' name for the control radius.
+     tests/curvature-family.test.ts derives every expected corner from --radius-control and rejects a loose radius. */
+  --radius-control:12px; --control-height:2.75rem;
+  --radius-well:calc(var(--radius-control) + var(--field-accessory-inset)); --radius-chip:calc(var(--radius-control) / 2);
+  --radius-face:calc(tan(atan2(var(--radius-control), var(--control-height))) * 100%); --radius-mark:50%;
+  --radius:var(--radius-control);
+  /* A grouped pane holds its rows flush inside its border; a transient surface holds its toolbar's actions at the toolbar
+     inset inside its border. */
+  --radius-group:calc(var(--radius-control) + 1px);
+  --radius-surface:calc(var(--radius-control) + var(--catalog-toolbar-inset) + 1px);
+  --place-radius:var(--radius-surface); --disabled-opacity:.5;
+  /* Field's one disabled fade, for every kind (a date, an input, a trigger, a select, a search well): its label, value and
+     placeholder fade alike, and at this fade a value keeps its ink relationship, darker (in dark, lighter) than any
+     placeholder and lighter than an enabled value, so a disabled value reads as a value that is off, never as an empty
+     field (fourth review; at the half fade of a button's content it was as grey as a placeholder;
+     tests/field-disabled-value.test.ts). */
+  --field-disabled-opacity:.8;
+  /* A field's trailing accessory sits this far inside the well's outer edge on every side; its radius is the well's less
+     this inset, the control radius (law 9d, concentric: the well is the control radius plus this inset). */
+  --field-accessory-inset:4px;
+  --elev-0:none; --elev-1:0 1px 2px rgb(0 0 0 / .05); --elev-content:none;
+  --elev-2:0 2px 8px -2px rgb(0 0 0 / .12),0 1px 2px -1px rgb(0 0 0 / .08);
+  --elev-3:0 10px 24px -6px rgb(0 0 0 / .16); --elev-4:0 25px 50px -12px rgb(0 0 0 / .25);
+  --shadow-control:none; --shadow-sm:var(--elev-1); --shadow-md:var(--elev-2); --shadow-lg:var(--elev-3); --shadow-2xl:var(--elev-4);
+  --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px); --safe-left:env(safe-area-inset-left,0px); --safe-right:env(safe-area-inset-right,0px);
+  --header-height:6.25rem; --search-row-height:3.25rem; --mobile-nav-bar:4rem; --mobile-nav-h:var(--mobile-nav-bar);
+  --bottom-chrome:calc(var(--mobile-nav-h) + var(--safe-bottom)); --mobile-nav-clearance:calc(var(--bottom-chrome) + .5rem);
+  --content-canvas:var(--background); --input-field:var(--control); --column:828px;
+  --ease-tm:cubic-bezier(.2,0,0,1); --ease-enter:cubic-bezier(.05,.7,.1,1); --ease-exit:cubic-bezier(.3,0,1,1);
+  --ease-vaul:cubic-bezier(.32,.72,0,1); --ease-fab:cubic-bezier(.34,1.12,.64,1); --ease-nav:var(--ease-tm); --ease-out:cubic-bezier(0,0,.2,1);
+  --dur-snap:120ms; --dur-unfold:200ms; --dur-surface:300ms; --press-scale:.96;
+  --dur-feedback:100ms; --dur-popover:120ms; --dur-menu:140ms; --dur-dialog:240ms; --dur-dialog-out:170ms; --dur-lateral:180ms;
+  --motion-overlay-enter:var(--dur-surface); --motion-overlay-exit:var(--dur-lateral);
+  --dur-push:260ms; --dur-drawer-in:320ms; --dur-drawer-out:220ms; --dur-fab:200ms; --dur-nav:200ms; --dur-rail:280ms;
+  --dur-transient:260ms; --dur-transient-out:200ms;
+  --primary-faded:color-mix(in oklab,var(--primary) 16%,transparent); --primary-faded-foreground:var(--primary-text);
+  --chart-1:#c32230; --chart-2:#267a3e; --chart-3:#916000; --chart-4:#8955a4; --chart-5:#005fcf;
+  --avatar-shuffle-overlay:#10162199;
+  color-scheme:light;
+}
+@utility scheme-dark {
+  @apply scheme-light;
+  --background-base:#1e1e1e; --foreground:#f5f5f5; --card-base:#292929;
+  --primary-text:var(--ui-tint-ink,#80bbff); --secondary-base:#3a3a3c; --muted:#333335; --muted-foreground:#b3b3b8;
+  --accent:#38383a; --destructive:#ff8a85; --positive:#80ce94; --tertiary:#dcb762;
+  --border:rgb(255 255 255 / .2); --separator:rgb(255 255 255 / .08); --ring:var(--ui-tint-ring,#70b1ff);
+  --sidebar:rgb(23 23 23 / .35); --sidebar-border:rgb(255 255 255 / .12);
+  --elev-1:0 1px 2px rgb(0 0 0 / .2); --elev-2:0 2px 8px -2px rgb(0 0 0 / .35);
+  color-scheme:dark;
+}
+:root { @apply scheme-light; }
+:root[data-theme="dark"] { @apply scheme-dark; }
+@media (prefers-color-scheme:dark) { :root:not([data-theme="light"]) { @apply scheme-dark; } }
+/* Catalog geometry (from the catalog profile): image ink over photographs, the search glyph ink, the sidebar width,
+   the hero and rail media heights, and a cover's width to its height (a rail card, and the column a covers grid gives it). */
+:root {
+  --catalog-image-foreground:#fff; --catalog-image-shade:#000c;
+  --catalog-search-foreground:var(--muted-foreground);
+  --catalog-sidebar-width:240px;
+  --catalog-hero-height:max(199px,calc((100dvh - 52px) / 2));
+  --catalog-media-height:max(140px,calc((100dvh - 52px) * .2));
+  --catalog-cover-aspect:1.4;
+}
+@media (max-width:767px) { :root { --catalog-hero-height:360px; --catalog-media-height:160px; } }
+/* The spacing scale layout pieces separate their children by (GapSchema in src/interaction/spacing.ts names the steps). */
+@theme { --spacing-tight:var(--heading-copy-gap); --spacing-snug:.5rem; --spacing-cozy:.625rem; --spacing-close:.75rem; --spacing-near:.875rem; --spacing-regular:1rem; --spacing-loose:1.25rem; --spacing-airy:1.375rem; --spacing-relaxed:1.5rem; --spacing-ample:1.75rem; --spacing-section:2rem; }
+/* Surface geometry (from the surface-chrome, surface-reading and lateral-surface-motion mechanisms): the transient
+   surface's radius, edge inset and scrim, the navigation row insets, the lateral motion, and the reading guide content
+   and toolbar identity align to. The theme writes every value; an owner applies the utility of the surface it draws. */
+:root {
+  --surface-radius:var(--radius-surface); --surface-inset:12px; --surface-dimmer:rgb(0 0 0 / .32);
+  --navigation-group-inset:9px; --navigation-row-inset:10px;
+  --motion-lateral:200ms; --ease-lateral:var(--ease-nav);
+  --surface-reading-inset:var(--catalog-toolbar-inset);
+  /* The row inset: how far a stack's titles, its rows, facts, choices, fields and text read from their pane's edge, and a
+     place's content from its surface inset. On a narrow page (typography's narrow-page: narrower than 20rem of text) the
+     whole family steps down from regular to snug together, so a long word gets that room and every guide stays aligned. */
+  --row-inset:clamp(var(--spacing-snug),(100vw + 1px - 20rem) * 1000,var(--spacing-regular));
+  /* The focus ring sits outside its control; a surface with clipped edges applies focus-inset to draw it inside. */
+  --focus-ring-offset:3px;
+}
+@property --place-leading-inset { syntax:"<length>"; inherits:true; initial-value:0px; }
+/* A workspace's place insets; an overlay navigation tightens them; a home stack's rails scroll edge to edge from the
+   stack's row inset, their first entry on the axis of the stack's title and featured entry (the title's margin: the
+   approved look, owner decision V3, 2026-10-25). */
+@utility place-insets { --place-surface-inset:26px; --place-content-inset:calc(var(--place-surface-inset) + var(--row-inset)); --place-bleed:0px; --place-reach:0; }
+@utility place-insets-compact { --place-surface-inset:18px; --place-content-inset:calc(var(--place-surface-inset) + var(--row-inset)); --place-bleed:0px; --place-reach:0; }
+/* Flush inside a retained place, which pads its content by its surface inset (--place-frame-inset, written by the view
+   region that pads), a home stack's rail bleeds over that padding to the surface's edge (--place-bleed): its cards scroll
+   edge to edge, never cut at the page's margin. Outside a padded place there is nothing to bleed over. */
+/* It also reaches past the end of a narrower reading column it stands in (--place-reach: 1) to the place's content edge
+   (--place-frame-width, the view region's), so a card is never cut at a column's end short of the surface's edge. */
+@utility place-insets-flush { --place-surface-inset:1rem; --place-content-inset:var(--row-inset); --place-bleed:var(--place-frame-inset,0px); --place-reach:1; }
+/* The reading guide of a place, of the navigation place, and of a frame or picker sheet (its chrome inset, capped in a
+   compact frame and on a short screen); a message frame reads at a wider chrome inset. */
+@utility reading-inset-place { --surface-reading-inset:var(--place-content-inset,42px); }
+@utility reading-inset-navigation { --surface-reading-inset:calc(var(--navigation-group-inset) + var(--navigation-row-inset)); }
+@utility chrome-inset {
+  --chrome-inset:1.25rem; --surface-reading-inset:var(--chrome-inset); container:chrome-frame / inline-size;
+  @media (max-height:640px) { --surface-reading-inset:min(var(--chrome-inset),20px); }
+  @container chrome-frame (max-width:30rem) { & * { --surface-reading-inset:min(var(--chrome-inset,1.25rem),20px); } }
+}
+@utility chrome-inset-message {
+  --chrome-inset:1.5rem; --surface-reading-inset:var(--chrome-inset); container:chrome-frame / inline-size;
+  @media (max-height:640px) { --chrome-inset:min(1.5rem,24px); --surface-reading-inset:min(var(--chrome-inset),20px); }
+  @container chrome-frame (max-width:30rem) { & * { --surface-reading-inset:min(var(--chrome-inset,1.25rem),20px); } }
+}
+@utility picker-content-inset {
+  padding-inline:.75rem;
+  @media (max-width:24rem) { padding-inline:4px; }
+}
+/* The content of a pane or interior control (applied beside control-feedback-content): disabled state belongs to content,
+   the pane and its boundary never fade. An owner with a disabled fade of its own sets --disabled-fade on its subtree
+   (Field's one disabled fade); everything else fades by the theme's. */
+@utility disabled-content {
+  :is(button,a):is(:disabled,[aria-disabled="true"]) > & { opacity:var(--disabled-content-opacity,var(--disabled-fade,var(--disabled-opacity))); }
+}
+/* A content unit its owner fades as one while disabled (a field's row, its currency part and accessory included): it
+   fades once, and the content of a disabled control drawn inside it does not fade a second time. */
+@utility disabled-unit {
+  opacity:var(--disabled-fade,var(--disabled-opacity)); --disabled-content-opacity:1;
+}
+/* The one notice of unavailable media (law 9b): an image that cannot load (with its retry), unavailable media standing by
+   itself, a player's error. It fills the frame that holds it (or takes its sentence's height and inset when the frame gives
+   none), on the muted ground with the pane hairline, so its edge shows on the page, light and dark; never a face's or a
+   well's white. A frame that draws its own edge (a host's: a card, a thumbnail) clears the notice's (--media-notice-edge).
+   tests/media-notice-anatomy.test.ts */
+@utility media-notice {
+  position:relative; box-sizing:border-box; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:12px; padding:var(--spacing-regular,1rem); text-align:center; border-radius:inherit;
+  background:var(--muted); color:var(--foreground); border:1px solid var(--media-notice-edge,var(--border));
+}
+/* A surface whose focus rings sit inside its clipped edges (a toolbar, a popover, a dialog). */
+@utility focus-inset { --focus-ring-offset:-3px; }

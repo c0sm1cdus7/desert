@@ -9,7 +9,7 @@ const variants = ["default", "secondary", "outline", "ghost", "destructive", "li
 const source = `<script lang="ts">
   import { Button } from '@desert/svelte/vendor/components/ui/button/index.js';
   import { Spinner } from '@desert/svelte/vendor/components/ui/spinner/index.js';
-  import Action from '@desert/svelte/pieces/Action.svelte';
+  import Action from '@desert/svelte/catalog/foundations/action/Action.svelte';
   import RotateCw from '@lucide/svelte/icons/rotate-cw';
   let clicks = $state(0), spinning = $state(true);
 </script>
@@ -23,10 +23,10 @@ const source = `<script lang="ts">
     </section>
   {/each}
   <section data-actions style="display:flex;gap:12px">
-    <Action label="Save secondary" icon="save" state="pending"/>
-    <Action label="Save primary" icon="save" state="pending" emphasis="primary"/>
-    <div style="width:56px"><Action label="Retry the saved confirmation" icon="retry"/></div>
-    <Action label="Unavailable action" icon="save" state="unavailable"/>
+    <Action label="Save secondary" icon="save" state="pending" emphasis="secondary" face="fit" type="button"/>
+    <Action label="Save primary" icon="save" state="pending" emphasis="primary" face="fit" type="button"/>
+    <div style="width:56px"><Action label="Retry the saved confirmation" icon="retry" state="ready" emphasis="secondary" face="fit" type="button"/></div>
+    <Action label="Unavailable action" icon="save" state="unavailable" emphasis="secondary" face="fit" type="button"/>
   </section>
   <div data-standalone style="color:var(--destructive)"><Spinner/></div>
   <button onclick={() => spinning = !spinning}>Toggle spin</button><output>{clicks}</output>
@@ -42,7 +42,7 @@ async function evidence(f: Awaited<ReturnType<typeof fixture>>, name: string, ob
   const directory = `artifacts/icon-spin/${process.env.DESERT_EVIDENCE_PHASE ?? "current"}`;
   await mkdir(directory, { recursive: true });
   const sources = ["src/svelte/vendor/components/ui/button/button.svelte", "src/svelte/vendor/components/ui/spinner/spinner.svelte",
-    "src/svelte/pieces/Action.svelte", "src/svelte/theme.css", "tests/icon-spin.test.ts"];
+    "src/svelte/catalog/foundations/action/Action.svelte", "src/svelte/theme.css", "tests/icon-spin.test.ts"];
   const revision = Object.fromEntries(await Promise.all(sources.map(async path =>
     [path, createHash("sha256").update(await readFile(path)).digest("hex")])));
   await writeFile(`${directory}/${name}.json`, JSON.stringify({ revision, observed }, null, 2));
@@ -93,9 +93,9 @@ test("spin is visual only while pending actions preserve accessible names, disab
     const spin = f.page.getByRole("button", { name: "secondary spin", exact: true });
     assert.equal(await spin.isEnabled(), true); assert.equal(await spin.getAttribute("aria-busy"), null);
     await spin.click(); assert.equal(await f.page.locator("output").innerText(), "1");
-    const observed = await f.page.locator("[data-actions] [data-primitive=action]").evaluateAll(buttons => buttons.map(button => ({
+    const observed = await f.page.locator("[data-actions] [data-action]").evaluateAll(buttons => buttons.map(button => ({
       name: button.getAttribute("aria-label"), busy: button.getAttribute("aria-busy"), disabled: (button as HTMLButtonElement).disabled,
-      face: button.getAttribute("data-button-face"), iconCount: button.querySelectorAll("svg").length,
+      face: button.getAttribute("data-action-face"), iconCount: button.querySelectorAll("svg").length,
       animation: button.querySelector("svg") ? getComputedStyle(button.querySelector("svg")!).animationName : null,
       iconColor: button.querySelector("svg") ? getComputedStyle(button.querySelector("svg")!).color : null,
       color: getComputedStyle(button).color, background: getComputedStyle(button).backgroundColor,

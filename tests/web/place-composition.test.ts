@@ -34,24 +34,24 @@ test(`Travel kit uses always-visible titled sibling stacks at ${width}`, async (
     await f.page.setViewportSize({ width, height: 900 });
     await (await navigationAction(f.page, 'Travel kit')).click();
     await settle(f.page);
-    const content = f.page.locator('[data-local-exercises]');
+    const content = f.page.locator('[data-place-content]');
     const place = f.page.locator('[data-catalog-content]');
     assert.equal(await place.getByRole('heading', { level: 1, name: 'Travel kit', exact: true }).count(), 1);
     assert.equal(await content.getByRole('heading', { level: 1 }).count(), 0,
       'The body-only exercise composition does not repeat its outer Place heading');
     const budget = content.getByRole('group', { name: 'Budget', exact: true });
     assert.equal(await budget.getByRole('textbox', { name: 'Estimated budget', exact: true }).count(), 1);
-    assert.equal(await content.locator('[data-place-stack]').count(), 8);
-    assert.deepEqual(await content.locator('[data-place-stack] .place-stack-title h2').allTextContents(), [
+    assert.equal(await content.locator('[data-view-item]').count(), 8);
+    assert.deepEqual(await content.locator('[data-view-item] .place-stack-title h2').allTextContents(), [
       'Your next visit', 'Notes', 'Travel pace*', 'Interests', 'Budget',
       'Travel documents', 'About this draft', 'A little inspiration',
     ]);
-    assert.equal(await content.locator('[data-place-stack] [data-place-stack]').count(), 0);
+    assert.equal(await content.locator('[data-view-item] [data-view-item]').count(), 0);
     await f.page.screenshot({ path: `${output}/start.png` });
-    await content.locator('[data-place-stack="pace"]').scrollIntoViewIfNeeded();
+    await content.locator('[data-view-item="pace"]').scrollIntoViewIfNeeded();
     await f.page.screenshot({ path: `${output}/groups.png` });
     await budget.getByRole('textbox', { name: 'Estimated budget', exact: true }).fill('120');
-    const draft = content.locator('[data-place-stack="draft"]');
+    const draft = content.locator('[data-view-item="draft"]');
     await draft.scrollIntoViewIfNeeded();
     await settle(f.page);
     assert.equal(await draft.getByRole('heading', { name: 'About this draft', exact: true }).isVisible(), true);

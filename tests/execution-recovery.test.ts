@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { setTimeout } from "node:timers/promises";
 import { runNextExecution } from "../src/execution.ts";
 import { executionFixture } from "./fixtures/execution-host.ts";
+import { renderWriteFault, renderWriteFaultRemoval } from "../src/storage/render-faults.ts";
+import { jobsTable } from "../src/storage/tables/execution.ts";
 
 test("crashed workers retain an uncertain permit after their lease expires", async () => {
   const f = await executionFixture();
@@ -22,13 +24,11 @@ test("crashed workers retain an uncertain permit after their lease expires", asy
 test("enqueue faults commit no acknowledgement and database restart preserves queued identities", async () => {
   const f = await executionFixture();
   try {
-    await f.pool.query(`CREATE FUNCTION desert_execution.fail_insert() RETURNS trigger LANGUAGE plpgsql AS
-      $$ BEGIN RAISE EXCEPTION 'TEST_ENQUEUE_FAULT'; END $$;
-      CREATE TRIGGER fail_insert BEFORE INSERT ON desert_execution.jobs
-      FOR EACH ROW EXECUTE FUNCTION desert_execution.fail_insert()`);
+    const fault = { name: "fail_insert", event: "INSERT", message: "TEST_ENQUEUE_FAULT" } as const;
+    await f.pool.query(renderWriteFault(jobsTable, fault));
     await assert.rejects(f.queue.enqueue(f.actor, { key: "fault", input: { message: "x", mode: "echo" } }), /TEST_ENQUEUE_FAULT/);
     assert.equal(await f.queue.lookup(f.actor, "fault"), undefined);
-    await f.pool.query("DROP TRIGGER fail_insert ON desert_execution.jobs; DROP FUNCTION desert_execution.fail_insert()");
+    await f.pool.query(renderWriteFaultRemoval(jobsTable, fault));
     const job = await f.queue.enqueue(f.actor, { key: "survive", input: { message: "durable", mode: "echo" } });
     f.cluster.stop(); f.cluster.start();
     const reopened = await f.reopen();

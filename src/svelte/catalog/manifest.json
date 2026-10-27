@@ -1,0 +1,4273 @@
+{
+  "mechanisms": {
+    "action-pair": {
+      "files": [
+        "action-pair.svelte.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/action-pair",
+      "owner": "bar"
+    },
+    "control-feedback": {
+      "files": [
+        "control-feedback.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/control-feedback",
+      "owner": "theme"
+    },
+    "field-accessory": {
+      "files": [
+        "field-accessory.svelte.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/field-accessory",
+      "owner": "field"
+    },
+    "file-picker": {
+      "files": [
+        "file-picker.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/file-picker",
+      "owner": "files"
+    },
+    "media-gestures": {
+      "files": [
+        "media-gestures.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/media-gestures",
+      "owner": "gallery"
+    },
+    "pane-context": {
+      "files": [
+        "pane-context.svelte.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/pane-context",
+      "owner": "modal"
+    },
+    "pane-material": {
+      "files": [
+        "pane-material.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/pane-material",
+      "owner": "theme"
+    },
+    "personalization": {
+      "files": [
+        "personalization.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/personalization",
+      "owner": "theme"
+    },
+    "press-feedback": {
+      "files": [
+        "press-feedback.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/press-feedback",
+      "owner": "action"
+    },
+    "reveal": {
+      "files": [
+        "reveal.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/reveal",
+      "owner": "view-region"
+    },
+    "surface-focus": {
+      "files": [
+        "surface-focus.svelte.ts",
+        "focus-return.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/surface-focus",
+      "owner": "modal"
+    },
+    "surface-host": {
+      "files": [
+        "surface-host.svelte.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/surface-host",
+      "owner": "modal"
+    },
+    "swipe-motion": {
+      "files": [
+        "swipe-motion.svelte.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/swipe-motion",
+      "owner": "shell"
+    },
+    "theme": {
+      "files": [
+        "tokens.css",
+        "base.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/theme",
+      "owner": "theme"
+    },
+    "toolbar-geometry": {
+      "files": [
+        "toolbar-bounds.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/toolbar-geometry",
+      "owner": "bar"
+    },
+    "toolbar-scroll": {
+      "files": [
+        "toolbar-scroll.svelte.ts"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/toolbar-scroll",
+      "owner": "bar"
+    },
+    "typography": {
+      "files": [
+        "typography.css"
+      ],
+      "folder": "src/svelte/catalog/mechanisms/typography",
+      "owner": "theme"
+    }
+  },
+  "pieces": {
+    "access-appearance-specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/access-appearance-specimen",
+      "kind": "composition",
+      "messages": [
+        "accessAppearanceSpecimen.purpose",
+        "accessAppearanceSpecimen.noAuthentication",
+        "accessAppearanceSpecimen.noIdentity",
+        "accessAppearanceSpecimen.avatar",
+        "accessAppearanceSpecimen.shuffleAvatar"
+      ],
+      "owner": {
+        "entry": "AccessAppearanceSpecimen.svelte"
+      },
+      "purpose": {
+        "key": "accessAppearanceSpecimen.purpose"
+      },
+      "uses": [
+        "access-experience",
+        "appearance-preferences",
+        "avatar",
+        "lock-screen",
+        "text",
+        "theme-preview",
+        "wallpaper"
+      ]
+    },
+    "access-experience": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/access-experience",
+      "kind": "composition",
+      "messages": [
+        "accessExperience.purpose",
+        "accessExperience.access",
+        "accessExperience.connecting",
+        "accessExperience.unavailable",
+        "accessExperience.tryAgain"
+      ],
+      "owner": {
+        "entry": "AccessExperience.svelte"
+      },
+      "purpose": {
+        "key": "accessExperience.purpose"
+      },
+      "uses": [
+        "access-form",
+        "action",
+        "column",
+        "heading",
+        "inline",
+        "lock-screen",
+        "stack-layout",
+        "surface",
+        "text"
+      ]
+    },
+    "access-form": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/access-form",
+      "kind": "composition",
+      "messages": [
+        "accessForm.purpose",
+        "accessForm.createIdentity",
+        "accessForm.unlock",
+        "accessForm.stepIdentity",
+        "accessForm.stepAppearance",
+        "accessForm.shuffleAvatar",
+        "accessForm.headlineIdentity",
+        "accessForm.headlineAppearance",
+        "accessForm.introIdentity",
+        "accessForm.introAppearance",
+        "accessForm.identity",
+        "accessForm.displayName",
+        "accessForm.identityName",
+        "accessForm.identityNameHelper",
+        "accessForm.password",
+        "accessForm.passwordHelper",
+        "accessForm.cancel",
+        "accessForm.back",
+        "accessForm.pleaseWait",
+        "accessForm.continue",
+        "accessForm.getStarted",
+        "accessForm.footnote"
+      ],
+      "owner": {
+        "entry": "AccessForm.svelte"
+      },
+      "purpose": {
+        "key": "accessForm.purpose"
+      },
+      "uses": [
+        "appearance-preferences",
+        "avatar",
+        "bar",
+        "column",
+        "field",
+        "form",
+        "heading",
+        "stack-layout",
+        "text"
+      ]
+    },
+    "access-gate": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/access-gate",
+      "kind": "composition",
+      "messages": [
+        "accessGate.purpose"
+      ],
+      "owner": {
+        "entry": "AccessGate.svelte",
+        "parts": [
+          "browser-access-lock.ts"
+        ]
+      },
+      "purpose": {
+        "key": "accessGate.purpose"
+      },
+      "uses": [
+        "access-screen",
+        "view-product"
+      ]
+    },
+    "access-screen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/access-screen",
+      "kind": "composition",
+      "messages": [
+        "accessScreen.purpose"
+      ],
+      "owner": {
+        "entry": "AccessScreen.svelte"
+      },
+      "purpose": {
+        "key": "accessScreen.purpose"
+      },
+      "uses": [
+        "access-experience",
+        "appearance-root"
+      ]
+    },
+    "action": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/action",
+      "kind": "foundation",
+      "messages": [
+        "action.purpose"
+      ],
+      "owner": {
+        "entry": "Action.svelte",
+        "mechanisms": [
+          "action-pair",
+          "field-accessory",
+          "press-feedback",
+          "typography"
+        ],
+        "vendor": [
+          "button"
+        ]
+      },
+      "purpose": {
+        "key": "action.purpose"
+      },
+      "renders": [
+        "action"
+      ],
+      "shape": "radius",
+      "states": [
+        "ready",
+        "unavailable",
+        "pending"
+      ],
+      "variants": {
+        "emphasis": [
+          "primary",
+          "secondary",
+          "destructive"
+        ],
+        "face": [
+          "fit",
+          "icon",
+          "text"
+        ]
+      }
+    },
+    "appearance": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/appearance",
+      "kind": "composition",
+      "messages": [
+        "appearance.purpose"
+      ],
+      "owner": {
+        "entry": "Appearance.svelte"
+      },
+      "purpose": {
+        "key": "appearance.purpose"
+      },
+      "uses": [
+        "appearance-preferences",
+        "text"
+      ]
+    },
+    "appearance-preferences": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/appearance-preferences",
+      "kind": "composition",
+      "messages": [
+        "appearancePreferences.purpose",
+        "appearancePreferences.appearance",
+        "appearancePreferences.textSize",
+        "appearancePreferences.tint",
+        "appearancePreferences.dark",
+        "appearancePreferences.light",
+        "appearancePreferences.standard",
+        "appearancePreferences.large",
+        "appearancePreferences.larger",
+        "appearancePreferences.blue",
+        "appearancePreferences.violet",
+        "appearancePreferences.rose",
+        "appearancePreferences.green",
+        "appearancePreferences.slate",
+        "appearancePreferences.silk",
+        "appearancePreferences.mist",
+        "appearancePreferences.plain",
+        "appearancePreferences.wallpaper"
+      ],
+      "owner": {
+        "entry": "AppearancePreferences.svelte"
+      },
+      "purpose": {
+        "key": "appearancePreferences.purpose"
+      },
+      "uses": [
+        "choice",
+        "column",
+        "stack-layout"
+      ]
+    },
+    "appearance-root": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/appearance-root",
+      "kind": "foundation",
+      "messages": [
+        "appearanceRoot.purpose"
+      ],
+      "owner": {
+        "entry": "AppearanceRoot.svelte",
+        "parts": [
+          "appearance-root.ts"
+        ]
+      },
+      "purpose": {
+        "key": "appearanceRoot.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "attention-indicator": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/attention-indicator",
+      "kind": "foundation",
+      "messages": [
+        "attentionIndicator.purpose",
+        "attentionIndicator.label"
+      ],
+      "owner": {
+        "entry": "AttentionIndicator.svelte"
+      },
+      "purpose": {
+        "key": "attentionIndicator.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "required",
+        "clear"
+      ],
+      "variants": {
+        "placement": [
+          "inline",
+          "overlay"
+        ]
+      }
+    },
+    "attention-list": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/attention-list",
+      "kind": "composition",
+      "messages": [
+        "attentionList.purpose",
+        "attentionList.title",
+        "attentionList.emptyTitle",
+        "attentionList.emptyDescription"
+      ],
+      "owner": {
+        "entry": "AttentionList.svelte"
+      },
+      "purpose": {
+        "key": "attentionList.purpose"
+      },
+      "uses": [
+        "collection-state",
+        "list",
+        "row",
+        "stack-layout",
+        "status",
+        "text"
+      ]
+    },
+    "attention-status": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/attention-status",
+      "kind": "composition",
+      "messages": [
+        "attentionStatus.purpose",
+        "attentionStatus.one",
+        "attentionStatus.many"
+      ],
+      "owner": {
+        "entry": "AttentionStatus.svelte"
+      },
+      "purpose": {
+        "key": "attentionStatus.purpose"
+      },
+      "uses": [
+        "list",
+        "row"
+      ]
+    },
+    "availability": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/availability",
+      "kind": "foundation",
+      "messages": [
+        "availability.purpose"
+      ],
+      "owner": {
+        "entry": "Availability.svelte"
+      },
+      "purpose": {
+        "key": "availability.purpose"
+      },
+      "renders": [
+        "availability"
+      ],
+      "shape": "none",
+      "states": [
+        "ready",
+        "unavailable",
+        "unknown"
+      ]
+    },
+    "avatar": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/avatar",
+      "kind": "foundation",
+      "messages": [
+        "avatar.purpose"
+      ],
+      "owner": {
+        "entry": "Avatar.svelte",
+        "mechanisms": [
+          "press-feedback"
+        ],
+        "parts": [
+          "SeedPortrait.svelte",
+          "ShuffleButton.svelte"
+        ],
+        "vendor": [
+          "avatar"
+        ]
+      },
+      "purpose": {
+        "key": "avatar.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "interaction": [
+          "none",
+          "shuffle"
+        ],
+        "size": [
+          "portrait",
+          "compact",
+          "row"
+        ]
+      }
+    },
+    "bar": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/bar",
+      "kind": "foundation",
+      "messages": [
+        "bar.purpose",
+        "bar.backToTop",
+        "bar.create",
+        "bar.moreActions",
+        "bar.hideNavigation",
+        "bar.showNavigation",
+        "bar.settings",
+        "bar.settingsUnavailable",
+        "bar.searchLabel",
+        "bar.searchPlaceholder",
+        "bar.closeSearch",
+        "bar.search"
+      ],
+      "owner": {
+        "entry": "Bar.svelte",
+        "mechanisms": [
+          "action-pair",
+          "pane-context",
+          "toolbar-geometry",
+          "toolbar-scroll"
+        ],
+        "parts": [
+          "BarIdentity.svelte",
+          "BarSearch.svelte",
+          "bar.css",
+          "toolbar-commands.svelte.ts",
+          "toolbar-leading.svelte.ts"
+        ]
+      },
+      "purpose": {
+        "key": "bar.purpose"
+      },
+      "shape": "none",
+      "stateVariants": {
+        "controls": {
+          "purpose": [
+            "commands"
+          ]
+        },
+        "overflow": {
+          "purpose": [
+            "commands"
+          ]
+        },
+        "searching": {
+          "purpose": [
+            "commands"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "searching",
+        "overflow",
+        "controls"
+      ],
+      "variants": {
+        "purpose": [
+          "commands",
+          "commit",
+          "steps",
+          "navigation"
+        ]
+      }
+    },
+    "card": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/card",
+      "kind": "foundation",
+      "messages": [
+        "card.purpose"
+      ],
+      "owner": {
+        "entry": "Card.svelte",
+        "mechanisms": [
+          "press-feedback"
+        ]
+      },
+      "purpose": {
+        "key": "card.purpose"
+      },
+      "shape": "radius",
+      "slots": {
+        "children": {
+          "accepts": [
+            "heading",
+            "text",
+            "meter",
+            "loading",
+            "inline"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "current",
+        "disabled"
+      ],
+      "variants": {
+        "presentation": [
+          "featured",
+          "item",
+          "tile",
+          "collection",
+          "summary"
+        ]
+      }
+    },
+    "catalog-card": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/catalog-card",
+      "kind": "composition",
+      "messages": [
+        "catalogCard.purpose"
+      ],
+      "owner": {
+        "entry": "CatalogCard.svelte"
+      },
+      "purpose": {
+        "key": "catalogCard.purpose"
+      },
+      "renders": [
+        "catalog.card"
+      ],
+      "uses": [
+        "card"
+      ]
+    },
+    "catalog-detail": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/catalog-detail",
+      "kind": "composition",
+      "messages": [
+        "catalogDetail.purpose",
+        "catalogDetail.about"
+      ],
+      "owner": {
+        "entry": "CatalogDetail.svelte"
+      },
+      "purpose": {
+        "key": "catalogDetail.purpose"
+      },
+      "renders": [
+        "catalog.detail"
+      ],
+      "uses": [
+        "column",
+        "gallery",
+        "heading",
+        "stack-item",
+        "stack-layout",
+        "text",
+        "view-region"
+      ]
+    },
+    "catalog-home": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/catalog-home",
+      "kind": "composition",
+      "messages": [
+        "catalogHome.purpose"
+      ],
+      "owner": {
+        "entry": "CatalogHome.svelte"
+      },
+      "purpose": {
+        "key": "catalogHome.purpose"
+      },
+      "renders": [
+        "catalog.home"
+      ],
+      "uses": [
+        "column",
+        "heading",
+        "inline",
+        "node-renderer",
+        "stack-item",
+        "view-region"
+      ]
+    },
+    "catalog-search-results": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/catalog-search-results",
+      "kind": "composition",
+      "messages": [
+        "catalogSearchResults.purpose",
+        "catalogSearchResults.prompt",
+        "catalogSearchResults.heading",
+        "catalogSearchResults.one",
+        "catalogSearchResults.many",
+        "catalogSearchResults.empty",
+        "catalogSearchResults.another"
+      ],
+      "owner": {
+        "entry": "CatalogSearchResults.svelte"
+      },
+      "purpose": {
+        "key": "catalogSearchResults.purpose"
+      },
+      "uses": [
+        "column",
+        "grid",
+        "heading",
+        "list",
+        "node-renderer",
+        "row",
+        "status",
+        "text"
+      ]
+    },
+    "catalog-workspace": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/catalog-workspace",
+      "kind": "composition",
+      "messages": [
+        "catalogWorkspace.purpose",
+        "catalogWorkspace.back",
+        "catalogWorkspace.searchRegion"
+      ],
+      "owner": {
+        "entry": "CatalogWorkspace.svelte"
+      },
+      "purpose": {
+        "key": "catalogWorkspace.purpose"
+      },
+      "uses": [
+        "bar",
+        "catalog-search-results",
+        "catalog-workspace-content",
+        "failure-dialog",
+        "panel",
+        "place-heading",
+        "shell",
+        "toolbar"
+      ]
+    },
+    "catalog-workspace-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/catalog-workspace-content",
+      "kind": "composition",
+      "messages": [
+        "catalogWorkspaceContent.purpose"
+      ],
+      "owner": {
+        "entry": "CatalogWorkspaceContent.svelte"
+      },
+      "purpose": {
+        "key": "catalogWorkspaceContent.purpose"
+      },
+      "uses": [
+        "catalog-detail",
+        "catalog-home",
+        "local-exercises",
+        "public-catalog-bank",
+        "view-content",
+        "view-region"
+      ]
+    },
+    "choice": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/choice",
+      "kind": "foundation",
+      "messages": [
+        "choice.purpose",
+        "choice.required",
+        "choice.notSelected"
+      ],
+      "owner": {
+        "entry": "Choice.svelte",
+        "mechanisms": [
+          "press-feedback",
+          "surface-focus"
+        ],
+        "parts": [
+          "ChoiceRows.svelte",
+          "ChoiceCards.svelte",
+          "ChoiceSwatches.svelte",
+          "ChoiceMenu.svelte",
+          "ChoiceMenuList.svelte",
+          "ChoiceAnatomy.svelte",
+          "ChoiceLeading.svelte",
+          "choice-row.ts"
+        ],
+        "vendor": [
+          "checkbox",
+          "radio-group"
+        ]
+      },
+      "purpose": {
+        "key": "choice.purpose"
+      },
+      "shape": "radius",
+      "states": [
+        "default",
+        "described",
+        "disabled",
+        "required"
+      ],
+      "variantLimits": {
+        "presentation": {
+          "cards": {
+            "menuTrigger": []
+          },
+          "menu": {
+            "cardinality": [
+              "one"
+            ]
+          },
+          "rows": {
+            "menuTrigger": []
+          },
+          "swatches": {
+            "cardinality": [
+              "one"
+            ],
+            "menuTrigger": []
+          }
+        }
+      },
+      "variants": {
+        "cardinality": [
+          "one",
+          "many"
+        ],
+        "menuTrigger": [
+          "well",
+          "inline",
+          "contextual"
+        ],
+        "presentation": [
+          "rows",
+          "cards",
+          "swatches",
+          "menu"
+        ]
+      }
+    },
+    "clock": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/clock",
+      "kind": "foundation",
+      "messages": [
+        "clock.purpose"
+      ],
+      "owner": {
+        "entry": "Clock.svelte"
+      },
+      "purpose": {
+        "key": "clock.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "collection": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/collection",
+      "kind": "composition",
+      "messages": [
+        "collection.purpose",
+        "collection.metadata"
+      ],
+      "owner": {
+        "entry": "Collection.svelte"
+      },
+      "purpose": {
+        "key": "collection.purpose"
+      },
+      "renders": [
+        "collection"
+      ],
+      "uses": [
+        "collection-state",
+        "list",
+        "media-collection-grid",
+        "media-grid",
+        "row"
+      ]
+    },
+    "collection-state": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/collection-state",
+      "kind": "composition",
+      "messages": [
+        "collectionState.purpose",
+        "collectionState.label",
+        "collectionState.loading",
+        "collectionState.emptyTitle",
+        "collectionState.emptyDescription",
+        "collectionState.offlineTitle",
+        "collectionState.offlineDescription"
+      ],
+      "owner": {
+        "entry": "CollectionState.svelte"
+      },
+      "purpose": {
+        "key": "collectionState.purpose"
+      },
+      "uses": [
+        "list",
+        "loading",
+        "status"
+      ]
+    },
+    "color-bullet": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/color-bullet",
+      "kind": "foundation",
+      "messages": [
+        "colorBullet.purpose"
+      ],
+      "owner": {
+        "entry": "ColorBullet.svelte"
+      },
+      "purpose": {
+        "key": "colorBullet.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "default"
+      ]
+    },
+    "column": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/column",
+      "kind": "foundation",
+      "messages": [
+        "column.purpose"
+      ],
+      "owner": {
+        "entry": "Column.svelte"
+      },
+      "purpose": {
+        "key": "column.purpose"
+      },
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "access-appearance-specimen",
+            "access-form",
+            "action",
+            "appearance-preferences",
+            "attention-indicator",
+            "attention-list",
+            "attention-status",
+            "avatar",
+            "bar",
+            "choice",
+            "clock",
+            "column",
+            "content-flow",
+            "context-properties",
+            "contract-inspection",
+            "control-bench",
+            "dialog",
+            "face",
+            "form",
+            "gallery",
+            "grid",
+            "heading",
+            "image",
+            "information",
+            "inline",
+            "list",
+            "lock-screen",
+            "media-object",
+            "media-player",
+            "media-reference-specimen",
+            "menu",
+            "node-renderer",
+            "object-state-control",
+            "place-heading",
+            "popover",
+            "reading-content",
+            "reference-specimen",
+            "related-selection",
+            "shared-owner-catalog",
+            "spacer",
+            "specimen-group",
+            "stack-item",
+            "stack-layout",
+            "status",
+            "summary-widget",
+            "surface-specimen",
+            "text",
+            "theme-preview",
+            "view-region"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "align": [
+          "start",
+          "center",
+          "stretch"
+        ],
+        "gap": [
+          "tight",
+          "snug",
+          "cozy",
+          "close",
+          "near",
+          "regular",
+          "loose",
+          "airy",
+          "relaxed",
+          "ample",
+          "section"
+        ],
+        "measure": [
+          "reading",
+          "narrow",
+          "wide",
+          "prose"
+        ]
+      }
+    },
+    "content-flow": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/content-flow",
+      "kind": "composition",
+      "messages": [
+        "contentFlow.purpose",
+        "contentFlow.connection",
+        "contentFlow.offline"
+      ],
+      "owner": {
+        "entry": "ContentFlow.svelte"
+      },
+      "purpose": {
+        "key": "contentFlow.purpose"
+      },
+      "uses": [
+        "appearance",
+        "identity",
+        "information",
+        "inspection-content",
+        "media-content",
+        "place-heading",
+        "stack-layout",
+        "text",
+        "view-attention",
+        "view-item",
+        "view-region",
+        "view-related-selection"
+      ]
+    },
+    "context-panel": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/context-panel",
+      "kind": "composition",
+      "messages": [
+        "contextPanel.purpose",
+        "contextPanel.actions"
+      ],
+      "owner": {
+        "entry": "ContextPanel.svelte"
+      },
+      "purpose": {
+        "key": "contextPanel.purpose"
+      },
+      "renders": [
+        "context"
+      ],
+      "uses": [
+        "attention-status",
+        "column",
+        "context-properties",
+        "list",
+        "media-object",
+        "node-renderer",
+        "reading-content",
+        "row",
+        "spacer",
+        "stack-layout"
+      ]
+    },
+    "context-properties": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/context-properties",
+      "kind": "composition",
+      "messages": [
+        "contextProperties.purpose",
+        "contextProperties.title"
+      ],
+      "owner": {
+        "entry": "ContextProperties.svelte"
+      },
+      "purpose": {
+        "key": "contextProperties.purpose"
+      },
+      "uses": [
+        "fact-row",
+        "list",
+        "object-state-row",
+        "stack-layout"
+      ]
+    },
+    "contract-inspection": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/contract-inspection",
+      "kind": "composition",
+      "messages": [
+        "contractInspection.purpose",
+        "contractInspection.contract",
+        "contractInspection.coverageGaps",
+        "contractInspection.evidence",
+        "contractInspection.component",
+        "contractInspection.sharedOwners",
+        "contractInspection.qualification",
+        "contractInspection.fixtures"
+      ],
+      "owner": {
+        "entry": "ContractInspection.svelte"
+      },
+      "purpose": {
+        "key": "contractInspection.purpose"
+      },
+      "uses": [
+        "column",
+        "information",
+        "stack-layout",
+        "view-region"
+      ]
+    },
+    "control-bench": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/control-bench",
+      "kind": "composition",
+      "messages": [
+        "controlBench.purpose",
+        "controlBench.interaction",
+        "controlBench.idle",
+        "controlBench.event",
+        "controlBench.released"
+      ],
+      "owner": {
+        "entry": "ControlBench.svelte"
+      },
+      "purpose": {
+        "key": "controlBench.purpose"
+      },
+      "uses": [
+        "column",
+        "control-renderer",
+        "specimen-group",
+        "specimen-row",
+        "stack-layout",
+        "text",
+        "view-region"
+      ]
+    },
+    "control-renderer": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/control-renderer",
+      "kind": "composition",
+      "messages": [
+        "controlRenderer.purpose"
+      ],
+      "owner": {
+        "entry": "ControlRenderer.svelte"
+      },
+      "purpose": {
+        "key": "controlRenderer.purpose"
+      },
+      "uses": [
+        "node-renderer"
+      ]
+    },
+    "date-control": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/date-control",
+      "kind": "foundation",
+      "messages": [
+        "dateControl.purpose",
+        "dateControl.previousMonth",
+        "dateControl.nextMonth",
+        "dateControl.clearDate",
+        "dateControl.noDate"
+      ],
+      "owner": {
+        "entry": "DateControl.svelte",
+        "mechanisms": [
+          "press-feedback",
+          "surface-focus"
+        ],
+        "parts": [
+          "DateCalendar.svelte",
+          "date-control.css"
+        ],
+        "vendor": [
+          "calendar"
+        ]
+      },
+      "purpose": {
+        "key": "dateControl.purpose"
+      },
+      "renders": [
+        "control.date"
+      ],
+      "shape": "radius",
+      "states": [
+        "empty",
+        "value",
+        "required",
+        "disabled"
+      ]
+    },
+    "dialog": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/dialog",
+      "kind": "composition",
+      "messages": [
+        "dialog.purpose",
+        "dialog.close"
+      ],
+      "owner": {
+        "entry": "Dialog.svelte"
+      },
+      "purpose": {
+        "key": "dialog.purpose"
+      },
+      "renders": [
+        "problem"
+      ],
+      "uses": [
+        "bar",
+        "column",
+        "face",
+        "heading",
+        "modal",
+        "text"
+      ]
+    },
+    "face": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/face",
+      "kind": "foundation",
+      "messages": [
+        "face.purpose"
+      ],
+      "owner": {
+        "entry": "Face.svelte",
+        "parts": [
+          "face-tone.ts"
+        ]
+      },
+      "purpose": {
+        "key": "face.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "icon",
+        "document",
+        "warning",
+        "error",
+        "symbol",
+        "flag",
+        "compact",
+        "accent",
+        "positive"
+      ]
+    },
+    "fact-group": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/fact-group",
+      "kind": "composition",
+      "messages": [
+        "factGroup.purpose"
+      ],
+      "owner": {
+        "entry": "FactGroup.svelte"
+      },
+      "purpose": {
+        "key": "factGroup.purpose"
+      },
+      "uses": [
+        "fact-row",
+        "list",
+        "node-renderer"
+      ]
+    },
+    "fact-row": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/fact-row",
+      "kind": "foundation",
+      "messages": [
+        "factRow.purpose",
+        "factRow.unavailable"
+      ],
+      "owner": {
+        "entry": "FactRow.svelte"
+      },
+      "purpose": {
+        "key": "factRow.purpose"
+      },
+      "shape": "none",
+      "slots": {
+        "control": {
+          "accepts": [
+            "choice"
+          ]
+        }
+      },
+      "stateVariants": {
+        "control": {
+          "kind": [
+            "control"
+          ]
+        },
+        "labels": {
+          "kind": [
+            "value"
+          ]
+        },
+        "no-labels": {
+          "kind": [
+            "value"
+          ]
+        },
+        "references": {
+          "kind": [
+            "value"
+          ]
+        },
+        "unknown": {
+          "kind": [
+            "value"
+          ]
+        },
+        "value": {
+          "kind": [
+            "value"
+          ]
+        }
+      },
+      "states": [
+        "value",
+        "unknown",
+        "labels",
+        "no-labels",
+        "references",
+        "control"
+      ],
+      "variants": {
+        "kind": [
+          "value",
+          "control"
+        ]
+      }
+    },
+    "fact-value": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/fact-value",
+      "kind": "foundation",
+      "messages": [
+        "factValue.purpose",
+        "factValue.state"
+      ],
+      "owner": {
+        "entry": "FactValue.svelte",
+        "mechanisms": [
+          "typography"
+        ]
+      },
+      "purpose": {
+        "key": "factValue.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "known",
+        "empty",
+        "unknown"
+      ],
+      "variants": {
+        "presentation": [
+          "inline",
+          "paragraph"
+        ]
+      }
+    },
+    "facts": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/facts",
+      "kind": "composition",
+      "messages": [
+        "facts.purpose"
+      ],
+      "owner": {
+        "entry": "Facts.svelte"
+      },
+      "purpose": {
+        "key": "facts.purpose"
+      },
+      "renders": [
+        "fact"
+      ],
+      "uses": [
+        "fact-group"
+      ]
+    },
+    "failure-dialog": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/failure-dialog",
+      "kind": "composition",
+      "messages": [
+        "failureDialog.purpose",
+        "failureDialog.close"
+      ],
+      "owner": {
+        "entry": "FailureDialog.svelte"
+      },
+      "purpose": {
+        "key": "failureDialog.purpose"
+      },
+      "uses": [
+        "dialog"
+      ]
+    },
+    "field": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/field",
+      "kind": "foundation",
+      "messages": [
+        "field.purpose",
+        "field.none",
+        "field.character",
+        "field.characters",
+        "field.overLimit",
+        "field.remaining",
+        "field.clearSearch",
+        "field.clear",
+        "field.incompleteNumber",
+        "field.invalidNumber",
+        "field.required"
+      ],
+      "owner": {
+        "entry": "Field.svelte",
+        "mechanisms": [
+          "field-accessory",
+          "press-feedback",
+          "toolbar-geometry"
+        ],
+        "parts": [
+          "FieldWell.svelte",
+          "FieldAccessory.svelte",
+          "FieldLabel.svelte",
+          "FieldEditor.svelte",
+          "FieldTrigger.svelte",
+          "SearchWell.svelte",
+          "MaskedInput.svelte",
+          "input-edit-history.ts",
+          "ClearInput.svelte",
+          "CharacterCounter.svelte",
+          "editor-capacity.ts",
+          "field.css",
+          "field-measure.css"
+        ],
+        "vendor": [
+          "field",
+          "input",
+          "input-group",
+          "label",
+          "textarea"
+        ]
+      },
+      "purpose": {
+        "key": "field.purpose"
+      },
+      "renders": [
+        "input.text",
+        "input.multiline"
+      ],
+      "shape": "radius",
+      "slots": {
+        "accessory": {
+          "accepts": [
+            "action"
+          ]
+        },
+        "prefix": {
+          "accepts": [
+            "choice"
+          ]
+        },
+        "selection": {
+          "accepts": [
+            "choice"
+          ]
+        }
+      },
+      "stateVariants": {
+        "masked": {
+          "primitive": [
+            "input.text"
+          ]
+        }
+      },
+      "states": [
+        "empty",
+        "value",
+        "invalid",
+        "disabled",
+        "masked"
+      ],
+      "variants": {
+        "measure": [
+          "writing",
+          "choice",
+          "date",
+          "amount",
+          "fill"
+        ],
+        "primitive": [
+          "input.text",
+          "input.multiline",
+          "trigger"
+        ]
+      }
+    },
+    "fields": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/fields",
+      "kind": "composition",
+      "messages": [
+        "fields.purpose"
+      ],
+      "owner": {
+        "entry": "Fields.svelte"
+      },
+      "purpose": {
+        "key": "fields.purpose"
+      },
+      "renders": [
+        "form"
+      ],
+      "uses": [
+        "column",
+        "node-renderer"
+      ]
+    },
+    "files": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/files",
+      "kind": "foundation",
+      "messages": [
+        "files.purpose",
+        "files.choose",
+        "files.limits",
+        "files.selected",
+        "files.file",
+        "files.remove",
+        "files.none",
+        "files.rejected",
+        "files.mediaType",
+        "files.fileSize",
+        "files.totalSize",
+        "files.count"
+      ],
+      "owner": {
+        "entry": "Files.svelte",
+        "mechanisms": [
+          "file-picker"
+        ],
+        "parts": [
+          "file-size.ts",
+          "files.css"
+        ]
+      },
+      "purpose": {
+        "key": "files.purpose"
+      },
+      "renders": [
+        "control.files"
+      ],
+      "shape": "none",
+      "states": [
+        "empty",
+        "chosen",
+        "disabled"
+      ]
+    },
+    "form": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/form",
+      "kind": "foundation",
+      "messages": [
+        "form.purpose"
+      ],
+      "owner": {
+        "entry": "Form.svelte"
+      },
+      "purpose": {
+        "key": "form.purpose"
+      },
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "stack-layout",
+            "field",
+            "action",
+            "column"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "filling"
+      ]
+    },
+    "frame-body": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/frame-body",
+      "kind": "composition",
+      "messages": [
+        "frameBody.purpose"
+      ],
+      "owner": {
+        "entry": "FrameBody.svelte"
+      },
+      "purpose": {
+        "key": "frameBody.purpose"
+      },
+      "uses": [
+        "information",
+        "node-renderer",
+        "text",
+        "utility-actions"
+      ]
+    },
+    "gallery": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/gallery",
+      "kind": "foundation",
+      "messages": [
+        "gallery.purpose",
+        "gallery.open",
+        "gallery.choose",
+        "gallery.photo"
+      ],
+      "owner": {
+        "entry": "Gallery.svelte",
+        "mechanisms": [
+          "media-gestures"
+        ]
+      },
+      "purpose": {
+        "key": "gallery.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "single",
+        "set"
+      ],
+      "variants": {
+        "aspect": [
+          "fill",
+          "square",
+          "landscape",
+          "portrait"
+        ],
+        "presentation": [
+          "inline",
+          "header",
+          "detail"
+        ]
+      }
+    },
+    "grid": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/grid",
+      "kind": "foundation",
+      "messages": [
+        "grid.purpose"
+      ],
+      "owner": {
+        "entry": "Grid.svelte"
+      },
+      "purpose": {
+        "key": "grid.purpose"
+      },
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "card",
+            "catalog-card",
+            "image",
+            "node-renderer",
+            "text"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "tracks": [
+          "tiles",
+          "collections",
+          "cards",
+          "covers",
+          "results"
+        ]
+      }
+    },
+    "heading": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/heading",
+      "kind": "foundation",
+      "messages": [
+        "heading.purpose"
+      ],
+      "owner": {
+        "entry": "Heading.svelte",
+        "parts": [
+          "heading-content.ts"
+        ]
+      },
+      "purpose": {
+        "key": "heading.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "kind": [
+          "display",
+          "page",
+          "section",
+          "group"
+        ]
+      }
+    },
+    "icon": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/icon",
+      "kind": "foundation",
+      "messages": [
+        "icon.purpose"
+      ],
+      "owner": {
+        "entry": "Icon.svelte"
+      },
+      "purpose": {
+        "key": "icon.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "tone": [
+          "success",
+          "warning"
+        ]
+      }
+    },
+    "identity": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/identity",
+      "kind": "composition",
+      "messages": [
+        "identity.purpose",
+        "identity.identity",
+        "identity.displayName",
+        "identity.identityName",
+        "identity.role",
+        "identity.notInstalled"
+      ],
+      "owner": {
+        "entry": "Identity.svelte"
+      },
+      "purpose": {
+        "key": "identity.purpose"
+      },
+      "uses": [
+        "information",
+        "stack-layout",
+        "text"
+      ]
+    },
+    "image": {
+      "approval": "required",
+      "assets": [
+        "bank-image.svg"
+      ],
+      "folder": "src/svelte/catalog/foundations/image",
+      "kind": "foundation",
+      "messages": [
+        "image.purpose",
+        "image.unavailable",
+        "image.noCover",
+        "image.noPoster",
+        "image.retry"
+      ],
+      "owner": {
+        "entry": "Image.svelte"
+      },
+      "purpose": {
+        "key": "image.purpose"
+      },
+      "shape": "none",
+      "stateVariants": {
+        "audio": {
+          "fit": [
+            "fill"
+          ]
+        },
+        "unavailable": {
+          "fit": [
+            "fill"
+          ]
+        },
+        "video": {
+          "fit": [
+            "fill"
+          ]
+        }
+      },
+      "states": [
+        "loading",
+        "ready",
+        "error",
+        "video",
+        "audio",
+        "unavailable"
+      ],
+      "variants": {
+        "fit": [
+          "fill",
+          "fit"
+        ]
+      }
+    },
+    "information": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/information",
+      "kind": "composition",
+      "messages": [
+        "information.purpose"
+      ],
+      "owner": {
+        "entry": "Information.svelte"
+      },
+      "purpose": {
+        "key": "information.purpose"
+      },
+      "uses": [
+        "column",
+        "fact-row",
+        "list",
+        "text"
+      ]
+    },
+    "inline": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/inline",
+      "kind": "foundation",
+      "messages": [
+        "inline.purpose"
+      ],
+      "owner": {
+        "entry": "Inline.svelte"
+      },
+      "purpose": {
+        "key": "inline.purpose"
+      },
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "action",
+            "avatar",
+            "color-bullet",
+            "column",
+            "face",
+            "icon",
+            "node-renderer",
+            "tag",
+            "text"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "justify": [
+          "start",
+          "center",
+          "end",
+          "between"
+        ],
+        "overflow": [
+          "wrap",
+          "scroll",
+          "none"
+        ]
+      }
+    },
+    "inspection": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/inspection",
+      "kind": "composition",
+      "messages": [
+        "inspection.purpose",
+        "inspection.example",
+        "inspection.back"
+      ],
+      "owner": {
+        "entry": "Inspection.svelte",
+        "parts": [
+          "inspection-fixture.ts"
+        ]
+      },
+      "purpose": {
+        "key": "inspection.purpose"
+      },
+      "uses": [
+        "catalog-detail",
+        "inspection-catalog",
+        "node-renderer",
+        "toolbar",
+        "view-region"
+      ]
+    },
+    "inspection-catalog": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/inspection-catalog",
+      "kind": "composition",
+      "messages": [
+        "inspectionCatalog.purpose",
+        "inspectionCatalog.title",
+        "inspectionCatalog.subtitle",
+        "inspectionCatalog.parts",
+        "inspectionCatalog.back"
+      ],
+      "owner": {
+        "entry": "InspectionCatalog.svelte",
+        "parts": [
+          "purpose.ts"
+        ]
+      },
+      "purpose": {
+        "key": "inspectionCatalog.purpose"
+      },
+      "uses": [
+        "bar",
+        "column",
+        "control-bench",
+        "list",
+        "place-heading",
+        "public-catalog-bank-specimen",
+        "row",
+        "shared-owner-catalog",
+        "specimen-group",
+        "specimen-row",
+        "specimen-unavailable",
+        "stack-layout",
+        "view-region"
+      ]
+    },
+    "inspection-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/inspection-content",
+      "kind": "composition",
+      "messages": [
+        "inspectionContent.purpose"
+      ],
+      "owner": {
+        "entry": "InspectionContent.svelte"
+      },
+      "purpose": {
+        "key": "inspectionContent.purpose"
+      },
+      "uses": [
+        "inspection"
+      ]
+    },
+    "instance-frame": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/instance-frame",
+      "kind": "composition",
+      "messages": [
+        "instanceFrame.purpose"
+      ],
+      "owner": {
+        "entry": "InstanceFrame.svelte"
+      },
+      "purpose": {
+        "key": "instanceFrame.purpose"
+      },
+      "uses": [
+        "surface-frame"
+      ]
+    },
+    "labels-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/labels-control",
+      "kind": "composition",
+      "messages": [
+        "labelsControl.purpose",
+        "labelsControl.add",
+        "labelsControl.newLabel",
+        "labelsControl.label",
+        "labelsControl.remove"
+      ],
+      "owner": {
+        "entry": "LabelsControl.svelte"
+      },
+      "purpose": {
+        "key": "labelsControl.purpose"
+      },
+      "renders": [
+        "control.labels"
+      ],
+      "uses": [
+        "action",
+        "column",
+        "field",
+        "form",
+        "inline",
+        "media-reference-selector",
+        "popover",
+        "reference-selector",
+        "stack-layout",
+        "tag",
+        "text"
+      ]
+    },
+    "library": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/library",
+      "kind": "composition",
+      "messages": [
+        "library.purpose",
+        "library.media"
+      ],
+      "owner": {
+        "entry": "Library.svelte"
+      },
+      "purpose": {
+        "key": "library.purpose"
+      },
+      "uses": [
+        "catalog-home",
+        "media-viewer"
+      ]
+    },
+    "list": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/list",
+      "kind": "foundation",
+      "messages": [
+        "list.purpose"
+      ],
+      "owner": {
+        "entry": "List.svelte"
+      },
+      "purpose": {
+        "key": "list.purpose"
+      },
+      "shape": "radius",
+      "slots": {
+        "children": {
+          "accepts": [
+            "row",
+            "fact-row",
+            "object-state-row",
+            "text",
+            "status",
+            "loading"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "kind": [
+          "rows",
+          "facts"
+        ],
+        "measure": [
+          "reading",
+          "overview"
+        ]
+      }
+    },
+    "loading": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/loading",
+      "kind": "foundation",
+      "messages": [
+        "loading.purpose"
+      ],
+      "owner": {
+        "entry": "Loading.svelte",
+        "vendor": [
+          "skeleton",
+          "spinner"
+        ]
+      },
+      "purpose": {
+        "key": "loading.purpose"
+      },
+      "shape": "radius",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "kind": [
+          "lines",
+          "spinner"
+        ]
+      }
+    },
+    "local-exercise-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/local-exercise-content",
+      "kind": "composition",
+      "messages": [
+        "localExerciseContent.purpose"
+      ],
+      "owner": {
+        "entry": "LocalExerciseContent.svelte"
+      },
+      "purpose": {
+        "key": "localExerciseContent.purpose"
+      },
+      "uses": [
+        "place-content"
+      ]
+    },
+    "local-exercises": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/local-exercises",
+      "kind": "composition",
+      "messages": [
+        "localExercises.purpose"
+      ],
+      "owner": {
+        "entry": "LocalExercises.svelte"
+      },
+      "purpose": {
+        "key": "localExercises.purpose"
+      },
+      "uses": [
+        "local-exercise-content"
+      ]
+    },
+    "lock-screen": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/lock-screen",
+      "kind": "composition",
+      "messages": [
+        "lockScreen.purpose",
+        "lockScreen.unlock",
+        "lockScreen.avatar",
+        "lockScreen.identity",
+        "lockScreen.identityName",
+        "lockScreen.password",
+        "lockScreen.useAnotherIdentity"
+      ],
+      "owner": {
+        "entry": "LockScreen.svelte"
+      },
+      "purpose": {
+        "key": "lockScreen.purpose"
+      },
+      "uses": [
+        "action",
+        "avatar",
+        "clock",
+        "column",
+        "field",
+        "form",
+        "heading",
+        "stack-layout"
+      ]
+    },
+    "media-collection-grid": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/media-collection-grid",
+      "kind": "composition",
+      "messages": [
+        "mediaCollectionGrid.purpose",
+        "mediaCollectionGrid.open",
+        "mediaCollectionGrid.countOne",
+        "mediaCollectionGrid.countMany"
+      ],
+      "owner": {
+        "entry": "MediaCollectionGrid.svelte"
+      },
+      "purpose": {
+        "key": "mediaCollectionGrid.purpose"
+      },
+      "uses": [
+        "card",
+        "collection-state",
+        "grid"
+      ]
+    },
+    "media-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/media-content",
+      "kind": "composition",
+      "messages": [
+        "mediaContent.purpose"
+      ],
+      "owner": {
+        "entry": "MediaContent.svelte"
+      },
+      "purpose": {
+        "key": "mediaContent.purpose"
+      },
+      "uses": [
+        "library"
+      ]
+    },
+    "media-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/media-control",
+      "kind": "composition",
+      "messages": [
+        "mediaControl.purpose",
+        "mediaControl.unavailable"
+      ],
+      "owner": {
+        "entry": "MediaControl.svelte"
+      },
+      "purpose": {
+        "key": "mediaControl.purpose"
+      },
+      "renders": [
+        "control.tag",
+        "control.image",
+        "control.avatar"
+      ],
+      "uses": [
+        "avatar",
+        "column",
+        "gallery",
+        "inline",
+        "status",
+        "tag",
+        "text"
+      ]
+    },
+    "media-grid": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/media-grid",
+      "kind": "composition",
+      "messages": [
+        "mediaGrid.purpose",
+        "mediaGrid.open",
+        "mediaGrid.position"
+      ],
+      "owner": {
+        "entry": "MediaGrid.svelte",
+        "parts": [
+          "media-grid-items.ts"
+        ]
+      },
+      "purpose": {
+        "key": "mediaGrid.purpose"
+      },
+      "uses": [
+        "card",
+        "collection-state",
+        "grid",
+        "list",
+        "row"
+      ]
+    },
+    "media-object": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/media-object",
+      "kind": "composition",
+      "messages": [
+        "mediaObject.purpose",
+        "mediaObject.image",
+        "mediaObject.unavailable"
+      ],
+      "owner": {
+        "entry": "MediaObject.svelte"
+      },
+      "purpose": {
+        "key": "mediaObject.purpose"
+      },
+      "uses": [
+        "column",
+        "gallery",
+        "image",
+        "media-player",
+        "text"
+      ]
+    },
+    "media-player": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/media-player",
+      "kind": "foundation",
+      "messages": [
+        "mediaPlayer.purpose",
+        "mediaPlayer.unavailable",
+        "mediaPlayer.retry",
+        "mediaPlayer.elapsed",
+        "mediaPlayer.position",
+        "mediaPlayer.duration",
+        "mediaPlayer.captions",
+        "mediaPlayer.mute",
+        "mediaPlayer.unmute",
+        "mediaPlayer.volume",
+        "mediaPlayer.play",
+        "mediaPlayer.pause"
+      ],
+      "owner": {
+        "entry": "MediaPlayer.svelte",
+        "mechanisms": [
+          "press-feedback"
+        ],
+        "parts": [
+          "playback.svelte.ts",
+          "Transport.svelte",
+          "Seek.svelte",
+          "Volume.svelte"
+        ]
+      },
+      "purpose": {
+        "key": "mediaPlayer.purpose"
+      },
+      "shape": "none",
+      "slots": {
+        "overlay": {
+          "accepts": [
+            "action"
+          ]
+        },
+        "strip": {
+          "accepts": [
+            "image"
+          ]
+        }
+      },
+      "states": [
+        "video",
+        "audio"
+      ],
+      "variants": {
+        "presentation": [
+          "inline",
+          "viewer",
+          "header"
+        ]
+      }
+    },
+    "media-reference-selector": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/media-reference-selector",
+      "kind": "composition",
+      "messages": [
+        "mediaReferenceSelector.purpose",
+        "mediaReferenceSelector.selected",
+        "mediaReferenceSelector.unavailable",
+        "mediaReferenceSelector.automatic",
+        "mediaReferenceSelector.loading",
+        "mediaReferenceSelector.cover",
+        "mediaReferenceSelector.automaticCover"
+      ],
+      "owner": {
+        "entry": "MediaReferenceSelector.svelte"
+      },
+      "purpose": {
+        "key": "mediaReferenceSelector.purpose"
+      },
+      "uses": [
+        "action",
+        "choice",
+        "collection-state",
+        "column",
+        "popover",
+        "stack-layout",
+        "text"
+      ]
+    },
+    "media-reference-specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/media-reference-specimen",
+      "kind": "composition",
+      "messages": [
+        "mediaReferenceSpecimen.purpose"
+      ],
+      "owner": {
+        "entry": "MediaReferenceSpecimen.svelte"
+      },
+      "purpose": {
+        "key": "mediaReferenceSpecimen.purpose"
+      },
+      "uses": [
+        "media-reference-selector"
+      ]
+    },
+    "media-viewer": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/media-viewer",
+      "kind": "foundation",
+      "messages": [
+        "mediaViewer.purpose",
+        "mediaViewer.close",
+        "mediaViewer.zoomOut",
+        "mediaViewer.resetZoom",
+        "mediaViewer.zoomIn",
+        "mediaViewer.media",
+        "mediaViewer.previous",
+        "mediaViewer.next",
+        "mediaViewer.instructions"
+      ],
+      "owner": {
+        "entry": "MediaViewer.svelte",
+        "mechanisms": [
+          "media-gestures",
+          "press-feedback",
+          "surface-focus"
+        ],
+        "parts": [
+          "MediaStrip.svelte"
+        ]
+      },
+      "purpose": {
+        "key": "mediaViewer.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "image",
+        "playable",
+        "single"
+      ]
+    },
+    "menu": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/menu",
+      "kind": "foundation",
+      "messages": [
+        "menu.purpose"
+      ],
+      "owner": {
+        "entry": "Menu.svelte",
+        "parts": [
+          "menu.css"
+        ]
+      },
+      "purpose": {
+        "key": "menu.purpose"
+      },
+      "shape": "radius",
+      "states": [
+        "closed",
+        "open"
+      ]
+    },
+    "meter": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/meter",
+      "kind": "foundation",
+      "messages": [
+        "meter.purpose"
+      ],
+      "owner": {
+        "entry": "Meter.svelte"
+      },
+      "purpose": {
+        "key": "meter.purpose"
+      },
+      "shape": "radius",
+      "states": [
+        "default"
+      ]
+    },
+    "modal": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/modal",
+      "kind": "foundation",
+      "messages": [
+        "modal.purpose",
+        "modal.close",
+        "modal.closeNamed",
+        "modal.description",
+        "modal.navigationDescription"
+      ],
+      "owner": {
+        "entry": "Modal.svelte",
+        "mechanisms": [
+          "pane-context",
+          "press-feedback",
+          "surface-focus",
+          "surface-host",
+          "swipe-motion"
+        ],
+        "parts": [
+          "ModalPane.svelte",
+          "ModalSheet.svelte",
+          "ModalDialog.svelte",
+          "ModalNavigation.svelte",
+          "DrawerGrip.svelte",
+          "drawer-motion.svelte.ts",
+          "frame-continuity.svelte.ts",
+          "adaptive-modality.svelte.ts",
+          "adaptive-surface-layout.ts",
+          "modal.css"
+        ],
+        "vendor": [
+          "dialog"
+        ]
+      },
+      "purpose": {
+        "key": "modal.purpose"
+      },
+      "shape": "radius",
+      "slots": {
+        "actions": {
+          "accepts": [
+            "bar"
+          ]
+        },
+        "children": {
+          "accepts": [
+            "surface-frame",
+            "instance-frame",
+            "face",
+            "heading",
+            "text",
+            "inline",
+            "column",
+            "bar",
+            "image",
+            "media-player"
+          ]
+        }
+      },
+      "states": [
+        "open",
+        "locked"
+      ],
+      "variants": {
+        "presentation": [
+          "adaptive",
+          "transient",
+          "sheet",
+          "message",
+          "media",
+          "navigation"
+        ]
+      }
+    },
+    "money-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/money-control",
+      "kind": "composition",
+      "messages": [
+        "moneyControl.purpose",
+        "moneyControl.currency",
+        "moneyControl.format",
+        "moneyControl.tooLarge",
+        "moneyControl.scale",
+        "moneyControl.currencyScale"
+      ],
+      "owner": {
+        "entry": "MoneyControl.svelte"
+      },
+      "purpose": {
+        "key": "moneyControl.purpose"
+      },
+      "renders": [
+        "control.money"
+      ],
+      "uses": [
+        "choice",
+        "field"
+      ]
+    },
+    "node-renderer": {
+      "approval": "none",
+      "dispatch": "resolved-node",
+      "folder": "src/svelte/catalog/renderer/node-renderer",
+      "kind": "composition",
+      "messages": [
+        "nodeRenderer.purpose"
+      ],
+      "owner": {
+        "entry": "NodeRenderer.svelte"
+      },
+      "purpose": {
+        "key": "nodeRenderer.purpose"
+      },
+      "uses": [
+        "action",
+        "availability",
+        "catalog-card",
+        "catalog-detail",
+        "catalog-home",
+        "collection",
+        "context-panel",
+        "date-control",
+        "dialog",
+        "facts",
+        "field",
+        "fields",
+        "files",
+        "labels-control",
+        "media-control",
+        "money-control",
+        "options-control",
+        "popover-control",
+        "review",
+        "select-control",
+        "view-panel"
+      ]
+    },
+    "object-state-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/object-state-control",
+      "kind": "composition",
+      "messages": [
+        "objectStateControl.purpose"
+      ],
+      "owner": {
+        "entry": "ObjectStateControl.svelte"
+      },
+      "purpose": {
+        "key": "objectStateControl.purpose"
+      },
+      "uses": [
+        "list",
+        "object-state-row"
+      ]
+    },
+    "object-state-row": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/object-state-row",
+      "kind": "composition",
+      "messages": [
+        "objectStateRow.purpose"
+      ],
+      "owner": {
+        "entry": "ObjectStateRow.svelte"
+      },
+      "purpose": {
+        "key": "objectStateRow.purpose"
+      },
+      "uses": [
+        "choice",
+        "fact-row"
+      ]
+    },
+    "options-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/options-control",
+      "kind": "composition",
+      "messages": [
+        "optionsControl.purpose"
+      ],
+      "owner": {
+        "entry": "OptionsControl.svelte"
+      },
+      "purpose": {
+        "key": "optionsControl.purpose"
+      },
+      "renders": [
+        "control.options"
+      ],
+      "uses": [
+        "choice"
+      ]
+    },
+    "panel": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/panel",
+      "kind": "composition",
+      "messages": [
+        "panel.purpose"
+      ],
+      "owner": {
+        "entry": "Panel.svelte"
+      },
+      "purpose": {
+        "key": "panel.purpose"
+      },
+      "uses": [
+        "view-panel"
+      ]
+    },
+    "place-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/place-content",
+      "kind": "composition",
+      "messages": [
+        "placeContent.purpose"
+      ],
+      "owner": {
+        "entry": "PlaceContent.svelte"
+      },
+      "purpose": {
+        "key": "placeContent.purpose"
+      },
+      "uses": [
+        "place-heading",
+        "stack",
+        "view-region"
+      ]
+    },
+    "place-heading": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/place-heading",
+      "kind": "foundation",
+      "messages": [
+        "placeHeading.purpose"
+      ],
+      "owner": {
+        "entry": "PlaceHeading.svelte",
+        "parts": [
+          "place-heading.css"
+        ]
+      },
+      "purpose": {
+        "key": "placeHeading.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "default",
+        "media"
+      ],
+      "variants": {
+        "context": [
+          "place",
+          "embedded"
+        ]
+      }
+    },
+    "popover": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/popover",
+      "kind": "foundation",
+      "messages": [
+        "popover.purpose",
+        "popover.chooseDate",
+        "popover.chooseOption"
+      ],
+      "owner": {
+        "entry": "Popover.svelte",
+        "mechanisms": [
+          "surface-focus",
+          "surface-host"
+        ],
+        "parts": [
+          "PopoverSurface.svelte",
+          "anchored-tab-exit.ts",
+          "picker-presentation.svelte.ts",
+          "popover.css"
+        ],
+        "vendor": [
+          "popover"
+        ]
+      },
+      "purpose": {
+        "key": "popover.purpose"
+      },
+      "shape": "radius",
+      "slots": {
+        "children": {
+          "accepts": [
+            "frame-body",
+            "column",
+            "choice",
+            "form",
+            "stack-layout",
+            "text",
+            "status",
+            "loading",
+            "list",
+            "inline",
+            "tag",
+            "action"
+          ]
+        }
+      },
+      "states": [
+        "closed",
+        "open",
+        "disabled",
+        "locked"
+      ],
+      "variants": {
+        "content": [
+          "information",
+          "form",
+          "list",
+          "menu"
+        ]
+      }
+    },
+    "popover-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/popover-control",
+      "kind": "composition",
+      "messages": [
+        "popoverControl.purpose"
+      ],
+      "owner": {
+        "entry": "PopoverControl.svelte"
+      },
+      "purpose": {
+        "key": "popoverControl.purpose"
+      },
+      "renders": [
+        "control.popover"
+      ],
+      "uses": [
+        "frame-body",
+        "popover"
+      ]
+    },
+    "public-catalog-bank": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/public-catalog-bank",
+      "kind": "composition",
+      "messages": [
+        "publicCatalogBank.purpose"
+      ],
+      "owner": {
+        "entry": "PublicCatalogBank.svelte"
+      },
+      "purpose": {
+        "key": "publicCatalogBank.purpose"
+      },
+      "uses": [
+        "inspection-catalog"
+      ]
+    },
+    "public-catalog-bank-specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/public-catalog-bank-specimen",
+      "kind": "composition",
+      "messages": [
+        "publicCatalogBankSpecimen.purpose",
+        "publicCatalogBankSpecimen.writing",
+        "publicCatalogBankSpecimen.pressed",
+        "publicCatalogBankSpecimen.open"
+      ],
+      "owner": {
+        "entry": "PublicCatalogBankSpecimen.svelte",
+        "parts": [
+          "catalog-specimen.svelte.ts"
+        ]
+      },
+      "purpose": {
+        "key": "publicCatalogBankSpecimen.purpose"
+      },
+      "uses": [
+        "node-renderer",
+        "text"
+      ]
+    },
+    "public-catalog-product": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/public-catalog-product",
+      "kind": "composition",
+      "messages": [
+        "publicCatalogProduct.purpose"
+      ],
+      "owner": {
+        "entry": "PublicCatalogProduct.svelte"
+      },
+      "purpose": {
+        "key": "publicCatalogProduct.purpose"
+      },
+      "uses": [
+        "public-catalog-product-content"
+      ]
+    },
+    "public-catalog-product-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/public-catalog-product-content",
+      "kind": "composition",
+      "messages": [
+        "publicCatalogProductContent.purpose",
+        "publicCatalogProductContent.documentTitle",
+        "publicCatalogProductContent.bank",
+        "publicCatalogProductContent.bankSubtitle"
+      ],
+      "owner": {
+        "entry": "PublicCatalogProductContent.svelte",
+        "parts": [
+          "catalog-history.ts"
+        ]
+      },
+      "purpose": {
+        "key": "publicCatalogProductContent.purpose"
+      },
+      "uses": [
+        "appearance-root",
+        "catalog-workspace"
+      ]
+    },
+    "reading-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/reading-content",
+      "kind": "composition",
+      "messages": [
+        "readingContent.purpose"
+      ],
+      "owner": {
+        "entry": "ReadingContent.svelte"
+      },
+      "purpose": {
+        "key": "readingContent.purpose"
+      },
+      "uses": [
+        "column",
+        "fact-value",
+        "spacer",
+        "stack-layout"
+      ]
+    },
+    "reference-selector": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/reference-selector",
+      "kind": "composition",
+      "messages": [
+        "referenceSelector.purpose",
+        "referenceSelector.unavailable",
+        "referenceSelector.choose",
+        "referenceSelector.loading",
+        "referenceSelector.empty",
+        "referenceSelector.check",
+        "referenceSelector.name",
+        "referenceSelector.color",
+        "referenceSelector.cancel"
+      ],
+      "owner": {
+        "entry": "ReferenceSelector.svelte"
+      },
+      "purpose": {
+        "key": "referenceSelector.purpose"
+      },
+      "uses": [
+        "action",
+        "choice",
+        "column",
+        "field",
+        "popover",
+        "stack-layout",
+        "text"
+      ]
+    },
+    "reference-specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/reference-specimen",
+      "kind": "composition",
+      "messages": [
+        "referenceSpecimen.purpose",
+        "referenceSpecimen.remove",
+        "referenceSpecimen.unavailable"
+      ],
+      "owner": {
+        "entry": "ReferenceSpecimen.svelte"
+      },
+      "purpose": {
+        "key": "referenceSpecimen.purpose"
+      },
+      "uses": [
+        "color-bullet",
+        "inline",
+        "labels-control",
+        "reference-selector",
+        "tag"
+      ]
+    },
+    "related-selection": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/related-selection",
+      "kind": "composition",
+      "messages": [
+        "relatedSelection.purpose",
+        "relatedSelection.loading",
+        "relatedSelection.empty",
+        "relatedSelection.check",
+        "relatedSelection.retry"
+      ],
+      "owner": {
+        "entry": "RelatedSelection.svelte"
+      },
+      "purpose": {
+        "key": "relatedSelection.purpose"
+      },
+      "uses": [
+        "action",
+        "choice",
+        "information",
+        "list",
+        "stack-layout",
+        "text"
+      ]
+    },
+    "review": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/review",
+      "kind": "composition",
+      "messages": [
+        "review.purpose"
+      ],
+      "owner": {
+        "entry": "Review.svelte"
+      },
+      "purpose": {
+        "key": "review.purpose"
+      },
+      "renders": [
+        "review"
+      ],
+      "uses": [
+        "column",
+        "node-renderer",
+        "text"
+      ]
+    },
+    "row": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/row",
+      "kind": "foundation",
+      "messages": [
+        "row.purpose"
+      ],
+      "owner": {
+        "entry": "Row.svelte",
+        "mechanisms": [
+          "press-feedback"
+        ]
+      },
+      "purpose": {
+        "key": "row.purpose"
+      },
+      "shape": "none",
+      "stateVariants": {
+        "current": {
+          "interaction": [
+            "open"
+          ]
+        },
+        "unavailable": {
+          "interaction": [
+            "open"
+          ]
+        }
+      },
+      "states": [
+        "available",
+        "unavailable",
+        "current"
+      ],
+      "variants": {
+        "interaction": [
+          "open",
+          "static"
+        ],
+        "trailing": [
+          "chevron",
+          "none"
+        ]
+      }
+    },
+    "select-control": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/select-control",
+      "kind": "composition",
+      "messages": [
+        "selectControl.purpose",
+        "selectControl.clear"
+      ],
+      "owner": {
+        "entry": "SelectControl.svelte"
+      },
+      "purpose": {
+        "key": "selectControl.purpose"
+      },
+      "renders": [
+        "control.select"
+      ],
+      "uses": [
+        "action",
+        "choice",
+        "column"
+      ]
+    },
+    "separator": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/separator",
+      "kind": "foundation",
+      "messages": [
+        "separator.purpose"
+      ],
+      "owner": {
+        "entry": "Separator.svelte"
+      },
+      "purpose": {
+        "key": "separator.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "inset": [
+          "none",
+          "row"
+        ],
+        "orientation": [
+          "horizontal",
+          "vertical"
+        ]
+      }
+    },
+    "shared-owner-catalog": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/shared-owner-catalog",
+      "kind": "composition",
+      "messages": [
+        "sharedOwnerCatalog.purpose",
+        "sharedOwnerCatalog.example",
+        "sharedOwnerCatalog.parts",
+        "sharedOwnerCatalog.contract",
+        "sharedOwnerCatalog.owner",
+        "sharedOwnerCatalog.source",
+        "sharedOwnerCatalog.back"
+      ],
+      "owner": {
+        "entry": "SharedOwnerCatalog.svelte"
+      },
+      "purpose": {
+        "key": "sharedOwnerCatalog.purpose"
+      },
+      "uses": [
+        "bar",
+        "column",
+        "information",
+        "list",
+        "place-heading",
+        "row",
+        "shared-owner-specimen",
+        "stack-layout",
+        "view-region"
+      ]
+    },
+    "shared-owner-specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/shared-owner-specimen",
+      "kind": "composition",
+      "messages": [
+        "sharedOwnerSpecimen.purpose",
+        "sharedOwnerSpecimen.initial",
+        "sharedOwnerSpecimen.interaction",
+        "sharedOwnerSpecimen.layout",
+        "sharedOwnerSpecimen.overview",
+        "sharedOwnerSpecimen.gallery",
+        "sharedOwnerSpecimen.state",
+        "sharedOwnerSpecimen.ready",
+        "sharedOwnerSpecimen.loading",
+        "sharedOwnerSpecimen.offline",
+        "sharedOwnerSpecimen.openMedia",
+        "sharedOwnerSpecimen.resume",
+        "sharedOwnerSpecimen.resumeActivity",
+        "sharedOwnerSpecimen.openTasks",
+        "sharedOwnerSpecimen.openObject",
+        "sharedOwnerSpecimen.openTrash",
+        "sharedOwnerSpecimen.connecting",
+        "sharedOwnerSpecimen.reconnect",
+        "sharedOwnerSpecimen.objects",
+        "sharedOwnerSpecimen.actions",
+        "sharedOwnerSpecimen.moveToTrash",
+        "sharedOwnerSpecimen.confirmed",
+        "sharedOwnerSpecimen.cancelled",
+        "sharedOwnerSpecimen.back",
+        "sharedOwnerSpecimen.commandActivated",
+        "sharedOwnerSpecimen.shuffle",
+        "sharedOwnerSpecimen.foundations",
+        "sharedOwnerSpecimen.fact",
+        "sharedOwnerSpecimen.button",
+        "sharedOwnerSpecimen.openFact",
+        "sharedOwnerSpecimen.openButton",
+        "sharedOwnerSpecimen.attention",
+        "sharedOwnerSpecimen.moreActions"
+      ],
+      "owner": {
+        "entry": "SharedOwnerSpecimen.svelte",
+        "parts": [
+          "shared-owner-fixtures.ts"
+        ]
+      },
+      "purpose": {
+        "key": "sharedOwnerSpecimen.purpose"
+      },
+      "uses": [
+        "access-appearance-specimen",
+        "action",
+        "attention-indicator",
+        "attention-list",
+        "attention-status",
+        "avatar",
+        "bar",
+        "choice",
+        "collection",
+        "column",
+        "content-flow",
+        "context-properties",
+        "dialog",
+        "information",
+        "list",
+        "media-reference-specimen",
+        "menu",
+        "object-state-control",
+        "object-state-row",
+        "reading-content",
+        "reference-specimen",
+        "related-selection",
+        "row",
+        "stack-layout",
+        "summary-widget",
+        "surface-specimen",
+        "text",
+        "theme-preview",
+        "view-destination-link",
+        "view-region"
+      ]
+    },
+    "shell": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/shell",
+      "kind": "foundation",
+      "messages": [
+        "shell.purpose",
+        "shell.navigation",
+        "shell.navigationTitle"
+      ],
+      "owner": {
+        "entry": "Shell.svelte",
+        "mechanisms": [
+          "file-picker",
+          "pane-context",
+          "press-feedback",
+          "surface-focus",
+          "surface-host",
+          "swipe-motion",
+          "toolbar-geometry"
+        ],
+        "parts": [
+          "AdaptiveSurfaceLayout.svelte",
+          "CatalogEdgeNavigation.svelte",
+          "ShellBody.svelte",
+          "ShellNavigation.svelte",
+          "catalog-shell.css",
+          "dock-above.ts",
+          "place-heading-motion.ts",
+          "search-focus.svelte.ts",
+          "toolbar-reading-boundary.ts"
+        ],
+        "vendor": [
+          "sidebar",
+          "tooltip"
+        ]
+      },
+      "purpose": {
+        "key": "shell.purpose"
+      },
+      "shape": "none",
+      "slots": {
+        "bottom": {
+          "accepts": [
+            "bar",
+            "toolbar"
+          ]
+        },
+        "content": {
+          "accepts": [
+            "catalog-workspace-content",
+            "place-heading"
+          ]
+        },
+        "panels": {
+          "accepts": [
+            "failure-dialog",
+            "panel"
+          ]
+        },
+        "search": {
+          "accepts": [
+            "catalog-search-results"
+          ]
+        },
+        "top": {
+          "accepts": [
+            "bar",
+            "toolbar"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "searching"
+      ]
+    },
+    "slider": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/slider",
+      "kind": "foundation",
+      "messages": [
+        "slider.purpose"
+      ],
+      "owner": {
+        "entry": "Slider.svelte",
+        "vendor": [
+          "slider"
+        ]
+      },
+      "purpose": {
+        "key": "slider.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "default",
+        "disabled"
+      ]
+    },
+    "spacer": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/spacer",
+      "kind": "foundation",
+      "messages": [
+        "spacer.purpose"
+      ],
+      "owner": {
+        "entry": "Spacer.svelte"
+      },
+      "purpose": {
+        "key": "spacer.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "size": [
+          "snug",
+          "close",
+          "regular",
+          "relaxed",
+          "section",
+          "fill"
+        ]
+      }
+    },
+    "specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/specimen",
+      "kind": "composition",
+      "messages": [
+        "specimen.purpose"
+      ],
+      "owner": {
+        "entry": "Specimen.svelte",
+        "parts": [
+          "specimen-presentation.ts"
+        ]
+      },
+      "purpose": {
+        "key": "specimen.purpose"
+      },
+      "uses": [
+        "node-renderer",
+        "surface-frame"
+      ]
+    },
+    "specimen-group": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/specimen-group",
+      "kind": "composition",
+      "messages": [
+        "specimenGroup.purpose",
+        "specimenGroup.state",
+        "specimenGroup.examples",
+        "specimenGroup.loading",
+        "specimenGroup.offline"
+      ],
+      "owner": {
+        "entry": "SpecimenGroup.svelte"
+      },
+      "purpose": {
+        "key": "specimenGroup.purpose"
+      },
+      "slots": {
+        "children": {
+          "accepts": [
+            "specimen-row"
+          ]
+        }
+      },
+      "uses": [
+        "choice",
+        "column",
+        "contract-inspection",
+        "stack-layout",
+        "text",
+        "view-region"
+      ]
+    },
+    "specimen-row": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/specimen-row",
+      "kind": "composition",
+      "messages": [
+        "specimenRow.purpose"
+      ],
+      "owner": {
+        "entry": "SpecimenRow.svelte"
+      },
+      "purpose": {
+        "key": "specimenRow.purpose"
+      },
+      "slots": {
+        "children": {
+          "accepts": [
+            "public-catalog-bank-specimen",
+            "specimen-unavailable",
+            "control-renderer",
+            "catalog-home"
+          ]
+        }
+      },
+      "uses": [
+        "stack-item",
+        "view-region"
+      ]
+    },
+    "specimen-unavailable": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/specimen-unavailable",
+      "kind": "composition",
+      "messages": [
+        "specimenUnavailable.purpose",
+        "specimenUnavailable.label",
+        "specimenUnavailable.title"
+      ],
+      "owner": {
+        "entry": "SpecimenUnavailable.svelte"
+      },
+      "purpose": {
+        "key": "specimenUnavailable.purpose"
+      },
+      "uses": [
+        "status"
+      ]
+    },
+    "stack": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/stack",
+      "kind": "composition",
+      "messages": [
+        "stack.purpose"
+      ],
+      "owner": {
+        "entry": "Stack.svelte"
+      },
+      "purpose": {
+        "key": "stack.purpose"
+      },
+      "uses": [
+        "node-renderer",
+        "stack-item",
+        "stack-layout",
+        "view-region"
+      ]
+    },
+    "stack-item": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/stack-item",
+      "kind": "foundation",
+      "messages": [
+        "stackItem.purpose"
+      ],
+      "owner": {
+        "entry": "StackItem.svelte",
+        "parts": [
+          "stack-item.css"
+        ]
+      },
+      "purpose": {
+        "key": "stackItem.purpose"
+      },
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "heading",
+            "information",
+            "node-renderer",
+            "text"
+          ]
+        }
+      },
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "placement": [
+          "content",
+          "surface"
+        ]
+      }
+    },
+    "stack-layout": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/stack-layout",
+      "kind": "foundation",
+      "messages": [
+        "stackLayout.purpose"
+      ],
+      "owner": {
+        "entry": "StackLayout.svelte",
+        "parts": [
+          "stack-layout.css"
+        ]
+      },
+      "purpose": {
+        "key": "stackLayout.purpose"
+      },
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "action",
+            "choice",
+            "collection",
+            "collection-state",
+            "column",
+            "fact-row",
+            "fact-value",
+            "field",
+            "information",
+            "list",
+            "object-state-row",
+            "popover",
+            "shared-owner-specimen",
+            "stack-item",
+            "text",
+            "view-destination-link",
+            "view-item"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "described",
+        "required"
+      ],
+      "variants": {
+        "headingVisibility": [
+          "visible",
+          "accessible"
+        ]
+      }
+    },
+    "status": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/status",
+      "kind": "foundation",
+      "messages": [
+        "status.purpose"
+      ],
+      "owner": {
+        "entry": "Status.svelte",
+        "vendor": [
+          "empty"
+        ]
+      },
+      "purpose": {
+        "key": "status.purpose"
+      },
+      "shape": "radius",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "size": [
+          "regular",
+          "compact",
+          "prompt"
+        ],
+        "tone": [
+          "neutral",
+          "offline",
+          "note"
+        ]
+      }
+    },
+    "summary-widget": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/summary-widget",
+      "kind": "composition",
+      "messages": [
+        "summaryWidget.purpose",
+        "summaryWidget.open",
+        "summaryWidget.loading",
+        "summaryWidget.reconnect",
+        "summaryWidget.reading",
+        "summaryWidget.segment",
+        "summaryWidget.truncated",
+        "summaryWidget.offlineLoaded",
+        "summaryWidget.offlineUnavailable"
+      ],
+      "owner": {
+        "entry": "SummaryWidget.svelte"
+      },
+      "purpose": {
+        "key": "summaryWidget.purpose"
+      },
+      "uses": [
+        "card",
+        "loading",
+        "meter",
+        "text"
+      ]
+    },
+    "surface": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/surface",
+      "kind": "foundation",
+      "messages": [
+        "surface.purpose"
+      ],
+      "owner": {
+        "entry": "Surface.svelte",
+        "mechanisms": [
+          "pane-context",
+          "surface-host",
+          "toolbar-geometry",
+          "toolbar-scroll"
+        ],
+        "parts": [
+          "FrameEdge.svelte",
+          "ScrollEdges.svelte",
+          "place-focus.ts",
+          "scroll-edges.css",
+          "scroll-edges.ts",
+          "surface.css"
+        ]
+      },
+      "purpose": {
+        "key": "surface.purpose"
+      },
+      "shape": "none",
+      "slots": {
+        "bottom": {
+          "accepts": [
+            "bar",
+            "toolbar"
+          ]
+        },
+        "content": {
+          "accepts": [
+            "catalog-workspace-content",
+            "column",
+            "content-flow",
+            "frame-body",
+            "icon",
+            "place-heading"
+          ]
+        },
+        "overlay": {
+          "accepts": [
+            "catalog-search-results"
+          ]
+        },
+        "top": {
+          "accepts": [
+            "bar",
+            "heading",
+            "toolbar"
+          ]
+        }
+      },
+      "stateVariants": {
+        "searching": {
+          "kind": [
+            "main"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "searching"
+      ],
+      "variants": {
+        "kind": [
+          "main",
+          "navigation",
+          "frame",
+          "page"
+        ]
+      }
+    },
+    "surface-frame": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/surface-frame",
+      "kind": "composition",
+      "messages": [
+        "surfaceFrame.purpose",
+        "surfaceFrame.context",
+        "surfaceFrame.journey"
+      ],
+      "owner": {
+        "entry": "SurfaceFrame.svelte"
+      },
+      "purpose": {
+        "key": "surfaceFrame.purpose"
+      },
+      "uses": [
+        "content-flow",
+        "frame-body",
+        "surface",
+        "toolbar"
+      ]
+    },
+    "surface-specimen": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/surface-specimen",
+      "kind": "composition",
+      "messages": [
+        "surfaceSpecimen.purpose",
+        "surfaceSpecimen.edges",
+        "surfaceSpecimen.toolbars",
+        "surfaceSpecimen.sides",
+        "surfaceSpecimen.rootSurfaces",
+        "surfaceSpecimen.content",
+        "surfaceSpecimen.contentOrder",
+        "surfaceSpecimen.mountedTitle",
+        "surfaceSpecimen.mountedSubtitle",
+        "surfaceSpecimen.mountedText",
+        "surfaceSpecimen.exampleTitle",
+        "surfaceSpecimen.exampleSubtitle",
+        "surfaceSpecimen.anatomy",
+        "surfaceSpecimen.actions",
+        "surfaceSpecimen.openTransient",
+        "surfaceSpecimen.rules",
+        "surfaceSpecimen.rulesMounted",
+        "surfaceSpecimen.rulesAuthoring"
+      ],
+      "owner": {
+        "entry": "SurfaceSpecimen.svelte"
+      },
+      "purpose": {
+        "key": "surfaceSpecimen.purpose"
+      },
+      "uses": [
+        "information",
+        "modal",
+        "stack-layout",
+        "surface-frame"
+      ]
+    },
+    "tag": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/tag",
+      "kind": "foundation",
+      "messages": [
+        "tag.purpose"
+      ],
+      "owner": {
+        "entry": "Tag.svelte",
+        "mechanisms": [
+          "press-feedback"
+        ],
+        "parts": [
+          "TagRemove.svelte"
+        ],
+        "vendor": [
+          "badge"
+        ]
+      },
+      "purpose": {
+        "key": "tag.purpose"
+      },
+      "shape": "none",
+      "stateVariants": {
+        "disabled": {
+          "presentation": [
+            "chip"
+          ]
+        },
+        "removable": {
+          "presentation": [
+            "chip"
+          ]
+        }
+      },
+      "states": [
+        "known",
+        "unavailable",
+        "removable",
+        "disabled"
+      ],
+      "variantLimits": {
+        "presentation": {
+          "text": {
+            "tone": []
+          }
+        }
+      },
+      "variants": {
+        "presentation": [
+          "chip",
+          "text"
+        ],
+        "tone": [
+          "neutral",
+          "accent",
+          "success",
+          "warning",
+          "destructive"
+        ]
+      }
+    },
+    "text": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/text",
+      "kind": "foundation",
+      "messages": [
+        "text.purpose"
+      ],
+      "owner": {
+        "entry": "Text.svelte"
+      },
+      "purpose": {
+        "key": "text.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "kind": [
+          "body",
+          "support",
+          "caption"
+        ],
+        "tone": [
+          "default",
+          "muted",
+          "destructive"
+        ]
+      }
+    },
+    "text-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/text-content",
+      "kind": "composition",
+      "messages": [
+        "textContent.purpose"
+      ],
+      "owner": {
+        "entry": "TextContent.svelte"
+      },
+      "purpose": {
+        "key": "textContent.purpose"
+      },
+      "uses": [
+        "information",
+        "stack-item"
+      ]
+    },
+    "theme-preview": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/theme-preview",
+      "kind": "foundation",
+      "messages": [
+        "themePreview.purpose",
+        "themePreview.glyph"
+      ],
+      "owner": {
+        "entry": "ThemePreview.svelte"
+      },
+      "purpose": {
+        "key": "themePreview.purpose"
+      },
+      "shape": "radius",
+      "states": [
+        "default"
+      ],
+      "variants": {
+        "mode": [
+          "light",
+          "dark"
+        ]
+      }
+    },
+    "toolbar": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/toolbar",
+      "kind": "composition",
+      "messages": [
+        "toolbar.purpose"
+      ],
+      "owner": {
+        "entry": "Toolbar.svelte"
+      },
+      "purpose": {
+        "key": "toolbar.purpose"
+      },
+      "uses": [
+        "bar"
+      ]
+    },
+    "utility-actions": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/utility-actions",
+      "kind": "composition",
+      "messages": [
+        "utilityActions.purpose"
+      ],
+      "owner": {
+        "entry": "UtilityActions.svelte"
+      },
+      "purpose": {
+        "key": "utilityActions.purpose"
+      },
+      "uses": [
+        "column",
+        "node-renderer"
+      ]
+    },
+    "view-attention": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/view-attention",
+      "kind": "composition",
+      "messages": [
+        "viewAttention.purpose"
+      ],
+      "owner": {
+        "entry": "ViewAttention.svelte"
+      },
+      "purpose": {
+        "key": "viewAttention.purpose"
+      },
+      "uses": [
+        "attention-list"
+      ]
+    },
+    "view-binding": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/view-binding",
+      "kind": "composition",
+      "messages": [
+        "viewBinding.purpose"
+      ],
+      "owner": {
+        "entry": "ViewBinding.svelte"
+      },
+      "purpose": {
+        "key": "viewBinding.purpose"
+      },
+      "uses": [
+        "node-renderer",
+        "stack-item",
+        "summary-widget",
+        "text"
+      ]
+    },
+    "view-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/view-content",
+      "kind": "composition",
+      "messages": [
+        "viewContent.purpose"
+      ],
+      "owner": {
+        "entry": "ViewContent.svelte"
+      },
+      "purpose": {
+        "key": "viewContent.purpose"
+      },
+      "uses": [
+        "content-flow"
+      ]
+    },
+    "view-destination-link": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/view-destination-link",
+      "kind": "composition",
+      "messages": [
+        "viewDestinationLink.purpose"
+      ],
+      "owner": {
+        "entry": "ViewDestinationLink.svelte"
+      },
+      "purpose": {
+        "key": "viewDestinationLink.purpose"
+      },
+      "uses": [
+        "list",
+        "row"
+      ]
+    },
+    "view-item": {
+      "approval": "none",
+      "dispatch": "view-content",
+      "folder": "src/svelte/catalog/renderer/view-item",
+      "kind": "composition",
+      "messages": [
+        "viewItem.purpose"
+      ],
+      "owner": {
+        "entry": "ViewItem.svelte"
+      },
+      "purpose": {
+        "key": "viewItem.purpose"
+      },
+      "uses": [
+        "information",
+        "text-content",
+        "view-binding",
+        "view-destination-link"
+      ]
+    },
+    "view-panel": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/view-panel",
+      "kind": "composition",
+      "messages": [
+        "viewPanel.purpose"
+      ],
+      "owner": {
+        "entry": "ViewPanel.svelte"
+      },
+      "purpose": {
+        "key": "viewPanel.purpose"
+      },
+      "renders": [
+        "transient"
+      ],
+      "uses": [
+        "dialog",
+        "instance-frame",
+        "modal",
+        "surface-frame"
+      ]
+    },
+    "view-product": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/view-product",
+      "kind": "composition",
+      "messages": [
+        "viewProduct.purpose"
+      ],
+      "owner": {
+        "entry": "ViewProduct.svelte"
+      },
+      "purpose": {
+        "key": "viewProduct.purpose"
+      },
+      "uses": [
+        "view-product-content"
+      ]
+    },
+    "view-product-content": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/view-product-content",
+      "kind": "composition",
+      "messages": [
+        "viewProductContent.purpose"
+      ],
+      "owner": {
+        "entry": "ViewProductContent.svelte",
+        "parts": [
+          "activity-host.ts"
+        ]
+      },
+      "purpose": {
+        "key": "viewProductContent.purpose"
+      },
+      "uses": [
+        "view-workspace"
+      ]
+    },
+    "view-region": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/view-region",
+      "kind": "foundation",
+      "messages": [
+        "viewRegion.purpose"
+      ],
+      "owner": {
+        "entry": "ViewRegion.svelte",
+        "mechanisms": [
+          "reveal"
+        ],
+        "parts": [
+          "view-region.css"
+        ]
+      },
+      "purpose": {
+        "key": "viewRegion.purpose"
+      },
+      "shape": "none",
+      "slots": {
+        "children": {
+          "accepts": [
+            "appearance",
+            "catalog-home",
+            "column",
+            "gallery",
+            "identity",
+            "information",
+            "inspection-catalog",
+            "inspection-content",
+            "local-exercises",
+            "media-content",
+            "node-renderer",
+            "place-heading",
+            "public-catalog-bank",
+            "stack",
+            "stack-item",
+            "stack-layout",
+            "view-attention",
+            "view-content",
+            "view-item",
+            "view-region",
+            "view-related-selection"
+          ]
+        }
+      },
+      "states": [
+        "default",
+        "hidden"
+      ],
+      "variants": {
+        "kind": [
+          "view",
+          "item",
+          "bare",
+          "document",
+          "retained"
+        ]
+      }
+    },
+    "view-related-selection": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/compositions/view-related-selection",
+      "kind": "composition",
+      "messages": [
+        "viewRelatedSelection.purpose"
+      ],
+      "owner": {
+        "entry": "ViewRelatedSelection.svelte"
+      },
+      "purpose": {
+        "key": "viewRelatedSelection.purpose"
+      },
+      "uses": [
+        "related-selection"
+      ]
+    },
+    "view-workspace": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/compositions/view-workspace",
+      "kind": "composition",
+      "messages": [
+        "viewWorkspace.purpose",
+        "viewWorkspace.documentTitle",
+        "viewWorkspace.searchDescription",
+        "viewWorkspace.entry",
+        "viewWorkspace.video",
+        "viewWorkspace.audio",
+        "viewWorkspace.image",
+        "viewWorkspace.collection"
+      ],
+      "owner": {
+        "entry": "ViewWorkspace.svelte",
+        "parts": [
+          "workspace-data.ts"
+        ]
+      },
+      "purpose": {
+        "key": "viewWorkspace.purpose"
+      },
+      "uses": [
+        "appearance-root",
+        "catalog-workspace"
+      ]
+    },
+    "wallpaper": {
+      "approval": "required",
+      "folder": "src/svelte/catalog/foundations/wallpaper",
+      "kind": "foundation",
+      "messages": [
+        "wallpaper.purpose"
+      ],
+      "owner": {
+        "entry": "Wallpaper.svelte"
+      },
+      "purpose": {
+        "key": "wallpaper.purpose"
+      },
+      "shape": "none",
+      "states": [
+        "default",
+        "preview"
+      ],
+      "variants": {
+        "wallpaper": [
+          "silk",
+          "mist",
+          "plain"
+        ]
+      }
+    },
+    "workspace": {
+      "approval": "none",
+      "folder": "src/svelte/catalog/renderer/workspace",
+      "kind": "composition",
+      "messages": [
+        "workspace.purpose"
+      ],
+      "owner": {
+        "entry": "Workspace.svelte"
+      },
+      "purpose": {
+        "key": "workspace.purpose"
+      },
+      "uses": [
+        "view-workspace"
+      ]
+    }
+  },
+  "version": "desert.catalog-manifest/1"
+}

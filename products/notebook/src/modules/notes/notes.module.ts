@@ -2,22 +2,23 @@ import { defineModule } from "desert-sdk/src/index.ts";
 import { OnlyOwnerCanAccess } from "./note.object.ts";
 import { PublishedNote } from "./note.publication.ts";
 import { NotesController } from "./notes.dependencies.ts";
-import { CreateNote, CreateNoteExperience } from "./journeys/createNote.journey.ts";
+import { CreateNote, CreateNoteJourney } from "./journeys/createNote.journey.ts";
 import { ReadNote } from "./journeys/readNotes.journey.ts";
-import { ReadNotesExperience } from "./journeys/browseNotes.journey.ts";
-import { ArchiveNote, ArchiveNoteExperience } from "./journeys/archiveNote.journey.ts";
+import { ReadNotesJourney } from "./journeys/browseNotes.journey.ts";
+import { ArchiveNote, ArchiveNoteJourney } from "./journeys/archiveNote.journey.ts";
 import { NotesView } from "./views/notes.view.ts";
 import { NoteView } from "./views/note.view.ts";
 import { CreateNoteView } from "./views/createNote.view.ts";
+import { m } from "../../messages/keys.ts";
 
-const NotesDestination = { id: "notes", label: "Notes", icon: "open", entryJourney: ReadNote } as const;
+const NotesDestination = { id: "notes", label: m.notes.destination, icon: "open", entryJourney: ReadNote } as const;
 
 export const NotesModule = defineModule({
   id: "notes", objects: [PublishedNote], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   journeys: [
-    { execution: CreateNote, presentation: CreateNoteExperience, label: "Create note", humanReview: "not-required" },
-    { execution: ReadNote, presentation: ReadNotesExperience, label: "Read notes" },
-    { execution: ArchiveNote, presentation: ArchiveNoteExperience, label: "Archive note", humanReview: "required" },
+    { execution: CreateNote, presentation: CreateNoteJourney, label: m.notes.createNote, humanReview: "not-required" },
+    { execution: ReadNote, presentation: ReadNotesJourney, label: m.notes.readNotes },
+    { execution: ArchiveNote, presentation: ArchiveNoteJourney, label: m.notes.archiveNote, humanReview: "required" },
   ],
   views: [NotesView, NoteView, CreateNoteView], destinations: [NotesDestination],
   exports: {

@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { view } from "../src/views/index.ts";
+// Compiled view data (resolved text): the contract a declared view delegates to.
+import { compiledView as view } from "../src/views/view.ts";
 
 test("Bound content declares only named ports; canonical data is supplied by its journey", () => {
   const content = [

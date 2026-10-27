@@ -4,7 +4,7 @@ import { NotesView } from "../views/notes.view.ts";
 import { CreateNote } from "./createNote.journey.ts";
 import { ReadNote } from "./readNotes.journey.ts";
 
-export const ReadNotesExperience = {
+export const ReadNotesJourney = {
   id: ReadNote.id, kind: "read", view: NotesView, detailView: NoteView,
   outputs: [
     { ...viewOutput(NotesView, "create"), action: { kind: "journey", journey: CreateNote } },

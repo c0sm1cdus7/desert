@@ -6,7 +6,7 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 
 test("compact message presentation cannot hide navigation on a task frame", async () => {
   const source = `<script lang="ts">
-    import SurfaceFrame from "@desert/svelte/SurfaceFrame.svelte";
+    import SurfaceFrame from "@desert/svelte/catalog/compositions/surface-frame/SurfaceFrame.svelte";
     const frame = {version:"desert.surface-frame/6",kind:"journey",top:{title:"Review"},
       content:{kind:"message",text:"A task, not an alert"},bottom:{}};
   </script><SurfaceFrame {frame} presentation="message" invoke={()=>{}} />`;
@@ -19,11 +19,12 @@ test("compact message presentation cannot hide navigation on a task frame", asyn
 
 test("visible shadcn message identity labels its dialog in both actual theme palettes", async () => {
   const f = await svelteBrowser(`<script lang="ts">
-    import Problem from "@desert/svelte/pieces/Problem.svelte";
+    import ProblemNode from "@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte";
     let open = $state(false);
   </script><button onclick={()=>open=true}>Open warning</button>
-    <Problem {open} title="Connection interrupted" description="Your writing remains available. Try again when the connection returns."
-      severity="warning" close={()=>open=false} />`);
+    <ProblemNode node={{ version: "desert.bank-node/1", kind: "problem", open, title: "Connection interrupted", locked: false,
+      description: "Your writing remains available. Try again when the connection returns.", severity: "warning" }}
+      onevent={event => { if (event.kind === "problem.close") open = false; }} />`);
   try {
     await f.page.addStyleTag({ content: await rendererCss() });
     const palettes: string[] = [];
@@ -35,11 +36,14 @@ test("visible shadcn message identity labels its dialog in both actual theme pal
       const identity = await dialog.evaluate(node => {
         const title = document.getElementById(node.getAttribute("aria-labelledby")!);
         const body = document.getElementById(node.getAttribute("aria-describedby")!);
+        // The visible heading and sentence are the dialog's only name and description: no hidden duplicate title or
+        // description stands beside them.
+        const visible = (element: Element) => !element.classList.contains("sr-only") && element.getBoundingClientRect().height > 2;
+        const named = [...node.querySelectorAll("h1,h2,h3,[data-slot='dialog-title']")].filter(element => element.textContent === title?.textContent);
+        const described = [...node.querySelectorAll("p,[data-slot='dialog-description']")].filter(element => element.textContent === body?.textContent);
         return { title: title?.textContent, body: body?.textContent,
-          titleVisible: !!title && title.getBoundingClientRect().height > 2,
-          bodyVisible: !!body && body.getBoundingClientRect().height > 2,
-          titleCount: node.querySelectorAll('[data-slot="dialog-title"]').length,
-          bodyCount: node.querySelectorAll('[data-slot="dialog-description"]').length,
+          titleVisible: !!title && visible(title), bodyVisible: !!body && visible(body),
+          titleCount: named.length, bodyCount: described.length,
           palette: getComputedStyle(node).color };
       });
       assert.equal(identity.title, "Connection interrupted");
@@ -48,7 +52,7 @@ test("visible shadcn message identity labels its dialog in both actual theme pal
       assert.equal(identity.titleCount, 1); assert.equal(identity.bodyCount, 1);
       assert.equal(await dialog.getByRole("button", { name: "Close", exact: true }).count(), 1);
       palettes.push(identity.palette);
-      const scan = await new AxeBuilder({ page: f.page }).include('[data-composition="problem"]').analyze();
+      const scan = await new AxeBuilder({ page: f.page }).include('[data-modal="message"]').analyze();
       assert.deepEqual(scan.violations.filter(item => item.impact === "serious" || item.impact === "critical"), []);
       await f.page.keyboard.press("Escape"); await dialog.waitFor({ state: "hidden" });
     }

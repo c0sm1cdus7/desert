@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { compileViewProgram } from "../src/views/program.ts";
 import { viewProgramModel } from "../src/web/client/view-program.ts";
-import { workspaceNavigation } from "../src/svelte/explorer/workspace-navigation.ts";
+import { workspaceNavigation } from "../src/svelte/infra/workspace-navigation.ts";
 import { program, surface } from "./fixtures/view-program.ts";
 
 const navigation = [

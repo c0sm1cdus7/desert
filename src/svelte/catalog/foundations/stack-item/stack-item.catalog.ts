@@ -1,0 +1,14 @@
+// StackItem: one entry of a stack, at the placement its caller gives: framed content (tag, avatar, image, card,
+// availability) keeps its own inset, everything else reads at the surface inset.
+import { defineFoundation } from "../../../../authoring/catalog/define.ts";
+import { StackItemContract } from "./stack-item.contract.ts";
+
+export const StackItem = defineFoundation({
+  id: "stack-item",
+  purpose: { key: "stackItem.purpose" }, messages: ["stackItem.purpose"],
+  owner: { entry: "StackItem.svelte", parts: ["stack-item.css"] },
+  shape: "none", states: ["default"],
+  variants: { placement: ["content", "surface"] },
+  slots: { children: { accepts: ["heading", "information", "node-renderer", "text"] } },
+  approval: "required", contract: StackItemContract,
+} as const);

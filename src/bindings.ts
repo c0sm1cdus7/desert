@@ -5,7 +5,7 @@ import type { Frozen } from "./json.ts";
 import { jsonSnapshot } from "./json.ts";
 import type { ModuleReference } from "./modules/reference-types.ts";
 import { isModuleOwned, publicReference } from "./modules/references.ts";
-import { requireLocalProductDependency, requireMountedReference } from "./modules/module-catalog.ts";
+import { requireLocalProductDependency, requireMountedReference } from "./modules/module-index.ts";
 
 const Name = Type.String({ minLength: 1 });
 const closed = { additionalProperties: false };

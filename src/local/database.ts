@@ -1,7 +1,10 @@
-import { readFileSync, statSync } from "node:fs";
+import { statSync } from "node:fs";
 import { isAbsolute } from "node:path";
 import { Pool, type PoolClient } from "pg";
-import { LocalSchemaVersion, requireDurablePrimary, requireInstallation } from "./installation.ts";
+import { renderStorageDdl, type ObjectStorage } from "../storage/ddl.ts";
+import { migrateClient } from "../storage/migrate.ts";
+import { renderControllerDdl } from "../storage/render-ddl.ts";
+import { recordInstallation, requireDurablePrimary, requireInstallation } from "./installation.ts";
 
 export type LocalDatabase = { socketDirectory: string, database: string, user: string, port?: number };
 
@@ -55,16 +58,24 @@ export function localDatabase(options: LocalDatabase) {
     } finally { client.release(broken || clientFaults.has(client)); }
   }
 
-  async function install(product: string, digest: string, roles: readonly string[]) {
+  /** Applies the generated DDL (plan §15, step 7.6): the controller's infrastructure (a fresh database records the
+   * current digest); then the client's committed migration chain up to the current digest (step 7.3, one transaction,
+   * INSTALLATION_MISMATCH when no chain leads there); then — once this database is known to hold this product, digest and
+   * roles — the product's object tables in the installation's language. */
+  async function install(storage: ObjectStorage, roles: readonly string[]) {
+    const product = storage.productId, digest = storage.digest;
     await transaction(async client => {
       await requireDurablePrimary(client);
       await client.query("SELECT pg_advisory_xact_lock(842721)");
-      await client.query(readFileSync(new URL("./schema.sql", import.meta.url), "utf8"));
-      await client.query(readFileSync(new URL("../activities/schema.sql", import.meta.url), "utf8"));
-      await client.query(readFileSync(new URL("../identity/schema.sql", import.meta.url), "utf8"));
-      await client.query(`INSERT INTO desert_installation VALUES (true, $1, $2, $3, $4)
-        ON CONFLICT DO NOTHING`, [LocalSchemaVersion, product, digest, roles]);
+      await client.query(renderControllerDdl());
+      await recordInstallation(client, { product, digest, roles });
+    });
+    assertOpen();
+    await migrateClient(pool, { product, installation: storage.installation, digest });
+    await transaction(async client => {
+      await client.query("SELECT pg_advisory_xact_lock(842721)");
       await requireInstallation(client, { product, digest, roles });
+      await client.query(renderStorageDdl(storage));
     });
   }
   return { transaction, install, assertOpen,

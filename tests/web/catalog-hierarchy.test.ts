@@ -15,7 +15,7 @@ for (const width of [390, 1280]) test(`bank hierarchy remains distinct at ${widt
       await page.evaluate(value => document.documentElement.style.setProperty("--text-scale", String(value)), scale);
       await page.locator('[data-catalog-scroll]').evaluate(element => element.scrollTop = 0);
       await settle(page);
-      const bank = page.locator("[data-public-catalog-bank]");
+      const bank = page.locator("[data-view-item='public-catalog-bank']");
       const header = page.locator('[data-catalog-content] > [data-place-header]');
       const title = header.getByRole("heading", { name: "Component bank", exact: true });
       const pageTitle = await textStyle(title);
@@ -30,8 +30,8 @@ for (const width of [390, 1280]) test(`bank hierarchy remains distinct at ${widt
         return scale;
       });
       const component = await textStyle(bank.getByRole("heading", { name: "Text input", exact: true }));
-      const state = await textStyle(bank.locator('[data-specimen="input.text:value"] > p'));
-      const field = await textStyle(bank.locator('[data-specimen="input.text:value"] input'));
+      const state = await textStyle(bank.locator('[data-view-item="specimen:input.text:value"] > p'));
+      const field = await textStyle(bank.locator('[data-view-item="specimen:input.text:value"] input'));
       const folder = `artifacts/catalog-hierarchy/${process.env.DESERT_CATALOG_BUILD?.split("/").pop()}`;
       await mkdir(folder, { recursive: true });
       await page.screenshot({ path: `${folder}/${width}-${scale}x.png` });
@@ -42,10 +42,10 @@ for (const width of [390, 1280]) test(`bank hierarchy remains distinct at ${widt
         assert.equal(await bank.getByRole('heading', {name,exact:true}).count(),0);
       assert.ok(component.size > state.size, "component outranks specimen metadata");
       assert.ok(field.size > state.size, "the real editor is not shrunk to metadata size");
-      const componentHeader = bank.locator('[data-catalog-entry="input.text"] > header');
+      const componentHeader = bank.locator('[data-view-item="entry:input.text"] > header');
       assert.equal(await componentHeader.getByRole('heading', { level: 3, name: 'Text input', exact: true }).count(), 1);
       assert.equal(await componentHeader.locator('code').innerText(), 'input.text');
-      assert.equal(await bank.locator('[data-specimen-group="input.text"] > header').count(), 0,
+      assert.equal(await bank.locator('[data-view-item="entry:input.text"] .place-stack-content > header').count(), 0,
         'Component identity belongs outside its content pane');
     }
   } finally { await f.close(); }
@@ -55,7 +55,7 @@ test("missing specimens are catalog annotations, not product empty states", asyn
   const f = await publicCatalogFixture();
   try {
     await (await navigationAction(f.page, "Component bank")).click();
-    const specimen = f.page.locator('[data-specimen="collection:empty"]');
+    const specimen = f.page.locator('[data-view-item="specimen:collection:empty"]');
     assert.equal(await specimen.locator('[data-slot="empty"]').count(), 0,
       "an unavailable specimen must not pretend to demonstrate an empty collection");
     assert.match(await specimen.textContent() ?? "", /Execution adapter required/);
@@ -70,7 +70,7 @@ test("collection guidance is subordinate to the records it describes", async () 
   const f = await publicCatalogFixture();
   try {
     await (await navigationAction(f.page, "Component bank")).click();
-    const specimen = f.page.locator('[data-specimen="collection:records"]');
+    const specimen = f.page.locator('[data-view-item="specimen:collection:records"]');
     const record = await textStyle(specimen.getByRole("button", { name: "Alps", exact: true }));
     for (const text of [/Only loaded collection/, /Sorted by/]) {
       assert.ok((await textStyle(specimen.getByText(text))).size < record.size,

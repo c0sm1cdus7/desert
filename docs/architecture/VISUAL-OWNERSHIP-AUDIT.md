@@ -1,5 +1,9 @@
 # Visual ownership: implementation slice and remaining debt
 
+> Historical record (2026-10-20 to 2026-10-22). The gate it describes (`src/authoring/visual-boundary`,
+> `catalog-manifest.ts`, `scripts/check-visual-boundary.ts`) was retired in slice 2 (2026-10-24): every assertion is a
+> Visual Catalog rule now (docs/VISUAL-CATALOG-ENFORCEMENT.md). File paths below are as they were then.
+
 This audit implements part of the source-boundary work required by
 `../VISUAL-CATALOG-CONTRACT.md`. It does not replace that contract, approve legacy
 overrides, or certify the renderer. The stable baseline remains preserved;
@@ -134,7 +138,7 @@ finding allowances**: `catalog-admissions.ts` derives adapter admissions and
 closure sets from the manifest; `catalog-manifest-schema.ts` defines its closed
 data grammar; `catalog-manifest.ts` registers owners as literal data;
 `catalog-owner-types.ts` contains generated type-only owner references; and
-`pieces/ViewPanel.svelte` binds finite projected panel data/events to the existing
+`catalog/compositions/view-panel/ViewPanel.svelte` binds finite projected panel data/events to the existing
 Drawer. Their exact digests and imports are recorded in the debt inventory.
 The historical aggregate digest and all prior findings are unchanged. Registration
 does not certify private dependency graphs or add authority to draw.
@@ -342,7 +346,7 @@ and 12 failing tests**. The failures were audited before changing expectations:
 
 | Tests | Obsolete expectation | Independent authority and retained checks |
 | --- | --- | --- |
-| `grouped-row-feedback`, `press-consistency`, `sidebar-custom-feedback` | Held content scale `.985` | `v128a-stable:src/svelte/vendor/styles/tokens.css` already specifies `.96`. Expectation now uses that approved value; hitbox, borders, focus, cancellation, release, disabled state, native events and reduced-motion checks remain. |
+| `grouped-row-feedback`, `press-consistency`, `sidebar-custom-feedback` | Held content scale `.985` | `v128a-stable:src/svelte/catalog/mechanisms/theme/tokens.css` already specifies `.96`. Expectation now uses that approved value; hitbox, borders, focus, cancellation, release, disabled state, native events and reduced-motion checks remain. |
 | `grouped-row-feedback-parity`, `input-clear-layout` | Hover turns semantic text blue or changes its foreground | The approved stable feedback owner preserves ink and uses a neutral inset tint; the user explicitly removed primary hover. Checks now require stable semantic ink, perceptible neutral hover, stronger held feedback and cancellation, retaining no-background-image and geometry assertions. The clear test waits for initial CSS application to settle before sampling its resting ink. |
 | `grouped-panel-material` | An opaque color must serialize as `rgb(...)` | Current Chromium serializes the opaque 100% color mix as `oklab(...)` without alpha. The test rasterizes the computed fill and requires alpha 255, while still requiring no blur and the 1px boundary. It no longer confuses color syntax with opacity. |
 | `icon-spin` pending-primary case | Pending changes primary to a neutral secondary | The user's later explicit primary-glass rule and independent `primary-pane-material` matrix require prominence to persist. The test now requires distinct tinted material/foreground, while preserving icon inheritance, accessible name, one icon, busy/disabled state, rotation and geometry checks. |

@@ -1,5 +1,8 @@
 import { createHash, createHmac, randomBytes } from "node:crypto";
+import type { Static } from "@sinclair/typebox";
 import type { PoolClient } from "pg";
+import type { accountsTable } from "../storage/tables/identity.ts";
+import type { identitiesTable } from "../storage/tables/local.ts";
 import type { AccessState, HumanIdentity, HumanCredential } from "./contract.ts";
 
 export const credentialHash = (token: string) => createHash("sha256").update(token).digest("hex");
@@ -8,14 +11,16 @@ export function readyAccessState(identity: HumanIdentity, token: string): Extrac
   return Object.freeze({ kind: "ready", identity,
     sessionBinding: createHmac("sha256", token).update("desert.browser-session/1").digest("base64url") });
 }
-type IdentityRow = { id: string; label: string; login: string; administrator: boolean; avatar_seed?: string | null | undefined };
+type AccountRow = Static<typeof accountsTable.row>;
+type IdentityRow = Pick<Static<typeof identitiesTable.row>, "id" | "label"> & Pick<AccountRow, "login" | "administrator">
+  & { avatar_seed?: AccountRow["avatar_seed"] | undefined };
 export const humanIdentity = (row: IdentityRow): HumanIdentity => Object.freeze({ kind: "human", id: row.id,
   displayName: row.label, login: row.login, role: row.administrator ? "administrator" : "member",
   ...(row.avatar_seed ? { avatarSeed: row.avatar_seed } : {}) });
 
 export async function humanSession(client: PoolClient, token: string, lock = true): Promise<HumanIdentity | undefined> {
   if (!validCredential(token)) return undefined;
-  const { rows: [row] } = await client.query(`SELECT i.id, i.label, a.login, a.administrator, a.avatar_seed
+  const { rows: [row] } = await client.query<IdentityRow>(`SELECT i.id, i.label, a.login, a.administrator, a.avatar_seed
     FROM desert_identity_sessions s JOIN desert_identities i ON i.id = s.identity_id
     JOIN desert_identity_accounts a ON a.identity_id = i.id
     WHERE s.credential_hash = $1 AND NOT s.revoked AND NOT i.revoked

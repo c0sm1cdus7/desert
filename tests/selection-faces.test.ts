@@ -35,21 +35,21 @@ test("face descriptors reject unknown kinds, missing regions and empty or oversi
 });
 
 const source = `<script lang="ts">
-  import SelectionField from "@desert/svelte/pieces/SelectionField.svelte";
+  import Choice from "@desert/svelte/catalog/foundations/choice/Choice.svelte";
   let value = $state('ar'), edits = $state(0);
   const options = [
-    {value:'ar',label:'Argentina',disabled:false,face:{kind:'flag',region:'AR'}},
-    {value:'gold',label:'Gold',disabled:false,face:{kind:'symbol',text:'✦'}},
-    {value:'doc',label:'Document',disabled:false,face:{kind:'document'}},
-    {value:'locked',label:'Locked',disabled:true,face:{kind:'status',severity:'warning'}},
+    {value:'ar',label:'Argentina',disabled:false,leading:{kind:'face',face:{kind:'flag',region:'AR'}}},
+    {value:'gold',label:'Gold',disabled:false,leading:{kind:'face',face:{kind:'symbol',text:'✦'}}},
+    {value:'doc',label:'Document',disabled:false,leading:{kind:'face',face:{kind:'document'}}},
+    {value:'locked',label:'Locked',disabled:true,leading:{kind:'face',face:{kind:'status',severity:'warning'}}},
     {value:'plain',label:'Plain',disabled:false},
   ];
 </script>
 <main style="padding:24px;max-width:360px">
-  <SelectionField selection="identity" label="Representation" {value} {options}
-    onchange={next => { value = next; edits += 1; }} />
-  <SelectionField selection="field-identity" label="Field representation" {value} {options} fieldControl
-    onchange={next => { value = next; edits += 1; }} />
+  <Choice presentation="menu" cardinality="one" menuTrigger="contextual" label="Representation" labelVisibility="visible" selected={[value]}
+    disabled={false} required={false} {options} onchange={next => { value = next[0]; edits += 1; }} />
+  <Choice presentation="menu" cardinality="one" menuTrigger="well" label="Field representation" labelVisibility="visible" selected={[value]}
+    disabled={false} required={false} {options} onchange={next => { value = next[0]; edits += 1; }} />
   <output data-value>{value}</output><output data-edits>{edits}</output>
 </main>`;
 
@@ -104,7 +104,7 @@ test("dropdown faces preserve shared Avatar fill and border in every appearance"
       const material = await f.page.locator('[role="listbox"] [data-piece="face"]').evaluateAll(elements =>
         elements.map(element => {
           const style = getComputedStyle(element), border = getComputedStyle(element, "::after");
-          return { slot: element.getAttribute("data-slot"), fill: style.backgroundColor, border: border.borderTopColor,
+          return { slot: element.getAttribute("data-slot"), piece: element.getAttribute("data-piece"), fill: style.backgroundColor, border: border.borderTopColor,
             width: border.borderTopWidth, kind: border.borderTopStyle, blend: border.mixBlendMode,
             pointer: border.pointerEvents, filter: style.filter, box: element.getBoundingClientRect().toJSON() };
         }));
@@ -112,7 +112,7 @@ test("dropdown faces preserve shared Avatar fill and border in every appearance"
       await f.page.screenshot({ path: new URL(`${colorScheme}-${contrast}.png`, directory).pathname });
       assert.equal(material.length, 4);
       for (const face of material) {
-        assert.equal(face.slot, "avatar");
+        assert.deepEqual([face.piece, face.slot], ["face", null], "the face draws its own mark (slice 3), not the vendor avatar");
         assert.notEqual(face.fill, "rgba(0, 0, 0, 0)");
         assert.notEqual(face.border, "rgba(0, 0, 0, 0)");
         assert.equal(face.kind, "solid"); assert.ok(parseFloat(face.width) >= 1);

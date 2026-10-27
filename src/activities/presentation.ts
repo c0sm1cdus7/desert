@@ -1,7 +1,7 @@
 import type { Application } from "../local/program.ts";
 import { loadDefinition } from "../compiled-definition.ts";
 import { compileViewProgram } from "../views/program.ts";
-import { installedActivityCatalog } from "./catalog.ts";
+import { installedActivityIndex } from "./activity-index.ts";
 import type { Mutation } from "../local/types.ts";
 
 export function viewProgramActivities(application: Application, input: unknown, surface: string) {
@@ -15,7 +15,7 @@ export function viewProgramActivities(application: Application, input: unknown, 
     return journey as Mutation;
   });
   const used = new Set(experiences.flatMap(item => [item.activity.review, ...item.activity.steps.map(step => step.view)]));
-  const catalog = installedActivityCatalog(application, journeys, program.views.filter(view => used.has(view.id)));
+  const catalog = installedActivityIndex(application, journeys, program.views.filter(view => used.has(view.id)));
   experiences.forEach(experience => catalog.admit(experience.activity));
   return catalog;
 }

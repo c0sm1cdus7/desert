@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { activityClientFixture } from "./fixtures/activity-client.ts";
 import { activityModel } from "../src/web/client/activity-model.ts";
-import { browserActivityHost } from "../src/svelte/pieces/activity-host.ts";
+import { browserActivityHost } from "../src/svelte/catalog/compositions/view-product-content/activity-host.ts";
 import { dispatch } from "../src/web/dispatch.ts";
 import type { ControllerTransport } from "../src/web/client/transport.ts";
 import type { ActivityHost } from "../src/web/client/activity-host.ts";

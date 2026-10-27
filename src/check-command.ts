@@ -2,9 +2,10 @@ import type { ObjectDefinition } from "./contracts.ts";
 import type { CommandDefinition } from "./program-grammar.ts";
 import { checkAssignments, checkLiteral } from "./check-assignments.ts";
 import { requireField } from "./references.ts";
+import type { JourneyInputSchema } from "./input-schema.ts";
 import { emitObject } from "./schema.ts";
 
-export function checkCommand(command: CommandDefinition, object: ObjectDefinition, ownerField: string) {
+export function checkCommand(command: CommandDefinition, object: ObjectDefinition, ownerField: string): JourneyInputSchema {
   const facts = Object.fromEntries(command.input.map(name => {
     const field = requireField(object, name);
     if (field.kind === "principal") throw new Error(`Principal cannot be command input: ${name}`);

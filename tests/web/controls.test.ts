@@ -6,8 +6,8 @@ test("typed select changes, clears explicitly and retains disabled control state
   const f = await browserFixture();
   try {
     await openCatalog(f.page);
-    const bench = f.page.locator("[data-control-bench]");
-    const field = bench.locator('[data-specimen="control.select:available"]');
+    const bench = f.page.locator("[data-view-item='control-bench']");
+    const field = bench.locator('[data-view-item="specimen:control.select:available"]');
     const select = field.locator('[data-selection-trigger]');
     const padding = await select.evaluate(element => element.querySelector('[data-slot="field-label"]')!.getBoundingClientRect().left - element.getBoundingClientRect().left);
     assert.ok(padding >= 16, "the whole-well trigger retains the shared inner spacing");
@@ -26,11 +26,11 @@ test("typed select changes, clears explicitly and retains disabled control state
     await menu.getByRole("option", { name: "First option", exact: true }).click();
     await menu.waitFor({ state: "hidden" });
     assert.equal(await select.locator('[data-field-value]').innerText(), "First option");
-    assert.equal(await clear.getAttribute("data-primitive"), "action");
+    assert.equal(await clear.getAttribute("data-action"), "");
     await clear.click();
     assert.equal(await select.locator('[data-field-value]').innerText(), "Not selected");
     assert.equal(await clear.isDisabled(), true);
-    const disabled = bench.locator('[data-specimen="control.select:disabled"] [data-selection-trigger]');
+    const disabled = bench.locator('[data-view-item="specimen:control.select:disabled"] [data-selection-trigger]');
     assert.equal(await disabled.isDisabled(), true);
     assert.equal(await disabled.locator('[data-field-value]').innerText(), "Retained selection");
     assert.deepEqual(f.errors, []);
@@ -42,7 +42,7 @@ test("typed popover uses canonical actions, keyboard Escape and trigger focus re
   try {
     await openCatalog(f.page);
     const trigger = f.page.getByRole("button", { name: "Open contextual information", exact: true });
-    assert.equal(await trigger.getAttribute("data-primitive"), "action");
+    assert.equal(await trigger.getAttribute("data-action"), "");
     await trigger.focus();
     await f.page.keyboard.press("Enter");
     const popover = f.page.getByRole("dialog", { name: "Local interaction", exact: true });
@@ -68,7 +68,7 @@ test("local file selection rejects limits and removes handles without uploading"
     await openCatalog(f.page);
     const writes: string[] = [];
     f.page.on("request", request => { if (request.method() !== "GET") writes.push(request.url()); });
-    const bench = f.page.locator("[data-control-bench]");
+    const bench = f.page.locator("[data-view-item='control-bench']");
     const input = bench.getByLabel("Choose local text files", { exact: true });
     await input.setInputFiles([
       { name: "accepted.txt", mimeType: "text/plain", buffer: Buffer.from("hello") },
@@ -81,7 +81,7 @@ test("local file selection rejects limits and removes handles without uploading"
     assert.equal(await bench.getByText("large.txt: File is too large.", { exact: true }).isVisible(), true);
     assert.equal(await bench.getByText("wrong.png: File type is not accepted.", { exact: true }).isVisible(), true);
     const remove = list.getByRole("button", { name: "Remove accepted.txt", exact: true });
-    assert.equal(await remove.getAttribute("data-primitive"), "action");
+    assert.equal(await remove.getAttribute("data-action"), "");
     await remove.click();
     assert.equal(await bench.getByText("No local files selected.", { exact: true }).isVisible(), true);
     await input.setInputFiles({ name: "accepted.txt", mimeType: "text/plain", buffer: Buffer.from("hello") });

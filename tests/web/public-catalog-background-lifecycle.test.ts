@@ -52,7 +52,7 @@ test("one continuous media belongs to the visible place and survives sibling pre
     await action(page, "Landmarks").click();
     assert.equal(await expectCurrentHero("[data-public-hero] img"), home);
     await action(page, "South Shetland Islands").click();
-    assert.notEqual(await expectCurrentHero("[data-catalog-detail-image] img"), home);
+    assert.notEqual(await expectCurrentHero('[data-view-item="photograph"] img'), home);
     await action(page, "Component bank").click();
     await expectNoHero("bank from detail");
     await action(page, "Landmarks").click();

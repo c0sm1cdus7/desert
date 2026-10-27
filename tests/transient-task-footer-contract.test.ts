@@ -5,7 +5,7 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 import { saveFixedEvidence } from './web/fixed-toolbar-expectations.ts';
 
 const source = `<script lang="ts">
-  import Drawer from "@desert/svelte/pieces/Drawer.svelte";
+  import TransientNode from "@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte";
   import { surfaceFrame, SurfaceFrameVersion } from "@desert/interaction/surface-frame.ts";
   import { toolbarAction } from "@desert/interaction/toolbar.ts";
   let open = $state(false), observed = $state("");
@@ -15,8 +15,8 @@ const source = `<script lang="ts">
 </script>
 <button onclick={() => open = true}>Open independent task</button>
 <output data-observed>{observed}</output>
-<Drawer label="Independent task" {open} {frame} onclose={() => open = false}
-  invoke={intent => observed = JSON.stringify(intent)} />`;
+<TransientNode node={{ version: "desert.bank-node/1", kind: "transient", label: "Independent task", open, locked: false, frame }}
+  onevent={event => { if (event.kind === "transient.close") open = false; else if (event.kind === "surface.invoke") observed = JSON.stringify(event.intent); }} />`;
 
 for (const width of [390, 1280]) test(`a real Continue footer remains executable at ${width}px`, async () => {
   const f = await svelteBrowser(source); const { page } = f;

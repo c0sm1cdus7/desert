@@ -17,7 +17,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
         for (const [code, expected] of [['USD', '$'], ['ARS', '$'], ['EUR', '€'], ['JPY', '¥']] as const) {
           const option = options.getByRole('option', { name: code, exact: true });
           assert.equal(await option.locator('[data-piece="face"]').count(), 0);
-          const symbol = option.locator('[data-currency-symbol]');
+          const symbol = option.locator('[data-choice-symbol]');
           assert.equal(await symbol.innerText(), expected);
           assert.deepEqual(await symbol.evaluate(el => {
             const css = getComputedStyle(el);
@@ -28,9 +28,11 @@ for (const colorScheme of ['light', 'dark'] as const) {
           const sheet = f.page.getByRole('dialog', { name: 'Amount currency', exact: true });
           const toolbar = sheet.locator('[data-piece="toolbar"][data-surface-slot="top"]');
           const close = toolbar.getByRole('button', { name: 'Close Amount currency', exact: true });
-          const title = toolbar.getByRole('heading', { name: 'Amount currency', exact: true });
-          assert.equal(await close.getAttribute('data-primitive'), 'action');
-          assert.equal(await close.getAttribute('data-button-face'), 'icon');
+          // The sheet's top bar says what it does and names the field it edits as its subtitle (laws 9c, 10a; third review).
+          const title = toolbar.getByRole('heading', { name: 'Choose an option', exact: true });
+          assert.equal(await toolbar.getByText('Amount currency', { exact: true }).isVisible(), true, 'the subtitle names the field');
+          assert.equal(await close.getAttribute('data-action'), '');
+          assert.equal(await close.getAttribute('data-action-face'), 'icon');
           const buttonBox = (await close.boundingBox())!, titleBox = (await title.boundingBox())!;
           assert.ok(buttonBox.x + buttonBox.width <= titleBox.x, 'close precedes the title');
           assert.equal(await toolbar.evaluate(el => getComputedStyle(el).borderBottomWidth), '0px');

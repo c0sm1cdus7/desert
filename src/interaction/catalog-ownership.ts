@@ -5,12 +5,12 @@ export const CatalogGroups = [
 ] as const;
 export type DiscoveryGroup = typeof CatalogGroups[number]['id'];
 export const CatalogFoundations = [
-  { id: 'pane', title: 'Pane + state', sources: ['src/svelte/pieces/pane-material.css'], rule: 'One material and perimeter; semantic states never repaint the pane.' },
-  { id: 'stack', title: 'Reading stack', sources: ['src/svelte/pieces/StackLayout.svelte'], rule: 'A transparent titled stack organizes content; reading stays visible.' },
-  { id: 'choice', title: 'Choice row', sources: ['src/svelte/pieces/ChoiceItem.svelte', 'src/svelte/pieces/ChoiceList.svelte'], rule: 'One divided anatomy; radio for one, checkbox for many. Hosts own commit semantics.' },
-  { id: 'well', title: 'Field well', sources: ['src/svelte/pieces/FieldWell.svelte'], rule: 'A single field boundary with persistent label and explicit feedback.' },
-  { id: 'action', title: 'Action', sources: ['src/svelte/pieces/Action.svelte'], rule: 'Stable geometry across ready, unavailable and pending; intent stays explicit.' },
-  { id: 'status', title: 'Status', sources: ['src/svelte/pieces/Availability.svelte'], rule: 'Status is readable text plus semantic foreground, never color alone.' },
+  { id: 'pane', title: 'Pane + state', sources: ['src/svelte/catalog/mechanisms/pane-material/pane-material.css'], rule: 'One material and perimeter; semantic states never repaint the pane.' },
+  { id: 'stack', title: 'Reading stack', sources: ['src/svelte/catalog/foundations/stack-layout/StackLayout.svelte'], rule: 'A transparent titled stack organizes content; reading stays visible.' },
+  { id: 'choice', title: 'Choice row', sources: ['src/svelte/catalog/foundations/choice/ChoiceAnatomy.svelte', 'src/svelte/catalog/foundations/choice/ChoiceRows.svelte'], rule: 'One divided anatomy; radio for one, checkbox for many. Hosts own commit semantics.' },
+  { id: 'well', title: 'Field well', sources: ['src/svelte/catalog/foundations/field/FieldWell.svelte'], rule: 'A single field boundary with persistent label and explicit feedback.' },
+  { id: 'action', title: 'Action', sources: ['src/svelte/catalog/foundations/action/Action.svelte'], rule: 'Stable geometry across ready, unavailable and pending; intent stays explicit.' },
+  { id: 'status', title: 'Status', sources: ['src/svelte/catalog/foundations/availability/Availability.svelte'], rule: 'Status is readable text plus semantic foreground, never color alone.' },
 ] as const;
 export type FoundationId = typeof CatalogFoundations[number]['id'];
 

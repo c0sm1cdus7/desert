@@ -1,10 +1,11 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { Frozen } from "../json.ts";
 import { AssetReferenceSchema } from '../assets/types.ts';
+import { ReferenceColorSchema } from './reference-color.ts';
 
 const closed = { additionalProperties: false };
 const text = () => Type.String({ minLength: 1 });
-export const ReferenceChoiceSchema=Type.Object({value:text(),label:text(),color:Type.Optional(Type.String())},closed);
+export const ReferenceChoiceSchema=Type.Object({value:text(),label:text(),color:Type.Optional(ReferenceColorSchema)},closed);
 export const ReferenceStateSchema=Type.Object({options:Type.Array(ReferenceChoiceSchema),loading:Type.Boolean(),busy:Type.Boolean(),
   uncertain:Type.Boolean(),createLabel:Type.Optional(text()),colors:Type.Array(text()),maxLength:Type.Integer({minimum:1}),error:Type.Optional(text())},closed);
 export const MediaReferenceStateSchema=Type.Object({options:Type.Array(Type.Object({value:text(),source:AssetReferenceSchema},closed)),

@@ -4,8 +4,8 @@ import { svelteBrowser } from '../fixtures/svelte-browser.ts';
 
 const source = `<script>
  import { onMount } from 'svelte';
- import { observePlaceHeading } from './src/svelte/pieces/place-heading-motion.ts';
- import { observePlaceFocus } from './src/svelte/pieces/place-focus.ts';
+ import { observePlaceHeading } from './src/svelte/catalog/foundations/shell/place-heading-motion.ts';
+ import { observePlaceFocus } from './src/svelte/catalog/foundations/surface/place-focus.ts';
  let viewport, heading, identity, owner;
  onMount(() => { const dock = observePlaceHeading(viewport, heading, identity);
  const focus = observePlaceFocus(viewport, owner); return () => { dock(); focus(); }; });

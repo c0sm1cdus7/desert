@@ -41,7 +41,7 @@ test("Notebook catalog shares whole-well activation without coupling currency an
     assert.equal(await trigger.locator('[data-field-value]').innerText(), "Second option");
     await f.page.screenshot({ path: `${directory}/notebook-whole-well-selected.png` });
 
-    const money = f.page.locator('[data-specimen="control.money:value"]');
+    const money = f.page.locator('[data-view-item="specimen:control.money:value"]');
     const amount = money.getByRole("textbox", { name: "Amount", exact: true });
     await amount.fill("123,40");
     await amount.blur();

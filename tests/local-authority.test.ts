@@ -6,6 +6,7 @@ import { compile } from "../src/compile.ts";
 import { openLocalController } from "../src/local.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { storedObjects } from "../src/testing/stored-objects.ts";
 import { notebookDefinition, protocolNotebookDefinition } from "./fixtures/notebook.ts";
 
 let cluster: ReturnType<typeof postgresCluster>;
@@ -35,10 +36,10 @@ test("invalid input, forged confirmation and wrong run kind never write a note",
     const read = await f.session.begin("read-note");
     await assert.rejects(f.session.prepare(read.id, {}), /NOT_A_MUTATION_JOURNEY/);
     await assert.rejects(f.session.prepare(run.id, { title: "Changed", body: "Valid" }), /INTENT_CONFLICT/);
-    assert.equal((await f.admin.query("SELECT count(*) FROM desert_objects")).rows[0].count, "0");
+    assert.equal((await storedObjects(f.admin, f.app)).length, 0);
     assert.deepEqual(await f.session.prepare(run.id, { body: "Valid", title: "Hi" }), intent);
     await f.session.accept(intent.id, intent.confirmationDigest);
-    assert.equal((await f.admin.query("SELECT facts ->> 'owner' AS owner FROM desert_objects")).rows[0].owner, f.identity.id);
+    assert.equal((await storedObjects(f.admin, f.app))[0]!.facts.owner, f.identity.id);
   } finally { await f.close(); }
 });
 
@@ -52,7 +53,7 @@ test("revocation and expiration are enforced after preparation, with no partial 
       if (reason === "identity-expired") await f.admin.query("UPDATE desert_identities SET expires_at = clock_timestamp() - interval '1 second'");
       if (reason === "run-expired") await f.admin.query("UPDATE desert_runs SET expires_at = clock_timestamp() - interval '1 second'");
       await assert.rejects(f.session.accept(intent.id, intent.confirmationDigest), /UNAUTHENTICATED|RUN_EXPIRED/);
-      assert.equal((await f.admin.query("SELECT count(*) FROM desert_objects")).rows[0].count, "0");
+      assert.equal((await storedObjects(f.admin, f.app)).length, 0);
       assert.equal((await f.admin.query("SELECT count(*) FROM desert_receipts")).rows[0].count, "0");
     } finally { await f.close(); }
   }
@@ -75,7 +76,7 @@ test("surface binding, exact installation digest and declared dependency support
     await assert.rejects(openLocalController(compile(unsupported), { ...f.database, roles: ["notes"] }), /UNSUPPORTED_LOCAL_DEPENDENCY/);
     await assert.rejects(openLocalController({ ...f.app }, { ...f.database, roles: ["notes"] }), /UNCOMPILED_APPLICATION/);
     await assert.rejects(openLocalController(f.app, { ...f.database, socketDirectory: "localhost", roles: ["notes"] }), /LOCAL_SOCKET_REQUIRED/);
-    assert.equal((await f.admin.query("SELECT count(*) FROM desert_objects")).rows[0].count, "0");
+    assert.equal((await storedObjects(f.admin, f.app)).length, 0);
   } finally { await f.close(); }
 });
 

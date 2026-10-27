@@ -28,7 +28,7 @@ test("mobile dark drawer follows a drag, springs back, respects reduced motion a
     await f.page.setViewportSize({ width: 390, height: 844 });
     await f.page.emulateMedia({ colorScheme: "dark" });
     await openCatalog(f.page);
-    const trigger = f.page.locator('[data-specimen="transient:open"]').getByRole("button");
+    const trigger = f.page.locator('[data-view-item="specimen:transient:open"]').getByRole("button");
     await trigger.click();
     const dialog = f.page.getByRole("dialog", { name: "Diagnostic transient", exact: true });
     const grip = dialog.getByRole("button", { name: "Close panel", exact: true });
@@ -55,7 +55,7 @@ test("mobile dark drawer follows a drag, springs back, respects reduced motion a
     await f.page.mouse.up();
     await dialog.waitFor({ state: "hidden" });
     await f.page.emulateMedia({ reducedMotion: "reduce" });
-    await f.page.locator('[data-specimen="transient:locked"]').getByRole("button").click();
+    await f.page.locator('[data-view-item="specimen:transient:locked"]').getByRole("button").click();
     assert.equal(await dialog.evaluate(node => getComputedStyle(node).animationName), "none");
     await f.page.keyboard.press("Escape");
     assert.equal(await dialog.isVisible(), true);

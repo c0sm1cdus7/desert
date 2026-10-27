@@ -4,7 +4,7 @@ import { compile } from "../../src/compile.ts";
 import { Notebook } from "../../products/notebook/product.ts";
 import { viewProgramModel } from "../../src/web/client/view-program.ts";
 import { program, surface } from "./view-program.ts";
-import type { BankEvent } from "../../src/interaction/bank-events.ts";
+import type { NodeEvent } from "../../src/interaction/node-events.ts";
 import { captureViewEvents } from "./owned-view-events.ts";
 import { TransportError, webTransport, type ControllerTransport } from "../../src/web/client/transport.ts";
 
@@ -79,6 +79,6 @@ export async function runtimeFixture(t: TestContext, options: {
   t.after(() => model.stop());
   await model.start();
   await until(() => model.snapshot().state.availability.journeys[program.journeys[2].id]?.dependenciesReady === true);
-  const emit = (event: BankEvent) => captureViewEvents(model)(event);
+  const emit = (event: NodeEvent) => captureViewEvents(model)(event);
   return { model, calls, records, emit, connection };
 }

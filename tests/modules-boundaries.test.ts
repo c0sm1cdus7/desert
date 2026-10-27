@@ -1,16 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { defineModule } from "../src/modules/definition.ts";
-import { moduleCatalog } from "../src/index.ts";
+import { moduleIndex } from "../src/index.ts";
 import { Note, OnlyOwnerCanAccess, NotesController, CreateNote, ReadNote } from "./fixtures/notebook-domain.ts";
-import { CreateNoteExperience, ReadNotesExperience, NotesDestination, NotesView, NoteView, NoteEditorView } from "./fixtures/authored-view-program.ts";
+import { CreateNoteJourney, ReadNotesJourney, NotesDestination, NotesView, NoteView, NoteEditorView } from "./fixtures/authored-view-program.ts";
 import { authorFixture } from "./fixtures/author-fixture.ts";
 
 export const notesDefinition = {
   id: "notes", objects: [Note], dependencies: [NotesController], policies: [OnlyOwnerCanAccess],
   journeys: [
-    { execution: CreateNote, presentation: CreateNoteExperience },
-    { execution: ReadNote, presentation: ReadNotesExperience },
+    { execution: CreateNote, presentation: CreateNoteJourney },
+    { execution: ReadNote, presentation: ReadNotesJourney },
   ],
   views: [NotesView, NoteView, NoteEditorView],
   destinations: [NotesDestination],
@@ -43,20 +43,20 @@ test("A module cannot own policy, command or dependency references belonging els
   assert.throws(() => defineModule({ ...notesDefinition, objects: [] }), { message: "FOREIGN_MODULE_OBJECT" });
   assert.throws(() => defineModule({ ...notesDefinition, dependencies: [], exports: {} } as never), { message: "FOREIGN_MODULE_DEPENDENCY" });
   const changed = { ...CreateNote, command: { ...CreateNote.command, object: "other" } };
-  const read = { ...ReadNotesExperience, outputs: [
-    { ...ReadNotesExperience.outputs[0], action: { kind: "journey", journey: changed } },
-    ...ReadNotesExperience.outputs.slice(1),
+  const read = { ...ReadNotesJourney, outputs: [
+    { ...ReadNotesJourney.outputs[0], action: { kind: "journey", journey: changed } },
+    ...ReadNotesJourney.outputs.slice(1),
   ] } as const;
   assert.throws(() => defineModule({ ...notesDefinition, journeys: [
-    { execution: changed, presentation: CreateNoteExperience }, { execution: ReadNote, presentation: read },
+    { execution: changed, presentation: CreateNoteJourney }, { execution: ReadNote, presentation: read },
   ], exports: {} }), { message: "FOREIGN_MODULE_OBJECT" });
 });
 
 test("Presentation references remain local inside a module, even if another module exports them", () => {
-  const foreign = moduleCatalog([defineModule(authorFixture({ id: "elsewhere", views: [NoteEditorView],
+  const foreign = moduleIndex([defineModule(authorFixture({ id: "elsewhere", views: [NoteEditorView],
     exports: { views: { Editor: NoteEditorView } } }))]);
   const journeys = [{ ...notesDefinition.journeys[0], presentation: {
-    ...CreateNoteExperience, view: foreign.views.Editor,
+    ...CreateNoteJourney, view: foreign.views.Editor,
   } }, notesDefinition.journeys[1]];
   assert.throws(() => defineModule({ ...notesDefinition, journeys } as never), { message: "CROSS_MODULE_REFERENCE" });
   assert.throws(() => defineModule({ ...notesDefinition, views: [NotesView, NoteView] } as never),

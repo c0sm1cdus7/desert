@@ -1,18 +1,20 @@
 import { randomUUID } from "node:crypto";
+import type { Static } from "@sinclair/typebox";
 import type { PoolClient } from "pg";
 import type { Run } from "../local/types.ts";
 import { requirePrivateAssetInstallation } from "./installation.ts";
 import { assetReservationBytes } from "./policy.ts";
-import { requireAssetReference, type PrivateAssetMetadata } from "./types.ts";
+import { requireAssetReference } from "./types.ts";
+import type { MediaType } from "../media/rendition-policy.ts";
+import type { assetsTable } from "../storage/tables/assets.ts";
 
-export type AssetScope = Readonly<{ actor: string; surface: string; runId: string; inputField: string; contractDigest: string; storeId: string; media?:"image"|"media" }>;
-export type AssetRecord = {
-  id: string; actor: string; run_id: string; input_field: string; contract_digest: string; store_id: string;
-  state: "reserved" | "uploading" | "ready" | "failed" | "attached";
-  declared_size: number; reserved_bytes: string; metadata: PrivateAssetMetadata | null;
-};
+/** Which staged file: the run and input it was reserved for, by whom, in which store. */
+export type AssetKey = Readonly<{ actor: string; surface: string; runId: string; inputField: string; contractDigest: string; storeId: string }>;
+/** An admitted file input (src/assets/admission.ts): its key and its fact's accepted media types and size limit. */
+export type AssetScope = AssetKey & Readonly<{ accept: readonly MediaType[]; maxBytes: number }>;
+export type AssetRecord = Static<typeof assetsTable.row>;
 
-export async function requireAssetRun(client: PoolClient, scope: AssetScope, state: Run["state"] = "admitted") {
+export async function requireAssetRun(client: PoolClient, scope: AssetKey, state: Run["state"] = "admitted") {
   requireAssetReference(scope.runId); requireAssetReference(scope.actor);
   if (typeof scope.inputField !== "string" || !scope.inputField.length || scope.inputField.length > 256) throw new Error("INVALID_ASSET_INPUT");
   const { rows: [run] } = await client.query<Run>(
@@ -25,7 +27,7 @@ export async function requireAssetRun(client: PoolClient, scope: AssetScope, sta
   return run;
 }
 export async function reservePrivateAsset(client: PoolClient, scope: AssetScope, declaredSize: number) {
-  const reservedBytes = assetReservationBytes(declaredSize);
+  const reservedBytes = assetReservationBytes(declaredSize, scope.maxBytes);
   await requireAssetRun(client, scope);
   const quota = await requirePrivateAssetInstallation(client, scope.storeId, undefined, true);
   const { rows: [existing] } = await client.query<AssetRecord>(
@@ -48,7 +50,7 @@ export async function reservePrivateAsset(client: PoolClient, scope: AssetScope,
   [randomUUID(), scope.storeId, scope.actor, scope.runId, scope.inputField, scope.contractDigest, declaredSize, reservedBytes]);
   return row!;
 }
-export async function privateAssetRecord(client: PoolClient, scope: AssetScope, reference: string) {
+export async function privateAssetRecord(client: PoolClient, scope: AssetKey, reference: string) {
   requireAssetReference(reference);
   const { rows: [row] } = await client.query<AssetRecord>(`SELECT * FROM desert_assets WHERE id = $1 AND actor = $2
     AND run_id = $3 AND input_field = $4 AND contract_digest = $5 AND store_id = $6 FOR UPDATE`,

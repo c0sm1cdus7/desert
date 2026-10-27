@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { directSearchFixture, searchFixture, searchLabel } from "./fixtures/search-field-anatomy.ts";
+import { ResolvedNodes } from "../src/interaction/catalog.ts";
+import { sharedCatalogOwners } from "../src/svelte/infra/shared-owners.ts";
+import { sharedPurpose } from "../src/svelte/infra/shared-purpose.ts";
 
 for (const consumer of ["collection", "catalog"] as const) {
   test(`${consumer}: toolbar overlay search has a persistent leading icon and one embedded clear accessory`, async () => {
@@ -61,7 +64,7 @@ for (const consumer of ["collection", "catalog"] as const) {
       assert.equal(await search.count(), 1);
       await search.fill("no-such-component-or-record-713");
       await f.page.getByText("No matching results", { exact: true }).waitFor();
-      assert.equal(await f.page.locator("[data-catalog-search-scroll] [data-search-result]").count(), 0);
+      assert.equal(await f.page.locator("[data-catalog-search-scroll] [data-focus-key^='search:']").count(), 0);
       const clear = f.page.locator("[data-search-field]").getByRole("button", { name: "Clear search", exact: true });
       assert.equal(await clear.count(), 1, "zero results retain the embedded recovery action");
       assert.equal(await f.page.getByRole("button", { name: "Clear search", exact: true }).count(), 1);
@@ -71,12 +74,17 @@ for (const consumer of ["collection", "catalog"] as const) {
       await f.page.getByRole("heading", { name: `Search in ${consumer === "collection" ? "Notes" : "Component bank"}`, exact: true }).waitFor();
       await f.page.getByRole("button", { name: "Close search", exact: true }).click();
       assert.equal(await f.page.getByRole("searchbox").count(), 0);
-      if (consumer === "collection") assert.equal(await f.page.locator(".record-button").count(), 2);
+      if (consumer === "collection") assert.equal(await f.page.locator('[data-row-leading="attention"]').count(), 2);
       else {
-        const index = f.page.locator('[data-catalog-index]');
+        const index = f.page.locator('[data-view-item="catalog-index"]');
         assert.ok(await index.isVisible(), 'clearing discovery returns the complete component index');
-        assert.ok(await index.locator('[data-destination]').count() > 0);
-        assert.match(await index.getByRole('group', { name:'Coverage', exact:true }).innerText(), /Semantic components/);
+        assert.ok(await index.locator('[data-focus-key]').count() > 0);
+        // Coverage lives in each detail (catalog-inspector); the index is every group with every destination: each semantic
+        // entry of the group and each shared owner of the group that is not part of another, counted here from the data.
+        for (const group of ResolvedNodes.groups) assert.equal(
+          await index.getByRole('group', { name:group.title, exact:true }).locator('[data-focus-key]').count(),
+          ResolvedNodes.entries.filter(entry => entry.inspection.group === group.id).length
+            + sharedCatalogOwners.filter(owner => sharedPurpose[owner].group === group.id && !sharedPurpose[owner].partOf).length, group.title);
       }
       assert.deepEqual(f.errors, []);
     } finally { await f.close(); }

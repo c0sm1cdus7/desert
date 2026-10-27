@@ -26,7 +26,7 @@ test("real browser gates private workspace, initializes one admin, locks and sig
   let browser: Awaited<ReturnType<typeof svelteBrowser>> | undefined;
   try {
     browser = await svelteBrowser(`<script>
-      import AccessGate from '@desert/svelte/pieces/AccessGate.svelte';
+      import AccessGate from '@desert/svelte/catalog/compositions/access-gate/AccessGate.svelte';
       history.replaceState(null, '', ${JSON.stringify(new URL(server.launchUrl).hash)});
       const surface = ${JSON.stringify(application.surface("human"))};
       const viewProgram = ${JSON.stringify(viewProgram)};

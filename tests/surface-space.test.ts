@@ -7,8 +7,8 @@ import { rendererCss } from "./fixtures/renderer-css.ts";
 // an additional readable Place; these are independent space budgets.
 async function fixture() {
   const f = await svelteBrowser(`<script lang="ts">
-    import Drawer from '@desert/svelte/pieces/Drawer.svelte';
-    import { provideSurfaceHost } from '@desert/svelte/pieces/surface-host.svelte.ts';
+    import TransientNode from '@desert/svelte/catalog/renderer/node-renderer/NodeRenderer.svelte';
+    import { provideSurfaceHost } from '@desert/svelte/catalog/mechanisms/surface-host/surface-host.svelte.ts';
     import { SurfaceFrameVersion } from '@desert/interaction/surface-frame.ts';
     let host = $state<HTMLElement|null>(null), open = $state(false);
     provideSurfaceHost(() => host);
@@ -16,7 +16,7 @@ async function fixture() {
       content:{kind:'information',items:[{kind:'text',text:'Keep the source context visible.'}]},bottom:{}};
   </script><main bind:this={host} data-surface-host style="width:900px">
     <button onclick={()=>open=true}>Open task</button>
-    <Drawer label="Context" {frame} {open} onclose={()=>open=false} invoke={()=>{}} />
+    <TransientNode node={{version:'desert.bank-node/1',kind:'transient',label:'Context',open,locked:false,frame}} onevent={event=>{if(event.kind==='transient.close')open=false;}} />
   </main>`);
   await f.page.setViewportSize({ width: 1400, height: 900 });
   await f.page.emulateMedia({ reducedMotion: "reduce" });

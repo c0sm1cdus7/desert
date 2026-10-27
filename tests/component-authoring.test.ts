@@ -3,21 +3,23 @@ import test from "node:test";
 import { Components, ViewTitles, defineView } from "../src/views/components.ts";
 import { viewPorts } from "../src/views/authoring-ports.ts";
 import { authoredViewData } from "../src/views/authored-view.ts";
+import type { Message } from "../src/views/definition.ts";
 import { defineModule } from "../src/modules/definition.ts";
 import { composeProduct } from "../src/modules/compose.ts";
 import { authoredNotebookSource } from "./fixtures/authored-notebook.ts";
+import { fixtureText } from "./fixtures/messages.ts";
 
 test("typed components compose independent content and derive stable internal identities", () => {
   const ports = viewPorts({ inputs: { notes: "collection" }, outputs: ["select"] });
   const make = () => defineView({ name: "notes", outputs: ports.outputs, content: [
-    Components.Header({ title: "Notes" }),
+    Components.Header({ title: fixtureText.notes }),
     Components.Text({ text: "Introduction" }),
-    Components.Stack({ title: "All notes", items: [
+    Components.Stack({ title: fixtureText.allNotes, items: [
       Components.Collection({ input: ports.inputs.notes, output: ports.output.select }),
     ] }),
   ] });
   const first = authoredViewData(make());
-  defineView({ name: "unrelated", content: [Components.Header({ title: "Elsewhere" })] });
+  defineView({ name: "unrelated", content: [Components.Header({ title: fixtureText.elsewhere })] });
   assert.deepEqual(authoredViewData(make()), first);
   assert.deepEqual(first.content.map(item => item.kind), ["header", "text", "stack"]);
   const header = first.content[0];
@@ -55,9 +57,9 @@ test("component authoring rejects raw descriptors, consumer geometry and manual 
 test("canonical constraints still reject illegal composition and undeclared outputs", () => {
   const unsafeStack = Components.Stack as (value: unknown) => unknown;
   const unsafeView = defineView as (value: unknown) => unknown;
-  assert.throws(() => unsafeStack({ title: "Content", items: [Components.Header({ title: "Nested" })] }), /INVALID_COMPONENT_PROPERTIES/);
+  assert.throws(() => unsafeStack({ title: "Content", items: [Components.Header({ title: fixtureText.nested })] }), /INVALID_COMPONENT_PROPERTIES/);
   assert.throws(() => unsafeView({ name: "notes", content: [],
-    topDock: Components.Toolbar({ actions: [{ output: "missing", label: "Save", icon: "save" }] }),
+    topDock: Components.Toolbar({ actions: [{ output: "missing", label: fixtureText.save, icon: "save" }] }),
   }), /UNDECLARED_VIEW_OUTPUT/);
   const ports = viewPorts({ inputs: { draft: "form" }, outputs: [] });
   const unsafeCollection = Components.Collection as (value: unknown) => unknown;
@@ -67,45 +69,45 @@ test("canonical constraints still reject illegal composition and undeclared outp
 test("toolbar action properties remain closed at runtime even when passed through variables", () => {
   const unsafeToolbar = Components.Toolbar as (value: unknown) => unknown;
   for (const extra of [{ class: "p-0" }, { style: "padding:0" }, { padding: undefined }]) {
-    const action = { output: "save", label: "Save", icon: "save", ...extra };
+    const action = { output: "save", label: fixtureText.save, icon: "save", ...extra };
     assert.throws(() => unsafeToolbar({ actions: [action] }), /INVALID_COMPONENT_PROPERTIES/);
   }
-  const toolbar = Components.Toolbar({ actions: [{ output: "save", label: "Save", icon: "save" }] });
-  assert.deepEqual(toolbar, { kind: "toolbar", actions: [{ output: "save", label: "Save", icon: "save" }] });
+  const toolbar = Components.Toolbar({ actions: [{ output: "save", label: fixtureText.save, icon: "save" }] });
+  assert.deepEqual(toolbar, { kind: "toolbar", actions: [{ output: "save", label: fixtureText.save, icon: "save" }] });
 });
 
 test("untyped output declarations still pass through canonical membership validation", () => {
   const unsafeView = defineView as (value: unknown) => unknown;
   const ports = viewPorts({ inputs: { records: "collection" }, outputs: ["select"] });
-  const toolbar = Components.Toolbar({ actions: [{ output: "select", label: "Select", icon: "open" }] });
+  const toolbar = Components.Toolbar({ actions: [{ output: "select", label: fixtureText.select, icon: "open" }] });
   const collection = Components.Collection({ input: ports.inputs.records, output: ports.output.select });
   const variants = [
     { topDock: toolbar, content: [] }, { bottomDock: toolbar, content: [] },
-    { content: [collection] }, { content: [Components.Stack({ title: "Records", items: [collection] })] },
+    { content: [collection] }, { content: [Components.Stack({ title: fixtureText.records, items: [collection] })] },
   ];
   for (const variant of variants) {
     assert.throws(() => unsafeView({ name: "records", outputs: ["other"], ...variant }), /UNDECLARED_VIEW_OUTPUT/);
   }
   assert.deepEqual(authoredViewData(defineView({ name: "records", outputs: ports.outputs,
-    content: [Components.Stack({ title: "Records", items: [collection] })] })), {
+    content: [Components.Stack({ title: fixtureText.records, items: [collection] })] })), {
     version: "desert.view/1", id: "records", outputs: ["select"], content: [{ kind: "stack", id: "content.0",
-      title: "Records", items: [{ kind: "collection", id: "content.0.items.0", input: "records", output: "select" }] }],
+      title: fixtureText.records, items: [{ kind: "collection", id: "content.0.items.0", input: "records", output: "select" }] }],
   });
 });
 
 test("component values snapshot authored properties without getters or later mutations", () => {
-  const source = { title: "Original" };
+  const source: { title: Message } = { title: fixtureText.original };
   const header = Components.Header(source);
-  source.title = "Changed";
+  source.title = fixtureText.changedWorkspace;
   const result = defineView({ name: "notes", content: [header] });
-  assert.equal(result.content[0]?.title, "Original");
+  assert.deepEqual(result.content[0]?.title, fixtureText.original);
   let invoked = false;
-  assert.throws(() => Components.Header({ get title() { invoked = true; return "Forbidden"; } }), /INVALID_COMPONENT_PROPERTIES/);
+  assert.throws(() => Components.Header({ get title() { invoked = true; return fixtureText.original; } }), /INVALID_COMPONENT_PROPERTIES/);
   assert.equal(invoked, false);
 });
 
 test("module admission requires real component-authored Views rather than matching wire data", () => {
-  const view = defineView({ name: "home", content: [Components.Header({ title: "Home" })] });
+  const view = defineView({ name: "home", content: [Components.Header({ title: fixtureText.home })] });
   for (const forged of [{ ...view }, structuredClone(view), authoredViewData(view)]) {
     assert.throws(() => defineModule({ id: "raw", views: [forged] } as never), /VIEW_COMPONENT_AUTHORING_REQUIRED/);
   }

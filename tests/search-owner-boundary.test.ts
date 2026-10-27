@@ -25,19 +25,19 @@ test("production search controls have exactly one toolbar owner and no inline al
     : (await sources(resolve(root, "src/svelte"))).map(file => relative(root, file));
   for (const path of paths) {
     const source = await sourceText(path);
-    if (/\bfrom\s*["'][^"']*SearchField\.svelte["']/.test(source)) consumers.push(path);
     if (/(?:\btype|\brole)\s*=\s*(?:["'](?:search|searchbox)["']|\{\s*["'](?:search|searchbox)["']\s*\})/.test(source))
       rawControls.push(path);
+    // The search well is Field's search purpose (SearchField was deleted in Batch 3): who asks for it owns a search.
+    if (/\bpurpose="search"/.test(source)) consumers.push(path);
   }
-  assert.deepEqual(consumers.sort(), ["src/svelte/pieces/ToolbarSearch.svelte"],
-    "SearchField belongs only to the expanding toolbar; no collection, catalog or product may create another owner");
-  assert.deepEqual(rawControls.sort(), ["src/svelte/pieces/SearchField.svelte"],
-    "raw search controls belong only to the shared SearchField primitive");
+  assert.deepEqual(consumers.sort(), ["src/svelte/catalog/foundations/bar/BarSearch.svelte"],
+    "the search field belongs only to the expanding toolbar; no collection, catalog or product may create another owner");
+  assert.deepEqual(rawControls.sort(), ["src/svelte/catalog/foundations/field/SearchWell.svelte"],
+    "raw search controls belong only to the shared search primitive: Field's search well");
 });
 
 test("catalog content cannot receive a query or filter its retained inventory", async () => {
-  for (const path of ["src/svelte/explorer/PublicCatalogBank.svelte", "src/svelte/views/InspectionContent.svelte",
-    "src/svelte/catalog/CatalogNavigation.svelte"]) {
+  for (const path of ["src/svelte/catalog/renderer/public-catalog-bank/PublicCatalogBank.svelte", "src/svelte/catalog/renderer/inspection-content/InspectionContent.svelte"]) {
     const source = await sourceText(path);
     assert.doesNotMatch(source, /\bquery\b|\bmatchingEntries\b|\bbind:query\b/,
       `${path} is display content, not a search provider or query consumer`);

@@ -45,7 +45,7 @@ for (const scheme of ["light", "dark"] as const) test(`frozen inputs share clear
     const find = page.getByRole("searchbox", { name: "Find component", exact: true });
     for (const primitive of ["input.text", "input.multiline"]) {
       await find.fill(primitive);
-      const specimen = page.locator(`[data-specimen="${primitive}:value"]`);
+      const specimen = page.locator(`[data-view-item="specimen:${primitive}:value"]`);
       const editor = specimen.getByRole("textbox");
       const clear = specimen.getByRole("button", { name: "Clear Local writing example", exact: true });
       await editor.fill("A thought worth keeping 💡");
@@ -62,7 +62,7 @@ for (const scheme of ["light", "dark"] as const) test(`frozen inputs share clear
       assert.equal(await find.inputValue(), primitive, "Clearing a specimen does not clear the catalog filter");
     }
     await find.fill("control.money");
-    const money = page.locator('[data-specimen="control.money:empty"]');
+    const money = page.locator('[data-view-item="specimen:control.money:empty"]');
     const amount = money.getByRole("textbox", { name: "Amount", exact: true });
     const currency = money.getByRole("button", { name: / · Amount currency$/ });
     await currency.click(); await page.getByRole("option", { name: "USD", exact: true }).click();
@@ -83,18 +83,18 @@ for (const scheme of ["light", "dark"] as const) test(`frozen inputs share clear
     assert.equal(await amount.getAttribute("aria-invalid"), "false", "Clear works after a rejected edit");
 
     await find.fill("control.select");
-    const selection = page.locator('[data-specimen="control.select:available"]');
+    const selection = page.locator('[data-view-item="specimen:control.select:available"]');
     await selectionTrigger(page, "Single choice").click();
     await page.getByRole("option", { name: "Second option", exact: true }).click();
     assert.match(await selection.innerText(), /Second option/);
     assert.equal(await selection.locator("[data-input-clear]").count(), 0);
     await find.fill("control.date");
-    const calendar = page.locator('[data-specimen="control.date:calendar"]');
+    const calendar = page.locator('[data-view-item="specimen:control.date:calendar"]');
     await calendar.waitFor({ state: "visible" });
     assert.equal(await calendar.locator("[data-input-clear]").count(), 0);
 
     await find.fill("collection");
-    const collection = page.locator('[data-specimen="collection:records"]');
+    const collection = page.locator('[data-view-item="specimen:collection:records"]');
     const local = collection.getByRole("searchbox", { name: "Search loaded records", exact: true });
     await local.fill("Fuji");
     await collection.getByRole("button", { name: "Clear search", exact: true }).click();

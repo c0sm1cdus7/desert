@@ -4,9 +4,20 @@ Generated from the bundled SDK documentation; do not edit this snapshot.
 
 ## Source: docs/STATUS.md
 
-Source SHA-256: f7d94fa7dbb9813e76be69c82e8b57edcc2e41e81d8d2fefe977ee7fafdffa9e
+Source SHA-256: 96faede0237dfe1ffb4c543f097f9f042f7bcbe8e6b28314f7b8320f3b048910
 
 # Implementation status — 2026-10-22
+
+## External review checkpoint on 2026-10-23
+
+The owner requested a source snapshot and independent external proposal for visual
+catalog enforcement. The handoff (SDK file: `docs/HANDOFF-VISUAL-ENFORCEMENT-2026-10-23.md`) records
+current counterexamples, requirements and acceptance gates. Shared compositions
+can still reconstruct visual blocks outside the approved foundation model;
+the normal build's partial checks do not establish global ownership. This snapshot
+is **NOT QUALIFIED** and contains known defects. No product tests or browser build
+were rerun as part of preparing the handoff. Preserve the historical evidence
+below with its original artifact/scope; do not use its totals to certify this source.
 
 ## Current source: one composed product path
 
@@ -57,6 +68,25 @@ private album management, video/audio imports, identity recovery/OAuth, canonica
 identity administration, remote environments/provider execution or native binaries.
 The SDK anatomy (SDK file: `docs/architecture/ANATOMY.md`) and VOID anatomy (SDK file: `../void/docs/ANATOMY.md`)
 map actual owners and remaining boundaries.
+
+## Files are objects — storage slice 7.4/7.5, 2026-10-26
+
+A file fact is `file({ accept, maxBytes })`; `imageAsset()`/`mediaAsset()` are gone.
+The accepted media types (images, MP4 video and audio, MP3, WAV, PDF, ZIP) and
+their renditions are declared once in the
+media policy (SDK file: `src/media/rendition-policy.ts`). A product with a file fact gets
+the SDK-declared `asset` object (its typed table is generated like any object's);
+each file column is a foreign key to it. An upload under the journey's run writes
+the file and its image renditions as ready asset objects of the uploader; the
+accept that writes the owning object attaches them in the same transaction. Bytes
+are admitted by content only and read through the authenticated controller; a
+document or archive is served as an attachment. The reservation and transfer
+states stay in the staging ledger. Not installed: the asset object's detail as a
+rendered View (the runtime read `session.asset` returns its facts), file bytes on
+the content-addressed blob store (they remain on the private disk store), and
+browser choosers narrowed to a fact's exact types and size limit (the controller
+enforces both). The bucket adapter's contract runs against a pinned Garage server
+in a container, locally and in CI. Guard: `tests/storage-files.test.ts`.
 
 ## Historical checkpoints — not current authoring instructions
 
@@ -432,10 +462,10 @@ ownership closure remain open. Evidence is recorded in VOID's
 
 The public string-reference helpers described in this historical checkpoint were
 superseded by the object-reference authoring contract at the top of this document.
-`viewCatalog` remains an internal wire validator, not a public authoring alternative.
+`viewIndex` remains an internal wire validator, not a public authoring alternative.
 
 The working branch adds `desert.view/1` and exported `View`, `view` and
-`viewCatalog`. Content is an ordered sequence: a standalone Header, titled
+`viewIndex`. Content is an ordered sequence: a standalone Header, titled
 Stacks and permitted passive catalog leaves. Top/bottom docks accept Toolbar
 output descriptors; side docks reference Views by ID. Outputs cannot name
 journeys/commands, and input bindings, editable controls and collections are

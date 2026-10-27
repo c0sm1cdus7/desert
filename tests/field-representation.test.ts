@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { WorkspaceView, workspaceViews } from "./fixtures/workspace-view.ts";
 import { compile } from "../src/compile.ts";
-import { humanSurface } from "../src/surfaces.ts";
+import { humanExposure } from "../src/exposures.ts";
 import { composeProduct } from "../src/modules/compose.ts";
 import { authoredNotebookSource } from "./fixtures/authored-notebook.ts";
 import { compileViewProgram } from "../src/views/program.ts";
@@ -59,7 +59,7 @@ test("Representation projections are immutable snapshots and never depend on lat
 test("Human exposure rejects input primitive maps rather than reinterpreting them", () => {
   const declaration = { id: "human", journeys: [CreateNote, ReadNote, ArchiveNote], locale: "en" };
   for (const inputs of [{ "note.body": "input.multiline" }, undefined, null]) {
-    assert.throws(() => Reflect.apply(humanSurface, undefined, [{ ...declaration, inputs }]), /SURFACE_SEMANTICS_FORBIDDEN/);
+    assert.throws(() => Reflect.apply(humanExposure, undefined, [{ ...declaration, inputs }]), /SURFACE_SEMANTICS_FORBIDDEN/);
   }
   const { definition, surface } = candidate();
   Object.assign(surface, { inputs: { "note.body": "input.multiline" } });
@@ -72,7 +72,7 @@ test("Human field representations derive from object publication, never a surfac
   const human = product.definition.surfaces?.find(surface => surface.kind === "human");
   assert.ok(human?.kind === "human");
   assert.deepEqual(human.fieldRepresentations, { "note.title": "text", "note.body": "paragraphs", "note.state": "text" });
-  const candidate = { ...source, surfaces: source.surfaces.map(surface => surface.kind === "human"
+  const candidate = { ...source, exposures: source.exposures.map(surface => surface.kind === "human"
     ? { ...surface, fieldRepresentations: human.fieldRepresentations } : surface) };
   assert.throws(() => Reflect.apply(composeProduct, undefined, [candidate]), /SURFACE_SEMANTICS_FORBIDDEN/);
 });
@@ -107,10 +107,10 @@ test("Field kinds are derived even for a literal mutation effect without any exp
 
 test("No authoring boundary accepts derived field kind metadata, including undefined", () => {
   for (const fieldKinds of [{ "note.body": "text" }, undefined, null]) {
-    assert.throws(() => Reflect.apply(humanSurface, undefined, [{ id: "human", journeys: [ReadNote], locale: "en", fieldKinds }]),
+    assert.throws(() => Reflect.apply(humanExposure, undefined, [{ id: "human", journeys: [ReadNote], locale: "en", fieldKinds }]),
       /SURFACE_SEMANTICS_FORBIDDEN/);
     const source = authoredNotebookSource();
-    assert.throws(() => Reflect.apply(composeProduct, undefined, [{ ...source, surfaces: source.surfaces.map(surface =>
+    assert.throws(() => Reflect.apply(composeProduct, undefined, [{ ...source, exposures: source.exposures.map(surface =>
       surface.kind === "human" ? { ...surface, fieldKinds } : surface) }]), /SURFACE_SEMANTICS_FORBIDDEN/);
     const { definition, surface } = candidate();
     Object.assign(surface, { fieldKinds });

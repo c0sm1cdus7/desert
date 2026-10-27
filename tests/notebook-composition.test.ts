@@ -31,7 +31,7 @@ test("Notebook compiles its module and workspace together; scopes derive from th
 });
 
 test("Notebook's stable import bridges only re-export the canonical declarations", async () => {
-  for (const name of ["product", "note", "dependencies", "commands", "journeys", "surfaces"]) {
+  for (const name of ["product", "note", "dependencies", "commands", "journeys", "exposures"]) {
     const source = await readFile(new URL(`../products/notebook/${name}.ts`, import.meta.url), "utf8");
     assert.ok(source.trim().split("\n").every(line => /^export \{.*\} from "\.\/src\/.+";$/.test(line)), name);
   }

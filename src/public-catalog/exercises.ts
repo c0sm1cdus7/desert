@@ -1,4 +1,4 @@
-import { bankNode } from "../interaction/bank-node.ts";
+import { resolvedNode } from "../interaction/resolved-node.ts";
 import { PlaceContentSchema, placeContent, stackNodes, type PlaceContent } from "../interaction/place.ts";
 
 export const PublicCatalogExercisesSchema = PlaceContentSchema;
@@ -9,7 +9,7 @@ export function checkPublicCatalogExercises(exercises: PublicCatalogExercises, a
   placeContent(exercises);
   for (const stack of exercises.stacks) {
     for (const value of stackNodes(stack.items)) {
-      const node = bankNode(value);
+      const node = resolvedNode(value);
       if (node.kind === "catalog.card") {
         if (assets && node.image && !assets.has(node.image.asset)) throw new Error("INVALID_CATALOG_EXERCISE_ASSET_REFERENCE");
         if (records && !records.has(node.record)) throw new Error("INVALID_CATALOG_EXERCISE_RECORD_REFERENCE");

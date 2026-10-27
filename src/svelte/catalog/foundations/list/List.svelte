@@ -1,0 +1,22 @@
+<script lang="ts">
+  import type { CatalogProps } from "../../types.d.ts";
+  let { kind, measure, label, busy, children }: CatalogProps<"list"> = $props();
+</script>
+
+<!-- One shared pane for sibling rows or facts; the rows draw their own hairlines. -->
+{#if kind === "facts"}
+  <dl class="list list-facts material-pane" class:list-reading={measure === "reading"} data-list="facts" aria-label={label} aria-busy={busy}>
+    {@render children?.()}
+  </dl>
+{:else}
+  <div class="list list-rows material-pane" class:list-reading={measure === "reading"} data-list="rows"
+    role={label ? "group" : undefined} aria-label={label} aria-busy={busy}>{@render children?.()}</div>
+{/if}
+
+<style>
+  .list { width:100%; min-width:0; overflow:hidden; border-radius:var(--radius-group); }
+  .list-reading { max-width:34rem; }
+  .list-rows { display:flex; flex-direction:column; color:var(--card-foreground); }
+  /* Fact rows stack their label above the value when the pane is narrow. */
+  .list-facts { container:fact-group / inline-size; }
+</style>

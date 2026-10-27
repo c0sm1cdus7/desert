@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { existsSync } from 'node:fs';
-import { InteractionCatalog, requireCatalog } from '../src/interaction/catalog.ts';
+import { ResolvedNodes, requireCatalog } from '../src/interaction/catalog.ts';
 
 test('bank ownership and coverage are canonical, versioned and independently resolvable', () => {
-  assert.equal(InteractionCatalog.version, '0.5.0', 'Canonical taxonomy and connection fixtures carry an explicit catalog revision');
-  const catalog = InteractionCatalog as any;
+  assert.equal(ResolvedNodes.version, '0.5.0', 'Canonical taxonomy and connection fixtures carry an explicit catalog revision');
+  const catalog = ResolvedNodes as any;
   assert.deepEqual(catalog.groups.map((group: any) => group.title), ['Foundations', 'Compositions']);
   assert.ok(catalog.foundations.length >= 5);
   const owners = new Set(catalog.foundations.map((owner: any) => owner.id));

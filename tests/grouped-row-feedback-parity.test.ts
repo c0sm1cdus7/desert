@@ -5,6 +5,12 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 import { groupedRowsSource } from "./fixtures/grouped-rows.ts";
 
+/** Collections and context actions are Lists of Rows (composition lane C); choices are Choice's rows (lane B; the grouped
+ * panel and choice row foundations they drew before were deleted in Batch 3). */
+const listed = (family: string) => family === "collection" || family === "actions";
+const panelOf = (family: string) => listed(family) ? "[data-list]" : "[data-choice]";
+const rowOf = (family: string) => listed(family) ? "[data-row]" : "[data-choice-row]";
+
 const settle = (page: Page) => page.evaluate(async () => {
   await Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {})));
 });
@@ -22,8 +28,7 @@ test("action and choice rows share semantic hover, press, cancellation and disab
   const f = await svelteBrowser(groupedRowsSource);
   const families = ["collection", "actions", "options", "checks", "selection"];
   const target = (family: string) => {
-    const row = f.page.locator(`[data-test="${family}"] [data-grouped-row]`).nth(1);
-    return family === "collection" ? row.locator("[data-grouped-action]") : row;
+    return f.page.locator(`[data-test="${family}"] ${rowOf(family)}`).nth(1);
   };
   try {
     await f.page.addStyleTag({content:await rendererCss()});
@@ -47,7 +52,7 @@ test("action and choice rows share semantic hover, press, cancellation and disab
         try {
           await settle(f.page);
           assert.equal(await row.evaluate(node => getComputedStyle(node).backgroundImage),'none','press does not repaint the pane');
-          const scale = await row.evaluate(node => new DOMMatrix(getComputedStyle(node.querySelector('[data-button-content],[data-grouped-content]')!).transform).a);
+          const scale = await row.evaluate(node => new DOMMatrix(getComputedStyle(node.querySelector('[data-button-content],[data-choice-anatomy]')!).transform).a);
           assert.ok(Math.abs(scale - .96) < .001,`${profile}/${family}: shared held content feedback`);
           assert.notEqual(await row.evaluate(node => getComputedStyle(node).boxShadow),hoverShadow,'held feedback is distinct from hover');
           assert.deepEqual(await row.boundingBox(),before,"feedback does not resize its surface");

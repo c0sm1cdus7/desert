@@ -4,8 +4,8 @@ import { svelteBrowser } from "./fixtures/svelte-browser.ts";
 import { rendererCss } from "./fixtures/renderer-css.ts";
 
 const source = `<script lang="ts">
-  import SelectControl from "@desert/svelte/controls/SelectControl.svelte";
-  import MoneyControl from "@desert/svelte/controls/MoneyControl.svelte";
+  import SelectControl from "@desert/svelte/catalog/compositions/select-control/SelectControl.svelte";
+  import MoneyControl from "@desert/svelte/catalog/compositions/money-control/MoneyControl.svelte";
   import { controlNode, applyControlEvent } from "@desert/interaction/control-nodes.ts";
   let selection = $state.raw(controlNode({version:'desert.control/1',kind:'select',id:'delivery',label:'Delivery',
     disabled:false,required:true,value:'collect',options:[{value:'collect',label:'Collect',disabled:false},
@@ -91,7 +91,7 @@ test("currency activation preserves writing and exact numeric amount across scal
     assert.equal(owner.currency,'ARS'); assert.equal(owner.minorUnits,'123');
     assert.equal(await amount.inputValue(),'1.23');
     assert.equal(await f.page.getByRole('button',{name:'ARS · Amount currency',exact:true}).count(),1);
-    assert.match(await f.page.locator('[data-control="money"] [role="status"]').innerText(),/JPY/);
+    assert.match(await f.page.locator('[data-measure="amount"] [role="status"]').innerText(),/JPY/);
     await amount.fill('-');
     await f.page.getByRole('button',{name:'ARS · Amount currency',exact:true}).click();
     await f.page.getByRole('option',{name:'USD',exact:true}).click();
@@ -117,11 +117,11 @@ test("selection dismisses when focus moves to another field without stealing its
 
 test('dismissal never restores selection focus over another popover', async () => {
   const f=await svelteBrowser(`<script>
-    import SelectionField from '@desert/svelte/pieces/SelectionField.svelte';
+    import Choice from '@desert/svelte/catalog/foundations/choice/Choice.svelte';
     import * as Popover from '@desert/svelte/vendor/components/ui/popover/index.js';
     let unavailable=$state(false), details=$state(false);
-  </script><SelectionField selection="choice" label="Choice" value="first" disabled={unavailable}
-    options={[{value:'first',label:'First'}]} onchange={()=>{}}/>
+  </script><Choice presentation="menu" cardinality="one" menuTrigger="contextual" label="Choice" labelVisibility="visible" selected={["first"]}
+    disabled={unavailable} required={false} options={[{value:'first',label:'First',disabled:false}]} onchange={()=>{}}/>
     <Popover.Root bind:open={details}><Popover.Trigger onclick={()=>unavailable=true}>Other details</Popover.Trigger>
       <Popover.Content role="dialog" aria-label="Other details"><button>Other action</button></Popover.Content>
     </Popover.Root>`);

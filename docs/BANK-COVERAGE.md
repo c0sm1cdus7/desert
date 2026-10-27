@@ -35,7 +35,7 @@ is recorded in `EVIDENCE-016.md`.
 
 The authoritative declared inventory remains `src/interaction/catalog.ts`, with
 23 entries at revision 0.3.0, consumed by `src/svelte/renderer-registry.ts`. Nine control entries and
-their states derive from `src/interaction/control-bank.ts`. Catalog specimens are
+their states derive from `src/interaction/control-specimens.ts`. Catalog specimens are
 isolated demonstrations, not controller execution. Declared states are test
 obligations; listing them does not prove their visual or behavioral correctness.
 
@@ -71,7 +71,7 @@ principals; their existence does not provide matching human input controls.
 ## Newly integrated typed control bench — renderer-only
 
 Source: `src/interaction/control-nodes.ts`, `src/svelte/controls/`, and
-`src/svelte/catalog/ControlBench.svelte`. These are renderer-only entries in the
+`src/svelte/catalog/compositions/control-bench/ControlBench.svelte`. These are renderer-only entries in the
 same versioned bank; they are not admitted product form primitives.
 
 | Control | Present in source | Still required for product capability |

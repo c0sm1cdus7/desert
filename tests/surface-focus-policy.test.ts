@@ -5,7 +5,7 @@ import { rendererCss } from './fixtures/renderer-css.ts';
 
 test('repeated autofocus callbacks install only one boundary navigation handler', async () => {
   const f = await svelteBrowser(`<script>
-    import { surfaceFocus } from '@desert/svelte/pieces/surface-focus.svelte.ts';
+    import { surfaceFocus } from '@desert/svelte/catalog/mechanisms/surface-focus/surface-focus.svelte.ts';
     let surface=$state(null), received=$state(0);
     const first=surfaceFocus(()=>surface), second=surfaceFocus(()=>surface);
   </script><button onclick={()=>{first(new Event('open'));second(new Event('open'))}}>Open</button>
@@ -53,10 +53,10 @@ test('hidden and disabled fields never intercept keyboard entry into a surface',
 
 test('an unselected sheet enters its first enabled option before toolbar actions', async () => {
   const f = await svelteBrowser(`<script>
-    import SelectionField from '@desert/svelte/pieces/SelectionField.svelte';
-    </script><SelectionField selection="example" label="Choose" value={null}
-      options={[{value:'unavailable',label:'Unavailable',disabled:true},{value:'first',label:'First'},
-      {value:'second',label:'Second'}]} onchange={()=>{}}/>`);
+    import Choice from '@desert/svelte/catalog/foundations/choice/Choice.svelte';
+    </script><Choice presentation="menu" cardinality="one" menuTrigger="contextual" label="Choose" labelVisibility="visible" selected={[]}
+      disabled={false} required={false} options={[{value:'unavailable',label:'Unavailable',disabled:true},{value:'first',label:'First',disabled:false},
+      {value:'second',label:'Second',disabled:false}]} onchange={()=>{}}/>`);
   try {
     await f.page.addStyleTag({content:await rendererCss()});
     await f.page.setViewportSize({width:320,height:700});

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { assertToolbarControls } from "../src/svelte/pieces/toolbar-controls.ts";
+import { assertToolbarControls } from "../src/svelte/infra/toolbar-controls.ts";
 
 test("calendar controls are a closed semantic slot, including JavaScript callers", () => {
   assert.doesNotThrow(() => assertToolbarControls(undefined));

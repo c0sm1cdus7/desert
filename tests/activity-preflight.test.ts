@@ -7,6 +7,7 @@ import { dispatch } from "../src/web/dispatch.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import { CreateNote, ArchiveNote } from "../products/notebook/journeys.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { storedObjects } from "../src/testing/stored-objects.ts";
 
 let cluster: ReturnType<typeof postgresCluster>;
 before(() => { cluster = postgresCluster(); });
@@ -14,13 +15,14 @@ after(() => { cluster?.dispose(); });
 
 async function setup() {
   const database = await cluster.database();
-  const host = await openLocalController(compile(Notebook), { ...database, roles: ["notes"] });
+  const application = compile(Notebook);
+  const host = await openLocalController(application, { ...database, roles: ["notes"] });
   const identity = await host.identities.issue("Alice");
   const session = host.connect(identity.token, "human");
   const admin = new Pool({ host: database.socketDirectory, user: database.user, database: database.database });
   async function effects() {
-    const result: Record<string, number> = {};
-    for (const name of ["objects", "runs", "intents", "receipts"]) {
+    const result: Record<string, number> = { objects: (await storedObjects(admin, application)).length };
+    for (const name of ["runs", "intents", "receipts"]) {
       result[name] = Number((await admin.query(`SELECT count(*) FROM desert_${name}`)).rows[0].count);
     }
     return result;
