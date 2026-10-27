@@ -2,9 +2,10 @@
 CREATE SCHEMA IF NOT EXISTS "desert_execution";
 CREATE TABLE IF NOT EXISTS "desert_installation" (
   "singleton" boolean NOT NULL DEFAULT true CHECK ("singleton"),
-  "schema_version" integer NOT NULL,
   "product_id" text NOT NULL,
-  "contract_digest" text NOT NULL,
+  "installation_digest" text NOT NULL CHECK ("installation_digest" ~ '^[0-9a-f]{64}$'),
+  "migration_chain" text[] NOT NULL,
+  "infrastructure_digest" text NOT NULL CHECK ("infrastructure_digest" ~ '^[0-9a-f]{64}$'),
   "controller_roles" text[] NOT NULL,
   PRIMARY KEY ("singleton")
 );

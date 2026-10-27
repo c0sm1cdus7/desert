@@ -36,10 +36,10 @@ test("installation drift blocks both observation and execution, then recovers wi
     const availability = f.session.watchAvailability({ pollIntervalMs: 30, validForMs: 300 });
     const ready = () => availability.snapshot().journeys["create-note"]!.dependenciesReady;
     await eventually(ready);
-    await f.admin.query("UPDATE desert_installation SET contract_digest = 'another-contract'");
+    await f.admin.query("UPDATE desert_installation SET installation_digest = $1", ["f".repeat(64)]);
     await eventually(() => availability.snapshot().journeys["create-note"]!.blockers[0]?.reason === "incompatible");
     await assert.rejects(f.session.begin("create-note"), /INSTALLATION_MISMATCH/);
-    await f.admin.query("UPDATE desert_installation SET contract_digest = $1", [f.application.digest]);
+    await f.admin.query("UPDATE desert_installation SET installation_digest = $1", [f.application.digest]);
     await eventually(ready);
     for (const table of ["desert_runs", "desert_intents", "desert_receipts", "desert_objects"]) {
       assert.equal((await f.admin.query(`SELECT count(*) FROM ${table}`)).rows[0].count, "0");

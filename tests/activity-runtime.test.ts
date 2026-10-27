@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { LocalSchemaVersion } from "../src/local/installation.ts";
+import { infrastructureDigest } from "../src/storage/render-ddl.ts";
 import { after, before, test } from "node:test";
 import { openLocalController } from "../src/local/controller.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
@@ -151,10 +151,11 @@ test("cancellation revokes prepared acceptance while preserving recoverable draf
 test("activity acceptance semantics require the new installation revision without silently repinning old stores", async () => {
   const f = await setup();
   try {
-    assert.equal((await f.admin.query("SELECT schema_version FROM desert_installation")).rows[0].schema_version, LocalSchemaVersion);
+    const earlier = "0".repeat(64);
+    assert.equal((await f.admin.query("SELECT infrastructure_digest FROM desert_installation")).rows[0].infrastructure_digest, infrastructureDigest());
     await f.controller.close();
-    await f.admin.query("UPDATE desert_installation SET schema_version = 3");
+    await f.admin.query("UPDATE desert_installation SET infrastructure_digest = $1", [earlier]);
     await assert.rejects(openLocalController(f.application, f.options), /INSTALLATION_MISMATCH/);
-    assert.equal((await f.admin.query("SELECT schema_version FROM desert_installation")).rows[0].schema_version, 3);
+    assert.equal((await f.admin.query("SELECT infrastructure_digest FROM desert_installation")).rows[0].infrastructure_digest, earlier);
   } finally { await f.close(); }
 });
