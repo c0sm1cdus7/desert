@@ -14,7 +14,7 @@ export function accepts(field: FieldDefinition, value: unknown): value is FactVa
       && value >= (field.minimum ?? Number.MIN_SAFE_INTEGER) && value <= (field.maximum ?? Number.MAX_SAFE_INTEGER);
     case "enum": return typeof value === "string" && field.values.includes(value);
     case "principal": return typeof value === "string";
-    case "asset": return false;
+    case "file": return false;
     case "labels": return createSchemaValidator(labelsValueSchema(field))(value);
   }
 }
@@ -33,7 +33,7 @@ export function fieldValues(field: FieldDefinition, seed: number): FactValue[] {
       .filter(value => accepts(field, value));
     case "enum": return [...field.values];
     case "principal": throw new VerificationGap("PRINCIPAL_IS_NOT_GENERATED_INPUT");
-    case "asset": throw new VerificationGap("ASSET_INPUT_REQUIRES_STAGED_FIXTURE");
+    case "file": throw new VerificationGap("ASSET_INPUT_REQUIRES_STAGED_FIXTURE");
     case "labels": return [[], ["A"], Array.from({ length: field.maxItems }, (_, index) =>
       String.fromCharCode(65 + index).repeat(field.maxLength))];
   }

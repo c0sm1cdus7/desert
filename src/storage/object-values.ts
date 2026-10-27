@@ -1,7 +1,8 @@
 // Law: a fact value has one stored form, read back to the same value (src/storage/fact-columns.ts FactValueKind).
-// A reference fact is its join rows; an asset fact is the asset's uuid; an integer fact is a bigint read as text by pg.
+// A reference fact is its join rows; a file fact is the uuid of its asset object; an integer fact is a bigint read as text by pg.
 // Raises EFFECT_UNKNOWN_FACT, INVALID_FACT_VALUE and CORRUPT_OBJECT.
-import { assetMediaKind, assetReference, type PrivateAssetMetadata } from "../assets/types.ts";
+import { assetReference } from "../assets/types.ts";
+import { isMediaType, mediaKindOf } from "../media/rendition-policy.ts";
 import type { FactValue, Facts } from "../fact-values.ts";
 import type { StoredFact, StoredObject, StoredReference } from "./ddl.ts";
 
@@ -20,7 +21,7 @@ export function storedFact(object: StoredObject, fact: string, where: string): S
 function storedValue(fact: StoredFact, value: unknown, where: string): unknown {
   if (fact.value === "plain" || fact.value === "integer") return value;
   if (typeof value === "object" && value !== null && "kind" in value && value.kind === "asset" && "reference" in value) return value.reference;
-  return fail("INVALID_FACT_VALUE", `${where}: ${fact.fact} is an asset fact and takes an asset reference`);
+  return fail("INVALID_FACT_VALUE", `${where}: ${fact.fact} is a file fact and takes an asset reference`);
 }
 
 export function assignment(object: StoredObject, facts: Readonly<Record<string, unknown>>, where: string): Assignment {
@@ -35,30 +36,36 @@ export function assignment(object: StoredObject, facts: Readonly<Record<string, 
   return { columns, references };
 }
 
-/** What a read needs besides the rows: each reference fact's targets by object id, and each media asset's metadata. */
+/** What a read needs besides the rows: each reference fact's targets by object id, and the media type of each asset object
+ * a media file fact references. */
 export type ObjectContext = Readonly<{ references: ReadonlyMap<string, ReadonlyMap<string, readonly string[]>>;
-  assets: ReadonlyMap<string, PrivateAssetMetadata | null> }>;
+  assets: ReadonlyMap<string, string> }>;
 
 function factValue(object: StoredObject, fact: StoredFact, value: unknown, context: ObjectContext): FactValue {
   if (value === null || value === undefined) return fail("CORRUPT_OBJECT", `${object.id}.${fact.fact} is empty`);
   switch (fact.value) {
     case "plain": return value as FactValue;
     case "integer": return Number(value);
-    case "image-asset": return assetReference(String(value));
-    case "media-asset": {
-      const metadata = context.assets.get(String(value)) ?? fail("CORRUPT_OBJECT", `${object.id}.${fact.fact}: asset ${String(value)} has no media`);
-      return assetReference(String(value), assetMediaKind(metadata));
+    case "image-file": return assetReference(String(value));
+    case "media-file": {
+      const type = context.assets.get(String(value));
+      if (!isMediaType(type)) return fail("CORRUPT_OBJECT", `${object.id}.${fact.fact}: asset ${String(value)} has no media type`);
+      return assetReference(String(value), mediaKindOf(type));
     }
   }
 }
 
 export function objectFacts(object: StoredObject, row: ObjectRow, context: ObjectContext): Facts {
   const facts: Facts = {};
-  for (const fact of object.scalars) facts[fact.fact] = factValue(object, fact, row[fact.column], context);
+  for (const fact of object.scalars) {
+    const value = row[fact.column];
+    if (fact.optional && value === null) continue;
+    facts[fact.fact] = factValue(object, fact, value, context);
+  }
   for (const reference of object.references) facts[reference.fact] = [...context.references.get(reference.fact)?.get(row.id) ?? []];
   return facts;
 }
 
-/** The asset ids a read must look up for their media kind. */
-export const mediaAssets = (object: StoredObject, rows: readonly ObjectRow[]) =>
-  object.scalars.filter(fact => fact.value === "media-asset").flatMap(fact => rows.map(row => String(row[fact.column])));
+/** The asset object ids a read must look up for their media kind. */
+export const mediaFiles = (object: StoredObject, rows: readonly ObjectRow[]) =>
+  object.scalars.filter(fact => fact.value === "media-file").flatMap(fact => rows.map(row => String(row[fact.column])));

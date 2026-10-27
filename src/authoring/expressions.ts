@@ -3,7 +3,7 @@ import { Components } from "../views/components.ts";
 
 // Only installed, side-effect-free authoring constructors can run in product source.
 export const authoringCalls = new Set([
-  "objectType", "text", "integer", "enumeration", "principal", "imageAsset", "mediaAsset", "labels", "references", "namedReferences", "mediaReferences",
+  "objectType", "text", "integer", "enumeration", "principal", "file", "labels", "references", "namedReferences", "mediaReferences",
   "createCommand", "updateCommand", "fromInput", "literal", "actorId",
   "mutationJourney", "readJourney", "ownershipPolicy", "humanExposure", "agentExposure",
   "controllerRole", "capability", "view", "inputMask",

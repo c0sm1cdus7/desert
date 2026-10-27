@@ -4,7 +4,7 @@ import { isImageFileSelection, requireImageSelection,assetInputMedia } from "../
 import type { Draft } from "../../interaction/draft.ts";
 
 export function inspectMutationDraft(surface: HumanSurface, journey: Mutation, draft: Readonly<Draft>, validate: ValidateInput): ValidationResult {
-  const pending = new Set(journey.inputFields.filter(field => surface.fieldKinds?.[`${journey.object}.${field}`] === "asset"
+  const pending = new Set(journey.inputFields.filter(field => surface.fieldKinds?.[`${journey.object}.${field}`] === "file"
     && isImageFileSelection(draft[field])));
   if (!pending.size) return validate.inspect?.(journey.commandId, draft) ?? { valid: validate(journey.commandId, draft), issues: [] };
   if (!validate.inspect) return { valid: false, issues: [{ keyword: "draft_validation_unavailable", instancePath: "" }] };

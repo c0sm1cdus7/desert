@@ -5,8 +5,9 @@ import { Type, type TSchema } from "@sinclair/typebox";
 import { compile } from "../compile.ts";
 import { loadDefinition } from "../compiled-definition.ts";
 import type { ObjectDefinition } from "../contracts.ts";
+import { assetObject, assetObjectId, assetOwnerFact, optionalAssetFacts } from "../assets/object.ts";
 import type { ClientInstallation } from "./client-installation.ts";
-import { column } from "./columns.ts";
+import { column, nullable } from "./columns.ts";
 import { declareStorage, defineTable, references, sqlIdentifier, type Table, type TableReference } from "./declare.ts";
 import { factStorage, type FactValueKind } from "./fact-columns.ts";
 import { infrastructureTables } from "./infrastructure.ts";
@@ -14,17 +15,20 @@ import { renderDdl } from "./render-ddl.ts";
 
 const closed = { additionalProperties: false } as const;
 type Reference = Readonly<{ fact: string; column: string; target: string; maxItems: number }>;
-/** A scalar fact: its column and how its value travels (fact-columns.ts FactValueKind). */
-export type StoredFact = Readonly<{ fact: string; column: string; value: FactValueKind }>;
+/** A scalar fact: its column and how its value travels (fact-columns.ts FactValueKind). An optional fact's column is
+ * nullable and an absent value is NULL; only the SDK's asset object declares optional facts (src/assets/object.ts). */
+export type StoredFact = Readonly<{ fact: string; column: string; value: FactValueKind; optional?: true }>;
 /** A reference fact: its join table `<object>_<fact>`, one row per referenced object in the authored order. */
 export type StoredReference = Readonly<{ fact: string; target: string; table: Table }>;
-/** An object type's table, its scalar facts' columns (fact name → column) in canonical order, and its reference facts. */
+/** An object type's table, its scalar facts' columns (fact name → column) in canonical order, and its reference facts. An
+ * object with a media file fact also names the asset object its file columns reference: a read asks it for media kinds. */
 export type StoredObject = Readonly<{ id: string; table: Table; columns: readonly string[]; facts: Readonly<Record<string, string>>;
-  scalars: readonly StoredFact[]; references: readonly StoredReference[]; owner?: string }>;
+  scalars: readonly StoredFact[]; references: readonly StoredReference[]; owner?: string; assets?: StoredObject }>;
 type Stored = Readonly<{ id: string; table: Table; scalars: readonly StoredFact[]; references: readonly Reference[]; owner?: string }>;
+/** `objects` starts with the SDK's asset object (`asset`) when the product declares a file fact, then holds the product's. */
 export type ObjectStorage = Readonly<{
   productId: string; digest: string; installation: ClientInstallation; namespace: string;
-  objects: readonly StoredObject[]; tables: readonly Table[];
+  objects: readonly StoredObject[]; tables: readonly Table[]; asset?: StoredObject;
 }>;
 
 const fail = (where: string, what: string): never => {
@@ -41,20 +45,28 @@ export function objectStorage(product: unknown, installation: ClientInstallation
   const definition = loadDefinition(application), digest = application.digest;
   const namespace = productNamespace(definition.id);
   const owners = new Map((definition.policies ?? []).map(policy => [policy.object, policy.field]));
-  const stored = new Map(definition.objects.map(object => [object.id, objectTable(namespace, object, owners.get(object.id))]));
-  const objects = [...stored.values()].map(({ id, table, scalars, references: facts, owner }): StoredObject => Object.freeze({
+  const asset = assetObject(definition.objects);
+  const assetTable = asset && objectTable(namespace, asset, assetOwnerFact, undefined, optionalAssetFacts);
+  const stored = new Map<string, Stored>([...(assetTable ? [[assetObjectId, assetTable] as const] : []),
+    ...definition.objects.map(object => [object.id, objectTable(namespace, object, owners.get(object.id), assetTable?.table)] as const)]);
+  const freeze = ({ id, table, scalars, references: facts, owner }: Stored, assets?: StoredObject): StoredObject => Object.freeze({
     id, table, scalars: Object.freeze(scalars), ...(owner === undefined ? {} : { owner }),
     columns: Object.freeze(scalars.map(entry => entry.column)),
     facts: Object.freeze(Object.fromEntries(scalars.map(entry => [entry.fact, entry.column]))),
     references: Object.freeze(facts.map(reference => Object.freeze({ fact: reference.fact, target: reference.target,
       table: joinTable(table, reference, stored.get(reference.target)?.table) }))),
-  }));
+    ...(assets && scalars.some(entry => entry.value === "media-file") ? { assets } : {}),
+  });
+  const assets = assetTable && freeze(assetTable);
+  const objects = [...stored.values()].map(entry => entry === assetTable && assets ? assets : freeze(entry, assets));
   const joins = objects.flatMap(object => object.references.map(reference => reference.table));
   const tables = declareStorage([...objects.map(entry => entry.table), ...joins], infrastructureTables);
-  return Object.freeze({ productId: definition.id, digest, installation, namespace, objects: Object.freeze(objects), tables });
+  return Object.freeze({ productId: definition.id, digest, installation, namespace, objects: Object.freeze(objects), tables,
+    ...(assets ? { asset: assets } : {}) });
 }
 
-function objectTable(namespace: string, object: ObjectDefinition, owner: string | undefined): Stored {
+function objectTable(namespace: string, object: ObjectDefinition, owner: string | undefined, assets?: Table,
+  optional: ReadonlySet<string> = new Set()): Stored {
   const name = sqlIdentifier(object.id, `object ${object.id}`);
   const where = (fact: string) => `${namespace}.${name}.${fact}`;
   const taken = new Map([["id", "the generated key"], ["version", "the generated version"]]);
@@ -69,12 +81,13 @@ function objectTable(namespace: string, object: ObjectDefinition, owner: string 
   const foreignKeys: { columns: string[]; references: TableReference }[] = [];
   const facts: Reference[] = [], scalars: StoredFact[] = [];
   for (const [fact, field] of Object.entries(object.facts)) {
-    const storage = factStorage(where(fact), field);
+    const storage = factStorage(where(fact), field, assets);
     const mapped = columnOf(fact);
     if (storage.kind === "join") facts.push({ fact, column: mapped, target: storage.target, maxItems: storage.maxItems });
     else {
-      properties[mapped] = storage.schema;
-      scalars.push(Object.freeze({ fact, column: mapped, value: storage.value }));
+      const absent = optional.has(fact);
+      properties[mapped] = absent ? nullable(storage.schema) : storage.schema;
+      scalars.push(Object.freeze({ fact, column: mapped, value: storage.value, ...(absent ? { optional: true as const } : {}) }));
       if (storage.references) foreignKeys.push({ columns: [mapped], references: references(storage.references, "id") });
     }
   }

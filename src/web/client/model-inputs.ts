@@ -21,7 +21,7 @@ export function modelInputs(surface: HumanSurface, store: HumanStore, files?: Dr
     },
     edit(field: string, value: string) {
       const current = store.get(), journey = mutation();
-      if (!journey?.inputFields.includes(field) || ["asset", "labels"].includes(surface.fieldKinds?.[`${journey.object}.${field}`] ?? "")) return;
+      if (!journey?.inputFields.includes(field) || ["file", "labels"].includes(surface.fieldKinds?.[`${journey.object}.${field}`] ?? "")) return;
       store.update({ draft: { ...current.draft, [field]: value },
         draftRevision: current.draftRevision + (current.draft[field] === value ? 0 : 1),
         touchedFields: current.touchedFields.includes(field) ? current.touchedFields : [...current.touchedFields, field] });
@@ -29,7 +29,7 @@ export function modelInputs(surface: HumanSurface, store: HumanStore, files?: Dr
     editFiles(event: Extract<ControlEvent, { kind: "files.choose" | "files.remove" }>) {
       const current = store.get(), journey = mutation(), field = event.control;
       if (current.busy || current.uncertain || !journey?.inputFields.includes(field)
-        || surface.fieldKinds?.[`${journey.object}.${field}`] !== "asset") return;
+        || surface.fieldKinds?.[`${journey.object}.${field}`] !== "file") return;
       const before = current.draft[field], selected = isImageFileSelection(before) ? [before.file] : [];
       const node = imageInputControl(field, surface.language.fields[`${journey.object}.${field}`]!, selected,false,assetInputMedia(journey.inputSchema.properties[field]));
       const changed = applyControlEvent(node, event).node;

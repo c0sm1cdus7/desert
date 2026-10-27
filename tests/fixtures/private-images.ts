@@ -2,14 +2,14 @@ import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import sharp from "sharp";
-import { objectType, text, principal, imageAsset, enumeration, ownershipPolicy, createCommand, fromInput, actorId, literal, mutationJourney, readJourney, updateCommand, controllerRole } from "../../src/index.ts";
+import { objectType, text, principal, file, enumeration, ownershipPolicy, createCommand, fromInput, actorId, literal, mutationJourney, readJourney, updateCommand, controllerRole } from "../../src/index.ts";
 import { compile } from "../../src/compile.ts";
 import { product } from "../../src/contracts.ts";
 import { openLocalController } from "../../src/local/controller.ts";
 import type { postgresCluster } from "./postgres.ts";
 
 export const Photo = objectType({ id: "photo", facts: {
-  title: text({ minLength: 1 }), image: imageAsset(), owner: principal(), state: enumeration(["active", "archived"]),
+  title: text({ minLength: 1 }), image: file({ accept: ["image/jpeg", "image/png", "image/webp"], maxBytes: 20_971_520 }), owner: principal(), state: enumeration(["active", "archived"]),
 } });
 const Controller = controllerRole({ id: "photos", objects: [Photo], requires: [] });
 const requires = { controller: Controller, dependencies: [] };

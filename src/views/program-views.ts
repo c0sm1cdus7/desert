@@ -33,7 +33,7 @@ export function validateJourneyExposure(journey: ViewJourney, surface: HumanSurf
     if (journey.kind === "action" && canonical.inputFields.length) throw new Error("INVALID_VIEW_ACTION_INPUTS");
     if (journey.kind === "create" && journey.startWith &&
       (!canonical.inputFields.includes(journey.startWith.input) ||
-        surface.fieldKinds?.[`${canonical.object}.${journey.startWith.input}`] !== "asset")) {
+        surface.fieldKinds?.[`${canonical.object}.${journey.startWith.input}`] !== "file")) {
       throw new Error("INVALID_FILE_ENTRY_INPUT");
     }
     if (journey.kind === "create" && journey.startWith && journey.presentation !== "transient") {

@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Ajv } from "ajv";
-import { imageAsset, labels, mediaAsset } from "../src/contracts.ts";
+import { file, labels } from "../src/contracts.ts";
 import { inputPropertySchema } from "../src/input-schema.ts";
 import { emitField } from "../src/schema.ts";
 import { inspectValidation } from "../src/validation-result.ts";
@@ -14,8 +14,10 @@ const assetReference = '"additionalProperties":false,"type":"object","required":
   + '"reference":{"pattern":"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$","type":"string"}';
 
 test("asset and label schemas are narrowed to the closed subset and serialise byte for byte as before", () => {
-  assert.equal(JSON.stringify(emitField(imageAsset())), `{${assetReference},"media":{"type":"string","const":"image"}}}`);
-  assert.equal(JSON.stringify(emitField(mediaAsset())), `{${assetReference},"media":{"type":"string","enum":["image","video","audio"]}}}`);
+  assert.equal(JSON.stringify(emitField(file({ accept: ["image/jpeg", "image/png", "image/webp"], maxBytes: 20_971_520 }))), `{${assetReference},"media":{"type":"string","const":"image"}}}`);
+  assert.equal(JSON.stringify(emitField(file({ accept: ["image/jpeg", "image/png", "image/webp", "video/mp4", "audio/mp4", "audio/mpeg", "audio/wav"], maxBytes: 20_971_520 }))), `{${assetReference},"media":{"type":"string","enum":["image","video","audio"]}}}`);
+  assert.equal(JSON.stringify(emitField(file({ accept: ["application/zip", "image/png", "application/pdf"], maxBytes: 1024 }))),
+    `{${assetReference},"media":{"type":"string","enum":["image","document","archive"]}}}`);
   assert.equal(JSON.stringify(emitField(labels())),
     '{"maxItems":12,"uniqueItems":true,"type":"array","items":{"minLength":1,"maxLength":64,"pattern":"^\\\\S(?:[\\\\s\\\\S]*\\\\S)?(?![\\\\s\\\\S])","type":"string"}}');
 });

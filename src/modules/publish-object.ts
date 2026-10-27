@@ -27,7 +27,7 @@ type SubjectAction<Id extends string> = Publication["actions"][number] & { reado
 type PresentedField<O extends ObjectDefinition> = {
   [K in WritableKey<O>]: Omit<Declared<PublishedField>, "fact" | "representation"> & {
     readonly fact: FactReference<O["id"], K>;
-    readonly representation: O["facts"][K] extends { readonly kind: "asset" } ? "image"
+    readonly representation: O["facts"][K] extends { readonly kind: "file" } ? "image"
       : O["facts"][K] extends { readonly kind: "labels" } ? "tags"
       : O["facts"][K] extends { readonly kind: "text" } ? Extract<FieldRepresentation, "text" | "paragraphs"> : "text";
   };

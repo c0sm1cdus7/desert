@@ -3,7 +3,7 @@ import { PrepareOptionsSchema } from "../prepare-options.ts";
 import { PreflightOptionsSchema } from "../preflight.ts";
 import { ActivityPlanSchema, ActivityOccurrenceSchema, ActivityListSchema } from "../activities/schema.ts";
 import type { Frozen } from "../json.ts";
-import { imageAssetLimits } from "../assets/policy.ts";
+import { fileLimits } from "../assets/policy.ts";
 import { AssetReferenceSchema } from "../assets/types.ts";
 
 const Reference = Type.String({ minLength: 1 });
@@ -12,7 +12,7 @@ const Revision = Type.Integer({ minimum: 1, maximum: Number.MAX_SAFE_INTEGER });
 
 export const Requests = {
   reserveImage: Type.Object({ runId: Reference, inputField: Reference,
-    size: Type.Integer({ minimum: 1, maximum: imageAssetLimits.originalBytes }) }, closed),
+    size: Type.Integer({ minimum: 1, maximum: fileLimits.maxBytes }) }, closed),
   imageStatus: Type.Object({ runId: Reference, inputField: Reference, reference: AssetReferenceSchema.properties.reference }, closed),
   activityCreate: Type.Object({ occurrence: ActivityOccurrenceSchema, plan: ActivityPlanSchema, options: Type.Optional(PreflightOptionsSchema) }, closed),
   activityList: ActivityListSchema,

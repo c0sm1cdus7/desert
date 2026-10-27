@@ -1,11 +1,10 @@
 // Law: a product's objects are read from their generated tables only (one table per object type, one join table per
 // reference fact), through the statements src/storage/object-sql.ts derives from the declaration.
 import type { PoolClient } from "pg";
-import type { PrivateAssetMetadata } from "../assets/types.ts";
 import type { Facts } from "../fact-values.ts";
 import type { ObjectStorage, StoredObject } from "./ddl.ts";
-import { selectAssetMetadata, selectObjects, selectReferences, type ObjectMatch } from "./object-sql.ts";
-import { mediaAssets, objectFacts, type ObjectRow } from "./object-values.ts";
+import { selectObjects, selectReferences, type ObjectMatch } from "./object-sql.ts";
+import { mediaFiles, objectFacts, type ObjectRow } from "./object-values.ts";
 
 /** One stored object as the runtime sees it: its type, version and every declared fact. */
 export type ObjectRecord = { id: string; object_type: string; version: number; facts: Facts };
@@ -33,9 +32,10 @@ export async function readObjects(client: Queryable, object: StoredObject,
     for (const row of joined) targets.set(row.object_id, [...targets.get(row.object_id) ?? [], row.target_id]);
     references.set(reference.fact, targets);
   }
-  const media = mediaAssets(object, rows);
-  const assets = new Map<string, PrivateAssetMetadata | null>(media.length
-    ? (await client.query<{ id: string; metadata: PrivateAssetMetadata | null }>(selectAssetMetadata(media))).rows.map(row => [row.id, row.metadata])
+  const media = mediaFiles(object, rows), files = object.assets;
+  const assets = new Map<string, string>(media.length && files
+    ? (await client.query<ObjectRow>(selectObjects(files, { ids: [...new Set(media)] }))).rows
+      .map(row => [row.id, String(row[files.facts.mediaType ?? fail(`${files.id} has no mediaType`)])])
     : []);
   return rows.map(row => ({ id: row.id, object_type: object.id, version: row.version, facts: objectFacts(object, row, { references, assets }) }));
 }

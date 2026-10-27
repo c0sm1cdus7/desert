@@ -40,7 +40,7 @@ function admit(module: ModuleStorage, changes: readonly Change[]): readonly Stor
     targets.add(`${change.object}/${change.id}`);
     const assigned = Object.keys(change.kind === "create" ? change.facts : change.set).map(fact => storedFact(object, fact, where).fact);
     if (change.kind === "update" && assigned.length === 0) fail("EFFECT_UNKNOWN_FACT", `${where}: sets no fact`);
-    const declared = [...object.scalars, ...object.references].map(entry => entry.fact);
+    const declared = [...object.scalars.filter(entry => !entry.optional), ...object.references].map(entry => entry.fact);
     const missing = change.kind === "create" ? declared.filter(fact => !assigned.includes(fact)) : [];
     if (missing.length) fail("CREATE_ASSIGNMENT_MISSING", `${where}: ${missing.join(", ")} not assigned`);
     return object;

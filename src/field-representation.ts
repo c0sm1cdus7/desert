@@ -11,7 +11,7 @@ export const FieldKindsSchema = Type.Record(Type.String({ minLength: 1 }), Field
 export type FieldKind = Static<typeof FieldKindSchema>;
 
 export function supportsFieldRepresentation(fact: Pick<FieldDefinition, "kind">, representation: FieldRepresentation): boolean {
-  if (fact.kind === "asset") return representation === "image";
+  if (fact.kind === "file") return representation === "image";
   if (fact.kind === "labels") return representation === "tags";
   return representation !== "image" && representation !== "tags" && fact.kind !== "principal" && (representation !== "paragraphs" || fact.kind === "text");
 }

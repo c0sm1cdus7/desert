@@ -9,6 +9,6 @@ export function requirePrivateImageMechanism(program: LocalProgram, installed: b
     const objectId = journey.kind === "read" ? journey.object : journey.command.object;
     const object = definition.objects.find(item => item.id === objectId)!;
     const fields = journey.kind === "read" ? [...journey.fields, ...journey.collection] : journey.command.input;
-    if (fields.some(field => object.facts[field]?.kind === "asset")) throw new Error("PRIVATE_IMAGE_STORAGE_NOT_INSTALLED");
+    if (fields.some(field => object.facts[field]?.kind === "file")) throw new Error("PRIVATE_IMAGE_STORAGE_NOT_INSTALLED");
   }
 }

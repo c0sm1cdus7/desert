@@ -2,7 +2,7 @@
 // (an album names its photos through mediaReferences, a photo names its albums through namedReferences).
 // Two modules (tasks: project + task; albums: album + photo) for the one-module rule of multi-object changes (Q3);
 // a task's trash is its `state` fact (Q2).
-import { enumeration, imageAsset, integer, labels, mediaAsset, mediaReferences, namedReferences, objectType, ownershipPolicy,
+import { enumeration, file, integer, labels, mediaReferences, namedReferences, objectType, ownershipPolicy,
   principal, references, text } from "../../src/index.ts";
 import { product } from "../../src/contracts.ts";
 import { clientInstallation } from "../../src/storage/client-installation.ts";
@@ -15,12 +15,12 @@ export const Album = objectType({ id: "photo-album", facts: {
   cover: mediaReferences("album-photo", { media: "image", maxItems: 1, memberOf: "albums" }),
 } });
 export const Photo = objectType({ id: "album-photo", facts: {
-  title: text(), image: imageAsset(), owner: principal(), albums: namedReferences(Album, { label: "title" }),
+  title: text(), image: file({ accept: ["image/jpeg", "image/png", "image/webp"], maxBytes: 20_971_520 }), owner: principal(), albums: namedReferences(Album, { label: "title" }),
 } });
 export const Task = objectType({ id: "task", facts: {
   title: text({ minLength: 1, maxLength: 8 }), priority: integer({ minimum: 1, maximum: 5 }), estimate: integer(),
   status: enumeration(["open", "done"]), owner: principal(), tags: labels({ maxItems: 2, maxLength: 5 }),
-  projects: references(Project, { label: "name", color: "color" }), recording: mediaAsset(), dueNote: text({ maxLength: 3 }),
+  projects: references(Project, { label: "name", color: "color" }), recording: file({ accept: ["image/jpeg", "image/png", "image/webp", "video/mp4", "audio/mp4", "audio/mpeg", "audio/wav"], maxBytes: 20_971_520 }), dueNote: text({ maxLength: 3 }),
   state: enumeration(["active", "trashed"]),
 } });
 

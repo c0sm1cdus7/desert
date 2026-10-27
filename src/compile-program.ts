@@ -25,7 +25,7 @@ export function compileProgram(definition: ProductDefinition) {
   for (const object of objects.values()) for (const field of Object.values(object.facts)) {
     if (field.kind !== 'labels' || !field.reference) continue;
     const target = requireReference(objects,field.reference.object,'reference target');
-    if (!policies.has(target.id) || ('media' in field.reference ? requireField(target,field.reference.media).kind !== 'asset'
+    if (!policies.has(target.id) || ('media' in field.reference ? requireField(target,field.reference.media).kind !== "file"
       : requireField(target,field.reference.label).kind !== 'text' || field.reference.color !== undefined && requireField(target,field.reference.color).kind !== 'enum')) throw new Error('INVALID_REFERENCE_TARGET');
     if ('media' in field.reference && field.reference.memberOf) {
       const membership=requireField(target,field.reference.memberOf);

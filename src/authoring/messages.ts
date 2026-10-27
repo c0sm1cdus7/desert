@@ -14,8 +14,8 @@ export { productKeysModule };
 export const productMessagesCommand = "npm run messages:write";
 const fields: ReadonlySet<string> = new Set(messageFields);
 /** Calls whose arguments name domain facts or ports, never sentences (`references(Project, { label: "name" })`). */
-const domainCalls: ReadonlySet<string> = new Set(["objectType", "text", "integer", "enumeration", "principal", "imageAsset",
-  "mediaAsset", "labels", "references", "namedReferences", "mediaReferences", "viewPorts", "factReference", "viewOutput",
+const domainCalls: ReadonlySet<string> = new Set(["objectType", "text", "integer", "enumeration", "principal", "file",
+  "labels", "references", "namedReferences", "mediaReferences", "viewPorts", "factReference", "viewOutput",
   "initializeInput", "chooseFile", "inputMask", "createCommand", "updateCommand", "fromInput", "literal", "capability", "controllerRole"]);
 
 const sourceName = (root: string, path: string) => relative(root, path).split(sep).join("/");
