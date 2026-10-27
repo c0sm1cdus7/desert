@@ -32,7 +32,11 @@ jobs:
       - run: node scripts/catalog.ts --check
       - name: Catalog gate (full; strict build)
         run: node scripts/catalog-gate.ts
+      - name: S3-compatible server image for the bucket adapter contract (one pinned image, named in tests/fixtures/s3-server.ts)
+        run: node tests/fixtures/s3-server.ts --pull
       - run: npm test
         if: always()
+        # tests/storage-blob.test.ts starts the server in a container; here a missing server fails instead of skipping.
+        env: { DESERT_TEST_S3_REQUIRED: "1" }
       - run: npm run test:gate
         if: always()

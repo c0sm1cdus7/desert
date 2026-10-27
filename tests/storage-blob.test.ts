@@ -1,15 +1,13 @@
-import test, { type TestContext } from "node:test";
+import test, { after, type TestContext } from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { chmod, link, mkdtemp, readdir, stat, symlink, writeFile } from "node:fs/promises";
-import { request as httpRequest } from "node:http";
-import { request as httpsRequest } from "node:https";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { openBlobStore, type BlobBinding, type BlobStore, type HostKeychain } from "../src/storage/blob.ts";
-import { signRequest } from "../src/storage/sigv4.ts";
 import * as sdk from "../src/index.ts";
 import { s3Double } from "./fixtures/s3-double.ts";
+import { s3Server, s3ServerRegion, type S3Server } from "./fixtures/s3-server.ts";
 
 const sha256 = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 const rejectsWith = (code: string, promise: Promise<unknown>) =>
@@ -113,30 +111,21 @@ async function bucketDoubleAdapter(): Promise<Adapter> {
     async tamper(digest, bytes) { double.objects.set(digest, Buffer.from(bytes)); }, close: double.close };
 }
 
-// A real S3-compatible server (minio, garage, …): DESERT_TEST_S3_ENDPOINT, _BUCKET, _ACCESS_KEY, _SECRET_KEY.
+// A real S3-compatible server in a throwaway container (tests/fixtures/s3-server.ts), one fresh bucket per test.
+let started: Promise<S3Server | string> | undefined;
+after(async () => { const server = await started; if (server && typeof server !== "string") await server.close(); });
 async function bucketServerAdapter(): Promise<Adapter | string> {
-  const endpoint = process.env.DESERT_TEST_S3_ENDPOINT, bucket = process.env.DESERT_TEST_S3_BUCKET;
-  const accessKeyId = process.env.DESERT_TEST_S3_ACCESS_KEY, secretAccessKey = process.env.DESERT_TEST_S3_SECRET_KEY;
-  if (!endpoint || !bucket || !accessKeyId || !secretAccessKey) {
-    return "BLOCKED: no S3-compatible server on this machine (no minio binary, no minio image; pulling one needs owner approval). " +
-      "Set DESERT_TEST_S3_ENDPOINT, DESERT_TEST_S3_BUCKET, DESERT_TEST_S3_ACCESS_KEY and DESERT_TEST_S3_SECRET_KEY to run.";
+  const server = await (started ??= s3Server());
+  if (typeof server === "string") {
+    if (process.env.DESERT_TEST_S3_REQUIRED === "1") throw new Error(`S3_SERVER_REQUIRED: ${server}`);
+    return server;
   }
-  const secrets = { "desert.blob.access-key": accessKeyId, "desert.blob.secret-key": secretAccessKey };
-  return { open: () => openBlobStore(bucketBinding(endpoint, bucket), { keychain: keychainOf(secrets) }),
-    async tamper(digest, bytes) {
-      // Overwrite the object with bytes that no longer match its name, signed like any client would.
-      const url = new URL(`${endpoint}/${bucket}/${digest}`);
-      const headers = signRequest({ method: "PUT", url, headers: { "content-length": String(bytes.length) }, payloadHash: "UNSIGNED-PAYLOAD",
-        region: "us-east-1", credentials: { accessKeyId, secretAccessKey }, date: new Date() });
-      const status = await new Promise<number | undefined>((resolve, reject) => {
-        const outgoing = (url.protocol === "https:" ? httpsRequest : httpRequest)(url, { method: "PUT", headers }, response => {
-          response.resume(); response.on("end", () => resolve(response.statusCode));
-        });
-        outgoing.on("error", reject);
-        outgoing.end(bytes);
-      });
-      assert.equal(status, 200);
-    }, async close() {} };
+  const bucket = await server.createBucket();
+  const secrets = { "desert.blob.access-key": server.credentials.accessKeyId, "desert.blob.secret-key": server.credentials.secretAccessKey };
+  return { open: () => openBlobStore({ ...bucketBinding(server.endpoint, bucket), region: s3ServerRegion }, { keychain: keychainOf(secrets) }),
+    // Overwrites the object with bytes that no longer match its name, signed like any client would.
+    async tamper(digest, bytes) { assert.equal(await server.send("PUT", `/${bucket}/${digest}`, bytes), 200); },
+    async close() {} };
 }
 
 blobContract("disk", diskAdapter);
