@@ -9,9 +9,12 @@ import { defineTable, references } from "../declare.ts";
 const closed = { additionalProperties: false } as const;
 const facts = Type.Unsafe<Facts>(Type.Record(Type.String(), FactValueSchema));
 
+const digest = "^[0-9a-f]{64}$";
+/** One client database's installation (plan §15, step 7.3): the product and the digest its tables hold, the committed
+ * migrations that led there (src/storage/migrations.ts; empty for a fresh install) and the infrastructure it was built from. */
 export const installationTable = defineTable({ name: "desert_installation", primaryKey: ["singleton"], row: Type.Object({
-  singleton: column.singleton(true), schema_version: column.integer(), product_id: column.text(),
-  contract_digest: column.text(), controller_roles: column.textArray(),
+  singleton: column.singleton(true), product_id: column.text(), installation_digest: column.text({ pattern: digest }),
+  migration_chain: column.textArray(), infrastructure_digest: column.text({ pattern: digest }), controller_roles: column.textArray(),
 }, closed) });
 
 export const identitiesTable = defineTable({ name: "desert_identities", primaryKey: ["id"], unique: [["credential_hash"]], row: Type.Object({

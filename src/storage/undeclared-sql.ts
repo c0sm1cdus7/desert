@@ -3,8 +3,9 @@
 //   - a `.sql` file anywhere but the generated folders (the DDL per installation digest, step 7.1, and the generated
 //     migrations, step 7.3), and
 //   - a string or template literal in code that names a DDL verb (CREATE, ALTER or DROP) anywhere but the generators
-//     (src/storage/render-*.ts) and the storage tests (tests/storage-*.test.ts), which spell the generators' expected
-//     output and this rule's own negative cases.
+//     (src/storage/render-*.ts, plan*.ts, migration-sql.ts) and the storage and migration tests
+//     (tests/storage-*.test.ts, tests/migration*.test.ts), which spell the generators' expected output and this rule's
+//     own negative cases.
 // A comment may mention a verb; only literals are SQL a program can run.
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
@@ -12,8 +13,10 @@ import ts from "typescript";
 
 export type SqlViolation = Readonly<{ path: string; line: number; what: string }>;
 export const generatedSqlFolders: readonly string[] = Object.freeze(["src/storage/generated/", "src/storage/migrations/"]);
-const generator = /^src\/storage\/render-[a-z-]+\.ts$/;
-const generatorTest = /^tests\/storage-[a-z-]+\.test\.ts$/;
+/** The DDL generators (render-*.ts) and the migration generators (plan*.ts, migration-sql.ts, plan §15 step 7.3). */
+const generator = /^src\/storage\/(render-[a-z-]+|plan(-[a-z-]+)?|migration-sql)\.ts$/;
+/** The storage and migration tests, which spell the generators' expected output. */
+const generatorTest = /^tests\/(storage|migration)(-[a-z-]+)?\.test\.ts$/;
 const code = /\.(ts|mts|cts|js|mjs|cjs|svelte)$/;
 const verb = /\b(CREATE|ALTER|DROP)\b/;
 /** Folders that hold no authored source: dependencies, version control, worktrees and local output anywhere, and the

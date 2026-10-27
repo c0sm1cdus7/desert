@@ -1,0 +1,106 @@
+{
+  "product": "notebook",
+  "language": "en",
+  "digest": "17657a0a8684597ee424c272244a39f42b2b939d7bb6eec31cf633bdccd68b83",
+  "tables": [
+    {
+      "namespace": "product_notebook",
+      "name": "note",
+      "qualifiedName": "product_notebook.note",
+      "columns": [
+        {
+          "name": "id",
+          "storage": {
+            "type": "uuid",
+            "nullable": false
+          }
+        },
+        {
+          "name": "version",
+          "storage": {
+            "type": "integer",
+            "nullable": false,
+            "check": {
+              "kind": "greater-than",
+              "value": 0
+            }
+          }
+        },
+        {
+          "name": "body",
+          "storage": {
+            "type": "text",
+            "nullable": false,
+            "check": {
+              "kind": "length",
+              "minimum": 1
+            },
+            "collation": "installation-language"
+          }
+        },
+        {
+          "name": "owner",
+          "storage": {
+            "type": "uuid",
+            "nullable": false
+          }
+        },
+        {
+          "name": "state",
+          "storage": {
+            "type": "text",
+            "nullable": false,
+            "check": {
+              "kind": "one-of",
+              "values": [
+                "active",
+                "archived"
+              ]
+            }
+          }
+        },
+        {
+          "name": "title",
+          "storage": {
+            "type": "text",
+            "nullable": false,
+            "check": {
+              "kind": "length",
+              "minimum": 1
+            },
+            "collation": "installation-language"
+          }
+        }
+      ],
+      "primaryKey": [
+        "id"
+      ],
+      "unique": [],
+      "foreignKeys": [
+        {
+          "columns": [
+            "owner"
+          ],
+          "references": {
+            "table": {
+              "name": "desert_identities",
+              "qualifiedName": "desert_identities"
+            },
+            "columns": [
+              "id"
+            ]
+          }
+        }
+      ],
+      "indexes": [
+        {
+          "name": "note_by_owner",
+          "columns": [
+            "owner"
+          ]
+        }
+      ],
+      "limits": []
+    }
+  ]
+}
