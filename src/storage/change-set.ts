@@ -1,11 +1,13 @@
 // Law (owner answer Q3; slice 9 plan D9-13): one action makes 1 to 8 changes, all to objects of ONE module, applied in
 // their declared order inside one transaction with one receipt: all of them and the receipt, or none. The SQL is derived
-// from the generated tables; values travel as parameters and Postgres enforces the declaration again (named violations).
+// from the generated tables (object-sql.ts); values travel as parameters and Postgres enforces the declaration again
+// (named violations). A reference fact rewrites its join rows in the authored order.
 // Raises EFFECT_LIMIT, EFFECT_FOREIGN_OBJECT, EFFECT_DUPLICATE_TARGET, EFFECT_UNKNOWN_FACT, CREATE_ASSIGNMENT_MISSING,
-// NOT_FOUND and VERSION_CONFLICT; a Postgres violation is rethrown unchanged after the rollback.
+// INVALID_FACT_VALUE, NOT_FOUND and VERSION_CONFLICT; a Postgres violation is rethrown unchanged after the rollback.
 import type { Pool, PoolClient } from "pg";
 import type { ObjectStorage, StoredObject } from "./ddl.ts";
-import { qualified, quoted } from "./render-checks.ts";
+import { clearReferences, insertObject, insertReferences, lockObject, updateObject } from "./object-sql.ts";
+import { assignment, storedFact } from "./object-values.ts";
 
 export const maxChangesPerAction = 8;
 export type ModuleStorage = Readonly<{ id: string; objects: ReadonlyMap<string, StoredObject> }>;
@@ -27,11 +29,6 @@ export function moduleStorage(storage: ObjectStorage, id: string, objectIds: rea
   return Object.freeze({ id, objects });
 }
 
-function columnsOf(object: StoredObject, facts: Facts, where: string): [string, unknown][] {
-  return Object.entries(facts).map(([fact, value]) =>
-    [object.facts[fact] ?? fail("EFFECT_UNKNOWN_FACT", `${where}: ${fact} is not a scalar fact of ${object.id}`), value]);
-}
-
 /** Every check that needs no database, before any write. */
 function admit(module: ModuleStorage, changes: readonly Change[]): readonly StoredObject[] {
   if (changes.length < 1 || changes.length > maxChangesPerAction) fail("EFFECT_LIMIT", `${changes.length} changes; an action makes 1 to ${maxChangesPerAction}`);
@@ -41,29 +38,28 @@ function admit(module: ModuleStorage, changes: readonly Change[]): readonly Stor
     const object = module.objects.get(change.object) ?? fail("EFFECT_FOREIGN_OBJECT", `${where}: not an object of module ${module.id}`);
     if (targets.has(`${change.object}/${change.id}`)) fail("EFFECT_DUPLICATE_TARGET", `${where}: ${change.id} is already changed by this action`);
     targets.add(`${change.object}/${change.id}`);
-    const assigned = columnsOf(object, change.kind === "create" ? change.facts : change.set, where).map(([name]) => name);
+    const assigned = Object.keys(change.kind === "create" ? change.facts : change.set).map(fact => storedFact(object, fact, where).fact);
     if (change.kind === "update" && assigned.length === 0) fail("EFFECT_UNKNOWN_FACT", `${where}: sets no fact`);
-    const missing = change.kind === "create" ? object.columns.filter(name => !assigned.includes(name)) : [];
+    const declared = [...object.scalars, ...object.references].map(entry => entry.fact);
+    const missing = change.kind === "create" ? declared.filter(fact => !assigned.includes(fact)) : [];
     if (missing.length) fail("CREATE_ASSIGNMENT_MISSING", `${where}: ${missing.join(", ")} not assigned`);
     return object;
   });
 }
 
 async function apply(client: PoolClient, object: StoredObject, change: Change): Promise<ChangedObject> {
-  const table = qualified(object.table);
-  if (change.kind === "create") {
-    const columns = columnsOf(object, change.facts, change.id);
-    const names = ["id", "version", ...columns.map(([name]) => name)].map(quoted).join(", ");
-    const values = columns.map((_, index) => `$${index + 3}`).join(", ");
-    await client.query(`INSERT INTO ${table} (${names}) VALUES ($1, $2, ${values})`, [change.id, 1, ...columns.map(([, value]) => value)]);
-    return { id: change.id, type: object.id, version: 1, change: "created" };
+  const { columns, references } = assignment(object, change.kind === "create" ? change.facts : change.set, change.id);
+  let version = 1;
+  if (change.kind === "create") await client.query(insertObject(object, change.id, columns));
+  else {
+    const { rows } = await client.query<{ version: number }>(updateObject(object, change.id, change.expectedVersion, columns));
+    version = rows[0]?.version ?? fail("VERSION_CONFLICT", `${object.id} ${change.id} changed after version ${change.expectedVersion}`);
   }
-  const columns = columnsOf(object, change.set, change.id);
-  const assignments = columns.map(([name], index) => `${quoted(name)} = $${index + 3}`).join(", ");
-  const { rows } = await client.query<{ version: number }>(`UPDATE ${table} SET ${assignments}, "version" = "version" + 1
-    WHERE "id" = $1 AND "version" = $2 RETURNING "version"`, [change.id, change.expectedVersion, ...columns.map(([, value]) => value)]);
-  const version = rows[0]?.version ?? fail("VERSION_CONFLICT", `${object.id} ${change.id} changed after version ${change.expectedVersion}`);
-  return { id: change.id, type: object.id, version, change: "updated" };
+  for (const [reference, targets] of references) {
+    if (change.kind === "update") await client.query(clearReferences(reference, change.id));
+    if (targets.length) await client.query(insertReferences(reference, change.id, targets));
+  }
+  return { id: change.id, type: object.id, version, change: change.kind === "create" ? "created" : "updated" };
 }
 
 /** Locks every updated object in canonical order (object type, then id), so two actions never wait on each other in a cycle. */
@@ -72,21 +68,27 @@ async function lock(client: PoolClient, module: ModuleStorage, changes: readonly
     .sort((left, right) => left.object === right.object ? (left.id < right.id ? -1 : 1) : (left.object < right.object ? -1 : 1));
   for (const change of updates) {
     const object = module.objects.get(change.object) ?? fail("EFFECT_FOREIGN_OBJECT", change.object);
-    const { rows } = await client.query<{ version: number }>(`SELECT "version" FROM ${qualified(object.table)} WHERE "id" = $1 FOR UPDATE`, [change.id]);
+    const { rows } = await client.query<{ version: number }>(lockObject(object, change.id));
     const version = rows[0]?.version ?? fail("NOT_FOUND", `${change.object} ${change.id}`);
     if (version !== change.expectedVersion) fail("VERSION_CONFLICT", `${change.object} ${change.id} is at version ${version}, not ${change.expectedVersion}`);
   }
 }
 
-export async function applyChanges(pool: Pool, module: ModuleStorage, changes: readonly Change[], record: RecordReceipt): Promise<ChangeReceipt> {
+/** The changes inside the caller's open transaction (the runtime's accept): the caller commits them with its receipt. */
+export async function applyChangesIn(client: PoolClient, module: ModuleStorage, changes: readonly Change[]): Promise<ChangeReceipt> {
   const objects = admit(module, changes);
+  await lock(client, module, changes);
+  const changed: ChangedObject[] = [];
+  for (const [index, change] of changes.entries()) changed.push(await apply(client, objects[index] ?? fail("EFFECT_LIMIT", String(index)), change));
+  return Object.freeze({ objects: Object.freeze(changed) });
+}
+
+export async function applyChanges(pool: Pool, module: ModuleStorage, changes: readonly Change[], record: RecordReceipt): Promise<ChangeReceipt> {
+  admit(module, changes);
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    await lock(client, module, changes);
-    const changed: ChangedObject[] = [];
-    for (const [index, change] of changes.entries()) changed.push(await apply(client, objects[index] ?? fail("EFFECT_LIMIT", String(index)), change));
-    const receipt = Object.freeze({ objects: Object.freeze(changed) });
+    const receipt = await applyChangesIn(client, module, changes);
     await record(client, receipt);
     await client.query("COMMIT");
     client.release();

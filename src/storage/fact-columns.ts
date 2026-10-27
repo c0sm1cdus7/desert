@@ -9,8 +9,11 @@ import type { Table } from "./declare.ts";
 import { assetsTable } from "./tables/assets.ts";
 import { identitiesTable } from "./tables/local.ts";
 
+/** How a fact value travels to its column and back (src/storage/object-values.ts): as itself, as a bigint (pg reads int8 as
+ * text), or as the uuid of an asset (an image asset reads back as its reference; a media asset also names its media kind). */
+export type FactValueKind = "plain" | "integer" | "image-asset" | "media-asset";
 export type FactStorage =
-  | Readonly<{ kind: "column"; schema: TSchema; references?: Table }>
+  | Readonly<{ kind: "column"; schema: TSchema; value: FactValueKind; references?: Table }>
   | Readonly<{ kind: "join"; target: string; maxItems: number }>;
 
 /** Q1: a fact column is typed. Every FieldDefinition kind is required today (src/schema.ts emitObject), so every fact
@@ -24,16 +27,16 @@ export function factColumn<S extends TSchema>(where: string, schema: S): S {
 }
 
 export function factStorage(where: string, field: FieldDefinition): FactStorage {
-  const stored = (schema: TSchema, references?: Table): FactStorage =>
-    ({ kind: "column", schema: factColumn(where, schema), ...(references ? { references } : {}) });
+  const stored = (schema: TSchema, value: FactValueKind = "plain", references?: Table): FactStorage =>
+    ({ kind: "column", schema: factColumn(where, schema), value, ...(references ? { references } : {}) });
   switch (field.kind) {
     case "text": return stored(inInstallationLanguage(column.boundedText(field)));
     case "integer": return stored(column.bigint({
-      minimum: field.minimum ?? Number.MIN_SAFE_INTEGER, maximum: field.maximum ?? Number.MAX_SAFE_INTEGER }));
+      minimum: field.minimum ?? Number.MIN_SAFE_INTEGER, maximum: field.maximum ?? Number.MAX_SAFE_INTEGER }), "integer");
     case "enum": return stored(enumColumn(field.values));
-    case "principal": return stored(column.uuid(), identitiesTable);
+    case "principal": return stored(column.uuid(), "plain", identitiesTable);
     // The asset's media kind lives on its asset row; slice 7.4 turns `asset` into the `file` object kind.
-    case "asset": return stored(column.uuid(), assetsTable);
+    case "asset": return stored(column.uuid(), field.media === "media" ? "media-asset" : "image-asset", assetsTable);
     case "labels": return field.reference
       ? { kind: "join", target: field.reference.object, maxItems: field.maxItems }
       : stored(inInstallationLanguage(column.labels(field)));
