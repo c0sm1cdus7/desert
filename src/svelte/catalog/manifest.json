@@ -116,8 +116,7 @@
     },
     "typography": {
       "files": [
-        "typography.css",
-        "narrow-page.svelte.ts"
+        "typography.css"
       ],
       "folder": "src/svelte/catalog/mechanisms/typography",
       "owner": "theme"
