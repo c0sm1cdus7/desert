@@ -52,7 +52,8 @@ test("each context draws the markup of the composition it replaces", { timeout: 
     // photo-collection composition: the same elements and marks, with the gallery's own classes (its pixels:
     // foundation-media-parity.test.ts); the heading and its copy are unchanged.
     const parts = await f.page.locator('[data-case="media"]').evaluateAll(cases => cases.map(item => {
-      const html = (selector: string) => (item.querySelector(selector)?.outerHTML ?? "").replace(/<!--[^>]*-->/g, "");
+      // An empty style attribute styles nothing: the label's measurement may leave one where the other side has none.
+      const html = (selector: string) => (item.querySelector(selector)?.outerHTML ?? "").replace(/<!--[^>]*-->/g, "").replace(/ style=""/g, "");
       const root = item.querySelector("[data-place-header]")!;
       return { root: [...root.attributes].filter(attribute => attribute.name !== "class").map(attribute => `${attribute.name}=${attribute.value}`),
         photo: html("[data-photo-collection]").replace(/ class="[^"]*"/g, ""), copy: html(".place-heading-copy") };
