@@ -56,7 +56,7 @@ test("controller loss preserves the edit and its old base; reconnect cannot over
   assert.equal(f.model.snapshot().state.draft.body, "Unsent local writing");
   f.invoke("edit-note"); await until(() => f.model.snapshot().error === "VERSION_CONFLICT");
   assert.equal(await f.receipts(), 2);
-  assert.equal((await f.persisted())[0].facts.body, "Newer body");
+  assert.equal((await f.persisted())[0]!.facts.body, "Newer body");
 });
 
 test("late collection response from one read cannot replace the newly active object's collection", async t => {

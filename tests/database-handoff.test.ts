@@ -3,14 +3,22 @@ import { before, after, test } from "node:test";
 import { Pool, type PoolClient } from "pg";
 import { localDatabase } from "../src/local/database.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { Type } from "@sinclair/typebox";
+import { column } from "../src/storage/columns.ts";
+import { defineTable } from "../src/storage/declare.ts";
+import { renderDdl } from "../src/storage/render-ddl.ts";
 
 let cluster: ReturnType<typeof postgresCluster>;
 before(() => { cluster = postgresCluster(); });
 after(() => { cluster?.dispose(); });
 
+/** A scratch table that observes whether a transaction's write survived, declared and generated like every table. */
+const effects = (name: string) => renderDdl(`-- ${name}: test scratch table\n`, [defineTable({ name, primaryKey: ["value"],
+  row: Type.Object({ value: column.text() }, { additionalProperties: false }) })]);
+
 test("a client fault between pool delivery and await resumption cannot escape or start an operation", async t => {
   const database = localDatabase(await cluster.database());
-  await database.transaction(client => client.query("CREATE TABLE handoff_effects (value text)"));
+  await database.transaction(client => client.query(effects("handoff_effects")));
   const connect = Pool.prototype.connect;
   const fault = Object.assign(new Error("Connection terminated at checkout boundary"), { code: "57P01" });
   let escaped: unknown;
@@ -53,7 +61,7 @@ test("real backend termination between statements rolls back and permits explici
   const admin = new Pool({ host: options.socketDirectory, database: options.database, user: options.user });
   const observed = new Promise<unknown>(resolve => { database.onFault(resolve); });
   try {
-    await database.transaction(client => client.query("CREATE TABLE terminated_effects (value text)"));
+    await database.transaction(client => client.query(effects("terminated_effects")));
     const failure = await database.transaction(async client => {
       await client.query("INSERT INTO terminated_effects VALUES ('uncommitted')");
       const pid = (await client.query("SELECT pg_backend_pid() AS pid")).rows[0].pid;

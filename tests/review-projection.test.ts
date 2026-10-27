@@ -7,6 +7,7 @@ import { reviewFrame } from "../src/interaction/frame-presenters.ts";
 import { Notebook } from "../products/notebook/product.ts";
 import { protocolNotebookDefinition } from "./fixtures/notebook.ts";
 import { localProgram } from "../src/local/program.ts";
+import { testInstallation } from "../src/testing/installation.ts";
 import { preparedView } from "../src/local/effects.ts";
 import type { Intent, Run } from "../src/local/types.ts";
 
@@ -72,7 +73,7 @@ test("agent preparation excludes ownership even when its own read explicitly pub
   const { definition, read } = fixture();
   definition.journeys!.push({ ...read, id: "agent-owner-read", fields: [...read.fields, "owner"] });
   definition.surfaces!.find(surface => surface.kind === "agent")!.journeys.push("agent-owner-read");
-  const program = localProgram(compile(definition), ["notes"]);
+  const program = localProgram(compile(definition), ["notes"], testInstallation);
   const run: Run = { id: "run", actor: "actor", surface: "agent", journey: "create-note", subject: null,
     contract_digest: "digest", expires_at: new Date("2030-01-01"), state: "prepared" };
   const intent: Intent = { id: "intent", run_id: "run", input: { title: "Title", body: "Body" },

@@ -7298,16 +7298,14 @@ export type LocalSession = ReturnType<typeof localSession>;
 
 ## src/local/admission.ts
 
-Source SHA-256: 071dd51524f18ffb032b070ad3d7a41539f072bb0bb19b481d960f7381d8aba4
+Source SHA-256: b8239c21a33d3feba15fdb43be2418a1ae0fcd1f21228b3e53f5f637296fa9d1
 
 ```ts
 import { randomUUID } from "node:crypto";
 import type { PoolClient } from "pg";
 import { freezeDeep } from "../json.ts";
 import type { LocalProgram } from "./program.ts";
-import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
-import type { StoredObject } from "./types.ts";
-import { matchesConditions } from "./conditions.ts";
+import { admittedRun, ownedObject, ownedObjects, requireLiveRun } from "./records.ts";
 
 export async function beginJourney(client: PoolClient, program: LocalProgram, actor: string,
   surface: string, journeyId: string, subject: string | undefined, lifetime: number) {
@@ -7326,21 +7324,20 @@ export async function beginJourney(client: PoolClient, program: LocalProgram, ac
   return Object.freeze({ id, journeyId, expiresAt: row.expires_at.toISOString() as string });
 }
 
+/** The read's subject, or every object the actor owns, filtered by the journey's declared equal facts in the generated
+ * statement (src/storage/object-sql.ts), in id order. */
 export async function readJourney(client: PoolClient, program: LocalProgram, actor: string, surface: string, runId: string) {
   const run = await admittedRun(client, program, actor, surface, runId);
   const journey = program.journey(surface, run.journey);
   if (journey.kind !== "read") throw new Error("NOT_A_READ_JOURNEY");
-  const records = run.subject ? [await ownedObject(client, program, actor, journey.object, run.subject)] :
-    (await client.query<StoredObject>(`SELECT * FROM desert_objects
-      WHERE object_type = $1 AND facts ->> $2 = $3 ORDER BY id`, [journey.object, program.owners.get(journey.object), actor])).rows;
+  // A subject the actor does not own is NOT_FOUND; one that the declared filter excludes reads as nothing.
+  if (run.subject) await ownedObject(client, program, actor, journey.object, run.subject);
+  const records = await ownedObjects(client, program, actor, journey.object,
+    { ...(run.subject ? { id: run.subject, lock: true } : {}), where: journey.where ?? {} });
   const fields = run.subject ? journey.fields : journey.collection;
   await requireLiveRun(client, run);
-  return freezeDeep(records.flatMap(record => {
-    if (!program.application.validate(journey.object, record.facts).valid) throw new Error("CORRUPT_OBJECT");
-    if (!matchesConditions(record.facts, journey.where ?? {})) return [];
-    return [{ id: record.id, version: record.version,
-      facts: Object.fromEntries(fields.map(field => [field, record.facts[field]!])) }];
-  }));
+  return freezeDeep(records.map(record => ({ id: record.id, version: record.version,
+    facts: Object.fromEntries(fields.map(field => [field, record.facts[field]!])) })));
 }
 ```
 
@@ -7396,7 +7393,7 @@ export async function prepareMutation(client: PoolClient, program: LocalProgram,
 
 ## src/local/accept.ts
 
-Source SHA-256: 985271ad5e36f08f43229323c598ff0867cab7dab7b6fea7e4fdacbbe0567c1a
+Source SHA-256: dade17caf2a69a45cc9915abdf9a17054486cdb543a65049b8b352d8c3d39b54
 
 ```ts
 import type { PoolClient } from "pg";
@@ -7404,7 +7401,9 @@ import { freezeDeep } from "../json.ts";
 import type { LocalProgram } from "./program.ts";
 import { admittedRun, ownedObject, requireLiveRun } from "./records.ts";
 import { canonical, confirmationDigest, materialize } from "./effects.ts";
-import { requireUUID, type Intent, type Receipt, type ReceiptRow } from "./types.ts";
+import { requireUUID, type Effect, type Intent, type Mutation, type Receipt, type ReceiptRow } from "./types.ts";
+import { applyChangesIn, type Change } from "../storage/change-set.ts";
+import { namingViolations } from "../storage/violations.ts";
 import { requireCurrentActivityIntent, completeActivityIntent } from "../activities/acceptance.ts";
 import type { ActivityIndex } from "../activities/activity-index.ts";
 import { bindImageEffect, attachImageEffect } from "../assets/acceptance.ts";
@@ -7418,6 +7417,25 @@ export async function loadIntent(client: PoolClient, program: LocalProgram, acto
   const run = await admittedRun(client, program, actor, surface, intent.run_id, true);
   if (confirmationDigest(run, intent.input, intent.effect) !== intent.confirmation_digest) throw new Error("CORRUPT_INTENT");
   return { intent, run };
+}
+
+/** The accepted effect as one change of the journey's module (owner answer Q3), written to the object's generated table;
+ * an update sets only the facts its command assigns. Postgres re-checks the declaration: a violation is a named code. */
+export async function writeEffect(client: PoolClient, program: LocalProgram, journey: Mutation, effect: Effect): Promise<number> {
+  const command = journey.command;
+  const change: Change = effect.kind === "create"
+    ? { kind: "create", object: effect.objectType, id: effect.objectId, facts: effect.facts }
+    : { kind: "update", object: effect.objectType, id: effect.objectId, expectedVersion: effect.expectedVersion,
+      set: Object.fromEntries(Object.keys(command.kind === "update" ? command.set : {}).map(fact => [fact, effect.facts[fact]])) };
+  try {
+    const { objects: [written] } = await namingViolations(() => applyChangesIn(client, program.module(journey), [change]));
+    if (!written) throw new Error("EFFECT_LIMIT");
+    return written.version;
+  } catch (error) {
+    // A stale or missing subject is the same refusal the subject's own read gives; the detail is for the log.
+    const code = error instanceof Error ? /^(VERSION_CONFLICT|NOT_FOUND): /.exec(error.message)?.[1] : undefined;
+    throw code ? new Error(code, { cause: error }) : error;
+  }
 }
 
 async function receipt(client: PoolClient, id: string) {
@@ -7449,15 +7467,7 @@ export async function acceptMutation(client: PoolClient, program: LocalProgram, 
   if (canonical(effect) !== canonical(intent.effect)) throw new Error("EFFECT_CHANGED");
   await validateReferences(client,program,actor,effect.objectType,effect.facts,effect.objectId);
   await requireLiveRun(client, run);
-  const version = effect.expectedVersion + 1;
-  if (effect.kind === "create") {
-    await client.query("INSERT INTO desert_objects VALUES ($1, $2, $3, $4)",
-      [effect.objectId, effect.objectType, version, JSON.stringify(effect.facts)]);
-  } else {
-    const updated = await client.query("UPDATE desert_objects SET version = $1, facts = $2 WHERE id = $3 AND version = $4",
-      [version, JSON.stringify(effect.facts), effect.objectId, effect.expectedVersion]);
-    if (updated.rowCount !== 1) throw new Error("VERSION_CONFLICT");
-  }
+  const version = await writeEffect(client, program, journey, effect);
   await attachImageEffect(client, effect);
   const result: Receipt = { id, runId: run.id, commandId: journey.command.id, status: "completed",
     object: { id: effect.objectId, type: effect.objectType, version } };
@@ -7470,12 +7480,14 @@ export async function acceptMutation(client: PoolClient, program: LocalProgram, 
 
 ## src/local/database.ts
 
-Source SHA-256: e08211c56cd59d991bf5cf172e86caa2116f20d2611668ea6cad4d85071c9c61
+Source SHA-256: 1f80992273e356d06b898e3ddf6a85448c9c9cabfe22b522031b9738c90605d7
 
 ```ts
-import { readFileSync, statSync } from "node:fs";
+import { statSync } from "node:fs";
 import { isAbsolute } from "node:path";
 import { Pool, type PoolClient } from "pg";
+import { renderStorageDdl, type ObjectStorage } from "../storage/ddl.ts";
+import { renderControllerDdl } from "../storage/render-ddl.ts";
 import { LocalSchemaVersion, requireDurablePrimary, requireInstallation } from "./installation.ts";
 
 export type LocalDatabase = { socketDirectory: string, database: string, user: string, port?: number };
@@ -7530,16 +7542,18 @@ export function localDatabase(options: LocalDatabase) {
     } finally { client.release(broken || clientFaults.has(client)); }
   }
 
-  async function install(product: string, digest: string, roles: readonly string[]) {
+  /** Applies the generated DDL (plan §15, step 7.6): the controller's infrastructure, then — once this database is known
+   * to hold this product, digest and roles — the product's object tables in the installation's language. */
+  async function install(storage: ObjectStorage, roles: readonly string[]) {
+    const product = storage.productId, digest = storage.digest;
     await transaction(async client => {
       await requireDurablePrimary(client);
       await client.query("SELECT pg_advisory_xact_lock(842721)");
-      await client.query(readFileSync(new URL("./schema.sql", import.meta.url), "utf8"));
-      await client.query(readFileSync(new URL("../activities/schema.sql", import.meta.url), "utf8"));
-      await client.query(readFileSync(new URL("../identity/schema.sql", import.meta.url), "utf8"));
+      await client.query(renderControllerDdl());
       await client.query(`INSERT INTO desert_installation VALUES (true, $1, $2, $3, $4)
         ON CONFLICT DO NOTHING`, [LocalSchemaVersion, product, digest, roles]);
       await requireInstallation(client, { product, digest, roles });
+      await client.query(renderStorageDdl(storage));
     });
   }
   return { transaction, install, assertOpen,

@@ -1,10 +1,11 @@
-// The private asset store, its reservations and the links from objects to attached assets.
+// The private asset store and its reservations. An object links an attached asset through its own asset column, a
+// foreign key to desert_assets (src/storage/fact-columns.ts), so there is no separate link table.
 import { Type } from "@sinclair/typebox";
 import type { AssetQuota } from "../../assets/policy.ts";
 import type { PrivateAssetMetadata } from "../../assets/types.ts";
 import { column, nullable } from "../columns.ts";
 import { defineTable, references } from "../declare.ts";
-import { identitiesTable, objectsTable, runsTable } from "./local.ts";
+import { identitiesTable, runsTable } from "./local.ts";
 
 const closed = { additionalProperties: false } as const;
 
@@ -27,9 +28,3 @@ export const assetsTable = defineTable({ name: "desert_assets", primaryKey: ["id
     // Metadata is produced by the media pipeline (src/assets/media-processing.ts) and re-read through it.
     metadata: nullable(column.json(Type.Unsafe<PrivateAssetMetadata>({}))),
   }, closed) });
-
-export const assetLinksTable = defineTable({ name: "desert_asset_links", primaryKey: ["asset_id", "object_id", "field"],
-  foreignKeys: [
-    { columns: ["asset_id"], references: references(assetsTable, "id") },
-    { columns: ["object_id"], references: references(objectsTable, "id") },
-  ], row: Type.Object({ asset_id: column.uuid(), object_id: column.uuid(), field: column.text() }, closed) });

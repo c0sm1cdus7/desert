@@ -6,8 +6,8 @@ export { text, integer, principal, enumeration, imageAsset, mediaAsset, labels, 
 const ObjectDefinition = Type.Object({
   id: Type.String({ minLength: 1 }),
   facts: Type.Record(Type.String({ minLength: 1 }), FieldDefinitionSchema, { minProperties: 1, additionalProperties: false }),
-  /** Sets of scalar facts no two objects of this type share, enforced by the typed object tables (src/storage/ddl.ts);
-   * the local controller refuses them (UNIQUE_NOT_YET_ENFORCED) until objects are stored there (plan §15, slice 7.2). */
+  /** Sets of scalar facts no two objects of this type share, enforced by the typed object tables (src/storage/ddl.ts):
+   * an acceptance that would repeat one is refused as UNIQUE_CONFLICT (src/storage/violations.ts). */
   unique: Type.Optional(Type.Array(Type.Array(Type.String({ minLength: 1 }), { minItems: 1, uniqueItems: true }), { minItems: 1, uniqueItems: true })),
 }, { additionalProperties: false });
 

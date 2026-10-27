@@ -3,7 +3,9 @@ import type { PoolClient } from "pg";
 import type { installationTable } from "../storage/tables/local.ts";
 
 export type Installation = { product: string, digest: string, roles: readonly string[] };
-export const LocalSchemaVersion = 4;
+/** 5: objects live in their generated per-type tables (plan §15, step 7.2); a version-4 database holds them in the
+ * retired generic table and is refused (INSTALLATION_MISMATCH), never served as if it were empty. */
+export const LocalSchemaVersion = 5;
 
 export async function requireDurablePrimary(client: PoolClient) {
   const { rows: [settings] } = await client.query(`SELECT current_setting('fsync') AS fsync,

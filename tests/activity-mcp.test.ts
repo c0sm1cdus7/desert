@@ -6,6 +6,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/server";
 import { createAgentMcpServer } from "../src/mcp/server.ts";
 import { activityFixture } from "./fixtures/activity.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { storedObjects } from "../src/testing/stored-objects.ts";
 
 test("MCP discovers and resumes the same activity occurrence without delegated authority or implicit writes", async () => {
   const cluster = postgresCluster(), f = await activityFixture(cluster);
@@ -31,7 +32,7 @@ test("MCP discovers and resumes the same activity occurrence without delegated a
     const forged = await client.callTool({ name: "activityList", arguments: { actor: "Bob" } });
     assert.equal(forged.isError, true);
     assert.deepEqual((await f.session.activityList()).items, [], "human and agent surfaces do not inherit each other's drafts");
-    assert.equal((await f.admin.query("SELECT count(*) FROM desert_objects")).rows[0].count, "0");
+    assert.equal((await storedObjects(f.admin, f.application)).length, 0);
     assert.equal((await f.admin.query("SELECT count(*) FROM desert_runs")).rows[0].count, "0");
   } finally { await client.close(); await server.close(); await f.close(); cluster.dispose(); }
 });

@@ -17,13 +17,6 @@ CREATE TABLE IF NOT EXISTS "desert_identities" (
   PRIMARY KEY ("id"),
   UNIQUE ("credential_hash")
 );
-CREATE TABLE IF NOT EXISTS "desert_objects" (
-  "id" uuid NOT NULL,
-  "object_type" text NOT NULL,
-  "version" integer NOT NULL CHECK ("version" > 0),
-  "facts" jsonb NOT NULL CHECK (jsonb_typeof("facts") = 'object'),
-  PRIMARY KEY ("id")
-);
 CREATE TABLE IF NOT EXISTS "desert_runs" (
   "id" uuid NOT NULL,
   "actor" uuid NOT NULL,
@@ -130,14 +123,6 @@ CREATE TABLE IF NOT EXISTS "desert_assets" (
   FOREIGN KEY ("store_id") REFERENCES "desert_asset_store" ("id"),
   FOREIGN KEY ("actor") REFERENCES "desert_identities" ("id"),
   FOREIGN KEY ("run_id") REFERENCES "desert_runs" ("id")
-);
-CREATE TABLE IF NOT EXISTS "desert_asset_links" (
-  "asset_id" uuid NOT NULL,
-  "object_id" uuid NOT NULL,
-  "field" text NOT NULL,
-  PRIMARY KEY ("asset_id", "object_id", "field"),
-  FOREIGN KEY ("asset_id") REFERENCES "desert_assets" ("id"),
-  FOREIGN KEY ("object_id") REFERENCES "desert_objects" ("id")
 );
 CREATE TABLE IF NOT EXISTS "desert_execution"."installation" (
   "singleton" boolean NOT NULL CHECK ("singleton"),

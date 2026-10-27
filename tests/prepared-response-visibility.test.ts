@@ -8,6 +8,7 @@ import { openLocalController } from "../src/local/controller.ts";
 import { localWebGateway } from "../src/web/gateway.ts";
 import { protocolNotebookDefinition } from "./fixtures/notebook.ts";
 import { postgresCluster } from "./fixtures/postgres.ts";
+import { storedObjects } from "../src/testing/stored-objects.ts";
 
 let cluster: ReturnType<typeof postgresCluster>;
 before(() => { cluster = postgresCluster(); });
@@ -62,10 +63,10 @@ test("authenticated human prepare projects only declared facts, preserving the c
       assert.deepEqual(await rpc("receipt", { intentId: initial.id }), receipt);
       subject = receipt.object.id;
     }
-    const persisted = (await admin.query("SELECT version,facts FROM desert_objects")).rows;
-    assert.equal(persisted.length, 1); assert.equal(persisted[0].version, 2);
-    assert.equal(persisted[0].facts.privateFact, "test-only-secret");
-    assert.equal(persisted[0].facts.state, "archived");
+    const persisted = await storedObjects(admin, application);
+    assert.equal(persisted.length, 1); assert.equal(persisted[0]!.version, 2);
+    assert.equal(persisted[0]!.facts.privateFact, "test-only-secret");
+    assert.equal(persisted[0]!.facts.state, "archived");
     assert.equal((await admin.query("SELECT count(*) FROM desert_receipts")).rows[0].count, "2");
   } finally {
     gateway.close();

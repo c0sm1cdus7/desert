@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { compile } from "../src/compile.ts";
 import { localProgram } from "../src/local/program.ts";
+import { testInstallation } from "../src/testing/installation.ts";
 import { preparedView } from "../src/local/effects.ts";
 import { agentProjectionDefinition, preparedIntent, preparedRun } from "./fixtures/agent-prepared-projection.ts";
 
-const fixture = () => localProgram(compile(agentProjectionDefinition()), ["notes"]);
+const fixture = () => localProgram(compile(agentProjectionDefinition()), ["notes"], testInstallation);
 
 test("agent create response admits own read facts and this operation's input, never other-surface or sibling fields", () => {
   const program = fixture(), intent = preparedIntent(), original = structuredClone(intent);
@@ -45,7 +46,7 @@ test("an agent mutation without exposed reads or inputs has an explicitly empty 
   create.command.values.title = { kind: "literal", value: "Public title" };
   create.command.values.body = { kind: "literal", value: "Supplied body" };
   definition.surfaces = [{ id: "agent", kind: "agent", journeys: ["create-note"] }];
-  const program = localProgram(compile(definition), ["notes"]), intent = preparedIntent();
+  const program = localProgram(compile(definition), ["notes"], testInstallation), intent = preparedIntent();
   intent.input = {};
   const response = preparedView(program, preparedRun("create-note"), intent);
   assert.deepEqual(response.facts, {});

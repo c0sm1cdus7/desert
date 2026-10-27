@@ -5,6 +5,7 @@ import { compile } from "../../src/index.ts";
 import { openLocalController } from "../../src/local.ts";
 import { requirePrivatePath, startLocalPostgres } from "../../src/local/postgres-host.ts";
 import { assertProductSource } from "../../src/authoring/index.ts";
+import { NotebookInstallation } from "./installation.ts";
 
 export async function openNotebookLocal(directory: string) {
   await assertProductSource(fileURLToPath(new URL("./src", import.meta.url)));
@@ -14,7 +15,7 @@ export async function openNotebookLocal(directory: string) {
   const application = compile(NotebookProduct);
   let controller: Awaited<ReturnType<typeof openLocalController>> | undefined;
   try {
-    controller = await openLocalController(application, { ...postgres.database, roles: [NotesController.id] });
+    controller = await openLocalController(application, { ...postgres.database, roles: [NotesController.id], installation: NotebookInstallation });
     const identityPath = join(directory, "identity.json");
     let identity: { id: string, token: string };
     if (existsSync(identityPath)) {

@@ -25,7 +25,7 @@ test("authoring snapshots exactly match the executable source and all skill refe
 
 test("the authoring export includes the runnable product and tests but excludes runtime data and build outputs", () => {
   const files = bundleFiles(sourceRoot);
-  for (const path of ["src/index.ts", "src/local/schema.sql", "products/notebook/product.ts",
+  for (const path of ["src/index.ts", "src/storage/generated/infrastructure.sql", "products/notebook/product.ts",
     "src/build/svelte/template/src/routes/+page.svelte", "tests/local-controller.test.ts", "tests/web/notebook.test.ts",
     "src/build/index.ts", "src/build/serve.ts", "products/notebook/build-web.ts",
     "skills/desert/references/distributions.md",

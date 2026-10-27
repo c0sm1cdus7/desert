@@ -3,7 +3,7 @@
 import type { InstallationLanguage } from "./client-installation.ts";
 import type { ColumnStorage } from "./columns.ts";
 import type { RowLimit, StoredColumn, Table, TableIndex } from "./declare.ts";
-import { infrastructureTables } from "./infrastructure.ts";
+import { controllerTables, executionTables, infrastructureTables } from "./infrastructure.ts";
 import { languageCollation, renderLanguageCollation, renderSearchSupport, usesLanguageCollation } from "./render-language.ts";
 import { literal, qualified, quoted, quotedList, renderCheck, renderLabelsFunction, usesLabelsFunction } from "./render-checks.ts";
 
@@ -79,3 +79,15 @@ export function renderDdl(header: string, tables: readonly Table[], language?: I
 
 /** The infrastructure of every client database, with the accent-insensitive search support (owner answer Q20). */
 export const renderInfrastructureDdl = () => renderDdl(infrastructureHeader, infrastructureTables) + renderSearchSupport();
+/** What the controller installer applies (src/local/database.ts): its group of the same declarations, and the search support. */
+export const renderControllerDdl = () =>
+  renderDdl("-- GENERATED from src/storage/infrastructure.ts (controller tables). Do not edit.\n", controllerTables) + renderSearchSupport();
+/** What the host's execution queue applies (src/execution/queue.ts). */
+export const renderExecutionDdl = () =>
+  renderDdl("-- GENERATED from src/storage/infrastructure.ts (execution tables). Do not edit.\n", executionTables);
+
+/** A new, empty client database (owner answer Q4: the database is the client installation). */
+export function renderCreateDatabase(name: string): string {
+  if (!/^[a-z_][a-z0-9_]{0,62}$/.test(name)) throw new Error(`STORAGE_DECLARATION: database ${name} is not a lower-case SQL identifier; contract: src/storage/render-ddl.ts`);
+  return `CREATE DATABASE ${quoted(name)}`;
+}

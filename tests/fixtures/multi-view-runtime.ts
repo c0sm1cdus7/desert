@@ -6,6 +6,7 @@ import { viewProgramModel } from "../../src/web/client/view-program.ts";
 import { webTransport } from "../../src/web/client/transport.ts";
 import { blockedSnapshot } from "../../src/web/client/connection.ts";
 import { postgresCluster } from "./postgres.ts";
+import { storedObjects } from "../../src/testing/stored-objects.ts";
 import { multiApplication, multiProgram, multiSurface } from "./multi-view-program.ts";
 import type { NodeEvent } from "../../src/interaction/node-events.ts";
 import { captureViewEvents } from "./owned-view-events.ts";
@@ -64,7 +65,8 @@ export async function multiViewRuntime(t: TestContext, definition: unknown = mul
     return model.snapshot().state.detail!;
   };
   return { model, session, control, calls, output, invoke, input, create, emit,
-    persisted: async () => (await admin.query("SELECT object_type, version, facts FROM desert_objects ORDER BY object_type")).rows,
+    persisted: async () => (await storedObjects(admin, multiApplication)).sort((left, right) =>
+      left.object_type < right.object_type ? -1 : left.object_type > right.object_type ? 1 : 0),
     receipts: async () => Number((await admin.query("SELECT count(*) AS count FROM desert_receipts")).rows[0].count),
   };
 }
