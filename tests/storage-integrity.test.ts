@@ -125,8 +125,8 @@ test("a reference fact round-trips through its join table in order, and its decl
 test("namedViolation names only declaration violations: any other database failure stays itself", () => {
   const failure = (code: string) => Object.assign(new DatabaseError("refused", 1, "error"), { code });
   assert.equal((namedViolation(failure("23505")) as Error).message, "UNIQUE_CONFLICT");
-  for (const code of ["23503", "23514", "23502"]) assert.equal((namedViolation(failure(code)) as Error).message, "STORAGE_CONSTRAINT");
-  const syntax = failure("22P02"), plain = new Error("NOT_FOUND");
+  for (const code of ["23503", "23514", "23502", "22P02", "22003"]) assert.equal((namedViolation(failure(code)) as Error).message, "STORAGE_CONSTRAINT");
+  const syntax = failure("42601"), plain = new Error("NOT_FOUND");
   assert.equal(namedViolation(syntax), syntax);
   assert.equal(namedViolation(plain), plain);
   assert.equal(controllerErrorCode(syntax), "CONTROLLER_UNAVAILABLE");

@@ -21,14 +21,14 @@ export async function loadIntent(client: PoolClient, program: LocalProgram, acto
   return { intent, run };
 }
 
-/** The accepted effect as one change of the journey's module (owner answer Q3), written to the object's generated table;
- * an update sets only the facts its command assigns. Postgres re-checks the declaration: a violation is a named code. */
+/** The accepted effect as one change of the journey's module (owner answer Q3), written to the object's generated table.
+ * The prepared effect is what was confirmed, so an update writes every fact of it, preserved ones included: a corrupted
+ * preservation reaches storage and is caught (tests/verification-mutations.test.ts), never silently masked by the row.
+ * Postgres re-checks the declaration: a violation is a named code. */
 export async function writeEffect(client: PoolClient, program: LocalProgram, journey: Mutation, effect: Effect): Promise<number> {
-  const command = journey.command;
   const change: Change = effect.kind === "create"
     ? { kind: "create", object: effect.objectType, id: effect.objectId, facts: effect.facts }
-    : { kind: "update", object: effect.objectType, id: effect.objectId, expectedVersion: effect.expectedVersion,
-      set: Object.fromEntries(Object.keys(command.kind === "update" ? command.set : {}).map(fact => [fact, effect.facts[fact]])) };
+    : { kind: "update", object: effect.objectType, id: effect.objectId, expectedVersion: effect.expectedVersion, set: effect.facts };
   try {
     const { objects: [written] } = await namingViolations(() => applyChangesIn(client, program.module(journey), [change]));
     if (!written) throw new Error("EFFECT_LIMIT");

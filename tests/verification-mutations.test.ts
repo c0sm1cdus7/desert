@@ -17,7 +17,9 @@ test("generic verification detects corrupt preservation, ownership and bypassed 
     assert.equal(result.accepted, false, mode);
     assert.ok(result.cases.some(item => item.status === "passed"), "Mutation must not break the entire setup");
     const errors = result.cases.filter(item => item.status === "failed").map(item => item.reason).join("\n");
-    assert.match(errors, mode === "guard" ? /Missing expected rejection/ : /PRESERVATION_VIOLATION/);
+    // A corrupted owner is no uuid, so since slice 7.2 Postgres itself refuses it (the typed owner column) before the
+    // harness can observe a preserved row; the named refusal is the detection.
+    assert.match(errors, mode === "guard" ? /Missing expected rejection/ : mode === "owner" ? /STORAGE_CONSTRAINT/ : /PRESERVATION_VIOLATION/);
     assert.doesNotMatch(errors, /MUTATION_TARGET_CHANGED|UNKNOWN_VERIFICATION_MUTATION/);
   }
   assert.equal(readFileSync(file, "utf8"), original);
