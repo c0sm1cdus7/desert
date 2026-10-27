@@ -83,8 +83,3 @@
   overflow-wrap:break-word;
   @variant narrow-page { hyphens:auto; }
 }
-/* The probe narrow-page.svelte.ts observes: a pixel of width only on a narrow page, never seen or announced. */
-.narrow-page-probe {
-  position:fixed; inset-block-start:0; inset-inline-start:0; width:0; height:1px; overflow:hidden; pointer-events:none; visibility:hidden;
-  @variant narrow-page { width:1px; }
-}
