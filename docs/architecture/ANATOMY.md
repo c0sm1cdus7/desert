@@ -148,7 +148,7 @@ equal duplicates. The authoring helper accepts no other properties.
 The [object publication](../../../void/src/modules/notes/note.publication.ts)
 owns each field's `label` and `representation`, through a typed fact reference.
 The installed representations are `text`, `paragraphs`, `image` and `tags`. Paragraphs
-require a text fact; image requires an `imageAsset()` fact; tags require `labels()`.
+require a text fact; image requires a `file()` fact; tags require `labels()`.
 Assets and labels cannot be object titles or text collection summaries. Duplicate, foreign, unknown and
 principal field references fail.
 The [execution registration](../../../void/src/modules/notes/notes.module.ts)
@@ -423,7 +423,8 @@ discovery or a shared cross-surface Home/sidebar navigator.
 
 ## Private image inputs and reads
 
-[`imageAsset()`](../../src/field-definition.ts) declares an image fact, not a URL,
+[`file({ accept, maxBytes })`](../../src/field-definition.ts) declares a file fact (accepted media types from
+[the media policy](../../src/media/rendition-policy.ts) and a size limit), not a URL,
 filesystem path or a renderer override. Commands assign it only through a
 compatible `fromInput(...)`. The shared [asset reference schema](../../src/assets/types.ts)
 is a closed kernel-issued locator; knowing its value grants no read or write

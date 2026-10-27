@@ -10,7 +10,7 @@ Agreed with the owner on 2026-10-23 (Visual Catalog exclusivity plan, section 4)
 | Product | The one composed root: modules, workspace, entry, navigation and exposures. | `composeProduct` |
 | Module | One capability: objects, commands, reads, journeys, views and destinations, with explicit exports. | `defineModule` |
 | Object | A typed record definition: facts and policies. | `objectType` |
-| Fact | One typed field of an object. | `text`, `integer`, `enumeration`, `principal`, `imageAsset`, `labels` |
+| Fact | One typed field of an object. | `text`, `integer`, `enumeration`, `principal`, `file`, `labels` |
 | Command | A declared change of one object (create or update) with its inputs. | `createCommand`, `updateCommand` |
 | Read | A declared authorized read: object, facts, filter. | `readJourney` |
 | Journey | The binding of a view's outputs to actions: submit a command, navigate, select, close, back, lock. It neither draws nor executes. | `*.journey.ts`, `ViewJourney` |

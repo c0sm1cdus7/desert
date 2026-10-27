@@ -322,7 +322,7 @@ export type CatalogAsset = Frozen<Static<typeof CatalogAssetSchema>>;
 
 ## src/public-catalog/validate-definition.ts
 
-Source SHA-256: 9aa68115b505c2c15a21c5bf412a39df71ebb8e31b583d8dc3e3b49d604f3c58
+Source SHA-256: a9f4f9dac43d76943e648b8598064e5fa2437fd95cc57852141118700335d30d
 
 ```ts
 import { Check } from "@sinclair/typebox/value";
@@ -346,7 +346,7 @@ export function validatePublicCatalogDefinition(value: unknown): PublicCatalogDe
   if (!Check(PublicCatalogDefinitionSchema, definition)) throw new Error("INVALID_PUBLIC_CATALOG_DEFINITION");
   const { object, source, view } = definition;
   if (Object.values(object.facts).some(fact => fact.kind === "principal")) throw new Error("INVALID_PUBLIC_CATALOG_PRINCIPAL");
-  if (Object.values(object.facts).some(fact => fact.kind === "asset")) throw new Error("PRIVATE_ASSET_REQUIRES_CONTROLLER_READ");
+  if (Object.values(object.facts).some(fact => fact.kind === "file")) throw new Error("PRIVATE_ASSET_REQUIRES_CONTROLLER_READ");
   const field = (name: string) => Object.hasOwn(object.facts, name) ? object.facts[name] : undefined;
   if (field(view.title)?.kind !== "text" || field(view.description)?.kind !== "text") throw new Error("INVALID_CATALOG_TEXT_EXPOSURE");
   const group = field(view.home.groups.field);

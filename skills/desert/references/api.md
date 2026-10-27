@@ -78,10 +78,10 @@ verbatim modules, not standalone snippets or a published package API.
 
 ## src/index.ts
 
-Source SHA-256: 4ae435a064253c5fb63249b76b57d6e1aa1d940f41d4d34b99e443ecb773a0b5
+Source SHA-256: 9d7b1a92ad2f38871bbc68bb14c23a59138816a18a9ee4205404f2688636def4
 
 ```ts
-export { objectType, text, integer, enumeration, principal, imageAsset, mediaAsset, labels, references, namedReferences, mediaReferences } from "./contracts.ts";
+export { objectType, text, integer, enumeration, principal, file, labels, references, namedReferences, mediaReferences } from "./contracts.ts";
 export type { FieldDefinition, ObjectDefinition, ProductDefinition } from "./contracts.ts";
 export { compile } from "./modules/compiled-product.ts";
 export { createCommand, updateCommand, fromInput, literal, actorId } from "./commands.ts";
@@ -129,14 +129,14 @@ export {AttentionSignalSchema,type AttentionSignal} from './attention.ts';
 
 ## src/contracts.ts
 
-Source SHA-256: 18016c731f939d89bf62e23159e9524808ac2174e2ec211d45dada5dbb4c892a
+Source SHA-256: f411743596c66e224ade2d03d54bc609f89418bda18d7c9e8ccbd9bf98aee91d
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
 import { JourneySchema, PolicySchema, ExposureSchema } from "./program-grammar.ts";
 import { DependencySchema } from "./dependencies.ts";
 import { FieldDefinitionSchema } from "./field-definition.ts";
-export { text, integer, principal, enumeration, imageAsset, mediaAsset, labels, references, namedReferences, mediaReferences, type FieldDefinition } from "./field-definition.ts";
+export { text, integer, principal, enumeration, file, labels, references, namedReferences, mediaReferences, type FieldDefinition } from "./field-definition.ts";
 const ObjectDefinition = Type.Object({
   id: Type.String({ minLength: 1 }),
   facts: Type.Record(Type.String({ minLength: 1 }), FieldDefinitionSchema, { minProperties: 1, additionalProperties: false }),
@@ -301,7 +301,7 @@ export function agentExposure<const Id extends string, const J extends readonly 
 
 ## src/authoring-types.ts
 
-Source SHA-256: 3d329d2f11077e3a347d0a1296f369b89e9f78c216c63246670782e672de914d
+Source SHA-256: 6f08034cc134c83a8b28c5f8d1bb02ddb679f6b3f164482853122be07e5eff76
 
 ```ts
 import type { FieldDefinition, ObjectDefinition } from "./contracts.ts";
@@ -309,7 +309,7 @@ import type { AssetReference } from "./assets/types.ts";
 
 export type FieldValue<F extends FieldDefinition> = F extends { kind: "integer" } ? number
   : F extends { kind: "labels" } ? readonly string[]
-  : F extends { kind: "asset" } ? AssetReference : F extends { kind: "enum", values: (infer V)[] } ? V : string;
+  : F extends { kind: "file" } ? AssetReference : F extends { kind: "enum", values: (infer V)[] } ? V : string;
 export type FactsOf<O extends ObjectDefinition> = { [K in keyof O["facts"]]: FieldValue<O["facts"][K]> };
 export type FieldKey<O extends ObjectDefinition> = keyof O["facts"] & string;
 export type WritableKey<O extends ObjectDefinition> = {
@@ -321,7 +321,7 @@ type CompatibleInput<O extends ObjectDefinition, Keys extends FieldKey<O>, F ext
 }[Keys];
 type Assignment<O extends ObjectDefinition, Keys extends FieldKey<O>, F extends FieldDefinition> =
   F extends { kind: "principal" } ? { kind: "actor" }
-    : F extends { kind: "asset" } ? CompatibleInput<O, Keys, F>
+    : F extends { kind: "file" } ? CompatibleInput<O, Keys, F>
     : F extends { kind: "labels" } ? { kind: "literal", value: [] } | CompatibleInput<O, Keys, F>
     : { kind: "literal", value: FieldValue<F> } | CompatibleInput<O, Keys, F>;
 export type CreateValues<O extends ObjectDefinition, Keys extends FieldKey<O>> = {
@@ -331,7 +331,7 @@ export type ChangeValues<O extends ObjectDefinition, Keys extends FieldKey<O>> =
   [K in WritableKey<O>]?: Assignment<O, Keys, O["facts"][K]>;
 };
 export type ScalarKey<O extends ObjectDefinition> = {
-  [K in FieldKey<O>]: O["facts"][K] extends { kind: "asset" | "labels" } ? never : K;
+  [K in FieldKey<O>]: O["facts"][K] extends { kind: "file" | "labels" } ? never : K;
 }[FieldKey<O>];
 export type Conditions<O extends ObjectDefinition> = Partial<Pick<FactsOf<O>, ScalarKey<O>>>;
 export type InputOf<O extends ObjectDefinition, C extends { object: O["id"], input: WritableKey<O>[] }> =
@@ -818,7 +818,7 @@ export function defineModule<const M extends ModuleDefinition>(definition: Close
 
 ## src/modules/publish-object.ts
 
-Source SHA-256: f811ced359cca3b76852a3885154a9ec0c1e1de83f466a7b7e62aa84f852402a
+Source SHA-256: 784f3dd7430e470d3791390d6327b95a7f2dfad3dba6df6f219ec124a1ec132c
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -850,7 +850,7 @@ type SubjectAction<Id extends string> = Publication["actions"][number] & { reado
 type PresentedField<O extends ObjectDefinition> = {
   [K in WritableKey<O>]: Omit<Declared<PublishedField>, "fact" | "representation"> & {
     readonly fact: FactReference<O["id"], K>;
-    readonly representation: O["facts"][K] extends { readonly kind: "asset" } ? "image"
+    readonly representation: O["facts"][K] extends { readonly kind: "file" } ? "image"
       : O["facts"][K] extends { readonly kind: "labels" } ? "tags"
       : O["facts"][K] extends { readonly kind: "text" } ? Extract<FieldRepresentation, "text" | "paragraphs"> : "text";
   };
@@ -2282,7 +2282,7 @@ export function compileViewProgram(definition: unknown, surface: Surface): ViewP
 
 ## src/views/program-views.ts
 
-Source SHA-256: 18c5c5dc6e4765309f90c6a643cb92d43b49f21f929ca0cd05479502b427f73e
+Source SHA-256: d3790b23809fdea459471763983d3086436479e7e4e7f57c19e64535f2f1c776
 
 ```ts
 import type { HumanSurface } from "../web/types.ts";
@@ -2320,7 +2320,7 @@ export function validateJourneyExposure(journey: ViewJourney, surface: HumanSurf
     if (journey.kind === "action" && canonical.inputFields.length) throw new Error("INVALID_VIEW_ACTION_INPUTS");
     if (journey.kind === "create" && journey.startWith &&
       (!canonical.inputFields.includes(journey.startWith.input) ||
-        surface.fieldKinds?.[`${canonical.object}.${journey.startWith.input}`] !== "asset")) {
+        surface.fieldKinds?.[`${canonical.object}.${journey.startWith.input}`] !== "file")) {
       throw new Error("INVALID_FILE_ENTRY_INPUT");
     }
     if (journey.kind === "create" && journey.startWith && journey.presentation !== "transient") {
@@ -3391,12 +3391,14 @@ export function surfaceFields(journeys: readonly Frozen<JourneyDefinition>[]) {
 
 ## src/field-definition.ts
 
-Source SHA-256: 311977ec3dea3a4e1f831fdcf678d63cef951f9f00fe49ea51ab528b7347718a
+Source SHA-256: cc9d6ba89f618ff03ccf70383dfb5f3ad26c90401fba68b03116a58dd7991cb2
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
 import { Check } from "@sinclair/typebox/value";
 import { labelLimits } from "./labels.ts";
+import { fileLimits } from "./assets/policy.ts";
+import { mediaTypes, policyOrder, type MediaType } from "./media/rendition-policy.ts";
 
 const TextField = Type.Object({
   kind: Type.Literal("text"),
@@ -3411,8 +3413,12 @@ const IntegerField = Type.Object({
 }, { additionalProperties: false });
 
 const PrincipalField = Type.Object({ kind: Type.Literal("principal") }, { additionalProperties: false });
-const ImageAssetField = Type.Object({ kind: Type.Literal("asset"), media: Type.Literal("image") }, { additionalProperties: false });
-const MediaAssetField = Type.Object({ kind: Type.Literal("asset"), media: Type.Literal("media") }, { additionalProperties: false });
+/** A file of one of the accepted media types (src/media/rendition-policy.ts) of at most maxBytes. Its value is the reference
+ * to the SDK's `asset` object that holds the file (src/assets/object.ts). */
+const FileField = Type.Object({ kind: Type.Literal("file"),
+  accept: Type.Array(Type.Union(mediaTypes.map(type => Type.Literal(type))), { minItems: 1, uniqueItems: true }),
+  maxBytes: Type.Integer({ minimum: 1, maximum: fileLimits.maxBytes }),
+}, { additionalProperties: false });
 const LabelConstraintsSchema = Type.Object({
   maxItems: Type.Optional(Type.Integer({ minimum: 1, maximum: labelLimits.maxItems })),
   maxLength: Type.Optional(Type.Integer({ minimum: 1, maximum: labelLimits.maxLength })),
@@ -3429,7 +3435,7 @@ const EnumField = Type.Object({ kind: Type.Literal("enum"), values: Type.Array(T
   minItems: 1, uniqueItems: true,
 }) }, { additionalProperties: false });
 
-export const FieldDefinitionSchema = Type.Union([TextField, IntegerField, PrincipalField, EnumField, ImageAssetField, MediaAssetField, LabelsField]);
+export const FieldDefinitionSchema = Type.Union([TextField, IntegerField, PrincipalField, EnumField, FileField, LabelsField]);
 export type FieldDefinition = Static<typeof FieldDefinitionSchema>;
 
 export function text(options: Omit<Static<typeof TextField>, "kind"> = {}): Static<typeof TextField> {
@@ -3441,13 +3447,18 @@ export function integer(options: Omit<Static<typeof IntegerField>, "kind"> = {})
 }
 
 export function principal(): Static<typeof PrincipalField> { return { kind: "principal" }; }
-export function imageAsset(): Readonly<Static<typeof ImageAssetField>> {
-  if (arguments.length) throw new Error("IMAGE_ASSET_OPTIONS_FORBIDDEN");
-  return Object.freeze({ kind: "asset", media: "image" });
-}
-export function mediaAsset(): Readonly<Static<typeof MediaAssetField>> {
-  if (arguments.length) throw new Error("MEDIA_ASSET_OPTIONS_FORBIDDEN");
-  return Object.freeze({kind:"asset",media:"media"});
+/** A file fact: the media types it accepts (kept in the policy's order, src/media/rendition-policy.ts) and its size limit,
+ * at most the SDK's (src/assets/policy.ts). Raises INVALID_FILE_DEFINITION. */
+export function file<const A extends readonly [MediaType, ...MediaType[]]>(options: { readonly accept: A; readonly maxBytes: number }):
+  Readonly<{ kind: "file"; accept: A[number][]; maxBytes: number }> {
+  const shaped = typeof options === "object" && options !== null && Object.keys(options).sort().join(",") === "accept,maxBytes"
+    && Array.isArray(options.accept);
+  const accept = shaped ? policyOrder(options.accept) : [];
+  const definition = { kind: "file" as const, accept, maxBytes: shaped ? options.maxBytes : 0 };
+  if (!shaped || accept.length !== options.accept.length || !Check(FileField, definition)) {
+    throw new Error(`INVALID_FILE_DEFINITION: accept distinct types of ${mediaTypes.join(", ")}; maxBytes 1 to ${fileLimits.maxBytes}`);
+  }
+  return Object.freeze({ ...definition, accept: Object.freeze([...accept]) as A[number][] });
 }
 export function labels(options: Static<typeof LabelConstraintsSchema> = {}): Readonly<Static<typeof LabelsField>> {
   if (!Check(LabelConstraintsSchema, options)) throw new Error("INVALID_LABELS_DEFINITION");
@@ -3470,7 +3481,7 @@ export function mediaReferences(object:string | {readonly id:string;readonly fac
   options:{media:string;maxItems?:number;memberOf?:string;where?:Readonly<Record<string,string>>}) {
   const id=typeof object==='string' ? object : object?.id;
   if (!id || !options || Object.keys(options).some(key=>!['media','maxItems','memberOf','where'].includes(key)) || !options.media
-    || typeof object !== 'string' && object.facts[options.media]?.kind !== 'asset'
+    || typeof object !== 'string' && object.facts[options.media]?.kind !== 'file'
     || options.maxItems !== undefined && (!Number.isInteger(options.maxItems) || options.maxItems<1 || options.maxItems>200)
     || options.memberOf !== undefined && !options.memberOf) throw new Error('INVALID_REFERENCE_DEFINITION');
   return Object.freeze({kind:'labels' as const,maxItems:options.maxItems ?? 200,maxLength:36,
@@ -3485,7 +3496,7 @@ export function namedReferences<const O extends {readonly id:string;readonly fac
 
 ## src/field-representation.ts
 
-Source SHA-256: 25379afa2a202dfd506491d33251b4f3c132d1a02678908f60986a70bfb1d692
+Source SHA-256: ddd1db9a9a489f36e17b9e459ae599b6a214554a1067e497911a31d040c10c38
 
 ```ts
 import { Type, type Static } from "@sinclair/typebox";
@@ -3501,7 +3512,7 @@ export const FieldKindsSchema = Type.Record(Type.String({ minLength: 1 }), Field
 export type FieldKind = Static<typeof FieldKindSchema>;
 
 export function supportsFieldRepresentation(fact: Pick<FieldDefinition, "kind">, representation: FieldRepresentation): boolean {
-  if (fact.kind === "asset") return representation === "image";
+  if (fact.kind === "file") return representation === "image";
   if (fact.kind === "labels") return representation === "tags";
   return representation !== "image" && representation !== "tags" && fact.kind !== "principal" && (representation !== "paragraphs" || fact.kind === "text");
 }
@@ -3898,7 +3909,7 @@ export function checkDeclarations(file: ts.SourceFile, imported: (specifier: str
 
 ## src/authoring/expressions.ts
 
-Source SHA-256: 0b16539e6ef6e5f34bf95a387ee920ea9b72ec7d0c3e6dad2a915631d772a163
+Source SHA-256: c6efb16357adcc937e15a9a1657101b9e553c7c24878746d9f84db034ee787e0
 
 ```ts
 import ts from "typescript";
@@ -3906,7 +3917,7 @@ import { Components } from "../views/components.ts";
 
 // Only installed, side-effect-free authoring constructors can run in product source.
 export const authoringCalls = new Set([
-  "objectType", "text", "integer", "enumeration", "principal", "imageAsset", "mediaAsset", "labels", "references", "namedReferences", "mediaReferences",
+  "objectType", "text", "integer", "enumeration", "principal", "file", "labels", "references", "namedReferences", "mediaReferences",
   "createCommand", "updateCommand", "fromInput", "literal", "actorId",
   "mutationJourney", "readJourney", "ownershipPolicy", "humanExposure", "agentExposure",
   "controllerRole", "capability", "view", "inputMask",

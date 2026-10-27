@@ -21,7 +21,7 @@ the source gate and runtime tests consume; the root bridge files only re-export.
 
 ## Facts and ownership
 
-Use objectType({ id, facts }), text, integer, enumeration, principal, imageAsset and labels.
+Use objectType({ id, facts }), text, integer, enumeration, principal, file and labels.
 Text accepts minLength/maxLength; integer accepts minimum/maximum within safe-integer
 bounds. Enums are closed. Facts are required in this vocabulary. See [API](api.md)
 for exact generic signatures and the closed runtime grammar.
