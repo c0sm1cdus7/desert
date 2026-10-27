@@ -1,9 +1,11 @@
 // A fact value that does not fit its row breaks after a path separator before it breaks inside a word (slice 3 package:
 // a contract's Source read «…/foundati / ons/avatar/…» at 390px), and its file name breaks only before its extension,
 // never inside a word or at a hyphen (second review: «MediaReferenceSelector.s / velte», «media- / reference»). Its text,
-// and so its copy and its name, is unchanged.
+// and so its copy and its name, is unchanged: one markup in every state, the real visible text with a <wbr> at each join
+// of the text policy (a path's separators, a name's words) and nothing duplicated or generated.
 import assert from "node:assert/strict";
 import test from "node:test";
+import { nameParts } from "../src/interaction/name-parts.ts";
 import { mounted } from "./support/foundation.ts";
 
 const source = "src/svelte/catalog/foundations/attention-indicator/AttentionIndicator.svelte";
@@ -57,8 +59,10 @@ test("fact value: a long path wraps at its separators, never mid-word, and reads
     assert.deepEqual(lines.slice(0, -1).filter(line => !line.endsWith("/")), [], `every line but the last ends at a separator: ${lines.join(" | ")}`);
     assert.equal(lines.join(""), source);
     assert.equal(await f.page.locator("[data-probe-host] [data-fact-state]").nth(1).textContent(), source);
-    const breaks = await f.page.locator("[data-probe-host] [data-fact-state]").evaluateAll(nodes => nodes.map(node => node.querySelectorAll("wbr").length));
-    assert.deepEqual(breaks, [0, pieces(source).length - 1], "a value without a separator gains no break opportunity");
+    // One markup: the name is the text, and a <wbr> stands at each join of the text policy, no more, no fewer.
+    const read = await f.page.locator("[data-probe-host] [data-fact-state]").evaluateAll(nodes => nodes.map(node => [node.textContent, node.querySelectorAll("wbr").length] as const));
+    assert.deepEqual(read, [["AttentionIndicator", nameParts("AttentionIndicator", true).length - 1], [source, nameParts(source, true).length - 1]]);
+    assert.equal(await f.page.locator("[data-probe-host] [data-fact-state] [data-fact-words], [data-probe-host] .sr-only").count(), 0, "no generated or hidden copy of the name");
     assert.deepEqual(f.errors, []);
   } finally { await f.close(); }
 });

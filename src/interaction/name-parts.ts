@@ -14,3 +14,16 @@ export function nameParts(text: string, loose: boolean): readonly string[] {
   if (text.includes("/")) return text.split(loose && single ? pathAndWords : path);
   return loose && single ? text.split(nameAndWords) : [text];
 }
+
+/** The same name as its words, grouped by the strict piece each belongs to: a renderer holds a piece together on a wide
+ * page and puts a break opportunity at every join between two groups, and between two words of a group on a narrow one. */
+export function nameGroups(text: string): readonly (readonly string[])[] {
+  const strict = nameParts(text, false), loose = nameParts(text, true), groups: string[][] = [];
+  let piece = 0, end = strict[0]!.length, at = 0;
+  for (const word of loose) {
+    if (at >= end && piece < strict.length - 1) end += strict[++piece]!.length;
+    (groups[piece] ??= []).push(word);
+    at += word.length;
+  }
+  return groups;
+}

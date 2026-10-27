@@ -3,36 +3,32 @@
   import { m } from "../../../../messages/keys.ts";
   import { Icon } from "../../index.ts";
   import { factState, presentFact } from "../../../../interaction/fact-presentation.ts";
-  import { nameParts } from "../../../../interaction/name-parts.ts";
+  import { nameGroups } from "../../../../interaction/name-parts.ts";
   import type { CatalogProps } from "../../types.d.ts";
   let { value, presentation = "inline" }: CatalogProps<"fact-value"> = $props();
   const state = $derived(factState(value));
   // A known path breaks only after a separator or before its file's extension, never inside a word or at a hyphen (a
   // source path in a narrow row): each piece holds together, a break opportunity between them (nameParts). On a narrow
-  // page a name also breaks between its words, and a piece longer than the line wraps at its own hyphens. Any other value
-  // is one piece and wraps as text does. CSS alone decides it (typography's narrow-page), and the text is never split
-  // further: its words are drawn on a narrow page by generated content, each word boundary a zero-width space there, while
-  // the text itself stays for reading, copying and assistive technology (screen-reader-only; the drawn copy has an empty
-  // alternative). Elsewhere the text keeps its pieces and glyphs exactly, and no break opportunity is added.
+  // page (typography's narrow-page, decided by CSS alone) a name also breaks between its words, and a piece longer than
+  // the line wraps at its own hyphens. The markup is the same on every page and in every state: the real text, visible,
+  // with a <wbr> at each join and nothing duplicated or generated; a path's piece is no-wrap and draws no <wbr> of its
+  // own until the page is narrow (Chromium breaks at a <wbr> even under no-wrap).
   const shown = $derived(presentFact(value));
-  const strict = $derived(nameParts(shown, false));
-  const loose = $derived(nameParts(shown, true));
-  const words = $derived(state === "known" && loose.length > strict.length ? loose.join("\u200b") : undefined);
+  const groups = $derived(nameGroups(shown));
 </script>
 
-<!-- A name as its pieces: each holds together, a break opportunity between them. -->
-{#snippet pieces(parts: readonly string[])}{#if parts.length > 1}{#each parts as part, index (index)}{#if index}<wbr />{/if}<span
-  class="whitespace-nowrap narrow-page:whitespace-normal">{part}</span>{/each}{:else}{shown}{/if}{/snippet}
+<!-- A name as its words: a break opportunity at every join; a path's pieces hold together until the page is narrow. -->
+{#snippet words(parts: readonly string[])}{#each parts as word, index (index)}{#if index}<wbr />{/if}{word}{/each}{/snippet}
+{#snippet pieces()}{#if groups.length > 1}{#each groups as group, index (index)}{#if index}<wbr />{/if}<span
+  class="whitespace-nowrap narrow-page:whitespace-normal [&>wbr]:hidden narrow-page:[&>wbr]:inline">{@render words(group)}</span>{/each}{:else}{@render words(groups[0]!)}{/if}{/snippet}
 
 {#snippet reading()}
-  <span data-fact-state={state} data-fact-words={words} class:fact-placeholder={state !== "known"}
-    class={state !== "known" ? "[&_svg]:shrink-0" : words ? "narrow-page:after:content-[attr(data-fact-words)_/_'']" : undefined}>
+  <span data-fact-state={state} class:fact-placeholder={state !== "known"} class={state !== "known" ? "[&_svg]:shrink-0" : undefined}>
     {#if state !== "known"}
       <Icon name={state === "empty" ? "minus" : "circle-question-mark"} size="em" decorative />
       {#if state === "empty"}<span class="sr-only">{say(m.factValue.state)} {presentFact(value)}</span>
       {:else}<span><span class="sr-only">{say(m.factValue.state)} </span>{presentFact(value)}</span>{/if}
-    {:else if words}<span class="narrow-page:sr-only">{@render pieces(strict)}</span>
-    {:else}{@render pieces(strict)}{/if}
+    {:else}{@render pieces()}{/if}
   </span>
 {/snippet}
 
