@@ -7,36 +7,36 @@ import { effect, type Bus, type Emission, type HouseEvent } from "../journal/eve
 import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "./attendance.ts";
 import { actNews, type ActContext, type ActResult, type KeyStore, type OwnAct } from "./tool-contract.ts";
-import type { Product, State, Tool, ToolAct, ToolRegistry } from "./tool-contract.ts";
+import type { Program, State, Tool, ToolAct, ToolRegistry } from "./tool-contract.ts";
 type Origin = HouseEvent<"act">;
-export type Execution<X extends Product> = Readonly<{ bus: Bus<X["fact"]>; keys: KeyStore; now: () => number }> &
+export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; keys: KeyStore; now: () => number }> &
   Readonly<{ registry: ToolRegistry<X>; state: () => State<X>; own: (state: State<X>) => readonly OwnAct<X>[] }> &
   Readonly<{ process: (id: string, by?: string) => boolean; live: () => boolean; chain?: readonly string[] }> &
-  /** The product's cause for not letting this act run now, when it has one. */
+  /** The program's cause for not letting this act run now, when it has one. */
   Readonly<{ refuse?: (state: State<X>, act: Origin, tool: Tool<X> | undefined) => string | undefined }> &
   Readonly<{
     secrets: { capture(value: unknown, registry: ToolRegistry<X>, state?: State<X>): void; scrub<T>(value: T): T };
   }>;
-type Decision<X extends Product> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
+type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
   Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown }> &
   Readonly<{ private?: string | undefined; output?: boolean }>;
-type Processing<X extends Product> = Readonly<{ status: "processing"; effects: readonly []; reason?: string }> &
+type Processing<X extends Program> = Readonly<{ status: "processing"; effects: readonly []; reason?: string }> &
   Readonly<{ completion: Promise<Decision<X>> }>;
-export type ExecutionResult<X extends Product> = Decision<X> | Processing<X>;
-type Perform<X extends Product> = () => Decision<X> | Promise<Decision<X>>;
+export type ExecutionResult<X extends Program> = Decision<X> | Processing<X>;
+type Perform<X extends Program> = () => Decision<X> | Promise<Decision<X>>;
 const rejected = (reason: string) => ({ status: "rejected" as const, reason, effects: [] });
-type Resolving<X extends Product> = Pick<Execution<X>, "state" | "own" | "registry">;
+type Resolving<X extends Program> = Pick<Execution<X>, "state" | "own" | "registry">;
 /** The act an identity's act resolves to: one the house offers it directly first, then the target's tool act. */
-const resolve = <X extends Product>(ports: Resolving<X>, by: string, target: string, option: string) => {
+const resolve = <X extends Program>(ports: Resolving<X>, by: string, target: string, option: string) => {
   const state = identityView(ports.state(), by);
   const offered = ports.own(state).find(act => act.object === target && act.option === option);
   const tool = targetTool(ports.registry, state, target);
   return { state, offered, tool, act: offered ?? tool?.acts[option] };
 };
 /** Whether an act would leave the house; an act that resolves to nothing never runs. */
-export const actReach = <X extends Product>(ports: Resolving<X>, by: string, target: string, option: string) =>
+export const actReach = <X extends Program>(ports: Resolving<X>, by: string, target: string, option: string) =>
   resolve(ports, by, target, option).act?.reach ?? "house";
-function refusal<X extends Product>(ports: Execution<X>, origin: Origin, found: ReturnType<typeof resolve<X>>) {
+function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: ReturnType<typeof resolve<X>>) {
   const { by, process } = origin;
   const { state, offered, tool, act } = found;
   const target = origin.data.object;
@@ -48,7 +48,7 @@ function refusal<X extends Product>(ports: Execution<X>, origin: Origin, found: 
   if (!offered && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
   return act.offered?.(state, target);
 }
-const decide = <X extends Product>(ports: Execution<X>, value: Act, origin: Origin): Decision<X> | Perform<X> => {
+const decide = <X extends Program>(ports: Execution<X>, value: Act, origin: Origin): Decision<X> | Perform<X> => {
   const { by, id } = origin;
   const { object: target, through = 0 } = origin.data;
   const found = resolve(ports, by, target, value.act);
@@ -72,7 +72,7 @@ const decide = <X extends Product>(ports: Execution<X>, value: Act, origin: Orig
     return result instanceof Promise ? result.then(finish) : finish(result);
   };
 };
-async function executeNested<X extends Product>(ports: Execution<X>, origin: Origin, nested: Act) {
+async function executeNested<X extends Program>(ports: Execution<X>, origin: Origin, nested: Act) {
   const { by, id, process } = origin;
   const tool = targetTool(ports.registry, identityView(ports.state(), by), nested.target ?? "");
   const chain = [...(ports.chain ?? []), JSON.stringify([origin.data.object, origin.data.option, origin.data.input])];
@@ -89,7 +89,7 @@ async function executeNested<X extends Product>(ports: Execution<X>, origin: Ori
 }
 /** A private result's act-done goes to its recipient alone, like its entry. */
 const privateTo = (recipient?: string) => (recipient ? { recipient } : {});
-function decisionOf<X extends Product>(
+function decisionOf<X extends Program>(
   result: ActResult<X>,
   act: ToolAct<X>,
   context: ActContext<X>,
@@ -107,7 +107,7 @@ function decisionOf<X extends Product>(
   const entry = effect("tool-entry", { tool, target, author: by, text, ...data }, by);
   return { status: "accepted", effects: [...effects, done, entry], private: receipt };
 }
-const finish = <X extends Product>(ports: Execution<X>, act: Origin, decision: Decision<X>): Decision<X> => {
+const finish = <X extends Program>(ports: Execution<X>, act: Origin, decision: Decision<X>): Decision<X> => {
   const safe = ports.secrets.scrub(decision);
   if (!ports.live()) return safe;
   for (const effect of safe.effects) ports.bus.emit({ ...effect, process: act.process, cause: [act.id] });
@@ -116,7 +116,7 @@ const finish = <X extends Product>(ports: Execution<X>, act: Origin, decision: D
   ports.bus.emit(effect("act-result", data, act.by, [act.id], act.process));
   return safe;
 };
-export function execute<X extends Product>(
+export function execute<X extends Program>(
   ports: Execution<X>,
   value: unknown,
   through: number,
@@ -131,7 +131,7 @@ export function execute<X extends Product>(
   const decision = decide(ports, value, act);
   return typeof decision === "function" ? run(ports, act, decision) : finish(ports, act, decision);
 }
-const run = <X extends Product>(ports: Execution<X>, act: Origin, perform: Perform<X>): ExecutionResult<X> => {
+const run = <X extends Program>(ports: Execution<X>, act: Origin, perform: Perform<X>): ExecutionResult<X> => {
   const { object, option } = act.data;
   const tool = targetTool(ports.registry, identityView(ports.state(), act.by), object)?.id ?? object;
   ports.bus.emit(effect("act-started", { act: act.id, object, option }, act.by, [act.id], act.process));

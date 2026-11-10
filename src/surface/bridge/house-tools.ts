@@ -1,14 +1,14 @@
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
 import { allowed } from "../../house/house.ts";
-import type { Product, Tool as HouseTool } from "../../tools/tool-contract.ts";
+import type { Program, Tool as HouseTool } from "../../tools/tool-contract.ts";
 import type { Tool } from "../contract.ts";
 import { anyToolScreen } from "./any-tool.ts";
 import type { HousePorts, SurfacePorts, SurfaceWords, ToolWords } from "./house-ports.ts";
 /** A tool that needs more than rows and acts brings its own screen; every other tool reads as any tool. */
-export type Screens<X extends Product> = Readonly<
+export type Screens<X extends Program> = Readonly<
   Record<string, (ports: SurfacePorts<X>, tool: HouseTool<X>, words: ToolWords) => Tool>
 >;
-export function houseTools<X extends Product>(
+export function houseTools<X extends Program>(
   ports: HousePorts<X>,
   words: SurfaceWords,
   screens: Screens<X> = {},

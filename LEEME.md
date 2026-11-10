@@ -3,7 +3,7 @@
 Base compartida entre Kenon y Capibara, extraída de Kenon (la parte que no sabe nada de Kenon).
 
 Reglas:
-- No entra nada hasta que dos productos lo usan.
+- No entra nada hasta que dos programas lo usan.
 - Las rutas son las mismas que en Kenon, así traer un cambio es comparar archivo contra archivo.
 - Kenon se sube a DESERT cuando se porte a Rust.
 
@@ -15,20 +15,20 @@ Reglas:
 - `pnpm gate`: formato, lint, tipos, pruebas y leyes.
 
 ## Segundo paso
-- `src/journal/`: el registro de hechos. La casa escribe los suyos y cada producto suma los propios (`vocabulary`).
+- `src/journal/`: el registro de hechos. La casa escribe los suyos y cada programa suma los propios (`vocabulary`).
 - `src/adapters/storage/`: el registro guardado en SQLite, solo para agregar.
 - Diseño de las dos costuras del núcleo: `COSTURAS.md`.
 
 ## Tercer paso
 - `src/house/`: la casa (quién administra, qué herramientas enteras tiene cada integrante, canales).
 - `src/tools/`: el motor de herramientas. Cada herramienta guarda su parte del estado; ejecutar un acto.
-- Un producto de prueba (`tests/support/shop.ts`) muestra cómo se arma un producto sobre DESERT.
+- Un programa de prueba (`tests/support/shop.ts`) muestra cómo se arma un programa sobre DESERT.
 
 ## Cuarto paso
-- `src/surface/bridge/`: cualquier herramienta de la casa en la superficie, con las palabras del producto.
-- `src/programs/house-runtime.ts`: la casa de un producto corriendo, y una superficie en el mismo proceso.
+- `src/surface/bridge/`: cualquier herramienta de la casa en la superficie, con las palabras del programa.
+- `src/programs/house-runtime.ts`: la casa de un programa corriendo, y una superficie en el mismo proceso.
 - `src/adapters/secrets/`: los secretos fuera del registro.
-- Para verlo: `node tests/support/shop-open.ts` abre el producto de prueba en la terminal.
+- Para verlo: `node tests/support/shop-open.ts` abre el programa de prueba en la terminal.
 
 ## Quinto paso
 - `src/surface/router.ts`: el router. Una sola lógica entre cualquier renderer y la casa: intenciones que entran,

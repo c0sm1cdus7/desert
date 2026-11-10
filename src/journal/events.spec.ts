@@ -1,4 +1,4 @@
-// The bus delivers committed facts to every observer in the same order: the house's and the product's alike.
+// The bus delivers committed facts to every observer in the same order: the house's and the program's alike.
 import { Type } from "@sinclair/typebox";
 import { afterEach, describe, expect, expectTypeOf, it } from "vitest";
 import { Bus, effect, layerOf, vocabulary, type Catalog, type Event } from "./events.ts";
@@ -35,7 +35,7 @@ describe("event bus", () => {
     expect(seen).toEqual(["first:boot", "second:boot", "first:wake-at", "second:wake-at", "typed:wake-at"]);
   });
 
-  it("carries a product's facts with their own types, beside the house's", () => {
+  it("carries a program's facts with their own types, beside the house's", () => {
     const { bus, journal } = fixture();
     const totals: number[] = [];
     bus.on("sale-registered", event => {
@@ -46,11 +46,11 @@ describe("event bus", () => {
     expectTypeOf(stored.data.total).toEqualTypeOf<number>();
     expectTypeOf(bus.emit(boot).kind).toEqualTypeOf<"boot">();
     expect(totals).toEqual([1500]);
-    expect(stored).toMatchObject({ layer: "product", kind: "sale-registered", seq: 1, by: "ana" });
-    expect(journal.replay<string[]>([], (layers, event) => [...layers, event.layer])).toEqual(["product", "house"]);
+    expect(stored).toMatchObject({ layer: "program", kind: "sale-registered", seq: 1, by: "ana" });
+    expect(journal.replay<string[]>([], (layers, event) => [...layers, event.layer])).toEqual(["program", "house"]);
   });
 
-  it("lets the house fold a journal that holds product facts without reading them", () => {
+  it("lets the house fold a journal that holds program facts without reading them", () => {
     const { bus, journal } = fixture();
     bus.emit(sale);
     const wake = bus.emit(effect("wake-at", { id: "turn", at: 200 }, "test"));
@@ -126,20 +126,20 @@ describe("event bus", () => {
 
 describe("a journal's vocabulary", () => {
   const event = { seq: 1, id: "e", at: 100, layer: "house", kind: "boot", by: "test", cause: [], data: {} };
-  const sold = { ...event, layer: "product", kind: "sale-registered", data: { sale: "s1", total: 10 } };
+  const sold = { ...event, layer: "program", kind: "sale-registered", data: { sale: "s1", total: 10 } };
 
-  it("reads the house's kinds and the product's, each in its own layer", () => {
+  it("reads the house's kinds and the program's, each in its own layer", () => {
     expect(shop.read(event)).toEqual(event);
     expect(shop.read(sold)).toEqual(sold);
     expect(layerOf("boot")).toBe("house");
-    expect(layerOf("sale-registered")).toBe("product");
-    expect(layerOf("toString")).toBe("product");
+    expect(layerOf("sale-registered")).toBe("program");
+    expect(layerOf("toString")).toBe("program");
   });
 
   it("rejects unknown kinds, a kind in the wrong layer, extra properties and malformed envelopes", () => {
     for (const wrong of [
       { ...event, kind: "old.boot" },
-      { ...event, layer: "product" },
+      { ...event, layer: "program" },
       { ...sold, layer: "house" },
       { ...sold, data: { sale: "s1" } },
       { ...event, data: { unexpected: true } },
@@ -151,15 +151,15 @@ describe("a journal's vocabulary", () => {
       expect(() => shop.read(wrong)).toThrow();
   });
 
-  it("reads only its own product: another product's kind is unknown to it", () => {
+  it("reads only its own program: another program's kind is unknown to it", () => {
     const other = vocabulary({ "stock-counted": Type.Object({ units: Type.Integer() }) });
-    const counted = { ...event, layer: "product", kind: "stock-counted", data: { units: 3 } };
+    const counted = { ...event, layer: "program", kind: "stock-counted", data: { units: 3 } };
     expect(other.read(counted)).toEqual(counted);
     expect(() => shop.read(counted)).toThrow();
     expect(() => other.read(sold)).toThrow();
   });
 
-  it("refuses a product that takes a kind the house already writes, in types and when it runs", () => {
+  it("refuses a program that takes a kind the house already writes, in types and when it runs", () => {
     const taken = { act: Type.Object({}), "stock-counted": Type.Object({}) };
     expectTypeOf(vocabulary<typeof taken>)
       .parameter(0)
@@ -169,7 +169,7 @@ describe("a journal's vocabulary", () => {
     expect(() => vocabulary(untyped)).toThrow("act");
   });
 
-  it("gives the house's reducers every event, whatever the product", () => {
+  it("gives the house's reducers every event, whatever the program", () => {
     expectTypeOf<ShopEvent>().toExtend<Event>();
     expectTypeOf<Event>().not.toExtend<ShopEvent>();
   });

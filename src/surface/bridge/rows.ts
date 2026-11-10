@@ -1,4 +1,4 @@
-// A tool's text view read as rows: what has an id opens; the rest is a label, in the product's words, and its value.
+// A tool's text view read as rows: what has an id opens; the rest is a label, in the program's words, and its value.
 import type { ViewRow } from "../contract.ts";
 export const field = (value: unknown, key: string): unknown =>
   value !== null && typeof value === "object" ? Reflect.get(value, key) : undefined;

@@ -132,7 +132,7 @@ describe("what decides an act", () => {
     expect(rig.state().entries.filter(entry => entry.data.tool === "desk")).toEqual([]);
   });
 
-  it("lets the product refuse an act for a cause of its own, before the tool sees it", () => {
+  it("lets the program refuse an act for a cause of its own, before the tool sees it", () => {
     const run = vi.fn((): Result => ({ status: "accepted" }));
     const rig = open(slow(run), {
       refuse: (_state, act) => (act.data.option === "run" ? "counting stock" : undefined),

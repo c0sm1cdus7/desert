@@ -1,7 +1,7 @@
 // A value an act's schema marks as secret never reaches the journal: what is written carries a reference instead.
 import type { TSchema } from "@sinclair/typebox";
 import { secretLimits } from "../../catalogs/levers.ts";
-import type { Product, State, ToolRegistry } from "../../tools/tool-contract.ts";
+import type { Program, State, ToolRegistry } from "../../tools/tool-contract.ts";
 export const capturable = (value: unknown): value is string =>
   typeof value === "string" && value.length >= secretLimits.minLength;
 /** The journal's own field names and literal words, which no captured value may rewrite. */
@@ -13,7 +13,7 @@ export const wordsOf = (schema: unknown, found = new Set<string>()): Set<string>
   for (const child of Object.values(schema)) wordsOf(child, found);
   return found;
 };
-export class Redactor<X extends Product> {
+export class Redactor<X extends Program> {
   private readonly values: Map<string, string>;
   private readonly save: (value: string) => string;
   private readonly kept: ReadonlySet<string>;

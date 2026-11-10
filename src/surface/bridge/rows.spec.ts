@@ -1,4 +1,4 @@
-// A tool's text view as rows: nothing a tool wrote is dropped, and a label is always the product's word.
+// A tool's text view as rows: nothing a tool wrote is dropped, and a label is always the program's word.
 import { describe, expect, it } from "vitest";
 import { briefOf, listedIn, rowsIn } from "./rows.ts";
 

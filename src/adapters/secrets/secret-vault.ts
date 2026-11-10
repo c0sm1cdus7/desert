@@ -3,10 +3,10 @@ import type { TSchema } from "@sinclair/typebox";
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { ids } from "../../catalogs/ids.ts";
-import type { Product } from "../../tools/tool-contract.ts";
+import type { Program } from "../../tools/tool-contract.ts";
 import { privateDatabase } from "../storage/home.ts";
 import { capturable, Redactor } from "./redact.ts";
-export class SecretVault<X extends Product> extends Redactor<X> {
+export class SecretVault<X extends Program> extends Redactor<X> {
   private readonly db: DatabaseSync;
   constructor(file: string, journal: TSchema) {
     const values = new Map<string, string>();

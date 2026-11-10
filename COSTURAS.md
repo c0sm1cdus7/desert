@@ -2,19 +2,19 @@
 
 En Kenon el núcleo está cosido a sus herramientas y a su mente en dos lugares. DESERT los abre así.
 
-## 1. Los hechos: la casa escribe los suyos, el producto suma los propios (HECHO)
+## 1. Los hechos: la casa escribe los suyos, el programa suma los propios (HECHO)
 
-- `src/journal/events.ts` declara `houseCatalog`: lo que escribe toda casa, viva en ella el producto que viva
+- `src/journal/events.ts` declara `houseCatalog`: lo que escribe toda casa, viva en ella el programa que viva
   (crear la casa, permisos, canales, actos y sus resultados, entradas, atender, avisos, reloj).
-- Cada producto declara su catálogo y lo junta con `vocabulary(catalogo)`. De ahí salen el lector que valida,
+- Cada programa declara su catálogo y lo junta con `vocabulary(catalogo)`. De ahí salen el lector que valida,
   los esquemas para viajar por la puerta y `fact(...)` para escribir sus hechos.
-- Cada hecho lleva `layer`: `"house"` o `"product"`. El código de la casa recibe `Event` y, para leer un hecho,
-  primero tiene que comprobar `layer === "house"`; si no, no compila (un hecho de producto tiene `data: unknown`).
-  El código del producto recibe `Event<SusHechos>` y lee todo con sus tipos.
-- Un producto no puede usar un nombre que ya usa la casa: no compila, y si llega sin tipos, falla al arrancar.
-- La capa no se guarda en la fila: la dice el nombre del hecho. Así, cuando un hecho pase de un producto a
+- Cada hecho lleva `layer`: `"house"` o `"program"`. El código de la casa recibe `Event` y, para leer un hecho,
+  primero tiene que comprobar `layer === "house"`; si no, no compila (un hecho de programa tiene `data: unknown`).
+  El código del programa recibe `Event<SusHechos>` y lee todo con sus tipos.
+- Un programa no puede usar un nombre que ya usa la casa: no compila, y si llega sin tipos, falla al arrancar.
+- La capa no se guarda en la fila: la dice el nombre del hecho. Así, cuando un hecho pase de un programa a
   DESERT (porque ya lo usan dos), los registros viejos se siguen leyendo.
-- En Rust es `enum Evento<P> { Casa(EventoCasa), Producto(P) }`.
+- En Rust es `enum Evento<P> { Casa(EventoCasa), Programa(P) }`.
 
 Qué quedó fuera de `houseCatalog` respecto de Kenon (es de su mente o de sus herramientas): curl, journeys,
 plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, marcas, escena, memoria, percepción.
@@ -24,15 +24,15 @@ plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, mar
 
 - El estado de la casa (`HouseState`) queda con lo que es de toda casa: permisos, canales, quién tiene qué a la
   vista, actos en curso, entradas, avisos de atención. Ninguna parte de ninguna herramienta.
-- Un producto se describe con un solo tipo: `{ fact: SusHechos; tools: { ventas: ...; pagos: ... } }`.
-  El estado completo es `State<Producto>`: el de la casa más `tools`, con la parte de cada herramienta bajo su nombre.
-- El producto junta las partes en `Slices<Producto>`: de dónde arranca cada una y cómo avanza con cada hecho.
+- Un programa se describe con un solo tipo: `{ fact: SusHechos; tools: { ventas: ...; pagos: ... } }`.
+  El estado completo es `State<Programa>`: el de la casa más `tools`, con la parte de cada herramienta bajo su nombre.
+- El programa junta las partes en `Slices<Programa>`: de dónde arranca cada una y cómo avanza con cada hecho.
   Si a una herramienta le falta su paso, no compila. Una herramienta puede leer la parte de otra (tal como
   estaba antes del hecho), pero solo escribe la suya.
-- Ejecutar un acto (`execute`) no conoce journeys ni mente. El producto puede vetar un acto por el puerto `refuse`
+- Ejecutar un acto (`execute`) no conoce journeys ni mente. El programa puede vetar un acto por el puerto `refuse`
   y ofrecer actos propios fuera de las herramientas por `own`; atender y dejar de atender los ofrece toda casa.
 - Las llaves (`KeyStore`) y el borrado de secretos (`secrets`) son puertos del motor.
-- En Rust: `trait Producto { type Hecho; type Estado; }`.
+- En Rust: `trait Programa { type Hecho; type Estado; }`.
 
 Qué cambió respecto de Kenon en este paso:
 - `acts` ya no es la lista de todos los actos desde el principio: son los actos abiertos (sin resultado todavía).
@@ -46,13 +46,13 @@ Qué cambió respecto de Kenon en este paso:
 - `src/surface/bridge/`: el puente. Cualquier herramienta de la casa se vuelve una herramienta de la superficie
   a partir de su vista y de los esquemas de sus actos (`anyToolScreen`). Una herramienta que necesita más que
   filas y actos trae su propia pantalla (`Screens`).
-- Las palabras las pone el producto (`SurfaceWords`): nombre y tecla de cada herramienta, cada acto y cada campo.
-  Si falta una palabra, es un defecto del producto y se dice cuál falta; nunca se muestra un código en su lugar.
-- `src/programs/house-runtime.ts`: `startHouse` arranca la casa de un producto (registro, secretos aparte,
+- Las palabras las pone el programa (`SurfaceWords`): nombre y tecla de cada herramienta, cada acto y cada campo.
+  Si falta una palabra, es un defecto del programa y se dice cuál falta; nunca se muestra un código en su lugar.
+- `src/programs/house-runtime.ts`: `startHouse` arranca la casa de un programa (registro, secretos aparte,
   herramientas, reloj) y `localPorts` le da la casa a una superficie en el mismo proceso, como un integrante.
 - `src/adapters/secrets/`: un valor que el esquema de un acto marca como secreto no llega al registro; queda
   en un archivo aparte y en el registro va una referencia.
-- Probado en una terminal real con el producto de prueba: `node tests/support/shop-open.ts`.
+- Probado en una terminal real con el programa de prueba: `node tests/support/shop-open.ts`.
 
 ## 4. El router: una sola lógica para todas las superficies (HECHO)
 
@@ -63,7 +63,7 @@ interacción con la casa sea la misma en todas las superficies.
   intenciones, entrega la pantalla, corre los actos y avisa cada vez que la pantalla pudo cambiar: cambió la casa,
   terminó un acto o pasó el tiempo.
 - `src/surface/bridge/house-router.ts`: `houseRouter(ports, palabras)`. Es lo único que un renderer recibe de un
-  producto: las herramientas con sus palabras, la barra (conexión y hora) y los cambios de la casa.
+  programa: las herramientas con sus palabras, la barra (conexión y hora) y los cambios de la casa.
 - Un renderer hace dos cosas: dibuja `router.screen()` y traduce lo suyo a `router.send(intención)`.
   La terminal (`doors/terminal/boot.ts`) ya es eso. Web, iPhone y Android usan el mismo router.
 - En Rust el router es parte de lo que se comparte entre plataformas.
@@ -81,7 +81,7 @@ interacción con la casa sea la misma en todas las superficies.
   superficie ponga las palabras.
 
 ## Orden de trabajo
-1. Journal: hechos por producto, bus, proyecciones, reloj, guardado en SQLite. HECHO.
+1. Journal: hechos por programa, bus, proyecciones, reloj, guardado en SQLite. HECHO.
 2. Casa y motor de herramientas con estado por herramienta. HECHO.
 3. Puente de la superficie y casa corriendo en un proceso, con secretos fuera del registro. HECHO.
 4. Router compartido por todos los renderers. HECHO.

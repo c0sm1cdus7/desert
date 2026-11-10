@@ -1,4 +1,4 @@
-// One journal for the house's facts and a product's: the house reads its own and carries the product's unread.
+// One journal for the house's facts and a program's: the house reads its own and carries the program's unread.
 import { Type, type Static, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { object } from "../catalogs/acts.ts";
@@ -10,7 +10,7 @@ const name = Type.String({ minLength: toolLimits.minText });
 const names = Type.Array(name);
 const instant = Type.Integer({ minimum: 0, maximum: Number.MAX_SAFE_INTEGER });
 const actStatus = literals("accepted", "rejected", "draft", "inconclusive", "interrupted");
-/** What every house writes, whatever product lives in it. */
+/** What every house writes, whatever program lives in it. */
 export const houseCatalog = {
   "house-created": object({}),
   granted: object({ identity: name, tools: names }),
@@ -38,7 +38,7 @@ export const houseCatalog = {
   woke: object({ id: name }),
 };
 export type Catalog = Readonly<Record<string, TSchema>>;
-export type Layer = "house" | "product";
+export type Layer = "house" | "program";
 type Provenance = Readonly<{ by: string; cause: readonly string[]; process?: string | undefined }>;
 type Fact<L extends Layer, K extends string, D> = Provenance & Readonly<{ layer: L; kind: K; data: D }>;
 /** Every fact a catalog declares, each tagged with the layer that owns it. */
@@ -47,9 +47,9 @@ export type Facts<C extends Catalog, L extends Layer> = {
 }[keyof C & string];
 export type HouseKind = keyof typeof houseCatalog;
 export type HouseEmission<K extends HouseKind = HouseKind> = Extract<Facts<typeof houseCatalog, "house">, { kind: K }>;
-/** A product's fact as the house sees it: carried whole, its inside unread. */
-export type Foreign = Fact<"product", string, unknown>;
-export type ProductFacts<C extends Catalog> = Facts<C, "product">;
+/** A program's fact as the house sees it: carried whole, its inside unread. */
+export type Foreign = Fact<"program", string, unknown>;
+export type ProgramFacts<C extends Catalog> = Facts<C, "program">;
 type Position = Readonly<{ seq: number; id: string; at: number }>;
 export type Emission<P extends Foreign = Foreign> = HouseEmission | P;
 export type Event<P extends Foreign = Foreign> = Emission<P> & Position;
@@ -77,24 +77,24 @@ const freeze = (value: unknown): void => {
   Object.freeze(value);
   Object.values(value).forEach(freeze);
 };
-export const layerOf = (kind: string): Layer => (Object.hasOwn(houseCatalog, kind) ? "house" : "product");
-/** How a journal reads and checks its facts: the house's kinds and one product's, each in its layer. */
+export const layerOf = (kind: string): Layer => (Object.hasOwn(houseCatalog, kind) ? "house" : "program");
+/** How a journal reads and checks its facts: the house's kinds and one program's, each in its layer. */
 export type Vocabulary<P extends Foreign> = Readonly<{
   event: TSchema;
   emission: TSchema;
   read(value: unknown): Event<P>;
 }>;
-/** A product's kinds; none takes a name the house already writes. */
+/** A program's kinds; none takes a name the house already writes. */
 type Own<C extends Catalog> = C & Readonly<Partial<Record<HouseKind, never>>>;
-export function vocabulary<C extends Catalog>(product: Own<C>) {
-  const taken = Object.keys(product).filter(kind => layerOf(kind) === "house");
+export function vocabulary<C extends Catalog>(program: Own<C>) {
+  const taken = Object.keys(program).filter(kind => layerOf(kind) === "house");
   if (taken.length) throw new Error(journalTexts.kindTaken(taken));
   const all = (fields: Readonly<Record<string, TSchema>>) =>
-    Type.Union([...arms("house", houseCatalog, fields), ...arms("product", product, fields)]);
-  const event = Type.Unsafe<Event<ProductFacts<C>>>(all({ ...provenance, ...position }));
+    Type.Union([...arms("house", houseCatalog, fields), ...arms("program", program, fields)]);
+  const event = Type.Unsafe<Event<ProgramFacts<C>>>(all({ ...provenance, ...position }));
   return {
     event,
-    emission: Type.Unsafe<Emission<ProductFacts<C>>>(all(provenance)),
+    emission: Type.Unsafe<Emission<ProgramFacts<C>>>(all(provenance)),
     read: (value: unknown) => {
       if (!Value.Check(event, value)) throw new Error(journalTexts.invalidEvent);
       const read = structuredClone(value);
@@ -107,7 +107,7 @@ export function vocabulary<C extends Catalog>(product: Own<C>) {
       by: string,
       cause: readonly string[] = [],
       process?: string,
-    ) => ({ layer: "product" as const, kind, data, ...origin(by, cause, process) }),
+    ) => ({ layer: "program" as const, kind, data, ...origin(by, cause, process) }),
   };
 }
 const ofKind = <E extends Readonly<{ kind: string }>, K extends string>(event: E, kind: K): event is E & { kind: K } =>

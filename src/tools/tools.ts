@@ -9,7 +9,7 @@ import { toolTexts } from "../texts/tools.texts.ts";
 import { accepted, ownAct, reading, rejected } from "./act-definition.ts";
 import { attendsStep, targetTool } from "./attendance.ts";
 import { actReach, execute, type Execution } from "./execute.ts";
-import type { HouseState, OwnAct, Product, Slices, State, ToolRegistry } from "./tool-contract.ts";
+import type { HouseState, OwnAct, Program, Slices, State, ToolRegistry } from "./tool-contract.ts";
 export const emptyHouseState: HouseState = initial({
   by: "",
   house: emptyHouse,
@@ -23,7 +23,7 @@ export const emptyHouseState: HouseState = initial({
   through: 0,
 });
 /** Where a house starts for one identity: nothing in the house yet, and each tool as it begins. */
-export const startState = <X extends Product>(slices: Slices<X>, by: string): State<X> => ({
+export const startState = <X extends Program>(slices: Slices<X>, by: string): State<X> => ({
   ...emptyHouseState,
   by,
   tools: slices.initial,
@@ -73,12 +73,12 @@ function houseStateStep<S extends HouseState>(state: S, event: Event): S {
   };
 }
 /** Every fact moves the house, and each tool moves what it keeps: the house never reads a tool's part. */
-export function toolsStep<X extends Product>(state: State<X>, event: Event<X["fact"]>, slices: Slices<X>): State<X> {
+export function toolsStep<X extends Program>(state: State<X>, event: Event<X["fact"]>, slices: Slices<X>): State<X> {
   const tools = { ...state.tools };
   for (const key in slices.step) tools[key] = slices.step[key](state.tools[key], event, state);
   return { ...houseStateStep(state, event), tools };
 }
-export const attendanceActs = <X extends Product>(registry: ToolRegistry<X>): OwnAct<X>[] =>
+export const attendanceActs = <X extends Program>(registry: ToolRegistry<X>): OwnAct<X>[] =>
   (["attend", "unattend"] as const).map(option => {
     const act = ownAct<X, typeof actCatalog.attend.input>(
       ids.self,
@@ -94,10 +94,10 @@ export const attendanceActs = <X extends Product>(registry: ToolRegistry<X>): Ow
     /** An attend brings into view something the identity has not read yet. */
     return option === "attend" ? reading(act) : act;
   });
-/** What a product hands the engine; a product without processes or acts of its own leaves those out. */
-type Starting<X extends Product> = Omit<Execution<X>, "live" | "own" | "process"> &
+/** What a program hands the engine; a program without processes or acts of its own leaves those out. */
+type Starting<X extends Program> = Omit<Execution<X>, "live" | "own" | "process"> &
   Partial<Pick<Execution<X>, "own" | "process">>;
-export function startTools<X extends Product>(ports: Starting<X>) {
+export function startTools<X extends Program>(ports: Starting<X>) {
   const { bus, state: read, registry, secrets } = ports;
   let state = read();
   let live = true;
@@ -135,7 +135,7 @@ export function startTools<X extends Product>(ports: Starting<X>) {
   };
 }
 /** An act that had started when the house stopped never got its result: on boot it is closed as interrupted. */
-function interrupt<X extends Product>({ bus }: Execution<X>, state: State<X>): void {
+function interrupt<X extends Program>({ bus }: Execution<X>, state: State<X>): void {
   for (const [act, started] of state.processing) {
     const data = { act, status: "interrupted" as const, reason: toolTexts.interrupted };
     bus.emit(effect("act-result", data, started.by, [act], started.process));
@@ -147,7 +147,7 @@ const reminder = (by: string, tool: string, delay: number | null, event: Event):
   effect("wake-at", { id: reminderId(by, tool), at: delay === null ? null : event.at + delay }, by, [event.id]),
 ];
 /** A new entry on a tool: who it calls, and whether it starts that identity's reminders. */
-function entryEffects<X extends Product>(
+function entryEffects<X extends Program>(
   state: State<X>,
   registry: ToolRegistry<X>,
   event: Extract<Event, { kind: "tool-entry" }>,
@@ -165,7 +165,7 @@ function entryEffects<X extends Product>(
     return [stimulus];
   return [...reminder(state.by, tool, toolReminderLadder.firstMs, event), stimulus];
 }
-function attentionEffects<X extends Product>(
+function attentionEffects<X extends Program>(
   state: State<X>,
   registry: ToolRegistry<X>,
   event: Event,

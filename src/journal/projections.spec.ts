@@ -29,7 +29,7 @@ afterEach(() => {
 });
 const boot = effect("boot", {}, "test");
 const sale = shop.fact("sale-registered", { sale: "s1", total: 10 }, "ana");
-/** What a product keeps of its own facts: the total sold. */
+/** What a program keeps of its own facts: the total sold. */
 const sold = (total: number, event: ShopEvent): number =>
   event.kind === "sale-registered" ? total + event.data.total : total;
 function restored<S>(journal: ShopJournal, name: string, initial: S, reduce: (state: S, event: ShopEvent) => S): S {

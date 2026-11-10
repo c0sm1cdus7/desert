@@ -9,17 +9,17 @@ import { clockStep, startClock, systemTime, type Deadlines, type TimeSource } fr
 import { Bus, effect, type Vocabulary } from "../journal/events.ts";
 import type { HousePorts } from "../surface/bridge/house-ports.ts";
 import type { Execution } from "../tools/execute.ts";
-import type { KeyStore, Product, Slices, ToolRegistry } from "../tools/tool-contract.ts";
+import type { KeyStore, Program, Slices, ToolRegistry } from "../tools/tool-contract.ts";
 import { startState, startTools, toolsStep } from "../tools/tools.ts";
-/** What a product hands a house to live in it: its vocabulary, its tools, and what each of them keeps. */
-export type HouseOptions<X extends Product> = Readonly<{ by: string; creation: Creation; keys: KeyStore }> &
+/** What a program hands a house to live in it: its vocabulary, its tools, and what each of them keeps. */
+export type HouseOptions<X extends Program> = Readonly<{ by: string; creation: Creation; keys: KeyStore }> &
   Readonly<{ words: Vocabulary<X["fact"]>; registry: ToolRegistry<X>; slices: Slices<X> }> &
   Partial<Pick<Execution<X>, "refuse" | "own" | "process">>;
 /** A part is kept under its tool's id: that is how the house gives a whole tool, or none of it, to an identity. */
-function ownerless<X extends Product>({ slices, registry }: HouseOptions<X>): string[] {
+function ownerless<X extends Program>({ slices, registry }: HouseOptions<X>): string[] {
   return Object.keys(slices.step).filter(part => !registry.some(tool => tool.id === part));
 }
-export function startHouse<X extends Product>(home: string, options: HouseOptions<X>, time: TimeSource = systemTime) {
+export function startHouse<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource = systemTime) {
   const { by, words, registry, slices, creation, ...ports } = options;
   if (!by) throw new Error("An explicit identity is required");
   if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);
@@ -51,9 +51,9 @@ export function startHouse<X extends Product>(home: string, options: HouseOption
     throw error;
   }
 }
-export type RunningHouse<X extends Product> = ReturnType<typeof startHouse<X>>;
+export type RunningHouse<X extends Program> = ReturnType<typeof startHouse<X>>;
 /** A surface in the house's own process reads it and acts in it as one identity, with no door in between. */
-export const localPorts = <X extends Product>(
+export const localPorts = <X extends Program>(
   house: Pick<RunningHouse<X>, "tools" | "registry" | "bus">,
   me: string,
   limits: ViewLimits,

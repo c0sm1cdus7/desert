@@ -54,7 +54,7 @@ describe("journal", () => {
     const reopened = open(file);
     expect(all(reopened)).toEqual(events);
     expect(all(reopened).map(event => event.seq)).toEqual([1, 2, 3, 4, 5]);
-    expect(all(reopened).map(event => event.layer)).toEqual(["house", "house", "house", "product", "house"]);
+    expect(all(reopened).map(event => event.layer)).toEqual(["house", "house", "house", "program", "house"]);
     expect(reopened.replay<Deadlines>(new Map(), clockStep)).toEqual(state);
     expect(reopened.append(boot, 300).seq).toBe(6);
     expect(statSync(file).mode & 0o777).toBe(0o600);
@@ -72,7 +72,7 @@ describe("journal", () => {
     const reader = journalReader(file, shop);
     opened.push(reader);
     expect(reader.since(3).map(event => [event.layer, event.kind])).toEqual([
-      ["product", "sale-registered"],
+      ["program", "sale-registered"],
       ["house", "wake-at"],
     ]);
   });

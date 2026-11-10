@@ -1,4 +1,4 @@
-// Any tool contract becomes a surface, in its product's words; acts still cross the house's one execution boundary.
+// Any tool contract becomes a surface, in its program's words; acts still cross the house's one execution boundary.
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { allowed } from "../../house/house.ts";
@@ -6,7 +6,7 @@ import type { Emission } from "../../journal/events.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
-import type { Product, Tool as HouseTool } from "../../tools/tool-contract.ts";
+import type { Program, Tool as HouseTool } from "../../tools/tool-contract.ts";
 import type { Field, Result, ThingAct, Tool, ToolAct, ViewRow } from "../contract.ts";
 import { must } from "../window.ts";
 import { section, settle, type SurfacePorts, type ToolWords } from "./house-ports.ts";
@@ -41,7 +41,7 @@ const wroteBy = (effects: readonly Emission[]): string | undefined => {
 };
 /** Acts on one existing thing take it from where you stand: nobody types an id. */
 const onTarget = "id";
-/** A word the product did not give is a defect of the product: it is named, never replaced by a code. */
+/** A word the program did not give is a defect of the program: it is named, never replaced by a code. */
 const worded = (words: Readonly<Record<string, string>>, tool: string, kind: string, name: string): string => {
   const word = words[name];
   if (word === undefined) throw new Error(`${tool} has no words for ${kind} ${name}`);
@@ -54,7 +54,7 @@ const question = (ask: string, schema: TSchema, optional: boolean): Field => {
   return options.length && !optional ? { ask, valid, kind: "one", options } : { ask, valid, kind: "text" };
 };
 type Aim = Readonly<{ tool: string; name: string; schema: TSchema; words: ToolWords }>;
-const moves = <X extends Product>(ports: SurfacePorts<X>, { tool, name, schema, words }: Aim) => {
+const moves = <X extends Program>(ports: SurfacePorts<X>, { tool, name, schema, words }: Aim) => {
   const fields = fieldsOf(schema).filter(([key]) => key !== onTarget);
   const label = worded(words.acts, tool, "act", name);
   const asks = fields.map(([key]) => worded(words.fields, tool, "field", key));
@@ -85,7 +85,7 @@ const moves = <X extends Product>(ports: SurfacePorts<X>, { tool, name, schema, 
     },
   };
 };
-export function anyToolScreen<X extends Product>(ports: SurfacePorts<X>, tool: HouseTool<X>, words: ToolWords): Tool {
+export function anyToolScreen<X extends Program>(ports: SurfacePorts<X>, tool: HouseTool<X>, words: ToolWords): Tool {
   const label = (key: string) => worded(words.fields, tool.id, "field", key);
   const entries = Object.entries(tool.acts).map(([name, act]) => ({ name, schema: act.input }));
   const aimed = (act: (typeof entries)[number]) => fieldsOf(act.schema).some(([key]) => key === onTarget);

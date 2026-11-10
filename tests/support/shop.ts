@@ -1,7 +1,7 @@
-// A product that lives in a house only in tests: a shop whose tools register sales and receive payments.
+// A program that lives in a house only in tests: a shop whose tools register sales and receive payments.
 import { Type } from "@sinclair/typebox";
 import { object } from "../../src/catalogs/acts.ts";
-import { effect, vocabulary, type Emission, type Event, type ProductFacts } from "../../src/journal/events.ts";
+import { effect, vocabulary, type Emission, type Event, type ProgramFacts } from "../../src/journal/events.ts";
 import { toolAct } from "../../src/tools/act-definition.ts";
 import type { SurfaceWords } from "../../src/surface/bridge/house-ports.ts";
 import type { Slices, State, Tool, ToolRegistry } from "../../src/tools/tool-contract.ts";
@@ -11,7 +11,7 @@ export const shopCatalog = {
   "sale-registered": object({ sale: name, total: amount }),
   "payment-received": object({ payment: name, amount, sale: Type.Optional(name) }),
 };
-export type ShopFact = ProductFacts<typeof shopCatalog>;
+export type ShopFact = ProgramFacts<typeof shopCatalog>;
 export type ShopEvent = Event<ShopFact>;
 export type ShopEmission = Emission<ShopFact>;
 export const shop = vocabulary(shopCatalog);

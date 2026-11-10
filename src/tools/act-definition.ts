@@ -1,14 +1,14 @@
 import type { Static, TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import type { ActContext, ActResult, OwnAct, Product, Reach, ToolAct } from "./tool-contract.ts";
+import type { ActContext, ActResult, OwnAct, Program, Reach, ToolAct } from "./tool-contract.ts";
 import type { Emission } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
-type Perform<X extends Product, S extends TSchema> = (
+type Perform<X extends Program, S extends TSchema> = (
   value: Static<S>,
   context: ActContext<X>,
 ) => ActResult<X> | Promise<ActResult<X>>;
 /** Bind execution to the sole schema check, after the tool's own normalization. */
-export function toolAct<X extends Product, S extends TSchema>(
+export function toolAct<X extends Program, S extends TSchema>(
   input: S,
   perform: Perform<X, S>,
   reach: Reach = "house",
@@ -23,7 +23,7 @@ export function toolAct<X extends Product, S extends TSchema>(
     },
   };
 }
-export const ownAct = <X extends Product, S extends TSchema>(
+export const ownAct = <X extends Program, S extends TSchema>(
   object: string,
   option: string,
   declaration: { input: S; purpose: string },

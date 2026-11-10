@@ -1,4 +1,4 @@
-// A house's tools on a surface: everything shown comes from the house, in the product's words, through its acts.
+// A house's tools on a surface: everything shown comes from the house, in the program's words, through its acts.
 import { Type } from "@sinclair/typebox";
 import { afterEach, describe, expect, it } from "vitest";
 import { identityView } from "../../house/house.ts";
@@ -25,7 +25,7 @@ const rowsOf = (tools: ReturnType<typeof houseTools>, id: string, target?: strin
     .flatMap(stack => stack.rows.map(row => [row.title, row.detail ?? ""]));
 
 describe("a house's tools on a surface", () => {
-  it("names each tool in the product's words and says who holds it", () => {
+  it("names each tool in the program's words and says who holds it", () => {
     const { tools } = open({ grants: { ana: ["sales", "payments"], beto: ["sales"] } });
     expect(tools("ana").map(tool => [tool.name, tool.place.key, tool.held?.()])).toEqual([
       ["Ventas", "v", true],
@@ -50,7 +50,7 @@ describe("a house's tools on a surface", () => {
     expect(await register.run(["s1", "1500"])).toEqual({ ok: false, reason: "repeated" });
   });
 
-  it("lists what the tool lists, opens each thing, and reads its facts under the product's labels", async () => {
+  it("lists what the tool lists, opens each thing, and reads its facts under the program's labels", async () => {
     const { tools } = open();
     const surface = tools("ana");
     await must(named(surface, "sales").acts.register).run(["s1", "1500"]);
@@ -67,7 +67,7 @@ describe("a house's tools on a surface", () => {
     expect(() => named(surface, "sales").view("sales/nothing")).toThrow("sales has no sales/nothing");
   });
 
-  it("leaves out an optional field left empty, and says what the product says the act did", async () => {
+  it("leaves out an optional field left empty, and says what the program says the act did", async () => {
     const { rig, tools } = open();
     const receive = must(named(tools("ana"), "payments").acts.receive);
     expect(receive.next(["p1", "100"])?.ask).toBe("Venta · opcional");
@@ -102,7 +102,7 @@ describe("a house's tools on a surface", () => {
   });
 });
 
-describe("a product's words", () => {
+describe("a program's words", () => {
   const nothing = Type.Object({});
   const desk: HouseTool<Shop> = {
     id: "desk",

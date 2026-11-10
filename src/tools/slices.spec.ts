@@ -1,4 +1,4 @@
-// Each tool keeps its own part of the state, moved by the product's facts; the house keeps only what is its own.
+// Each tool keeps its own part of the state, moved by the program's facts; the house keeps only what is its own.
 import { afterEach, describe, expect, expectTypeOf, it } from "vitest";
 import { identityView } from "../house/house.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
@@ -22,7 +22,7 @@ const trade = (rig: ReturnType<typeof shopRig>) => {
 };
 
 describe("what each tool keeps", () => {
-  it("moves with the product's facts, one tool reading another's part as it was before the fact", () => {
+  it("moves with the program's facts, one tool reading another's part as it was before the fact", () => {
     const rig = open();
     trade(rig);
     expect(rig.state().tools.sales).toEqual(new Map([["s1", { total: 1500, paid: 1500, by: "ana" }]]));
@@ -35,12 +35,12 @@ describe("what each tool keeps", () => {
     ).toEqual(["Sale s1", "Payment p1", "Unmatched p2", "Payment p2"]);
   });
 
-  it("writes a product's facts as caused by the act that made them", () => {
+  it("writes a program's facts as caused by the act that made them", () => {
     const rig = open();
     trade(rig);
     const act = rig.facts().find(event => event.kind === "act" && event.data.option === "register");
     const fact = rig.facts().find(event => event.kind === "sale-registered");
-    expect(fact).toMatchObject({ layer: "product", by: "ana", cause: [act?.id], data: { sale: "s1", total: 1500 } });
+    expect(fact).toMatchObject({ layer: "program", by: "ana", cause: [act?.id], data: { sale: "s1", total: 1500 } });
   });
 
   it("lets a tool call for attention over a fact of its own, even from whoever caused it", () => {
@@ -76,7 +76,7 @@ describe("what each tool keeps", () => {
     expect(Object.keys(startState<Shop>(shopSlices, "ana").tools)).toEqual(["sales", "payments"]);
   });
 
-  it("does not compile a product whose tool has no step of its own", () => {
+  it("does not compile a program whose tool has no step of its own", () => {
     type Halved = { initial: Shop["tools"]; step: { sales: (kept: Sales, event: ShopEvent) => Sales } };
     expectTypeOf<Halved>().not.toExtend<Slices<Shop>>();
     expectTypeOf(shopSlices).toExtend<Slices<Shop>>();
