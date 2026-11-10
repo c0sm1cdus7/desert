@@ -71,10 +71,12 @@ export function actOf(tools: readonly Tool[], walk: Walk) {
 }
 export const fieldOf = (tools: readonly Tool[], walk: Walk): Field | null =>
   actOf(tools, walk).next(walk.answers.slice(0, walk.pos));
+/** The key that goes back where an act asks to be confirmed. */
+export const backKey = said.back.charAt(0);
 export function optionsOf(field: Field | null): readonly Option[] {
   if (!field || !("options" in field)) return [];
   if (field.kind !== "confirm") return field.options;
-  const back = { key: said.back.charAt(0), title: said.back, detail: said.unchanged };
+  const back = { key: backKey, title: said.back, detail: said.unchanged };
   return field.reversible ? [...field.options, back] : [back, ...field.options];
 }
 /** A field as it opens: an earlier answer wins over its initial value, so going back keeps what you wrote. */

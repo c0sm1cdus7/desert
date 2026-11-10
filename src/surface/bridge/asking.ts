@@ -143,6 +143,32 @@ const written_ = (schema: unknown, value: unknown, words: AskWords, skip: readon
   Object.entries(at(schema, "properties") ?? {})
     .filter(([key]) => !skip.includes(key))
     .flatMap(([key, field]) => write(field, at(value, key), words));
+/** The options of one question, each with its word and a key no other option of it takes. */
+function distinct(options: readonly Option[]): void {
+  const keys = options.map(option => option.key);
+  if (new Set(keys).size !== keys.length) throw new Error(`Two options take the same key: ${keys.join(", ")}`);
+}
+const auditFields = (schema: unknown, ctx: Ctx, skip: readonly string[] = []): void =>
+  Object.entries(at(schema, "properties") ?? {})
+    .filter(([key]) => !skip.includes(key))
+    .forEach(([, field]) => audit(field, ctx));
+/** Every field of a declaration can be asked: its question, its mask or placeholder, each option with its key. */
+function audit(schema: unknown, ctx: Ctx): void {
+  if (!TypeGuard.IsSchema(schema)) throw new Error("A field has no declaration");
+  const arms = armsOf(schema);
+  const telling = arms.length ? tellingOf(arms) : undefined;
+  if (arms.length) {
+    titleOf(schema, ctx);
+    distinct(arms.map(arm => choiceOf(telling ? at(at(arm, "properties"), telling) : arm)));
+    if (telling) arms.forEach(arm => auditFields(arm, ctx, [telling]));
+  } else if (at(schema, "type") === "object") auditFields(schema, ctx);
+  else if (at(schema, "type") === "array") {
+    const more = at(schema, "more");
+    word(more, "ask");
+    distinct([choiceOf(at(more, "done")), choiceOf(at(more, "another"))]);
+    audit(at(schema, "items"), ctx);
+  } else written(schema, ctx);
+}
 export type Asking = Readonly<{
   /** The next question, or null once everything it takes was answered. */
   next(answers: readonly string[]): Field | null;
@@ -159,7 +185,7 @@ export function asking(schema: TSchema, words: AskWords): Asking {
     return done;
   };
   // A field that cannot be asked is a defect of the program: it shows when the program is composed, not when used.
-  write(schema, undefined, words);
+  audit(schema, { ...words, answers: [], n: 1, optional: false });
   return {
     next: answers => {
       const done = got(answers);
