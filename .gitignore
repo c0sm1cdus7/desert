@@ -1,0 +1,13 @@
+node_modules/
+dist/
+logs/
+memories/
+.env
+.env.*
+!.env.example
+.DS_Store
+/void/
+/build/
+
+/work/
+__pycache__/

@@ -1,0 +1,23 @@
+{
+  "files": {
+    "doors/terminal/boot.ts": "startTerminal: tty keys to steps, diffed frames out, acts settle later",
+    "doors/terminal/cells.ts": "terminal cells: palettes, wide chars, put/edge/light, changed-row bytes",
+    "doors/terminal/input.ts": "keysOf: terminal bytes to surface intents",
+    "doors/terminal/paint.ts": "paint a Screen into cells: title and hint bars, lists, side panel layout; listRoom",
+    "doors/terminal/thread.ts": "draw rows, wrapped threads with focus edges, side panels, focus screens",
+    "surface/contract.ts": "the surface contract: Screen to draw, Intent back; Tool, acts, Field, Conversation",
+    "surface/resolve.ts": "resolve: the one Screen for where a session stands, from the tools",
+    "surface/screen.ts": "session places: stacks derived from tools, act walks, fields, cursor",
+    "surface/step.ts": "step: what each intent does to a session; settled sends, finished acts",
+    "surface/talk.ts": "talk place: thread, entry, side panel, pending question, a message's act, keys by focus",
+    "surface/tones.ts": "surface tones: UI tones and chart data tones",
+    "surface/walk.ts": "an act as a thread: answers, the current question, running or done; hints",
+    "surface/window.ts": "long lists windowed around the chosen row; must, foundAt",
+    "texts/surface.texts.ts": "terminal surface words: menu, keys, talk thread, house sections, errors"
+  },
+  "folders": {
+    "doors/terminal": 594,
+    "surface": 839,
+    "texts": 518
+  }
+}

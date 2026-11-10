@@ -1,0 +1,86 @@
+// Walks a surface by its own intents, from a fresh set of tools each time, so no path has to be written by hand.
+import type { Hint, Intent, Screen, Span, ThreadEvent, Tool } from "../../src/surface/contract.ts";
+import { resolve } from "../../src/surface/resolve.ts";
+import { actOf, start, type Session } from "../../src/surface/screen.ts";
+import { finished, settled, step } from "../../src/surface/step.ts";
+
+const bar = { state: "connected", clock: "14:32", now: 5_000 } as const;
+const tries: readonly Intent[] = [
+  { kind: "confirm" },
+  { kind: "down" },
+  { kind: "up" },
+  { kind: "switch" },
+  { kind: "type", text: "x" },
+  { kind: "type", text: "f" },
+  { kind: "erase" },
+  { kind: "cancel" },
+];
+export interface Stop {
+  readonly screen: Screen;
+  readonly path: readonly Intent[];
+}
+async function replay(tools: readonly Tool[], path: readonly Intent[], rows: number) {
+  let session: Session = start;
+  for (const intent of path) {
+    const stepped = step(session, intent, tools, bar.now);
+    session = stepped.session;
+    const { run, sending } = stepped;
+    if (sending) session = settled(session, sending, await sending);
+    if (run) {
+      session = finished(session, run, await actOf(tools, run).run(run.answers), "14:33");
+    }
+  }
+  return resolve(session, tools, bar, { rows });
+}
+/** Every distinct screen within reach, each with the intents that reach it. */
+export async function walk(fresh: () => readonly Tool[], rows: number, most: number): Promise<readonly Stop[]> {
+  const seen = new Map<string, Stop>();
+  const queue: Intent[][] = [[]];
+  let budget = most * 30; // Most paths land on a screen already seen: stop looking long before they all run out.
+  while (queue.length && seen.size < most && budget-- > 0) {
+    const path = queue.shift() ?? [];
+    const screen = await replay(fresh(), path, rows);
+    const key = JSON.stringify(screen);
+    if (seen.has(key)) continue;
+    seen.set(key, { screen, path });
+    for (const intent of tries) queue.push([...path, intent]);
+  }
+  return [...seen.values()];
+}
+const plain = (spans: readonly Span[]): string => spans.map(span => span.text).join("");
+const eventTexts = (event: ThreadEvent): readonly string[] => [
+  ...(event.head ? [plain(event.head)] : []),
+  ...(event.quote ? [event.quote] : []),
+  plain(event.text),
+  ...(event.attachments ?? []).flatMap(attachment => [attachment.title, attachment.detail]),
+];
+/** What the person has to be able to read in the main part, in order. */
+export function mainTexts({ body }: Screen): readonly string[] {
+  if (body.kind === "focus") return [body.title, ...body.lines.map(plain)];
+  if (body.kind === "list") {
+    return body.stacks.flatMap(stack => [
+      stack.title,
+      ...(stack.rows.length ? [] : [stack.empty ?? ""]),
+      ...stack.rows.flatMap(row => [...(row.key ? [`[${row.key}]`] : []), row.title, row.detail ?? ""]),
+    ]);
+  }
+  return [
+    ...body.events.flatMap(eventTexts),
+    ...(body.options ?? []).flatMap(row => [row.title, row.detail ?? ""]),
+    ...(body.reference ? [body.reference] : []),
+    ...(body.entry ? [body.entry.typed || body.entry.placeholder] : []),
+  ];
+}
+export const panelTexts = ({ panel }: Screen): readonly string[] =>
+  panel ? [panel.title, panel.detail ?? "", ...panel.lines.slice(panel.top).map(plain)] : [];
+export const hintTexts = ({ hints }: Screen): readonly Hint["does"][] => hints.map(hint => hint.does);
+/** The texts that have to be highlighted: at most one thing has the focus. */
+export function chosenText({ body }: Screen): string | undefined {
+  if (body.kind === "focus") return undefined;
+  if (body.kind === "list") return body.stacks.flatMap(stack => stack.rows).find(row => row.selected)?.title;
+  const option = body.options?.find(row => row.selected)?.title;
+  if (option) return option;
+  const event = body.events.find(known => known.selected);
+  if (event) return plain(event.text);
+  return body.events.flatMap(known => known.attachments ?? []).find(attachment => attachment.selected)?.title;
+}

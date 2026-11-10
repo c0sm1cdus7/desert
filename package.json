@@ -1,0 +1,27 @@
+{
+  "name": "desert",
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "format": "prettier --write \"{src,tests}/**/*.ts\" \"*.{js,ts,json}\"",
+    "format:check": "prettier --check \"{src,tests}/**/*.ts\" \"*.{js,ts,json}\"",
+    "lint": "eslint --max-warnings 0 .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --project specs",
+    "laws": "vitest run --project laws",
+    "gate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm laws"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "eslint": "10.13.0",
+    "prettier": "3.9.9",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0",
+    "vitest": "5.0.5"
+  },
+  "private": true
+}
