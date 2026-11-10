@@ -6,7 +6,7 @@ export type Locale = Readonly<{ currency: string; thousands: string; decimal: st
 /** A mask that also knows the value it stands for, both ways: what was typed as data, and data as typed. */
 export type Format = Mask &
   Readonly<{ value(typed: string): unknown; typed(value: unknown): string; keyboard: "digits" | "decimal" }>;
-export type FormatName = "money" | "quantity" | "day";
+export type FormatName = "money" | "quantity" | "count" | "day";
 const digits = /^\d+$/;
 const grouped = (whole: string, separator: string): string => whole.replace(/\B(?=(\d{3})+(?!\d))/g, separator);
 /** Money as a cash register takes it: digits come in from the right, and the last two are always the cents. */
@@ -36,6 +36,15 @@ const quantity = (locale: Locale): Format => ({
   value: typed => (typed === "" ? undefined : Number(typed.replace(locale.decimal, "."))),
   typed: value => (typeof value === "number" ? String(value).replace(".", locale.decimal) : ""),
 });
+/** A whole number of things: digits alone. */
+const count: Format = {
+  keyboard: "digits",
+  empty: "0",
+  shown: typed => typed,
+  put: (typed, text) => (digits.test(text) && typed.length < 9 ? String(Number(typed + text)) : typed),
+  value: typed => (typed === "" ? undefined : Number(typed)),
+  typed: value => (typeof value === "number" ? String(value) : ""),
+};
 const isDay = (iso: string): boolean => {
   const at = Date.parse(`${iso}T00:00:00Z`);
   return !Number.isNaN(at) && new Date(at).toISOString().slice(0, 10) === iso;
@@ -56,7 +65,8 @@ const day = (locale: Locale): Format => ({
 export const formats = (locale: Locale): Readonly<Record<FormatName, Format>> => ({
   money: money(locale),
   quantity: quantity(locale),
+  count,
   day: day(locale),
 });
 export const isFormat = (name: unknown): name is FormatName =>
-  name === "money" || name === "quantity" || name === "day";
+  name === "money" || name === "quantity" || name === "count" || name === "day";

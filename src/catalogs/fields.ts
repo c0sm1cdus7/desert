@@ -17,6 +17,8 @@ export const quantity = (ask: string, initial?: number) =>
     mask: "quantity",
     ...(initial === undefined ? {} : { default: initial }),
   });
+/** Which one, by its position: a whole number from one up. */
+export const count = (ask: string) => Type.Integer({ minimum: 1, title: ask, mask: "count" });
 /** A day of the calendar, kept as year-month-day. */
 export const day = (ask: string) => Type.String({ pattern: isoDay, title: ask, mask: "day" });
 /** One value of a closed set, with the word and the key that choose it. */
