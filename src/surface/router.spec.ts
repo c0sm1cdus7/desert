@@ -1,14 +1,14 @@
 // The router is the one place where a surface meets a house: every renderer gets the same screens and the same moves.
-import { Type } from "@sinclair/typebox";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { object } from "../catalogs/acts.ts";
 import { redrawMs } from "../catalogs/time.ts";
-import { toolAct } from "../tools/act-definition.ts";
-import type { ActResult, Tool as HouseTool } from "../tools/tool-contract.ts";
+import { programAct, type ProgramTool } from "../tools/promises.ts";
+import type { ActResult } from "../tools/tool-contract.ts";
 import { houseRouter } from "./bridge/house-router.ts";
-import type { Intent, Screen } from "./contract.ts";
+import type { Screen } from "./contract.ts";
 import type { Router } from "./router.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
-import { shopRegistry, shopWords, type Shop } from "../../tests/support/shop.ts";
+import { shopRegistry, shopShown, type Shop } from "../../tests/support/shop.ts";
 
 const closing: { close?(): void; stop?(): void }[] = [];
 beforeEach(() => {
@@ -20,25 +20,40 @@ afterEach(() => {
   vi.useRealTimers();
 });
 let finish: (result: ActResult<Shop>) => void = () => {};
-const slow: HouseTool<Shop> = {
+const nothing = object({});
+/** A tool whose act ends when the test says so: its one case stands for the promise, the test drives the wait. */
+const waiting = { promise: "it ends when it is told to", input: {}, then: { says: "Finished later", facts: [] } };
+const slow: ProgramTool<Shop> = {
   id: "slow",
   purpose: "A tool of the test.",
   targets: () => [],
   view: () => "",
   summary: () => "",
   acts: {
-    run: toolAct(Type.Object({}), () => new Promise<ActResult<Shop>>(resolve => (finish = resolve))),
-    fail: toolAct(Type.Object({}), () => Promise.reject(new Error("no paper"))),
+    run: programAct<Shop, typeof nothing>({
+      label: "Correr",
+      purpose: "Tarda lo que la prueba diga.",
+      key: "c",
+      on: "tool",
+      input: nothing,
+      run: () => new Promise<ActResult<Shop>>(resolve => (finish = resolve)),
+      cases: [waiting],
+    }),
+    fail: programAct<Shop, typeof nothing>({
+      label: "Fallar",
+      purpose: "Falla siempre.",
+      key: "f",
+      on: "tool",
+      input: nothing,
+      run: () => Promise.reject(new Error("no paper")),
+      cases: [waiting],
+    }),
   },
 };
-const words = {
-  ...shopWords,
-  slow: { name: "Lento", key: "l", empty: "", listed: "Hoy", shown: "Datos", acts: { run: "Correr", fail: "Fallar" } },
-};
-const slowWords = { ...words, slow: { ...words.slow, done: {}, fields: {} } };
+const slowWords = { name: "Lento", key: "l", empty: "", listed: "Hoy", shown: "Datos", reads: {} };
 const open = () => {
   const rig = shopRig({ registry: [...shopRegistry, slow] });
-  const router = houseRouter(rig.ports("ana"), slowWords);
+  const router = houseRouter(rig.ports("ana"), { ...shopShown, words: { ...shopShown.words, slow: slowWords } });
   closing.push(router, rig);
   return { rig, router };
 };
@@ -50,8 +65,7 @@ const said = (screen: Screen): string => JSON.stringify(screen.body);
 const started = async (): Promise<void> => {
   for (let turn = 0; turn < 20; turn++) await Promise.resolve();
 };
-const press = (router: Router, ...kinds: Intent["kind"][]): void =>
-  kinds.forEach(kind => kind !== "type" && router.send({ kind }));
+const key = (router: Router, ...keys: string[]): void => keys.forEach(text => router.send({ kind: "type", text }));
 
 describe("the router", () => {
   it("gives every renderer the same screen, and tells each one when the house changed", () => {
@@ -72,16 +86,17 @@ describe("the router", () => {
     expect(second.mock.calls.length).toBeGreaterThan(before);
   });
 
-  it("moves by intents alone, and shows a running act until the house answers", async () => {
+  it("moves by keys alone, and shows a running act until the house answers", async () => {
     const { router } = open();
     const changed = vi.fn();
     router.watch(changed);
-    press(router, "down", "down", "confirm");
+    key(router, "l");
     expect(router.screen(view).title).toBe("Lento");
     expect(rowsOf(router.screen(view))).toEqual(["Correr", "Fallar"]);
-    press(router, "confirm", "confirm");
+    key(router, "c");
+    router.send({ kind: "confirm" });
     expect(router.screen(view).title).toBe("Lento"); // Enter on a confirmation goes back: running it is chosen.
-    press(router, "confirm", "down", "confirm");
+    key(router, "c", "c");
     expect(said(router.screen(view))).toContain("Procesando");
     await started();
     changed.mockClear();
@@ -93,10 +108,10 @@ describe("the router", () => {
 
   it("lands an act that fails as its reason on the screen, never as a house that stops", async () => {
     const { router } = open();
-    press(router, "down", "down", "confirm", "down", "confirm", "down", "confirm");
+    key(router, "l", "f", "f");
     await router.idle();
     expect(said(router.screen(view))).toContain("no paper");
-    press(router, "cancel", "cancel", "cancel", "cancel");
+    for (let step = 0; step < 4; step++) router.send({ kind: "cancel" });
     expect(router.screen(view).title).toBe("Menú");
   });
 

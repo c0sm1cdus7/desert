@@ -129,8 +129,9 @@ describe("an action with steps", () => {
   it("goes back one question with esc, keeps the answer, and forgets what depended on a changed one", async () => {
     const base = rulesTool(seed());
     const questions = (answers: readonly string[]) => {
-      if (answers.length === 0) return { ask: "¿De qué proveedor?", kind: "text" as const };
-      return answers.length === 1 ? { ask: `¿Qué llave de ${answers[0] ?? ""}?`, kind: "text" as const } : null;
+      if (answers.length === 0) return { ask: "¿De qué proveedor?", kind: "text" as const, placeholder: "Proveedor" };
+      const key = { ask: `¿Qué llave de ${answers[0] ?? ""}?`, kind: "text" as const, placeholder: "Llave" };
+      return answers.length === 1 ? key : null;
     };
     const run = () => Promise.resolve({ ok: true as const, text: "Guardada." });
     const act = { label: "agregar", verb: "guardar", key: "k", scope: "all" as const, next: questions, run };

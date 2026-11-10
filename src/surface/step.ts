@@ -1,5 +1,5 @@
 // What each intent does where you are: the only place that moves a session.
-import type { Field, Intent, Result, Tool } from "./contract.ts";
+import type { Field, Intent, Mask, Result, Tool } from "./contract.ts";
 import {
   actOf,
   begin,
@@ -35,8 +35,16 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
   const running: Walk = { ...clean, phase: "running", since: now };
   return { session: replace(session, running), run: running };
 }
+/** In a field with a format the keys go through its mask: what does not fit is not typed. */
+function masked(walk: Asking, mask: Mask, key: Intent): Asking | undefined {
+  const typed =
+    key.kind === "type" ? Array.from(key.text).reduce((now, text) => mask.put(now, text), walk.typed) : walk.typed;
+  if (key.kind === "type") return { ...walk, typed, caret: Array.from(typed).length };
+  if (key.kind === "erase") return { ...walk, typed: Array.from(walk.typed).slice(0, -1).join("") };
+  return key.kind === "left" || key.kind === "right" ? walk : undefined;
+}
 function typing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
-  const changed = edited(walk, key);
+  const changed = "mask" in field ? masked(walk, field.mask, key) : edited(walk, key);
   if (changed) return { session: replace(session, changed) };
   if (key.kind === "confirm" && validOf(field, walk.typed)) return advance(session, walk, tools, walk.typed, now);
   return { session };

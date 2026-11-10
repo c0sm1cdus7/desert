@@ -16,7 +16,7 @@ import { startHouse } from "./house-runtime.ts";
 
 export type Check = Readonly<{ name: string; run: () => Promise<void> }>;
 /** Who lives in the house a case runs in: ana administers it, beto holds every tool, carla holds none. */
-const cast = { admin: "ana", member: "beto", outsider: "carla" } as const;
+export const cast = { admin: "ana", member: "beto", outsider: "carla" } as const;
 const stillTime: TimeSource = { now: () => caseInstant, wait: () => () => {} };
 /** The house a case runs in runs as itself. */
 const runner = "house";
@@ -33,10 +33,10 @@ function open<X extends Program>(program: Composition<X>, home: string) {
   const creation = { admin: cast.admin, assignments };
   return startHouse<X>(home, { by: runner, creation, keys, ...program }, stillTime);
 }
-type House<X extends Program> = ReturnType<typeof open<X>>;
+export type House<X extends Program> = ReturnType<typeof open<X>>;
 type Stage<X extends Program> = Readonly<{ house: () => House<X>; reopen: () => void }>;
 /** A fresh house on disk for one check, closed and removed when the check ends, however it ends. */
-async function staged<X extends Program>(program: Composition<X>, use: (stage: Stage<X>) => Promise<void>) {
+export async function staged<X extends Program>(program: Composition<X>, use: (stage: Stage<X>) => Promise<void>) {
   const home = mkdtempSync(join(tmpdir(), "desert-promise-"));
   let house = open(program, home);
   const reopen = (): void => {
@@ -59,7 +59,7 @@ async function perform<X extends Program>(house: House<X>, tool: string, doing: 
   return started.status === "processing" ? started.completion : started;
 }
 type Decided<X extends Program> = Awaited<ReturnType<typeof perform<X>>>;
-const wroteSince = <X extends Program>(house: House<X>, seq: number) =>
+export const wroteSince = <X extends Program>(house: House<X>, seq: number) =>
   house.journal.replay<{ kind: string; data: unknown }[]>(
     [],
     (facts, event) => (event.layer === "program" ? [...facts, { kind: event.kind, data: event.data }] : facts),
@@ -80,7 +80,11 @@ const saidBy = <X extends Program>(decided: Decided<X>): string | undefined => {
     if (effect.layer === "house" && effect.kind === "tool-entry") return effect.data.text;
   return undefined;
 };
-async function given<X extends Program>(house: House<X>, tool: string, steps: readonly Step[] = []): Promise<void> {
+export async function given<X extends Program>(
+  house: House<X>,
+  tool: string,
+  steps: readonly Step[] = [],
+): Promise<void> {
   for (const step of steps) {
     const done = await perform(house, tool, step);
     ok(done.status === "accepted", said.givenRefused(step.act, done.reason ?? done.status));
@@ -91,8 +95,8 @@ const rebuilt = <X extends Program>(program: Composition<X>, house: House<X>): X
   house.journal.replay(startState<X>(program.slices, runner), (state, event) =>
     toolsStep<X>(state, event, program.slices),
   ).tools;
-type Aim<X extends Program> = Readonly<{ tool: ProgramTool<X>; name: string; act: ProgramAct<X> }>;
-const label = <X extends Program>({ tool, name }: Aim<X>, promise: string): string =>
+export type Aim<X extends Program> = Readonly<{ tool: ProgramTool<X>; name: string; act: ProgramAct<X> }>;
+export const label = <X extends Program>({ tool, name }: Aim<X>, promise: string): string =>
   `${tool.id} · ${name} · ${promise}`;
 /** What the tool reads on a target, as whoever acted reads it: each line of its view, parsed when it is JSON. */
 function readOn<X extends Program>(house: House<X>, aim: Aim<X>, kase: Case<X>, on = kase.on ?? aim.tool.id) {

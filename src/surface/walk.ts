@@ -24,6 +24,11 @@ const answersOf = (walk: Walk): readonly ThreadEvent[] =>
     ],
   }));
 const isTyped = (field: Field | null): boolean => field?.kind === "text" || field?.kind === "secret";
+/** What an empty written field shows: its mask's shape, its own placeholder, or that a secret goes there. */
+const shapeOf = (field: Field): string => {
+  if ("mask" in field) return field.mask.empty;
+  return "placeholder" in field ? field.placeholder : said.pasteHere;
+};
 
 export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   const answered = answersOf(walk);
@@ -32,8 +37,9 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   const asking = walk.error === undefined ? [{ text: question.ask, tone: "t1" } as const] : errorSpans(walk.error);
   const events = [...answered, { text: asking }];
   if (isTyped(field)) {
-    const placeholder = field?.placeholder ?? (field?.kind === "secret" ? said.pasteHere : said.typeHere);
-    return { kind: "thread", events, entry: { typed: maskOf(field, walk.typed), caret: walk.caret, placeholder } };
+    const typed = walk.typed === "" ? "" : maskOf(field, walk.typed);
+    const caret = "mask" in question ? Array.from(typed).length : walk.caret;
+    return { kind: "thread", events, entry: { typed, caret, placeholder: shapeOf(question) } };
   }
   const options: readonly Row[] = optionsOf(field).map((option, i) => ({
     ...option,

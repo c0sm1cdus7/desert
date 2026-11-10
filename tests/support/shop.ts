@@ -1,15 +1,20 @@
 // A program that lives in a house only in tests: a shop whose tools register sales and receive payments.
 import { Type } from "@sinclair/typebox";
 import { object } from "../../src/catalogs/acts.ts";
+import { money, text } from "../../src/catalogs/fields.ts";
 import { effect, vocabulary, type Emission, type Event, type ProgramFacts } from "../../src/journal/events.ts";
 import { programAct, type Composition, type ProgramTool } from "../../src/tools/promises.ts";
-import type { SurfaceWords } from "../../src/surface/bridge/house-ports.ts";
+import type { Shown, SurfaceWords } from "../../src/surface/bridge/house-ports.ts";
 import type { Slices, State, ToolRegistry } from "../../src/tools/tool-contract.ts";
-const name = Type.String({ minLength: 1 });
-const amount = Type.Number({ minimum: 0 });
+/** What the shop takes is declared with how it is asked: the question, and a mask or a placeholder. */
+const sale = text("Venta", "Nombre de la venta");
 export const shopCatalog = {
-  "sale-registered": object({ sale: name, total: amount }),
-  "payment-received": object({ payment: name, amount, sale: Type.Optional(name) }),
+  "sale-registered": object({ sale, total: money("Total") }),
+  "payment-received": object({
+    payment: text("Pago", "Nombre del pago"),
+    amount: money("Monto"),
+    sale: Type.Optional(sale),
+  }),
 };
 export type ShopFact = ProgramFacts<typeof shopCatalog>;
 export type ShopEvent = Event<ShopFact>;
@@ -40,21 +45,21 @@ export const shopSlices: Slices<Shop> = {
   step: { sales: salesStep, payments: paymentsStep },
 };
 const lines = (values: readonly unknown[]): string => values.map(value => JSON.stringify(value)).join("\n");
-const money = (amount: number): string => `$ ${amount}`;
+const pesos = (amount: number): string => `$ ${amount}`;
 /** The list names each sale; one sale reads as its own facts. */
 const salesView = (state: State<Shop>, target: string): string => {
   const one = state.tools.sales.get(target.replace("sales/", ""));
-  if (one) return lines([{ total: money(one.total), paid: money(one.paid), by: one.by }]);
+  if (one) return lines([{ total: pesos(one.total), paid: pesos(one.paid), by: one.by }]);
   const listed = [...state.tools.sales].map(([sale, { total }]) => ({
     id: `sales/${sale}`,
     text: sale,
-    detail: money(total),
+    detail: pesos(total),
   }));
   return lines(listed);
 };
 const paymentsView = (state: State<Shop>): string => {
   const { received, unmatched } = state.tools.payments;
-  return lines([{ received: money(received), unmatched }]);
+  return lines([{ received: pesos(received), unmatched }]);
 };
 const first = { sale: "s1", total: 1500 };
 /** What registering a sale promises; a broken shop keeps these promises and breaks the act under them. */
@@ -75,6 +80,13 @@ export const registerCases = [
     then: { refused: "repeated" },
   },
 ] as const;
+/** How registering a sale is offered: a broken shop is offered the same way. */
+export const registerOffer = {
+  label: "Registrar",
+  purpose: "Registra lo que el almacén vende.",
+  key: "r",
+  on: "tool",
+} as const;
 export const salesTool: ProgramTool<Shop> = {
   id: "sales",
   purpose: "Registers what the shop sells.",
@@ -83,6 +95,7 @@ export const salesTool: ProgramTool<Shop> = {
   summary: state => String(state.tools.sales.size),
   acts: {
     register: programAct<Shop, (typeof shopCatalog)["sale-registered"]>({
+      ...registerOffer,
       input: shopCatalog["sale-registered"],
       refuses: ["repeated"],
       run: (input, { by, state }) =>
@@ -107,6 +120,10 @@ export const paymentsTool: ProgramTool<Shop> = {
   summary: state => String(state.tools.payments.unmatched.length),
   acts: {
     receive: programAct<Shop, (typeof shopCatalog)["payment-received"]>({
+      label: "Recibir",
+      purpose: "Recibe lo que le pagan al almacén.",
+      key: "r",
+      on: "tool",
       input: shopCatalog["payment-received"],
       run: (input, { by }) => ({
         status: "accepted",
@@ -139,7 +156,7 @@ export const paymentsTool: ProgramTool<Shop> = {
 export const shopRegistry: ToolRegistry<Shop> = [salesTool, paymentsTool];
 /** The shop, whole: what its promises are checked on. */
 export const shopProgram: Composition<Shop> = { words: shop, registry: [salesTool, paymentsTool], slices: shopSlices };
-/** What the shop calls its tools, their acts and their fields where a person reads them. */
+/** What the shop calls its tools where a person reads them, and how its country writes money and days. */
 export const shopWords: SurfaceWords = {
   sales: {
     name: "Ventas",
@@ -147,9 +164,7 @@ export const shopWords: SurfaceWords = {
     empty: "Sin ventas.",
     listed: "Registradas",
     shown: "Datos",
-    acts: { register: "Registrar" },
-    done: {},
-    fields: { sale: "Venta", total: "Total", paid: "Cobrado", by: "Registró" },
+    reads: { total: "Total", paid: "Cobrado", by: "Registró" },
   },
   payments: {
     name: "Pagos",
@@ -157,8 +172,10 @@ export const shopWords: SurfaceWords = {
     empty: "Sin pagos.",
     listed: "Caja",
     shown: "Datos",
-    acts: { receive: "Recibir" },
-    done: { receive: "Recibido" },
-    fields: { payment: "Pago", amount: "Monto", sale: "Venta", received: "Recibido", unmatched: "Sin conciliar" },
+    reads: { received: "Recibido", unmatched: "Sin conciliar" },
   },
+};
+export const shopShown: Shown<Shop> = {
+  words: shopWords,
+  locale: { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" },
 };

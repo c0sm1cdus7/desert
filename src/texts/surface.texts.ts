@@ -12,7 +12,6 @@ export const surfaceTexts = {
   gone: "E-NAV-1 · Destino inexistente",
   working: "Procesando",
   more: "más",
-  typeHere: "texto",
   pasteHere: "secreto",
   talk: {
     channels: "Canales",

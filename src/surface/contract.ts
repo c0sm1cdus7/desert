@@ -89,12 +89,21 @@ interface Question {
   readonly ask: string;
   readonly initial?: string;
   readonly valid?: (value: string) => boolean;
-  readonly placeholder?: string;
+}
+/** What a field with a format takes and shows: only the keys that fit it, and its shape before anything is typed. */
+export interface Mask {
+  readonly empty: string;
+  /** What is typed after one more key; the same as before when the key does not fit. */
+  put(typed: string, text: string): string;
+  shown(typed: string): string;
 }
 /** What it can be answered with is part of its kind: choosing among nothing does not type. */
 export type Field = Question &
+  /** A written field says what it expects: its mask, or a placeholder in the program's words. Never neither. */
   (
-    | { readonly kind: "text" | "secret" }
+    | { readonly kind: "text"; readonly placeholder: string }
+    | { readonly kind: "text"; readonly mask: Mask }
+    | { readonly kind: "secret" }
     | { readonly kind: "one" | "many"; readonly options: readonly Option[] }
     | { readonly kind: "confirm"; readonly options: readonly Option[]; readonly reversible?: boolean }
   );

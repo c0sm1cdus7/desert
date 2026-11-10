@@ -3,7 +3,9 @@ import type { Act } from "../../catalogs/acts.ts";
 import type { ViewLimits } from "../../catalogs/levers.ts";
 import type { ExecutionResult } from "../../tools/execute.ts";
 import type { Program, State, ToolRegistry } from "../../tools/tool-contract.ts";
-import type { Screen, ViewRow } from "../contract.ts";
+import type { Screen, Tool as SurfaceTool, ViewRow } from "../contract.ts";
+import type { Locale } from "../masks.ts";
+import type { ProgramTool } from "../../tools/promises.ts";
 /** What the surface needs from a running house; nothing here knows how it runs. */
 export interface HousePorts<X extends Program> {
   readonly me: string;
@@ -23,12 +25,21 @@ export interface HousePorts<X extends Program> {
 export type SurfacePorts<X extends Program> = Omit<HousePorts<X>, "act"> & {
   readonly act: (value: Act) => ExecutionResult<X>;
 };
-/** What a program calls its tools, their acts and their fields on a surface: a tool without words is not shown. */
+/** What a program calls a tool where a person reads it; its acts say their own words where they are declared. */
 export type ToolWords = Readonly<{ name: string; key: string; empty: string; system?: true }> &
-  /** What heads the list of its things, and what heads one thing read on its own. */
-  Readonly<{ listed: string; shown: string }> &
-  Readonly<Record<"acts" | "done" | "fields", Readonly<Record<string, string>>>>;
+  /** What heads the list of its things, what heads one thing read on its own, and the label of each thing it reads. */
+  Readonly<{ listed: string; shown: string; reads: Readonly<Record<string, string>> }>;
 export type SurfaceWords = Readonly<Record<string, ToolWords>>;
+/** How a program is shown: its words, how its country writes money and days, and the screens that are its own. */
+export type Shown<X extends Program> = Readonly<{ words: SurfaceWords; locale: Locale }> &
+  Readonly<{ screens?: Readonly<Record<string, ProgramScreen<X>>> }>;
+/** A tool that needs more than rows brings its own screen; its acts still come from their declarations. */
+export type ProgramScreen<X extends Program> = (
+  ports: SurfacePorts<X>,
+  tool: ProgramTool<X>,
+  words: ToolWords,
+  acts: Pick<SurfaceTool, "acts" | "actsOn">,
+) => SurfaceTool;
 /** Every act answers later over a door: what the house decided, never the fact that it is still deciding. */
 export const settle = <X extends Program>(result: ExecutionResult<X>) =>
   result.status === "processing" ? result.completion : Promise.resolve(result);

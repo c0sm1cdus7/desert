@@ -152,8 +152,11 @@ export function stacksOf(place: Picture, tools: readonly Tool[]): readonly Liste
 }
 export const choices = (place: Picture, tools: readonly Tool[]): readonly Choice[] =>
   stacksOf(place, tools).flatMap(stack => stack.rows.filter(row => row.open ?? row.press));
-export const maskOf = (field: Field | null, answer: string): string =>
-  field?.kind === "secret" ? "•".repeat(Array.from(answer).length) : answer;
+/** An answer as it is shown: a secret as dots, a field with a format in its shape, anything else as written. */
+export const maskOf = (field: Field | null, answer: string): string => {
+  if (field?.kind === "secret") return "•".repeat(Array.from(answer).length);
+  return field && "mask" in field ? field.mask.shown(answer) : answer;
+};
 export const validOf = (field: Field | null, typed: string): boolean =>
   (field?.valid ?? (value => value.trim() !== ""))(typed);
 /** Someone else removed what you stand on: it is said as such, never drawn as another screen. */

@@ -1,7 +1,8 @@
 // Shops that break a promise, each in one way: the derived checks have to catch exactly what each one broke.
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import type { ActContext, ActResult } from "../../src/tools/tool-contract.ts";
-import { paymentsTool, registerCases, salesTool, shop, shopCatalog, shopProgram, shopSlices } from "./shop.ts";
+import { paymentsTool, registerCases, registerOffer, salesTool, shop, shopCatalog } from "./shop.ts";
+import { shopProgram, shopSlices } from "./shop.ts";
 import type { Sales, Shop } from "./shop.ts";
 
 type Told = { sale: string; total: number };
@@ -13,7 +14,7 @@ const honest: Run = (input, { by, state }) =>
 /** The shop with another way of registering a sale, under the same promises. */
 const registering = (run: Run, refuses: readonly string[] = ["repeated"]): Composition<Shop> => {
   const input = shopCatalog["sale-registered"];
-  const register = programAct<Shop, typeof input>({ input, refuses, run, cases: registerCases });
+  const register = programAct<Shop, typeof input>({ ...registerOffer, input, refuses, run, cases: registerCases });
   return { ...shopProgram, registry: [{ ...salesTool, acts: { register } }, paymentsTool] };
 };
 /** It keeps every sale at twice what it was told: the fact is right, what is read of it is not. */
@@ -47,19 +48,21 @@ const told = "sales · register · a sale is registered as it was told";
 const again = "sales · register · a sale already registered is not registered again";
 const covered = "sales · register · promises a case for what it does and for each cause it refuses with";
 const paid = "payments · receive · a payment for a sale is received";
+/** The same check walked by keys: a promise broken in the act is broken on every door. */
+const keys = (check: string): string => `${check}, by keys`;
 export const brokenShops: readonly Readonly<{ name: string; program: Composition<Shop>; fails: readonly string[] }>[] =
   [
     {
       name: "a shop that writes another total than the one it was told",
       program: registering((input, context) => honest({ ...input, total: input.total + 1 }, context)),
-      fails: [told],
+      fails: [told, keys(told)],
     },
     {
       name: "a shop that registers the same sale twice",
       program: registering((input, context) =>
         honest(input, { ...context, state: { ...context.state, tools: shopSlices.initial } }),
       ),
-      fails: [again],
+      fails: [again, keys(again)],
     },
     {
       name: "a shop that refuses with a cause it never declared",
@@ -77,7 +80,7 @@ export const brokenShops: readonly Readonly<{ name: string; program: Composition
         const done = honest(input, context);
         return done.status === "accepted" ? { ...done, text: "Done" } : done;
       }),
-      fails: [told],
+      fails: [told, keys(told)],
     },
     {
       name: "a shop that keeps another total than the one its sale reads",

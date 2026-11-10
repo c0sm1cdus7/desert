@@ -1,5 +1,6 @@
 // What a program promises of each act: the causes it may refuse with, and cases that say what happens. Specs derive.
 import type { Static, TSchema } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 import type { Vocabulary } from "../journal/events.ts";
 import { toolAct } from "./act-definition.ts";
 import type { ActContext, ActResult, Program, Reach, Slices, Tool, ToolAct } from "./tool-contract.ts";
@@ -28,8 +29,15 @@ export type Case<X extends Program, S extends TSchema = TSchema> = Readonly<{
   input: Static<S>;
   then: Outcome<X>;
 }>;
+/** How an act stands on a surface: what its option says, why it exists, and the key that takes it. */
+export type Offered = Readonly<{ label: string; purpose: string; key: string }> &
+  /** Whether it acts on the tool or on one thing of it; an act on a thing may make that thing leave its list. */
+  Readonly<{ on: "tool" | "thing"; leaves?: boolean }>;
 export type ProgramAct<X extends Program> = ToolAct<X> &
-  Readonly<{ refuses: readonly string[]; cases: readonly Case<X>[] }>;
+  Offered &
+  Readonly<{ refuses: readonly string[]; cases: readonly Case<X>[] }> &
+  /** What is put before the person to confirm, once everything was answered, when the act wants that. */
+  Readonly<{ confirms?: (input: unknown) => string | undefined }>;
 export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
   Readonly<{ acts: Readonly<Record<string, ProgramAct<X>>> }>;
 /** A program, whole: what DESERT needs to run it and to check everything it promises. */
@@ -39,6 +47,9 @@ export type Composition<X extends Program> = Readonly<{
   slices: Slices<X>;
 }>;
 type Declared<X extends Program, S extends TSchema> = Readonly<{ input: S; reach?: Reach; output?: boolean }> &
+  /** No act without its purpose, its key and its words: an option nobody can explain or reach is not an option. */
+  Offered &
+  Readonly<{ confirms?: (input: Static<S>) => string }> &
   /** Every cause this act may refuse with; refusing with any other is a defect of the program. */
   Readonly<{ refuses?: readonly string[]; offered?: NonNullable<ToolAct<X>["offered"]> }> &
   Readonly<{ run(input: Static<S>, context: ActContext<X>): ActResult<X> | Promise<ActResult<X>> }> &
@@ -47,7 +58,10 @@ type Declared<X extends Program, S extends TSchema> = Readonly<{ input: S; reach
 
 /** An act of a program: what it takes, what it does, and what it promises. */
 export function programAct<X extends Program, S extends TSchema>(declared: Declared<X, S>): ProgramAct<X> {
-  const { input, reach, refuses = [], offered, output, run, cases } = declared;
+  const { input, reach, refuses = [], offered, output, run, cases, confirms } = declared;
+  const { label, purpose, key, on, leaves } = declared;
+  const shown: Offered = { label, purpose, key, on, ...(leaves === undefined ? {} : { leaves }) };
+  const summary = (value: unknown): string | undefined => (Value.Check(input, value) ? confirms?.(value) : undefined);
   const declaredCause = (cause: string): string => {
     if (!refuses.includes(cause)) throw new Error(`An act refused with a cause it does not declare: ${cause}`);
     return cause;
@@ -68,5 +82,6 @@ export function programAct<X extends Program, S extends TSchema>(declared: Decla
     const cause = offered?.(state, target);
     return cause === undefined ? undefined : declaredCause(cause);
   };
-  return { ...act, ...(offered ? { offered: guarded } : {}), ...(output ? { output: true } : {}), refuses, cases };
+  const promised = { ...shown, refuses, cases, ...(confirms ? { confirms: summary } : {}) };
+  return { ...act, ...(offered ? { offered: guarded } : {}), ...(output ? { output: true } : {}), ...promised };
 }

@@ -6,7 +6,7 @@ import { textOf } from "./cells.ts";
 import { keysOf } from "./input.ts";
 import { contentRows, paint } from "./paint.ts";
 import { shopRig } from "../../../tests/support/shop-rig.ts";
-import { shopWords } from "../../../tests/support/shop.ts";
+import { shopShown } from "../../../tests/support/shop.ts";
 
 const now = 5_000;
 const clock = new Date(now).toTimeString().slice(0, 5);
@@ -22,7 +22,7 @@ const open = (me = "ana") => {
   const rig = shopRig({ grants: { ana: ["sales", "payments"], beto: ["sales"] } });
   const router = houseRouter(
     rig.ports(me, () => now),
-    shopWords,
+    shopShown,
   );
   closing.push(router, rig);
   const press = async (keys: string): Promise<readonly string[]> => {
@@ -43,21 +43,34 @@ describe("the terminal, on a program's house", () => {
     expect(beto[0]).toContain(clock);
   });
 
-  it("registers a sale by keys and then lists it, opens it and counts it on the Menu", async () => {
+  it("offers each act with its key and its purpose, and asks it from its declaration", async () => {
     const { rig, press } = open();
-    expect(await press("\r")).toEqual(expect.arrayContaining(["Registradas", "Sin ventas.", "Acciones", "Registrar"]));
-    const asking = await press("\r");
+    const list = await press("v");
+    expect(list).toEqual(expect.arrayContaining(["Registradas", "Sin ventas.", "Acciones"]));
+    expect(list).toContain("[r] Registrar | Registra lo que el almacén vende.");
+    const asking = await press("r");
     expect(asking[0]).toContain("Registrar");
-    expect(asking).toContain("Venta");
-    expect((await press("s1\rabc\r")).some(line => line.includes("abc"))).toBe(true);
+    expect(asking).toEqual(expect.arrayContaining(["Venta", "› | Nombre de la venta"]));
+    const total = await press("s1\r");
+    expect(total).toEqual(expect.arrayContaining(["Venta s1", "Total", "› | $ 0,00"]));
     expect(rig.state().tools.sales.size).toBe(0);
-    const done = await press("\x7f\x7f\x7f1500\r");
-    expect(done).toEqual(expect.arrayContaining(["Venta s1", "Total 1500", `Listo Sale s1 · ${clock}`]));
-    expect(rig.state().tools.sales.get("s1")).toEqual({ total: 1500, paid: 0, by: "ana" });
-    expect(await press(escape)).toContain("s1 | $ 1500");
+  });
+
+  it("takes into a field with a format only the keys that fit it, and shows its shape as it fills", async () => {
+    const { rig, press } = open();
+    const letters = await press("vrs1\rabc,.-");
+    expect(letters).toContain("› | $ 0,00");
+    expect((await press("\r")).some(line => line.startsWith("Listo"))).toBe(false);
+    expect(await press("15")).toContain("› $ 0,15");
+    expect(await press("0000")).toContain("› $ 1.500,00");
+    expect(await press("\x7f\x7f")).toContain("› $ 15,00");
+    const done = await press("00\r");
+    expect(done).toEqual(expect.arrayContaining(["Venta s1", "Total $ 1.500,00", `Listo Sale s1 · ${clock}`]));
+    expect(rig.state().tools.sales.get("s1")).toEqual({ total: 150_000, paid: 0, by: "ana" });
+    expect(await press(escape)).toContain("s1 | $ 150000");
     const sale = await press("\r");
     expect(sale[0]).toContain("s1");
-    expect(sale).toEqual(expect.arrayContaining(["Datos", "Total | $ 1500", "Cobrado | $ 0", "Registró | ana"]));
+    expect(sale).toEqual(expect.arrayContaining(["Datos", "Total | $ 150000", "Cobrado | $ 0", "Registró | ana"]));
     expect(await press(`${escape}${escape}`)).toContain("[v] ventas | 1");
   });
 
