@@ -42,6 +42,7 @@
     "tools/attendance.ts": "what an identity keeps in view, and the tool a target belongs to",
     "tools/execute.ts": "execute: one act written, checked against the house, run, and its result written",
     "tools/promises.ts": "Case, Outcome, ProgramAct, Composition; programAct: an act with the causes it refuses with and its cases",
+    "tools/schema-breaks.ts": "outsideOf: the inputs an act's schema does not admit, made from one it does",
     "tools/tool-contract.ts": "Program, State, Slices, Tool, ToolAct, ActResult, KeyStore: a tool as the house sees it",
     "tools/tools.ts": "house state and each tool's part folded together; attendance acts; attention ladder; startTools"
   },

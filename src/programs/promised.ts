@@ -3,12 +3,12 @@ import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Value } from "@sinclair/typebox/value";
 import { identityView } from "../house/house.ts";
 import type { TimeSource } from "../journal/clock.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import type { Case, Composition, ProgramAct, ProgramTool, Step } from "../tools/promises.ts";
+import { outsideOf } from "../tools/schema-breaks.ts";
 import type { KeyStore, Program } from "../tools/tool-contract.ts";
 import { startState, toolsStep } from "../tools/tools.ts";
 import { startHouse } from "./house-runtime.ts";
@@ -66,6 +66,16 @@ const wroteSince = <X extends Program>(house: House<X>, seq: number) =>
     (facts, event) => (event.layer === "program" ? [...facts, { kind: event.kind, data: event.data }] : facts),
     seq,
   );
+/** Whom the house called for attention since a point of the journal, each identity once, in order. */
+const calledSince = <X extends Program>(house: House<X>, seq: number): string[] => [
+  ...new Set(
+    house.journal.replay<string[]>(
+      [],
+      (called, event) => (event.layer === "house" && event.kind === "stimulus" ? [...called, event.by] : called),
+      seq,
+    ),
+  ),
+];
 const saidBy = <X extends Program>(decided: Decided<X>): string | undefined => {
   for (const effect of decided.effects)
     if (effect.layer === "house" && effect.kind === "tool-entry") return effect.data.text;
@@ -114,6 +124,7 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
         deepStrictEqual(wrote, kase.then.facts);
         strictEqual(saidBy(done), kase.then.says);
         if (kase.then.reads) deepStrictEqual(readOn(house(), aim, kase, kase.then.reads.on), kase.then.reads.lines);
+        if (kase.then.calls) deepStrictEqual(calledSince(house(), before.through), kase.then.calls);
       }
       const after = house().tools.state().tools;
       deepStrictEqual(rebuilt(program, house()), after);
@@ -122,13 +133,6 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
     });
   return { name: label(aim, kase.promise), run };
 }
-/** What the act's own schema does not admit, made from an input it does: one thing more, or one thing less. */
-const outside = <X extends Program>(act: ProgramAct<X>, input: unknown): unknown[] => {
-  if (!input || typeof input !== "object") return [];
-  const whole: Readonly<Record<string, unknown>> = { ...input };
-  const less = Object.keys(whole).map(key => Object.fromEntries(Object.entries(whole).filter(([k]) => k !== key)));
-  return [{ ...whole, "not-asked": true }, ...less].filter(variant => !Value.Check(act.input, variant));
-};
 /** The laws every act of every program keeps, checked from a case of its own that the house accepts. */
 function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X>, kase: Case<X>): Check[] {
   const refusal = (promise: string, doing: Partial<Doing>, cause: string, input = kase.input): Check => ({
@@ -143,7 +147,7 @@ function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
       }),
   });
   return [
-    ...outside(aim.act, kase.input).map((input, index) =>
+    ...outsideOf(aim.act.input, kase.input).map((input, index) =>
       refusal(said.outside(index + 1), {}, toolTexts.invalid, input),
     ),
     refusal(said.notHeld, { by: cast.outsider }, toolTexts.unassigned),

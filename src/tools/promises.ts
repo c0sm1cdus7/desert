@@ -16,7 +16,9 @@ export type Told<X extends Program> = X["fact"] extends infer F
 export type Outcome<X extends Program> = Done<X> | Readonly<{ refused: string }>;
 /** What the act says and writes; and, when the case promises it, what its tool reads afterwards on a target. */
 type Done<X extends Program> = Readonly<{ says: string; facts: readonly Told<X>[] }> &
-  Readonly<{ reads?: Readonly<{ on?: string; lines: readonly unknown[] }> }>;
+  Readonly<{ reads?: Readonly<{ on?: string; lines: readonly unknown[] }> }> &
+  /** Whom the act calls for attention, when the case promises it: nobody, for what is written only for the record. */
+  Readonly<{ calls?: readonly string[] }>;
 /** Given this, when someone does this, this happens. Nobody writes its spec: every door's check derives from it. */
 export type Case<X extends Program, S extends TSchema = TSchema> = Readonly<{
   promise: string;
