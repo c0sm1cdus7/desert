@@ -10,6 +10,7 @@ import { startRouter, type Router } from "../surface/router.ts";
 import { choices } from "../surface/screen.ts";
 import { genericTexts as generic } from "../texts/generic-surface.texts.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
+import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { localPorts } from "./house-runtime.ts";
@@ -110,6 +111,9 @@ function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
         const words = "refused" in kase.then ? kase.then.refused : kase.then.says;
         ok(screen.includes(JSON.stringify(words).slice(1, -1)), said.notSaid(words));
         deepStrictEqual(wroteSince(house(), before), "refused" in kase.then ? [] : kase.then.facts);
+        /** Closing what was done leaves the person on a screen that exists: never on a thing its act took away. */
+        router.send({ kind: "cancel" });
+        ok(!JSON.stringify(router.screen(view).body).includes(surface.gone), said.lost(aim.name));
       } finally {
         router.stop();
       }

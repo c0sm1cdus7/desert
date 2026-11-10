@@ -2,6 +2,7 @@
 import { object } from "../../src/catalogs/acts.ts";
 import { anyToolScreen } from "../../src/surface/bridge/any-tool.ts";
 import { section, type ProgramScreen, type Shown } from "../../src/surface/bridge/house-ports.ts";
+import type { ViewRow } from "../../src/surface/contract.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
 import { paymentsTool, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
@@ -86,3 +87,27 @@ const hiding: ProgramScreen<Shop> = (ports, tool, words, acts) => {
 };
 export const nestedShown: Shown<Shop> = { ...shopShown, screens: { sales: nested } };
 export const hidingShown: Shown<Shop> = { ...shopShown, screens: { sales: hiding } };
+/** The same shop, whose settling says that the sale leaves the list it was opened from. */
+export const leavingShop: Composition<Shop> = {
+  ...shopProgram,
+  registry: [{ ...salesTool, acts: { ...salesTool.acts, settle: { ...settle, leaves: true } } }, paymentsTool],
+};
+const settledOnes = "sales:settled";
+/** The settled sales apart: the tool's own view lists what still owes, and one row opens the rest. */
+const apart: ProgramScreen<Shop> = (ports, tool, words, acts) => {
+  const plain = anyToolScreen(ports, tool, words, acts);
+  const owing = (row: ViewRow): boolean => owed(ports.state(), row.opens ?? "") > 0;
+  return {
+    ...plain,
+    titleOf: target => (target === settledOnes ? "Saldadas" : (plain.titleOf?.(target) ?? target)),
+    view: target => {
+      if (target !== undefined && target !== settledOnes) return plain.view(target);
+      const rows = plain.view().flatMap(stack => stack.rows);
+      const done = rows.filter(row => !owing(row));
+      if (target === settledOnes) return [section("Saldadas", done)];
+      const rest = done.length ? [section("Saldadas", [{ title: "Saldadas", opens: settledOnes }])] : [];
+      return [section(words.listed, rows.filter(owing), words.empty), ...rest];
+    },
+  };
+};
+export const apartShown: Shown<Shop> = { ...shopShown, screens: { sales: apart } };

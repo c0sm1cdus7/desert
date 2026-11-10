@@ -6,8 +6,8 @@ import { localPorts } from "./house-runtime.ts";
 import { cast, given, staged, type Check } from "./promised-stage.ts";
 import { promisedChecks } from "./promised.ts";
 import { brokenShops } from "../../tests/support/broken-shops.ts";
-import { every, hidingShown, nestedShown, registered } from "../../tests/support/settling-shop.ts";
-import { settledTwice, settles, settlingShop } from "../../tests/support/settling-shop.ts";
+import { apartShown, every, hidingShown, nestedShown, registered } from "../../tests/support/settling-shop.ts";
+import { leavingShop, settledTwice, settles, settlingShop } from "../../tests/support/settling-shop.ts";
 import { shopProgram, shopShown } from "../../tests/support/shop.ts";
 
 /** The names of the checks that fail, in the order they ran. */
@@ -34,6 +34,11 @@ describe("a program with acts on its things", () => {
   it("a screen that lists none of its things fails every walk to one of them, and no other", async () => {
     const walks = [settles, settledTwice].map(check => `${check}, by keys`);
     expect(await failing(walkedChecks(settlingShop, hidingShown))).toEqual(walks);
+  });
+
+  for (const check of walkedChecks(leavingShop, apartShown)) it(`${check.name}, leaving its list`, check.run);
+  it("an act that takes its thing off the list without saying so fails its walk: it lands nowhere", async () => {
+    expect(await failing(walkedChecks(settlingShop, apartShown))).toEqual([`${settles}, by keys`]);
   });
 
   it("offers an act on a thing where that thing is read, and never on a view that only groups them", async () => {

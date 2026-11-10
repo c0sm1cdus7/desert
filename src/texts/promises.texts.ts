@@ -11,5 +11,6 @@ export const promiseTexts = {
   notOffered: (act: string) => `the act ${act} is not offered where its case needs it`,
   noKey: (ask: string, answer: string) => `no key chooses ${answer} when asked ${ask}`,
   notSaid: (words: string) => `the screen does not say: ${words}`,
+  lost: (act: string) => `closing ${act} leaves the person on a thing no view lists any more`,
   givenRefused: (act: string, why: string) => `given ${act} was not accepted: ${why}`,
 } as const;
