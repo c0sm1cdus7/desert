@@ -9,6 +9,7 @@ export const genericTexts = {
     name: "Preferencias",
     key: ",",
     listed: "Qué ves",
+    save: "guardar",
     show: { title: "Mostrar", key: "m" },
     hide: { title: "Ocultar", key: "o" },
     shown: "Se muestran",

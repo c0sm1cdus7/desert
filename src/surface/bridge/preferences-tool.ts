@@ -20,11 +20,14 @@ export function preferencesTool<X extends Program>(ports: SurfacePorts<X>): Tool
       if (done.status !== "accepted") return { ok: false, reason: done.reason ?? "" };
       return { ok: true, text: said.now(words.name, on ? said.hidden : said.shown) };
     };
-    const ask: ToolAct["next"] = answers =>
-      answers.length ? null : { ask: words.purpose, kind: "one", options: [said.show, said.hide] };
+    /** The question opens on how it is now. */
+    const ask: ToolAct["next"] = answers => {
+      const initial = hidden(what) ? said.hide.title : said.show.title;
+      return answers.length ? null : { ask: words.purpose, kind: "one", options: [said.show, said.hide], initial };
+    };
     return {
       label: words.name,
-      verb: words.name.toLowerCase(),
+      verb: said.save,
       key: words.key,
       hint: words.purpose,
       scope: "row",

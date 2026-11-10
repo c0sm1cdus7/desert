@@ -79,14 +79,15 @@ export function optionsOf(field: Field | null): readonly Option[] {
   const back = { key: backKey, title: said.back, detail: said.unchanged };
   return field.reversible ? [...field.options, back] : [back, ...field.options];
 }
-/** A field as it opens: an earlier answer wins over its initial value, so going back keeps what you wrote. */
+/** A field as it opens: an earlier answer wins over its initial value, so going back keeps what you wrote. A choice
+ * opens on the option it already is. */
 export const opened = (field: Field | null, answer?: string): Pick<Walk, "typed" | "caret" | "at" | "marks"> => {
   const value = answer ?? field?.initial ?? "";
   const typed = field?.kind === "text" || field?.kind === "secret" ? value : "";
   return {
     typed,
     caret: Array.from(typed).length,
-    at: foundAt(optionsOf(field), option => option.title === answer),
+    at: foundAt(optionsOf(field), option => option.title === value),
     marks: field?.kind === "many" && value ? value.split(" · ") : [],
   };
 };

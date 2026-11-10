@@ -56,11 +56,17 @@ describe("the terminal, on a program's house", () => {
         "[h] Herramientas ajenas | Se muestran",
       ]),
     );
-    expect(await press("h")).toEqual(
+    const asked = await press("h");
+    expect(asked).toEqual(
       expect.arrayContaining(["Las herramientas que no están entre las tuyas.", "[m] Mostrar", "[o] Ocultar"]),
     );
+    expect(asked.at(-1)).toContain("enter guardar");
     expect(await press("o")).toContain(`Listo Herramientas ajenas · ocultas · ${clock}`);
     expect(await press(escape)).toContain("[h] Herramientas ajenas | Ocultas");
+    await press("h");
+    const { body } = router.screen({ rows: contentRows(size.rows) });
+    expect(body.kind === "thread" && body.options?.find(option => option.selected)?.title).toBe("Ocultar");
+    await press(escape);
     const menu = await press(escape);
     expect(menu.some(line => line.includes("pagos"))).toBe(false);
     expect(menu).toContain("[v] ventas | 0");
