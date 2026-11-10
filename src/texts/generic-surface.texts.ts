@@ -3,4 +3,5 @@ export const genericTexts = {
   optional: " · opcional",
   sure: (act: string) => `${act} · confirmar`,
   offline: "Sin conexión",
+  notHeld: "No está entre tus herramientas.",
 } as const;

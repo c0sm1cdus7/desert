@@ -7,7 +7,7 @@ import { cast, given, staged, type Check } from "./promised-stage.ts";
 import { promisedChecks } from "./promised.ts";
 import { brokenShops } from "../../tests/support/broken-shops.ts";
 import { apartShown, every, hidingShown, nestedShown, registered } from "../../tests/support/settling-shop.ts";
-import { leavingShop, settledTwice, settles, settlingShop } from "../../tests/support/settling-shop.ts";
+import { leavingShop, mutedShown, settledTwice, settles, settlingShop } from "../../tests/support/settling-shop.ts";
 import { shopProgram, shopShown } from "../../tests/support/shop.ts";
 
 /** The names of the checks that fail, in the order they ran. */
@@ -41,12 +41,16 @@ describe("a program with acts on its things", () => {
     expect(await failing(walkedChecks(settlingShop, apartShown))).toEqual([`${settles}, by keys`]);
   });
 
+  it("a screen that takes what cannot be done off its list fails the walk of that refusal, and no other", async () => {
+    expect(await failing(walkedChecks(settlingShop, mutedShown))).toEqual([`${settledTwice}, by keys`]);
+  });
+
   it("offers an act on a thing where that thing is read, and never on a view that only groups them", async () => {
     await staged(settlingShop, async ({ house }) => {
       await given(house(), "sales", [registered]);
       const tools = houseTools(localPorts(house(), cast.admin, { recentLines: 100 }), nestedShown);
       const settle = tools.find(tool => tool.id === "sales")?.actsOn?.settle;
-      expect([settle?.available?.("sales/s1"), settle?.available?.(every)]).toEqual([true, false]);
+      expect([settle?.listed?.("sales/s1"), settle?.listed?.(every)]).toEqual([true, false]);
     });
   });
 });

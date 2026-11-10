@@ -1,5 +1,6 @@
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
 import { allowed } from "../../house/house.ts";
+import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import type { ProgramTool } from "../../tools/promises.ts";
 import type { Program, Tool as HouseTool } from "../../tools/tool-contract.ts";
 import type { Tool } from "../contract.ts";
@@ -42,7 +43,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
     const calls = () => ports.state().attention.has(contract.id);
     return {
       ...tool,
-      held: () => allowed(ports.state().house, ports.me, contract.id),
+      off: () => (allowed(ports.state().house, ports.me, contract.id) ? undefined : generic.notHeld),
       calls,
       rendered: (target = contract.id) => {
         seen.set(target, ports.state().through);

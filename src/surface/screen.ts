@@ -105,36 +105,39 @@ export function begin(tools: readonly Tool[], tool: string, act: string, target?
   };
   return { ...walk, ...opened(fieldOf(tools, walk)) };
 }
+/** Every act of this place, each with why it cannot be done now, when that is so. */
+function actsAt(tool: Tool, target?: string) {
+  if (target === undefined)
+    return Object.entries(tool.acts)
+      .filter(([, act]) => act.scope === "all" && (act.listed?.() ?? true))
+      .map(([id, act]) => ({ id, act, why: act.off?.() }));
+  return Object.entries(tool.actsOn ?? {})
+    .filter(([, act]) => act.scope === "each" && (act.listed?.(target) ?? true))
+    .map(([id, act]) => ({ id, act, why: act.off?.(target) }));
+}
+/** An act that cannot be done now keeps its place and its key, opens nothing, and says why instead of what for. */
 function actionRows(tools: readonly Tool[], tool: Tool, target?: string): readonly Choice[] {
-  const listed =
-    target === undefined
-      ? Object.entries(tool.acts).filter(([, act]) => act.scope === "all" && (act.available?.() ?? true))
-      : Object.entries(tool.actsOn ?? {}).filter(
-          ([, act]) => act.scope === "each" && (act.available?.(target) ?? true),
-        );
-  return listed.map(([id, act]) => ({
-    ...(act.key === undefined ? {} : { key: act.key }),
-    title: act.label,
-    ...(act.hint === undefined ? {} : { detail: act.hint }),
-    open: begin(tools, tool.id, id, target),
-  }));
+  return actsAt(tool, target).map(({ id, act, why }) => {
+    const row = { ...(act.key === undefined ? {} : { key: act.key }), title: act.label };
+    if (why !== undefined) return { ...row, detail: why, off: true };
+    return { ...row, ...(act.hint === undefined ? {} : { detail: act.hint }), open: begin(tools, tool.id, id, target) };
+  });
+}
+/** A tool on the Menu: one that cannot be opened keeps its place and its key, and says why. */
+function menuRow(tool: Tool): Choice {
+  const row = { key: tool.place.key, title: tool.name.toLowerCase() };
+  const why = tool.off?.();
+  if (why !== undefined) return { ...row, detail: why, off: true };
+  const open: Place =
+    tool.conversation && !tool.conversationAt ? startTalk(tool.id) : { kind: "view", tool: tool.id, at: 0 };
+  return { ...row, ...(tool.calls?.() ? { detail: said.attention, tone: "wait" } : { detail: tool.summary() }), open };
 }
 export function stacksOf(place: Picture, tools: readonly Tool[]): readonly Listed[] {
   if (place.kind === "menu") {
     return (["tools", "system"] as const)
       .map(section => ({
         title: said.sections[section],
-        rows: tools
-          .filter(tool => tool.place.section === section && tool.held?.() !== false)
-          .map(tool => ({
-            key: tool.place.key,
-            title: tool.name.toLowerCase(),
-            ...(tool.calls?.() ? { detail: said.attention, tone: "wait" as const } : { detail: tool.summary() }),
-            open:
-              tool.conversation && !tool.conversationAt
-                ? startTalk(tool.id)
-                : ({ kind: "view", tool: tool.id, at: 0 } as const),
-          })),
+        rows: tools.filter(tool => tool.place.section === section && tool.listed?.() !== false).map(menuRow),
       }))
       .filter(stack => stack.rows.length);
   }

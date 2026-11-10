@@ -26,6 +26,8 @@ export interface Row {
   readonly selected?: boolean;
   /** It opens nothing: a label and its value, which the value leads. */
   readonly still?: boolean;
+  /** It cannot be chosen now: it stays where it is, and its detail says why. */
+  readonly off?: boolean;
   readonly entry?: { readonly typed: string; readonly caret: number };
   /** One line drawn as it is: a line of a block, of a chart, of a page. */
   readonly spans?: readonly Span[];
@@ -115,7 +117,10 @@ interface ActOn<Destination extends readonly string[]> {
   readonly key?: string;
   readonly hint?: string;
   readonly title?: (...on: Destination) => string;
-  readonly available?: (...on: Destination) => boolean;
+  /** Why it cannot be done here and now, when that is so: it stays on the list, off, and says this. */
+  readonly off?: (...on: Destination) => string | undefined;
+  /** Whether it is on the list at all: not every act is for everything, and a person may prefer not to see some. */
+  readonly listed?: (...on: Destination) => boolean;
   readonly next: (answers: readonly string[], ...on: Destination) => Field | null;
   readonly run: (answers: readonly string[], ...on: Destination) => Promise<Result>;
 }
@@ -156,8 +161,10 @@ export type ViewRow = Row & { readonly opens?: string; readonly act?: string } &
 };
 export interface Tool {
   rendered?(target?: string): void;
-  /** Whether you hold it: a tool nobody gave you is not on your Menu. */
-  held?(): boolean;
+  /** Why it cannot be opened, when that is so: a tool nobody gave you stays on your Menu, off, and says this. */
+  off?(): string | undefined;
+  /** Whether it is on the Menu at all: a person may prefer not to see what is not theirs. */
+  listed?(): boolean;
   /** It asked for your attention, and you have not attended it yet. */
   calls?(): boolean;
   readonly id: string;

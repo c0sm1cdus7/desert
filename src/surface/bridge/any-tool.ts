@@ -44,7 +44,9 @@ function walked<X extends Program>(ports: SurfacePorts<X>, name: string, act: Pr
 }
 /** Every act of a tool as the surface offers it: on the tool itself, or on one of its things. */
 export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, locale: Locale) {
-  const may = (): boolean => allowed(ports.state().house, ports.me, tool.id);
+  /** Why this identity cannot act on the tool at all, when that is so. */
+  const foreign = (): string | undefined =>
+    allowed(ports.state().house, ports.me, tool.id) ? undefined : generic.notHeld;
   const entries = Object.entries(tool.acts).map(([name, act]) => ({
     name,
     act,
@@ -53,16 +55,16 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
   const onTool = entries
     .filter(({ act }) => act.on === "tool")
     .map(({ name, walk }): [string, ToolAct] => {
-      return [name, { ...walk, scope: "all", available: may, run: answers => walk.run(answers, tool.id) }];
+      return [name, { ...walk, scope: "all", off: foreign, run: answers => walk.run(answers, tool.id) }];
     });
   const onThing = entries
     .filter(({ act }) => act.on === "thing")
     .map(({ name, act, walk }): [string, ThingAct] => {
-      /** Offered on a thing of the tool, never on a view that only groups them. */
-      const available = (target: string): boolean =>
-        may() && tool.targets(ports.state()).includes(target) && act.offered?.(ports.state(), target) === undefined;
+      /** On a thing of the tool, never on a view that only groups them; off while the tool's state says why. */
+      const listed = (target: string): boolean => tool.targets(ports.state()).includes(target);
+      const off = (target: string): string | undefined => foreign() ?? act.offered?.(ports.state(), target);
       const next: ThingAct["next"] = answers => walk.next(answers);
-      return [name, { ...walk, scope: "each", leaves: act.leaves ?? false, available, next }];
+      return [name, { ...walk, scope: "each", leaves: act.leaves ?? false, listed, off, next }];
     });
   return { acts: Object.fromEntries(onTool), actsOn: Object.fromEntries(onThing) };
 }

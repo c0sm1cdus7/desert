@@ -54,6 +54,7 @@ function listScreen(
   const cursor = cursorOf(place, tools);
   let index = -1;
   const pick = (row: Choice): Row => {
+    if (row.off) return row;
     if (!row.open && !row.press) return { ...row, still: true };
     index += 1;
     if (index === cursor) return { ...row, selected: true };

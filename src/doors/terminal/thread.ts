@@ -36,7 +36,9 @@ export function drawRow(grid: Grid, r: number, left: number, block: number, row:
   }
   const on = row.selected ?? false;
   if (on) for (let c = left; c < left + block; c++) put(grid, c, r, { text: " ", tone: "t1" }, true);
-  const tone = (fallback: Tone): Tone => (on ? "t1" : fallback);
+  /** What cannot be chosen now is all in the faintest tone: its key, its name and why. */
+  const quiet = (fallback: Tone): Tone => (row.off ? "t3" : fallback);
+  const tone = (fallback: Tone): Tone => (on ? "t1" : quiet(fallback));
   if (keyed && row.key) put(grid, left + 1, r, { text: `[${row.key}]`, tone: tone("t3") }, on);
   const x = keyed ? left + 5 : left + 1;
   const detail = row.detail ?? "";

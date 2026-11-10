@@ -35,12 +35,15 @@ const open = (me = "ana") => {
 const escape = "\x1b";
 
 describe("the terminal, on a program's house", () => {
-  it("shows on the Menu only the tools this identity holds", () => {
+  it("shows on the Menu every tool of the program: the ones this identity does not hold, off, saying why", async () => {
     expect(shown(open("ana").router)).toEqual(expect.arrayContaining(["[v] ventas | 0", "[p] pagos | 0"]));
-    const beto = shown(open("beto").router);
-    expect(beto).toContain("[v] ventas | 0");
-    expect(beto.some(line => line.includes("pagos"))).toBe(false);
-    expect(beto[0]).toContain(clock);
+    const { router, press } = open("beto");
+    expect(shown(router)).toEqual(
+      expect.arrayContaining(["[v] ventas | 0", "[p] pagos | No está entre tus herramientas."]),
+    );
+    expect(shown(router)[0]).toContain(clock);
+    expect((await press("p"))[0]).toContain("Menú");
+    expect((await press("\x1b[B\r"))[0]).toContain("Ventas");
   });
 
   it("offers each act with its key and its purpose, and asks it from its declaration", async () => {

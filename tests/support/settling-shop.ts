@@ -111,3 +111,12 @@ const apart: ProgramScreen<Shop> = (ports, tool, words, acts) => {
   };
 };
 export const apartShown: Shown<Shop> = { ...shopShown, screens: { sales: apart } };
+/** A screen that takes off its list what cannot be done now, instead of leaving it there saying why. */
+const muted: ProgramScreen<Shop> = (ports, tool, words, acts) => {
+  const quiet = Object.entries(acts.actsOn ?? {}).map(([name, act]) => {
+    const listed = (target: string): boolean => (act.listed?.(target) ?? true) && act.off?.(target) === undefined;
+    return [name, { ...act, listed, off: () => undefined }] as const;
+  });
+  return anyToolScreen(ports, tool, words, { ...acts, actsOn: Object.fromEntries(quiet) });
+};
+export const mutedShown: Shown<Shop> = { ...shopShown, screens: { sales: muted } };

@@ -33,7 +33,7 @@ const dropAct = (rules: Rule[], done: (text: string) => Promise<Result>): ThingA
   scope: "each",
   leaves: true,
   title: () => "Eliminar regla",
-  available: target => rules.some(rule => rule.id === target),
+  listed: target => rules.some(rule => rule.id === target),
   next: (answers, target) =>
     answers.length
       ? null

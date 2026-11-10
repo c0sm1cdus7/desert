@@ -20,7 +20,9 @@
     "journal/projections.ts": "projection caches that fold together and survive as snapshots",
     "programs/house-runtime.ts": "startHouse: journal, vault, tools, clock and boot for one program's house; localPorts",
     "programs/promised-walk.ts": "walkedChecks: every case of a program kept by keys through the router, from the Menu down to its thing",
+    "programs/promised-keys.ts": "seated, goTo, actRow: how a derived check moves by keys from the Menu to an act's row",
     "programs/promised-laws.ts": "lawChecks, coverage: the laws every act keeps, checked from a case the house accepts",
+    "programs/promised-off.ts": "shownChecks: what each person sees of what they cannot do, derived for every tool",
     "programs/promised-stage.ts": "staged, perform, given: the real house at a fixed instant every derived check runs on",
     "programs/promised.ts": "promisedChecks: every check a program's promises derive, each case on a real house",
     "surface/bridge/any-tool.ts": "programActs: each act walked from its declaration; anyToolScreen: a tool's view as rows",
@@ -59,9 +61,9 @@
     "doors/terminal": 594,
     "house": 73,
     "journal": 298,
-    "programs": 418,
+    "programs": 479,
     "surface": 1022,
-    "surface/bridge": 470,
+    "surface/bridge": 473,
     "texts": 518,
     "tools": 611
   }
