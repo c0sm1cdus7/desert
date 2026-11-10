@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { startTerminal } from "../../src/doors/terminal/boot.ts";
 import { localPorts, startHouse } from "../../src/programs/house-runtime.ts";
-import { houseTools } from "../../src/surface/bridge/house-tools.ts";
+import { houseRouter } from "../../src/surface/bridge/house-router.ts";
 import { MemoryKeys } from "./shop-rig.ts";
 import { shop, shopRegistry, shopSlices, shopWords, type Shop } from "./shop.ts";
 
@@ -18,7 +18,7 @@ const house = startHouse<Shop>(home, {
   registry: shopRegistry,
   slices: shopSlices,
 });
-const tools = houseTools(localPorts(house, "ana", { recentLines: 40 }), shopWords);
-const bar = () => ({ state: "connected" as const, clock: new Date().toTimeString().slice(0, 5), now: Date.now() });
-await startTerminal(process.stdout, process.stdin, tools, bar);
+const router = houseRouter(localPorts(house, "ana", { recentLines: 40 }), shopWords);
+await startTerminal(process.stdout, process.stdin, router);
+router.stop();
 house.close();

@@ -16,7 +16,7 @@ Misma ruta en DESERT y en Kenon; commit `ff8aee63c`.
 | src/surface/window.ts | 31 |
 | src/surface/resolve.ts | 80 |
 | src/surface/tones.ts | 5 |
-| src/doors/terminal/boot.ts | 106 |
+| src/doors/terminal/boot.ts | 106 (cambió en el quinto paso) |
 | src/doors/terminal/cells.ts | 162 |
 | src/doors/terminal/input.ts | 35 |
 | src/doors/terminal/paint.ts | 114 |
@@ -89,6 +89,15 @@ Diseño en `COSTURAS.md`. Misma ruta que en Kenon; ya no son copias byte a byte.
 | src/adapters/secrets/redact.ts, secret-vault.ts | Reciben el esquema del vocabulario del producto en lugar del `eventSchema` global. |
 | src/texts/generic-surface.texts.ts | Solo lo que el puente dice en cualquier producto. |
 | specs | `house-tools.spec`, `rows.spec`, `house-runtime.spec` y `doors/terminal/house-screens.spec` nuevos, sobre el producto de prueba. |
+
+## Quinto paso: el router (nuevo en DESERT; decisión de Franco del 10/11)
+
+| Ruta | Qué es |
+|---|---|
+| src/surface/router.ts | Nuevo. La sesión, correr actos, asentar envíos y avisar cambios salen de `doors/terminal/boot.ts` y quedan en un solo lugar para todos los renderers. |
+| src/surface/bridge/house-router.ts | Nuevo. El router de una casa: herramientas con las palabras del producto, barra y cambios. |
+| src/doors/terminal/boot.ts | Ya no es copia byte a byte: `startTerminal(tty, teclado, router)` solo pinta y traduce teclas. En Kenon sigue teniendo la sesión adentro. |
+| src/surface/bridge/house-ports.ts | Suma `connection` y `watch`. |
 
 ## Fuera, y por qué
 - `src/surface/bridge/**`: depende del núcleo (herramientas, casa, journal).

@@ -3,7 +3,7 @@ import type { Act } from "../../catalogs/acts.ts";
 import type { ViewLimits } from "../../catalogs/levers.ts";
 import type { ExecutionResult } from "../../tools/execute.ts";
 import type { Product, State, ToolRegistry } from "../../tools/tool-contract.ts";
-import type { ViewRow } from "../contract.ts";
+import type { Screen, ViewRow } from "../contract.ts";
 /** What the surface needs from a running house; nothing here knows how it runs. */
 export interface HousePorts<X extends Product> {
   readonly me: string;
@@ -13,6 +13,10 @@ export interface HousePorts<X extends Product> {
   readonly limits: ViewLimits;
   readonly act: (value: Act, through: number) => ExecutionResult<X>;
   readonly now: () => number;
+  /** How this device reaches the house right now. */
+  readonly connection: () => Screen["state"];
+  /** Calls back whenever something in the house changed. */
+  readonly watch: (changed: () => void) => () => void;
   /** How a private receipt reads here, when the door has more to say than the receipt itself. */
   readonly receipt?: (secret: string) => string;
 }

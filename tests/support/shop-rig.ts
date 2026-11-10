@@ -1,8 +1,9 @@
 // A live shop house in memory, with virtualizable time and a real replay restart.
 import { SqliteJournal } from "../../src/adapters/storage/journal-store.ts";
-import { createHouse } from "../../src/house/house.ts";
+import { createHouse, identityView } from "../../src/house/house.ts";
 import { clockStep, startClock, type Deadlines, type TimeSource } from "../../src/journal/clock.ts";
 import { Bus, effect } from "../../src/journal/events.ts";
+import type { HousePorts } from "../../src/surface/bridge/house-ports.ts";
 import type { Execution } from "../../src/tools/execute.ts";
 import type { KeyStore, ToolRegistry } from "../../src/tools/tool-contract.ts";
 import { startState, startTools, toolsStep } from "../../src/tools/tools.ts";
@@ -62,6 +63,17 @@ export function shopRig({ registry = shopRegistry, grants, ...ports }: Options =
     state: () => live.tools.state(),
     facts: () => journal.replay<ShopEvent[]>([], (events, event) => [...events, event]),
     attend: (by: string, target: string) => act(by, "attend", { target }),
+    /** The house as a surface in its own process reaches it, for one identity. */
+    ports: (me: string, now: () => number = Date.now): HousePorts<Shop> => ({
+      me,
+      now,
+      registry,
+      limits: { recentLines: 20 },
+      state: () => identityView(live.tools.state(), me),
+      act: (value, through) => live.tools.act(value, through, me),
+      connection: () => "connected",
+      watch: changed => bus.on(changed),
+    }),
     /** What a house writes when it comes up, after its tools are listening. */
     boot: () => bus.emit(effect("boot", {}, runner)),
     restart: () => {

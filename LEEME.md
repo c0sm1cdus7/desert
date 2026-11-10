@@ -30,8 +30,12 @@ Reglas:
 - `src/adapters/secrets/`: los secretos fuera del registro.
 - Para verlo: `node tests/support/shop-open.ts` abre el producto de prueba en la terminal.
 
+## Quinto paso
+- `src/surface/router.ts`: el router. Una sola lógica entre cualquier renderer y la casa: intenciones que entran,
+  la pantalla que sale. La terminal ya lo usa; web, iPhone y Android usan el mismo.
+
 ## Qué falta
-- La puerta para dispositivos que no corren junto a la casa (decisión abierta en `COSTURAS.md`).
+- La puerta para dispositivos que no corren junto a la casa: viaja el estado, paginado (ver `COSTURAS.md`).
 - Emparejar dispositivos, la herramienta de equipo y el core de muchas casas.
 - Las puertas que dependen del núcleo (`src/surface/bridge/`, el resto de `src/doors`).
 - Limpiar las fugas de Kenon: ver `FUGAS.md`. Procedencia y diferencias: ver `ORIGEN.md`.

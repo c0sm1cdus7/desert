@@ -54,16 +54,27 @@ Qué cambió respecto de Kenon en este paso:
   en un archivo aparte y en el registro va una referencia.
 - Probado en una terminal real con el producto de prueba: `node tests/support/shop-open.ts`.
 
+## 4. El router: una sola lógica para todas las superficies (HECHO)
+
+Decisión de Franco (10/11): viaja el estado, y hay un router compartido por todos los renderers, para que la
+interacción con la casa sea la misma en todas las superficies.
+
+- `src/surface/router.ts`: `startRouter`. Tiene la sesión del dispositivo (dónde está parado), recibe
+  intenciones, entrega la pantalla, corre los actos y avisa cada vez que la pantalla pudo cambiar: cambió la casa,
+  terminó un acto o pasó el tiempo.
+- `src/surface/bridge/house-router.ts`: `houseRouter(ports, palabras)`. Es lo único que un renderer recibe de un
+  producto: las herramientas con sus palabras, la barra (conexión y hora) y los cambios de la casa.
+- Un renderer hace dos cosas: dibuja `router.screen()` y traduce lo suyo a `router.send(intención)`.
+  La terminal (`doors/terminal/boot.ts`) ya es eso. Web, iPhone y Android usan el mismo router.
+- En Rust el router es parte de lo que se comparte entre plataformas.
+
 ## Abierto
-- **La puerta.** Cómo llega la casa a un dispositivo que no corre en el mismo proceso. Dos caminos:
-  (a) la puerta lleva pantallas e intenciones: la sesión corre junto a la casa y el dispositivo solo dibuja;
-  (b) la de Kenon: la puerta lleva el estado y los hechos, y cada dispositivo recalcula todo.
-  Espera decisión de Franco. De (b) depende el punto siguiente; con (a) desaparece.
-- **Qué hechos de producto viajan a cada integrante.** Hoy `visible` deja pasar todo hecho de producto. Con la
-  puerta de Kenon hace falta saber de qué herramienta es cada hecho para mandarlo solo a quien la tiene.
-- **Tamaño.** Como en Kenon, la casa entera vive en memoria y `entries` crece para siempre. Una casa de Capibara
-  tiene muchas más entradas que una de Kenon, y el core va a tener muchas casas. Propuesta: en memoria queda lo
-  reciente de cada herramienta, y lo viejo se pide al registro por páginas. Se resuelve con el core de muchas casas.
+- **La puerta.** Decidido: viaja el estado (la de Kenon), con el router de este lado. Falta portarla: cada
+  herramienta dice cómo viaja su parte y de quién son sus hechos, y la casa manda a cada integrante solo lo de
+  las herramientas que tiene.
+- **Tamaño.** La puerta de Kenon manda al conectar todo lo de las herramientas del integrante, y `entries` crece
+  para siempre. Para una cuenta de Capibara hay que paginar: en memoria y en viaje lo reciente, lo viejo por
+  páginas. Se resuelve al portar la puerta.
 - **Lecturas de cada herramienta.** Hoy el puente lee la vista de texto de la herramienta y la vuelve filas.
   Para Capibara conviene que cada herramienta declare sus filas con tipos. Se define con las herramientas de Capibara.
 - **Motivos de rechazo.** Son textos. Para Capibara conviene que sean códigos de un conjunto cerrado y que la
@@ -73,6 +84,7 @@ Qué cambió respecto de Kenon en este paso:
 1. Journal: hechos por producto, bus, proyecciones, reloj, guardado en SQLite. HECHO.
 2. Casa y motor de herramientas con estado por herramienta. HECHO.
 3. Puente de la superficie y casa corriendo en un proceso, con secretos fuera del registro. HECHO.
-4. La puerta (espera decisión).
-5. Emparejar dispositivos y herramienta de equipo (permisos y conexiones).
-6. Core de muchas casas.
+4. Router compartido por todos los renderers. HECHO.
+5. La puerta: viaja el estado, por herramienta entera y paginado.
+6. Emparejar dispositivos y herramienta de equipo (permisos y conexiones).
+7. Core de muchas casas.

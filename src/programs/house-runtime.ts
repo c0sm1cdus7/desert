@@ -54,7 +54,7 @@ export function startHouse<X extends Product>(home: string, options: HouseOption
 export type RunningHouse<X extends Product> = ReturnType<typeof startHouse<X>>;
 /** A surface in the house's own process reads it and acts in it as one identity, with no door in between. */
 export const localPorts = <X extends Product>(
-  house: Pick<RunningHouse<X>, "tools" | "registry">,
+  house: Pick<RunningHouse<X>, "tools" | "registry" | "bus">,
   me: string,
   limits: ViewLimits,
 ): HousePorts<X> => ({
@@ -64,4 +64,6 @@ export const localPorts = <X extends Product>(
   state: () => identityView(house.tools.state(), me),
   act: (value, through) => house.tools.act(value, through, me),
   now: () => Date.now(),
+  connection: () => "connected",
+  watch: changed => house.bus.on(changed),
 });

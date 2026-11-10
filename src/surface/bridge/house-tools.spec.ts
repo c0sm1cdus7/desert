@@ -6,7 +6,7 @@ import { toolAct } from "../../tools/act-definition.ts";
 import { toolTexts } from "../../texts/tools.texts.ts";
 import type { Tool as HouseTool } from "../../tools/tool-contract.ts";
 import { must } from "../window.ts";
-import type { HousePorts, SurfaceWords } from "./house-ports.ts";
+import type { SurfaceWords } from "./house-ports.ts";
 import { houseTools } from "./house-tools.ts";
 import { shopRig } from "../../../tests/support/shop-rig.ts";
 import { shopRegistry, shopWords, type Shop } from "../../../tests/support/shop.ts";
@@ -16,15 +16,7 @@ afterEach(() => rigs.splice(0).forEach(rig => rig.close()));
 const open = (options: Parameters<typeof shopRig>[0] = {}) => {
   const rig = shopRig(options);
   rigs.push(rig);
-  const ports = (me: string): HousePorts<Shop> => ({
-    me,
-    limits: { recentLines: 20 },
-    registry: options.registry ?? shopRegistry,
-    state: () => identityView(rig.state(), me),
-    act: (value, through) => rig.tools().act(value, through, me),
-    now: () => 0,
-  });
-  return { rig, ports, tools: (me: string, words: SurfaceWords = shopWords) => houseTools(ports(me), words) };
+  return { rig, tools: (me: string, words: SurfaceWords = shopWords) => houseTools(rig.ports(me), words) };
 };
 const named = (tools: ReturnType<typeof houseTools>, id: string) => must(tools.find(tool => tool.id === id));
 const rowsOf = (tools: ReturnType<typeof houseTools>, id: string, target?: string) =>
