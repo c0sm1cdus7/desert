@@ -41,19 +41,38 @@ Qué cambió respecto de Kenon en este paso:
 - Un permiso es la herramienta entera; no queda la regla de los nombres con punto (era historia de Kenon).
 - Los textos con que la casa rechaza un acto están en español, como los de la superficie.
 
+## 3. La superficie sobre la casa (HECHO)
+
+- `src/surface/bridge/`: el puente. Cualquier herramienta de la casa se vuelve una herramienta de la superficie
+  a partir de su vista y de los esquemas de sus actos (`anyToolScreen`). Una herramienta que necesita más que
+  filas y actos trae su propia pantalla (`Screens`).
+- Las palabras las pone el producto (`SurfaceWords`): nombre y tecla de cada herramienta, cada acto y cada campo.
+  Si falta una palabra, es un defecto del producto y se dice cuál falta; nunca se muestra un código en su lugar.
+- `src/programs/house-runtime.ts`: `startHouse` arranca la casa de un producto (registro, secretos aparte,
+  herramientas, reloj) y `localPorts` le da la casa a una superficie en el mismo proceso, como un integrante.
+- `src/adapters/secrets/`: un valor que el esquema de un acto marca como secreto no llega al registro; queda
+  en un archivo aparte y en el registro va una referencia.
+- Probado en una terminal real con el producto de prueba: `node tests/support/shop-open.ts`.
+
 ## Abierto
+- **La puerta.** Cómo llega la casa a un dispositivo que no corre en el mismo proceso. Dos caminos:
+  (a) la puerta lleva pantallas e intenciones: la sesión corre junto a la casa y el dispositivo solo dibuja;
+  (b) la de Kenon: la puerta lleva el estado y los hechos, y cada dispositivo recalcula todo.
+  Espera decisión de Franco. De (b) depende el punto siguiente; con (a) desaparece.
+- **Qué hechos de producto viajan a cada integrante.** Hoy `visible` deja pasar todo hecho de producto. Con la
+  puerta de Kenon hace falta saber de qué herramienta es cada hecho para mandarlo solo a quien la tiene.
 - **Tamaño.** Como en Kenon, la casa entera vive en memoria y `entries` crece para siempre. Una casa de Capibara
   tiene muchas más entradas que una de Kenon, y el core va a tener muchas casas. Propuesta: en memoria queda lo
-  reciente de cada herramienta, y lo viejo se pide al registro por páginas (la puerta ya tiene ese pedido).
-  Se resuelve junto con el core de muchas casas.
-- **Qué hechos de producto viajan a cada integrante.** Hoy `visible` deja pasar todo hecho de producto. La puerta
-  necesita saber de qué herramienta es cada hecho para mandarlo solo a quien la tiene. Se resuelve en el paso 3.
+  reciente de cada herramienta, y lo viejo se pide al registro por páginas. Se resuelve con el core de muchas casas.
+- **Lecturas de cada herramienta.** Hoy el puente lee la vista de texto de la herramienta y la vuelve filas.
+  Para Capibara conviene que cada herramienta declare sus filas con tipos. Se define con las herramientas de Capibara.
 - **Motivos de rechazo.** Son textos. Para Capibara conviene que sean códigos de un conjunto cerrado y que la
-  superficie ponga las palabras. Se resuelve con el puente de la superficie.
+  superficie ponga las palabras.
 
 ## Orden de trabajo
 1. Journal: hechos por producto, bus, proyecciones, reloj, guardado en SQLite. HECHO.
 2. Casa y motor de herramientas con estado por herramienta. HECHO.
-3. Protocolo de la puerta (lo que viaja entre la casa y una superficie) y vista por integrante.
-4. Puente genérico de la superficie (herramienta cualquiera, filas, empezar).
-5. Core de muchas casas.
+3. Puente de la superficie y casa corriendo en un proceso, con secretos fuera del registro. HECHO.
+4. La puerta (espera decisión).
+5. Emparejar dispositivos y herramienta de equipo (permisos y conexiones).
+6. Core de muchas casas.

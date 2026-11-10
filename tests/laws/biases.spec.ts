@@ -10,6 +10,7 @@ import { fromRoot, parsed, proseOf, root, sourceFiles } from "../support/sources
  * and skill, a door's lines, the admin's replies) lives in the catalog, src/texts/.
  */
 const exempt: Readonly<Record<string, string>> = {
+  "src/adapters/secrets/secret-vault.ts": "the secret store SQL, separate from the journal",
   "src/adapters/storage/journal-store.ts": "the journal's SQL",
 };
 

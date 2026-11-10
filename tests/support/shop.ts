@@ -3,6 +3,7 @@ import { Type } from "@sinclair/typebox";
 import { object } from "../../src/catalogs/acts.ts";
 import { effect, vocabulary, type Emission, type Event, type ProductFacts } from "../../src/journal/events.ts";
 import { toolAct } from "../../src/tools/act-definition.ts";
+import type { SurfaceWords } from "../../src/surface/bridge/house-ports.ts";
 import type { Slices, State, Tool, ToolRegistry } from "../../src/tools/tool-contract.ts";
 const name = Type.String({ minLength: 1 });
 const amount = Type.Number({ minimum: 0 });
@@ -38,13 +39,28 @@ export const shopSlices: Slices<Shop> = {
   initial: { sales: new Map(), payments: { received: 0, unmatched: [] } },
   step: { sales: salesStep, payments: paymentsStep },
 };
-const entriesOf = (state: State<Shop>, tool: string) =>
-  state.entries.filter(entry => entry.data.tool === tool).map(entry => entry.data.text);
+const lines = (values: readonly unknown[]): string => values.map(value => JSON.stringify(value)).join("\n");
+const money = (amount: number): string => `$ ${amount}`;
+/** The list names each sale; one sale reads as its own facts. */
+const salesView = (state: State<Shop>, target: string): string => {
+  const one = state.tools.sales.get(target.replace("sales/", ""));
+  if (one) return lines([{ total: money(one.total), paid: money(one.paid), by: one.by }]);
+  const listed = [...state.tools.sales].map(([sale, { total }]) => ({
+    id: `sales/${sale}`,
+    text: sale,
+    detail: money(total),
+  }));
+  return lines(listed);
+};
+const paymentsView = (state: State<Shop>): string => {
+  const { received, unmatched } = state.tools.payments;
+  return lines([{ received: money(received), unmatched }]);
+};
 export const salesTool: Tool<Shop> = {
   id: "sales",
   purpose: "Registers what the shop sells.",
   targets: state => [...state.tools.sales.keys()].map(sale => `sales/${sale}`),
-  view: (state, _target, limits) => entriesOf(state, "sales").slice(-limits.recentLines).join("\n"),
+  view: salesView,
   summary: state => String(state.tools.sales.size),
   acts: {
     register: toolAct(shopCatalog["sale-registered"], (input, { by, state }) =>
@@ -63,7 +79,7 @@ export const paymentsTool: Tool<Shop> = {
   id: "payments",
   purpose: "Receives what the shop is paid.",
   targets: () => [],
-  view: state => entriesOf(state, "payments").join("\n"),
+  view: paymentsView,
   summary: state => String(state.tools.payments.unmatched.length),
   acts: {
     receive: toolAct(shopCatalog["payment-received"], (input, { by }) => ({
@@ -81,3 +97,26 @@ export const paymentsTool: Tool<Shop> = {
   },
 };
 export const shopRegistry: ToolRegistry<Shop> = [salesTool, paymentsTool];
+/** What the shop calls its tools, their acts and their fields where a person reads them. */
+export const shopWords: SurfaceWords = {
+  sales: {
+    name: "Ventas",
+    key: "v",
+    empty: "Sin ventas.",
+    listed: "Registradas",
+    shown: "Datos",
+    acts: { register: "Registrar" },
+    done: {},
+    fields: { sale: "Venta", total: "Total", paid: "Cobrado", by: "Registró" },
+  },
+  payments: {
+    name: "Pagos",
+    key: "p",
+    empty: "Sin pagos.",
+    listed: "Caja",
+    shown: "Datos",
+    acts: { receive: "Recibir" },
+    done: { receive: "Recibido" },
+    fields: { payment: "Pago", amount: "Monto", sale: "Venta", received: "Recibido", unmatched: "Sin conciliar" },
+  },
+};

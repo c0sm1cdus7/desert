@@ -3,4 +3,5 @@ export const ids = {
   houseChannel: "communicator/house",
   attention: "attention:",
   communicator: "communicator/",
+  secret: "secret:",
 } as const;

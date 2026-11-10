@@ -1,0 +1,103 @@
+// A house on disk: created once, reopened as it was, with its secrets out of the journal.
+import { Type } from "@sinclair/typebox";
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
+import { toolAct } from "../tools/act-definition.ts";
+import type { Tool } from "../tools/tool-contract.ts";
+import { localPorts, startHouse, type HouseOptions } from "./house-runtime.ts";
+import { MemoryKeys } from "../../tests/support/shop-rig.ts";
+import { shop, shopRegistry, shopSlices, type Shop, type ShopEvent } from "../../tests/support/shop.ts";
+
+const homes: string[] = [];
+const houses: { close(): void }[] = [];
+afterEach(() => {
+  houses.splice(0).forEach(house => house.close());
+  homes.splice(0).forEach(home => rmSync(home, { recursive: true, force: true }));
+});
+const home = () => {
+  const path = mkdtempSync(join(tmpdir(), "desert-house-"));
+  homes.push(path);
+  return path;
+};
+const secretKey = "sk-live-0123456789abcdef";
+const key = Type.Object({ value: Type.String({ minLength: 12, secret: true }) });
+const vault: Tool<Shop> = {
+  id: "vault",
+  purpose: "Keeps a key of the test.",
+  targets: () => [],
+  view: () => "",
+  summary: () => "",
+  acts: { set: toolAct(key, input => ({ status: "accepted", text: `Kept ${input.value}` })) },
+};
+const registry = [...shopRegistry, vault];
+const options: HouseOptions<Shop> = {
+  by: "shop",
+  creation: { admin: "ana", assignments: [{ identity: "ana", tools: registry.map(tool => tool.id) }] },
+  keys: new MemoryKeys(),
+  words: shop,
+  registry,
+  slices: shopSlices,
+};
+const start = (path: string, changed: Partial<HouseOptions<Shop>> = {}) => {
+  const house = startHouse<Shop>(path, { ...options, ...changed });
+  houses.push(house);
+  return house;
+};
+const facts = (house: ReturnType<typeof start>) =>
+  house.journal.replay<ShopEvent[]>([], (events, event) => [...events, event]);
+
+describe("a house on disk", () => {
+  it("is created once, boots every time it opens, and comes back as it was", () => {
+    const path = home();
+    const first = start(path);
+    const ana = localPorts(first, "ana", { recentLines: 20 });
+    ana.act({ act: "attend", input: { target: "sales" } }, 0);
+    expect(ana.act({ act: "register", target: "sales", input: { sale: "s1", total: 10 } }, 0).status).toBe("accepted");
+    const before = first.tools.state();
+    first.close();
+    const second = start(path, { creation: { admin: "beto", assignments: [] } });
+    expect(second.tools.state().house.admin).toBe("ana");
+    expect(second.tools.state().tools).toEqual(before.tools);
+    expect(facts(second).filter(event => event.kind === "house-created")).toHaveLength(1);
+    expect(facts(second).filter(event => event.kind === "boot")).toHaveLength(2);
+    expect(statSync(join(path, "journal.sqlite")).mode & 0o777).toBe(0o600);
+    expect(statSync(join(path, "secrets.sqlite")).mode & 0o777).toBe(0o600);
+  });
+
+  it("reads and acts for a surface as one identity, with what that identity may read", () => {
+    const house = start(home());
+    const ana = localPorts(house, "ana", { recentLines: 20 });
+    expect(ana.state().by).toBe("ana");
+    ana.act({ act: "attend", input: { target: "sales" } }, 0);
+    expect(ana.state().attends).toEqual(["sales"]);
+    expect(house.tools.state().attends).toEqual([]);
+    const stranger = localPorts(house, "carla", { recentLines: 20 });
+    expect(stranger.act({ act: "attend", input: { target: "sales" } }, 0).status).toBe("rejected");
+  });
+
+  it("keeps a value its act marks as secret out of the journal, across a restart", () => {
+    const path = home();
+    const first = start(path);
+    const ana = localPorts(first, "ana", { recentLines: 20 });
+    ana.act({ act: "attend", input: { target: "vault" } }, 0);
+    expect(ana.act({ act: "set", target: "vault", input: { value: secretKey } }, 0).status).toBe("accepted");
+    expect(JSON.stringify(facts(first))).not.toContain(secretKey);
+    expect(JSON.stringify(facts(first))).toContain("Kept secret:");
+    first.close();
+    expect(readFileSync(join(path, "journal.sqlite")).includes(secretKey)).toBe(false);
+    const second = start(path);
+    localPorts(second, "ana", { recentLines: 20 }).act({ act: "set", target: "vault", input: { value: secretKey } }, 0);
+    expect(JSON.stringify(facts(second))).not.toContain(secretKey);
+  });
+
+  it("does not open without an identity to run as, nor with a part that no tool keeps", () => {
+    const unopened = join(tmpdir(), "desert-unopened-house");
+    expect(() => startHouse<Shop>(unopened, { ...options, by: "" })).toThrow("explicit identity");
+    expect(() => startHouse<Shop>(unopened, { ...options, registry: [vault] })).toThrow(
+      "No tool keeps the parts sales, payments",
+    );
+    expect(existsSync(unopened)).toBe(false);
+  });
+});

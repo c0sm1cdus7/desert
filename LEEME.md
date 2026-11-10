@@ -24,7 +24,14 @@ Reglas:
 - `src/tools/`: el motor de herramientas. Cada herramienta guarda su parte del estado; ejecutar un acto.
 - Un producto de prueba (`tests/support/shop.ts`) muestra cómo se arma un producto sobre DESERT.
 
+## Cuarto paso
+- `src/surface/bridge/`: cualquier herramienta de la casa en la superficie, con las palabras del producto.
+- `src/programs/house-runtime.ts`: la casa de un producto corriendo, y una superficie en el mismo proceso.
+- `src/adapters/secrets/`: los secretos fuera del registro.
+- Para verlo: `node tests/support/shop-open.ts` abre el producto de prueba en la terminal.
+
 ## Qué falta
-- El protocolo de la puerta y la vista por integrante.
+- La puerta para dispositivos que no corren junto a la casa (decisión abierta en `COSTURAS.md`).
+- Emparejar dispositivos, la herramienta de equipo y el core de muchas casas.
 - Las puertas que dependen del núcleo (`src/surface/bridge/`, el resto de `src/doors`).
 - Limpiar las fugas de Kenon: ver `FUGAS.md`. Procedencia y diferencias: ver `ORIGEN.md`.

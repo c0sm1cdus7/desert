@@ -77,6 +77,19 @@ Diseño en `COSTURAS.md`. Misma ruta que en Kenon; ya no son copias byte a byte.
 | src/texts/tools.texts.ts | Solo los textos del motor, en español. |
 | specs | `tools.spec` (escalera de avisos) y `execute.spec` portados; `slices.spec` y `grants.spec` nuevos; banco de pruebas `tests/support/shop.ts` y `shop-rig.ts`. |
 
+## Cuarto paso: el puente de la superficie y la casa en un proceso (derivado de Kenon `ff8aee63c`)
+
+| Ruta | Qué cambia respecto de Kenon |
+|---|---|
+| src/surface/bridge/house-ports.ts | Genérico sobre el producto; sin `being`, `spent`, `thinkingSince`, `seen`, `fotos`, `calls`, `page`, `invite`; suma `SurfaceWords` y `receipt`. |
+| src/surface/bridge/any-tool.ts | Las palabras vienen del producto y son obligatorias (sin caer al nombre del acto o del campo); sin marcas ni identidades; el título de una cosa es el de su fila en la lista. |
+| src/surface/bridge/rows.ts | Sin los casos de identidad, actividad, dispositivo y acto; las etiquetas pasan por las palabras del producto; ya no se pierde un cero ni un «no». |
+| src/surface/bridge/house-tools.ts | Sin las pantallas de Kenon (comunicador, viajes, artifacts, curl, web): el producto pasa las suyas en `Screens`. |
+| src/programs/house-runtime.ts | Solo la casa: sin mente, modelos, puertas, herramientas externas ni comunicador. Suma `localPorts`. |
+| src/adapters/secrets/redact.ts, secret-vault.ts | Reciben el esquema del vocabulario del producto en lugar del `eventSchema` global. |
+| src/texts/generic-surface.texts.ts | Solo lo que el puente dice en cualquier producto. |
+| specs | `house-tools.spec`, `rows.spec`, `house-runtime.spec` y `doors/terminal/house-screens.spec` nuevos, sobre el producto de prueba. |
+
 ## Fuera, y por qué
 - `src/surface/bridge/**`: depende del núcleo (herramientas, casa, journal).
 - `src/doors/terminal/house-screens.spec.ts`: importa `programs/house-runtime`, `journal`, `house` y `tools` del núcleo, y `tests/support/next-tools.ts`.
