@@ -1,10 +1,18 @@
 {
   "files": {
+    "adapters/storage/home.ts": "privateDatabase: a house's files on disk, readable only by whoever runs it",
+    "adapters/storage/journal-store.ts": "SqliteJournal: append-only facts of a house and its product, replay, snapshots, one open lock",
+    "catalogs/acts.ts": "object schemas and the act envelope every door sends",
+    "catalogs/levers.ts": "limits and file modes the house runs with",
+    "catalogs/time.ts": "delays: the reminder ladder, the longest timer",
     "doors/terminal/boot.ts": "startTerminal: tty keys to steps, diffed frames out, acts settle later",
     "doors/terminal/cells.ts": "terminal cells: palettes, wide chars, put/edge/light, changed-row bytes",
     "doors/terminal/input.ts": "keysOf: terminal bytes to surface intents",
     "doors/terminal/paint.ts": "paint a Screen into cells: title and hint bars, lists, side panel layout; listRoom",
     "doors/terminal/thread.ts": "draw rows, wrapped threads with focus edges, side panels, focus screens",
+    "journal/clock.ts": "deadlines folded from wake-at and woke; startClock arms the earliest one",
+    "journal/events.ts": "house catalog, a product's facts beside it (vocabulary), effect, Bus, Journal",
+    "journal/projections.ts": "projection caches that fold together and survive as snapshots",
     "surface/contract.ts": "the surface contract: Screen to draw, Intent back; Tool, acts, Field, Conversation",
     "surface/resolve.ts": "resolve: the one Screen for where a session stands, from the tools",
     "surface/screen.ts": "session places: stacks derived from tools, act walks, fields, cursor",
@@ -13,10 +21,14 @@
     "surface/tones.ts": "surface tones: UI tones and chart data tones",
     "surface/walk.ts": "an act as a thread: answers, the current question, running or done; hints",
     "surface/window.ts": "long lists windowed around the chosen row; must, foundAt",
+    "texts/journal.texts.ts": "journal errors: invalid event, closed bus, locked house, taken kind",
     "texts/surface.texts.ts": "terminal surface words: menu, keys, talk thread, house sections, errors"
   },
   "folders": {
+    "adapters/storage": 147,
+    "catalogs": 13,
     "doors/terminal": 594,
+    "journal": 298,
     "surface": 839,
     "texts": 518
   }

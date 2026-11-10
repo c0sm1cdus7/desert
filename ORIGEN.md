@@ -48,6 +48,22 @@ No existen `*.spec.ts` para `src/surface/*` en Kenon (la superficie se prueba de
 - `tests/laws/prompts.spec.ts`: la lista de archivos no-TS admitidos queda vacía (era `cards.json`).
 - Todas las demás reglas de lint y leyes están igual de estrictas.
 
+## Segundo paso: el journal (derivado de Kenon `ff8aee63c`, con la costura de hechos por producto)
+Diseño en `COSTURAS.md`. Misma ruta que en Kenon; ya no son copias byte a byte.
+
+| Ruta | Qué cambia respecto de Kenon |
+|---|---|
+| src/journal/events.ts | `eventCatalog` se parte: acá queda `houseCatalog` (15 hechos de la casa); el producto suma los suyos con `vocabulary()`. Cada hecho lleva `layer`. `Bus`, `Journal` y `Event` son genéricos sobre los hechos del producto. `readEvent` pasa a `vocabulary().read`. `act` sin `evidence`. |
+| src/journal/projections.ts | Genérico sobre el tipo de evento; el resto igual. |
+| src/journal/clock.ts | Lee solo hechos de la casa (`layer`); recibe `HouseBus`. |
+| src/adapters/storage/journal-store.ts | Recibe el vocabulario; la fila no guarda `layer` (se deriva del nombre). SQL igual. |
+| src/adapters/storage/home.ts | Solo `privateDatabase`; nombres y conexión de la terminal vienen con el puente. |
+| src/catalogs/acts.ts, levers.ts, time.ts | Solo lo que usa el journal; sin actos de mente ni límites de modelos. |
+| src/texts/journal.texts.ts | Solo los textos del journal; suma `kindTaken`. |
+| specs de journal y storage | Portados; usan un producto de prueba (`tests/support/shop.ts`) y suman pruebas de la costura. |
+| package.json | Vuelve `@sinclair/typebox` 0.34.52 (misma versión que Kenon). |
+| tests/laws/biases.spec.ts | Vuelve la exención del SQL del journal, como en Kenon. |
+
 ## Fuera, y por qué
 - `src/surface/bridge/**`: depende del núcleo (herramientas, casa, journal).
 - `src/doors/terminal/house-screens.spec.ts`: importa `programs/house-runtime`, `journal`, `house` y `tools` del núcleo, y `tests/support/next-tools.ts`.

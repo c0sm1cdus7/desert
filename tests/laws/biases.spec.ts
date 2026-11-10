@@ -9,7 +9,9 @@ import { fromRoot, parsed, proseOf, root, sourceFiles } from "../support/sources
  * the system writes (an option and its purpose, a kind's purpose, what the code writes into memory, a tool's purpose
  * and skill, a door's lines, the admin's replies) lives in the catalog, src/texts/.
  */
-const exempt: Readonly<Record<string, string>> = {};
+const exempt: Readonly<Record<string, string>> = {
+  "src/adapters/storage/journal-store.ts": "the journal's SQL",
+};
 
 const isCatalog = (file: string): boolean => fromRoot(file).startsWith("src/texts/");
 const writing = (): string[] => sourceFiles().filter(file => !isCatalog(file) && !(fromRoot(file) in exempt));
