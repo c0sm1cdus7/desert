@@ -80,6 +80,13 @@ interacción con la casa sea la misma en todas las superficies.
 - **Motivos de rechazo.** Son textos. Para Capibara conviene que sean códigos de un conjunto cerrado y que la
   superficie ponga las palabras.
 
+- **Un propósito largo se corta.** La terminal corta con «…» el propósito de una acción cuando no entra al lado de
+  su nombre. O se parte en dos renglones, o se limita su largo al componer el programa.
+- **Un campo completo que no avanza no dice por qué.** Un día que no existe («30/02/2026») entra en la máscara y
+  enter no hace nada. `valid` hoy contesta sí o no; tiene que poder contestar el motivo.
+- **Después de un rechazo no se ve la pregunta.** El motivo ocupa el lugar de la pregunta que se estaba
+  contestando.
+
 ## Orden de trabajo
 1. Journal: hechos por programa, bus, proyecciones, reloj, guardado en SQLite. HECHO.
 2. Casa y motor de herramientas con estado por herramienta. HECHO.
