@@ -19,7 +19,12 @@ Reglas:
 - `src/adapters/storage/`: el registro guardado en SQLite, solo para agregar.
 - Diseño de las dos costuras del núcleo: `COSTURAS.md`.
 
+## Tercer paso
+- `src/house/`: la casa (quién administra, qué herramientas enteras tiene cada integrante, canales).
+- `src/tools/`: el motor de herramientas. Cada herramienta guarda su parte del estado; ejecutar un acto.
+- Un producto de prueba (`tests/support/shop.ts`) muestra cómo se arma un producto sobre DESERT.
+
 ## Qué falta
-- La casa y el motor de herramientas, con estado por herramienta (segunda costura).
+- El protocolo de la puerta y la vista por integrante.
 - Las puertas que dependen del núcleo (`src/surface/bridge/`, el resto de `src/doors`).
 - Limpiar las fugas de Kenon: ver `FUGAS.md`. Procedencia y diferencias: ver `ORIGEN.md`.

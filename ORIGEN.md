@@ -64,6 +64,19 @@ Diseño en `COSTURAS.md`. Misma ruta que en Kenon; ya no son copias byte a byte.
 | package.json | Vuelve `@sinclair/typebox` 0.34.52 (misma versión que Kenon). |
 | tests/laws/biases.spec.ts | Vuelve la exención del SQL del journal, como en Kenon. |
 
+## Tercer paso: la casa y el motor de herramientas (derivado de Kenon `ff8aee63c`, con la costura de estado por herramienta)
+
+| Ruta | Qué cambia respecto de Kenon |
+|---|---|
+| src/house/house.ts | Sin dependencia de `tools/`; `visible` e `inChannel` deciden por canal; `allowed` sin la regla de nombres con punto; `HouseView` y `Attention` viven acá. |
+| src/tools/tool-contract.ts | `Product`, `State<X>`, `Slices<X>`; `Tool`, `ToolAct`, `ActResult`, `ActContext` genéricos sobre el producto; `KeyStore` es un puerto de acá; `MindAct` pasa a `OwnAct`; sin `shownThreads`, `scene`, `process`. |
+| src/tools/tools.ts | `emptyTools` pasa a `emptyHouseState` (solo la casa) + `startState(slices)`; `toolsStep` avanza la casa y la parte de cada herramienta; `acts` son los actos abiertos; sin `results`, `framed`, `curl`, `journeys`, `notes`, `webTabs`, `artifacts`, `ledger`. La escalera de avisos igual. |
+| src/tools/execute.ts | Sin journeys ni mente: puertos `refuse` (veto del producto) y `own` (actos fuera de herramientas); `act` sin `evidence`. Borrador, causa propia, actos largos, interrupción y actos anidados igual. |
+| src/tools/attendance.ts, act-definition.ts | Genéricos sobre el producto; `mindAct` pasa a `ownAct`. |
+| src/catalogs/ids.ts, acts.ts | Solo los ids de la casa; `actCatalog` con atender y dejar de atender. |
+| src/texts/tools.texts.ts | Solo los textos del motor, en español. |
+| specs | `tools.spec` (escalera de avisos) y `execute.spec` portados; `slices.spec` y `grants.spec` nuevos; banco de pruebas `tests/support/shop.ts` y `shop-rig.ts`. |
+
 ## Fuera, y por qué
 - `src/surface/bridge/**`: depende del núcleo (herramientas, casa, journal).
 - `src/doors/terminal/house-screens.spec.ts`: importa `programs/house-runtime`, `journal`, `house` y `tools` del núcleo, y `tests/support/next-tools.ts`.

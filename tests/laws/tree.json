@@ -2,14 +2,16 @@
   "files": {
     "adapters/storage/home.ts": "privateDatabase: a house's files on disk, readable only by whoever runs it",
     "adapters/storage/journal-store.ts": "SqliteJournal: append-only facts of a house and its product, replay, snapshots, one open lock",
-    "catalogs/acts.ts": "object schemas and the act envelope every door sends",
-    "catalogs/levers.ts": "limits and file modes the house runs with",
+    "catalogs/acts.ts": "object schemas, the act envelope every door sends, and the acts of every house",
+    "catalogs/ids.ts": "the ids the house reserves: an identity's own acts, channels, reminders",
+    "catalogs/levers.ts": "limits and file modes the house runs with; ViewLimits",
     "catalogs/time.ts": "delays: the reminder ladder, the longest timer",
     "doors/terminal/boot.ts": "startTerminal: tty keys to steps, diffed frames out, acts settle later",
     "doors/terminal/cells.ts": "terminal cells: palettes, wide chars, put/edge/light, changed-row bytes",
     "doors/terminal/input.ts": "keysOf: terminal bytes to surface intents",
     "doors/terminal/paint.ts": "paint a Screen into cells: title and hint bars, lists, side panel layout; listRoom",
     "doors/terminal/thread.ts": "draw rows, wrapped threads with focus edges, side panels, focus screens",
+    "house/house.ts": "House: admin, whole-tool grants, channels; who reads what; identityView; createHouse",
     "journal/clock.ts": "deadlines folded from wake-at and woke; startClock arms the earliest one",
     "journal/events.ts": "house catalog, a product's facts beside it (vocabulary), effect, Bus, Journal",
     "journal/projections.ts": "projection caches that fold together and survive as snapshots",
@@ -22,14 +24,22 @@
     "surface/walk.ts": "an act as a thread: answers, the current question, running or done; hints",
     "surface/window.ts": "long lists windowed around the chosen row; must, foundAt",
     "texts/journal.texts.ts": "journal errors: invalid event, closed bus, locked house, taken kind",
-    "texts/surface.texts.ts": "terminal surface words: menu, keys, talk thread, house sections, errors"
+    "texts/surface.texts.ts": "terminal surface words: menu, keys, talk thread, house sections, errors",
+    "texts/tools.texts.ts": "why the house refuses an act, and the purposes of attend and unattend",
+    "tools/act-definition.ts": "toolAct and ownAct bound to their schema; reading, accepted, rejected",
+    "tools/attendance.ts": "what an identity keeps in view, and the tool a target belongs to",
+    "tools/execute.ts": "execute: one act written, checked against the house, run, and its result written",
+    "tools/tool-contract.ts": "Product, State, Slices, Tool, ToolAct, ActResult, KeyStore: a tool as the house sees it",
+    "tools/tools.ts": "house state and each tool's part folded together; attendance acts; attention ladder; startTools"
   },
   "folders": {
     "adapters/storage": 147,
-    "catalogs": 13,
+    "catalogs": 28,
     "doors/terminal": 594,
+    "house": 73,
     "journal": 298,
     "surface": 839,
-    "texts": 518
+    "texts": 518,
+    "tools": 488
   }
 }
