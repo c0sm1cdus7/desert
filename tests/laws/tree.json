@@ -7,7 +7,7 @@
     "catalogs/acts.ts": "object schemas, the act envelope every door sends, and the acts of every house",
     "catalogs/ids.ts": "the ids the house reserves: an identity's own acts, channels, reminders, secrets",
     "catalogs/levers.ts": "limits and file modes the house runs with; ViewLimits; the shortest secret",
-    "catalogs/time.ts": "delays: the reminder ladder, the longest timer, how often a screen is drawn again",
+    "catalogs/time.ts": "delays: the reminder ladder, the longest timer, how often a screen is drawn again; the instant of every case",
     "doors/terminal/boot.ts": "startTerminal: tty keys as intents for the router, each change of the router as a diffed frame",
     "doors/terminal/cells.ts": "terminal cells: palettes, wide chars, put/edge/light, changed-row bytes",
     "doors/terminal/input.ts": "keysOf: terminal bytes to surface intents",
@@ -49,7 +49,7 @@
   "folders": {
     "adapters/secrets": 107,
     "adapters/storage": 147,
-    "catalogs": 33,
+    "catalogs": 36,
     "doors/terminal": 594,
     "house": 73,
     "journal": 298,

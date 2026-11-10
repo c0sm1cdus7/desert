@@ -3,6 +3,7 @@ import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { caseInstant } from "../catalogs/time.ts";
 import { identityView } from "../house/house.ts";
 import type { TimeSource } from "../journal/clock.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
@@ -16,8 +17,6 @@ import { startHouse } from "./house-runtime.ts";
 export type Check = Readonly<{ name: string; run: () => Promise<void> }>;
 /** Who lives in the house a case runs in: ana administers it, beto holds every tool, carla holds none. */
 const cast = { admin: "ana", member: "beto", outsider: "carla" } as const;
-/** A case happens at one fixed instant, so what it promises to read never depends on the day it is checked. */
-export const caseInstant = Date.UTC(2026, 0, 15, 15, 0);
 const stillTime: TimeSource = { now: () => caseInstant, wait: () => () => {} };
 /** The house a case runs in runs as itself. */
 const runner = "house";
