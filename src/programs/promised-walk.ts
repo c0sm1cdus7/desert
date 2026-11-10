@@ -36,6 +36,26 @@ function answer(router: Router, field: Field, given: string): boolean {
   return true;
 }
 type Walked<X extends Program> = Readonly<{ aim: Aim<X>; kase: Case<X>; tools: readonly Tool[]; shown: Shown<X> }>;
+type Reached = Readonly<{ target?: string; rows: readonly number[] }>;
+/** What one view opens: each thing a row of it leads to, with the rows opened to get there. */
+const opensFrom = (tools: readonly Tool[], tool: string, { target, rows }: Reached): Required<Reached>[] =>
+  choices({ kind: "view", tool, at: 0, ...(target === undefined ? {} : { target }) }, tools).flatMap((row, at) =>
+    row.opens !== undefined && row.open?.kind === "view" ? [{ target: row.opens, rows: [...rows, at] }] : [],
+  );
+/** The rows a person opens, one after another, from a tool's own view down to one of its things: found the way
+ * they would find it, by what each view lists. Nothing when no view of the tool leads there. */
+function pathTo(tools: readonly Tool[], tool: string, on: string): readonly number[] | undefined {
+  const seen = new Set<string>();
+  let edge: readonly Reached[] = [{ rows: [] }];
+  while (edge.length) {
+    const deeper = edge.flatMap(from => opensFrom(tools, tool, from)).filter(to => !seen.has(to.target));
+    const found = deeper.find(to => to.target === on);
+    if (found) return found.rows;
+    deeper.forEach(to => seen.add(to.target));
+    edge = deeper;
+  }
+  return undefined;
+}
 /** From the Menu to the act by keys alone: the tool, the thing its case names, then the act. False if not offered. */
 function reach<X extends Program>(router: Router, { aim, kase, tools, shown }: Walked<X>): boolean {
   const words = shown.words[aim.tool.id];
@@ -43,10 +63,12 @@ function reach<X extends Program>(router: Router, { aim, kase, tools, shown }: W
   type(router, words?.key ?? "");
   strictEqual(router.screen(view).title, words?.name);
   if (on !== aim.tool.id) {
-    const at = choices({ kind: "view", tool: aim.tool.id, at: 0 }, tools).findIndex(row => row.opens === on);
-    ok(at >= 0, said.notListed(on));
-    for (let step = 0; step < at; step++) router.send({ kind: "down" });
-    router.send({ kind: "confirm" });
+    const rows = pathTo(tools, aim.tool.id, on);
+    ok(rows, said.notListed(on));
+    for (const at of rows) {
+      for (let step = 0; step < at; step++) router.send({ kind: "down" });
+      router.send({ kind: "confirm" });
+    }
   }
   const place = { kind: "view", tool: aim.tool.id, at: 0, ...(on === aim.tool.id ? {} : { target: on }) } as const;
   const offered = choices(place, tools).some(row => row.key === aim.act.key && row.title === aim.act.label);

@@ -6,7 +6,7 @@ export const promiseTexts = {
   covered: "promises a case for what it does and for each cause it refuses with",
   nothingDone: "no case promises what the act does",
   byKeys: (promise: string) => `${promise}, by keys`,
-  notListed: (thing: string) => `nothing on the tool's list opens ${thing}`,
+  notListed: (thing: string) => `no view of the tool leads to ${thing}`,
   notOffered: (act: string) => `the act ${act} is not offered where its case needs it`,
   noKey: (ask: string, answer: string) => `no key chooses ${answer} when asked ${ask}`,
   notSaid: (words: string) => `the screen does not say: ${words}`,
