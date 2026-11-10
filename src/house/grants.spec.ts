@@ -1,7 +1,8 @@
 // Whole tools are the only assignment unit, the admin alone assigns them, and a channel is read by its members.
 import { afterEach, describe, expect, it } from "vitest";
-import { allowed, assigned, channelFor, houseChannel, identityView, inChannel, visible } from "./house.ts";
+import { allowed, assigned, channelFor, hides, houseChannel, identityView, inChannel, visible } from "./house.ts";
 import { effect } from "../journal/events.ts";
+import { toolTexts } from "../texts/tools.texts.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
 import { shop } from "../../tests/support/shop.ts";
 
@@ -40,6 +41,29 @@ describe("a house's assignments", () => {
     const rig = open();
     grant(rig, "ana", "aaron", []);
     expect(rig.state().house.channels.get(houseChannel)).toEqual(["aaron", "ana", "beto"]);
+  });
+});
+
+describe("what each identity prefers not to see", () => {
+  it("is said by any member of the house about itself alone, and kept across a restart", () => {
+    const rig = open({ grants: { ana: ["sales"], beto: [] } });
+    const prefer = (by: string, hide: string, on: boolean) => rig.act(by, "prefer", { hide, on });
+    expect([prefer("beto", "off", true), prefer("beto", "foreign", true)].map(done => done.status)).toEqual([
+      "accepted",
+      "accepted",
+    ]);
+    expect(prefer("beto", "off", false).status).toBe("accepted");
+    expect(rig.state().house.hides).toEqual(new Map([["beto", ["foreign"]]]));
+    expect([hides(rig.state().house, "beto", "foreign"), hides(rig.state().house, "ana", "foreign")]).toEqual([
+      true,
+      false,
+    ]);
+    expect(prefer("carla", "off", true)).toMatchObject({ status: "rejected", reason: toolTexts.unassigned });
+    expect(prefer("beto", "everything", true)).toMatchObject({ status: "rejected", reason: toolTexts.invalid });
+    rig.bus.emit(effect("preferred", { hide: "off", on: true }, "carla"));
+    expect(rig.state().house.hides.has("carla")).toBe(false);
+    rig.restart();
+    expect(rig.state().house.hides.get("beto")).toEqual(["foreign"]);
   });
 });
 

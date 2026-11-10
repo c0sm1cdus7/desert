@@ -9,6 +9,7 @@ import { toolTexts } from "../texts/tools.texts.ts";
 import { accepted, ownAct, reading, rejected } from "./act-definition.ts";
 import { attendsStep, targetTool } from "./attendance.ts";
 import { actReach, execute, type Execution } from "./execute.ts";
+import { preferenceAct } from "./preferences.ts";
 import type { HouseState, OwnAct, Program, Slices, State, ToolRegistry } from "./tool-contract.ts";
 export const emptyHouseState: HouseState = initial({
   by: "",
@@ -101,7 +102,7 @@ export function startTools<X extends Program>(ports: Starting<X>) {
   const { bus, state: read, registry, secrets } = ports;
   let state = read();
   let live = true;
-  const offered = attendanceActs(registry);
+  const offered = [...attendanceActs(registry), preferenceAct<X>()];
   const running: Execution<X> = {
     ...ports,
     live: () => live,

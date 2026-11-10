@@ -8,6 +8,7 @@ import { promisedChecks } from "./promised.ts";
 import { brokenShops } from "../../tests/support/broken-shops.ts";
 import { apartShown, every, hidingShown, nestedShown, registered } from "../../tests/support/settling-shop.ts";
 import { leavingShop, mutedShown, settledTwice, settles, settlingShop } from "../../tests/support/settling-shop.ts";
+import { stubbornShown } from "../../tests/support/settling-shop.ts";
 import { shopProgram, shopShown } from "../../tests/support/shop.ts";
 
 /** The names of the checks that fail, in the order they ran. */
@@ -31,9 +32,10 @@ describe("a program with acts on its things", () => {
   for (const check of promisedChecks(settlingShop)) it(check.name, check.run);
   for (const check of walkedChecks(settlingShop, shopShown)) it(check.name, check.run);
   for (const check of walkedChecks(settlingShop, nestedShown)) it(`${check.name}, two views deep`, check.run);
-  it("a screen that lists none of its things fails every walk to one of them, and no other", async () => {
+  const hidden = `${settledTwice}, hidden for who prefers not to see what cannot be done`;
+  it("a screen that lists none of its things fails every check that has to reach one, and no other", async () => {
     const walks = [settles, settledTwice].map(check => `${check}, by keys`);
-    expect(await failing(walkedChecks(settlingShop, hidingShown))).toEqual(walks);
+    expect(await failing(walkedChecks(settlingShop, hidingShown))).toEqual([...walks, hidden]);
   });
 
   for (const check of walkedChecks(leavingShop, apartShown)) it(`${check.name}, leaving its list`, check.run);
@@ -41,8 +43,12 @@ describe("a program with acts on its things", () => {
     expect(await failing(walkedChecks(settlingShop, apartShown))).toEqual([`${settles}, by keys`]);
   });
 
-  it("a screen that takes what cannot be done off its list fails the walk of that refusal, and no other", async () => {
-    expect(await failing(walkedChecks(settlingShop, mutedShown))).toEqual([`${settledTwice}, by keys`]);
+  it("a screen that takes what cannot be done off its list fails what that refusal promises to show", async () => {
+    expect(await failing(walkedChecks(settlingShop, mutedShown))).toEqual([`${settledTwice}, by keys`, hidden]);
+  });
+
+  it("a screen that shows what cannot be done to who prefers not to see it fails that, and nothing else", async () => {
+    expect(await failing(walkedChecks(settlingShop, stubbornShown))).toEqual([hidden]);
   });
 
   it("offers an act on a thing where that thing is read, and never on a view that only groups them", async () => {

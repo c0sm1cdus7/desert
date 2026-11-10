@@ -1,5 +1,5 @@
 // A program's tool on a surface: what it reads comes from its view, and each act is asked from its declaration.
-import { allowed } from "../../house/house.ts";
+import { allowed, hides } from "../../house/house.ts";
 import type { Emission } from "../../journal/events.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
@@ -60,9 +60,12 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
   const onThing = entries
     .filter(({ act }) => act.on === "thing")
     .map(({ name, act, walk }): [string, ThingAct] => {
-      /** On a thing of the tool, never on a view that only groups them; off while the tool's state says why. */
-      const listed = (target: string): boolean => tool.targets(ports.state()).includes(target);
+      /** Off while the tool's state says why. On the list of a thing of the tool, never of a view that only
+       * groups them; and not while it is off, for who prefers not to see what cannot be done. */
       const off = (target: string): string | undefined => foreign() ?? act.offered?.(ports.state(), target);
+      const unseen = (target: string): boolean =>
+        off(target) !== undefined && hides(ports.state().house, ports.me, "off");
+      const listed = (target: string): boolean => tool.targets(ports.state()).includes(target) && !unseen(target);
       const next: ThingAct["next"] = answers => walk.next(answers);
       return [name, { ...walk, scope: "each", leaves: act.leaves ?? false, listed, off, next }];
     });

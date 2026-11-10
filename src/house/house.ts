@@ -1,11 +1,14 @@
 // A house: who administers it, which whole tools each identity has, and who is in each channel.
+import type { Hideable } from "../catalogs/acts.ts";
 import { ids } from "../catalogs/ids.ts";
 import { createHash } from "node:crypto";
 import { effect, type Event, type HouseBus, type HouseEvent } from "../journal/events.ts";
 type Assignment = Readonly<{ identity: string; tools: readonly string[] }>;
 export type Creation = Readonly<{ admin: string; assignments: readonly Assignment[] }>;
 export type House = Readonly<{ admin: string }> &
-  Readonly<Record<"grants" | "channels", ReadonlyMap<string, readonly string[]>>>;
+  Readonly<Record<"grants" | "channels", ReadonlyMap<string, readonly string[]>>> &
+  /** What each identity prefers not to see: its own to say, and nobody else's. */
+  Readonly<{ hides: ReadonlyMap<string, readonly Hideable[]> }>;
 export type Attention = Readonly<{ delay: number; wake: string }>;
 /** What a house knows of each identity: what it keeps in view, what asks for its attention, what it may read. */
 export type HouseView = Readonly<{ by: string; house: House; entries: readonly HouseEvent<"tool-entry">[] }> &
@@ -14,12 +17,16 @@ export type HouseView = Readonly<{ by: string; house: House; entries: readonly H
 type Attentions = ReadonlyMap<string, Attention>;
 const noAttention: Attentions = new Map();
 export const houseChannel: string = ids.houseChannel;
-export const emptyHouse: House = { admin: "", grants: new Map(), channels: new Map() };
+export const emptyHouse: House = { admin: "", grants: new Map(), channels: new Map(), hides: new Map() };
 export function houseStep(state: House, event: Event): House {
   if (event.layer !== "house") return state;
   if (event.kind === "house-created" && !state.admin) {
     const grants = new Map([[event.by, []]]);
-    return { admin: event.by, grants, channels: new Map([[houseChannel, [event.by]]]) };
+    return { ...state, admin: event.by, grants, channels: new Map([[houseChannel, [event.by]]]) };
+  }
+  if (event.kind === "preferred" && state.grants.has(event.by)) {
+    const rest = (state.hides.get(event.by) ?? []).filter(what => what !== event.data.hide);
+    return { ...state, hides: new Map(state.hides).set(event.by, event.data.on ? [...rest, event.data.hide] : rest) };
   }
   if (event.kind === "granted" && event.by === state.admin) {
     const grants = new Map(state.grants).set(event.data.identity, event.data.tools);
@@ -66,5 +73,8 @@ export function createHouse(bus: HouseBus, { admin: by, assignments }: Creation)
   bus.emit(effect("house-created", {}, by));
   for (const { identity, tools } of assignments) bus.emit(effect("granted", { identity, tools: [...tools] }, by));
 }
+/** Whether an identity prefers not to see something. */
+export const hides = (house: House, by: string, what: Hideable): boolean =>
+  house.hides.get(by)?.includes(what) === true;
 export const assigned = (house: House, by: string, tools: readonly string[]): string[] =>
   tools.filter(tool => allowed(house, by, tool));

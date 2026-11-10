@@ -1,7 +1,7 @@
 // One journal for the house's facts and a program's: the house reads its own and carries the program's unread.
 import { Type, type Static, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { object } from "../catalogs/acts.ts";
+import { object, preference } from "../catalogs/acts.ts";
 import { toolLimits } from "../catalogs/levers.ts";
 import { journalTexts } from "../texts/journal.texts.ts";
 const literals = <T extends string>(...values: T[]) => Type.Union(values.map(value => Type.Literal(value)));
@@ -14,6 +14,7 @@ const actStatus = literals("accepted", "rejected", "draft", "inconclusive", "int
 export const houseCatalog = {
   "house-created": object({}),
   granted: object({ identity: name, tools: names }),
+  preferred: preference,
   "channel-created": object({ channel: name, members: names }),
   boot: object({}),
   act: object({ object: name, option: name, input: Type.Unknown(), through: Type.Optional(instant) }),

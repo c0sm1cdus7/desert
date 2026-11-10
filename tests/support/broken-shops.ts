@@ -1,4 +1,5 @@
 // Shops that break a promise, each in one way: the derived checks have to catch exactly what each one broke.
+import { emptyHouse } from "../../src/house/house.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import type { ActContext, ActResult } from "../../src/tools/tool-contract.ts";
 import { paymentsTool, registerCases, registerOffer, salesTool, shop, shopCatalog } from "./shop.ts";
@@ -34,7 +35,7 @@ const forgetful = (kept: Sales, event: Parameters<typeof shopSlices.step.sales>[
 const nothing = shopSlices.initial.payments;
 const emptyState = {
   by: "",
-  house: { admin: "", grants: new Map<string, readonly string[]>(), channels: new Map<string, readonly string[]>() },
+  house: emptyHouse,
   entries: [],
   attends: [],
   attendance: new Map<string, readonly string[]>(),

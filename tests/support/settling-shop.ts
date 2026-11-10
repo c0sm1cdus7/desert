@@ -120,3 +120,12 @@ const muted: ProgramScreen<Shop> = (ports, tool, words, acts) => {
   return anyToolScreen(ports, tool, words, { ...acts, actsOn: Object.fromEntries(quiet) });
 };
 export const mutedShown: Shown<Shop> = { ...shopShown, screens: { sales: muted } };
+/** A screen that keeps on its list what cannot be done, whatever the person prefers to see. */
+const stubborn: ProgramScreen<Shop> = (ports, tool, words, acts) => {
+  const every = Object.entries(acts.actsOn ?? {}).map(([name, act]) => {
+    const listed = (target: string): boolean => tool.targets(ports.state()).includes(target);
+    return [name, { ...act, listed }] as const;
+  });
+  return anyToolScreen(ports, tool, words, { ...acts, actsOn: Object.fromEntries(every) });
+};
+export const stubbornShown: Shown<Shop> = { ...shopShown, screens: { sales: stubborn } };

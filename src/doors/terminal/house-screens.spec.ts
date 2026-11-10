@@ -43,7 +43,30 @@ describe("the terminal, on a program's house", () => {
     );
     expect(shown(router)[0]).toContain(clock);
     expect((await press("p"))[0]).toContain("Menú");
-    expect((await press("\x1b[B\r"))[0]).toContain("Ventas");
+    expect((await press("\r"))[0]).toContain("Ventas");
+  });
+
+  it("lets each person say what they prefer not to see, from Preferences on the Menu", async () => {
+    const { rig, router, press } = open("beto");
+    expect(shown(router)).toEqual(expect.arrayContaining(["Sistema", "[,] preferencias"]));
+    expect(await press(",")).toEqual(
+      expect.arrayContaining([
+        "Qué ves",
+        "[a] Acciones apagadas | Se muestran",
+        "[h] Herramientas ajenas | Se muestran",
+      ]),
+    );
+    expect(await press("h")).toEqual(
+      expect.arrayContaining(["Las herramientas que no están entre las tuyas.", "[m] Mostrar", "[o] Ocultar"]),
+    );
+    expect(await press("o")).toContain(`Listo Herramientas ajenas · ocultas · ${clock}`);
+    expect(await press(escape)).toContain("[h] Herramientas ajenas | Ocultas");
+    const menu = await press(escape);
+    expect(menu.some(line => line.includes("pagos"))).toBe(false);
+    expect(menu).toContain("[v] ventas | 0");
+    expect(shown(open("ana").router)).toContain("[p] pagos | 0");
+    rig.restart();
+    expect(rig.state().house.hides.get("beto")).toEqual(["foreign"]);
   });
 
   it("offers each act with its key and its purpose, and asks it from its declaration", async () => {

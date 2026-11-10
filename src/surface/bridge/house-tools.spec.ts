@@ -27,6 +27,7 @@ describe("a program's tools, composed for a surface", () => {
     expect(tools.map(tool => [tool.id, tool.place.key, Object.keys(tool.acts)])).toEqual([
       ["sales", "v", ["register"]],
       ["payments", "p", ["receive"]],
+      ["preferences", ",", ["off", "foreign"]],
     ]);
   });
 
@@ -37,6 +38,11 @@ describe("a program's tools, composed for a surface", () => {
     );
     const words = { ...onlySales, payments: { ...must(shopWords.payments), key: "v" } };
     expect(composed([salesTool, paymentsTool], { ...shopShown, words })).toThrow("Two tools take the same key: v");
+    const comma = { ...onlySales, payments: { ...must(shopWords.payments), key: "," } };
+    expect(composed([salesTool, paymentsTool], { ...shopShown, words: comma })).toThrow("the same key: ,");
+    const named = { ...salesTool, id: "preferences" };
+    const itsWords = { ...shopWords, preferences: must(shopWords.sales) };
+    expect(composed([named, paymentsTool], { ...shopShown, words: itsWords })).toThrow("takes the name of Preferences");
   });
 
   it("refuses an act without its declaration, two acts in one place with one key, the key that goes back", () => {
