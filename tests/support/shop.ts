@@ -2,9 +2,9 @@
 import { Type } from "@sinclair/typebox";
 import { object } from "../../src/catalogs/acts.ts";
 import { effect, vocabulary, type Emission, type Event, type ProgramFacts } from "../../src/journal/events.ts";
-import { toolAct } from "../../src/tools/act-definition.ts";
+import { programAct, type Composition, type ProgramTool } from "../../src/tools/promises.ts";
 import type { SurfaceWords } from "../../src/surface/bridge/house-ports.ts";
-import type { Slices, State, Tool, ToolRegistry } from "../../src/tools/tool-contract.ts";
+import type { Slices, State, ToolRegistry } from "../../src/tools/tool-contract.ts";
 const name = Type.String({ minLength: 1 });
 const amount = Type.Number({ minimum: 0 });
 export const shopCatalog = {
@@ -56,37 +56,77 @@ const paymentsView = (state: State<Shop>): string => {
   const { received, unmatched } = state.tools.payments;
   return lines([{ received: money(received), unmatched }]);
 };
-export const salesTool: Tool<Shop> = {
+const first = { sale: "s1", total: 1500 };
+/** What registering a sale promises; a broken shop keeps these promises and breaks the act under them. */
+export const registerCases = [
+  {
+    promise: "a sale is registered as it was told",
+    input: first,
+    then: {
+      says: "Sale s1",
+      facts: [{ kind: "sale-registered", data: first }],
+      reads: { on: "sales/s1", lines: [{ total: "$ 1500", paid: "$ 0", by: "ana" }] },
+    },
+  },
+  {
+    promise: "a sale already registered is not registered again",
+    given: [{ act: "register", input: first }],
+    input: { sale: "s1", total: 90 },
+    then: { refused: "repeated" },
+  },
+] as const;
+export const salesTool: ProgramTool<Shop> = {
   id: "sales",
   purpose: "Registers what the shop sells.",
   targets: state => [...state.tools.sales.keys()].map(sale => `sales/${sale}`),
   view: salesView,
   summary: state => String(state.tools.sales.size),
   acts: {
-    register: toolAct(shopCatalog["sale-registered"], (input, { by, state }) =>
-      state.tools.sales.has(input.sale)
-        ? { status: "rejected", reason: "repeated" }
-        : {
-            status: "accepted",
-            text: `Sale ${input.sale}`,
-            target: `sales/${input.sale}`,
-            effects: [shop.fact("sale-registered", input, by)],
-          },
-    ),
+    register: programAct<Shop, (typeof shopCatalog)["sale-registered"]>({
+      input: shopCatalog["sale-registered"],
+      refuses: ["repeated"],
+      run: (input, { by, state }) =>
+        state.tools.sales.has(input.sale)
+          ? { status: "rejected", reason: "repeated" }
+          : {
+              status: "accepted",
+              text: `Sale ${input.sale}`,
+              target: `sales/${input.sale}`,
+              effects: [shop.fact("sale-registered", input, by)],
+            },
+      cases: registerCases,
+    }),
   },
 };
-export const paymentsTool: Tool<Shop> = {
+const paid = { payment: "p1", amount: 1500, sale: "s1" };
+export const paymentsTool: ProgramTool<Shop> = {
   id: "payments",
   purpose: "Receives what the shop is paid.",
   targets: () => [],
   view: paymentsView,
   summary: state => String(state.tools.payments.unmatched.length),
   acts: {
-    receive: toolAct(shopCatalog["payment-received"], (input, { by }) => ({
-      status: "accepted",
-      text: `Payment ${input.payment}`,
-      effects: [shop.fact("payment-received", input, by)],
-    })),
+    receive: programAct<Shop, (typeof shopCatalog)["payment-received"]>({
+      input: shopCatalog["payment-received"],
+      run: (input, { by }) => ({
+        status: "accepted",
+        text: `Payment ${input.payment}`,
+        effects: [shop.fact("payment-received", input, by)],
+      }),
+      cases: [
+        {
+          promise: "a payment for a sale is received",
+          given: [{ act: "register", on: "sales", input: first }],
+          input: paid,
+          then: { says: "Payment p1", facts: [{ kind: "payment-received", data: paid }] },
+        },
+        {
+          promise: "a payment that names no sale is received all the same",
+          input: { payment: "p2", amount: 100 },
+          then: { says: "Payment p2", facts: [{ kind: "payment-received", data: { payment: "p2", amount: 100 } }] },
+        },
+      ],
+    }),
   },
   /** A payment that matches no sale asks for attention, even from whoever received it. */
   effects: (state, event) => {
@@ -97,6 +137,8 @@ export const paymentsTool: Tool<Shop> = {
   },
 };
 export const shopRegistry: ToolRegistry<Shop> = [salesTool, paymentsTool];
+/** The shop, whole: what its promises are checked on. */
+export const shopProgram: Composition<Shop> = { words: shop, registry: [salesTool, paymentsTool], slices: shopSlices };
 /** What the shop calls its tools, their acts and their fields where a person reads them. */
 export const shopWords: SurfaceWords = {
   sales: {

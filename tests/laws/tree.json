@@ -18,6 +18,7 @@
     "journal/events.ts": "house catalog, a program's facts beside it (vocabulary), effect, Bus, Journal",
     "journal/projections.ts": "projection caches that fold together and survive as snapshots",
     "programs/house-runtime.ts": "startHouse: journal, vault, tools, clock and boot for one program's house; localPorts",
+    "programs/promised.ts": "promisedChecks: every check a program's promises derive, run on a real house at a fixed instant",
     "surface/bridge/any-tool.ts": "anyToolScreen: a tool's view and act schemas as a surface tool, in the program's words",
     "surface/bridge/house-ports.ts": "HousePorts, SurfaceWords; settle, attendAndAct, section",
     "surface/bridge/house-router.ts": "houseRouter: the router every renderer of a program starts from, over a house's ports",
@@ -34,11 +35,13 @@
     "surface/window.ts": "long lists windowed around the chosen row; must, foundAt",
     "texts/generic-surface.texts.ts": "what the bridge says whatever the program: optional, confirm, offline",
     "texts/journal.texts.ts": "journal errors: invalid event, closed bus, locked house, taken kind",
+    "texts/promises.texts.ts": "the names of the checks a program's promises derive",
     "texts/surface.texts.ts": "terminal surface words: menu, keys, talk thread, house sections, errors",
     "texts/tools.texts.ts": "why the house refuses an act, and the purposes of attend and unattend",
     "tools/act-definition.ts": "toolAct and ownAct bound to their schema; reading, accepted, rejected",
     "tools/attendance.ts": "what an identity keeps in view, and the tool a target belongs to",
     "tools/execute.ts": "execute: one act written, checked against the house, run, and its result written",
+    "tools/promises.ts": "Case, Outcome, ProgramAct, Composition; programAct: an act with the causes it refuses with and its cases",
     "tools/tool-contract.ts": "Program, State, Slices, Tool, ToolAct, ActResult, KeyStore: a tool as the house sees it",
     "tools/tools.ts": "house state and each tool's part folded together; attendance acts; attention ladder; startTools"
   },
@@ -49,10 +52,10 @@
     "doors/terminal": 594,
     "house": 73,
     "journal": 298,
-    "programs": 72,
+    "programs": 252,
     "surface": 925,
     "surface/bridge": 280,
     "texts": 518,
-    "tools": 488
+    "tools": 562
   }
 }
