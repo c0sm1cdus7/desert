@@ -20,17 +20,20 @@ const bar = { state: "connected", clock: "00:00", now: caseInstant } as const;
 const type = (router: Router, text: string): void => {
   for (const char of Array.from(text)) router.send({ kind: "type", text: char });
 };
-/** One answer as a person gives it: written and confirmed, or chosen by the key of its option. */
-function answer(router: Router, field: Field, given: string): void {
+/** One answer as a person gives it: written and confirmed, or chosen by the key of its option. False when the
+ * field itself does not take it: what cannot be written cannot be sent. */
+function answer(router: Router, field: Field, given: string): boolean {
   if (field.kind === "text" || field.kind === "secret") {
+    if (field.valid?.(given) === false) return false;
     Array.from(field.initial ?? "").forEach(() => router.send({ kind: "erase" }));
     type(router, given);
     router.send({ kind: "confirm" });
-    return;
+    return true;
   }
   const key = field.options.find(option => option.title === given)?.key;
   ok(key, said.noKey(field.ask, given));
   type(router, key);
+  return true;
 }
 type Walked<X extends Program> = Readonly<{ aim: Aim<X>; kase: Case<X>; tools: readonly Tool[]; shown: Shown<X> }>;
 /** From the Menu to the act by keys alone: the tool, the thing its case names, then the act. False if not offered. */
@@ -50,18 +53,20 @@ function reach<X extends Program>(router: Router, { aim, kase, tools, shown }: W
   if (offered) type(router, aim.act.key);
   return offered;
 }
-/** Every answer the case's input needs, given one by one to the questions the surface really asks. */
-function walk<X extends Program>(router: Router, { aim, kase, tools, shown }: Walked<X>): void {
+/** Every answer the case's input needs, given one by one to the questions the surface really asks. False when a
+ * field stopped it: the surface did not let the person say what the case says. */
+function walk<X extends Program>(router: Router, { aim, kase, tools, shown }: Walked<X>): boolean {
   const words = { formats: formats(shown.locale), optionalMark: generic.optional };
   const answers = asking(aim.act.input, words).answers(kase.input);
   const tool = tools.find(known => known.id === aim.tool.id);
   const act = aim.act.on === "tool" ? tool?.acts[aim.name] : tool?.actsOn?.[aim.name];
   const next = (given: readonly string[]): Field | null => act?.next(given, kase.on ?? aim.tool.id) ?? null;
-  answers.forEach((given, index) => {
+  const said = answers.every((given, index) => {
     const field = next(answers.slice(0, index));
-    if (field) answer(router, field, given);
+    return field ? answer(router, field, given) : true;
   });
-  if (next(answers)) type(router, aim.act.key);
+  if (said && next(answers)) type(router, aim.act.key);
+  return said;
 }
 function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
   const refused = "refused" in kase.then ? kase.then.refused : undefined;
@@ -74,10 +79,10 @@ function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
       const before = house().tools.state().through;
       try {
         const offered = reach(router, walked);
-        /** An act its tool does not offer on that thing cannot break its promise: the surface never lets it start. */
-        ok(offered || refused !== undefined, said.notOffered(aim.name));
-        if (!offered) return;
-        walk(router, walked);
+        /** What the surface does not offer, or does not let be written, cannot break its promise from there. */
+        const done = offered && walk(router, walked);
+        ok(done || refused !== undefined, said.notOffered(aim.name));
+        if (!done) return;
         await router.idle();
         const screen = JSON.stringify(router.screen(view).body);
         const words = "refused" in kase.then ? kase.then.refused : kase.then.says;
