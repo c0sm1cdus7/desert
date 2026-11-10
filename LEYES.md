@@ -15,11 +15,12 @@ Decididas por Franco el 10/11/2026. Valen para todo programa (Kenon, Capibara). 
 | 9 | Viaja el estado, y un router único es compartido por todos los renderers. | Router HECHO (`src/surface/router.ts`); la puerta se debe. |
 | 10 | Un registro escrito solo para dejar constancia no le pide atención a nadie. | HECHO (`silent`). |
 | 11 | Un campo es siempre de texto y lleva máscara o placeholder, nunca el genérico «texto». Un campo con formato solo acepta lo que entra en él y muestra su forma («$ 0,00», «dd/mm/aaaa»). La máscara sale de la declaración del dato, la misma con la que valida la casa. | DEUDA: hoy un campo acepta cualquier tecla y valida al final; sin placeholder dice «texto». |
+| 12 | Editar es un menú: muestra como opciones lo que se puede editar, cada una con su valor de hoy, y cada opción es su propia acción. Nunca se edita recorriendo la acción de crear con los valores cargados. Un menú puede llevar a otro menú. | DEUDA: en Capibara, Editar una venta vuelve a preguntar todo. El contrato ya deja que una fila empiece una acción (`ViewRow.act`), así que no hace falta una pieza nueva. |
 
 Cómo se escribe un monto (decisión de Martín; Franco no eligió): como se dice. Dígitos y una coma; los puntos de miles aparecen solos. Los formatos son un catálogo cerrado de DESERT (monto, cantidad, día), para que cada renderer sepa qué teclado ofrecer; cómo se escribe la plata y la fecha en cada país lo declara el programa una vez.
 
 ## Orden para saldar la deuda
 1. Casos declarados y specs derivadas (ley 7), porque todo lo demás se prueba con eso.
 2. Propósito, tecla y catálogo único de acciones; máscara o placeholder en todo campo (leyes 1 a 3 y 11).
-3. Acciones apagadas con motivo, ajenas visibles y preferencias (leyes 4 a 6).
+3. Acciones apagadas con motivo, ajenas visibles y preferencias; editar como menú (leyes 4 a 6 y 12).
 4. Atención por objeto y Actividad (ley 8).
