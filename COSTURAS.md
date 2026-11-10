@@ -87,6 +87,15 @@ interacción con la casa sea la misma en todas las superficies.
 - **Después de un rechazo no se ve la pregunta.** El motivo ocupa el lugar de la pregunta que se estaba
   contestando.
 
+- **Un tipo de hecho que el programa deja de declarar.** El registro guarda hechos para siempre; si el programa
+  quita un tipo de su catálogo, la casa sigue abriendo (arranca desde lo que tenía guardado) y recién falla el día
+  que hace falta releer todo el registro. Comprobado el 10/11 con una casa local de Capibara que tenía una venta
+  editada con el formato anterior. Falta decidir: que abrir falle a la vista si el registro tiene un tipo que el
+  programa no declara, y cómo sigue leyendo un programa los hechos de su pasado.
+- **Lo guardado de otra forma del programa.** Al abrir, el estado sale de lo guardado la última vez, sin saber
+  si el programa cambió desde entonces (una herramienta nueva, otro modo de calcular). Lo guardado tiene que
+  llevar de qué forma del programa salió, y descartarse si ya no es la misma.
+
 ## Orden de trabajo
 1. Journal: hechos por programa, bus, proyecciones, reloj, guardado en SQLite. HECHO.
 2. Casa y motor de herramientas con estado por herramienta. HECHO.
