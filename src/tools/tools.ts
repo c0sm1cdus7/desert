@@ -152,8 +152,10 @@ function entryEffects<X extends Program>(
   registry: ToolRegistry<X>,
   event: Extract<Event, { kind: "tool-entry" }>,
 ): readonly HouseEmission[] {
-  const { tool, author, attention, draft, recipient } = event.data;
+  const { tool, author, attention, draft, recipient, silent } = event.data;
+  /** An entry written for the record calls nobody; the rest call whoever holds the tool and did not write it. */
   const quiet =
+    silent ||
     !allowed(state.house, state.by, tool) ||
     (recipient !== undefined && recipient !== state.by) ||
     (author === state.by && !attention) ||

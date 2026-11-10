@@ -112,6 +112,17 @@ describe("tool attention", () => {
     expect(notices()).toHaveLength(count);
   });
 
+  it("calls nobody for an entry written only for the record", () => {
+    rig.bus.emit(
+      effect("tool-entry", { tool: "sales", target: "sales", author: "beto", text: "Kept", silent: true }, "beto"),
+    );
+    expect(notices()).toHaveLength(0);
+    expect(ana().attention.size).toBe(0);
+    expect(ana().entries.map(entry => entry.data.text)).toEqual(["Kept"]);
+    sell();
+    expect(notices()).toHaveLength(1);
+  });
+
   it("stops calling an identity for a tool the admin takes away", () => {
     sell();
     rig.bus.emit(effect("granted", { identity: "ana", tools: ["payments"] }, "ana"));

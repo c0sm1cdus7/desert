@@ -29,7 +29,7 @@ export interface KeyStore {
 }
 type Effects<X extends Program> = Readonly<{ effects?: readonly Emission<X["fact"]>[] }>;
 type Accepted<X extends Program> = Partial<
-  Pick<Entry["data"], "text" | "detail" | "target" | "recipient" | "attention">
+  Pick<Entry["data"], "text" | "detail" | "target" | "recipient" | "attention" | "silent">
 > &
   Effects<X> &
   Readonly<{ status: "accepted"; private?: string }>;

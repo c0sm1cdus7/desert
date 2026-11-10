@@ -26,6 +26,7 @@ export const houseCatalog = {
     text,
     draft: Type.Optional(Type.Boolean()),
     attention: Type.Optional(Type.Boolean()),
+    silent: Type.Optional(Type.Boolean()),
     recipient: Type.Optional(name),
     detail: Type.Optional(Type.Unknown()),
   }),
