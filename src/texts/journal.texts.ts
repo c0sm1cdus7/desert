@@ -1,5 +1,7 @@
 export const journalTexts = {
   invalidEvent: "Invalid event envelope or unknown kind",
+  unreadable: (seq: number, kind: string) =>
+    `This house's journal holds a fact this program does not read: #${seq} ${kind}`,
   closedBus: "The event bus is closed",
   listenerFailed: "Event listeners failed after persistence",
   locked: "This house is already open in a running process",

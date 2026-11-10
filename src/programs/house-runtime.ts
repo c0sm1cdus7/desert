@@ -7,6 +7,7 @@ import { privateDirectoryMode, type ViewLimits } from "../catalogs/levers.ts";
 import { createHouse, identityView, type Creation } from "../house/house.ts";
 import { clockStep, startClock, systemTime, type Deadlines, type TimeSource } from "../journal/clock.ts";
 import { Bus, effect, type Vocabulary } from "../journal/events.ts";
+import { shapeOf } from "../journal/projections.ts";
 import type { HousePorts } from "../surface/bridge/house-ports.ts";
 import type { Execution } from "../tools/execute.ts";
 import type { KeyStore, Program, Slices, ToolRegistry } from "../tools/tool-contract.ts";
@@ -36,8 +37,11 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     for (const resource of [bus, journal, secrets]) resource.close();
   };
   try {
-    const clock = journal.watch<Deadlines>("clock", new Map(), clockStep);
-    const state = journal.watch(`tools:${by}`, startState<X>(slices, by), (state, event) =>
+    /** What a house keeps between runs came from one shape of its program: the facts it reads, and where its state
+     * starts. Kept under that shape, another shape of the program folds the journal again from its first fact. */
+    const shape = shapeOf(JSON.stringify(words.event), startState<X>(slices, by));
+    const clock = journal.watch<Deadlines>(`clock@${shape}`, new Map(), clockStep);
+    const state = journal.watch(`tools:${by}@${shape}`, startState<X>(slices, by), (state, event) =>
       toolsStep<X>(state, event, slices),
     );
     journal.restore();

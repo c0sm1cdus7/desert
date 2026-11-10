@@ -107,14 +107,26 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   replay<S>(initial: S, reduce: (state: S, event: Event<P>) => S, after = 0): S {
     let state = initial;
     for (const row of this.db.prepare("select * from events where seq > ? order by seq").iterate(after))
-      state = reduce(state, this.words.read(factOf(row)));
+      state = reduce(state, this.readRow(row));
     return state;
+  }
+  /** A fact this program does not read stops the house where it is found, named: it is never skipped. */
+  private readRow(row: Readonly<Record<string, unknown>>): Event<P> {
+    try {
+      return this.words.read(factOf(row));
+    } catch {
+      throw new Error(journalTexts.unreadable(Number(row.seq), String(row.kind)));
+    }
   }
   watch<S>(name: string, initial: S, reduce: (state: S, event: Event<P>) => S): () => S {
     const row = this.db.prepare("select state from snapshots where name = ?").get(name);
     return this.projections.add(name, initial, reduce, row?.state);
   }
+  /** Brings what is watched up to the last fact. What was kept under a name nobody watches now is dropped. */
   restore(): void {
+    const watched = [...this.projections.caches.keys()];
+    const names = watched.map(() => "?").join(", ");
+    this.db.prepare(`delete from snapshots where name not in (${names})`).run(...watched);
     this.replay(null, (_, event) => this.projections.fold(event), this.projections.after());
   }
   private snapshot(): void {

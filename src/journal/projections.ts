@@ -1,4 +1,5 @@
 // A local projection cache preserves Maps and Sets; the journal remains the source of truth.
+import { createHash } from "node:crypto";
 import { deserialize, serialize } from "node:v8";
 type Placed = Readonly<{ seq: number }>;
 export class ProjectionCache<S, E extends Placed> {
@@ -62,6 +63,9 @@ export class ProjectionGroup<E extends Placed> {
     return null;
   }
 }
+/** A name for one shape of what is kept: what was kept under another shape is never read as this one. */
+export const shapeOf = (...parts: readonly unknown[]): string =>
+  createHash("sha256").update(serialize(parts)).digest("hex").slice(0, 16);
 export const emptyMap = <T>(): ReadonlyMap<string, T> => new Map();
 export const listOf = <T>(...values: T[]): readonly T[] => values;
 export const initial = <T>(value: T): Readonly<T> => value;

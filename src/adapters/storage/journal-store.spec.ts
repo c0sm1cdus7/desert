@@ -108,7 +108,7 @@ describe("journal", () => {
     const db = new DatabaseSync(file);
     opened.push(db);
     db.prepare(insert).run(2, "foreign", 100, kind, "main", "[]", "{}");
-    expect(() => all(journal)).toThrow("unknown kind");
+    expect(() => all(journal)).toThrow(`does not read: #2 ${kind}`);
   });
 
   it("rejects persisted invalid data of either layer and enforces append-only SQL", () => {

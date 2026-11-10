@@ -106,7 +106,7 @@ describe("snapshot recovery", () => {
         "[]",
         "{}",
       );
-      expect(() => restored(open(path), "set", new Set<string>(), reduce)).toThrow("unknown kind");
+      expect(() => restored(open(path), "set", new Set<string>(), reduce)).toThrow("does not read: #3 old.boot");
     } finally {
       db.close();
     }
