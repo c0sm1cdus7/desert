@@ -13,7 +13,7 @@ import { promiseTexts as said } from "../texts/promises.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { localPorts } from "./house-runtime.ts";
-import { cast, given, label, staged, wroteSince, type Aim, type Check } from "./promised.ts";
+import { cast, given, label, staged, wroteSince, type Aim, type Check } from "./promised-stage.ts";
 
 const view = { rows: 40 };
 const bar = { state: "connected", clock: "00:00", now: caseInstant } as const;

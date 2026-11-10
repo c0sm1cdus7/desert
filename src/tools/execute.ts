@@ -36,6 +36,9 @@ const resolve = <X extends Program>(ports: Resolving<X>, by: string, target: str
 /** Whether an act would leave the house; an act that resolves to nothing never runs. */
 export const actReach = <X extends Program>(ports: Resolving<X>, by: string, target: string, option: string) =>
   resolve(ports, by, target, option).act?.reach ?? "house";
+/** An act that says where it stands is done there: on its tool itself, or on one of its tool's things. */
+const elsewhere = <X extends Program>(act: ToolAct<X>, tool: Tool<X>, target: string): boolean =>
+  act.on !== undefined && (act.on === "tool") !== (target === tool.id);
 function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: ReturnType<typeof resolve<X>>) {
   const { by, process } = origin;
   const { state, offered, tool, act } = found;
@@ -43,6 +46,7 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   if (!state.house.grants.has(by) || (process && !ports.process(process, by))) return toolTexts.unassigned;
   if (!act) return toolTexts.unknown;
   if (!offered && (!tool || !allowed(state.house, by, tool.id))) return toolTexts.unassigned;
+  if (!offered && tool && elsewhere(act, tool, target)) return toolTexts.unknown;
   const refused = ports.refuse?.(state, origin, offered ? undefined : tool);
   if (refused) return refused;
   if (!offered && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;

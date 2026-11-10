@@ -50,6 +50,8 @@ export type ActContext<X extends Program> = Readonly<{
   execute?: (act: Act) => Promise<ActResult<X>>;
 }>;
 export interface ToolAct<X extends Program> extends Readonly<{ input: TSchema; reach: Reach }> {
+  /** Where it stands, when it says so: on its tool, or on one of its things. The house refuses it anywhere else. */
+  readonly on?: "tool" | "thing";
   /** The tool's cause for not offering this act in this state; an act that does not work is not offered. */
   readonly offered?: (state: State<X>, target: string) => string | undefined;
   /** The act returns something to read; only then does its late result call for attention. */

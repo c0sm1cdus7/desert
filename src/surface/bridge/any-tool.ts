@@ -58,7 +58,9 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
   const onThing = entries
     .filter(({ act }) => act.on === "thing")
     .map(({ name, act, walk }): [string, ThingAct] => {
-      const available = (target: string): boolean => may() && act.offered?.(ports.state(), target) === undefined;
+      /** Offered on a thing of the tool, never on a view that only groups them. */
+      const available = (target: string): boolean =>
+        may() && tool.targets(ports.state()).includes(target) && act.offered?.(ports.state(), target) === undefined;
       const next: ThingAct["next"] = answers => walk.next(answers);
       return [name, { ...walk, scope: "each", leaves: act.leaves ?? false, available, next }];
     });

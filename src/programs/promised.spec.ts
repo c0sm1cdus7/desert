@@ -1,9 +1,13 @@
 // The checks a program's promises derive, run on the test shop; and shops that break a promise, which they catch.
 import { describe, expect, it } from "vitest";
 import { walkedChecks } from "./promised-walk.ts";
-import { promisedChecks, type Check } from "./promised.ts";
+import { houseTools } from "../surface/bridge/house-tools.ts";
+import { localPorts } from "./house-runtime.ts";
+import { cast, given, staged, type Check } from "./promised-stage.ts";
+import { promisedChecks } from "./promised.ts";
 import { brokenShops } from "../../tests/support/broken-shops.ts";
-import { hidingShown, nestedShown, settledTwice, settles, settlingShop } from "../../tests/support/settling-shop.ts";
+import { every, hidingShown, nestedShown, registered } from "../../tests/support/settling-shop.ts";
+import { settledTwice, settles, settlingShop } from "../../tests/support/settling-shop.ts";
 import { shopProgram, shopShown } from "../../tests/support/shop.ts";
 
 /** The names of the checks that fail, in the order they ran. */
@@ -30,5 +34,14 @@ describe("a program with acts on its things", () => {
   it("a screen that lists none of its things fails every walk to one of them, and no other", async () => {
     const walks = [settles, settledTwice].map(check => `${check}, by keys`);
     expect(await failing(walkedChecks(settlingShop, hidingShown))).toEqual(walks);
+  });
+
+  it("offers an act on a thing where that thing is read, and never on a view that only groups them", async () => {
+    await staged(settlingShop, async ({ house }) => {
+      await given(house(), "sales", [registered]);
+      const tools = houseTools(localPorts(house(), cast.admin, { recentLines: 100 }), nestedShown);
+      const settle = tools.find(tool => tool.id === "sales")?.actsOn?.settle;
+      expect([settle?.available?.("sales/s1"), settle?.available?.(every)]).toEqual([true, false]);
+    });
   });
 });

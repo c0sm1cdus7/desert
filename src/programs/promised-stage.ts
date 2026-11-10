@@ -1,0 +1,78 @@
+// Where a derived check runs: a real house on disk at a fixed instant, its three people, an act done as anyone does.
+import { ok } from "node:assert/strict";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { caseInstant } from "../catalogs/time.ts";
+import type { TimeSource } from "../journal/clock.ts";
+import { promiseTexts as said } from "../texts/promises.texts.ts";
+import type { Composition, ProgramAct, ProgramTool, Step } from "../tools/promises.ts";
+import type { KeyStore, Program } from "../tools/tool-contract.ts";
+import { startHouse } from "./house-runtime.ts";
+
+export type Check = Readonly<{ name: string; run: () => Promise<void> }>;
+/** Who lives in the house a case runs in: ana administers it, beto holds every tool, carla holds none. */
+export const cast = { admin: "ana", member: "beto", outsider: "carla" } as const;
+const stillTime: TimeSource = { now: () => caseInstant, wait: () => () => {} };
+/** The house a case runs in runs as itself. */
+export const runner = "house";
+const kept = new Map<string, string>();
+const keys: KeyStore = {
+  get: provider => Promise.resolve(kept.get(provider)),
+  set: (provider, value) => Promise.resolve(void kept.set(provider, value)),
+  remove: provider => Promise.resolve(void kept.delete(provider)),
+};
+function open<X extends Program>(program: Composition<X>, home: string) {
+  const tools = program.registry.map(tool => tool.id);
+  const holding = [cast.admin, cast.member].map(identity => ({ identity, tools }));
+  const assignments = [...holding, { identity: cast.outsider, tools: [] }];
+  const creation = { admin: cast.admin, assignments };
+  return startHouse<X>(home, { by: runner, creation, keys, ...program }, stillTime);
+}
+export type House<X extends Program> = ReturnType<typeof open<X>>;
+type Stage<X extends Program> = Readonly<{ house: () => House<X>; reopen: () => void }>;
+/** A fresh house on disk for one check, closed and removed when the check ends, however it ends. */
+export async function staged<X extends Program>(program: Composition<X>, use: (stage: Stage<X>) => Promise<void>) {
+  const home = mkdtempSync(join(tmpdir(), "desert-promise-"));
+  let house = open(program, home);
+  const reopen = (): void => {
+    house.close();
+    house = open(program, home);
+  };
+  try {
+    await use({ house: () => house, reopen });
+  } finally {
+    house.close();
+    rmSync(home, { recursive: true, force: true });
+  }
+}
+export type Doing = Step & Readonly<{ attends?: boolean }>;
+/** One act as anyone does it: the target in view first, then the act; the answer is what the house decided. */
+export async function perform<X extends Program>(house: House<X>, tool: string, doing: Doing) {
+  const { by = cast.admin, on: target = tool, act, input, attends = true } = doing;
+  if (attends) house.tools.act({ act: "attend", input: { target } }, 0, by);
+  const started = house.tools.act({ act, target, input }, house.tools.state().through, by);
+  return started.status === "processing" ? started.completion : started;
+}
+export type Decided<X extends Program> = Awaited<ReturnType<typeof perform<X>>>;
+/** Every fact of the program written since a point of the journal: its kind and everything it says. */
+export const wroteSince = <X extends Program>(house: House<X>, seq: number) =>
+  house.journal.replay<{ kind: string; data: unknown }[]>(
+    [],
+    (facts, event) => (event.layer === "program" ? [...facts, { kind: event.kind, data: event.data }] : facts),
+    seq,
+  );
+/** What a case says already happened, done act by act; a step the house refuses is a case that cannot start. */
+export async function given<X extends Program>(
+  house: House<X>,
+  tool: string,
+  steps: readonly Step[] = [],
+): Promise<void> {
+  for (const step of steps) {
+    const done = await perform(house, tool, step);
+    ok(done.status === "accepted", said.givenRefused(step.act, done.reason ?? done.status));
+  }
+}
+export type Aim<X extends Program> = Readonly<{ tool: ProgramTool<X>; name: string; act: ProgramAct<X> }>;
+export const label = <X extends Program>({ tool, name }: Aim<X>, promise: string): string =>
+  `${tool.id} · ${name} · ${promise}`;
