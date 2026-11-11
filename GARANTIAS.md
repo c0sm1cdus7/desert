@@ -66,8 +66,8 @@ Leyes: 116. Deudas: 24.
 | 57 | Seis tipos de input cerrados | REGLAS §9 | no compila | `src/surface/bridge/asking.ts` `src/surface/contract.ts` |
 | 58 | Texto: número o fecha es texto con validación; formatos cerrados | REGLAS §9 | no compila | `src/catalogs/fields.ts` `src/surface/contract.ts` `src/surface/masks.ts` |
 | 59 | Opción única: lista con ↑↓ y enter | REGLAS §9 | la cumple la superficie | `src/surface/step.ts` |
-| 60 | Opciones múltiples: [x]/[ ], espacio marca, enter continúa, nombres separados por · | REGLAS §9 | la cumple la superficie | `src/surface/bridge/asking.ts` `src/surface/step.ts` `src/surface/walk.ts` |
-| 61 | Referencia: lista de objetos con su dato | REGLAS §9 | no compila | `src/catalogs/fields.ts` `src/surface/bridge/asking-parts.ts` `src/surface/contract.ts` |
+| 60 | Opciones múltiples: [x]/[ ], espacio marca, enter continúa, nombres separados por · | REGLAS §9 | la cumple la superficie | `src/surface/step.ts` `src/surface/walk.ts` `src/catalogs/fields.ts` `src/surface/bridge/asking.ts` |
+| 61 | Referencia: una lista de objetos con su dato, cada fila con su tecla; espacio busca; solo lo que se puede elegir; la ausencia lleva su nombre | REGLAS §9 | la cumple la superficie | `src/surface/step.ts` `src/surface/walk.ts` `src/surface/bridge/asking-parts.ts` `src/surface/bridge/house-tools.ts` `src/programs/promised-walk.ts` |
 | 62 | Confirmación: el verbo y volver | REGLAS §9 | la cumple la superficie | `src/surface/bridge/program-acts.ts` `src/surface/screen.ts` |
 | 63 | La tecla del verbo es su inicial | REGLAS §9 | la cumple la superficie | `src/surface/bridge/program-acts.ts` `src/tools/promises.ts` |
 | 65 | Nada se ejecuta hasta el último input; durante los inputs solo se lee | REGLAS §9 | la cumple la superficie | `src/surface/step.ts` |

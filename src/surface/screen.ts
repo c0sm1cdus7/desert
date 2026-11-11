@@ -29,6 +29,8 @@ interface Walking {
   readonly at: number;
   readonly marks: readonly string[];
   readonly error?: string;
+  /** In a question that picks a thing, the person is looking for it: what they type is what they look for. */
+  readonly finding?: true;
 }
 export type Asking = Walking & { readonly phase: "asking" };
 export type Running = Walking & { readonly phase: "running"; readonly since: number };

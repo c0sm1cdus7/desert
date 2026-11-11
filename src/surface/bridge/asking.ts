@@ -1,7 +1,7 @@
 // The questions of an act come from the declaration of what it takes; so do its answers, read back as data.
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
 import type { Field, Option } from "../contract.ts";
-import { audit, leading, write } from "./asking-back.ts";
+import { audit, leading, markedOf, write } from "./asking-back.ts";
 import { armsOf, at, choiceOf, isList, isRecord, tellingOf, titleOf, valueOf, word, written } from "./asking-parts.ts";
 import type { AskWords, Ctx, Got } from "./asking-parts.ts";
 
@@ -72,6 +72,19 @@ function items(schema: TSchema, ctx: Ctx, from: number, before: readonly unknown
   const all = [...before, got.value];
   return answer === another.title ? items(schema, ctx, got.at + 1, all) : { value: all, at: got.at + 1 };
 }
+/** Some of a closed set: one question, answered with the words of what was marked. It opens with all of them
+ * marked, or with none, as the datum declares. */
+function some(schema: TSchema, ctx: Ctx, from: number): Got {
+  const arms = armsOf(at(schema, "items"));
+  const answer = ctx.answers[from];
+  const options = arms.map(arm => ({ title: word(arm, "title") }));
+  const every = arms.map(arm => at(arm, "const"));
+  const initial = markedOf(schema, at(schema, "some") === "all" ? every : []);
+  if (answer === undefined) return { ask: { ask: titleOf(schema, ctx), kind: "many", options, initial } };
+  const marked = answer === "" ? [] : answer.split(" · ");
+  const values = arms.filter(arm => marked.includes(word(arm, "title"))).map(arm => at(arm, "const"));
+  return { value: values, at: from + 1 };
+}
 function read(schema: unknown, ctx: Ctx, from: number): Got {
   if (!TypeGuard.IsSchema(schema)) throw new Error("A field has no declaration");
   const arms = armsOf(schema);
@@ -79,6 +92,7 @@ function read(schema: unknown, ctx: Ctx, from: number): Got {
   if (telling) return shapes(schema, ctx, from, telling);
   if (arms.length) return choice(schema, ctx, from);
   if (at(schema, "type") === "object") return fields(schema, ctx, from);
+  if (at(schema, "some") !== undefined) return some(schema, ctx, from);
   return at(schema, "type") === "array" ? items(schema, ctx, from) : leaf(schema, ctx, from);
 }
 export type Asking = Readonly<{

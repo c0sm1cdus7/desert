@@ -27,7 +27,7 @@ type Asked = Readonly<{ locale: Locale; things: NonNullable<AskWords["things"]> 
 type Own<X extends Program> = Readonly<{ tool: string; name: string; act: ProgramAct<X> }>;
 /** One act as a person walks it: its questions from what it takes, a confirmation when it asks for one, its result. */
 function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: Own<X>, asked: Asked) {
-  const words = { formats: formats(asked.locale), optionalMark: generic.optional, noneMark: generic.none };
+  const words = { formats: formats(asked.locale), optionalMark: generic.optional };
   const ask = asking(act.input, { ...words, things: asked.things });
   const title = act.title ?? capital(act.name);
   /** Who confirms is the act's own verb, taken by its initial; what can be undone comes with that verb chosen. */

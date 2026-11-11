@@ -31,17 +31,25 @@ const shapeOf = (field: Field): string => {
   return "placeholder" in field ? field.placeholder : said.pasteHere;
 };
 
+/** The things a question picks among, as a list: each of the first nine with its number. While the person looks
+ * for one, where they write comes first and the rows carry no key. */
+function pickRows(walk: Walk, question: Field & { kind: "pick" }): readonly Row[] {
+  const found = question.found(walk.finding ? walk.typed : "");
+  const rows = found.map((option, i): Row => {
+    const key = walk.finding || i > 8 ? {} : { key: String(i + 1) };
+    return { ...option, ...key, selected: i === walk.at };
+  });
+  if (!walk.finding) return rows;
+  const typing: Row = { title: "", entry: { typed: walk.typed, caret: Array.from(walk.typed).length } };
+  return [typing, ...(rows.length ? rows : [{ title: said.nothingFound, still: true, tone: "t3" as const }])];
+}
 export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   const answered = answersOf(walk);
   if (walk.phase !== "asking") return { kind: "thread", events: [...answered, { text: endOf(walk, now) }] };
   const question = must(field);
   const asking = walk.error === undefined ? [{ text: question.ask, tone: "t1" } as const] : errorSpans(walk.error);
   const events = [...answered, { text: asking }];
-  if (question.kind === "pick") {
-    const typing: Row = { title: "", entry: { typed: walk.typed, caret: Array.from(walk.typed).length } };
-    const found = question.found(walk.typed).map((option, i) => ({ ...option, selected: i === walk.at }));
-    return { kind: "thread", events, options: [typing, ...found] };
-  }
+  if (question.kind === "pick") return { kind: "thread", events, options: pickRows(walk, question) };
   if (isTyped(field)) {
     const typed = walk.typed === "" ? "" : maskOf(field, walk.typed);
     const caret = "mask" in question ? Array.from(typed).length : walk.caret;
@@ -57,7 +65,7 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
 function enterSays(walk: Walk, field: Field | null, tools: readonly Tool[]): string {
   const options = optionsOf(field);
   if (field?.kind === "confirm") return must(options[walk.at]).title;
-  const picked = field?.kind === "pick" ? field.found(walk.typed)[walk.at] : undefined;
+  const picked = field?.kind === "pick" ? field.found(walk.finding ? walk.typed : "")[walk.at] : undefined;
   const chosen = picked ? (picked.value ?? picked.title) : (options[walk.at]?.title ?? walk.typed);
   const answer = field?.kind === "many" ? walk.marks.join(" · ") : chosen;
   const act = actOf(tools, walk);
@@ -75,5 +83,7 @@ export function walkHints(walk: Walk, field: Field | null, tools: readonly Tool[
   const enter: Hint = { intent: "confirm", does: enterSays(walk, field, tools) };
   if (isTyped(field)) return validOf(field, walk.typed) ? [enter, leave] : [leave];
   const move: Hint = { intent: "move", does: k.choose };
+  if (field?.kind === "pick" && walk.finding) return [move, enter, { intent: "cancel", does: k.close }];
+  if (field?.kind === "pick") return [move, enter, { intent: "find", does: k.find }, leave];
   return field?.kind === "many" ? [move, { intent: "mark", does: k.mark }, enter, leave] : [move, enter, leave];
 }

@@ -5,7 +5,7 @@ import { promisedChecks } from "./promised.ts";
 import { houseTools } from "../surface/bridge/house-tools.ts";
 import { stacksOf } from "../surface/lists.ts";
 import { startRouter } from "../surface/router.ts";
-import type { Screen } from "../surface/contract.ts";
+import type { Intent, Screen } from "../surface/contract.ts";
 import { chargingRegistry, chargingShop } from "../../tests/support/charging-shop.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
 import { shopShown } from "../../tests/support/shop.ts";
@@ -34,9 +34,9 @@ const seat = (me: string) => {
     const rows = rowsOf(body).map(row => [row.entry ? `› ${row.entry.typed}` : row.title, row.detail]);
     return [title, ...said, ...rows.map(row => row.filter(Boolean).join(" | "))];
   };
+  const keys_: Readonly<Record<string, Intent>> = { "\r": { kind: "confirm" }, "\x1b": { kind: "cancel" } };
   const press = (keys: string): string[] => {
-    for (const char of Array.from(keys))
-      router.send(char === "\r" ? { kind: "confirm" } : { kind: "type", text: char });
+    for (const char of Array.from(keys)) router.send(keys_[char] ?? { kind: "type", text: char });
     return read(router.screen({ rows: 40 }));
   };
   return { rig, tools, router, press };
@@ -51,11 +51,15 @@ describe("a program whose acts reach across its tools", () => {
   for (const check of promisedChecks(chargingShop)) it(check.name, check.run);
   for (const check of walkedChecks(chargingShop, shopShown)) it(check.name, check.run);
 
-  it("asks which thing by looking for it: what is typed narrows, and enter takes the chosen one", async () => {
+  it("asks which thing with their list: a number takes its row, and space looks for one by what is typed", async () => {
     const { rig, router, press } = seat("ana");
-    expect(press("pc")).toEqual(["Cobrar", "Venta", "› ", "s1 | $ 1500", "s2 | $ 90"]);
+    expect(press("pc")).toEqual(["Cobrar", "Venta", "s1 | $ 1500", "s2 | $ 90"]);
+    expect(press(" ")).toEqual(["Cobrar", "Venta", "› ", "s1 | $ 1500", "s2 | $ 90"]);
     expect(press("2")).toEqual(["Cobrar", "Venta", "› 2", "s2 | $ 90"]);
-    expect(press("\r")).toEqual(["Cobrar", "Venta s2", "Monto"]);
+    expect(press("x")).toEqual(["Cobrar", "Venta", "› 2x", "Nada coincide."]);
+    /** Escape closes the search and the whole list is back; the number of a row takes it. */
+    expect(press("\x1b")).toEqual(["Cobrar", "Venta", "s1 | $ 1500", "s2 | $ 90"]);
+    expect(press("2")).toEqual(["Cobrar", "Venta s2", "Monto"]);
     press("90\r\r");
     await router.idle();
     expect(rig.state().tools.payments.received).toBe(90);

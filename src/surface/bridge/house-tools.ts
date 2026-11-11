@@ -69,10 +69,12 @@ const thingsOf =
     const tool = shown().find(known => known.id === id);
     const contract = tools.find(known => known.id === id);
     if (!tool?.find || !contract || tool.off?.() !== undefined) return undefined;
+    const open = (thing: string): boolean => contract.closed?.(ports.state(), thing) !== true;
     return {
-      found: sought => (tool.find?.(sought) ?? []).flatMap(row => (row.opens ? [picked(row, row.opens)] : [])),
+      found: sought =>
+        (tool.find?.(sought) ?? []).flatMap(row => (row.opens && open(row.opens) ? [picked(row, row.opens)] : [])),
       shown: thing => tool.titleOf?.(thing) ?? thing,
-      has: thing => contract.targets(ports.state()).includes(thing),
+      has: thing => contract.targets(ports.state()).includes(thing) && open(thing),
     };
   };
 export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown<X>): readonly Tool[] {

@@ -70,14 +70,14 @@
   "folders": {
     "adapters/secrets": 103,
     "adapters/storage": 154,
-    "catalogs": 94,
-    "doors/terminal": 546,
+    "catalogs": 99,
+    "doors/terminal": 545,
     "house": 82,
     "journal": 295,
-    "programs": 886,
-    "surface": 1379,
-    "surface/bridge": 864,
-    "texts": 156,
-    "tools": 719
+    "programs": 896,
+    "surface": 1402,
+    "surface/bridge": 894,
+    "texts": 155,
+    "tools": 722
   }
 }

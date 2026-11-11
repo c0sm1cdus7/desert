@@ -79,6 +79,9 @@ export type ProgramAct<X extends Program> = ToolAct<X> &
   Readonly<{ today?: (state: State<X>, target: string) => unknown; also?: Also<X>; datum?: Datum<X> }>;
 export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
   Readonly<{ acts: Readonly<Record<string, ProgramAct<X>>>; menus?: Readonly<Record<string, Menu>> }> &
+  /** Whether one of its things takes nothing new any more (archived, canceled): a question that picks among its
+   * things does not offer it. */
+  Readonly<{ closed?: (state: State<X>, target: string) => boolean }> &
   /** The words one of its things is found by, beyond what its row on the list already says. */
   Readonly<{ words?: (state: State<X>, target: string) => string }> &
   /** The things of the tool that need someone to act, each saying why: read from what the tool keeps and from

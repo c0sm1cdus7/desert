@@ -21,8 +21,7 @@ export function drawRow(grid: Grid, r: number, left: number, block: number, row:
     return;
   }
   if (row.entry) {
-    light(grid, r, left, block);
-    const col = put(grid, keyed ? left + 5 : left + 1, r, { text: row.title, tone: "t2" }) + 2;
+    const col = row.title ? put(grid, keyed ? left + 5 : left + 1, r, { text: row.title, tone: "t2" }) + 2 : left + 1;
     put(grid, col, r, { text: "›", tone: "t2" });
     put(grid, col + 2, r, { text: row.entry.typed, tone: "t1" });
     put(

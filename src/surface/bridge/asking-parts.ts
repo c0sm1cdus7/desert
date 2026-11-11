@@ -13,7 +13,7 @@ export type Things = Readonly<{
 /** What asking needs beyond the declaration: the formats of the program's country, the marks of an optional field
  * and of picking nothing, and the things of each tool that an answer can pick. */
 export type AskWords = Readonly<{ formats: Readonly<Record<FormatName, Format>>; optionalMark: string }> &
-  Readonly<{ noneMark: string; things?: (tool: string) => Things | undefined }>;
+  Readonly<{ things?: (tool: string) => Things | undefined }>;
 export type Got = Readonly<{ value: unknown; at: number }> | Readonly<{ ask: Field }>;
 export type Ctx = AskWords & Readonly<{ answers: readonly string[]; n: number; optional: boolean }>;
 export const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
@@ -59,19 +59,20 @@ export const valueOf = (schema: unknown, ctx: Ctx, answer: string): unknown => {
   if (ctx.optional && answer === "") return undefined;
   return formatOf(schema, ctx)?.value(answer) ?? (formatOf(schema, ctx) ? undefined : answer.trim());
 };
-/** One of the things of a tool: looked for by what the person types. The answer is the thing; it shows by its name.
- * An optional one opens on picking nothing. */
+/** One of the things of a tool, picked from their list. The answer is the thing; it shows by its name. A field
+ * that may go without one says what that is called, and opens on it. */
 function picked(schema: TSchema, ctx: Ctx, of: string): Field {
   /** Asked for each time: when a program is composed the other tools may not be there yet. */
   const things = (): Things | undefined => ctx.things?.(of);
-  const none: Option = { title: ctx.noneMark, value: "" };
+  const absent = ctx.optional ? word(schema, "none") : "";
+  const none: Option = { title: absent, value: "" };
   const found = (sought: string): readonly Option[] => [
     ...(ctx.optional && sought.trim() === "" ? [none] : []),
     ...(things()?.found(sought) ?? []),
   ];
   const valid = (answer: string): boolean => (ctx.optional && answer === "") || things()?.has(answer) === true;
-  const shown = (answer: string): string => (answer === "" ? ctx.noneMark : (things()?.shown(answer) ?? answer));
-  return { ask: titleOf(schema, ctx), kind: "pick", found, shown, valid };
+  const shown = (answer: string): string => (answer === "" ? absent : (things()?.shown(answer) ?? answer));
+  return { ask: asked(word(schema, "title")), kind: "pick", found, shown, valid };
 }
 export function written(schema: TSchema, ctx: Ctx): Field {
   const of = at(schema, "of");

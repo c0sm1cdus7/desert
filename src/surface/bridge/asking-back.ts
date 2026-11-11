@@ -16,6 +16,12 @@ import {
 } from "./asking-parts.ts";
 import type { AskWords, Ctx } from "./asking-parts.ts";
 
+/** Some of a closed set as one answer: the words of the ones a datum holds, in the order the set lists them. */
+export const markedOf = (schema: unknown, values: unknown): string =>
+  armsOf(at(schema, "items"))
+    .filter(arm => isList(values) && values.includes(at(arm, "const")))
+    .map(arm => word(arm, "title"))
+    .join(" · ");
 /** The same walk backwards: the answers a person would give to say this datum. */
 export function write(schema: unknown, value: unknown, words: AskWords): string[] {
   const arms = armsOf(schema);
@@ -25,6 +31,7 @@ export function write(schema: unknown, value: unknown, words: AskWords): string[
   if (arms.length)
     return [word(literal(picked), "title"), ...(telling ? written_(picked, value, words, [telling]) : [])];
   if (at(schema, "type") === "object") return written_(schema, value, words);
+  if (at(schema, "some") !== undefined) return [markedOf(schema, value)];
   if (isList(value)) {
     const more = at(schema, "more");
     const follows = (index: number): string => word(at(more, index < value.length - 1 ? "another" : "done"), "title");
@@ -52,10 +59,13 @@ function distinct(options: readonly Option[]): void {
   const keys = options.map(option => option.key);
   if (new Set(keys).size !== keys.length) throw new Error(`Two options take the same key: ${keys.join(", ")}`);
 }
-const auditFields = (schema: unknown, ctx: Ctx, skip: readonly string[] = []): void =>
+const auditFields = (schema: unknown, ctx: Ctx, skip: readonly string[] = []): void => {
+  const required = at(schema, "required");
+  const needed = isList(required) ? required : [];
   Object.entries(at(schema, "properties") ?? {})
     .filter(([key]) => !skip.includes(key))
-    .forEach(([, field]) => audit(field, ctx));
+    .forEach(([key, field]) => audit(field, { ...ctx, optional: !needed.includes(key) }));
+};
 /** Every field of a declaration can be asked: its question, its mask or placeholder, each option with its key. */
 export function audit(schema: unknown, ctx: Ctx): void {
   if (!TypeGuard.IsSchema(schema)) throw new Error("A field has no declaration");
@@ -66,7 +76,10 @@ export function audit(schema: unknown, ctx: Ctx): void {
     distinct(arms.map(arm => choiceOf(telling ? at(at(arm, "properties"), telling) : arm)));
     if (telling) arms.forEach(arm => auditFields(arm, ctx, [telling]));
   } else if (at(schema, "type") === "object") auditFields(schema, ctx);
-  else if (at(schema, "type") === "array") {
+  else if (at(schema, "some") !== undefined) {
+    titleOf(schema, ctx);
+    armsOf(at(schema, "items")).forEach(arm => word(arm, "title"));
+  } else if (at(schema, "type") === "array") {
     const more = at(schema, "more");
     asked(word(more, "ask"));
     distinct([choiceOf(at(more, "done")), choiceOf(at(more, "another"))]);

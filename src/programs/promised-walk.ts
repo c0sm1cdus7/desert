@@ -27,11 +27,21 @@ function answer(router: Router, field: Field, given: string, opened = field.init
     router.send({ kind: "confirm" });
     return true;
   }
+  if (field.kind === "many") {
+    /** Each option is marked or cleared with space until what is marked is what the case says. */
+    const [marked, wanted] = [opened, given].map(each => (each === "" ? [] : each.split(" · ")));
+    field.options.forEach((option, i) => {
+      if (marked?.includes(option.title) !== wanted?.includes(option.title)) router.send({ kind: "type", text: " " });
+      if (i < field.options.length - 1) router.send({ kind: "down" });
+    });
+    router.send({ kind: "confirm" });
+    return true;
+  }
   if (field.kind === "pick") {
     if (field.valid?.(given) === false) return false;
-    /** The thing is looked for by its name, and taken where it shows among what that finds. */
+    /** The thing is looked for as on any menu: space, then its name; and taken where it shows among what is found. */
     const name = given === "" ? "" : field.shown(given);
-    type(router, name);
+    if (name !== "") type(router, ` ${name}`);
     const at = field.found(name).findIndex(option => (option.value ?? option.title) === given);
     ok(at >= 0, said.notFound(name));
     for (let step = 0; step < at; step++) router.send({ kind: "down" });
@@ -101,7 +111,7 @@ function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
       const seat = seated(house(), kase.by ?? cast.admin, shown);
       const before = house().tools.state().through;
       try {
-        const words = { formats: formats(shown.locale), optionalMark: generic.optional, noneMark: generic.none };
+        const words = { formats: formats(shown.locale), optionalMark: generic.optional };
         const holder = program.registry.find(tool => tool.targets(house().tools.state()).includes(kase.from ?? ""));
         const from = kase.from !== undefined && holder ? { from: { tool: holder.id, target: kase.from } } : {};
         const told = { aim, kase, answers: asking(aim.act.input, words).answers(kase.input), ...from };

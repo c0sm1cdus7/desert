@@ -23,7 +23,7 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
   const answers = [...walk.answers.slice(0, walk.pos), answer, ...later];
   const asked = [...walk.asked.slice(0, walk.pos), { ask: current.ask, shown: maskOf(current, answer) }];
   const moved: Walk = { ...walk, answers, asked, pos: walk.pos + 1 };
-  const { error: _gone, ...clean } = moved;
+  const { error: _gone, finding: _sought, ...clean } = moved;
   const field = fieldOf(tools, clean);
   if (field) return { session: replace(session, { ...clean, ...opened(field, answers[clean.pos]) }) };
   const running: Walk = { ...clean, phase: "running", since: now };
@@ -67,7 +67,8 @@ function choosing(session: Session, walk: Asking, tools: Tools, field: Field, ke
   }
   return advance(session, walk, tools, chosen.title, now);
 }
-/** A question that picks a thing: what is typed looks for it, and enter takes the one the cursor is on. */
+/** A question that picks a thing is a list: a number takes its row, enter the one the cursor is on, and space
+ * starts looking, as on any menu. While looking, what is typed is what is looked for and no key is a shortcut. */
 function picking(
   session: Session,
   walk: Asking,
@@ -78,9 +79,14 @@ function picking(
 ) {
   const set = (next: Partial<Asking>): Stepped => ({ session: replace(session, { ...walk, ...next }) });
   const sought = (typed: string): Stepped => set({ typed, caret: Array.from(typed).length, at: 0 });
-  if (key.kind === "type") return sought(walk.typed + key.text);
-  if (key.kind === "erase") return sought(Array.from(walk.typed).slice(0, -1).join(""));
-  const found = field.found(walk.typed);
+  const found = field.found(walk.finding ? walk.typed : "");
+  if (walk.finding && key.kind === "type") return sought(walk.typed + key.text);
+  if (walk.finding && key.kind === "erase") return sought(Array.from(walk.typed).slice(0, -1).join(""));
+  if (key.kind === "type" && key.text === " ") return set({ finding: true, typed: "", caret: 0, at: 0 });
+  if (key.kind === "type") {
+    const row = /^[1-9]$/u.test(key.text) ? found[Number(key.text) - 1] : undefined;
+    return row ? advance(session, walk, tools, row.value ?? row.title, now) : { session };
+  }
   if (key.kind === "up") return set({ at: Math.max(walk.at - 1, 0) });
   if (key.kind === "down") return set({ at: Math.min(walk.at + 1, found.length - 1) });
   const chosen = key.kind === "confirm" ? found[walk.at] : undefined;
@@ -93,6 +99,11 @@ function back(session: Session, walk: Asking, tools: readonly Tool[]): Session {
 }
 function walking(session: Session, walk: Walk, tools: readonly Tool[], key: Intent, now: number): Stepped {
   if (key.kind === "cancel") {
+    /** Escape closes the search first: the whole list is back, and the question is still the same. */
+    if (walk.phase === "asking" && walk.finding) {
+      const { finding: _sought, ...whole } = walk;
+      return { session: replace(session, { ...whole, typed: "", caret: 0, at: 0 }) };
+    }
     if (walk.phase === "asking" && walk.pos > walk.floor) return { session: back(session, walk, tools) };
     const thingIsGone = walk.phase === "done" && actOf(tools, walk).leaves;
     return { session: thingIsGone ? up(up(session)) : up(session) };
