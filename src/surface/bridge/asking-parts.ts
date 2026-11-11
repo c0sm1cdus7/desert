@@ -2,6 +2,7 @@
 import type { TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { addresses } from "../../catalogs/addressing.ts";
+import { wrongIn } from "../../catalogs/fields.ts";
 import type { Field, Option } from "../contract.ts";
 import { isFormat, limited, padded, shaped, type Format, type FormatName } from "../masks.ts";
 
@@ -88,9 +89,10 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   const first = at(schema, "default");
   const initial = first === undefined ? {} : { initial: format?.typed(first) ?? plain(first) };
   const ask = titleOf(schema, ctx);
-  if (format) return { ask, valid, kind: "text", mask: format, ...initial };
+  const wrong = (typed: string): string | undefined => wrongIn(schema, valueOf(schema, ctx, typed));
+  if (format) return { ask, valid, wrong, kind: "text", mask: format, ...initial };
   if (at(schema, "type") !== "string") throw new Error(`The field ${ask} has no format and is not text`);
   /** A datum with a shape takes only what fits it: declared as free text, any key would go in. */
   if (at(schema, "pattern") !== undefined) throw new Error(`The field ${ask} has a shape and no mask`);
-  return { ask, valid, kind: "text", placeholder: word(schema, "placeholder"), ...initial };
+  return { ask, valid, wrong, kind: "text", placeholder: word(schema, "placeholder"), ...initial };
 }

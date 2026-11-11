@@ -25,7 +25,10 @@ function answer(router: Router, field: Field, given: string, opened = field.init
     Array.from(opened).forEach(() => router.send({ kind: "erase" }));
     type(router, given);
     router.send({ kind: "confirm" });
-    return true;
+    /** What is complete and wrong stays where it was written, and the screen says why. */
+    const why = field.wrong?.(given);
+    if (why !== undefined) ok(JSON.stringify(router.screen(view).body).includes(why), said.notSaid(why));
+    return why === undefined;
   }
   if (field.kind === "many") {
     /** Each option is marked or cleared with space until what is marked is what the case says. */

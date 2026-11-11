@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 119. Deudas: 23.
+Leyes: 120. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -126,3 +126,4 @@ Leyes: 119. Deudas: 23.
 | 119 | Lo que una fila lee se sigue leyendo cuando su acción no se puede hacer: apagada dice el dato y después por qué; oculta por preferencia queda el dato sin tecla | 11/11 · consecuencia de «una fila que se puede cambiar abre su acción» y de LEYES 5 | prueba derivada de los casos | `src/programs/promised-off.ts` `src/programs/promised-walk.ts` `src/surface/lists.ts` `src/programs/promised-data.spec.ts` |
 | 120 | Una pregunta que elige una cosa nunca queda sobre una lista vacía: dice que no hay (o por qué no se llega) y solo deja salir | 11/11 · visto al unir un pago sin ventas | la cumple la superficie | `src/surface/walk.ts` `src/surface/step.ts` `src/surface/bridge/house-tools.ts` `src/programs/promised-also.spec.ts` |
 | 121 | Vocabulario cerrado: verbos, estados y objetos salen de un conjunto cerrado; tampoco primera persona | REGLAS §12 | DEUDA | Derivada: un catálogo cerrado de verbos y estados contra el que se lean nombres, causas y resultados de cada programa y los textos de DESERT. |
+| 122 | Un dato completo que no vale dice por qué donde se escribe, y ninguna acción corre con él, entre por la puerta que entre: se declara una vez, con el dato | 11/11 · CUIT de un cliente con dígito verificador equivocado | prueba derivada de los casos | `src/catalogs/fields.ts` `src/tools/promises.ts` `src/surface/step.ts` `src/programs/promised-walk.ts` `src/programs/promised-fields.spec.ts` |

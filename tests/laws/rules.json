@@ -909,6 +909,19 @@
       "guarantee": "debt",
       "evidence": [],
       "debt": "Derivada: un catálogo cerrado de verbos y estados contra el que se lean nombres, causas y resultados de cada programa y los textos de DESERT."
+    },
+    {
+      "id": 122,
+      "rule": "Un dato completo que no vale dice por qué donde se escribe, y ninguna acción corre con él, entre por la puerta que entre: se declara una vez, con el dato",
+      "from": "11/11 · CUIT de un cliente con dígito verificador equivocado",
+      "guarantee": "derived",
+      "evidence": [
+        "src/catalogs/fields.ts",
+        "src/tools/promises.ts",
+        "src/surface/step.ts",
+        "src/programs/promised-walk.ts",
+        "src/programs/promised-fields.spec.ts"
+      ]
     }
   ]
 }

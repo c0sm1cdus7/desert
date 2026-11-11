@@ -1,5 +1,6 @@
 // The fields an act can take. Each one carries how it is asked, so the question is declared once, with the datum.
 import { Type, type TSchema } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 
 const isoDay = "^\\d{4}-\\d{2}-\\d{2}$";
 type Choice = Readonly<{ title: string; key: string }>;
@@ -53,3 +54,23 @@ export const padded = (ask: string, width: number) => Type.Integer({ minimum: 1,
 /** Text of only some characters, as the name someone enters with: `allowed` is what a character may be. */
 export const handle = (ask: string, hint: string, allowed: string, max: number) =>
   Type.String({ pattern: `^[${allowed}]{1,${max}}$`, title: ask, placeholder: hint, mask: "chars", allowed, max });
+/** Why a datum that is complete still does not hold, when that is so: a check digit that does not match. */
+export type Wrong = (value: string) => string | undefined;
+/** A field that knows when what it was given is complete and wrong, and why. Said once, with the datum: the
+ * surface says it where the datum is written, and no act runs with it, through whatever door it comes. */
+export const holding = <T extends TSchema>(field: T, wrong: Wrong): T => ({ ...field, wrong });
+const isWrong = (check: unknown): check is Wrong => typeof check === "function";
+const part = (schema: unknown, key: string): unknown =>
+  schema !== null && typeof schema === "object" ? Reflect.get(schema, key) : undefined;
+const first = (causes: readonly (string | undefined)[]): string | undefined =>
+  causes.find(cause => cause !== undefined);
+/** Why a value does not hold as its declaration says: what the first field of it that knows says. */
+export function wrongIn(schema: unknown, value: unknown): string | undefined {
+  const check = part(schema, "wrong");
+  if (isWrong(check) && typeof value === "string") return check(value);
+  const arms = part(schema, "anyOf");
+  if (Array.isArray(arms)) return first(arms.map(arm => (Value.Check(arm, value) ? wrongIn(arm, value) : undefined)));
+  if (Array.isArray(value)) return first(value.map(each => wrongIn(part(schema, "items"), each)));
+  if (value === null || typeof value !== "object") return undefined;
+  return first(Object.entries(value).map(([key, each]) => wrongIn(part(part(schema, "properties"), key), each)));
+}

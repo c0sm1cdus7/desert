@@ -95,6 +95,8 @@ interface Question {
   readonly ask: string;
   readonly initial?: string;
   readonly valid?: (value: string) => boolean;
+  /** Why an answer that is complete still does not hold, when that is so: it stays where it was written. */
+  readonly wrong?: (value: string) => string | undefined;
 }
 /** What a field with a format takes and shows: only the keys that fit it, and its shape before anything is typed. */
 export interface Mask {

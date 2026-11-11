@@ -40,8 +40,12 @@ function masked(walk: Asking, mask: Mask, key: Intent): Asking | undefined {
 function typing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
   const changed = "mask" in field ? masked(walk, field.mask, key) : edited(walk, key);
   if (changed) return { session: replace(session, changed) };
-  if (key.kind === "confirm" && validOf(field, walk.typed)) return advance(session, walk, tools, walk.typed, now);
-  return { session };
+  if (key.kind !== "confirm" || !validOf(field, walk.typed)) return { session };
+  /** What is complete and still wrong stays where it was written, and the question now says why. */
+  const why = field.wrong?.(walk.typed);
+  return why === undefined
+    ? advance(session, walk, tools, walk.typed, now)
+    : { session: replace(session, { ...walk, error: why }) };
 }
 function choosing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
   const options = optionsOf(field);

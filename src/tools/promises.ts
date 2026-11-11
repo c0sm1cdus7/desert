@@ -1,5 +1,6 @@
 // What a program promises of each act: the causes it may refuse with, and cases that say what happens. Specs derive.
 import { addresses } from "../catalogs/addressing.ts";
+import { wrongIn } from "../catalogs/fields.ts";
 import type { Static, TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import type { Vocabulary } from "../journal/events.ts";
@@ -141,6 +142,9 @@ function offeredBy<X extends Program, S extends TSchema>(declared: Declared<X, S
   const more = { ...(title ? { title } : {}), ...(changes ? { changes } : {}) };
   return { ...worded({ name, enter }), undoable, purpose, key, on, ...placed, ...more };
 }
+/** What an act answers, now or later, passed through a check of it. */
+const settled = <R>(result: R | Promise<R>, check: (result: R) => R): R | Promise<R> =>
+  result instanceof Promise ? result.then(check) : check(result);
 /** An act of a program: what it takes, what it does, and what it promises. */
 export function programAct<X extends Program, S extends TSchema>(declared: Declared<X, S>): ProgramAct<X> {
   const { input, reach, refuses = [], offered, output, run, cases, confirms, today, also, datum } = declared;
@@ -161,14 +165,12 @@ export function programAct<X extends Program, S extends TSchema>(declared: Decla
     if (result.status === "rejected") declaredCause(result.reason);
     return result;
   };
-  const act = toolAct<X, S>(
-    input,
-    (value, context) => {
-      const result = run(value, context);
-      return result instanceof Promise ? result.then(checked) : checked(result);
-    },
-    reach,
-  );
+  /** What a field of it says is wrong never reaches the act, through whatever door it came. */
+  const held: Declared<X, S>["run"] = (value, context) => {
+    const wrong = wrongIn(input, value);
+    return wrong === undefined ? run(value, context) : { status: "rejected", reason: wrong };
+  };
+  const act = toolAct<X, S>(input, (value, context) => settled(held(value, context), checked), reach);
   const guarded: ToolAct<X>["offered"] = (state, target) => {
     const cause = offered?.(state, target);
     return cause === undefined ? undefined : declaredCause(cause);
