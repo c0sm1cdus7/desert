@@ -2,7 +2,7 @@
 import { object } from "../../src/catalogs/acts.ts";
 import { anyToolScreen } from "../../src/surface/bridge/any-tool.ts";
 import { section, type ProgramScreen, type Shown } from "../../src/surface/bridge/house-ports.ts";
-import type { ViewRow } from "../../src/surface/contract.ts";
+import type { ViewRow } from "../../src/surface/shown-tool.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
 import { paymentsTool, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
@@ -23,6 +23,7 @@ export const registered = { act: "register", input: { sale: "s1", total: 1500 } 
 const whole = { payment: "full-s1", amount: 1500, sale: "s1" };
 export const settles = "sales · settle · a sale is settled for what it still owes";
 export const settledTwice = "sales · settle · a settled sale is not settled again";
+export const stillOwing = "sales · settle · a sale that still owes keeps asking for attention when another is settled";
 /** Settling a sale receives, in one act on it, the payment for everything it still owes. */
 const settle = programAct<Shop, typeof taken>({
   label: "Saldar",
@@ -49,6 +50,18 @@ const settle = programAct<Shop, typeof taken>({
         says: "Settled s1",
         facts: [{ kind: "payment-received", data: whole }],
         reads: { lines: [{ total: "$ 1500", paid: "$ 1500", by: "ana" }] },
+        needs: [],
+      },
+    },
+    {
+      promise: "a sale that still owes keeps asking for attention when another is settled",
+      given: [registered, { act: "register", input: { sale: "s2", total: 90 } }],
+      on: "sales/s1",
+      input: {},
+      then: {
+        says: "Settled s1",
+        facts: [{ kind: "payment-received", data: whole }],
+        needs: [{ target: "sales/s2", why: "Debe $ 90" }],
       },
     },
     {
@@ -60,9 +73,18 @@ const settle = programAct<Shop, typeof taken>({
     },
   ],
 });
-export const settlingShop: Composition<Shop> = {
+/** Every sale that still owes needs someone to act, and says how much. */
+const owing = (state: State<Shop>) =>
+  [...state.tools.sales.keys()]
+    .map(sale => `sales/${sale}`)
+    .filter(target => owed(state, target) > 0)
+    .map(target => ({ target, why: `Debe $ ${owed(state, target)}` }));
+const needing = { ...salesTool, needs: owing, acts: { ...salesTool.acts, settle } };
+export const settlingShop: Composition<Shop> = { ...shopProgram, registry: [needing, paymentsTool] };
+/** The same shop, whose sales never say they need anyone: what its cases promise of that is not kept. */
+export const carelessShop: Composition<Shop> = {
   ...shopProgram,
-  registry: [{ ...salesTool, acts: { ...salesTool.acts, settle } }, paymentsTool],
+  registry: [{ ...needing, needs: () => [] }, paymentsTool],
 };
 export const every = "sales:every";
 /** The sales one view further in: the tool's own view opens a row that lists them. */
@@ -90,7 +112,7 @@ export const hidingShown: Shown<Shop> = { ...shopShown, screens: { sales: hiding
 /** The same shop, whose settling says that the sale leaves the list it was opened from. */
 export const leavingShop: Composition<Shop> = {
   ...shopProgram,
-  registry: [{ ...salesTool, acts: { ...salesTool.acts, settle: { ...settle, leaves: true } } }, paymentsTool],
+  registry: [{ ...needing, acts: { ...needing.acts, settle: { ...settle, leaves: true } } }, paymentsTool],
 };
 const settledOnes = "sales:settled";
 /** The settled sales apart: the tool's own view lists what still owes, and one row opens the rest. */

@@ -4,7 +4,7 @@ import { money } from "../../src/catalogs/fields.ts";
 import { anyToolScreen } from "../../src/surface/bridge/any-tool.ts";
 import { section, type ProgramScreen, type Shown, type Start } from "../../src/surface/bridge/house-ports.ts";
 import { menuTarget } from "../../src/surface/bridge/program-acts.ts";
-import type { ViewRow } from "../../src/surface/contract.ts";
+import type { ViewRow } from "../../src/surface/shown-tool.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
 import { paymentsTool, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
@@ -73,7 +73,7 @@ const partsOf = (thing: string): string => `${menuTarget(thing, "edit")}/parts`;
 type Rows = (start: Start, thing: string, today: ReturnType<typeof todayOf>) => ViewRow[];
 /** A screen whose Edit menu leads to another menu, where each part of the sale is asked alone. */
 const parted =
-  (rows: Rows): ProgramScreen<Shop> =>
+  (rows: Rows, fragile = false): ProgramScreen<Shop> =>
   (ports, tool, words, acts, start) => {
     const plain = anyToolScreen(ports, tool, words, acts, start);
     return {
@@ -83,6 +83,8 @@ const parted =
         const menu = under(target, "#edit");
         const parts = under(target, "#edit/parts");
         if (menu) return [section("Editar", [{ key: "p", title: "Partes", opens: partsOf(menu) }])];
+        /** A fragile menu of parts is there only while nothing was paid: once something is, it no longer exists. */
+        if (parts && fragile && (todayOf(ports.state(), parts)?.paid ?? 0) > 0) throw new Error(`no parts of ${parts}`);
         if (parts) return [section("Partes", rows(start, parts, todayOf(ports.state(), parts)))];
         return plain.view(target);
       },
@@ -107,3 +109,10 @@ export const staleShown = shownWith(parted(stale));
 export const twinsShown = shownWith(parted(twins));
 /** A screen whose Edit menu lists nothing: the act under it is declared, and no list a person reaches has it. */
 export const lostShown = shownWith(parted(() => []));
+/** The parts menu goes away once the sale was paid something: correcting what was paid takes its own menu away. */
+export const fragileShown = shownWith(parted(honest, true));
+/** The same shop, whose correcting says that it may take away the menu it was taken from. */
+export const leavingCorrect: Composition<Shop> = {
+  ...shopProgram,
+  registry: [{ ...sales, acts: { ...sales.acts, correct: { ...correct, leaves: true } } }, paymentsTool],
+};

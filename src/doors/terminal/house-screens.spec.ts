@@ -99,7 +99,7 @@ describe("the terminal, on a program's house", () => {
     const done = await press("00\r");
     expect(done).toEqual(expect.arrayContaining(["Venta s1", "Total $ 1.500,00", `Listo Sale s1 · ${clock}`]));
     expect(rig.state().tools.sales.get("s1")).toEqual({ total: 150_000, paid: 0, by: "ana" });
-    expect(await press(escape)).toContain("s1 | $ 150000");
+    expect(await press(escape)).toContain("[1] s1 | $ 150000");
     const sale = await press("\r");
     expect(sale[0]).toContain("s1");
     expect(sale).toEqual(expect.arrayContaining(["Datos", "Total | $ 150000", "Cobrado | $ 0", "Registró | ana"]));
@@ -111,8 +111,24 @@ describe("the terminal, on a program's house", () => {
     rig.attend("beto", "sales");
     rig.act("beto", "register", { sale: "s7", total: 70 }, "sales");
     expect(shown(router).some(line => line.includes("Requiere atención"))).toBe(true);
-    expect(await press("\r")).toContain("s7 | $ 70");
+    expect(await press("v")).toContain("[2] s7 | $ 70");
     expect((await press(escape)).some(line => line.includes("Requiere atención"))).toBe(false);
+  });
+
+  it("opens every menu with what needs someone to act and what the others did, until each is opened", async () => {
+    const { rig, router, press } = open();
+    const lists = ["Atención", "Nada pide atención.", "Actividad", "Nada nuevo de los demás."];
+    expect(shown(router)).toEqual(expect.arrayContaining(lists));
+    rig.attend("beto", "sales");
+    rig.act("beto", "register", { sale: "s7", total: 70 }, "sales");
+    rig.act("ana", "register", { sale: "s8", total: 80 }, "sales", rig.state().through);
+    expect(shown(router)).toEqual(expect.arrayContaining(["Actividad", "[1] Sale s7 | beto"]));
+    expect(shown(router).some(line => line.includes("Sale s8"))).toBe(false);
+    expect(await press("v")).toEqual(expect.arrayContaining(["Actividad", "[1] Sale s7 | beto", "[2] s7 | $ 70"]));
+    expect((await press("1"))[0]).toContain("s7");
+    const back = await press(escape);
+    expect(back).toEqual(expect.arrayContaining(["Actividad", "Nada nuevo de los demás.", "[1] s7 | $ 70"]));
+    expect(shown(open("beto").router)).toEqual(expect.arrayContaining(lists));
   });
 
   it("leaves when the person asks to, and not before", () => {

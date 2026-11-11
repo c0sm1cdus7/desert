@@ -1,5 +1,6 @@
 // What each intent does where you are: the only place that moves a session.
-import type { Field, Intent, Mask, Result, Tool } from "./contract.ts";
+import type { Field, Intent, Mask } from "./contract.ts";
+import type { Result, Tool } from "./shown-tool.ts";
 import { choices, cursorOf, goneOf } from "./lists.ts";
 import { actOf, begin, fieldOf, toolOf, maskOf, optionsOf, opened, start, validOf } from "./screen.ts";
 import type { Asking, Running, Session, Stepped, Walk } from "./screen.ts";

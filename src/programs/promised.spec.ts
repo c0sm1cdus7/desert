@@ -7,8 +7,8 @@ import { cast, given, staged, type Check } from "./promised-stage.ts";
 import { promisedChecks } from "./promised.ts";
 import { brokenShops } from "../../tests/support/broken-shops.ts";
 import { apartShown, every, hidingShown, nestedShown, registered } from "../../tests/support/settling-shop.ts";
-import { leavingShop, mutedShown, settledTwice, settles, settlingShop } from "../../tests/support/settling-shop.ts";
-import { stubbornShown } from "../../tests/support/settling-shop.ts";
+import { leavingShop, mutedShown, settledTwice, settlingShop } from "../../tests/support/settling-shop.ts";
+import { carelessShop, stillOwing, stubbornShown } from "../../tests/support/settling-shop.ts";
 import { shopProgram, shopShown } from "../../tests/support/shop.ts";
 
 /** The names of the checks that fail, in the order they ran. */
@@ -33,15 +33,12 @@ describe("a program with acts on its things", () => {
   for (const check of walkedChecks(settlingShop, shopShown)) it(check.name, check.run);
   for (const check of walkedChecks(settlingShop, nestedShown)) it(`${check.name}, two views deep`, check.run);
   const hidden = `${settledTwice}, hidden for who prefers not to see what cannot be done`;
-  it("a screen that lists none of its things fails every check that has to reach one, and no other", async () => {
-    const walks = [settles, settledTwice].map(check => `${check}, by keys`);
-    expect(await failing(walkedChecks(settlingShop, hidingShown))).toEqual([...walks, hidden]);
+  it("a screen that lists none of its things fails what has to reach one that nothing else leads to", async () => {
+    /** A sale that still owes is reached from Attention; a settled one, from nowhere. */
+    expect(await failing(walkedChecks(settlingShop, hidingShown))).toEqual([`${settledTwice}, by keys`, hidden]);
   });
 
   for (const check of walkedChecks(leavingShop, apartShown)) it(`${check.name}, leaving its list`, check.run);
-  it("an act that takes its thing off the list without saying so fails its walk: it lands nowhere", async () => {
-    expect(await failing(walkedChecks(settlingShop, apartShown))).toEqual([`${settles}, by keys`]);
-  });
 
   it("a screen that takes what cannot be done off its list fails what that refusal promises to show", async () => {
     expect(await failing(walkedChecks(settlingShop, mutedShown))).toEqual([`${settledTwice}, by keys`, hidden]);
@@ -58,5 +55,10 @@ describe("a program with acts on its things", () => {
       const settle = tools.find(tool => tool.id === "sales")?.actsOn?.settle;
       expect([settle?.listed?.("sales/s1"), settle?.listed?.(every)]).toEqual([true, false]);
     });
+  });
+
+  it("a tool that does not say what its cases promise needs someone to act fails that, on every door", async () => {
+    const checks = [...promisedChecks(carelessShop), ...walkedChecks(carelessShop, shopShown)];
+    expect(await failing(checks)).toEqual([stillOwing, `${stillOwing}, in Attention with why`]);
   });
 });

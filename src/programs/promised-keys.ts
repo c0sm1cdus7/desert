@@ -3,7 +3,7 @@ import { ok, strictEqual } from "node:assert/strict";
 import { caseInstant } from "../catalogs/time.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import { houseTools } from "../surface/bridge/house-tools.ts";
-import type { Tool } from "../surface/contract.ts";
+import type { Tool } from "../surface/shown-tool.ts";
 import { startRouter, type Router } from "../surface/router.ts";
 import { choices, stacksOf, type Choice } from "../surface/lists.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";

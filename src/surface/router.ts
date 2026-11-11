@@ -1,5 +1,6 @@
 // The one way a surface talks with a house: intents in, the screen out. Every renderer uses it, and decides nothing.
-import type { Intent, Result, Screen, Tool } from "./contract.ts";
+import type { Intent, Screen } from "./contract.ts";
+import type { Result, Tool } from "./shown-tool.ts";
 import { resolve } from "./resolve.ts";
 import { actOf, start, type Bar, type Running, type Session, type Viewport } from "./screen.ts";
 import { finished, settled, step } from "./step.ts";

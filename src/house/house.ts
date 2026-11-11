@@ -13,7 +13,9 @@ export type Attention = Readonly<{ delay: number; wake: string }>;
 /** What a house knows of each identity: what it keeps in view, what asks for its attention, what it may read. */
 export type HouseView = Readonly<{ by: string; house: House; entries: readonly HouseEvent<"tool-entry">[] }> &
   Readonly<{ attends: readonly string[]; attendance: ReadonlyMap<string, readonly string[]> }> &
-  Readonly<{ attention: Attentions; attentionBy: ReadonlyMap<string, Attentions> }>;
+  Readonly<{ attention: Attentions; attentionBy: ReadonlyMap<string, Attentions> }> &
+  /** When each identity last had each target in front: what others wrote there since is news to it. */
+  Readonly<{ looked: ReadonlyMap<string, ReadonlyMap<string, number>> }>;
 type Attentions = ReadonlyMap<string, Attention>;
 const noAttention: Attentions = new Map();
 export const houseChannel: string = ids.houseChannel;

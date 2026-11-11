@@ -58,6 +58,7 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
         strictEqual(saidBy(done), kase.then.says);
         if (kase.then.reads) deepStrictEqual(readOn(house(), aim, kase, kase.then.reads.on), kase.then.reads.lines);
         if (kase.then.calls) deepStrictEqual(calledSince(house(), before.through), kase.then.calls);
+        if (kase.then.needs) deepStrictEqual(aim.tool.needs?.(house().tools.state()) ?? [], kase.then.needs);
       }
       const after = house().tools.state().tools;
       deepStrictEqual(rebuilt(program, house()), after);

@@ -3,7 +3,8 @@ import type { Act } from "../../catalogs/acts.ts";
 import type { ViewLimits } from "../../catalogs/levers.ts";
 import type { ExecutionResult } from "../../tools/execute.ts";
 import type { Program, State, ToolRegistry } from "../../tools/tool-contract.ts";
-import type { Screen, Tool as SurfaceTool, ViewRow } from "../contract.ts";
+import type { Screen } from "../contract.ts";
+import type { Tool as SurfaceTool, ViewRow } from "../shown-tool.ts";
 import type { Locale } from "../masks.ts";
 import type { ProgramTool } from "../../tools/promises.ts";
 /** What the surface needs from a running house; nothing here knows how it runs. */

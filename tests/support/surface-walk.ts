@@ -1,5 +1,6 @@
 // Walks a surface by its own intents, from a fresh set of tools each time, so no path has to be written by hand.
-import type { Hint, Intent, Screen, Span, ThreadEvent, Tool } from "../../src/surface/contract.ts";
+import type { Hint, Intent, Screen, Span, ThreadEvent } from "../../src/surface/contract.ts";
+import type { Tool } from "../../src/surface/shown-tool.ts";
 import { resolve } from "../../src/surface/resolve.ts";
 import { actOf, start, type Session } from "../../src/surface/screen.ts";
 import { finished, settled, step } from "../../src/surface/step.ts";

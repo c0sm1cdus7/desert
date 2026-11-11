@@ -2,7 +2,8 @@
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import type { Talk } from "./talk.ts";
 import { foundAt, must } from "./window.ts";
-import type { Field, Option, Screen, Tool, ViewRow } from "./contract.ts";
+import type { Field, Option, Screen } from "./contract.ts";
+import type { Tool, ViewRow } from "./shown-tool.ts";
 export type Picture =
   | { readonly kind: "menu"; readonly at: number }
   | { readonly kind: "view"; readonly tool: string; readonly target?: string; readonly at: number };

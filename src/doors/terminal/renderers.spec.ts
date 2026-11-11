@@ -2,7 +2,8 @@
 import { describe, expect, it } from "vitest";
 import { rulesTool, seed } from "../../../../tests/support/surface-rules.ts";
 import { chosenText, hintTexts, mainTexts, panelTexts, walk } from "../../../../tests/support/surface-walk.ts";
-import type { HintKey, Intent, Screen, Tool } from "../../surface/contract.ts";
+import type { HintKey, Intent, Screen } from "../../surface/contract.ts";
+import type { Tool } from "../../surface/shown-tool.ts";
 import { bytesOf, textOf, type Grid } from "./cells.ts";
 import { keysOf } from "./input.ts";
 import { contentRows, keyNames, paint } from "./paint.ts";

@@ -17,5 +17,6 @@ export const genericTexts = {
     now: (name: string, how: string) => `${name} · ${how.toLowerCase()}`,
     off: { name: "Acciones apagadas", key: "a", purpose: "Las acciones que ahora no se pueden hacer." },
     foreign: { name: "Herramientas ajenas", key: "h", purpose: "Las herramientas que no están entre las tuyas." },
+    empty: { name: "Listas vacías", key: "l", purpose: "Atención y Actividad mientras no tienen nada." },
   },
 } as const;

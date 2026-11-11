@@ -69,7 +69,7 @@ describe("what each tool keeps", () => {
   it("leaves the house's own state without any tool's part", () => {
     expect(Object.keys(emptyHouseState).sort()).toEqual(
       [
-        ...["acts", "attendance", "attends", "attention", "attentionBy"],
+        ...["acts", "attendance", "attends", "attention", "attentionBy", "looked"],
         ...["by", "entries", "house", "processing", "through"],
       ].sort(),
     );

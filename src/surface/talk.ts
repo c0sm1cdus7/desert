@@ -1,6 +1,7 @@
 // Talking to a tool: one thread, one Entrada, and what opened beside it. Which part has the focus decides the keys.
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
-import type { Attachment, Body, Conversation, Hint, Intent, Panel, Said, Span, ThreadEvent, Tool } from "./contract.ts";
+import type { Attachment, Body, Hint, Intent, Panel, Span, ThreadEvent } from "./contract.ts";
+import type { Conversation, Said, Tool } from "./shown-tool.ts";
 import { must } from "./window.ts";
 
 export interface Talk {

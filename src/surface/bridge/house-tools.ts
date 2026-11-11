@@ -3,10 +3,11 @@ import { allowed, hides } from "../../house/house.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import type { ProgramTool } from "../../tools/promises.ts";
 import type { Program, Tool as HouseTool } from "../../tools/tool-contract.ts";
-import type { Tool } from "../contract.ts";
+import type { Tool } from "../shown-tool.ts";
 import { backKey as back } from "../screen.ts";
 import { anyToolScreen } from "./any-tool.ts";
 import type { HousePorts, Shown, SurfacePorts } from "./house-ports.ts";
+import { noticesOf } from "./notices.ts";
 import { preferencesPlace, preferencesTool } from "./preferences-tool.ts";
 import { programActs } from "./program-acts.ts";
 
@@ -57,8 +58,10 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
     const { acts, start } = programActs(observed, contract, shown.locale);
     const tool = (shown.screens?.[contract.id] ?? anyToolScreen)(observed, contract, words, acts, start);
     const calls = () => ports.state().attention.has(contract.id);
+    const { notices, seen: looked } = noticesOf(observed, contract, tool);
     return {
       ...tool,
+      notices,
       off: () => (mine() ? undefined : generic.notHeld),
       /** A tool nobody gave you is on your Menu unless you prefer not to see what is not yours. */
       listed: () => mine() || !hides(ports.state().house, ports.me, "foreign"),
@@ -67,6 +70,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
         seen.set(target, ports.state().through);
         // Looking at what called you is attending it, the same act anyone does.
         if (calls()) ports.act({ act: "attend", input: { target: contract.id } }, 0);
+        looked(target);
       },
     };
   });

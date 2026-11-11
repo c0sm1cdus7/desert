@@ -1,7 +1,7 @@
 // Rules, walked end to end by keys, against what the storyboard shows.
 import { describe, expect, it } from "vitest";
 import { rulesTool, seed } from "../../../../tests/support/surface-rules.ts";
-import { type Tool } from "../../surface/contract.ts";
+import { type Tool } from "../../surface/shown-tool.ts";
 import { keysOf } from "./input.ts";
 import { textOf } from "./cells.ts";
 import { contentRows, paint } from "./paint.ts";
@@ -33,10 +33,10 @@ describe("the terminal, on rules", () => {
     expect(list[0]).toContain("Reglas");
     expect(list.slice(4, 12).map(row => row.trim().replace(/ {2,}/gu, " | "))).toEqual([
       "Tuyas",
-      "Responder siempre en español | desde el 02/11",
+      "[1] Responder siempre en español | desde el 02/11",
       "",
       "De Nora",
-      "No inventar títulos ni direcciones | desde el 01/11",
+      "[2] No inventar títulos ni direcciones | desde el 01/11",
       "",
       "Acciones",
       "[n] nueva regla | una regla tuya para Nora",

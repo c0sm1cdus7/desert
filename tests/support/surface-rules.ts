@@ -1,5 +1,5 @@
 // Rules as a surface tool, for the specs that walk a renderer.
-import { type Result, type ThingAct, type Tool, type ToolAct } from "../../src/surface/contract.ts";
+import { type Result, type ThingAct, type Tool, type ToolAct } from "../../src/surface/shown-tool.ts";
 
 export interface Rule {
   readonly id: string;

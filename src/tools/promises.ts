@@ -19,7 +19,11 @@ export type Outcome<X extends Program> = Done<X> | Readonly<{ refused: string }>
 type Done<X extends Program> = Readonly<{ says: string; facts: readonly Told<X>[] }> &
   Readonly<{ reads?: Readonly<{ on?: string; lines: readonly unknown[] }> }> &
   /** Whom the act calls for attention, when the case promises it: nobody, for what is written only for the record. */
-  Readonly<{ calls?: readonly string[] }>;
+  Readonly<{ calls?: readonly string[] }> &
+  /** What of its tool needs someone to act afterwards, when the case promises it. */
+  Readonly<{ needs?: readonly Need[] }>;
+/** A thing that needs someone to act, and why: it stays so until what it says is no longer true. */
+export type Need = Readonly<{ target: string; why: string }>;
 /** Given this, when someone does this, this happens. Nobody writes its spec: every door's check derives from it. */
 export type Case<X extends Program, S extends TSchema = TSchema> = Readonly<{
   promise: string;
@@ -45,7 +49,9 @@ export type ProgramAct<X extends Program> = ToolAct<X> &
   /** What the thing has today, in the shape the act takes: an act that changes it opens on it. */
   Readonly<{ today?: (state: State<X>, target: string) => unknown }>;
 export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
-  Readonly<{ acts: Readonly<Record<string, ProgramAct<X>>>; menus?: Readonly<Record<string, Menu>> }>;
+  Readonly<{ acts: Readonly<Record<string, ProgramAct<X>>>; menus?: Readonly<Record<string, Menu>> }> &
+  /** The things of the tool that need someone to act, each saying why: read from what the tool keeps. */
+  Readonly<{ needs?: (state: State<X>) => readonly Need[] }>;
 /** A program, whole: what DESERT needs to run it and to check everything it promises. */
 export type Composition<X extends Program> = Readonly<{
   words: Vocabulary<X["fact"]>;

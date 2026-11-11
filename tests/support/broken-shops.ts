@@ -39,6 +39,7 @@ const emptyState = {
   entries: [],
   attends: [],
   attendance: new Map<string, readonly string[]>(),
+  looked: new Map<string, ReadonlyMap<string, number>>(),
   attention: new Map<string, { delay: number; wake: string }>(),
   attentionBy: new Map<string, ReadonlyMap<string, { delay: number; wake: string }>>(),
   processing: new Map<string, never>(),

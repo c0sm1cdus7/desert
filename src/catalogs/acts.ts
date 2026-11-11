@@ -4,8 +4,9 @@ import { toolTexts } from "../texts/tools.texts.ts";
 export const object = <T extends TProperties>(fields: T) => Type.Object(fields, { additionalProperties: false });
 const name = Type.String({ minLength: toolLimits.minText });
 const target = object({ target: Type.String({ ...name, description: toolTexts.target }) });
-/** What a person may prefer not to see: what cannot be done now, and the tools that are not theirs. */
-export const hideable = ["off", "foreign"] as const;
+/** What a person may prefer not to see: what cannot be done now, the tools that are not theirs, and the lists
+ * every menu opens with while they have nothing. */
+export const hideable = ["off", "foreign", "empty"] as const;
 export type Hideable = (typeof hideable)[number];
 /** One preference of one identity: whether it hides one of those. */
 export const preference = object({

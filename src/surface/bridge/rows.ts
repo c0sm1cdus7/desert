@@ -1,5 +1,5 @@
 // A tool's text view read as rows: what has an id opens; the rest is a label, in the program's words, and its value.
-import type { ViewRow } from "../contract.ts";
+import type { ViewRow } from "../shown-tool.ts";
 export const field = (value: unknown, key: string): unknown =>
   value !== null && typeof value === "object" ? Reflect.get(value, key) : undefined;
 export const list = (value: unknown): readonly unknown[] => (Array.isArray(value) ? value : []);

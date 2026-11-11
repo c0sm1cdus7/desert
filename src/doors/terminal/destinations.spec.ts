@@ -1,7 +1,8 @@
 // One destination, one picture: an act cannot name a destination it does not have, and what is missing says so.
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { rulesTool, seed } from "../../../tests/support/surface-rules.ts";
-import type { Field, Option, Screen, ThingAct, ThreadEvent, Tool, ToolAct } from "../../surface/contract.ts";
+import type { Field, Option, Screen, ThreadEvent } from "../../surface/contract.ts";
+import type { ThingAct, Tool, ToolAct } from "../../surface/shown-tool.ts";
 import { resolve } from "../../surface/resolve.ts";
 import { actOf, start, type Done, type Running, type Session, type Walk } from "../../surface/screen.ts";
 import { finished, settled, step } from "../../surface/step.ts";

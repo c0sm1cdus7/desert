@@ -7,7 +7,7 @@ import { effect, processOf, type Emission, type Event, type HouseEmission } from
 import { emptyMap, initial, listOf } from "../journal/projections.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { accepted, ownAct, reading, rejected } from "./act-definition.ts";
-import { attendsStep, targetTool } from "./attendance.ts";
+import { attendsStep, lookedStep, targetTool } from "./attendance.ts";
 import { actReach, execute, type Execution } from "./execute.ts";
 import { preferenceAct } from "./preferences.ts";
 import type { HouseState, OwnAct, Program, Slices, State, ToolRegistry } from "./tool-contract.ts";
@@ -18,6 +18,7 @@ export const emptyHouseState: HouseState = initial({
   processing: emptyMap(),
   acts: emptyMap(),
   attentionBy: emptyMap<ReadonlyMap<string, Attention>>(),
+  looked: emptyMap<ReadonlyMap<string, number>>(),
   entries: listOf(),
   attends: listOf<string>(),
   attention: emptyMap<Attention>(),
@@ -66,6 +67,7 @@ function houseStateStep<S extends HouseState>(state: S, event: Event): S {
     ...openActs(state, event),
     attentionBy,
     attendance,
+    looked: lookedStep(state.looked, event),
     house: houseStep(state.house, event),
     entries: entry.length ? [...state.entries, ...entry] : state.entries,
     attends: attendance.get(state.by) ?? [],

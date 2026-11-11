@@ -3,7 +3,7 @@ import { hideable, type Hideable } from "../../catalogs/acts.ts";
 import { hides } from "../../house/house.ts";
 import { genericTexts } from "../../texts/generic-surface.texts.ts";
 import type { Program } from "../../tools/tool-contract.ts";
-import type { Result, Tool, ToolAct, ViewRow } from "../contract.ts";
+import type { Result, Tool, ToolAct, ViewRow } from "../shown-tool.ts";
 import { section, settle, type SurfacePorts } from "./house-ports.ts";
 
 const said = genericTexts.preferences;

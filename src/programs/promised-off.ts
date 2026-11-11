@@ -12,7 +12,7 @@ import { cast, given, label, staged, type Aim, type Check } from "./promised-sta
 
 const preferences = generic.preferences;
 /** A preference set the way a person sets it: Preferences from the Menu, the row of what to hide, and the answer. */
-async function prefer<X extends Program>({ router }: Seat<X>, what: Hideable, hide: boolean): Promise<void> {
+export async function prefer<X extends Program>({ router }: Seat<X>, what: Hideable, hide: boolean): Promise<void> {
   type(router, preferences.key);
   strictEqual(router.screen(view).title, preferences.name);
   type(router, preferences[what].key + (hide ? preferences.hide.key : preferences.show.key));

@@ -1,6 +1,7 @@
 // An action as a thread: what was answered, what it asks now, and how it ended. Every action looks like this.
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
-import type { Body, Field, Hint, Row, Span, ThreadEvent, Tool } from "./contract.ts";
+import type { Body, Field, Hint, Row, Span, ThreadEvent } from "./contract.ts";
+import type { Tool } from "./shown-tool.ts";
 import { errorSpans } from "./talk.ts";
 import { must } from "./window.ts";
 import { actOf, maskOf, optionsOf, validOf, type Done, type Running, type Walk } from "./screen.ts";

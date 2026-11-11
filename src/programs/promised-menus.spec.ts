@@ -12,6 +12,7 @@ import {
   registered,
 } from "../../tests/support/correcting-shop.ts";
 import { overpaid, staleShown, totalCorrected, twinsShown } from "../../tests/support/correcting-shop.ts";
+import { fragileShown, leavingCorrect } from "../../tests/support/correcting-shop.ts";
 import { shopShown, type Shop } from "../../tests/support/shop.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import type { Screen } from "../surface/contract.ts";
@@ -98,5 +99,10 @@ describe("a program with a menu on its things", () => {
 
   it("fails every walk through a list where two rows take one key", async () => {
     expect(await failing(walkedChecks(correctingShop, twinsShown))).toEqual(everyWalk);
+  });
+
+  for (const check of walkedChecks(leavingCorrect, fragileShown)) it(`${check.name}, leaving its menu`, check.run);
+  it("fails the walk of an act that takes away its own menu without saying so: it lands nowhere", async () => {
+    expect(await failing(walkedChecks(correctingShop, fragileShown))).toEqual(keys(paidCorrected));
   });
 });

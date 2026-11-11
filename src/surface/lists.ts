@@ -1,6 +1,8 @@
 // What each place lists: the tools on the Menu, a tool's own rows, and the acts and menus that can be taken there.
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
-import type { Stack, Tool, ViewRow } from "./contract.ts";
+import type { Stack } from "./contract.ts";
+import type { Notice, Tool, ViewRow } from "./shown-tool.ts";
+import type { Tone } from "./tones.ts";
 import { begin, toolOf, type Picture, type Place, type Session } from "./screen.ts";
 import { startTalk } from "./talk.ts";
 
@@ -67,16 +69,54 @@ function menuRow(tool: Tool): Choice {
   if (why !== undefined) return { ...row, detail: why, off: true };
   const open: Place =
     tool.conversation && !tool.conversationAt ? startTalk(tool.id) : { kind: "view", tool: tool.id, at: 0 };
-  return { ...row, ...(tool.calls?.() ? { detail: said.attention, tone: "wait" } : { detail: tool.summary() }), open };
+  const asks = tool.calls?.() === true || (tool.notices?.().needs.length ?? 0) > 0;
+  return { ...row, ...(asks ? { detail: said.attention, tone: "wait" } : { detail: tool.summary() }), open };
 }
-export function stacksOf(place: Picture, tools: readonly Tool[]): readonly Listed[] {
+/** What a tool says a person should know of, as rows that lead to what each is about. */
+const noticeRows = (tool: Tool, notices: readonly Notice[], tone?: Tone): Choice[] =>
+  notices.map(({ title, detail, opens }) => {
+    const leads = opens === undefined ? {} : { opens };
+    const open: Place = { kind: "view", tool: tool.id, ...(opens === undefined ? {} : { target: opens }), at: 0 };
+    return { title, detail, ...(tone ? { tone } : {}), ...leads, open };
+  });
+/** Attention and Activity, the two lists a menu opens with: what needs someone to act, and what the others did.
+ * They are there even with nothing in them, unless the person prefers not to see them then. */
+function noticed(tools: readonly Tool[]): readonly Listed[] {
+  const all = tools.flatMap(tool => {
+    const notices = tool.notices?.();
+    return notices ? [{ tool, notices }] : [];
+  });
+  const quiet = all.some(({ notices }) => notices.quiet);
+  const needs = all.flatMap(({ tool, notices }) => noticeRows(tool, notices.needs, "wait"));
+  const news = all.flatMap(({ tool, notices }) => noticeRows(tool, notices.news));
+  const lists = [
+    { title: said.attentionList, empty: said.nothingNeeds, rows: needs },
+    { title: said.activity, empty: said.nothingNew, rows: news },
+  ];
+  return all.length ? lists.filter(list => list.rows.length || !quiet) : [];
+}
+/** Every row that leads somewhere is taken by a key: one that brings none takes a digit, in the order the rows are
+ * listed, for as long as there are digits. */
+function keyed(stacks: readonly Listed[]): readonly Listed[] {
+  const taken = new Set(stacks.flatMap(stack => stack.rows.map(row => row.key)));
+  const free = Array.from("123456789").filter(digit => !taken.has(digit));
+  const withKey = (row: Choice): Choice => {
+    const key = row.key === undefined && row.open ? free.shift() : undefined;
+    return key === undefined ? row : { ...row, key };
+  };
+  return stacks.map(stack => ({ ...stack, rows: stack.rows.map(withKey) }));
+}
+export const stacksOf = (place: Picture, tools: readonly Tool[]): readonly Listed[] => keyed(listedAt(place, tools));
+function listedAt(place: Picture, tools: readonly Tool[]): readonly Listed[] {
   if (place.kind === "menu") {
-    return (["tools", "system"] as const)
+    const listed = tools.filter(tool => tool.listed?.() !== false);
+    const sections = (["tools", "system"] as const)
       .map(section => ({
         title: said.sections[section],
-        rows: tools.filter(tool => tool.place.section === section && tool.listed?.() !== false).map(menuRow),
+        rows: listed.filter(tool => tool.place.section === section).map(menuRow),
       }))
       .filter(stack => stack.rows.length);
+    return [...noticed(listed.filter(tool => tool.off?.() === undefined)), ...sections];
   }
   const tool = toolOf(tools, place.tool);
   const opensTo = (target: string): Place =>
@@ -90,17 +130,26 @@ export function stacksOf(place: Picture, tools: readonly Tool[]): readonly Liste
     }),
   }));
   const acts = actionRows(tools, tool, place.target);
-  return acts.length ? [...shown, { title: said.actions, rows: acts }] : shown;
+  const own = place.target === undefined ? [...noticed([tool]), ...shown] : shown;
+  return acts.length ? [...own, { title: said.actions, rows: acts }] : own;
 }
 export const choices = (place: Picture, tools: readonly Tool[]): readonly Choice[] =>
   stacksOf(place, tools).flatMap(stack => stack.rows.filter(row => row.open ?? row.press));
-/** Someone else removed what you stand on: it is said as such, never drawn as another screen. */
+/** Someone else removed what you stand on: it is said as such, never drawn as another screen. What the place you
+ * came from no longer lists is gone only if its tool no longer answers for it: a list may let go of what you
+ * opened from it because you opened it. */
 export function goneOf(session: Session, tools: readonly Tool[]): boolean {
   const place = session.at(-1);
   const parent = session.at(-2);
   if (place?.kind !== "view" || place.target === undefined) return false;
   if (parent?.kind !== "view" && parent?.kind !== "menu") throw new Error(`nothing lists ${place.target}`);
-  return !stacksOf(parent, tools).some(stack => stack.rows.some(row => row.opens === place.target));
+  if (stacksOf(parent, tools).some(stack => stack.rows.some(row => row.opens === place.target))) return false;
+  try {
+    toolOf(tools, place.tool).view(place.target);
+    return false;
+  } catch {
+    return true;
+  }
 }
 export const cursorOf = (place: Picture, tools: readonly Tool[]): number =>
   Math.min(place.at, Math.max(choices(place, tools).length - 1, 0));

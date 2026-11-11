@@ -67,6 +67,24 @@ describe("what each identity prefers not to see", () => {
   });
 });
 
+describe("what each identity last had in front", () => {
+  it("is dated by its own attending, never by a process that runs in its name, and kept across a restart", () => {
+    const rig = open();
+    rig.attend("ana", "sales");
+    const first = rig.state().looked.get("ana")?.get("sales") ?? 0;
+    expect(first).toBeGreaterThan(0);
+    expect([...(rig.state().looked.get("ana")?.keys() ?? [])]).toEqual(["sales"]);
+    rig.bus.emit(effect("attended", { target: "sales" }, "ana", [], "process-1"));
+    expect(rig.state().looked.get("ana")?.get("sales")).toBe(first);
+    rig.attend("ana", "sales");
+    expect(rig.state().looked.get("ana")?.get("sales")).toBeGreaterThan(first);
+    expect(rig.state().looked.has("beto")).toBe(false);
+    const kept = rig.state().looked;
+    rig.restart();
+    expect(rig.state().looked).toEqual(kept);
+  });
+});
+
 describe("a house's channels", () => {
   it("names a channel by its members, whoever creates it and in whatever order", () => {
     const rig = open({ grants: { ana: [], beto: [], carla: [] } });

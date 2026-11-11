@@ -1,7 +1,7 @@
 // A program's tool on a surface when it brings no screen of its own: its rows come from what its view reads.
 import type { ProgramTool } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
-import type { Tool, ViewRow } from "../contract.ts";
+import type { Tool, ViewRow } from "../shown-tool.ts";
 import { must } from "../window.ts";
 import { section, type ScreenActs, type Start, type SurfacePorts, type ToolWords } from "./house-ports.ts";
 import { briefOf, listedIn, rowsIn } from "./rows.ts";
