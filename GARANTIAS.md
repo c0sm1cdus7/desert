@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 117. Deudas: 23.
+Leyes: 119. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -97,7 +97,7 @@ Leyes: 117. Deudas: 23.
 | 90 | La actividad se muestra con su propio dato (contador) | REGLAS §11 | la cumple la superficie | `src/surface/walk.ts` |
 | 91 | Late la palabra: fundido de 1,6 s, por pasos de color en la terminal | REGLAS §11 | la cumple la superficie | `src/surface/walk.ts` |
 | 92 | Español | REGLAS §12 | DEUDA | Derivada sobre el catálogo de textos. |
-| 93 | La interfaz no habla: ni 1ª/2ª persona, ni preguntas, ni explicaciones; vocabulario cerrado | REGLAS §12 | DEUDA | Derivada: un laws que lea src/texts/*.texts.ts y los says/refused de los casos contra vocabulario cerrado y sin ¿ ? !, segunda persona ni «vos». |
+| 93 | La interfaz no habla: ni segunda persona, ni preguntas con signos, ni oraciones en nombres, causas, preguntas y resultados; vale igual para los textos propios de DESERT | REGLAS §12 | el programa no arranca | `src/catalogs/addressing.ts` `src/tools/promises.ts` `src/surface/bridge/asking-parts.ts` `src/programs/promised.ts` `src/programs/own-words.spec.ts` |
 | 94 | Cada identidad con su nombre: no hay Vos ni Tuyas | REGLAS §12 | DEUDA | Misma derivada de la fila 93. |
 | 95 | No se muestra nada interno que la persona no pueda accionar | REGLAS §12 | DEUDA | Derivada: fallar si un título o dato coincide con un id de herramienta o cosa. |
 | 96 | Las acciones destructivas piden confirmación | REGLAS §12 | el programa no arranca | `src/tools/promises.ts` |
@@ -124,3 +124,5 @@ Leyes: 117. Deudas: 23.
 | 117 | Un dato con forma solo acepta lo que entra en ella: declararlo como texto libre hace que el programa no arranque | LEYES 11 · Franco 11/11 | el programa no arranca | `src/surface/bridge/asking-parts.ts` `src/surface/masks.ts` `src/catalogs/fields.ts` |
 | 118 | Lo que se escribió con forma (CUIT, DNI) se lee siempre con esa forma | Franco 11/11 | prueba derivada de los casos | `src/programs/promised-shapes.ts` `src/programs/promised.ts` |
 | 119 | Lo que una fila lee se sigue leyendo cuando su acción no se puede hacer: apagada dice el dato y después por qué; oculta por preferencia queda el dato sin tecla | 11/11 · consecuencia de «una fila que se puede cambiar abre su acción» y de LEYES 5 | prueba derivada de los casos | `src/programs/promised-off.ts` `src/programs/promised-walk.ts` `src/surface/lists.ts` `src/programs/promised-data.spec.ts` |
+| 120 | Una pregunta que elige una cosa nunca queda sobre una lista vacía: dice que no hay (o por qué no se llega) y solo deja salir | 11/11 · visto al unir un pago sin ventas | la cumple la superficie | `src/surface/walk.ts` `src/surface/step.ts` `src/surface/bridge/house-tools.ts` `src/programs/promised-also.spec.ts` |
+| 121 | Vocabulario cerrado: verbos, estados y objetos salen de un conjunto cerrado; tampoco primera persona | REGLAS §12 | DEUDA | Derivada: un catálogo cerrado de verbos y estados contra el que se lean nombres, causas y resultados de cada programa y los textos de DESERT. |

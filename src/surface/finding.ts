@@ -37,6 +37,6 @@ export function foundAt(place: Picture, sought: string, tools: readonly Tool[]):
   const results = (here ? [here] : seekers(tools))
     .map(tool => ({ title: here ? said.found : tool.name, rows: wanted === "" ? [] : found(tool, wanted) }))
     .filter(stack => stack.rows.length);
-  const none = { title: said.found, rows: [], empty: wanted === "" ? said.typeToFind : said.nothingFound };
+  const none = { title: said.found, rows: [], empty: said.nothingFound };
   return [typing, ...(results.length ? results : [none])];
 }

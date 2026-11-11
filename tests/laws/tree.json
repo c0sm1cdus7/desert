@@ -5,6 +5,7 @@
     "adapters/storage/home.ts": "privateDatabase: a house's files on disk, readable only by whoever runs it",
     "adapters/storage/journal-store.ts": "SqliteJournal: append-only facts of a house and its program, replay, snapshots, one open lock",
     "catalogs/acts.ts": "object schemas, the act envelope every door sends, and the acts of every house",
+    "catalogs/addressing.ts": "addresses: whether a text speaks to whoever reads it, by its pronouns, orders and verbs of the second person",
     "catalogs/fields.ts": "the fields an act can take, each with how it is asked: text, money, quantity, count, day, option, oneOf, many",
     "catalogs/ids.ts": "the ids the house reserves: an identity's own acts, channels, reminders, secrets",
     "catalogs/levers.ts": "limits and file modes the house runs with; ViewLimits; the shortest secret",
@@ -53,6 +54,7 @@
     "surface/tones.ts": "surface tones: UI tones and chart data tones",
     "surface/walk.ts": "an act as a thread: answers, the current question, running or done; hints",
     "surface/window.ts": "long lists windowed around the chosen row; must, foundAt",
+    "texts/addressing.texts.ts": "addressingTexts: the pronouns, orders and look-alike words by which a text is known to address its reader",
     "texts/generic-surface.texts.ts": "what the bridge says whatever the program: optional, confirm, offline",
     "texts/journal.texts.ts": "journal errors: invalid event, closed bus, locked house, taken kind",
     "texts/promises.texts.ts": "the names of the checks a program's promises derive",
@@ -70,14 +72,14 @@
   "folders": {
     "adapters/secrets": 103,
     "adapters/storage": 154,
-    "catalogs": 99,
+    "catalogs": 110,
     "doors/terminal": 545,
     "house": 82,
     "journal": 295,
-    "programs": 908,
-    "surface": 1407,
-    "surface/bridge": 935,
-    "texts": 156,
-    "tools": 727
+    "programs": 910,
+    "surface": 1415,
+    "surface/bridge": 948,
+    "texts": 166,
+    "tools": 730
   }
 }

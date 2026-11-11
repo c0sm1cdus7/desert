@@ -45,13 +45,13 @@ describe("the terminal, looking for things", () => {
       rig.act("ana", "register", { sale, total }, "sales", rig.state().through);
     expect((await press("v")).at(-1)).toContain("espacio buscar");
     const started = await press(" ");
-    expect(started).toEqual(expect.arrayContaining(["Buscar", "›", "Encontrados", "Escribí para buscar."]));
+    expect(started).toEqual(expect.arrayContaining(["Buscar", "›", "Encontrados", "Sin resultados."]));
     expect(started.some(line => line.includes("Registrar"))).toBe(false);
     expect(started.at(-1)).toContain("esc cerrar");
     const narrowed = await press("CAFÉ");
     expect(narrowed).toEqual(expect.arrayContaining(["› CAFÉ", "café molido | $ 10", "Cafe en grano | $ 20"]));
     expect(narrowed.some(line => line.includes("té |"))).toBe(false);
-    expect(await press(" x")).toContain("Nada coincide.");
+    expect(await press(" x")).toContain("Sin resultados.");
     expect(await press("\x7f\x7f grano")).toEqual(expect.arrayContaining(["› CAFÉ grano", "Cafe en grano | $ 20"]));
     expect((await press("\r"))[0]).toContain("Cafe en grano");
     const closed = await press(escape);

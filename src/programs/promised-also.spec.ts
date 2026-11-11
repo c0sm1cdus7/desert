@@ -12,6 +12,9 @@ import { shopShown } from "../../tests/support/shop.ts";
 
 const closing: { close?(): void; stop?(): void }[] = [];
 afterEach(() => closing.splice(0).forEach(open => (open.stop ?? open.close)?.()));
+const bar = { state: "connected", clock: "00:00", now: 0 } as const;
+const named: Readonly<Record<string, Intent>> = { "\r": { kind: "confirm" }, "\x1b": { kind: "cancel" } };
+const keyOf = (char: string): Intent => named[char] ?? { kind: "type", text: char };
 /** A shop where ana holds both tools and beto only the sales; two sales registered by ana. */
 const seat = (me: string) => {
   const rig = shopRig({ registry: chargingRegistry, grants: { ana: ["sales", "payments"], beto: ["sales"] } });
@@ -22,7 +25,6 @@ const seat = (me: string) => {
   ] as const)
     rig.act("ana", "register", { sale, total }, "sales", rig.state().through);
   const tools = houseTools(rig.ports(me), shopShown);
-  const bar = { state: "connected", clock: "00:00", now: 0 } as const;
   const router = startRouter({ tools, bar: () => bar });
   closing.push(router, rig);
   const rowsOf = (body: Screen["body"]) => {
@@ -34,9 +36,8 @@ const seat = (me: string) => {
     const rows = rowsOf(body).map(row => [row.entry ? `› ${row.entry.typed}` : row.title, row.detail]);
     return [title, ...said, ...rows.map(row => row.filter(Boolean).join(" | "))];
   };
-  const keys_: Readonly<Record<string, Intent>> = { "\r": { kind: "confirm" }, "\x1b": { kind: "cancel" } };
   const press = (keys: string): string[] => {
-    for (const char of Array.from(keys)) router.send(keys_[char] ?? { kind: "type", text: char });
+    for (const char of Array.from(keys)) router.send(keyOf(char));
     return read(router.screen({ rows: 40 }));
   };
   return { rig, tools, router, press };
@@ -56,13 +57,26 @@ describe("a program whose acts reach across its tools", () => {
     expect(press("pc")).toEqual(["Cobrar", "Venta", "s1 | $ 1500", "s2 | $ 90"]);
     expect(press(" ")).toEqual(["Cobrar", "Venta", "› ", "s1 | $ 1500", "s2 | $ 90"]);
     expect(press("2")).toEqual(["Cobrar", "Venta", "› 2", "s2 | $ 90"]);
-    expect(press("x")).toEqual(["Cobrar", "Venta", "› 2x", "Nada coincide."]);
+    expect(press("x")).toEqual(["Cobrar", "Venta", "› 2x", "Sin resultados."]);
     /** Escape closes the search and the whole list is back; the number of a row takes it. */
     expect(press("\x1b")).toEqual(["Cobrar", "Venta", "s1 | $ 1500", "s2 | $ 90"]);
     expect(press("2")).toEqual(["Cobrar", "Venta s2", "Monto"]);
     press("90\r\r");
     await router.idle();
     expect(rig.state().tools.payments.received).toBe(90);
+  });
+
+  it("says there is nothing to pick among where its tool has none, and takes nothing but leaving", () => {
+    const rig = shopRig({ registry: chargingRegistry });
+    const router = startRouter({ tools: houseTools(rig.ports("ana"), shopShown), bar: () => bar });
+    closing.push(router, rig);
+    for (const text of ["p", "c", " ", "1", "\r"]) router.send(keyOf(text));
+    const { title, body, hints } = router.screen({ rows: 40 });
+    expect([title, body.kind === "thread" ? body.options : []]).toEqual([
+      "Cobrar",
+      [{ title: "Sin ventas.", still: true, tone: "t3" }],
+    ]);
+    expect(hints.map(hint => hint.does)).toEqual(["cancelar"]);
   });
 
   it("offers on a thing what another tool does with it, starting with what the thing already says", async () => {
@@ -80,7 +94,7 @@ describe("a program whose acts reach across its tools", () => {
 
   it("shows it off to who does not hold that other tool, and hides it if they prefer not to see such", () => {
     const { rig, tools } = seat("beto");
-    expect(actionsOn(tools, "sales/s1")).toEqual([["c", "cobrar", "No está entre tus herramientas.", true]]);
+    expect(actionsOn(tools, "sales/s1")).toEqual([["c", "cobrar", "sin acceso", true]]);
     rig.act("beto", "prefer", { hide: "foreign", on: true });
     expect(actionsOn(tools, "sales/s1")).toEqual([]);
   });

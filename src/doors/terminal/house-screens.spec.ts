@@ -38,9 +38,7 @@ describe("the terminal, on a program's house", () => {
   it("shows on the Menu every tool of the program: the ones this identity does not hold, off, saying why", async () => {
     expect(shown(open("ana").router)).toEqual(expect.arrayContaining(["[v] ventas | 0", "[p] pagos | 0"]));
     const { router, press } = open("beto");
-    expect(shown(router)).toEqual(
-      expect.arrayContaining(["[v] ventas | 0", "[p] pagos | No está entre tus herramientas."]),
-    );
+    expect(shown(router)).toEqual(expect.arrayContaining(["[v] ventas | 0", "[p] pagos | sin acceso"]));
     expect(shown(router)[0]).toContain(clock);
     expect((await press("p"))[0]).toContain("Menú");
     expect((await press("\r"))[0]).toContain("Ventas");
@@ -51,18 +49,16 @@ describe("the terminal, on a program's house", () => {
     expect(shown(router)).toEqual(expect.arrayContaining(["Sistema", "[,] preferencias"]));
     expect(await press(",")).toEqual(
       expect.arrayContaining([
-        "Qué ves",
-        "[a] Acciones apagadas | Se muestran",
-        "[h] Herramientas ajenas | Se muestran",
+        "Preferencias",
+        "[a] acciones apagadas | visibles",
+        "[h] herramientas ajenas | visibles",
       ]),
     );
     const asked = await press("h");
-    expect(asked).toEqual(
-      expect.arrayContaining(["Las herramientas que no están entre las tuyas.", "[m] Mostrar", "[o] Ocultar"]),
-    );
+    expect(asked).toEqual(expect.arrayContaining(["Herramientas ajenas", "[m] Mostrar", "[o] Ocultar"]));
     expect(asked.at(-1)).toContain("enter guardar");
-    expect(await press("o")).toContain(`Listo Herramientas ajenas · ocultas · ${clock}`);
-    expect(await press(escape)).toContain("[h] Herramientas ajenas | Ocultas");
+    expect(await press("o")).toContain(`Listo Cambiado · Herramientas ajenas · ocultas · ${clock}`);
+    expect(await press(escape)).toContain("[h] herramientas ajenas | ocultas");
     await press("h");
     const { body } = router.screen({ rows: contentRows(size.rows) });
     expect(body.kind === "thread" && body.options?.find(option => option.selected)?.title).toBe("Ocultar");
@@ -117,7 +113,7 @@ describe("the terminal, on a program's house", () => {
 
   it("opens every menu with what needs someone to act and what the others did, until each is opened", async () => {
     const { rig, router, press } = open();
-    const lists = ["Atención", "Nada pide atención.", "Actividad", "Nada nuevo de los demás."];
+    const lists = ["Atención", "Sin pendientes.", "Actividad", "Sin novedades."];
     expect(shown(router)).toEqual(expect.arrayContaining(lists));
     rig.attend("beto", "sales");
     rig.act("beto", "register", { sale: "s7", total: 70 }, "sales");
@@ -129,7 +125,7 @@ describe("the terminal, on a program's house", () => {
     );
     expect((await press("1"))[0]).toContain("s7");
     const back = await press(escape);
-    expect(back).toEqual(expect.arrayContaining(["Actividad", "Nada nuevo de los demás.", "[1] s7 | $ 70"]));
+    expect(back).toEqual(expect.arrayContaining(["Actividad", "Sin novedades.", "[1] s7 | $ 70"]));
     expect(shown(open("beto").router)).toEqual(expect.arrayContaining(lists));
   });
 

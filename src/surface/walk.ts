@@ -39,6 +39,9 @@ function pickRows(walk: Walk, question: Field & { kind: "pick" }): readonly Row[
     const key = walk.finding || i > 8 ? {} : { key: String(i + 1) };
     return { ...option, ...key, selected: i === walk.at };
   });
+  /** Nothing to pick among is said where the list would be: the question never stands over nothing. */
+  if (!walk.finding && !rows.length && question.nothing())
+    return [{ title: question.nothing(), still: true, tone: "t3" }];
   if (!walk.finding) return rows;
   const typing: Row = { title: "", entry: { typed: walk.typed, caret: Array.from(walk.typed).length } };
   return [typing, ...(rows.length ? rows : [{ title: said.nothingFound, still: true, tone: "t3" as const }])];
@@ -83,6 +86,7 @@ export function walkHints(walk: Walk, field: Field | null, tools: readonly Tool[
   const enter: Hint = { intent: "confirm", does: enterSays(walk, field, tools) };
   if (isTyped(field)) return validOf(field, walk.typed) ? [enter, leave] : [leave];
   const move: Hint = { intent: "move", does: k.choose };
+  if (field?.kind === "pick" && !walk.finding && !field.found("").length) return [leave];
   if (field?.kind === "pick" && walk.finding) return [move, enter, { intent: "cancel", does: k.close }];
   if (field?.kind === "pick") return [move, enter, { intent: "find", does: k.find }, leave];
   return field?.kind === "many" ? [move, { intent: "mark", does: k.mark }, enter, leave] : [move, enter, leave];

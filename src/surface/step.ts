@@ -80,6 +80,8 @@ function picking(
   const set = (next: Partial<Asking>): Stepped => ({ session: replace(session, { ...walk, ...next }) });
   const sought = (typed: string): Stepped => set({ typed, caret: Array.from(typed).length, at: 0 });
   const found = field.found(walk.finding ? walk.typed : "");
+  /** With nothing to pick among there is nothing to look for either: only leaving is left. */
+  if (!walk.finding && !found.length) return { session };
   if (walk.finding && key.kind === "type") return sought(walk.typed + key.text);
   if (walk.finding && key.kind === "erase") return sought(Array.from(walk.typed).slice(0, -1).join(""));
   if (key.kind === "type" && key.text === " ") return set({ finding: true, typed: "", caret: 0, at: 0 });

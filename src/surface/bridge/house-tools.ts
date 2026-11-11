@@ -77,13 +77,17 @@ function auditActs<X extends Program>(tool: ProgramTool<X>): void {
 const picked = ({ title, detail }: ViewRow, value: string): Option => ({ title, ...(detail ? { detail } : {}), value });
 /** The things of a tool as an answer picks them: only of a tool this identity holds, found the way its menu finds. */
 const thingsOf =
-  <X extends Program>(ports: HousePorts<X>, tools: readonly ProgramTool<X>[], shown: () => readonly Tool[]) =>
+  <X extends Program>(ports: HousePorts<X>, { words }: Shown<X>, shown: () => readonly Tool[]) =>
   (id: string): Things | undefined => {
     const tool = shown().find(known => known.id === id);
-    const contract = tools.find(known => known.id === id);
-    if (!tool?.find || !contract || tool.off?.() !== undefined) return undefined;
+    const contract = ports.registry.filter(isProgramTool).find(known => known.id === id);
+    if (!tool?.find || !contract) return undefined;
+    /** The things of a tool this identity does not hold are out of reach: none is found, and it says why. */
+    const why = tool.off?.();
+    if (why !== undefined) return { found: () => [], shown: thing => thing, has: () => false, empty: why };
     const open = (thing: string): boolean => contract.closed?.(ports.state(), thing) !== true;
     return {
+      empty: words[id]?.empty ?? "",
       found: sought =>
         (tool.find?.(sought) ?? []).flatMap(row => (row.opens && open(row.opens) ? [picked(row, row.opens)] : [])),
       shown: thing => tool.titleOf?.(thing) ?? thing,
@@ -99,7 +103,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
   audit(tools, shown);
   const titled = (tool: string, target: string): string =>
     own.find(known => known.id === tool)?.titleOf?.(target) ?? target;
-  const asked = { locale: shown.locale, things: thingsOf(ports, tools, () => own), titled };
+  const asked = { locale: shown.locale, things: thingsOf(ports, shown, () => own), titled };
   const built = tools.flatMap(contract => {
     const words = shown.words[contract.id];
     return words ? [{ contract, words, ...programActs(observed, contract, asked) }] : [];

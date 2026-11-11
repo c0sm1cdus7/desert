@@ -1,4 +1,5 @@
 // Every check a program's promises derive: nobody writes them. Each case is a check; so is each law of every act.
+import { addresses } from "../catalogs/addressing.ts";
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import { identityView } from "../house/house.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
@@ -11,7 +12,7 @@ import { cast, given, label, perform, runner, staged, wroteSince } from "./promi
 import type { Aim, Check, Decided, House } from "./promised-stage.ts";
 
 /** What an act says it did, by parts: one word for what was done, then what it was done to, then what matters. */
-const composed = /^\p{Lu}\p{Ll}+ · \S.*$/u;
+export const composed = /^\p{Lu}\p{Ll}+ · \S.*$/u;
 /** Whom the house called for attention since a point of the journal, each identity once, in order. */
 const calledSince = <X extends Program>(house: House<X>, seq: number): string[] => [
   ...new Set(
@@ -69,6 +70,7 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
         deepStrictEqual(wrote, kase.then.facts);
         strictEqual(saidBy(done)?.text, kase.then.says);
         ok(composed.test(kase.then.says), said.notComposed(kase.then.says));
+        ok(!addresses(kase.then.says), said.speaks(kase.then.says));
         strictEqual(saidBy(done)?.recipient !== undefined, kase.then.privately === true, said.forWhom);
         if (kase.then.reads) deepStrictEqual(readOn(house(), aim, kase, kase.then.reads.on), kase.then.reads.lines);
         /** What was written in a shape is read in it, on the thing the act left and on its tool's list. */

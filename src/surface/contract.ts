@@ -116,6 +116,8 @@ export type Field = Question &
         readonly kind: "pick";
         readonly found: (sought: string) => readonly Option[];
         readonly shown: (answer: string) => string;
+        /** What it says where there is nothing to pick among: a question never stands over an empty list. */
+        readonly nothing: () => string;
       }
     | { readonly kind: "confirm"; readonly options: readonly Option[]; readonly reversible?: boolean }
   );

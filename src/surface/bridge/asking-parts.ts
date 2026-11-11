@@ -1,6 +1,7 @@
 // What asking an act and reading its answers share: how a declared field says its question, its options and its value.
 import type { TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { addresses } from "../../catalogs/addressing.ts";
 import type { Field, Option } from "../contract.ts";
 import { isFormat, limited, padded, shaped, type Format, type FormatName } from "../masks.ts";
 
@@ -9,6 +10,8 @@ export type Things = Readonly<{
   found(sought: string): readonly Option[];
   shown(thing: string): string;
   has(thing: string): boolean;
+  /** What is said where none of them can be picked: that the tool has none, or why they are out of reach. */
+  empty: string;
 }>;
 /** What asking needs beyond the declaration: the formats of the program's country, the marks of an optional field
  * and of picking nothing, and the things of each tool that an answer can pick. */
@@ -29,6 +32,7 @@ export const word = (schema: unknown, key: string): string => {
 /** A question is a noun: it carries no signs and ends with no full stop or colon. */
 export const asked = (question: string): string => {
   if (/[¿?¡!]|[.:]$/u.test(question)) throw new Error(`A question is a noun, without signs: ${question}`);
+  if (addresses(question)) throw new Error(`A question speaks to who reads it: ${question}`);
   return question;
 };
 export const titleOf = (schema: unknown, ctx: Ctx): string =>
@@ -72,7 +76,8 @@ function picked(schema: TSchema, ctx: Ctx, of: string): Field {
   ];
   const valid = (answer: string): boolean => (ctx.optional && answer === "") || things()?.has(answer) === true;
   const shown = (answer: string): string => (answer === "" ? absent : (things()?.shown(answer) ?? answer));
-  return { ask: asked(word(schema, "title")), kind: "pick", found, shown, valid };
+  const nothing = (): string => things()?.empty ?? "";
+  return { ask: asked(word(schema, "title")), kind: "pick", found, shown, valid, nothing };
 }
 export function written(schema: TSchema, ctx: Ctx): Field {
   const of = at(schema, "of");

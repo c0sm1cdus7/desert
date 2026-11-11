@@ -1,4 +1,5 @@
 // What a program promises of each act: the causes it may refuse with, and cases that say what happens. Specs derive.
+import { addresses } from "../catalogs/addressing.ts";
 import type { Static, TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import type { Vocabulary } from "../journal/events.ts";
@@ -117,13 +118,15 @@ const verb = /^[a-záéíóúñü]{2,14}$/u;
  * when the program is composed. */
 export function worded<W extends { name: string; enter?: string }>(words: W): W {
   if (!phrase.test(words.name)) throw new Error(`An act's name is a sentence, or too long for its row: ${words.name}`);
+  if (addresses(words.name)) throw new Error(`An act's name speaks to who reads it: ${words.name}`);
   if (words.enter !== undefined && !verb.test(words.enter))
     throw new Error(`What confirms an act is one verb in lower case: ${words.enter}`);
   return words;
 }
 /** A cause is said as a datum, to the right of the act it turned off: no full stop, and short enough to fit. */
-function short(cause: string): void {
+export function short(cause: string): void {
   if (cause.length > 44 || /[.!?]$/u.test(cause)) throw new Error(`A cause reads as a sentence: ${cause}`);
+  if (addresses(cause)) throw new Error(`A cause speaks to who reads it: ${cause}`);
 }
 /** Whether an act takes anything at all: an object with a field, or one of several shapes. */
 const asksSomething = (input: TSchema): boolean => {

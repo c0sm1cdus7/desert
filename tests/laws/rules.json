@@ -679,10 +679,16 @@
     },
     {
       "id": 93,
-      "rule": "La interfaz no habla: ni 1ª/2ª persona, ni preguntas, ni explicaciones; vocabulario cerrado",
+      "rule": "La interfaz no habla: ni segunda persona, ni preguntas con signos, ni oraciones en nombres, causas, preguntas y resultados; vale igual para los textos propios de DESERT",
       "from": "REGLAS §12",
-      "guarantee": "debt",
-      "debt": "Derivada: un laws que lea src/texts/*.texts.ts y los says/refused de los casos contra vocabulario cerrado y sin ¿ ? !, segunda persona ni «vos»."
+      "guarantee": "compose",
+      "evidence": [
+        "src/catalogs/addressing.ts",
+        "src/tools/promises.ts",
+        "src/surface/bridge/asking-parts.ts",
+        "src/programs/promised.ts",
+        "src/programs/own-words.spec.ts"
+      ]
     },
     {
       "id": 94,
@@ -883,6 +889,26 @@
         "src/surface/lists.ts",
         "src/programs/promised-data.spec.ts"
       ]
+    },
+    {
+      "id": 120,
+      "rule": "Una pregunta que elige una cosa nunca queda sobre una lista vacía: dice que no hay (o por qué no se llega) y solo deja salir",
+      "from": "11/11 · visto al unir un pago sin ventas",
+      "guarantee": "surface",
+      "evidence": [
+        "src/surface/walk.ts",
+        "src/surface/step.ts",
+        "src/surface/bridge/house-tools.ts",
+        "src/programs/promised-also.spec.ts"
+      ]
+    },
+    {
+      "id": 121,
+      "rule": "Vocabulario cerrado: verbos, estados y objetos salen de un conjunto cerrado; tampoco primera persona",
+      "from": "REGLAS §12",
+      "guarantee": "debt",
+      "evidence": [],
+      "debt": "Derivada: un catálogo cerrado de verbos y estados contra el que se lean nombres, causas y resultados de cada programa y los textos de DESERT."
     }
   ]
 }

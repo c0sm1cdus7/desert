@@ -31,6 +31,7 @@ export const promiseTexts = {
   actsWhileFinding: "a row starts an act while a person is looking for something",
   stillFinding: "going back from what was found leaves the menu still looking",
   notComposed: (text: string) => `what the act says is a sentence, not «Verbo · Objeto · Detalle»: ${text}`,
+  speaks: (text: string) => `what the act says speaks to who reads it: ${text}`,
   bare: (digits: string) => `a datum written in a shape is read without it: ${digits}`,
   overflows: "a screen does not fit the smallest terminal: what is left out is not counted, and it draws over the bars",
   emptyLists: "Attention and Activity open every menu even with nothing in them, unless a person prefers not",
