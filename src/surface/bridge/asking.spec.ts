@@ -2,7 +2,7 @@
 import { Type } from "@sinclair/typebox";
 import { describe, expect, it } from "vitest";
 import { object } from "../../catalogs/acts.ts";
-import { count, day, many, money, oneOf, option, quantity, text } from "../../catalogs/fields.ts";
+import { count, day, many, money, oneOf, option, quantity, text, usually } from "../../catalogs/fields.ts";
 import { formats } from "../masks.ts";
 import { asking } from "./asking.ts";
 
@@ -61,6 +61,13 @@ describe("asking what an act takes", () => {
     expect(asked(13)).toMatchObject({ ask: "A nombre de (opcional)", placeholder: "Nombre" });
     expect(asked(14)).toBeNull();
     expect(ask.next(["Cosas"])).toMatchObject({ ask: "Artículo 1" });
+  });
+
+  it("opens a choice on its usual answer, when it has one", () => {
+    const rate = usually("IVA", "21", option("10.5", "10,5%", "1"), option("21", "21%", "a"));
+    const ask = asking(object({ rate }), words);
+    expect(ask.next([])).toMatchObject({ ask: "IVA", kind: "one", initial: "21%" });
+    expect(ask.input(["10,5%"])).toEqual({ rate: "10.5" });
   });
 
   it("takes in a field only what its declaration takes, and nothing in an optional one is an answer", () => {

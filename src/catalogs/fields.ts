@@ -27,5 +27,8 @@ export const thing = (ask: string, tool: string) => Type.String({ minLength: 1, 
 export const option = <V extends string>(value: V, title: string, key: string) => Type.Literal(value, { title, key });
 /** One of several: plain options, or shapes told apart by an option each of them carries. */
 export const oneOf = <T extends TSchema[]>(ask: string, ...arms: [...T]) => Type.Union(arms, { title: ask });
+/** One of several, opening on the usual one: a person confirms it, or picks another. */
+export const usually = <T extends TSchema[]>(ask: string, usual: string, ...arms: [...T]) =>
+  Type.Union(arms, { title: ask, default: usual });
 /** One or more of the same thing. In a title, {n} is the position of the thing being asked. */
 export const many = <T extends TSchema>(item: T, more: More) => Type.Array(item, { minItems: 1, more });

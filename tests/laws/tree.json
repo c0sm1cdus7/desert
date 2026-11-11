@@ -66,16 +66,16 @@
     "tools/tools.ts": "house state and each tool's part folded together; attendance acts; attention ladder; startTools"
   },
   "folders": {
-    "adapters/secrets": 107,
+    "adapters/secrets": 103,
     "adapters/storage": 154,
-    "catalogs": 75,
-    "doors/terminal": 594,
+    "catalogs": 78,
+    "doors/terminal": 536,
     "house": 82,
-    "journal": 298,
+    "journal": 295,
     "programs": 790,
     "surface": 1284,
-    "surface/bridge": 814,
-    "texts": 518,
+    "surface/bridge": 817,
+    "texts": 149,
     "tools": 669
   }
 }

@@ -15,7 +15,10 @@ function leaf(schema: TSchema, ctx: Ctx, from: number): Got {
 function choice(schema: TSchema, ctx: Ctx, from: number): Got {
   const arms = armsOf(schema);
   const answer = ctx.answers[from];
-  if (answer === undefined) return { ask: one(titleOf(schema, ctx), arms.map(choiceOf)) };
+  /** A choice that has a usual answer opens on it. */
+  const usual = arms.find(arm => at(arm, "const") !== undefined && at(arm, "const") === at(schema, "default"));
+  const opening = usual ? { initial: word(usual, "title") } : {};
+  if (answer === undefined) return { ask: { ...one(titleOf(schema, ctx), arms.map(choiceOf)), ...opening } };
   return {
     value: at(
       arms.find(arm => at(arm, "title") === answer),
