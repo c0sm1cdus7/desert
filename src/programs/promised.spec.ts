@@ -96,6 +96,27 @@ describe("a program with acts on its things", () => {
     expect(await failing(lists)).toEqual([]);
   });
 
+  it("an act on the tool itself that is not for someone is off for them, and hidden if they prefer", async () => {
+    const cause = "not for beto";
+    const registry = settlingShop.registry.map(tool => {
+      const register = tool.acts.register;
+      if (tool.id !== "sales" || !register) return tool;
+      const closed = { promise: "beto does not register", by: cast.member, ...registered, then: { refused: cause } };
+      const offered = (state: { by: string }) => (state.by === cast.member ? cause : undefined);
+      const refuses = [...register.refuses, cause];
+      return { ...tool, acts: { ...tool.acts, register: { ...register, offered, refuses, cases: [closed] } } };
+    });
+    const program = { ...settlingShop, registry };
+    const checks = [...promisedChecks(program), ...walkedChecks(program, shopShown)];
+    const mine = checks.filter(check => check.name.includes("beto does not register"));
+    expect(mine.map(check => check.name.split(" · ").at(-1))).toEqual([
+      "beto does not register",
+      "beto does not register, by keys",
+      "beto does not register, hidden for who prefers not to see what cannot be done",
+    ]);
+    expect(await failing(mine)).toEqual([]);
+  });
+
   it("a tool that does not say what its cases promise needs someone to act fails that, on every door", async () => {
     const checks = [...promisedChecks(carelessShop), ...walkedChecks(carelessShop, shopShown)];
     expect(await failing(checks)).toEqual([stillOwing, `${stillOwing}, in Attention with why`]);

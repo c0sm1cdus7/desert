@@ -120,11 +120,13 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
   const entries = Object.entries(tool.acts).map(([name, act]) => walked(ports, name, act, asked));
   const onTool = entries
     .filter(({ act }) => act.on === "tool")
-    .map(({ name, walk }): [string, ToolAct] => {
-      /** Offered from another tool's thing, it is off for who does not hold this tool, and hidden for who prefers
-       * not to see what is not theirs. */
-      const listed = (): boolean => foreign() === undefined || !hides(ports.state().house, ports.me, "foreign");
-      return [name, { ...walk, scope: "all", off: foreign, listed, run: answers => walk.run(answers, tool.id) }];
+    .map(({ name, act, walk }): [string, ToolAct] => {
+      /** Off for who does not hold the tool, and while the tool itself says why it cannot be done. Hidden, then,
+       * for who prefers not to see what is not theirs, or what cannot be done. */
+      const off = (): string | undefined => foreign() ?? act.offered?.(ports.state(), tool.id);
+      const listed = (): boolean =>
+        off() === undefined || !hides(ports.state().house, ports.me, foreign() === undefined ? "off" : "foreign");
+      return [name, { ...walk, scope: "all", off, listed, run: answers => walk.run(answers, tool.id) }];
     });
   const onThing = entries
     .filter(({ act }) => act.on === "thing")
