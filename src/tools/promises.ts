@@ -45,9 +45,11 @@ export type Offered = Readonly<{ label: string; purpose: string; key: string }> 
   Readonly<{ under?: string }>;
 /** An act on a tool that is also offered among the actions of each thing of another tool: it starts there with what
  * that thing already says of what it takes, the first things it asks; nothing, when it is not for that thing. */
-export type Also<X extends Program, I = unknown> = Readonly<{
+export type Also<X extends Program> = Readonly<{
   tool: string;
-  with: (state: State<X>, target: string) => I | undefined;
+  with: (state: State<X>, target: string) => Readonly<Record<string, unknown>> | undefined;
+  /** What the questions after those open on, when that thing suggests an answer the person may change. */
+  opens?: (state: State<X>, target: string) => Readonly<Record<string, unknown>>;
 }>;
 /** A menu of a tool's things: an option among their actions that leads to the acts under it. */
 export type Menu = Readonly<{ label: string; purpose: string; key: string }>;
@@ -75,7 +77,7 @@ type Declared<X extends Program, S extends TSchema> = Readonly<{ input: S; reach
   Offered &
   Readonly<{ confirms?: (input: Static<S>) => string }> &
   Readonly<{ today?: (state: State<X>, target: string) => Static<S> | undefined }> &
-  Readonly<{ also?: Also<X, Readonly<Record<string, unknown>>> }> &
+  Readonly<{ also?: Also<X> }> &
   /** Every cause this act may refuse with; refusing with any other is a defect of the program. */
   Readonly<{ refuses?: readonly string[]; offered?: NonNullable<ToolAct<X>["offered"]> }> &
   Readonly<{ run(input: Static<S>, context: ActContext<X>): ActResult<X> | Promise<ActResult<X>> }> &

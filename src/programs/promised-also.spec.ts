@@ -65,9 +65,10 @@ describe("a program whose acts reach across its tools", () => {
     const { rig, tools, router, press } = seat("ana");
     expect(actionsOn(tools, "sales/s1")).toEqual([["c", "Cobrar", "Recibe un pago de una venta.", false]]);
     expect(press("v1c")).toEqual(["Cobrar", "Venta s1", "Monto"]);
-    press("500\r\r");
+    expect(router.screen({ rows: 40 }).body).toMatchObject({ entry: { typed: "$ 15,00" } });
+    press("\r\r");
     await router.idle();
-    expect(rig.state().tools.sales.get("s1")?.paid).toBe(500);
+    expect(rig.state().tools.sales.get("s1")?.paid).toBe(1500);
     router.send({ kind: "cancel" });
     expect(router.screen({ rows: 40 }).title).toBe("s1");
   });

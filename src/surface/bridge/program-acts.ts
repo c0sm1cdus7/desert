@@ -128,13 +128,15 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
     entries.flatMap(({ name, act, ask }) => {
       const given = act.also?.tool === other ? act.also.with(ports.state(), target) : undefined;
       if (given === undefined) return [];
-      const answers = ask.leading(given);
-      if (ask.next(answers) === null && !act.confirms)
+      const fixed = ask.leading(given);
+      /** What the thing suggests comes after what it fixes: those questions open on it, and are still asked. */
+      const answers = ask.leading({ ...given, ...act.also?.opens?.(ports.state(), target) });
+      if (ask.next(fixed) === null && !act.confirms)
         throw new Error(
           `${tool.id} offers ${name} on ${other} asking nothing, and the act does not ask to be confirmed`,
         );
       const row = { key: act.key, title: act.label, detail: act.purpose, act: name, on: { tool: tool.id } };
-      return [{ ...row, with: { answers, from: answers.length } }];
+      return [{ ...row, with: { answers, from: fixed.length } }];
     });
   return { acts, start: starter(tool.id, entries), offers };
 }

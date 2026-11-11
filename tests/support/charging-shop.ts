@@ -23,7 +23,11 @@ const charge = programAct<Shop, typeof charged>({
   key: "c",
   on: "tool",
   input: charged,
-  also: { tool: "sales", with: (_state, target) => ({ sale: target }) },
+  also: {
+    tool: "sales",
+    with: (_state, target) => ({ sale: target }),
+    opens: (state, target) => ({ amount: state.tools.sales.get(nameOf(target))?.total ?? 0 }),
+  },
   refuses: ["unknown"],
   run: ({ sale, amount }, { by, state }) => {
     if (!state.tools.sales.has(nameOf(sale))) return { status: "rejected", reason: "unknown" };
