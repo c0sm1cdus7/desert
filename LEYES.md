@@ -2,6 +2,8 @@
 
 Decididas por Franco el 10/11/2026. Valen para todo programa (Kenon, Capibara). Cada una dice si ya está o si se debe.
 
+Qué hace cumplir cada ley, y cada regla de la terminal, está en `GARANTIAS.md`: sale de `tests/laws/rules.json`, y el gate falla si una ley no tiene garantía ni figura como deuda (Franco, 11/11: «si no, no es una regla, es un deseo»).
+
 | # | Ley | Estado |
 |---|---|---|
 | 1 | Toda acción lleva propósito, como la herramienta. | HECHO: `programAct` lo exige y la superficie lo muestra al lado de la acción. |

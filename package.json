@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --project specs",
     "laws": "vitest run --project laws",
-    "gate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm laws"
+    "gate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm laws",
+    "rules": "node tests/laws/write-rules.ts"
   },
   "devDependencies": {
     "@types/node": "24.19.2",

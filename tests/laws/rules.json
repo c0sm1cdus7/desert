@@ -1,0 +1,819 @@
+{
+  "debts": 30,
+  "rules": [
+    {
+      "id": 1,
+      "rule": "Celda 12×24, IBM Plex Mono 20/24",
+      "from": "REGLAS §2",
+      "guarantee": "debt",
+      "debt": "No aplica a la terminal; tipo de tamaños en un renderer web."
+    },
+    {
+      "id": 2,
+      "rule": "Solo regular y negrita",
+      "from": "REGLAS §2",
+      "guarantee": "type",
+      "evidence": ["src/doors/terminal/cells.ts", "src/surface/contract.ts"]
+    },
+    {
+      "id": 3,
+      "rule": "Todo texto cae en una celda dentro de la grilla",
+      "from": "REGLAS §2, §17",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/cells.ts", "src/doors/terminal/destinations.spec.ts"]
+    },
+    {
+      "id": 4,
+      "rule": "Mínimo 40×16; por debajo solo «Ventana muy chica»",
+      "from": "REGLAS §2, §14",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts", "src/texts/surface.texts.ts"]
+    },
+    {
+      "id": 5,
+      "rule": "Tres zonas que nunca se mueven (Barra, Contenido, Toolbar)",
+      "from": "REGLAS §3",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts"]
+    },
+    {
+      "id": 6,
+      "rule": "Barra y Toolbar de lado a lado con borde; Toolbar un solo riel",
+      "from": "REGLAS §3",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts"]
+    },
+    {
+      "id": 7,
+      "rule": "Contenido en columna de 76 centrada",
+      "from": "REGLAS §3",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts"]
+    },
+    {
+      "id": 8,
+      "rule": "Entrada dentro de la columna, fila 26 de 30, con fila libre arriba y abajo",
+      "from": "REGLAS §3",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/terminal.spec.ts", "src/doors/terminal/thread.ts"]
+    },
+    {
+      "id": 9,
+      "rule": "Barra: icono y hora, igual en toda pantalla (también la inicial)",
+      "from": "REGLAS §4",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts", "src/surface/resolve.ts"]
+    },
+    {
+      "id": 10,
+      "rule": "Barra: batería siempre",
+      "from": "REGLAS §4",
+      "guarantee": "debt",
+      "debt": "Tipo: batería obligatoria en Bar."
+    },
+    {
+      "id": 11,
+      "rule": "Cuatro estados cerrados con su icono y color",
+      "from": "REGLAS §4",
+      "guarantee": "type",
+      "evidence": ["src/doors/terminal/paint.ts", "src/surface/contract.ts"]
+    },
+    {
+      "id": 12,
+      "rule": "Sin señal prevalece",
+      "from": "REGLAS §4",
+      "guarantee": "debt",
+      "debt": "Tipo/componer: una sola función barState(red, void) que devuelva el estado por prioridad."
+    },
+    {
+      "id": 13,
+      "rule": "Sin palabras, eventos, avisos ni cantidades en la Barra",
+      "from": "REGLAS §4",
+      "guarantee": "debt",
+      "debt": "Tipo: título = nombre de herramienta, de cosa o de acción, de un tipo con marca."
+    },
+    {
+      "id": 14,
+      "rule": "El punto nunca late",
+      "from": "REGLAS §4, §11",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts"]
+    },
+    {
+      "id": 15,
+      "rule": "Enviar no es un estado",
+      "from": "REGLAS §4",
+      "guarantee": "type",
+      "evidence": ["src/surface/contract.ts"]
+    },
+    {
+      "id": 16,
+      "rule": "Sin señal: lo pendiente queda guardado con «sin enviar» y sale solo; red sin Void: Conectando y «Esperando conexión»",
+      "from": "REGLAS §4",
+      "guarantee": "debt",
+      "debt": "Tipo: Conversation.send devuelve Sent"
+    },
+    {
+      "id": 17,
+      "rule": "La Barra muestra el nombre de la acción",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/surface/resolve.ts"]
+    },
+    {
+      "id": 18,
+      "rule": "Barra: elipsis en el título; icono y hora siempre se ven",
+      "from": "REGLAS §14",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts"]
+    },
+    {
+      "id": 19,
+      "rule": "Toolbar izquierda fija ctrl o menú ctrl c salir; sin ctrl o en acciones; en el Menú ni ctrl o ni esc",
+      "from": "REGLAS §5",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts", "src/surface/resolve.ts"]
+    },
+    {
+      "id": 20,
+      "rule": "Toolbar derecha: solo los aids de lo que está en pantalla",
+      "from": "REGLAS §5",
+      "guarantee": "surface",
+      "evidence": [
+        "src/surface/contract.ts",
+        "src/surface/resolve.ts",
+        "src/surface/shown-tool.ts",
+        "src/surface/talk.ts",
+        "src/surface/walk.ts"
+      ]
+    },
+    {
+      "id": 21,
+      "rule": "↑↓ mueven, enter abre o confirma, esc vuelve; ← → no navegan",
+      "from": "REGLAS §5",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/input.ts", "src/doors/terminal/renderers.spec.ts", "src/surface/step.ts"]
+    },
+    {
+      "id": 22,
+      "rule": "En una Entrada con texto, ← → solo mueven el cursor",
+      "from": "REGLAS §5",
+      "guarantee": "surface",
+      "evidence": ["src/surface/step.ts", "src/surface/talk.ts"]
+    },
+    {
+      "id": 23,
+      "rule": "enter dice lo que hace: continuar, el verbo, o lo elegido",
+      "from": "REGLAS §5",
+      "guarantee": "surface",
+      "evidence": ["src/surface/bridge/program-acts.ts", "src/surface/walk.ts"]
+    },
+    {
+      "id": 24,
+      "rule": "esc desenfoca un mensaje; en una acción vuelve una pregunta",
+      "from": "REGLAS §5, §9",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/terminal.spec.ts", "src/surface/step.ts", "src/surface/talk.ts"]
+    },
+    {
+      "id": 25,
+      "rule": "Todo lo que tiene atajo también se alcanza navegando; la letra no se repite en la Toolbar",
+      "from": "REGLAS §5",
+      "guarantee": "surface",
+      "evidence": ["src/surface/resolve.ts", "src/surface/step.ts"]
+    },
+    {
+      "id": 26,
+      "rule": "La letra de una fila se ve en [x]",
+      "from": "REGLAS §5",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/terminal/thread.ts"]
+    },
+    {
+      "id": 27,
+      "rule": "Debajo de 60 columnas la izquierda queda ctrl o  ctrl c y caen los aids del primero al último",
+      "from": "REGLAS §5, §14",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts"]
+    },
+    {
+      "id": 28,
+      "rule": "El menú es siempre el punto de entrada",
+      "from": "REGLAS §6",
+      "guarantee": "surface",
+      "evidence": ["src/surface/screen.ts", "src/surface/step.ts"]
+    },
+    {
+      "id": 29,
+      "rule": "Dos secciones, Herramientas y Sistema; fila [x] nombre",
+      "from": "REGLAS §6",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/terminal.spec.ts", "src/surface/lists.ts", "src/surface/shown-tool.ts"]
+    },
+    {
+      "id": 30,
+      "rule": "Cada herramienta lleva su tecla, sin repetir",
+      "from": "REGLAS §6",
+      "guarantee": "compose",
+      "evidence": [
+        "src/surface/bridge/house-ports.ts",
+        "src/surface/bridge/house-tools.spec.ts",
+        "src/surface/bridge/house-tools.ts"
+      ]
+    },
+    {
+      "id": 31,
+      "rule": "El punto solo existe en la Barra; el chevron › solo marca donde se escribe; sin flechas",
+      "from": "REGLAS §7",
+      "guarantee": "debt",
+      "debt": "Derivada sobre src/texts/*.texts.ts y los says/refused de los casos."
+    },
+    {
+      "id": 32,
+      "rule": "Resultado: Listo verde o Error coral, el mensaje como texto, nunca entero pintado",
+      "from": "REGLAS §7, §9",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/terminal.spec.ts", "src/surface/talk.ts", "src/surface/walk.ts"]
+    },
+    {
+      "id": 33,
+      "rule": "No se pintan verbos, solo estados; el color nunca decora",
+      "from": "REGLAS §7, §10",
+      "guarantee": "debt",
+      "debt": "Tipo: color de estado solo vía un State cerrado (Listo, Error, En curso) en vez de Tone libre."
+    },
+    {
+      "id": 34,
+      "rule": "Turquesa solo del ser: un estado nunca lo usa",
+      "from": "REGLAS §7, §10",
+      "guarantee": "debt",
+      "debt": "Tipo: separar BeingTone y que solo lo acepte Said.who."
+    },
+    {
+      "id": 35,
+      "rule": "Tabla cerrada de tipos de evento; uno desconocido no se muestra",
+      "from": "REGLAS §7, §17",
+      "guarantee": "debt",
+      "debt": "Tipo: kind cerrado en ThreadEvent y filtro por preferencia."
+    },
+    {
+      "id": 36,
+      "rule": "El estado no va en el Hilo (nada de «en reposo»)",
+      "from": "REGLAS §7",
+      "guarantee": "debt",
+      "debt": "Tipo: live devuelve Live = {quien, palabra, segundos}."
+    },
+    {
+      "id": 37,
+      "rule": "Responder: fila ↳ Nora · comienzo en texto 3, con elipsis",
+      "from": "REGLAS §7",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/thread.ts", "src/surface/talk.ts"]
+    },
+    {
+      "id": 38,
+      "rule": "Si una fila lleva tecla, todo su stack reserva ese lugar",
+      "from": "REGLAS §7",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts", "src/doors/terminal/thread.ts"]
+    },
+    {
+      "id": 39,
+      "rule": "Evento con cabecera; debajo todo con 1 celda de indent; sin cabecera sin indent; una fila en blanco entre eventos",
+      "from": "REGLAS §7",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/thread.ts"]
+    },
+    {
+      "id": 40,
+      "rule": "El Hilo arranca en la columna del chevron",
+      "from": "REGLAS §7",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/thread.ts"]
+    },
+    {
+      "id": 41,
+      "rule": "visto y sin enviar al final de la cabecera en texto 3",
+      "from": "REGLAS §7",
+      "guarantee": "debt",
+      "debt": "Tipo: Said.state: \"visto\""
+    },
+    {
+      "id": 42,
+      "rule": "El ser pregunta con opciones y otra respuesta al final; esc después",
+      "from": "REGLAS §7",
+      "guarantee": "surface",
+      "evidence": ["src/surface/talk.ts"]
+    },
+    {
+      "id": 43,
+      "rule": "Navegar el hilo: ↑↓ enfocan, enter abre o envía; el enfocado con fondo foco y el resto en texto 3; esquinas cortadas solo con aire",
+      "from": "REGLAS §7",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/destinations.spec.ts", "src/doors/terminal/thread.ts", "src/surface/talk.ts"]
+    },
+    {
+      "id": 44,
+      "rule": "Cuatro composiciones cerradas; una pantalla usa una",
+      "from": "REGLAS §9",
+      "guarantee": "type",
+      "evidence": ["src/surface/contract.ts", "src/surface/resolve.ts", "src/surface/shown-tool.ts"]
+    },
+    {
+      "id": 45,
+      "rule": "Lista: stacks con título; Acciones siempre último",
+      "from": "REGLAS §9, §17",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/terminal.spec.ts", "src/surface/lists.ts", "src/surface/shown-tool.ts"]
+    },
+    {
+      "id": 46,
+      "rule": "Sin columnas: título a la izquierda; propósito y dato a la derecha",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/thread.ts", "src/surface/lists.ts"]
+    },
+    {
+      "id": 47,
+      "rule": "El dato prioriza algo útil; si no hay, un aid de para qué sirve",
+      "from": "REGLAS §9",
+      "guarantee": "debt",
+      "debt": "Derivada: el recorrido ya pasa por cada fila; fallar si una fila que abre algo no trae dato."
+    },
+    {
+      "id": 48,
+      "rule": "Cosas distintas se separan con punto medio, nunca coma ni «y»",
+      "from": "REGLAS §9",
+      "guarantee": "debt",
+      "debt": "Derivada sobre el catálogo de textos (sin , ni « y » en etiquetas, propósitos, datos)."
+    },
+    {
+      "id": 49,
+      "rule": "Lo que no entra dice cuánto queda en listas (↑ 6 más, ↓ 14 más)",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": [
+        "src/doors/terminal/paint.ts",
+        "src/doors/terminal/terminal.spec.ts",
+        "src/surface/window.spec.ts",
+        "src/surface/window.ts"
+      ]
+    },
+    {
+      "id": 50,
+      "rule": "…en el Hilo",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/thread.ts"]
+    },
+    {
+      "id": 51,
+      "rule": "…en las opciones de una pregunta",
+      "from": "REGLAS §9",
+      "guarantee": "debt",
+      "debt": "Pintor: pasar las opciones por windowed y dejar ↑ n más / ↓ n más."
+    },
+    {
+      "id": 52,
+      "rule": "Lista vacía: el stack se muestra con título apagado y Sin X. en texto 1",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts", "src/surface/bridge/house-ports.ts"]
+    },
+    {
+      "id": 53,
+      "rule": "Una acción es una serie de inputs y después un comando, siempre como Hilo",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/surface/resolve.ts", "src/surface/screen.ts", "src/surface/walk.ts"]
+    },
+    {
+      "id": 54,
+      "rule": "Pregunta: un sustantivo, sin punto ni signos",
+      "from": "REGLAS §9, §12",
+      "guarantee": "debt",
+      "debt": "Componer: en asking-back.ts audit rechazar signos y verbos; o derivada sobre cada ask del recorrido."
+    },
+    {
+      "id": 55,
+      "rule": "La pregunta pasa de texto 1 a texto 2 al responderse; la respuesta queda agregada, en texto 1, sin autor",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/surface/walk.ts"]
+    },
+    {
+      "id": 56,
+      "rule": "Un secreto queda tapado",
+      "from": "REGLAS §9",
+      "guarantee": "debt",
+      "debt": "Tipo: secret(ask) en fields.ts y que asking lo traduzca a kind: \"secret\"."
+    },
+    {
+      "id": 57,
+      "rule": "Seis tipos de input cerrados",
+      "from": "REGLAS §9",
+      "guarantee": "type",
+      "evidence": ["src/surface/bridge/asking.ts", "src/surface/contract.ts"]
+    },
+    {
+      "id": 58,
+      "rule": "Texto: número o fecha es texto con validación; formatos cerrados",
+      "from": "REGLAS §9",
+      "guarantee": "type",
+      "evidence": ["src/catalogs/fields.ts", "src/surface/contract.ts", "src/surface/masks.ts"]
+    },
+    {
+      "id": 59,
+      "rule": "Opción única: lista con ↑↓ y enter",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/surface/step.ts"]
+    },
+    {
+      "id": 60,
+      "rule": "Opciones múltiples: [x]/[ ], espacio marca, enter continúa, nombres separados por ·",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/surface/bridge/asking.ts", "src/surface/step.ts", "src/surface/walk.ts"]
+    },
+    {
+      "id": 61,
+      "rule": "Referencia: lista de objetos con su dato",
+      "from": "REGLAS §9",
+      "guarantee": "type",
+      "evidence": ["src/catalogs/fields.ts", "src/surface/bridge/asking-parts.ts", "src/surface/contract.ts"]
+    },
+    {
+      "id": 62,
+      "rule": "Confirmación: el verbo y volver",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/surface/bridge/program-acts.ts", "src/surface/screen.ts"]
+    },
+    {
+      "id": 63,
+      "rule": "La tecla del verbo es su inicial",
+      "from": "REGLAS §9",
+      "guarantee": "debt",
+      "debt": "Componer: key debe ser la inicial de label salvo choque declarado."
+    },
+    {
+      "id": 65,
+      "rule": "Nada se ejecuta hasta el último input; durante los inputs solo se lee",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/surface/step.ts"]
+    },
+    {
+      "id": 66,
+      "rule": "Sin inputs solo confirma; si no se puede deshacer volver viene elegido, si se puede el verbo",
+      "from": "REGLAS §9",
+      "guarantee": "debt",
+      "debt": "Tipo: reversible: boolean obligatorio en programAct."
+    },
+    {
+      "id": 67,
+      "rule": "Mientras corre: evento en vivo, late Procesando, igual en todas, sin Entrada",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/surface/router.spec.ts", "src/surface/walk.ts", "src/texts/surface.texts.ts"]
+    },
+    {
+      "id": 68,
+      "rule": "Cuando no hace falta, la Entrada se va (no se deshabilita ni se reserva)",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/thread.ts", "src/surface/walk.ts"]
+    },
+    {
+      "id": 69,
+      "rule": "Resultado en Verbo · Objeto · Detalle o Código · Causa · Objeto",
+      "from": "REGLAS §9",
+      "guarantee": "debt",
+      "debt": "Derivada: promised.ts:61-67 ya tiene cada says y refused; validar el formato ahí."
+    },
+    {
+      "id": 70,
+      "rule": "Un paso con datos inválidos no avanza",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/surface/screen.ts", "src/surface/step.ts", "src/surface/walk.ts"]
+    },
+    {
+      "id": 71,
+      "rule": "Si falla, el error queda en el Hilo y vuelve a preguntar con lo escrito",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/terminal.spec.ts", "src/surface/step.ts", "src/surface/walk.ts"]
+    },
+    {
+      "id": 72,
+      "rule": "esc vuelve, cancela o cierra según la fase",
+      "from": "REGLAS §9",
+      "guarantee": "surface",
+      "evidence": ["src/surface/step.ts", "src/surface/walk.ts"]
+    },
+    {
+      "id": 73,
+      "rule": "Al cerrar lo que eliminó una cosa se vuelve a la lista que la mostraba",
+      "from": "REGLAS §9d",
+      "guarantee": "derived",
+      "evidence": ["src/doors/terminal/destinations.spec.ts", "src/programs/promised-walk.ts", "src/surface/step.ts"]
+    },
+    {
+      "id": 74,
+      "rule": "Un acto sobre una cosa exige destino y declara si la elimina; sobre la herramienta no tiene",
+      "from": "REGLAS §9d",
+      "guarantee": "type",
+      "evidence": [
+        "src/doors/terminal/destinations.spec.ts",
+        "src/programs/promised-laws.ts",
+        "src/surface/shown-tool.ts"
+      ]
+    },
+    {
+      "id": 75,
+      "rule": "Si otro eliminó la cosa: Error E-NAV-1 · Destino inexistente; destino desconocido falla a la vista",
+      "from": "REGLAS §9d",
+      "guarantee": "surface",
+      "evidence": [
+        "src/doors/terminal/destinations.spec.ts",
+        "src/surface/lists.ts",
+        "src/surface/resolve.ts",
+        "src/texts/surface.texts.ts"
+      ]
+    },
+    {
+      "id": 76,
+      "rule": "Ninguna pantalla se escribe a mano; la herramienta no dibuja",
+      "from": "REGLAS §9d",
+      "guarantee": "type",
+      "evidence": ["src/surface/contract.ts", "src/surface/resolve.ts", "src/surface/shown-tool.ts"]
+    },
+    {
+      "id": 77,
+      "rule": "La herramienta da su tecla y sección (place) y el dato de su fila (summary)",
+      "from": "REGLAS §9d",
+      "guarantee": "type",
+      "evidence": ["src/surface/lists.ts", "src/surface/shown-tool.ts"]
+    },
+    {
+      "id": 78,
+      "rule": "Procesando, Barra y Toolbar los pone el contrato de superficie",
+      "from": "REGLAS §9d",
+      "guarantee": "surface",
+      "evidence": ["src/surface/resolve.ts"]
+    },
+    {
+      "id": 80,
+      "rule": "Una fila que se puede cambiar abre su acción; Acciones para lo que no es de una fila",
+      "from": "REGLAS §9d",
+      "guarantee": "debt",
+      "debt": "Derivada: todo acto today debe aparecer como fila with en la vista de su cosa."
+    },
+    {
+      "id": 81,
+      "rule": "Todo color de la UI sale de la tabla de tokens",
+      "from": "REGLAS §10, §17",
+      "guarantee": "type",
+      "evidence": ["src/surface/tones.ts"]
+    },
+    {
+      "id": 82,
+      "rule": "Valores hex y ANSI de la tabla",
+      "from": "REGLAS §10",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/cells.ts"]
+    },
+    {
+      "id": 83,
+      "rule": "rgb solo para lo que no es UI (foto, página)",
+      "from": "REGLAS §10, §9b",
+      "guarantee": "debt",
+      "debt": "Tipo: rgb solo en Panel.lines, no en Row/ThreadEvent."
+    },
+    {
+      "id": 84,
+      "rule": "Jerarquía por brillo: tres textos y negrita",
+      "from": "REGLAS §10",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/thread.ts", "src/surface/walk.ts"]
+    },
+    {
+      "id": 85,
+      "rule": "Un pulso a la vez; en reposo no se mueve nada",
+      "from": "REGLAS §11",
+      "guarantee": "surface",
+      "evidence": ["src/catalogs/time.ts", "src/surface/router.spec.ts", "src/surface/router.ts", "src/surface/walk.ts"]
+    },
+    {
+      "id": 86,
+      "rule": "Los títulos nunca laten",
+      "from": "REGLAS §11",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts"]
+    },
+    {
+      "id": 87,
+      "rule": "El cursor donde se escribe pulsa",
+      "from": "REGLAS §11",
+      "guarantee": "debt",
+      "debt": "Pintor: alternar la celda con el tick del router."
+    },
+    {
+      "id": 88,
+      "rule": "El texto entra palabra por palabra",
+      "from": "REGLAS §11",
+      "guarantee": "debt",
+      "debt": "Pintor."
+    },
+    {
+      "id": 89,
+      "rule": "Cambiar de lugar es un corte seco",
+      "from": "REGLAS §11",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/boot.ts"]
+    },
+    {
+      "id": 90,
+      "rule": "La actividad se muestra con su propio dato (contador)",
+      "from": "REGLAS §11",
+      "guarantee": "surface",
+      "evidence": ["src/surface/walk.ts"]
+    },
+    {
+      "id": 91,
+      "rule": "Late la palabra: fundido de 1,6 s, por pasos de color en la terminal",
+      "from": "REGLAS §11",
+      "guarantee": "surface",
+      "evidence": ["src/surface/walk.ts"]
+    },
+    {
+      "id": 92,
+      "rule": "Español",
+      "from": "REGLAS §12",
+      "guarantee": "debt",
+      "debt": "Derivada sobre el catálogo de textos."
+    },
+    {
+      "id": 93,
+      "rule": "La interfaz no habla: ni 1ª/2ª persona, ni preguntas, ni explicaciones; vocabulario cerrado",
+      "from": "REGLAS §12",
+      "guarantee": "debt",
+      "debt": "Derivada: un laws que lea src/texts/*.texts.ts y los says/refused de los casos contra vocabulario cerrado y sin ¿ ? !, segunda persona ni «vos»."
+    },
+    {
+      "id": 94,
+      "rule": "Cada identidad con su nombre: no hay Vos ni Tuyas",
+      "from": "REGLAS §12",
+      "guarantee": "debt",
+      "debt": "Misma derivada de la fila 93."
+    },
+    {
+      "id": 95,
+      "rule": "No se muestra nada interno que la persona no pueda accionar",
+      "from": "REGLAS §12",
+      "guarantee": "debt",
+      "debt": "Derivada: fallar si un título o dato coincide con un id de herramienta o cosa."
+    },
+    {
+      "id": 96,
+      "rule": "Las acciones destructivas piden confirmación",
+      "from": "REGLAS §12",
+      "guarantee": "debt",
+      "debt": "Componer: leaves: true exige confirms (tipo condicional en Declared, tools/promises.ts:82-93)."
+    },
+    {
+      "id": 97,
+      "rule": "Al achicarse cae lo secundario y después elipsis",
+      "from": "REGLAS §14",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/cells.ts", "src/doors/terminal/paint.ts"]
+    },
+    {
+      "id": 98,
+      "rule": "Terminal: contenido hasta 76, en angosto todo el ancho",
+      "from": "REGLAS §14",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/paint.ts"]
+    },
+    {
+      "id": 99,
+      "rule": "Filas y menú: elipsis en dato o descripción; el nombre manda",
+      "from": "REGLAS §14",
+      "guarantee": "surface",
+      "evidence": ["src/doors/terminal/thread.ts"]
+    },
+    {
+      "id": 100,
+      "rule": "Cada composición se prueba en 40×16, 80×16 y 70×44",
+      "from": "REGLAS §14, §17",
+      "guarantee": "debt",
+      "debt": "Derivada: que walkedChecks pinte cada pantalla que recorre a esos tres tamaños."
+    },
+    {
+      "id": 101,
+      "rule": "LEYES 1: toda acción lleva propósito",
+      "from": "LEYES 1",
+      "guarantee": "type",
+      "evidence": ["src/surface/lists.ts", "src/tools/promises.ts"]
+    },
+    {
+      "id": 102,
+      "rule": "LEYES 2: tecla en toda acción, opción de menú y opción de pregunta; sin repetidas",
+      "from": "LEYES 2",
+      "guarantee": "compose",
+      "evidence": [
+        "src/programs/promised-keys.ts",
+        "src/surface/bridge/asking-back.ts",
+        "src/surface/bridge/asking-parts.ts",
+        "src/surface/bridge/house-tools.ts",
+        "src/surface/contract.ts",
+        "src/surface/lists.ts",
+        "src/tools/promises.ts"
+      ]
+    },
+    {
+      "id": 103,
+      "rule": "LEYES 3: las acciones viven en un catálogo único",
+      "from": "LEYES 3",
+      "guarantee": "compose",
+      "evidence": ["src/surface/bridge/house-tools.ts"]
+    },
+    {
+      "id": 104,
+      "rule": "LEYES 4: se muestran todas las acciones, apagadas con motivo, también la ajena",
+      "from": "LEYES 4",
+      "guarantee": "derived",
+      "evidence": ["src/programs/promised-off.ts", "src/programs/promised-walk.ts", "src/tools/promises.ts"]
+    },
+    {
+      "id": 105,
+      "rule": "LEYES 5: ocultar apagadas, ajenas o vacías es preferencia de cada usuario",
+      "from": "LEYES 5",
+      "guarantee": "derived",
+      "evidence": ["src/programs/promised-notices.ts", "src/programs/promised-off.ts"]
+    },
+    {
+      "id": 106,
+      "rule": "LEYES 6: navegando se llega a todas las acciones",
+      "from": "LEYES 6",
+      "guarantee": "derived",
+      "evidence": ["src/programs/promised-keys.ts", "src/programs/promised-walk.ts"]
+    },
+    {
+      "id": 107,
+      "rule": "LEYES 7: ninguna spec a mano, se derivan de los casos",
+      "from": "LEYES 7",
+      "guarantee": "derived",
+      "evidence": ["src/programs/promised-walk.ts", "src/programs/promised.ts", "src/tools/promises.ts"]
+    },
+    {
+      "id": 108,
+      "rule": "LEYES 8: dos stacks fijos, Atención y Actividad, en todos los menús",
+      "from": "LEYES 8",
+      "guarantee": "derived",
+      "evidence": ["src/programs/promised-notices.ts", "src/surface/lists.ts"]
+    },
+    {
+      "id": 109,
+      "rule": "LEYES 9: viaja el estado; un router único para todos los renderers",
+      "from": "LEYES 9",
+      "guarantee": "spec",
+      "evidence": ["src/surface/router.spec.ts", "src/surface/router.ts"]
+    },
+    {
+      "id": 110,
+      "rule": "LEYES 10: un registro escrito solo para constancia no pide atención",
+      "from": "LEYES 10",
+      "guarantee": "derived",
+      "evidence": ["src/programs/promised.ts", "src/tools/tools.ts"]
+    },
+    {
+      "id": 111,
+      "rule": "LEYES 11: un campo es de texto con máscara o placeholder, nunca «texto»",
+      "from": "LEYES 11",
+      "guarantee": "compose",
+      "evidence": [
+        "src/surface/bridge/asking-back.ts",
+        "src/surface/bridge/asking-parts.ts",
+        "src/surface/bridge/asking.spec.ts",
+        "src/surface/contract.ts"
+      ]
+    },
+    {
+      "id": 112,
+      "rule": "LEYES 12: editar es un menú; nunca recorrer «crear» con valores cargados",
+      "from": "LEYES 12",
+      "guarantee": "debt",
+      "debt": "Componer: un acto con today debe estar under un menú."
+    },
+    {
+      "id": 113,
+      "rule": "LEYES 13: buscar es un modo de los menús",
+      "from": "LEYES 13",
+      "guarantee": "derived",
+      "evidence": ["src/programs/promised-find.ts", "src/surface/finding.ts", "src/surface/step.ts"]
+    }
+  ]
+}
