@@ -14,11 +14,14 @@ export const text = (ask: string, placeholder: string) =>
 /** Money, kept in cents: up to what its thirteen digits say, $ 99.999.999.999,99. */
 export const money = (ask: string) =>
   Type.Integer({ minimum: 0, maximum: 9_999_999_999_999, title: ask, mask: "money" });
+/** How many decimals a quantity carries: what its mask lets be written, and what every door is held to. */
+export const quantityDecimals = 3;
 /** How many of something; `initial` is what the field already says when it opens. */
 export const quantity = (ask: string, initial?: number) =>
   Type.Number({
     exclusiveMinimum: 0,
     maximum: 999_999,
+    decimals: quantityDecimals,
     title: ask,
     mask: "quantity",
     ...(initial === undefined ? {} : { default: initial }),
@@ -79,4 +82,15 @@ export function wrongIn(schema: unknown, value: unknown): string | undefined {
   if (Array.isArray(value)) return first(value.map(each => wrongIn(part(schema, "items"), each)));
   if (value === null || typeof value !== "object") return undefined;
   return first(Object.entries(value).map(([key, each]) => wrongIn(part(part(schema, "properties"), key), each)));
+}
+/** Whether every number of a value carries no more decimals than its field declares: a schema alone cannot say
+ * it, and what a person cannot write no other door sends either. */
+export function fine(schema: unknown, value: unknown): boolean {
+  const decimals = part(schema, "decimals");
+  if (typeof decimals === "number" && typeof value === "number") return Number(value.toFixed(decimals)) === value;
+  const arms = part(schema, "anyOf");
+  if (Array.isArray(arms)) return arms.every(arm => !Value.Check(arm, value) || fine(arm, value));
+  if (Array.isArray(value)) return value.every(each => fine(part(schema, "items"), each));
+  if (value === null || typeof value !== "object") return true;
+  return Object.entries(value).every(([key, each]) => fine(part(part(schema, "properties"), key), each));
 }

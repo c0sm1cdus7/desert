@@ -1,5 +1,6 @@
 import type { Static, TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { fine } from "../catalogs/fields.ts";
 import type { ActContext, ActResult, OwnAct, Program, Reach, ToolAct } from "./tool-contract.ts";
 import type { Emission } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
@@ -19,7 +20,9 @@ export function toolAct<X extends Program, S extends TSchema>(
     reach,
     run: (value, context) => {
       const prepared = normalize(value);
-      return Value.Check(input, prepared) ? perform(prepared, context) : rejected(toolTexts.invalid);
+      /** What its schema admits, and nothing finer than its fields carry: no door sends what a person cannot write. */
+      const held = Value.Check(input, prepared) && fine(input, prepared);
+      return held ? perform(prepared, context) : rejected(toolTexts.invalid);
     },
   };
 }

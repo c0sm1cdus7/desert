@@ -1,6 +1,7 @@
 // What an act's schema does not admit, made from an input it does: nobody writes these, the schema says them.
 import type { TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { fine } from "../catalogs/fields.ts";
 
 const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
@@ -11,8 +12,15 @@ const at = (schema: unknown, key: string): unknown => (isRecord(schema) ? schema
 function beyond(schema: unknown, value: unknown): unknown[] {
   const least = at(schema, "exclusiveMinimum") ?? at(schema, "minimum");
   const most = at(schema, "maximum");
+  const decimals = at(schema, "decimals");
+  /** A decimal more than the field carries: the same number, said finer than anyone can write it. */
+  const finer = typeof decimals === "number" && typeof value === "number" ? [value + 10 ** -(decimals + 1)] : [];
   if (typeof value === "number")
-    return [...(typeof least === "number" ? [least - 1] : []), ...(typeof most === "number" ? [most + 1] : [])];
+    return [
+      ...(typeof least === "number" ? [least - 1] : []),
+      ...(typeof most === "number" ? [most + 1] : []),
+      ...finer,
+    ];
   const long = at(schema, "maxLength");
   if (typeof value === "string" && typeof long === "number") return ["", " ", "a".repeat(long + 1)];
   if (typeof value === "string" && typeof at(schema, "minLength") === "number") return [""];
@@ -41,7 +49,7 @@ export function outsideOf(schema: TSchema, value: unknown): unknown[] {
   const seen = new Set<string>();
   return broken(schema, value).filter(variant => {
     const key = JSON.stringify(variant);
-    if (seen.has(key) || Value.Check(schema, variant)) return false;
+    if (seen.has(key) || (Value.Check(schema, variant) && fine(schema, variant))) return false;
     seen.add(key);
     return true;
   });

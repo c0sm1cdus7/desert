@@ -1,4 +1,5 @@
 // A field with a format takes only the keys that fit it and shows its shape: the same on every renderer.
+import { quantityDecimals } from "../catalogs/fields.ts";
 import type { Mask } from "./contract.ts";
 
 /** How a country writes money and days; a program declares it once. */
@@ -31,7 +32,8 @@ const quantity = (locale: Locale): Format => ({
   shown: typed => typed,
   put: (typed, text) => {
     const [whole = "", part] = typed.split(locale.decimal);
-    if (digits.test(text)) return (part === undefined ? whole.length < 6 : part.length < 3) ? typed + text : typed;
+    if (digits.test(text))
+      return (part === undefined ? whole.length < 6 : part.length < quantityDecimals) ? typed + text : typed;
     return text === locale.decimal && typed !== "" && !typed.includes(locale.decimal) ? typed + text : typed;
   },
   value: typed => (typed === "" ? undefined : Number(typed.replace(locale.decimal, "."))),
