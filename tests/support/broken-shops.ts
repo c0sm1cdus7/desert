@@ -18,6 +18,19 @@ const registering = (run: Run, refuses: readonly string[] = ["repeated"]): Compo
   const register = programAct<Shop, typeof input>({ ...registerOffer, input, refuses, run, cases: registerCases });
   return { ...shopProgram, registry: [{ ...salesTool, acts: { register } }, paymentsTool] };
 };
+/** The shop that speaks to who registered: its case promises those very words, so only how it says it is wrong. */
+const speaking = (): Composition<Shop> => {
+  const input = shopCatalog["sale-registered"];
+  const says = "Registraste · s1";
+  const [first, second] = registerCases;
+  const cases = [{ ...first, then: { ...first.then, says } }, second] as const;
+  const run: Run = (said, context) => {
+    const done = honest(said, context);
+    return done.status === "accepted" ? { ...done, text: says } : done;
+  };
+  const register = programAct<Shop, typeof input>({ ...registerOffer, input, refuses: ["repeated"], run, cases });
+  return { ...shopProgram, registry: [{ ...salesTool, acts: { register } }, paymentsTool] };
+};
 /** It keeps every sale at twice what it was told: the fact is right, what is read of it is not. */
 const doubling = (kept: Sales, event: Parameters<typeof shopSlices.step.sales>[1]): Sales => {
   const next = shopSlices.step.sales(kept, event, { ...emptyState, tools: { sales: kept, payments: nothing } });
@@ -83,6 +96,11 @@ export const brokenShops: readonly Readonly<{ name: string; program: Composition
         return done.status === "accepted" ? { ...done, text: "Done" } : done;
       }),
       fails: [told, keys(told)],
+    },
+    {
+      name: "a shop that says what was done to who did it, as it promised to",
+      program: speaking(),
+      fails: [told],
     },
     {
       name: "a shop that tells of a sale only who registered it",
