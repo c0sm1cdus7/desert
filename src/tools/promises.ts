@@ -59,7 +59,7 @@ export type ProgramAct<X extends Program> = ToolAct<X> &
   Offered &
   Readonly<{ refuses: readonly string[]; cases: readonly Case<X>[] }> &
   /** What is put before the person to confirm, once everything was answered, when the act wants that. */
-  Readonly<{ confirms?: (input: unknown) => string | undefined }> &
+  Readonly<{ confirms?: (input: unknown, state: State<X>) => string | undefined }> &
   /** What the thing has today, in the shape the act takes: an act that changes it opens on it. */
   Readonly<{ today?: (state: State<X>, target: string) => unknown; also?: Also<X> }>;
 export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
@@ -77,7 +77,8 @@ export type Composition<X extends Program> = Readonly<{
 type Declared<X extends Program, S extends TSchema> = Readonly<{ input: S; reach?: Reach; output?: boolean }> &
   /** No act without its purpose, its key and its words: an option nobody can explain or reach is not an option. */
   Offered &
-  Readonly<{ confirms?: (input: Static<S>) => string }> &
+  /** What is put before the person to confirm: said from what they answered and from what the house keeps. */
+  Readonly<{ confirms?: (input: Static<S>, state: State<X>) => string }> &
   Readonly<{ today?: (state: State<X>, target: string) => Static<S> | undefined }> &
   Readonly<{ also?: Also<X> }> &
   /** Every cause this act may refuse with; refusing with any other is a defect of the program. */
@@ -92,7 +93,8 @@ export function programAct<X extends Program, S extends TSchema>(declared: Decla
   const { label, purpose, key, on, leaves, under, today, also } = declared;
   const placed = { ...(leaves === undefined ? {} : { leaves }), ...(under === undefined ? {} : { under }) };
   const shown: Offered = { label, purpose, key, on, ...placed };
-  const summary = (value: unknown): string | undefined => (Value.Check(input, value) ? confirms?.(value) : undefined);
+  const summary = (value: unknown, state: State<X>): string | undefined =>
+    Value.Check(input, value) ? confirms?.(value, state) : undefined;
   const declaredCause = (cause: string): string => {
     if (!refuses.includes(cause)) throw new Error(`An act refused with a cause it does not declare: ${cause}`);
     return cause;

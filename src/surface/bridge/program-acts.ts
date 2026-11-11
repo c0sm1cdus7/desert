@@ -28,7 +28,7 @@ function walked<X extends Program>(ports: SurfacePorts<X>, name: string, act: Pr
   const sure = (answers: readonly string[]): Field | null => {
     const taken = ask.taken(answers);
     if (answers.length > taken) return null;
-    const summary = act.confirms?.(ask.input(answers));
+    const summary = act.confirms?.(ask.input(answers), ports.state());
     /** What takes its thing away is confirmed with going back first; anything else, with going on first. */
     if (summary !== undefined)
       return { ask: summary, kind: "confirm", ...(act.leaves ? {} : { reversible: true }), options: verb };
