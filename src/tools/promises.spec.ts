@@ -48,6 +48,14 @@ describe("the words of a declared act", () => {
     expect(declared({ refuses: ["la venta ya estaba registrada por alguien antes de ahora"] })).toThrow(sentence);
   });
 
+  it("refuses a purpose that is a sentence, too long to stand beside its act, or that speaks to who reads it", () => {
+    const beside = "A purpose is said beside its act, short and no sentence";
+    expect(declared({ purpose: "Registra lo que el almacén vende." })).toThrow(beside);
+    expect(declared({ purpose: "lo que el almacén vende cada día a cada persona que entra" })).toThrow(beside);
+    expect(declared({ purpose: "" })).toThrow(beside);
+    expect(declared({ purpose: "lo que vendés" })).toThrow("A purpose speaks to who reads it");
+  });
+
   it("refuses a name or a cause that speaks to who reads it", () => {
     expect(declared({ name: "registrar tu venta" })).toThrow("An act's name speaks to who reads it");
     expect(declared({ refuses: ["ya la registraste vos"] })).toThrow("A cause speaks to who reads it");

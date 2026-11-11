@@ -12,7 +12,7 @@ const noting = (refuses: readonly string[]) =>
     name: "anotar",
     enter: "anotar",
     undoable: true,
-    purpose: "Anota un pago por su nombre.",
+    purpose: "un pago por su nombre",
     key: "a",
     on: "tool",
     input: noted,

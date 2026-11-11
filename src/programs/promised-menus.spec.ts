@@ -67,7 +67,7 @@ describe("a program with a menu on its things", () => {
 
   it("opens the menu from the thing's actions, and each act under it on what the thing is today", async () => {
     await atSale(shopShown, ({ typed, esc }) => {
-      expect(typed("")).toContain("e | editar | ");
+      expect(typed("")).toContain("e | editar | total y cobrado");
       expect(typed("e")).toEqual(["Editar", "c | corregir | $ 15,00 · $ 0,00"]);
       expect(typed("c")).toEqual(["Corregir", "Total", "› $ 15,00"]);
       expect(typed("0\r")).toEqual(["Corregir", "Total $ 150,00", "Cobrado", "› $ 0,00"]);

@@ -75,7 +75,7 @@ describe("the terminal, on a program's house", () => {
     const { rig, press } = open();
     const list = await press("v");
     expect(list).toEqual(expect.arrayContaining(["Registradas", "Sin ventas.", "Acciones"]));
-    expect(list).toContain("[r] registrar");
+    expect(list).toContain("[r] registrar | lo que el almacén vende");
     const asking = await press("r");
     expect(asking[0]).toContain("Registrar");
     expect(asking).toEqual(expect.arrayContaining(["Venta", "› | Nombre de la venta"]));

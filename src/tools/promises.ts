@@ -124,6 +124,13 @@ export function worded<W extends { name: string; enter?: string }>(words: W): W 
     throw new Error(`What confirms an act is one verb in lower case: ${words.enter}`);
   return words;
 }
+/** What an act is for is said to the right of its row when it has no datum: short, and no sentence. */
+const aidShape = /^(?![A-ZÁÉÍÓÚÑ][a-záéíóúñ])[^.,;:!?¡¿]{1,44}$/u;
+export function aid(purpose: string): string {
+  if (!aidShape.test(purpose)) throw new Error(`A purpose is said beside its act, short and no sentence: ${purpose}`);
+  if (addresses(purpose)) throw new Error(`A purpose speaks to who reads it: ${purpose}`);
+  return purpose;
+}
 /** A cause is said as a datum, to the right of the act it turned off: no full stop, and short enough to fit. */
 export function short(cause: string): void {
   if (cause.length > 44 || /[.!?]$/u.test(cause)) throw new Error(`A cause reads as a sentence: ${cause}`);
@@ -140,7 +147,7 @@ function offeredBy<X extends Program, S extends TSchema>(declared: Declared<X, S
   const { name, enter, undoable, purpose, key, on, leaves, under, title, changes } = declared;
   const placed = { ...(leaves === undefined ? {} : { leaves }), ...(under === undefined ? {} : { under }) };
   const more = { ...(title ? { title } : {}), ...(changes ? { changes } : {}) };
-  return { ...worded({ name, enter }), undoable, purpose, key, on, ...placed, ...more };
+  return { ...worded({ name, enter }), undoable, purpose: aid(purpose), key, on, ...placed, ...more };
 }
 /** What an act answers, now or later, passed through a check of it. */
 const settled = <R>(result: R | Promise<R>, check: (result: R) => R): R | Promise<R> =>

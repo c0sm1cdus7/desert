@@ -91,7 +91,7 @@ export const registerOffer = {
   name: "registrar",
   enter: "registrar",
   undoable: true,
-  purpose: "Registra lo que el almacén vende.",
+  purpose: "lo que el almacén vende",
   key: "r",
   on: "tool",
 } as const;
@@ -131,7 +131,7 @@ export const paymentsTool: ProgramTool<Shop> = {
       name: "recibir",
       enter: "recibir",
       undoable: true,
-      purpose: "Recibe lo que le pagan al almacén.",
+      purpose: "lo que le pagan al almacén",
       key: "r",
       on: "tool",
       input: shopCatalog["payment-received"],

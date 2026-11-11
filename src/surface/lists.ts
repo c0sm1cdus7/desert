@@ -32,7 +32,7 @@ function menusAt(tool: Tool, target: string): readonly Choice[] {
       if (why !== undefined) return { ...row, detail: why, off: true };
       const opens = menu.opens(target);
       const open: Place = { kind: "view", tool: tool.id, target: opens, at: 0 };
-      return { ...row, opens, open };
+      return { ...row, detail: menu.purpose, opens, open };
     });
 }
 /** An act that cannot be done now keeps its place and its key, opens nothing, and says why where its datum goes. */
@@ -65,7 +65,10 @@ function startRow(tools: readonly Tool[], tool: Tool, row: ViewRow, act: string,
   if (row.off && why === undefined) return [{ ...row, starts }];
   /** A row that shows what a datum is today keeps saying it while it cannot be changed, and then says why. */
   if (why !== undefined) return [{ ...row, detail: row.detail ? `${row.detail} · ${why}` : why, off: true, starts }];
-  return [{ ...row, starts, open: begin(tools, tool.id, act, target, row.with) }];
+  /** A row that says nothing to its right says what its act would: its datum, or what it is for. */
+  const beside = target === undefined ? tool.acts[act]?.datum?.() : tool.actsOn?.[act]?.datum?.(target);
+  const said = row.detail || !beside ? {} : { detail: beside };
+  return [{ ...row, ...said, starts, open: begin(tools, tool.id, act, target, row.with) }];
 }
 /** What a row of a view reads stays read while its act is off the list: only the way to change it goes. */
 const readOr = ({ title, detail }: ViewRow, started: Choice[]): Choice[] =>

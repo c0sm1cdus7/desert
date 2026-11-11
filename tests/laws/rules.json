@@ -335,10 +335,17 @@
     },
     {
       "id": 47,
-      "rule": "El dato prioriza algo útil; si no hay, un aid de para qué sirve",
+      "rule": "A la derecha de una acción nunca hay nada: va su dato; si no tiene, que no se deshace; si no, para qué es (su propósito, corto)",
       "from": "REGLAS §9",
-      "guarantee": "surface",
-      "evidence": ["src/surface/bridge/program-acts.ts", "src/surface/lists.ts", "src/surface/shown-tool.ts"]
+      "guarantee": "derived",
+      "evidence": [
+        "src/surface/bridge/program-acts.ts",
+        "src/surface/lists.ts",
+        "src/tools/promises.ts",
+        "src/programs/promised-walk.ts",
+        "src/tools/promises.spec.ts",
+        "src/doors/terminal/house-screens.spec.ts"
+      ]
     },
     {
       "id": 48,

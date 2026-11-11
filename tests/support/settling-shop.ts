@@ -29,7 +29,7 @@ const settle = programAct<Shop, typeof taken>({
   name: "saldar",
   enter: "saldar",
   undoable: false,
-  purpose: "Recibe de una vez lo que la venta todavía debe.",
+  purpose: "todo lo que la venta debe",
   key: "s",
   on: "thing",
   input: taken,

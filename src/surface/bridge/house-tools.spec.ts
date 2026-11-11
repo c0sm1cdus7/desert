@@ -58,7 +58,7 @@ describe("a program's tools, composed for a surface", () => {
   });
 
   it("refuses an act under a menu its tool does not declare, a menu with nothing under it, a key taken twice", () => {
-    const menus = { edit: { name: "editar", purpose: "Corrige la venta.", key: "e" } };
+    const menus = { edit: { name: "editar", purpose: "total y cobrado", key: "e" } };
     const menued = (acts: Readonly<Record<string, ProgramAct<Shop>>>): ToolRegistry<Shop> => {
       const tool: ProgramTool<Shop> = { ...salesTool, menus, acts };
       return [tool, paymentsTool];

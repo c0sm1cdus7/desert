@@ -81,7 +81,7 @@ describe("a program whose acts reach across its tools", () => {
 
   it("offers on a thing what another tool does with it, starting with what the thing already says", async () => {
     const { rig, tools, router, press } = seat("ana");
-    expect(actionsOn(tools, "sales/s1")).toEqual([["c", "cobrar", undefined, false]]);
+    expect(actionsOn(tools, "sales/s1")).toEqual([["c", "cobrar", "un pago de una venta", false]]);
     expect(press("v1c")).toEqual(["Cobrar", "Venta s1", "Monto"]);
     expect(router.screen({ rows: 40 }).body).toMatchObject({ entry: { typed: "$ 15,00" } });
     press("\r\r");

@@ -15,7 +15,7 @@ const mark = programAct<Shop, typeof marked>({
   name: "marcar",
   enter: "marcar",
   undoable: true,
-  purpose: "Dice cuánto se cobró de la venta.",
+  purpose: "cuánto se cobró",
   key: "m",
   on: "thing",
   under: "marks",
@@ -48,7 +48,7 @@ const mark = programAct<Shop, typeof marked>({
     },
   ],
 });
-const marks = { name: "marcas", purpose: "Lo que se cobró.", key: "k" };
+const marks = { name: "marcas", purpose: "lo que se cobró", key: "k" };
 const sales = { ...salesTool, menus: { marks }, acts: { ...salesTool.acts, mark } };
 export const markingShop: Composition<Shop> = { ...shopProgram, registry: [sales, paymentsTool] };
 /** The menu of marks: one row for the whole total, and one for a peso more, which the act refuses. A screen that

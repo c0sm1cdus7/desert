@@ -21,7 +21,7 @@ const offer = {
   name: "total",
   enter: "cambiar",
   undoable: true,
-  purpose: "Cambia el total de la venta.",
+  purpose: "el total de la venta",
   key: "t",
   on: "thing",
 } as const;

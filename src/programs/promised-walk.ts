@@ -91,6 +91,8 @@ function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers, from }: T
   const whole = row.with !== undefined && row.with.from >= answers.length;
   const cause = told ?? (whole && "refused" in kase.then ? kase.then.refused : undefined);
   strictEqual(row.off ? whyOf(row, cause) : undefined, cause, said.offFor(aim.name));
+  /** The right of an act is never empty: its datum, or what it is for. */
+  ok(row.detail, said.saysNothing(aim.name));
   if (row.off) return undefined;
   openRows(seat.router, found.rows);
   ok(row.key, said.keyless(aim.name));

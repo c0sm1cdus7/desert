@@ -66,6 +66,8 @@ export interface Notice {
 export interface ThingMenu {
   readonly label: string;
   readonly key: string;
+  /** What it is for: what its row says to its right, which is never empty. */
+  readonly purpose: string;
   readonly listed?: (target: string) => boolean;
   /** Why nothing under it can be done now, when that is so: it stays on the list, off, and says this. */
   readonly off?: (target: string) => string | undefined;

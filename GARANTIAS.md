@@ -53,7 +53,7 @@ Leyes: 122. Deudas: 23.
 | 44 | Cuatro composiciones cerradas; una pantalla usa una | REGLAS §9 | no compila | `src/surface/contract.ts` `src/surface/resolve.ts` `src/surface/shown-tool.ts` |
 | 45 | Lista: stacks con título; Acciones siempre último | REGLAS §9, §17 | la cumple la superficie | `src/doors/terminal/terminal.spec.ts` `src/surface/lists.ts` `src/surface/shown-tool.ts` |
 | 46 | Sin columnas: título a la izquierda; propósito y dato a la derecha | REGLAS §9 | la cumple la superficie | `src/doors/terminal/thread.ts` `src/surface/lists.ts` |
-| 47 | El dato prioriza algo útil; si no hay, un aid de para qué sirve | REGLAS §9 | la cumple la superficie | `src/surface/bridge/program-acts.ts` `src/surface/lists.ts` `src/surface/shown-tool.ts` |
+| 47 | A la derecha de una acción nunca hay nada: va su dato; si no tiene, que no se deshace; si no, para qué es (su propósito, corto) | REGLAS §9 | prueba derivada de los casos | `src/surface/bridge/program-acts.ts` `src/surface/lists.ts` `src/tools/promises.ts` `src/programs/promised-walk.ts` `src/tools/promises.spec.ts` `src/doors/terminal/house-screens.spec.ts` |
 | 48 | Cosas distintas se separan con punto medio, nunca coma ni «y» | REGLAS §9 | DEUDA | Derivada sobre el catálogo de textos (sin , ni « y » en etiquetas, propósitos, datos). |
 | 49 | Lo que no entra dice cuánto queda en listas (↑ 6 más, ↓ 14 más) | REGLAS §9 | la cumple la superficie | `src/doors/terminal/paint.ts` `src/doors/terminal/terminal.spec.ts` `src/surface/window.spec.ts` `src/surface/window.ts` |
 | 50 | …en el Hilo | REGLAS §9 | la cumple la superficie | `src/doors/terminal/thread.ts` |

@@ -3,7 +3,7 @@ import { allowed, hides } from "../../house/house.ts";
 import type { Emission } from "../../journal/events.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
-import { worded, type ProgramAct, type ProgramTool } from "../../tools/promises.ts";
+import { aid, worded, type ProgramAct, type ProgramTool } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { Field } from "../contract.ts";
 import type { Result, ThingAct, ThingMenu, ToolAct, ViewRow } from "../shown-tool.ts";
@@ -95,6 +95,7 @@ function menusOf<X extends Program>(tool: ProgramTool<X>, shown: Readonly<Record
     const entry: ThingMenu = {
       label: menu.name,
       key: menu.key,
+      purpose: aid(menu.purpose),
       opens: target => menuTarget(target, id),
       listed: target => under.some(act => act?.listed?.(target) ?? true),
       /** Off only while nothing under it can be done, all for one reason: otherwise each says its own inside. */
@@ -122,12 +123,14 @@ const offersOf =
       const answers = ask.leading({ ...given, ...also.opens?.(ports.state(), target) });
       if (ask.next(fixed) === null && !act.confirms)
         throw new Error(`${tool} offers ${name} on ${other} asking nothing, and the act does not ask to be confirmed`);
+      /** With no datum of its own here, its row says what the act is for: the list fills that in. */
       const datum = also.datum?.(ports.state(), target);
       return [{ ...row, ...(datum ? { detail: datum } : {}), with: { answers, from: fixed.length } }];
     });
-/** What an act that cannot be undone says to the right when it has no datum of its own: that it cannot. */
-const lasting = (act: Readonly<{ undoable: boolean }>): string | undefined =>
-  act.undoable ? undefined : generic.irreversible;
+/** What an act says to its right when it has no datum of its own: that it cannot be undone, or what it is for.
+ * The right of an act is never empty. */
+const beside = (act: Readonly<{ undoable: boolean; purpose: string }>): string =>
+  act.undoable ? act.purpose : generic.irreversible;
 /** Every act of a tool as the surface offers it: on the tool itself, on one of its things, or under a menu. */
 export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, asked: Asked) {
   /** Why this identity cannot act on the tool at all, when that is so. */
@@ -142,7 +145,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       const off = (): string | undefined => foreign() ?? act.offered?.(ports.state(), tool.id);
       const listed = (): boolean =>
         off() === undefined || !hides(ports.state().house, ports.me, foreign() === undefined ? "off" : "foreign");
-      const datum = (): string | undefined => act.datum?.(ports.state(), tool.id) ?? lasting(act);
+      const datum = (): string => act.datum?.(ports.state(), tool.id) ?? beside(act);
       const next: ToolAct["next"] = answers => walk.next(answers);
       /** What changes a datum is taken from the row of that datum, not from among the actions. */
       const scope = act.changes === undefined ? "all" : "row";
@@ -157,7 +160,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       const unseen = (target: string): boolean =>
         off(target) !== undefined && hides(ports.state().house, ports.me, "off");
       const listed = (target: string): boolean => tool.targets(ports.state()).includes(target) && !unseen(target);
-      const datum = (target: string): string | undefined => act.datum?.(ports.state(), target) ?? lasting(act);
+      const datum = (target: string): string => act.datum?.(ports.state(), target) ?? beside(act);
       const scope = act.under === undefined && act.changes === undefined ? "each" : "row";
       return [name, { ...walk, scope, leaves: act.leaves ?? false, listed, off, datum }];
     });

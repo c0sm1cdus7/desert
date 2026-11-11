@@ -21,7 +21,7 @@ const charge = programAct<Shop, typeof charged>({
   name: "cobrar",
   enter: "cobrar",
   undoable: true,
-  purpose: "Recibe un pago de una venta.",
+  purpose: "un pago de una venta",
   key: "c",
   on: "tool",
   input: charged,

@@ -29,7 +29,7 @@ const correct = programAct<Shop, typeof corrected>({
   name: "corregir",
   enter: "corregir",
   undoable: true,
-  purpose: "Corrige lo que la venta dice.",
+  purpose: "lo que la venta dice",
   key: "c",
   on: "thing",
   under: "edit",
@@ -65,7 +65,7 @@ const correct = programAct<Shop, typeof corrected>({
     },
   ],
 });
-const edit = { name: "editar", purpose: "Corrige la venta.", key: "e" };
+const edit = { name: "editar", purpose: "total y cobrado", key: "e" };
 const sales = { ...salesTool, menus: { edit }, acts: { ...salesTool.acts, correct } };
 export const correctingShop: Composition<Shop> = { ...shopProgram, registry: [sales, paymentsTool] };
 /** The thing a destination is a part of, when it ends as that part does. */
