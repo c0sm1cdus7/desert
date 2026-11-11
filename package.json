@@ -27,5 +27,8 @@
   "private": true,
   "dependencies": {
     "@sinclair/typebox": "0.34.52"
+  },
+  "desert": {
+    "program": "tests/support/shop-program.ts"
   }
 }

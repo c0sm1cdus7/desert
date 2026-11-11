@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 111. Deudas: 30.
+Leyes: 112. Deudas: 30.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -118,3 +118,4 @@ Leyes: 111. Deudas: 30.
 | 111 | LEYES 11: un campo es de texto con máscara o placeholder, nunca «texto» | LEYES 11 | el programa no arranca | `src/surface/bridge/asking-back.ts` `src/surface/bridge/asking-parts.ts` `src/surface/bridge/asking.spec.ts` `src/surface/contract.ts` |
 | 112 | LEYES 12: editar es un menú; nunca recorrer «crear» con valores cargados | LEYES 12 | DEUDA | Componer: un acto con today debe estar under un menú. |
 | 113 | LEYES 13: buscar es un modo de los menús | LEYES 13 | prueba derivada de los casos | `src/programs/promised-find.ts` `src/surface/finding.ts` `src/surface/step.ts` |
+| 114 | Las pruebas derivadas corren en el gate de cada programa sin que el programa las pida | LEYES 7 | prueba derivada de los casos | `src/programs/program-checks.ts` `tests/program/program.checks.ts` `tests/laws/gate.spec.ts` |

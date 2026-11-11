@@ -98,7 +98,10 @@ describe("law 12: a gate that cannot be cheated", () => {
     const includes = Array.isArray(projects)
       ? projects.map(project => fieldOf(fieldOf(project, "test"), "include"))
       : [];
-    expect(includes).toEqual([["src/**/*.spec.ts"], ["tests/laws/**/*.spec.ts"]]);
+    /** What the program of this repository promises runs with the specs: no gate leaves the derived checks out. */
+    expect(includes).toEqual([["src/**/*.spec.ts", "tests/program/**/*.checks.ts"], ["tests/laws/**/*.spec.ts"]]);
+    const said: unknown = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+    expect(typeof fieldOf(fieldOf(said, "desert"), "program")).toBe("string");
     const tests = filesUnder(root, path => /\.(?:spec|test)\.[cm]?[jt]sx?$/.test(path)).map(fromRoot);
     expect(tests.filter(path => !(path.startsWith("src/") && path.endsWith(".spec.ts")) && !isLaw(path))).toEqual([]);
   });

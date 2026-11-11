@@ -17,7 +17,7 @@ export default defineConfig({
           name: "specs",
           sequence: { groupOrder: 0 },
           maxWorkers: 4,
-          include: ["src/**/*.spec.ts"],
+          include: ["src/**/*.spec.ts", "tests/program/**/*.checks.ts"],
           environment: "node",
         },
       },

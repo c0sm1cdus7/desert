@@ -814,6 +814,13 @@
       "from": "LEYES 13",
       "guarantee": "derived",
       "evidence": ["src/programs/promised-find.ts", "src/surface/finding.ts", "src/surface/step.ts"]
+    },
+    {
+      "id": 114,
+      "rule": "Las pruebas derivadas corren en el gate de cada programa sin que el programa las pida",
+      "from": "LEYES 7",
+      "guarantee": "derived",
+      "evidence": ["src/programs/program-checks.ts", "tests/program/program.checks.ts", "tests/laws/gate.spec.ts"]
     }
   ]
 }
