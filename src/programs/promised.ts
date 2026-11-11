@@ -1,6 +1,7 @@
 // Every check a program's promises derive: nobody writes them. Each case is a check; so is each law of every act.
 import { deepStrictEqual, strictEqual } from "node:assert/strict";
 import { identityView } from "../house/house.ts";
+import { promiseTexts as said } from "../texts/promises.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { startState, toolsStep } from "../tools/tools.ts";
@@ -18,9 +19,10 @@ const calledSince = <X extends Program>(house: House<X>, seq: number): string[] 
     ),
   ),
 ];
-const saidBy = <X extends Program>(decided: Decided<X>): string | undefined => {
+/** What the tool wrote about the act, when it wrote something: what it says, and for whom alone if for one. */
+const saidBy = <X extends Program>(decided: Decided<X>) => {
   for (const effect of decided.effects)
-    if (effect.layer === "house" && effect.kind === "tool-entry") return effect.data.text;
+    if (effect.layer === "house" && effect.kind === "tool-entry") return effect.data;
   return undefined;
 };
 /** What every tool keeps, folded again from the first fact: the journal alone has to be enough. */
@@ -55,7 +57,8 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
       } else {
         strictEqual(done.status, "accepted", done.reason);
         deepStrictEqual(wrote, kase.then.facts);
-        strictEqual(saidBy(done), kase.then.says);
+        strictEqual(saidBy(done)?.text, kase.then.says);
+        strictEqual(saidBy(done)?.recipient !== undefined, kase.then.privately === true, said.forWhom);
         if (kase.then.reads) deepStrictEqual(readOn(house(), aim, kase, kase.then.reads.on), kase.then.reads.lines);
         if (kase.then.calls) deepStrictEqual(calledSince(house(), before.through), kase.then.calls);
         if (kase.then.needs) deepStrictEqual(aim.tool.needs?.(house().tools.state()) ?? [], kase.then.needs);

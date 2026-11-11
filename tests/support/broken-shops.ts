@@ -85,6 +85,14 @@ export const brokenShops: readonly Readonly<{ name: string; program: Composition
       fails: [told, keys(told)],
     },
     {
+      name: "a shop that tells of a sale only who registered it",
+      program: registering((input, context) => {
+        const done = honest(input, context);
+        return done.status === "accepted" ? { ...done, recipient: context.by } : done;
+      }),
+      fails: [told],
+    },
+    {
       name: "a shop that keeps another total than the one its sale reads",
       program: { ...shopProgram, slices: { ...shopSlices, step: { ...shopSlices.step, sales: doubling } } },
       fails: [told],
