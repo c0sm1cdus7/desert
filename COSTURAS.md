@@ -68,6 +68,28 @@ interacción con la casa sea la misma en todas las superficies.
   La terminal (`doors/terminal/boot.ts`) ya es eso. Web, iPhone y Android usan el mismo router.
 - En Rust el router es parte de lo que se comparte entre plataformas.
 
+## 5. Las reglas de la terminal, garantizadas (HECHO, 11/11)
+
+Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su garantía o figura como deuda con nombre.
+
+- `tests/laws/rules.json` es la lista única de reglas, cada una con cómo se garantiza (tipo, rechazo al componer,
+  prueba derivada, prueba de la superficie) y dónde. `pnpm rules` escribe `GARANTIAS.md`. Una ley del gate no deja
+  sumar una regla sin garantía ni cambiar la cantidad de deudas sin querer.
+- Las pruebas derivadas de un programa corren solas en su gate (`tests/program/program.checks.ts`): el programa
+  dice dónde se compone (`package.json`, `desert.program`) y no elige cuáles corren.
+- Una acción se declara por partes (`tools/promises.ts`): `name` (lo que dice su fila, en minúscula), `enter` (el
+  verbo que confirma), `undoable`, `purpose`, `key`, `on`, y cuando hace falta `title`, `under`, `leaves`,
+  `changes`, `datum`, `confirms`, `today`, `also`, `offered`, `refuses`. Lo que se rechaza al componer: un nombre
+  que es una oración, lo que confirma que no es un verbo, una causa larga o con punto, la segunda persona, una
+  pregunta con signos, un dato con forma sin máscara, una acción que no se deshace y no dice qué confirma, una
+  acción nombrada como un dato que su herramienta lee y que no declara cambiarlo.
+- Campos (`catalogs/fields.ts`): `digits` (números con forma), `padded`, `handle`, `thing` (elige una cosa de una
+  herramienta, con el nombre de su ausencia), `someOf` (varias de un conjunto, con casillas), `holding` (el dato
+  sabe por qué no vale).
+- Lo que se cambia, se cambia donde se lee: la fila de un dato que una acción cambia lleva su tecla, lo que vale
+  hoy y abre esa acción.
+- Los textos propios de DESERT pasan por las mismas guardias (`programs/own-words.spec.ts`).
+
 ## Abierto
 - **La puerta.** Decidido: viaja el estado (la de Kenon), con el router de este lado. Falta portarla: cada
   herramienta dice cómo viaja su parte y de quién son sus hechos, y la casa manda a cada integrante solo lo de
@@ -77,12 +99,13 @@ interacción con la casa sea la misma en todas las superficies.
   páginas. Se resuelve al portar la puerta.
 - **Lecturas de cada herramienta.** Hoy el puente lee la vista de texto de la herramienta y la vuelve filas.
   Para Capibara conviene que cada herramienta declare sus filas con tipos. Se define con las herramientas de Capibara.
-- **Motivos de rechazo.** Son textos. Para Capibara conviene que sean códigos de un conjunto cerrado y que la
-  superficie ponga las palabras.
+- **Motivos de rechazo.** Son textos. Desde el 11/11 una causa es un dato corto, sin punto y sin segunda persona
+  (si no, el programa no arranca). Falta que sean códigos de un conjunto cerrado y que la superficie ponga las
+  palabras (`Código · Causa · Objeto`).
 
-- **Un propósito largo se corta.** La terminal corta con «…» el propósito de una acción cuando no entra al lado de
-  su nombre; lo mismo el motivo de una acción apagada y el porqué de Atención. O se parte en dos renglones, o se
-  limita su largo al componer el programa. En Capibara se acortaron a mano los que se cortaban (10/11).
+- **Un propósito largo se corta.** CERRADA (11/11): el propósito se declara y no se muestra en la fila; a la
+  derecha va un dato o nada. El nombre de una acción y la causa de un rechazo tienen largo máximo al componer el
+  programa. Queda el porqué de Atención, que todavía se corta con «…» si no entra.
 - **Una herramienta que el programa suma después no es de nadie.** Quien crea la casa recibe las herramientas que
   el programa tiene ese día. Si el programa suma una después, no la tiene nadie, tampoco quien administra, y sin
   Equipo no hay cómo dársela. Hay que decidir: o quien administra tiene siempre todas, o la casa se las da al abrir.
@@ -90,10 +113,16 @@ interacción con la casa sea la misma en todas las superficies.
   hoy promete hechos del programa y lo que se lee después; no puede prometer un hecho de la casa.
 - **Una fila que lleva a la cosa de otra herramienta.** La venta muestra sus pagos, envíos y documentos como
   renglones quietos; deberían abrir esa cosa en su herramienta.
-- **Un campo completo que no avanza no dice por qué.** Un día que no existe («30/02/2026») entra en la máscara y
-  enter no hace nada. `valid` hoy contesta sí o no; tiene que poder contestar el motivo.
+- **Un campo completo que no avanza no dice por qué.** CERRADA EN PARTE (11/11): un campo puede declarar por qué
+  un dato completo no vale (`holding`, en `catalogs/fields.ts`): la pregunta lo dice ahí mismo y ninguna acción
+  corre con ese dato. Falta usarlo en las máscaras de la casa: un día que no existe («30/02/2026») todavía entra
+  y enter no hace nada.
 - **Después de un rechazo no se ve la pregunta.** El motivo ocupa el lugar de la pregunta que se estaba
-  contestando.
+  contestando (así lo dice la regla aprobada: el error es lo que pregunta de nuevo).
+- **Un valor sugerido se edita, no se reemplaza.** Una cantidad que abre en «1» y recibe un «2» queda en «12».
+  Falta decidir si la primera tecla reemplaza lo sugerido (y solo se edita lo que la cosa ya tenía).
+- **Un stack que no entra entero desaparece.** Con poca altura, al abrir una cosa el cursor queda en Acciones y
+  sus datos quedan arriba, fuera de la ventana, contados en «↑ n más». Se podría mostrar la cola del stack anterior.
 
 - **Cómo lee un programa los hechos de su pasado.** El registro guarda hechos para siempre. Hoy, si el programa
   deja de declarar un tipo que su registro tiene, la casa no abre y dice cuál es y dónde está (HECHO, 10/11); y lo
@@ -101,8 +130,8 @@ interacción con la casa sea la misma en todas las superficies.
   otra forma se vuelve a recorrer el registro entero (HECHO, 10/11). Falta decidir, antes de la primera casa en
   producción, cómo sigue leyendo un programa un tipo de hecho que ya no escribe. Y un cambio en cómo se calcula el
   estado que no cambie su forma todavía no se detecta.
-- **Las preferencias son de la casa, no del programa.** Hoy son dos y fijas (lo apagado, lo ajeno). Si un programa
-  quiere las suyas, tiene que poder declararlas.
+- **Las preferencias son de la casa, no del programa.** Hoy son tres y fijas (lo apagado, lo ajeno, las listas
+  vacías). Si un programa quiere las suyas, tiene que poder declararlas.
 
 - **Actividad crece con lo que nadie abre.** Cada cosa que otro tocó queda hasta que se la abre; falta marcar
   todo como visto de una vez, y decidir cuánto se guarda. La superficie tampoco deja nunca de «tener a la vista»

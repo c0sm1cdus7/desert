@@ -922,6 +922,13 @@
         "src/programs/promised-walk.ts",
         "src/programs/promised-fields.spec.ts"
       ]
+    },
+    {
+      "id": 123,
+      "rule": "Una fila que ya lleva todo lo que su acción toma, y que la acción va a rechazar, está apagada diciendo por qué: a nadie se le ofrece lo que ya se sabe que no se puede",
+      "from": "LEYES 4 · 11/11, sabotaje que sobrevivía en Equipo",
+      "guarantee": "derived",
+      "evidence": ["src/programs/promised-walk.ts", "src/programs/promised-known.spec.ts"]
     }
   ]
 }
