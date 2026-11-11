@@ -96,6 +96,12 @@ interacción con la casa sea la misma en todas las superficies.
 - **Las preferencias son de la casa, no del programa.** Hoy son dos y fijas (lo apagado, lo ajeno). Si un programa
   quiere las suyas, tiene que poder declararlas.
 
+- **Actividad crece con lo que nadie abre.** Cada cosa que otro tocó queda hasta que se la abre; falta marcar
+  todo como visto de una vez, y decidir cuánto se guarda. La superficie tampoco deja nunca de «tener a la vista»
+  lo que abrió.
+- **Buscar recorre todo.** Cada tecla vuelve a mirar todas las cosas de la herramienta; con muchas hará falta un
+  índice.
+
 ## Orden de trabajo
 1. Journal: hechos por programa, bus, proyecciones, reloj, guardado en SQLite. HECHO.
 2. Casa y motor de herramientas con estado por herramienta. HECHO.
