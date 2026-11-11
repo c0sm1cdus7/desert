@@ -13,6 +13,21 @@ import { localPorts } from "./house-runtime.ts";
 import type { Aim, House } from "./promised-stage.ts";
 
 export const view = { rows: 40 };
+/** The room a list has on the smallest terminal there is, 40×16. */
+const smallest = { rows: 8 };
+const noted = (count?: number): number => Number((count ?? 0) > 0);
+/** Whatever a person has in front fits the smallest terminal: a question keeps its own line and its options say
+ * how many are left out; a list is cut around the chosen row. Nothing is left to be drawn over the bars. */
+export function fitsSmallest(router: Router): void {
+  const { body } = router.screen(smallest);
+  if (body.kind === "thread") {
+    const lines = (body.options?.length ?? 0) + noted(body.more?.above) + noted(body.more?.below);
+    ok(lines <= smallest.rows - 2, said.overflows);
+  }
+  if (body.kind !== "list") return;
+  const lines = body.stacks.map(stack => 1 + Math.max(stack.rows.length, 1) + noted(stack.above) + noted(stack.below));
+  ok(lines.reduce((sum, each) => sum + each, 0) + body.stacks.length - 1 <= smallest.rows, said.overflows);
+}
 const bar = { state: "connected", clock: "00:00", now: caseInstant } as const;
 export const type = (router: Router, text: string): void => {
   for (const char of Array.from(text)) router.send({ kind: "type", text: char });

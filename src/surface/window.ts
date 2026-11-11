@@ -49,3 +49,15 @@ export function windowed(stacks: readonly Stack[], room: number): readonly Stack
     ...(i === shown.length - 1 && below ? { below } : {}),
   }));
 }
+/** The options of a question when they do not all fit: the chosen one stays in view, what is left out is counted
+ * above and below, and a row that is written in stays first. Two lines go to saying how much is left out. */
+export function fitted<T extends { selected?: boolean; entry?: unknown }>(all: readonly T[], room: number) {
+  const pinned = all[0]?.entry === undefined ? [] : all.slice(0, 1);
+  const options = all.slice(pinned.length);
+  if (all.length <= room) return { options: all };
+  const fits = Math.max(room - pinned.length - 2, 1);
+  const chosen = foundAt(options, option => !!option.selected);
+  const start = Math.max(Math.min(chosen - Math.floor(fits / 2), options.length - fits), 0);
+  const more = { above: start, below: Math.max(options.length - start - fits, 0) };
+  return { options: [...pinned, ...options.slice(start, start + fits)], more };
+}

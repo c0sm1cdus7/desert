@@ -1,5 +1,5 @@
 {
-  "debts": 30,
+  "debts": 29,
   "rules": [
     {
       "id": 1,
@@ -370,8 +370,14 @@
       "id": 51,
       "rule": "…en las opciones de una pregunta",
       "from": "REGLAS §9",
-      "guarantee": "debt",
-      "debt": "Pintor: pasar las opciones por windowed y dejar ↑ n más / ↓ n más."
+      "guarantee": "derived",
+      "evidence": [
+        "src/surface/window.ts",
+        "src/surface/resolve.ts",
+        "src/doors/terminal/thread.ts",
+        "src/programs/promised-keys.ts",
+        "src/programs/promised-walk.ts"
+      ]
     },
     {
       "id": 52,

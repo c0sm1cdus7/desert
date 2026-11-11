@@ -109,9 +109,20 @@ function drawEntry(grid: Grid, body: Extract<Body, { kind: "thread" }>, left: nu
   else put(grid, left + 3, r, { text: placeholder, tone: "t3" });
   put(grid, left + 2 + caret, r, { text: Array.from(typed)[caret] ?? " ", tone: "t1" }, true);
 }
+/** The options of a question, above the toolbar: with how many are left out before the first and after the last. */
+function drawOptions(grid: Grid, options: readonly Row[], more: Left, left: number, block: number): void {
+  const keyed = options.some(row => row.key);
+  let r = grid.length - 3 - options.length - Number(more.above > 0) - Number(more.below > 0);
+  if (more.above) put(grid, left + 1, r++, { text: `↑ ${more.above} ${said.more}`, tone: "t3" });
+  for (const row of options) drawRow(grid, r++, left, block, row, keyed);
+  if (more.below) put(grid, left + 1, r, { text: `↓ ${more.below} ${said.more}`, tone: "t3" });
+}
+type Left = Readonly<{ above: number; below: number }>;
 export function drawThread(grid: Grid, body: Extract<Body, { kind: "thread" }>, left: number, block: number): void {
   const options = body.options ?? [];
-  const taken = options.length ? options.length + 1 : Number(Boolean(body.entry)) * 2 + Number(Boolean(body.reference));
+  const more = body.more ?? { above: 0, below: 0 };
+  const listed = options.length + Number(more.above > 0) + Number(more.below > 0);
+  const taken = options.length ? listed + 1 : Number(Boolean(body.entry)) * 2 + Number(Boolean(body.reference));
   const bottom = grid.length - 4 - taken;
   const lines = body.events.flatMap((event, i) => [...(i && !event.nested ? [blank] : []), ...linesOf(event, block)]);
   const room = bottom - 3 + 1;
@@ -135,8 +146,7 @@ export function drawThread(grid: Grid, body: Extract<Body, { kind: "thread" }>, 
     let col = left + line.indent;
     for (const span of line.spans) col = put(grid, col, r, span);
   });
-  const keyed = options.some(row => row.key);
-  options.forEach((row, i) => drawRow(grid, grid.length - 3 - options.length + i, left, block, row, keyed));
+  drawOptions(grid, options, more, left, block);
   drawEntry(grid, body, left);
 }
 /** What opened: its header, its line, and as much as fits from where it is scrolled. */

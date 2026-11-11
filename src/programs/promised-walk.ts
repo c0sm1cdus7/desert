@@ -11,7 +11,7 @@ import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import type { Choice } from "../surface/screen.ts";
-import { actRow, goTo, openRows, seated, type, view, type Seat } from "./promised-keys.ts";
+import { actRow, fitsSmallest, goTo, openRows, seated, type, view, type Seat } from "./promised-keys.ts";
 import { findChecks } from "./promised-find.ts";
 import { noticeChecks } from "./promised-notices.ts";
 import { shownChecks } from "./promised-off.ts";
@@ -61,6 +61,7 @@ type Told<X extends Program> = Readonly<{ aim: Aim<X>; kase: Case<X>; answers: r
 function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers, from }: Told<X>): Choice | undefined {
   const on = kase.on ?? aim.tool.id;
   goTo(seat, from?.tool ?? aim.tool.id, from?.target ?? on);
+  fitsSmallest(seat.router);
   const found = actRow(seat, aim, on, fitting(answers), from);
   /** A refusal no row lets a person say cannot be broken from here; the act still has to be on some list. */
   if (!found && "refused" in kase.then && actRow(seat, aim, on, undefined, from)) return undefined;
@@ -84,8 +85,10 @@ function walk<X extends Program>({ router, tools }: Seat<X>, { aim, kase, answer
   const { from = 0, until = answers.length } = row.with ?? {};
   const said = answers.slice(from, until).every((given, offset) => {
     const field = next(answers.slice(0, from + offset));
+    fitsSmallest(router);
     return field ? answer(router, field, given, row.with?.answers[from + offset]) : true;
   });
+  fitsSmallest(router);
   if (said && row.with?.until === undefined && next(answers)) type(router, aim.act.key);
   return said;
 }

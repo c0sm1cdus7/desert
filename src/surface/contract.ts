@@ -61,6 +61,8 @@ export type Body =
       readonly kind: "thread";
       readonly events: readonly ThreadEvent[];
       readonly options?: readonly Row[];
+      /** How many options are left out above and below the ones that fit. */
+      readonly more?: { readonly above: number; readonly below: number };
       readonly entry?: { readonly typed: string; readonly caret: number; readonly placeholder: string };
       readonly reference?: string;
     };
