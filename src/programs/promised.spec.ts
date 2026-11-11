@@ -1,5 +1,6 @@
 // The checks a program's promises derive, run on the test shop; and shops that break a promise, which they catch.
 import { describe, expect, it } from "vitest";
+import { caseInstant } from "../catalogs/time.ts";
 import { walkedChecks } from "./promised-walk.ts";
 import { houseTools } from "../surface/bridge/house-tools.ts";
 import { localPorts } from "./house-runtime.ts";
@@ -54,6 +55,20 @@ describe("a program with acts on its things", () => {
       const tools = houseTools(localPorts(house(), cast.admin, { recentLines: 100 }), nestedShown);
       const settle = tools.find(tool => tool.id === "sales")?.actsOn?.settle;
       expect([settle?.listed?.("sales/s1"), settle?.listed?.(every)]).toEqual([true, false]);
+    });
+  });
+
+  it("a case that says days passed finds its house that many days later, before and after it is reopened", async () => {
+    await staged(settlingShop, async ({ house, reopen }) => {
+      await given(house(), "sales", [{ days: 2 }, registered]);
+      reopen();
+      await given(house(), "sales", [{ days: 1 }]);
+      reopen();
+      /** A house says when it starts each time it is opened, and a sale when it was registered. */
+      const days = house().journal.replay<number[]>([], (at, event) =>
+        event.kind === "boot" || event.layer === "program" ? [...at, (event.at - caseInstant) / 86_400_000] : at,
+      );
+      expect(days).toEqual([0, 2, 2, 3]);
     });
   });
 

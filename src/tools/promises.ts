@@ -6,7 +6,10 @@ import { toolAct } from "./act-definition.ts";
 import type { ActContext, ActResult, Program, Reach, Slices, State, Tool, ToolAct } from "./tool-contract.ts";
 
 /** Something that already happened before a case: an act of the program, by one of the house's identities. */
-export type Step = Readonly<{ act: string; input: unknown; on?: string; by?: string }>;
+export type Did = Readonly<{ act: string; input: unknown; on?: string; by?: string }>;
+/** What a case says came before it: each thing someone did and, when the case is about what time does, the whole
+ * days that passed before what comes next. */
+export type Step = Did | Readonly<{ days: number }>;
 /** A fact of the program as a case promises it: its kind and everything it says. */
 export type Told<X extends Program> = X["fact"] extends infer F
   ? F extends Readonly<{ kind: infer K; data: infer D }>

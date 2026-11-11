@@ -6,14 +6,22 @@ import { join } from "node:path";
 import { caseInstant } from "../catalogs/time.ts";
 import type { TimeSource } from "../journal/clock.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
-import type { Composition, ProgramAct, ProgramTool, Step } from "../tools/promises.ts";
+import type { Composition, Did, ProgramAct, ProgramTool, Step } from "../tools/promises.ts";
 import type { KeyStore, Program } from "../tools/tool-contract.ts";
 import { startHouse } from "./house-runtime.ts";
 
 export type Check = Readonly<{ name: string; run: () => Promise<void> }>;
 /** Who lives in the house a case runs in: ana administers it, beto holds every tool, carla holds none. */
 export const cast = { admin: "ana", member: "beto", outsider: "carla" } as const;
-const stillTime: TimeSource = { now: () => caseInstant, wait: () => () => {} };
+const dayMs = 24 * 3_600_000;
+/** The time of the house a case runs in: it stands still at the instant of every case, until the case says that
+ * days passed. */
+type Clock = Readonly<{ time: TimeSource; pass: (days: number) => void }>;
+function stillClock(): Clock {
+  let passed = 0;
+  const time = { now: () => caseInstant + passed, wait: () => () => {} };
+  return { time, pass: days => void (passed += days * dayMs) };
+}
 /** The house a case runs in runs as itself. */
 export const runner = "house";
 const kept = new Map<string, string>();
@@ -22,22 +30,23 @@ const keys: KeyStore = {
   set: (provider, value) => Promise.resolve(void kept.set(provider, value)),
   remove: provider => Promise.resolve(void kept.delete(provider)),
 };
-function open<X extends Program>(program: Composition<X>, home: string) {
+function open<X extends Program>(program: Composition<X>, home: string, { time, pass }: Clock) {
   const tools = program.registry.map(tool => tool.id);
   const holding = [cast.admin, cast.member].map(identity => ({ identity, tools }));
   const assignments = [...holding, { identity: cast.outsider, tools: [] }];
   const creation = { admin: cast.admin, assignments };
-  return startHouse<X>(home, { by: runner, creation, keys, ...program }, stillTime);
+  return { ...startHouse<X>(home, { by: runner, creation, keys, ...program }, time), pass };
 }
 export type House<X extends Program> = ReturnType<typeof open<X>>;
 type Stage<X extends Program> = Readonly<{ house: () => House<X>; reopen: () => void }>;
 /** A fresh house on disk for one check, closed and removed when the check ends, however it ends. */
 export async function staged<X extends Program>(program: Composition<X>, use: (stage: Stage<X>) => Promise<void>) {
   const home = mkdtempSync(join(tmpdir(), "desert-promise-"));
-  let house = open(program, home);
+  const clock = stillClock();
+  let house = open(program, home, clock);
   const reopen = (): void => {
     house.close();
-    house = open(program, home);
+    house = open(program, home, clock);
   };
   try {
     await use({ house: () => house, reopen });
@@ -46,7 +55,7 @@ export async function staged<X extends Program>(program: Composition<X>, use: (s
     rmSync(home, { recursive: true, force: true });
   }
 }
-export type Doing = Step & Readonly<{ attends?: boolean }>;
+export type Doing = Did & Readonly<{ attends?: boolean }>;
 /** One act as anyone does it: the target in view first, then the act; the answer is what the house decided. */
 export async function perform<X extends Program>(house: House<X>, tool: string, doing: Doing) {
   const { by = cast.admin, on: target = tool, act, input, attends = true } = doing;
@@ -62,13 +71,18 @@ export const wroteSince = <X extends Program>(house: House<X>, seq: number) =>
     (facts, event) => (event.layer === "program" ? [...facts, { kind: event.kind, data: event.data }] : facts),
     seq,
   );
-/** What a case says already happened, done act by act; a step the house refuses is a case that cannot start. */
+/** What a case says already happened, done act by act, with the days it says passed in between; a step the house
+ * refuses is a case that cannot start. */
 export async function given<X extends Program>(
   house: House<X>,
   tool: string,
   steps: readonly Step[] = [],
 ): Promise<void> {
   for (const step of steps) {
+    if ("days" in step) {
+      house.pass(step.days);
+      continue;
+    }
     const done = await perform(house, tool, step);
     ok(done.status === "accepted", said.givenRefused(step.act, done.reason ?? done.status));
   }
