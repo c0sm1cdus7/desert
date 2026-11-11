@@ -53,11 +53,15 @@ function enterSays(walk: Walk, field: Field | null, tools: readonly Tool[]): str
   if (field?.kind === "confirm") return must(options[walk.at]).title;
   const answer = field?.kind === "many" ? walk.marks.join(" · ") : (options[walk.at]?.title ?? walk.typed);
   const act = actOf(tools, walk);
-  return act.next([...walk.answers.slice(0, walk.pos), answer]) ? said.keys.next : act.verb;
+  const last = walk.pos + 1 === walk.until || !act.next([...walk.answers.slice(0, walk.pos), answer]);
+  return last ? act.verb : said.keys.next;
 }
 export function walkHints(walk: Walk, field: Field | null, tools: readonly Tool[]): readonly Hint[] {
   const k = said.keys;
-  const leave: Hint = { intent: "cancel", does: walk.phase === "asking" && walk.pos > 0 ? k.goBack : k.cancel };
+  const leave: Hint = {
+    intent: "cancel",
+    does: walk.phase === "asking" && walk.pos > walk.floor ? k.goBack : k.cancel,
+  };
   if (walk.phase === "done") return [{ intent: "cancel", does: k.close }];
   if (walk.phase === "running") return [leave];
   const enter: Hint = { intent: "confirm", does: enterSays(walk, field, tools) };

@@ -5,7 +5,7 @@ import type { Shown } from "../surface/bridge/house-ports.ts";
 import { houseTools } from "../surface/bridge/house-tools.ts";
 import type { Tool } from "../surface/contract.ts";
 import { startRouter, type Router } from "../surface/router.ts";
-import { choices, stacksOf, type Choice } from "../surface/screen.ts";
+import { choices, stacksOf, type Choice } from "../surface/lists.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { localPorts } from "./house-runtime.ts";
@@ -53,16 +53,50 @@ export function goTo<X extends Program>({ router, tools, shown }: Seat<X>, tool:
   if (on === tool) return;
   const rows = pathTo(tools, tool, on);
   ok(rows, said.notListed(on));
+  openRows(router, rows);
+}
+/** Every row of a place, the ones that cannot be chosen too; two of them taking one key is a defect of the screen. */
+function rowsAt(tools: readonly Tool[], tool: string, target?: string): readonly Choice[] {
+  const rows = stacksOf(placeOf(tool, target), tools).flatMap(stack => stack.rows);
+  const keys = rows.flatMap(row => (row.key === undefined ? [] : [row.key]));
+  strictEqual(new Set(keys).size, keys.length, said.sameKey(target ?? tool, keys));
+  return rows;
+}
+/** An act's row as a person finds it: the rows to open from where the act stands, and the row itself. */
+export type Found = Readonly<{ rows: readonly number[]; row: Choice }>;
+/** The row that starts an act where its case does it: among the thing's own actions, or down any menu they open.
+ * When the menu the act is under is off, that row stands for it. Nothing when no list a person can reach has it. */
+export function actRow<X extends Program>(
+  { tools }: Seat<X>,
+  aim: Aim<X>,
+  on: string,
+  fits: (row: Choice) => boolean = () => true,
+): Found | undefined {
+  const thing = on === aim.tool.id ? undefined : on;
+  const menu = aim.act.under === undefined ? undefined : aim.tool.menus?.[aim.act.under];
+  const mine = (row: Choice): boolean =>
+    (row.starts?.act === aim.name && row.starts.target === thing && fits(row)) ||
+    (row.off === true && menu !== undefined && row.key === menu.key && row.title === menu.label);
+  const seen = new Set<string | undefined>([thing]);
+  let edge: readonly Reached[] = [{ ...(thing === undefined ? {} : { target: thing }), rows: [] }];
+  while (edge.length) {
+    for (const { target, rows } of edge) {
+      const row = rowsAt(tools, aim.tool.id, target).find(mine);
+      if (row) return { rows, row };
+    }
+    const deeper = edge.flatMap(from => opensFrom(tools, aim.tool.id, from)).filter(to => !seen.has(to.target));
+    deeper.forEach(to => seen.add(to.target));
+    edge = deeper;
+  }
+  return undefined;
+}
+/** Opens, one after another, the rows that lead somewhere: each by moving onto it and confirming. */
+export function openRows(router: Router, rows: readonly number[]): void {
   for (const at of rows) {
     for (let step = 0; step < at; step++) router.send({ kind: "down" });
     router.send({ kind: "confirm" });
   }
 }
-/** The row of an act where it stands, whether it can be chosen now or not; nothing when it is not on the list. */
-export const actRow = <X extends Program>({ tools }: Seat<X>, aim: Aim<X>, on: string): Choice | undefined =>
-  stacksOf(placeOf(aim.tool.id, on === aim.tool.id ? undefined : on), tools)
-    .flatMap(stack => stack.rows)
-    .find(row => row.key === aim.act.key && row.title === aim.act.label);
 /** Every row of the Menu, the tools that cannot be opened too. */
 export const menuRows = (tools: readonly Tool[]): readonly Choice[] =>
   stacksOf({ kind: "menu", at: 0 }, tools).flatMap(stack => stack.rows);

@@ -10,16 +10,17 @@ import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
-import { actRow, goTo, seated, type, view, type Seat } from "./promised-keys.ts";
+import type { Choice } from "../surface/lists.ts";
+import { actRow, goTo, openRows, seated, type, view, type Seat } from "./promised-keys.ts";
 import { shownChecks } from "./promised-off.ts";
 import { cast, given, label, staged, wroteSince, type Aim, type Check } from "./promised-stage.ts";
 
-/** One answer as a person gives it: written and confirmed, or chosen by the key of its option. False when the
- * field itself does not take it: what cannot be written cannot be sent. */
-function answer(router: Router, field: Field, given: string): boolean {
+/** One answer as a person gives it: written over what the field opened on and confirmed, or chosen by the key of
+ * its option. False when the field itself does not take it: what cannot be written cannot be sent. */
+function answer(router: Router, field: Field, given: string, opened = field.initial ?? ""): boolean {
   if (field.kind === "text" || field.kind === "secret") {
     if (field.valid?.(given) === false) return false;
-    Array.from(field.initial ?? "").forEach(() => router.send({ kind: "erase" }));
+    Array.from(opened).forEach(() => router.send({ kind: "erase" }));
     type(router, given);
     router.send({ kind: "confirm" });
     return true;
@@ -29,30 +30,46 @@ function answer(router: Router, field: Field, given: string): boolean {
   type(router, key);
   return true;
 }
-/** From the Menu to the act, and into it when it can be taken. Where the tool itself says the act cannot be done
- * now, it has to be on the list all the same, off, saying exactly that: then it is not taken. */
-function taken<X extends Program>(seat: Seat<X>, aim: Aim<X>, kase: Case<X>): boolean {
+/** Whether a row starts the act with what the case says: what the row does not ask has to be the case's already. */
+const fitting =
+  (answers: readonly string[]) =>
+  ({ with: given }: Choice): boolean => {
+    if (!given) return true;
+    const { from, until = given.answers.length } = given;
+    const fixed = (index: number): boolean => index < from || index >= until;
+    return (
+      given.answers.length === answers.length && answers.every((said, i) => !fixed(i) || given.answers[i] === said)
+    );
+  };
+type Told<X extends Program> = Readonly<{ aim: Aim<X>; kase: Case<X>; answers: readonly string[] }>;
+/** From the Menu to the act, and into it when it can be taken: by the key of its row, wherever its row is. Where
+ * the tool itself says the act cannot be done now, its row has to be there all the same, off, saying exactly that:
+ * then it is not taken. */
+function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers }: Told<X>): Choice | undefined {
   const on = kase.on ?? aim.tool.id;
   goTo(seat, aim.tool.id, on);
-  const row = actRow(seat, aim, on);
-  ok(row, said.notOffered(aim.name));
+  const found = actRow(seat, aim, on, fitting(answers));
+  ok(found, said.notOffered(aim.name));
+  const { row } = found;
   strictEqual(row.off ? row.detail : undefined, aim.act.offered?.(seat.state(), on), said.offFor(aim.name));
-  if (!row.off) type(seat.router, aim.act.key);
-  return !row.off;
+  if (row.off) return undefined;
+  openRows(seat.router, found.rows);
+  ok(row.key, said.keyless(aim.name));
+  type(seat.router, row.key);
+  return row;
 }
-/** Every answer the case's input needs, given one by one to the questions the surface really asks. False when a
- * field stopped it: the surface did not let the person say what the case says. */
-function walk<X extends Program>({ router, tools, shown }: Seat<X>, aim: Aim<X>, kase: Case<X>): boolean {
-  const words = { formats: formats(shown.locale), optionalMark: generic.optional };
-  const answers = asking(aim.act.input, words).answers(kase.input);
+/** Every answer the row asks of what the case says, given one by one to the questions the surface really asks.
+ * False when a field stopped it: the surface did not let the person say what the case says. */
+function walk<X extends Program>({ router, tools }: Seat<X>, { aim, kase, answers }: Told<X>, row: Choice): boolean {
   const tool = tools.find(known => known.id === aim.tool.id);
   const act = aim.act.on === "tool" ? tool?.acts[aim.name] : tool?.actsOn?.[aim.name];
   const next = (given: readonly string[]): Field | null => act?.next(given, kase.on ?? aim.tool.id) ?? null;
-  const said = answers.every((given, index) => {
-    const field = next(answers.slice(0, index));
-    return field ? answer(router, field, given) : true;
+  const { from = 0, until = answers.length } = row.with ?? {};
+  const said = answers.slice(from, until).every((given, offset) => {
+    const field = next(answers.slice(0, from + offset));
+    return field ? answer(router, field, given, row.with?.answers[from + offset]) : true;
   });
-  if (said && next(answers)) type(router, aim.act.key);
+  if (said && row.with?.until === undefined && next(answers)) type(router, aim.act.key);
   return said;
 }
 function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
@@ -63,14 +80,17 @@ function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
       const seat = seated(house(), kase.by ?? cast.admin, shown);
       const before = house().tools.state().through;
       try {
+        const words = { formats: formats(shown.locale), optionalMark: generic.optional };
+        const told = { aim, kase, answers: asking(aim.act.input, words).answers(kase.input) };
         /** What is off said why, and what a field does not let be written cannot be sent: neither breaks a refusal. */
-        const done = taken(seat, aim, kase) && walk(seat, aim, kase);
+        const row = taken(seat, told);
+        const done = row !== undefined && walk(seat, told, row);
         ok(done || refused !== undefined, said.notOffered(aim.name));
         if (!done) return;
         await seat.router.idle();
         const screen = JSON.stringify(seat.router.screen(view).body);
-        const words = "refused" in kase.then ? kase.then.refused : kase.then.says;
-        ok(screen.includes(JSON.stringify(words).slice(1, -1)), said.notSaid(words));
+        const promised = "refused" in kase.then ? kase.then.refused : kase.then.says;
+        ok(screen.includes(JSON.stringify(promised).slice(1, -1)), said.notSaid(promised));
         deepStrictEqual(wroteSince(house(), before), "refused" in kase.then ? [] : kase.then.facts);
         /** Closing what was done leaves the person on a screen that exists: never on a thing its act took away. */
         seat.router.send({ kind: "cancel" });

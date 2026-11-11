@@ -158,7 +158,21 @@ export type ViewRow = Row & { readonly opens?: string; readonly act?: string } &
   readonly press?: (key: Intent) => void;
   /** Where its act runs, when not on what the view shows: an entry listed in it, by the tool that acts on it. */
   readonly on?: { readonly tool: string; readonly target: string };
+  /** The answers its act starts with: what the thing has today. It asks them from one on, up to another when it
+   * asks only part; what comes before is fixed by where the row stands. */
+  readonly with?: { readonly answers: readonly string[]; readonly from: number; readonly until?: number };
 };
+/** An option among a thing's actions that opens another list instead of asking: a menu that leads to a menu. */
+export interface ThingMenu {
+  readonly label: string;
+  readonly key: string;
+  readonly hint?: string;
+  readonly listed?: (target: string) => boolean;
+  /** Why nothing under it can be done now, when that is so: it stays on the list, off, and says this. */
+  readonly off?: (target: string) => string | undefined;
+  /** Where it leads: a destination its tool's view answers. */
+  readonly opens: (target: string) => string;
+}
 export interface Tool {
   rendered?(target?: string): void;
   /** Why it cannot be opened, when that is so: a tool nobody gave you stays on your Menu, off, and says this. */
@@ -177,6 +191,7 @@ export interface Tool {
   view(target?: string): readonly (Omit<Stack, "rows"> & { readonly rows: readonly ViewRow[] })[];
   readonly acts: Readonly<Record<string, ToolAct>>;
   readonly actsOn?: Readonly<Record<string, ThingAct>>;
+  readonly menusOn?: Readonly<Record<string, ThingMenu>>;
   readonly conversation?: Conversation;
   readonly conversationAt?: (target: string) => Conversation | undefined;
 }

@@ -17,6 +17,8 @@ export const promiseTexts = {
   hiddenWrong: (act: string) => `the act ${act} is not hidden exactly while its tool says it cannot be done`,
   noKey: (ask: string, answer: string) => `no key chooses ${answer} when asked ${ask}`,
   notSaid: (words: string) => `the screen does not say: ${words}`,
+  sameKey: (place: string, keys: readonly string[]) => `two rows of ${place} take the same key: ${keys.join(" ")}`,
+  keyless: (act: string) => `the row that starts ${act} has no key`,
   lost: (act: string) => `closing ${act} leaves the person on a thing no view lists any more`,
   givenRefused: (act: string, why: string) => `given ${act} was not accepted: ${why}`,
 } as const;

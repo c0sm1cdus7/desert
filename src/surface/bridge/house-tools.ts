@@ -5,9 +5,10 @@ import type { ProgramTool } from "../../tools/promises.ts";
 import type { Program, Tool as HouseTool } from "../../tools/tool-contract.ts";
 import type { Tool } from "../contract.ts";
 import { backKey as back } from "../screen.ts";
-import { anyToolScreen, programActs } from "./any-tool.ts";
+import { anyToolScreen } from "./any-tool.ts";
 import type { HousePorts, Shown, SurfacePorts } from "./house-ports.ts";
 import { preferencesPlace, preferencesTool } from "./preferences-tool.ts";
+import { programActs } from "./program-acts.ts";
 
 /** Only a tool whose acts say how they are offered can be shown: an act without its declaration is a defect. */
 const isProgramTool = <X extends Program>(tool: HouseTool<X>): tool is ProgramTool<X> =>
@@ -20,14 +21,26 @@ function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown
   const taken = repeated([preferencesPlace.key, ...tools.map(tool => shown.words[tool.id]?.key ?? "")]);
   if (taken.length) throw new Error(`Two tools take the same key: ${taken.join(", ")}`);
   if (tools.some(tool => tool.id === preferencesPlace.id)) throw new Error(`A tool takes the name of Preferences`);
-  for (const tool of tools) {
-    /** Where an act asks to be confirmed, its own key takes it and this one goes back: they cannot be the same. */
-    if (Object.values(tool.acts).some(act => act.key === back))
-      throw new Error(`An act of ${tool.id} takes the key that goes back: ${back}`);
-    for (const on of ["tool", "thing"] as const) {
-      const keys = repeated(Object.values(tool.acts).flatMap(act => (act.on === on ? [act.key] : [])));
-      if (keys.length) throw new Error(`Two acts of ${tool.id} take the same key: ${keys.join(", ")}`);
-    }
+  tools.forEach(auditActs);
+}
+/** The acts of one tool, where each is taken: on the tool, among a thing's actions with its menus, or under a menu. */
+function auditActs<X extends Program>(tool: ProgramTool<X>): void {
+  const acts = Object.values(tool.acts);
+  const menus = Object.entries(tool.menus ?? {});
+  /** Where an act asks to be confirmed, its own key takes it and this one goes back: they cannot be the same. */
+  if (acts.some(act => act.key === back)) throw new Error(`An act of ${tool.id} takes the key that goes back: ${back}`);
+  const lost = acts.flatMap(act => (act.under !== undefined && !tool.menus?.[act.under] ? [act.under] : []));
+  if (lost.length) throw new Error(`Acts of ${tool.id} are under menus it does not declare: ${lost.join(", ")}`);
+  const empty = menus.filter(([id]) => !acts.some(act => act.on === "thing" && act.under === id)).map(([id]) => id);
+  if (empty.length) throw new Error(`Menus of ${tool.id} have no act of a thing under them: ${empty.join(", ")}`);
+  const places = [
+    acts.filter(act => act.on === "tool"),
+    [...acts.filter(act => act.on === "thing" && act.under === undefined), ...menus.map(([, menu]) => menu)],
+    ...menus.map(([id]) => acts.filter(act => act.under === id)),
+  ];
+  for (const place of places) {
+    const keys = repeated(place.map(option => option.key));
+    if (keys.length) throw new Error(`Two acts of ${tool.id} take the same key: ${keys.join(", ")}`);
   }
 }
 export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown<X>): readonly Tool[] {
@@ -41,8 +54,8 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
     const words = shown.words[contract.id];
     if (!words) return [];
     const mine = (): boolean => allowed(ports.state().house, ports.me, contract.id);
-    const acts = programActs(observed, contract, shown.locale);
-    const tool = (shown.screens?.[contract.id] ?? anyToolScreen)(observed, contract, words, acts);
+    const { acts, start } = programActs(observed, contract, shown.locale);
+    const tool = (shown.screens?.[contract.id] ?? anyToolScreen)(observed, contract, words, acts, start);
     const calls = () => ports.state().attention.has(contract.id);
     return {
       ...tool,

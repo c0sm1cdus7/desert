@@ -1,8 +1,9 @@
 // The one screen for where a session stands: every part of it comes from the tools or the words of the surface.
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import type { Hint, Row, Screen, Tool } from "./contract.ts";
-import { actOf, cursorOf, fieldOf, goneOf, stacksOf, toolOf } from "./screen.ts";
-import type { Bar, Choice, Session, Viewport } from "./screen.ts";
+import { cursorOf, goneOf, stacksOf, type Choice } from "./lists.ts";
+import { actOf, fieldOf, toolOf } from "./screen.ts";
+import type { Bar, Session, Viewport } from "./screen.ts";
 import { conversationOf, errorSpans, talkBody, talkHints, talkPanel, type Talk } from "./talk.ts";
 import { walkBody, walkHints } from "./walk.ts";
 import { must, windowed } from "./window.ts";

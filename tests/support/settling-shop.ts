@@ -66,8 +66,8 @@ export const settlingShop: Composition<Shop> = {
 };
 export const every = "sales:every";
 /** The sales one view further in: the tool's own view opens a row that lists them. */
-const nested: ProgramScreen<Shop> = (ports, tool, words, acts) => {
-  const plain = anyToolScreen(ports, tool, words, acts);
+const nested: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
+  const plain = anyToolScreen(ports, tool, words, acts, start);
   return {
     ...plain,
     titleOf: target => (target === every ? "Todas" : (plain.titleOf?.(target) ?? target)),
@@ -78,8 +78,8 @@ const nested: ProgramScreen<Shop> = (ports, tool, words, acts) => {
   };
 };
 /** The sales on no view at all: each one still reads when asked for, and nothing leads a person to it. */
-const hiding: ProgramScreen<Shop> = (ports, tool, words, acts) => {
-  const plain = anyToolScreen(ports, tool, words, acts);
+const hiding: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
+  const plain = anyToolScreen(ports, tool, words, acts, start);
   return {
     ...plain,
     view: target => (target === undefined ? [section(words.listed, [], words.empty)] : plain.view(target)),
@@ -94,8 +94,8 @@ export const leavingShop: Composition<Shop> = {
 };
 const settledOnes = "sales:settled";
 /** The settled sales apart: the tool's own view lists what still owes, and one row opens the rest. */
-const apart: ProgramScreen<Shop> = (ports, tool, words, acts) => {
-  const plain = anyToolScreen(ports, tool, words, acts);
+const apart: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
+  const plain = anyToolScreen(ports, tool, words, acts, start);
   const owing = (row: ViewRow): boolean => owed(ports.state(), row.opens ?? "") > 0;
   return {
     ...plain,
@@ -112,20 +112,20 @@ const apart: ProgramScreen<Shop> = (ports, tool, words, acts) => {
 };
 export const apartShown: Shown<Shop> = { ...shopShown, screens: { sales: apart } };
 /** A screen that takes off its list what cannot be done now, instead of leaving it there saying why. */
-const muted: ProgramScreen<Shop> = (ports, tool, words, acts) => {
+const muted: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
   const quiet = Object.entries(acts.actsOn ?? {}).map(([name, act]) => {
     const listed = (target: string): boolean => (act.listed?.(target) ?? true) && act.off?.(target) === undefined;
     return [name, { ...act, listed, off: () => undefined }] as const;
   });
-  return anyToolScreen(ports, tool, words, { ...acts, actsOn: Object.fromEntries(quiet) });
+  return anyToolScreen(ports, tool, words, { ...acts, actsOn: Object.fromEntries(quiet) }, start);
 };
 export const mutedShown: Shown<Shop> = { ...shopShown, screens: { sales: muted } };
 /** A screen that keeps on its list what cannot be done, whatever the person prefers to see. */
-const stubborn: ProgramScreen<Shop> = (ports, tool, words, acts) => {
+const stubborn: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
   const every = Object.entries(acts.actsOn ?? {}).map(([name, act]) => {
     const listed = (target: string): boolean => tool.targets(ports.state()).includes(target);
     return [name, { ...act, listed }] as const;
   });
-  return anyToolScreen(ports, tool, words, { ...acts, actsOn: Object.fromEntries(every) });
+  return anyToolScreen(ports, tool, words, { ...acts, actsOn: Object.fromEntries(every) }, start);
 };
 export const stubbornShown: Shown<Shop> = { ...shopShown, screens: { sales: stubborn } };

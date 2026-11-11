@@ -30,6 +30,7 @@ const walk: Walk = {
   answers: [],
   asked: [],
   pos: 0,
+  floor: 0,
   typed: "",
   caret: 0,
   at: 0,

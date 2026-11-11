@@ -10,6 +10,7 @@ import type { Slices, State, ToolRegistry } from "../../src/tools/tool-contract.
 const sale = text("Venta", "Nombre de la venta");
 export const shopCatalog = {
   "sale-registered": object({ sale, total: money("Total") }),
+  "sale-corrected": object({ sale, total: money("Total"), paid: money("Cobrado") }),
   "payment-received": object({
     payment: text("Pago", "Nombre del pago"),
     amount: money("Monto"),
@@ -27,6 +28,11 @@ export type Shop = { fact: ShopFact; tools: { sales: Sales; payments: Payments }
 const salesStep = (kept: Sales, event: ShopEvent): Sales => {
   if (event.kind === "sale-registered")
     return new Map(kept).set(event.data.sale, { total: event.data.total, paid: 0, by: event.by });
+  if (event.kind === "sale-corrected") {
+    const { sale: name, total, paid } = event.data;
+    const corrected = kept.get(name);
+    return corrected ? new Map(kept).set(name, { ...corrected, total, paid }) : kept;
+  }
   const sale = event.kind === "payment-received" ? kept.get(event.data.sale ?? "") : undefined;
   if (event.kind !== "payment-received" || !event.data.sale || !sale) return kept;
   return new Map(kept).set(event.data.sale, { ...sale, paid: sale.paid + event.data.amount });

@@ -1,19 +1,7 @@
 // What each intent does where you are: the only place that moves a session.
 import type { Field, Intent, Mask, Result, Tool } from "./contract.ts";
-import {
-  actOf,
-  begin,
-  choices,
-  cursorOf,
-  fieldOf,
-  goneOf,
-  toolOf,
-  maskOf,
-  optionsOf,
-  opened,
-  start,
-  validOf,
-} from "./screen.ts";
+import { choices, cursorOf, goneOf } from "./lists.ts";
+import { actOf, begin, fieldOf, toolOf, maskOf, optionsOf, opened, start, validOf } from "./screen.ts";
 import type { Asking, Running, Session, Stepped, Walk } from "./screen.ts";
 import { actedOn, conversationOf, edited, sent, talkStep } from "./talk.ts";
 import { must } from "./window.ts";
@@ -23,10 +11,14 @@ const up = (session: Session): Session => (session.length > 1 ? session.slice(0,
 const replace = (session: Session, place: Session[number]): Session => [...session.slice(0, -1), place];
 
 function advance(session: Session, walk: Asking, tools: readonly Tool[], answer: string, now: number): Stepped {
-  // An answer that changed can change what follows, so what was answered after it does not survive.
-  const later = walk.answers[walk.pos] === answer ? walk.answers.slice(walk.pos + 1) : [];
-  const answers = [...walk.answers.slice(0, walk.pos), answer, ...later];
   const current = must(fieldOf(tools, walk));
+  // An answer that changed can change what follows, so what was answered after it does not survive. Unless what
+  // follows is what the thing already has: a walk that asks only part keeps the rest, and one that began with what
+  // the thing is today keeps it past a written answer, which never changes what is asked next.
+  const written = current.kind === "text" || current.kind === "secret";
+  const kept = walk.until !== undefined || walk.answers[walk.pos] === answer || (walk.carried === true && written);
+  const later = kept ? walk.answers.slice(walk.pos + 1) : [];
+  const answers = [...walk.answers.slice(0, walk.pos), answer, ...later];
   const asked = [...walk.asked.slice(0, walk.pos), { ask: current.ask, shown: maskOf(current, answer) }];
   const moved: Walk = { ...walk, answers, asked, pos: walk.pos + 1 };
   const { error: _gone, ...clean } = moved;
@@ -80,7 +72,7 @@ function back(session: Session, walk: Asking, tools: readonly Tool[]): Session {
 }
 function walking(session: Session, walk: Walk, tools: readonly Tool[], key: Intent, now: number): Stepped {
   if (key.kind === "cancel") {
-    if (walk.phase === "asking" && walk.pos > 0) return { session: back(session, walk, tools) };
+    if (walk.phase === "asking" && walk.pos > walk.floor) return { session: back(session, walk, tools) };
     const thingIsGone = walk.phase === "done" && actOf(tools, walk).leaves;
     return { session: thingIsGone ? up(up(session)) : up(session) };
   }
@@ -130,7 +122,7 @@ export function finished(session: Session, walk: Running, result: Result, clock?
   if (result.ok) {
     return replace(session, { ...place, phase: "done", done: result.text, ...(clock ? { doneAt: clock } : {}) });
   }
-  const pos = Math.max(place.pos - 1, 0);
+  const pos = Math.max(place.pos - 1, place.floor);
   const typed = place.answers[pos] ?? "";
   const caret = Array.from(typed).length;
   return replace(session, { ...place, phase: "asking", pos, typed, caret, at: 0, error: result.reason });

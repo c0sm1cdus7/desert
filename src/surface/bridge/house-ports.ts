@@ -33,12 +33,21 @@ export type SurfaceWords = Readonly<Record<string, ToolWords>>;
 /** How a program is shown: its words, how its country writes money and days, and the screens that are its own. */
 export type Shown<X extends Program> = Readonly<{ words: SurfaceWords; locale: Locale }> &
   Readonly<{ screens?: Readonly<Record<string, ProgramScreen<X>>> }>;
-/** A tool that needs more than rows brings its own screen; its acts still come from their declarations. */
+/** The acts and menus of a tool as its declarations offer them: a screen passes them on as they are. */
+export type ScreenActs = Pick<SurfaceTool, "acts" | "actsOn" | "menusOn">;
+/** How a row starts a declared act of a thing: its own key, title or detail when it wants them; and what the thing
+ * has today, in the shape the act takes, asked whole or from one answer up to another. */
+export type Starting = Readonly<{ key?: string; title?: string; detail?: string }> &
+  Readonly<{ today?: unknown; asks?: readonly [from: number, until?: number] }>;
+export type Start = (act: string, target: string, how?: Starting) => ViewRow;
+/** A tool that needs more than rows brings its own screen; its acts still come from their declarations, and a row
+ * of it starts one of them only through `start`. */
 export type ProgramScreen<X extends Program> = (
   ports: SurfacePorts<X>,
   tool: ProgramTool<X>,
   words: ToolWords,
-  acts: Pick<SurfaceTool, "acts" | "actsOn">,
+  acts: ScreenActs,
+  start: Start,
 ) => SurfaceTool;
 /** Every act answers later over a door: what the house decided, never the fact that it is still deciding. */
 export const settle = <X extends Program>(result: ExecutionResult<X>) =>

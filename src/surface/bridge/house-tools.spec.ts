@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { houseTools } from "./house-tools.ts";
 import type { Shown } from "./house-ports.ts";
 import { must } from "../window.ts";
-import type { ProgramAct } from "../../tools/promises.ts";
+import type { ProgramAct, ProgramTool } from "../../tools/promises.ts";
 import type { ToolRegistry } from "../../tools/tool-contract.ts";
 import { shopRig } from "../../../tests/support/shop-rig.ts";
 import { paymentsTool, salesTool, shopShown, shopWords, type Shop } from "../../../tests/support/shop.ts";
@@ -55,5 +55,20 @@ describe("a program's tools, composed for a surface", () => {
       "An act of sales takes the key that goes back: v",
     );
     expect(composed(sales({ register, onEach: { ...register, on: "thing" } }))).not.toThrow();
+  });
+
+  it("refuses an act under a menu its tool does not declare, a menu with nothing under it, a key taken twice", () => {
+    const menus = { edit: { label: "Editar", purpose: "Corrige la venta.", key: "e" } };
+    const menued = (acts: Readonly<Record<string, ProgramAct<Shop>>>): ToolRegistry<Shop> => {
+      const tool: ProgramTool<Shop> = { ...salesTool, menus, acts };
+      return [tool, paymentsTool];
+    };
+    const inMenu = { ...register, on: "thing", under: "edit" } as const;
+    expect(composed(sales({ register, inMenu }))).toThrow("under menus it does not declare: edit");
+    expect(composed(menued({ register }))).toThrow("have no act of a thing under them: edit");
+    const beside = { ...register, on: "thing", key: "e" } as const;
+    expect(composed(menued({ register, inMenu, beside }))).toThrow("Two acts of sales take the same key: e");
+    expect(composed(menued({ register, inMenu, also: inMenu }))).toThrow("Two acts of sales take the same key: r");
+    expect(composed(menued({ register, inMenu }))).not.toThrow();
   });
 });

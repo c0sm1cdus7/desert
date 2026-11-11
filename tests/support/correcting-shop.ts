@@ -1,0 +1,99 @@
+// The test shop with a menu on its sales: what a sale says is corrected from there, opening on what it is today.
+import { object } from "../../src/catalogs/acts.ts";
+import { money } from "../../src/catalogs/fields.ts";
+import { anyToolScreen } from "../../src/surface/bridge/any-tool.ts";
+import { section, type ProgramScreen, type Shown, type Start } from "../../src/surface/bridge/house-ports.ts";
+import { menuTarget } from "../../src/surface/bridge/program-acts.ts";
+import type { ViewRow } from "../../src/surface/contract.ts";
+import { programAct, type Composition } from "../../src/tools/promises.ts";
+import type { State } from "../../src/tools/tool-contract.ts";
+import { paymentsTool, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
+
+const corrected = object({ total: money("Total"), paid: money("Cobrado") });
+const nameOf = (target: string): string => target.replace("sales/", "");
+const todayOf = (state: State<Shop>, target: string) => {
+  const sale = state.tools.sales.get(nameOf(target));
+  return sale && { total: sale.total, paid: sale.paid };
+};
+export const registered = { act: "register", input: { sale: "s1", total: 1500 } };
+const told = (total: number, paid: number) => ({
+  says: "Corrected s1",
+  facts: [{ kind: "sale-corrected" as const, data: { sale: "s1", total, paid } }],
+  reads: { lines: [{ total: `$ ${total}`, paid: `$ ${paid}`, by: "ana" }] },
+});
+export const totalCorrected = "sales · correct · a sale's total is corrected, and what it was paid stays";
+export const paidCorrected = "sales · correct · what a sale was paid is corrected, and its total stays";
+/** Correcting a sale says its total and what it was paid over again: a person changes one, and the other stays. */
+const correct = programAct<Shop, typeof corrected>({
+  label: "Corregir",
+  purpose: "Corrige lo que la venta dice.",
+  key: "c",
+  on: "thing",
+  under: "edit",
+  input: corrected,
+  today: todayOf,
+  run: (input, { by, target }) => {
+    const fact = shop.fact("sale-corrected", { sale: nameOf(target), ...input }, by);
+    return { status: "accepted", text: `Corrected ${nameOf(target)}`, effects: [fact] };
+  },
+  cases: [
+    {
+      promise: "a sale's total is corrected, and what it was paid stays",
+      given: [registered],
+      on: "sales/s1",
+      input: { total: 2000, paid: 0 },
+      then: told(2000, 0),
+    },
+    {
+      promise: "what a sale was paid is corrected, and its total stays",
+      given: [registered],
+      on: "sales/s1",
+      input: { total: 1500, paid: 500 },
+      then: told(1500, 500),
+    },
+  ],
+});
+const edit = { label: "Editar", purpose: "Corrige la venta.", key: "e" };
+const sales = { ...salesTool, menus: { edit }, acts: { ...salesTool.acts, correct } };
+export const correctingShop: Composition<Shop> = { ...shopProgram, registry: [sales, paymentsTool] };
+/** The thing a destination is a part of, when it ends as that part does. */
+const under = (target: string | undefined, part: string): string | undefined =>
+  target?.endsWith(part) ? target.slice(0, -part.length) : undefined;
+const partsOf = (thing: string): string => `${menuTarget(thing, "edit")}/parts`;
+type Rows = (start: Start, thing: string, today: ReturnType<typeof todayOf>) => ViewRow[];
+/** A screen whose Edit menu leads to another menu, where each part of the sale is asked alone. */
+const parted =
+  (rows: Rows): ProgramScreen<Shop> =>
+  (ports, tool, words, acts, start) => {
+    const plain = anyToolScreen(ports, tool, words, acts, start);
+    return {
+      ...plain,
+      titleOf: target => (under(target, "#edit/parts") ? "Partes" : (plain.titleOf?.(target) ?? target)),
+      view: target => {
+        const menu = under(target, "#edit");
+        const parts = under(target, "#edit/parts");
+        if (menu) return [section("Editar", [{ key: "p", title: "Partes", opens: partsOf(menu) }])];
+        if (parts) return [section("Partes", rows(start, parts, todayOf(ports.state(), parts)))];
+        return plain.view(target);
+      },
+    };
+  };
+const total = { asks: [0, 1], key: "t", title: "Total" } as const;
+const paid = { asks: [1, 2], key: "b", title: "Cobrado" } as const;
+const honest: Rows = (start, thing, today) => [
+  start("correct", thing, { ...total, today }),
+  start("correct", thing, { ...paid, today }),
+];
+/** The same menus, with a row that says the sale was paid what it was not: what it does not ask is not today's. */
+const stale: Rows = (start, thing, today) => [
+  start("correct", thing, { ...total, today: today && { ...today, paid: 999 } }),
+  start("correct", thing, { ...paid, today }),
+];
+/** The same menus, with two rows that take one key. */
+const twins: Rows = (start, thing, today) => honest(start, thing, today).map(row => ({ ...row, key: "t" }));
+const shownWith = (screen: ProgramScreen<Shop>): Shown<Shop> => ({ ...shopShown, screens: { sales: screen } });
+export const partsShown = shownWith(parted(honest));
+export const staleShown = shownWith(parted(stale));
+export const twinsShown = shownWith(parted(twins));
+/** A screen whose Edit menu lists nothing: the act under it is declared, and no list a person reaches has it. */
+export const lostShown = shownWith(parted(() => []));

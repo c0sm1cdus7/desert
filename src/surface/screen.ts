@@ -1,9 +1,9 @@
-// Where you are and what each key does there: every screen is derived from the tools, none is written by hand.
+// Where you are on a surface and the act you are walking: what a session remembers, and how an act begins.
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
-import { startTalk, type Talk } from "./talk.ts";
+import type { Talk } from "./talk.ts";
 import { foundAt, must } from "./window.ts";
-import type { Field, Option, Screen, Stack, Tool, ViewRow } from "./contract.ts";
-type Picture =
+import type { Field, Option, Screen, Tool, ViewRow } from "./contract.ts";
+export type Picture =
   | { readonly kind: "menu"; readonly at: number }
   | { readonly kind: "view"; readonly tool: string; readonly target?: string; readonly at: number };
 interface Walking {
@@ -15,6 +15,12 @@ interface Walking {
   /** What was asked, as it was asked: an act can change what its questions would say now. */
   readonly asked: readonly { readonly ask: string; readonly shown: string }[];
   readonly pos: number;
+  /** The first question it asks: what comes before was fixed by the row that started it. */
+  readonly floor: number;
+  /** Where it stops asking, when it asks only part of what the act takes: the rest it already has. */
+  readonly until?: number;
+  /** It began with answers it already had: what the thing is today. */
+  readonly carried?: true;
   readonly typed: string;
   readonly caret: number;
   readonly at: number;
@@ -25,7 +31,7 @@ export type Asking = Walking & { readonly phase: "asking" };
 export type Running = Walking & { readonly phase: "running"; readonly since: number };
 export type Done = Walking & { readonly phase: "done"; readonly done: string; readonly doneAt?: string };
 export type Walk = Asking | Running | Done;
-type Place = Picture | Walk | Talk;
+export type Place = Picture | Walk | Talk;
 /** Memory of this one device: it never reaches the journal, and a crash loses a half-filled action. */
 export type Session = readonly Place[];
 export const start: Session = [{ kind: "menu", at: 0 }];
@@ -45,9 +51,6 @@ export interface Stepped {
   readonly sending?: Promise<string | undefined>;
   readonly quit?: true;
 }
-export type Choice = ViewRow & { readonly open?: Place };
-type Listed = Omit<Stack, "rows"> & { rows: readonly Choice[] };
-
 export const toolOf = (tools: readonly Tool[], id: string): Tool => {
   const tool = tools.find(known => known.id === id);
   if (!tool) throw new Error(`unknown tool ${id}`);
@@ -69,8 +72,9 @@ export function actOf(tools: readonly Tool[], walk: Walk) {
     run: (answers: readonly string[]) => act.run(answers, target),
   };
 }
+/** The question a walk stands on; none once it has asked everything it was started to ask. */
 export const fieldOf = (tools: readonly Tool[], walk: Walk): Field | null =>
-  actOf(tools, walk).next(walk.answers.slice(0, walk.pos));
+  walk.pos === walk.until ? null : actOf(tools, walk).next(walk.answers.slice(0, walk.pos));
 /** The key that goes back where an act asks to be confirmed. */
 export const backKey = said.back.charAt(0);
 export function optionsOf(field: Field | null): readonly Option[] {
@@ -91,73 +95,6 @@ export const opened = (field: Field | null, answer?: string): Pick<Walk, "typed"
     marks: field?.kind === "many" && value ? value.split(" · ") : [],
   };
 };
-export function begin(tools: readonly Tool[], tool: string, act: string, target?: string): Walk {
-  const place = target === undefined ? {} : { target };
-  const walk: Walk = {
-    kind: "act",
-    tool,
-    act,
-    ...place,
-    answers: [],
-    asked: [],
-    pos: 0,
-    phase: "asking",
-    ...opened(null),
-  };
-  return { ...walk, ...opened(fieldOf(tools, walk)) };
-}
-/** Every act of this place, each with why it cannot be done now, when that is so. */
-function actsAt(tool: Tool, target?: string) {
-  if (target === undefined)
-    return Object.entries(tool.acts)
-      .filter(([, act]) => act.scope === "all" && (act.listed?.() ?? true))
-      .map(([id, act]) => ({ id, act, why: act.off?.() }));
-  return Object.entries(tool.actsOn ?? {})
-    .filter(([, act]) => act.scope === "each" && (act.listed?.(target) ?? true))
-    .map(([id, act]) => ({ id, act, why: act.off?.(target) }));
-}
-/** An act that cannot be done now keeps its place and its key, opens nothing, and says why instead of what for. */
-function actionRows(tools: readonly Tool[], tool: Tool, target?: string): readonly Choice[] {
-  return actsAt(tool, target).map(({ id, act, why }) => {
-    const row = { ...(act.key === undefined ? {} : { key: act.key }), title: act.label };
-    if (why !== undefined) return { ...row, detail: why, off: true };
-    return { ...row, ...(act.hint === undefined ? {} : { detail: act.hint }), open: begin(tools, tool.id, id, target) };
-  });
-}
-/** A tool on the Menu: one that cannot be opened keeps its place and its key, and says why. */
-function menuRow(tool: Tool): Choice {
-  const row = { key: tool.place.key, title: tool.name.toLowerCase() };
-  const why = tool.off?.();
-  if (why !== undefined) return { ...row, detail: why, off: true };
-  const open: Place =
-    tool.conversation && !tool.conversationAt ? startTalk(tool.id) : { kind: "view", tool: tool.id, at: 0 };
-  return { ...row, ...(tool.calls?.() ? { detail: said.attention, tone: "wait" } : { detail: tool.summary() }), open };
-}
-export function stacksOf(place: Picture, tools: readonly Tool[]): readonly Listed[] {
-  if (place.kind === "menu") {
-    return (["tools", "system"] as const)
-      .map(section => ({
-        title: said.sections[section],
-        rows: tools.filter(tool => tool.place.section === section && tool.listed?.() !== false).map(menuRow),
-      }))
-      .filter(stack => stack.rows.length);
-  }
-  const tool = toolOf(tools, place.tool);
-  const opensTo = (target: string): Place =>
-    tool.conversationAt?.(target) ? startTalk(tool.id, target) : { kind: "view", tool: tool.id, target, at: 0 };
-  const shown = tool.view(place.target).map(stack => ({
-    ...stack,
-    rows: stack.rows.map(row => {
-      const { tool: acting = tool.id, target = place.target } = row.on ?? {};
-      if (row.act !== undefined) return { ...row, open: begin(tools, acting, row.act, target) };
-      return row.opens === undefined ? row : { ...row, open: opensTo(row.opens) };
-    }),
-  }));
-  const acts = actionRows(tools, tool, place.target);
-  return acts.length ? [...shown, { title: said.actions, rows: acts }] : shown;
-}
-export const choices = (place: Picture, tools: readonly Tool[]): readonly Choice[] =>
-  stacksOf(place, tools).flatMap(stack => stack.rows.filter(row => row.open ?? row.press));
 /** An answer as it is shown: a secret as dots, a field with a format in its shape, anything else as written. */
 export const maskOf = (field: Field | null, answer: string): string => {
   if (field?.kind === "secret") return "•".repeat(Array.from(answer).length);
@@ -165,13 +102,33 @@ export const maskOf = (field: Field | null, answer: string): string => {
 };
 export const validOf = (field: Field | null, typed: string): boolean =>
   (field?.valid ?? (value => value.trim() !== ""))(typed);
-/** Someone else removed what you stand on: it is said as such, never drawn as another screen. */
-export function goneOf(session: Session, tools: readonly Tool[]): boolean {
-  const place = session.at(-1);
-  const parent = session.at(-2);
-  if (place?.kind !== "view" || place.target === undefined) return false;
-  if (parent?.kind !== "view" && parent?.kind !== "menu") throw new Error(`nothing lists ${place.target}`);
-  return !stacksOf(parent, tools).some(stack => stack.rows.some(row => row.opens === place.target));
+/** A walk as it begins. A row may start it with answers it already has: what comes before the first one it asks is
+ * fixed by where the row stands and shows as answered, and each question opens on the answer it has. */
+export function begin(tools: readonly Tool[], tool: string, act: string, target?: string, given?: ViewRow["with"]) {
+  const { answers = [], from = 0, until } = given ?? {};
+  const limits = {
+    floor: from,
+    ...(until === undefined ? {} : { until }),
+    ...(given ? { carried: true as const } : {}),
+  };
+  const place = target === undefined ? {} : { target };
+  const bare: Walk = {
+    kind: "act",
+    tool,
+    act,
+    ...place,
+    answers,
+    asked: [],
+    pos: from,
+    ...limits,
+    phase: "asking",
+    ...opened(null),
+  };
+  const { next } = actOf(tools, bare);
+  const asked = answers.slice(0, from).map((answer, index) => {
+    const field = must(next(answers.slice(0, index)));
+    return { ask: field.ask, shown: maskOf(field, answer) };
+  });
+  const walk: Walk = { ...bare, asked };
+  return { ...walk, ...opened(fieldOf(tools, walk), answers[from]) };
 }
-export const cursorOf = (place: Picture, tools: readonly Tool[]): number =>
-  Math.min(place.at, Math.max(choices(place, tools).length - 1, 0));
