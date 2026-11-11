@@ -81,7 +81,15 @@ interacción con la casa sea la misma en todas las superficies.
   superficie ponga las palabras.
 
 - **Un propósito largo se corta.** La terminal corta con «…» el propósito de una acción cuando no entra al lado de
-  su nombre. O se parte en dos renglones, o se limita su largo al componer el programa.
+  su nombre; lo mismo el motivo de una acción apagada y el porqué de Atención. O se parte en dos renglones, o se
+  limita su largo al componer el programa. En Capibara se acortaron a mano los que se cortaban (10/11).
+- **Una herramienta que el programa suma después no es de nadie.** Quien crea la casa recibe las herramientas que
+  el programa tiene ese día. Si el programa suma una después, no la tiene nadie, tampoco quien administra, y sin
+  Equipo no hay cómo dársela. Hay que decidir: o quien administra tiene siempre todas, o la casa se las da al abrir.
+- **Un programa escribe hechos de la casa.** Equipo, en Capibara, escribe `granted` desde sus acciones. Un caso
+  hoy promete hechos del programa y lo que se lee después; no puede prometer un hecho de la casa.
+- **Una fila que lleva a la cosa de otra herramienta.** La venta muestra sus pagos, envíos y documentos como
+  renglones quietos; deberían abrir esa cosa en su herramienta.
 - **Un campo completo que no avanza no dice por qué.** Un día que no existe («30/02/2026») entra en la máscara y
   enter no hace nada. `valid` hoy contesta sí o no; tiene que poder contestar el motivo.
 - **Después de un rechazo no se ve la pregunta.** El motivo ocupa el lugar de la pregunta que se estaba
