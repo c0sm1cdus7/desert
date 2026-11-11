@@ -173,16 +173,19 @@ export const shopWords: SurfaceWords = {
     key: "v",
     empty: "Sin ventas.",
     listed: "Registradas",
-    shown: "Datos",
-    reads: { total: "Total", paid: "Cobrado", by: "Registró" },
+    reads: {},
+    presents: [
+      { title: "Venta", empty: "Sin datos.", reads: { total: "Total", paid: "Cobrado" } },
+      { title: "Actividad", empty: "Sin actividad.", reads: { by: "Creó" } },
+    ],
   },
   payments: {
     name: "Pagos",
     key: "p",
     empty: "Sin pagos.",
     listed: "Caja",
-    shown: "Datos",
     reads: { received: "Recibido", unmatched: "Sin conciliar" },
+    presents: [],
   },
 };
 export const shopShown: Shown<Shop> = {

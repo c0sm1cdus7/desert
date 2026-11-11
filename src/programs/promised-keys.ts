@@ -45,7 +45,10 @@ const placeOf = (tool: string, target?: string) =>
 /** What one view opens: each thing a row of it leads to, with the rows opened to get there. */
 const opensFrom = (tools: readonly Tool[], tool: string, { target, rows }: Reached): Required<Reached>[] =>
   choices(placeOf(tool, target), tools).flatMap((row, at) =>
-    row.opens !== undefined && row.open?.kind === "view" ? [{ target: row.opens, rows: [...rows, at] }] : [],
+    /** Only what the tool itself has: what a row names of another tool is that tool's to walk. */
+    row.opens !== undefined && row.open?.kind === "view" && row.open.tool === tool
+      ? [{ target: row.opens, rows: [...rows, at] }]
+      : [],
   );
 /** The rows a person opens, one after another, from a tool's own view down to one of its things: found the way
  * they would find it, by what each view lists. Nothing when no view of the tool leads there. */

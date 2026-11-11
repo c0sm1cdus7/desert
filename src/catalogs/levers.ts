@@ -3,6 +3,8 @@ export const snapshotEvery = 100;
 export const privateFileMode = 0o600;
 export const privateDirectoryMode = 0o700;
 /** How much of a tool's text view a reader takes at once. */
-export type ViewLimits = Readonly<{ recentLines: number }>;
+export type ViewLimits = Readonly<{ recentLines: number }> &
+  /** The instant of the reading, for what a tool reads by the day: what is due today. */
+  Readonly<{ now?: number }>;
 /** A shorter value is no secret worth hiding: replacing it everywhere would rewrite ordinary words. */
 export const secretLimits = { minLength: 12 } as const;

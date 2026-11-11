@@ -32,6 +32,8 @@ interface Walking {
   readonly caret: number;
   readonly at: number;
   readonly marks: readonly string[];
+  /** What is written was there when the question opened: the first key written replaces it, any other edits it. */
+  readonly suggested: boolean;
   readonly error?: string;
   /** In a question that picks a thing, the person is looking for it: what they type is what they look for. */
   readonly finding?: true;
@@ -115,7 +117,8 @@ export function optionsOf(field: Field | null): readonly Option[] {
 }
 /** A field as it opens: an earlier answer wins over its initial value, so going back keeps what you wrote. A choice
  * opens on the option it already is. */
-export const opened = (field: Field | null, answer?: string): Pick<Walk, "typed" | "caret" | "at" | "marks"> => {
+type Opened = Pick<Walk, "typed" | "caret" | "at" | "marks" | "suggested">;
+export const opened = (field: Field | null, answer?: string): Opened => {
   const value = answer ?? field?.initial ?? "";
   const typed = field?.kind === "text" || field?.kind === "secret" ? value : "";
   const options = field?.kind === "pick" ? field.found("") : optionsOf(field);
@@ -126,6 +129,7 @@ export const opened = (field: Field | null, answer?: string): Pick<Walk, "typed"
     /** A choice opens on the option it already is; where that one cannot be chosen, on the first that can. */
     at: options[at]?.off ? foundAt(options, option => !option.off) : at,
     marks: field?.kind === "many" && value ? value.split(" · ") : [],
+    suggested: typed !== "",
   };
 };
 /** An answer as it is shown: a secret as dots, a field with a format in its shape, anything else as written. */

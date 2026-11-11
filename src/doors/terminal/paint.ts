@@ -2,7 +2,7 @@
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import type { Body, HintKey, Screen, Span } from "../../surface/contract.ts";
 import { blankCell, fit, put, putRight, width, type Grid } from "./cells.ts";
-import { drawFocus, drawPanel, drawRow, drawThread } from "./thread.ts";
+import { drawFocus, drawPanel, drawRow, drawThread, keysOf } from "./thread.ts";
 
 export interface Size {
   readonly cols: number;
@@ -40,8 +40,8 @@ function drawList(grid: Grid, body: Extract<Body, { kind: "list" }>, left: numbe
     put(grid, left, r++, { text: stack.title, tone: "t3" });
     note("↑", stack.above);
     if (!stack.rows.length) put(grid, left + 1, r++, { text: stack.empty ?? "", tone: "t1" });
-    const keyed = stack.rows.some(row => row.key);
-    for (const row of stack.rows) drawRow(grid, r++, left, block, row, keyed);
+    const how = { keys: keysOf(stack.rows), reads: stack.reads === true };
+    for (const row of stack.rows) drawRow(grid, r++, { left, block }, row, how);
     note("↓", stack.below);
   });
 }

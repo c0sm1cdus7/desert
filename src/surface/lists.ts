@@ -70,6 +70,22 @@ function startRow(tools: readonly Tool[], tool: Tool, row: ViewRow, act: string,
   const said = row.detail || !beside ? {} : { detail: beside };
   return [{ ...row, ...said, starts, open: begin(tools, tool.id, act, target, row.with) }];
 }
+/** A row that names something leads to it, whatever tool has it: its own first, then the one that says it is its.
+ * What is of a tool this person does not hold stays named, off, and says so: nothing else of it is read here. */
+function led(tools: readonly Tool[], here: Tool, row: ViewRow, target: string): Choice {
+  const theirs = here.has?.(target) === true ? undefined : tools.find(tool => tool !== here && tool.has?.(target));
+  if (!theirs && here.has?.(target) === false) throw new Error(`${here.id} names ${target}, and no tool has it`);
+  const holder = theirs ?? here;
+  const why = theirs?.off?.();
+  if (theirs && why !== undefined) {
+    const named = { title: theirs.titleOf?.(target) ?? row.title, detail: why, off: true };
+    return row.key === undefined ? named : { ...named, key: row.key };
+  }
+  const open: Place = holder.conversationAt?.(target)
+    ? startTalk(holder.id, target)
+    : { kind: "view", tool: holder.id, target, at: 0 };
+  return { ...row, open };
+}
 /** What a row of a view reads stays read while its act is off the list: only the way to change it goes. */
 const readOr = ({ title, detail }: ViewRow, started: Choice[]): Choice[] =>
   started.length || !detail ? started : [{ title, detail }];
@@ -134,18 +150,18 @@ function listedAt(place: Picture, tools: readonly Tool[]): readonly Listed[] {
     return [...noticed(listed), ...sections];
   }
   const tool = toolOf(tools, place.tool);
-  const opensTo = (target: string): Place =>
-    tool.conversationAt?.(target) ? startTalk(tool.id, target) : { kind: "view", tool: tool.id, target, at: 0 };
-  const shown = tool.view(place.target).map(stack => ({
+  const read = tool.view(place.target).map(stack => ({
     ...stack,
     rows: stack.rows.flatMap((row): Choice[] => {
       /** A row that says where its act runs is taken at its word, a tool with no thing too. */
       const target = row.on ? row.on.target : place.target;
       if (row.act !== undefined)
         return readOr(row, startRow(tools, toolOf(tools, row.on?.tool ?? tool.id), row, row.act, target));
-      return [row.opens === undefined ? row : { ...row, open: opensTo(row.opens) }];
+      return [row.opens === undefined ? row : led(tools, tool, row, row.opens)];
     }),
   }));
+  /** Who prefers not to see what is empty sees no list with nothing in it, whatever it is a list of. */
+  const shown = tool.quiet?.() ? read.filter(stack => stack.rows.length) : read;
   const acts = actionRows(tools, tool, place.target);
   const own = place.target === undefined ? [...noticed([tool]), ...shown] : shown;
   return acts.length ? [...own, { title: said.actions, rows: acts }] : own;

@@ -1,4 +1,5 @@
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
+import { thingView } from "./presented.ts";
 import { allowed, hides } from "../../house/house.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import type { ProgramTool } from "../../tools/promises.ts";
@@ -8,7 +9,7 @@ import type { Option } from "../contract.ts";
 import { backKey as back } from "../screen.ts";
 import type { Things } from "./asking.ts";
 import { anyToolScreen } from "./any-tool.ts";
-import type { HousePorts, Shown, SurfacePorts } from "./house-ports.ts";
+import type { HousePorts, Presented, Shown, SurfacePorts } from "./house-ports.ts";
 import { noticesOf } from "./notices.ts";
 import { preferencesPlace, preferencesTool } from "./preferences-tool.ts";
 import { programActs } from "./program-acts.ts";
@@ -22,6 +23,9 @@ const repeated = (keys: readonly string[]): string[] => keys.filter((key, index)
 function auditData<X extends Program>(tool: ProgramTool<X>, reads: Readonly<Record<string, string>>): void {
   const labels = Object.values(reads).map(label => label.toLowerCase());
   for (const [name, act] of Object.entries(tool.acts)) {
+    /** What is done to a thing is among its actions: only what a tool itself reads is changed where it is read. */
+    if (act.changes !== undefined && act.on === "thing")
+      throw new Error(`${name} of ${tool.id} changes a datum of a thing: it goes among the actions of the thing`);
     if (act.changes !== undefined && reads[act.changes] === undefined)
       throw new Error(`${name} of ${tool.id} changes a datum its tool does not read: ${act.changes}`);
     const loose = act.changes === undefined && act.under === undefined && labels.includes(act.name.toLowerCase());
@@ -94,6 +98,18 @@ const thingsOf =
       has: thing => contract.targets(ports.state()).includes(thing) && open(thing),
     };
   };
+/** One of its things is always read as its tool declared: no screen of a program draws a thing. */
+function withThings<X extends Program>(
+  ports: SurfacePorts<X>,
+  contract: ProgramTool<X>,
+  stacks: readonly Presented[],
+  screen: Tool,
+): Tool {
+  const thing = thingView(ports, contract, stacks);
+  const isThing = (target?: string): target is string =>
+    target !== undefined && contract.targets(ports.state()).includes(target);
+  return { ...screen, view: target => (isThing(target) ? thing(target) : screen.view(target)) };
+}
 export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown<X>): readonly Tool[] {
   const seen = new Map<string, number>();
   const observed: SurfacePorts<X> = { ...ports, act: value => ports.act(value, seen.get(value.target ?? "") ?? 0) };
@@ -101,8 +117,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
   if (undeclared.length) throw new Error(`Acts without their declaration in ${undeclared.join(", ")}`);
   const tools = ports.registry.filter(isProgramTool);
   audit(tools, shown);
-  const titled = (tool: string, target: string): string =>
-    own.find(known => known.id === tool)?.titleOf?.(target) ?? target;
+  const titled = (tool: string, target: string) => own.find(known => known.id === tool)?.titleOf?.(target) ?? target;
   const asked = { locale: shown.locale, things: thingsOf(ports, shown, () => own), titled };
   const built = tools.flatMap(contract => {
     const words = shown.words[contract.id];
@@ -110,7 +125,8 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
   });
   const own: Tool[] = built.map(({ contract, words, acts, start }) => {
     const mine = (): boolean => allowed(ports.state().house, ports.me, contract.id);
-    const tool = (shown.screens?.[contract.id] ?? anyToolScreen)(observed, contract, words, acts, start);
+    const screen = shown.screens?.[contract.id] ?? anyToolScreen;
+    const tool = withThings(observed, contract, words.presents, screen(observed, contract, words, acts, start));
     const calls = () => ports.state().attention.has(contract.id);
     const { notices, seen: looked } = noticesOf(observed, contract, tool);
     /** What the other tools offer on a thing of this one: only on a thing, never on a view that groups them. */

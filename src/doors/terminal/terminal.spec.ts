@@ -143,8 +143,10 @@ describe("an action with steps", () => {
     expect(shown(first, tools).at(-1)).toContain("esc cancelar");
     const same = await press(first, "\r", tools);
     expect(shown(same, tools).join("\n")).toContain("¿Qué llave de Ant?");
-    const changed = await press(first, "e\r", tools);
+    /** What the question opened with gives way to what is written; an arrow first, and it is edited instead. */
+    const changed = await press(first, "Ante\r", tools);
     expect(shown(changed, tools).join("\n")).toContain("¿Qué llave de Ante?");
+    expect(shown(await press(first, "\x1b[Ce\r", tools), tools).join("\n")).toContain("¿Qué llave de Ante?");
     expect(shown(changed, tools)[26]).not.toContain("vieja");
     expect((await press(first, "\x1b", tools)).at(-1)?.kind).toBe("view");
   });

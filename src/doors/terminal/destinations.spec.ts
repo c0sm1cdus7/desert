@@ -36,6 +36,7 @@ const walk: Walk = {
   caret: 0,
   at: 0,
   marks: [],
+  suggested: false,
   phase: "asking",
 };
 describe("a destination", () => {

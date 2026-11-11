@@ -6,6 +6,7 @@ import type { Tool, ViewRow } from "../shown-tool.ts";
 import { must } from "../window.ts";
 import { section, type ScreenActs, type Start, type SurfacePorts, type ToolWords } from "./house-ports.ts";
 import { capital } from "./program-acts.ts";
+import { thingView } from "./presented.ts";
 import { briefOf, listedIn, rowsIn, type Changing, type Labels } from "./rows.ts";
 
 /** A label the program did not give is a defect of the program: it is named, never replaced by a code. */
@@ -58,9 +59,10 @@ export function anyToolScreen<X extends Program>(
   start: Start,
 ): Tool {
   const label = (key: string): string => worded(words.reads, tool.id, key);
-  const changing = changingBy(ports, tool, start);
-  const view = (target: string): ViewRow[] =>
-    rowsIn(tool.view(ports.state(), target, ports.limits), label, changing(target));
+  /** What the tool itself reads: a datum an act changes is the row that starts that act. */
+  const own = (): ViewRow[] =>
+    rowsIn(tool.view(ports.state(), tool.id, ports.limits), label, changingBy(ports, tool, start)(tool.id));
+  const thing = thingView(ports, tool, words.presents);
   const menuOf = (target?: string) => menuAt(tool, tool.targets(ports.state()), target);
   const menuRows = (menu: Menued): ViewRow[] => rowsUnder(ports, tool, start, menu);
   return {
@@ -73,17 +75,15 @@ export function anyToolScreen<X extends Program>(
     /** A thing is called what its row on the list calls it; a menu, what the tool calls it. */
     titleOf: target => {
       const menu = menuOf(target)?.menu.name;
-      return menu ? capital(menu) : must(view(tool.id).find(row => row.opens === target)).title;
+      return menu ? capital(menu) : must(own().find(row => row.opens === target)).title;
     },
     view: target => {
       const targets = tool.targets(ports.state());
       const menu = menuOf(target);
       if (menu) return [section(capital(menu.menu.name), menuRows(menu))];
       if (target !== undefined && !targets.includes(target)) throw new Error(`${tool.id} has no ${target}`);
-      const inside = ({ opens, ...row }: ViewRow): ViewRow =>
-        opens && opens !== target && targets.includes(opens) ? { ...row, opens } : row;
-      if (target) return [section(words.shown, view(target).map(inside), words.empty)];
-      return [section(words.listed, listedIn(targets, view(tool.id)), words.empty)];
+      if (target) return thing(target);
+      return [section(words.listed, listedIn(targets, own()), words.empty)];
     },
   };
 }

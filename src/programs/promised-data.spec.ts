@@ -1,68 +1,94 @@
-// A datum that an act changes: its row is where the act is taken from, saying what the datum is today.
+// A datum that an act changes, where a tool is its own settings: its row is where the act is taken from, saying
+// what the datum is today. On a thing it is the other way: what is done to it is among its actions.
 import { describe, expect, it } from "vitest";
 import { houseTools } from "../surface/bridge/house-tools.ts";
 import type { Screen } from "../surface/contract.ts";
+import type { Composition } from "../tools/promises.ts";
 import { localPorts } from "./house-runtime.ts";
 import { goTo, seated, view } from "./promised-keys.ts";
 import { prefer } from "./promised-off.ts";
 import { cast, given, staged } from "./promised-stage.ts";
 import { programChecks } from "./program-checks.ts";
-import { astrayShop, looseShop, paidWhole, pricingShop, registered } from "../../tests/support/pricing-shop.ts";
-import { shopShown } from "../../tests/support/shop.ts";
+import { astrayTill, closedTill, looseTill, tillProgram, tillShown, type Till } from "../../tests/support/till.ts";
 
-/** What a person reads on a list: each stack by its title, and each row by its key, what it says and its datum. */
+/** What a person reads of the till: each row by its key, what it says, its datum, and whether it is off. */
 const read = ({ body }: Screen): string[] =>
   body.kind === "list"
-    ? body.stacks.flatMap(stack => [
-        stack.title,
-        ...stack.rows.map(row => [row.key, row.title, row.detail, row.off ? "off" : ""].join(" | ")),
-      ])
+    ? body.stacks
+        .filter(stack => stack.title === "Caja")
+        .flatMap(stack => stack.rows.map(row => [row.key, row.title, row.detail, row.off ? "off" : ""].join(" | ")))
     : [];
 type Given = Parameters<typeof given>[2];
-/** The sale as ana has it in front, after what was done to it; and as she has it once she hides what cannot be done. */
-const atSale = (done: Given, use: (now: () => string[], hide: () => Promise<void>) => Promise<void>) =>
-  staged(pricingShop, async ({ house }) => {
-    await given(house(), "sales", done);
-    const seat = seated(house(), cast.admin, shopShown);
+/** The till as ana has it in front, after what was done to it; and as she has it once she hides what cannot be done. */
+const atTill = (done: Given, use: (now: () => string[], hide: () => Promise<void>) => Promise<void>) =>
+  staged(tillProgram, async ({ house }) => {
+    await given(house(), "till", done);
+    const seat = seated(house(), cast.admin, tillShown);
     const hide = async (): Promise<void> => {
       seat.router.send({ kind: "menu" });
       await prefer(seat, "off", true);
-      goTo(seat, "sales", "sales/s1");
+      goTo(seat, "till", "till");
     };
-    goTo(seat, "sales", "sales/s1");
+    goTo(seat, "till", "till");
     await use(() => read(seat.router.screen(view)), hide).finally(() => seat.router.stop());
+  });
+const composed = (program: Composition<Till>) => () =>
+  staged(program, ({ house }) => {
+    houseTools(localPorts(house(), cast.admin, { recentLines: 100 }), tillShown);
+    return Promise.resolve();
   });
 
 describe("a program whose act changes a datum its tool reads", () => {
-  for (const check of programChecks(pricingShop, shopShown)) it(check.name, check.run);
+  for (const check of programChecks(tillProgram, tillShown)) it(check.name, check.run);
 
   it("takes the act from the row of that datum, with its key and what it is today: never among the actions", () =>
-    atSale([registered], now => {
-      expect(now()).toEqual(["Datos", "t | total | $ 1500 | ", " | Cobrado | $ 0 | ", " | Registró | ana | "]);
+    atTill([], now => {
+      expect(now()).toEqual(["f | fondo | $ 0 | "]);
       return Promise.resolve();
     }));
 
+  it("opens the question on what the datum is today, lit whole: a key written replaces it, erasing edits it", () =>
+    staged(tillProgram, async ({ house }) => {
+      await given(house(), "till", [{ act: "float", input: { float: 500 } }]);
+      const seat = seated(house(), cast.admin, tillShown);
+      const entry = () => {
+        const { body } = seat.router.screen(view);
+        return body.kind === "thread" ? body.entry : undefined;
+      };
+      goTo(seat, "till", "till");
+      seat.router.send({ kind: "type", text: "f" });
+      const today = entry()?.typed ?? "";
+      expect(today).toMatch(/5/u);
+      expect(entry()?.suggested).toBe(true);
+      seat.router.send({ kind: "type", text: "7" });
+      expect(entry()?.suggested).toBeUndefined();
+      expect(entry()?.typed).toMatch(/7/u);
+      expect(entry()?.typed).not.toMatch(/5/u);
+      seat.router.send({ kind: "cancel" });
+      seat.router.send({ kind: "type", text: "f" });
+      expect(entry()).toMatchObject({ typed: today, suggested: true });
+      seat.router.send({ kind: "erase" });
+      expect(entry()?.suggested).toBeUndefined();
+      expect(entry()?.typed).not.toBe(today);
+      expect(entry()?.typed).toMatch(/5/u);
+      seat.router.stop();
+    }));
+
   it("keeps saying the datum while it cannot be changed, and says why after it", () =>
-    atSale([registered, paidWhole], now => {
-      expect(now()[1]).toBe("t | total | $ 1500 · paid | off");
+    atTill([closedTill], now => {
+      expect(now()).toEqual(["f | fondo | $ 0 · cerrada | off", " | Estado | cerrada | "]);
       return Promise.resolve();
     }));
 
   it("keeps the datum read for who prefers not to see what cannot be done: only the way to change it goes", () =>
-    atSale([registered, paidWhole], async (now, hide) => {
+    atTill([closedTill], async (now, hide) => {
       await hide();
-      expect(now()).toEqual(["Datos", " | total | $ 1500 | ", " | Cobrado | $ 1500 | ", " | Registró | ana | "]);
+      expect(now()).toEqual([" | fondo | $ 0 | ", " | Estado | cerrada | "]);
     }));
 
-  it("refuses an act named as a datum that does not say it changes it, and one that changes what is not read", () => {
-    const composed = (program: typeof pricingShop) => () =>
-      staged(program, ({ house }) => {
-        houseTools(localPorts(house(), cast.admin, { recentLines: 100 }), shopShown);
-        return Promise.resolve();
-      });
-    return Promise.all([
-      expect(composed(looseShop)()).rejects.toThrow("price of sales changes a datum its tool reads"),
-      expect(composed(astrayShop)()).rejects.toThrow("price of sales changes a datum its tool does not read: price"),
-    ]);
-  });
+  it("refuses an act named as a datum that does not say it changes it, and one that changes what is not read", () =>
+    Promise.all([
+      expect(composed(looseTill)()).rejects.toThrow("float of till changes a datum its tool reads"),
+      expect(composed(astrayTill)()).rejects.toThrow("float of till changes a datum its tool does not read: price"),
+    ]));
 });

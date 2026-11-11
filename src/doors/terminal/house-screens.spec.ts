@@ -105,7 +105,9 @@ describe("the terminal, on a program's house", () => {
     expect(await press(escape)).toContain("[1] s1 | $ 150000");
     const sale = await press("\r");
     expect(sale[0]).toContain("s1");
-    expect(sale).toEqual(expect.arrayContaining(["Datos", "Total | $ 150000", "Cobrado | $ 0", "Registró | ana"]));
+    expect(sale).toEqual(
+      expect.arrayContaining(["Venta", "Total | $ 150000", "Cobrado | $ 0", "Actividad", "Creó | ana"]),
+    );
     expect(await press(`${escape}${escape}`)).toContain("[v] ventas | 1");
   });
 

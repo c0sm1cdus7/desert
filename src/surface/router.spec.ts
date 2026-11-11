@@ -54,7 +54,7 @@ const slow: ProgramTool<Shop> = {
     }),
   },
 };
-const slowWords = { name: "Lento", key: "l", empty: "", listed: "Hoy", shown: "Datos", reads: {} };
+const slowWords = { name: "Lento", key: "l", empty: "", listed: "Hoy", reads: {}, presents: [] };
 const open = () => {
   const rig = shopRig({ registry: [...shopRegistry, slow] });
   const router = houseRouter(rig.ports("ana"), { ...shopShown, words: { ...shopShown.words, slow: slowWords } });

@@ -35,6 +35,8 @@ export interface Row {
 export interface Stack {
   readonly title: string;
   readonly empty?: string;
+  /** It is read: what a thing is and has. Its rows lead with their datum, and none of them is an action. */
+  readonly reads?: true;
   readonly rows: readonly Row[];
   readonly above?: number;
   readonly below?: number;
@@ -63,7 +65,10 @@ export type Body =
       readonly options?: readonly Row[];
       /** How many options are left out above and below the ones that fit. */
       readonly more?: { readonly above: number; readonly below: number };
-      readonly entry?: { readonly typed: string; readonly caret: number; readonly placeholder: string };
+      readonly entry?: { readonly typed: string; readonly caret: number; readonly placeholder: string } & {
+        /** What is written was there when the question opened: it is shown whole, as what a key would replace. */
+        readonly suggested?: true;
+      };
       readonly reference?: string;
     };
 export interface Panel {

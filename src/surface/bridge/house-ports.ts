@@ -28,8 +28,13 @@ export type SurfacePorts<X extends Program> = Omit<HousePorts<X>, "act"> & {
 };
 /** What a program calls a tool where a person reads it; its acts say their own words where they are declared. */
 export type ToolWords = Readonly<{ name: string; key: string; empty: string; system?: true }> &
-  /** What heads the list of its things, what heads one thing read on its own, and the label of each thing it reads. */
-  Readonly<{ listed: string; shown: string; reads: Readonly<Record<string, string>> }>;
+  /** What heads the list of its things, the label of each datum the tool itself reads, and how one of its things
+   * is presented: its stacks, in order. */
+  Readonly<{ listed: string; reads: Readonly<Record<string, string>>; presents: readonly Presented[] }>;
+/** One stack of a thing: its title, what it says with nothing in it, and each datum of the reading that goes in
+ * it, with its label. */
+export type Presented = Readonly<{ title: string; empty: string }> &
+  Readonly<{ reads: Readonly<Record<string, string>> }>;
 export type SurfaceWords = Readonly<Record<string, ToolWords>>;
 /** How a program is shown: its words, how its country writes money and days, and the screens that are its own. */
 export type Shown<X extends Program> = Readonly<{ words: SurfaceWords; locale: Locale }> &

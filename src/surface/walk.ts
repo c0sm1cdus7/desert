@@ -62,7 +62,8 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   if (isTyped(field)) {
     const typed = walk.typed === "" ? "" : maskOf(field, walk.typed);
     const caret = "mask" in question ? Array.from(typed).length : walk.caret;
-    return { kind: "thread", events, entry: { typed, caret, placeholder: shapeOf(question) } };
+    const whole = walk.suggested && typed !== "" ? { suggested: true as const } : {};
+    return { kind: "thread", events, entry: { typed, caret, placeholder: shapeOf(question), ...whole } };
   }
   const options: readonly Row[] = optionsOf(field).map((option, i) => ({
     ...option,

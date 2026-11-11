@@ -70,7 +70,7 @@ describe("a program with a menu on its things", () => {
       expect(typed("e")).toEqual(["Editar", "c | corregir | $ 15,00 · $ 0,00"]);
       /** A question that changes a datum says beside its name what the datum is today, whatever is typed. */
       expect(typed("c")).toEqual(["Corregir", "Total $ 15,00", "› $ 15,00"]);
-      expect(typed("0\r")).toEqual(["Corregir", "Total $ 150,00", "Cobrado $ 0,00", "› $ 0,00"]);
+      expect(typed("15000\r")).toEqual(["Corregir", "Total $ 150,00", "Cobrado $ 0,00", "› $ 0,00"]);
       expect(esc()).toEqual(["Corregir", "Total $ 15,00", "› $ 150,00"]);
       expect(esc()[0]).toBe("Editar");
       return Promise.resolve();
