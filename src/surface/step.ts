@@ -1,9 +1,10 @@
 // What each intent does where you are: the only place that moves a session.
 import type { Field, Intent, Mask } from "./contract.ts";
 import type { Result, Tool } from "./shown-tool.ts";
+import { findable } from "./finding.ts";
 import { choices, cursorOf, goneOf } from "./lists.ts";
 import { actOf, begin, fieldOf, toolOf, maskOf, optionsOf, opened, start, validOf } from "./screen.ts";
-import type { Asking, Running, Session, Stepped, Walk } from "./screen.ts";
+import type { Asking, Picture, Running, Session, Stepped, Walk } from "./screen.ts";
 import { actedOn, conversationOf, edited, sent, talkStep } from "./talk.ts";
 import { must } from "./window.ts";
 
@@ -83,6 +84,21 @@ function walking(session: Session, walk: Walk, tools: readonly Tool[], key: Inte
   return textual ? typing(session, walk, tools, field, key, now) : choosing(session, walk, tools, field, key, now);
 }
 
+/** A menu while a person looks for something: what they type is what they look for, and no key is a shortcut.
+ * Escape closes the search; enter goes to the thing the cursor is on, and the search is over. */
+function seeking(session: Session, place: Picture & { find: string }, tools: Tools, key: Intent): Session {
+  const { find, ...menu } = place;
+  const still = (sought: string): Session => replace(session, { ...place, find: sought, at: 0 });
+  if (key.kind === "cancel") return replace(session, { ...menu, at: 0 });
+  if (key.kind === "type") return still(find + key.text);
+  if (key.kind === "erase") return still(Array.from(find).slice(0, -1).join(""));
+  const list = choices(place, tools);
+  const cursor = cursorOf(place, tools);
+  if (key.kind === "up") return replace(session, { ...place, at: Math.max(cursor - 1, 0) });
+  if (key.kind === "down") return replace(session, { ...place, at: Math.min(cursor + 1, list.length - 1) });
+  const chosen = key.kind === "confirm" ? list[cursor]?.open : undefined;
+  return chosen ? [...replace(session, { ...menu, at: 0 }), chosen] : session;
+}
 export function step(session: Session, key: Intent, tools: readonly Tool[], now: number): Stepped {
   if (key.kind === "quit") return { session, quit: true };
   const place = must(session.at(-1));
@@ -98,6 +114,7 @@ export function step(session: Session, key: Intent, tools: readonly Tool[], now:
     return { session: replace(session, next), ...(sending ? { sending } : {}) };
   }
   if (goneOf(session, tools)) return { session: key.kind === "cancel" ? up(session) : session };
+  if (place.find !== undefined) return { session: seeking(session, { ...place, find: place.find }, tools, key) };
   const list = choices(place, tools);
   const cursor = cursorOf(place, tools);
   const control = list[cursor]?.press;
@@ -105,6 +122,9 @@ export function step(session: Session, key: Intent, tools: readonly Tool[], now:
     control(key);
     return { session };
   }
+  /** Nothing is being written on a menu, so space is free there: it starts looking for something. */
+  if (key.kind === "type" && key.text === " " && findable(place, tools))
+    return { session: replace(session, { ...place, find: "", at: 0 }) };
   if (key.kind === "up") return { session: replace(session, { ...place, at: Math.max(cursor - 1, 0) }) };
   if (key.kind === "down")
     return { session: replace(session, { ...place, at: Math.min(cursor + 1, list.length - 1) }) };

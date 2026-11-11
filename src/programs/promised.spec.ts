@@ -8,7 +8,7 @@ import { promisedChecks } from "./promised.ts";
 import { brokenShops } from "../../tests/support/broken-shops.ts";
 import { apartShown, every, hidingShown, nestedShown, registered } from "../../tests/support/settling-shop.ts";
 import { leavingShop, mutedShown, settledTwice, settlingShop } from "../../tests/support/settling-shop.ts";
-import { carelessShop, stillOwing, stubbornShown } from "../../tests/support/settling-shop.ts";
+import { carelessShop, deafShown, stillOwing, stubbornShown } from "../../tests/support/settling-shop.ts";
 import { shopProgram, shopShown } from "../../tests/support/shop.ts";
 
 /** The names of the checks that fail, in the order they ran. */
@@ -60,5 +60,12 @@ describe("a program with acts on its things", () => {
   it("a tool that does not say what its cases promise needs someone to act fails that, on every door", async () => {
     const checks = [...promisedChecks(carelessShop), ...walkedChecks(carelessShop, shopShown)];
     expect(await failing(checks)).toEqual([stillOwing, `${stillOwing}, in Attention with why`]);
+  });
+
+  it("a screen that does not say how its things are found fails every search for one, and nothing else", async () => {
+    const failed = await failing(walkedChecks(settlingShop, deafShown));
+    expect(failed.length).toBeGreaterThan(0);
+    expect(failed.every(name => name.endsWith("is found by its name from any menu"))).toBe(true);
+    expect(failed.filter(name => name.startsWith("sales ·")).length).toBe(failed.length);
   });
 });

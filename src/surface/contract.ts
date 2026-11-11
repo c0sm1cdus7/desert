@@ -8,7 +8,7 @@ export interface Span {
   /** Real color, for what is not UI: a photo's pixels, a page's own colors. */
   readonly rgb?: { readonly fg?: string; readonly bg?: string };
 }
-export type HintKey = "move" | "confirm" | "cancel" | "mark" | "switch" | "full";
+export type HintKey = "move" | "confirm" | "cancel" | "mark" | "switch" | "full" | "find";
 export interface Hint {
   readonly intent: HintKey;
   readonly does: string;

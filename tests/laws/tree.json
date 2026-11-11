@@ -19,6 +19,7 @@
     "journal/events.ts": "house catalog, a program's facts beside it (vocabulary), effect, Bus, Journal",
     "journal/projections.ts": "projection caches that fold together and survive as snapshots",
     "programs/house-runtime.ts": "startHouse: journal, vault, tools, clock and boot for one program's house; localPorts",
+    "programs/promised-find.ts": "findChecks: what each case leaves is found by its name from its tool's menu and from the Menu",
     "programs/promised-keys.ts": "seated, goTo, actRow: how a derived check moves by keys from the Menu to an act's row",
     "programs/promised-laws.ts": "lawChecks, coverage: the laws every act keeps, checked from a case the house accepts",
     "programs/promised-notices.ts": "noticeChecks: Attention and Activity on every menu, derived from each case and each program",
@@ -36,6 +37,7 @@
     "surface/bridge/program-acts.ts": "programActs: each act asked from its declaration; menus of a thing; rows that start an act on today",
     "surface/bridge/rows.ts": "a tool's text view read as rows: ids open, the rest is a label and its value",
     "surface/contract.ts": "what every renderer draws and sends back: Screen, Body, Row, Field, Mask, Intent, Hint",
+    "surface/finding.ts": "matches, findable, foundAt: looking for things from a menu; what was written and the rows it finds",
     "surface/lists.ts": "stacksOf, choices, goneOf: what each place lists; acts and menus where they are taken, off with why",
     "surface/masks.ts": "formats: money as a cash register, quantity, count, day; what each takes, shows and stands for",
     "surface/resolve.ts": "resolve: the one Screen for where a session stands, from the tools",
@@ -68,10 +70,10 @@
     "doors/terminal": 594,
     "house": 82,
     "journal": 298,
-    "programs": 712,
-    "surface": 1159,
-    "surface/bridge": 690,
+    "programs": 776,
+    "surface": 1235,
+    "surface/bridge": 700,
     "texts": 518,
-    "tools": 651
+    "tools": 653
   }
 }

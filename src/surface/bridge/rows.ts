@@ -11,7 +11,7 @@ const parse = (line: string): unknown => {
   }
 };
 const text = (value: unknown): string => (typeof value === "string" ? value : JSON.stringify(value));
-type Labels = (key: string) => string;
+export type Labels = (key: string) => string;
 /** Something with an id is one row, in the words it wrote; the rest is a label and its value. */
 const rowsOf = (value: unknown, label: Labels, key = ""): ViewRow[] => {
   if (Array.isArray(value)) return value.flatMap(item => rowsOf(item, label, key));

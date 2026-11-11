@@ -1,10 +1,11 @@
 // A program's tool on a surface when it brings no screen of its own: its rows come from what its view reads.
 import type { ProgramTool } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
+import { matches } from "../finding.ts";
 import type { Tool, ViewRow } from "../shown-tool.ts";
 import { must } from "../window.ts";
 import { section, type ScreenActs, type Start, type SurfacePorts, type ToolWords } from "./house-ports.ts";
-import { briefOf, listedIn, rowsIn } from "./rows.ts";
+import { briefOf, listedIn, rowsIn, type Labels } from "./rows.ts";
 
 /** A label the program did not give is a defect of the program: it is named, never replaced by a code. */
 const worded = (words: Readonly<Record<string, string>>, tool: string, name: string): string => {
@@ -19,6 +20,14 @@ function menuAt<X extends Program>(tool: ProgramTool<X>, things: readonly string
     if (thing !== undefined && things.includes(thing)) return { id, menu, thing };
   }
   return undefined;
+}
+/** The things of a tool that are what someone looks for: every one of them is looked into, not only the recent
+ * ones its list shows; each by what its row says and by the words its tool adds. */
+function foundIn<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, label: Labels, sought: string) {
+  const state = ports.state();
+  const all = rowsIn(tool.view(state, tool.id, { recentLines: Number.MAX_SAFE_INTEGER }), label);
+  const said = (row: ViewRow): string => [row.title, row.detail, tool.words?.(state, row.opens ?? "")].join(" ");
+  return listedIn(tool.targets(state), all).filter(row => matches(said(row), sought));
 }
 export function anyToolScreen<X extends Program>(
   ports: SurfacePorts<X>,
@@ -44,6 +53,7 @@ export function anyToolScreen<X extends Program>(
     name: words.name,
     place: { key: words.key, section: words.system ? "system" : "tools" },
     summary: () => briefOf(tool.summary(ports.state())),
+    find: sought => foundIn(ports, tool, label, sought),
     /** A thing is called what its row on the list calls it; a menu, what the tool calls it. */
     titleOf: target => menuOf(target)?.menu.label ?? must(view(tool.id).find(row => row.opens === target)).title,
     view: target => {

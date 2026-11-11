@@ -10,8 +10,9 @@ import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
-import type { Choice } from "../surface/lists.ts";
+import type { Choice } from "../surface/screen.ts";
 import { actRow, goTo, openRows, seated, type, view, type Seat } from "./promised-keys.ts";
+import { findChecks } from "./promised-find.ts";
 import { noticeChecks } from "./promised-notices.ts";
 import { shownChecks } from "./promised-off.ts";
 import { cast, given, label, staged, wroteSince, type Aim, type Check } from "./promised-stage.ts";
@@ -112,5 +113,5 @@ export function walkedChecks<X extends Program>(program: Composition<X>, shown: 
       act.cases.map(kase => walkCheck(program, shown, { tool, name, act }, kase)),
     ),
   );
-  return [...cases, ...shownChecks(program, shown), ...noticeChecks(program, shown)];
+  return [...cases, ...shownChecks(program, shown), ...noticeChecks(program, shown), ...findChecks(program, shown)];
 }

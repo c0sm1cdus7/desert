@@ -89,6 +89,9 @@ export interface Tool {
   summary(): string;
   /** What the Barra says on one of its things. */
   titleOf?(target: string): string;
+  /** Its things that are what someone looks for, each on a row that leads to it: asked from its own menu, and from
+   * the Menu along with every other tool's. A tool that does not say cannot be looked into. */
+  find?(sought: string): readonly ViewRow[];
   /** A target it does not list is a defect: it throws, and never answers with another screen. */
   view(target?: string): readonly (Omit<Stack, "rows"> & { readonly rows: readonly ViewRow[] })[];
   readonly acts: Readonly<Record<string, ToolAct>>;

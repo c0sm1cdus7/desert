@@ -151,3 +151,17 @@ const stubborn: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
   return anyToolScreen(ports, tool, words, { ...acts, actsOn: Object.fromEntries(every) }, start);
 };
 export const stubbornShown: Shown<Shop> = { ...shopShown, screens: { sales: stubborn } };
+/** A screen that does not say how its things are found: nobody can look into its tool. */
+const deaf: ProgramScreen<Shop> = (ports, tool, words, acts, start) => {
+  const plain = anyToolScreen(ports, tool, words, acts, start);
+  return {
+    ...acts,
+    id: plain.id,
+    name: plain.name,
+    place: plain.place,
+    summary: () => plain.summary(),
+    titleOf: target => plain.titleOf?.(target) ?? target,
+    view: target => plain.view(target),
+  };
+};
+export const deafShown: Shown<Shop> = { ...shopShown, screens: { sales: deaf } };

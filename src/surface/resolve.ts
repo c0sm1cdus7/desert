@@ -2,7 +2,9 @@
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import type { Hint, Row, Screen } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
-import { cursorOf, goneOf, stacksOf, type Choice } from "./lists.ts";
+import { findable } from "./finding.ts";
+import { cursorOf, goneOf, stacksOf } from "./lists.ts";
+import type { Choice } from "./screen.ts";
 import { actOf, fieldOf, toolOf } from "./screen.ts";
 import type { Bar, Session, Viewport } from "./screen.ts";
 import { conversationOf, errorSpans, talkBody, talkHints, talkPanel, type Talk } from "./talk.ts";
@@ -74,10 +76,14 @@ function listScreen(
     : [];
   const tool = place.kind === "view" ? toolOf(tools, place.tool) : undefined;
   const thing = place.kind === "view" && place.target !== undefined ? tool?.titleOf?.(place.target) : undefined;
+  const seeks: readonly Hint[] = findable(place, tools) ? [{ intent: "find", does: k.find }] : [];
+  const leaves: readonly Hint[] = place.kind === "menu" ? [] : [{ intent: "cancel", does: k.goBack }];
+  const closes: readonly Hint[] = [{ intent: "cancel", does: k.close }];
+  const hints = place.find === undefined ? [...moves, ...seeks, ...leaves] : [...moves, ...closes];
   return {
     title: thing ?? tool?.name ?? said.menu,
     body: { kind: "list", stacks: windowed(marked, viewport.rows) },
-    hints: place.kind === "menu" ? moves : [...moves, { intent: "cancel", does: k.goBack }],
+    hints,
     menu: place.kind !== "menu",
   };
 }

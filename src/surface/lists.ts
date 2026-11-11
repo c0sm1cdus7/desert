@@ -1,15 +1,12 @@
 // What each place lists: the tools on the Menu, a tool's own rows, and the acts and menus that can be taken there.
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
-import type { Stack } from "./contract.ts";
 import type { Notice, Tool, ViewRow } from "./shown-tool.ts";
 import type { Tone } from "./tones.ts";
-import { begin, toolOf, type Picture, type Place, type Session } from "./screen.ts";
+import { foundAt } from "./finding.ts";
+import { begin, toolOf, type Choice, type Listed, type Picture, type Place, type Session } from "./screen.ts";
+import type { Starts } from "./screen.ts";
 import { startTalk } from "./talk.ts";
 
-/** The act a row starts: said even while the act is off, so anyone can tell which act the row stands for. */
-type Starts = Readonly<{ tool: string; act: string; target?: string }>;
-export type Choice = ViewRow & { readonly open?: Place; readonly starts?: Starts };
-type Listed = Omit<Stack, "rows"> & { rows: readonly Choice[] };
 const startsOf = (tool: string, act: string, target?: string): Starts => ({
   tool,
   act,
@@ -106,7 +103,9 @@ function keyed(stacks: readonly Listed[]): readonly Listed[] {
   };
   return stacks.map(stack => ({ ...stack, rows: stack.rows.map(withKey) }));
 }
-export const stacksOf = (place: Picture, tools: readonly Tool[]): readonly Listed[] => keyed(listedAt(place, tools));
+/** What a place lists. While a person looks for something from it, only that: what they wrote and what it finds. */
+export const stacksOf = (place: Picture, tools: readonly Tool[]): readonly Listed[] =>
+  place.find === undefined ? keyed(listedAt(place, tools)) : foundAt(place, place.find, tools);
 function listedAt(place: Picture, tools: readonly Tool[]): readonly Listed[] {
   if (place.kind === "menu") {
     const listed = tools.filter(tool => tool.listed?.() !== false);

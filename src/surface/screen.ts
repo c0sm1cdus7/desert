@@ -2,11 +2,13 @@
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import type { Talk } from "./talk.ts";
 import { foundAt, must } from "./window.ts";
-import type { Field, Option, Screen } from "./contract.ts";
+import type { Field, Option, Screen, Stack } from "./contract.ts";
 import type { Tool, ViewRow } from "./shown-tool.ts";
+/** What a person wrote to look for something, while a menu is in that mode: nothing else is on it then. */
+type Finding = { readonly find?: string };
 export type Picture =
-  | { readonly kind: "menu"; readonly at: number }
-  | { readonly kind: "view"; readonly tool: string; readonly target?: string; readonly at: number };
+  | ({ readonly kind: "menu"; readonly at: number } & Finding)
+  | ({ readonly kind: "view"; readonly tool: string; readonly target?: string; readonly at: number } & Finding);
 interface Walking {
   readonly kind: "act";
   readonly tool: string;
@@ -33,6 +35,10 @@ export type Running = Walking & { readonly phase: "running"; readonly since: num
 export type Done = Walking & { readonly phase: "done"; readonly done: string; readonly doneAt?: string };
 export type Walk = Asking | Running | Done;
 export type Place = Picture | Walk | Talk;
+/** The act a row starts: said even while the act is off, so anyone can tell which act the row stands for. */
+export type Starts = Readonly<{ tool: string; act: string; target?: string }>;
+export type Choice = ViewRow & { readonly open?: Place; readonly starts?: Starts };
+export type Listed = Omit<Stack, "rows"> & { rows: readonly Choice[] };
 /** Memory of this one device: it never reaches the journal, and a crash loses a half-filled action. */
 export type Session = readonly Place[];
 export const start: Session = [{ kind: "menu", at: 0 }];

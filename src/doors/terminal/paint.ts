@@ -15,6 +15,7 @@ export const keyNames: Readonly<Record<HintKey, string>> = {
   confirm: "enter",
   cancel: "esc",
   mark: "espacio",
+  find: "espacio",
 };
 /** How many lines of content a terminal of this height has. */
 export const contentRows = (rows: number): number => rows - 8;

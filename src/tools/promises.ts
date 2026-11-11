@@ -50,6 +50,8 @@ export type ProgramAct<X extends Program> = ToolAct<X> &
   Readonly<{ today?: (state: State<X>, target: string) => unknown }>;
 export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
   Readonly<{ acts: Readonly<Record<string, ProgramAct<X>>>; menus?: Readonly<Record<string, Menu>> }> &
+  /** The words one of its things is found by, beyond what its row on the list already says. */
+  Readonly<{ words?: (state: State<X>, target: string) => string }> &
   /** The things of the tool that need someone to act, each saying why: read from what the tool keeps. */
   Readonly<{ needs?: (state: State<X>) => readonly Need[] }>;
 /** A program, whole: what DESERT needs to run it and to check everything it promises. */

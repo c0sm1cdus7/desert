@@ -8,6 +8,10 @@ export const surfaceTexts = {
   nothingNeeds: "Nada pide atención.",
   activity: "Actividad",
   nothingNew: "Nada nuevo de los demás.",
+  find: "Buscar",
+  found: "Encontrados",
+  nothingFound: "Nada coincide.",
+  typeToFind: "Escribí para buscar.",
   sections: { tools: "Herramientas", system: "Sistema" },
   back: "volver",
   unchanged: "",
@@ -58,5 +62,6 @@ export const surfaceTexts = {
     mark: "marcar",
     cancel: "cancelar",
     close: "cerrar",
+    find: "buscar",
   },
 } as const;

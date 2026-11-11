@@ -1,7 +1,7 @@
 // The two lists every menu opens with, checked for every program: what needs someone to act, and what the others did.
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import type { Shown } from "../surface/bridge/house-ports.ts";
-import type { Choice } from "../surface/lists.ts";
+import type { Choice } from "../surface/screen.ts";
 import { stacksOf } from "../surface/lists.ts";
 import type { Tool } from "../surface/shown-tool.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
