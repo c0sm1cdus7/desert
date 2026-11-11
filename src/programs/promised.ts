@@ -6,6 +6,7 @@ import type { Case, Composition, Need } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { startState, toolsStep } from "../tools/tools.ts";
 import { coverage, lawChecks } from "./promised-laws.ts";
+import { bareIn } from "./promised-shapes.ts";
 import { cast, given, label, perform, runner, staged, wroteSince } from "./promised-stage.ts";
 import type { Aim, Check, Decided, House } from "./promised-stage.ts";
 
@@ -70,6 +71,9 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
         ok(composed.test(kase.then.says), said.notComposed(kase.then.says));
         strictEqual(saidBy(done)?.recipient !== undefined, kase.then.privately === true, said.forWhom);
         if (kase.then.reads) deepStrictEqual(readOn(house(), aim, kase, kase.then.reads.on), kase.then.reads.lines);
+        /** What was written in a shape is read in it, on the thing the act left and on its tool's list. */
+        const read = [saidBy(done)?.target, aim.tool.id].map(on => JSON.stringify(readOn(house(), aim, kase, on)));
+        for (const digits of bareIn(aim.act.input, kase.input)) ok(!read.join().includes(digits), said.bare(digits));
         if (kase.then.calls) deepStrictEqual(calledSince(house(), before.through), kase.then.calls);
         for (const [tool, needs] of promisedNeeds(aim, kase.then))
           deepStrictEqual(

@@ -2,8 +2,8 @@
 import { Type } from "@sinclair/typebox";
 import { describe, expect, it } from "vitest";
 import { object } from "../../catalogs/acts.ts";
-import { count, day, many, money, oneOf, option, quantity, text, usually } from "../../catalogs/fields.ts";
-import { formats } from "../masks.ts";
+import { count, day, digits, many, money, oneOf, option, quantity, text, usually } from "../../catalogs/fields.ts";
+import { formats, limited, padded, shaped } from "../masks.ts";
 import { asking } from "./asking.ts";
 
 const words = {
@@ -97,5 +97,39 @@ describe("asking what an act takes", () => {
     expect(refused(object({ kind: nested }))).toThrow("does not say its placeholder");
     const signed = Type.String({ title: "¿Qué es?", placeholder: "Nombre" });
     expect(refused(object({ what: signed }))).toThrow("A question is a noun, without signs: ¿Qué es?");
+  });
+});
+
+describe("a datum with a shape of its own", () => {
+  it("fills one shape as it is typed, and takes nothing but digits", () => {
+    const cuit = shaped(["##-########-#"]);
+    const typed = ["", "20", "201", "20123456786"].map(digits_ => cuit.shown(digits_));
+    expect([cuit.empty, ...typed]).toEqual(["00-00000000-0", "", "20", "20-1", "20-12345678-6"]);
+    expect([cuit.put("20", "a"), cuit.put("20", "1"), cuit.put("20123456786", "9")]).toEqual([
+      "20",
+      "201",
+      "20123456786",
+    ]);
+    expect([cuit.value("2012"), cuit.value("20123456786")]).toEqual([undefined, "20123456786"]);
+  });
+  it("tells several shapes apart by how many digits there are, and shows one once the count is its own", () => {
+    const document = shaped(["#.###.###", "##.###.###", "##-########-#"]);
+    const typed = ["5123456", "30111222", "301112223", "20123456786"].map(digits_ => document.shown(digits_));
+    expect(typed).toEqual(["5.123.456", "30.111.222", "301112223", "20-12345678-6"]);
+    expect(document.empty).toBe("0.000.000 · 00.000.000 · 00-00000000-0");
+  });
+  it("writes a number with zeros before it, from the right; and a name with only the characters it allows", () => {
+    const point = padded(4);
+    expect([point.empty, point.shown(point.put("", "1")), point.put("1234", "5")]).toEqual(["0000", "0001", "1234"]);
+    expect([point.value("0"), point.value("12")]).toEqual([undefined, 12]);
+    const user = limited("a-z0-9._-", 8, "nombre");
+    const put = [user.put("ana", "A"), user.put("ana", "."), user.put("abcdefgh", "i")];
+    expect([user.empty, ...put]).toEqual(["nombre", "ana", "ana.", "abcdefgh"]);
+  });
+  it("is asked with its mask, and is refused when declared as free text with a pattern", () => {
+    const asked = asking(object({ cuit: digits("CUIT", "##-########-#") }), words).next([]);
+    expect(asked).toMatchObject({ ask: "CUIT", kind: "text", mask: { empty: "00-00000000-0" } });
+    const free = Type.String({ pattern: "^\\d{11}$", title: "CUIT", placeholder: "11 números" });
+    expect(() => asking(object({ cuit: free }), words)).toThrow("The field CUIT has a shape and no mask");
   });
 });

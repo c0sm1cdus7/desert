@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 114. Deudas: 24.
+Leyes: 116. Deudas: 24.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -121,3 +121,5 @@ Leyes: 114. Deudas: 24.
 | 114 | Las pruebas derivadas corren en el gate de cada programa sin que el programa las pida | LEYES 7 | prueba derivada de los casos | `src/programs/program-checks.ts` `tests/program/program.checks.ts` `tests/laws/gate.spec.ts` |
 | 115 | El rechazo se dice Código · Causa · Objeto | REGLAS §9 | DEUDA | Hoy una causa es un dato corto sin punto (se rechaza al componer si es una frase); faltan los códigos de un conjunto cerrado. |
 | 116 | El nombre de una acción es corto y en minúscula: un verbo sobre su cosa, y lo que confirma es un solo verbo | Franco 11/11 | el programa no arranca | `src/tools/promises.ts` |
+| 117 | Un dato con forma solo acepta lo que entra en ella: declararlo como texto libre hace que el programa no arranque | LEYES 11 · Franco 11/11 | el programa no arranca | `src/surface/bridge/asking-parts.ts` `src/surface/masks.ts` `src/catalogs/fields.ts` |
+| 118 | Lo que se escribió con forma (CUIT, DNI) se lee siempre con esa forma | Franco 11/11 | prueba derivada de los casos | `src/programs/promised-shapes.ts` `src/programs/promised.ts` |

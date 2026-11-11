@@ -2,7 +2,7 @@
 import type { TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import type { Field, Option } from "../contract.ts";
-import { isFormat, type Format, type FormatName } from "../masks.ts";
+import { isFormat, limited, padded, shaped, type Format, type FormatName } from "../masks.ts";
 
 /** The things of a tool as an answer can pick them: found by what a person types, shown by their name. */
 export type Things = Readonly<{
@@ -43,9 +43,16 @@ export const tellingOf = (arms: readonly unknown[]): string | undefined =>
   Object.keys(at(arms[0], "properties") ?? {}).find(key =>
     arms.every(arm => at(at(at(arm, "properties"), key), "const") !== undefined),
   );
+const strings = (value: unknown): string[] =>
+  isList(value) ? value.flatMap(each => (typeof each === "string" ? [each] : [])) : [];
+/** The format a field is written in: one of the country's, or one the program declares with the datum itself. */
 export const formatOf = (schema: unknown, ctx: AskWords): Format | undefined => {
   const mask = at(schema, "mask");
-  return isFormat(mask) ? ctx.formats[mask] : undefined;
+  if (isFormat(mask)) return ctx.formats[mask];
+  if (mask === "digits") return shaped(strings(at(schema, "shapes")));
+  if (mask === "padded") return padded(Number(at(schema, "width")));
+  if (mask !== "chars") return undefined;
+  return limited(word(schema, "allowed"), Number(at(schema, "max")), word(schema, "placeholder"));
 };
 /** What was typed as the datum it stands for; nothing when an optional field was left empty. */
 export const valueOf = (schema: unknown, ctx: Ctx, answer: string): unknown => {
@@ -77,5 +84,7 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   const ask = titleOf(schema, ctx);
   if (format) return { ask, valid, kind: "text", mask: format, ...initial };
   if (at(schema, "type") !== "string") throw new Error(`The field ${ask} has no format and is not text`);
+  /** A datum with a shape takes only what fits it: declared as free text, any key would go in. */
+  if (at(schema, "pattern") !== undefined) throw new Error(`The field ${ask} has a shape and no mask`);
   return { ask, valid, kind: "text", placeholder: word(schema, "placeholder"), ...initial };
 }

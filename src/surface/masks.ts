@@ -5,7 +5,7 @@ import type { Mask } from "./contract.ts";
 export type Locale = Readonly<{ currency: string; thousands: string; decimal: string; day: string }>;
 /** A mask that also knows the value it stands for, both ways: what was typed as data, and data as typed. */
 export type Format = Mask &
-  Readonly<{ value(typed: string): unknown; typed(value: unknown): string; keyboard: "digits" | "decimal" }>;
+  Readonly<{ value(typed: string): unknown; typed(value: unknown): string; keyboard: "digits" | "decimal" | "text" }>;
 export type FormatName = "money" | "quantity" | "count" | "day";
 const digits = /^\d+$/;
 const grouped = (whole: string, separator: string): string => whole.replace(/\B(?=(\d{3})+(?!\d))/g, separator);
@@ -70,3 +70,56 @@ export const formats = (locale: Locale): Readonly<Record<FormatName, Format>> =>
 });
 export const isFormat = (name: unknown): name is FormatName =>
   name === "money" || name === "quantity" || name === "count" || name === "day";
+/** A shape filled with the digits there are: what stands between them is written only once a digit follows. */
+const filled = (shape: string, typed: string): string => {
+  let [at, out] = [0, ""];
+  for (const char of Array.from(shape)) {
+    if (at >= typed.length) break;
+    out += char === "#" ? typed.charAt(at++) : char;
+  }
+  return out;
+};
+/** Digits in a shape a program declares: `#` is a digit, anything else is written between them. One shape fills
+ * as it is typed. Several are told apart by how many digits each holds: the shape shows once the count is one of
+ * theirs. Kept as the digits alone. */
+export function shaped(shapes: readonly string[]): Format {
+  const sizes = shapes.map(shape => Array.from(shape).filter(char => char === "#").length);
+  const shown = (typed: string): string => {
+    const exact = shapes[sizes.indexOf(typed.length)];
+    if (exact !== undefined) return filled(exact, typed);
+    return shapes.length === 1 ? filled(shapes[0] ?? "", typed) : typed;
+  };
+  return {
+    keyboard: "digits",
+    empty: shapes.map(shape => shape.replaceAll("#", "0")).join(" · "),
+    shown,
+    put: (typed, text) => (digits.test(text) && typed.length < Math.max(...sizes) ? typed + text : typed),
+    value: typed => (sizes.includes(typed.length) ? typed : undefined),
+    typed: value => (typeof value === "string" ? value : ""),
+  };
+}
+/** A whole number written with zeros before it, up to a width: digits come in from the right, as money does. */
+export const padded = (width: number): Format => ({
+  keyboard: "digits",
+  empty: "0".repeat(width),
+  shown: typed => typed.padStart(width, "0"),
+  put: (typed, text) => {
+    const next = String(Number(typed + text));
+    return digits.test(text) && next.length <= width ? next : typed;
+  },
+  value: typed => (Number(typed) > 0 ? Number(typed) : undefined),
+  typed: value => (typeof value === "number" ? String(value) : ""),
+});
+/** Text of only some characters, up to a length: what is not one of them does not go in. Empty, it says what
+ * goes there in the program's words. */
+export const limited = (allowed: string, max: number, hint: string): Format => {
+  const fits = new RegExp(`^[${allowed}]$`, "u");
+  return {
+    keyboard: "text",
+    empty: hint,
+    shown: typed => typed,
+    put: (typed, text) => (fits.test(text) && Array.from(typed).length < max ? typed + text : typed),
+    value: typed => (typed === "" ? undefined : typed),
+    typed: value => (typeof value === "string" ? value : ""),
+  };
+};

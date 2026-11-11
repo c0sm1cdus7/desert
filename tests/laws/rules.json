@@ -841,6 +841,20 @@
       "from": "Franco 11/11",
       "guarantee": "compose",
       "evidence": ["src/tools/promises.ts"]
+    },
+    {
+      "id": 117,
+      "rule": "Un dato con forma solo acepta lo que entra en ella: declararlo como texto libre hace que el programa no arranque",
+      "from": "LEYES 11 · Franco 11/11",
+      "guarantee": "compose",
+      "evidence": ["src/surface/bridge/asking-parts.ts", "src/surface/masks.ts", "src/catalogs/fields.ts"]
+    },
+    {
+      "id": 118,
+      "rule": "Lo que se escribió con forma (CUIT, DNI) se lee siempre con esa forma",
+      "from": "Franco 11/11",
+      "guarantee": "derived",
+      "evidence": ["src/programs/promised-shapes.ts", "src/programs/promised.ts"]
     }
   ]
 }

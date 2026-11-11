@@ -25,6 +25,7 @@
     "programs/promised-laws.ts": "lawChecks, coverage: the laws every act keeps, checked from a case the house accepts",
     "programs/promised-notices.ts": "noticeChecks: Attention and Activity on every menu, derived from each case and each program",
     "programs/promised-off.ts": "shownChecks: what each person sees of what they cannot do, and may prefer not to see",
+    "programs/promised-shapes.ts": "bareIn: the data of a case written in a shape of digits, which no reading may show without it",
     "programs/promised-stage.ts": "staged, perform, given: the real house at a fixed instant every derived check runs on",
     "programs/promised-walk.ts": "walkedChecks: every case of a program kept by keys through the router, from the Menu down to its thing",
     "programs/promised.ts": "promisedChecks: every check a program's promises derive, each case on a real house",
@@ -69,14 +70,14 @@
   "folders": {
     "adapters/secrets": 103,
     "adapters/storage": 154,
-    "catalogs": 78,
+    "catalogs": 94,
     "doors/terminal": 546,
     "house": 82,
     "journal": 295,
-    "programs": 860,
-    "surface": 1326,
-    "surface/bridge": 855,
-    "texts": 155,
+    "programs": 886,
+    "surface": 1379,
+    "surface/bridge": 864,
+    "texts": 156,
     "tools": 719
   }
 }

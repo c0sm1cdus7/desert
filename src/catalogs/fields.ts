@@ -32,3 +32,19 @@ export const usually = <T extends TSchema[]>(ask: string, usual: string, ...arms
   Type.Union(arms, { title: ask, default: usual });
 /** One or more of the same thing. In a title, {n} is the position of the thing being asked. */
 export const many = <T extends TSchema>(item: T, more: More) => Type.Array(item, { minItems: 1, more });
+/** Digits in one shape or several, kept as the digits alone: `#` is a digit and the rest is written between them.
+ * `00-00000000-0` for a CUIT. Only digits go in, and it is complete when it fills one of its shapes. */
+export const digits = (ask: string, ...shapes: readonly string[]) => {
+  const sizes = shapes.map(shape => Array.from(shape).filter(char => char === "#").length);
+  return Type.String({
+    pattern: `^(${sizes.map(size => `\\d{${size}}`).join("|")})$`,
+    title: ask,
+    mask: "digits",
+    shapes,
+  });
+};
+/** A whole number from one up, written with zeros before it up to a width: `0001`. */
+export const padded = (ask: string, width: number) => Type.Integer({ minimum: 1, title: ask, mask: "padded", width });
+/** Text of only some characters, as the name someone enters with: `allowed` is what a character may be. */
+export const handle = (ask: string, hint: string, allowed: string, max: number) =>
+  Type.String({ pattern: `^[${allowed}]{1,${max}}$`, title: ask, placeholder: hint, mask: "chars", allowed, max });
