@@ -70,7 +70,7 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
         if (kase.then.calls) deepStrictEqual(calledSince(house(), before.through), kase.then.calls);
         for (const [tool, needs] of promisedNeeds(aim, kase.then))
           deepStrictEqual(
-            program.registry.find(known => known.id === tool)?.needs?.(house().tools.state()) ?? [],
+            program.registry.find(known => known.id === tool)?.needs?.(house().tools.state(), house().now()) ?? [],
             needs,
           );
       }

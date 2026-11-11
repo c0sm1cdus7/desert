@@ -35,7 +35,7 @@ function open<X extends Program>(program: Composition<X>, home: string, { time, 
   const holding = [cast.admin, cast.member].map(identity => ({ identity, tools }));
   const assignments = [...holding, { identity: cast.outsider, tools: [] }];
   const creation = { admin: cast.admin, assignments };
-  return { ...startHouse<X>(home, { by: runner, creation, keys, ...program }, time), pass };
+  return { ...startHouse<X>(home, { by: runner, creation, keys, ...program }, time), pass, now: () => time.now() };
 }
 export type House<X extends Program> = ReturnType<typeof open<X>>;
 type Stage<X extends Program> = Readonly<{ house: () => House<X>; reopen: () => void }>;

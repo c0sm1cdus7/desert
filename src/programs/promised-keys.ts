@@ -19,7 +19,7 @@ export const type = (router: Router, text: string): void => {
 };
 /** A program as one identity has it in front: its tools as that identity sees them, and a router on the Menu. */
 export function seated<X extends Program>(house: House<X>, by: string, shown: Shown<X>) {
-  const ports = localPorts(house, by, { recentLines: 100 });
+  const ports = localPorts(house, by, { recentLines: 100 }, house.now);
   const tools = houseTools(ports, shown);
   return { tools, shown, state: ports.state, router: startRouter({ tools, bar: () => bar, changes: ports.watch }) };
 }

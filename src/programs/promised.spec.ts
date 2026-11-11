@@ -72,6 +72,21 @@ describe("a program with acts on its things", () => {
     });
   });
 
+  it("what needs someone may depend on the day: a tool is asked with the time of its own house", async () => {
+    const late = (_state: unknown, now: number) => (now > caseInstant ? [{ target: "sales", why: "late" }] : []);
+    const registry = settlingShop.registry.map(tool => (tool.id === "sales" ? { ...tool, needs: late } : tool));
+    await staged({ ...settlingShop, registry }, async ({ house }) => {
+      const ports = localPorts(house(), cast.admin, { recentLines: 100 }, house().now);
+      const needs = () =>
+        houseTools(ports, shopShown)
+          .find(tool => tool.id === "sales")
+          ?.notices?.().needs;
+      expect(needs()).toEqual([]);
+      await given(house(), "sales", [{ days: 1 }]);
+      expect(needs()?.map(need => need.detail)).toEqual(["late"]);
+    });
+  });
+
   it("a tool that does not say what its cases promise needs someone to act fails that, on every door", async () => {
     const checks = [...promisedChecks(carelessShop), ...walkedChecks(carelessShop, shopShown)];
     expect(await failing(checks)).toEqual([stillOwing, `${stillOwing}, in Attention with why`]);

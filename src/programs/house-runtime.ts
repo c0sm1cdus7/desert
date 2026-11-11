@@ -56,18 +56,20 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
   }
 }
 export type RunningHouse<X extends Program> = ReturnType<typeof startHouse<X>>;
-/** A surface in the house's own process reads it and acts in it as one identity, with no door in between. */
+/** A surface in the house's own process reads it and acts in it as one identity, with no door in between; it
+ * tells the time by the system's clock unless the house runs on another one. */
 export const localPorts = <X extends Program>(
   house: Pick<RunningHouse<X>, "tools" | "registry" | "bus">,
   me: string,
   limits: ViewLimits,
+  now: () => number = () => Date.now(),
 ): HousePorts<X> => ({
   me,
   limits,
   registry: house.registry,
   state: () => identityView(house.tools.state(), me),
   act: (value, through) => house.tools.act(value, through, me),
-  now: () => Date.now(),
+  now,
   connection: () => "connected",
   watch: changed => house.bus.on(changed),
 });
