@@ -26,6 +26,7 @@ const charge = programAct<Shop, typeof charged>({
   also: {
     tool: "sales",
     with: (_state, target) => ({ sale: target }),
+    off: (state, target) => ((state.tools.sales.get(nameOf(target))?.paid ?? 0) >= 1500 ? "paid" : undefined),
     opens: (state, target) => ({ amount: state.tools.sales.get(nameOf(target))?.total ?? 0 }),
   },
   refuses: ["unknown"],

@@ -66,7 +66,9 @@ function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers, from }: T
   if (!found && "refused" in kase.then && actRow(seat, aim, on, undefined, from)) return undefined;
   ok(found, said.notOffered(aim.name));
   const { row } = found;
-  strictEqual(row.off ? row.detail : undefined, aim.act.offered?.(seat.state(), on), said.offFor(aim.name));
+  /** Taken from the thing of another tool, it is that thing that may say why not. */
+  const cause = from ? aim.act.also?.off?.(seat.state(), from.target) : aim.act.offered?.(seat.state(), on);
+  strictEqual(row.off ? row.detail : undefined, cause, said.offFor(aim.name));
   if (row.off) return undefined;
   openRows(seat.router, found.rows);
   ok(row.key, said.keyless(aim.name));

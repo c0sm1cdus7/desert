@@ -93,6 +93,25 @@ function menusOf<X extends Program>(tool: ProgramTool<X>, shown: Readonly<Record
   });
   return Object.fromEntries(entries);
 }
+/** The rows a tool's acts put among the actions of a thing of another tool: each starts the act with what that
+ * thing already says of it, or stays off saying why that thing does not let it. */
+const offersOf =
+  <X extends Program>(ports: SurfacePorts<X>, tool: string, entries: readonly Walked<X>[]) =>
+  (other: string, target: string): ViewRow[] =>
+    entries.flatMap(({ name, act, ask }): ViewRow[] => {
+      const { also } = act;
+      const given = also?.tool === other ? also.with(ports.state(), target) : undefined;
+      if (!also || given === undefined) return [];
+      const row = { key: act.key, title: act.label, act: name, on: { tool } };
+      const why = also.off?.(ports.state(), target);
+      if (why !== undefined) return [{ ...row, detail: why, off: true }];
+      const fixed = ask.leading(given);
+      /** What the thing suggests comes after what it fixes: those questions open on it, and are still asked. */
+      const answers = ask.leading({ ...given, ...also.opens?.(ports.state(), target) });
+      if (ask.next(fixed) === null && !act.confirms)
+        throw new Error(`${tool} offers ${name} on ${other} asking nothing, and the act does not ask to be confirmed`);
+      return [{ ...row, detail: act.purpose, with: { answers, from: fixed.length } }];
+    });
 /** Every act of a tool as the surface offers it: on the tool itself, on one of its things, or under a menu. */
 export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, asked: Asked) {
   /** Why this identity cannot act on the tool at all, when that is so. */
@@ -122,21 +141,5 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
     });
   const actsOn = Object.fromEntries(onThing);
   const acts: ScreenActs = { acts: Object.fromEntries(onTool), actsOn, menusOn: menusOf(tool, actsOn) };
-  /** The rows this tool's acts put among the actions of a thing of another tool: each starts the act with what
-   * that thing already says of it. */
-  const offers = (other: string, target: string): ViewRow[] =>
-    entries.flatMap(({ name, act, ask }) => {
-      const given = act.also?.tool === other ? act.also.with(ports.state(), target) : undefined;
-      if (given === undefined) return [];
-      const fixed = ask.leading(given);
-      /** What the thing suggests comes after what it fixes: those questions open on it, and are still asked. */
-      const answers = ask.leading({ ...given, ...act.also?.opens?.(ports.state(), target) });
-      if (ask.next(fixed) === null && !act.confirms)
-        throw new Error(
-          `${tool.id} offers ${name} on ${other} asking nothing, and the act does not ask to be confirmed`,
-        );
-      const row = { key: act.key, title: act.label, detail: act.purpose, act: name, on: { tool: tool.id } };
-      return [{ ...row, with: { answers, from: fixed.length } }];
-    });
-  return { acts, start: starter(tool.id, entries), offers };
+  return { acts, start: starter(tool.id, entries), offers: offersOf(ports, tool.id, entries) };
 }

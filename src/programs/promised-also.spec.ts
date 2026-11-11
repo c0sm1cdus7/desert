@@ -71,6 +71,7 @@ describe("a program whose acts reach across its tools", () => {
     expect(rig.state().tools.sales.get("s1")?.paid).toBe(1500);
     router.send({ kind: "cancel" });
     expect(router.screen({ rows: 40 }).title).toBe("s1");
+    expect(actionsOn(tools, "sales/s1")).toEqual([["c", "Cobrar", "paid", true]]);
   });
 
   it("shows it off to who does not hold that other tool, and hides it if they prefer not to see such", () => {

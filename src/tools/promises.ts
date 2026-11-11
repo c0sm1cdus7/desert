@@ -48,6 +48,8 @@ export type Offered = Readonly<{ label: string; purpose: string; key: string }> 
 export type Also<X extends Program> = Readonly<{
   tool: string;
   with: (state: State<X>, target: string) => Readonly<Record<string, unknown>> | undefined;
+  /** Why it cannot be done on that thing, when that is so: it stays among the thing's actions, off, saying this. */
+  off?: (state: State<X>, target: string) => string | undefined;
   /** What the questions after those open on, when that thing suggests an answer the person may change. */
   opens?: (state: State<X>, target: string) => Readonly<Record<string, unknown>>;
 }>;
