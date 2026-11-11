@@ -929,6 +929,13 @@
       "from": "LEYES 4 · 11/11, sabotaje que sobrevivía en Equipo",
       "guarantee": "derived",
       "evidence": ["src/programs/promised-walk.ts", "src/programs/promised-known.spec.ts"]
+    },
+    {
+      "id": 124,
+      "rule": "Toda fila que arranca una acción se nombra como una acción: en minúscula, sin puntuación y corta, también la que una pantalla propia nombra a mano",
+      "from": "11/11 · decisión de Franco «minúscula»; visto en Editar una venta",
+      "guarantee": "derived",
+      "evidence": ["src/surface/bridge/program-acts.ts", "src/tools/promises.ts", "src/programs/promised-menus.spec.ts"]
     }
   ]
 }

@@ -92,8 +92,8 @@ const parted =
       },
     };
   };
-const total = { asks: [0, 1], key: "t", title: "Total" } as const;
-const paid = { asks: [1, 2], key: "b", title: "Cobrado" } as const;
+const total = { asks: [0, 1], key: "t", title: "total" } as const;
+const paid = { asks: [1, 2], key: "b", title: "cobrado" } as const;
 const honest: Rows = (start, thing, today) => [
   start("correct", thing, { ...total, today }),
   start("correct", thing, { ...paid, today }),
@@ -103,12 +103,18 @@ const stale: Rows = (start, thing, today) => [
   start("correct", thing, { ...total, today: today && { ...today, paid: 999 } }),
   start("correct", thing, { ...paid, today }),
 ];
+/** The same menus, whose rows name themselves as labels do, with a capital: a row that starts an act is no label. */
+const shouting: Rows = (start, thing, today) => [
+  start("correct", thing, { ...total, title: "Total", today }),
+  start("correct", thing, { ...paid, title: "Cobrado", today }),
+];
 /** The same menus, with two rows that take one key. */
 const twins: Rows = (start, thing, today) => honest(start, thing, today).map(row => ({ ...row, key: "t" }));
 const shownWith = (screen: ProgramScreen<Shop>): Shown<Shop> => ({ ...shopShown, screens: { sales: screen } });
 export const partsShown = shownWith(parted(honest));
 export const staleShown = shownWith(parted(stale));
 export const twinsShown = shownWith(parted(twins));
+export const shoutingShown = shownWith(parted(shouting));
 /** A screen whose Edit menu lists nothing: the act under it is declared, and no list a person reaches has it. */
 export const lostShown = shownWith(parted(() => []));
 /** The parts menu goes away once the sale was paid something: correcting what was paid takes its own menu away. */

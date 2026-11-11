@@ -3,7 +3,7 @@ import { allowed, hides } from "../../house/house.ts";
 import type { Emission } from "../../journal/events.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
-import type { ProgramAct, ProgramTool } from "../../tools/promises.ts";
+import { worded, type ProgramAct, type ProgramTool } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { Field } from "../contract.ts";
 import type { Result, ThingAct, ThingMenu, ToolAct, ViewRow } from "../shown-tool.ts";
@@ -76,7 +76,9 @@ const starter =
     const { act, ask } = found;
     /** An act on the tool itself has no thing to stand on: its row says the tool alone. */
     const on = act.on === "tool" ? { tool } : { tool, target };
-    const row = { key: how.key ?? act.key, title: how.title ?? act.name, act: name, on };
+    /** A row that names itself is held to what the name of an act is held to: what a row says, in lower case. */
+    const title = how.title === undefined ? act.name : worded({ name: how.title }).name;
+    const row = { key: how.key ?? act.key, title, act: name, on };
     if (how.today === undefined) return { ...row, ...(how.detail ? { detail: how.detail } : {}) };
     const answers = ask.answers(how.today);
     const [from, until] = how.asks ?? [0];

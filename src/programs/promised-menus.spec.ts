@@ -12,7 +12,7 @@ import {
   registered,
 } from "../../tests/support/correcting-shop.ts";
 import { overpaid, staleShown, totalCorrected, twinsShown } from "../../tests/support/correcting-shop.ts";
-import { fragileShown, leavingCorrect } from "../../tests/support/correcting-shop.ts";
+import { fragileShown, leavingCorrect, shoutingShown } from "../../tests/support/correcting-shop.ts";
 import { shopShown, type Shop } from "../../tests/support/shop.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import type { Screen } from "../surface/contract.ts";
@@ -80,13 +80,18 @@ describe("a program with a menu on its things", () => {
   it("asks one part alone when a row asks only that: the rest shows as it is, and stays as it is", async () => {
     await atSale(partsShown, async ({ typed, esc, settled }) => {
       expect(typed("e")).toEqual(["Editar", "p | Partes | "]);
-      expect(typed("p")).toEqual(["Partes", "t | Total | $ 15,00", "b | Cobrado | $ 0,00"]);
+      expect(typed("p")).toEqual(["Partes", "t | total | $ 15,00", "b | cobrado | $ 0,00"]);
       expect(typed("b")).toEqual(["Corregir", "Total $ 15,00", "Cobrado", "› $ 0,00"]);
       expect(esc()[0]).toBe("Partes");
       typed("b500\r");
       expect((await settled()).at(-1)).toContain("Listo Corregida · s1");
-      expect(esc()).toEqual(["Partes", "t | Total | $ 15,00", "b | Cobrado | $ 5,00"]);
+      expect(esc()).toEqual(["Partes", "t | total | $ 15,00", "b | cobrado | $ 5,00"]);
     });
+  });
+
+  it("refuses a row that names itself with a capital, as a label: what starts an act is said as an act", async () => {
+    const shouting = await failing(walkedChecks(correctingShop, shoutingShown));
+    expect(shouting).toEqual(everyWalk);
   });
 
   it("fails the walk of an act that no list a person reaches has", async () => {
