@@ -61,13 +61,14 @@ function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>,
       await perform(house(), aim.tool.id, { ...kase, act: aim.name });
       const promised = "refused" in kase.then ? [] : (kase.then.needs ?? []);
       const { tools, router } = seated(house(), kase.by ?? cast.admin, shown);
+      /** What Attention says of this tool where a person stands: each row by the thing it leads to, or the tool. */
       const told = (tool?: string) =>
-        (listAt(tools, surface.attentionList, tool) ?? []).map(row => ({ target: row.opens, why: row.detail }));
-      const things = (): readonly string[] => aim.tool.targets(house().tools.state());
-      const mine = (need: { target: string | undefined }): boolean => things().includes(need.target ?? "");
+        (listAt(tools, surface.attentionList, tool) ?? [])
+          .filter(row => row.open?.kind === "view" && row.open.tool === aim.tool.id)
+          .map(row => ({ target: row.opens ?? aim.tool.id, why: row.detail }));
       try {
         deepStrictEqual(told(aim.tool.id), promised);
-        deepStrictEqual(told().filter(mine), promised);
+        deepStrictEqual(told(), promised);
       } finally {
         router.stop();
       }

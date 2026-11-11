@@ -22,16 +22,15 @@ function unseen<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>)
 export function noticesOf<X extends Program>(
   ports: SurfacePorts<X>,
   tool: ProgramTool<X>,
-  shown: Pick<Tool, "titleOf">,
+  shown: Pick<Tool, "titleOf" | "name">,
 ) {
   const mine = (): boolean => allowed(ports.state().house, ports.me, tool.id);
   const titled = (target: string): string => shown.titleOf?.(target) ?? target;
+  /** What needs someone to act is a thing of the tool, or the tool itself: then the row leads to its own menu. */
   const needs = (): Notice[] =>
-    (tool.needs?.(ports.state()) ?? []).map(({ target, why }) => ({
-      title: titled(target),
-      detail: why,
-      opens: target,
-    }));
+    (tool.needs?.(ports.state()) ?? []).map(({ target, why }) =>
+      target === tool.id ? { title: shown.name, detail: why } : { title: titled(target), detail: why, opens: target },
+    );
   const news = (): Notice[] =>
     unseen(ports, tool).map(({ data }) => {
       const leads = data.target === tool.id ? {} : { opens: data.target };
