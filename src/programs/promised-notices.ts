@@ -80,31 +80,22 @@ function emptyCheck<X extends Program>(program: Composition<X>, shown: Shown<X>)
   const run = (): Promise<void> =>
     staged(program, async ({ house }) => {
       const seat = seated(house(), cast.admin, shown);
+      const outside = seated(house(), cast.outsider, shown);
       const places = [undefined, ...program.registry.map(tool => tool.id)];
-      const there = (): boolean[] =>
-        places.flatMap(tool =>
-          [surface.attentionList, surface.activity].map(list => listAt(seat.tools, list, tool) !== undefined),
-        );
+      const lists = [surface.attentionList, surface.activity];
+      const there = (tools: readonly Tool[], tool?: string): boolean[] =>
+        lists.map(list => listAt(tools, list, tool) !== undefined);
+      const everywhere = (): boolean[] => places.flatMap(tool => there(seat.tools, tool));
       try {
-        deepStrictEqual(
-          there(),
-          there().map(() => true),
-          said.listsMissing,
-        );
+        ok(everywhere().every(Boolean), said.listsMissing);
+        /** Who holds no tool has the two lists on the Menu all the same. */
+        ok(there(outside.tools).every(Boolean), said.listsMissing);
         await prefer(seat, "empty", true);
-        deepStrictEqual(
-          there(),
-          there().map(() => false),
-          said.listsShown,
-        );
+        ok(!everywhere().some(Boolean), said.listsShown);
         await prefer(seat, "empty", false);
-        deepStrictEqual(
-          there(),
-          there().map(() => true),
-          said.listsMissing,
-        );
+        ok(everywhere().every(Boolean), said.listsMissing);
       } finally {
-        seat.router.stop();
+        [seat, outside].forEach(open => open.router.stop());
       }
     });
   return { name: said.emptyLists, run };

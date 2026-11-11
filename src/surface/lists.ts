@@ -79,9 +79,11 @@ const noticeRows = (tool: Tool, notices: readonly Notice[], tone?: Tone): Choice
 /** Attention and Activity, the two lists a menu opens with: what needs someone to act, and what the others did.
  * They are there even with nothing in them, unless the person prefers not to see them then. */
 function noticed(tools: readonly Tool[]): readonly Listed[] {
+  /** A tool a person does not hold tells them nothing, and the lists are there all the same. */
   const all = tools.flatMap(tool => {
     const notices = tool.notices?.();
-    return notices ? [{ tool, notices }] : [];
+    const mine = tool.off?.() === undefined;
+    return notices ? [{ tool, notices: mine ? notices : { ...notices, needs: [], news: [] } }] : [];
   });
   const quiet = all.some(({ notices }) => notices.quiet);
   const needs = all.flatMap(({ tool, notices }) => noticeRows(tool, notices.needs, "wait"));
@@ -115,7 +117,7 @@ function listedAt(place: Picture, tools: readonly Tool[]): readonly Listed[] {
         rows: listed.filter(tool => tool.place.section === section).map(menuRow),
       }))
       .filter(stack => stack.rows.length);
-    return [...noticed(listed.filter(tool => tool.off?.() === undefined)), ...sections];
+    return [...noticed(listed), ...sections];
   }
   const tool = toolOf(tools, place.tool);
   const opensTo = (target: string): Place =>
