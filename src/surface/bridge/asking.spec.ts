@@ -69,6 +69,13 @@ describe("asking what an act takes", () => {
     expect(ask.input(["10,5%"])).toEqual({ rate: "10.5" });
   });
 
+  it("does not take zero where nothing is not an amount: a price, a payment", () => {
+    const ask = asking(object({ price: money("Precio", 1), tip: money("Propina") }), words);
+    const valid = (given: readonly string[], typed: string) => ask.next(given)?.valid?.(typed);
+    expect([valid([], ""), valid([], "0"), valid([], "1")]).toEqual([false, false, true]);
+    expect(valid(["1"], "0")).toBe(true);
+  });
+
   it("takes in a field only what its declaration takes, and nothing in an optional one is an answer", () => {
     const ask = asking(order, words);
     const valid = (given: number, typed: string) => ask.next(answers.slice(0, given))?.valid?.(typed);

@@ -11,9 +11,10 @@ export const textLimit = 120;
 /** Free text: the question, and a placeholder that shows what goes there. It says something, not only spaces. */
 export const text = (ask: string, placeholder: string) =>
   Type.String({ minLength: 1, maxLength: textLimit, pattern: "\\S", plain: true, title: ask, placeholder });
-/** Money, kept in cents: up to what its thirteen digits say, $ 99.999.999.999,99. */
-export const money = (ask: string) =>
-  Type.Integer({ minimum: 0, maximum: 9_999_999_999_999, title: ask, mask: "money" });
+/** Money, kept in cents: up to what its thirteen digits say, $ 99.999.999.999,99. Where nothing is not an amount
+ * — a price, a payment — `least` is one cent, and the field does not take zero. */
+export const money = (ask: string, least: 0 | 1 = 0) =>
+  Type.Integer({ minimum: least, maximum: 9_999_999_999_999, title: ask, mask: "money" });
 /** How many decimals a quantity carries: what its mask lets be written, and what every door is held to. */
 export const quantityDecimals = 3;
 /** How many of something; `initial` is what the field already says when it opens. */
