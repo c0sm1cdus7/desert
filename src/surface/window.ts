@@ -11,10 +11,8 @@ export const foundAt = <T>(all: readonly T[], test: (item: T) => boolean): numbe
 const rowsOf = (stacks: readonly Stack[]): number => stacks.reduce((sum, stack) => sum + stack.rows.length, 0);
 const linesOf = (stack: Stack): number => 1 + Math.max(stack.rows.length, 1);
 
-export function windowed(stacks: readonly Stack[], room: number): readonly Stack[] {
-  const lines = stacks.reduce((sum, stack, i) => sum + linesOf(stack) + (i ? 1 : 0), 0);
-  if (lines <= room) return stacks;
-  const at = foundAt(stacks, stack => stack.rows.some(row => row.selected));
+/** The one list that holds the chosen row, cut around it: when it alone is taller than the room. */
+function cut(stacks: readonly Stack[], at: number, room: number): readonly Stack[] {
   const stack = must(stacks[at]);
   const fits = Math.max(room - 3, 1);
   const chosen = foundAt(stack.rows, row => !!row.selected);
@@ -28,4 +26,26 @@ export function windowed(stacks: readonly Stack[], room: number): readonly Stack
       below: rowsOf(stacks.slice(at + 1)) + Math.max(stack.rows.length - end, 0),
     },
   ];
+}
+/** What does not fit keeps the list with the chosen row, and around it every list that still fits whole: first the
+ * ones above, then the ones below. What is left out is counted, above and below. */
+export function windowed(stacks: readonly Stack[], room: number): readonly Stack[] {
+  const lines = stacks.reduce((sum, stack, i) => sum + linesOf(stack) + (i ? 1 : 0), 0);
+  if (lines <= room) return stacks;
+  const at = foundAt(stacks, stack => stack.rows.some(row => row.selected));
+  const cost = (index: number): number => linesOf(must(stacks[index])) + 1;
+  /** Two lines go to saying how much is left out. */
+  const budget = room - 2;
+  if (cost(at) > budget) return cut(stacks, at, room);
+  let [from, to, used] = [at, at, cost(at)];
+  while (from > 0 && used + cost(from - 1) <= budget) used += cost(--from);
+  while (to < stacks.length - 1 && used + cost(to + 1) <= budget) used += cost(++to);
+  const shown = stacks.slice(from, to + 1);
+  const above = rowsOf(stacks.slice(0, from));
+  const below = rowsOf(stacks.slice(to + 1));
+  return shown.map((stack, i) => ({
+    ...stack,
+    ...(i === 0 && above ? { above } : {}),
+    ...(i === shown.length - 1 && below ? { below } : {}),
+  }));
 }
