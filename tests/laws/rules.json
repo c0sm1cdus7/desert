@@ -956,6 +956,33 @@
         "src/programs/promised-menus.spec.ts",
         "src/doors/terminal/house-screens.spec.ts"
       ]
+    },
+    {
+      "id": 126,
+      "rule": "Todo dato que una persona escribe tiene tope: la plata, las cantidades y los números con su máximo; un texto con su largo y sin ser solo espacios. Un campo sin tope hace que el programa no arranque, y cada acción se prueba sola con un dato pasado de su tope",
+      "from": "11/11 · revisión de lógica: importes de 10^17, cantidad 1e300, nombres de 100.000 letras",
+      "guarantee": "derived",
+      "evidence": [
+        "src/catalogs/fields.ts",
+        "src/surface/bridge/asking-parts.ts",
+        "src/tools/schema-breaks.ts",
+        "src/programs/promised-laws.ts",
+        "src/surface/bridge/asking.spec.ts"
+      ]
+    },
+    {
+      "id": 127,
+      "rule": "Una acción que dice lo que la cosa vale hoy rechaza dejarla igual, «sin cambios»: no se escribe un hecho que no cambia nada",
+      "from": "11/11 · revisión de lógica: editar con los mismos valores dejaba marca de edición",
+      "guarantee": "derived",
+      "evidence": ["src/tools/promises.ts", "src/programs/promised-laws.ts"]
+    },
+    {
+      "id": 128,
+      "rule": "Lo que una acción pone a confirmar lo promete uno de sus casos, palabra por palabra, y el recorrido derivado lo compara",
+      "from": "11/11 · revisión de lógica: la confirmación de «unir» nombraba otro pago",
+      "guarantee": "derived",
+      "evidence": ["src/tools/promises.ts", "src/programs/promised-laws.ts", "src/programs/promised-walk.ts"]
     }
   ]
 }

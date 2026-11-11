@@ -25,6 +25,22 @@ function placeCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kas
     });
   return { name: label(aim, said.misplaced), run };
 }
+/** An act that says what the thing is today refuses to leave it as it is: it would write nothing new. */
+function unchangedCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase: Case<X>): Check[] {
+  const { today } = aim.act;
+  if (!today) return [];
+  const run = (): Promise<void> =>
+    staged(program, async ({ house }) => {
+      await given(house(), aim.tool.id, kase.given);
+      const input = today(house().tools.state(), kase.on ?? aim.tool.id);
+      if (input === undefined) return;
+      const before = house().tools.state().through;
+      const done = await perform(house(), aim.tool.id, { ...kase, act: aim.name, input });
+      deepStrictEqual([done.status, done.reason], ["rejected", toolTexts.unchanged]);
+      deepStrictEqual(wroteSince(house(), before), []);
+    });
+  return [{ name: label(aim, said.unchanged), run }];
+}
 /** The laws of every act, checked from a case of its own that the house accepts. */
 export function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X>, kase: Case<X>): Check[] {
   const refusal = (promise: string, doing: Partial<Doing>, cause: string, input = kase.input): Check => ({
@@ -45,6 +61,7 @@ export function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X
     refusal(said.notHeld, { by: cast.outsider }, toolTexts.unassigned),
     refusal(said.unseen, { by: cast.member, attends: false }, toolTexts.unattended),
     placeCheck(program, aim, kase),
+    ...unchangedCheck(program, aim, kase),
   ];
 }
 /** What an act declares has to add up: a case the house accepts, and a case for each cause it may refuse with. */
@@ -54,6 +71,9 @@ export function coverage<X extends Program>(aim: Aim<X>): Check {
     Promise.resolve().then(() => {
       const does = aim.act.cases.some(kase => !("refused" in kase.then));
       ok(does, said.nothingDone);
+      /** What an act puts to be confirmed is promised word for word by one of its cases. */
+      const sure = aim.act.cases.some(kase => !("refused" in kase.then) && kase.then.sure !== undefined);
+      ok(!aim.act.confirms || sure, said.unsure);
       deepStrictEqual([...new Set(refused)].sort(), [...aim.act.refuses].sort());
     });
   return { name: label(aim, said.covered), run };

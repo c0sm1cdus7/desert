@@ -38,6 +38,9 @@ function masked(walk: Asking, mask: Mask, key: Intent): Asking | undefined {
   return key.kind === "left" || key.kind === "right" ? walk : undefined;
 }
 function typing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
+  /** A text takes no more than it may hold: the key that would pass it is not typed. */
+  const full = key.kind === "type" && "max" in field && Array.from(walk.typed).length >= (field.max ?? Infinity);
+  if (full) return { session };
   const changed = "mask" in field ? masked(walk, field.mask, key) : edited(walk, key);
   if (changed) return { session: replace(session, changed) };
   if (key.kind !== "confirm" || !validOf(field, walk.typed)) return { session };

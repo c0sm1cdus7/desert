@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 123. Deudas: 23.
+Leyes: 126. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -130,3 +130,6 @@ Leyes: 123. Deudas: 23.
 | 123 | Una fila que ya lleva todo lo que su acción toma, y que la acción va a rechazar, está apagada diciendo por qué: a nadie se le ofrece lo que ya se sabe que no se puede | LEYES 4 · 11/11, sabotaje que sobrevivía en Equipo | prueba derivada de los casos | `src/programs/promised-walk.ts` `src/programs/promised-known.spec.ts` |
 | 124 | Toda fila que arranca una acción se nombra como una acción: en minúscula, sin puntuación y corta, también la que una pantalla propia nombra a mano | 11/11 · decisión de Franco «minúscula»; visto en Editar una venta | prueba derivada de los casos | `src/surface/bridge/program-acts.ts` `src/tools/promises.ts` `src/programs/promised-menus.spec.ts` |
 | 125 | Una pregunta que cambia un dato dice al lado de su nombre lo que el dato vale hoy; y donde es lo único que la acción pregunta, la opción que ya está elegida queda apagada, con «actual» | 11/11 · Franco: «si estoy cambiando algo, tengo que ver el valor actual… lo seleccionado se deshabilita. Es un comportamiento del componente» | la cumple la superficie | `src/surface/screen.ts` `src/surface/step.ts` `src/surface/walk.ts` `src/programs/promised-menus.spec.ts` `src/doors/terminal/house-screens.spec.ts` |
+| 126 | Todo dato que una persona escribe tiene tope: la plata, las cantidades y los números con su máximo; un texto con su largo y sin ser solo espacios. Un campo sin tope hace que el programa no arranque, y cada acción se prueba sola con un dato pasado de su tope | 11/11 · revisión de lógica: importes de 10^17, cantidad 1e300, nombres de 100.000 letras | prueba derivada de los casos | `src/catalogs/fields.ts` `src/surface/bridge/asking-parts.ts` `src/tools/schema-breaks.ts` `src/programs/promised-laws.ts` `src/surface/bridge/asking.spec.ts` |
+| 127 | Una acción que dice lo que la cosa vale hoy rechaza dejarla igual, «sin cambios»: no se escribe un hecho que no cambia nada | 11/11 · revisión de lógica: editar con los mismos valores dejaba marca de edición | prueba derivada de los casos | `src/tools/promises.ts` `src/programs/promised-laws.ts` |
+| 128 | Lo que una acción pone a confirmar lo promete uno de sus casos, palabra por palabra, y el recorrido derivado lo compara | 11/11 · revisión de lógica: la confirmación de «unir» nombraba otro pago | prueba derivada de los casos | `src/tools/promises.ts` `src/programs/promised-laws.ts` `src/programs/promised-walk.ts` |

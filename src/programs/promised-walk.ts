@@ -115,6 +115,8 @@ function walk<X extends Program>({ router, tools }: Seat<X>, { aim, kase, answer
   /** What asks to be confirmed is confirmed as a person does: by the initial of the act's own verb. */
   const sure = said && row.with?.until === undefined ? next(answers) : null;
   if (sure) ok(!addresses(sure.ask), words.speaks(sure.ask));
+  const promised = "refused" in kase.then ? undefined : kase.then.sure;
+  if (sure && promised !== undefined) strictEqual(sure.ask, promised, words.notSure(sure.ask));
   if (sure) type(router, aim.act.enter.charAt(0));
   return said;
 }

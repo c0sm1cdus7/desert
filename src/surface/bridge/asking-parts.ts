@@ -90,9 +90,16 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   const initial = first === undefined ? {} : { initial: format?.typed(first) ?? plain(first) };
   const ask = titleOf(schema, ctx);
   const wrong = (typed: string): string | undefined => wrongIn(schema, valueOf(schema, ctx, typed));
+  /** What a person writes has a top: a number without one, or a text without a length, is a defect. */
+  const numeric = at(schema, "type") === "integer" || at(schema, "type") === "number";
+  if (format && numeric && typeof at(schema, "maximum") !== "number") throw new Error(`The field ${ask} has no top`);
   if (format) return { ask, valid, wrong, kind: "text", mask: format, ...initial };
   if (at(schema, "type") !== "string") throw new Error(`The field ${ask} has no format and is not text`);
   /** A datum with a shape takes only what fits it: declared as free text, any key would go in. */
-  if (at(schema, "pattern") !== undefined) throw new Error(`The field ${ask} has a shape and no mask`);
-  return { ask, valid, wrong, kind: "text", placeholder: word(schema, "placeholder"), ...initial };
+  if (at(schema, "pattern") !== undefined && at(schema, "plain") !== true)
+    throw new Error(`The field ${ask} has a shape and no mask`);
+  const placeholder = word(schema, "placeholder");
+  const max = at(schema, "maxLength");
+  if (typeof max !== "number") throw new Error(`The field ${ask} does not say how long it may be`);
+  return { ask, valid, wrong, kind: "text", placeholder, max, ...initial };
 }

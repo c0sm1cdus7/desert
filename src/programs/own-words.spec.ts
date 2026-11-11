@@ -6,7 +6,7 @@ import { asked } from "../surface/bridge/asking-parts.ts";
 import { genericTexts as generic } from "../texts/generic-surface.texts.ts";
 import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import { toolTexts as engine } from "../texts/tools.texts.ts";
-import { short, worded } from "../tools/promises.ts";
+import { short, worded } from "../tools/act-words.ts";
 import { composed } from "./promised.ts";
 
 /** Every text under a set of words, with where it is; what a text is built from is said with specimen words. */

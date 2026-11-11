@@ -6,10 +6,15 @@ const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 const isList = (value: unknown): value is readonly unknown[] => Array.isArray(value);
 const at = (schema: unknown, key: string): unknown => (isRecord(schema) ? schema[key] : undefined);
-/** A value of the same kind that the schema's own limits leave out: below its minimum, shorter than it allows. */
+/** A value of the same kind that the schema's own limits leave out: below its minimum and above its maximum,
+ * shorter and longer than it allows, and only spaces where it has to say something. */
 function beyond(schema: unknown, value: unknown): unknown[] {
   const least = at(schema, "exclusiveMinimum") ?? at(schema, "minimum");
-  if (typeof value === "number" && typeof least === "number") return [least - 1];
+  const most = at(schema, "maximum");
+  if (typeof value === "number")
+    return [...(typeof least === "number" ? [least - 1] : []), ...(typeof most === "number" ? [most + 1] : [])];
+  const long = at(schema, "maxLength");
+  if (typeof value === "string" && typeof long === "number") return ["", " ", "a".repeat(long + 1)];
   if (typeof value === "string" && typeof at(schema, "minLength") === "number") return [""];
   if (isList(value) && typeof at(schema, "minItems") === "number") return [[]];
   return [];

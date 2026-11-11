@@ -9,5 +9,7 @@ export const toolTexts = {
   unassigned: "sin acceso",
   unavailable: "acción fallida",
   interrupted: "acción interrumpida",
+  /** What an act answers when it would leave the thing exactly as it is. */
+  unchanged: "sin cambios",
   draft: "cambió mientras se escribía",
 } as const;

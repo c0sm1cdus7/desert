@@ -6,20 +6,25 @@ const isoDay = "^\\d{4}-\\d{2}-\\d{2}$";
 type Choice = Readonly<{ title: string; key: string }>;
 /** After each thing of a list, whether another follows: the question and its two answers, each with its key. */
 export type More = Readonly<{ ask: string; done: Choice; another: Choice }>;
-/** Free text: the question, and a placeholder that shows what goes there. */
-export const text = (ask: string, placeholder: string) => Type.String({ minLength: 1, title: ask, placeholder });
-/** Money, kept in cents. */
-export const money = (ask: string) => Type.Integer({ minimum: 0, title: ask, mask: "money" });
+/** How long a written text may be: what fits a row and a document, never a page. */
+export const textLimit = 120;
+/** Free text: the question, and a placeholder that shows what goes there. It says something, not only spaces. */
+export const text = (ask: string, placeholder: string) =>
+  Type.String({ minLength: 1, maxLength: textLimit, pattern: "\\S", plain: true, title: ask, placeholder });
+/** Money, kept in cents: up to what its thirteen digits say, $ 99.999.999.999,99. */
+export const money = (ask: string) =>
+  Type.Integer({ minimum: 0, maximum: 9_999_999_999_999, title: ask, mask: "money" });
 /** How many of something; `initial` is what the field already says when it opens. */
 export const quantity = (ask: string, initial?: number) =>
   Type.Number({
     exclusiveMinimum: 0,
+    maximum: 999_999,
     title: ask,
     mask: "quantity",
     ...(initial === undefined ? {} : { default: initial }),
   });
 /** Which one, by its position: a whole number from one up. */
-export const count = (ask: string) => Type.Integer({ minimum: 1, title: ask, mask: "count" });
+export const count = (ask: string) => Type.Integer({ minimum: 1, maximum: 999_999_999, title: ask, mask: "count" });
 /** A day of the calendar, kept as year-month-day. */
 export const day = (ask: string) => Type.String({ pattern: isoDay, title: ask, mask: "day" });
 /** One of the things of a tool, kept as what the tool calls it: a person picks it from their list. Where the
@@ -50,7 +55,8 @@ export const digits = (ask: string, ...shapes: readonly string[]) => {
   });
 };
 /** A whole number from one up, written with zeros before it up to a width: `0001`. */
-export const padded = (ask: string, width: number) => Type.Integer({ minimum: 1, title: ask, mask: "padded", width });
+export const padded = (ask: string, width: number) =>
+  Type.Integer({ minimum: 1, maximum: 10 ** width - 1, title: ask, mask: "padded", width });
 /** Text of only some characters, as the name someone enters with: `allowed` is what a character may be. */
 export const handle = (ask: string, hint: string, allowed: string, max: number) =>
   Type.String({ pattern: `^[${allowed}]{1,${max}}$`, title: ask, placeholder: hint, mask: "chars", allowed, max });

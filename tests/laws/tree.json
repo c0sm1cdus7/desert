@@ -61,6 +61,7 @@
     "texts/surface.texts.ts": "terminal surface words: menu, keys, talk thread, house sections, errors",
     "texts/tools.texts.ts": "why the house refuses an act, and the purposes of attend and unattend",
     "tools/act-definition.ts": "toolAct and ownAct bound to their schema; reading, accepted, rejected",
+    "tools/act-words.ts": "worded, aid, short: the words an act is declared with, checked when a program is composed; data beside a row, never sentences",
     "tools/attendance.ts": "what an identity keeps in view, and the tool a target belongs to",
     "tools/execute.ts": "execute: one act written, checked against the house, run, and its result written",
     "tools/preferences.ts": "preferenceAct: any member of the house says what it prefers not to see, about itself alone",
@@ -72,14 +73,14 @@
   "folders": {
     "adapters/secrets": 103,
     "adapters/storage": 154,
-    "catalogs": 134,
+    "catalogs": 140,
     "doors/terminal": 545,
     "house": 82,
     "journal": 295,
-    "programs": 922,
-    "surface": 1478,
-    "surface/bridge": 957,
-    "texts": 172,
-    "tools": 739
+    "programs": 944,
+    "surface": 1482,
+    "surface/bridge": 965,
+    "texts": 177,
+    "tools": 754
   }
 }

@@ -30,7 +30,8 @@ const quantity = (locale: Locale): Format => ({
   empty: "0",
   shown: typed => typed,
   put: (typed, text) => {
-    if (digits.test(text)) return typed.length < 12 ? typed + text : typed;
+    const [whole = "", part] = typed.split(locale.decimal);
+    if (digits.test(text)) return (part === undefined ? whole.length < 6 : part.length < 3) ? typed + text : typed;
     return text === locale.decimal && typed !== "" && !typed.includes(locale.decimal) ? typed + text : typed;
   },
   value: typed => (typed === "" ? undefined : Number(typed.replace(locale.decimal, "."))),

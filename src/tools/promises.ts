@@ -1,5 +1,6 @@
 // What a program promises of each act: the causes it may refuse with, and cases that say what happens. Specs derive.
-import { addresses } from "../catalogs/addressing.ts";
+import { toolTexts } from "../texts/tools.texts.ts";
+import { aid, short, worded } from "./act-words.ts";
 import { wrongIn } from "../catalogs/fields.ts";
 import type { Static, TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -22,6 +23,8 @@ export type Told<X extends Program> = X["fact"] extends infer F
 export type Outcome<X extends Program> = Done<X> | Readonly<{ refused: string }>;
 /** What the act says and writes; and, when the case promises it, what its tool reads afterwards on a target. */
 type Done<X extends Program> = Readonly<{ says: string; facts: readonly Told<X>[] }> &
+  /** What the act puts before the person to be sure, word for word, when it asks that. */
+  Readonly<{ sure?: string }> &
   /** What it says is for who did it alone, when the case promises that: otherwise whoever holds the tool reads it. */
   Readonly<{ privately?: true }> &
   Readonly<{ reads?: Readonly<{ on?: string; lines: readonly unknown[] }> }> &
@@ -112,30 +115,6 @@ type Declared<X extends Program, S extends TSchema> = Readonly<{ input: S; reach
   /** An act without a case promises nothing: it does not compile. */
   Readonly<{ cases: readonly [Case<X, S>, ...Case<X, S>[]] }>;
 
-/** What a row says is not a sentence: it starts no phrase with a capital, carries no punctuation and is short. */
-const phrase = /^(?![A-ZÁÉÍÓÚÑ][a-záéíóúñ])[^.,;:!?¡¿]{1,28}$/u;
-const verb = /^[a-záéíóúñü]{2,14}$/u;
-/** The name and the verb of an act as its rows will say them; an act that words itself as a sentence is refused
- * when the program is composed. */
-export function worded<W extends { name: string; enter?: string }>(words: W): W {
-  if (!phrase.test(words.name)) throw new Error(`An act's name is a sentence, or too long for its row: ${words.name}`);
-  if (addresses(words.name)) throw new Error(`An act's name speaks to who reads it: ${words.name}`);
-  if (words.enter !== undefined && !verb.test(words.enter))
-    throw new Error(`What confirms an act is one verb in lower case: ${words.enter}`);
-  return words;
-}
-/** What an act is for is said to the right of its row when it has no datum: short, and no sentence. */
-const aidShape = /^(?![A-ZÁÉÍÓÚÑ][a-záéíóúñ])[^.,;:!?¡¿]{1,44}$/u;
-export function aid(purpose: string): string {
-  if (!aidShape.test(purpose)) throw new Error(`A purpose is said beside its act, short and no sentence: ${purpose}`);
-  if (addresses(purpose)) throw new Error(`A purpose speaks to who reads it: ${purpose}`);
-  return purpose;
-}
-/** A cause is said as a datum, to the right of the act it turned off: no full stop, and short enough to fit. */
-export function short(cause: string): void {
-  if (cause.length > 44 || /[.!?]$/u.test(cause)) throw new Error(`A cause reads as a sentence: ${cause}`);
-  if (addresses(cause)) throw new Error(`A cause speaks to who reads it: ${cause}`);
-}
 /** Whether an act takes anything at all: an object with a field, or one of several shapes. */
 const asksSomething = (input: TSchema): boolean => {
   const fields: unknown = Reflect.get(input, "properties");
@@ -169,13 +148,16 @@ export function programAct<X extends Program, S extends TSchema>(declared: Decla
     return cause;
   };
   const checked = (result: ActResult<X>): ActResult<X> => {
-    if (result.status === "rejected") declaredCause(result.reason);
+    if (result.status === "rejected" && result.reason !== toolTexts.unchanged) declaredCause(result.reason);
     return result;
   };
   /** What a field of it says is wrong never reaches the act, through whatever door it came. */
   const held: Declared<X, S>["run"] = (value, context) => {
     const wrong = wrongIn(input, value);
-    return wrong === undefined ? run(value, context) : { status: "rejected", reason: wrong };
+    if (wrong !== undefined) return { status: "rejected", reason: wrong };
+    /** An act that says what the thing is today does not leave it as it is: nothing new would be written. */
+    const same = today !== undefined && Value.Equal(today(context.state, context.target), value);
+    return same ? { status: "rejected", reason: toolTexts.unchanged } : run(value, context);
   };
   const act = toolAct<X, S>(input, (value, context) => settled(held(value, context), checked), reach);
   const guarded: ToolAct<X>["offered"] = (state, target) => {

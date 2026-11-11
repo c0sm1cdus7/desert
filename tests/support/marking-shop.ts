@@ -35,6 +35,7 @@ const mark = programAct<Shop, typeof marked>({
       on: "sales/s1",
       input: { paid: 1500 },
       then: {
+        sure: "Marcar · $ 1500",
         says: "Marcada · s1",
         facts: [{ kind: "sale-corrected", data: { sale: "s1", total: 1500, paid: 1500 } }],
       },

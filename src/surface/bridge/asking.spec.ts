@@ -96,6 +96,11 @@ describe("asking what an act takes", () => {
     expect(refused(object({ kind: nested }))).toThrow("does not say its placeholder");
     const signed = Type.String({ title: "¿Qué es?", placeholder: "Nombre" });
     expect(refused(object({ what: signed }))).toThrow("A question is a noun, without signs: ¿Qué es?");
+    /** What a person writes has a top: a text says how long it may be, and a number how much. */
+    const endless = Type.String({ title: "Nombre", placeholder: "Nombre" });
+    expect(refused(object({ what: endless }))).toThrow("The field Nombre does not say how long it may be");
+    const topless = Type.Integer({ minimum: 0, title: "Monto", mask: "money" });
+    expect(refused(object({ what: topless }))).toThrow("The field Monto has no top");
     const spoken = Type.String({ title: "Qué vendés", placeholder: "Nombre" });
     expect(refused(object({ what: spoken }))).toThrow("A question speaks to who reads it: Qué vendés");
   });
