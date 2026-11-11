@@ -7,6 +7,7 @@ import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition, ProgramTool } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
+import type { Choice } from "../surface/screen.ts";
 import { actRow, goTo, menuRows, seated, type, view, type Seat } from "./promised-keys.ts";
 import { cast, given, label, staged, type Aim, type Check } from "./promised-stage.ts";
 
@@ -44,6 +45,9 @@ function foreignCheck<X extends Program>(program: Composition<X>, shown: Shown<X
     });
   return { name: `${tool.id} · ${said.foreign}`, run };
 }
+/** What an off row reads of its thing, before it says why it is off: nothing when it only says why. */
+const readBy = ({ detail }: Choice, cause?: string): string | undefined =>
+  cause !== undefined && detail?.endsWith(` · ${cause}`) ? detail.slice(0, -cause.length - 3) : undefined;
 /** Who prefers not to see what cannot be done stops seeing an act exactly while its tool says it cannot be done:
  * nothing else leaves the list, and the act comes back when they prefer to see it again. */
 function hiddenCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
@@ -57,9 +61,14 @@ function hiddenCheck<X extends Program>(program: Composition<X>, shown: Shown<X>
         goTo(seat, aim.tool.id, on);
         const cannot = aim.act.offered?.(seat.state(), on) !== undefined;
         strictEqual(actRow(seat, aim, on) === undefined, cannot, said.hiddenWrong(aim.name));
+        const hidden = JSON.stringify(seat.router.screen(view).body);
         seat.router.send({ kind: "menu" });
         await prefer(seat, "off", false);
-        ok(actRow(seat, aim, on), said.notOffered(aim.name));
+        const shownAgain = actRow(seat, aim, on);
+        ok(shownAgain, said.notOffered(aim.name));
+        /** What the row read of the thing was read all along: hiding takes the way to change it, never the datum. */
+        const read = readBy(shownAgain.row, aim.act.offered?.(seat.state(), on));
+        ok(read === undefined || hidden.includes(JSON.stringify(read).slice(1, -1)), said.readLost(aim.name));
       } finally {
         seat.router.stop();
       }

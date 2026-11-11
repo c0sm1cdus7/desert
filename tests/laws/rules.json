@@ -586,7 +586,12 @@
       "rule": "Una fila que se puede cambiar abre su acción; Acciones para lo que no es de una fila",
       "from": "REGLAS §9d",
       "guarantee": "compose",
-      "evidence": ["src/surface/bridge/house-tools.ts", "src/surface/bridge/any-tool.ts", "src/tools/promises.ts"]
+      "evidence": [
+        "src/surface/bridge/house-tools.ts",
+        "src/surface/bridge/any-tool.ts",
+        "src/tools/promises.ts",
+        "src/programs/promised-data.spec.ts"
+      ]
     },
     {
       "id": 81,
@@ -866,6 +871,18 @@
       "from": "Franco 11/11",
       "guarantee": "derived",
       "evidence": ["src/programs/promised-shapes.ts", "src/programs/promised.ts"]
+    },
+    {
+      "id": 119,
+      "rule": "Lo que una fila lee se sigue leyendo cuando su acción no se puede hacer: apagada dice el dato y después por qué; oculta por preferencia queda el dato sin tecla",
+      "from": "11/11 · consecuencia de «una fila que se puede cambiar abre su acción» y de LEYES 5",
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/promised-off.ts",
+        "src/programs/promised-walk.ts",
+        "src/surface/lists.ts",
+        "src/programs/promised-data.spec.ts"
+      ]
     }
   ]
 }

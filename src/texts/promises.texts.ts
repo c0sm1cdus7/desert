@@ -15,6 +15,7 @@ export const promiseTexts = {
   foreign: "is on the Menu of who does not hold it, off, saying why; and off it for who prefers not to see it",
   stillShown: (tool: string) => `the tool ${tool} is still on the Menu of who prefers not to see what is not theirs`,
   hiding: (promise: string) => `${promise}, hidden for who prefers not to see what cannot be done`,
+  readLost: (act: string) => `what the row of ${act} reads is gone for who prefers not to see what cannot be done`,
   hiddenWrong: (act: string) => `the act ${act} is not hidden exactly while its tool says it cannot be done`,
   noKey: (ask: string, answer: string) => `no key chooses ${answer} when asked ${ask}`,
   notSaid: (words: string) => `the screen does not say: ${words}`,

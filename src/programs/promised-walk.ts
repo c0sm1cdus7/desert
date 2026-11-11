@@ -62,6 +62,9 @@ const fitting =
     const fixed = (index: number): boolean => index < from || (until !== undefined && index >= until);
     return answers.every((said, i) => !fixed(i) || given.answers[i] === said);
   };
+/** Why a row says it is off: a row that reads a datum keeps saying it, and says why after it. */
+const whyOf = ({ detail }: Choice, cause?: string): string | undefined =>
+  cause !== undefined && detail?.endsWith(` · ${cause}`) ? cause : detail;
 type Told<X extends Program> = Readonly<{ aim: Aim<X>; kase: Case<X>; answers: readonly string[] }> &
   /** The thing of another tool the case takes the act from, with the tool that has it. */
   Readonly<{ from?: Readonly<{ tool: string; target: string }> }>;
@@ -79,7 +82,7 @@ function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers, from }: T
   const { row } = found;
   /** Taken from the thing of another tool, it is that thing that may say why not. */
   const cause = from ? aim.act.also?.off?.(seat.state(), from.target) : aim.act.offered?.(seat.state(), on);
-  strictEqual(row.off ? row.detail : undefined, cause, said.offFor(aim.name));
+  strictEqual(row.off ? whyOf(row, cause) : undefined, cause, said.offFor(aim.name));
   if (row.off) return undefined;
   openRows(seat.router, found.rows);
   ok(row.key, said.keyless(aim.name));

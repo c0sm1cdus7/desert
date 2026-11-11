@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 116. Deudas: 23.
+Leyes: 117. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -84,7 +84,7 @@ Leyes: 116. Deudas: 23.
 | 76 | Ninguna pantalla se escribe a mano; la herramienta no dibuja | REGLAS §9d | no compila | `src/surface/contract.ts` `src/surface/resolve.ts` `src/surface/shown-tool.ts` |
 | 77 | La herramienta da su tecla y sección (place) y el dato de su fila (summary) | REGLAS §9d | no compila | `src/surface/lists.ts` `src/surface/shown-tool.ts` |
 | 78 | Procesando, Barra y Toolbar los pone el contrato de superficie | REGLAS §9d | la cumple la superficie | `src/surface/resolve.ts` |
-| 80 | Una fila que se puede cambiar abre su acción; Acciones para lo que no es de una fila | REGLAS §9d | el programa no arranca | `src/surface/bridge/house-tools.ts` `src/surface/bridge/any-tool.ts` `src/tools/promises.ts` |
+| 80 | Una fila que se puede cambiar abre su acción; Acciones para lo que no es de una fila | REGLAS §9d | el programa no arranca | `src/surface/bridge/house-tools.ts` `src/surface/bridge/any-tool.ts` `src/tools/promises.ts` `src/programs/promised-data.spec.ts` |
 | 81 | Todo color de la UI sale de la tabla de tokens | REGLAS §10, §17 | no compila | `src/surface/tones.ts` |
 | 82 | Valores hex y ANSI de la tabla | REGLAS §10 | la cumple la superficie | `src/doors/terminal/cells.ts` |
 | 83 | rgb solo para lo que no es UI (foto, página) | REGLAS §10, §9b | DEUDA | Tipo: rgb solo en Panel.lines, no en Row/ThreadEvent. |
@@ -123,3 +123,4 @@ Leyes: 116. Deudas: 23.
 | 116 | El nombre de una acción es corto y en minúscula: un verbo sobre su cosa, y lo que confirma es un solo verbo | Franco 11/11 | el programa no arranca | `src/tools/promises.ts` |
 | 117 | Un dato con forma solo acepta lo que entra en ella: declararlo como texto libre hace que el programa no arranque | LEYES 11 · Franco 11/11 | el programa no arranca | `src/surface/bridge/asking-parts.ts` `src/surface/masks.ts` `src/catalogs/fields.ts` |
 | 118 | Lo que se escribió con forma (CUIT, DNI) se lee siempre con esa forma | Franco 11/11 | prueba derivada de los casos | `src/programs/promised-shapes.ts` `src/programs/promised.ts` |
+| 119 | Lo que una fila lee se sigue leyendo cuando su acción no se puede hacer: apagada dice el dato y después por qué; oculta por preferencia queda el dato sin tecla | 11/11 · consecuencia de «una fila que se puede cambiar abre su acción» y de LEYES 5 | prueba derivada de los casos | `src/programs/promised-off.ts` `src/programs/promised-walk.ts` `src/surface/lists.ts` `src/programs/promised-data.spec.ts` |

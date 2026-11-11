@@ -67,6 +67,9 @@ function startRow(tools: readonly Tool[], tool: Tool, row: ViewRow, act: string,
   if (why !== undefined) return [{ ...row, detail: row.detail ? `${row.detail} · ${why}` : why, off: true, starts }];
   return [{ ...row, starts, open: begin(tools, tool.id, act, target, row.with) }];
 }
+/** What a row of a view reads stays read while its act is off the list: only the way to change it goes. */
+const readOr = ({ title, detail }: ViewRow, started: Choice[]): Choice[] =>
+  started.length || !detail ? started : [{ title, detail }];
 /** A tool on the Menu: one that cannot be opened keeps its place and its key, and says why. */
 function menuRow(tool: Tool): Choice {
   const row = { key: tool.place.key, title: tool.name.toLowerCase() };
@@ -135,7 +138,8 @@ function listedAt(place: Picture, tools: readonly Tool[]): readonly Listed[] {
     rows: stack.rows.flatMap((row): Choice[] => {
       /** A row that says where its act runs is taken at its word, a tool with no thing too. */
       const target = row.on ? row.on.target : place.target;
-      if (row.act !== undefined) return startRow(tools, toolOf(tools, row.on?.tool ?? tool.id), row, row.act, target);
+      if (row.act !== undefined)
+        return readOr(row, startRow(tools, toolOf(tools, row.on?.tool ?? tool.id), row, row.act, target));
       return [row.opens === undefined ? row : { ...row, open: opensTo(row.opens) }];
     }),
   }));
