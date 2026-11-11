@@ -121,6 +121,9 @@ const offersOf =
       const datum = also.datum?.(ports.state(), target);
       return [{ ...row, ...(datum ? { detail: datum } : {}), with: { answers, from: fixed.length } }];
     });
+/** What an act that cannot be undone says to the right when it has no datum of its own: that it cannot. */
+const lasting = (act: Readonly<{ undoable: boolean }>): string | undefined =>
+  act.undoable ? undefined : generic.irreversible;
 /** Every act of a tool as the surface offers it: on the tool itself, on one of its things, or under a menu. */
 export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, asked: Asked) {
   /** Why this identity cannot act on the tool at all, when that is so. */
@@ -135,7 +138,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       const off = (): string | undefined => foreign() ?? act.offered?.(ports.state(), tool.id);
       const listed = (): boolean =>
         off() === undefined || !hides(ports.state().house, ports.me, foreign() === undefined ? "off" : "foreign");
-      const datum = (): string | undefined => act.datum?.(ports.state(), tool.id);
+      const datum = (): string | undefined => act.datum?.(ports.state(), tool.id) ?? lasting(act);
       const next: ToolAct["next"] = answers => walk.next(answers);
       return [name, { ...walk, scope: "all", off, listed, datum, next, run: answers => walk.run(answers, tool.id) }];
     });
@@ -148,7 +151,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       const unseen = (target: string): boolean =>
         off(target) !== undefined && hides(ports.state().house, ports.me, "off");
       const listed = (target: string): boolean => tool.targets(ports.state()).includes(target) && !unseen(target);
-      const datum = (target: string): string | undefined => act.datum?.(ports.state(), target);
+      const datum = (target: string): string | undefined => act.datum?.(ports.state(), target) ?? lasting(act);
       const scope = act.under === undefined ? "each" : "row";
       return [name, { ...walk, scope, leaves: act.leaves ?? false, listed, off, datum }];
     });
