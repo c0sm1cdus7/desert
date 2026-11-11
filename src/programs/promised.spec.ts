@@ -87,6 +87,15 @@ describe("a program with acts on its things", () => {
     });
   });
 
+  it("a program that needs someone from its first day keeps that list for who prefers no empty ones", async () => {
+    const always = () => [{ target: "sales", why: "from the start" }];
+    const registry = settlingShop.registry.map(tool => (tool.id === "sales" ? { ...tool, needs: always } : tool));
+    const checks = walkedChecks({ ...settlingShop, registry }, shopShown);
+    const lists = checks.filter(check => check.name.includes("nothing in them"));
+    expect(lists).toHaveLength(1);
+    expect(await failing(lists)).toEqual([]);
+  });
+
   it("a tool that does not say what its cases promise needs someone to act fails that, on every door", async () => {
     const checks = [...promisedChecks(carelessShop), ...walkedChecks(carelessShop, shopShown)];
     expect(await failing(checks)).toEqual([stillOwing, `${stillOwing}, in Attention with why`]);

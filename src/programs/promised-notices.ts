@@ -77,8 +77,9 @@ function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>,
     });
   return { name: label(aim, said.needing(kase.promise)), run };
 }
-/** The two lists are on the Menu and on every tool's own menu even with nothing in them; and off both for who
- * prefers not to see them then. */
+/** The two lists are on the Menu and on every tool's own menu even with nothing in them; and each one that has
+ * nothing is off them for who prefers not to see it then. A list with something in it stays: a program may need
+ * someone from its first day. */
 function emptyCheck<X extends Program>(program: Composition<X>, shown: Shown<X>): Check {
   const run = (): Promise<void> =>
     staged(program, async ({ house }) => {
@@ -89,12 +90,15 @@ function emptyCheck<X extends Program>(program: Composition<X>, shown: Shown<X>)
       const there = (tools: readonly Tool[], tool?: string): boolean[] =>
         lists.map(list => listAt(tools, list, tool) !== undefined);
       const everywhere = (): boolean[] => places.flatMap(tool => there(seat.tools, tool));
+      const filled = (): boolean[] =>
+        places.flatMap(tool => lists.map(list => (listAt(seat.tools, list, tool)?.length ?? 0) > 0));
       try {
         ok(everywhere().every(Boolean), said.listsMissing);
         /** Who holds no tool has the two lists on the Menu all the same. */
         ok(there(outside.tools).every(Boolean), said.listsMissing);
+        const kept = filled();
         await prefer(seat, "empty", true);
-        ok(!everywhere().some(Boolean), said.listsShown);
+        deepStrictEqual(everywhere(), kept, said.listsShown);
         await prefer(seat, "empty", false);
         ok(everywhere().every(Boolean), said.listsMissing);
       } finally {

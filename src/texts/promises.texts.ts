@@ -31,7 +31,8 @@ export const promiseTexts = {
   stillFinding: "going back from what was found leaves the menu still looking",
   emptyLists: "Attention and Activity open every menu even with nothing in them, unless a person prefers not",
   listsMissing: "Attention or Activity is missing from a menu",
-  listsShown: "Attention or Activity is on a menu, empty, for who prefers not to see them then",
+  listsShown:
+    "Attention or Activity is on a menu empty, or off it with something, for who prefers not to see them empty",
   lost: (act: string) => `closing ${act} leaves the person on a thing no view lists any more`,
   givenRefused: (act: string, why: string) => `given ${act} was not accepted: ${why}`,
 } as const;
