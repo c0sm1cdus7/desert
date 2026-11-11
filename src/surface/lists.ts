@@ -46,7 +46,12 @@ function actionRows(tools: readonly Tool[], tool: Tool, target?: string): readon
     if (why !== undefined) return { ...row, detail: why, off: true };
     return { ...row, ...(act.hint === undefined ? {} : { detail: act.hint }), open: begin(tools, tool.id, id, target) };
   });
-  return target === undefined ? acts : [...menusAt(tool, target), ...acts];
+  if (target === undefined) return acts;
+  /** After its own, what other tools offer on it: each stands as its tool says, off for who does not hold that. */
+  const others = (tool.alsoOn?.(target) ?? []).flatMap(row =>
+    row.act === undefined || !row.on ? [] : startRow(tools, toolOf(tools, row.on.tool), row, row.act, row.on.target),
+  );
+  return [...menusAt(tool, target), ...acts, ...others];
 }
 /** A row of a view that starts an act stands like any act: off the list with it, and off while it cannot be done. */
 function startRow(tools: readonly Tool[], tool: Tool, row: ViewRow, act: string, target?: string): Choice[] {
@@ -125,8 +130,9 @@ function listedAt(place: Picture, tools: readonly Tool[]): readonly Listed[] {
   const shown = tool.view(place.target).map(stack => ({
     ...stack,
     rows: stack.rows.flatMap((row): Choice[] => {
-      const { tool: acting = tool.id, target = place.target } = row.on ?? {};
-      if (row.act !== undefined) return startRow(tools, toolOf(tools, acting), row, row.act, target);
+      /** A row that says where its act runs is taken at its word, a tool with no thing too. */
+      const target = row.on ? row.on.target : place.target;
+      if (row.act !== undefined) return startRow(tools, toolOf(tools, row.on?.tool ?? tool.id), row, row.act, target);
       return [row.opens === undefined ? row : { ...row, open: opensTo(row.opens) }];
     }),
   }));

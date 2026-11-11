@@ -21,6 +21,8 @@ export const quantity = (ask: string, initial?: number) =>
 export const count = (ask: string) => Type.Integer({ minimum: 1, title: ask, mask: "count" });
 /** A day of the calendar, kept as year-month-day. */
 export const day = (ask: string) => Type.String({ pattern: isoDay, title: ask, mask: "day" });
+/** One of the things of a tool, kept as what the tool calls it: a person looks for it by what they type. */
+export const thing = (ask: string, tool: string) => Type.String({ minLength: 1, title: ask, of: tool });
 /** One value of a closed set, with the word and the key that choose it. */
 export const option = <V extends string>(value: V, title: string, key: string) => Type.Literal(value, { title, key });
 /** One of several: plain options, or shapes told apart by an option each of them carries. */

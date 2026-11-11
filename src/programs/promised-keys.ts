@@ -72,20 +72,25 @@ export function actRow<X extends Program>(
   aim: Aim<X>,
   on: string,
   fits: (row: Choice) => boolean = () => true,
+  from?: Readonly<{ tool: string; target: string }>,
 ): Found | undefined {
   const thing = on === aim.tool.id ? undefined : on;
   const menu = aim.act.under === undefined ? undefined : aim.tool.menus?.[aim.act.under];
+  const starts = (row: Choice): boolean =>
+    row.starts?.tool === aim.tool.id && row.starts.act === aim.name && row.starts.target === thing;
   const mine = (row: Choice): boolean =>
-    (row.starts?.act === aim.name && row.starts.target === thing && fits(row)) ||
+    (starts(row) && fits(row)) ||
     (row.off === true && menu !== undefined && row.key === menu.key && row.title === menu.label);
-  const seen = new Set<string | undefined>([thing]);
-  let edge: readonly Reached[] = [{ ...(thing === undefined ? {} : { target: thing }), rows: [] }];
+  /** Where the search starts: where the act stands, or the thing of another tool it is taken from. */
+  const root = from ?? { tool: aim.tool.id, ...(thing === undefined ? {} : { target: thing }) };
+  const seen = new Set<string | undefined>([root.target]);
+  let edge: readonly Reached[] = [{ ...(root.target === undefined ? {} : { target: root.target }), rows: [] }];
   while (edge.length) {
     for (const { target, rows } of edge) {
-      const row = rowsAt(tools, aim.tool.id, target).find(mine);
+      const row = rowsAt(tools, root.tool, target).find(mine);
       if (row) return { rows, row };
     }
-    const deeper = edge.flatMap(from => opensFrom(tools, aim.tool.id, from)).filter(to => !seen.has(to.target));
+    const deeper = edge.flatMap(at => opensFrom(tools, root.tool, at)).filter(to => !seen.has(to.target));
     deeper.forEach(to => seen.add(to.target));
     edge = deeper;
   }

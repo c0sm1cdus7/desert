@@ -9,6 +9,7 @@ import { asking } from "./asking.ts";
 const words = {
   formats: formats({ currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" }),
   optionalMark: " (opcional)",
+  noneMark: "Ninguno",
 };
 const more = { ask: "¿Algo más?", done: { title: "Listo", key: "l" }, another: { title: "Otro", key: "o" } };
 const line = object({ what: text("Artículo {n}", "Qué es"), amount: quantity("Cantidad", 1), price: money("Precio") });

@@ -28,7 +28,9 @@
     "programs/promised-walk.ts": "walkedChecks: every case of a program kept by keys through the router, from the Menu down to its thing",
     "programs/promised.ts": "promisedChecks: every check a program's promises derive, each case on a real house",
     "surface/bridge/any-tool.ts": "anyToolScreen: a tool without a screen of its own; its rows from its view, its menus from its acts",
-    "surface/bridge/asking.ts": "asking: the questions of an act from its declaration, and its answers read back as data, both ways",
+    "surface/bridge/asking-back.ts": "write, audit: the answers that say a datum; and that every field of a declaration can be asked",
+    "surface/bridge/asking-parts.ts": "how a declared field says its question, options, value and mask; the field that picks a thing of a tool",
+    "surface/bridge/asking.ts": "asking: the questions of an act from the declaration of what it takes, and its answers read back as data",
     "surface/bridge/house-ports.ts": "HousePorts, Shown, SurfaceWords, ProgramScreen; settle, attendAndAct, section",
     "surface/bridge/house-router.ts": "houseRouter: the router every renderer of a program starts from, over a house's ports",
     "surface/bridge/house-tools.ts": "houseTools: a program's tools as surface tools, and Preferences; keys audited; off, listed, calls",
@@ -66,14 +68,14 @@
   "folders": {
     "adapters/secrets": 107,
     "adapters/storage": 154,
-    "catalogs": 73,
+    "catalogs": 75,
     "doors/terminal": 594,
     "house": 82,
     "journal": 298,
-    "programs": 776,
-    "surface": 1237,
-    "surface/bridge": 700,
+    "programs": 788,
+    "surface": 1282,
+    "surface/bridge": 809,
     "texts": 518,
-    "tools": 655
+    "tools": 665
   }
 }

@@ -105,6 +105,7 @@ export const opened = (field: Field | null, answer?: string): Pick<Walk, "typed"
 /** An answer as it is shown: a secret as dots, a field with a format in its shape, anything else as written. */
 export const maskOf = (field: Field | null, answer: string): string => {
   if (field?.kind === "secret") return "•".repeat(Array.from(answer).length);
+  if (field?.kind === "pick") return field.shown(answer);
   return field && "mask" in field ? field.mask.shown(answer) : answer;
 };
 export const validOf = (field: Field | null, typed: string): boolean =>

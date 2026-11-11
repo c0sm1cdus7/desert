@@ -6,10 +6,10 @@ import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import type { ProgramAct, ProgramTool } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { Field } from "../contract.ts";
-import type { Result, ThingAct, ThingMenu, ToolAct } from "../shown-tool.ts";
+import type { Result, ThingAct, ThingMenu, ToolAct, ViewRow } from "../shown-tool.ts";
 import { formats, type Locale } from "../masks.ts";
 import { maskOf } from "../screen.ts";
-import { asking, type Asking } from "./asking.ts";
+import { asking, type Asking, type AskWords } from "./asking.ts";
 import { attendAndAct, type ScreenActs, type Start, type SurfacePorts } from "./house-ports.ts";
 
 /** Where a menu of a thing is read: a destination of its tool that is not a thing of it. */
@@ -20,8 +20,10 @@ const wroteBy = (effects: readonly Emission[]): string | undefined => {
   return undefined;
 };
 /** One act as a person walks it: its questions from what it takes, a confirmation when it asks for one, its result. */
-function walked<X extends Program>(ports: SurfacePorts<X>, name: string, act: ProgramAct<X>, locale: Locale) {
-  const ask = asking(act.input, { formats: formats(locale), optionalMark: generic.optional });
+type Asked = Readonly<{ locale: Locale; things: NonNullable<AskWords["things"]> }>;
+function walked<X extends Program>(ports: SurfacePorts<X>, name: string, act: ProgramAct<X>, asked: Asked) {
+  const words = { formats: formats(asked.locale), optionalMark: generic.optional, noneMark: generic.none };
+  const ask = asking(act.input, { ...words, things: asked.things });
   const verb = [{ title: act.label, key: act.key }];
   const sure = (answers: readonly string[]): Field | null => {
     const taken = ask.taken(answers);
@@ -92,15 +94,18 @@ function menusOf<X extends Program>(tool: ProgramTool<X>, shown: Readonly<Record
   return Object.fromEntries(entries);
 }
 /** Every act of a tool as the surface offers it: on the tool itself, on one of its things, or under a menu. */
-export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, locale: Locale) {
+export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, asked: Asked) {
   /** Why this identity cannot act on the tool at all, when that is so. */
   const foreign = (): string | undefined =>
     allowed(ports.state().house, ports.me, tool.id) ? undefined : generic.notHeld;
-  const entries = Object.entries(tool.acts).map(([name, act]) => walked(ports, name, act, locale));
+  const entries = Object.entries(tool.acts).map(([name, act]) => walked(ports, name, act, asked));
   const onTool = entries
     .filter(({ act }) => act.on === "tool")
     .map(({ name, walk }): [string, ToolAct] => {
-      return [name, { ...walk, scope: "all", off: foreign, run: answers => walk.run(answers, tool.id) }];
+      /** Offered from another tool's thing, it is off for who does not hold this tool, and hidden for who prefers
+       * not to see what is not theirs. */
+      const listed = (): boolean => foreign() === undefined || !hides(ports.state().house, ports.me, "foreign");
+      return [name, { ...walk, scope: "all", off: foreign, listed, run: answers => walk.run(answers, tool.id) }];
     });
   const onThing = entries
     .filter(({ act }) => act.on === "thing")
@@ -117,5 +122,19 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
     });
   const actsOn = Object.fromEntries(onThing);
   const acts: ScreenActs = { acts: Object.fromEntries(onTool), actsOn, menusOn: menusOf(tool, actsOn) };
-  return { acts, start: starter(tool.id, entries) };
+  /** The rows this tool's acts put among the actions of a thing of another tool: each starts the act with what
+   * that thing already says of it. */
+  const offers = (other: string, target: string): ViewRow[] =>
+    entries.flatMap(({ name, act, ask }) => {
+      const given = act.also?.tool === other ? act.also.with(ports.state(), target) : undefined;
+      if (given === undefined) return [];
+      const answers = ask.leading(given);
+      if (ask.next(answers) === null && !act.confirms)
+        throw new Error(
+          `${tool.id} offers ${name} on ${other} asking nothing, and the act does not ask to be confirmed`,
+        );
+      const row = { key: act.key, title: act.label, detail: act.purpose, act: name, on: { tool: tool.id } };
+      return [{ ...row, with: { answers, from: answers.length } }];
+    });
+  return { acts, start: starter(tool.id, entries), offers };
 }

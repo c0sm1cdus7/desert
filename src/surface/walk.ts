@@ -37,6 +37,11 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   const question = must(field);
   const asking = walk.error === undefined ? [{ text: question.ask, tone: "t1" } as const] : errorSpans(walk.error);
   const events = [...answered, { text: asking }];
+  if (question.kind === "pick") {
+    const typing: Row = { title: "", entry: { typed: walk.typed, caret: Array.from(walk.typed).length } };
+    const found = question.found(walk.typed).map((option, i) => ({ ...option, selected: i === walk.at }));
+    return { kind: "thread", events, options: [typing, ...found] };
+  }
   if (isTyped(field)) {
     const typed = walk.typed === "" ? "" : maskOf(field, walk.typed);
     const caret = "mask" in question ? Array.from(typed).length : walk.caret;
@@ -52,7 +57,9 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
 function enterSays(walk: Walk, field: Field | null, tools: readonly Tool[]): string {
   const options = optionsOf(field);
   if (field?.kind === "confirm") return must(options[walk.at]).title;
-  const answer = field?.kind === "many" ? walk.marks.join(" · ") : (options[walk.at]?.title ?? walk.typed);
+  const picked = field?.kind === "pick" ? field.found(walk.typed)[walk.at] : undefined;
+  const chosen = picked ? (picked.value ?? picked.title) : (options[walk.at]?.title ?? walk.typed);
+  const answer = field?.kind === "many" ? walk.marks.join(" · ") : chosen;
   const act = actOf(tools, walk);
   const last = walk.pos + 1 === walk.until || !act.next([...walk.answers.slice(0, walk.pos), answer]);
   return last ? act.verb : said.keys.next;

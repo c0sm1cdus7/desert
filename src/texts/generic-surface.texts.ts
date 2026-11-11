@@ -1,6 +1,7 @@
 // What the bridge to the surface says to a person, whatever the program; each program brings its own words.
 export const genericTexts = {
   optional: " · opcional",
+  none: "Sin elegir",
   sure: (act: string) => `${act} · confirmar`,
   offline: "Sin conexión",
   notHeld: "No está entre tus herramientas.",

@@ -32,6 +32,8 @@ export type Case<X extends Program, S extends TSchema = TSchema> = Readonly<{
   given?: readonly Step[];
   by?: string;
   on?: string;
+  /** The thing of another tool the person takes it from, when the case is about taking it from there. */
+  from?: string;
   input: Static<S>;
   then: Outcome<X>;
 }>;
@@ -41,6 +43,12 @@ export type Offered = Readonly<{ label: string; purpose: string; key: string }> 
   Readonly<{ on: "tool" | "thing"; leaves?: boolean }> &
   /** The menu of its thing it is taken from, when it is not among the thing's own actions. */
   Readonly<{ under?: string }>;
+/** An act on a tool that is also offered among the actions of each thing of another tool: it starts there with what
+ * that thing already says of what it takes, the first things it asks; nothing, when it is not for that thing. */
+export type Also<X extends Program, I = unknown> = Readonly<{
+  tool: string;
+  with: (state: State<X>, target: string) => I | undefined;
+}>;
 /** A menu of a tool's things: an option among their actions that leads to the acts under it. */
 export type Menu = Readonly<{ label: string; purpose: string; key: string }>;
 export type ProgramAct<X extends Program> = ToolAct<X> &
@@ -49,7 +57,7 @@ export type ProgramAct<X extends Program> = ToolAct<X> &
   /** What is put before the person to confirm, once everything was answered, when the act wants that. */
   Readonly<{ confirms?: (input: unknown) => string | undefined }> &
   /** What the thing has today, in the shape the act takes: an act that changes it opens on it. */
-  Readonly<{ today?: (state: State<X>, target: string) => unknown }>;
+  Readonly<{ today?: (state: State<X>, target: string) => unknown; also?: Also<X> }>;
 export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
   Readonly<{ acts: Readonly<Record<string, ProgramAct<X>>>; menus?: Readonly<Record<string, Menu>> }> &
   /** The words one of its things is found by, beyond what its row on the list already says. */
@@ -67,6 +75,7 @@ type Declared<X extends Program, S extends TSchema> = Readonly<{ input: S; reach
   Offered &
   Readonly<{ confirms?: (input: Static<S>) => string }> &
   Readonly<{ today?: (state: State<X>, target: string) => Static<S> | undefined }> &
+  Readonly<{ also?: Also<X, Readonly<Record<string, unknown>>> }> &
   /** Every cause this act may refuse with; refusing with any other is a defect of the program. */
   Readonly<{ refuses?: readonly string[]; offered?: NonNullable<ToolAct<X>["offered"]> }> &
   Readonly<{ run(input: Static<S>, context: ActContext<X>): ActResult<X> | Promise<ActResult<X>> }> &
@@ -76,7 +85,7 @@ type Declared<X extends Program, S extends TSchema> = Readonly<{ input: S; reach
 /** An act of a program: what it takes, what it does, and what it promises. */
 export function programAct<X extends Program, S extends TSchema>(declared: Declared<X, S>): ProgramAct<X> {
   const { input, reach, refuses = [], offered, output, run, cases, confirms } = declared;
-  const { label, purpose, key, on, leaves, under, today } = declared;
+  const { label, purpose, key, on, leaves, under, today, also } = declared;
   const placed = { ...(leaves === undefined ? {} : { leaves }), ...(under === undefined ? {} : { under }) };
   const shown: Offered = { label, purpose, key, on, ...placed };
   const summary = (value: unknown): string | undefined => (Value.Check(input, value) ? confirms?.(value) : undefined);
@@ -106,6 +115,7 @@ export function programAct<X extends Program, S extends TSchema>(declared: Decla
     cases,
     ...(confirms ? { confirms: summary } : {}),
     ...(today ? { today } : {}),
+    ...(also ? { also } : {}),
   };
   return { ...act, ...(offered ? { offered: guarded } : {}), ...(output ? { output: true } : {}), ...promised };
 }

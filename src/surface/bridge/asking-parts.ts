@@ -1,0 +1,76 @@
+// What asking an act and reading its answers share: how a declared field says its question, its options and its value.
+import type { TSchema } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
+import type { Field, Option } from "../contract.ts";
+import { isFormat, type Format, type FormatName } from "../masks.ts";
+
+/** The things of a tool as an answer can pick them: found by what a person types, shown by their name. */
+export type Things = Readonly<{
+  found(sought: string): readonly Option[];
+  shown(thing: string): string;
+  has(thing: string): boolean;
+}>;
+/** What asking needs beyond the declaration: the formats of the program's country, the marks of an optional field
+ * and of picking nothing, and the things of each tool that an answer can pick. */
+export type AskWords = Readonly<{ formats: Readonly<Record<FormatName, Format>>; optionalMark: string }> &
+  Readonly<{ noneMark: string; things?: (tool: string) => Things | undefined }>;
+export type Got = Readonly<{ value: unknown; at: number }> | Readonly<{ ask: Field }>;
+export type Ctx = AskWords & Readonly<{ answers: readonly string[]; n: number; optional: boolean }>;
+export const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+export const isList = (value: unknown): value is readonly unknown[] => Array.isArray(value);
+export const at = (schema: unknown, key: string): unknown => (isRecord(schema) ? schema[key] : undefined);
+export const plain = (value: unknown): string => (typeof value === "string" ? value : JSON.stringify(value));
+export const word = (schema: unknown, key: string): string => {
+  const found = at(schema, key);
+  if (typeof found !== "string" || found === "") throw new Error(`A field does not say its ${key}`);
+  return found;
+};
+export const titleOf = (schema: unknown, ctx: Ctx): string =>
+  `${word(schema, "title").replace("{n}", String(ctx.n))}${ctx.optional ? ctx.optionalMark : ""}`;
+export const armsOf = (schema: unknown): readonly unknown[] => {
+  const arms = at(schema, "anyOf");
+  return isList(arms) ? arms : [];
+};
+export const choiceOf = (literal: unknown): Option => ({ title: word(literal, "title"), key: word(literal, "key") });
+/** The property every shape of a union carries as one fixed option: what tells them apart. */
+export const tellingOf = (arms: readonly unknown[]): string | undefined =>
+  Object.keys(at(arms[0], "properties") ?? {}).find(key =>
+    arms.every(arm => at(at(at(arm, "properties"), key), "const") !== undefined),
+  );
+export const formatOf = (schema: unknown, ctx: AskWords): Format | undefined => {
+  const mask = at(schema, "mask");
+  return isFormat(mask) ? ctx.formats[mask] : undefined;
+};
+/** What was typed as the datum it stands for; nothing when an optional field was left empty. */
+export const valueOf = (schema: unknown, ctx: Ctx, answer: string): unknown => {
+  if (ctx.optional && answer === "") return undefined;
+  return formatOf(schema, ctx)?.value(answer) ?? (formatOf(schema, ctx) ? undefined : answer.trim());
+};
+/** One of the things of a tool: looked for by what the person types. The answer is the thing; it shows by its name.
+ * An optional one opens on picking nothing. */
+function picked(schema: TSchema, ctx: Ctx, of: string): Field {
+  /** Asked for each time: when a program is composed the other tools may not be there yet. */
+  const things = (): Things | undefined => ctx.things?.(of);
+  const none: Option = { title: ctx.noneMark, value: "" };
+  const found = (sought: string): readonly Option[] => [
+    ...(ctx.optional && sought.trim() === "" ? [none] : []),
+    ...(things()?.found(sought) ?? []),
+  ];
+  const valid = (answer: string): boolean => (ctx.optional && answer === "") || things()?.has(answer) === true;
+  const shown = (answer: string): string => (answer === "" ? ctx.noneMark : (things()?.shown(answer) ?? answer));
+  return { ask: titleOf(schema, ctx), kind: "pick", found, shown, valid };
+}
+export function written(schema: TSchema, ctx: Ctx): Field {
+  const of = at(schema, "of");
+  if (typeof of === "string") return picked(schema, ctx, of);
+  const format = formatOf(schema, ctx);
+  const valid = (typed: string): boolean =>
+    (ctx.optional && typed === "") || Value.Check(schema, valueOf(schema, ctx, typed));
+  const first = at(schema, "default");
+  const initial = first === undefined ? {} : { initial: format?.typed(first) ?? plain(first) };
+  const ask = titleOf(schema, ctx);
+  if (format) return { ask, valid, kind: "text", mask: format, ...initial };
+  if (at(schema, "type") !== "string") throw new Error(`The field ${ask} has no format and is not text`);
+  return { ask, valid, kind: "text", placeholder: word(schema, "placeholder"), ...initial };
+}

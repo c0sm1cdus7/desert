@@ -27,6 +27,17 @@ function answer(router: Router, field: Field, given: string, opened = field.init
     router.send({ kind: "confirm" });
     return true;
   }
+  if (field.kind === "pick") {
+    if (field.valid?.(given) === false) return false;
+    /** The thing is looked for by its name, and taken where it shows among what that finds. */
+    const name = given === "" ? "" : field.shown(given);
+    type(router, name);
+    const at = field.found(name).findIndex(option => (option.value ?? option.title) === given);
+    ok(at >= 0, said.notFound(name));
+    for (let step = 0; step < at; step++) router.send({ kind: "down" });
+    router.send({ kind: "confirm" });
+    return true;
+  }
   const key = field.options.find(option => option.title === given)?.key;
   ok(key, said.noKey(field.ask, given));
   type(router, key);
@@ -37,22 +48,22 @@ const fitting =
   (answers: readonly string[]) =>
   ({ with: given }: Choice): boolean => {
     if (!given) return true;
-    const { from, until = given.answers.length } = given;
-    const fixed = (index: number): boolean => index < from || index >= until;
-    return (
-      given.answers.length === answers.length && answers.every((said, i) => !fixed(i) || given.answers[i] === said)
-    );
+    const { from, until } = given;
+    const fixed = (index: number): boolean => index < from || (until !== undefined && index >= until);
+    return answers.every((said, i) => !fixed(i) || given.answers[i] === said);
   };
-type Told<X extends Program> = Readonly<{ aim: Aim<X>; kase: Case<X>; answers: readonly string[] }>;
+type Told<X extends Program> = Readonly<{ aim: Aim<X>; kase: Case<X>; answers: readonly string[] }> &
+  /** The thing of another tool the case takes the act from, with the tool that has it. */
+  Readonly<{ from?: Readonly<{ tool: string; target: string }> }>;
 /** From the Menu to the act, and into it when it can be taken: by the key of its row, wherever its row is. Where
  * the tool itself says the act cannot be done now, its row has to be there all the same, off, saying exactly that:
  * then it is not taken. */
-function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers }: Told<X>): Choice | undefined {
+function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers, from }: Told<X>): Choice | undefined {
   const on = kase.on ?? aim.tool.id;
-  goTo(seat, aim.tool.id, on);
-  const found = actRow(seat, aim, on, fitting(answers));
+  goTo(seat, from?.tool ?? aim.tool.id, from?.target ?? on);
+  const found = actRow(seat, aim, on, fitting(answers), from);
   /** A refusal no row lets a person say cannot be broken from here; the act still has to be on some list. */
-  if (!found && "refused" in kase.then && actRow(seat, aim, on)) return undefined;
+  if (!found && "refused" in kase.then && actRow(seat, aim, on, undefined, from)) return undefined;
   ok(found, said.notOffered(aim.name));
   const { row } = found;
   strictEqual(row.off ? row.detail : undefined, aim.act.offered?.(seat.state(), on), said.offFor(aim.name));
@@ -84,8 +95,10 @@ function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
       const seat = seated(house(), kase.by ?? cast.admin, shown);
       const before = house().tools.state().through;
       try {
-        const words = { formats: formats(shown.locale), optionalMark: generic.optional };
-        const told = { aim, kase, answers: asking(aim.act.input, words).answers(kase.input) };
+        const words = { formats: formats(shown.locale), optionalMark: generic.optional, noneMark: generic.none };
+        const holder = program.registry.find(tool => tool.targets(house().tools.state()).includes(kase.from ?? ""));
+        const from = kase.from !== undefined && holder ? { from: { tool: holder.id, target: kase.from } } : {};
+        const told = { aim, kase, answers: asking(aim.act.input, words).answers(kase.input), ...from };
         /** What is off said why, and what a field does not let be written cannot be sent: neither breaks a refusal. */
         const row = taken(seat, told);
         const done = row !== undefined && walk(seat, told, row);

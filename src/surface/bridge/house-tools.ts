@@ -3,8 +3,10 @@ import { allowed, hides } from "../../house/house.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import type { ProgramTool } from "../../tools/promises.ts";
 import type { Program, Tool as HouseTool } from "../../tools/tool-contract.ts";
-import type { Tool } from "../shown-tool.ts";
+import type { Tool, ViewRow } from "../shown-tool.ts";
+import type { Option } from "../contract.ts";
 import { backKey as back } from "../screen.ts";
+import type { Things } from "./asking.ts";
 import { anyToolScreen } from "./any-tool.ts";
 import type { HousePorts, Shown, SurfacePorts } from "./house-ports.ts";
 import { noticesOf } from "./notices.ts";
@@ -23,6 +25,19 @@ function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown
   if (taken.length) throw new Error(`Two tools take the same key: ${taken.join(", ")}`);
   if (tools.some(tool => tool.id === preferencesPlace.id)) throw new Error(`A tool takes the name of Preferences`);
   tools.forEach(auditActs);
+  for (const tool of tools) {
+    const also = tools.flatMap(other => Object.values(other.acts).filter(act => act.also?.tool === tool.id));
+    const own = Object.values(tool.acts).filter(act => act.on === "thing" && act.under === undefined);
+    const keys = repeated([...own, ...Object.values(tool.menus ?? {}), ...also].map(option => option.key));
+    if (keys.length) throw new Error(`Two acts on a thing of ${tool.id} take the same key: ${keys.join(", ")}`);
+  }
+  const astray = tools.flatMap(tool =>
+    Object.values(tool.acts)
+      .filter(act => act.also && (act.on !== "tool" || !tools.some(other => other.id === act.also?.tool)))
+      .map(act => `${tool.id} ${act.label}`),
+  );
+  if (astray.length)
+    throw new Error(`Acts offered on things that are not a tool's own act or name no tool: ${astray.join(", ")}`);
 }
 /** The acts of one tool, where each is taken: on the tool, among a thing's actions with its menus, or under a menu. */
 function auditActs<X extends Program>(tool: ProgramTool<X>): void {
@@ -44,6 +59,21 @@ function auditActs<X extends Program>(tool: ProgramTool<X>): void {
     if (keys.length) throw new Error(`Two acts of ${tool.id} take the same key: ${keys.join(", ")}`);
   }
 }
+/** A row that leads to a thing, as an option that picks it. */
+const picked = ({ title, detail }: ViewRow, value: string): Option => ({ title, ...(detail ? { detail } : {}), value });
+/** The things of a tool as an answer picks them: only of a tool this identity holds, found the way its menu finds. */
+const thingsOf =
+  <X extends Program>(ports: HousePorts<X>, tools: readonly ProgramTool<X>[], shown: () => readonly Tool[]) =>
+  (id: string): Things | undefined => {
+    const tool = shown().find(known => known.id === id);
+    const contract = tools.find(known => known.id === id);
+    if (!tool?.find || !contract || tool.off?.() !== undefined) return undefined;
+    return {
+      found: sought => (tool.find?.(sought) ?? []).flatMap(row => (row.opens ? [picked(row, row.opens)] : [])),
+      shown: thing => tool.titleOf?.(thing) ?? thing,
+      has: thing => contract.targets(ports.state()).includes(thing),
+    };
+  };
 export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown<X>): readonly Tool[] {
   const seen = new Map<string, number>();
   const observed: SurfacePorts<X> = { ...ports, act: value => ports.act(value, seen.get(value.target ?? "") ?? 0) };
@@ -51,17 +81,26 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
   if (undeclared.length) throw new Error(`Acts without their declaration in ${undeclared.join(", ")}`);
   const tools = ports.registry.filter(isProgramTool);
   audit(tools, shown);
-  const own = tools.flatMap(contract => {
+  const asked = { locale: shown.locale, things: thingsOf(ports, tools, () => own) };
+  const built = tools.flatMap(contract => {
     const words = shown.words[contract.id];
-    if (!words) return [];
+    return words ? [{ contract, words, ...programActs(observed, contract, asked) }] : [];
+  });
+  const own: Tool[] = built.map(({ contract, words, acts, start }) => {
     const mine = (): boolean => allowed(ports.state().house, ports.me, contract.id);
-    const { acts, start } = programActs(observed, contract, shown.locale);
     const tool = (shown.screens?.[contract.id] ?? anyToolScreen)(observed, contract, words, acts, start);
     const calls = () => ports.state().attention.has(contract.id);
     const { notices, seen: looked } = noticesOf(observed, contract, tool);
+    /** What the other tools offer on a thing of this one: only on a thing, never on a view that groups them. */
+    const others = built.filter(other => other.contract.id !== contract.id);
+    const alsoOn = (target: string): ViewRow[] =>
+      contract.targets(ports.state()).includes(target)
+        ? others.flatMap(other => other.offers(contract.id, target))
+        : [];
     return {
       ...tool,
       notices,
+      alsoOn,
       off: () => (mine() ? undefined : generic.notHeld),
       /** A tool nobody gave you is on your Menu unless you prefer not to see what is not yours. */
       listed: () => mine() || !hides(ports.state().house, ports.me, "foreign"),

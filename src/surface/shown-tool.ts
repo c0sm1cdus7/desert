@@ -49,7 +49,7 @@ export type ViewRow = Row & { readonly opens?: string; readonly act?: string } &
   /** A control in its line: it takes enter, typing and erasing where it stands, like a field or a choice. */
   readonly press?: (key: Intent) => void;
   /** Where its act runs, when not on what the view shows: an entry listed in it, by the tool that acts on it. */
-  readonly on?: { readonly tool: string; readonly target: string };
+  readonly on?: { readonly tool: string; readonly target?: string };
   /** The answers its act starts with: what the thing has today. It asks them from one on, up to another when it
    * asks only part; what comes before is fixed by where the row stands. */
   readonly with?: { readonly answers: readonly string[]; readonly from: number; readonly until?: number };
@@ -97,6 +97,9 @@ export interface Tool {
   readonly acts: Readonly<Record<string, ToolAct>>;
   readonly actsOn?: Readonly<Record<string, ThingAct>>;
   readonly menusOn?: Readonly<Record<string, ThingMenu>>;
+  /** The acts of other tools offered among the actions of one of its things: each a row that starts that act with
+   * what the thing already says of it. */
+  alsoOn?(target: string): readonly ViewRow[];
   readonly conversation?: Conversation;
   readonly conversationAt?: (target: string) => Conversation | undefined;
 }

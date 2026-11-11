@@ -1,55 +1,11 @@
 // The questions of an act come from the declaration of what it takes; so do its answers, read back as data.
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
-import { Value } from "@sinclair/typebox/value";
 import type { Field, Option } from "../contract.ts";
-import { isFormat, type Format, type FormatName } from "../masks.ts";
+import { audit, leading, write } from "./asking-back.ts";
+import { armsOf, at, choiceOf, isList, isRecord, tellingOf, titleOf, valueOf, word, written } from "./asking-parts.ts";
+import type { AskWords, Ctx, Got } from "./asking-parts.ts";
 
-/** What asking needs beyond the declaration: the formats of the program's country, and the mark of an optional. */
-export type AskWords = Readonly<{ formats: Readonly<Record<FormatName, Format>>; optionalMark: string }>;
-type Got = Readonly<{ value: unknown; at: number }> | Readonly<{ ask: Field }>;
-type Ctx = AskWords & Readonly<{ answers: readonly string[]; n: number; optional: boolean }>;
-const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
-  value !== null && typeof value === "object" && !Array.isArray(value);
-const isList = (value: unknown): value is readonly unknown[] => Array.isArray(value);
-const at = (schema: unknown, key: string): unknown => (isRecord(schema) ? schema[key] : undefined);
-const plain = (value: unknown): string => (typeof value === "string" ? value : JSON.stringify(value));
-const word = (schema: unknown, key: string): string => {
-  const found = at(schema, key);
-  if (typeof found !== "string" || found === "") throw new Error(`A field does not say its ${key}`);
-  return found;
-};
-const titleOf = (schema: unknown, ctx: Ctx): string =>
-  `${word(schema, "title").replace("{n}", String(ctx.n))}${ctx.optional ? ctx.optionalMark : ""}`;
-const armsOf = (schema: unknown): readonly unknown[] => {
-  const arms = at(schema, "anyOf");
-  return isList(arms) ? arms : [];
-};
-const choiceOf = (literal: unknown): Option => ({ title: word(literal, "title"), key: word(literal, "key") });
-/** The property every shape of a union carries as one fixed option: what tells them apart. */
-const tellingOf = (arms: readonly unknown[]): string | undefined =>
-  Object.keys(at(arms[0], "properties") ?? {}).find(key =>
-    arms.every(arm => at(at(at(arm, "properties"), key), "const") !== undefined),
-  );
-const formatOf = (schema: unknown, ctx: AskWords): Format | undefined => {
-  const mask = at(schema, "mask");
-  return isFormat(mask) ? ctx.formats[mask] : undefined;
-};
-/** What was typed as the datum it stands for; nothing when an optional field was left empty. */
-const valueOf = (schema: unknown, ctx: Ctx, answer: string): unknown => {
-  if (ctx.optional && answer === "") return undefined;
-  return formatOf(schema, ctx)?.value(answer) ?? (formatOf(schema, ctx) ? undefined : answer.trim());
-};
-function written(schema: TSchema, ctx: Ctx): Field {
-  const format = formatOf(schema, ctx);
-  const valid = (typed: string): boolean =>
-    (ctx.optional && typed === "") || Value.Check(schema, valueOf(schema, ctx, typed));
-  const first = at(schema, "default");
-  const initial = first === undefined ? {} : { initial: format?.typed(first) ?? plain(first) };
-  const ask = titleOf(schema, ctx);
-  if (format) return { ask, valid, kind: "text", mask: format, ...initial };
-  if (at(schema, "type") !== "string") throw new Error(`The field ${ask} has no format and is not text`);
-  return { ask, valid, kind: "text", placeholder: word(schema, "placeholder"), ...initial };
-}
+export type { AskWords, Things } from "./asking-parts.ts";
 const one = (ask: string, options: readonly Option[]): Field => ({ ask, kind: "one", options });
 function leaf(schema: TSchema, ctx: Ctx, from: number): Got {
   const answer = ctx.answers[from];
@@ -122,53 +78,6 @@ function read(schema: unknown, ctx: Ctx, from: number): Got {
   if (at(schema, "type") === "object") return fields(schema, ctx, from);
   return at(schema, "type") === "array" ? items(schema, ctx, from) : leaf(schema, ctx, from);
 }
-/** The same walk backwards: the answers a person would give to say this datum. */
-function write(schema: unknown, value: unknown, words: AskWords): string[] {
-  const arms = armsOf(schema);
-  const telling = arms.length ? tellingOf(arms) : undefined;
-  const literal = (arm: unknown): unknown => (telling ? at(at(arm, "properties"), telling) : arm);
-  const picked = arms.find(arm => at(literal(arm), "const") === (telling ? at(value, telling) : value));
-  if (arms.length)
-    return [word(literal(picked), "title"), ...(telling ? written_(picked, value, words, [telling]) : [])];
-  if (at(schema, "type") === "object") return written_(schema, value, words);
-  if (isList(value)) {
-    const more = at(schema, "more");
-    const follows = (index: number): string => word(at(more, index < value.length - 1 ? "another" : "done"), "title");
-    return value.flatMap((item, index) => [...write(at(schema, "items"), item, words), follows(index)]);
-  }
-  if (value === undefined) return [""];
-  return [formatOf(schema, words)?.typed(value) ?? plain(value)];
-}
-const written_ = (schema: unknown, value: unknown, words: AskWords, skip: readonly string[] = []): string[] =>
-  Object.entries(at(schema, "properties") ?? {})
-    .filter(([key]) => !skip.includes(key))
-    .flatMap(([key, field]) => write(field, at(value, key), words));
-/** The options of one question, each with its word and a key no other option of it takes. */
-function distinct(options: readonly Option[]): void {
-  const keys = options.map(option => option.key);
-  if (new Set(keys).size !== keys.length) throw new Error(`Two options take the same key: ${keys.join(", ")}`);
-}
-const auditFields = (schema: unknown, ctx: Ctx, skip: readonly string[] = []): void =>
-  Object.entries(at(schema, "properties") ?? {})
-    .filter(([key]) => !skip.includes(key))
-    .forEach(([, field]) => audit(field, ctx));
-/** Every field of a declaration can be asked: its question, its mask or placeholder, each option with its key. */
-function audit(schema: unknown, ctx: Ctx): void {
-  if (!TypeGuard.IsSchema(schema)) throw new Error("A field has no declaration");
-  const arms = armsOf(schema);
-  const telling = arms.length ? tellingOf(arms) : undefined;
-  if (arms.length) {
-    titleOf(schema, ctx);
-    distinct(arms.map(arm => choiceOf(telling ? at(at(arm, "properties"), telling) : arm)));
-    if (telling) arms.forEach(arm => auditFields(arm, ctx, [telling]));
-  } else if (at(schema, "type") === "object") auditFields(schema, ctx);
-  else if (at(schema, "type") === "array") {
-    const more = at(schema, "more");
-    word(more, "ask");
-    distinct([choiceOf(at(more, "done")), choiceOf(at(more, "another"))]);
-    audit(at(schema, "items"), ctx);
-  } else written(schema, ctx);
-}
 export type Asking = Readonly<{
   /** The next question, or null once everything it takes was answered. */
   next(answers: readonly string[]): Field | null;
@@ -176,6 +85,8 @@ export type Asking = Readonly<{
   taken(answers: readonly string[]): number;
   input(answers: readonly string[]): unknown;
   answers(input: unknown): string[];
+  /** The answers a datum that says only the first things gives: the rest is still to be asked. */
+  leading(part: unknown): string[];
 }>;
 export function asking(schema: TSchema, words: AskWords): Asking {
   const got = (answers: readonly string[]): Got => read(schema, { ...words, answers, n: 1, optional: false }, 0);
@@ -194,5 +105,6 @@ export function asking(schema: TSchema, words: AskWords): Asking {
     taken: answers => whole(answers).at,
     input: answers => whole(answers).value,
     answers: input => write(schema, input, words),
+    leading: part => leading(schema, part, words),
   };
 }

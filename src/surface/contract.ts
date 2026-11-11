@@ -86,6 +86,8 @@ export interface Option {
   readonly key?: string;
   readonly title: string;
   readonly detail?: string;
+  /** What it stands for as an answer, when that is not its title. */
+  readonly value?: string;
 }
 interface Question {
   readonly ask: string;
@@ -107,5 +109,11 @@ export type Field = Question &
     | { readonly kind: "text"; readonly mask: Mask }
     | { readonly kind: "secret" }
     | { readonly kind: "one" | "many"; readonly options: readonly Option[] }
+    /** One of the things of a tool, looked for by what the person types: the answer is the thing, shown by its name. */
+    | {
+        readonly kind: "pick";
+        readonly found: (sought: string) => readonly Option[];
+        readonly shown: (answer: string) => string;
+      }
     | { readonly kind: "confirm"; readonly options: readonly Option[]; readonly reversible?: boolean }
   );
