@@ -38,7 +38,7 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
   const sure = (answers: readonly string[], target?: string): Field | null => {
     const taken = ask.taken(answers);
     if (answers.length > taken) return null;
-    const summary = act.confirms?.(ask.input(answers), ports.state());
+    const summary = act.confirms?.(ask.input(answers), ports.state(), target ?? tool);
     if (summary !== undefined) return { ask: summary, kind: "confirm", ...confirm };
     const thing = target === undefined ? undefined : asked.titled(tool, target);
     return taken === 0 ? { ask: generic.sure(title, thing), kind: "confirm", ...confirm } : null;
@@ -71,10 +71,12 @@ const shownOf = (ask: Asking, answers: readonly string[], from: number, until: n
 const starter =
   <X extends Program>(tool: string, entries: readonly Walked<X>[]): Start =>
   (name, target, how = {}) => {
-    const found = entries.find(entry => entry.name === name && entry.act.on === "thing");
-    if (!found) throw new Error(`${tool} has no act ${name} on a thing`);
+    const found = entries.find(entry => entry.name === name);
+    if (!found) throw new Error(`${tool} has no act ${name}`);
     const { act, ask } = found;
-    const row = { key: how.key ?? act.key, title: how.title ?? act.name, act: name, on: { tool, target } };
+    /** An act on the tool itself has no thing to stand on: its row says the tool alone. */
+    const on = act.on === "tool" ? { tool } : { tool, target };
+    const row = { key: how.key ?? act.key, title: how.title ?? act.name, act: name, on };
     if (how.today === undefined) return { ...row, ...(how.detail ? { detail: how.detail } : {}) };
     const answers = ask.answers(how.today);
     const [from, until] = how.asks ?? [0];
@@ -140,7 +142,9 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
         off() === undefined || !hides(ports.state().house, ports.me, foreign() === undefined ? "off" : "foreign");
       const datum = (): string | undefined => act.datum?.(ports.state(), tool.id) ?? lasting(act);
       const next: ToolAct["next"] = answers => walk.next(answers);
-      return [name, { ...walk, scope: "all", off, listed, datum, next, run: answers => walk.run(answers, tool.id) }];
+      /** What changes a datum is taken from the row of that datum, not from among the actions. */
+      const scope = act.changes === undefined ? "all" : "row";
+      return [name, { ...walk, scope, off, listed, datum, next, run: answers => walk.run(answers, tool.id) }];
     });
   const onThing = entries
     .filter(({ act }) => act.on === "thing")
@@ -152,7 +156,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
         off(target) !== undefined && hides(ports.state().house, ports.me, "off");
       const listed = (target: string): boolean => tool.targets(ports.state()).includes(target) && !unseen(target);
       const datum = (target: string): string | undefined => act.datum?.(ports.state(), target) ?? lasting(act);
-      const scope = act.under === undefined ? "each" : "row";
+      const scope = act.under === undefined && act.changes === undefined ? "each" : "row";
       return [name, { ...walk, scope, leaves: act.leaves ?? false, listed, off, datum }];
     });
   const actsOn = Object.fromEntries(onThing);

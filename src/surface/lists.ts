@@ -63,7 +63,8 @@ function startRow(tools: readonly Tool[], tool: Tool, row: ViewRow, act: string,
   const starts = startsOf(tool.id, act, target);
   /** A row that already says why it is off stays off: the thing it stands on is why, not the act's own tool. */
   if (row.off && why === undefined) return [{ ...row, starts }];
-  if (why !== undefined) return [{ ...row, detail: why, off: true, starts }];
+  /** A row that shows what a datum is today keeps saying it while it cannot be changed, and then says why. */
+  if (why !== undefined) return [{ ...row, detail: row.detail ? `${row.detail} · ${why}` : why, off: true, starts }];
   return [{ ...row, starts, open: begin(tools, tool.id, act, target, row.with) }];
 }
 /** A tool on the Menu: one that cannot be opened keeps its place and its key, and says why. */

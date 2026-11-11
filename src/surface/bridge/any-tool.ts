@@ -6,7 +6,7 @@ import type { Tool, ViewRow } from "../shown-tool.ts";
 import { must } from "../window.ts";
 import { section, type ScreenActs, type Start, type SurfacePorts, type ToolWords } from "./house-ports.ts";
 import { capital } from "./program-acts.ts";
-import { briefOf, listedIn, rowsIn, type Labels } from "./rows.ts";
+import { briefOf, listedIn, rowsIn, type Changing, type Labels } from "./rows.ts";
 
 /** A label the program did not give is a defect of the program: it is named, never replaced by a code. */
 const worded = (words: Readonly<Record<string, string>>, tool: string, name: string): string => {
@@ -30,6 +30,26 @@ function foundIn<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>
   const said = (row: ViewRow): string => [row.title, row.detail, tool.words?.(state, row.opens ?? "")].join(" ");
   return listedIn(tool.targets(state), all).filter(row => matches(said(row), sought));
 }
+/** A datum that an act changes is the row that starts that act: it shows what it is today, and opens on it. */
+const changingBy =
+  <X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, start: Start) =>
+  (target: string): Changing =>
+  (key, shown) => {
+    const level = target === tool.id ? "tool" : "thing";
+    const found = Object.entries(tool.acts).find(([, act]) => act.changes === key && act.on === level);
+    if (!found) return undefined;
+    const today = found[1].today?.(ports.state(), target);
+    return start(found[0], target, { ...(today === undefined ? {} : { today }), detail: shown });
+  };
+type Menued = Readonly<{ id: string; thing: string }>;
+/** A menu of a thing lists every act under it, each opening on what the thing has today when the act says it. */
+const rowsUnder = <X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, start: Start, menu: Menued) =>
+  Object.entries(tool.acts)
+    .filter(([, act]) => act.under === menu.id)
+    .map(([name, act]) => {
+      const today = act.today?.(ports.state(), menu.thing);
+      return start(name, menu.thing, today === undefined ? {} : { today });
+    });
 export function anyToolScreen<X extends Program>(
   ports: SurfacePorts<X>,
   tool: ProgramTool<X>,
@@ -38,16 +58,11 @@ export function anyToolScreen<X extends Program>(
   start: Start,
 ): Tool {
   const label = (key: string): string => worded(words.reads, tool.id, key);
-  const view = (target: string): ViewRow[] => rowsIn(tool.view(ports.state(), target, ports.limits), label);
+  const changing = changingBy(ports, tool, start);
+  const view = (target: string): ViewRow[] =>
+    rowsIn(tool.view(ports.state(), target, ports.limits), label, changing(target));
   const menuOf = (target?: string) => menuAt(tool, tool.targets(ports.state()), target);
-  /** A menu of a thing lists every act under it, each opening on what the thing has today when the act says it. */
-  const menuRows = ({ id, thing }: NonNullable<ReturnType<typeof menuOf>>): ViewRow[] =>
-    Object.entries(tool.acts)
-      .filter(([, act]) => act.under === id)
-      .map(([name, act]) => {
-        const today = act.today?.(ports.state(), thing);
-        return start(name, thing, today === undefined ? {} : { today });
-      });
+  const menuRows = (menu: Menued): ViewRow[] => rowsUnder(ports, tool, start, menu);
   return {
     ...acts,
     id: tool.id,

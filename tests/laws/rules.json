@@ -1,5 +1,5 @@
 {
-  "debts": 24,
+  "debts": 23,
   "rules": [
     {
       "id": 1,
@@ -585,8 +585,8 @@
       "id": 80,
       "rule": "Una fila que se puede cambiar abre su acción; Acciones para lo que no es de una fila",
       "from": "REGLAS §9d",
-      "guarantee": "debt",
-      "debt": "Derivada: todo acto today debe aparecer como fila with en la vista de su cosa."
+      "guarantee": "compose",
+      "evidence": ["src/surface/bridge/house-tools.ts", "src/surface/bridge/any-tool.ts", "src/tools/promises.ts"]
     },
     {
       "id": 81,

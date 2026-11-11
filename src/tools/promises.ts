@@ -52,7 +52,10 @@ export type Offered = Readonly<{ name: string; enter: string; purpose: string; k
   Readonly<{ on: "tool" | "thing"; leaves?: boolean }> &
   /** The menu of its thing it is taken from, when it is not among the thing's own actions; and what the bar says
    * while it is walked, when its name with a capital does not say it. */
-  Readonly<{ under?: string; title?: string }>;
+  Readonly<{ under?: string; title?: string }> &
+  /** The datum its tool reads that it changes, by the name the reading gives it: the act is taken from the row
+   * of that datum, which shows what it is today, and is not among the actions. */
+  Readonly<{ changes?: string }>;
 /** What a row says to the right of an act: something of use about what it would do now, or nothing. */
 export type Datum<X extends Program> = (state: State<X>, target: string) => string | undefined;
 /** An act on a tool that is also offered among the actions of each thing of another tool: it starts there with what
@@ -74,7 +77,7 @@ export type ProgramAct<X extends Program> = ToolAct<X> &
   Offered &
   Readonly<{ refuses: readonly string[]; cases: readonly Case<X>[] }> &
   /** What is put before the person to confirm, once everything was answered, when the act wants that. */
-  Readonly<{ confirms?: (input: unknown, state: State<X>) => string | undefined }> &
+  Readonly<{ confirms?: (input: unknown, state: State<X>, target: string) => string | undefined }> &
   /** What the thing has today, in the shape the act takes: an act that changes it opens on it. */
   Readonly<{ today?: (state: State<X>, target: string) => unknown; also?: Also<X>; datum?: Datum<X> }>;
 export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
@@ -96,8 +99,9 @@ export type Composition<X extends Program> = Readonly<{
 type Declared<X extends Program, S extends TSchema> = Readonly<{ input: S; reach?: Reach; output?: boolean }> &
   /** No act without its purpose, its key and its words: an option nobody can explain or reach is not an option. */
   Offered &
-  /** What is put before the person to confirm: said from what they answered and from what the house keeps. */
-  Readonly<{ confirms?: (input: Static<S>, state: State<X>) => string }> &
+  /** What is put before the person to confirm: said from what they answered, from what the house keeps, and from
+   * the thing it is done to (the tool itself, for an act on the tool). */
+  Readonly<{ confirms?: (input: Static<S>, state: State<X>, target: string) => string }> &
   Readonly<{ today?: (state: State<X>, target: string) => Static<S> | undefined }> &
   Readonly<{ also?: Also<X>; datum?: Datum<X> }> &
   /** Every cause this act may refuse with; refusing with any other is a defect of the program. */
@@ -129,9 +133,10 @@ const asksSomething = (input: TSchema): boolean => {
 };
 /** How a declared act stands on a surface: its words checked, and only the parts it gave. */
 function offeredBy<X extends Program, S extends TSchema>(declared: Declared<X, S>): Offered {
-  const { name, enter, undoable, purpose, key, on, leaves, under, title } = declared;
+  const { name, enter, undoable, purpose, key, on, leaves, under, title, changes } = declared;
   const placed = { ...(leaves === undefined ? {} : { leaves }), ...(under === undefined ? {} : { under }) };
-  return { ...worded({ name, enter }), undoable, purpose, key, on, ...placed, ...(title ? { title } : {}) };
+  const more = { ...(title ? { title } : {}), ...(changes ? { changes } : {}) };
+  return { ...worded({ name, enter }), undoable, purpose, key, on, ...placed, ...more };
 }
 /** An act of a program: what it takes, what it does, and what it promises. */
 export function programAct<X extends Program, S extends TSchema>(declared: Declared<X, S>): ProgramAct<X> {
@@ -143,8 +148,8 @@ export function programAct<X extends Program, S extends TSchema>(declared: Decla
     throw new Error(
       `An act that cannot be undone asks to be confirmed, and this one does not say what with: ${declared.name}`,
     );
-  const summary = (value: unknown, state: State<X>): string | undefined =>
-    Value.Check(input, value) ? confirms?.(value, state) : undefined;
+  const summary = (value: unknown, state: State<X>, target: string): string | undefined =>
+    Value.Check(input, value) ? confirms?.(value, state, target) : undefined;
   const declaredCause = (cause: string): string => {
     if (!refuses.includes(cause)) throw new Error(`An act refused with a cause it does not declare: ${cause}`);
     return cause;

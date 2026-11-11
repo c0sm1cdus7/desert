@@ -20,12 +20,12 @@ describe("a text view read as rows", () => {
     expect(rowsIn('{"id":"sales/s3"}', label)).toEqual([{ title: "sales/s3", opens: "sales/s3" }]);
   });
 
-  it("reads anything else as a label and its value, and keeps a zero and a no", () => {
+  it("reads anything else as a label and its value, says the label of several once, and keeps a zero and a no", () => {
     expect(rowsIn('{"count":0,"open":false,"notes":["a","b"]}', label)).toEqual([
       { title: "Cantidad", detail: "0", still: true },
       { title: "Abierto", detail: "false", still: true },
       { title: "Notas", detail: "a", still: true },
-      { title: "Notas", detail: "b", still: true },
+      { title: "", detail: "b", still: true },
     ]);
     expect(rowsIn("plain words\n\n", label)).toEqual([{ title: "plain words" }]);
     expect(rowsIn('{"count":null,"notes":""}', label)).toEqual([]);

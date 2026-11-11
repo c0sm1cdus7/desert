@@ -17,6 +17,18 @@ import { programActs } from "./program-acts.ts";
 const isProgramTool = <X extends Program>(tool: HouseTool<X>): tool is ProgramTool<X> =>
   Object.values(tool.acts).every(act => "name" in act && "enter" in act && "key" in act && "cases" in act);
 const repeated = (keys: readonly string[]): string[] => keys.filter((key, index) => keys.indexOf(key) !== index);
+/** What can be changed is changed where it is read: an act that is named as a datum its tool reads is taken from
+ * the row of that datum. Listed among the actions it would say the datum twice. */
+function auditData<X extends Program>(tool: ProgramTool<X>, reads: Readonly<Record<string, string>>): void {
+  const labels = Object.values(reads).map(label => label.toLowerCase());
+  for (const [name, act] of Object.entries(tool.acts)) {
+    if (act.changes !== undefined && reads[act.changes] === undefined)
+      throw new Error(`${name} of ${tool.id} changes a datum its tool does not read: ${act.changes}`);
+    const loose = act.changes === undefined && act.under === undefined && labels.includes(act.name.toLowerCase());
+    if (loose)
+      throw new Error(`${name} of ${tool.id} changes a datum its tool reads: it is taken from that datum's row`);
+  }
+}
 /** Every option is reached by a key of its own where it is offered: two with the same key is a defect. */
 function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown<X>): void {
   const wordless = tools.filter(tool => !shown.words[tool.id]).map(tool => tool.id);
@@ -25,6 +37,7 @@ function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown
   if (taken.length) throw new Error(`Two tools take the same key: ${taken.join(", ")}`);
   if (tools.some(tool => tool.id === preferencesPlace.id)) throw new Error(`A tool takes the name of Preferences`);
   tools.forEach(auditActs);
+  tools.forEach(tool => auditData(tool, shown.words[tool.id]?.reads ?? {}));
   for (const tool of tools) {
     const also = tools.flatMap(other => Object.values(other.acts).filter(act => act.also?.tool === tool.id));
     const own = Object.values(tool.acts).filter(act => act.on === "thing" && act.under === undefined);
