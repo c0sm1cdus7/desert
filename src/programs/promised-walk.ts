@@ -106,6 +106,8 @@ function walk<X extends Program>({ router, tools }: Seat<X>, { aim, kase, answer
   const act = aim.act.on === "tool" ? tool?.acts[aim.name] : tool?.actsOn?.[aim.name];
   const next = (given: readonly string[]): Field | null => act?.next(given, kase.on ?? aim.tool.id) ?? null;
   const { from = 0, until = answers.length } = row.with ?? {};
+  /** A row that asks the one datum it reads does not send what the thing already says: nothing would change. */
+  if (row.with?.today === true && until - from === 1 && row.with.answers[from] === answers[from]) return false;
   const said = answers.slice(from, until).every((given, offset) => {
     const field = next(answers.slice(0, from + offset));
     fitsSmallest(router);
@@ -136,6 +138,8 @@ function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
         const row = taken(seat, told);
         const done = row !== undefined && walk(seat, told, row);
         ok(done || refused !== undefined, said.notOffered(aim.name));
+        /** What could not be taken or sent wrote nothing. */
+        if (!done) deepStrictEqual(wroteSince(house(), before), []);
         if (!done) return;
         await seat.router.idle();
         const screen = JSON.stringify(seat.router.screen(view).body);

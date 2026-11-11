@@ -11,7 +11,8 @@ import {
   partsShown,
   registered,
 } from "../../tests/support/correcting-shop.ts";
-import { overpaid, staleShown, totalCorrected, twinsShown } from "../../tests/support/correcting-shop.ts";
+import { overpaid, saidAgain, staleShown, totalCorrected } from "../../tests/support/correcting-shop.ts";
+import { twinsShown } from "../../tests/support/correcting-shop.ts";
 import { fragileShown, leavingCorrect, shoutingShown } from "../../tests/support/correcting-shop.ts";
 import { shopShown, type Shop } from "../../tests/support/shop.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
@@ -24,10 +25,8 @@ async function failing(checks: readonly Check[]): Promise<string[]> {
 }
 const keys = (...checks: string[]): string[] => checks.map(check => `${check}, by keys`);
 /** Every check that has to reach the act under the menu. */
-const everyWalk = [
-  ...keys(totalCorrected, paidCorrected, overpaid),
-  `${overpaid}, hidden for who prefers not to see what cannot be done`,
-];
+const hidden = (check: string): string => `${check}, hidden for who prefers not to see what cannot be done`;
+const everyWalk = [...keys(totalCorrected, paidCorrected, overpaid, saidAgain), hidden(overpaid), hidden(saidAgain)];
 /** What a person reads on a screen: its title, and each line of its body as text. */
 const read = ({ title, body }: Screen): string[] => {
   if (body.kind === "list")

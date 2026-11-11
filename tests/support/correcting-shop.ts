@@ -5,6 +5,7 @@ import { anyToolScreen } from "../../src/surface/bridge/any-tool.ts";
 import { section, type ProgramScreen, type Shown, type Start } from "../../src/surface/bridge/house-ports.ts";
 import { menuTarget } from "../../src/surface/bridge/program-acts.ts";
 import type { ViewRow } from "../../src/surface/shown-tool.ts";
+import { toolTexts } from "../../src/texts/tools.texts.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import type { State } from "../../src/tools/tool-contract.ts";
 import { paymentsTool, salesTool, shop, shopProgram, shopShown, type Shop } from "./shop.ts";
@@ -24,6 +25,7 @@ const told = (total: number, paid: number) => ({
 export const totalCorrected = "sales · correct · a sale's total is corrected, and what it was paid stays";
 export const paidCorrected = "sales · correct · what a sale was paid is corrected, and its total stays";
 export const overpaid = "sales · correct · a sale is not paid more than its total";
+export const saidAgain = "sales · correct · a sale said again as it is changes nothing";
 /** Correcting a sale says its total and what it was paid over again: a person changes one, and the other stays. */
 const correct = programAct<Shop, typeof corrected>({
   name: "corregir",
@@ -35,7 +37,7 @@ const correct = programAct<Shop, typeof corrected>({
   under: "edit",
   input: corrected,
   today: todayOf,
-  refuses: ["overpaid"],
+  refuses: ["overpaid", toolTexts.unchanged],
   run: (input, { by, target }) => {
     if (input.paid > input.total) return { status: "rejected", reason: "overpaid" };
     const fact = shop.fact("sale-corrected", { sale: nameOf(target), ...input }, by);
@@ -62,6 +64,13 @@ const correct = programAct<Shop, typeof corrected>({
       on: "sales/s1",
       input: { total: 100, paid: 2000 },
       then: { refused: "overpaid" },
+    },
+    {
+      promise: "a sale said again as it is changes nothing",
+      given: [registered],
+      on: "sales/s1",
+      input: { total: 1500, paid: 0 },
+      then: { refused: toolTexts.unchanged },
     },
   ],
 });
