@@ -22,8 +22,9 @@ type Done<X extends Program> = Readonly<{ says: string; facts: readonly Told<X>[
   Readonly<{ reads?: Readonly<{ on?: string; lines: readonly unknown[] }> }> &
   /** Whom the act calls for attention, when the case promises it: nobody, for what is written only for the record. */
   Readonly<{ calls?: readonly string[] }> &
-  /** What of its tool needs someone to act afterwards, when the case promises it. */
-  Readonly<{ needs?: readonly Need[] }>;
+  /** What of its tool needs someone to act afterwards, when the case promises it; and what of other tools does,
+   * each by its name, when doing this is what makes something of theirs need someone. */
+  Readonly<{ needs?: readonly Need[]; needsIn?: Readonly<Record<string, readonly Need[]>> }>;
 /** A thing that needs someone to act, and why: it stays so until what it says is no longer true. */
 export type Need = Readonly<{ target: string; why: string }>;
 /** Given this, when someone does this, this happens. Nobody writes its spec: every door's check derives from it. */

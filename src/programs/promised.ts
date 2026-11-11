@@ -2,7 +2,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert/strict";
 import { identityView } from "../house/house.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
-import type { Case, Composition } from "../tools/promises.ts";
+import type { Case, Composition, Need } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { startState, toolsStep } from "../tools/tools.ts";
 import { coverage, lawChecks } from "./promised-laws.ts";
@@ -42,6 +42,13 @@ function readOn<X extends Program>(house: House<X>, aim: Aim<X>, kase: Case<X>, 
     }
   });
 }
+/** What a case promises needs someone to act afterwards, tool by tool: its own tool's, and any other it names. */
+export const promisedNeeds = <X extends Program>(aim: Aim<X>, then: Case<X>["then"]): [string, readonly Need[]][] => {
+  if ("refused" in then) return [];
+  return [...(then.needs ? [[aim.tool.id, then.needs] as const] : []), ...Object.entries(then.needsIn ?? {})].map(
+    ([tool, needs]) => [tool, needs],
+  );
+};
 /** A case, checked on a real house: what it says and writes, or its refusal; and the same house after reopening. */
 function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase: Case<X>): Check {
   const run = (): Promise<void> =>
@@ -61,7 +68,11 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
         strictEqual(saidBy(done)?.recipient !== undefined, kase.then.privately === true, said.forWhom);
         if (kase.then.reads) deepStrictEqual(readOn(house(), aim, kase, kase.then.reads.on), kase.then.reads.lines);
         if (kase.then.calls) deepStrictEqual(calledSince(house(), before.through), kase.then.calls);
-        if (kase.then.needs) deepStrictEqual(aim.tool.needs?.(house().tools.state()) ?? [], kase.then.needs);
+        for (const [tool, needs] of promisedNeeds(aim, kase.then))
+          deepStrictEqual(
+            program.registry.find(known => known.id === tool)?.needs?.(house().tools.state()) ?? [],
+            needs,
+          );
       }
       const after = house().tools.state().tools;
       deepStrictEqual(rebuilt(program, house()), after);

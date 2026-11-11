@@ -10,6 +10,7 @@ import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { seated, type, view } from "./promised-keys.ts";
 import { prefer } from "./promised-off.ts";
+import { promisedNeeds } from "./promised.ts";
 import { cast, given, label, perform, staged, type Aim, type Check } from "./promised-stage.ts";
 
 /** The rows of one of the two lists where a person stands: on the Menu, or on a tool's own menu. Nothing when the
@@ -59,16 +60,17 @@ function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>,
     staged(program, async ({ house }) => {
       await given(house(), aim.tool.id, kase.given);
       await perform(house(), aim.tool.id, { ...kase, act: aim.name });
-      const promised = "refused" in kase.then ? [] : (kase.then.needs ?? []);
       const { tools, router } = seated(house(), kase.by ?? cast.admin, shown);
-      /** What Attention says of this tool where a person stands: each row by the thing it leads to, or the tool. */
-      const told = (tool?: string) =>
-        (listAt(tools, surface.attentionList, tool) ?? [])
-          .filter(row => row.open?.kind === "view" && row.open.tool === aim.tool.id)
-          .map(row => ({ target: row.opens ?? aim.tool.id, why: row.detail }));
+      /** What Attention says of one tool where a person stands: each row by the thing it leads to, or the tool. */
+      const told = (of: string, at?: string) =>
+        (listAt(tools, surface.attentionList, at) ?? [])
+          .filter(row => row.open?.kind === "view" && row.open.tool === of)
+          .map(row => ({ target: row.opens ?? of, why: row.detail }));
       try {
-        deepStrictEqual(told(aim.tool.id), promised);
-        deepStrictEqual(told(), promised);
+        for (const [tool, promised] of promisedNeeds(aim, kase.then)) {
+          deepStrictEqual(told(tool, tool), promised);
+          deepStrictEqual(told(tool), promised);
+        }
       } finally {
         router.stop();
       }
@@ -106,7 +108,7 @@ export function noticeChecks<X extends Program>(program: Composition<X>, shown: 
     Object.entries(tool.acts).flatMap(([name, act]) => act.cases.map(kase => ({ aim: { tool, name, act }, kase }))),
   );
   const done = cases.filter(({ kase }) => !("refused" in kase.then));
-  const needing = done.filter(({ kase }) => !("refused" in kase.then) && kase.then.needs !== undefined);
+  const needing = done.filter(({ aim, kase }) => promisedNeeds(aim, kase.then).length > 0);
   return [
     ...done.map(({ aim, kase }) => activityCheck(program, shown, aim, kase)),
     ...needing.map(({ aim, kase }) => needsCheck(program, shown, aim, kase)),
