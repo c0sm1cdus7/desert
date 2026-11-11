@@ -1,5 +1,5 @@
 {
-  "debts": 29,
+  "debts": 24,
   "rules": [
     {
       "id": 1,
@@ -337,8 +337,8 @@
       "id": 47,
       "rule": "El dato prioriza algo útil; si no hay, un aid de para qué sirve",
       "from": "REGLAS §9",
-      "guarantee": "debt",
-      "debt": "Derivada: el recorrido ya pasa por cada fila; fallar si una fila que abre algo no trae dato."
+      "guarantee": "surface",
+      "evidence": ["src/surface/bridge/program-acts.ts", "src/surface/lists.ts", "src/surface/shown-tool.ts"]
     },
     {
       "id": 48,
@@ -397,8 +397,8 @@
       "id": 54,
       "rule": "Pregunta: un sustantivo, sin punto ni signos",
       "from": "REGLAS §9, §12",
-      "guarantee": "debt",
-      "debt": "Componer: en asking-back.ts audit rechazar signos y verbos; o derivada sobre cada ask del recorrido."
+      "guarantee": "compose",
+      "evidence": ["src/surface/bridge/asking-parts.ts", "src/surface/bridge/asking-back.ts"]
     },
     {
       "id": 55,
@@ -460,8 +460,8 @@
       "id": 63,
       "rule": "La tecla del verbo es su inicial",
       "from": "REGLAS §9",
-      "guarantee": "debt",
-      "debt": "Componer: key debe ser la inicial de label salvo choque declarado."
+      "guarantee": "surface",
+      "evidence": ["src/surface/bridge/program-acts.ts", "src/tools/promises.ts"]
     },
     {
       "id": 65,
@@ -474,8 +474,8 @@
       "id": 66,
       "rule": "Sin inputs solo confirma; si no se puede deshacer volver viene elegido, si se puede el verbo",
       "from": "REGLAS §9",
-      "guarantee": "debt",
-      "debt": "Tipo: reversible: boolean obligatorio en programAct."
+      "guarantee": "type",
+      "evidence": ["src/tools/promises.ts", "src/surface/bridge/program-acts.ts"]
     },
     {
       "id": 67,
@@ -493,10 +493,10 @@
     },
     {
       "id": 69,
-      "rule": "Resultado en Verbo · Objeto · Detalle o Código · Causa · Objeto",
+      "rule": "El resultado se dice Verbo · Objeto · Detalle",
       "from": "REGLAS §9",
-      "guarantee": "debt",
-      "debt": "Derivada: promised.ts:61-67 ya tiene cada says y refused; validar el formato ahí."
+      "guarantee": "derived",
+      "evidence": ["src/programs/promised.ts"]
     },
     {
       "id": 70,
@@ -686,8 +686,8 @@
       "id": 96,
       "rule": "Las acciones destructivas piden confirmación",
       "from": "REGLAS §12",
-      "guarantee": "debt",
-      "debt": "Componer: leaves: true exige confirms (tipo condicional en Declared, tools/promises.ts:82-93)."
+      "guarantee": "compose",
+      "evidence": ["src/tools/promises.ts"]
     },
     {
       "id": 97,
@@ -827,6 +827,20 @@
       "from": "LEYES 7",
       "guarantee": "derived",
       "evidence": ["src/programs/program-checks.ts", "tests/program/program.checks.ts", "tests/laws/gate.spec.ts"]
+    },
+    {
+      "id": 115,
+      "rule": "El rechazo se dice Código · Causa · Objeto",
+      "from": "REGLAS §9",
+      "guarantee": "debt",
+      "debt": "Hoy una causa es un dato corto sin punto (se rechaza al componer si es una frase); faltan los códigos de un conjunto cerrado."
+    },
+    {
+      "id": 116,
+      "rule": "El nombre de una acción es corto y en minúscula: un verbo sobre su cosa, y lo que confirma es un solo verbo",
+      "from": "Franco 11/11",
+      "guarantee": "compose",
+      "evidence": ["src/tools/promises.ts"]
     }
   ]
 }

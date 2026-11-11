@@ -95,7 +95,7 @@ export function actRow<X extends Program>(
     row.starts?.tool === aim.tool.id && row.starts.act === aim.name && row.starts.target === thing;
   const mine = (row: Choice): boolean =>
     (starts(row) && fits(row)) ||
-    (row.off === true && menu !== undefined && row.key === menu.key && row.title === menu.label);
+    (row.off === true && menu !== undefined && row.key === menu.key && row.title === menu.name);
   /** Where the search starts: where the act stands, or the thing of another tool it is taken from. */
   const root = from ?? { tool: aim.tool.id, ...(thing === undefined ? {} : { target: thing }) };
   const seen = new Set<string | undefined>([root.target]);

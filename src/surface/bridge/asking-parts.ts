@@ -26,8 +26,13 @@ export const word = (schema: unknown, key: string): string => {
   if (typeof found !== "string" || found === "") throw new Error(`A field does not say its ${key}`);
   return found;
 };
+/** A question is a noun: it carries no signs and ends with no full stop or colon. */
+export const asked = (question: string): string => {
+  if (/[¿?¡!]|[.:]$/u.test(question)) throw new Error(`A question is a noun, without signs: ${question}`);
+  return question;
+};
 export const titleOf = (schema: unknown, ctx: Ctx): string =>
-  `${word(schema, "title").replace("{n}", String(ctx.n))}${ctx.optional ? ctx.optionalMark : ""}`;
+  `${asked(word(schema, "title")).replace("{n}", String(ctx.n))}${ctx.optional ? ctx.optionalMark : ""}`;
 export const armsOf = (schema: unknown): readonly unknown[] => {
   const arms = at(schema, "anyOf");
   return isList(arms) ? arms : [];

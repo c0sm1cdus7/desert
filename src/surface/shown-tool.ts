@@ -7,7 +7,8 @@ interface ActOn<Destination extends readonly string[]> {
   /** What enter says on its last question. */
   readonly verb: string;
   readonly key?: string;
-  readonly hint?: string;
+  /** What its row says to the right: something of use about what it would do now. Never what it is for. */
+  readonly datum?: (...on: Destination) => string | undefined;
   readonly title?: (...on: Destination) => string;
   /** Why it cannot be done here and now, when that is so: it stays on the list, off, and says this. */
   readonly off?: (...on: Destination) => string | undefined;
@@ -65,7 +66,6 @@ export interface Notice {
 export interface ThingMenu {
   readonly label: string;
   readonly key: string;
-  readonly hint?: string;
   readonly listed?: (target: string) => boolean;
   /** Why nothing under it can be done now, when that is so: it stays on the list, off, and says this. */
   readonly off?: (target: string) => string | undefined;

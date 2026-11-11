@@ -31,7 +31,9 @@ const slow: ProgramTool<Shop> = {
   summary: () => "",
   acts: {
     run: programAct<Shop, typeof nothing>({
-      label: "Correr",
+      name: "correr",
+      enter: "correr",
+      undoable: false,
       purpose: "Tarda lo que la prueba diga.",
       key: "c",
       on: "tool",
@@ -40,7 +42,9 @@ const slow: ProgramTool<Shop> = {
       cases: [waiting],
     }),
     fail: programAct<Shop, typeof nothing>({
-      label: "Fallar",
+      name: "fallar",
+      enter: "fallar",
+      undoable: false,
       purpose: "Falla siempre.",
       key: "f",
       on: "tool",
@@ -92,7 +96,7 @@ describe("the router", () => {
     router.watch(changed);
     key(router, "l");
     expect(router.screen(view).title).toBe("Lento");
-    expect(rowsOf(router.screen(view))).toEqual(["Correr", "Fallar"]);
+    expect(rowsOf(router.screen(view))).toEqual(["correr", "fallar"]);
     key(router, "c");
     router.send({ kind: "confirm" });
     expect(router.screen(view).title).toBe("Lento"); // Enter on a confirmation goes back: running it is chosen.

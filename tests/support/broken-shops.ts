@@ -11,7 +11,7 @@ type Run = (input: Told, context: ActContext<Shop>) => ActResult<Shop>;
 const honest: Run = (input, { by, state }) =>
   state.tools.sales.has(input.sale)
     ? { status: "rejected", reason: "repeated" }
-    : { status: "accepted", text: `Sale ${input.sale}`, effects: [shop.fact("sale-registered", input, by)] };
+    : { status: "accepted", text: `Registrada · ${input.sale}`, effects: [shop.fact("sale-registered", input, by)] };
 /** The shop with another way of registering a sale, under the same promises. */
 const registering = (run: Run, refuses: readonly string[] = ["repeated"]): Composition<Shop> => {
   const input = shopCatalog["sale-registered"];

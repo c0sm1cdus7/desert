@@ -32,7 +32,7 @@ describe("what each tool keeps", () => {
         .tools()
         .state()
         .entries.map(entry => entry.data.text),
-    ).toEqual(["Sale s1", "Payment p1", "Unmatched p2", "Payment p2"]);
+    ).toEqual(["Registrada · s1", "Recibido · p1", "Unmatched p2", "Recibido · p2"]);
   });
 
   it("writes a program's facts as caused by the act that made them", () => {

@@ -5,6 +5,7 @@ import { matches } from "../finding.ts";
 import type { Tool, ViewRow } from "../shown-tool.ts";
 import { must } from "../window.ts";
 import { section, type ScreenActs, type Start, type SurfacePorts, type ToolWords } from "./house-ports.ts";
+import { capital } from "./program-acts.ts";
 import { briefOf, listedIn, rowsIn, type Labels } from "./rows.ts";
 
 /** A label the program did not give is a defect of the program: it is named, never replaced by a code. */
@@ -55,11 +56,14 @@ export function anyToolScreen<X extends Program>(
     summary: () => briefOf(tool.summary(ports.state())),
     find: sought => foundIn(ports, tool, label, sought),
     /** A thing is called what its row on the list calls it; a menu, what the tool calls it. */
-    titleOf: target => menuOf(target)?.menu.label ?? must(view(tool.id).find(row => row.opens === target)).title,
+    titleOf: target => {
+      const menu = menuOf(target)?.menu.name;
+      return menu ? capital(menu) : must(view(tool.id).find(row => row.opens === target)).title;
+    },
     view: target => {
       const targets = tool.targets(ports.state());
       const menu = menuOf(target);
-      if (menu) return [section(menu.menu.label, menuRows(menu))];
+      if (menu) return [section(capital(menu.menu.name), menuRows(menu))];
       if (target !== undefined && !targets.includes(target)) throw new Error(`${tool.id} has no ${target}`);
       const inside = ({ opens, ...row }: ViewRow): ViewRow =>
         opens && opens !== target && targets.includes(opens) ? { ...row, opens } : row;

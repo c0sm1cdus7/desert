@@ -26,7 +26,9 @@ export const settledTwice = "sales · settle · a settled sale is not settled ag
 export const stillOwing = "sales · settle · a sale that still owes keeps asking for attention when another is settled";
 /** Settling a sale receives, in one act on it, the payment for everything it still owes. */
 const settle = programAct<Shop, typeof taken>({
-  label: "Saldar",
+  name: "saldar",
+  enter: "saldar",
+  undoable: false,
   purpose: "Recibe de una vez lo que la venta todavía debe.",
   key: "s",
   on: "thing",
@@ -38,7 +40,7 @@ const settle = programAct<Shop, typeof taken>({
     if (amount <= 0) return { status: "rejected", reason: "settled" };
     const sale = nameOf(target);
     const fact = shop.fact("payment-received", { payment: `full-${sale}`, amount, sale }, by);
-    return { status: "accepted", text: `Settled ${sale}`, effects: [fact] };
+    return { status: "accepted", text: `Saldada · ${sale}`, effects: [fact] };
   },
   cases: [
     {
@@ -47,7 +49,7 @@ const settle = programAct<Shop, typeof taken>({
       on: "sales/s1",
       input: {},
       then: {
-        says: "Settled s1",
+        says: "Saldada · s1",
         facts: [{ kind: "payment-received", data: whole }],
         reads: { lines: [{ total: "$ 1500", paid: "$ 1500", by: "ana" }] },
         needs: [],
@@ -59,7 +61,7 @@ const settle = programAct<Shop, typeof taken>({
       on: "sales/s1",
       input: {},
       then: {
-        says: "Settled s1",
+        says: "Saldada · s1",
         facts: [{ kind: "payment-received", data: whole }],
         needs: [{ target: "sales/s2", why: "Debe $ 90" }],
       },

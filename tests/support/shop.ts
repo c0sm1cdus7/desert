@@ -74,7 +74,7 @@ export const registerCases = [
     promise: "a sale is registered as it was told",
     input: first,
     then: {
-      says: "Sale s1",
+      says: "Registrada · s1",
       facts: [{ kind: "sale-registered", data: first }],
       reads: { on: "sales/s1", lines: [{ total: "$ 1500", paid: "$ 0", by: "ana" }] },
     },
@@ -88,7 +88,9 @@ export const registerCases = [
 ] as const;
 /** How registering a sale is offered: a broken shop is offered the same way. */
 export const registerOffer = {
-  label: "Registrar",
+  name: "registrar",
+  enter: "registrar",
+  undoable: true,
   purpose: "Registra lo que el almacén vende.",
   key: "r",
   on: "tool",
@@ -109,7 +111,7 @@ export const salesTool: ProgramTool<Shop> = {
           ? { status: "rejected", reason: "repeated" }
           : {
               status: "accepted",
-              text: `Sale ${input.sale}`,
+              text: `Registrada · ${input.sale}`,
               target: `sales/${input.sale}`,
               effects: [shop.fact("sale-registered", input, by)],
             },
@@ -126,14 +128,16 @@ export const paymentsTool: ProgramTool<Shop> = {
   summary: state => String(state.tools.payments.unmatched.length),
   acts: {
     receive: programAct<Shop, (typeof shopCatalog)["payment-received"]>({
-      label: "Recibir",
+      name: "recibir",
+      enter: "recibir",
+      undoable: true,
       purpose: "Recibe lo que le pagan al almacén.",
       key: "r",
       on: "tool",
       input: shopCatalog["payment-received"],
       run: (input, { by }) => ({
         status: "accepted",
-        text: `Payment ${input.payment}`,
+        text: `Recibido · ${input.payment}`,
         effects: [shop.fact("payment-received", input, by)],
       }),
       cases: [
@@ -141,12 +145,12 @@ export const paymentsTool: ProgramTool<Shop> = {
           promise: "a payment for a sale is received",
           given: [{ act: "register", on: "sales", input: first }],
           input: paid,
-          then: { says: "Payment p1", facts: [{ kind: "payment-received", data: paid }] },
+          then: { says: "Recibido · p1", facts: [{ kind: "payment-received", data: paid }] },
         },
         {
           promise: "a payment that names no sale is received all the same",
           input: { payment: "p2", amount: 100 },
-          then: { says: "Payment p2", facts: [{ kind: "payment-received", data: { payment: "p2", amount: 100 } }] },
+          then: { says: "Recibido · p2", facts: [{ kind: "payment-received", data: { payment: "p2", amount: 100 } }] },
         },
       ],
     }),

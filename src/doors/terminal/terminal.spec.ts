@@ -39,7 +39,7 @@ describe("the terminal, on rules", () => {
       "[2] No inventar títulos ni direcciones | desde el 01/11",
       "",
       "Acciones",
-      "[n] nueva regla | una regla tuya para Nora",
+      "[n] nueva regla",
     ]);
   });
   it("offers enter only once the answer is valid, and creates a rule through its act", async () => {

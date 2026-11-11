@@ -79,7 +79,7 @@ describe("the terminal, on a program's house", () => {
     const { rig, press } = open();
     const list = await press("v");
     expect(list).toEqual(expect.arrayContaining(["Registradas", "Sin ventas.", "Acciones"]));
-    expect(list).toContain("[r] Registrar | Registra lo que el almacén vende.");
+    expect(list).toContain("[r] registrar");
     const asking = await press("r");
     expect(asking[0]).toContain("Registrar");
     expect(asking).toEqual(expect.arrayContaining(["Venta", "› | Nombre de la venta"]));
@@ -97,7 +97,7 @@ describe("the terminal, on a program's house", () => {
     expect(await press("0000")).toContain("› $ 1.500,00");
     expect(await press("\x7f\x7f")).toContain("› $ 15,00");
     const done = await press("00\r");
-    expect(done).toEqual(expect.arrayContaining(["Venta s1", "Total $ 1.500,00", `Listo Sale s1 · ${clock}`]));
+    expect(done).toEqual(expect.arrayContaining(["Venta s1", "Total $ 1.500,00", `Listo Registrada · s1 · ${clock}`]));
     expect(rig.state().tools.sales.get("s1")).toEqual({ total: 150_000, paid: 0, by: "ana" });
     expect(await press(escape)).toContain("[1] s1 | $ 150000");
     const sale = await press("\r");
@@ -122,9 +122,11 @@ describe("the terminal, on a program's house", () => {
     rig.attend("beto", "sales");
     rig.act("beto", "register", { sale: "s7", total: 70 }, "sales");
     rig.act("ana", "register", { sale: "s8", total: 80 }, "sales", rig.state().through);
-    expect(shown(router)).toEqual(expect.arrayContaining(["Actividad", "[1] Sale s7 | beto"]));
-    expect(shown(router).some(line => line.includes("Sale s8"))).toBe(false);
-    expect(await press("v")).toEqual(expect.arrayContaining(["Actividad", "[1] Sale s7 | beto", "[2] s7 | $ 70"]));
+    expect(shown(router)).toEqual(expect.arrayContaining(["Actividad", "[1] Registrada · s7 | beto"]));
+    expect(shown(router).some(line => line.includes("· s8"))).toBe(false);
+    expect(await press("v")).toEqual(
+      expect.arrayContaining(["Actividad", "[1] Registrada · s7 | beto", "[2] s7 | $ 70"]),
+    );
     expect((await press("1"))[0]).toContain("s7");
     const back = await press(escape);
     expect(back).toEqual(expect.arrayContaining(["Actividad", "Nada nuevo de los demás.", "[1] s7 | $ 70"]));

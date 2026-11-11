@@ -89,7 +89,8 @@ function walk<X extends Program>({ router, tools }: Seat<X>, { aim, kase, answer
     return field ? answer(router, field, given, row.with?.answers[from + offset]) : true;
   });
   fitsSmallest(router);
-  if (said && row.with?.until === undefined && next(answers)) type(router, aim.act.key);
+  /** What asks to be confirmed is confirmed as a person does: by the initial of the act's own verb. */
+  if (said && row.with?.until === undefined && next(answers)) type(router, aim.act.enter.charAt(0));
   return said;
 }
 function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {

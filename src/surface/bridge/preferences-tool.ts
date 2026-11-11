@@ -29,7 +29,6 @@ export function preferencesTool<X extends Program>(ports: SurfacePorts<X>): Tool
       label: words.name,
       verb: said.save,
       key: words.key,
-      hint: words.purpose,
       scope: "row",
       next: ask,
       run,

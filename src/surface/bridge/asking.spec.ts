@@ -11,7 +11,7 @@ const words = {
   optionalMark: " (opcional)",
   noneMark: "Ninguno",
 };
-const more = { ask: "¿Algo más?", done: { title: "Listo", key: "l" }, another: { title: "Otro", key: "o" } };
+const more = { ask: "Artículos", done: { title: "Listo", key: "l" }, another: { title: "Otro", key: "o" } };
 const line = object({ what: text("Artículo {n}", "Qué es"), amount: quantity("Cantidad", 1), price: money("Precio") });
 const kind = oneOf(
   "Qué se vende",
@@ -54,7 +54,7 @@ describe("asking what an act takes", () => {
     expect(asked(3)).toEqual(expect.objectContaining({ ask: "Artículo 1", kind: "text", placeholder: "Qué es" }));
     expect(asked(4)).toMatchObject({ ask: "Cantidad", initial: "1", mask: { empty: "0" } });
     expect(asked(5)).toMatchObject({ ask: "Precio", mask: { empty: "$ 0,00" } });
-    expect(asked(6)).toMatchObject({ ask: "¿Algo más?", kind: "one", options: [more.done, more.another] });
+    expect(asked(6)).toMatchObject({ ask: "Artículos", kind: "one", options: [more.done, more.another] });
     expect(asked(7)).toMatchObject({ ask: "Artículo 2" });
     expect(asked(11)).toMatchObject({ ask: "Cómo paga", options: [{ title: "Efectivo" }, { title: "Tarjeta" }] });
     expect(asked(12)).toMatchObject({ ask: "Copias" });
@@ -95,5 +95,7 @@ describe("asking what an act takes", () => {
     expect(refused(object({ lines: many(object({ what: Type.String() }), more) }))).toThrow("does not say its title");
     const nested = oneOf("Qué", object({ kind: option("a", "A", "a"), from: Type.String({ title: "Desde" }) }));
     expect(refused(object({ kind: nested }))).toThrow("does not say its placeholder");
+    const signed = Type.String({ title: "¿Qué es?", placeholder: "Nombre" });
+    expect(refused(object({ what: signed }))).toThrow("A question is a noun, without signs: ¿Qué es?");
   });
 });

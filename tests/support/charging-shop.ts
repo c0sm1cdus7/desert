@@ -10,7 +10,7 @@ const nameOf = (target: string): string => target.replace("sales/", "");
 const registered = { act: "register", on: "sales", input: { sale: "s1", total: 1500 } };
 const also = { act: "register", on: "sales", input: { sale: "s2", total: 90 } };
 const paid = (amount: number) => ({
-  says: "Charged s1",
+  says: "Cobrada · s1",
   facts: [{ kind: "payment-received" as const, data: { payment: "for-s1", amount, sale: "s1" } }],
 });
 export const chargedFromSale =
@@ -18,7 +18,9 @@ export const chargedFromSale =
 export const chargedByName = "payments · charge · a sale is charged from payments, picked by its name";
 /** Charging a sale receives a payment for it: the sale is one of the things of the sales tool. */
 const charge = programAct<Shop, typeof charged>({
-  label: "Cobrar",
+  name: "cobrar",
+  enter: "cobrar",
+  undoable: true,
   purpose: "Recibe un pago de una venta.",
   key: "c",
   on: "tool",
@@ -33,7 +35,7 @@ const charge = programAct<Shop, typeof charged>({
   run: ({ sale, amount }, { by, state }) => {
     if (!state.tools.sales.has(nameOf(sale))) return { status: "rejected", reason: "unknown" };
     const fact = shop.fact("payment-received", { payment: `for-${nameOf(sale)}`, amount, sale: nameOf(sale) }, by);
-    return { status: "accepted", text: `Charged ${nameOf(sale)}`, effects: [fact] };
+    return { status: "accepted", text: `Cobrada · ${nameOf(sale)}`, effects: [fact] };
   },
   cases: [
     {

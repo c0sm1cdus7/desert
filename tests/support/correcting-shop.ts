@@ -17,7 +17,7 @@ const todayOf = (state: State<Shop>, target: string) => {
 };
 export const registered = { act: "register", input: { sale: "s1", total: 1500 } };
 const told = (total: number, paid: number) => ({
-  says: "Corrected s1",
+  says: "Corregida · s1",
   facts: [{ kind: "sale-corrected" as const, data: { sale: "s1", total, paid } }],
   reads: { lines: [{ total: `$ ${total}`, paid: `$ ${paid}`, by: "ana" }] },
 });
@@ -26,7 +26,9 @@ export const paidCorrected = "sales · correct · what a sale was paid is correc
 export const overpaid = "sales · correct · a sale is not paid more than its total";
 /** Correcting a sale says its total and what it was paid over again: a person changes one, and the other stays. */
 const correct = programAct<Shop, typeof corrected>({
-  label: "Corregir",
+  name: "corregir",
+  enter: "corregir",
+  undoable: true,
   purpose: "Corrige lo que la venta dice.",
   key: "c",
   on: "thing",
@@ -37,7 +39,7 @@ const correct = programAct<Shop, typeof corrected>({
   run: (input, { by, target }) => {
     if (input.paid > input.total) return { status: "rejected", reason: "overpaid" };
     const fact = shop.fact("sale-corrected", { sale: nameOf(target), ...input }, by);
-    return { status: "accepted", text: `Corrected ${nameOf(target)}`, effects: [fact] };
+    return { status: "accepted", text: `Corregida · ${nameOf(target)}`, effects: [fact] };
   },
   cases: [
     {
@@ -63,7 +65,7 @@ const correct = programAct<Shop, typeof corrected>({
     },
   ],
 });
-const edit = { label: "Editar", purpose: "Corrige la venta.", key: "e" };
+const edit = { name: "editar", purpose: "Corrige la venta.", key: "e" };
 const sales = { ...salesTool, menus: { edit }, acts: { ...salesTool.acts, correct } };
 export const correctingShop: Composition<Shop> = { ...shopProgram, registry: [sales, paymentsTool] };
 /** The thing a destination is a part of, when it ends as that part does. */

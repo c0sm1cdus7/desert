@@ -46,19 +46,19 @@ describe("a program's tools, composed for a surface", () => {
   });
 
   it("refuses an act without its declaration, two acts in one place with one key, the key that goes back", () => {
-    const { label: _label, ...bare } = register;
+    const { name: _name, ...bare } = register;
     expect(composed([{ ...salesTool, acts: { register: bare } }, paymentsTool])).toThrow(
       "Acts without their declaration in sales",
     );
     expect(composed(sales({ register, again: register }))).toThrow("Two acts of sales take the same key: r");
-    expect(composed(sales({ register: { ...register, key: "v" } }))).toThrow(
-      "An act of sales takes the key that goes back: v",
+    expect(composed(sales({ register: { ...register, enter: "vender" } }))).toThrow(
+      "The verb of an act of sales starts with the key that goes back: v",
     );
     expect(composed(sales({ register, onEach: { ...register, on: "thing" } }))).not.toThrow();
   });
 
   it("refuses an act under a menu its tool does not declare, a menu with nothing under it, a key taken twice", () => {
-    const menus = { edit: { label: "Editar", purpose: "Corrige la venta.", key: "e" } };
+    const menus = { edit: { name: "editar", purpose: "Corrige la venta.", key: "e" } };
     const menued = (acts: Readonly<Record<string, ProgramAct<Shop>>>): ToolRegistry<Shop> => {
       const tool: ProgramTool<Shop> = { ...salesTool, menus, acts };
       return [tool, paymentsTool];

@@ -17,10 +17,10 @@ function actsAt(tool: Tool, target?: string) {
   if (target === undefined)
     return Object.entries(tool.acts)
       .filter(([, act]) => act.scope === "all" && (act.listed?.() ?? true))
-      .map(([id, act]) => ({ id, act, why: act.off?.() }));
+      .map(([id, act]) => ({ id, act, why: act.off?.(), datum: act.datum?.() }));
   return Object.entries(tool.actsOn ?? {})
     .filter(([, act]) => act.scope === "each" && (act.listed?.(target) ?? true))
-    .map(([id, act]) => ({ id, act, why: act.off?.(target) }));
+    .map(([id, act]) => ({ id, act, why: act.off?.(target), datum: act.datum?.(target) }));
 }
 /** A menu among a thing's actions: it opens another list of the same tool; off, it says why and opens nothing. */
 function menusAt(tool: Tool, target: string): readonly Choice[] {
@@ -32,19 +32,19 @@ function menusAt(tool: Tool, target: string): readonly Choice[] {
       if (why !== undefined) return { ...row, detail: why, off: true };
       const opens = menu.opens(target);
       const open: Place = { kind: "view", tool: tool.id, target: opens, at: 0 };
-      return { ...row, ...(menu.hint === undefined ? {} : { detail: menu.hint }), opens, open };
+      return { ...row, opens, open };
     });
 }
-/** An act that cannot be done now keeps its place and its key, opens nothing, and says why instead of what for. */
+/** An act that cannot be done now keeps its place and its key, opens nothing, and says why where its datum goes. */
 function actionRows(tools: readonly Tool[], tool: Tool, target?: string): readonly Choice[] {
-  const acts = actsAt(tool, target).map(({ id, act, why }) => {
+  const acts = actsAt(tool, target).map(({ id, act, why, datum }) => {
     const row = {
       ...(act.key === undefined ? {} : { key: act.key }),
       title: act.label,
       starts: startsOf(tool.id, id, target),
     };
     if (why !== undefined) return { ...row, detail: why, off: true };
-    return { ...row, ...(act.hint === undefined ? {} : { detail: act.hint }), open: begin(tools, tool.id, id, target) };
+    return { ...row, ...(datum ? { detail: datum } : {}), open: begin(tools, tool.id, id, target) };
   });
   if (target === undefined) return acts;
   /** After its own, what other tools offer on it: each stands as its tool says, off for who does not hold that. */

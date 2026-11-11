@@ -2,7 +2,8 @@
 export const genericTexts = {
   optional: " · opcional",
   none: "Sin elegir",
-  sure: (act: string) => `${act} · confirmar`,
+  /** What an act with nothing to ask puts to be confirmed: what it is, and the thing it is done to. */
+  sure: (act: string, thing?: string) => (thing ? `${act} · ${thing}` : act),
   offline: "Sin conexión",
   notHeld: "No está entre tus herramientas.",
   /** What a person may prefer not to see, and the two answers each one takes. */

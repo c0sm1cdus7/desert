@@ -16,7 +16,6 @@ const createAct = (rules: Rule[], done: (text: string) => Promise<Result>): Tool
   label: "nueva regla",
   verb: "crear",
   key: "n",
-  hint: "una regla tuya para Nora",
   scope: "all",
   next: answers => (answers.length ? null : { ask, kind: "text", placeholder: "Escribí la regla…" }),
   run: async ([text]) => {
@@ -29,7 +28,7 @@ const dropAct = (rules: Rule[], done: (text: string) => Promise<Result>): ThingA
   label: "eliminar",
   verb: "eliminar",
   key: "l",
-  hint: "deja de regir · no se puede deshacer",
+  datum: () => "irreversible",
   scope: "each",
   leaves: true,
   title: () => "Eliminar regla",

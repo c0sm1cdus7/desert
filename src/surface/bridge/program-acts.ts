@@ -19,27 +19,36 @@ const wroteBy = (effects: readonly Emission[]): string | undefined => {
   for (const effect of effects) if (effect.layer === "house" && effect.kind === "tool-entry") return effect.data.text;
   return undefined;
 };
+/** A name as the bar says it: with a capital. */
+export const capital = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
+type Asked = Readonly<{ locale: Locale; things: NonNullable<AskWords["things"]> }> &
+  /** What a thing of a tool is called, for the act that asks to be confirmed on it. */
+  Readonly<{ titled: (tool: string, target: string) => string }>;
+type Own<X extends Program> = Readonly<{ tool: string; name: string; act: ProgramAct<X> }>;
 /** One act as a person walks it: its questions from what it takes, a confirmation when it asks for one, its result. */
-type Asked = Readonly<{ locale: Locale; things: NonNullable<AskWords["things"]> }>;
-function walked<X extends Program>(ports: SurfacePorts<X>, name: string, act: ProgramAct<X>, asked: Asked) {
+function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: Own<X>, asked: Asked) {
   const words = { formats: formats(asked.locale), optionalMark: generic.optional, noneMark: generic.none };
   const ask = asking(act.input, { ...words, things: asked.things });
-  const verb = [{ title: act.label, key: act.key }];
-  const sure = (answers: readonly string[]): Field | null => {
+  const title = act.title ?? capital(act.name);
+  /** Who confirms is the act's own verb, taken by its initial; what can be undone comes with that verb chosen. */
+  const confirm = {
+    options: [{ title: act.enter, key: act.enter.charAt(0) }],
+    ...(act.undoable ? { reversible: true } : {}),
+  };
+  const sure = (answers: readonly string[], target?: string): Field | null => {
     const taken = ask.taken(answers);
     if (answers.length > taken) return null;
     const summary = act.confirms?.(ask.input(answers), ports.state());
-    /** What takes its thing away is confirmed with going back first; anything else, with going on first. */
-    if (summary !== undefined)
-      return { ask: summary, kind: "confirm", ...(act.leaves ? {} : { reversible: true }), options: verb };
-    return taken === 0 ? { ask: generic.sure(act.label), kind: "confirm", options: verb } : null;
+    if (summary !== undefined) return { ask: summary, kind: "confirm", ...confirm };
+    const thing = target === undefined ? undefined : asked.titled(tool, target);
+    return taken === 0 ? { ask: generic.sure(title, thing), kind: "confirm", ...confirm } : null;
   };
   const walk = {
-    label: act.label,
-    verb: act.label.toLowerCase(),
+    label: act.name,
+    verb: act.enter,
     key: act.key,
-    hint: act.purpose,
-    next: (answers: readonly string[]): Field | null => ask.next(answers) ?? sure(answers),
+    title: (): string => title,
+    next: (answers: readonly string[], target?: string): Field | null => ask.next(answers) ?? sure(answers, target),
     run: async (answers: readonly string[], target: string): Promise<Result> => {
       const done = await attendAndAct(ports, target, name, ask.input(answers));
       if (done.status !== "accepted") return { ok: false, reason: done.reason ?? "" };
@@ -65,8 +74,8 @@ const starter =
     const found = entries.find(entry => entry.name === name && entry.act.on === "thing");
     if (!found) throw new Error(`${tool} has no act ${name} on a thing`);
     const { act, ask } = found;
-    const row = { key: how.key ?? act.key, title: how.title ?? act.label, act: name, on: { tool, target } };
-    if (how.today === undefined) return { ...row, detail: how.detail ?? act.purpose };
+    const row = { key: how.key ?? act.key, title: how.title ?? act.name, act: name, on: { tool, target } };
+    if (how.today === undefined) return { ...row, ...(how.detail ? { detail: how.detail } : {}) };
     const answers = ask.answers(how.today);
     const [from, until] = how.asks ?? [0];
     if (from >= (until ?? answers.length) && !act.confirms)
@@ -80,9 +89,8 @@ function menusOf<X extends Program>(tool: ProgramTool<X>, shown: Readonly<Record
     const under = Object.entries(tool.acts).flatMap(([name, act]) => (act.under === id ? [shown[name]] : []));
     const whys = (target: string) => under.map(act => act?.off?.(target));
     const entry: ThingMenu = {
-      label: menu.label,
+      label: menu.name,
       key: menu.key,
-      hint: menu.purpose,
       opens: target => menuTarget(target, id),
       listed: target => under.some(act => act?.listed?.(target) ?? true),
       /** Off only while nothing under it can be done, all for one reason: otherwise each says its own inside. */
@@ -102,7 +110,7 @@ const offersOf =
       const { also } = act;
       const given = also?.tool === other ? also.with(ports.state(), target) : undefined;
       if (!also || given === undefined) return [];
-      const row = { key: act.key, title: act.label, act: name, on: { tool } };
+      const row = { key: act.key, title: also.name ?? act.name, act: name, on: { tool } };
       const why = also.off?.(ports.state(), target);
       if (why !== undefined) return [{ ...row, detail: why, off: true }];
       const fixed = ask.leading(given);
@@ -110,14 +118,15 @@ const offersOf =
       const answers = ask.leading({ ...given, ...also.opens?.(ports.state(), target) });
       if (ask.next(fixed) === null && !act.confirms)
         throw new Error(`${tool} offers ${name} on ${other} asking nothing, and the act does not ask to be confirmed`);
-      return [{ ...row, detail: act.purpose, with: { answers, from: fixed.length } }];
+      const datum = also.datum?.(ports.state(), target);
+      return [{ ...row, ...(datum ? { detail: datum } : {}), with: { answers, from: fixed.length } }];
     });
 /** Every act of a tool as the surface offers it: on the tool itself, on one of its things, or under a menu. */
 export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, asked: Asked) {
   /** Why this identity cannot act on the tool at all, when that is so. */
   const foreign = (): string | undefined =>
     allowed(ports.state().house, ports.me, tool.id) ? undefined : generic.notHeld;
-  const entries = Object.entries(tool.acts).map(([name, act]) => walked(ports, name, act, asked));
+  const entries = Object.entries(tool.acts).map(([name, act]) => walked(ports, { tool: tool.id, name, act }, asked));
   const onTool = entries
     .filter(({ act }) => act.on === "tool")
     .map(({ name, act, walk }): [string, ToolAct] => {
@@ -126,7 +135,9 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       const off = (): string | undefined => foreign() ?? act.offered?.(ports.state(), tool.id);
       const listed = (): boolean =>
         off() === undefined || !hides(ports.state().house, ports.me, foreign() === undefined ? "off" : "foreign");
-      return [name, { ...walk, scope: "all", off, listed, run: answers => walk.run(answers, tool.id) }];
+      const datum = (): string | undefined => act.datum?.(ports.state(), tool.id);
+      const next: ToolAct["next"] = answers => walk.next(answers);
+      return [name, { ...walk, scope: "all", off, listed, datum, next, run: answers => walk.run(answers, tool.id) }];
     });
   const onThing = entries
     .filter(({ act }) => act.on === "thing")
@@ -137,9 +148,9 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       const unseen = (target: string): boolean =>
         off(target) !== undefined && hides(ports.state().house, ports.me, "off");
       const listed = (target: string): boolean => tool.targets(ports.state()).includes(target) && !unseen(target);
-      const next: ThingAct["next"] = answers => walk.next(answers);
+      const datum = (target: string): string | undefined => act.datum?.(ports.state(), target);
       const scope = act.under === undefined ? "each" : "row";
-      return [name, { ...walk, scope, leaves: act.leaves ?? false, listed, off, next }];
+      return [name, { ...walk, scope, leaves: act.leaves ?? false, listed, off, datum }];
     });
   const actsOn = Object.fromEntries(onThing);
   const acts: ScreenActs = { acts: Object.fromEntries(onTool), actsOn, menusOn: menusOf(tool, actsOn) };

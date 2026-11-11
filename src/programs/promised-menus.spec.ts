@@ -67,8 +67,8 @@ describe("a program with a menu on its things", () => {
 
   it("opens the menu from the thing's actions, and each act under it on what the thing is today", async () => {
     await atSale(shopShown, ({ typed, esc }) => {
-      expect(typed("")).toContain("e | Editar | Corrige la venta.");
-      expect(typed("e")).toEqual(["Editar", "c | Corregir | $ 15,00 · $ 0,00"]);
+      expect(typed("")).toContain("e | editar | ");
+      expect(typed("e")).toEqual(["Editar", "c | corregir | $ 15,00 · $ 0,00"]);
       expect(typed("c")).toEqual(["Corregir", "Total", "› $ 15,00"]);
       expect(typed("0\r")).toEqual(["Corregir", "Total $ 150,00", "Cobrado", "› $ 0,00"]);
       expect(esc()).toEqual(["Corregir", "Total", "› $ 150,00"]);
@@ -84,7 +84,7 @@ describe("a program with a menu on its things", () => {
       expect(typed("b")).toEqual(["Corregir", "Total $ 15,00", "Cobrado", "› $ 0,00"]);
       expect(esc()[0]).toBe("Partes");
       typed("b500\r");
-      expect((await settled()).at(-1)).toContain("Listo Corrected s1");
+      expect((await settled()).at(-1)).toContain("Listo Corregida · s1");
       expect(esc()).toEqual(["Partes", "t | Total | $ 15,00", "b | Cobrado | $ 5,00"]);
     });
   });

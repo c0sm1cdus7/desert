@@ -1,7 +1,19 @@
 // The walk of an act's questions backwards: the answers that say a datum; and that every field of it can be asked.
 import { TypeGuard } from "@sinclair/typebox";
 import type { Option } from "../contract.ts";
-import { armsOf, at, choiceOf, formatOf, isList, plain, tellingOf, titleOf, word, written } from "./asking-parts.ts";
+import {
+  armsOf,
+  asked,
+  at,
+  choiceOf,
+  formatOf,
+  isList,
+  plain,
+  tellingOf,
+  titleOf,
+  word,
+  written,
+} from "./asking-parts.ts";
 import type { AskWords, Ctx } from "./asking-parts.ts";
 
 /** The same walk backwards: the answers a person would give to say this datum. */
@@ -56,7 +68,7 @@ export function audit(schema: unknown, ctx: Ctx): void {
   } else if (at(schema, "type") === "object") auditFields(schema, ctx);
   else if (at(schema, "type") === "array") {
     const more = at(schema, "more");
-    word(more, "ask");
+    asked(word(more, "ask"));
     distinct([choiceOf(at(more, "done")), choiceOf(at(more, "another"))]);
     audit(at(schema, "items"), ctx);
   } else written(schema, ctx);

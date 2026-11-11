@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 112. Deudas: 29.
+Leyes: 114. Deudas: 24.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -53,14 +53,14 @@ Leyes: 112. Deudas: 29.
 | 44 | Cuatro composiciones cerradas; una pantalla usa una | REGLAS §9 | no compila | `src/surface/contract.ts` `src/surface/resolve.ts` `src/surface/shown-tool.ts` |
 | 45 | Lista: stacks con título; Acciones siempre último | REGLAS §9, §17 | la cumple la superficie | `src/doors/terminal/terminal.spec.ts` `src/surface/lists.ts` `src/surface/shown-tool.ts` |
 | 46 | Sin columnas: título a la izquierda; propósito y dato a la derecha | REGLAS §9 | la cumple la superficie | `src/doors/terminal/thread.ts` `src/surface/lists.ts` |
-| 47 | El dato prioriza algo útil; si no hay, un aid de para qué sirve | REGLAS §9 | DEUDA | Derivada: el recorrido ya pasa por cada fila; fallar si una fila que abre algo no trae dato. |
+| 47 | El dato prioriza algo útil; si no hay, un aid de para qué sirve | REGLAS §9 | la cumple la superficie | `src/surface/bridge/program-acts.ts` `src/surface/lists.ts` `src/surface/shown-tool.ts` |
 | 48 | Cosas distintas se separan con punto medio, nunca coma ni «y» | REGLAS §9 | DEUDA | Derivada sobre el catálogo de textos (sin , ni « y » en etiquetas, propósitos, datos). |
 | 49 | Lo que no entra dice cuánto queda en listas (↑ 6 más, ↓ 14 más) | REGLAS §9 | la cumple la superficie | `src/doors/terminal/paint.ts` `src/doors/terminal/terminal.spec.ts` `src/surface/window.spec.ts` `src/surface/window.ts` |
 | 50 | …en el Hilo | REGLAS §9 | la cumple la superficie | `src/doors/terminal/thread.ts` |
 | 51 | …en las opciones de una pregunta | REGLAS §9 | prueba derivada de los casos | `src/surface/window.ts` `src/surface/resolve.ts` `src/doors/terminal/thread.ts` `src/programs/promised-keys.ts` `src/programs/promised-walk.ts` |
 | 52 | Lista vacía: el stack se muestra con título apagado y Sin X. en texto 1 | REGLAS §9 | la cumple la superficie | `src/doors/terminal/paint.ts` `src/surface/bridge/house-ports.ts` |
 | 53 | Una acción es una serie de inputs y después un comando, siempre como Hilo | REGLAS §9 | la cumple la superficie | `src/surface/resolve.ts` `src/surface/screen.ts` `src/surface/walk.ts` |
-| 54 | Pregunta: un sustantivo, sin punto ni signos | REGLAS §9, §12 | DEUDA | Componer: en asking-back.ts audit rechazar signos y verbos; o derivada sobre cada ask del recorrido. |
+| 54 | Pregunta: un sustantivo, sin punto ni signos | REGLAS §9, §12 | el programa no arranca | `src/surface/bridge/asking-parts.ts` `src/surface/bridge/asking-back.ts` |
 | 55 | La pregunta pasa de texto 1 a texto 2 al responderse; la respuesta queda agregada, en texto 1, sin autor | REGLAS §9 | la cumple la superficie | `src/surface/walk.ts` |
 | 56 | Un secreto queda tapado | REGLAS §9 | DEUDA | Tipo: secret(ask) en fields.ts y que asking lo traduzca a kind: "secret". |
 | 57 | Seis tipos de input cerrados | REGLAS §9 | no compila | `src/surface/bridge/asking.ts` `src/surface/contract.ts` |
@@ -69,12 +69,12 @@ Leyes: 112. Deudas: 29.
 | 60 | Opciones múltiples: [x]/[ ], espacio marca, enter continúa, nombres separados por · | REGLAS §9 | la cumple la superficie | `src/surface/bridge/asking.ts` `src/surface/step.ts` `src/surface/walk.ts` |
 | 61 | Referencia: lista de objetos con su dato | REGLAS §9 | no compila | `src/catalogs/fields.ts` `src/surface/bridge/asking-parts.ts` `src/surface/contract.ts` |
 | 62 | Confirmación: el verbo y volver | REGLAS §9 | la cumple la superficie | `src/surface/bridge/program-acts.ts` `src/surface/screen.ts` |
-| 63 | La tecla del verbo es su inicial | REGLAS §9 | DEUDA | Componer: key debe ser la inicial de label salvo choque declarado. |
+| 63 | La tecla del verbo es su inicial | REGLAS §9 | la cumple la superficie | `src/surface/bridge/program-acts.ts` `src/tools/promises.ts` |
 | 65 | Nada se ejecuta hasta el último input; durante los inputs solo se lee | REGLAS §9 | la cumple la superficie | `src/surface/step.ts` |
-| 66 | Sin inputs solo confirma; si no se puede deshacer volver viene elegido, si se puede el verbo | REGLAS §9 | DEUDA | Tipo: reversible: boolean obligatorio en programAct. |
+| 66 | Sin inputs solo confirma; si no se puede deshacer volver viene elegido, si se puede el verbo | REGLAS §9 | no compila | `src/tools/promises.ts` `src/surface/bridge/program-acts.ts` |
 | 67 | Mientras corre: evento en vivo, late Procesando, igual en todas, sin Entrada | REGLAS §9 | la cumple la superficie | `src/surface/router.spec.ts` `src/surface/walk.ts` `src/texts/surface.texts.ts` |
 | 68 | Cuando no hace falta, la Entrada se va (no se deshabilita ni se reserva) | REGLAS §9 | la cumple la superficie | `src/doors/terminal/thread.ts` `src/surface/walk.ts` |
-| 69 | Resultado en Verbo · Objeto · Detalle o Código · Causa · Objeto | REGLAS §9 | DEUDA | Derivada: promised.ts:61-67 ya tiene cada says y refused; validar el formato ahí. |
+| 69 | El resultado se dice Verbo · Objeto · Detalle | REGLAS §9 | prueba derivada de los casos | `src/programs/promised.ts` |
 | 70 | Un paso con datos inválidos no avanza | REGLAS §9 | la cumple la superficie | `src/surface/screen.ts` `src/surface/step.ts` `src/surface/walk.ts` |
 | 71 | Si falla, el error queda en el Hilo y vuelve a preguntar con lo escrito | REGLAS §9 | la cumple la superficie | `src/doors/terminal/terminal.spec.ts` `src/surface/step.ts` `src/surface/walk.ts` |
 | 72 | esc vuelve, cancela o cierra según la fase | REGLAS §9 | la cumple la superficie | `src/surface/step.ts` `src/surface/walk.ts` |
@@ -100,7 +100,7 @@ Leyes: 112. Deudas: 29.
 | 93 | La interfaz no habla: ni 1ª/2ª persona, ni preguntas, ni explicaciones; vocabulario cerrado | REGLAS §12 | DEUDA | Derivada: un laws que lea src/texts/*.texts.ts y los says/refused de los casos contra vocabulario cerrado y sin ¿ ? !, segunda persona ni «vos». |
 | 94 | Cada identidad con su nombre: no hay Vos ni Tuyas | REGLAS §12 | DEUDA | Misma derivada de la fila 93. |
 | 95 | No se muestra nada interno que la persona no pueda accionar | REGLAS §12 | DEUDA | Derivada: fallar si un título o dato coincide con un id de herramienta o cosa. |
-| 96 | Las acciones destructivas piden confirmación | REGLAS §12 | DEUDA | Componer: leaves: true exige confirms (tipo condicional en Declared, tools/promises.ts:82-93). |
+| 96 | Las acciones destructivas piden confirmación | REGLAS §12 | el programa no arranca | `src/tools/promises.ts` |
 | 97 | Al achicarse cae lo secundario y después elipsis | REGLAS §14 | la cumple la superficie | `src/doors/terminal/cells.ts` `src/doors/terminal/paint.ts` |
 | 98 | Terminal: contenido hasta 76, en angosto todo el ancho | REGLAS §14 | la cumple la superficie | `src/doors/terminal/paint.ts` |
 | 99 | Filas y menú: elipsis en dato o descripción; el nombre manda | REGLAS §14 | la cumple la superficie | `src/doors/terminal/thread.ts` |
@@ -119,3 +119,5 @@ Leyes: 112. Deudas: 29.
 | 112 | LEYES 12: editar es un menú; nunca recorrer «crear» con valores cargados | LEYES 12 | DEUDA | Componer: un acto con today debe estar under un menú. |
 | 113 | LEYES 13: buscar es un modo de los menús | LEYES 13 | prueba derivada de los casos | `src/programs/promised-find.ts` `src/surface/finding.ts` `src/surface/step.ts` |
 | 114 | Las pruebas derivadas corren en el gate de cada programa sin que el programa las pida | LEYES 7 | prueba derivada de los casos | `src/programs/program-checks.ts` `tests/program/program.checks.ts` `tests/laws/gate.spec.ts` |
+| 115 | El rechazo se dice Código · Causa · Objeto | REGLAS §9 | DEUDA | Hoy una causa es un dato corto sin punto (se rechaza al componer si es una frase); faltan los códigos de un conjunto cerrado. |
+| 116 | El nombre de una acción es corto y en minúscula: un verbo sobre su cosa, y lo que confirma es un solo verbo | Franco 11/11 | el programa no arranca | `src/tools/promises.ts` |

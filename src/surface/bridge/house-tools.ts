@@ -15,7 +15,7 @@ import { programActs } from "./program-acts.ts";
 
 /** Only a tool whose acts say how they are offered can be shown: an act without its declaration is a defect. */
 const isProgramTool = <X extends Program>(tool: HouseTool<X>): tool is ProgramTool<X> =>
-  Object.values(tool.acts).every(act => "label" in act && "key" in act && "cases" in act);
+  Object.values(tool.acts).every(act => "name" in act && "enter" in act && "key" in act && "cases" in act);
 const repeated = (keys: readonly string[]): string[] => keys.filter((key, index) => keys.indexOf(key) !== index);
 /** Every option is reached by a key of its own where it is offered: two with the same key is a defect. */
 function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown<X>): void {
@@ -34,7 +34,7 @@ function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown
   const astray = tools.flatMap(tool =>
     Object.values(tool.acts)
       .filter(act => act.also && (act.on !== "tool" || !tools.some(other => other.id === act.also?.tool)))
-      .map(act => `${tool.id} ${act.label}`),
+      .map(act => `${tool.id} ${act.name}`),
   );
   if (astray.length)
     throw new Error(`Acts offered on things that are not a tool's own act or name no tool: ${astray.join(", ")}`);
@@ -43,8 +43,9 @@ function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown
 function auditActs<X extends Program>(tool: ProgramTool<X>): void {
   const acts = Object.values(tool.acts);
   const menus = Object.entries(tool.menus ?? {});
-  /** Where an act asks to be confirmed, its own key takes it and this one goes back: they cannot be the same. */
-  if (acts.some(act => act.key === back)) throw new Error(`An act of ${tool.id} takes the key that goes back: ${back}`);
+  /** Where an act asks to be confirmed, the initial of its verb takes it and this one goes back: never the same. */
+  if (acts.some(act => act.enter.startsWith(back)))
+    throw new Error(`The verb of an act of ${tool.id} starts with the key that goes back: ${back}`);
   const lost = acts.flatMap(act => (act.under !== undefined && !tool.menus?.[act.under] ? [act.under] : []));
   if (lost.length) throw new Error(`Acts of ${tool.id} are under menus it does not declare: ${lost.join(", ")}`);
   const empty = menus.filter(([id]) => !acts.some(act => act.on === "thing" && act.under === id)).map(([id]) => id);
@@ -81,7 +82,9 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
   if (undeclared.length) throw new Error(`Acts without their declaration in ${undeclared.join(", ")}`);
   const tools = ports.registry.filter(isProgramTool);
   audit(tools, shown);
-  const asked = { locale: shown.locale, things: thingsOf(ports, tools, () => own) };
+  const titled = (tool: string, target: string): string =>
+    own.find(known => known.id === tool)?.titleOf?.(target) ?? target;
+  const asked = { locale: shown.locale, things: thingsOf(ports, tools, () => own), titled };
   const built = tools.flatMap(contract => {
     const words = shown.words[contract.id];
     return words ? [{ contract, words, ...programActs(observed, contract, asked) }] : [];
