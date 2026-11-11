@@ -1,12 +1,13 @@
 // The same cases, walked by keys through the router every renderer uses: what a person does to keep each promise.
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
+import { addresses } from "../catalogs/addressing.ts";
 import { asking } from "../surface/bridge/asking.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import type { Field } from "../surface/contract.ts";
 import { formats } from "../surface/masks.ts";
 import type { Router } from "../surface/router.ts";
 import { genericTexts as generic } from "../texts/generic-surface.texts.ts";
-import { promiseTexts as said } from "../texts/promises.texts.ts";
+import { promiseTexts as said, promiseTexts as words } from "../texts/promises.texts.ts";
 import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
@@ -106,7 +107,9 @@ function walk<X extends Program>({ router, tools }: Seat<X>, { aim, kase, answer
   });
   fitsSmallest(router);
   /** What asks to be confirmed is confirmed as a person does: by the initial of the act's own verb. */
-  if (said && row.with?.until === undefined && next(answers)) type(router, aim.act.enter.charAt(0));
+  const sure = said && row.with?.until === undefined ? next(answers) : null;
+  if (sure) ok(!addresses(sure.ask), words.speaks(sure.ask));
+  if (sure) type(router, aim.act.enter.charAt(0));
   return said;
 }
 function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {

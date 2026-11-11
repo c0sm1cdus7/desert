@@ -96,6 +96,8 @@ describe("asking what an act takes", () => {
     expect(refused(object({ kind: nested }))).toThrow("does not say its placeholder");
     const signed = Type.String({ title: "¿Qué es?", placeholder: "Nombre" });
     expect(refused(object({ what: signed }))).toThrow("A question is a noun, without signs: ¿Qué es?");
+    const spoken = Type.String({ title: "Qué vendés", placeholder: "Nombre" });
+    expect(refused(object({ what: spoken }))).toThrow("A question speaks to who reads it: Qué vendés");
   });
 });
 
