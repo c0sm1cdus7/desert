@@ -34,8 +34,10 @@ describe("what DESERT itself says to a person", () => {
       "Qué preferís",
     ];
     const plain = ["Después de cobrar", "Sin pendientes.", "Además, el país", "Total · $ 100", "más tarde", "se usa"];
-    expect(spoken.filter(text => !addresses(text))).toEqual([]);
-    expect(plain.filter(addresses)).toEqual([]);
+    const did = ["Cambiaste · CUIT · 20-12345678-6", "Ya la registraste", "Pediste un envío"];
+    const notDone = ["No existe", "Consiste en dos pasos", "Contraste alto", "Registrado · s1"];
+    expect([...spoken, ...did].filter(text => !addresses(text))).toEqual([]);
+    expect([...plain, ...notDone].filter(addresses)).toEqual([]);
   });
 
   it("refuses with causes that stand to the right of a row: short, and with no full stop", () => {

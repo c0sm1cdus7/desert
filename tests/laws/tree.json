@@ -72,14 +72,14 @@
   "folders": {
     "adapters/secrets": 103,
     "adapters/storage": 154,
-    "catalogs": 131,
+    "catalogs": 134,
     "doors/terminal": 545,
     "house": 82,
     "journal": 295,
     "programs": 920,
     "surface": 1421,
     "surface/bridge": 950,
-    "texts": 166,
+    "texts": 169,
     "tools": 732
   }
 }
