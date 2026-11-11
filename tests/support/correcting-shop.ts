@@ -23,6 +23,7 @@ const told = (total: number, paid: number) => ({
 });
 export const totalCorrected = "sales · correct · a sale's total is corrected, and what it was paid stays";
 export const paidCorrected = "sales · correct · what a sale was paid is corrected, and its total stays";
+export const overpaid = "sales · correct · a sale is not paid more than its total";
 /** Correcting a sale says its total and what it was paid over again: a person changes one, and the other stays. */
 const correct = programAct<Shop, typeof corrected>({
   label: "Corregir",
@@ -32,7 +33,9 @@ const correct = programAct<Shop, typeof corrected>({
   under: "edit",
   input: corrected,
   today: todayOf,
+  refuses: ["overpaid"],
   run: (input, { by, target }) => {
+    if (input.paid > input.total) return { status: "rejected", reason: "overpaid" };
     const fact = shop.fact("sale-corrected", { sale: nameOf(target), ...input }, by);
     return { status: "accepted", text: `Corrected ${nameOf(target)}`, effects: [fact] };
   },
@@ -50,6 +53,13 @@ const correct = programAct<Shop, typeof corrected>({
       on: "sales/s1",
       input: { total: 1500, paid: 500 },
       then: told(1500, 500),
+    },
+    {
+      promise: "a sale is not paid more than its total",
+      given: [registered],
+      on: "sales/s1",
+      input: { total: 100, paid: 2000 },
+      then: { refused: "overpaid" },
     },
   ],
 });

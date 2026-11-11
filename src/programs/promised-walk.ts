@@ -49,6 +49,8 @@ function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers }: Told<X>
   const on = kase.on ?? aim.tool.id;
   goTo(seat, aim.tool.id, on);
   const found = actRow(seat, aim, on, fitting(answers));
+  /** A refusal no row lets a person say cannot be broken from here; the act still has to be on some list. */
+  if (!found && "refused" in kase.then && actRow(seat, aim, on)) return undefined;
   ok(found, said.notOffered(aim.name));
   const { row } = found;
   strictEqual(row.off ? row.detail : undefined, aim.act.offered?.(seat.state(), on), said.offFor(aim.name));

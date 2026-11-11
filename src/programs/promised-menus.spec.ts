@@ -11,7 +11,7 @@ import {
   partsShown,
   registered,
 } from "../../tests/support/correcting-shop.ts";
-import { staleShown, totalCorrected, twinsShown } from "../../tests/support/correcting-shop.ts";
+import { overpaid, staleShown, totalCorrected, twinsShown } from "../../tests/support/correcting-shop.ts";
 import { shopShown, type Shop } from "../../tests/support/shop.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import type { Screen } from "../surface/contract.ts";
@@ -22,6 +22,11 @@ async function failing(checks: readonly Check[]): Promise<string[]> {
   return failed;
 }
 const keys = (...checks: string[]): string[] => checks.map(check => `${check}, by keys`);
+/** Every check that has to reach the act under the menu. */
+const everyWalk = [
+  ...keys(totalCorrected, paidCorrected, overpaid),
+  `${overpaid}, hidden for who prefers not to see what cannot be done`,
+];
 /** What a person reads on a screen: its title, and each line of its body as text. */
 const read = ({ title, body }: Screen): string[] => {
   if (body.kind === "list")
@@ -84,7 +89,7 @@ describe("a program with a menu on its things", () => {
   });
 
   it("fails the walk of an act that no list a person reaches has", async () => {
-    expect(await failing(walkedChecks(correctingShop, lostShown))).toEqual(keys(totalCorrected, paidCorrected));
+    expect(await failing(walkedChecks(correctingShop, lostShown))).toEqual(everyWalk);
   });
 
   it("fails the walk a row breaks by saying the thing is today what it is not, and no other", async () => {
@@ -92,6 +97,6 @@ describe("a program with a menu on its things", () => {
   });
 
   it("fails every walk through a list where two rows take one key", async () => {
-    expect(await failing(walkedChecks(correctingShop, twinsShown))).toEqual(keys(totalCorrected, paidCorrected));
+    expect(await failing(walkedChecks(correctingShop, twinsShown))).toEqual(everyWalk);
   });
 });

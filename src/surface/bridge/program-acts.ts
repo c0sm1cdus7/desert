@@ -64,6 +64,8 @@ const starter =
     if (how.today === undefined) return { ...row, detail: how.detail ?? act.purpose };
     const answers = ask.answers(how.today);
     const [from, until] = how.asks ?? [0];
+    if (from >= (until ?? answers.length) && !act.confirms)
+      throw new Error(`A row starts ${name} of ${tool} asking nothing, and the act does not ask to be confirmed`);
     const detail = how.detail ?? shownOf(ask, answers, from, until ?? answers.length);
     return { ...row, detail, with: { answers, from, ...(until === undefined ? {} : { until }) } };
   };
