@@ -134,8 +134,10 @@ export const maskOf = (field: Field | null, answer: string): string => {
   if (field?.kind === "pick") return field.shown(answer);
   return field && "mask" in field ? field.mask.shown(answer) : answer;
 };
+/** Whether what is written can be sent: it is valid, and where it is all the act asks, it is not what the datum
+ * already is. Writing the same again would change nothing. */
 export const validOf = (field: Field | null, typed: string): boolean =>
-  (field?.valid ?? (value => value.trim() !== ""))(typed);
+  (field?.valid ?? (value => value.trim() !== ""))(typed) && !(field?.only === true && field.current === typed);
 /** A walk as it begins. A row may start it with answers it already has: what comes before the first one it asks is
  * fixed by where the row stands and shows as answered, and each question opens on the answer it has. */
 export function begin(tools: readonly Tool[], tool: string, act: string, target?: string, given?: ViewRow["with"]) {
