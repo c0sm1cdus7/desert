@@ -25,8 +25,10 @@ export function preferencesTool<X extends Program>(ports: SurfacePorts<X>): Tool
     };
     /** The question opens on how it is now. */
     const ask: ToolAct["next"] = answers => {
-      const initial = hidden(what) ? said.hide.title : said.show.title;
-      return answers.length ? null : { ask: asked(capital(words.name)), kind: "one", options, initial };
+      /** It says how it is now, and that answer cannot be chosen again. */
+      const current = hidden(what) ? said.hide.title : said.show.title;
+      const ask = asked(capital(words.name));
+      return answers.length ? null : { ask, kind: "one", options, current, only: true };
     };
     return {
       label: words.name,

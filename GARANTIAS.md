@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 122. Deudas: 23.
+Leyes: 123. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -129,3 +129,4 @@ Leyes: 122. Deudas: 23.
 | 122 | Un dato completo que no vale dice por qué donde se escribe, y ninguna acción corre con él, entre por la puerta que entre: se declara una vez, con el dato | 11/11 · CUIT de un cliente con dígito verificador equivocado | prueba derivada de los casos | `src/catalogs/fields.ts` `src/tools/promises.ts` `src/surface/step.ts` `src/programs/promised-walk.ts` `src/programs/promised-fields.spec.ts` |
 | 123 | Una fila que ya lleva todo lo que su acción toma, y que la acción va a rechazar, está apagada diciendo por qué: a nadie se le ofrece lo que ya se sabe que no se puede | LEYES 4 · 11/11, sabotaje que sobrevivía en Equipo | prueba derivada de los casos | `src/programs/promised-walk.ts` `src/programs/promised-known.spec.ts` |
 | 124 | Toda fila que arranca una acción se nombra como una acción: en minúscula, sin puntuación y corta, también la que una pantalla propia nombra a mano | 11/11 · decisión de Franco «minúscula»; visto en Editar una venta | prueba derivada de los casos | `src/surface/bridge/program-acts.ts` `src/tools/promises.ts` `src/programs/promised-menus.spec.ts` |
+| 125 | Una pregunta que cambia un dato dice al lado de su nombre lo que el dato vale hoy; y donde es lo único que la acción pregunta, la opción que ya está elegida queda apagada, con «actual» | 11/11 · Franco: «si estoy cambiando algo, tengo que ver el valor actual… lo seleccionado se deshabilita. Es un comportamiento del componente» | la cumple la superficie | `src/surface/screen.ts` `src/surface/step.ts` `src/surface/walk.ts` `src/programs/promised-menus.spec.ts` `src/doors/terminal/house-screens.spec.ts` |

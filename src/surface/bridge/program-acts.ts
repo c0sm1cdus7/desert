@@ -85,7 +85,7 @@ const starter =
     if (from >= (until ?? answers.length) && !act.confirms)
       throw new Error(`A row starts ${name} of ${tool} asking nothing, and the act does not ask to be confirmed`);
     const detail = how.detail ?? shownOf(ask, answers, from, until ?? answers.length);
-    return { ...row, detail, with: { answers, from, ...(until === undefined ? {} : { until }) } };
+    return { ...row, detail, with: { answers, from, ...(until === undefined ? {} : { until }), today: true } };
   };
 /** Each menu of the tool among a thing's actions: off while nothing under it can be done, saying why. */
 function menusOf<X extends Program>(tool: ProgramTool<X>, shown: Readonly<Record<string, ThingAct>>) {

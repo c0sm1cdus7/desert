@@ -943,6 +943,19 @@
       "from": "11/11 · decisión de Franco «minúscula»; visto en Editar una venta",
       "guarantee": "derived",
       "evidence": ["src/surface/bridge/program-acts.ts", "src/tools/promises.ts", "src/programs/promised-menus.spec.ts"]
+    },
+    {
+      "id": 125,
+      "rule": "Una pregunta que cambia un dato dice al lado de su nombre lo que el dato vale hoy; y donde es lo único que la acción pregunta, la opción que ya está elegida queda apagada, con «actual»",
+      "from": "11/11 · Franco: «si estoy cambiando algo, tengo que ver el valor actual… lo seleccionado se deshabilita. Es un comportamiento del componente»",
+      "guarantee": "surface",
+      "evidence": [
+        "src/surface/screen.ts",
+        "src/surface/step.ts",
+        "src/surface/walk.ts",
+        "src/programs/promised-menus.spec.ts",
+        "src/doors/terminal/house-screens.spec.ts"
+      ]
     }
   ]
 }

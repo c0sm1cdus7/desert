@@ -53,7 +53,10 @@ export type ViewRow = Row & { readonly opens?: string; readonly act?: string } &
   readonly on?: { readonly tool: string; readonly target?: string };
   /** The answers its act starts with: what the thing has today. It asks them from one on, up to another when it
    * asks only part; what comes before is fixed by where the row stands. */
-  readonly with?: { readonly answers: readonly string[]; readonly from: number; readonly until?: number };
+  readonly with?: { readonly answers: readonly string[]; readonly from: number; readonly until?: number } & {
+    /** Those answers are what the thing is today, not a suggestion for something new: each question says so. */
+    readonly today?: true;
+  };
 };
 /** Something a person should know of from a menu: what it is about, what is said of it, and where it leads. */
 export interface Notice {

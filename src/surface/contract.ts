@@ -90,6 +90,8 @@ export interface Option {
   readonly detail?: string;
   /** What it stands for as an answer, when that is not its title. */
   readonly value?: string;
+  /** It cannot be chosen: it is what the datum already is, and its detail says so. */
+  readonly off?: boolean;
 }
 interface Question {
   readonly ask: string;
@@ -97,6 +99,10 @@ interface Question {
   readonly valid?: (value: string) => boolean;
   /** Why an answer that is complete still does not hold, when that is so: it stays where it was written. */
   readonly wrong?: (value: string) => string | undefined;
+  /** What the datum is today, as an answer: a question that changes it says so beside its name. */
+  readonly current?: string;
+  /** It is all its act asks: choosing what the datum already is would change nothing, so that option is off. */
+  readonly only?: true;
 }
 /** What a field with a format takes and shows: only the keys that fit it, and its shape before anything is typed. */
 export interface Mask {

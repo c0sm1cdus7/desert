@@ -47,18 +47,23 @@ function typing(session: Session, walk: Asking, tools: Tools, field: Field, key:
     ? advance(session, walk, tools, walk.typed, now)
     : { session: replace(session, { ...walk, error: why }) };
 }
+/** The option above or below that can be chosen: the cursor never rests on one that cannot. */
+function beside(options: readonly { off?: boolean }[], at: number, way: "up" | "down"): number {
+  const step = way === "up" ? -1 : 1;
+  for (let next = at + step; next >= 0 && next < options.length; next += step) if (!options[next]?.off) return next;
+  return at;
+}
 function choosing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
   const options = optionsOf(field);
   const set = (next: Partial<Asking>): Stepped => ({ session: replace(session, { ...walk, ...next }) });
-  if (key.kind === "up") return set({ at: Math.max(walk.at - 1, 0) });
-  if (key.kind === "down") return set({ at: Math.min(walk.at + 1, options.length - 1) });
-  const chosen = options[walk.at];
+  if (key.kind === "up" || key.kind === "down") return set({ at: beside(options, walk.at, key.kind) });
+  const chosen = options[walk.at]?.off ? undefined : options[walk.at];
   if (field.kind === "many" && key.kind === "type" && key.text === " " && chosen) {
     const on = walk.marks.includes(chosen.title);
     return set({ marks: on ? walk.marks.filter(mark => mark !== chosen.title) : [...walk.marks, chosen.title] });
   }
   if (key.kind === "type" && field.kind !== "many") {
-    const at = options.findIndex(option => option.key === key.text);
+    const at = options.findIndex(option => option.key === key.text && !option.off);
     if (at >= 0) return choosing(session, { ...walk, at }, tools, field, { kind: "confirm" }, now);
   }
   if (key.kind !== "confirm" || !chosen) return { session };
@@ -91,12 +96,11 @@ function picking(
   if (key.kind === "type" && key.text === " ") return set({ finding: true, typed: "", caret: 0, at: 0 });
   if (key.kind === "type") {
     const row = /^[1-9]$/u.test(key.text) ? found[Number(key.text) - 1] : undefined;
-    return row ? advance(session, walk, tools, row.value ?? row.title, now) : { session };
+    return row && !row.off ? advance(session, walk, tools, row.value ?? row.title, now) : { session };
   }
-  if (key.kind === "up") return set({ at: Math.max(walk.at - 1, 0) });
-  if (key.kind === "down") return set({ at: Math.min(walk.at + 1, found.length - 1) });
+  if (key.kind === "up" || key.kind === "down") return set({ at: beside(found, walk.at, key.kind) });
   const chosen = key.kind === "confirm" ? found[walk.at] : undefined;
-  return chosen ? advance(session, walk, tools, chosen.value ?? chosen.title, now) : { session };
+  return chosen && !chosen.off ? advance(session, walk, tools, chosen.value ?? chosen.title, now) : { session };
 }
 function back(session: Session, walk: Asking, tools: readonly Tool[]): Session {
   const { error: _gone, ...clean } = walk;

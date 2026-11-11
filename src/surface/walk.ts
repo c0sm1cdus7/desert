@@ -37,7 +37,7 @@ function pickRows(walk: Walk, question: Field & { kind: "pick" }): readonly Row[
   const found = question.found(walk.finding ? walk.typed : "");
   const rows = found.map((option, i): Row => {
     const key = walk.finding || i > 8 ? {} : { key: String(i + 1) };
-    return { ...option, ...key, selected: i === walk.at };
+    return { ...option, ...key, selected: i === walk.at && !option.off };
   });
   /** Nothing to pick among is said where the list would be: the question never stands over nothing. */
   if (!walk.finding && !rows.length && question.nothing())
@@ -46,11 +46,17 @@ function pickRows(walk: Walk, question: Field & { kind: "pick" }): readonly Row[
   const typing: Row = { title: "", entry: { typed: walk.typed, caret: Array.from(walk.typed).length } };
   return [typing, ...(rows.length ? rows : [{ title: said.nothingFound, still: true, tone: "t3" as const }])];
 }
+/** A question, and beside its name what its datum is today, when it changes one: said as a datum, turned down. */
+function askSpans(question: Field): readonly Span[] {
+  const current = question.current === undefined ? "" : maskOf(question, question.current);
+  const name = { text: question.ask, tone: "t1" } as const;
+  return current ? [name, { text: ` ${current}`, tone: "t2" }] : [name];
+}
 export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   const answered = answersOf(walk);
   if (walk.phase !== "asking") return { kind: "thread", events: [...answered, { text: endOf(walk, now) }] };
   const question = must(field);
-  const asking = walk.error === undefined ? [{ text: question.ask, tone: "t1" } as const] : errorSpans(walk.error);
+  const asking = walk.error === undefined ? askSpans(question) : errorSpans(walk.error);
   const events = [...answered, { text: asking }];
   if (question.kind === "pick") return { kind: "thread", events, options: pickRows(walk, question) };
   if (isTyped(field)) {
@@ -61,7 +67,7 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   const options: readonly Row[] = optionsOf(field).map((option, i) => ({
     ...option,
     ...(field?.kind === "many" ? { key: walk.marks.includes(option.title) ? "x" : " " } : {}),
-    selected: i === walk.at,
+    selected: i === walk.at && !option.off,
   }));
   return { kind: "thread", events, options };
 }
@@ -85,6 +91,9 @@ export function walkHints(walk: Walk, field: Field | null, tools: readonly Tool[
   if (walk.phase === "running") return [leave];
   const enter: Hint = { intent: "confirm", does: enterSays(walk, field, tools) };
   if (isTyped(field)) return validOf(field, walk.typed) ? [enter, leave] : [leave];
+  /** With nothing left to choose, only leaving is left. */
+  const free = field?.kind === "pick" ? field.found(walk.finding ? walk.typed : "") : optionsOf(field);
+  if (!isTyped(field) && free.length && free.every(option => option.off)) return [leave];
   const move: Hint = { intent: "move", does: k.choose };
   if (field?.kind === "pick" && !walk.finding && !field.found("").length) return [leave];
   if (field?.kind === "pick" && walk.finding) return [move, enter, { intent: "cancel", does: k.close }];

@@ -55,13 +55,20 @@ describe("the terminal, on a program's house", () => {
       ]),
     );
     const asked = await press("h");
-    expect(asked).toEqual(expect.arrayContaining(["Herramientas ajenas", "[m] Mostrar", "[o] Ocultar"]));
+    /** The question says how it is now, and that answer is off: choosing it again would change nothing. */
+    expect(asked).toEqual(
+      expect.arrayContaining(["Herramientas ajenas Mostrar", "[m] Mostrar | actual", "[o] Ocultar"]),
+    );
     expect(asked.at(-1)).toContain("enter guardar");
+    expect(await press("m")).toEqual(asked);
     expect(await press("o")).toContain(`Listo Cambiado · Herramientas ajenas · ocultas · ${clock}`);
     expect(await press(escape)).toContain("[h] herramientas ajenas | ocultas");
     await press("h");
     const { body } = router.screen({ rows: contentRows(size.rows) });
-    expect(body.kind === "thread" && body.options?.find(option => option.selected)?.title).toBe("Ocultar");
+    expect(body.kind === "thread" && body.options?.map(option => [option.title, option.off, option.selected])).toEqual([
+      ["Mostrar", undefined, true],
+      ["Ocultar", true, false],
+    ]);
     await press(escape);
     const menu = await press(escape);
     expect(menu.some(line => line.includes("pagos"))).toBe(false);
