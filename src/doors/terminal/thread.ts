@@ -148,10 +148,14 @@ export function drawThread(grid: Grid, body: Extract<Body, { kind: "thread" }>, 
   const room = bottom - 3 + 1;
   const lit = lines.findIndex(line => line.lit);
   const overflow = Math.max(lines.length - room + (lines.length > room ? 1 : 0), 0);
-  const cut = lit >= 0 ? Math.min(overflow, lit) : overflow;
-  const shown = lines.slice(cut, cut + room - (cut ? 1 : 0));
+  /** What does not fit is cut from the top; reading back brings it down a window at a time, saying what is below. */
+  const cut = Math.max((lit >= 0 ? Math.min(overflow, lit) : overflow) - (body.read ?? 0) * Math.max(room - 2, 1), 0);
+  const fits = room - (cut ? 1 : 0);
+  const under = lines.length - cut > fits ? lines.length - cut - fits + 1 : 0;
+  const shown = lines.slice(cut, cut + fits - (under ? 1 : 0));
   if (cut) put(grid, left, 3, { text: `↑ ${cut} ${said.more}`, tone: "t3" });
-  const rowOf = (i: number): number => bottom - shown.length + 1 + i;
+  if (under) put(grid, left, bottom, { text: `↓ ${under} ${said.more}`, tone: "t3" });
+  const rowOf = (i: number): number => bottom - (under ? 1 : 0) - shown.length + 1 + i;
   const first = shown.findIndex(line => line.lit);
   const last = shown.findLastIndex(line => line.lit);
   const above = first > 0 ? shown[first - 1] === blank : !cut;

@@ -79,13 +79,13 @@
     "adapters/secrets": 103,
     "adapters/storage": 168,
     "catalogs": 195,
-    "doors/terminal": 566,
+    "doors/terminal": 570,
     "house": 91,
     "journal": 326,
     "programs": 989,
-    "surface": 1639,
-    "surface/bridge": 1230,
-    "texts": 188,
+    "surface": 1667,
+    "surface/bridge": 1233,
+    "texts": 193,
     "tools": 824
   }
 }

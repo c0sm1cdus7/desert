@@ -38,7 +38,7 @@ function pickRows(walk: Walk, question: Field & { kind: "pick" }): readonly Row[
   const rows = found.map((option, i): Row => {
     /** What makes a new one keeps the key of its act; the things there are take their number. */
     const key = walk.finding || i > 8 || option.makes ? {} : { key: String(i + 1) };
-    return { ...option, ...key, selected: i === walk.at && !option.off };
+    return { ...option, ...key, selected: i === walk.at };
   });
   /** Nothing to pick among is said where the list would be: the question never stands over nothing. */
   if (!walk.finding && !rows.length && question.nothing())
@@ -73,9 +73,9 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   const options: readonly Row[] = optionsOf(field).map((option, i) => ({
     ...option,
     ...(field?.kind === "many" ? { key: walk.marks.includes(option.title) ? "x" : " " } : {}),
-    selected: i === walk.at && !option.off,
+    selected: i === walk.at,
   }));
-  return { kind: "thread", events, options };
+  return { kind: "thread", events, options, ...(walk.read ? { read: walk.read } : {}) };
 }
 function enterSays(walk: Walk, field: Field | null, tools: readonly Tool[]): string {
   const options = optionsOf(field);

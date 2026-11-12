@@ -111,7 +111,10 @@ export function written(schema: TSchema, ctx: Ctx): Field {
     if (typed.trim() === "") return generic.lacks.empty;
     const [value, least] = [valueOf(schema, ctx, typed), at(schema, "minimum")];
     const low = typeof value === "number" && typeof least === "number" && value < least;
-    return low ? generic.lacks.least(format?.shown(format.typed(least)) ?? String(least)) : generic.lacks.partial;
+    if (low) return generic.lacks.least(format?.shown(format.typed(least)) ?? String(least));
+    const above = at(schema, "exclusiveMinimum");
+    const under = typeof value === "number" && typeof above === "number" && value <= above;
+    return under ? generic.lacks.above(format?.shown(format.typed(above)) ?? String(above)) : generic.lacks.partial;
   };
   /** What a person writes has a top: a number without one, or a text without a length, is a defect. */
   const numeric = at(schema, "type") === "integer" || at(schema, "type") === "number";

@@ -7,7 +7,12 @@ export const genericTexts = {
   /** The last list of a thing: everything that was done to it, as the journal has it. */
   record: { title: "Registro" },
   /** Why what is written cannot be sent yet: said where it is written, as a datum. */
-  lacks: { empty: "vacío", partial: "incompleto", least: (least: string) => `mínimo ${least}` },
+  lacks: {
+    empty: "vacío",
+    partial: "incompleto",
+    least: (least: string) => `mínimo ${least}`,
+    above: (than: string) => `mayor a ${than}`,
+  },
   /** A day that already happened, written after today. */
   future: "día futuro",
   /** A key the field does not take, and one more than it holds. */

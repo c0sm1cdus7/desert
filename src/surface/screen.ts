@@ -36,6 +36,8 @@ interface Walking {
   readonly caret: number;
   readonly at: number;
   readonly marks: readonly string[];
+  /** How many windows back of what the question says the person is reading, from its options. */
+  readonly read?: number;
   /** What is written was there when the question opened: the first key written replaces it, any other edits it. */
   readonly suggested: boolean;
   readonly error?: string;
@@ -132,12 +134,13 @@ export const opened = (field: Field | null, answer?: string): Opened => {
   const value = answer ?? field?.initial ?? "";
   const typed = field?.kind === "text" || field?.kind === "secret" ? value : "";
   const options = field?.kind === "pick" ? field.found("") : optionsOf(field);
-  const at = foundAt(options, option => option.title === value);
+  const at = foundAt(options, option => (option.value ?? option.title) === value);
   return {
     typed,
     caret: Array.from(typed).length,
-    /** A choice opens on the option it already is; where that one cannot be chosen, on the first that can. */
-    at: options[at]?.off ? foundAt(options, option => !option.off) : at,
+    /** A choice opens on the option it already is, also when that one cannot be chosen again: the person sees
+     * where the datum stands, and enter on it says nothing would change. */
+    at,
     marks: field?.kind === "many" && value ? value.split(" · ") : [],
     suggested: typed !== "",
   };

@@ -32,6 +32,8 @@ const quantity = (locale: Locale): Format => ({
   shown: typed => typed,
   put: (typed, text) => {
     const [whole = "", part] = typed.split(locale.decimal);
+    /** A zero written first gives way to the digit after it: nobody reads «010». */
+    if (digits.test(text) && typed === "0") return text;
     if (digits.test(text))
       return (part === undefined ? whole.length < 6 : part.length < quantityDecimals) ? typed + text : typed;
     return text === locale.decimal && typed !== "" && !typed.includes(locale.decimal) ? typed + text : typed;
@@ -106,7 +108,7 @@ export const padded = (width: number): Format => ({
     const next = String(Number(typed + text));
     return digits.test(text) && next.length <= width ? next : typed;
   },
-  value: typed => (Number(typed) > 0 ? Number(typed) : undefined),
+  value: typed => (typed === "" ? undefined : Number(typed)),
   typed: value => (typeof value === "number" ? String(value) : ""),
 });
 /** Text of only some characters, up to a length: what is not one of them does not go in. Empty, it says what

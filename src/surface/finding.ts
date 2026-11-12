@@ -1,6 +1,7 @@
 // Looking for things from a menu: what a person wrote, and the rows of what it finds, on the Menu or in one tool.
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import { toolOf, type Choice, type Listed, type Picture, type Place } from "./screen.ts";
+import { startTalk } from "./talk.ts";
 import type { Tool } from "./shown-tool.ts";
 
 const plain = (words: string): string => words.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -25,6 +26,15 @@ const found = (tool: Tool, sought: string): Choice[] =>
     const open: Place = { kind: "view", tool: tool.id, target: row.opens, at: 0 };
     return [{ ...row, open }];
   });
+/** The tools a person holds whose name is what they look for, wherever they are opened from: each row opens it. */
+const named = (tools: readonly Tool[], sought: string): Choice[] =>
+  tools
+    .filter(tool => tool.listed?.() !== false && tool.off?.() === undefined && matches(tool.name, sought))
+    .map(tool => {
+      const talks = tool.conversation && !tool.conversationAt;
+      const open: Place = talks ? startTalk(tool.id) : { kind: "view", tool: tool.id, at: 0 };
+      return { title: tool.name.toLowerCase(), detail: tool.summary(), open };
+    });
 /** What a menu lists while a person looks for something: what they wrote and what it finds. No action is there,
  * and no other list. */
 export function foundAt(place: Picture, sought: string, tools: readonly Tool[]): readonly Listed[] {
@@ -34,9 +44,13 @@ export function foundAt(place: Picture, sought: string, tools: readonly Tool[]):
   };
   const wanted = sought.trim();
   const here = place.kind === "menu" ? undefined : toolOf(tools, place.tool);
-  const results = (here ? [here] : seekers(tools))
-    .map(tool => ({ title: here ? said.found : tool.name, rows: wanted === "" ? [] : found(tool, wanted) }))
-    .filter(stack => stack.rows.length);
+  /** From the Menu, the tools themselves are found by their name, before what each of them finds. */
+  const byName = here || wanted === "" ? [] : [{ title: said.sections.tools, rows: named(tools, wanted) }];
+  const within = (here ? [here] : seekers(tools)).map(tool => ({
+    title: here ? said.found : tool.name,
+    rows: wanted === "" ? [] : found(tool, wanted),
+  }));
+  const results = [...byName, ...within].filter(stack => stack.rows.length);
   const none = { title: said.found, rows: [], empty: said.nothingFound };
   return [typing, ...(results.length ? results : [none])];
 }

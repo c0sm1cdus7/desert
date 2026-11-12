@@ -147,7 +147,7 @@ describe("a datum with a shape of its own", () => {
   it("writes a number with zeros before it, from the right; and a name with only the characters it allows", () => {
     const point = padded(4);
     expect([point.empty, point.shown(point.put("", "1")), point.put("1234", "5")]).toEqual(["0000", "0001", "1234"]);
-    expect([point.value("0"), point.value("12")]).toEqual([undefined, 12]);
+    expect([point.value("0"), point.value("12")]).toEqual([0, 12]);
     const user = limited("a-z0-9._-", 8, "nombre");
     const put = [user.put("ana", "A"), user.put("ana", "."), user.put("abcdefgh", "i")];
     expect([user.empty, ...put]).toEqual(["nombre", "ana", "ana.", "abcdefgh"]);

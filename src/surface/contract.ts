@@ -70,6 +70,8 @@ export type Body =
         readonly suggested?: true;
       };
       readonly reference?: string;
+      /** How many windows back of what is said the person is reading: the options stay where they are. */
+      readonly read?: number;
     };
 export interface Panel {
   readonly title: string;

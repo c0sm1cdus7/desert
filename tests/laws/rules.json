@@ -1231,6 +1231,40 @@
       "from": "12/11 · ronda 2 de escépticos de Capibara: un cobro del «45/13/2025» se guardaba y las reglas lo ignoraban",
       "guarantee": "spec",
       "evidence": ["src/catalogs/fields.ts", "src/surface/bridge/asking-days.spec.ts"]
+    },
+    {
+      "id": 156,
+      "rule": "Lo que una pregunta dice y no entra arriba de sus opciones se lee con la misma tecla que sube desde la primera opción, una ventana por vez, diciendo cuánto queda arriba y abajo; cualquier tecla que baja vuelve a las opciones. Nadie confirma lo que no pudo leer",
+      "from": "12/11 · ronda 2 de escépticos de Capibara: la vista previa de una factura perdía su encabezado en una terminal de 16 filas",
+      "guarantee": "spec",
+      "evidence": ["src/surface/walking.ts", "src/doors/terminal/thread.ts", "src/doors/terminal/house-keys.spec.ts"]
+    },
+    {
+      "id": 157,
+      "rule": "Una pregunta que cambia un dato abre parada en lo que el dato ya es, y Enter ahí dice que nada cambiaría: nadie cambia un dato por apretar Enter de más",
+      "from": "12/11 · ronda 2 de escépticos de Capibara: «cambiar cliente» abría parado en otra persona y Enter la cambiaba",
+      "guarantee": "spec",
+      "evidence": ["src/surface/screen.ts", "src/surface/walking.ts", "src/doors/terminal/house-keys.spec.ts"]
+    },
+    {
+      "id": 158,
+      "rule": "Lo que está entero y no alcanza dice cuánto toma su campo («mayor a 0», «mínimo 0001»), nunca «incompleto»; la tecla que el campo sí toma y ya no entra dice que no entra más; un número se escribe sin ceros adelante",
+      "from": "12/11 · ronda 2 de escépticos de Capibara: «incompleto» para lo que estaba completo y mal, «9 no va acá» para un 9 que no entraba, cantidad «010000»",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/bridge/asking-parts.ts",
+        "src/surface/walking.ts",
+        "src/surface/masks.ts",
+        "src/surface/bridge/asking-numbers.spec.ts",
+        "src/doors/terminal/house-keys.spec.ts"
+      ]
+    },
+    {
+      "id": 159,
+      "rule": "Desde el Menú, buscar encuentra también las herramientas por su nombre, vivan donde vivan, antes de lo que cada una encuentra",
+      "from": "12/11 · ronda 2 de escépticos de Capibara: buscar «fis» no encontraba Fiscal",
+      "guarantee": "spec",
+      "evidence": ["src/surface/finding.ts", "src/doors/terminal/house-keys.spec.ts"]
     }
   ]
 }
