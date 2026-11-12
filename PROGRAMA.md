@@ -12,7 +12,7 @@ programa (Kenon). Lo que una regla hace cumplir está en `GARANTIAS.md`; las ley
 | Cada herramienta | `ProgramTool`: `id`, `purpose`, `targets`, `view`, `summary`, `acts`, y si hace falta `menus`, `closed`, `needs`, `words`, `start`. | `src/tools/promises.ts` |
 | Cada acción | `programAct({ name, enter, undoable, purpose, key, on, input, run, cases, … })`. | `src/tools/promises.ts` |
 | Lo que promete | `cases`: dado esto, al hacer esto, pasa esto (dice, escribe, se lee, pide atención) o se rechaza con un motivo. | `src/tools/promises.ts` |
-| Sus palabras | `Shown.words[herramienta]`: `name`, `key`, `empty`, `listed`, `reads`, `presents`, y `system` o `inside`. | `src/surface/bridge/house-ports.ts` |
+| Sus palabras | `Shown.words[herramienta]`: `name`, `key`, y `system` o `inside`; si lista cosas, `empty`, `listed`, `reads` y `presents`; si lee datos propios, `itself`. | `src/surface/bridge/house-ports.ts` |
 | Su país | `Shown.locale`: cómo se escribe la plata y el día. | `src/surface/masks.ts` |
 
 El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`) y `shown`, y dice en su
@@ -56,6 +56,16 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   la primera (`inside`): no tiene fila en el Menú, y la lista y la abre la herramienta en la que vive.
 - Un objeto nunca se ofrece en la lista de la que elige una acción sobre él mismo.
 - Lo que no entra en la pantalla se alcanza con ↑ y ↓, también lo que solo se lee.
+
+## Una herramienta que lee datos propios
+
+- Una herramienta que no lista cosas sino que lee datos suyos (los ajustes de algo, un resumen) declara en `itself`
+  los grupos en que van, igual que los de un objeto. `view(estado, herramienta)` devuelve en su primera línea un JSON
+  con esas claves. No trae pantalla propia: la base reparte los datos.
+- Un dato que una acción cambia (`changes`, `on: "tool"`) es la fila que empieza esa acción, con su tecla y lo que
+  el dato es hoy. Lo que la lectura nombra como `{ id, text, detail? }` abre ese objeto. Un grupo sin nada dice su
+  vacío. Un dato que ningún grupo tiene es un defecto del programa.
+- Una herramienta puede hacer las dos cosas: primero sus datos (`itself`), después la lista de sus cosas.
 
 ## Lo que la base todavía no hace (lo que un programa va a pedir)
 

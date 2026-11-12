@@ -26,18 +26,32 @@ export interface HousePorts<X extends Program> {
 export type SurfacePorts<X extends Program> = Omit<HousePorts<X>, "act"> & {
   readonly act: (value: Act) => ExecutionResult<X>;
 };
-/** What a program calls a tool where a person reads it; its acts say their own words where they are declared. */
-export type ToolWords = Readonly<{ name: string; key: string; empty: string; system?: true }> &
-  /** The tool it lives in: it has no row on the Menu, and is opened from that tool's own, as the Menu opens others. */
-  Readonly<{ inside?: string }> &
-  /** What heads the list of its things, the label of each datum the tool itself reads, and how one of its things
-   * is presented: its stacks, in order. */
-  Readonly<{ listed: string; reads: Readonly<Record<string, string>>; presents: readonly Presented[] }>;
+/** What a program calls a tool where a person reads it; its acts say their own words where they are declared.
+ * The tool it lives in, when it lives in one: it has no row on the Menu, and is opened from that tool's own, as the
+ * Menu opens others. */
+type Called = Readonly<{ name: string; key: string; system?: true; inside?: string }>;
+/** A tool of things: what it says with none, what heads their list, the label of each datum read on that list,
+ * and how one of its things is presented: its stacks, in order. */
+export type Lists = Readonly<{ empty: string; listed: string }> &
+  Readonly<{ reads: Readonly<Record<string, string>>; presents: readonly Presented[] }>;
+/** A tool that reads data of its own: the stacks that data goes in, in order, as the stacks of a thing. */
+export type Itself = Readonly<{ itself: readonly Presented[] }>;
+/** A tool lists things, reads data of its own, or both: its data first, then its things. */
+export type ToolWords = Called & (Lists | Itself);
 /** One stack of a thing: its title, what it says with nothing in it, and each datum of the reading that goes in
  * it, with its label. */
 export type Presented = Readonly<{ title: string; empty: string }> &
   Readonly<{ reads: Readonly<Record<string, string>> }>;
 export type SurfaceWords = Readonly<Record<string, ToolWords>>;
+/** The words of a tool for the things it lists, when it lists any. */
+export const listsOf = (words?: ToolWords): Lists | undefined => (words && "listed" in words ? words : undefined);
+/** The stacks of what a tool reads of its own, when it reads any. */
+export const itselfOf = (words?: ToolWords): readonly Presented[] => (words && "itself" in words ? words.itself : []);
+/** The label of every datum a tool itself reads: on the list of its things, and in the stacks of its own data. */
+export const ownReads = (words?: ToolWords): Readonly<Record<string, string>> => ({
+  ...listsOf(words)?.reads,
+  ...Object.fromEntries(itselfOf(words).flatMap(stack => Object.entries(stack.reads))),
+});
 /** How a program is shown: its words, how its country writes money and days, and the screens that are its own. */
 export type Shown<X extends Program> = Readonly<{ words: SurfaceWords; locale: Locale }> &
   Readonly<{ screens?: Readonly<Record<string, ProgramScreen<X>>> }> &

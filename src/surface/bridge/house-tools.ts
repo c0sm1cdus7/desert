@@ -9,7 +9,7 @@ import type { Option } from "../contract.ts";
 import { backKey as back } from "../screen.ts";
 import type { Things } from "./asking.ts";
 import { anyToolScreen } from "./any-tool.ts";
-import type { HousePorts, Shown, SurfacePorts, ToolWords } from "./house-ports.ts";
+import { listsOf, ownReads, type HousePorts, type Shown, type SurfacePorts, type ToolWords } from "./house-ports.ts";
 import { noticesOf } from "./notices.ts";
 import { preferencesPlace, preferencesTool } from "./preferences-tool.ts";
 import { programActs } from "./program-acts.ts";
@@ -58,7 +58,7 @@ function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown
   auditPlaces(tools, shown);
   if (tools.some(tool => tool.id === preferencesPlace.id)) throw new Error(`A tool takes the name of Preferences`);
   tools.forEach(auditActs);
-  tools.forEach(tool => auditData(tool, shown.words[tool.id]?.reads ?? {}));
+  tools.forEach(tool => auditData(tool, ownReads(shown.words[tool.id])));
   for (const tool of tools) {
     const also = tools.flatMap(other => Object.values(other.acts).filter(act => act.also?.tool === tool.id));
     const own = Object.values(tool.acts).filter(act => act.on === "thing" && act.under === undefined);
@@ -116,7 +116,7 @@ const thingsOf =
     if (why !== undefined) return { found: () => [], shown: thing => thing, has: () => false, empty: why };
     const open = (thing: string): boolean => contract.closed?.(ports.state(), thing) !== true;
     return {
-      empty: words[id]?.empty ?? "",
+      empty: listsOf(words[id])?.empty ?? "",
       found: sought =>
         (tool.find?.(sought) ?? []).flatMap(row => (row.opens && open(row.opens) ? [picked(row, row.opens)] : [])),
       shown: thing => tool.titleOf?.(thing) ?? thing,
@@ -134,7 +134,7 @@ function withThings<X extends Program>(
   screen: Tool,
 ): Tool {
   const moment = shown.moment ?? plainMoment;
-  const declared = thingView(ports, contract, words.presents);
+  const declared = thingView(ports, contract, listsOf(words)?.presents ?? []);
   /** After what its tool declared, a thing reads everything that was done to it: newest first, as the journal has
    * it, with who did it and when. A thing nothing was done to (it is there by itself) has no such list. */
   const record = (target: string) => {

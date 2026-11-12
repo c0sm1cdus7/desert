@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 141. Deudas: 23.
+Leyes: 142. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -148,3 +148,4 @@ Leyes: 141. Deudas: 23.
 | 141 | Un campo puede decir cuándo se pregunta, según lo respondido antes en el mismo dato: mientras no hace falta no se pregunta y el dato va sin él; cuando hace falta se pregunta enseguida y no se saltea | 11/11 · obra de Capibara: el tipo de documento solo cuando el número tiene once dígitos | una spec a mano | `src/catalogs/fields.ts` `src/surface/bridge/asking.ts` `src/surface/bridge/asking-back.ts` `src/surface/bridge/asking.spec.ts` |
 | 142 | Un día que casi siempre es hoy abre sugiriendo hoy, como lo cuenta el país del programa: Enter lo acepta y escribir lo reemplaza | 11/11 · obra de Capibara: las fechas de una venta y de una compra se pedían vacías | una spec a mano | `src/catalogs/fields.ts` `src/surface/bridge/asking-parts.ts` `src/surface/bridge/asking.spec.ts` |
 | 143 | Quien administra una casa puede sacar a alguien de ella (nunca a sí mismo): lo que escribió queda y su acceso se va; y puede pasarle la administración a otro de los que están. Nadie más puede hacer ninguna de las dos cosas | 11/11 · obra de Capibara: «sacar» un usuario solo le quitaba las herramientas | una spec a mano | `src/house/house.ts` `src/journal/events.ts` `src/house/grants.spec.ts` |
+| 144 | Una herramienta que lee datos propios dice los grupos en que van, como los de un objeto: cada dato que una acción cambia es la fila que empieza esa acción, lo que nombra a otro objeto lo abre, un grupo sin nada lo dice, y un dato que ningún grupo tiene es un defecto del programa. Una herramienta lista cosas, lee datos propios, o las dos: primero sus datos, después sus cosas | 11/11 · obra de Capibara: Fiscal y Organización traían cada una su pantalla, copiada, para repartir sus datos en grupos | una spec a mano | `src/surface/bridge/house-ports.ts` `src/surface/bridge/any-tool.ts` `src/surface/bridge/presented.ts` `src/programs/promised-data.spec.ts` |

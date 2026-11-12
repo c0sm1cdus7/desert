@@ -4,9 +4,10 @@ import type { Program } from "../../tools/tool-contract.ts";
 import { matches } from "../finding.ts";
 import type { Tool, ViewRow } from "../shown-tool.ts";
 import { must } from "../window.ts";
-import { placed, section, type ScreenActs, type Start, type SurfacePorts, type ToolWords } from "./house-ports.ts";
+import { itselfOf, listsOf, ownReads, placed, section } from "./house-ports.ts";
+import type { ScreenActs, Start, SurfacePorts, ToolWords } from "./house-ports.ts";
 import { capital } from "./program-acts.ts";
-import { thingView } from "./presented.ts";
+import { ownView, thingView } from "./presented.ts";
 import { briefOf, listedIn, rowsIn, type Changing, type Labels } from "./rows.ts";
 
 /** A label the program did not give is a defect of the program: it is named, never replaced by a code. */
@@ -58,11 +59,17 @@ export function anyToolScreen<X extends Program>(
   acts: ScreenActs,
   start: Start,
 ): Tool {
-  const label = (key: string): string => worded(words.reads, tool.id, key);
-  /** What the tool itself reads: a datum an act changes is the row that starts that act. */
-  const own = (): ViewRow[] =>
-    rowsIn(tool.view(ports.state(), tool.id, ports.limits), label, changingBy(ports, tool, start)(tool.id));
-  const thing = thingView(ports, tool, words.presents);
+  const reads = ownReads(words);
+  const label = (key: string): string => worded(reads, tool.id, key);
+  const [lists, stacks] = [listsOf(words), itselfOf(words)];
+  const changing = changingBy(ports, tool, start)(tool.id);
+  const read = (): string => tool.view(ports.state(), tool.id, ports.limits);
+  /** What the tool reads of its own goes first, in its stacks: the first line of its view. Its things follow. */
+  const itself = () => (stacks.length ? ownView(stacks, read(), tool.id, changing) : []);
+  const listed = (): string => (stacks.length ? read().split("\n").slice(1).join("\n") : read());
+  /** What the tool itself reads on its list: a datum an act changes is the row that starts that act. */
+  const own = (): ViewRow[] => rowsIn(listed(), label, changing);
+  const thing = thingView(ports, tool, lists?.presents ?? []);
   const menuOf = (target?: string) => menuAt(tool, tool.targets(ports.state()), target);
   const menuRows = (menu: Menued): ViewRow[] => rowsUnder(ports, tool, start, menu);
   return {
@@ -83,7 +90,7 @@ export function anyToolScreen<X extends Program>(
       if (menu) return [section(capital(menu.menu.name), menuRows(menu))];
       if (target !== undefined && !targets.includes(target)) throw new Error(`${tool.id} has no ${target}`);
       if (target) return thing(target);
-      return [section(words.listed, listedIn(targets, own()), words.empty)];
+      return [...itself(), ...(lists ? [section(lists.listed, listedIn(targets, own()), lists.empty)] : [])];
     },
   };
 }

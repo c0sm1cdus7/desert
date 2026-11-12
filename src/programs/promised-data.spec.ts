@@ -10,6 +10,7 @@ import { prefer } from "./promised-off.ts";
 import { cast, given, staged } from "./promised-stage.ts";
 import { programChecks } from "./program-checks.ts";
 import { astrayTill, closedTill, looseTill, tillProgram, tillShown, type Till } from "../../tests/support/till.ts";
+import { looseStacksShown, stackedTillShown } from "../../tests/support/till.ts";
 
 /** What a person reads of the till: each row by its key, what it says, its datum, and whether it is off. */
 const read = ({ body }: Screen): string[] =>
@@ -91,4 +92,53 @@ describe("a program whose act changes a datum its tool reads", () => {
       expect(composed(looseTill)()).rejects.toThrow("float of till changes a datum its tool reads"),
       expect(composed(astrayTill)()).rejects.toThrow("float of till changes a datum its tool does not read: price"),
     ]));
+});
+
+/** What a person reads of the till in its stacks, between what calls and is new and its actions: each stack by its
+ * title, its rows, and what it says with none. */
+const stacks = ({ body }: Screen): unknown[] =>
+  body.kind === "list"
+    ? body.stacks
+        .slice(2, -1)
+        .map(stack => [
+          stack.title,
+          stack.rows.map(row => [row.key, row.title, row.detail].join(" | ")),
+          stack.rows.length ? "" : stack.empty,
+        ])
+    : [];
+const stacked = (done: Given, shown: typeof tillShown, use: (now: () => unknown[]) => void) =>
+  staged(tillProgram, async ({ house }) => {
+    await given(house(), "till", done);
+    const seat = seated(house(), cast.admin, shown);
+    goTo(seat, "till", "till");
+    try {
+      use(() => stacks(seat.router.screen(view)));
+    } finally {
+      seat.router.stop();
+    }
+  });
+
+describe("a tool that reads data of its own, in the stacks its words say", () => {
+  for (const check of programChecks(tillProgram, stackedTillShown)) it(check.name, check.run);
+
+  it("puts each datum in its stack, the one an act changes as the row that starts it; a stack with none says so", () =>
+    stacked([], stackedTillShown, now =>
+      expect(now()).toEqual([
+        ["Fondo", ["f | fondo | $ 0"], ""],
+        ["Estado", [], "Abierta."],
+      ]),
+    ));
+
+  it("reads under its label what no act changes", () =>
+    stacked([closedTill], stackedTillShown, now =>
+      expect(now()).toEqual([
+        ["Fondo", ["f | fondo | $ 0 · cerrada"], ""],
+        ["Estado", [" | Estado | cerrada"], ""],
+      ]),
+    ));
+
+  it("refuses a datum the tool reads that no stack of its own holds", () =>
+    expect(stacked([closedTill], looseStacksShown, now => now())).rejects.toThrow(
+      "till reads state and no stack of its presentation holds it",
+    ));
 });

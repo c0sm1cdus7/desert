@@ -113,3 +113,22 @@ export const tillShown: Shown<Till> = {
   },
   locale: { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" },
 };
+/** The same till, saying the stacks its own data goes in instead of one list. */
+export const stackedTillShown: Shown<Till> = {
+  ...tillShown,
+  words: {
+    till: {
+      name: "Caja",
+      key: "c",
+      itself: [
+        { title: "Fondo", empty: "Sin fondo.", reads: { float: "Fondo" } },
+        { title: "Estado", empty: "Abierta.", reads: { state: "Estado" } },
+      ],
+    },
+  },
+};
+/** The same stacks, with the one that holds the state left out. */
+export const looseStacksShown: Shown<Till> = {
+  ...tillShown,
+  words: { till: { name: "Caja", key: "c", itself: [{ title: "Fondo", empty: "", reads: { float: "Fondo" } }] } },
+};

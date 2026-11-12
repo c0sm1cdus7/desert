@@ -1118,6 +1118,18 @@
       "from": "11/11 · obra de Capibara: «sacar» un usuario solo le quitaba las herramientas",
       "guarantee": "spec",
       "evidence": ["src/house/house.ts", "src/journal/events.ts", "src/house/grants.spec.ts"]
+    },
+    {
+      "id": 144,
+      "rule": "Una herramienta que lee datos propios dice los grupos en que van, como los de un objeto: cada dato que una acción cambia es la fila que empieza esa acción, lo que nombra a otro objeto lo abre, un grupo sin nada lo dice, y un dato que ningún grupo tiene es un defecto del programa. Una herramienta lista cosas, lee datos propios, o las dos: primero sus datos, después sus cosas",
+      "from": "11/11 · obra de Capibara: Fiscal y Organización traían cada una su pantalla, copiada, para repartir sus datos en grupos",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/bridge/house-ports.ts",
+        "src/surface/bridge/any-tool.ts",
+        "src/surface/bridge/presented.ts",
+        "src/programs/promised-data.spec.ts"
+      ]
     }
   ]
 }
