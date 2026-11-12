@@ -100,7 +100,8 @@ export const salesTool: ProgramTool<Shop> = {
   purpose: "Registers what the shop sells.",
   targets: state => [...state.tools.sales.keys()].map(sale => `sales/${sale}`),
   view: salesView,
-  summary: state => String(state.tools.sales.size),
+  /** A count says what it counts: beside its name a tool never says a bare number. */
+  summary: state => (state.tools.sales.size === 1 ? "1 venta" : `${state.tools.sales.size} ventas`),
   acts: {
     register: programAct<Shop, (typeof shopCatalog)["sale-registered"]>({
       ...registerOffer,
@@ -125,7 +126,7 @@ export const paymentsTool: ProgramTool<Shop> = {
   purpose: "Receives what the shop is paid.",
   targets: () => [],
   view: paymentsView,
-  summary: state => String(state.tools.payments.unmatched.length),
+  summary: state => `${state.tools.payments.unmatched.length} sin venta`,
   acts: {
     receive: programAct<Shop, (typeof shopCatalog)["payment-received"]>({
       name: "recibir",

@@ -117,6 +117,17 @@ describe("a program with acts on its things", () => {
     expect(await failing(checks)).toEqual([stillOwing, `${stillOwing}, in Attention with why`]);
   });
 
+  it("a tool that says a bare number beside its name fails its cases: a count says what it counts", async () => {
+    const registry = settlingShop.registry.map(tool =>
+      tool.id === "sales" ? { ...tool, summary: () => String(tool.targets.length) } : tool,
+    );
+    const why: string[] = [];
+    for (const check of promisedChecks({ ...settlingShop, registry }))
+      await check.run().catch((error: unknown) => why.push(String(error)));
+    expect(why.length).toBeGreaterThan(0);
+    expect(why.filter(said => !said.includes("sales says a bare number beside its name"))).toEqual([]);
+  });
+
   it("a screen that does not say how its things are found fails every search for one, and nothing else", async () => {
     const failed = await failing(walkedChecks(settlingShop, deafShown));
     expect(failed.length).toBeGreaterThan(0);

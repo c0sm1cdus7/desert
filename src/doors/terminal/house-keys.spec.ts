@@ -48,7 +48,7 @@ describe("a key that could have done nothing", () => {
 
   it("finds a tool by its name from the Menu, before what each tool finds", async () => {
     const { press } = open();
-    expect(await press(" ven")).toEqual(expect.arrayContaining(["› ven", "Herramientas", "ventas | 0"]));
+    expect(await press(" ven")).toEqual(expect.arrayContaining(["› ven", "Herramientas", "ventas | 0 ventas"]));
     expect((await press("\r"))[0]).toContain("Ventas");
   });
 });

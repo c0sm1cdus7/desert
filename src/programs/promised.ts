@@ -84,6 +84,12 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
             needs,
           );
       }
+      /** What a tool says beside its name is never a bare number: a count says what it counts. */
+      const bare = program.registry.filter(tool => /^\d+$/u.test(tool.summary(house().tools.state())));
+      deepStrictEqual(
+        bare.map(tool => said.bareCount(tool.id)),
+        [],
+      );
       const after = house().tools.state().tools;
       deepStrictEqual(rebuilt(program, house()), after);
       reopen();

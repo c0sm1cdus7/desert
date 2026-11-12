@@ -36,9 +36,11 @@ const escape = "\x1b";
 
 describe("the terminal, on a program's house", () => {
   it("shows on the Menu every tool of the program: the ones this identity does not hold, off, saying why", async () => {
-    expect(shown(open("ana").router)).toEqual(expect.arrayContaining(["[v] ventas | 0", "[p] pagos | 0"]));
+    expect(shown(open("ana").router)).toEqual(
+      expect.arrayContaining(["[v] ventas | 0 ventas", "[p] pagos | 0 sin venta"]),
+    );
     const { router, press } = open("beto");
-    expect(shown(router)).toEqual(expect.arrayContaining(["[v] ventas | 0", "[p] pagos | sin acceso"]));
+    expect(shown(router)).toEqual(expect.arrayContaining(["[v] ventas | 0 ventas", "[p] pagos | sin acceso"]));
     expect(shown(router)[0]).toContain(clock);
     expect((await press("p"))[0]).toContain("Menú");
     expect((await press("\r"))[0]).toContain("Ventas");
@@ -72,8 +74,8 @@ describe("the terminal, on a program's house", () => {
     await press(escape);
     const menu = await press(escape);
     expect(menu.some(line => line.includes("pagos"))).toBe(false);
-    expect(menu).toContain("[v] ventas | 0");
-    expect(shown(open("ana").router)).toContain("[p] pagos | 0");
+    expect(menu).toContain("[v] ventas | 0 ventas");
+    expect(shown(open("ana").router)).toContain("[p] pagos | 0 sin venta");
     rig.restart();
     expect(rig.state().house.hides.get("beto")).toEqual(["foreign"]);
   });
@@ -108,7 +110,7 @@ describe("the terminal, on a program's house", () => {
     expect(sale).toEqual(
       expect.arrayContaining(["Venta", "Total | $ 150000", "Cobrado | $ 0", "Actividad", "Creó | ana"]),
     );
-    expect(await press(`${escape}${escape}`)).toContain("[v] ventas | 1");
+    expect(await press(`${escape}${escape}`)).toContain("[v] ventas | 1 venta");
   });
 
   it("says a tool requires attention when someone else wrote in it, until it is opened", async () => {
