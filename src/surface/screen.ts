@@ -151,6 +151,8 @@ export const pickedFrom = (
 export const maskOf = (field: Field | null, answer: string): string => {
   if (field?.kind === "secret") return "•".repeat(Array.from(answer).length);
   if (field?.kind === "pick") return field.shown(answer);
+  /** Nothing written reads as nothing: the shape of an empty field is not an answer, and zero is not "no answer". */
+  if (answer === "") return "";
   return field && "mask" in field ? field.mask.shown(answer) : answer;
 };
 /** Whether what is written can be sent: it is valid, and where it is all the act asks, it is not what the datum
