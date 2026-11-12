@@ -36,6 +36,10 @@ describe("a program with a field that knows what is wrong", () => {
       expect(now()).toEqual(["Anotar", "Pago", "Error name", "› x"]);
       router.send({ kind: "erase" });
       expect(now()).toEqual(["Anotar", "Pago", "› "]);
+      /** A space before anything, or next to another, is not typed: what reads the same is written the same. */
+      type(router, " p  7");
+      expect(now()).toEqual(["Anotar", "Pago", "› p 7"]);
+      for (let erased = 0; erased < 3; erased++) router.send({ kind: "erase" });
       /** Enter on nothing says why it does not go on. */
       router.send({ kind: "confirm" });
       expect(now()).toEqual(["Anotar", "Pago", "Error vacío", "› "]);

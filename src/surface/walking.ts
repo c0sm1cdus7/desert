@@ -45,12 +45,20 @@ function rewritten(field: Field, before: Asking, { error: _was, ...written }: As
   const why = said ?? (validOf(field, written.typed) ? field.wrong?.(written.typed) : undefined);
   return { ...written, suggested: false, ...(why === undefined ? {} : { error: why }) };
 }
+/** A space that says nothing is not typed: before anything is written, or next to another space. Two names that
+ * read the same are written the same. */
+function idleSpace({ typed, caret }: Asking, key: Intent): boolean {
+  if (key.kind !== "type" || key.text !== " ") return false;
+  const chars = Array.from(typed);
+  return caret === 0 || chars[caret - 1] === " " || chars[caret] === " ";
+}
 function typing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
   /** A text takes no more than it may hold: the key that would pass it is not typed. */
   /** What the question opened with gives way to the first key written. */
   const fresh = walk.suggested && key.kind === "type" ? { ...walk, typed: "", caret: 0 } : walk;
   const full = key.kind === "type" && "max" in field && Array.from(fresh.typed).length >= (field.max ?? Infinity);
   if (full) return { session };
+  if (!("mask" in field) && idleSpace(fresh, key)) return { session };
   const changed = "mask" in field ? masked(fresh, field.mask, key) : edited(fresh, key);
   if (changed) return { session: replace(session, rewritten(field, fresh, changed)) };
   if (key.kind !== "confirm") return { session };
