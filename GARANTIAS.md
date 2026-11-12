@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 160. Deudas: 23.
+Leyes: 161. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -167,3 +167,4 @@ Leyes: 160. Deudas: 23.
 | 160 | Lo que una acción contesta en varias líneas dice qué hizo en la primera («Verbo · Objeto · Detalle»); lo demás es lo que muestra y se lee como se escribió: también se promete en los casos | 12/11 · lanes de Capibara: un impreso y un catálogo importado no se podían prometer en un caso porque la respuesta tenía más de una línea | una spec a mano | `src/programs/promised.ts` `src/programs/own-words.spec.ts` |
 | 161 | Una acción dice si se ofrece sabiendo qué momento es: lo que hoy no se puede hacer queda apagado con su motivo, y se prende solo cuando llega su día | 12/11 · lane de Capibara: «generar períodos» no se podía apagar cuando no había ningún período empezado, porque la acción no sabía qué día era | una spec a mano | `src/tools/tool-contract.ts` `src/tools/execute.ts` `src/surface/bridge/program-acts.ts` `src/tools/made.spec.ts` |
 | 162 | Lo que se contestó se lee al lado de lo que se preguntó; debajo, cuando lo preguntado es un bloque de varias líneas: la respuesta nunca se lee como el final del último renglón del bloque | 12/11 · caminando Capibara: después de emitir, la vista previa terminaba en «fisco de prueba emitir» | una spec a mano | `src/surface/walk.ts` `src/surface/walk.spec.ts` |
+| 163 | Donde se elige una cosa se ofrecen solo las que la acción toma según lo ya contestado: nada se ofrece en una lista para rechazarlo después de elegido; también para quien busca | 12/11 · lanes de Capibara: en una venta de servicios la lista ofrecía los bienes y los rechazaba al final («es un bien»); el mostrador ofrecía lo que no se vende en mostrador | una spec a mano | `src/tools/promises.ts` `src/surface/bridge/program-acts.ts` `src/programs/promised-also.spec.ts` |

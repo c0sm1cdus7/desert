@@ -2,10 +2,11 @@
 import { toolTexts } from "../texts/tools.texts.ts";
 import { aid, short, worded } from "./act-words.ts";
 import { wrongIn } from "../catalogs/fields.ts";
-import { Type, type Static, type TSchema } from "@sinclair/typebox";
+import type { Static, TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import type { Vocabulary } from "../journal/events.ts";
 import { toolAct } from "./act-definition.ts";
+import { soFar, type SoFar } from "./so-far.ts";
 import type { ActContext, ActResult, Program, Reach, Slices, State, Tool, ToolAct } from "./tool-contract.ts";
 
 /** Something that already happened before a case: an act of the program, by one of the house's identities. */
@@ -85,10 +86,7 @@ export type ProgramAct<X extends Program> = ToolAct<X> &
   Readonly<{ confirms?: (input: unknown, state: State<X>, target: string, at: number) => string | undefined }> &
   /** What the thing has today, in the shape the act takes: an act that changes it opens on it. */
   Readonly<{ today?: (state: State<X>, target: string) => unknown; also?: Also<X>; datum?: Datum<X> }> &
-  /** Why what was answered so far cannot go on, when that is so: said at the question it was answered in. */
-  Readonly<{
-    stops?: (answered: Readonly<Record<string, unknown>>, state: State<X>, target: string) => string | undefined;
-  }>;
+  SoFar<X>;
 export type ProgramTool<X extends Program> = Omit<Tool<X>, "acts"> &
   Readonly<{ acts: Readonly<Record<string, ProgramAct<X>>>; menus?: Readonly<Record<string, Menu>> }> &
   /** Whether one of its things takes nothing new any more (archived, canceled): a question that picks among its
@@ -113,9 +111,7 @@ type Declared<X extends Program, S extends TSchema> = Readonly<{ input: S; reach
   Readonly<{ confirms?: (input: Static<S>, state: State<X>, target: string, at: number) => string }> &
   Readonly<{ today?: (state: State<X>, target: string) => Static<S> | undefined }> &
   Readonly<{ also?: Also<X>; datum?: Datum<X> }> &
-  /** Why what was answered so far cannot go on: asked after each answer, with the fields answered whole until then,
-   * and said at the question that was just answered. A surface says it early; the act still refuses when run. */
-  Readonly<{ stops?: NonNullable<ProgramAct<X>["stops"]> }> &
+  SoFar<X> &
   /** Every cause this act may refuse with; refusing with any other is a defect of the program. */
   Readonly<{ refuses?: readonly string[]; offered?: NonNullable<ToolAct<X>["offered"]> }> &
   Readonly<{ run(input: Static<S>, context: ActContext<X>): ActResult<X> | Promise<ActResult<X>> }> &
@@ -138,15 +134,6 @@ function offeredBy<X extends Program, S extends TSchema>(declared: Declared<X, S
 /** What an act answers, now or later, passed through a check of it. */
 const settled = <R>(result: R | Promise<R>, check: (result: R) => R): R | Promise<R> =>
   result instanceof Promise ? result.then(check) : check(result);
-/** What an act says of what was answered so far: asked only about the fields it takes, answered whole. Anything
- * else a surface may give is not asked about. */
-function stoppedBy<X extends Program, S extends TSchema>({ input, stops }: Declared<X, S>) {
-  if (!stops) return {};
-  const partial = Type.Partial(input);
-  const asked: NonNullable<ProgramAct<X>["stops"]> = (answered, state, target) =>
-    Value.Check(partial, answered) ? stops(answered, state, target) : undefined;
-  return { stops: asked };
-}
 /** What the base itself refuses with is not the act's to declare: nothing would change, or a day does not exist. */
 const ofTheBase = (cause: string): boolean => cause === toolTexts.unchanged || cause === toolTexts.noSuchDay;
 /** An act of a program: what it takes, what it does, and what it promises. */
@@ -190,7 +177,7 @@ export function programAct<X extends Program, S extends TSchema>(declared: Decla
     ...(today ? { today } : {}),
     ...(also ? { also } : {}),
     ...(datum ? { datum } : {}),
-    ...stoppedBy(declared),
+    ...soFar<X>(declared.input, declared),
   };
   return { ...act, ...(offered ? { offered: guarded } : {}), ...(output ? { output: true } : {}), ...promised };
 }

@@ -49,6 +49,9 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   cada corte de línea es un renglón, sin volver a cortar (una vista previa, un impreso). Lo que contesta dice qué
   hizo en la primera línea («Verbo · Objeto · Detalle»), y así se promete en un caso.
 - Lo que una acción crea queda en el Registro de cada cosa creada: ningún programa guarda quién creó qué.
+- Donde una pregunta elige una cosa de otra herramienta (`thing`), la acción puede decir cuáles toma según lo ya
+  contestado: `among: (respondido, estado, cosa) => ({ productos: id => … })`. La lista ofrece solo esas, también a
+  quien busca; la acción igual rechaza al correr (un caso lo promete).
 - Una acción dice si se ofrece sabiendo qué momento es (`offered(estado, cosa, instante)`): lo que hoy no se puede
   hacer queda apagado con su motivo.
 
@@ -96,4 +99,3 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - Disparar una acción por fecha (un abono que genera a una hora): la casa tiene reloj para sus recordatorios, no para
   las acciones de un programa.
 - Suprimir de verdad un dato del registro, dejando el hecho (un pedido de supresión de datos personales).
-- Filtrar según la acción la lista de la que se elige una cosa (hoy se ofrecen todas y la acción rechaza).

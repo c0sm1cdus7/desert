@@ -90,7 +90,7 @@ function picked(schema: TSchema, ctx: Ctx, of: string): Field {
   const valid = (answer: string): boolean => (ctx.optional && answer === "") || things()?.has(answer) === true;
   const shown = (answer: string): string => (answer === "" ? absent : (things()?.shown(answer) ?? answer));
   const nothing = (): string => things()?.empty ?? "";
-  return { ask: asked(word(schema, "title")), kind: "pick", found, shown, valid, nothing };
+  return { ask: asked(word(schema, "title")), kind: "pick", of, found, shown, valid, nothing };
 }
 export function written(schema: TSchema, ctx: Ctx): Field {
   const of = at(schema, "of");

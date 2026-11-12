@@ -86,3 +86,48 @@ export const chargingRegistry = [salesTool, paymentsWith()];
 export const chargingShop: Composition<Shop> = { ...shopProgram, registry: chargingRegistry };
 /** The same shop, where the sale to charge can be registered right where it is picked. */
 export const makingRegistry = [salesTool, paymentsWith("register")];
+/** The same act, which takes only the sales of a thousand or more: the others are not on the list it picks from,
+ * and it refuses one all the same. */
+const small = "venta chica";
+type Sales = Parameters<NonNullable<ReturnType<typeof chargeWith>["offered"]>>[0];
+const large = (state: Sales, sale: string): boolean => (state.tools.sales.get(nameOf(sale))?.total ?? 0) >= 1000;
+const narrowCharge = () => {
+  const whole = chargeWith(chargedWith());
+  return programAct<Shop, Charged>({
+    name: whole.name,
+    enter: whole.enter,
+    undoable: true,
+    purpose: whole.purpose,
+    key: whole.key,
+    on: "tool",
+    input: chargedWith(),
+    refuses: ["unknown", small],
+    among: (_answered, state) => ({ sales: sale => large(state, sale) }),
+    run: (input, context) =>
+      context.state.tools.sales.has(nameOf(input.sale)) && !large(context.state, input.sale)
+        ? { status: "rejected", reason: small }
+        : whole.run(input, context),
+    cases: [
+      {
+        promise: "a large sale is charged, picked from a list that has only the large ones",
+        given: [registered, also],
+        input: { sale: "sales/s1", amount: 500 },
+        then: paid(500),
+      },
+      {
+        promise: "a sale nobody registered is not charged, large or not",
+        given: [registered],
+        input: { sale: "sales/zz", amount: 1 },
+        then: { refused: "unknown" },
+      },
+      {
+        promise: "a small sale is not charged, and is not on the list to pick it from",
+        given: [registered, also],
+        input: { sale: "sales/s2", amount: 50 },
+        then: { refused: small },
+      },
+    ],
+  });
+};
+export const narrowRegistry = [salesTool, { ...paymentsTool, acts: { ...paymentsTool.acts, charge: narrowCharge() } }];
+export const narrowShop: Composition<Shop> = { ...shopProgram, registry: narrowRegistry };

@@ -1291,6 +1291,13 @@
       "from": "12/11 · caminando Capibara: después de emitir, la vista previa terminaba en «fisco de prueba emitir»",
       "guarantee": "spec",
       "evidence": ["src/surface/walk.ts", "src/surface/walk.spec.ts"]
+    },
+    {
+      "id": 163,
+      "rule": "Donde se elige una cosa se ofrecen solo las que la acción toma según lo ya contestado: nada se ofrece en una lista para rechazarlo después de elegido; también para quien busca",
+      "from": "12/11 · lanes de Capibara: en una venta de servicios la lista ofrecía los bienes y los rechazaba al final («es un bien»); el mostrador ofrecía lo que no se vende en mostrador",
+      "guarantee": "spec",
+      "evidence": ["src/tools/promises.ts", "src/surface/bridge/program-acts.ts", "src/programs/promised-also.spec.ts"]
     }
   ]
 }

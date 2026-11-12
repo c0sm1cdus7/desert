@@ -133,6 +133,8 @@ export type Field = Question &
     /** One of the things of a tool, looked for by what the person types: the answer is the thing, shown by its name. */
     | {
         readonly kind: "pick";
+        /** The tool whose things it picks among. */
+        readonly of: string;
         readonly found: (sought: string) => readonly Option[];
         readonly shown: (answer: string) => string;
         /** What it says where there is nothing to pick among: a question never stands over an empty list. */

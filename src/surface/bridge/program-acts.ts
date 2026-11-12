@@ -7,6 +7,7 @@ import { aid, worded } from "../../tools/act-words.ts";
 import type { ProgramAct, ProgramTool } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { Field } from "../contract.ts";
+import { offeredOn } from "./picked.ts";
 import type { Result, ThingAct, ThingMenu, ToolAct, ViewRow } from "../shown-tool.ts";
 import { formats, type Locale } from "../masks.ts";
 import { maskOf } from "../screen.ts";
@@ -28,12 +29,6 @@ type Asked = Readonly<{ locale: Locale; things: NonNullable<AskWords["things"]> 
   /** What a thing of a tool is called, for the act that asks to be confirmed on it. */
   Readonly<{ titled: (tool: string, target: string) => string }>;
 type Own<X extends Program> = Readonly<{ tool: string; name: string; act: ProgramAct<X> }>;
-/** A thing is never picked for what is done to itself: it is not among the things an act on it asks to pick from. */
-export function besides(field: Field | null, target?: string): Field | null {
-  if (field?.kind !== "pick" || target === undefined) return field;
-  const others = (sought: string) => field.found(sought).filter(option => option.value !== target);
-  return { ...field, found: others, valid: answer => answer !== target && (field.valid?.(answer) ?? true) };
-}
 /** The thing an act made: what it was done to in the end, when that is not where it was started. */
 function madeBy(effects: Parameters<typeof wroteBy>[0], target: string): string | undefined {
   for (const effect of effects)
@@ -65,14 +60,14 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
     const unsafe = act.undoable ? {} : { note: generic.irreversible };
     return taken === 0 ? { ask: capital(act.purpose), kind: "confirm", ...confirm, ...unsafe } : null;
   };
+  const asks = offeredOn(act, ask, ports.state, tool);
   const walk = {
     label: act.name,
     verb: act.enter,
     key: act.key,
     /** The bar says what is done and, on a thing, to which. */
     title: (target?: string): string => (target === undefined ? title : `${title} · ${asked.titled(tool, target)}`),
-    next: (answers: readonly string[], target?: string): Field | null =>
-      besides(ask.next(answers), target) ?? sure(answers, target),
+    next: (answers: readonly string[], target?: string): Field | null => asks(answers, target) ?? sure(answers, target),
     stops: (answers: readonly string[], target?: string): string | undefined =>
       act.stops?.(ask.sofar(answers), ports.state(), target ?? tool),
     run: async (answers: readonly string[], target: string): Promise<Result> => {

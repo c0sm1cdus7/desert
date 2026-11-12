@@ -73,7 +73,9 @@
     "tools/promises.ts": "Case, Outcome, Offered, ProgramAct, Composition; programAct: an act with its words, its causes and its cases",
     "tools/schema-breaks.ts": "outsideOf: the inputs an act's schema does not admit, made from one it does",
     "tools/tool-contract.ts": "Program, State, Slices, Tool, ToolAct, ActResult, KeyStore: a tool as the house sees it",
-    "tools/tools.ts": "house state and each tool's part folded together; attendance acts; attention ladder; startTools"
+    "tools/tools.ts": "house state and each tool's part folded together; attendance acts; attention ladder; startTools",
+    "tools/so-far.ts": "SoFar, Among; soFar: what an act says of what was answered so far, asked only about the fields it takes",
+    "surface/bridge/picked.ts": "besides, offeredOn: what a question that picks a thing offers for the act that asks it"
   },
   "folders": {
     "adapters/secrets": 103,
@@ -83,9 +85,9 @@
     "house": 91,
     "journal": 326,
     "programs": 998,
-    "surface": 1669,
-    "surface/bridge": 1235,
+    "surface": 1671,
+    "surface/bridge": 1259,
     "texts": 193,
-    "tools": 825
+    "tools": 839
   }
 }

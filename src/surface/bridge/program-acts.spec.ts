@@ -1,7 +1,7 @@
 // What an act asks where it stands: the thing it is done to is never among what it picks from.
 import { describe, expect, it } from "vitest";
 import type { Field } from "../contract.ts";
-import { besides } from "./program-acts.ts";
+import { besides } from "./picked.ts";
 
 const sales = [
   { title: "s1", value: "sales/s1" },
@@ -10,6 +10,7 @@ const sales = [
 const field: Field = {
   ask: "Con",
   kind: "pick",
+  of: "sales",
   found: () => sales,
   shown: answer => answer,
   nothing: () => "",

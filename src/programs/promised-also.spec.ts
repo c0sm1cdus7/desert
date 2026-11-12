@@ -6,7 +6,8 @@ import { houseTools } from "../surface/bridge/house-tools.ts";
 import { stacksOf } from "../surface/lists.ts";
 import { startRouter } from "../surface/router.ts";
 import type { Intent, Screen } from "../surface/contract.ts";
-import { chargingRegistry, chargingShop, makingRegistry } from "../../tests/support/charging-shop.ts";
+import { chargingRegistry, chargingShop, makingRegistry, narrowRegistry } from "../../tests/support/charging-shop.ts";
+import { narrowShop } from "../../tests/support/charging-shop.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
 import { shopShown } from "../../tests/support/shop.ts";
 
@@ -129,5 +130,17 @@ describe("a program whose acts reach across its tools", () => {
     expect(actionsOn(tools, "sales/s1")).toEqual([["c", "cobrar", "sin acceso", true]]);
     rig.act("beto", "prefer", { hide: "foreign", on: true });
     expect(actionsOn(tools, "sales/s1")).toEqual([]);
+  });
+});
+
+describe("an act that takes only some things of another tool", () => {
+  for (const check of promisedChecks(narrowShop)) it(check.name, check.run);
+  for (const check of walkedChecks(narrowShop, shopShown)) it(check.name, check.run);
+
+  it("offers only those where one is picked, also to who looks for one, and takes no other for an answer", () => {
+    const { press } = seat("ana", narrowRegistry);
+    expect(press("pc")).toEqual(["Cobrar", "Venta", "s1 | $ 1500"]);
+    expect(press(" s")).toEqual(["Cobrar", "Venta", "› s", "s1 | $ 1500"]);
+    expect(press("2")).toEqual(["Cobrar", "Venta", "› s2", "Sin resultados."]);
   });
 });
