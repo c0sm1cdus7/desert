@@ -5,6 +5,8 @@ import type { Program } from "../../tools/tool-contract.ts";
 import type { Notice, Tool } from "../shown-tool.ts";
 import type { SurfacePorts } from "./house-ports.ts";
 
+/** What was said in several lines is told, on a row, by its first. */
+export const firstLine = (text: string): string => text.split("\n")[0] ?? "";
 /** The last thing someone else wrote on each thing of a tool since this identity had that thing in front. */
 function unseen<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>) {
   const state = ports.state();
@@ -34,7 +36,7 @@ export function noticesOf<X extends Program>(
   const news = (): Notice[] =>
     unseen(ports, tool).map(({ data }) => {
       const leads = data.target === tool.id ? {} : { opens: data.target };
-      return { title: data.text, detail: data.author, ...leads };
+      return { title: firstLine(data.text), detail: data.author, ...leads };
     });
   return {
     notices: () => ({

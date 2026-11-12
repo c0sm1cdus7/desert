@@ -112,6 +112,25 @@ it("draws no control character from a text: a message cannot drive the terminal"
   expect(bytes).not.toContain("\x07");
   expect(bytes).not.toContain("\u009b");
 });
+it("draws a block as it was written: a line break in what is said starts a new line", () => {
+  const block = "Factura A 0001-00000001\nLibrería Sol SRL\n2 × Café en grano     $ 9.000,00";
+  const screen: Screen = {
+    title: "x",
+    state: "connected",
+    clock: "12:00",
+    hints: [],
+    menu: false,
+    body: { kind: "thread", events: [{ text: [{ text: block, tone: "t1" as const }] }] },
+  };
+  const lines = textOf(paint(screen, { cols: 80, rows: 24 })).map(line => line.trim());
+  const first = lines.indexOf("Factura A 0001-00000001");
+  expect(first).toBeGreaterThan(0);
+  expect(lines.slice(first, first + 3)).toEqual([
+    "Factura A 0001-00000001",
+    "Librería Sol SRL",
+    "2 × Café en grano     $ 9.000,00",
+  ]);
+});
 describe("a message", () => {
   const talking = (answer: string | undefined): Tool => ({
     id: "talk",

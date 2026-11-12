@@ -13,6 +13,7 @@ import { listsOf, ownReads, type HousePorts, type Shown, type SurfacePorts, type
 import { noticesOf } from "./notices.ts";
 import { preferencesPlace, preferencesTool } from "./preferences-tool.ts";
 import { programActs } from "./program-acts.ts";
+import { recordOf } from "./record.ts";
 
 /** Only a tool whose acts say how they are offered can be shown: an act without its declaration is a defect. */
 const isProgramTool = <X extends Program>(tool: HouseTool<X>): tool is ProgramTool<X> =>
@@ -124,8 +125,6 @@ const thingsOf =
       make: act => madeBy(contract, act, ports.state()),
     };
   };
-/** An instant as the journal keeps it, for a program that does not say how its country writes one. */
-const plainMoment = (at: number): string => new Date(at).toISOString().slice(0, 16).replace("T", " ");
 /** One of its things is always read as its tool declared: no screen of a program draws a thing. */
 function withThings<X extends Program>(
   ports: SurfacePorts<X>,
@@ -133,17 +132,8 @@ function withThings<X extends Program>(
   { words, shown }: Readonly<{ words: ToolWords; shown: Shown<X> }>,
   screen: Tool,
 ): Tool {
-  const moment = shown.moment ?? plainMoment;
   const declared = thingView(ports, contract, listsOf(words)?.presents ?? []);
-  /** After what its tool declared, a thing reads everything that was done to it: newest first, as the journal has
-   * it, with who did it and when. A thing nothing was done to (it is there by itself) has no such list. */
-  const record = (target: string) => {
-    const done = ports.state().entries.filter(entry => entry.data.target === target && entry.data.draft !== true);
-    const rows = done
-      .toReversed()
-      .map(entry => ({ title: entry.data.text, detail: `${entry.data.author} · ${moment(entry.at)}`, still: true }));
-    return rows.length ? [{ ...generic.record, reads: true as const, rows }] : [];
-  };
+  const record = recordOf(ports, shown.moment);
   const thing = (target: string) => [...declared(target), ...record(target)];
   const isThing = (target?: string): target is string =>
     target !== undefined && contract.targets(ports.state()).includes(target);

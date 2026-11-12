@@ -68,19 +68,24 @@ export function drawRow(
   if (shown) putRight(grid, left + block - 1, r, [{ text: shown, tone: tone(row.tone ?? (fact ? "t1" : "t2")) }], on);
 }
 
-/** Word wrap that keeps each word's tone; a span never starts a line with a space. */
+/** Word wrap that keeps each word's tone; a span never starts a line with a space. A line break in what is said
+ * starts a new line: a block is read as it was written. */
 function wrapped(spans: readonly Span[], room: number): readonly (readonly Span[])[] {
   const lines: Span[][] = [[]];
   let used = 0;
+  const fresh = (): void => {
+    lines.push([]);
+    used = 0;
+  };
   for (const span of spans) {
-    for (const word of span.text.split(/(?<=\s)/u)) {
-      if (used + width(word.trimEnd()) > room && used > 0) {
-        lines.push([]);
-        used = 0;
+    span.text.split("\n").forEach((part, i) => {
+      if (i) fresh();
+      for (const word of part.split(/(?<=\s)/u)) {
+        if (used + width(word.trimEnd()) > room && used > 0) fresh();
+        lines.at(-1)?.push({ ...span, text: word });
+        used += width(word);
       }
-      lines.at(-1)?.push({ ...span, text: word });
-      used += width(word);
-    }
+    });
   }
   return lines;
 }

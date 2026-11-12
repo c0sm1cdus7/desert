@@ -82,7 +82,7 @@ export type ProgramAct<X extends Program> = ToolAct<X> &
   Offered &
   Readonly<{ refuses: readonly string[]; cases: readonly Case<X>[] }> &
   /** What is put before the person to confirm, once everything was answered, when the act wants that. */
-  Readonly<{ confirms?: (input: unknown, state: State<X>, target: string) => string | undefined }> &
+  Readonly<{ confirms?: (input: unknown, state: State<X>, target: string, at: number) => string | undefined }> &
   /** What the thing has today, in the shape the act takes: an act that changes it opens on it. */
   Readonly<{ today?: (state: State<X>, target: string) => unknown; also?: Also<X>; datum?: Datum<X> }> &
   /** Why what was answered so far cannot go on, when that is so: said at the question it was answered in. */
@@ -110,7 +110,7 @@ type Declared<X extends Program, S extends TSchema> = Readonly<{ input: S; reach
   Offered &
   /** What is put before the person to confirm: said from what they answered, from what the house keeps, and from
    * the thing it is done to (the tool itself, for an act on the tool). */
-  Readonly<{ confirms?: (input: Static<S>, state: State<X>, target: string) => string }> &
+  Readonly<{ confirms?: (input: Static<S>, state: State<X>, target: string, at: number) => string }> &
   Readonly<{ today?: (state: State<X>, target: string) => Static<S> | undefined }> &
   Readonly<{ also?: Also<X>; datum?: Datum<X> }> &
   /** Why what was answered so far cannot go on: asked after each answer, with the fields answered whole until then,
@@ -157,8 +157,8 @@ export function programAct<X extends Program, S extends TSchema>(declared: Decla
     throw new Error(
       `An act that cannot be undone asks to be confirmed, and this one does not say what with: ${declared.name}`,
     );
-  const summary = (value: unknown, state: State<X>, target: string): string | undefined =>
-    Value.Check(input, value) ? confirms?.(value, state, target) : undefined;
+  const summary = (value: unknown, state: State<X>, target: string, at: number): string | undefined =>
+    Value.Check(input, value) ? confirms?.(value, state, target, at) : undefined;
   const declaredCause = (cause: string): string => {
     if (!refuses.includes(cause)) throw new Error(`An act refused with a cause it does not declare: ${cause}`);
     return cause;

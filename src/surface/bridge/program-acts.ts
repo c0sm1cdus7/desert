@@ -56,7 +56,7 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
   const sure = (answers: readonly string[], target?: string): Field | null => {
     const taken = ask.taken(answers);
     if (answers.length > taken) return null;
-    const summary = act.confirms?.(ask.input(answers), ports.state(), target ?? tool);
+    const summary = act.confirms?.(ask.input(answers), ports.state(), target ?? tool, ports.now());
     /** What the act itself puts to be confirmed already says what it will do: only that it cannot be undone is
      * added. With nothing asked, the person is told what the act is for. */
     const warned = act.undoable ? {} : { note };

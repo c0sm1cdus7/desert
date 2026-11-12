@@ -1130,6 +1130,38 @@
         "src/surface/bridge/presented.ts",
         "src/programs/promised-data.spec.ts"
       ]
+    },
+    {
+      "id": 145,
+      "rule": "Lo que se dice en varias líneas se lee en varias líneas: un corte de línea en lo que una acción confirma o contesta empieza un renglón nuevo, sin volver a cortarlo por palabras; donde solo entra un renglón (el Registro, la Actividad) se lee el primero",
+      "from": "11/11 · obra de Capibara: la vista previa de una factura era un párrafo de siete renglones",
+      "guarantee": "spec",
+      "evidence": [
+        "src/doors/terminal/thread.ts",
+        "src/surface/bridge/notices.ts",
+        "src/doors/terminal/destinations.spec.ts",
+        "src/doors/terminal/house-screens.spec.ts"
+      ]
+    },
+    {
+      "id": 146,
+      "rule": "Lo que una acción pone a confirmar sabe qué día es: recibe el instante en que se pregunta",
+      "from": "11/11 · obra de Capibara: la vista previa decía «Fecha de emisión hoy»",
+      "guarantee": "type",
+      "evidence": ["src/tools/promises.ts", "src/surface/bridge/program-acts.ts"]
+    },
+    {
+      "id": 147,
+      "rule": "Lo que una acción crea queda escrito con lo que la acción dice: cada cosa que no estaba antes y está después, además de aquella sobre la que se hizo, la lee en su propio Registro. Ningún programa guarda aparte quién creó algo",
+      "from": "11/11 · obra de Capibara: la identidad que crea un pedido de canal no decía quién la escribió",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/execute.ts",
+        "src/journal/events.ts",
+        "src/surface/bridge/house-tools.ts",
+        "src/tools/execute.spec.ts",
+        "src/doors/terminal/house-screens.spec.ts"
+      ]
     }
   ]
 }

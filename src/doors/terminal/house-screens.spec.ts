@@ -1,5 +1,6 @@
 // A program's house walked by keys on the terminal, through the same router every renderer uses.
 import { afterEach, describe, expect, it } from "vitest";
+import { effect } from "../../journal/events.ts";
 import { houseRouter } from "../../surface/bridge/house-router.ts";
 import type { Router } from "../../surface/router.ts";
 import { textOf } from "./cells.ts";
@@ -174,5 +175,25 @@ describe("a thing that does not fit on the terminal", () => {
     const done = record.kind === "list" ? record.stacks.at(-1)?.rows.map(row => [row.title, row.detail]) : [];
     expect(done?.map(([what]) => what)).toEqual(["Registrada · s1"]);
     expect(done?.[0]?.[1]).toMatch(/^ana · \d{4}-\d{2}-\d{2} \d{2}:\d{2}$/u);
+  });
+
+  it("reads in a thing's record the act of another thing that made it, told by its first line", async () => {
+    const { rig, router, press } = open();
+    await press("vrs1\r1500\r");
+    await press(escape);
+    const brought = {
+      tool: "sales",
+      target: "sales",
+      author: "beto",
+      text: "Traídas · 1\nde otro lado",
+      made: ["sales/s1"],
+    };
+    rig.bus.emit(effect("tool-entry", brought, "beto"));
+    /** What beto wrote is news once; then the sale is the first row again. */
+    expect(await press("")).toEqual(expect.arrayContaining(["[1] Traídas · 1 | beto", "[2] s1 | $ 1500"]));
+    await press("1");
+    const record = router.screen({ rows: 30 }).body;
+    const done = record.kind === "list" ? record.stacks.at(-1)?.rows.map(row => row.title) : [];
+    expect(done).toEqual(["Traídas · 1", "Registrada · s1"]);
   });
 });

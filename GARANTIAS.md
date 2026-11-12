@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 142. Deudas: 23.
+Leyes: 145. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -149,3 +149,6 @@ Leyes: 142. Deudas: 23.
 | 142 | Un día que casi siempre es hoy abre sugiriendo hoy, como lo cuenta el país del programa: Enter lo acepta y escribir lo reemplaza | 11/11 · obra de Capibara: las fechas de una venta y de una compra se pedían vacías | una spec a mano | `src/catalogs/fields.ts` `src/surface/bridge/asking-parts.ts` `src/surface/bridge/asking.spec.ts` |
 | 143 | Quien administra una casa puede sacar a alguien de ella (nunca a sí mismo): lo que escribió queda y su acceso se va; y puede pasarle la administración a otro de los que están. Nadie más puede hacer ninguna de las dos cosas | 11/11 · obra de Capibara: «sacar» un usuario solo le quitaba las herramientas | una spec a mano | `src/house/house.ts` `src/journal/events.ts` `src/house/grants.spec.ts` |
 | 144 | Una herramienta que lee datos propios dice los grupos en que van, como los de un objeto: cada dato que una acción cambia es la fila que empieza esa acción, lo que nombra a otro objeto lo abre, un grupo sin nada lo dice, y un dato que ningún grupo tiene es un defecto del programa. Una herramienta lista cosas, lee datos propios, o las dos: primero sus datos, después sus cosas | 11/11 · obra de Capibara: Fiscal y Organización traían cada una su pantalla, copiada, para repartir sus datos en grupos | una spec a mano | `src/surface/bridge/house-ports.ts` `src/surface/bridge/any-tool.ts` `src/surface/bridge/presented.ts` `src/programs/promised-data.spec.ts` |
+| 145 | Lo que se dice en varias líneas se lee en varias líneas: un corte de línea en lo que una acción confirma o contesta empieza un renglón nuevo, sin volver a cortarlo por palabras; donde solo entra un renglón (el Registro, la Actividad) se lee el primero | 11/11 · obra de Capibara: la vista previa de una factura era un párrafo de siete renglones | una spec a mano | `src/doors/terminal/thread.ts` `src/surface/bridge/notices.ts` `src/doors/terminal/destinations.spec.ts` `src/doors/terminal/house-screens.spec.ts` |
+| 146 | Lo que una acción pone a confirmar sabe qué día es: recibe el instante en que se pregunta | 11/11 · obra de Capibara: la vista previa decía «Fecha de emisión hoy» | no compila | `src/tools/promises.ts` `src/surface/bridge/program-acts.ts` |
+| 147 | Lo que una acción crea queda escrito con lo que la acción dice: cada cosa que no estaba antes y está después, además de aquella sobre la que se hizo, la lee en su propio Registro. Ningún programa guarda aparte quién creó algo | 11/11 · obra de Capibara: la identidad que crea un pedido de canal no decía quién la escribió | una spec a mano | `src/tools/execute.ts` `src/journal/events.ts` `src/surface/bridge/house-tools.ts` `src/tools/execute.spec.ts` `src/doors/terminal/house-screens.spec.ts` |

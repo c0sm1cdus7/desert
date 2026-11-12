@@ -41,6 +41,7 @@
     "surface/bridge/preferences-tool.ts": "preferencesTool: what a person may prefer not to see, each with how it is now, each its own act",
     "surface/bridge/presented.ts": "presented, thingView: one thing in the stacks its tool declared, what it names numbered to be opened",
     "surface/bridge/program-acts.ts": "programActs: each act asked from its declaration; menus of a thing; rows that start an act on today",
+    "surface/bridge/record.ts": "recordOf: everything that was done to a thing, as the journal has it, read as its last list",
     "surface/bridge/rows.ts": "a tool's text view read as rows: ids open, the rest is a label and its value",
     "surface/contract.ts": "what every renderer draws and sends back: Screen, Body, Row, Field, Mask, Intent, Hint",
     "surface/finding.ts": "matches, findable, foundAt: looking for things from a menu; what was written and the rows it finds",
@@ -66,6 +67,7 @@
     "tools/act-words.ts": "worded, aid, short: the words an act is declared with, checked when a program is composed; data beside a row, never sentences",
     "tools/attendance.ts": "what an identity keeps in view, and the tool a target belongs to",
     "tools/execute.ts": "execute: one act written, checked against the house, run, and its result written",
+    "tools/made.ts": "making: the things an act made, written with what the act says",
     "tools/preferences.ts": "preferenceAct: any member of the house says what it prefers not to see, about itself alone",
     "tools/promises.ts": "Case, Outcome, Offered, ProgramAct, Composition; programAct: an act with its words, its causes and its cases",
     "tools/schema-breaks.ts": "outsideOf: the inputs an act's schema does not admit, made from one it does",
@@ -76,13 +78,13 @@
     "adapters/secrets": 103,
     "adapters/storage": 154,
     "catalogs": 177,
-    "doors/terminal": 561,
+    "doors/terminal": 566,
     "house": 91,
-    "journal": 299,
+    "journal": 301,
     "programs": 960,
     "surface": 1636,
-    "surface/bridge": 1206,
+    "surface/bridge": 1223,
     "texts": 181,
-    "tools": 782
+    "tools": 807
   }
 }

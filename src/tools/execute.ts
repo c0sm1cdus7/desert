@@ -6,6 +6,7 @@ import { allowed, identityView } from "../house/house.ts";
 import { effect, type Bus, type Emission, type HouseEvent } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "./attendance.ts";
+import { making } from "./made.ts";
 import { actNews, type ActContext, type ActResult, type KeyStore, type OwnAct } from "./tool-contract.ts";
 import type { Program, State, Tool, ToolAct, ToolRegistry } from "./tool-contract.ts";
 type Origin = HouseEvent<"act">;
@@ -114,7 +115,8 @@ function decisionOf<X extends Program>(
 const finish = <X extends Program>(ports: Execution<X>, act: Origin, decision: Decision<X>): Decision<X> => {
   const safe = ports.secrets.scrub(decision);
   if (!ports.live()) return safe;
-  for (const effect of safe.effects) ports.bus.emit({ ...effect, process: act.process, cause: [act.id] });
+  const made = making(ports);
+  for (const each of safe.effects) ports.bus.emit({ ...made(each), process: act.process, cause: [act.id] });
   const output = safe.status === "accepted" && safe.output ? { output: true } : {};
   const data = { act: act.id, status: safe.status, reason: safe.reason ?? "", ...output };
   ports.bus.emit(effect("act-result", data, act.by, [act.id], act.process));

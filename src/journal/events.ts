@@ -34,6 +34,8 @@ export const houseCatalog = {
     silent: Type.Optional(Type.Boolean()),
     recipient: Type.Optional(name),
     detail: Type.Optional(Type.Unknown()),
+    /** The things that were not there before the act and are there after it: what it made, besides its target. */
+    made: Type.Optional(Type.Array(name)),
   }),
   "act-done": object({ object: name, act: name, text, recipient: Type.Optional(name) }),
   attended: object({ target: name }),
