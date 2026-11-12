@@ -19,6 +19,9 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
   const kept = walk.until !== undefined || walk.answers[walk.pos] === answer || (walk.carried === true && written);
   const later = kept ? walk.answers.slice(walk.pos + 1) : [];
   const answers = [...walk.answers.slice(0, walk.pos), answer, ...later];
+  /** What the act says cannot go on stays at the question it was answered in, saying why. */
+  const why = actOf(tools, walk).stops?.(answers.slice(0, walk.pos + 1));
+  if (why !== undefined) return { session: replace(session, { ...walk, error: why }) };
   const asked = [...walk.asked.slice(0, walk.pos), { ask: current.ask, shown: maskOf(current, answer) }];
   const moved: Walk = { ...walk, answers, asked, pos: walk.pos + 1 };
   const { error: _gone, finding: _sought, ...clean } = moved;

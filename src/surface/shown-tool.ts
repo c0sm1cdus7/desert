@@ -18,6 +18,8 @@ interface ActOn<Destination extends readonly string[]> {
   /** Whether it is on the list at all: not every act is for everything, and a person may prefer not to see some. */
   readonly listed?: (...on: Destination) => boolean;
   readonly next: (answers: readonly string[], ...on: Destination) => Field | null;
+  /** Why what was answered so far cannot go on, when that is so: said at the question that was just answered. */
+  readonly stops?: (answers: readonly string[], ...on: Destination) => string | undefined;
   readonly run: (answers: readonly string[], ...on: Destination) => Promise<Result>;
 }
 /** On the tool itself: it has no destination to get wrong. "row" is reached only from the row that names it. */

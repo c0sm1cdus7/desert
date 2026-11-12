@@ -1066,6 +1066,18 @@
         "src/programs/promised-fields.spec.ts",
         "src/programs/promised-menus.spec.ts"
       ]
+    },
+    {
+      "id": 138,
+      "rule": "Un rechazo aparece donde se escribió el dato: después de cada respuesta la acción dice si lo respondido hasta ahí no puede seguir (`stops`), y el motivo queda en esa pregunta. La acción igual rechaza al ejecutarse, por cualquier puerta",
+      "from": "11/11 · plan de Capibara: el importe de más al cobrar se dice en la pregunta del importe",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/promises.ts",
+        "src/surface/bridge/asking.ts",
+        "src/surface/walking.ts",
+        "src/programs/promised-also.spec.ts"
+      ]
     }
   ]
 }

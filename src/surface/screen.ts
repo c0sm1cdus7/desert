@@ -93,6 +93,7 @@ export function actOf(tools: readonly Tool[], walk: Walk) {
     ...act,
     title: () => act.title?.(target),
     next: (answers: readonly string[]) => act.next(answers, target),
+    stops: (answers: readonly string[]) => act.stops?.(answers, target),
     run: (answers: readonly string[]) => act.run(answers, target),
   };
 }

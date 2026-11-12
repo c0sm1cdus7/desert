@@ -104,7 +104,23 @@ export type Asking = Readonly<{
   answers(input: unknown): string[];
   /** The answers a datum that says only the first things gives: the rest is still to be asked. */
   leading(part: unknown): string[];
+  /** What was answered so far, by its fields: the ones answered whole, in the order they are asked. */
+  sofar(answers: readonly string[]): Readonly<Record<string, unknown>>;
 }>;
+/** The fields of what an act takes that the answers so far say whole; nothing, for what is not asked by fields. */
+function sofar(schema: TSchema, ctx: Ctx): Readonly<Record<string, unknown>> {
+  if (armsOf(schema).length || at(schema, "type") !== "object") return {};
+  const required = at(schema, "required");
+  const value: Record<string, unknown> = {};
+  let next = 0;
+  for (const [key, field] of Object.entries(at(schema, "properties") ?? {})) {
+    const got = read(field, { ...ctx, optional: !(isList(required) && required.includes(key)) }, next);
+    if ("ask" in got) return value;
+    if (got.value !== undefined) value[key] = got.value;
+    next = got.at;
+  }
+  return value;
+}
 export function asking(schema: TSchema, words: AskWords): Asking {
   const got = (answers: readonly string[]): Got => read(schema, { ...words, answers, n: 1, optional: false }, 0);
   const whole = (answers: readonly string[]) => {
@@ -123,5 +139,6 @@ export function asking(schema: TSchema, words: AskWords): Asking {
     input: answers => whole(answers).value,
     answers: input => write(schema, input, words),
     leading: part => leading(schema, part, words),
+    sofar: answers => sofar(schema, { ...words, answers, n: 1, optional: false }),
   };
 }

@@ -90,6 +90,14 @@ describe("a program whose acts reach across its tools", () => {
     expect(rig.state().tools.payments.received).toBe(700);
   });
 
+  it("says at the question why what was answered cannot go on, and goes on once it can", () => {
+    const { router, press } = seat("ana");
+    press("pc1");
+    expect(press("9500\r")).toEqual(["Cobrar", "Venta s1", "Monto", "Error monto de más"]);
+    for (let erased = 0; erased < 4; erased++) router.send({ kind: "erase" });
+    expect(press("50\r")).toEqual(["Cobrar", "Venta s1", "Monto $ 0,50", "Propina · opcional"]);
+  });
+
   it("says there is nothing to pick among where its tool has none, and takes nothing but leaving", () => {
     const rig = shopRig({ registry: chargingRegistry });
     const router = startRouter({ tools: houseTools(rig.ports("ana"), shopShown), bar: () => bar });

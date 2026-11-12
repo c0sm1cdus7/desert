@@ -64,6 +64,8 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
     title: (): string => title,
     next: (answers: readonly string[], target?: string): Field | null =>
       besides(ask.next(answers), target) ?? sure(answers, target),
+    stops: (answers: readonly string[], target?: string): string | undefined =>
+      act.stops?.(ask.sofar(answers), ports.state(), target ?? tool),
     run: async (answers: readonly string[], target: string): Promise<Result> => {
       const done = await attendAndAct(ports, target, name, ask.input(answers));
       if (done.status !== "accepted") return { ok: false, reason: done.reason ?? "" };

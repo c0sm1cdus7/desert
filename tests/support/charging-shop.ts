@@ -62,6 +62,8 @@ const chargeWith = (input: Charged) =>
       opens: (state, target) => ({ amount: state.tools.sales.get(nameOf(target))?.total ?? 0 }),
     },
     refuses: ["unknown"],
+    /** More than ninety pesos is said at the amount, before anything else is asked. */
+    stops: ({ amount }) => (typeof amount === "number" && amount > 9000 ? "monto de más" : undefined),
     run: ({ sale, amount }, { by, state }) => {
       if (!state.tools.sales.has(nameOf(sale))) return { status: "rejected", reason: "unknown" };
       const fact = shop.fact("payment-received", { payment: `for-${nameOf(sale)}`, amount, sale: nameOf(sale) }, by);
