@@ -143,4 +143,13 @@ describe("an act that takes only some things of another tool", () => {
     expect(press(" s")).toEqual(["Cobrar", "Venta", "› s", "s1 | $ 1500"]);
     expect(press("2")).toEqual(["Cobrar", "Venta", "› s2", "Sin resultados."]);
   });
+
+  it("refuses one it does not take through any door, before it runs, and takes one it does", () => {
+    const { rig } = seat("ana", narrowRegistry);
+    rig.attend("ana", "payments");
+    const small = rig.act("ana", "charge", { sale: "sales/s2", amount: 50 }, "payments");
+    const large = rig.act("ana", "charge", { sale: "sales/s1", amount: 500 }, "payments");
+    expect(small).toMatchObject({ status: "rejected", reason: "no es de lo que se puede elegir" });
+    expect(large.status).toBe("accepted");
+  });
 });

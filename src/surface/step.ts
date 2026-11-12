@@ -79,6 +79,10 @@ export function step(session: Session, key: Intent, tools: readonly Tool[], now:
     return { session: replace(session, { ...place, find: "", at: 0 }) };
   if (key.kind === "up" || key.kind === "down") return { session: replace(session, moved(place, tools, key.kind)) };
   if (key.kind === "cancel") return { session: up(session) };
+  /** With what is shown moved away from the chosen row, Enter first brings it back: nobody opens a row they are
+   * not looking at. */
+  const { shift: away = 0, ...back } = place;
+  if (key.kind === "confirm" && away !== 0) return { session: replace(session, back) };
   const hot = key.kind === "type" ? list.find(row => row.key === key.text) : undefined;
   const chosen = hot ?? (key.kind === "confirm" ? list[cursor] : undefined);
   return { session: chosen?.open ? forward(session, chosen.open) : session };

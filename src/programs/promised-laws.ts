@@ -2,7 +2,7 @@
 import { deepStrictEqual, ok } from "node:assert/strict";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
-import type { Case, Composition } from "../tools/promises.ts";
+import { ofTheBase, type Case, type Composition } from "../tools/promises.ts";
 import { outsideOf } from "../tools/schema-breaks.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { cast, given, label, perform, staged, wroteSince, type Aim, type Check, type Doing } from "./promised-stage.ts";
@@ -74,7 +74,9 @@ export function coverage<X extends Program>(aim: Aim<X>): Check {
       /** What an act puts to be confirmed is promised word for word by one of its cases. */
       const sure = aim.act.cases.some(kase => !("refused" in kase.then) && kase.then.sure !== undefined);
       ok(!aim.act.confirms || sure, said.unsure);
-      deepStrictEqual([...new Set(refused)].sort(), [...aim.act.refuses].sort());
+      /** What the base itself refuses with is not the act's to declare; a case may still promise it. */
+      const own = (causes: readonly string[]) => [...new Set(causes.filter(cause => !ofTheBase(cause)))].sort();
+      deepStrictEqual(own(refused), own(aim.act.refuses));
     });
   return { name: label(aim, said.covered), run };
 }

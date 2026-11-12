@@ -22,8 +22,9 @@ const noKeys: KeyStore = {
   remove: () => Promise.reject(new Error(said.keptKeys)),
 };
 type Kept<X extends Program> = Readonly<{ program: Composition<X>; shown: Shown<X> }>;
-/** What it kept folded is what its facts fold to from the first: nothing it saved is trusted over them. And
- * everything it has is read where a person reads it: the Menu, each tool, each thing of each tool. */
+/** It was opened with nothing folded beforehand, so every fact was read and folded from the first by the program
+ * of today; folding it once more gives the same. And everything it has is read where a person reads it: the Menu,
+ * each tool, each thing of each tool. */
 function read<X extends Program>({ program, shown }: Kept<X>, house: ReturnType<typeof startHouse<X>>, now: number) {
   const runner = house.tools.state().by;
   const again = house.journal.replay(startState<X>(program.slices, runner), (state, event) =>

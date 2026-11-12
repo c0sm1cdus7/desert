@@ -1316,6 +1316,44 @@
         "src/programs/kept-journals.spec.ts",
         "tests/program/program.checks.ts"
       ]
+    },
+    {
+      "id": 166,
+      "rule": "Lo que una acción dice que no puede seguir (`stops`) o que no toma (`among`) lo rechaza la base antes de que la acción corra, por cualquier puerta: la pantalla solo lo dice antes",
+      "from": "12/11 · escéptico de la base, ronda 3: `stops` y `among` valían solo en la terminal; por otra puerta la acción aceptaba lo mismo que la pantalla frenaba",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/so-far.ts",
+        "src/tools/promises.ts",
+        "src/tools/promises.spec.ts",
+        "src/programs/promised-also.spec.ts"
+      ]
+    },
+    {
+      "id": 167,
+      "rule": "Lo que se contestó después de una respuesta que cambia queda debajo de la pregunta que contestó: una respuesta puede decidir si un campo posterior se pregunta, y lo que contestaba una pregunta que ya no se hace se va",
+      "from": "12/11 · escéptico de la base, ronda 3: al editar un documento de 11 a 8 dígitos el nombre recibía la respuesta del tipo",
+      "guarantee": "spec",
+      "evidence": ["src/surface/kept-answers.ts", "src/surface/walking.ts", "src/surface/kept-answers.spec.ts"]
+    },
+    {
+      "id": 168,
+      "rule": "En una fila que se elige el nombre se lee entero y lo que se corta es lo de al lado; en una fila que se lee, el dato se lee entero y lo que se corta es su nombre",
+      "from": "12/11 · tres lanes de Capibara lo resolvieron por separado contando columnas (el número de un comprobante, el nombre de una norma, un pedido de canal se cortaban a doce letras)",
+      "guarantee": "spec",
+      "evidence": ["src/doors/terminal/thread.ts", "src/surface/resolve.spec.ts"]
+    },
+    {
+      "id": 169,
+      "rule": "Con lo que se muestra corrido para leer otra lista, Enter primero vuelve a la fila elegida: nadie abre una fila que no está mirando. Una vista previa de muchos renglones conserva la mitad de la pantalla frente a sus opciones, también en la terminal más chica",
+      "from": "12/11 · escéptico de la base, ronda 3: Enter abría una fila fuera de la vista; en 40×16 con ocho opciones no quedaba ni un renglón de la vista previa",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/step.ts",
+        "src/surface/resolve.ts",
+        "src/doors/terminal/thread.ts",
+        "src/surface/resolve.spec.ts"
+      ]
     }
   ]
 }

@@ -5,6 +5,7 @@ import { actOf, begin, fieldOf, maskOf, optionsOf, opened, pickedFrom, validOf }
 import type { Asking, Session, Stepped, Walk } from "./screen.ts";
 import { genericTexts as generic } from "../texts/generic-surface.texts.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
+import { keptAfter } from "./kept-answers.ts";
 import { edited } from "./talk.ts";
 import { must } from "./window.ts";
 
@@ -13,18 +14,21 @@ export const up = (session: Session): Session => (session.length > 1 ? session.s
 export const replace = (session: Session, place: Session[number]): Session => [...session.slice(0, -1), place];
 function advance(session: Session, walk: Asking, tools: readonly Tool[], answer: string, now: number): Stepped {
   const current = must(fieldOf(tools, walk));
+  const act = actOf(tools, walk);
   // An answer that changed can change what follows, so what was answered after it does not survive. Unless what
   // follows is what the thing already has: a walk that asks only part keeps the rest, and one that began with what
-  // the thing is today keeps it past a written answer, which never changes what is asked next.
+  // the thing is today keeps it past a written answer. What it keeps stays under the questions asked now.
   const written = current.kind === "text" || current.kind === "secret";
   const kept = walk.until !== undefined || walk.answers[walk.pos] === answer || (walk.carried === true && written);
-  const later = kept ? walk.answers.slice(walk.pos + 1) : [];
-  const answers = [...walk.answers.slice(0, walk.pos), answer, ...later];
+  const answers = [...walk.answers.slice(0, walk.pos), answer, ...(kept ? keptAfter(act, walk, answer) : [])];
   /** What the act says cannot go on stays at the question it was answered in, saying why. */
-  const why = actOf(tools, walk).stops?.(answers.slice(0, walk.pos + 1));
+  const why = act.stops?.(answers.slice(0, walk.pos + 1));
   if (why !== undefined) return { session: replace(session, { ...walk, error: why }) };
   const asked = [...walk.asked.slice(0, walk.pos), { ask: current.ask, shown: maskOf(current, answer) }];
-  const moved: Walk = { ...walk, answers, asked, pos: walk.pos + 1 };
+  /** A walk that asked only part asks on when the rest no longer says everything the act takes. */
+  const open = walk.until === undefined ? null : act.next(answers);
+  const { until: _part, ...whole } = walk;
+  const moved: Walk = { ...(open && open.kind !== "confirm" ? whole : walk), answers, asked, pos: walk.pos + 1 };
   const { error: _gone, finding: _sought, read: _back, ...clean } = moved;
   const field = fieldOf(tools, clean);
   if (field) return { session: replace(session, { ...clean, ...opened(field, answers[clean.pos]) }) };

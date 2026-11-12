@@ -6,7 +6,7 @@ import type { Static, TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import type { Vocabulary } from "../journal/events.ts";
 import { toolAct } from "./act-definition.ts";
-import { soFar, type SoFar } from "./so-far.ts";
+import { refusedWhole, soFar, type SoFar } from "./so-far.ts";
 import type { ActContext, ActResult, Program, Reach, Slices, State, Tool, ToolAct } from "./tool-contract.ts";
 
 /** Something that already happened before a case: an act of the program, by one of the house's identities. */
@@ -134,11 +134,26 @@ function offeredBy<X extends Program, S extends TSchema>(declared: Declared<X, S
 /** What an act answers, now or later, passed through a check of it. */
 const settled = <R>(result: R | Promise<R>, check: (result: R) => R): R | Promise<R> =>
   result instanceof Promise ? result.then(check) : check(result);
-/** What the base itself refuses with is not the act's to declare: nothing would change, or a day does not exist. */
-const ofTheBase = (cause: string): boolean => cause === toolTexts.unchanged || cause === toolTexts.noSuchDay;
+/** What the base itself refuses with is not the act's to declare: nothing would change, a day does not exist, or
+ * a thing is not among what the act takes. */
+export const ofTheBase = (cause: string): boolean =>
+  cause === toolTexts.unchanged || cause === toolTexts.noSuchDay || cause === toolTexts.notAmong;
+/** What a field says is wrong, or the act says cannot go on or does not take, never reaches it, by any door. And
+ * an act that says what the thing is today does not leave it as it is: nothing new would be written. */
+const heldBy =
+  <X extends Program, S extends TSchema>(
+    { input, run, today }: Declared<X, S>,
+    said: SoFar<X>,
+  ): Declared<X, S>["run"] =>
+  (value, context) => {
+    const wrong = wrongIn(input, value) ?? refusedWhole(input, said, value)(context.state, context.target);
+    if (wrong !== undefined) return { status: "rejected", reason: wrong };
+    const same = today !== undefined && Value.Equal(today(context.state, context.target), value);
+    return same ? { status: "rejected", reason: toolTexts.unchanged } : run(value, context);
+  };
 /** An act of a program: what it takes, what it does, and what it promises. */
 export function programAct<X extends Program, S extends TSchema>(declared: Declared<X, S>): ProgramAct<X> {
-  const { input, reach, refuses = [], offered, output, run, cases, confirms, today, also, datum } = declared;
+  const { input, reach, refuses = [], offered, output, cases, confirms, today, also, datum } = declared;
   refuses.forEach(short);
   /** What cannot be undone asks to be confirmed. With nothing to ask, the surface asks by itself; with something,
    * the act says what is put before the person. */
@@ -156,14 +171,8 @@ export function programAct<X extends Program, S extends TSchema>(declared: Decla
     if (result.status === "rejected" && !ofTheBase(result.reason)) declaredCause(result.reason);
     return result;
   };
-  /** What a field of it says is wrong never reaches the act, through whatever door it came. */
-  const held: Declared<X, S>["run"] = (value, context) => {
-    const wrong = wrongIn(input, value);
-    if (wrong !== undefined) return { status: "rejected", reason: wrong };
-    /** An act that says what the thing is today does not leave it as it is: nothing new would be written. */
-    const same = today !== undefined && Value.Equal(today(context.state, context.target), value);
-    return same ? { status: "rejected", reason: toolTexts.unchanged } : run(value, context);
-  };
+  const said = soFar<X>(input, declared);
+  const held = heldBy(declared, said);
   const act = toolAct<X, S>(input, (value, context) => settled(held(value, context), checked), reach);
   const guarded: ToolAct<X>["offered"] = (state, target, at) => {
     const cause = offered?.(state, target, at);
@@ -177,7 +186,7 @@ export function programAct<X extends Program, S extends TSchema>(declared: Decla
     ...(today ? { today } : {}),
     ...(also ? { also } : {}),
     ...(datum ? { datum } : {}),
-    ...soFar<X>(declared.input, declared),
+    ...said,
   };
   return { ...act, ...(offered ? { offered: guarded } : {}), ...(output ? { output: true } : {}), ...promised };
 }

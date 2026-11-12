@@ -1,5 +1,7 @@
 // What a program cannot be shown with: it is refused when its tools are composed for a surface, before anyone uses it.
 import { afterEach, describe, expect, it } from "vitest";
+import { object } from "../../catalogs/acts.ts";
+import { day, text, thing } from "../../catalogs/fields.ts";
 import { houseTools } from "./house-tools.ts";
 import type { Shown } from "./house-ports.ts";
 import { stacksOf } from "../lists.ts";
@@ -93,5 +95,14 @@ describe("a program's tools, composed for a surface", () => {
     expect(composed(menued({ register, inMenu, beside }))).toThrow("Two acts of sales take the same key: e");
     expect(composed(menued({ register, inMenu, also: inMenu }))).toThrow("Two acts of sales take the same key: r");
     expect(composed(menued({ register, inMenu }))).not.toThrow();
+  });
+
+  it("refuses a day held to today where the program does not say what day it is, and a thing made by no act", () => {
+    const dated = { ...register, input: object({ sale: text("Venta", "Venta"), on: day("Día", "today") }) };
+    expect(composed(sales({ register: dated }))).toThrow("holds a day to today and the program does not say what day");
+    const told = { ...shopShown, day: () => "2026-11-12" };
+    expect(composed(sales({ register: dated }), told)).not.toThrow();
+    const making = { ...register, input: object({ sale: thing("Venta", "sales", undefined, "open") }) };
+    expect(composed(sales({ register: making }))).toThrow("makes a thing with an act that makes none: open");
   });
 });

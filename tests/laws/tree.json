@@ -76,19 +76,21 @@
     "tools/tools.ts": "house state and each tool's part folded together; attendance acts; attention ladder; startTools",
     "tools/so-far.ts": "SoFar, Among; soFar: what an act says of what was answered so far, asked only about the fields it takes",
     "surface/bridge/picked.ts": "besides, offeredOn: what a question that picks a thing offers for the act that asks it",
-    "programs/kept-journals.ts": "keptChecks: each journal a program keeps still opens with the program of today, read and folded whole"
+    "programs/kept-journals.ts": "keptChecks: each journal a program keeps still opens with the program of today, read and folded whole",
+    "surface/kept-answers.ts": "keptAfter: the answers a walk keeps past one that changed, each under the question it answered",
+    "surface/bridge/audit-fields.ts": "auditFields: what the fields of a program's acts need from the rest of the program, checked when composed"
   },
   "folders": {
     "adapters/secrets": 103,
-    "adapters/storage": 179,
+    "adapters/storage": 181,
     "catalogs": 195,
-    "doors/terminal": 570,
+    "doors/terminal": 571,
     "house": 91,
     "journal": 326,
-    "programs": 1080,
-    "surface": 1671,
-    "surface/bridge": 1259,
-    "texts": 198,
-    "tools": 839
+    "programs": 1084,
+    "surface": 1708,
+    "surface/bridge": 1296,
+    "texts": 200,
+    "tools": 881
   }
 }

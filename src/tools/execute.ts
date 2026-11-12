@@ -122,7 +122,10 @@ const written = <X extends Program>(ports: Execution<X>, act: Origin, effects: D
     );
     return undefined;
   } catch (error) {
-    return error instanceof Error && error.message ? error.message : toolTexts.unavailable;
+    /** Who listened and failed says why: the first of them, never that something was kept, since nothing was. */
+    const failures: readonly unknown[] = error instanceof AggregateError ? error.errors : [error];
+    const [first] = failures;
+    return first instanceof Error && first.message ? first.message : toolTexts.unavailable;
   }
 };
 const finish = <X extends Program>(ports: Execution<X>, act: Origin, decision: Decision<X>): Decision<X> => {

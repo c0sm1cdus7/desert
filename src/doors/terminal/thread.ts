@@ -55,16 +55,16 @@ export function drawRow(
   const tone = (fallback: Tone): Tone => (on ? "t1" : quiet(fallback));
   if (keyed && row.key) put(grid, left + 1, r, { text: `[${row.key}]`, tone: tone("t3") }, on);
   const detail = row.detail ?? "";
-  /** What does not fit is cut from the name: the datum at the right is read whole while the name keeps a dozen. */
-  const shown = fit(detail, Math.max(block - (x - left) - Math.min(width(row.title), 12) - 2, 10));
   const fact = (how.reads === true || row.still === true) && detail !== "";
-  put(
-    grid,
-    x,
-    r,
-    { text: fit(row.title, block - (x - left) - width(shown) - 2), tone: tone(fact ? "t2" : "t1"), bold: on },
-    on,
-  );
+  const room = block - (x - left);
+  /** What does not fit is cut from what is not being read. Where a datum is read, from its name: the datum at the
+   * right is whole while the name keeps a dozen. Where a row is chosen, from what is beside it: the name is whole
+   * while what is beside it keeps a dozen. */
+  const [first, second] = fact ? [detail, row.title] : [row.title, detail];
+  const whole = fit(first, Math.max(room - Math.min(width(second), 12) - 2, 10));
+  const cut = fit(second, room - width(whole) - 2);
+  const [shown, title] = fact ? [whole, cut] : [cut, whole];
+  put(grid, x, r, { text: title, tone: tone(fact ? "t2" : "t1"), bold: on }, on);
   if (shown) putRight(grid, left + block - 1, r, [{ text: shown, tone: tone(row.tone ?? (fact ? "t1" : "t2")) }], on);
 }
 
@@ -151,7 +151,8 @@ export function drawThread(grid: Grid, body: Extract<Body, { kind: "thread" }>, 
   /** What does not fit is cut from the top; reading back brings it down a window at a time, saying what is below. */
   const cut = Math.max((lit >= 0 ? Math.min(overflow, lit) : overflow) - (body.read ?? 0) * Math.max(room - 2, 1), 0);
   const fits = room - (cut ? 1 : 0);
-  const under = lines.length - cut > fits ? lines.length - cut - fits + 1 : 0;
+  /** What is left below is counted only where a line of what is said still fits above the count. */
+  const under = fits > 1 && lines.length - cut > fits ? lines.length - cut - fits + 1 : 0;
   const shown = lines.slice(cut, cut + fits - (under ? 1 : 0));
   if (cut) put(grid, left, 3, { text: `↑ ${cut} ${said.more}`, tone: "t3" });
   if (under) put(grid, left, bottom, { text: `↓ ${under} ${said.more}`, tone: "t3" });

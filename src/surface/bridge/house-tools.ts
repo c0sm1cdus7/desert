@@ -9,6 +9,7 @@ import type { Option } from "../contract.ts";
 import { backKey as back } from "../screen.ts";
 import type { Things } from "./asking.ts";
 import { anyToolScreen } from "./any-tool.ts";
+import { auditFields } from "./audit-fields.ts";
 import { listsOf, ownReads, type HousePorts, type Shown, type SurfacePorts, type ToolWords } from "./house-ports.ts";
 import { noticesOf } from "./notices.ts";
 import { preferencesPlace, preferencesTool } from "./preferences-tool.ts";
@@ -59,6 +60,7 @@ function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown
   auditPlaces(tools, shown);
   if (tools.some(tool => tool.id === preferencesPlace.id)) throw new Error(`A tool takes the name of Preferences`);
   tools.forEach(auditActs);
+  auditFields(tools, shown);
   tools.forEach(tool => auditData(tool, ownReads(shown.words[tool.id])));
   for (const tool of tools) {
     const also = tools.flatMap(other => Object.values(other.acts).filter(act => act.also?.tool === tool.id));

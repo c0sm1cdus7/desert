@@ -1,4 +1,5 @@
 // The two lists every menu opens with, checked for every program: what needs someone to act, and what the others did.
+import { firstLine } from "../surface/bridge/notices.ts";
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import type { Choice } from "../surface/screen.ts";
@@ -37,7 +38,7 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
       const theirs = seated(house(), other, shown);
       const own = seated(house(), actor, shown);
       const news = (tools: readonly Tool[], tool?: string) =>
-        listAt(tools, surface.activity, tool)?.find(row => row.title === entry.data.text);
+        listAt(tools, surface.activity, tool)?.find(row => row.title === firstLine(entry.data.text));
       try {
         ok(news(theirs.tools) && news(theirs.tools, aim.tool.id), said.noActivity(entry.data.text));
         strictEqual(news(own.tools), undefined, said.ownActivity(entry.data.text));

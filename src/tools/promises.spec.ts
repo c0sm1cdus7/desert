@@ -100,3 +100,36 @@ describe("a day the calendar does not have, given to an act", () => {
     expect(taken.status).toBe("accepted");
   });
 });
+
+describe("what an act says cannot go on, given to it whole", () => {
+  const sold = shopCatalog["sale-registered"];
+  /** An act whose own run would take anything: only what it says of what was answered stops a large total. */
+  const capped = programAct<Shop, typeof sold>({
+    ...registerOffer,
+    input: sold,
+    refuses: ["total de más"],
+    stops: ({ total }) => (typeof total === "number" && total > 9000 ? "total de más" : undefined),
+    run: (told, { by }) => ({
+      status: "accepted",
+      text: "Registrada",
+      effects: [shop.fact("sale-registered", told, by)],
+    }),
+    cases: [
+      { promise: "a sale is registered", input: { sale: "s1", total: 5 }, then: { says: "Registrada", facts: [] } },
+      { promise: "a large one is not", input: { sale: "s1", total: 9500 }, then: { refused: "total de más" } },
+    ],
+  });
+  const capping = { id: "capping", purpose: "Caps.", targets: () => [], view: () => "", summary: () => "" };
+
+  it("is refused through whatever door it came, before the act runs: a surface only says it earlier", () => {
+    const rig = shopRig({ registry: [...shopRegistry, { ...capping, acts: { register: capped } }] });
+    rig.attend("ana", "capping");
+    const refused = rig.act("ana", "register", { sale: "s8", total: 9500 }, "capping");
+    const taken = rig.act("ana", "register", { sale: "s9", total: 9000 }, "capping");
+    const kept = [...rig.state().tools.sales.keys()];
+    rig.close();
+    expect(refused).toMatchObject({ status: "rejected", reason: "total de más" });
+    expect(taken.status).toBe("accepted");
+    expect(kept).toEqual(["s9"]);
+  });
+});

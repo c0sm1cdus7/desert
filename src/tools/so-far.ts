@@ -1,6 +1,7 @@
 // What an act says of what was answered so far, before it runs: why it cannot go on, and which things it takes.
 import { Type, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { toolTexts } from "../texts/tools.texts.ts";
 import type { Program, State } from "./tool-contract.ts";
 
 type Answered = Readonly<Record<string, unknown>>;
@@ -24,4 +25,33 @@ export function soFar<X extends Program>(input: TSchema, { stops, among }: SoFar
   const narrowed: NonNullable<SoFar<X>["among"]> = (answered, state, target) =>
     Value.Check(partial, answered) ? (among?.(answered, state, target) ?? {}) : {};
   return { ...(stops ? { stops: asked } : {}), ...(among ? { among: narrowed } : {}) };
+}
+const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+type Picked = readonly [tool: string, thing: string];
+/** Every thing of another tool that an input picks, with the tool it is of: wherever in the input it stands. */
+function picksIn(schema: unknown, value: unknown): readonly Picked[] {
+  if (!isRecord(schema) || value === undefined || value === null) return [];
+  if (typeof schema.of === "string") return typeof value === "string" && value !== "" ? [[schema.of, value]] : [];
+  if (Array.isArray(schema.anyOf))
+    return picksIn(
+      schema.anyOf.find(arm => Value.Check(arm, value)),
+      value,
+    );
+  if (Array.isArray(value)) return value.flatMap(item => picksIn(schema.items, item));
+  if (!isRecord(schema.properties) || !isRecord(value)) return [];
+  return Object.entries(schema.properties).flatMap(([key, field]) => picksIn(field, value[key]));
+}
+/** Why an input that says everything cannot go on, by what the act itself said of what is answered so far: what
+ * it stops at, or a thing it picks and does not take. A surface says it earlier, at the question; here it is
+ * refused through whatever door it came, before the act runs. */
+export function refusedWhole<X extends Program>(input: TSchema, said: SoFar<X>, value: unknown) {
+  return (state: State<X>, target: string): string | undefined => {
+    if (!isRecord(value)) return undefined;
+    const stopped = said.stops?.(value, state, target);
+    if (stopped !== undefined) return stopped;
+    const among = said.among?.(value, state, target) ?? {};
+    const left = picksIn(input, value).some(([tool, thing]) => among[tool]?.(thing) === false);
+    return left ? toolTexts.notAmong : undefined;
+  };
 }

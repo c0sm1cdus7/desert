@@ -39,10 +39,12 @@ export function journalReader<P extends Foreign>(file: string, words: Vocabulary
     close: () => db.close(),
   };
 }
-/** Of a journal kept on disk: who its house runs as (who wrote its first boot) and the instant of its last fact. */
+/** Of a copy of a journal kept on disk: who its house runs as (who wrote its first boot) and the instant of its
+ * last fact. What the copy brought already folded is dropped: whoever opens it folds every fact from the first. */
 export function journalKept(file: string): Readonly<{ runner: string; last: number }> {
-  const db = new DatabaseSync(file, { readOnly: true });
+  const db = new DatabaseSync(file);
   try {
+    db.exec("delete from snapshots");
     const boot = db.prepare("select by from events where kind = 'boot' order by seq limit 1").get();
     const last = db.prepare("select max(at) as at from events").get();
     return { runner: String(boot?.by ?? ""), last: Number(last?.at ?? 0) };

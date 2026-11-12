@@ -2,6 +2,7 @@
 import { Type } from "@sinclair/typebox";
 import { object } from "../../src/catalogs/acts.ts";
 import { money, thing } from "../../src/catalogs/fields.ts";
+import { toolTexts } from "../../src/texts/tools.texts.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import { paymentsTool, salesTool, shop, shopProgram, type Shop } from "./shop.ts";
 
@@ -17,7 +18,7 @@ const nameOf = (target: string): string => target.replace("sales/", "");
 const registered = { act: "register", on: "sales", input: { sale: "s1", total: 1500 } };
 const also = { act: "register", on: "sales", input: { sale: "s2", total: 90 } };
 const paid = (amount: number) => ({
-  says: "Cobrada · s1",
+  says: "Cobrada · s1\nRecibo de prueba",
   facts: [{ kind: "payment-received" as const, data: { payment: "for-s1", amount, sale: "s1" } }],
 });
 export const chargedFromSale =
@@ -74,7 +75,8 @@ const chargeWith = (input: Charged) =>
       if (!state.tools.sales.has(nameOf(sale))) return { status: "rejected", reason: "unknown" };
       if (amount > 9000) return { status: "rejected", reason: "monto de más" };
       const fact = shop.fact("payment-received", { payment: `for-${nameOf(sale)}`, amount, sale: nameOf(sale) }, by);
-      return { status: "accepted", text: `Cobrada · ${nameOf(sale)}`, effects: [fact] };
+      /** What it answers has two lines: what it did, and what it shows. Every derived check reads it so. */
+      return { status: "accepted", text: `Cobrada · ${nameOf(sale)}\nRecibo de prueba`, effects: [fact] };
     },
     cases: chargeCases,
   });
@@ -87,8 +89,7 @@ export const chargingShop: Composition<Shop> = { ...shopProgram, registry: charg
 /** The same shop, where the sale to charge can be registered right where it is picked. */
 export const makingRegistry = [salesTool, paymentsWith("register")];
 /** The same act, which takes only the sales of a thousand or more: the others are not on the list it picks from,
- * and it refuses one all the same. */
-const small = "venta chica";
+ * and the base refuses one through any door. The act says it once, in what it takes. */
 type Sales = Parameters<NonNullable<ReturnType<typeof chargeWith>["offered"]>>[0];
 const large = (state: Sales, sale: string): boolean => (state.tools.sales.get(nameOf(sale))?.total ?? 0) >= 1000;
 const narrowCharge = () => {
@@ -101,12 +102,10 @@ const narrowCharge = () => {
     key: whole.key,
     on: "tool",
     input: chargedWith(),
-    refuses: ["unknown", small],
+    /** A sale nobody registered is not a large one either: the act has no cause of its own left. */
+    refuses: [],
     among: (_answered, state) => ({ sales: sale => large(state, sale) }),
-    run: (input, context) =>
-      context.state.tools.sales.has(nameOf(input.sale)) && !large(context.state, input.sale)
-        ? { status: "rejected", reason: small }
-        : whole.run(input, context),
+    run: (input, context) => whole.run(input, context),
     cases: [
       {
         promise: "a large sale is charged, picked from a list that has only the large ones",
@@ -115,16 +114,10 @@ const narrowCharge = () => {
         then: paid(500),
       },
       {
-        promise: "a sale nobody registered is not charged, large or not",
-        given: [registered],
-        input: { sale: "sales/zz", amount: 1 },
-        then: { refused: "unknown" },
-      },
-      {
-        promise: "a small sale is not charged, and is not on the list to pick it from",
+        promise: "a small sale is not charged through any door, and is not on the list to pick it from",
         given: [registered, also],
         input: { sale: "sales/s2", amount: 50 },
-        then: { refused: small },
+        then: { refused: toolTexts.notAmong },
       },
     ],
   });

@@ -13,7 +13,7 @@ programa (Kenon). Lo que una regla hace cumplir está en `GARANTIAS.md`; las ley
 | Cada acción | `programAct({ name, enter, undoable, purpose, key, on, input, run, cases, … })`. | `src/tools/promises.ts` |
 | Lo que promete | `cases`: dado esto, al hacer esto, pasa esto (dice, escribe, se lee, pide atención) o se rechaza con un motivo. | `src/tools/promises.ts` |
 | Sus palabras | `Shown.words[herramienta]`: `name`, `key`, y `system` o `inside`; si lista cosas, `empty`, `listed`, `reads` y `presents`; si lee datos propios, `itself`. | `src/surface/bridge/house-ports.ts` |
-| Su país | `Shown.locale`: cómo se escribe la plata y el día. | `src/surface/masks.ts` |
+| Su país | `Shown.locale`: cómo se escribe la plata y el día. `Shown.day` (qué día es un instante, como lo cuenta su país) y `Shown.moment`: obligatorio `day` si alguna pregunta sugiere hoy o no admite futuro (no compone sin él). | `src/surface/masks.ts` |
 
 El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`) y `shown`, y dice en su
 `package.json` dónde están (`"desert": { "program": "src/…" }`). Con eso la base lo corre y lo comprueba.
@@ -21,7 +21,8 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 ## Lo que la base hace con eso
 
 - **La organización** (`house`): quién administra, qué herramientas enteras tiene cada usuario, sus preferencias. Quien
-  administra da y quita herramientas (`granted`), saca a alguien (`removed`) y pasa la administración (`handed`).
+  administra da y quita herramientas (`granted`), saca a alguien (`removed`) y pasa la administración (`handed`):
+  la base pliega esos hechos y cuida sus reglas; la acción que los escribe (y su pantalla) es del programa.
 - **El registro**: solo se agrega; cada hecho con autor e instante; el estado es el registro plegado.
 - **La superficie**: Menú, lista de cada herramienta, objeto abierto y pregunta; un router único para cualquier
   dibujante (hoy la terminal). Atención y Actividad en cada menú; buscar con espacio; Preferencias.
@@ -49,18 +50,33 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   cada corte de línea es un renglón, sin volver a cortar (una vista previa, un impreso). Lo que contesta dice qué
   hizo en la primera línea («Verbo · Objeto · Detalle»), y así se promete en un caso.
 - Lo que una acción crea queda en el Registro de cada cosa creada: ningún programa guarda quién creó qué.
+- Una acción puede decir por qué lo contestado hasta ahí no puede seguir: `stops: (respondido, estado, cosa) =>
+  motivo`. La pantalla lo dice en la pregunta que se acaba de contestar; **la base lo rechaza igual antes de correr
+  la acción, por cualquier puerta**, con ese mismo motivo (que va en `refuses`, con su caso). La acción no lo repite.
 - Donde una pregunta elige una cosa de otra herramienta (`thing`), la acción puede decir cuáles toma según lo ya
-  contestado: `among: (respondido, estado, cosa) => ({ productos: id => … })`. La lista ofrece solo esas, también a
-  quien busca; la acción igual rechaza al correr (un caso lo promete).
+  contestado: `among: (respondido, estado, cosa) => ({ productos: id => … })` (por herramienta, no por campo: dos
+  preguntas de la misma herramienta reciben la misma función). La lista ofrece solo esas, también a quien busca, y
+  **la base rechaza las demás antes de correr la acción, por cualquier puerta**, con su propio motivo («no es de lo
+  que se puede elegir»), que la acción no declara; un caso puede prometerlo. La acción no lo repite.
+- Donde se elige una cosa se puede hacer una nueva ahí mismo: `thing(pregunta, herramienta, ninguna?, acción)`. Esa
+  acción es de la herramienta (`on: "tool"`) y lo que contesta dice qué cosa hizo (`target`): esa es la respuesta. Si
+  la acción no existe, el programa no compone.
 - Una acción dice si se ofrece sabiendo qué momento es (`offered(estado, cosa, instante)`): lo que hoy no se puede
   hacer queda apagado con su motivo.
 
 ## Los registros que se guardan
-- Un programa puede guardar registros que organizaciones reales escribieron con él (una copia de su `journal.sqlite`,
-  sin secretos) en una carpeta que nombra en `package.json`: `"desert": { "program": …, "journals": "tests/journals" }`.
-  La compuerta abre cada uno con el programa de hoy: cada hecho se lee y se pliega desde el primero, y cada cosa se
-  lee como la lee quien administra. Un cambio que no los lea frena ahí: se arregla con un hecho nuevo o con una
-  lectura versionada del viejo, nunca salteándolo.
+- Un programa puede guardar registros que organizaciones reales escribieron con él en una carpeta que nombra en
+  `package.json`: `"desert": { "program": …, "journals": "tests/journals" }`. Cada uno es una copia de su
+  `journal.sqlite` (nunca `secrets.sqlite`; lo secreto no está en el registro, que guarda cada hecho ya sin sus
+  valores secretos, pero sí están los datos de la organización: no guardes el de una organización real en un
+  repositorio público).
+- La compuerta abre cada copia con el programa de hoy, sin lo que traía plegado: cada hecho se lee y se pliega desde
+  el primero, y cada cosa se lee como la lee quien administra. Un cambio que no los lea frena ahí.
+- El único remedio que la base tiene hoy es no romper la lectura: un hecho que cambia de forma es un hecho nuevo, con
+  otro nombre, y el viejo se sigue leyendo y plegando. No hay lectura versionada de un hecho viejo.
+- Ojo: una organización en uso guarda su estado plegado y lo vuelve a usar mientras el programa no cambie sus hechos
+  ni su estado inicial. Si cambia solo cómo pliega un hecho, la organización sigue con lo plegado antes: cambiar un
+  pliegue pide cambiar también el hecho (o el estado inicial) para que se vuelva a plegar todo.
 
 ## Un objeto
 
@@ -106,3 +122,17 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - Disparar una acción por fecha (un abono que genera a una hora): la casa tiene reloj para sus recordatorios, no para
   las acciones de un programa.
 - Suprimir de verdad un dato del registro, dejando el hecho (un pedido de supresión de datos personales).
+- **Lo que una acción escribe queda entero o nada, salvo en un caso:** una acción que alguien ejecuta dentro de un
+  oyente de un hecho suelto (uno que no vino de una acción: un despertar, un arranque) cierra su escritura antes de
+  que sus propios oyentes la oigan; si uno de ellos falla, la acción ya contestó que sí. Un ser que actúa al oír
+  hechos (Kenon) lo va a necesitar resuelto.
+- Un oyente con estado propio (el reloj y sus temporizadores, una pantalla) no se deshace cuando se deshace lo
+  escrito: puede quedar un temporizador de un hecho que no existe.
+- Un pliegue tiene que ser puro: si cambia su estado en el lugar (`mapa.set(…)`), deshacer lo escrito no lo deshace.
+  La base todavía no lo comprueba.
+- Un día que no admite futuro (`last: "today"`) se rechaza donde se escribe; por otra puerta, la acción tiene que
+  rechazarlo ella.
+- Una tecla que no elige nada en una lista (un número sin fila) no dice nada; solo los campos escritos dicen que una
+  tecla no va.
+- Una devolución de plata sin cosas, un rechazo que deje escrito lo que contestó el fisco, un motivo con un dato
+  variable: pedidos de Capibara que hoy se resuelven del lado del programa.
