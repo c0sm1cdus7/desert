@@ -55,6 +55,13 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - Una acción dice si se ofrece sabiendo qué momento es (`offered(estado, cosa, instante)`): lo que hoy no se puede
   hacer queda apagado con su motivo.
 
+## Los registros que se guardan
+- Un programa puede guardar registros que organizaciones reales escribieron con él (una copia de su `journal.sqlite`,
+  sin secretos) en una carpeta que nombra en `package.json`: `"desert": { "program": …, "journals": "tests/journals" }`.
+  La compuerta abre cada uno con el programa de hoy: cada hecho se lee y se pliega desde el primero, y cada cosa se
+  lee como la lee quien administra. Un cambio que no los lea frena ahí: se arregla con un hecho nuevo o con una
+  lectura versionada del viejo, nunca salteándolo.
+
 ## Un objeto
 
 - La herramienta declara en `presents` los grupos de sus objetos, en orden, cada uno con su título, lo que dice

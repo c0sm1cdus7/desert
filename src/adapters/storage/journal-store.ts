@@ -39,6 +39,17 @@ export function journalReader<P extends Foreign>(file: string, words: Vocabulary
     close: () => db.close(),
   };
 }
+/** Of a journal kept on disk: who its house runs as (who wrote its first boot) and the instant of its last fact. */
+export function journalKept(file: string): Readonly<{ runner: string; last: number }> {
+  const db = new DatabaseSync(file, { readOnly: true });
+  try {
+    const boot = db.prepare("select by from events where kind = 'boot' order by seq limit 1").get();
+    const last = db.prepare("select max(at) as at from events").get();
+    return { runner: String(boot?.by ?? ""), last: Number(last?.at ?? 0) };
+  } finally {
+    db.close();
+  }
+}
 /** Derive identity from provenance, kind, writer and the ordinal among their effects. */
 export function derivedId(emission: Emission, ordinal: number): string {
   return createHash("sha256")

@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 162. Deudas: 23.
+Leyes: 163. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -169,3 +169,4 @@ Leyes: 162. Deudas: 23.
 | 162 | Lo que se contestó se lee al lado de lo que se preguntó; debajo, cuando lo preguntado es un bloque de varias líneas: la respuesta nunca se lee como el final del último renglón del bloque | 12/11 · caminando Capibara: después de emitir, la vista previa terminaba en «fisco de prueba emitir» | una spec a mano | `src/surface/walk.ts` `src/surface/walk.spec.ts` |
 | 163 | Donde se elige una cosa se ofrecen solo las que la acción toma según lo ya contestado: nada se ofrece en una lista para rechazarlo después de elegido; también para quien busca | 12/11 · lanes de Capibara: en una venta de servicios la lista ofrecía los bienes y los rechazaba al final («es un bien»); el mostrador ofrecía lo que no se vende en mostrador | una spec a mano | `src/tools/promises.ts` `src/surface/bridge/program-acts.ts` `src/programs/promised-also.spec.ts` |
 | 164 | Lo que una herramienta dice junto a su nombre nunca es un número suelto: una cuenta dice qué cuenta («3 ventas») | 12/11 · ronda 2 de escépticos de Capibara (M42) y caminata: «cobros 1», «normas 13», «usuarios 1» en el Menú | una spec a mano | `src/programs/promised.ts` `tests/support/shop.ts` `src/programs/promised.spec.ts` |
+| 165 | Los registros que una organización ya escribió y el programa guarda (`desert.journals`) siguen abriendo con el programa de hoy: cada hecho se lee y se pliega desde el primero, y cada cosa se lee donde la lee una persona; nada se saltea para que abran | 12/11 · obra de Capibara: en una noche cambiaron decenas de hechos; el día que haya datos reales, un cambio que no los lea tiene que frenar en la compuerta, no en la organización | una spec a mano | `src/programs/kept-journals.ts` `src/programs/kept-journals.spec.ts` `tests/program/program.checks.ts` |

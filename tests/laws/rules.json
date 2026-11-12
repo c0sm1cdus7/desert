@@ -1305,6 +1305,17 @@
       "from": "12/11 · ronda 2 de escépticos de Capibara (M42) y caminata: «cobros 1», «normas 13», «usuarios 1» en el Menú",
       "guarantee": "spec",
       "evidence": ["src/programs/promised.ts", "tests/support/shop.ts", "src/programs/promised.spec.ts"]
+    },
+    {
+      "id": 165,
+      "rule": "Los registros que una organización ya escribió y el programa guarda (`desert.journals`) siguen abriendo con el programa de hoy: cada hecho se lee y se pliega desde el primero, y cada cosa se lee donde la lee una persona; nada se saltea para que abran",
+      "from": "12/11 · obra de Capibara: en una noche cambiaron decenas de hechos; el día que haya datos reales, un cambio que no los lea tiene que frenar en la compuerta, no en la organización",
+      "guarantee": "spec",
+      "evidence": [
+        "src/programs/kept-journals.ts",
+        "src/programs/kept-journals.spec.ts",
+        "tests/program/program.checks.ts"
+      ]
     }
   ]
 }

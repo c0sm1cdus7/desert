@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { describe, it } from "vitest";
+import { keptChecks } from "../../src/programs/kept-journals.ts";
 import { programChecks } from "../../src/programs/program-checks.ts";
 import type { Shown } from "../../src/surface/bridge/house-ports.ts";
 import type { Composition } from "../../src/tools/promises.ts";
@@ -26,4 +27,13 @@ if (!isProgram(program) || !isShown(shown)) throw new Error(`${where} must expor
 
 describe(`what the program composed in ${where} promises`, () => {
   for (const check of programChecks(program, shown)) it(check.name, check.run);
+});
+/** Where the program keeps journals that organizations wrote with it, when it says so: "desert.journals". */
+const journals = field(field(pkg, "desert"), "journals");
+describe("the journals the program keeps", () => {
+  const kept = typeof journals === "string" ? keptChecks(program, shown, join(process.cwd(), journals)) : [];
+  it("are read from the folder the program names, or the program names none", () => {
+    if (typeof journals === "string" && !kept.length) throw new Error(`${journals} keeps no journal`);
+  });
+  for (const check of kept) it(check.name, check.run);
 });

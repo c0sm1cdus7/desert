@@ -37,6 +37,10 @@ export const promiseTexts = {
   notComposed: (text: string) => `what the act says is a sentence, not «Verbo · Objeto · Detalle»: ${text}`,
   speaks: (text: string) => `what the act says speaks to who reads it: ${text}`,
   bare: (digits: string) => `a datum written in a shape is read without it: ${digits}`,
+  keptOpens: (name: string) =>
+    `the journal kept as ${name} still opens: every fact is read and folds, and every thing is read`,
+  keptEmpty: "a kept journal has no house in it: nothing ever booted there",
+  keptKeys: "a kept journal is only read: it keeps no credential",
   bareCount: (tool: string) => `${tool} says a bare number beside its name: a count says what it counts`,
   overflows: "a screen does not fit the smallest terminal: what is left out is not counted, and it draws over the bars",
   emptyLists: "Attention and Activity open every menu even with nothing in them, unless a person prefers not",

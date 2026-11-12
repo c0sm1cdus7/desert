@@ -75,19 +75,20 @@
     "tools/tool-contract.ts": "Program, State, Slices, Tool, ToolAct, ActResult, KeyStore: a tool as the house sees it",
     "tools/tools.ts": "house state and each tool's part folded together; attendance acts; attention ladder; startTools",
     "tools/so-far.ts": "SoFar, Among; soFar: what an act says of what was answered so far, asked only about the fields it takes",
-    "surface/bridge/picked.ts": "besides, offeredOn: what a question that picks a thing offers for the act that asks it"
+    "surface/bridge/picked.ts": "besides, offeredOn: what a question that picks a thing offers for the act that asks it",
+    "programs/kept-journals.ts": "keptChecks: each journal a program keeps still opens with the program of today, read and folded whole"
   },
   "folders": {
     "adapters/secrets": 103,
-    "adapters/storage": 168,
+    "adapters/storage": 179,
     "catalogs": 195,
     "doors/terminal": 570,
     "house": 91,
     "journal": 326,
-    "programs": 1004,
+    "programs": 1080,
     "surface": 1671,
     "surface/bridge": 1259,
-    "texts": 194,
+    "texts": 198,
     "tools": 839
   }
 }
