@@ -20,7 +20,8 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 
 ## Lo que la base hace con eso
 
-- **La organización** (`house`): quién administra, qué herramientas enteras tiene cada usuario, sus preferencias.
+- **La organización** (`house`): quién administra, qué herramientas enteras tiene cada usuario, sus preferencias. Quien
+  administra da y quita herramientas (`granted`), saca a alguien (`removed`) y pasa la administración (`handed`).
 - **El registro**: solo se agrega; cada hecho con autor e instante; el estado es el registro plegado.
 - **La superficie**: Menú, lista de cada herramienta, objeto abierto y pregunta; un router único para cualquier
   dibujante (hoy la terminal). Atención y Actividad en cada menú; buscar con espacio; Preferencias.
@@ -59,7 +60,6 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 ## Lo que la base todavía no hace (lo que un programa va a pedir)
 
 - La puerta para otros dispositivos, la de agentes y muchas organizaciones en un servidor.
-- Sacar a alguien de la organización y transferir la administración (hoy: dar herramientas, y nada más).
 - Una acción que hoy solo puede rechazar (exige al menos un caso aceptado).
 - Dar un paso en memoria como operación de la base (Capibara lo arma con piezas para recorrer todos los caminos).
 - Separar en la acción los motivos que dependen de lo que se responde de los que dependen del estado.

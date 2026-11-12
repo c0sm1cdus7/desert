@@ -1111,6 +1111,13 @@
       "from": "11/11 · obra de Capibara: las fechas de una venta y de una compra se pedían vacías",
       "guarantee": "spec",
       "evidence": ["src/catalogs/fields.ts", "src/surface/bridge/asking-parts.ts", "src/surface/bridge/asking.spec.ts"]
+    },
+    {
+      "id": 143,
+      "rule": "Quien administra una casa puede sacar a alguien de ella (nunca a sí mismo): lo que escribió queda y su acceso se va; y puede pasarle la administración a otro de los que están. Nadie más puede hacer ninguna de las dos cosas",
+      "from": "11/11 · obra de Capibara: «sacar» un usuario solo le quitaba las herramientas",
+      "guarantee": "spec",
+      "evidence": ["src/house/house.ts", "src/journal/events.ts", "src/house/grants.spec.ts"]
     }
   ]
 }

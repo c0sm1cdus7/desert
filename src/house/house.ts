@@ -34,6 +34,15 @@ export function houseStep(state: House, event: Event): House {
     const grants = new Map(state.grants).set(event.data.identity, event.data.tools);
     return { ...state, grants, channels: new Map(state.channels).set(houseChannel, [...grants.keys()].sort()) };
   }
+  /** Who administers the house takes someone out of it, never itself: what they wrote stays, their access goes. */
+  if (event.kind === "removed" && event.by === state.admin && event.data.identity !== state.admin) {
+    const grants = new Map(state.grants);
+    grants.delete(event.data.identity);
+    return { ...state, grants, channels: new Map(state.channels).set(houseChannel, [...grants.keys()].sort()) };
+  }
+  /** The house passes to someone who is in it, by the word of who administers it: nobody takes it. */
+  if (event.kind === "handed" && event.by === state.admin && state.grants.has(event.data.to))
+    return { ...state, admin: event.data.to };
   if (event.kind === "channel-created") {
     const channel = channelFor(state, event.by, event.data.members);
     if (channel?.id === event.data.channel)

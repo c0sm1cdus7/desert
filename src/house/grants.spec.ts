@@ -30,6 +30,37 @@ describe("a house's assignments", () => {
     expect(rig.state().house.grants.get("beto")).toEqual(["sales"]);
   });
 
+  it("takes someone out by the admin's word alone, never the admin itself, and keeps it across a restart", () => {
+    const rig = open({ grants: { ana: ["sales"], beto: ["sales"] } });
+    rig.bus.emit(effect("removed", { identity: "ana" }, "beto"));
+    rig.bus.emit(effect("removed", { identity: "ana" }, "ana"));
+    expect([...rig.state().house.grants.keys()]).toEqual(["ana", "beto"]);
+    rig.bus.emit(effect("removed", { identity: "beto" }, "ana"));
+    expect(allowed(rig.state().house, "beto", "sales")).toBe(false);
+    expect([...rig.state().house.grants.keys()]).toEqual(["ana"]);
+    expect(inChannel(rig.state().house, houseChannel, "beto")).toBe(false);
+    rig.restart();
+    expect(rig.state().house.grants.has("beto")).toBe(false);
+    /** Who was taken out comes back the way anyone comes in: the admin gives them tools again. */
+    grant(rig, "ana", "beto", ["sales"]);
+    expect(allowed(rig.state().house, "beto", "sales")).toBe(true);
+  });
+
+  it("passes to another of its identities by the admin's word alone: from then on that one assigns", () => {
+    const rig = open({ grants: { ana: ["sales"], beto: [] } });
+    rig.bus.emit(effect("handed", { to: "beto" }, "beto"));
+    rig.bus.emit(effect("handed", { to: "nobody" }, "ana"));
+    expect(rig.state().house.admin).toBe("ana");
+    rig.bus.emit(effect("handed", { to: "beto" }, "ana"));
+    expect(rig.state().house.admin).toBe("beto");
+    grant(rig, "ana", "ana", ["sales", "payments"]);
+    expect(allowed(rig.state().house, "ana", "payments")).toBe(false);
+    grant(rig, "beto", "ana", ["sales", "payments"]);
+    expect(allowed(rig.state().house, "ana", "payments")).toBe(true);
+    rig.restart();
+    expect(rig.state().house.admin).toBe("beto");
+  });
+
   it("creates the house once: a second creation changes neither the admin nor the grants", () => {
     const rig = open();
     rig.bus.emit(effect("house-created", {}, "beto"));

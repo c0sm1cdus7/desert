@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 140. Deudas: 23.
+Leyes: 141. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -147,3 +147,4 @@ Leyes: 140. Deudas: 23.
 | 140 | Una confirmación dice, debajo de lo que se confirma, para qué es la acción; y que no se puede deshacer, cuando no se puede | 11/11 · ronda 1 de escépticos, pantallas B14 | la cumple la superficie | `src/surface/bridge/program-acts.ts` `src/surface/walk.ts` |
 | 141 | Un campo puede decir cuándo se pregunta, según lo respondido antes en el mismo dato: mientras no hace falta no se pregunta y el dato va sin él; cuando hace falta se pregunta enseguida y no se saltea | 11/11 · obra de Capibara: el tipo de documento solo cuando el número tiene once dígitos | una spec a mano | `src/catalogs/fields.ts` `src/surface/bridge/asking.ts` `src/surface/bridge/asking-back.ts` `src/surface/bridge/asking.spec.ts` |
 | 142 | Un día que casi siempre es hoy abre sugiriendo hoy, como lo cuenta el país del programa: Enter lo acepta y escribir lo reemplaza | 11/11 · obra de Capibara: las fechas de una venta y de una compra se pedían vacías | una spec a mano | `src/catalogs/fields.ts` `src/surface/bridge/asking-parts.ts` `src/surface/bridge/asking.spec.ts` |
+| 143 | Quien administra una casa puede sacar a alguien de ella (nunca a sí mismo): lo que escribió queda y su acceso se va; y puede pasarle la administración a otro de los que están. Nadie más puede hacer ninguna de las dos cosas | 11/11 · obra de Capibara: «sacar» un usuario solo le quitaba las herramientas | una spec a mano | `src/house/house.ts` `src/journal/events.ts` `src/house/grants.spec.ts` |

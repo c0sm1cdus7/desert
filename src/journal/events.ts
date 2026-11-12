@@ -14,6 +14,10 @@ const actStatus = literals("accepted", "rejected", "draft", "inconclusive", "int
 export const houseCatalog = {
   "house-created": object({}),
   granted: object({ identity: name, tools: names }),
+  /** Someone leaves the house: from then on nothing of it is theirs. Only who administers it says so. */
+  removed: object({ identity: name }),
+  /** The house passes to another of those who are in it: from then on that one administers it. */
+  handed: object({ to: name }),
   preferred: preference,
   "channel-created": object({ channel: name, members: names }),
   boot: object({}),
