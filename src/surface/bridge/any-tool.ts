@@ -4,7 +4,7 @@ import type { Program } from "../../tools/tool-contract.ts";
 import { matches } from "../finding.ts";
 import type { Tool, ViewRow } from "../shown-tool.ts";
 import { must } from "../window.ts";
-import { section, type ScreenActs, type Start, type SurfacePorts, type ToolWords } from "./house-ports.ts";
+import { placed, section, type ScreenActs, type Start, type SurfacePorts, type ToolWords } from "./house-ports.ts";
 import { capital } from "./program-acts.ts";
 import { thingView } from "./presented.ts";
 import { briefOf, listedIn, rowsIn, type Changing, type Labels } from "./rows.ts";
@@ -69,7 +69,7 @@ export function anyToolScreen<X extends Program>(
     ...acts,
     id: tool.id,
     name: words.name,
-    place: { key: words.key, section: words.system ? "system" : "tools" },
+    place: placed(words),
     summary: () => briefOf(tool.summary(ports.state())),
     find: sought => foundIn(ports, tool, label, sought),
     /** A thing is called what its row on the list calls it; a menu, what the tool calls it. */

@@ -1015,6 +1015,18 @@
         "src/programs/promised-data.spec.ts",
         "src/doors/terminal/terminal.spec.ts"
       ]
+    },
+    {
+      "id": 133,
+      "rule": "Una herramienta puede vivir dentro de otra: no tiene fila en el Menú, se lista y se abre desde la herramienta en la que vive, con su tecla, y sus promesas se recorren por ahí. Vive en una herramienta que está en el Menú, y su tecla no repite la de otra fila de ese lugar",
+      "from": "11/11 · obra de Capibara: canales en Ventas, publicaciones en Productos, documentos en Identidades",
+      "guarantee": "derived",
+      "evidence": [
+        "src/surface/lists.ts",
+        "src/surface/bridge/house-tools.ts",
+        "src/surface/bridge/house-tools.spec.ts",
+        "src/programs/promised-inside.spec.ts"
+      ]
     }
   ]
 }

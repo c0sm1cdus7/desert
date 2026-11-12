@@ -28,6 +28,8 @@ export type SurfacePorts<X extends Program> = Omit<HousePorts<X>, "act"> & {
 };
 /** What a program calls a tool where a person reads it; its acts say their own words where they are declared. */
 export type ToolWords = Readonly<{ name: string; key: string; empty: string; system?: true }> &
+  /** The tool it lives in: it has no row on the Menu, and is opened from that tool's own, as the Menu opens others. */
+  Readonly<{ inside?: string }> &
   /** What heads the list of its things, the label of each datum the tool itself reads, and how one of its things
    * is presented: its stacks, in order. */
   Readonly<{ listed: string; reads: Readonly<Record<string, string>>; presents: readonly Presented[] }>;
@@ -69,3 +71,6 @@ export async function attendAndAct<X extends Program>(
   return attended.status === "accepted" ? settle(ports.act({ act, target, input })) : attended;
 }
 export const section = (title: string, rows: readonly ViewRow[], empty = "") => ({ title, rows, empty });
+/** Where a tool is opened from: its section of the Menu, or the tool it lives in. */
+export const placed = ({ key, system, inside }: ToolWords): SurfaceTool["place"] =>
+  inside === undefined ? { key, section: system ? "system" : "tools" } : { key, section: "hidden", inside };

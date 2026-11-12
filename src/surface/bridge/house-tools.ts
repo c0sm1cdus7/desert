@@ -33,12 +33,29 @@ function auditData<X extends Program>(tool: ProgramTool<X>, reads: Readonly<Reco
       throw new Error(`${name} of ${tool.id} changes a datum its tool reads: it is taken from that datum's row`);
   }
 }
+/** Tools are told apart by their key where they are listed: on the Menu, or in the tool they live in, where the
+ * acts taken on that tool are listed too. A tool lives in one that is on the Menu. */
+function auditPlaces<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown<X>): void {
+  const wordsOf = (tool: ProgramTool<X>) => shown.words[tool.id];
+  const onMenu = tools.filter(tool => wordsOf(tool)?.inside === undefined);
+  const taken = repeated([preferencesPlace.key, ...onMenu.map(tool => wordsOf(tool)?.key ?? "")]);
+  if (taken.length) throw new Error(`Two tools take the same key: ${taken.join(", ")}`);
+  for (const tool of tools) {
+    const outer = wordsOf(tool)?.inside;
+    if (outer === undefined) continue;
+    const home = onMenu.find(known => known.id === outer);
+    if (!home) throw new Error(`${tool.id} lives in ${outer}, which is not a tool on the Menu`);
+    const siblings = tools.filter(other => wordsOf(other)?.inside === outer).map(other => wordsOf(other)?.key ?? "");
+    const acts = Object.values(home.acts).filter(act => act.on === "tool");
+    const same = repeated([...siblings, ...acts.map(act => act.key)]);
+    if (same.length) throw new Error(`Two rows of ${outer} take the same key: ${same.join(", ")}`);
+  }
+}
 /** Every option is reached by a key of its own where it is offered: two with the same key is a defect. */
 function audit<X extends Program>(tools: readonly ProgramTool<X>[], shown: Shown<X>): void {
   const wordless = tools.filter(tool => !shown.words[tool.id]).map(tool => tool.id);
   if (wordless.length) throw new Error(`No words for the tools ${wordless.join(", ")}`);
-  const taken = repeated([preferencesPlace.key, ...tools.map(tool => shown.words[tool.id]?.key ?? "")]);
-  if (taken.length) throw new Error(`Two tools take the same key: ${taken.join(", ")}`);
+  auditPlaces(tools, shown);
   if (tools.some(tool => tool.id === preferencesPlace.id)) throw new Error(`A tool takes the name of Preferences`);
   tools.forEach(auditActs);
   tools.forEach(tool => auditData(tool, shown.words[tool.id]?.reads ?? {}));

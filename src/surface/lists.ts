@@ -89,6 +89,9 @@ function led(tools: readonly Tool[], here: Tool, row: ViewRow, target: string): 
 /** What a row of a view reads stays read while its act is off the list: only the way to change it goes. */
 const readOr = ({ title, detail }: ViewRow, started: Choice[]): Choice[] =>
   started.length || !detail ? started : [{ title, detail }];
+/** The tools that live in another: it lists them among its own, as the Menu lists the rest. */
+const within = (tools: readonly Tool[], tool: Tool): readonly Tool[] =>
+  tools.filter(each => each.place.inside === tool.id && each.listed?.() !== false);
 /** A tool on the Menu: one that cannot be opened keeps its place and its key, and says why. */
 function menuRow(tool: Tool): Choice {
   const row = { key: tool.place.key, title: tool.name.toLowerCase() };
@@ -163,8 +166,10 @@ function listedAt(place: Picture, tools: readonly Tool[]): readonly Listed[] {
   /** Who prefers not to see what is empty sees no list with nothing in it, whatever it is a list of. */
   const shown = tool.quiet?.() ? read.filter(stack => stack.rows.length) : read;
   const acts = actionRows(tools, tool, place.target);
-  const own = place.target === undefined ? [...noticed([tool]), ...shown] : shown;
-  return acts.length ? [...own, { title: said.actions, rows: acts }] : own;
+  const own = place.target === undefined ? [...noticed([tool, ...within(tools, tool)]), ...shown] : shown;
+  const inside = place.target === undefined ? within(tools, tool).map(menuRow) : [];
+  const held = inside.length ? [...own, { title: said.sections.tools, rows: inside }] : own;
+  return acts.length ? [...held, { title: said.actions, rows: acts }] : held;
 }
 export const choices = (place: Picture, tools: readonly Tool[]): readonly Choice[] =>
   stacksOf(place, tools).flatMap(stack => stack.rows.filter(row => row.open ?? row.press));

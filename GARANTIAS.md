@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 130. Deudas: 23.
+Leyes: 131. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -137,3 +137,4 @@ Leyes: 130. Deudas: 23.
 | 130 | Lo que un objeto nombra se abre, sea de la herramienta que sea, con su número (1 a 9, contados en todo el objeto); lo de una herramienta que la persona no tiene queda nombrado, apagado, diciendo por qué | 11/11 · objetos: presentación y navegación | una spec a mano | `src/surface/lists.ts` `src/surface/bridge/presented.spec.ts` `src/surface/router.spec.ts` |
 | 131 | Ninguna pantalla propia de un programa dibuja un objeto: lo dibuja la base con lo que la herramienta declaró | 11/11 · objetos: presentación y navegación | la cumple la superficie | `src/surface/bridge/house-tools.ts` `src/surface/bridge/presented.ts` |
 | 132 | Una pregunta que abre con algo escrito lo muestra entero y encendido: escribir lo reemplaza; una flecha o borrar lo editan | 11/11 · plan de Capibara: el valor sugerido | una spec a mano | `src/surface/walking.ts` `src/programs/promised-data.spec.ts` `src/doors/terminal/terminal.spec.ts` |
+| 133 | Una herramienta puede vivir dentro de otra: no tiene fila en el Menú, se lista y se abre desde la herramienta en la que vive, con su tecla, y sus promesas se recorren por ahí. Vive en una herramienta que está en el Menú, y su tecla no repite la de otra fila de ese lugar | 11/11 · obra de Capibara: canales en Ventas, publicaciones en Productos, documentos en Identidades | prueba derivada de los casos | `src/surface/lists.ts` `src/surface/bridge/house-tools.ts` `src/surface/bridge/house-tools.spec.ts` `src/programs/promised-inside.spec.ts` |

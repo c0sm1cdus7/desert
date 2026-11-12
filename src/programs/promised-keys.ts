@@ -67,7 +67,9 @@ function pathTo(tools: readonly Tool[], tool: string, on: string): readonly numb
 /** From the Menu to where an act stands, by keys alone: its tool, then its thing by what each view opens. */
 export function goTo<X extends Program>({ router, tools, shown }: Seat<X>, tool: string, on: string): void {
   const words = shown.words[tool];
-  type(router, words?.key ?? "");
+  /** A tool that lives in another is opened from that one: its key is typed there. */
+  const outer = words?.inside === undefined ? undefined : shown.words[words.inside];
+  type(router, `${outer?.key ?? ""}${words?.key ?? ""}`);
   strictEqual(router.screen(view).title, words?.name);
   if (on === tool) return;
   const rows = pathTo(tools, tool, on);
@@ -121,6 +123,8 @@ export function openRows(router: Router, rows: readonly number[]): void {
     router.send({ kind: "confirm" });
   }
 }
-/** Every row of the Menu, the tools that cannot be opened too. */
-export const menuRows = (tools: readonly Tool[]): readonly Choice[] =>
-  stacksOf({ kind: "menu", at: 0 }, tools).flatMap(stack => stack.rows);
+/** Every row of where a tool is listed, the tools that cannot be opened too: the Menu, or the tool it lives in. */
+export const menuRows = (tools: readonly Tool[], inside?: string): readonly Choice[] =>
+  stacksOf(inside === undefined ? { kind: "menu", at: 0 } : { kind: "view", tool: inside, at: 0 }, tools).flatMap(
+    stack => stack.rows,
+  );

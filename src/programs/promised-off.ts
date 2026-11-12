@@ -22,14 +22,15 @@ export async function prefer<X extends Program>({ router }: Seat<X>, what: Hidea
   router.send({ kind: "menu" });
   strictEqual(router.screen(view).title, surface.menu);
 }
-/** A tool nobody gave you is on your Menu all the same: off, saying why, and its key opens nothing. It leaves the
- * Menu only for who prefers not to see what is not theirs, and comes back when they prefer to see it again. */
+/** A tool nobody gave you is on your Menu all the same, or listed in the tool it lives in: off, saying why, and its
+ * key opens nothing. It leaves only for who prefers not to see what is not theirs, and comes back when they prefer
+ * to see it again. */
 function foreignCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, tool: ProgramTool<X>): Check {
   const run = (): Promise<void> =>
     staged(program, async ({ house }) => {
       const seat = seated(house(), cast.outsider, shown);
       const key = shown.words[tool.id]?.key ?? "";
-      const row = () => menuRows(seat.tools).find(listed => listed.key === key);
+      const row = () => menuRows(seat.tools, shown.words[tool.id]?.inside).find(listed => listed.key === key);
       try {
         ok(row()?.off, said.notOnMenu(tool.id));
         strictEqual(row()?.detail, generic.notHeld);

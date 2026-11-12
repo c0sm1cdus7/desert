@@ -2,6 +2,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { houseTools } from "./house-tools.ts";
 import type { Shown } from "./house-ports.ts";
+import { stacksOf } from "../lists.ts";
+import type { Picture } from "../screen.ts";
 import { must } from "../window.ts";
 import type { ProgramAct, ProgramTool } from "../../tools/promises.ts";
 import type { ToolRegistry } from "../../tools/tool-contract.ts";
@@ -43,6 +45,27 @@ describe("a program's tools, composed for a surface", () => {
     const named = { ...salesTool, id: "preferences" };
     const itsWords = { ...shopWords, preferences: must(shopWords.sales) };
     expect(composed([named, paymentsTool], { ...shopShown, words: itsWords })).toThrow("takes the name of Preferences");
+  });
+
+  it("opens a tool that lives in another from that one, never from the Menu, and tells them apart by key there", () => {
+    const inSales = { ...must(shopWords.payments), inside: "sales" };
+    const nested: Shown<Shop> = { ...shopShown, words: { ...shopWords, payments: inSales } };
+    const tools = composed([salesTool, paymentsTool], nested)();
+    expect(tools.map(tool => [tool.id, tool.place.section, tool.place.inside])).toEqual([
+      ["sales", "tools", undefined],
+      ["payments", "hidden", "sales"],
+      ["preferences", "system", undefined],
+    ]);
+    const titles = (place: Picture): string[] => stacksOf(place, tools).map(stack => stack.title);
+    const keysOf = (place: Picture, title: string): unknown[] =>
+      stacksOf(place, tools).flatMap(stack => (stack.title === title ? stack.rows.map(row => row.key) : []));
+    expect(keysOf({ kind: "menu", at: 0 }, "Herramientas")).toEqual(["v"]);
+    expect(titles({ kind: "view", tool: "sales", at: 0 })).toContain("Herramientas");
+    expect(keysOf({ kind: "view", tool: "sales", at: 0 }, "Herramientas")).toEqual(["p"]);
+    const astray = { ...shopWords, payments: { ...inSales, inside: "nowhere" } };
+    expect(composed([salesTool, paymentsTool], { ...shopShown, words: astray })).toThrow("which is not a tool");
+    const clash = { ...shopWords, payments: { ...inSales, key: "r" } };
+    expect(composed([salesTool, paymentsTool], { ...shopShown, words: clash })).toThrow("Two rows of sales take");
   });
 
   it("refuses an act without its declaration, two acts in one place with one key, the key that goes back", () => {
