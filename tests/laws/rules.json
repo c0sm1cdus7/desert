@@ -983,6 +983,38 @@
       "from": "11/11 · revisión de lógica: la confirmación de «unir» nombraba otro pago",
       "guarantee": "derived",
       "evidence": ["src/tools/promises.ts", "src/programs/promised-laws.ts", "src/programs/promised-walk.ts"]
+    },
+    {
+      "id": 129,
+      "rule": "Un objeto abierto se lee siempre en los grupos que declaró su herramienta, en el mismo orden; un grupo sin nada lo dice. Un dato que ningún grupo tiene hace fallar la lectura",
+      "from": "11/11 · objetos: presentación y navegación",
+      "guarantee": "spec",
+      "evidence": ["src/surface/bridge/presented.ts", "src/surface/bridge/presented.spec.ts"]
+    },
+    {
+      "id": 130,
+      "rule": "Lo que un objeto nombra se abre, sea de la herramienta que sea, con su número (1 a 9, contados en todo el objeto); lo de una herramienta que la persona no tiene queda nombrado, apagado, diciendo por qué",
+      "from": "11/11 · objetos: presentación y navegación",
+      "guarantee": "spec",
+      "evidence": ["src/surface/lists.ts", "src/surface/bridge/presented.spec.ts", "src/surface/router.spec.ts"]
+    },
+    {
+      "id": 131,
+      "rule": "Ninguna pantalla propia de un programa dibuja un objeto: lo dibuja la base con lo que la herramienta declaró",
+      "from": "11/11 · objetos: presentación y navegación",
+      "guarantee": "surface",
+      "evidence": ["src/surface/bridge/house-tools.ts", "src/surface/bridge/presented.ts"]
+    },
+    {
+      "id": 132,
+      "rule": "Una pregunta que abre con algo escrito lo muestra entero y encendido: escribir lo reemplaza; una flecha o borrar lo editan",
+      "from": "11/11 · plan de Capibara: el valor sugerido",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/walking.ts",
+        "src/programs/promised-data.spec.ts",
+        "src/doors/terminal/terminal.spec.ts"
+      ]
     }
   ]
 }

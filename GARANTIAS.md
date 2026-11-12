@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 126. Deudas: 23.
+Leyes: 130. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -133,3 +133,7 @@ Leyes: 126. Deudas: 23.
 | 126 | Todo dato que una persona escribe tiene tope: la plata, las cantidades y los números con su máximo; un texto con su largo y sin ser solo espacios. Un campo sin tope hace que el programa no arranque, y cada acción se prueba sola con un dato pasado de su tope | 11/11 · revisión de lógica: importes de 10^17, cantidad 1e300, nombres de 100.000 letras | prueba derivada de los casos | `src/catalogs/fields.ts` `src/surface/bridge/asking-parts.ts` `src/tools/schema-breaks.ts` `src/programs/promised-laws.ts` `src/surface/bridge/asking.spec.ts` |
 | 127 | Una acción que dice lo que la cosa vale hoy rechaza dejarla igual, «sin cambios»: no se escribe un hecho que no cambia nada | 11/11 · revisión de lógica: editar con los mismos valores dejaba marca de edición | prueba derivada de los casos | `src/tools/promises.ts` `src/programs/promised-laws.ts` |
 | 128 | Lo que una acción pone a confirmar lo promete uno de sus casos, palabra por palabra, y el recorrido derivado lo compara | 11/11 · revisión de lógica: la confirmación de «unir» nombraba otro pago | prueba derivada de los casos | `src/tools/promises.ts` `src/programs/promised-laws.ts` `src/programs/promised-walk.ts` |
+| 129 | Un objeto abierto se lee siempre en los grupos que declaró su herramienta, en el mismo orden; un grupo sin nada lo dice. Un dato que ningún grupo tiene hace fallar la lectura | 11/11 · objetos: presentación y navegación | una spec a mano | `src/surface/bridge/presented.ts` `src/surface/bridge/presented.spec.ts` |
+| 130 | Lo que un objeto nombra se abre, sea de la herramienta que sea, con su número (1 a 9, contados en todo el objeto); lo de una herramienta que la persona no tiene queda nombrado, apagado, diciendo por qué | 11/11 · objetos: presentación y navegación | una spec a mano | `src/surface/lists.ts` `src/surface/bridge/presented.spec.ts` `src/surface/router.spec.ts` |
+| 131 | Ninguna pantalla propia de un programa dibuja un objeto: lo dibuja la base con lo que la herramienta declaró | 11/11 · objetos: presentación y navegación | la cumple la superficie | `src/surface/bridge/house-tools.ts` `src/surface/bridge/presented.ts` |
+| 132 | Una pregunta que abre con algo escrito lo muestra entero y encendido: escribir lo reemplaza; una flecha o borrar lo editan | 11/11 · plan de Capibara: el valor sugerido | una spec a mano | `src/surface/walking.ts` `src/programs/promised-data.spec.ts` `src/doors/terminal/terminal.spec.ts` |
