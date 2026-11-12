@@ -2,7 +2,7 @@
 import type { Intent } from "./contract.ts";
 import type { Result, Tool } from "./shown-tool.ts";
 import { findable } from "./finding.ts";
-import { choices, cursorOf, goneOf } from "./lists.ts";
+import { choices, cursorOf, goneOf, stacksOf } from "./lists.ts";
 import { begin, toolOf, start } from "./screen.ts";
 import type { Picture, Running, Session, Stepped } from "./screen.ts";
 import { actedOn, conversationOf, sent, talkStep } from "./talk.ts";
@@ -32,6 +32,25 @@ function seeking(session: Session, place: Picture & { find: string }, tools: Too
   const chosen = key.kind === "confirm" ? list[cursor]?.open : undefined;
   return chosen ? [...replace(session, { ...menu, at: 0 }), chosen] : session;
 }
+/** The cursor one row up or down. At either end of what can be chosen the same key moves what is shown one list
+ * further that way, never past the first list or the last: what is only read comes into view too. */
+function moved(place: Picture, tools: Tools, way: "up" | "down"): Picture {
+  const counts = stacksOf(place, tools).map(stack => stack.rows.filter(row => row.open ?? row.press).length);
+  const cursor = cursorOf(place, tools);
+  const last = Math.max(counts.reduce((sum, count) => sum + count, 0) - 1, 0);
+  const step = way === "up" ? -1 : 1;
+  const next = Math.min(Math.max(cursor + step, 0), last);
+  const { shift = 0, ...plain } = place;
+  if (next !== cursor) return { ...plain, at: next };
+  /** The list the cursor is in: the first one whose rows reach it. */
+  const before = (at: number): number => counts.slice(0, at).reduce((sum, count) => sum + count, 0);
+  const home = Math.max(
+    counts.findIndex((count, at) => cursor < before(at) + count),
+    0,
+  );
+  const further = Math.min(Math.max(shift + step, -home), counts.length - 1 - home);
+  return further ? { ...plain, at: cursor, shift: further } : { ...plain, at: cursor };
+}
 export function step(session: Session, key: Intent, tools: readonly Tool[], now: number): Stepped {
   if (key.kind === "quit") return { session, quit: true };
   const place = must(session.at(-1));
@@ -58,9 +77,7 @@ export function step(session: Session, key: Intent, tools: readonly Tool[], now:
   /** Nothing is being written on a menu, so space is free there: it starts looking for something. */
   if (key.kind === "type" && key.text === " " && findable(place, tools))
     return { session: replace(session, { ...place, find: "", at: 0 }) };
-  if (key.kind === "up") return { session: replace(session, { ...place, at: Math.max(cursor - 1, 0) }) };
-  if (key.kind === "down")
-    return { session: replace(session, { ...place, at: Math.min(cursor + 1, list.length - 1) }) };
+  if (key.kind === "up" || key.kind === "down") return { session: replace(session, moved(place, tools, key.kind)) };
   if (key.kind === "cancel") return { session: up(session) };
   const hot = key.kind === "type" ? list.find(row => row.key === key.text) : undefined;
   const chosen = hot ?? (key.kind === "confirm" ? list[cursor] : undefined);

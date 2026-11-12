@@ -5,7 +5,11 @@ import { foundAt, must } from "./window.ts";
 import type { Field, Option, Screen, Stack } from "./contract.ts";
 import type { Tool, ViewRow } from "./shown-tool.ts";
 /** What a person wrote to look for something, while a menu is in that mode: nothing else is on it then. */
-type Finding = { readonly find?: string };
+type Finding = { readonly find?: string } & {
+  /** How many lists what is shown is moved from the one with the chosen row: at either end of what can be chosen,
+   * the same key brings into view what is only read beyond it. */
+  readonly shift?: number;
+};
 export type Picture =
   | ({ readonly kind: "menu"; readonly at: number } & Finding)
   | ({ readonly kind: "view"; readonly tool: string; readonly target?: string; readonly at: number } & Finding);

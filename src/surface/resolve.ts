@@ -90,7 +90,7 @@ function listScreen(
   const hints = place.find === undefined ? [...moves, ...seeks, ...leaves] : [...moves, ...closes];
   return {
     title: thing ?? tool?.name ?? said.menu,
-    body: { kind: "list", stacks: windowed(marked, viewport.rows) },
+    body: { kind: "list", stacks: windowed(marked, viewport.rows, place.shift) },
     hints,
     menu: place.kind !== "menu",
   };

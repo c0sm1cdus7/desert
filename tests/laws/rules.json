@@ -1034,6 +1034,13 @@
       "from": "11/11 · obra de Capibara: «unir» ofrecía a la misma identidad",
       "guarantee": "spec",
       "evidence": ["src/surface/bridge/program-acts.ts", "src/surface/bridge/program-acts.spec.ts"]
+    },
+    {
+      "id": 135,
+      "rule": "Lo que solo se lee y no entra en la pantalla se alcanza con las mismas teclas que mueven el cursor: en el primer o el último renglón que se puede elegir, ↑ o ↓ traen a la vista la lista siguiente en ese sentido",
+      "from": "11/11 · obra de Capibara: en una terminal chica los grupos de un objeto quedaban fuera de alcance",
+      "guarantee": "spec",
+      "evidence": ["src/surface/step.ts", "src/surface/window.ts", "src/doors/terminal/house-screens.spec.ts"]
     }
   ]
 }

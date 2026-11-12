@@ -28,11 +28,14 @@ function cut(stacks: readonly Stack[], at: number, room: number): readonly Stack
   ];
 }
 /** What does not fit keeps the list with the chosen row, and around it every list that still fits whole: first the
- * ones above, then the ones below. What is left out is counted, above and below. */
-export function windowed(stacks: readonly Stack[], room: number): readonly Stack[] {
+ * ones above, then the ones below. What is left out is counted, above and below. Moved by the person, it stands
+ * that many lists away instead: what is only read comes into view too. */
+export function windowed(stacks: readonly Stack[], room: number, shift = 0): readonly Stack[] {
   const lines = stacks.reduce((sum, stack, i) => sum + linesOf(stack) + (i ? 1 : 0), 0);
   if (lines <= room) return stacks;
-  const at = foundAt(stacks, stack => stack.rows.some(row => row.selected));
+  const chosen = foundAt(stacks, stack => stack.rows.some(row => row.selected));
+  /** What is shown stands on the list with the chosen row, or as many lists from it as the person moved it. */
+  const at = Math.min(Math.max(chosen + shift, 0), stacks.length - 1);
   const cost = (index: number): number => linesOf(must(stacks[index])) + 1;
   /** Two lines go to saying how much is left out. */
   const budget = room - 2;

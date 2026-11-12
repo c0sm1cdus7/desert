@@ -144,3 +144,27 @@ describe("the terminal, on a program's house", () => {
     expect(keysOf("\x03").every(key => router.send(key))).toBe(false);
   });
 });
+
+describe("a thing that does not fit on the terminal", () => {
+  it("brings into view what is only read and does not fit, with the same keys that move the cursor", async () => {
+    const { router, press } = open();
+    await press("vrs1\r1500\r");
+    await press(escape);
+    await press("\r");
+    const titles = (): string[] => {
+      const { body } = router.screen({ rows: 5 });
+      return body.kind === "list" ? body.stacks.map(stack => stack.title) : [];
+    };
+    expect(router.screen({ rows: 30 }).title).toBe("s1");
+    expect(titles()).toEqual(["Venta"]);
+    router.send({ kind: "down" });
+    expect(titles()).toEqual(["Actividad"]);
+    router.send({ kind: "down" });
+    expect(titles()).toEqual(["Actividad"]);
+    router.send({ kind: "up" });
+    expect(titles()).toEqual(["Venta"]);
+    router.send({ kind: "up" });
+    router.send({ kind: "down" });
+    expect(titles()).toEqual(["Actividad"]);
+  });
+});
