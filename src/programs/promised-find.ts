@@ -7,7 +7,7 @@ import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
-import { seated, type, view, type Seat } from "./promised-keys.ts";
+import { keysTo, seated, type, view, type Seat } from "./promised-keys.ts";
 import { cast, given, label, perform, staged, type Aim, type Check } from "./promised-stage.ts";
 
 type Sought = Readonly<{ tool: string; target: string; name: string }>;
@@ -43,7 +43,7 @@ function findCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
       const sought = { tool: aim.tool.id, target, name };
       try {
         seek(seat, { kind: "menu", at: 0 }, sought);
-        type(seat.router, shown.words[aim.tool.id]?.key ?? "");
+        type(seat.router, keysTo(shown, aim.tool.id));
         seek(seat, { kind: "view", tool: aim.tool.id, at: 0 }, sought);
       } finally {
         seat.router.stop();

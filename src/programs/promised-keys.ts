@@ -64,12 +64,16 @@ function pathTo(tools: readonly Tool[], tool: string, on: string): readonly numb
   }
   return undefined;
 }
+/** The keys that open a tool from the Menu: its own, or first the key of the tool it lives in. */
+export function keysTo<X extends Program>(shown: Shown<X>, tool: string): string {
+  const words = shown.words[tool];
+  const outer = words?.inside === undefined ? undefined : shown.words[words.inside];
+  return `${outer?.key ?? ""}${words?.key ?? ""}`;
+}
 /** From the Menu to where an act stands, by keys alone: its tool, then its thing by what each view opens. */
 export function goTo<X extends Program>({ router, tools, shown }: Seat<X>, tool: string, on: string): void {
   const words = shown.words[tool];
-  /** A tool that lives in another is opened from that one: its key is typed there. */
-  const outer = words?.inside === undefined ? undefined : shown.words[words.inside];
-  type(router, `${outer?.key ?? ""}${words?.key ?? ""}`);
+  type(router, keysTo(shown, tool));
   strictEqual(router.screen(view).title, words?.name);
   if (on === tool) return;
   const rows = pathTo(tools, tool, on);
