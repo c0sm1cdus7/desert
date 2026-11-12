@@ -135,18 +135,16 @@ function withThings<X extends Program>(
 ): Tool {
   const moment = shown.moment ?? plainMoment;
   const declared = thingView(ports, contract, words.presents);
-  /** After what its tool declared, every thing reads everything that was done to it: newest first, as the journal
-   * has it, with who did it and when. Nothing done to a thing is ever out of sight. */
-  const record = (target: string) => ({
-    ...generic.record,
-    reads: true as const,
-    rows: ports
-      .state()
-      .entries.filter(entry => entry.data.target === target && entry.data.draft !== true)
+  /** After what its tool declared, a thing reads everything that was done to it: newest first, as the journal has
+   * it, with who did it and when. A thing nothing was done to (it is there by itself) has no such list. */
+  const record = (target: string) => {
+    const done = ports.state().entries.filter(entry => entry.data.target === target && entry.data.draft !== true);
+    const rows = done
       .toReversed()
-      .map(entry => ({ title: entry.data.text, detail: `${entry.data.author} · ${moment(entry.at)}`, still: true })),
-  });
-  const thing = (target: string) => [...declared(target), record(target)];
+      .map(entry => ({ title: entry.data.text, detail: `${entry.data.author} · ${moment(entry.at)}`, still: true }));
+    return rows.length ? [{ ...generic.record, reads: true as const, rows }] : [];
+  };
+  const thing = (target: string) => [...declared(target), ...record(target)];
   const isThing = (target?: string): target is string =>
     target !== undefined && contract.targets(ports.state()).includes(target);
   /** Its things are its own, whatever screen shows it: a row of any tool that names one of them leads here. */
