@@ -91,7 +91,14 @@ export function finished(session: Session, walk: Running, result: Result, clock?
   const place = session.at(-1);
   if (place?.kind !== "act" || place.phase !== "running" || place.since !== walk.since) return session;
   if (result.ok) {
-    return replace(session, { ...place, phase: "done", done: result.text, ...(clock ? { doneAt: clock } : {}) });
+    const made = result.made === undefined ? {} : { made: result.made };
+    return replace(session, {
+      ...place,
+      phase: "done",
+      done: result.text,
+      ...(clock ? { doneAt: clock } : {}),
+      ...made,
+    });
   }
   const pos = Math.max(place.pos - 1, place.floor);
   const typed = place.answers[pos] ?? "";

@@ -32,9 +32,16 @@ export const count = (ask: string) => Type.Integer({ minimum: 1, maximum: 999_99
 /** A day of the calendar, kept as year-month-day. */
 export const day = (ask: string) => Type.String({ pattern: isoDay, title: ask, mask: "day" });
 /** One of the things of a tool, kept as what the tool calls it: a person picks it from their list. Where the
- * field may be left without one, `none` is what that is called: «Consumidor final», «sin venta». */
-export const thing = (ask: string, tool: string, none?: string) =>
-  Type.String({ minLength: 1, title: ask, of: tool, ...(none === undefined ? {} : { none }) });
+ * field may be left without one, `none` is what that is called: «Consumidor final», «sin venta». Where a new one
+ * can be made right there, `makes` is the act of that tool that makes it: its result is the answer. */
+export const thing = (ask: string, tool: string, none?: string, makes?: string) =>
+  Type.String({
+    minLength: 1,
+    title: ask,
+    of: tool,
+    ...(none === undefined ? {} : { none }),
+    ...(makes === undefined ? {} : { makes }),
+  });
 /** Some of a closed set, each with its word: a person marks the ones that go. They open all marked, or none. */
 export const someOf = <T extends TSchema[]>(ask: string, marked: "all" | "none", ...arms: [...T]) =>
   Type.Array(Type.Union(arms), { title: ask, uniqueItems: true, some: marked });

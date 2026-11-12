@@ -41,10 +41,15 @@ interface Walking {
   readonly error?: string;
   /** In a question that picks a thing, the person is looking for it: what they type is what they look for. */
   readonly finding?: true;
+  /** It was started from a question that picks a thing, to make a new one: what it makes answers that question. */
+  readonly returns?: true;
 }
 export type Asking = Walking & { readonly phase: "asking" };
 export type Running = Walking & { readonly phase: "running"; readonly since: number };
-export type Done = Walking & { readonly phase: "done"; readonly done: string; readonly doneAt?: string };
+export type Done = Walking & { readonly phase: "done"; readonly done: string; readonly doneAt?: string } & {
+  /** The thing it made, when it made one. */
+  readonly made?: string;
+};
 export type Walk = Asking | Running | Done;
 export type Place = Picture | Walk | Talk;
 /** The act a row starts: said even while the act is off, so anyone can tell which act the row stands for. */
@@ -136,6 +141,11 @@ export const opened = (field: Field | null, answer?: string): Opened => {
     suggested: typed !== "",
   };
 };
+/** What a question that picks a thing lists: while the person looks for one, never the row that makes a new one. */
+export const pickedFrom = (
+  field: Field & { kind: "pick" },
+  walk: Pick<Walk, "finding" | "typed">,
+): readonly Option[] => (walk.finding ? field.found(walk.typed).filter(option => !option.makes) : field.found(""));
 /** An answer as it is shown: a secret as dots, a field with a format in its shape, anything else as written. */
 export const maskOf = (field: Field | null, answer: string): string => {
   if (field?.kind === "secret") return "•".repeat(Array.from(answer).length);

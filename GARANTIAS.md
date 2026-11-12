@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 133. Deudas: 23.
+Leyes: 134. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -140,3 +140,4 @@ Leyes: 133. Deudas: 23.
 | 133 | Una herramienta puede vivir dentro de otra: no tiene fila en el Menú, se lista y se abre desde la herramienta en la que vive, con su tecla, y sus promesas se recorren por ahí. Vive en una herramienta que está en el Menú, y su tecla no repite la de otra fila de ese lugar | 11/11 · obra de Capibara: canales en Ventas, publicaciones en Productos, documentos en Identidades | prueba derivada de los casos | `src/surface/lists.ts` `src/surface/bridge/house-tools.ts` `src/surface/bridge/house-tools.spec.ts` `src/programs/promised-inside.spec.ts` |
 | 134 | Un objeto nunca se elige para lo que se le hace a él mismo: no figura en la lista de la que elige una acción sobre ese objeto | 11/11 · obra de Capibara: «unir» ofrecía a la misma identidad | una spec a mano | `src/surface/bridge/program-acts.ts` `src/surface/bridge/program-acts.spec.ts` |
 | 135 | Lo que solo se lee y no entra en la pantalla se alcanza con las mismas teclas que mueven el cursor: en el primer o el último renglón que se puede elegir, ↑ o ↓ traen a la vista la lista siguiente en ese sentido | 11/11 · obra de Capibara: en una terminal chica los grupos de un objeto quedaban fuera de alcance | una spec a mano | `src/surface/step.ts` `src/surface/window.ts` `src/doors/terminal/house-screens.spec.ts` |
+| 136 | Donde se elige un objeto se puede hacer uno nuevo ahí mismo, cuando el campo lo declara: la acción que lo crea figura en la lista con su tecla y su propósito (nunca mientras se busca), y lo que crea es la respuesta; salir sin crear vuelve a la lista | 11/11 · obra de Capibara: crear la identidad desde la pregunta «Cliente» de una venta | una spec a mano | `src/catalogs/fields.ts` `src/surface/walking.ts` `src/surface/bridge/house-tools.ts` `src/programs/promised-also.spec.ts` |

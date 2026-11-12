@@ -97,6 +97,8 @@ export interface Option {
   readonly value?: string;
   /** It cannot be chosen: it is what the datum already is, and its detail says so. */
   readonly off?: boolean;
+  /** It is no answer yet: choosing it starts the act that makes a new thing, and what it makes is the answer. */
+  readonly makes?: { readonly tool: string; readonly act: string };
 }
 interface Question {
   readonly ask: string;

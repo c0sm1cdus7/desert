@@ -4,7 +4,7 @@ import type { Body, Field, Hint, Row, Span, ThreadEvent } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
 import { errorSpans } from "./talk.ts";
 import { must } from "./window.ts";
-import { actOf, maskOf, optionsOf, validOf, type Done, type Running, type Walk } from "./screen.ts";
+import { actOf, type Done, maskOf, optionsOf, pickedFrom, type Running, validOf, type Walk } from "./screen.ts";
 
 function endOf(walk: Running | Done, now: number): readonly Span[] {
   if (walk.phase === "done") {
@@ -34,9 +34,10 @@ const shapeOf = (field: Field): string => {
 /** The things a question picks among, as a list: each of the first nine with its number. While the person looks
  * for one, where they write comes first and the rows carry no key. */
 function pickRows(walk: Walk, question: Field & { kind: "pick" }): readonly Row[] {
-  const found = question.found(walk.finding ? walk.typed : "");
+  const found = pickedFrom(question, walk);
   const rows = found.map((option, i): Row => {
-    const key = walk.finding || i > 8 ? {} : { key: String(i + 1) };
+    /** What makes a new one keeps the key of its act; the things there are take their number. */
+    const key = walk.finding || i > 8 || option.makes ? {} : { key: String(i + 1) };
     return { ...option, ...key, selected: i === walk.at && !option.off };
   });
   /** Nothing to pick among is said where the list would be: the question never stands over nothing. */

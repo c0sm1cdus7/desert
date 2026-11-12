@@ -6,7 +6,7 @@ import { houseTools } from "../surface/bridge/house-tools.ts";
 import { stacksOf } from "../surface/lists.ts";
 import { startRouter } from "../surface/router.ts";
 import type { Intent, Screen } from "../surface/contract.ts";
-import { chargingRegistry, chargingShop } from "../../tests/support/charging-shop.ts";
+import { chargingRegistry, chargingShop, makingRegistry } from "../../tests/support/charging-shop.ts";
 import { shopRig } from "../../tests/support/shop-rig.ts";
 import { shopShown } from "../../tests/support/shop.ts";
 
@@ -16,8 +16,8 @@ const bar = { state: "connected", clock: "00:00", now: 0 } as const;
 const named: Readonly<Record<string, Intent>> = { "\r": { kind: "confirm" }, "\x1b": { kind: "cancel" } };
 const keyOf = (char: string): Intent => named[char] ?? { kind: "type", text: char };
 /** A shop where ana holds both tools and beto only the sales; two sales registered by ana. */
-const seat = (me: string) => {
-  const rig = shopRig({ registry: chargingRegistry, grants: { ana: ["sales", "payments"], beto: ["sales"] } });
+const seat = (me: string, registry = chargingRegistry) => {
+  const rig = shopRig({ registry, grants: { ana: ["sales", "payments"], beto: ["sales"] } });
   rig.attend("ana", "sales");
   for (const [sale, total] of [
     ["s1", 1500],
@@ -64,6 +64,30 @@ describe("a program whose acts reach across its tools", () => {
     press("90\r\r");
     await router.idle();
     expect(rig.state().tools.payments.received).toBe(90);
+  });
+
+  it("makes a new thing right where one is picked: what it makes is the answer, and the act goes on", async () => {
+    const { rig, router, press } = seat("ana", makingRegistry);
+    expect(press("pc")).toEqual(["Cobrar", "Venta", "s1 | $ 1500", "s2 | $ 90", "registrar | lo que el almacén vende"]);
+    /** While looking for one, making a new one is not among what is found. */
+    expect(press(" ")).toEqual(["Cobrar", "Venta", "› ", "s1 | $ 1500", "s2 | $ 90"]);
+    press("\x1b");
+    expect(press("r")).toEqual(["Registrar", "Venta"]);
+    /** Leaving it at its first question goes back to the list, with nothing made. */
+    expect(press("\x1b")).toEqual([
+      "Cobrar",
+      "Venta",
+      "s1 | $ 1500",
+      "s2 | $ 90",
+      "registrar | lo que el almacén vende",
+    ]);
+    press("rs3\r700\r");
+    await router.idle();
+    expect(rig.state().tools.sales.has("s3")).toBe(true);
+    expect(press("\x1b")).toEqual(["Cobrar", "Venta s3", "Monto"]);
+    press("700\r\r");
+    await router.idle();
+    expect(rig.state().tools.payments.received).toBe(700);
   });
 
   it("says there is nothing to pick among where its tool has none, and takes nothing but leaving", () => {

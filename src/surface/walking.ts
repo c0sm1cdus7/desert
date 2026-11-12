@@ -1,7 +1,7 @@
 // What each key does inside an act: writing an answer, choosing one, picking a thing, going back, leaving.
-import type { Field, Intent, Mask } from "./contract.ts";
+import type { Field, Intent, Mask, Option } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
-import { actOf, fieldOf, maskOf, optionsOf, opened, validOf } from "./screen.ts";
+import { actOf, begin, fieldOf, maskOf, optionsOf, opened, pickedFrom, validOf } from "./screen.ts";
 import type { Asking, Session, Stepped, Walk } from "./screen.ts";
 import { edited } from "./talk.ts";
 import { must } from "./window.ts";
@@ -90,19 +90,24 @@ function picking(
 ) {
   const set = (next: Partial<Asking>): Stepped => ({ session: replace(session, { ...walk, ...next }) });
   const sought = (typed: string): Stepped => set({ typed, caret: Array.from(typed).length, at: 0 });
-  const found = field.found(walk.finding ? walk.typed : "");
+  const found = pickedFrom(field, walk);
   /** With nothing to pick among there is nothing to look for either: only leaving is left. */
   if (!walk.finding && !found.length) return { session };
   if (walk.finding && key.kind === "type") return sought(walk.typed + key.text);
   if (walk.finding && key.kind === "erase") return sought(Array.from(walk.typed).slice(0, -1).join(""));
   if (key.kind === "type" && key.text === " ") return set({ finding: true, typed: "", caret: 0, at: 0 });
+  /** Taking a row answers with it; the one that makes a new thing starts that act, and what it makes is the answer. */
+  const taken = (row: Option | undefined): Stepped => {
+    if (!row || row.off) return { session };
+    if (!row.makes) return advance(session, walk, tools, row.value ?? row.title, now);
+    return { session: [...session, { ...begin(tools, row.makes.tool, row.makes.act), returns: true }] };
+  };
   if (key.kind === "type") {
-    const row = /^[1-9]$/u.test(key.text) ? found[Number(key.text) - 1] : undefined;
-    return row && !row.off ? advance(session, walk, tools, row.value ?? row.title, now) : { session };
+    const numbered = found.filter(option => !option.makes);
+    return taken(/^[1-9]$/u.test(key.text) ? numbered[Number(key.text) - 1] : found.find(row => row.key === key.text));
   }
   if (key.kind === "up" || key.kind === "down") return set({ at: beside(found, walk.at, key.kind) });
-  const chosen = key.kind === "confirm" ? found[walk.at] : undefined;
-  return chosen && !chosen.off ? advance(session, walk, tools, chosen.value ?? chosen.title, now) : { session };
+  return taken(key.kind === "confirm" ? found[walk.at] : undefined);
 }
 function back(session: Session, walk: Asking, tools: readonly Tool[]): Session {
   const { error: _gone, ...clean } = walk;
@@ -117,6 +122,10 @@ export function walking(session: Session, walk: Walk, tools: readonly Tool[], ke
       return { session: replace(session, { ...whole, typed: "", caret: 0, at: 0 }) };
     }
     if (walk.phase === "asking" && walk.pos > walk.floor) return { session: back(session, walk, tools) };
+    /** What was made to answer a question answers it: the person is back where they were asked, one step on. */
+    const asking = session.at(-2);
+    if (walk.phase === "done" && walk.returns && walk.made !== undefined && asking?.kind === "act")
+      return asking.phase === "asking" ? advance(up(session), asking, tools, walk.made, now) : { session: up(session) };
     const thingIsGone = walk.phase === "done" && actOf(tools, walk).leaves;
     return { session: thingIsGone ? up(up(session)) : up(session) };
   }

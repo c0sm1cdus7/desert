@@ -1,7 +1,10 @@
 // What a tool gives a surface: its acts and menus, its rows, its conversations, and what it tells from any menu.
 import type { Attachment, Field, Intent, Option, Panel, Row, Span, Stack } from "./contract.ts";
 
-export type Result = { readonly ok: true; readonly text: string } | { readonly ok: false; readonly reason: string };
+export type Result =
+  /** What it said and, when it made a thing, which one. */
+  | { readonly ok: true; readonly text: string; readonly made?: string }
+  | { readonly ok: false; readonly reason: string };
 interface ActOn<Destination extends readonly string[]> {
   readonly label: string;
   /** What enter says on its last question. */

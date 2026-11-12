@@ -32,6 +32,13 @@ export function besides(field: Field | null, target?: string): Field | null {
   const others = (sought: string) => field.found(sought).filter(option => option.value !== target);
   return { ...field, found: others, valid: answer => answer !== target && (field.valid?.(answer) ?? true) };
 }
+/** The thing an act made: what it was done to in the end, when that is not where it was started. */
+function madeBy(effects: Parameters<typeof wroteBy>[0], target: string): string | undefined {
+  for (const effect of effects)
+    if (effect.layer === "house" && effect.kind === "act-done" && effect.data.object !== target)
+      return effect.data.object;
+  return undefined;
+}
 /** One act as a person walks it: its questions from what it takes, a confirmation when it asks for one, its result. */
 function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: Own<X>, asked: Asked) {
   const words = { formats: formats(asked.locale), optionalMark: generic.optional };
@@ -61,7 +68,9 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
       const done = await attendAndAct(ports, target, name, ask.input(answers));
       if (done.status !== "accepted") return { ok: false, reason: done.reason ?? "" };
       const text = wroteBy(done.effects) ?? said.ok;
-      return { ok: true, text: done.private ? `${text} · ${ports.receipt?.(done.private) ?? done.private}` : text };
+      const made = madeBy(done.effects, target);
+      const told = done.private ? `${text} · ${ports.receipt?.(done.private) ?? done.private}` : text;
+      return { ok: true, text: told, ...(made === undefined ? {} : { made }) };
     },
   };
   return { name, act, ask, walk };

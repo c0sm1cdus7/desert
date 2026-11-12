@@ -13,6 +13,8 @@ export type Things = Readonly<{
   has(thing: string): boolean;
   /** What is said where none of them can be picked: that the tool has none, or why they are out of reach. */
   empty: string;
+  /** The act of the tool that makes a new one, as an option of their list: nothing while it cannot be done. */
+  make?(act: string): Option | undefined;
 }>;
 /** What asking needs beyond the declaration: the formats of the program's country, the marks of an optional field
  * and of picking nothing, and the things of each tool that an answer can pick. */
@@ -71,9 +73,16 @@ function picked(schema: TSchema, ctx: Ctx, of: string): Field {
   const things = (): Things | undefined => ctx.things?.(of);
   const absent = ctx.optional ? word(schema, "none") : "";
   const none: Option = { title: absent, value: "" };
+  const makes = at(schema, "makes");
+  /** Making a new one is offered after the ones there are, and never among what a person is looking for. */
+  const made = (sought: string): readonly Option[] => {
+    const option = typeof makes === "string" && sought.trim() === "" ? things()?.make?.(makes) : undefined;
+    return option ? [option] : [];
+  };
   const found = (sought: string): readonly Option[] => [
     ...(ctx.optional && sought.trim() === "" ? [none] : []),
     ...(things()?.found(sought) ?? []),
+    ...made(sought),
   ];
   const valid = (answer: string): boolean => (ctx.optional && answer === "") || things()?.has(answer) === true;
   const shown = (answer: string): string => (answer === "" ? absent : (things()?.shown(answer) ?? answer));
