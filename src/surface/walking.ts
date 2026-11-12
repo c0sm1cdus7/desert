@@ -38,10 +38,11 @@ function masked(walk: Asking, mask: Mask, key: Intent): Asking | undefined {
   if (key.kind === "erase") return { ...walk, typed: Array.from(walk.typed).slice(0, -1).join("") };
   return key.kind === "left" || key.kind === "right" ? walk : undefined;
 }
-/** What is written after a key: what was said of what was there before no longer stands, and what is there now
- * says its own as soon as it is complete and still does not hold. */
-function rewritten(field: Field, { error: _was, ...written }: Asking): Asking {
-  const why = validOf(field, written.typed) ? field.wrong?.(written.typed) : undefined;
+/** What is written after a key. A key that changed nothing leaves what was said as it was; one that did takes it
+ * away, and what is written now says its own as soon as it is complete and still does not hold. */
+function rewritten(field: Field, before: Asking, { error: _was, ...written }: Asking): Asking {
+  const said = written.typed === before.typed ? before.error : undefined;
+  const why = said ?? (validOf(field, written.typed) ? field.wrong?.(written.typed) : undefined);
   return { ...written, suggested: false, ...(why === undefined ? {} : { error: why }) };
 }
 function typing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
@@ -51,7 +52,7 @@ function typing(session: Session, walk: Asking, tools: Tools, field: Field, key:
   const full = key.kind === "type" && "max" in field && Array.from(fresh.typed).length >= (field.max ?? Infinity);
   if (full) return { session };
   const changed = "mask" in field ? masked(fresh, field.mask, key) : edited(fresh, key);
-  if (changed) return { session: replace(session, rewritten(field, changed)) };
+  if (changed) return { session: replace(session, rewritten(field, fresh, changed)) };
   if (key.kind !== "confirm") return { session };
   /** What cannot be sent says why, where it is written: enter never does nothing in silence. */
   if (!validOf(field, walk.typed)) {
