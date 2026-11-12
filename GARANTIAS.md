@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 150. Deudas: 23.
+Leyes: 151. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -157,3 +157,4 @@ Leyes: 150. Deudas: 23.
 | 150 | La barra de una acción sobre una cosa dice qué se hace y a cuál: «Corregir · s1» | 11/11 · ronda 1 de escépticos: «Productos» en la barra no decía a quién se le daba | una spec a mano | `src/surface/bridge/program-acts.ts` `src/programs/promised-menus.spec.ts` |
 | 151 | Una tecla que el campo no toma lo dice donde se escribe, y lo escrito queda como estaba: ninguna tecla se descarta callada. Lo mismo la que ya no entra | 11/11 · ronda 1 de escépticos: el nombre de usuario perdía letras sin avisar | una spec a mano | `src/surface/walking.ts` `src/doors/terminal/house-screens.spec.ts` |
 | 152 | Lo que una acción rechaza en una pregunta queda en esa pregunta también en el recorrido derivado de cada caso: no se pregunta ni se confirma nada más | 11/11 · obra de Capibara: un rechazo a mitad de camino seguía escribiendo en la misma pregunta | prueba derivada de los casos | `src/programs/promised-walk.ts` `tests/support/charging-shop.ts` |
+| 153 | Una acción que no pregunta nada se confirma diciendo para qué es (y que no se deshace, si no se deshace): lo que se hace y a qué cosa ya lo dice la barra, y no se repite | 12/11 · obra de Capibara: «Deshacer entrega · Envío 1» se leía dos veces, en la barra y en la confirmación | una spec a mano | `src/surface/bridge/program-acts.ts` `src/programs/promised-sure.spec.ts` |

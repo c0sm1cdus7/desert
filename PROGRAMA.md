@@ -94,4 +94,3 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   las acciones de un programa.
 - Suprimir de verdad un dato del registro, dejando el hecho (un pedido de supresión de datos personales).
 - Filtrar según la acción la lista de la que se elige una cosa (hoy se ofrecen todas y la acción rechaza).
-- Una confirmación sin preguntas repite en su primera línea lo que ya dice la barra.

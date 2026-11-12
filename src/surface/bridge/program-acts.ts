@@ -61,8 +61,9 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
      * added. With nothing asked, the person is told what the act is for. */
     const warned = act.undoable ? {} : { note };
     if (summary !== undefined) return { ask: summary, kind: "confirm", ...confirm, ...warned };
-    const thing = target === undefined ? undefined : asked.titled(tool, target);
-    return taken === 0 ? { ask: generic.sure(title, thing), kind: "confirm", ...confirm, note } : null;
+    /** With nothing asked, the bar already says what is done and to what: what is confirmed is what it is for. */
+    const unsafe = act.undoable ? {} : { note: generic.irreversible };
+    return taken === 0 ? { ask: capital(act.purpose), kind: "confirm", ...confirm, ...unsafe } : null;
   };
   const walk = {
     label: act.name,

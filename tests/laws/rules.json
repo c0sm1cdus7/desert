@@ -1201,6 +1201,13 @@
       "from": "11/11 · obra de Capibara: un rechazo a mitad de camino seguía escribiendo en la misma pregunta",
       "guarantee": "derived",
       "evidence": ["src/programs/promised-walk.ts", "tests/support/charging-shop.ts"]
+    },
+    {
+      "id": 153,
+      "rule": "Una acción que no pregunta nada se confirma diciendo para qué es (y que no se deshace, si no se deshace): lo que se hace y a qué cosa ya lo dice la barra, y no se repite",
+      "from": "12/11 · obra de Capibara: «Deshacer entrega · Envío 1» se leía dos veces, en la barra y en la confirmación",
+      "guarantee": "spec",
+      "evidence": ["src/surface/bridge/program-acts.ts", "src/programs/promised-sure.spec.ts"]
     }
   ]
 }
