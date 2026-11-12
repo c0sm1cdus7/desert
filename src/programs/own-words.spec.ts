@@ -62,4 +62,11 @@ describe("what DESERT itself says to a person", () => {
     }
     expect(() => worded({ name: "guardar", enter: preferences.save })).not.toThrow();
   });
+
+  it("takes what an act says in several lines when the first says what it did", () => {
+    expect(composed.test("Importado · Catálogo · 3 artículos\nCafé en grano\nFiltros de papel")).toBe(true);
+    expect(composed.test("FACTURA A\nImpresa · Factura A 0001-00000001")).toBe(false);
+    expect(composed.test("Se importó el catálogo.\nImportado · Catálogo")).toBe(false);
+    expect(composed.test("Importado · \nCatálogo")).toBe(false);
+  });
 });

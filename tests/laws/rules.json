@@ -1265,6 +1265,13 @@
       "from": "12/11 · ronda 2 de escépticos de Capibara: buscar «fis» no encontraba Fiscal",
       "guarantee": "spec",
       "evidence": ["src/surface/finding.ts", "src/doors/terminal/house-keys.spec.ts"]
+    },
+    {
+      "id": 160,
+      "rule": "Lo que una acción contesta en varias líneas dice qué hizo en la primera («Verbo · Objeto · Detalle»); lo demás es lo que muestra y se lee como se escribió: también se promete en los casos",
+      "from": "12/11 · lanes de Capibara: un impreso y un catálogo importado no se podían prometer en un caso porque la respuesta tenía más de una línea",
+      "guarantee": "spec",
+      "evidence": ["src/programs/promised.ts", "src/programs/own-words.spec.ts"]
     }
   ]
 }

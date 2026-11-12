@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 157. Deudas: 23.
+Leyes: 158. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -164,3 +164,4 @@ Leyes: 157. Deudas: 23.
 | 157 | Una pregunta que cambia un dato abre parada en lo que el dato ya es, y Enter ahí dice que nada cambiaría: nadie cambia un dato por apretar Enter de más | 12/11 · ronda 2 de escépticos de Capibara: «cambiar cliente» abría parado en otra persona y Enter la cambiaba | una spec a mano | `src/surface/screen.ts` `src/surface/walking.ts` `src/doors/terminal/house-keys.spec.ts` |
 | 158 | Lo que está entero y no alcanza dice cuánto toma su campo («mayor a 0», «mínimo 0001»), nunca «incompleto»; la tecla que el campo sí toma y ya no entra dice que no entra más; un número se escribe sin ceros adelante | 12/11 · ronda 2 de escépticos de Capibara: «incompleto» para lo que estaba completo y mal, «9 no va acá» para un 9 que no entraba, cantidad «010000» | una spec a mano | `src/surface/bridge/asking-parts.ts` `src/surface/walking.ts` `src/surface/masks.ts` `src/surface/bridge/asking-numbers.spec.ts` `src/doors/terminal/house-keys.spec.ts` |
 | 159 | Desde el Menú, buscar encuentra también las herramientas por su nombre, vivan donde vivan, antes de lo que cada una encuentra | 12/11 · ronda 2 de escépticos de Capibara: buscar «fis» no encontraba Fiscal | una spec a mano | `src/surface/finding.ts` `src/doors/terminal/house-keys.spec.ts` |
+| 160 | Lo que una acción contesta en varias líneas dice qué hizo en la primera («Verbo · Objeto · Detalle»); lo demás es lo que muestra y se lee como se escribió: también se promete en los casos | 12/11 · lanes de Capibara: un impreso y un catálogo importado no se podían prometer en un caso porque la respuesta tenía más de una línea | una spec a mano | `src/programs/promised.ts` `src/programs/own-words.spec.ts` |

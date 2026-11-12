@@ -11,8 +11,9 @@ import { bareIn } from "./promised-shapes.ts";
 import { cast, given, label, perform, runner, staged, wroteSince } from "./promised-stage.ts";
 import type { Aim, Check, Decided, House } from "./promised-stage.ts";
 
-/** What an act says it did, by parts: one word for what was done, then what it was done to, then what matters. */
-export const composed = /^\p{Lu}\p{Ll}+ · \S.*$/u;
+/** What an act says it did, by parts: one word for what was done, then what it was done to, then what matters. What
+ * it says in several lines says it on the first; the rest is what it shows, read as it was written. */
+export const composed = /^\p{Lu}\p{Ll}+ · \S[^\n]*(\n|$)/u;
 /** Whom the house called for attention since a point of the journal, each identity once, in order. */
 const calledSince = <X extends Program>(house: House<X>, seq: number): string[] => [
   ...new Set(
