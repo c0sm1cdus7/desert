@@ -1,5 +1,6 @@
 // The questions of an act come from the declaration of what it takes; so do its answers, read back as data.
 import { TypeGuard, type TSchema } from "@sinclair/typebox";
+import { isAsked } from "../../catalogs/fields.ts";
 import type { Field, Option } from "../contract.ts";
 import { audit, leading, markedOf, write } from "./asking-back.ts";
 import { armsOf, at, choiceOf, isList, isRecord, tellingOf, titleOf, valueOf, word, written } from "./asking-parts.ts";
@@ -53,8 +54,10 @@ function fields(schema: unknown, ctx: Ctx, from: number, skip: readonly string[]
   let next = from;
   const value: Record<string, unknown> = {};
   for (const [key, field] of Object.entries(at(schema, "properties") ?? {})) {
-    if (skip.includes(key)) continue;
-    const got = read(field, { ...ctx, optional: !needed.includes(key) }, next);
+    /** A field that says when it is asked is skipped while what was answered before does not call for it. */
+    if (skip.includes(key) || !isAsked(field, value)) continue;
+    /** What is asked only sometimes is not left out when it is asked: then it is as needed as any other. */
+    const got = read(field, { ...ctx, optional: !needed.includes(key) && at(field, "when") === undefined }, next);
     if ("ask" in got) return got;
     if (got.value !== undefined) value[key] = got.value;
     next = got.at;
@@ -114,7 +117,9 @@ function sofar(schema: TSchema, ctx: Ctx): Readonly<Record<string, unknown>> {
   const value: Record<string, unknown> = {};
   let next = 0;
   for (const [key, field] of Object.entries(at(schema, "properties") ?? {})) {
-    const got = read(field, { ...ctx, optional: !(isList(required) && required.includes(key)) }, next);
+    if (!isAsked(field, value)) continue;
+    const needed = (isList(required) && required.includes(key)) || at(field, "when") !== undefined;
+    const got = read(field, { ...ctx, optional: !needed }, next);
     if ("ask" in got) return value;
     if (got.value !== undefined) value[key] = got.value;
     next = got.at;

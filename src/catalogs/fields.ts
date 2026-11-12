@@ -71,6 +71,17 @@ export const padded = (ask: string, width: number) =>
 /** Text of only some characters, as the name someone enters with: `allowed` is what a character may be. */
 export const handle = (ask: string, hint: string, allowed: string, max: number) =>
   Type.String({ pattern: `^[${allowed}]{1,${max}}$`, title: ask, placeholder: hint, mask: "chars", allowed, max });
+/** Whether a field is asked, given what was answered before it in the same datum. */
+export type Asked = (answered: Readonly<Record<string, unknown>>) => boolean;
+/** A field that is asked only when what was answered before it calls for it: otherwise nobody is asked, and the
+ * datum goes without it. Which kind of document, only once its number has eleven digits. */
+export const when = <T extends TSchema>(field: T, asked: Asked) => Type.Optional({ ...field, when: asked });
+/** Whether a field of a datum is asked, as its declaration says: always, unless it says when. */
+export function isAsked(schema: unknown, answered: Readonly<Record<string, unknown>>): boolean {
+  const asks: unknown = schema !== null && typeof schema === "object" ? Reflect.get(schema, "when") : undefined;
+  return !isAsker(asks) || asks(answered);
+}
+const isAsker = (asks: unknown): asks is Asked => typeof asks === "function";
 /** Why a datum that is complete still does not hold, when that is so: a check digit that does not match. */
 export type Wrong = (value: string) => string | undefined;
 /** A field that knows when what it was given is complete and wrong, and why. Said once, with the datum: the

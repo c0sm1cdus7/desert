@@ -1,5 +1,6 @@
 // The walk of an act's questions backwards: the answers that say a datum; and that every field of it can be asked.
 import { TypeGuard } from "@sinclair/typebox";
+import { isAsked } from "../../catalogs/fields.ts";
 import type { Option } from "../contract.ts";
 import {
   armsOf,
@@ -8,6 +9,7 @@ import {
   choiceOf,
   formatOf,
   isList,
+  isRecord,
   plain,
   tellingOf,
   titleOf,
@@ -40,15 +42,18 @@ export function write(schema: unknown, value: unknown, words: AskWords): string[
   if (value === undefined) return [""];
   return [formatOf(schema, words)?.typed(value) ?? plain(value)];
 }
+/** What a datum says of what was answered: itself, when it is one made of fields. */
+const answeredIn = (value: unknown): Readonly<Record<string, unknown>> => (isRecord(value) ? value : {});
 const written_ = (schema: unknown, value: unknown, words: AskWords, skip: readonly string[] = []): string[] =>
   Object.entries(at(schema, "properties") ?? {})
-    .filter(([key]) => !skip.includes(key))
+    .filter(([key, field]) => !skip.includes(key) && isAsked(field, answeredIn(value)))
     .flatMap(([key, field]) => write(field, at(value, key), words));
 /** The answers to the first things a declaration asks, for as long as the datum says them: where it stops saying,
  * the questions begin. */
 export function leading(schema: unknown, value: unknown, words: AskWords): string[] {
   const answers: string[] = [];
   for (const [key, field] of Object.entries(at(schema, "properties") ?? {})) {
+    if (!isAsked(field, answeredIn(value))) continue;
     if (at(value, key) === undefined) break;
     answers.push(...write(field, at(value, key), words));
   }

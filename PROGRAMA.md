@@ -42,6 +42,7 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - `run` puede ser `async`; `reach: "world"` dice que sale de la organización. El contexto trae `execute` para
   hacer otra acción por el mismo camino.
 - Un campo lleva siempre máscara o placeholder y tope; lo que el campo sabe que está mal se dice donde se escribe.
+- Un campo puede decir cuándo se pregunta, según lo respondido antes (`when(campo, respondido => …)`).
 
 ## Un objeto
 
@@ -59,7 +60,6 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 
 - La puerta para otros dispositivos, la de agentes y muchas organizaciones en un servidor.
 - Sacar a alguien de la organización y transferir la administración (hoy: dar herramientas, y nada más).
-- Una pregunta que dependa del valor de la respuesta anterior.
 - Una acción que hoy solo puede rechazar (exige al menos un caso aceptado).
 - Dar un paso en memoria como operación de la base (Capibara lo arma con piezas para recorrer todos los caminos).
 - Separar en la acción los motivos que dependen de lo que se responde de los que dependen del estado.

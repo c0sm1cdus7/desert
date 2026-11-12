@@ -2,7 +2,19 @@
 import { Type } from "@sinclair/typebox";
 import { describe, expect, it } from "vitest";
 import { object } from "../../catalogs/acts.ts";
-import { count, day, digits, many, money, oneOf, option, quantity, text, usually } from "../../catalogs/fields.ts";
+import {
+  count,
+  day,
+  digits,
+  many,
+  money,
+  oneOf,
+  option,
+  quantity,
+  text,
+  usually,
+  when,
+} from "../../catalogs/fields.ts";
 import { formats, limited, padded, shaped } from "../masks.ts";
 import { asking } from "./asking.ts";
 
@@ -144,5 +156,29 @@ describe("a datum with a shape of its own", () => {
     expect(asked).toMatchObject({ ask: "CUIT", kind: "text", mask: { empty: "00-00000000-0" } });
     const free = Type.String({ pattern: "^\\d{11}$", title: "CUIT", placeholder: "11 números" });
     expect(() => asking(object({ cuit: free }), words)).toThrow("The field CUIT has a shape and no mask");
+  });
+});
+
+describe("a field that is asked only when what came before calls for it", () => {
+  const kinds = oneOf("Tipo", option("cuit", "CUIT", "c"), option("cuil", "CUIL", "l"));
+  const elevens = ({ number }: Readonly<Record<string, unknown>>): boolean => String(number).length === 11;
+  const document = object({
+    number: digits("Documento", "##.###.###", "##-########-#"),
+    kind: when(kinds, elevens),
+    name: text("Nombre", "Nombre"),
+  });
+  const ask = asking(document, words);
+
+  it("is not asked, and the datum goes without it, while what was answered does not call for it", () => {
+    expect(ask.next(["12345678"])?.ask).toBe("Nombre");
+    expect(ask.input(["12345678", "Ana"])).toEqual({ number: "12345678", name: "Ana" });
+    expect(ask.answers({ number: "12345678", name: "Ana" })).toEqual(["12345678", "Ana"]);
+  });
+
+  it("is asked right after the answer that calls for it, and read back the same way", () => {
+    expect(ask.next(["20123456786"])?.ask).toBe("Tipo");
+    expect(ask.input(["20123456786", "CUIL", "Ana"])).toEqual({ number: "20123456786", kind: "cuil", name: "Ana" });
+    expect(ask.answers({ number: "20123456786", kind: "cuil", name: "Ana" })).toEqual(["20123456786", "CUIL", "Ana"]);
+    expect(ask.sofar(["20123456786", "CUIL"])).toEqual({ number: "20123456786", kind: "cuil" });
   });
 });

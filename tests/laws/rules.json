@@ -1092,6 +1092,18 @@
       "from": "11/11 · ronda 1 de escépticos, pantallas B14",
       "guarantee": "surface",
       "evidence": ["src/surface/bridge/program-acts.ts", "src/surface/walk.ts"]
+    },
+    {
+      "id": 141,
+      "rule": "Un campo puede decir cuándo se pregunta, según lo respondido antes en el mismo dato: mientras no hace falta no se pregunta y el dato va sin él; cuando hace falta se pregunta enseguida y no se saltea",
+      "from": "11/11 · obra de Capibara: el tipo de documento solo cuando el número tiene once dígitos",
+      "guarantee": "spec",
+      "evidence": [
+        "src/catalogs/fields.ts",
+        "src/surface/bridge/asking.ts",
+        "src/surface/bridge/asking-back.ts",
+        "src/surface/bridge/asking.spec.ts"
+      ]
     }
   ]
 }
