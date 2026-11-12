@@ -48,6 +48,8 @@ function answer(router: Router, field: Field, given: string, opened = field.init
     if (name !== "") type(router, ` ${name}`);
     const at = field.found(name).findIndex(option => (option.value ?? option.title) === given);
     ok(at >= 0, said.notFound(name));
+    /** What is not looked for is taken by its number: the cursor stands on what the datum already is, not first. */
+    if (name === "" && at < 9) return (type(router, String(at + 1)), true);
     for (let step = 0; step < at; step++) router.send({ kind: "down" });
     router.send({ kind: "confirm" });
     return true;
