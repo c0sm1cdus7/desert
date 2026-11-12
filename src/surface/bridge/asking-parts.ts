@@ -101,7 +101,11 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   const first = at(schema, "default") ?? (at(schema, "suggests") === "today" ? ctx.today?.() : undefined);
   const initial = first === undefined ? {} : { initial: format?.typed(first) ?? plain(first) };
   const ask = titleOf(schema, ctx);
-  const wrong = (typed: string): string | undefined => wrongIn(schema, valueOf(schema, ctx, typed));
+  /** A day that already happened is not after today, as the program's country counts its days. */
+  const late = (value: unknown): boolean =>
+    at(schema, "last") === "today" && typeof value === "string" && value > (ctx.today?.() ?? value);
+  const wrong = (typed: string): string | undefined =>
+    late(valueOf(schema, ctx, typed)) ? generic.future : wrongIn(schema, valueOf(schema, ctx, typed));
   /** Why what is written cannot be sent yet: nothing, less than the least the datum admits, or not all of it. */
   const lacks = (typed: string): string => {
     if (typed.trim() === "") return generic.lacks.empty;

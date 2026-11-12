@@ -69,9 +69,9 @@ describe("a program with a menu on its things", () => {
       expect(typed("")).toContain("e | editar | total y cobrado");
       expect(typed("e")).toEqual(["Editar", "c | corregir | $ 15,00 · $ 0,00"]);
       /** A question that changes a datum says beside its name what the datum is today, whatever is typed. */
-      expect(typed("c")).toEqual(["Corregir", "Total $ 15,00", "› $ 15,00"]);
-      expect(typed("15000\r")).toEqual(["Corregir", "Total $ 150,00", "Cobrado $ 0,00", "› $ 0,00"]);
-      expect(esc()).toEqual(["Corregir", "Total $ 15,00", "› $ 150,00"]);
+      expect(typed("c")).toEqual(["Corregir · s1", "Total $ 15,00", "› $ 15,00"]);
+      expect(typed("15000\r")).toEqual(["Corregir · s1", "Total $ 150,00", "Cobrado $ 0,00", "› $ 0,00"]);
+      expect(esc()).toEqual(["Corregir · s1", "Total $ 15,00", "› $ 150,00"]);
       expect(esc()[0]).toBe("Editar");
       return Promise.resolve();
     });
@@ -81,9 +81,15 @@ describe("a program with a menu on its things", () => {
     await atSale(partsShown, async ({ typed, esc, settled }) => {
       expect(typed("e")).toEqual(["Editar", "p | Partes | "]);
       expect(typed("p")).toEqual(["Partes", "t | total | $ 15,00", "b | cobrado | $ 0,00"]);
-      expect(typed("b")).toEqual(["Corregir", "Total $ 15,00", "Cobrado $ 0,00", "› $ 0,00"]);
+      expect(typed("b")).toEqual(["Corregir · s1", "Total $ 15,00", "Cobrado $ 0,00", "› $ 0,00"]);
       /** Written as it already is, it is not sent, and enter says why: it would change nothing. */
-      expect(typed("\r")).toEqual(["Corregir", "Total $ 15,00", "Cobrado $ 0,00", "Error sin cambios", "› $ 0,00"]);
+      expect(typed("\r")).toEqual([
+        "Corregir · s1",
+        "Total $ 15,00",
+        "Cobrado $ 0,00",
+        "Error sin cambios",
+        "› $ 0,00",
+      ]);
       expect(esc()[0]).toBe("Partes");
       typed("b500\r");
       expect((await settled()).at(-1)).toContain("Listo Corregida · s1");

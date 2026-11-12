@@ -44,6 +44,12 @@ const chargeCases = [
     input: { sale: "sales/zz", amount: 1 },
     then: { refused: "unknown" },
   },
+  {
+    promise: "more than ninety pesos is not charged, and it is said at the amount: the tip is never asked",
+    given: [registered],
+    input: { sale: "sales/s1", amount: 9500, tip: 50 },
+    then: { refused: "monto de más" },
+  },
 ] as const;
 /** Charging a sale receives a payment for it: the sale is one of the things of the sales tool. */
 const chargeWith = (input: Charged) =>
@@ -61,11 +67,12 @@ const chargeWith = (input: Charged) =>
       off: (state, target) => ((state.tools.sales.get(nameOf(target))?.paid ?? 0) >= 1500 ? "paid" : undefined),
       opens: (state, target) => ({ amount: state.tools.sales.get(nameOf(target))?.total ?? 0 }),
     },
-    refuses: ["unknown"],
+    refuses: ["unknown", "monto de más"],
     /** More than ninety pesos is said at the amount, before anything else is asked. */
     stops: ({ amount }) => (typeof amount === "number" && amount > 9000 ? "monto de más" : undefined),
     run: ({ sale, amount }, { by, state }) => {
       if (!state.tools.sales.has(nameOf(sale))) return { status: "rejected", reason: "unknown" };
+      if (amount > 9000) return { status: "rejected", reason: "monto de más" };
       const fact = shop.fact("payment-received", { payment: `for-${nameOf(sale)}`, amount, sale: nameOf(sale) }, by);
       return { status: "accepted", text: `Cobrada · ${nameOf(sale)}`, effects: [fact] };
     },

@@ -108,14 +108,20 @@ function walk<X extends Program>({ router, tools }: Seat<X>, { aim, kase, answer
   const { from = 0, until = answers.length } = row.with ?? {};
   /** A row that asks the one datum it reads does not send what the thing already says: nothing would change. */
   if (row.with?.today === true && until - from === 1 && row.with.answers[from] === answers[from]) return false;
+  /** What the act says cannot go on stays at the question it was answered in: nothing more is asked or confirmed. */
+  const stopped: string[] = [];
   const said = answers.slice(from, until).every((given, offset) => {
+    if (stopped.length) return true;
     const field = next(answers.slice(0, from + offset));
     fitsSmallest(router);
-    return field ? answer(router, field, given, row.with?.answers[from + offset]) : true;
+    const taken = field ? answer(router, field, given, row.with?.answers[from + offset]) : true;
+    const why = taken ? act?.stops?.(answers.slice(0, from + offset + 1), kase.on ?? aim.tool.id) : undefined;
+    if (why !== undefined) stopped.push(why);
+    return taken;
   });
   fitsSmallest(router);
   /** What asks to be confirmed is confirmed as a person does: by the initial of the act's own verb. */
-  const sure = said && row.with?.until === undefined ? next(answers) : null;
+  const sure = said && !stopped.length && row.with?.until === undefined ? next(answers) : null;
   if (sure) ok(!addresses(sure.ask), words.speaks(sure.ask));
   const promised = "refused" in kase.then ? undefined : kase.then.sure;
   if (sure && promised !== undefined) strictEqual(sure.ask, promised, words.notSure(sure.ask));

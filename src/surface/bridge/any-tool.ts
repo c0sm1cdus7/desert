@@ -28,7 +28,7 @@ function menuAt<X extends Program>(tool: ProgramTool<X>, things: readonly string
  * ones its list shows; each by what its row says and by the words its tool adds. */
 function foundIn<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, label: Labels, sought: string) {
   const state = ports.state();
-  const all = rowsIn(tool.view(state, tool.id, { recentLines: Number.MAX_SAFE_INTEGER }), label);
+  const all = rowsIn(tool.view(state, tool.id, { recentLines: Number.MAX_SAFE_INTEGER, now: ports.now() }), label);
   const said = (row: ViewRow): string => [row.title, row.detail, tool.words?.(state, row.opens ?? "")].join(" ");
   return listedIn(tool.targets(state), all).filter(row => matches(said(row), sought));
 }
@@ -63,7 +63,8 @@ export function anyToolScreen<X extends Program>(
   const label = (key: string): string => worded(reads, tool.id, key);
   const [lists, stacks] = [listsOf(words), itselfOf(words)];
   const changing = changingBy(ports, tool, start)(tool.id);
-  const read = (): string => tool.view(ports.state(), tool.id, ports.limits);
+  /** Whatever is read is read at the instant of whoever looks: a tool has no clock of its own. */
+  const read = (): string => tool.view(ports.state(), tool.id, { ...ports.limits, now: ports.now() });
   /** What the tool reads of its own goes first, in its stacks: the first line of its view. Its things follow. */
   const itself = () => (stacks.length ? ownView(stacks, read(), tool.id, changing) : []);
   const listed = (): string => (stacks.length ? read().split("\n").slice(1).join("\n") : read());

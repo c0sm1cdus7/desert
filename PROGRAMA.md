@@ -44,6 +44,10 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   hacer otra acción por el mismo camino.
 - Un campo lleva siempre máscara o placeholder y tope; lo que el campo sabe que está mal se dice donde se escribe.
 - Un campo puede decir cuándo se pregunta, según lo respondido antes (`when(campo, respondido => …)`).
+- Un día que ya pasó no puede ser posterior a hoy: `day(pregunta, "today", "today")` lo rechaza donde se escribe.
+- Lo que una acción confirma (`confirms(input, estado, cosa, instante)`) o contesta puede decirse en varias líneas:
+  cada corte de línea es un renglón, sin volver a cortar (una vista previa, un impreso).
+- Lo que una acción crea queda en el Registro de cada cosa creada: ningún programa guarda quién creó qué.
 
 ## Un objeto
 

@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 145. Deudas: 23.
+Leyes: 150. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -152,3 +152,8 @@ Leyes: 145. Deudas: 23.
 | 145 | Lo que se dice en varias líneas se lee en varias líneas: un corte de línea en lo que una acción confirma o contesta empieza un renglón nuevo, sin volver a cortarlo por palabras; donde solo entra un renglón (el Registro, la Actividad) se lee el primero | 11/11 · obra de Capibara: la vista previa de una factura era un párrafo de siete renglones | una spec a mano | `src/doors/terminal/thread.ts` `src/surface/bridge/notices.ts` `src/doors/terminal/destinations.spec.ts` `src/doors/terminal/house-screens.spec.ts` |
 | 146 | Lo que una acción pone a confirmar sabe qué día es: recibe el instante en que se pregunta | 11/11 · obra de Capibara: la vista previa decía «Fecha de emisión hoy» | no compila | `src/tools/promises.ts` `src/surface/bridge/program-acts.ts` |
 | 147 | Lo que una acción crea queda escrito con lo que la acción dice: cada cosa que no estaba antes y está después, además de aquella sobre la que se hizo, la lee en su propio Registro. Ningún programa guarda aparte quién creó algo | 11/11 · obra de Capibara: la identidad que crea un pedido de canal no decía quién la escribió | una spec a mano | `src/tools/execute.ts` `src/journal/events.ts` `src/surface/bridge/house-tools.ts` `src/tools/execute.spec.ts` `src/doors/terminal/house-screens.spec.ts` |
+| 148 | Lo que una herramienta lee de sí misma se lee en el instante de quien mira, igual que una cosa: ninguna herramienta tiene reloj propio | 11/11 · obra de Capibara: Resumen no sabía qué día era «hoy» | una spec a mano | `src/surface/bridge/any-tool.ts` `src/surface/bridge/any-tool.spec.ts` |
+| 149 | Un día que ya pasó no puede ser posterior a hoy, como lo cuenta el país del programa: el que se pasa se rechaza donde se escribe | 11/11 · obra de Capibara: el día de un cobro o de una entrega futuros se rechazaba recién al guardar | una spec a mano | `src/catalogs/fields.ts` `src/surface/bridge/asking-parts.ts` `src/surface/bridge/asking-days.spec.ts` |
+| 150 | La barra de una acción sobre una cosa dice qué se hace y a cuál: «Corregir · s1» | 11/11 · ronda 1 de escépticos: «Productos» en la barra no decía a quién se le daba | una spec a mano | `src/surface/bridge/program-acts.ts` `src/programs/promised-menus.spec.ts` |
+| 151 | Una tecla que el campo no toma lo dice donde se escribe, y lo escrito queda como estaba: ninguna tecla se descarta callada. Lo mismo la que ya no entra | 11/11 · ronda 1 de escépticos: el nombre de usuario perdía letras sin avisar | una spec a mano | `src/surface/walking.ts` `src/doors/terminal/house-screens.spec.ts` |
+| 152 | Lo que una acción rechaza en una pregunta queda en esa pregunta también en el recorrido derivado de cada caso: no se pregunta ni se confirma nada más | 11/11 · obra de Capibara: un rechazo a mitad de camino seguía escribiendo en la misma pregunta | prueba derivada de los casos | `src/programs/promised-walk.ts` `tests/support/charging-shop.ts` |

@@ -68,7 +68,8 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
     label: act.name,
     verb: act.enter,
     key: act.key,
-    title: (): string => title,
+    /** The bar says what is done and, on a thing, to which. */
+    title: (target?: string): string => (target === undefined ? title : `${title} · ${asked.titled(tool, target)}`),
     next: (answers: readonly string[], target?: string): Field | null =>
       besides(ask.next(answers), target) ?? sure(answers, target),
     stops: (answers: readonly string[], target?: string): string | undefined =>

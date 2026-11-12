@@ -3,6 +3,7 @@ import type { Field, Intent, Mask, Option } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
 import { actOf, begin, fieldOf, maskOf, optionsOf, opened, pickedFrom, validOf } from "./screen.ts";
 import type { Asking, Session, Stepped, Walk } from "./screen.ts";
+import { genericTexts as generic } from "../texts/generic-surface.texts.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { edited } from "./talk.ts";
 import { must } from "./window.ts";
@@ -38,10 +39,12 @@ function masked(walk: Asking, mask: Mask, key: Intent): Asking | undefined {
   if (key.kind === "erase") return { ...walk, typed: Array.from(walk.typed).slice(0, -1).join("") };
   return key.kind === "left" || key.kind === "right" ? walk : undefined;
 }
-/** What is written after a key. A key that changed nothing leaves what was said as it was; one that did takes it
- * away, and what is written now says its own as soon as it is complete and still does not hold. */
-function rewritten(field: Field, before: Asking, { error: _was, ...written }: Asking): Asking {
-  const said = written.typed === before.typed ? before.error : undefined;
+/** What is written after a key. A key that changed nothing leaves what was said as it was, or says that it is not
+ * taken there; one that did takes it away, and what is written now says its own as soon as it is complete and
+ * still does not hold. */
+function rewritten(field: Field, before: Asking, { error: _was, ...written }: Asking, key?: Intent): Asking {
+  const refused = key?.kind === "type" ? generic.notTaken(key.text) : undefined;
+  const said = written.typed === before.typed ? (before.error ?? refused) : undefined;
   const why = said ?? (validOf(field, written.typed) ? field.wrong?.(written.typed) : undefined);
   return { ...written, suggested: false, ...(why === undefined ? {} : { error: why }) };
 }
@@ -57,10 +60,10 @@ function typing(session: Session, walk: Asking, tools: Tools, field: Field, key:
   /** What the question opened with gives way to the first key written. */
   const fresh = walk.suggested && key.kind === "type" ? { ...walk, typed: "", caret: 0 } : walk;
   const full = key.kind === "type" && "max" in field && Array.from(fresh.typed).length >= (field.max ?? Infinity);
-  if (full) return { session };
+  if (full) return { session: replace(session, { ...fresh, error: walk.error ?? generic.full }) };
   if (!("mask" in field) && idleSpace(fresh, key)) return { session };
   const changed = "mask" in field ? masked(fresh, field.mask, key) : edited(fresh, key);
-  if (changed) return { session: replace(session, rewritten(field, fresh, changed)) };
+  if (changed) return { session: replace(session, rewritten(field, fresh, changed, key)) };
   if (key.kind !== "confirm") return { session };
   /** What cannot be sent says why, where it is written: enter never does nothing in silence. */
   if (!validOf(field, walk.typed)) {

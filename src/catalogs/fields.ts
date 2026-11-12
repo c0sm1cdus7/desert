@@ -30,9 +30,16 @@ export const quantity = (ask: string, initial?: number) =>
 /** Which one, by its position: a whole number from one up. */
 export const count = (ask: string) => Type.Integer({ minimum: 1, maximum: 999_999_999, title: ask, mask: "count" });
 /** A day of the calendar, kept as year-month-day. One that is usually today opens on today: a person confirms
- * it, or writes another over it. */
-export const day = (ask: string, suggests?: "today") =>
-  Type.String({ pattern: isoDay, title: ask, mask: "day", ...(suggests === undefined ? {} : { suggests }) });
+ * it, or writes another over it. One that already happened (`last`) is never after today: a later day is turned
+ * down where it is written. */
+export const day = (ask: string, suggests?: "today", last?: "today") =>
+  Type.String({
+    pattern: isoDay,
+    title: ask,
+    mask: "day",
+    ...(suggests === undefined ? {} : { suggests }),
+    ...(last === undefined ? {} : { last }),
+  });
 /** One of the things of a tool, kept as what the tool calls it: a person picks it from their list. Where the
  * field may be left without one, `none` is what that is called: «Consumidor final», «sin venta». Where a new one
  * can be made right there, `makes` is the act of that tool that makes it: its result is the answer. */

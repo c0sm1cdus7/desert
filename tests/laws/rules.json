@@ -1162,6 +1162,45 @@
         "src/tools/execute.spec.ts",
         "src/doors/terminal/house-screens.spec.ts"
       ]
+    },
+    {
+      "id": 148,
+      "rule": "Lo que una herramienta lee de sí misma se lee en el instante de quien mira, igual que una cosa: ninguna herramienta tiene reloj propio",
+      "from": "11/11 · obra de Capibara: Resumen no sabía qué día era «hoy»",
+      "guarantee": "spec",
+      "evidence": ["src/surface/bridge/any-tool.ts", "src/surface/bridge/any-tool.spec.ts"]
+    },
+    {
+      "id": 149,
+      "rule": "Un día que ya pasó no puede ser posterior a hoy, como lo cuenta el país del programa: el que se pasa se rechaza donde se escribe",
+      "from": "11/11 · obra de Capibara: el día de un cobro o de una entrega futuros se rechazaba recién al guardar",
+      "guarantee": "spec",
+      "evidence": [
+        "src/catalogs/fields.ts",
+        "src/surface/bridge/asking-parts.ts",
+        "src/surface/bridge/asking-days.spec.ts"
+      ]
+    },
+    {
+      "id": 150,
+      "rule": "La barra de una acción sobre una cosa dice qué se hace y a cuál: «Corregir · s1»",
+      "from": "11/11 · ronda 1 de escépticos: «Productos» en la barra no decía a quién se le daba",
+      "guarantee": "spec",
+      "evidence": ["src/surface/bridge/program-acts.ts", "src/programs/promised-menus.spec.ts"]
+    },
+    {
+      "id": 151,
+      "rule": "Una tecla que el campo no toma lo dice donde se escribe, y lo escrito queda como estaba: ninguna tecla se descarta callada. Lo mismo la que ya no entra",
+      "from": "11/11 · ronda 1 de escépticos: el nombre de usuario perdía letras sin avisar",
+      "guarantee": "spec",
+      "evidence": ["src/surface/walking.ts", "src/doors/terminal/house-screens.spec.ts"]
+    },
+    {
+      "id": 152,
+      "rule": "Lo que una acción rechaza en una pregunta queda en esa pregunta también en el recorrido derivado de cada caso: no se pregunta ni se confirma nada más",
+      "from": "11/11 · obra de Capibara: un rechazo a mitad de camino seguía escribiendo en la misma pregunta",
+      "guarantee": "derived",
+      "evidence": ["src/programs/promised-walk.ts", "tests/support/charging-shop.ts"]
     }
   ]
 }
