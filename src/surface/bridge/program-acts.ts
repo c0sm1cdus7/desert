@@ -50,16 +50,19 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
   const confirm = {
     options: [{ title: act.enter, key: act.enter.charAt(0) }],
     ...(act.undoable ? { reversible: true } : {}),
-    /** Under what is confirmed, what the act is for; and that it cannot be undone, when it cannot. */
-    note: act.undoable ? act.purpose : `${act.purpose} · ${generic.irreversible}`,
   };
+  /** Under what is confirmed, what the act is for; and that it cannot be undone, when it cannot. */
+  const note = act.undoable ? act.purpose : `${act.purpose} · ${generic.irreversible}`;
   const sure = (answers: readonly string[], target?: string): Field | null => {
     const taken = ask.taken(answers);
     if (answers.length > taken) return null;
     const summary = act.confirms?.(ask.input(answers), ports.state(), target ?? tool);
-    if (summary !== undefined) return { ask: summary, kind: "confirm", ...confirm };
+    /** What the act itself puts to be confirmed already says what it will do: only that it cannot be undone is
+     * added. With nothing asked, the person is told what the act is for. */
+    const warned = act.undoable ? {} : { note };
+    if (summary !== undefined) return { ask: summary, kind: "confirm", ...confirm, ...warned };
     const thing = target === undefined ? undefined : asked.titled(tool, target);
-    return taken === 0 ? { ask: generic.sure(title, thing), kind: "confirm", ...confirm } : null;
+    return taken === 0 ? { ask: generic.sure(title, thing), kind: "confirm", ...confirm, note } : null;
   };
   const walk = {
     label: act.name,
