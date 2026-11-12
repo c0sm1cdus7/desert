@@ -52,7 +52,9 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - Lo que una acción crea queda en el Registro de cada cosa creada: ningún programa guarda quién creó qué.
 - Una acción puede decir por qué lo contestado hasta ahí no puede seguir: `stops: (respondido, estado, cosa) =>
   motivo`. La pantalla lo dice en la pregunta que se acaba de contestar; **la base lo rechaza igual antes de correr
-  la acción, por cualquier puerta**, con ese mismo motivo (que va en `refuses`, con su caso). La acción no lo repite.
+  la acción, por cualquier puerta**, con ese mismo motivo (que va en `refuses`, con su caso). En la pregunta el
+  motivo puede sumar un dato después («supera lo que falta · $ 9.525,75»): por otra puerta se rechaza con el motivo
+  declarado. La acción no lo repite.
 - Donde una pregunta elige una cosa de otra herramienta (`thing`), la acción puede decir cuáles toma según lo ya
   contestado: `among: (respondido, estado, cosa) => ({ productos: id => … })` (por herramienta, no por campo: dos
   preguntas de la misma herramienta reciben la misma función). La lista ofrece solo esas, también a quien busca, y
@@ -134,5 +136,5 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   rechazarlo ella.
 - Una tecla que no elige nada en una lista (un número sin fila) no dice nada; solo los campos escritos dicen que una
   tecla no va.
-- Una devolución de plata sin cosas, un rechazo que deje escrito lo que contestó el fisco, un motivo con un dato
-  variable: pedidos de Capibara que hoy se resuelven del lado del programa.
+- Una devolución de plata sin cosas y un rechazo que deje escrito lo que contestó el fisco: pedidos de Capibara que
+  hoy se resuelven del lado del programa.

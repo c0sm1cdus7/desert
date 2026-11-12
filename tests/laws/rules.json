@@ -1319,7 +1319,7 @@
     },
     {
       "id": 166,
-      "rule": "Lo que una acción dice que no puede seguir (`stops`) o que no toma (`among`) lo rechaza la base antes de que la acción corra, por cualquier puerta: la pantalla solo lo dice antes",
+      "rule": "Lo que una acción dice que no puede seguir (`stops`) o que no toma (`among`) lo rechaza la base antes de que la acción corra, por cualquier puerta: la pantalla solo lo dice antes. En su pregunta un motivo puede sumar un dato («supera lo que falta · $ 9.525,75»); por otra puerta se rechaza con el motivo que la acción declara",
       "from": "12/11 · escéptico de la base, ronda 3: `stops` y `among` valían solo en la terminal; por otra puerta la acción aceptaba lo mismo que la pantalla frenaba",
       "guarantee": "spec",
       "evidence": [

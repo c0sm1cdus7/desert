@@ -142,11 +142,12 @@ export const ofTheBase = (cause: string): boolean =>
  * an act that says what the thing is today does not leave it as it is: nothing new would be written. */
 const heldBy =
   <X extends Program, S extends TSchema>(
-    { input, run, today }: Declared<X, S>,
+    { input, run, today, refuses = [] }: Declared<X, S>,
     said: SoFar<X>,
   ): Declared<X, S>["run"] =>
   (value, context) => {
-    const wrong = wrongIn(input, value) ?? refusedWhole(input, said, value)(context.state, context.target);
+    const whole = refusedWhole(input, said, value);
+    const wrong = wrongIn(input, value) ?? whole(context.state, context.target, refuses);
     if (wrong !== undefined) return { status: "rejected", reason: wrong };
     const same = today !== undefined && Value.Equal(today(context.state, context.target), value);
     return same ? { status: "rejected", reason: toolTexts.unchanged } : run(value, context);

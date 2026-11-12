@@ -108,7 +108,8 @@ describe("what an act says cannot go on, given to it whole", () => {
     ...registerOffer,
     input: sold,
     refuses: ["total de más"],
-    stops: ({ total }) => (typeof total === "number" && total > 9000 ? "total de más" : undefined),
+    /** At the question it says by how much; the cause it declares is what any other door is refused with. */
+    stops: ({ total }) => (typeof total === "number" && total > 9000 ? `total de más · $ ${total - 9000}` : undefined),
     run: (told, { by }) => ({
       status: "accepted",
       text: "Registrada",

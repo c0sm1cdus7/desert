@@ -46,10 +46,12 @@ function picksIn(schema: unknown, value: unknown): readonly Picked[] {
  * it stops at, or a thing it picks and does not take. A surface says it earlier, at the question; here it is
  * refused through whatever door it came, before the act runs. */
 export function refusedWhole<X extends Program>(input: TSchema, said: SoFar<X>, value: unknown) {
-  return (state: State<X>, target: string): string | undefined => {
+  return (state: State<X>, target: string, refuses: readonly string[]): string | undefined => {
     if (!isRecord(value)) return undefined;
     const stopped = said.stops?.(value, state, target);
-    if (stopped !== undefined) return stopped;
+    /** At its question a cause may say a datum after it («supera lo que falta · $ 9.525,75»): where nothing is
+     * asked, what is refused is the cause the act declares. */
+    if (stopped !== undefined) return refuses.find(cause => stopped.startsWith(`${cause} · `)) ?? stopped;
     const among = said.among?.(value, state, target) ?? {};
     const left = picksIn(input, value).some(([tool, thing]) => among[tool]?.(thing) === false);
     return left ? toolTexts.notAmong : undefined;
