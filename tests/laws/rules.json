@@ -1354,6 +1354,20 @@
         "src/doors/terminal/thread.ts",
         "src/surface/resolve.spec.ts"
       ]
+    },
+    {
+      "id": 170,
+      "rule": "Lo que falta en lo escrito dice el número al que tiene que llegar o la forma que tiene que llenar: «máximo 60», «mínimo $ 0,01», «incompleto · dd/mm/aaaa»; nunca «incompleto» para lo que está entero y se pasa",
+      "from": "12/11 · escéptico de pantallas, ronda 3: «incompleto» para 99 con tope 60 y para una fecha a medio escribir, «vacío» para un importe en cero",
+      "guarantee": "spec",
+      "evidence": ["src/surface/bridge/asking-parts.ts", "src/surface/bridge/asking-numbers.spec.ts"]
+    },
+    {
+      "id": 171,
+      "rule": "Buscar encuentra lo que empieza una palabra, y un número por como se lee («15» encuentra 00000015): lo escrito en el medio de una palabra no encuentra nada",
+      "from": "12/11 · escéptico de pantallas, ronda 3: buscar «Ana» traía primero «canales» y «persona humana»",
+      "guarantee": "spec",
+      "evidence": ["src/surface/finding.ts", "src/doors/terminal/house-search.spec.ts"]
     }
   ]
 }

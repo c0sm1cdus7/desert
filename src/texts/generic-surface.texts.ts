@@ -10,8 +10,10 @@ export const genericTexts = {
   lacks: {
     empty: "vacío",
     partial: "incompleto",
+    shaped: (shape: string) => `incompleto · ${shape}`,
     least: (least: string) => `mínimo ${least}`,
     above: (than: string) => `mayor a ${than}`,
+    most: (most: string) => `máximo ${most}`,
   },
   /** A day that already happened, written after today. */
   future: "día futuro",
@@ -30,8 +32,8 @@ export const genericTexts = {
     save: "guardar",
     show: { title: "Mostrar", key: "m" },
     hide: { title: "Ocultar", key: "o" },
-    shown: "visibles",
-    hidden: "ocultas",
+    shown: "se muestran",
+    hidden: "no se muestran",
     /** What changing one answers, as any act does: what was done, to what, and how it is now. */
     now: (name: string, how: string) => `Cambiado · ${name} · ${how}`,
     off: { name: "acciones apagadas", key: "a" },

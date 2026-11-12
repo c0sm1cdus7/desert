@@ -5,12 +5,17 @@ import { startTalk } from "./talk.ts";
 import type { Tool } from "./shown-tool.ts";
 
 const plain = (words: string): string => words.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
-/** Whether a text is what someone looks for: every word they wrote is somewhere in it, whatever its accents and
- * capitals. */
+const wordsOf = (text: string): readonly string[] =>
+  plain(text)
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean);
+/** A number is found by how it reads: «15» finds 00000015. */
+const read = (word: string): string => (/^\d+$/u.test(word) ? word.replace(/^0+(?=\d)/u, "") : word);
+/** Whether a text is what someone looks for: every word they wrote begins a word of it, whatever its accents and
+ * capitals. What is written in the middle of a word finds nothing: «ana» is Ana, not «canales». */
 export const matches = (text: string, sought: string): boolean => {
-  const within = plain(text);
-  const words = plain(sought).split(/\s+/u).filter(Boolean);
-  return words.every(word => within.includes(word));
+  const within = wordsOf(text).flatMap(word => [word, read(word)]);
+  return wordsOf(sought).every(word => within.some(each => each.startsWith(word)));
 };
 /** The tools a person looks into from the Menu: the ones they hold that say how their things are found. */
 const seekers = (tools: readonly Tool[]): readonly Tool[] =>

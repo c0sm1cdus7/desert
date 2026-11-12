@@ -92,6 +92,25 @@ function picked(schema: TSchema, ctx: Ctx, of: string): Field {
   const nothing = (): string => things()?.empty ?? "";
   return { ask: asked(word(schema, "title")), kind: "pick", of, found, shown, valid, nothing };
 }
+/** Why what is written cannot be sent yet: nothing, less than the least the datum admits, more than the most, or
+ * not all of it; said with the number it has to reach, or with the shape it has to fill. Where nothing written
+ * already reads as a number («$ 0,00»), it is that number that falls short. */
+function lacking(schema: TSchema, ctx: Ctx, typed: string): string {
+  const format = formatOf(schema, ctx);
+  const said = (limit: number): string => format?.shown(format.typed(limit)) ?? String(limit);
+  const [least, above, most] = ["minimum", "exclusiveMinimum", "maximum"].map(key => at(schema, key));
+  const bare = typed.trim() === "";
+  if (bare && (format?.shown("") ?? "") === "") return generic.lacks.empty;
+  const value = bare ? 0 : valueOf(schema, ctx, typed);
+  if (typeof value !== "number") return shapeOf(format?.empty);
+  if (typeof least === "number" && value < least) return generic.lacks.least(said(least));
+  if (typeof above === "number" && value <= above) return generic.lacks.above(said(above));
+  if (typeof most === "number" && value > most) return generic.lacks.most(said(most));
+  return bare ? generic.lacks.empty : shapeOf(format?.empty);
+}
+/** What is not all there says the shape it has to fill, when its field shows one: «incompleto · dd/mm/aaaa». */
+const shapeOf = (shape?: string): string =>
+  shape !== undefined && shape.length > 1 ? generic.lacks.shaped(shape) : generic.lacks.partial;
 export function written(schema: TSchema, ctx: Ctx): Field {
   const of = at(schema, "of");
   if (typeof of === "string") return picked(schema, ctx, of);
@@ -106,16 +125,7 @@ export function written(schema: TSchema, ctx: Ctx): Field {
     at(schema, "last") === "today" && typeof value === "string" && value > (ctx.today?.() ?? value);
   const wrong = (typed: string): string | undefined =>
     late(valueOf(schema, ctx, typed)) ? generic.future : wrongIn(schema, valueOf(schema, ctx, typed));
-  /** Why what is written cannot be sent yet: nothing, less than the least the datum admits, or not all of it. */
-  const lacks = (typed: string): string => {
-    if (typed.trim() === "") return generic.lacks.empty;
-    const [value, least] = [valueOf(schema, ctx, typed), at(schema, "minimum")];
-    const low = typeof value === "number" && typeof least === "number" && value < least;
-    if (low) return generic.lacks.least(format?.shown(format.typed(least)) ?? String(least));
-    const above = at(schema, "exclusiveMinimum");
-    const under = typeof value === "number" && typeof above === "number" && value <= above;
-    return under ? generic.lacks.above(format?.shown(format.typed(above)) ?? String(above)) : generic.lacks.partial;
-  };
+  const lacks = (typed: string): string => lacking(schema, ctx, typed);
   /** What a person writes has a top: a number without one, or a text without a length, is a defect. */
   const numeric = at(schema, "type") === "integer" || at(schema, "type") === "number";
   if (format && numeric && typeof at(schema, "maximum") !== "number") throw new Error(`The field ${ask} has no top`);

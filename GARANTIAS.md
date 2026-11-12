@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 167. Deudas: 23.
+Leyes: 169. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -174,3 +174,5 @@ Leyes: 167. Deudas: 23.
 | 167 | Lo que se contestó después de una respuesta que cambia queda debajo de la pregunta que contestó: una respuesta puede decidir si un campo posterior se pregunta, y lo que contestaba una pregunta que ya no se hace se va | 12/11 · escéptico de la base, ronda 3: al editar un documento de 11 a 8 dígitos el nombre recibía la respuesta del tipo | una spec a mano | `src/surface/kept-answers.ts` `src/surface/walking.ts` `src/surface/kept-answers.spec.ts` |
 | 168 | En una fila que se elige el nombre se lee entero y lo que se corta es lo de al lado; en una fila que se lee, el dato se lee entero y lo que se corta es su nombre | 12/11 · tres lanes de Capibara lo resolvieron por separado contando columnas (el número de un comprobante, el nombre de una norma, un pedido de canal se cortaban a doce letras) | una spec a mano | `src/doors/terminal/thread.ts` `src/surface/resolve.spec.ts` |
 | 169 | Con lo que se muestra corrido para leer otra lista, Enter primero vuelve a la fila elegida: nadie abre una fila que no está mirando. Una vista previa de muchos renglones conserva la mitad de la pantalla frente a sus opciones, también en la terminal más chica | 12/11 · escéptico de la base, ronda 3: Enter abría una fila fuera de la vista; en 40×16 con ocho opciones no quedaba ni un renglón de la vista previa | una spec a mano | `src/surface/step.ts` `src/surface/resolve.ts` `src/doors/terminal/thread.ts` `src/surface/resolve.spec.ts` |
+| 170 | Lo que falta en lo escrito dice el número al que tiene que llegar o la forma que tiene que llenar: «máximo 60», «mínimo $ 0,01», «incompleto · dd/mm/aaaa»; nunca «incompleto» para lo que está entero y se pasa | 12/11 · escéptico de pantallas, ronda 3: «incompleto» para 99 con tope 60 y para una fecha a medio escribir, «vacío» para un importe en cero | una spec a mano | `src/surface/bridge/asking-parts.ts` `src/surface/bridge/asking-numbers.spec.ts` |
+| 171 | Buscar encuentra lo que empieza una palabra, y un número por como se lee («15» encuentra 00000015): lo escrito en el medio de una palabra no encuentra nada | 12/11 · escéptico de pantallas, ronda 3: buscar «Ana» traía primero «canales» y «persona humana» | una spec a mano | `src/surface/finding.ts` `src/doors/terminal/house-search.spec.ts` |

@@ -140,6 +140,8 @@ const offersOf =
       if (!also || given === undefined) return [];
       const row = { key: act.key, title: also.name ?? act.name, act: name, on: { tool } };
       const why = also.off?.(ports.state(), target);
+      /** Off, it says why; and it is not there for who prefers not to see what cannot be done. */
+      if (why !== undefined && hides(ports.state().house, ports.me, "off")) return [];
       if (why !== undefined) return [{ ...row, detail: why, off: true }];
       const fixed = ask.leading(given);
       /** What the thing suggests comes after what it fixes: those questions open on it, and are still asked. */

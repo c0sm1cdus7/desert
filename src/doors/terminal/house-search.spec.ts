@@ -1,5 +1,6 @@
 // Looking for things on the terminal: what a person reads from the moment space is pressed on a menu.
 import { afterEach, describe, expect, it } from "vitest";
+import { matches } from "../../surface/finding.ts";
 import { houseRouter } from "../../surface/bridge/house-router.ts";
 import type { Router } from "../../surface/router.ts";
 import { textOf } from "./cells.ts";
@@ -69,5 +70,15 @@ describe("the terminal, looking for things", () => {
     expect(found.some(line => line.includes("pagos"))).toBe(false);
     expect((await press("\r"))[0]).toContain("s1");
     expect((await press(escape))[0]).toContain("Menú");
+  });
+
+  it("finds what begins a word, and a number by how it reads: never what is in the middle of a word", () => {
+    expect(matches("Ana Ruiz · CUIT 20-12345678-6", "ana")).toBe(true);
+    expect(matches("Canales de venta", "ana")).toBe(false);
+    expect(matches("persona humana", "ana")).toBe(false);
+    expect(matches("Librería Sol SRL", "libreria so")).toBe(true);
+    expect(matches("Factura A 0001-00000015", "15")).toBe(true);
+    expect(matches("Factura A 0001-00000015", "5")).toBe(false);
+    expect(matches("Venta 2 · Ana Ruiz", "venta 2")).toBe(true);
   });
 });

@@ -57,8 +57,8 @@ describe("a program whose acts reach across its tools", () => {
     const { rig, router, press } = seat("ana");
     expect(press("pc")).toEqual(["Cobrar", "Venta", "s1 | $ 1500", "s2 | $ 90"]);
     expect(press(" ")).toEqual(["Cobrar", "Venta", "› ", "s1 | $ 1500", "s2 | $ 90"]);
-    expect(press("2")).toEqual(["Cobrar", "Venta", "› 2", "s2 | $ 90"]);
-    expect(press("x")).toEqual(["Cobrar", "Venta", "› 2x", "Sin resultados."]);
+    expect(press("s2")).toEqual(["Cobrar", "Venta", "› s2", "s2 | $ 90"]);
+    expect(press("x")).toEqual(["Cobrar", "Venta", "› s2x", "Sin resultados."]);
     /** Escape closes the search and the whole list is back; the number of a row takes it. */
     expect(press("\x1b")).toEqual(["Cobrar", "Venta", "s1 | $ 1500", "s2 | $ 90"]);
     expect(press("2")).toEqual(["Cobrar", "Venta s2", "Monto"]);

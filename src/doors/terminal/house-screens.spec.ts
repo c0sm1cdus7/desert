@@ -52,8 +52,8 @@ describe("the terminal, on a program's house", () => {
     expect(await press(",")).toEqual(
       expect.arrayContaining([
         "Preferencias",
-        "[a] acciones apagadas | visibles",
-        "[h] herramientas ajenas | visibles",
+        "[a] acciones apagadas | se muestran",
+        "[h] herramientas ajenas | se muestran",
       ]),
     );
     const asked = await press("h");
@@ -63,8 +63,8 @@ describe("the terminal, on a program's house", () => {
     );
     expect(asked.at(-1)).toContain("enter guardar");
     expect(await press("m")).toEqual(asked);
-    expect(await press("o")).toContain(`Listo Cambiado · Herramientas ajenas · ocultas · ${clock}`);
-    expect(await press(escape)).toContain("[h] herramientas ajenas | ocultas");
+    expect(await press("o")).toContain(`Listo Cambiado · Herramientas ajenas · no se muestran · ${clock}`);
+    expect(await press(escape)).toContain("[h] herramientas ajenas | no se muestran");
     await press("h");
     const { body } = router.screen({ rows: contentRows(size.rows) });
     expect(body.kind === "thread" && body.options?.map(option => [option.title, option.off, option.selected])).toEqual([
