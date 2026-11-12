@@ -34,3 +34,4 @@ país lo declara el programa una vez.
 - Que ocultar lo apagado valga también para una acción ofrecida desde la cosa de otra herramienta (ley 4).
 - El recorrido por MCP, el storyboard y lo que cada pantalla lee, derivados de los mismos casos; las specs del núcleo de DESERT siguen escritas a mano (ley 7).
 - La puerta para otros dispositivos (ley 9).
+- Lo que pidió la obra de Capibara del 11/11 y la base todavía no hace está listado al final de `PROGRAMA.md`.

@@ -34,6 +34,13 @@ Reglas:
 - `src/surface/router.ts`: el router. Una sola lógica entre cualquier renderer y la casa: intenciones que entran,
   la pantalla que sale. La terminal ya lo usa; web, iPhone y Android usan el mismo.
 
+## Sexto paso (11/11/2026)
+- Un objeto lo presenta su herramienta y lo dibuja la base: grupos declarados, lo nombrado se abre con su número, sea
+  de la herramienta que sea (`src/surface/bridge/presented.ts`).
+- Una herramienta puede vivir dentro de otra (`inside`).
+- Un valor sugerido se reemplaza con la primera tecla; lo que no entra en pantalla se alcanza con las flechas.
+- Cómo se arma un programa sobre esta base: `PROGRAMA.md`.
+
 ## Qué falta
 - La puerta para dispositivos que no corren junto a la casa: viaja el estado, paginado (ver `COSTURAS.md`).
 - Emparejar dispositivos, la herramienta de equipo y el core de muchas casas.
