@@ -48,6 +48,8 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
   const confirm = {
     options: [{ title: act.enter, key: act.enter.charAt(0) }],
     ...(act.undoable ? { reversible: true } : {}),
+    /** Under what is confirmed, what the act is for; and that it cannot be undone, when it cannot. */
+    note: act.undoable ? act.purpose : `${act.purpose} · ${generic.irreversible}`,
   };
   const sure = (answers: readonly string[], target?: string): Field | null => {
     const taken = ask.taken(answers);

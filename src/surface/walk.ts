@@ -59,7 +59,10 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   const question = must(field);
   /** What is wrong is said under the question, which stays: the person reads what is asked and why not. */
   const wrong = walk.error === undefined ? [] : [{ text: errorSpans(walk.error), nested: true }];
-  const events = [...answered, { text: askSpans(question) }, ...wrong];
+  /** A confirmation says under it what the act is for: nobody confirms what they were not told. */
+  const told = question.kind === "confirm" && question.note !== undefined ? question.note : undefined;
+  const note = told === undefined ? [] : [{ text: [{ text: told, tone: "t3" as const }], nested: true }];
+  const events = [...answered, { text: askSpans(question) }, ...note, ...wrong];
   if (question.kind === "pick") return { kind: "thread", events, options: pickRows(walk, question) };
   if (isTyped(field)) {
     const typed = walk.typed === "" ? "" : maskOf(field, walk.typed);

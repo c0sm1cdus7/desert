@@ -136,5 +136,8 @@ export type Field = Question &
         /** What it says where there is nothing to pick among: a question never stands over an empty list. */
         readonly nothing: () => string;
       }
-    | { readonly kind: "confirm"; readonly options: readonly Option[]; readonly reversible?: boolean }
+    | ({ readonly kind: "confirm"; readonly options: readonly Option[]; readonly reversible?: boolean } & {
+        /** What the act is for, and that it cannot be undone when it cannot: read under what is to be confirmed. */
+        readonly note?: string;
+      })
   );

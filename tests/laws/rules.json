@@ -1085,6 +1085,13 @@
       "from": "11/11 · ronda 1 de escépticos, pantallas M19: «Archivó» se perdía al volver a activar",
       "guarantee": "spec",
       "evidence": ["src/surface/bridge/house-tools.ts", "src/doors/terminal/house-screens.spec.ts"]
+    },
+    {
+      "id": 140,
+      "rule": "Una confirmación dice, debajo de lo que se confirma, para qué es la acción; y que no se puede deshacer, cuando no se puede",
+      "from": "11/11 · ronda 1 de escépticos, pantallas B14",
+      "guarantee": "surface",
+      "evidence": ["src/surface/bridge/program-acts.ts", "src/surface/walk.ts"]
     }
   ]
 }
