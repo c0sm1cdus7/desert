@@ -17,10 +17,12 @@ function endOf(walk: Running | Done, now: number): readonly Span[] {
     { text: ` · ${seconds} s`, tone: "t3" },
   ];
 }
+/** What was answered, beside what was asked. Under it, when what was asked is a block of several lines: the answer
+ * is never read as the end of the block's last line. */
 const answersOf = (walk: Walk): readonly ThreadEvent[] =>
   walk.asked.slice(0, walk.pos).map(({ ask, shown }) => ({
     text: [
-      { text: `${ask} `, tone: "t2" },
+      { text: ask.includes("\n") ? `${ask}\n` : `${ask} `, tone: "t2" },
       { text: shown, tone: "t1" },
     ],
   }));

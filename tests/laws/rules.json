@@ -1284,6 +1284,13 @@
         "src/surface/bridge/program-acts.ts",
         "src/tools/made.spec.ts"
       ]
+    },
+    {
+      "id": 162,
+      "rule": "Lo que se contestó se lee al lado de lo que se preguntó; debajo, cuando lo preguntado es un bloque de varias líneas: la respuesta nunca se lee como el final del último renglón del bloque",
+      "from": "12/11 · caminando Capibara: después de emitir, la vista previa terminaba en «fisco de prueba emitir»",
+      "guarantee": "spec",
+      "evidence": ["src/surface/walk.ts", "src/surface/walk.spec.ts"]
     }
   ]
 }
