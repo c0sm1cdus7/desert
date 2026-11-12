@@ -1208,6 +1208,29 @@
       "from": "12/11 · obra de Capibara: «Deshacer entrega · Envío 1» se leía dos veces, en la barra y en la confirmación",
       "guarantee": "spec",
       "evidence": ["src/surface/bridge/program-acts.ts", "src/programs/promised-sure.spec.ts"]
+    },
+    {
+      "id": 154,
+      "rule": "Lo que una acción escribe queda escrito entero o no queda nada: si uno de sus hechos no se puede plegar, la acción se rechaza diciendo por qué, y la casa queda como estaba (también lo que alguien escribió al oír uno de esos hechos). Un hecho que no se pliega nunca se guarda: una casa no puede quedar sin abrir por un hecho suyo. Y todo lo que una acción escribe pasa en un mismo instante: el orden entre sus hechos nunca sale del reloj",
+      "from": "12/11 · ronda 2 de escépticos de Capibara: dos acciones a la vez escribían el mismo número, el pliegue fallaba después de guardar y la organización no volvía a abrir",
+      "guarantee": "spec",
+      "evidence": [
+        "src/adapters/storage/journal-store.ts",
+        "src/journal/bus.ts",
+        "src/journal/projections.ts",
+        "src/tools/execute.ts",
+        "src/adapters/storage/journal-whole.spec.ts",
+        "src/tools/made.spec.ts",
+        "src/programs/house-runtime.ts",
+        "src/programs/house-runtime.spec.ts"
+      ]
+    },
+    {
+      "id": 155,
+      "rule": "Un día es un día del calendario: uno que no existe (el 30 de febrero) se rechaza donde se escribe y por cualquier otra puerta antes de que la acción corra",
+      "from": "12/11 · ronda 2 de escépticos de Capibara: un cobro del «45/13/2025» se guardaba y las reglas lo ignoraban",
+      "guarantee": "spec",
+      "evidence": ["src/catalogs/fields.ts", "src/surface/bridge/asking-days.spec.ts"]
     }
   ]
 }

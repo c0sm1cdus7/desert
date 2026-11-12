@@ -66,6 +66,23 @@ describe("a house on disk", () => {
     expect(statSync(join(path, "secrets.sqlite")).mode & 0o777).toBe(0o600);
   });
 
+  it("writes everything one act writes at one instant, whatever the clock does meanwhile", () => {
+    /** A clock that moves at every look, as a real one does between two facts. */
+    let ticks = 1_000;
+    const time = { now: () => (ticks += 7), wait: () => () => {} };
+    const house = startHouse<Shop>(home(), options, time);
+    houses.push(house);
+    const ana = localPorts(house, "ana", { recentLines: 20 });
+    ana.act({ act: "attend", input: { target: "sales" } }, 0);
+    const from = facts(house).length;
+    expect(ana.act({ act: "register", target: "sales", input: { sale: "s1", total: 10 } }, 0).status).toBe("accepted");
+    const written = facts(house)
+      .slice(from)
+      .filter(event => ["sale-registered", "act-done", "tool-entry"].includes(event.kind));
+    expect(written.map(event => event.kind)).toEqual(["sale-registered", "act-done", "tool-entry"]);
+    expect(new Set(written.map(event => event.at)).size).toBe(1);
+  });
+
   it("reads and acts for a surface as one identity, with what that identity may read", () => {
     const house = start(home());
     const ana = localPorts(house, "ana", { recentLines: 20 });

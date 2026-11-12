@@ -1,6 +1,7 @@
 // The fields an act can take. Each one carries how it is asked, so the question is declared once, with the datum.
 import { Type, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { toolTexts } from "../texts/tools.texts.ts";
 
 const isoDay = "^\\d{4}-\\d{2}-\\d{2}$";
 type Choice = Readonly<{ title: string; key: string }>;
@@ -29,17 +30,27 @@ export const quantity = (ask: string, initial?: number) =>
   });
 /** Which one, by its position: a whole number from one up. */
 export const count = (ask: string) => Type.Integer({ minimum: 1, maximum: 999_999_999, title: ask, mask: "count" });
-/** A day of the calendar, kept as year-month-day. One that is usually today opens on today: a person confirms
+/** Whether what is written as year-month-day is a day the calendar has: never the 30th of February. */
+export function isDay(value: string): boolean {
+  const [year = 0, month = 0, date = 0] = value.split("-").map(Number);
+  const real = new Date(Date.UTC(year, month - 1, date));
+  return real.getUTCFullYear() === year && real.getUTCMonth() === month - 1 && real.getUTCDate() === date;
+}
+/** A day of the calendar, kept as year-month-day: one the calendar does not have is turned down where it is
+ * written, and no act runs with it through any door. One that is usually today opens on today: a person confirms
  * it, or writes another over it. One that already happened (`last`) is never after today: a later day is turned
  * down where it is written. */
 export const day = (ask: string, suggests?: "today", last?: "today") =>
-  Type.String({
-    pattern: isoDay,
-    title: ask,
-    mask: "day",
-    ...(suggests === undefined ? {} : { suggests }),
-    ...(last === undefined ? {} : { last }),
-  });
+  holding(
+    Type.String({
+      pattern: isoDay,
+      title: ask,
+      mask: "day",
+      ...(suggests === undefined ? {} : { suggests }),
+      ...(last === undefined ? {} : { last }),
+    }),
+    value => (isDay(value) ? undefined : toolTexts.noSuchDay),
+  );
 /** One of the things of a tool, kept as what the tool calls it: a person picks it from their list. Where the
  * field may be left without one, `none` is what that is called: «Consumidor final», «sin venta». Where a new one
  * can be made right there, `makes` is the act of that tool that makes it: its result is the answer. */

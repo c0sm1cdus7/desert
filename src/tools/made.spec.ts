@@ -46,3 +46,21 @@ describe("what an act made", () => {
     expect(rig.state().entries.at(-1)?.data.made).toBeUndefined();
   });
 });
+
+describe("what an act writes", () => {
+  it("is written whole or not at all: a fact that does not fold refuses the act, saying why, and nothing stays", () => {
+    const rig = open();
+    /** Something that folds every fact of the house and does not take the sale called s9. */
+    rig.journal.watch("guard", 0, (count: number, event) => {
+      if (event.kind === "sale-registered" && event.data.sale === "s9") throw new Error("s9 no se pliega");
+      return count + 1;
+    });
+    const done = rig.act("ana", "run", {}, "bulk");
+    expect(done).toMatchObject({ status: "rejected", reason: "s9 no se pliega", effects: [] });
+    expect([...rig.state().tools.sales.keys()]).toEqual([]);
+    expect(rig.state().entries.some(entry => entry.data.text === "Registradas · 2")).toBe(false);
+    expect(rig.facts().at(-1)).toMatchObject({ kind: "act-result", data: { status: "rejected" } });
+    /** The house goes on: the same tool registers what does fold. */
+    expect(rig.act("ana", "register", { sale: "s1", total: 5 }, "sales").status).toBe("accepted");
+  });
+});

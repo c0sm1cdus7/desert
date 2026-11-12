@@ -44,10 +44,18 @@ export class ProjectionCache<S, E extends Placed> {
   encode(): Uint8Array {
     return serialize({ seq: this.seq, state: this.state });
   }
+  /** Where it stands now, as a way back to it: what was folded after is forgotten. */
+  mark(): () => void {
+    const { state, seq } = this;
+    return () => {
+      this.state = state;
+      this.seq = seq;
+    };
+  }
 }
 /** Dependent folds advance together; a partial cache set falls back to the complete journal. */
 export class ProjectionGroup<E extends Placed> {
-  readonly caches = new Map<string, Pick<ProjectionCache<unknown, E>, "seq" | "reset" | "fold" | "encode">>();
+  readonly caches = new Map<string, Pick<ProjectionCache<unknown, E>, "seq" | "reset" | "fold" | "encode" | "mark">>();
   add<S>(name: string, initial: S, reduce: (state: S, event: E) => S, bytes: unknown) {
     const cache = new ProjectionCache(initial, reduce, bytes);
     this.caches.set(name, cache);
@@ -61,6 +69,11 @@ export class ProjectionGroup<E extends Placed> {
   fold(event: E): null {
     for (const cache of this.caches.values()) cache.fold(event);
     return null;
+  }
+  /** Where every fold stands now, as a way back to it for all of them together. */
+  mark(): () => void {
+    const back = [...this.caches.values()].map(cache => cache.mark());
+    return () => back.forEach(restore => restore());
   }
 }
 /** A name for one shape of what is kept: what was kept under another shape is never read as this one. */

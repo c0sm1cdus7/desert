@@ -48,19 +48,15 @@ const count: Format = {
   value: typed => (typed === "" ? undefined : Number(typed)),
   typed: value => (typeof value === "number" ? String(value) : ""),
 };
-const isDay = (iso: string): boolean => {
-  const at = Date.parse(`${iso}T00:00:00Z`);
-  return !Number.isNaN(at) && new Date(at).toISOString().slice(0, 10) === iso;
-};
-/** A day: eight digits, shown day/month/year as they are typed, kept as year-month-day. */
+/** A day: eight digits, shown day/month/year as they are typed, kept as year-month-day. Whether the calendar has
+ * that day is for its field to say, where it is written: here eight digits are a day. */
 const day = (locale: Locale): Format => ({
   keyboard: "digits",
   empty: locale.day,
   shown: typed => [typed.slice(0, 2), typed.slice(2, 4), typed.slice(4)].filter(Boolean).join("/"),
   put: (typed, text) => (digits.test(text) && typed.length < 8 ? typed + text : typed),
   value: typed => {
-    const iso = `${typed.slice(4)}-${typed.slice(2, 4)}-${typed.slice(0, 2)}`;
-    return typed.length === 8 && isDay(iso) ? iso : undefined;
+    return typed.length === 8 ? `${typed.slice(4)}-${typed.slice(2, 4)}-${typed.slice(0, 2)}` : undefined;
   },
   typed: value => (typeof value === "string" ? value.split("-").reverse().join("") : ""),
 });

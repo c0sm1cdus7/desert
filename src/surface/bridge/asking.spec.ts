@@ -91,7 +91,8 @@ describe("asking what an act takes", () => {
   it("takes in a field only what its declaration takes, and nothing in an optional one is an answer", () => {
     const ask = asking(order, words);
     const valid = (given: number, typed: string) => ask.next(answers.slice(0, given))?.valid?.(typed);
-    expect([valid(1, "30022026"), valid(1, "0111"), valid(1, "01112026")]).toEqual([false, false, true]);
+    /** A day the calendar does not have is whole and wrong: its field says why (see asking-days.spec.ts). */
+    expect([valid(1, "30022026"), valid(1, "0111"), valid(1, "01112026")]).toEqual([true, false, true]);
     expect([valid(4, ""), valid(4, "0"), valid(4, "1,5")]).toEqual([false, false, true]);
     expect([valid(12, "0"), valid(12, "3")]).toEqual([false, true]);
     expect([valid(3, ""), valid(13, "")]).toEqual([false, true]);

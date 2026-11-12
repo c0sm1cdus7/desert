@@ -58,7 +58,7 @@ export type HouseEmission<K extends HouseKind = HouseKind> = Extract<Facts<typeo
 /** A program's fact as the house sees it: carried whole, its inside unread. */
 export type Foreign = Fact<"program", string, unknown>;
 export type ProgramFacts<C extends Catalog> = Facts<C, "program">;
-type Position = Readonly<{ seq: number; id: string; at: number }>;
+export type Position = Readonly<{ seq: number; id: string; at: number }>;
 export type Emission<P extends Foreign = Foreign> = HouseEmission | P;
 export type Event<P extends Foreign = Foreign> = Emission<P> & Position;
 export type HouseEvent<K extends HouseKind = HouseKind> = HouseEmission<K> & Position;
@@ -118,68 +118,11 @@ export function vocabulary<C extends Catalog>(program: Own<C>) {
     ) => ({ layer: "program" as const, kind, data, ...origin(by, cause, process) }),
   };
 }
-const ofKind = <E extends Readonly<{ kind: string }>, K extends string>(event: E, kind: K): event is E & { kind: K } =>
-  event.kind === kind;
 /** The bus as the house uses it: it writes its own facts and hears every one. */
 export type HouseBus = Readonly<{
   emit<K extends HouseKind>(emission: HouseEmission & { kind: K }): HouseEvent<K>;
   on(listener: (event: Event) => void): () => void;
 }>;
-export class Bus<P extends Foreign = Foreign> {
-  private readonly listeners = new Set<(event: Event<P>) => void>();
-  private readonly queue: Event<P>[] = [];
-  private delivering = false;
-  private closed = false;
-  private readonly append: (emission: Emission<P>) => Event<P>;
-  constructor(append: (emission: Emission<P>) => Event<P>) {
-    this.append = append;
-  }
-  emit<K extends HouseKind>(emission: HouseEmission & { kind: K }): HouseEvent<K>;
-  emit<E extends P>(emission: E): E & Position;
-  emit(emission: Emission<P>): Event<P>;
-  emit(emission: Emission<P>): Event<P> {
-    if (this.closed) throw new Error(journalTexts.closedBus);
-    const event = this.append(emission);
-    this.queue.push(event);
-    if (!this.delivering) this.drain();
-    return event;
-  }
-  on(listener: (event: Event<P>) => void): () => void;
-  on<K extends Event<P>["kind"]>(kind: K, listener: (event: Event<P> & { kind: K }) => void): () => void;
-  on<K extends string>(
-    kind: K | ((event: Event<P>) => void),
-    listener?: (event: Event<P> & { kind: K }) => void,
-  ): () => void {
-    if (this.closed) throw new Error(journalTexts.closedBus);
-    const receive =
-      typeof kind === "function"
-        ? kind
-        : (event: Event<P>) => {
-            if (ofKind(event, kind)) listener?.(event);
-          };
-    this.listeners.add(receive);
-    return () => void this.listeners.delete(receive);
-  }
-  close(): void {
-    this.closed = true;
-    this.listeners.clear();
-  }
-  private drain(): void {
-    this.delivering = true;
-    const failures: unknown[] = [];
-    for (let event = this.queue.shift(); event; event = this.queue.shift()) {
-      for (const listener of [...this.listeners]) {
-        try {
-          listener(event);
-        } catch (error) {
-          failures.push(error);
-        }
-      }
-    }
-    this.delivering = false;
-    if (failures.length) throw new AggregateError(failures, journalTexts.listenerFailed);
-  }
-}
 export type Journal<P extends Foreign = Foreign> = {
   watch<S>(name: string, initial: S, reduce: (state: S, event: Event<P>) => S): () => S;
 };

@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 151. Deudas: 23.
+Leyes: 153. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -158,3 +158,5 @@ Leyes: 151. Deudas: 23.
 | 151 | Una tecla que el campo no toma lo dice donde se escribe, y lo escrito queda como estaba: ninguna tecla se descarta callada. Lo mismo la que ya no entra | 11/11 · ronda 1 de escépticos: el nombre de usuario perdía letras sin avisar | una spec a mano | `src/surface/walking.ts` `src/doors/terminal/house-screens.spec.ts` |
 | 152 | Lo que una acción rechaza en una pregunta queda en esa pregunta también en el recorrido derivado de cada caso: no se pregunta ni se confirma nada más | 11/11 · obra de Capibara: un rechazo a mitad de camino seguía escribiendo en la misma pregunta | prueba derivada de los casos | `src/programs/promised-walk.ts` `tests/support/charging-shop.ts` |
 | 153 | Una acción que no pregunta nada se confirma diciendo para qué es (y que no se deshace, si no se deshace): lo que se hace y a qué cosa ya lo dice la barra, y no se repite | 12/11 · obra de Capibara: «Deshacer entrega · Envío 1» se leía dos veces, en la barra y en la confirmación | una spec a mano | `src/surface/bridge/program-acts.ts` `src/programs/promised-sure.spec.ts` |
+| 154 | Lo que una acción escribe queda escrito entero o no queda nada: si uno de sus hechos no se puede plegar, la acción se rechaza diciendo por qué, y la casa queda como estaba (también lo que alguien escribió al oír uno de esos hechos). Un hecho que no se pliega nunca se guarda: una casa no puede quedar sin abrir por un hecho suyo. Y todo lo que una acción escribe pasa en un mismo instante: el orden entre sus hechos nunca sale del reloj | 12/11 · ronda 2 de escépticos de Capibara: dos acciones a la vez escribían el mismo número, el pliegue fallaba después de guardar y la organización no volvía a abrir | una spec a mano | `src/adapters/storage/journal-store.ts` `src/journal/bus.ts` `src/journal/projections.ts` `src/tools/execute.ts` `src/adapters/storage/journal-whole.spec.ts` `src/tools/made.spec.ts` `src/programs/house-runtime.ts` `src/programs/house-runtime.spec.ts` |
+| 155 | Un día es un día del calendario: uno que no existe (el 30 de febrero) se rechaza donde se escribe y por cualquier otra puerta antes de que la acción corra | 12/11 · ronda 2 de escépticos de Capibara: un cobro del «45/13/2025» se guardaba y las reglas lo ignoraban | una spec a mano | `src/catalogs/fields.ts` `src/surface/bridge/asking-days.spec.ts` |

@@ -3,7 +3,8 @@ import { Value } from "@sinclair/typebox/value";
 import { actEnvelope, type Act } from "../catalogs/acts.ts";
 import { ids } from "../catalogs/ids.ts";
 import { allowed, identityView } from "../house/house.ts";
-import { effect, type Bus, type Emission, type HouseEvent } from "../journal/events.ts";
+import type { Bus } from "../journal/bus.ts";
+import { effect, type Emission, type HouseEvent } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "./attendance.ts";
 import { making } from "./made.ts";
@@ -112,15 +113,29 @@ function decisionOf<X extends Program>(
   const entry = effect("tool-entry", { tool, target, author: by, text, ...data }, by);
   return { status: "accepted", effects: [...effects, done, entry], private: receipt };
 }
+/** Why what an act writes could not be written, when a fact of it does not fold: nothing of it stays. */
+const written = <X extends Program>(ports: Execution<X>, act: Origin, effects: Decision<X>["effects"]) => {
+  const made = making(ports);
+  try {
+    ports.bus.together(() =>
+      effects.forEach(each => ports.bus.emit({ ...made(each), process: act.process, cause: [act.id] })),
+    );
+    return undefined;
+  } catch (error) {
+    return error instanceof Error && error.message ? error.message : toolTexts.unavailable;
+  }
+};
 const finish = <X extends Program>(ports: Execution<X>, act: Origin, decision: Decision<X>): Decision<X> => {
   const safe = ports.secrets.scrub(decision);
   if (!ports.live()) return safe;
-  const made = making(ports);
-  for (const each of safe.effects) ports.bus.emit({ ...made(each), process: act.process, cause: [act.id] });
-  const output = safe.status === "accepted" && safe.output ? { output: true } : {};
-  const data = { act: act.id, status: safe.status, reason: safe.reason ?? "", ...output };
+  /** What an act writes is written whole or not at all: if one of its facts does not fold, the act is refused,
+   * saying why, and the house stays as it was. */
+  const why = written(ports, act, safe.effects);
+  const done = why === undefined ? safe : rejected(why);
+  const output = done.status === "accepted" && done.output ? { output: true } : {};
+  const data = { act: act.id, status: done.status, reason: done.reason ?? "", ...output };
   ports.bus.emit(effect("act-result", data, act.by, [act.id], act.process));
-  return safe;
+  return done;
 };
 export function execute<X extends Program>(
   ports: Execution<X>,

@@ -1,7 +1,8 @@
 // The bus delivers committed facts to every observer in the same order: the house's and the program's alike.
 import { Type } from "@sinclair/typebox";
 import { afterEach, describe, expect, expectTypeOf, it } from "vitest";
-import { Bus, effect, layerOf, vocabulary, type Catalog, type Event } from "./events.ts";
+import { Bus } from "./bus.ts";
+import { effect, layerOf, vocabulary, type Catalog, type Event } from "./events.ts";
 import { clockStep } from "./clock.ts";
 import { SqliteJournal } from "../adapters/storage/journal-store.ts";
 import { shop, type ShopEvent, type ShopFact } from "../../tests/support/shop.ts";

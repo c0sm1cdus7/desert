@@ -2,7 +2,8 @@
 import { SqliteJournal } from "../../src/adapters/storage/journal-store.ts";
 import { createHouse, identityView } from "../../src/house/house.ts";
 import { clockStep, startClock, type Deadlines, type TimeSource } from "../../src/journal/clock.ts";
-import { Bus, effect } from "../../src/journal/events.ts";
+import { Bus } from "../../src/journal/bus.ts";
+import { effect } from "../../src/journal/events.ts";
 import type { HousePorts } from "../../src/surface/bridge/house-ports.ts";
 import type { Execution } from "../../src/tools/execute.ts";
 import type { KeyStore, ToolRegistry } from "../../src/tools/tool-contract.ts";
@@ -46,10 +47,16 @@ const resume = (bus: Bus<ShopFact>, journal: Journal, registry: ToolRegistry<Sho
   const stopClock = startClock(bus, testTime, journal.replay<Deadlines>(new Map(), clockStep), runner);
   return { tools, stop: () => [tools.stop, stopClock].forEach(stop => stop()) };
 };
+/** The bus of a rig: every fact goes to its journal, and what an act writes goes whole or not at all. */
+const busOf = (journal: SqliteJournal<ShopFact>) =>
+  new Bus<ShopFact>(
+    emission => journal.append(emission, Date.now()),
+    write => journal.batch(write),
+  );
 export function shopRig({ registry = shopRegistry, grants, ...ports }: Options = {}) {
   const all = registry.map(tool => tool.id);
   const journal = new SqliteJournal(":memory:", shop);
-  const bus = new Bus<ShopFact>(emission => journal.append(emission, Date.now()));
+  const bus = busOf(journal);
   const members = Object.entries(grants ?? { ana: all, beto: all });
   createHouse(bus, { admin: "ana", assignments: members.map(([identity, tools]) => ({ identity, tools })) });
   let live = resume(bus, journal, registry, ports);

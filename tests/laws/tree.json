@@ -16,6 +16,7 @@
     "doors/terminal/paint.ts": "paint a Screen into cells: title and hint bars, lists, side panel layout; listRoom",
     "doors/terminal/thread.ts": "draw rows, wrapped threads with focus edges, side panels, focus screens",
     "house/house.ts": "House: admin, whole-tool grants, channels; who reads what; identityView; createHouse",
+    "journal/bus.ts": "Bus: every fact is written through it, whole acts at a time, and heard once written",
     "journal/clock.ts": "deadlines folded from wake-at and woke; startClock arms the earliest one",
     "journal/events.ts": "house catalog, a program's facts beside it (vocabulary), effect, Bus, Journal",
     "journal/projections.ts": "projection caches that fold together and survive as snapshots",
@@ -76,15 +77,15 @@
   },
   "folders": {
     "adapters/secrets": 103,
-    "adapters/storage": 154,
-    "catalogs": 184,
+    "adapters/storage": 168,
+    "catalogs": 195,
     "doors/terminal": 566,
     "house": 91,
-    "journal": 301,
-    "programs": 966,
+    "journal": 326,
+    "programs": 989,
     "surface": 1639,
     "surface/bridge": 1230,
-    "texts": 186,
-    "tools": 807
+    "texts": 188,
+    "tools": 822
   }
 }

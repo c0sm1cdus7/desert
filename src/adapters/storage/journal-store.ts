@@ -68,6 +68,7 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   private readonly words: Vocabulary<P>;
   private readonly projections = new ProjectionGroup<Event<P>>();
   private readonly lock: string | undefined;
+  private batching = false;
   constructor(file: string, words: Vocabulary<P>) {
     this.words = words;
     this.db = privateDatabase(file);
@@ -79,10 +80,27 @@ export class SqliteJournal<P extends Foreign = Foreign> {
       throw error;
     }
   }
-  append(emission: Emission<P>, at: number): Event<P> {
+  /** Several facts written whole or not at all. One that does not fold is never kept: neither it nor what was
+   * written with it stays, on disk or in what is folded, and whoever wrote hears why. */
+  batch<T>(write: () => T): T {
+    if (this.batching) return write();
     this.db.exec("begin immediate");
-    let event: Event<P>;
+    this.batching = true;
+    const back = this.projections.mark();
     try {
+      const done = write();
+      this.db.exec("commit");
+      return done;
+    } catch (error) {
+      this.db.exec("rollback");
+      back();
+      throw error;
+    } finally {
+      this.batching = false;
+    }
+  }
+  append(emission: Emission<P>, at: number): Event<P> {
+    return this.batch(() => {
       const position = this.db.prepare("select coalesce(max(seq), 0) + 1 as seq from events").get();
       const count = this.db
         .prepare("select count(*) as ordinal from events where kind = ? and by = ? and cause = ?")
@@ -90,19 +108,15 @@ export class SqliteJournal<P extends Foreign = Foreign> {
       if (typeof position?.seq !== "number" || typeof count?.ordinal !== "number")
         throw new Error(journalTexts.invalidEvent);
       const id = derivedId(emission, count.ordinal);
-      event = this.words.read({ ...stored(emission), seq: position.seq, id, at });
+      const event = this.words.read({ ...stored(emission), seq: position.seq, id, at });
       const { seq, kind, by, cause, data, process } = event;
       this.db
         .prepare("insert into events values (?, ?, ?, ?, ?, ?, ?, ?)")
         .run(seq, id, at, kind, by, JSON.stringify(cause), JSON.stringify(data), process ?? null);
-      this.db.exec("commit");
-    } catch (error) {
-      this.db.exec("rollback");
-      throw error;
-    }
-    this.projections.fold(event);
-    if (event.seq % snapshotEvery === 0) this.snapshot();
-    return event;
+      this.projections.fold(event);
+      if (event.seq % snapshotEvery === 0) this.snapshot();
+      return event;
+    });
   }
   replay<S>(initial: S, reduce: (state: S, event: Event<P>) => S, after = 0): S {
     let state = initial;

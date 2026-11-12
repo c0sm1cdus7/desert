@@ -12,4 +12,6 @@ export const toolTexts = {
   /** What an act answers when it would leave the thing exactly as it is. */
   unchanged: "sin cambios",
   draft: "cambió mientras se escribía",
+  /** A day written in the shape of one that the calendar does not have: the 30th of February. */
+  noSuchDay: "día inexistente",
 } as const;

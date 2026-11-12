@@ -1,7 +1,8 @@
 // Pure replay and a controlled time source exercise the clock without wall time.
 import { describe, expect, it } from "vitest";
 import { clockStep, startClock, type Deadlines, type TimeSource } from "./clock.ts";
-import { Bus, effect, type HouseEvent } from "./events.ts";
+import { Bus } from "./bus.ts";
+import { effect, type HouseEvent } from "./events.ts";
 import { SqliteJournal } from "../adapters/storage/journal-store.ts";
 import { shop, type ShopFact } from "../../tests/support/shop.ts";
 

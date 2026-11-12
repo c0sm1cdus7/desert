@@ -6,7 +6,8 @@ import { SqliteJournal } from "../adapters/storage/journal-store.ts";
 import { privateDirectoryMode, type ViewLimits } from "../catalogs/levers.ts";
 import { createHouse, identityView, type Creation } from "../house/house.ts";
 import { clockStep, startClock, systemTime, type Deadlines, type TimeSource } from "../journal/clock.ts";
-import { Bus, effect, type Vocabulary } from "../journal/events.ts";
+import { Bus } from "../journal/bus.ts";
+import { effect, type Emission, type Vocabulary } from "../journal/events.ts";
 import { shapeOf } from "../journal/projections.ts";
 import type { HousePorts } from "../surface/bridge/house-ports.ts";
 import type { Execution } from "../tools/execute.ts";
@@ -20,6 +21,28 @@ export type HouseOptions<X extends Program> = Readonly<{ by: string; creation: C
 function ownerless<X extends Program>({ slices, registry }: HouseOptions<X>): string[] {
   return Object.keys(slices.step).filter(part => !registry.some(tool => tool.id === part));
 }
+/** The bus of a running house: every fact is written to its journal as `kept` leaves it. What one act writes goes
+ * whole or not at all, and all of it happens at one instant: the one at which it began to be written. */
+function busOf<X extends Program>(
+  journal: SqliteJournal<X["fact"]>,
+  time: TimeSource,
+  kept: (emission: Emission<X["fact"]>) => Emission<X["fact"]>,
+) {
+  let together: number | undefined;
+  return new Bus<X["fact"]>(
+    emission => journal.append(kept(emission), together ?? time.now()),
+    write =>
+      journal.batch(() => {
+        const outer = together;
+        together = outer ?? time.now();
+        try {
+          return write();
+        } finally {
+          together = outer;
+        }
+      }),
+  );
+}
 export function startHouse<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource = systemTime) {
   const { by, words, registry, slices, creation, ...ports } = options;
   if (!by) throw new Error("An explicit identity is required");
@@ -27,9 +50,9 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
   mkdirSync(home, { recursive: true, mode: privateDirectoryMode });
   const journal = new SqliteJournal(join(home, "journal.sqlite"), words);
   const secrets = new SecretVault<X>(join(home, "secrets.sqlite"), words.event);
-  const bus = new Bus<X["fact"]>(emission => {
+  const bus = busOf<X>(journal, time, emission => {
     secrets.capture(emission, registry);
-    return journal.append(secrets.scrub(emission), time.now());
+    return secrets.scrub(emission);
   });
   const stops: (() => void)[] = [];
   const close = () => {
