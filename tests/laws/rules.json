@@ -1104,6 +1104,13 @@
         "src/surface/bridge/asking-back.ts",
         "src/surface/bridge/asking.spec.ts"
       ]
+    },
+    {
+      "id": 142,
+      "rule": "Un día que casi siempre es hoy abre sugiriendo hoy, como lo cuenta el país del programa: Enter lo acepta y escribir lo reemplaza",
+      "from": "11/11 · obra de Capibara: las fechas de una venta y de una compra se pedían vacías",
+      "guarantee": "spec",
+      "evidence": ["src/catalogs/fields.ts", "src/surface/bridge/asking-parts.ts", "src/surface/bridge/asking.spec.ts"]
     }
   ]
 }

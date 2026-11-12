@@ -20,7 +20,9 @@ export type Things = Readonly<{
 /** What asking needs beyond the declaration: the formats of the program's country, the marks of an optional field
  * and of picking nothing, and the things of each tool that an answer can pick. */
 export type AskWords = Readonly<{ formats: Readonly<Record<FormatName, Format>>; optionalMark: string }> &
-  Readonly<{ things?: (tool: string) => Things | undefined }>;
+  Readonly<{ things?: (tool: string) => Things | undefined }> &
+  /** Today, as the program's country counts its days: what a day that is usually today opens on. */
+  Readonly<{ today?: () => string | undefined }>;
 export type Got = Readonly<{ value: unknown; at: number }> | Readonly<{ ask: Field }>;
 export type Ctx = AskWords & Readonly<{ answers: readonly string[]; n: number; optional: boolean }>;
 export const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
@@ -96,7 +98,7 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   const format = formatOf(schema, ctx);
   const valid = (typed: string): boolean =>
     (ctx.optional && typed === "") || Value.Check(schema, valueOf(schema, ctx, typed));
-  const first = at(schema, "default");
+  const first = at(schema, "default") ?? (at(schema, "suggests") === "today" ? ctx.today?.() : undefined);
   const initial = first === undefined ? {} : { initial: format?.typed(first) ?? plain(first) };
   const ask = titleOf(schema, ctx);
   const wrong = (typed: string): string | undefined => wrongIn(schema, valueOf(schema, ctx, typed));

@@ -159,7 +159,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
   const tools = ports.registry.filter(isProgramTool);
   audit(tools, shown);
   const titled = (tool: string, target: string) => own.find(known => known.id === tool)?.titleOf?.(target) ?? target;
-  const asked = { locale: shown.locale, things: thingsOf(ports, shown, () => own), titled };
+  const asked = { locale: shown.locale, day: shown.day, things: thingsOf(ports, shown, () => own), titled };
   const built = tools.flatMap(contract => {
     const words = shown.words[contract.id];
     return words ? [{ contract, words, ...programActs(observed, contract, asked) }] : [];

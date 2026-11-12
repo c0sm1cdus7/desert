@@ -182,3 +182,14 @@ describe("a field that is asked only when what came before calls for it", () => 
     expect(ask.sofar(["20123456786", "CUIL"])).toEqual({ number: "20123456786", kind: "cuil" });
   });
 });
+
+describe("a day that is usually today", () => {
+  const since = object({ from: day("Desde", "today"), to: day("Hasta") });
+
+  it("opens on today as the program's country counts it, and on nothing where nobody says what today is", () => {
+    const told = asking(since, { ...words, today: () => "2026-11-11" });
+    expect(told.next([])?.initial).toBe("11112026");
+    expect(told.next(["2026-11-11"])?.initial).toBeUndefined();
+    expect(asking(since, words).next([])?.initial).toBeUndefined();
+  });
+});
