@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 136. Deudas: 23.
+Leyes: 137. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -143,3 +143,4 @@ Leyes: 136. Deudas: 23.
 | 136 | Donde se elige un objeto se puede hacer uno nuevo ahí mismo, cuando el campo lo declara: la acción que lo crea figura en la lista con su tecla y su propósito (nunca mientras se busca), y lo que crea es la respuesta; salir sin crear vuelve a la lista | 11/11 · obra de Capibara: crear la identidad desde la pregunta «Cliente» de una venta | una spec a mano | `src/catalogs/fields.ts` `src/surface/walking.ts` `src/surface/bridge/house-tools.ts` `src/programs/promised-also.spec.ts` |
 | 137 | Enter nunca queda mudo: lo que no se puede enviar dice por qué donde se escribe (vacío, incompleto, mínimo, sin cambios). Lo que está completo y no vale lo dice apenas se termina de escribir; el motivo se va con la primera tecla que lo cambia, y la pregunta sigue a la vista sobre el motivo | 11/11 · ronda 1 de escépticos, pantallas: M1 a M4 | una spec a mano | `src/surface/walking.ts` `src/surface/walk.ts` `src/surface/bridge/asking-parts.ts` `src/programs/promised-fields.spec.ts` `src/programs/promised-menus.spec.ts` |
 | 138 | Un rechazo aparece donde se escribió el dato: después de cada respuesta la acción dice si lo respondido hasta ahí no puede seguir (`stops`), y el motivo queda en esa pregunta. La acción igual rechaza al ejecutarse, por cualquier puerta | 11/11 · plan de Capibara: el importe de más al cobrar se dice en la pregunta del importe | una spec a mano | `src/tools/promises.ts` `src/surface/bridge/asking.ts` `src/surface/walking.ts` `src/programs/promised-also.spec.ts` |
+| 139 | Todo objeto cierra con su Registro: todo lo que se le hizo, lo último primero, con quién y cuándo, leído del registro mismo. Nada de lo hecho sobre un objeto queda fuera de la vista | 11/11 · ronda 1 de escépticos, pantallas M19: «Archivó» se perdía al volver a activar | una spec a mano | `src/surface/bridge/house-tools.ts` `src/doors/terminal/house-screens.spec.ts` |

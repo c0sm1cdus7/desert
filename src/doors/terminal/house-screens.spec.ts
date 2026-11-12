@@ -159,12 +159,20 @@ describe("a thing that does not fit on the terminal", () => {
     expect(titles()).toEqual(["Venta"]);
     router.send({ kind: "down" });
     expect(titles()).toEqual(["Actividad"]);
+    /** The last list of a thing is everything that was done to it, as the journal has it. */
     router.send({ kind: "down" });
-    expect(titles()).toEqual(["Actividad"]);
+    expect(titles()).toEqual(["Registro"]);
+    router.send({ kind: "down" });
+    expect(titles()).toEqual(["Registro"]);
+    router.send({ kind: "up" });
     router.send({ kind: "up" });
     expect(titles()).toEqual(["Venta"]);
     router.send({ kind: "up" });
     router.send({ kind: "down" });
     expect(titles()).toEqual(["Actividad"]);
+    const record = router.screen({ rows: 30 }).body;
+    const done = record.kind === "list" ? record.stacks.at(-1)?.rows.map(row => [row.title, row.detail]) : [];
+    expect(done?.map(([what]) => what)).toEqual(["Registrada · s1"]);
+    expect(done?.[0]?.[1]).toMatch(/^ana · \d{4}-\d{2}-\d{2} \d{2}:\d{2}$/u);
   });
 });

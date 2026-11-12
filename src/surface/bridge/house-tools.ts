@@ -9,7 +9,7 @@ import type { Option } from "../contract.ts";
 import { backKey as back } from "../screen.ts";
 import type { Things } from "./asking.ts";
 import { anyToolScreen } from "./any-tool.ts";
-import type { HousePorts, Presented, Shown, SurfacePorts } from "./house-ports.ts";
+import type { HousePorts, Shown, SurfacePorts, ToolWords } from "./house-ports.ts";
 import { noticesOf } from "./notices.ts";
 import { preferencesPlace, preferencesTool } from "./preferences-tool.ts";
 import { programActs } from "./program-acts.ts";
@@ -124,14 +124,29 @@ const thingsOf =
       make: act => madeBy(contract, act, ports.state()),
     };
   };
+/** An instant as the journal keeps it, for a program that does not say how its country writes one. */
+const plainMoment = (at: number): string => new Date(at).toISOString().slice(0, 16).replace("T", " ");
 /** One of its things is always read as its tool declared: no screen of a program draws a thing. */
 function withThings<X extends Program>(
   ports: SurfacePorts<X>,
   contract: ProgramTool<X>,
-  stacks: readonly Presented[],
+  { words, shown }: Readonly<{ words: ToolWords; shown: Shown<X> }>,
   screen: Tool,
 ): Tool {
-  const thing = thingView(ports, contract, stacks);
+  const moment = shown.moment ?? plainMoment;
+  const declared = thingView(ports, contract, words.presents);
+  /** After what its tool declared, every thing reads everything that was done to it: newest first, as the journal
+   * has it, with who did it and when. Nothing done to a thing is ever out of sight. */
+  const record = (target: string) => ({
+    ...generic.record,
+    reads: true as const,
+    rows: ports
+      .state()
+      .entries.filter(entry => entry.data.target === target && entry.data.draft !== true)
+      .toReversed()
+      .map(entry => ({ title: entry.data.text, detail: `${entry.data.author} · ${moment(entry.at)}`, still: true })),
+  });
+  const thing = (target: string) => [...declared(target), record(target)];
   const isThing = (target?: string): target is string =>
     target !== undefined && contract.targets(ports.state()).includes(target);
   /** Its things are its own, whatever screen shows it: a row of any tool that names one of them leads here. */
@@ -154,7 +169,7 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
   const own: Tool[] = built.map(({ contract, words, acts, start }) => {
     const mine = (): boolean => allowed(ports.state().house, ports.me, contract.id);
     const screen = shown.screens?.[contract.id] ?? anyToolScreen;
-    const tool = withThings(observed, contract, words.presents, screen(observed, contract, words, acts, start));
+    const tool = withThings(observed, contract, { words, shown }, screen(observed, contract, words, acts, start));
     const calls = () => ports.state().attention.has(contract.id);
     const { notices, seen: looked } = noticesOf(observed, contract, tool);
     /** What the other tools offer on a thing of this one: only on a thing, never on a view that groups them. */
