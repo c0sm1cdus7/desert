@@ -26,6 +26,12 @@ type Asked = Readonly<{ locale: Locale; things: NonNullable<AskWords["things"]> 
   /** What a thing of a tool is called, for the act that asks to be confirmed on it. */
   Readonly<{ titled: (tool: string, target: string) => string }>;
 type Own<X extends Program> = Readonly<{ tool: string; name: string; act: ProgramAct<X> }>;
+/** A thing is never picked for what is done to itself: it is not among the things an act on it asks to pick from. */
+export function besides(field: Field | null, target?: string): Field | null {
+  if (field?.kind !== "pick" || target === undefined) return field;
+  const others = (sought: string) => field.found(sought).filter(option => option.value !== target);
+  return { ...field, found: others, valid: answer => answer !== target && (field.valid?.(answer) ?? true) };
+}
 /** One act as a person walks it: its questions from what it takes, a confirmation when it asks for one, its result. */
 function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: Own<X>, asked: Asked) {
   const words = { formats: formats(asked.locale), optionalMark: generic.optional };
@@ -49,7 +55,8 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
     verb: act.enter,
     key: act.key,
     title: (): string => title,
-    next: (answers: readonly string[], target?: string): Field | null => ask.next(answers) ?? sure(answers, target),
+    next: (answers: readonly string[], target?: string): Field | null =>
+      besides(ask.next(answers), target) ?? sure(answers, target),
     run: async (answers: readonly string[], target: string): Promise<Result> => {
       const done = await attendAndAct(ports, target, name, ask.input(answers));
       if (done.status !== "accepted") return { ok: false, reason: done.reason ?? "" };
