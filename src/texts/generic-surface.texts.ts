@@ -4,6 +4,8 @@ export const genericTexts = {
   /** What an act with nothing to ask puts to be confirmed: what it is, and the thing it is done to. */
   sure: (act: string, thing?: string) => (thing ? `${act} · ${thing}` : act),
   offline: "Sin conexión",
+  /** Why what is written cannot be sent yet: said where it is written, as a datum. */
+  lacks: { empty: "vacío", partial: "incompleto", least: (least: string) => `mínimo ${least}` },
   /** What a row says of an act that cannot be undone, when the act has nothing more useful to say there. */
   irreversible: "irreversible",
   /** Why a tool, or what it does, is off for who does not hold it: said as a datum, like any cause. */

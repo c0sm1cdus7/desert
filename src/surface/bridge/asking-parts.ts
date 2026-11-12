@@ -3,6 +3,7 @@ import type { TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { addresses } from "../../catalogs/addressing.ts";
 import { wrongIn } from "../../catalogs/fields.ts";
+import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import type { Field, Option } from "../contract.ts";
 import { isFormat, limited, padded, shaped, type Format, type FormatName } from "../masks.ts";
 
@@ -99,10 +100,17 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   const initial = first === undefined ? {} : { initial: format?.typed(first) ?? plain(first) };
   const ask = titleOf(schema, ctx);
   const wrong = (typed: string): string | undefined => wrongIn(schema, valueOf(schema, ctx, typed));
+  /** Why what is written cannot be sent yet: nothing, less than the least the datum admits, or not all of it. */
+  const lacks = (typed: string): string => {
+    if (typed.trim() === "") return generic.lacks.empty;
+    const [value, least] = [valueOf(schema, ctx, typed), at(schema, "minimum")];
+    const low = typeof value === "number" && typeof least === "number" && value < least;
+    return low ? generic.lacks.least(format?.shown(format.typed(least)) ?? String(least)) : generic.lacks.partial;
+  };
   /** What a person writes has a top: a number without one, or a text without a length, is a defect. */
   const numeric = at(schema, "type") === "integer" || at(schema, "type") === "number";
   if (format && numeric && typeof at(schema, "maximum") !== "number") throw new Error(`The field ${ask} has no top`);
-  if (format) return { ask, valid, wrong, kind: "text", mask: format, ...initial };
+  if (format) return { ask, valid, wrong, lacks, kind: "text", mask: format, ...initial };
   if (at(schema, "type") !== "string") throw new Error(`The field ${ask} has no format and is not text`);
   /** A datum with a shape takes only what fits it: declared as free text, any key would go in. */
   if (at(schema, "pattern") !== undefined && at(schema, "plain") !== true)
@@ -110,5 +118,5 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   const placeholder = word(schema, "placeholder");
   const max = at(schema, "maxLength");
   if (typeof max !== "number") throw new Error(`The field ${ask} does not say how long it may be`);
-  return { ask, valid, wrong, kind: "text", placeholder, max, ...initial };
+  return { ask, valid, wrong, lacks, kind: "text", placeholder, max, ...initial };
 }

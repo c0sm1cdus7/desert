@@ -1053,6 +1053,19 @@
         "src/surface/bridge/house-tools.ts",
         "src/programs/promised-also.spec.ts"
       ]
+    },
+    {
+      "id": 137,
+      "rule": "Enter nunca queda mudo: lo que no se puede enviar dice por qué donde se escribe (vacío, incompleto, mínimo, sin cambios). Lo que está completo y no vale lo dice apenas se termina de escribir; el motivo se va con la primera tecla que lo cambia, y la pregunta sigue a la vista sobre el motivo",
+      "from": "11/11 · ronda 1 de escépticos, pantallas: M1 a M4",
+      "guarantee": "spec",
+      "evidence": [
+        "src/surface/walking.ts",
+        "src/surface/walk.ts",
+        "src/surface/bridge/asking-parts.ts",
+        "src/programs/promised-fields.spec.ts",
+        "src/programs/promised-menus.spec.ts"
+      ]
     }
   ]
 }

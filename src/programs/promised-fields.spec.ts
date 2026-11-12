@@ -27,10 +27,18 @@ describe("a program with a field that knows what is wrong", () => {
       const { router } = seated(house(), cast.admin, shopShown);
       const now = (): string[] => read(router.screen(view));
       type(router, "pax7");
+      /** Complete and wrong, it says why as soon as it is written, under the question, which stays. */
+      expect(now()).toEqual(["Anotar", "Pago", "Error name", "› x7"]);
       router.send({ kind: "confirm" });
-      expect(now()).toEqual(["Anotar", "Error name", "› x7"]);
+      expect(now()).toEqual(["Anotar", "Pago", "Error name", "› x7"]);
+      /** What it says is of what is written now: still wrong, it says so; with nothing written, it says nothing. */
       router.send({ kind: "erase" });
+      expect(now()).toEqual(["Anotar", "Pago", "Error name", "› x"]);
       router.send({ kind: "erase" });
+      expect(now()).toEqual(["Anotar", "Pago", "› "]);
+      /** Enter on nothing says why it does not go on. */
+      router.send({ kind: "confirm" });
+      expect(now()).toEqual(["Anotar", "Pago", "Error vacío", "› "]);
       type(router, "p7");
       router.send({ kind: "confirm" });
       expect(now()).toEqual(["Anotar", "Pago p7", "Monto", "› "]);

@@ -3,6 +3,7 @@ import type { Field, Intent, Mask, Option } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
 import { actOf, begin, fieldOf, maskOf, optionsOf, opened, pickedFrom, validOf } from "./screen.ts";
 import type { Asking, Session, Stepped, Walk } from "./screen.ts";
+import { toolTexts } from "../texts/tools.texts.ts";
 import { edited } from "./talk.ts";
 import { must } from "./window.ts";
 
@@ -34,6 +35,12 @@ function masked(walk: Asking, mask: Mask, key: Intent): Asking | undefined {
   if (key.kind === "erase") return { ...walk, typed: Array.from(walk.typed).slice(0, -1).join("") };
   return key.kind === "left" || key.kind === "right" ? walk : undefined;
 }
+/** What is written after a key: what was said of what was there before no longer stands, and what is there now
+ * says its own as soon as it is complete and still does not hold. */
+function rewritten(field: Field, { error: _was, ...written }: Asking): Asking {
+  const why = validOf(field, written.typed) ? field.wrong?.(written.typed) : undefined;
+  return { ...written, suggested: false, ...(why === undefined ? {} : { error: why }) };
+}
 function typing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
   /** A text takes no more than it may hold: the key that would pass it is not typed. */
   /** What the question opened with gives way to the first key written. */
@@ -41,8 +48,14 @@ function typing(session: Session, walk: Asking, tools: Tools, field: Field, key:
   const full = key.kind === "type" && "max" in field && Array.from(fresh.typed).length >= (field.max ?? Infinity);
   if (full) return { session };
   const changed = "mask" in field ? masked(fresh, field.mask, key) : edited(fresh, key);
-  if (changed) return { session: replace(session, { ...changed, suggested: false }) };
-  if (key.kind !== "confirm" || !validOf(field, walk.typed)) return { session };
+  if (changed) return { session: replace(session, rewritten(field, changed)) };
+  if (key.kind !== "confirm") return { session };
+  /** What cannot be sent says why, where it is written: enter never does nothing in silence. */
+  if (!validOf(field, walk.typed)) {
+    const same = field.only === true && field.current === walk.typed;
+    const why = same ? toolTexts.unchanged : field.lacks?.(walk.typed);
+    return { session: why === undefined ? session : replace(session, { ...walk, error: why }) };
+  }
   /** What is complete and still wrong stays where it was written, and the question now says why. */
   const why = field.wrong?.(walk.typed);
   return why === undefined

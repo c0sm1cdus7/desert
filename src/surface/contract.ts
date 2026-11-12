@@ -106,6 +106,8 @@ interface Question {
   readonly valid?: (value: string) => boolean;
   /** Why an answer that is complete still does not hold, when that is so: it stays where it was written. */
   readonly wrong?: (value: string) => string | undefined;
+  /** Why what is written cannot be sent yet: nothing written, not all of it, or less than the datum admits. */
+  readonly lacks?: (value: string) => string;
   /** What the datum is today, as an answer: a question that changes it says so beside its name. */
   readonly current?: string;
   /** It is all its act asks: choosing what the datum already is would change nothing, so that option is off. */

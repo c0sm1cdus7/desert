@@ -57,8 +57,9 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   const answered = answersOf(walk);
   if (walk.phase !== "asking") return { kind: "thread", events: [...answered, { text: endOf(walk, now) }] };
   const question = must(field);
-  const asking = walk.error === undefined ? askSpans(question) : errorSpans(walk.error);
-  const events = [...answered, { text: asking }];
+  /** What is wrong is said under the question, which stays: the person reads what is asked and why not. */
+  const wrong = walk.error === undefined ? [] : [{ text: errorSpans(walk.error), nested: true }];
+  const events = [...answered, { text: askSpans(question) }, ...wrong];
   if (question.kind === "pick") return { kind: "thread", events, options: pickRows(walk, question) };
   if (isTyped(field)) {
     const typed = walk.typed === "" ? "" : maskOf(field, walk.typed);
