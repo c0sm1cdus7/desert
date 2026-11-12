@@ -96,8 +96,8 @@ export interface Tool {
   /** What the Barra says on one of its things. */
   titleOf?(target: string): string;
   /** Whether a destination is its own: one of its things, or a place its view answers. A row of any tool that
-   * names it leads there. */
-  has?(target: string): boolean;
+   * names it leads there. Nothing when it does not say: it is then taken as a place of whoever names it. */
+  has?(target: string): boolean | undefined;
   /** This person prefers not to see what has nothing in it: no list of it is there while it is empty. */
   quiet?(): boolean;
   /** Its things that are what someone looks for, each on a row that leads to it: asked from its own menu, and from

@@ -125,7 +125,9 @@ function withThings<X extends Program>(
   const thing = thingView(ports, contract, stacks);
   const isThing = (target?: string): target is string =>
     target !== undefined && contract.targets(ports.state()).includes(target);
-  return { ...screen, view: target => (isThing(target) ? thing(target) : screen.view(target)) };
+  /** Its things are its own, whatever screen shows it: a row of any tool that names one of them leads here. */
+  const has = (target: string): boolean | undefined => screen.has?.(target) ?? (isThing(target) || undefined);
+  return { ...screen, has, view: target => (isThing(target) ? thing(target) : screen.view(target)) };
 }
 export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown<X>): readonly Tool[] {
   const seen = new Map<string, number>();
