@@ -52,7 +52,7 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   const refused = ports.refuse?.(state, origin, offered ? undefined : tool);
   if (refused) return refused;
   if (!offered && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
-  return act.offered?.(state, target);
+  return act.offered?.(state, target, ports.now());
 }
 const decide = <X extends Program>(ports: Execution<X>, value: Act, origin: Origin): Decision<X> | Perform<X> => {
   const { by, id } = origin;

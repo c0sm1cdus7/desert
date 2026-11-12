@@ -87,7 +87,7 @@ function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers, from }: T
   ok(found, said.notOffered(aim.name));
   const { row } = found;
   /** Taken from the thing of another tool, it is that thing that may say why not. */
-  const told = from ? aim.act.also?.off?.(seat.state(), from.target) : aim.act.offered?.(seat.state(), on);
+  const told = from ? aim.act.also?.off?.(seat.state(), from.target) : aim.act.offered?.(seat.state(), on, seat.now());
   /** A row that already says everything the act takes knows what the act will answer: where that is a refusal,
    * the row is off saying it, as the tool itself would. Nobody is offered what is known to be refused. */
   const whole = row.with !== undefined && row.with.from >= answers.length;

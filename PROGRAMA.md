@@ -49,6 +49,8 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   cada corte de línea es un renglón, sin volver a cortar (una vista previa, un impreso). Lo que contesta dice qué
   hizo en la primera línea («Verbo · Objeto · Detalle»), y así se promete en un caso.
 - Lo que una acción crea queda en el Registro de cada cosa creada: ningún programa guarda quién creó qué.
+- Una acción dice si se ofrece sabiendo qué momento es (`offered(estado, cosa, instante)`): lo que hoy no se puede
+  hacer queda apagado con su motivo.
 
 ## Un objeto
 

@@ -178,8 +178,8 @@ export function programAct<X extends Program, S extends TSchema>(declared: Decla
     return same ? { status: "rejected", reason: toolTexts.unchanged } : run(value, context);
   };
   const act = toolAct<X, S>(input, (value, context) => settled(held(value, context), checked), reach);
-  const guarded: ToolAct<X>["offered"] = (state, target) => {
-    const cause = offered?.(state, target);
+  const guarded: ToolAct<X>["offered"] = (state, target, at) => {
+    const cause = offered?.(state, target, at);
     return cause === undefined ? undefined : declaredCause(cause);
   };
   const promised = {

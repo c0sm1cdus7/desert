@@ -170,7 +170,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
     .map(({ name, act, walk }): [string, ToolAct] => {
       /** Off for who does not hold the tool, and while the tool itself says why it cannot be done. Hidden, then,
        * for who prefers not to see what is not theirs, or what cannot be done. */
-      const off = (): string | undefined => foreign() ?? act.offered?.(ports.state(), tool.id);
+      const off = (): string | undefined => foreign() ?? act.offered?.(ports.state(), tool.id, ports.now());
       const listed = (): boolean =>
         off() === undefined || !hides(ports.state().house, ports.me, foreign() === undefined ? "off" : "foreign");
       const datum = (): string => act.datum?.(ports.state(), tool.id) ?? beside(act);
@@ -184,7 +184,8 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
     .map(({ name, act, walk }): [string, ThingAct] => {
       /** Off while the tool's state says why. On the list of a thing of the tool, never of a view that only
        * groups them; and not while it is off, for who prefers not to see what cannot be done. */
-      const off = (target: string): string | undefined => foreign() ?? act.offered?.(ports.state(), target);
+      const off = (target: string): string | undefined =>
+        foreign() ?? act.offered?.(ports.state(), target, ports.now());
       const unseen = (target: string): boolean =>
         off(target) !== undefined && hides(ports.state().house, ports.me, "off");
       const listed = (target: string): boolean => tool.targets(ports.state()).includes(target) && !unseen(target);

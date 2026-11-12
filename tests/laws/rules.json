@@ -1272,6 +1272,18 @@
       "from": "12/11 · lanes de Capibara: un impreso y un catálogo importado no se podían prometer en un caso porque la respuesta tenía más de una línea",
       "guarantee": "spec",
       "evidence": ["src/programs/promised.ts", "src/programs/own-words.spec.ts"]
+    },
+    {
+      "id": 161,
+      "rule": "Una acción dice si se ofrece sabiendo qué momento es: lo que hoy no se puede hacer queda apagado con su motivo, y se prende solo cuando llega su día",
+      "from": "12/11 · lane de Capibara: «generar períodos» no se podía apagar cuando no había ningún período empezado, porque la acción no sabía qué día era",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/tool-contract.ts",
+        "src/tools/execute.ts",
+        "src/surface/bridge/program-acts.ts",
+        "src/tools/made.spec.ts"
+      ]
     }
   ]
 }

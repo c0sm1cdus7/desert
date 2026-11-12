@@ -52,8 +52,9 @@ export type ActContext<X extends Program> = Readonly<{
 export interface ToolAct<X extends Program> extends Readonly<{ input: TSchema; reach: Reach }> {
   /** Where it stands, when it says so: on its tool, or on one of its things. The house refuses it anywhere else. */
   readonly on?: "tool" | "thing";
-  /** The tool's cause for not offering this act in this state; an act that does not work is not offered. */
-  readonly offered?: (state: State<X>, target: string) => string | undefined;
+  /** The tool's cause for not offering this act in this state, at this moment; an act that does not work is not
+   * offered. What cannot be done today says so on its row. */
+  readonly offered?: (state: State<X>, target: string, at: number) => string | undefined;
   /** The act returns something to read; only then does its late result call for attention. */
   readonly output?: boolean;
   secretInputs?(input: unknown, state: State<X>): unknown;

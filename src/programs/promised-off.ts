@@ -60,7 +60,7 @@ function hiddenCheck<X extends Program>(program: Composition<X>, shown: Shown<X>
       try {
         await prefer(seat, "off", true);
         goTo(seat, aim.tool.id, on);
-        const cannot = aim.act.offered?.(seat.state(), on) !== undefined;
+        const cannot = aim.act.offered?.(seat.state(), on, seat.now()) !== undefined;
         strictEqual(actRow(seat, aim, on) === undefined, cannot, said.hiddenWrong(aim.name));
         const hidden = JSON.stringify(seat.router.screen(view).body);
         seat.router.send({ kind: "menu" });
@@ -68,7 +68,7 @@ function hiddenCheck<X extends Program>(program: Composition<X>, shown: Shown<X>
         const shownAgain = actRow(seat, aim, on);
         ok(shownAgain, said.notOffered(aim.name));
         /** What the row read of the thing was read all along: hiding takes the way to change it, never the datum. */
-        const read = readBy(shownAgain.row, aim.act.offered?.(seat.state(), on));
+        const read = readBy(shownAgain.row, aim.act.offered?.(seat.state(), on, seat.now()));
         ok(read === undefined || hidden.includes(JSON.stringify(read).slice(1, -1)), said.readLost(aim.name));
       } finally {
         seat.router.stop();

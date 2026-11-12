@@ -36,7 +36,13 @@ export const type = (router: Router, text: string): void => {
 export function seated<X extends Program>(house: House<X>, by: string, shown: Shown<X>) {
   const ports = localPorts(house, by, { recentLines: 100 }, house.now);
   const tools = houseTools(ports, shown);
-  return { tools, shown, state: ports.state, router: startRouter({ tools, bar: () => bar, changes: ports.watch }) };
+  return {
+    tools,
+    shown,
+    state: ports.state,
+    now: ports.now,
+    router: startRouter({ tools, bar: () => bar, changes: ports.watch }),
+  };
 }
 export type Seat<X extends Program> = ReturnType<typeof seated<X>>;
 type Reached = Readonly<{ target?: string; rows: readonly number[] }>;

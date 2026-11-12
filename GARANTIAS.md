@@ -3,7 +3,7 @@
 Sale de `tests/laws/rules.json`. No se edita a mano: `pnpm rules` lo escribe y el gate falla si quedó viejo.
 Una ley que nada hace cumplir figura como DEUDA, con cómo se salda. Sumar o saldar una cambia el número de abajo.
 
-Leyes: 158. Deudas: 23.
+Leyes: 159. Deudas: 23.
 
 | # | Ley | De dónde | Garantía | Dónde, o cómo se salda |
 |---|---|---|---|---|
@@ -165,3 +165,4 @@ Leyes: 158. Deudas: 23.
 | 158 | Lo que está entero y no alcanza dice cuánto toma su campo («mayor a 0», «mínimo 0001»), nunca «incompleto»; la tecla que el campo sí toma y ya no entra dice que no entra más; un número se escribe sin ceros adelante | 12/11 · ronda 2 de escépticos de Capibara: «incompleto» para lo que estaba completo y mal, «9 no va acá» para un 9 que no entraba, cantidad «010000» | una spec a mano | `src/surface/bridge/asking-parts.ts` `src/surface/walking.ts` `src/surface/masks.ts` `src/surface/bridge/asking-numbers.spec.ts` `src/doors/terminal/house-keys.spec.ts` |
 | 159 | Desde el Menú, buscar encuentra también las herramientas por su nombre, vivan donde vivan, antes de lo que cada una encuentra | 12/11 · ronda 2 de escépticos de Capibara: buscar «fis» no encontraba Fiscal | una spec a mano | `src/surface/finding.ts` `src/doors/terminal/house-keys.spec.ts` |
 | 160 | Lo que una acción contesta en varias líneas dice qué hizo en la primera («Verbo · Objeto · Detalle»); lo demás es lo que muestra y se lee como se escribió: también se promete en los casos | 12/11 · lanes de Capibara: un impreso y un catálogo importado no se podían prometer en un caso porque la respuesta tenía más de una línea | una spec a mano | `src/programs/promised.ts` `src/programs/own-words.spec.ts` |
+| 161 | Una acción dice si se ofrece sabiendo qué momento es: lo que hoy no se puede hacer queda apagado con su motivo, y se prende solo cuando llega su día | 12/11 · lane de Capibara: «generar períodos» no se podía apagar cuando no había ningún período empezado, porque la acción no sabía qué día era | una spec a mano | `src/tools/tool-contract.ts` `src/tools/execute.ts` `src/surface/bridge/program-acts.ts` `src/tools/made.spec.ts` |

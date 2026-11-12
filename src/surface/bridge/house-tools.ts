@@ -3,7 +3,7 @@ import { thingView } from "./presented.ts";
 import { allowed, hides } from "../../house/house.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
 import type { ProgramTool } from "../../tools/promises.ts";
-import type { Program, State, Tool as HouseTool } from "../../tools/tool-contract.ts";
+import type { Program, Tool as HouseTool } from "../../tools/tool-contract.ts";
 import type { Tool, ViewRow } from "../shown-tool.ts";
 import type { Option } from "../contract.ts";
 import { backKey as back } from "../screen.ts";
@@ -97,10 +97,11 @@ function auditActs<X extends Program>(tool: ProgramTool<X>): void {
 }
 /** The act of a tool that makes a new thing of it, as an option where its things are picked: with its key and what
  * it is for, as on the tool's own list. Nothing while the tool says it cannot be done. */
-function madeBy<X extends Program>(tool: ProgramTool<X>, act: string, state: State<X>): Option | undefined {
+type Told<X extends Program> = Pick<HousePorts<X>, "state" | "now">;
+function madeBy<X extends Program>(tool: ProgramTool<X>, act: string, ports: Told<X>): Option | undefined {
   const declared = tool.acts[act];
   if (declared?.on !== "tool") throw new Error(`${tool.id} has no act ${act} that makes a thing of it`);
-  if (declared.offered?.(state, tool.id) !== undefined) return undefined;
+  if (declared.offered?.(ports.state(), tool.id, ports.now()) !== undefined) return undefined;
   return { title: declared.name, detail: declared.purpose, key: declared.key, makes: { tool: tool.id, act } };
 }
 /** A row that leads to a thing, as an option that picks it. */
@@ -122,7 +123,7 @@ const thingsOf =
         (tool.find?.(sought) ?? []).flatMap(row => (row.opens && open(row.opens) ? [picked(row, row.opens)] : [])),
       shown: thing => tool.titleOf?.(thing) ?? thing,
       has: thing => contract.targets(ports.state()).includes(thing) && open(thing),
-      make: act => madeBy(contract, act, ports.state()),
+      make: act => madeBy(contract, act, ports),
     };
   };
 /** One of its things is always read as its tool declared: no screen of a program draws a thing. */

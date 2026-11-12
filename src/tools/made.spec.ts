@@ -64,3 +64,23 @@ describe("what an act writes", () => {
     expect(rig.act("ana", "register", { sale: "s1", total: 5 }, "sales").status).toBe("accepted");
   });
 });
+
+describe("an act that cannot be done yet", () => {
+  it("is asked whether it is offered knowing the moment: off until its day, with its cause, then done", () => {
+    let opens = Number.POSITIVE_INFINITY;
+    const asked: number[] = [];
+    const offered = (_state: unknown, _target: string, at: number) => {
+      asked.push(at);
+      return at < opens ? "todavía no empezó" : undefined;
+    };
+    const timed = { ...bulk, id: "timed", acts: { run: { ...toolAct(nothing, pair), offered } } };
+    const rig = shopRig({ registry: [...shopRegistry, timed] });
+    rigs.push(rig);
+    for (const target of ["timed", "sales"]) rig.attend("ana", target);
+    const before = Date.now();
+    expect(rig.act("ana", "run", {}, "timed")).toMatchObject({ status: "rejected", reason: "todavía no empezó" });
+    expect(asked.every(at => at >= before && at <= Date.now())).toBe(true);
+    opens = before;
+    expect(rig.act("ana", "run", {}, "timed").status).toBe("accepted");
+  });
+});

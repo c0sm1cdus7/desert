@@ -82,10 +82,10 @@
     "doors/terminal": 570,
     "house": 91,
     "journal": 326,
-    "programs": 992,
+    "programs": 998,
     "surface": 1667,
-    "surface/bridge": 1233,
+    "surface/bridge": 1235,
     "texts": 193,
-    "tools": 824
+    "tools": 825
   }
 }
