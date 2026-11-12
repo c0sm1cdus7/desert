@@ -55,7 +55,8 @@ export function drawRow(
   const tone = (fallback: Tone): Tone => (on ? "t1" : quiet(fallback));
   if (keyed && row.key) put(grid, left + 1, r, { text: `[${row.key}]`, tone: tone("t3") }, on);
   const detail = row.detail ?? "";
-  const shown = fit(detail, Math.max(block - (x - left) - width(row.title) - 3, 10));
+  /** What does not fit is cut from the name: the datum at the right is read whole while the name keeps a dozen. */
+  const shown = fit(detail, Math.max(block - (x - left) - Math.min(width(row.title), 12) - 2, 10));
   const fact = (how.reads === true || row.still === true) && detail !== "";
   put(
     grid,

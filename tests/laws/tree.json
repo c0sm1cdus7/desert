@@ -76,11 +76,11 @@
     "adapters/secrets": 103,
     "adapters/storage": 154,
     "catalogs": 164,
-    "doors/terminal": 560,
+    "doors/terminal": 561,
     "house": 82,
     "journal": 295,
     "programs": 960,
-    "surface": 1611,
+    "surface": 1613,
     "surface/bridge": 1111,
     "texts": 179,
     "tools": 765

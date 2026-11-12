@@ -8,7 +8,9 @@ export function must<T>(value: T | null | undefined): T {
 }
 /** Where something is, or the top when nothing matches. */
 export const foundAt = <T>(all: readonly T[], test: (item: T) => boolean): number => Math.max(all.findIndex(test), 0);
-const rowsOf = (stacks: readonly Stack[]): number => stacks.reduce((sum, stack) => sum + stack.rows.length, 0);
+/** How much of some lists a person would read: every row, and for a list with none, the line that says so. */
+const rowsOf = (stacks: readonly Stack[]): number =>
+  stacks.reduce((sum, stack) => sum + Math.max(stack.rows.length, 1), 0);
 const linesOf = (stack: Stack): number => 1 + Math.max(stack.rows.length, 1);
 
 /** The one list that holds the chosen row, cut around it: when it alone is taller than the room. */
