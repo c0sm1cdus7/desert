@@ -78,4 +78,20 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - Dar un paso en memoria como operación de la base (Capibara lo arma con piezas para recorrer todos los caminos).
 - Separar en la acción los motivos que dependen de lo que se responde de los que dependen del estado.
 - Leer un texto largo que envuelva y se desplace (Capibara lo pagina en su herramienta de normas).
-- Que una herramienta que vive dentro de otra se dé junto con la que la contiene.
+- Que una herramienta que vive dentro de otra se dé junto con la que la contiene; y que una viva dentro de otra que
+  no está en el Menú.
+- Preguntar según el estado de la casa, y no solo según lo respondido antes (`when` mira lo respondido): una alícuota
+  solo si la organización es Responsable inscripto. Y un campo que se pregunte según lo respondido y además sea
+  opcional.
+- Opciones de una pregunta que salen del estado o de afuera (los puntos de venta que dice el fisco): hoy se resuelven
+  volviéndolas cosas de la herramienta.
+- Un valor sugerido para una pregunta que no sea «lo que el dato es hoy» (`today` marca además «actual» y rechaza «sin
+  cambios»): sugerir en «editar condición» la que dice el padrón; que una pregunta que no es la primera abra con un
+  valor que da la acción (`also.opens` solo sirve para las primeras).
+- Menús en una herramienta que no tiene cosas (hoy un menú cuelga de una cosa).
+- Una vista previa con forma propia: hoy lo que se confirma es texto, en una o varias líneas.
+- Disparar una acción por fecha (un abono que genera a una hora): la casa tiene reloj para sus recordatorios, no para
+  las acciones de un programa.
+- Suprimir de verdad un dato del registro, dejando el hecho (un pedido de supresión de datos personales).
+- Filtrar según la acción la lista de la que se elige una cosa (hoy se ofrecen todas y la acción rechaza).
+- Una confirmación sin preguntas repite en su primera línea lo que ya dice la barra.
