@@ -147,6 +147,8 @@ function stoppedBy<X extends Program, S extends TSchema>({ input, stops }: Decla
     Value.Check(partial, answered) ? stops(answered, state, target) : undefined;
   return { stops: asked };
 }
+/** What the base itself refuses with is not the act's to declare: nothing would change, or a day does not exist. */
+const ofTheBase = (cause: string): boolean => cause === toolTexts.unchanged || cause === toolTexts.noSuchDay;
 /** An act of a program: what it takes, what it does, and what it promises. */
 export function programAct<X extends Program, S extends TSchema>(declared: Declared<X, S>): ProgramAct<X> {
   const { input, reach, refuses = [], offered, output, run, cases, confirms, today, also, datum } = declared;
@@ -164,7 +166,7 @@ export function programAct<X extends Program, S extends TSchema>(declared: Decla
     return cause;
   };
   const checked = (result: ActResult<X>): ActResult<X> => {
-    if (result.status === "rejected" && result.reason !== toolTexts.unchanged) declaredCause(result.reason);
+    if (result.status === "rejected" && !ofTheBase(result.reason)) declaredCause(result.reason);
     return result;
   };
   /** What a field of it says is wrong never reaches the act, through whatever door it came. */

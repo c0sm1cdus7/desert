@@ -1,8 +1,11 @@
 // What an act cannot be declared with: its words are checked when the program is composed, before anyone reads them.
 import { describe, expect, it } from "vitest";
 import { object } from "../catalogs/acts.ts";
+import { day } from "../catalogs/fields.ts";
+import { toolTexts } from "../texts/tools.texts.ts";
 import { programAct, type Offered } from "./promises.ts";
-import { registerCases, registerOffer, shop, shopCatalog, type Shop } from "../../tests/support/shop.ts";
+import { shopRig } from "../../tests/support/shop-rig.ts";
+import { registerCases, registerOffer, shop, shopCatalog, shopRegistry, type Shop } from "../../tests/support/shop.ts";
 
 const input = shopCatalog["sale-registered"];
 type Parts = Partial<Offered> & Readonly<{ refuses?: readonly string[] }>;
@@ -73,5 +76,27 @@ describe("the words of a declared act", () => {
         cases: [{ promise: "nothing is asked", input: {}, then: { says: "Registrada", facts: [] } }],
       });
     expect(bare).not.toThrow();
+  });
+});
+
+describe("a day the calendar does not have, given to an act", () => {
+  const due = object({ on: day("Vence") });
+  /** An act that takes a day and declares no cause of its own. */
+  const dated = programAct<Shop, typeof due>({
+    ...registerOffer,
+    input: due,
+    run: () => ({ status: "accepted", text: "Anotado" }),
+    cases: [{ promise: "a day is noted", input: { on: "2026-02-28" }, then: { says: "Anotado", facts: [] } }],
+  });
+  const dates = { id: "dates", purpose: "Notes days.", targets: () => [], view: () => "", summary: () => "" };
+
+  it("is refused by the base before the act runs, with a cause the act does not have to declare", () => {
+    const rig = shopRig({ registry: [...shopRegistry, { ...dates, acts: { note: dated } }] });
+    rig.attend("ana", "dates");
+    const refused = rig.act("ana", "note", { on: "2026-02-30" }, "dates");
+    const taken = rig.act("ana", "note", { on: "2026-02-28" }, "dates");
+    rig.close();
+    expect(refused).toMatchObject({ status: "rejected", reason: toolTexts.noSuchDay });
+    expect(taken.status).toBe("accepted");
   });
 });
