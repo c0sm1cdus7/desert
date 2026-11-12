@@ -138,3 +138,6 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   tecla no va.
 - Una devolución de plata sin cosas y un rechazo que deje escrito lo que contestó el fisco: pedidos de Capibara que
   hoy se resuelven del lado del programa.
+- Un importe que se escribe en otra moneda: la máscara de plata muestra siempre el signo del país («$»), aunque la
+  respuesta anterior, o la cosa elegida, diga dólares. Y, en general, un valor sugerido o una forma de campo que
+  dependan de una respuesta anterior o del estado (la cantidad que queda por devolver de ESE artículo).
