@@ -1,3 +1,4 @@
+import type { CalculationVersion } from "../../src/programs/calculation-version.ts";
 import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -19,7 +20,7 @@ export const home = () => {
 };
 export const time = { now: () => 1000, wait: () => () => {} };
 export const creation = { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] };
-export function program(projectionVersion = "shop/1", factor = 1, folded = () => {}) {
+export function program(projectionVersion: CalculationVersion = "shop/1", factor = 1, folded = () => {}) {
   const sales: typeof shopSlices.step.sales = (state, event, before) => {
     const next = shopSlices.step.sales(state, event, before);
     if (event.kind !== "sale-registered") return next;

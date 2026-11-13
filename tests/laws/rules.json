@@ -1340,7 +1340,7 @@
     },
     {
       "id": 165,
-      "rule": "Los registros que una organización ya escribió y el programa guarda (`desert.journals`) siguen abriendo con el programa de hoy: cada hecho se lee y se pliega desde el primero, y cada cosa se lee donde la lee una persona; nada se saltea para que abran; actualizar desde plegados anteriores legibles coincide con reconstruir estado completo y reloj, sin tocar el original",
+      "rule": "El control de actualización informa por cada registro guardado si REUTILIZÓ los plegados o RECONSTRUYÓ y por qué, y compara estado completo y reloj con reconstruir. En modo de versión manual exige al menos un registro cuyo plegado se reutilice con la candidata y contenga hechos ya plegados; sin él falla por falta de evidencia. Esos registros se renuevan con los plegados de cada entrega. En modo de huella de código, distinguido al componer, comprueba que cambiar código cambia la huella y reconstruye, sin exigir plegados reutilizables. Los originales no se modifican.",
       "from": "12/11 · obra de Capibara: en una noche cambiaron decenas de hechos; el día que haya datos reales, un cambio que no los lea tiene que frenar en la compuerta, no en la organización",
       "guarantee": "spec",
       "evidence": [
@@ -1348,7 +1348,11 @@
         "src/programs/kept-journals.spec.ts",
         "tests/program/program.checks.ts",
         "src/programs/kept-upgrade.ts",
-        "src/programs/upgrade-kept.spec.ts"
+        "src/programs/upgrade-kept.spec.ts",
+        "src/programs/upgrade-evidence.spec.ts",
+        "src/programs/code-upgrade.spec.ts",
+        "src/programs/code-upgrade-check.ts",
+        "src/programs/upgrade-comparison.ts"
       ]
     },
     {
@@ -1741,7 +1745,7 @@
     },
     {
       "id": 197,
-      "rule": "Un almacenamiento tiene un solo escritor por ruta canónica, también por enlaces simbólicos, entre hilos y entre procesos. Un rechazo local, incluso desde mantenimiento, conserva la exclusión frente a un proceso posterior; solo SQLite abre y cierra sus archivos. Al morir el dueño, otro abre sin intervención. Antes de escribir y confirmar se verifica la identidad del auxiliar: si fue borrado o reemplazado, WriterLeaseLost impide escribir y guardar plegados en esa instancia. journal.lock no se crea ni se lee: se limpia al adquirir, nunca al cerrar. Los enlaces duros y los simbólicos colgantes se rechazan.",
+      "rule": "Un almacenamiento tiene un solo escritor por ruta canónica, también por alias, entre hilos y procesos. Adquirir exige una escritura SQLite real en un auxiliar regular sin enlaces: solo lectura, carpeta no escribible, falta de espacio o archivo inválido fallan con WriterLeaseUnavailable, sin cambiar sus permisos. Un rechazo local no suelta al dueño; solo SQLite abre y cierra los archivos de almacenamiento, y se rechazan enlaces en sus vecinos journal/WAL/SHM antes de abrirlos. Antes de escribir y confirmar se verifica el auxiliar: borrar, reemplazar o renombrar la carpeta hace que WriterLeaseLost impida escribir y guardar plegados durante esa instancia. Al morir el dueño otro abre sin intervención. journal.lock no se crea ni se lee: se limpia al adquirir. Los enlaces duros y simbólicos colgantes del registro se rechazan.",
       "from": "13/11 · auditoría A03 y carrera entre procesos; tercer diseño decidido",
       "guarantee": "spec",
       "evidence": [
@@ -1755,12 +1759,17 @@
         "src/adapters/storage/writer-rejection.spec.ts",
         "src/adapters/storage/writer-loss.spec.ts",
         "src/adapters/storage/database-locks.spec.ts",
-        "src/adapters/storage/copy-journal.spec.ts"
+        "src/adapters/storage/copy-journal.spec.ts",
+        "src/adapters/storage/writer-acquisition.spec.ts",
+        "src/adapters/storage/writer-acquisition-neighbors.spec.ts",
+        "src/programs/code-files.ts",
+        "src/adapters/storage/sqlite-files.ts",
+        "src/adapters/storage/writer-auxiliary.spec.ts"
       ]
     },
     {
       "id": 198,
-      "rule": "El estado reabierto y el reloj son el registro plegado: cada recorrido y registro conservado los compara con una apertura sin plegados guardados. El formato 3 exige la identidad persistente del propio registro, asignada al nacer o al abrir uno anterior, además de la versión de cálculos y la continuidad de secuencia. Un plegado ajeno se reconstruye. Cada descarte explica su motivo como aviso en los diagnósticos de la casa; el grupo incompatible se reconstruye entero. Un grupo se guarda entero y solo después de restaurarse correctamente. Una alteración manual de archivos queda fuera de la garantía.",
+      "rule": "El estado reabierto y el reloj son el registro plegado: cada recorrido y registro conservado los compara con una apertura sin plegados guardados. El formato 3 exige identidad del registro, versión de cálculos y continuidad de secuencia; un grupo incompatible se reconstruye entero. Cada descarte explica su motivo por diagnósticos y queda visible en la instancia, nunca como hecho del registro: reconstruir no agrega historia. Un grupo se guarda entero y solo después de restaurarse correctamente. Una alteración manual de archivos queda fuera de la garantía.",
       "from": "13/11 · auditoría A03; recuperación de los plegados incompletos anteriores",
       "guarantee": "derived",
       "evidence": [
@@ -1780,7 +1789,7 @@
     },
     {
       "id": 199,
-      "rule": "Un cambio de versión de cálculos reconstruye lo guardado una vez; la versión es obligatoria y puede derivarse del código y Node; un recálculo fallido no guarda plegados en esa instancia",
+      "rule": "Un cambio de versión de cálculos reconstruye lo guardado una vez; la versión obligatoria distingue manual y huella de código. La huella lee solo archivos regulares de extensiones declaradas, en orden fijo, omite ocultos, acepta archivos sueltos y rechaza árboles que contienen registros o están bajo organizaciones antes de leer bytes. Incluye Node; no cubre insumos externos ni zona horaria. Los cálculos no modifican su estado recibido: la compuerta derivada lo congela y comprueba. Un recálculo fallido no guarda plegados en esa instancia y reintentarlo no duplica estado.",
       "from": "A04, decisión de obra 13/11",
       "guarantee": "spec",
       "evidence": [
@@ -1793,7 +1802,11 @@
         "src/programs/projection-version.spec.ts",
         "src/adapters/storage/failed-rebuild.spec.ts",
         "src/journal/snapshot-identity.spec.ts",
-        "src/programs/house-projections.spec.ts"
+        "src/programs/house-projections.spec.ts",
+        "src/programs/calculation-version.ts",
+        "src/programs/calculation-purity.spec.ts",
+        "src/journal/frozen-state.ts",
+        "src/adapters/storage/retry-mutation.spec.ts"
       ]
     }
   ]

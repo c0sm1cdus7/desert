@@ -62,7 +62,7 @@ it("kept checks compare the saved state before discarding it", async () => {
   const checks = keptChecks(shopProgram, shopShown, root).filter(c => c.name.includes("journal.sqlite"));
   expect(checks).toHaveLength(3);
   for (const check of checks.slice(0, 2)) await expect(check.run()).resolves.toBeUndefined();
-  await expect(checks[2]?.run()).rejects.toThrow("previous folds");
+  await expect(checks[2]?.run()).rejects.toThrow("projectionVersion");
 });
 
 it("every staged journey checks its saved state after close", async () => {

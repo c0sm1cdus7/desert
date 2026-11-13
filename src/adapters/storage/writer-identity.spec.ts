@@ -1,4 +1,5 @@
-import { linkSync, mkdirSync, symlinkSync } from "node:fs";
+import { contender } from "../../../tests/support/storage-process.ts";
+import { existsSync, linkSync, mkdirSync, statSync, symlinkSync } from "node:fs";
 import { join, relative } from "node:path";
 import { spawnSync } from "node:child_process";
 import { expect, it } from "vitest";
@@ -108,4 +109,25 @@ it("independent files in one directory keep their leases when either owner close
   expect(names()).toEqual(["right"]);
   right.close();
   expect(watch(open(rightFile))()).toEqual(["right"]);
+});
+
+it.each(["CAFÉ.SQLITE", "Cafe\u0301.sqlite"])("respects filesystem identity for spelling %s", async spelling => {
+  const root = home();
+  const file = join(root, "Café.sqlite");
+  const alias = join(root, spelling);
+  const owner = open(file);
+  const state = watch(owner);
+  const same = existsSync(alias) && statSync(alias).ino === statSync(file).ino;
+  if (same) expect(() => open(alias)).toThrow(journalTexts.locked);
+  else open(alias).close();
+  const child = contender(alias, root, "spelling");
+  try {
+    expect(await child.next()).toBe("ready");
+    child.send("open");
+    expect(await child.next()).toBe(same ? journalTexts.locked : "opened");
+    expect(owner.append(sale("owned"), 0).seq).toBe(1);
+    expect(state()).toEqual(["owned"]);
+  } finally {
+    await child.stop(true);
+  }
 });

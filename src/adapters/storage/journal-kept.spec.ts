@@ -17,7 +17,7 @@ it("rejects a journal with no last instant and preserves an actual zero instant"
     const dated = new SqliteJournal(file, shop);
     dated.append(effect("boot", {}, "house"), 0);
     dated.close();
-    expect(journalKept(file)).toEqual({ runner: "house", last: 0, previous: false });
+    expect(journalKept(file)).toEqual({ runner: "house", last: 0 });
   } finally {
     rmSync(folder, { recursive: true, force: true });
   }

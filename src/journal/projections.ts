@@ -13,6 +13,7 @@ export class ProjectionCache<S, E extends Placed> {
   private readonly journal: string;
   private readonly discarded: (reason: string) => void;
   private saved = false;
+  private readonly savedThrough: number;
   private readonly reduce: (state: S, event: E) => S;
   constructor(
     initial: S,
@@ -23,7 +24,7 @@ export class ProjectionCache<S, E extends Placed> {
     journal = "",
     discarded: (reason: string) => void = () => {},
   ) {
-    this.initial = initial;
+    this.initial = structuredClone(initial);
     this.discarded = discarded;
     this.identity = identity;
     this.journal = journal;
@@ -31,14 +32,18 @@ export class ProjectionCache<S, E extends Placed> {
     const saved = savedFold<S>(bytes, last, identity, journal, discarded);
     this.compatible = saved !== undefined;
     this.saved = this.compatible;
-    this.state = saved ? saved.state : initial;
+    this.state = saved ? saved.state : structuredClone(this.initial);
     this.seq = saved?.seq ?? 0;
+    this.savedThrough = this.seq;
+  }
+  get reused(): boolean {
+    return this.saved && this.savedThrough > 0;
   }
   reset(): void {
     if (this.saved) this.discarded(journalTexts.dependentFold);
     this.saved = false;
     this.seq = 0;
-    this.state = this.initial;
+    this.state = structuredClone(this.initial);
   }
   fold(event: E): S {
     if (event.seq !== this.seq + 1) throw new Error(`Projection sequence gap: ${this.seq} → ${event.seq}`);
@@ -51,7 +56,8 @@ export class ProjectionCache<S, E extends Placed> {
   }
   /** Where it stands now, as a way back to it: what was folded after is forgotten. */
   mark(): () => void {
-    const { state, seq } = this;
+    const state: S = structuredClone(this.state);
+    const { seq } = this;
     return () => {
       this.state = state;
       this.seq = seq;
@@ -62,7 +68,7 @@ export class ProjectionCache<S, E extends Placed> {
 export class ProjectionGroup<E extends Placed> {
   readonly caches = new Map<
     string,
-    Pick<ProjectionCache<unknown, E>, "seq" | "compatible" | "reset" | "fold" | "encode" | "mark">
+    Pick<ProjectionCache<unknown, E>, "seq" | "compatible" | "reused" | "reset" | "fold" | "encode" | "mark">
   >();
   add<S>(
     name: string,

@@ -31,16 +31,19 @@ describe(`what the program composed in ${where} promises`, () => {
 /** Where the program keeps journals that organizations wrote with it, when it says so: "desert.journals". */
 const journals = field(field(pkg, "desert"), "journals");
 describe("the journals the program keeps", () => {
-  const kept = typeof journals === "string" ? keptChecks(program, shown, join(process.cwd(), journals)) : [];
-  it("are read from the folder the program names, or the program names none", () => {
+  const kept = keptChecks(program, shown, typeof journals === "string" ? join(process.cwd(), journals) : undefined);
+  it("checks upgrade evidence even when the program names no journal folder", () => {
     if (typeof journals === "string" && !kept.length) throw new Error(`${journals} keeps no journal`);
   });
   /** What the walk of a kept journal covered, and what it left unwalked, is said where the gate is read: written
    * straight to its output, which is there whoever runs it (what a passing test logs is hidden from an agent). */
   for (const check of kept)
     it(check.name, async () => {
-      await check.run();
-      const covered = check.report?.();
-      if (covered) process.stdout.write(`${covered}\n`);
+      try {
+        await check.run();
+      } finally {
+        const covered = check.report?.();
+        if (covered) process.stdout.write(`${covered}\n`);
+      }
     });
 });

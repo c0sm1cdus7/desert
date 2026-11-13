@@ -44,11 +44,15 @@ export class SqliteJournal<P extends Foreign = Foreign> {
   private readonly lease: ReturnType<typeof writerLease>;
   private readonly identity: string;
   private readonly warn: (warning: FoldWarning) => void;
+  private readonly warnings: FoldWarning[] = [];
   private restored = false;
   private restoreFailed = false;
   private batching = false;
   constructor(file: string, words: Vocabulary<P>, warn: (warning: FoldWarning) => void = snapshotWarning) {
-    this.warn = warn;
+    this.warn = warning => {
+      this.warnings.push(warning);
+      warn(warning);
+    };
     this.words = words;
     const canonical = storageIdentity(file);
     this.lease = writerLease(canonical);
@@ -68,6 +72,12 @@ export class SqliteJournal<P extends Foreign = Foreign> {
       }
       throw error;
     }
+  }
+  restoration() {
+    return {
+      reused: [...this.projections.caches.values()].every(cache => cache.reused),
+      warnings: [...this.warnings],
+    };
   }
   /** Several facts written whole or not at all. One that does not fold is never kept: neither it nor what was
    * written with it stays, on disk or in what is folded, and whoever wrote hears why. */

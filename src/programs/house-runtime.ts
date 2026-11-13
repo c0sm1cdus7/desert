@@ -1,3 +1,4 @@
+import type { CalculationVersion } from "./calculation-version.ts";
 import { closeResources } from "../tools/boundaries/close-resources.ts";
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
 import { defectReporter } from "../tools/failures/defect-reporter.ts";
@@ -19,7 +20,7 @@ import { startTools } from "../tools/tools.ts";
 /** What a program hands a house to live in it: its vocabulary, its tools, and what each of them keeps. */
 export type HouseOptions<X extends Program> = Readonly<{
   by: string;
-  projectionVersion: string;
+  projectionVersion: CalculationVersion;
   creation: Creation;
   keys: KeyStore;
 }> &
@@ -57,7 +58,7 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
   if (!by) throw new Error("An explicit identity is required");
   if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);
   mkdirSync(home, { recursive: true, mode: privateDirectoryMode });
-  const notices = storageNotices(by);
+  const notices = storageNotices();
   const journal = new SqliteJournal(join(home, "journal.sqlite"), words, notices.warn);
   const secrets = new SecretVault<X>(join(home, "secrets.sqlite"), words.event);
   const bus = busOf<X>(journal, time, emission => {
@@ -77,12 +78,11 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     });
   try {
     const { state, clock } = houseProjections(journal, options);
-    notices.attach(entry => bus.emit(entry));
     const tools = startTools({ ...ports, bus, secrets, registry, state, now: () => time.now() });
     if (!state().house.admin) createHouse(bus, creation);
     stops.push(tools.stop, startClock(bus, time, clock(), by));
     bus.emit(effect("boot", {}, by));
-    return { bus, journal, tools, registry, close, now: () => time.now() };
+    return { bus, journal, tools, registry, close, storageNotices: notices.read, now: () => time.now() };
   } catch (error) {
     report(error, "program", "program", "start");
     close();

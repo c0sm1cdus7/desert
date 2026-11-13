@@ -126,7 +126,7 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
   guardado entre arranques lleva la forma del programa (los hechos que lee y dónde empieza su estado), así que con
   otra forma se vuelve a recorrer el registro entero (HECHO, 10/11). Falta decidir, antes de la primera casa en
   producción, cómo sigue leyendo un programa un tipo de hecho que ya no escribe. El cambio de cálculos ya se detecta con `projectionVersion` y la versión de la base (A04);
-  la compuerta compara actualizar desde plegados anteriores legibles con reconstruir todo.
+  la compuerta compara actualizar desde evidencia de reutilización efectiva en modo manual, o invalidación por cambio de código en modo de huella con reconstruir todo.
 - **Las preferencias son de la casa, no del programa.** Hoy son tres y fijas (lo apagado, lo ajeno, las listas
   vacías). Si un programa quiere las suyas, tiene que poder declararlas.
 
@@ -164,3 +164,7 @@ Cada descarte deja un aviso con motivo en stderr; al restaurar la casa, también
 La identidad se asigna al abrir registros anteriores. Una alteración manual de archivos queda fuera de la garantía.
 La función `projectionVersion` obtiene una huella de árboles de código y Node al componer. Una restauración
 fallida impide guardar plegados durante toda la vida de esa instancia, aun si después logra reintentarlo.
+
+La versión de cálculos distingue un string manual de `CodeProjectionVersion`: no se deduce el modo del texto.
+Los avisos de reconstrucción son de la instancia (`storageNotices()`), no hechos. La toma del escritor exige una
+escritura SQLite real, sin cambiar permisos del auxiliar; una carpeta renombrada hace perder la exclusión al dueño.

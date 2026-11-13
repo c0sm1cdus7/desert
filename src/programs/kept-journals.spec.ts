@@ -45,6 +45,7 @@ describe("the journals a program keeps", () => {
       "the journal kept as shop.sqlite walks every answer offered in its first 2 levels, and past them " +
         "64 paths within 24 levels, 16 choices",
       "the journal kept as shop.sqlite upgrades from previous folds to the complete replay",
+      "Manual projectionVersion has reusable kept evidence",
     ]);
     expect(await failing(checks)).toEqual([]);
   });
@@ -68,17 +69,20 @@ describe("the journals a program keeps", () => {
     };
     const deaf = { ...shopProgram, slices: { ...shopProgram.slices, step: { ...step, sales } } };
     const why = await failing(keptChecks(deaf, shopShown, folder));
-    expect(why.length).toBe(3);
+    expect(why.length).toBe(4);
     expect(why.every(failure => failure.includes("does not fold sale-registered"))).toBe(true);
     expect(why[0]).toContain("does not fold sale-registered");
     expect(keptChecks(deaf, shopShown, folder).map(check => check.report?.())).toEqual([
       undefined,
       undefined,
       undefined,
+      undefined,
     ]);
   });
 
-  it("are none where the program keeps none", () => {
-    expect(keptChecks(shopProgram, shopShown, join(root, "nowhere"))).toEqual([]);
+  it("fail manual evidence where the program keeps none", async () => {
+    expect(await failing(keptChecks(shopProgram, shopShown, join(root, "nowhere")))).toEqual([
+      expect.stringMatching(/no evidence/),
+    ]);
   });
 });

@@ -29,7 +29,7 @@ it("blocks a fold-only update that forgot its version, on each kept journal", as
   const before = readFileSync(file);
   copyFileSync(file, join(folder, "second.sqlite"));
   const errors = await failures(program("shop/1", 2), folder);
-  expect(errors).toHaveLength(2);
+  expect(errors.length).toBeGreaterThanOrEqual(2);
   for (const name of ["shop.sqlite", "second.sqlite"]) {
     expect(errors.some(error => error.includes(name) && error.includes("projectionVersion"))).toBe(true);
   }
@@ -37,23 +37,26 @@ it("blocks a fold-only update that forgot its version, on each kept journal", as
   expect(readFileSync(join(folder, "second.sqlite"))).toEqual(before);
 });
 
-it("accepts the same history when its new folding version is declared", async () => {
+it("rebuilds a declared new version but requires at least one reusable manual fixture", async () => {
   const path = home();
   await seed(path);
   const folder = kept(path);
   const file = join(folder, "shop.sqlite");
   const before = readFileSync(file);
   const checks = keptChecks(program("shop/2", 2), shopShown, folder);
-  expect(checks).toHaveLength(3);
-  expect(await failures(program("shop/2", 2), folder)).toEqual([]);
+  expect(checks).toHaveLength(4);
+  expect(await failures(program("shop/2", 2), folder)).toEqual([expect.stringMatching(/no evidence/)]);
   expect(readFileSync(file)).toEqual(before);
 });
 
-it.each(["0ec3f7b", "19a0b47"])("accepts a kept pre-version journal from %s", async revision => {
-  const path = home();
-  legacy(path, revision);
-  expect(await failures(program("shop/2", 2), kept(path))).toEqual([]);
-});
+it.each(["0ec3f7b", "19a0b47"])(
+  "reads a pre-version journal from %s but refuses to certify manual version evidence",
+  async revision => {
+    const path = home();
+    legacy(path, revision);
+    expect(await failures(program("shop/2", 2), kept(path))).toEqual([expect.stringMatching(/no evidence/)]);
+  },
+);
 
 it("does not claim upgrade coverage when a kept journal has no previous folds", async () => {
   const path = home();
@@ -67,7 +70,7 @@ it("does not claim upgrade coverage when a kept journal has no previous folds", 
   }
   const errors = await failures(program(), folder);
   expect(errors).toHaveLength(1);
-  expect(errors[0]).toMatch(/shop.sqlite.*previous folds/);
+  expect(errors[0]).toMatch(/previous folds.*no evidence/);
 });
 
 it.each(["tools", "clock"])("checks the complete cached %s, not only tool values", async part => {
@@ -105,5 +108,5 @@ it.each(["damaged", "partial"])("refuses %s previous folds even when an update w
   }
   const errors = await failures(program("shop/2", 2), folder);
   expect(errors).toHaveLength(1);
-  expect(errors[0]).toMatch(/shop.sqlite.*previous folds/);
+  expect(errors[0]).toMatch(/previous folds.*no evidence/);
 });

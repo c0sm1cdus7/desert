@@ -22,11 +22,6 @@ const decode = (bytes: unknown): unknown => {
     return undefined;
   }
 };
-/** Previous releases are readable evidence, even when they are not reusable by this release. */
-export function readableFold<S>(bytes: unknown, last: number): Fold<S> | undefined {
-  const value = decode(bytes);
-  return placed<S>(value, last) ? value : undefined;
-}
 export function savedFold<S>(
   bytes: unknown,
   last: number,

@@ -307,21 +307,50 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   estados posibles: las garantías derivadas de los casos siguen siendo obligatorias.
 - El único remedio que la base tiene hoy es no romper la lectura: un hecho que cambia de forma es un hecho nuevo, con
   otro nombre, y el viejo se sigue leyendo y plegando. No hay lectura versionada de un hecho viejo.
-- Cada composición y cada apertura declara `projectionVersion`, un string no vacío. Cambiar un cálculo exige
-  cambiar esa versión; no hace falta cambiar el vocabulario ni los hechos. La primera apertura reconstruye todo;
-  las siguientes reutilizan el nuevo plegado. La base declara por separado `baseProjectionVersion`.
-- Para no depender de acordarse, usá `projectionVersion([rutaDelCodigo, rutaDelCodigoDeLaBase])`, de
-  `src/programs/projection-version.ts`: calcula SHA-256 del contenido y nombres relativos de todos los archivos
-  de esos árboles, más la versión de Node. Calculala una sola vez al componer una entrega inmutable, antes de abrir
-  organizaciones. Incluí todos los árboles de dependencias o configuración que intervienen en los cálculos;
-  lo que queda fuera no tiene cobertura. No sigue enlaces ni omite archivos ocultos; rechaza árboles privados.
-- El tercer control abre una copia conservando sus plegados anteriores y compara estado completo y reloj con
-  reconstruir todos los hechos, antes de arrancar herramientas, temporizadores o escribir `boot`. Si difieren,
-  señala el archivo y `projectionVersion`. Exige un par legible de plegados anteriores; ausencia, daño o un par
-  incompleto no pasan. Conservá copias cerradas de la entrega inmediatamente anterior en tus registros guardados:
-  no las regeneres con la candidata. Los originales no cambian.
-- Si falla una reconstrucción, esa instancia ya no puede guardar plegados, ni al registrar el diagnóstico ni al
-  cerrar ni después de un reintento exitoso. Una instancia nueva vuelve a intentar reconstruir.
+- Cada composición y apertura declara `projectionVersion`. Hay dos modos explícitos: un string no vacío es una
+  versión **manual**; `codeProjectionVersion(rutas, extensiones)` de `src/programs/calculation-version.ts` devuelve
+  una versión **de código**, con su declaración y huella calculadas por la base. No se elige el modo por el texto
+  del string. `projectionVersion(rutas, extensiones)` sigue disponible como huella string; usar ese string solo
+  constituye modo manual y conserva sus exigencias de evidencia.
+- En modo manual, cambiar un cálculo exige cambiar la versión. El control abre cada registro guardado sobre una
+  copia con sus plegados y compara estado completo y reloj con reconstruir. Informa **REUTILIZADO** o
+  **RECONSTRUIDO**, y el motivo real de la apertura. La misma decisión de compatibilidad sirve al control y a la
+  apertura. Además, tiene que haber **al menos un registro reutilizado por la candidata**: si ninguno se reutiliza,
+  incluso si falta la carpeta declarada, falla por falta de evidencia. Un plegado en secuencia cero no acredita
+  cálculos anteriores. Un formato anterior legible o plegados de dos
+  entregas atrás no acreditan esa reutilización. Los registros se renuevan con los plegados de **cada entrega**;
+  conservá la evidencia anterior durante su control, y renovala como parte de publicar esa entrega. Un cambio
+  deliberado de identidad necesita también evidencia reutilizable de esa identidad; no alcanza comparar dos
+  reconstrucciones. No regeneres a ciegas todos los registros con la candidata para hacer pasar el control.
+- En modo de código no se exigen plegados reutilizables: los cambios dentro del código declarado cambian su
+  identidad y reconstruyen. El control modifica una copia del código, comprueba que cambia la huella y que esa
+  identidad reconstruye plegados reales; también funciona sin carpeta de registros guardados. Cada registro que sí
+  se guarda se compara con reconstruir y dice qué probó. Si el código cambió después de componer, el control falla:
+  componé una entrega inmutable. La base mantiene además su propia `baseProjectionVersion`.
+- La huella cubre nombres relativos y bytes de **archivos regulares**, en orden fijo, más la versión de Node.
+  Por defecto admite `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`, `.mts` y `.cts`. Podés declarar otra lista de
+  extensiones y archivos sueltos: por ejemplo, `codeProjectionVersion([src, baseSrc, lockfile], [".ts", ".yaml"])`.
+  No lee el contenido de archivos ocultos; inspecciona metadatos de carpetas ocultas para detectar registros; las extensiones que no declaraste quedan afuera. Los archivos de pruebas
+  con extensiones declaradas sí participan. No sigue enlaces simbólicos ni acepta enlaces duros. Primero revisa
+  los metadatos de **toda** la declaración; si contiene un registro SQLite o está debajo de una organización,
+  falla antes de leer bytes. Nunca apuntes a una organización, a una carpeta de registros o a sus auxiliares.
+- Lo que el programa carga **fuera de los árboles o archivos declarados** no queda cubierto: dependencias instaladas
+  por enlaces, configuración, datos externos y cambios de zona horaria no entran solos. El archivo de versiones de
+  dependencias cubre sus bytes, no prueba que lo instalado coincida. Declarar archivos regulares adicionales sirve
+  para esos insumos; la zona horaria y las dependencias efectivamente cargadas deben quedar fijas en la entrega.
+  Incluí sus árboles reales si intervienen en los cálculos; no uses el repositorio entero como atajo.
+- Medición del 13/11/2026, Node 24.16.0: 894 archivos admitidos de `capibara-obra/src` y `capibara-obra/desert/src`,
+  **90,85 ms** en la primera llamada de un proceso nuevo; cinco llamadas siguientes, **40,67–45,57 ms**.
+  Es frío de proceso; frío de caché de disco del sistema: **no comprobado**. Como supera 50 ms, una mejora propuesta,
+  todavía no implementada, es calcular un manifiesto de hashes durante la construcción de la entrega inmutable,
+  empaquetarlo con ella y verificar la correspondencia de código y manifiesto antes de publicarla. No alcanza
+  cachear por fecha o tamaño ni confiar en un manifiesto de una carpeta que se pueda modificar después.
+- Los cálculos devuelven estado nuevo: **no modifican en el lugar el estado que reciben**, ni sus objetos, arrays,
+  mapas o conjuntos anidados. La compuerta derivada de casos, recorridos y registros guardados pliega los hechos
+  sobre estado congelado y verifica que el anterior siga igual. Un cálculo que lo modifica falla la compuerta.
+  El registro conserva además una copia de su marca de vuelta atrás: un reintento de una reconstrucción fallida
+  dentro de la misma instancia no duplica estado. Una reconstrucción fallida impide guardar plegados durante toda
+  esa instancia, aun si un reintento termina bien; una instancia nueva puede reconstruir y guardar normalmente.
 
 ## Un objeto
 
@@ -456,13 +485,20 @@ entonces actualizar y abrir. No se admite mezclar versiones en ejecución. No ca
 cambiar el vocabulario o los pliegues por A03. La primera apertura reconstruye los plegados del formato anterior:
 recupera lo que el registro conservó aunque el estado guardado estuviera incompleto, sin repetir las acciones.
 
+La toma exige una escritura SQLite real en el auxiliar, dentro de la transacción que se mantiene hasta cerrar.
+Si el auxiliar o su carpeta no permiten escribir, SQLite se queda sin espacio, está dañado o es un enlace, abrir
+falla con `WriterLeaseUnavailable` (`WRITER_LEASE_UNAVAILABLE`, con la causa original). No se cambian sus permisos
+para arreglarlo. También se rechazan enlaces y archivos no regulares en sus vecinos `-journal`, `-wal` y `-shm`,
+antes de que SQLite los abra; la misma revisión protege las entradas del registro y de la apertura privada. Se exige un archivo regular sin enlaces duros y se fija el modo de journal del auxiliar a DELETE;
+no se acepta que `BEGIN IMMEDIATE` sobre una conexión de solo lectura aparente haber tomado la exclusión.
 El sistema libera la exclusión si el dueño muere, incluso con SIGKILL. No hay que borrar candados ni buscar un
 PID. El archivo auxiliar `journal.sqlite.writer.sqlite` debe permanecer junto al registro: no se borra para
 abrir. Borrar ese archivo con la organización abierta rompe la exclusión; reemplazarlo también. Otro proceso
 podría tomar el archivo nuevo. Antes de escribir y antes de confirmar una transacción, el dueño comprueba que
-la ruta conserva el mismo dispositivo e inodo: si no, rechaza con `WriterLeaseLost`, código
+la ruta conserva el mismo archivo regular, sin enlaces duros, dispositivo, inodo e instante de creación: si no, rechaza con `WriterLeaseLost`, código
 `WRITER_LEASE_LOST`, revierte la transacción y deja de escribir durante toda esa instancia. El cierre libera
-recursos, sin guardar plegados, y también informa esa pérdida. Hay que cerrar y volver a abrir. Esta comprobación
+recursos, sin guardar plegados, y también informa esa pérdida. Renombrar la carpeta de una organización abierta
+hace que el dueño deje de escribir con ese error; cerrá antes de moverla. Hay que cerrar y volver a abrir. Esta comprobación
 no autoriza a modificar archivos mientras la organización está abierta ni sincroniza cambios externos a SQLite.
 
 `journal.lock` ya no es un puente: no se crea ni se lee. Uno anterior se ignora y se borra después de tomar la
@@ -481,9 +517,12 @@ reconstruye una vez. Un plegado alterado a mano por alguien con acceso a los arc
 Cada descarte dice el nombre del plegado y el motivo: formato anterior o desconocido, bytes ilegibles, secuencia
 inválida o adelantada, otro registro, cálculos distintos, nombre retirado o un grupo dependiente incompleto.
 Son avisos `SAVED_FOLD_REBUILT`, no fallas. Durante el arranque salen por la salida de diagnósticos (stderr,
-`StorageNotice`); cuando la casa termina de restaurarse quedan como entradas silenciosas con diagnóstico en su
-registro, sin rechazo de una acción. Una apertura sin descartes no repite el aviso. Quien usa `SqliteJournal`
-directamente recibe el aviso por stderr y puede pasar un receptor de diagnósticos como tercer argumento.
+`StorageNotice`) y quedan disponibles en `house.storageNotices()`, en la instancia que abrió. No son hechos,
+no escriben `tool-entry` ni agregan historia por reconstruir. Diez aperturas del almacenamiento, alternando
+identidades, dejan exactamente los mismos hechos. El arranque de `startHouse` conserva su hecho de ciclo de vida
+`boot`, independiente de los avisos; también siguen siendo hechos los resultados reales de las herramientas.
+Una apertura sin descartes no repite el aviso. Quien usa `SqliteJournal` directamente recibe stderr o pasa un
+receptor de diagnósticos como tercer argumento.
 
 Solo SQLite abre y cierra los archivos del auxiliar, del registro y de la bóveda. Las comprobaciones de registros
 conservados también copian mediante SQLite, incluyendo WAL, sin abrir descriptores propios sobre el registro.
