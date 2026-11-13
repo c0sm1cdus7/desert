@@ -3,31 +3,25 @@ import { deepStrictEqual, ok } from "node:assert/strict";
 import type { Field, Screen } from "../surface/contract.ts";
 import type { Router } from "../surface/router.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
-import { toolTexts } from "../texts/tools.texts.ts";
+import { unchangedIn } from "./read-screen.ts";
 import { surfaceTexts } from "../texts/surface.texts.ts";
 import { view } from "./promised-keys.ts";
-
 export const quietEntry = (router: Router): void => quietScreen(router.screen(view));
 export function quietScreen(screen: Screen): void {
-  ok(!JSON.stringify(screen.body).includes(toolTexts.unchanged));
+  ok(!unchangedIn(screen.body));
   if (screen.body.kind !== "thread") return;
   const options = screen.body.options;
   if (options && !options.some(row => row.entry)) {
     ok(
-      options.some(row => !row.off && !row.still),
+      options.some(row => !row.off && !row.still) || !!screen.body.more?.above || !!screen.body.more?.below,
       said.emptyQuestion,
     );
     ok(!options.some(row => row.off && row.selected), said.disabledCursor);
   }
   for (const event of screen.body.events) {
-    ok(!event.text.some(span => span.tone === "cut"), event.text.map(span => span.text).join(""));
-    ok(
-      !event.text
-        .map(span => span.text)
-        .join("")
-        .startsWith(`${surfaceTexts.error} `),
-      said.questionError,
-    );
+    const text = event.text.map(span => span.text).join("");
+    ok(!event.text.some(span => span.tone === "cut"), text);
+    ok(!text.startsWith(`${surfaceTexts.error} `), said.questionError);
     if (!screen.body.entry || !event.nested) continue;
     ok(event.text.every(span => span.tone === "t3"));
     ok(!screen.hints.some(hint => hint.intent === "confirm"));
@@ -50,7 +44,6 @@ export function confirmAnswer(router: Router): void {
   router.send({ kind: "confirm" });
   if (!before.hints.some(hint => hint.intent === "confirm")) deepStrictEqual(router.screen(view), before);
 }
-
 /** Each case also tries an unavailable Enter and a key its field cannot take, on the actual written value. */
 export function probeWritten(router: Router, field: Field, typed: string): void {
   const before = router.screen(view);
@@ -61,7 +54,6 @@ export function probeWritten(router: Router, field: Field, typed: string): void 
   router.send({ kind: "type", text: key });
   deepStrictEqual(router.screen(view), before);
 }
-
 /** A prefix that can still become the case's valid value has no reason line, only its unfilled shape. */
 export function writeAnswer(router: Router, field: Field, given: string): void {
   const quietPrefix = (typed: string): void => {

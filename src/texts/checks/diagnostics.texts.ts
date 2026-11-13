@@ -1,5 +1,6 @@
 // Specific diagnostics identify the guarantee a compiling counterexample violates.
 export const checkDiagnostics = {
+  missingPath: (ask: string) => `No screen path at ${ask}: neither a declared cause nor an unwriteable datum`,
   factsMismatch: "Written facts differ from the case",
   saysMismatch: "The action says something other than its case",
   refusalMismatch: "The refusal differs from the case",

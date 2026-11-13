@@ -1,17 +1,27 @@
-// The current value is shown throughout an edit; only an answer that finishes it unchanged is unavailable.
 import { OutsideDefect } from "../tools/outside.ts";
 import { answerChange } from "../tools/answers/answer-change.ts";
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import type { Field, Option } from "./contract.ts";
 import { answersAfter } from "./kept-answers.ts";
 import type { Walk } from "./screen.ts";
-
+/** Stable ordering belongs to things only, after every rule has marked their availability. */
+export function orderedThings(options: readonly Option[]): readonly Option[] {
+  const sorted = [...options.filter(option => !option.off), ...options.filter(option => option.off)];
+  const rows = sorted.map((option, index) => {
+    if (option.off) {
+      const { key: _key, ...off } = option;
+      return off;
+    }
+    const key = option.key ?? (!option.makes && index < 9 ? String(index + 1) : undefined);
+    return { ...option, ...(key === undefined ? {} : { key }) };
+  });
+  return rows;
+}
 export function uniqueCurrent(options: readonly Option[]): readonly Option[] {
   if (options.filter(option => option.detail === said.current && !option.makes).length > 1)
     throw new OutsideDefect("Two answers of the same question are unchanged");
   return options;
 }
-
 type Act = Readonly<{
   next: (answers: readonly string[]) => Field | null;
   same?: (answers: readonly string[], current: readonly string[]) => boolean;
@@ -45,6 +55,9 @@ export function currentField(walk: Walk, field: Field, act: Act): Field {
   };
   const known = { ...field, ...(current === undefined ? {} : { current }), unchanged };
   return known.kind === "pick"
-    ? { ...known, found: sought => known.found(sought).map(option => markedCurrent(known, option)) }
+    ? {
+        ...known,
+        found: sought => orderedThings(uniqueCurrent(known.found(sought).map(option => markedCurrent(known, option)))),
+      }
     : known;
 }

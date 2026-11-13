@@ -1,5 +1,5 @@
 // An offered answer keeps its reason, while unchanged is the same current fact regardless of its source.
-import { uniqueCurrent } from "../../current-field.ts";
+import { uniqueCurrent, orderedThings } from "../../current-field.ts";
 import { answerChange, answerValidity } from "../../../tools/answers/answer-change.ts";
 import type { Field, Option } from "../../contract.ts";
 export const disabled = (option: Option, why: string | undefined): Option =>
@@ -20,7 +20,7 @@ export function narrowed(
       .found(sought)
       .map(option => disabled(option, option.makes ? undefined : wrong(option.value ?? "")));
     uniqueCurrent(rows);
-    return [...rows.filter(row => !row.off), ...rows.filter(row => row.off && !hidden())];
+    return orderedThings(rows.filter(row => !row.off || !hidden()));
   };
   return {
     ...field,

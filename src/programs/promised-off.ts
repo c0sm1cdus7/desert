@@ -1,4 +1,3 @@
-// What a person sees of what they cannot do, and what they may prefer not to see: checked for every tool and act.
 import { ok, strictEqual } from "node:assert/strict";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import { genericTexts as generic } from "../texts/generic-surface.texts.ts";
@@ -6,16 +5,15 @@ import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition, ProgramTool } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
+import type { Screen } from "../surface/contract.ts";
 import type { Choice } from "../surface/screen.ts";
+import { readThrough, rowsIn } from "./read-screen.ts";
 import { actRow, goTo, menuRows, seated, type, view } from "./promised-keys.ts";
 import { prefer } from "./promised-preferences.ts";
 export { prefer } from "./promised-preferences.ts";
 import { actionUnavailable, caseOrigin } from "./availability/case-availability.ts";
 import { cast, given, label, staged, type Aim, type Check } from "./promised-stage.ts";
-
-/** A tool nobody gave you is on your Menu all the same, or listed in the tool it lives in: off, saying why, and its
- * key opens nothing. It leaves only for who prefers not to see what is not theirs, and comes back when they prefer
- * to see it again. */
+/** Foreign tools stay disabled with their reason until hidden by preference; showing them restores them. */
 function foreignCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, tool: ProgramTool<X>): Check {
   const run = (): Promise<void> =>
     staged(program, async ({ house }) => {
@@ -37,11 +35,9 @@ function foreignCheck<X extends Program>(program: Composition<X>, shown: Shown<X
     });
   return { name: `${tool.id} · ${said.foreign}`, run };
 }
-/** What an off row reads of its thing, before it says why it is off: nothing when it only says why. */
 const readBy = ({ detail }: Choice, cause?: string): string | undefined =>
   cause !== undefined && detail?.endsWith(` · ${cause}`) ? detail.slice(0, -cause.length - 3) : undefined;
-/** Who prefers not to see what cannot be done stops seeing an act exactly while its tool says it cannot be done:
- * nothing else leaves the list, and the act comes back when they prefer to see it again. */
+/** Hiding removes unavailable actions, keeps their data, and showing restores the actions. */
 function hiddenCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
   const run = (): Promise<void> =>
     staged(program, async ({ house }) => {
@@ -50,18 +46,26 @@ function hiddenCheck<X extends Program>(program: Composition<X>, shown: Shown<X>
       const on = kase.on ?? aim.tool.id;
       const from = caseOrigin(aim, kase);
       try {
+        const original = actRow(seat, aim, on, undefined, from);
+        ok(original, said.notOffered(aim.name));
+        const cause = actionUnavailable(seat, aim, on, [], from?.target);
+        const read = readBy(original.row, cause);
         await prefer(seat, "off", true);
-        goTo(seat, from?.tool ?? aim.tool.id, from?.target ?? on);
-        const cannot = actionUnavailable(seat, aim, on, [], from?.target) !== undefined;
-        strictEqual(actRow(seat, aim, on, undefined, from) === undefined, cannot, said.hiddenWrong(aim.name));
-        const hidden = JSON.stringify(seat.router.screen(view).body);
+        const target = read === undefined ? (from?.target ?? on) : (original.target ?? from?.target ?? on);
+        goTo(seat, from?.tool ?? aim.tool.id, target);
+        strictEqual(
+          actRow(seat, aim, on, undefined, from) === undefined,
+          cause !== undefined,
+          said.hiddenWrong(aim.name),
+        );
+        if (read !== undefined) {
+          const kept = (screen: Screen) =>
+            rowsIn(screen.body).some(row => row.title === original.row.title && row.detail === read);
+          ok(readThrough(seat.router, kept), said.readLost(aim.name));
+        }
         seat.router.send({ kind: "menu" });
         await prefer(seat, "off", false);
-        const shownAgain = actRow(seat, aim, on, undefined, from);
-        ok(shownAgain, said.notOffered(aim.name));
-        /** What the row read of the thing was read all along: hiding takes the way to change it, never the datum. */
-        const read = readBy(shownAgain.row, actionUnavailable(seat, aim, on, [], from?.target));
-        ok(read === undefined || hidden.includes(JSON.stringify(read).slice(1, -1)), said.readLost(aim.name));
+        ok(actRow(seat, aim, on, undefined, from), said.notOffered(aim.name));
       } finally {
         seat.router.stop();
       }

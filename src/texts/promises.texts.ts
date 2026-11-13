@@ -2,7 +2,9 @@ import { checkDiagnostics } from "./checks/diagnostics.texts.ts";
 // How the checks that a program's promises derive are named, and what they say when a case cannot even start.
 export const promiseTexts = {
   ...checkDiagnostics,
-
+  closedAt: (kind: string, ask: string) => `Closed by ${kind} at ${ask}: the expected closure was not proved`,
+  closedCause: (ask: string, cause: string) =>
+    `The refusal is not visible where it is chosen: ${cause}. Closed by a declared cause at ${ask}`,
   partialReason: "an incomplete answer shows a reason",
   keptWalks: (name: string) =>
     `the journal kept as ${name} walks offered answers within 128 paths, 24 levels, 16 choices`,
@@ -12,7 +14,6 @@ export const promiseTexts = {
   disabledCursor: "The cursor rests on a disabled option",
   internalSent: "An internal refusal could be submitted",
   runOnce: "The promised action did not run exactly once",
-  refusalNotVisible: (cause: string) => `The refusal is not visible where it is chosen: ${cause}`,
   availableChoices: (promise: string): string => `${promise}, no empty first choice`,
   blockedChoices: (promise: string): string => `${promise}, blocked choices`,
   outside: (variant: number) => `refuses what it does not ask for (${variant})`,
@@ -60,8 +61,7 @@ export const promiseTexts = {
   overflows: "a screen does not fit the smallest terminal: what is left out is not counted, and it draws over the bars",
   emptyLists: "Attention and Activity open every menu even with nothing in them, unless a person prefers not",
   listsMissing: "Attention or Activity is missing from a menu",
-  listsShown:
-    "Attention or Activity is on a menu empty, or off it with something, for who prefers not to see them empty",
+  listsShown: "The empty-list preference hides filled Attention or Activity, or keeps an empty one",
   lost: (act: string) => `closing ${act} leaves the person on a thing no view lists any more`,
   givenRefused: (act: string, why: string) => `given ${act} was not accepted: ${why}`,
 } as const;

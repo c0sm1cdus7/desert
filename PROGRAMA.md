@@ -28,7 +28,10 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   dibujante (hoy la terminal). Atención y Actividad en cada menú; buscar con espacio; Preferencias.
 - **Las pruebas**: de cada caso sale la prueba sobre la organización y el recorrido con teclas desde el Menú; de
   cada acción, que rechace lo que su forma no admite, que su fila apagada diga su motivo, que lo que deja se
-  encuentre buscando. El programa no escribe ninguna de esas (`tests/program/program.checks.ts`).
+  encuentre buscando. Las garantías bajan por listas y menús hasta leer la fila, también en la ventana mínima;
+  comparan motivos enteros en filas apagadas o bajo la pregunta. Un dato que no se puede escribir queda sin
+  Enter, error ni motivo de la acción. Una ruta ausente sin esa prueba falla indicando la pregunta.
+  El programa no escribe ninguna de esas (`tests/program/program.checks.ts`).
 
 ## Una acción
 
@@ -82,7 +85,9 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - Donde una pregunta elige una cosa de otra herramienta (`thing`), la acción puede decir cuáles toma según lo ya
   contestado: `among: (respondido, estado, cosa, instante) => ({ productos: id => motivoOIndefinido })`. Cada función devuelve
   `undefined` si toma la cosa, o su motivo si no. Por herramienta, no por campo. La lista muestra primero lo elegible
-  y después las cosas apagadas, sin número y con su motivo; buscar también las encuentra. La preferencia de ocultar
+  y después las cosas apagadas, sin número y con su motivo, después de marcar también lo vigente; buscar también
+  las encuentra. Las opciones fijas conservan su orden. Al llegar al extremo de lo elegible, las flechas permiten
+  leer todas las filas sin elegir las apagadas; Enter vuelve primero al cursor. La preferencia de ocultar
   acciones apagadas oculta esas cosas. Por otras puertas se rechaza con ese mismo motivo antes de correr; se declara
   en `refuses`, con su caso. `stops` también se consulta para cada opción de una pregunta, con lo ya contestado más
   esa opción: lo que frenaría queda apagado con su motivo antes de elegirlo.

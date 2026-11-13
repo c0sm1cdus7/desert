@@ -1,4 +1,3 @@
-// The one screen for where a session stands: every part of it comes from the tools or the words of the surface.
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import type { Body, Hint, Row, Screen } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
@@ -10,7 +9,6 @@ import type { Bar, Session, Viewport } from "./screen.ts";
 import { conversationOf, errorSpans, talkBody, talkHints, talkPanel, type Talk } from "./talk.ts";
 import { walkBody, walkHints } from "./walk.ts";
 import { fitted, must, windowed } from "./window.ts";
-
 function talkScreen(place: Talk, tools: readonly Tool[]): Pick<Screen, "title" | "body" | "panel" | "hints" | "menu"> {
   const tool = toolOf(tools, place.tool);
   const talk = conversationOf(tool, place.target);
@@ -25,15 +23,13 @@ function talkScreen(place: Talk, tools: readonly Tool[]): Pick<Screen, "title" |
     menu: true,
   };
 }
-/** A question keeps its own line in view: its options take what is left of the room, and say how many do not fit.
- * Where what is said is a block of many lines (a preview), it keeps half the room: it is what is being read. */
-function roomy(body: Body, rows: number): Body {
+/** Options leave room for the question; a multiline preview keeps half the window. */
+function roomy(body: Body, rows: number, reading?: number): Body {
   if (body.kind !== "thread" || !body.options) return body;
   const breaks = (text: string): number => text.split("\n").length - 1;
   const said = body.events.reduce((sum, event) => sum + event.text.reduce((n, span) => n + breaks(span.text), 1), 0);
-  return { ...body, ...fitted(body.options, Math.max(said > 3 ? Math.floor(rows / 2) : rows - 2, 3)) };
+  return { ...body, ...fitted(body.options, Math.max(said > 3 ? Math.floor(rows / 2) : rows - 2, 3), reading) };
 }
-/** The one screen for where this session stands. */
 export function resolve(session: Session, tools: readonly Tool[], bar: Bar, viewport: Viewport): Screen {
   const place = must(session.at(-1));
   const common = {
@@ -45,7 +41,7 @@ export function resolve(session: Session, tools: readonly Tool[], bar: Bar, view
     const field = place.phase === "asking" ? fieldOf(tools, place) : null;
     const act = actOf(tools, place);
     const title = act.title() ?? act.label;
-    const body = roomy(walkBody(place, field, bar.now), viewport.rows);
+    const body = roomy(walkBody(place, field, bar.now), viewport.rows, place.reading);
     return { ...common, title, body, hints: walkHints(place, field, tools), menu: false };
   }
   if (place.kind === "talk") {
@@ -93,7 +89,7 @@ function listScreen(
   const hints = place.find === undefined ? [...moves, ...seeks, ...leaves] : [...moves, ...closes];
   return {
     title: thing ?? tool?.name ?? said.menu,
-    body: { kind: "list", stacks: windowed(marked, viewport.rows, place.shift) },
+    body: { kind: "list", stacks: windowed(marked, viewport.rows, place.shift, place.reading) },
     hints,
     menu: place.kind !== "menu",
   };

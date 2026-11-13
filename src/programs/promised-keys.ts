@@ -1,4 +1,3 @@
-// How a derived check moves through a program by keys: from the Menu to a tool, to one of its things, to an act's row.
 import { ok, strictEqual } from "node:assert/strict";
 import type { ExecutionResult } from "../tools/execute.ts";
 import type { Act } from "../catalogs/acts.ts";
@@ -14,13 +13,11 @@ import type { Program } from "../tools/tool-contract.ts";
 import { questionWords } from "../surface/bridge/questions/asking-clock.ts";
 import { localPorts } from "./house-runtime.ts";
 import type { Aim, House } from "./promised-stage.ts";
-
 export const view = { rows: 40 };
 /** The room a list has on the smallest terminal there is, 40×16. */
 const smallest = { rows: 8 };
 const noted = (count?: number): number => Number((count ?? 0) > 0);
-/** Whatever a person has in front fits the smallest terminal: a question keeps its own line and its options say
- * how many are left out; a list is cut around the chosen row. Nothing is left to be drawn over the bars. */
+/** The smallest window preserves the question or selected row and counts what does not fit. */
 export function fitsSmallest(router: Router): void {
   const { body } = router.screen(smallest);
   if (body.kind === "thread") {
@@ -87,8 +84,7 @@ const opensFrom = (tools: readonly Tool[], tool: string, { target, rows }: Reach
       ? [{ target: row.opens, rows: [...rows, at] }]
       : [],
   );
-/** The rows a person opens, one after another, from a tool's own view down to one of its things: found the way
- * they would find it, by what each view lists. Nothing when no view of the tool leads there. */
+/** Find a path through listed things, or return nothing when no view leads there. */
 function pathTo(tools: readonly Tool[], tool: string, on: string): readonly number[] | undefined {
   const seen = new Set<string>();
   let edge: readonly Reached[] = [{ rows: [] }];
@@ -101,7 +97,6 @@ function pathTo(tools: readonly Tool[], tool: string, on: string): readonly numb
   }
   return undefined;
 }
-/** The keys that open a tool from the Menu: its own, or first the key of the tool it lives in. */
 export function keysTo<X extends Program>(shown: Shown<X>, tool: string): string {
   const words = shown.words[tool];
   const outer = words?.inside === undefined ? undefined : shown.words[words.inside];
@@ -124,10 +119,8 @@ function rowsAt(tools: readonly Tool[], tool: string, target?: string): readonly
   strictEqual(new Set(keys).size, keys.length, said.sameKey(target ?? tool, keys));
   return rows;
 }
-/** An act's row as a person finds it: the rows to open from where the act stands, and the row itself. */
-export type Found = Readonly<{ rows: readonly number[]; row: Choice }>;
-/** The row that starts an act where its case does it: among the thing's own actions, or down any menu they open.
- * When the menu the act is under is off, that row stands for it. Nothing when no list a person can reach has it. */
+export type Found = Readonly<{ rows: readonly number[]; row: Choice; target?: string }>;
+/** Find an act through reachable menus; a disabled parent menu stands for its unavailable act. */
 export function actRow<X extends Program>(
   { tools }: Seat<X>,
   aim: Aim<X>,
@@ -149,7 +142,7 @@ export function actRow<X extends Program>(
   while (edge.length) {
     for (const { target, rows } of edge) {
       const row = rowsAt(tools, root.tool, target).find(mine);
-      if (row) return { rows, row };
+      if (row) return { rows, row, ...(target === undefined ? {} : { target }) };
     }
     const deeper = edge.flatMap(at => opensFrom(tools, root.tool, at)).filter(to => !seen.has(to.target));
     deeper.forEach(to => seen.add(to.target));

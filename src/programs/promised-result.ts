@@ -1,6 +1,8 @@
 // A rejection is proved where it closes the choice, never merely by finding its words after an execution.
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import { asking } from "../surface/bridge/asking.ts";
+import { readThrough, reasonIn, unchangedIn, errorIn } from "./read-screen.ts";
+import type { Stopped } from "./promised-answer.ts";
 import { begin } from "../surface/screen.ts";
 import { surfaceTexts } from "../texts/surface.texts.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
@@ -13,7 +15,6 @@ import { currentCloses } from "./answers/current.ts";
 import { quietEntry } from "./promised-entry.ts";
 import { view, type Seat } from "./promised-keys.ts";
 import type { Aim } from "./promised-stage.ts";
-
 export function currentInState<X extends Program>(seat: Seat<X>, aim: Aim<X>, kase: Case<X>): void {
   const on = kase.on ?? aim.tool.id;
   const current = aim.act.today?.(seat.state(), on, seat.now());
@@ -24,38 +25,33 @@ export function currentInState<X extends Program>(seat: Seat<X>, aim: Aim<X>, ka
   deepStrictEqual(initial.was, asking(aim.act.input, seat.words).answers(current), said.currentLost);
   currentCloses(seat.tools, initial);
 }
-/** Read the actual screen: reasons belong to a disabled row or to the live question, never an unrelated datum. */
-function blockedAt<X extends Program>(seat: Seat<X>, cause: string): boolean {
-  const { body } = seat.router.screen(view);
-  const matches = (text = "") => text === cause || text.startsWith(`${cause} · `) || text.endsWith(` · ${cause}`);
-  if (body.kind === "list") return body.stacks.some(stack => stack.rows.some(row => row.off && matches(row.detail)));
-  if (body.kind !== "thread") return false;
-  return (
-    (body.options?.some(row => row.off && matches(row.detail)) ?? false) ||
-    body.events.some(event => event.nested && event.text.some(span => matches(span.text)))
-  );
-}
-export function assertOutcome<X extends Program>(seat: Seat<X>, aim: Aim<X>, kase: Case<X>, absent = false): boolean {
+export function assertOutcome<X extends Program>(seat: Seat<X>, aim: Aim<X>, kase: Case<X>, stop?: Stopped): boolean {
   ok(seat.defects.length === 0, seat.defects.join("\n"));
   const cause = "refused" in kase.then ? kase.then.refused : undefined;
   const external = cause !== undefined && outsideCause(aim.act.outside, cause) !== undefined;
-  const calls = seat.requests.filter(
-    request => request.act === aim.name && request.target === (kase.on ?? aim.tool.id),
-  );
-  const screen = JSON.stringify(seat.router.screen(view).body);
-  ok(!screen.includes(toolTexts.unchanged));
+  const on = kase.on ?? aim.tool.id;
+  const calls = seat.requests.filter(request => request.act === aim.name && request.target === on);
+  const { body } = seat.router.screen(view);
+  ok(!unchangedIn(body));
   if (cause !== undefined && !external) {
     strictEqual(calls.length, 0, said.internalSent);
     quietEntry(seat.router);
-    const closed = actionUnavailable(seat, aim, kase.on ?? aim.tool.id, [], kase.from);
+    const closed = actionUnavailable(seat, aim, on, [], kase.from);
     const expected = closed ?? (cause === toolTexts.unchanged ? surfaceTexts.current : cause);
     const currentText =
       cause === toolTexts.unchanged && !seat.router.screen(view).hints.some(h => h.intent === "confirm");
-    ok(absent || currentText || blockedAt(seat, expected), said.refusalNotVisible(cause));
+    if (stop?.kind === "data") {
+      ok(body.kind === "thread" && !body.events.some(event => event.nested), said.closedAt("datum", stop.ask));
+      return false;
+    }
+    ok(
+      currentText || readThrough(seat.router, screen => reasonIn(screen.body, expected)),
+      said.closedCause(stop?.ask ?? aim.act.name, cause),
+    );
     return false;
   }
   strictEqual(calls.length, 1, said.runOnce);
-  if (external) ok(screen.includes(surfaceTexts.error) && screen.includes(cause), said.outsideSilent);
+  if (external) ok(errorIn(body, cause), said.outsideSilent);
   else quietEntry(seat.router);
   return true;
 }

@@ -14,9 +14,9 @@ import { surfaceTexts } from "../texts/surface.texts.ts";
 import { outsideCause } from "../tools/outside.ts";
 import type { Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
+import { errorIn } from "./read-screen.ts";
 import { quietScreen } from "./promised-entry.ts";
 import { localPorts, type RunningHouse } from "./house-runtime.ts";
-
 export type Path = readonly Intent[];
 export type KeptPath = Readonly<{ fingerprint: string; branches: readonly Path[] }>;
 const moveTo = (from: number, to: number): Intent[] =>
@@ -67,17 +67,7 @@ function outsideResult<X extends Program>(
   const failed = finished(session, walk, { ok: false, reason });
   const bar = { state: "connected", clock: "00:00", now } as const;
   const body = resolve(failed, tools, bar, { rows: 10000 }).body;
-  ok(
-    body.kind === "thread" &&
-      body.events.some(
-        event =>
-          event.text.some(span => span.tone === "cut") &&
-          event.text
-            .map(span => span.text)
-            .join("")
-            .includes(reason),
-      ),
-  );
+  ok(errorIn(body, reason));
 }
 /** A fingerprint includes the program state, not the journal sequence or random ids of navigation events. */
 const fingerprint = (session: Session, state: unknown): string =>

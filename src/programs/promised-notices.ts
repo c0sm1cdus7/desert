@@ -1,19 +1,19 @@
 // The two lists every menu opens with, checked for every program: what needs someone to act, and what the others did.
+import { errorIn } from "./read-screen.ts";
 import { firstLine } from "../surface/bridge/notices.ts";
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import type { Choice } from "../surface/screen.ts";
-import { stacksOf } from "../surface/lists.ts";
+import { choices, stacksOf } from "../surface/lists.ts";
 import type { Tool } from "../surface/shown-tool.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
-import { seated, type, view } from "./promised-keys.ts";
+import { seated, openRows, view } from "./promised-keys.ts";
 import { prefer } from "./promised-off.ts";
 import { promisedNeeds } from "./promised.ts";
 import { cast, given, label, perform, staged, type Aim, type Check } from "./promised-stage.ts";
-
 /** The rows of one of the two lists where a person stands: on the Menu, or on a tool's own menu. Nothing when the
  * list is not there at all. */
 function listAt(tools: readonly Tool[], title: string, tool?: string): readonly Choice[] | undefined {
@@ -42,10 +42,12 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
       try {
         ok(news(theirs.tools) && news(theirs.tools, aim.tool.id), said.noActivity(entry.data.text));
         strictEqual(news(own.tools), undefined, said.ownActivity(entry.data.text));
-        const key = news(theirs.tools)?.key ?? "";
-        ok(key, said.keyless(entry.data.text));
-        type(theirs.router, key);
-        ok(!JSON.stringify(theirs.router.screen(view).body).includes(surface.gone), said.lost(aim.name));
+        const at = choices({ kind: "menu", at: 0 }, theirs.tools).findIndex(
+          row => row.title === firstLine(entry.data.text),
+        );
+        ok(at >= 0, said.noActivity(entry.data.text));
+        openRows(theirs.router, [at]);
+        ok(!errorIn(theirs.router.screen(view).body, surface.gone), said.lost(aim.name));
         theirs.router.send({ kind: "menu" });
         strictEqual(news(theirs.tools), undefined, said.staysNew(entry.data.text));
       } finally {

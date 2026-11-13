@@ -124,7 +124,9 @@
     "texts/checks/diagnostics.texts.ts": "Diagnósticos concretos de las garantías derivadas.",
     "tools/boundaries/tool-listeners.ts": "Mantiene el origen del arranque, sus escuchas y cierres, y las reacciones del programa.",
     "programs/answers/current.ts": "Derived check that repeating current answers stops before an act runs",
-    "tools/boundaries/failure-origin.ts": "Conserva el origen de los defectos cuando el bus agrupa fallas de sus escuchas."
+    "tools/boundaries/failure-origin.ts": "Conserva el origen de los defectos cuando el bus agrupa fallas de sus escuchas.",
+    "programs/read-screen.ts": "Lee motivos y resultados enteros recorriendo las ventanas visibles con las mismas teclas que una persona.",
+    "surface/reading.ts": "Desplaza lo que se lee sin elegir filas apagadas ni ejecutar al volver al cursor."
   },
   "folders": {
     "adapters/secrets": 103,

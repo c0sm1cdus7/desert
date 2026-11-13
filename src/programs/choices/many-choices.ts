@@ -6,7 +6,7 @@ import { fieldOf, type Walk } from "../../surface/screen.ts";
 import { walkBody, walkHints } from "../../surface/walk.ts";
 import { walking } from "../../surface/walking.ts";
 import { answerChange } from "../../tools/answers/answer-change.ts";
-import { toolTexts } from "../../texts/tools.texts.ts";
+import { unchangedIn } from "../read-screen.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { Seat } from "../promised-keys.ts";
 import type { Aim } from "../promised-stage.ts";
@@ -31,7 +31,7 @@ export function manyChoices<X extends Program>(seat: Seat<X>, aim: Aim<X>, walk:
     strictEqual(result.run, undefined);
     if (change.unchanged) {
       deepStrictEqual(result.session, [marked]);
-      ok(!JSON.stringify(walkBody(marked, current, 0)).includes(toolTexts.unchanged));
+      ok(!unchangedIn(walkBody(marked, current, 0)));
     }
   }
 }
