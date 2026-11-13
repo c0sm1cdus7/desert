@@ -281,12 +281,16 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   repositorio público).
 - La compuerta abre cada copia con el programa de hoy, sin lo que traía plegado: cada hecho se lee y se pliega desde
   el primero, y cada cosa se lee como la lee quien administra. Un cambio que no los lea frena ahí.
-- Además recorre lo ofrecido en anchura: cada camino vuelve a una copia limpia del registro. Prueba hasta 128 caminos,
-  24 niveles de decisiones y 16 alternativas por estado, con el reloj quieto. Acepta opciones, marcas y texto que ya
-  se ofrece y puede enviarse; no inventa texto ni escribe secretos, y no recorre conversaciones. Un error interno,
-  una pregunta de opciones sin respuesta elegible o una fila apagada sin motivo hacen fallar la compuerta.
-  Las fallas declaradas en `outside` pueden terminar en `Error` con su causa. Es una muestra acotada, no una prueba
-  de todos los estados posibles: las garantías derivadas de los casos siguen siendo obligatorias.
+- Además recorre lo ofrecido en anchura: cada camino vuelve a una copia limpia del registro, con el reloj quieto.
+  Los dos primeros niveles se recorren enteros: cada fila del Menú y cada fila de lo que abre, sean las que sean (un
+  registro guardado con miles de cosas tarda lo que tarda: se guarda uno chico). Más allá prueba hasta 64 caminos, 24
+  niveles de decisiones y 16 alternativas por estado. Acepta opciones, marcas y texto que ya se ofrece y puede
+  enviarse; no inventa texto ni escribe secretos, y no recorre conversaciones. Un error interno, una pregunta de
+  opciones sin respuesta elegible o una fila apagada sin motivo hacen fallar la compuerta. Las fallas declaradas en
+  `outside` pueden terminar en `Error` con su causa.
+- Lo que el recorrido cubrió se lee en la salida de la compuerta, una línea por registro: cuántos caminos, cuántos
+  lugares y cuántas respuestas ofrecidas quedaron sin recorrer. Es una muestra acotada, no una prueba de todos los
+  estados posibles: las garantías derivadas de los casos siguen siendo obligatorias.
 - El único remedio que la base tiene hoy es no romper la lectura: un hecho que cambia de forma es un hecho nuevo, con
   otro nombre, y el viejo se sigue leyendo y plegando. No hay lectura versionada de un hecho viejo.
 - Ojo: una organización en uso guarda su estado plegado y lo vuelve a usar mientras el programa no cambie sus hechos

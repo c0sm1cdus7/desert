@@ -4,8 +4,13 @@ import { checkDiagnostics } from "./checks/diagnostics.texts.ts";
 export const promiseTexts = {
   ...checkDiagnostics,
   ...closureTexts,
-  keptWalks: (name: string) =>
-    `the journal kept as ${name} walks offered answers within 128 paths, 24 levels, 16 choices`,
+  keptWalks: (name: string, to: Readonly<{ whole: number; paths: number; depth: number; choices: number }>) =>
+    `the journal kept as ${name} walks every answer offered in its first ${to.whole} levels, and past them ` +
+    `${to.paths} paths within ${to.depth} levels, ${to.choices} choices`,
+  keptWalked: (name: string, walk: Readonly<{ whole: number; paths: number; states: number; clipped: number }>) =>
+    `the journal kept as ${name}: ${walk.whole} paths walked its first levels whole and ${walk.paths} went past ` +
+    `them, through ${walk.states} places; ` +
+    (walk.clipped ? `${walk.clipped} offered answers were left unwalked` : "no offered answer was left unwalked"),
   disabledReason: "A disabled row has no reason",
   offeredFailed: (reason: string) => `An offered answer failed internally: ${reason}`,
   emptyQuestion: "A question has nothing eligible to choose",

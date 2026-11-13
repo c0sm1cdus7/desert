@@ -24,9 +24,20 @@ describe("law 13: a rule nothing makes hold is a wish", () => {
     expect(owed.filter(rule => (rule.debt ?? "").trim() === "").map(rule => rule.id)).toEqual([]);
     expect(owed.length).toBe(debts);
   });
-  it("holds each of the thirteen laws of the programs", () => {
-    const laws = Array.from({ length: 13 }, (_, i) => `LEYES ${i + 1}`);
-    expect(laws.filter(law => !rules.some(rule => rule.from === law))).toEqual([]);
+  it("holds each law of the programs that LEYES.md lists, however many they are", () => {
+    const listed = Array.from(readFileSync(join(root, "LEYES.md"), "utf8").matchAll(/^\| (\d+) \|/gmu), ([, n]) => n);
+    const kept = (law: string | undefined): boolean =>
+      rules.some(rule => rule.from === `LEYES ${law}` || rule.from.startsWith(`LEYES ${law} ·`));
+    expect(listed.length).toBeGreaterThan(0);
+    expect(listed).toEqual(listed.map((_, i) => String(i + 1)));
+    expect(listed.filter(law => !kept(law))).toEqual([]);
+  });
+  it("names, for every law a spec makes hold, a spec that exists", () => {
+    const bare = rules.filter(
+      ({ guarantee, evidence = [] }) =>
+        guarantee === "spec" && !evidence.some(file => /\.(spec|checks)\.ts$/u.test(file)),
+    );
+    expect(bare.map(rule => rule.id)).toEqual([]);
   });
   it("keeps GARANTIAS.md as the list says: nobody edits it by hand", () => {
     expect(readFileSync(join(root, "GARANTIAS.md"), "utf8")).toBe(rulesText());

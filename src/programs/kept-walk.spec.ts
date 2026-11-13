@@ -10,6 +10,7 @@ import type { Shown } from "../surface/bridge/house-ports.ts";
 import { programAct, type Composition, type ProgramAct } from "../tools/promises.ts";
 import { shopProgram, shopShown, type Shop } from "../../tests/support/shop.ts";
 import { keptChecks } from "./kept-journals.ts";
+import type { Path } from "./kept-path.ts";
 import { breadthFirst } from "./kept-walk.ts";
 import { startHouse } from "./house-runtime.ts";
 import { MemoryKeys } from "../../tests/support/shop-rig.ts";
@@ -56,7 +57,7 @@ function saved(): string {
   return folder;
 }
 const walked = async (program: Composition<Shop>, folder: string, shown = shopShown) => {
-  const check = keptChecks(program, shown, folder).find(check => check.name.includes("walks offered"));
+  const check = keptChecks(program, shown, folder).find(check => check.name.includes("walks every answer offered"));
   expect(check).toBeDefined();
   await check?.run();
 };
@@ -92,20 +93,32 @@ const wordless: Shown<Shop> = {
 };
 
 describe("breadth-first exploration of saved journals", () => {
+  /** A place that offers the same answers wherever it is reached, each path being a place of its own. */
+  const offering = (branches: readonly Path[], order: number[]) => (path: Path) => {
+    order.push(path.length);
+    return Promise.resolve({ fingerprint: String(order.length), branches });
+  };
   it("counts depth and branch limits explicitly and visits breadth before depth", async () => {
     const order: number[] = [];
-    const coverage = await breadthFirst(
-      path => {
-        order.push(path.length);
-        return Promise.resolve({
-          fingerprint: String(order.length),
-          branches: [[{ kind: "confirm" }], [{ kind: "cancel" }]],
-        });
-      },
-      { paths: 4, depth: 2, choices: 2 },
-    );
-    expect(order).toEqual([0, 1, 1, 2]);
-    expect(coverage).toEqual({ paths: 4, states: 4, clipped: 5 });
+    const two: readonly Path[] = [[{ kind: "confirm" }], [{ kind: "cancel" }]];
+    const coverage = await breadthFirst(offering(two, order), { whole: 0, paths: 4, depth: 2, choices: 2 });
+    expect(order).toEqual([0, 1, 1, 2, 2]);
+    expect(coverage).toEqual({ whole: 1, paths: 4, states: 5, clipped: 6 });
+  });
+  it("takes every answer offered in its first levels, however many, and bounds only what comes after", async () => {
+    const order: number[] = [];
+    const five = Array.from({ length: 5 }, (): Path => [{ kind: "confirm" }]);
+    const coverage = await breadthFirst(offering(five, order), { whole: 2, paths: 3, depth: 24, choices: 1 });
+    expect(order).toEqual([0, ...Array<number>(5).fill(1), ...Array<number>(25).fill(2), 3, 3, 3]);
+    /** Cut: four of five answers at each of the 25 places of the second level and at each of the 3 past it, and
+     * the 22 + 3 paths that were waiting when the paths ran out. */
+    expect(coverage).toEqual({ whole: 31, paths: 3, states: 34, clipped: 25 * 4 + 3 * 4 + 22 + 3 });
+  });
+  it("leaves nothing unwalked where the bounds cut nothing, and enters the same place once", async () => {
+    const two: readonly Path[] = [[{ kind: "confirm" }], [{ kind: "cancel" }]];
+    const ends = (path: Path) =>
+      Promise.resolve({ fingerprint: String(path.length), branches: path.length ? [] : two });
+    expect(await breadthFirst(ends)).toEqual({ whole: 3, paths: 0, states: 2, clipped: 0 });
   });
   it("checks outside errors and fails internal errors without cases, preserving the original", async () => {
     const folder = saved();

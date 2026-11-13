@@ -42,9 +42,21 @@ describe("the journals a program keeps", () => {
     const checks = keptChecks(shopProgram, shopShown, folder);
     expect(checks.map(check => check.name)).toEqual([
       "the journal kept as shop.sqlite still opens: every fact is read and folds, and every thing is read",
-      "the journal kept as shop.sqlite walks offered answers within 128 paths, 24 levels, 16 choices",
+      "the journal kept as shop.sqlite walks every answer offered in its first 2 levels, and past them " +
+        "64 paths within 24 levels, 16 choices",
     ]);
     expect(await failing(checks)).toEqual([]);
+  });
+
+  it("say, once walked, how much they walked and how many offered answers they left unwalked", async () => {
+    const [, walk] = keptChecks(shopProgram, shopShown, folder);
+    expect(walk?.report?.()).toBeUndefined();
+    await walk?.run();
+    const walked =
+      /^the journal kept as shop\.sqlite: \d+ paths walked its first levels whole and \d+ went past them, /u;
+    const left = /, through \d+ places; (\d+ offered answers were|no offered answer was) left unwalked$/u;
+    expect(walk?.report?.()).toMatch(walked);
+    expect(walk?.report?.()).toMatch(left);
   });
 
   it("fail a program that no longer folds a fact they hold: nothing is skipped to make them open", async () => {
@@ -58,6 +70,7 @@ describe("the journals a program keeps", () => {
     expect(why.length).toBe(2);
     expect(why.every(failure => failure.includes("does not fold sale-registered"))).toBe(true);
     expect(why[0]).toContain("does not fold sale-registered");
+    expect(keptChecks(deaf, shopShown, folder).map(check => check.report?.())).toEqual([undefined, undefined]);
   });
 
   it("are none where the program keeps none", () => {

@@ -991,7 +991,7 @@
     {
       "id": 129,
       "rule": "Un objeto abierto se lee siempre en los grupos que declaró su herramienta, en el mismo orden; un grupo sin nada lo dice. Un dato que ningún grupo tiene hace fallar la lectura",
-      "from": "11/11 · objetos: presentación y navegación",
+      "from": "LEYES 14 · 11/11 · objetos: presentación y navegación",
       "guarantee": "spec",
       "evidence": ["src/surface/bridge/presented.ts", "src/surface/bridge/presented.spec.ts"]
     },
@@ -1012,7 +1012,7 @@
     {
       "id": 132,
       "rule": "Una pregunta que abre con algo escrito lo muestra entero y encendido: escribir lo reemplaza; una flecha o borrar lo editan",
-      "from": "11/11 · plan de Capibara: el valor sugerido",
+      "from": "LEYES 15 · 11/11 · plan de Capibara: el valor sugerido",
       "guarantee": "spec",
       "evidence": [
         "src/surface/walking.ts",
@@ -1023,7 +1023,7 @@
     {
       "id": 133,
       "rule": "Una herramienta puede vivir dentro de otra: no tiene fila en el Menú, se lista y se abre desde la herramienta en la que vive, con su tecla, y sus promesas se recorren por ahí. Vive en una herramienta que está en el Menú, y su tecla no repite la de otra fila de ese lugar",
-      "from": "11/11 · obra de Capibara: canales en Ventas, publicaciones en Productos, documentos en Identidades",
+      "from": "LEYES 16 · 11/11 · obra de Capibara: canales en Ventas, publicaciones en Productos, documentos en Identidades",
       "guarantee": "derived",
       "evidence": [
         "src/surface/lists.ts",
@@ -1524,7 +1524,7 @@
     },
     {
       "id": 181,
-      "rule": "Cada registro guardado se recorre en anchura sobre copias descartables: al aceptar lo ofrecido no aparece Error salvo una causa de outside, ninguna pregunta de opciones queda sin respuesta elegible y toda fila apagada dice su motivo. La exploración es acotada: 128 caminos, 24 niveles y 16 alternativas por estado; no inventa texto ni escribe secretos.",
+      "rule": "Cada registro guardado se recorre en anchura sobre copias descartables: al aceptar lo ofrecido no aparece Error salvo una causa de outside, ninguna pregunta de opciones queda sin respuesta elegible y toda fila apagada dice su motivo. Los dos primeros niveles se recorren enteros: cada fila del Menú y cada fila de lo que abre, sean las que sean. Más allá la exploración es acotada (64 caminos, 24 niveles y 16 alternativas por estado), y cuánto recorrió y cuántas respuestas ofrecidas quedaron sin recorrer se dice en la salida de la compuerta. No inventa texto ni escribe secretos.",
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
       "guarantee": "derived",
       "evidence": [

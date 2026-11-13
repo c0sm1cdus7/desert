@@ -13,8 +13,8 @@ import type { Composition } from "../tools/promises.ts";
 import type { KeyStore, Program } from "../tools/tool-contract.ts";
 import { startState, toolsStep } from "../tools/tools.ts";
 import { localPorts, startHouse } from "./house-runtime.ts";
-import { breadthFirst } from "./kept-walk.ts";
-import { keptPath } from "./kept-path.ts";
+import { breadthFirst, keptWalkLimits, type WalkCoverage } from "./kept-walk.ts";
+import { keptPath, type Path } from "./kept-path.ts";
 import type { Check } from "./promised-stage.ts";
 
 /** A kept journal is read, never used: no service of its house is reached, and no credential of it is there. */
@@ -68,21 +68,28 @@ async function opened<X extends Program, R>(
     rmSync(home, { recursive: true, force: true });
   }
 }
-/** One check for each journal kept in a folder of the program; none, where the program keeps none. */
+/** The walk of one kept journal. What it covered and what it left unwalked is kept for whoever runs it to say. */
+function walk<X extends Program>(source: Kept<X>, file: string, name: string): Check {
+  let walked: WalkCoverage | undefined;
+  const { program, shown } = source;
+  const replay = (path: Path) => opened(source, file, (house, now) => keptPath(program, shown, house, now, path));
+  return {
+    name: said.keptWalks(name, keptWalkLimits),
+    run: async () => {
+      walked = undefined;
+      walked = await breadthFirst(replay);
+    },
+    report: () => walked && said.keptWalked(name, walked),
+  };
+}
+/** Two checks for each journal kept in a folder of the program; none, where the program keeps none. */
 export function keptChecks<X extends Program>(program: Composition<X>, shown: Shown<X>, folder: string): Check[] {
   if (!existsSync(folder)) return [];
   const kept = readdirSync(folder).filter(name => name.endsWith(".sqlite"));
   return kept.sort().flatMap(name => {
     const source = { program, shown };
     const file = join(folder, name);
-    return [
-      { name: said.keptOpens(name), run: () => opened(source, file, (house, now) => read(source, house, now)) },
-      {
-        name: said.keptWalks(name),
-        run: async () => {
-          await breadthFirst(path => opened(source, file, (house, now) => keptPath(program, shown, house, now, path)));
-        },
-      },
-    ];
+    const opens = () => opened(source, file, (house, now) => read(source, house, now));
+    return [{ name: said.keptOpens(name), run: opens }, walk(source, file, name)];
   });
 }

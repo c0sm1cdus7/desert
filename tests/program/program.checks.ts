@@ -35,5 +35,12 @@ describe("the journals the program keeps", () => {
   it("are read from the folder the program names, or the program names none", () => {
     if (typeof journals === "string" && !kept.length) throw new Error(`${journals} keeps no journal`);
   });
-  for (const check of kept) it(check.name, check.run);
+  /** What the walk of a kept journal covered, and what it left unwalked, is said where the gate is read: written
+   * straight to its output, which is there whoever runs it (what a passing test logs is hidden from an agent). */
+  for (const check of kept)
+    it(check.name, async () => {
+      await check.run();
+      const covered = check.report?.();
+      if (covered) process.stdout.write(`${covered}\n`);
+    });
 });
