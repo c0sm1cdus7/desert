@@ -26,6 +26,7 @@ export function quietScreen(screen: Screen): void {
         .map(span => span.text)
         .join("")
         .startsWith(`${surfaceTexts.error} `),
+      said.questionError,
     );
     if (!screen.body.entry || !event.nested) continue;
     ok(event.text.every(span => span.tone === "t3"));

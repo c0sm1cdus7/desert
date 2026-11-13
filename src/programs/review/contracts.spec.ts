@@ -81,7 +81,7 @@ it("fails the derived check when a custom screen offers a closed thing", async (
   };
   const check = choiceChecks(closed, shown).find(check => check.name.includes("picked by its name"));
   expect(check).toBeDefined();
-  await expect(check?.run()).rejects.toThrow();
+  await expect(check?.run()).rejects.toMatchObject({ actual: true, expected: false });
 });
 it("records an inconsistent unchanged option as a defect instead of labeling another value current", () => {
   const source = unchangedShop("one");
@@ -138,7 +138,9 @@ it("rejects a plain dated question at composition and through the derived gate",
   });
   const check = programChecks(program, shopShown).find(check => check.name.endsWith(", by keys"));
   expect(check).toBeDefined();
-  await expect(check?.run()).rejects.toThrow();
+  await expect(check?.run()).rejects.toThrow(
+    "sales register holds a day to today and the program does not say what day it is",
+  );
 });
 it("checks also.off against declared causes while drawing, and fails the derived gate", async () => {
   const program = {
@@ -180,5 +182,5 @@ it("checks also.off against declared causes while drawing, and fails the derived
       check.name.endsWith(", by keys"),
   );
   expect(check).toBeDefined();
-  await expect(check?.run()).rejects.toThrow();
+  await expect(check?.run()).rejects.toThrow("E-PROG-1 · Falló el programa · sales/sales");
 });

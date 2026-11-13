@@ -81,7 +81,7 @@ describe("a program defect is never the thrown cause on the action", () => {
         / · (prints|offline)(, by keys)?$/.test(check.name),
       );
       expect(checks).toHaveLength(4);
-      for (const check of checks) await expect(check.run()).rejects.toThrow();
+      for (const check of checks) await expect(check.run()).rejects.toThrow("E-PROG-1 · Falló el programa · imprimir");
     });
   }
   it("does not accept a defect even if a declared outside case promises the fixed public text", async () => {

@@ -2,6 +2,7 @@
 import type { HouseEmission } from "../../journal/events.ts";
 import type { Execution } from "../execute.ts";
 import type { Program } from "../tool-contract.ts";
+import { failureEntry } from "../boundaries/failure-entry.ts";
 import { baseEntry, lostDiagnostic } from "./base-failure.ts";
 
 export function startAct<X extends Program>(ports: Execution<X>, emission: HouseEmission<"act">) {
@@ -9,7 +10,7 @@ export function startAct<X extends Program>(ports: Execution<X>, emission: House
     return { act: ports.bus.emit(emission) };
   } catch (error) {
     const { object, option } = emission.data;
-    const entry = ports.secrets.scrub(baseEntry(error, emission.by, object, object, option));
+    const entry = ports.secrets.scrub(failureEntry(error, emission.by, object, object, option));
     try {
       ports.bus.emit(entry);
     } catch (failure) {

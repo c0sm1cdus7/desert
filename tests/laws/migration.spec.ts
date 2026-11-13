@@ -2,12 +2,12 @@
 import { describe, expect, it } from "vitest";
 import type { Field } from "../../src/surface/contract.ts";
 import type { Tool } from "../../src/surface/shown-tool.ts";
-import { begin, type Done } from "../../src/surface/screen.ts";
+import { begin, fieldOf, type Done } from "../../src/surface/screen.ts";
 import { walking } from "../../src/surface/walking.ts";
 import { narrowed } from "../../src/surface/bridge/questions/picked-options.ts";
 
 type Gate = "among" | "valid" | "stops";
-function toolsFor(gate: Gate): readonly Tool[] {
+function toolsFor(gate: Gate, reason = true): readonly Tool[] {
   const bare: Field & { kind: "pick" } = {
     kind: "pick",
     ask: "Cosa",
@@ -19,6 +19,7 @@ function toolsFor(gate: Gate): readonly Tool[] {
       { title: "Otra", value: "other" },
     ],
     valid: value => gate !== "valid" || value !== "new",
+    wrong: value => (gate === "valid" && reason && value === "new" ? "no admitida" : undefined),
   };
   const field = narrowed(
     bare,
@@ -46,14 +47,22 @@ function toolsFor(gate: Gate): readonly Tool[] {
   ];
 }
 describe("migration: creation never bypasses the receiving question", () => {
+  it("treats valid false without a reason as a program defect", () => {
+    expect(() => begin(toolsFor("valid", false), "things", "take")).toThrow("OutsideDefect");
+  });
   for (const gate of ["among", "valid", "stops"] satisfies readonly Gate[]) {
     it(`rechecks ${gate} before changing answers or requesting execution`, () => {
       const tools = toolsFor(gate);
-      if (gate === "valid") {
-        expect(() => begin(tools, "things", "take")).toThrow("OutsideDefect");
-        return;
-      }
       const parent = begin(tools, "things", "take");
+      if (gate === "valid") {
+        const field = fieldOf(tools, parent);
+        expect(field?.kind === "pick" && field.found("")).toContainEqual({
+          title: "Nueva",
+          value: "new",
+          off: true,
+          detail: "no admitida",
+        });
+      }
       const created: Done = { ...parent, phase: "done", done: "Creada", returns: true, made: "new" };
       const result = walking([parent, created], created, tools, { kind: "cancel" }, 1);
       expect(result.run).toBeUndefined();

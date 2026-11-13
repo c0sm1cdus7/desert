@@ -70,7 +70,9 @@ describe("the gate closes every internal refusal before running", () => {
       Reflect.set(changed, "run", () => ({ status: "accepted", text: "printer offline · desk" }));
       return changed;
     });
-    await expect(byKeys(silent, "printer is offline")).rejects.toThrow();
+    await expect(byKeys(silent, "printer is offline")).rejects.toThrow(
+      "An external refusal did not finish as Error with its cause",
+    );
   });
   it("fails a compiling surface with an empty later question in an accepted case", async () => {
     await expect(byKeys(shopProgram, "as it was told", emptyLater)).rejects.toThrow("nothing eligible");

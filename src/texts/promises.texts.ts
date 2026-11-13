@@ -1,5 +1,8 @@
+import { checkDiagnostics } from "./checks/diagnostics.texts.ts";
 // How the checks that a program's promises derive are named, and what they say when a case cannot even start.
 export const promiseTexts = {
+  ...checkDiagnostics,
+
   partialReason: "an incomplete answer shows a reason",
   keptWalks: (name: string) =>
     `the journal kept as ${name} walks offered answers within 128 paths, 24 levels, 16 choices`,

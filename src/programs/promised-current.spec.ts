@@ -82,7 +82,7 @@ describe("current values through every entry", () => {
       check => check.name.startsWith("sales · correct ·") && check.name.endsWith(", by keys"),
     );
     expect(checks).toHaveLength(4);
-    for (const check of checks) await expect(check.run()).rejects.toThrow();
+    for (const check of checks) await expect(check.run()).rejects.toThrow("The current answer can be submitted");
   });
 
   it("fails the derived guarantee when a compiling surface drops the current values", async () => {
@@ -90,6 +90,6 @@ describe("current values through every entry", () => {
       check => check.name.startsWith("sales · correct ·") && check.name.endsWith(", by keys"),
     );
     expect(checks).toHaveLength(4);
-    for (const check of checks) await expect(check.run()).rejects.toThrow(/Expected values to be strictly deep-equal/u);
+    for (const check of checks) await expect(check.run()).rejects.toThrow("The question lost the current answers");
   });
 });

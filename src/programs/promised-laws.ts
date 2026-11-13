@@ -84,6 +84,7 @@ export function coverage<X extends Program>(program: Composition<X>, aim: Aim<X>
           ),
         ),
         own([...aim.act.refuses, ...aim.act.outside]),
+        said.causesMismatch,
       );
     });
   return { name: label(aim, said.covered), run };

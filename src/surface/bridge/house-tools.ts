@@ -1,4 +1,6 @@
+import { programCall } from "../../tools/boundaries/program-call.ts";
 // A house's tools as a surface sees them: what is read comes from the house, and every change goes through its acts.
+import { builtScreen } from "./execution/program-screen.ts";
 import { thingView } from "./presented.ts";
 import { allowed, hides } from "../../house/house.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
@@ -8,7 +10,6 @@ import type { Tool, ViewRow } from "../shown-tool.ts";
 import type { Option } from "../contract.ts";
 import { backKey as back } from "../screen.ts";
 import type { Things } from "./asking.ts";
-import { anyToolScreen } from "./any-tool.ts";
 import { auditFields } from "./audit-fields.ts";
 import { listsOf, ownReads, type HousePorts, type Shown, type SurfacePorts, type ToolWords } from "./house-ports.ts";
 import { makerOptions } from "./makers.ts";
@@ -110,13 +111,13 @@ const thingsOf = <X extends Program>(ports: HousePorts<X>, { words }: Shown<X>, 
     /** The things of a tool this identity does not hold are out of reach: none is found, and it says why. */
     const why = tool.off?.();
     if (why !== undefined) return { found: () => [], shown: thing => thing, has: () => false, empty: why };
-    const open = (thing: string): boolean => contract.closed?.(ports.state(), thing, ports.now()) !== true;
+    const open = (thing: string): boolean => programCall(contract.closed, ports.state(), thing, ports.now()) !== true;
     return {
       empty: listsOf(words[id])?.empty ?? "",
       found: sought =>
         (tool.find?.(sought) ?? []).flatMap(row => (row.opens && open(row.opens) ? [picked(row, row.opens)] : [])),
       shown: thing => tool.titleOf?.(thing) ?? thing,
-      has: thing => contract.targets(ports.state()).includes(thing) && open(thing),
+      has: thing => programCall(contract.targets, ports.state()).includes(thing) && open(thing),
       make: act => make(contract, tool, act),
     };
   };
@@ -132,7 +133,7 @@ function withThings<X extends Program>(
   const record = recordOf(ports, shown.moment);
   const thing = (target: string) => [...declared(target), ...record(target)];
   const isThing = (target?: string): target is string =>
-    target !== undefined && contract.targets(ports.state()).includes(target);
+    target !== undefined && programCall(contract.targets, ports.state()).includes(target);
   /** Its things are its own, whatever screen shows it: a row of any tool that names one of them leads here. */
   const has = (target: string): boolean | undefined => screen.has?.(target) ?? (isThing(target) || undefined);
   return { ...screen, has, view: target => (isThing(target) ? thing(target) : screen.view(target)) };
@@ -152,14 +153,14 @@ export function houseTools<X extends Program>(ports: HousePorts<X>, shown: Shown
   });
   const own: Tool[] = built.map(({ contract, words, acts, start }) => {
     const mine = (): boolean => allowed(ports.state().house, ports.me, contract.id);
-    const screen = shown.screens?.[contract.id] ?? anyToolScreen;
-    const tool = withThings(observed, contract, { words, shown }, screen(observed, contract, words, acts, start));
+    const screen = builtScreen(shown.screens?.[contract.id], observed, contract, words, acts, start);
+    const tool = withThings(observed, contract, { words, shown }, screen);
     const calls = () => ports.state().attention.has(contract.id);
     const { notices, seen: looked } = noticesOf(observed, contract, tool);
     /** What the other tools offer on a thing of this one: only on a thing, never on a view that groups them. */
     const others = built.filter(other => other.contract.id !== contract.id);
     const alsoOn = (target: string): ViewRow[] =>
-      contract.targets(ports.state()).includes(target)
+      programCall(contract.targets, ports.state()).includes(target)
         ? others.flatMap(other => other.offers(contract.id, target))
         : [];
     return {

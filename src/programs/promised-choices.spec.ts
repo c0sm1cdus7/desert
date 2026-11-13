@@ -34,9 +34,21 @@ const broken = (tool: string, change: (options: readonly Option[]) => readonly O
   },
 });
 const sabotages = [
-  { name: "removes blocked rows", change: (rows: readonly Option[]) => rows.filter(row => !row.off) },
-  { name: "enables blocked rows", change: (rows: readonly Option[]) => rows.map(row => ({ ...row, off: false })) },
-  { name: "erases the reason", change: (rows: readonly Option[]) => rows.map(row => ({ ...row, detail: "" })) },
+  {
+    name: "removes blocked rows",
+    why: "A blocked choice is missing",
+    change: (rows: readonly Option[]) => rows.filter(row => !row.off),
+  },
+  {
+    name: "enables blocked rows",
+    why: "A blocked choice is enabled",
+    change: (rows: readonly Option[]) => rows.map(row => ({ ...row, off: false })),
+  },
+  {
+    name: "erases the reason",
+    why: "A blocked choice lost its reason",
+    change: (rows: readonly Option[]) => rows.map(row => ({ ...row, detail: "" })),
+  },
 ];
 describe("choices checked before choosing", () => {
   for (const check of [...promisedChecks(choosingShop), ...walkedChecks(choosingShop, shopShown)])
@@ -49,7 +61,12 @@ describe("choices checked before choosing", () => {
       ] as const) {
         const checks = choiceChecks(program, broken(tool, sabotage.change));
         const failed: string[] = [];
-        for (const check of checks) await check.run().catch(() => failed.push(check.name));
+        for (const check of checks)
+          await check.run().catch((error: unknown) => {
+            expect(error, check.name).toBeInstanceOf(Error);
+            expect(error instanceof Error && error.message, check.name).toContain(sabotage.why);
+            failed.push(check.name);
+          });
         expect(failed).toHaveLength(tool === "payments" ? 3 : 2);
       }
     });
@@ -69,7 +86,8 @@ describe("choices checked before choosing", () => {
     };
     const checks = choiceChecks(program, shopShown).filter(check => check.name.startsWith("payments · charge ·"));
     expect(checks).toHaveLength(3);
-    for (const check of checks) await expect(check.run()).rejects.toThrow();
+    for (const check of checks)
+      await expect(check.run()).rejects.toMatchObject({ detail: "An act refused with a cause it does not declare: " });
   });
   it("opens on the eligible option, ignores the disabled key, and never runs that rejection", () =>
     staged(choosingShop, async ({ house }) => {

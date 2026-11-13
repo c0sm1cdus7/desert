@@ -1,8 +1,8 @@
 // The fields an act can take. Each one carries how it is asked, so the question is declared once, with the datum.
+import { programCall } from "../tools/boundaries/program-call.ts";
 import { Type, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { toolTexts } from "../texts/tools.texts.ts";
-
 const isoDay = "^\\d{4}-\\d{2}-\\d{2}$";
 type Choice = Readonly<{ title: string; key: string }>;
 /** After each thing of a list, whether another follows: the question and its two answers, each with its key. */
@@ -101,7 +101,7 @@ export const when = <T extends TSchema>(field: T, asked: Asked) => Type.Optional
 /** Whether a field of a datum is asked, as its declaration says: always, unless it says when. */
 export function isAsked(schema: unknown, answered: Readonly<Record<string, unknown>>, at: number): boolean {
   const asks: unknown = schema !== null && typeof schema === "object" ? Reflect.get(schema, "when") : undefined;
-  return !isAsker(asks) || asks(answered, at);
+  return !isAsker(asks) || programCall(asks, answered, at);
 }
 const isAsker = (asks: unknown): asks is Asked => typeof asks === "function";
 /** Why a datum that is complete still does not hold, when that is so: a check digit that does not match. */
@@ -117,7 +117,7 @@ const first = (causes: readonly (string | undefined)[]): string | undefined =>
 /** Why a value does not hold as its declaration says: what the first field of it that knows says. */
 export function wrongIn(schema: unknown, value: unknown, at: number): string | undefined {
   const check = part(schema, "wrong");
-  if (isWrong(check) && typeof value === "string") return check(value, at);
+  if (isWrong(check) && typeof value === "string") return programCall(check, value, at);
   const arms = part(schema, "anyOf");
   if (Array.isArray(arms))
     return first(arms.map(arm => (Value.Check(arm, value) ? wrongIn(arm, value, at) : undefined)));

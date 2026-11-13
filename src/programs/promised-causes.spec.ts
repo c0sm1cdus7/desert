@@ -77,7 +77,12 @@ for (const mode of ["offered", "stops", "wrong", "among"] satisfies readonly Mod
     it("fails both derived doors instead of accepting the undeclared refusal as an outside error", async () => {
       const checks = programChecks(broken(mode), shopShown).filter(check => / · works(, by keys)?$/.test(check.name));
       expect(checks).toHaveLength(2);
-      for (const check of checks) await expect(check.run()).rejects.toThrow();
+      for (const check of checks) {
+        const onMenu = check.name.endsWith(", by keys") && (mode === "offered" || mode === "among");
+        await expect(check.run()).rejects.toThrow(
+          `E-PROG-1 · Falló el programa · ${onMenu ? "payments/payments" : "probar"}`,
+        );
+      }
     });
   });
 }

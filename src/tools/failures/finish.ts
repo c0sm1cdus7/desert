@@ -41,7 +41,7 @@ export function finish<X extends Program>(ports: Execution<X>, act: HouseEvent<"
   const data = { ...defect, act: act.id, status: done.status, reason: done.reason ?? "", ...output };
   const result = writtenEffects(ports, act, [effect("act-result", data, act.by, [act.id], act.process)]);
   if (result !== undefined) {
-    const failed = failedDecision(ports, act, new BaseFailure(result));
+    const failed = failedDecision(ports, act, result.error);
     const lost = writtenEffects(ports, act, failed.effects);
     if (lost !== undefined) reportLost(ports, act, failed, lost);
     return failed;

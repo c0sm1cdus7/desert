@@ -41,7 +41,12 @@ const shouting: Shown<Shop> = {
 describe("a question never marks an input error", () => {
   it("fails only the case whose question shows an Error, with a variant that compiles", async () => {
     const failed: string[] = [];
-    for (const check of walkedChecks(checkingShop, shouting)) await check.run().catch(() => failed.push(check.name));
+    for (const check of walkedChecks(checkingShop, shouting))
+      await check.run().catch((error: unknown) => {
+        expect(error, check.name).toBeInstanceOf(Error);
+        expect(error instanceof Error && error.message, check.name).toContain("A question presents a refusal as Error");
+        failed.push(check.name);
+      });
     expect(failed).toEqual([`${wrongName}, by keys`]);
   });
 });

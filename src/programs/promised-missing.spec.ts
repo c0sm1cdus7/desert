@@ -49,11 +49,14 @@ describe("a case naming a thing that does not exist", () => {
     }));
     const check = promisedChecks({ ...chargingShop, registry }).find(check => check.name.endsWith(missing));
     expect(check).toBeDefined();
-    await expect(check?.run()).rejects.toThrow();
+    await expect(check?.run()).rejects.toMatchObject({
+      actual: ["accepted", undefined],
+      expected: ["rejected", "unknown"],
+    });
   });
   it("fails a compiling surface that invents a row for the missing reference", async () => {
     const check = walkedChecks(chargingShop, invented).find(check => check.name.endsWith(`${missing}, by keys`));
     expect(check).toBeDefined();
-    await expect(check?.run()).rejects.toThrow();
+    await expect(check?.run()).rejects.toThrow("The refusal is not visible where it is chosen: unknown");
   });
 });

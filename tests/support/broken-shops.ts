@@ -82,57 +82,70 @@ const covered = "sales · register · promises a case for what it does and for e
 const paid = "payments · receive · a payment for a sale is received";
 /** The same check walked by keys: a promise broken in the act is broken on every door. */
 const keys = (check: string): string => `${check}, by keys`;
-export const brokenShops: readonly Readonly<{ name: string; program: Composition<Shop>; fails: readonly string[] }>[] =
-  [
-    {
-      name: "a shop that writes another total than the one it was told",
-      program: registering((input, context) => honest({ ...input, total: input.total + 1 }, context)),
-      fails: [told, keys(told)],
-    },
-    {
-      name: "a shop that registers the same sale twice",
-      program: registering(honest, ["repeated"], true),
-      fails: [again, keys(again)],
-    },
-    {
-      name: "a shop that refuses with a cause it never declared",
-      program: registering(honest, []),
-      fails: [covered, again, keys(again)],
-    },
-    {
-      name: "a shop that declares a refusal and promises no case for it",
-      program: registering(honest, ["repeated", "closed"]),
-      fails: [covered],
-    },
-    {
-      name: "a shop that says something else than it promised",
-      program: registering((input, context) => {
-        const done = honest(input, context);
-        return done.status === "accepted" ? { ...done, text: "Done" } : done;
-      }),
-      fails: [told, keys(told)],
-    },
-    {
-      name: "a shop that says what was done to who did it, as it promised to",
-      program: speaking(),
-      fails: [told],
-    },
-    {
-      name: "a shop that tells of a sale only who registered it",
-      program: registering((input, context) => {
-        const done = honest(input, context);
-        return done.status === "accepted" ? { ...done, recipient: context.by } : done;
-      }),
-      fails: [told],
-    },
-    {
-      name: "a shop that keeps another total than the one its sale reads",
-      program: { ...shopProgram, slices: { ...shopSlices, step: { ...shopSlices.step, sales: doubling } } },
-      fails: [told],
-    },
-    {
-      name: "a shop whose sales cannot be rebuilt from the journal alone",
-      program: { ...shopProgram, slices: { ...shopSlices, step: { ...shopSlices.step, sales: forgetful } } },
-      fails: [told, again, paid],
-    },
-  ];
+export const brokenShops: readonly Readonly<{
+  name: string;
+  program: Composition<Shop>;
+  fails: readonly string[];
+  because: readonly string[];
+}>[] = [
+  {
+    name: "a shop that writes another total than the one it was told",
+    program: registering((input, context) => honest({ ...input, total: input.total + 1 }, context)),
+    fails: [told, keys(told)],
+    because: ["Written facts differ from the case"],
+  },
+  {
+    name: "a shop that registers the same sale twice",
+    program: registering(honest, ["repeated"], true),
+    fails: [again, keys(again)],
+    because: ["The refusal differs from the case", "An internal refusal could be submitted"],
+  },
+  {
+    name: "a shop that refuses with a cause it never declared",
+    program: registering(honest, []),
+    fails: [covered, again, keys(again)],
+    because: ["Declared causes differ from the cases", "E-PROG-1 · Falló el programa · registrar"],
+  },
+  {
+    name: "a shop that declares a refusal and promises no case for it",
+    program: registering(honest, ["repeated", "closed"]),
+    fails: [covered],
+    because: ["Declared causes differ from the cases"],
+  },
+  {
+    name: "a shop that says something else than it promised",
+    program: registering((input, context) => {
+      const done = honest(input, context);
+      return done.status === "accepted" ? { ...done, text: "Done" } : done;
+    }),
+    fails: [told, keys(told)],
+    because: ["The action says something other than its case", "the screen does not say: Registrada · s1"],
+  },
+  {
+    name: "a shop that says what was done to who did it, as it promised to",
+    program: speaking(),
+    fails: [told],
+    because: ["what the act says speaks to who reads it: Registraste · s1"],
+  },
+  {
+    name: "a shop that tells of a sale only who registered it",
+    program: registering((input, context) => {
+      const done = honest(input, context);
+      return done.status === "accepted" ? { ...done, recipient: context.by } : done;
+    }),
+    fails: [told],
+    because: ["what the act says is for one identity alone exactly when its case promises that"],
+  },
+  {
+    name: "a shop that keeps another total than the one its sale reads",
+    program: { ...shopProgram, slices: { ...shopSlices, step: { ...shopSlices.step, sales: doubling } } },
+    fails: [told],
+    because: ["The reading differs from the case"],
+  },
+  {
+    name: "a shop whose sales cannot be rebuilt from the journal alone",
+    program: { ...shopProgram, slices: { ...shopSlices, step: { ...shopSlices.step, sales: forgetful } } },
+    fails: [told, again, paid],
+    because: ["The reading differs from the case", "Replaying the journal changes the state"],
+  },
+];

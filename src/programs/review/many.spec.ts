@@ -79,5 +79,5 @@ it("rejects a screen that forgets the rule for the combination", async () => {
   const checks = choiceChecks(program, shown);
   expect(checks.length).toBeGreaterThanOrEqual(2);
   for (const check of checks.filter(check => check.name.startsWith("payments")))
-    await expect(check.run()).rejects.toThrow();
+    await expect(check.run()).rejects.toThrow("An unchanged set of marks can be submitted");
 });

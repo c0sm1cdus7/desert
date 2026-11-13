@@ -1,11 +1,10 @@
 // The public result of a program action: its words and destination, without technical diagnostics.
-import type { Decision } from "../../tools/execute.ts";
-import { portReason } from "../../tools/failures/port-failure.ts";
-import type { Emission } from "../../journal/events.ts";
-import type { Program } from "../../tools/tool-contract.ts";
-import { surfaceTexts as said } from "../../texts/surface.texts.ts";
-import type { Result } from "../shown-tool.ts";
-import { attendAndAct, type SurfacePorts } from "./house-ports.ts";
+import type { Decision } from "../../../tools/execute.ts";
+import type { Emission } from "../../../journal/events.ts";
+import type { Program } from "../../../tools/tool-contract.ts";
+import { surfaceTexts as said } from "../../../texts/surface.texts.ts";
+import type { Result } from "../../shown-tool.ts";
+import { attendAndAct, type SurfacePorts } from "../house-ports.ts";
 /** What the tool wrote about the act it just ran, when it wrote something. */
 const wroteBy = (effects: readonly Emission[]): string | undefined => {
   for (const effect of effects) if (effect.layer === "house" && effect.kind === "tool-entry") return effect.data.text;
@@ -26,7 +25,7 @@ export async function programResult<X extends Program>(
 ): Promise<Result> {
   const done = await attendAndAct(ports, target, name, input).catch((error: unknown): Decision<X> => ({
     status: "rejected" as const,
-    reason: portReason(error),
+    reason: ports.defect(error, target, target, name),
     effects: [],
   }));
   if (done.status !== "accepted") return { ok: false, reason: done.reason ?? "" };

@@ -1,3 +1,4 @@
+import { OutsideDefect } from "../../tools/outside.ts";
 // The three kinds of failure have distinct public results, diagnostics and an Escape back to the same tool.
 import { expect, it, vi } from "vitest";
 import { shopProgram, shopShown, paymentsTool, salesTool } from "../../../tests/support/shop.ts";
@@ -28,23 +29,65 @@ const folded = {
     },
   },
 };
+const reacted = (kind = "sale-registered") => ({
+  ...shopProgram,
+  registry: [
+    paymentsTool,
+    {
+      ...salesTool,
+      effects: (_state: unknown, event: { kind: string }) => {
+        if (event.kind === kind) throw new Error("effects stack");
+        return [];
+      },
+    },
+  ],
+});
+const listened = {
+  ...shopProgram,
+  registry: [
+    paymentsTool,
+    {
+      ...salesTool,
+      start: (ports: import("../../tools/execute.ts").Execution<import("../../../tests/support/shop.ts").Shop>) =>
+        ports.bus.on("sale-registered", () => {
+          throw new Error("program listener diagnostic");
+        }),
+    },
+  ],
+};
 const tested = (mode: string) => {
+  if (mode === "effects") return reacted();
+  if (mode === "effects initial") return reacted("act");
+  if (mode === "effects started") return reacted("act-started");
+  if (mode === "effects result") return reacted("act-result");
+  if (mode === "program listener") return listened;
+  if (mode === "fold") return folded;
   if (mode === "lost fold") return folded;
   return mode === "program" || mode === "lost" ? broken : shopProgram;
 };
 const publicReason = (mode: string) => {
-  if (mode === "program") return "E-PROG-1";
+  if (mode.startsWith("effects")) return "E-PROG-1";
+  if (["program", "effects", "fold", "escaped program", "program listener"].includes(mode)) return "E-PROG-1";
   if (mode === "port") return "servicio sin respuesta";
-  return mode === "raw port" ? toolTexts.disconnected : "E-BASE-1";
+  return mode === "port without cause" ? toolTexts.disconnected : "E-BASE-1";
 };
 for (const mode of [
   "program",
+  "effects",
+  "effects initial",
+  "effects started",
+  "effects result",
+  "program listener",
+  "fold",
   "journal",
   "listener",
   "lost",
   "lost fold",
   "port",
   "raw port",
+  "async escape",
+  "escaped program",
+  "port without cause",
   "initial",
   "started",
   "result",
@@ -69,8 +112,16 @@ for (const mode of [
         if (mode === "listener" && event.kind === "sale-registered") throw new Error("listener stack");
       });
       const act: typeof ports.act = (...args) => {
-        if (mode === "port") throw new PortFailure("servicio sin respuesta");
+        if (mode === "port") throw new PortFailure("servicio sin respuesta", new Error("port stack"));
+        if (mode === "port without cause") throw new PortFailure(undefined, new Error("port stack"));
         if (mode === "raw port") throw new Error("ECONNRESET at internal host");
+        if (mode === "escaped program") throw new OutsideDefect(new Error("escaped program diagnostic"));
+        if (mode === "async escape")
+          return {
+            status: "processing",
+            effects: [],
+            completion: Promise.reject(new Error("escaped async diagnostic")),
+          };
         return ports.act(...args);
       };
       const router = houseRouter({ ...ports, act }, shopShown);
@@ -86,9 +137,19 @@ for (const mode of [
         expect(screen).toContain(publicReason(mode));
         expect(screen).toContain("Error");
         expect(screen).not.toMatch(/internal stack|disk unavailable|listener stack|ECONNRESET/);
-        if (mode !== "program") expect(screen).not.toContain("E-PROG-1");
+        if (publicReason(mode) !== "E-PROG-1") expect(screen).not.toContain("E-PROG-1");
         const record = JSON.stringify(house().tools.state().entries);
+        if (mode === "program listener") expect(record).toContain("program listener diagnostic");
+        if (mode.startsWith("effects")) expect(record).toContain("effects stack");
+        if (mode === "fold") expect(record).toContain("fold stack");
         if (mode === "program") expect(record).toContain("internal stack");
+        if (mode === "raw port") {
+          expect(screen).not.toContain(toolTexts.disconnected);
+          expect(record).toContain("ECONNRESET");
+        }
+        if (mode === "async escape") expect(record).toContain("escaped async diagnostic");
+        if (mode === "escaped program") expect(record).toContain("escaped program diagnostic");
+        if (mode.startsWith("port")) expect(record).toContain("port stack");
         if (mode === "journal") expect(record).toContain("disk unavailable");
         if (mode === "listener") expect(record).toContain("listener stack");
         if (mode === "lost" || mode === "lost fold") {

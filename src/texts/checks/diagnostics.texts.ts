@@ -1,0 +1,21 @@
+// Specific diagnostics identify the guarantee a compiling counterexample violates.
+export const checkDiagnostics = {
+  factsMismatch: "Written facts differ from the case",
+  saysMismatch: "The action says something other than its case",
+  refusalMismatch: "The refusal differs from the case",
+  causesMismatch: "Declared causes differ from the cases",
+  readsMismatch: "The reading differs from the case",
+  rebuiltMismatch: "Replaying the journal changes the state",
+  needsMismatch: "Attention differs from the case",
+  currentSent: "The current answer can be submitted",
+  currentLost: "The question lost the current answers",
+  marksSent: "An unchanged set of marks can be submitted",
+  outsideSilent: "An external refusal did not finish as Error with its cause",
+  blockedLost: "A blocked choice is missing",
+  blockedEnabled: "A blocked choice is enabled",
+  blockedReason: "A blocked choice lost its reason",
+  availableLost: "An unavailable action is missing",
+  availableEnabled: "An unavailable action is enabled",
+  availableShown: "An unavailable action is shown while disabled rows are hidden",
+  questionError: "A question presents a refusal as Error",
+} as const;

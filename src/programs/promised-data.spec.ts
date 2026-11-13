@@ -159,13 +159,19 @@ describe("a tool that reads data of its own, in the stacks its words say", () =>
 it("fails derived walks for a tool with loose stacks", async () => {
   const checks = programChecks(tillProgram, looseStacksShown).filter(check => check.name.includes("by keys"));
   expect(checks.length).toBeGreaterThan(0);
-  const failed: string[] = [];
+  const failed: { name: string; error: unknown }[] = [];
   for (const check of checks) {
     try {
       await check.run();
-    } catch {
-      failed.push(check.name);
+    } catch (error) {
+      failed.push({ name: check.name, error: error instanceof Error ? error.message : error });
     }
   }
-  expect(failed.length).toBeGreaterThan(0);
+  expect(failed).toEqual([
+    {
+      name: "till · float · a closed till keeps its float, by keys",
+      error: "E-PROG-1 · Falló el programa · till/till",
+    },
+    { name: "till · close · the till is closed, by keys", error: "E-PROG-1 · Falló el programa · till/till" },
+  ]);
 });

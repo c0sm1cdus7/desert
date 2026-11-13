@@ -1,8 +1,9 @@
+import { failing } from "../../tests/support/failed-checks.ts";
 // Acts under a menu of a thing: reached down the menus a person opens, each opening on what the thing is today.
 import { describe, expect, it } from "vitest";
 import { walkedChecks } from "./promised-walk.ts";
 import { seated, view } from "./promised-keys.ts";
-import { cast, given, staged, type Check } from "./promised-stage.ts";
+import { cast, given, staged } from "./promised-stage.ts";
 import { promisedChecks } from "./promised.ts";
 import {
   correctingShop,
@@ -18,11 +19,6 @@ import { shopShown, type Shop } from "../../tests/support/shop.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import type { Screen } from "../surface/contract.ts";
 
-async function failing(checks: readonly Check[]): Promise<string[]> {
-  const failed: string[] = [];
-  for (const check of checks) await check.run().catch(() => failed.push(check.name));
-  return failed;
-}
 const keys = (...checks: string[]): string[] => checks.map(check => `${check}, by keys`);
 /** Every check that has to reach the act under the menu. */
 const hidden = (check: string): string => `${check}, hidden for who prefers not to see what cannot be done`;
@@ -92,24 +88,41 @@ describe("a program with a menu on its things", () => {
   });
 
   it("refuses a row that names itself with a capital, as a label: what starts an act is said as an act", async () => {
-    const shouting = await failing(walkedChecks(correctingShop, shoutingShown));
+    const shouting = await failing(walkedChecks(correctingShop, shoutingShown), [
+      "OutsideDefect: An act's name is a sentence, or too long for its row: Total",
+      "E-PROG-1",
+    ]);
     expect(shouting).toEqual(everyWalk);
   });
 
   it("fails the walk of an act that no list a person reaches has", async () => {
-    expect(await failing(walkedChecks(correctingShop, lostShown))).toEqual(everyWalk);
+    expect(
+      await failing(walkedChecks(correctingShop, lostShown), [
+        "the act correct is not on the list",
+        "the act correct is not hidden exactly",
+      ]),
+    ).toEqual(everyWalk);
   });
 
   it("fails the walk a row breaks by saying the thing is today what it is not, and no other", async () => {
-    expect(await failing(walkedChecks(correctingShop, staleShown))).toEqual(keys(totalCorrected));
+    expect(
+      await failing(
+        walkedChecks(correctingShop, staleShown),
+        "the act correct is not on the list where its case needs it",
+      ),
+    ).toEqual(keys(totalCorrected));
   });
 
   it("fails every walk through a list where two rows take one key", async () => {
-    expect(await failing(walkedChecks(correctingShop, twinsShown))).toEqual(everyWalk);
+    expect(
+      await failing(walkedChecks(correctingShop, twinsShown), "two rows of sales/s1#edit/parts take the same key: t t"),
+    ).toEqual(everyWalk);
   });
 
   for (const check of walkedChecks(leavingCorrect, fragileShown)) it(`${check.name}, leaving its menu`, check.run);
   it("fails the walk of an act that takes away its own menu without saying so: it lands nowhere", async () => {
-    expect(await failing(walkedChecks(correctingShop, fragileShown))).toEqual(keys(paidCorrected));
+    expect(
+      await failing(walkedChecks(correctingShop, fragileShown), "E-PROG-1 · Falló el programa · sales/sales"),
+    ).toEqual(keys(paidCorrected));
   });
 });

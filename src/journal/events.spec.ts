@@ -95,8 +95,12 @@ describe("event bus", () => {
     const { bus, journal } = fixture();
     const seen: ShopEvent[] = [];
     bus.on(event => seen.push(event));
-    expect(() => bus.emit(effect("wake-at", { id: "x", at: NaN }, "test"))).toThrow();
-    expect(() => bus.emit(shop.fact("sale-registered", { sale: "s1", total: -1 }, "ana"))).toThrow();
+    expect(() => bus.emit(effect("wake-at", { id: "x", at: NaN }, "test"))).toThrow(
+      "Invalid event envelope or unknown kind",
+    );
+    expect(() => bus.emit(shop.fact("sale-registered", { sale: "s1", total: -1 }, "ana"))).toThrow(
+      "Invalid event envelope or unknown kind",
+    );
     expect(seen).toEqual([]);
     expect(journal.replay(0, count => count + 1)).toBe(0);
     expect(bus.emit(boot).seq).toBe(1);
@@ -119,8 +123,8 @@ describe("event bus", () => {
     const { bus, journal } = fixture();
     bus.close();
     bus.close();
-    expect(() => bus.emit(boot)).toThrow();
-    expect(() => bus.on(() => {})).toThrow();
+    expect(() => bus.emit(boot)).toThrow("The event bus is closed");
+    expect(() => bus.on(() => {})).toThrow("The event bus is closed");
     expect(journal.replay(0, count => count + 1)).toBe(0);
   });
 });
@@ -149,15 +153,15 @@ describe("a journal's vocabulary", () => {
       { ...event, cause: "e" },
       { ...event, extra: true },
     ])
-      expect(() => shop.read(wrong)).toThrow();
+      expect(() => shop.read(wrong)).toThrow("Invalid event envelope or unknown kind");
   });
 
   it("reads only its own program: another program's kind is unknown to it", () => {
     const other = vocabulary({ "stock-counted": Type.Object({ units: Type.Integer() }) });
     const counted = { ...event, layer: "program", kind: "stock-counted", data: { units: 3 } };
     expect(other.read(counted)).toEqual(counted);
-    expect(() => shop.read(counted)).toThrow();
-    expect(() => other.read(sold)).toThrow();
+    expect(() => shop.read(counted)).toThrow("Invalid event envelope or unknown kind");
+    expect(() => other.read(sold)).toThrow("Invalid event envelope or unknown kind");
   });
 
   it("refuses a program that takes a kind the house already writes, in types and when it runs", () => {

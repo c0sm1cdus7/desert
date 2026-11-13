@@ -121,13 +121,17 @@ describe("journal", () => {
     expect(() => db.exec("delete from events")).toThrow("append-only");
     expect(all(journal)).toEqual([original]);
     db.prepare(insert).run(2, "bad", 100, "sale-registered", "ana", "[]", "{}");
-    expect(() => all(journal)).toThrow();
+    expect(() => all(journal)).toThrow("This house's journal holds a fact this program does not read");
   });
 
   it("leaves neither a row nor a sequence gap when validation fails", () => {
     const journal = open(":memory:");
-    expect(() => journal.append(effect("wake-at", { id: "x", at: -1 }, "ana"), 100)).toThrow();
-    expect(() => journal.append(shop.fact("sale-registered", { sale: "", total: 1 }, "ana"), 100)).toThrow();
+    expect(() => journal.append(effect("wake-at", { id: "x", at: -1 }, "ana"), 100)).toThrow(
+      "Invalid event envelope or unknown kind",
+    );
+    expect(() => journal.append(shop.fact("sale-registered", { sale: "", total: 1 }, "ana"), 100)).toThrow(
+      "Invalid event envelope or unknown kind",
+    );
     expect(all(journal)).toEqual([]);
     expect(journal.append(boot, 100).seq).toBe(1);
   });

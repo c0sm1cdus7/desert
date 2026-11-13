@@ -13,7 +13,6 @@ import type { Composition } from "../tools/promises.ts";
 import { availabilityChecks } from "./promised-availability.ts";
 import { type, view } from "./promised-keys.ts";
 import { startRouter } from "../surface/router.ts";
-
 const closing: { close?(): void; stop?(): void }[] = [];
 afterEach(() => closing.splice(0).forEach(open => (open.stop ?? open.close)?.()));
 const withField = (sale: TSchema): Composition<Shop> => ({
@@ -66,7 +65,6 @@ const enabled: Shown<Shop> = {
 describe("a first choice needs somewhere to go", () => {
   for (const program of [chargingShop, narrowShop])
     for (const check of availabilityChecks(program, shopShown)) it(check.name, check.run);
-
   it("rejects compiling declarations without a maker or a usable reason, including nested fields", () => {
     const missing = thing("Venta", "sales");
     expect(() => compose(withField(missing))).toThrow("without a maker or an empty reason");
@@ -78,7 +76,12 @@ describe("a first choice needs somewhere to go", () => {
   it("fails derived cases when a compiling surface enables empty or entirely ineligible choices", async () => {
     const failed: string[] = [];
     for (const program of [chargingShop, narrowShop])
-      for (const check of availabilityChecks(program, enabled)) await check.run().catch(() => failed.push(check.name));
+      for (const check of availabilityChecks(program, enabled))
+        await check.run().catch((error: unknown) => {
+          expect(error, check.name).toBeInstanceOf(Error);
+          expect(error instanceof Error && error.message, check.name).toContain("An unavailable action is enabled");
+          failed.push(check.name);
+        });
     expect(failed).toHaveLength(2);
     expect(failed[0]).toContain("with no sales");
     expect(failed[1]).toContain("with only small sales");
@@ -135,7 +138,6 @@ describe("a first choice needs somewhere to go", () => {
     expect(tools.find(tool => tool.id === "payments")?.acts.charge?.off?.()).toBe("sin ventas para cobrar");
   });
 });
-
 describe("availability through each entry", () => {
   it("closes an action on a thing when the only candidate is the thing itself", () => {
     const field = thing("Otra venta", "sales", undefined, undefined, "sin otras ventas");

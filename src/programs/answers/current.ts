@@ -1,12 +1,13 @@
 // Each declared case supplies a state: repeating today's answers must stop at the last question, before running.
+import { promiseTexts } from "../../texts/promises.texts.ts";
 import { deepStrictEqual, ok } from "node:assert/strict";
-import type { Intent } from "../surface/contract.ts";
-import { fieldOf, optionsOf, validOf, type Walk } from "../surface/screen.ts";
-import type { Tool } from "../surface/shown-tool.ts";
-import { walking } from "../surface/walking.ts";
-import { walkBody, walkHints } from "../surface/walk.ts";
-import { toolTexts } from "../texts/tools.texts.ts";
-import { surfaceTexts } from "../texts/surface.texts.ts";
+import type { Intent } from "../../surface/contract.ts";
+import { fieldOf, optionsOf, validOf, type Walk } from "../../surface/screen.ts";
+import type { Tool } from "../../surface/shown-tool.ts";
+import { walking } from "../../surface/walking.ts";
+import { walkBody, walkHints } from "../../surface/walk.ts";
+import { toolTexts } from "../../texts/tools.texts.ts";
+import { surfaceTexts } from "../../texts/surface.texts.ts";
 
 /** No action is executed here: a request to run is itself a failed guarantee. */
 const press = (tools: readonly Tool[], walk: Walk, key: Intent): Walk => {
@@ -25,7 +26,7 @@ function repeat(tools: readonly Tool[], walk: Walk, answer: string, last: boolea
     for (let erased = 0; erased < length; erased++) walk = press(tools, walk, { kind: "erase" });
     for (const text of Array.from(answer)) walk = press(tools, walk, { kind: "type", text });
     if (last) {
-      ok(!validOf(field, walk.typed));
+      ok(!validOf(field, walk.typed), promiseTexts.currentSent);
       ok(!walkHints(walk, field, tools).some(hint => hint.intent === "confirm"));
     }
     return press(tools, walk, { kind: "confirm" });

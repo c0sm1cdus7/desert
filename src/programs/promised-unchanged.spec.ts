@@ -97,5 +97,6 @@ it("fails the derived guarantee when a compiling screen turns current back into 
     check => check.name.startsWith("payments · adjust ·") && check.name.endsWith(", blocked choices"),
   );
   expect(checks).toHaveLength(3);
-  for (const check of checks) await expect(check.run()).rejects.toThrow();
+  for (const check of checks)
+    await expect(check.run()).rejects.toMatchObject({ actual: "sin cambios", expected: "actual" });
 });

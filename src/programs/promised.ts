@@ -55,6 +55,13 @@ export const promisedNeeds = <X extends Program>(aim: Aim<X>, then: Case<X>["the
   );
 };
 /** A case, checked on a real house: what it says and writes, or its refusal; and the same house after reopening. */
+function assertSummaries<X extends Program>(program: Composition<X>, state: ReturnType<House<X>["tools"]["state"]>) {
+  const bare = program.registry.filter(tool => /^\d+$/u.test(tool.summary(state)));
+  deepStrictEqual(
+    bare.map(tool => said.bareCount(tool.id)),
+    [],
+  );
+}
 function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase: Case<X>): Check {
   const run = (): Promise<void> =>
     staged(program, async ({ house, reopen }) => {
@@ -63,17 +70,18 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
       const done = await perform(house(), aim.tool.id, { ...kase, act: aim.name });
       ok(!done.defect, done.reason);
       if ("refused" in kase.then) {
-        deepStrictEqual([done.status, done.reason], ["rejected", kase.then.refused]);
+        deepStrictEqual([done.status, done.reason], ["rejected", kase.then.refused], said.refusalMismatch);
         deepStrictEqual(wroteSince(house(), before.through), []);
         deepStrictEqual(house().tools.state().tools, before.tools);
       } else {
         strictEqual(done.status, "accepted", done.reason);
-        deepStrictEqual(wroteSince(house(), before.through), kase.then.facts);
-        strictEqual(saidBy(done)?.text, kase.then.says);
+        deepStrictEqual(wroteSince(house(), before.through), kase.then.facts, said.factsMismatch);
+        strictEqual(saidBy(done)?.text, kase.then.says, said.saysMismatch);
         ok(composed.test(kase.then.says), said.notComposed(kase.then.says));
         ok(!addresses(kase.then.says), said.speaks(kase.then.says));
         strictEqual(saidBy(done)?.recipient !== undefined, kase.then.privately === true, said.forWhom);
-        if (kase.then.reads) deepStrictEqual(readOn(house(), aim, kase, kase.then.reads.on), kase.then.reads.lines);
+        const reads = kase.then.reads;
+        if (reads) deepStrictEqual(readOn(house(), aim, kase, reads.on), reads.lines, said.readsMismatch);
         /** What was written in a shape is read in it, on the thing the act left and on its tool's list. */
         const read = [saidBy(done)?.target, aim.tool.id].map(on => JSON.stringify(readOn(house(), aim, kase, on)));
         for (const digits of bareIn(aim.act.input, kase.input)) ok(!read.join().includes(digits), said.bare(digits));
@@ -82,16 +90,13 @@ function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase
           deepStrictEqual(
             program.registry.find(known => known.id === tool)?.needs?.(house().tools.state(), house().now()) ?? [],
             needs,
+            said.needsMismatch,
           );
       }
       /** What a tool says beside its name is never a bare number: a count says what it counts. */
-      const bare = program.registry.filter(tool => /^\d+$/u.test(tool.summary(house().tools.state())));
-      deepStrictEqual(
-        bare.map(tool => said.bareCount(tool.id)),
-        [],
-      );
+      assertSummaries(program, house().tools.state());
       const after = house().tools.state().tools;
-      deepStrictEqual(rebuilt(program, house()), after);
+      deepStrictEqual(rebuilt(program, house()), after, said.rebuiltMismatch);
       reopen();
       deepStrictEqual(house().tools.state().tools, after);
     });

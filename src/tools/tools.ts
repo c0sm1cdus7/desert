@@ -1,10 +1,11 @@
+import { startPrograms, programEffects } from "./boundaries/tool-listeners.ts";
 // The house's own state and each tool's, folded together; attention as a perpetual, replayable ladder.
 import { programRule } from "./execution/program-causes.ts";
 import { actCatalog } from "../catalogs/acts.ts";
 import { ids } from "../catalogs/ids.ts";
 import { toolReminderLadder } from "../catalogs/time.ts";
 import { allowed, emptyHouse, houseStep, identityView, visible, type Attention } from "../house/house.ts";
-import { effect, processOf, type Emission, type Event, type HouseEmission } from "../journal/events.ts";
+import { effect, processOf, type Event, type HouseEmission } from "../journal/events.ts";
 import { emptyMap, initial, listOf } from "../journal/projections.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { accepted, ownAct, reading, rejected } from "./act-definition.ts";
@@ -110,11 +111,11 @@ export function startTools<X extends Program>(ports: Starting<X>) {
     ...ports,
     live: () => live,
     process: ports.process ?? (() => false),
-    own: state => [...offered, ...(ports.own?.(state) ?? [])],
+    own: state => [...offered, ...programRule(() => ports.own?.(state) ?? [])],
   };
-  const shutdown = registry.flatMap(tool => (tool.start ? [tool.start(running)] : []));
+  const shutdown = startPrograms(registry, running);
   const stop = bus.on(event => {
-    const effects: Emission<X["fact"]>[] = registry.flatMap(tool => tool.effects?.(state, event) ?? []);
+    const effects = programEffects(registry, state, event);
     for (const by of state.house.grants.keys())
       effects.push(...attentionEffects(identityView(state, by), registry, event));
     state = read();
@@ -134,7 +135,7 @@ export function startTools<X extends Program>(ports: Starting<X>) {
     stop: () => {
       live = false;
       stop();
-      shutdown.forEach(stop => stop());
+      shutdown();
     },
   };
 }

@@ -1,9 +1,16 @@
 // The current value is shown throughout an edit; only an answer that finishes it unchanged is unavailable.
+import { OutsideDefect } from "../tools/outside.ts";
 import { answerChange } from "../tools/answers/answer-change.ts";
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import type { Field, Option } from "./contract.ts";
 import { answersAfter } from "./kept-answers.ts";
 import type { Walk } from "./screen.ts";
+
+export function uniqueCurrent(options: readonly Option[]): readonly Option[] {
+  if (options.filter(option => option.detail === said.current && !option.makes).length > 1)
+    throw new OutsideDefect("Two answers of the same question are unchanged");
+  return options;
+}
 
 type Act = Readonly<{
   next: (answers: readonly string[]) => Field | null;

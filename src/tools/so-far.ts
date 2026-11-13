@@ -1,3 +1,4 @@
+import { programCall } from "./boundaries/program-call.ts";
 // What an act says of what was answered so far, before it runs: why it cannot go on, and which things it takes.
 import { Type, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -47,13 +48,13 @@ function picksIn(schema: unknown, value: unknown): readonly Picked[] {
 export function refusedWhole<X extends Program>(input: TSchema, said: SoFar<X>, value: unknown) {
   return (state: State<X>, target: string, refuses: readonly string[], at: number): string | undefined => {
     if (!isRecord(value)) return undefined;
-    const stopped = said.stops?.(value, state, target, at);
+    const stopped = programCall(said.stops, value, state, target, at);
     /** At its question a cause may say a datum after it («supera lo que falta · $ 9.525,75»): where nothing is
      * asked, what is refused is the cause the act declares. */
     if (stopped !== undefined) return refuses.find(cause => stopped.startsWith(`${cause} · `)) ?? stopped;
-    const among = said.among?.(value, state, target, at) ?? {};
+    const among = programCall(said.among, value, state, target, at) ?? {};
     return picksIn(input, value)
-      .map(([tool, thing]) => among[tool]?.(thing))
+      .map(([tool, thing]) => programCall(among[tool], thing))
       .find(reason => reason !== undefined);
   };
 }

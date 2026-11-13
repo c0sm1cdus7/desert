@@ -80,7 +80,6 @@
     "surface/kept-answers.ts": "keptAfter: the answers a walk keeps past one that changed, each under the question it answered",
     "surface/bridge/audit-fields.ts": "auditFields: what the fields of a program's acts need from the rest of the program, checked when composed",
     "surface/current-field.ts": "Current values and answers that would finish an edit without changing its data",
-    "programs/promised-current.ts": "Derived check that repeating current answers stops before an act runs",
     "surface/bridge/current-answers.ts": "Current data as answers and equality in the declared data shape",
     "programs/promised-entry.ts": "Derived checks of intermediate question screens and unavailable Enter",
     "doors/terminal/entry.ts": "Written entries with their unfilled shape and cursor, in threads and rows",
@@ -97,7 +96,6 @@
     "programs/kept-walk.ts": "breadthFirst: bounded saved-journal exploration with state deduplication and explicit coverage",
     "tools/program-defect.ts": "programDefect: one public failure and its technical Activity record",
     "tools/program-run.ts": "runProgram: every door checks the current declaration before the body and its outside causes afterwards",
-    "surface/bridge/program-result.ts": "programResult: public action words and destination, separate from support diagnostics",
     "programs/promise-temporaries.ts": "Workspace-scoped temporary houses, reclaimed after a day only when their owner process is gone",
     "surface/guards/answer-status.ts": "Live reasons and readiness for a written answer from field and act declarations",
     "tools/execution/program-causes.ts": "Comprueba las causas previas y clasifica como defectos las reglas que fallan.",
@@ -116,7 +114,17 @@
     "tools/answers/answer-change.ts": "One interpretation of unchanged, whether the program declares it or current data proves it.",
     "programs/choices/many-choices.ts": "Multiple marks are one answer: derive every combination, never pretend one option is the whole set.",
     "programs/choices/closed-choices.ts": "Closed things are absent from every picker, including searches and a closed current value.",
-    "programs/coverage/also-causes.ts": "An origin-specific cause has a case too; its ordinary execution may be closed by a different rule."
+    "programs/coverage/also-causes.ts": "An origin-specific cause has a case too; its ordinary execution may be closed by a different rule.",
+    "surface/bridge/execution/program-result.ts": "programResult: public action words and destination, separate from support diagnostics",
+    "tools/boundaries/program-call.ts": "Marca el origen de cada callback del programa después de evaluar los argumentos de la base.",
+    "tools/boundaries/program-functions.ts": "Conserva el origen de callbacks diferidos de pantallas y sus promesas.",
+    "tools/boundaries/failure-entry.ts": "Clasifica diagnósticos por su origen explícito, incluidos los puertos.",
+    "tools/boundaries/close-resources.ts": "Registra cada falla al cerrar recursos y sigue cerrando los demás.",
+    "surface/bridge/execution/program-screen.ts": "Envuelve callbacks de pantallas personalizadas y protege las operaciones prestadas por la base.",
+    "texts/checks/diagnostics.texts.ts": "Diagnósticos concretos de las garantías derivadas.",
+    "tools/boundaries/tool-listeners.ts": "Mantiene el origen del arranque, sus escuchas y cierres, y las reacciones del programa.",
+    "programs/answers/current.ts": "Derived check that repeating current answers stops before an act runs",
+    "tools/boundaries/failure-origin.ts": "Conserva el origen de los defectos cuando el bus agrupa fallas de sus escuchas."
   },
   "folders": {
     "adapters/secrets": 103,
@@ -138,6 +146,10 @@
     "tools/failures": 128,
     "tools/answers": 22,
     "programs/choices": 56,
-    "programs/coverage": 23
+    "programs/coverage": 23,
+    "tools/boundaries": 136,
+    "surface/bridge/execution": 112,
+    "texts/checks": 22,
+    "programs/answers": 63
   }
 }

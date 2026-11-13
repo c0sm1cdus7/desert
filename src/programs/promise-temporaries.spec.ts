@@ -24,6 +24,8 @@ function verify(clean: Cleanup): void {
     }
     symlinkSync(join(root, "foreign"), join(root, linked));
     clean(root, now);
+    expect(readdirSync(root), "An abandoned house was not removed").not.toContain(dead);
+    expect(readdirSync(root), "A young house was removed").toContain(fresh);
     expect(readdirSync(root).sort()).toEqual(kept.sort());
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -32,10 +34,10 @@ function verify(clean: Cleanup): void {
 describe("temporary houses after an interrupted run", () => {
   it("reclaims only old directories from this workspace whose owner has gone", () => verify(cleanup));
   it("detects a compiling cleanup that leaves abandoned directories", () => {
-    expect(() => verify(() => {})).toThrow();
+    expect(() => verify(() => {})).toThrow("An abandoned house was not removed");
   });
   it("detects a compiling cleanup that deletes a young directory too", () => {
-    expect(() => verify((root, now) => cleanup(root, now + promiseMaxAge * 2))).toThrow();
+    expect(() => verify((root, now) => cleanup(root, now + promiseMaxAge * 2))).toThrow("A young house was removed");
   });
   it("reclaims a house left by a killed process when it becomes old enough", () => {
     const root = mkdtempSync(join(tmpdir(), "desert-killed-check-"));

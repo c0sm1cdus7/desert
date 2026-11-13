@@ -1,4 +1,5 @@
 // What a question offers: eligible things first, then the things it cannot take with their reasons.
+import { programCall } from "../../tools/boundaries/program-call.ts";
 import { declaredCause, programRule } from "../../tools/execution/program-causes.ts";
 import type { ProgramAct } from "../../tools/promises.ts";
 import type { Program, State } from "../../tools/tool-contract.ts";
@@ -25,11 +26,12 @@ export const offeredOn =
   (answers: readonly string[], target = tool): Field | null => {
     const field = besides(ask.next(answers), target);
     const check = (read: () => string | undefined) => programRule(() => declaredCause(act.refuses, read()));
-    const stops = (answer: string) => check(() => act.stops?.(ask.sofar([...answers, answer]), state(), target, now()));
+    const stops = (answer: string) =>
+      declaredCause(act.refuses, programCall(act.stops, ask.sofar([...answers, answer]), state(), target, now()));
     if (field?.kind === "one")
       return { ...field, options: field.options.map(option => disabled(option, stops(option.title))) };
     if (field?.kind !== "pick") return field;
-    const among = act.among?.(ask.sofar(answers), state(), target, now())[field.of];
+    const among = programCall(act.among, ask.sofar(answers), state(), target, now())?.[field.of];
     return narrowed(field, value => check(() => (value ? among?.(value) : undefined)) ?? stops(value), hidden);
   };
 

@@ -1,3 +1,4 @@
+import { programCall } from "./boundaries/program-call.ts";
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
 import { Value } from "@sinclair/typebox/value";
 import { actEnvelope, type Act } from "../catalogs/acts.ts";
@@ -9,7 +10,6 @@ import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "./attendance.ts";
 import { programOffered, runProgram } from "./program-run.ts";
 import { executionFailure } from "./execution/execution-failure.ts";
-import { BaseFailure } from "./failures/base-failure.ts";
 import { startAct } from "./failures/start-act.ts";
 import { finish } from "./failures/finish.ts";
 import { actNews, type ActContext, type ActResult, type KeyStore, type OwnAct } from "./tool-contract.ts";
@@ -63,7 +63,7 @@ const decide = <X extends Program>(ports: Execution<X>, value: Act, origin: Orig
   if (refused !== undefined || !act) return rejected(refused ?? toolTexts.unknown);
   const execute = (nested: Act) => executeNested(ports, origin, nested);
   const context: ActContext<X> = { state, by, target, at: ports.now(), through, keys: ports.keys, id, execute };
-  const draft = !offered && tool?.draft?.(state, through, value.input, target, context.at);
+  const draft = !offered && programCall(tool?.draft?.bind(tool), state, through, value.input, target, context.at);
   if (draft) {
     const text = toolTexts.draft;
     const data = { tool: tool?.id ?? "", target: draft, author: by, text, draft: true, detail: value.input };
@@ -104,7 +104,7 @@ function decisionOf<X extends Program>(
 ): Decision<X> {
   if ("reason" in result) return { status: result.status, reason: result.reason, effects: result.effects ?? [] };
   if (result.status === "inconclusive") return { status: "inconclusive", effects: result.effects ?? [] };
-  const reason = act.reject?.(context, result);
+  const reason = programCall(act.reject?.bind(act), context, result);
   if (reason) return rejected(reason);
   if (tool === undefined) return { status: "accepted", effects: result.effects ?? [] };
   const { by, target: original } = context;
@@ -143,7 +143,7 @@ const run = <X extends Program>(ports: Execution<X>, act: Origin, perform: Perfo
   try {
     ports.bus.emit(effect("act-started", { act: act.id, object, option }, act.by, [act.id], act.process));
   } catch (error) {
-    return finish(ports, act, executionFailure(ports.registry, ports.state(), act, new BaseFailure(error)));
+    return finish(ports, act, executionFailure(ports.registry, ports.state(), act, error));
   }
   /** Program failures have one public message and a separate support record. */
   const failed = (error: unknown): Decision<X> => executionFailure(ports.registry, ports.state(), act, error);

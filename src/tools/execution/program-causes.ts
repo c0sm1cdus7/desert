@@ -1,4 +1,5 @@
 // Previous refusals are declared too: a stray cause is a programmer defect through every door.
+import { BaseFailure } from "../failures/base-failure.ts";
 import type { ProgramAct } from "../promises-contract.ts";
 import type { Program, ToolAct } from "../tool-contract.ts";
 import { answerChange } from "../answers/answer-change.ts";
@@ -16,7 +17,7 @@ export function programRule<T>(read: () => T): T {
   try {
     return read();
   } catch (error) {
-    throw error instanceof OutsideDefect ? error : new OutsideDefect(error);
+    throw error instanceof OutsideDefect || error instanceof BaseFailure ? error : new OutsideDefect(error);
   }
 }
 

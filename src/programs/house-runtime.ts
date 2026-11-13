@@ -1,3 +1,4 @@
+import { closeResources } from "../tools/boundaries/close-resources.ts";
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
 import { defectReporter } from "../tools/failures/defect-reporter.ts";
 import { mkdirSync } from "node:fs";
@@ -56,10 +57,16 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     return secrets.scrub(emission);
   });
   const stops: (() => void)[] = [];
-  const close = () => {
-    stops.splice(0).forEach(stop => stop());
-    for (const resource of [bus, journal, secrets]) resource.close();
-  };
+  const report = defectReporter(
+    registry,
+    by,
+    entry => journal.append(entry, time.now()),
+    value => secrets.scrub(value),
+  );
+  const close = () =>
+    closeResources([...stops.splice(0), ...[bus, journal, secrets].map(resource => () => resource.close())], error => {
+      report(error, "program", "program", "stop");
+    });
   try {
     /** What a house keeps between runs came from one shape of its program: the facts it reads, and where its state
      * starts. Kept under that shape, another shape of the program folds the journal again from its first fact. */
@@ -75,6 +82,7 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     bus.emit(effect("boot", {}, by));
     return { bus, journal, tools, registry, close, now: () => time.now() };
   } catch (error) {
+    report(error, "program", "program", "start");
     close();
     throw error;
   }

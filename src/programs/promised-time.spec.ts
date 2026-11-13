@@ -19,7 +19,10 @@ for (const mode of ["stops", "wrong", "among"] as const) {
         datedShown,
       ).filter(check => / · tomorrow is closed(, by keys)?$/.test(check.name));
       expect(checks).toHaveLength(2);
-      for (const check of checks) await expect(check.run()).rejects.toThrow();
+      for (const check of checks)
+        await expect(check.run()).rejects.toThrow(
+          check.name.endsWith(", by keys") ? "An internal refusal could be submitted" : "día futuro",
+        );
     });
     it("another door rejects tomorrow without entering run, and the same open house accepts it a day later", () =>
       staged(program, async ({ house, reopen }) => {

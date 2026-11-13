@@ -1,7 +1,7 @@
 // Where you are on a surface and the act you are walking: what a session remembers, and how an act begins.
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
 import { withStops } from "./guards/answer-status.ts";
-import { currentField, markedCurrent } from "./current-field.ts";
+import { currentField, markedCurrent, uniqueCurrent } from "./current-field.ts";
 import type { Talk } from "./talk.ts";
 import { must } from "./window.ts";
 import type { Field, Option, Screen, Stack } from "./contract.ts";
@@ -112,7 +112,7 @@ export function fieldOf(tools: readonly Tool[], walk: Walk): Field | null {
 export const backKey = said.back.charAt(0);
 export function optionsOf(field: Field | null): readonly Option[] {
   if (!field || !("options" in field)) return [];
-  if (field.kind !== "confirm") return field.options.map(option => markedCurrent(field, option));
+  if (field.kind !== "confirm") return uniqueCurrent(field.options.map(option => markedCurrent(field, option)));
   const back = { key: backKey, title: said.back, detail: said.unchanged };
   return field.reversible ? [...field.options, back] : [back, ...field.options];
 }

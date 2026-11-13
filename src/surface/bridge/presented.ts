@@ -1,3 +1,5 @@
+import { OutsideDefect } from "../../tools/outside.ts";
+import { programCall } from "../../tools/boundaries/program-call.ts";
 // A thing on a surface: what it is and what it has, in the stacks its tool declared. Always the same stacks, in the
 // same order; one with nothing in it says so. A program gives the reading; it never draws the thing.
 import type { ProgramTool } from "../../tools/promises.ts";
@@ -29,7 +31,7 @@ function rowsOf(value: unknown, label: string, where: string, changed?: (shown: 
     if (Array.isArray(each)) return each.flatMap((one, i) => rows(one, i ? "" : said));
     const thing = named(each);
     if (thing) return [thing];
-    if (typeof each === "object") throw new Error(`${where} is read as neither a datum nor a thing`);
+    if (typeof each === "object") throw new OutsideDefect(new Error(`${where} is read as neither a datum nor a thing`));
     return [changed?.(text(each)) ?? { title: said, detail: text(each), still: true }];
   };
   return rows(value, label);
@@ -39,7 +41,8 @@ type Shown = ReturnType<Tool["view"]>;
 function stacked(stacks: readonly Presented[], reading: Reading, where: string, changing?: Changing): Shown {
   const held = new Set(stacks.flatMap(stack => Object.keys(stack.reads)));
   const loose = Object.keys(reading).filter(key => !held.has(key));
-  if (loose.length) throw new Error(`${where} reads ${loose.join(", ")} and no stack of its presentation holds it`);
+  if (loose.length)
+    throw new OutsideDefect(new Error(`${where} reads ${loose.join(", ")} and no stack of its presentation holds it`));
   return stacks.map(stack => {
     const rows = Object.entries(stack.reads).flatMap(([key, label]) =>
       rowsOf(reading[key], label, `${where}.${key}`, changing && (shown => changing(key, shown))),
@@ -61,8 +64,9 @@ export function presented(stacks: readonly Presented[], reading: Reading, where:
 }
 const readingOf = (view: string, where: string): Reading => {
   const [line = ""] = view.split("\n");
-  const reading: unknown = JSON.parse(line);
-  if (!isReading(reading)) throw new Error(`${where} is not read as data: the first line of its view is not a reading`);
+  const reading: unknown = programCall((): unknown => JSON.parse(line));
+  if (!isReading(reading))
+    throw new OutsideDefect(new Error(`${where} is not read as data: the first line of its view is not a reading`));
   return reading;
 };
 /** What a tool reads of its own, in the stacks declared for it: a datum an act changes is the row that starts that
@@ -73,7 +77,7 @@ export const ownView = (stacks: readonly Presented[], view: string, where: strin
 export const thingView =
   <X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, stacks: readonly Presented[]) =>
   (target: string): Shown => {
-    if (!stacks.length) throw new Error(`${tool.id} does not say how its things are presented`);
-    const view = tool.view(ports.state(), target, { ...ports.limits, now: ports.now() });
+    if (!stacks.length) throw new OutsideDefect(new Error(`${tool.id} does not say how its things are presented`));
+    const view = programCall(tool.view, ports.state(), target, { ...ports.limits, now: ports.now() });
     return presented(stacks, readingOf(view, target), target);
   };

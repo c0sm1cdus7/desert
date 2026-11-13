@@ -70,8 +70,8 @@ describe("a destination", () => {
   it("fails out loud when a walk or a view names what does not exist", () => {
     const tools = [rulesTool(seed())];
     const { target: _target, ...withoutOne } = walk;
-    expect(() => actOf(tools, { ...walk, act: "create" })).toThrow();
-    expect(() => actOf(tools, withoutOne)).toThrow();
+    expect(() => actOf(tools, { ...walk, act: "create" })).toThrow("a required value is missing");
+    expect(() => actOf(tools, withoutOne)).toThrow("a required value is missing");
     expect(() => tools[0]?.view("nothing")).toThrow("rules has no nothing");
   });
 });

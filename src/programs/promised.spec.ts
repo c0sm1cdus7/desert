@@ -1,10 +1,11 @@
+import { failing } from "../../tests/support/failed-checks.ts";
 // Shops that break a promise, which the derived checks catch; the shop itself is checked as this repository's program.
 import { describe, expect, it } from "vitest";
 import { caseInstant } from "../catalogs/time.ts";
 import { walkedChecks } from "./promised-walk.ts";
 import { houseTools } from "../surface/bridge/house-tools.ts";
 import { localPorts } from "./house-runtime.ts";
-import { cast, given, staged, type Check } from "./promised-stage.ts";
+import { cast, given, staged } from "./promised-stage.ts";
 import { promisedChecks } from "./promised.ts";
 import { brokenShops } from "../../tests/support/broken-shops.ts";
 import { apartShown, every, hidingShown, nestedShown, registered } from "../../tests/support/settling-shop.ts";
@@ -13,14 +14,9 @@ import { carelessShop, deafShown, stillOwing, stubbornShown } from "../../tests/
 import { shopShown } from "../../tests/support/shop.ts";
 
 /** The names of the checks that fail, in the order they ran. */
-async function failing(checks: readonly Check[]): Promise<string[]> {
-  const failed: string[] = [];
-  for (const check of checks) await check.run().catch(() => failed.push(check.name));
-  return failed;
-}
 describe("a program that breaks a promise", () => {
-  it.each(brokenShops)("$name: fails exactly the checks of what it broke", async ({ program, fails }) => {
-    expect(await failing([...promisedChecks(program), ...walkedChecks(program, shopShown)])).toEqual(fails);
+  it.each(brokenShops)("$name: fails exactly the checks of what it broke", async ({ program, fails, because }) => {
+    expect(await failing([...promisedChecks(program), ...walkedChecks(program, shopShown)], because)).toEqual(fails);
   });
 });
 
@@ -32,25 +28,32 @@ describe("a program with acts on its things", () => {
   const unavailable = `${settledTwice}, no empty first choice`;
   it("a screen that lists none of its things fails what has to reach one that nothing else leads to", async () => {
     /** A sale that still owes is reached from Attention; a settled one, from nowhere. */
-    expect(await failing(walkedChecks(settlingShop, hidingShown))).toEqual([
-      `${settledTwice}, by keys`,
-      unavailable,
-      hidden,
-    ]);
+    expect(
+      await failing(walkedChecks(settlingShop, hidingShown), [
+        "no view of the tool leads to sales/s1",
+        "An unavailable action is missing",
+      ]),
+    ).toEqual([`${settledTwice}, by keys`, unavailable, hidden]);
   });
 
   for (const check of walkedChecks(leavingShop, apartShown)) it(`${check.name}, leaving its list`, check.run);
 
   it("a screen that takes what cannot be done off its list fails what that refusal promises to show", async () => {
-    expect(await failing(walkedChecks(settlingShop, mutedShown))).toEqual([
-      `${settledTwice}, by keys`,
-      unavailable,
-      hidden,
-    ]);
+    expect(
+      await failing(walkedChecks(settlingShop, mutedShown), [
+        "the act settle is not on the list",
+        "An unavailable action is missing",
+      ]),
+    ).toEqual([`${settledTwice}, by keys`, unavailable, hidden]);
   });
 
   it("a screen that shows what cannot be done to who prefers not to see it fails that, and nothing else", async () => {
-    expect(await failing(walkedChecks(settlingShop, stubbornShown))).toEqual([unavailable, hidden]);
+    expect(
+      await failing(walkedChecks(settlingShop, stubbornShown), [
+        "An unavailable action is shown",
+        "the act settle is not hidden exactly",
+      ]),
+    ).toEqual([unavailable, hidden]);
   });
 
   it("offers an act on a thing where that thing is read, and never on a view that only groups them", async () => {
@@ -97,7 +100,7 @@ describe("a program with acts on its things", () => {
     const checks = walkedChecks({ ...settlingShop, registry }, shopShown);
     const lists = checks.filter(check => check.name.includes("nothing in them"));
     expect(lists).toHaveLength(1);
-    expect(await failing(lists)).toEqual([]);
+    expect(await failing(lists, [])).toEqual([]);
   });
 
   it("an act on the tool itself that is not for someone is off for them, and hidden if they prefer", async () => {
@@ -120,12 +123,15 @@ describe("a program with acts on its things", () => {
       "beto does not register, no empty first choice",
       "beto does not register, hidden for who prefers not to see what cannot be done",
     ]);
-    expect(await failing(mine)).toEqual([]);
+    expect(await failing(mine, [])).toEqual([]);
   });
 
   it("a tool that does not say what its cases promise needs someone to act fails that, on every door", async () => {
     const checks = [...promisedChecks(carelessShop), ...walkedChecks(carelessShop, shopShown)];
-    expect(await failing(checks)).toEqual([stillOwing, `${stillOwing}, in Attention with why`]);
+    expect(await failing(checks, ["Attention differs from the case", "Debe $ 90"])).toEqual([
+      stillOwing,
+      `${stillOwing}, in Attention with why`,
+    ]);
   });
 
   it("a tool that says a bare number beside its name fails its cases: a count says what it counts", async () => {
@@ -140,7 +146,7 @@ describe("a program with acts on its things", () => {
   });
 
   it("a screen that does not say how its things are found fails every search for one, and nothing else", async () => {
-    const failed = await failing(walkedChecks(settlingShop, deafShown));
+    const failed = await failing(walkedChecks(settlingShop, deafShown), "looking for s1 from a menu does not find it");
     expect(failed.length).toBeGreaterThan(0);
     expect(failed.every(name => name.endsWith("is found by its name from any menu"))).toBe(true);
     expect(failed.filter(name => name.startsWith("sales ·")).length).toBe(failed.length);

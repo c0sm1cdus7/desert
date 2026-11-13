@@ -956,7 +956,7 @@
         "src/programs/promised-menus.spec.ts",
         "src/doors/terminal/house-screens.spec.ts",
         "src/surface/current-field.ts",
-        "src/programs/promised-current.ts",
+        "src/programs/answers/current.ts",
         "src/programs/promised-current.spec.ts",
         "src/programs/promised-current-shapes.spec.ts"
       ]
@@ -1259,7 +1259,7 @@
       "evidence": [
         "src/surface/current-field.ts",
         "src/surface/screen.ts",
-        "src/programs/promised-current.ts",
+        "src/programs/answers/current.ts",
         "src/programs/promised-current.spec.ts"
       ]
     },
@@ -1424,7 +1424,7 @@
       "evidence": [
         "src/surface/current-field.ts",
         "src/surface/walking.ts",
-        "src/programs/promised-current.ts",
+        "src/programs/answers/current.ts",
         "src/programs/promised-current.spec.ts"
       ]
     },
@@ -1588,7 +1588,7 @@
     },
     {
       "id": 186,
-      "rule": "Sin cambios es un solo hecho: tanto today/same como stops cierran la respuesta antes de enviar. La opción vigente apagada dice actual; otra regla conserva su motivo; el texto no se envía ni muestra sin cambios bajo la pregunta. En varias marcas, la combinación vigente conserva sus marcas sin Enter ni rechazo. Actual en una opción distinta del valor vigente es un defecto.",
+      "rule": "Sin cambios es un solo hecho: tanto today/same como stops cierran la respuesta antes de enviar. La opción vigente apagada dice actual; otra regla conserva su motivo; el texto no se envía ni muestra sin cambios bajo la pregunta. En varias marcas, la combinación vigente conserva sus marcas sin Enter ni rechazo. Actual en una opción distinta del valor vigente es un defecto. Dos respuestas distintas de la misma pregunta no pueden ser actual, tampoco sin today: se detecta al pintar y se comprueba en cada garantía derivada.",
       "from": "13/11 · pedidos de la migración",
       "guarantee": "derived",
       "evidence": [
@@ -1598,12 +1598,13 @@
         "src/programs/promised-unchanged.spec.ts",
         "src/tools/answers/answer-change.ts",
         "src/programs/review/many.spec.ts",
-        "src/programs/review/contracts.spec.ts"
+        "src/programs/review/contracts.spec.ts",
+        "src/programs/review/current-unique.spec.ts"
       ]
     },
     {
       "id": 187,
-      "rule": "Crear para responder vuelve a consultar among, valid y stops de la pregunta en el estado nuevo. Si among o stops no la admite, no avanza ni envía: la pregunta y la fila apagada dicen el mismo motivo. Una cosa recién creada cerrada o inválida sin motivo es un defecto, nunca una fila con datos inválidos. Si sirve avanza; sin destino vuelve sin responder.",
+      "rule": "Crear para responder vuelve a consultar among, valid y stops de la pregunta en el estado nuevo. Si among, valid con motivo o stops no la admite, no avanza ni envía: la pregunta y la fila apagada dicen el mismo motivo. Una cosa recién creada cerrada o inválida sin motivo es un defecto, nunca una fila con datos inválidos. Si sirve avanza; sin destino vuelve sin responder.",
       "from": "13/11 · pedidos de la migración",
       "guarantee": "surface",
       "evidence": [
@@ -1636,7 +1637,10 @@
         "src/tools/execution/execution-failure.ts",
         "src/surface/guards/router-defect.ts",
         "src/programs/promised-causes.spec.ts",
-        "src/programs/review/contracts.spec.ts"
+        "src/programs/review/contracts.spec.ts",
+        "src/tools/boundaries/tool-listeners.ts",
+        "src/programs/review/callbacks.spec.ts",
+        "src/programs/review/lifecycle.spec.ts"
       ]
     },
     {
@@ -1653,13 +1657,15 @@
     },
     {
       "id": 191,
-      "rule": "Una falla al guardar o dentro de la base se identifica como E-BASE-1 con diagnóstico; un defecto del programa como E-PROG-1; un puerto externo termina en Error con causa pública sin filtrar mensajes técnicos. Escape vuelve al lugar anterior en los tres caminos.",
+      "rule": "Una falla al guardar o dentro de la base se identifica como E-BASE-1 con diagnóstico; un defecto del programa como E-PROG-1; un puerto externo termina en Error con causa pública sin filtrar mensajes técnicos. Escape vuelve al lugar anterior en los tres caminos. Solo PortFailure marcado por el adaptador admite una causa pública de puerto o sin conexión con el servicio; también registra el diagnóstico técnico. Una excepción sin esa marca nunca se presenta como desconexión.",
       "from": "13/11 · revisión de los pedidos de la migración",
       "guarantee": "spec",
       "evidence": [
         "src/tools/failures/finish.ts",
-        "src/surface/bridge/program-result.ts",
-        "src/programs/review/failures.spec.ts"
+        "src/surface/bridge/execution/program-result.ts",
+        "src/programs/review/failures.spec.ts",
+        "src/tools/boundaries/failure-entry.ts",
+        "src/tools/failures/port-failure.ts"
       ]
     },
     {

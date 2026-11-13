@@ -5,7 +5,7 @@ import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import { asking } from "../surface/bridge/asking.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import type { Field, Option } from "../surface/contract.ts";
-import { begin, fieldOf, opened, type Walk } from "../surface/screen.ts";
+import { begin, fieldOf, opened, optionsOf, type Walk } from "../surface/screen.ts";
 import { walkBody } from "../surface/walk.ts";
 import { walking } from "../surface/walking.ts";
 import { promiseTexts } from "../texts/promises.texts.ts";
@@ -53,9 +53,9 @@ function assertChoice<X extends Program>(seat: Seat<X>, walk: Walk, field: Field
     strictEqual(option, undefined);
     return;
   }
-  ok(option);
-  strictEqual(option.off, true);
-  strictEqual(option.detail, detail);
+  ok(option, promiseTexts.blockedLost);
+  strictEqual(option.off, true, promiseTexts.blockedEnabled);
+  strictEqual(option.detail, detail, promiseTexts.blockedReason);
   if (field.kind === "pick") {
     const found = field.found(field.shown(expected.value)).find(matches);
     ok(found?.off);
@@ -92,6 +92,8 @@ function checkCase<X extends Program>(
     const prefix = answers.slice(0, pos);
     const walk = { ...initial, answers: prefix, pos };
     const field = fieldOf(seat.tools, walk);
+    if (field?.kind === "pick") field.found("");
+    else optionsOf(field);
     closedChoices(program, seat, field);
     manyChoices(seat, aim, walk, target);
     for (const expected of blocked(program, seat, aim, prefix, target)) {

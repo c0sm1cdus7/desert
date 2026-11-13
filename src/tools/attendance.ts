@@ -1,3 +1,4 @@
+import { programCall } from "./boundaries/program-call.ts";
 import type { Event } from "../journal/events.ts";
 import type { Program, State, Tool, ToolRegistry } from "./tool-contract.ts";
 export function attendsStep(state: readonly string[], event: Event): readonly string[] {
@@ -16,6 +17,7 @@ export const targetTool = <X extends Program>(
   registry: ToolRegistry<X>,
   state: State<X>,
   target: string,
-): Tool<X> | undefined => registry.find(tool => tool.id === target || tool.targets(state).includes(target));
+): Tool<X> | undefined =>
+  registry.find(tool => tool.id === target || programCall(tool.targets.bind(tool), state).includes(target));
 export const isAttended = (state: Readonly<{ attends: readonly string[] }>, tool: string, target: string): boolean =>
   state.attends.includes(tool) || state.attends.includes(target);

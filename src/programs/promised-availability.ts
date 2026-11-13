@@ -27,8 +27,8 @@ const availabilityCheck = <X extends Program>(
         if (reason === undefined) return;
         goTo(seat, from?.tool ?? aim.tool.id, from?.target ?? on);
         const found = actRow(seat, aim, on, undefined, from);
-        ok(found);
-        ok(found.row.off);
+        ok(found, promiseTexts.availableLost);
+        ok(found.row.off, promiseTexts.availableEnabled);
         ok(found.row.detail?.endsWith(reason));
         openRows(seat.router, found.rows);
         const before = seat.router.screen(view);
@@ -37,7 +37,7 @@ const availabilityCheck = <X extends Program>(
         deepStrictEqual(seat.router.screen(view), before);
         seat.router.send({ kind: "menu" });
         await prefer(seat, "off", true);
-        strictEqual(actRow(seat, aim, on, undefined, from), undefined);
+        strictEqual(actRow(seat, aim, on, undefined, from), undefined, promiseTexts.availableShown);
       } finally {
         seat.router.stop();
       }

@@ -1,10 +1,10 @@
+import { programCall } from "../../tools/boundaries/program-call.ts";
 // A value an act's schema marks as secret never reaches the journal: what is written carries a reference instead.
 import type { TSchema } from "@sinclair/typebox";
 import { secretLimits } from "../../catalogs/levers.ts";
 import type { Program, State, ToolRegistry } from "../../tools/tool-contract.ts";
 export const capturable = (value: unknown): value is string =>
   typeof value === "string" && value.length >= secretLimits.minLength;
-/** The journal's own field names and literal words, which no captured value may rewrite. */
 export const wordsOf = (schema: unknown, found = new Set<string>()): Set<string> => {
   if (!schema || typeof schema !== "object") return found;
   if ("const" in schema && typeof schema.const === "string") found.add(schema.const);
@@ -33,8 +33,8 @@ export class Redactor<X extends Program> {
         Object.entries(tool.acts).filter(([option]) => option === name || tool.id === Reflect.get(value, "object")),
       );
       for (const [, act] of acts) {
-        if (act.secretInput?.(value.input) !== false) this.captureSchema(act.input, value.input);
-        if (state && act.secretInputs) this.capture(act.secretInputs(value.input, state), registry, state, seen);
+        if (programCall(act.secretInput?.bind(act), value.input) !== false) this.captureSchema(act.input, value.input);
+        if (state) this.capture(programCall(act.secretInputs?.bind(act), value.input, state), registry, state, seen);
       }
     }
     for (const item of Object.values(value)) this.capture(item, registry, state, seen);

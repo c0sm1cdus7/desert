@@ -111,15 +111,23 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   la garantía derivada comprueba todas las combinaciones. No agregarlo a `outside` ni repetirlo en `run`.
   Otra regla que apaga lo vigente conserva su motivo. Si `today` declara otro valor, devolver «sin cambios» para
   una opción distinta es un defecto `E-PROG-1`; sin `today`, `stops` afirma qué respuesta es la vigente.
+  Dos respuestas distintas de una pregunta no pueden ser «actual»: la base detecta el defecto al pintar,
+  también sin `today` y antes de ocultar las filas apagadas. Las garantías derivadas comprueban esa unicidad.
 - Una causa de `offered`, `also.off`, `stops`, `wrong` o `among` que no pertenece a `refuses` ni a las causas de la base es un
   defecto del programa: `E-PROG-1`, con diagnóstico en el registro. Lo mismo vale si una regla lanza, falla una
-  lectura de pantalla o el pliegue escrito por el programa. El resultado no muestra el detalle técnico.
+  lectura de pantalla o el pliegue escrito por el programa, incluidas sus reacciones (`effects`), el arranque,
+  sus escuchas y el cierre que devuelve. Los callbacks de una pantalla personalizada conservan ese origen;
+  las operaciones que la base le presta conservan el suyo. El resultado no muestra el detalle técnico.
 - Si falla el diario, el disco o una escucha interna de la base, se ve `E-BASE-1 · Falló la base` y se registra
   el diagnóstico. Si falla la escritura del propio diagnóstico, se ve ese código y el detalle limpio sale por
   el canal de errores del proceso. `esc` vuelve al lugar anterior sin repetir la operación fallida.
 - Un puerto externo que se corta termina como resultado `Error`: el adaptador puede dar una causa pública de su
-  catálogo con `PortFailure`, de `src/tools/failures/port-failure.ts`. Un error técnico sin esa causa muestra
-  «sin conexión con el servicio». Esto se clasifica al llamar el puerto, no dentro del `run` del programa:
+  catálogo con `PortFailure`, de `src/tools/failures/port-failure.ts`. Solo una falla marcada por el adaptador
+  como `PortFailure` sin causa pública muestra «sin conexión con el servicio». `PortFailure(causa, detalle)`
+  conserva el diagnóstico técnico; sin causa pública, usar `PortFailure(undefined, detalle)`. Toda falla de
+  puerto también queda en el registro. Una excepción sin esa marca es defecto del programa (`E-PROG-1`)
+  o de la base (`E-BASE-1`), según el código que falló, y siempre deja diagnóstico.
+  Esto se clasifica al llamar el puerto, no dentro del `run` del programa:
   lanzar dentro de `run`, incluso un error de puerto, sigue siendo un defecto; usar `outside` para su resultado.
 - Se retiró `Execution.refuse`, el gancho opcional de la casa que rechazaba después de responder y que no tenía
   consumidor de producción en esta base. Una condición previa va en `offered`, `stops`, `among` o `holding`,

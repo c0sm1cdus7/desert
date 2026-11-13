@@ -12,7 +12,7 @@ import { assertOutcome, currentInState } from "./promised-result.ts";
 import { quietly } from "./promised-entry.ts";
 import { availabilityChecks } from "./promised-availability.ts";
 import { choiceChecks } from "./promised-choices.ts";
-import { currentCloses } from "./promised-current.ts";
+import { currentCloses } from "./answers/current.ts";
 import { findChecks } from "./promised-find.ts";
 import { noticeChecks } from "./promised-notices.ts";
 import { shownChecks } from "./promised-off.ts";
@@ -43,7 +43,7 @@ function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
         const screen = JSON.stringify(seat.router.screen(view).body);
         const promised = "refused" in kase.then ? kase.then.refused : kase.then.says;
         ok(screen.includes(JSON.stringify(promised).slice(1, -1)), said.notSaid(promised));
-        deepStrictEqual(wroteSince(house(), before), "refused" in kase.then ? [] : kase.then.facts);
+        deepStrictEqual(wroteSince(house(), before), "refused" in kase.then ? [] : kase.then.facts, said.factsMismatch);
         /** Closing what was done leaves the person on a screen that exists: never on a thing its act took away. */
         seat.router.send({ kind: "cancel" });
         ok(!JSON.stringify(seat.router.screen(view).body).includes(surface.gone), said.lost(aim.name));

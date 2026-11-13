@@ -9,7 +9,7 @@ import { outsideCause } from "../tools/outside.ts";
 import type { Case } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { actionUnavailable } from "./availability/case-availability.ts";
-import { currentCloses } from "./promised-current.ts";
+import { currentCloses } from "./answers/current.ts";
 import { quietEntry } from "./promised-entry.ts";
 import { view, type Seat } from "./promised-keys.ts";
 import type { Aim } from "./promised-stage.ts";
@@ -21,7 +21,7 @@ export function currentInState<X extends Program>(seat: Seat<X>, aim: Aim<X>, ka
   const act = aim.act.on === "tool" ? tool?.acts[aim.name] : tool?.actsOn?.[aim.name];
   if (current === undefined || act?.off?.(on) !== undefined) return;
   const initial = begin(seat.tools, aim.tool.id, aim.name, aim.act.on === "thing" ? on : undefined);
-  deepStrictEqual(initial.was, asking(aim.act.input, seat.words).answers(current));
+  deepStrictEqual(initial.was, asking(aim.act.input, seat.words).answers(current), said.currentLost);
   currentCloses(seat.tools, initial);
 }
 /** Read the actual screen: reasons belong to a disabled row or to the live question, never an unrelated datum. */
@@ -55,7 +55,7 @@ export function assertOutcome<X extends Program>(seat: Seat<X>, aim: Aim<X>, kas
     return false;
   }
   strictEqual(calls.length, 1, said.runOnce);
-  if (external) ok(screen.includes(surfaceTexts.error) && screen.includes(cause));
+  if (external) ok(screen.includes(surfaceTexts.error) && screen.includes(cause), said.outsideSilent);
   else quietEntry(seat.router);
   return true;
 }
