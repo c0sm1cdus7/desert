@@ -75,14 +75,15 @@ export function writeAnswer(router: Router, field: Field, given: string): void {
       deepStrictEqual(body.entry?.padding, field.mask.padding?.(typed) || undefined);
     confirmAnswer(router, field, typed);
   };
+  let typed = "";
+  quietPrefix(typed);
+  probeWritten(router, field, typed);
   /** Numeric cases also try a leading zero: canonical answers may omit the zeros a person starts with. */
   if ("mask" in field && field.mask.put("", "0") === "0" && field.valid?.("0") === false) {
     router.send({ kind: "type", text: "0" });
     quietPrefix("0");
     router.send({ kind: "erase" });
   }
-  let typed = "";
-  quietPrefix(typed);
   for (const char of Array.from(given)) {
     router.send({ kind: "type", text: char });
     typed = "mask" in field ? field.mask.put(typed, char) : typed + char;

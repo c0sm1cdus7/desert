@@ -29,7 +29,7 @@ interface Walking {
   /** What is written was there when the question opened: the first key written replaces it, any other edits it. */
   readonly suggested: boolean;
   readonly error?: string;
-  readonly ignored?: true;
+  readonly ignored?: string;
   /** Only a result returned by an action that ran is an Error. */
   readonly failed?: true;
   /** In a question that picks a thing, the person is looking for it: what they type is what they look for. */

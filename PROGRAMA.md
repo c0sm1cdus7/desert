@@ -62,7 +62,7 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   El contexto trae `execute` para hacer otra acción por el mismo camino; su resultado amplio no se reenvía a ciegas.
 - Un campo lleva siempre máscara o placeholder y tope. Lo incompleto muestra la parte de la forma que falta en
   texto 3, dentro de la Entrada. Lo completo que `wrong` o `stops` no permite dice su motivo bajo la pregunta, en
-  texto 3, sin «Error» y sin `enter`. Enter no hace nada si no se ofrece; una tecla que no entra conserva el campo.
+  texto 3, sin «Error» y sin `enter`. Enter sobre un valor inválido agrega su motivo sin avanzar; una tecla que no entra conserva el campo.
   Un prefijo numérico como «0», que todavía puede crecer, no agrega «mínimo» ni «mayor a».
   «Error» en coral queda para el resultado de una acción que corrió.
 - `money(pregunta, mínimo, moneda)` conserva el dato como centavos enteros. El tercer argumento es opcional:
@@ -83,10 +83,14 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   Conserva los motivos que el campo ya tenía: primero comprueba el campo y después la regla agregada, solo si
   el campo acepta. Por ejemplo, agregar una regla a `day` no permite guardar un día inexistente. Se pueden
   encadenar reglas; se muestra el primer motivo que aplique, en el orden en que se agregaron.
-  Al Enter, un número bajo el mínimo dice el motivo aunque todavía pudiera crecer; mientras se escribe, ese
-  prefijo no molesta. Un campo opcional vacío sigue aceptando «nada».
+  Al Enter, todo valor inválido dice el motivo: «falta completar» si es obligatorio vacío, «día incompleto»,
+  «dígitos incompletos», el mínimo de caracteres o el límite numérico. Mientras se escribe, un prefijo que
+  puede completarse no molesta. Un campo opcional vacío sigue aceptando «nada».
   Una tecla que la máscara descarta dice por qué debajo de la pregunta, una sola vez. Un pegado conserva el
-  primer motivo hasta terminar ese pegado; la siguiente edición aceptada lo limpia. El valor aceptado no cambia.
+  primer motivo interior hasta terminar ese pegado, después de recortar espacios y saltos de los bordes;
+  la siguiente edición aceptada lo limpia. Un carácter permitido que excede el largo dice el tope. El valor
+  aceptado no cambia y el Error de una acción fallida sigue a la vista, con el aviso de la tecla debajo.
+  Un día inexistente dice eso antes de comprobar si es futuro.
   No usar `Date.now()` en esas reglas: el instante lo da la casa y los casos lo pueden fijar.
 - `day(pregunta, "today", "today")` limita la Entrada; la regla del programa contra fechas futuras va también
   en `stops` o `holding`, con su causa en `refuses`. Así se rechaza antes de `run` por cualquier puerta.

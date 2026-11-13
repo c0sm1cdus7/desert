@@ -138,8 +138,8 @@ export const limited = (allowed: string, max: number, hint: string): Format => {
     ...maskKeys(
       (typed, text) => (fits.test(text) && Array.from(typed).length < max ? typed + text : undefined),
       (_, text) => {
-        if (/\s/u.test(text)) return generic.ignored.spaces;
-        return fits.test(text) ? generic.ignored.characters(max) : generic.ignored.character;
+        if (fits.test(text)) return generic.ignored.characters(max);
+        return /\s/u.test(text) ? generic.ignored.spaces : generic.ignored.character;
       },
     ),
     value: typed => (typed === "" ? undefined : typed),

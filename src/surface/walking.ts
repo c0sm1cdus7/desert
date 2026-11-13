@@ -56,7 +56,7 @@ function masked(walk: Asking, mask: Mask, key: Intent): Asking | undefined {
       typed = mask.put(typed, text);
     }
     const changed = accepted ? rewritten(walk) : walk;
-    const why = reason === undefined ? {} : { error: reason, ignored: true as const };
+    const why = reason === undefined ? {} : { ignored: reason };
     return { ...changed, typed, caret: Array.from(typed).length, ...why };
   }
   if (key.kind === "erase") return { ...rewritten(walk), typed: Array.from(walk.typed).slice(0, -1).join("") };
@@ -83,8 +83,8 @@ function typing(session: Session, walk: Asking, tools: Tools, field: Field, key:
   const changed = "mask" in field ? masked(fresh, field.mask, key) : edited(fresh, key);
   if (key.kind === "type" && changed?.typed === fresh.typed && !("mask" in field && field.mask.rejected))
     return { session };
-  if (key.kind === "type" && walk.suggested && changed?.typed === "" && changed.error !== undefined)
-    return { session: replace(session, { ...walk, error: changed.error, ignored: true }) };
+  if (key.kind === "type" && walk.suggested && changed?.typed === "" && changed.ignored !== undefined)
+    return { session: replace(session, { ...walk, ignored: changed.ignored }) };
   if (changed) return { session: replace(session, "mask" in field ? changed : rewritten(changed)) };
   if (key.kind !== "confirm") return { session };
   if (validOf(field, walk.typed)) return advance(session, walk, tools, walk.typed, now);

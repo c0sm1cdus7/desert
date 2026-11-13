@@ -34,6 +34,18 @@ describe("a day that already happened", () => {
     const due = object({ on: day("Vence") });
     expect(asking(due, words).next([])?.wrong?.("12112099")).toBeUndefined();
   });
+
+  it("checks the calendar first without requiring the program to declare the base's future reason", () => {
+    const question = asking(paid, {
+      ...words,
+      cause: reason => {
+        expect(reason).not.toBe(generic.future);
+        return reason;
+      },
+    }).next([]);
+    expect(question?.wrong?.("30022027")).toBe(toolTexts.noSuchDay);
+    expect(question?.wrong?.("28022027")).toBe(generic.future);
+  });
 });
 
 describe("a day the calendar does not have", () => {

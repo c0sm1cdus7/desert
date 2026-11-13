@@ -45,12 +45,12 @@ function writing(place: Session[number], tools: Tools): boolean {
 function pasted(session: Session, text: string, tools: Tools, now: number): Stepped {
   const place = must(session.at(-1));
   const field = place.kind === "act" && place.phase === "asking" ? fieldOf(tools, place) : undefined;
+  const chars = Array.from(text.trim().replace(/[\r\n\t]+/gu, " ")).filter(char => !/\p{Cc}/u.test(char));
   /** A formatted paste is one edit: later accepted characters cannot hide an earlier rejection. */
   if (place.kind === "act" && field && "mask" in field) {
-    const written = text.replace(/[\r\n\t]+/gu, " ").replace(/\p{Cc}/gu, "");
+    const written = chars.join("");
     return written === "" ? { session } : walking(session, place, tools, { kind: "type", text: written }, now);
   }
-  const chars = Array.from(text.trim().replace(/[\r\n\t]+/gu, " ")).filter(char => !/\p{Cc}/u.test(char));
   return chars.reduce<Stepped>(
     (stepped, char) => {
       const there = must(stepped.session.at(-1));

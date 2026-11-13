@@ -114,6 +114,19 @@ function numericReason(schema: TSchema, ctx: Ctx, typed: string, submitted: bool
   if (typeof above === "number" && value <= above) return generic.lacks.above(said(above));
   return undefined;
 }
+/** A submitted value that cannot satisfy its field says what still needs completing. */
+function invalidReason(schema: TSchema, ctx: Ctx, typed: string, submitted: boolean): string | undefined {
+  const value = valueOf(schema, ctx, typed);
+  const numeric = numericReason(schema, ctx, typed, submitted);
+  if (numeric !== undefined || !submitted) return numeric;
+  if (typed.trim() === "") return generic.lacks.missing;
+  if (at(schema, "mask") === "day") return generic.lacks.day;
+  if (at(schema, "mask") === "digits") return generic.lacks.digits;
+  const least = at(schema, "minLength");
+  if (typeof least === "number" && typeof value === "string" && Array.from(value).length < least)
+    return generic.lacks.least(generic.lacks.characters(least));
+  return generic.lacks.shape;
+}
 export function written(schema: TSchema, ctx: Ctx): Field {
   ctx = moneyQuestion(schema, ctx);
   const of = at(schema, "of");
@@ -129,9 +142,9 @@ export function written(schema: TSchema, ctx: Ctx): Field {
     at(schema, "last") === "today" && typeof value === "string" && value > ctx.today();
   const wrong = (typed: string, submitted = false): string | undefined => {
     const value = valueOf(schema, ctx, typed);
-    if (!valid(typed)) return numericReason(schema, ctx, typed, submitted);
-    if (late(value)) return generic.future;
+    if (!valid(typed)) return invalidReason(schema, ctx, typed, submitted);
     const reason = wrongIn(schema, value, ctx.now());
+    if (reason === undefined && late(value)) return generic.future;
     return ctx.cause ? ctx.cause(reason) : reason;
   };
   /** What a person writes has a top: a number without one, or a text without a length, is a defect. */

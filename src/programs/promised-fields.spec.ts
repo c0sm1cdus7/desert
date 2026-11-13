@@ -36,9 +36,9 @@ describe("a program with a field that knows what is wrong", () => {
       type(router, " p  7");
       expect(now()).toEqual(["Anotar", "Pago", "› p 7"]);
       for (let erased = 0; erased < 3; erased++) router.send({ kind: "erase" });
-      /** Enter is not offered for an empty field and does nothing. */
+      /** Enter is not offered for an empty field; trying it explains what is missing without advancing. */
       router.send({ kind: "confirm" });
-      expect(now()).toEqual(["Anotar", "Pago", "› "]);
+      expect(now()).toEqual(["Anotar", "Pago", "falta completar", "› "]);
       type(router, "p7");
       router.send({ kind: "confirm" });
       expect(now()).toEqual(["Anotar", "Pago p7", "Monto", "› "]);

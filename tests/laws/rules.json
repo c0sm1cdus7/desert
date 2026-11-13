@@ -1739,26 +1739,29 @@
     },
     {
       "id": 214,
-      "rule": "Sumar un motivo con holding conserva los que el campo ya tenía: primero se comprueba el campo, después la regla agregada. Un día inexistente se rechaza en la pregunta y al validar el dato, aunque el programa le agregue otra regla.",
+      "rule": "Sumar un motivo con holding conserva los que el campo ya tenía: primero se comprueba el campo, después la regla agregada. Un día inexistente se rechaza en la pregunta y al validar el dato, aunque el programa le agregue otra regla. Un día inexistente se explica antes de comprobar si es futuro.",
       "from": "13/11 · campos · H01",
       "guarantee": "spec",
       "evidence": ["src/catalogs/fields.ts", "src/catalogs/fields.spec.ts", "src/surface/bridge/asking-days.spec.ts"]
     },
     {
       "id": 213,
-      "rule": "Al Enter, un número bajo el mínimo dice por qué no avanza, aunque aún pudiera crecer. Mientras se escribe ese prefijo no molesta; un opcional vacío sigue valiendo nada.",
+      "rule": "Al Enter, todo valor inválido dice por qué no avanza: obligatorio vacío, día o dígitos incompletos, texto corto y número bajo el mínimo. Mientras se escribe un prefijo que puede completarse no molesta; un opcional vacío sigue valiendo nada.",
       "from": "13/11 · campos · H05 y H18",
       "guarantee": "spec",
       "evidence": [
         "src/surface/bridge/asking-parts.ts",
         "src/surface/walking.ts",
         "src/surface/guards/answer-status.ts",
-        "src/surface/field-reasons.spec.ts"
+        "src/surface/field-reasons.spec.ts",
+        "src/surface/field-confirmation.spec.ts",
+        "src/surface/field-rejections.spec.ts",
+        "src/surface/entry-status.spec.ts"
       ]
     },
     {
       "id": 216,
-      "rule": "Una tecla que una máscara descarta dice una vez por qué, sin cambiar el valor aceptado. Un pegado conserva su primer motivo hasta terminar; una edición aceptada después lo limpia.",
+      "rule": "Una tecla que una máscara descarta dice una vez el motivo verdadero, sin cambiar el valor aceptado ni borrar el Error de una acción fallida: el aviso se suma. Un carácter permitido que excede el largo dice el tope. Un pegado recorta espacios y saltos de los bordes y conserva el primer motivo interior hasta terminar; una edición aceptada después lo limpia.",
       "from": "13/11 · campos · teclas descartadas",
       "guarantee": "spec",
       "evidence": [
@@ -1766,7 +1769,22 @@
         "src/surface/mask-keys.ts",
         "src/surface/walking.ts",
         "src/surface/step.ts",
-        "src/surface/field-reasons.spec.ts"
+        "src/surface/field-reasons.spec.ts",
+        "src/surface/field-confirmation.spec.ts",
+        "src/surface/field-rejections.spec.ts",
+        "src/surface/entry-status.spec.ts"
+      ]
+    },
+    {
+      "id": 215,
+      "rule": "La moneda de un campo de plata se declara con el dato: fija o decidida con respuestas anteriores, estado, destino e instante; sin declararla usa la del país. Se ve en el campo vacío, al escribir y en el eco; la confirmación del programa usa la misma decisión y el dato conserva sus centavos. La regla 217 detalla cómo se evita reutilizar un importe si cambia la moneda.",
+      "from": "13/11 · campos · H03, H11, H17, H23 y H34; número reservado para moneda",
+      "guarantee": "spec",
+      "evidence": [
+        "src/catalogs/fields/money-field.ts",
+        "src/surface/bridge/questions/money.spec.ts",
+        "src/surface/money-walk.spec.ts",
+        "src/surface/money-terminal.spec.ts"
       ]
     },
     {

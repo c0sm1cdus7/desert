@@ -1,51 +1,8 @@
-import { Type, type TSchema } from "@sinclair/typebox";
+import { Type } from "@sinclair/typebox";
 import { describe, expect, it } from "vitest";
-import { object } from "../catalogs/acts.ts";
 import { count, day, digits, handle, money, padded, quantity } from "../catalogs/fields.ts";
-import { asking } from "./bridge/asking.ts";
-import { formats } from "./masks.ts";
-import { begin, type Session } from "./screen.ts";
-import { step } from "./step.ts";
-import { resolve } from "./resolve.ts";
-import type { Intent } from "./contract.ts";
-import type { Tool } from "./shown-tool.ts";
+import { fieldSeat as seat } from "../../tests/support/field-seat.ts";
 
-function seat(field: TSchema) {
-  const ask = asking(object({ value: field }), {
-    now: () => 0,
-    today: () => "2026-11-13",
-    optionalMark: "",
-    formats: formats({ currency: "$", decimal: ",", thousands: ".", day: "dd/mm/aaaa" }),
-  });
-  const tool: Tool = {
-    id: "data",
-    name: "Datos",
-    place: { key: "d", section: "tools" },
-    summary: () => "",
-    view: () => [],
-    acts: {
-      change: {
-        label: "cambiar",
-        verb: "cambiar",
-        scope: "all",
-        next: ask.next,
-        run: () => Promise.resolve({ ok: true, text: "Listo" }),
-      },
-    },
-  };
-  let session: Session = [begin([tool], "data", "change")];
-  const send = (key: Intent) => {
-    session = step(session, key, [tool], 0).session;
-  };
-  const screen = () => resolve(session, [tool], { state: "connected", clock: "00:00", now: 0 }, { rows: 26 });
-  const reasons = () => {
-    const body = screen().body;
-    return body.kind === "thread"
-      ? body.events.filter(event => event.nested).map(event => event.text.map(span => span.text).join(""))
-      : [];
-  };
-  return { send, screen, reasons, session: () => session };
-}
 describe("Enter explains an extendable value below the minimum", () => {
   for (const [field, reason] of [
     [money("Importe", 1), "mínimo $ 0,01"],
@@ -101,9 +58,9 @@ describe("ignored keys explain themselves, once, including pasted text", () => {
         hands.send({ kind: "type", text: sample.before });
         const before = hands.screen().body;
         hands.send({ kind, text: sample.bad });
-        expect(hands.reasons()).toEqual([sample.why]);
+        expect(hands.reasons()).toEqual(kind === "paste" && sample.bad.trim() === "" ? [] : [sample.why]);
         hands.send({ kind, text: sample.bad });
-        expect(hands.reasons()).toEqual([sample.why]);
+        expect(hands.reasons()).toEqual(kind === "paste" && sample.bad.trim() === "" ? [] : [sample.why]);
         const after = hands.screen().body;
         expect(after.kind === "thread" && after.entry).toEqual(before.kind === "thread" && before.entry);
         hands.send({ kind: "erase" });
@@ -115,7 +72,6 @@ describe("ignored keys explain themselves, once, including pasted text", () => {
     [quantity("Cantidad"), "-5", "5", "sin signo"],
     [quantity("Cantidad"), "1234567", "123456", "máximo 999999"],
     [quantity("Cantidad"), "-5x", "5", "sin signo"],
-    [handle("Nombre", "Nombre", "a-z", 8), " ab ", "ab", "sin espacios"],
   ] as const)
     it(`whole paste ${text}`, () => {
       const hands = seat(field);

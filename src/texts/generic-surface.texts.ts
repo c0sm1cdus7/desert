@@ -1,3 +1,4 @@
+import { fieldTexts } from "./fields/field-texts.ts";
 // What the bridge to the surface says to a person, whatever the program; each program brings its own words.
 export const genericTexts = {
   optional: " · opcional",
@@ -6,24 +7,7 @@ export const genericTexts = {
   offline: "Sin conexión",
   /** The last list of a thing: everything that was done to it, as the journal has it. */
   record: { title: "Registro" },
-  /** Why what is written cannot be sent yet: said where it is written, as a datum. */
-  lacks: {
-    least: (least: string) => `mínimo ${least}`,
-    above: (than: string) => `mayor a ${than}`,
-    most: (most: string) => `máximo ${most}`,
-  },
-  ignored: {
-    spaces: "sin espacios",
-    sign: "sin signo",
-    numbers: "solo números",
-    character: "carácter no permitido",
-    digits: (max: number) => `máximo ${max} dígitos`,
-    characters: (max: number) => `máximo ${max} caracteres`,
-    decimals: (max: number) => `máximo ${max} decimales`,
-    decimal: "un separador decimal, después del número",
-  },
-  /** A day that already happened, written after today. */
-  future: "día futuro",
+  ...fieldTexts,
   /** What a row says of an act that cannot be undone, when the act has nothing more useful to say there. */
   irreversible: "irreversible",
   /** Why a tool, or what it does, is off for who does not hold it: said as a datum, like any cause. */

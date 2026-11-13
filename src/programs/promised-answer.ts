@@ -12,7 +12,6 @@ export type Stopped = Readonly<{ kind: "data" | "cause"; ask: string; reason?: s
 export function answer(router: Router, field: Field, given: string, opened = field.initial ?? ""): true | Stopped {
   if (field.kind === "text" || field.kind === "secret") {
     Array.from(opened).forEach(() => router.send({ kind: "erase" }));
-    probeWritten(router, field, "");
     writeAnswer(router, field, given);
     probeWritten(router, field, given);
     const canSend = router.screen(view).hints.some(hint => hint.intent === "confirm");

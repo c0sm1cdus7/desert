@@ -40,22 +40,36 @@ function seat(schema: Parameters<typeof asking>[0], stops?: (answers: readonly s
   };
   const screen = () => router.screen(view);
   const enter = () => screen().hints.some(hint => hint.intent === "confirm");
-  const check = () => {
+  const check = (reason?: string) => {
     const before = screen();
     expect(enter()).toBe(false);
     router.send({ kind: "confirm" });
-    expect(screen()).toEqual(before);
+    expect(screen()).toEqual(
+      reason && before.body.kind === "thread"
+        ? {
+            ...before,
+            body: {
+              ...before.body,
+              events: [
+                ...before.body.events.filter(event => !event.nested),
+                { text: [{ text: reason, tone: "t3" }], nested: true },
+              ],
+            },
+          }
+        : before,
+    );
     expect(run).not.toHaveBeenCalled();
   };
   return { router, run, type, screen, enter, check };
 }
 describe("the Entrada", () => {
-  it("keeps the remaining day shape in text 3, without a separate incomplete message", () => {
+  it("keeps the remaining day shape quiet until Enter explains the incomplete day", () => {
     const hands = seat(object({ date: day("Día") }));
     try {
-      hands.check();
+      hands.check("falta completar");
       hands.type("0203");
-      hands.check();
+      expect(hands.screen().body).toMatchObject({ events: [{ text: [{ text: "Día", tone: "t1" }] }] });
+      hands.check("día incompleto");
       expect(hands.screen().body).toMatchObject({ entry: { typed: "02/03", remaining: "/aaaa" } });
       const grid = paint(hands.screen(), { cols: 80, rows: 30 });
       const lines = textOf(grid);
@@ -81,8 +95,8 @@ describe("the Entrada", () => {
         events: [{ text: [{ text: "CUIT", tone: "t1" }] }, { text: [{ text: "dígito inválido", tone: "t3" }] }],
       });
       hands.router.send({ kind: "erase" });
-      hands.check();
       expect(hands.screen().body).toMatchObject({ events: [{ text: [{ text: "CUIT" }] }] });
+      hands.check("dígitos incompletos");
       hands.type("6");
       expect(hands.enter()).toBe(true);
     } finally {
@@ -110,7 +124,7 @@ describe("the Entrada", () => {
     try {
       hands.type("1");
       expect(JSON.stringify(hands.screen())).not.toContain("mínimo 02");
-      hands.router.send({ kind: "confirm" });
+      hands.check("mínimo 02");
       expect(JSON.stringify(hands.screen())).toContain("mínimo 02");
       expect(JSON.stringify(hands.screen())).not.toContain("Error");
       expect(hands.run).not.toHaveBeenCalled();
@@ -122,10 +136,16 @@ describe("the Entrada", () => {
       expect(grid[row]?.[col + 1]?.tone).toBe("t1");
       hands.type("9");
       expect(hands.enter()).toBe(true);
-      const full = hands.screen().body;
+      const full = hands.screen();
+      if (full.body.kind !== "thread") throw new Error("Not a question");
       hands.type("9x");
-      const after = hands.screen().body;
-      expect(after.kind === "thread" && after.entry).toEqual(full.kind === "thread" && full.entry);
+      expect(hands.screen()).toEqual({
+        ...full,
+        body: {
+          ...full.body,
+          events: [...full.body.events, { text: [{ text: "solo números", tone: "t3" }], nested: true, ignored: true }],
+        },
+      });
       expect(hands.enter()).toBe(true);
       expect(JSON.stringify(hands.screen())).toContain("solo números");
       hands.router.send({ kind: "erase" });
