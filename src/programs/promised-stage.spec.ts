@@ -34,4 +34,42 @@ describe("the lifetime of a derived check's house", () => {
         "broken check",
       );
     }));
+  it("removes its directory after success and repeated reopening", () =>
+    isolated(async () => {
+      await staged(shopProgram, ({ reopen }) => {
+        reopen();
+        reopen();
+        return Promise.resolve();
+      });
+    }));
+  it("removes its directory when reopening throws after the old house was closed", () =>
+    isolated(async () => {
+      let openings = 0;
+      const broken = {
+        ...shopProgram,
+        get slices(): typeof shopProgram.slices {
+          if (openings++ > 0) throw new Error("broken reopening");
+          return shopProgram.slices;
+        },
+      };
+      await expect(
+        staged(broken, ({ reopen }) => {
+          reopen();
+          return Promise.resolve();
+        }),
+      ).rejects.toThrow("broken reopening");
+    }));
+  it("removes its directory even when closing throws: the cleanup is outside the close", () =>
+    isolated(async () => {
+      await expect(
+        staged(shopProgram, ({ house }) => {
+          const close = house().close;
+          vi.spyOn(house(), "close").mockImplementation(() => {
+            close();
+            throw new Error("broken close");
+          });
+          return Promise.resolve();
+        }),
+      ).rejects.toThrow("broken close");
+    }));
 });

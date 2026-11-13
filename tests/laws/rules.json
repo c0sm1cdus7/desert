@@ -1469,6 +1469,50 @@
         "src/programs/promised-availability.spec.ts"
       ],
       "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios"
+    },
+    {
+      "id": 178,
+      "rule": "El código de run solo termina hecho o rechazado por una causa literal de outside, con un dato opcional tras punto medio. Una causa interna no compila; si llega en ejecución, la base lanza un defecto visible. Los rechazos previos siguen en refuses.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "type",
+      "evidence": ["src/tools/outside.ts", "src/tools/promises.ts", "src/tools/execute.ts", "src/tools/outside.spec.ts"]
+    },
+    {
+      "id": 179,
+      "rule": "De cada caso se deriva la caminata con teclas: un rechazo interno no se envía y dice su motivo donde se elegiría; uno de outside corre y termina en Error con su causa. Lo vigente no se envía en ningún estado declarado, ninguna pantalla dice sin cambios, ningún recorrido aceptado muestra Error y ninguna pregunta queda sin una elección elegible.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/promised-walk.ts",
+        "src/programs/promised-route.ts",
+        "src/programs/promised-result.ts",
+        "src/programs/promised-rejections.spec.ts",
+        "src/programs/promised-current.spec.ts",
+        "src/programs/promised-entry.spec.ts",
+        "src/programs/promised-choices.spec.ts",
+        "src/programs/promised-availability.spec.ts",
+        "src/tools/outside.spec.ts"
+      ]
+    },
+    {
+      "id": 180,
+      "rule": "Cada prueba derivada elimina la casa temporal que creó, termine bien o falle al abrir, reabrir, probar o cerrar. Las carpetas históricas no se borran como parte de la prueba.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "spec",
+      "evidence": ["src/programs/promised-stage.ts", "src/programs/promised-stage.spec.ts"]
+    },
+    {
+      "id": 181,
+      "rule": "Cada registro guardado se recorre en anchura sobre copias descartables: al aceptar lo ofrecido no aparece Error salvo una causa de outside, ninguna pregunta de opciones queda sin respuesta elegible y toda fila apagada dice su motivo. La exploración es acotada: 128 caminos, 24 niveles y 16 alternativas por estado; no inventa texto ni escribe secretos.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "derived",
+      "evidence": [
+        "src/programs/kept-journals.ts",
+        "src/programs/kept-path.ts",
+        "src/programs/kept-walk.ts",
+        "src/programs/kept-walk.spec.ts",
+        "src/programs/kept-journals.spec.ts"
+      ]
     }
   ]
 }

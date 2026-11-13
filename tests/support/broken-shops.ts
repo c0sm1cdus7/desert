@@ -1,21 +1,31 @@
 // Shops that break a promise, each in one way: the derived checks have to catch exactly what each one broke.
 import { emptyHouse } from "../../src/house/house.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
-import type { ActContext, ActResult } from "../../src/tools/tool-contract.ts";
+import type { RunResult } from "../../src/tools/outside.ts";
+import type { ActContext } from "../../src/tools/tool-contract.ts";
 import { paymentsTool, registerCases, registerOffer, salesTool, shop, shopCatalog } from "./shop.ts";
 import { shopProgram, shopSlices } from "./shop.ts";
 import type { Sales, Shop } from "./shop.ts";
 
 type Told = { sale: string; total: number };
-type Run = (input: Told, context: ActContext<Shop>) => ActResult<Shop>;
-const honest: Run = (input, { by, state }) =>
-  state.tools.sales.has(input.sale)
-    ? { status: "rejected", reason: "repeated" }
-    : { status: "accepted", text: `Registrada · ${input.sale}`, effects: [shop.fact("sale-registered", input, by)] };
+type Run = (input: Told, context: ActContext<Shop>) => RunResult<Shop, readonly []>;
+const honest: Run = (input, { by }) => ({
+  status: "accepted",
+  text: `Registrada · ${input.sale}`,
+  effects: [shop.fact("sale-registered", input, by)],
+});
+const stops = salesTool.acts.register?.stops ?? (() => undefined);
 /** The shop with another way of registering a sale, under the same promises. */
-const registering = (run: Run, refuses: readonly string[] = ["repeated"]): Composition<Shop> => {
+const registering = (run: Run, refuses: readonly string[] = ["repeated"], repeat = false): Composition<Shop> => {
   const input = shopCatalog["sale-registered"];
-  const register = programAct<Shop, typeof input>({ ...registerOffer, input, refuses, run, cases: registerCases });
+  const register = programAct<Shop, typeof input>({
+    ...registerOffer,
+    input,
+    refuses,
+    stops: repeat ? () => undefined : stops,
+    run,
+    cases: registerCases,
+  });
   return { ...shopProgram, registry: [{ ...salesTool, acts: { register } }, paymentsTool] };
 };
 /** The shop that speaks to who registered: its case promises those very words, so only how it says it is wrong. */
@@ -28,7 +38,14 @@ const speaking = (): Composition<Shop> => {
     const done = honest(said, context);
     return done.status === "accepted" ? { ...done, text: says } : done;
   };
-  const register = programAct<Shop, typeof input>({ ...registerOffer, input, refuses: ["repeated"], run, cases });
+  const register = programAct<Shop, typeof input>({
+    ...registerOffer,
+    input,
+    refuses: ["repeated"],
+    stops: stops,
+    run,
+    cases,
+  });
   return { ...shopProgram, registry: [{ ...salesTool, acts: { register } }, paymentsTool] };
 };
 /** It keeps every sale at twice what it was told: the fact is right, what is read of it is not. */
@@ -74,9 +91,7 @@ export const brokenShops: readonly Readonly<{ name: string; program: Composition
     },
     {
       name: "a shop that registers the same sale twice",
-      program: registering((input, context) =>
-        honest(input, { ...context, state: { ...context.state, tools: shopSlices.initial } }),
-      ),
+      program: registering(honest, ["repeated"], true),
       fails: [again, keys(again)],
     },
     {

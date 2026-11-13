@@ -36,7 +36,7 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   dentro de un menú del objeto (Editar). `changes: "<dato>"` la pone en la fila del dato que cambia (solo datos de la
   herramienta, no de un objeto).
 - `offered(estado, objeto)` devuelve el motivo por el que ahora no se puede (la fila queda apagada diciéndolo, y la
-  base rechaza con el mismo motivo). `refuses` lista todos los motivos; cada uno necesita su caso.
+  base rechaza con el mismo motivo). `refuses` lista los motivos previos a correr; `outside`, los que solo produce el mundo. Cada causa necesita su caso.
 - `today(estado, objeto)` da lo que el objeto vale hoy: toda caminata nace con eso, incluso desde `Acciones`,
   una fila, un menú o una acción ofrecida por otra herramienta. El texto abre encendido entero y escribir lo
   reemplaza. Lo vigente se marca «actual»: se apaga si elegirlo terminaría sin cambios. En texto, `enter`
@@ -44,8 +44,10 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   antes de correr.
 - `confirms` pone algo a confirmar. Lo irreversible (`undoable: false`) confirma con «volver» primero.
 - `also` la ofrece además entre las acciones de los objetos de otra herramienta (cobrar, desde una venta).
-- `run` puede ser `async`; `reach: "world"` dice que sale de la organización. El contexto trae `execute` para
-  hacer otra acción por el mismo camino.
+- `run` puede ser `async`; solo devuelve `accepted` o `rejected` con una causa literal de `outside`, opcionalmente
+  seguida de ` · dato`. Sin `outside`, no devuelve rechazos. Una causa ajena a esa lista no compila; si código
+  sin tipos la introduce igual, la base lanza un defecto visible. `reach: "world"` dice que sale de la organización.
+  El contexto trae `execute` para hacer otra acción por el mismo camino; su resultado amplio no se reenvía a ciegas.
 - Un campo lleva siempre máscara o placeholder y tope. Lo incompleto muestra la parte de la forma que falta en
   texto 3, dentro de la Entrada. Lo completo que `wrong` o `stops` no permite dice su motivo bajo la pregunta, en
   texto 3, sin «Error» y sin `enter`. Enter no hace nada si no se ofrece; una tecla que no entra conserva el campo.
@@ -81,6 +83,106 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - Una acción dice si se ofrece sabiendo qué momento es (`offered(estado, cosa, instante)`): lo que hoy no se puede
   hacer queda apagado con su motivo.
 
+
+## Migrar una acción a la separación de rechazos (12/11)
+
+La persona solo puede terminar en `Listo` o en `Error` por una causa de afuera. El orden para migrar es este:
+
+1. **Mover cada rechazo interno fuera de `run`.** Si depende del estado, va en `offered`; si depende de la cosa
+   elegida, en `among`; si combina respuestas o estado, en `stops`; si pertenece al dato mismo, en `holding` (`wrong`).
+   Se conserva la causa en `refuses` y su caso. `stops` recibe respuestas parciales: comprobar los tipos antes de
+   comparar. No repetir el rechazo dentro de `run` ni hacerlo pasar por una falla de afuera.
+
+   ```ts
+   // Antes, dentro de run:
+   if (input.paid > input.total) return { status: "rejected", reason: "overpaid" };
+   // Después, junto a run; run solo hace el cambio:
+   refuses: ["overpaid"],
+   stops: ({ paid, total }) =>
+     typeof paid === "number" && typeof total === "number" && paid > total ? "overpaid" : undefined,
+   ```
+
+2. **Cambiar los predicados de `among`.** Antes devolvían booleanos; ahora devuelven el motivo o `undefined`.
+   Conservar el motivo en `refuses` y prometerlo en un caso. Se ve apagado tanto en la lista como al buscar.
+
+   ```ts
+   // Antes:
+   among: (_, state) => ({ sales: id => eligible(state, id) }),
+   // Después:
+   among: (_, state) => ({ sales: id => eligible(state, id) ? undefined : "venta no elegible" }),
+   refuses: ["venta no elegible"],
+   ```
+
+3. **Dar `empty` a cada `thing` sin `makes`.** Es el quinto argumento; no cambia `none` ni el cuarto argumento,
+   que nombra al creador. El motivo describe por qué esa acción no tiene ninguna cosa elegible. El campo se audita
+   también dentro de esquemas anidados. Si hay creador pero está apagado, no cuenta como salida.
+
+   ```ts
+   // Antes:
+   thing("Venta", "sales")
+   // Después:
+   thing("Venta", "sales", undefined, undefined, "sin ventas para cobrar")
+   // Una referencia opcional sigue pudiendo contestar ninguna:
+   Type.Optional(thing("Venta", "sales", "sin venta", undefined, "sin ventas"))
+   // Con creador disponible se conserva esta forma:
+   thing("Venta", "sales", undefined, "register")
+   ```
+
+4. **Separar las causas de afuera.** `outside` es una tupla literal; no se anota como `string[]`. Se sacan esas causas
+   de `refuses`, que queda para los rechazos previos. Cuando se indican los tipos de programa e input explícitamente,
+   se agrega el tercer parámetro `typeof outside`. Sin `outside`, `run` solo puede devolver `accepted`.
+
+   ```ts
+   // Antes: refuses incluía "printer offline" y run podía devolver cualquier ActResult<Shop>.
+   const input = object({ receipt: text("Recibo", "Nombre del recibo") });
+   const outside = ["printer offline"] as const;
+   const print = programAct<Shop, typeof input, typeof outside>({
+     ...offer, input, outside,
+     run: ({ receipt }) => receipt === "offline"
+       ? { status: "rejected", reason: "printer offline · desk" }
+       : { status: "accepted", text: "Impreso · Recibo" },
+     cases: [
+       { promise: "prints", input: { receipt: "receipt" }, then: { says: "Impreso · Recibo", facts: [] } },
+       { promise: "offline", input: { receipt: "offline" }, then: { refused: "printer offline · desk" } },
+     ],
+   });
+   ```
+
+   Este ejemplo usa una impresora determinista de prueba. La acción real conserva un caso aceptado y casos para
+   cada causa de `refuses` y `outside`. `outside` declara la causa; el resultado puede agregar ` · dato`. El caso promete la
+   respuesta completa. `reach: "world"` sigue diciendo que sale de la organización: no reemplaza a `outside`.
+   Declarar algo como externo es responsabilidad del programa; la base no puede inferir de su nombre si viene
+   realmente de un puerto. Una credencial ausente que el estado ya conoce se cierra antes, como cualquier rechazo
+   interno. Una respuesta válida sin novedades es un éxito si no hay una falla del mundo.
+
+5. **Estrechar los helpers de `run`.** Antes: `ActResult<Shop>`; después: `RunResult<Shop, typeof outside>`, de
+   `src/tools/outside.ts`; sin causas externas, `RunResult<Shop, readonly []>`. No usar aserciones para forzar el tipo.
+   Un helper que devuelve `reason: string` pierde la unión literal: devolver el objeto contextualizado por ese tipo,
+   o conservar el literal en el helper. No reenviar directamente el resultado amplio de otro `ProgramAct.run` ni
+   de `context.execute`: sus rechazos previos no son automáticamente fallas de afuera. Compartir la implementación
+   de éxito o tratar explícitamente el resultado y clasificar la causa externa. `inconclusive` e `interrupted` no
+   son resultados de `run` de un programa; los estados de la infraestructura siguen en el contrato de la casa.
+
+6. **Revisar `today` y las superficies personalizadas.** Su firma no cambia: devuelve el input completo que
+   representa lo vigente, o `undefined` si no lo hay. No usarlo para una sugerencia que todavía no es verdad.
+   Al envolver una acción de superficie, conservar `...act`, incluidos `today`, `same`, `next` y `stops`.
+   Una opción vigente intermedia sigue elegible; la última que dejaría todo igual se apaga, o deja el texto sin
+   Enter. `wrong` y `stops` devuelven motivos sin anteponer «Error». No hay que agregar un rechazo a `run` para
+   lo vigente. La prueba de «sin cambios» por otras puertas sigue; en pantalla se prueba que no se envíe.
+
+7. **Completar los casos y correr la compuerta.** Cada rechazo interno necesita un estado y una respuesta que una
+   persona pueda intentar elegir; el motivo tiene que verse en la fila apagada, en la opción/cosa apagada o bajo
+   la pregunta. Si la primera referencia no tiene candidatos, se ve el `empty` del campo. Un id inexistente por
+   otra puerta no reemplaza un caso de una cosa visible no elegible. Una fila que edita un dato no puede prometer
+   un recorrido que cambie además otro dato fijo: declarar el recorrido completo o casos que se puedan caminar.
+   Ninguna pregunta alcanzable puede quedarse sin opciones, incluidas las posteriores. Cerrar esa rama antes de
+   ofrecerla, o la acción con `offered`, según lo que ya se sabe. Cada causa externa debe correr y terminar en
+   `Error` con su causa; cada caso aceptado tiene que llegar sin líneas de `Error`. La base cuenta los envíos,
+   aunque una acción defectuosa no escriba ningún hecho. No se retira un caso para ocultar un camino defectuoso.
+
+El programa de pruebas debe usar puertos deterministas de prueba. La base ejecuta sus acciones tal como se compusieron:
+no cambia un proveedor real por uno simulado ni promete que `reach: "world"` impida salir a la red.
+
 ## Los registros que se guardan
 - Un programa puede guardar registros que organizaciones reales escribieron con él en una carpeta que nombra en
   `package.json`: `"desert": { "program": …, "journals": "tests/journals" }`. Cada uno es una copia de su
@@ -89,6 +191,12 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   repositorio público).
 - La compuerta abre cada copia con el programa de hoy, sin lo que traía plegado: cada hecho se lee y se pliega desde
   el primero, y cada cosa se lee como la lee quien administra. Un cambio que no los lea frena ahí.
+- Además recorre lo ofrecido en anchura: cada camino vuelve a una copia limpia del registro. Prueba hasta 128 caminos,
+  24 niveles de decisiones y 16 alternativas por estado, con el reloj quieto. Acepta opciones, marcas y texto que ya
+  se ofrece y puede enviarse; no inventa texto ni escribe secretos, y no recorre conversaciones. Un error interno,
+  una pregunta de opciones sin respuesta elegible o una fila apagada sin motivo hacen fallar la compuerta.
+  Las fallas declaradas en `outside` pueden terminar en `Error` con su causa. Es una muestra acotada, no una prueba
+  de todos los estados posibles: las garantías derivadas de los casos siguen siendo obligatorias.
 - El único remedio que la base tiene hoy es no romper la lectura: un hecho que cambia de forma es un hecho nuevo, con
   otro nombre, y el viejo se sigue leyendo y plegando. No hay lectura versionada de un hecho viejo.
 - Ojo: una organización en uso guarda su estado plegado y lo vuelve a usar mientras el programa no cambie sus hechos

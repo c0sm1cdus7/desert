@@ -107,6 +107,7 @@ describe("a program with acts on its things", () => {
     expect(mine.map(check => check.name.split(" · ").at(-1))).toEqual([
       "beto does not register",
       "beto does not register, by keys",
+      "beto does not register, blocked choices",
       "beto does not register, hidden for who prefers not to see what cannot be done",
     ]);
     expect(await failing(mine)).toEqual([]);

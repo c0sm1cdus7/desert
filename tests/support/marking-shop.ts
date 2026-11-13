@@ -22,9 +22,10 @@ const mark = programAct<Shop, typeof marked>({
   input: marked,
   confirms: ({ paid }) => `Marcar · $ ${paid}`,
   refuses: ["over"],
+  stops: ({ paid }, state, target) =>
+    typeof paid === "number" && paid > (state.tools.sales.get(nameOf(target))?.total ?? 0) ? "over" : undefined,
   run: ({ paid }, { by, state, target }) => {
     const total = state.tools.sales.get(nameOf(target))?.total ?? 0;
-    if (paid > total) return { status: "rejected", reason: "over" };
     const fact = shop.fact("sale-corrected", { sale: nameOf(target), total, paid }, by);
     return { status: "accepted", text: `Marcada · ${nameOf(target)}`, effects: [fact] };
   },

@@ -1,5 +1,6 @@
 // How a derived check moves through a program by keys: from the Menu to a tool, to one of its things, to an act's row.
 import { ok, strictEqual } from "node:assert/strict";
+import type { Act } from "../catalogs/acts.ts";
 import { caseInstant } from "../catalogs/time.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import { houseTools } from "../surface/bridge/house-tools.ts";
@@ -35,9 +36,20 @@ export const type = (router: Router, text: string): void => {
 /** A program as one identity has it in front: its tools as that identity sees them, and a router on the Menu. */
 export function seated<X extends Program>(house: House<X>, by: string, shown: Shown<X>) {
   const ports = localPorts(house, by, { recentLines: 100 }, house.now);
-  const tools = houseTools(ports, shown);
+  const requests: Act[] = [];
+  const tools = houseTools(
+    {
+      ...ports,
+      act: (value, through) => {
+        if (value.act !== "attend") requests.push(value);
+        return ports.act(value, through);
+      },
+    },
+    shown,
+  );
   return {
     tools,
+    requests,
     shown,
     state: ports.state,
     now: ports.now,

@@ -1,5 +1,14 @@
 // How the checks that a program's promises derive are named, and what they say when a case cannot even start.
 export const promiseTexts = {
+  keptWalks: (name: string) =>
+    `the journal kept as ${name} walks offered answers within 128 paths, 24 levels, 16 choices`,
+  disabledReason: "A disabled row has no reason",
+  offeredFailed: (reason: string) => `An offered answer failed internally: ${reason}`,
+  emptyQuestion: "A question has nothing eligible to choose",
+  disabledCursor: "The cursor rests on a disabled option",
+  internalSent: "An internal refusal could be submitted",
+  runOnce: "The promised action did not run exactly once",
+  refusalNotVisible: (cause: string) => `The refusal is not visible where it is chosen: ${cause}`,
   availableChoices: (promise: string): string => `${promise}, no empty first choice`,
   blockedChoices: (promise: string): string => `${promise}, blocked choices`,
   outside: (variant: number) => `refuses what it does not ask for (${variant})`,

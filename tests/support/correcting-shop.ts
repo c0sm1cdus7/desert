@@ -38,8 +38,9 @@ const correct = programAct<Shop, typeof corrected>({
   input: corrected,
   today: todayOf,
   refuses: ["overpaid", toolTexts.unchanged],
+  stops: ({ paid, total }) =>
+    typeof paid === "number" && typeof total === "number" && paid > total ? "overpaid" : undefined,
   run: (input, { by, target }) => {
-    if (input.paid > input.total) return { status: "rejected", reason: "overpaid" };
     const fact = shop.fact("sale-corrected", { sale: nameOf(target), ...input }, by);
     return { status: "accepted", text: `Corregida · ${nameOf(target)}`, effects: [fact] };
   },
@@ -62,7 +63,7 @@ const correct = programAct<Shop, typeof corrected>({
       promise: "a sale is not paid more than its total",
       given: [registered],
       on: "sales/s1",
-      input: { total: 100, paid: 2000 },
+      input: { total: 1500, paid: 2000 },
       then: { refused: "overpaid" },
     },
     {

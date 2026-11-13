@@ -107,15 +107,13 @@ export const salesTool: ProgramTool<Shop> = {
       ...registerOffer,
       input: shopCatalog["sale-registered"],
       refuses: ["repeated"],
-      run: (input, { by, state }) =>
-        state.tools.sales.has(input.sale)
-          ? { status: "rejected", reason: "repeated" }
-          : {
-              status: "accepted",
-              text: `Registrada · ${input.sale}`,
-              target: `sales/${input.sale}`,
-              effects: [shop.fact("sale-registered", input, by)],
-            },
+      stops: ({ sale }, state) => (typeof sale === "string" && state.tools.sales.has(sale) ? "repeated" : undefined),
+      run: (input, { by }) => ({
+        status: "accepted",
+        text: `Registrada · ${input.sale}`,
+        target: `sales/${input.sale}`,
+        effects: [shop.fact("sale-registered", input, by)],
+      }),
       cases: registerCases,
     }),
   },

@@ -38,14 +38,11 @@ const floating = (how: Offered) =>
     today: state => ({ float: state.tools.till.float }),
     refuses: ["cerrada"],
     offered: whyNot,
-    run: (input, { by, state }) =>
-      whyNot(state)
-        ? { status: "rejected", reason: "cerrada" }
-        : {
-            status: "accepted",
-            text: `Cambiado · Fondo · $ ${input.float}`,
-            effects: [till.fact("till-floated", input, by)],
-          },
+    run: (input, { by }) => ({
+      status: "accepted",
+      text: `Cambiado · Fondo · $ ${input.float}`,
+      effects: [till.fact("till-floated", input, by)],
+    }),
     cases: [
       {
         promise: "the float of the till is changed where it is read",

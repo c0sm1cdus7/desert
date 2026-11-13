@@ -89,7 +89,13 @@
     "programs/promised-availability.ts": "Derived checks that a first reference with no eligible answer closes its action at the menu",
     "programs/promised-answer.ts": "Answers each kind of question through keys for a declared case",
     "programs/promised-preferences.ts": "Changes preferences through keys for the derived guarantees",
-    "surface/bridge/makers.ts": "Available maker rows, including their first question and cycles with no initial thing"
+    "surface/bridge/makers.ts": "Available maker rows, including their first question and cycles with no initial thing",
+    "tools/outside.ts": "RunResult, outsideRun: literal world causes and visible programmer defects",
+    "tools/promises-contract.ts": "Program action, case and composition declarations, including the typed run boundary",
+    "programs/promised-route.ts": "taken, walk: navigate the case to its action and answer by keys",
+    "programs/promised-result.ts": "currentInState, assertOutcome: every case closes internal refusals before sending and shows external errors after running",
+    "programs/kept-path.ts": "keptPath: replay an offered path on a disposable saved journal and reject internal errors or empty choices",
+    "programs/kept-walk.ts": "breadthFirst: bounded saved-journal exploration with state deduplication and explicit coverage"
   },
   "folders": {
     "adapters/secrets": 103,
@@ -98,10 +104,10 @@
     "doors/terminal": 578,
     "house": 91,
     "journal": 326,
-    "programs": 1440,
+    "programs": 1698,
     "surface": 1803,
     "surface/bridge": 1365,
-    "texts": 203,
-    "tools": 884
+    "texts": 212,
+    "tools": 957
   }
 }

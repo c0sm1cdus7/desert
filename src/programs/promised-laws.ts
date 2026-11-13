@@ -76,7 +76,10 @@ export function coverage<X extends Program>(aim: Aim<X>): Check {
       ok(!aim.act.confirms || sure, said.unsure);
       /** What the base itself refuses with is not the act's to declare; a case may still promise it. */
       const own = (causes: readonly string[]) => [...new Set(causes.filter(cause => !ofTheBase(cause)))].sort();
-      deepStrictEqual(own(refused), own(aim.act.refuses));
+      deepStrictEqual(
+        own(refused.map(cause => aim.act.outside.find(out => cause.startsWith(`${out} · `)) ?? cause)),
+        own([...aim.act.refuses, ...aim.act.outside]),
+      );
     });
   return { name: label(aim, said.covered), run };
 }

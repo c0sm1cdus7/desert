@@ -7,6 +7,7 @@ import type { Bus } from "../journal/bus.ts";
 import { effect, type Emission, type HouseEvent } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "./attendance.ts";
+import { OutsideDefect } from "./outside.ts";
 import { making } from "./made.ts";
 import { actNews, type ActContext, type ActResult, type KeyStore, type OwnAct } from "./tool-contract.ts";
 import type { Program, State, Tool, ToolAct, ToolRegistry } from "./tool-contract.ts";
@@ -160,8 +161,10 @@ const run = <X extends Program>(ports: Execution<X>, act: Origin, perform: Perfo
   const tool = targetTool(ports.registry, identityView(ports.state(), act.by), object)?.id ?? object;
   ports.bus.emit(effect("act-started", { act: act.id, object, option }, act.by, [act.id], act.process));
   /** A thrown Error is the tool's own cause; only a throw without one keeps the last-resort text. */
-  const failed = (error: unknown): Decision<X> =>
-    rejected(error instanceof Error && error.message ? error.message : toolTexts.unavailable);
+  const failed = (error: unknown): Decision<X> => {
+    if (error instanceof OutsideDefect) throw error;
+    return rejected(error instanceof Error && error.message ? error.message : toolTexts.unavailable);
+  };
   let result: Decision<X> | Promise<Decision<X>>;
   try {
     result = perform();

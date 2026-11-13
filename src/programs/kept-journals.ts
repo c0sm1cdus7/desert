@@ -13,6 +13,8 @@ import type { Composition } from "../tools/promises.ts";
 import type { KeyStore, Program } from "../tools/tool-contract.ts";
 import { startState, toolsStep } from "../tools/tools.ts";
 import { localPorts, startHouse } from "./house-runtime.ts";
+import { breadthFirst } from "./kept-walk.ts";
+import { keptPath } from "./kept-path.ts";
 import type { Check } from "./promised-stage.ts";
 
 /** A kept journal is read, never used: no service of its house is reached, and no credential of it is there. */
@@ -43,7 +45,11 @@ function read<X extends Program>({ program, shown }: Kept<X>, house: ReturnType<
   }
 }
 /** One kept journal, opened as a copy, a moment after its last fact, with time standing still. */
-function opened<X extends Program>(kept: Kept<X>, file: string): void {
+async function opened<X extends Program, R>(
+  kept: Kept<X>,
+  file: string,
+  use: (house: ReturnType<typeof startHouse<X>>, now: number) => R | Promise<R>,
+): Promise<R> {
   const home = mkdtempSync(join(tmpdir(), "desert-kept-"));
   try {
     copyFileSync(file, join(home, "journal.sqlite"));
@@ -54,7 +60,7 @@ function opened<X extends Program>(kept: Kept<X>, file: string): void {
     const time = { now: () => now, wait: () => () => {} };
     const house = startHouse<X>(home, { by: runner, creation, keys: noKeys, ...kept.program }, time);
     try {
-      read(kept, house, now);
+      return await use(house, now);
     } finally {
       house.close();
     }
@@ -66,12 +72,17 @@ function opened<X extends Program>(kept: Kept<X>, file: string): void {
 export function keptChecks<X extends Program>(program: Composition<X>, shown: Shown<X>, folder: string): Check[] {
   if (!existsSync(folder)) return [];
   const kept = readdirSync(folder).filter(name => name.endsWith(".sqlite"));
-  return kept.sort().map(name => ({
-    name: said.keptOpens(name),
-    run: () =>
-      new Promise<void>(resolve => {
-        opened({ program, shown }, join(folder, name));
-        resolve();
-      }),
-  }));
+  return kept.sort().flatMap(name => {
+    const source = { program, shown };
+    const file = join(folder, name);
+    return [
+      { name: said.keptOpens(name), run: () => opened(source, file, (house, now) => read(source, house, now)) },
+      {
+        name: said.keptWalks(name),
+        run: async () => {
+          await breadthFirst(path => opened(source, file, (house, now) => keptPath(program, shown, house, now, path)));
+        },
+      },
+    ];
+  });
 }

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { object } from "../catalogs/acts.ts";
 import { redrawMs } from "../catalogs/time.ts";
 import { programAct, type ProgramTool } from "../tools/promises.ts";
-import type { ActResult } from "../tools/tool-contract.ts";
+import type { RunResult } from "../tools/outside.ts";
 import { houseRouter } from "./bridge/house-router.ts";
 import type { Screen } from "./contract.ts";
 import type { Router } from "./router.ts";
@@ -19,7 +19,7 @@ afterEach(() => {
   closing.splice(0).forEach(open => (open.stop ?? open.close)?.());
   vi.useRealTimers();
 });
-let finish: (result: ActResult<Shop>) => void = () => {};
+let finish: (result: RunResult<Shop, readonly []>) => void = () => {};
 const nothing = object({});
 /** A tool whose act ends when the test says so: its one case stands for the promise, the test drives the wait. */
 const waiting = { promise: "it ends when it is told to", input: {}, then: { says: "Finished later", facts: [] } };
@@ -38,7 +38,7 @@ const slow: ProgramTool<Shop> = {
       key: "c",
       on: "tool",
       input: nothing,
-      run: () => new Promise<ActResult<Shop>>(resolve => (finish = resolve)),
+      run: () => new Promise<RunResult<Shop, readonly []>>(resolve => (finish = resolve)),
       cases: [waiting],
     }),
     fail: programAct<Shop, typeof nothing>({

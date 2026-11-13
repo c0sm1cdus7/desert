@@ -67,8 +67,8 @@ describe("choices checked before choosing", () => {
         ),
       })),
     };
-    const checks = choiceChecks(program, shopShown);
-    expect(checks.length).toBeGreaterThan(0);
+    const checks = choiceChecks(program, shopShown).filter(check => check.name.startsWith("payments · charge ·"));
+    expect(checks).toHaveLength(3);
     for (const check of checks) await expect(check.run()).rejects.toThrow();
   });
   it("opens on the eligible option, ignores the disabled key, and never runs that rejection", () =>

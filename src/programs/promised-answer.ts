@@ -10,16 +10,16 @@ import { confirmAnswer, probeWritten } from "./promised-entry.ts";
  * its option. False when the field itself does not take it: what cannot be written cannot be sent. */
 export function answer(router: Router, field: Field, given: string, opened = field.initial ?? ""): boolean {
   if (field.kind === "text" || field.kind === "secret") {
-    if (field.valid?.(given) === false) return false;
     Array.from(opened).forEach(() => router.send({ kind: "erase" }));
     probeWritten(router, field, "");
     type(router, given);
     probeWritten(router, field, given);
+    const canSend = router.screen(view).hints.some(hint => hint.intent === "confirm");
     confirmAnswer(router);
     /** What is complete and wrong stays where it was written, and the screen says why. */
     const why = field.wrong?.(given);
     if (why !== undefined) ok(JSON.stringify(router.screen(view).body).includes(why), said.notSaid(why));
-    return why === undefined;
+    return canSend && why === undefined;
   }
   if (field.kind === "many") {
     /** Each option is marked or cleared with space until what is marked is what the case says. */
@@ -32,14 +32,16 @@ export function answer(router: Router, field: Field, given: string, opened = fie
     return true;
   }
   if (field.kind === "pick") {
-    if (field.valid?.(given) === false) return false;
     /** The thing is looked for as on any menu: space, then its name; and taken where it shows among what is found. */
     const name = given === "" ? "" : field.shown(given);
     if (name !== "") type(router, ` ${name}`);
     const at = field.found(name).findIndex(option => (option.value ?? option.title) === given);
-    ok(at >= 0, said.notFound(name));
+    if (at < 0 || field.found(name)[at]?.off) return false;
     /** What is not looked for is taken by its number: the cursor stands on what the datum already is, not first. */
-    if (name === "" && at < 9) return (type(router, String(at + 1)), true);
+    if (name === "" && at < 9) {
+      type(router, String(at + 1));
+      return true;
+    }
     for (let step = 0; step < at; step++) router.send({ kind: "down" });
     confirmAnswer(router);
     return true;

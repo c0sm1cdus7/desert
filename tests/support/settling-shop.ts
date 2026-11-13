@@ -38,7 +38,6 @@ const settle = programAct<Shop, typeof taken>({
   offered: settled,
   run: (_input, { by, state, target }) => {
     const amount = owed(state, target);
-    if (amount <= 0) return { status: "rejected", reason: "settled" };
     const sale = nameOf(target);
     const fact = shop.fact("payment-received", { payment: `full-${sale}`, amount, sale }, by);
     return { status: "accepted", text: `Saldada · ${sale}`, effects: [fact] };

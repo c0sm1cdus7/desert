@@ -1,5 +1,5 @@
 // The test shop whose payments tool charges a sale: the sale is picked by its name, or the act is taken from the sale.
-import { Type } from "@sinclair/typebox";
+import { Type, type Static } from "@sinclair/typebox";
 import { object } from "../../src/catalogs/acts.ts";
 import { money, thing } from "../../src/catalogs/fields.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
@@ -44,9 +44,9 @@ const chargeCases = [
     then: paid(700),
   },
   {
-    promise: "a sale nobody registered is not charged",
-    given: [registered],
-    input: { sale: "sales/zz", amount: 1 },
+    promise: "a sale outside the charging register stays disabled",
+    given: [registered, { act: "register", on: "sales", input: { sale: "sx", total: 91 } }],
+    input: { sale: "sales/sx", amount: 1 },
     then: { refused: "unknown" },
   },
   {
@@ -56,6 +56,11 @@ const chargeCases = [
     then: { refused: "monto de más" },
   },
 ] as const;
+const charge = ({ sale, amount }: Static<Charged>, { by }: { by: string }) => ({
+  status: "accepted" as const,
+  text: `Cobrada · ${nameOf(sale)}\nRecibo de prueba`,
+  effects: [shop.fact("payment-received", { payment: `for-${nameOf(sale)}`, amount, sale: nameOf(sale) }, by)],
+});
 /** Charging a sale receives a payment for it: the sale is one of the things of the sales tool. */
 const chargeWith = (input: Charged) =>
   programAct<Shop, Charged>({
@@ -74,14 +79,14 @@ const chargeWith = (input: Charged) =>
     },
     refuses: ["unknown", "monto de más"],
     /** More than ninety pesos is said at the amount, before anything else is asked. */
-    stops: ({ amount }) => (typeof amount === "number" && amount > 9000 ? "monto de más" : undefined),
-    run: ({ sale, amount }, { by, state }) => {
-      if (!state.tools.sales.has(nameOf(sale))) return { status: "rejected", reason: "unknown" };
-      if (amount > 9000) return { status: "rejected", reason: "monto de más" };
-      const fact = shop.fact("payment-received", { payment: `for-${nameOf(sale)}`, amount, sale: nameOf(sale) }, by);
-      /** What it answers has two lines: what it did, and what it shows. Every derived check reads it so. */
-      return { status: "accepted", text: `Cobrada · ${nameOf(sale)}\nRecibo de prueba`, effects: [fact] };
+    stops: ({ sale, amount }, state) => {
+      if (typeof sale === "string" && !state.tools.sales.has(nameOf(sale))) return "unknown";
+      return typeof amount === "number" && amount > 9000 ? "monto de más" : undefined;
     },
+    among: (_answered, state) => ({
+      sales: sale => (state.tools.sales.get(nameOf(sale))?.total === 91 ? "unknown" : undefined),
+    }),
+    run: charge,
     cases: chargeCases,
   });
 const paymentsWith = (makes?: string) => ({
@@ -109,7 +114,7 @@ const narrowCharge = () => {
     /** A sale nobody registered is not a large one either: the same reason applies. */
     refuses: ["venta menor a mil"],
     among: (_answered, state) => ({ sales: sale => (large(state, sale) ? undefined : "venta menor a mil") }),
-    run: (input, context) => whole.run(input, context),
+    run: charge,
     cases: [
       {
         promise: "with only small sales, charging stays disabled in the menu",

@@ -1,13 +1,24 @@
 // Every intermediate screen reached by keys is a question, not an action result: no Error and no unusable Enter.
 import { deepStrictEqual, ok } from "node:assert/strict";
-import type { Field } from "../surface/contract.ts";
+import type { Field, Screen } from "../surface/contract.ts";
 import type { Router } from "../surface/router.ts";
+import { promiseTexts as said } from "../texts/promises.texts.ts";
+import { toolTexts } from "../texts/tools.texts.ts";
 import { surfaceTexts } from "../texts/surface.texts.ts";
 import { view } from "./promised-keys.ts";
 
-export function quietEntry(router: Router): void {
-  const screen = router.screen(view);
+export const quietEntry = (router: Router): void => quietScreen(router.screen(view));
+export function quietScreen(screen: Screen): void {
+  ok(!JSON.stringify(screen.body).includes(toolTexts.unchanged));
   if (screen.body.kind !== "thread") return;
+  const options = screen.body.options;
+  if (options && !options.some(row => row.entry)) {
+    ok(
+      options.some(row => !row.off && !row.still),
+      said.emptyQuestion,
+    );
+    ok(!options.some(row => row.off && row.selected), said.disabledCursor);
+  }
   for (const event of screen.body.events) {
     ok(!event.text.some(span => span.tone === "cut"));
     ok(
