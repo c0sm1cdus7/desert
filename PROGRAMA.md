@@ -32,7 +32,14 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   comparan motivos enteros en filas apagadas o bajo la pregunta. Un dato que no se puede escribir queda sin
   Enter, error ni motivo de la acción. También se prueba que todas las filas fijen una respuesta incompatible;
   sin esa evidencia positiva, una ruta ausente falla indicando la pregunta y la fila que queda abierta.
-  El programa no escribe ninguna de esas (`tests/program/program.checks.ts`).
+  El programa no escribe ninguna de esas: la base las reparte por posición en ocho archivos
+  (`tests/program/part-*.checks.ts`), también los recorridos de registros guardados. Cada comprobación corre una
+  sola vez y conserva su grupo y nombre. Al subir de base no se cambia la configuración: el patrón
+  `tests/program/**/*.checks.ts` ya encuentra todas las partes. El número vive en `tests/program/parts.ts`.
+  Para comparar una actualización, guardá antes y después `pnpm vitest list --staticParse=false --json=lista.json`:
+  compará los nombres completos como multiconjunto, sin la ruta del archivo ni el orden. Deben ser los mismos;
+  una parte sin comprobaciones agrega solamente «this part has no derived checks» bajo «derived checks».
+  El armado de la lista se repite en cada parte; no ejecuta las comprobaciones.
 
 ## Una acción
 
