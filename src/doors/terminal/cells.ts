@@ -1,3 +1,5 @@
+import { wide, width } from "../../catalogs/display/column-width.ts";
+export { wide, width } from "../../catalogs/display/column-width.ts";
 // Cells and the bytes that draw them: a terminal knows nothing else.
 import type { Span, Theme } from "../../surface/contract.ts";
 import type { Tone } from "../../surface/tones.ts";
@@ -62,9 +64,6 @@ export interface Cell {
 }
 export type Grid = Cell[][];
 export const blankCell: Cell = { char: " ", tone: "t1", bold: false, inverse: false };
-export const wide = /[ᄀ-ᅟ⺀-꓏가-힣豈-﫿︰-﹏＀-｠]|\p{Extended_Pictographic}/u;
-export const width = (text: string): number =>
-  Array.from(text).reduce((sum, char) => sum + (wide.test(char) ? 2 : 1), 0);
 export const fit = (text: string, room: number): string =>
   width(text) <= room
     ? text

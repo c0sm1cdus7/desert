@@ -30,6 +30,8 @@ interface Walking {
   readonly suggested: boolean;
   readonly error?: string;
   readonly ignored?: string;
+  /** Reasons still unresolved by a currency change or a key that changed no value. */
+  readonly notices?: readonly { readonly reason: string; readonly ignored?: true }[];
   /** Only a result returned by an action that ran is an Error. */
   readonly failed?: true;
   /** In a question that picks a thing, the person is looking for it: what they type is what they look for. */

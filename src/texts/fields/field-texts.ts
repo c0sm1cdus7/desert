@@ -1,5 +1,6 @@
 // Reasons shown beside a field, whether its value or one discarded key needs an explanation.
 export const fieldTexts = {
+  invalidCurrency: (source: string, symbol: string) => `Invalid currency symbol for ${source}: ${symbol}`,
   /** Why what is written cannot be sent yet: said where it is written, as a datum. */
   lacks: {
     missing: "falta completar",

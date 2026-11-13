@@ -35,5 +35,9 @@
   "surface/entry/written-answer.ts": "writtenAnswer: character edits and paste preserve the first discarded-key reason beside existing errors",
   "programs/entry/checked-reason.ts": "withReason: derived screen comparisons retain prior reasons when adding discarded-key advice",
   "texts/entry/entry-advice.ts": "Advice for changed currency and redundant spaces in a written answer",
-  "catalogs/currency/currency-symbol.ts": "currencySymbol: validates country and declared currency symbols before their format can be used"
+  "catalogs/currency/currency-symbol.ts": "currencySymbol: validates country and declared currency symbols before their format can be used",
+  "doors/terminal/cells.ts": "terminal cells: palettes, wide chars, put/edge/light, changed-row bytes",
+  "doors/terminal/entry.ts": "Written entries with their unfilled shape and cursor, in threads and rows",
+  "catalogs/display/column-width.ts": "wide, width: columns used by the painter and currency validation, including fullwidth currency signs",
+  "surface/bridge/currency/currency-defect.ts": "currencyQuestions: reports malformed computed symbols once per target and value, closing only that question"
 }

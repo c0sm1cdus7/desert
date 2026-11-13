@@ -1,4 +1,4 @@
-// What each intent does where you are: the only place that moves a session.
+// What each intent does where you are, and how the session receives completed actions and messages.
 import { renewedMoney } from "./fields/money-memory.ts";
 import type { Intent } from "./contract.ts";
 import type { Result, Tool } from "./shown-tool.ts";
@@ -62,7 +62,8 @@ function pasted(session: Session, text: string, tools: Tools, now: number): Step
 export function step(session: Session, key: Intent, tools: readonly Tool[], now: number): Stepped {
   if (key.kind === "quit") return { session, quit: true };
   const previous = must(session.at(-1));
-  if (previous.kind === "act") session = replace(session, renewedMoney(previous, actOf(tools, previous).next));
+  if (previous.kind === "act")
+    session = replace(session, renewedMoney(previous, actOf(tools, previous).next, actOf(tools, previous).stops));
   if (key.kind === "paste") return pasted(session, key.text, tools, now);
   const place = must(session.at(-1));
   if (place.kind === "act") return walking(session, place, tools, key, now);

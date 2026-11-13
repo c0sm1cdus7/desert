@@ -5,7 +5,7 @@ import type { Field, Intent } from "../contract.ts";
 import type { Asking } from "../walk-state.ts";
 import { edited } from "../talk.ts";
 /** Editing clears a prior result; merely moving the caret or discarding a key keeps it. */
-function rewritten({ error: _was, ignored: _key, failed: _result, ...written }: Asking): Asking {
+function rewritten({ error: _was, ignored: _key, failed: _result, notices: _notices, ...written }: Asking): Asking {
   return { ...written, suggested: false };
 }
 function plainReason(walk: Asking, field: Field, char: string): string | undefined {
@@ -25,7 +25,7 @@ export function writtenAnswer(walk: Asking, field: Field, key: Intent): Asking |
     if ("mask" in field && key.kind !== "erase") return undefined;
     const changed =
       "mask" in field ? { ...walk, typed: Array.from(walk.typed).slice(0, -1).join("") } : edited(walk, key);
-    return changed && key.kind === "erase" ? rewritten(changed) : changed;
+    return changed && key.kind === "erase" && changed.typed !== walk.typed ? rewritten(changed) : changed;
   }
   let changed = walk;
   let reason: string | undefined;
@@ -35,9 +35,13 @@ export function writtenAnswer(walk: Asking, field: Field, key: Intent): Asking |
     if (rejected !== undefined) continue;
     if ("mask" in field) {
       const typed = field.mask.put(changed.typed, char);
-      if (typed !== changed.typed || field.mask.rejected)
-        changed = { ...rewritten(changed), typed, caret: Array.from(typed).length };
+      if (typed !== changed.typed) changed = { ...rewritten(changed), typed, caret: Array.from(typed).length };
     } else changed = edited(rewritten(changed), { kind: "type", text: char }) ?? changed;
   }
-  return reason === undefined ? changed : { ...changed, ignored: reason };
+  if (reason === undefined) return changed;
+  const notices = [
+    ...(changed.notices ?? []),
+    ...(changed.ignored ? [{ reason: changed.ignored, ignored: true as const }] : []),
+  ];
+  return { ...changed, notices: notices.filter(notice => notice.reason !== reason), ignored: reason };
 }

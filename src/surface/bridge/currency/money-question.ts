@@ -11,7 +11,14 @@ export type MoneyContext = Readonly<{
 }>;
 export function moneyQuestion<T extends MoneyContext>(schema: Readonly<Record<string, unknown>>, ctx: T): T {
   if (schema.mask !== "money" || (typeof schema.currency === "function" && !ctx.resolvingCurrency)) return ctx;
-  const currency = currencyIn(schema.currency, ctx.answered ?? {}, ctx.state?.(), ctx.target ?? "", ctx.now());
+  const currency = currencyIn(
+    schema.currency,
+    String(schema.title),
+    ctx.answered ?? {},
+    ctx.state?.(),
+    ctx.target ?? "",
+    ctx.now(),
+  );
   const format = currency === undefined ? undefined : ctx.formats.money.inCurrency?.(currency);
   return format ? { ...ctx, formats: { ...ctx.formats, money: format } } : ctx;
 }

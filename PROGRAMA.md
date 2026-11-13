@@ -77,12 +77,20 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   Las preguntas derivadas de los casos usan el estado y el destino de cada caso. `confirms` sigue siendo texto
   del programa: debe usar esa misma decisión de moneda. La base no garantiza ese texto.
   No hace falta envolver `next` para cambiar la máscara.
-  El símbolo, incluido el del país, tiene de uno a ocho caracteres Unicode, sin controles, saltos ni espacios al borde.
-  Un símbolo literal inválido impide componer las preguntas; uno calculado se valida al resolverlo
-  con el estado y destino reales, también en las comprobaciones derivadas de los casos.
+  La base distingue monedas por su símbolo: dos monedas con el mismo símbolo son la misma para la base.
+  Todo importe se escribe y muestra con dos decimales; el dato guardado sigue siendo centavos enteros.
+  El símbolo, incluido el del país, ocupa de una a ocho columnas del pintor, sin marcas combinantes,
+  controles, saltos ni espacios al borde. `US$` ocupa tres columnas; `ＵＳ＄`, seis; `￥`, dos.
+  Un símbolo literal inválido impide componer las preguntas y el diagnóstico nombra la pregunta y el valor;
+  si es el del país, dice `country`. Uno calculado se valida al resolverlo con el estado y destino reales,
+  también en las comprobaciones derivadas. Es un defecto del programa: la acción queda sin poder abrirse,
+  con el código del defecto, la pregunta y el símbolo visibles; las otras acciones de la herramienta siguen disponibles.
   Si la moneda cambia, un importe escrito o propuesto se vuelve a preguntar vacío, sin convertir ni reutilizar
   sus centavos. También se comprueba al escribir y al confirmar si cambió el estado. Volver atrás sin cambiar
   la moneda conserva lo escrito. Si el estado cambia su moneda durante el recorrido, se dice «cambió la moneda».
+  Mostrar el importe vacío actualiza la sesión de ese dispositivo: aunque el símbolo vuelva antes de la
+  siguiente tecla, el valor anterior no reaparece. Una acción en vuelo conserva los centavos enviados;
+  si falla después de cambiar el símbolo, se ven el Error y «cambió la moneda», juntos.
   La memoria de una acción sigue siendo local: reiniciar el dispositivo la pierde.
 - Un campo puede decir cuándo se pregunta, según lo respondido antes (`when(campo, (respondido, instante) => …)`).
 - `holding(campo, (valor, instante) => motivoOIndefinido)` recibe el mismo reloj que `run`, `stops` y `among`.
@@ -92,10 +100,13 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   Al Enter, todo valor inválido dice el motivo: «falta completar» si es obligatorio vacío, «día incompleto»,
   «dígitos incompletos», el mínimo de caracteres o el límite numérico. Mientras se escribe, un prefijo que
   puede completarse no molesta. Un campo opcional vacío sigue aceptando «nada».
-  Un carácter que el campo descarta dice por qué debajo de la pregunta, una sola vez.
+  Un carácter que el campo descarta dice por qué debajo de la pregunta, una sola vez por motivo distinto.
+  Borrar en vacío, mover el cursor o repetir cero sobre cero no borra motivos ni el Error anterior.
+  El cero que no agrega ningún dígito dice «cero inicial descartado». Sólo una edición que cambia el
+  valor limpia los avisos de edición; los motivos propios del valor se vuelven a comprobar.
   El texto libre también explica el tope y los espacios iniciales o dobles. Un pegado conserva el
   primer motivo interior hasta terminar ese pegado, después de recortar espacios y saltos de los bordes;
-  la siguiente edición aceptada lo limpia. Un carácter permitido que excede el largo dice el tope. El valor
+  la siguiente edición que cambia el valor lo limpia. Un carácter permitido que excede el largo dice el tope. El valor
   aceptado no cambia; un motivo anterior, incluido el Error de una acción fallida, sigue a la vista
   con el aviso de la tecla debajo.
   Un día inexistente dice eso antes de comprobar si es futuro.

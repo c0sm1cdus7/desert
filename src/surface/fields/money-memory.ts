@@ -3,7 +3,7 @@ import { entryAdvice } from "../../texts/entry/entry-advice.ts";
 import type { Field } from "../contract.ts";
 import type { Walk } from "../walk-state.ts";
 type Next = (answers: readonly string[]) => Field | null;
-export function renewedMoney(walk: Walk, next: Next): Walk {
+export function renewedMoney(walk: Walk, next: Next, stops?: (answers: readonly string[]) => string | undefined): Walk {
   if (walk.phase !== "asking") return walk;
   const changed = walk.asked
     .slice(0, walk.pos)
@@ -13,7 +13,15 @@ export function renewedMoney(walk: Walk, next: Next): Walk {
   const currency = next(walk.answers.slice(0, walk.pos))?.currency ?? "";
   if (changed < 0 && (walk.currency === undefined || walk.currency === currency)) return walk;
   const pos = changed < 0 ? walk.pos : changed;
-  const { error: _error, ignored: _ignored, failed: _failed, was: _was, until: _until, ...rest } = walk;
+  const { was: _was, until: _until, ignored: _ignored, ...rest } = walk;
+  const reason =
+    next(walk.answers.slice(0, walk.pos))?.wrong?.(walk.typed) ??
+    stops?.([...walk.answers.slice(0, walk.pos), walk.typed]);
+  const notices = [
+    ...(walk.notices ?? []),
+    ...(reason && !walk.error ? [{ reason }] : []),
+    ...(walk.ignored ? [{ reason: walk.ignored, ignored: true as const }] : []),
+  ];
   return {
     ...rest,
     pos,
@@ -21,7 +29,10 @@ export function renewedMoney(walk: Walk, next: Next): Walk {
     answers: walk.answers.slice(0, pos),
     asked: walk.asked.slice(0, pos),
     typed: "",
-    error: entryAdvice.currencyChanged,
+    notices: [
+      ...notices.filter(notice => notice.reason !== entryAdvice.currencyChanged),
+      { reason: entryAdvice.currencyChanged },
+    ],
     caret: 0,
     suggested: false,
     marks: [],

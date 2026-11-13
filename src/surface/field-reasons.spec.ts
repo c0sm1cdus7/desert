@@ -82,11 +82,15 @@ describe("ignored keys explain themselves, once, including pasted text", () => {
 });
 describe("neighboring edits", () => {
   for (const field of [money("Importe"), count("Cuenta"), quantity("Cantidad"), padded("Punto", 2)])
-    it(`${field.mask}: a repeated zero is accepted, not an ignored key`, () => {
+    it(`${field.mask}: a repeated zero preserves prior advice and explains the discarded zero`, () => {
       const hands = seat(field);
       hands.send({ kind: "type", text: "0x" });
       expect(hands.reasons()).toEqual(["solo números"]);
+      const before = hands.screen().body;
       hands.send({ kind: "type", text: "0" });
+      expect(hands.reasons()).toEqual(["solo números", "cero inicial descartado"]);
+      expect(hands.screen().body).toMatchObject({ entry: before.kind === "thread" ? before.entry : undefined });
+      hands.send({ kind: "type", text: "1" });
       expect(hands.reasons()).toEqual([]);
     });
   it("an ignored key preserves the suggested value until an accepted edit", () => {

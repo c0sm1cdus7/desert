@@ -1,7 +1,18 @@
-// A currency symbol fits beside an amount: short, one line, no edge spaces or terminal controls.
-export function currencySymbol(symbol: unknown): string {
-  const shape = /^[^\p{Cc}\p{Cf}\p{Zl}\p{Zp}]{1,8}$/u;
-  if (typeof symbol !== "string" || symbol.trim() !== symbol || !shape.test(symbol))
-    throw new Error("A money field needs a currency symbol");
+// A currency symbol fits in eight painted columns without combining marks or invisible characters.
+import { fieldTexts } from "../../texts/fields/field-texts.ts";
+import { width } from "../display/column-width.ts";
+export class InvalidCurrency extends Error {
+  readonly source: string;
+  readonly symbol: unknown;
+  constructor(source: string, symbol: unknown) {
+    super(fieldTexts.invalidCurrency(source, JSON.stringify(symbol)));
+    this.source = source;
+    this.symbol = symbol;
+  }
+}
+export function currencySymbol(symbol: unknown, source: string): string {
+  const shape = /^[^\p{Cc}\p{Cf}\p{M}\p{Zl}\p{Zp}]+$/u;
+  if (typeof symbol !== "string" || symbol.trim() !== symbol || !shape.test(symbol) || width(symbol) > 8)
+    throw new InvalidCurrency(source, symbol);
   return symbol;
 }

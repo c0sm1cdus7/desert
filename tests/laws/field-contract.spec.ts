@@ -41,3 +41,10 @@ it("one currency rule records the base, with current and carried amounts as evid
     ]),
   );
 });
+
+it("field descriptions say their current responsibilities once", () => {
+  expect(tree["surface/step.ts"]?.match(/step:/gu)).toHaveLength(1);
+  expect(tree["surface/step.ts"]).toContain("any written paste");
+  expect(tree["surface/bridge/actions/asked-act.ts"]?.match(/Compone/gu)).toHaveLength(1);
+  expect(tree["surface/bridge/actions/asked-act.ts"]).toContain("estado y destino");
+});

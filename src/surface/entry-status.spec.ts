@@ -143,7 +143,11 @@ describe("the Entrada", () => {
         ...full,
         body: {
           ...full.body,
-          events: [...full.body.events, { text: [{ text: "solo números", tone: "t3" }], nested: true, ignored: true }],
+          events: [
+            ...full.body.events,
+            { text: [{ text: "máximo 99", tone: "t3" }], nested: true, ignored: true },
+            { text: [{ text: "solo números", tone: "t3" }], nested: true, ignored: true },
+          ],
         },
       });
       expect(hands.enter()).toBe(true);

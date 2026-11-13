@@ -1,3 +1,4 @@
+import { OutsideDefect } from "../../../tools/outside.ts";
 import { Type } from "@sinclair/typebox";
 import { describe, expect, it } from "vitest";
 import { object } from "../../../catalogs/acts.ts";
@@ -126,7 +127,8 @@ describe("a currency symbol has a bounded shape", () => {
 
 it("a currency resolver returning a non-string fails at the program boundary", () => {
   const ask = asking(object({ amount: { ...money("Importe"), currency: () => 123 } }), words);
-  expect(() => ask.next([])).toThrow("currency symbol");
+  expect(() => ask.next([])).toThrow(OutsideDefect);
+  expect(() => ask.next([])).toThrow(/Importe.*123/u);
 });
 
 it.each(["", " US$", "US$ ", "123456789", "U\nS", "\u001b[31mX"])(

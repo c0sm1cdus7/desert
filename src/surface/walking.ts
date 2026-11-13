@@ -33,6 +33,7 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
     error: _gone,
     ignored: _key,
     failed: _result,
+    notices: _notices,
     finding: _sought,
     read: _back,
     reading: _reading,
@@ -53,8 +54,16 @@ function typing(session: Session, walk: Asking, tools: Tools, field: Field, key:
   if (key.kind !== "confirm") return { session };
   if (validOf(field, walk.typed)) return advance(session, walk, tools, walk.typed, now);
   const reason = field.wrong?.(walk.typed, true);
+  if (reason === undefined) return { session };
+  if (walk.failed || walk.notices?.length)
+    return {
+      session: replace(session, {
+        ...walk,
+        notices: [...(walk.notices ?? []).filter(notice => notice.reason !== reason), { reason }],
+      }),
+    };
   const { ignored: _key, ...confirmed } = walk;
-  return reason === undefined ? { session } : { session: replace(session, { ...confirmed, error: reason }) };
+  return { session: replace(session, { ...confirmed, error: reason }) };
 }
 function choosing(session: Session, walk: Asking, tools: Tools, field: Field, key: Intent, now: number): Stepped {
   const options = optionsOf(field);
@@ -131,7 +140,15 @@ function picking(
   return taken(key.kind === "confirm" ? found[walk.at] : undefined);
 }
 function back(session: Session, walk: Asking, tools: readonly Tool[]): Session {
-  const { error: _gone, ignored: _key, failed: _result, read: _back, reading: _reading, ...clean } = walk;
+  const {
+    error: _gone,
+    ignored: _key,
+    failed: _result,
+    notices: _notices,
+    read: _back,
+    reading: _reading,
+    ...clean
+  } = walk;
   const earlier = { ...clean, pos: walk.pos - 1 };
   return replace(session, opening(tools, earlier, walk.answers[earlier.pos]));
 }

@@ -1761,7 +1761,7 @@
     },
     {
       "id": 216,
-      "rule": "Un carácter que un campo de escritura descarta dice una vez el motivo verdadero, sin cambiar el valor aceptado ni borrar un motivo anterior o el Error de una acción fallida: el aviso se suma. El texto libre explica los espacios iniciales o dobles. Un carácter permitido que excede el largo dice el tope. Un pegado recorta espacios y saltos de los bordes y conserva el primer motivo interior hasta terminar; una edición aceptada después lo limpia.",
+      "rule": "Un carácter descartado conserva el valor y suma su motivo verdadero sin borrar los motivos visibles ni el Error de una acción fallida; cada motivo distinto se ve una vez. Borrar en vacío, mover el cursor y cero sobre cero conservan esos avisos; el cero sin efecto dice «cero inicial descartado». El texto libre explica espacios iniciales, dobles y antes de otro espacio, y el tope cuando se llena. Un pegado recorta los bordes y conserva el primer rechazo interior. Sólo una edición que cambia el valor limpia los avisos de edición; los motivos del valor se vuelven a comprobar. El Error que llega al terminar una acción fallida sigue visible junto al aviso de cambio, incluso si se vuelve a preguntar el importe vacío.",
       "from": "13/11 · campos · teclas descartadas",
       "guarantee": "spec",
       "evidence": [
@@ -1777,12 +1777,15 @@
         "src/surface/field-advice.spec.ts",
         "src/surface/walk.ts",
         "src/programs/entry/checked-reason.ts",
-        "src/texts/entry/entry-advice.ts"
+        "src/texts/entry/entry-advice.ts",
+        "src/surface/money-observed.spec.ts",
+        "src/surface/money-matrix.spec.ts",
+        "src/surface/money-derived.spec.ts"
       ]
     },
     {
       "id": 215,
-      "rule": "La moneda de un campo de plata se declara con el dato: fija o decidida con respuestas anteriores, estado, destino e instante; sin declararla usa la del país. El símbolo, incluido el del país, tiene de uno a ocho caracteres, sin controles, saltos ni espacios al borde. Se ve en el campo vacío, al escribir, en el eco y en el valor actual; las comprobaciones derivadas usan el estado y destino del caso. El dato conserva sus centavos. Un importe escrito o propuesto no se reutiliza con otra moneda: vuelve a preguntarse vacío, también al editar una parte; un cambio de moneda por el estado durante el recorrido dice «cambió la moneda».",
+      "rule": "La moneda de un campo de plata se declara con el dato: fija o decidida con respuestas anteriores, estado, destino e instante; sin declararla usa la del país. Dos monedas con el mismo símbolo son la misma para la base. Todo importe lleva dos decimales. El símbolo, incluido el del país, ocupa de una a ocho columnas según el pintor, sin marcas combinantes, controles, saltos ni espacios al borde. Un literal inválido impide componer y nombra pregunta y valor; si es el del país lo identifica. Un símbolo calculado inválido es un defecto del programa que identifica pregunta y valor y no apaga la herramienta. Se ve en el campo vacío, al escribir, en el eco y en el valor actual; las comprobaciones derivadas usan el estado y destino del caso. El dato conserva sus centavos. Lo que se mostró vacío queda vacío para la siguiente tecla, aunque vuelva el símbolo anterior. Un importe escrito o propuesto no se reutiliza con otra moneda: vuelve a preguntarse vacío, también al editar una parte; un cambio de moneda por el estado durante el recorrido dice «cambió la moneda».",
       "from": "13/11 · campos · H03, H11, H17, H23 y H34; número reservado para moneda",
       "guarantee": "spec",
       "evidence": [
@@ -1815,7 +1818,14 @@
         "src/texts/entry/entry-advice.ts",
         "tests/support/money-program.ts",
         "tests/laws/field-contract.spec.ts",
-        "src/catalogs/currency/currency-symbol.ts"
+        "src/catalogs/currency/currency-symbol.ts",
+        "src/surface/money-boundary.spec.ts",
+        "src/surface/money-context.spec.ts",
+        "src/surface/money-matrix.spec.ts",
+        "src/surface/money-menu.spec.ts",
+        "src/catalogs/display/column-width.ts",
+        "src/doors/terminal/entry.ts",
+        "src/surface/bridge/currency/currency-defect.ts"
       ]
     }
   ]

@@ -64,7 +64,16 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   const spans =
     walk.failed && reason !== undefined ? errorSpans(reason) : [{ text: reason ?? "", tone: "t3" as const }];
   const wrong: ThreadEvent[] = reason === undefined ? [] : [{ text: spans, nested: true }];
-  if (walk.ignored) wrong.push({ text: [{ text: walk.ignored, tone: "t3" }], nested: true, ignored: true });
+  const notices = new Map(walk.notices?.map(notice => [notice.reason, notice]));
+  for (const notice of notices.values())
+    if (notice.reason !== reason && notice.reason !== walk.ignored)
+      wrong.push({
+        text: [{ text: notice.reason, tone: "t3" }],
+        nested: true,
+        ...(notice.ignored ? { ignored: true } : {}),
+      });
+  if (walk.ignored && walk.ignored !== reason)
+    wrong.push({ text: [{ text: walk.ignored, tone: "t3" }], nested: true, ignored: true });
   /** A confirmation says under it what the act is for: nobody confirms what they were not told. */
   const told = question.kind === "confirm" && question.note !== undefined ? question.note : undefined;
   const note = told === undefined ? [] : [{ text: [{ text: told, tone: "t3" as const }], nested: true }];
