@@ -1,6 +1,7 @@
+import type { SecretEntries } from "./secret-dictionary.ts";
 // Only the current action's values are searched; replacement references are never searched again.
 
-const replacementText = (values: ReadonlyMap<string, string>) => {
+const replacementText = (values: SecretEntries) => {
   const entries = [...values].filter(([secret]) => secret.length).sort(([a], [b]) => b.length - a.length);
   const references = new Set(values.values());
   return (source: string): string => {
@@ -24,7 +25,7 @@ const shell = (item: object): object => {
   if (prototype === null || typeof prototype === "object") Object.setPrototypeOf(copy, prototype);
   return copy;
 };
-export function actionText<T>(value: T, values: ReadonlyMap<string, string>, omitted = new Set<unknown>()): T {
+export function actionText<T>(value: T, values: SecretEntries, omitted = new Set<unknown>()): T {
   const text = replacementText(values);
   const seen = new Map<object, unknown>();
   const walk = (item: unknown): unknown => {

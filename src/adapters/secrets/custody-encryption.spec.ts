@@ -37,10 +37,9 @@ it("el disco solo guarda cifrado privado y una copia de carpeta no trae la llave
   }
   const copied = home();
   cpSync(join(path, "fixture.sqlite"), join(copied, "fixture.sqlite"));
-  expect(() => open(copied)).toThrow("E-CUSTODY-KEY");
-  expect(() => open(copied, { key: () => keys.key(path, false) })).toThrow("E-CUSTODY-INTEGRITY");
+  expect(() => open(copied, new MemoryHouseKeys())).toThrow("E-CUSTODY-KEY");
+  expect(open(copied).ids()).toEqual([refs.key]);
   expect(() => open(path, new MemoryHouseKeys())).toThrow("E-CUSTODY-KEY");
-  expect(keys.key(path, false)).not.toEqual(keys.key(copied, true));
 });
 it("una llave perdida no se regenera aunque ya se hayan borrado todos los materiales", () => {
   const path = home(),
@@ -69,13 +68,14 @@ it("mover o alterar un registro rompe la autenticación aunque la llave sea la m
 it("el proveedor macOS usa solo el comando inyectado, no sobrescribe y cierra errores", () => {
   const saved = new Map<string, string>();
   const calls: string[][] = [];
-  const provider = new MacOSHouseKeys((file, args) => {
+  const provider = new MacOSHouseKeys((file, args, input) => {
     expect(file).toBe("/usr/bin/security");
     calls.push([...args]);
     const account = args[args.indexOf("-a") + 1] ?? "";
     if (args[0] === "find-generic-password")
       return { status: saved.has(account) ? 0 : 44, stdout: saved.get(account) ?? "" };
-    saved.set(account, args.at(-1) ?? "");
+    const command = input.trim().split(" ");
+    saved.set(command[command.indexOf("-a") + 1] ?? "", command.at(-1) ?? "");
     return { status: 0, stdout: "" };
   });
   expect(() => provider.key("a", false)).toThrow("E-CUSTODY-KEY");

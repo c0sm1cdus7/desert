@@ -8,6 +8,7 @@ import { MemoryHouseKeys, type HouseKeyProvider } from "./custody/house-keys.ts"
 import { SecretCustody } from "./custody/secret-custody.ts";
 import { startHouse, type HouseOptions } from "../../programs/house-runtime.ts";
 import { shop, shopRegistry, shopSlices, type Shop } from "../../../tests/support/shop.ts";
+import { containing } from "../../../tests/support/custody-files.ts";
 import { MemoryKeys } from "../../../tests/support/shop-rig.ts";
 import { toolAct } from "../../tools/act-definition.ts";
 import fixture from "../../../tests/support/custody-ac07248.json" with { type: "json" };
@@ -78,15 +79,16 @@ function previous(exposed = false) {
 it("abre y cifra una casa escrita por ac07248, conserva hechos e ids y vuelve a abrir", () => {
   const home = previous(),
     keys = new MemoryHouseKeys();
-  expect(() => startHouse(home, options)).toThrow("E-CUSTODY-KEY");
+  expect(() => startHouse(home, options)).toThrow("E-CUSTODY-PROVIDER");
   const house = startHouse(home, { ...options, secretKeys: keys });
   opened.push(house);
   expect(house.tools.state().house.admin).toBe("ana");
   const facts = house.journal.replay<string[]>([], (all, event) => [...all, event.id]);
   expect(facts.slice(0, fixture.events.length)).toEqual(fixture.events.map(event => event.id));
+  expect(containing(home, "ANTERIOR_SINTETICO")).toEqual([]);
   house.close();
   const file = join(home, "fixture.sqlite");
-  expect(readFileSync(file).includes(Buffer.from("ANTERIOR_SINTETICO"))).toBe(false);
+  expect(containing(home, "ANTERIOR_SINTETICO")).toEqual([]);
   const custody = new SecretCustody(file, realpathSync(home), keys);
   opened.push(custody);
   expect(custody.ids()).toEqual(fixture.material.map(row => row.id));

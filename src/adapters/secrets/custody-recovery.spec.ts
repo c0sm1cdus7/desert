@@ -69,7 +69,7 @@ it("borrado fallido revoca ya, informa pendiente y reintenta al abrir", async ()
   const fail = vi.spyOn(CustodyDatabase.prototype, "remove").mockImplementation(() => {
     throw new Error("disco");
   });
-  session.release("signing", 1);
+  expect(() => session.release("signing", 1)).toThrow("E-CUSTODY-CLEANUP");
   await expect(store.adapter(session, ["signing"]).use(refs, () => true)).rejects.toThrow("E-CUSTODY-DENIED");
   expect(store.facts().filter(fact => fact.kind === "credential-purged")).toHaveLength(0);
   expect(store.facts().filter(fact => fact.kind === "credential-cleanup-pending")).toHaveLength(1);

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { CustodyDatabase } from "./custody-database.ts";
+import { AuthenticatedLedger } from "./authenticated-ledger.ts";
 import { CustodyCipher } from "./custody-cipher.ts";
 import { CustodyError, type HouseKeyProvider } from "./house-keys.ts";
 import {
@@ -19,10 +20,15 @@ export class CustodyState {
   readonly sessions = new Map<string, CredentialIngress>();
   readonly uses = new Map<SecretRef, number>();
   closed = false;
-  constructor(file: string, house: string, keys?: HouseKeyProvider, ledger?: CredentialLedger) {
+  constructor(file: string, _house: string, keys?: HouseKeyProvider, ledger?: CredentialLedger) {
     this.store = new CustodyDatabase(file);
-    this.cipher = new CustodyCipher(house, keys);
-    this.ledger = ledger ?? this.store;
+    try {
+      this.cipher = new CustodyCipher(this.store.identity(), keys);
+      this.ledger = new AuthenticatedLedger(ledger ?? this.store, this.cipher);
+    } catch (error) {
+      this.store.close();
+      throw error;
+    }
   }
   check(session?: CredentialIngress): void {
     if (this.closed || (session && this.sessions.get(session.id) !== session))
@@ -74,6 +80,7 @@ export class CustodyState {
     refs: SecretRefs,
     cause = "",
   ): void {
+    this.prepareKey();
     this.ledger.append({
       id: randomUUID(),
       kind,

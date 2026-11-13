@@ -28,7 +28,7 @@ const options = {
     async set() {},
     async remove() {},
   },
-  secretKeys: { key: () => new Uint8Array(32).fill(7) },
+  secretKeys: { forget() {}, key: () => new Uint8Array(32).fill(7) },
   words: vocabulary({}),
   slices: { initial: { vault: 0 }, step: { vault: (state: unknown) => Number(state) + 1 } },
   creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["vault"] }] },

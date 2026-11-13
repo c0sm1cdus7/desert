@@ -1,3 +1,4 @@
+import { SecretDictionary } from "./text/secret-dictionary.ts";
 // Action-local text cleaning and schema-position references share storage, never a global text dictionary.
 import { secretShape } from "./validation/secret-shape.ts";
 import { ActionSecrets, type Scope } from "./positions/action-scope.ts";
@@ -45,7 +46,7 @@ export class Redactor<X extends Program> extends ActionSecrets {
   }
   scrub = <T>(value: T): T => {
     const scope = this.active.getStore() ?? {
-      values: new Map<string, string>(),
+      values: new SecretDictionary(),
       schema: undefined,
       omitted: new Set(),
     };

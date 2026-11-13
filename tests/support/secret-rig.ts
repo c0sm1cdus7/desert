@@ -11,6 +11,7 @@ import { startHouse, localPorts, type HouseOptions } from "../../src/programs/ho
 import { vocabulary, type Event, type ProgramFacts } from "../../src/journal/events.ts";
 import { toolAct } from "../../src/tools/act-definition.ts";
 import type { ToolAct, Slices } from "../../src/tools/tool-contract.ts";
+import { MemoryHouseKeys } from "../../src/adapters/secrets/custody/house-keys.ts";
 import { MemoryKeys } from "./shop-rig.ts";
 vi.mock("../../src/adapters/secrets/secret-vault.ts", async () => {
   const { Redactor } = await import("../../src/adapters/secrets/redact.ts");
@@ -50,6 +51,7 @@ function optionsFor(act: ToolAct<P>, changed: Partial<HouseOptions<P>>): HouseOp
   return {
     by: "fixture",
     keys: new MemoryKeys(),
+    secretKeys: new MemoryHouseKeys(),
     words,
     slices,
     creation: { admin: "ana", assignments: [{ identity: "ana", tools: ["vault", "other"] }] },

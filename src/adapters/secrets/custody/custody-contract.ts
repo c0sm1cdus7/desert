@@ -3,6 +3,7 @@ export type CredentialScope = Readonly<{ actor: string; tool: string; target: st
 export type SecretRefs = Readonly<Record<string, SecretRef>>;
 export type Credential = Readonly<{ revision: number; refs: SecretRefs }>;
 export type CredentialFact = Readonly<{
+  authentication?: string;
   id: string;
   kind: "credential-bound" | "credential-released" | "credential-cleanup-pending" | "credential-purged";
   actor: string;

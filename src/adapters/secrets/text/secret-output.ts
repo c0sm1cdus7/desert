@@ -1,9 +1,10 @@
+import type { SecretEntries } from "./secret-dictionary.ts";
 // Structural protocol fields keep their identity; free payload text belongs to this action.
 import { Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { record } from "../positions/secret-positions.ts";
 import { actionText } from "./action-text.ts";
-export function payloadText(schema: unknown, value: unknown, values: ReadonlyMap<string, string>): unknown {
+export function payloadText(schema: unknown, value: unknown, values: SecretEntries): unknown {
   if (!record(schema)) return actionText(value, values);
   if ("const" in schema || "enum" in schema) return value;
   if (Array.isArray(schema.anyOf)) {
@@ -25,12 +26,7 @@ export function payloadText(schema: unknown, value: unknown, values: ReadonlyMap
     return value.map((item: unknown) => payloadText(schema.items, item, values));
   return actionText(value, values);
 }
-export function houseText(
-  kind: unknown,
-  data: unknown,
-  values: ReadonlyMap<string, string>,
-  omitted: Set<unknown>,
-): unknown {
+export function houseText(kind: unknown, data: unknown, values: SecretEntries, omitted: Set<unknown>): unknown {
   if (!record(data)) return data;
   const keys = kind === "act" ? ["input"] : ["text", "reason", "detail", "diagnostic"];
   return Object.fromEntries(

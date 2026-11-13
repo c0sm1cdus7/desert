@@ -1,3 +1,4 @@
+import { CustodyError } from "./house-keys.ts";
 import type { SecretRef } from "./custody-contract.ts";
 import type { CustodyState } from "./custody-state.ts";
 const maintenance = { actor: "custody", tool: "custody", target: "custody" };
@@ -17,7 +18,7 @@ function purge(state: CustodyState, ref: SecretRef): void {
   try {
     state.store.remove(ref);
   } catch {
-    return;
+    throw new CustodyError("E-CUSTODY-CLEANUP");
   }
   if (!facts.some(fact => fact.kind === "credential-purged" && fact.refs.material === ref))
     state.fact(

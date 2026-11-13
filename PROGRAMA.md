@@ -332,22 +332,35 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
 
 ## Custodia de credenciales · A01, paso 1
 
-Al componer una casa que guarda secretos, entregá `HouseOptions.secretKeys: HouseKeyProvider`.
-`key(casa, crear)` entrega 32 bytes propios de esa casa; conserva la llave fuera de su carpeta y devuelve una copia.
-La identidad que usa `startHouse` es la ruta real de la casa. Moverla requiere una migración explícita del proveedor;
-copiarla a otra ubicación no habilita la copia. Sin proveedor, una casa sin material puede abrir, pero no capturarlo.
-Una casa con material cifrado y una llave ausente o incorrecta no abre. La base nunca reemplaza una llave perdida.
+Al componer un programa con posiciones secretas en acciones, acciones propias ofrecidas al inicio o hechos, entregá
+`HouseOptions.secretKeys: HouseKeyProvider`. Si falta, la composición falla con `E-CUSTODY-PROVIDER` antes de
+abrir recursos de escritura. Un programa sin posiciones secretas y una casa sin material abre sin proveedor.
+`key(casa, crear)` entrega una copia de 32 bytes; conserva la llave fuera de la carpeta. La custodia pone esa copia
+en cero después de cargarla y su copia interna al cerrar, donde el motor lo permite.
+
+La casa nace con un identificador aleatorio, no secreto, guardado en la custodia. Ese identificador es la cuenta
+del proveedor y queda autenticado en cada registro. Otras mayúsculas, un enlace, moverla o renombrarla no cambian
+la casa. Una casa nueva en la ruta de una borrada recibe otra identidad y otra llave. Una copia en otra máquina
+no abre hasta llevar su llave al proveedor; el error lo dice. `forget(casa)` permite que el proveedor olvide la
+llave de una casa eliminada; hoy la base no lo llama automáticamente. Una llave perdida nunca se regenera cuando
+ya hay material o una comprobación de llave guardada.
 
 `MemoryHouseKeys` mantiene llaves independientes en memoria para pruebas. `MacOSHouseKeys` usa
-`/usr/bin/security` mediante un `KeychainCommand` obligatorio, inyectado por la composición: recibe ejecutable y
-lista de argumentos y devuelve estado y salida. No tiene ejecutor implícito, no usa shell ni sobrescribe una entrada
-existente. El ejecutor no debe registrar argumentos ni salida; ese límite transporta la llave. Las pruebas usan
-comandos falsos y material inventado. El llavero real no forma parte de la compuerta.
+`/usr/bin/security` mediante un `KeychainCommand` obligatorio: recibe ejecutable, argumentos y entrada estándar
+por separado y devuelve estado y salida. Para crear usa `security -i`: la llave va en la entrada estándar, nunca
+como argumento. No tiene ejecutor implícito, no usa shell ni sobrescribe entradas. El ejecutor no debe registrar
+entrada ni salida; una falla sale sin línea, entrada, salida ni causa originales. Las pruebas usan comandos falsos
+y material inventado. El llavero protege la llave de una copia de la carpeta, de un respaldo y de otros usuarios
+de la máquina; NO la protege de otro programa que corra con el mismo usuario. El llavero real no se prueba aquí.
 
-El material se guarda con AES-256-GCM, nonce aleatorio y autenticación de versión, casa y referencia. Los archivos
-son privados; la llave no se guarda ahí. La custodia mantiene un bloqueo exclusivo de SQLite hasta cerrar. Un segundo
-escritor no puede recuperar ni borrar provisionales ajenos. Esto no promete borrar respaldos, copias del proveedor,
-memoria del proceso ni versiones de páginas que conserve el sistema de archivos.
+El material se guarda con AES-256-GCM: número de un solo uso aleatorio de 12 bytes, etiqueta de 16 bytes y
+autenticación de versión, identidad de casa y referencia. Otro largo es `E-CUSTODY-INTEGRITY` antes de descifrar.
+La custodia, la bóveda y el diccionario de limpieza no exponen llave ni material mediante JSON o inspección.
+Los archivos son privados y la llave no se guarda ahí. SQLite mantiene un bloqueo exclusivo hasta cerrar: otro
+escritor no puede recoger provisionales ajenos. El borrado alcanza los archivos actuales de la carpeta, incluidos
+los auxiliares de SQLite; no promete borrar respaldos, copias del proveedor, strings en memoria ni versiones de
+páginas que conserve el sistema de archivos. Restaurar una copia vieja de la carpeta trae de vuelta los secretos
+que esa copia tenía: no se impide.
 
 La composición confiable abre `SecretCustody` y crea `begin({ actor, tool, target })` después de autorizar a la persona.
 La base no deduce permisos de esos textos: la composición es quien los acredita. El alcance incluye identidad,
@@ -374,18 +387,26 @@ El registro de custodia contiene `credential-bound`, `credential-released`, `cre
 `credential-purged`, con referencias, actor, herramienta, objeto, slot, revisión y causa pública. Primero se guarda
 la intención y el material cifrado; después, el hecho que autoriza el vínculo. Antes del borrado físico se confirma
 la marca pendiente; el recibo de borrado se escribe solo después de eliminar. Al abrir se retoman pendientes y se
-recogen provisionales de sesiones interrumpidas; un borrado físico fallido permanece pendiente y sin uso autorizado.
+recogen provisionales de sesiones interrumpidas. Un borrado físico fallido permanece pendiente y quien lo pidió
+recibe `E-CUSTODY-CLEANUP`; el vínculo ya liberado no vuelve a autorizar usos. El error de limpieza no deshace
+un reemplazo o una liberación ya confirmados.
 
 En este paso los hechos de custodia tienen su tabla aditiva en la misma bóveda. `CredentialLedger` permite que la
 composición conecte el registro del motor: `append` debe confirmar atómicamente y `facts` leer solamente batches
-confirmados, en orden. No se debe poblar desde hechos arbitrarios del bus público. La recuperación toma ese registro
-como autoridad: un batch rechazado conserva la versión anterior; un batch confirmado conserva la nueva aunque
+confirmados, en orden, conservando el campo `authentication`. La custodia autentica cada renglón con la llave de la
+casa, su posición y el autenticador anterior. Un renglón agregado a mano, alterado o sin autenticación produce
+`E-CUSTODY-INTEGRITY`; no concede un vínculo. No se debe poblar desde hechos arbitrarios del bus público.
+La recuperación toma ese registro como autoridad: un batch rechazado conserva la versión anterior; un batch confirmado conserva la nueva aunque
 el proceso haya caído antes de actualizar sus metadatos auxiliares. La unión al batch de una acción queda para el
 paso de contratos; las acciones actuales siguen usando su contrato anterior.
 
-Al abrir una bóveda anterior, primero corre la revisión B del registro. Luego se cifran los valores conservando
+Una custodia ya cifrada sin identidad persistida, o con hechos sin autenticación, se rechaza por integridad:
+no se vuelve confiable al abrirla. La adopción siguiente corresponde a la bóveda anterior de campos en claro.
+Al abrir esa bóveda, primero corre la revisión B del registro. Luego se cifran los valores conservando
 sus IDs, se relee y compara cada copia y recién entonces se retira la tabla anterior. La tabla vacía marca una
-compactación pendiente: un corte durante copia, retiro o compactación se retoma al abrir. Hasta declarar dueño y
+compactación pendiente: un corte durante copia, retiro o compactación se retoma al abrir. Confirmar el retiro
+limpia también los auxiliares de SQLite: entre retirar y compactar ya no queda texto en claro. Antes de confirmar
+ese retiro, el original todavía existe para poder recuperar la copia incompleta. Hasta declarar dueño y
 propósito con `adopt`, esas referencias quedan retenidas y no se resuelven. `discardLegacy` permite descartarlas.
 Las capturas del contrato anterior también quedan retenidas, sin atribuir un dueño a partir de textos históricos.
 Un `KeyStore` anterior se incorpora mediante `importLegacyKeys` y un manifiesto explícito de proveedor y referencia:

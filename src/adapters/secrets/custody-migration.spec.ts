@@ -1,7 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { DatabaseSync } from "node:sqlite";
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { containing } from "../../../tests/support/custody-files.ts";
 import { randomUUID } from "node:crypto";
 import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
 import { CustodyDatabase } from "./custody/custody-database.ts";
@@ -27,7 +26,7 @@ it("adopta cifrando, verifica lectura, conserva ids y retiene sin autorizar hast
   expect(custody.ids().sort()).toEqual(Object.values(rig.refs).sort());
   await expect(custody.adapter(session, ["signing"]).use(rig.refs, () => true)).rejects.toThrow();
   custody.close();
-  expect(readFileSync(rig.file).includes(Buffer.from("MARCADOR_ANTERIOR"))).toBe(false);
+  expect(containing(rig.home, "MARCADOR_ANTERIOR")).toEqual([]);
   const reopened = rig.open();
   reopened.adopt(custodyScope, "signing", rig.refs);
   const next = reopened.begin(custodyScope);
@@ -50,8 +49,7 @@ for (const point of ["retireLegacy", "compactLegacy"] as const)
     const recovered = rig.open();
     expect(recovered.ids().sort()).toEqual(Object.values(rig.refs).sort());
     recovered.close();
-    for (const file of readdirSync(rig.home))
-      expect(readFileSync(join(rig.home, file)).includes(Buffer.from("MARCADOR_ANTERIOR"))).toBe(false);
+    expect(containing(rig.home, "MARCADOR_ANTERIOR")).toEqual([]);
   });
 it("un corte entre registros cifrados conserva lo viejo y retoma sin perder ni cambiar referencias", () => {
   const rig = legacy();

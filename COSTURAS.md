@@ -55,7 +55,10 @@ Qué cambió respecto de Kenon en este paso:
   Las referencias nuevas no se deduplican por valor. Los límites de limpieza, transformaciones y pantalla final, el
   contrato y la apertura con `E-SECRET-HISTORY` están en `PROGRAMA.md`, «Lo declarado secreto».
 - `src/adapters/secrets/custody/`: una custodia cifrada por casa, con proveedor de llaves externo, ingreso
-  provisional, vínculos con revisión, reservas de uso y recuperación. La bóveda anterior se adopta conservando IDs,
+  provisional, vínculos autenticados con revisión, reservas de uso y recuperación. La identidad aleatoria persiste
+  al mover la casa; el proveedor recibe esa identidad y transporta la llave por entrada estándar. La composición
+  exige proveedor si hay posiciones secretas; las fallas de purga llegan con tipo y quedan pendientes.
+  La bóveda anterior se adopta conservando IDs,
   después de la revisión histórica y antes del arranque. `secretKeys` se queda en la composición, fuera de los
   puertos de herramientas. El contrato de acciones no cambia en este paso: ver «Custodia de credenciales» en
   `PROGRAMA.md`, incluida la conexión futura de `CredentialLedger` al batch del motor.

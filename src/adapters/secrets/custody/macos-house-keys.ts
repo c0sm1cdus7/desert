@@ -1,21 +1,34 @@
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { CustodyError, type HouseKeyProvider } from "./house-keys.ts";
-export type KeychainCommand = (file: string, args: readonly string[]) => Readonly<{ status: number; stdout: string }>;
+export type KeychainCommand = (
+  file: string,
+  args: readonly string[],
+  input: string,
+) => Readonly<{ status: number; stdout: string }>;
 /** No default executor: tests and composition must explicitly supply the command boundary. Never use a shell. */
 export class MacOSHouseKeys implements HouseKeyProvider {
-  private readonly command: KeychainCommand;
+  readonly #command: KeychainCommand;
   constructor(command: KeychainCommand) {
-    this.command = command;
+    this.#command = command;
   }
   private account(house: string): string {
-    return createHash("sha256").update(house).digest("hex");
+    if (!/^[a-z0-9-]+$/u.test(house)) throw new CustodyError("E-CUSTODY-KEY");
+    return house;
   }
-  private run(args: readonly string[]) {
-    return this.command("/usr/bin/security", args);
+  private run(args: readonly string[], input = "") {
+    return this.#command("/usr/bin/security", args, input);
   }
   key(house: string, create: boolean): Uint8Array {
     try {
       return this.obtain(house, create);
+    } catch {
+      throw new CustodyError("E-CUSTODY-KEY");
+    }
+  }
+  forget(house: string): void {
+    try {
+      const result = this.run(["delete-generic-password", "-s", "desert.house-custody.v1", "-a", this.account(house)]);
+      if (result.status !== 0 && result.status !== 44) throw new CustodyError("E-CUSTODY-KEY");
     } catch {
       throw new CustodyError("E-CUSTODY-KEY");
     }
@@ -26,7 +39,8 @@ export class MacOSHouseKeys implements HouseKeyProvider {
     if (result.status === 44 && create) {
       const material = randomBytes(32).toString("base64");
       // No -U: another creator must never have its key silently replaced.
-      this.run(["add-generic-password", ...identity, "-w", material]);
+      const added = this.run(["-i"], ["add-generic-password", ...identity, "-w", material].join(" ") + "\n");
+      if (added.status !== 0) throw new CustodyError("E-CUSTODY-KEY");
       result = this.run(["find-generic-password", ...identity, "-w"]);
     }
     if (result.status !== 0) throw new CustodyError("E-CUSTODY-KEY");

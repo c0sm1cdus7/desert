@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { Type, type Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
@@ -5,6 +6,7 @@ import { privateDatabase } from "../../storage/home.ts";
 import { CustodyError } from "./house-keys.ts";
 import type { CredentialFact, CredentialLedger, CustodyRow, SecretRef } from "./custody-contract.ts";
 const factSchema = Type.Object({
+  authentication: Type.Optional(Type.String()),
   id: Type.String(),
   kind: Type.Union([
     Type.Literal("credential-bound"),
@@ -21,9 +23,13 @@ const factSchema = Type.Object({
   refs: Type.Record(Type.String(), Type.TemplateLiteral("secret:${string}")),
 });
 function factFrom(body: unknown): Static<typeof factSchema> {
-  const value: unknown = typeof body === "string" ? JSON.parse(body) : undefined;
-  if (!Value.Check(factSchema, value)) throw new CustodyError("E-CUSTODY-STORAGE");
-  return value;
+  try {
+    const value: unknown = typeof body === "string" ? JSON.parse(body) : undefined;
+    if (!Value.Check(factSchema, value)) throw new CustodyError("E-CUSTODY-INTEGRITY");
+    return value;
+  } catch {
+    throw new CustodyError("E-CUSTODY-INTEGRITY");
+  }
 }
 export const secretRef = (value: unknown): value is SecretRef =>
   typeof value === "string" && /^secret:[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/u.test(value);
@@ -32,7 +38,10 @@ export class CustodyDatabase implements CredentialLedger {
   constructor(file: string) {
     this.db = privateDatabase(file);
     try {
-      this.db.exec("pragma locking_mode=EXCLUSIVE; begin exclusive; commit;");
+      this.db.exec(
+        `pragma journal_mode=TRUNCATE; pragma journal_size_limit=0;
+         pragma locking_mode=EXCLUSIVE; begin exclusive; commit;`,
+      );
     } catch {
       this.db.close();
       throw new CustodyError("E-CUSTODY-LOCKED");
@@ -66,6 +75,15 @@ export class CustodyDatabase implements CredentialLedger {
           throw new CustodyError("E-CUSTODY-STORAGE");
         return { ref: row.ref, payload: row.payload, owner: row.owner, retained: row.retained === 1 };
       });
+  }
+  identity(): string {
+    const row = this.db.prepare("select value from custody_meta where name='house-id'").get();
+    if (typeof row?.value === "string" && /^[0-9a-f-]{36}$/u.test(row.value)) return row.value;
+    if (row || this.keyCheck() || this.rows().some(row => row.payload !== null) || this.facts().length)
+      throw new CustodyError("E-CUSTODY-INTEGRITY");
+    const id = randomUUID();
+    this.db.prepare("insert into custody_meta values ('house-id', ?)").run(id);
+    return id;
   }
   keyCheck(): string | undefined {
     const row = this.db.prepare("select value from custody_meta where name='key-check'").get();

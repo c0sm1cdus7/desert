@@ -120,3 +120,50 @@ describe("a house on disk", () => {
     expect(existsSync(unopened)).toBe(false);
   });
 });
+
+it("rechaza al componer posiciones secretas sin proveedor y admite programas sin ellas (a5)", () => {
+  const path = home();
+  const { secretKeys: _keys, ...withoutKeys } = options;
+  expect(() => startHouse(path, withoutKeys)).toThrow(expect.objectContaining({ code: "E-CUSTODY-PROVIDER" }));
+  expect(existsSync(join(path, "journal.sqlite"))).toBe(false);
+  const plain = startHouse(path, { ...withoutKeys, registry: shopRegistry });
+  houses.push(plain);
+  expect(plain.tools.state().house.admin).toBe("ana");
+});
+
+it("un hecho con posición secreta también exige proveedor al componer", () => {
+  const path = home();
+  const { secretKeys: _keys, ...withoutKeys } = options;
+  expect(() =>
+    startHouse(path, {
+      ...withoutKeys,
+      registry: shopRegistry,
+      words: { ...shop, event: Type.Object({ key }) },
+    }),
+  ).toThrow(expect.objectContaining({ code: "E-CUSTODY-PROVIDER" }));
+  expect(existsSync(join(path, "journal.sqlite"))).toBe(false);
+});
+
+it("las acciones propias declaradas al componer también exigen proveedor", () => {
+  const { secretKeys: _keys, ...withoutKeys } = options;
+  for (const input of [Type.Object({ value: Type.String() }), key]) {
+    const path = home();
+    const own = () => [
+      {
+        ...toolAct<Shop, typeof input>(input, () => ({ status: "accepted" })),
+        object: "own",
+        option: "set",
+        purpose: "Inventado",
+      },
+    ];
+    const open = () => {
+      const house = startHouse(path, { ...withoutKeys, registry: shopRegistry, own });
+      houses.push(house);
+      return house;
+    };
+    if (input === key) {
+      expect(open).toThrow(expect.objectContaining({ code: "E-CUSTODY-PROVIDER" }));
+      expect(existsSync(join(path, "journal.sqlite"))).toBe(false);
+    } else expect(open().tools.state().house.admin).toBe("ana");
+  }
+});

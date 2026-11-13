@@ -1,3 +1,4 @@
+import { MemoryHouseKeys } from "./custody/house-keys.ts";
 import { expect, it } from "vitest";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -34,6 +35,7 @@ for (const kind of ["fact", "exposed"] as const) {
         startHouse(path, {
           by: rig.options.by,
           keys: rig.options.keys,
+          secretKeys: rig.options.secretKeys ?? new MemoryHouseKeys(),
           creation: rig.options.creation,
           words,
           slices: {

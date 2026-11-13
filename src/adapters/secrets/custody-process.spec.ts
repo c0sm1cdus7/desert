@@ -16,7 +16,7 @@ for (const revoked of [false, true])
     // A fixed test-only key exists exclusively in process memory. No real provider or keychain runs.
     const code = `import { SecretCustody } from ${JSON.stringify(module)};
       const store = new SecretCustody(${JSON.stringify(file)}, ${JSON.stringify(home)},
-        { key: () => new Uint8Array(32).fill(7) });
+        { forget() {}, key: () => new Uint8Array(32).fill(7) });
       const session = store.begin({ actor: "ana", tool: "vault", target: "test" });
       const refs = { key: session.capture("MATERIAL_INVENTADO") };
       if (${String(revoked)}) {
@@ -28,7 +28,7 @@ for (const revoked of [false, true])
     expect(() =>
       execFileSync(process.execPath, ["--input-type=module", "-e", code], { stdio: ["ignore", "pipe", "pipe"] }),
     ).toThrow(expect.objectContaining({ signal: "SIGKILL" }));
-    const recovered = new SecretCustody(file, home, { key: () => new Uint8Array(32).fill(7) });
+    const recovered = new SecretCustody(file, home, { forget() {}, key: () => new Uint8Array(32).fill(7) });
     try {
       expect(recovered.ids()).toEqual([]);
       expect(recovered.facts().filter(fact => fact.kind === "credential-purged")).toHaveLength(1);
