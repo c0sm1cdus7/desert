@@ -29,19 +29,28 @@ describe("a program with acts on its things", () => {
   for (const check of walkedChecks(settlingShop, shopShown)) it(check.name, check.run);
   for (const check of walkedChecks(settlingShop, nestedShown)) it(`${check.name}, two views deep`, check.run);
   const hidden = `${settledTwice}, hidden for who prefers not to see what cannot be done`;
+  const unavailable = `${settledTwice}, no empty first choice`;
   it("a screen that lists none of its things fails what has to reach one that nothing else leads to", async () => {
     /** A sale that still owes is reached from Attention; a settled one, from nowhere. */
-    expect(await failing(walkedChecks(settlingShop, hidingShown))).toEqual([`${settledTwice}, by keys`, hidden]);
+    expect(await failing(walkedChecks(settlingShop, hidingShown))).toEqual([
+      `${settledTwice}, by keys`,
+      unavailable,
+      hidden,
+    ]);
   });
 
   for (const check of walkedChecks(leavingShop, apartShown)) it(`${check.name}, leaving its list`, check.run);
 
   it("a screen that takes what cannot be done off its list fails what that refusal promises to show", async () => {
-    expect(await failing(walkedChecks(settlingShop, mutedShown))).toEqual([`${settledTwice}, by keys`, hidden]);
+    expect(await failing(walkedChecks(settlingShop, mutedShown))).toEqual([
+      `${settledTwice}, by keys`,
+      unavailable,
+      hidden,
+    ]);
   });
 
   it("a screen that shows what cannot be done to who prefers not to see it fails that, and nothing else", async () => {
-    expect(await failing(walkedChecks(settlingShop, stubbornShown))).toEqual([hidden]);
+    expect(await failing(walkedChecks(settlingShop, stubbornShown))).toEqual([unavailable, hidden]);
   });
 
   it("offers an act on a thing where that thing is read, and never on a view that only groups them", async () => {

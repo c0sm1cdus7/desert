@@ -9,7 +9,7 @@ import type { Case } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import { actRow, fitsSmallest, goTo, openRows, type, view, type Seat } from "./promised-keys.ts";
 import { answer } from "./promised-answer.ts";
-import { firstUnavailable } from "./promised-availability.ts";
+import { actionUnavailable } from "./availability/case-availability.ts";
 import type { Aim } from "./promised-stage.ts";
 
 /** Whether a row starts the act with what the case says: what the row does not ask has to be the case's already. */
@@ -39,15 +39,11 @@ export function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers, fr
   if (!found && "refused" in kase.then && actRow(seat, aim, on, undefined, from)) return undefined;
   ok(found, said.notOffered(aim.name));
   const { row } = found;
-  /** Taken from the thing of another tool, it is that thing that may say why not. */
-  const told = from
-    ? aim.act.also?.off?.(seat.state(), from.target, seat.now())
-    : aim.act.offered?.(seat.state(), on, seat.now());
   /** A row that already says everything the act takes knows what the act will answer: where that is a refusal,
    * the row is off saying it, as the tool itself would. Nobody is offered what is known to be refused. */
   const whole = row.with !== undefined && row.with.from >= answers.length;
-  const empty = firstUnavailable(seat, aim, on, row.with?.answers.slice(0, row.with.from));
-  const cause = told ?? empty ?? (whole && "refused" in kase.then ? kase.then.refused : undefined);
+  const closed = actionUnavailable(seat, aim, on, row.with?.answers.slice(0, row.with.from), from?.target);
+  const cause = closed ?? (whole && "refused" in kase.then ? kase.then.refused : undefined);
   strictEqual(row.off ? whyOf(row, cause) : undefined, cause, said.offFor(aim.name));
   /** The right of an act is never empty: its datum, or what it is for. */
   ok(row.detail, said.saysNothing(aim.name));

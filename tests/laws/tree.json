@@ -106,7 +106,9 @@
     "surface/guards/router-defect.ts": "Cierra los defectos de pintar o elegir con su texto fijo y un registro.",
     "surface/bridge/questions/asking-clock.ts": "Da a cada lector de preguntas el mismo reloj y el calendario del programa.",
     "tools/execution/defect-reporter.ts": "Guarda el diagnóstico de la superficie con la misma limpieza que una acción.",
-    "surface/bridge/questions/picked-options.ts": "Apaga respuestas con su motivo y reconoce como actual el rechazo sin cambios."
+    "surface/bridge/questions/picked-options.ts": "Apaga respuestas con su motivo y reconoce como actual el rechazo sin cambios.",
+    "surface/availability/action-off.ts": "actionOff: one ordered reason for an identity, destination and instant, shared by rows and guarantees",
+    "programs/availability/case-availability.ts": "actionUnavailable, caseOrigin: the destination and fixed answers of a case for the shared availability rule"
   },
   "folders": {
     "adapters/secrets": 103,
@@ -122,6 +124,8 @@
     "tools": 1021,
     "tools/execution": 94,
     "surface/guards": 106,
-    "surface/bridge/questions": 51
+    "surface/bridge/questions": 51,
+    "surface/availability": 27,
+    "programs/availability": 28
   }
 }

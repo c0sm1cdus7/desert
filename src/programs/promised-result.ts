@@ -8,7 +8,7 @@ import { toolTexts } from "../texts/tools.texts.ts";
 import { outsideCause } from "../tools/outside.ts";
 import type { Case } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
-import { firstUnavailable } from "./promised-availability.ts";
+import { actionUnavailable } from "./availability/case-availability.ts";
 import { currentCloses } from "./promised-current.ts";
 import { quietEntry } from "./promised-entry.ts";
 import { view, type Seat } from "./promised-keys.ts";
@@ -47,7 +47,7 @@ export function assertOutcome<X extends Program>(seat: Seat<X>, aim: Aim<X>, kas
   if (cause !== undefined && !external) {
     strictEqual(calls.length, 0, said.internalSent);
     quietEntry(seat.router);
-    const closed = firstUnavailable(seat, aim, kase.on ?? aim.tool.id);
+    const closed = actionUnavailable(seat, aim, kase.on ?? aim.tool.id, [], kase.from);
     const expected = closed ?? (cause === toolTexts.unchanged ? surfaceTexts.current : cause);
     const currentText =
       cause === toolTexts.unchanged && !seat.router.screen(view).hints.some(h => h.intent === "confirm");

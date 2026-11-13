@@ -1,5 +1,4 @@
 // The acts of a program's tool as a surface offers them: each asked from its declaration, where it stands.
-import { programOffered } from "../../tools/program-run.ts";
 import { declaredCause, programRule } from "../../tools/execution/program-causes.ts";
 import { allowed, hides } from "../../house/house.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
@@ -7,7 +6,8 @@ import { aid, worded } from "../../tools/act-words.ts";
 import type { ProgramAct, ProgramTool } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { Field } from "../contract.ts";
-import { offeredOn, withoutChoices } from "./picked.ts";
+import { offeredOn } from "./picked.ts";
+import { actionOff } from "../availability/action-off.ts";
 import type { ThingAct, ThingMenu, ToolAct, ViewRow } from "../shown-tool.ts";
 import type { Locale } from "../masks.ts";
 import { maskOf } from "../screen.ts";
@@ -130,9 +130,10 @@ const offersOf =
       if (!also || given === undefined) return [];
       const row = { key: act.key, title: also.name ?? act.name, act: name, on: { tool } };
       const fixed = ask.leading(given);
-      const why = also.off?.(ports.state(), target, ports.now()) ?? withoutChoices(walk.next(fixed));
+      const why = actionOff(act, ports.state(), tool, tool, ports.now(), () => walk.next(fixed), target);
       /** Off, it says why; and it is not there for who prefers not to see what cannot be done. */
-      if (why !== undefined && hides(ports.state().house, ports.me, "off")) return [];
+      const held = allowed(ports.state().house, ports.me, tool);
+      if (why !== undefined && hides(ports.state().house, ports.me, held ? "off" : "foreign")) return [];
       if (why !== undefined) return [{ ...row, detail: why, off: true }];
       /** What the thing suggests comes after what it fixes: those questions open on it, and are still asked. */
       const answers = ask.leading({ ...given, ...also.opens?.(ports.state(), target) });
@@ -148,9 +149,8 @@ const beside = (act: Readonly<{ undoable: boolean; purpose: string }>): string =
   act.undoable ? act.purpose : generic.irreversible;
 /** Every act of a tool as the surface offers it: on the tool itself, on one of its things, or under a menu. */
 export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: ProgramTool<X>, asked: Asked) {
-  /** Why this identity cannot act on the tool at all, when that is so. */
-  const foreign = (): string | undefined =>
-    allowed(ports.state().house, ports.me, tool.id) ? undefined : generic.notHeld;
+  /** Which hiding preference applies to the identity reading this tool. */
+  const foreign = (): boolean => !allowed(ports.state().house, ports.me, tool.id);
   const entries = Object.entries(tool.acts).map(([name, act]) => walked(ports, { tool: tool.id, name, act }, asked));
   const onTool = entries
     .filter(({ act }) => act.on === "tool")
@@ -158,9 +158,9 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       /** Off for who does not hold the tool, and while the tool itself says why it cannot be done. Hidden, then,
        * for who prefers not to see what is not theirs, or what cannot be done. */
       const off = (): string | undefined =>
-        foreign() ?? programOffered(act, ports.state(), tool.id, ports.now()) ?? withoutChoices(walk.next([]));
+        actionOff(act, ports.state(), tool.id, tool.id, ports.now(), () => walk.next([]));
       const listed = (): boolean =>
-        off() === undefined || !hides(ports.state().house, ports.me, foreign() === undefined ? "off" : "foreign");
+        off() === undefined || !hides(ports.state().house, ports.me, foreign() ? "foreign" : "off");
       const datum = (): string => act.datum?.(ports.state(), tool.id) ?? beside(act);
       const next: ToolAct["next"] = answers => walk.next(answers);
       /** What changes a datum is taken from the row of that datum, not from among the actions. */
@@ -173,7 +173,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       /** Off while the tool's state says why. On the list of a thing of the tool, never of a view that only
        * groups them; and not while it is off, for who prefers not to see what cannot be done. */
       const off = (target: string): string | undefined =>
-        foreign() ?? programOffered(act, ports.state(), target, ports.now()) ?? withoutChoices(walk.next([], target));
+        actionOff(act, ports.state(), tool.id, target, ports.now(), () => walk.next([], target));
       const unseen = (target: string): boolean =>
         off(target) !== undefined && hides(ports.state().house, ports.me, "off");
       const listed = (target: string): boolean => tool.targets(ports.state()).includes(target) && !unseen(target);

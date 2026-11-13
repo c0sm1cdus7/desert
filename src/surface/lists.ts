@@ -49,19 +49,26 @@ function actionRows(tools: readonly Tool[], tool: Tool, target?: string): readon
   if (target === undefined) return acts;
   /** After its own, what other tools offer on it: each stands as its tool says, off for who does not hold that. */
   const others = (tool.alsoOn?.(target) ?? []).flatMap(row =>
-    row.act === undefined || !row.on ? [] : startRow(tools, toolOf(tools, row.on.tool), row, row.act, row.on.target),
+    row.act === undefined || !row.on
+      ? []
+      : startRow(tools, toolOf(tools, row.on.tool), row, row.act, row.on.target, true),
   );
   return [...menusAt(tool, target), ...acts, ...others];
 }
 /** A row of a view that starts an act stands like any act: off the list with it, and off while it cannot be done. */
-function startRow(tools: readonly Tool[], tool: Tool, row: ViewRow, act: string, target?: string): Choice[] {
-  const [listed, why] =
-    target === undefined
-      ? [tool.acts[act]?.listed?.(), tool.acts[act]?.off?.()]
-      : [tool.actsOn?.[act]?.listed?.(target), tool.actsOn?.[act]?.off?.(target)];
-  if (listed === false) return [];
+function startRow(
+  tools: readonly Tool[],
+  tool: Tool,
+  row: ViewRow,
+  act: string,
+  target?: string,
+  resolved = false,
+): Choice[] {
+  const entry = target === undefined ? tool.acts[act] : tool.actsOn?.[act];
+  const why = resolved ? undefined : entry?.off?.(target ?? tool.id);
+  if (!resolved && entry?.listed?.(target ?? tool.id) === false) return [];
   const starts = startsOf(tool.id, act, target);
-  /** A row that already says why it is off stays off: the thing it stands on is why, not the act's own tool. */
+  /** A supplied row already resolved its identity, state, origin and remaining answers together. */
   if (row.off && why === undefined) return [{ ...row, starts }];
   /** A row that shows what a datum is today keeps saying it while it cannot be changed, and then says why. */
   if (why !== undefined) return [{ ...row, detail: row.detail ? `${row.detail} · ${why}` : why, off: true, starts }];

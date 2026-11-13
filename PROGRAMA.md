@@ -97,7 +97,8 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   crear, la acción sale apagada en el menú con `empty`, incluso si hay cosas pero ninguna se toma.
   Se vuelve a habilitar cuando aparece algo elegible.
   En una acción ofrecida por otra herramienta se comprueba la primera pregunta que queda después de sus respuestas
-  fijas. Un motivo explícito de `offered` o `also.off` tiene prioridad.
+  fijas. El motivo se decide una sola vez: primero que la identidad no tenga la herramienta, después `offered`,
+  después `also.off` y por último `empty`. La fila y las garantías derivadas usan ese mismo orden.
 - Una acción dice si se ofrece sabiendo qué momento es (`offered(estado, cosa, instante)`): lo que hoy no se puede
   hacer queda apagado con su motivo.
 - `stops` puede devolver `toolTexts.unchanged` cuando lo vigente depende de una respuesta anterior y `today` no
