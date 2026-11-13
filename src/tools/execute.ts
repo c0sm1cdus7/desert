@@ -7,6 +7,8 @@ import type { Bus } from "../journal/bus.ts";
 import { effect, type Emission, type HouseEvent } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "./attendance.ts";
+import { runProgram } from "./program-run.ts";
+import { programDefect } from "./program-defect.ts";
 import { OutsideDefect } from "./outside.ts";
 import { making } from "./made.ts";
 import { actNews, type ActContext, type ActResult, type KeyStore, type OwnAct } from "./tool-contract.ts";
@@ -21,7 +23,7 @@ export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; keys:
     secrets: { capture(value: unknown, registry: ToolRegistry<X>, state?: State<X>): void; scrub<T>(value: T): T };
   }>;
 type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
-  Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown }> &
+  Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown; defect?: true }> &
   Readonly<{ private?: string | undefined; output?: boolean }>;
 type Processing<X extends Program> = Readonly<{ status: "processing"; effects: readonly []; reason?: string }> &
   Readonly<{ completion: Promise<Decision<X>> }>;
@@ -71,7 +73,7 @@ const decide = <X extends Program>(ports: Execution<X>, value: Act, origin: Orig
     return { status: "draft", reason: text, draft: value.input, effects: [effect("tool-entry", data, by)] };
   }
   return () => {
-    const result = act.run(value.input, context);
+    const result = runProgram(act, value.input, context);
     const finish = (result: ActResult<X>): Decision<X> => ({
       ...decisionOf(result, act, context, offered ? undefined : tool?.id, value.act),
       ...(act.output ? { output: true } : {}),
@@ -135,9 +137,10 @@ const finish = <X extends Program>(ports: Execution<X>, act: Origin, decision: D
   /** What an act writes is written whole or not at all: if one of its facts does not fold, the act is refused,
    * saying why, and the house stays as it was. */
   const why = written(ports, act, safe.effects);
-  const done = why === undefined ? safe : rejected(why);
+  const done: Decision<X> = why === undefined ? safe : rejected(why);
   const output = done.status === "accepted" && done.output ? { output: true } : {};
-  const data = { act: act.id, status: done.status, reason: done.reason ?? "", ...output };
+  const defect = done.defect ? { defect: true as const } : {};
+  const data = { ...defect, act: act.id, status: done.status, reason: done.reason ?? "", ...output };
   ports.bus.emit(effect("act-result", data, act.by, [act.id], act.process));
   return done;
 };
@@ -160,9 +163,10 @@ const run = <X extends Program>(ports: Execution<X>, act: Origin, perform: Perfo
   const { object, option } = act.data;
   const tool = targetTool(ports.registry, identityView(ports.state(), act.by), object)?.id ?? object;
   ports.bus.emit(effect("act-started", { act: act.id, object, option }, act.by, [act.id], act.process));
-  /** A thrown Error is the tool's own cause; only a throw without one keeps the last-resort text. */
+  /** Program failures have one public message and a separate support record. */
   const failed = (error: unknown): Decision<X> => {
-    if (error instanceof OutsideDefect) throw error;
+    if (error instanceof OutsideDefect)
+      return programDefect(error, act, tool, ports.registry.find(known => known.id === tool)?.acts[option]);
     return rejected(error instanceof Error && error.message ? error.message : toolTexts.unavailable);
   };
   let result: Decision<X> | Promise<Decision<X>>;

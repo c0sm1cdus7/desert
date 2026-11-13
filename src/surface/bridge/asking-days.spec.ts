@@ -45,7 +45,7 @@ describe("a day the calendar does not have", () => {
   it("is turned down where it is written, and through any other door before the act runs", () => {
     expect(asking(due, words).next([])?.wrong?.("30022026")).toBe(toolTexts.noSuchDay);
     expect(asking(due, words).next([])?.wrong?.("28022026")).toBeUndefined();
-    expect(wrongIn(due, { on: "2025-13-45" })).toBe(toolTexts.noSuchDay);
-    expect(wrongIn(due, { on: "2026-02-28" })).toBeUndefined();
+    expect(wrongIn(due, { on: "2025-13-45" }, 0)).toBe(toolTexts.noSuchDay);
+    expect(wrongIn(due, { on: "2026-02-28" }, 0)).toBeUndefined();
   });
 });

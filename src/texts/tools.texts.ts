@@ -7,6 +7,7 @@ export const toolTexts = {
   unknown: "destino inexistente",
   unattended: "destino sin abrir",
   unassigned: "sin acceso",
+  defect: (act: string): string => `E-PROG-1 · Falló el programa · ${act}`,
   unavailable: "acción fallida",
   interrupted: "acción interrumpida",
   /** What an act answers when it would leave the thing exactly as it is. */

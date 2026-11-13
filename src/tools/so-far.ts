@@ -10,19 +10,19 @@ export type Among = Readonly<Record<string, (thing: string) => string | undefine
  * refuses when run. */
 export type SoFar<X extends Program> = Readonly<{
   /** Why what was answered so far cannot go on, when that is so: said at the question it was answered in. */
-  stops?: (answered: Answered, state: State<X>, target: string) => string | undefined;
+  stops?: (answered: Answered, state: State<X>, target: string, at: number) => string | undefined;
   /** A question shows the things it cannot take disabled with their reasons.
    * A tool it does not name is offered whole. */
-  among?: (answered: Answered, state: State<X>, target: string) => Among;
+  among?: (answered: Answered, state: State<X>, target: string, at: number) => Among;
 }>;
 /** What an act says of what was answered so far: asked only about the fields it takes, answered whole. Anything
  * else a surface may give is not asked about. */
 export function soFar<X extends Program>(input: TSchema, { stops, among }: SoFar<X>): SoFar<X> {
   const partial = Type.Partial(input);
-  const asked: NonNullable<SoFar<X>["stops"]> = (answered, state, target) =>
-    Value.Check(partial, answered) ? stops?.(answered, state, target) : undefined;
-  const narrowed: NonNullable<SoFar<X>["among"]> = (answered, state, target) =>
-    Value.Check(partial, answered) ? (among?.(answered, state, target) ?? {}) : {};
+  const asked: NonNullable<SoFar<X>["stops"]> = (answered, state, target, at) =>
+    Value.Check(partial, answered) ? stops?.(answered, state, target, at) : undefined;
+  const narrowed: NonNullable<SoFar<X>["among"]> = (answered, state, target, at) =>
+    Value.Check(partial, answered) ? (among?.(answered, state, target, at) ?? {}) : {};
   return { ...(stops ? { stops: asked } : {}), ...(among ? { among: narrowed } : {}) };
 }
 const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
@@ -45,13 +45,13 @@ function picksIn(schema: unknown, value: unknown): readonly Picked[] {
  * it stops at, or a thing it picks and does not take. A surface says it earlier, at the question; here it is
  * refused through whatever door it came, before the act runs. */
 export function refusedWhole<X extends Program>(input: TSchema, said: SoFar<X>, value: unknown) {
-  return (state: State<X>, target: string, refuses: readonly string[]): string | undefined => {
+  return (state: State<X>, target: string, refuses: readonly string[], at: number): string | undefined => {
     if (!isRecord(value)) return undefined;
-    const stopped = said.stops?.(value, state, target);
+    const stopped = said.stops?.(value, state, target, at);
     /** At its question a cause may say a datum after it («supera lo que falta · $ 9.525,75»): where nothing is
      * asked, what is refused is the cause the act declares. */
     if (stopped !== undefined) return refuses.find(cause => stopped.startsWith(`${cause} · `)) ?? stopped;
-    const among = said.among?.(value, state, target) ?? {};
+    const among = said.among?.(value, state, target, at) ?? {};
     return picksIn(input, value)
       .map(([tool, thing]) => among[tool]?.(thing))
       .find(reason => reason !== undefined);

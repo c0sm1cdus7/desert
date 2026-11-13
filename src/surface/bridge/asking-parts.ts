@@ -22,7 +22,7 @@ export type Things = Readonly<{
 export type AskWords = Readonly<{ formats: Readonly<Record<FormatName, Format>>; optionalMark: string }> &
   Readonly<{ things?: (tool: string) => Things | undefined }> &
   /** Today, as the program's country counts its days: what a day that is usually today opens on. */
-  Readonly<{ today?: () => string | undefined }>;
+  Readonly<{ today?: () => string | undefined; now?: () => number }>;
 export type Got = Readonly<{ value: unknown; at: number }> | Readonly<{ ask: Field }>;
 export type Ctx = AskWords & Readonly<{ answers: readonly string[]; n: number; optional: boolean }>;
 export const isRecord = (value: unknown): value is Readonly<Record<string, unknown>> =>
@@ -128,7 +128,7 @@ export function written(schema: TSchema, ctx: Ctx): Field {
     const value = valueOf(schema, ctx, typed);
     if (!valid(typed))
       return typed.trim() !== "" && typeof value === "number" ? lacking(schema, ctx, typed) : undefined;
-    return late(value) ? generic.future : wrongIn(schema, value);
+    return late(value) ? generic.future : wrongIn(schema, value, ctx.now?.() ?? 0);
   };
   const lacks = (typed: string): string => lacking(schema, ctx, typed);
   /** What a person writes has a top: a number without one, or a text without a length, is a defect. */

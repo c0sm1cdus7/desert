@@ -46,25 +46,35 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - `also` la ofrece además entre las acciones de los objetos de otra herramienta (cobrar, desde una venta).
 - `run` puede ser `async`; solo devuelve `accepted` o `rejected` con una causa literal de `outside`, opcionalmente
   seguida de ` · dato`. Sin `outside`, no devuelve rechazos. Una causa ajena a esa lista no compila; si código
-  sin tipos la introduce igual, la base lanza un defecto visible. `reach: "world"` dice que sale de la organización.
+  sin tipos la introduce igual, la base termina con el defecto fijo del catálogo. Lo lanzado o una promesa rechazada
+  dentro de `run` también es un defecto, aunque el texto coincida con `outside`. Actividad y el registro guardan
+  el detalle técnico; el resultado de la acción no lo muestra. Ningún defecto se reintenta automáticamente.
+  Una acción anidada puede haber escrito antes del defecto: el mensaje no promete que no se guardó nada. `reach: "world"` dice que sale de la organización.
   El contexto trae `execute` para hacer otra acción por el mismo camino; su resultado amplio no se reenvía a ciegas.
 - Un campo lleva siempre máscara o placeholder y tope. Lo incompleto muestra la parte de la forma que falta en
   texto 3, dentro de la Entrada. Lo completo que `wrong` o `stops` no permite dice su motivo bajo la pregunta, en
   texto 3, sin «Error» y sin `enter`. Enter no hace nada si no se ofrece; una tecla que no entra conserva el campo.
   «Error» en coral queda para el resultado de una acción que corrió.
 - Un campo puede decir cuándo se pregunta, según lo respondido antes (`when(campo, respondido => …)`).
-- Un día que ya pasó no puede ser posterior a hoy: `day(pregunta, "today", "today")` lo rechaza donde se escribe.
+- `holding(campo, (valor, instante) => motivoOIndefinido)` recibe el mismo reloj que `run`, `stops` y `among`.
+  No usar `Date.now()` en esas reglas: el instante lo da la casa y los casos lo pueden fijar.
+- `day(pregunta, "today", "today")` limita la Entrada; la regla del programa contra fechas futuras va también
+  en `stops` o `holding`, con su causa en `refuses`. Así se rechaza antes de `run` por cualquier puerta.
+  El programa convierte el instante a su día local con la misma función que declara en `shown.day`.
+- Un caso puede declarar `at: Date.UTC(2026, 10, 13, 1)`: fija el reloj antes de sus pasos `given`. Sin `at` usa
+  el instante fijo de la base. Los pasos `{ days: n }` avanzan desde allí y reabrir conserva la hora.
+  Prometer ayer aceptado, mañana rechazado y ese mismo día aceptado al avanzar el reloj prueba las dos puertas.
 - Lo que una acción confirma (`confirms(input, estado, cosa, instante)`) o contesta puede decirse en varias líneas:
   cada corte de línea es un renglón, sin volver a cortar (una vista previa, un impreso). Lo que contesta dice qué
   hizo en la primera línea («Verbo · Objeto · Detalle»), y así se promete en un caso.
 - Lo que una acción crea queda en el Registro de cada cosa creada: ningún programa guarda quién creó qué.
-- Una acción puede decir por qué lo contestado hasta ahí no puede seguir: `stops: (respondido, estado, cosa) =>
+- Una acción puede decir por qué lo contestado hasta ahí no puede seguir: `stops: (respondido, estado, cosa, instante) =>
   motivo`. La pantalla lo dice en vivo, antes de enviar la respuesta; **la base lo rechaza igual antes de correr
   la acción, por cualquier puerta**, con ese mismo motivo (que va en `refuses`, con su caso). En la pregunta el
   motivo puede sumar un dato después («supera lo que falta · $ 9.525,75»): por otra puerta se rechaza con el motivo
   declarado. La acción no lo repite.
 - Donde una pregunta elige una cosa de otra herramienta (`thing`), la acción puede decir cuáles toma según lo ya
-  contestado: `among: (respondido, estado, cosa) => ({ productos: id => motivoOIndefinido })`. Cada función devuelve
+  contestado: `among: (respondido, estado, cosa, instante) => ({ productos: id => motivoOIndefinido })`. Cada función devuelve
   `undefined` si toma la cosa, o su motivo si no. Por herramienta, no por campo. La lista muestra primero lo elegible
   y después las cosas apagadas, sin número y con su motivo; buscar también las encuentra. La preferencia de ocultar
   acciones apagadas oculta esas cosas. Por otras puertas se rechaza con ese mismo motivo antes de correr; se declara
@@ -158,8 +168,11 @@ La persona solo puede terminar en `Listo` o en `Error` por una causa de afuera. 
 5. **Estrechar los helpers de `run`.** Antes: `ActResult<Shop>`; después: `RunResult<Shop, typeof outside>`, de
    `src/tools/outside.ts`; sin causas externas, `RunResult<Shop, readonly []>`. No usar aserciones para forzar el tipo.
    Un helper que devuelve `reason: string` pierde la unión literal: devolver el objeto contextualizado por ese tipo,
-   o conservar el literal en el helper. No reenviar directamente el resultado amplio de otro `ProgramAct.run` ni
-   de `context.execute`: sus rechazos previos no son automáticamente fallas de afuera. Compartir la implementación
+   o conservar el literal en el helper. `ProgramAct<X, typeof outside>` conserva ese resultado literal; el registro
+   conserva una marca opaca para que un spread no pueda sustituir `run` o `outside` por partes sin comprobar.
+   Para cambiar el cuerpo o las causas, declarar la acción con `programAct` otra vez. La casa valida las reglas
+   actuales antes de entrar al cuerpo, incluso si código sin tipos armó el acto a mano.
+   No reenviar directamente `context.execute`: sus rechazos previos no son automáticamente fallas de afuera. Compartir la implementación
    de éxito o tratar explícitamente el resultado y clasificar la causa externa. `inconclusive` e `interrupted` no
    son resultados de `run` de un programa; los estados de la infraestructura siguen en el contrato de la casa.
 
@@ -255,8 +268,6 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
   escrito: puede quedar un temporizador de un hecho que no existe.
 - Un pliegue tiene que ser puro: si cambia su estado en el lugar (`mapa.set(…)`), deshacer lo escrito no lo deshace.
   La base todavía no lo comprueba.
-- Un día que no admite futuro (`last: "today"`) se rechaza donde se escribe; por otra puerta, la acción tiene que
-  rechazarlo ella.
 - Una devolución de plata sin cosas y un rechazo que deje escrito lo que contestó el fisco: pedidos de Capibara que
   hoy se resuelven del lado del programa.
 - Un importe que se escribe en otra moneda: la máscara de plata muestra siempre el signo del país («$»), aunque la

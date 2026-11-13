@@ -1,8 +1,9 @@
 // The literal world causes close run's result type; a compiling dishonest implementation still fails at runtime.
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { object } from "../catalogs/acts.ts";
-import { programAct } from "./promises.ts";
-import { OutsideDefect, type RunResult } from "./outside.ts";
+import { programAct, type ProgramAct } from "./promises.ts";
+import { type RunResult } from "./outside.ts";
+import { toolTexts } from "../texts/tools.texts.ts";
 import { cast, perform, staged } from "../programs/promised-stage.ts";
 import { registerOffer, salesTool, paymentsTool, shopProgram, type Shop } from "../../tests/support/shop.ts";
 
@@ -12,7 +13,14 @@ type Result = RunResult<Shop, typeof outside>;
 type Declared = Parameters<typeof programAct<Shop, typeof input, typeof outside>>[0];
 const good = { promise: "it prints", input: {}, then: { says: "Printed", facts: [] } };
 const printing = (run: Declared["run"]) =>
-  programAct<Shop, typeof input, typeof outside>({ ...registerOffer, input, outside, run, cases: [good] });
+  programAct<Shop, typeof input, typeof outside>({
+    ...registerOffer,
+    name: "imprimir",
+    input,
+    outside,
+    run,
+    cases: [good],
+  });
 /** Reflection simulates untyped code without weakening the declaration or hiding a compiler error. */
 const forged = (reason: string): RunResult<Shop, readonly []> => {
   const result = { status: "accepted" as const };
@@ -39,6 +47,32 @@ describe("run only reports the world causes it declares", () => {
     >().toEqualTypeOf<never>();
   });
 
+  it("rejects a hand-built or spread run, including after registry type erasure", () => {
+    const act = printing(() => ({ status: "accepted" }));
+    const internal = { ...act, run: () => ({ status: "rejected" as const, reason: "repeated" as const }) };
+    const rawExternal = { ...act, run: () => ({ status: "rejected" as const, reason: "no paper" as const }) };
+    expectTypeOf(internal).not.toExtend<ProgramAct<Shop>>();
+    expectTypeOf(internal).not.toExtend<typeof act>();
+    expectTypeOf(rawExternal).not.toExtend<ProgramAct<Shop>>();
+    expectTypeOf<Awaited<ReturnType<typeof act.run>>>().toEqualTypeOf<Result>();
+    expectTypeOf<typeof act>().toExtend<ProgramAct<Shop>>();
+    expectTypeOf({ ...act, outside: [] }).not.toExtend<ProgramAct<Shop>>();
+  });
+
+  it("checks the current outside list even for a compiling forged spread", () => {
+    const original = printing(() => ({ status: "accepted" }));
+    const replaced = { ...original };
+    Reflect.set(replaced, "run", () => ({ status: "rejected", reason: "repeated" }));
+    const program = { ...shopProgram, registry: [{ ...salesTool, acts: { print: replaced } }, paymentsTool] };
+    return staged(program, async ({ house }) => {
+      expect(await perform(house(), "sales", { act: "print", input: {} })).toMatchObject({
+        status: "rejected",
+        defect: true,
+        reason: toolTexts.defect("imprimir"),
+      });
+    });
+  });
+
   it.each(["no paper", "printer offline", "no paper · tray 2"] as const)(
     "accepts the declared cause %s",
     async reason => {
@@ -58,7 +92,11 @@ describe("run only reports the world causes it declares", () => {
     await staged(
       shopWith(() => forged(reason)),
       async ({ house }) => {
-        await expect(perform(house(), "sales", { act: "print", input: {} })).rejects.toBeInstanceOf(OutsideDefect);
+        expect(await perform(house(), "sales", { act: "print", input: {} })).toMatchObject({
+          status: "rejected",
+          defect: true,
+          reason: toolTexts.defect("imprimir"),
+        });
       },
     );
   });
@@ -67,9 +105,11 @@ describe("run only reports the world causes it declares", () => {
     await staged(
       shopWith(() => Promise.resolve(forged("repeated"))),
       async ({ house }) => {
-        await expect(perform(house(), "sales", { act: "print", input: {}, by: cast.admin })).rejects.toBeInstanceOf(
-          OutsideDefect,
-        );
+        expect(await perform(house(), "sales", { act: "print", input: {}, by: cast.admin })).toMatchObject({
+          status: "rejected",
+          defect: true,
+          reason: toolTexts.defect("imprimir"),
+        });
       },
     );
   });

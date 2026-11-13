@@ -1,6 +1,7 @@
 // The router is the one place where a surface meets a house: every renderer gets the same screens and the same moves.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { object } from "../catalogs/acts.ts";
+import { toolTexts } from "../texts/tools.texts.ts";
 import { redrawMs } from "../catalogs/time.ts";
 import { programAct, type ProgramTool } from "../tools/promises.ts";
 import type { RunResult } from "../tools/outside.ts";
@@ -110,11 +111,12 @@ describe("the router", () => {
     expect(changed).toHaveBeenCalled();
   });
 
-  it("lands an act that fails as its reason on the screen, never as a house that stops", async () => {
+  it("lands a program defect with the fixed text, never its thrown detail or a stopped house", async () => {
     const { router } = open();
     key(router, "l", "f", "f");
     await router.idle();
-    expect(said(router.screen(view))).toContain("no paper");
+    expect(said(router.screen(view))).toContain(toolTexts.defect("fallar"));
+    expect(said(router.screen(view))).not.toContain("no paper");
     for (let step = 0; step < 4; step++) router.send({ kind: "cancel" });
     expect(router.screen(view).title).toBe("Menú");
   });

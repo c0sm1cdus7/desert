@@ -2,6 +2,7 @@
 import type { Static, TSchema } from "@sinclair/typebox";
 import type { Vocabulary } from "../journal/events.ts";
 import type { SoFar } from "./so-far.ts";
+import type { ProgramOutside, ProgramRun } from "./promises.ts";
 import type { RunResult } from "./outside.ts";
 import type { ActContext, Program, Reach, Slices, State, Tool, ToolAct } from "./tool-contract.ts";
 
@@ -35,6 +36,8 @@ export type Need = Readonly<{ target: string; why: string }>;
 /** Given this, when someone does this, this happens. Nobody writes its spec: every door's check derives from it. */
 export type Case<X extends Program, S extends TSchema = TSchema> = Readonly<{
   promise: string;
+  /** The initial instant of this case, before its given steps; otherwise the base's fixed case instant. */
+  at?: number;
   given?: readonly Step[];
   by?: string;
   on?: string;
@@ -75,9 +78,10 @@ export type Also<X extends Program> = Readonly<{
 }>;
 /** A menu of a tool's things: an option among their actions that leads to the acts under it. */
 export type Menu = Readonly<{ name: string; purpose: string; key: string }>;
-export type ProgramAct<X extends Program> = ToolAct<X> &
+export type ProgramAct<X extends Program, O extends readonly string[] = readonly string[]> = Omit<ToolAct<X>, "run"> &
+  Readonly<{ run: ProgramRun<X, O> }> &
   Offered &
-  Readonly<{ refuses: readonly string[]; outside: readonly string[]; cases: readonly Case<X>[] }> &
+  Readonly<{ refuses: readonly string[]; outside: ProgramOutside<O>; cases: readonly Case<X>[] }> &
   /** What is put before the person to confirm, once everything was answered, when the act wants that. */
   Readonly<{ confirms?: (input: unknown, state: State<X>, target: string, at: number) => string | undefined }> &
   /** What the thing has today, in the shape the act takes: an act that changes it opens on it. */

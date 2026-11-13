@@ -25,7 +25,7 @@ function blocked<X extends Program>(
 ): readonly Expected[] {
   const ask = asking(aim.act.input, { formats: formats(seat.shown.locale), optionalMark: genericTexts.optional });
   const field = ask.next(answers);
-  const stops = (value: string) => aim.act.stops?.(ask.sofar([...answers, value]), seat.state(), target);
+  const stops = (value: string) => aim.act.stops?.(ask.sofar([...answers, value]), seat.state(), target, seat.now());
   if (field?.kind === "one" || field?.kind === "many")
     return field.options.flatMap(option => {
       const why = stops(option.title);
@@ -33,7 +33,7 @@ function blocked<X extends Program>(
     });
   if (field?.kind !== "pick" || seat.tools.find(tool => tool.id === field.of)?.off?.() !== undefined) return [];
   const source = program.registry.find(tool => tool.id === field.of);
-  const among = aim.act.among?.(ask.sofar(answers), seat.state(), target)[field.of];
+  const among = aim.act.among?.(ask.sofar(answers), seat.state(), target, seat.now())[field.of];
   return (source?.targets(seat.state()) ?? []).flatMap(value => {
     if (value === target || source?.closed?.(seat.state(), value)) return [];
     const why = among?.(value) ?? stops(value);
@@ -104,7 +104,7 @@ const choiceCheck = <X extends Program>(
   name: label(aim, promiseTexts.blockedChoices(kase.promise)),
   run: () =>
     staged(program, async ({ house }) => {
-      await given(house(), aim.tool.id, kase.given);
+      await given(house(), aim.tool.id, kase.given, kase.at);
       const seat = seated(house(), kase.by ?? cast.admin, shown);
       try {
         checkCase(program, seat, aim, kase, false);

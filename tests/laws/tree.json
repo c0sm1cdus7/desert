@@ -95,19 +95,22 @@
     "programs/promised-route.ts": "taken, walk: navigate the case to its action and answer by keys",
     "programs/promised-result.ts": "currentInState, assertOutcome: every case closes internal refusals before sending and shows external errors after running",
     "programs/kept-path.ts": "keptPath: replay an offered path on a disposable saved journal and reject internal errors or empty choices",
-    "programs/kept-walk.ts": "breadthFirst: bounded saved-journal exploration with state deduplication and explicit coverage"
+    "programs/kept-walk.ts": "breadthFirst: bounded saved-journal exploration with state deduplication and explicit coverage",
+    "tools/program-defect.ts": "programDefect: one public failure and its technical Activity record",
+    "tools/program-run.ts": "runProgram: every door checks the current declaration before the body and its outside causes afterwards",
+    "surface/bridge/program-result.ts": "programResult: public action words and destination, separate from support diagnostics"
   },
   "folders": {
     "adapters/secrets": 103,
     "adapters/storage": 181,
-    "catalogs": 197,
+    "catalogs": 198,
     "doors/terminal": 578,
     "house": 91,
-    "journal": 326,
-    "programs": 1698,
+    "journal": 333,
+    "programs": 1723,
     "surface": 1803,
-    "surface/bridge": 1365,
-    "texts": 212,
-    "tools": 957
+    "surface/bridge": 1387,
+    "texts": 213,
+    "tools": 1021
   }
 }

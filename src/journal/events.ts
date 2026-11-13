@@ -23,7 +23,13 @@ export const houseCatalog = {
   boot: object({}),
   act: object({ object: name, option: name, input: Type.Unknown(), through: Type.Optional(instant) }),
   "act-started": object({ act: name, object: name, option: name }),
-  "act-result": object({ act: name, status: actStatus, reason: text, output: Type.Optional(Type.Boolean()) }),
+  "act-result": object({
+    act: name,
+    status: actStatus,
+    reason: text,
+    defect: Type.Optional(Type.Literal(true)),
+    output: Type.Optional(Type.Boolean()),
+  }),
   "tool-entry": object({
     tool: name,
     target: name,
@@ -34,6 +40,7 @@ export const houseCatalog = {
     silent: Type.Optional(Type.Boolean()),
     recipient: Type.Optional(name),
     detail: Type.Optional(Type.Unknown()),
+    diagnostic: Type.Optional(text),
     /** The things that were not there before the act and are there after it: what it made, besides its target. */
     made: Type.Optional(Type.Array(name)),
   }),

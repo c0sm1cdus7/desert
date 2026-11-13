@@ -16,11 +16,15 @@ export const cast = { admin: "ana", member: "beto", outsider: "carla" } as const
 const dayMs = 24 * 3_600_000;
 /** The time of the house a case runs in: it stands still at the instant of every case, until the case says that
  * days passed. */
-type Clock = Readonly<{ time: TimeSource; pass: (days: number) => void }>;
+type Clock = Readonly<{ time: TimeSource; pass: (days: number) => void; setTime: (at: number) => void }>;
 function stillClock(): Clock {
-  let passed = 0;
-  const time = { now: () => caseInstant + passed, wait: () => () => {} };
-  return { time, pass: days => void (passed += days * dayMs) };
+  let at = caseInstant;
+  const time = { now: () => at, wait: () => () => {} };
+  const setTime = (instant: number): void => {
+    if (!Number.isSafeInteger(instant) || instant < 0) throw new Error(`Invalid case instant: ${instant}`);
+    at = instant;
+  };
+  return { time, pass: days => void (at += days * dayMs), setTime };
 }
 /** The house a case runs in runs as itself. */
 export const runner = "house";
@@ -30,12 +34,17 @@ const keys: KeyStore = {
   set: (provider, value) => Promise.resolve(void kept.set(provider, value)),
   remove: provider => Promise.resolve(void kept.delete(provider)),
 };
-function open<X extends Program>(program: Composition<X>, home: string, { time, pass }: Clock) {
+function open<X extends Program>(program: Composition<X>, home: string, { time, pass, setTime }: Clock) {
   const tools = program.registry.map(tool => tool.id);
   const holding = [cast.admin, cast.member].map(identity => ({ identity, tools }));
   const assignments = [...holding, { identity: cast.outsider, tools: [] }];
   const creation = { admin: cast.admin, assignments };
-  return { ...startHouse<X>(home, { by: runner, creation, keys, ...program }, time), pass, now: () => time.now() };
+  return {
+    ...startHouse<X>(home, { by: runner, creation, keys, ...program }, time),
+    pass,
+    setTime,
+    now: () => time.now(),
+  };
 }
 export type House<X extends Program> = ReturnType<typeof open<X>>;
 type Stage<X extends Program> = Readonly<{ house: () => House<X>; reopen: () => void }>;
@@ -84,7 +93,9 @@ export async function given<X extends Program>(
   house: House<X>,
   tool: string,
   steps: readonly Step[] = [],
+  at?: number,
 ): Promise<void> {
+  if (at !== undefined) house.setTime(at);
   for (const step of steps) {
     if ("days" in step) {
       house.pass(step.days);

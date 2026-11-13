@@ -1,27 +1,21 @@
 // The acts of a program's tool as a surface offers them: each asked from its declaration, where it stands.
 import { allowed, hides } from "../../house/house.ts";
-import type { Emission } from "../../journal/events.ts";
 import { genericTexts as generic } from "../../texts/generic-surface.texts.ts";
-import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import { aid, worded } from "../../tools/act-words.ts";
 import type { ProgramAct, ProgramTool } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { Field } from "../contract.ts";
 import { offeredOn, withoutChoices } from "./picked.ts";
-import type { Result, ThingAct, ThingMenu, ToolAct, ViewRow } from "../shown-tool.ts";
+import type { ThingAct, ThingMenu, ToolAct, ViewRow } from "../shown-tool.ts";
 import { formats, type Locale } from "../masks.ts";
 import { maskOf } from "../screen.ts";
 import { currentAnswers } from "./current-answers.ts";
 import { asking, type Asking, type AskWords } from "./asking.ts";
-import { attendAndAct, type ScreenActs, type Start, type SurfacePorts } from "./house-ports.ts";
+import { programResult } from "./program-result.ts";
+import type { ScreenActs, Start, SurfacePorts } from "./house-ports.ts";
 
 /** Where a menu of a thing is read: a destination of its tool that is not a thing of it. */
 export const menuTarget = (target: string, menu: string): string => `${target}#${menu}`;
-/** What the tool wrote about the act it just ran, when it wrote something. */
-const wroteBy = (effects: readonly Emission[]): string | undefined => {
-  for (const effect of effects) if (effect.layer === "house" && effect.kind === "tool-entry") return effect.data.text;
-  return undefined;
-};
 /** A name as the bar says it: with a capital. */
 export const capital = (text: string): string => text.charAt(0).toUpperCase() + text.slice(1);
 type Asked = Readonly<{ locale: Locale; things: NonNullable<AskWords["things"]> }> &
@@ -30,17 +24,15 @@ type Asked = Readonly<{ locale: Locale; things: NonNullable<AskWords["things"]> 
   /** What a thing of a tool is called, for the act that asks to be confirmed on it. */
   Readonly<{ titled: (tool: string, target: string) => string }>;
 type Own<X extends Program> = Readonly<{ tool: string; name: string; act: ProgramAct<X> }>;
-/** The thing an act made: what it was done to in the end, when that is not where it was started. */
-function madeBy(effects: Parameters<typeof wroteBy>[0], target: string): string | undefined {
-  for (const effect of effects)
-    if (effect.layer === "house" && effect.kind === "act-done" && effect.data.object !== target)
-      return effect.data.object;
-  return undefined;
-}
 /** One act as a person walks it: its questions from what it takes, a confirmation when it asks for one, its result. */
 function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: Own<X>, asked: Asked) {
   const words = { formats: formats(asked.locale), optionalMark: generic.optional };
-  const ask = asking(act.input, { ...words, things: asked.things, today: () => asked.day?.(ports.now()) });
+  const ask = asking(act.input, {
+    ...words,
+    things: asked.things,
+    now: ports.now,
+    today: () => asked.day?.(ports.now()),
+  });
   const title = act.title ?? capital(act.name);
   /** Who confirms is the act's own verb, taken by its initial; what can be undone comes with that verb chosen. */
   const confirm = {
@@ -61,7 +53,7 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
     const unsafe = act.undoable ? {} : { note: generic.irreversible };
     return taken === 0 ? { ask: capital(act.purpose), kind: "confirm", ...confirm, ...unsafe } : null;
   };
-  const asks = offeredOn(act, ask, ports.state, tool, () => hides(ports.state().house, ports.me, "off"));
+  const asks = offeredOn(act, ask, ports.state, tool, ports.now, () => hides(ports.state().house, ports.me, "off"));
   const walk = {
     ...currentAnswers(ask, (target = tool) => act.today?.(ports.state(), target)),
     label: act.name,
@@ -71,15 +63,8 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
     title: (target?: string): string => (target === undefined ? title : `${title} · ${asked.titled(tool, target)}`),
     next: (answers: readonly string[], target?: string): Field | null => asks(answers, target) ?? sure(answers, target),
     stops: (answers: readonly string[], target?: string): string | undefined =>
-      act.stops?.(ask.sofar(answers), ports.state(), target ?? tool),
-    run: async (answers: readonly string[], target: string): Promise<Result> => {
-      const done = await attendAndAct(ports, target, name, ask.input(answers));
-      if (done.status !== "accepted") return { ok: false, reason: done.reason ?? "" };
-      const text = wroteBy(done.effects) ?? said.ok;
-      const made = madeBy(done.effects, target);
-      const told = done.private ? `${text} · ${ports.receipt?.(done.private) ?? done.private}` : text;
-      return { ok: true, text: told, ...(made === undefined ? {} : { made }) };
-    },
+      act.stops?.(ask.sofar(answers), ports.state(), target ?? tool, ports.now()),
+    run: (answers: readonly string[], target: string) => programResult(ports, target, name, ask.input(answers)),
   };
   return { name, act, ask, walk };
 }

@@ -105,7 +105,7 @@ export function isAsked(schema: unknown, answered: Readonly<Record<string, unkno
 }
 const isAsker = (asks: unknown): asks is Asked => typeof asks === "function";
 /** Why a datum that is complete still does not hold, when that is so: a check digit that does not match. */
-export type Wrong = (value: string) => string | undefined;
+export type Wrong = (value: string, at: number) => string | undefined;
 /** A field that knows when what it was given is complete and wrong, and why. Said once, with the datum: the
  * surface says it where the datum is written, and no act runs with it, through whatever door it comes. */
 export const holding = <T extends TSchema>(field: T, wrong: Wrong): T => ({ ...field, wrong });
@@ -115,14 +115,15 @@ const part = (schema: unknown, key: string): unknown =>
 const first = (causes: readonly (string | undefined)[]): string | undefined =>
   causes.find(cause => cause !== undefined);
 /** Why a value does not hold as its declaration says: what the first field of it that knows says. */
-export function wrongIn(schema: unknown, value: unknown): string | undefined {
+export function wrongIn(schema: unknown, value: unknown, at: number): string | undefined {
   const check = part(schema, "wrong");
-  if (isWrong(check) && typeof value === "string") return check(value);
+  if (isWrong(check) && typeof value === "string") return check(value, at);
   const arms = part(schema, "anyOf");
-  if (Array.isArray(arms)) return first(arms.map(arm => (Value.Check(arm, value) ? wrongIn(arm, value) : undefined)));
-  if (Array.isArray(value)) return first(value.map(each => wrongIn(part(schema, "items"), each)));
+  if (Array.isArray(arms))
+    return first(arms.map(arm => (Value.Check(arm, value) ? wrongIn(arm, value, at) : undefined)));
+  if (Array.isArray(value)) return first(value.map(each => wrongIn(part(schema, "items"), each, at)));
   if (value === null || typeof value !== "object") return undefined;
-  return first(Object.entries(value).map(([key, each]) => wrongIn(part(part(schema, "properties"), key), each)));
+  return first(Object.entries(value).map(([key, each]) => wrongIn(part(part(schema, "properties"), key), each, at)));
 }
 /** Whether every number of a value carries no more decimals than its field declares: a schema alone cannot say
  * it, and what a person cannot write no other door sends either. */

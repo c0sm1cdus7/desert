@@ -30,7 +30,7 @@ function seek<X extends Program>({ router, tools }: Seat<X>, menu: Picture, { to
 function findCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
   const run = (): Promise<void> =>
     staged(program, async ({ house }) => {
-      await given(house(), aim.tool.id, kase.given);
+      await given(house(), aim.tool.id, kase.given, kase.at);
       const done = await perform(house(), aim.tool.id, { ...kase, act: aim.name });
       const written = done.effects.flatMap(effect =>
         effect.layer === "house" && effect.kind === "tool-entry" ? [effect.data.target] : [],

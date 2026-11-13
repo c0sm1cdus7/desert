@@ -27,7 +27,7 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
   const other = actor === cast.member ? cast.admin : cast.member;
   const run = (): Promise<void> =>
     staged(program, async ({ house }) => {
-      await given(house(), aim.tool.id, kase.given);
+      await given(house(), aim.tool.id, kase.given, kase.at);
       const done = await perform(house(), aim.tool.id, { ...kase, act: aim.name });
       const written = done.effects.flatMap(effect =>
         effect.layer === "house" && effect.kind === "tool-entry" ? [effect] : [],
@@ -59,7 +59,7 @@ function activityCheck<X extends Program>(program: Composition<X>, shown: Shown<
 function needsCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, aim: Aim<X>, kase: Case<X>): Check {
   const run = (): Promise<void> =>
     staged(program, async ({ house }) => {
-      await given(house(), aim.tool.id, kase.given);
+      await given(house(), aim.tool.id, kase.given, kase.at);
       await perform(house(), aim.tool.id, { ...kase, act: aim.name });
       const { tools, router } = seated(house(), kase.by ?? cast.admin, shown);
       /** What Attention says of one tool where a person stands: each row by the thing it leads to, or the tool. */

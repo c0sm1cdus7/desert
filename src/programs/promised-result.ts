@@ -39,6 +39,7 @@ function blockedAt<X extends Program>(seat: Seat<X>, cause: string): boolean {
   );
 }
 export function assertOutcome<X extends Program>(seat: Seat<X>, aim: Aim<X>, kase: Case<X>): boolean {
+  ok(seat.defects.length === 0, seat.defects.join("\n"));
   const cause = "refused" in kase.then ? kase.then.refused : undefined;
   const external = cause !== undefined && outsideCause(aim.act.outside, cause) !== undefined;
   const calls = seat.requests.filter(

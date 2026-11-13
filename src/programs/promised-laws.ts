@@ -11,7 +11,7 @@ import { cast, given, label, perform, staged, wroteSince, type Aim, type Check, 
 function placeCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase: Case<X>): Check {
   const run = (): Promise<void> =>
     staged(program, async ({ house }) => {
-      await given(house(), aim.tool.id, kase.given);
+      await given(house(), aim.tool.id, kase.given, kase.at);
       const doing = { ...kase, act: aim.name };
       /** An act on the tool is tried on a thing its own case leaves; when it leaves none, there is no elsewhere. */
       if (aim.act.on === "tool") await perform(house(), aim.tool.id, doing);
@@ -31,7 +31,7 @@ function unchangedCheck<X extends Program>(program: Composition<X>, aim: Aim<X>,
   if (!today) return [];
   const run = (): Promise<void> =>
     staged(program, async ({ house }) => {
-      await given(house(), aim.tool.id, kase.given);
+      await given(house(), aim.tool.id, kase.given, kase.at);
       const input = today(house().tools.state(), kase.on ?? aim.tool.id);
       if (input === undefined) return;
       const before = house().tools.state().through;
@@ -47,7 +47,7 @@ export function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X
     name: label(aim, promise),
     run: () =>
       staged(program, async ({ house }) => {
-        await given(house(), aim.tool.id, kase.given);
+        await given(house(), aim.tool.id, kase.given, kase.at);
         const before = house().tools.state().through;
         const done = await perform(house(), aim.tool.id, { ...kase, act: aim.name, input, ...doing });
         deepStrictEqual([done.status, done.reason], ["rejected", cause]);

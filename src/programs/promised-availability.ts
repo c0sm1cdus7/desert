@@ -32,7 +32,7 @@ const availabilityCheck = <X extends Program>(
   name: label(aim, promiseTexts.availableChoices(kase.promise)),
   run: () =>
     staged(program, async ({ house }) => {
-      await given(house(), aim.tool.id, kase.given);
+      await given(house(), aim.tool.id, kase.given, kase.at);
       const seat = seated(house(), kase.by ?? cast.admin, shown);
       const on = kase.on ?? aim.tool.id;
       try {

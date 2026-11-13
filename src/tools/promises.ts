@@ -1,13 +1,11 @@
 // What a program promises of each act: the causes it may refuse with, and cases that say what happens. Specs derive.
 import { toolTexts } from "../texts/tools.texts.ts";
 import { aid, short, worded } from "./act-words.ts";
-import { wrongIn } from "../catalogs/fields.ts";
-import type { Static, TSchema } from "@sinclair/typebox";
+import type { TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { outsideRun, outsideCause } from "./outside.ts";
-import { toolAct } from "./act-definition.ts";
-import { refusedWhole, soFar, type SoFar } from "./so-far.ts";
-import type { ActContext, ActResult, Program, State, ToolAct } from "./tool-contract.ts";
+import { OutsideDefect, type RunResult } from "./outside.ts";
+import { soFar } from "./so-far.ts";
+import type { ActContext, Program, State, ToolAct } from "./tool-contract.ts";
 
 export type {
   Did,
@@ -41,48 +39,36 @@ function offeredBy<X extends Program, S extends TSchema, O extends readonly stri
   const more = { ...(title ? { title } : {}), ...(changes ? { changes } : {}) };
   return { ...worded({ name, enter }), undoable, purpose: aid(purpose), key, on, ...placed, ...more };
 }
-/** What an act answers, now or later, passed through a check of it. */
-const settled = <R>(result: R | Promise<R>, check: (result: R) => R): R | Promise<R> =>
-  result instanceof Promise ? result.then(check) : check(result);
-/** What the base itself refuses with is not the act's to declare: nothing would change, or a day does not exist. */
-export const ofTheBase = (cause: string): boolean => cause === toolTexts.unchanged || cause === toolTexts.noSuchDay;
-/** What a field says is wrong, or the act says cannot go on or does not take, never reaches it, by any door. And
- * an act that says what the thing is today does not leave it as it is: nothing new would be written. */
-const heldBy =
-  <X extends Program, S extends TSchema, O extends readonly string[]>(
-    { input, run, today, refuses = [], outside }: Declared<X, S, O>,
-    said: SoFar<X>,
-  ): ((value: Static<S>, context: ActContext<X>) => ActResult<X> | Promise<ActResult<X>>) =>
-  (value, context) => {
-    const whole = refusedWhole(input, said, value);
-    const wrong = wrongIn(input, value) ?? whole(context.state, context.target, refuses);
-    if (wrong !== undefined) return { status: "rejected", reason: wrong };
-    const same = today !== undefined && Value.Equal(today(context.state, context.target), value);
-    return same
-      ? { status: "rejected", reason: toolTexts.unchanged }
-      : outsideRun(outside ?? [], () => run(value, context));
+/** The opaque mark keeps an erased registry from admitting a hand-written, unchecked run. */
+const declaredBody = Symbol();
+const declaredCauses = Symbol();
+export type ProgramOutside<O extends readonly string[]> = O & Readonly<{ [declaredCauses]: true }>;
+export type ProgramRun<X extends Program, O extends readonly string[]> = ((
+  value: unknown,
+  context: ActContext<X>,
+) => RunResult<X, O> | Promise<RunResult<X, O>>) &
+  Readonly<{ [declaredBody]: true }>;
+function body<X extends Program, S extends TSchema, O extends readonly string[]>(declared: Declared<X, S, O>) {
+  const run = (value: unknown, context: ActContext<X>) => {
+    if (!Value.Check(declared.input, value)) throw new OutsideDefect(value);
+    return declared.run(value, context);
   };
-function checks<X extends Program>(
-  refuses: readonly string[],
-  outside: readonly string[],
-  offered?: ToolAct<X>["offered"],
-) {
-  const declaredCause = (cause: string): string => {
-    if (!refuses.includes(cause)) throw new Error(`An act refused with a cause it does not declare: ${cause}`);
+  return Object.assign(run, { [declaredBody]: true as const });
+}
+/** What the base itself refuses with is not the act's to declare. */
+export const ofTheBase = (cause: string): boolean => cause === toolTexts.unchanged || cause === toolTexts.noSuchDay;
+function guarded<X extends Program>(refuses: readonly string[], offered: ToolAct<X>["offered"]) {
+  return (state: State<X>, target: string, at: number): string | undefined => {
+    const cause = offered?.(state, target, at);
+    if (cause !== undefined && !refuses.includes(cause))
+      throw new Error(`An act refused with a cause it does not declare: ${cause}`);
     return cause;
   };
-  const checked = (result: ActResult<X>): ActResult<X> => {
-    if (result.status === "rejected" && !ofTheBase(result.reason) && !outsideCause(outside, result.reason))
-      declaredCause(result.reason);
-    return result;
-  };
-  const guarded: ToolAct<X>["offered"] = (state, target, at) => {
-    const cause = offered?.(state, target, at);
-    return cause === undefined ? undefined : declaredCause(cause);
-  };
-  return { checked, guarded };
 }
 /** An act of a program: what it takes, what it does, and what it promises. */
+export function programAct<X extends Program, S extends TSchema, const O extends readonly string[] = readonly []>(
+  declared: Declared<X, S, O>,
+): ProgramAct<X, O>;
 export function programAct<X extends Program, S extends TSchema, const O extends readonly string[] = readonly []>(
   declared: Declared<X, S, O>,
 ): ProgramAct<X> {
@@ -96,14 +82,12 @@ export function programAct<X extends Program, S extends TSchema, const O extends
     );
   const summary = (value: unknown, state: State<X>, target: string, at: number): string | undefined =>
     Value.Check(input, value) ? confirms?.(value, state, target, at) : undefined;
-  const { checked, guarded } = checks<X>(refuses, outside, offered);
   const said = soFar<X>(input, declared);
-  const held = heldBy(declared, said);
-  const act = toolAct<X, S>(input, (value, context) => settled(held(value, context), checked), reach);
+  const act = { input, reach: reach ?? "house", run: body(declared) };
   const promised = {
     ...offeredBy(declared),
     refuses,
-    outside,
+    outside: Object.assign([...outside], { [declaredCauses]: true as const }),
     cases,
     ...(confirms ? { confirms: summary } : {}),
     ...(today ? { today } : {}),
@@ -111,5 +95,10 @@ export function programAct<X extends Program, S extends TSchema, const O extends
     ...(datum ? { datum } : {}),
     ...said,
   };
-  return { ...act, ...(offered ? { offered: guarded } : {}), ...(output ? { output: true } : {}), ...promised };
+  return {
+    ...act,
+    ...(offered ? { offered: guarded(refuses, offered) } : {}),
+    ...(output ? { output: true } : {}),
+    ...promised,
+  };
 }

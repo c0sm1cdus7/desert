@@ -29,15 +29,16 @@ export const offeredOn =
     ask: Asking,
     state: () => State<X>,
     tool: string,
+    now: () => number,
     hidden: () => boolean = () => false,
   ) =>
   (answers: readonly string[], target = tool): Field | null => {
     const field = besides(ask.next(answers), target);
-    const stops = (answer: string) => act.stops?.(ask.sofar([...answers, answer]), state(), target);
+    const stops = (answer: string) => act.stops?.(ask.sofar([...answers, answer]), state(), target, now());
     if (field?.kind === "one")
       return { ...field, options: field.options.map(option => disabled(option, stops(option.title))) };
     if (field?.kind !== "pick") return field;
-    const among = act.among?.(ask.sofar(answers), state(), target)[field.of];
+    const among = act.among?.(ask.sofar(answers), state(), target, now())[field.of];
     return narrowed(field, value => (value ? among?.(value) : undefined) ?? stops(value), hidden);
   };
 

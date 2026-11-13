@@ -36,7 +36,11 @@ export function noticesOf<X extends Program>(
   const news = (): Notice[] =>
     unseen(ports, tool).map(({ data }) => {
       const leads = data.target === tool.id ? {} : { opens: data.target };
-      return { title: firstLine(data.text), detail: data.author, ...leads };
+      return {
+        title: firstLine(data.text),
+        detail: data.diagnostic ? firstLine(data.diagnostic) : data.author,
+        ...leads,
+      };
     });
   return {
     notices: () => ({

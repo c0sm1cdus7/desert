@@ -58,17 +58,17 @@ export const promisedNeeds = <X extends Program>(aim: Aim<X>, then: Case<X>["the
 function caseCheck<X extends Program>(program: Composition<X>, aim: Aim<X>, kase: Case<X>): Check {
   const run = (): Promise<void> =>
     staged(program, async ({ house, reopen }) => {
-      await given(house(), aim.tool.id, kase.given);
+      await given(house(), aim.tool.id, kase.given, kase.at);
       const before = house().tools.state();
       const done = await perform(house(), aim.tool.id, { ...kase, act: aim.name });
-      const wrote = wroteSince(house(), before.through);
+      ok(!done.defect, done.reason);
       if ("refused" in kase.then) {
         deepStrictEqual([done.status, done.reason], ["rejected", kase.then.refused]);
-        deepStrictEqual(wrote, []);
+        deepStrictEqual(wroteSince(house(), before.through), []);
         deepStrictEqual(house().tools.state().tools, before.tools);
       } else {
         strictEqual(done.status, "accepted", done.reason);
-        deepStrictEqual(wrote, kase.then.facts);
+        deepStrictEqual(wroteSince(house(), before.through), kase.then.facts);
         strictEqual(saidBy(done)?.text, kase.then.says);
         ok(composed.test(kase.then.says), said.notComposed(kase.then.says));
         ok(!addresses(kase.then.says), said.speaks(kase.then.says));

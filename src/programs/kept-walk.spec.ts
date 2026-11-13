@@ -100,7 +100,8 @@ describe("breadth-first exploration of saved journals", () => {
     const before = readFileSync(file);
     await walked(programWith(print), folder);
     expect(readFileSync(file)).toEqual(before);
-    const broken = { ...print, outside: [] };
+    const broken = { ...print };
+    Reflect.set(broken, "outside", []);
     await expect(walked(programWith(broken), folder)).rejects.toThrow("failed internally");
     expect(readFileSync(file)).toEqual(before);
     await expect(walked(programWith(print), folder, empty)).rejects.toThrow("nothing eligible");

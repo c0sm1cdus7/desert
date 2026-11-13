@@ -24,7 +24,7 @@ function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
   const refused = "refused" in kase.then ? kase.then.refused : undefined;
   const run = (): Promise<void> =>
     staged(program, async ({ house }) => {
-      await given(house(), aim.tool.id, kase.given);
+      await given(house(), aim.tool.id, kase.given, kase.at);
       const seat = seated(house(), kase.by ?? cast.admin, shown);
       const before = house().tools.state().through;
       try {

@@ -1,5 +1,6 @@
 // How a derived check moves through a program by keys: from the Menu to a tool, to one of its things, to an act's row.
 import { ok, strictEqual } from "node:assert/strict";
+import type { ExecutionResult } from "../tools/execute.ts";
 import type { Act } from "../catalogs/acts.ts";
 import { caseInstant } from "../catalogs/time.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
@@ -33,16 +34,27 @@ const bar = { state: "connected", clock: "00:00", now: caseInstant } as const;
 export const type = (router: Router, text: string): void => {
   for (const char of Array.from(text)) router.send({ kind: "type", text: char });
 };
+/** Remember defects separately from public words, even when a case falsely promises those same words. */
+function recordResult<X extends Program>(result: ExecutionResult<X>, defects: string[]): ExecutionResult<X> {
+  const remember = (done: Exclude<ExecutionResult<X>, { status: "processing" }>) => {
+    if (done.defect) defects.push(done.reason ?? "");
+    return done;
+  };
+  return result.status === "processing"
+    ? { ...result, completion: result.completion.then(remember) }
+    : remember(result);
+}
 /** A program as one identity has it in front: its tools as that identity sees them, and a router on the Menu. */
 export function seated<X extends Program>(house: House<X>, by: string, shown: Shown<X>) {
   const ports = localPorts(house, by, { recentLines: 100 }, house.now);
   const requests: Act[] = [];
+  const defects: string[] = [];
   const tools = houseTools(
     {
       ...ports,
       act: (value, through) => {
         if (value.act !== "attend") requests.push(value);
-        return ports.act(value, through);
+        return recordResult(ports.act(value, through), defects);
       },
     },
     shown,
@@ -50,6 +62,7 @@ export function seated<X extends Program>(house: House<X>, by: string, shown: Sh
   return {
     tools,
     requests,
+    defects,
     shown,
     state: ports.state,
     now: ports.now,

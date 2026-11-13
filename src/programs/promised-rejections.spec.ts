@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { anyToolScreen } from "../surface/bridge/any-tool.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
+import type { ToolAct } from "../tools/tool-contract.ts";
 import type { Composition, ProgramAct } from "../tools/promises.ts";
 import { chargingShop } from "../../tests/support/charging-shop.ts";
 import { correctingShop, registered } from "../../tests/support/correcting-shop.ts";
@@ -28,11 +29,10 @@ const byKeys = (program: Composition<Shop>, promise: string, shown = shopShown) 
 /** The raw ProgramAct shape simulates an implementation compiled elsewhere that bypasses programAct's guard. */
 const late = changed(shopProgram, "register", act => {
   const { stops: _before, ...rest } = act;
-  return {
-    ...rest,
-    run: (input, context) =>
-      context.state.tools.sales.size ? { status: "rejected", reason: "repeated" } : act.run(input, context),
-  };
+  const run: ToolAct<Shop>["run"] = (input, context) =>
+    context.state.tools.sales.size ? { status: "rejected", reason: "repeated" } : act.run(input, context);
+  Reflect.set(rest, "run", run);
+  return rest;
 });
 const emptyLater: Shown<Shop> = {
   ...shopShown,
@@ -59,17 +59,18 @@ describe("the gate closes every internal refusal before running", () => {
   for (const check of programChecks(printingShop, shopShown)) it(check.name, check.run);
 
   it("fails a compiling action returning an internal cause after answering, even without facts", async () => {
-    await expect(byKeys(late, "already registered")).rejects.toThrow("An internal refusal could be submitted");
+    await expect(byKeys(late, "already registered")).rejects.toThrow("E-PROG-1");
   });
   it("fails when an external case closes in the question instead of running", async () => {
     const early = changed(printingShop, "print", act => ({ ...act, stops: () => "printer offline · desk" }));
     await expect(byKeys(early, "printer is offline")).rejects.toThrow("did not run exactly once");
   });
   it("fails when the external case runs but reports success instead of Error", async () => {
-    const silent = changed(printingShop, "print", act => ({
-      ...act,
-      run: () => ({ status: "accepted", text: "printer offline · desk" }),
-    }));
+    const silent = changed(printingShop, "print", act => {
+      const changed = { ...act };
+      Reflect.set(changed, "run", () => ({ status: "accepted", text: "printer offline · desk" }));
+      return changed;
+    });
     await expect(byKeys(silent, "printer is offline")).rejects.toThrow();
   });
   it("fails a compiling surface with an empty later question in an accepted case", async () => {

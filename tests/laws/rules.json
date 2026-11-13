@@ -1513,6 +1513,49 @@
         "src/programs/kept-walk.spec.ts",
         "src/programs/kept-journals.spec.ts"
       ]
+    },
+    {
+      "id": 182,
+      "rule": "Un throw, una promesa rechazada o una causa ajena a outside dentro de run termina en un defecto con texto fijo del catálogo, nunca con el texto lanzado. Actividad y el registro conservan el detalle técnico; un caso que termina en defecto deja roja la compuerta. No se reintenta. No se promete ausencia de cambios si una acción anidada ya escribió.",
+      "from": "12/11 · revisión de la base",
+      "guarantee": "derived",
+      "evidence": [
+        "src/tools/outside.ts",
+        "src/tools/program-defect.ts",
+        "src/tools/execute.ts",
+        "src/programs/promised.ts",
+        "src/programs/promised-defects.spec.ts"
+      ]
+    },
+    {
+      "id": 183,
+      "rule": "ProgramAct conserva el resultado literal de run atado a outside y una marca opaca al guardarse en el registro. Reemplazar run por una función sin comprobar, incluso con spread, no compila. Cada puerta valida la declaración actual antes de correr y comprueba outside al recibir el resultado, aunque código sin tipos haya armado el acto a mano.",
+      "from": "12/11 · revisión de la base",
+      "guarantee": "type",
+      "evidence": [
+        "src/tools/promises-contract.ts",
+        "src/tools/promises.ts",
+        "src/tools/program-run.ts",
+        "src/tools/outside.spec.ts",
+        "src/programs/promised-rejections.spec.ts"
+      ]
+    },
+    {
+      "id": 184,
+      "rule": "stops y among reciben el instante de la casa como cuarto argumento, wrong como segundo, en la Entrada y por cualquier otra puerta antes de run. Cada caso puede fijar at antes de given y avanzar días: la prueba derivada cubre ayer permitido, mañana rechazado y mañana permitido al llegar ese día. Un reloj adulterado que compila vuelve roja la garantía.",
+      "from": "12/11 · revisión de la base",
+      "guarantee": "derived",
+      "evidence": [
+        "src/tools/so-far.ts",
+        "src/catalogs/fields.ts",
+        "src/tools/program-run.ts",
+        "src/surface/bridge/program-acts.ts",
+        "src/surface/bridge/asking-parts.ts",
+        "src/surface/bridge/picked.ts",
+        "src/programs/promised-stage.ts",
+        "src/programs/promised-time.spec.ts",
+        "tests/support/dated-shop.ts"
+      ]
     }
   ]
 }
