@@ -1,4 +1,5 @@
 // A thread, and what opened beside it, in cells. Which part is turned down comes from the screen.
+import { drawEntry, drawWritten } from "./entry.ts";
 import { surfaceTexts as said } from "../../texts/surface.texts.ts";
 import type { Body, Panel, Row, Span, ThreadEvent } from "../../surface/contract.ts";
 import type { Tone } from "../../surface/tones.ts";
@@ -20,14 +21,6 @@ type Listing = Readonly<{ keys: number; reads?: boolean }>;
  * list starts after that, so what they say lines up whatever key each takes. */
 export const keysOf = (rows: readonly Row[]): number =>
   Math.max(0, ...rows.map(row => (row.key ? width(row.key) + 2 : 0)));
-/** A row that is written in: its name when it has one, and what is typed with the caret where it stands. */
-function drawWritten(grid: Grid, r: number, x: number, row: Row & { entry: NonNullable<Row["entry"]> }): void {
-  const col = row.title ? put(grid, x, r, { text: row.title, tone: "t2" }) + 2 : x;
-  put(grid, col, r, { text: "›", tone: "t2" });
-  put(grid, col + 2, r, { text: row.entry.typed, tone: "t1" });
-  const under = Array.from(row.entry.typed)[row.entry.caret] ?? " ";
-  put(grid, col + 2 + row.entry.caret, r, { text: under, tone: "t1" }, true);
-}
 /** One row of a list. In a list that is read, what a row says of its datum leads; in one that is chosen from, its
  * name does. A row with one text says it in the leading tone. */
 export function drawRow(
@@ -118,17 +111,6 @@ function linesOf(event: ThreadEvent, block: number): readonly Drawn[] {
 }
 const blank: Drawn = { spans: [], indent: 0, lit: false };
 
-function drawEntry(grid: Grid, body: Extract<Body, { kind: "thread" }>, left: number): void {
-  const r = grid.length - 4;
-  if (body.reference) put(grid, left, r - 1, { text: body.reference, tone: "t3" });
-  if (!body.entry) return;
-  const { typed, caret, placeholder, suggested = false } = body.entry;
-  put(grid, left, r, { text: "›", tone: "t2" });
-  /** What a key would replace is lit whole; what is being written has the caret where it stands. */
-  if (typed) put(grid, left + 2, r, { text: typed, tone: "t1" }, suggested);
-  else put(grid, left + 3, r, { text: placeholder, tone: "t3" });
-  if (!suggested) put(grid, left + 2 + caret, r, { text: Array.from(typed)[caret] ?? " ", tone: "t1" }, true);
-}
 /** The options of a question, above the toolbar: with how many are left out before the first and after the last. */
 function drawOptions(grid: Grid, options: readonly Row[], more: Left, left: number, block: number): void {
   const keyed = options.some(row => row.key);

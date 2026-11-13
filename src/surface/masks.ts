@@ -56,6 +56,7 @@ const day = (locale: Locale): Format => ({
   keyboard: "digits",
   empty: locale.day,
   shown: typed => [typed.slice(0, 2), typed.slice(2, 4), typed.slice(4)].filter(Boolean).join("/"),
+  remaining: typed => locale.day.slice(typed.length + Number(typed.length > 2) + Number(typed.length > 4)),
   put: (typed, text) => (digits.test(text) && typed.length < 8 ? typed + text : typed),
   value: typed => {
     return typed.length === 8 ? `${typed.slice(4)}-${typed.slice(2, 4)}-${typed.slice(0, 2)}` : undefined;
@@ -93,6 +94,11 @@ export function shaped(shapes: readonly string[]): Format {
   return {
     keyboard: "digits",
     empty: shapes.map(shape => shape.replaceAll("#", "0")).join(" · "),
+    remaining: typed => {
+      if (sizes.includes(typed.length)) return "";
+      const shape = shapes.find((_, index) => (sizes[index] ?? 0) > typed.length) ?? "";
+      return shape.replaceAll("#", "0").slice(shown(typed).length);
+    },
     shown,
     put: (typed, text) => (digits.test(text) && typed.length < Math.max(...sizes) ? typed + text : typed),
     value: typed => (sizes.includes(typed.length) ? typed : undefined),

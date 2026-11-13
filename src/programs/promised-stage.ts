@@ -43,16 +43,23 @@ type Stage<X extends Program> = Readonly<{ house: () => House<X>; reopen: () => 
 export async function staged<X extends Program>(program: Composition<X>, use: (stage: Stage<X>) => Promise<void>) {
   const home = mkdtempSync(join(tmpdir(), "desert-promise-"));
   const clock = stillClock();
-  let house = open(program, home, clock);
-  const reopen = (): void => {
-    house.close();
-    house = open(program, home, clock);
-  };
+  let active: House<X> | undefined;
   try {
+    let house = open(program, home, clock);
+    active = house;
+    const reopen = (): void => {
+      house.close();
+      active = undefined;
+      house = open(program, home, clock);
+      active = house;
+    };
     await use({ house: () => house, reopen });
   } finally {
-    house.close();
-    rmSync(home, { recursive: true, force: true });
+    try {
+      active?.close();
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
   }
 }
 export type Doing = Did & Readonly<{ attends?: boolean }>;

@@ -11,6 +11,7 @@ import { offeredOn } from "./picked.ts";
 import type { Result, ThingAct, ThingMenu, ToolAct, ViewRow } from "../shown-tool.ts";
 import { formats, type Locale } from "../masks.ts";
 import { maskOf } from "../screen.ts";
+import { currentAnswers } from "./current-answers.ts";
 import { asking, type Asking, type AskWords } from "./asking.ts";
 import { attendAndAct, type ScreenActs, type Start, type SurfacePorts } from "./house-ports.ts";
 
@@ -62,6 +63,7 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
   };
   const asks = offeredOn(act, ask, ports.state, tool);
   const walk = {
+    ...currentAnswers(ask, (target = tool) => act.today?.(ports.state(), target)),
     label: act.name,
     verb: act.enter,
     key: act.key,

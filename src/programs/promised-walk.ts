@@ -13,6 +13,8 @@ import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import type { Choice } from "../surface/screen.ts";
 import { actRow, fitsSmallest, goTo, openRows, seated, type, view, type Seat } from "./promised-keys.ts";
+import { confirmAnswer, probeWritten, quietly } from "./promised-entry.ts";
+import { currentCloses } from "./promised-current.ts";
 import { findChecks } from "./promised-find.ts";
 import { noticeChecks } from "./promised-notices.ts";
 import { shownChecks } from "./promised-off.ts";
@@ -24,8 +26,10 @@ function answer(router: Router, field: Field, given: string, opened = field.init
   if (field.kind === "text" || field.kind === "secret") {
     if (field.valid?.(given) === false) return false;
     Array.from(opened).forEach(() => router.send({ kind: "erase" }));
+    probeWritten(router, field, "");
     type(router, given);
-    router.send({ kind: "confirm" });
+    probeWritten(router, field, given);
+    confirmAnswer(router);
     /** What is complete and wrong stays where it was written, and the screen says why. */
     const why = field.wrong?.(given);
     if (why !== undefined) ok(JSON.stringify(router.screen(view).body).includes(why), said.notSaid(why));
@@ -38,7 +42,7 @@ function answer(router: Router, field: Field, given: string, opened = field.init
       if (marked?.includes(option.title) !== wanted?.includes(option.title)) router.send({ kind: "type", text: " " });
       if (i < field.options.length - 1) router.send({ kind: "down" });
     });
-    router.send({ kind: "confirm" });
+    confirmAnswer(router);
     return true;
   }
   if (field.kind === "pick") {
@@ -51,7 +55,7 @@ function answer(router: Router, field: Field, given: string, opened = field.init
     /** What is not looked for is taken by its number: the cursor stands on what the datum already is, not first. */
     if (name === "" && at < 9) return (type(router, String(at + 1)), true);
     for (let step = 0; step < at; step++) router.send({ kind: "down" });
-    router.send({ kind: "confirm" });
+    confirmAnswer(router);
     return true;
   }
   const key = field.options.find(option => option.title === given)?.key;
@@ -96,6 +100,10 @@ function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers, from }: T
   /** The right of an act is never empty: its datum, or what it is for. */
   ok(row.detail, said.saysNothing(aim.name));
   if (row.off) return undefined;
+  const current = aim.act.today?.(seat.state(), on);
+  const words = { formats: formats(seat.shown.locale), optionalMark: generic.optional };
+  if (current !== undefined)
+    deepStrictEqual(row.open?.kind === "act" ? row.open.was : undefined, asking(aim.act.input, words).answers(current));
   openRows(seat.router, found.rows);
   ok(row.key, said.keyless(aim.name));
   type(seat.router, row.key);
@@ -109,14 +117,23 @@ function walk<X extends Program>({ router, tools }: Seat<X>, { aim, kase, answer
   const next = (given: readonly string[]): Field | null => act?.next(given, kase.on ?? aim.tool.id) ?? null;
   const { from = 0, until = answers.length } = row.with ?? {};
   /** A row that asks the one datum it reads does not send what the thing already says: nothing would change. */
-  if (row.with?.today === true && until - from === 1 && row.with.answers[from] === answers[from]) return false;
+  const current = row.open?.kind === "act" ? row.open.was : undefined;
+  if (
+    from < until &&
+    current &&
+    answers.length === current.length &&
+    answers.every((answer, i) => answer === current[i])
+  )
+    return false;
   /** What the act says cannot go on stays at the question it was answered in: nothing more is asked or confirmed. */
   const stopped: string[] = [];
   const said = answers.slice(from, until).every((given, offset) => {
     if (stopped.length) return true;
     const field = next(answers.slice(0, from + offset));
     fitsSmallest(router);
-    const taken = field ? answer(router, field, given, row.with?.answers[from + offset]) : true;
+    const taken = field
+      ? answer(router, field, given, row.open?.kind === "act" ? row.open.answers[from + offset] : undefined)
+      : true;
     const why = taken ? act?.stops?.(answers.slice(0, from + offset + 1), kase.on ?? aim.tool.id) : undefined;
     if (why !== undefined) stopped.push(why);
     return taken;
@@ -144,7 +161,8 @@ function walkCheck<X extends Program>(program: Composition<X>, shown: Shown<X>, 
         const told = { aim, kase, answers: asking(aim.act.input, words).answers(kase.input), ...from };
         /** What is off said why, and what a field does not let be written cannot be sent: neither breaks a refusal. */
         const row = taken(seat, told);
-        const done = row !== undefined && walk(seat, told, row);
+        if (row?.open?.kind === "act") currentCloses(seat.tools, row.open);
+        const done = row !== undefined && quietly(seat.router, router => walk({ ...seat, router }, told, row));
         ok(done || refused !== undefined, said.notOffered(aim.name));
         /** What could not be taken or sent wrote nothing. */
         if (!done) deepStrictEqual(wroteSince(house(), before), []);

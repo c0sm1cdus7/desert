@@ -3,9 +3,7 @@ import type { Field, Intent, Mask, Option } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
 import { actOf, begin, fieldOf, maskOf, optionsOf, opened, pickedFrom, validOf } from "./screen.ts";
 import type { Asking, Session, Stepped, Walk } from "./screen.ts";
-import { genericTexts as generic } from "../texts/generic-surface.texts.ts";
-import { toolTexts } from "../texts/tools.texts.ts";
-import { keptAfter } from "./kept-answers.ts";
+import { answersAfter } from "./kept-answers.ts";
 import { edited } from "./talk.ts";
 import { must } from "./window.ts";
 
@@ -15,12 +13,8 @@ export const replace = (session: Session, place: Session[number]): Session => [.
 function advance(session: Session, walk: Asking, tools: readonly Tool[], answer: string, now: number): Stepped {
   const current = must(fieldOf(tools, walk));
   const act = actOf(tools, walk);
-  // An answer that changed can change what follows, so what was answered after it does not survive. Unless what
-  // follows is what the thing already has: a walk that asks only part keeps the rest, and one that began with what
-  // the thing is today keeps it past a written answer. What it keeps stays under the questions asked now.
-  const written = current.kind === "text" || current.kind === "secret";
-  const kept = walk.until !== undefined || walk.answers[walk.pos] === answer || (walk.carried === true && written);
-  const answers = [...walk.answers.slice(0, walk.pos), answer, ...(kept ? keptAfter(act, walk, answer) : [])];
+  if (current.unchanged?.(answer)) return { session };
+  const answers = answersAfter(act, walk, answer);
   /** What the act says cannot go on stays at the question it was answered in, saying why. */
   const why = act.stops?.(answers.slice(0, walk.pos + 1));
   if (why !== undefined) return { session: replace(session, { ...walk, error: why }) };
@@ -29,7 +23,7 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
   const open = walk.until === undefined ? null : act.next(answers);
   const { until: _part, ...whole } = walk;
   const moved: Walk = { ...(open && open.kind !== "confirm" ? whole : walk), answers, asked, pos: walk.pos + 1 };
-  const { error: _gone, finding: _sought, read: _back, ...clean } = moved;
+  const { error: _gone, failed: _result, finding: _sought, read: _back, ...clean } = moved;
   const field = fieldOf(tools, clean);
   if (field) return { session: replace(session, { ...clean, ...opened(field, answers[clean.pos]) }) };
   const running: Walk = { ...clean, phase: "running", since: now };
@@ -43,17 +37,9 @@ function masked(walk: Asking, mask: Mask, key: Intent): Asking | undefined {
   if (key.kind === "erase") return { ...walk, typed: Array.from(walk.typed).slice(0, -1).join("") };
   return key.kind === "left" || key.kind === "right" ? walk : undefined;
 }
-/** Why a key was not written: the field has no room for more of what it does take, or does not take that key. */
-const notTaken = (field: Field, key: string): string =>
-  "mask" in field && field.mask.put("", key) !== "" ? generic.full : generic.notTaken(key);
-/** What is written after a key. A key that changed nothing leaves what was said as it was, or says that it is not
- * taken there; one that did takes it away, and what is written now says its own as soon as it is complete and
- * still does not hold. */
-function rewritten(field: Field, before: Asking, { error: _was, ...written }: Asking, key?: Intent): Asking {
-  const refused = key?.kind === "type" ? notTaken(field, key.text) : undefined;
-  const said = written.typed === before.typed ? (before.error ?? refused) : undefined;
-  const why = said ?? (validOf(field, written.typed) ? field.wrong?.(written.typed) : undefined);
-  return { ...written, suggested: false, ...(why === undefined ? {} : { error: why }) };
+/** Editing clears a prior result; invalid or excess keys leave the entire question untouched. */
+function rewritten({ error: _was, failed: _result, ...written }: Asking): Asking {
+  return { ...written, suggested: false };
 }
 /** A space that says nothing is not typed: before anything is written, or next to another space. Two names that
  * read the same are written the same. */
@@ -67,22 +53,13 @@ function typing(session: Session, walk: Asking, tools: Tools, field: Field, key:
   /** What the question opened with gives way to the first key written. */
   const fresh = walk.suggested && key.kind === "type" ? { ...walk, typed: "", caret: 0 } : walk;
   const full = key.kind === "type" && "max" in field && Array.from(fresh.typed).length >= (field.max ?? Infinity);
-  if (full) return { session: replace(session, { ...fresh, error: walk.error ?? generic.full }) };
+  if (full) return { session };
   if (!("mask" in field) && idleSpace(fresh, key)) return { session };
   const changed = "mask" in field ? masked(fresh, field.mask, key) : edited(fresh, key);
-  if (changed) return { session: replace(session, rewritten(field, fresh, changed, key)) };
+  if (key.kind === "type" && changed?.typed === fresh.typed) return { session };
+  if (changed) return { session: replace(session, rewritten(changed)) };
   if (key.kind !== "confirm") return { session };
-  /** What cannot be sent says why, where it is written: enter never does nothing in silence. */
-  if (!validOf(field, walk.typed)) {
-    const same = field.only === true && field.current === walk.typed;
-    const why = same ? toolTexts.unchanged : field.lacks?.(walk.typed);
-    return { session: why === undefined ? session : replace(session, { ...walk, error: why }) };
-  }
-  /** What is complete and still wrong stays where it was written, and the question now says why. */
-  const why = field.wrong?.(walk.typed);
-  return why === undefined
-    ? advance(session, walk, tools, walk.typed, now)
-    : { session: replace(session, { ...walk, error: why }) };
+  return validOf(field, walk.typed) ? advance(session, walk, tools, walk.typed, now) : { session };
 }
 /** The option above or below that can be chosen: the cursor never rests on one that cannot. */
 function beside(options: readonly { off?: boolean }[], at: number, way: "up" | "down"): number {
@@ -99,8 +76,7 @@ function choosing(session: Session, walk: Asking, tools: Tools, field: Field, ke
     if (key.kind === "up" && next === walk.at) return set({ read: (walk.read ?? 0) + 1 });
     return walk.read ? set({ read: 0 }) : set({ at: next });
   }
-  /** Enter on what the datum already is never does nothing in silence: it says nothing would change. */
-  if (key.kind === "confirm" && options[walk.at]?.off) return set({ error: toolTexts.unchanged });
+  if (key.kind === "confirm" && options[walk.at]?.off) return { session };
   const chosen = options[walk.at]?.off ? undefined : options[walk.at];
   if (field.kind === "many" && key.kind === "type" && key.text === " " && chosen) {
     const on = walk.marks.includes(chosen.title);
@@ -131,16 +107,22 @@ function picking(
   now: number,
 ) {
   const set = (next: Partial<Asking>): Stepped => ({ session: replace(session, { ...walk, ...next }) });
-  const sought = (typed: string): Stepped => set({ typed, caret: Array.from(typed).length, at: 0 });
+  const sought = (typed: string): Stepped =>
+    set({
+      typed,
+      caret: Array.from(typed).length,
+      at: field.found(typed).findIndex(option => !option.off && !option.makes),
+    });
   const found = pickedFrom(field, walk);
   /** With nothing to pick among there is nothing to look for either: only leaving is left. */
   if (!walk.finding && !found.length) return { session };
   if (walk.finding && key.kind === "type") return sought(walk.typed + key.text);
   if (walk.finding && key.kind === "erase") return sought(Array.from(walk.typed).slice(0, -1).join(""));
-  if (key.kind === "type" && key.text === " ") return set({ finding: true, typed: "", caret: 0, at: 0 });
+  if (key.kind === "type" && key.text === " ")
+    return set({ finding: true, typed: "", caret: 0, at: found.findIndex(option => !option.off && !option.makes) });
   /** Taking a row answers with it; the one that makes a new thing starts that act, and what it makes is the answer. */
   const taken = (row: Option | undefined): Stepped => {
-    if (row?.off) return set({ error: toolTexts.unchanged });
+    if (row?.off) return { session };
     if (!row) return { session };
     if (!row.makes) return advance(session, walk, tools, row.value ?? row.title, now);
     return { session: [...session, { ...begin(tools, row.makes.tool, row.makes.act), returns: true }] };
@@ -153,7 +135,7 @@ function picking(
   return taken(key.kind === "confirm" ? found[walk.at] : undefined);
 }
 function back(session: Session, walk: Asking, tools: readonly Tool[]): Session {
-  const { error: _gone, read: _back, ...clean } = walk;
+  const { error: _gone, failed: _result, read: _back, ...clean } = walk;
   const earlier = { ...clean, pos: walk.pos - 1 };
   return replace(session, { ...earlier, ...opened(fieldOf(tools, earlier), walk.answers[earlier.pos]) });
 }
@@ -162,7 +144,7 @@ export function walking(session: Session, walk: Walk, tools: readonly Tool[], ke
     /** Escape closes the search first: the whole list is back, and the question is still the same. */
     if (walk.phase === "asking" && walk.finding) {
       const { finding: _sought, ...whole } = walk;
-      return { session: replace(session, { ...whole, typed: "", caret: 0, at: 0 }) };
+      return { session: replace(session, { ...whole, typed: "", caret: 0, at: opened(fieldOf(tools, whole)).at }) };
     }
     if (walk.phase === "asking" && walk.pos > walk.floor) return { session: back(session, walk, tools) };
     /** What was made to answer a question answers it: the person is back where they were asked, one step on. */

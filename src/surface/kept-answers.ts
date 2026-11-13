@@ -24,3 +24,11 @@ export function keptAfter(act: Asked, walk: Asking, answer: string): readonly st
   }
   return answers.slice(walk.pos + 1);
 }
+
+/** The answers after this choice, retaining only those whose questions still exist. */
+export function answersAfter(act: Asked, walk: Asking, answer: string): readonly string[] {
+  const current = act.next(walk.answers.slice(0, walk.pos));
+  const written = current?.kind === "text" || current?.kind === "secret";
+  const kept = walk.until !== undefined || walk.answers[walk.pos] === answer || (walk.carried === true && written);
+  return [...walk.answers.slice(0, walk.pos), answer, ...(kept ? keptAfter(act, walk, answer) : [])];
+}

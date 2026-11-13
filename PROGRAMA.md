@@ -37,13 +37,19 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   herramienta, no de un objeto).
 - `offered(estado, objeto)` devuelve el motivo por el que ahora no se puede (la fila queda apagada diciéndolo, y la
   base rechaza con el mismo motivo). `refuses` lista todos los motivos; cada uno necesita su caso.
-- `today(estado, objeto)` da lo que el objeto vale hoy: la pregunta abre con eso, encendido entero, y escribir lo
-  reemplaza. Dejarlo igual se rechaza solo («sin cambios»).
+- `today(estado, objeto)` da lo que el objeto vale hoy: toda caminata nace con eso, incluso desde `Acciones`,
+  una fila, un menú o una acción ofrecida por otra herramienta. El texto abre encendido entero y escribir lo
+  reemplaza. Lo vigente se marca «actual»: se apaga si elegirlo terminaría sin cambios. En texto, `enter`
+  se ofrece solo cuando cambiaría algo al terminar. Por otras puertas, la base sigue rechazando «sin cambios»
+  antes de correr.
 - `confirms` pone algo a confirmar. Lo irreversible (`undoable: false`) confirma con «volver» primero.
 - `also` la ofrece además entre las acciones de los objetos de otra herramienta (cobrar, desde una venta).
 - `run` puede ser `async`; `reach: "world"` dice que sale de la organización. El contexto trae `execute` para
   hacer otra acción por el mismo camino.
-- Un campo lleva siempre máscara o placeholder y tope; lo que el campo sabe que está mal se dice donde se escribe.
+- Un campo lleva siempre máscara o placeholder y tope. Lo incompleto muestra la parte de la forma que falta en
+  texto 3, dentro de la Entrada. Lo completo que `wrong` o `stops` no permite dice su motivo bajo la pregunta, en
+  texto 3, sin «Error» y sin `enter`. Enter no hace nada si no se ofrece; una tecla que no entra conserva el campo.
+  «Error» en coral queda para el resultado de una acción que corrió.
 - Un campo puede decir cuándo se pregunta, según lo respondido antes (`when(campo, respondido => …)`).
 - Un día que ya pasó no puede ser posterior a hoy: `day(pregunta, "today", "today")` lo rechaza donde se escribe.
 - Lo que una acción confirma (`confirms(input, estado, cosa, instante)`) o contesta puede decirse en varias líneas:
@@ -51,7 +57,7 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   hizo en la primera línea («Verbo · Objeto · Detalle»), y así se promete en un caso.
 - Lo que una acción crea queda en el Registro de cada cosa creada: ningún programa guarda quién creó qué.
 - Una acción puede decir por qué lo contestado hasta ahí no puede seguir: `stops: (respondido, estado, cosa) =>
-  motivo`. La pantalla lo dice en la pregunta que se acaba de contestar; **la base lo rechaza igual antes de correr
+  motivo`. La pantalla lo dice en vivo, antes de enviar la respuesta; **la base lo rechaza igual antes de correr
   la acción, por cualquier puerta**, con ese mismo motivo (que va en `refuses`, con su caso). En la pregunta el
   motivo puede sumar un dato después («supera lo que falta · $ 9.525,75»): por otra puerta se rechaza con el motivo
   declarado. La acción no lo repite.
@@ -116,8 +122,8 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   opcional.
 - Opciones de una pregunta que salen del estado o de afuera (los puntos de venta que dice el fisco): hoy se resuelven
   volviéndolas cosas de la herramienta.
-- Un valor sugerido para una pregunta que no sea «lo que el dato es hoy» (`today` marca además «actual» y rechaza «sin
-  cambios»): sugerir en «editar condición» la que dice el padrón; que una pregunta que no es la primera abra con un
+- Un valor sugerido para una pregunta que no sea «lo que el dato es hoy» (`today` marca además «actual» e impide
+  enviar lo vigente): sugerir en «editar condición» la que dice el padrón; que una pregunta que no es la primera abra con un
   valor que da la acción (`also.opens` solo sirve para las primeras).
 - Menús en una herramienta que no tiene cosas (hoy un menú cuelga de una cosa).
 - Una vista previa con forma propia: hoy lo que se confirma es texto, en una o varias líneas.
@@ -134,8 +140,6 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   La base todavía no lo comprueba.
 - Un día que no admite futuro (`last: "today"`) se rechaza donde se escribe; por otra puerta, la acción tiene que
   rechazarlo ella.
-- Una tecla que no elige nada en una lista (un número sin fila) no dice nada; solo los campos escritos dicen que una
-  tecla no va.
 - Una devolución de plata sin cosas y un rechazo que deje escrito lo que contestó el fisco: pedidos de Capibara que
   hoy se resuelven del lado del programa.
 - Un importe que se escribe en otra moneda: la máscara de plata muestra siempre el signo del país («$»), aunque la

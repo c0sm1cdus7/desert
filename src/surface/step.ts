@@ -107,6 +107,6 @@ export function finished(session: Session, walk: Running, result: Result, clock?
   const pos = Math.max(place.pos - 1, place.floor);
   const typed = place.answers[pos] ?? "";
   const caret = Array.from(typed).length;
-  const again = { typed, caret, at: 0, suggested: false, error: result.reason };
+  const again = { typed, caret, at: 0, suggested: false, error: result.reason, failed: true as const };
   return replace(session, { ...place, phase: "asking", pos, ...again });
 }

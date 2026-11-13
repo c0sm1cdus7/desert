@@ -972,7 +972,7 @@
     },
     {
       "id": 127,
-      "rule": "Una acción que dice lo que la cosa vale hoy rechaza dejarla igual, «sin cambios»: no se escribe un hecho que no cambia nada",
+      "rule": "Por las otras puertas, la base rechaza lo igual a today antes de correr: no se escribe un hecho que no cambia nada.",
       "from": "11/11 · revisión de lógica: editar con los mismos valores dejaba marca de edición",
       "guarantee": "derived",
       "evidence": ["src/tools/promises.ts", "src/programs/promised-laws.ts"]
@@ -1056,20 +1056,21 @@
     },
     {
       "id": 137,
-      "rule": "Enter nunca queda mudo: lo que no se puede enviar dice por qué donde se escribe (vacío, incompleto, mínimo, sin cambios). Lo que está completo y no vale lo dice apenas se termina de escribir; el motivo se va con la primera tecla que lo cambia, y la pregunta sigue a la vista sobre el motivo",
-      "from": "11/11 · ronda 1 de escépticos, pantallas: M1 a M4",
-      "guarantee": "spec",
+      "rule": "La Entrada no marca error: enter solo se ofrece para una respuesta enviable. Un dato completo que no vale dice su motivo en vivo, bajo la pregunta, en texto 3 y sin Error. Sin enter, Enter no hace nada.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "derived",
       "evidence": [
+        "src/surface/answer-status.ts",
         "src/surface/walking.ts",
         "src/surface/walk.ts",
-        "src/surface/bridge/asking-parts.ts",
-        "src/programs/promised-fields.spec.ts",
-        "src/programs/promised-menus.spec.ts"
+        "src/programs/promised-entry.ts",
+        "src/programs/promised-entry.spec.ts",
+        "src/surface/entry-status.spec.ts"
       ]
     },
     {
       "id": 138,
-      "rule": "Un rechazo aparece donde se escribió el dato: después de cada respuesta la acción dice si lo respondido hasta ahí no puede seguir (`stops`), y el motivo queda en esa pregunta. La acción igual rechaza al ejecutarse, por cualquier puerta",
+      "rule": "Lo completo que wrong o stops no permite dice su motivo en vivo bajo la pregunta, sin Error y sin enter. Por cualquier otra puerta, la base lo rechaza antes de ejecutar la acción.",
       "from": "11/11 · plan de Capibara: el importe de más al cobrar se dice en la pregunta del importe",
       "guarantee": "spec",
       "evidence": [
@@ -1190,10 +1191,17 @@
     },
     {
       "id": 151,
-      "rule": "Una tecla que el campo no toma lo dice donde se escribe, y lo escrito queda como estaba: ninguna tecla se descarta callada. Lo mismo la que ya no entra",
-      "from": "11/11 · ronda 1 de escépticos: el nombre de usuario perdía letras sin avisar",
-      "guarantee": "spec",
-      "evidence": ["src/surface/walking.ts", "src/doors/terminal/house-screens.spec.ts"]
+      "rule": "Una tecla que el campo no toma, o que ya no entra, conserva lo escrito y no crea un error ni otro aviso.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "derived",
+      "evidence": [
+        "src/surface/answer-status.ts",
+        "src/surface/walking.ts",
+        "src/surface/walk.ts",
+        "src/programs/promised-entry.ts",
+        "src/programs/promised-entry.spec.ts",
+        "src/surface/entry-status.spec.ts"
+      ]
     },
     {
       "id": 152,
@@ -1241,22 +1249,28 @@
     },
     {
       "id": 157,
-      "rule": "Una pregunta que cambia un dato abre parada en lo que el dato ya es, y Enter ahí dice que nada cambiaría: nadie cambia un dato por apretar Enter de más",
-      "from": "12/11 · ronda 2 de escépticos de Capibara: «cambiar cliente» abría parado en otra persona y Enter la cambiaba",
-      "guarantee": "spec",
-      "evidence": ["src/surface/screen.ts", "src/surface/walking.ts", "src/doors/terminal/house-keys.spec.ts"]
+      "rule": "La opción vigente queda apagada cuando elegirla terminaría sin cambios; el cursor abre en la primera elegible y nunca descansa en una apagada.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "derived",
+      "evidence": [
+        "src/surface/current-field.ts",
+        "src/surface/screen.ts",
+        "src/programs/promised-current.ts",
+        "src/programs/promised-current.spec.ts"
+      ]
     },
     {
       "id": 158,
-      "rule": "Lo que está entero y no alcanza dice cuánto toma su campo («mayor a 0», «mínimo 0001»), nunca «incompleto»; la tecla que el campo sí toma y ya no entra dice que no entra más; un número se escribe sin ceros adelante",
-      "from": "12/11 · ronda 2 de escépticos de Capibara: «incompleto» para lo que estaba completo y mal, «9 no va acá» para un 9 que no entraba, cantidad «010000»",
-      "guarantee": "spec",
+      "rule": "Un número completo fuera de sus límites dice mínimo, máximo o mayor a, en texto 3 y sin Error; no ofrece enter. Los números se escriben sin ceros adelante.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "derived",
       "evidence": [
-        "src/surface/bridge/asking-parts.ts",
+        "src/surface/answer-status.ts",
         "src/surface/walking.ts",
-        "src/surface/masks.ts",
-        "src/surface/bridge/asking-numbers.spec.ts",
-        "src/doors/terminal/house-keys.spec.ts"
+        "src/surface/walk.ts",
+        "src/programs/promised-entry.ts",
+        "src/programs/promised-entry.spec.ts",
+        "src/surface/entry-status.spec.ts"
       ]
     },
     {
@@ -1357,10 +1371,17 @@
     },
     {
       "id": 170,
-      "rule": "Lo que falta en lo escrito dice el número al que tiene que llegar o la forma que tiene que llenar: «máximo 60», «mínimo $ 0,01», «incompleto · dd/mm/aaaa»; nunca «incompleto» para lo que está entero y se pasa",
-      "from": "12/11 · escéptico de pantallas, ronda 3: «incompleto» para 99 con tope 60 y para una fecha a medio escribir, «vacío» para un importe en cero",
-      "guarantee": "spec",
-      "evidence": ["src/surface/bridge/asking-parts.ts", "src/surface/bridge/asking-numbers.spec.ts"]
+      "rule": "Lo que está a medias muestra la parte de su forma que falta en la Entrada, en texto 3; no agrega una línea de error ni ofrece enter.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "derived",
+      "evidence": [
+        "src/surface/answer-status.ts",
+        "src/surface/walking.ts",
+        "src/surface/walk.ts",
+        "src/programs/promised-entry.ts",
+        "src/programs/promised-entry.spec.ts",
+        "src/surface/entry-status.spec.ts"
+      ]
     },
     {
       "id": 171,
@@ -1368,6 +1389,43 @@
       "from": "12/11 · escéptico de pantallas, ronda 3: buscar «Ana» traía primero «canales» y «persona humana»",
       "guarantee": "spec",
       "evidence": ["src/surface/finding.ts", "src/doors/terminal/house-search.spec.ts"]
+    },
+    {
+      "id": 172,
+      "rule": "Toda caminata de una acción con today nace sabiendo lo vigente, se abra por donde se abra.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "derived",
+      "evidence": [
+        "src/surface/screen.ts",
+        "src/surface/bridge/program-acts.ts",
+        "src/programs/promised-walk.ts",
+        "src/programs/promised-current.spec.ts"
+      ]
+    },
+    {
+      "id": 173,
+      "rule": "Lo vigente no se puede enviar: la última respuesta que dejaría todo igual queda apagada con actual o sin enter; Enter no hace nada cuando no se ofrece. Ninguna pantalla dice sin cambios.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "derived",
+      "evidence": [
+        "src/surface/current-field.ts",
+        "src/surface/walking.ts",
+        "src/programs/promised-current.ts",
+        "src/programs/promised-current.spec.ts"
+      ]
+    },
+    {
+      "id": 174,
+      "rule": "La Entrada no marca error; Error coral queda solo para el resultado de una acción que corrió. Cada pantalla intermedia recorrida por teclas conserva esa separación.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "derived",
+      "evidence": [
+        "src/surface/answer-status.ts",
+        "src/surface/step.ts",
+        "src/programs/promised-entry.ts",
+        "src/programs/promised-entry.spec.ts",
+        "src/surface/entry-status.spec.ts"
+      ]
     }
   ]
 }

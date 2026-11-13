@@ -123,8 +123,12 @@ export function written(schema: TSchema, ctx: Ctx): Field {
   /** A day that already happened is not after today, as the program's country counts its days. */
   const late = (value: unknown): boolean =>
     at(schema, "last") === "today" && typeof value === "string" && value > (ctx.today?.() ?? value);
-  const wrong = (typed: string): string | undefined =>
-    late(valueOf(schema, ctx, typed)) ? generic.future : wrongIn(schema, valueOf(schema, ctx, typed));
+  const wrong = (typed: string): string | undefined => {
+    const value = valueOf(schema, ctx, typed);
+    if (!valid(typed))
+      return typed.trim() !== "" && typeof value === "number" ? lacking(schema, ctx, typed) : undefined;
+    return late(value) ? generic.future : wrongIn(schema, value);
+  };
   const lacks = (typed: string): string => lacking(schema, ctx, typed);
   /** What a person writes has a top: a number without one, or a text without a length, is a defect. */
   const numeric = at(schema, "type") === "integer" || at(schema, "type") === "number";

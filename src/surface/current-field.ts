@@ -1,0 +1,41 @@
+// The current value is shown throughout an edit; only an answer that finishes it unchanged is unavailable.
+import { surfaceTexts as said } from "../texts/surface.texts.ts";
+import type { Field, Option } from "./contract.ts";
+import { answersAfter } from "./kept-answers.ts";
+import type { Walk } from "./screen.ts";
+
+type Act = Readonly<{
+  next: (answers: readonly string[]) => Field | null;
+  same?: (answers: readonly string[], current: readonly string[]) => boolean;
+}>;
+export const markedCurrent = (field: Field, option: Option): Option => {
+  const value = option.value ?? option.title;
+  const current = field.kind !== "many" && field.current !== undefined && value === field.current;
+  const off = field.kind !== "many" && !option.makes && (field.unchanged?.(value) ?? (field.only === true && current));
+  return { ...option, ...(current ? { detail: said.current } : {}), ...(off ? { off: true } : {}) };
+};
+/** Match by question when a changed answer changes which questions exist; never put a value under another name. */
+function currentAt(walk: Walk, field: Field, act: Act): string | undefined {
+  const was = walk.was ?? [];
+  const questions = was.map((_, index) => act.next(was.slice(0, index))?.ask);
+  if (questions[walk.pos] === field.ask) return was[walk.pos];
+  const matches = questions.flatMap((ask, index) => (ask === field.ask ? [index] : []));
+  return matches.length === 1 ? was[matches[0] ?? -1] : undefined;
+}
+export function currentField(walk: Walk, field: Field, act: Act): Field {
+  const was = walk.was;
+  if (was === undefined || walk.phase !== "asking" || field.kind === "confirm") return field;
+  const current = currentAt(walk, field, act);
+  const unchanged = (answer: string): boolean => {
+    const answers = answersAfter(act, walk, answer);
+    const following = act.next(answers.slice(0, walk.pos + 1));
+    if (walk.pos + 1 !== walk.until && following && following.kind !== "confirm") return false;
+    const rest = act.next(answers);
+    if (rest && rest.kind !== "confirm") return false;
+    return act.same?.(answers, was) ?? (answers.length === was.length && answers.every((value, i) => value === was[i]));
+  };
+  const known = { ...field, ...(current === undefined ? {} : { current }), unchanged };
+  return known.kind === "pick"
+    ? { ...known, found: sought => known.found(sought).map(option => markedCurrent(known, option)) }
+    : known;
+}

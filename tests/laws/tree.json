@@ -78,18 +78,24 @@
     "surface/bridge/picked.ts": "besides, offeredOn: what a question that picks a thing offers for the act that asks it",
     "programs/kept-journals.ts": "keptChecks: each journal a program keeps still opens with the program of today, read and folded whole",
     "surface/kept-answers.ts": "keptAfter: the answers a walk keeps past one that changed, each under the question it answered",
-    "surface/bridge/audit-fields.ts": "auditFields: what the fields of a program's acts need from the rest of the program, checked when composed"
+    "surface/bridge/audit-fields.ts": "auditFields: what the fields of a program's acts need from the rest of the program, checked when composed",
+    "surface/current-field.ts": "Current values and answers that would finish an edit without changing its data",
+    "programs/promised-current.ts": "Derived check that repeating current answers stops before an act runs",
+    "surface/bridge/current-answers.ts": "Current data as answers and equality in the declared data shape",
+    "surface/answer-status.ts": "Live reasons and readiness for a written answer from field and act declarations",
+    "programs/promised-entry.ts": "Derived checks of intermediate question screens and unavailable Enter",
+    "doors/terminal/entry.ts": "Written entries with their unfilled shape and cursor, in threads and rows"
   },
   "folders": {
     "adapters/secrets": 103,
     "adapters/storage": 181,
     "catalogs": 195,
-    "doors/terminal": 571,
+    "doors/terminal": 578,
     "house": 91,
     "journal": 326,
-    "programs": 1084,
-    "surface": 1713,
-    "surface/bridge": 1302,
+    "programs": 1220,
+    "surface": 1776,
+    "surface/bridge": 1320,
     "texts": 202,
     "tools": 884
   }

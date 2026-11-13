@@ -60,7 +60,10 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
   if (walk.phase !== "asking") return { kind: "thread", events: [...answered, { text: endOf(walk, now) }] };
   const question = must(field);
   /** What is wrong is said under the question, which stays: the person reads what is asked and why not. */
-  const wrong = walk.error === undefined ? [] : [{ text: errorSpans(walk.error), nested: true }];
+  const reason = walk.error ?? (isTyped(question) ? question.wrong?.(walk.typed) : undefined);
+  const spans =
+    walk.failed && reason !== undefined ? errorSpans(reason) : [{ text: reason ?? "", tone: "t3" as const }];
+  const wrong = reason === undefined ? [] : [{ text: spans, nested: true }];
   /** A confirmation says under it what the act is for: nobody confirms what they were not told. */
   const told = question.kind === "confirm" && question.note !== undefined ? question.note : undefined;
   const note = told === undefined ? [] : [{ text: [{ text: told, tone: "t3" as const }], nested: true }];
@@ -70,7 +73,9 @@ export function walkBody(walk: Walk, field: Field | null, now: number): Body {
     const typed = walk.typed === "" ? "" : maskOf(field, walk.typed);
     const caret = "mask" in question ? Array.from(typed).length : walk.caret;
     const whole = walk.suggested && typed !== "" ? { suggested: true as const } : {};
-    return { kind: "thread", events, entry: { typed, caret, placeholder: shapeOf(question), ...whole } };
+    const remaining = "mask" in question ? question.mask.remaining?.(walk.typed) : undefined;
+    const shape = typed && remaining ? { remaining } : {};
+    return { kind: "thread", events, entry: { typed, caret, placeholder: shapeOf(question), ...whole, ...shape } };
   }
   const options: readonly Row[] = optionsOf(field).map((option, i) => ({
     ...option,
@@ -99,6 +104,8 @@ export function walkHints(walk: Walk, field: Field | null, tools: readonly Tool[
   if (walk.phase === "running") return [leave];
   const enter: Hint = { intent: "confirm", does: enterSays(walk, field, tools) };
   if (isTyped(field)) return validOf(field, walk.typed) ? [enter, leave] : [leave];
+  if (field?.kind === "many" && field.unchanged?.(walk.marks.join(" · ")))
+    return [{ intent: "move", does: k.choose }, { intent: "mark", does: k.mark }, leave];
   /** With nothing left to choose, only leaving is left. */
   const free = field?.kind === "pick" ? field.found(walk.finding ? walk.typed : "") : optionsOf(field);
   if (!isTyped(field) && free.length && free.every(option => option.off)) return [leave];

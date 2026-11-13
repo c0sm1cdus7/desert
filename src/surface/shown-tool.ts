@@ -17,6 +17,10 @@ interface ActOn<Destination extends readonly string[]> {
   readonly off?: (...on: Destination) => string | undefined;
   /** Whether it is on the list at all: not every act is for everything, and a person may prefer not to see some. */
   readonly listed?: (...on: Destination) => boolean;
+  /** Current answers, read when a walk begins through any entry. */
+  /** Compares complete answers in the declared data shape, including normalized text and numbers. */
+  readonly same?: (answers: readonly string[], current: readonly string[]) => boolean;
+  readonly today?: (...on: Destination) => readonly string[] | undefined;
   readonly next: (answers: readonly string[], ...on: Destination) => Field | null;
   /** Why what was answered so far cannot go on, when that is so: said at the question that was just answered. */
   readonly stops?: (answers: readonly string[], ...on: Destination) => string | undefined;
@@ -60,6 +64,8 @@ export type ViewRow = Row & { readonly opens?: string; readonly act?: string } &
    * asks only part; what comes before is fixed by where the row stands. */
   readonly with?: { readonly answers: readonly string[]; readonly from: number; readonly until?: number } & {
     /** Those answers are what the thing is today, not a suggestion for something new: each question says so. */
+    /** Compares complete answers in the declared data shape, including normalized text and numbers. */
+    readonly same?: (answers: readonly string[], current: readonly string[]) => boolean;
     readonly today?: true;
   };
 };

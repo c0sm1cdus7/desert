@@ -35,10 +35,10 @@ const open = (me = "ana") => {
 const escape = "\x1b";
 
 describe("a key a field does not take", () => {
-  it("says so where it was written, and what is written stays: the next key that goes takes it away", async () => {
+  it("leaves the question untouched, and accepts the next key that fits", async () => {
     const { press } = open();
-    await press("vrs1\r");
-    expect(await press("x")).toEqual(expect.arrayContaining(["Error «x» no va acá"]));
+    const before = await press("vrs1\r");
+    expect(await press("x")).toEqual(before);
     const fixed = await press("15");
     expect(fixed.some(line => line.startsWith("Error"))).toBe(false);
     expect(fixed).toEqual(expect.arrayContaining(["› $ 0,15"]));

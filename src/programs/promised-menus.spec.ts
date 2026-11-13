@@ -82,14 +82,8 @@ describe("a program with a menu on its things", () => {
       expect(typed("e")).toEqual(["Editar", "p | Partes | "]);
       expect(typed("p")).toEqual(["Partes", "t | total | $ 15,00", "b | cobrado | $ 0,00"]);
       expect(typed("b")).toEqual(["Corregir · s1", "Total $ 15,00", "Cobrado $ 0,00", "› $ 0,00"]);
-      /** Written as it already is, it is not sent, and enter says why: it would change nothing. */
-      expect(typed("\r")).toEqual([
-        "Corregir · s1",
-        "Total $ 15,00",
-        "Cobrado $ 0,00",
-        "Error sin cambios",
-        "› $ 0,00",
-      ]);
+      /** Written as it already is, Enter leaves the question intact. */
+      expect(typed("\r")).toEqual(["Corregir · s1", "Total $ 15,00", "Cobrado $ 0,00", "› $ 0,00"]);
       expect(esc()[0]).toBe("Partes");
       typed("b500\r");
       expect((await settled()).at(-1)).toContain("Listo Corregida · s1");

@@ -68,6 +68,8 @@ export type Body =
       readonly entry?: { readonly typed: string; readonly caret: number; readonly placeholder: string } & {
         /** What is written was there when the question opened: it is shown whole, as what a key would replace. */
         readonly suggested?: true;
+        /** The unfilled part of a mask, shown after the written part in text 3. */
+        readonly remaining?: string;
       };
       readonly reference?: string;
       /** How many windows back of what is said the person is reading: the options stay where they are. */
@@ -112,6 +114,8 @@ interface Question {
   readonly lacks?: (value: string) => string;
   /** What the datum is today, as an answer: a question that changes it says so beside its name. */
   readonly current?: string;
+  /** This answer would finish the act leaving all its data unchanged. */
+  readonly unchanged?: (answer: string) => boolean;
   /** It is all its act asks: choosing what the datum already is would change nothing, so that option is off. */
   readonly only?: true;
 }
@@ -121,6 +125,7 @@ export interface Mask {
   /** What is typed after one more key; the same as before when the key does not fit. */
   put(typed: string, text: string): string;
   shown(typed: string): string;
+  remaining?(typed: string): string;
 }
 /** What it can be answered with is part of its kind: choosing among nothing does not type. */
 export type Field = Question &

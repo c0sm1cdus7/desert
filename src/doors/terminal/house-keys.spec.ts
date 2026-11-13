@@ -33,17 +33,21 @@ const open = () => {
 };
 
 describe("a key that could have done nothing", () => {
-  it("opens a choice on what the datum already is, and enter on it says nothing would change", async () => {
-    const { press } = open();
+  it("opens on the first available option, while the current option cannot be chosen", async () => {
+    const { press, router } = open();
     expect(await press(",a")).toEqual(expect.arrayContaining(["[m] Mostrar | actual", "[o] Ocultar"]));
-    expect(await press("\r")).toEqual(expect.arrayContaining(["Error sin cambios", "[m] Mostrar | actual"]));
+    const body = router.screen({ rows: 40 }).body;
+    expect(body.kind === "thread" && body.options?.find(row => row.selected)?.title).toBe("Ocultar");
+    expect(await press("m")).not.toContain("Error sin cambios");
+    expect(await press("\r")).toEqual(expect.arrayContaining([expect.stringMatching(/^Listo /u)]));
   });
 
-  it("says a field has no room for more of what it does take, apart from a key it never takes", async () => {
+  it("keeps a full field intact without creating an input error", async () => {
     const { press } = open();
-    expect(await press(`vrs1\r${"9".repeat(17)}`)).toEqual(
-      expect.arrayContaining(["Error no entra más", "› $ 99.999.999.999,99"]),
-    );
+    const full = await press(`vrs1\r${"9".repeat(13)}`);
+    expect(full).toContain("› $ 99.999.999.999,99");
+    expect(full.some(line => line.startsWith("Error"))).toBe(false);
+    expect(await press("9a")).toEqual(full);
   });
 
   it("finds a tool by its name from the Menu, before what each tool finds", async () => {

@@ -1,7 +1,9 @@
 // Where you are on a surface and the act you are walking: what a session remembers, and how an act begins.
 import { surfaceTexts as said } from "../texts/surface.texts.ts";
+import { withStops } from "./answer-status.ts";
+import { currentField, markedCurrent } from "./current-field.ts";
 import type { Talk } from "./talk.ts";
-import { foundAt, must } from "./window.ts";
+import { must } from "./window.ts";
 import type { Field, Option, Screen, Stack } from "./contract.ts";
 import type { Tool, ViewRow } from "./shown-tool.ts";
 /** What a person wrote to look for something, while a menu is in that mode: nothing else is on it then. */
@@ -26,7 +28,6 @@ interface Walking {
   readonly floor: number;
   /** Where it stops asking, when it asks only part of what the act takes: the rest it already has. */
   readonly until?: number;
-  /** It began with answers it already had: what the thing is today. */
   readonly carried?: true;
   /** Those answers, as they were when it began: what each datum is today, whatever is answered since. */
   readonly was?: readonly string[];
@@ -41,6 +42,8 @@ interface Walking {
   /** What is written was there when the question opened: the first key written replaces it, any other edits it. */
   readonly suggested: boolean;
   readonly error?: string;
+  /** Only a result returned by an action that ran is an Error. */
+  readonly failed?: true;
   /** In a question that picks a thing, the person is looking for it: what they type is what they look for. */
   readonly finding?: true;
   /** It was started from a question that picks a thing, to make a new one: what it makes answers that question. */
@@ -94,36 +97,22 @@ export function actOf(tools: readonly Tool[], walk: Walk) {
   return {
     ...act,
     title: () => act.title?.(target),
+    today: () => act.today?.(target),
     next: (answers: readonly string[]) => act.next(answers, target),
     stops: (answers: readonly string[]) => act.stops?.(answers, target),
     run: (answers: readonly string[]) => act.run(answers, target),
   };
 }
-/** The question a walk stands on; none once it has asked everything it was started to ask. */
-/** Whether an option is what the datum already is, where choosing it again would change nothing. */
-const isCurrent = (field: Field, option: Option): boolean =>
-  field.only === true && field.current !== undefined && (option.value ?? option.title) === field.current;
-const marked = (field: Field, option: Option): Option =>
-  isCurrent(field, option) ? { ...option, detail: said.current, off: true } : option;
-/** A question of a walk that began with what the thing is today says what its datum is; and where it is all the
- * walk asks, the things it picks among come with the one it already is turned off. */
-function today(walk: Walk, field: Field): Field {
-  const current = walk.was?.[walk.pos];
-  if (current === undefined) return field;
-  const known = { ...field, current, ...(walk.lone ? { only: true as const } : {}) };
-  if (known.kind !== "pick") return known;
-  return { ...known, found: sought => known.found(sought).map(option => marked(known, option)) };
-}
 export function fieldOf(tools: readonly Tool[], walk: Walk): Field | null {
   if (walk.pos === walk.until) return null;
   const field = actOf(tools, walk).next(walk.answers.slice(0, walk.pos));
-  return field ? today(walk, field) : null;
+  return field ? withStops(walk, currentField(walk, field, actOf(tools, walk)), actOf(tools, walk)) : null;
 }
 /** The key that goes back where an act asks to be confirmed. */
 export const backKey = said.back.charAt(0);
 export function optionsOf(field: Field | null): readonly Option[] {
   if (!field || !("options" in field)) return [];
-  if (field.kind !== "confirm") return field.options.map(option => marked(field, option));
+  if (field.kind !== "confirm") return field.options.map(option => markedCurrent(field, option));
   const back = { key: backKey, title: said.back, detail: said.unchanged };
   return field.reversible ? [...field.options, back] : [back, ...field.options];
 }
@@ -134,12 +123,11 @@ export const opened = (field: Field | null, answer?: string): Opened => {
   const value = answer ?? field?.initial ?? "";
   const typed = field?.kind === "text" || field?.kind === "secret" ? value : "";
   const options = field?.kind === "pick" ? field.found("") : optionsOf(field);
-  const at = foundAt(options, option => (option.value ?? option.title) === value);
+  const matched = options.findIndex(option => !option.off && (option.value ?? option.title) === value);
+  const at = matched >= 0 ? matched : options.findIndex(option => !option.off);
   return {
     typed,
     caret: Array.from(typed).length,
-    /** A choice opens on the option it already is, also when that one cannot be chosen again: the person sees
-     * where the datum stands, and enter on it says nothing would change. */
     at,
     marks: field?.kind === "many" && value ? value.split(" · ") : [],
     suggested: typed !== "",
@@ -161,16 +149,21 @@ export const maskOf = (field: Field | null, answer: string): string => {
 /** Whether what is written can be sent: it is valid, and where it is all the act asks, it is not what the datum
  * already is. Writing the same again would change nothing. */
 export const validOf = (field: Field | null, typed: string): boolean =>
-  (field?.valid ?? (value => value.trim() !== ""))(typed) && !(field?.only === true && field.current === typed);
+  (field?.valid ?? (value => value.trim() !== ""))(typed) &&
+  field?.wrong?.(typed) === undefined &&
+  !(field?.unchanged?.(typed) ?? (field?.only === true && field.current === typed));
 /** A walk as it begins. A row may start it with answers it already has: what comes before the first one it asks is
  * fixed by where the row stands and shows as answered, and each question opens on the answer it has. */
 export function begin(tools: readonly Tool[], tool: string, act: string, target?: string, given?: ViewRow["with"]) {
-  const { answers = [], from = 0, until, today } = given ?? {};
+  const shown = toolOf(tools, tool);
+  const current = target === undefined ? shown.acts[act]?.today?.() : shown.actsOn?.[act]?.today?.(target);
+  const { answers = current ?? [], from = 0, until } = given ?? {};
+  const today = current !== undefined || given?.today === true;
   const limits = {
     floor: from,
     ...(until === undefined ? {} : { until }),
-    ...(given ? { carried: true as const } : {}),
-    ...(today ? { was: answers } : {}),
+    ...(given || today ? { carried: true as const } : {}),
+    ...(today ? { was: current ?? answers } : {}),
   };
   const place = target === undefined ? {} : { target };
   const bare: Walk = {
@@ -192,7 +185,7 @@ export function begin(tools: readonly Tool[], tool: string, act: string, target?
   });
   /** It asks one datum when it stops right after it, or when nothing but being sure comes after it. */
   const after = until === undefined ? next(answers.slice(0, from + 1)) : null;
-  const lone = today === true && (until === undefined ? !after || after.kind === "confirm" : until - from === 1);
+  const lone = today && (until === undefined ? !after || after.kind === "confirm" : until - from === 1);
   const walk: Walk = { ...bare, asked, ...(lone ? { lone: true as const } : {}) };
   return { ...walk, ...opened(fieldOf(tools, walk), answers[from]) };
 }
