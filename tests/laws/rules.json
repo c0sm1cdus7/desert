@@ -852,10 +852,18 @@
     },
     {
       "id": 114,
-      "rule": "Las pruebas derivadas corren en el gate de cada programa sin que el programa las pida",
+      "rule": "Las pruebas derivadas corren exactamente una vez en el gate de cada programa sin que el programa las pida, repartidas por posición en ocho partes con los mismos nombres",
       "from": "LEYES 7",
       "guarantee": "derived",
-      "evidence": ["src/programs/program-checks.ts", "tests/program/program.checks.ts", "tests/laws/gate.spec.ts"]
+      "evidence": [
+        "src/programs/program-checks.ts",
+        "tests/program/run.ts",
+        "tests/program/registration.ts",
+        "tests/program/parts.ts",
+        "tests/laws/program-parts.spec.ts",
+        "tests/laws/program-loading.spec.ts",
+        "tests/laws/gate.spec.ts"
+      ]
     },
     {
       "id": 115,
@@ -1340,13 +1348,17 @@
     },
     {
       "id": 165,
-      "rule": "El control de actualización informa por cada registro guardado si REUTILIZÓ los plegados o RECONSTRUYÓ y por qué, y compara estado completo y reloj con reconstruir. En modo de versión manual exige al menos un registro cuyo plegado se reutilice con la candidata y contenga hechos ya plegados; sin él falla por falta de evidencia. Esos registros se renuevan con los plegados de cada entrega. En modo de huella de código, distinguido al componer, comprueba que cambiar código cambia la huella y reconstruye, sin exigir plegados reutilizables. Los originales no se modifican.",
+      "rule": "El control de actualización informa por cada registro guardado si REUTILIZÓ los plegados o RECONSTRUYÓ y por qué, y compara estado completo y reloj con reconstruir. En modo de versión manual exige al menos un registro cuyo plegado se reutilice con la candidata y contenga hechos ya plegados; sin él falla por falta de evidencia. Esos registros se renuevan con los plegados de cada entrega. En modo de huella de código, distinguido al componer, comprueba que cambiar código cambia la huella y reconstruye, sin exigir plegados reutilizables. Los originales no se modifican. Los registros que una organización ya escribió y el programa guarda (`desert.journals`) siguen abriendo con el programa de hoy: cada hecho se lee y se pliega desde el primero, y cada cosa se lee donde la lee una persona; nada se saltea para que abran. Sus comprobaciones también se reparten por posición entre las partes de la compuerta, sin perder el informe de caminos recorridos.",
       "from": "12/11 · obra de Capibara: en una noche cambiaron decenas de hechos; el día que haya datos reales, un cambio que no los lea tiene que frenar en la compuerta, no en la organización",
       "guarantee": "spec",
       "evidence": [
         "src/programs/kept-journals.ts",
         "src/programs/kept-journals.spec.ts",
-        "tests/program/program.checks.ts",
+        "tests/program/run.ts",
+        "tests/program/registration.ts",
+        "tests/program/parts.ts",
+        "tests/laws/program-parts.spec.ts",
+        "tests/laws/program-loading.spec.ts",
         "src/programs/kept-upgrade.ts",
         "src/programs/upgrade-kept.spec.ts",
         "src/programs/upgrade-evidence.spec.ts",

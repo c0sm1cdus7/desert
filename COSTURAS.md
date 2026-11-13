@@ -72,8 +72,12 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
 - `tests/laws/rules.json` es la lista única de reglas, cada una con cómo se garantiza (tipo, rechazo al componer,
   prueba derivada, prueba de la superficie) y dónde. `pnpm rules` escribe `GARANTIAS.md`. Una ley del gate no deja
   sumar una regla sin garantía ni cambiar la cantidad de deudas sin querer.
-- Las pruebas derivadas de un programa corren solas en su gate (`tests/program/program.checks.ts`): el programa
-  dice dónde se compone (`package.json`, `desert.program`) y no elige cuáles corren.
+- Las pruebas derivadas de un programa corren solas en su gate, exactamente una vez entre ocho archivos
+  (`tests/program/part-*.checks.ts`): el programa dice dónde se compone (`package.json`, `desert.program`) y no
+  elige cuáles corren. Se reparten salteadas por posición, también las de registros guardados, conservando grupos,
+  nombres e informes de caminos recorridos. El patrón de archivos ya las encuentra al subir de base.
+  `tests/program/parts.ts` fija la cantidad; `tests/laws/gate.spec.ts` exige cada archivo y su índice en disco.
+  Una parte vacía registra una comprobación explícita; nunca oculta errores de carga ni de ejecución.
 - Una acción se declara por partes (`tools/promises.ts`): `name` (lo que dice su fila, en minúscula), `enter` (el
   verbo que confirma), `undoable`, `purpose`, `key`, `on`, y cuando hace falta `title`, `under`, `leaves`,
   `changes`, `datum`, `confirms`, `today`, `also`, `offered`, `refuses`. Lo que se rechaza al componer: un nombre

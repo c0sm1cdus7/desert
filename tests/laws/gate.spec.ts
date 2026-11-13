@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+import { programPartCount } from "../program/parts.ts";
 import { field as fieldOf } from "../contract/json.ts";
 import vitestConfig from "../../vitest.config.ts";
 import { filesUnder, fromRoot, isSpec, parsed, root, src } from "../support/sources.ts";
@@ -104,6 +105,17 @@ describe("law 12: a gate that cannot be cheated", () => {
     expect(typeof fieldOf(fieldOf(said, "desert"), "program")).toBe("string");
     const tests = filesUnder(root, path => /\.(?:spec|test)\.[cm]?[jt]sx?$/.test(path)).map(fromRoot);
     expect(tests.filter(path => !(path.startsWith("src/") && path.endsWith(".spec.ts")) && !isLaw(path))).toEqual([]);
+  });
+
+  it("keeps every program part on disk exactly once, with its own index", () => {
+    const files = filesUnder(join(root, "tests/program"), path => path.endsWith(".checks.ts")).sort();
+    const expected = Array.from({ length: programPartCount }, (_, part) => `tests/program/part-${part}.checks.ts`);
+    expect(files.map(fromRoot)).toEqual(expected);
+    files.forEach((file, part) => {
+      expect(readFileSync(file, "utf8").trim()).toBe(
+        `import { runProgramPart } from "./run.ts";\n\nawait runProgramPart(${part});`,
+      );
+    });
   });
 
   it("skips no test and focuses on none", () => {
