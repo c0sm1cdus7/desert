@@ -1,0 +1,103 @@
+{
+  "commit": "0ec3f7b49d95001b85c4370dc3e9cd49d3305954",
+  "exposed": {
+    "events": [
+      {
+        "seq": 1,
+        "id": "f6c1e4b4ed50c0dbc16c6021c0425c7a4a07d31edafa126863c5ccbc51dd248a",
+        "at": 1000,
+        "kind": "house-created",
+        "by": "ana",
+        "cause": "[]",
+        "data": "{}",
+        "process": null
+      },
+      {
+        "seq": 2,
+        "id": "44ab29ba000a0e9f14ee4fb9e7da2b1023be2f46240a754e2eefc24d0df9e73b",
+        "at": 1000,
+        "kind": "granted",
+        "by": "ana",
+        "cause": "[]",
+        "data": "{\"identity\":\"ana\",\"tools\":[\"vault\"]}",
+        "process": null
+      },
+      {
+        "seq": 3,
+        "id": "00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f",
+        "at": 1000,
+        "kind": "act",
+        "by": "ana",
+        "cause": "[]",
+        "data": "{\"object\":\"vault\",\"option\":\"set\",\"input\":{\"value\":\"dato-anterior\"},\"through\":0}",
+        "process": null
+      },
+      {
+        "seq": 4,
+        "id": "160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c",
+        "at": 1000,
+        "kind": "act",
+        "by": "ana",
+        "cause": "[]",
+        "data": "{\"object\":\"removed-tool\",\"option\":\"gone\",\"input\":{\"public\":\"visible\"},\"through\":0}",
+        "process": null
+      }
+    ],
+    "snapshots": [
+      {
+        "name": "old-snapshot",
+        "state": "/w9vIgNzZXFJCCIFc3RhdGVvIgZwdWJsaWMiB3Zpc2libGV7AXsC"
+      }
+    ]
+  },
+  "reference": {
+    "events": [
+      {
+        "seq": 1,
+        "id": "f6c1e4b4ed50c0dbc16c6021c0425c7a4a07d31edafa126863c5ccbc51dd248a",
+        "at": 1000,
+        "kind": "house-created",
+        "by": "ana",
+        "cause": "[]",
+        "data": "{}",
+        "process": null
+      },
+      {
+        "seq": 2,
+        "id": "44ab29ba000a0e9f14ee4fb9e7da2b1023be2f46240a754e2eefc24d0df9e73b",
+        "at": 1000,
+        "kind": "granted",
+        "by": "ana",
+        "cause": "[]",
+        "data": "{\"identity\":\"ana\",\"tools\":[\"vault\"]}",
+        "process": null
+      },
+      {
+        "seq": 3,
+        "id": "00024f85cc60ff211938ca149577e627434e64408bafe78b265eb48abafc4e2f",
+        "at": 1000,
+        "kind": "act",
+        "by": "ana",
+        "cause": "[]",
+        "data": "{\"object\":\"vault\",\"option\":\"set\",\"input\":{\"value\":\"secret:00000000-0000-0000-0000-000000000000\"},\"through\":0}",
+        "process": null
+      },
+      {
+        "seq": 4,
+        "id": "160feeadf14816b444d48950275ccc13d5df55adb1411eaa22aa00c9ce5b600c",
+        "at": 1000,
+        "kind": "act",
+        "by": "ana",
+        "cause": "[]",
+        "data": "{\"object\":\"removed-tool\",\"option\":\"gone\",\"input\":{\"public\":\"visible\"},\"through\":0}",
+        "process": null
+      }
+    ],
+    "snapshots": [
+      {
+        "name": "old-snapshot",
+        "state": "/w9vIgNzZXFJCCIFc3RhdGVvIgZwdWJsaWMiB3Zpc2libGV7AXsC"
+      }
+    ]
+  }
+}

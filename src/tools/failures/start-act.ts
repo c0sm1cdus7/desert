@@ -10,11 +10,14 @@ export function startAct<X extends Program>(ports: Execution<X>, emission: House
     return { act: ports.bus.emit(emission) };
   } catch (error) {
     const { object, option } = emission.data;
-    const entry = ports.secrets.scrub(failureEntry(error, emission.by, object, object, option));
+    const entry = ports.secrets.scrub(failureEntry(ports.secrets.scrub(error), emission.by, object, object, option));
     try {
       ports.bus.emit(entry);
     } catch (failure) {
-      lostDiagnostic(entry, ports.secrets.scrub(baseEntry(failure, emission.by, object, object, option)));
+      lostDiagnostic(
+        entry,
+        ports.secrets.scrub(baseEntry(ports.secrets.scrub(failure), emission.by, object, object, option)),
+      );
     }
     return {
       failed: { status: "rejected" as const, reason: entry.data.text, defect: true as const, effects: [entry] },

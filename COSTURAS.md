@@ -48,8 +48,11 @@ Qué cambió respecto de Kenon en este paso:
   Si falta una palabra, es un defecto del programa y se dice cuál falta; nunca se muestra un código en su lugar.
 - `src/programs/house-runtime.ts`: `startHouse` arranca la casa de un programa (registro, secretos aparte,
   herramientas, reloj) y `localPorts` le da la casa a una superficie en el mismo proceso, como un integrante.
-- `src/adapters/secrets/`: un valor que el esquema de un acto marca como secreto no llega al registro; queda
-  en un archivo aparte y en el registro va una referencia.
+- `src/adapters/secrets/`: reemplaza por estructura las posiciones secretas de acciones y hechos; limpia
+  repeticiones literales dentro de cada acción antes de serializar errores. Los valores quedan aparte y los
+  plegados reciben referencias. `positions/` adapta la lectura; `text/` limpia texto y causas; `history/` revisa
+  registros anteriores antes de cualquier escritura. Transformaciones y pantalla final quedan fuera: el
+  contrato y la apertura con `E-SECRET-HISTORY` están en `PROGRAMA.md`, «Lo declarado secreto».
 - Probado en una terminal real con el programa de prueba: `node tests/support/shop-open.ts`.
 
 ## 4. El router: una sola lógica para todas las superficies (HECHO)

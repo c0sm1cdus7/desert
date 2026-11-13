@@ -287,12 +287,45 @@ no cambia un proveedor real por uno simulado ni promete que `reach: "world"` imp
 - Las comprobaciones derivadas mandan intenciones al router: no ven lo que pasa antes, en la lectura del teclado. Lo
   que depende de la entrada de verdad se comprueba con `realTerminal`, que corre el programa por su propia entrada.
 
+## Lo declarado secreto
+- `secret: true` en un campo string garantiza la posición declarada, siempre y por estructura: al escribir
+  una acción o un hecho, esa posición lleva una referencia `secret:<UUID>`. Vale para el vacío, una sola letra,
+  cualquier largo, palabras del vocabulario y texto multilínea. La entrada original se valida antes de escribir
+  hechos; la lectura admite referencias en esas posiciones aunque no cumplan el largo o patrón del valor original.
+- La misma acción limpia la repetición literal de los valores que entraron por sus posiciones secretas en sus
+  hechos (también campos no marcados), resultado, borrador, errores y causas, y actividad. No busca todos los
+  secretos de la bóveda contra todo texto. El vacío se reemplaza en su posición pero no se busca en texto libre.
+  Nombres de campos, discriminantes del esquema, procedencia e identificadores del protocolo conservan su función.
+- Se recorren objetos, listas, tuplas, opcionales y las ramas válidas de uniones. Una entrada cuya rama secreta
+  no se pueda resolver se omite al escribirla; sus fragmentos de texto tampoco van al diagnóstico. Declaraciones
+  secretas de otros tipos o bajo combinaciones no soportadas se rechazan con `E-SECRET-SCHEMA`.
+  `secretInput: false` no desactiva una marca declarada.
+- La acción sigue recibiendo el valor original. Sus validaciones, normalización, borrador, cuerpo y los puertos
+  que ella llame pueden leerlo. **La marca no garantiza una transformación del secreto hecha por el programa**:
+  por ejemplo, cambiar saltos de línea por separadores puede dejar el texto transformado a la vista.
+  Tampoco se garantiza acá el tapado de la pregunta ni una limpieza final de pantallas o callbacks del programa:
+  esa deuda sigue abierta. Un programa no debe copiar ni transformar el valor para mostrarlo.
+- Los plegados en memoria y guardados se conservan: se construyen con los hechos que ya llevan referencias.
+  La invalidación de plegados de versiones anteriores depende de la versión de su formato, fuera de esta protección.
+- Al abrir un registro sin `secret-protection.json`, la base revisa sus acciones en solo lectura con el catálogo
+  actual, antes de abrir la bóveda, restaurar plegados o agregar un arranque. Si encuentra un valor en una posición
+  hoy declarada secreta, devuelve `E-SECRET-HISTORY` con la acción, posición y número de hecho, nunca el valor,
+  y no escribe nada. No reescribe hechos: el registro sigue siendo aditivo.
+- Si no encuentra valores, deja la marca de protección versión 1 con `reviewed` (acciones revisadas) y
+  `unreviewable` (acciones sin declaración disponible). Lo no revisable no frena la apertura y queda contado en
+  la marca; no equivale a declarar limpio ese contenido. Una casa nueva empieza con ambas cuentas en cero.
+- Al actualizar, mantené las marcas en los campos, aceptá referencias en los plegados y tratá el rechazo histórico
+  sin reintentar escribiendo sobre el registro. La revisión no recupera esquemas desaparecidos ni certifica salidas
+  transformadas o datos no declarados. La bóveda separada no ofrece cifrado ni convierte al programa en un lector
+  de referencias opacas; ese cambio de contrato se diseña aparte.
+
 ## Los registros que se guardan
 - Un programa puede guardar registros que organizaciones reales escribieron con él en una carpeta que nombra en
   `package.json`: `"desert": { "program": …, "journals": "tests/journals" }`. Cada uno es una copia de su
-  `journal.sqlite` (nunca `secrets.sqlite`; lo secreto no está en el registro, que guarda cada hecho ya sin sus
-  valores secretos, pero sí están los datos de la organización: no guardes el de una organización real en un
-  repositorio público).
+  `journal.sqlite` (nunca `secrets.sqlite`). La protección alcanza las posiciones declaradas y las repeticiones
+  literales dentro de la misma acción, con los límites explicados arriba. Un histórico no revisado, una
+  transformación o un dato no declarado puede conservar material sensible; además están los datos de la
+  organización: no guardes el de una organización real en un repositorio público.
 - La compuerta abre cada copia con el programa de hoy, sin lo que traía plegado: cada hecho se lee y se pliega desde
   el primero, y cada cosa se lee como la lee quien administra. Un cambio que no los lea frena ahí.
 - Además recorre lo ofrecido en anchura: cada camino vuelve a una copia limpia del registro, con el reloj quieto.

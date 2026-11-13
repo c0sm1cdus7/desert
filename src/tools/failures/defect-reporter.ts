@@ -14,12 +14,12 @@ export const defectReporter =
   ) =>
   (error: unknown, tool: string, target: string, option: string): string => {
     const declared = registry.find(known => known.id === tool)?.acts[option];
-    const entry = scrub(failureEntry(error, by, tool, target, option, declared));
+    const entry = scrub(failureEntry(scrub(error), by, tool, target, option, declared));
     try {
       write(entry);
       return entry.data.text;
     } catch (failure) {
-      const failed = scrub(baseEntry(failure, by, tool, target, option, declared));
+      const failed = scrub(baseEntry(scrub(failure), by, tool, target, option, declared));
       lostDiagnostic(entry, failed);
       return failed.data.text;
     }

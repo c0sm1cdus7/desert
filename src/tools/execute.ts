@@ -1,3 +1,4 @@
+import type { TSchema } from "@sinclair/typebox";
 import { programCall } from "./boundaries/program-call.ts";
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
 import { Value } from "@sinclair/typebox/value";
@@ -19,7 +20,11 @@ export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; keys:
   Readonly<{ registry: ToolRegistry<X>; state: () => State<X>; own: (state: State<X>) => readonly OwnAct<X>[] }> &
   Readonly<{ process: (id: string, by?: string) => boolean; live: () => boolean; chain?: readonly string[] }> &
   Readonly<{
-    secrets: { capture(value: unknown, registry: ToolRegistry<X>, state?: State<X>): void; scrub<T>(value: T): T };
+    secrets: {
+      capture(value: unknown, registry: ToolRegistry<X>, state?: State<X>): void;
+      scrub<T>(value: T): T;
+      scope?<T>(schema: TSchema | undefined, input: unknown, work: () => T): T;
+    };
   }>;
 export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
   Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown; defect?: true }> &
@@ -61,7 +66,7 @@ const decide = <X extends Program>(ports: Execution<X>, value: Act, origin: Orig
   const { state, offered, tool, act } = found;
   const refused = refusal(ports, origin, found);
   if (refused !== undefined || !act) return rejected(refused ?? toolTexts.unknown);
-  const execute = (nested: Act) => executeNested(ports, origin, nested);
+  const execute = (nested: Act) => executeNested(ports, origin, nested, value.input);
   const context: ActContext<X> = { state, by, target, at: ports.now(), through, keys: ports.keys, id, execute };
   const draft = !offered && programCall(tool?.draft?.bind(tool), state, through, value.input, target, context.at);
   if (draft) {
@@ -78,10 +83,10 @@ const decide = <X extends Program>(ports: Execution<X>, value: Act, origin: Orig
     return result instanceof Promise ? result.then(finish) : finish(result);
   };
 };
-async function executeNested<X extends Program>(ports: Execution<X>, origin: Origin, nested: Act) {
+async function executeNested<X extends Program>(ports: Execution<X>, origin: Origin, nested: Act, input: unknown) {
   const { by, id, process } = origin;
   const tool = targetTool(ports.registry, identityView(ports.state(), by), nested.target ?? "");
-  const chain = [...(ports.chain ?? []), JSON.stringify([origin.data.object, origin.data.option, origin.data.input])];
+  const chain = [...(ports.chain ?? []), JSON.stringify([origin.data.object, origin.data.option, input])];
   const unknown: ActResult<X> = { status: "rejected", reason: toolTexts.unknown };
   if (!tool || chain.includes(JSON.stringify([nested.target, nested.act, nested.input]))) return unknown;
   const cause = [id, ...(process ? [process] : [])];
@@ -120,8 +125,18 @@ export function execute<X extends Program>(
   by: string,
   cause: readonly string[] = [],
 ): ExecutionResult<X> {
-  ports.secrets.capture(value, ports.registry, ports.state());
   if (!Value.Check(actEnvelope, value)) return rejected(toolTexts.invalid);
+  const work = () => executeScoped(ports, value, through, by, cause);
+  const schema = resolve(ports, by, value.target ?? ids.self, value.act).act?.input;
+  return ports.secrets.scope ? ports.secrets.scope(schema, value.input, work) : work();
+}
+function executeScoped<X extends Program>(
+  ports: Execution<X>,
+  value: Act,
+  through: number,
+  by: string,
+  cause: readonly string[],
+): ExecutionResult<X> {
   const process = cause.find(id => ports.process(id));
   const data = { object: value.target ?? ids.self, option: value.act, input: value.input, through };
   const started = startAct(ports, effect("act", data, by, cause, process));
@@ -143,10 +158,11 @@ const run = <X extends Program>(ports: Execution<X>, act: Origin, perform: Perfo
   try {
     ports.bus.emit(effect("act-started", { act: act.id, object, option }, act.by, [act.id], act.process));
   } catch (error) {
-    return finish(ports, act, executionFailure(ports.registry, ports.state(), act, error));
+    return finish(ports, act, executionFailure(ports.registry, ports.state(), act, ports.secrets.scrub(error)));
   }
   /** Program failures have one public message and a separate support record. */
-  const failed = (error: unknown): Decision<X> => executionFailure(ports.registry, ports.state(), act, error);
+  const failed = (error: unknown): Decision<X> =>
+    executionFailure(ports.registry, ports.state(), act, ports.secrets.scrub(error));
   let result: Decision<X> | Promise<Decision<X>>;
   try {
     result = perform();

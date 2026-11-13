@@ -10,16 +10,18 @@ import { BaseFailure, baseEntry, lostDiagnostic } from "./base-failure.ts";
 const reportLost = <X extends Program>(ports: Execution<X>, act: HouseEvent<"act">, entry: unknown, error: unknown) =>
   lostDiagnostic(
     entry,
-    ports.secrets.scrub(baseEntry(error, act.by, act.data.object, act.data.object, act.data.option)),
+    ports.secrets.scrub(
+      baseEntry(ports.secrets.scrub(error), act.by, act.data.object, act.data.object, act.data.option),
+    ),
   );
 
 const failedDecision = <X extends Program>(ports: Execution<X>, act: HouseEvent<"act">, error: unknown) =>
-  ports.secrets.scrub(executionFailure(ports.registry, ports.state(), act, error));
+  ports.secrets.scrub(executionFailure(ports.registry, ports.state(), act, ports.secrets.scrub(error)));
 
 export function finish<X extends Program>(ports: Execution<X>, act: HouseEvent<"act">, decision: Decision<X>) {
   const safe = ports.secrets.scrub(decision);
   if (!ports.live()) return safe;
-  const failure = writtenEffects(ports, act, safe.effects);
+  const failure = writtenEffects(ports, act, decision.effects);
   let done: Decision<X> = safe;
   if (failure !== undefined) {
     done = failedDecision(

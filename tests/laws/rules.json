@@ -1736,6 +1736,51 @@
         "src/doors/terminal/input.spec.ts",
         "src/doors/terminal/real-terminal.spec.ts"
       ]
+    },
+    {
+      "id": 202,
+      "rule": "Cada posición string declarada secret se reemplaza por una referencia al escribir acciones y hechos, incluso vacía, corta o igual al vocabulario. Las declaraciones no soportadas se rechazan y secretInput false no desactiva la marca.",
+      "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
+      "guarantee": "spec",
+      "evidence": [
+        "src/adapters/secrets/positions/secret-positions.ts",
+        "src/adapters/secrets/action-secrets.spec.ts",
+        "src/adapters/secrets/secret-boundaries.spec.ts"
+      ]
+    },
+    {
+      "id": 203,
+      "rule": "Solo los secretos de la acción actual limpian sus repeticiones literales en hechos, resultado, borrador, actividad y errores con causa antes de serializarlos; nunca se usa toda la bóveda como diccionario. Las transformaciones del programa son un límite conocido y la pregunta tapada sigue pendiente.",
+      "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
+      "guarantee": "spec",
+      "evidence": [
+        "src/adapters/secrets/text/action-text.ts",
+        "src/adapters/secrets/secret-neighbors.spec.ts",
+        "src/adapters/secrets/action-secrets.spec.ts",
+        "PROGRAMA.md"
+      ]
+    },
+    {
+      "id": 204,
+      "rule": "Los plegados en memoria y guardados conservan referencias en las posiciones declaradas porque pliegan hechos ya protegidos; se conservan al cerrar y reabrir, también para vacío, uno, once, doce y trece caracteres, vocabulario y multilínea.",
+      "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
+      "guarantee": "spec",
+      "evidence": [
+        "src/adapters/secrets/action-secrets.spec.ts",
+        "tests/support/secret-snapshots.ts",
+        "src/adapters/secrets/secret-vault.spec.ts"
+      ]
+    },
+    {
+      "id": 205,
+      "rule": "Un registro sin marca se revisa en solo lectura con los esquemas actuales antes de abrir: los valores en posiciones secretas provocan E-SECRET-HISTORY sin escrituras ni valores en el error; las referencias permiten abrir y se dejan cuentas revisadas y no revisables, sin reescribir hechos.",
+      "from": "13/11 · A01, diseño B y decisión de implementación primera parte",
+      "guarantee": "spec",
+      "evidence": [
+        "src/adapters/secrets/history/secret-history.ts",
+        "src/adapters/secrets/secret-history.spec.ts",
+        "tests/support/a01-history.json"
+      ]
     }
   ]
 }

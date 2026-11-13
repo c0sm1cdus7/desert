@@ -3,6 +3,7 @@ import { closeResources } from "../tools/boundaries/close-resources.ts";
 import { defectReporter } from "../tools/failures/defect-reporter.ts";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { protectedHouse } from "../adapters/secrets/positions/protected-house.ts";
 import { SecretVault } from "../adapters/secrets/secret-vault.ts";
 import { SqliteJournal } from "../adapters/storage/journal-store.ts";
 import { privateDirectoryMode, type ViewLimits } from "../catalogs/levers.ts";
@@ -49,13 +50,11 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
   const { by, words, registry, slices, creation, ...ports } = options;
   if (!by) throw new Error("An explicit identity is required");
   if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);
+  const protection = protectedHouse(home, options);
   mkdirSync(home, { recursive: true, mode: privateDirectoryMode });
-  const journal = new SqliteJournal(join(home, "journal.sqlite"), words);
+  const journal = new SqliteJournal(join(home, "journal.sqlite"), protection.words);
   const secrets = new SecretVault<X>(join(home, "secrets.sqlite"), words.event);
-  const bus = busOf<X>(journal, time, emission => {
-    secrets.capture(emission, registry);
-    return secrets.scrub(emission);
-  });
+  const bus = busOf<X>(journal, time, emission => secrets.write(emission));
   const stops: (() => void)[] = [];
   const report = defectReporter(
     registry,
@@ -68,6 +67,7 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
       report(error, "program", "program", "stop");
     });
   try {
+    protection.mark();
     /** What a house keeps between runs came from one shape of its program: the facts it reads, and where its state
      * starts. Kept under that shape, another shape of the program folds the journal again from its first fact. */
     const shape = shapeOf(JSON.stringify(words.event), startState<X>(slices, by));
@@ -75,6 +75,7 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     const state = journal.watch(`tools:${by}@${shape}`, startState<X>(slices, by), (state, event) =>
       toolsStep<X>(state, event, slices),
     );
+    protection.attach(secrets, state);
     journal.restore();
     const tools = startTools({ ...ports, bus, secrets, registry, state, now: () => time.now() });
     if (!state().house.admin) createHouse(bus, creation);

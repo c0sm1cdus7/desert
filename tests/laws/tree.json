@@ -1,6 +1,6 @@
 {
   "files": {
-    "adapters/secrets/redact.ts": "Redactor: values an act's schema marks secret are captured and replaced by references",
+    "adapters/secrets/redact.ts": "Redactor: reemplaza posiciones al escribir y limpia resultados con el alcance de la acción actual",
     "adapters/secrets/secret-vault.ts": "SecretVault: captured secrets in their own private store, apart from the journal",
     "adapters/storage/home.ts": "privateDatabase: a house's files on disk, readable only by whoever runs it",
     "adapters/storage/journal-store.ts": "SqliteJournal: append-only facts of a house and its program, replay, snapshots, one open lock",
@@ -136,7 +136,16 @@
     "surface/navigation/gone-view.ts": "Reconoce solo una ausencia explícita y deja salir los defectos de lectura.",
     "surface/navigation/missing-view.ts": "Identifica una vista ausente sin confundirla con una lectura que falló.",
     "surface/bridge/actions/asked-act.ts": "Compone preguntas y confirmación de una acción conservando el dueño de sus métodos.",
-    "texts/closures/closures.texts.ts": "Mensajes de cierres por causa, dato o construcción y de entradas sin camino."
+    "texts/closures/closures.texts.ts": "Mensajes de cierres por causa, dato o construcción y de entradas sin camino.",
+    "adapters/secrets/positions/action-scope.ts": "ActionSecrets: captura strings de cualquier largo y aísla el diccionario de cada acción asíncrona",
+    "adapters/secrets/positions/secret-positions.ts": "Recorre posiciones secretas soportadas, rechaza esquemas sin plan y admite referencias al leer",
+    "adapters/secrets/positions/protected-vocabulary.ts": "Valida y congela hechos persistidos con referencias sin cambiar el esquema de entrada",
+    "adapters/secrets/positions/protected-house.ts": "Compone la protección y resuelve acciones propias y destinos con el estado de la casa",
+    "adapters/secrets/text/action-text.ts": "Limpia coincidencias literales antes de serializar errores, causas y colecciones",
+    "adapters/secrets/text/secret-output.ts": "Separa texto de los campos del protocolo y conserva discriminantes y nombres declarados",
+    "adapters/secrets/history/secret-history.ts": "Revisa acciones históricas en solo lectura; bloquea valores expuestos o deja la marca con sus cuentas",
+    "adapters/secrets/positions/declared-input.ts": "Resuelve el esquema exacto de acciones propias, de cosas y de la casa para escritura y revisión histórica",
+    "texts/secrets/secrets.texts.ts": "Mensajes de apertura y declaraciones secretas que nombran posiciones sin mostrar valores"
   },
   "folders": {
     "adapters/secrets": 103,
@@ -145,17 +154,17 @@
     "doors/terminal": 696,
     "house": 91,
     "journal": 333,
-    "programs": 1876,
+    "programs": 1877,
     "surface": 1823,
     "surface/bridge": 1387,
     "texts": 216,
-    "tools": 1021,
+    "tools": 1036,
     "tools/execution": 94,
     "surface/guards": 106,
     "surface/bridge/questions": 51,
     "surface/availability": 27,
     "programs/availability": 28,
-    "tools/failures": 128,
+    "tools/failures": 133,
     "tools/answers": 22,
     "programs/choices": 56,
     "programs/coverage": 23,
@@ -168,6 +177,10 @@
     "surface/navigation": 79,
     "programs/walks": 166,
     "programs/construction": 76,
-    "texts/closures": 13
+    "texts/closures": 13,
+    "adapters/secrets/positions": 200,
+    "adapters/secrets/text": 150,
+    "adapters/secrets/history": 160,
+    "texts/secrets": 5
   }
 }
