@@ -19,7 +19,7 @@ export interface Router {
 }
 export type RouterSource = Readonly<{ tools: readonly Tool[]; bar: () => Bar; first?: Session }> &
   /** The house saying that something in it changed, and how often a screen that shows time is drawn again. */
-  Readonly<{ changes?: (changed: () => void) => () => void; redrawMs?: number; defect?: DefectReporter }>;
+  Readonly<{ changes?: (changed: () => void) => () => void; redrawMs?: number; defect: DefectReporter }>;
 
 /** What the house answers later: each answer lands when it comes, and anyone can wait for all of them. */
 function landings(landed: () => void) {
@@ -40,14 +40,18 @@ function landings(landed: () => void) {
 }
 export function startRouter({ tools, bar, changes, redrawMs, first = start, defect }: RouterSource): Router {
   let session = first;
-  const { failed, protect } = routerDefects(tools, () => session, bar, defect);
+  const back = (): void => void (session = session.length > 1 ? session.slice(0, -1) : first);
+  const { protect } = routerDefects(() => session, bar, defect, back);
   const watchers = new Set<() => void>();
   const changed = (): void => watchers.forEach(watcher => watcher());
   const { later, idle } = landings(changed);
   const run = (walk: Running): void => {
     const done = Promise.resolve()
       .then(() => actOf(tools, walk).run(walk.answers))
-      .catch((failure: unknown): Result => ({ ok: false, reason: failed(failure) }));
+      .catch((failure: unknown): Result => ({
+        ok: false,
+        reason: defect(failure, walk.tool, walk.target ?? walk.tool, walk.act),
+      }));
     later(done, result => (session = finished(session, walk, result, bar().clock)));
   };
   const stops = [changes?.(changed), redrawMs ? clearInterval.bind(null, setInterval(changed, redrawMs)) : undefined];

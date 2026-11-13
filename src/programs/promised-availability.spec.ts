@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { object } from "../catalogs/acts.ts";
 import { money, thing } from "../catalogs/fields.ts";
 import { chargingShop, makingRegistry, narrowShop } from "../../tests/support/charging-shop.ts";
-import { shopRig } from "../../tests/support/shop-rig.ts";
+import { shopRig, testTime } from "../../tests/support/shop-rig.ts";
 import { shopShown, type Shop } from "../../tests/support/shop.ts";
 import { anyToolScreen } from "../surface/bridge/any-tool.ts";
 import { houseTools } from "../surface/bridge/house-tools.ts";
@@ -35,8 +35,17 @@ const withField = (sale: TSchema): Composition<Shop> => ({
 const compose = (program = chargingShop, shown = shopShown) => {
   const rig = shopRig({ registry: program.registry });
   closing.push(rig);
-  const tools = houseTools(rig.ports("ana"), shown);
-  const router = startRouter({ tools, bar: () => ({ state: "connected", clock: "00:00", now: 0 }) });
+  const tools = houseTools(
+    rig.ports("ana", () => testTime.now()),
+    shown,
+  );
+  const router = startRouter({
+    defect: error => {
+      throw error;
+    },
+    tools,
+    bar: () => ({ state: "connected", clock: "00:00", now: 0 }),
+  });
   closing.push(router);
   return { rig, tools, router };
 };

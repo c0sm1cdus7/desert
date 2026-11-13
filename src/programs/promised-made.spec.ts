@@ -5,10 +5,12 @@ import { shopProgram, shopShown, type Shop } from "../../tests/support/shop.ts";
 import type { Composition, ProgramTool } from "../tools/promises.ts";
 import { cast, given, staged } from "./promised-stage.ts";
 import { seated, type, view } from "./promised-keys.ts";
+import { anyToolScreen } from "../surface/bridge/any-tool.ts";
+import type { Shown } from "../surface/bridge/house-ports.ts";
 import { programChecks } from "./program-checks.ts";
 
 const reason = "venta no elegible";
-type Mode = "among" | "stops" | "valid" | "allowed" | "empty";
+type Mode = "among" | "stops" | "closed" | "valid" | "allowed" | "empty";
 function madeShop(mode: Mode): Composition<Shop> {
   const original: readonly ProgramTool<Shop>[] = makingRegistry;
   const registry = original.map((tool): ProgramTool<Shop> => {
@@ -27,7 +29,7 @@ function madeShop(mode: Mode): Composition<Shop> {
       return {
         ...tool,
         acts: { ...tool.acts, register: maker },
-        closed: (_state, target) => mode === "valid" && target === "sales/s3",
+        closed: (_state, target) => mode === "closed" && target === "sales/s3",
       };
     }
     const charge = tool.acts.charge;
@@ -60,12 +62,40 @@ function madeShop(mode: Mode): Composition<Shop> {
   });
   return { ...shopProgram, registry };
 }
-for (const mode of ["among", "stops", "valid", "allowed", "empty"] satisfies readonly Mode[]) {
+function madeShown(mode: Mode): Shown<Shop> {
+  if (mode !== "valid") return shopShown;
+  return {
+    ...shopShown,
+    screens: {
+      payments: (...args) => {
+        const plain = anyToolScreen(...args);
+        return {
+          ...plain,
+          acts: Object.fromEntries(
+            Object.entries(plain.acts).map(([name, act]) => [
+              name,
+              {
+                ...act,
+                next: answers => {
+                  const field = act.next(answers);
+                  return field?.kind === "pick"
+                    ? { ...field, valid: value => value !== "sales/s3" && field.valid?.(value) !== false }
+                    : field;
+                },
+              },
+            ]),
+          ),
+        };
+      },
+    },
+  };
+}
+for (const mode of ["among", "stops", "closed", "valid", "allowed", "empty"] satisfies readonly Mode[]) {
   describe(`a newly made answer: ${mode}`, () => {
     it("checks the new thing at the same question, keeping its visible refusal and never sending the parent", () =>
       staged(madeShop(mode), async ({ house }) => {
         await given(house(), "sales", [{ act: "register", input: { sale: "s1", total: 100 } }]);
-        const seat = seated(house(), cast.admin, shopShown);
+        const seat = seated(house(), cast.admin, madeShown(mode));
         try {
           type(seat.router, "pcrs3");
           seat.router.send({ kind: "confirm" });
@@ -75,6 +105,15 @@ for (const mode of ["among", "stops", "valid", "allowed", "empty"] satisfies rea
           expect(JSON.stringify(seat.router.screen(view))).toContain("Listo");
           seat.router.send({ kind: "cancel" });
           const screen = seat.router.screen(view);
+          if (mode === "closed" || mode === "valid") {
+            expect(JSON.stringify(screen)).toContain("E-PROG-1");
+            expect(JSON.stringify(screen)).not.toContain("datos inválidos");
+            expect(seat.defects).toHaveLength(1);
+            expect(JSON.stringify(house().tools.state().entries)).toContain("invalid or closed");
+            seat.router.send({ kind: "cancel" });
+            expect(JSON.stringify(seat.router.screen(view))).not.toContain("E-PROG-1");
+            return;
+          }
           expect(screen.title).toBe("Cobrar");
           expect(seat.requests.filter(request => request.act === "charge")).toHaveLength(0);
           if (mode === "allowed") {
@@ -86,7 +125,7 @@ for (const mode of ["among", "stops", "valid", "allowed", "empty"] satisfies rea
             expect(house().tools.state().tools.sales.has("s3")).toBe(false);
             return;
           }
-          const why = mode === "valid" ? "datos inválidos" : reason;
+          const why = reason;
           expect(screen.body.kind === "thread" && screen.body.options).toContainEqual(
             expect.objectContaining({ title: "s3", off: true, detail: why }),
           );

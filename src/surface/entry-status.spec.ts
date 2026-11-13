@@ -10,7 +10,9 @@ import { startRouter } from "./router.ts";
 import type { Result, Tool } from "./shown-tool.ts";
 import { paint } from "../doors/terminal/paint.ts";
 import { textOf } from "../doors/terminal/cells.ts";
-
+function fail(error: unknown): never {
+  throw error;
+}
 const locale = { currency: "$", thousands: ".", decimal: ",", day: "dd/mm/aaaa" };
 const view = { rows: 26 };
 const bar = () => ({ state: "connected", clock: "00:00", now: 0 }) as const;
@@ -32,7 +34,7 @@ function seat(schema: Parameters<typeof asking>[0], stops?: (answers: readonly s
       change: { label: "cambiar", verb: "cambiar", scope: "all", next: ask.next, run, ...(stops ? { stops } : {}) },
     },
   };
-  const router = startRouter({ tools: [tool], bar, first: [begin([tool], "data", "change")] });
+  const router = startRouter({ defect: fail, tools: [tool], bar, first: [begin([tool], "data", "change")] });
   const type = (text: string) => {
     for (const char of text) router.send({ kind: "type", text: char });
   };
@@ -149,7 +151,6 @@ describe("the Entrada", () => {
     }
   });
 });
-
 describe("multiple choices before choosing", () => {
   it("checks each multiple-choice toggle and keeps the cursor on an available option", async () => {
     const field = someOf("Canales", "none", option("cloud", "Nube", "n"), option("market", "Mercado", "m"));

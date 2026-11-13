@@ -1,4 +1,5 @@
 // Surface failures leave the same scrubbed support entry as failures of an action body.
+import { baseEntry, lostDiagnostic } from "./base-failure.ts";
 import { defectEntry } from "../program-defect.ts";
 import type { Program, ToolRegistry } from "../tool-contract.ts";
 
@@ -13,6 +14,12 @@ export const defectReporter =
   (error: unknown, tool: string, target: string, option: string): string => {
     const declared = registry.find(known => known.id === tool)?.acts[option];
     const entry = scrub(defectEntry(error, by, tool, target, option, declared));
-    write(entry);
-    return entry.data.text;
+    try {
+      write(entry);
+      return entry.data.text;
+    } catch (failure) {
+      const failed = scrub(baseEntry(failure, by, tool, target, option, declared));
+      lostDiagnostic(entry, failed);
+      return failed.data.text;
+    }
   };

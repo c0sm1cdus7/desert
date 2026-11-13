@@ -27,6 +27,7 @@ function dated(mode: Mode): Composition<Shop> {
         ...tool.acts,
         charge: {
           ...charge,
+          refuses: [...charge.refuses, "día cerrado"],
           also: {
             ...also,
             with: (state, target, at) => (mode === "with" && at === instant ? undefined : also.with(state, target, at)),
@@ -101,6 +102,7 @@ it("today and draft receive the execution instant instead of consulting a second
         ...tool.acts,
         charge: {
           ...charge,
+          refuses: [...charge.refuses, "día cerrado"],
           today: (_state, _target, at) => {
             seen.push(at);
             return at === instant ? { sale: "sales/s1", amount: 100 } : undefined;

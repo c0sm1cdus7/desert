@@ -14,7 +14,7 @@ function closedCharge(act: ProgramAct<Shop>, mode: OffMode): ProgramAct<Shop> {
   return {
     ...act,
     input: object(offered ? { sale, amount } : { amount, sale }),
-    refuses: [...act.refuses, ...(offered ? [offWords.offered] : [])],
+    refuses: [...act.refuses, ...(offered ? [offWords.offered] : [offWords.also])],
     offered: state => (offered && state.tools.sales.size === 1 ? offWords.offered : undefined),
     also: {
       tool: "sales",

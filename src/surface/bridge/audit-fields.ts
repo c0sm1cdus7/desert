@@ -25,7 +25,7 @@ function emptyReason(field: Field, where: string): void {
 /** A field that cannot work as declared is a defect of the program: it shows when the program is composed, not on
  * the screen of whoever reaches that question first. */
 function check<X extends Program>(field: Field, tools: readonly ProgramTool<X>[], shown: Shown<X>, where: string) {
-  const dated = field.suggests === "today" || field.last === "today";
+  const dated = field.mask === "day" || field.suggests === "today" || field.last === "today";
   if (dated && !shown.day) throw new Error(`${where} holds a day to today and the program does not say what day it is`);
   const maker = typeof field.makes === "string" ? field.makes : undefined;
   emptyReason(field, where);

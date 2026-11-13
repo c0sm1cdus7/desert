@@ -1,4 +1,6 @@
 // Each case supplies answers and state: every declared blocked choice must be visible before it can be taken.
+import { closedChoices } from "./choices/closed-choices.ts";
+import { manyChoices } from "./choices/many-choices.ts";
 import { deepStrictEqual, ok, strictEqual } from "node:assert/strict";
 import { asking } from "../surface/bridge/asking.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
@@ -26,7 +28,7 @@ function blocked<X extends Program>(
   const ask = asking(aim.act.input, seat.words);
   const field = ask.next(answers);
   const stops = (value: string) => aim.act.stops?.(ask.sofar([...answers, value]), seat.state(), target, seat.now());
-  if (field?.kind === "one" || field?.kind === "many")
+  if (field?.kind === "one")
     return field.options.flatMap(option => {
       const why = stops(option.title);
       return why === undefined ? [] : [{ value: option.title, why }];
@@ -90,6 +92,8 @@ function checkCase<X extends Program>(
     const prefix = answers.slice(0, pos);
     const walk = { ...initial, answers: prefix, pos };
     const field = fieldOf(seat.tools, walk);
+    closedChoices(program, seat, field);
+    manyChoices(seat, aim, walk, target);
     for (const expected of blocked(program, seat, aim, prefix, target)) {
       ok(field);
       assertChoice(seat, walk, field, expected, hidden);
@@ -119,6 +123,6 @@ const choiceCheck = <X extends Program>(
 export const choiceChecks = <X extends Program>(program: Composition<X>, shown: Shown<X>): readonly Check[] =>
   program.registry.flatMap(tool =>
     Object.entries(tool.acts).flatMap(([name, act]) =>
-      act.among || act.stops ? act.cases.map(kase => choiceCheck(program, shown, { tool, name, act }, kase)) : [],
+      act.cases.map(kase => choiceCheck(program, shown, { tool, name, act }, kase)),
     ),
   );

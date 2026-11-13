@@ -1,4 +1,5 @@
 // A program's result writes atomically; a broken fold or listener remains a diagnostic, never a refusal string.
+import { OutsideDefect } from "../outside.ts";
 import type { Emission, HouseEvent } from "../../journal/events.ts";
 import type { Execution } from "../execute.ts";
 import { making } from "../made.ts";
@@ -17,6 +18,6 @@ export function writtenEffects<X extends Program>(
     return undefined;
   } catch (error) {
     const failures: readonly unknown[] = error instanceof AggregateError ? error.errors : [error];
-    return { error: failures[0] };
+    return { error: failures.every(failure => failure instanceof OutsideDefect) ? new OutsideDefect(error) : error };
   }
 }

@@ -8,7 +8,7 @@ export type RunResult<X extends Program, O extends readonly string[]> =
 export class OutsideDefect extends Error {
   readonly detail: unknown;
   constructor(detail: unknown) {
-    super("OutsideDefect", { cause: detail });
+    super(`OutsideDefect${detail instanceof Error ? `: ${detail.message}` : ""}`, { cause: detail });
     this.detail = detail;
   }
 }

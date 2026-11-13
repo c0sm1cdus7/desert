@@ -49,6 +49,10 @@ describe("migration: creation never bypasses the receiving question", () => {
   for (const gate of ["among", "valid", "stops"] satisfies readonly Gate[]) {
     it(`rechecks ${gate} before changing answers or requesting execution`, () => {
       const tools = toolsFor(gate);
+      if (gate === "valid") {
+        expect(() => begin(tools, "things", "take")).toThrow("OutsideDefect");
+        return;
+      }
       const parent = begin(tools, "things", "take");
       const created: Done = { ...parent, phase: "done", done: "Creada", returns: true, made: "new" };
       const result = walking([parent, created], created, tools, { kind: "cancel" }, 1);
@@ -59,7 +63,7 @@ describe("migration: creation never bypasses the receiving question", () => {
         pos: 0,
         answers: [],
         asked: [],
-        error: gate === "valid" ? "datos inválidos" : "no admitida",
+        error: "no admitida",
       });
     });
   }

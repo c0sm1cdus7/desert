@@ -55,6 +55,13 @@ const chargeCases = [
     input: { sale: "sales/s1", amount: 9500, tip: 50 },
     then: { refused: "monto de más" },
   },
+  {
+    promise: "a paid sale closes its origin row with its declared cause",
+    given: [registered, { act: "charge", on: "payments", input: { sale: "sales/s1", amount: 1500 } }],
+    from: "sales/s1",
+    input: { sale: "sales/s1", amount: 9500 },
+    then: { refused: "monto de más" },
+  },
 ] as const;
 const charge = ({ sale, amount }: Static<Charged>, { by }: { by: string }) => ({
   status: "accepted" as const,
@@ -77,7 +84,7 @@ const chargeWith = (input: Charged) =>
       off: (state, target) => ((state.tools.sales.get(nameOf(target))?.paid ?? 0) >= 1500 ? "paid" : undefined),
       opens: (state, target) => ({ amount: state.tools.sales.get(nameOf(target))?.total ?? 0 }),
     },
-    refuses: ["unknown", "monto de más"],
+    refuses: ["unknown", "monto de más", "paid"],
     /** More than ninety pesos is said at the amount, before anything else is asked. */
     stops: ({ sale, amount }, state) => {
       if (typeof sale === "string" && !state.tools.sales.has(nameOf(sale))) return "unknown";

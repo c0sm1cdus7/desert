@@ -1,5 +1,5 @@
 // What each key does inside an act: writing an answer, choosing one, picking a thing, going back, leaving.
-import { toolTexts } from "../texts/tools.texts.ts";
+import { answerValidity } from "../tools/answers/answer-change.ts";
 import type { Field, Intent, Mask, Option } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
 import { actOf, begin, fieldOf, maskOf, optionsOf, opened, opening, pickedFrom, validOf } from "./screen.ts";
@@ -18,9 +18,7 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
   const answers = answersAfter(act, walk, answer);
   /** What the act says cannot go on stays at the question it was answered in, saying why. */
   const why =
-    current.wrong?.(answer) ??
-    (current.valid?.(answer) === false ? toolTexts.invalid : undefined) ??
-    act.stops?.(answers.slice(0, walk.pos + 1));
+    answerValidity(current.valid?.(answer), current.wrong?.(answer)) ?? act.stops?.(answers.slice(0, walk.pos + 1));
   if (why !== undefined) return { session: replace(session, opening(tools, { ...walk, error: why })) };
   const asked = [...walk.asked.slice(0, walk.pos), { ask: current.ask, shown: maskOf(current, answer) }];
   /** A walk that asked only part asks on when the rest no longer says everything the act takes. */
@@ -147,6 +145,7 @@ function back(session: Session, walk: Asking, tools: readonly Tool[]): Session {
 }
 export function walking(session: Session, walk: Walk, tools: readonly Tool[], key: Intent, now: number): Stepped {
   if (key.kind === "cancel") {
+    if (walk.phase === "asking" && walk.failed) return { session: up(session) };
     /** Escape closes the search first: the whole list is back, and the question is still the same. */
     if (walk.phase === "asking" && walk.finding) {
       const { finding: _sought, ...whole } = walk;

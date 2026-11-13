@@ -9,7 +9,7 @@ import type { Picture } from "../screen.ts";
 import { must } from "../window.ts";
 import type { ProgramAct, ProgramTool } from "../../tools/promises.ts";
 import type { ToolRegistry } from "../../tools/tool-contract.ts";
-import { shopRig } from "../../../tests/support/shop-rig.ts";
+import { shopRig, testTime } from "../../../tests/support/shop-rig.ts";
 import { paymentsTool, salesTool, shopShown, shopWords, type Shop } from "../../../tests/support/shop.ts";
 
 const closing: { close(): void }[] = [];
@@ -17,7 +17,11 @@ afterEach(() => closing.splice(0).forEach(open => open.close()));
 const composed = (registry: ToolRegistry<Shop>, shown: Shown<Shop> = shopShown) => {
   const rig = shopRig({ registry });
   closing.push(rig);
-  return () => houseTools(rig.ports("ana"), shown);
+  return () =>
+    houseTools(
+      rig.ports("ana", () => testTime.now()),
+      shown,
+    );
 };
 const register = must(salesTool.acts.register);
 const sales = (acts: Readonly<Record<string, ProgramAct<Shop>>>): ToolRegistry<Shop> => [
@@ -100,7 +104,10 @@ describe("a program's tools, composed for a surface", () => {
   it("refuses a day held to today where the program does not say what day it is, and a thing made by no act", () => {
     const dated = { ...register, input: object({ sale: text("Venta", "Venta"), on: day("Día", "today") }) };
     expect(composed(sales({ register: dated }))).toThrow("holds a day to today and the program does not say what day");
+    const plain = { ...register, input: object({ on: day("Día") }) };
+    expect(composed(sales({ register: plain }))).toThrow("program does not say what day");
     const told = { ...shopShown, day: () => "2026-11-12" };
+    expect(composed(sales({ register: plain }), told)).not.toThrow();
     expect(composed(sales({ register: dated }), told)).not.toThrow();
     const making = { ...register, input: object({ sale: thing("Venta", "sales", undefined, "open") }) };
     expect(composed(sales({ register: making }))).toThrow("makes a thing with an act that makes none: open");

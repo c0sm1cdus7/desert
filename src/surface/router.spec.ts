@@ -8,7 +8,7 @@ import type { RunResult } from "../tools/outside.ts";
 import { houseRouter } from "./bridge/house-router.ts";
 import type { Screen } from "./contract.ts";
 import type { Router } from "./router.ts";
-import { shopRig } from "../../tests/support/shop-rig.ts";
+import { shopRig, testTime } from "../../tests/support/shop-rig.ts";
 import { shopRegistry, shopShown, type Shop } from "../../tests/support/shop.ts";
 
 const closing: { close?(): void; stop?(): void }[] = [];
@@ -58,7 +58,13 @@ const slow: ProgramTool<Shop> = {
 const slowWords = { name: "Lento", key: "l", empty: "", listed: "Hoy", reads: {}, presents: [] };
 const open = () => {
   const rig = shopRig({ registry: [...shopRegistry, slow] });
-  const router = houseRouter(rig.ports("ana"), { ...shopShown, words: { ...shopShown.words, slow: slowWords } });
+  const router = houseRouter(
+    rig.ports("ana", () => testTime.now()),
+    {
+      ...shopShown,
+      words: { ...shopShown.words, slow: slowWords },
+    },
+  );
   closing.push(router, rig);
   return { rig, router };
 };

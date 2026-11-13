@@ -38,7 +38,7 @@ const rebuilt = <X extends Program>(program: Composition<X>, house: House<X>): X
 /** What the tool reads on a target, as whoever acted reads it: each line of its view, parsed when it is JSON. */
 function readOn<X extends Program>(house: House<X>, aim: Aim<X>, kase: Case<X>, on = kase.on ?? aim.tool.id) {
   const state = identityView(house.tools.state(), kase.by ?? cast.admin);
-  const lines = aim.tool.view(state, on, { recentLines: 100 }).split("\n").filter(Boolean);
+  const lines = aim.tool.view(state, on, { recentLines: 100, now: house.now() }).split("\n").filter(Boolean);
   return lines.map((line): unknown => {
     try {
       return JSON.parse(line);
@@ -103,7 +103,7 @@ export function promisedChecks<X extends Program>(program: Composition<X>): read
       const aim = { tool, name, act };
       const accepted = act.cases.find(kase => !("refused" in kase.then));
       return [
-        coverage(aim),
+        coverage(program, aim),
         ...act.cases.map(kase => caseCheck(program, aim, kase)),
         ...(accepted ? lawChecks(program, aim, accepted) : []),
       ];

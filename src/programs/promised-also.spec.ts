@@ -8,7 +8,7 @@ import { startRouter } from "../surface/router.ts";
 import type { Intent, Screen } from "../surface/contract.ts";
 import { chargingRegistry, chargingShop, makingRegistry, narrowRegistry } from "../../tests/support/charging-shop.ts";
 import { narrowShop } from "../../tests/support/charging-shop.ts";
-import { shopRig } from "../../tests/support/shop-rig.ts";
+import { shopRig, testTime } from "../../tests/support/shop-rig.ts";
 import { shopShown } from "../../tests/support/shop.ts";
 
 const closing: { close?(): void; stop?(): void }[] = [];
@@ -25,8 +25,17 @@ const seat = (me: string, registry = chargingRegistry) => {
     ["s2", 90],
   ] as const)
     rig.act("ana", "register", { sale, total }, "sales", rig.state().through);
-  const tools = houseTools(rig.ports(me), shopShown);
-  const router = startRouter({ tools, bar: () => bar });
+  const tools = houseTools(
+    rig.ports(me, () => testTime.now()),
+    shopShown,
+  );
+  const router = startRouter({
+    defect: error => {
+      throw error;
+    },
+    tools,
+    bar: () => bar,
+  });
   closing.push(router, rig);
   const rowsOf = (body: Screen["body"]) => {
     if (body.kind === "thread") return body.options ?? [];
@@ -101,7 +110,16 @@ describe("a program whose acts reach across its tools", () => {
 
   it("closes an action at its menu when there is no thing to choose", () => {
     const rig = shopRig({ registry: chargingRegistry });
-    const router = startRouter({ tools: houseTools(rig.ports("ana"), shopShown), bar: () => bar });
+    const router = startRouter({
+      defect: error => {
+        throw error;
+      },
+      tools: houseTools(
+        rig.ports("ana", () => testTime.now()),
+        shopShown,
+      ),
+      bar: () => bar,
+    });
     closing.push(router, rig);
     router.send(keyOf("p"));
     const before = router.screen({ rows: 40 });

@@ -9,19 +9,19 @@ import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "./attendance.ts";
 import { programOffered, runProgram } from "./program-run.ts";
 import { executionFailure } from "./execution/execution-failure.ts";
-import { writtenEffects } from "./execution/written-effects.ts";
+import { BaseFailure } from "./failures/base-failure.ts";
+import { startAct } from "./failures/start-act.ts";
+import { finish } from "./failures/finish.ts";
 import { actNews, type ActContext, type ActResult, type KeyStore, type OwnAct } from "./tool-contract.ts";
 import type { Program, State, Tool, ToolAct, ToolRegistry } from "./tool-contract.ts";
 type Origin = HouseEvent<"act">;
 export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; keys: KeyStore; now: () => number }> &
   Readonly<{ registry: ToolRegistry<X>; state: () => State<X>; own: (state: State<X>) => readonly OwnAct<X>[] }> &
   Readonly<{ process: (id: string, by?: string) => boolean; live: () => boolean; chain?: readonly string[] }> &
-  /** The program's cause for not letting this act run now, when it has one. */
-  Readonly<{ refuse?: (state: State<X>, act: Origin, tool: Tool<X> | undefined) => string | undefined }> &
   Readonly<{
     secrets: { capture(value: unknown, registry: ToolRegistry<X>, state?: State<X>): void; scrub<T>(value: T): T };
   }>;
-type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
+export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
   Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown; defect?: true }> &
   Readonly<{ private?: string | undefined; output?: boolean }>;
 type Processing<X extends Program> = Readonly<{ status: "processing"; effects: readonly []; reason?: string }> &
@@ -51,8 +51,6 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   if (!act) return toolTexts.unknown;
   if (!offered && (!tool || !allowed(state.house, by, tool.id))) return toolTexts.unassigned;
   if (!offered && tool && elsewhere(act, tool, target)) return toolTexts.unknown;
-  const refused = ports.refuse?.(state, origin, offered ? undefined : tool);
-  if (refused) return refused;
   if (!offered && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
   return programOffered(act, state, target, ports.now());
 }
@@ -115,23 +113,6 @@ function decisionOf<X extends Program>(
   const entry = effect("tool-entry", { tool, target, author: by, text, ...data }, by);
   return { status: "accepted", effects: [...effects, done, entry], private: receipt };
 }
-const finish = <X extends Program>(ports: Execution<X>, act: Origin, decision: Decision<X>): Decision<X> => {
-  const safe = ports.secrets.scrub(decision);
-  if (!ports.live()) return safe;
-  /** What an act writes is written whole or not at all: if one of its facts does not fold, the act is refused,
-   * saying why, and the house stays as it was. */
-  const failure = writtenEffects(ports, act, safe.effects);
-  const done: Decision<X> =
-    failure === undefined
-      ? safe
-      : ports.secrets.scrub(executionFailure(ports.registry, ports.state(), act, failure.error));
-  if (failure !== undefined) writtenEffects(ports, act, done.effects);
-  const output = done.status === "accepted" && done.output ? { output: true } : {};
-  const defect = done.defect ? { defect: true as const } : {};
-  const data = { ...defect, act: act.id, status: done.status, reason: done.reason ?? "", ...output };
-  ports.bus.emit(effect("act-result", data, act.by, [act.id], act.process));
-  return done;
-};
 export function execute<X extends Program>(
   ports: Execution<X>,
   value: unknown,
@@ -143,7 +124,9 @@ export function execute<X extends Program>(
   if (!Value.Check(actEnvelope, value)) return rejected(toolTexts.invalid);
   const process = cause.find(id => ports.process(id));
   const data = { object: value.target ?? ids.self, option: value.act, input: value.input, through };
-  const act = ports.bus.emit(effect("act", data, by, cause, process));
+  const started = startAct(ports, effect("act", data, by, cause, process));
+  if (started.failed) return started.failed;
+  const act = started.act;
   let decision: Decision<X> | Perform<X>;
   try {
     decision = decide(ports, value, act);
@@ -157,7 +140,11 @@ export function execute<X extends Program>(
 const run = <X extends Program>(ports: Execution<X>, act: Origin, perform: Perform<X>): ExecutionResult<X> => {
   const { object, option } = act.data;
   const tool = targetTool(ports.registry, identityView(ports.state(), act.by), object)?.id ?? object;
-  ports.bus.emit(effect("act-started", { act: act.id, object, option }, act.by, [act.id], act.process));
+  try {
+    ports.bus.emit(effect("act-started", { act: act.id, object, option }, act.by, [act.id], act.process));
+  } catch (error) {
+    return finish(ports, act, executionFailure(ports.registry, ports.state(), act, new BaseFailure(error)));
+  }
   /** Program failures have one public message and a separate support record. */
   const failed = (error: unknown): Decision<X> => executionFailure(ports.registry, ports.state(), act, error);
   let result: Decision<X> | Promise<Decision<X>>;

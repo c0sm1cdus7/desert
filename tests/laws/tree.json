@@ -105,10 +105,18 @@
     "tools/execution/written-effects.ts": "Escribe los efectos juntos y conserva el defecto del pliegue que falló.",
     "surface/guards/router-defect.ts": "Cierra los defectos de pintar o elegir con su texto fijo y un registro.",
     "surface/bridge/questions/asking-clock.ts": "Da a cada lector de preguntas el mismo reloj y el calendario del programa.",
-    "tools/execution/defect-reporter.ts": "Guarda el diagnóstico de la superficie con la misma limpieza que una acción.",
     "surface/bridge/questions/picked-options.ts": "Apaga respuestas con su motivo y reconoce como actual el rechazo sin cambios.",
     "surface/availability/action-off.ts": "actionOff: one ordered reason for an identity, destination and instant, shared by rows and guarantees",
-    "programs/availability/case-availability.ts": "actionUnavailable, caseOrigin: the destination and fixed answers of a case for the shared availability rule"
+    "programs/availability/case-availability.ts": "actionUnavailable, caseOrigin: the destination and fixed answers of a case for the shared availability rule",
+    "tools/failures/defect-reporter.ts": "Guarda el diagnóstico de la superficie con la misma limpieza que una acción.",
+    "tools/failures/finish.ts": "Writing a result and its diagnostic cannot turn a storage failure into a program defect or silence it.",
+    "tools/failures/port-failure.ts": "An adapter can supply a deliberate public cause; unknown transport errors never leak their messages.",
+    "tools/failures/start-act.ts": "A failed initial journal write has no act id; keep its diagnostic directly, or report the lost record.",
+    "tools/failures/base-failure.ts": "Infrastructure failures have their own public code; diagnostics never become public messages.",
+    "tools/answers/answer-change.ts": "One interpretation of unchanged, whether the program declares it or current data proves it.",
+    "programs/choices/many-choices.ts": "Multiple marks are one answer: derive every combination, never pretend one option is the whole set.",
+    "programs/choices/closed-choices.ts": "Closed things are absent from every picker, including searches and a closed current value.",
+    "programs/coverage/also-causes.ts": "An origin-specific cause has a case too; its ordinary execution may be closed by a different rule."
   },
   "folders": {
     "adapters/secrets": 103,
@@ -126,6 +134,10 @@
     "surface/guards": 106,
     "surface/bridge/questions": 51,
     "surface/availability": 27,
-    "programs/availability": 28
+    "programs/availability": 28,
+    "tools/failures": 128,
+    "tools/answers": 22,
+    "programs/choices": 56,
+    "programs/coverage": 23
   }
 }

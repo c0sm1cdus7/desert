@@ -8,6 +8,8 @@ export const toolTexts = {
   unattended: "destino sin abrir",
   unassigned: "sin acceso",
   defect: (act: string): string => `E-PROG-1 · Falló el programa · ${act}`,
+  baseFailure: "E-BASE-1 · Falló la base",
+  disconnected: "sin conexión con el servicio",
   unavailable: "acción fallida",
   interrupted: "acción interrumpida",
   /** What an act answers when it would leave the thing exactly as it is. */

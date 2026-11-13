@@ -1,5 +1,5 @@
 // A live shop house in memory, with virtualizable time and a real replay restart.
-import { defectReporter } from "../../src/tools/execution/defect-reporter.ts";
+import { defectReporter } from "../../src/tools/failures/defect-reporter.ts";
 import { SqliteJournal } from "../../src/adapters/storage/journal-store.ts";
 import { createHouse, identityView } from "../../src/house/house.ts";
 import { clockStep, startClock, type Deadlines, type TimeSource } from "../../src/journal/clock.ts";
@@ -34,7 +34,7 @@ export const testTime: TimeSource = {
 export const runner = "shop";
 const plain = { capture: () => {}, scrub: <T>(value: T): T => value };
 type Options = Readonly<{ registry?: ToolRegistry<Shop>; grants?: Readonly<Record<string, readonly string[]>> }> &
-  Partial<Pick<Execution<Shop>, "refuse" | "own">>;
+  Partial<Pick<Execution<Shop>, "own">>;
 
 type Journal = SqliteJournal<ShopFact>;
 /** Fold the journal, then listen: a restart reads history before it attaches new observers. */
@@ -72,7 +72,7 @@ export function shopRig({ registry = shopRegistry, grants, ...ports }: Options =
     facts: () => journal.replay<ShopEvent[]>([], (events, event) => [...events, event]),
     attend: (by: string, target: string) => act(by, "attend", { target }),
     /** The house as a surface in its own process reaches it, for one identity. */
-    ports: (me: string, now: () => number = Date.now): HousePorts<Shop> => ({
+    ports: (me: string, now: () => number): HousePorts<Shop> => ({
       me,
       now,
       defect: defectReporter(registry, me, entry => bus.emit(entry), plain.scrub),

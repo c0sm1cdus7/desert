@@ -13,7 +13,7 @@ export interface HousePorts<X extends Program> {
   /** The house as this identity reads it. */
   readonly state: () => State<X>;
   readonly registry: ToolRegistry<X>;
-  readonly limits: ViewLimits;
+  readonly limits: Omit<ViewLimits, "now">;
   readonly act: (value: Act, through: number) => ExecutionResult<X>;
   readonly now: () => number;
   readonly defect: (error: unknown, tool: string, target: string, option: string) => string;

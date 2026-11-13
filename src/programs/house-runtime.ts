@@ -1,5 +1,5 @@
 // One house running: its journal, its secrets kept apart, its tools listening, its clock, and a boot written last.
-import { defectReporter } from "../tools/execution/defect-reporter.ts";
+import { defectReporter } from "../tools/failures/defect-reporter.ts";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { SecretVault } from "../adapters/secrets/secret-vault.ts";
@@ -17,7 +17,7 @@ import { startState, startTools, toolsStep } from "../tools/tools.ts";
 /** What a program hands a house to live in it: its vocabulary, its tools, and what each of them keeps. */
 export type HouseOptions<X extends Program> = Readonly<{ by: string; creation: Creation; keys: KeyStore }> &
   Readonly<{ words: Vocabulary<X["fact"]>; registry: ToolRegistry<X>; slices: Slices<X> }> &
-  Partial<Pick<Execution<X>, "refuse" | "own" | "process">>;
+  Partial<Pick<Execution<X>, "own" | "process">>;
 /** A part is kept under its tool's id: that is how the house gives a whole tool, or none of it, to an identity. */
 function ownerless<X extends Program>({ slices, registry }: HouseOptions<X>): string[] {
   return Object.keys(slices.step).filter(part => !registry.some(tool => tool.id === part));
@@ -85,7 +85,7 @@ export type RunningHouse<X extends Program> = ReturnType<typeof startHouse<X>>;
 export const localPorts = <X extends Program>(
   house: Pick<RunningHouse<X>, "tools" | "registry" | "bus" | "now">,
   me: string,
-  limits: ViewLimits,
+  limits: Omit<ViewLimits, "now">,
   now: () => number = house.now,
 ): HousePorts<X> => ({
   me,

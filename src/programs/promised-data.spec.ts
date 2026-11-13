@@ -155,3 +155,17 @@ describe("a tool that reads data of its own, in the stacks its words say", () =>
       }
     }));
 });
+
+it("fails derived walks for a tool with loose stacks", async () => {
+  const checks = programChecks(tillProgram, looseStacksShown).filter(check => check.name.includes("by keys"));
+  expect(checks.length).toBeGreaterThan(0);
+  const failed: string[] = [];
+  for (const check of checks) {
+    try {
+      await check.run();
+    } catch {
+      failed.push(check.name);
+    }
+  }
+  expect(failed.length).toBeGreaterThan(0);
+});

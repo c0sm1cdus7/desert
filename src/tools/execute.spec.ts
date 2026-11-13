@@ -58,9 +58,9 @@ describe("long acts", () => {
   });
 
   it.each([
-    [new Error("the bank refused the transfer"), "the bank refused the transfer"],
-    [new Error(""), toolTexts.unavailable],
-  ])("turns a rejected promise into one result whose reason is the tool's cause: %s", async (thrown, reason) => {
+    [new Error("the bank refused the transfer"), toolTexts.baseFailure],
+    [new Error(""), toolTexts.baseFailure],
+  ])("turns an internal base rejection into its public code and records the cause: %s", async (thrown, reason) => {
     const rig = open(slow(() => Promise.reject(thrown)));
     const started = rig.act("ana", "run", {}, "slow");
     expect(started.status === "processing" && (await started.completion)).toMatchObject({ status: "rejected", reason });
@@ -74,7 +74,7 @@ describe("long acts", () => {
         throw new Error("no paper");
       }),
     );
-    expect(rig.act("ana", "run", {}, "slow")).toMatchObject({ status: "rejected", reason: "no paper" });
+    expect(rig.act("ana", "run", {}, "slow")).toMatchObject({ status: "rejected", reason: toolTexts.baseFailure });
     expect(rig.state().processing.size).toBe(0);
   });
 
@@ -132,11 +132,9 @@ describe("what decides an act", () => {
     expect(rig.state().entries.filter(entry => entry.data.tool === "desk")).toEqual([]);
   });
 
-  it("lets the program refuse an act for a cause of its own, before the tool sees it", () => {
+  it("uses offered for a refusal before the body, without a second execution hook", () => {
     const run = vi.fn((): Result => ({ status: "accepted" }));
-    const rig = open(slow(run), {
-      refuse: (_state, act) => (act.data.option === "run" ? "counting stock" : undefined),
-    });
+    const rig = open(tool("slow", { run: { ...toolAct(nothing, run), offered: () => "counting stock" } }));
     expect(rig.act("ana", "run", {}, "slow")).toMatchObject({ status: "rejected", reason: "counting stock" });
     expect(run).not.toHaveBeenCalled();
     expect(rig.act("ana", "register", { sale: "s1", total: 1 }, "sales").status).toBe("accepted");

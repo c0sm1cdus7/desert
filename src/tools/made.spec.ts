@@ -1,4 +1,5 @@
 // What an act made is written with what it says, for each of those things to read in its own record.
+import { toolTexts } from "../texts/tools.texts.ts";
 import { Type } from "@sinclair/typebox";
 import { afterEach, describe, expect, it } from "vitest";
 import { toolAct } from "./act-definition.ts";
@@ -56,7 +57,9 @@ describe("what an act writes", () => {
       return count + 1;
     });
     const done = rig.act("ana", "run", {}, "bulk");
-    expect(done).toMatchObject({ status: "rejected", reason: "s9 no se pliega", effects: [] });
+    expect(done).toMatchObject({ status: "rejected", reason: toolTexts.baseFailure, defect: true });
+    expect(done.effects).toHaveLength(1);
+    expect(JSON.stringify(rig.state().entries)).toContain("s9 no se pliega");
     expect([...rig.state().tools.sales.keys()]).toEqual([]);
     expect(rig.state().entries.some(entry => entry.data.text === "Registradas · 2")).toBe(false);
     expect(rig.facts().at(-1)).toMatchObject({ kind: "act-result", data: { status: "rejected" } });

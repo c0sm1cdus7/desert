@@ -1,4 +1,5 @@
 // The house's own state and each tool's, folded together; attention as a perpetual, replayable ladder.
+import { programRule } from "./execution/program-causes.ts";
 import { actCatalog } from "../catalogs/acts.ts";
 import { ids } from "../catalogs/ids.ts";
 import { toolReminderLadder } from "../catalogs/time.ts";
@@ -78,7 +79,7 @@ function houseStateStep<S extends HouseState>(state: S, event: Event): S {
 /** Every fact moves the house, and each tool moves what it keeps: the house never reads a tool's part. */
 export function toolsStep<X extends Program>(state: State<X>, event: Event<X["fact"]>, slices: Slices<X>): State<X> {
   const tools = { ...state.tools };
-  for (const key in slices.step) tools[key] = slices.step[key](state.tools[key], event, state);
+  for (const key in slices.step) tools[key] = programRule(() => slices.step[key](state.tools[key], event, state));
   return { ...houseStateStep(state, event), tools };
 }
 export const attendanceActs = <X extends Program>(registry: ToolRegistry<X>): OwnAct<X>[] =>

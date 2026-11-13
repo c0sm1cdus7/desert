@@ -1,3 +1,4 @@
+import { alsoCauses } from "./coverage/also-causes.ts";
 // The laws every act of every program keeps: nobody promises them case by case, and every act is checked on them.
 import { deepStrictEqual, ok } from "node:assert/strict";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
@@ -65,10 +66,10 @@ export function lawChecks<X extends Program>(program: Composition<X>, aim: Aim<X
   ];
 }
 /** What an act declares has to add up: a case the house accepts, and a case for each cause it may refuse with. */
-export function coverage<X extends Program>(aim: Aim<X>): Check {
+export function coverage<X extends Program>(program: Composition<X>, aim: Aim<X>): Check {
   const refused = aim.act.cases.flatMap(kase => ("refused" in kase.then ? [kase.then.refused] : []));
   const run = (): Promise<void> =>
-    Promise.resolve().then(() => {
+    Promise.resolve().then(async () => {
       const does = aim.act.cases.some(kase => !("refused" in kase.then));
       ok(does, said.nothingDone);
       /** What an act puts to be confirmed is promised word for word by one of its cases. */
@@ -77,7 +78,11 @@ export function coverage<X extends Program>(aim: Aim<X>): Check {
       /** What the base itself refuses with is not the act's to declare; a case may still promise it. */
       const own = (causes: readonly string[]) => [...new Set(causes.filter(cause => !ofTheBase(cause)))].sort();
       deepStrictEqual(
-        own(refused.map(cause => aim.act.outside.find(out => cause.startsWith(`${out} · `)) ?? cause)),
+        own(
+          [...refused, ...(await alsoCauses(program, aim))].map(
+            cause => aim.act.outside.find(out => cause.startsWith(`${out} · `)) ?? cause,
+          ),
+        ),
         own([...aim.act.refuses, ...aim.act.outside]),
       );
     });

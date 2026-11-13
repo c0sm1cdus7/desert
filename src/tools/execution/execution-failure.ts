@@ -1,7 +1,6 @@
 // Failures of program rules and effects use the same diagnostic as a failed body, before any public result.
 import type { HouseEvent } from "../../journal/events.ts";
-import { toolTexts } from "../../texts/tools.texts.ts";
-import { rejected } from "../act-definition.ts";
+import { BaseFailure, baseEntry } from "../failures/base-failure.ts";
 import { targetTool } from "../attendance.ts";
 import { OutsideDefect } from "../outside.ts";
 import { programDefect } from "../program-defect.ts";
@@ -17,13 +16,13 @@ export function executionFailure<X extends Program>(
   const { object, option } = act.data;
   const tool = targetTool(registry, state, object);
   const declared = tool?.acts[option];
-  if (error instanceof OutsideDefect || (declared && isProgram(declared)))
+  if (!(error instanceof BaseFailure) && (error instanceof OutsideDefect || (declared && isProgram(declared))))
     return programDefect(
       error instanceof OutsideDefect ? error : new OutsideDefect(error),
       act,
       tool?.id ?? object,
       declared,
     );
-  const reason = error instanceof Error && error.message ? error.message : toolTexts.unavailable;
-  return { ...rejected(reason), effects: [] };
+  const entry = baseEntry(error, act.by, tool?.id ?? object, object, option, declared);
+  return { status: "rejected" as const, reason: entry.data.text, defect: true as const, effects: [entry] };
 }

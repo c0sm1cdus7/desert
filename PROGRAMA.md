@@ -13,7 +13,7 @@ programa (Kenon). Lo que una regla hace cumplir está en `GARANTIAS.md`; las ley
 | Cada acción | `programAct({ name, enter, undoable, purpose, key, on, input, run, cases, … })`. | `src/tools/promises.ts` |
 | Lo que promete | `cases`: dado esto, al hacer esto, pasa esto (dice, escribe, se lee, pide atención) o se rechaza con un motivo. | `src/tools/promises.ts` |
 | Sus palabras | `Shown.words[herramienta]`: `name`, `key`, y `system` o `inside`; si lista cosas, `empty`, `listed`, `reads` y `presents`; si lee datos propios, `itself`. | `src/surface/bridge/house-ports.ts` |
-| Su país | `Shown.locale`: cómo se escribe la plata y el día. `Shown.day` (qué día es un instante, como lo cuenta su país) y `Shown.moment`: obligatorio `day` si alguna pregunta sugiere hoy o no admite futuro (no compone sin él). | `src/surface/masks.ts` |
+| Su país | `Shown.locale`: cómo se escribe la plata y el día. `Shown.day` (qué día es un instante, como lo cuenta su país) y `Shown.moment`: obligatorio `day` si hay alguna pregunta de fecha, aunque no sugiera hoy ni limite el futuro (no compone sin él). | `src/surface/masks.ts` |
 
 El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`) y `shown`, y dice en su
 `package.json` dónde están (`"desert": { "program": "src/…" }`). Con eso la base lo corre y lo comprueba.
@@ -46,7 +46,8 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
 - `confirms` pone algo a confirmar. Lo irreversible (`undoable: false`) confirma con «volver» primero.
 - `also` la ofrece además entre las acciones de los objetos de otra herramienta (cobrar, desde una venta).
   `also.with(estado, cosa, instante)` decide si aparece y fija respuestas; `also.off(estado, cosa, instante)` dice
-  por qué está apagada. `closed(estado, cosa, instante)` decide si una cosa se puede elegir. Usan el mismo reloj
+  por qué está apagada; su causa también se declara en `refuses`, con un caso que la alcance desde `from`.
+  `closed(estado, cosa, instante)` oculta la cosa en las preguntas que la eligen, incluso si era el valor vigente. Usan el mismo reloj
   de la casa que `offered`, `stops` y `among`, también cuando cambia el día sin hechos nuevos.
 - `run` puede ser `async`; solo devuelve `accepted` o `rejected` con una causa literal de `outside`, opcionalmente
   seguida de ` · dato`. Sin `outside`, no devuelve rechazos. Una causa ajena a esa lista no compila; si código
@@ -90,6 +91,9 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   la acción no existe, el programa no compone. Antes de tomar lo creado, la base vuelve a consultar la pregunta
   contra el estado nuevo: `among`, `valid` y `stops`. Si no sirve, permanece en esa pregunta con su motivo y la
   cosa aparece apagada con ese motivo; si sirve avanza; si no hubo destino vuelve sin responder.
+  Eso vale para los motivos de `among` y `stops`. Si lo recién creado está cerrado o `valid` lo rechaza sin motivo,
+  es un defecto `E-PROG-1`, con diagnóstico: «datos inválidos» nunca explica una fila apagada.
+  Las cosas cerradas que ya existían no aparecen en las preguntas ni al buscar.
 - Todo campo `thing` sin `makes` declara `empty`, el motivo de no tener ninguna cosa elegible:
   `thing("Venta", "sales", undefined, undefined, "sin ventas para cobrar")`. Sin ese motivo, vacío o con uno que
   no sirve como dato corto, el programa no compone. `none` sigue nombrando la opción de no elegir ninguna; no
@@ -103,19 +107,33 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   hacer queda apagado con su motivo.
 - `stops` puede devolver `toolTexts.unchanged` cuando lo vigente depende de una respuesta anterior y `today` no
   alcanza. La base interpreta el mismo hecho: en opciones y referencias dice «actual», apagado; en texto no hay
-  Enter ni motivo bajo la pregunta. No agregarlo a `outside` ni repetirlo en `run`; es una causa propia de la base.
-  Otra regla que apaga lo vigente conserva su motivo. Una opción distinta de lo vigente no se marca «actual».
-- Una causa de `offered`, `stops`, `wrong` o `among` que no pertenece a `refuses` ni a las causas de la base es un
+  Enter ni motivo bajo la pregunta. En varias marcas conserva el conjunto marcado, sin Enter ni rechazo;
+  la garantía derivada comprueba todas las combinaciones. No agregarlo a `outside` ni repetirlo en `run`.
+  Otra regla que apaga lo vigente conserva su motivo. Si `today` declara otro valor, devolver «sin cambios» para
+  una opción distinta es un defecto `E-PROG-1`; sin `today`, `stops` afirma qué respuesta es la vigente.
+- Una causa de `offered`, `also.off`, `stops`, `wrong` o `among` que no pertenece a `refuses` ni a las causas de la base es un
   defecto del programa: `E-PROG-1`, con diagnóstico en el registro. Lo mismo vale si una regla lanza, falla una
-  lectura de pantalla o el pliegue de lo escrito. El resultado no muestra el detalle técnico.
+  lectura de pantalla o el pliegue escrito por el programa. El resultado no muestra el detalle técnico.
+- Si falla el diario, el disco o una escucha interna de la base, se ve `E-BASE-1 · Falló la base` y se registra
+  el diagnóstico. Si falla la escritura del propio diagnóstico, se ve ese código y el detalle limpio sale por
+  el canal de errores del proceso. `esc` vuelve al lugar anterior sin repetir la operación fallida.
+- Un puerto externo que se corta termina como resultado `Error`: el adaptador puede dar una causa pública de su
+  catálogo con `PortFailure`, de `src/tools/failures/port-failure.ts`. Un error técnico sin esa causa muestra
+  «sin conexión con el servicio». Esto se clasifica al llamar el puerto, no dentro del `run` del programa:
+  lanzar dentro de `run`, incluso un error de puerto, sigue siendo un defecto; usar `outside` para su resultado.
+- Se retiró `Execution.refuse`, el gancho opcional de la casa que rechazaba después de responder y que no tenía
+  consumidor de producción en esta base. Una condición previa va en `offered`, `stops`, `among` o `holding`,
+  compartida por pantalla y ejecución; no agregar un segundo predicado al armar la casa.
 - `today` recibe el instante porque también decide si se puede enviar. `when` lo recibe para elegir las preguntas;
   `draft(estado, hasta, input, cosa, instante)` lo recibe para detectar conflictos. Las funciones que no lo usan
   pueden conservar menos parámetros. `datum`, `words` y `also.opens` conservan sus firmas descriptivas.
 - Quien arma preguntas con `asking` trae `now: () => number` y `today: () => string` en `AskWords`: son obligatorios.
   `questionWords(reloj, shown)` arma ese contexto con el reloj de la casa. `shown.day` sigue siendo obligatorio
-  al componer un programa que sugiere hoy o cierra fechas futuras: no se adivina un calendario ausente.
-  Los puertos propios implementan `HousePorts.defect` para registrar defectos de pantalla; `localPorts` ya lo hace
-  y hereda el reloj de la casa. El router muestra el texto fijo y no reintenta automáticamente.
+  al componer cualquier programa con preguntas de fecha: no se adivina un calendario ausente.
+  `ViewLimits.now` es obligatorio: cada lectura recibe el instante de la casa, también la de un caso derivado.
+  Los puertos propios implementan `HousePorts.defect` y `RouterSource.defect` para registrar defectos de pantalla;
+  `localPorts` ya lo hace y hereda el reloj de la casa. `defectReporter` está en `src/tools/failures/defect-reporter.ts`.
+  El aparejo `shopRig.ports` recibe el reloj explícitamente. El router no reintenta automáticamente.
 
 
 
