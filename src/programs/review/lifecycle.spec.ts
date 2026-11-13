@@ -1,10 +1,10 @@
+import "../../../tests/support/fixture-vault.ts";
 import { OutsideDefect } from "../../tools/outside.ts";
 // Program startup and cleanup callbacks retain diagnostics even when no surface can be drawn yet.
 import { expect, it } from "vitest";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { MemoryKeys } from "../../../tests/support/shop-rig.ts";
 import { shopProgram, shop } from "../../../tests/support/shop.ts";
 import { startHouse } from "../house-runtime.ts";
 import { SqliteJournal } from "../../adapters/storage/journal-store.ts";
@@ -28,7 +28,6 @@ for (const mode of ["start", "stop"] as const) {
       registry,
       by: "ana",
       creation: { admin: "ana", assignments: [] },
-      keys: new MemoryKeys(),
     };
     try {
       if (mode === "start") expect(() => startHouse(home, options)).toThrow("OutsideDefect: lifecycle diagnostic");

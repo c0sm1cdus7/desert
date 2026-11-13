@@ -370,8 +370,8 @@ El adaptador recibe `adapter(session, slots)`: puede capturar material leído de
 `use(refs, material => resultadoPublico)`. La lista de slots se copia al entregar esa capacidad.
 El resolvedor solo admite provisionales de esa sesión o vínculos vigentes de su alcance y sus slots autorizados.
 El adaptador es de confianza: la base cierra sus excepciones con `E-CUSTODY-ADAPTER`, pero no demuestra que su
-resultado público no codifique el material. La captura de archivos y la composición de puertos de acciones se
-conectan en los pasos siguientes; esta API no debe entregarse entera a una herramienta.
+resultado público no codifique el material. Esta API interna no se entrega entera a una herramienta.
+La composición pública de adaptadores está descripta más abajo; el editor de ingreso queda para el paso siguiente.
 
 `current(slot)` devuelve referencias y revisión. `replace(slot, refs, revision)` verifica material y autorización
 antes de confirmar el par como una sola versión. `release(slot, revision)` revoca esa vinculación. Una revisión
@@ -391,14 +391,13 @@ recogen provisionales de sesiones interrumpidas. Un borrado físico fallido perm
 recibe `E-CUSTODY-CLEANUP`; el vínculo ya liberado no vuelve a autorizar usos. El error de limpieza no deshace
 un reemplazo o una liberación ya confirmados.
 
-En este paso los hechos de custodia tienen su tabla aditiva en la misma bóveda. `CredentialLedger` permite que la
-composición conecte el registro del motor: `append` debe confirmar atómicamente y `facts` leer solamente batches
-confirmados, en orden, conservando el campo `authentication`. La custodia autentica cada renglón con la llave de la
-casa, su posición y el autenticador anterior. Un renglón agregado a mano, alterado o sin autenticación produce
-`E-CUSTODY-INTEGRITY`; no concede un vínculo. No se debe poblar desde hechos arbitrarios del bus público.
-La recuperación toma ese registro como autoridad: un batch rechazado conserva la versión anterior; un batch confirmado conserva la nueva aunque
-el proceso haya caído antes de actualizar sus metadatos auxiliares. La unión al batch de una acción queda para el
-paso de contratos; las acciones actuales siguen usando su contrato anterior.
+La custodia usada directamente conserva su tabla aditiva. `startHouse` conecta `CredentialLedger` al registro del
+motor: los hechos autenticados viajan en `tool-entry` silenciosos, dentro de `data.detail.custodyFact`, con su
+`kind` propio. La base reserva ese campo: escribirlo por el bus público no concede autoridad. La custodia autentica
+cada renglón con la llave de la casa, su posición y el autenticador anterior. No se limpian ni modifican esos
+sobres autenticados como texto libre. Un renglón agregado a mano, alterado o sin autenticación falla por integridad.
+La confirmación comparte el lote de la acción. La recolección espera a que termine ese lote: si falla un efecto
+posterior, se conserva el vínculo anterior y su material. Al reiniciar manda el registro confirmado.
 
 Una custodia ya cifrada sin identidad persistida, o con hechos sin autenticación, se rechaza por integridad:
 no se vuelve confiable al abrirla. La adopción siguiente corresponde a la bóveda anterior de campos en claro.
@@ -411,6 +410,55 @@ propósito con `adopt`, esas referencias quedan retenidas y no se resuelven. `di
 Las capturas del contrato anterior también quedan retenidas, sin atribuir un dueño a partir de textos históricos.
 Un `KeyStore` anterior se incorpora mediante `importLegacyKeys` y un manifiesto explícito de proveedor y referencia:
 se verifican todos los destinos cifrados antes de retirar el primer origen. No hay enumeración ni adopción inferida.
+
+## Adaptadores declarados y referencias en las acciones (A01, paso 2)
+
+`ActContext` tiene `ports` y `credentials`; no tiene `keys`, custodia ni resolvedor. `Tool.start` recibe
+`ToolStartup`: esos mismos puertos públicos, `state`, `now`, `live` y un bus reducido a `on`, `emit` y `together`.
+No recibe el objeto `Execution`. El tipo `KeyStore` se conserva únicamente para adoptar proveedores anteriores.
+
+El programa declara `adapters` y `credentialSlots` en `Composition` o `HouseOptions`. Cada adaptador tiene
+`methods` y `open(resolver)`. Cada método declara `input`, `output` y `permissions: { tools, slots, capture }`.
+Declarar ingreso de material o slots exige también `secretKeys` antes de abrir recursos.
+Los esquemas admitidos describen datos JSON; los objetos son cerrados, también los anidados. Se copian esquemas y
+permisos al componer. La fábrica se abre para cada llamada, con un resolvedor limitado a esa operación; los métodos
+no declarados no se publican. `resolver.capture` requiere permiso de ingreso y deja una referencia provisional;
+`resolver.use` reserva el material de referencias autorizadas mientras termina su callback. Un resolvedor guardado
+no funciona después de terminar la llamada. La acción recibe únicamente el resultado público validado.
+
+Los métodos se llaman por `context.ports.nombre.metodo(entrada)` y devuelven promesas de datos públicos. Con
+`noUncheckedIndexedAccess`, comprobá la existencia del adaptador y del método; el resultado es `unknown`, que el
+programa puede comprobar con el esquema público. Las fallas salen como códigos cerrados: `E-ADAPTER-INPUT`,
+`E-ADAPTER-OUTPUT`, `E-ADAPTER-DENIED`, `E-ADAPTER-FAILED` o, al componer, `E-ADAPTER-DECLARATION`.
+Nunca cruzan el mensaje, causa ni traza originales. La confianza en el adaptador sigue siendo necesaria: un esquema
+no demuestra que un string público no esconda una transformación del material.
+
+`credentials.current(slot)` y `revision(slot)` leen la revisión tomada al abrir la acción o el arranque. Devuelven
+referencias y números, nunca material. `replace` y `release` devuelven efectos: agregalos al `effects` del resultado
+aceptado. El motor verifica alcance y revisión antes de confirmar. Un rechazo descarta esos efectos; una copia de
+un efecto no lleva autoridad. Desde el arranque, se publican con su `bus.emit`. La revisión de un slot liberado no
+vuelve a cero: usá `revision`, incluso cuando `current` no tenga credencial.
+
+```ts
+const refs = await importarConElAdaptador(context.ports);
+return { status: "accepted", effects: [
+  context.credentials.replace("firma", refs, context.credentials.revision("firma")),
+] };
+```
+
+Una acción presta sus capacidades hasta terminar, incluso si rechaza, falla, propone un borrador o se interrumpe.
+El arranque las presta hasta su cierre; su identidad es la del programa y su objeto es la propia herramienta.
+Resolver material requiere además que esa identidad tenga la herramienta en la casa. Un uso ya iniciado termina
+con su versión; cerrar o revocar impide nuevos usos. Las referencias de otra casa, identidad u objeto no autorizan.
+
+Al migrar: quitá `keys` de `startHouse`, `startTools` y los contextos de pruebas directas. Para una prueba directa
+sin servicios, agregá `...noCapabilities`; está en `testing.ts`, junto con los tipos públicos y de composición.
+`staged` usa un proveedor de casa en memoria propio de cada caso, conservado durante sus reaperturas. El lector
+histórico sustituye las fábricas por operaciones indisponibles; no llama servicios reales.
+
+Este paso cierra capacidades y composición. La sustitución de entradas antes de `run`, normalización, `draft` y
+callbacks de pantalla, y las leyes transitivas de imports, pertenecen a los pasos 3 y 4; esta entrega no garantiza
+todavía que un campo `secret: true` llegue como referencia a todos esos callbacks.
 
 ## Los registros que se guardan
 - Un programa puede guardar registros que organizaciones reales escribieron con él en una carpeta que nombra en

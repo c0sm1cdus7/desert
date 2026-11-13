@@ -1,3 +1,4 @@
+import type { CredentialLedger } from "./custody-contract.ts";
 import type { TSchema } from "@sinclair/typebox";
 import type { Program } from "../../../tools/tool-contract.ts";
 import type { HouseKeyProvider } from "./house-keys.ts";
@@ -7,9 +8,11 @@ export function openSecretVault<X extends Program>(
   journal: TSchema,
   keys: HouseKeyProvider | undefined,
   failed: () => void,
+  ledger?: CredentialLedger,
 ): SecretVault<X> {
   try {
-    return new SecretVault<X>(file, journal, keys);
+    ledger?.facts();
+    return new SecretVault<X>(file, journal, keys, ledger);
   } catch (error) {
     failed();
     throw error;

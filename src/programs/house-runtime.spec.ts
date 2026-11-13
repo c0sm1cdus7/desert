@@ -1,3 +1,4 @@
+import "../../tests/support/fixture-vault.ts";
 // A house on disk: created once, reopened as it was, with its secrets out of the journal.
 import { Type } from "@sinclair/typebox";
 import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
@@ -7,7 +8,6 @@ import { afterEach, describe, expect, it } from "vitest";
 import { toolAct } from "../tools/act-definition.ts";
 import type { Tool } from "../tools/tool-contract.ts";
 import { localPorts, startHouse, type HouseOptions } from "./house-runtime.ts";
-import { MemoryKeys } from "../../tests/support/shop-rig.ts";
 import { MemoryHouseKeys } from "../adapters/secrets/custody/house-keys.ts";
 import { shop, shopRegistry, shopSlices, type Shop, type ShopEvent } from "../../tests/support/shop.ts";
 
@@ -30,13 +30,12 @@ const vault: Tool<Shop> = {
   targets: () => [],
   view: () => "",
   summary: () => "",
-  acts: { set: toolAct(key, input => ({ status: "accepted", text: `Kept ${input.value}` })) },
+  acts: { set: toolAct(key, () => ({ status: "accepted", text: "Kept" })) },
 };
 const registry = [...shopRegistry, vault];
 const options: HouseOptions<Shop> = {
   by: "shop",
   creation: { admin: "ana", assignments: [{ identity: "ana", tools: registry.map(tool => tool.id) }] },
-  keys: new MemoryKeys(),
   secretKeys: new MemoryHouseKeys(),
   words: shop,
   registry,
@@ -65,7 +64,7 @@ describe("a house on disk", () => {
     expect(facts(second).filter(event => event.kind === "house-created")).toHaveLength(1);
     expect(facts(second).filter(event => event.kind === "boot")).toHaveLength(2);
     expect(statSync(join(path, "journal.sqlite")).mode & 0o777).toBe(0o600);
-    expect(statSync(join(path, "secrets.sqlite")).mode & 0o777).toBe(0o600);
+    expect(statSync(join(path, "fixture.sqlite")).mode & 0o777).toBe(0o600);
   });
 
   it("writes everything one act writes at one instant, whatever the clock does meanwhile", () => {
@@ -103,7 +102,7 @@ describe("a house on disk", () => {
     ana.act({ act: "attend", input: { target: "vault" } }, 0);
     expect(ana.act({ act: "set", target: "vault", input: { value: secretKey } }, 0).status).toBe("accepted");
     expect(JSON.stringify(facts(first))).not.toContain(secretKey);
-    expect(JSON.stringify(facts(first))).toContain("Kept secret:");
+    expect(JSON.stringify(facts(first))).toContain("secret:");
     first.close();
     expect(readFileSync(join(path, "journal.sqlite")).includes(secretKey)).toBe(false);
     const second = start(path);
@@ -166,4 +165,19 @@ it("las acciones propias declaradas al componer también exigen proveedor", () =
       expect(existsSync(join(path, "journal.sqlite"))).toBe(false);
     } else expect(open().tools.state().house.admin).toBe("ana");
   }
+});
+it("control roto: la limpieza literal previa sigue protegiendo a una acción que repite el ingreso", () => {
+  const echo = toolAct<Shop, typeof key>(key, input => ({ status: "accepted", text: `Kept ${input.value}` }));
+  const house = start(home(), { registry: [...shopRegistry, { ...vault, acts: { set: echo } }] });
+  const ana = localPorts(house, "ana", { recentLines: 20 });
+  ana.act({ act: "attend", input: { target: "vault" } }, 0);
+  expect(ana.act({ act: "set", target: "vault", input: { value: secretKey } }, 0).status).toBe("accepted");
+  expect(JSON.stringify(facts(house))).not.toContain(secretKey);
+  expect(JSON.stringify(facts(house))).toContain("Kept secret:");
+});
+it("declarar vínculos exige proveedor aunque no haya campos secretos", () => {
+  const { secretKeys: _keys, ...withoutKeys } = options;
+  expect(() =>
+    startHouse(home(), { ...withoutKeys, registry: shopRegistry, credentialSlots: { sales: ["signing"] } }),
+  ).toThrow(expect.objectContaining({ code: "E-CUSTODY-PROVIDER" }));
 });

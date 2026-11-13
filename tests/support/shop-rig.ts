@@ -7,22 +7,10 @@ import { Bus } from "../../src/journal/bus.ts";
 import { effect } from "../../src/journal/events.ts";
 import type { HousePorts } from "../../src/surface/bridge/house-ports.ts";
 import type { Execution } from "../../src/tools/execute.ts";
-import type { KeyStore, ToolRegistry } from "../../src/tools/tool-contract.ts";
+import type { ToolRegistry } from "../../src/tools/tool-contract.ts";
 import { startState, startTools, toolsStep } from "../../src/tools/tools.ts";
 import { shop, shopRegistry, shopSlices, type Shop, type ShopEvent, type ShopFact } from "./shop.ts";
 
-export class MemoryKeys implements KeyStore {
-  readonly values = new Map<string, string>();
-  get = (provider: string) => Promise.resolve(this.values.get(provider));
-  set(provider: string, value: string): Promise<void> {
-    this.values.set(provider, value);
-    return Promise.resolve();
-  }
-  remove(provider: string): Promise<void> {
-    this.values.delete(provider);
-    return Promise.resolve();
-  }
-}
 export const testTime: TimeSource = {
   now: () => Date.now(),
   wait: (at, fire) => {
@@ -44,7 +32,7 @@ const resume = (bus: Bus<ShopFact>, journal: Journal, registry: ToolRegistry<Sho
   );
   journal.restore();
   const now = () => testTime.now();
-  const tools = startTools({ ...ports, bus, registry, state, now, keys: new MemoryKeys(), secrets: plain });
+  const tools = startTools({ ...ports, bus, registry, state, now, secrets: plain });
   const stopClock = startClock(bus, testTime, journal.replay<Deadlines>(new Map(), clockStep), runner);
   return { tools, stop: () => [tools.stop, stopClock].forEach(stop => stop()) };
 };

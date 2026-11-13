@@ -20,6 +20,7 @@ export class CustodyState {
   readonly sessions = new Map<string, CredentialIngress>();
   readonly uses = new Map<SecretRef, number>();
   closed = false;
+  cleanupDepth = 0;
   constructor(file: string, _house: string, keys?: HouseKeyProvider, ledger?: CredentialLedger) {
     this.store = new CustodyDatabase(file);
     try {

@@ -48,7 +48,9 @@ const listened = {
     paymentsTool,
     {
       ...salesTool,
-      start: (ports: import("../../tools/execute.ts").Execution<import("../../../tests/support/shop.ts").Shop>) =>
+      start: (
+        ports: import("../../tools/startup-contract.ts").ToolStartup<import("../../../tests/support/shop.ts").Shop>,
+      ) =>
         ports.bus.on("sale-registered", () => {
           throw new Error("program listener diagnostic");
         }),

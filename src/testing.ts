@@ -38,7 +38,15 @@ export {
   type Event,
   type ProgramFacts,
 } from "./journal/events.ts";
-export { localPorts, startHouse } from "./programs/house-runtime.ts";
+export {
+  localPorts,
+  startHouse,
+  type HouseOptions,
+  type AdapterComposition,
+  type AdapterDeclaration,
+  type AdapterMethod,
+  type SecretResolver,
+} from "./programs/house-runtime.ts";
 export { programChecks } from "./programs/program-checks.ts";
 export { promisedChecks } from "./programs/promised.ts";
 export { currentCloses } from "./programs/answers/current.ts";
@@ -86,3 +94,12 @@ export type { KeyStore, Program, State } from "./tools/tool-contract.ts";
 export { startState, startTools, toolsStep } from "./tools/tools.ts";
 export type { Also, Need, Offered, Told } from "./tools/promises.ts";
 export type { ActContext, ActResult, Slices } from "./tools/tool-contract.ts";
+export { noCapabilities } from "./tools/execution/capabilities.ts";
+export type { ToolStartup } from "./tools/startup-contract.ts";
+export type {
+  SecretRef,
+  SecretRefs,
+  Credential,
+  CredentialOperations,
+  PublicPorts,
+} from "./tools/capabilities-contract.ts";

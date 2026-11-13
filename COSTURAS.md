@@ -30,7 +30,8 @@ plan, checkpoint, compactar, modelos, crédito, turnos, juez, reglas, notas, mar
   estaba antes del hecho), pero solo escribe la suya.
 - Ejecutar un acto (`execute`) no conoce journeys ni mente. El programa puede vetar un acto por el puerto `refuse`
   y ofrecer actos propios fuera de las herramientas por `own`; atender y dejar de atender los ofrece toda casa.
-- Las llaves (`KeyStore`) y el borrado de secretos (`secrets`) son puertos del motor.
+- Las acciones y los arranques reciben métodos públicos de adaptadores declarados y operaciones de vínculos.
+  La custodia y la limpieza de secretos son capacidades internas del motor; `KeyStore` queda solo para adopción.
 
 Qué cambió respecto de Kenon en este paso:
 - `acts` ya no es la lista de todos los actos desde el principio: son los actos abiertos (sin resultado todavía).
@@ -60,8 +61,12 @@ Qué cambió respecto de Kenon en este paso:
   exige proveedor si hay posiciones secretas; las fallas de purga llegan con tipo y quedan pendientes.
   La bóveda anterior se adopta conservando IDs,
   después de la revisión histórica y antes del arranque. `secretKeys` se queda en la composición, fuera de los
-  puertos de herramientas. El contrato de acciones no cambia en este paso: ver «Custodia de credenciales» en
-  `PROGRAMA.md`, incluida la conexión futura de `CredentialLedger` al batch del motor.
+  puertos de herramientas. `CredentialLedger` comparte el lote del motor mediante entradas silenciosas
+  autenticadas; limpiar material espera al cierre del lote.
+- `src/adapters/declared/`: compone métodos con entrada, salida y permisos explícitos. Solo la fábrica recibe
+  resolución; la acción recibe proxies revocables y efectos de vínculos. Los errores cruzan como códigos cerrados.
+  `src/tools/startup-contract.ts` separa el arranque público de `Execution`. Ver «Adaptadores declarados»
+  en `PROGRAMA.md`; ingreso y leyes transitivas quedan para los pasos siguientes.
 - Probado en una terminal real con el programa de prueba: `node tests/support/shop-open.ts`.
 
 ## 4. El router: una sola lógica para todas las superficies (HECHO)

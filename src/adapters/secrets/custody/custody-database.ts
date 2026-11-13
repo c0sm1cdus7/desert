@@ -5,7 +5,7 @@ import { Value } from "@sinclair/typebox/value";
 import { privateDatabase } from "../../storage/home.ts";
 import { CustodyError } from "./house-keys.ts";
 import type { CredentialFact, CredentialLedger, CustodyRow, SecretRef } from "./custody-contract.ts";
-const factSchema = Type.Object({
+export const factSchema = Type.Object({
   authentication: Type.Optional(Type.String()),
   id: Type.String(),
   kind: Type.Union([

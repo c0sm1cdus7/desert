@@ -7,7 +7,7 @@ import { toolAct } from "../../src/tools/act-definition.ts";
 import type { Program } from "../../src/tools/tool-contract.ts";
 registerHooks({
   load(url, context, next) {
-    if (url.endsWith("/src/programs/house-runtime.ts"))
+    if (url.endsWith("/src/programs/house-resources.ts"))
       return {
         format: "module-typescript",
         shortCircuit: true,
@@ -23,11 +23,6 @@ if (!home || !mode) throw new Error("Falta carpeta temporal");
 const kill = () => process.kill(process.pid, "SIGKILL");
 const options = {
   by: "fixture",
-  keys: {
-    get: () => Promise.resolve(undefined),
-    async set() {},
-    async remove() {},
-  },
   secretKeys: { forget() {}, key: () => new Uint8Array(32).fill(7) },
   words: vocabulary({}),
   slices: { initial: { vault: 0 }, step: { vault: (state: unknown) => Number(state) + 1 } },

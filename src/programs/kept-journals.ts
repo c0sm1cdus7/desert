@@ -1,3 +1,4 @@
+import type { AdapterComposition } from "../adapters/declared/adapter-contract.ts";
 // The journals a program keeps of what organizations wrote with it: each still opens with the program of today.
 // Every fact is read and folds from the first, and every thing is read as whoever administers it reads it.
 import { deepStrictEqual, ok } from "node:assert/strict";
@@ -10,19 +11,27 @@ import type { Shown } from "../surface/bridge/house-ports.ts";
 import { stacksOf } from "../surface/lists.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 import type { Composition } from "../tools/promises.ts";
-import type { KeyStore, Program } from "../tools/tool-contract.ts";
+import type { Program } from "../tools/tool-contract.ts";
 import { startState, toolsStep } from "../tools/tools.ts";
 import { localPorts, startHouse } from "./house-runtime.ts";
 import { breadthFirst, keptWalkLimits, type WalkCoverage } from "./kept-walk.ts";
 import { keptPath, type Path } from "./kept-path.ts";
 import type { Check } from "./promised-stage.ts";
 
-/** A kept journal is read, never used: no service of its house is reached, and no credential of it is there. */
-const noKeys: KeyStore = {
-  get: () => Promise.resolve(undefined),
-  set: () => Promise.reject(new Error(said.keptKeys)),
-  remove: () => Promise.reject(new Error(said.keptKeys)),
-};
+function offlineAdapters({ adapters = {} }: AdapterComposition) {
+  const unavailable = (): never => {
+    throw new Error("E-ADAPTER-OFFLINE");
+  };
+  return Object.fromEntries(
+    Object.entries(adapters).map(([id, declaration]) => [
+      id,
+      {
+        ...declaration,
+        open: () => Object.fromEntries(Object.keys(declaration.methods).map(name => [name, unavailable])),
+      },
+    ]),
+  );
+}
 type Kept<X extends Program> = Readonly<{ program: Composition<X>; shown: Shown<X> }>;
 /** It was opened with nothing folded beforehand, so every fact was read and folded from the first by the program
  * of today; folding it once more gives the same. And everything it has is read where a person reads it: the Menu,
@@ -58,7 +67,11 @@ async function opened<X extends Program, R>(
     const now = last + 1;
     const creation = { admin: runner, assignments: [] };
     const time = { now: () => now, wait: () => () => {} };
-    const house = startHouse<X>(home, { by: runner, creation, keys: noKeys, ...kept.program }, time);
+    const house = startHouse<X>(
+      home,
+      { by: runner, creation, ...kept.program, adapters: offlineAdapters(kept.program) },
+      time,
+    );
     try {
       return await use(house, now);
     } finally {

@@ -9,7 +9,6 @@ import { SecretCustody } from "./custody/secret-custody.ts";
 import { startHouse, type HouseOptions } from "../../programs/house-runtime.ts";
 import { shop, shopRegistry, shopSlices, type Shop } from "../../../tests/support/shop.ts";
 import { containing } from "../../../tests/support/custody-files.ts";
-import { MemoryKeys } from "../../../tests/support/shop-rig.ts";
 import { toolAct } from "../../tools/act-definition.ts";
 import fixture from "../../../tests/support/custody-ac07248.json" with { type: "json" };
 // Only the filename changes: the real vault, cipher, provider, journal and history inspection execute.
@@ -33,7 +32,6 @@ const options: HouseOptions<Shop> = {
   by: "shop",
   words: shop,
   slices: shopSlices,
-  keys: new MemoryKeys(),
   creation: { admin: "ana", assignments: [] },
   registry: [
     ...shopRegistry,

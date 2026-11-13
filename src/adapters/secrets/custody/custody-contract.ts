@@ -1,7 +1,5 @@
-export type SecretRef = `secret:${string}`;
-export type CredentialScope = Readonly<{ actor: string; tool: string; target: string }>;
-export type SecretRefs = Readonly<Record<string, SecretRef>>;
-export type Credential = Readonly<{ revision: number; refs: SecretRefs }>;
+import type { CredentialScope, SecretRefs, SecretRef } from "../../../tools/capabilities-contract.ts";
+export type { CredentialScope, SecretRefs, SecretRef, Credential } from "../../../tools/capabilities-contract.ts";
 export type CredentialFact = Readonly<{
   authentication?: string;
   id: string;

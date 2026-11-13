@@ -21,7 +21,7 @@ const failedDecision = <X extends Program>(ports: Execution<X>, act: HouseEvent<
 export function finish<X extends Program>(ports: Execution<X>, act: HouseEvent<"act">, decision: Decision<X>) {
   const safe = ports.secrets.scrub(decision);
   if (!ports.live()) return safe;
-  const failure = writtenEffects(ports, act, decision.effects);
+  const failure = writtenEffects(ports, act, decision.effects, decision.status === "accepted");
   let done: Decision<X> = safe;
   if (failure !== undefined) {
     done = failedDecision(

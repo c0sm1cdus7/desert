@@ -1,0 +1,17 @@
+// Internal engine capabilities never cross Tool.start or an action context.
+import type { TSchema } from "@sinclair/typebox";
+import type { Bus } from "../journal/bus.ts";
+import type { Program, State, ToolRegistry, OwnAct } from "./tool-contract.ts";
+import type { CapabilityFactory, CapabilityLease } from "./execution/capabilities.ts";
+export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; now: () => number }> &
+  Readonly<{ registry: ToolRegistry<X>; state: () => State<X>; own: (state: State<X>) => readonly OwnAct<X>[] }> &
+  Readonly<{ process: (id: string, by?: string) => boolean; live: () => boolean; chain?: readonly string[] }> &
+  Readonly<{
+    capabilities?: CapabilityFactory;
+    credentialEffects?: Pick<CapabilityLease, "apply" | "together">;
+    secrets: {
+      capture(value: unknown, registry: ToolRegistry<X>, state?: State<X>): void;
+      scrub<T>(value: T): T;
+      scope?<T>(schema: TSchema | undefined, input: unknown, work: () => T): T;
+    };
+  }>;

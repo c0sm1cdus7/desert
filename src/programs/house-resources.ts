@@ -1,0 +1,112 @@
+import { CustodyError } from "../adapters/secrets/custody/house-keys.ts";
+import { closeResources } from "../tools/boundaries/close-resources.ts";
+import { defectReporter } from "../tools/failures/defect-reporter.ts";
+import { mkdirSync } from "node:fs";
+import { join } from "node:path";
+import { protectedHouse } from "../adapters/secrets/positions/protected-house.ts";
+import { declaredAdapters } from "../adapters/declared/compose-adapters.ts";
+import { credentialJournal } from "../adapters/declared/credential-journal.ts";
+import { openSecretVault } from "../adapters/secrets/custody/open-secret-vault.ts";
+import { SqliteJournal } from "../adapters/storage/journal-store.ts";
+import { privateDirectoryMode } from "../catalogs/levers.ts";
+import { Bus } from "../journal/bus.ts";
+import type { Emission } from "../journal/events.ts";
+import type { TimeSource } from "../journal/clock.ts";
+import { allowed } from "../house/house.ts";
+import type { SecretVault } from "../adapters/secrets/secret-vault.ts";
+import type { Program, State } from "../tools/tool-contract.ts";
+import type { HouseOptions } from "./house-runtime.ts";
+function busOf<X extends Program>(
+  journal: SqliteJournal<X["fact"]>,
+  time: TimeSource,
+  kept: (emission: Emission<X["fact"]>) => Emission<X["fact"]>,
+) {
+  let together: number | undefined;
+  return new Bus<X["fact"]>(
+    emission => journal.append(kept(emission), together ?? time.now()),
+    write =>
+      journal.batch(() => {
+        const outer = together;
+        together = outer ?? time.now();
+        try {
+          return write();
+        } finally {
+          together = outer;
+        }
+      }),
+  );
+}
+function publicCapabilities<X extends Program>(
+  options: HouseOptions<X>,
+  secrets: SecretVault<X>,
+  compose: ReturnType<typeof declaredAdapters>,
+  state: () => State<X>,
+) {
+  return options.adapters || options.credentialSlots
+    ? {
+        capabilities: secrets.capabilities(custody =>
+          compose(custody, scope => allowed(state().house, scope.actor, scope.tool)),
+        ),
+      }
+    : {};
+}
+function houseAdapters<X extends Program>(options: HouseOptions<X>) {
+  const compose = declaredAdapters(
+    options,
+    options.registry.map(tool => tool.id),
+  );
+  const captures = Object.values(options.adapters ?? {}).some(adapter =>
+    Object.values(adapter.methods).some(method => method.permissions.capture),
+  );
+  const binds = Object.values(options.credentialSlots ?? {}).some(slots => slots.length > 0);
+  if (!options.secretKeys && (captures || binds)) throw new CustodyError("E-CUSTODY-PROVIDER");
+  return compose;
+}
+export function houseResources<X extends Program>(home: string, options: HouseOptions<X>, time: TimeSource) {
+  const { by, registry, words, secretKeys } = options;
+  const compose = houseAdapters(options);
+  const protection = protectedHouse(home, options);
+  mkdirSync(home, { recursive: true, mode: privateDirectoryMode });
+  const journal = new SqliteJournal(join(home, "journal.sqlite"), protection.words);
+  const credentials = credentialJournal(
+    () => journal.replay<ReturnType<typeof journal.append>[]>([], (all, event) => [...all, event]),
+    entry => journal.append(entry, time.now()),
+  );
+  const secrets = openSecretVault<X>(
+    join(home, "secrets.sqlite"),
+    words.event,
+    secretKeys,
+    () => journal.close(),
+    credentials.ledger,
+  );
+  const bus = busOf<X>(journal, time, emission => credentials.write(emission, value => secrets.write(value)));
+  credentials.publish(entry => bus.emit(entry));
+  const stops: (() => void)[] = [];
+  const report = defectReporter(
+    registry,
+    by,
+    entry => journal.append(entry, time.now()),
+    value => secrets.scrub(value),
+  );
+  const close = closing(stops, [bus, journal, secrets], report);
+  return {
+    capabilities: (state: () => State<X>) => publicCapabilities(options, secrets, compose, state),
+    protection,
+    journal,
+    secrets,
+    bus,
+    stops,
+    report,
+    close,
+  };
+}
+function closing(
+  stops: (() => void)[],
+  resources: readonly { close(): void }[],
+  report: ReturnType<typeof defectReporter>,
+) {
+  return () =>
+    closeResources([...stops.splice(0), ...resources.map(resource => () => resource.close())], error => {
+      report(error, "program", "program", "stop");
+    });
+}

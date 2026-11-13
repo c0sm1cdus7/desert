@@ -5,6 +5,18 @@ import { join } from "node:path";
 import { root } from "../support/sources.ts";
 
 const names = [
+  "HouseOptions",
+  "AdapterComposition",
+  "AdapterDeclaration",
+  "AdapterMethod",
+  "SecretResolver",
+  "noCapabilities",
+  "ToolStartup",
+  "SecretRef",
+  "SecretRefs",
+  "Credential",
+  "CredentialOperations",
+  "PublicPorts",
   "count",
   "day",
   "digits",

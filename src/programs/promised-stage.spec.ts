@@ -1,3 +1,4 @@
+import "../../tests/support/fixture-vault.ts";
 // A failing check or a house that cannot open must not leave its temporary directory behind.
 import { mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

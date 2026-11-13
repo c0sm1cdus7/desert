@@ -32,6 +32,7 @@ function purge(state: CustodyState, ref: SecretRef): void {
 }
 export function collectCustody(state: CustodyState): void {
   state.check();
+  if (state.cleanupDepth) return;
   const facts = state.ledger.facts();
   const bound = new Set(state.bindings().flatMap(fact => Object.values(fact.refs)));
   const everBound = new Set(

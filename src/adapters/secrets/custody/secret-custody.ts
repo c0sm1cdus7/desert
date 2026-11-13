@@ -21,7 +21,7 @@ export type CredentialSession = CredentialIngress &
     release(slot: string, expected: number): void;
     cancel(): void;
   }>;
-/** Only the composition root holds this object. Actions will receive a restricted binding port in step two. */
+/** Only the composition root holds this object. Actions receive only a restricted binding port. */
 export class SecretCustody {
   readonly #state: CustodyState;
   constructor(file: string, house: string, keys?: HouseKeyProvider, ledger?: CredentialLedger) {
@@ -56,6 +56,7 @@ export class SecretCustody {
       replace: (slot: string, refs: SecretRefs, expected: number) => this.replace(session, slot, refs, expected),
       release: (slot: string, expected: number) => this.release(session, slot, expected),
       cancel: () => {
+        if (this.#state.closed) return;
         this.#state.sessions.delete(session.id);
         collectCustody(this.#state);
       },
@@ -87,6 +88,23 @@ export class SecretCustody {
     this.#state.fact("credential-released", session.scope, slot, revision, refs, session.id);
     collectCustody(this.#state);
   }
+  /** Append inside the action's journal batch; cleanup waits until its lease closes after commit. */
+  confirm(session: CredentialSession, slot: string, expected: number, refs?: SecretRefs): void {
+    this.#state.check(session);
+    const revision = this.#state.revision(session.scope, slot, expected);
+    if (refs) {
+      authorizeRefs(this.#state, session, refs);
+      Object.values(refs).forEach(ref => readMaterial(this.#state, ref));
+    }
+    this.#state.fact(
+      refs ? "credential-bound" : "credential-released",
+      session.scope,
+      slot,
+      revision,
+      refs ?? this.#state.current(session.scope, slot)?.refs ?? {},
+      session.id,
+    );
+  }
   adapter(session: CredentialSession, allowedSlots: readonly string[]) {
     this.#state.check(session);
     const slots = [...allowedSlots];
@@ -103,6 +121,14 @@ export class SecretCustody {
   ids() {
     this.#state.check();
     return this.#state.store.rows().map(row => row.ref);
+  }
+  deferCleanup<T>(work: () => T): T {
+    this.#state.cleanupDepth++;
+    try {
+      return work();
+    } finally {
+      this.#state.cleanupDepth--;
+    }
   }
   collect(): void {
     collectCustody(this.#state);

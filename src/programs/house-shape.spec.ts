@@ -1,3 +1,4 @@
+import "../../tests/support/fixture-vault.ts";
 // A house opened by another shape of its program: what it kept is not trusted, and what it cannot read stops it.
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -7,7 +8,6 @@ import { object } from "../catalogs/acts.ts";
 import { money, text } from "../catalogs/fields.ts";
 import { vocabulary } from "../journal/events.ts";
 import { localPorts, startHouse, type HouseOptions } from "./house-runtime.ts";
-import { MemoryKeys } from "../../tests/support/shop-rig.ts";
 import { shop, shopCatalog, shopRegistry, shopSlices, type Shop } from "../../tests/support/shop.ts";
 
 const homes: string[] = [];
@@ -19,7 +19,6 @@ afterEach(() => {
 const options: HouseOptions<Shop> = {
   by: "shop",
   creation: { admin: "ana", assignments: [{ identity: "ana", tools: shopRegistry.map(tool => tool.id) }] },
-  keys: new MemoryKeys(),
   words: shop,
   registry: shopRegistry,
   slices: shopSlices,

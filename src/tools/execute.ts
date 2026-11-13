@@ -1,11 +1,9 @@
-import type { TSchema } from "@sinclair/typebox";
 import { programCall } from "./boundaries/program-call.ts";
 // One way to act in a house: every act is written, checked against the house, run, and its result written.
 import { Value } from "@sinclair/typebox/value";
 import { actEnvelope, type Act } from "../catalogs/acts.ts";
 import { ids } from "../catalogs/ids.ts";
 import { allowed, identityView } from "../house/house.ts";
-import type { Bus } from "../journal/bus.ts";
 import { effect, type Emission, type HouseEvent } from "../journal/events.ts";
 import { toolTexts } from "../texts/tools.texts.ts";
 import { isAttended, targetTool } from "./attendance.ts";
@@ -13,19 +11,13 @@ import { programOffered, runProgram } from "./program-run.ts";
 import { executionFailure } from "./execution/execution-failure.ts";
 import { startAct } from "./failures/start-act.ts";
 import { finish } from "./failures/finish.ts";
-import { actNews, type ActContext, type ActResult, type KeyStore, type OwnAct } from "./tool-contract.ts";
-import type { Program, State, Tool, ToolAct, ToolRegistry } from "./tool-contract.ts";
+import { actNews, type ActContext, type ActResult } from "./tool-contract.ts";
+import type { Program, Tool, ToolAct } from "./tool-contract.ts";
+import type { Execution } from "./execution-contract.ts";
+export type { Execution } from "./execution-contract.ts";
+import type { ToolCapabilities } from "./capabilities-contract.ts";
+import { usingCapabilities } from "./execution/action-capabilities.ts";
 type Origin = HouseEvent<"act">;
-export type Execution<X extends Program> = Readonly<{ bus: Bus<X["fact"]>; keys: KeyStore; now: () => number }> &
-  Readonly<{ registry: ToolRegistry<X>; state: () => State<X>; own: (state: State<X>) => readonly OwnAct<X>[] }> &
-  Readonly<{ process: (id: string, by?: string) => boolean; live: () => boolean; chain?: readonly string[] }> &
-  Readonly<{
-    secrets: {
-      capture(value: unknown, registry: ToolRegistry<X>, state?: State<X>): void;
-      scrub<T>(value: T): T;
-      scope?<T>(schema: TSchema | undefined, input: unknown, work: () => T): T;
-    };
-  }>;
 export type Decision<X extends Program> = Readonly<{ status: ActResult<X>["status"] | "draft" }> &
   Readonly<{ effects: readonly Emission<X["fact"]>[]; reason?: string; draft?: unknown; defect?: true }> &
   Readonly<{ private?: string | undefined; output?: boolean }>;
@@ -59,7 +51,12 @@ function refusal<X extends Program>(ports: Execution<X>, origin: Origin, found: 
   if (!offered && !isAttended(state, tool?.id ?? "", target)) return toolTexts.unattended;
   return programOffered(act, state, target, ports.now());
 }
-const decide = <X extends Program>(ports: Execution<X>, value: Act, origin: Origin): Decision<X> | Perform<X> => {
+const decide = <X extends Program>(
+  ports: Execution<X>,
+  value: Act,
+  origin: Origin,
+  capabilities: ToolCapabilities,
+): Decision<X> | Perform<X> => {
   const { by, id } = origin;
   const { object: target, through = 0 } = origin.data;
   const found = resolve(ports, by, target, value.act);
@@ -67,7 +64,18 @@ const decide = <X extends Program>(ports: Execution<X>, value: Act, origin: Orig
   const refused = refusal(ports, origin, found);
   if (refused !== undefined || !act) return rejected(refused ?? toolTexts.unknown);
   const execute = (nested: Act) => executeNested(ports, origin, nested, value.input);
-  const context: ActContext<X> = { state, by, target, at: ports.now(), through, keys: ports.keys, id, execute };
+  const { ports: publicPorts, credentials } = capabilities;
+  const context: ActContext<X> = {
+    state,
+    by,
+    target,
+    at: ports.now(),
+    through,
+    ports: publicPorts,
+    credentials,
+    id,
+    execute,
+  };
   const draft = !offered && programCall(tool?.draft?.bind(tool), state, through, value.input, target, context.at);
   if (draft) {
     const text = toolTexts.draft;
@@ -142,15 +150,17 @@ function executeScoped<X extends Program>(
   const started = startAct(ports, effect("act", data, by, cause, process));
   if (started.failed) return started.failed;
   const act = started.act;
-  let decision: Decision<X> | Perform<X>;
-  try {
-    decision = decide(ports, value, act);
-  } catch (error) {
-    return run(ports, act, () => {
-      throw error;
-    });
-  }
-  return typeof decision === "function" ? run(ports, act, decision) : finish(ports, act, decision);
+  return usingCapabilities(ports, act, (ports, capabilities) => {
+    let decision: Decision<X> | Perform<X>;
+    try {
+      decision = decide(ports, value, act, capabilities);
+    } catch (error) {
+      return run(ports, act, () => {
+        throw error;
+      });
+    }
+    return typeof decision === "function" ? run(ports, act, decision) : finish(ports, act, decision);
+  });
 }
 const run = <X extends Program>(ports: Execution<X>, act: Origin, perform: Perform<X>): ExecutionResult<X> => {
   const { object, option } = act.data;

@@ -1815,7 +1815,7 @@
     },
     {
       "id": 209,
-      "rule": "La custodia restringe usos por sesión, identidad, herramienta, objeto y vínculo autenticado. Un renglón agregado o alterado falla por integridad. Cancelar o reiniciar libera provisionales; reemplazar compara revisión; un uso iniciado conserva su versión. La recuperación conserva batches confirmados y reintenta borrados pendientes; una falla física devuelve error tipado y no anuncia eliminación. La purga retira material y cifrado de todos los archivos actuales, aun abierta o tras un corte. Restaurar una copia vieja completa revive sus secretos: no hay defensa contra esa restauración. El historial solo no retiene material. Las acciones conservan su contrato anterior en este paso.",
+      "rule": "La custodia restringe usos por sesión, identidad, herramienta, objeto y vínculo autenticado. Un renglón agregado o alterado falla por integridad. Cancelar o reiniciar libera provisionales; reemplazar compara revisión; un uso iniciado conserva su versión. La recuperación conserva batches confirmados y reintenta borrados pendientes; una falla física devuelve error tipado y no anuncia eliminación. La purga retira material y cifrado de todos los archivos actuales, aun abierta o tras un corte. Restaurar una copia vieja completa revive sus secretos: no hay defensa contra esa restauración. El historial solo no retiene material. La frontera pública de acciones y arranques se completa en la regla 210.",
       "from": "13/11 · A01, segunda parte, paso 1: custodia",
       "guarantee": "spec",
       "evidence": [
@@ -1827,6 +1827,23 @@
         "src/adapters/secrets/custody-ledger.spec.ts",
         "src/adapters/secrets/custody-adversarial.spec.ts",
         "src/adapters/secrets/custody-disk.spec.ts"
+      ]
+    },
+    {
+      "id": 210,
+      "rule": "Las acciones y los arranques reciben solo métodos públicos de adaptadores declarados y operaciones de vínculos; no reciben KeyStore, custodia ni resolvedor. Cada operación fija entrada, salida, herramientas, slots e ingreso permitido. La fábrica recibe un resolvedor por llamada, revocable y limitado al alcance. Los resultados se validan como datos públicos cerrados y las fallas cruzan como códigos, sin mensaje, causa ni traza originales. current y revision fijan la vista inicial; replace y release producen efectos no copiables que se confirman con el lote aceptado y dejan hechos autenticados. Rechazo, conflicto o rollback conservan el vínculo anterior; la recolección espera al lote. La sustitución del ingreso y las leyes transitivas corresponden a los pasos siguientes.",
+      "from": "13/11 · A01, segunda parte, paso 2: contratos y composición",
+      "guarantee": "spec",
+      "evidence": [
+        "src/tools/opacity-contract.spec.ts",
+        "src/adapters/declared/composition.spec.ts",
+        "src/adapters/declared/adapter-errors.spec.ts",
+        "src/programs/house-adapters.spec.ts",
+        "src/programs/house-bindings.spec.ts",
+        "src/tools/capabilities-contract.ts",
+        "src/tools/startup-contract.ts",
+        "src/adapters/declared/credential-journal.ts",
+        "PROGRAMA.md"
       ]
     }
   ]

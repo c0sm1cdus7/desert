@@ -1,3 +1,4 @@
+import "../../tests/support/fixture-vault.ts";
 // A journal an organization wrote, kept by its program: it has to open with the program of today.
 import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -5,7 +6,6 @@ import { join } from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 import { startHouse } from "./house-runtime.ts";
 import { keptChecks } from "./kept-journals.ts";
-import { MemoryKeys } from "../../tests/support/shop-rig.ts";
 import { shopProgram, shopShown, type Shop } from "../../tests/support/shop.ts";
 
 const root = mkdtempSync(join(tmpdir(), "desert-kept-spec-"));
@@ -15,7 +15,7 @@ const time = { now: () => 1_000, wait: () => () => {} };
 function kept(): string {
   const home = join(root, "home");
   const creation = { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] };
-  const house = startHouse<Shop>(home, { by: "shop", creation, keys: new MemoryKeys(), ...shopProgram }, time);
+  const house = startHouse<Shop>(home, { by: "shop", creation, ...shopProgram }, time);
   house.tools.act({ act: "attend", input: { target: "sales" } }, 0, "ana");
   const done = house.tools.act(
     { act: "register", target: "sales", input: { sale: "s1", total: 1500 } },

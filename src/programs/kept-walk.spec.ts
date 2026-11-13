@@ -1,3 +1,4 @@
+import "../../tests/support/fixture-vault.ts";
 // Saved records expose failures no declared case happens to reach; each branch must start from its own copy.
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -13,7 +14,6 @@ import { keptChecks } from "./kept-journals.ts";
 import type { Path } from "./kept-path.ts";
 import { breadthFirst } from "./kept-walk.ts";
 import { startHouse } from "./house-runtime.ts";
-import { MemoryKeys } from "../../tests/support/shop-rig.ts";
 
 const root = mkdtempSync(join(tmpdir(), "desert-kept-walk-spec-"));
 afterAll(() => rmSync(root, { recursive: true, force: true }));
@@ -45,7 +45,7 @@ function saved(): string {
   mkdirSync(folder, { recursive: true });
   const creation = { admin: "ana", assignments: [{ identity: "ana", tools: ["sales", "payments"] }] };
   const time = { now: () => 1000, wait: () => () => {} };
-  const house = startHouse(home, { ...shopProgram, by: "shop", creation, keys: new MemoryKeys() }, time);
+  const house = startHouse(home, { ...shopProgram, by: "shop", creation }, time);
   try {
     house.tools.act({ act: "attend", input: { target: "sales" } }, 0, "ana");
     const result = house.tools.act({ act: "register", target: "sales", input: { sale: "s1", total: 1500 } }, 0, "ana");

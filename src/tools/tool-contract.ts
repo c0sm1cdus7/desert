@@ -4,7 +4,8 @@ import type { Act } from "../catalogs/acts.ts";
 import type { ViewLimits } from "../catalogs/levers.ts";
 import type { HouseView } from "../house/house.ts";
 import type { Emission, Event, Foreign, HouseEvent } from "../journal/events.ts";
-import type { Execution } from "./execute.ts";
+import type { ToolStartup } from "./startup-contract.ts";
+import type { ToolCapabilities } from "./capabilities-contract.ts";
 /** What a program brings to a house: its facts, and what each of its tools keeps, under the tool's id. */
 export type Program = Readonly<{ fact: Foreign; tools: Record<string, unknown> }>;
 export type Entry = HouseEvent<"tool-entry">;
@@ -20,7 +21,7 @@ export type Slices<X extends Program> = Readonly<{
     readonly [K in keyof X["tools"]]: (kept: X["tools"][K], event: Event<X["fact"]>, before: State<X>) => X["tools"][K];
   };
 }>;
-/** A house's service credentials: only this store sees their values. */
+/** Legacy provider contract, only for explicit adoption; never part of action or startup capabilities. */
 export interface KeyStore {
   hosts?(provider: string): Promise<readonly string[]>;
   get(provider: string): Promise<string | undefined>;
@@ -39,16 +40,16 @@ export type ActResult<X extends Program> =
   | (Effects<X> & Readonly<{ status: "rejected" | "interrupted"; reason: string }>);
 /** "world" when the act leaves the house; everything else stays in it. */
 export type Reach = "house" | "world";
-export type ActContext<X extends Program> = Readonly<{
-  state: State<X>;
-  by: string;
-  through: number;
-  target: string;
-  at: number;
-  keys: KeyStore;
-  id?: string;
-  execute?: (act: Act) => Promise<ActResult<X>>;
-}>;
+export type ActContext<X extends Program> = ToolCapabilities &
+  Readonly<{
+    state: State<X>;
+    by: string;
+    through: number;
+    target: string;
+    at: number;
+    id?: string;
+    execute?: (act: Act) => Promise<ActResult<X>>;
+  }>;
 export interface ToolAct<X extends Program> extends Readonly<{ input: TSchema; reach: Reach }> {
   /** Where it stands, when it says so: on its tool, or on one of its things. The house refuses it anywhere else. */
   readonly on?: "tool" | "thing";
@@ -62,7 +63,7 @@ export interface ToolAct<X extends Program> extends Readonly<{ input: TSchema; r
   reject?(context: ActContext<X>, result: Accepted<X>): string | undefined;
 }
 export interface Tool<X extends Program> extends Readonly<{ id: string; purpose: string }> {
-  start?(ports: Execution<X>): () => void;
+  start?(ports: ToolStartup<X>): () => void;
   readonly acts: Readonly<Record<string, ToolAct<X>>>;
   targets(state: State<X>): readonly string[];
   view(state: State<X>, target: string, limits: ViewLimits): string;

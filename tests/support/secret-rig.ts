@@ -12,7 +12,6 @@ import { vocabulary, type Event, type ProgramFacts } from "../../src/journal/eve
 import { toolAct } from "../../src/tools/act-definition.ts";
 import type { ToolAct, Slices } from "../../src/tools/tool-contract.ts";
 import { MemoryHouseKeys } from "../../src/adapters/secrets/custody/house-keys.ts";
-import { MemoryKeys } from "./shop-rig.ts";
 vi.mock("../../src/adapters/secrets/secret-vault.ts", async () => {
   const { Redactor } = await import("../../src/adapters/secrets/redact.ts");
   return {
@@ -50,7 +49,6 @@ export const home = () => {
 function optionsFor(act: ToolAct<P>, changed: Partial<HouseOptions<P>>): HouseOptions<P> {
   return {
     by: "fixture",
-    keys: new MemoryKeys(),
     secretKeys: new MemoryHouseKeys(),
     words,
     slices,

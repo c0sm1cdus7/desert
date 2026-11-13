@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { custodyRig, custodyScope } from "../../../tests/support/custody-rig.ts";
 import { importLegacyKeys } from "./custody/legacy-key-provider.ts";
-import { MemoryKeys } from "../../../tests/support/shop-rig.ts";
+import { MemoryKeys } from "../../../tests/support/legacy-keys.ts";
 import { randomUUID } from "node:crypto";
 import type { SecretRef } from "./custody/custody-contract.ts";
 it("el manifiesto no resucita una referencia purgada ni deja filas con ids inválidos", () => {

@@ -1,3 +1,4 @@
+import { MemoryHouseKeys } from "../adapters/secrets/custody/house-keys.ts";
 // Where a derived check runs: a real house on disk at a fixed instant, its three people, an act done as anyone does.
 import { ok } from "node:assert/strict";
 import { rmSync } from "node:fs";
@@ -6,7 +7,7 @@ import { caseInstant } from "../catalogs/time.ts";
 import type { TimeSource } from "../journal/clock.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
 import type { Composition, Did, ProgramAct, ProgramTool, Step } from "../tools/promises.ts";
-import type { KeyStore, Program } from "../tools/tool-contract.ts";
+import type { Program } from "../tools/tool-contract.ts";
 import { startHouse } from "./house-runtime.ts";
 
 export type Check = Readonly<{ name: string; run: () => Promise<void>; report?: () => string | undefined }>;
@@ -27,19 +28,18 @@ function stillClock(): Clock {
 }
 /** The house a case runs in runs as itself. */
 export const runner = "house";
-const kept = new Map<string, string>();
-const keys: KeyStore = {
-  get: provider => Promise.resolve(kept.get(provider)),
-  set: (provider, value) => Promise.resolve(void kept.set(provider, value)),
-  remove: provider => Promise.resolve(void kept.delete(provider)),
-};
-function open<X extends Program>(program: Composition<X>, home: string, { time, pass, setTime }: Clock) {
+function open<X extends Program>(
+  program: Composition<X>,
+  home: string,
+  { time, pass, setTime }: Clock,
+  secretKeys: MemoryHouseKeys,
+) {
   const tools = program.registry.map(tool => tool.id);
   const holding = [cast.admin, cast.member].map(identity => ({ identity, tools }));
   const assignments = [...holding, { identity: cast.outsider, tools: [] }];
   const creation = { admin: cast.admin, assignments };
   return {
-    ...startHouse<X>(home, { by: runner, creation, keys, ...program }, time),
+    ...startHouse<X>(home, { by: runner, creation, ...program, secretKeys }, time),
     pass,
     setTime,
     now: () => time.now(),
@@ -51,14 +51,15 @@ type Stage<X extends Program> = Readonly<{ house: () => House<X>; reopen: () => 
 export async function staged<X extends Program>(program: Composition<X>, use: (stage: Stage<X>) => Promise<void>) {
   const home = promiseHome();
   const clock = stillClock();
+  const secretKeys = new MemoryHouseKeys();
   let active: House<X> | undefined;
   try {
-    let house = open(program, home, clock);
+    let house = open(program, home, clock, secretKeys);
     active = house;
     const reopen = (): void => {
       house.close();
       active = undefined;
-      house = open(program, home, clock);
+      house = open(program, home, clock, secretKeys);
       active = house;
     };
     await use({ house: () => house, reopen });

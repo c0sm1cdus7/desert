@@ -49,7 +49,6 @@ for (const exposed of [true, false])
     journal.close();
     const options = {
       by: "fixture",
-      keys: rig.options.keys,
       creation: rig.options.creation,
       words,
       registry: [],
@@ -86,7 +85,6 @@ it("un valor histórico que excede el esquema actual también falla con tipo y p
   expect(() =>
     protectHistory(path, {
       by: "fixture",
-      keys: rig.options.keys,
       creation: rig.options.creation,
       words: current,
       registry: [],

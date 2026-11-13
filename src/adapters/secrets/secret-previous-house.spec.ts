@@ -34,7 +34,6 @@ for (const kind of ["fact", "exposed"] as const) {
       try {
         startHouse(path, {
           by: rig.options.by,
-          keys: rig.options.keys,
           secretKeys: rig.options.secretKeys ?? new MemoryHouseKeys(),
           creation: rig.options.creation,
           words,

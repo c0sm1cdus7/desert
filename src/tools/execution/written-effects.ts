@@ -9,12 +9,19 @@ export function writtenEffects<X extends Program>(
   ports: Execution<X>,
   act: HouseEvent<"act">,
   effects: readonly Emission<X["fact"]>[],
+  accepted = false,
 ): Readonly<{ error: unknown }> | undefined {
   const made = making(ports);
   try {
-    ports.bus.together(() =>
-      effects.forEach(each => ports.bus.emit({ ...made(each), process: act.process, cause: [act.id] })),
-    );
+    const write = () =>
+      ports.bus.together(() =>
+        effects.forEach(each => {
+          if (!ports.credentialEffects?.apply(each, accepted))
+            ports.bus.emit({ ...made(each), process: act.process, cause: [act.id] });
+        }),
+      );
+    if (ports.credentialEffects) ports.credentialEffects.together(write);
+    else write();
     return undefined;
   } catch (error) {
     return { error: failureOrigin(error) };
