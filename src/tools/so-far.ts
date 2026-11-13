@@ -1,19 +1,18 @@
 // What an act says of what was answered so far, before it runs: why it cannot go on, and which things it takes.
 import { Type, type TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { toolTexts } from "../texts/tools.texts.ts";
 import type { Program, State } from "./tool-contract.ts";
 
 type Answered = Readonly<Record<string, unknown>>;
-/** For each tool an act narrows, whether it takes one of its things. */
-export type Among = Readonly<Record<string, (thing: string) => boolean>>;
+/** For each tool an act narrows, why it does not take a thing, or nothing when it does. */
+export type Among = Readonly<Record<string, (thing: string) => string | undefined>>;
 /** Asked after each answer, with the fields answered whole until then. A surface says it early; the act still
  * refuses when run. */
 export type SoFar<X extends Program> = Readonly<{
   /** Why what was answered so far cannot go on, when that is so: said at the question it was answered in. */
   stops?: (answered: Answered, state: State<X>, target: string) => string | undefined;
-  /** Which things of a tool the act takes: a question that picks among them offers only those, so nothing is on a
-   * list to be refused after it was picked. A tool it does not name is offered whole. */
+  /** A question shows the things it cannot take disabled with their reasons.
+   * A tool it does not name is offered whole. */
   among?: (answered: Answered, state: State<X>, target: string) => Among;
 }>;
 /** What an act says of what was answered so far: asked only about the fields it takes, answered whole. Anything
@@ -53,7 +52,8 @@ export function refusedWhole<X extends Program>(input: TSchema, said: SoFar<X>, 
      * asked, what is refused is the cause the act declares. */
     if (stopped !== undefined) return refuses.find(cause => stopped.startsWith(`${cause} · `)) ?? stopped;
     const among = said.among?.(value, state, target) ?? {};
-    const left = picksIn(input, value).some(([tool, thing]) => among[tool]?.(thing) === false);
-    return left ? toolTexts.notAmong : undefined;
+    return picksIn(input, value)
+      .map(([tool, thing]) => among[tool]?.(thing))
+      .find(reason => reason !== undefined);
   };
 }

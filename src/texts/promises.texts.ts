@@ -1,5 +1,7 @@
 // How the checks that a program's promises derive are named, and what they say when a case cannot even start.
 export const promiseTexts = {
+  availableChoices: (promise: string): string => `${promise}, no empty first choice`,
+  blockedChoices: (promise: string): string => `${promise}, blocked choices`,
   outside: (variant: number) => `refuses what it does not ask for (${variant})`,
   notHeld: "is refused to who does not hold its tool",
   unseen: "is refused without its target in view",

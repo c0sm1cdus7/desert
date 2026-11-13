@@ -11,6 +11,7 @@ import type { Things } from "./asking.ts";
 import { anyToolScreen } from "./any-tool.ts";
 import { auditFields } from "./audit-fields.ts";
 import { listsOf, ownReads, type HousePorts, type Shown, type SurfacePorts, type ToolWords } from "./house-ports.ts";
+import { makerOptions } from "./makers.ts";
 import { noticesOf } from "./notices.ts";
 import { preferencesPlace, preferencesTool } from "./preferences-tool.ts";
 import { programActs } from "./program-acts.ts";
@@ -97,21 +98,12 @@ function auditActs<X extends Program>(tool: ProgramTool<X>): void {
     if (keys.length) throw new Error(`Two acts of ${tool.id} take the same key: ${keys.join(", ")}`);
   }
 }
-/** The act of a tool that makes a new thing of it, as an option where its things are picked: with its key and what
- * it is for, as on the tool's own list. Nothing while the tool says it cannot be done. */
-type Told<X extends Program> = Pick<HousePorts<X>, "state" | "now">;
-function madeBy<X extends Program>(tool: ProgramTool<X>, act: string, ports: Told<X>): Option | undefined {
-  const declared = tool.acts[act];
-  if (declared?.on !== "tool") throw new Error(`${tool.id} has no act ${act} that makes a thing of it`);
-  if (declared.offered?.(ports.state(), tool.id, ports.now()) !== undefined) return undefined;
-  return { title: declared.name, detail: declared.purpose, key: declared.key, makes: { tool: tool.id, act } };
-}
 /** A row that leads to a thing, as an option that picks it. */
 const picked = ({ title, detail }: ViewRow, value: string): Option => ({ title, ...(detail ? { detail } : {}), value });
 /** The things of a tool as an answer picks them: only of a tool this identity holds, found the way its menu finds. */
-const thingsOf =
-  <X extends Program>(ports: HousePorts<X>, { words }: Shown<X>, shown: () => readonly Tool[]) =>
-  (id: string): Things | undefined => {
+const thingsOf = <X extends Program>(ports: HousePorts<X>, { words }: Shown<X>, shown: () => readonly Tool[]) => {
+  const make = makerOptions();
+  return (id: string): Things | undefined => {
     const tool = shown().find(known => known.id === id);
     const contract = ports.registry.filter(isProgramTool).find(known => known.id === id);
     if (!tool?.find || !contract) return undefined;
@@ -125,9 +117,10 @@ const thingsOf =
         (tool.find?.(sought) ?? []).flatMap(row => (row.opens && open(row.opens) ? [picked(row, row.opens)] : [])),
       shown: thing => tool.titleOf?.(thing) ?? thing,
       has: thing => contract.targets(ports.state()).includes(thing) && open(thing),
-      make: act => madeBy(contract, act, ports),
+      make: act => make(contract, tool, act),
     };
   };
+};
 /** One of its things is always read as its tool declared: no screen of a program draws a thing. */
 function withThings<X extends Program>(
   ports: SurfacePorts<X>,

@@ -1308,10 +1308,15 @@
     },
     {
       "id": 163,
-      "rule": "Donde se elige una cosa se ofrecen solo las que la acción toma según lo ya contestado: nada se ofrece en una lista para rechazarlo después de elegido; también para quien busca",
-      "from": "12/11 · lanes de Capibara: en una venta de servicios la lista ofrecía los bienes y los rechazaba al final («es un bien»); el mostrador ofrecía lo que no se vende en mostrador",
-      "guarantee": "spec",
-      "evidence": ["src/tools/promises.ts", "src/surface/bridge/program-acts.ts", "src/programs/promised-also.spec.ts"]
+      "rule": "Lo que among no toma se muestra después de lo elegible, apagado, sin número y con su motivo; buscar también lo encuentra. Se oculta con la preferencia de acciones apagadas y se rechaza con ese motivo por otras puertas.",
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios",
+      "guarantee": "derived",
+      "evidence": [
+        "src/tools/so-far.ts",
+        "src/surface/bridge/picked.ts",
+        "src/programs/promised-choices.ts",
+        "src/programs/promised-choices.spec.ts"
+      ]
     },
     {
       "id": 164,
@@ -1426,6 +1431,44 @@
         "src/programs/promised-entry.spec.ts",
         "src/surface/entry-status.spec.ts"
       ]
+    },
+    {
+      "id": 175,
+      "rule": "Antes de elegir una opción, stops recibe lo ya contestado más esa opción; si la frenaría, la opción sale apagada con su motivo y el cursor no descansa ahí.",
+      "guarantee": "derived",
+      "evidence": [
+        "src/tools/so-far.ts",
+        "src/surface/bridge/picked.ts",
+        "src/programs/promised-choices.ts",
+        "src/programs/promised-choices.spec.ts",
+        "src/surface/answer-status.ts",
+        "src/surface/screen.ts",
+        "src/surface/entry-status.spec.ts"
+      ],
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios"
+    },
+    {
+      "id": 176,
+      "rule": "Un campo que elige una cosa, sin makes, declara en empty el motivo de no tener cosas elegibles; sin un motivo usable, el programa se rechaza al componer. none sigue siendo la opción de no elegir.",
+      "guarantee": "compose",
+      "evidence": [
+        "src/catalogs/fields.ts",
+        "src/surface/bridge/audit-fields.ts",
+        "src/programs/promised-availability.spec.ts"
+      ],
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios"
+    },
+    {
+      "id": 177,
+      "rule": "Si la primera pregunta de una acción no tiene ninguna cosa elegible ni una fila disponible para crear, la acción queda apagada en el menú con el motivo del campo; la preferencia oculta la acción apagada.",
+      "guarantee": "derived",
+      "evidence": [
+        "src/surface/bridge/picked.ts",
+        "src/surface/bridge/program-acts.ts",
+        "src/programs/promised-availability.ts",
+        "src/programs/promised-availability.spec.ts"
+      ],
+      "from": "12/11 · Franco: acción habilitada que termina en Error sin cambios"
     }
   ]
 }

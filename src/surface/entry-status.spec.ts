@@ -2,7 +2,7 @@
 import { Type } from "@sinclair/typebox";
 import { describe, expect, it, vi } from "vitest";
 import { object } from "../catalogs/acts.ts";
-import { day, digits, holding, money } from "../catalogs/fields.ts";
+import { day, digits, holding, money, option, someOf } from "../catalogs/fields.ts";
 import { asking } from "./bridge/asking.ts";
 import { formats } from "./masks.ts";
 import { begin } from "./screen.ts";
@@ -133,6 +133,51 @@ describe("the Entrada", () => {
       ).toBe(true);
       hands.type("1");
       expect(JSON.stringify(hands.screen())).not.toContain("Error");
+    } finally {
+      hands.router.stop();
+    }
+  });
+});
+
+describe("multiple choices before choosing", () => {
+  it("checks each multiple-choice toggle and keeps the cursor on an available option", async () => {
+    const field = someOf("Canales", "none", option("cloud", "Nube", "n"), option("market", "Mercado", "m"));
+    const hands = seat(object({ channels: field }), answers =>
+      answers[0]?.includes("Nube") ? "ya conectado" : undefined,
+    );
+    try {
+      expect(hands.screen().body).toMatchObject({
+        options: [
+          { title: "Nube", off: true, detail: "ya conectado", selected: false },
+          { title: "Mercado", selected: true },
+        ],
+      });
+      hands.type(" ");
+      hands.router.send({ kind: "up" });
+      expect(hands.screen().body).toMatchObject({ options: [{ selected: false }, { key: "x", selected: true }] });
+      hands.router.send({ kind: "confirm" });
+      await hands.router.idle();
+      expect(hands.run).toHaveBeenCalledWith(["Mercado"]);
+    } finally {
+      hands.router.stop();
+    }
+  });
+  it("opens premarked options on a toggle that is allowed, so invalid initial marks can be removed", () => {
+    const field = someOf("Canales", "all", option("cloud", "Nube", "n"), option("market", "Mercado", "m"));
+    const hands = seat(object({ channels: field }), answers =>
+      answers[0]?.includes("Nube") ? "ya conectado" : undefined,
+    );
+    try {
+      expect(hands.screen().body).toMatchObject({
+        options: [
+          { title: "Nube", key: "x", selected: true },
+          { title: "Mercado", key: "x", off: true, selected: false },
+        ],
+      });
+      expect(hands.enter()).toBe(false);
+      hands.type(" ");
+      expect(hands.enter()).toBe(true);
+      expect(hands.screen().body).toMatchObject({ options: [{ off: true, selected: false }, { selected: true }] });
     } finally {
       hands.router.stop();
     }

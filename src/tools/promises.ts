@@ -134,10 +134,8 @@ function offeredBy<X extends Program, S extends TSchema>(declared: Declared<X, S
 /** What an act answers, now or later, passed through a check of it. */
 const settled = <R>(result: R | Promise<R>, check: (result: R) => R): R | Promise<R> =>
   result instanceof Promise ? result.then(check) : check(result);
-/** What the base itself refuses with is not the act's to declare: nothing would change, a day does not exist, or
- * a thing is not among what the act takes. */
-export const ofTheBase = (cause: string): boolean =>
-  cause === toolTexts.unchanged || cause === toolTexts.noSuchDay || cause === toolTexts.notAmong;
+/** What the base itself refuses with is not the act's to declare: nothing would change, or a day does not exist. */
+export const ofTheBase = (cause: string): boolean => cause === toolTexts.unchanged || cause === toolTexts.noSuchDay;
 /** What a field says is wrong, or the act says cannot go on or does not take, never reaches it, by any door. And
  * an act that says what the thing is today does not leave it as it is: nothing new would be written. */
 const heldBy =

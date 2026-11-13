@@ -7,7 +7,7 @@ import { aid, worded } from "../../tools/act-words.ts";
 import type { ProgramAct, ProgramTool } from "../../tools/promises.ts";
 import type { Program } from "../../tools/tool-contract.ts";
 import type { Field } from "../contract.ts";
-import { offeredOn } from "./picked.ts";
+import { offeredOn, withoutChoices } from "./picked.ts";
 import type { Result, ThingAct, ThingMenu, ToolAct, ViewRow } from "../shown-tool.ts";
 import { formats, type Locale } from "../masks.ts";
 import { maskOf } from "../screen.ts";
@@ -61,7 +61,7 @@ function walked<X extends Program>(ports: SurfacePorts<X>, { tool, name, act }: 
     const unsafe = act.undoable ? {} : { note: generic.irreversible };
     return taken === 0 ? { ask: capital(act.purpose), kind: "confirm", ...confirm, ...unsafe } : null;
   };
-  const asks = offeredOn(act, ask, ports.state, tool);
+  const asks = offeredOn(act, ask, ports.state, tool, () => hides(ports.state().house, ports.me, "off"));
   const walk = {
     ...currentAnswers(ask, (target = tool) => act.today?.(ports.state(), target)),
     label: act.name,
@@ -136,16 +136,16 @@ function menusOf<X extends Program>(tool: ProgramTool<X>, shown: Readonly<Record
 const offersOf =
   <X extends Program>(ports: SurfacePorts<X>, tool: string, entries: readonly Walked<X>[]) =>
   (other: string, target: string): ViewRow[] =>
-    entries.flatMap(({ name, act, ask }): ViewRow[] => {
+    entries.flatMap(({ name, act, ask, walk }): ViewRow[] => {
       const { also } = act;
       const given = also?.tool === other ? also.with(ports.state(), target) : undefined;
       if (!also || given === undefined) return [];
       const row = { key: act.key, title: also.name ?? act.name, act: name, on: { tool } };
-      const why = also.off?.(ports.state(), target);
+      const fixed = ask.leading(given);
+      const why = also.off?.(ports.state(), target) ?? withoutChoices(walk.next(fixed));
       /** Off, it says why; and it is not there for who prefers not to see what cannot be done. */
       if (why !== undefined && hides(ports.state().house, ports.me, "off")) return [];
       if (why !== undefined) return [{ ...row, detail: why, off: true }];
-      const fixed = ask.leading(given);
       /** What the thing suggests comes after what it fixes: those questions open on it, and are still asked. */
       const answers = ask.leading({ ...given, ...also.opens?.(ports.state(), target) });
       if (ask.next(fixed) === null && !act.confirms)
@@ -169,7 +169,8 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
     .map(({ name, act, walk }): [string, ToolAct] => {
       /** Off for who does not hold the tool, and while the tool itself says why it cannot be done. Hidden, then,
        * for who prefers not to see what is not theirs, or what cannot be done. */
-      const off = (): string | undefined => foreign() ?? act.offered?.(ports.state(), tool.id, ports.now());
+      const off = (): string | undefined =>
+        foreign() ?? act.offered?.(ports.state(), tool.id, ports.now()) ?? withoutChoices(walk.next([]));
       const listed = (): boolean =>
         off() === undefined || !hides(ports.state().house, ports.me, foreign() === undefined ? "off" : "foreign");
       const datum = (): string => act.datum?.(ports.state(), tool.id) ?? beside(act);
@@ -184,7 +185,7 @@ export function programActs<X extends Program>(ports: SurfacePorts<X>, tool: Pro
       /** Off while the tool's state says why. On the list of a thing of the tool, never of a view that only
        * groups them; and not while it is off, for who prefers not to see what cannot be done. */
       const off = (target: string): string | undefined =>
-        foreign() ?? act.offered?.(ports.state(), target, ports.now());
+        foreign() ?? act.offered?.(ports.state(), target, ports.now()) ?? withoutChoices(walk.next([], target));
       const unseen = (target: string): boolean =>
         off(target) !== undefined && hides(ports.state().house, ports.me, "off");
       const listed = (target: string): boolean => tool.targets(ports.state()).includes(target) && !unseen(target);

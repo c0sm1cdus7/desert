@@ -84,19 +84,24 @@
     "surface/bridge/current-answers.ts": "Current data as answers and equality in the declared data shape",
     "surface/answer-status.ts": "Live reasons and readiness for a written answer from field and act declarations",
     "programs/promised-entry.ts": "Derived checks of intermediate question screens and unavailable Enter",
-    "doors/terminal/entry.ts": "Written entries with their unfilled shape and cursor, in threads and rows"
+    "doors/terminal/entry.ts": "Written entries with their unfilled shape and cursor, in threads and rows",
+    "programs/promised-choices.ts": "Derived checks that each case shows blocked things and options with their reasons before choosing",
+    "programs/promised-availability.ts": "Derived checks that a first reference with no eligible answer closes its action at the menu",
+    "programs/promised-answer.ts": "Answers each kind of question through keys for a declared case",
+    "programs/promised-preferences.ts": "Changes preferences through keys for the derived guarantees",
+    "surface/bridge/makers.ts": "Available maker rows, including their first question and cycles with no initial thing"
   },
   "folders": {
     "adapters/secrets": 103,
     "adapters/storage": 181,
-    "catalogs": 195,
+    "catalogs": 197,
     "doors/terminal": 578,
     "house": 91,
     "journal": 326,
-    "programs": 1220,
-    "surface": 1776,
-    "surface/bridge": 1320,
-    "texts": 202,
+    "programs": 1440,
+    "surface": 1803,
+    "surface/bridge": 1365,
+    "texts": 203,
     "tools": 884
   }
 }

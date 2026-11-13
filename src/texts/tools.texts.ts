@@ -12,7 +12,6 @@ export const toolTexts = {
   /** What an act answers when it would leave the thing exactly as it is. */
   unchanged: "sin cambios",
   /** A thing an act picks and does not take, given the rest of what it was told: it was never on its list. */
-  notAmong: "no es de lo que se puede elegir",
   draft: "cambió mientras se escribía",
   /** A day written in the shape of one that the calendar does not have: the 30th of February. */
   noSuchDay: "día inexistente",

@@ -2,14 +2,13 @@
 import { Type } from "@sinclair/typebox";
 import { object } from "../../src/catalogs/acts.ts";
 import { money, thing } from "../../src/catalogs/fields.ts";
-import { toolTexts } from "../../src/texts/tools.texts.ts";
 import { programAct, type Composition } from "../../src/tools/promises.ts";
 import { paymentsTool, salesTool, shop, shopProgram, type Shop } from "./shop.ts";
 
 /** What charging takes. `makes` is the act of the sales tool that registers a new sale right where one is picked. */
 const chargedWith = (makes?: string) =>
   object({
-    sale: thing("Venta", "sales", undefined, makes),
+    sale: thing("Venta", "sales", undefined, makes, "sin ventas para cobrar"),
     amount: money("Monto"),
     tip: Type.Optional(money("Propina")),
   });
@@ -26,6 +25,11 @@ export const chargedFromSale =
 export const chargedByName = "payments · charge · a sale is charged from payments, picked by its name";
 /** What charging promises, however the sale is picked. */
 const chargeCases = [
+  {
+    promise: "with no sales, charging stays disabled in the menu",
+    input: { sale: "sales/zz", amount: 1 },
+    then: { refused: "unknown" },
+  },
   {
     promise: "a sale is charged from payments, picked by its name",
     given: [registered, also],
@@ -88,7 +92,7 @@ export const chargingRegistry = [salesTool, paymentsWith()];
 export const chargingShop: Composition<Shop> = { ...shopProgram, registry: chargingRegistry };
 /** The same shop, where the sale to charge can be registered right where it is picked. */
 export const makingRegistry = [salesTool, paymentsWith("register")];
-/** The same act, which takes only the sales of a thousand or more: the others are not on the list it picks from,
+/** The same act, which takes only the sales of a thousand or more: the others stay disabled with their reason,
  * and the base refuses one through any door. The act says it once, in what it takes. */
 type Sales = Parameters<NonNullable<ReturnType<typeof chargeWith>["offered"]>>[0];
 const large = (state: Sales, sale: string): boolean => (state.tools.sales.get(nameOf(sale))?.total ?? 0) >= 1000;
@@ -102,22 +106,28 @@ const narrowCharge = () => {
     key: whole.key,
     on: "tool",
     input: chargedWith(),
-    /** A sale nobody registered is not a large one either: the act has no cause of its own left. */
-    refuses: [],
-    among: (_answered, state) => ({ sales: sale => large(state, sale) }),
+    /** A sale nobody registered is not a large one either: the same reason applies. */
+    refuses: ["venta menor a mil"],
+    among: (_answered, state) => ({ sales: sale => (large(state, sale) ? undefined : "venta menor a mil") }),
     run: (input, context) => whole.run(input, context),
     cases: [
       {
-        promise: "a large sale is charged, picked from a list that has only the large ones",
-        given: [registered, also],
+        promise: "with only small sales, charging stays disabled in the menu",
+        given: [also],
+        input: { sale: "sales/s2", amount: 50 },
+        then: { refused: "venta menor a mil" },
+      },
+      {
+        promise: "a large sale is charged, picked from a list with the small ones disabled",
+        given: [also, registered],
         input: { sale: "sales/s1", amount: 500 },
         then: paid(500),
       },
       {
-        promise: "a small sale is not charged through any door, and is not on the list to pick it from",
-        given: [registered, also],
+        promise: "a small sale is not charged through any door, and is disabled with its reason",
+        given: [also, registered],
         input: { sale: "sales/s2", amount: 50 },
-        then: { refused: toolTexts.notAmong },
+        then: { refused: "venta menor a mil" },
       },
     ],
   });

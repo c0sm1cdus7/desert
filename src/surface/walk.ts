@@ -39,7 +39,7 @@ function pickRows(walk: Walk, question: Field & { kind: "pick" }): readonly Row[
   const found = pickedFrom(question, walk);
   const rows = found.map((option, i): Row => {
     /** What makes a new one keeps the key of its act; the things there are take their number. */
-    const key = walk.finding || i > 8 || option.makes ? {} : { key: String(i + 1) };
+    const key = walk.finding || i > 8 || option.makes || option.off ? {} : { key: String(i + 1) };
     return { ...option, ...key, selected: i === walk.at };
   });
   /** Nothing to pick among is said where the list would be: the question never stands over nothing. */
@@ -104,11 +104,18 @@ export function walkHints(walk: Walk, field: Field | null, tools: readonly Tool[
   if (walk.phase === "running") return [leave];
   const enter: Hint = { intent: "confirm", does: enterSays(walk, field, tools) };
   if (isTyped(field)) return validOf(field, walk.typed) ? [enter, leave] : [leave];
-  if (field?.kind === "many" && field.unchanged?.(walk.marks.join(" · ")))
+  if (
+    field?.kind === "many" &&
+    (field.unchanged?.(walk.marks.join(" · ")) || field.wrong?.(walk.marks.join(" · ")) !== undefined)
+  )
     return [{ intent: "move", does: k.choose }, { intent: "mark", does: k.mark }, leave];
   /** With nothing left to choose, only leaving is left. */
   const free = field?.kind === "pick" ? field.found(walk.finding ? walk.typed : "") : optionsOf(field);
-  if (!isTyped(field) && free.length && free.every(option => option.off)) return [leave];
+  if (field?.kind === "pick" && free.every(option => option.off)) {
+    if (walk.finding) return [{ intent: "cancel", does: k.close }];
+    return free.length ? [{ intent: "find", does: k.find }, leave] : [leave];
+  }
+  if (free.length && free.every(option => option.off)) return [leave];
   const move: Hint = { intent: "move", does: k.choose };
   if (field?.kind === "pick" && !walk.finding && !field.found("").length) return [leave];
   if (field?.kind === "pick" && walk.finding) return [move, enter, { intent: "cancel", does: k.close }];

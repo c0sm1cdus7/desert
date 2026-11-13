@@ -12,7 +12,7 @@ export const markedCurrent = (field: Field, option: Option): Option => {
   const value = option.value ?? option.title;
   const current = field.kind !== "many" && field.current !== undefined && value === field.current;
   const off = field.kind !== "many" && !option.makes && (field.unchanged?.(value) ?? (field.only === true && current));
-  return { ...option, ...(current ? { detail: said.current } : {}), ...(off ? { off: true } : {}) };
+  return { ...option, ...(current && !option.off ? { detail: said.current } : {}), ...(off ? { off: true } : {}) };
 };
 /** Match by question when a changed answer changes which questions exist; never put a value under another name. */
 function currentAt(walk: Walk, field: Field, act: Act): string | undefined {

@@ -89,7 +89,8 @@ function picked(schema: TSchema, ctx: Ctx, of: string): Field {
   ];
   const valid = (answer: string): boolean => (ctx.optional && answer === "") || things()?.has(answer) === true;
   const shown = (answer: string): string => (answer === "" ? absent : (things()?.shown(answer) ?? answer));
-  const nothing = (): string => things()?.empty ?? "";
+  const empty = at(schema, "empty");
+  const nothing = (): string => (typeof empty === "string" ? empty : (things()?.empty ?? ""));
   return { ask: asked(word(schema, "title")), kind: "pick", of, found, shown, valid, nothing };
 }
 /** Why what is written cannot be sent yet: nothing, less than the least the datum admits, more than the most, or

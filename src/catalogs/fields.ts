@@ -53,14 +53,16 @@ export const day = (ask: string, suggests?: "today", last?: "today") =>
   );
 /** One of the things of a tool, kept as what the tool calls it: a person picks it from their list. Where the
  * field may be left without one, `none` is what that is called: «Consumidor final», «sin venta». Where a new one
- * can be made right there, `makes` is the act of that tool that makes it: its result is the answer. */
-export const thing = (ask: string, tool: string, none?: string, makes?: string) =>
+ * can be made right there, `makes` is the act of that tool that makes it: its result is the answer.
+ * Without a maker, `empty` says why the act is unavailable when nothing can be picked. */
+export const thing = (ask: string, tool: string, none?: string, makes?: string, empty?: string) =>
   Type.String({
     minLength: 1,
     title: ask,
     of: tool,
     ...(none === undefined ? {} : { none }),
     ...(makes === undefined ? {} : { makes }),
+    ...(empty === undefined ? {} : { empty }),
   });
 /** Some of a closed set, each with its word: a person marks the ones that go. They open all marked, or none. */
 export const someOf = <T extends TSchema[]>(ask: string, marked: "all" | "none", ...arms: [...T]) =>

@@ -62,13 +62,22 @@ El programa exporta `program` (una `Composition`: `words`, `registry`, `slices`)
   motivo puede sumar un dato después («supera lo que falta · $ 9.525,75»): por otra puerta se rechaza con el motivo
   declarado. La acción no lo repite.
 - Donde una pregunta elige una cosa de otra herramienta (`thing`), la acción puede decir cuáles toma según lo ya
-  contestado: `among: (respondido, estado, cosa) => ({ productos: id => … })` (por herramienta, no por campo: dos
-  preguntas de la misma herramienta reciben la misma función). La lista ofrece solo esas, también a quien busca, y
-  **la base rechaza las demás antes de correr la acción, por cualquier puerta**, con su propio motivo («no es de lo
-  que se puede elegir»), que la acción no declara; un caso puede prometerlo. La acción no lo repite.
+  contestado: `among: (respondido, estado, cosa) => ({ productos: id => motivoOIndefinido })`. Cada función devuelve
+  `undefined` si toma la cosa, o su motivo si no. Por herramienta, no por campo. La lista muestra primero lo elegible
+  y después las cosas apagadas, sin número y con su motivo; buscar también las encuentra. La preferencia de ocultar
+  acciones apagadas oculta esas cosas. Por otras puertas se rechaza con ese mismo motivo antes de correr; se declara
+  en `refuses`, con su caso. `stops` también se consulta para cada opción de una pregunta, con lo ya contestado más
+  esa opción: lo que frenaría queda apagado con su motivo antes de elegirlo.
 - Donde se elige una cosa se puede hacer una nueva ahí mismo: `thing(pregunta, herramienta, ninguna?, acción)`. Esa
   acción es de la herramienta (`on: "tool"`) y lo que contesta dice qué cosa hizo (`target`): esa es la respuesta. Si
   la acción no existe, el programa no compone.
+- Todo campo `thing` sin `makes` declara `empty`, el motivo de no tener ninguna cosa elegible:
+  `thing("Venta", "sales", undefined, undefined, "sin ventas para cobrar")`. Sin ese motivo, vacío o con uno que
+  no sirve como dato corto, el programa no compone. `none` sigue nombrando la opción de no elegir ninguna; no
+  reemplaza a `empty`. Si la primera pregunta no tiene ninguna respuesta elegible ni una fila disponible para
+  crear, la acción sale apagada en el menú con `empty`. Se vuelve a habilitar cuando aparece algo elegible.
+  En una acción ofrecida por otra herramienta se comprueba la primera pregunta que queda después de sus respuestas
+  fijas. Un motivo explícito de `offered` o `also.off` tiene prioridad.
 - Una acción dice si se ofrece sabiendo qué momento es (`offered(estado, cosa, instante)`): lo que hoy no se puede
   hacer queda apagado con su motivo.
 

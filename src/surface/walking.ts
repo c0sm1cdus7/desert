@@ -1,7 +1,7 @@
 // What each key does inside an act: writing an answer, choosing one, picking a thing, going back, leaving.
 import type { Field, Intent, Mask, Option } from "./contract.ts";
 import type { Tool } from "./shown-tool.ts";
-import { actOf, begin, fieldOf, maskOf, optionsOf, opened, pickedFrom, validOf } from "./screen.ts";
+import { actOf, begin, fieldOf, maskOf, optionsOf, opened, opening, pickedFrom, validOf } from "./screen.ts";
 import type { Asking, Session, Stepped, Walk } from "./screen.ts";
 import { answersAfter } from "./kept-answers.ts";
 import { edited } from "./talk.ts";
@@ -25,7 +25,7 @@ function advance(session: Session, walk: Asking, tools: readonly Tool[], answer:
   const moved: Walk = { ...(open && open.kind !== "confirm" ? whole : walk), answers, asked, pos: walk.pos + 1 };
   const { error: _gone, failed: _result, finding: _sought, read: _back, ...clean } = moved;
   const field = fieldOf(tools, clean);
-  if (field) return { session: replace(session, { ...clean, ...opened(field, answers[clean.pos]) }) };
+  if (field) return { session: replace(session, opening(tools, clean, answers[clean.pos])) };
   const running: Walk = { ...clean, phase: "running", since: now };
   return { session: replace(session, running), run: running };
 }
@@ -80,7 +80,9 @@ function choosing(session: Session, walk: Asking, tools: Tools, field: Field, ke
   const chosen = options[walk.at]?.off ? undefined : options[walk.at];
   if (field.kind === "many" && key.kind === "type" && key.text === " " && chosen) {
     const on = walk.marks.includes(chosen.title);
-    return set({ marks: on ? walk.marks.filter(mark => mark !== chosen.title) : [...walk.marks, chosen.title] });
+    const marks = on ? walk.marks.filter(mark => mark !== chosen.title) : [...walk.marks, chosen.title];
+    const next = optionsOf(fieldOf(tools, { ...walk, marks }));
+    return set({ marks, at: next[walk.at]?.off ? next.findIndex(option => !option.off) : walk.at });
   }
   if (key.kind === "type" && field.kind !== "many") {
     const at = options.findIndex(option => option.key === key.text && !option.off);
@@ -137,7 +139,7 @@ function picking(
 function back(session: Session, walk: Asking, tools: readonly Tool[]): Session {
   const { error: _gone, failed: _result, read: _back, ...clean } = walk;
   const earlier = { ...clean, pos: walk.pos - 1 };
-  return replace(session, { ...earlier, ...opened(fieldOf(tools, earlier), walk.answers[earlier.pos]) });
+  return replace(session, opening(tools, earlier, walk.answers[earlier.pos]));
 }
 export function walking(session: Session, walk: Walk, tools: readonly Tool[], key: Intent, now: number): Stepped {
   if (key.kind === "cancel") {

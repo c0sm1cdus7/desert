@@ -5,7 +5,6 @@ import { asking } from "../surface/bridge/asking.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import type { Field } from "../surface/contract.ts";
 import { formats } from "../surface/masks.ts";
-import type { Router } from "../surface/router.ts";
 import { genericTexts as generic } from "../texts/generic-surface.texts.ts";
 import { promiseTexts as said, promiseTexts as words } from "../texts/promises.texts.ts";
 import { surfaceTexts as surface } from "../texts/surface.texts.ts";
@@ -13,56 +12,16 @@ import type { Case, Composition } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import type { Choice } from "../surface/screen.ts";
 import { actRow, fitsSmallest, goTo, openRows, seated, type, view, type Seat } from "./promised-keys.ts";
-import { confirmAnswer, probeWritten, quietly } from "./promised-entry.ts";
+import { answer } from "./promised-answer.ts";
+import { quietly } from "./promised-entry.ts";
+import { firstUnavailable, availabilityChecks } from "./promised-availability.ts";
+import { choiceChecks } from "./promised-choices.ts";
 import { currentCloses } from "./promised-current.ts";
 import { findChecks } from "./promised-find.ts";
 import { noticeChecks } from "./promised-notices.ts";
 import { shownChecks } from "./promised-off.ts";
 import { cast, given, label, staged, wroteSince, type Aim, type Check } from "./promised-stage.ts";
 
-/** One answer as a person gives it: written over what the field opened on and confirmed, or chosen by the key of
- * its option. False when the field itself does not take it: what cannot be written cannot be sent. */
-function answer(router: Router, field: Field, given: string, opened = field.initial ?? ""): boolean {
-  if (field.kind === "text" || field.kind === "secret") {
-    if (field.valid?.(given) === false) return false;
-    Array.from(opened).forEach(() => router.send({ kind: "erase" }));
-    probeWritten(router, field, "");
-    type(router, given);
-    probeWritten(router, field, given);
-    confirmAnswer(router);
-    /** What is complete and wrong stays where it was written, and the screen says why. */
-    const why = field.wrong?.(given);
-    if (why !== undefined) ok(JSON.stringify(router.screen(view).body).includes(why), said.notSaid(why));
-    return why === undefined;
-  }
-  if (field.kind === "many") {
-    /** Each option is marked or cleared with space until what is marked is what the case says. */
-    const [marked, wanted] = [opened, given].map(each => (each === "" ? [] : each.split(" · ")));
-    field.options.forEach((option, i) => {
-      if (marked?.includes(option.title) !== wanted?.includes(option.title)) router.send({ kind: "type", text: " " });
-      if (i < field.options.length - 1) router.send({ kind: "down" });
-    });
-    confirmAnswer(router);
-    return true;
-  }
-  if (field.kind === "pick") {
-    if (field.valid?.(given) === false) return false;
-    /** The thing is looked for as on any menu: space, then its name; and taken where it shows among what is found. */
-    const name = given === "" ? "" : field.shown(given);
-    if (name !== "") type(router, ` ${name}`);
-    const at = field.found(name).findIndex(option => (option.value ?? option.title) === given);
-    ok(at >= 0, said.notFound(name));
-    /** What is not looked for is taken by its number: the cursor stands on what the datum already is, not first. */
-    if (name === "" && at < 9) return (type(router, String(at + 1)), true);
-    for (let step = 0; step < at; step++) router.send({ kind: "down" });
-    confirmAnswer(router);
-    return true;
-  }
-  const key = field.options.find(option => option.title === given)?.key;
-  ok(key, said.noKey(field.ask, given));
-  type(router, key);
-  return true;
-}
 /** Whether a row starts the act with what the case says: what the row does not ask has to be the case's already. */
 const fitting =
   (answers: readonly string[]) =>
@@ -95,7 +54,8 @@ function taken<X extends Program>(seat: Seat<X>, { aim, kase, answers, from }: T
   /** A row that already says everything the act takes knows what the act will answer: where that is a refusal,
    * the row is off saying it, as the tool itself would. Nobody is offered what is known to be refused. */
   const whole = row.with !== undefined && row.with.from >= answers.length;
-  const cause = told ?? (whole && "refused" in kase.then ? kase.then.refused : undefined);
+  const empty = firstUnavailable(seat, aim, on, row.with?.answers.slice(0, row.with.from));
+  const cause = told ?? empty ?? (whole && "refused" in kase.then ? kase.then.refused : undefined);
   strictEqual(row.off ? whyOf(row, cause) : undefined, cause, said.offFor(aim.name));
   /** The right of an act is never empty: its datum, or what it is for. */
   ok(row.detail, said.saysNothing(aim.name));
@@ -189,5 +149,12 @@ export function walkedChecks<X extends Program>(program: Composition<X>, shown: 
       act.cases.map(kase => walkCheck(program, shown, { tool, name, act }, kase)),
     ),
   );
-  return [...cases, ...shownChecks(program, shown), ...noticeChecks(program, shown), ...findChecks(program, shown)];
+  return [
+    ...cases,
+    ...choiceChecks(program, shown),
+    ...availabilityChecks(program, shown),
+    ...shownChecks(program, shown),
+    ...noticeChecks(program, shown),
+    ...findChecks(program, shown),
+  ];
 }

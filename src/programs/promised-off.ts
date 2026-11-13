@@ -1,6 +1,5 @@
 // What a person sees of what they cannot do, and what they may prefer not to see: checked for every tool and act.
 import { ok, strictEqual } from "node:assert/strict";
-import type { Hideable } from "../catalogs/acts.ts";
 import type { Shown } from "../surface/bridge/house-ports.ts";
 import { genericTexts as generic } from "../texts/generic-surface.texts.ts";
 import { promiseTexts as said } from "../texts/promises.texts.ts";
@@ -8,20 +7,12 @@ import { surfaceTexts as surface } from "../texts/surface.texts.ts";
 import type { Case, Composition, ProgramTool } from "../tools/promises.ts";
 import type { Program } from "../tools/tool-contract.ts";
 import type { Choice } from "../surface/screen.ts";
-import { actRow, goTo, menuRows, seated, type, view, type Seat } from "./promised-keys.ts";
+import { actRow, goTo, menuRows, seated, type, view } from "./promised-keys.ts";
+import { prefer } from "./promised-preferences.ts";
+export { prefer } from "./promised-preferences.ts";
+import { firstUnavailable } from "./promised-availability.ts";
 import { cast, given, label, staged, type Aim, type Check } from "./promised-stage.ts";
 
-const preferences = generic.preferences;
-/** A preference set the way a person sets it: Preferences from the Menu, the row of what to hide, and the answer. */
-export async function prefer<X extends Program>({ router }: Seat<X>, what: Hideable, hide: boolean): Promise<void> {
-  type(router, preferences.key);
-  strictEqual(router.screen(view).title, preferences.name);
-  type(router, preferences[what].key + (hide ? preferences.hide.key : preferences.show.key));
-  await router.idle();
-  router.send({ kind: "cancel" });
-  router.send({ kind: "menu" });
-  strictEqual(router.screen(view).title, surface.menu);
-}
 /** A tool nobody gave you is on your Menu all the same, or listed in the tool it lives in: off, saying why, and its
  * key opens nothing. It leaves only for who prefers not to see what is not theirs, and comes back when they prefer
  * to see it again. */
@@ -60,7 +51,8 @@ function hiddenCheck<X extends Program>(program: Composition<X>, shown: Shown<X>
       try {
         await prefer(seat, "off", true);
         goTo(seat, aim.tool.id, on);
-        const cannot = aim.act.offered?.(seat.state(), on, seat.now()) !== undefined;
+        const cannot =
+          (aim.act.offered?.(seat.state(), on, seat.now()) ?? firstUnavailable(seat, aim, on)) !== undefined;
         strictEqual(actRow(seat, aim, on) === undefined, cannot, said.hiddenWrong(aim.name));
         const hidden = JSON.stringify(seat.router.screen(view).body);
         seat.router.send({ kind: "menu" });

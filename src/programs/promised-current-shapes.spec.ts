@@ -99,7 +99,11 @@ describe("normalized current text", () => {
 describe("a current thing among references", () => {
   it("skips it on opening, by number and while searching, without showing an error", () =>
     staged(
-      program(object({ sale: thing("Venta", "sales") }), { sale: "sales/s1" }, { sale: "sales/s2" }),
+      program(
+        object({ sale: thing("Venta", "sales", undefined, undefined, "sin ventas") }),
+        { sale: "sales/s1" },
+        { sale: "sales/s2" },
+      ),
       async ({ house }) => {
         await given(house(), "sales", [
           { act: "register", input: { sale: "s1", total: 100 } },

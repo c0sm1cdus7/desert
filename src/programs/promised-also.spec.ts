@@ -99,17 +99,18 @@ describe("a program whose acts reach across its tools", () => {
     expect(press("50\r")).toEqual(["Cobrar", "Venta s1", "Monto $ 0,50", "Propina · opcional"]);
   });
 
-  it("says there is nothing to pick among where its tool has none, and takes nothing but leaving", () => {
+  it("closes an action at its menu when there is no thing to choose", () => {
     const rig = shopRig({ registry: chargingRegistry });
     const router = startRouter({ tools: houseTools(rig.ports("ana"), shopShown), bar: () => bar });
     closing.push(router, rig);
-    for (const text of ["p", "c", " ", "1", "\r"]) router.send(keyOf(text));
-    const { title, body, hints } = router.screen({ rows: 40 });
-    expect([title, body.kind === "thread" ? body.options : []]).toEqual([
-      "Cobrar",
-      [{ title: "Sin ventas.", still: true, tone: "t3" }],
-    ]);
-    expect(hints.map(hint => hint.does)).toEqual(["cancelar"]);
+    router.send(keyOf("p"));
+    const before = router.screen({ rows: 40 });
+    expect(before.title).toBe("Pagos");
+    expect(before.body.kind === "list" && before.body.stacks.flatMap(stack => stack.rows)).toContainEqual(
+      expect.objectContaining({ title: "cobrar", off: true, detail: "sin ventas para cobrar", key: "c" }),
+    );
+    router.send(keyOf("c"));
+    expect(router.screen({ rows: 40 })).toEqual(before);
   });
 
   it("offers on a thing what another tool does with it, starting with what the thing already says", async () => {
@@ -137,11 +138,11 @@ describe("an act that takes only some things of another tool", () => {
   for (const check of promisedChecks(narrowShop)) it(check.name, check.run);
   for (const check of walkedChecks(narrowShop, shopShown)) it(check.name, check.run);
 
-  it("offers only those where one is picked, also to who looks for one, and takes no other for an answer", () => {
+  it("shows rejected things with their reason, including in search, and never takes them", () => {
     const { press } = seat("ana", narrowRegistry);
-    expect(press("pc")).toEqual(["Cobrar", "Venta", "s1 | $ 1500"]);
-    expect(press(" s")).toEqual(["Cobrar", "Venta", "› s", "s1 | $ 1500"]);
-    expect(press("2")).toEqual(["Cobrar", "Venta", "› s2", "Sin resultados."]);
+    expect(press("pc")).toEqual(["Cobrar", "Venta", "s1 | $ 1500", "s2 | venta menor a mil"]);
+    expect(press(" s")).toEqual(["Cobrar", "Venta", "› s", "s1 | $ 1500", "s2 | venta menor a mil"]);
+    expect(press("2")).toEqual(["Cobrar", "Venta", "› s2", "s2 | venta menor a mil"]);
   });
 
   it("refuses one it does not take through any door, before it runs, and takes one it does", () => {
@@ -149,7 +150,7 @@ describe("an act that takes only some things of another tool", () => {
     rig.attend("ana", "payments");
     const small = rig.act("ana", "charge", { sale: "sales/s2", amount: 50 }, "payments");
     const large = rig.act("ana", "charge", { sale: "sales/s1", amount: 500 }, "payments");
-    expect(small).toMatchObject({ status: "rejected", reason: "no es de lo que se puede elegir" });
+    expect(small).toMatchObject({ status: "rejected", reason: "venta menor a mil" });
     expect(large.status).toBe("accepted");
   });
 });

@@ -146,6 +146,13 @@ export const maskOf = (field: Field | null, answer: string): string => {
   if (answer === "") return "";
   return field && "mask" in field ? field.mask.shown(answer) : answer;
 };
+/** Recheck the cursor after opening has loaded the initial marks. */
+export const opening = <W extends Walk>(tools: readonly Tool[], walk: W, answer?: string): W => {
+  const result = { ...walk, ...opened(fieldOf(tools, walk), answer) };
+  const field = fieldOf(tools, result);
+  const options = field?.kind === "pick" ? field.found("") : optionsOf(field);
+  return options[result.at]?.off ? { ...result, at: options.findIndex(option => !option.off) } : result;
+};
 /** Whether what is written can be sent: it is valid, and where it is all the act asks, it is not what the datum
  * already is. Writing the same again would change nothing. */
 export const validOf = (field: Field | null, typed: string): boolean =>
@@ -187,5 +194,5 @@ export function begin(tools: readonly Tool[], tool: string, act: string, target?
   const after = until === undefined ? next(answers.slice(0, from + 1)) : null;
   const lone = today && (until === undefined ? !after || after.kind === "confirm" : until - from === 1);
   const walk: Walk = { ...bare, asked, ...(lone ? { lone: true as const } : {}) };
-  return { ...walk, ...opened(fieldOf(tools, walk), answers[from]) };
+  return opening(tools, walk, answers[from]);
 }
