@@ -1741,7 +1741,7 @@
     },
     {
       "id": 197,
-      "rule": "Un almacenamiento tiene un solo escritor por ruta canónica, también por enlaces simbólicos, entre hilos y entre procesos. Un rechazo no toca al dueño; al morir el dueño, otro abre sin intervención. El PID del candado anterior no acredita propiedad. Los enlaces duros y los simbólicos colgantes se rechazan.",
+      "rule": "Un almacenamiento tiene un solo escritor por ruta canónica, también por enlaces simbólicos, entre hilos y entre procesos. Un rechazo local, incluso desde mantenimiento, conserva la exclusión frente a un proceso posterior; solo SQLite abre y cierra sus archivos. Al morir el dueño, otro abre sin intervención. Antes de escribir y confirmar se verifica la identidad del auxiliar: si fue borrado o reemplazado, WriterLeaseLost impide escribir y guardar plegados en esa instancia. journal.lock no se crea ni se lee: se limpia al adquirir, nunca al cerrar. Los enlaces duros y los simbólicos colgantes se rechazan.",
       "from": "13/11 · auditoría A03 y carrera entre procesos; tercer diseño decidido",
       "guarantee": "spec",
       "evidence": [
@@ -1751,12 +1751,16 @@
         "src/adapters/storage/writer-identity.spec.ts",
         "src/adapters/storage/writer-workers.spec.ts",
         "src/adapters/storage/writer-processes.spec.ts",
-        "src/adapters/storage/writer-failures.spec.ts"
+        "src/adapters/storage/writer-failures.spec.ts",
+        "src/adapters/storage/writer-rejection.spec.ts",
+        "src/adapters/storage/writer-loss.spec.ts",
+        "src/adapters/storage/database-locks.spec.ts",
+        "src/adapters/storage/copy-journal.spec.ts"
       ]
     },
     {
       "id": 198,
-      "rule": "El estado reabierto y el reloj son el registro plegado: cada recorrido y registro conservado los compara con una apertura sin plegados guardados. El formato tiene versión explícita, descarta el grupo incompatible y exige continuidad de secuencia. Un grupo se guarda entero y solo después de restaurarse correctamente.",
+      "rule": "El estado reabierto y el reloj son el registro plegado: cada recorrido y registro conservado los compara con una apertura sin plegados guardados. El formato 3 exige la identidad persistente del propio registro, asignada al nacer o al abrir uno anterior, además de la versión de cálculos y la continuidad de secuencia. Un plegado ajeno se reconstruye. Cada descarte explica su motivo como aviso en los diagnósticos de la casa; el grupo incompatible se reconstruye entero. Un grupo se guarda entero y solo después de restaurarse correctamente. Una alteración manual de archivos queda fuera de la garantía.",
       "from": "13/11 · auditoría A03; recuperación de los plegados incompletos anteriores",
       "guarantee": "derived",
       "evidence": [
@@ -1767,7 +1771,11 @@
         "src/adapters/storage/writer-recovery.spec.ts",
         "src/adapters/storage/writer-failures.spec.ts",
         "src/programs/promised-stage.ts",
-        "src/programs/kept-journals.ts"
+        "src/programs/kept-journals.ts",
+        "src/adapters/storage/journal-identity.ts",
+        "src/adapters/storage/snapshot-origin.spec.ts",
+        "src/adapters/storage/snapshot-neighbors.spec.ts",
+        "src/programs/storage-notices.spec.ts"
       ]
     },
     {

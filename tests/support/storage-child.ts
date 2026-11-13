@@ -1,27 +1,27 @@
-// Real processes meet before opening; the audit pause preserves the actual filesystem observation.
-import fs from "node:fs";
-import { syncBuiltinESMExports } from "node:module";
+// Real processes stop immediately before SQLite acquires the sidecar, without a production test hook.
+import { existsSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
 import { join } from "node:path";
+import { journalTexts } from "../../src/texts/journal.texts.ts";
 import { shop } from "./shop.ts";
 const [file, barrier, role, mode] = process.argv.slice(2);
 if (!file || !barrier || !role) throw new Error("Missing child fixture arguments");
-const exists = fs.existsSync;
+const exec: unknown = Reflect.get(DatabaseSync.prototype, "exec");
+if (typeof exec !== "function") throw new Error("SQLite exec is missing");
 let first = true;
-if (mode === "audit") {
-  fs.existsSync = path => {
-    const observed = exists(path);
-    if (first && String(path).endsWith("/journal.lock")) {
+if (mode === "lease") {
+  DatabaseSync.prototype.exec = function (sql) {
+    if (first && sql === journalTexts.writerLeaseSql) {
       first = false;
-      process.send?.(`observed:${String(observed)}`);
+      process.send?.("acquiring");
       const end = Date.now() + 15_000;
-      while (!exists(join(barrier, `${role}.go`))) {
-        if (Date.now() > end) throw new Error("Audit barrier expired");
+      while (!existsSync(join(barrier, `${role}.go`))) {
+        if (Date.now() > end) throw new Error("Lease barrier expired");
         Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 5);
       }
     }
-    return observed;
+    Reflect.apply(exec, this, [sql]);
   };
-  syncBuiltinESMExports();
 }
 const { SqliteJournal } = await import("../../src/adapters/storage/journal-store.ts");
 let journal: InstanceType<typeof SqliteJournal> | undefined;

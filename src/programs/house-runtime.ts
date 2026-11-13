@@ -4,6 +4,7 @@ import { defectReporter } from "../tools/failures/defect-reporter.ts";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { SecretVault } from "../adapters/secrets/secret-vault.ts";
+import { storageNotices } from "../adapters/storage/storage-notices.ts";
 import { SqliteJournal } from "../adapters/storage/journal-store.ts";
 import { privateDirectoryMode, type ViewLimits } from "../catalogs/levers.ts";
 import { createHouse, identityView, type Creation } from "../house/house.ts";
@@ -56,7 +57,8 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
   if (!by) throw new Error("An explicit identity is required");
   if (ownerless(options).length) throw new Error(`No tool keeps the parts ${ownerless(options).join(", ")}`);
   mkdirSync(home, { recursive: true, mode: privateDirectoryMode });
-  const journal = new SqliteJournal(join(home, "journal.sqlite"), words);
+  const notices = storageNotices(by);
+  const journal = new SqliteJournal(join(home, "journal.sqlite"), words, notices.warn);
   const secrets = new SecretVault<X>(join(home, "secrets.sqlite"), words.event);
   const bus = busOf<X>(journal, time, emission => {
     secrets.capture(emission, registry);
@@ -75,6 +77,7 @@ export function startHouse<X extends Program>(home: string, options: HouseOption
     });
   try {
     const { state, clock } = houseProjections(journal, options);
+    notices.attach(entry => bus.emit(entry));
     const tools = startTools({ ...ports, bus, secrets, registry, state, now: () => time.now() });
     if (!state().house.admin) createHouse(bus, creation);
     stops.push(tools.stop, startClock(bus, time, clock(), by));

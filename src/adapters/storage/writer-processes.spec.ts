@@ -1,5 +1,5 @@
 // A rejected child cannot disturb its owner; the OS releases ownership even without a close.
-import { mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, existsSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, it } from "vitest";
 import { journalKept } from "./journal-store.ts";
@@ -7,45 +7,43 @@ import { journalTexts } from "../../texts/journal.texts.ts";
 import { contender } from "../../../tests/support/storage-process.ts";
 import { home, open, fold } from "../../../tests/support/storage-rig.ts";
 
-async function releaseObserved(children: ReturnType<typeof contender>[], results: unknown[], root: string) {
-  for (const [n, result] of results.entries()) {
-    if (result !== "observed:false") continue;
-    writeFileSync(join(root, `${n}.go`), "");
-    results[n] = await children[n]?.next();
-  }
+async function releaseAcquiring(children: ReturnType<typeof contender>[], results: unknown[], root: string) {
+  expect(results).toEqual(children.map(() => "acquiring"));
+  children.forEach((_, n) => writeFileSync(join(root, `${n}.go`), ""));
+  return Promise.all(children.map(c => c.next()));
 }
 
 it.each([
   { mode: "plain", alias: false },
-  { mode: "audit", alias: false },
+  { mode: "lease", alias: false },
   { mode: "plain", alias: true },
-  { mode: "audit", alias: true },
+  { mode: "lease", alias: true },
 ])(
   "exactly one process wins simultaneous acquisition ($mode, alias=$alias)",
   async ({ mode, alias }) => {
-    // The audit interleaving reproduces the old race deterministically; ordinary starts exercise scheduling too.
-    const rounds = mode === "audit" ? 3 : 12;
+    // The barrier stops every child immediately before SQLite takes the writer lease; plain starts vary scheduling.
+    const rounds = mode === "lease" ? 3 : 12;
     for (let round = 0; round < rounds; round++) {
       const root = home();
       const file = join(root, "journal.sqlite");
       const link = join(home(), "alias");
       symlinkSync(root, link, "dir");
       const other = join(link, "journal.sqlite");
-      const children = Array.from({ length: mode === "audit" ? 2 : 4 }, (_, n) =>
+      const children = Array.from({ length: mode === "lease" ? 2 : 4 }, (_, n) =>
         contender(alias && n % 2 ? other : file, root, String(n), mode),
       );
       try {
         expect(await Promise.all(children.map(c => c.next()))).toEqual(children.map(() => "ready"));
         children.forEach(c => c.send("open"));
-        const results = await Promise.all(children.map(c => c.next()));
-        await releaseObserved(children, results, root);
+        let results = await Promise.all(children.map(c => c.next()));
+        if (mode === "lease") results = await releaseAcquiring(children, results, root);
         expect(results.filter(r => r === "opened")).toHaveLength(1);
         expect(results.filter(r => r === journalTexts.locked)).toHaveLength(children.length - 1);
         const owner = children[results.indexOf("opened")];
         if (!owner) throw new Error("No owner");
-        const lock = readFileSync(join(root, "journal.lock"), "utf8");
+        expect(existsSync(join(root, "journal.lock"))).toBe(false);
         await Promise.all(children.filter(c => c !== owner).map(c => c.stop()));
-        expect(readFileSync(join(root, "journal.lock"), "utf8")).toBe(lock);
+        expect(existsSync(join(root, "journal.lock"))).toBe(false);
         owner.send("write");
         expect(await owner.next()).toBe("wrote");
         await owner.stop();

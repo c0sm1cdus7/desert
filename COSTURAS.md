@@ -150,12 +150,17 @@ Franco: «una regla sin garantía es un deseo». Cada regla aprobada tiene su ga
 `SqliteJournal` resuelve el archivo canónico y adquiere una transacción SQLite auxiliar antes de abrir el registro.
 `journalKept` usa la misma exclusión, incluso cuando solo consulta los datos del arranque; `journalReader` abre por
 la misma identidad sin tomar la exclusión de escritor. `startHouse` hereda este contrato sin cambiar su firma.
-La transición desde la versión anterior exige detener todos los procesos; el puente `journal.lock` nunca autoriza
-una apertura por su PID. El auxiliar no se elimina: la exclusión termina al cerrar su conexión o morir el proceso.
+La transición desde la versión anterior exige detener todos los procesos. Se retira a propósito el puente
+`journal.lock`: no se crea ni se lee, y el dueño lo limpia solo después de adquirir la exclusión, nunca al cerrar.
+El auxiliar no se elimina: la exclusión termina al cerrar su conexión o morir el proceso. Una eliminación o
+sustitución externa hace que el dueño rechace nuevas escrituras con `WriterLeaseLost` y libere al cerrar sin guardar.
+Todos los descriptores de las bases, incluidas las copias de registros conservados, quedan a cargo de SQLite.
 
 Los hechos anteriores no cambian. Los plegados de formato anterior se descartan juntos y se reconstruyen; los de
-formato 2 tienen secuencia segura dentro del registro y cada paso exige el siguiente número. El guardado del grupo
+formato 3 llevan la identidad persistente de su registro y una secuencia segura dentro de él y cada paso exige el siguiente número. El guardado del grupo
 es atómico y una restauración fallida no publica plegados. La decisión de compatibilidad queda concentrada en
 `snapshot-format.ts`, que también exige la identidad de cálculos del programa y de la base (A04).
+Cada descarte deja un aviso con motivo en stderr; al restaurar la casa, también en su registro de diagnósticos.
+La identidad se asigna al abrir registros anteriores. Una alteración manual de archivos queda fuera de la garantía.
 La función `projectionVersion` obtiene una huella de árboles de código y Node al componer. Una restauración
 fallida impide guardar plegados durante toda la vida de esa instancia, aun si después logra reintentarlo.

@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { serialize } from "node:v8";
+import { deserialize, serialize } from "node:v8";
 import { DatabaseSync } from "node:sqlite";
 import { expect, it, vi } from "vitest";
 import { ProjectionCache } from "../../journal/projections.ts";
@@ -15,10 +15,13 @@ const seed = () => {
   journal.close();
   return file;
 };
-const replace = (file: string, value: unknown) => {
+const replace = (file: string, value: object, current = false) => {
   const db = new DatabaseSync(file);
   try {
-    db.prepare("update snapshots set state = ?").run(serialize(value));
+    const bytes = db.prepare("select state from snapshots").get()?.state;
+    const saved: unknown = bytes instanceof Uint8Array ? deserialize(bytes) : undefined;
+    const prior = current && typeof saved === "object" && saved !== null ? saved : {};
+    db.prepare("update snapshots set state = ?").run(serialize({ ...prior, ...value }));
   } finally {
     db.close();
   }
@@ -43,7 +46,7 @@ it.each([0, 1, 2, 3, -1, 0.5, Number.MAX_SAFE_INTEGER + 1])(
 
 it("rejects a cache beyond the journal even when its format is current", () => {
   const file = seed();
-  replace(file, { version: 2, identity: "", seq: 3, state: ["right"] });
+  replace(file, { seq: 3, state: ["right"] }, true);
   expect(watch(open(file))()).toEqual(["left", "right"]);
 });
 
@@ -142,7 +145,7 @@ it.each([-1, 0.5, Number.MAX_SAFE_INTEGER + 1, NaN, Infinity, "2", undefined])(
   "discards a current cache with invalid sequence %s",
   seq => {
     const file = seed();
-    replace(file, { version: 2, identity: "", seq, state: ["right"] });
+    replace(file, { seq, state: ["right"] }, true);
     expect(watch(open(file))()).toEqual(["left", "right"]);
   },
 );
@@ -154,7 +157,13 @@ it("resets a valid zero-position sibling when another cache is incompatible", ()
   try {
     db.prepare("insert into snapshots values (?, ?)").run(
       "sales",
-      serialize({ version: 2, identity: "", seq: 0, state: ["wrong"] }),
+      serialize({
+        version: 3,
+        identity: "",
+        journal: db.prepare("select id from journal_identity").get()?.id,
+        seq: 0,
+        state: ["wrong"],
+      }),
     );
     db.prepare("insert into snapshots values (?, ?)").run("counts", serialize({ seq: 0, state: 42 }));
   } finally {

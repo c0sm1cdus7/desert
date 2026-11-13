@@ -37,7 +37,7 @@ const corrupt = (file: string, version: boolean) => {
     const saved: unknown = deserialize(row.state);
     if (typeof saved !== "object" || saved === null || !("seq" in saved)) throw new Error("No fixture sequence");
     db.prepare("update snapshots set state = ? where name = ?").run(
-      serialize({ ...(version ? { ...saved, version: 2 } : {}), seq: saved.seq, state: "incomplete" }),
+      serialize({ ...(version ? saved : {}), seq: saved.seq, state: "incomplete" }),
       row.name,
     );
   } finally {

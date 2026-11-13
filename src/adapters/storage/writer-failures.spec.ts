@@ -1,5 +1,5 @@
 // Failed opens and failed saves release only their own lease, and never publish half a projection group.
-import { existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { serialize } from "node:v8";
@@ -23,7 +23,7 @@ it("resolves a parent alias before creating the journal, and refuses a dangling 
   expect(existsSync(missing)).toBe(false);
 });
 
-it("releases after journal construction or legacy bridge creation fails", () => {
+it("releases after journal construction or obsolete bridge cleanup fails", () => {
   const root = home();
   const file = join(root, "journal.sqlite");
   writeFileSync(file, "not sqlite");
@@ -82,7 +82,7 @@ it("failed restore and close without restore cannot overwrite the previous saved
   }
 });
 
-it("a refused contender changes neither the owner's cache nor its legacy bridge", () => {
+it("a refused contender changes neither the owner's cache nor an obsolete bridge", () => {
   const root = home();
   const file = join(root, "journal.sqlite");
   const writer = open(file);
@@ -91,10 +91,10 @@ it("a refused contender changes neither the owner's cache nor its legacy bridge"
   const db = new DatabaseSync(file, { readOnly: true });
   try {
     const before = db.prepare("select * from snapshots").all();
-    const lock = readFileSync(join(root, "journal.lock"), "utf8");
+    writeFileSync(join(root, "journal.lock"), "obsolete");
     expect(() => open(file)).toThrow("already open");
     expect(db.prepare("select * from snapshots").all()).toEqual(before);
-    expect(readFileSync(join(root, "journal.lock"), "utf8")).toBe(lock);
+    expect(existsSync(join(root, "journal.lock"))).toBe(true);
     writer.append(sale("tail"), 0);
     expect(state()).toHaveLength(101);
   } finally {

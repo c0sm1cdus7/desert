@@ -1,7 +1,8 @@
+import { copyJournal } from "../adapters/storage/copy-journal.ts";
 // The journals a program keeps of what organizations wrote with it: each still opens with the program of today.
 // Every fact is read and folds from the first, and every thing is read as whoever administers it reads it.
 import { deepStrictEqual, ok } from "node:assert/strict";
-import { copyFileSync, existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { checkReopenedState } from "../adapters/storage/reopened-state.ts";
@@ -54,7 +55,7 @@ async function opened<X extends Program, R>(
 ): Promise<R> {
   const home = mkdtempSync(join(tmpdir(), "desert-kept-"));
   try {
-    copyFileSync(file, join(home, "journal.sqlite"));
+    copyJournal(file, join(home, "journal.sqlite"));
     const { runner, last } = journalKept(join(home, "journal.sqlite"));
     ok(runner, said.keptEmpty);
     checkReopenedState<X>(join(home, "journal.sqlite"), { ...kept.program, by: runner });

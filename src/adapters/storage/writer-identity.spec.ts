@@ -96,7 +96,7 @@ it("another process cannot write through the directory alias", () => {
   expect(result.status, result.stderr.toString()).toBe(0);
 });
 
-it("independent files in one directory keep their leases even when the legacy bridge disappears", () => {
+it("independent files in one directory keep their leases when either owner closes", () => {
   const root = home();
   const left = open(join(root, "left.sqlite"));
   const rightFile = join(root, "right.sqlite");

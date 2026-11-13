@@ -1,7 +1,8 @@
+import { copyJournal } from "../adapters/storage/copy-journal.ts";
 // Compare a real upgrade, preserving previous folds, with an independent full replay before any boot or tools.
 import { journalTexts } from "../texts/journal.texts.ts";
 import { deepStrictEqual, ok } from "node:assert/strict";
-import { copyFileSync, mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { journalKept, SqliteJournal } from "../adapters/storage/journal-store.ts";
@@ -20,7 +21,7 @@ export function keptUpgrade<X extends Program>(program: Composition<X>, file: st
         const home = mkdtempSync(join(tmpdir(), "desert-upgrade-"));
         try {
           const copy = join(home, "journal.sqlite");
-          copyFileSync(file, copy);
+          copyJournal(file, copy);
           const { runner, previous } = journalKept(copy, false);
           ok(previous, journalTexts.previousRequired(name));
           const journal = new SqliteJournal(copy, program.words);

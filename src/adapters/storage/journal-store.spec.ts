@@ -1,6 +1,6 @@
 // SQLite round trips preserve envelopes, reducer results and causal identity; one open journal per house.
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -146,7 +146,7 @@ describe("journal lock", () => {
   it("refuses a second open of the same house until the first one closes", () => {
     const { file, lock } = house();
     const first = open(file);
-    expect(readFileSync(lock, "utf8")).toBe(String(process.pid));
+    expect(existsSync(lock)).toBe(false);
     expect(() => open(file)).toThrow(journalTexts.locked);
     first.close();
     expect(existsSync(lock)).toBe(false);
@@ -157,7 +157,7 @@ describe("journal lock", () => {
     const { file, lock } = house();
     writeFileSync(lock, String(process.ppid));
     const journal = open(file);
-    expect(readFileSync(lock, "utf8")).toBe(String(process.pid));
+    expect(existsSync(lock)).toBe(false);
     journal.close();
     expect(existsSync(lock)).toBe(false);
   });
@@ -170,16 +170,16 @@ describe("journal lock", () => {
     const { file, lock } = house();
     writeFileSync(lock, holder);
     const journal = open(file);
-    expect(readFileSync(lock, "utf8")).toBe(String(process.pid));
+    expect(existsSync(lock)).toBe(false);
     journal.close();
     expect(existsSync(lock)).toBe(false);
   });
 
-  it("releases its bridge by ownership even if its PID text changed", () => {
+  it("ignores a legacy bridge written after ownership and never removes it on close", () => {
     const { file, lock } = house();
     const journal = open(file);
     writeFileSync(lock, String(process.ppid));
     journal.close();
-    expect(existsSync(lock)).toBe(false);
+    expect(existsSync(lock)).toBe(true);
   });
 });

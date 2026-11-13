@@ -458,12 +458,35 @@ recupera lo que el registro conservó aunque el estado guardado estuviera incomp
 
 El sistema libera la exclusión si el dueño muere, incluso con SIGKILL. No hay que borrar candados ni buscar un
 PID. El archivo auxiliar `journal.sqlite.writer.sqlite` debe permanecer junto al registro: no se borra para
-abrir. `journal.lock` queda como puente para la versión anterior; su contenido no prueba quién es dueño.
+abrir. Borrar ese archivo con la organización abierta rompe la exclusión; reemplazarlo también. Otro proceso
+podría tomar el archivo nuevo. Antes de escribir y antes de confirmar una transacción, el dueño comprueba que
+la ruta conserva el mismo dispositivo e inodo: si no, rechaza con `WriterLeaseLost`, código
+`WRITER_LEASE_LOST`, revierte la transacción y deja de escribir durante toda esa instancia. El cierre libera
+recursos, sin guardar plegados, y también informa esa pérdida. Hay que cerrar y volver a abrir. Esta comprobación
+no autoriza a modificar archivos mientras la organización está abierta ni sincroniza cambios externos a SQLite.
 
-Los plegados guardados tienen formato 2 y se aceptan en un solo punto (`journal/snapshot-format.ts`). Un formato
-incompatible o una secuencia inválida obliga a reconstruir el grupo entero. Un salto al plegar aborta toda la
-escritura; el grupo se guarda en una transacción después de restaurarse. La identidad incluye la versión de cálculos del programa y la de la base, además del vocabulario y los iniciales.
-Un plegado sin esa identidad se reconstruye una vez.
+`journal.lock` ya no es un puente: no se crea ni se lee. Uno anterior se ignora y se borra después de tomar la
+exclusión del auxiliar; el cierre no lo toca. Este cambio de contrato modifica a propósito las pruebas y los
+papeles que antes exigían el puente. Actualizar sigue exigiendo detener todos los procesos.
+
+Los plegados guardados tienen formato 3 y se aceptan en un solo punto (`journal/snapshot-format.ts`). Cada
+registro recibe una identidad propia persistente al nacer; uno anterior la recibe en su primera apertura de escritura
+o mantenimiento con esta versión. Cada plegado lleva esa identidad: copiar solo un plegado de otra organización obliga a reconstruir.
+Una copia completa del registro conserva su identidad, y se puede mover o restaurar sin perderla.
+Un formato incompatible o una secuencia inválida obliga a reconstruir el grupo entero. Un salto al plegar aborta
+toda la escritura; el grupo se guarda en una transacción después de restaurarse. La identidad de cálculos incluye
+la versión del programa y de la base, además del vocabulario y los iniciales. Un plegado sin esas identidades se
+reconstruye una vez. Un plegado alterado a mano por alguien con acceso a los archivos sigue fuera de lo que se garantiza.
+
+Cada descarte dice el nombre del plegado y el motivo: formato anterior o desconocido, bytes ilegibles, secuencia
+inválida o adelantada, otro registro, cálculos distintos, nombre retirado o un grupo dependiente incompleto.
+Son avisos `SAVED_FOLD_REBUILT`, no fallas. Durante el arranque salen por la salida de diagnósticos (stderr,
+`StorageNotice`); cuando la casa termina de restaurarse quedan como entradas silenciosas con diagnóstico en su
+registro, sin rechazo de una acción. Una apertura sin descartes no repite el aviso. Quien usa `SqliteJournal`
+directamente recibe el aviso por stderr y puede pasar un receptor de diagnósticos como tercer argumento.
+
+Solo SQLite abre y cierra los archivos del auxiliar, del registro y de la bóveda. Las comprobaciones de registros
+conservados también copian mediante SQLite, incluyendo WAL, sin abrir descriptores propios sobre el registro.
 
 Las pruebas derivadas de cada caso y recorrido comparan estado completo y reloj tras cerrar y abrir con otra
 apertura después de borrar los plegados guardados. Los registros conservados hacen esa comparación antes de

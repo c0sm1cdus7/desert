@@ -1,4 +1,5 @@
 // A local projection cache preserves Maps and Sets; the journal remains the source of truth.
+import { journalTexts } from "../texts/journal.texts.ts";
 import { createHash } from "node:crypto";
 import { serialize } from "node:v8";
 import { savedFold, encodeFold } from "./snapshot-format.ts";
@@ -9,6 +10,9 @@ export class ProjectionCache<S, E extends Placed> {
   readonly compatible: boolean;
   private readonly initial: S;
   private readonly identity: string;
+  private readonly journal: string;
+  private readonly discarded: (reason: string) => void;
+  private saved = false;
   private readonly reduce: (state: S, event: E) => S;
   constructor(
     initial: S,
@@ -16,16 +20,23 @@ export class ProjectionCache<S, E extends Placed> {
     bytes: unknown,
     last = Number.MAX_SAFE_INTEGER,
     identity = "",
+    journal = "",
+    discarded: (reason: string) => void = () => {},
   ) {
     this.initial = initial;
+    this.discarded = discarded;
     this.identity = identity;
+    this.journal = journal;
     this.reduce = reduce;
-    const saved = savedFold<S>(bytes, last, identity);
+    const saved = savedFold<S>(bytes, last, identity, journal, discarded);
     this.compatible = saved !== undefined;
+    this.saved = this.compatible;
     this.state = saved ? saved.state : initial;
     this.seq = saved?.seq ?? 0;
   }
   reset(): void {
+    if (this.saved) this.discarded(journalTexts.dependentFold);
+    this.saved = false;
     this.seq = 0;
     this.state = this.initial;
   }
@@ -36,7 +47,7 @@ export class ProjectionCache<S, E extends Placed> {
     return this.state;
   }
   encode(): Uint8Array {
-    return encodeFold(this.seq, this.state, this.identity);
+    return encodeFold(this.seq, this.state, this.identity, this.journal);
   }
   /** Where it stands now, as a way back to it: what was folded after is forgotten. */
   mark(): () => void {
@@ -53,8 +64,17 @@ export class ProjectionGroup<E extends Placed> {
     string,
     Pick<ProjectionCache<unknown, E>, "seq" | "compatible" | "reset" | "fold" | "encode" | "mark">
   >();
-  add<S>(name: string, initial: S, reduce: (state: S, event: E) => S, bytes: unknown, last: number, identity = "") {
-    const cache = new ProjectionCache(initial, reduce, bytes, last, identity);
+  add<S>(
+    name: string,
+    initial: S,
+    reduce: (state: S, event: E) => S,
+    bytes: unknown,
+    last: number,
+    identity = "",
+    journal = "",
+    discarded: (reason: string) => void = () => {},
+  ) {
+    const cache = new ProjectionCache(initial, reduce, bytes, last, identity, journal, discarded);
     this.caches.set(name, cache);
     return () => cache.state;
   }
